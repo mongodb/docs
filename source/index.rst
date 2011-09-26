@@ -3,18 +3,22 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to MongoDB's documentation!
-===================================
+MMS (MongoDB Monitoring Service)  documentation.
+===============================================
 
-Contents:
+MMS (MongoDB Monitoring Service) is a service created by 10gen
+for monitoring MongoDB deployments. The service collects
+statistics on all key server and hardware indicators and then
+presents the data through an intuitive web interface.
+
+This manual describes the installation and operation of MMS.
+You can answers to common questions in the FAQs, but for all
+other inquiries, don't hesitate to email us at mms@10gen.com.
 
 .. toctree::
    :maxdepth: 2
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
+   overview
+   install
+   usage
+   faq
