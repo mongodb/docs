@@ -2,7 +2,7 @@ MMS Installation Guide
 ======================
 
 This document describes the installation and configuration of the
-MongoDB Monitoring Service or MMS.  The guide also shows :ref:`how to
+MongoDB Monitoring Service or MMS. The guide also shows :ref:`how to
 troubleshoot <troubleshooting>` common installation problems.
 
 .. _mms-requirements:
@@ -64,8 +64,8 @@ Installing the MMS Agent
 
 The agent can run on any system that can connect to the MongoDB
 instances you want to monitor. The agent must be able to connect to
-the MMS servers via port 443. A single agent can monitor multiple
-MongoDB instances.
+the MMS servers by way of port 443. A single agent can monitor
+multiple MongoDB instances.
 
 Unzip the archive and run the agent with the following command: ::
 
@@ -82,7 +82,7 @@ deployments, you will want to daemonize the process and ensure
 that it restarts following a system restart. Your operating system
 likely has a preferred method for managing daemon processes.
 
-As a temporary solution, the following command starts the agent
+As a temporary alternative, the following command will start the agent
 process detached from the current terminal session: ::
 
      nohup python agent.py > /[LOG-DIRECTORY]/agent.log 2>&1 &
@@ -112,7 +112,7 @@ MongoDB instance from the MMS console.
 
 To add a host to MMS, click the "plus" (``+``) button next to the word
 "Hosts," at the top-center of the Hosts page. This raises a query
-element for the hostname, port, and optionally the DB username and DB
+element for the hostname, port, and optionally the DB username and
 password. Provide the necessary information and select "Add."
 
 The agent can discover MongoDB instances and inform MMS of:
@@ -123,17 +123,17 @@ The agent can discover MongoDB instances and inform MMS of:
 
 - Replica sets, after adding any member of the set.
 
-All information about hosts is fetched *from* MMS by the agent. When
-configuring hosts, you may need to wait for several update cycles
-(e.g. 5-10 minutes) to complete the auto-discovery process and host
-identification. The agent reports to MMS every minute. You may have to
-wait several minutes for data and all hosts to appear in the MMS
-console.
+All information about MongoDB infrastructure fetched *from* MMS by the
+agent. When configuring the monitoring environment, you may need to
+wait for several update cycles (e.g. 5-10 minutes) to complete the
+auto-discovery process and host identification. The agent reports to
+MMS every minute. You may have to wait several minutes for data and
+all host information to propagate to the MMS console.
 
 You will find evidence of a working installation in the agent output
-or logs and on the MMS console in the "Hosts," section on the "Agent
-Log" and "Pings" tabs. Once MMS has data, you can view and begin using
-the statistics.
+or logs. For more information, check the MMS console's "Hosts,"
+section in the "Agent Log" and "Pings" tabs. Once MMS has data, you
+can view and begin using the statistics.
 
 .. _troubleshooting:
 
@@ -166,13 +166,7 @@ Next Steps with MMS
 ~~~~~~~~~~~~~~~~~~~
 
 Take this opportunity to explore the MMS interface. Click on a host's
-name to view the data collected by MMS. The title section of the page
-conveys the hostname and port of the monitored server, the type of
-node, shard or replica information, and the version of MongoDB that
-the host runs. In the sub-header area there are a number of controls
-to interact with the data display. Use the "``i``" button at the end
-of this row for more information regarding the graph display.
-
-Continue to the :doc:`usage guide </usage>` for an overview of the MMS
-console. If you have more questions about deployment and
-architectures, consider the :doc:`deployment guide </deployment>`.
+name to view the data collected by MMS. Continue to the :doc:`usage
+guide </usage>` for an overview of the MMS console. If you have more
+questions about deployment and architectures, consider the
+:doc:`deployment guide </deployment>`.
