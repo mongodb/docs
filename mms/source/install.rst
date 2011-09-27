@@ -1,24 +1,26 @@
 MMS Installation Guide
 ======================
 
-This document provides an overview of the MMS installation and
-configuration process so you can monitor your MongoDB environment with
-MMS. This guide also includes basic :ref:`troubleshooting information <troubleshooting>`
-for common issues.
+This document describes how to install and configure MMS.
+The guide also shows :ref:`how to troubleshoot <troubleshooting>`
+common installation problems.
 
 .. _mms-requirements:
 
 Requirements
 ------------
 
-The MMS agent is a Python daemon with very few dependencies. If
-your system runs Python 2.4, however, you may need to install a basic
-libraries that are a part of later 2.x versions of Python. Check your
-Python version with the following command: ::
+1. Python 2.4 or greater.
 
-     python --version
+2. Setup tools.
 
-You will need to install Python's `setup tools <http://pypi.python.org/pypi/setuptools>`_
+3. If running Python 2.4:
+
+4. Pymongo.
+
+The MMS agent is a Python daemon with very few dependencies. However, if
+your system runs Python 2.4, you may need to install a few basic
+ou will need to install Python's `setup tools <http://pypi.python.org/pypi/setuptools>`_
 to continue with the installation. Most platforms have a preferred
 method (e.g. packages, etc.) for installing this dependency.
 
@@ -56,7 +58,7 @@ Hosts," page.
 Because your account has no MMS agents running, you will see an
 informational box. Click the "download agent" link to get the
 agent. This MMS agent download is specifically configured for your
-account. Instructions for manual agent configuration and a link for
+account. (Advanced)Instructions for manual agent configuration and a link for
 the configured agent is on the "Settings," page, under the "agent"
 section.
 
@@ -65,10 +67,12 @@ Installing the MMS Agent
 
 The agent can run on any system that can connect to the MongoDB
 instances you want to monitor. The agent must be able to connect to
-the MMS servers via 443. A single agent can monitor multiple MongoDB
-instances and you can deploy multiple agents to provide greater
+the MMS servers via port 443.
+
+(A single agent can monitor multiple MongoDB
+instances and (advanced) you can deploy multiple agents to provide greater
 resiliency. See the :doc:`deployment <deployment>` documentation for
-more information on strategies for deploying the agent.
+more information on strategies for deploying the agent.)
 
 Unzip the agent's archive and run the agent with the following
 command: ::
@@ -76,26 +80,26 @@ command: ::
      python agent.py
 
 This starts two processes: a parent to monitor the agent daemon and
-perform automatic upgrades and an agent process to collect data.
+perform automatic upgrades and a child process to collect data.
 
 Running the MMS Agent
 ~~~~~~~~~~~~~~~~~~~~~
 
 The above command is sufficient for testing MMS for production
-deployments alternate methods are desirable. Your operating system
-likely has a preferred method for managing daemon processes that will
-be preferable.
+deployments. However, you'll want to daemonize the process and ensure
+that it restarts following a system restart. Your operating system
+likely has a preferred method for managing daemon processes.
 
-As a temporary solution the following command starts the agent process
+As a temporary solution, the following command starts the agent process
 detached from the current terminal session: ::
 
      nohup python agent.py > /[LOG-DIRECTORY]/agent.log 2>&1 &
 
-Replace "``[LOG-DIRECTORY]`` with the directory to your MongoDB log
-directory. This command allows the agent survive the current terminal
+Replace "``[LOG-DIRECTORY]`` with the path to your MongoDB logs.
+This command allows the agent survive the current terminal
 session and writes all messages to the ``agent.log`` file. You may
 include this command in your MongoDB control script or use your
-systems ``/etc/rc.local`` equivalent.
+system's ``/etc/rc.local`` equivalent.
 
 You can now return to the web interface to begin configuring MMS for
 your deployment.
@@ -106,16 +110,17 @@ Working with MMS
 Monitoring Hosts with MMS
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To add hosts to MMS, click the "plus" (``+``) button next to the word
+The MMS agent automatically discovers hosts if the MongoDB instance is running
+on the same host as the agent. Otherwise, you must manually add at least one
+host from your MongoDB cluster via the web console.
+
+To add a host to MMS, click the "plus" (``+``) button next to the word
 "Hosts," at the top-center of the Hosts page. This raises a query
 element for the hostname, port, and optionally the DB username and DB
 password. Provide the necessary information and select the "Add" to
 complete this process.
 
-The MMS agent automatically discovers hosts in many situations. The
-agent informs MMS of database instances when provided with:
-
-- MongoDB instances running on the same host as the agent.
+The agent informs MMS of database instances when provided with:
 
 - Master databases, after adding slave databases.
 
@@ -128,17 +133,19 @@ configuring hosts, you may need to wait for several update cycles
 (e.g. 5-10 minutes) to complete the auto-discovery process and host
 identification.
 
-MMS collects data from agents every minute. Wait several minutes for
-MMS to begin collecting data. When you return to MMS later you will be
-able to view and begin using the statistics.
+The agent reports to the MMS servers every minute. You may have to wait several minutes
+for data and hosts to first appear in the MMS console.
+When you return to MMS later you will be able to view and begin using the statistics.
+
+Is there immediate feedback? How will I know that this is working?
 
 .. _troubleshooting:
 
 Basic Troubleshooting
 ~~~~~~~~~~~~~~~~~~~~~
 
-Consider the following issues if you encounter difficulty wile
-installing the MMS agent.
+Consider the following issues if you encounter difficulty installing the MMS agent.
+
 
 - Make sure that the system running the agent has ``pymongo``
   installed. If your system runs a 2.4.x series Python, verify the
@@ -153,11 +160,14 @@ installing the MMS agent.
 - Allow the agent to run for a 5-10 minutes to allow  host
   discovery and initial data collection.
 
+If running with auth enabled.
 - If the ``mongo`` shell would require database credentials to connect
   to a monitored database, make sure that MMS has these credentials.
 
-Using MMS
-~~~~~~~~~
+- Check the agent logs for errors.
+
+First steps with MMS
+~~~~~~~~~~~~~~~~~~~~
 
 Take this opportunity to explore the MMS interface. Click on a host's
 name to view the data collected by MMS. The title section of the page
