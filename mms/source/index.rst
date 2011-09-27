@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-MMS (MongoDB Monitoring Service)  documentation.
-===============================================
+MMS (MongoDB Monitoring Service) Documentation
+==============================================
 
 MMS (MongoDB Monitoring Service) is a service created by 10gen
 for monitoring MongoDB deployments. The service collects
