@@ -6,14 +6,15 @@
 MMS (MongoDB Monitoring Service) Documentation
 ==============================================
 
-MMS (MongoDB Monitoring Service) is a service created by 10gen
-for monitoring MongoDB deployments. The service collects
-statistics on all key server and hardware indicators and then
-presents the data through an intuitive web interface.
+MMS (MongoDB Monitoring Service) is a service created by 10gen for
+monitoring MongoDB deployments. MMS Collects statistics on all key
+server and hardware indicators and presents this data through an
+intuitive web interface.
 
-This manual describes the installation and operation of MMS.
-You can answers to common questions in the FAQs, but for all
-other inquiries, don't hesitate to email us at mms@10gen.com.
+This manual describes the installation of the MMS agent and operation
+of the MMS web console. You can find answers to common questions in
+the FAQs, but for all other inquiries don't hesitate to email us at
+mms@10gen.com.
 
 .. toctree::
    :maxdepth: 2
@@ -21,4 +22,6 @@ other inquiries, don't hesitate to email us at mms@10gen.com.
    overview
    install
    usage
+   console-use-cases
+   deployment
    faq
