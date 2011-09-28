@@ -5,7 +5,7 @@ This document provides a high level overview of the MMS web console
 and describes the basic functionality. The best way to learn about
 MMS's capabilities is to browse the interface with live data. For
 additional documentation of the MMS console see the :doc:`uses cases
-document </MMS-web-console-use-cases>`_. If have not already, please
+document </console-use-cases>`_. If have not already, please
 :doc:`install the MMS agent </install>`_ before proceeding.
 
 Hosts
