@@ -2,8 +2,8 @@ MMS Installation Guide
 ======================
 
 This document describes the installation and configuration of the
-MongoDB Monitoring Service or MMS. The guide also shows :ref:`how to
-troubleshoot <troubleshooting>` common installation problems.
+MongoDB Monitoring Service or MMS. The guide also provides common
+installation :ref:`troubleshooting <troubleshooting>` suggestions.
 
 .. contents::
 
