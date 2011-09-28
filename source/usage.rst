@@ -5,8 +5,8 @@ This document provides a high level overview of the MMS web console
 and describes the basic functionality. The best way to learn about
 MMS's capabilities is to browse the interface with live data. For
 additional documentation of the MMS console see the :doc:`uses cases
-document </console-use-cases>`_. If you haven't done so already, please
-:doc:`install the MMS agent </install>`_ before proceeding.
+document </console-use-cases>`. If you haven't done so already, please
+:doc:`install the MMS agent </install>` before proceeding.
 
 .. contents::
 
@@ -205,5 +205,5 @@ Next Steps with the MMS Console
 The MMS web console contains a great deal of functionality beyond the
 scope of this overview. Continue to explore the functionality
 addressed above in your own system, with your own data. The ":doc:`MMS
-Console Use Cases </console-use-cases>`_ provides a deeper exploration
+Console Use Cases </console-use-cases>` provides a deeper exploration
 of key usage patterns for the MMS console.

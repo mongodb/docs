@@ -1,7 +1,10 @@
 Deploying the MMS Agent
 =======================
 
-This document needs to address:
+
+
+
+This document needs to: 
 
 - Where to Deploy
   - Required resources
