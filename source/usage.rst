@@ -8,6 +8,8 @@ additional documentation of the MMS console see the :doc:`uses cases
 document </console-use-cases>`_. If you haven't done so already, please
 :doc:`install the MMS agent </install>`_ before proceeding.
 
+.. contents::
+
 Hosts
 -----
 
