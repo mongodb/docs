@@ -39,3 +39,7 @@ documentation.
 - Develop a fixed nomenclature for describing interface elements,
   architectural components (daemons, databases, processes, drivers,
   hosts, mongos' etc.)
+
+  - Referring to proper nouns and capitalization/quoting
+    rules. (i.e. "the "Hosts" page," or "the Hosts page," or "the
+    hosts page")
