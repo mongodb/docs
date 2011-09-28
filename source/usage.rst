@@ -5,28 +5,26 @@ This document provides a high level overview of the MMS web console
 and describes the basic functionality. The best way to learn about
 MMS's capabilities is to browse the interface with live data. For
 additional documentation of the MMS console see the :doc:`uses cases
-document </console-use-cases>`_. If have not already, please
+document </console-use-cases>`_. If you haven't done so already, please
 :doc:`install the MMS agent </install>`_ before proceeding.
 
 Hosts
 -----
 
-The "Hosts" section is the primary location for information gathered
-from monitored objects in the MMS console. There are several tabs that
-contain monitored objects:
+The "Hosts" section is the primary location for monitoring information
+in the MMS console. There are several tabs that contain monitored processes:
 
-- "**Hosts**" contains all ``mongod`` instances that are not
-  Arbiters in replica sets.
+- "**Hosts**" displays all non-arbiter ``mongod`` instances.
 
-- "**Mongos**" contains all ``mongos`` instances. 
+- "**Mongos**" displays all ``mongos`` instances. 
 
-- "**Abiters**" lists the ``mongod`` functioning as Arbiters in
+- "**Abiters**" lists the ``mongod`` processes functioning as arbiters in
   replica sets.
 
 - "**Agents**" lists the MMS agents attached to this MMS account.
 
 The remaining "Host" section tabs contain information about the
-monitoring process and environment. They are:
+monitoring process and environment.
 
 - "**Agent Log**" displays a log of the MMS agent's activity.
 
@@ -34,19 +32,19 @@ monitoring process and environment. They are:
   pings sent to MMS by the agent.
 
 - "**Host Aliases**" shows the mapping between system hostnames and
-  the name provided by the monitored object (e.g. ``mongod`` and
+  the names provided by the monitored process (e.g. ``mongod`` and
   ``mongos``.) In most cases, hosts are automatically aliased during
   auto-discovery. If needed, you may modify and configure the alias
   mapping in the "Settings" section of the console.
 
 All of these interfaces provide a search field in the upper right
-corner to filter the list of objects displayed in real time.
+corner to filter the lists in real time.
 
 Host Views
 ~~~~~~~~~~
 
-All non-arbiter monitored objects linked to in the "Hosts" section,
-link to an overview of the data collected. For each host, MMS provides
+Each non-arbiter processes in the "Hosts" section link to an
+overview of the data collected for that process. On each of these pages, MMS provides
 the following tabs:
 
 - "**DB Stats**," which displays charts using data provide
@@ -76,6 +74,8 @@ TODO how many daily pings does MMS store?
 
 Host Classes
 ~~~~~~~~~~~~
+
+TODO: A host class is...
 
 On the host page, you can view entire hosts classes in one view. By
 selecting an item from the "Cluster" or "Repl Set" columns, you can
