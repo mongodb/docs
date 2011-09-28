@@ -25,8 +25,14 @@ documentation.
 
 - Tense (e.g "this will do foo" vs. "this does foo")
 
+- Contractions or not? (I tend to vote against contractions,)
+
 - RST specific styles/habits: e.g. (h1: =; h2: -; h3: ~; h4: +; h5: ^), 
   (hr: ------; ul-li: -;) link/ref formats; etc.
+
+- Style around UL's. Issues to consider: Item capitalization and
+  terminal punctuation after list items. Integration of lists into
+  sentences. Use of colons around lists.
 
 - Commit message style/requirements and other processes (e.g. trailing
   white space, column wrapping, etc.) 
