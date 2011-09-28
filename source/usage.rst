@@ -16,7 +16,7 @@ in the MMS console. There are several tabs that contain monitored processes:
 
 - "**Hosts**" displays all non-arbiter ``mongod`` instances.
 
-- "**Mongos**" displays all ``mongos`` instances. 
+- "**Mongos**" displays all ``mongos`` instances.
 
 - "**Abiters**" lists the ``mongod`` processes functioning as arbiters in
   replica sets.
@@ -43,9 +43,9 @@ corner to filter the lists in real time.
 Host Views
 ~~~~~~~~~~
 
-Each non-arbiter processes in the "Hosts" section link to an
-overview of the data collected for that process. On each of these pages, MMS provides
-the following tabs:
+Each non-arbiter processes in the "Hosts" section links to an overview
+of the data collected for that process. On each of these pages, MMS
+provides the following tabs:
 
 - "**DB Stats**," which displays charts using data provide
   by the MMS agent.
@@ -72,15 +72,13 @@ TODO how many daily pings does MMS store?
   gathered by the database profiler. See the section on :ref:`database
   profiling <db-profiling>` for more information.
 
-Host Classes
-~~~~~~~~~~~~
+Host Groups
+~~~~~~~~~~~
 
-TODO: A host class is...
-
-On the host page, you can view entire hosts classes in one view. By
-selecting an item from the "Cluster" or "Repl Set" columns, you can
-see a side-by-side comparison of charts from all hosts in a given
-cluster or replica set.
+From the host page, you can display groups of hosts in one view. By
+following a link from the "Cluster" or "Repl Set" columns, you can see
+a side-by-side comparison of charts from all hosts in a given cluster
+or replica set.
 
 .. _db-profiling:
 
