@@ -4,9 +4,9 @@ MMS Console Usage Overview
 This document provides a high level overview of the MMS web console
 and describes the basic functionality. The best way to learn about
 MMS's capabilities is to browse the interface with live data. For
-additional documentation of the MMS console see the :doc:`uses cases
-document </console-use-cases>`. If you haven't done so already, please
-:doc:`install the MMS agent </install>` before proceeding.
+additional documentation of the MMS console see the :doc:`advanced
+usage document </advanced-usage>`. If you haven't done so already,
+please :doc:`install the MMS agent </install>` before proceeding.
 
 .. contents::
 
@@ -41,6 +41,8 @@ monitoring process and environment.
 
 All of these interfaces provide a search field in the upper right
 corner to filter the lists in real time.
+
+.. _host-views:
 
 Host Views
 ~~~~~~~~~~
@@ -112,7 +114,7 @@ Events
 ------
 
 The "Events" section relays information about the MMS agent's
-operations. Possible operations are:
+operations. Possible event types are:
 
 - "**new host**" occurs when the agent identifies a new mongo hosts.
 
@@ -126,10 +128,9 @@ operations. Possible operations are:
   secondary in a replica set.
 
 - "**now primary**" occurs when a ``mongod`` instance becomes
-  primary in a replica set. 
+  primary in a replica set .
 
-TODO check the events.
-TODO get list of events.
+TODO check the events and get list
 
 Alerts
 ------
@@ -149,7 +150,7 @@ Possible alert types as of October 2011 are:
 - "**Host Down**" is triggered when a ``mongod`` or other monitored
   instance restarts or fails to check in to MMS.
 
-- "**Agent Down** is triggered when the agent fails to report to MMS
+- "**Agent Down**" is triggered when the agent fails to report to MMS
   for 2 minutes.
 
 MMS will add Additional alert types in the near future.
@@ -204,6 +205,6 @@ Next Steps with the MMS Console
 
 The MMS web console contains a great deal of functionality beyond the
 scope of this overview. Continue to explore the functionality
-addressed above in your own system, with your own data. The ":doc:`MMS
-Console Use Cases </console-use-cases>` provides a deeper exploration
-of key usage patterns for the MMS console.
+addressed above in your own system, with your own data. The
+":doc:`Advanced MMS Console Usage </advanced-usage>` provides a deeper
+exploration of key usage patterns for the MMS console.

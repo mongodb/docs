@@ -17,11 +17,11 @@ the FAQs, but for all other inquiries don't hesitate to email us at
 mms@10gen.com.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    overview
    install
    usage
-   console-use-cases
+   advanced-usage
    deployment
    faq
