@@ -11,7 +11,7 @@ databases, and other statuses that may occur in MMS.
 Host Types
 ----------
 
-Possible values for the "Type" column in the Hosts page are: 
+The possible values for the "Type" column in the Hosts page are:
 
 - primary
 - secondary
@@ -28,7 +28,7 @@ includes:
 Host Process Types
 ------------------
 
-The kinds of processes that MMS can monitor. 
+MMS can monitor the following alert types:
 
 - ``mongod`` databases
 - ``mongod`` arbiters
@@ -39,7 +39,7 @@ The kinds of processes that MMS can monitor.
 Event Types
 -----------
 
-Possible event types in the Events section of the MMS console:
+Types of events in the Events section of the MMS console:
 
 - new host
 - restart
@@ -50,7 +50,7 @@ Possible event types in the Events section of the MMS console:
 Alert Types
 -----------
 
-Possible alert types as of October 2011 are:
+The available alert types are:
 
 - Old Host Version
 - Host Down 
