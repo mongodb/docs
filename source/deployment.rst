@@ -20,7 +20,7 @@ TODO clarify and fact check resource requirements
 Monitoring Architecture
 -----------------------
 
-Only one Agent will report to MMS at a time, but you can run multiple
+Only one agent will report to MMS at a time, but you can run multiple
 instances of the agent to provide redundancy. Simply repeat the
 installation process in the :doc:`installation guide </install>` for
 each new agent. See instructions for automating the agent installation
@@ -41,17 +41,17 @@ URL: ::
 
 Unzip this archive and edit the ``setings.py`` file. Replace the
 strings "``@API_KEY@``" and "``@SECRET_KEY@``" with the "API" and
-"Secret Keys" for your account from "Settings" page of the MMS
-console.
+"Secret Keys" defined for your account. You can find these
+in the "Settings" page of the MMS console.
 
-You can embed this process in your existing deployment scripts to
+You may embed this process in your existing deployment scripts to
 automatically install or redeploy new agents.
 
 Control Scripts
 ---------------
 
-You may wish to create some sort of control or initialization script
-to control the demonized process. Consider the following resources:
+If you need to create an initialization script
+to control the demonized process, consider the following resources:
 
 - `Ubuntu Boot Up How To <https://help.ubuntu.com/community/UbuntuBootupHowto>`_
 - `Debian Linux Control/Init Scripts <http://wiki.debian.org/LSBInitScripts>`_
@@ -67,4 +67,4 @@ You may also examine the scripts in your system's ``/etc/init.d/`` or
 and Ubuntu and the ``chkconfig`` tool on RedHat related systems to add
 these scripts to the initialization process. Be sure to test the
 control script configuration. It is essential that the agent can be
-started, stopped, and start following a system reboot.
+started, stopped, and restarted following a system reboot.
