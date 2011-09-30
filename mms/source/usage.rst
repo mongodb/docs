@@ -146,7 +146,7 @@ settings.
 Types
 ~~~~~
 
-There are three possible alerts:
+There are three possible alert types:
 
 - "**Old Host Version**" is triggered when the version of ``mongod``
   is out of date.
