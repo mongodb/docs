@@ -30,8 +30,9 @@ bar. From left to right, these are:
 - The hostname and port of the process. This is a link to the raw JSON
   content of the latest information gathered from this host.
 
-- The `host type </reference#host-types>`_. Possible types
-  include: "primary," "secondary," and "standalone."
+- The `host type </reference#host-types>`_. Possible types include:
+  "primary," "secondary," "master," "slave," "standalone,"
+  "recovering," and "unknown."
 
 - Optionally, the name of the replica set to which this process
   belongs. Only replica set members have this value. The name of the
@@ -148,7 +149,7 @@ Advanced Dashboard Creation
 When adding a new dashboard, you can select the "advanced create" to
 create a dashboard that includes a custom selection of charts a
 dynamically assembled list of hosts. From this page, you may create
-new dashboards or add new charts to existing dashboards. You can
+new dashboards or append new charts to existing dashboards. You can
 filter the included processes by `host type </reference#host-types>`_.
 
 Specify the list of hosts to include in this dashboard by selecting a
