@@ -2,8 +2,8 @@ Deploying the MMS Agent
 =======================
 
 The :doc:`installation </install>` document outlines a basic setup
-process for MMS and the agent. By contrast this guide provides a more
-in depth review of deployment and MMS agent configuration.
+process for MMS and the agent. This guide provides a more in depth
+review of deployment and MMS agent configuration.
 
 Resource Requirements
 ---------------------
@@ -23,15 +23,15 @@ Monitoring Architecture
 Only one Agent will report to MMS at a time, but you can run multiple
 instances of the agent to provide redundancy. Simply repeat the
 installation process in the :doc:`installation guide </install>` for
-each new agent. Instructions for automating the agent installation
-follow in the next section.
+each new agent. See instructions for automating the agent installation
+in the next section.
 
 TODO do non-active agents collect data or just wait to get "baton" from mms when active agent goes off line? Recovery? 
 
 Automated Agent Installation
 ----------------------------
 
-The agent you download from the MMS site is automatically configured
+The agent you downloaded from the MMS site is automatically configured
 with the credentials for your account. If you want to automate MMS
 agent deployments from the command line, you will need to manually
 configure the agent. Download an unconfigured agent from the following
