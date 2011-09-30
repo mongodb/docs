@@ -16,19 +16,19 @@ The possible values for the "Type" column in the Hosts page are:
 - primary
 - secondary
 - standalone
-- conf
 - master
 - slave 
 
 The "Host Type" selector on the advanced dashboard creator also
 includes: 
 
+- conf
 - mongos 
 
 Host Process Types
 ------------------
 
-MMS can monitor the following alert types:
+MMS can monitor the process types:
 
 - ``mongod`` databases
 - ``mongod`` arbiters

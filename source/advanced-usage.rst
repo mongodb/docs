@@ -31,7 +31,7 @@ line below the MMS Console's menu bar. From left to right, these are:
   content of the latest information gathered from this host.
 
 - The `host type </reference#host-types>`_. Possible types
-  include: "primary," "secondary," "standalone," and "conf."
+  include: "primary," "secondary," and "standalone."
 
 - Optionally, the name of the replica set to which this process
   belongs. Only replica set members have this value. The name of the

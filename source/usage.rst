@@ -20,6 +20,8 @@ in the MMS console. There are several tabs that contain monitored processes:
 
 - "**Mongos**" displays all ``mongos`` instances.
 
+- "**Conf**" displays all ``conf`` database instances.
+
 - "**Abiters**" lists the ``mongod`` processes functioning as arbiters in
   replica sets.
 
