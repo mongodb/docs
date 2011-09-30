@@ -110,9 +110,10 @@ Working with MMS
 Monitoring Hosts with MMS
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The MMS agent automatically discovers MongoDB processes running
-on the same host as the agent. If running on other hosts, you'll have
-to manually add at least one at least once of this from the MMS console.
+The MMS agent automatically discovers MongoDB processes running on the
+same host as the agent. If running on other hosts, you'll have to
+manually "seed" at least one at least once of this from the MMS
+console.
 
 To add a host to MMS, click the "plus" (``+``) button next to the word
 "Hosts," at the top-center of the Hosts page. This raises a query
@@ -129,17 +130,18 @@ hosts, include:
 
 - Replica sets, after adding any member of the set.
 
-Once you add these seed node, the MMS agent will fetch this information
-*from* the MMS servers. This, when configuring the monitoring environment,
-you may need to wait for several update cycles (e.g. 5-10 minutes) to complete the
-auto-discovery process and host identification.
+Once you add these seed node, the MMS agent will fetch this
+information *from* the MMS servers. This, when configuring the
+monitoring environment, you may need to wait for several update cycles
+(e.g. 5-10 minutes) to complete the auto-discovery process and host
+identification.
 
-The agent reports to MMS every minute, so, again,
-there may be a delay of several minutes before data and
-host information propagate to the MMS console.
+The agent reports to MMS every minute, so, again, there may be a delay
+of several minutes before data and host information propagate to the
+MMS console.
 
-You can find immediate evidence of a working installation in the agent output
-or logs. For more information, check the MMS console's "Hosts,"
+You can find immediate evidence of a working installation in the agent
+output or logs. For more information, check the MMS console's "Hosts,"
 section in the "Agent Log" and "Pings" tabs. Once MMS has data, you
 can view and begin using the statistics.
 

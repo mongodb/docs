@@ -24,8 +24,8 @@ and charts.
 Global Page Controls
 ~~~~~~~~~~~~~~~~~~~~
 
-There are three to five items in the first
-line below the MMS Console's menu bar. From left to right, these are:
+There are three to five items in the line below the MMS Console's menu
+bar. From left to right, these are:
 
 - The hostname and port of the process. This is a link to the raw JSON
   content of the latest information gathered from this host.
