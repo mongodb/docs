@@ -4,7 +4,7 @@ Advanced MMS Console Useage
 The MMS web console provides an extensive set of features for
 analyzing the statistics collected by the MMS agent. For a basic
 overview of the console, see the :doc:`usage </usage>`
-documentation. This document provides a more in depth guide to the MMS
+documentation. This document provides a more in-depth guide to the MMS
 console.
 
 .. contents::
@@ -24,7 +24,7 @@ and charts.
 Global Page Controls
 ~~~~~~~~~~~~~~~~~~~~
 
-There are three to five pieces pierces of information in the first
+There are three to five items in the first
 line below the MMS Console's menu bar. From left to right, these are:
 
 - The hostname and port of the process. This is a link to the raw JSON
@@ -180,11 +180,11 @@ User Management
 You can grant additional users access to your MMS account in the
 "Admins" section of the MMS console. To add users to MMS click on the
 pencil icon next to your account name at the top of this page. Then,
-in there "username" field, enter the email address of their account. Use
+in the "username" field, enter the email address of their account. Use
 `account registration page <https://mms.10gen.com/user/register/user>`_
 to allow your users to create MMS credentials.
 
 Remember that all users attached to your account will have full global
-to your account. Grant others access with great care.
+access to your account. Grant others access with great care.
 
 TODO confirm the amount of access that users have.

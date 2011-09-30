@@ -106,11 +106,13 @@ the host listing. It is the middle of the three icons. This raises a
 dialogue box that describes the implications of DB profiling and
 allows you to enable the transmission of the profiling data to MMS.
 
-When select "Enable Profile Info Transmission," the agent will begin
-sending profile data to MMS. To begin collecting profile data you need
-to modify the value of ``setProfilingLevel``. See the documentation of
+When you select "Enable Profile Info Transmission," the agent will begin
+sending profile data to MMS.
+
+However, to begin collecting profile data you need
+to modify the value of ``setProfilingLevel`` on the database itself. See
 the `database profiler <http://www.mongodb.org/display/DOCS/Database+Profiler>`_
-for more information regarding this configuration.
+documentation for instructions on how to do this.
 
 Events
 ------
@@ -118,7 +120,7 @@ Events
 The "Events" section relays information about the MMS agent's
 operations. Possible event types are:
 
-- "**new host**" occurs when the agent identifies a new mongo hosts.
+- "**new host**" occurs when the agent identifies a new MongoDB host.
 
 - "**restart**" occurs when a ``mongod`` or other monitored
   instance restarts.
@@ -141,10 +143,10 @@ The "Alerts" section provides access to MMS's alert system. This
 section has three tabs: unresolved alerts, resolved alerts, and alert
 settings.
 
-Alert Types
-~~~~~~~~~~~
+Types
+~~~~~
 
-Possible alert types as of October 2011 are:
+There are three possible alerts:
 
 - "**Old Host Version**" is triggered when the version of ``mongod``
   is out of date.
@@ -155,16 +157,16 @@ Possible alert types as of October 2011 are:
 - "**Agent Down**" is triggered when the agent fails to report to MMS
   for 2 minutes.
 
-MMS will add Additional alert types in the near future.
+MMS will add additional alert types in the near future.
 
 TODO clarify what constitutes an old version.
 TODO confirm host down alert threshold.
 TODO confirm agent down alert threshold.
 
-Configuring New Alerts
-~~~~~~~~~~~~~~~~~~~~~~
+Configuring Notifications
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Alerts can be configured for any of the above alert types. Click on
+You can create notifications for any of the above alert types. Click on
 the plus sign (e.g. ``+``) next to the word "Alerts" at the top of
 these pages. This will raise a dialogue where you can create email
 alerts for any of these event types. You can configure:
@@ -208,5 +210,5 @@ Next Steps with the MMS Console
 The MMS web console contains a great deal of functionality beyond the
 scope of this overview. Continue to explore the functionality
 addressed above in your own system, with your own data. The
-":doc:`Advanced MMS Console Usage </advanced-usage>` provides a deeper
+:doc:`Advanced MMS Console Usage </advanced-usage>` provides a deeper
 exploration of key usage patterns for the MMS console.
