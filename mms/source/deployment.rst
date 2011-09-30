@@ -10,10 +10,10 @@ Resource Requirements
 
 The agent does have some minimal resource requirements and should run
 on separate systems to avoid impacting ``mongod` and ``mongos``
-performance. To monitor a cluster with five or fewer nodes, you can
-safely deploy on an AWS "micro instance."  Similarly, if you are only
-monitoring a small number of databases, you may be able to deploy the
-agent on the system running the ``mongos`` process.
+performance. To monitor five or fewer nodes, you can safely deploy on
+an AWS "micro instance." Similarly, if you are only monitoring a small
+number of databases, you may be able to deploy the agent on the system
+running the ``mongos`` process.
 
 TODO clarify and fact check resource requirements
 
@@ -47,11 +47,20 @@ in the "Settings" page of the MMS console.
 You may embed this process in your existing deployment scripts to
 automatically install or redeploy new agents.
 
+Automated Agent Updates
+-----------------------
+
+The agent perform automatic self-updates when new versions of the
+agent daemon are released.
+
+Auto-updating requires that agent run as a user that is capable of
+writing files to the directory that contains the agent.
+
 Control Scripts
 ---------------
 
-If you need to create an initialization script
-to control the demonized process, consider the following resources:
+If you need to create an initialization script to control the
+demonized process, consider the following resources:
 
 - `Ubuntu Boot Up How To <https://help.ubuntu.com/community/UbuntuBootupHowto>`_
 - `Debian Linux Control/Init Scripts <http://wiki.debian.org/LSBInitScripts>`_
@@ -63,8 +72,11 @@ to control the demonized process, consider the following resources:
   ``/usr/share/doc/initscripts-*/sysvinitfiles/`` directory.
 
 You may also examine the scripts in your system's ``/etc/init.d/`` or
-``/etc/rc.d/`` directory. Use the ``update-rc.d`` utility on Debian
-and Ubuntu and the ``chkconfig`` tool on RedHat related systems to add
-these scripts to the initialization process. Be sure to test the
-control script configuration. It is essential that the agent can be
-started, stopped, and restarted following a system reboot.
+``/etc/rc.d/`` directory. Ensure that the agent does not run with root
+privileges.
+
+Use the ``update-rc.d`` utility on Debian and Ubuntu and the
+``chkconfig`` tool on RedHat related systems to add these scripts to
+the initialization process. Be sure to test the control script
+configuration. It is essential that the agent can be started, stopped,
+and restarted following a system reboot.

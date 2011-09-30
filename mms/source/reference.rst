@@ -17,7 +17,9 @@ The possible values for the "Type" column in the Hosts page are:
 - secondary
 - standalone
 - master
-- slave 
+- slave
+- unknown
+- recovering
 
 The "Host Type" selector on the advanced dashboard creator also
 includes: 
@@ -30,8 +32,8 @@ Host Process Types
 
 MMS can monitor the process types:
 
-- ``mongod`` databases
-- ``mongod`` arbiters
+- ``mongod`` database processes
+- ``mongod`` arbiter processes
 - ``mongos``
 - MMS Agents
 

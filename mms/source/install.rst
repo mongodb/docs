@@ -31,18 +31,50 @@ instructions for fulfilling them.
    - hmac
    - hashlib
 
-   If you do not have a preferred method for installing Python
-   modules, issue the following command: ::
+   Issue the following command: ::
 
         easy_install simplejson hmac hashlib
 
-4. All users must install `Pymongo <http://pypi.python.org/pypi/pymongo/>`_,
-   the Python driver for MongoDB.  If you do not have a preferred
-   method for installing Python modules, issue the following command: ::
+   Do not use ``pip``, as there are some compatibility issues. 
+
+4. If your system is running Python 2.5, you will need to install the
+   ``simplejson`` module. Issue the following command: ::
+
+        easy_install simplejson
+
+4. All users must install `PyMongo  <http://pypi.python.org/pypi/pymongo/>`_,
+   the Python driver for MongoDB. While the native C extensions are
+   not required, they significantly improve performance. To install
+   these extensions, make sure you have a C compiler (e.g. ``gcc``)
+   and Python header files installed on your system. Debian and Ubuntu
+   users should issue the following command: ::
+
+        sudo apt-get install build-essentials python-dev
+
+   RedHat, CentOS, and Fedora Users should issue the following
+   command: ::
+   
+        sudo yum install gcc python-devel
+
+   ``pymongo`` Version 1.9 is required, but the latest version is
+   recommended. If you have not installed ``pymongo`` issue the
+   following command: ::
 
         easy_install pymongo
 
-You can now proceed with the installation.
+   To upgrade to the latest version of the driver, use the following
+   command: ::
+
+        easy_install -U pymongo
+
+   For more information about installing PyMongo instillation, consider
+   `the PyMongo documentation <http://api.mongodb.org/python/2.0.1/installation.html>`_.
+
+Consider the ``README`` file distributed with the agent for more
+information.
+
+When all dependencies are successfully installed, you may proceed with
+the installation.
 
 Installation
 ------------
@@ -50,7 +82,7 @@ Installation
 Registering for MMS
 ~~~~~~~~~~~~~~~~~~~
 
-If you already have `jira account <http://jira.10gen.com/>`_ you may
+If you already have `jira account <http://jira.mongodb.org/>`_ you may
 sign in with your JIRA credentials. Otherwise, register for an MMS account
 using the `MMS registration page <https://mms.10gen.com/user/register>`_.
 After completing the registration process, you will arrive at the "MMS
@@ -92,10 +124,11 @@ process detached from the current terminal session: ::
 
 Replace "``[LOG-DIRECTORY]`` with the path to your MongoDB logs.
 
-This command allows the agent survive the current terminal
-session and writes all messages to the ``agent.log`` file. You may
-include this command in your MongoDB control script or use your
-system's ``/etc/rc.local`` equivalent.
+This command allows the agent survive the current terminal session and
+writes all messages to the ``agent.log`` file. You may include this
+command in your MongoDB control script or use your system's
+``/etc/rc.local`` equivalent; however, avoid running the agent as
+root.
 
 See the :doc:`deployment <deployment>` documentation for more
 information on strategies for deploying the agent and your monitoring
@@ -104,16 +137,55 @@ architecture.
 Once the agent is running, you can return to the web interface to
 begin configuring MMS for your deployment.
 
+Installing MMS on Windows
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The MMS agent distribution includes a ``WINDOWS.txt`` file with
+instructions for using the agent on Windows platforms. Consider the
+following special requirements:
+
+- Install the 32-bit build of Python 2.7.
+
+- Use the Windows installer to install `PyMongo from PyPi <http://pypi.python.org/pypi/pymongo/2.0.1>`_.
+
+- ``srvany.exe``, which is included in the agent distribution may
+  already...
+
+TODO clarify the above.
+
+- Enable PowerShell Script Execution.
+
+  Right click the PowerShell icon in the Start Menu, and run
+  PowerShell as administrator. Issue the following command: ::
+
+       Set-ExecutionPolicy -ExecutionPolicy RemoteSigned
+
+  Agree, when promoted to the policy change.
+
+- Run ``mongommsinstall.bat`` from an administrator command window to
+  install and start the Windows service.
+
+Updating the MMS Agent
+----------------------
+
+The agent perform automatic self-updates when new versions of the
+agent daemon are released.
+
+Auto-updating requires that agent run as a user that is capable of
+writing files to the directory that contains the agent. To manually
+update the agent, stop both agent processes, download the latest agent
+from the "Settings" page of the MMS console, and start the agent
+again.
+
 Working with MMS
 ----------------
 
 Monitoring Hosts with MMS
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The MMS agent automatically discovers MongoDB processes running on the
-same host as the agent. If running on other hosts, you'll have to
-manually "seed" at least one at least once of this from the MMS
-console.
+The MMS agent automatically discovers MongoDB processes based on
+existing cluster configuration. You'll have to manually "seed" at
+least one of these hosts from the MMS console.
 
 To add a host to MMS, click the "plus" (``+``) button next to the word
 "Hosts," at the top-center of the Hosts page. This raises a query
@@ -158,7 +230,13 @@ the MMS agent.
   installation of other :ref:`requirements <mms-requirements>`.
 
 - Ensure the system running the agent can resolve and connect to the
-  MongoDB instances.
+  MongoDB instances. To confirm, log into the system where the agent
+  is running and issue a command in the following form: ::
+
+       mongo [hostname]:[port]
+
+  Replace ``[hostname]`` with the hostname and ``[port]`` with the
+  port that the database is listening on.
 
 - Verify that the agent can connect on TCP port 443 (outbound) to the MMS
   server (i.e. "``mms.10gen.com``".)

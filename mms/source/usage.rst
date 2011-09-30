@@ -112,7 +112,9 @@ sending profile data to MMS.
 However, to begin collecting profile data you need
 to modify the value of ``setProfilingLevel`` on the database itself. See
 the `database profiler <http://www.mongodb.org/display/DOCS/Database+Profiler>`_
-documentation for instructions on how to do this.
+documentation for instructions for using the profiler. There is a link
+at the bottom of the Host Statistics page that displays the profile
+levels.
 
 Events
 ------
@@ -181,6 +183,9 @@ alerts for any of these event types. You can configure:
   wait before sending a notification. Raising this value will increase
   the amount of time between the identification of an issue and the
   alert, but it may reduce potential false positives.
+
+  You may also create multiple alerts with different minimum times
+  before notification to implement alert escalation.
 
 TODO determine what linear frequency means.
 
