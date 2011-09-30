@@ -2,34 +2,33 @@ Advanced MMS Console Useage
 ===========================
 
 The MMS web console provides an extensive set of features for
-analyzing the statistics collected from the MMS agent. For a basic
+analyzing the statistics collected by the MMS agent. For a basic
 overview of the console, see the :doc:`usage </usage>`
-documentation. This document provides a more in depth analysis of the
-MMS console.
+documentation. This document provides a more in depth guide to the MMS
+console.
 
 .. contents::
 
 Using the Host Statistics Page
 ------------------------------
 
-The Host Statistics page conveys an overview of the latest data
-gathered from monitored processes. These charts are interactive and
-there are a number of tools to make it easier to navigate and work
-with the MMS data. Click on the informational buttons that have an
-``i`` in a circle to raise informational windows when possible to
-explore the functionality of the MMS console and charts.
+In the "Hosts" section, click on any hostname link to view the statics
+from that process.  The charts on this "Host Statistics" page are
+interactive, and provide tools for navigating and working with the MMS
+data. Click on the "info" buttons with an ``i`` in a circle to raise
+informational boxes, to explore the functionality of the MMS console
+and charts.
 
 .. _chart-controls:
 
 Global Page Controls
 ~~~~~~~~~~~~~~~~~~~~
 
-The first line below the MMS Console's menu bar on the Host Statistics
-page has three to five pieces of information about the current
-host. From left to right, these are:
+There are three to five pieces pierces of information in the first
+line below the MMS Console's menu bar. From left to right, these are:
 
-- The hostname and port of this process. This links to the raw content
-  of the last ping with information from this host.
+- The hostname and port of the process. This is a link to the raw JSON
+  content of the latest information gathered from this host.
 
 - The `host type </reference#host-types>`_. Possible types
   include: "primary," "secondary," "standalone," and "conf."
@@ -42,9 +41,9 @@ host. From left to right, these are:
 - Optionally, the name of the shard cluster to which this process
   belongs. Only shard cluster members have this value.
 
-- The version of MongoDB that this process runs.
+- The version of MongoDB running on this process.
 
-The second line contains 9 links that control the host statistics
+The second line contains nine links that control the host statistics
 page. The current selection is displayed in a larger font. These
 options are:
 
@@ -57,17 +56,17 @@ options are:
 
 TODO confirm use of terms "averages" and "re-plots" above.
 
-- "day," which re-plots the chart to display a period of time greater than
-  24 hours, Possible scopes are: "week," "two week," "month," "six
-  month" and "year."
+- "day," which re-plots the chart to display a period of time greater
+  than 24 hours, Possible scopes are: "week," "two week," "month,"
+  "six month" and "year."
 
-- "range," which allows you to control the specific time rage for each
-  chart to display.
+- "range," which allows you to specify a time rage for the charts to
+  display.
 
 - "avg/sec," which is the default setting. When selected, charts
-  values display the average number of events per second.
+  display the average number of events per second.
 
-- "total," which allows you to re-plot the charts using the total
+- "total," which allows you to re-plot the charts to display the total
   number of events.
 
 - "gmt," which allows you to re-plot the charts to the GMT zone. Use
@@ -77,14 +76,14 @@ TODO confirm use of terms "averages" and "re-plots" above.
 - "refresh," which triggers a refresh of all charts.
 
 On the next line, a slider allows you to change the scope of all
-charts at once. Move the sliders on either end of this bar to zoom
+charts at once. Move the sliders on either end of this bar to narrow
 all of the charts on this page at once.
 
 Specific Chart Controls
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-You can also interact with the charts individually. Using the mouse
-you can:
+You may also interact with the charts individually. Using the mouse you
+can:
 
 - Click-and-drag to select a portion of the chart to zoom into.
 
@@ -101,46 +100,44 @@ are:
   to the default zoom setting. This item only appears when you have
   zoomed into the chart.
 
-- "Add To Dashboard," a plus sign, raises dialogue box where you
-  can add this chart to a custom dashboard of your choice.
+- "Add To Dashboard," a plus sign, raises a dialogue box where you can
+  select a dashboard to add this chart to.
 
 - "Zoom In," a magnifying glass with a plus sign, raises a box with a
   larger version of the chart.
 
 - "Link," a chain, links to a page that only displays this chart.
 
-- "Email Chart," an envelope, raises a dialogue box where you can input an
-  email address and short message to send the chart to an email
-  address of your choice.
+- "Email Chart," an envelope, raises a dialogue box where you can
+  input an email address and short message to send the chart to an
+  arbitrary email address.
 
-- "Info," the character ``i`` in a circle, raises an informational box
-  with a key to the chart.
+- "Info," the character ``i`` in a circle, raises a box with a key to
+  the chart.
 
 Dashboards
 ----------
 
-The dashboard functionality of the MMS console allows users to create
-customized collections of charts for easier and more effective data
-analysis. The "Dashboard" section of the MMS console is accessible
-from the first button in the MMS menu bar at the top of the console
-interface.
+With MMS dashboards, you can create customized collections of charts
+for easier data analysis. You can access the "Dashboard" section of
+the MMS console from the first button in the menu bar at the top of
+the console interface. You can configure MMS to automatically load a
+dashboard rather than the Hosts page from the MMS settings interface.
 
-You set MMS to automatically load a dashboard rather than the Hosts
-page in the MMS settings.
-
-MMS provides for multiple dashboards. Use the plus sign at the top of
-the page to specify a name and create the new dashboard. You can
-rename or remove a dashboard by clicking one of the links on the
-bottom of a dashboard page.Dashboards have the same :ref:`chart
+You can create multiple dashboards as your needs dictate. Use the plus
+icon at the top of the page to specify a name and create a new
+dashboard, or select "New Dashboard..." when adding a chart to a
+dashboard . You can rename or remove a dashboard from links on the
+bottom of a dashboard page. Dashboards have the same :ref:`chart
 controls <chart-controls>` as the host statistics pages.
 
 TODO-RYAN why is the create dashboard button "submit," and not "create?" 
 
-Adding and Removing Charts from the Dashboards
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Adding and Removing Charts from Dashboards
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Using the plus sign (e.g. "``+``") in the chart toolbar you can add
-any MMS chart to any dashboard.
+You can add any MMS chart to any dashboard with the plus sign
+(e.g. "``+``") in the chart toolbars.
 
 To remove a chart from a dashboard, navigate to the dashboard and
 select the minus sign (e.g. "``-``") icon in the chart toolbar.
@@ -150,19 +147,18 @@ Advanced Dashboard Creation
 
 When adding a new dashboard, you can select the "advanced create" to
 create a dashboard that includes a custom selection of charts a
-dynamically assembled list of hosts. From this page, you can create
-new dashboards or edit existing dashboards. You can filter the
-included processes by `host type </reference#host-types>`_. 
+dynamically assembled list of hosts. From this page, you may create
+new dashboards or add new charts to existing dashboards. You can
+filter the included processes by `host type </reference#host-types>`_.
 
-You can specify the list of hosts to include in this dashboard by
-selecting a replica set or shard cluster or writing a regular
-expression to match monitored processes' hostnames. Below the host
-configuration options you may toggle an option to group hosts in
-chart.
+Specify the list of hosts to include in this dashboard by selecting a
+replica set or shard cluster or writing a regular expression to match
+monitored processes' hostnames. Below the host configuration options
+you may toggle an option to group hosts in chart.
 
 TODO-RYAN is "group hosts in chart" really "group charts by host?" and what does this do?
 
-Below the host specification, there are 17 `chart types </reference#mms-chart-types>`_
+Below this, there are 17 `chart types </reference#mms-chart-types>`_
 that you can use to select charts for this dashboard. Below the chart
 selection, the final row of buttons allows you to: (optionally) test
 the "host regexp" to make sure that the intended hosts are included in
@@ -173,7 +169,7 @@ TODO-RYAN the chart selectors and the "test regexp," "preview," and "submit" are
 
 You can add and remove charts to these dashbaords manually. You may
 also add additional charts using the "advanced create dashboard"
-functionality in the future by specifying the dashboard name in the
+functionality in the future by specifying an existing dashboard in the
 first field.
 
 TODO-RYAN it seems like the advanced create page is really an "'advanced' add charts to dashboard,"
@@ -184,11 +180,11 @@ User Management
 You can grant additional users access to your MMS account in the
 "Admins" section of the MMS console. To add users to MMS click on the
 pencil icon next to your account name at the top of this page. Then,
-in the "username" field, enter the email address of their account. Use
+in there "username" field, enter the email address of their account. Use
 `account registration page <https://mms.10gen.com/user/register/user>`_
 to allow your users to create MMS credentials.
 
-Remember that all users will have full global access to your
-account. Grant others access to your account with great care.
+Remember that all users attached to your account will have full global
+to your account. Grant others access with great care.
 
-TODO confirm the amount of access user have.
+TODO confirm the amount of access that users have.
