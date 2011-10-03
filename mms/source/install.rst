@@ -148,22 +148,20 @@ following special requirements:
 
 - Use the Windows installer to install `PyMongo from PyPi <http://pypi.python.org/pypi/pymongo/2.0.1>`_.
 
-- ``srvany.exe``, which is included in the agent distribution may
-  already...
-
-TODO clarify the above.
-
 - Enable PowerShell Script Execution.
 
-  Right click the PowerShell icon in the Start Menu, and run
+  Right click the PowerShell icon in the "Start Menu," and run
   PowerShell as administrator. Issue the following command: ::
 
        Set-ExecutionPolicy -ExecutionPolicy RemoteSigned
 
-  Agree, when promoted to the policy change.
+  Conform, when promoted, the policy change.
 
 - Run ``mongommsinstall.bat`` from an administrator command window to
   install and start the Windows service.
+
+Now you can start and stop the Windows service to control the MMS
+agent. Consider the ``WINDOWS.txt`` for more information.
 
 Updating the MMS Agent
 ----------------------
