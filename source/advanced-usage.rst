@@ -7,8 +7,6 @@ overview of the console, see the :doc:`usage </usage>`
 documentation. This document provides a more in-depth guide to the MMS
 console.
 
-.. contents::
-
 Using the Host Statistics Page
 ------------------------------
 

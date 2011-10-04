@@ -4,8 +4,6 @@ MMS Reference
 This document contains references of the different types of hosts,
 databases, and other statuses that may occur in MMS. 
 
-.. contents:: 
-
 .. _host-types: 
 
 Host Types
