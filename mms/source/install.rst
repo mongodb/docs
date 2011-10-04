@@ -5,8 +5,6 @@ This document describes the installation and configuration of the
 MongoDB Monitoring Service (MMS). The guide also provides
 :ref:`troubleshooting <troubleshooting>` advice.
 
-.. contents::
-
 .. _mms-requirements:
 
 Requirements
