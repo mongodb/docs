@@ -9,11 +9,22 @@ Welcome to the MongoDB Manual!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    operators
    commands
    glossary
+
+.. the following documents are drafts of reference materials/indexes
+   that need to be created but that aren't part of our initial
+   reference material pass. 
+
+.. toctree::
+   :hidden:
+
+   javascript-methods   
+   meta-query-operators
+
 
 .. Indices and tables
 .. ==================
