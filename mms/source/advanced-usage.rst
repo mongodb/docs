@@ -114,6 +114,17 @@ are:
 - "Info," the character ``i`` in a circle, raises a box with a key to
   the chart.
 
+
+Host Aliases
+------------
+
+The Edit button (e.g. "pencil") in every row of the left column in the
+Hosts page opens an interface so that you can create a host aliases
+for the hosts you monitor with MMS. These aliases is arbitrary, and
+are useful if your machines have existing hostnames that do not
+sufficiently describe the system in the context of MMS. Port numbers
+are not appended to host aliases.
+
 Dashboards
 ----------
 
@@ -130,7 +141,7 @@ dashboard . You can rename or remove a dashboard from links on the
 bottom of a dashboard page. Dashboards have the same :ref:`chart
 controls <chart-controls>` as the host statistics pages.
 
-TODO-RYAN why is the create dashboard button "submit," and not "create?" 
+TODO-RYAN why is the create dashboard button "submit," and not "create?"
 
 Adding and Removing Charts from Dashboards
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -152,8 +163,11 @@ filter the included processes by `host type </reference#host-types>`_.
 
 Specify the list of hosts to include in this dashboard by selecting a
 replica set or shard cluster or writing a regular expression to match
-monitored processes' hostnames. Below the host configuration options
-you may toggle an option to group hosts in chart.
+monitored processes' hostnames. The "Host Alias In Regexp" check box
+allows you to, if checked, use the regular expression to select the
+*aliased* hostname you configured, rather than the actual
+hostname. Below the host configuration options you may toggle an
+option to group hosts in chart.
 
 TODO-RYAN is "group hosts in chart" really "group charts by host?" and what does this do?
 

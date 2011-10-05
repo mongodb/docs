@@ -79,7 +79,7 @@ TODO how many daily pings does MMS store?
 Host Groups
 ~~~~~~~~~~~
 
-From the host page, you can display groups of hosts in one view. By
+From the Hosts page, you can display groups of hosts in one view. By
 following a link from the "Cluster" or "Repl Set" columns, you can see
 a side-by-side comparison of charts from all hosts in a given cluster
 or replica set.
