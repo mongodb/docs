@@ -557,9 +557,9 @@ Projection Operators
 
         db.collection.find( { field: value }, { array: {$slice: count } } );
 
-    Here, we select the document in ``collection`` identified by the
-    value ``value`` in the field named ``field``, and return the
-    number of elements specified by ``count`` from the array stored in
-    the ``array`` field. If ``count`` has a value greater than the
-    number of elements in ``array`` then all elements of the array are
-    returned.
+   Here, we select the document in ``collection`` identified by the
+   value ``value`` in the field named ``field``, and return the number
+   of elements specified by ``count`` from the array stored in the
+   ``array`` field. If ``count`` has a value greater than the number
+   of elements in ``array`` then all elements of the array are
+   returned.
