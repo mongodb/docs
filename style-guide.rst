@@ -49,3 +49,21 @@ documentation.
   - Referring to proper nouns and capitalization/quoting
     rules. (i.e. "the "Hosts" page," or "the Hosts page," or "the
     hosts page")
+
+- Spaces between nesting parentheticals (and elements) in javascript
+  examples. (e.g. "``{ [ a, a, a ] }``" "``{[a,a,a]}``")
+
+- One word: 
+
+  - stanalone
+  - workflow
+
+- Examples
+
+  - Example urls and domain names should be example.com/example.net/example.com. 
+
+    The example domains are reserved in the DNS spec for this purpose
+    and people will notice (and complain about it.) 
+
+  - We should have some default variable, field and value names so we
+    can be consistent. 
