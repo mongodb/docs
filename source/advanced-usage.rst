@@ -53,8 +53,6 @@ options are:
 
 - "hour," which re-plots all charts with hourly averages.
 
-TODO confirm use of terms "averages" and "re-plots" above.
-
 - "day," which re-plots the chart to display a period of time greater
   than 24 hours, Possible scopes are: "week," "two week," "month,"
   "six month" and "year."
@@ -141,8 +139,6 @@ dashboard . You can rename or remove a dashboard from links on the
 bottom of a dashboard page. Dashboards have the same :ref:`chart
 controls <chart-controls>` as the host statistics pages.
 
-TODO-RYAN why is the create dashboard button "submit," and not "create?"
-
 Adding and Removing Charts from Dashboards
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -167,9 +163,8 @@ monitored processes' hostnames. The "Host Alias In Regexp" check box
 allows you to, if checked, use the regular expression to select the
 *aliased* hostname you configured, rather than the actual
 hostname. Below the host configuration options you may toggle an
-option to group hosts in chart.
-
-TODO-RYAN is "group hosts in chart" really "group charts by host?" and what does this do?
+option to "group hosts in chart," which creates a single composite
+chart for all matching charts.
 
 Below this, there are 17 `chart types </reference#mms-chart-types>`_
 that you can use to select charts for this dashboard. Below the chart
@@ -178,14 +173,10 @@ the "host regexp" to make sure that the intended hosts are included in
 the dashboard; preview the charts to be added to the dashboard; and
 submit these changes to the dashboards.
 
-TODO-RYAN the chart selectors and the "test regexp," "preview," and "submit" are not particularly distinct (to me.)
-
 You can add and remove charts to these dashbaords manually. You may
 also add additional charts using the "advanced create dashboard"
 functionality in the future by specifying an existing dashboard in the
 first field.
-
-TODO-RYAN it seems like the advanced create page is really an "'advanced' add charts to dashboard,"
 
 User Management
 ---------------
@@ -199,5 +190,3 @@ to allow your users to create MMS credentials.
 
 Remember that all users attached to your account will have full global
 access to your account. Grant others access with great care.
-
-TODO confirm the amount of access that users have.

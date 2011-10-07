@@ -41,6 +41,8 @@ instructions for fulfilling them.
 
         easy_install simplejson
 
+   Do not use ``pip``, as there are some compatibility issues.
+
 4. All users must install `PyMongo  <http://pypi.python.org/pypi/pymongo/>`_,
    the Python driver for MongoDB. While the native C extensions are
    not required, they significantly improve performance. To install
@@ -246,6 +248,41 @@ the MMS agent.
 
 - If you continue to encounter problems, check the agent's output or
   logs for errors.
+
+.. _mms-munin:
+
+Hardware Monitoring with Munin-Node
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MMS provides support for collecting and charting hardware statistics
+collected with `Munin <http://munin-monitoring.org/>`_. You must
+install the ``munin-node`` package on the host systems that you wish
+to monitor.
+
+On Debian and Ubuntu systems, use the "``sudo apt-get install
+munin-node``" command. RedHat, CentOS and Fedora users should issue
+the "``sudo yum install munin-node``" command. Ensure that
+``munin-node``:
+
+- is running.
+
+- will start following the next system reboot.
+
+- running on the monitored system is accessible from the system
+  running the agent. Use the following procedure to confirm: ::
+
+       telnet [HOSTNAME] 4949
+       fetch iostat
+       fetch iostat_ios
+       fetch cpu
+
+  Replace ``[HOSTNAME]`` with the hostname of the monitored system. If
+  these commands return data, then you know ``munin-node`` is
+  running.
+
+Check the log files for ``munin-node`` to ensure that there are no
+errors with Munin. These logs are located in ``/var/log/`` directory
+on the monitored system.
 
 Next Steps with MMS
 ~~~~~~~~~~~~~~~~~~~
