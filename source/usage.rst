@@ -1,5 +1,6 @@
-MMS Console Usage Overview
-==========================
+=====================
+Using the MMS Console
+=====================
 
 This document provides a high level overview of the MMS web console
 and describes the basic functionality. The best way to learn about
@@ -68,9 +69,7 @@ TODO ensure that there are no additional required munin-node configurations.
   agent to MMS.
 
 - "**Daily Pings**," which displays the raw JSON content of the last
-  ping for every day. This page displays pings from the last TK days.
-
-TODO how many daily pings does MMS store?
+  ping for every day. This page displays pings from the last 20 days.
 
 - "**Profile Data**," which displays information on performance
   gathered by the database profiler. See the section on :ref:`database
@@ -207,8 +206,8 @@ The "Settings" tab provides an interface for configuring alerts. Using
 the function buttons in the right hand column you can delete and
 disable existing alerts.
 
-Next Steps with the MMS Console
--------------------------------
+Next Steps
+----------
 
 The MMS web console contains a great deal of functionality beyond the
 scope of this overview. Continue to explore the functionality

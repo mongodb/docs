@@ -1,5 +1,5 @@
-Advanced MMS Console Useage
-===========================
+Advanced MMS Console Use
+========================
 
 The MMS web console provides an extensive set of features for
 analyzing the statistics collected by the MMS agent. For a basic
@@ -7,8 +7,8 @@ overview of the console, see the :doc:`usage </usage>`
 documentation. This document provides a more in-depth guide to the MMS
 console.
 
-Using the Host Statistics Page
-------------------------------
+Host Statistics
+---------------
 
 In the "Hosts" section, click on any hostname link to view the statics
 from that process.  The charts on this "Host Statistics" page are

@@ -2,9 +2,9 @@ MMS Reference
 =============
 
 This document contains references of the different types of hosts,
-databases, and other statuses that may occur in MMS. 
+databases, and other statuses that may occur in MMS.
 
-.. _host-types: 
+.. _host-types:
 
 Host Types
 ----------
@@ -20,10 +20,10 @@ The possible values for the "Type" column in the Hosts page are:
 - recovering
 
 The "Host Type" selector on the advanced dashboard creator also
-includes: 
+includes:
 
 - conf
-- mongos 
+- mongos
 
 Host Process Types
 ------------------
@@ -53,7 +53,7 @@ Alert Types
 The available alert types are:
 
 - Old Host Version
-- Host Down 
+- Host Down
 - Agent Down
 
 .. _mms-chart-types:
@@ -61,7 +61,7 @@ The available alert types are:
 MMS Chart Types
 ---------------
 
-There are 17 possible charts provided by MMS. They are: 
+There are 17 possible charts provided by MMS. They are:
 
 - cpu time
 - db storage
@@ -80,3 +80,26 @@ There are 17 possible charts provided by MMS. They are:
 - asserts
 - opcounters-repl
 - opcounters
+
+Database Commands Used by Agent
+-------------------------------
+
+- serverStatus
+- buildinfo
+- getCmdLineOpts
+- connPoolStats
+- _isSelf
+- getParameter
+- ismaster
+- getShardVersion
+- netstat
+- replSetGetStatus
+- shards.find
+- mongos.find
+- config.chunks.group
+- oplog.find
+- collstats - oplog.rs
+- sources.find (slave)
+- config.settings.find
+- dbstats
+- db.locks
