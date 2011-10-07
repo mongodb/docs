@@ -216,6 +216,11 @@ output or logs. For more information, check the MMS console's "Hosts,"
 section in the "Agent Log" and "Pings" tabs. Once MMS has data, you
 can view and begin using the statistics.
 
+If the agent cannot collect information about a host for 24 hours,
+that host is deactivated in the MMS agent and console. Deactivated
+hosts must be manually reactivated from the MMS console if you wish to
+collect data from these hosts.
+
 .. _troubleshooting:
 
 Basic Troubleshooting
