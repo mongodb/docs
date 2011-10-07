@@ -1,5 +1,6 @@
-MMS Installation Guide
-======================
+========================
+Getting Started with MMS
+========================
 
 This document describes the installation and configuration of the
 MongoDB Monitoring Service (MMS). The guide also provides
@@ -33,7 +34,7 @@ instructions for fulfilling them.
 
         easy_install simplejson hmac hashlib
 
-   Do not use ``pip``, as there are some compatibility issues. 
+   Do not use ``pip``, as there are some compatibility issues.
 
 4. If your system is running Python 2.5, you will need to install the
    ``simplejson`` module. Issue the following command: ::
@@ -51,7 +52,7 @@ instructions for fulfilling them.
 
    RedHat, CentOS, and Fedora Users should issue the following
    command: ::
-   
+
         sudo yum install gcc python-devel
 
    ``pymongo`` Version 1.9 is required, but the latest version is
