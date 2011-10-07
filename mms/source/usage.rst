@@ -56,14 +56,15 @@ provides the following tabs:
   by the MMS agent.
 
 - "**Hardware**," which displays information gathered about underlying
-  system. To collect this information, you will need to install and run
-  the ``munin-node`` software.
+  system. To collect this information, you will need to install and
+  run the ``munin-node`` software on the nodes running MongoDB.
 
   On Debian and Ubuntu systems, use the "``sudo apt-get install
   munin-node``" command. RedHat, CentOS and Fedora users should issue
   the "``sudo yum install munin-node``" command.
 
-TODO ensure that there are no additional required munin-node configurations.
+  See the :doc:`installation documentation </install#mms-munin>` for
+  more information.
 
 - "**Last Ping**," which displays the raw JSON document sent by the
   agent to MMS.
@@ -131,9 +132,7 @@ operations. Possible event types are:
   secondary in a replica set.
 
 - "**now primary**" occurs when a ``mongod`` instance becomes
-  primary in a replica set .
-
-TODO check the events and get list
+  primary in a replica set.
 
 Alerts
 ------
@@ -151,16 +150,13 @@ There are three possible alert types:
   is out of date.
 
 - "**Host Down**" is triggered when a ``mongod`` or other monitored
-  instance restarts or fails to check in to MMS.
+  instance restarts or fails to check in to MMS within 5
+  minutes. There are no "host down" alerts if the agent is down.
 
 - "**Agent Down**" is triggered when the agent fails to report to MMS
-  for 2 minutes.
+  within 5  minutes.
 
 MMS will add additional alert types in the near future.
-
-TODO clarify what constitutes an old version.
-TODO confirm host down alert threshold.
-TODO confirm agent down alert threshold.
 
 Configuring Notifications
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -184,7 +180,9 @@ alerts for any of these event types. You can configure:
   You may also create multiple alerts with different minimum times
   before notification to implement alert escalation.
 
-TODO determine what linear frequency means.
+The time between re-notifications increases by the frequency amount
+every alert cycle (e.g. 5 minutes, 10 minutes, 15 minutes, 20
+minutes.)
 
 Unresolved Alerts
 ~~~~~~~~~~~~~~~~~

@@ -1,3 +1,4 @@
+=======================
 Deploying the MMS Agent
 =======================
 
@@ -8,14 +9,14 @@ review of deployment and MMS agent configuration.
 Resource Requirements
 ---------------------
 
-The agent does have some minimal resource requirements and should run
-on separate systems to avoid impacting ``mongod` and ``mongos``
+The agent does have some resource requirements and should run on
+separate systems to avoid impacting ``mongod`` and ``mongos``
 performance. To monitor five or fewer nodes, you can safely deploy on
 an AWS "micro instance." Similarly, if you are only monitoring a small
 number of databases, you may be able to deploy the agent on the system
-running the ``mongos`` process.
-
-TODO clarify and fact check resource requirements
+running the ``mongos`` process. Running PyMongo with the native
+extensions, which requires GCC, provides signifigant performance
+improvements. See :doc:`installation` for more information.
 
 Monitoring Architecture
 -----------------------
@@ -25,8 +26,6 @@ instances of the agent to provide redundancy. Simply repeat the
 installation process in the :doc:`installation guide </install>` for
 each new agent. See instructions for automating the agent installation
 in the next section.
-
-TODO do non-active agents collect data or just wait to get "baton" from mms when active agent goes off line? Recovery? 
 
 Automated Agent Installation
 ----------------------------
