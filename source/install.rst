@@ -98,10 +98,10 @@ Installing the MMS Agent
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can run the agent on any system that can connect to the MongoDB
-instances you want to monitor. As long as it can connect to each instance,
-you can use a single agent to do all the monitoring.
-Do be sure that the agent can make outgoing connections
-via HTTPS on port 443.
+instances you want to monitor. As long as it can connect to each
+instance, you can use a single agent to do all the monitoring. Do be
+sure that the agent can make outgoing connections via HTTPS on port
+443.
 
 Unzip the archive and run the agent with the following command: ::
 
