@@ -63,7 +63,7 @@ provides the following tabs:
   munin-node``" command. RedHat, CentOS and Fedora users should issue
   the "``sudo yum install munin-node``" command.
 
-  See the :doc:`installation documentation </install#mms-munin>` for
+  See the `installation documentation </install#mms-munin>`_ for
   more information.
 
 - "**Last Ping**," which displays the raw JSON document sent by the
