@@ -16,7 +16,7 @@ an AWS "micro instance." Similarly, if you are only monitoring a small
 number of databases, you may be able to deploy the agent on the system
 running the ``mongos`` process. Running PyMongo with the native
 extensions, which requires GCC, provides signifigant performance
-improvements. See :doc:`installation` for more information.
+improvements. See :doc:`install` for more information.
 
 Monitoring Architecture
 -----------------------
