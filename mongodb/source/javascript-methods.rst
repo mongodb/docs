@@ -15,6 +15,8 @@ Query Cursor Methods
    :operator:`skip()` and :operator:`limit()`. To consider these
    effects specify "``count(true)``".
 
+.. _limit-method:
+
 .. describe:: limit()
 
    Append the ``limit()`` method to a "``.find()``" statement to
