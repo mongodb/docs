@@ -172,7 +172,7 @@ htmlhelp_basename = 'MongoDBdoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'MongoDB.tex', u'MongoDB Documentation',
+  ('index', 'mms-manual.tex', u'MongoDB Monitoring Service (MMS) Manual',
    u'MongoDB Documentation Team', 'manual'),
 ]
 
