@@ -28,7 +28,7 @@ bar. From left to right, these are:
 - The hostname and port of the process. This is a link to the raw JSON
   content of the latest information gathered from this host.
 
-- The `host type </reference#host-types>`_. Possible types include:
+- The :ref:`host type <host-types>`. Possible types include:
   "primary," "secondary," "master," "slave," "standalone,"
   "recovering," and "unknown."
 
@@ -155,7 +155,7 @@ When adding a new dashboard, you can select the "advanced create" to
 create a dashboard that includes a custom selection of charts a
 dynamically assembled list of hosts. From this page, you may create
 new dashboards or append new charts to existing dashboards. You can
-filter the included processes by `host type </reference#host-types>`_.
+filter the included processes by :ref:`host type <host-types>`.
 
 Specify the list of hosts to include in this dashboard by selecting a
 replica set or shard cluster or writing a regular expression to match
@@ -166,8 +166,8 @@ hostname. Below the host configuration options you may toggle an
 option to "group hosts in chart," which creates a single composite
 chart for all matching charts.
 
-Below this, there are 17 `chart types </reference#mms-chart-types>`_
-that you can use to select charts for this dashboard. Below the chart
+Below this, there are 17 :ref:`chart types <mms-chart-types>` that
+you can use to select charts for this dashboard. Below the chart
 selection, the final row of buttons allows you to: (optionally) test
 the "host regexp" to make sure that the intended hosts are included in
 the dashboard; preview the charts to be added to the dashboard; and

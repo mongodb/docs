@@ -63,7 +63,7 @@ provides the following tabs:
   munin-node``" command. RedHat, CentOS and Fedora users should issue
   the "``sudo yum install munin-node``" command.
 
-  See the `installation documentation </install#mms-munin>`_ for
+  See the :ref:`installation documentation <mms-munin>` for
   more information.
 
 - "**Last Ping**," which displays the raw JSON document sent by the
@@ -139,7 +139,8 @@ Alerts
 
 The "Alerts" section provides access to MMS's alert system. This
 section has three tabs: unresolved alerts, resolved alerts, and alert
-settings.
+settings. When you begin using MMS, an alert is configured to send an
+email when the agent is down.
 
 Types
 ~~~~~

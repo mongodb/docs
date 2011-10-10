@@ -22,10 +22,14 @@ Monitoring Architecture
 -----------------------
 
 Only one agent will report to MMS at a time, but you can run multiple
-instances of the agent to provide redundancy. Simply repeat the
-installation process in the :doc:`installation guide </install>` for
-each new agent. See instructions for automating the agent installation
-in the next section.
+instances of the agent to provide redundancy. Secondary agents act as
+host standbys If you stop the agent process, the agent will be removed
+from the "Agents" tab within a day. If an agent is off the last ping
+times for that agent do not update. To install a second or third
+agent, Simply repeat the installation process in the
+:doc:`installation guide </install>` for each new agent. See
+instructions for automating the agent installation in the next
+section.
 
 Automated Agent Installation
 ----------------------------
