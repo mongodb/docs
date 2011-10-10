@@ -1,6 +1,6 @@
-=========================
-MongoDB Command Reference
-=========================
+===========================
+ MongoDB Command Reference
+===========================
 
 .. default-domain: mongodb
 .. highlight_language: javascript
@@ -26,13 +26,15 @@ Your MongoDB driver may provide an alternate interface for issuing
 database commands. All examples in this reference are provided as JSON
 documents.
 
-TODO factcheck above.
+TODO factcheck above
 
 User Commands
--------------
+=============
 
 Sharding
-~~~~~~~~
+--------
+
+TODO get background on 3 sharding commands
 
 .. describe:: setShardVersion
 
@@ -59,9 +61,7 @@ Sharding
    .. admin-only
 
 Aggregation
-~~~~~~~~~~~
-
-findAndModify
+-----------
 
 .. describe:: group
 
@@ -109,6 +109,24 @@ findAndModify
 
    .. read-lock
 
+.. describe:: count
+
+   The ``count`` command provides. For example: ::
+
+        db.collection.count():
+
+   In the JavaScript shell, this will return the number of documents
+   in the collection ``collection``. You may also run this command
+   using the ``runCommand`` functionality, with the following results: ::
+
+        > db.runCommand( { count: "collection" } );
+        { "n" : 10 , "ok" : 1 }
+
+   Here, see that the collection named ``collection`` has 10
+   documents.
+
+   .. read-lock
+
 .. describe:: mapReduce
 
    Run a map/reduce operation on the MongoDB server. This command is
@@ -141,8 +159,62 @@ findAndModify
 
    .. slave-ok
 
-Replication
-~~~~~~~~~~~
+.. describe:: findAndModify
+
+   The ``findAndModify`` command provides an atomic modification and
+   return of a single document. The command takes the following form: ::
+
+        { findAndModify: collection, <options> }
+
+   The shell and many drivers also provide a ``db.findAndModify();``
+   method. This command returns, by default, the document is returned
+   before modifications are made. The following options are available:
+
+   - **query** specifies a filter to select a document to modify.
+
+   - **sort** specifies a sort order if multiple documents are
+     returned. The first document in this sort order will be
+     manipulated by the command.
+
+   - **remove**, when set, triggers ``findAndModify`` to remove the
+     document. To set, specify "``remove: true``".
+
+   - **update** specifies an :ref:`update operator <update-operators>`.
+     to modify the returned documents
+
+   - **new**, when set, returns the modified object rather than the
+     original. The ``new`` option is ignored for ``remove``
+     operations. To set, specify "``new: true``".
+
+   - **fields**, specifies a limited selection of fields to
+     return. See ":ref:`projection operators <projection-operators>`"
+     for more information.
+
+   - **upsert**, when set, creates an object if the specified
+     ``query`` returns no objects. To set, specify "``upsert: true``".
+
+.. describe:: distinct
+
+   The ``distinct`` command returns a list of distinct values for a
+   given field across a single collection. The command takes the
+   following form: ::
+
+        { distinct: collection, key: age, query: { query: { field: { $exists: true } } } }
+
+   Here, all distinct values of the field (or "``key``") ``age`` are
+   returned in documents that match the query "``{ field: { $exists:
+   true }``". The query is optional.
+
+   The shell and many drivers provide a helper method that provides this
+   functionality. Used in the following syntax: ::
+
+       db.collection.distinct("age", { field: { $exists: true } } );
+
+TODO does distinct return a list or an array?
+
+
+Replicationj
+-----------
 
 .. describe:: resync
 
@@ -250,9 +322,9 @@ Replication
 .. describe:: replSetStepDown
 
    The ``replSetStepDown`` command forces a ``mongod`` instance to
-   step down as primary, and then (attempt to) avoid reelection to primary for a
-   specified number of seconds. Consider the following syntax for this
-   admin-only command: ::
+   step down as primary, and then (attempt to) avoid reelection to
+   primary for a specified number of seconds. Consider the following
+   syntax for this admin-only command: ::
 
         { replSetStepDown: <seconds> }
 
@@ -263,8 +335,10 @@ Replication
 
    .. slave-ok, admin-only
 
+   See :doc:`replication` for more information about replication.
+
 Geolocation
-~~~~~~~~~~~
+-----------
 
 .. describe:: geoNear
 
@@ -295,52 +369,97 @@ Geolocation
 
 .. describe:: geoSearch
 
+   The ``geoSearch`` command provides an interface to MongoDB's
+   :term:`haystack index` functionality. These indexes are useful for
+   returning results based on geolocation coordinates *after*
+   collecting results based on some other query (i.e. a "haystack.")
+   Consider the following example: ::
+
+        { geoSearch : "foo", near : [33, 33], maxDistance : 6, search : { type : "restaurant" }, limit : 30 }
+
+   The above command returns all restaurants with a maximum distance
+   of 6 units from the coordinates "``[30,33]``" up to a with a
+   maximum of 30 results.
+
+   Unless specified the ``geoSearch`` command has a 50 document result
+   limit.
+
    .. read-lock, slave-ok
 
-.. describe:: geoWalk
+Indexes
+-------
 
-   .. read-lock, slave-ok
+.. describe:: reIndex
+
+   The ``reIndex`` command triggers a rebuild of all indexes for a
+   specified collection. Use the following syntax: ::
+
+        { reIndex: "collection" }
+
+   Indexes are automatically compacted as they are updated. In routine
+   operations it is unnecessary; however, you may wish if the
+   collection size changed significantly or the indexes are consuming
+   a disproportionate amount of disk space. The ``reIndex`` process is
+   blocking, and will be slow for larger collections. You can also
+   call ``reIndex`` using the following form: ::
+
+        db.collection.reIndex();
+
 
 Collections
-~~~~~~~~~~~
-drop
-distinct
+-----------
+
+.. describe:: drop
+
+   The ``drop`` command removes an entire collection from a
+   database. Consider the following syntax: ::
+
+        { drop: "collection" }
+
+   This drops entire collection named ``collection`` from the
+   database. In the shell, the following helper method is equivalent:
+   ::
+
+        db.collection.drop();
+
+TODO factcheck
+
 emptycapped
 captrunc
 convertToCapped
 renameCollection
 collStats
-reIndex
 
 .. describe:: create
 
-.. describe:: count
+.. describe:: cloneCollection
 
-   The ``count`` command provides. For example: ::
+   The ``cloneCollection`` command copies a single collection from one
+   server to another. Consider the following example:  ::
 
-        db.collection.count():
+        { cloneCollection: collection1, from: <host>, query: { field { $exists: true } }, copyIndexes: false }
 
-   In the JavaScript shell, this will return the number of documents
-   in the collection ``collection``. You may also run this command
-   using the ``runCommand`` functionality, with the following results: ::
+   Here, ``collection1`` one from the database host ``<host>`` is
+   copied to the current database. Only documents that satisfy the
+   query "``{ field: { $exists: true } }`` are copied, and none of the
+   indexes are copied. The ``query`` and ``copyIndexes`` parameters
+   are optional.
 
-        > db.runCommand( { count: "collection" } );
-        { "n" : 10 , "ok" : 1 }
-
-   Here, see that the collection named ``collection`` has 10
-   documents.
-
-   .. read-lock
+   ``cloneCollection`` creates a collection on the current database
+   with the same name as the origin collection. If, in the above
+   example, ``collection1`` exists in the local database, it is
+   emptied before copying begins. Do not use ``cloneCollection`` for
+   local operations.
 
 Operations
-~~~~~~~~~~
+----------
 eval
 filemd5
 dataSize
 
 
 Administration
-~~~~~~~~~~~~~~
+--------------
 fsync
 copydbgetnonce
 dropDatabase
@@ -383,7 +502,7 @@ compact
 
 
 Diagnostics
-~~~~~~~~~~~
+-----------
 dbStats
 listDatabases
 connPoolStats
@@ -444,13 +563,19 @@ cursorInfo
    .. slave-ok
 
 Internal Use
-------------
+============
 
 .. describe:: medianKey
 
    ``medianKey`` is an internal command.
 
    .. slave-ok, read-lock
+
+.. describe:: geoWalk
+
+   ``geoWalk`` is an internal command.
+
+   .. read-lock, slave-ok
 
 .. describe:: sleep
 

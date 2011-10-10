@@ -128,6 +128,8 @@ MongoDB Glossary
 
    Box
 
+   Haystack Index
+
    Master
 
    Slave

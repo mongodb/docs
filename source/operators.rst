@@ -452,6 +452,8 @@ Array Operators
 
    .. $elemMatch was introduced in version 1.4.
 
+.. _update-operators:
+
 Update Operators
 ----------------
 
@@ -639,6 +641,8 @@ TODO determine what the performance impacts of using $pushAll with single values
    ``field`` with a bitwise "``and: 5``" operation.
 
 TODO expand coverage of $bit which I need to understand the use better.
+
+.. _projection-operators:
 
 Projection Operators
 --------------------
