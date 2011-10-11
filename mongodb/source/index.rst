@@ -13,6 +13,7 @@ Contents:
 
    operators
    commands
+   server-status
    glossary
 
 .. the following are notional documents that need to exist in the tree
