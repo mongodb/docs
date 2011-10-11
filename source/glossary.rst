@@ -122,13 +122,21 @@ MongoDB Glossary
 
    BSON types
 
+   geospatial
+
    Polygon
 
    Circle
+      Is a shape used by the :term:`
 
    Box
 
-   Haystack Index
+   haystack index
+
+   capped collection
+
+   capped collections
+      See :term:`capped collection`
 
    Master
 
@@ -137,3 +145,11 @@ MongoDB Glossary
    Primary
 
    Secondary
+
+   shell helper
+
+   padding factor
+
+   GridFS
+
+   md5

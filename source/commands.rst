@@ -1,6 +1,6 @@
-===========================
+==========================
  MongoDB Command Reference
-===========================
+==========================
 
 .. default-domain: mongodb
 .. highlight_language: javascript
@@ -26,13 +26,13 @@ Your MongoDB driver may provide an alternate interface for issuing
 database commands. All examples in this reference are provided as JSON
 documents.
 
-TODO factcheck above
+TODO factcheck introduction.
 
 User Commands
-=============
+-------------
 
 Sharding
---------
+~~~~~~~~
 
 TODO get background on 3 sharding commands
 
@@ -61,7 +61,7 @@ TODO get background on 3 sharding commands
    .. admin-only
 
 Aggregation
------------
+~~~~~~~~~~~
 
 .. describe:: group
 
@@ -130,25 +130,27 @@ Aggregation
 .. describe:: mapReduce
 
    Run a map/reduce operation on the MongoDB server. This command is
-   used for aggregation and not query purposes.. ``mapReduce`` creates
-   a collection holding the results of the operation. The
+   used for aggregating data and not query purposes. ``mapReduce``
+   creates a collection holding the results of the operation. The
    ``mapReduce`` command has the following syntax: ::
 
         { mapreduce : <collection>,
            map : <mapfunction>,
-           reduce : <reducefunction>
-           [, query : <query filter object>]
-           [, sort : <sorts the input objects using this key. Useful for optimization, like sorting by the emit key for fewer reduces>]
-           [, limit : <number of objects to return from collection>]
-           [, out : <see output options below>]
-           [, keeptemp: <true|false>]
-           [, finalize : <finalizefunction>]
-           [, scope : <object where fields go into javascript global scope >]
-           [, jsMode : true]
-           [, verbose : true]
+           reduce : <reducefunction>,
+           query : <query filter object>,
+           sort : <sorts to limit input objects. For optimization>,
+           limit : <number of objects to return>,
+           out : <output>,
+           keeptemp: <true|false>,
+           finalize : <finalizefunction>,
+           scope : <object where fields go into javascript global scope >,
+           jsMode : true,
+           verbose : true,
         }
 
-   See :doc:`map-reduce` for more information on mapReduce.
+   Only the ``map`` and ``reduce`` functions are required, all other
+   fields are option. See :doc:`map-reduce` for more information on
+   mapReduce.
 
    .. slave-ok
 
@@ -210,11 +212,43 @@ Aggregation
 
        db.collection.distinct("age", { field: { $exists: true } } );
 
+   The ``distinct`` command can use an index to locate and return
+   data.
+
 TODO does distinct return a list or an array?
 
+.. describe:: eval
 
-Replicationj
------------
+   The ``eval`` provides the ability to evaluate JavaScript functions
+   on the database server. Consider the following (trivial) example: ::
+
+        { eval: function() { return 3+3 } }
+
+   The shell also provides a helper method. The above can be expressed
+   in the following form: ::
+
+        db.eval( function { return 3+3 } } );
+
+   While you can input functions directly into the shell, they will be
+   evaluated by the shell rather than the database itself. Consider
+   the following behaviors and limitations:
+
+   - ``eval`` does not work in :term:`sharded` environments.
+
+   - The ``eval`` operation is blocking and prevents all writes to the
+     database until ``eval`` has finished, unless the ``nolock`` flag
+     is set to ``true``, For example: ::
+
+           { eval: function() { return 3+3 }, nslock: true }
+
+.. describe:: dataSize
+
+   .. ask
+
+TODO document this
+
+Replication
+~~~~~~~~~~~
 
 .. describe:: resync
 
@@ -338,7 +372,7 @@ Replicationj
    See :doc:`replication` for more information about replication.
 
 Geolocation
------------
+~~~~~~~~~~~
 
 .. describe:: geoNear
 
@@ -363,7 +397,9 @@ Geolocation
      their distance from the initial coordinates.
    - The ``query`` option makes it possible to narrow the results
      with any standard mongodb query.
-   - The ``distanceMultiplier`` option IS UNDOCUMENTED.
+   - The ``distanceMultiplier`` option is undocumented.
+
+TODO distanceMultiplier research/definition
 
    .. read-lock, slave-ok
 
@@ -386,28 +422,9 @@ Geolocation
 
    .. read-lock, slave-ok
 
-Indexes
--------
-
-.. describe:: reIndex
-
-   The ``reIndex`` command triggers a rebuild of all indexes for a
-   specified collection. Use the following syntax: ::
-
-        { reIndex: "collection" }
-
-   Indexes are automatically compacted as they are updated. In routine
-   operations it is unnecessary; however, you may wish if the
-   collection size changed significantly or the indexes are consuming
-   a disproportionate amount of disk space. The ``reIndex`` process is
-   blocking, and will be slow for larger collections. You can also
-   call ``reIndex`` using the following form: ::
-
-        db.collection.reIndex();
-
 
 Collections
------------
+~~~~~~~~~~~
 
 .. describe:: drop
 
@@ -423,14 +440,6 @@ Collections
         db.collection.drop();
 
 TODO factcheck
-
-emptycapped
-captrunc
-convertToCapped
-renameCollection
-collStats
-
-.. describe:: create
 
 .. describe:: cloneCollection
 
@@ -451,31 +460,215 @@ collStats
    emptied before copying begins. Do not use ``cloneCollection`` for
    local operations.
 
-Operations
-----------
-eval
-filemd5
-dataSize
+.. describe:: create
 
+   The ``create`` command explicitly creates a collection. The command
+   uses the following syntax: ::
+
+        { create: collection }
+
+   To create a capped collection  command in the following form.
+
+        { create: collection, capped: true, size: 40000, max: 9000 }
+
+   The options for creating capped collections are:
+
+   - **capped**, is "false," by default. Specify "``true``" to create
+     a :term:`capped collection`.
+   - **size** specifies a maximum "cap," in bytes for capped
+     collections. If you specify a capped collection, you *must*
+     specify a size cap.
+   - **max** specifies a maximum "cap," in number of documents for
+     capped collections. You must also specify ``size`` when
+     specifying ``max``.
+
+   If a collection has a cap on the number of documents and the size
+   in bytes is reached, older documents will be removed.
+
+   You can use the ``.createCollection()`` method in the shell to
+   access this functionality.
+
+TODO factcheck
+
+.. describe:: convertToCapped
+
+   The ``convertToCapped`` command providdes the ability to convert an
+   existing, non-capped collection to a :term:`capped collection`. Use
+   the following syntax: ::
+
+        {convertToCapped: "collection", size: 100000, max: 9000 }
+
+   Here, ``collection`` (an existing collection) is converted to a
+   capped collection, with a maximum size of 100 kilobytes (specified
+   in bytes) or 9000 records. The options used to specify the
+   parameters of a capped collection are:
+
+   - **size** specifies a maximum "cap," in bytes for capped
+     collections. If you specify a capped collection, you *must*
+     specify a size cap.
+   - **max** specifies a maximum "cap," in number of documents for
+     capped collections. You must also specify ``size`` when
+     specifying ``max``.
+
+   If a collection has a cap on the number of documents and the size
+   in bytes is reached, older documents will be removed.
+
+TODO factcheck
+
+.. describe:: emptycapped
+
+   The ``emptycapped`` command removes all documents from a capped
+   collection. Use the following syntax: ::
+
+        { emptycapped: "events" }
+
+   In this example, the capped collection named ``events`` is
+   emptied.
+
+.. describe:: captrunc
+
+   The ``captrunc`` command removes (i.e. truncates) the most recent
+   additions to a capped collection. Use the following syntax: ::
+
+        { captrunc: "events", n: 1 }
+
+   In this example, the last ``1`` item entered is removed from the
+   capped collection named ``events``. The ``n`` value, specifies the
+   number of documents to truncate.
+
+   The command is not safe to use on non-capped collection.
+
+   .. is this internal?
+
+      The command, in my tests, removes documents from non-capped
+      collections (but it does throw an error.
+
+      There's also an "inc" option which modifies the behavior but I'm
+      not sure what this stands for.
+
+.. describe:: rename Collection
+
+   The ``renameCollection`` command changes the name of an existing
+   collection. Use the following command to rename the collection
+   named ``collection`` to ``events``: ::
+
+        { renameCollection: store.collection, to: store.corpus }
+
+   In this command, ``collection`` in the ``store`` database is
+   renamed "``corpus``". This command must be run on the admin
+   database, and thus requires specifying the database name
+   (e.g. "``store``".)
+
+   The shell helper "``renameCollection()``" exists to make renaming
+   collections easier. Use the following command in the ``mongo``
+   shell, which is equivalent to the command above:
+
+        db.collection.renameCollection( "corpus" );
+
+.. describe:: collStats
+
+   The ``collStats`` command returns a number of regarding a
+   collection. Use the following syntax: ::
+
+        { collStats: "database.collection" , scale : 1024 }
+
+   Specify a collection in the form of "``database.collection``" and
+   use the ``scale`` argument to control the output. The above example
+   will display values in kilobytes. Consider the following example
+   output: ::
+
+        > db.collection.stats()
+        {
+                "ns" : "database.collection",   // database namespace
+                "count" : 9,                    // number of documents
+                "size" : 432,                   // collection size in bytes unless alternate scale used.
+                "avgObjSize" : 48,              // average object size in bytes
+                "storageSize" : 3840,           // (pre)allocated space for the collection
+                "numExtents" : 1,               // extents are contiguously allocated chunks of datafile space
+                "nindexes" : 2,                 // number of indexes
+                "lastExtentSize" : 3840,
+                "paddingFactor" : 1,            // padding can speed up updates if documents grow
+                "flags" : 1,
+                "totalIndexSize" : 16384,       // total index size in bytes
+                "indexSizes" : {                // size of specific indexes in bytes
+                        "_id_" : 8192,
+                        "x_1" : 8192
+                },
+                "ok" : 1
+        }
+
+   The ``mongo`` shell also provides a helper. You can also return
+   stats using the following command: ::
+
+        db.collection.stats();
+
+.. describe:: compact
+
+   The ``compact`` command optimizes the storage for a single
+   :term:`capped collection`. This is similar in function to the
+   :command:`repairDatabase`, except that ``compact`` operates on a
+   single collection. The command uses the following syntax: ::
+
+        { compact: "collection" }
+
+   In this example, ``collection`` will be compacted. Generally, this
+   operation compacts and defragments the collection as well as
+   rebuilds and compacts indexes. Consider the following behaviors:
+
+   - During a ``compact`` will block all other activity.
+
+   - In a :term:`replica set`, ``compact`` will refuse to run on the
+     master node in a replica set unless the "``force: true``" option
+     is specified. For example: ::
+
+           { compact: "collection", force: true }
+
+   - If you have journeying enabled and "kill" a compact option or the
+     database restarts during a ``compact`` operation, no data will be
+     lost, although indexes will be absent. Running ``compact``
+     without journaling may risk data loss.
+
+     .. warning::
+
+        Always have a backup before performing server maintenance such
+        as the ``compact`` operation.
+
+   - ``compact`` requires a small amount of additional diskspace while
+     running but unlike :command:`repairDatabase` it does *not* free
+     space equal to the total size of the collection.
+
+   - the ``compact`` command will not return until the operation is
+     complete.
+
+   - ``compact`` removes any :term:`padding factor` in the collection,
+     which may impact performance if documents regularly grow.
+
+   - ``compact`` commands do not replicate and can be run on slaves
+     and replica set members.
+
+   - :term:`Capped collections` cannot be compacted.
 
 Administration
---------------
-fsync
-copydbgetnonce
-dropDatabase
-dropIndexes
-clone
-closeAllDatabases
-repairDatabase
-dbHash
-shutdown
-ping
-copydb
-logout
-logRotate
-compact
-- force
-- validate
+~~~~~~~~~~~~~~
+.. describe:: fsync
+
+   .. not useful
+
+.. describe:: dropDatabase
+.. describe:: dropIndexes
+.. describe:: clone
+.. describe:: closeAllDatabases
+.. describe:: repairDatabase
+.. describe:: shutdown
+.. describe:: ping
+.. describe:: copydb
+.. describe:: logout
+.. describe:: logRotate
+
+   Options:
+
+   - force
+   - validate
 
 .. describe:: setParameter
 
@@ -502,28 +695,30 @@ compact
 
 
 Diagnostics
------------
-dbStats
-listDatabases
-connPoolStats
+~~~~~~~~~~~
 
-isMaster
-whatsmyuri
+.. describe:: dbStats
+.. describe:: listDatabases
+.. describe:: connPoolStats
 
-getCmdLineOpts
-features
-validate
-driverOIDTest
-top
-serverStatus
-buildInfo
-getLastError
-getLog
-diagLogging
-cursorInfo
+   .. maybe
+
+.. describe:: isMaster
+.. describe:: getCmdLineOpts
+.. describe:: validate
+.. describe:: top
+.. describe:: buildInfo
+.. describe:: getLastError
+.. describe:: getLog
+
+   .. ask
+
+.. describe:: cursorInfo
+.. describe:: serverStatus
+
+TODO document the outputs. look at mms interface as starting point.
 
 .. describe:: journalLatencyTest
-
 .. describe:: availableQueryOptions
 
 .. describe:: resetError
@@ -562,8 +757,73 @@ cursorInfo
 
    .. slave-ok
 
+Other Commands
+~~~~~~~~~~~~~~
+
+.. describe:: reIndex
+
+   The ``reIndex`` command triggers a rebuild of all indexes for a
+   specified collection. Use the following syntax: ::
+
+        { reIndex: "collection" }
+
+   Indexes are automatically compacted as they are updated. In routine
+   operations it is unnecessary; however, you may wish if the
+   collection size changed significantly or the indexes are consuming
+   a disproportionate amount of disk space. The ``reIndex`` process is
+   blocking, and will be slow for larger collections. You can also
+   call ``reIndex`` using the following form: ::
+
+        db.collection.reIndex();
+
+.. describe:: filemd5
+
+   The ``filemd5`` command returns :term:`md5` hashes for every object
+   in a :term:`GridFS` store. Use the following syntax: ::
+
+        { filemd5: "style-guide.rst" }
+
+TODO find md5 "root" argument, and other functionality.
+
 Internal Use
-============
+------------
+
+.. describe:: whatsmyuri
+
+   ``whatsmyuri`` is an internal command.
+
+   .. slave-ok
+
+.. describe:: features
+
+   ``features`` is an internal command that returns the build-level
+   feature settings.
+
+   .. slave-ok
+
+.. describe:: driverOIDTest
+
+   ``driverOIDTest`` is an internal command.
+
+   .. slave-ok
+
+.. describe:: diagLogging
+
+   ``diagLogging`` is an internal command.
+
+   .. write-lock, slave-ok,
+
+.. describe:: copydbgetnonce
+
+   ``copydbgetnonce`` is an internal command.
+
+   .. write-lock, admin-only
+
+.. describe:: dbHash
+
+   ``dbHash`` is an internal command.
+
+   .. slave-ok, read-lock
 
 .. describe:: medianKey
 
@@ -580,7 +840,7 @@ Internal Use
 .. describe:: sleep
 
    ``sleep` an internal command for testing purposes. The ``sleep``
-   comand forces the db block all operations. It takes the following
+   command forces the db block all operations. It takes the following
    options: ::
 
         { sleep: { w: true, secs: <seconds> } }
@@ -637,7 +897,7 @@ Internal Use
 
 .. describe:: replSetHeartbeat
 
-   ``replSetheThis is an internal command that support replica set functionality.
+   ``replSetheThis`` is an internal command that support replica set functionality.
 
    .. slave-ok
 
@@ -666,7 +926,7 @@ TODO factcheck (minor)
 
 .. describe:: checkShardingIndex
 
-   ``checkShardingIndex is an internal command that supports the
+   ``checkShardingIndex`` is an internal command that supports the
    sharding functionality.
 
    .. read-lock
