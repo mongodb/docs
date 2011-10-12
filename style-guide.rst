@@ -4,7 +4,7 @@
 **2011-09-27**: Document created with a (very) rough list of style
 guidelines, and conventions that would be helpful to setup sooner
 rather than later to help us create high quality unified
-documentation. 
+documentation.
 
 - File naming convention (and related URL naming convention.)
 
@@ -14,9 +14,9 @@ documentation.
   efficient question answering.)
 
 - Titles (e.g. "Using foo" vs. "How to Foo")
-  
+
 - Some basic overview on how to structure documents and use headlines.
-  
+
 - Conventional style points. Including, oxford commas (yes,)
   double-spaced terminal punctuation (no,) logical or American style
   for the interaction between enclosing punctuation and terminal
@@ -27,7 +27,7 @@ documentation.
 
 - Contractions or not? (I tend to vote against contractions,)
 
-- RST specific styles/habits: e.g. (h1: =; h2: -; h3: ~; h4: +; h5: ^), 
+- RST specific styles/habits: e.g. (h1: =; h2: -; h3: ~; h4: +; h5: ^),
   (hr: ------; ul-li: -;) link/ref formats; etc.
 
 - Style around UL's. Issues to consider: Item capitalization and
@@ -35,9 +35,9 @@ documentation.
   sentences. Use of colons around lists.
 
 - Commit message style/requirements and other processes (e.g. trailing
-  white space, column wrapping, etc.) 
+  white space, column wrapping, etc.)
 
-- Policies regarding build errors. 
+- Policies regarding build errors.
 
 - Some sort of policy and system for describing the objectives for a
   document's content. (i.e. This document needs to address xyz.)
@@ -53,17 +53,24 @@ documentation.
 - Spaces between nesting parentheticals (and elements) in javascript
   examples. (e.g. "``{ [ a, a, a ] }``" "``{[a,a,a]}``")
 
-- One word: 
+- One word:
 
   - stanalone
   - workflow
 
 - Examples
 
-  - Example urls and domain names should be example.com/example.net/example.com. 
+  - Example urls and domain names should be example.com/example.net/example.com.
 
     The example domains are reserved in the DNS spec for this purpose
-    and people will notice (and complain about it.) 
+    and people will notice (and complain about it.)
 
   - We should have some default variable, field and value names so we
-    can be consistent. 
+    can be consistent.
+
+- MongoDB Sphinx Domain Requirements
+
+  - command
+  - operator
+  - status
+  - (error code?)
