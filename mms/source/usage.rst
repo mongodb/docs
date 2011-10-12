@@ -139,8 +139,9 @@ Alerts
 
 The "Alerts" section provides access to MMS's alert system. This
 section has three tabs: unresolved alerts, resolved alerts, and alert
-settings. When you begin using MMS, an alert is configured to send an
-email when the agent is down.
+settings. Following the installation of your first MMS agent, an alert
+is configured to send an email when the agent is down. You can delete
+or modify this alert as you like.
 
 Types
 ~~~~~
