@@ -97,8 +97,9 @@ are:
   to the default zoom setting. This item only appears when you have
   zoomed into the chart.
 
-- "Add To Dashboard," a plus sign, raises a dialogue box where you can
-  select a dashboard to add this chart to.
+- "Add To Dashboard," a plus sign, takes you to a dashboard creation
+  page where you can create a new dashboard and add a collection of
+  charts to the new dashboard.
 
 - "Zoom In," a magnifying glass with a plus sign, raises a box with a
   larger version of the chart.
@@ -151,11 +152,12 @@ select the minus sign (e.g. "``-``") icon in the chart toolbar.
 Advanced Dashboard Creation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When adding a new dashboard, you can select the "advanced create" to
-create a dashboard that includes a custom selection of charts a
-dynamically assembled list of hosts. From this page, you may create
-new dashboards or append new charts to existing dashboards. You can
-filter the included processes by :ref:`host type <host-types>`.
+When adding a new dashboard, you can select the "advanced create or
+append to dashboard" link to create a dashboard that includes a custom
+selection of charts, or a collection of charts from a dynamically
+assembled list of hosts. From this page, you may create new dashboards
+or append new charts to existing dashboards. You can filter the
+included processes by :ref:`host type <host-types>`.
 
 Specify the list of hosts to include in this dashboard by selecting a
 replica set or shard cluster or writing a regular expression to match
