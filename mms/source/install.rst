@@ -84,15 +84,18 @@ Registering for MMS
 ~~~~~~~~~~~~~~~~~~~
 
 If you already have `jira account <http://jira.mongodb.org/>`_ you may
-sign in with your JIRA credentials. Otherwise, register for an MMS account
+sign in with your JIRA credentials. When you sign into MMS for the
+first time, you will be prompted to create a new "group" for your
+deployment.
+
+If you do not already have a JIRA account, register for an MMS account
 using the `MMS registration page <https://mms.10gen.com/user/register>`_.
 After completing the registration process, you will arrive at the "MMS
 Hosts," page.
 
-Because there are no MMS agents attached to your account, you will
-at first see instructions for download the MMS agent. Click the "download agent"
-link to get an agent specifically configured for your
-account.
+Because there are no MMS agents attached to your account, you will at
+first see instructions for download the MMS agent. Click the "download
+agent" link to get an agent specifically configured for your account.
 
 Installing the MMS Agent
 ~~~~~~~~~~~~~~~~~~~~~~~~
