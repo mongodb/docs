@@ -46,14 +46,14 @@ The second line contains nine links that control the host statistics
 page. The current selection is displayed in a larger font. These
 options are:
 
-- "minute," which is the default setting. All charts plot one data point
+- "by minute," which is the default setting. All charts plot one data point
   per minute.
 
-- "five minute," which re-plots all charts with five-minute averages.
+- "by 5min," which re-plots all charts with five-minute averages.
 
-- "hour," which re-plots all charts with hourly averages.
+- "by hour," which re-plots all charts with hourly averages.
 
-- "day," which re-plots the chart to display a period of time greater
+- "by day," which re-plots the chart to display a period of time greater
   than 24 hours, Possible scopes are: "week," "two week," "month,"
   "six month" and "year."
 
