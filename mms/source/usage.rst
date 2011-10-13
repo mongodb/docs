@@ -13,21 +13,23 @@ Hosts
 -----
 
 The "Hosts" section is the primary location for monitoring information
-in the MMS console. There are several tabs that contain monitored processes:
+in the MMS console. This tabbed interface provides access to all of
+your monitored objects. The tabs you see depend on the types of
+processes in your deployment. The tab:
 
 - "**Hosts**" displays all non-arbiter ``mongod`` instances.
 
 - "**Mongos**" displays all ``mongos`` instances.
 
-- "**Conf**" displays all ``conf`` database instances.
+- "**Conf**" displays all database configuration servers.
 
-- "**Abiters**" lists the ``mongod`` processes functioning as arbiters in
-  replica sets.
+- "**Arbiters**" lists the ``mongod`` processes functioning as
+  arbiters in replica sets.
 
 - "**Agents**" lists the MMS agents attached to this MMS account.
 
 The remaining "Host" section tabs contain information about the
-monitoring process and environment.
+monitoring process and environment. The tab:
 
 - "**Agent Log**" displays a log of the MMS agent's activity.
 
@@ -52,8 +54,8 @@ Each non-arbiter processes in the "Hosts" section links to an overview
 of the data collected for that process. On each of these pages, MMS
 provides the following tabs:
 
-- "**DB Stats**," which displays charts using data provide
-  by the MMS agent.
+- "**DB Stats**," which displays charts using data provided by the MMS
+  agent.
 
 - "**Hardware**," which displays information gathered about underlying
   system. To collect this information, you will need to install and
