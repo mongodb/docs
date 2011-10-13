@@ -120,23 +120,43 @@ MongoDB Glossary
       :term:`sharding` and :term:`replication` for more information on
       two different approaches to clustering with MongoDB.
 
-   BSON types
-
-   geospatial
-
    Polygon
+      MongoDB's :term:`geospatial` indexes and querying system
+      provides the ability to build queries around multi-sided
+      polygons on 2 dimensional coordinate systems. These queries use
+      the ``$within`` operator and a sequence of points that define
+      the corners of the polygon. MongoDB assumes that the first point
+      is connected to the last.
 
    Circle
-      Is a shape used by the :term:`
+      MongoDB's :term:`geospatial` indexes and querying system
+      provides the ability to build queries around circles on 2
+      dimensional coordinate systems. These queries use the ``$circle``
+      operator to define circle using the center and the radius of the
+      circle.
 
    Box
-
-   haystack index
+      MongoDB's :term:`geospatial` indexes and querying system
+      provides the ability to build queries around rectangles on 2
+      dimensional coordinate systems. These queries use the ``$box``
+      operator to define a shape using the lower-left and the upper
+      right coordinates.
 
    capped collection
+      Capped collections, are :term:`collections` that have a maximum
+      size, and an (optional) maximum number of documents. These
+      collections are used to prevent collections from growing out of
+      control and are useful in the context of logging or caching
+      functions.
 
    capped collections
       See :term:`capped collection`
+
+   BSON types
+
+   haystack index
+
+   geospatial
 
    Master
 
@@ -153,3 +173,23 @@ MongoDB Glossary
    GridFS
 
    md5
+      ``md5`` is a hashing algorithm used to efficiently provide
+      reproducible unique strings to identify and :term:`checksum`
+      data. MongoDB uses md5 to identify chunks of data for
+      :term:`GridFS`.
+
+   Journaling
+
+   Lock
+
+   Global Lock
+
+   read-lock
+
+   write-lock
+
+   Indexes
+
+   btree
+
+   ISODate

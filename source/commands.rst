@@ -650,15 +650,163 @@ TODO factcheck
 
 Administration
 ~~~~~~~~~~~~~~
+
 .. describe:: fsync
 
-   .. not useful
+   ``fsync`` is an admin only command that forces the ``mongod``
+   process to flush all pending writes to the data files. In default
+   operation, a full flush runs every sixty seconds. Running ``fsync``
+   in the course of normal operations is not required. The command
+   takes the following form: ::
+
+        { fsync: 1 }
+
+   The ``fsync`` command is synchronous and returns only after the
+   operation has completed. To run the command asynchronously, use the
+   following syntax: ::
+
+        { fsync: 1, async: true }
+
+   The ``fsync`` operation blocks all other write operations for a
+   while it runs. To toggle a write-lock using ``fsync``, add a lock
+   argument, as follows: ::
+
+        { fsync: 1, lock: true }
+
+   You must issue a command to unlock the database. This command will
+   block until the operation is complete: when the command returns the
+   database is unlocked. Such a command would resemble: ::
+
+        { fsync: 1, lock: false }
+
+   In the shell, the following helpers exist to simplify this
+   process: ::
+
+        db.fsyncLock();
+        db.fsyncUnlock();
 
 .. describe:: dropDatabase
+
+   The ``dropDatabase`` command drops the database and deletes the
+   associated data files. ``dropDatabase`` operates on the current
+   database. In the shell issue the ``use [database]`` command,
+   replacing "``[database]``" with the name of the database you wish
+   to delete. Then use the following command form: ::
+
+        { dropDatabase: 1 }
+
+   The ``mongo`` shell also provides the following helper method for
+   this function operation: ::
+
+        db.dropDatabase();
+
+   .. write-lock
+
 .. describe:: dropIndexes
+
+   The ``dropIndexes`` command provides the ability to drop or remove
+   indexes for the current collection. The command either: removes all
+   databases, or selectively drop indexes. To drop all indexes issue a
+   command in the following format: ::
+
+        { dropIndexes: "collection", index: "*" }
+
+   Specify the field in the "index" parameter, to drop indexes with a
+   specific key pattern. For example, to drop all indexes of the
+   "``age``" field, use the following command format: ::
+
+        { dropIndexes: "collection", index: "age: 1" }
+
+   The shell also provides the following command helper: ::
+
+        db.collection.dropIndex();
+
+   Use as above to drop all indexes in ``collection``, and specify
+   fields to only drop specific indexes.
+
+TODO verify the behavior here. or at least understand how this works
+
 .. describe:: clone
+
+   The ``clone`` command makes it possible to clone a database from a
+   remote host to the current host. The database on the remote host
+   with the same name as the current database is copied. The command
+   takes the following form: ::
+
+        { clone: "example.com" }
+
+   Modify ``example.com`` in this example with the resolvable hostname
+   for the MongoDB instance you wish to copy from. Note the following
+   behaviors:
+
+   - ``clone`` can run against a :term:`slave` or a
+     non-:term:`primary` member of a :term:`replica set`.
+   - ``clone`` does not snapshot the database. If the copied database is
+     updated at any point during the clone operation the resulting
+     database may be inconsistent.
+   - You must run ``clone`` on the **destination server**.
+   - The destination server is not locked during the duration of the
+     ``clone`` operation, and ``clone`` will occasionally yield to
+     other operations.
+
 .. describe:: closeAllDatabases
+
+   The ``closeAllDatabases`` command forces ``mongod`` to close all
+   open database files. The command takes the following form: ::
+
+        { closeAllDatabases: 1 }
+
+   .. note::
+
+      A new request will cause the ``mongod`` to immediately reopen
+      the database files. As a result this command is primarily useful
+      for testing purposes
+
 .. describe:: repairDatabase
+
+   The ``repairDatabase`` command checks and repairs errors and
+   inconsistencies with the data storage. The command is analogous to
+   a ``fsck`` command for a file system. If your ``mongod`` instance
+   is not running with journaling and you experience an unexpected
+   system restart or crash, you should run the ``repairDatabase``
+   command to ensure that there are no errors in the data
+   storage. Additionally, the ``repairDatabase`` command will compact
+   the database similar to the functioning of
+   :command:`compact`. Issue the command with the following syntax.
+
+        { repairDatabase: 1 }
+
+   Be aware that this command can take a long time to run depending on
+   the size of your database.
+
+   This command is accessible via a number of different avenues. You
+   may:
+
+   - Use the shell as above.
+
+   - Run it directly from your system's shell. Make sure that
+     ``mongod`` isn't already running, and that you issue this command
+     as a user that has access to MongoDB's data files. Run as: ::
+
+           $ mongod --repair
+
+     .. note::
+
+        This command will fail if your database is not a master or
+        primary. Restart the server on another port without the
+        ``--replSet`` option.
+
+   - Use the following shell helper: ::
+
+           db.repairDatabase();
+
+   .. note::
+
+      When :term:`journaling` is enabled, there is no need to run
+      repairDatabase
+
+
+
 .. describe:: shutdown
 .. describe:: ping
 .. describe:: copydb
@@ -714,12 +862,40 @@ Diagnostics
    .. ask
 
 .. describe:: cursorInfo
-.. describe:: serverStatus
-
-TODO document the outputs. look at mms interface as starting point.
 
 .. describe:: journalLatencyTest
+
+   ``journalLatencyTest`` is an admin command that tests the length of
+   time required to write and perform a file system sync (e.g. fsync)
+   for a file in the journal directory. The command syntax is:
+
+         { journalLatencyTest: 1 }
+
+   The value (i.e. ``1`` above), does not affect the operation of the
+   command.
+
 .. describe:: availableQueryOptions
+
+   { "options" : 254, "ok" : 1 }
+
+TODO no documentation exists, and the response I get is the above
+
+.. describe:: serverStatus
+
+   The ``serverStatus`` command returns a document that provides an
+   overview of the database process' state. The command takes the
+   following form: ::
+
+        { serverStatus: 1 }
+
+   The value (i.e. ``1`` above), does not affect the operation of the
+   command. You may also access this command with the following shell
+   helper: ::
+
+        db.serverStatus();
+
+   For more information about the values provided by this command see
+   the :doc:`server-status`.
 
 .. describe:: resetError
 
