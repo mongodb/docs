@@ -749,6 +749,8 @@ TODO verify the behavior here. or at least understand how this works
      ``clone`` operation, and ``clone`` will occasionally yield to
      other operations.
 
+   See :command:`copydb`  for similar functionality.
+
 .. describe:: closeAllDatabases
 
    The ``closeAllDatabases`` command forces ``mongod`` to close all
@@ -805,18 +807,106 @@ TODO verify the behavior here. or at least understand how this works
       When :term:`journaling` is enabled, there is no need to run
       repairDatabase
 
-
-
 .. describe:: shutdown
-.. describe:: ping
+
+   The ``shutdown`` command shuts down the database process. The
+   command takes the following form: ::
+
+        { shutdown: 1 }
+
+   .. note::
+
+      The ``shutdown`` command must be run against the admin
+      database. Additionally, the command must be issued from a
+      connection on localhost, or the connection must be
+      authenticated.
+
+   For :doc:`replica set <replication>` users, if the current node is
+   primary and no other members of the set are less than 10 seconds
+   behind the node then the server will not shut down without a
+
+   The ``shutdown`` command also supports a ``timeoutSecs`` argument
+   which allows you to specify a number of seconds to wait for other
+   members of the replica set to catch up. That command resembles: ::
+
+        { shutdown: 1, timeoutSecs: 60 }
+
+   The ``mongo`` shell also provides the following helper method: ::
+
+        db.shutdownServer();
+
 .. describe:: copydb
+
+   The ``copydb`` command copies a database from another host to the
+   current host. This provides similar functionality to
+   :command:`clone`, but provides additional flexibility. The command
+   takes the following syntax: ::
+
+        { copydb: 1:
+          fromhost: <hostname>,
+          fromdb: <db>,
+          todb: <db>,
+          slaveOk: <bool>,
+          username: <username>,
+          nonce: <nonce>,
+          key: <key> }
+
+   The following arguments are optional:
+
+   - slaveOK
+   - username
+   - nonce
+   - key
+
+   Be aware of the following behaviors: ::
+
+   - ``copydb`` can run against a :term:`slave` or a
+     non-:term:`primary` member of a :term:`replica set`.
+   - ``copydb`` does not snapshot the database. If the copied database is
+     updated at any point during the copydb operation the resulting
+     database may be inconsistent.
+   - You must run ``copydb`` on the **destination server**.
+   - The destination server is not locked during the duration of the
+     ``copydb`` operation, and ``copydb`` will occasionally yield to
+     other operations.
+
+TODO is the password an option here?
+
 .. describe:: logout
+
+   The ``logout`` command forces the current session to end the
+   current authentication session. The command takes the following
+   syntax: ::
+
+        { logout: 1 }
+
+   If you're not logged on using authentication this command will not
+   have any effect.
+
 .. describe:: logRotate
 
-   Options:
+   ``logRotate`` is an admin only command that allows you to rotate
+   the MongoDB commands to prevent a single logfile from consuming too
+   much disk space. Use the following syntax: ::
 
-   - force
-   - validate
+        { logRotate: 1 }
+
+   You may also rotate the logs by sending the ``mongod`` process the
+   ``SIGUSR1`` signal.
+
+   .. note::
+
+      Your ``mongod`` instance needs to be running with the
+      ``--logpath <file>`` option for the ``logRotate`` command.
+
+   .. note::
+
+      The ``logRotate`` command is not available to mongod instances
+      running on windows systems.
+
+TODO does logRotate remove the old files or rename them?
+
+   .. force/validate options (?)
 
 .. describe:: setParameter
 
@@ -851,7 +941,6 @@ Diagnostics
 
    .. maybe
 
-.. describe:: isMaster
 .. describe:: getCmdLineOpts
 .. describe:: validate
 .. describe:: top
@@ -862,6 +951,29 @@ Diagnostics
    .. ask
 
 .. describe:: cursorInfo
+
+
+.. describe:: isMaster
+
+   The ``isMaster`` command returns ``true`` if the current instance
+   is the primary node in a replica set or the master in a simple
+   master/slave setup. The command takes the following form: ::
+
+        { isMaster: 1 }
+
+   This command will return a ``true`` value on ``mongod`` instances
+   that are running as standalone nodes.
+
+.. describe:: ping
+
+   The ``ping`` command is used to test the server to ensure that it
+   is running. This command will return immediately even if the server
+   has a db lock. Issue the command with the following syntax: ::
+
+        { ping: 1 }
+
+   The value (e.g. ``1`` above,) doe not have an impact on the
+   behavior of the command.
 
 .. describe:: journalLatencyTest
 

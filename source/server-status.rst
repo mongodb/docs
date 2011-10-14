@@ -378,7 +378,8 @@ backgroundFlushing
    this value is likely to represent a "normal," time; however, this
    value can be skewed by abnormal data. Use the
    :status:`backgroundFlushing.last_ms` to ensure that a high average
-   has not been skewed by transient historical issue.
+   has not been skewed by transient historical issue or a random write
+   distribution.
 
 .. describe:: backgroundFlushing.last_ms
 
@@ -406,8 +407,8 @@ cursors
 
 .. describe:: cursors
 
-   The ``cursors`` data structure collects all data about the current
-   state of cursors and cursor use.
+   The ``cursors`` data structure contains data regarding cursor state
+   and use.
 
 .. describe:: cursors.totalOpen
 
@@ -437,32 +438,175 @@ network
 -------
 
 .. describe:: network
+
+   The ``network`` data structure contains data regarding MongoDB's
+   network use.
+
 .. describe:: network.bytesIn
+
+   The value of the ``network.bytesIn`` field reflects the amount of
+   network traffic, in bytes, received *by* this database. Use this
+   value to ensure that network traffic sent to the MongoDB process is
+   consistent with expectations, and overall inter-application
+   traffic.
+
 .. describe:: network.bytesOut
+
+   The value of the ``network.bytesOut`` field reflects the amount of
+   network traffic, in bytes, sent *from* this database. Use this
+   value to ensure that network traffic sent by the MongoDB process is
+   consistent with expectations, and overall inter-application
+   traffic.
+
 .. describe:: network.numRequests
+
+   The ``network.numRequests`` field is a counter of the total number
+   of distinct requests that the server has received. Use this value,
+   to provide context for the :status:`network.bytesIn` and
+   :status:`network.bytesOut` values to ensure that MongoDB's network
+   utilization is consistent with expectations and application use.
+
+repl
+----
+
+.. describe:: repl
+
+   The ``repl`` data structure contains status information for
+   MongoDB's replication (i.e. "replica set") configuration. These
+   values only appear when replication is enabled for the current
+   host.
+
+   See :doc:`replication` for more information on replication.
+
+.. describe:: repl.setName
+
+   The ``repl.setName`` field contains a string with the name of the
+   current replica set. This value is taken from ``--replSet`` command
+   line argument, or ``replSet`` value in the configuration file.
+
+   See :doc:`replication` for more information on replication.
+
+.. describe:: repl.ismaster
+
+   The value of the ``repl.ismaster`` field is either "``true``" or
+   "``false``" and reflects whether the current node is the master or
+   primary node in the replica set.
+
+   See :doc:`replication` for more information on replication.
+
+.. describe:: repl.secondary
+
+   The value of the ``repl.secondary`` field is either "``true``" or
+   "``false``" and reflects whether the current node is a secondary
+   node in the replica set.
+
+   See :doc:`replication` for more information on replication.
+
+.. describe:: repl.hosts
+
+   ``repl.hosts`` is an array that lists the other nodes in the
+   current replica set. Each host in the list is displayed the form of
+   "``"hostname:port"``".
+
+   See :doc:`replication` for more information on replication.
 
 optcountes
 ----------
 
 .. describe:: optcounters
-.. describe:: optcounters.insert
+
+   The ``opcounters`` data structure provides an overview of database
+   operations by type, and makes it possible to analyze the load on
+   the database in more granular manner.
+
+   These numbers will grow over time and in response to database
+   use. Analyze these values over time to track.
+
+.. contains:: optcounters.insert
+
+   ``opcounters.insert`` provides counter of the total number of
+   insert operations since the ``mongod`` instance last started.
+
 .. describe:: optcounters.query
+
+   ``opcounters.query`` provides counter of the total number of
+   queries since the ``mongod`` instance last started.
+
 .. describe:: optcounters.update
+
+   ``opcounters.update`` provides counter of the total number of
+   update operations since the ``mongod`` instance last started.
+
 .. describe:: optcounters.delete
+
+   ``opcounters.delete`` provides counter of the total number of
+   delete operations since the ``mongod`` instance last started.
+
 .. describe:: optcounters.getmore
+
+   ``opcounters.getmore`` provides counter of the total number of
+   "getmore" operations since the ``mongod`` instance last started. On
+   a primary node, this counter can be high even if the query count is
+   low as the secondaries send ``getMore`` to the primary often as
+   part of replication.
+
 .. describe:: optcounters.command
+
+   ``opcounters.command`` provides counter of the total number of
+   commands issued to the database since the ``mongod`` instance last
+   started.
 
 asserts
 -------
 
 .. describe:: asserts
+
+   The ``asserts`` data structure provides an account of the number of
+   asserts on the database. While assert errors are typically
+   uncommon, if there are non-zero values for the ``asserts`` check
+   the log file for the mongodb for more information. In many cases
+   these errors are trivial, but should be investigated.
+
 .. describe:: asserts.regular
+
+   The ``asserts.regular`` counter tracks the number of regular
+   assertions raised since the server process started. Check the log
+   file for more information about these messages.
+
 .. describe:: asserts.warning
+
+   The ``asserts.warning`` counter tracks the number of warnings
+   raised since the server process started. Check the log file for
+   more information about these warnings.
+
 .. describe:: asserts.msg
+
+   The ``asserts.msg`` counter tracks the number of message assertions
+   raised since the server process started. Check the log file for
+   more information about these messages.
+
 .. describe:: asserts.user
+
+   The ``asserts.users`` counter reports the number of "user asserts"
+   that have occurred since the last time the server process
+   started. These are errors that can be generated by a user such as
+   out of disk space or duplicate key. You should be able to resolve
+   this issue by fixing a problem with your application or
+   deployment. Check the log for more information.
+
 .. describe:: asserts.rollovers
 
-.. _durability-status:
+   The ``asserts.rollovers`` counter displays the number of times that
+   the rollover counters have rolled over since the last time the
+   server process started. The counters will rollover to zero after TK
+   assertions. Use this value to provide context to the other values
+   in the :stats:`asserts` data structure.
+
+TODO determine number of assertions per-rollover.
+
+TODO develop more in-depth/useful assertion durability
+
+.. _descriptions-status:
 
 dur
 ---
