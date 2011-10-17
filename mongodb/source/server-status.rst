@@ -1,6 +1,3 @@
-.. 64 total items, 52 without containers (and writebacksqueued)
-.. 45
-
 =======================
 Server Status Reference
 =======================
@@ -604,9 +601,9 @@ asserts
 
 TODO determine number of assertions per-rollover.
 
-TODO develop more in-depth/useful assertion durability
+TODO develop more in-depth/useful assertion descriptions
 
-.. _descriptions-status:
+.. _durability-status:
 
 dur
 ---
@@ -615,22 +612,105 @@ Durability
 ~~~~~~~~~~
 
 .. describe:: dur
+
+   The ``dur`` (for "durability") data structure contains data
+   regarding MongoDB's journaling. Journaling must be enabled for
+   these data to appear in the output of "``ServerStatus``".
+
+   See :doc:`journaling` for more information about journaling
+   operations.
+
 .. describe:: dur.commits
+
+   The ``dur.commits`` value provides the number of commits to the
+   journal in the last commit interval.
+
+   Commits to the journal are grouped to improve performance. By
+   default the interval is 100 milliseconds (ms), but the interval is
+   configurable as a run-time option and can range from 2ms to 300ms.
+
 .. describe:: dur.journaledMB
+
+   The ``dur.journaledMB`` value provides the amount of data in
+   megabytes (MB) written to the journal in the last commit interval.
+
+   Commits to the journal are grouped to improve performance. By
+   default the commit interval is 100 milliseconds (ms), but the
+   interval is configurable as a run-time option and can range from
+   2ms to 300ms.
+
 .. describe:: dur.writeToDataFilesMB
+
+   The ``dur.writeToDataFilesMB`` value provides the amount of data in
+   megabytes (MB) written from the journal to the data files in the
+   last commit interval.
+
+   Commits to the journal are grouped to improve performance. By
+   default the commit interval is 100 milliseconds (ms), but the
+   interval is configurable as a run-time option and can range from
+   2ms to 300ms.
+
 .. describe:: dur.compression
+
+   The ``dur.compression`` value
+
+TODO not included in existing documentation...
+
 .. describe:: dur.commitsInWriteLock
+
+   The value of the field ``dur.commitsInWriteLock`` provides a count
+   of the commits to the journal in the last interval that were
+   queued behind a write lock. Commits in a write lock are
+   undesirable and may indicate a defect in application requests or
+   capacity concerns for the database.
+
+TODO factcheck commentary
+
 .. describe:: dur.earlyCommits
+
+   The ``dur.earlyCommits`` value reflects the number of time a commit
+   was requested before the scheduled time. Use this value to ensure
+   that your journal commit interval is not too long.
 
 timeMS
 ~~~~~~
 
 .. describe:: dur.timeMS
+
+   The ``dur.timeMS`` data structure provides information about the
+   performance of the ``mongod`` instance for journaling operations.
+
 .. describe:: dur.timeMS.dt
+
+   The ``dur.timeMS.dt`` value provides, in milliseconds, the length
+   of time over which the ``dur.timeMS`` data were collected. Use this
+   field to provide context to the adjacent values.
+
 .. describe:: dur.timeMS.prepLogBuffer
+
+   The ``dur.timeMS.prepLogBuffer`` value provides, in milliseconds,
+   the amount of time preparing to write to the journal. Smaller
+   values indicate better journal performance.
+
 .. describe:: dur.timeMS.writeToJournal
+
+   The ``dur.timeMS.writeToJournal`` value provides, in milliseconds,
+   the amount of time spent actually writing to the journal. File
+   system speeds and device interfaces can affect performance.
+
 .. describe:: dur.timeMS.writeToDataFiles
+
+   The ``dur.timeMS.writeToDataFiles`` value provides, in
+   milliseconds, the amount of time spent writing to data files after
+   journaling. File system speeds and device interfaces can affect
+   performance.
+
 .. describe:: dur.timeMS.remapPrivateView
+
+   The ``dur.timeMS.remapPrivateView`` value provides, in
+   milliseconds, the amount of time remapping copy-on-write memory
+   mapped views. Smaller values indicate better journal performance.
+
 
 Other Statuses
 --------------

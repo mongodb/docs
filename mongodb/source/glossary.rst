@@ -74,7 +74,10 @@ MongoDB Glossary
       commands.
 
    Replica Set
-      A MongoDB feature
+      A MongoDB feature whereby a collection of hosts can, as a database
+      cluster, provide replication while allowing the "master"
+      instance to automatically reassign itself based on the cluster
+      conditions.
 
    Replication
      A database architecture where the data corpus is duplicated on a
@@ -150,7 +153,7 @@ MongoDB Glossary
       functions.
 
    capped collections
-      See :term:`capped collection`
+      See :term:`capped collection`.
 
    BSON types
 
