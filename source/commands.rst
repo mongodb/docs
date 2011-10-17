@@ -1,6 +1,6 @@
-==========================
- MongoDB Command Reference
-==========================
+=========================
+MongoDB Command Reference
+=========================
 
 .. default-domain: mongodb
 .. highlight_language: javascript
@@ -34,19 +34,31 @@ User Commands
 Sharding
 ~~~~~~~~
 
-TODO get background on 3 sharding commands
+TODO addshard and other shard commands on wiki, not in command list
+
+.. describe:: shardingState
+
+   The ``shardingState`` command returns ``true`` or ``false`` if the
+   ``mongod`` instance is a member of a sharded cluster. Run the
+   command using the following syntax: ::
+
+        { shardingState: 1 }
+
+   The value specified does not effect the output of the command.
+
+   .. admin-only
 
 .. describe:: setShardVersion
 
    The ``setShardVersion`` command takes the following syntax. ::
 
-        { setShardVersion: 'alleyinsider.foo' , version : 1 , configdb : '' }
+        { setShardVersion: '<hostname>' , version : 1 , configdb : '' }
 
    .. admin-only
 
-.. describe:: shardingState
+.. describe:: getShardVersion
 
-   .. write-lock, admin-only
+   .. admin-only
 
 .. describe:: unsetSharding
 
@@ -55,10 +67,6 @@ TODO get background on 3 sharding commands
         { unsetSharding: 1 }
 
    .. slave-ok, admin-only
-
-.. describe:: getShardVersion
-
-   .. admin-only
 
 Aggregation
 ~~~~~~~~~~~
@@ -891,13 +899,13 @@ TODO is the password an option here?
 
         { logRotate: 1 }
 
-   You may also rotate the logs by sending the ``mongod`` process the
-   ``SIGUSR1`` signal.
-
    .. note::
 
       Your ``mongod`` instance needs to be running with the
       ``--logpath <file>`` option for the ``logRotate`` command.
+
+   You may also rotate the logs by sending the ``mongod`` process the
+   ``SIGUSR1`` signal.
 
    .. note::
 
@@ -910,48 +918,254 @@ TODO does logRotate remove the old files or rename them?
 
 .. describe:: setParameter
 
-   The ``setParementer`` command takes the following arguments:
+   ``setParamenter`` is an admin-only command used for modifying
+   the operational parameters of the MongoDB instance. Commands use
+   the following form: ::
 
-   - journalCommitInterval
-   - logLevel
-   - notablescan
-   - quiet
-   - syncdelay
+        { setParameter: 1, <option>: <value> }
+
+   Replace the ``<option>`` with one of the following options suppored
+   by this command:
+
+   - **journalCommitInterval** specify a ``<value>`` between 1 and 500
+     to control the number of milliseconds (ms) between journal
+     commits.
+
+   - **logLevel** specify a ``<value>`` as an integer between ``0``
+     and ``5`` to determine the verbosity of the logging.
+
+   - **notablescan** specify a "``true``" or "``false``" value for this
+     option allow or disable collection (e.g. table) scans.
+
+   - **quiet** specify a "``true``" or "``false``" value for this
+     option to enable or disable a quiet logging mode. This toggles
+     the same option as running ``mongod`` with the "``--quiet``"
+     flag. This will suppress logging of the following messages:
+
+     - Connection events: accepted and closed.
+     - Commands: :command:`drop`, :command:`dropIndex`, and
+       :command:`daglogging`, :command:`validate`, :command;`clean`.
+     - Replication synchronization activity.
+
+   - **syncdelay** specify a ``<value>``, in seconds, to control the
+     interval that the ``mongod`` flushes memory to disk. By default
+     ``mongod`` will flush memory to disk every 60 seconds.
 
    .. slave-ok, admin-only
 
 .. describe:: getParameter
 
-   The ``getParemeter`` command takes the following arguments:
+   ``getParemeter`` is an admin-only command, used to retrieve the
+   current operational parameters for a MongoDB instance. Issue
+   commands in the following form: ::
 
-   - quiet
-   - notablescan
-   - logLevel
-   - syncdelay
+        { getParameter: 1, <option>: 1 }
+
+   The values specified for ``getParameter`` and ``<option>`` do not
+   effect the output. The command provides visibility for the
+   following options:
+
+   - **quiet**
+   - **notablescan**
+   - **logLevel**
+   - **syncdelay**
+
+   See :command:`setParameter` for more information about these
+   options.
 
    .. slave-ok, admin-only
-
 
 Diagnostics
 ~~~~~~~~~~~
 
 .. describe:: dbStats
-.. describe:: listDatabases
+
+   The ``dbStats`` command returns a collection of data regarding a
+   specific database. This command does not return instantly, and the
+   time required to run the command depends on the total size of the
+   database. The command takes the following syntax:
+
+        { dbStats: 1, scale: 1 }
+
+   The value of the argument (e.g. ``1`` above) to ``dbStats`` does
+   not effect the output of the command. The "``scale``" option
+   allows you to configure how the values of bytes are
+   scaled. For example, specify a "``scale``" value of "``1000``" to
+   display kilobytes rather than bytes.
+
+   The ``mongo`` shell provides the following helper method. for
+   ``dbStats``. The following method is equivalent to the example
+   above: ::
+
+        db.stats()
+
 .. describe:: connPoolStats
 
-   .. maybe
+   The command ``connPoolStats`` provides data on the number of open
+   connections to the current database instance including client
+   connections and server-to-server connections for replication and
+   clustering. The command takes the following form: ::
+
+        { connPoolStats: 1 }
+
+   The value of the argument (e.g. ``1`` above) does not effect the
+   output of the command.
 
 .. describe:: getCmdLineOpts
+
+   The ``getCmdLineOpts`` command returns a document with information
+   regarding the runtime options used by the MongoDB server. Consider
+   the following syntax: ::
+
+        { getCmdLineOpts: 1 }
+
+   The value of the argument (e.g. ``1`` above) does not effect the
+   output of the command.
+
+   This command returns a document with two fields, "``argv``" and
+   "``parsed``". The "``argv``" field contains an array with each item
+   from the command string that invoked ``mongod``. The document
+   in the "``parsed``" field includes all runtime options, including
+   those parsed from the command line and those specified in the
+   configuration file (if specified.)
+
 .. describe:: validate
+
+   The ``validate`` command checks the contents of a namespace by
+   scanning data structures,  and indexes for correctness. The command
+   can be slow to run particularly on larger data sets. Consider the
+   following syntax: ::
+
+        { validate: "collection" }
+
+   This command will validate the contents of the collection named
+   "``collection``". You may also specify one of the following
+   options:
+
+   - "``full: true``" provides a more thorough scan of the data.
+
+   - "``scandata: false``" skips the scan of the base collection
+     without skipping the scan of the index.
+
+TODO factcheck; the options on the REST interface and wiki differ
+
+   The ``mongo`` shell also provides a shell wrapper which is
+   equivelent to the first example above: ::
+
+        db.collection.validate();
+
 .. describe:: top
+
+   The ``top`` command returns raw usage of each database, and
+   provides amount of time, in microseconds, used and a count of
+   operations for the following event types:
+
+   - total
+   - readLock
+   - writeLock
+   - queries
+   - getmore
+   - insert
+   - update
+   - remove
+   - commands.
+
+   The command takes the following form: ::
+
+        { top: 1 }
+
+   The value of the argument (e.g. ``1`` above) does not effect the
+   output of the command.
+
 .. describe:: buildInfo
+
+   The ``bulidInfo`` command returns information regarding the build
+   of MongoDB currently running. The command takes the following
+   form: ::
+
+         { buildInfo: 1 }
+
+   The value of the argument (e.g. ``1`` above) does not effect the
+   output of the command. The data returned includes:
+
+   - The version of MongoDB currently running.
+   - The information about the system that the mongod binary was built
+     on and a time stamp of this build.
+   - The architecture of the binary (i.e. 64 or 32 bits)
+   - The maximum :term:`BSON` object size in bytes (in the field
+     "``maxBsonObjectSize``".)
+
+   ``buildInfo`` must be issued while using the ``admin`` database.
+
 .. describe:: getLastError
+
+   The ``getLastError`` command returns the error status of the last
+   operation *on this connection*. Consider the following syntax: ::
+
+        { getLastError: 1 }
+
+   The value of the argument (e.g. ``1`` above) does not effect the
+   output of the command. The following options are available:
+
+   - "``fsync: true``" run an :command:`fsync` before returning. If
+     your database is running with :doc:`journaling <journaling>`,
+     this option will instead wait for the next journal commit before
+     returning.
+   - "``j: true``" waits for the next journal commit before
+     returning.
+   - "``w: <n>``" waits for replication to "``<n>``" number of
+     servers before returning. If specified this value will include
+     the current host.
+   - "``wtimeout: <ms>``" provides a timeout for for the "``w``"
+     option. Specify this value in milliseconds.
+
 .. describe:: getLog
 
-   .. ask
+   The ``getLog`` command returns a document with a ``log`` array that
+   contains recent messages from the ``mongod`` process's log. Use the
+   following syntax: ::
+
+        { getLog: <log> }
+
+   Replace "``<log>``" with one of the following values:
+
+   - ``"startupWarnings"`` - to generate logs that *may* contain
+     errors or warnings from MongoDB's log from the when the current
+     process started.
+
+   - ``"global"`` - to generate the most recent log events from the
+     database. This is equivalent to running the "``tail``" command on
+     the ``mongod`` log in the system shell.
+
+.. describe:: listDatabases
+
+   The ``listDatabases`` command provides a list of the extant
+   databases along with basic statistics regarding the database. The
+   command takes the following form: ::
+
+        { listDatabases: 1 }
+
+   The value (e.g. ``1``) does not effect the output of the
+   command. The command returns documents for each database, within
+   the "``databases``" array as well a ``totalSize`` field which
+   contains the total amount of disk space used for the database in
+   bytes. The documents for each database contain a "``name``" field
+   with the database name, a "``sizeOnDisk``" field with the total
+   size of the database file on disk in bytes, and the "``empty``"
+   field with a true or false value.
 
 .. describe:: cursorInfo
 
+   The ``cursorInfo`` command returns information about current cursor
+   allotment and use. Use the following form: ::
+
+        { cursorInfo: 1 }
+
+   The value (e.g. ``1`` above,) does not affect the output of the
+   command. ``cursorInfo`` provides values for the total number of
+   open cursors ("``totalOpen``",) the size of client cursors in
+   current use ("``clientCursors_size``",) and the number of timed out
+   cursors since the last server restart ("``timedOut``".)
 
 .. describe:: isMaster
 
