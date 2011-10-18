@@ -1,15 +1,36 @@
-=============================
-Welcome to the MongoDB Manual
-=============================
+==================
+The MongoDB Manual
+==================
 
+Introduction
+------------
 
-Documents
----------
+Coming soon, including:
 
-.. toctree::
-   :maxdepth: 3
+- What is MongoDB
+- What's new in the most recent release.
+- MongoDB Resources
+- Getting involved (reporting bugs)
+- About the documentation
 
-   backups
+Getting Started
+---------------
+
+Coming soon, including:
+
+- Installation
+- Choosing drivers
+- Introductory concepts
+
+User Guides
+-----------
+
+Tutorials, guides, as well as documents regarding schema design.
+
+Core Documentation
+------------------
+
+Core concepts and features regarding MongoDB use and operation.
 
 .. the following are notional documents that need to exist in the tree
    for linking purposes but are drafts:
@@ -19,15 +40,72 @@ Documents
 
    map-reduce
    replication
+
+Many topics forthcoming, including:
+
+- The MongoDB Interface
+- Aggregation
+- Optimization
+- Replication
+- Sharding
+
+
+Administration and Deployment
+-----------------------------
+
+.. toctree::
+   :maxdepth: 3
+
+   backups
+
+Coming Soon:
+
+- Administration
+
+  - Configuration
+  - Introspection
+  - Monitoring
+  - Journaling
+
+- Deployment
+
+  - Virtual Servers
+  - Hardware Notes
+  - Operating System Notes
+
+.. toctree::
+   :hidden:
+
    journaling
 
+MongoDB Shell
+-------------
+
+Coming Soon!
+
+Developing MongoDB
+------------------
+
+Coming Soon:
+
+- Internal Architecture
+- Client Interfaces
+- Building MongoDB
+
+FAQ
+---
+
+Coming Soon:
+
+- Interface FAQ
+- Replication FAQ
+- Sharding FAQ
 
 Reference
 ---------
 
-
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
 
    operators
    commands
@@ -44,11 +122,9 @@ Reference
    javascript-methods
    meta-query-operators
 
+Coming Soon:
 
-.. Indices and tables
-.. ==================
-
-.. * :ref:`genindex`
-.. * :ref:`modindex`
-.. * :ref:`search`
-
+- MongoDB Programs
+- Error Codes
+- Meta Query Operators
+- Javascript Methods (for shell)
