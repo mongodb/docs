@@ -106,12 +106,14 @@ the host listing. It is the middle of the three icons. This raises a
 dialogue box that describes the implications of DB profiling and
 allows you to enable the transmission of the profiling data to MMS.
 
-When you select "Enable Profile Info Transmission," the agent will begin
-sending profile data to MMS.
+When you select "Enable Profile Info Transmission," the agent will
+begin sending profile data to MMS. All configuration changes made in
+the MMS console can take up to 2 minutes to propagate to the agent and
+another minute before profiling data appears in the MMS interface.
 
-However, to begin collecting profile data you need
-to modify the value of ``setProfilingLevel`` on the database itself. See
-the `database profiler <http://www.mongodb.org/display/DOCS/Database+Profiler>`_
+However, to begin collecting profile data you need to modify the value
+of ``setProfilingLevel`` on the database itself. See the `database
+profiler <http://www.mongodb.org/display/DOCS/Database+Profiler>`_
 documentation for instructions for using the profiler. There is a link
 at the bottom of the Host Statistics page that displays the profile
 levels.
