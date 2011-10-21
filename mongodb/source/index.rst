@@ -57,6 +57,7 @@ Administration and Deployment
    :maxdepth: 3
 
    backups
+   import-export
 
 Coming Soon:
 
