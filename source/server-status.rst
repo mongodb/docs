@@ -4,8 +4,8 @@ Server Status Reference
 
 The :command:`serverStatus` outputs a collection of data that you can
 use to diagnose and assess the performance of your MongoDB
-instance. This reference catalogs each datum
-
+instance. This reference catalogs each datum included in the
+output of this command.
 
 Basic Information
 -----------------
@@ -40,7 +40,7 @@ Basic Information
    ``uptimeEstimate`` provides the uptime as calculated from MongoDB's
    internal course-grained time.
 
-TODO what is course-grained timing?
+TODO what is course-grained timing in this context
 
 .. describe:: localTime
 
@@ -141,8 +141,7 @@ globalLock.activeClients
 
    The ``globalLock.activeClients`` data structure provides more
    granular information about the number of connected clients and the
-   kinds (e.g. read or write) of operations these clients are
-   performing.
+   operation types (e.g. read or write) performed by these clients.
 
    Use this data to provide context for the :ref:`currentQueue
    <globallock-currentqueue>` data.
@@ -153,59 +152,55 @@ globalLock.activeClients
    of active client connections to the database. This combines clients
    that are performing read operations
    (e.g. :status:`globalLock.activeClients.readers`) and clients that
-   are performing write operations (e.g. :status:`:
-   globalLock.activeClients.writers`).
+   are performing write operations (e.g. :status:`globalLock.activeClients.writers`).
 
 .. describe:: globalLock.activeClients.readers
 
-   The value of ``globalLock.activeClients.readers`` is the number of
-   active client connections performing read operations.
+   The value of ``globalLock.activeClients.readers`` contains a count
+   of the active client connections performing read operations.
 
 .. describe:: globalLock.activeClients.writers
 
-   The value of ``globalLock.activeClients.writers`` is the number of
-   active client connections performing write operations.
-
-TODO add more information about globalLock.activeClients data including rages.
+   The value of ``globalLock.activeClients.writers`` contains a count
+   of active client connections performing write operations.
 
 mem
 ---
 
 .. describe:: mem
 
-   The ``mem`` data structure holds the information regarding
-   MongoDB's architecture and current memory use.
+   The ``mem`` data structure holds information regarding the target
+   system architecture of ``mongod`` and current memory use.
 
 .. describe:: mem.bits
 
    The value of ``mem.bits`` is either ``64`` or ``32``, depending the
    target system architecture for which the ``mongod`` instance was
-   compiled. In most instances this is ``64``, and this value will
-   never change over time.
+   compiled. In most instances this is ``64``, and this value does not
+   change over time.
 
 .. describe:: mem.resident
 
    The value of ``mem.resident`` is roughly equivalent to the amount
-   of RAM, in bytes, that the database process is currently using. In
-   normal use, this value tends to grown, and on dedicated database
-   servers this number tends to approach the total amount of system
-   memory.
+   of RAM, in bytes, currently used by the database process. In normal
+   use this value tends to grow. In dedicated database servers this
+   number tends to approach the total amount of system memory.
 
 .. describe:: mem.virtual
 
-   ``mem.virtual`` displays the quantity, in bytes,  of virtual memory used by
-   the ``mongod`` process. In typical deployments this value is
-   slightly larger than :status:`mem.mapped`; however, if this value
-   is significantly (i.e. gigabytes) larger than :status:`mem.mapped`,
-   this might be the sign of a memory leak.
+   ``mem.virtual`` displays the quantity, in bytes, of virtual memory
+   used by the ``mongod`` process. In typical deployments this value
+   is slightly larger than :status:`mem.mapped`. If this value is
+   significantly (i.e. gigabytes) larger than :status:`mem.mapped`,
+   this could indicate a memory leak.
 
-   If you have :term:`journaling` enabled, then ``mem.virtual`` is
-   twice the value of :status:`mem.mapped`.
+   If :term:`journaling` is enabled, then ``mem.virtual`` is twice the
+   value of :status:`mem.mapped`.
 
 .. describe:: mem.supported
 
    ``mem.supported`` is true when the underlying system supports
-   extended memory information. If this value is false, and the system
+   extended memory information. If this value is false and the system
    does not support extended memory information, then other
    :status:`mem` values may not be accessible to the database server.
 
@@ -223,7 +218,7 @@ connections
 
 .. describe:: connections
 
-   The ``connections`` data structure holds information regarding the
+   The ``connections`` data structure holds data regarding the
    current connection status and availability of the database
    server. Use these values to asses the current load and capacity
    requirements of the server.
@@ -233,10 +228,9 @@ connections
    The value of ``connections.current`` corresponds to the number of
    connections to the database server from clients. This number
    includes the current shell session. Consider the value of
-   :status:`connections.available` to add more context to this data
-   point.
+   :status:`connections.available` to add more context to this datum.
 
-TODO check current shell connection fact
+TODO factcheck current shell connection
 
 .. describe:: connections.available
 
@@ -249,7 +243,7 @@ TODO check current shell connection fact
 extra_info
 ----------
 
-TODO determine all possible fields in extra_info
+TODO determine all possible fields in extra_info, and understand use
 
 .. describe:: extra_info
 
@@ -272,16 +266,13 @@ TODO determine all possible fields in extra_info
 .. describe:: extra_info.page_faults
 
    The ``extra_info.page_faults`` field is only available on Linux
-   systems, and relates the total number of page faults that required
+   systems, and relates the total number of page faults that require
    disk operations. Page faults refer to operations that require the
    database server to access data which isn't available in active
    memory. The ``page_fault`` counter may increase dramatically during
-   moments of poor performance, and may be correlated with limited
+   moments of poor performance and may be correlated with limited
    memory environments and larger data sets. Limited and sporadic page
    faults do not in and of themselves indicate an issue.
-
-TODO describe use
-
 
 indexCouters
 ------------
@@ -303,12 +294,12 @@ indexCouters
    :status:`indexCounters.btree.hits` and
    :status:`indexCounters.btree.misses`. Higher values indicate that
    your database has indexes and that these indexes are being used. If
-   this number doesn't grow over time, this might indicate that your
+   this number does not grow over time, this might indicate that your
    indexes do not effectively support your use.
 
 .. describe:: indexCouters.btree.hits
 
-   The ``indexCouters.btree.hits`` value reports the number of times
+   The ``indexCouters.btree.hits`` value reflects the number of times
    that an index has been access and ``mongod`` is able to return the
    index from memory.
 
@@ -320,14 +311,14 @@ indexCouters
 .. describe:: indexCouters.btree.misses
 
    The ``indexCounters.btree.misses`` value represents the number of
-   times that an index page was accessed but was not in memory. These
+   times that an index page was accessed that was not in memory. These
    "misses," do not indicate a failed query or operation, but rather
    an inefficient use of the index. Lower values in this field
    indicate better index use and likely overall performance as well.
 
 .. describe:: indexCounters.btree.resets
 
-   The ``index Counter.btree.resets`` value indicates the number of
+   The ``index Counter.btree.resets`` value reflects the number of
    times that the index counters have been reset since the database
    last restarted. Typically this value is ``0``, but use this value
    to provide context for the data specified by other
@@ -345,7 +336,7 @@ backgroundFlushing
 
 .. describe:: backgroundFlushing
 
-   ``mongod`` periodically flushes writes to disk.In the default
+   ``mongod`` periodically flushes writes to disk. In the default
    configuration, this happens every 60 seconds. The
    ``backgroundFlushing`` data structure contains data that regarding
    these operations. Consider these values if you have concerns about
@@ -360,23 +351,24 @@ backgroundFlushing
 .. describe:: backgroundFlushing.total_ms
 
    The ``backgroundFlushing.total_ms`` value provides the total number
-   of milliseconds (ms) that the ``mongod`` prices has spent writing
-   or flushing data to disk. Because this is an absolute value,
-   consider the value of :status:`backgroundFlishing.flushes` and
-   :status:`backgroundFlushing.average_ms` to provide better context
-   for this data.
+   of milliseconds (ms) that the ``mongod`` processes have spent
+   writing (i.e. flushing) data to disk. Because this is an absolute
+   value, consider the value of :status:`backgroundFlishing.flushes`
+   and :status:`backgroundFlushing.average_ms` to provide better
+   context for this datum.
 
 .. describe:: backgroundFlushing.average_ms
 
-   The ``backgroundFlushing.average_ms`` value provides the
+   The ``backgroundFlushing.average_ms`` value describes the
    relationship between the number of flushes and the total amount of
-   time that the database has spent writing data to disk. The greater
-   the number of :status:`backgroundFlushing.flushes`, the more likely
-   this value is likely to represent a "normal," time; however, this
-   value can be skewed by abnormal data. Use the
-   :status:`backgroundFlushing.last_ms` to ensure that a high average
-   has not been skewed by transient historical issue or a random write
-   distribution.
+   time that the database has spent writing data to disk. The larger
+   :status:`backgroundFlushing.flushes` is, the more likely this value
+   is likely to represent a "normal," time; however, this value can be
+   skewed by abnormal data.
+
+   Use the :status:`backgroundFlushing.last_ms` to ensure that a high
+   average has not been skewed by transient historical issue or a
+   random write distribution.
 
 .. describe:: backgroundFlushing.last_ms
 
@@ -396,8 +388,8 @@ backgroundFlushing
    differences in time zone, restarting the database may result in
    some data loss.
 
-   Also consider ongoing operations which might routinely block
-   write operations for a time before becoming alarmed.
+   Also consider ongoing operations that might skew this value by
+   routinely block write operations.
 
 cursors
 -------
@@ -443,22 +435,22 @@ network
 
    The value of the ``network.bytesIn`` field reflects the amount of
    network traffic, in bytes, received *by* this database. Use this
-   value to ensure that network traffic sent to the MongoDB process is
-   consistent with expectations, and overall inter-application
+   value to ensure that network traffic sent to the ``mongod`` process
+   is consistent with expectations and overall inter-application
    traffic.
 
 .. describe:: network.bytesOut
 
    The value of the ``network.bytesOut`` field reflects the amount of
    network traffic, in bytes, sent *from* this database. Use this
-   value to ensure that network traffic sent by the MongoDB process is
-   consistent with expectations, and overall inter-application
+   value to ensure that network traffic sent by the ``mongod`` process
+   is consistent with expectations and overall inter-application
    traffic.
 
 .. describe:: network.numRequests
 
    The ``network.numRequests`` field is a counter of the total number
-   of distinct requests that the server has received. Use this value,
+   of distinct requests that the server has received. Use this value
    to provide context for the :status:`network.bytesIn` and
    :status:`network.bytesOut` values to ensure that MongoDB's network
    utilization is consistent with expectations and application use.
@@ -507,49 +499,49 @@ repl
 
    See :doc:`replication` for more information on replication.
 
-optcountes
-----------
+optcounters
+-----------
 
 .. describe:: optcounters
 
    The ``opcounters`` data structure provides an overview of database
-   operations by type, and makes it possible to analyze the load on
+   operations by type and makes it possible to analyze the load on
    the database in more granular manner.
 
    These numbers will grow over time and in response to database
-   use. Analyze these values over time to track.
+   use. Analyze these values over time to track database utilization.
 
 .. contains:: optcounters.insert
 
-   ``opcounters.insert`` provides counter of the total number of
+   ``opcounters.insert`` provides a counter of the total number of
    insert operations since the ``mongod`` instance last started.
 
 .. describe:: optcounters.query
 
-   ``opcounters.query`` provides counter of the total number of
+   ``opcounters.query`` provides a counter of the total number of
    queries since the ``mongod`` instance last started.
 
 .. describe:: optcounters.update
 
-   ``opcounters.update`` provides counter of the total number of
+   ``opcounters.update`` provides a counter of the total number of
    update operations since the ``mongod`` instance last started.
 
 .. describe:: optcounters.delete
 
-   ``opcounters.delete`` provides counter of the total number of
+   ``opcounters.delete`` provides a counter of the total number of
    delete operations since the ``mongod`` instance last started.
 
 .. describe:: optcounters.getmore
 
-   ``opcounters.getmore`` provides counter of the total number of
+   ``opcounters.getmore`` provides a counter of the total number of
    "getmore" operations since the ``mongod`` instance last started. On
    a primary node, this counter can be high even if the query count is
-   low as the secondaries send ``getMore`` to the primary often as
-   part of replication.
+   low. Secondary nodes send ``getMore`` operations to the primary
+   node as part of the replication process.
 
 .. describe:: optcounters.command
 
-   ``opcounters.command`` provides counter of the total number of
+   ``opcounters.command`` provides a counter of the total number of
    commands issued to the database since the ``mongod`` instance last
    started.
 
@@ -560,9 +552,10 @@ asserts
 
    The ``asserts`` data structure provides an account of the number of
    asserts on the database. While assert errors are typically
-   uncommon, if there are non-zero values for the ``asserts`` check
-   the log file for the mongodb for more information. In many cases
-   these errors are trivial, but should be investigated.
+   uncommon, if there are non-zero values for the ``asserts``, you
+   should check the log file for the ``mongod`` process for more
+   information. In many cases these errors are trivial, but should be
+   investigated.
 
 .. describe:: asserts.regular
 
@@ -595,9 +588,9 @@ asserts
 
    The ``asserts.rollovers`` counter displays the number of times that
    the rollover counters have rolled over since the last time the
-   server process started. The counters will rollover to zero after TK
-   assertions. Use this value to provide context to the other values
-   in the :stats:`asserts` data structure.
+   server process started. The counters will rollover to zero after
+   **TK** assertions. Use this value to provide context to the other
+   values in the :stats:`asserts` data structure.
 
 TODO determine number of assertions per-rollover.
 
@@ -652,7 +645,7 @@ Durability
 
 .. describe:: dur.compression
 
-   The ``dur.compression`` value
+   The ``dur.compression`` value ...
 
 TODO not included in existing documentation...
 
@@ -670,7 +663,7 @@ TODO factcheck commentary
 
    The ``dur.earlyCommits`` value reflects the number of time a commit
    was requested before the scheduled time. Use this value to ensure
-   that your journal commit interval is not too long.
+   that your journal commit interval is not too long for your deployment
 
 timeMS
 ~~~~~~
@@ -696,9 +689,9 @@ timeMS
 
    The ``dur.timeMS.writeToJournal`` value provides, in milliseconds,
    the amount of time spent actually writing to the journal. File
-   system speeds and device interfaces can affect performance.
+   system speeds and device interfaces can affect describe.
 
-.. describe:: dur.timeMS.writeToDataFiles
+.. performance:: dur.timeMS.writeToDataFiles
 
    The ``dur.timeMS.writeToDataFiles`` value provides, in
    milliseconds, the amount of time spent writing to data files after
@@ -717,6 +710,6 @@ Other Statuses
 
 .. describe:: writeBacksQueued
 
-   The value of  ``writeBacksQueued`` is true when there are
+   The value of ``writeBacksQueued`` is "``true``" when there are
    operations from a ``mongos`` that need to be retried. Typically
    this option is false.

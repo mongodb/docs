@@ -7,9 +7,9 @@ MongoDB Command Reference
 .. highlight:: javascript
 
 This document contains a reference to all :term:`database
-commands`. All commands take the form of a :term:`JSON` documents
+commands`. These commands take the form of :term:`JSON` documents
 issued as a query against a special MongoDB collection named
-:term:`$cmd`, however the JavaScript shell (i.e. ``mongo``,) provides
+:term:`$cmd`; however,  the JavaScript shell (i.e. ``mongo``,) provides
 the following syntax to facilitate running commands: ::
 
       db.runCommand( { <commandname>: <value> [, options] } );
@@ -22,11 +22,9 @@ syntax: ::
 The ``_adminCommand`` helper is shorthand for "``
 db.getSisterDB("admin").runCommand();``".
 
-Your MongoDB driver may provide an alternate interface for issuing
-database commands. All examples in this reference are provided as JSON
-documents.
-
-TODO factcheck introduction.
+MongoDB drivers, and the ``mongo`` shell may provide an alternate
+interfaces for issuing database commands. All examples in this
+reference are provided as JSON documents.
 
 User Commands
 -------------
@@ -34,7 +32,81 @@ User Commands
 Sharding
 ~~~~~~~~
 
-TODO addshard and other shard commands on wiki, not in command list
+.. describe:: addShard
+
+  ``addShard`` is a command that used to inform a ``mongos`` process
+  about the shard instance. Connect using the MongoDB shell
+  (e.g. ``mongo``) to the ``mongos`` instance. The command takes the
+  following form: ::
+
+        { addshard: "<hostname>:<port>" }
+
+  Replace "``<hostname>:<port>``" with the hostname and port of the
+  database instance you want to add as a shard. Because the mongos'
+  distribute their configuration by way of their :term:`configdb` you
+  only need to issue this command to one ``mongos`` instance. There
+  are two optional parameters:
+
+  - **name**. If no name is specified a name will be automatically
+    provided to uniquely identify the shard.
+  - **maxSize** Unless specified shards will consume the total amount
+    of available space if necessary. Use the ``maxSize`` value to
+    limit the amount of space the database can use.
+
+    .. note::
+
+       Specify a ``maxSize`` when you have machines with different
+       disk capacities, or if you want to limit the amount of data on
+       some shards.
+
+  See :doc:`<sharding>` for more information related to sharding.
+
+.. describe:: listShards
+
+   Use the ``listShards``command to return a list of configured
+   shards. The command takes the following form:
+
+        { listShards: 1 }
+
+   See :doc:`<sharding>` for more information related to sharding.
+
+.. describe:: enableSharding
+
+   The ``enableSharding`` command enables sharding on a per-database
+   level. Use the following command form: ::
+
+        { enableSharding: 1 }
+
+   The ``enableSharding`` command doesn't move or shift any data. Use
+   the :command:`shardCollection` to begin the process of distributing
+   data among the shards.
+
+   See :doc:`<sharding>` for more information related to sharding.
+
+.. describe:: shardCollection
+
+   The ``shardCollection`` command marks a collection for sharding and
+   will begin the process of distributing the data among the
+   shards. Call :command:`enableSharding` before calling the
+   ``shardCollection`` command. Consider the following syntax: ::
+
+        { shardcollection: "<db>.<collection>", key: "<shardkey>" }
+
+   This enables sharding for the collection specified by
+   ``<collection>`` in the database named ``<db>``, using the key
+   "``<shardkey>``" to distribute documents among the shard.
+
+   Choosing a the right shard key to effectively distribute load among
+   your shards. See :doc:`<sharding>` for more information related to
+   sharding and choosing the shard key.
+
+   .. warning::
+
+      There is no way to disable sharding or change the shardkey once
+      established, without making a backup, dropping the collection
+      and reloading the data into a recreated collection.
+
+TODO explore unique option and expanding this
 
 .. describe:: shardingState
 
@@ -46,27 +118,9 @@ TODO addshard and other shard commands on wiki, not in command list
 
    The value specified does not effect the output of the command.
 
-   .. admin-only
-
-.. describe:: setShardVersion
-
-   The ``setShardVersion`` command takes the following syntax. ::
-
-        { setShardVersion: '<hostname>' , version : 1 , configdb : '' }
+   See :doc:`<sharding>` for more information related to sharding.
 
    .. admin-only
-
-.. describe:: getShardVersion
-
-   .. admin-only
-
-.. describe:: unsetSharding
-
-   ::
-
-        { unsetSharding: 1 }
-
-   .. slave-ok, admin-only
 
 Aggregation
 ~~~~~~~~~~~
@@ -75,7 +129,7 @@ Aggregation
 
    The ``group`` command returns an array of grouped items. ``group``
    provides functionality analogous to the ``GROUP BY`` statement in
-   SQL. Consider the following example: ::
+   SQL. Consider the following example from the ``mongo`` shell: ::
 
         db.collection.group(
                             {key: { a:true, b:true },
@@ -84,10 +138,10 @@ Aggregation
                              initial: { csum: 0 }
                             });
 
-   In this command the ``group`` command is performed on the
-   collection named ``collection`` and provides and aggregate sum of
-   all documents with a value in the ``active`` field of ``1``. The
-   parameter fields in the group command are:
+   Here ``group`` runs against the collection "``collection``" and
+   provides and aggregate sum of all documents that have an ``active``
+   field with a value of ``1``. The parameter fields in the group
+   command are:
 
    - **key** specifies the fields to group by.
    - **reduce** aggregates (i.e. reduces) the objects that the
@@ -102,15 +156,15 @@ Aggregation
      document to be considered. This functions like a ``find()``
      query. If ``cond`` returns no results, the ``reduce`` function
      will run against all documents in the collection.
-   - **finalize** is an optional function to run against every result
-     before the item is returned, to provide additional post
+   - **finalize** is an optional function that runs against every
+     result before the item is returned, to provide additional post
      processing or transformation.
 
    Consider the following limitations:
 
    - The results of the ``group`` command are returned as a single
-     BSON object. As a result you must ensure that there are fewer
-     then 10,000 keys to prevent an exception.
+     :term:`BSON` object. As a result you must ensure that there are
+     fewer then 10,000 keys to prevent an exception.
 
    - The ``group`` command does not operate in :term:`sharded`
      environments. Use :command:`mapReduce` in these situations.
@@ -124,23 +178,24 @@ Aggregation
         db.collection.count():
 
    In the JavaScript shell, this will return the number of documents
-   in the collection ``collection``. You may also run this command
-   using the ``runCommand`` functionality, with the following results: ::
+   in the collection (e.g. ``collection``). You may also run this
+   command using the ``runCommand`` functionality, with the following
+   results: ::
 
         > db.runCommand( { count: "collection" } );
         { "n" : 10 , "ok" : 1 }
 
-   Here, see that the collection named ``collection`` has 10
-   documents.
+   The collection in this example has 10 documents.
 
    .. read-lock
 
 .. describe:: mapReduce
 
-   Run a map/reduce operation on the MongoDB server. This command is
-   used for aggregating data and not query purposes. ``mapReduce``
-   creates a collection holding the results of the operation. The
-   ``mapReduce`` command has the following syntax: ::
+   The ``mapReduce`` command provides map/reduce functionality for the
+   MongoDB server. In MongoDB map/reduce is used for aggregating data
+   and not for querying the database. ``mapReduce`` creates a
+   collection holding the results of the operation. The ``mapReduce``
+   command has the following syntax: ::
 
         { mapreduce : <collection>,
            map : <mapfunction>,
@@ -151,14 +206,14 @@ Aggregation
            out : <output>,
            keeptemp: <true|false>,
            finalize : <finalizefunction>,
-           scope : <object where fields go into javascript global scope >,
+           scope : <object where fields go into javascript global scope>,
            jsMode : true,
            verbose : true,
         }
 
-   Only the ``map`` and ``reduce`` functions are required, all other
-   fields are option. See :doc:`map-reduce` for more information on
-   mapReduce.
+   Only the ``map`` and ``reduce`` options are required, all other
+   fields are optional. See :doc:`map-reduce` for more information on
+   using the ``mapReduce`` command.
 
    .. slave-ok
 
@@ -215,12 +270,12 @@ Aggregation
    returned in documents that match the query "``{ field: { $exists:
    true }``". The query is optional.
 
-   The shell and many drivers provide a helper method that provides this
-   functionality. Used in the following syntax: ::
+   The shell and many drivers provide a helper method that provides
+   this functionality, consider the following equivalent syntax: ::
 
        db.collection.distinct("age", { field: { $exists: true } } );
 
-   The ``distinct`` command can use an index to locate and return
+   The ``distinct`` command will use an index to locate and return
    data.
 
 TODO does distinct return a list or an array?
@@ -251,9 +306,18 @@ TODO does distinct return a list or an array?
 
 .. describe:: dataSize
 
-   .. ask
+   The ``dataSize`` command returns the size data size for a set of
+   data within a certian rage. Consider the following syntax: ::
 
-TODO document this
+        { dataSize: "database.collection", keyPattern: { field: 1 }, min: { field: 10 }, max: { field: 100 } }
+
+   This will return a document that contains the size of all matching
+   documents. Replace "``database.collection``" value with database
+   and collection from your deployment. The ``keyPattern``, ``min``,
+   and ``max`` parameters are options.
+
+   The amount of time required to return ``dataSize`` depends on the
+   amount of data in the collection.
 
 Replication
 ~~~~~~~~~~~
@@ -261,7 +325,7 @@ Replication
 .. describe:: resync
 
    The ``resync`` command forces an out-of-date non-primary/master
-   ``mongod`` instance to resynchronize itself.
+   ``mongod`` instance to re-synchronize itself.
 
    .. write-lock, slave-ok, admin-only.
 
@@ -274,15 +338,17 @@ Replication
 
    This will prevent the MongoDB instance from attempting to become
    primary until the time specified by "``<seconds>``". To reverse
-   this operation, issue the following command: ::
+   this operation and allow the instance to become primary, issue the
+   following command: ::
 
         { replSetFreeze: 0 }
 
-   You can call again with {replSetFreeze:0} to reverse the operation
-   of ``replSetFreeze``. Restarting the ``mongod`` process also
-   unfreezes a replica set member, allowing the ``mongod`` instance to
-   become primary again. This command is safe to run on slave
-   instances and must be run on the admin database.
+   Restarting the ``mongod`` process also unfreezes a replica set
+   member, allowing the ``mongod`` instance to become primary
+   again.
+
+   ``replSetFreeze`` is an administrative command that must be issued
+   against the ``admin`` database.
 
    .. slave-ok, admin-only
 
@@ -292,8 +358,7 @@ Replication
 
    The ``replSetGetStatus`` command returns the status of the replica
    set form the point of view of the current server. To get this
-   status, Issue the following command on the :term:`admin database`:
-   ::
+   status, Issue the following command on the :term:`admin database`: ::
 
         { replSetGetStatus: 1 }
 
@@ -308,10 +373,9 @@ Replication
 
          { replSetInitiate : <config_object> }
 
-   The "``<config_object>``" is a :term:`JSON document` containing the
-   configuration of the replica set. The configuration takes the form
-   of a JSON document. Consider the following model of the most basic
-   configuration for a 3-member replica set: ::
+   The "``<config_object>``" is a :term:`JSON document` that holds the
+   configuration of a replica set. Consider the following model of the
+   most basic configuration for a 3-member replica set: ::
 
           {
               _id : <setname>,
@@ -322,8 +386,8 @@ Replication
                ]
           }
 
-   The JavaScript shell provides a shortcut for ``replSetInititate``
-   in the following form: ::
+   The ``mongo`` shell provides a helper method for
+   ``replSetInititate``. You may also use the following syntax: ::
 
         rs.initiate()
 
@@ -333,9 +397,9 @@ Replication
 
 .. describe:: replSetReconfig
 
-   The ``replSetReconfig`` command provides the capability of changing
-   the current replica set configuration. Use the following syntax to
-   add configuration to a replica set: ::
+   The ``replSetReconfig`` provides the ability to modify an existing
+   replica set configuration. Use the following syntax to add
+   configuration to a replica set: ::
 
         { replSetReconfig: <config_object> }
 
@@ -355,7 +419,7 @@ Replication
      should always perform these operations during scheduled downtime.
 
    - In some situations, a ``replSetReconfig`` can cause the current
-     shell to disconnect. Don't be alarmed.
+     shell to disconnect. Do not be alarmed.
 
    See :doc:`replication` for more information about replication.
 
@@ -422,14 +486,13 @@ TODO distanceMultiplier research/definition
         { geoSearch : "foo", near : [33, 33], maxDistance : 6, search : { type : "restaurant" }, limit : 30 }
 
    The above command returns all restaurants with a maximum distance
-   of 6 units from the coordinates "``[30,33]``" up to a with a
-   maximum of 30 results.
+   of 6 units from the coordinates "``[30,33]``" up to a maximum of 30
+   results.
 
-   Unless specified the ``geoSearch`` command has a 50 document result
-   limit.
+   Unless specified the ``geoSearch`` command limits results to 50
+   documents.
 
    .. read-lock, slave-ok
-
 
 Collections
 ~~~~~~~~~~~
@@ -442,12 +505,10 @@ Collections
         { drop: "collection" }
 
    This drops entire collection named ``collection`` from the
-   database. In the shell, the following helper method is equivalent:
-   ::
+   database. The ``mongo`` shell provides the equivalent helper
+   method: ::
 
         db.collection.drop();
-
-TODO factcheck
 
 .. describe:: cloneCollection
 
@@ -473,11 +534,11 @@ TODO factcheck
    The ``create`` command explicitly creates a collection. The command
    uses the following syntax: ::
 
-        { create: collection }
+        { create: "collection" }
 
    To create a capped collection  command in the following form.
 
-        { create: collection, capped: true, size: 40000, max: 9000 }
+        { create: "collection", capped: true, size: 40000, max: 9000 }
 
    The options for creating capped collections are:
 
@@ -491,12 +552,10 @@ TODO factcheck
      specifying ``max``.
 
    If a collection has a cap on the number of documents and the size
-   in bytes is reached, older documents will be removed.
+   in bytes is reached first, older documents will be removed.
 
    You can use the ``.createCollection()`` method in the shell to
    access this functionality.
-
-TODO factcheck
 
 .. describe:: convertToCapped
 
@@ -521,8 +580,6 @@ TODO factcheck
    If a collection has a cap on the number of documents and the size
    in bytes is reached, older documents will be removed.
 
-TODO factcheck
-
 .. describe:: emptycapped
 
    The ``emptycapped`` command removes all documents from a capped
@@ -530,8 +587,8 @@ TODO factcheck
 
         { emptycapped: "events" }
 
-   In this example, the capped collection named ``events`` is
-   emptied.
+   This command removes all records from the capped collection named
+   ``events``.
 
 .. describe:: captrunc
 
@@ -553,6 +610,8 @@ TODO factcheck
 
       There's also an "inc" option which modifies the behavior but I'm
       not sure what this stands for.
+
+TODO factcheck captrunc
 
 .. describe:: rename Collection
 
@@ -582,8 +641,9 @@ TODO factcheck
 
    Specify a collection in the form of "``database.collection``" and
    use the ``scale`` argument to control the output. The above example
-   will display values in kilobytes. Consider the following example
-   output: ::
+   will display values in kilobytes.
+
+   Consider the following example output: ::
 
         > db.collection.stats()
         {
@@ -605,17 +665,17 @@ TODO factcheck
                 "ok" : 1
         }
 
-   The ``mongo`` shell also provides a helper. You can also return
-   stats using the following command: ::
+   The ``mongo`` shell also provides a helper. The following command
+   is equivalent to the above: ::
 
         db.collection.stats();
 
 .. describe:: compact
 
    The ``compact`` command optimizes the storage for a single
-   :term:`capped collection`. This is similar in function to the
-   :command:`repairDatabase`, except that ``compact`` operates on a
-   single collection. The command uses the following syntax: ::
+   :term:`capped collection`. This is similar to the
+   :command:`repairDatabase` command, except that ``compact`` operates
+   on a single collection. The command uses the following syntax: ::
 
         { compact: "collection" }
 
@@ -623,7 +683,7 @@ TODO factcheck
    operation compacts and defragments the collection as well as
    rebuilds and compacts indexes. Consider the following behaviors:
 
-   - During a ``compact`` will block all other activity.
+   - During a ``compact``, the database will block all other activity.
 
    - In a :term:`replica set`, ``compact`` will refuse to run on the
      master node in a replica set unless the "``force: true``" option
@@ -631,10 +691,11 @@ TODO factcheck
 
            { compact: "collection", force: true }
 
-   - If you have journeying enabled and "kill" a compact option or the
-     database restarts during a ``compact`` operation, no data will be
-     lost, although indexes will be absent. Running ``compact``
-     without journaling may risk data loss.
+   - If you have journeying enabled and "kill" the ``compact``
+     operation, or the database restarts during a ``compact``
+     operation, no data will be lost, although indexes will be
+     absent. Running ``compact`` without journaling may risk data
+     loss.
 
      .. warning::
 
@@ -661,9 +722,9 @@ Administration
 
 .. describe:: fsync
 
-   ``fsync`` is an admin only command that forces the ``mongod``
+   ``fsync`` is an administrative command that forces the ``mongod``
    process to flush all pending writes to the data files. In default
-   operation, a full flush runs every sixty seconds. Running ``fsync``
+   operation, full flush runs every 60 seconds. Running ``fsync``
    in the course of normal operations is not required. The command
    takes the following form: ::
 
@@ -681,9 +742,10 @@ Administration
 
         { fsync: 1, lock: true }
 
-   You must issue a command to unlock the database. This command will
-   block until the operation is complete: when the command returns the
-   database is unlocked. Such a command would resemble: ::
+   Later, you will need to issue a command to unlock the
+   database. This command will block until the operation is complete:
+   when the command returns the database is unlocked. Such a command
+   would resemble: ::
 
         { fsync: 1, lock: false }
 
@@ -693,13 +755,17 @@ Administration
         db.fsyncLock();
         db.fsyncUnlock();
 
+   .. versionadded:: 1.9.0
+      The ``db.fsyncLock()`` and ``db.fsyncUnlock`` helpers in the
+      shell.
+
 .. describe:: dropDatabase
 
-   The ``dropDatabase`` command drops the database and deletes the
-   associated data files. ``dropDatabase`` operates on the current
-   database. In the shell issue the ``use [database]`` command,
-   replacing "``[database]``" with the name of the database you wish
-   to delete. Then use the following command form: ::
+   The ``dropDatabase`` command drops the database from MongoDB and
+   deletes the associated data files. ``dropDatabase`` operates on the
+   current database. In the shell issue the ``use <database>``
+   command, replacing "``<database>``" with the name of the database
+   you wish to delete. Then use the following command form: ::
 
         { dropDatabase: 1 }
 
@@ -719,7 +785,7 @@ Administration
 
         { dropIndexes: "collection", index: "*" }
 
-   Specify the field in the "index" parameter, to drop indexes with a
+   Specify the field in the "index" parameter to drop indexes with a
    specific key pattern. For example, to drop all indexes of the
    "``age``" field, use the following command format: ::
 
@@ -732,19 +798,17 @@ Administration
    Use as above to drop all indexes in ``collection``, and specify
    fields to only drop specific indexes.
 
-TODO verify the behavior here. or at least understand how this works
-
 .. describe:: clone
 
-   The ``clone`` command makes it possible to clone a database from a
-   remote host to the current host. The database on the remote host
-   with the same name as the current database is copied. The command
-   takes the following form: ::
+   The ``clone`` provides the ability to clone a database from a
+   remote MongoDB instance to the current host. ``clone`` copies the
+   database on the remote instance with the same name as the current
+   database. The command takes the following form: ::
 
         { clone: "example.com" }
 
-   Modify ``example.com`` in this example with the resolvable hostname
-   for the MongoDB instance you wish to copy from. Note the following
+   Replace ``example.com`` above with the resolvable hostname for the
+   MongoDB instance you wish to copy from. Note the following
    behaviors:
 
    - ``clone`` can run against a :term:`slave` or a
@@ -755,7 +819,7 @@ TODO verify the behavior here. or at least understand how this works
    - You must run ``clone`` on the **destination server**.
    - The destination server is not locked during the duration of the
      ``clone`` operation, and ``clone`` will occasionally yield to
-     other operations.
+     allow other operations.
 
    See :command:`copydb`  for similar functionality.
 
@@ -794,7 +858,7 @@ TODO verify the behavior here. or at least understand how this works
 
    - Use the shell as above.
 
-   - Run it directly from your system's shell. Make sure that
+   - Run ``mongod`` directly from your system's shell. Make sure that
      ``mongod`` isn't already running, and that you issue this command
      as a user that has access to MongoDB's data files. Run as: ::
 
@@ -832,6 +896,9 @@ TODO verify the behavior here. or at least understand how this works
    For :doc:`replica set <replication>` users, if the current node is
    primary and no other members of the set are less than 10 seconds
    behind the node then the server will not shut down without a
+   "force" option. See the following example: ::
+
+        { shutdown: 1, force: true }
 
    The ``shutdown`` command also supports a ``timeoutSecs`` argument
    which allows you to specify a number of seconds to wait for other
@@ -888,8 +955,10 @@ TODO is the password an option here?
 
         { logout: 1 }
 
-   If you're not logged on using authentication this command will not
-   have any effect.
+   .. note::
+
+      If you're not logged on using authentication this command will
+      not have any effect.
 
 .. describe:: logRotate
 
@@ -914,18 +983,17 @@ TODO is the password an option here?
 
 TODO does logRotate remove the old files or rename them?
 
-   .. force/validate options (?)
-
 .. describe:: setParameter
 
-   ``setParamenter`` is an admin-only command used for modifying
-   the operational parameters of the MongoDB instance. Commands use
-   the following form: ::
+   ``setParamenter`` is an administrative command for modifying the
+   operational parameters of the MongoDB instance. The
+   ``setParameter`` command must be issued against the ``admin``
+   database.  The command takes form: ::
 
         { setParameter: 1, <option>: <value> }
 
-   Replace the ``<option>`` with one of the following options suppored
-   by this command:
+   Replace the ``<option>`` with one of the following options
+   supported by this command:
 
    - **journalCommitInterval** specify a ``<value>`` between 1 and 500
      to control the number of milliseconds (ms) between journal
@@ -955,9 +1023,9 @@ TODO does logRotate remove the old files or rename them?
 
 .. describe:: getParameter
 
-   ``getParemeter`` is an admin-only command, used to retrieve the
+   ``getParemeter`` is an administrative command for retrieving the
    current operational parameters for a MongoDB instance. Issue
-   commands in the following form: ::
+   commands against the ``admin`` database in the following form: ::
 
         { getParameter: 1, <option>: 1 }
 
@@ -970,8 +1038,7 @@ TODO does logRotate remove the old files or rename them?
    - **logLevel**
    - **syncdelay**
 
-   See :command:`setParameter` for more information about these
-   options.
+   See :command:`setParameter` for more regarding these parameters.
 
    .. slave-ok, admin-only
 
@@ -980,7 +1047,7 @@ Diagnostics
 
 .. describe:: dbStats
 
-   The ``dbStats`` command returns a collection of data regarding a
+   The ``dbStats`` command returns a document with data regarding a
    specific database. This command does not return instantly, and the
    time required to run the command depends on the total size of the
    database. The command takes the following syntax:
@@ -990,12 +1057,12 @@ Diagnostics
    The value of the argument (e.g. ``1`` above) to ``dbStats`` does
    not effect the output of the command. The "``scale``" option
    allows you to configure how the values of bytes are
-   scaled. For example, specify a "``scale``" value of "``1000``" to
+   scaled. For example, specify a "``scale``" value of "``1024``" to
    display kilobytes rather than bytes.
 
    The ``mongo`` shell provides the following helper method. for
-   ``dbStats``. The following method is equivalent to the example
-   above: ::
+   ``dbStats``. The following helper method is equivalent to the
+   example above: ::
 
         db.stats()
 
@@ -1047,12 +1114,12 @@ Diagnostics
    - "``scandata: false``" skips the scan of the base collection
      without skipping the scan of the index.
 
-TODO factcheck; the options on the REST interface and wiki differ
-
    The ``mongo`` shell also provides a shell wrapper which is
-   equivelent to the first example above: ::
+   equivalent to the first example above: ::
 
         db.collection.validate();
+
+TODO factcheck; the options on the REST interface and wiki differ
 
 .. describe:: top
 
@@ -1289,6 +1356,27 @@ TODO find md5 "root" argument, and other functionality.
 
 Internal Use
 ------------
+
+.. describe:: setShardVersion
+
+   ``setShardVersion`` is an internal command that supports sharding
+   functionality.
+
+   .. admin-only
+
+.. describe:: getShardVersion
+
+   ``getShardVersion`` is an internal command that supports sharding
+   functionality.
+
+   .. admin-only
+
+.. describe:: unsetSharding
+
+   ``unsetSharding`` is an internal command that supports sharding
+   functionality.
+
+   .. slave-ok, admin-only
 
 .. describe:: whatsmyuri
 
