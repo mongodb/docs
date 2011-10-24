@@ -6,6 +6,7 @@ SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 PAPER         =
 BUILDDIR      = build
+SRCDIR        = source
 
 # Internal variables.
 PAPEROPT_a4     = -D latex_paper_size=a4
@@ -27,15 +28,23 @@ help:
 	@echo "  linkcheck to check all external links for integrity"
 	@echo "  doctest   to run all doctests embedded in the documentation (if enabled)"
 
+prep:
+	-mkdir -p $(SRCDIR)/_static
+	@echo directory made
+
 clean:
 	-rm -rf $(BUILDDIR)/*
 
 html:
+	-mkdir -p $(SRCDIR)/_static
+	@echo directory made
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
 
 dirhtml:
+	-mkdir -p $(SRCDIR)/_static
+	@echo directory made
 	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(BUILDDIR)/dirhtml
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/dirhtml."
@@ -66,6 +75,8 @@ qthelp:
 	@echo "# assistant -collectionFile $(BUILDDIR)/qthelp/MongoDB.qhc"
 
 latex:
+	-mkdir -p $(SRCDIR)/_static
+	@echo directory made
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
 	@echo
 	@echo "Build finished; the LaTeX files are in $(BUILDDIR)/latex."
@@ -73,6 +84,8 @@ latex:
 	      "run these through (pdf)latex."
 
 epub:
+	-mkdir -p $(SRCDIR)/_static
+	@echo directory made
 	$(SPHINXBUILD) -b epub $(ALLSPHINXOPTS) $(BUILDDIR)/epub
 	@echo
 	@echo "Build finished. The epub file is in $(BUILDDIR)/epub."
