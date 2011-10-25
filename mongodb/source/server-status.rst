@@ -2,10 +2,12 @@
 Server Status Reference
 =======================
 
-The :command:`serverStatus` outputs a collection of data that you can
-use to diagnose and assess the performance of your MongoDB
-instance. This reference catalogs each datum included in the
-output of this command.
+The :command:`serverStatus` returns a collection of data that reflects
+the status of the database. This data are useful for diagnosing and
+assessing the performance of your MongoDB instance. This reference
+catalogs each datum included in the output of this command and
+provides context for using this data to more effectively administer
+your database.
 
 Basic Information
 -----------------
@@ -53,7 +55,7 @@ globalLock
 .. describe:: globalLock
 
    The ``globalLock`` data structure contains information regarding
-   the database's current and historical lock status, current
+   the database's current lock state, historical lock status, current
    operation queue, and the number of active clients.
 
 .. describe:: globalLock.toalTime
@@ -63,9 +65,9 @@ globalLock
    ``globalLock`` has existed.
 
    Larger values indicate that the database has been unavailable for
-   more time; however, :status:`uptime` should be considered. Also
-   consider the effect of long-running administrative operations on
-   this value.
+   more time; however, :status:`uptime` provides context for this
+   datum. Also consider the effect of long-running administrative
+   operations on this value.
 
 TODO factcheck
 
@@ -104,8 +106,8 @@ globalLock.currentQueue
 .. describe:: globalLock.currentQueue
 
    The ``globalLock.currentQueue`` data structure value provides more
-   granular information about the number of operations queued because
-   of a lock.
+   granular information concerning the number of operations queued
+   because of a lock.
 
 .. describe:: globalLock.currentQueue.total
 
