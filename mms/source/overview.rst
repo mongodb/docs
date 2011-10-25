@@ -31,7 +31,7 @@ side-by-side data comparisons, and re-plot charts on different
 timescales to aid analysis.
 
 Security
--------
+--------
 
 All metrics are transmitted by the agent to the MMS servers over SSL
 (128-bit encryption), and agent traffic is exclusively outbound. The
