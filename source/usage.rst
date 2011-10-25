@@ -54,8 +54,9 @@ Each non-arbiter processes in the "Hosts" section links to an overview
 of the data collected for that process. On each of these pages, MMS
 provides the following tabs:
 
-- "**DB Stats**," which displays charts using data provided by the MMS
-  agent.
+- "**Stats**," which displays charts using data provided by the MMS
+  agent. These charts display information about the ``mongod`` process
+  itself.
 
 - "**Hardware**," which displays information gathered about underlying
   system. To collect this information, you will need to install and
@@ -67,6 +68,16 @@ provides the following tabs:
 
   See the :ref:`installation documentation <mms-munin>` for
   more information.
+
+- "**DB Stats**," which displays charts on a per-database basis. When
+  you select the "DB Stats" tab, a drop down list appears on the tab
+  that allows you to select a database. An "edit" button appears next
+  in the tab that allows you to remove a database from the DB stats
+  drop down after removing a database from MongoDB. It is impossible
+  to delete a database from your instance using this interface.
+
+  The DB Stats tab will only appear approximately 30 minutes after you
+  add the host to MMS.
 
 - "**Last Ping**," which displays the raw JSON document sent by the
   agent to MMS.
