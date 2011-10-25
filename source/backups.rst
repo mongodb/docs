@@ -244,7 +244,7 @@ Restore Backup Snapshot
 If you created a backup using the above method, restore this archive
 with the following procedure: ::
 
-      lvcreate --size 1G --name mdb-new /dev/vg0
+      lvcreate --size 1G --name mdb-new vg0
       tar -xzf mdb-snap01.tar.gz | dd of=/dev/vg0/mdb-new
       mount /dev/vg0/mdb-new /srv/mongodb
 
@@ -274,7 +274,7 @@ To combine the above steps without writing to a compressed ``tar``
 archive, use the following command sequence: ::
 
       umount /dev/vg0/mdb-snap01
-      lvcreate --size 1G --name mdb-new /dev/vg0
+      lvcreate --size 1G --name mdb-new vg0
       dd if=/dev/vg0/mdb-snap01 of=/dev/vg0/mdb-new
       mount /dev/vg0/mdb-new /srv/mongodb
 
@@ -286,7 +286,7 @@ with SSH. Consider the following procedure: ::
 
      umount /dev/vg0/mdb-snap01
      dd if=/dev/vg0/mdb-snap01 | ssh username@example.com tar -czf /opt/backup/mdb-snap01.tar.gz
-     lvcreate --size 1G --name mdb-new /dev/vg0
+     lvcreate --size 1G --name mdb-new vg0
      ssh username@example.com tar -xzf /opt/backup/mdb-snap01.tar.gz | dd of=/dev/vg0/mdb-new
      mount /dev/vg0/mdb-new /srv/mongodb
 
