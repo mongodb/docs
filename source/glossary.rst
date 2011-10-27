@@ -242,13 +242,20 @@ MongoDB Glossary
    ISODate
       The standard date representation in database fields.
 
+   Journaling
+      MongoDB's journal provides a transnational log that provides
+      durability for database operations. When using the journal, all
+      data is written to disk in at least two locations, and items are
+      logged to the journal *much* more frequently than the state of
+      the database is flushed to the disk. The journal can thus be
+      used to recover the state of the database in the event of system
+      failure or glitch.
+
    Global Lock
 
    read-lock
 
    Lock
-
-   Journaling
 
    padding factor
 

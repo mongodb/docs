@@ -34,32 +34,31 @@ Sharding
 
 .. describe:: addShard
 
-  ``addShard`` is a command that used to inform a ``mongos`` process
-  about the shard instance. Connect using the MongoDB shell
-  (e.g. ``mongo``) to the ``mongos`` instance. The command takes the
-  following form: ::
+   The ``addShard`` command informs a ``mongos`` process about the
+   shard instance. Connect using the MongoDB shell (e.g. ``mongo``) to
+   the ``mongos`` instance. The command takes the following form: ::
 
         { addshard: "<hostname>:<port>" }
 
-  Replace "``<hostname>:<port>``" with the hostname and port of the
-  database instance you want to add as a shard. Because the mongos'
-  distribute their configuration by way of their :term:`configdb` you
-  only need to issue this command to one ``mongos`` instance. There
-  are two optional parameters:
+   Replace "``<hostname>:<port>``" with the hostname and port of the
+   database instance you want to add as a shard. Because the ``mongos``
+   instances do not have state and distribute configuration in the
+   :term:`configdb`, you only need to send this command to one
+   ``mongos`` instance. There are two optional parameters:
 
-  - **name**. If no name is specified a name will be automatically
-    provided to uniquely identify the shard.
-  - **maxSize** Unless specified shards will consume the total amount
-    of available space if necessary. Use the ``maxSize`` value to
-    limit the amount of space the database can use.
+   - **name**. If no name is specified, a name will be automatically
+     provided to uniquely identify the shard.
+   - **maxSize** Unless specified shards will consume the total amount
+     of available space if necessary. Use the ``maxSize`` value to
+     limit the amount of space the database can use.
 
-    .. note::
+     .. note::
 
-       Specify a ``maxSize`` when you have machines with different
-       disk capacities, or if you want to limit the amount of data on
-       some shards.
+        Specify a ``maxSize`` when you have machines with different
+        disk capacities, or if you want to limit the amount of data on
+        some shards.
 
-  See :doc:`<sharding>` for more information related to sharding.
+   See :doc:`<sharding>` for more information related to sharding.
 
 .. describe:: listShards
 
@@ -96,17 +95,16 @@ Sharding
    ``<collection>`` in the database named ``<db>``, using the key
    "``<shardkey>``" to distribute documents among the shard.
 
-   Choosing a the right shard key to effectively distribute load among
-   your shards. See :doc:`<sharding>` for more information related to
-   sharding and choosing the shard key.
+   Choosing the right shard key to effectively distribute load among
+   your shards can be challenging to do properly. See
+   :doc:`<sharding>` for more information related to sharding and
+   choosing the shard key.
 
    .. warning::
 
-      There is no way to disable sharding or change the shardkey once
-      established, without making a backup, dropping the collection
-      and reloading the data into a recreated collection.
-
-TODO explore unique option and expanding this
+      There is no way to disable sharding or change the ``shardkey``
+      once established, without making a backup, dropping the
+      collection and reloading the data into a recreated collection.
 
 .. describe:: shardingState
 
@@ -143,7 +141,7 @@ Aggregation
    field with a value of ``1``. The parameter fields in the group
    command are:
 
-   - **key** specifies the fields to group by.
+   - **key** specifies the fields for grouping the results.
    - **reduce** aggregates (i.e. reduces) the objects that the
      function iterates. Typically this counts or sums the field.
    - **initial** sets the starting value of the aggregation counter
@@ -153,9 +151,10 @@ Aggregation
      of ``keyf`` is to group documents by day of week. Set ``keyf`` in
      lieu of a key.
    - **cond** specifies an optional condition that must be true for a
-     document to be considered. This functions like a ``find()``
-     query. If ``cond`` returns no results, the ``reduce`` function
-     will run against all documents in the collection.
+     document to be considered. This functions like a
+     :command:`find()` query. If ``cond`` returns no results, the
+     ``reduce`` function will run against all documents in the
+     collection.
    - **finalize** is an optional function that runs against every
      result before the item is returned, to provide additional post
      processing or transformation.
@@ -177,10 +176,10 @@ Aggregation
 
         db.collection.count():
 
-   In the JavaScript shell, this will return the number of documents
-   in the collection (e.g. ``collection``). You may also run this
-   command using the ``runCommand`` functionality, with the following
-   results: ::
+   In the ``mongo`` shell, this returns the number of documents in the
+   collection (e.g. ``collection``). You may also run this command
+   using the ``runCommand`` functionality, with the following results:
+   ::
 
         > db.runCommand( { count: "collection" } );
         { "n" : 10 , "ok" : 1 }
@@ -192,10 +191,11 @@ Aggregation
 .. describe:: mapReduce
 
    The ``mapReduce`` command provides map/reduce functionality for the
-   MongoDB server. In MongoDB map/reduce is used for aggregating data
-   and not for querying the database. ``mapReduce`` creates a
-   collection holding the results of the operation. The ``mapReduce``
-   command has the following syntax: ::
+   MongoDB server. In MongoDB map/reduce operations provide
+   aggregation functionality, and are not used for querying the
+   database. ``mapReduce`` creates a collection holding the results of
+   the operation. The ``mapReduce`` command has the following syntax:
+   ::
 
         { mapreduce : <collection>,
            map : <mapfunction>,
@@ -212,8 +212,9 @@ Aggregation
         }
 
    Only the ``map`` and ``reduce`` options are required, all other
-   fields are optional. See :doc:`map-reduce` for more information on
-   using the ``mapReduce`` command.
+   fields are optional. The ``map`` and ``reduce`` functions are
+   written in JavaScript. See :doc:`map-reduce` for more information
+   on using the ``mapReduce`` command.
 
    .. slave-ok
 
@@ -245,7 +246,7 @@ Aggregation
      document. To set, specify "``remove: true``".
 
    - **update** specifies an :ref:`update operator <update-operators>`.
-     to modify the returned documents
+     to modify the returned documents.
 
    - **new**, when set, returns the modified object rather than the
      original. The ``new`` option is ignored for ``remove``
@@ -260,7 +261,7 @@ Aggregation
 
 .. describe:: distinct
 
-   The ``distinct`` command returns a list of distinct values for a
+   The ``distinct`` command returns an array of distinct values for a
    given field across a single collection. The command takes the
    following form: ::
 
@@ -277,8 +278,6 @@ Aggregation
 
    The ``distinct`` command will use an index to locate and return
    data.
-
-TODO does distinct return a list or an array?
 
 .. describe:: eval
 
@@ -352,7 +351,8 @@ Replication
 
    .. slave-ok, admin-only
 
-   See :doc:`replication` for more information about replication.
+   See the ":doc:`replication`" document for more information about
+   replication.
 
 .. describe:: replSetGetStatus
 
@@ -364,12 +364,14 @@ Replication
 
    .. slave-ok, admin-only
 
-   See :doc:`replication` for more information about replication.
+   See the ":doc:`replication`" document for more information about
+   replication, and the ":doc:`replica-status`" document for more
+   information on the output of this command .
 
 .. describe:: replSetInitiate
 
-   The ``replSetInititate`` command is used to create a replica
-   set. Use the following syntax: ::
+   The ``replSetInititate`` command creates a replica set. Use the
+   following syntax: ::
 
          { replSetInitiate : <config_object> }
 
@@ -393,7 +395,8 @@ Replication
 
    .. slave-ok, admin-only
 
-   See :doc:`replication` for more information about replication.
+   See the ":doc:`replication`" document for more information about
+   replication.
 
 .. describe:: replSetReconfig
 
@@ -416,12 +419,14 @@ Replication
 
    - This command can cause downtime as the set renegotiates
      master-status. Typically this is 10-20 seconds; however, you
-     should always perform these operations during scheduled downtime.
+     should always perform these operations during scheduled
+     maintenance periods.
 
    - In some situations, a ``replSetReconfig`` can cause the current
      shell to disconnect. Do not be alarmed.
 
-   See :doc:`replication` for more information about replication.
+   See the ":doc:`replication`" document for more information about
+   replication.
 
    .. slave-ok, admin-only
 
@@ -441,7 +446,8 @@ Replication
 
    .. slave-ok, admin-only
 
-   See :doc:`replication` for more information about replication.
+   See the ":doc:`replication`" document for more information about
+   replication.
 
 Geolocation
 ~~~~~~~~~~~
@@ -485,8 +491,9 @@ TODO distanceMultiplier research/definition
 
         { geoSearch : "foo", near : [33, 33], maxDistance : 6, search : { type : "restaurant" }, limit : 30 }
 
-   The above command returns all restaurants with a maximum distance
-   of 6 units from the coordinates "``[30,33]``" up to a maximum of 30
+   The above command returns all documents with a ``type`` filed that
+   holds the a ``restaurants`` value with a maximum distance of 6
+   units from the coordinates "``[30,33]``" up to a maximum of 30
    results.
 
    Unless specified the ``geoSearch`` command limits results to 50
@@ -559,9 +566,9 @@ Collections
 
 .. describe:: convertToCapped
 
-   The ``convertToCapped`` command providdes the ability to convert an
-   existing, non-capped collection to a :term:`capped collection`. Use
-   the following syntax: ::
+   The ``convertToCapped`` command converts an existing, non-capped
+   collection to a :term:`capped collection`. Use the following
+   syntax: ::
 
         {convertToCapped: "collection", size: 100000, max: 9000 }
 
@@ -680,10 +687,11 @@ TODO factcheck captrunc
         { compact: "collection" }
 
    In this example, ``collection`` will be compacted. Generally, this
-   operation compacts and defragments the collection as well as
-   rebuilds and compacts indexes. Consider the following behaviors:
+   operation defragments and optimizes the storage organization of the
+   collection as well as rebuilds and optimizes indexes. Consider the
+   following behaviors:
 
-   - During a ``compact``, the database will block all other activity.
+   - During a ``compact``, the database blocks all other activity.
 
    - In a :term:`replica set`, ``compact`` will refuse to run on the
      master node in a replica set unless the "``force: true``" option
@@ -699,8 +707,8 @@ TODO factcheck captrunc
 
      .. warning::
 
-        Always have a backup before performing server maintenance such
-        as the ``compact`` operation.
+        Always have an up-to-date backup before performing server
+        maintenance such as the ``compact`` operation.
 
    - ``compact`` requires a small amount of additional diskspace while
      running but unlike :command:`repairDatabase` it does *not* free
@@ -710,7 +718,7 @@ TODO factcheck captrunc
      complete.
 
    - ``compact`` removes any :term:`padding factor` in the collection,
-     which may impact performance if documents regularly grow.
+     which may impact performance if documents grow regularly.
 
    - ``compact`` commands do not replicate and can be run on slaves
      and replica set members.
@@ -724,9 +732,9 @@ Administration
 
    ``fsync`` is an administrative command that forces the ``mongod``
    process to flush all pending writes to the data files. In default
-   operation, full flush runs every 60 seconds. Running ``fsync``
-   in the course of normal operations is not required. The command
-   takes the following form: ::
+   operation, full flush runs within every 60 seconds. Running
+   ``fsync`` in the course of normal operations is not required. The
+   command takes the following form: ::
 
         { fsync: 1 }
 
@@ -840,13 +848,13 @@ Administration
 
    The ``repairDatabase`` command checks and repairs errors and
    inconsistencies with the data storage. The command is analogous to
-   a ``fsck`` command for a file system. If your ``mongod`` instance
-   is not running with journaling and you experience an unexpected
-   system restart or crash, you should run the ``repairDatabase``
-   command to ensure that there are no errors in the data
-   storage. Additionally, the ``repairDatabase`` command will compact
-   the database similar to the functioning of
-   :command:`compact`. Issue the command with the following syntax.
+   a ``fsck`` command for file systems. If your ``mongod`` instance is
+   not running with journaling and you experience an unexpected system
+   restart or crash, you should run the ``repairDatabase`` command to
+   ensure that there are no errors in the data storage. Additionally,
+   the ``repairDatabase`` command will compact the database similar to
+   the functioning of :command:`compact`. Issue the command with the
+   following syntax.
 
         { repairDatabase: 1 }
 
@@ -856,7 +864,7 @@ Administration
    This command is accessible via a number of different avenues. You
    may:
 
-   - Use the shell as above.
+   - Use the shell to run the above command, as above.
 
    - Run ``mongod`` directly from your system's shell. Make sure that
      ``mongod`` isn't already running, and that you issue this command
@@ -877,7 +885,7 @@ Administration
    .. note::
 
       When :term:`journaling` is enabled, there is no need to run
-      repairDatabase
+      ``repairDatabase``.
 
 .. describe:: shutdown
 
@@ -978,8 +986,8 @@ TODO is the password an option here?
 
    .. note::
 
-      The ``logRotate`` command is not available to mongod instances
-      running on windows systems.
+   The ``logRotate`` command is not available to mongod instances
+   running on windows systems.
 
 TODO does logRotate remove the old files or rename them?
 
@@ -1047,10 +1055,10 @@ Diagnostics
 
 .. describe:: dbStats
 
-   The ``dbStats`` command returns a document with data regarding a
-   specific database. This command does not return instantly, and the
-   time required to run the command depends on the total size of the
-   database. The command takes the following syntax:
+   The ``dbStats`` command returns a document with information
+   regarding a specific database. This command does not return
+   instantly, and the time required to run the command depends on the
+   total size of the database. The command takes the following syntax:
 
         { dbStats: 1, scale: 1 }
 
@@ -1068,10 +1076,11 @@ Diagnostics
 
 .. describe:: connPoolStats
 
-   The command ``connPoolStats`` provides data on the number of open
-   connections to the current database instance including client
-   connections and server-to-server connections for replication and
-   clustering. The command takes the following form: ::
+   The command ``connPoolStats`` returns information regarding the
+   number of open connections to the current database instance
+   including client connections and server-to-server connections for
+   replication and clustering. The command takes the following form:
+   ::
 
         { connPoolStats: 1 }
 
@@ -1213,7 +1222,7 @@ TODO factcheck; the options on the REST interface and wiki differ
         { listDatabases: 1 }
 
    The value (e.g. ``1``) does not effect the output of the
-   command. The command returns documents for each database, within
+   command. ``listDatabases`` returns documents for each database, within
    the "``databases``" array as well a ``totalSize`` field which
    contains the total amount of disk space used for the database in
    bytes. The documents for each database contain a "``name``" field
@@ -1228,7 +1237,7 @@ TODO factcheck; the options on the REST interface and wiki differ
 
         { cursorInfo: 1 }
 
-   The value (e.g. ``1`` above,) does not affect the output of the
+   The value (e.g. ``1`` above,) does not effect the output of the
    command. ``cursorInfo`` provides values for the total number of
    open cursors ("``totalOpen``",) the size of client cursors in
    current use ("``clientCursors_size``",) and the number of timed out
@@ -1253,18 +1262,18 @@ TODO factcheck; the options on the REST interface and wiki differ
 
         { ping: 1 }
 
-   The value (e.g. ``1`` above,) doe not have an impact on the
-   behavior of the command.
+   The value (e.g. ``1`` above,) does not impact the behavior of the
+   command.
 
 .. describe:: journalLatencyTest
 
    ``journalLatencyTest`` is an admin command that tests the length of
    time required to write and perform a file system sync (e.g. fsync)
-   for a file in the journal directory. The command syntax is:
+   for a file in the journal directory. The command syntax is: ::
 
          { journalLatencyTest: 1 }
 
-   The value (i.e. ``1`` above), does not affect the operation of the
+   The value (i.e. ``1`` above), does not effect the operation of the
    command.
 
 .. describe:: availableQueryOptions
@@ -1281,14 +1290,14 @@ TODO no documentation exists, and the response I get is the above
 
         { serverStatus: 1 }
 
-   The value (i.e. ``1`` above), does not affect the operation of the
+   The value (i.e. ``1`` above), does not effect the operation of the
    command. You may also access this command with the following shell
    helper: ::
 
         db.serverStatus();
 
-   For more information about the values provided by this command see
-   the :doc:`server-status`.
+   For more information about the output of this command, see the
+   ":doc:`server-status`" documentation.
 
 .. describe:: resetError
 
@@ -1337,7 +1346,7 @@ Other Commands
         { reIndex: "collection" }
 
    Indexes are automatically compacted as they are updated. In routine
-   operations it is unnecessary; however, you may wish if the
+   operations ``reIndex`` is unnecessary; however, you may wish if the
    collection size changed significantly or the indexes are consuming
    a disproportionate amount of disk space. The ``reIndex`` process is
    blocking, and will be slow for larger collections. You can also

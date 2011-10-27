@@ -2,9 +2,9 @@
 Server Status Reference
 =======================
 
-The :command:`serverStatus` returns a collection of data that reflects
-the status of the database. This data are useful for diagnosing and
-assessing the performance of your MongoDB instance. This reference
+The :command:`serverStatus` returns a collection of information that
+reflects the database's status. These data are useful for diagnosing
+and assessing the performance of your MongoDB instance. This reference
 catalogs each datum included in the output of this command and
 provides context for using this data to more effectively administer
 your database.
@@ -95,7 +95,7 @@ TODO factcheck
 
    Low values indicate that the ``globalLock`` has typically been held
    frequently for shorter periods of time. High values indicate that
-   the `globalLock` has been held infrequently for longer periods of
+   the ``globalLock`` has been held infrequently for longer periods of
    time.
 
 .. _globallock-currentqueue:
