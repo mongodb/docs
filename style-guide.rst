@@ -74,3 +74,7 @@ documentation.
   - operator
   - status
   - (error code?)
+
+- What to do with wiki pages like `EC2 Backups <http://www.mongodb.org/pages/viewpage.action?pageId=19562846>`_.
+  They seem ideal for the cookbook or the wiki, but less than ideal
+  for the manual.
