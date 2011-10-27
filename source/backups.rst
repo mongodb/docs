@@ -7,9 +7,11 @@ use with MongoDB. Use the :ref:`backup overview <backup-overview>` and
 :ref:`considerations <backup-considerations>` as you develop the most
 appropriate strategy for backing up your MongoDB environment. Then,
 use the examples from the :ref:`block level backup methods
-<block-level-backup>` section and possibly the
-":doc:`import-export`" documentation to implement the backup
-solution that is best suited to your deployment's needs.
+<block-level-backup>` section and possibly the ":doc:`import-export`"
+documentation to implement the backup solution that is best suited to
+your deployment's needs. Clustered environments, either with shards or
+replicas, require special considerations, see
+":doc:`backups-clustered-shard-replica`" for more information.
 
 A robust backup strategy along with at tested corresponding restore
 strategy is crucial for every production-grade deployment. Take the
