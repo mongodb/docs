@@ -62,7 +62,7 @@ Sharding
 
 .. describe:: listShards
 
-   Use the ``listShards``command to return a list of configured
+   Use the ``listShards`` command to return a list of configured
    shards. The command takes the following form:
 
         { listShards: 1 }
@@ -941,14 +941,17 @@ Administration
    - nonce
    - key
 
-   Be aware of the following behaviors: ::
+   Be aware of the following behaviors:
 
    - ``copydb`` can run against a :term:`slave` or a
      non-:term:`primary` member of a :term:`replica set`.
+
    - ``copydb`` does not snapshot the database. If the copied database is
      updated at any point during the copydb operation the resulting
      database may be inconsistent.
+
    - You must run ``copydb`` on the **destination server**.
+
    - The destination server is not locked during the duration of the
      ``copydb`` operation, and ``copydb`` will occasionally yield to
      other operations.
@@ -986,8 +989,8 @@ TODO is the password an option here?
 
    .. note::
 
-   The ``logRotate`` command is not available to mongod instances
-   running on windows systems.
+     The ``logRotate`` command is not available to mongod instances
+     running on windows systems.
 
 TODO does logRotate remove the old files or rename them?
 

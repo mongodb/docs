@@ -7,11 +7,12 @@ use with MongoDB. Use the :ref:`backup overview <backup-overview>` and
 :ref:`considerations <backup-considerations>` as you develop the most
 appropriate strategy for backing up your MongoDB environment. Then,
 use the examples from the :ref:`block level backup methods
-<block-level-backup>` section and possibly the ":doc:`import-export`"
-documentation to implement the backup solution that is best suited to
-your deployment's needs. Clustered environments, either with shards or
-replicas, require special considerations, see
-":doc:`backups-clustered-shard-replica`" for more information.
+<block-level-backup>` section and possibly the
+":doc:`backups-import-export`" documentation to implement the backup
+solution that is best suited to your deployment's needs. Clustered
+environments, either with shards or replicas, require special
+considerations, see ":doc:`backups-with-shard-and-replica-clusters`"
+for more information.
 
 A robust backup strategy along with at tested corresponding restore
 strategy is crucial for every production-grade deployment. Take the
@@ -29,7 +30,7 @@ systems please skip ahead to :ref:`backup considerations
 
 With MongoDB, the best way to are two major approaches to backups: using
 system-level tools, like disk image snapshots, and using various
-capacities present in :doc:`MongoDB tools <import-export>` to provide backup
+capacities present in :doc:`MongoDB tools <backups-import-export>` to provide backup
 functionality. The underlying goal of these strategies is to produce a
 full copy of the data that can be used to bring up a new or
 replacement database instance.
@@ -38,7 +39,7 @@ The methods described in this document operate by copying the data
 file on the disk level, while MongoDB tools dump or export copies of
 the data that can be imported into the new node. If your system does
 not provide a capacity for this kind of backup, see
-":doc:`import-export`" for more information.
+":doc:`backups-import-export`" for more information.
 
 One of the leading challenges for producing reliable backups from
 database systems is ensuring that the state captured backup methods is
@@ -352,4 +353,4 @@ Other Backup Methods
 If your deployment does not provide a sufficient method for snapshots
 or you only need to backup a small segment of data from the database
 consider using one of the import or export methods described in the
-":doc:`import-export`" document.
+":doc:`backups-import-export`" document.

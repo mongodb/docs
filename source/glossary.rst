@@ -263,3 +263,4 @@ MongoDB Glossary
 
    geospatial
 
+   configdb
