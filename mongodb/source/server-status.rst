@@ -513,7 +513,7 @@ optcounters
    These numbers will grow over time and in response to database
    use. Analyze these values over time to track database utilization.
 
-.. contains:: optcounters.insert
+.. describe:: optcounters.insert
 
    ``opcounters.insert`` provides a counter of the total number of
    insert operations since the ``mongod`` instance last started.
@@ -592,7 +592,7 @@ asserts
    the rollover counters have rolled over since the last time the
    server process started. The counters will rollover to zero after
    **TK** assertions. Use this value to provide context to the other
-   values in the :stats:`asserts` data structure.
+   values in the :status:`asserts` data structure.
 
 TODO determine number of assertions per-rollover.
 
@@ -691,9 +691,9 @@ timeMS
 
    The ``dur.timeMS.writeToJournal`` value provides, in milliseconds,
    the amount of time spent actually writing to the journal. File
-   system speeds and device interfaces can affect describe.
+   system speeds and device interfaces can affect performance.
 
-.. performance:: dur.timeMS.writeToDataFiles
+.. describe:: dur.timeMS.writeToDataFiles
 
    The ``dur.timeMS.writeToDataFiles`` value provides, in
    milliseconds, the amount of time spent writing to data files after

@@ -40,6 +40,7 @@ Core concepts and features regarding MongoDB use and operation.
 
    map-reduce
    replication
+   sharding
 
 Many topics forthcoming, including:
 
