@@ -57,7 +57,8 @@ Administration and Deployment
    :maxdepth: 3
 
    backups
-   import-export
+   backups-with-shard-and-replica-clusters
+   backups-import-export
 
 Coming Soon:
 
@@ -111,6 +112,7 @@ Reference
    operators
    commands
    server-status
+   replica-status
    glossary
 
 .. the following documents are drafts of reference materials/indexes
