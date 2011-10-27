@@ -1,5 +1,10 @@
+====================
 Meta Query Operators
 ====================
+
+
+Operators
+---------
 
 $returnKey
 
