@@ -147,6 +147,8 @@ are. For CSV and TSV imports, this option provides the desired
 functionality in most cases: it avoids inserting blank fields in
 MongoDB documents.
 
+.. _database-dump-import-export:
+
 Binary Import/Export Formats
 ----------------------------
 
