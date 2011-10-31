@@ -30,6 +30,8 @@ $explain - if true, return explain plan results instead of query results
 
 $snapshot - if true, "snapshot mode"
 
-$where
 
-$atomic
+TODO move to operator:
+
+- $where
+- $atomic

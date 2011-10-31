@@ -7,12 +7,13 @@ use with MongoDB. Use the :ref:`backup overview <backup-overview>` and
 :ref:`considerations <backup-considerations>` as you develop the most
 appropriate strategy for backing up your MongoDB environment. Then,
 use the examples from the :ref:`block level backup methods
-<block-level-backup>` section and possibly the
-":doc:`backups-import-export`" documentation to implement the backup
+<block-level-backup>` section and possibly the ":ref:`backups using
+mongodump <backups-from-dumps>`" documentation to implement the backup
 solution that is best suited to your deployment's needs. Clustered
 environments, either with shards or replicas, require special
-considerations, see ":doc:`backups-with-shard-and-replica-clusters`"
-for more information.
+considerations, see ":ref:`backup considerations for shard clusters
+and replica sets <backups-with-sharding-and-replication>`" for more
+information.
 
 A robust backup strategy along with at tested corresponding restore
 strategy is crucial for every production-grade deployment. Take the
@@ -25,21 +26,21 @@ Backup Overview
 ---------------
 
 If you are familiar with backups systems in the context of database
-systems please skip ahead to :ref:`backup considerations
-<backup-considerations>`.
+systems please skip ahead to :ref:`backup considerations <backup-considerations>`.
 
-With MongoDB, the best way to are two major approaches to backups: using
-system-level tools, like disk image snapshots, and using various
-capacities present in :doc:`MongoDB tools <backups-import-export>` to provide backup
-functionality. The underlying goal of these strategies is to produce a
-full copy of the data that can be used to bring up a new or
-replacement database instance.
+With MongoDB, the best way to are two major approaches to backups:
+using system-level tools, like disk image snapshots, and using various
+capacities present in the :ref:`mongodump tool <backups-from-dumps>`
+to provide backup functionality. The underlying goal of these
+strategies is to produce a full copy of the data that can be used to
+bring up a new or replacement database instance.
 
 The methods described in this document operate by copying the data
 file on the disk level, while MongoDB tools dump or export copies of
 the data that can be imported into the new node. If your system does
-not provide a capacity for this kind of backup, see
-":doc:`backups-import-export`" for more information.
+not provide a capacity for this kind of backup, see the section on
+:ref:`using database dumps for backups <backups-from-dumps>`" for more
+information.
 
 One of the leading challenges for producing reliable backups from
 database systems is ensuring that the state captured backup methods is
@@ -176,7 +177,7 @@ high level overview of the backup operation.
 .. _lvm-backup-operation:
 
 Create Snapshot
-^^^^^^^^^^^^^^^
+```````````````
 
 To create a snapshot with LVM issue a command, as root, in the
 following format: ::
@@ -217,7 +218,7 @@ infrastructure as the original disk images. Therefore, it's crucial
 that these snapshots be archived and stored elsewhere.
 
 Archive Backup Snapshot
-^^^^^^^^^^^^^^^^^^^^^^^
+```````````````````````
 
 After creating a snapshot, mount the snapshot and move the data to a
 separate storage You. system may wish to compress the backup images as
@@ -242,7 +243,7 @@ This command sequence:
       file system that has enough free space.
 
 Restore Backup Snapshot
-^^^^^^^^^^^^^^^^^^^^^^^
+```````````````````````
 
 If you created a backup using the above method, restore this archive
 with the following procedure: ::
@@ -271,7 +272,7 @@ This sequence:
    data file location, or other location as needed.
 
 Restore a Backup Directly from a Snapshot
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+`````````````````````````````````````````
 
 To combine the above steps without writing to a compressed ``tar``
 archive, use the following command sequence: ::
@@ -282,7 +283,7 @@ archive, use the following command sequence: ::
       mount /dev/vg0/mdb-new /srv/mongodb
 
 Remote Backup Storage
-^^^^^^^^^^^^^^^^^^^^^
+`````````````````````
 
 You can implement off system backups using this method in combination
 with SSH. Consider the following procedure: ::
@@ -347,10 +348,265 @@ tool. As a result you may:
   If you choose this option see the section that outlines the
   ":ref:`LVM backup operation <lvm-backup-operation>`"
 
-Other Backup Methods
---------------------
+.. _backups-from-dumps:
 
-If your deployment does not provide a sufficient method for snapshots
-or you only need to backup a small segment of data from the database
-consider using one of the import or export methods described in the
-":doc:`backups-import-export`" document.
+Binary Import/Export Formats
+----------------------------
+
+This section describes the process for exporting the entire contents
+of your MongoDB instance, to a file in a binary format. This command
+provides the best option for full system database backups if
+disk-level snapshots are not available.
+
+.. seealso::
+
+   The :doc:`/utilities/mongodump` and :doc:`/utilities/mongorestore`
+   documents contain complete documentation of these tools. If you
+   have questions about the function and parameters of these tools not
+   covered here, please refer to these documents.
+
+   If your system has disk level snapshot capabilities, consider the
+   backup methods described :ref:`above <block-level-backup>`.
+
+Database Export with mongodump
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``mongodump`` utility performs a live backup the data, or can work
+against an inactive set of database files. ``mongodump`` utility can
+create a dump for an entire server/database/collection (or part of a
+collection with a query,) even when the database is running and
+active. If you run ``mongodump`` without any arguments the command
+will connect to the local database instance (e.g. ``127.0.0.1`` or
+``localhost``) and create a database backup in a in the current
+directory named "``dump/``".
+
+You can specify  database and collection as options to the
+``mongodump`` command to limit the amount of data included in the
+database dump. For example: ::
+
+     mongodump --collection collection --database test
+
+This command creates a dump in of the database in the "``dump``"
+directory of only the collection named "``collection``" in the
+database named "``test``". ``mongodump`` provides the "``--oplog``"
+option which forces the dump operation to use the operation log to
+take a point-in-time snapshot of the database.
+
+If your MongoDB instance is not running, you can use the
+"``--dbpath``" option to specify the location to your MongoDB
+instance's database files. ``mongodump`` reads the data files directly
+with this operation. This locks the data directory to prevent
+conflicting writes. The ``mongod`` process must *not* be running or
+attached to these data files when you run ``mongodump`` in this
+configuration. Consider the following example: ::
+
+     mongodump --dbpath /srv/mongodb
+
+Additionally, the "``--host``" and "``--port``" options allow you to
+specify a non-local host to connect to capture the export. Consider
+the following example: ::
+
+     mongodump --host mongodb1.example.net --port 3017 --username user --password pass /opt/backup/mongodumpm-2011-10-24
+
+On any ``mongodump`` command you may, as above specify username and
+password credentials to specify database authentication.
+
+Database Import with mongorestore
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``mongorestore`` tool is used to restore a binary backup
+taken with the ``mongodump`` utility. Consider the following example
+command: ::
+
+     mongorestore dump-2011-10-25/
+
+Here, the database backup located in the ``dump-2011-10-25`` directory
+is imported to the ``mongod`` instance running on the localhost
+interface. By default, ``mongorestore`` will look for a database dump
+in the "``dump/``" directory and restore that. If you wish to restore
+to a non-default host, the "``--host``" and "``--port``" options allow
+you to specify a non-local host to connect to capture the
+export. Consider the following example: ::
+
+     mongorestore --host mongodb1.example.net --port 3017 --username user --password pass /opt/backup/mongodumpm-2011-10-24
+
+On any ``mongorestore`` command you may, as above specify username and
+password credentials as above.
+
+If you created your database dump using the ``--oplog`` option to
+ensure a point-in-time snapshot, call ``mongorestore`` with the
+"``--oplogReplay``" option as in the following example: ::
+
+     mongorestore --oplogRestore
+
+You may also consider using the ``--objcheck`` option to check the
+integrity of objects as they are inserted into the database, or the
+``--drop`` option to drop each collection from the database before
+restoring from backups. ``mongorestore`` also includes the ability to
+a filter to all input before it is inserted into the new
+database. Consider the following example: ::
+
+     mongorestore --filter '{"field": 1}'
+
+Here, the only documents added to the database running on the local
+system are added from the database dump located in the "``dump/``"
+folder *if* the documents have a field name "``field``" that holds a
+value of "``1``". Enclose the filter in single quotes (e.g. "``'``")
+to ensure that it does not interact with your shell environment.
+
+If your MongoDB instance is not running, you can use the
+"``--dbpath``" option to specify the location to your MongoDB
+instance's database files. ``mongorestore`` inserts data into the data
+files directly with this operation. While the command runs, the data
+directory is locked to prevent conflicting writes. The ``mongod``
+process must *not* be running or attached to these data files when you
+run ``mongodump`` in this configuration. Consider the following
+example: ::
+
+     mognorestore --dbpath /srv/mongodb
+
+If your MongoDB instance is not running, you can use the
+"``--dbpath``" option to specify the location to your MongoDB
+instance's database files. Consider using the "``--journal``" option
+to ensure that the operations of ``mon`` are recorded in the
+journal.
+
+mongodump and mongorestore Documentation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+TODO links to man pages here.
+
+.. _backups-with-sharding-and-replication:
+
+Backup Considerations with Shard Clusters and Replica Sets
+----------------------------------------------------------
+
+The underlying architecture of shard clusters and replica sets present
+several challenges for creating backups of data stored in
+MongoDB. This section provides a high-level overview of these
+concerns, and strategies for creating quality backups in environments
+with these configurations.
+
+Creating useful backups for shard clusters is more complicated,
+because it's crucial that the backup captures a consistent state
+across all shards.
+
+Shard Clusters
+~~~~~~~~~~~~~~
+
+Using Database Exports From a Cluster
+`````````````````````````````````````
+
+
+
+If you have a small collection of data, the easiest way to connecting
+to the ``mongos`` and taking a dump or export of the database from the
+running copy. This will create a consistent copy of the data in your
+database. If your data corpus is small enough that:
+
+- it's possible to store the entire backup on one system, or a single
+  storage device. Consider both backups of entire instances, and
+  incremental exports of data.
+
+- the state of the database at the beginning of the operation is
+  not significantly different than the state of the database at the
+  end of the backup. If the backup operation cannot capture a backup
+  this is not a viable option.
+
+- the backup can run and complete without impacting the performance of
+  the shard cluster.
+
+Using Conventional Backups from All Database Instances
+``````````````````````````````````````````````````````
+
+If you there is no way to conduct a backup reasonably using an export,
+then you'll need to either snapshot the database using the
+:ref:`snapshot backup procedure <block-level-backup>` or create a
+binary dump of each database instance using :ref:`binary export
+systems <database-dump-import-export>`.
+
+These backups must not only be captured when the database is in a
+consistent state as described in the aforementioned procedures, but
+the shard cluster needs to be consistent in itself. All operations
+that balance the data among the collections need to be disabled before
+the backup can be taken.
+
+You should also all cluster members so that your backups reflect your
+entire database system at a single point in time, even if your backup
+methodology does not require.
+
+.. warning::
+
+   It is essential that you stop the balancer before creating
+   backups. If the balancer remains active, your resulting backups
+   could have duplicate data or miss some data, depending on how
+   chunks are moved while backups are recorded.
+
+   Similarly, if you do not lock all shards at the same time,
+   the backup can reflect a highly inconsistent state that will likely
+   *not* be restorable.
+
+To stop the balancer, connect to the ``mongos`` with the ``mango``
+shell and issue the following 2 commands: ::
+
+     use config
+     db.settings.update( { _id: "balancer" }, { $set : { stopped: true } } , true );
+
+When the balancer is enabled, proceed with your backup in the
+following sequence:
+
+1. Lock all shards, in an operation that ensures that all shard
+   instances are locked in as short of an interval as possible.
+
+2. Use ``mongodump`` to backup the config database. This command can
+   either be issued against the config database itself or the
+   ``mongos``, and would resemble the following: ::
+
+        mongodump --database config
+
+2. Record a backup of all shards
+
+3. Unlock all shards.
+
+4. Restore the balancer.
+
+Use the following command sequence when connected to the ``mongos``
+with the ``mongo`` shell: ::
+
+     use config
+     db.settings.update( { _id: "balancer" }, { $set : { stopped: false } } , true );
+
+If you have an automated backup schedule, you can disable all
+balancing operations for a period of time. For instance, consider the
+following command: ::
+
+     use config
+     db.settings.update( { _id : "balancer" }, { $set : { activeWindow : { start : "6:00", stop : "23:00" } } }, true )
+
+Here, the balancer is configured to run between 6:00 am and 11:00pm,
+server time. Schedule your backup operation to run *and complete* in
+this time. Ensure that the backup can complete during the window when
+the balancer is running *and* that the balancer can ensure that the
+collection is balanced among the shards in the window allotted to
+each.
+
+Replica Sets
+~~~~~~~~~~~~
+
+In most cases, backing up data stored in replica is similar to backing
+up data stored in a single instance. It's possible to lock a single
+:term:`slave` or :term:`secondary` database and then create a backup
+from that instance. When you unlock the database, the slave will catch
+:term:`master` or :term:`primary` node.
+
+If you have a sharded cluster where each shard is itself a replica
+set, you can use this method to create a backup of the entire cluster
+without disrupting. In these situations you should still turn off the
+balancer when you create backups.
+
+For any cluster, using a non-master/primary node to create backups is
+particularly advantageous, in that the backup operation does not
+affect the performance of the master or primary node. Replication also
+provides some measure of redundancy itself. However, it is also
+important to keep point-in time backups to provide for disaster
+recovery and as an additional layer of protection.

@@ -19,8 +19,7 @@ syntax: ::
 
       db._adminCommand( { <commandname>: <value> [, options] } );
 
-The ``_adminCommand`` helper is shorthand for "``
-db.getSisterDB("admin").runCommand();``".
+The ``_adminCommand`` helper is shorthand for "``db.getSisterDB("admin").runCommand();``".
 
 MongoDB drivers, and the ``mongo`` shell may provide an alternate
 interfaces for issuing database commands. All examples in this
@@ -58,7 +57,7 @@ Sharding
         disk capacities, or if you want to limit the amount of data on
         some shards.
 
-   See :doc:`<sharding>` for more information related to sharding.
+   See :doc:`/sharding` for more information related to sharding.
 
 .. describe:: listShards
 
@@ -67,7 +66,7 @@ Sharding
 
         { listShards: 1 }
 
-   See :doc:`<sharding>` for more information related to sharding.
+   See :doc:`/sharding` for more information related to sharding.
 
 .. describe:: enableSharding
 
@@ -80,7 +79,7 @@ Sharding
    the :command:`shardCollection` to begin the process of distributing
    data among the shards.
 
-   See :doc:`<sharding>` for more information related to sharding.
+   See :doc:`/sharding` for more information related to sharding.
 
 .. describe:: shardCollection
 
@@ -97,7 +96,7 @@ Sharding
 
    Choosing the right shard key to effectively distribute load among
    your shards can be challenging to do properly. See
-   :doc:`<sharding>` for more information related to sharding and
+   :doc:`/sharding` for more information related to sharding and
    choosing the shard key.
 
    .. warning::
@@ -116,7 +115,7 @@ Sharding
 
    The value specified does not effect the output of the command.
 
-   See :doc:`<sharding>` for more information related to sharding.
+   See :doc:`/sharding` for more information related to sharding.
 
    .. admin-only
 
@@ -213,14 +212,14 @@ Aggregation
 
    Only the ``map`` and ``reduce`` options are required, all other
    fields are optional. The ``map`` and ``reduce`` functions are
-   written in JavaScript. See :doc:`map-reduce` for more information
+   written in JavaScript. See :doc:`/map-reduce` for more information
    on using the ``mapReduce`` command.
 
    .. slave-ok
 
 .. describe:: mapreduce.shardedfinish
 
-   See :doc:`map-reduce` for more information on mapReduce
+   See :doc:`/map-reduce` for more information on mapReduce
    operations.
 
    .. slave-ok
@@ -351,7 +350,7 @@ Replication
 
    .. slave-ok, admin-only
 
-   See the ":doc:`replication`" document for more information about
+   See the ":doc:`/replication`" document for more information about
    replication.
 
 .. describe:: replSetGetStatus
@@ -364,8 +363,8 @@ Replication
 
    .. slave-ok, admin-only
 
-   See the ":doc:`replication`" document for more information about
-   replication, and the ":doc:`replica-status`" document for more
+   See the ":doc:`/replication`" document for more information about
+   replication, and the ":doc:`/replica-status`" document for more
    information on the output of this command .
 
 .. describe:: replSetInitiate
@@ -395,7 +394,7 @@ Replication
 
    .. slave-ok, admin-only
 
-   See the ":doc:`replication`" document for more information about
+   See the ":doc:`/replication`" document for more information about
    replication.
 
 .. describe:: replSetReconfig
@@ -425,7 +424,7 @@ Replication
    - In some situations, a ``replSetReconfig`` can cause the current
      shell to disconnect. Do not be alarmed.
 
-   See the ":doc:`replication`" document for more information about
+   See the ":doc:`/replication`" document for more information about
    replication.
 
    .. slave-ok, admin-only
@@ -446,7 +445,7 @@ Replication
 
    .. slave-ok, admin-only
 
-   See the ":doc:`replication`" document for more information about
+   See the ":doc:`/replication`" document for more information about
    replication.
 
 Geolocation
@@ -901,7 +900,7 @@ Administration
       connection on localhost, or the connection must be
       authenticated.
 
-   For :doc:`replica set <replication>` users, if the current node is
+   For :doc:`/replica set <replication>` users, if the current node is
    primary and no other members of the set are less than 10 seconds
    behind the node then the server will not shut down without a
    "force" option. See the following example: ::
@@ -1187,7 +1186,7 @@ TODO factcheck; the options on the REST interface and wiki differ
    output of the command. The following options are available:
 
    - "``fsync: true``" run an :command:`fsync` before returning. If
-     your database is running with :doc:`journaling <journaling>`,
+     your database is running with :doc:`journaling </journaling>`,
      this option will instead wait for the next journal commit before
      returning.
    - "``j: true``" waits for the next journal commit before
@@ -1300,7 +1299,7 @@ TODO no documentation exists, and the response I get is the above
         db.serverStatus();
 
    For more information about the output of this command, see the
-   ":doc:`server-status`" documentation.
+   ":doc:`/server-status`" documentation.
 
 .. describe:: resetError
 

@@ -4,7 +4,7 @@ Replica Status Reference
 
 The :command:`replSetGetStatus` provides an overview of the current
 status of a replica set. Issue the following command against the
-"``admin``" database, in the ``mongo`` shell.
+"``admin``" database, in the ``mongo`` shell: ::
 
      db.runCommand({ replSetGetStatus: 1 } )
 
@@ -52,6 +52,7 @@ Top Level Statuses
    7 	       Arbiter
    8 	       Down
    9 	       Rollback
+   ==========  ==========================================================
 
 .. describe:: members
 
@@ -96,7 +97,7 @@ TODO determine if this is from the perspective of the current server or reported
 
 .. describe:: lastHeartbeat
 
-   The ``lastHeartbeat`` value provides an :term:`ISODate`` formatted
+   The ``lastHeartbeat`` value provides an :term:`ISODate` formatted
    date of the last heartbeat received from this node. Compare this
    value to the value of the :status:`date` field to track replication
    latency. This value is only present for remote nodes.

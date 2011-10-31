@@ -176,10 +176,10 @@ Geolocation Operators
    within a shape on a coordinate system. This operator uses the
    following syntax: ::
 
-        db.collection.find( { location: { $within: { *shape* } } } );
+        db.collection.find( { location: { $within: { shape } } } );
 
-   Replace ``*shape*`` with a document that describes a shape. The
-   ``$within command supports three shapes. These shapes and the
+   Replace ``{ shape }`` a document that describes a shape. The
+   ``$within`` command supports three shapes. These shapes and the
    relevant expression follow:
 
    - Rectangles. Use the ``$box`` shape, consider the following
@@ -655,8 +655,8 @@ Projection Operators
         db.collection.find( { field: value }, { array: {$slice: count } } );
 
    Here, we select the document in ``collection`` identified by the
-   value ``value`` in ``field``, and return the number
-   of elements specified by ``count`` from the array stored in the
-   ``array`` field. If ``count`` has a value greater than the number
-   of elements in ``array`` then all elements of the array are
-   returned.
+   value ``value`` in ``field``, and return the number of elements
+   specified by ``count`` from the array stored in the ``array``
+   field. The entire document is returned. If ``count`` has a value
+   greater than the number of elements in ``array`` then all elements
+   of the array are returned.
