@@ -57,9 +57,8 @@ Administration and Deployment
 .. toctree::
    :maxdepth: 3
 
-   backups
-   backups-with-shard-and-replica-clusters
-   backups-import-export
+   administration/backups
+   administration/import-export
 
 Coming Soon:
 
@@ -84,7 +83,12 @@ Coming Soon:
 MongoDB Shell
 -------------
 
-Coming Soon!
+.. toctree::
+   :maxdepth: 3
+
+   mongo-shell
+
+(*Coming Soon!*)
 
 Developing MongoDB
 ------------------
@@ -107,14 +111,36 @@ Coming Soon:
 Reference
 ---------
 
+MongoDB Programs
+~~~~~~~~~~~~~~~~
+
 .. toctree::
    :maxdepth: 2
 
-   operators
-   commands
-   server-status
-   replica-status
-   glossary
+   utilities/mongo
+   utilities/mongodump
+   utilities/mongorestore
+   utilities/mongoimport
+   utilities/mongoexport
+   utilities/mongostat
+   utilities/mongotop
+   utilities/mongosniff
+   utilities/mongofiles
+   utilities/bsondump
+
+
+
+General Reference
+~~~~~~~~~~~~~~~~~
+
+.. toctree::
+   :maxdepth: 2
+
+   reference/operators
+   reference/commands
+   reference/server-status
+   reference/replica-status
+   reference/glossary
 
 .. the following documents are drafts of reference materials/indexes
    that need to be created but that aren't part of our initial
@@ -123,12 +149,11 @@ Reference
 .. toctree::
    :hidden:
 
-   javascript-methods
-   meta-query-operators
+   reference/javascript-methods
+   reference/meta-query-operators
 
 Coming Soon:
 
-- MongoDB Programs
 - Error Codes
 - Meta Query Operators
 - Javascript Methods (for shell)

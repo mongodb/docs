@@ -264,3 +264,5 @@ MongoDB Glossary
    geospatial
 
    configdb
+
+   balancer
