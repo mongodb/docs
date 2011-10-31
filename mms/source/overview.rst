@@ -18,7 +18,7 @@ How MMS works
 
 MMS is deployed by installing a lightweight monitoring agent in the
 server environment. A single agent can monitor an entire deployment of
-``Mongol`` and ``mongos`` instances. The agent pulls data about your
+``mongod`` and ``mongos`` instances. The agent pulls data about your
 environment that you provide from MMS and automatically discovers
 MongoDB nodes in your deployment using this "seed" information. The
 agent then regularly pushes data to MMS, which MMS uses to provide
