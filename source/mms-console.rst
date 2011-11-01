@@ -10,12 +10,12 @@ console.
 Host Statistics
 ---------------
 
-In the "Hosts" section, click on any hostname link to view the statics
-from that process.  The charts on this "Host Statistics" page are
-interactive, and provide tools for navigating and working with the MMS
-data. Click on the "info" buttons with an ``i`` in a circle to raise
-informational boxes, to explore the functionality of the MMS console
-and charts.
+In the "Hosts" section, click any hostname link to view the data
+collected from that process. The charts on this "Host Statistics" page
+are interactive, and provide tools for navigating and working with the
+MMS data. Click on the "info" buttons with an ``i`` in a circle to
+raise informational boxes, to explore the functionality of the MMS
+console and charts.
 
 .. _chart-controls:
 
@@ -185,10 +185,11 @@ User Management
 
 You can grant additional users access to your MMS account in the
 "Admins" section of the MMS console. To add users to MMS click on the
-pencil icon next to your account name at the top of this page. Then,
-in the "username" field, enter the email address of their account. Use
-`account registration page <https://mms.10gen.com/user/register/user>`_
-to allow your users to create MMS credentials.
+plus (e.g. "``+``") icon next to your account name at the top of this
+page. Then, in the "username" field, enter the email address of their
+account. Use (or have your users) create a corresponding account on the
+"`account registration page <https://mms.10gen.com/user/register/user>`_"
+to create the create MMS credentials.
 
 Remember that all users attached to your account will have full global
 access to your account. Grant others access with great care.

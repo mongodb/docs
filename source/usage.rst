@@ -108,14 +108,15 @@ about performance and database operations.
 This data can include sensitive information, including the content of
 database queries. Ensure that exposing this to MMS is consistent with
 your information security practices. Additionally, be aware that the
-profiler can consume resources which may adversely effect DB
+profiler can consume resources which may adversely affect DB
 performance. Consider the implications before enabling profiling.
 
 To allow MMS to collect profile data for a specific host, click the
-"Enable profile data transmission," button in the far right column of
-the host listing. It is the middle of the three icons. This raises a
-dialogue box that describes the implications of DB profiling and
-allows you to enable the transmission of the profiling data to MMS.
+"Enable profile data transmission," button, with a clock icon, in the
+far right column of the host listing. It is the middle of the three
+icons. This raises a dialogue box that describes the implications of
+DB profiling and allows you to enable the transmission of the
+profiling data to MMS.
 
 When you select "Enable Profile Info Transmission," the agent will
 begin sending profile data to MMS. All configuration changes made in
