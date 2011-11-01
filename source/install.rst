@@ -6,13 +6,36 @@ This document describes the installation and configuration of the
 MongoDB Monitoring Service (MMS). The guide also provides
 :ref:`troubleshooting <troubleshooting>` advice.
 
+
+Registering for MMS
+-------------------
+
+If you already have `jira account <http://jira.mongodb.org/>`_ you may
+sign in with your JIRA credentials. When you sign into MMS for the
+first time, you will be prompted to create a new "group" for your
+deployment.
+
+If you do not already have a JIRA account, register for an MMS account
+using the `MMS registration page <https://mms.10gen.com/user/register>`_.
+After completing the registration process, you will arrive at the "MMS
+Hosts," page.
+
+Because there are no MMS agents attached to your account, the first
+page you see in MMS will provide instructions for downloading the MMS
+agent. Click the "download agent" link to download an agent
+specifically configured for your account. You may proceed with the agent
+installation at this point.
+
+Installation
+------------
+
 .. _mms-requirements:
 
 Requirements
-------------
+~~~~~~~~~~~~
 
-This section outlines MMS's requirements and provides basic
-instructions for fulfilling them.
+This section outlines MMS's prerequisite requirements and provides
+basic instructions for fulfilling them.
 
 1. You must have Python 2.4 or greater.
 
@@ -68,44 +91,21 @@ instructions for fulfilling them.
 
         easy_install -U pymongo
 
-   For more information about installing PyMongo instillation, consider
-   `the PyMongo documentation <http://api.mongodb.org/python/2.0.1/installation.html>`_.
+   For more information concerning PyMongo installation, see the `the
+   PyMongo documentation <http://api.mongodb.org/python/2.0.1/installation.html>`_.
 
 Consider the ``README`` file distributed with the agent for more
-information.
+information. When all dependencies are successfully installed, you may
+proceed to installing the agent.
 
-When all dependencies are successfully installed, you may proceed with
-the installation.
-
-Installation
-------------
-
-Registering for MMS
-~~~~~~~~~~~~~~~~~~~
-
-If you already have `jira account <http://jira.mongodb.org/>`_ you may
-sign in with your JIRA credentials. When you sign into MMS for the
-first time, you will be prompted to create a new "group" for your
-deployment.
-
-If you do not already have a JIRA account, register for an MMS account
-using the `MMS registration page <https://mms.10gen.com/user/register>`_.
-After completing the registration process, you will arrive at the "MMS
-Hosts," page.
-
-Because there are no MMS agents attached to your account, you will at
-first see instructions for download the MMS agent. Click the "download
-agent" link to download an agent specifically configured for your
-account.
-
-Installing the MMS Agent
-~~~~~~~~~~~~~~~~~~~~~~~~
+Install the MMS Agent
+~~~~~~~~~~~~~~~~~~~~~
 
 If you have not downloaded the MMS agent already, click the "download
 agent" link immediately after you sign into MMS
 (e.g. <http://mms.10gen.com> to download an agent specifically
 configured for your account. See the ":doc:`deployment`" document for
-more information about the agent itself.
+more information regarding the agent itself.
 
 You can run the agent on any system that can connect to the MongoDB
 instances you want to monitor. As long as it can connect to each
@@ -141,9 +141,8 @@ command in your MongoDB control script or use your system's
 ``/etc/rc.local`` equivalent; however, avoid running the agent as
 root.
 
-See the :doc:`deployment <deployment>` documentation for more
-information on strategies for deploying the agent and your monitoring
-architecture.
+See the ":doc:`deployment`" document for more information on
+strategies for deploying the agent and your monitoring architecture.
 
 Once the agent is running, you can return to the web interface to
 begin configuring MMS for your deployment.
