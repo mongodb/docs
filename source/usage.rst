@@ -5,8 +5,8 @@ Using the MMS Console
 This document provides a high level overview of the MMS web console
 and describes the basic functionality. The best way to learn about
 MMS's capabilities is to browse the interface with live data. For
-additional documentation of the MMS console see the :doc:`advanced
-usage document </advanced-usage>`. If you haven't done so already,
+additional documentation of the MMS console see the
+":doc:`/mms-console`" document . If you haven't done so already,
 please :doc:`install the MMS agent </install>` before proceeding.
 
 Hosts
@@ -227,5 +227,5 @@ Next Steps
 The MMS web console contains a great deal of functionality beyond the
 scope of this overview. Continue to explore the functionality
 addressed above in your own system, with your own data. The
-:doc:`Advanced MMS Console Usage </advanced-usage>` provides a deeper
-exploration of key usage patterns for the MMS console.
+"":doc:`/mms-console`" document provides a deeper exploration of key
+usage patterns for the MMS console.

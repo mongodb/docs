@@ -1,10 +1,10 @@
-Advanced MMS Console Use
-========================
+MMS Console Overview
+====================
 
 The MMS web console provides an extensive set of features for
 analyzing the statistics collected by the MMS agent. For a basic
 overview of the console, see the :doc:`usage </usage>`
-documentation. This document provides a more in-depth guide to the MMS
+documentation. This document provides a more in-depth guide of the MMS
 console.
 
 Host Statistics
