@@ -6,7 +6,6 @@ This document describes the installation and configuration of the
 MongoDB Monitoring Service (MMS). The guide also provides
 :ref:`troubleshooting <troubleshooting>` advice.
 
-
 Registering for MMS
 -------------------
 
@@ -214,11 +213,12 @@ Once you add these seed node, the MMS agent will fetch this
 information *from* the MMS servers. This, when configuring the
 monitoring environment, you may need to wait for several update cycles
 (e.g. 5-10 minutes) to complete the auto-discovery process and host
-identification.
+identification. During this period, you may see duplicate hosts in the
+MMS web console. This is normal.
 
-The agent reports to MMS every minute, so, again, there may be a delay
-of several minutes before data and host information propagate to the
-MMS console.
+The agent fetches configuration and reports to MMS every minute, so,
+again, there may be a delay of several minutes before data and host
+information propagate to the MMS console.
 
 You can find immediate evidence of a working installation in the agent
 output or logs. For more information, check the MMS console's "Hosts,"
