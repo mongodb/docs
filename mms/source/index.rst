@@ -18,6 +18,6 @@ ticket <https://jira.mongodb.org/secure/CreateIssue!default.jspa?pid=10181>`_.
    overview
    install
    usage
-   advanced-usage
+   mms-console
    deployment
    reference
