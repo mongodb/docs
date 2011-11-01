@@ -95,10 +95,17 @@ Hosts," page.
 
 Because there are no MMS agents attached to your account, you will at
 first see instructions for download the MMS agent. Click the "download
-agent" link to get an agent specifically configured for your account.
+agent" link to download an agent specifically configured for your
+account.
 
 Installing the MMS Agent
 ~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have not downloaded the MMS agent already, click the "download
+agent" link immediately after you sign into MMS
+(e.g. <http://mms.10gen.com> to download an agent specifically
+configured for your account. See the ":doc:`deployment`" document for
+more information about the agent itself.
 
 You can run the agent on any system that can connect to the MongoDB
 instances you want to monitor. As long as it can connect to each
