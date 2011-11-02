@@ -35,7 +35,6 @@ MMS can monitor the process types:
 - ``mongos``
 - MMS Agents
 
-
 Event Types
 -----------
 
@@ -63,6 +62,9 @@ MMS Chart Types
 
 There are 17 possible charts provided by MMS. They are:
 
+Status Page
+~~~~~~~~~~~
+
 - cpu time
 - db storage
 - page faults
@@ -80,6 +82,19 @@ There are 17 possible charts provided by MMS. They are:
 - asserts
 - opcounters-repl
 - opcounters
+
+DB Stats Page
+~~~~~~~~~~~~~
+
+- collections
+- objects
+- average object size
+- data size
+- storage size
+- num extents
+- indexes
+- index size
+- file size
 
 Database Commands Used by Agent
 -------------------------------
