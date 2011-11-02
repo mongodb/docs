@@ -186,10 +186,14 @@ User Management
 You can grant additional users access to your MMS account in the
 "Admins" section of the MMS console. To add users to MMS click on the
 plus (e.g. "``+``") icon next to your account name at the top of this
-page. Then, in the "username" field, enter the email address of their
-account. Use (or have your users) create a corresponding account on the
-"`account registration page <https://mms.10gen.com/user/register/user>`_"
-to create the create MMS credentials.
+page.
+
+To add additional users who have existing accounts created in `Jira
+<http://jira.mongodb.org/>`_, enter their username in the dialogue
+that appears. To add additional users who created accounts with the
+"`account registration page <https://mms.10gen.com/user/register/user>`_",
+enter their email addresses as their username. If the account
+specified is found, these users now have access to MMS account.
 
 Remember that all users attached to your account will have full global
-access to your account. Grant others access with great care.
+access to your MMS account. Grant others access with great care.
