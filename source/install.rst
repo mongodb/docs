@@ -270,8 +270,13 @@ Hardware Monitoring with Munin-Node
 
 MMS provides support for collecting and charting hardware statistics
 collected with `Munin <http://munin-monitoring.org/>`_. You must
-install the ``munin-node`` package on the host systems that you wish
-to monitor.
+install the ``munin-node`` package on each the host system that you
+wish to monitor.
+
+.. note::
+
+   ``munin-node``, and hardware monitoring is only available for
+   MongoDB instances running on Linux hosts.
 
 On Debian and Ubuntu systems, use the "``sudo apt-get install
 munin-node``" command. RedHat, CentOS and Fedora users should issue
@@ -280,23 +285,27 @@ the "``sudo yum install munin-node``" command. Ensure that
 
 - is running.
 
-- will start following the next system reboot.
+- will start following the next system reboot. This is the default
+  behavior on most Debian-based systems. RedHat and related
+  distributions should use the "``chckconfig``" command, to configure
+  this behavior (i.e. "``chckconfig munin-node on``")
 
-- running on the monitored system is accessible from the system
-  running the agent. Use the following procedure to confirm: ::
+- is accessible from the system running the agent. Use the following
+  procedure to test access: ::
 
        telnet [HOSTNAME] 4949
        fetch iostat
        fetch iostat_ios
        fetch cpu
 
-  Replace ``[HOSTNAME]`` with the hostname of the monitored system. If
-  these commands return data, then you know ``munin-node`` is
-  running.
+  Replace ``[HOSTNAME]`` with the hostname of the monitored
+  system. Run these commands from the system where the MMS Agent is
+  running. If these "``fetch``" commands return data, then
+  ``munin-node`` is running and accessible by MMS agent.
 
 Check the log files for ``munin-node`` to ensure that there are no
-errors with Munin. These logs are located in ``/var/log/`` directory
-on the monitored system.
+errors with Munin. These logs are located in the ``/var/log/``
+directory on the monitored system.
 
 Next Steps with MMS
 ~~~~~~~~~~~~~~~~~~~
