@@ -46,7 +46,8 @@ TODO understand what this is and why this is the post.
 .. option::  --objcheck
 
    Modifies the behavior to *only* display invalid BSON objects and
-   nothing else.
+   nothing else. Use this option for troubleshooting driver
+   development.
 
 .. option:: <port>
 
@@ -58,3 +59,13 @@ TODO understand what this is and why this is the post.
 Usage Examples
 --------------
 
+Use the following command to connect to a ``mongod`` or ``mongos``
+running on port 27017 *and* 27018 on the localhost interface: ::
+
+     mongosniff --source NET lo 27017 27018
+
+Use the following command to only log invalid BSON objects for the
+``mongod`` or ``mongos`` running on the localhost interface and port
+27018, for driver development and troubleshooting: ::
+
+     mongosniff --objcheck --source NET lo 27018

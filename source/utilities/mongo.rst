@@ -63,15 +63,15 @@ Options
 
 .. option:: --username <USERNAME>, -u <USERNAME>
 
-   Specify a username to authenticate to the MongoDB instance. Use in
-   conjunction with the :option:`mongo --password` option to supply a
-   password.
+   Specify a username to authenticate to the MongoDB instance, if your
+   database requires authentication. Use in conjunction with the
+   :option:`mongo --password` option to supply a password.
 
-.. option:: --password <PASSWORD>, -p <PASSWORD>
+.. option:: --password <password>, -p <password>
 
-   Specify a password to authenticate to the MongoDB instance. Use in
-   conjunction with the :option:`mongo --username` option to supply a
-   username.
+   Specify a password to authenticate to the MongoDB instance, if your
+   database requires authentication. Use in conjunction with the
+   :option:`mongo --username` option to supply a username.
 
 .. option:: --help,  -h
 
@@ -92,12 +92,31 @@ Options
    instance using IPv6 connectivity. IPv6 support is disabled by
    default in the ``mongo`` shell.
 
+.. option:: <db address>
+
+   Specify the "database address" of the database to connect to. For
+   example: ::
+
+        mongo admin
+
+   The above command will connect the ``mongo`` shell to the
+   administrative database on the local machine. You may specify a
+   remote database instance, with the resolvable hostname or IP
+   address. Separate the database name from the hostname using a
+   "``/``" character. See the following examples: ::
+
+         mongo mongodb1.example.net
+         mongo mongodb1/admin
+         mongo 10.8.8.10/test
+
 .. option:: <file.js>
 
    Optionally, specify a JavaScript file as the final argument to the
    shell. The shell will run the file and then exit. Use the
    :option:`mongo --shell` to return to a shell after the file
    finishes running.
+
+   This should be the last address
 
 Usage Examples
 --------------
