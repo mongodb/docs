@@ -266,3 +266,5 @@ MongoDB Glossary
    configdb
 
    balancer
+
+   fsync

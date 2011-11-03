@@ -59,6 +59,7 @@ Administration and Deployment
 
    administration/backups
    administration/import-export
+   administration/monitoring
 
 Coming Soon:
 
@@ -117,6 +118,8 @@ MongoDB Programs
 .. toctree::
    :maxdepth: 2
 
+   reference/mongod
+   reference/mongos
    utilities/mongo
    utilities/mongodump
    utilities/mongorestore
@@ -143,12 +146,13 @@ General Reference
    reference/glossary
 
 .. the following documents are drafts of reference materials/indexes
-   that need to be created but that aren't part of our initial
-   reference material pass.
+   that need to be created but that haven't been yet.
 
 .. toctree::
    :hidden:
 
+   reference/database-statistics
+   reference/collection-statistics
    reference/javascript-methods
    reference/meta-query-operators
 
