@@ -77,10 +77,12 @@ provides the following tabs:
   to delete a database from your instance using this interface.
 
   The DB Stats tab will only appear approximately 30 minutes after you
-  add the host to MMS. If the "DB stats" operation impacts the
-  performance of your database, as is possible when installations have
-  a large number of databases and collections, you may disable DB
-  Stats collection from the settings interface.
+  add the host to MMS. DB Stats information updates every 5 minutes,
+  or less frequently to reduce the impact on the database. If the "DB
+  stats" operation impacts the performance of your database, as is
+  possible when installations have a large number of databases and
+  collections, you may disable DB Stats collection from the settings
+  interface.
 
 - "**Last Ping**," which displays the raw JSON document sent by the
   agent to MMS.
