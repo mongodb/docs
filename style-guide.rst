@@ -13,7 +13,7 @@ documentation.
   without needing to read the content (for better search and more
   efficient question answering.)
 
-- Titles (e.g. "Using foo" vs. "How to Foo")
+- Titles (e.g. "Using foo" vs. "How to Foo") [open question]
 
 - Some basic overview on how to structure documents and use headlines.
 
@@ -21,13 +21,31 @@ documentation.
   double-spaced terminal punctuation (no,) logical or American style
   for the interaction between enclosing punctuation and terminal
   punctuation (American with an exception,) title case for headings
-  (yes,) and so forth.
+  (yes.)
 
-- Tense (e.g "this will do foo" vs. "this does foo")
+- Verb tense/mood, notes:
 
-- Contractions or not? (I tend to vote against contractions,)
+  - Use the second person. "If you need to back up your database,
+    start by locking it first." (This should probably be "Before
+    backing up a database, lock it first," which implies second
+    person.)
 
-- RST specific styles/habits: e.g. (h1: =; h2: -; h3: ~; h4: +; h5: ^),
+  - Avoid the first person. "We will begin the backup process by
+    locking the database."
+
+  - When indicated, use the imperative mood. "Backup your databases
+    often." "To prevent data loss, back up your databases."
+
+  - The future perfect is also useful in some cases. "Creating disk
+    snapshots without jingling of an unlocked database, will lead to
+    an inconsistent state."
+
+- In general avoid helper verbs (e.g "this does foo" vs. "this will do
+  foo") to increase clarity.
+
+- Contractions are acceptable, to increase readability and flow. p
+
+- RST specific styles/habits: e.g. (h1: =; h2: -; h3: ~; h4: ^; h5: `),
   (hr: ------; ul-li: -;) link/ref formats; etc.
 
 - Style around UL's. Issues to consider: Item capitalization and
@@ -51,7 +69,7 @@ documentation.
     hosts page")
 
 - Spaces between nesting parentheticals (and elements) in javascript
-  examples. (e.g. "``{ [ a, a, a ] }``" "``{[a,a,a]}``")
+  examples. (e.g. "``{ [ a, a, a ] }``" over "``{[a,a,a]}``")
 
 - One word:
 
@@ -60,7 +78,8 @@ documentation.
 
 - Examples
 
-  - Example urls and domain names should be example.com/example.net/example.com.
+  - Example urls and domain names should be
+    example.com/example.net/example.com.
 
     The example domains are reserved in the DNS spec for this purpose
     and people will notice (and complain about it.)
@@ -75,6 +94,11 @@ documentation.
   - status
   - (error code?)
 
-- What to do with wiki pages like `EC2 Backups <http://www.mongodb.org/pages/viewpage.action?pageId=19562846>`_.
-  They seem ideal for the cookbook or the wiki, but less than ideal
-  for the manual.
+- What to do with wiki pages like `EC2 Backups
+  <http://www.mongodb.org/pages/viewpage.action?pageId=19562846>`_. They
+  seem more ideal for the cookbook or the wiki but less than ideal for
+  the manual.
+
+- Shard clusters
+
+- replica sets
