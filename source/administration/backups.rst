@@ -8,7 +8,7 @@ use with MongoDB. Use the :ref:`backup overview <backup-overview>` and
 appropriate strategy for backing up your MongoDB environment. Then,
 use the examples from the :ref:`block level backup methods
 <block-level-backup>` section and possibly the ":ref:`backups using
-mongodump <backups-from-dumps>`" documentation to implement the backup
+mongodump <database-dumps>`" documentation to implement the backup
 solution that is best suited to your deployment's needs. Clustered
 environments, either with shards or replicas, require special
 considerations, see ":ref:`backup considerations for shard clusters
@@ -30,7 +30,7 @@ systems please skip ahead to :ref:`backup considerations <backup-considerations>
 
 With MongoDB, the best way to are two major approaches to backups:
 using system-level tools, like disk image snapshots, and using various
-capacities present in the :ref:`mongodump tool <backups-from-dumps>`
+capacities present in the :ref:`mongodump tool <database-dumps>`
 to provide backup functionality. The underlying goal of these
 strategies is to produce a full copy of the data that can be used to
 bring up a new or replacement database instance.
@@ -39,7 +39,7 @@ The methods described in this document operate by copying the data
 file on the disk level, while MongoDB tools dump or export copies of
 the data that can be imported into the new node. If your system does
 not provide a capacity for this kind of backup, see the section on
-:ref:`using database dumps for backups <backups-from-dumps>`" for more
+:ref:`using database dumps for backups <database-dumps>`" for more
 information.
 
 One of the leading challenges for producing reliable backups from
@@ -348,7 +348,7 @@ tool. As a result you may:
   If you choose this option see the section that outlines the
   ":ref:`LVM backup operation <lvm-backup-operation>`"
 
-.. _backups-from-dumps:
+.. _database-dumps:
 
 Binary Import/Export Formats
 ----------------------------
@@ -523,7 +523,7 @@ If you there is no way to conduct a backup reasonably using an export,
 then you'll need to either snapshot the database using the
 :ref:`snapshot backup procedure <block-level-backup>` or create a
 binary dump of each database instance using :ref:`binary export
-systems <database-dump-import-export>`.
+systems <database-dumps>`.
 
 These backups must not only be captured when the database is in a
 consistent state as described in the aforementioned procedures, but

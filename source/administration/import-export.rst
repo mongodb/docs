@@ -3,23 +3,24 @@ Importing and Exporting Data From MongoDB
 =========================================
 
 Full :doc:`database instance backups </administration/backups>` are
-useful for disaster recovery protection; however, there are situations
-where other backup approaches are indicated. Systems without
-convenient access to block level snapshot tools, and in situations
-where it's necessary to export or backup a portion of data are not
-good candidates block-level backups systems.
+useful for disaster recovery protection and routine database backup
+operation; however, in some cases additional import and export
+functionality is required.
 
-This document provides an overview of the import, export, and
-"database dump" tools available to MongoDB administrators. These
-methods are also useful when you want to backup or export a portion of
-your database without restoring all of the database. Because they
-operate by interacting with a running ``mongod`` instance, they can
-impact the performance of your running database.
+This document provides an overview of the import and export tools
+available to MongoDB administrators. These utilities are useful when
+you want to backup or export a portion of your database without
+capturing the state of the entire. Because they operate by interacting
+with a running ``mongod`` instance, they can impact the performance of
+your running database.
 
-TODO warning about import/export because they don't preserve types
+.. note::
 
-Using Database Imports and Exports to Backups
----------------------------------------------
+   ``mongoimport`` and ``mongoexport`` do not reliably preserve
+   data types in some situations. Use with care.
+
+Using Database Imports and Exports for Backups
+----------------------------------------------
 
 For resilient and non-disruptive backups in most cases you'll want to
 use some sort of file system of block-level disk snapshot function,
@@ -73,7 +74,7 @@ Database Export with mongoexport
 With the ``mongoexport`` utility you can create a backup file. In the
 most simple invocation, the command takes the following form: ::
 
-     mongoexport --collection collection --out collection.jsohehn
+     mongoexport --collection collection --out collection.json
 
 This will export all documents in the collection named
 "``collection``" into the file "``collection.json``". Without the
@@ -111,7 +112,7 @@ The "``--host``" and "``--port``" options allow you to specify a
 non-local host to connect to capture the export. Consider the
 following example: ::
 
-     mongoexport --host mongodb1.example.net --port 3017 --username user --password pass --collection contacts -file mdb1-examplenet.json
+     mongoexport --host mongodb1.example.net --port 37017 --username user --password pass --collection contacts --file mdb1-examplenet.json
 
 On any ``mongoexport`` command you may, as above specify username and
 password credentials as above.
@@ -149,15 +150,13 @@ are. For CSV and TSV imports, this option provides the desired
 functionality in most cases: it avoids inserting blank fields in
 MongoDB documents.
 
-.. _database-dump-import-export:
+Further Reading
+---------------
 
-
-Additional Backup Documentation
--------------------------------
-
-See the ":doc:`/administration/backups`" document for more in depth information about
-backing up MongoDB instances. Additionally, consider the following
-documents regarding specific commands addressed in this document:
+See the ":doc:`/administration/backups`" document for more in depth
+information about backing up MongoDB instances. Additionally, consider
+the following documents regarding specific commands addressed in this
+document:
 
 - :doc:`/utilities/mongoexport`
 - :doc:`/utilities/mongorestore`

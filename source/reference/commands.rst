@@ -364,7 +364,7 @@ Replication
    .. slave-ok, admin-only
 
    See the ":doc:`/replication`" document for more information about
-   replication, and the ":doc:`/replica-status`" document for more
+   replication, and the ":doc:`/reference/replica-status`" document for more
    information on the output of this command .
 
 .. describe:: replSetInitiate
@@ -900,7 +900,7 @@ Administration
       connection on localhost, or the connection must be
       authenticated.
 
-   For :doc:`/replica set <replication>` users, if the current node is
+   For :doc:`replica set </replication>` users, if the current node is
    primary and no other members of the set are less than 10 seconds
    behind the node then the server will not shut down without a
    "force" option. See the following example: ::
@@ -1299,7 +1299,7 @@ TODO no documentation exists, and the response I get is the above
         db.serverStatus();
 
    For more information about the output of this command, see the
-   ":doc:`/server-status`" documentation.
+   ":doc:`/reference/server-status`" documentation.
 
 .. describe:: resetError
 
