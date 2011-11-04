@@ -5,14 +5,18 @@ mongotop Utility Manual
 Synopsis
 --------
 
-The ``mongotop`` utility provides an overview
+The ``mongotop`` utility provides a method to track the amount of time
+spent on read and write activity for a MongoDB instance. ``mongotop``
+provides statistics on the per-collection level. In default operation,
+mongotop returns values every second.
 
 .. seealso::
 
    For more information about monitoring MongoDB, see
    :doc:`/administration/monitoring`.
 
-   For more background on various other MongoDB status outputs see:
+   For additional background on various other MongoDB status outputs
+   see:
 
    - :doc:`/reference/server-status`
    - :doc:`/reference/replica-status`
@@ -21,6 +25,8 @@ The ``mongotop`` utility provides an overview
 
    For an additional utility that provides MongoDB metrics
    see ":doc:`mongostat </utilities/mongostat>`."
+
+.. _mongotop-options:
 
 Options
 -------
@@ -34,8 +40,8 @@ Options
 .. option:: --verbose, -v
 
    Increases the amount of internal reporting returned on the command
-   line. Increase the verbosity with the ``-v`` form by including
-   the option multiple times, (e.g. ``-vvvvv``.)
+   line. Increase the verbosity with the ``-v`` form by including the
+   option multiple times, (e.g. ``-vvvvv``.)
 
 .. option:: --version
 
@@ -82,20 +88,57 @@ TODO sort out ( <set name>/s1,s2 for sets)
    ``mongotop`` waits in between calls. By default ``mongotop``
    returns data every second.
 
+.. _mongotop-fields:
+
 Fields
 ------
 
+All time values are provided in milliseconds (ms.)
+
 .. describe:: ns
+
+   The database namespace, and includes the database name and
+   collection. Only namespaces with activity are reported. If you
+   don't see a collection, it has received no activity. You can issue
+   a simple operation in the :command:`mongo` shell to generate
+   activity so that an specific namespace appears on the page.
+
+TODO factcheck
 
 .. describe:: total
 
+   Provides the total amount of time that this ``mongod`` spent
+   operating on this namespace.
+
 .. describe:: read
+
+   Provides the amount of time that this ``mongod`` spent performing
+   read operations on this namespace.
 
 .. describe:: write
 
+   Provides the amount of time that this ``mongod`` spent performing
+   write operations on this namespace.
+
 .. describe:: [timestamp]
 
-Usage Examples
---------------
+   Provides a time stamp for the returned data.
 
-TODO import basic assumptions
+Usage
+-----
+
+By default ``mongotop`` connects to the MongoDB instance ruining on
+the localhost port 27017; however, you can optionally connect
+``mongotop`` to connect to remote ``mongod`` instances. See the
+:ref:`mongotop options <mongotop-options>` for more information.
+
+To force ``mongotop`` to return less frequently specify a number, in
+seconds at the end of the command. In this example, ``mongotop`` will
+return every 15 seconds.
+
+     mongotop 15
+
+Use the following command to return a ``mongotop`` report every 5
+minutes: ::
+
+     mongotop 300

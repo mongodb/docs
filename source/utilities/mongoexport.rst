@@ -69,7 +69,7 @@ Options
 .. option:: --password [password]
 
    Specifies a password to authenticate to the MongoDB instance. Use
-   in conjunction with the :option:`mongorestore --username` option to
+   in conjunction with the :option:`mongoexport --username` option to
    supply a username.
 
 .. option:: --dbpath [path]

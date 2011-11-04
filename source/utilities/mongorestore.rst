@@ -112,12 +112,12 @@ TODO help section says "(some commands)" limitations otherwise unclear.
    Forces ``mongorestore`` to validate every object before inserting
    it in the target database.
 
-.. option:: --filter '[JSON]'
+.. option:: --filter '<JSON>'
 
    Limits the documents that ``mongorestore`` imports to only those
-   documents that match the JSON document specified as  `'[JSON]'`. Be
-   sure to include the document in single quotes to avoid a poor
-   interaction with your shell.
+   documents that match the JSON document specified as
+   ``'<JSON>'``. Be sure to include the document in single quotes to
+   avoid a poor interaction with your shell.
 
 .. option:: --drop
 
