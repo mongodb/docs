@@ -283,15 +283,19 @@ munin-node``" command. RedHat, CentOS and Fedora users should issue
 the "``sudo yum install munin-node``" command. Ensure that
 ``munin-node``:
 
-- is running.
+- is running. Use the command, "``ps -ef | grep "munin"``" to see. If
+  the process is not running, issue the command
+  "``/etc/init.d/munin-node start``".
 
 - will start following the next system reboot. This is the default
   behavior on most Debian-based systems. RedHat and related
   distributions should use the "``chckconfig``" command, to configure
   this behavior (i.e. "``chckconfig munin-node on``")
 
-- is accessible from the system running the agent. Use the following
-  procedure to test access: ::
+- is accessible from the system running the agent. ``munin-node`` uses
+  port 4949, which needs to be open on the monitored system, so the
+  agent can access this data source. Use the following procedure to
+  test access: ::
 
        telnet [HOSTNAME] 4949
        fetch iostat
@@ -303,9 +307,14 @@ the "``sudo yum install munin-node``" command. Ensure that
   running. If these "``fetch``" commands return data, then
   ``munin-node`` is running and accessible by MMS agent.
 
-Check the log files for ``munin-node`` to ensure that there are no
-errors with Munin. These logs are located in the ``/var/log/``
-directory on the monitored system.
+If ``munin-node`` is running but inaccessible, make sure that access
+is granted for the system running the MMS agent and that no firewalls
+block the port between ``munin-node`` and the agent. The munin-node
+configuration file is located at "``/etc/munin-node/munin-node.conf``"
+or "``/etc/munin-node.conf``". If you encounter problems, check the
+log files for ``munin-node`` to ensure that there are no errors with
+Munin. These logs are located in the ``/var/log/`` directory on the
+monitored system.
 
 Next Steps with MMS
 ~~~~~~~~~~~~~~~~~~~
