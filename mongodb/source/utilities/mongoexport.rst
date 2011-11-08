@@ -48,6 +48,17 @@ Options
    Optionally, specify a port number to connect a MongboDB instance
    running on a port other than 27017.
 
+   To connect to a replica set, use the ``--host`` argument with a
+   setname, followed by a slash and a comma separated list of host and
+   port names. The ``mongo`` utility will, given the seed of at least
+   one connected set member, connect to primary node of that set. this
+   option would resemble: ::
+
+        --host repl0 mongo0.example.net,mongo0.example.net,27018,mongo1.example.net,mongo2.example.net
+
+   You can always connect directly to a single MongoDB instance by
+   specifying the host and port number directly.
+
 .. option:: --port <port>
 
    Specifies the port number, if the MongoDB instance is not running on
