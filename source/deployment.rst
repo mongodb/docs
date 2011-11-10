@@ -21,15 +21,42 @@ improvements. See :doc:`install` for more information.
 Monitoring Architecture
 -----------------------
 
-Only one agent will report to MMS at a time, but you can run multiple
-instances of the agent to provide redundancy. Secondary agents act as
-host standbys If you stop the agent process, the agent will be removed
-from the "Agents" tab within a day. If an agent is off the last ping
-times for that agent do not update. To install a second or third
-agent, Simply repeat the installation process in the
-:doc:`installation guide </install>` for each new agent. See
-instructions for automating the agent installation in the next
-section.
+Only one agent per-group or environment will report to MMS at a time,
+but you can run multiple instances of the agent to provide
+redundancy. Secondary agents act as host standbys If you stop the
+agent process, the agent will be removed from the "Agents" tab within
+a day. If an agent is offline the last ping times for that agent do
+not update. To install a second or third agent, Simply repeat the
+installation process in the :doc:`installation guide </install>` for
+each new agent. See instructions for automating the agent installation
+in the next section.
+
+.. _mms-groups:
+
+Multiple Environments
+---------------------
+
+If you have multiple MongoDB systems in distinct environments and
+cannot monitor both system with a single agent, you will need to add a
+new group. Having a second group makes it possible to run two agents,
+because the API and secret keys are unique to the group.
+
+To add a new group click on the "Admins" page, and click on the "Add
+New Group" link on the upper right hand side of the page. Then,
+specify the new group name and select the "Add New Group" button on
+the following next page to create the new group. Once created, only
+the current user account be added as a member. To add more people,
+click on the "Admins" page in your new group.
+
+You may also use a second group and agent to monitor a different set
+of MongoDB instances in the same environment if you want to segregate
+the hosts within the MMS console. A user can only view data from the
+hosts monitored in a single group at once.
+
+After adding a second group, MMS interface will have a drop down list
+that will allow you to change groups. Selecting a new group will
+refresh the current page with the data available from the servers in
+this group.
 
 Automated Agent Installation
 ----------------------------

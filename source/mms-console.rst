@@ -195,5 +195,11 @@ that appears. To add additional users who created accounts with the
 enter their email addresses as their username. If the account
 specified is found, these users now have access to MMS account.
 
+If you are using :ref:`MMS groups <mms-groups>`, you can create
+secondary groups to segregate monitored servers and users within a
+group.
+
 Remember that all users attached to your account will have full global
-access to your MMS account. Grant others access with great care.
+access to the MMS group to which they belong. All users can create
+additional groups, and add additional users to their group. Grant
+others access with great care.
