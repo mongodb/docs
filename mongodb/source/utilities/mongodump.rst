@@ -51,8 +51,6 @@ Options
    You can always connect directly to a single MongoDB instance by
    specifying the host and port number directly.
 
-TODO determine how hostname/setname interacts (<set name>/s1,s2 for sets)
-
 .. option:: --port <port>
 
    Specifies the port number, if the MongoDB instance is not running on
