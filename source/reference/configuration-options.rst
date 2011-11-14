@@ -5,19 +5,22 @@ MongoDB Configuration File Options
 Synopsis
 --------
 
-The behavior and setting of a ``mongod`` instance is controlled
-either directly from :doc:`command line arguments </reference/mongod>`
-or using a configuration file. While both options are functionally
-equivalent and all settings are similar, The configuration file method
-is preferable, and if you installed from a package and starting
-MongoDB using your system's :term:`init script`, you're already using
-a configuration file.
+The behavior and setting of a ``mongod`` or ``mongos`` instance is
+controlled either directly from :doc:`mongod's command line arguments
+</reference/mongod>` or using a configuration file. (See :doc:`mongos'
+command line arguments </reference/mongos>`.) While both methods are
+functionally equivalent and all settings are similar, The
+configuration file method is preferable, and if you installed from a
+package and starting MongoDB using your system's :term:`init script`,
+you're already using a configuration file.
 
-To start :option:`mongod` using a config file, use one of the
-following forms: ::
+To start :option:`mongod` or :option:`mongos` using a config file, use
+one of the following forms: ::
 
      mongod --config /etc/mongodb.conf
      mongod -f /etc/mongodb.conf
+     mongos --config /srv/mongodb/mongos.conf
+     mongos -f /srv/mongodb/mongos.conf
 
 Declare All settings in this file using the following form: ::
 
@@ -97,8 +100,17 @@ TODO factcheck maxcons
    Specify a path for the log file that will hold all diagnostic
    logging information.
 
-   Unless specified, ``mongod`` will output all log information to
-   the standard output.
+   Unless specified, ``mongod`` will output all log information to the
+   standard output. Unless :option:`logapend` is set to ``true``, the
+   logfile will be overwritten when the process restarts.
+
+.. option:: logapend
+
+   *Default:* false
+
+   Set to ``true`` to ensure that new entries will be added to the end
+   of the logfile rather than overwriting the content of the log when
+   the process restarts.
 
 .. option:: pidfilepath
 
@@ -107,6 +119,8 @@ TODO factcheck maxcons
    Specify a file location to hold the ":term:`PID`" or process ID of the
    ``mongod`` process. Useful for tracking the ``mongod`` process in
    combination with the :setting:`fork` setting.
+
+   If this option is not set, no PID file is created.
 
 .. option:: keyFile
 
@@ -403,11 +417,14 @@ TODO how big does small file specify
    *Default:* false
 
    When set to ``true`` this option upgrades the on-disk data format
-   of the files specified by the :option:`--dbpath` to the latest
+   of the files specified by the :setting:`dbpath` to the latest
    version, if needed.
 
-   This option only affects the operation of ``mongod`` if the
+   This option only affects the operation of :option:`mongod` if the
    data files are in an old format.
+
+   When specified for a :option:`mongos` instance, this option updates
+   the meta data format used by the :term:`configdb`.
 
 Replica Set Options
 ```````````````````
@@ -531,3 +548,39 @@ Sharding Cluster Options
 
    Disables a "paranoid mode" for data writes for the
    :command:`moveChunk`.
+
+.. option:: configdb
+
+   *Default:* None.
+
+   *Format:* <config1>,<config2><:port>,<config3>
+
+   Set this option to specify a configuration database
+   (i.e. :term:`configdb`) for the :term:`shard cluster`. You may
+   specify either 1 configuration server or 3 configuration servers,
+   in a comma separated list.
+
+   This setting only affects :option:`mongos` processes.
+
+.. option:: test
+
+   *Default:* false
+
+   Only runs unit tests and does not start a ``mongos`` instance.
+
+   This setting only affects :option:`mongos` processes and is for
+   internal testing use only.
+
+.. option:: chunkSize
+
+   *Default:* 64
+
+   The value of this option determines the size of each :term:`chunk`
+   of data distributed around the :term:`shard cluster`. The default
+   value is 64 megabytes, which is accepted as the ideal size for
+   chunks for most deployments: larger chunk size can lead to uneven
+   data distribution, smaller chunk size often leads to inefficient
+   movement of chunks between nodes. However, in some circumstances
+   it may be neccessary to set a different chunk size.
+
+   This setting only affects :option:`mongos` processes.

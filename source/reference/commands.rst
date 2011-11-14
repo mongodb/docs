@@ -2,8 +2,7 @@
 MongoDB Command Reference
 =========================
 
-.. default-domain: mongodb
-.. highlight_language: javascript
+.. default-domain:: mongodb
 .. highlight:: javascript
 
 This document contains a reference to all :term:`database

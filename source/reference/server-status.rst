@@ -49,6 +49,8 @@ TODO what is course-grained timing in this context
    The ``localTime`` value is the current time, according to the
    server, in UTC specified in an ISODate format.
 
+.. _globallock:
+
 globalLock
 ----------
 
@@ -165,6 +167,8 @@ globalLock.activeClients
 
    The value of ``globalLock.activeClients.writers`` contains a count
    of active client connections performing write operations.
+
+.. _memory-status:
 
 mem
 ---

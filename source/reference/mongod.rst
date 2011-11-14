@@ -1,6 +1,6 @@
-====================
-mongod Daemon Manual
-====================
+=============
+mongod Manual
+=============
 
 Synopsis
 --------
@@ -42,7 +42,7 @@ Options
 
    Increases the amount of internal reporting returned on standard
    output or in the log file specified by :option:`--logpath`. Use the
-   the ``-v`` form to control the level of verbosity by including the
+   ``-v`` form to control the level of verbosity by including the
    option multiple times, (e.g. ``-vvvvv``.)
 
 .. option:: --quiet
@@ -89,13 +89,22 @@ TODO understand what this does.
    logging information.
 
    Unless specified, ``mongod`` will output all log information to
-   the standard output.
+   the standard output. Unless :option:`--logapend` is specified, the
+   logfile will be overwritten when the process restarts.
+
+.. option:: --logapend
+
+   Specify to ensure that new entries will be added to the end of the
+   logfile rather than overwriting the content of the log when the
+   process restarts.
 
 .. option:: --pidfilepath <path>
 
    Specify a file location to hold the ":term:`PID`" or process ID of the
    ``mongod`` process. Useful for tracking the ``mongod`` process in
    combination with the :option:`mongod --fork` option.
+
+   If this option is not set, no PID file is created.
 
 .. option:: --keyFile <file>
 
