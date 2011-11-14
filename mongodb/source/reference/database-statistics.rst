@@ -68,7 +68,7 @@ Fields
    Contains a count of the total number of indexes across all
    collections in the database.
 
-.. describe:: index Size
+.. describe:: indexSize
 
    The total size of all indexes created on this database. This value
    is affected by the "``scale``" factor.
@@ -78,6 +78,7 @@ Fields
    The total size of the data files that hold the database. This
    includes preallocated space and the :term:`padding factor`. This
    value is affected by the "``scale``" factor.
+
 
 .. describe:: nsSizeMB
 
