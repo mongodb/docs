@@ -302,6 +302,9 @@ TODO factcheck maxcons
    namespace files (i.e ``.ns``). This option has no impact on the
    size of existing namespace files.
 
+   The default value is 16 megabytes, this provides for effectively
+   12,000 possible namespace. The maximum size is 2 gigabytes.
+
 .. option:: profile
 
    *Default:* 0
