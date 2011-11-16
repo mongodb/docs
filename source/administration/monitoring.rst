@@ -1,6 +1,6 @@
-==================
-Monitoring MongoDB
-==================
+===========================
+Monitoring Database Systems
+===========================
 
 .. default-domain: mongodb
 
@@ -292,9 +292,9 @@ independently standalone or replica set members; however, there are
 several aspects of sharding operation that require additional
 monitoring.
 
-Administrators of shard clusters should generally be familiar with the
-operation of sharding in MongoDB. See the ":doc:`/sharding`" document
-for more information.
+Administrators of shard clusters should generally be familiar with
+operation the of sharding in MongoDB. See the ":doc:`/sharding`"
+document for more information.
 
 Config Servers
 ~~~~~~~~~~~~~~
@@ -305,18 +305,33 @@ configuration databases need to be running and access able in order to
 successfully access a shard cluster, monitoring these nodes to ensure
 that they remain up and accessible is crucial.
 
-Balancing and Object Distribution
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Balancing and Chunk Distribution
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+The most effective :term:`shard` clusters depend on data being
+balanced between the shards. MongoDB has a background :term:`balancer`
+process that distributes data such that chunks are always optimally
+distributed among the nodes. Issue the following command when
+connected to the :option:`mongos` by way of the  :option:`mongo`
+shell: ::
 
+        db.printShardingStatus();
 
-- distribution of chunks and objects
-- balancing status
+This returns an overview of the shard cluster including the database
+name, and a list of the chunks.
 
 Stale Locks
 ~~~~~~~~~~~
 
-In some situations :ref:`locks <globallock>` can become stale and have
-a negative impact on balancing. If your database spends too much time
-in a lock-state, it could prevent :term:`chunks` from being balanced
-properly.
+In some situations the lock that the balancer uses to initiate and
+oversee the balancing process can become stale and prevent additional
+balancing from occurring.
+
+To check the state of the balancing lock, connect to a
+:option:`mongos` instance using the :doc:`mongo shell
+</utilities/mongo>`" and issue the following two commands: ::
+
+     use config
+     db.locks.find( { _id : "balancer" } )
+
+Correlate these locks with running `mongos` and determine
