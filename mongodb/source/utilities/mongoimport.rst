@@ -200,8 +200,8 @@ TODO factcheck
    import data written as a single :term:`JSON` array. Limited to
    imports of 4 MB or smaller.
 
-Usage Examples
---------------
+Usage
+-----
 
 In this example, the :term:`csv` formatted data in the
 "``/opt/backups/contacts.csv``" is imported into the collection

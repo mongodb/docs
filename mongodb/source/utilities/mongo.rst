@@ -118,8 +118,8 @@ Options
 
    This should be the last address
 
-Usage Examples
---------------
+Usage
+-----
 
 Typically the shell is invoked using the ``mongo`` command at the
 system prompt. Consider the following examples for other scenarios.

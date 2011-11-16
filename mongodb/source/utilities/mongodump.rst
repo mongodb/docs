@@ -152,8 +152,8 @@ TODO help section says "(some commands)" limitations otherwise unclear.
       in the "``_id``" index.
    2. Your database uses a custom "``_id``" field.
 
-Usage Examples
---------------
+Usage
+-----
 
 See the ":ref:`backup guide section on database dumps
 <database-dumps>`" for a larger overview of ``mongodump`` usage. Also

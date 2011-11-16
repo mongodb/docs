@@ -56,8 +56,8 @@ TODO understand what this is and why this is the post.
    multiple port numbers to the end of ``mongosniff`` to monitor
    traffic on multiple ports.
 
-Usage Examples
---------------
+Usage
+-----
 
 Use the following command to connect to a ``mongod`` or ``mongos``
 running on port 27017 *and* 27018 on the localhost interface: ::

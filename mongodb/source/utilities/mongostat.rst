@@ -257,8 +257,8 @@ operations per second.
    SLV        :term:`slave`
    =========  ====================
 
-Usage Examples
---------------
+Usage
+-----
 
 In the first example, ``mongostat`` will return data every second for
 20 seconds. Data is collected from the MongoDB instance running on the
