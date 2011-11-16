@@ -41,6 +41,7 @@ Core concepts and features regarding MongoDB use and operation.
    map-reduce
    replication
    sharding
+   journaling
 
 Many topics forthcoming, including:
 
@@ -49,7 +50,7 @@ Many topics forthcoming, including:
 - Optimization
 - Replication
 - Sharding
-
+- Durability/Journaling
 
 Administration and Deployment
 -----------------------------
@@ -60,26 +61,17 @@ Administration and Deployment
    administration/backups
    administration/import-export
    administration/monitoring
+   administration/configuration
+   administration/security-authentication
 
-Coming Soon:
-
-- Administration
-
-  - Configuration
-  - Introspection
-  - Monitoring
-  - Journaling
-
-- Deployment
-
-  - Virtual Servers
-  - Hardware Notes
-  - Operating System Notes
+- Introspection
+- Journaling
 
 .. toctree::
-   :hidden:
+   :maxdepth: 3
 
-   journaling
+   administration/operating-systems
+   administration/hardware-platform
 
 MongoDB Shell
 -------------
@@ -88,8 +80,6 @@ MongoDB Shell
    :maxdepth: 3
 
    mongo-shell
-
-(*Coming Soon!*)
 
 Developing MongoDB
 ------------------
@@ -116,7 +106,7 @@ MongoDB Programs
 ~~~~~~~~~~~~~~~~
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    reference/mongod
    reference/mongos
@@ -131,33 +121,26 @@ MongoDB Programs
    utilities/mongofiles
    utilities/bsondump
 
-
-
 General Reference
 ~~~~~~~~~~~~~~~~~
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    reference/operators
+   reference/meta-query-operators
    reference/commands
+   reference/javascript
    reference/server-status
    reference/replica-status
-   reference/glossary
-
-.. the following documents are drafts of reference materials/indexes
-   that need to be created but that haven't been yet.
-
-.. toctree::
-   :hidden:
-
    reference/database-statistics
    reference/collection-statistics
-   reference/javascript-methods
-   reference/meta-query-operators
+   reference/configuration-options
+   reference/error-codes
+   reference/glossary
 
-Coming Soon:
+Indices
+~~~~~~~
 
-- Error Codes
-- Meta Query Operators
-- Javascript Methods (for shell)
+- :ref:`genindex`
+- :ref:`search`

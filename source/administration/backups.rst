@@ -1,6 +1,6 @@
-=========================================
-Backup and Restore Strategies for MongoDB
-=========================================
+=================================
+Backup and Restoration Strategies
+=================================
 
 This document provides an inventory of database backup strategies for
 use with MongoDB. Use the :ref:`backup overview <backup-overview>` and
@@ -22,8 +22,8 @@ consideration as you develop your own strategy.
 
 .. _backup-overview:
 
-Backup Overview
----------------
+Overview
+--------
 
 If you are familiar with backups systems in the context of database
 systems please skip ahead to :ref:`backup considerations <backup-considerations>`.
@@ -51,8 +51,8 @@ theoretically, functional.
 
 .. _backup-considerations:
 
-Backup Considerations
----------------------
+Production Considerations
+-------------------------
 
 When evaluating a backup strategy for your node consider the following
 factors:
@@ -96,8 +96,8 @@ for your database. Remember that all backup plans must be:
 
 .. _block-level-backup:
 
-Block Level Backup Methods
---------------------------
+Block Level Methods
+-------------------
 
 This section will provides an overview of using disk/block level
 snapshots (i.e. :term:`LVM` or storage appliance) to backup a MongoDB
@@ -135,8 +135,8 @@ There are some limitations to snapshots:
 
 .. _backup-with-journaling:
 
-Backup with Journaling
-~~~~~~~~~~~~~~~~~~~~~~
+With Journaling
+~~~~~~~~~~~~~~~
 
 If your system has a snapshot capability and ``mongod`` instance has
 journaling enabled then you can use any kind of file system or
@@ -217,8 +217,8 @@ data. Snapshots typically depend and reside on the same storage
 infrastructure as the original disk images. Therefore, it's crucial
 that these snapshots be archived and stored elsewhere.
 
-Archive Backup Snapshot
-```````````````````````
+Archive Snapshots
+`````````````````
 
 After creating a snapshot, mount the snapshot and move the data to a
 separate storage You. system may wish to compress the backup images as
@@ -242,8 +242,8 @@ This command sequence:
       working directory. Make sure that you run this command in a
       file system that has enough free space.
 
-Restore Backup Snapshot
-```````````````````````
+Restore Snapshot
+````````````````
 
 If you created a backup using the above method, restore this archive
 with the following procedure: ::
@@ -271,8 +271,8 @@ This sequence:
    directory. Modify the mount point to correspond to your MongoDB
    data file location, or other location as needed.
 
-Restore a Backup Directly from a Snapshot
-`````````````````````````````````````````
+Restore Directly from a Snapshots
+`````````````````````````````````
 
 To combine the above steps without writing to a compressed ``tar``
 archive, use the following command sequence: ::
@@ -300,8 +300,8 @@ system.
 
 .. _backup-without-journaling:
 
-Backup without Journaling
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Without Journaling
+~~~~~~~~~~~~~~~~~~
 
 If your ``mongodb`` instance does not running with journaling enabled,
 obtaining a functional backup of a consistent state is more
@@ -328,8 +328,8 @@ completed, issue the following command: ::
         db.runCommand( { fsync: 1, lock: true } );
         db.runCommand( { fsync: 1, lock: false } );
 
-Backup with Amazon EBS in Software RAID 10 Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Amazon EBS in Software RAID 10 Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you're using Amazon's Elastic Block Storage (EBS) with RAID
 configured *within* your instance, it is impossible to get a
@@ -478,8 +478,8 @@ TODO links to man pages here.
 
 .. _backups-with-sharding-and-replication:
 
-Backup Considerations with Shard Clusters and Replica Sets
-----------------------------------------------------------
+Shard Clusters and Replica Sets Considerations
+----------------------------------------------
 
 The underlying architecture of shard clusters and replica sets present
 several challenges for creating backups of data stored in
@@ -496,8 +496,6 @@ Shard Clusters
 
 Using Database Exports From a Cluster
 `````````````````````````````````````
-
-
 
 If you have a small collection of data, the easiest way to connecting
 to the ``mongos`` and taking a dump or export of the database from the
