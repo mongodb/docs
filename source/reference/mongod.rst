@@ -140,8 +140,8 @@ TODO insert link to replication documentation when it exists.
    will continue to have access to the database until a user has been
    created.
 
-   See the ":doc:`/security-authentication`"  document for more
-   information regarding this functionality.
+   See the ":doc:`/administration/security-authentication`" document
+   for more information regarding this functionality.
 
 .. option:: --cpu
 
@@ -187,7 +187,7 @@ TODO insert link to replication documentation when it exists.
 
    Enables operation journaling to ensure write durability and data
    consistency
-.
+
 .. option:: --journalOptions <arguments>
 
    Provides functionality for testing. Not for general use, and may
