@@ -14,7 +14,7 @@ identically to any other MongoDB instance.
 
 .. seealso::
 
-   See the ":doc:`sharding` for more information regarding MongDB's
+   See the ":doc:`/sharding` for more information regarding MongDB's
    sharding functionality.
 
 Options

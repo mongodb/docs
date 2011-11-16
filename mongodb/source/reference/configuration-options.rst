@@ -1,6 +1,6 @@
-==================================
-MongoDB Configuration File Options
-==================================
+==========================
+Configuration File Options
+==========================
 
 Synopsis
 --------
@@ -27,15 +27,12 @@ Declare All settings in this file using the following form: ::
      <setting> = <value>
 
 .. versionadded:: 2.0
-
    *Before* version 2.0, boolean (i.e. "``true|false``") or "flag"
    parameters, register as true, if they appear in the configuration
    file, regardless of their value.
 
 Settings
 --------
-
-:term:`shard`
 
 .. program:: configuration file
 
@@ -79,12 +76,12 @@ Settings
 
    *Default:* depends on system settings.
 
-TODO factcheck maxcons
-
    Specifies a value to set the maximum number of simultaneous
    connections that ``mongod`` will accept. This setting will have no
    effect if it is higher than your operating system's configured
    maximum connection tracking threshold.
+
+TODO factcheck maxcons
 
 .. option:: objcheck
 
