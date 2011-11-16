@@ -247,7 +247,8 @@ TODO insert link to replication documentation when it exists.
    ``.ns``). This option has no impact on the size of existing
    namespace files.
 
-   The default value is 16 megabytes.
+   The default value is 16 megabytes, this provides for effectively
+   12,000 possible namespace. The maximum size is 2 gigabytes.
 
 .. option:: --profile <level>
 

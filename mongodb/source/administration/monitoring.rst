@@ -26,6 +26,10 @@ monitoring instances in MongoDB's replica sets and shard clusters.
    - :doc:`/reference/database-statistics`
    - :doc:`/reference/collection-statistics`
 
+   MongoDB also provides a :ref:`REST interface <rest-interface>` that
+   provides an overview of this diagnostic data in web-access able
+   interface.
+
    10gen provides a hosted monitoring service which collects and
    aggregates these data to provide insight into the performance and
    operation of MongoDB deployments. See the `MongoDB Monitoring
@@ -67,6 +71,17 @@ operations. ``mongostat`` reports operations on a per-type
 understand the nature of the load on the server. Use ``mongostat`` to
 understand the distribution of operation types and to inform capacity
 development plans.
+
+.. _rest-interface:
+
+REST Interface
+``````````````
+
+MongoDB also provides a :term:`REST` interface that exposes a
+diagnostic and monitoring information in a simple web page. Enable
+this by setting :setting:`rest` to ``true``, and access this page via
+the local host interface using the port numbered 1000 more than that
+the database port: in default configurations this is ``28017``.
 
 Statistics
 ~~~~~~~~~~
@@ -299,39 +314,67 @@ document for more information.
 Config Servers
 ~~~~~~~~~~~~~~
 
-The :term:`configdb` provides a map of objects to shards, which is
-updated as :term:`chunks` are migrated between nodes. Because
-configuration databases need to be running and access able in order to
-successfully access a shard cluster, monitoring these nodes to ensure
-that they remain up and accessible is crucial.
+The :term:`configdb` provides a map of documents to shards. The map is
+updated as :term:`chunks` are migrated between shards. When a
+configuration server becomes inaccessible, some sharding
+operations like moving chunks and starting :option:`mongos` instances
+become unavailable. However, shard clusters remain accessible from
+already-running mongo instances.
+
+Because inaccessible configuration servers can have a serious impact
+on the availability of a shard cluster, you should keep uptime
+monitoring of the configuration servers to ensure that your shard
+cluster remains well balanced and that ``mongos`` instances can
+restart.
 
 Balancing and Chunk Distribution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The most effective :term:`shard` clusters depend on data being
+The effective most :term:`shard` clusters depend on data being
 balanced between the shards. MongoDB has a background :term:`balancer`
 process that distributes data such that chunks are always optimally
-distributed among the nodes. Issue the following command when
-connected to the :option:`mongos` by way of the  :option:`mongo`
-shell: ::
+distributed among the nodes. Issue the
+:js:func:`db.printShardingStatus()` or :js:func:`sh.status()` command
+command to the :option:`mongos` by way of the :option:`mongo`
+shell. This returns an overview of the shard cluster including the
+database name, and a list of the chunks.
 
-        db.printShardingStatus();
+For clusters with only a few shards and a small amount of data,
+verifying that chunks are evenly distributed can be done by way of
+approximation. For larger clusters, use the following shell function
+to display the distribution of chunks among shards.
 
-This returns an overview of the shard cluster including the database
-name, and a list of the chunks.
+TODO create a shell function: ::
+
+   for shard in cluster; do
+       print "shardName - numChunks";
+   done
+
+.. run group command against chunk collection inside config server
 
 Stale Locks
 ~~~~~~~~~~~
 
-In some situations the lock that the balancer uses to initiate and
-oversee the balancing process can become stale and prevent additional
-balancing from occurring.
-
-To check the state of the balancing lock, connect to a
-:option:`mongos` instance using the :doc:`mongo shell
-</utilities/mongo>`" and issue the following two commands: ::
+In nearly every case all locks are automatically released when they
+become stale. However, because any long lasting lock can
+block. balancing. To check the lock status of the database, connect to
+a :option:`mongos` instance using the :doc:`mongo shell
+</utilities/mongo>`". Issue the following command sequence to switch
+to the config database and display all outstanding locks on the shard
+database: ::
 
      use config
+     db.locks.find()
+
+For active deployments, the above query might return an useful result
+set. The balancing process, which originates on a randomly selected
+``mongos``, takes a special "balancer" lock that prevents other
+balancing activity from transpiring. Use the following command, also
+to the ``config`` database, to check the status of the "balancer"
+lock. ::
+
      db.locks.find( { _id : "balancer" } )
 
-Correlate these locks with running `mongos` and determine
+Ensure that this lock isn't stale.
+
+TODO figure out how to move forward with this.
