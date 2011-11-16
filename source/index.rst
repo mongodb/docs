@@ -5,8 +5,6 @@ The MongoDB Manual
 Introduction
 ------------
 
-Coming soon, including:
-
 - What is MongoDB
 - What's new in the most recent release.
 - Other MongoDB Resources
@@ -16,21 +14,20 @@ Coming soon, including:
 Getting Started
 ---------------
 
-Coming soon, including:
-
 - Installation
 - Drivers
-- Fundamental Concepts
+- Basic Concepts
 
 User Guides
 -----------
 
-Tutorials, guides, as well as documents regarding schema design.
+- Schema Design
+- Database Administration
+- Tutorials
+- Guides
 
 Core Documentation
 ------------------
-
-Core concepts and features regarding MongoDB use and operation.
 
 .. the following are notional documents that need to exist in the tree
    for linking purposes but are drafts:
@@ -43,14 +40,13 @@ Core concepts and features regarding MongoDB use and operation.
    sharding
    journaling
 
-Many topics forthcoming, including:
-
 - Interface
 - Aggregation
 - Optimization
 - Replication
 - Sharding
 - Durability/Journaling
+- Map/Reduce
 
 Administration and Deployment
 -----------------------------
@@ -61,7 +57,7 @@ Administration and Deployment
    administration/backups
    administration/import-export
    administration/monitoring
-   administration/configuration
+   deployment/configuration
    deployment/security-authentication
    deployment/operating-systems
    deployment/hardware-platform
@@ -81,16 +77,15 @@ Developing MongoDB
 - Client Interfaces
 - Building MongoDB
 
-
-Reference
----------
-
 Frequently Asked Questions
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------
 
 - Interface FAQ
 - Replication FAQ
 - Sharding FAQ
+
+Reference
+---------
 
 MongoDB Programs
 ~~~~~~~~~~~~~~~~

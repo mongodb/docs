@@ -153,8 +153,8 @@ TODO help section says "(some commands)" limitations otherwise unclear.
    path that specifies the location of the database dump from which to
    restore.
 
-Usage Examples
---------------
+Usage
+-----
 
 See the ":ref:`backup guide section on database dumps
 <database-dumps>`" for a larger overview of ``mongorestore``

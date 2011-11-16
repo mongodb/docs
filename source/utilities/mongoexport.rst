@@ -172,8 +172,8 @@ TODO determine what "arg (=1)" in help text means.
    specified, the export will be written to standard out
    (e.g. ``stdout``).
 
-Usage Examples
---------------
+Usage
+-----
 
 In the following example, the collection "``contacts``" from the
 "``users``" database is exported from the MongoDB instance running on

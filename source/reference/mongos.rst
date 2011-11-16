@@ -5,7 +5,7 @@ mongos Manual
 Synopsis
 --------
 
-``mongos`` for "Mongo Shard," is a routing service for MongoDB shard
+``mongos`` for "MongoDB Shard," is a routing service for MongoDB shard
 configurations that processes queries from the application layer, and
 determines where this data is stored in the :term:`shard cluster`, in
 order to complete these operations these operations. From the
@@ -14,7 +14,7 @@ identically to any other MongoDB instance.
 
 .. seealso::
 
-   See the ":doc:`/sharding` for more information regarding MongDB's
+   See the ":doc:`/sharding`" for more information regarding MongoDB's
    sharding functionality.
 
 Options
@@ -179,9 +179,3 @@ TODO insert link to replication documentation when it exists.
 .. option:: --noscripting
 
    Disables the scripting engine.
-
-
-
-Usage Examples
---------------
-
