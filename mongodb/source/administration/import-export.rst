@@ -1,6 +1,6 @@
-=========================================
-Importing and Exporting Data From MongoDB
-=========================================
+====================================
+Importing and Exporting MongoDB Data
+====================================
 
 Full :doc:`database instance backups </administration/backups>` are
 useful for disaster recovery protection and routine database backup
