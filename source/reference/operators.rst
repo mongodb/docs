@@ -1,6 +1,6 @@
-==========================
-MongoDB Operator Reference
-==========================
+==================
+Operator Reference
+==================
 
 .. default-domain: mongodb
 .. highlight_language: javascript
@@ -14,8 +14,8 @@ TODO possibly develop more clear examples for collection field, field1, value, v
 Query Selectors
 ---------------
 
-Comparison Operators
-~~~~~~~~~~~~~~~~~~~~
+Comparison
+~~~~~~~~~~
 
 .. describe:: $lt
 
@@ -66,8 +66,8 @@ Comparison operators can be combined to specify ranges: ::
 This statement returns all instances of ``field`` between
 "``value1``" and "``value2``".
 
-Document Operators
-~~~~~~~~~~~~~~~~~~
+Document
+~~~~~~~~
 
 .. describe:: $all
 
@@ -136,8 +136,8 @@ Document Operators
 
 .. _geolocation-operators:
 
-Geolocation Operators
-~~~~~~~~~~~~~~~~~~~~~
+Geolocation
+~~~~~~~~~~~
 
 .. describe:: $near
 
@@ -148,9 +148,9 @@ Geolocation Operators
         db.collection.find( { location: { $near: [100,100] } } );
 
    This query will return 100 ordered records with a ``location``
-   field in ``collection``. Specify a different using the :ref:`limit
-   method <limit-method>`, or another :ref:`geolocation operator  <geolocation-operators>`
-   to limit the results of the query.
+   field in ``collection``. Specify a different using the
+   :js:func:`limit()`, or another :ref:`geolocation operator
+   <geolocation-operators>` to limit the results of the query.
 
 .. describe:: $maxDistance
 
@@ -165,7 +165,7 @@ Geolocation Operators
    ``collection`` that have values with a distance of 5 or fewer units
    from the point ``[100,100]``. These results are ordered by their
    distance from ``[100,100]``, and the first 100 results are returned
-   unless the :ref:`limit method <limit-method>` is used.
+   unless the :js:func:`limit()` is used.
 
    The value of the ``$maxDistance`` argument is specified in the same
    units as the document coordinate system.
@@ -227,8 +227,8 @@ Geolocation Operators
 
 TODO clarify $uniqueDocs as the wiki is unclear here. The true/false in the wiki seams to not line up with the behavior.
 
-Logical Operators
-~~~~~~~~~~~~~~~~~
+Logical
+~~~~~~~
 
 .. describe:: $or
 
@@ -302,8 +302,8 @@ Logical Operators
 
         { "$not": re.compile("acme.*corp")}
 
-Element Operators
-~~~~~~~~~~~~~~~~~
+Element
+~~~~~~~
 
 .. describe:: $type
 
@@ -411,8 +411,24 @@ Element Operators
 
         db.collection.find( "field % d == m" );
 
-Array Operators
-~~~~~~~~~~~~~~~
+JavaScript
+~~~~~~~~~~
+
+.. describe:: $where
+
+   Use the ``$where`` operator to pass a string containing a
+   JavaScript expression to the query system to provide greater
+   flexibility with queries. Consider the following: ::
+
+        db.collection.find( { $where: "this.a > 3" } );
+
+   In this case, the following query is equivalent to the following
+   operation using the :mongodb:operator:`$gt`: ::
+
+        db.collection.find( { a : { $gt: 3 } } );
+
+Array
+~~~~~
 
 .. describe:: $size
 
@@ -454,8 +470,8 @@ Array Operators
 
 .. _update-operators:
 
-Update Operators
-----------------
+Update
+------
 
 TODO does update() iterate over the whole collection or just the first matching record?
 
@@ -642,10 +658,27 @@ TODO determine what the performance impacts of using $pushAll with single values
 
 TODO expand coverage of $bit which I need to understand the use better.
 
+.. describe:: $atomic
+
+   In multi-update mode, it's possible to specify an ``$atomic``
+   "operator" that allows you to isolate some updates from each
+   other. In a global sense this is not atomic, but rather in context
+   of this operation. Consider the following example: ::
+
+        db.foo.update( { field1 : 1 , $atomic : 1 }, { $inc : { field2 : 1 } } ,  false , true )
+
+   In this example, the "``{ field1 : 1 }``" update is isolated from the
+   :mongodb:operator:`$inc` operation that increments the value of
+   ``field2``.
+
+   .. seealso::
+      See :js:func:`update()` for more information about the ``update()``
+      function.
+
 .. _projection-operators:
 
-Projection Operators
---------------------
+Projection
+----------
 
 .. describe:: $slice
 
