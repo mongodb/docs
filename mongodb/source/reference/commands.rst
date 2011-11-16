@@ -1,6 +1,6 @@
-=========================
-MongoDB Command Reference
-=========================
+=================
+Command Reference
+=================
 
 .. default-domain:: mongodb
 .. highlight:: javascript

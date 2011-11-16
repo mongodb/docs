@@ -1,6 +1,6 @@
-================
-MongoDB Glossary
-================
+========
+Glossary
+========
 
 .. glossary::
    :sorted:
@@ -73,7 +73,7 @@ MongoDB Glossary
       functionality. See :doc:`commands` for more information on these
       commands.
 
-   Replica Set
+   replica set
       A MongoDB feature whereby a collection of hosts can, as a database
       cluster, provide replication while allowing the "master"
       instance to automatically reassign itself based on the cluster
@@ -89,6 +89,9 @@ MongoDB Glossary
       the total dataset corpus as part of a :term:`cluster`. See
       :term:`sharding`.
 
+   shards
+      See :term:`shard` and :term:`sharding`.
+
    Sharding
       A database architecture where the data corpus is split among
       a cluster of system to enable horizontal scaling. MongoDB added
@@ -98,13 +101,20 @@ MongoDB Glossary
    Sharded
       See :term:`shard` and :term:`sharding`.
 
+   shard cluster
+      A collection of MongoDB instances with a dataset partitioned
+      or ":term:`sharded`" among a set of nodes.
+
    mongod
-      ``mongod`` is the daemon that runs MongoDB database instances.
+      ``mongod`` is the daemon that runs MongoDB database
+      instances. See ":doc:`/reference/mongod`" for more
+      information.
 
    mongos
       ``mongos`` is a routing and load balancing process that provides
       an interface between an application and ``mongod`` instances in
-      :term
+      a :term:`shard cluster`. See ":doc:`/reference/mongos`" for more
+      information.
 
    mongo
       The MongoDB Shell. Mongo connects to the :term:`mongod`
@@ -251,20 +261,149 @@ MongoDB Glossary
       used to recover the state of the database in the event of system
       failure or glitch.
 
-   Global Lock
+   pcap
+      A packet capture format used by a number of tools to record
+      packets captured from network interfaces. Used by
+      :option:`mongosniff`.
 
-   read-lock
+   upsert
+      A method of inserting a document into a MongoDB database that,
+      optionally updates the values of an existing document if a
+      matching document already exists.
 
-   Lock
+   csv
+      Comma Separated Values. A common structured data storage format
+      used for inter-application interchange purposes.
+
+   tsv
+      Tab Separated Values. A common structured data storage format
+      used for inter-application interchange purposes.
+
+   mime
+      "Multipurpose Internet Mail Extensions." a standard set of type
+      and encoding definitions used to declare the encoding and type
+      of data in multiple data storage, transmission and email
+      contexts.
 
    padding factor
+      MongoDB adds a configurable amount of space to the end of each
+      document to facilitate faster updates if documents grow.
 
-   haystack index
+   lock
+      An approach to concurrency where a single process or thread
+      prevents sibling process from accessing or changing a value
+      until the original process or thread has completed its
+      operation.
 
-   geospatial
+   Global Lock
+      A :term:`lock` that prevents all operations.
+
+   read-lock
+      A :term:`lock` that prevents write operations while a read
+      operation is in progress.
 
    configdb
+      A special database instance used by MongoDB to track data and
+      its relationship to specific instances in a shard cluster.
 
    balancer
+      An internal MongoDB process that runs in the context of a shard
+      cluster that distributes :term:`chunks` of data amongst the
+      shards.
 
    fsync
+      An operation that ensures that all data has been written to data
+      files to ensure that the data is durable.
+
+   chunk
+      In the context of a :term:`shard` cluster, chunks are
+
+   chunks
+      See :term:`chunk`.
+
+   geospatial
+      Data that describes or is referenced and/or indexed on
+      by geographical location. Geospatial indexes use a coordinate
+      system.
+
+   checksum
+      Checksums are used to ensure data integrity, by providing a
+      reliable fixed sequence calculated from a set of data that is
+      easily affected by even small changes in the
+      document. :term:`md5` is an example of a checksum.
+
+   haystack index
+      In the context of :term:`geospatial` queries, haystack indexes
+      are useful for providing a more limited searches by creating a
+      "buckets," of objects within a smaller geographical
+      area. Haystack indexes are ideal for finding a number of objects
+      near a particular set of coordinates, but not finding a single
+      object that's closest to another object, if the distance between
+      the two objects is greater than the size of the bucket.
+
+   oplog
+      A special :term:`capped collection` that stores database
+      operations to facilitate :term:`replication` in the context of a
+      :term:`replica set`.
+
+   init script
+      A simple shell script, typically located in the ``/etc/rc.d`` or
+      ``/etc/init.d`` directory and used by the system's initialization
+      process to start, stop and stop a :term:`daemon` process.
+
+   control script
+      See :term:`init script`.
+
+   daemon
+      The conventional name for a background, non-interactive
+      process.
+
+   pid
+      The process ID, on Unix-like systems. This number can be used to
+      find and identify currently running :term:`daemon` processes.
+
+   config database
+      The database that contains the map of database objects to
+      location in a :term:`shard cluster`.
+
+   JSONP
+      :term:`JSON` with Padding. Refers to a method of injecting JSON
+      into applications. Presents potential security concerns.
+
+   REST
+      Representational State Transfer. Describes a distributed
+      paradigm for client-server applications, which influenced the
+      design of the HTTP protocol. In recent usage REST has come to
+      represent protocols and interface that make use of the HTTP
+      protocol and adhere to the HTTP idiom.
+
+   dbpath
+      Refers to the location of MongoDB's data file storage. Typically
+      these files are stored in ``/srv/mongodb`` or
+      ``/var/lib/mongodb``.
+
+   setname
+      In the context of :term:`replica set`, the ``setname`` refers to
+      the configured
+
+   _id
+      The unique identifier for each identifier. This value is
+      automatically assigned and included in the document. This
+      analogous to the :term:`primary key` in the context of MongoDB.
+
+   lvm
+      Logical volume manager. LVM is a method of abstracting disk
+      images from physical devices, and provides a number of raw disk
+      manipulation and snapshot capabilities useful for system
+      management.
+
+   natural order
+      This refers to the order that MongoDB stores documents in the
+      database. Typically this order is nearly the same as the
+      insertion order, but this order is not guaranteed, except in the
+      case of :term:`capped collections`.
+
+   primary key
+      In relational databases, primary keys are guaranteed to be unique
+      identifiers for a specific data instance: for each row in a
+      relational table, or for each document in a MongoDB document.
