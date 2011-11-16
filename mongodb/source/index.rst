@@ -9,9 +9,9 @@ Coming soon, including:
 
 - What is MongoDB
 - What's new in the most recent release.
-- MongoDB Resources
-- Getting involved (reporting bugs)
-- About the documentation
+- Other MongoDB Resources
+- Getting Involved in the Project (reporting bugs)
+- About this Documentation
 
 Getting Started
 ---------------
@@ -19,8 +19,8 @@ Getting Started
 Coming soon, including:
 
 - Installation
-- Choosing drivers
-- Introductory concepts
+- Drivers
+- Fundamental Concepts
 
 User Guides
 -----------
@@ -45,7 +45,7 @@ Core concepts and features regarding MongoDB use and operation.
 
 Many topics forthcoming, including:
 
-- The MongoDB Interface
+- Interface
 - Aggregation
 - Optimization
 - Replication
@@ -62,16 +62,9 @@ Administration and Deployment
    administration/import-export
    administration/monitoring
    administration/configuration
-   administration/security-authentication
-
-- Introspection
-- Journaling
-
-.. toctree::
-   :maxdepth: 3
-
-   administration/operating-systems
-   administration/hardware-platform
+   deployment/security-authentication
+   deployment/operating-systems
+   deployment/hardware-platform
 
 MongoDB Shell
 -------------
@@ -84,23 +77,20 @@ MongoDB Shell
 Developing MongoDB
 ------------------
 
-Coming Soon:
-
 - Internal Architecture
 - Client Interfaces
 - Building MongoDB
 
-FAQ
----
 
-Coming Soon:
+Reference
+---------
+
+Frequently Asked Questions
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Interface FAQ
 - Replication FAQ
 - Sharding FAQ
-
-Reference
----------
 
 MongoDB Programs
 ~~~~~~~~~~~~~~~~
