@@ -33,20 +33,18 @@ Core Documentation
    for linking purposes but are drafts:
 
 .. toctree::
-   :hidden:
+   :maxdepth: 3
 
    map-reduce
    replication
    sharding
    journaling
+   capped-collections
 
 - Interface
 - Aggregation
 - Optimization
-- Replication
-- Sharding
-- Durability/Journaling
-- Map/Reduce
+
 
 Administration and Deployment
 -----------------------------
