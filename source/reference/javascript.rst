@@ -25,8 +25,6 @@ Query and Update Functions
    satisfy the query, this method returns the first document according
    to the :term:`natural order`.
 
-TODO insert link to natural ordering here.
-
 .. js:function:: save()
 
    Provides the ability to create a new document in the current
@@ -161,7 +159,8 @@ TODO the above is mostly stolen from the wiki, and I'm not sure I understand wha
    updated while the query runs. Snapshot mode does not impact the
    handling of documents which are added or removed during the query.
 
-   Short queries of less than 1 megabyte are effectively snapshotted.
+   Queries with results of less less than 1 megabyte are effectively
+   snapshotted.
 
 TODO verify clarity of sort explanation.
 
@@ -191,45 +190,137 @@ Administrative Functions
 Database
 ~~~~~~~~
 
-.. js:function:: db.addUser()
+.. js:function:: db.addUser("username", "password"[, readOnly])
 
-   db.addUser(username, password[, readOnly=false])
+   :param string username: Specifies a new username.
+   :param string password: Specifies the corresponding password.
+   :param boolean readOnly: Optionally restricts a user to read-privileges
+                            only. Defaults to false.
 
-.. js:function:: db.auth()
+   Use this command to create new database users, by specifying a
+   username, password as arguments to the command. If you want to
+   restrict this user to only have read-only privileges; however, this
+   defaults to false.
 
-   db.auth(username, password)
+.. js:function:: db.auth("username", "password")
 
-.. js:function:: db.cloneDatabase()
+   :param string username: Specifies an existing username with access
+                           privileges for this database.
+   :param string password: Specifies the corresponding password.
 
-   db.cloneDatabase(fromhost)
+   Allows a user to authenticate to the database from within the
+   shell. Alternatively use :option:`mongo --username` and
+   :option:`--password <mongo --password>` to specify authentication
+   credentials.
 
-.. js:function:: db.commandHelp()
+.. js:function:: db.cloneDatabase("hostname")
 
-   db.commandHelp(name) returns the help for the command
+   :param string hostname: Specifies the hostname to copy the current
+                           node.
 
-.. js:function:: db.copyDatabase()
+   Use this function to copy a database from a remote to the current
+   database. The command assumes that the remote database has the same
+   name as the current database. Use the following command to change
+   to the database "``importdb``": ::
 
-   db.copyDatabase(fromdb, todb, fromhost)
+        use importdb
 
-.. js:function:: db.createCollection()
+   New databases are implicitly created, so the current host does not
+   need to have a database named ``importdb`` for this command to
+   succeed.
 
-   db.createCollection(name, { size : ..., capped : ..., max : ... } )
+   This function provides a wrapper around the MongoDB database
+   command ":mongodb:command:`clone`." The :mongodb:command:`copydb`
+   database command provide related functionality.
+
+.. js:function:: db.commandHelp(command)
+
+   :param command: Specifies a :doc:`database command name
+                   </reference/commands>`.
+
+   Returns help text for a :doc:`database commands
+   </reference/commands>`.
+
+.. js:function:: db.copyDatabase(origin, destination, hostname)
+
+   :param database origin: Specifies the name of the database on the
+                           origin system.
+   :param database destination: Specifies the name of the database
+                                that you wish to copy the origin
+                                database into.
+   :param origin hostname: Indicate the hostname of the origin database
+                           host.
+
+   Use this function to copy a specific database, named "``origin``"
+   running on the system accessible via "``hostname``" into the local
+   database named "``destination``". The destination database will be
+   created implicitly if it does not already exit.
+
+   This function provides a wrapper around the MongoDB database
+   command ":mongodb:command:`copydb`." The :mongodb:command:`clone`
+   database command provide related functionality.
+
+.. js:function:: db.createCollection(name [{size: <value>, capped: <boolean> , max <bytes>}] )
+
+
+   :param string name: Specifies the name of a collection to create.
+   :param JSON capped: Optional. If specified this document creates a
+                       capped collection. The capped argument is a
+                       JSON document that contains the following three
+                       fields:
+   :param bytes size: Specifies a maximum size in bytes, for the as a
+                      ":term:`cap <capped collection>` for the
+                      collection.
+   :param boolean capped: Enables a :term:`collection cap <capped
+                          collection>`. False by default. If enabled,
+                          you must specify a ``size`` parameter.
+   :param int max: Optional. Specifies a maximum "cap," in number of
+                   documents for capped collections. You must also
+                   specify ``size`` when specifying ``max``.
+
+    Explicitly creates a new collation. Because collections are
+    created implicitly when referenced, this command is primarily used
+    for creating new capped collections.
+
+    Capped collections have maximum size or document counts that limit
+    their ability to grow beyond maximum thresholds. All capped
+    collections must specify a maximum size, but may also specify a
+    maximum document count. Documents will be truncated if a
+    collection reaches the maximum size limit before the maximum
+    document count, documents will be truncated. Consider the
+    following example: ::
+
+        db..createCollection(log, { size : 5120, capped : true, max : 5000 } )
+
+    This command creates a collection named log with a maximum size of
+    5 megabytes (5120 bytes,) or a maximum of 5000 documents.
+
+    This command provides a wrapper around the database command
+    ":mongodb:command:`create`. See the ":doc:`capped-collections`"
+    document for more information about capped collections.
 
 .. js:function:: db.currentOp()
 
-   displays the current operation in the db
+   Returns a document containing the field "``inprog``" which contains
+   an array that reports the current operation in the database
+   instance.
 
 .. js:function:: db.dropDatabase()
 
-.. js:function:: db.eval()
+   Removes (and deletes) the current database. Does not change the
+   current database, so the creation of any documents in this database
+   will create.
 
-   db.eval(func, args) run code server-side
+.. js:function:: db.eval(function, arguments)
+
+   :param JavaScript function:
+   :param arguments:
 
 .. js:function:: db.getCollection()
 
    db.getCollection(cname) same as db['cname'] or db.cname
 
-.. js:function:: db..getCollectionNames()
+.. js:function:: db.getCollectionNames()
 
 .. js:function:: db.getLastError()
 
@@ -267,7 +358,7 @@ Database
 
 .. js:function:: db.killOP()
 
-   db.killOp(opid) kills the current operation in the db
+   db.killOp(opid) kills the current operation in the db.
 
 .. js:function:: db.listCommands()
 
