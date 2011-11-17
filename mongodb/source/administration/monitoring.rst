@@ -375,6 +375,6 @@ lock. ::
 
      db.locks.find( { _id : "balancer" } )
 
-Ensure that this lock isn't stale.
+Ensure that this lock is being used and hasn't become stale.
 
 TODO figure out how to move forward with this.
