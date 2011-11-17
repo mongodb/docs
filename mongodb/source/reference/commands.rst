@@ -559,8 +559,8 @@ Collections
    If a collection has a cap on the number of documents and the size
    in bytes is reached first, older documents will be removed.
 
-   You can use the ``.createCollection()`` method in the shell to
-   access this functionality.
+   The :js:func:`db.createCollection` provides a wrapper function that
+   provides access to this functionality.
 
 .. describe:: convertToCapped
 
