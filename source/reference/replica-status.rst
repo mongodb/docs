@@ -22,8 +22,8 @@ Top Level Statuses
 
 .. describe:: set
 
-   The ``set`` value is the name of the replica set as configured in the
-   ``replSet`` option on the command line or the configuration file.
+   The ``set`` value is the name of the replica set, configured in the
+   :setting:`replSet` setting.
 
 .. describe:: date
 
@@ -56,8 +56,8 @@ Top Level Statuses
 
 .. describe:: members
 
-   The ``members`` field holds an array which contains a document for
-   every node in the replica set. See the ":ref:`Member Statuses
+   The ``members`` field holds an array that contains a document for
+   every in node the replica set. See the ":ref:`Member Statuses
    <repl-set-member-statuses>`" for an overview of the values included
    in these documents.
 
@@ -99,12 +99,15 @@ TODO determine if this is from the perspective of the current server or reported
 
    The ``lastHeartbeat`` value provides an :term:`ISODate` formatted
    date of the last heartbeat received from this node. Compare this
-   value to the value of the :status:`date` field to track replication
-   latency. This value is only present for remote nodes.
+   value to the value of the :status:`date` field to track latency
+   between these nodes.
+
+   This value is only present for remote nodes.
 
 .. describe:: pingMS
 
-   The ``pingMS`` value is only present for remote nodes, and
-   represents the number of milliseconds (ms) that a round-trip
-   packet takes to travel between the remote node and the current
-   node.
+   The ``pingMS`` represents the number of milliseconds (ms) that a
+   round-trip packet takes to travel between the remote node and the
+   current node.
+
+   This value is only present for remote nodes.
