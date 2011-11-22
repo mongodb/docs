@@ -21,30 +21,27 @@ Getting Started
 User Guides
 -----------
 
-- Schema Design
-- Database Administration
+.. toctree::
+   :maxdepth: 3
+
+   schema-design
+   optimization
+
 - Tutorials
 - Guides
 
 Core Documentation
 ------------------
 
-.. the following are notional documents that need to exist in the tree
-   for linking purposes but are drafts:
-
 .. toctree::
    :maxdepth: 3
 
-   map-reduce
-   replication
-   sharding
-   journaling
-   capped-collections
-
-- Interface
-- Aggregation
-- Optimization
-
+   core/replication
+   core/sharding
+   core/aggregation
+   core/map-reduce
+   core/journaling
+   core/capped-collections
 
 Administration and Deployment
 -----------------------------
@@ -55,8 +52,8 @@ Administration and Deployment
    administration/backups
    administration/import-export
    administration/monitoring
+   administration/security
    deployment/configuration
-   deployment/security-authentication
    deployment/operating-systems
    deployment/hardware-platform
 
@@ -104,22 +101,30 @@ MongoDB Programs
    utilities/mongofiles
    utilities/bsondump
 
+Statuses and Errors
+~~~~~~~~~~~~~~~~~~~
+
+.. toctree::
+   :maxdepth: 1
+
+   reference/server-status
+   reference/database-statistics
+   reference/collection-statistics
+   reference/replica-status
+   reference/replication-info
+   reference/error-codes
+
 General Reference
 ~~~~~~~~~~~~~~~~~
 
 .. toctree::
    :maxdepth: 1
 
+   reference/configuration-options
    reference/operators
-   reference/meta-query-operators
    reference/commands
    reference/javascript
-   reference/server-status
-   reference/replica-status
-   reference/database-statistics
-   reference/collection-statistics
-   reference/configuration-options
-   reference/error-codes
+   reference/meta-query-operators
    reference/glossary
 
 Indices
