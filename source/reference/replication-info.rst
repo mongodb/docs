@@ -3,9 +3,11 @@ Replication Info Reference
 ==========================
 
 The :js:func:`db.getReplicationInfo()` provides current status of the
-current replica status. Consider the values of this outut when
+current replica status. Consider the values of this output when
+diagnosing issues with replication.
 
-
+.. seealso:: ":doc:`/core/replication`" for more information on
+             replication.
 
 All Nodes
 ---------
@@ -20,7 +22,6 @@ Primary Nodes
 .. describe:: errmsg
 
 .. describe:: oplogMainRowCount
-
 
 ::
 

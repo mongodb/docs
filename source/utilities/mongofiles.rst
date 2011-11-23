@@ -2,6 +2,8 @@
 mongofiles Utility Manual
 =========================
 
+.. default-domain:: mongodb
+
 Synopsis
 --------
 
@@ -176,7 +178,7 @@ TODO in the help but doesn't makes sense in this context
    file being inserted into GridFS storage. In default operation,
    this is omitted.
 
-   Use only with :commands:`mongofiles put` operations.
+   Use only with :command:`mongofiles put` operations.
 
 .. option:: --replace, -r
 
