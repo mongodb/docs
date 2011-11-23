@@ -250,6 +250,58 @@ Spikes in the number of connections can also be the result of
 application or driver errors. Extremely high numbers of connections
 is often indicative of a driver or other configuration error.
 
+.. _database-profiling:
+
+Database Profiling
+~~~~~~~~~~~~~~~~~~
+
+MongoDB contains a database profiling system that can help identify
+inefficient queries and operations. Enable the profiler by setting the
+``profile`` value using one of the following command in the :option:`mongo`
+shell. These functions are equivalent: ::
+
+     db.runCommand( { profile: 1 } )
+     db.setProfilingLevel(1)
+
+The following profiling levels are available:
+
+=========  ==================================
+**Level**  **Setting**
+---------  ----------------------------------
+   0       Off. No profiling.
+   1       On. Only includes slow operations.
+   2       On. Includes all operations.
+=========  ==================================
+
+.. note::
+
+   Because the database profiler can have an impact on the
+   performance, and so should only be enabled for strategic intervals
+   and as minimally as possible on production systems.
+
+   Profiling is enabled on a per-:option:`mongod` basis. This setting
+   will not propagate throughout a :term:`replica set` or :term:`shard
+   cluster`.
+
+See the output of the profiler in the ``mongod`` log and use this
+information to optimize your queries and database. You you can specify
+the :mongodb:setting:`slowms` to set a threshold above which
+operations are considered "slow" and thus included in the level
+"``1``" profiling data. The output of the profiler is collected in the
+``system.profile`` collection. You can view the profiler with the
+"``show profile``" shell command :option:`mongo`. You can query the
+collection directly. For example the following command will return all
+operations that lasted longer than 100 milliseconds: ::
+
+     db.system.profile.find( { millis : { $gt : 100 } } )
+
+Ensure that the value specified here (i.e. ``100``) is above the
+:mongodb:setting:`slowms` threshold.
+
+.. seealso:: ":doc:`/optimization`" address strategies you can use to
+             improve the performance of your database queries and
+             operations.
+
 Replication and Monitoring
 --------------------------
 
@@ -308,7 +360,7 @@ several aspects of sharding operation that require additional
 monitoring.
 
 Administrators of shard clusters should generally be familiar with
-operation the of sharding in MongoDB. See the ":doc:`/sharding`"
+operation the of sharding in MongoDB. See the ":doc:`/core/sharding`"
 document for more information.
 
 Config Servers
