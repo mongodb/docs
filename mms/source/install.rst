@@ -258,7 +258,9 @@ the MMS agent.
   and initial data collection.
 
 - If your MongoDB instances run with authentication enabled, ensure
-  that MMS has these credentials.
+  that MMS has these credentials. Supply these credentials on the "Add
+  Host Interface" when adding a host or by clicking on the "Edit" host
+  button (i.e. the pencil) on the Hosts page in the MMS console.
 
 - If you continue to encounter problems, check the agent's output or
   logs for errors.
