@@ -118,3 +118,10 @@ Database Commands Used by Agent
 - config.settings.find
 - dbstats
 - db.locks
+
+PyMongo Error Codes
+-------------------
+
+.. describe:: 10057
+
+   Authentication error.
