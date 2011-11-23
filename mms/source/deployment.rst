@@ -58,6 +58,9 @@ that will allow you to change groups. Selecting a new group will
 refresh the current page with the data available from the servers in
 this group.
 
+Although it's not possible to delete a group, you can remove your user
+account from a group to suppress that data.
+
 Automated Agent Installation
 ----------------------------
 
