@@ -471,7 +471,7 @@ repl
    values only appear when replication is enabled for the current
    host.
 
-   See :doc:`/replication` for more information on replication.
+   See :doc:`/core/replication` for more information on replication.
 
 .. describe:: repl.setName
 
@@ -479,7 +479,7 @@ repl
    current replica set. This value is taken from ``--replSet`` command
    line argument, or ``replSet`` value in the configuration file.
 
-   See :doc:`/replication` for more information on replication.
+   See :doc:`/core/replication` for more information on replication.
 
 .. describe:: repl.ismaster
 
@@ -487,7 +487,7 @@ repl
    "``false``" and reflects whether the current node is the master or
    primary node in the replica set.
 
-   See :doc:`/replication` for more information on replication.
+   See :doc:`/core/replication` for more information on replication.
 
 .. describe:: repl.secondary
 
@@ -495,7 +495,7 @@ repl
    "``false``" and reflects whether the current node is a secondary
    node in the replica set.
 
-   See :doc:`/replication` for more information on replication.
+   See :doc:`/core/replication` for more information on replication.
 
 .. describe:: repl.hosts
 
@@ -503,7 +503,7 @@ repl
    current replica set. Each host in the list is displayed the form of
    "``"hostname:port"``".
 
-   See :doc:`/replication` for more information on replication.
+   See :doc:`/core/replication` for more information on replication.
 
 optcounters
 -----------
@@ -616,7 +616,7 @@ Durability
    regarding MongoDB's journaling. Journaling must be enabled for
    these data to appear in the output of "``ServerStatus``".
 
-   See :doc:`/journaling` for more information about journaling
+   See :doc:`/core/journaling` for more information about journaling
    operations.
 
 .. describe:: dur.commits

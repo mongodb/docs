@@ -10,13 +10,20 @@ Glossary
       and wire-trasmission format. For more information see
       `bsonspec.org <http://bsonspec.org/>`_.
 
-   Database Commands
+   database command
       MongoDB has database commands, which have a specific
       implementation, and allow you to control the database.
 
-   Operators
+   database commands
+      See :term:`database command`.
+
+   operator
       Operators provide tools for querying and manipulating
-      documents.
+      documents. See the ":doc:`/reference/operators`" for more
+      information about the available operators.
+
+   operators
+      See :term:`operator`.
 
    MongoDB
       A document-driven database.
@@ -104,6 +111,9 @@ Glossary
    shard cluster
       A collection of MongoDB instances with a dataset partitioned
       or ":term:`sharded`" among a set of nodes.
+
+   shard clusters
+      See :term:`shard cluster`.
 
    mongod
       ``mongod`` is the daemon that runs MongoDB database
@@ -407,3 +417,38 @@ Glossary
       In relational databases, primary keys are guaranteed to be unique
       identifiers for a specific data instance: for each row in a
       relational table, or for each document in a MongoDB document.
+
+   firewall
+      A system level networking filter that limits higher-level
+      applications and servers from accessing larger networks and
+      interfaces. Firewalls are part of effective network security
+      strategy.
+
+   database profiling
+      A diagnostic system used to analyze database performance and
+      used to help optimize queries.
+
+   profiling
+      See :term:`database profiling`.
+
+   shard key
+      The unique key used to distribute documents among members of the
+      :term:`shard cluster`.
+
+   query
+      Queries are requests that return a selection of documents from
+      the database system. For MongoDB, queries are specified using
+      :term:`JSON` documents and a collection of :term:`operators` to
+      describe documents. In the :option:`mongo` shell, queries are
+      issued using the :js:func:`find()` and :js:func:`findOne()`
+      functions.
+
+   projection
+      A component of complex queries that controls the content that a
+      a :term:`query` returns, in cases when the entire contents of a
+      :term:`document` is not required.
+
+   pre-splitting
+      When deploying a :term:`shard cluster`, it is sometimes
+      necessary to expedite the initial distribution of documents
+      among shards. This process is referred to as "pre-splitting."

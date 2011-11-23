@@ -30,8 +30,8 @@ User Guides
 - Tutorials
 - Guides
 
-Core Documentation
-------------------
+Core Concepts and Functionality
+-------------------------------
 
 .. toctree::
    :maxdepth: 3
