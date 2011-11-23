@@ -41,20 +41,20 @@ Consider the following basic configuration: ::
      logappend = true
      journal = true
 
-This includes the following settings. For most standalone servers,
-this is a sufficient base configuration. It makes the following
-assumptions to set these configuration variables.
+For most standalone servers, this is a sufficient base
+configuration. It makes several assumptions, but consider the
+following explanation of this configuration:
 
 - :mongodb:setting:`fork`" Is set to ``true`` to enable a :term:`daemon` mode
   for ``mongod``, which detaches (i.e. "forks") the MongoDB from the
   current session and allows you to run the database as a conventional
   server.
 
-- ":mongodb:setting:`bind_ip`" is set to ``127.0.0.1`` and forces the server
-  to only listen for requests on the localhost IP. Ideally, the server
-  should only bind to secure interfaces that specific
-  application-level systems can access, with access control provided
-  by system network filtering (i.e. ":term:`firewall`) systems.
+- ":mongodb:setting:`bind_ip`" is set to ``127.0.0.1`` and forces the
+  server to only listen for requests on the localhost IP. Ideally, the
+  server should only bind to secure interfaces that specific
+  application-level systems can access with access control provided by
+  system network filtering (i.e. ":term:`firewall`) systems.
 
 - :mongodb:setting:`port` is set to ``27017``, which is the default
   MongoDB port for database instances. MongoDB can bind to any port
@@ -84,21 +84,52 @@ assumptions to set these configuration variables.
   the server start operation.
 
 - :mongodb:setting:`journal` is set to ``true`` to enable
-  :doc:`journaling <journaling>` which ensures single instance
+  :doc:`journaling </core/journaling>` which ensures single instance
   write-durability. On 64-bit systems, this is enabled by default and
   thus may be a redundant setting.
 
 In some cases these settings may be redundant, given the default
-configuration; however, in many cases explicitly stating your
-configuration increases intelligibility of configuration.
+configuration; however, in many situations explicitly stating the
+configuration increases overall system intelligibility.
 
 Security Considerations
 -----------------------
 
-- running
-- bind_ip
-- port
-- keyfile
+The following collection of configuration options are useful for
+limiting access to a ``mongod`` instance. Consider the following: ::
+
+     bind_ip = 127.0.0.1
+     bind_ip = 10.8.0.10
+     bind_ip = 192.168.4.24
+     nounixsocket = true
+     auth = true
+
+Consider the following rational and explanation for these
+configuration decisions:
+
+- ":mongodb:setting:`bind_ip`" is set to ``127.0.0.1``, the localhost
+  interface, ``10.8.0.10``, a private IP address typically used for
+  local networks and VPN interfaces, and ``192.168.4.24``, a private
+  network interface typically used for local networks.
+
+  Because production MongoDB instances need to be accessible from
+  multiple database servers, it is important to bind MongoDB to
+  multiple interfaces that are accessible from your application
+  servers. At the same time it's important to limit these interfaces
+  to controlled interfaces that are protected at the network layer.
+
+- ":mongodb:setting:`nounixsocket`" is set to ``true`` to disable to
+  UNIX Socket, which is otherwise enabled by default. This limits
+  access on the local system where. This is desirable when running
+  MongoDB on with shared access, but in most situations has minimal
+  impact.
+
+- ":mongodb:setting:`auth`" is set to ``true`` to enable the
+  authentication system within MongoDB. If enabled you will need to
+  login connecting over the ``localhost`` interface to create user
+  credentials.
+
+.. seealso:: ":doc:`/administration/security`"
 
 Replication and Sharding Configuration
 --------------------------------------
@@ -106,29 +137,103 @@ Replication and Sharding Configuration
 Replication Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- replset
+:term:`Replica set` configuration is very straightforward, and only
+requires that the :mongodb:setting:`replSet` have a value that is consistent
+among all members of the staff. Consider the following: ::
+
+     replSet = set0
+
+Use descriptive names for sets. Once configured use the
+:option:`mongo` shell to add hosts to the replica set. For a more
+typical replica set configuration consider the following: ::
+
+     replSet = set1/peer0.example.net,peer1.example.net:27018,peer3.example.net
+
+Here, the ``replSet`` contains a set name (i.e. "``set1``") followed
+by a slash (i.e. "``/``") and a comma separated list of hostnames of
+set members, with optional port names. This list of hosts serves as a
+"seed," from which this host will derive the replica set
+configuration. Additional nodes can be added to the configuration
+using :js:func:`rs.reconfig()` function.
+
+To enable authentication for the replica set, add the following
+option: ::
+
+     auth = true
+     keyfile = /srv/mongodb/keyfile
+
+.. versionadded:: 1.8 for replica sets, and 1.9.1 for sharded replica sets.
+
+Setting :mongodb:setting:`auth` to ``true`` enables authentication,
+while :mongodb:setting:`keyfile` specifies a key file to be used by
+the replica set members to authenticate to each other. The content is
+arbitrary and must be under one kilobyte and contain characters in the
+base64 set, and the file must not have group or "world" permissions on
+UNIX systems. Use the following command to use the OpenSSL package to
+generate a "random" key file: ::
+
+     openssl rand -base64 753
+
+.. note:: Keyfile permissions are not checked on Windows systems.
+
+.. seealso:: ":doc:`/core/replication`" for more information on
+   replication and replica set configuration.
 
 Sharding Configuration
 ~~~~~~~~~~~~~~~~~~~~~~
 
-- shardsvr
-- configsvr
-- configdb
-- chunkSize
+Sharding requires a number of nodes with slightly different
+configurations. The config servers stores the cluster's metadata,
+while the data is distributed among one or more shard servers.
+
+To set up one or three "config server" instances as normal
+:option:`mongod` nodes, and then add the following configuration
+option: ::
+
+     configsrv = true
+
+     bind_ip = 10.8.0.12
+     port = 27001
+
+This creates a config server running on the private IP address
+``10.8.0.12`` on port ``27001``. Make sure that there are no port
+conflicts, and that your config server is accessible from all of your
+":option:`mongos`" and ":option:`mongod`" instances.
+
+To set up shards, configure two or more :option:`mongod` nodes
+normally, but add the following configuration: ::
+
+     shardsvr = true
+
+Finally, to establish the cluster configure at least one
+:option:`mongos` process with the following settings: ::
+
+     configdb = 10.8.0.12:27001
+     chunkSize = 64
+
+You can specify multiple :mongodb:setting:`configdb` instances by
+specifying a comma separated list. In general you should not modify
+the :mongodb:setting:`chunkSize` from its default of 64, and *should*
+ensure this setting is consistent among all :option:`mongos`
+instances.
+
+.. seealso:: ":doc:`/core/sharding`" for more information on sharding
+   and shard cluster configuration.
 
 Running Multiple Database Instances on the Same System
 ------------------------------------------------------
 
-- dbpath
-- pidpath
+     dbpath
+     pidpath
 
 Diagnostics Configurations
 --------------------------
 
-- slowms
-- objcheck
-- cpu
-- profile
-- verbose
-- logpath, logapend
-- dialog
+     slowms = 50ms
+     objcheck = true
+     cpu =
+     profile = 3
+     verbose =
+     logpath =
+     logapend = true
+     dialog =
