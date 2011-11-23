@@ -110,7 +110,7 @@ TODO understand what this does.
 
    Specify the path to a key file to store authentication
    information. This option is only useful for the connection between
-   replica set members. See the ":doc:`/replication`" documentation
+   replica set members. See the ":doc:`/core/replication`" documentation
    for more information.
 
 TODO insert link to replication documentation when it exists.
@@ -140,8 +140,8 @@ TODO insert link to replication documentation when it exists.
    will continue to have access to the database until a user has been
    created.
 
-   See the ":doc:`/administration/security-authentication`" document
-   for more information regarding this functionality.
+   See the ":doc:`/administration/security`" document for more
+   information regarding this functionality.
 
 .. option:: --cpu
 

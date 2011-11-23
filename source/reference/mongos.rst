@@ -14,7 +14,7 @@ identically to any other MongoDB instance.
 
 .. seealso::
 
-   See the ":doc:`/sharding`" for more information regarding MongoDB's
+   See the ":doc:`/core/sharding`" for more information regarding MongoDB's
    sharding functionality.
 
 Options
@@ -111,7 +111,7 @@ Options
 
    Specify the path to a key file to store authentication
    information. This option is only useful for the connection between
-   replica set members. See the ":doc:`/replication`" documentation
+   replica set members. See the ":doc:`/core/replication`" documentation
    for more information.
 
 TODO insert link to replication documentation when it exists.

@@ -125,7 +125,7 @@ TODO factcheck maxcons
 
    Specify the path to a key file to store authentication
    information. This option is only useful for the connection between
-   replica set members. See the ":doc:`/replication`" documentation
+   replica set members. See the ":doc:`/core/replication`" documentation
    for more information.
 
 .. option:: nounixsocket
@@ -170,7 +170,7 @@ TODO factcheck maxcons
 
 .. option:: dbpath
 
-   *Default:* /data/db/
+   *Default:* ``/data/db/``
 
    Set this value to designate a directory for the ``mongod`` instance
    to store its data. Typically locations such as: "``/srv/mognodb``",
@@ -321,10 +321,9 @@ TODO factcheck maxcons
       2       On. Includes all operations.
    =========  ==================================
 
-   Profiling is off by default. Database profiling can impact database
-   performance, and can cause potentially sensitive information to be
-   written to the log. Enable this option only after careful
-   consideration.
+   Profiling is disabled by default. Database profiling can impact
+   database performance, because all database operations need to be
+   logged to disk. Enable this option only after careful consideration.
 
 .. option:: quota
 
@@ -584,3 +583,4 @@ Sharding Cluster Options
    it may be neccessary to set a different chunk size.
 
    This setting only affects :option:`mongos` processes.
+
