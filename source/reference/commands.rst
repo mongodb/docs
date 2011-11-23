@@ -56,7 +56,7 @@ Sharding
         disk capacities, or if you want to limit the amount of data on
         some shards.
 
-   See :doc:`/sharding` for more information related to sharding.
+   See :doc:`/core/sharding` for more information related to sharding.
 
 .. describe:: listShards
 
@@ -65,7 +65,7 @@ Sharding
 
         { listShards: 1 }
 
-   See :doc:`/sharding` for more information related to sharding.
+   See :doc:`/core/sharding` for more information related to sharding.
 
 .. describe:: enableSharding
 
@@ -78,7 +78,7 @@ Sharding
    the :command:`shardCollection` to begin the process of distributing
    data among the shards.
 
-   See :doc:`/sharding` for more information related to sharding.
+   See :doc:`/core/sharding` for more information related to sharding.
 
 .. describe:: shardCollection
 
@@ -95,7 +95,7 @@ Sharding
 
    Choosing the right shard key to effectively distribute load among
    your shards can be challenging to do properly. See
-   :doc:`/sharding` for more information related to sharding and
+   :doc:`/core/sharding` for more information related to sharding and
    choosing the shard key.
 
    .. warning::
@@ -114,9 +114,17 @@ Sharding
 
    The value specified does not effect the output of the command.
 
-   See :doc:`/sharding` for more information related to sharding.
+   See :doc:`/core/sharding` for more information related to sharding.
 
    .. admin-only
+
+.. describe:: removeshard
+
+TODO document removeshard
+
+.. describe:: moveprimary
+
+TODO document moveprimary
 
 Aggregation
 ~~~~~~~~~~~
@@ -211,14 +219,14 @@ Aggregation
 
    Only the ``map`` and ``reduce`` options are required, all other
    fields are optional. The ``map`` and ``reduce`` functions are
-   written in JavaScript. See :doc:`/map-reduce` for more information
+   written in JavaScript. See :doc:`/core/map-reduce` for more information
    on using the ``mapReduce`` command.
 
    .. slave-ok
 
 .. describe:: mapreduce.shardedfinish
 
-   See :doc:`/map-reduce` for more information on mapReduce
+   See :doc:`/core/map-reduce` for more information on mapReduce
    operations.
 
    .. slave-ok
@@ -349,8 +357,8 @@ Replication
 
    .. slave-ok, admin-only
 
-   See the ":doc:`/replication`" document for more information about
-   replication.
+   See the ":doc:`/core/replication`" document for more information
+   regarding replication.
 
 .. describe:: replSetGetStatus
 
@@ -362,9 +370,9 @@ Replication
 
    .. slave-ok, admin-only
 
-   See the ":doc:`/replication`" document for more information about
-   replication, and the ":doc:`/reference/replica-status`" document for more
-   information on the output of this command .
+   See the ":doc:`/core/replication`" document for more information
+   regarding replication, and the ":doc:`/reference/replica-status`"
+   document for more information on the output of this command .
 
 .. describe:: replSetInitiate
 
@@ -393,7 +401,7 @@ Replication
 
    .. slave-ok, admin-only
 
-   See the ":doc:`/replication`" document for more information about
+   See the ":doc:`/core/replication`" document for more information regarding
    replication.
 
 .. describe:: replSetReconfig
@@ -423,7 +431,7 @@ Replication
    - In some situations, a ``replSetReconfig`` can cause the current
      shell to disconnect. Do not be alarmed.
 
-   See the ":doc:`/replication`" document for more information about
+   See the ":doc:`/core/replication`" document for more information regarding
    replication.
 
    .. slave-ok, admin-only
@@ -444,8 +452,8 @@ Replication
 
    .. slave-ok, admin-only
 
-   See the ":doc:`/replication`" document for more information about
-   replication.
+   See the ":doc:`/core/replication`" document for more information
+   regarding replication.
 
 Geolocation
 ~~~~~~~~~~~
@@ -850,8 +858,8 @@ Administration
    not running with journaling and you experience an unexpected system
    restart or crash, you should run the ``repairDatabase`` command to
    ensure that there are no errors in the data storage. Additionally,
-   the ``repairDatabase`` command will compact the database similar to
-   the functioning of :command:`compact`. Issue the command with the
+   the ``repairDatabase`` command will compact the database, providing
+   functionality equivalent to the :command:`compact` command. Use the
    following syntax.
 
         { repairDatabase: 1 }
@@ -899,10 +907,10 @@ Administration
       connection on localhost, or the connection must be
       authenticated.
 
-   For :doc:`replica set </replication>` users, if the current node is
-   primary and no other members of the set are less than 10 seconds
-   behind the node then the server will not shut down without a
-   "force" option. See the following example: ::
+   For :doc:`replica set </core/replication>` users, if the current
+   node is primary and no other members of the set are less than 10
+   seconds behind the node then the server will not shut down without
+   a "force" option. See the following example: ::
 
         { shutdown: 1, force: true }
 
@@ -967,7 +975,7 @@ TODO is the password an option here?
    .. note::
 
       If you're not logged on using authentication this command will
-      not have any effect.
+      have no effect.
 
 .. describe:: logRotate
 
@@ -985,12 +993,12 @@ TODO is the password an option here?
    You may also rotate the logs by sending the ``mongod`` process the
    ``SIGUSR1`` signal.
 
+   Rotated files have a number appended to the file name.
+
    .. note::
 
      The ``logRotate`` command is not available to mongod instances
      running on windows systems.
-
-TODO does logRotate remove the old files or rename them?
 
 .. describe:: setParameter
 
@@ -1069,11 +1077,10 @@ Diagnostics
    scaled. For example, specify a "``scale``" value of "``1024``" to
    display kilobytes rather than bytes.
 
-   The ``mongo`` shell provides the following helper method. for
-   ``dbStats``. The following helper method is equivalent to the
-   example above: ::
-
-        db.stats()
+   In the ``mongo`` shell the :js:func:`db.stats()` function provides
+   a wrapper around this functionality. See the
+   ":doc:`/reference/database-statistics`" document for an overview of
+   this output.
 
 .. describe:: connPoolStats
 
@@ -1185,9 +1192,9 @@ TODO factcheck; the options on the REST interface and wiki differ
    output of the command. The following options are available:
 
    - "``fsync: true``" run an :command:`fsync` before returning. If
-     your database is running with :doc:`journaling </journaling>`,
-     this option will instead wait for the next journal commit before
-     returning.
+     your database is running with :doc:`journaling
+     </core/journaling>`, this option will instead wait for the next
+     journal commit before returning.
    - "``j: true``" waits for the next journal commit before
      returning.
    - "``w: <n>``" waits for replication to "``<n>``" number of
@@ -1292,23 +1299,23 @@ TODO no documentation exists, and the response I get is the above
         { serverStatus: 1 }
 
    The value (i.e. ``1`` above), does not effect the operation of the
-   command. You may also access this command with the following shell
-   helper: ::
+   command.
 
-        db.serverStatus();
-
-   For more information about the output of this command, see the
-   ":doc:`/reference/server-status`" documentation.
+   .. seealso:: :js:func:`db.serverStatus()` and ":doc:`/reference/server-status`"
 
 .. describe:: resetError
 
    The ``resetError`` command resets the error status. Use this
-   command with :command:`getpreverror``
+   command with :command:`getPrevError`` command.
 
-.. describe:: getpreverror
+   .. seealso:: :js:func:`db.resetError()`
+
+.. describe:: getPrevError
 
    The ``getPrevError`` command returns the errors since the last
    :command:`resetError` command.
+
+   .. seealso:: :js:func:`db.getPrevError()`
 
 .. describe:: forceerror
 
@@ -1328,6 +1335,14 @@ TODO no documentation exists, and the response I get is the above
    - ``1`` - on; log slow operations only.
    - ``2`` - on; log all operations.
    - ``-1`` - return the current profiling level.
+
+   .. seealso:: Additional documentation regarding database profiling
+                :ref:`Database Profiling <database-profiling>`.
+
+   .. seealso:: ":js:func:`db.getProfilingStatus()`" and
+                ":js:func:`db.setProfilingLevel()`" provide wrappers
+                around this functionality in the :option:`mongo`
+                shell.
 
 .. describe:: listCommands
 
@@ -1540,9 +1555,9 @@ TODO factcheck (minor)
 
 .. describe:: splitChunk
 
-   ``splitChunk`` is an internal command.
-
-TODO splitChunk has some documentation in the RESTfull command list, should it be included here?
+   ``splitChunk`` is an internal command. Use the
+   :js:func:`sh.splitFind()` and :js:func:`splitAt()` functions in the
+   :option:`mongo` shell to access this functionality.
 
    .. admin-only.
 
@@ -1562,7 +1577,9 @@ TODO splitChunk has some documentation in the RESTfull command list, should it b
 .. describe:: moveChunk
 
    ``moveChunk`` is an internal command that supports the sharding
-   functionalty and should not be called directly.
+   functionalty and should not be called directly. Use the
+   :js:func:`sh.moveChunk()` function in the :option:`mongo` shell to
+   access this functionality.
 
    .. admin-only
 
