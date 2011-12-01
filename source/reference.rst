@@ -83,6 +83,8 @@ Status Page
 - opcounters-repl
 - opcounters
 
+.. _db-stats-list:
+
 DB Stats Page
 ~~~~~~~~~~~~~
 
