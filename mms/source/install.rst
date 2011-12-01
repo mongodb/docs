@@ -119,6 +119,11 @@ Unzip the archive and run the agent with the following command: ::
 This starts two processes: a parent to monitor the agent daemon and
 perform automatic upgrades and a child process to collect data.
 
+.. warning:: If your MongoDB instance has thousands of databases or
+             collections, you will want to disable database statistics
+             collection. See ":ref:`Database and Collection statistics
+             <db-stats-warning>`" for more information.
+
 Running the MMS Agent
 ~~~~~~~~~~~~~~~~~~~~~
 

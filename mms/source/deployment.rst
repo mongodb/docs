@@ -31,6 +31,21 @@ installation process in the :doc:`installation guide </install>` for
 each new agent. See instructions for automating the agent installation
 in the next section.
 
+.. _db-stats-warning:
+
+Database and Collection Statistics
+----------------------------------
+
+In most cases MMS can intelligently scale it's request cycle for more
+expensive statistics gathering, to limit it's impact. However, in
+cases where MongoDB instances have thousands of databases and/or
+collections, getting collection level statistics will hinder your
+database's performance and could potentially incapacitate the agent.
+
+In these situations you must disable database stats collection. See
+the "DB Stats" section on the "Settings" page in the MMS Console
+before starting your agent.
+
 .. _mms-groups:
 
 Multiple Environments
