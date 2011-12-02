@@ -13,26 +13,33 @@ Query and Update Functions
 
 .. js:function:: find(query,projection)
 
-   :param JSON query: A JSON document that specifies the :term:`query`
-                     using valid JSON and :doc:`query operators
-                     </reference/operators>`.
+   :param JSON query: A :term:`JSON document` that specifies the
+                     :term:`query` using valid :term:`JSON` and
+                     :doc:`query operators </reference/operators>`.
 
    :param JSON projection: A JSON document that controls the
                            :term:`projection`, or the contents of the
                            data returned.
+
+   :returns: All of the documents that match the ``query`` document.
 
    Provides access to querying functionality. The argument to
    ``find()`` takes the form of a :term:`JSON` document. See the
    ":doc:`/reference/operators`" for an overview of the available
    operators to provide query functionality.
 
-.. js:function:: findOne()
+.. js:function:: findOne(query)
 
-   Returns only one document that satisfies the query specified as the
-   argent to this function. If there are multiple documents that
-   satisfy the query, this method returns the first document according
-   to the :term:`natural order` or insertion order in :term:`capped
-   collections`.
+   :param JSON query: A JSON document that specifies the :term:`query`
+                     using valid JSON and :doc:`query operators
+                     </reference/operators>`.
+
+   :returns: One document that satisfies the query specified as the
+             argument to this function.
+
+   If multiple documents satisfy the query, this method returns the
+   first document according to the :term:`natural order` or insertion
+   order in :term:`capped collections <capped collection>`.
 
 .. js:function:: save()
 
@@ -61,22 +68,28 @@ TODO expand with greater understanding of cursors
 
 .. js:function:: size()
 
-   Returns a count of the number of documents that match the
-   :js:func:`find()` query.
+   :returns: A count of the number of documents that match the
+             :js:func:`find()` query.
 
 .. js:function:: explain()
 
-   Returns a document that describes the process used to return the
-   query. This may provide useful insight when attempting to optimize
+   :returns: A document that describes the process used to return the
+             query.
+
+   This method may provide useful insight when attempting to optimize
    a query.
 
-   See :mongodb:operator:`$explain` for related functionality.
+   .. seealso:: :mongodb:operator:`$explain` for related functionality
+                and ":doc:`/optimization`" regarding optimization
+                strategies.
 
 .. js:function:: showDiskLoc()
 
-   Returns a document that describes the on-disk location of the
-   objects returned by the query. See :mongodb:operator:`$showDiskLoc`
-   for related functionality.
+   :returns: A document that describes the on-disk location of the
+             objects returned by the query.
+
+   .. seealso:: :mongodb:operator:`$showDiskLoc` for related
+                functionality.
 
 .. js:function:: forEach()
 
@@ -87,7 +100,7 @@ TODO expand with greater understanding of cursors
 
          db.users.find().forEach( function(u) { print("user: " + u.name); } );
 
-   See :js:func:`map()` for similar functionality.
+   .. seealso:: :js:func:`map()` for similar functionality.
 
 .. js:function:: map()
 
@@ -98,11 +111,13 @@ TODO expand with greater understanding of cursors
 
          db.users.find().map( function(u) { print("user: " + u.name); } );
 
-   See :js:func:`forEach()` for similar functionality.
+   .. seealso:: :js:func:`forEach()` for similar functionality.
 
 .. js:function:: hasNext()
 
-   This function returns ``true``, if the cursor returned by the
+   :returns: boolean.
+
+   ``hasNext()`` returns ``true`` if the cursor returned by the
    :js:func:`find()` query contains documents that can be iterated
    over to return results.
 
@@ -208,7 +223,7 @@ Database
    :param boolean readOnly: Optionally restricts a user to read-privileges
                             only. Defaults to false.
 
-   Use this command to create new database users, by specifying a
+   Use this function to create new database users, by specifying a
    username, password as arguments to the command. If you want to
    restrict this user to only have read-only privileges; however, this
    defaults to false.
@@ -250,8 +265,7 @@ Database
    :param command: Specifies a :doc:`database command name
                    </reference/commands>`.
 
-   Returns help text for a :doc:`database commands
-   </reference/commands>`.
+   :returns: Help text for a :doc:`database commands </reference/commands>`.
 
 .. js:function:: db.copyDatabase(origin, destination, hostname)
 
@@ -317,8 +331,10 @@ Database
 
 .. js:function:: db.currentOp()
 
-   Returns a document containing the field "``inprog``" which contains
-   an array that reports the current operation in the database
+   :returns: A :term:`JSON` document that contains an array named
+             "``inprog``".
+
+   The ``inprog`` array reports the current operation in the database
    instance.
 
 .. js:function:: db.dropDatabase()
@@ -348,21 +364,23 @@ Database
 
 .. js:function:: db.getCollection(name)
 
-   :param name: the name of a collection.
+   :param name: The name of a collection.
 
-   Returns the name of a collection. This is useful collections that
-   may interact with the shell itself, including collections with
-   names that begin with "``_``" or mirror the :doc:`database commands
+   :returns: The name of a collection.
+
+   Use this command to describe collections that may interact with the
+   shell itself, including collections with names that begin with
+   "``_``" or mirror the :doc:`database commands
    </reference/commands>`.
 
 .. js:function:: db.getCollectionNames()
 
-   Returns an array containing all collections in the existing
-   database.
+   :returns: An array containing all collections in the existing
+             database.
 
 .. js:function:: db.getLastError()
 
-   Returns the last error message as a string.
+   :returns: The last error message as a string.
 
    In many situation MongoDB drivers and users will, attach this
    command to a write operation to ensure that writes succeed. Using
@@ -370,14 +388,15 @@ Database
 
 .. js:function:: db.getLastErrorObj()
 
-   Returns a full JSON document with status information.
+   :returns: A full JSON document with status information.
 
 .. js:function:: db.getMongo()
 
-   Returns the current connection status. This is returned when the
-   MongoDB starts. Use this command to ensure that your
-   :option:`mongo` instance is connected to the proper database
-   instance.
+   :returns: The current connection status.
+
+   This is returned when the shell initiates. Use this command to
+   ensure that your :option:`mongo` instance is connected to the
+   proper database instance.
 
 .. js:function:: db.getMongo().setSlaveOk()
 
@@ -390,13 +409,15 @@ Database
 
 .. js:function:: db.getName()
 
-   Returns the current database name.
+   :returns: the current database name.
 
 .. js:function:: db.getPrevError()
 
-   Returns a status document, containing the errors since the last
-   time the :mongodb:command:`resetError` (also
-   :js:func:`db.resetError()`) command was issued.
+   :returns: A status document, containing the errors.
+
+   This output reports all errors since the last time the
+   :mongodb:command:`resetError` (also :js:func:`db.resetError()`)
+   command was issued.
 
    This command provides a wrapper around the
    :mongodb:command:`getPrevError` command.
@@ -412,15 +433,16 @@ Database
 
 .. js:function:: db.getProfilingStatus()
 
-   Returns a document with two fields that contain the current
-   :mongodb:command:`profile` level and the current
-   :mongodb:setting:`slowms` setting.
+   :returns: The current :mongodb:command:`profile` level and
+             :mongodb:setting:`slowms` setting.
 
 .. js:function:: db.getReplicationInfo()
 
-   Returns a status document that contains statistics related to
-   replication documented in the ":doc:`/reference/replication-info`"
-   document.
+   :returns: A status document.
+
+   This output reports statistics related to replication. These values
+   are documented in
+   the ":doc:`/reference/replication-info`" document.
 
 .. js:function:: db.getSiblingDB()
 
@@ -447,7 +469,7 @@ Database
    authenticated.
 
    This function provides a wrapper around the database command
-   ":mongodb:commands:`logout`".
+   ":mongodb:command:`logout`".
 
 .. js:function:: db.printCollectionStats()
 
@@ -538,7 +560,7 @@ Database
    .. seealso:: ":doc:`/reference/server-status`" for complete
       documentation of the output of this function.
 
-.. js:function:: db.setProfilingLevel(level,slowms)
+.. js:function:: db.setProfilingLevel(level, [slowms])
 
    :param level: Specify a profiling level, see list of possible
                  values below.
@@ -546,7 +568,7 @@ Database
    :param slowms: Optionally modify the threshold for a query or
                   operation to be considered "slow."
 
-   Modifies the current :term:`database profiling` level which allows
+   Modifies the current :term:`database profiler` level. This allows
    administrators to capture data regarding performance. The database
    profiling system can impact performance and can allow the server to
    write the contents of queries to the log, which might information
@@ -590,8 +612,8 @@ Database
                           results. Unless specified, all data are
                           reported in bytes.
 
-   Returns a document containing statistics that reflect the state of
-   the entire database system.
+   :returns: A :term:`JSON document` that contains statistics
+             reflecting the database system's state.
 
    This function provides a wrapper around the database command
    ":mognodb:command:`dbstats`". The "``scale``" option allows you to
@@ -611,8 +633,8 @@ Database
    :param collection: Specify the name of the collection in the
                       function call.
 
-   Returns a document containing statistic that reflect the state of
-   the specified collection.
+   :returns: A :term:`JSON document` containing statistics that
+             reflecting the state of the specified collection.
 
    This function provides a wrapper around the database command
    :mongodb:command:`collstats`. The "``scale``" option allows you to
@@ -625,7 +647,7 @@ Database
 
 .. js:function:: db.version()
 
-   Returns the version of the :option:`mongod` instance.
+   :returns: The version of the :option:`mongod` instance.
 
 .. js:function:: db.fsyncLock()
 
@@ -653,8 +675,8 @@ Sharding
 ~~~~~~~~
 
 .. seealso:: ":doc:`/core/sharding`" for more information on the
-   sharding technology and methods for creating :term:`shard
-   clusters`.
+   sharding technology and methods for creating :term:`shard clusters
+   <shard cluster>`.
 
 .. js:function:: sh.addShard(host)
 
@@ -771,17 +793,23 @@ TODO it looks like unique has no impact.
                          and ``false`` disables the balancer.
 
    Enables or disables the :term:`balancer`. Use
-   :js:func:`sh.getBalancerState()` to check the current state of the
-   balancer.
+   :js:func:`sh.getBalancerState()` to determine if the balancer is
+   currently enabled or disabled and :js:func:`sh.isBalancerRunning()`
+   to check its current state.
 
 .. js:function:: sh.getBalancerState()
 
-   Returns true if the :term:`balancer` is enabled and false if the
-   balancer is disabled. This does not reflect the current state of
-   balancing operations: use :js:func:`sh.isBalancerRunning()` to
-   check current state.
+   :returns: boolean.
+
+   ``sh.getBalancerState()`` returns true if the :term:`balancer` is
+   enabled and false if the balancer is disabled. This does not
+   reflect the current state of balancing operations: use
+   :js:func:`sh.isBalancerRunning()` to check the balancer's current
+   state.
 
 .. js:function:: sh.isBalancerRunning()
+
+   :returns: boolean.
 
    Returns true if the :term:`balancer` process is currently running
    and migrating chunks and false if the balancer process is not
@@ -790,148 +818,406 @@ TODO it looks like unique has no impact.
 
 .. js:function:: sh.status()
 
-   Provides a formatted report of the status of the shards and the
-   information regarding the chunks of the database for the current
-   :term:`shard cluster`.
+   :returns: a formatted report of the status of the :term:`shard
+             cluster`, including data regarding the distribution of
+             chunks.
 
 .. js:function:: sh.help()
 
-   Returns a basic help text.
+   :returns: a basic help text for all sharding related shell
+             functions.
 
 Replica Sets
 ~~~~~~~~~~~~
 
+.. seealso:: ":doc:`/core/replication`" for more information regarding
+   replication.
+
 .. js:function:: rs.status()
-   rs.status()                     { replSetGetStatus : 1 } checks repl set status
 
-.. js:function:: rs.initiate()
+   :returns: A :term:`JSON document` with status information.
 
-   rs.initiate()                   { replSetInitiate : null } initiates set with default settings
-   rs.initiate(cfg)                { replSetInitiate : cfg } initiates set with configuration cfg
+   This output reflects the current status of the replica set.
 
-.. js:function:: rs.conf()
+   This command provides a wrapper around the
+   :mongodb:command:`replSetGetStatus` :term:`database command`.
 
-   rs.conf()                       get the current configuration object from local.system.replset
+   .. seealso:: ":doc:`/reference/replica-status`" for documentation
+                of this output.
 
-.. js:function:: rs.reconfig()
+.. js:function:: rs.initiate(configuration)
 
-   rs.reconfig(cfg)                updates the configuration of a running replica set with cfg (disconnects)
+   :param JSON,optional configuration: A :term:`JSON document` that
+                                       specifies the configuration of
+                                       a replica set. If not
+                                       specified, a default
+                                       configuration is used.
 
-   reconfiguration helpers disconnect from the database so the shell will display
-   an error, even if the command succeeds.
+   Initiates a replica set. Optionally takes a configuration argument
+   in the form of a :term:`JSON document` that holds the configuration
+   of a replica set. Consider the following model of the most basic
+   configuration for a 3-member replica set: ::
 
-.. js:function:: rs.add()
+          {
+              _id : <setname>,
+               members : [
+                   {_id : 0, host : <host0>},
+                   {_id : 1, host : <host1>},
+                   {_id : 2, host : <host2>},
+               ]
+          }
 
-   rs.add(hostportstr)             add a new member to the set with default attributes (disconnects)
-   rs.add(membercfgobj)            add a new member to the set with extra attributes (disconnects)
+   This function provides a wrapper around the
+   ":mongodb:command:`replSetInitiate`" :term:`database command`.
 
-.. js:function:: rs.addArb()
+.. js:function:: rs.conf(configuration)
 
-   rs.addArb(hostportstr)          add a new member which is arbiterOnly:true (disconnects)
+   :returns: a :term:`JSON document` that contains the current
+             :term:`replica set` configuration object.
 
-.. js:function:: rs.stepDown()
+.. js:function:: rs.reconfig(configuration)
 
-   rs.stepDown([secs])             step down as primary (momentarily) (disconnects)
+   :param JSON configuration: A :term:`JSON document` that specifies
+                              the configuration of a replica set.
 
-.. js:function:: rs.freeze()
+   Initializes a new :term:`replica set` configuration. This function
+   will disconnect the shell briefly and forces a reconnection as the
+   replica set renegotiates negotiates which node will be
+   :term:`primary`. As a result, the shell will display an error even
+   if this command succeeds.
 
-   rs.freeze(secs)                 make a node ineligible to become primary for the time specified
+   This function will overwrite the existing replica set
+   configuration. Use :js:func:`rs.status()` to retrieve the current
+   status, and consider the following procedure for modifying a
 
-.. js:function:: rs.remove()
+   This function provides a wrapper around the
+   ":mongodb:command:`replSetReconfig`" :term:`database command`.
 
-   rs.remove(hostportstr)          remove a host from the replica set (disconnects)
+.. js:function:: rs.add(host,configuration)
+
+   Specify one of the following forms:
+
+   :param string host: Specifies a host (and optionally port-number)
+                       for a new host member for the replica set. This
+                       host will be added with the default
+                       configuration.
+
+   :param JSON configuration: A :term:`JSON document` that specifies a
+                              new replica set member, with a custom
+                              configuration.
+
+   Provides a simple method to add a member to an existing
+   :term:`replica set`. You can specify new hosts in one of two ways:
+   as a "hostname" with an optional port number to use the default
+   configuration, or a as a JSON configuration object.
+
+   This function will disconnect the shell briefly and forces a
+   reconnection as the replica set renegotiates negotiates which node
+   will be :term:`primary`. As a result, the shell will display an
+   error even if this command succeeds.
+
+   ``rs.add()`` provides a wrapper around some of the functionality of
+   the ":mongodb:command:`replSetReconfig`" :term:`database command`.
+
+.. js:function:: rs.addArb(hostname)
+
+   :param string host: Specifies a host (and optionally port-number)
+                       for a arbiter member for the replica set.
+
+   Adds a new arbiter node to an existing replica set.
+
+   This function will disconnect the shell briefly and forces a
+   reconnection as the replica set renegotiates negotiates which node
+   will be :term:`primary`. As a result, the shell will display an
+   error even if this command succeeds.
+
+.. js:function:: rs.stepDown(seconds)
+
+   :param init seconds: Specify the duration of this operation. If not
+                        specified the command uses the default value
+                        of 60 seconds.
+
+   :returns: disconnects shell.
+
+   Forces the current replica set member to step down as
+   :term:`primary` and then attempt to avoid election as primary for
+   the designated number of seconds. Produces an error if the current
+   node is not primary.
+
+   This function will disconnect the shell briefly and forces a
+   reconnection as the :term:`replica set` renegotiates which node
+   will be :term:`primary`. As a result, the shell will display an
+   error even if this command succeeds.
+
+   ``rs.step()`` provides a wrapper around the :term:`database
+   command` :mongodb:command:`replSetStepDown`.
+
+.. js:function:: rs.freeze(seconds)
+
+   :param init seconds: Specify the duration of this operation.
+
+   Forces the current node to become ineligible to become primary for
+   the period specified.
+
+   ``rs.freeze()`` provides a wrapper around the :term:`database
+   command` :mongodb:command:`replSetFreeze`.
+
+.. js:function:: rs.remove(hostname)
+
+   :param hostname: Specify one of the existing hosts to remove from
+                    the current replica set.
+
+   Removes the node described by the "``hostname`` parameter from the
+   current :term:`replica set`. This function will disconnect the
+   shell briefly and forces a reconnection as the :term:`replica set`
+   renegotiates negotiates which node will be :term:`primary`. As a
+   result, the shell will display an error even if this command
+   succeeds.
 
 .. js:function:: rs.slaveOk()
 
-   rs.slaveOk()                    shorthand for db.getMongo().setSlaveOk()
+   Provides a shorthand for :js:func:`db.getMongo().setSlaveOK()`,
+   which allows the current connection to allow read operations to run
+   on :term:`secondary` nodes.
 
 .. js:function:: db.isMaster()
 
-   db.isMaster()                   check who is primary
+   Returns a status document with fields that includes the
+   "``ismaster`` field that reports if the current node is the
+   :term:`primary` node, as well as a report of the current
+   replication configuration.
+
+   This function provides a wrapper around the :term:`database
+   command` :mongodb:command:`isMaster`
 
 .. js:function:: rs.help()
 
-
+   Returns a basic help text for all of the :doc:`replication
+   </core/replication>` related shell functions.
 
 Native Shell Functions
 ----------------------
 
 These functions provide a number of low level and internal functions
 that may be useful in the context of some advanced operations in the
-shell.
+shell. The JavaScript standard library is accessible in the
+:program:`mongo` shell.
 
-.. js:function:: load()
+User Functions
+--------------
+
+.. js:function:: load("file")
+
+   :para string file: Specify a path and file name containing
+                      JavaScript.
+
+   This native function loads and runs a JavaScript file into the
+   current shell environment. To run JavaScript with the mongo shell,
+   you can either:
+
+   - use the ":option:`--eval <mongo --eval>`" option when invoking
+     the shell to evaluate a small amount of JavaScript code, or
+
+   - specify a file name with ":ref:`mongo <mongo-shell-file>`".
+     :option:`mongo` will execute the script and then exit. Add the
+     :option:`--shell <mongo --shell>` option to return to the shell after
+     running the command.
+
+   Files loaded with the ``load()`` function are specified relative to
+   the directory context of the current :option:`mongo` shell
+   session. Check this context with the ":js:func:`pwd()`" function.
 
 .. js:function:: quit()
 
+   Exits the current shell session.
+
 .. js:function:: getMemInfo()
+
+   Returns a document with two fields that report the amount of memory
+   used by the shell process. The fields returned are :term:`resident
+   <resident memory>` and :term:`virtual <virtual memory>`.
+
+TODO confirm that it it's the shell process. as values don't match serverStatus()
 
 .. js:function:: _srand()
 
-   ( "_srand" , JSSrand );
+   For internal use.
+
+   .. I can't get this function to work, but it's imported in the source. -sk
 
 .. js:function:: _rand()
 
-   ( "_rand" , JSRand );
+   :returns: A random number between ``0`` and ``1``.
+
+   This function provides functionality similar to the
+   "``Math.rand()``" function from the standard library.
 
 .. js:function:: _isWindows()
 
-.. js:function:: _startMognoProgram()
+   :returns: boolean.
 
-   ( "_startMongoProgram", StartMongoProgram );
-
-.. js:function:: runProgram()
-
-   ( "runProgram", RunProgram );
-
-.. js:function:: run()
-
-   ( "run", RunProgram );
-
-.. js:function:: runMongoProgram()
-
-   ( "runMongoProgram", RunMongoProgram );
-
-.. js:function:: stopMongod()
-
-   ( "stopMongod", StopMongoProgram );
-
-.. js:function:: stopMongoProgram()
-
-   ( "stopMongoProgram", StopMongoProgram );
-
-.. js:function:: stopMongoProgramByPid()
-
-.. js:function:: rawMongoProgramOutput()
-
-.. js:function:: clearRawMongoProgramOutput()
-
-.. js:function:: waitProgram()
-
-.. js:function:: waitMongoProgramOnPort()
-
-.. js:function:: getHostName()
-
-.. js:function:: removeFile()
-
-.. js:function:: fuzzFile()
-
-.. js:function:: listFiles()
+   Returns "true" if the server is running on a system that is
+   Windows, or "false"  if the server is running on a Unix or Linux
+   systems.
 
 .. js:function:: ls()
 
+   Returns a list of the files in the current directory.
+
+   This function returns with output relative to the current shell
+   session, and does not impact the server.
+
 .. js:function:: pwd()
 
-.. js:function:: cd()
+   Returns the current directory.
 
-.. js:function:: cat()
+   This function returns with output relative to the current shell
+   session, and does not impact the server.
+.. js:function:: cd("path")
+
+   :param string file: Specify a path on the local file system.
+
+   Changes the current context to the specified path.
+
+   This function returns with output relative to the current shell
+   session, and does not impact the server.
+
+   .. note:: This feature is not yet implemented.
+
+.. js:function:: cat("filename")
+
+   :param string filename: Specify a path and file name on the local file
+                          system.
+
+   Returns the contents of the specified file.
+
+   This function returns with output relative to the current shell
+   session, and does not impact the server.
+
+.. js:function:: md5sumFile("filename")
+
+   :param string filename: a file name.
+
+   :returns: The :term:`md5` hash of the specified file.
+
+   .. note:: The specified filename must refer to a file located on
+             the system running the :option:`mongo` shell.
+
+.. js:function:: mkdir("path")
+
+   :param string path: A path on the local filesystem.
+
+   Creates a directory at the specified path. This command will create
+   the entire path specified, if the enclosing directory or
+   directories do not already exit.
+
+   Equivalent to :option:`mkdir -p` with BSD or GNU utilities.
 
 .. js:function:: hostname()
 
+   :returns: The hostname of the system running the :option:`mongo`
+              shell process.
+
+.. js:function:: getHostName()
+
+   :returns: The hostname of the system running the :option:`mongo`
+             shell process.
+
+.. js:function:: removeFile("filename")
+
+   :param string filename: Specify a filename or path to a local
+                           file.
+
+   :returns: boolean.
+
+   Removes the specified file from the local file system.
+
+.. js:function:: fuzzFile("filename")
+
+   :param string filename: Specify a filename or path to a local
+                           file.
+
+   :returns: null
+
+   For internal use.
+
+.. js:function:: listFiles()
+
+   Returns an array, containing one document per object in the
+   directory. This function operates in the context of the
+   :option:`mongo` process. The included fields are:
+
+   .. describe:: name
+
+      Returns a string which contains the name of the object.
+
+   .. describe:: isDirectory
+
+      Returns true or false if the object is a directory.
+
+   .. describe:: size
+
+      Returns the size of the object in bytes. This field is only
+      present for files.
+
+TODO-test units
+
+Internal Functions
+~~~~~~~~~~~~~~~~~~
+
+These functions are accessible in the shell but exist to support other
+functionality in the environment. Do not call these functions
+directly.
+
+.. js:function:: _startMognoProgram()
+
+   For internal use.
+
+.. js:function:: runProgram()
+
+   For internal use.
+
+.. js:function:: run()
+
+   For internal use.
+
+.. js:function:: runMongoProgram()
+
+   For internal use.
+
+.. js:function:: stopMongod()
+
+   For internal use.
+
+.. js:function:: stopMongoProgram()
+
+   For internal use.
+
+.. js:function:: stopMongoProgramByPid()
+
+   For internal use.
+
+.. js:function:: rawMongoProgramOutput()
+
+   For internal use.
+
+.. js:function:: clearRawMongoProgramOutput()
+
+   For internal use.
+
+.. js:function:: waitProgram()
+
+   For internal use.
+
+.. js:function:: waitMongoProgramOnPort()
+
+   For internal use.
+
 .. js:function:: resetDbpath()
+
+   For internal use.
 
 .. js:function:: copyDbpath()
 
-.. js:function:: md5sumFile()
+   For internal use.
 
-.. js:function:: mkdir()
