@@ -80,8 +80,8 @@ Options
 .. option:: --password [password]
 
    Specifies a password to authenticate to the MongoDB instance. Use
-   in conjunction with the :option:`mongoexport --username` option to
-   supply a username.
+   in conjunction with the :option:`--username` option to supply a
+   username.
 
 .. option:: --dbpath [path]
 
@@ -94,21 +94,26 @@ Options
 
 .. option:: --directoryperdb
 
-   The ``--directoryperdb`` controls the output of ``mongoexport`` so
-   that the contents of only one database is located in a
-   directory. Use only in conjunction with the :command:`mongoexport
-   --dbpath`` option.
+   Use the :option:`--directoryperdb` in conjunction with the
+   corresponding option to :option:`mongod`, which allows
+   :option:`mongoexport` to operate when MongoDB is configured to use
+   an on-disk stores where each database is located in a distinct
+   directory. This option is only relevant when specifying the
+   :option:`--dbpath` option.
 
 .. option:: --journal
 
-   Enables journaling for all ``mongoexport`` operations.
+   Allows :option:`mongoexport` operations to access the durability
+   :term:`journal <journaling>` to ensure that the export is in a consistent
+   state. This option is only relevant when specifying the
+   :option:`--dbpath` option.
 
 .. option:: --db [db], -d [db]
 
    Use the ``--db`` option to specify a database for ``mongoexport``
    to export data from. If you do not specify a DB, all databases in
-   this instance will be exported. Use this option to create a copy of a
-   smaller subset of your data.
+   this instance will be exported. Use this option to create a copy of
+   a smaller subset of your data.
 
 TODO factcheck
 

@@ -2,8 +2,6 @@
 Monitoring Database Systems
 ===========================
 
-.. default-domain: mongodb
-
 Monitoring is a crucial component of all database administration
 work. A firm grasp of MongoDB's monitoring capabilities will enable
 you to effectively assess and maintain your deployment proactively,
@@ -79,7 +77,7 @@ REST Interface
 
 MongoDB also provides a :term:`REST` interface that exposes a
 diagnostic and monitoring information in a simple web page. Enable
-this by setting :setting:`rest` to ``true``, and access this page via
+this by setting :mongodb:setting:`rest` to ``true``, and access this page via
 the local host interface using the port numbered 1000 more than that
 the database port: in default configurations this is ``28017``.
 
@@ -162,16 +160,16 @@ however, if certain operations are long-running, or a queue forms,
 performance can be impacted as requests and operations wait for the
 lock. To determine if this effects your database, begin by checking
 the data conveyed in the :ref:`globalLock` section of the
-:command:`serverStatus` response. If
-:status:`globalLock.currentQueue.total` is consistently high, then
-there are probably a large number of requests waiting for a lock. This
-indicates a possible concurrency issue that might effect performance.
+:command:`serverStatus` response. If :mongodb:status:`globalLock.currentQueue.total`
+is consistently high, then there are probably a large number of
+requests waiting for a lock. This indicates a possible concurrency
+issue that might effect performance.
 
-If :status:`globalLock.toalTime` is high in context of
-:status:`uptime` then the database has existed in a lock state for a
-significant amount of time. If :status:`globalLock.ratio` is also
-high, MongoDB has likely been processing a large number of long
-running queries. Long queries are often the result of a number of
+If :mongodb:status:`globalLock.toalTime` is high in context of
+:mongodb:status:`uptime` then the database has existed in a lock state
+for a significant amount of time. If :mongodb:status:`globalLock.ratio`
+is also high, MongoDB has likely been processing a large number of
+long running queries. Long queries are often the result of a number of
 factors: ineffective use of indexes resulting from non-optimal schema
 design, query structure, or configuration; or insufficient RAM
 resulting in :ref:`page faults <administration-monitoring-page-faults>`
@@ -189,10 +187,10 @@ is determined in part by the utilization pattern of the data set, it's
 important to check :ref:`memory use status <memory-status>` to better
 understand MongoDBs memory utilization.
 
-See if the amount of resident memory use (i.e. :status:`mem.resident`)
+See if the amount of resident memory use (i.e. :mongodb:status:`mem.resident`)
 exceeds the amount of system memory *and* there's a significant amount
 of data on disk that isn't in ram. Additionally If the amount of
-mapped memory (i.e. :status:`mem.mapped`) is greater than the amount
+mapped memory (i.e. :mongodb:status:`mem.mapped`) is greater than the amount
 of system memory, some operations will require disk access to read
 data from virtual memory with deleterious effects on performance.
 
@@ -203,7 +201,7 @@ Page Faults
 
 Page faults represent the number of time that MongoDB requires data
 located in virtual memory but is loaded in physical memory. To check
-for page faults, see the :status:`extra_info.page_faults` value in the
+for page faults, see the :mongodb:status:`extra_info.page_faults` value in the
 :command:`serverStatus` command. This data is only available on Linux
 systems.
 
@@ -216,8 +214,8 @@ If possible, increasing the amount of RAM accessible to MongoDB may
 help reduce the number of page faults. If this is not possible, for
 some deployments consider increasing the size of your :term:`replica
 set` and distribute read operations to :term:`secondary` nodes; for
-other deployments, add :term:`shards` to a :term:`shard cluster` to
-distribute load among MongoDB instances.
+other deployments, add one or more :term:`shards <shard>` to a
+:term:`shard cluster` to distribute load among MongoDB instances.
 
 Number of Connections
 ~~~~~~~~~~~~~~~~~~~~~
@@ -228,23 +226,23 @@ server to handle requests which can produce performance
 irregularities. Check the following fields in the :doc:`serverStatus
 </reference/server-status>` document:
 
-- :status:`globalLock.activeClients` contains a counter of the total
+- :mongodb:status:`globalLock.activeClients` contains a counter of the total
   number of clients with active operations in progress or queued.
 
-- :status:`connections` is a container for the following two fields:
+- :mongodb:status:`connections` is a container for the following two fields:
 
-  - :status:`connections.current` the total number of current clients
+  - :mongodb:status:`connections.current` the total number of current clients
     that connect to the database instance.
 
-  - :status:`connections.available` the total number of unused
+  - :mongodb:status:`connections.available` the total number of unused
     collections available for new clients.
 
 If requests are high because there are a lot of concurrent application
 requests, and the database is keeping up. If this is the case, then
 you will need to add additional nodes to your cluster. Increase the
 size of your :term:`replica set` and distribute read operations to
-:term:`secondary` nodes, or add :term:`shards` to a :term:`shard
-cluster` to distribute load among MongoDB instances.
+:term:`secondary` nodes, or one or more :term:`shards <shard>` to a
+:term:`shard cluster` to distribute load among MongoDB instances.
 
 Spikes in the number of connections can also be the result of
 application or driver errors. Extremely high numbers of connections
@@ -334,17 +332,17 @@ See the ":doc:`/reference/replica-status`" document for a more in depth
 overview view of this output. In general watch the following two data
 points:
 
-- :status:`optimeDate`. Pay particular attention to the difference in
+- :mongodb:status:`optimeDate`. Pay particular attention to the difference in
   time between the primary and the secondary nodes.
 
-- :status:`lastHeartbeat`, which reflects the last time each node had
-  any contact to the current node. Compare this to the :status:`date`
+- :mongodb:status:`lastHeartbeat`, which reflects the last time each node had
+  any contact to the current node. Compare this to the :mongodb:status:`date`
   which reflects the current date and time of the node you're
   currently connected to.
 
 The size of the operation log is configurable at runtime using the
 :option:`mongod --oplogsize` argument to the :command:`mongod`
-command, or preferably the :setting:`oplogsize` in the MongoDB
+command, or preferably the :mongodb:setting:`oplogsize` in the MongoDB
 configuration file. The default size, is typically 5% of disk space on
 64-bit systems.
 
@@ -367,16 +365,16 @@ Config Servers
 ~~~~~~~~~~~~~~
 
 The :term:`configdb` provides a map of documents to shards. The map is
-updated as :term:`chunks` are migrated between shards. When a
-configuration server becomes inaccessible, some sharding
-operations like moving chunks and starting :option:`mongos` instances
-become unavailable. However, shard clusters remain accessible from
+updated as :term:`chunks <chunk>` are migrated between shards. When a
+configuration server becomes inaccessible, some sharding operations
+like moving chunks and starting :option:`mongos` instances become
+unavailable. However, shard clusters remain accessible from
 already-running mongo instances.
 
 Because inaccessible configuration servers can have a serious impact
 on the availability of a shard cluster, you should keep uptime
 monitoring of the configuration servers to ensure that your shard
-cluster remains well balanced and that ``mongos`` instances can
+cluster remains well balanced and that :option:`mongos` instances can
 restart.
 
 Balancing and Chunk Distribution

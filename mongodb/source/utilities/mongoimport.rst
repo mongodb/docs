@@ -88,27 +88,29 @@ Options
 .. option:: --dbpath [path]
 
    Specifies the directory of the MongoDB data files. If used, the
-   ``--dbpath`` option enables ``mongoimport`` to attach directly to
-   local data files and insert the data without the ``mongod``. To run
-   with ``--dbpath``, ``mongorestore`` needs to lock access to the
-   data directory: as a result, no ``mongod`` can access the same
-   path while the process runs.
+   :option:`--dbpath <mongoimport --dbpath>` option enables
+   :option:`mongoimport` to attach directly to local data files and
+   insert the data without the :option:`mongod`. To run with
+   ``--dbpath``, :option:`mongorestore` needs to lock access to the
+   data directory: as a result, no :option:`mongod` can access the
+   same path while the process runs.
 
 .. option:: --directoryperdb
 
-   The ``--directoryperdb`` controls the operation of ``mongoimport``
-   to mirror the operation of the ":command:`mongoexport
-   --directoryperdb``" command which places the contents of only one
-   database in a single directory. Use only in conjunction with the
-   :command:`mongoimport --dbpath`` option.
+   Use the :option:`--directoryperdb` in conjunction with the
+   corresponding option to :option:`mongod`, which allows
+   :option:`mongoimport` to import data into MongoDB instances where
+   each database is located in a distinct directory on the disk. This
+   option is only relevant when specifying the :option:`--dbpath`
+   option.
 
 .. option:: --journal
 
-   Enables journaling for all ``mongoimport`` operations.
+   Enables journaling for all :option:`mongoimport` operations.
 
 .. option:: --db [db], -d [db]
 
-   Use the ``--db`` option to specify a database for ``mongoimport``
+   Use the ``--db`` option to specify a database for :option:`mongoimport`
    to restore data. If you do not specify a "``[db]``", new databases will be
    created corresponding to the databases where the data originated
    and data may be overwritten. Use this option to restore data into a
@@ -119,12 +121,12 @@ TODO factcheck
 
 .. option:: --collection [collection], -c [collection]
 
-   Use the ``--collection`` option to specify a collection for
-   ``mongorestore`` to restore. If you do not specify a
-   "``[collection]``", all collections will be restored or created and
-   data may be overwritten. Use this option to restore data into a
-   MongoDB instance that already has data, or to restore only some
-   data in the specified backup.
+   Use the :option:`--collection` option to specify a collection for
+   :option:`mongorestore` to restore. If you do not specify a
+   "``[collection]``", all collections will be restored or
+   created. Existing data may be overwritten. Use this option to
+   restore data into a MongoDB instance that already has data, or to
+   restore only some data in the specified imported data set.
 
 .. option:: --fields [field1[,filed2]], -f [field1[,filed2]]
 

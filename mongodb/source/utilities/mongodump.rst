@@ -55,47 +55,52 @@ Options
 
    Specifies the port number, if the MongoDB instance is not running on
    the standard port. (i.e. ``27017``) You may also specify a port
-   number using the :command:`mongodump --host` command.
+   number using the :option:`--host <mongodump --host>` command.
 
 .. option:: --ipv6
 
-   Enables IPv6 support to allow ``mongodump`` to connect to the
+   Enables :term:`IPv6` support to allow :option:`mongodump` to connect to the
    MongoDB instance using IPv6 connectivity. IPv6 support is disabled
-   by default in the ``mongodump`` utility.
+   by default in the :option:`mongodump` utility.
 
 .. option:: --username <username>, -u <username>
 
    Specifies a username to authenticate to the MongoDB instance, if
    your database requires authentication. Use in conjunction with the
-   :option:`mongodump --password` option to supply a password.
+   :option:`--password <mongodump --password>` option to supply a
+   password.
 
 .. option:: --password [password]
 
    Specifies a password to authenticate to the MongoDB instance. Use
-   in conjunction with the :option:`mongodump --username` option to
-   supply a username.
+   in conjunction with the :option:`--username <mongodump --username>`
+   option to supply a username.
 
 .. option:: --dbpath [path]
 
    Specifies the directory of the MongoDB data files. If used, the
-   ``--dbpath`` option enables ``mongodump`` to attach directly to
-   local data files and copy the data without the ``mongod``. To run
-   with ``--dbpath``, ``mongodump`` needs to lock access to the data
-   directory: as a result, no ``mongod`` can be access the same path
-   while the process runs.
+   :option:`--dbpath` option enables :option:`mongodump` to attach
+   directly to local data files and copy the data without the
+   :option:`mongod`. To run with :option:`--dbpath`,
+   :option:`mongodump` needs to lock access to the data directory: as
+   a result, no ``mongod`` can be access the same path while the
+   process runs.
 
 .. option:: --directoryperdb
 
-   The ``--directoryperdb`` controls the output of ``mongodump`` so
-   that the contents of only one database is located in a
-   directory. Use only in conjunction with the :command:`mongodump
-   --dbpath`` option.
+   Use the :option:`--directoryperdb` in conjunction with the
+   corresponding option to :option:`mongod`, which allows
+   :option:`mongodump` to operate when MongoDB is configured to use an
+   on-disk stores where each database is located in a distinct
+   directory. This option is only relevant when specifying the
+   :option:`--dbpath` option.
 
 .. option:: --journal
 
-   Enables journaling for all ``mongodump`` operations.
-
-TODO if ``mongodump`` is only doing reads, whats the utility of the journaling option.
+   Allows :option:`mongodump` operations to use the durability
+   :term:`journal <journaling>` to ensure that the export is in a
+   consistent state. This option is only relevant when specifying the
+   :option:`--dbpath` option.
 
 .. option:: --db [db], -d [db]
 

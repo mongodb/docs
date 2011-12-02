@@ -5,6 +5,9 @@ Meta Query Operators
 .. highlight_language: javascript
 .. highlight:: javascript
 
+Introduction
+------------
+
 In addition to the :doc:`MongoDB Query Operators
 </reference/operators>`, there are a number of "meta" operators that
 you may use to modify the output or behavior or output of the
@@ -132,7 +135,7 @@ Modifiers
    positive value (e.g. "``1``") to sort in ascending order.
 
    Unless you have a index for the specified key pattern, use
-   ``$orderby`` in conjunction with :operator:`$maxScan` and
+   ``$orderby`` in conjunction with :mongodb:operator:`$maxScan` and
    :js:func:`limit()` to avoid requiring MongoDB to perform a large
    in-memory sort. :js:func:`limit()` increases the speed and reduce
    the amount of memory required to return this query by way of an

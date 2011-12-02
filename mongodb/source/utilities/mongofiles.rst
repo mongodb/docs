@@ -147,11 +147,18 @@ Options
 
 .. option:: --directoryperdb
 
-TODO in the help but doesn't makes sense in this context
+   Use the ``--directoryperdb`` in conjunction with the corresponding
+   option to :option:`mongod`, which allows :option:`mongofiles` to
+   operate when MongoDB is configured to use an on-disk format where
+   each database is located in a distinct directory. This option is
+   only relevant when specifying the :option:`--dbpath` option.
 
 .. option:: --journal
 
-   Enables journaling for all ``mongofiles`` operations.
+   Allows :option:`files` operations to use the durability
+   :term:`journal <journaling>` to ensure that the database maintains
+   a recoverable state, and that all data is recorded on disk
+   regularly.
 
 .. option:: --db [db], -d [db]
 
@@ -188,7 +195,3 @@ TODO in the help but doesn't makes sense in this context
 
    In the default operation, files will not be overwritten by a
    :command:`mongofiles put` option.
-
-Usage
------
-
