@@ -18,6 +18,23 @@ Getting Started
 - Drivers
 - Basic Concepts
 
+Major Topics
+------------
+
+.. toctree::
+   :maxdepth: 2
+
+   replication
+
+- sharding
+- administration
+- deployment
+- core-operation
+- tutorials
+- using
+- utilities
+- reference
+
 User Guides
 -----------
 
@@ -53,6 +70,7 @@ Administration and Deployment
    administration/import-export
    administration/monitoring
    administration/security
+   administration/replica-sets
    deployment/configuration
    deployment/operating-systems
    deployment/hardware-platform
