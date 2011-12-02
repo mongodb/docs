@@ -26,21 +26,21 @@ Options
 
 .. option:: --version
 
-   Returns the version of the ``mongorestore`` utility.
+   Returns the version of the :option:`mongorestore` utility.
 
 .. option:: --host <hostname><:port>
 
-   Specifies a resolvable hostname for the ``mongod`` to which you
-   want to restore the database. By default ``mongorestore`` will
+   Specifies a resolvable hostname for the :option:`mongod` to which you
+   want to restore the database. By default :option:`mongorestore` will
    attempt to connect to a MongoDB process ruining on the localhost
    port number 27017.
 
    Optionally, specify a port number to connect a MongboDB instance
    running on a port other than 27017.
 
-   To connect to a replica set, use the ``--host`` argument with a
+   To connect to a replica set, use the :option:`--host` argument with a
    setname, followed by a slash and a comma separated list of host and
-   port names. The ``mongo`` utility will, given the seed of at least
+   port names. The :option:`mongo` utility will, given the seed of at least
    one connected set member, connect to primary node of that set. this
    option would resemble: ::
 
@@ -51,21 +51,22 @@ Options
 
 .. option:: --port <port>
 
-   Specifies the port number, if the MongoDB instance is not running on
-   the standard port. (i.e. ``27017``) You may also specify a port
-   number using the :command:`mongorestore --host` command.
+   Specifies the port number, if the MongoDB instance is not running
+   on the standard port. (i.e. ``27017``) You may also specify a port
+   number using the :command:`--host <mongorestore --host>` command.
 
 .. option:: --ipv6
 
-   Enables IPv6 support to allow ``mongorestore`` to connect to the
-   MongoDB instance using IPv6 connectivity. IPv6 support is disabled
-   by default in the ``mongorestore`` utility.
+   Enables :term:`IPv6` support to allow :option:`mongorestore` to
+   connect to the MongoDB instance using the IPv6 network. IPv6
+   support is disabled by default in the ``mongorestore`` utility.
 
 .. option:: --username <username>, -u <username>
 
-   Specifies a username to authenticate to the MongoDB instance, if your
-   database requires authentication. Use in conjunction with the
-   :option:`mongorestore --password` option to supply a password.
+   Specifies a username to authenticate to the MongoDB instance, if
+   your database requires authentication. Use in conjunction with the
+   :option:`--password <mongorestore --password>` option to supply a
+   password.
 
 .. option:: --password [password]
 
@@ -76,27 +77,29 @@ Options
 .. option:: --dbpath [path]
 
    Specifies the directory of the MongoDB data files. If used, the
-   ``--dbpath`` option enables ``mongorestore`` to attach directly to
-   local data files and insert the data without the ``mongod``. To run
-   with ``--dbpath``, ``mongorestore`` needs to lock access to the
-   data directory: as a result, no ``mongod`` can access the same
-   path while the process runs.
+   :option:`--dbpath` option enables :option:`mongorestore` to attach
+   directly to local data files and insert the data without the
+   :option:`mongod`. To run with :option:`--dbpath`,
+   :option:`mongorestore` needs to lock access to the data directory:
+   as a result, no :option:`mongod` can access the same path while the
+   process runs.
 
 .. option:: --directoryperdb
 
-   The ``--directoryperdb`` controls the operation of ``mongorestore``
-   to mirror the operation of the ":command:`mongodump
-   --directoryperdb``" command which places the contents of only one
-   database in a single directory. Use only in conjunction with the
-   :command:`mongorestore --dbpath`` option.
+   Use the :option:`--directoryperdb` in conjunction with the
+   corresponding option to :option:`mongod`, which allows
+   :option:`mongorestore` to import data into MongoDB instances where
+   each database is located in a distinct directory on the disk. This
+   option is only relevant when specifying the :option:`--dbpath`
+   option.
 
 .. option:: --journal
 
-   Enables journaling for all ``mongorestore`` operations.
+   Enables journaling for all :option:`mongorestore` operations.
 
 .. option:: --db [db], -d [db]
 
-   Use the ``--db`` option to specify a database for ``mongorestore``
+   Use the :option:`--db` option to specify a database for :option:`mongorestore`
    to restore data. If you do not specify a "``[db]``", new databases will be
    created corresponding to the databases where the data originated
    and data may be overwritten. Use this option to restore data into a
@@ -107,26 +110,22 @@ TODO factcheck
 
 .. option:: --collection [collection], -c [collection]
 
-   Use the ``--collection`` option to specify a collection for
-   ``mongorestore`` to restore. If you do not specify a
-   "``[collection]``", all collections will be restored or created and
-   data may be overwritten. Use this option to restore data into a
-   MongoDB instance that already has data, or to restore only some
-   data in the specified backup.
-
-TODO factcheck
-
-TODO help section says "(some commands)" limitations otherwise unclear.
+   Use the :option:`--collection` option to specify a collection for
+   :option:`mongorestore` to restore. If you do not specify a
+   "``[collection]``", all collections will be restored or
+   created. Existing data may be overwritten. Use this option to
+   restore data into a MongoDB instance that already has data, or to
+   restore only some data in the specified backup.
 
 .. option:: --objcheck
 
-   Forces ``mongorestore`` to validate every object before inserting
-   it in the target database.
+   Forces :option:`mongorestore` to validate every object before
+   inserting it in the target database.
 
 .. option:: --filter '<JSON>'
 
-   Limits the documents that ``mongorestore`` imports to only those
-   documents that match the JSON document specified as
+   Limits the documents that :option:`mongorestore` imports to only
+   those documents that match the JSON document specified as
    ``'<JSON>'``. Be sure to include the document in single quotes to
    avoid a poor interaction with your shell.
 
@@ -144,14 +143,14 @@ TODO help section says "(some commands)" limitations otherwise unclear.
 
 .. option:: --keepIndexVersion
 
-   Prevents ``mongorestore`` from upgrading the index to the latest
+   Prevents :option:`mongorestore` from upgrading the index to the latest
    version durring the restoration process.
 
 .. option::  [path]
 
-   The final argument of the ``mongorestore`` command is a directory
-   path that specifies the location of the database dump from which to
-   restore.
+   The final argument of the :option:`mongorestore` command is a
+   directory path. This argument specifies the location of the
+   database dump from which to restore.
 
 Usage
 -----

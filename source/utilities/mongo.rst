@@ -109,6 +109,8 @@ Options
          mongo mongodb1/admin
          mongo 10.8.8.10/test
 
+.. _mongo-shell-file:
+
 .. option:: <file.js>
 
    Optionally, specify a JavaScript file as the final argument to the

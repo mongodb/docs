@@ -14,51 +14,34 @@ Glossary
       MongoDB has database commands, which have a specific
       implementation, and allow you to control the database.
 
-   database commands
-      See :term:`database command`.
-
    operator
       Operators provide tools for querying and manipulating
       documents. See the ":doc:`/reference/operators`" for more
       information about the available operators.
 
-   operators
-      See :term:`operator`.
-
    MongoDB
       A document-driven database.
 
-   Document
+   document
       A record in a MongoDB database. Documents are analogous to, but
       more flexible than, a row in relational databases. Documents
-      contain a number of :term:`fields`, and are members of
-      :term:`collections`.
+      contain a number of :term:`fields <field>`, and are members of
+      :term:`collections <collection>`.
 
-   Documents
-      See :term:`document`.
-
-   Field
+   field
       A value or item in a :term:`document`. Documents have one
       or more fields. Fields are analogous to, but more flexible than,
       columns in relational databases.
 
-   Fields
-      See :term:`field`.
-
-   Database
+   database
       Each database is stored in a unique file on the file
-      system. Databases contain a number of :term:`collections`.
+      system. Databases contain a number of :term:`collections
+      <collection>`.
 
-   Databases
-      See :term:`database`.
-
-   Collection
+   collection
       A group of :term:`document`. Collections are analogous to, but
       more flexible than, tables in relational databases. A
       :term:`database` contains a number of commands .
-
-   Collections
-      See :term:`collection`.
 
    Map/Reduce
       A data processing paradigm formalized at Google.
@@ -68,7 +51,8 @@ Glossary
       to implement database commands.
 
    JSON
-      JavaScript Object Notation.
+      JavaScript Object Notation. A format for expressing structured
+      data in human readable plain text.
 
    JSON document
       :term:`JSON` documents are collections of fields and values in a
@@ -96,24 +80,15 @@ Glossary
       the total dataset corpus as part of a :term:`cluster`. See
       :term:`sharding`.
 
-   shards
-      See :term:`shard` and :term:`sharding`.
-
    Sharding
       A database architecture where the data corpus is split among
       a cluster of system to enable horizontal scaling. MongoDB added
       support for automatic shading in version 1.6 (TODO) See
       :term:`shard`.
 
-   Sharded
-      See :term:`shard` and :term:`sharding`.
-
    shard cluster
       A collection of MongoDB instances with a dataset partitioned
-      or ":term:`sharded`" among a set of nodes.
-
-   shard clusters
-      See :term:`shard cluster`.
+      or ":term:`sharded <sharding>`" among a set of nodes.
 
    mongod
       ``mongod`` is the daemon that runs MongoDB database
@@ -166,14 +141,11 @@ Glossary
       right coordinates.
 
    capped collection
-      Capped collections, are :term:`collections` that have a maximum
-      size, and an (optional) maximum number of documents. These
-      collections are used to prevent collections from growing out of
-      control and are useful in the context of logging or caching
-      functions.
-
-   capped collections
-      See :term:`capped collection`.
+      Capped collections, are :term:`collections <collection>` that
+      have a maximum size, and an (optional) maximum number of
+      documents. These collections are used to prevent collections
+      from growing out of control and are useful in the context of
+      logging or caching functions.
 
    BSON types
       BSON objects are typed. The following types are available:
@@ -251,9 +223,6 @@ Glossary
       Indexes provide the database with a fast and reliable way of
       accessing data without requiring full searches on data.
 
-   Secondary Indexes
-      See :term:`Indexes`.
-
    btree
       btree's are a fast data representation that provides for
       efficient writing and reading binary data. MongoDB uses b-trees
@@ -306,7 +275,8 @@ Glossary
       operation.
 
    Global Lock
-      A :term:`lock` that prevents all operations.
+      A :term:`lock` that prevents all other operations for the
+      duration of its existence.
 
    read-lock
       A :term:`lock` that prevents write operations while a read
@@ -318,7 +288,7 @@ Glossary
 
    balancer
       An internal MongoDB process that runs in the context of a shard
-      cluster that distributes :term:`chunks` of data amongst the
+      cluster that distributes :term:`chunks <chunk>` of data amongst the
       shards.
 
    fsync
@@ -326,15 +296,16 @@ Glossary
       files to ensure that the data is durable.
 
    chunk
-      In the context of a :term:`shard` cluster, chunks are
-
-   chunks
-      See :term:`chunk`.
+      In the context of a :term:`shard` cluster, chunks are contiguous
+      (relative to their :term:`shard key`) sections of data that are
+      distributed evenly among shards. In the default configuration
+      chunks are 64 megabytes or less.
 
    geospatial
-      Data that describes or is referenced and/or indexed on
-      by geographical location. Geospatial indexes use a coordinate
-      system.
+      Data that relates to geographical location. Geospatial data may
+      be indexed according to geographical parameters, reference
+      specific coordinates, or simply describe geographical locations
+      Geospatial indexes use a coordinate system.
 
    checksum
       Checksums are used to ensure data integrity, by providing a
@@ -356,13 +327,10 @@ Glossary
       operations to facilitate :term:`replication` in the context of a
       :term:`replica set`.
 
-   init script
+   control script
       A simple shell script, typically located in the ``/etc/rc.d`` or
       ``/etc/init.d`` directory and used by the system's initialization
       process to start, stop and stop a :term:`daemon` process.
-
-   control script
-      See :term:`init script`.
 
    daemon
       The conventional name for a background, non-interactive
@@ -411,7 +379,7 @@ Glossary
       This refers to the order that MongoDB stores documents in the
       database. Typically this order is nearly the same as the
       insertion order, but this order is not guaranteed, except in the
-      case of :term:`capped collections`.
+      case of :term:`capped collections <capped collection>`.
 
    primary key
       In relational databases, primary keys are guaranteed to be unique
@@ -424,12 +392,9 @@ Glossary
       interfaces. Firewalls are part of effective network security
       strategy.
 
-   database profiling
+   database profiler
       A diagnostic system used to analyze database performance and
       used to help optimize queries.
-
-   profiling
-      See :term:`database profiling`.
 
    shard key
       The unique key used to distribute documents among members of the
@@ -438,10 +403,10 @@ Glossary
    query
       Queries are requests that return a selection of documents from
       the database system. For MongoDB, queries are specified using
-      :term:`JSON` documents and a collection of :term:`operators` to
-      describe documents. In the :option:`mongo` shell, queries are
-      issued using the :js:func:`find()` and :js:func:`findOne()`
-      functions.
+      :term:`JSON` documents and the :term:`database operators
+      <operator>` to describe documents. In the :option:`mongo`
+      shell, queries are issued using the :js:func:`find()` and
+      :js:func:`findOne()` functions.
 
    projection
       A component of complex queries that controls the content that a
@@ -452,3 +417,28 @@ Glossary
       When deploying a :term:`shard cluster`, it is sometimes
       necessary to expedite the initial distribution of documents
       among shards. This process is referred to as "pre-splitting."
+
+   SSD
+      Solid State Disk. A modern alternative to a disk with rotating
+      platters, SSDs offer high performance read and write
+      performance.
+
+   resident memory
+      An application's working memory that is currently stored in the
+      system's RAM.
+
+   virtual memory
+      An application's working memory or data that has been moved out
+      of RAM, which is fast and in limited supply, and into a
+      disk-based cache, which is slower but in comparatively unlimited
+      supply.
+
+   piped
+      Directed through a UNIX pipe. In these operations the output of
+      one operation or command is directed to the input of next.
+
+   IPv6
+      A revision to the IP (Internet Protocol) standard that, among
+      many features, provides a significantly larger address space to
+      more effectively support the number of hosts on the contemporary
+      internet.

@@ -5,11 +5,12 @@ Command Reference
 .. default-domain:: mongodb
 .. highlight:: javascript
 
-This document contains a reference to all :term:`database
-commands`. These commands take the form of :term:`JSON` documents
-issued as a query against a special MongoDB collection named
-:term:`$cmd`; however,  the JavaScript shell (i.e. ``mongo``,) provides
-the following syntax to facilitate running commands: ::
+This document contains a reference to all :term:`database commands
+<database command>`. These commands take the form of :term:`JSON
+document <JSON document>` issued as a query against a special MongoDB
+collection named :term:`$cmd`; however, the JavaScript shell
+(i.e. :option:`mongo`,) provides the following syntax to facilitate
+running commands: ::
 
       db.runCommand( { <commandname>: <value> [, options] } );
 
@@ -20,9 +21,9 @@ syntax: ::
 
 The ``_adminCommand`` helper is shorthand for "``db.getSisterDB("admin").runCommand();``".
 
-MongoDB drivers, and the ``mongo`` shell may provide an alternate
-interfaces for issuing database commands. All examples in this
-reference are provided as JSON documents.
+MongoDB drivers, and the :option:`mongo` shell may provide an
+alternate interfaces for issuing database commands. All examples in
+this reference are provided as JSON documents.
 
 User Commands
 -------------
@@ -30,19 +31,24 @@ User Commands
 Sharding
 ~~~~~~~~
 
+.. seealso:: ":doc:`/core/sharding`" for more information regarding
+   MongoDB's sharding functionality.
+
 .. describe:: addShard
 
-   The ``addShard`` command informs a ``mongos`` process about the
-   shard instance. Connect using the MongoDB shell (e.g. ``mongo``) to
-   the ``mongos`` instance. The command takes the following form: ::
+   The ``addShard`` command informs a :option:`mongos` process about
+   the shard instance. Connect using the MongoDB shell
+   (e.g. ``mongo``) to the :option:`mongos` instance. The command
+   takes the following form: ::
 
         { addshard: "<hostname>:<port>" }
 
    Replace "``<hostname>:<port>``" with the hostname and port of the
-   database instance you want to add as a shard. Because the ``mongos``
-   instances do not have state and distribute configuration in the
-   :term:`configdb`, you only need to send this command to one
-   ``mongos`` instance. There are two optional parameters:
+   database instance you want to add as a shard. Because the
+   :option:`mongos` instances do not have state and distribute
+   configuration in the :term:`configdb`, you only need to send this
+   command to one :option:`mongos` instance. There are two optional
+   parameters:
 
    - **name**. If no name is specified, a name will be automatically
      provided to uniquely identify the shard.
@@ -56,16 +62,12 @@ Sharding
         disk capacities, or if you want to limit the amount of data on
         some shards.
 
-   See :doc:`/core/sharding` for more information related to sharding.
-
 .. describe:: listShards
 
    Use the ``listShards`` command to return a list of configured
    shards. The command takes the following form:
 
         { listShards: 1 }
-
-   See :doc:`/core/sharding` for more information related to sharding.
 
 .. describe:: enableSharding
 
@@ -77,8 +79,6 @@ Sharding
    The ``enableSharding`` command doesn't move or shift any data. Use
    the :command:`shardCollection` to begin the process of distributing
    data among the shards.
-
-   See :doc:`/core/sharding` for more information related to sharding.
 
 .. describe:: shardCollection
 
@@ -107,14 +107,12 @@ Sharding
 .. describe:: shardingState
 
    The ``shardingState`` command returns ``true`` or ``false`` if the
-   ``mongod`` instance is a member of a sharded cluster. Run the
+   :option:`mongod` instance is a member of a sharded cluster. Run the
    command using the following syntax: ::
 
         { shardingState: 1 }
 
    The value specified does not effect the output of the command.
-
-   See :doc:`/core/sharding` for more information related to sharding.
 
    .. admin-only
 
@@ -171,8 +169,9 @@ Aggregation
      :term:`BSON` object. As a result you must ensure that there are
      fewer then 10,000 keys to prevent an exception.
 
-   - The ``group`` command does not operate in :term:`sharded`
-     environments. Use :command:`mapReduce` in these situations.
+   - The ``group`` command does not operate in :term:`sharded
+     <sharding>` environments. Use :command:`mapReduce` in these
+     situations.
 
    .. read-lock
 
@@ -301,7 +300,8 @@ Aggregation
    evaluated by the shell rather than the database itself. Consider
    the following behaviors and limitations:
 
-   - ``eval`` does not work in :term:`sharded` environments.
+   - ``eval`` does not work in :term:`sharded <sharding>`
+     environments.
 
    - The ``eval`` operation is blocking and prevents all writes to the
      database until ``eval`` has finished, unless the ``nolock`` flag
@@ -327,10 +327,13 @@ Aggregation
 Replication
 ~~~~~~~~~~~
 
+.. seealso:: ":doc:`/core/replication`" for more information regarding
+   replication.
+
 .. describe:: resync
 
    The ``resync`` command forces an out-of-date non-primary/master
-   ``mongod`` instance to re-synchronize itself.
+   :option:`mongod` instance to re-synchronize itself.
 
    .. write-lock, slave-ok, admin-only.
 
@@ -348,17 +351,14 @@ Replication
 
         { replSetFreeze: 0 }
 
-   Restarting the ``mongod`` process also unfreezes a replica set
-   member, allowing the ``mongod`` instance to become primary
-   again.
+   Restarting the :option:`mongod` process also unfreezes a replica
+   set member, allowing the :option:`mongod` instance to become
+   primary again.
 
    ``replSetFreeze`` is an administrative command that must be issued
    against the ``admin`` database.
 
    .. slave-ok, admin-only
-
-   See the ":doc:`/core/replication`" document for more information
-   regarding replication.
 
 .. describe:: replSetGetStatus
 
@@ -370,9 +370,7 @@ Replication
 
    .. slave-ok, admin-only
 
-   See the ":doc:`/core/replication`" document for more information
-   regarding replication, and the ":doc:`/reference/replica-status`"
-   document for more information on the output of this command .
+   .. seealso:: ":doc:`/reference/replica-status`"
 
 .. describe:: replSetInitiate
 
@@ -394,15 +392,12 @@ Replication
                ]
           }
 
-   The ``mongo`` shell provides a helper method for
-   ``replSetInititate``. You may also use the following syntax: ::
+   The ``mongo`` shell provides the :js:func:`rs.conf()` function as a
+   wrapper to `replSetInititate``.
 
         rs.initiate()
 
    .. slave-ok, admin-only
-
-   See the ":doc:`/core/replication`" document for more information regarding
-   replication.
 
 .. describe:: replSetReconfig
 
@@ -431,15 +426,12 @@ Replication
    - In some situations, a ``replSetReconfig`` can cause the current
      shell to disconnect. Do not be alarmed.
 
-   See the ":doc:`/core/replication`" document for more information regarding
-   replication.
-
    .. slave-ok, admin-only
 
 .. describe:: replSetStepDown
 
-   The ``replSetStepDown`` command forces a ``mongod`` instance to
-   step down as primary, and then (attempt to) avoid reelection to
+   The ``replSetStepDown`` command forces a :option:`mongod` instance
+   to step down as primary, and then (attempt to) avoid reelection to
    primary for a specified number of seconds. Consider the following
    syntax for this admin-only command: ::
 
@@ -452,23 +444,20 @@ Replication
 
    .. slave-ok, admin-only
 
-   See the ":doc:`/core/replication`" document for more information
-   regarding replication.
-
 Geolocation
 ~~~~~~~~~~~
 
 .. describe:: geoNear
 
    The ``geoNear`` command provides an alternative to the
-   :operator:`$near` operator. In addition to the functionality of
-   ``$near``, ``geoNear`` returns the distance of each item from the
-   specified point and additional diagnostic information. For example:
-   ::
+   :mongodb:operator:`$near` operator. In addition to the
+   functionality of ``$near``, ``geoNear`` returns the distance of
+   each item from the specified point and additional diagnostic
+   information. For example: ::
 
          { geoNear : "places" , near : [50,50], num : 10 }
 
-   Here, ``geoNear`` returns the 10 items nearest to the cordinates
+   Here, ``geoNear`` returns the 10 items nearest to the coordinates
    ``[50,50]``. ``geoNear`` provides the following options (all
    distances are specified in the same units as the document
    coordinate system:)
@@ -480,7 +469,7 @@ Geolocation
    - The ``maxDistance`` option allows you to limit results based on
      their distance from the initial coordinates.
    - The ``query`` option makes it possible to narrow the results
-     with any standard mongodb query.
+     with any standard MongoDB query.
    - The ``distanceMultiplier`` option is undocumented.
 
 TODO distanceMultiplier research/definition
@@ -729,18 +718,19 @@ TODO factcheck captrunc
    - ``compact`` commands do not replicate and can be run on slaves
      and replica set members.
 
-   - :term:`Capped collections` cannot be compacted.
+   - :term:`Capped collections <capped collection>` cannot be
+     compacted.
 
 Administration
 ~~~~~~~~~~~~~~
 
 .. describe:: fsync
 
-   ``fsync`` is an administrative command that forces the ``mongod``
-   process to flush all pending writes to the data files. In default
-   operation, full flush runs within every 60 seconds. Running
-   ``fsync`` in the course of normal operations is not required. The
-   command takes the following form: ::
+   ``fsync`` is an administrative command that forces the
+   :option:`mongod` process to flush all pending writes to the data
+   files. In default operation, full flush runs within every 60
+   seconds. Running ``fsync`` in the course of normal operations is
+   not required. The command takes the following form: ::
 
         { fsync: 1 }
 
@@ -827,8 +817,8 @@ Administration
 
    - ``clone`` can run against a :term:`slave` or a
      non-:term:`primary` member of a :term:`replica set`.
-   - ``clone`` does not snapshot the database. If the copied database is
-     updated at any point during the clone operation the resulting
+   - ``clone`` does not snapshot the database. If the copied database
+     is updated at any point during the clone operation the resulting
      database may be inconsistent.
    - You must run ``clone`` on the **destination server**.
    - The destination server is not locked during the duration of the
@@ -839,28 +829,28 @@ Administration
 
 .. describe:: closeAllDatabases
 
-   The ``closeAllDatabases`` command forces ``mongod`` to close all
-   open database files. The command takes the following form: ::
+   The ``closeAllDatabases`` command forces :option:`mongod` to close
+   all open database files. The command takes the following form: ::
 
         { closeAllDatabases: 1 }
 
    .. note::
 
-      A new request will cause the ``mongod`` to immediately reopen
-      the database files. As a result this command is primarily useful
-      for testing purposes
+      A new request will cause the :option:`mongod` to immediately
+      reopen the database files. As a result this command is primarily
+      useful for testing purposes
 
 .. describe:: repairDatabase
 
    The ``repairDatabase`` command checks and repairs errors and
    inconsistencies with the data storage. The command is analogous to
-   a ``fsck`` command for file systems. If your ``mongod`` instance is
-   not running with journaling and you experience an unexpected system
-   restart or crash, you should run the ``repairDatabase`` command to
-   ensure that there are no errors in the data storage. Additionally,
-   the ``repairDatabase`` command will compact the database, providing
-   functionality equivalent to the :command:`compact` command. Use the
-   following syntax.
+   a ``fsck`` command for file systems. If your :option:`mongod`
+   instance is not running with journaling and you experience an
+   unexpected system restart or crash, you should run the
+   ``repairDatabase`` command to ensure that there are no errors in
+   the data storage. Additionally, the ``repairDatabase`` command will
+   compact the database, providing functionality equivalent to the
+   :command:`compact` command. Use the following syntax.
 
         { repairDatabase: 1 }
 
@@ -872,9 +862,10 @@ Administration
 
    - Use the shell to run the above command, as above.
 
-   - Run ``mongod`` directly from your system's shell. Make sure that
-     ``mongod`` isn't already running, and that you issue this command
-     as a user that has access to MongoDB's data files. Run as: ::
+   - Run :option:`mongod` directly from your system's shell. Make sure
+     that :option:`mongod` isn't already running, and that you issue
+     this command as a user that has access to MongoDB's data
+     files. Run as: ::
 
            $ mongod --repair
 
@@ -987,10 +978,10 @@ TODO is the password an option here?
 
    .. note::
 
-      Your ``mongod`` instance needs to be running with the
+      Your :option:`mongod` instance needs to be running with the
       ``--logpath <file>`` option for the ``logRotate`` command.
 
-   You may also rotate the logs by sending the ``mongod`` process the
+   You may also rotate the logs by sending the :option:`mongod` process the
    ``SIGUSR1`` signal.
 
    Rotated files have a number appended to the file name.
@@ -1024,8 +1015,9 @@ TODO is the password an option here?
 
    - **quiet** specify a "``true``" or "``false``" value for this
      option to enable or disable a quiet logging mode. This toggles
-     the same option as running ``mongod`` with the "``--quiet``"
-     flag. This will suppress logging of the following messages:
+     the same option as running :option:`mongod` with the
+     ":option:`--quiet <mongod --quiet>``" flag. This will suppress
+     logging of the following messages:
 
      - Connection events: accepted and closed.
      - Commands: :command:`drop`, :command:`dropIndex`, and
@@ -1033,8 +1025,9 @@ TODO is the password an option here?
      - Replication synchronization activity.
 
    - **syncdelay** specify a ``<value>``, in seconds, to control the
-     interval that the ``mongod`` flushes memory to disk. By default
-     ``mongod`` will flush memory to disk every 60 seconds.
+     interval that the :option:`mongod` flushes memory to disk. By
+     default :option:`mongod` will flush memory to disk every 60
+     seconds.
 
    .. slave-ok, admin-only
 
@@ -1108,7 +1101,7 @@ Diagnostics
 
    This command returns a document with two fields, "``argv``" and
    "``parsed``". The "``argv``" field contains an array with each item
-   from the command string that invoked ``mongod``. The document
+   from the command string that invoked :option:`mongod`. The document
    in the "``parsed``" field includes all runtime options, including
    those parsed from the command line and those specified in the
    configuration file (if specified.)
@@ -1173,8 +1166,8 @@ TODO factcheck; the options on the REST interface and wiki differ
    output of the command. The data returned includes:
 
    - The version of MongoDB currently running.
-   - The information about the system that the mongod binary was built
-     on and a time stamp of this build.
+   - The information about the system that built the
+     ":option:`mongod`" binary, including a timestamp for the build.
    - The architecture of the binary (i.e. 64 or 32 bits)
    - The maximum :term:`BSON` object size in bytes (in the field
      "``maxBsonObjectSize``".)
@@ -1206,8 +1199,8 @@ TODO factcheck; the options on the REST interface and wiki differ
 .. describe:: getLog
 
    The ``getLog`` command returns a document with a ``log`` array that
-   contains recent messages from the ``mongod`` process's log. Use the
-   following syntax: ::
+   contains recent messages from the :option:`mongod` process's
+   log. Use the following syntax: ::
 
         { getLog: <log> }
 
@@ -1219,7 +1212,7 @@ TODO factcheck; the options on the REST interface and wiki differ
 
    - ``"global"`` - to generate the most recent log events from the
      database. This is equivalent to running the "``tail``" command on
-     the ``mongod`` log in the system shell.
+     the :option:`mongod` log in the system shell.
 
 .. describe:: listDatabases
 
@@ -1259,8 +1252,8 @@ TODO factcheck; the options on the REST interface and wiki differ
 
         { isMaster: 1 }
 
-   This command will return a ``true`` value on ``mongod`` instances
-   that are running as standalone nodes.
+   This command will return a ``true`` value on :option:`mongod`
+   instances that are running as standalone nodes.
 
 .. describe:: ping
 
@@ -1347,7 +1340,7 @@ TODO no documentation exists, and the response I get is the above
 .. describe:: listCommands
 
    The ``listCommands`` command generates a list of all database
-   commands implemented in the running version of ``mongod``.
+   commands implemented in the running version of :option:`mongod`.
 
    .. slave-ok
 
@@ -1460,8 +1453,8 @@ Internal Use
 
         { sleep: { w: true, secs: <seconds> } }
 
-   The above command places the ``mongod`` instance in a "write-lock"
-   state for a specified (i.e. ``<seconds>``) number of
+   The above command places the :option:`mongod` instance in a
+   "write-lock" state for a specified (i.e. ``<seconds>``) number of
    seconds. Without arguments, ``sleep``, causes a "read lock" for 100
    seconds.
 
