@@ -2,9 +2,9 @@
 Replica Status Reference
 ========================
 
-The :command:`replSetGetStatus` provides an overview of the current
-status of a replica set. Issue the following command against the
-"``admin``" database, in the ``mongo`` shell: ::
+The :mongodb:command:`replSetGetStatus` provides an overview of the
+current status of a replica set. Issue the following command against
+the "``admin``" database, in the :option:`mongo` shell: ::
 
      db.runCommand({ replSetGetStatus: 1 } )
 
@@ -13,23 +13,23 @@ the command.
 
 .. note::
 
-   The ``mongod`` that you issue the ``replSetGetStatus`` command to
-   needs to have replication enabled, and be connected to a replica
-   set for this command to return successfully.
+   The :option:`mongod` that you issue the :mongodb:command:`mongodb`
+   command to needs to have replication enabled, and be connected to a
+   replica set for this command to return successfully.
 
-Top Level Statuses
-------------------
+Statuses
+--------
 
 .. describe:: set
 
    The ``set`` value is the name of the replica set, configured in the
-   :setting:`replSet` setting.
+   :mongodb:setting:`replSet` setting.
 
 .. describe:: date
 
    The value of the ``date`` field is an :term:`ISODate` of the
    current time, according to the current server. Compare this to the
-   value of the :status:`lastHeartbeat` to find the operational lag
+   value of the :mongodb:status:`lastHeartbeat` to find the operational lag
    between the current host and the other hosts in the set.
 
 .. describe:: myState
@@ -37,7 +37,7 @@ Top Level Statuses
    The value of the ``myState`` value reflect state of the current
    node. State is specified as an integer between ``0`` and
    ``9``. These integers map to states, as described in the following
-   chart.
+   table:
 
    ==========  ==========================================================
    **Number**  **State**
@@ -99,8 +99,8 @@ TODO determine if this is from the perspective of the current server or reported
 
    The ``lastHeartbeat`` value provides an :term:`ISODate` formatted
    date of the last heartbeat received from this node. Compare this
-   value to the value of the :status:`date` field to track latency
-   between these nodes.
+   value to the value of the :mongodb:status:`date` field to track
+   latency between these nodes.
 
    This value is only present for remote nodes.
 
