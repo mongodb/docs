@@ -27,6 +27,8 @@ the following form: ::
 Modify the values in this ``mongodb.conf`` to control the
 configuration of your database instance.
 
+.. _base-config:
+
 Starting, Stopping, and Running the Database
 --------------------------------------------
 
@@ -186,9 +188,9 @@ Sharding requires a number of nodes with slightly different
 configurations. The config servers stores the cluster's metadata,
 while the data is distributed among one or more shard servers.
 
-To set up one or three "config server" instances as normal
-:option:`mongod` nodes, and then add the following configuration
-option: ::
+To set up one or three "config server" instances as :ref:`normal
+<base-config>` :option:`mongod` nodes, and then add the following
+configuration option: ::
 
      configsrv = true
 
@@ -223,17 +225,90 @@ instances.
 Running Multiple Database Instances on the Same System
 ------------------------------------------------------
 
-     dbpath
-     pidpath
+In many cases running multiple instances of :option:`mongod` on a
+single system is not recommended, on some types of deployments
+[#multimongod]_ and for testing purposes you may need to run more than
+one :option:`mongod` on a single system.
+
+In these cases, use a :ref:`base configuration <base-config>` for each
+node, but consider the following configuration values: ::
+
+     dbpath = /srv/mongodb/db0/
+     pidpath = /srv/mongodb/db0.pid
+
+The :mongodb:setting:`dbpath` value controls the location of the
+:option:`mongod` instance's data directory. Ensure that each database
+has a distinct and well labeled data directory. The
+:mongodb:setting:`pidpath` controls where :option:`mongod` process
+places it's :term:`pid` file. As this tracks the specific
+:option:`mongod` file, it is crucial that file be unique and well
+labeled to make it easy to start and stop these processes.
+
+Create additional :term:`control scripts <control script>` and/or
+adjust your existing MongoDB configuration and control script as
+needed to control these processes.
+
+.. [#multimongod] Single-tenant systems with :term:`SSD` or other high
+   performance disks may provide acceptable performance levels for
+   multiple ``mongod`` instances. Additionally, you may find that
+   multiple databases with small working sets may function acceptably
+   on a single system.
 
 Diagnostics Configurations
 --------------------------
 
-     slowms = 50ms
-     objcheck = true
-     cpu =
+The following configuration options control various :option:`mongod`
+behaviors for diagnostic purposes. The following settings have default
+values that are tuned for general production
+
+     slowms = 50
      profile = 3
-     verbose =
-     logpath =
-     logapend = true
-     dialog =
+     objcheck = true
+     cpu = true
+     verbose = true
+     diaglog = 3
+
+Use the :ref:`base configuration <base-config>` and add these options
+if you are experiencing some unknown issue or performance problem as
+needed:
+
+- :mongodb:setting:`slowms` configures the threshold for a query to be
+  considered "slow" by the :term:`database profiler` The default value
+  is 100 milliseconds. Set a lower value if the database profiler does
+  not return useful results. See the ":doc:`/optimization`" for more
+  information on optimizing operations in MongoDB.
+
+- :mongodb:setting:`profile` sets the :term:`database profiler`
+  level. The profiler is not active by default because of the possible
+  impact on the profiler itself on performance. Unless this setting
+  has a value, queries will not be profiled.
+
+- :mongodb:setting:`verbose` enables a verbose logging mode, which
+  modifies :option:`mongod` output and logging to include a greater
+  number of events. Only use this option if you are experiencing an
+  issue that is not reflected in the normal logging level. If you
+  require additional verbosity, consider the following options: ::
+
+       v = true
+       vv = true
+       vvv = true
+       vvvv = true
+       vvvvv = true
+
+  Each additional level ``v`` adds additional verbosity to the
+  logging. The "``verbose``" option  is equal to "``v = true``".
+
+- :mongodb:setting:`diaglog` enables diagnostic logging. Level ``3``
+  logs all read and write options.
+
+- :mongodb:setting:`objcheck` forces :option:`mongod` to validate all
+  requests from clients upon receipt. Use this option to ensure that
+  invalid requests are not causing errors, particularly when running a
+  database with untrusted clients. This option may affect database
+  performance.
+
+- :mongodb:setting:`cpu` forces ``mongod`` to periodically report CPU
+   utilization I/O wait in the logfile. Use this in combination with or
+   addition to tools such as :program:`iostat`, :program:`vmstat`, or
+   :program:`top` to provide insight into the state of the system
+   in context of the log.
