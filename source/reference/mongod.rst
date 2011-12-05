@@ -1,6 +1,6 @@
-=============
-mongod Manual
-=============
+=================
+``mongod`` Manual
+=================
 
 Synopsis
 --------
@@ -136,7 +136,7 @@ TODO insert link to replication documentation when it exists.
 
    Enables database authentication for users connecting from remote
    hosts. Users are configured via the :doc:`mongo shell
-   </utilities/mongo>`. If no users exist, the localhost interface
+   </reference/mongo>`. If no users exist, the localhost interface
    will continue to have access to the database until a user has been
    created.
 

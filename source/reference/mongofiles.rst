@@ -1,6 +1,6 @@
-=========================
-mongofiles Utility Manual
-=========================
+=============================
+``mongofiles`` Utility Manual
+=============================
 
 .. default-domain:: mongodb
 

@@ -34,16 +34,16 @@ MongoDB Manual Contents
 
    reference/mongod
    reference/mongos
-   utilities/mongo
-   utilities/mongodump
-   utilities/mongorestore
-   utilities/mongoimport
-   utilities/mongoexport
-   utilities/mongostat
-   utilities/mongotop
-   utilities/mongosniff
-   utilities/mongofiles
-   utilities/bsondump
+   reference/mongo
+   reference/mongodump
+   reference/mongorestore
+   reference/mongoimport
+   reference/mongoexport
+   reference/mongostat
+   reference/mongotop
+   reference/mongosniff
+   reference/mongofiles
+   reference/bsondump
 
    reference/server-status
    reference/database-statistics
@@ -57,4 +57,3 @@ MongoDB Manual Contents
    reference/javascript
    reference/meta-query-operators
    reference/glossary
-

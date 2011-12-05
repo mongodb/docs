@@ -156,7 +156,7 @@ TODO factcheck maxcons
 
    Set to ``true`` to enable database authentication for users
    connecting from remote hosts. Users are configured via the
-   :doc:`mongo shell </utilities/mongo>`. If no users exist, the
+   :doc:`mongo shell </reference/mongo>`. If no users exist, the
    localhost interface will continue to have access to the database
    until a user has been created.
 
@@ -229,18 +229,18 @@ TODO add interval for cpu option
    This value is stored in milliseconds. This option accepts values
    between 2 and 300 milliseconds.
 
-   Set this value to specify the maximum amount of time for :option:`mongod`
-   to allow between journal operations. The default value is 100
-   milliseconds. Lower values increase the durability of the journal,
-   at the possible expense of disk performance.
+   Set this value to specify the maximum amount of time for
+   :option:`mongod` to allow between journal operations. The default
+   value is 100 milliseconds. Lower values increase the durability of
+   the journal, at the possible expense of disk performance.
 
 .. option:: ipv6
 
    *Default:* false
 
-   Set to ``true`` to  IPv6 support to allow clients to connect to :option:`mongod`
-   using IPv6 networks. IPv6 support is disabled by default in
-   :option:`mongod` and all utilities.
+   Set to ``true`` to IPv6 support to allow clients to connect to
+   :option:`mongod` using IPv6 networks. IPv6 support is disabled by
+   default in :option:`mongod` and all utilities.
 
 .. option:: jsonnp
 
@@ -589,4 +589,3 @@ Sharding Cluster Options
    it may be neccessary to set a different chunk size.
 
    This setting only affects :option:`mongos` processes.
-

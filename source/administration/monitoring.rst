@@ -14,8 +14,8 @@ monitoring instances in MongoDB's replica sets and shard clusters.
 
    For more information about monitoring tools, see:
 
-   - :doc:`/utilities/mongostat`.
-   - :doc:`/utilities/mongotop`.
+   - :doc:`/reference/mongostat`.
+   - :doc:`/reference/mongotop`.
 
    For more background on various other MongoDB status outputs see:
 
@@ -409,7 +409,7 @@ In nearly every case all locks are automatically released when they
 become stale. However, because any long lasting lock can
 block. balancing. To check the lock status of the database, connect to
 a :option:`mongos` instance using the :doc:`mongo shell
-</utilities/mongo>`". Issue the following command sequence to switch
+</reference/mongo>`". Issue the following command sequence to switch
 to the config database and display all outstanding locks on the shard
 database: ::
 
