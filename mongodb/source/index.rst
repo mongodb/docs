@@ -22,7 +22,7 @@ Major Topics
 ------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    replication
    administration
@@ -41,6 +41,7 @@ User Guides
 
    schema-design
    optimization
+   mongo
 
 - Tutorials
 - Guides
@@ -80,7 +81,7 @@ MongoDB Shell
 .. toctree::
    :maxdepth: 3
 
-   mongo-shell
+   mongo
 
 Developing MongoDB
 ------------------

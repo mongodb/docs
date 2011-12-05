@@ -11,9 +11,9 @@ systems administrators as well as an way to test queries and
 operations directly with the database. To increase the flexibility of
 ``mongo``, the shell provides a fully functional JavaScript
 environment. This manual contains more extensive documentation of
-``mongo`` in the ":doc:`/mongo-shell`" document. This manual page,
-addresses the basic invocation of the ``mongo`` shell and an overview
-of its usage.
+``mongo`` in the ":doc:`/mongo`" document. This manual page, addresses
+the basic invocation of the ``mongo`` shell and an overview of its
+usage.
 
 
 Options
@@ -23,9 +23,9 @@ Options
 
 .. option:: --shell
 
-   If the ``mongo`` shell is invoked with ":option:`mongo <file.js>`"
-   or ":option:`mongo --eval`" the ``--shell`` provides the user with
-   a shell prompt after the file finishes executing.
+   If the :option:`mongo` shell is invoked with ":option:`mongo
+   <file.js>`" or ":option:`mongo --eval`" the ``--shell`` provides
+   the user with a shell prompt after the file finishes executing.
 
 .. option:: --nodb
 

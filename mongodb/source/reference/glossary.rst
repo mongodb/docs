@@ -14,10 +14,14 @@ Glossary
       MongoDB has database commands, which have a specific
       implementation, and allow you to control the database.
 
+      .. seealso:: ":doc:`/reference/commands`."
+
    operator
       Operators provide tools for querying and manipulating
       documents. See the ":doc:`/reference/operators`" for more
       information about the available operators.
+
+      .. seealso:: ":doc:`/reference/operators`."
 
    MongoDB
       A document-driven database.
@@ -70,15 +74,23 @@ Glossary
       instance to automatically reassign itself based on the cluster
       conditions.
 
+      .. seealso:: :term:`replication`, ":doc:`/replication`" and
+         ":doc:`/core/replication`."
+
    Replication
      A database architecture where the data corpus is duplicated on a
      number of machines to provide redundancy and load
-     distribution. See also :term:`Sharding` and :term:`Replica set`.
+     distribution. See also :term:`sharding` and :term:`Replica set`.
+
+      .. seealso:: :term:`replica set`, ":doc:`/replication`." and
+         ":doc:`/core/replication`."
 
    Shard
       A for a :term:`mongod` instance that only stores a portion of
       the total dataset corpus as part of a :term:`cluster`. See
       :term:`sharding`.
+
+      .. seealso:: ":doc:`/core/sharding`."
 
    Sharding
       A database architecture where the data corpus is split among
@@ -86,14 +98,19 @@ Glossary
       support for automatic shading in version 1.6 (TODO) See
       :term:`shard`.
 
+      .. seealso:: ":doc:`/core/sharding`."
+
    shard cluster
       A collection of MongoDB instances with a dataset partitioned
       or ":term:`sharded <sharding>`" among a set of nodes.
 
+      .. seealso:: ":doc:`/core/sharding`."
+
    mongod
-      ``mongod`` is the daemon that runs MongoDB database
-      instances. See ":doc:`/reference/mongod`" for more
-      information.
+      :option:`mongod` is the :term:`daemon` that runs MongoDB database
+      instances.
+
+      .. seealso:: ":doc:`/reference/mongod`."
 
    mongos
       ``mongos`` is a routing and load balancing process that provides
@@ -101,11 +118,16 @@ Glossary
       a :term:`shard cluster`. See ":doc:`/reference/mongos`" for more
       information.
 
+      .. seealso:: ":doc:`/reference/mongos`."
+
    mongo
       The MongoDB Shell. Mongo connects to the :term:`mongod`
       database and provides an interface for administration,
       management, and testing. ``mongo`` uses complete JavaScript
       interface.
+
+      .. seealso:: ":doc:`/reference/mongo`" and
+         ":doc:`/reference/javascript`."
 
    SQL
       Standard Query Language. This is the standard method for
@@ -113,10 +135,14 @@ Glossary
       a metonym for relational databases.
 
    Cluster
-      Clusters are groups of `mongod` instances running in conjunction
-      to increase database availability and performance. See
-      :term:`sharding` and :term:`replication` for more information on
-      two different approaches to clustering with MongoDB.
+      Clusters are groups of :option:`mongod` instances running in
+      conjunction to increase database availability and
+      performance. See :term:`sharding` and :term:`replication` for
+      more information on two different approaches to clustering with
+      MongoDB.
+
+      Typically groups of replicating nodes are "*set*" while
+      "*cluster*" refers primarily to :term:`sharding`.
 
    Polygon
       MongoDB's :term:`geospatial` indexes and querying system
@@ -146,6 +172,8 @@ Glossary
       documents. These collections are used to prevent collections
       from growing out of control and are useful in the context of
       logging or caching functions.
+
+      .. seealso:: ":doc:`/core/capped-collection`."
 
    BSON types
       BSON objects are typed. The following types are available:
@@ -212,6 +240,9 @@ Glossary
       A number of :doc:`database commands <commands>` have "helper"
       methods in the ``mongo`` shell that provide a more concise
       syntax and improve the general interactive experience.
+
+      .. seealso:: ":doc:`/reference/mongo`" and
+         ":doc:`/reference/javascript`."
 
    write-lock
       When a process needs to write to the database, a write-lock is
@@ -283,13 +314,14 @@ Glossary
       operation is in progress.
 
    configdb
-      A special database instance used by MongoDB to track data and
-      its relationship to specific instances in a shard cluster.
+      A special database instance used by MongoDB to track data
+      and its relationship to specific instances in a :term:`shard
+      cluster`.
 
    balancer
-      An internal MongoDB process that runs in the context of a shard
-      cluster that distributes :term:`chunks <chunk>` of data amongst the
-      shards.
+      An internal MongoDB process that runs in the context of a
+      :term:`shard cluster` that distributes :term:`chunks <chunk>` of
+      data amongst the shards.
 
    fsync
       An operation that ensures that all data has been written to data
@@ -360,9 +392,15 @@ Glossary
       these files are stored in ``/srv/mongodb`` or
       ``/var/lib/mongodb``.
 
+      .. seealso:: ":mongodb:setting:`dbpath`" or ":option:`--dbpath
+         <mongod --dbpath>`."
+
    setname
       In the context of :term:`replica set`, the ``setname`` refers to
       the configured
+
+      .. seealso:: :term:`replication`, ":doc:`/replication`" and
+         ":doc:`/core/replication`."
 
    _id
       The unique identifier for each identifier. This value is
@@ -442,3 +480,10 @@ Glossary
       many features, provides a significantly larger address space to
       more effectively support the number of hosts on the contemporary
       internet.
+
+   draining
+      The process of removing, or "shedding" :term:`chunks <chunk>`
+      from one :term:`shard` to another. Shards must be drained before
+      they can be removed from the cluster.
+
+      .. seealso:: :mongodb:command:`removeshard``

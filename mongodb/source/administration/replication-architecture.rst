@@ -15,9 +15,6 @@ documents.
 The overall organization of this document will be topical/usecase
 centered.
 
-Two Node Sets
--------------
-
 Three Node Sets
 ---------------
 

@@ -234,9 +234,12 @@ connections
    The value of ``connections.current`` corresponds to the number of
    connections to the database server from clients. This number
    includes the current shell session. Consider the value of
-   :mongodb:status:`connections.available` to add more context to this datum.
+   :mongodb:status:`connections.available` to add more context to this
+   datum.
 
-TODO factcheck current shell connection
+   This figure will include the current shell connection as well as
+   any inter-node connections to support a :term:`replica set` or
+   :term:`shard cluster`.
 
 .. describe:: connections.available
 
@@ -248,8 +251,6 @@ TODO factcheck current shell connection
 
 extra_info
 ----------
-
-TODO determine all possible fields in extra_info, and understand use
 
 .. describe:: extra_info
 
@@ -600,8 +601,6 @@ asserts
 
 TODO determine number of assertions per-rollover.
 
-TODO develop more in-depth/useful assertion descriptions
-
 .. _durability-status:
 
 dur
@@ -653,7 +652,7 @@ Durability
 
    The ``dur.compression`` value ...
 
-TODO not included in existing documentation...
+TODO dur.compression  not included in existing documentation. and not apparent
 
 .. describe:: dur.commitsInWriteLock
 

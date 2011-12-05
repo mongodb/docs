@@ -13,6 +13,8 @@ MongoDB Manual Contents
 
    replication
 
+   administration
+
    schema-design
    optimization
 
@@ -22,9 +24,7 @@ MongoDB Manual Contents
    core/journaling
    core/capped-collections
 
-   administration
-
-   mongo-shell
+   mongo
 
    reference
 

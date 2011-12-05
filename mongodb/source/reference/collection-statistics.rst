@@ -2,15 +2,14 @@
 Collection Statistics Reference
 ===============================
 
-.. default-domain: mongodb
 .. highlight:: javascript
 
 Synopsis
 --------
 
 MongoDB can report data reflecting the current state of the current
-collection. To dbstats ``run`` issue a command in the shell that
-resembles the following: ::
+collection. To fetch collection statistics, issue a command in the
+:option:`mongod` shell that resembles the following: ::
 
      db.collection.stats()
      db.runCommand( { collStats: "collection" } )
@@ -23,8 +22,8 @@ form: ::
      db.collection.stats(1024)
      db.runCommand( { collStats: "collection", scale: 1024 } )
 
-The above commands are equivalent. See :command:`colStats` for more
-information.
+The above commands are equivalent. See :mongodb:command:`colStats` for
+more information.
 
 Fields
 ------

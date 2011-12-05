@@ -2,13 +2,15 @@
 Monitoring Database Systems
 ===========================
 
-Monitoring is a crucial component of all database administration
-work. A firm grasp of MongoDB's monitoring capabilities will enable
-you to effectively assess and maintain your deployment proactively,
-and also efficiently diagnose any issues that you encounter. This
-document provides an overview of the tools you may use for monitoring
-MongoDB, an introduction to diagnostic strategies, and suggestions for
-monitoring instances in MongoDB's replica sets and shard clusters.
+Monitoring is a critical component in all database administration
+work. A firm grasp of MongoDB's reporting approach allow you to
+effectively assess and maintain your deployment proactively.
+Additionally, a sense of MongoDB's and normal parameters will allow
+you to capably diagnose issues as you encounter them. This document
+provides an overview of the available tools and data provided by
+MongoDB as well as introduction to diagnostic strategies, and
+suggestions for monitoring instances in MongoDB's replica sets and
+shard clusters.
 
 .. seealso::
 
@@ -37,12 +39,19 @@ monitoring instances in MongoDB's replica sets and shard clusters.
 Monitoring Tools
 ----------------
 
-MongoDB provides a number of ways to collect data about the state and
-condition of a running MongoDB instance. Each method provides a
-different set of information, and is useful in a different
-context. This section provides an overview of these utilities and
-statistics, along with an example of the kinds of questions that each
-method is most suited to help you address.
+MongoDB provides two main methods and several operation for collecting
+that reflects the state and condition of a running MongoDB
+instance. First, there are a set of tools accessible from the system
+shell that provide real time reporting of activity on the
+database. Second, several :doc:`database commands
+</reference/commands>` return fine grained statistics about the
+current database state. Each method provides a data that answer a
+different set of questions, and are useful for monitoring different
+context kinds of activity.
+
+This section provides an overview of these utilities and statistics,
+along with an example of the kinds of questions that each method is
+most suited to help you address.
 
 Utilities
 ~~~~~~~~~
@@ -55,7 +64,7 @@ current issues with the database.
 mongotop
 ````````
 
-:command:`mongotop` tracks and reports the current read and write
+:option:`mongotop` tracks and reports the current read and write
 activity of a MongoDB instance. ``mongotop`` provides per-collection
 visibility into use. Use ``mongotop`` to verify that activity and use
 match expectations.
