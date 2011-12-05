@@ -22,13 +22,7 @@ MongoDB Manual Contents
    core/journaling
    core/capped-collections
 
-   administration/backups
-   administration/import-export
-   administration/monitoring
-   administration/security
-   deployment/configuration
-   deployment/operating-systems
-   deployment/hardware-platform
+   administration
 
    mongo-shell
 

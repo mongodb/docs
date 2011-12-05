@@ -25,10 +25,9 @@ Major Topics
    :maxdepth: 2
 
    replication
+   administration
 
 - sharding
-- administration
-- deployment
 - core-operation
 - tutorials
 - using
@@ -69,11 +68,12 @@ Administration and Deployment
    administration/backups
    administration/import-export
    administration/monitoring
-   administration/security
    administration/replica-sets
-   deployment/configuration
-   deployment/operating-systems
-   deployment/hardware-platform
+   administration/security
+   administration/configuration
+   administration/hardware-platform
+   administration/operating-systems
+   administration/replication-architecture
 
 MongoDB Shell
 -------------

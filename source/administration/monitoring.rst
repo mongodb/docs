@@ -394,10 +394,11 @@ verifying that chunks are evenly distributed can be done by way of
 approximation. For larger clusters, use the following shell function
 to display the distribution of chunks among shards.
 
-TODO create a shell function: ::
+TODO create a shell function for showing
+ ::
 
    for shard in cluster; do
-       print "shardName - numChunks";
+       print "{ shardName: $shard, numChunks }";
    done
 
 .. run group command against chunk collection inside config server
