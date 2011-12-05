@@ -26,13 +26,12 @@ Major Topics
 
    replication
    administration
+   reference
 
 - sharding
 - core-operation
 - tutorials
 - using
-- utilities
-- reference
 
 User Guides
 -----------
