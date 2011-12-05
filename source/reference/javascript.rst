@@ -170,10 +170,10 @@ Query Cursor Methods
    ``skip()`` may become IO bound.
 
    Consider using range-based pagination for these kinds of
-   tasks. This approach features better index utilization, if you do
-   not need to easily jump to a specific page.
-
-TODO the above is mostly stolen from the wiki, and I'm not sure I understand what range-based paging is or where to link to an appropriate section.
+   tasks. That is, query for a range of objects, using logic within
+   the application to determine the pagination rather than the
+   database itself. This approach features better index utilization,
+   if you do not need to easily jump to a specific page.
 
 .. js:function:: snapshot()
 
@@ -1159,8 +1159,6 @@ TODO confirm that it it's the shell process. as values don't match serverStatus(
 
       Returns the size of the object in bytes. This field is only
       present for files.
-
-TODO-test units
 
 Internal Functions
 ~~~~~~~~~~~~~~~~~~

@@ -141,8 +141,8 @@ Snapshots have some limitations:
 With Journaling
 ~~~~~~~~~~~~~~~
 
-If your system has a snapshot capability and ``mongod`` instance has
-journaling enabled then you can use any kind of file system or
+If your system has a snapshot capability and :option:`mongod` instance
+has journaling enabled then you can use any kind of file system or
 volume/block level snapshot tool to create backups.
 
 .. note::

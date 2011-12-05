@@ -118,11 +118,53 @@ Sharding
 
 .. describe:: removeshard
 
-TODO document removeshard
+   Controls the process of removing a shard from a :term:`shard
+   cluster`. This is a multi-stage process. Begin by issuing a command
+   in the following form: ::
+
+        { removeshard : "shardName" }
+
+   Where "``shardName``` refers to the name of the shard that you wish
+   to remove. The balancer will then begin migrating chunks from this
+   shard to other shards in the cluster. This process happens slowly,
+   to avoid placing unrequited load on a production cluster, and
+   requires that the balancer be enabled. The command returns
+   immediately, with the following message: ::
+
+        { msg : "draining started successfully" , state: "started" , shard: "shardName" , ok : 1 }
+
+   If you run the command again, you will see the following progress
+   output: ::
+
+        { msg: "draining ongoing" ,  state: "ongoing" , remaining: { chunks: 23 , dbs: 1 }, ok: 1 }
+
+   The ``remaining`` :term:`document <JSON document>`" specifies how
+   many chunks and databases remain on the shard. Use
+   :mongodb:command:`printShardingStatus` to list the databases that
+   must moved from the shard.
+
+   Database must be moved manually using the
+   :mongodb:command:`moveprary`.
+
+   Once all chunks and databases have been removed from the shard, you
+   may issue the command again, to return: ::
+
+        { msg: "remove shard completed successfully , stage: "completed", host: "shardName", ok : 1 }
 
 .. describe:: moveprimary
 
-TODO document moveprimary
+   In a :term:`shard cluster`, this command moves the primary database
+   to a specified shard. The command takes the following form: ::
+
+        { moveprimary : "test", to : "shard0001" }
+
+   When the command returns the database's primary location has
+   shifted to the designated :term:`shard`. To fully decomission a
+   shard, return to the :mongodb:command:`removeshard`.
+
+   .. warning:: Do not use :mongodb:command:`moveprimary` if you have
+      sharded collections and the :term:`draining` process has not
+      completed.
 
 Aggregation
 ~~~~~~~~~~~
@@ -423,8 +465,10 @@ Replication
      should always perform these operations during scheduled
      maintenance periods.
 
-   - In some situations, a ``replSetReconfig`` can cause the current
-     shell to disconnect. Do not be alarmed.
+   - In some cases, ``replSetReconfig`` forces the current primary to
+     step down and forces an election for primary among the members of
+     the replica set. When this happens the set will drop all current
+     collections.
 
    .. slave-ok, admin-only
 
@@ -441,6 +485,10 @@ Replication
    reelection to primary. If you do not specify a value for
    ``<seconds>``, ``replSetStepDown`` will attempt to avoid reelection
    to primary for 60 seconds.
+
+   .. warning:: This will force all clients currently connected to the
+      database to disconnect, while the set elects a new primary
+      node.
 
    .. slave-ok, admin-only
 
@@ -920,7 +968,7 @@ Administration
    The ``copydb`` command copies a database from another host to the
    current host. This provides similar functionality to
    :command:`clone`, but provides additional flexibility. The command
-   takes the following syntax: ::
+   uses the following syntax: ::
 
         { copydb: 1:
           fromhost: <hostname>,
@@ -928,6 +976,7 @@ Administration
           todb: <db>,
           slaveOk: <bool>,
           username: <username>,
+          password: <password>,
           nonce: <nonce>,
           key: <key> }
 
@@ -935,6 +984,7 @@ Administration
 
    - slaveOK
    - username
+   - password
    - nonce
    - key
 
@@ -952,8 +1002,6 @@ Administration
    - The destination server is not locked during the duration of the
      ``copydb`` operation, and ``copydb`` will occasionally yield to
      other operations.
-
-TODO is the password an option here?
 
 .. describe:: logout
 

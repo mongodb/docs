@@ -61,25 +61,25 @@ Options
 
 .. option:: --bind_ip <ip address>
 
-   The IP address that the :option:`mongod` process will bind to and listen
-   for connections. By default :option:`mongod` listens for connections on
-   the localhost (i.e. ``127.0.0.1`` address.) You may attach
-   :option:`mongod` to any interface; however, if you attach :option:`mongod` to a
-   publicly accessible interface ensure that proper authentication or
-   firewall restrictions have been implemented to protect the
-   integrity of your database.
+   The IP address that the :option:`mongod` process will bind to and
+   listen for connections. By default :option:`mongod` listens for
+   connections on the localhost (i.e. ``127.0.0.1`` address.) You may
+   attach :option:`mongod` to any interface; however, if you attach
+   :option:`mongod` to a publicly accessible interface ensure that
+   proper authentication or firewall restrictions have been
+   implemented to protect the integrity of your database.
 
 .. option:: --maxCons <number>
 
    Specifies the maximum number of simultaneous connections that
-   :option:`mongod` will accept. This setting will have no effect if it is
-   higher than your operating system's configured maximum connection
-   tracking threshold.
+   :option:`mongod` will accept. This setting will have no effect if
+   it is higher than your operating system's configured maximum
+   connection tracking threshold.
 
 .. option:: --objcheck
 
-   Forces the :option:`mongod` to validate all requests from clients upon
-   receipt.
+   Forces the :option:`mongod` to validate all requests from clients
+   upon receipt.
 
 TODO understand what this does.
 
@@ -100,9 +100,10 @@ TODO understand what this does.
 
 .. option:: --pidfilepath <path>
 
-   Specify a file location to hold the ":term:`PID`" or process ID of the
-   :option:`mongod` process. Useful for tracking the :option:`mongod` process in
-   combination with the :option:`mongod --fork` option.
+   Specify a file location to hold the ":term:`PID`" or process ID of
+   the :option:`mongod` process. Useful for tracking the
+   :option:`mongod` process in combination with the :option:`mongod
+   --fork` option.
 
    If this option is not set, no PID file is created.
 
@@ -112,8 +113,6 @@ TODO understand what this does.
    information. This option is only useful for the connection between
    replica set members. See the ":doc:`/core/replication`" documentation
    for more information.
-
-TODO insert link to replication documentation when it exists.
 
 .. option:: --nounixsocket
 
@@ -388,14 +387,14 @@ replica sets are the prefered configuration for database replication.
 
    For use with the :option:`--slave` option, the ``--autoresync``
    option allows this slave to automatically resync if the local data
-   becomes too stale. This option may be problematic if the
-   :term:`oplog` is too small (controlled by the :option:`--oplogSize`
-   option.) If the :term:`oplog` not large enough to store the
-   difference in changes between the master's current state and the
-   state of the slave, this node will forcibly resync itself
-   unnecessarily.
-
-TODO determine threshold for --autoresync
+   is more than 10 seconds behind the master. This option may be
+   problematic if the :term:`oplog` is too small (controlled by the
+   :option:`--oplogSize` option.) If the :term:`oplog` not large
+   enough to store the difference in changes between the master's
+   current state and the state of the slave, this node will forcibly
+   resync itself unnecessarily. If the --autoresync option is
+   specified, the slave will not attempt an automatic resync more than
+   once in a ten minute period.
 
 Replica Set Options
 ```````````````````

@@ -370,14 +370,13 @@ TODO add interval for cpu option
 
 .. option:: slowms
 
-   *Default:*
+   *Default:* 100
 
    Sets the threshold for a query to be defined as "slow" for the
    database profiling functionality accessible by way of the
-   ":mongodb:setting:`profile`" setting. Values are specified in
-   milliseconds.
+   ":mongodb:setting:`profile`" setting.
 
-TODO determine default value for slowms and range of acceptable values
+   Values are specified in milliseconds.
 
 .. option:: smallfiles
 
@@ -493,16 +492,16 @@ Master/Slave Replication
 
    *Default:* false
 
-   Used with the :mongodb:setting:`slave` setting, set ``autoresync`` to
-   ``true`` to force the :term:`slave` to automatically resync if the
-   local data becomes too stale. This setting may be problematic if
-   the :option:`--oplogSize` :term:`oplog` is too small (controlled by
-   the :option:`--oplogSize` option.) If the :term:`oplog` not large
-   enough to store the difference in changes between the master's
-   current state and the state of the slave, this node will forcibly
-   resync itself unnecessarily.
-
-TODO determine threshold for autoresync
+   Used with the :mongodb:setting:`slave` setting, set ``autoresync``
+   to ``true`` to force the :term:`slave` to automatically resync if
+   the is more than 10 seconds behind the master. This setting may be
+   problematic if the :option:`--oplogSize` :term:`oplog` is too small
+   (controlled by the :option:`--oplogSize` option.) If the
+   :term:`oplog` not large enough to store the difference in changes
+   between the master's current state and the state of the slave, this
+   node will forcibly resync itself unnecessarily. When
+   :mongodb:setting:`autoresync` is set, the slave will not attempt an
+   automatic resync more than once in a ten minute period.
 
 Replica Set Options
 ```````````````````
