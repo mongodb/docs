@@ -1,6 +1,6 @@
-=======================
-mongotop Utility Manual
-=======================
+===================
+``mongotop`` Manual
+===================
 
 Synopsis
 --------
@@ -24,7 +24,7 @@ mongotop returns values every second.
    - :doc:`/reference/collection-statistics`
 
    For an additional utility that provides MongoDB metrics
-   see ":doc:`mongostat </utilities/mongostat>`."
+   see ":doc:`mongostat </reference/mongostat>`."
 
 .. _mongotop-options:
 

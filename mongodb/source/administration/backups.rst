@@ -369,7 +369,7 @@ disk-level snapshots are not available.
 
 .. seealso::
 
-   The :doc:`/utilities/mongodump` and :doc:`/utilities/mongorestore`
+   The :doc:`/reference/mongodump` and :doc:`/reference/mongorestore`
    documents contain complete documentation of these tools. If you
    have questions about the function and parameters of these tools not
    covered here, please refer to these documents.
@@ -380,17 +380,18 @@ disk-level snapshots are not available.
 Database Export with mongodump
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``mongodump`` utility performs a live backup the data, or can work
-against an inactive set of database files. ``mongodump`` utility can
-create a dump for an entire server/database/collection (or part of a
-collection with a query,) even when the database is running and
-active. If you run :option:`mongodump` without any arguments the command
-will connect to the local database instance (e.g. ``127.0.0.1`` or
-``localhost``) and create a database backup in a in the current
-directory named "``dump/``".
+The :option:`mongodump` utility performs a live backup the data, or
+can work against an inactive set of database
+files. :option:`mongodump` utility can create a dump for an entire
+server/database/collection (or part of a collection with a query,)
+even when the database is running and active. If you run
+:option:`mongodump` without any arguments the command will connect to
+the local database instance (e.g. ``127.0.0.1`` or ``localhost``) and
+create a database backup in a in the current directory named
+"``dump/``".
 
 You can specify  database and collection as options to the
-``mongodump`` command to limit the amount of data included in the
+:option:`mongodump` command to limit the amount of data included in the
 database dump. For example: ::
 
      mongodump --collection collection --database test
@@ -408,8 +409,8 @@ location to your MongoDB instance's database files. :option:`mongod
 ump` reads from the data files directly with this operation. This
 locks the data directory to prevent conflicting writes. The
 :option:`mongod` process must *not* be running or attached to these
-data files when you run ``mongodump`` in this configuration. Consider
-the following example: ::
+data files when you run :option:`mongodump` in this
+configuration. Consider the following example: ::
 
      mongodump --dbpath /srv/mongodb
 
@@ -420,43 +421,45 @@ the following example: ::
 
      mongodump --host mongodb1.example.net --port 3017 --username user --password pass /opt/backup/mongodumpm-2011-10-24
 
-On any ``mongodump`` command you may, as above specify username and
-password credentials to specify database authentication.
+On any :option:`mongodump` command you may, as above specify username
+and password credentials to specify database authentication.
 
 Database Import with mongorestore
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``mongorestore`` tool is used to restore a binary backup
-taken with the ``mongodump`` utility. Consider the following example
-command: ::
+The :option:`mongorestore` restores a binary backup created by the
+:option:`mongodump` utility. Consider the following example command:
+::
 
      mongorestore dump-2011-10-25/
 
 Here, the database backup located in the ``dump-2011-10-25`` directory
-is imported to the ``mongod`` instance running on the localhost
-interface. By default, ``mongorestore`` will look for a database dump
-in the "``dump/``" directory and restore that. If you wish to restore
-to a non-default host, the "``--host``" and "``--port``" options allow
-you to specify a non-local host to connect to capture the
-export. Consider the following example: ::
+is imported to the :option:``mongod` instance running on the localhost
+interface. By default, :option:`mongorestore` will look for a database
+dump in the "``dump/``" directory and restore that. If you wish to
+restore to a non-default host, the "``--host``" and "``--port``"
+options allow you to specify a non-local host to connect to capture
+the export. Consider the following example: ::
 
      mongorestore --host mongodb1.example.net --port 3017 --username user --password pass /opt/backup/mongodumpm-2011-10-24
 
-On any ``mongorestore`` command you may, as above specify username and
-password credentials as above.
+On any :option:`mongorestore` command you may, as above specify
+username and password credentials as above.
 
-If you created your database dump using the ``--oplog`` option to
-ensure a point-in-time snapshot, call ``mongorestore`` with the
-"``--oplogReplay``" option as in the following example: ::
+If you created your database dump using the :option:`--oplog
+<mongodump --oplog>` option to ensure a point-in-time snapshot, call
+:option:`mongorestore` with the ":option:` --oplogReplay <mongorestore
+--oplogReplay>``" option as in the following example: ::
 
-     mongorestore --oplogRestore
+     mongorestore --oplogReplay
 
-You may also consider using the ``--objcheck`` option to check the
-integrity of objects as they are inserted into the database, or the
-``--drop`` option to drop each collection from the database before
-restoring from backups. ``mongorestore`` also includes the ability to
-a filter to all input before it is inserted into the new
-database. Consider the following example: ::
+You may also consider using the :option:`mongorestore --objcheck`
+option to check the integrity of objects as they are inserted into the
+database, or the :option:`mongorestore --drop` option to drop each
+collection from the database before restoring from
+backups. :option:`mongorestore` also includes the ability to a filter
+to all input before it is inserted into the new database. Consider the
+following example: ::
 
      mongorestore --filter '{"field": 1}'
 
@@ -467,26 +470,24 @@ value of "``1``". Enclose the filter in single quotes (e.g. "``'``")
 to ensure that it does not interact with your shell environment.
 
 If your MongoDB instance is not running, you can use the
-"``--dbpath``" option to specify the location to your MongoDB
-instance's database files. ``mongorestore`` inserts data into the data
-files directly with this operation. While the command runs, the data
-directory is locked to prevent conflicting writes. The ``mongod``
-process must *not* be running or attached to these data files when you
-run ``mongodump`` in this configuration. Consider the following
-example: ::
+":option:`mongorestore --dbpath`" option to specify the location to
+your MongoDB instance's database files. :option:`mongorestore` inserts
+data into the data files directly with this operation. While the
+command runs, the data directory is locked to prevent conflicting
+writes. The :option:`mongod` process must *not* be running or attached
+to these data files when you run :option:`mongodump` in this
+configuration. Consider the following example: ::
 
      mognorestore --dbpath /srv/mongodb
 
 If your MongoDB instance is not running, you can use the
-"``--dbpath``" option to specify the location to your MongoDB
-instance's database files. Consider using the "``--journal``" option
-to ensure that the operations of ``mon`` are recorded in the
-journal.
+":option:`--dbpath <mongorestore --dbpath>`" option to specify the
+location to your MongoDB instance's database files. Consider using the
+":option:`--journal <mongorestore --journal>`" option to ensure that
+the operations of ``mon`` are recorded in the journal.
 
-mongodump and mongorestore Documentation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-TODO links to man pages here.
+.. seealso:: ":doc:`/reference/mongodump`" and
+             ":doc:`/reference/mongorestore`."
 
 .. _backups-with-sharding-and-replication:
 
@@ -510,9 +511,9 @@ Using Database Exports From a Cluster
 `````````````````````````````````````
 
 If you have a small collection of data, the easiest way to connecting
-to the ``mongos`` and taking a dump or export of the database from the
-running copy. This will create a consistent copy of the data in your
-database. If your data corpus is small enough that:
+to the :option:`mongos` and taking a dump or export of the database
+from the running copy. This will create a consistent copy of the data
+in your database. If your data corpus is small enough that:
 
 - it's possible to store the entire backup on one system, or a single
   storage device. Consider both backups of entire instances, and

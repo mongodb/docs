@@ -1,6 +1,6 @@
-========================
-mongostat Utility Manual
-========================
+====================
+``mongostat`` Manual
+====================
 
 Synopsis
 --------
@@ -23,7 +23,7 @@ for ``mongod`` instances.
    - :doc:`/reference/collection-statistics`
 
    For an additional utility that provides MongoDB metrics see
-   ":doc:`mongotop </utilities/mongotop>`."
+   ":doc:`mongotop </reference/mongotop>`."
 
 ``mongostat`` connects to the ``mongod`` process running on the local
 host interface on TCP port 27017, but it can be used to connect to any
