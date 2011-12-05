@@ -6,7 +6,7 @@ Replication
    :maxdepth: 4
 
    core/replication
-   deployment/replication-architecture
+   administration/replication-architecture
    administration/replica-sets
    tutorial/deploy-replica-set
    tutorial/deploy-geographically-distributed-replica-set

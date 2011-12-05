@@ -14,7 +14,7 @@ Architecture
 ~~~~~~~~~~~~
 (brief)
 
-.. seealso:: ":doc:`/deployment/replication-architecture`"
+.. seealso:: ":doc:`/administration/replication-architecture`"
 
 Elections
 ~~~~~~~~~
