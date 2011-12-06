@@ -37,11 +37,11 @@ All metrics are transmitted by the agent to the MMS servers over SSL
 (128-bit encryption), and agent traffic is exclusively outbound. The
 monitoring agent is a Python script, and you're free to examine its
 source code. No data is pushed from MMS to the agent. The agent is
-subject to firewalls and contains support for MongoDB
-authentication. Monitored services are only discovered when the
-fetches information provided to MMS or from other members of the
-cluster. Only server metrics are recorded: the collection of hardware
-and application data must be explicitly enabled. The web interface is
+subject to firewalls and contains support for MongoDB authentication.
+Monitored services are only discovered when the agent fetches
+information provided to MMS or from other members of the cluster. Only
+server metrics are recorded: the collection of hardware and
+application data must be explicitly enabled. The web interface is
 secured over SSL, and extensive data access controls and audits are in
 place to ensure that the safety of your data.
 
