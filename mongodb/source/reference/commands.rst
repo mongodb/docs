@@ -21,9 +21,9 @@ syntax: ::
 
 The ``_adminCommand`` helper is shorthand for "``db.getSisterDB("admin").runCommand();``".
 
-MongoDB drivers, and the :option:`mongo` shell may provide an
-alternate interfaces for issuing database commands. All examples in
-this reference are provided as JSON documents.
+MongoDB :term:`drivers <driver>`, and the :option:`mongo` shell may
+provide an alternate interfaces for issuing database commands. All
+examples in this reference are provided as JSON documents.
 
 User Commands
 -------------
@@ -279,9 +279,10 @@ Aggregation
 
         { findAndModify: collection, <options> }
 
-   The shell and many drivers also provide a ``db.findAndModify();``
-   method. This command returns, by default, the document is returned
-   before modifications are made. The following options are available:
+   The shell and many :term:`drivers <driver>` also provide a
+   ``db.findAndModify();`` method. This command returns, by default,
+   the document is returned before modifications are made. The
+   following options are available:
 
    - **query** specifies a filter to select a document to modify.
 
@@ -318,7 +319,7 @@ Aggregation
    returned in documents that match the query "``{ field: { $exists:
    true }``". The query is optional.
 
-   The shell and many drivers provide a helper method that provides
+   The shell and many :term:`drivers <driver>` provide a helper method that provides
    this functionality, consider the following equivalent syntax: ::
 
        db.collection.distinct("age", { field: { $exists: true } } );
@@ -1294,14 +1295,63 @@ TODO factcheck; the options on the REST interface and wiki differ
 
 .. describe:: isMaster
 
-   The ``isMaster`` command returns ``true`` if the current instance
-   is the primary node in a replica set or the master in a simple
-   master/slave setup. The command takes the following form: ::
+   The ``isMaster`` provides a basic overview of the current
+   replication configuration, and is typically used by :term:`drivers
+   <driver>` and :term:`clients <client>` to discover members of a
+   :term:`replica set`.
+
+   The command takes the following form: ::
 
         { isMaster: 1 }
 
-   This command will return a ``true`` value on :option:`mongod`
-   instances that are running as standalone nodes.
+   This command will returns a JSON document that contains the
+   following data:
+
+   .. js:data:: isMaster.setname
+
+      Contains the name of the current set, in the form of a string.
+
+   .. js:data:: isMaster.ismaster
+
+      Contains a boolean value. If the field is "``true``", then
+      the current node is the :term:`primary` node in the
+      :term:`replica set`.
+
+   .. js:data:: isMaster.secondary
+
+      Contains a boolean value. If the field is "``true``", then the
+      current node is a :term:`secondary` node in a :term:`replica
+      set`.
+
+   .. js:data:: isMaster.hosts
+
+      Contains an array. The array holds a list of strings in the
+      format of "[hostname]:[port]", contain all nodes in the
+      :term:`replica set` that are not ":term:`hidden <hidden
+      node>`". This is used by :term:`drivers <driver>` and
+      :term:`clients <client>` to distribute read operations to
+      secondary nodes, depending on :term:`read preference`.
+
+   .. js:data:: isMaster.primary
+
+      Contains a string in the "``[hostname]:[port]``" format that
+      describes the primary node in the current :term:`replica set`.
+
+   .. js:data:: isMaster.me
+
+      Contains a string in the "``[hostname]:[port]``" form that
+      describes the node that responding to this command.
+
+   .. js:data:: isMaster.maxBsonObjectSize
+
+      Contains the max size of a :term:`BSON` object in bytes.
+
+   .. js:data:: isMaster.ok
+
+      Returns ``1`` if the command completes successfully with out
+      errors.
+
+TODO factcheck isMaster.BsonObjectSize
 
 .. describe:: ping
 
