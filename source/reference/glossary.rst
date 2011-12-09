@@ -173,7 +173,7 @@ Glossary
       from growing out of control and are useful in the context of
       logging or caching functions.
 
-      .. seealso:: ":doc:`/core/capped-collection`."
+      .. seealso:: ":doc:`/core/capped-collections`."
 
    BSON types
       BSON objects are typed. The following types are available:
@@ -260,9 +260,10 @@ Glossary
       for data storage.
 
    ISODate
-      The standard date representation in database fields.
+      The standard date representation in database fields. MongoDB's
+      date type derives from the JavaScript date representation.
 
-   Journaling
+   journaling
       MongoDB's journal provides a transnational log that provides
       durability for database operations. When using the journal, all
       data is written to disk in at least two locations, and items are
@@ -270,6 +271,8 @@ Glossary
       the database is flushed to the disk. The journal can thus be
       used to recover the state of the database in the event of system
       failure or glitch.
+
+      .. seealso:: ":doc:`/core/journaling`."
 
    pcap
       A packet capture format used by a number of tools to record
@@ -487,3 +490,123 @@ Glossary
       they can be removed from the cluster.
 
       .. seealso:: :mongodb:command:`removeshard``
+
+   single master replication
+      A :term:`replication` method where only a single database
+      instance can accept write operations and act as
+      ":term:`primary`" or ":term:`master` at any given moment. Single
+      master replication ensures data set consistency. This is the
+      kind of replication that MongoDB uses.
+
+   multi-master replication
+      A :term:`replication` method where multiple database instances
+      can accept write operations to the same data set at a
+      time. While this approach promises significant potential in
+      terms of increased concurrency, it necessarily produces
+      significant challenges in terms of data consistency and
+      integrity.
+
+   rollback
+      An operation where the data set revers cleanly to a previous
+      state if an update occurred in error.
+
+   consistency
+      The condition "up to date," and reliable quality of a database
+      system with multiple nodes and multiple instances of the same
+      data. A system may be ":term:`eventually consistent <eventual
+      consistency>`," with write or update operations returning
+      successfully before all copies of the data are in a consistent
+      state, or ":term:`strictly consistent <strict consistency>`,"
+      with no write or update operations returning before all copies of
+      the data are in a consistent state.
+
+   eventual consistency
+      The :term:`consistency` condition which allows write or update
+      operations to succeed before the data set has reached a
+      consistent state. This typically applies to data sets that are
+      replicated on multiple systems, but can also refer to the
+      consistency of the on-disk representation of the data set.
+
+   strict consistency
+      The :term:`consistency` condition which ensures that write or
+      update operations *do not* succeed before the data set has
+      reached a consistent state. This typically applies to data sets
+      that are replicated on multiple systems, but can also refer to
+      the consistency of the on-disk representation of the data set.
+
+   write propagation
+      The process by which updates are passed from the primary node to
+      the :term:`secondary` members of the replica set. Write
+      propagation is a concern when distributing read operations to
+      secondary nodes that are :term:`eventually consistent <eventual
+      consistency>` with the primary.
+
+      .. seealso:: ":ref:`Write Propagation for Replica Sets
+         <replica-set-write-propagation>`."
+
+   priority
+      In the context of :term:`replica sets <replica set>`, priority
+      refers to the setting that administrators can use to control the
+      preference with which nodes will be elected to primary status.
+
+      .. seealso:: ":ref:`Replica Set Node Priority
+         <replica-set-node-priority>`"
+
+   election
+      In the context of :term:`replica sets <replica set>`, election
+      refers to the process by which members of a replica set select
+      primary nodes in response to network availability and node
+      capability.
+
+      .. seealso:: ":ref:`Replica Set Elections <replica-set-elections>`"
+
+   hidden node
+      A member of a :term:`replica set` that cannot become primary and
+      is not advertised as part of the set in the :term:`database
+      command` :mongodb:command:`isMaster`, which prevents it from
+      receiving read-only queries depending on :term:`read
+      preference`.
+
+      .. seealso:: ":ref:`Hidden Nodes <replica-set-hidden-nodes>`"
+
+   delayed node
+      A member of a :term:`replica set` that cannot become primary and
+      applies operations at a specified delay. This delay is useful
+      for protecting data from human error (i.e. unintentionally
+      deleted databases) or updates that have unforeseen effects on
+      the production database.
+
+      .. seealso:: ":ref:`Delayed Nodes <replica-set-delayed-nodes>`"
+
+   arbiter node
+      A member of a :term:`replica set` that does not hold a copy of
+      the data and only votes in elections.
+
+      .. seealso:: ":ref:`Delayed Nodes <replica-set-delayed-nodes>`"
+
+   read preference
+      Describes the behavior of a :term:`replica set` to past some
+      queries to :term:`secondary` nodes when possible to distribute
+      load from the :term:`primary` node. Read preference and
+      :term:`write propagation` combine to determine the level of
+      set-wide :term:`consistency`.
+
+      .. seealso:: ":ref:`Read Preference <replica-set-read-preference>`"
+
+   replication lag
+      The length of time between the last operation in the operation
+      log, and the last operation applied to a particular
+      :term:`secondary` or :term:`slave` database. High replication
+      lag makes a non-:term:`primary` node ineligible to be elected
+      primary.
+
+   driver
+      Drivers provide an interface level between the :term:`MongoDB`
+      database system and client applications. Drivers are language
+      specific and provide a language-idiomatic method for interfacing
+      with data from MongoDB.
+
+   client
+      The application layer that uses a database for data persistence
+      and storage. :term:`Drivers <driver>` provide the interface
+      level between the application layer and the database level.

@@ -9,7 +9,7 @@ Background
    :maxdepth: 4
 
    core/replication
-   administration/replication-architecture
+   administration/replication-architectures
    administration/replica-sets
    applications/replication
 
