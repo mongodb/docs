@@ -309,6 +309,8 @@ Ensure that the value specified here (i.e. ``100``) is above the
              improve the performance of your database queries and
              operations.
 
+.. _replica-set-monitoring:
+
 Replication and Monitoring
 --------------------------
 
