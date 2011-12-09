@@ -827,6 +827,8 @@ TODO it looks like unique has no impact.
    :returns: a basic help text for all sharding related shell
              functions.
 
+.. _replica-set-functions:
+
 Replica Sets
 ~~~~~~~~~~~~
 

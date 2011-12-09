@@ -22,19 +22,18 @@ Major Topics
 ------------
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
 
    replication
    administration
    reference
 
 - sharding
-- core-operation
-- tutorials
-- using
+- aggregation
+- application development
 
-User Guides
------------
+Application Development
+-----------------------
 
 .. toctree::
    :maxdepth: 3
@@ -43,8 +42,6 @@ User Guides
    optimization
    mongo
 
-- Tutorials
-- Guides
 
 Core Concepts and Functionality
 -------------------------------
@@ -73,7 +70,7 @@ Administration and Deployment
    administration/configuration
    administration/hardware-platform
    administration/operating-systems
-   administration/replication-architecture
+   administration/replication-architectures
 
 MongoDB Shell
 -------------

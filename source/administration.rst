@@ -14,5 +14,5 @@ Administration
    administration/operating-systems
 
 .. seealso:: For more information on administering :term:`replica sets
-   <replica set>`, see ":doc:`administration/replication-architecture`" and
-   ":doc:`administration/replica-sets`."
+   <replica set>`, see ":doc:`/administration/replication-architecture`" and
+   ":doc:`/administration/replica-sets`."
