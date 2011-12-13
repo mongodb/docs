@@ -201,7 +201,7 @@ least one of these hosts from the MMS console.
 
 To add a host to MMS, click the "plus" (``+``) button next to the word
 "Hosts," at the top-center of the Hosts page. This raises a query
-element for the hostname, port, and optionally the DB username and
+element for the hostname, port, and optionally an admin DB username and
 password. Provide the necessary information and select "Add."
 
 Once it has a seed host, the agent will discover any other nodes
