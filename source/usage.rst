@@ -94,6 +94,9 @@ provides the following tabs:
   gathered by the database profiler. See the section on :ref:`database
   profiling <db-profiling>` for more information.
 
+- "**Notes**," which provides an interface for users to add
+  descriptive notes regarding a host for future reference.
+
 Host Groups
 ~~~~~~~~~~~
 

@@ -4,7 +4,7 @@ MMS Console Overview
 The MMS web console provides an extensive set of features for
 analyzing the statistics collected by the MMS agent. For a basic
 overview of the console, see the :doc:`usage </usage>`
-documentation. This document provides a more in-depth guide of the MMS
+documentation. This document provides a more in-deptnh guide of the MMS
 console.
 
 Host Statistics
@@ -197,7 +197,9 @@ specified is found, these users now have access to MMS account.
 
 If you are using :ref:`MMS groups <mms-groups>`, you can create
 secondary groups to segregate monitored servers and users within a
-group.
+group. You can remove users from a group at any time from the Admins
+page. To remove a group, remove all users and then remove your own
+user account from the group.
 
 Remember that all users attached to your account will have full global
 access to the MMS group to which they belong. All users can create
