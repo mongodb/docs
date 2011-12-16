@@ -27,6 +27,6 @@ Reference
    reference/collection-statistics
    reference/replication-info
    reference/replica-status
+   reference/replica-configuration
    reference/error-codes
    reference/glossary
-
