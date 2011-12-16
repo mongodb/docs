@@ -1241,9 +1241,15 @@ TODO factcheck; the options on the REST interface and wiki differ
      returning.
    - "``w: <n>``" waits for replication to "``<n>``" number of
      servers before returning. If specified this value will include
-     the current host.
+     the current host. You may also specify the "``majority``" keyword
+     so that the command will wait until more than 50% of a
+     :term:`replica set` have successfully written this data.
    - "``wtimeout: <ms>``" provides a timeout for for the "``w``"
      option. Specify this value in milliseconds.
+
+   .. seealso:: ":ref:`Replica Set Write Propagation <replica-set-write-propagation>`"
+      and ":js:func:`db.getLastError()`."
+
 
 .. describe:: getLog
 

@@ -1,12 +1,12 @@
-==============================
-``mongoexport`` Utility Manual
-==============================
+====================================
+:option:`mongoexport` Utility Manual
+====================================
 
 Synopsis
 --------
 
-``mongoexport`` is a utility that produces a JSON or CSV export of
-data stored in a MongoDB instance. See the
+:option:`mongoexport` is a utility that produces a JSON or CSV export
+of data stored in a MongoDB instance. See the
 ":doc:`/administration/import-export`" document for a more in depth
 usage overview, and the ":doc:`mongoimport`" document for more
 information regarding the :command:`mongoimport` utility, which
@@ -14,7 +14,7 @@ provides the inverse "importing" capability.
 
 .. note::
 
-   ``mongoimport`` and ``mongoexport`` should not be used for
+   :option:`mongoimport` and :option:`mongoexport` should not be used for
    full-scale backups because they may not reliably capture data type
    information. Use :command:`mongodump` and :command:`mongorestore``
    as described in ":doc:`/administration/backups`" for this kind of
@@ -37,13 +37,14 @@ Options
 
 .. option:: --version
 
-   Returns the version of the ``mongoexport`` utility.
+   Returns the version of the :option:`mongoexport` utility.
 
 .. option:: --host <hostname><:port>
 
-   Specifies a resolvable hostname for the ``mongod`` from which you
-   want to export data. By default ``mongoexport`` attempts to connect
-   to a MongoDB process ruining on the localhost port number 27017.
+   Specifies a resolvable hostname for the :option:`mongod` from which you
+   want to export data. By default :option:`mongoexport` attempts to
+   connect to a MongoDB process ruining on the localhost port number
+   27017.
 
    Optionally, specify a port number to connect a MongboDB instance
    running on a port other than 27017.
@@ -67,9 +68,9 @@ Options
 
 .. option:: --ipv6
 
-   Enables IPv6 support to allow ``mongoexport`` to connect to the
+   Enables IPv6 support to allow :option:`mongoexport` to connect to the
    MongoDB instance using IPv6 connectivity. IPv6 support is disabled
-   by default in the ``mongoexport`` utility.
+   by default in the :option:`mongoexport` utility.
 
 .. option:: --username <username>, -u <username>
 
@@ -86,11 +87,11 @@ Options
 .. option:: --dbpath [path]
 
    Specifies the directory of the MongoDB data files. If used, the
-   ``--dbpath`` option enables ``mongoexport`` to attach directly to
-   local data files and insert the data without the ``mongod``. To run
-   with ``--dbpath``, ``mongoexport`` needs to lock access to the
-   data directory: as a result, no ``mongod`` can access the same
-   path while the process runs.
+   ``--dbpath`` option enables :option:`mongoexport` to attach
+   directly to local data files and insert the data without the
+   :option:`mongod`. To run with ``--dbpath``, :option:`mongoexport`
+   needs to lock access to the data directory: as a result, no
+   :option:`mongod` can access the same path while the process runs.
 
 .. option:: --directoryperdb
 
@@ -104,26 +105,22 @@ Options
 .. option:: --journal
 
    Allows :option:`mongoexport` operations to access the durability
-   :term:`journal <journaling>` to ensure that the export is in a consistent
-   state. This option is only relevant when specifying the
+   :term:`journal <journaling>` to ensure that the export is in a
+   consistent state. This option is only relevant when specifying the
    :option:`--dbpath` option.
 
 .. option:: --db [db], -d [db]
 
-   Use the ``--db`` option to specify a database for ``mongoexport``
-   to export data from. If you do not specify a DB, all databases in
-   this instance will be exported. Use this option to create a copy of
-   a smaller subset of your data.
-
-TODO factcheck
+   Use the ``--db`` option to specify a database for
+   :option:`mongoexport` to export data from. If you do not specify a
+   DB, all databases in this instance will be exported. Use this
+   option to create a copy of a smaller subset of your data.
 
 .. option:: --collection [collection], -c [collection]
 
-   Use the ``--collection`` option to specify a collection for
-   ``mongorestore`` to restore. If you do not specify a
+   Use the :option:`--collection` option to specify a collection for
+   :option:`mongoexport` to export. If you do not specify a
    "``[collection]``", all collections will exported.
-
-TODO factcheck
 
 TODO help section says "(some commands)" limitations otherwise unclear.
 
@@ -135,8 +132,8 @@ TODO help section says "(some commands)" limitations otherwise unclear.
 
 .. option:: --fieldFile [file]
 
-   As an alternative to ":command:`mongoexport --fields`" the
-   ``--fieldFile`` option allows you to specify a file
+   As an alternative to ":command:`--fields <mongoexport --fields>`"
+   the :option:`--fieldFile` option allows you to specify a file
    (e.g. ``[file]```) to hold a list of field names to specify a list
    of fields to *include* in the export. All other fields will be
    *excluded* from the export. Place one field per line.
@@ -149,21 +146,21 @@ TODO help section says "(some commands)" limitations otherwise unclear.
 .. option:: --csv
 
    Changes the export format to a comma separated values (CSV)
-   format. By default ``mongoexport`` writes data using one
+   format. By default :option:`mongoexport` writes data using one
    :term:`JSON` document for every MongoDB document.
 
 .. option:: --jsonArray
 
-   Modifies the output of ``mongoexport`` so that, the entire contents
+   Modifies the output of :option:`mongoexport` so that, the entire contents
    of the export is written as a single :term:`JSON` array. By default
-   ``mongoexport`` writes data using one JSON document for every
+   :option:`mongoexport` writes data using one JSON document for every
    MongoDB document.
 
 .. option:: --slaveOk, -k
 
-   Forces ``mongoexport`` to read data from secondary or slave nodes
-   if ``mongoexport`` is issued against a replica set. This option is
-   only available if connected to a ``mongod`` or ``mongos`` and is
+   Forces :option:`mongoexport` to read data from secondary or slave nodes
+   if :option:`mongoexport` is issued against a replica set. This option is
+   only available if connected to a :option:`mongod`` or :option:`mongos` and is
    not available when used with the ":command:`mongoexport --dbpath`"
    option.
 

@@ -126,7 +126,12 @@ TODO factcheck maxcons
 
    Specify the path to a key file to store authentication
    information. This option is only useful for the connection between
-   replica set members. See the ":doc:`/core/replication`" documentation
+   replica set members.
+
+   .. seealso:: ":ref:`Replica Set Security <replica-set-security>`"
+      and ":doc:`/administration/replica-sets`."
+
+See the ":doc:`/core/replication`" documentation
    for more information.
 
 .. option:: nounixsocket

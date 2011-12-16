@@ -11,11 +11,10 @@ use the examples from the :ref:`block level backup methods
 mongodump <database-dumps>`" sections to implement the backup
 solution that is best suited to your deployment's needs.
 
-.. note:: Clustered environments, either with shards or replica sets,
-          require special considerations, see ":ref:`backup
-          considerations for shard clusters and replica sets
-          <backups-with-sharding-and-replication>`" for more
-          information.
+.. note:: :term:`Replica sets <replica set>` and :term:`shard clusters
+   <shard cluster>` require special considerations, see ":ref:`backup
+   considerations for shard clusters and replica sets
+   <backups-with-sharding-and-replication>`" for more information.
 
 A robust backup strategy along with at tested corresponding restore
 strategy is crucial for every production-grade deployment. Take the
@@ -601,6 +600,8 @@ the balancer is running *and* that the balancer can ensure that the
 collection is balanced among the shards in the window allotted to
 each.
 
+.. _replica-set-backups:
+
 Replica Sets
 ~~~~~~~~~~~~
 
@@ -608,16 +609,17 @@ In most cases, backing up data stored in replica is similar to backing
 up data stored in a single instance. It's possible to lock a single
 :term:`slave` or :term:`secondary` database and then create a backup
 from that instance. When you unlock the database, the slave will catch
-:term:`master` or :term:`primary` node.
+:term:`master` or :term:`primary` node. You may also chose to deploy a
+dedicated :term:`hidden node` for backup purposes.
 
 If you have a sharded cluster where each shard is itself a replica
 set, you can use this method to create a backup of the entire cluster
-without disrupting. In these situations you should still turn off the
-balancer when you create backups.
+without disrupting the operation of the node. In these situations you
+should still turn off the balancer when you create backups.
 
 For any cluster, using a non-master/primary node to create backups is
 particularly advantageous, in that the backup operation does not
-affect the performance of the master or primary node. Replication also
-provides some measure of redundancy itself. However, it is also
-important to keep point-in time backups to provide for disaster
-recovery and as an additional layer of protection.
+affect the performance of the master or primary node. Replication
+itself provides some measure of redundancy. Nevertheless, keeping
+point-in time backups of your cluster to provide for disaster recovery
+and as an additional layer of protection is crucial.

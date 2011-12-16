@@ -250,7 +250,7 @@ Glossary
       inconsistent state. These operations are typically very
       short-lived, but prevent all other operations from succeeding.
 
-   Indexes
+   indexes
       Indexes provide the database with a fast and reliable way of
       accessing data without requiring full searches on data.
 
@@ -558,7 +558,8 @@ Glossary
       primary nodes in response to network availability and node
       capability.
 
-      .. seealso:: ":ref:`Replica Set Elections <replica-set-elections>`"
+      .. seealso:: ":ref:`Replica Set Elections
+         <replica-set-elections>`" and ":term:`priority`."
 
    hidden node
       A member of a :term:`replica set` that cannot become primary and
@@ -567,7 +568,8 @@ Glossary
       receiving read-only queries depending on :term:`read
       preference`.
 
-      .. seealso:: ":ref:`Hidden Nodes <replica-set-hidden-nodes>`"
+      .. seealso:: ":ref:`Hidden Nodes <replica-set-hidden-nodes>`,"
+         and :js:data:`member.hidden`.
 
    delayed node
       A member of a :term:`replica set` that cannot become primary and
@@ -610,3 +612,24 @@ Glossary
       The application layer that uses a database for data persistence
       and storage. :term:`Drivers <driver>` provide the interface
       level between the application layer and the database level.
+
+   failover
+      The process that allows one of the :term:`secondary` nodes in a
+      :term:`replica set` to become :term:`primary` in the event of
+      some operational disturbance.
+
+      .. seealso:: ":ref:`Replica Set Failover <replica-set-failover>`."
+
+   data center awareness
+      The facility to manage :term:`replica sets <replica set>` or
+      :term:`shard clusters <shard cluster>` an awareness of the
+      infrastructure (e.g. data center, rack, network up-link, storage
+      array) that hosts the database instance.
+
+      .. seealso:: ":js:data:`members.tags`" and ":ref:`data center awareness
+         <replica-set-data-center-awareness>`."
+
+   recovering
+      A :term:`replica set` status, that reflects nodes which are in
+      the process of synchronizing or re-synchronizing their data
+      collection, before becoming proper :term:`secondary` nodes.

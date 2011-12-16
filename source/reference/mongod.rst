@@ -111,8 +111,10 @@ TODO understand what this does.
 
    Specify the path to a key file to store authentication
    information. This option is only useful for the connection between
-   replica set members. See the ":doc:`/core/replication`" documentation
-   for more information.
+   replica set members.
+
+   .. seealso:: ":ref:`Replica Set Security <replica-set-security>`"
+      and ":doc:`/administration/replica-sets`."
 
 .. option:: --nounixsocket
 

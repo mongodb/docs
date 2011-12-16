@@ -386,6 +386,9 @@ Database
    command to a write operation to ensure that writes succeed. Using
    This "safe mode" is ideal for many--but not all--write operations.
 
+   .. seealso:: ":ref:`Replica Set Write Propagation <replica-set-write-propagation>`"
+      and ":mongodb:command:`getLastError`."
+
 .. js:function:: db.getLastErrorObj()
 
    :returns: A full JSON document with status information.
@@ -1220,4 +1223,3 @@ directly.
 .. js:function:: copyDbpath()
 
    For internal use.
-
