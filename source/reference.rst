@@ -55,6 +55,15 @@ The available alert types are:
 - Host Down
 - Agent Down
 
+Chart Colors
+------------
+
+- A *red bar* indicates a server restart.
+
+- A *purple bar* indicates the server is now a primary.
+
+- A *yellow bar* indicates the server is now a secondary.
+
 .. _mms-chart-types:
 
 MMS Chart Types
