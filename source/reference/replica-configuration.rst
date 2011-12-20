@@ -16,15 +16,17 @@ configuration. Note that default values are not explicitly displayed.
 Configuration Variables
 -----------------------
 
-.. js:data:: _id: <setname>
+.. js:data:: rs.conf._id:
 
    **Type**: string
+
+   **Value**: <setname>
 
    An ``_id`` field holding the name of the replica set. This reflects
    the set name configured with :mongodb:setting:`replSet` or
    :option:`mongod --replSet`.
 
-.. js:data:: members
+.. js:data:: rs.conf.members
 
    **Type**: array
 
@@ -56,9 +58,8 @@ Configuration Variables
 
    **Default**: false
 
-   Identifies arbiter nodes. For arbiter nodes, this value is
-   "``true``", and is automatically configured by
-   :js:func:`rs.addArb()`".
+   Identifies an arbiter. For arbiters, this value is "``true``", and
+   is automatically configured by :js:func:`rs.addArb()`".
 
 .. js:data:: members.buildIndexes
 

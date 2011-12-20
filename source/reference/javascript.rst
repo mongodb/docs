@@ -929,7 +929,7 @@ Replica Sets
    :param string host: Specifies a host (and optionally port-number)
                        for a arbiter member for the replica set.
 
-   Adds a new arbiter node to an existing replica set.
+   Adds a new :term:`arbiter` to an existing replica set.
 
    This function will disconnect the shell briefly and forces a
    reconnection as the replica set renegotiates negotiates which node

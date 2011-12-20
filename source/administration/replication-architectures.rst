@@ -32,9 +32,9 @@ replication until a replacement set member can be initialized.
 
    The minimum *supported* configuration for replica sets includes one
    :term:`primary` node, one :term:`secondary` node, and one
-   :ref:`arbiter node <replica-set-arbiter-nodes>`. The arbiter node,
-   requiring fewer resources, lowers the total cost of the replica set
-   somewhat, at the cost of a great deal of redundancy and operational
+   :ref:`arbiter <replica-set-arbiters>`. The arbiter, requires fewer
+   resources, and lowers the total cost of the replica set,
+   at the cost of a great deal of redundancy and operational
    flexibility.
 
 .. seealso:: ":doc:`/tutorial/deploy-replica-set`."
@@ -51,8 +51,8 @@ architectural conditions are true:
 
 - The set has an odd number of voting nodes.
 
-  Deploy a single :ref:`arbiter node <replica-set-arbiter-nodes>`, if
-  you have an even number of voting replica set members.
+  Deploy a single :ref:`arbiter <replica-set-arbiters>`, if you have
+  an even number of voting replica set members.
 
 - The set only has 7 voting nodes at any time.
 
@@ -100,9 +100,9 @@ data loss and downtime is typically be minimal.
 For deployments that maintain three nodes the primary data center,
 adding a node in a second data center will create an even number of
 nodes, which may result in ties during elections for
-:term:`primary`. In this situation you should deploy an :ref:`arbiter
-node <replica-set-arbiter-nodes>` in your primary data center to
-ensure that a primary is always electable.
+:term:`primary`. In this situation deploy an :ref:`arbiter
+<replica-set-arbiters>` in your primary data center to ensure that a
+primary is always electable.
 
 .. seealso:: ":doc:`/tutorial/deploy-geographically-distributed-replica-set`"
 
@@ -118,7 +118,7 @@ nodes:
 - **Priority**: These nodes are configured so that they either cannot
   become :term:`primary`, or are *very* unlikely to become primary. In
   all other respects lower-priority nodes are identical any other
-  replica set member. (:ref:`see also <replica-set-low-priority-nodes>`.)
+  replica set member. (:ref:`see also <replica-set-secondary-only-nodes>`.)
 
 - **Hidden**: These nodes cannot become primary, but are hidden from
   the output of :js:func:`db.isMaster()` or the database command
@@ -213,18 +213,18 @@ members of the set in the case of a site failure.
    :js:data:`members.votes` value to ``0`` for these nodes, so that
    they won't vote in elections.
 
-.. seealso:: ":ref:`Low Priority Nodes
-   <replica-set-low-priority-nodes>`," and ":ref:`Hidden Nodes
+.. seealso:: ":ref:`Secondary Only
+   <replica-set-secondary-only-nodes>`," and ":ref:`Hidden Nodes
    <replica-set-hidden-nodes>`.
 
 Arbiter Nodes
 -------------
 
-You should always deploy an arbiter node to ensure that a replica set
-will always have a sufficient number of members to elect a primary
+Always deploy an :term:`arbiter` to ensure that a replica set will
+always have a sufficient number of members to elect a primary
 node. While having replica sets with 2 nodes is not recommended for
 production environments, in these circumstances and *any replica set
-with an even number of members*, you should deploy an arbiter node.
+with an even number of members*, deploy an arbiter.
 
 To add an arbiter, while connected to the *current primary* node in
 the :option:`mongo` shell, issue the following command:
@@ -238,6 +238,6 @@ resource requirements and do not require dedicated hardware. Do not
 add an arbiter to a set if you have an odd number of voting nodes that
 hold data. as this can lead to tied votes for primary.
 
-.. seealso:: ":ref:`Arbiter Nodes <replica-set-arbiter-nodes>`,"
+.. seealso:: ":ref:`Arbiter Nodes <replica-set-arbiters>`,"
    ":mongodb:setting:`replSet`," ":option:`mongod --replSet`, and
    ":js:func:`rs.addArb()`."

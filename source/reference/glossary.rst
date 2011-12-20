@@ -580,7 +580,7 @@ Glossary
 
       .. seealso:: ":ref:`Delayed Nodes <replica-set-delayed-nodes>`"
 
-   arbiter node
+   arbiter
       A member of a :term:`replica set` that does not hold a copy of
       the data and only votes in elections.
 

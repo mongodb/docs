@@ -20,19 +20,19 @@ the command.
 Statuses
 --------
 
-.. describe:: set
+.. js:data:: rs.status.set
 
    The ``set`` value is the name of the replica set, configured in the
    :mongodb:setting:`replSet` setting.
 
-.. describe:: date
+.. js:data:: rs.status.date
 
    The value of the ``date`` field is an :term:`ISODate` of the
    current time, according to the current server. Compare this to the
    value of the :mongodb:status:`lastHeartbeat` to find the operational lag
    between the current host and the other hosts in the set.
 
-.. describe:: myState
+.. js:data:: rs.status.myState
 
    The value of the ``myState`` value reflect state of the current
    node. State is specified as an integer between ``0`` and
@@ -42,19 +42,19 @@ Statuses
    ==========  ==========================================================
    **Number**  **State**
    ----------  ----------------------------------------------------------
-   0 	       Starting up, phase 1 (parsing configuration)
-   1 	       Primary
-   2 	       Secondary
-   3 	       Recovering (initial syncing, post-rollback, stale members)
-   4 	       Fatal error
-   5 	       Starting up, phase 2 (forking threads)
-   6 	       Unknown state (member has never been reached)
-   7 	       Arbiter
-   8 	       Down
-   9 	       Rollback
+   0           Starting up, phase 1 (parsing configuration)
+   1           Primary
+   2           Secondary
+   3           Recovering (initial syncing, post-rollback, stale members)
+   4           Fatal error
+   5           Starting up, phase 2 (forking threads)
+   6           Unknown state (member has never been reached)
+   7           Arbiter
+   8           Down
+   9           Rollback
    ==========  ==========================================================
 
-.. describe:: members
+.. js:data:: rs.status.members
 
    The ``members`` field holds an array that contains a document for
    every in node the replica set. See the ":ref:`Member Statuses
@@ -66,28 +66,28 @@ Statuses
 Member Statuses
 ---------------
 
-.. describe:: name
+.. js:data:: members.name
 
    The ``name`` field holds the name of the server.
 
-.. describe:: self
+.. js:data:: members.self
 
    The ``self`` field is only included in the document for the
    current ``mongod`` instance in the members array. It's value is
    "``true``".
 
-.. describe:: errmsg
+.. js:data:: members.errmsg
 
    This contains the most recent error or status message received from
    the node. This field may be empty (e.g. ``""``) in some cases.
 
-.. describe:: health
+.. js:data:: members.health
 
    The ``health`` value is only present for remote nodes. This field
    conveys if the node is up (i.e. ``1``) or down (i.e. ``0``) from
    the perspective of the current server.
 
-.. describe:: uptime
+.. js:data:: members.uptime
 
    The value of the ``uptime`` field reflects the number of seconds
    that this node has been up or active. This value is only present
@@ -95,16 +95,16 @@ Member Statuses
 
 TODO determine if this is from the perspective of the current server or reported by the set member.
 
-.. describe:: lastHeartbeat
+.. js:data:: members.lastHeartbeat
 
    The ``lastHeartbeat`` value provides an :term:`ISODate` formatted
    date of the last heartbeat received from this node. Compare this
-   value to the value of the :mongodb:status:`date` field to track
+   value to the value of the :js:data:`date` field to track
    latency between these nodes.
 
    This value is only present for remote nodes.
 
-.. describe:: pingMS
+.. js:data:: members.pingMS
 
    The ``pingMS`` represents the number of milliseconds (ms) that a
    round-trip packet takes to travel between the remote node and the
