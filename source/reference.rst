@@ -2,31 +2,54 @@
 Reference
 =========
 
-.. toctree::
-   :maxdepth: 4
+MongoDB Programs
+----------------
 
-   reference/mongo
-   reference/javascript
-   reference/commands
-   reference/operators
-   reference/meta-query-operators
-   reference/configuration-options
+.. toctree::
+   :maxdepth: 1
+
    reference/mongod
    reference/mongos
-   reference/mongoimport
-   reference/mongoexport
+   reference/mongo
    reference/mongodump
    reference/mongorestore
-   reference/bsondump
-   reference/mongofiles
-   reference/mongotop
+   reference/mongoimport
+   reference/mongoexport
    reference/mongostat
+   reference/mongotop
    reference/mongosniff
+   reference/mongofiles
+   reference/bsondump
+
+Statuses and Errors
+-------------------
+
+.. toctree::
+   :maxdepth: 1
+
    reference/server-status
    reference/database-statistics
    reference/collection-statistics
-   reference/replication-info
    reference/replica-status
    reference/replica-configuration
+   reference/replication-info
    reference/error-codes
+
+General Reference
+-----------------
+
+.. toctree::
+   :maxdepth: 1
+
+   reference/configuration-options
+   reference/operators
+   reference/commands
+   reference/javascript
+   reference/meta-query-operators
    reference/glossary
+
+.. seealso:: The following indexes may provide useful insight into the
+   reference material in this manual.
+
+   - :ref:`genindex`
+   - :ref:`search`

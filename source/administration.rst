@@ -13,6 +13,10 @@ Administration
    administration/hardware-platform
    administration/operating-systems
 
-.. seealso:: For more information on administering :term:`replica sets
-   <replica set>`, see ":doc:`/administration/replication-architectures`" and
-   ":doc:`/administration/replica-sets`."
+.. seealso:: For more information regarding :term:`replica set`
+   administration, see ":doc:`/administration/replica-sets`" and
+   ":doc:`/administration/replication-architectures`."
+
+   For more information regarding :term:`shard cluster`
+   administration, see ":doc:`/administration/sharding`" and
+   ":doc:`/administration/sharding-architectures`."

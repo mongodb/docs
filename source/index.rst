@@ -25,10 +25,11 @@ Major Topics
    :maxdepth: 2
 
    replication
+   sharding
    administration
    reference
 
-- sharding
+
 - aggregation
 - application development
 
@@ -71,6 +72,8 @@ Administration and Deployment
    administration/hardware-platform
    administration/operating-systems
    administration/replication-architectures
+   administration/sharding
+   administration/sharding-architectures
 
 MongoDB Shell
 -------------
@@ -126,6 +129,7 @@ Statuses and Errors
    reference/database-statistics
    reference/collection-statistics
    reference/replica-status
+   reference/replica-configuration
    reference/replication-info
    reference/error-codes
 

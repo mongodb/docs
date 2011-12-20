@@ -12,13 +12,13 @@ MongoDB Manual Contents
    :maxdepth: 4
 
    replication
+   sharding
 
    administration
 
    schema-design
    optimization
 
-   core/sharding
    core/aggregation
    core/map-reduce
    core/journaling
