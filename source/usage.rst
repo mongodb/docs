@@ -105,6 +105,24 @@ following a link from the "Cluster" or "Repl Set" columns, you can see
 a side-by-side comparison of charts from all hosts in a given cluster
 or replica set.
 
+Host Labels
+~~~~~~~~~~~
+
+"Host Labels" provide a method to narrow the list of hosts in the MMS
+display. This is particularly crucial if you monitor a large number of
+hosts and want to access a more limited set of hosts.
+
+A pencil icon on the "Hosts" tab itself opens a dialogue where you may
+create a new host label. After adding the first label, a drop down box
+appears where you can narrow the view by selecting a group.
+
+To add hosts to a label or labels, click on the "Edit Host," button (a
+pencil) in the left column in the host table. In dialogue box that
+returns, the third tab allows you to select or remove labels from this
+host.
+
+Hosts may belong to none, one, or multiple labels.
+
 .. _db-profiling:
 
 DB Profiling
