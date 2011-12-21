@@ -2,21 +2,13 @@
 The MongoDB Manual
 ==================
 
-Introduction
-------------
-
-- What is MongoDB
-- What's new in the most recent release.
-- Other MongoDB Resources
-- Getting Involved in the Project (reporting bugs)
-- About this Documentation
-
 Getting Started
 ---------------
 
-- Installation
-- Drivers
-- Basic Concepts
+.. toctree::
+   :maxdepth: 2
+
+   getting-started
 
 Major Topics
 ------------
@@ -24,11 +16,11 @@ Major Topics
 .. toctree::
    :maxdepth: 2
 
+   getting-started
    replication
    sharding
    administration
    reference
-
 
 - aggregation
 - application development
@@ -42,7 +34,6 @@ Application Development
    schema-design
    optimization
    mongo
-
 
 Core Concepts and Functionality
 -------------------------------

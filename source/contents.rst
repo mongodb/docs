@@ -11,6 +11,8 @@ MongoDB Manual Contents
 .. toctree::
    :maxdepth: 4
 
+   getting-started
+
    replication
    sharding
 
