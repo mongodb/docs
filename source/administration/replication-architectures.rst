@@ -1,6 +1,6 @@
-========================
-Replication Architecture
-========================
+=========================
+Replication Architectures
+=========================
 
 There is no single :term:`replica set` architecture that is compatible
 or ideal for every deployment or environment. Indeed one of the

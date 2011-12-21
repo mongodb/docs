@@ -22,7 +22,10 @@ Tutorials
    tutorial/deploy-replica-set
    tutorial/expand-replica-set
    tutorial/deploy-geographically-distributed-replica-set
-   tutorial/convert-replica-set-to-replicated-shard-cluster
+
+.. seealso:: Additional tutorials that relate to Replica Sets:
+
+   - :doc:`tutorial/convert-replica-set-to-replicated-shard-cluster`
 
 .. seealso:: Reference material related to replication:
 

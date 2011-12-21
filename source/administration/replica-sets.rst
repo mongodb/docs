@@ -2,9 +2,9 @@
 Replica Set Administration
 ==========================
 
-The replica set functionality in MongoDB automates the vast majority
-of the administrative complexity typically associated with database
-replication, but there are some deployment and long term
+Replica sets in MongoDB automates the vast majority of the
+administrative complexity typically associated with database
+replication. Nevertheless, some deployment and long term
 administrative requirements that require administrator
 intervention. This document provides an overview of these tasks as
 well as general troubleshooting suggestions.
@@ -265,4 +265,5 @@ down. When the former primary begins replicating again it performs a
 the set so that the data set is in a consistent state.
 
 Rollbacks can be prevented by ensuring :term:`write propagation`.
+
 .. seealso:: ":ref:`Replica Set Elections <replica-set-elections>`"
