@@ -17,7 +17,7 @@ Tutorials
 ---------
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 1
 
    tutorial/deploy-shard-cluster
    tutorial/convert-replica-set-to-replicated-shard-cluster
