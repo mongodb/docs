@@ -2,4 +2,227 @@
 Deploy a Replica Set
 ====================
 
-TODO write a guide
+This tutorial describes the process for deploying a three member
+:term:`replica set` , with specific instructions for development and
+test as well as for production systems.
+
+.. seealso:: ":doc:`/core/replication`" and
+   ":doc:`/administration/replication-architectures`" for appropriate
+   background.
+
+Overview
+--------
+
+For most deployments, a simple 3 node replica set provides a
+sufficient redundancy to survive most network partitions and other
+system failures. A replica set of this size provides sufficient
+capacity to host many distributed read operations. While MongoDB's
+replica set functionality provides a great deal of flexibility and
+specific definable node behaviors or types, it's best to avoid this
+additional complexity unless the functionality is required.
+
+Requirements
+------------
+
+Three distinct systems to run each node. For test systems you can run
+each three instances of the :option:`mongod` process on a local system
+(i.e. a laptop) or within a virtual instance. For production
+environments, you should endeavor to maintain as much separation
+between the nodes: Deploy replica set members on distinct hardware,
+and on systems that draw power from different circuits, to the
+greatest extent possible.
+
+Procedure
+---------
+
+This procedure assumes that you already have instances of MongoDB
+installed on all systems that you hope to have as members of your
+replica set. If you have not already installed MongoDB, see the
+following guides:
+
+- ":doc:`/tutorial/install-mongodb-for-testing-and-development`"
+- ":doc:`/tutorial/install-mongodb-in-production-environments`."
+
+Development and Test Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Begin by starting three instances of :option:`mongod`. For ephemeral
+tests and the purposes of this guide, you may run the :option:`mongod`
+instances in separate windows of GNU Screen. OS X and most Linux
+distributions come with screen installed by default [#screen]_
+systems.
+
+Issue the following command to create the necessary data directories:
+::
+
+     mkdir -p /srv/mongodb/rs0-0 /srv/mongodb/rs0-1 /srv/mongodb/rs0-2
+
+Issue the following commands, each in a distinct screen window: ::
+
+     mognod --port 27017 --dbpath /srv/mongodb/rs0-0 --replSet rs0
+     mognod --port 27018 --dbpath /srv/mongodb/rs0-1 --replSet rs0
+     mognod --port 27019 --dbpath /srv/mongodb/rs2-2 --replSet rs0
+
+These command start members of a replica set named ``rs0``, each
+running on a distinct port. Alternatively, if you are already using these
+ports, you can select different ports. See the documentation of the
+following options for more information: :option:`--port <mongod
+--port>`, :option:`--dbpath <mongod --dbpath>`, and :option:`--replSet
+<mongod --replSet>`.
+
+.. note::
+
+   If you're running each :option:`mongod` instance on a distinct
+   system, you can omit the :option:`--port <mongod --port>`
+   option. YOu will also need to specify the :option:`--bind_ip
+   <mongod --bind_ip>` option.
+
+Log in with the :option:`mongo` shell to the first host. If you're
+accessing this command remotely, modify the hostname.  using the
+following command: ::
+
+      mongo localhost:27017
+
+Issue the following shell function to initiate a replica set
+consisting of the current node, using the default configuration:
+
+.. code-block:: javascript
+
+   rs.initiate()
+
+Use the following shell function to display the current :doc:`replica
+configuration </reference/replica-configuration>`:
+
+.. code-block:: javascript
+
+   rs.config()
+
+Now, issue the following
+sequence of commands to add two nodes to the replica set.
+
+      rs.add("localhost:27018")
+      rs.add("localhost:27019")
+
+Congratulations, after these commands return you will have a fully
+functional replica set. You may have to wait several moments for the
+new replica set to successfully elect a :term:`primary` node.
+
+See the documentation of the following shell functions for more
+information: :js:func:`rs.initiate()`, :js:func:`rs.config()`, and
+:js:func:`rs.add()`.
+
+.. [#screen] `GNU Screen <http://www.gnu.org/screen/>`_ is packaged as
+   ``screen`` on Debian-based, Fedira/Red Hat-based, and Arch Linux.
+
+.. seealso:: You may also consider the "`simple setup script
+   <https://github.com/mongodb/mongo-snippets/blob/master/replication/simple-setup.Pu>`_"
+   as an example of a basic automatically configured replica set.
+
+Production Replica Set
+~~~~~~~~~~~~~~~~~~~~~~
+
+Production replica sets are very similar to the development or testing
+deployment described above, with the following differences:
+
+- Each member of the replica set will reside on it's own machine, and
+  the MongoDB processes will all bind to port ``27017``, or the
+  standard MongoDB port.
+
+- All runtime configuration will be specified in :doc:`configuration
+  files </reference/configuration-options>` rather than as
+  :doc:`command line options </reference/mongod>`.
+
+- Each member of the replica set needs to be accessible by way of
+  resolvable DNS or hostnames in the following scheme:
+
+  - ``mongodb0.example.net``
+  - ``mongodb1.example.net``
+  - ``mongodb2.example.net``
+
+  Configure DNS names appropriately, *or* set up your systems'
+  ``/etc/host`` file to reflect this configuration.
+
+Use the following configuration for each mongodb instance.
+
+.. code-block:: cfg
+
+   port = 27017
+
+   bind_ip = 10.8.0.10
+
+   dbpath = /srv/mongodb/
+
+   fork = true
+
+   replSet = rs0/mongodb0.example.net,mongodb1.example.net,mongodb2.example.net
+
+Modify the :mongodb:setting:`bind_ip` to reflect a secure interface on
+your system that will be able to access all other members of the set
+*and* on which all other members of the replica set can access the
+current node. The DNS or host names need to point and resolve to this
+IP address. Configure network rules or a virtual private network
+(i.e. "VPN") to permit this access.
+
+.. note::
+
+   The portion of the :mongodb:setting:`replSet` following the ``/``
+   provides a "seed list" of hosts that are known to be members of the
+   same replica set, which is used for fetching changed configurations
+   following restarts. It is acceptable to omit this section entirely,
+   and have the :mongodb:setting:`replSet` option resemble:
+
+   .. code-block:: cfg
+
+      replSet = rs0
+
+Store this file on each system, located at ``/etc/mongodb.conf`` on
+the file system. See the documentation of the configuration options
+used above: :mongodb:setting:`dbpath`, :mongodb:setting:`port`,
+:mongodb:setting:`replSet`, :mongodb:setting:`bind_ip`, and
+:mongodb:setting:`fork`. Also consider
+any additional :doc:`configuration options </reference/configuration-options>`
+that your deployment may require.
+
+On each system issue the following command to start the
+:option:`mongod` process: ::
+
+     mongod --config /etc/mongodb.conf
+
+.. note::
+
+   In production deployments you likely want to use and configure a
+   :term:`control script` to manage this process based on this
+   command. Control scripts are beyond the scope of this document.
+
+Log in with the :option:`mongo` shell to this host using the following
+command: ::
+
+      mongo
+
+Issue the following shell function to initiate a replica set
+consisting of the current node, using the default configuration:
+
+.. code-block:: javascript
+
+   rs.initiate()
+
+Use the following shell function to display the current :doc:`replica
+configuration </reference/replica-configuration>`:
+
+.. code-block:: javascript
+
+   rs.config()
+
+Now, issue the following
+sequence of commands to add two nodes to the replica set.
+
+      rs.add("localhost:27018")
+      rs.add("localhost:27019")
+
+Congratulations, after these commands return you will have a fully
+functional replica set. You may have to wait several moments for the
+new replica set to successfully elect a :term:`primary` node.
+
+See the documentation of the following shell functions for more
+information: :js:func:`rs.initiate()`, :js:func:`rs.config()`, and
+:js:func:`rs.add()`.
