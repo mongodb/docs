@@ -633,3 +633,14 @@ Glossary
       A :term:`replica set` status, that reflects nodes which are in
       the process of synchronizing or re-synchronizing their data
       collection, before becoming proper :term:`secondary` nodes.
+
+   configsrv
+      The "configuration server," are special :term:`mongod`
+      instances that hold metadata for the shard cluster. That is,
+      they provide a mapping between each :term:`chunk` and the
+      :term:`shard` upon which it resides.
+
+   control script
+      A script used by a UNIX like operating system to start, stop,
+      or restart, a :term:`daemon` process. Typically these scripts
+      are stored in ``/etc/init.d/`` or ``/etc/rc.d/``.

@@ -23,7 +23,7 @@ Tutorials
 ---------
 
 .. toctree::
-   :max-depth 1
+   :maxdepth: 1
 
    tutorial/install-mongodb-for-testing-and-development
    tutorial/install-mongodb-in-production-environments
