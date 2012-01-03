@@ -107,9 +107,8 @@ replica set.
 
    rs.add("mongodb3.example.net")
 
-Congratulations! You have just successfully expanded an existing
-replica set. You can use the :js:func:`rs.status()` function to
-provide an overview of :doc:`replica set status
-</reference/replica-status>`, or the :js:func:`rs.conf()` for the
-complete :doc:`replica set configuration
-</reference/replica-configuration>`.
+Congratulations! You have successfully expanded an existing replica
+set. You can use the :js:func:`rs.status()` function to provide an
+overview of :doc:`replica set status </reference/replica-status>`, or
+the :js:func:`rs.conf()` for the complete :doc:`replica set
+configuration </reference/replica-configuration>`.

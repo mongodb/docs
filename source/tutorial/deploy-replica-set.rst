@@ -24,13 +24,13 @@ additional complexity unless the functionality is required.
 Requirements
 ------------
 
-Three distinct systems to run each node. For test systems you can run
-each three instances of the :option:`mongod` process on a local system
-(i.e. a laptop) or within a virtual instance. For production
-environments, you should endeavor to maintain as much separation
-between the nodes: Deploy replica set members on distinct hardware,
-and on systems that draw power from different circuits, to the
-greatest extent possible.
+Three distinct systems, so that each system can run its own instance
+of :option:`mongod`. For test systems you can run all three instances
+of the :option:`mongod` process on a local sys em.e. a laptop) or
+within a virtual instance. For production environments, you should
+endeavor to maintain as much separation between the nodes: Deploy
+replica set members on distinct hardware, and on systems that draw
+power from different circuits, to the greatest extent possible.
 
 Procedure
 ---------
@@ -97,11 +97,13 @@ configuration </reference/replica-configuration>`:
 
    rs.config()
 
-Now, issue the following
-sequence of commands to add two nodes to the replica set.
+Now, issue the following sequence of commands to add two nodes to the
+replica set.
 
-      rs.add("localhost:27018")
-      rs.add("localhost:27019")
+.. code-block:: javascript
+
+   rs.add("localhost:27018")
+   rs.add("localhost:27019")
 
 Congratulations, after these commands return you will have a fully
 functional replica set. You may have to wait several moments for the
@@ -142,7 +144,7 @@ deployment described above, with the following differences:
   Configure DNS names appropriately, *or* set up your systems'
   ``/etc/host`` file to reflect this configuration.
 
-Use the following configuration for each mongodb instance.
+Use the following configuration for each MongoDB instance.
 
 .. code-block:: cfg
 
@@ -184,7 +186,9 @@ any additional :doc:`configuration options </reference/configuration-options>`
 that your deployment may require.
 
 On each system issue the following command to start the
-:option:`mongod` process: ::
+:option:`mongod` process:
+
+.. code-block:: bash
 
      mongod --config /etc/mongodb.conf
 
@@ -213,11 +217,13 @@ configuration </reference/replica-configuration>`:
 
    rs.config()
 
-Now, issue the following
-sequence of commands to add two nodes to the replica set.
+Now, issue the following sequence of commands to add two nodes to the
+replica set.
 
-      rs.add("localhost:27018")
-      rs.add("localhost:27019")
+.. code-block:: javascript
+
+   rs.add("localhost:27018")
+   rs.add("localhost:27019")
 
 Congratulations, after these commands return you will have a fully
 functional replica set. You may have to wait several moments for the

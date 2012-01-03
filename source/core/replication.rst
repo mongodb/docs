@@ -99,7 +99,7 @@ set. Consider the following node types:
   current state of the primary node. These nodes are typically used to
   maintain a rolling backup of the state of a database.
 
-- :ref:`arbiters <replica-set-arbiters>` are nodes that do not
+- :ref:`replica <set-arbiters-arbiters>` are nodes that do not
   hold a copy of the data, but are used to break ties in elections
   for primary.
 

@@ -444,3 +444,6 @@ The output of the :js:func:`db.printShardingStatus()` command:
 In a few moments you can run these commands for a second time to
 demonstrate that :term:`chunks <chunk>` are migrating from
 ``firstset`` to ``secondset``.
+
+Congratulations you have converted a replica set into a sharded
+cluster where each shard is itself a replica set.
