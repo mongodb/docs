@@ -34,7 +34,9 @@ Requirements
 ~~~~~~~~~~~~
 
 This section outlines MMS's prerequisite requirements and provides
-basic instructions for fulfilling them.
+basic instructions for fulfilling them. If you are installing the MMS
+agent on a Windows host, skip to the :ref:`window instructions
+<windows-installation>` section.
 
 1. You must have Python 2.4 or greater.
 
@@ -65,7 +67,7 @@ basic instructions for fulfilling them.
 
    Do not use ``pip``, as there are some compatibility issues.
 
-4. All users must install `PyMongo  <http://pypi.python.org/pypi/pymongo/>`_,
+5. All users must install `PyMongo  <http://pypi.python.org/pypi/pymongo/>`_,
    the Python driver for MongoDB. While the native C extensions are
    not required, they significantly improve performance. To install
    these extensions, make sure you have a C compiler (e.g. ``gcc``)
@@ -151,6 +153,8 @@ strategies for deploying the agent and your monitoring architecture.
 Once the agent is running, you can return to the web interface to
 begin configuring MMS for your deployment.
 
+.. _windows-installation:
+
 Installing MMS on Windows
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -158,7 +162,7 @@ The MMS agent distribution includes a ``WINDOWS.txt`` file with
 instructions for using the agent on Windows platforms. Consider the
 following special requirements:
 
-- Install the 32-bit build of Python 2.7.
+- Install a 32 or 64-bit build of Python 2.7.
 
 - Use the Windows installer to install `PyMongo from PyPi <http://pypi.python.org/pypi/pymongo/2.0.1>`_.
 
@@ -167,9 +171,16 @@ following special requirements:
   Right click the PowerShell icon in the "Start Menu," and run
   PowerShell as administrator. Issue the following command: ::
 
-       Set-ExecutionPolicy -ExecutionPolicy Unsigned
+       Get-ExecutionPolicy
 
-  Conform, when promoted, the policy change.
+  This returns the current execution policy. Save this value for
+  future use. If the policy is "``Unrestricted``" you can proceed to
+  the next step. If the policy is not "``Unrestricted``" issue the
+  following command: ::
+
+       Set-ExecutionPolicy -ExecutionPolicy Unrestricted
+
+  Confirm the policy change when prompted.
 
 - Start an administrator command window. Change to the folder
   containing the MMS agent files. Run ``mongommsinstall.bat``. If this
@@ -178,6 +189,14 @@ following special requirements:
 
 Now you can start and stop the Windows service to control the MMS
 agent. Consider the ``WINDOWS.txt`` for more information.
+
+If you had changed the execution policy, after the installation has
+completed successfully set it back to its original value using the
+following command: ::
+
+     Set-ExecutionPolicy -ExecutionPolicy <original value>
+
+Replace "``<original value>``" is the value that you recorded above.
 
 Updating the MMS Agent
 ----------------------
