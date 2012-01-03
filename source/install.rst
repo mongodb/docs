@@ -167,12 +167,14 @@ following special requirements:
   Right click the PowerShell icon in the "Start Menu," and run
   PowerShell as administrator. Issue the following command: ::
 
-       Set-ExecutionPolicy -ExecutionPolicy RemoteSigned
+       Set-ExecutionPolicy -ExecutionPolicy Unsigned
 
   Conform, when promoted, the policy change.
 
-- Run ``mongommsinstall.bat`` from an administrator command window to
-  install and start the Windows service.
+- Start an administrator command window. Change to the folder
+  containing the MMS agent files. Run ``mongommsinstall.bat``. If this
+  succeeds, the MMS agent will be running and will start on system
+  boot.
 
 Now you can start and stop the Windows service to control the MMS
 agent. Consider the ``WINDOWS.txt`` for more information.
