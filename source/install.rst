@@ -72,7 +72,7 @@ basic instructions for fulfilling them.
    and Python header files installed on your system. Debian and Ubuntu
    users should issue the following command: ::
 
-        sudo apt-get install build-essentials python-dev
+        sudo apt-get install build-essential python-dev
 
    RedHat, CentOS, and Fedora Users should issue the following
    command: ::
