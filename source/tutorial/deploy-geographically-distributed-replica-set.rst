@@ -189,7 +189,7 @@ current primary is ``mongodb0.example.net``.
 
 Ensure that the member that's located within Site B
 (i.e. ``mongodb3.example.net``) is configured as a
-:ref:`secondary-only member <replica-set-secondary-only-node>`. First,
+:ref:`secondary-only member <replica-set-secondary-only-nodes>`. First,
 issue the following command determine the :js:data:`rs.members._id`
 value for ``mongodb3.example.net``:
 
@@ -376,7 +376,7 @@ arbiter node (i.e. "``mongodb4.example.net``"):
 
 Ensure that the member that's located within Site B
 (i.e. ``mongodb3.example.net``) is configured as a
-:ref:`secondary-only member <replica-set-secondary-only-node>`. First,
+:ref:`secondary-only member <replica-set-secondary-only-nodes>`. First,
 issue the following command determine the :js:data:`rs.members._id`
 value for ``mongodb3.example.net``:
 

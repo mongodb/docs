@@ -106,6 +106,11 @@ Glossary
 
       .. seealso:: ":doc:`/core/sharding`."
 
+   partition
+      A distributed system architecture that splits resource (i.e. data
+      corpus) between a number of independent
+      systems. :term:`Sharding` is an example of partitioning.
+
    mongod
       :option:`mongod` is the :term:`daemon` that runs MongoDB database
       instances.
