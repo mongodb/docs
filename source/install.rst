@@ -162,9 +162,12 @@ The MMS agent distribution includes a ``WINDOWS.txt`` file with
 instructions for using the agent on Windows platforms. Consider the
 following special requirements:
 
-- Install a 32 or 64-bit build of Python 2.7.
+- Install Python 2.7.
 
-- Use the Windows installer to install `PyMongo from PyPi <http://pypi.python.org/pypi/pymongo/2.0.1>`_.
+- Use the Windows installer to install `PyMongo from PyPi
+  <http://pypi.python.org/pypi/pymongo/2.0.1>`_. Ensure that you
+  install the correct 2.7 PyMongo build for your Python installation
+  (i.e. 32 or 64-bit.)
 
 - Enable PowerShell Script Execution.
 
@@ -196,7 +199,7 @@ following command: ::
 
      Set-ExecutionPolicy -ExecutionPolicy <original value>
 
-Replace "``<original value>``" is the value that you recorded above.
+Replace "``<original value>``" with the value that you recorded above.
 
 Updating the MMS Agent
 ----------------------
