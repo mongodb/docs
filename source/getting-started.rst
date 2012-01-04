@@ -18,7 +18,6 @@ Introduction to MongoDB
 - Drivers
 - Basic Concepts
 
-
 Tutorials
 ---------
 

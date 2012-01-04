@@ -3,13 +3,7 @@ MongoDB Manual Contents
 =======================
 
 .. toctree::
-   :maxdepth: 1
-   :hidden:
-
-   /index
-
-.. toctree::
-   :maxdepth: 4
+   :maxdepth: 3
 
    getting-started
 
