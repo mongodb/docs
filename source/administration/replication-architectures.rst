@@ -3,16 +3,16 @@ Replication Architectures
 =========================
 
 There is no single :term:`replica set` architecture that is compatible
-or ideal for every deployment or environment. Indeed one of the
-greatest strengths of replica sets are its flexibility. This document
+or ideal for every deployment or environment. Indeed the flexibility
+of replica sets is perhaps its greatest strenght. This document
 outlines and describes the most prevalent deployment patterns for
 replica set administrators.
 
 .. seealso:: ":doc:`/administration/replica-sets`" and
    ":doc:`/reference/replica-configuration`."
 
-Three Node Sets
----------------
+Three Member Sets
+------------------
 
 The minimum *recommend* architecture for a :term:`replica set`
 consists of:
@@ -25,8 +25,9 @@ consists of:
 This makes :ref:`failover <replica-set-failover>` possible, and
 ensures that there are two independent copies of the entire data set
 at all times. Even if one node is inaccessible, the set will still be
-able to elect one of the other nodes as primary, and continue
-replication until a replacement set member can be initialized.
+able to elect another nodes as :term:`primary`, and continue
+replication until the first node is accessible again or a replacement
+set member can be initialized.
 
 .. note::
 
@@ -39,8 +40,8 @@ replication until a replacement set member can be initialized.
 
 .. seealso:: ":doc:`/tutorial/deploy-replica-set`."
 
-Sets with more than Three Nodes
--------------------------------
+Sets with More Than Three Members
+---------------------------------
 
 Add additional members to a replica set to increase redundancy or to
 provide additional resources for distributing secondary read
@@ -49,19 +50,19 @@ operations.
 In general, when deploying larger replica sets, ensure the following
 architectural conditions are true:
 
-- The set has an odd number of voting nodes.
+- The set has an odd number of voting members.
 
   Deploy a single :ref:`arbiter <replica-set-arbiters>`, if you have
   an even number of voting replica set members.
 
-- The set only has 7 voting nodes at any time.
+- The set only has 7 voting members at any time.
 
-- A majority *of the set's* nodes exist in the main data center.
+- Every member with a :js:data:`priority <members.priority>` greater
+  than ``0`` can function as ``primary`` in a :term:`failover`
+  situation. If a member does not have this capability (i.e. resource
+  constraints,) set its ``priority`` value to ``0``.
 
-- Every node with a :js:data:`members.priority` greater than ``0`` can
-  function as ``primary`` in a :term:`failover` situation. If a node
-  does not have this capability (i.e. resource constraints,) set its
-  ``priority`` value to ``0``.
+- A majority *of the set's* members exist in the main data center.
 
 .. seealso:: ":doc:`/tutorial/expand-replica-set`."
 
@@ -71,8 +72,9 @@ Geographically Distributed Sets
 -------------------------------
 
 If you have infrastructure in more than one facility, you may want to
-consider keeping one node in a secondary facility. Typically you
-should :ref:`set the priority <replica-set-reconfiguration-usage>` to
+consider keeping one member of the replica set in a secondary
+facility. Typically this member should have the :js:data:`priority
+<members.priority>` :ref:`set <replica-set-reconfiguration-usage>` to
 ``0`` to prevent the node from ever becoming primary.
 
 In many circumstances, these deployments consist of the following:
@@ -87,17 +89,18 @@ In many circumstances, these deployments consist of the following:
   become primary (i.e. with a :js:data:`members.priority` value of
   ``0``.)
 
-If any of the nodes fail, the replica set will still be able to elect
-a primary node. If the connection between the data center fails, the
-node in the second data center cannot become primary independently,
-and the nodes in the primary data center will continue to function.
+If any of the members fail, the replica set will still be able to
+elect a primary node. If the connection between the data center fails,
+the member or members in the second data center cannot become primary
+independently, and the nodes in the primary data center will continue
+to function.
 
 If the primary data center fails, recovering from the database
 instance in the secondary facility requires manual intervention, but
 with proper :term:`write concern <write propagation>` there will be no
 data loss and downtime is typically be minimal.
 
-For deployments that maintain three nodes the primary data center,
+For deployments that maintain three members the primary data center,
 adding a node in a second data center will create an even number of
 nodes, which may result in ties during elections for
 :term:`primary`. In this situation deploy an :ref:`arbiter
@@ -136,12 +139,13 @@ nodes:
 Backups
 ~~~~~~~
 
-For some deployments, keeping a replica set for dedicated backup for
-dedicated backups is operationally advantageous. Ensure this node is
-close, from a networking perspective, to the primary node or likely
-primary, and that the :term:`replication lag` is minimal or
-non-existent. You may wish to create a dedicated :ref:`hidden node
-<replica-set-hidden-nodes>` for the purpose of creating backups.
+For some deployments, keeping a replica set member for dedicated
+backup for dedicated backup purposes is operationally
+advantageous. Ensure this system is close, from a networking
+perspective, to the primary node or likely primary, and that the
+:term:`replication lag` is minimal or non-existent. You may wish to
+create a dedicated :ref:`hidden node <replica-set-hidden-nodes>` for
+the purpose of creating backups.
 
 If this node have journaling enabled, you can safely use standard
 :ref:`block level backup methods <block-level-backup>` to create a
@@ -157,10 +161,10 @@ Delayed Nodes
 ~~~~~~~~~~~~~
 
 :term:`Delayed nodes <delayed node>` are special set members that
-function generally like any replica set :term:`secondary` with a few
-operational differences.. They cannot be elected primary, do not
-receive secondary queries, and *do* vote in :term:`elections
-<election>` for primary.
+function in most cases like other replica set :term:`secondary`
+members with the following operational differences: they cannot be
+elected primary, do not receive secondary queries, but *do* vote in
+:term:`elections <election>` for primary.
 
 Delayed nodes, however, apply operations from the :term:`oplog` on a
 delay, to provide running "historical" snapshot of the data set, or a
@@ -221,10 +225,10 @@ Arbiter Nodes
 -------------
 
 Always deploy an :term:`arbiter` to ensure that a replica set will
-always have a sufficient number of members to elect a primary
-node. While having replica sets with 2 nodes is not recommended for
-production environments, in these circumstances and *any replica set
-with an even number of members*, deploy an arbiter.
+have a sufficient number of members to elect a :term:`primary`. While
+having replica sets with 2 nodes is not recommended for production
+environments, in these circumstances, and *any replica set with an
+even number of members*, deploy an arbiter.
 
 To add an arbiter, while connected to the *current primary* node in
 the :option:`mongo` shell, issue the following command:
@@ -236,7 +240,7 @@ the :option:`mongo` shell, issue the following command:
 Because arbiters do not hold a copy of the data, they have minimal
 resource requirements and do not require dedicated hardware. Do not
 add an arbiter to a set if you have an odd number of voting nodes that
-hold data. as this can lead to tied votes for primary.
+hold data, to prevent tied :term:`elections`.
 
 .. seealso:: ":ref:`Arbiter Nodes <replica-set-arbiters>`,"
    ":mongodb:setting:`replSet`," ":option:`mongod --replSet`, and

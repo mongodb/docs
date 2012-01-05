@@ -649,3 +649,11 @@ Glossary
       A script used by a UNIX like operating system to start, stop,
       or restart, a :term:`daemon` process. Typically these scripts
       are stored in ``/etc/init.d/`` or ``/etc/rc.d/``.
+
+   election
+      The process that replica sets use to choose which member will be
+      :term:`primary`.
+
+      .. seealso:: ":ref:`Replica Set Elections
+         <replica-set-elections>`" and ":ref:`Replica Set Node
+         Priority <replica-set-node-priority>`."

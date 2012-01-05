@@ -3,7 +3,7 @@ Replica Status Reference
 ========================
 
 The :mongodb:command:`replSetGetStatus` provides an overview of the
-current status of a replica set. Issue the following command against
+current status of a :term:`replica set`. Issue the following command against
 the "``admin``" database, in the :option:`mongo` shell: ::
 
      db.runCommand({ replSetGetStatus: 1 } )
@@ -13,9 +13,14 @@ the command.
 
 .. note::
 
-   The :option:`mongod` that you issue the :mongodb:command:`mongodb`
-   command to needs to have replication enabled, and be connected to a
-   replica set for this command to return successfully.
+   The :option:`mongod` that you issue the
+   :mongodb:command:`replSetGetStatus` command to needs to have
+   replication enabled, and be a member of a replica set for this
+   command to return successfully.
+
+.. seealso:: The ":js:func:`rs.status()`" function in the
+   :option:`mongo` shell and the ":doc:`/replication`" documentation
+   index.
 
 Statuses
 --------
@@ -29,15 +34,16 @@ Statuses
 
    The value of the ``date`` field is an :term:`ISODate` of the
    current time, according to the current server. Compare this to the
-   value of the :mongodb:status:`lastHeartbeat` to find the operational lag
-   between the current host and the other hosts in the set.
+   value of the :js:data:`members.lastHeartbeat` to find the
+   operational lag between the current host and the other hosts in the
+   set.
 
 .. js:data:: rs.status.myState
 
    The value of the ``myState`` value reflect state of the current
-   node. State is specified as an integer between ``0`` and
-   ``9``. These integers map to states, as described in the following
-   table:
+   replica set member. An integer between ``0`` and ``9``represents
+   the state of the member. These integers map to states, as described
+   in the following table:
 
    ==========  ==========================================================
    **Number**  **State**
@@ -57,7 +63,7 @@ Statuses
 .. js:data:: rs.status.members
 
    The ``members`` field holds an array that contains a document for
-   every in node the replica set. See the ":ref:`Member Statuses
+   every member in the replica set. See the ":ref:`Member Statuses
    <repl-set-member-statuses>`" for an overview of the values included
    in these documents.
 
@@ -78,36 +84,62 @@ Member Statuses
 
 .. js:data:: members.errmsg
 
-   This contains the most recent error or status message received from
-   the node. This field may be empty (e.g. ``""``) in some cases.
+   This field contains the most recent error or status message received from
+   the member. This field may be empty (e.g. ``""``) in some cases.
 
 .. js:data:: members.health
 
-   The ``health`` value is only present for remote nodes. This field
-   conveys if the node is up (i.e. ``1``) or down (i.e. ``0``) from
-   the perspective of the current server.
+   The ``health`` value is only present for the other members of the
+   replica set (i.e. not the member that returns
+   :js:func:`rs.status`.) This field conveys if the member is up
+   (i.e. ``1``) or down (i.e. ``0``.)
 
 .. js:data:: members.uptime
 
-   The value of the ``uptime`` field reflects the number of seconds
-   that this node has been up or active. This value is only present
-   for remote nodes.
+   The ``uptime`` field holds a value that reflects the number of
+   seconds that this member has been online.
 
-TODO determine if this is from the perspective of the current server or reported by the set member.
+   This value does not appear for the member that returns the
+   :js:func:`rs.status()` data.
+
+.. js:data:: members.optime
+
+   A document that contains information regarding the last operation
+   from the operation log that this member has applied.
+
+   .. js:data:: members.optime.t
+
+      A 64-bit timestamp of the last operation applied to this member
+      of the replica set from the :term:`oplog`.
+
+   .. js:data:: members.optime.i
+
+TODO figure out what ``optime.i`` is?
+
+.. js:data:: members.optimeDate
+
+   An :term:`ISODate` formatted date string that reflects the last
+   entry from the :term:`oplog` that this member applied. If this
+   differs significantly from :js:data:`members.lastHeartbeat` this
+   member is either experiencing "replication lag" *or* there have not
+   been any new operations since the last update. Compare
+   ``members.optimeDate`` between all of the members of the set.
 
 .. js:data:: members.lastHeartbeat
 
    The ``lastHeartbeat`` value provides an :term:`ISODate` formatted
-   date of the last heartbeat received from this node. Compare this
+   date of the last heartbeat received from this member. Compare this
    value to the value of the :js:data:`date` field to track
-   latency between these nodes.
+   latency between these members.
 
-   This value is only present for remote nodes.
+   This value does not appear for the member that returns the
+   :js:func:`rs.status()` data.
 
 .. js:data:: members.pingMS
 
    The ``pingMS`` represents the number of milliseconds (ms) that a
-   round-trip packet takes to travel between the remote node and the
-   current node.
+   round-trip packet takes to travel between the remote member and the
+   local instance.
 
-   This value is only present for remote nodes.
+   This value does not appear for the member that returns the
+   :js:func:`rs.status()` data.

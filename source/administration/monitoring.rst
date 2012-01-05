@@ -30,11 +30,12 @@ shard clusters.
    provides an overview of this diagnostic data in web-access able
    interface.
 
-   10gen provides a hosted monitoring service which collects and
-   aggregates these data to provide insight into the performance and
-   operation of MongoDB deployments. See the `MongoDB Monitoring
-   Service (MMS) <http://mms.10gen.com/>`_ and the `MMS documentation
-   <http://mms.10gen.com/help/>`_ for more information.
+   `10gen <http://10gen.com>`_ provides a hosted monitoring service
+   which collects and aggregates these data to provide insight into
+   the performance and operation of MongoDB deployments. See the
+   `MongoDB Monitoring Service (MMS) <http://mms.10gen.com/>`_ and the
+   `MMS documentation <http://mms.10gen.com/help/>`_ for more
+   information.
 
 Monitoring Tools
 ----------------
@@ -65,19 +66,23 @@ mongotop
 ````````
 
 :option:`mongotop` tracks and reports the current read and write
-activity of a MongoDB instance. ``mongotop`` provides per-collection
-visibility into use. Use ``mongotop`` to verify that activity and use
+activity of a MongoDB instance. :option:`mongotop` provides per-collection
+visibility into use. Use :option:`mongotop` to verify that activity and use
 match expectations.
+
+.. seealso:: ":doc:`/reference/mongotop`."
 
 monostat
 ````````
 
-:command:`mongostat` captures and returns counters of database
-operations. ``mongostat`` reports operations on a per-type
+:option:`mongostat` captures and returns counters of database
+operations. :option:`mongostat` reports operations on a per-type
 (e.g. insert, query, update, delete, etc.) basis that makes it easy to
-understand the nature of the load on the server. Use ``mongostat`` to
-understand the distribution of operation types and to inform capacity
-development plans.
+understand the nature of the load on the server. Use
+:option:`mongostat` to understand the distribution of operation types
+and to inform capacity development plans.
+
+.. seealso:: ":doc:`/references/mongostat`."
 
 .. _rest-interface:
 
@@ -95,10 +100,10 @@ Statistics
 
 The MongoDB interface provides a number of commands that return
 statistics about the state of the MongoDB instance. These commands
-useful for capturing the state of the MongoDB instance and can be used
-by scripts and programs to develop custom alerts, or modify the
-behavior of your application in response to the activity of your
-instance.
+useful for capturing the state of the MongoDB instance. Consider using
+their output in scripts and programs to develop custom alerts, or
+modifying the behavior of your application in response to the activity
+of your instance.
 
 serverStatus
 ````````````
@@ -110,16 +115,18 @@ disk usage, memory use, connection, journaling, access. The command is
 quick to run and does not impact the performance of your MongoDB
 instance.
 
-Most data regarding the state of a MongoDB instance is derived from
-``serverStatus``: while you probably don't want to run this command
+You can find a near complete account of the state of a MongoDB
+instance in the output of :mongodb:command:`serverStatus`
+command. Although, in most cases you will not run this command
 directly to assess the status of a MongoDB instance, it's a good idea
-to be familiar with the data provided by :command:`serverStatus`.
+to be familiar with the data provided by
+:mongodb:command:`serverStatus`.
 
 replStats
 `````````
 
 View the :doc:`replStatus data </reference/replica-status>` with the
-:command:`replStatus` command. The document returned by this
+:mongodb:command:`replStatus` command. The document returned by this
 command contains information regarding the state and configuration of
 the replica set. Use this data to ensure that replication is properly
 configured, and to check the connections between the current host and
@@ -129,22 +136,22 @@ dbStats
 ```````
 
 The :doc:`dbStats data </reference/database-statistics>` is accessible
-by way of the :command:`dbStats`. The document returned contains data
-that reflects the amount of storage used and data contained in the
-database, as well as object, collection, and index counters among
-other relevant information. Use this data to track the state and size
-of a specific database, to compare utilization between databases, or
-to determine average object size.
+by way of the :mongodb:command:`dbStats` command. This command returns
+a document that contains data reflecting the amount of storage used
+and data contained in the database, as well as object, collection, and
+index counters among other relevant information. Use this data to
+track the state and size of a specific database, to compare
+utilization between databases, or to determine average object size.
 
 collStats
 `````````
 
 The :doc:`collStats data </reference/collection-statistics>` is
-accessible using the :command:`collStats`. command. It provides
-statistics that resemble ``dbStats`` on the collection level: this
-includes a count of the objects in the collection, the size of the
-collection, the amount of disk space used by the collection, and
-information about the indexes.
+accessible using the :mongodb:command:`collStats`. command. It
+provides statistics that resemble :mongodb:command:`dbStats` on the
+collection level: this includes a count of the objects in the
+collection, the size of the collection, the amount of disk space used
+by the collection, and information about the indexes.
 
 Diagnosing Performance Issues
 -----------------------------
@@ -166,13 +173,14 @@ Locks
 
 MongoDB uses a locking system to provide reliable concurrency;
 however, if certain operations are long-running, or a queue forms,
-performance can be impacted as requests and operations wait for the
-lock. To determine if this effects your database, begin by checking
-the data conveyed in the :ref:`globalLock` section of the
-:command:`serverStatus` response. If :mongodb:status:`globalLock.currentQueue.total`
-is consistently high, then there are probably a large number of
-requests waiting for a lock. This indicates a possible concurrency
-issue that might effect performance.
+performance slows as requests and operations wait for the lock. To
+determine if this effects your database, begin by checking the data
+conveyed in the :ref:`globalLock` section of the
+:command:`serverStatus` response. If
+:mongodb:status:`globalLock.currentQueue.total` is consistently high,
+then there is a chance that a large number of requests waiting for a
+lock. This indicates a possible concurrency issue that might effect
+performance.
 
 If :mongodb:status:`globalLock.toalTime` is high in context of
 :mongodb:status:`uptime` then the database has existed in a lock state
@@ -190,41 +198,42 @@ Memory Usage
 Because MongoDB uses memory mapped files, given a data set of
 sufficient size, the MongoDB process will allocate all memory
 available on the system for its use. While this is part of the design,
-it may make it possible to know if the ram is being used effectively
-or if the amount of ram is sufficient for the data set. Because this
-is determined in part by the utilization pattern of the data set, it's
-important to check :ref:`memory use status <memory-status>` to better
-understand MongoDBs memory utilization.
+it may make it difficult to determine if the amount of RAM is
+sufficient for the data set. Consider :ref:`memory usage statuses
+<memory-status>` to better understand MongoDB's memory utilization.
 
-See if the amount of resident memory use (i.e. :mongodb:status:`mem.resident`)
-exceeds the amount of system memory *and* there's a significant amount
-of data on disk that isn't in ram. Additionally If the amount of
-mapped memory (i.e. :mongodb:status:`mem.mapped`) is greater than the amount
-of system memory, some operations will require disk access to read
-data from virtual memory with deleterious effects on performance.
+Check the resident memory use (i.e. :mongodb:status:`mem.resident`:)
+if this exceeds the amount of system memory *and* there's a
+significant amount of data on disk that isn't in RAM, you have
+exceeded the capacity of your system. Additionally, if the amount of
+mapped memory (i.e. :mongodb:status:`mem.mapped`) is greater than the
+amount of system memory, some operations will require disk access to
+read data from virtual memory with deleterious effects on performance.
 
 .. _administration-monitoring-page-faults:
 
 Page Faults
 ~~~~~~~~~~~
 
-Page faults represent the number of time that MongoDB requires data
-located in virtual memory but is loaded in physical memory. To check
-for page faults, see the :mongodb:status:`extra_info.page_faults` value in the
-:command:`serverStatus` command. This data is only available on Linux
-systems.
+Page faults represent the number of times that MongoDB requires data
+not located in physical memory, and must read from virtual memory. To
+check for page faults, see the
+:mongodb:status:`extra_info.page_faults` value in the
+:mongodb:command:`serverStatus` command. This data is only available
+on Linux systems.
 
-Alone these operations are minor and complete quickly; however, in
-aggregate, large numbers of page fault typically indicate that MongoDB
-is reading too much data from disk and can indicate a number of
-underlying causes and recommendations.
+Alone page faults minor and complete quickly; however, in aggregate,
+large numbers of page fault typically indicate that MongoDB is reading
+too much data from disk and can indicate a number of underlying causes
+and recommendations.
 
 If possible, increasing the amount of RAM accessible to MongoDB may
 help reduce the number of page faults. If this is not possible, for
 some deployments consider increasing the size of your :term:`replica
-set` and distribute read operations to :term:`secondary` nodes; for
-other deployments, add one or more :term:`shards <shard>` to a
-:term:`shard cluster` to distribute load among MongoDB instances.
+set` and distribute read operations to :term:`secondary` members of
+the replica sets; for other deployments, add one or more :term:`shards
+<shard>` to a :term:`shard cluster` to distribute load among MongoDB
+instances.
 
 Number of Connections
 ~~~~~~~~~~~~~~~~~~~~~
@@ -246,12 +255,13 @@ irregularities. Check the following fields in the :doc:`serverStatus
   - :mongodb:status:`connections.available` the total number of unused
     collections available for new clients.
 
-If requests are high because there are a lot of concurrent application
+If requests are high because there are many concurrent application
 requests, and the database is keeping up. If this is the case, then
-you will need to add additional nodes to your cluster. Increase the
-size of your :term:`replica set` and distribute read operations to
-:term:`secondary` nodes, or one or more :term:`shards <shard>` to a
-:term:`shard cluster` to distribute load among MongoDB instances.
+you will need increase the size of your deployment. Increase the size
+of your :term:`replica set` and distribute read operations to
+:term:`secondary` members. Add one or more :term:`shards <shard>` to a
+:term:`shard cluster` to distribute load among :option:`mongod`
+instances.
 
 Spikes in the number of connections can also be the result of
 application or driver errors. Extremely high numbers of connections
@@ -264,11 +274,13 @@ Database Profiling
 
 MongoDB contains a database profiling system that can help identify
 inefficient queries and operations. Enable the profiler by setting the
-``profile`` value using one of the following command in the :option:`mongo`
-shell. These functions are equivalent: ::
+:mongodb:command:`profile` value using one of the following command in
+the :option:`mongo` shell. These functions are equivalent:
 
-     db.runCommand( { profile: 1 } )
-     db.setProfilingLevel(1)
+.. code-block:: javascript::
+
+   db.runCommand( { profile: 1 } )
+   db.setProfilingLevel(1)
 
 The following profiling levels are available:
 
@@ -283,20 +295,20 @@ The following profiling levels are available:
 .. note::
 
    Because the database profiler can have an impact on the
-   performance, and so should only be enabled for strategic intervals
-   and as minimally as possible on production systems.
+   performance, only enable profiling for strategic intervals and as
+   minimally as possible on production systems.
 
-   Profiling is enabled on a per-:option:`mongod` basis. This setting
-   will not propagate throughout a :term:`replica set` or :term:`shard
-   cluster`.
+   You may enable profiling on a per-:option:`mongod` basis. This
+   setting will not propagate across a :term:`replica set` or
+   :term:`shard cluster`.
 
 See the output of the profiler in the ``mongod`` log and use this
-information to optimize your queries and database. You you can specify
-the :mongodb:setting:`slowms` to set a threshold above which
-operations are considered "slow" and thus included in the level
-"``1``" profiling data. The output of the profiler is collected in the
-``system.profile`` collection. You can view the profiler with the
-"``show profile``" shell command :option:`mongo`. You can query the
+information to optimize your queries and database. You can specify the
+:mongodb:setting:`slowms` to set a threshold above which the profiler
+considers operations "slow" and thus included in the level "``1``"
+profiling data. :option:`mongod` write s the output of the profiler in
+the ``system.profile`` collection. You can view the profiler with the
+"``show profile``" in the :option:`mongo`shell. You can query the
 collection directly. For example the following command will return all
 operations that lasted longer than 100 milliseconds: ::
 
@@ -315,27 +327,27 @@ Replication and Monitoring
 --------------------------
 
 The primary administrative concern that requires monitoring with
-replica sets, beyond the requirements for any MongoDB node is
+replica sets, beyond the requirements for any MongoDB instance is
 "replication lag." This refers to the amount of time that it takes a
-write operation on the :term:`primary` node to replicate to a
-:term:`secondary` node. While some very small delay period is
-expected, as replication lag grows, two significant problems emerge:
+write operation on the :term:`primary` to replicate to a
+:term:`secondary`. Some very small delay period may be acceptable, as
+replication lag grows two significant problems emerge:
 
-- the operations that have occurred in the period of lag are not
+- First, operations that have occurred in the period of lag are not
   replicated to one or more secondaries. If you're using replication
   to ensure data persistence, exceptionally long delays before
-  replication may impact the integrity of your deployment.
+  replication may impact the integrity of your data set.
 
-- if the replication lag exceeds the length of the operation log
-  (":term:`oplog`") then secondary will have to resync from the
+- Second, if the replication lag exceeds the length of the operation
+  log (":term:`oplog`") then secondary will have to resync from the
   master. If this happens regularly, the secondaries may have to
   resync unnecessarily increasing the load on the primary instance.
 
 Replication issues are most often the result of network connectivity
-issues between nodes or a primary machine that does not have the
-resources to support application and replication traffic. To check the
-status of a replica use the :command:`replSetGetStatus` or the
-following helper in the shell: ::
+issues between members or a :term:`primary` instance that does not
+have the resources to support application and replication traffic. To
+check the status of a replica use the :command:`replSetGetStatus` or
+the following helper in the shell: ::
 
      rs.status()
 
@@ -344,12 +356,12 @@ overview view of this output. In general watch the following two data
 points:
 
 - :mongodb:status:`optimeDate`. Pay particular attention to the difference in
-  time between the primary and the secondary nodes.
+  time between the :term:`primary` and the :term:`secondary` members.
 
-- :mongodb:status:`lastHeartbeat`, which reflects the last time each node had
-  any contact to the current node. Compare this to the :mongodb:status:`date`
-  which reflects the current date and time of the node you're
-  currently connected to.
+- :mongodb:status:`lastHeartbeat`, which reflects the last time each
+  member had any contact to the current member. Compare this to the
+  :mongodb:status:`date` which reflects the current date and time of
+  the member you're currently connected to.
 
 The size of the operation log is configurable at runtime using the
 :option:`mongod --oplogsize` argument to the :command:`mongod`
@@ -375,12 +387,12 @@ document for more information.
 Config Servers
 ~~~~~~~~~~~~~~
 
-The :term:`configdb` provides a map of documents to shards. The map is
-updated as :term:`chunks <chunk>` are migrated between shards. When a
-configuration server becomes inaccessible, some sharding operations
-like moving chunks and starting :option:`mongos` instances become
-unavailable. However, shard clusters remain accessible from
-already-running mongo instances.
+The :term:`configdb` provides a map of documents to shards. The
+cluster updates this map as :term:`chunks <chunk>` move between
+shards. When a configuration server becomes inaccessible, some
+sharding operations like moving chunks and starting :option:`mongos`
+instances become unavailable. However, shard clusters remain
+accessible from already-running mongo instances.
 
 Because inaccessible configuration servers can have a serious impact
 on the availability of a shard cluster, you should keep uptime
@@ -391,36 +403,36 @@ restart.
 Balancing and Chunk Distribution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The effective most :term:`shard` clusters depend on data being
-balanced between the shards. MongoDB has a background :term:`balancer`
-process that distributes data such that chunks are always optimally
-distributed among the nodes. Issue the
-:js:func:`db.printShardingStatus()` or :js:func:`sh.status()` command
+The most effective :term:`shard clusters <shard cluster` require that
+:term:`chunks` migrate between the shards. MongoDB has a background
+:term:`balancer` process that distributes data such that chunks are
+always optimally distributed among the :term:`shards <shard>`. Issue
+the :js:func:`db.printShardingStatus()` or :js:func:`sh.status()`
 command to the :option:`mongos` by way of the :option:`mongo`
 shell. This returns an overview of the shard cluster including the
 database name, and a list of the chunks.
 
-For clusters with only a few shards and a small amount of data,
-verifying that chunks are evenly distributed can be done by way of
-approximation. For larger clusters, use the following shell function
-to display the distribution of chunks among shards.
+.. For clusters with only a few shards and a small amount of data,
+.. verifying that chunks are evenly distributed can be done by way of
+.. approximation. For larger clusters, use the following shell function
+.. to display the distribution of chunks among shards.
 
-TODO create a shell function for showing
- ::
-
-   for shard in cluster; do
-       print "{ shardName: $shard, numChunks }";
-   done
+.. TODO create a shell function for showing
+..  ::
+..    for shard in cluster; do
+..        print "{ shardName: $shard, numChunks }";
+..    done
 
 .. run group command against chunk collection inside config server
 
 Stale Locks
 ~~~~~~~~~~~
 
-In nearly every case all locks are automatically released when they
-become stale. However, because any long lasting lock can
-block. balancing. To check the lock status of the database, connect to
-a :option:`mongos` instance using the :doc:`mongo shell
+In nearly every case, all locks used by the balancer are automatically
+released when they become stale. However, because any long lasting
+lock can block future balancing, it's important to insure that all
+locks are legitimate. To check the lock status of the database,
+connect to a :option:`mongos` instance using the :doc:`mongo shell
 </reference/mongo>`". Issue the following command sequence to switch
 to the config database and display all outstanding locks on the shard
 database: ::
@@ -430,13 +442,14 @@ database: ::
 
 For active deployments, the above query might return an useful result
 set. The balancing process, which originates on a randomly selected
-``mongos``, takes a special "balancer" lock that prevents other
+:option:`mongos`, takes a special "balancer" lock that prevents other
 balancing activity from transpiring. Use the following command, also
 to the ``config`` database, to check the status of the "balancer"
 lock. ::
 
      db.locks.find( { _id : "balancer" } )
 
-Ensure that this lock is being used and hasn't become stale.
+If this lock exists, make sure that the balancer process is actively
+using this lock.
 
 TODO figure out how to move forward with this.

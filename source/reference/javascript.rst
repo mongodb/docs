@@ -89,7 +89,7 @@ TODO expand with greater understanding of cursors
              objects returned by the query.
 
    .. seealso:: :mongodb:operator:`$showDiskLoc` for related
-                functionality.
+      functionality.
 
 .. js:function:: forEach()
 

@@ -9,14 +9,14 @@ controlling the operation of the database system. This document
 provides an overview of common configurations and examples of
 best-practice configurations for common use cases.
 
-While both the command line and configuration file provide access to
-the same collection of options, this document primarily uses the
-configuration file. If you run MongoDB using a control script or
-packaged for your operating system, you likely already have a
-configuration file located at ``/etc/mogondb.conf``. Confirm this by
-checking the content of the ``/etc/init.d/mongodb`` or
-``/etc/rc.d/mongodb`` script to insure that the ``mongod`` process is
-started with the appropriate configuration file (see below.)
+While both interfaces provide access the same collection of options
+and settings, this document primarily uses the configuration file
+interface. If you run MongoDB using a control script or packaged for
+your operating system, you likely already have a configuration file
+located at ``/etc/mogondb.conf``. Confirm this by checking the content
+of the ``/etc/init.d/mongodb`` or ``/etc/rc.d/mongodb`` script to
+insure that the :term:`control scripts <control script>` starts the
+:option:`mongod` with the appropriate configuration file (see below.)
 
 To start MongoDB instance using this configuration issue a command in
 the following form: ::
@@ -24,45 +24,49 @@ the following form: ::
      mongod --config /etc/mongodb.conf
      mongod -f /etc/mongodb.conf
 
-Modify the values in this ``mongodb.conf`` to control the
-configuration of your database instance.
+Modify the values in the ``/etc/mongodb.conf`` file on your system to
+control the configuration of your database instance.
 
 .. _base-config:
 
 Starting, Stopping, and Running the Database
 --------------------------------------------
 
-Consider the following basic configuration: ::
+Consider the following basic configuration:
 
-     fork = true
-     bind_ip = 127.0.0.1
-     port = 27017
-     quiet = true
-     dbpath = /srv/mongodb
-     logpath = /var/log/mongodb/mongod.log
-     logappend = true
-     journal = true
+.. code-block:: cfg
+
+   fork = true
+   bind_ip = 127.0.0.1
+   port = 27017
+   quiet = true
+   dbpath = /srv/mongodb
+   logpath = /var/log/mongodb/mongod.log
+   logappend = true
+   journal = true
 
 For most standalone servers, this is a sufficient base
 configuration. It makes several assumptions, but consider the
-following explanation of this configuration:
+following explanation:
 
-- :mongodb:setting:`fork`" Is set to ``true`` to enable a :term:`daemon` mode
-  for ``mongod``, which detaches (i.e. "forks") the MongoDB from the
-  current session and allows you to run the database as a conventional
-  server.
+- :mongodb:setting:`fork`" is set to ``true`` to enable a
+  :term:`daemon` mode for :option:`mongod`, which detaches (i.e. "forks")
+  the MongoDB from the current session and allows you to run the
+  database as a conventional server.
 
-- ":mongodb:setting:`bind_ip`" is set to ``127.0.0.1`` and forces the
-  server to only listen for requests on the localhost IP. Ideally, the
-  server should only bind to secure interfaces that specific
-  application-level systems can access with access control provided by
-  system network filtering (i.e. ":term:`firewall`) systems.
+- :mongodb:setting:`bind_ip` is set to ``127.0.0.1`` and forces the
+  server to only listen for requests on the localhost IP. Only bind to
+  secure interfaces that the application-level systems can access with
+  access control provided by system network filtering
+  (i.e. ":term:`firewall`) systems.
 
 - :mongodb:setting:`port` is set to ``27017``, which is the default
-  MongoDB port for database instances. MongoDB can bind to any port
-  (of course, superuser privileges are required on Unix-like systems
-  to bind to ports lower than 1000.) You may filter access based on
-  port using network filtering tools.
+  MongoDB port for database instances. MongoDB can bind to any
+  port. You can also filter access based on port using network
+  filtering tools.
+
+  .. note:: UNIX-like systems require superuser privileges to attach
+     processes to ports lower than 1000.
 
 - :mongodb:setting:`quiet` is set to ``true``. This disables all but
   the most critical entries in output/log file. In normal operation
@@ -78,36 +82,39 @@ following explanation of this configuration:
   directory.
 
 - :mongodb:setting:`logpath` is set to ``/var/log/mongodb/mongod.log``
-  which is where ``mongod`` will write its output. Unless this value
-  is specified, all data will be written to standard output.
+  which is where ``mongod`` will write its output. If you do not set
+  this value, :option:`mongod` writes all output to standard output
+  (e.g. ``stdout``.)
 
 - :mongodb:setting:`logappend` is set to ``true`` so that the
-  ``mongod`` process does not overwrite an existing log file following
-  the server start operation.
+  :option:`mongod` process does not overwrite an existing log file
+  following the server start operation.
 
 - :mongodb:setting:`journal` is set to ``true`` to enable
   :doc:`journaling </core/journaling>` which ensures single instance
-  write-durability. On 64-bit systems, this is enabled by default and
-  thus may be a redundant setting.
+  write-durability. 64-bit builds of :option:`mongod` enable
+  :term:`journaling` by default. Thus, this setting may be redundant.
 
-In some cases these settings may be redundant, given the default
-configuration; however, in many situations explicitly stating the
+Given the default configuration, some of these values may be
+redundant. However, in many situations explicitly stating the
 configuration increases overall system intelligibility.
 
 Security Considerations
 -----------------------
 
 The following collection of configuration options are useful for
-limiting access to a ``mongod`` instance. Consider the following: ::
+limiting access to a :option:`mongod` instance. Consider the
+following:
 
-     bind_ip = 127.0.0.1
-     bind_ip = 10.8.0.10
-     bind_ip = 192.168.4.24
-     nounixsocket = true
-     auth = true
+.. code-block:: cfg
 
-Consider the following rational and explanation for these
-configuration decisions:
+   bind_ip = 127.0.0.1
+   bind_ip = 10.8.0.10
+   bind_ip = 192.168.4.24
+   nounixsocket = true
+   auth = true
+
+Consider the following explanation for these configuration decisions:
 
 - ":mongodb:setting:`bind_ip`" is set to ``127.0.0.1``, the localhost
   interface, ``10.8.0.10``, a private IP address typically used for
@@ -118,18 +125,17 @@ configuration decisions:
   multiple database servers, it is important to bind MongoDB to
   multiple interfaces that are accessible from your application
   servers. At the same time it's important to limit these interfaces
-  to controlled interfaces that are protected at the network layer.
+  to interfaces controlled and protected at the network layer.
 
 - ":mongodb:setting:`nounixsocket`" is set to ``true`` to disable to
   UNIX Socket, which is otherwise enabled by default. This limits
-  access on the local system where. This is desirable when running
-  MongoDB on with shared access, but in most situations has minimal
-  impact.
+  access on the local system. This is desirable when running MongoDB
+  on with shared access, but in most situations has minimal impact.
 
 - ":mongodb:setting:`auth`" is set to ``true`` to enable the
   authentication system within MongoDB. If enabled you will need to
-  login connecting over the ``localhost`` interface to create user
-  credentials.
+  log in, by connecting over the ``localhost`` interface for the first
+  time to create user credentials.
 
 .. seealso:: ":doc:`/administration/security`"
 
@@ -141,83 +147,108 @@ Replication Configuration
 
 :term:`Replica set` configuration is very straightforward, and only
 requires that the :mongodb:setting:`replSet` have a value that is consistent
-among all members of the staff. Consider the following: ::
+among all members of the staff. Consider the following:
 
-     replSet = set0
+.. code-block:: cfg
+
+   replSet = set0
 
 Use descriptive names for sets. Once configured use the
 :option:`mongo` shell to add hosts to the replica set. For a more
-typical replica set configuration consider the following: ::
+typical replica set configuration consider the following:
 
-     replSet = set1/peer0.example.net,peer1.example.net:27018,peer3.example.net
+.. code-block:: cfg
+
+   replSet = set1/peer0.example.net,peer1.example.net:27018,peer3.example.net
 
 Here, the ``replSet`` contains a set name (i.e. "``set1``") followed
 by a slash (i.e. "``/``") and a comma separated list of hostnames of
 set members, with optional port names. This list of hosts serves as a
 "seed," from which this host will derive the replica set
-configuration. Additional nodes can be added to the configuration
-using :js:func:`rs.reconfig()` function.
+configuration. You may add additional members at anytime to the
+configuration using :js:func:`rs.reconfig()` function.
 
-To enable authentication for the replica set, add the following
-option: ::
+.. seealso:: ":ref:`Replica set reconfiguration
+   <replica-set-reconfiguration-usage>`.
 
-     auth = true
-     keyfile = /srv/mongodb/keyfile
+To enable authentication for the :term:`replica set`, add the
+following option:
+
+.. code-block:: cfg
+
+   auth = true
+   keyfile = /srv/mongodb/keyfile
 
 .. versionadded:: 1.8 for replica sets, and 1.9.1 for sharded replica sets.
 
 Setting :mongodb:setting:`auth` to ``true`` enables authentication,
-while :mongodb:setting:`keyfile` specifies a key file to be used by
-the replica set members to authenticate to each other. The content is
+while :mongodb:setting:`keyfile` specifies a key file for the replica
+set member use to when authenticating to each other. The content is
 arbitrary and must be under one kilobyte and contain characters in the
 base64 set, and the file must not have group or "world" permissions on
 UNIX systems. Use the following command to use the OpenSSL package to
-generate a "random" key file: ::
+generate a "random" key file:
 
-     openssl rand -base64 753
+.. code-block:: bash
+
+   openssl rand -base64 753
 
 .. note:: Keyfile permissions are not checked on Windows systems.
 
-.. seealso:: ":doc:`/core/replication`" for more information on
+.. seealso:: The ":doc:`/replication`" index and the
+   ":doc:`/core/replication`" document for more information on
    replication and replica set configuration.
 
 Sharding Configuration
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Sharding requires a number of nodes with slightly different
-configurations. The config servers stores the cluster's metadata,
-while the data is distributed among one or more shard servers.
+Sharding requires a number of :option:`mongod` instances with
+different configurations. The config servers stores the cluster's
+metadata, while the cluster distributes data among one or more
+shard servers.
 
 To set up one or three "config server" instances as :ref:`normal
-<base-config>` :option:`mongod` nodes, and then add the following
-configuration option: ::
+<base-config>` :option:`mongod` instances, and then add the following
+configuration option:
 
-     configsrv = true
+.. code-block:: cfg
 
-     bind_ip = 10.8.0.12
-     port = 27001
+   configsrv = true
+
+   bind_ip = 10.8.0.12
+   port = 27001
 
 This creates a config server running on the private IP address
 ``10.8.0.12`` on port ``27001``. Make sure that there are no port
 conflicts, and that your config server is accessible from all of your
 ":option:`mongos`" and ":option:`mongod`" instances.
 
-To set up shards, configure two or more :option:`mongod` nodes
-normally, but add the following configuration: ::
+To set up shards, configure two or more :option:`mongod` instance
+using your :ref:`base configuration <base-config>`, adding the
+:mongodb:setting:`shardsvr` setting:
 
-     shardsvr = true
+.. code-block:: cfg
 
-Finally, to establish the cluster configure at least one
-:option:`mongos` process with the following settings: ::
+   shardsvr = true
 
-     configdb = 10.8.0.12:27001
-     chunkSize = 64
+Finally, to establish the cluster, configure at least one
+:option:`mongos` process with the following settings:
+
+.. code-block:: cfg
+
+   configdb = 10.8.0.12:27001
+   chunkSize = 64
 
 You can specify multiple :mongodb:setting:`configdb` instances by
-specifying a comma separated list. In general you should not modify
-the :mongodb:setting:`chunkSize` from its default of 64, and *should*
-ensure this setting is consistent among all :option:`mongos`
-instances.
+specifying hostnames and ports in the form of a comma separated
+list. In general, avoid modifying the :mongodb:setting:`chunkSize` from
+the default value of 64, [#chunksize]_ and *should* ensure this setting is consistent
+among all :option:`mongos` instances.
+
+.. [#chunksize] :term:`Chunk` size is 64 megabytes by default, which
+   provides the ideal balance between the most even distribution of
+   data, for which smaller chunk sizes are best, and minimizing chunk
+   migration, for which larger chunk sizes are optimal.
 
 .. seealso:: ":doc:`/core/sharding`" for more information on sharding
    and shard cluster configuration.
@@ -231,10 +262,12 @@ single system is not recommended, on some types of deployments
 one :option:`mongod` on a single system.
 
 In these cases, use a :ref:`base configuration <base-config>` for each
-node, but consider the following configuration values: ::
+instance, but consider the following configuration values:
 
-     dbpath = /srv/mongodb/db0/
-     pidpath = /srv/mongodb/db0.pid
+.. code-block:: cfg
+
+   dbpath = /srv/mongodb/db0/
+   pidpath = /srv/mongodb/db0.pid
 
 The :mongodb:setting:`dbpath` value controls the location of the
 :option:`mongod` instance's data directory. Ensure that each database
@@ -254,19 +287,21 @@ needed to control these processes.
    multiple databases with small working sets may function acceptably
    on a single system.
 
-Diagnostics Configurations
---------------------------
+Diagnostic Configurations
+-------------------------
 
 The following configuration options control various :option:`mongod`
 behaviors for diagnostic purposes. The following settings have default
-values that are tuned for general production
+values that tuned for general production purposes:
 
-     slowms = 50
-     profile = 3
-     objcheck = true
-     cpu = true
-     verbose = true
-     diaglog = 3
+.. code-block:: cfg
+
+   slowms = 50
+   profile = 3
+   verbose = true
+   diaglog = 3
+   objcheck = true
+   cpu = true
 
 Use the :ref:`base configuration <base-config>` and add these options
 if you are experiencing some unknown issue or performance problem as
@@ -281,19 +316,22 @@ needed:
 - :mongodb:setting:`profile` sets the :term:`database profiler`
   level. The profiler is not active by default because of the possible
   impact on the profiler itself on performance. Unless this setting
-  has a value, queries will not be profiled.
+  has a value, queries are not profiled.
 
-- :mongodb:setting:`verbose` enables a verbose logging mode, which
-  modifies :option:`mongod` output and logging to include a greater
-  number of events. Only use this option if you are experiencing an
-  issue that is not reflected in the normal logging level. If you
-  require additional verbosity, consider the following options: ::
+- :mongodb:setting:`verbose` enables a verbose logging mode that
+  modifies :option:`mongod` output and increases logging to include a
+  greater number of events. Only use this option if you are
+  experiencing an issue that is not reflected in the normal logging
+  level. If you require additional verbosity, consider the following
+  options:
 
-       v = true
-       vv = true
-       vvv = true
-       vvvv = true
-       vvvvv = true
+  .. code-block:: cfg
+
+     v = true
+     vv = true
+     vvv = true
+     vvvv = true
+     vvvvv = true
 
   Each additional level ``v`` adds additional verbosity to the
   logging. The "``verbose``" option  is equal to "``v = true``".

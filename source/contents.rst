@@ -6,16 +6,11 @@ MongoDB Manual Contents
    :maxdepth: 3
 
    getting-started
-
-   administration
-
    replication
    sharding
-
+   administration
    applications
-
    mongo
-
    reference
 
 - :ref:`genindex`
