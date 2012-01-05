@@ -7,18 +7,12 @@ MongoDB Manual Contents
 
    getting-started
 
+   administration
+
    replication
    sharding
 
-   administration
-
-   schema-design
-   optimization
-
-   core/aggregation
-   core/map-reduce
-   core/journaling
-   core/capped-collections
+   applications
 
    mongo
 

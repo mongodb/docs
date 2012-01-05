@@ -275,8 +275,8 @@ needed:
 - :mongodb:setting:`slowms` configures the threshold for a query to be
   considered "slow" by the :term:`database profiler` The default value
   is 100 milliseconds. Set a lower value if the database profiler does
-  not return useful results. See the ":doc:`/optimization`" for more
-  information on optimizing operations in MongoDB.
+  not return useful results. See the ":doc:`/applications/optimization`"
+  for more information on optimizing operations in MongoDB.
 
 - :mongodb:setting:`profile` sets the :term:`database profiler`
   level. The profiler is not active by default because of the possible

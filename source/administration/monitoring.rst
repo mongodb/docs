@@ -305,9 +305,9 @@ operations that lasted longer than 100 milliseconds: ::
 Ensure that the value specified here (i.e. ``100``) is above the
 :mongodb:setting:`slowms` threshold.
 
-.. seealso:: ":doc:`/optimization`" address strategies you can use to
-             improve the performance of your database queries and
-             operations.
+.. seealso:: ":doc:`/applications/optimization`" address strategies
+   you can use to improve the performance of your database queries and
+   operations.
 
 .. _replica-set-monitoring:
 

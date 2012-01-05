@@ -80,8 +80,8 @@ TODO expand with greater understanding of cursors
    a query.
 
    .. seealso:: :mongodb:operator:`$explain` for related functionality
-                and ":doc:`/optimization`" regarding optimization
-                strategies.
+      and ":doc:`/applications/optimization`" regarding optimization
+      strategies.
 
 .. js:function:: showDiskLoc()
 
