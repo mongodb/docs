@@ -82,7 +82,7 @@ understand the nature of the load on the server. Use
 :option:`mongostat` to understand the distribution of operation types
 and to inform capacity development plans.
 
-.. seealso:: ":doc:`/references/mongostat`."
+.. seealso:: ":doc:`/reference/mongostat`."
 
 .. _rest-interface:
 
@@ -277,7 +277,7 @@ inefficient queries and operations. Enable the profiler by setting the
 :mongodb:command:`profile` value using one of the following command in
 the :option:`mongo` shell. These functions are equivalent:
 
-.. code-block:: javascript::
+.. code-block:: javascript
 
    db.runCommand( { profile: 1 } )
    db.setProfilingLevel(1)
@@ -302,17 +302,19 @@ The following profiling levels are available:
    setting will not propagate across a :term:`replica set` or
    :term:`shard cluster`.
 
-See the output of the profiler in the ``mongod`` log and use this
-information to optimize your queries and database. You can specify the
-:mongodb:setting:`slowms` to set a threshold above which the profiler
-considers operations "slow" and thus included in the level "``1``"
-profiling data. :option:`mongod` write s the output of the profiler in
-the ``system.profile`` collection. You can view the profiler with the
-"``show profile``" in the :option:`mongo`shell. You can query the
-collection directly. For example the following command will return all
-operations that lasted longer than 100 milliseconds: ::
+See the output of the profiler in the :option:`mongod` log and use
+this information to optimize your queries and database. You can
+specify the :mongodb:setting:`slowms` to set a threshold above which
+the profiler considers operations "slow" and thus included in the
+level "``1``" profiling data. :option:`mongod` writes the output of
+the profiler in the ``system.profile`` collection. You can view the
+profiler with the "``show profile``" in the :option:`mongo` shell. You
+can query the collection directly. For example the following command
+will return all operations that lasted longer than 100 milliseconds:
 
-     db.system.profile.find( { millis : { $gt : 100 } } )
+.. code-block:: javascript
+
+   db.system.profile.find( { millis : { $gt : 100 } } )
 
 Ensure that the value specified here (i.e. ``100``) is above the
 :mongodb:setting:`slowms` threshold.
@@ -403,8 +405,8 @@ restart.
 Balancing and Chunk Distribution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The most effective :term:`shard clusters <shard cluster` require that
-:term:`chunks` migrate between the shards. MongoDB has a background
+The most effective :term:`shard clusters <shard cluster>` require that
+:term:`chunks <chunk>` migrate between the shards. MongoDB has a background
 :term:`balancer` process that distributes data such that chunks are
 always optimally distributed among the :term:`shards <shard>`. Issue
 the :js:func:`db.printShardingStatus()` or :js:func:`sh.status()`

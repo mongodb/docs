@@ -41,7 +41,7 @@ Statuses
 .. js:data:: rs.status.myState
 
    The value of the ``myState`` value reflect state of the current
-   replica set member. An integer between ``0`` and ``9``represents
+   replica set member. An integer between ``0`` and ``9`` represents
    the state of the member. These integers map to states, as described
    in the following table:
 
