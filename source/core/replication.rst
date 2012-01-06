@@ -570,6 +570,12 @@ propagation <replica-set-write-propagation>` to all or some of the
 nodes in the set. Using these kinds of policies prevents situations
 that might create rollbacks.
 
+.. warning::
+
+   A :option:`mongod` instance will not rollback more than 300
+   megabytes of data. If your system needs to rollback more than 300
+   MB, you will need to manually intervene to recover this data.
+
 .. _replica-set-write-propagation:
 
 Write Propagation
