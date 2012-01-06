@@ -240,8 +240,8 @@ the :option:`mongo` shell, issue the following command:
 Because arbiters do not hold a copy of the data, they have minimal
 resource requirements and do not require dedicated hardware. Do not
 add an arbiter to a set if you have an odd number of voting nodes that
-hold data, to prevent tied :term:`elections`.
+hold data, to prevent tied :term:`elections <election>`.
 
 .. seealso:: ":ref:`Arbiter Nodes <replica-set-arbiters>`,"
-   ":mongodb:setting:`replSet`," ":option:`mongod --replSet`, and
+   ":setting:`replSet`," ":option:`mongod --replSet`, and
    ":js:func:`rs.addArb()`."

@@ -2,8 +2,7 @@
 Operator Reference
 ==================
 
-.. default-domain: mongodb
-.. highlight_language: javascript
+.. default-domain:: mongodb
 .. highlight:: javascript
 
 This document contains a reference to all :term:`operators <operator>`
@@ -17,27 +16,31 @@ Query Selectors
 Comparison
 ~~~~~~~~~~
 
-.. describe:: $lt
+.. operator:: $lt
 
    The ``$lt`` comparison operator provides the ability to select
-   documents where a field is less than (e.g. "``<``") a value: ::
+   documents where a field is less than (e.g. "``<``") a value:
+
+   .. code-block:: javascript
 
        db.collection.find( { field: { $lt: value } } );
 
    This query returns all documents in ``collection`` where the value
    of ``field`` less than the specified "``value``".
 
-.. describe:: $gt
+.. operator:: $gt
 
    The ``$gt`` comparison operator provides the ability to select
-   documents where a field is greater than (e.g. "``>``") a value: ::
+   documents where a field is greater than (e.g. "``>``") a value:
 
-       db.collection.find( { field: { $gt: value } } );
+   .. code-block:: javascript
+
+      db.collection.find( { field: { $gt: value } } );
 
    This query returns all documents in ``collection`` where the value
    of ``field`` greater than the specified "``value``".
 
-.. describe:: $lte
+.. operator:: $lte
 
    The ``$lte`` comparison operator provides the ability to select
    documents where a field is less than or equal to (e.g. "``<=``") a
@@ -48,7 +51,7 @@ Comparison
    This query returns all documents in ``collection`` where the value
    of ``field`` less than or equal to the specified "``value``".
 
-.. describe:: $gte
+.. operator:: $gte
 
    The ``$gte`` comparison operator provides the ability to select
    documents where a field is less than or equal to (e.g. "``>=``") a
@@ -69,7 +72,7 @@ This statement returns all instances of ``field`` between
 Document
 ~~~~~~~~
 
-.. describe:: $all
+.. operator:: $all
 
    The ``$all`` operator matches a minimum set of elements that must
    be present in a document's ``field``, as in the following example: ::
@@ -82,7 +85,7 @@ Document
    that are subset; for example, the above query matches "``{ field: [
    1, 2, 3, 4] }``" but not "``{ field: [ 2, 3 ] }``".
 
-.. describe:: $exists
+.. operator:: $exists
 
    The ``$exist`` operator returns documents if they have, or lack, a
    field. The ``$exist`` operator accepts either true and false
@@ -97,7 +100,7 @@ Document
    returns all documents in ``collection`` that *not* have a ``field``
    specified.
 
-.. describe:: $ne
+.. operator:: $ne
 
    The ``$ne`` operator returns documents where a field is not equal
    to the specified values. The following command: ::
@@ -107,7 +110,7 @@ Document
    returns all documents in ``collection`` with ``field`` that do not
    equal 100.
 
-.. describe:: $in
+.. operator:: $in
 
    The ``$in`` operator allows you to specify an array of possible
    matches for any value. Consider the following form: ::
@@ -123,7 +126,7 @@ Document
    returns all documents in ``collection`` with an "``age``" field
    that has a value in one of the first six prime numbers.
 
-.. describe:: $nin
+.. operator:: $nin
 
    The ``$nin`` operator provides a "not in," as the inverse of
    :mongodb:operator:`$in`. For example: ::
@@ -139,7 +142,7 @@ Document
 Geolocation
 ~~~~~~~~~~~
 
-.. describe:: $near
+.. operator:: $near
 
    The ``$near`` operator takes an argument, coordinates in the form
    of "``[x, y]``", and returns a list of objects that sorted by
@@ -152,7 +155,7 @@ Geolocation
    :js:func:`limit()`, or another :ref:`geolocation operator
    <geolocation-operators>` to limit the results of the query.
 
-.. describe:: $maxDistance
+.. operator:: $maxDistance
 
    The ``$maxDistance`` operator specifies an upward bound to limit
    the results of a geolocation query. See below, where the
@@ -170,7 +173,7 @@ Geolocation
    The value of the ``$maxDistance`` argument is specified in the same
    units as the document coordinate system.
 
-.. describe:: $within
+.. operator:: $within
 
    The ``$within`` operator allows you to select items that exist
    within a shape on a coordinate system. This operator uses the
@@ -207,7 +210,7 @@ Geolocation
    although this is subject to the imprecision of floating point
    numbers.
 
-.. describe:: $uniqueDocs
+.. operator:: $uniqueDocs
 
    When using the :command:`geoNear`, if document contains more than
    one field with coordinate values, MongoDB will return the same
@@ -230,7 +233,7 @@ TODO clarify $uniqueDocs as the wiki is unclear here. The true/false in the wiki
 Logical
 ~~~~~~~
 
-.. describe:: $or
+.. operator:: $or
 
    .. present in versions greater than 1.6
 
@@ -256,7 +259,7 @@ Logical
    expressions are not as efficiently optimized as top-level ``$or``
    operations.
 
-.. describe:: $nor
+.. operator:: $nor
 
    The ``$nor`` operators provides a Boolean ``NOR`` expression in
    queries. ``$nor`` is the functional inverse of ``$nor``. Use
@@ -269,7 +272,7 @@ Logical
    ``key1`` field with ``value1`` *nor* a ``key2`` field with
    ``value2``.
 
-.. describe:: $and
+.. operator:: $and
 
    The ``$and`` operator provides a Boolean ``AND`` expression in
    queries. Use ``$and`` to return the documents that satisfy *all*
@@ -283,7 +286,7 @@ Logical
 
    .. the $and operator was added in version 2.0
 
-.. describe:: $not
+.. operator:: $not
 
    ``$not`` is a meta operator used to negate a standard operator. It
    can only affect other operators, and cannot be used to check fields
@@ -305,7 +308,7 @@ Logical
 Element
 ~~~~~~~
 
-.. describe:: $type
+.. operator:: $type
 
    The ``$type`` operator matches field values with a specific data
    type. ``$type`` operator allows you to narrow results based on any
@@ -340,7 +343,7 @@ Element
    Max key                    127
    =======================  ==========
 
-.. describe:: $regex
+.. operator:: $regex
 
    The ``$regex`` operator provides regular expression capabilities in
    queries. The following examples are equivalent: ::
@@ -395,7 +398,7 @@ Element
    ``collection`` that match the case insensitive regular expression
    "``acme.*corp``" that *don't* match "``acmeblahcorp``".
 
-.. describe:: $mod
+.. operator:: $mod
 
    The ``$mod`` operator performs a fast "modulo" query, to reduce the
    need for expensive :mongodb:operator:`$where` operator in some
@@ -414,7 +417,7 @@ Element
 JavaScript
 ~~~~~~~~~~
 
-.. describe:: $where
+.. operator:: $where
 
    Use the ``$where`` operator to pass a string containing a
    JavaScript expression to the query system to provide greater
@@ -430,7 +433,7 @@ JavaScript
 Array
 ~~~~~
 
-.. describe:: $size
+.. operator:: $size
 
    The ``$size`` operator matches any array with the specified number
    of arguments. For example: ::
@@ -442,9 +445,11 @@ Array
    return "``{ field: [ red, green ] }``" and "``{ field: [ apple,
    lime ] }``" but *not* "``{ field: fruit }``" or "``{ field: [
    orange, lemon, grapefruit ] }``". To match fields with only one
-   element use ``$size`` with a value of 1, as follows: ::
+   element use ``$size`` with a value of 1, as follows:
 
-        db.collection.find( { field: { $size: 1 } } );
+   .. code-block:: javascript
+
+      db.collection.find( { field: { $size: 1 } } );
 
    ``$size`` does not accept ranges of values. To select documents
    based on fields with different numbers of elements, create a
@@ -453,12 +458,14 @@ Array
    Indexes cannot be used for the $size portion of a query, although
    the other portions of a query can use indexes if applicable.
 
-.. describe:: $elemMatch
+.. operator:: $elemMatch
 
    The ``$elemMatch`` operator matches more than one component within
    an array. For example,
 
-        db.collection.find( { array: { $elemMatch: { value1: 1, value2: { $gt: 1 } } } } );
+   .. code-block:: javascript
+
+      db.collection.find( { array: { $elemMatch: { value1: 1, value2: { $gt: 1 } } } } );
 
    returns all documents in ``collection`` where the array ``array``
    satisfies all of the conditions in the ``$elemMatch`` expression,
@@ -466,7 +473,7 @@ Array
    is greater than 1. Matching arrays must match all specified
    criteria.
 
-   .. $elemMatch was introduced in version 1.4.
+   .. versionadded:: 1.4
 
 .. _update-operators:
 
@@ -475,7 +482,7 @@ Update
 
 TODO does update() iterate over the whole collection or just the first matching record?
 
-.. describe:: $set
+.. operator:: $set
 
   Use the ``$set`` operator to set a particular value. The ``$set``
   operator requires the following syntax: ::
@@ -488,7 +495,7 @@ TODO does update() iterate over the whole collection or just the first matching 
   fields if they do not exist in this document *or* replace the
   existing value of the specified field(s) if they already exist.
 
-.. describe:: $unset
+.. operator:: $unset
 
    The ``$unset`` operator deletes a particular field. Consider the
    following example: ::
@@ -505,7 +512,7 @@ TODO does update() iterate over the whole collection or just the first matching 
    operation, (e.g. "``field1``") there the statement has no effect on
    the document.
 
-.. describe:: $inc
+.. operator:: $inc
 
    The ``$inc`` operator increments a value by a specified amount if
    field is present in the document. If the field does not exist,
@@ -528,7 +535,7 @@ TODO does update() iterate over the whole collection or just the first matching 
 
    ``$inc`` accepts positive and negative incremental amounts.
 
-.. describe:: $push
+.. operator:: $push
 
    The ``$push`` operator appends a specified value to an array. For
    example: ::
@@ -550,12 +557,14 @@ TODO does update() iterate over the whole collection or just the first matching 
      element in the identified array. To add multiple items to an
      array, use :mongodb:operator:`$pushAll`.
 
-.. describe:: $pushAll
+.. operator:: $pushAll
 
    The ``$pushAll`` operator is similar to the :mongodb:operator:`$push` but
    adds the ability to append several values to an array at once.
 
-        db.collection.update( { field: value }, { $pushAll: { field1: [ value1, value2, value3 ] } } );
+   .. code-block:: javascript
+
+      db.collection.update( { field: value }, { $pushAll: { field1: [ value1, value2, value3 ] } } );
 
    Here, ``$pushAll`` appends the values in "``[ value1, value2,
    value3 ]``" to the array in ``field1`` in the document
@@ -566,7 +575,7 @@ TODO does update() iterate over the whole collection or just the first matching 
 
 TODO determine what the performance impacts of using $pushAll with single values are.
 
-.. describe:: $addToSet
+.. operator:: $addToSet
 
    The ``$addToSet`` operator adds a value to an array only *if* the
    value is *not* in the array already. If the value *is* in the
@@ -580,7 +589,7 @@ TODO determine what the performance impacts of using $pushAll with single values
    ``field``, *only if* ``value1`` is not already a member of this
    array.
 
-.. describe:: $pop
+.. operator:: $pop
 
    The ``$pop`` operator removes the first or last element of an
    array. Pass ``$pop`` a value of ``1``` to remove the last element
@@ -605,36 +614,42 @@ TODO determine what the performance impacts of using $pushAll with single values
 
    .. $pop was added in version 1.1
 
-.. describe:: $pull
+.. operator:: $pull
 
    The ``$pull`` operator removes a value from an existing
    array. ``$pull`` provides the inverse operation of the
-   :mongodb:operator:`$push` operator. Consider the following example: ::
+   :operator:`$push` operator. Consider the following example:
 
-        db.collection.update( { field: value }, { $pull: { field: value1 } } );
+   .. code-block:: javascript
+
+      db.collection.update( { field: value }, { $pull: { field: value1 } } );
 
    ``$pull`` removes the value ``value1`` from the array in ``field``,
    in the document that matches the query statement "``{ field: valppppue
    }``" in ``collection``.
 
-.. describe:: $pullAll
+.. operator:: $pullAll
 
    The ``$pullAll`` operator removes multiple values from an existing
    array. ``$pullAll`` provides the inverse operation of the
-   ``$pushAll`` operator. Consider the following example: ::
+   ``$pushAll`` operator. Consider the following example:
 
-        db.collection.update( { field: value }, { $pullAll: { field1: [ value1, value2, value3 ] } } );
+   .. code-block:: javascript
+
+      db.collection.update( { field: value }, { $pullAll: { field1: [ value1, value2, value3 ] } } );
 
    Here, ``$pullAll`` removes "``[ value1, value2, value3 ]``" from
    the array in ``field1``, in the document that matches the
    query statement "``{ field: value }``" in ``collection``.
 
-.. describe:: $rename
+.. operator:: $rename
 
   The ``$rename`` operator changes the name of a field. Consider the
-  following example: ::
+  following example:
 
-        db.collection.update( { field: value }, { $rename: { old_field: new_field  } } );
+  .. code-block:: javascript
+
+     db.collection.update( { field: value }, { $rename: { old_field: new_field  } } );
 
   Here, the ``$rename`` operator changes the name of the ``old_field``
   field to ``new_field``, in the document that matches the query "``{
@@ -644,52 +659,56 @@ TODO determine what the performance impacts of using $pushAll with single values
   find a match for field names (e.g. "``old_field``" in the example
   above.)
 
-   .. $rename was added for version 1.7.2
+   .. versionadded:: 1.7.2
 
-.. describe:: $bit
+.. operator:: $bit
 
-   The ``$bit`` operator performs a bitwise update of a field. This
-   operator can only be used with integer fields. For example, ::
+   The ``$bit`` operator performs a bitwise update of a field. Only
+   use this with integer fields. For example:
 
-        db.collection.update( { field: 1 }, { $bit: { field: { and: 5 } } } );
+   .. code-block:: javasript
 
-   the ``$bit`` operator updates the integer value of the filed named
-   ``field`` with a bitwise "``and: 5``" operation.
+      db.collection.update( { field: 1 }, { $bit: { field: { and: 5 } } } );
+
+   Here, the ``$bit`` operator updates the integer value of the filed
+   named ``field`` with a bitwise "``and: 5``" operation.
 
 TODO expand coverage of $bit which I need to understand the use better.
 
-.. describe:: $atomic
+.. operator:: $atomic
 
    In multi-update mode, it's possible to specify an ``$atomic``
    "operator" that allows you to isolate some updates from each
    other. In a global sense this is not atomic, but rather in context
-   of this operation. Consider the following example: ::
+   of this operation. Consider the following example:
 
-        db.foo.update( { field1 : 1 , $atomic : 1 }, { $inc : { field2 : 1 } } ,  false , true )
+   .. code-block:: javascript
 
-   In this example, the "``{ field1 : 1 }``" update is isolated from
-   the :mongodb:operator:`$inc` operation that increments the value of
-   ``field2``.
+      db.foo.update( { field1 : 1 , $atomic : 1 }, { $inc : { field2 : 1 } } ,  false , true )
 
-   .. seealso::
-      See :js:func:`update()` for more information about the ``update()``
-      function.
+   This example, isolates the "``{ field1 : 1 }``" update from the
+   :operator:`$inc` operation that increments the value of ``field2``.
+
+   .. seealso:: See :js:func:`update()` for more information about the
+      ``update()`` function.
 
 .. _projection-operators:
 
 Projection
 ----------
 
-.. describe:: $slice
+.. operator:: $slice
 
    The ``$slice`` operator controls the number of items of an array
-   that a query returns. Consider the following example: ::
+   that a query returns. Consider the following example:
 
-        db.collection.find( { field: value }, { array: {$slice: count } } );
+   .. code-block:: javascript
 
-   Here, we select the document in ``collection`` identified by the
-   value ``value`` in ``field``, and return the number of elements
-   specified by ``count`` from the array stored in the ``array``
-   field. The entire document is returned. If ``count`` has a value
-   greater than the number of elements in ``array`` then all elements
-   of the array are returned.
+      db.collection.find( { field: value }, { array: {$slice: count } } );
+
+   This operation selects the document ``collection`` identified by a
+   field named ``field`` that holds "``value``" and returns the number
+   of elements specified by the value of "``count``" from the array
+   stored in the "``array``" field. If ``count`` has a value greater
+   than the number of elements in ``array`` the query returns all
+   elements of the array.

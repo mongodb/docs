@@ -34,7 +34,7 @@ Sharding
 .. seealso:: ":doc:`/core/sharding`" for more information regarding
    MongoDB's sharding functionality.
 
-.. describe:: addShard
+.. mongodb:command:: addShard
 
    The ``addShard`` command informs a :option:`mongos` process about
    the shard instance. Connect using the MongoDB shell
@@ -62,14 +62,14 @@ Sharding
         disk capacities, or if you want to limit the amount of data on
         some shards.
 
-.. describe:: listShards
+.. mongodb:command:: listShards
 
    Use the ``listShards`` command to return a list of configured
    shards. The command takes the following form:
 
         { listShards: 1 }
 
-.. describe:: enableSharding
+.. mongodb:command:: enableSharding
 
    The ``enableSharding`` command enables sharding on a per-database
    level. Use the following command form: ::
@@ -80,7 +80,7 @@ Sharding
    the :command:`shardCollection` to begin the process of distributing
    data among the shards.
 
-.. describe:: shardCollection
+.. mongodb:command:: shardCollection
 
    The ``shardCollection`` command marks a collection for sharding and
    will begin the process of distributing the data among the
@@ -104,7 +104,7 @@ Sharding
       once established, without making a backup, dropping the
       collection and reloading the data into a recreated collection.
 
-.. describe:: shardingState
+.. mongodb:command:: shardingState
 
    The ``shardingState`` command returns ``true`` or ``false`` if the
    :option:`mongod` instance is a member of a sharded cluster. Run the
@@ -116,7 +116,7 @@ Sharding
 
    .. admin-only
 
-.. describe:: removeshard
+.. mongodb:command:: removeshard
 
    Controls the process of removing a shard from a :term:`shard
    cluster`. This is a multi-stage process. Begin by issuing a command
@@ -151,7 +151,7 @@ Sharding
 
         { msg: "remove shard completed successfully , stage: "completed", host: "shardName", ok : 1 }
 
-.. describe:: moveprimary
+.. mongodb:command:: moveprimary
 
    In a :term:`shard cluster`, this command moves the primary database
    to a specified shard. The command takes the following form: ::
@@ -169,7 +169,7 @@ Sharding
 Aggregation
 ~~~~~~~~~~~
 
-.. describe:: group
+.. mongodb:command:: group
 
    The ``group`` command returns an array of grouped items. ``group``
    provides functionality analogous to the ``GROUP BY`` statement in
@@ -217,7 +217,7 @@ Aggregation
 
    .. read-lock
 
-.. describe:: count
+.. mongodb:command:: count
 
    The ``count`` command provides. For example: ::
 
@@ -235,7 +235,7 @@ Aggregation
 
    .. read-lock
 
-.. describe:: mapReduce
+.. mongodb:command:: mapReduce
 
    The ``mapReduce`` command provides map/reduce functionality for the
    MongoDB server. In MongoDB map/reduce operations provide
@@ -265,14 +265,14 @@ Aggregation
 
    .. slave-ok
 
-.. describe:: mapreduce.shardedfinish
+.. mongodb:command:: mapreduce.shardedfinish
 
    See :doc:`/core/map-reduce` for more information on mapReduce
    operations.
 
    .. slave-ok
 
-.. describe:: findAndModify
+.. mongodb:command:: findAndModify
 
    The ``findAndModify`` command provides an atomic modification and
    return of a single document. The command takes the following form: ::
@@ -307,7 +307,7 @@ Aggregation
    - **upsert**, when set, creates an object if the specified
      ``query`` returns no objects. To set, specify "``upsert: true``".
 
-.. describe:: distinct
+.. mongodb:command:: distinct
 
    The ``distinct`` command returns an array of distinct values for a
    given field across a single collection. The command takes the
@@ -327,7 +327,7 @@ Aggregation
    The ``distinct`` command will use an index to locate and return
    data.
 
-.. describe:: eval
+.. mongodb:command:: eval
 
    The ``eval`` provides the ability to evaluate JavaScript functions
    on the database server. Consider the following (trivial) example: ::
@@ -352,7 +352,7 @@ Aggregation
 
            { eval: function() { return 3+3 }, nslock: true }
 
-.. describe:: dataSize
+.. mongodb:command:: dataSize
 
    The ``dataSize`` command returns the size data size for a set of
    data within a certian rage. Consider the following syntax: ::
@@ -373,14 +373,14 @@ Replication
 .. seealso:: ":doc:`/core/replication`" for more information regarding
    replication.
 
-.. describe:: resync
+.. mongodb:command:: resync
 
    The ``resync`` command forces an out-of-date non-primary/master
    :option:`mongod` instance to re-synchronize itself.
 
    .. write-lock, slave-ok, admin-only.
 
-.. describe:: replSetFreeze
+.. mongodb:command:: replSetFreeze
 
    To the greatest extent possible, the ``replSetFreeze`` command
    freezes the state of a member. Use the following syntax: ::
@@ -403,7 +403,7 @@ Replication
 
    .. slave-ok, admin-only
 
-.. describe:: replSetGetStatus
+.. mongodb:command:: replSetGetStatus
 
    The ``replSetGetStatus`` command returns the status of the replica
    set form the point of view of the current server, using the
@@ -417,7 +417,7 @@ Replication
 
    .. seealso:: ":doc:`/reference/replica-status`"
 
-.. describe:: replSetInitiate
+.. mongodb:command:: replSetInitiate
 
    The ``replSetInititate`` command creates a replica set. Use the
    following syntax: ::
@@ -444,7 +444,7 @@ Replication
 
    .. slave-ok, admin-only
 
-.. describe:: replSetReconfig
+.. mongodb:command:: replSetReconfig
 
    The ``replSetReconfig`` provides the ability to modify an existing
    replica set configuration. Use the following syntax to add
@@ -475,7 +475,7 @@ Replication
 
    .. slave-ok, admin-only
 
-.. describe:: replSetStepDown
+.. mongodb:command:: replSetStepDown
 
    The ``replSetStepDown`` command forces a :option:`mongod` instance
    to step down as primary, and then (attempt to) avoid reelection to
@@ -498,10 +498,10 @@ Replication
 Geolocation
 ~~~~~~~~~~~
 
-.. describe:: geoNear
+.. mongodb:command:: geoNear
 
    The ``geoNear`` command provides an alternative to the
-   :mongodb:operator:`$near` operator. In addition to the
+   :mongodb:command:`$near` operator. In addition to the
    functionality of ``$near``, ``geoNear`` returns the distance of
    each item from the specified point and additional diagnostic
    information. For example: ::
@@ -527,7 +527,7 @@ TODO distanceMultiplier research/definition
 
    .. read-lock, slave-ok
 
-.. describe:: geoSearch
+.. mongodb:command:: geoSearch
 
    The ``geoSearch`` command provides an interface to MongoDB's
    :term:`haystack index` functionality. These indexes are useful for
@@ -550,7 +550,7 @@ TODO distanceMultiplier research/definition
 Collections
 ~~~~~~~~~~~
 
-.. describe:: drop
+.. mongodb:command:: drop
 
    The ``drop`` command removes an entire collection from a
    database. Consider the following syntax: ::
@@ -563,7 +563,7 @@ Collections
 
         db.collection.drop();
 
-.. describe:: cloneCollection
+.. mongodb:command:: cloneCollection
 
    The ``cloneCollection`` command copies a single collection from one
    server to another. Consider the following example:  ::
@@ -582,7 +582,7 @@ Collections
    emptied before copying begins. Do not use ``cloneCollection`` for
    local operations.
 
-.. describe:: create
+.. mongodb:command:: create
 
    The ``create`` command explicitly creates a collection. The command
    uses the following syntax: ::
@@ -610,7 +610,7 @@ Collections
    The :js:func:`db.createCollection` provides a wrapper function that
    provides access to this functionality.
 
-.. describe:: convertToCapped
+.. mongodb:command:: convertToCapped
 
    The ``convertToCapped`` command converts an existing, non-capped
    collection to a :term:`capped collection`. Use the following
@@ -633,7 +633,7 @@ Collections
    If a collection has a cap on the number of documents and the size
    in bytes is reached, older documents will be removed.
 
-.. describe:: emptycapped
+.. mongodb:command:: emptycapped
 
    The ``emptycapped`` command removes all documents from a capped
    collection. Use the following syntax: ::
@@ -643,7 +643,7 @@ Collections
    This command removes all records from the capped collection named
    ``events``.
 
-.. describe:: captrunc
+.. mongodb:command:: captrunc
 
    The ``captrunc`` command removes (i.e. truncates) the most recent
    additions to a capped collection. Use the following syntax: ::
@@ -666,7 +666,7 @@ Collections
 
 TODO factcheck captrunc
 
-.. describe:: rename Collection
+.. mongodb:command:: rename Collection
 
    The ``renameCollection`` command changes the name of an existing
    collection. Use the following command to rename the collection
@@ -685,7 +685,7 @@ TODO factcheck captrunc
 
         db.collection.renameCollection( "corpus" );
 
-.. describe:: collStats
+.. mongodb:command:: collStats
 
    The ``collStats`` command returns a number of regarding a
    collection. Use the following syntax: ::
@@ -723,7 +723,7 @@ TODO factcheck captrunc
 
         db.collection.stats();
 
-.. describe:: compact
+.. mongodb:command:: compact
 
    The ``compact`` command optimizes the storage for a single
    :term:`capped collection`. This is similar to the
@@ -775,7 +775,7 @@ TODO factcheck captrunc
 Administration
 ~~~~~~~~~~~~~~
 
-.. describe:: fsync
+.. mongodb:command:: fsync
 
    ``fsync`` is an administrative command that forces the
    :option:`mongod` process to flush all pending writes to the data
@@ -814,7 +814,7 @@ Administration
       The ``db.fsyncLock()`` and ``db.fsyncUnlock`` helpers in the
       shell.
 
-.. describe:: dropDatabase
+.. mongodb:command:: dropDatabase
 
    The ``dropDatabase`` command drops the database from MongoDB and
    deletes the associated data files. ``dropDatabase`` operates on the
@@ -831,7 +831,7 @@ Administration
 
    .. write-lock
 
-.. describe:: dropIndexes
+.. mongodb:command:: dropIndexes
 
    The ``dropIndexes`` command provides the ability to drop or remove
    indexes for the current collection. The command either: removes all
@@ -853,7 +853,7 @@ Administration
    Use as above to drop all indexes in ``collection``, and specify
    fields to only drop specific indexes.
 
-.. describe:: clone
+.. mongodb:command:: clone
 
    The ``clone`` provides the ability to clone a database from a
    remote MongoDB instance to the current host. ``clone`` copies the
@@ -878,7 +878,7 @@ Administration
 
    See :command:`copydb`  for similar functionality.
 
-.. describe:: closeAllDatabases
+.. mongodb:command:: closeAllDatabases
 
    The ``closeAllDatabases`` command forces :option:`mongod` to close
    all open database files. The command takes the following form: ::
@@ -891,7 +891,7 @@ Administration
       reopen the database files. As a result this command is primarily
       useful for testing purposes
 
-.. describe:: repairDatabase
+.. mongodb:command:: repairDatabase
 
    The ``repairDatabase`` command checks and repairs errors and
    inconsistencies with the data storage. The command is analogous to
@@ -935,7 +935,7 @@ Administration
       When :term:`journaling` is enabled, there is no need to run
       ``repairDatabase``.
 
-.. describe:: shutdown
+.. mongodb:command:: shutdown
 
    The ``shutdown`` command shuts down the database process. The
    command takes the following form: ::
@@ -966,7 +966,7 @@ Administration
 
         db.shutdownServer();
 
-.. describe:: copydb
+.. mongodb:command:: copydb
 
    The ``copydb`` command copies a database from another host to the
    current host. This provides similar functionality to
@@ -1006,7 +1006,7 @@ Administration
      ``copydb`` operation, and ``copydb`` will occasionally yield to
      other operations.
 
-.. describe:: logout
+.. mongodb:command:: logout
 
    The ``logout`` command forces the current session to end the
    current authentication session. The command takes the following
@@ -1019,7 +1019,7 @@ Administration
       If you're not logged on using authentication this command will
       have no effect.
 
-.. describe:: logRotate
+.. mongodb:command:: logRotate
 
    ``logRotate`` is an admin only command that allows you to rotate
    the MongoDB commands to prevent a single logfile from consuming too
@@ -1042,7 +1042,7 @@ Administration
      The ``logRotate`` command is not available to mongod instances
      running on windows systems.
 
-.. describe:: setParameter
+.. mongodb:command:: setParameter
 
    ``setParamenter`` is an administrative command for modifying the
    operational parameters of the MongoDB instance. The
@@ -1082,7 +1082,7 @@ Administration
 
    .. slave-ok, admin-only
 
-.. describe:: getParameter
+.. mongodb:command:: getParameter
 
    ``getParemeter`` is an administrative command for retrieving the
    current operational parameters for a MongoDB instance. Issue
@@ -1106,7 +1106,7 @@ Administration
 Diagnostics
 ~~~~~~~~~~~
 
-.. describe:: dbStats
+.. mongodb:command:: dbStats
 
    The ``dbStats`` command returns a document with information
    regarding a specific database. This command does not return
@@ -1126,7 +1126,7 @@ Diagnostics
    ":doc:`/reference/database-statistics`" document for an overview of
    this output.
 
-.. describe:: connPoolStats
+.. mongodb:command:: connPoolStats
 
    The command ``connPoolStats`` returns information regarding the
    number of open connections to the current database instance
@@ -1139,7 +1139,7 @@ Diagnostics
    The value of the argument (e.g. ``1`` above) does not effect the
    output of the command.
 
-.. describe:: getCmdLineOpts
+.. mongodb:command:: getCmdLineOpts
 
    The ``getCmdLineOpts`` command returns a document with information
    regarding the runtime options used by the MongoDB server. Consider
@@ -1157,7 +1157,7 @@ Diagnostics
    those parsed from the command line and those specified in the
    configuration file (if specified.)
 
-.. describe:: validate
+.. mongodb:command:: validate
 
    The ``validate`` command checks the contents of a namespace by
    scanning data structures,  and indexes for correctness. The command
@@ -1182,7 +1182,7 @@ Diagnostics
 
 TODO factcheck; the options on the REST interface and wiki differ
 
-.. describe:: top
+.. mongodb:command:: top
 
    The ``top`` command returns raw usage of each database, and
    provides amount of time, in microseconds, used and a count of
@@ -1205,7 +1205,7 @@ TODO factcheck; the options on the REST interface and wiki differ
    The value of the argument (e.g. ``1`` above) does not effect the
    output of the command.
 
-.. describe:: buildInfo
+.. mongodb:command:: buildInfo
 
    The ``bulidInfo`` command returns information regarding the build
    of MongoDB currently running. The command takes the following
@@ -1225,7 +1225,7 @@ TODO factcheck; the options on the REST interface and wiki differ
 
    ``buildInfo`` must be issued while using the ``admin`` database.
 
-.. describe:: getLastError
+.. mongodb:command:: getLastError
 
    The ``getLastError`` command returns the error status of the last
    operation *on this connection*. Consider the following syntax: ::
@@ -1253,7 +1253,7 @@ TODO factcheck; the options on the REST interface and wiki differ
       and ":js:func:`db.getLastError()`."
 
 
-.. describe:: getLog
+.. mongodb:command:: getLog
 
    The ``getLog`` command returns a document with a ``log`` array that
    contains recent messages from the :option:`mongod` process's
@@ -1271,7 +1271,7 @@ TODO factcheck; the options on the REST interface and wiki differ
      database. This is equivalent to running the "``tail``" command on
      the :option:`mongod` log in the system shell.
 
-.. describe:: listDatabases
+.. mongodb:command:: listDatabases
 
    The ``listDatabases`` command provides a list of the extant
    databases along with basic statistics regarding the database. The
@@ -1288,7 +1288,7 @@ TODO factcheck; the options on the REST interface and wiki differ
    size of the database file on disk in bytes, and the "``empty``"
    field with a true or false value.
 
-.. describe:: cursorInfo
+.. mongodb:command:: cursorInfo
 
    The ``cursorInfo`` command returns information about current cursor
    allotment and use. Use the following form: ::
@@ -1301,7 +1301,7 @@ TODO factcheck; the options on the REST interface and wiki differ
    current use ("``clientCursors_size``",) and the number of timed out
    cursors since the last server restart ("``timedOut``".)
 
-.. describe:: isMaster
+.. mongodb:command:: isMaster
 
    The ``isMaster`` provides a basic overview of the current
    replication configuration, and is typically used by :term:`drivers
@@ -1361,7 +1361,7 @@ TODO factcheck; the options on the REST interface and wiki differ
 
 TODO factcheck isMaster.BsonObjectSize
 
-.. describe:: ping
+.. mongodb:command:: ping
 
    The ``ping`` command is used to test the server to ensure that it
    is running. This command will return immediately even if the server
@@ -1372,7 +1372,7 @@ TODO factcheck isMaster.BsonObjectSize
    The value (e.g. ``1`` above,) does not impact the behavior of the
    command.
 
-.. describe:: journalLatencyTest
+.. mongodb:command:: journalLatencyTest
 
    ``journalLatencyTest`` is an admin command that tests the length of
    time required to write and perform a file system sync (e.g. fsync)
@@ -1383,13 +1383,13 @@ TODO factcheck isMaster.BsonObjectSize
    The value (i.e. ``1`` above), does not effect the operation of the
    command.
 
-.. describe:: availableQueryOptions
+.. mongodb:command:: availableQueryOptions
 
    { "options" : 254, "ok" : 1 }
 
 TODO no documentation exists, and the response I get is the above
 
-.. describe:: serverStatus
+.. mongodb:command:: serverStatus
 
    The ``serverStatus`` command returns a document that provides an
    overview of the database process' state. The command takes the
@@ -1402,26 +1402,26 @@ TODO no documentation exists, and the response I get is the above
 
    .. seealso:: :js:func:`db.serverStatus()` and ":doc:`/reference/server-status`"
 
-.. describe:: resetError
+.. mongodb:command:: resetError
 
    The ``resetError`` command resets the error status. Use this
    command with :command:`getPrevError`` command.
 
    .. seealso:: :js:func:`db.resetError()`
 
-.. describe:: getPrevError
+.. mongodb:command:: getPrevError
 
    The ``getPrevError`` command returns the errors since the last
    :command:`resetError` command.
 
    .. seealso:: :js:func:`db.getPrevError()`
 
-.. describe:: forceerror
+.. mongodb:command:: forceerror
 
    The force error command is for testing purposes only. Use
    ``forceerror`` to force a user assertion exception.
 
-.. describe:: profile
+.. mongodb:command:: profile
 
    Use the ``profile`` command to enable, disable or change the
    profile level. Use the following syntax: ::
@@ -1443,7 +1443,7 @@ TODO no documentation exists, and the response I get is the above
                 around this functionality in the :option:`mongo`
                 shell.
 
-.. describe:: listCommands
+.. mongodb:command:: listCommands
 
    The ``listCommands`` command generates a list of all database
    commands implemented in the running version of :option:`mongod`.
@@ -1453,7 +1453,7 @@ TODO no documentation exists, and the response I get is the above
 Other Commands
 ~~~~~~~~~~~~~~
 
-.. describe:: reIndex
+.. mongodb:command:: reIndex
 
    The ``reIndex`` command triggers a rebuild of all indexes for a
    specified collection. Use the following syntax: ::
@@ -1469,7 +1469,7 @@ Other Commands
 
         db.collection.reIndex();
 
-.. describe:: filemd5
+.. mongodb:command:: filemd5
 
    The ``filemd5`` command returns :term:`md5` hashes for every object
    in a :term:`GridFS` store. Use the following syntax: ::
@@ -1481,77 +1481,77 @@ TODO find md5 "root" argument, and other functionality.
 Internal Use
 ------------
 
-.. describe:: setShardVersion
+.. mongodb:command:: setShardVersion
 
    ``setShardVersion`` is an internal command that supports sharding
    functionality.
 
    .. admin-only
 
-.. describe:: getShardVersion
+.. mongodb:command:: getShardVersion
 
    ``getShardVersion`` is an internal command that supports sharding
    functionality.
 
    .. admin-only
 
-.. describe:: unsetSharding
+.. mongodb:command:: unsetSharding
 
    ``unsetSharding`` is an internal command that supports sharding
    functionality.
 
    .. slave-ok, admin-only
 
-.. describe:: whatsmyuri
+.. mongodb:command:: whatsmyuri
 
    ``whatsmyuri`` is an internal command.
 
    .. slave-ok
 
-.. describe:: features
+.. mongodb:command:: features
 
    ``features`` is an internal command that returns the build-level
    feature settings.
 
    .. slave-ok
 
-.. describe:: driverOIDTest
+.. mongodb:command:: driverOIDTest
 
    ``driverOIDTest`` is an internal command.
 
    .. slave-ok
 
-.. describe:: diagLogging
+.. mongodb:command:: diagLogging
 
    ``diagLogging`` is an internal command.
 
    .. write-lock, slave-ok,
 
-.. describe:: copydbgetnonce
+.. mongodb:command:: copydbgetnonce
 
    ``copydbgetnonce`` is an internal command.
 
    .. write-lock, admin-only
 
-.. describe:: dbHash
+.. mongodb:command:: dbHash
 
    ``dbHash`` is an internal command.
 
    .. slave-ok, read-lock
 
-.. describe:: medianKey
+.. mongodb:command:: medianKey
 
    ``medianKey`` is an internal command.
 
    .. slave-ok, read-lock
 
-.. describe:: geoWalk
+.. mongodb:command:: geoWalk
 
    ``geoWalk`` is an internal command.
 
    .. read-lock, slave-ok
 
-.. describe:: sleep
+.. mongodb:command:: sleep
 
    ``sleep` an internal command for testing purposes. The ``sleep``
    command forces the db block all operations. It takes the following
@@ -1564,65 +1564,65 @@ Internal Use
    seconds. Without arguments, ``sleep``, causes a "read lock" for 100
    seconds.
 
-.. describe:: getnonce
+.. mongodb:command:: getnonce
 
    ``getnonce`` is an internal command.
 
    .. slave-ok
 
-.. describe:: getoptime
+.. mongodb:command:: getoptime
 
    ``getoptime`` is an internal command.
 
    .. slave-ok
 
-.. describe:: godinsert
+.. mongodb:command:: godinsert
 
    ``godinsert`` is an internal command for testing purposes only.
 
    .. write-lock, slave-ok
 
-.. describe:: clean
+.. mongodb:command:: clean
 
    ``clean`` is an internal command.
 
    .. write-lock, slave-ok
 
-.. describe:: applyOps
+.. mongodb:command:: applyOps
 
    ``applyOps`` is an internal command that supports sharding
    functionality.
 
    .. write-lock
 
-.. describe:: replSetElect
+.. mongodb:command:: replSetElect
 
    ``replSetElect`` is an internal command that support replica set
    functionality.
 
    .. slave-ok, admin-only
 
-.. describe:: replSetGetRBID
+.. mongodb:command:: replSetGetRBID
 
    ``replSetGetRBID`` is an internal command that support replica set
    functionality.
 
    .. slave-ok, admin-only
 
-.. describe:: replSetHeartbeat
+.. mongodb:command:: replSetHeartbeat
 
    ``replSetheThis`` is an internal command that support replica set functionality.
 
    .. slave-ok
 
-.. describe:: replSetFresh
+.. mongodb:command:: replSetFresh
 
    ``replSetFresh`` is an internal command that support replica set
    functionality.
 
    .. slave-ok, admin-only
 
-.. describe:: writeBacksQueued
+.. mongodb:command:: writeBacksQueued
 
    ``writeBacksQueued`` is an internal command that returns true if
    there are operations in the write back queue when
@@ -1632,27 +1632,27 @@ Internal Use
 
 TODO factcheck (minor)
 
-.. describe:: connPoolSync
+.. mongodb:command:: connPoolSync
 
    ``connPoolSync`` is an internal command.
 
    .. slave-ok
 
-.. describe:: checkShardingIndex
+.. mongodb:command:: checkShardingIndex
 
    ``checkShardingIndex`` is an internal command that supports the
    sharding functionality.
 
    .. read-lock
 
-.. describe:: getShardMap
+.. mongodb:command:: getShardMap
 
    ``getShardMap`` is an internal command that supports the sharding
    functionality.
 
    .. slave-ok, admin-only
 
-.. describe:: splitChunk
+.. mongodb:command:: splitChunk
 
    ``splitChunk`` is an internal command. Use the
    :js:func:`sh.splitFind()` and :js:func:`splitAt()` functions in the
@@ -1660,20 +1660,20 @@ TODO factcheck (minor)
 
    .. admin-only.
 
-.. describe:: writebacklisten
+.. mongodb:command:: writebacklisten
 
    ``writebacklisten`` is an internal command.
 
    .. slave-ok, admin-only
 
-.. describe:: replSetTest
+.. mongodb:command:: replSetTest
 
    ``replSetTest`` is internal diagnostic command used for regression
    tests that supports replica set functionality.
 
    .. slave-ok, admin-only
 
-.. describe:: moveChunk
+.. mongodb:command:: moveChunk
 
    ``moveChunk`` is an internal command that supports the sharding
    functionalty and should not be called directly. Use the
@@ -1682,81 +1682,81 @@ TODO factcheck (minor)
 
    .. admin-only
 
-.. describe:: authenticate
+.. mongodb:command:: authenticate
 
    ``authenticate`` is an internal command.
 
    .. read-lock, slave-ok
 
-.. describe:: handshake
+.. mongodb:command:: handshake
 
    ``handshake`` is an internal command.
 
    .. slave-ok
 
-.. describe:: _isSelf
+.. mongodb:command:: _isSelf
 
    ``_isSelf`` is an internal command.
 
    .. slave-ok
 
-.. describe:: _migrateClone
+.. mongodb:command:: _migrateClone
 
    ``_migrateClone`` is an internal command and should not be called
    directly.
 
    .. admin-only
 
-.. describe:: _recvChunkAbort
+.. mongodb:command:: _recvChunkAbort
 
    ``_recvChunkAbort`` is an internal command and should not be called
    directly.
 
    .. admin-only
 
-.. describe:: _recvChunkCommit
+.. mongodb:command:: _recvChunkCommit
 
    ``_recvChunkCommit`` is an internal command and should not be
    called directly.
 
    .. admin-only
 
-.. describe:: _recvChunkStatus
+.. mongodb:command:: _recvChunkStatus
 
    ``_recvChunkStatus`` is an internal command and should not be
    called directly.
 
    .. admin-only
 
-.. describe:: _skewClockCommand
+.. mongodb:command:: _skewClockCommand
 
    ``skewClockCommand`` is an internal command and should not be
    called directly.
 
    .. admin-only
 
-.. describe:: _testDistLockWithSkew
+.. mongodb:command:: _testDistLockWithSkew
 
    ``_testDistLockWithSkew`` is an internal command and should not be
    called directly.
 
    .. admin-only
 
-.. describe:: _testDistLockWithSyncCluster
+.. mongodb:command:: _testDistLockWithSyncCluster
 
    ``_testDistLockWithSyncCluster`` is an internal command and should
    not be called directly.
 
    .. admin-only
 
-.. describe:: _transferMods
+.. mongodb:command:: _transferMods
 
    ``_transferMods`` is an internal command and should not be called
    directly.
 
    .. admin-only
 
-.. describe:: _recvChunkStart
+.. mongodb:command:: _recvChunkStart
 
    ``_recvChunkStart`` is an internal command and should not be called
    directly.
