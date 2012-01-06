@@ -406,8 +406,10 @@ Replication
 .. describe:: replSetGetStatus
 
    The ``replSetGetStatus`` command returns the status of the replica
-   set form the point of view of the current server. To get this
-   status, Issue the following command on the :term:`admin database`: ::
+   set form the point of view of the current server, using the
+   information derived from heartbeat packets set to the current
+   instance by other members of the replica set. To get this status,
+   Issue the following command on the :term:`admin database`: ::
 
         { replSetGetStatus: 1 }
 

@@ -842,7 +842,9 @@ Replica Sets
 
    :returns: A :term:`JSON document` with status information.
 
-   This output reflects the current status of the replica set.
+   This output reflects the current status of the replica set, using
+   data derived from the heartbeat packets sent by the other members
+   of the replica set.
 
    This command provides a wrapper around the
    :mongodb:command:`replSetGetStatus` :term:`database command`.

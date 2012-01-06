@@ -8,8 +8,11 @@ the "``admin``" database, in the :option:`mongo` shell: ::
 
      db.runCommand({ replSetGetStatus: 1 } )
 
-The value specified (e.g "``1``" above,) does not effect the output of
-the command.
+The value specified (e.g "``1``" above,) does not impact the output of
+the command. Data provided by this command derives from data included
+in heartbeats sent to the current instance by other members of the
+replica set: because of the frequency of heartbeats, these data can be
+at most 2 seconds out of date.
 
 .. note::
 
@@ -19,8 +22,10 @@ the command.
    command to return successfully.
 
 .. seealso:: The ":js:func:`rs.status()`" function in the
-   :option:`mongo` shell and the ":doc:`/replication`" documentation
-   index.
+   :option:`mongo` shell provides a wrapper around the
+   :mongodb:command:`replSetGetStatus` command. Also consider the
+   ":doc:`/replication`" documentation index for more information on
+   replication.
 
 Statuses
 --------
@@ -114,7 +119,9 @@ Member Statuses
 
    .. js:data:: members.optime.i
 
-TODO figure out what ``optime.i`` is?
+      An incremented field, which reflects the number of operations in
+      since the last time stamp. This value only increases if there
+      are more than one operation per second.
 
 .. js:data:: members.optimeDate
 
