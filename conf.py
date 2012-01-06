@@ -12,7 +12,7 @@
 # serve to show the default.
 
 import sys, os
-
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), ".ext")))
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -25,10 +25,10 @@ import sys, os
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.todo']
+extensions = ['sphinx.ext.todo', 'mongodb_docs']
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['templates']
+templates_path = ['.templates']
 
 # The suffix of source filenames.
 source_suffix = '.rst'
@@ -128,7 +128,8 @@ html_static_path = ['source/.static']
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.
-#html_use_smartypants = True
+
+html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
 #html_sidebars = {}
@@ -141,10 +142,11 @@ html_static_path = ['source/.static']
 #html_domain_indices = True
 
 # If false, no index is generated.
-#html_use_index = True
+
+html_use_index = True
 
 # If true, the index is split into individual pages for each letter.
-#html_split_index = False
+html_split_index = True
 
 # If true, links to the reST sources are added to the pages.
 #html_show_sourcelink = True
