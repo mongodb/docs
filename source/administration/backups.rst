@@ -11,8 +11,10 @@ use the examples from the :ref:`block level backup methods
 mongodump <database-dumps>`" sections to implement the backup
 solution that is best suited to your deployment's needs.
 
-.. note:: :term:`Replica sets <replica set>` and :term:`shard clusters
-   <shard cluster>` require special considerations, see ":ref:`backup
+.. note::
+
+   :term:`Replica sets <replica set>` and :term:`shard clusters <shard
+   cluster>` require special considerations, see ":ref:`backup
    considerations for shard clusters and replica sets
    <backups-with-sharding-and-replication>`" for more information.
 
