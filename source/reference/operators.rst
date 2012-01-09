@@ -355,7 +355,7 @@ Element
    value of ``field`` matches the case-insensitive regular expression
    "``acme.*corp``".
 
-   ``$regex`` uses perl compatible regular expressions (PCRE) as the
+   ``$regex`` uses "Perl Compatible Regular Expressions" (PCRE) as the
    matching engine. This provides four option flags:
 
    - ``i`` toggles case insensitivity, and allows all letters in the

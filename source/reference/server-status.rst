@@ -216,9 +216,9 @@ TODO what is extended memory information and how do we collect it?
 
 .. status:: mem.mapped
 
-   The value of ``mem.mapped`` provides the amount of mapped
-   memory. Because MognoDB uses memory-mapped files, this value is
-   likely to be to be roughly equivalent to the total size of your
+   The value of ``mem.mapped`` provides the amount of mapped memory by
+   the database. Because MognoDB uses memory-mapped files, this value
+   is likely to be to be roughly equivalent to the total size of your
    database or databases.
 
 connections
