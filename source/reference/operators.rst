@@ -666,7 +666,7 @@ TODO determine what the performance impacts of using $pushAll with single values
    The ``$bit`` operator performs a bitwise update of a field. Only
    use this with integer fields. For example:
 
-   .. code-block:: javasript
+   .. code-block:: javascript
 
       db.collection.update( { field: 1 }, { $bit: { field: { and: 5 } } } );
 
