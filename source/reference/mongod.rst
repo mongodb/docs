@@ -306,9 +306,13 @@ TODO understand what this does.
 
 .. option:: --smallfiles
 
-   Enables a mode where MongoDB uses a smaller default file size.
+   Enables a mode where MongoDB uses a smaller default file
+   size. Specifically, :option:`--smallfiles` quarters the initial
+   file size for data files and limits the maximum file size to 512
+   megabytes.
 
-TODO how big does --smallfiles specify?
+   Use :option:`--smallfiles` if you have a large number of databases
+   that each holds a small quaint of data.
 
 .. option:: --shutdown
 

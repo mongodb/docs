@@ -418,9 +418,10 @@ TODO add interval for cpu option
    *Default:* false
 
    Set to ``true`` to modify MongoDB to use a smaller default data
-   file size.
-
-TODO how big does small file specify
+   file size. Specifically, :setting:`smallfiles` quarters the initial
+   file size for data files and limits the maximum file size to 512
+   megabytes. Use :setting:`smallfiles` if you have a large number of
+   databases that each holds a small quaint of data.
 
 .. mongodb:setting:: syncdelay
 
