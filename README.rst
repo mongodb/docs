@@ -14,12 +14,26 @@ command: ::
      make html
 
 Visit ``docs/mongodb/build/html/index.html`` to view the current state
-of the documentation.
+of the documentation. You may also wish to install `Pygments
+<http://pygments.org>`_ to provide syntax highlighting for code
+examples.
 
 To contribute to the documentation please fork this repository on
 github and issue a pull request. File issue reports or requests at the
-`Docs Jira Project <https://jira.mongodb.org/browse/DOCS>`_. Licensing
-information is forthcoming. If you have any questions, please contact
-`docs@10gen.com <mailto:docs@10gen.com>`_.
+`Documentation Jira Project <https://jira.mongodb.org/browse/DOCS>`_.
+See the following documents within this repository that provide a more
+thorough overview of the documentation style, process, and overall
+organization:
 
--- The 10gen Docs Team
+- `Style Guide <blob/master/meta.style-guide.rst>`_
+- `Jargon <blob/master/meta.jargon.rst>`_
+- `Documentation Practices <blob/master/meta.practices.rst>`_
+- `Documentation Organization <blob/master/meta.organization.rst>`_
+
+All documentation is available under the terms of a `Creative Commons
+License <http://creativecommons.org/licenses/by-nc-sa/3.0/>`_.
+
+If you have any questions, please contact `docs@10gen.com
+<mailto:docs@10gen.com>`_.
+
+-- The MongoDB/10gen Docs Team
