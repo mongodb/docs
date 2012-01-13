@@ -25,10 +25,10 @@ See the following documents within this repository that provide a more
 thorough overview of the documentation style, process, and overall
 organization:
 
-- `Style Guide <blob/master/meta.style-guide.rst>`_
-- `Jargon <blob/master/meta.jargon.rst>`_
-- `Documentation Practices <blob/master/meta.practices.rst>`_
-- `Documentation Organization <blob/master/meta.organization.rst>`_
+- `Style Guide <meta.style-guide.rst>`_ (meta.style-guide.rst)
+- `Jargon <meta.jargon.rst>`_ (meta.jargon.rst)
+- `Documentation Practices <meta.practices.rst>`_ (meta.practices.rst)
+- `Documentation Organization <meta.organization.rst>`_ (meta.organization.rst)
 
 All documentation is available under the terms of a `Creative Commons
 License <http://creativecommons.org/licenses/by-nc-sa/3.0/>`_.

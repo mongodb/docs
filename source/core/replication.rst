@@ -735,7 +735,7 @@ saturated with the current demands.
    because of journaling.
 
 Security
---------
+~~~~~~~~
 
 In most cases, :term:`replica set` administrators do not have to keep
 additional considerations in mind beyond the normal security
@@ -755,7 +755,7 @@ that:
 .. _replica-set-architecture:
 
 Architecture Possibilities
---------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The architecture and design of the replica set deployment can have a
 great impact on the set's capacity and capability. This section

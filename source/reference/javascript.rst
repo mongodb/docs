@@ -362,6 +362,10 @@ Database
       :doc:`map reduce </core/map-reduce>` for similar functionality in
       these situations.
 
+      This function does not work with sharded data. However, you may
+      use :js:func:`db.eval()` with non-sharded collections and
+      databases stored in :term:`shard cluster <shard clusters>`.
+
 .. js:function:: db.getCollection(name)
 
    :param name: The name of a collection.
