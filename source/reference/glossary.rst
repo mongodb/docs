@@ -2,6 +2,8 @@
 Glossary
 ========
 
+.. default-domain:: mongodb
+
 .. glossary::
    :sorted:
 
@@ -657,3 +659,54 @@ Glossary
       .. seealso:: ":ref:`Replica Set Elections
          <replica-set-elections>`" and ":ref:`Replica Set Node
          Priority <replica-set-node-priority>`."
+
+   map reduce
+      A data and processing and aggregation  modality containing a
+      "map" phase that selects data, and a "reduce" phase that
+      transforms the data. In MongoDB, map/reduce provides support for
+      smaller and more complex aggregation requirements.
+
+      .. seealso:: ":doc:`/core/map-reduce`" for more information
+         regarding MongoDB's map/reduce implementation, and
+         ":doc:`/core/aggregation`" for another approach to data
+         aggregation in MongoDB.
+
+   SQL
+      Standard Query Langauge. A declarative statement syntax typically
+      used with relational databases to insert, query, and perform
+      simple aggregation operations. SQL is the standard interface for
+      all or most contemporary relational databases.
+
+   projection
+      Projections control the format and output of a query. While the
+      query itself selects the documents, the projection controls which
+      parts of the document the query returns.
+
+   aggregation
+      Aggregation is the process of taking a large amount of data and
+      performing a transformation or processing step.
+
+   aggregation framework
+      The MongoDB subsystem that makes it possible to perform basic
+      data aggregation functions as part of the query process.
+
+      .. seealso:: ":doc:`/core/aggregation`."
+
+   pipeline
+      Describes the series of operations in the :term:`aggregation`
+      process.
+
+      .. seealso:: ":doc:`/core/aggregation`."
+
+   expression
+      In the context of the :term:`aggregation framework`, expressions
+      are the stateless transformations that operate on the data that
+      passes through the :term:`pipeline`.
+
+      .. seealso:: ":doc:`/core/aggregation`."
+
+   accumulator
+      An :term:`expression` in the :term:`aggregation framework` that
+      maintains state and used by the :operator:`$group` to maintain
+      data between documents in the :term:`aggregation`
+      :term:`pipeline`.

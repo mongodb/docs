@@ -45,7 +45,9 @@ General Reference
    reference/operators
    reference/commands
    reference/javascript
+   reference/aggregation
    reference/meta-query-operators
+   reference/limits
    reference/glossary
 
 .. seealso:: The following indexes may provide useful insight into the

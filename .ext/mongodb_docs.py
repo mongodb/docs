@@ -112,6 +112,10 @@ class MongoDBObject(ObjectDescription):
             return _('%s (setting)') % (name)
         elif self.objtype == 'status':
             return _('%s (status)') % (name)
+        elif self.objtype == 'aggregator':
+            return _('%s (aggregation framework pipeline operator)') % (name)
+        elif self.objtype == 'expression':
+            return _('%s (aggregation framework transformation expression)') % (name)
         return ''
 
 class MongoDBCallable(MongoDBObject):
@@ -160,27 +164,28 @@ class MongoDBDomain(Domain):
         'operator':     ObjType(l_('operator'),    'operator'),
         'setting':      ObjType(l_('setting'),     'setting'),
         'status':       ObjType(l_('status'),      'status'),
+        'aggregator':   ObjType(l_('aggregator'),  'aggregator'),
+        'expression':   ObjType(l_('expression'),  'expression'),
     }
     directives = {
         'command':       MongoDBCallable,
         'operator':      MongoDBCallable,
         'setting':       MongoDBCallable,
         'status':        MongoDBCallable,
+        'aggregator':    MongoDBCallable,
+        'expression':    MongoDBCallable,
     }
     roles = {
         'command':     MongoDBXRefRole(),
         'operator':    MongoDBXRefRole(),
         'setting':     MongoDBXRefRole(),
         'status':      MongoDBXRefRole(),
+        'aggregator':  MongoDBXRefRole(),
+        'expression':  MongoDBXRefRole(),
     }
     initial_data = {
         'objects': {}, # fullname -> docname, objtype
     }
-
-    # def clear_doc(self, docname):
-    #     for fullname, (fn, _) in self.data['objects'].items():
-    #         if fn == docname:
-    #             del self.data['objects'][fullname]
 
     def find_obj(self, env, obj, name, typ, searchorder=0):
         if name[-2:] == '()':
@@ -211,9 +216,7 @@ class MongoDBDomain(Domain):
 
     def get_objects(self):
         for refname, (docname, type) in self.data['objects'].items():
-            # yield refname, refname, type, docname, refname.replace('$', '_S_'), 1
             yield refname, refname, type, docname, refname, 1
-            print(refname)
 
 def setup(app):
     app.add_domain(MongoDBDomain)
