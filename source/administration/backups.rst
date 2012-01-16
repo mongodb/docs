@@ -18,10 +18,10 @@ solution that is best suited to your deployment's needs.
    considerations for shard clusters and replica sets
    <backups-with-sharding-and-replication>`" for more information.
 
-A robust backup strategy along with at tested corresponding restore
-strategy is crucial for every production-grade deployment. Take the
+A robust backup strategy and a well-tested corresponding restoration
+process is crucial for every production-grade deployment. Take the
 specific features of your deployment, your use patterns, and
-architecture into consideration as you develop your own strategy.
+architecture into consideration as you develop your own backup system.
 
 .. _backup-overview:
 
