@@ -73,12 +73,20 @@ Options
    firewall restrictions have been implemented to protect the
    integrity of your database.
 
-.. option:: --maxCons <number>
+.. option:: --maxConns <number>
 
    Specifies the maximum number of simultaneous connections that
-   :option:`mongos` will accept. This setting will have no effect if it is
-   higher than your operating system's configured maximum connection
-   tracking threshold.
+   :option:`mongos` will accept. This setting will have no effect if
+   the value of this setting is higher than your operating system's
+   configured maximum connection tracking threshold.
+
+   This is particularly useful for :option:`mongos` if you have a
+   client that creates a number of collections but allows them to
+   timeout rather than close the collections. When you set
+   :setting:`maxConns`, ensure the value is slightly higher than the
+   size of the connection pool or the total number of connections to
+   prevent erroneous connection spikes from propagating to the members
+   of a :term:`shard` cluster.
 
 .. option:: --objcheck
 

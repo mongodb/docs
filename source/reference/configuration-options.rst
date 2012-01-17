@@ -104,23 +104,31 @@ Settings
    You may set this value multiple times to bind :option:`mongod` to
    multiple IP addresses.
 
-.. setting:: maxCons
+.. setting:: maxConns
 
    *Default:* depends on system settings.
 
    Specifies a value to set the maximum number of simultaneous
-   connections that :option:`mongod` will accept. This setting will have no
-   effect if it is higher than your operating system's configured
-   maximum connection tracking threshold.
+   connections that :option:`mongod` or :option:`mongos` will
+   accept. This setting will have no effect if it is higher than your
+   operating system's configured maximum connection tracking
+   threshold.
 
-TODO factcheck maxcons
+   This is particularly useful for :option:`mongos` if you have a
+   client that creates a number of collections but allows them to
+   timeout rather than close the collections. When you set
+   :setting:`maxConns`, ensure the value is slightly higher than the
+   size of the connection pool or the total number of connections to
+   prevent erroneous connection spikes from propagating to the members
+   of a :term:`shard` cluster.
 
 .. setting:: objcheck
 
    *Default:* false
 
    Set to ``true`` to force :option:`mongod` to validate all requests from
-   clients upon receipt.
+   clients upon receipt  to ensure that invalid objects are never inserted into
+   the database.
 
 .. setting:: logpath
 
@@ -201,12 +209,11 @@ See the ":doc:`/core/replication`" documentation
 
    *Default:* false
 
-   Set to ``true`` to force :option:`mongod` to periodically report CPU
-   utilization and the amount of time that the processor waits for I/O
-   operations to complete (i.e. I/O wait.) This data is written to
-   standard output or the logfile if using the :setting:`logpath` option.
-
-TODO add interval for cpu option
+   Set to ``true`` to force :option:`mongod` to report every four
+   seconds CPU utilization and the amount of time that the processor
+   waits for I/O operations to complete (i.e. I/O wait.) MongoDB write
+   this data to standard output, or the logfile if using the
+   :setting:`logpath` option.
 
 .. setting:: dbpath
 

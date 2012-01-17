@@ -79,9 +79,8 @@ Options
 .. option:: --objcheck
 
    Forces the :option:`mongod` to validate all requests from clients
-   upon receipt.
-
-TODO understand what this does.
+   upon receipt to ensure that invalid objects are never inserted into
+   the database.
 
 .. option:: --logpath <path>
 
@@ -316,7 +315,13 @@ TODO understand what this does.
 
 .. option:: --shutdown
 
-TODO how does --shutdown work does it figure out what process has the lock and kill it or something else?
+   Used in :term:`control scripts <control script>`, the
+   :option:`--shutdown` will cleanly and safely terminate the
+   :option:`mongod` process. When invoking :option:`mongod` with this
+   option you must set the :option:`--dbpath` option either directly
+   or by way of the :doc:`configuration file
+   </reference/configuration-options>` and the :option:`--config`
+   option.
 
 .. option:: --syncdelay <value>
 

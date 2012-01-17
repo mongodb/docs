@@ -64,8 +64,6 @@ Query Modifiers
    :js:func:`find()` function. See :js:func:`hasNext()` for related
    functionality.
 
-TODO expand with greater understanding of cursors
-
 .. js:function:: size()
 
    :returns: A count of the number of documents that match the
@@ -79,8 +77,8 @@ TODO expand with greater understanding of cursors
    This method may provide useful insight when attempting to optimize
    a query.
 
-   .. seealso:: :mongodb:operator:`$explain` for related functionality
-      and ":doc:`/applications/optimization`" regarding optimization
+   .. seealso:: :operator:`$explain` for related functionality and
+      ":doc:`/applications/optimization`" regarding optimization
       strategies.
 
 .. js:function:: showDiskLoc()
@@ -88,7 +86,7 @@ TODO expand with greater understanding of cursors
    :returns: A document that describes the on-disk location of the
              objects returned by the query.
 
-   .. seealso:: :mongodb:operator:`$showDiskLoc` for related
+   .. seealso:: :operator:`$showDiskLoc` for related
       functionality.
 
 .. js:function:: forEach()
@@ -118,10 +116,8 @@ TODO expand with greater understanding of cursors
    :returns: boolean.
 
    ``hasNext()`` returns ``true`` if the cursor returned by the
-   :js:func:`find()` query contains documents that can be iterated
-   over to return results.
-
-TODO expand with greater understanding of cursors
+   :js:func:`find()` query contains documents can iterate further to
+   return results.
 
 Query Cursor Methods
 ~~~~~~~~~~~~~~~~~~~~
@@ -179,27 +175,27 @@ Query Cursor Methods
 
    Append the ``snapshot()`` method to the :js:func:`find()` query to
    toggle the "snapshot" mode. This ensures that the query will not
-   miss any documents and return no duplicates, when objects are
-   updated while the query runs. Snapshot mode does not impact the
-   handling of documents which are added or removed during the query.
+   miss any documents and return no duplicates, when other operations
+   modify objects while the query runs. Snapshot mode only affects
+   documents modified documents, not inserted or removed documents.
 
-   Queries with results of less less than 1 megabyte are effectively
+   Queries with results of less than 1 megabyte are effectively
    snapshotted.
-
-TODO verify clarity of sort explanation.
 
 .. js:function:: sort()
 
-   Append the ``sort()`` method to the :js:func:`find()`" queries to control
-   the order that matching documents are returned by the
-   operation. Consider the following example: ::
+   Append the ``sort()`` method to the :js:func:`find()`" queries to
+   control the order that the query returns matching
+   documents. Consider the following example: ::
 
-        db.collection.find().sort( { age: -1 } );
+   .. code-block:: javascript
 
-   Here, all documents in ``collection`` are returned ordered based on
-   the ``age`` field in descending order. Specify a value of negative
-   one (e.g. "``-1``", as above) to sort in descending order or a
-   positive value (e.g. "``1``") to sort in ascending order.
+      db.collection.find().sort( { age: -1 } );
+
+   Here, the query returns all documents in ``collection`` ordered
+   based on the ``age`` field in descending order. Specify a value of
+   negative one (e.g. "``-1``", as above) to sort in descending order
+   or a positive value (e.g. "``1``") to sort in ascending order.
 
    Unless you have a index for the specified key pattern, use
    ``sort()`` in conjunction with :js:func:`limit()` to avoid
@@ -207,6 +203,8 @@ TODO verify clarity of sort explanation.
    sort. :js:func:`limit()` increases the speed and reduce the amount
    of memory required to return this query by way of an optimized
    algorithm.
+
+TODO factcheck
 
 Administrative Functions
 ------------------------
@@ -256,8 +254,8 @@ Database
    need to have a database named ``importdb`` for this command to
    succeed.
 
-   This function provides a wrapper around the MongoDB database
-   command ":command:`clone`." The :command:`copydb` database command
+   This function provides a wrapper around the MongoDB :term:`database
+   command` ":command:`clone`." The :command:`copydb` database command
    provide related functionality.
 
 .. js:function:: db.commandHelp(command)
@@ -281,12 +279,12 @@ Database
 
    Use this function to copy a specific database, named "``origin``"
    running on the system accessible via "``hostname``" into the local
-   database named "``destination``". The destination database will be
-   created implicitly if it does not already exit.
+   database named "``destination``". The command creates destination
+   databases implicitly when they do not exit.
 
-   This function provides a wrapper around the MongoDB database
-   command ":command:`copydb`." The :command:`clone`
-   database command provide related functionality.
+   This function provides a wrapper around the MongoDB :term:`database
+   command` ":command:`copydb`." The :command:`clone` database command
+   provide related functionality.
 
 .. js:function:: db.createCollection(name [{size: <value>, capped: <boolean> , max <bytes>}] )
 
@@ -309,16 +307,16 @@ Database
                    documents for capped collections. You must also
                    specify ``size`` when specifying ``max``.
 
-   Explicitly creates a new collation. Because collections are
-   created implicitly when referenced, this command is primarily used
-   for creating new capped collections.
+   Explicitly creates a new collation. Because MongoDB creates
+   collections implicitly when referenced, this command is primarily
+   used for creating new capped collections.
 
    Capped collections have maximum size or document counts that limit
    their ability to grow beyond maximum thresholds. All capped
    collections must specify a maximum size, but may also specify a
-   maximum document count. Documents will be truncated if a collection
-   reaches the maximum size limit before the maximum document count,
-   documents will be truncated. Consider the following example: ::
+   maximum document count. The collection will remove older documents
+   if a collection reaches the maximum size limit before it reaches
+   the maximum document count. Consider the following example: ::
 
         db..createCollection(log, { size : 5120, capped : true, max : 5000 } )
 
@@ -347,13 +345,13 @@ Database
 
    :param JavaScript function: A JavaScript function.
 
-   :param arguments: A list of arguments to be passed to the
-                     JavaScript function.
+   :param arguments: A list of arguments to pass to the JavaScript
+                     function.
 
    Makes it possible to execute JavaScript codes using the JavaScript
    interpreter embeded in the database server. In this environment the
-   "``db``" variable on the server is set to the name of the current
-   database.
+   value of the "``db``" variable on the server is the name of the
+   current database.
 
    .. warning::
 
@@ -401,9 +399,9 @@ Database
 
    :returns: The current connection status.
 
-   This is returned when the shell initiates. Use this command to
-   ensure that your :option:`mongo` instance is connected to the
-   proper database instance.
+   :js:func:`db.getMongo()` returns when the shell initiates. Use this
+   command to test that the :option:`mongo` shell has a connection to
+   the proper database instance.
 
 .. js:function:: db.getMongo().setSlaveOk()
 
@@ -441,15 +439,16 @@ Database
 .. js:function:: db.getProfilingStatus()
 
    :returns: The current :command:`profile` level and
-             :mongodb:setting:`slowms` setting.
+             :setting:`slowms` setting.
 
 .. js:function:: db.getReplicationInfo()
 
    :returns: A status document.
 
-   This output reports statistics related to replication. These values
-   are documented in
-   the ":doc:`/reference/replication-info`" document.
+   This output reports statistics related to replication.
+
+   .. seealso:: ":doc:`/reference/replication-info`" for full
+      documentation of this output.
 
 .. js:function:: db.getSiblingDB()
 
@@ -572,8 +571,8 @@ Database
    :param level: Specify a profiling level, see list of possible
                  values below.
 
-   :param slowms: Optionally modify the threshold for a query or
-                  operation to be considered "slow."
+   :param slowms: Optionally modify the threshold for the profile to
+                  consider a query or operation "slow."
 
    Modifies the current :term:`database profiler` level. This allows
    administrators to capture data regarding performance. The database
@@ -591,16 +590,14 @@ Database
       2       On. Includes all operations.
    =========  ==================================
 
-   Also configure the ``slowms`` option to set the threshold for the
-   profiler to consider a query "slow." This value is specified in
-   milliseconds and overrides the default
-   :mongodb:setting:`configuration value <slowms>` or :option:`runtime
-   option <mongod --slowms>`.
+   Also configure the :setting:`slowms` option to set the threshold
+   for the profiler to consider a query "slow." Specify this value in
+   milliseconds to override the default.
 
-   This command provides a wrapper around the database command
+   This command provides a wrapper around the :term:`database command`
    :command:`profile`.
 
-   The output of the database profiler is written to the
+   MongoDB writes the output of the database profiler to the
    ``system.profile`` collection.
 
 .. js:function:: db.shutdownServer()
@@ -616,17 +613,17 @@ Database
 .. js:function:: db.stats(scale)
 
    :param optional scale: Specifies the scale to deliver
-                          results. Unless specified, all data are
-                          reported in bytes.
+                          results. Unless specified, this command
+                          returns all data in bytes.
 
    :returns: A :term:`JSON document` that contains statistics
              reflecting the database system's state.
 
    This function provides a wrapper around the database command
    ":command:`dbstats`". The "``scale``" option allows you to
-   configure how the values of bytes are scaled. For example, specify
-   a "``scale``" value of "``1024``" to display kilobytes rather than
-   bytes.
+   configure how the :option:`mongo` shell scales the output
+   values. For example, specify a "``scale``" value of "``1024``" to
+   display kilobytes rather than bytes.
 
    See the ":doc:`/reference/database-statistics`" document for an
    overview of this output.
@@ -634,8 +631,8 @@ Database
 .. js:function:: db.collection.stats(scale)
 
    :param optional scale: Specifies the scale to deliver
-                          results. Unless specified, all data are
-                          reported in bytes.
+                          results. Unless specified, this command
+                          returns all data in bytes.
 
    :param collection: Specify the name of the collection in the
                       function call.
@@ -645,9 +642,9 @@ Database
 
    This function provides a wrapper around the database command
    :command:`collstats`. The "``scale``" option allows you to
-   configure how the values of bytes are scaled. For example, specify
-   a "``scale``" value of "``1024``" to display kilobytes rather than
-   bytes.
+   configure how the :option:`mongo` shell scales the output
+   values. For example, specify a "``scale``" value of "``1024``" to
+   display kilobytes rather than bytes.
 
    See the ":doc:`/reference/collection-statistics`" document for an
    overview of this output.
@@ -659,8 +656,8 @@ Database
 .. js:function:: db.fsyncLock()
 
    Forces the database to flush all write operations to the disk and
-   locks the database to prevent additional writes until the lock is
-   released using the :js:func:`db.fsyncUnlock()` command.
+   locks the database to prevent additional writes until the user
+   releases the lock with the :js:func:`db.fsyncUnlock()` command.
 
    This command provides a simple wrapper around a
    :command:`fsync` database command with the following
@@ -668,7 +665,7 @@ Database
 
         { fsync: 1, lock: true }
 
-   This function is used to lock the database and create a window for
+   This function locks the database and create a window for
    :doc:`backup operations </administration/backups>`.
 
 .. js:function:: db.fsyncUnock()
@@ -721,17 +718,15 @@ Sharding
    :param name collection: The name of the collection to shard.
 
    :param JSON key: A JSON document containing :term:`shard key` that
-                    will be used to shard and distribute objects among
-                    the shards.
+                    the sharding system uses to :term:`partition` and
+                    distribute objects among the shards.
 
    :param boolean unique: Set true.
 
    Shards the named collection, according to the specified
-   :term:`shard key`. Shard keys are presented in the form of a
-   :term:`JSON` and can specify either a single shard key, or more
-   typically a compound shard key.
-
-TODO it looks like unique has no impact.
+   :term:`shard key`. Specify shard keys in the form of a :term:`JSON
+   document`. Shard keys may refer to a single document field, or more
+   typically several document fields to form a "compound shard key."
 
 .. js:function:: sh.splitFind(collection, query)
 
@@ -768,10 +763,10 @@ TODO it looks like unique has no impact.
    the ":js:func:`sh.splitFind()`" function to split a chunk at the
    actual median.
 
-   In most circumstances, chunk splitting should be left to the
-   automated processes. However, when initially deploying a
-   :term:`shard cluster` it is necessary to perform some measure of
-   :term:`pre-splitting` using manual methods including
+   In most circumstances, you should leave chunk splitting to the
+   automated processes within MongoDB. However, when initially
+   deploying a :term:`shard cluster` it is necessary to perform some
+   measure of :term:`pre-splitting` using manual methods including
    ``sh.splitAt()``.
 
 .. js:function:: sh.moveChunk(collection, query, destination)
@@ -790,9 +785,12 @@ TODO it looks like unique has no impact.
    to the shard described by ``destination``.
 
    This function provides a wrapper around the
-   :command:`moveChunk`. In most circumstances, migration of
-   chunks should be automatically handled by the :term:`balancer` and
-   should *not* be called manually.
+   :command:`moveChunk`. In most circumstances,
+   allow the :term:`balancer` to automatically  migrate
+   :term:`chunks`, and avoid calling :js:func:`sh.moveChunk()`
+   directly.
+
+   .. seealso:: ":command:`moveChunk`" and ":doc:`/sharding`."
 
 .. js:function:: sh.setBalancerState(state)
 
@@ -1034,9 +1032,10 @@ User Functions
      :option:`--shell <mongo --shell>` option to return to the shell after
      running the command.
 
-   Files loaded with the ``load()`` function are specified relative to
-   the directory context of the current :option:`mongo` shell
-   session. Check this context with the ":js:func:`pwd()`" function.
+   Specify files loaded with the ``load()`` function in relative terms
+   to the current directory of the :option:`mongo` shell
+   session. Check the current directory using the ":js:func:`pwd()`"
+   function.
 
 .. js:function:: quit()
 
@@ -1045,16 +1044,13 @@ User Functions
 .. js:function:: getMemInfo()
 
    Returns a document with two fields that report the amount of memory
-   used by the shell process. The fields returned are :term:`resident
-   <resident memory>` and :term:`virtual <virtual memory>`.
-
-TODO confirm that it it's the shell process. as values don't match serverStatus()
+   used by the JavaScript shell process. The fields returned are
+   :term:`resident <resident memory>` and :term:`virtual <virtual
+   memory>`.
 
 .. js:function:: _srand()
 
    For internal use.
-
-   .. I can't get this function to work, but it's imported in the source. -sk
 
 .. js:function:: _rand()
 

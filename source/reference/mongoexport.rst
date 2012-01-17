@@ -113,16 +113,15 @@ Options
 
    Use the ``--db`` option to specify a database for
    :option:`mongoexport` to export data from. If you do not specify a
-   DB, all databases in this instance will be exported. Use this
-   option to create a copy of a smaller subset of your data.
+   DB, :option:`mongoexport` will export all databases in this
+   MongoDB instance. Use this option to create a copy of a smaller
+   subset of your data.
 
 .. option:: --collection [collection], -c [collection]
 
    Use the :option:`--collection` option to specify a collection for
    :option:`mongoexport` to export. If you do not specify a
    "``[collection]``", all collections will exported.
-
-TODO help section says "(some commands)" limitations otherwise unclear.
 
 .. option:: --fields [field1[,field2]], -f [field1[,field2]]
 
@@ -140,8 +139,8 @@ TODO help section says "(some commands)" limitations otherwise unclear.
 
 .. option:: --query [JSON]
 
-   Provides a :term:`JSON` query to limit (optionally) the documents
-   returned that will be exported.
+   Provides a :term:`JSON document` as a query that optionally limits
+   the documents returned in the export.
 
 .. option:: --csv
 
@@ -151,27 +150,25 @@ TODO help section says "(some commands)" limitations otherwise unclear.
 
 .. option:: --jsonArray
 
-   Modifies the output of :option:`mongoexport` so that, the entire contents
-   of the export is written as a single :term:`JSON` array. By default
-   :option:`mongoexport` writes data using one JSON document for every
-   MongoDB document.
+   Modifies the output of :option:`mongoexport` so that to write the
+   entire contents of the export as a single :term:`JSON` array. By
+   default :option:`mongoexport` writes data using one JSON document
+   for every MongoDB document.
 
 .. option:: --slaveOk, -k
 
-   Forces :option:`mongoexport` to read data from secondary or slave nodes
-   if :option:`mongoexport` is issued against a replica set. This option is
-   only available if connected to a :option:`mongod`` or :option:`mongos` and is
-   not available when used with the ":command:`mongoexport --dbpath`"
-   option.
+   Allows :option:`mongoexport` to read data from secondary or slave
+   nodes when using :option:`mongoexport` with a replica set. This
+   option is only available if connected to a :option:`mongod`` or
+   :option:`mongos` and is not available when used with the
+   ":command:`mongoexport --dbpath`" option.
 
    This is the default behavior.
 
-TODO determine what "arg (=1)" in help text means.
-
 .. option:: --out [file], -o [file]
 
-   Specify a file to write the export to. If no file name is
-   specified, the export will be written to standard out
+   Specify a file to write the export to. If you do not specify a file
+   name, the :option:`mongoexport` writes data to standard output
    (e.g. ``stdout``).
 
 Usage
@@ -179,27 +176,32 @@ Usage
 
 In the following example, the collection "``contacts``" from the
 "``users``" database is exported from the MongoDB instance running on
-the localhost port number 27017. This export is provided in CSV format
-into a file located at "``/opt/backups/contacts.csv``". ::
+the localhost port number 27017. This command writes the export data
+in CSV format into a file located at
+"``/opt/backups/contacts.csv``". ::
 
      mongoexport --db users --collection contacts --csv --file /opt/backups/contacts.csv
 
-In the next example, the collection "``contacts``" is exported from
-the MongoDB instance running on the localhost port number 27017, with
-journaling explicitly enabled. The export is written to the
+The next example creates an export of the collection "``contacts``"
+from the MongoDB instance running on the localhost port number 27017,
+with journaling explicitly enabled. This writes the export to the
 ``contacts.json`` file in JSON format. ::
 
      mongoexport --collection contacts --file contacts.json --journal
 
-In the next example, the collection "``contacts``" from the
-"``sales``" database is exported from the MongoDB datafiles located at
-``/srv/mongodb/``. The export is written to standard output in JSON
-format. ::
+The following example exports the collection "``contacts``" from the
+"``sales``" database located in the MongoDB data files located at
+``/srv/mongodb/``. This operation writes the export to standard output
+in JSON format. ::
 
      mongoexport --db sales --collection contacts --dbpath /srv/mongodb/
 
-In the final example, the collection "``contacts``" from the database
-"``marketing``" is exported. This data resides on the MongoDB instance
+.. warning:: The above example will only succeed if there is no
+   :option:`mongod` connected to the data files located in the
+   ``/srv/mongodb/`` directory.
+
+The final example exports the collection "``contacts``" from the
+database "``marketing``" . This data resides on the MongoDB instance
 located on the host ``mongodb1.example.net``" running on port
 ``37017``", which requires the username "``user``" and the password
 "``pass``". ::

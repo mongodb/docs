@@ -112,12 +112,10 @@ Options
 .. option:: --collection [collection], -c [c]
 
    Use the ``--collection`` option to specify a collection for
-   ``mongodump`` to backup. If you do not specify a collection, all
-   collections in the specified database or instance will be copied
-   into the dump files. Use this option to backup or copy a smaller
-   subset of your data.
-
-TODO help section says "(some commands)" limitations otherwise unclear.
+   ``mongodump`` to backup. If you do not specify a collection, this
+   options copies all collections in the specified database or
+   instance to the dump files. Use this option to backup or copy a
+   smaller subset of your data.
 
 .. option:: --out [path], -o [path]
 
@@ -128,7 +126,7 @@ TODO help section says "(some commands)" limitations otherwise unclear.
 .. option:: --query [json], -q [json]
 
    Provides a :term:`JSON` query to limit (optionally) the documents
-   returned that will be dumped.
+   included in the output of :option:`mongodump`.
 
 .. option:: --oplog
 
@@ -153,7 +151,7 @@ TODO help section says "(some commands)" limitations otherwise unclear.
    the data directly. Typically there are two cases where this
    behavior is preferable to the default:
 
-   1. If you have key sizes over 800 bytes that wouldn't be included
+   1. If you have key sizes over 800 bytes that would not be present
       in the "``_id``" index.
    2. Your database uses a custom "``_id``" field.
 
@@ -161,30 +159,29 @@ Usage
 -----
 
 See the ":ref:`backup guide section on database dumps
-<database-dumps>`" for a larger overview of ``mongodump`` usage. Also
-see the ":doc:`mongorestore`" document for an overview of the
-:command:`mongorestore`, which provides the related inverse
+<database-dumps>`" for a larger overview of :option:`mongodump`
+usage. Also see the ":doc:`mongorestore`" document for an overview of
+the :option:`mongorestore`, which provides the related inverse
 functionality.
 
-In the following command, a dump is created that contains only the
+The following command, creates a dump file that contains only the
 collection named "``collection``" in the database named "``test``". In
 this case the database is running on the local interface on port
 27017: ::
 
      mongodump --collection collection --database test
 
-In the next example, ``mongodump`` creates a backup of the database
-instance stored in the ``/srv/mongodb`` directory on the local
-machine. This requires that no ``mongod`` instance is connected to the
-``/srv/mongodb`` directory. ::
+In the next example, :option:`mongodump` creates a backup of the
+database instance stored in the ``/srv/mongodb`` directory on the
+local machine. This requires that no :option:`mongod` instance is
+using the ``/srv/mongodb`` directory. ::
 
      mongodump --dbpath /srv/mongodb
 
-In the final example, ``mongodump`` creates a database dump located at
-``/opt/backup/mongodumpm-2011-10-24``, from a database running on port
-"``37017``" on the host "``mongodb1.example.net`` and authenticating
-using the username "``user``" and the password "``pass``", as follows:
-::
+In the final example, :option:`mongodump` creates a database dump
+located at ``/opt/backup/mongodumpm-2011-10-24``, from a database
+running on port "``37017``" on the host "``mongodb1.example.net`` and
+authenticating using the username "``user``" and the password
+"``pass``", as follows: ::
 
      mongodump --host mongodb1.example.net --port 37017 --username user --password pass /opt/backup/mongodumpm-2011-10-24
-
