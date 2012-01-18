@@ -848,7 +848,7 @@ Replica Sets
    data derived from the heartbeat packets sent by the other members
    of the replica set.
 
-   This command provides a wrapper around the
+   This method provides a wrapper around the
    :dbcommand:`replSetGetStatus` :term:`database command`.
 
    .. seealso:: ":doc:`/reference/replica-status`" for documentation

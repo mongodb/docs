@@ -6,9 +6,9 @@ Command Reference
 .. highlight:: javascript
 
 This document contains a reference to all :term:`database commands
-<database command>`. These commands take the form of :term:`JSON
-document <JSON document>` issued as a query against a special MongoDB
-collection named :term:`$cmd`; however, the JavaScript shell
+<database command>`. All commands are constructed using :term:`BSON`
+documents issued as queries against a special MongoDB
+collection named :term:`$cmd`. The JavaScript shell
 (i.e. :option:`mongo`,) provides the following syntax to facilitate
 running commands: ::
 
@@ -22,8 +22,9 @@ syntax: ::
 The ``_adminCommand`` helper is shorthand for "``db.getSisterDB("admin").runCommand();``".
 
 MongoDB :term:`drivers <driver>`, and the :option:`mongo` shell may
-provide an alternate interfaces for issuing database commands. All
-examples in this reference are provided as JSON documents.
+provide helper interfaces for issuing database commands.
+
+All examples in this reference are provided as documents.
 
 User Commands
 -------------
@@ -31,14 +32,13 @@ User Commands
 Sharding
 ~~~~~~~~
 
-.. seealso:: ":doc:`/core/sharding`" for more information regarding
+.. seealso:: ":doc:`/core/sharding`" for more information about
    MongoDB's sharding functionality.
 
 .. dbcommand:: addShard
 
-   The ``addShard`` command informs a :option:`mongos` process about
-   the shard instance. Connect using the MongoDB shell
-   (e.g. ``mongo``) to the :option:`mongos` instance. The command
+   The ``addShard`` command registers a new with a sharded cluster.
+   You must run this command against a :option:`mongos` instance. The command
    takes the following form: ::
 
         { addshard: "<hostname>:<port>" }
@@ -46,14 +46,15 @@ Sharding
    Replace "``<hostname>:<port>``" with the hostname and port of the
    database instance you want to add as a shard. Because the
    :option:`mongos` instances do not have state and distribute
-   configuration in the :term:`configdb`, you only need to send this
-   command to one :option:`mongos` instance. There are two optional
-   parameters:
+   configuration in the :term:`configdb`s, you send this
+   command to only one :option:`mongos` instance.
+
+   There are two optional parameters:
 
    - **name**. If no name is specified, a name will be automatically
      provided to uniquely identify the shard.
-   - **maxSize** Unless specified shards will consume the total amount
-     of available space if necessary. Use the ``maxSize`` value to
+   - **maxSize** Unless specified, shards will consume the total amount
+     of available space on their machines if necessary. Use the ``maxSize`` value to
      limit the amount of space the database can use.
 
      .. note::
@@ -65,7 +66,7 @@ Sharding
 .. dbcommand:: listShards
 
    Use the ``listShards`` command to return a list of configured
-   shards. The command takes the following form:
+   shards. The command takes the following form: ::
 
         { listShards: 1 }
 
@@ -76,9 +77,8 @@ Sharding
 
         { enableSharding: 1 }
 
-   The ``enableSharding`` command doesn't move or shift any data. Use
-   the :dbcommand:`shardCollection` to begin the process of distributing
-   data among the shards.
+   Once you've enabled sharding in a database, you can use the :dbcommand:`shardCollection`
+   command to begin the process of distributing data among the shards.
 
 .. dbcommand:: shardCollection
 
@@ -86,6 +86,9 @@ Sharding
    will begin the process of distributing the data among the
    shards. Call :dbcommand:`enableSharding` before calling the
    ``shardCollection`` command. Consider the following syntax: ::
+   will allow data to begin distributing among shards.
+   You must run :dbcommand:`enableSharding` on a database before running the
+   ``shardCollection`` command. ::
 
         { shardcollection: "<db>.<collection>", key: "<shardkey>" }
 
@@ -94,57 +97,58 @@ Sharding
    "``<shardkey>``" to distribute documents among the shard.
 
    Choosing the right shard key to effectively distribute load among
-   your shards can be challenging to do properly. See
+   your shards requires some planning. See
    :doc:`/core/sharding` for more information related to sharding and
-   choosing the shard key.
+   the choice of shard key.
 
    .. warning::
 
-      There is no way to disable sharding or change the ``shardkey``
-      once established, without making a backup, dropping the
-      collection and reloading the data into a recreated collection.
+      There's no easy way to disable sharding once you've enabled it. In addition,
+      shard keys are immutable. If you must revert a sharded cluster to a single
+      node or replica set, you'll have to make a single backup of the entire cluster
+      and then restore the backup to the standalone ``mongod``.
 
 .. dbcommand:: shardingState
 
-   The ``shardingState`` command returns ``true`` or ``false`` if the
+   The ``shardingState`` command returns ``true`` if the
    :option:`mongod` instance is a member of a sharded cluster. Run the
    command using the following syntax: ::
 
         { shardingState: 1 }
 
-   The value specified does not effect the output of the command.
-
    .. admin-only
 
 .. dbcommand:: removeshard
 
-   Controls the process of removing a shard from a :term:`shard
-   cluster`. This is a multi-stage process. Begin by issuing a command
-   in the following form: ::
+   Starts the process of removing a shard from a :term:`shard
+   cluster`. This is a multi-stage process. Begin by issuing the following
+   command: ::
 
         { removeshard : "shardName" }
 
-   Where "``shardName``` refers to the name of the shard that you wish
+   Here, "``shardName``` refers to the hostname of the shard that you wish
    to remove. The balancer will then begin migrating chunks from this
-   shard to other shards in the cluster. This process happens slowly,
-   to avoid placing unrequited load on a production cluster, and
-   requires that the balancer be enabled. The command returns
-   immediately, with the following message: ::
+   shard to other shards in the cluster. This process happens slowly
+   to avoid placing undue load on the overall cluster.
+
+   The command returns immediately, with the following message: ::
 
         { msg : "draining started successfully" , state: "started" , shard: "shardName" , ok : 1 }
 
-   If you run the command again, you will see the following progress
+   If you run the command again, you'll see the following progress
    output: ::
 
         { msg: "draining ongoing" ,  state: "ongoing" , remaining: { chunks: 23 , dbs: 1 }, ok: 1 }
 
    The ``remaining`` :term:`document <JSON document>`" specifies how
    many chunks and databases remain on the shard. Use
-   :mongodb:dbcommand:`printShardingStatus` to list the databases that
-   must moved from the shard.
+   :dbcommand:`printShardingStatus` to list the databases that
+   must be moved from the shard.
 
-   Database must be moved manually using the
-   :mongodb:dbcommand:`moveprary`.
+   Each database in a sharded cluster is assigned a primary shard. If the shard you want to remove
+   is also the primary of one the cluster's databases, then you must manually move the database to
+   a new shard. This can be only after the shard has been drained. See the :mongodb:command:`moveprimary` command
+   for details.
 
    Once all chunks and databases have been removed from the shard, you
    may issue the command again, to return: ::
@@ -153,14 +157,14 @@ Sharding
 
 .. dbcommand:: moveprimary
 
-   In a :term:`shard cluster`, this command moves the primary database
-   to a specified shard. The command takes the following form: ::
+   In a :term:`shard cluster`, this command reassigns a databases primary shard.
+   The command takes the following form: ::
 
         { moveprimary : "test", to : "shard0001" }
 
-   When the command returns the database's primary location has
+   When the command returns, the database's primary location will have been
    shifted to the designated :term:`shard`. To fully decomission a
-   shard, return to the :mongodb:dbcommand:`removeshard`.
+   shard, use the :mongodb:dbcommand:`removeshard` command.
 
    .. warning:: Do not use :mongodb:dbcommand:`moveprimary` if you have
       sharded collections and the :term:`draining` process has not
@@ -173,43 +177,45 @@ Aggregation
 
    The ``group`` command returns an array of grouped items. ``group``
    provides functionality analogous to the ``GROUP BY`` statement in
-   SQL. Consider the following example from the ``mongo`` shell: ::
+   SQL. Consider the following example: ::
 
-        db.collection.group(
-                            {key: { a:true, b:true },
-                             cond: { active:1 },
-                             reduce: function(obj,prev) { prev.csum += obj.c; },
-                             initial: { csum: 0 }
-                            });
+        db.users.group(
+                        {key: { school_id: true },
+                         cond: { active: 1 },
+                         reduce: function(obj, prev) { obj.total += 1; },
+                         initial: { total: 0 }
+                        }
+                      );
 
-   Here ``group`` runs against the collection "``collection``" and
-   provides and aggregate sum of all documents that have an ``active``
-   field with a value of ``1``. The parameter fields in the group
-   command are:
+   Here ``group`` runs against the collection "``users``" and
+   counts the total number of active users from each school.
+   Fields allowed by the group command include:
 
-   - **key** specifies the fields for grouping the results.
-   - **reduce** aggregates (i.e. reduces) the objects that the
-     function iterates. Typically this counts or sums the field.
-   - **initial** sets the starting value of the aggregation counter
+   - **key** a document specifying one or more fields to group on.
+   - **reduce** a JavaScript function that aggregates (i.e., reduces) the
+     grouped documents. This function typically counts or sums the fields being grouped on.
+   - **initial** the starting value of the aggregation counter
      object.
-   - **keyf** is an optional function that returns a "key object,"
-     that specifies a key that is not a single field. One typical use
-     of ``keyf`` is to group documents by day of week. Set ``keyf`` in
+   - **keyf** In lieu of ``key``, ``keyf`` takes a JavaScript function. For each document
+     being grouped upon, the key function will return a key object. You'll use ``keyf``
+     when the key must be calculated in real time.
+     One typical use of ``keyf`` is to group documents by day of week. Set ``keyf`` in
      lieu of a key.
-   - **cond** specifies an optional condition that must be true for a
-     document to be considered. This functions like a
-     :dbcommand:`find()` query. If ``cond`` returns no results, the
-     ``reduce`` function will run against all documents in the
-     collection.
-   - **finalize** is an optional function that runs against every
-     result before the item is returned, to provide additional post
-     processing or transformation.
+   - **cond** (optional) a query selector that filters the documents to be
+     grouped on. This functions like a
+     :dbcommand:`find()` query.
+   - **finalize** (optional) a function applied to every
+     result before the item is returned. You can use this to
+     for post-processing or transformations.
 
    Consider the following limitations:
 
    - The results of the ``group`` command are returned as a single
-     :term:`BSON` object. As a result you must ensure that there are
-     fewer then 10,000 keys to prevent an exception.
+     :term:`BSON` object and therefore must fit within the max BSON document
+     size (16 MB).
+
+   - You must ensure that there are fewer then 10,000 unique keys. If you have more than this,
+     use :command:'mapReduce'.
 
    - The ``group`` command does not operate in :term:`sharded
      <sharding>` environments. Use :dbcommand:`mapReduce` in these
@@ -219,7 +225,7 @@ Aggregation
 
 .. dbcommand:: count
 
-   The ``count`` command provides. For example: ::
+   The ``count`` command counts the number of documents in a collection. For example: ::
 
         db.collection.count():
 
@@ -237,22 +243,19 @@ Aggregation
 
 .. dbcommand:: mapReduce
 
-   The ``mapReduce`` command provides map/reduce functionality for the
-   MongoDB server. In MongoDB map/reduce operations provide
-   aggregation functionality, and are not used for querying the
-   database. ``mapReduce`` creates a collection holding the results of
-   the operation. The ``mapReduce`` command has the following syntax:
-   ::
+   The ``mapReduce`` command allows you to run map-reduce-style aggregations
+   over a collection. ``mapReduce`` may create a collection to contain the results of
+   the operation or may return the results inline. The ``mapReduce`` command has the
+   following syntax: ::
 
-        { mapreduce : <collection>,
-           map : <mapfunction>,
-           reduce : <reducefunction>,
-           query : <query filter object>,
-           sort : <sorts to limit input objects. For optimization>,
-           limit : <number of objects to return>,
-           out : <output>,
-           keeptemp: <true|false>,
-           finalize : <finalizefunction>,
+        { mapreduce : <collection-name>,
+           map : <map-function>,
+           reduce : <reduce-function>,
+           query : <query-filter-object>,
+           sort : <sort-specifier document>,
+           limit : <limits the number of documents in the input set>,
+           out : <output style>,
+           finalize : <finalize-function>,
            scope : <object where fields go into javascript global scope>,
            jsMode : true,
            verbose : true,
@@ -270,42 +273,45 @@ Aggregation
    See :doc:`/core/map-reduce` for more information on mapReduce
    operations.
 
+TODO lacking a lot of documentation. Can you describe each option in the way you do with 'group'? See the command description in MIA book.
+
    .. slave-ok
 
 .. dbcommand:: findAndModify
 
-   The ``findAndModify`` command provides an atomic modification and
-   return of a single document. The command takes the following form: ::
+   The ``findAndModify`` command atomically modifies and
+   returns a single document. The command takes the following form: ::
 
         { findAndModify: collection, <options> }
 
    The shell and many :term:`drivers <driver>` also provide a
-   ``db.findAndModify();`` method. This command returns, by default,
-   the document is returned before modifications are made. The
-   following options are available:
+   ``db.findAndModify();`` method.
 
-   - **query** specifies a filter to select a document to modify.
+   The following options are available:
 
-   - **sort** specifies a sort order if multiple documents are
-     returned. The first document in this sort order will be
-     manipulated by the command.
+   - **query**: a query selector for choosing the document to modify.
 
-   - **remove**, when set, triggers ``findAndModify`` to remove the
-     document. To set, specify "``remove: true``".
+   - **sort**: if the query selects multiple documents, the first document
+     given by this sort clause will be the one modified.
 
-   - **update** specifies an :ref:`update operator <update-operators>`.
-     to modify the returned documents.
+   - **remove**: when ``true``, causes ``findAndModify`` to remove the
+     selected document.
 
-   - **new**, when set, returns the modified object rather than the
+   - **update**: an :ref:`update operator <update-operators>`.
+     to modify the selected document.
+
+   - **new**: when ``true``, returns the modified document rather than the
      original. The ``new`` option is ignored for ``remove``
-     operations. To set, specify "``new: true``".
+     operations.
 
-   - **fields**, specifies a limited selection of fields to
+   - **fields**: a subset of fields to
      return. See ":ref:`projection operators <projection-operators>`"
      for more information.
 
-   - **upsert**, when set, creates an object if the specified
-     ``query`` returns no objects. To set, specify "``upsert: true``".
+   - **upsert**: when ``true``, creates a new document if the specified
+     ``query`` returns no documents.
+
+TODO: link to more complete documentation with common examples.
 
 .. dbcommand:: distinct
 
@@ -317,10 +323,10 @@ Aggregation
 
    Here, all distinct values of the field (or "``key``") ``age`` are
    returned in documents that match the query "``{ field: { $exists:
-   true }``". The query is optional.
+   true }``". **Note that the query is optional**.
 
    The shell and many :term:`drivers <driver>` provide a helper method that provides
-   this functionality, consider the following equivalent syntax: ::
+   this functionality. You may prefer the following equivalent syntax: ::
 
        db.collection.distinct("age", { field: { $exists: true } } );
 
@@ -329,18 +335,22 @@ Aggregation
 
 .. dbcommand:: eval
 
-   The ``eval`` provides the ability to evaluate JavaScript functions
+TODO: would it be possible to have a convention in the command forms indication which parts
+are required and which are options? For instance, required could be in bold.
+
+
+   The ``eval`` command evaluates JavaScript functions
    on the database server. Consider the following (trivial) example: ::
 
         { eval: function() { return 3+3 } }
 
-   The shell also provides a helper method. The above can be expressed
-   in the following form: ::
+   The shell also provides a helper method. You can also express
+   the above like so: ::
 
         db.eval( function { return 3+3 } } );
 
    While you can input functions directly into the shell, they will be
-   evaluated by the shell rather than the database itself. Consider
+   evaluated by the shell rather than the database itself. Note
    the following behaviors and limitations:
 
    - ``eval`` does not work in :term:`sharded <sharding>`
@@ -348,14 +358,16 @@ Aggregation
 
    - The ``eval`` operation is blocking and prevents all writes to the
      database until ``eval`` has finished, unless the ``nolock`` flag
-     is set to ``true``, For example: ::
+     is set to ``true``. For example: ::
 
-           { eval: function() { return 3+3 }, nslock: true }
+           { eval: function() { return 3+3 }, nolock: true }
+
+TODO: why would you want to run eval with nolock?
 
 .. dbcommand:: dataSize
 
    The ``dataSize`` command returns the size data size for a set of
-   data within a certian rage. Consider the following syntax: ::
+   data within a certian range: ::
 
         { dataSize: "database.collection", keyPattern: { field: 1 }, min: { field: 10 }, max: { field: 100 } }
 
@@ -366,6 +378,8 @@ Aggregation
 
    The amount of time required to return ``dataSize`` depends on the
    amount of data in the collection.
+
+TODO: not sure that this command should be in the docs. It's mostly for internal use, I believe.
 
 Replication
 ~~~~~~~~~~~
@@ -405,11 +419,16 @@ Replication
 
 .. dbcommand:: replSetGetStatus
 
+
    The ``replSetGetStatus`` command returns the status of the replica
    set form the point of view of the current server, using the
    information derived from heartbeat packets set to the current
    instance by other members of the replica set. To get this status,
    Issue the following command on the :term:`admin database`: ::
+
+        rs.status()
+
+   Command prototype: ::
 
         { replSetGetStatus: 1 }
 

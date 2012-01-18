@@ -8,40 +8,48 @@ Collection Statistics Reference
 Synopsis
 --------
 
-MongoDB can report data reflecting the current state of the current
-collection. To fetch collection statistics, issue a command in the
-:option:`mongod` shell that resembles the following:
+To fetch collection statistics, issue the following
+command from the :option:`mongo` shell: ::
 
 .. code-block:: javascript
 
    db.collection.stats()
+
+You may also use the literal command format:
+
+.. code-block:: javascript
+
    db.runCommand( { collStats: "collection" } )
 
 Replace "``collection``" in both examples with the name of the
-colection you want to return. The above commands are equivalent. This
-returns values in bytes, to convert to kilobytes, use the following
-form:
+colection you want statstics for. By default, the return values will
+appear in terms of bytes. You can, however, enter a scaling
+factor. For example, you can convert the return values to kilobytes
+like so: ::
 
 .. code-block:: javascript
 
    db.collection.stats(1024)
+
+Or:
+
+.. code-block:: javascript
+
    db.runCommand( { collStats: "collection", scale: 1024 } )
 
-The above commands are equivalent. See :dbcommand:`colStats` for
-more information.
+See :dbcommand:`colStats` for
 
 Fields
 ------
 
 .. status:: ns
 
-   The value represents the namepsace of the current collection. This
-   is in the format of "``[database].[collection]``".
+   The namepsace of the current collection, which follows the format
+   "``[database].[collection]``".
 
 .. status:: count
 
-   Contains a counter of the number of objects or documents in this
-   colection.
+   The number of objects or documents in this colection.
 
 .. status:: size
 
@@ -55,18 +63,19 @@ Fields
 
 .. status:: storageSize
 
-   The total amount of storage size this collection occupies. This
+   The total amount of storage size. This is equal to the total number
+   of extents allocated by this collection. This
    value is affected by the "``scale``" factor and the :term:`padding
    factor`.
 
 .. status:: numExtents
 
-   The total number of contiguously allocated data file space.
+   The total number of contiguously allocated data file regions.
 
 .. status:: nindexes
 
-   The number of indexes on the collection. There is always at least
-   one index on the primary key (i.e. ``_id``).
+   The number of indexes on the collection. On standard, non-capped collections, there is
+   always at least one index on the primary key (i.e. ``_id``).
 
 .. status:: lastExtentSize
 
@@ -75,9 +84,9 @@ Fields
 
 .. status:: paddingFactor
 
-   Indicates the collection's padding factor. MongoDB adds a
-   configurable amount of space to the end of each document to
-   facilitate faster updates if documents grow.
+   The amount of space added to the end of each document at insert time.
+   This padding factor is calculated automatically by the server and exists
+   to prevent excessive document relocations.
 
 .. status:: flags
 
@@ -87,13 +96,10 @@ TODO what are flags in collection stats.
 
 .. status:: totalIndexSize
 
-   The value of this field reflects the total size of all
-   indexes. This value is affected by the "``scale``" factor.
+   The total size of all indexes. This value is affected by the "``scale``" factor.
 
 .. status:: indexSizes
 
-   This field contains an embeded document that holds the ID and size
+   This field specifies the key and size
    of every existing index on the collection. This value is affected
    by the "``scale``" factor.
-
-   "indexSizes" : { "_id_" : 8176 },

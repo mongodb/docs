@@ -5,15 +5,15 @@ Getting Started With MongoDB
 About MongoDB and this Manual
 -----------------------------
 
-- What's new in the most recent release.
-- Getting Involved in the Project (reporting bugs)
+- What's New in 2.2?
+- Getting Involved in the MongoDB Project (contributions, bug reports, etc.)
 - About this Documentation
-- Other MongoDB Resources
+- MongoDB Resources
 
 Introduction to MongoDB
 -----------------------
 
-- What is MongoDB
+- What is MongoDB?
 - Installation
 - Drivers
 - Basic Concepts
