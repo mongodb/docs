@@ -450,11 +450,10 @@ Glossary
 
    query
       Queries are requests that return a selection of documents from
-      the database system. For MongoDB, queries are specified using
-      :term:`JSON` documents and the :term:`database operators
-      <operator>` to describe documents. In the :option:`mongo`
-      shell, queries are issued using the :js:func:`find()` and
-      :js:func:`findOne()` functions.
+      the database system. Specify MongoDB, queries using :term:`JSON`
+      documents and the :term:`database operators <operator>` to
+      describe documents. In the :option:`mongo` shell, issue queries
+      using the :js:func:`find()` and :js:func:`findOne()` functions.
 
    projection
       A component of complex queries that controls the content that a

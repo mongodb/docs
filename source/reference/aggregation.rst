@@ -2,58 +2,429 @@
 Aggregation Framework Operators
 ===============================
 
+.. versionadded:: 2.1.0
+
 .. default-domain:: mongodb
 
-The aggregation framework makes it possible to project or control the
-output of the query, without using ":term:`map reduce`," using the
-same syntax and form as queries itself.
+The aggregation framework provides the ability to project, process,
+and/or control the output of the query, without using ":term:`map
+reduce`." Aggregation uses a syntax that closely resembles the same
+syntax and form as "regular" MongoDB database queries.
 
 This documentation provides an overview of all aggregation operators,
 their use, and their behavior.
 
-.. seealso:: ":doc:`/core/aggregation`" for more information on the
+.. seealso:: ":doc:`/core/aggregation`" and
+   ":ref:`aggregation-framework`" for more information on the
    aggregation functionality.
 
-.. _aggregation-pipeline-operators:
+.. _aggregation-pipeline-operator-reference:
 
 Pipeline
-~~~~~~~~
+--------
 
-.. seealso:: <http://www.mongodb.org/display/DOCS/Aggregation+Framework+-+Expression+Reference>
+Pipeline operators appear in an array and documents pass through these
+operators in a sequence. All examples in this section, assume that the
+aggregation pipeline beings with a collection named "``article`` that
+contains documents that resemble the following:
 
-Pipeline operators appear in an array. Documents pass through these
-operators and come out at the other end.
+.. code-block:: javascript
+
+   {
+    title : "this is my title" ,
+    author : "bob" ,
+    posted : new Date() ,
+    pageViews : 5 ,
+    tags : [ "fun" , "good" , "fun" ] ,
+    comments : [
+        { author :"joe" , text : "this is cool" } ,
+        { author :"sam" , text : "this is bad" }
+    ],
+    other : { foo : 5 }
+   }
+
+The current pipeline operators are:
 
 .. aggregator:: $project
 
-   -  [$project\|Aggregation Framework - $project] \\- select columns or
-      sub-columns, create computed values or sub-objects
+   Reshapes a document stream by renaming, adding, or removing
+   fields. Also use :aggregator:`$project` to create computed values
+   or sub-objects. Use :aggregator:`$project` to:
+
+   - Include fields from the original document.
+   - Exclude fields from the original document.
+   - Insert computed fields.
+   - Rename fields.
+   - Create and populate fields that hold sub-documents.
+
+   Use :aggregator:`$project` to quickly select the fields that you
+   want to include or exclude from the response. Consider the
+   following aggregation framework operation.
+
+   .. code-block:: javascript
+
+      db.runCommand(
+      { aggregate : "article", pipeline : [
+          { $project : {
+              title : 1 ,
+              author : 1 ,
+          }}
+       ]});
+
+   This operation includes the ``title`` field and the ``author``
+   field in the document that is returned from the aggregation
+   :term:`pipeline`. Because the first field specification is an
+   inclusion, :aggregator:`$project` is in "inclusive" mode, and will
+   return only the fields explicitly included (and the ``_id`` field.)
+
+   .. note::
+
+      The ``_id`` field is always included by default in the inclusive
+      mode. You may explicitly exclude ``_id`` as follows:
+
+      .. code-block:: javascript
+
+         db.runCommand(
+         { aggregate : "article", pipeline : [
+             { $project : {
+                 _id : 0 ,
+                 title : 1 ,
+                 author : 1
+             }}
+         ]});
+
+      Here, the projection excludes the ``_id`` field but includes the
+      ``title`` and ``author`` fields.
+
+   .. warning::
+
+      In the inclusive mode, *no* fields other than the ``_id`` field
+      may be excluded.
+
+      A field inclusion in a projection will not create a field that
+      does not exist in a document from the collection.
+
+   In the exclusion mode, all fields *except* the ones that are
+   specifically excluded are returned. Consider the following example:
+
+   .. code-block:: javascript
+
+      db.runCommand(
+      { aggregate : "article", pipeline : [
+          { $project : {
+              comments : 0 ,
+              other : 0
+          }}
+      ]});
+
+:aggregator:`$match`:aggregator:`$match`   Here, the projection includes all fields except for the
+   "``comments``" and "``other``" field are retained and passed along
+   the pipeline.
+
+   The :aggregator:`$project` is placed in **exclusive** mode when the
+   first field in the projection is an exclusion. When the first field
+   is an **inclusion** the projection is inclusive.
+
+   .. note::
+
+      In exclusive mode, no fields may be explicitly included by
+      declaring them with a "``: 1``" in the projection statement.
+
+   Projections can also add computed fields to the document stream
+   passing through the pipeline. A computed field can use any of the
+   :ref:`expression operators <aggregation-expression-operators>`.
+   Consider the following example:
+
+   .. code-block:: javascript
+
+      db.runCommand(
+      { aggregate : "article", pipeline : [
+          { $project : {
+              title : 1,
+              doctoredPageViews : { $add:["$pageViews", 10] }
+          }}
+      ]});
+
+   Here, the field "``doctoredPageViews``" represents the value of the
+   ``pageViews`` field after adding 10 to the original field using the
+   :expression:`$add`.
+
+   .. note::
+
+      The expression that defines the computed field must be enclosed
+      in braces, so that it resembles an object and conforms to
+      JavaScript syntax.
+
+   You may also use :aggregator:`$project` to rename fields. Consider
+   the following example:
+
+   .. code-block:: javascript
+
+      db.runCommand(
+      { aggregate : "article", pipeline : [
+          { $project : {
+              title : 1 ,
+              page_views : "$pageViews" ,
+              florble : "$other.foo"
+          }}
+      ]});
+
+
+   This operation renames the "``pageViews``" field "``page_views``",
+   and renames the "``foo``" field in the "``other``" sub-document as
+   the top-level field "``florable``". The field references used for
+   renaming fields are a direct expression and do not use an operator
+   or surrounding braces. All aggregation field references can use
+   dotted paths to refer to fields in nested documents.
+
+   Finally, you can use the :aggregator:`$project` to create and
+   populates new sub-documents. Consider the following example that
+   creates a new field named ``stats`` that holds a number of values:
+
+   .. code-block:: javascript
+
+      db.runCommand(
+      { aggregate : "article", pipeline : [
+          { $project : {
+              title : 1 ,
+              stats : {
+                  pv : "$pageViews",
+                  foo : "$other.foo",
+                  dpv : { $add:["$pageViews", 10] }
+              }
+          }}
+      ]});
+
+   This projection selects the ``title`` field and places
+   :aggregator:`$project` into "inclusive" mode. Then, it creates the
+   ``stats`` documents with the following fields:
+
+   - "``pv``" which includes and renames the "``pageViews``" from the
+     top level of the original documents.
+   - "``foo``" which includes the "``foo``" document from the
+     "``other``" sub-document of the original documents.
+   - "``dpv``" which is a computed field that adds 10 to the value of
+     the "``pageViews``" field in the original document using the
+     :expression:`$add` aggregation expression.
+
+   .. note::
+
+      Because of the :term:`BSON` requirement to preserve field order,
+      projections output fields in the same order that they were
+      input. Furthermore, when computed values are added to a
+      document, they will follow all fields from the original and
+      appear in the order that they appeared in the
+      :aggregator:`$project` statement.
 
 .. aggregator:: $match
 
--  [$match\|Aggregation Framework - $match] \\- filter documents out
-   from the document stream
+   Provides a query-like interface to filter documents out of the
+   aggregation :term:`pipeline`. Documents that do not match the
+   statement are dropped, and documents that do match are passed along
+   the pipeline unaltered.
+
+   The syntax passed to the :aggregator:`$match` is always identical
+   to the :term:`query` syntax. Consider the following prototype form:
+
+   .. code-block:: javascript
+
+      db.runCommand(
+      { aggregate : "article", pipeline : [
+          { $match : <match-predicate> }
+      ]});
+
+   The following example performs a simple field equality test:
+
+   .. code-block:: javascript
+
+      db.runCommand(
+      { aggregate : "article", pipeline : [
+          { $match : { author : "dave" } }
+      ]});
+
+   This operation only returns documents where the "``author``" field
+   holds the value "``dave``". Consider the following example,
+   which performs a range test:
+
+   .. code-block:: javascript
+
+      db.runCommand(
+      { aggregate : "article", pipeline : [
+          { $match : { score  : { $gt : 50, $lte : 90 } } }
+      ]});
+
+   Here, all documents return when the ``score`` field holds a value
+   that is greater than 50, but less than or equal to 90.
+
+   .. seealso:: :operator:`$gt` and :operator:`$lte`.
+
+   .. note::
+
+      Place the :aggregator:`$match` as early in the aggregation
+      :term:`pipeline` as possible. Because :aggregator:`$match`
+      limits the total number of documents in the aggregation
+      pipeline, earlier :aggregator:`$match` operations minimize the
+      amount of later processing. If you place a :aggregator:`$match`
+      at the very beginning of a pipeline, the query can take
+      advantage of :term:`indexes` like any other :js:func:`find()` or
+      :js:func:`findOne()`.
 
 .. aggregator:: $limit
 
--  [$limit\|Aggregation Framework - $limit] \\- limit the number of
-   documents that pass through the document stream
+   Restricts the number of :term:`JSON documents <json document>` that
+   pass through the :aggregator:`$limit` in the :term:`pipeline`.
+
+   :aggregator:`$limit` takes a single numeric (positive whole number)
+   value as a parameter. Once the specified number of documents pass
+   through the pipeline operator, no more will. Consider the following
+   example:
+
+   .. code-block:: javascript
+
+      db.runCommand(
+      { aggregate : "article", pipeline : [
+          { $limit : 5 }
+      ]});
+
+   This operation returns only the first 5 documents passed to it from
+   by the pipeline. :aggregator:`$limit` has no effect on the content
+   of the documents it passes.
 
 .. aggregator:: $skip
 
--  [$skip\|Aggregation Framework - $skip] \\- skip over a number of
-   documents that pass through the document stream
+   Skips over a number of :term:`JSON document <json document>` that
+   pass through the :aggregator:`$limit` in the
+   :term:`pipeline`. before passing all of the remaining input.
+
+   :aggregator:`$skip` takes a single numeric (positive whole number)
+   value as a parameter. Once the operation has skipped the specified
+   number of documents, all remaining documents are passed along the
+   :term:`pipeline` without alteration. Consider the following
+   example:
+
+   .. code-block:: javascript
+
+      db.runCommand(
+      { aggregate : "article", pipeline : [
+          { $skip : 5 }
+      ]});
+
+   This operation skips the first 5 documents passed to it by the
+   pipeline. :aggregator:`$skip` has no effect on the content of the
+   documents it passes along the pipeline.
 
 .. aggregator:: $unwind
 
--  [$unwind\|Aggregation Framework - $unwind] \\- unwind an array,
-   subsituting each value in the array for the array within the same
-   document
+   Peels off the elements of an array individually, and returns a
+   stream of documents. :aggregator:`$unwind` returns one document for
+   every member of the unwound array, within every source
+   document. Take the following aggregation command:
+
+   .. code-block:: javascript
+
+      db.runCommand(
+      { aggregate : "article", pipeline : [
+          { $project : {
+              author : 1 ,
+              title : 1 ,
+              tags : 1
+          }},
+          { $unwind : "$tags" }
+      ]});
+
+   .. note::
+
+      The dollar sign (i.e. "``$``") must proceed the field
+      specification handed to the :aggregator:`$unwind` operator.
+
+   In the above aggregation :aggregator:`$project`, and selects
+   (inclusively) the ``author``, ``title``, and ``tags`` fields, as
+   well as the ``_id`` field implicitly. Then the pipeline passes the
+   results of the projection to the :aggregator:`$unwind` operator,
+   which will unwind the "``tags`` field. This operation may return
+   a sequence of documents that resemble the following for a
+   collection that contains one document holding a "``tags``" field
+   with an array of 3 items.
+
+   .. code-block:: javascript
+
+      {
+           "result" : [
+                   {
+                           "_id" : ObjectId("4e6e4ef557b77501a49233f6"),
+                           "title" : "this is my title",
+                           "author" : "bob",
+                           "tags" : "fun"
+                   },
+                   {
+                           "_id" : ObjectId("4e6e4ef557b77501a49233f6"),
+                           "title" : "this is my title",
+                           "author" : "bob",
+                           "tags" : "good"
+                   },
+                   {
+                           "_id" : ObjectId("4e6e4ef557b77501a49233f6"),
+                           "title" : "this is my title",
+                           "author" : "bob",
+                           "tags" : "fun"
+                   }
+           ],
+           "OK" : 1
+      }
+
+   A single document becomes 3 documents: each document is identical
+   except for the value of the ``tags`` field. Each value of ``tags``
+   is one of the values in the original "tags" array.
+
+   .. note::
+
+      The following behaviors are present in :aggregator:`$unwind`:
+
+      - :aggregator:`$unwind` is most useful in combination
+        with :aggregator:`$group`.
+
+      - The effects of an unwind can be undone with the
+        :aggregator:`$push` or :aggregator:`$group` pipeline
+        operators.
+
+      - If you specify a target field for :aggregator:`$unwind` that
+        does not exist in an input document, the document passes
+        through :aggregator:`$unwind` unchanged.
+
+      - If you specify a target field for :aggregator:`$unwind` that
+        is not an array, the :command:`aggregate` generates an error.
+
+      - If you specify a target field for :aggregator:`$unwind` that
+        holds an empty array ("``[]``"), then the document passes
+        through unchanged.
 
 .. aggregator:: $group
 
--  [$group\|Aggregation Framework - $group] \\- group documents by key
-   and calculate aggregate values for the group
+   Groups documents together for the purpose of calculating aggregate
+   values based on a collection of documents. Practically, you may use
+   this functionality to calculate the average number of page views
+   for each page in a website on a daily basis.
+
+
+
+   - [$group\|Aggregation Framework - $group] \\- group documents by
+     key and calculate aggregate values for the group
+
+
+
+   .. group:: $addToSet
+
+   .. group:: $first
+
+   .. group:: $last
+
+   .. group:: $max
+
+   .. group:: $min
+
+   .. group:: $push
+
+   .. group:: $sum
 
 .. aggregator:: $sort
 
@@ -71,8 +442,6 @@ Expressions
 
 These operators perform transformations within the :term:`aggregation
 framework`.
-
-.. expression:: $something
 
 Boolean Operators
 ~~~~~~~~~~~~~~~~~

@@ -1,5 +1,5 @@
 =====================
-Aggregating Framework
+Aggregation Framework
 =====================
 
 .. versionadded:: 2.1.0
@@ -62,7 +62,17 @@ framework returns documents in the same manner as all other queries.
    input document: operators may also generate new documents or filter
    out documents.
 
-.. seealso:: :doc:`/reference/aggregation`
+.. seealso:: The ":doc:`/reference/aggregation`" reference includes
+   documentation of the following pipeline operators:
+
+   - :aggregator:`$project`
+   - :aggregator:`$match`
+   - :aggregator:`$limit`
+   - :aggregator:`$skip`
+   - :aggregator:`$unwind`
+   - :aggregator:`$group`
+   - :aggregator:`$sort`
+   - :aggregator:`$out`
 
 .. _aggregation-expressions:
 
@@ -97,9 +107,9 @@ Invoke an :term:`aggregation` operation with the :command:`aggregate`
 and :command:`pipeline`. :command:`aggregate` specifies the name of
 the collection to use at the head of the :term:`pipeline`. The
 :command:`pipeline` command specifies an array of :ref:`pipeline
-operators <aggregation-pipeline-operators>`, where each :ref:`pipeline
-operator <aggregation-pipeline-operators>` may have a number of
-operands.
+operators <aggregation-pipeline-operator-reference>`, where each
+:ref:`pipeline operator <aggregation-pipeline-operator-reference>` may
+have a number of operands.
 
 Because the :term:`aggregation framework` is accessible by way of the
 :term:`database commands <database command>` the interface is the same
@@ -204,40 +214,47 @@ operators at or near the beginning of the pipeline at when possible.
 Memory for Cumulative Operators
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Certain pipeline operators need to see their entire input set before
-they can produce any output. For example, :aggregator:`$sort` must see
-all of its input before producing its first output document. The
-current implementation does not go to disk in such cases, and all of
-the input must fit in memory to be sorted.
+Certain pipeline operators require access to the entire input set
+before they can produce any output. For example, :aggregator:`$sort`
+must receive all of the input from the preceding :term:`pipeline`
+operator before it can produce its first output document. The current
+implementation of :aggregator:`$sort` does not go to disk in these
+cases: in order to sort the contents of the pipeline, the entire input
+must fit in memory.
 
-:aggregator:`$group` has similar characteristics, and must also see
-all of its input before anything can be produced. However, this
-usually doesn’t require as much memory as sorting, because only one
-record needs to be kept for each unique key in the grouping
-specification.
+:aggregator:`$group` has similar characteristics: Before any
+:aggregator:`$group` passes its output along the pipeline, it must
+receive the entity of its input. For the case of :aggregator:`$group`
+this frequently does not require as much memory as
+:aggregator:`$sort`, because it only needs to retain one record for
+each unique key in the grouping specification.
 
-The current implementation will log a warning if a cumulative operator
-consumes 5% or more of the physical memory on the host. Cumulative
-operators will signal an error if they consume 10% or more of the
-physical memory on the host.
+The current implementation of the aggregation framework logs a warning
+if a cumulative operator consumes 5% or more of the physical memory on
+the host. Cumulative operators produce an error if they consume 10% or
+more of the physical memory on the host.
 
 Sharded Operation
 -----------------
 
-The aggregation framework can be used on sharded collections.
+The aggregation framework is compatible with sharded collections.
 
-When the source collection is sharded, the aggregation pipeline will
-be split into two parts. All of the operators up to and including the
-first :aggregator:`$group` or :aggregator:`$sort` are pushed to each
-shard. (If an early :aggregator:`$match` can exclude shards through
-the use of the shard key in the predicate, then these operators are
-only pushed to the relevant shards.) A second pipeline, consisting of
-the first :aggregator:`$group` or :aggregator:`$sort` and any
-remaining pipeline operators, is executed in mongos, using the results
-received from the shards.
+When the operating on a sharded collection, the aggregation pipeline
+splits into two parts. The aggregation framework pushes all of the
+operators up to and including the first :aggregator:`$group` or
+:aggregator:`$sort` to each shard using the results received from the
+shards. [#match-sharding]_ Then, a second pipeline on the
+:option:`mongos` runs. This pipeline consists of the first
+:aggregator:`$group` or :aggregator:`$sort` and any remaining pipeline
+operators
 
-For :aggregator:`$sort`, the results are merged. For
-:aggregator:`$group`, any “sub-totals” are brought in and combined; in
-some cases these may be structures. For example, the
-:expression:`$avg` expression maintains a total and count for each
-shard; these are combined in mongos and then divided.
+The :option:`mongos` pipeline merges :aggregator:`$sort` operations
+from the shards. The :aggregator:`$group`, brings any “sub-totals”
+from the shards and combines them: in some cases these may be
+structures. For example, the :expression:`$avg` expression maintains a
+total and count for each shard; the :option:`mongos` combines these
+values and then divides.
+
+.. [#match-sharding] If an early :aggregator:`$match` can exclude
+   shards through the use of the shard key in the predicate, then
+   these operators are only pushed to the relevant shards.
