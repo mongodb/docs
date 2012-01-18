@@ -83,11 +83,8 @@ Sharding
 .. dbcommand:: shardCollection
 
    The ``shardCollection`` command marks a collection for sharding and
-   will begin the process of distributing the data among the
-   shards. Call :dbcommand:`enableSharding` before calling the
-   ``shardCollection`` command. Consider the following syntax: ::
-   will allow data to begin distributing among shards.
-   You must run :dbcommand:`enableSharding` on a database before running the
+   will allow data to begin distributing among shards. You must run
+   :dbcommand:`enableSharding` on a database before running the
    ``shardCollection`` command. ::
 
         { shardcollection: "<db>.<collection>", key: "<shardkey>" }
