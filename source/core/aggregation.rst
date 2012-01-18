@@ -103,10 +103,10 @@ Use
 Invocation
 ~~~~~~~~~~
 
-Invoke an :term:`aggregation` operation with the :command:`aggregate`
-and :command:`pipeline`. :command:`aggregate` specifies the name of
+Invoke an :term:`aggregation` operation with the :dbcommand:`aggregate`
+and :dbcommand:`pipeline`. :dbcommand:`aggregate` specifies the name of
 the collection to use at the head of the :term:`pipeline`. The
-:command:`pipeline` command specifies an array of :ref:`pipeline
+:dbcommand:`pipeline` command specifies an array of :ref:`pipeline
 operators <aggregation-pipeline-operator-reference>`, where each
 :ref:`pipeline operator <aggregation-pipeline-operator-reference>` may
 have a number of operands.
@@ -156,7 +156,7 @@ command:
     ] }
    );
 
-This command calls the :command:`aggregate` on the :term:`collection`
+This command calls the :dbcommand:`aggregate` on the :term:`collection`
 "``article``", selects the fields ``author`` and ``tags`` using the
 :aggregator:`$project`, and runs the :expression:`$unwind` and
 :expression:`$group` on these fields to pivot the data.
@@ -184,7 +184,7 @@ Optimizing Performance
 Early Filtering
 ~~~~~~~~~~~~~~~
 
-Because the :command:`aggregate` uses a :term:`collection` as the
+Because the :dbcommand:`aggregate` uses a :term:`collection` as the
 beginning of a pipeline, it may be more efficient in some situations
 to avoid scanning an entire collection.
 
@@ -195,7 +195,7 @@ suitable indexes to access the matching element or elements in a
 collection.
 
 When :aggregator:`$match` appears first in the :term:`pipeline`, the
-:command:`pipeline` begins with results of a :term:`query` rather than
+:dbcommand:`pipeline` begins with results of a :term:`query` rather than
 the entire contents of a collection.
 
 :term:`Aggregation` operations have an optimization phase, before

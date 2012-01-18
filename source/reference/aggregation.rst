@@ -392,7 +392,7 @@ The current pipeline operators are:
         through :aggregator:`$unwind` unchanged.
 
       - If you specify a target field for :aggregator:`$unwind` that
-        is not an array, the :command:`aggregate` generates an error.
+        is not an array, the :dbcommand:`aggregate` generates an error.
 
       - If you specify a target field for :aggregator:`$unwind` that
         holds an empty array ("``[]``"), then the document passes

@@ -27,7 +27,7 @@ form:
    db.collection.stats(1024)
    db.runCommand( { collStats: "collection", scale: 1024 } )
 
-The above commands are equivalent. See :command:`colStats` for
+The above commands are equivalent. See :dbcommand:`colStats` for
 more information.
 
 Fields

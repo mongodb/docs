@@ -129,7 +129,7 @@ Document
 .. operator:: $nin
 
    The ``$nin`` operator provides a "not in," as the inverse of
-   :mongodb:operator:`$in`. For example: ::
+   :operator:`$in`. For example: ::
 
         db.collection.find( { age: { $nin: [ 3, 5, 7 } } );
 
@@ -160,7 +160,7 @@ Geolocation
    The ``$maxDistance`` operator specifies an upward bound to limit
    the results of a geolocation query. See below, where the
    ``$maxDistance`` command narrows the results of the
-   :mongodb:operator:`$near` query: ::
+   :operator:`$near` query: ::
 
         db.collection.find( { location: { $near: [100,100], $maxDistance: 10 } } );
 
@@ -212,21 +212,21 @@ Geolocation
 
 .. operator:: $uniqueDocs
 
-   When using the :command:`geoNear`, if document contains more than
+   When using the :dbcommand:`geoNear`, if document contains more than
    one field with coordinate values, MongoDB will return the same
-   document multiple times. When using the :mongodb:operator:`$within`,
+   document multiple times. When using the :operator:`$within`,
    however, MongoDB returns opposite behavior.
 
    The ``$uniqueDocs`` operator oerrides these default behaviors. By
-   specifying "``$uniqueDocs: false``" in a :mongodb:operator:`$within`
+   specifying "``$uniqueDocs: false``" in a :operator:`$within`
    query, will cause true ``$within`` queries to return a single
    document multiple times if there is more than one match. By extension
    by specifying "``uniqueDocs: true``" as an option to the
-   :command:`geoNear`, this command will only return a single document
+   :dbcommand:`geoNear`, this command will only return a single document
    once even if there are multiple matches.
 
    The ``$uniqueDocs`` operator cannot be specified with
-   :mongodb:operator:`$near` queries.
+   :operator:`$near` queries.
 
 TODO clarify $uniqueDocs as the wiki is unclear here. The true/false in the wiki seams to not line up with the behavior.
 
@@ -291,15 +291,15 @@ Logical
    ``$not`` is a meta operator used to negate a standard operator. It
    can only affect other operators, and cannot be used to check fields
    and documents independently. For this functionality see
-   :mongodb:operator:`$ne`. Consider the following statement: ::
+   :operator:`$ne`. Consider the following statement: ::
 
         db.collection.find( { field: { $not: { $type: 2 } } } );
 
    This query returns all documents in ``collection`` where ``field``
-   is *not* a string, using the :mongodb:operator:`$type` operator.
+   is *not* a string, using the :operator:`$type` operator.
 
    The ``$not`` operator does not support operations with
-   :mongodb:operator:`$regex`. When using $not, all regular expressions should
+   :operator:`$regex`. When using $not, all regular expressions should
    be passed using the native BSON type. For example, consider the
    following expression fragment in Python, using the PyMongo driver: ::
 
@@ -401,7 +401,7 @@ Element
 .. operator:: $mod
 
    The ``$mod`` operator performs a fast "modulo" query, to reduce the
-   need for expensive :mongodb:operator:`$where` operator in some
+   need for expensive :operator:`$where` operator in some
    cases. ``$mod`` performs a modulo operation on the value of a
    field, and returns all documents that with that modulo value. For
    example: ::
@@ -410,7 +410,7 @@ Element
 
    returns all documents in ``collection`` with a modulo of ``m``,
    with a divisor of ``d``. This replaces the following
-   :mongodb:operator:`$where` operation: ::
+   :operator:`$where` operation: ::
 
         db.collection.find( "field % d == m" );
 
@@ -426,7 +426,7 @@ JavaScript
         db.collection.find( { $where: "this.a > 3" } );
 
    In this case, the following query is equivalent to the following
-   operation using the :mongodb:operator:`$gt`: ::
+   operation using the :operator:`$gt`: ::
 
         db.collection.find( { a : { $gt: 3 } } );
 
@@ -555,11 +555,11 @@ TODO does update() iterate over the whole collection or just the first matching 
 
    - If ``value`` is an array itself, an array will be appended as an
      element in the identified array. To add multiple items to an
-     array, use :mongodb:operator:`$pushAll`.
+     array, use :operator:`$pushAll`.
 
 .. operator:: $pushAll
 
-   The ``$pushAll`` operator is similar to the :mongodb:operator:`$push` but
+   The ``$pushAll`` operator is similar to the :operator:`$push` but
    adds the ability to append several values to an array at once.
 
    .. code-block:: javascript
@@ -571,7 +571,7 @@ TODO does update() iterate over the whole collection or just the first matching 
    matched by the statement ``{ field: value }`` in ``collection``.
 
    If you specify a single value, ``$pushAll`` will behave as
-   :mongodb:operator:`$push`.
+   :operator:`$push`.
 
 TODO determine what the performance impacts of using $pushAll with single values are.
 
@@ -581,7 +581,7 @@ TODO determine what the performance impacts of using $pushAll with single values
    value is *not* in the array already. If the value *is* in the
    array, ``$addToSet`` returns without modifying the
    array. Otherwise, ``$addToSet`` behaves the same as
-   :mongodb:operator:`$push`. Consider the following example: ::
+   :operator:`$push`. Consider the following example: ::
 
         db.collection.update( { field: value }, { $addToSet: { field: value1 } } );
 

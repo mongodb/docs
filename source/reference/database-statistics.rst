@@ -10,7 +10,7 @@ Synopsis
 
 MongoDB can report data reflecting the current state of the current
 database. In this context "database," refers to a single MongoDB
-database. To run :command:`dbStats` issue a command in the shell that
+database. To run :dbcommand:`dbStats` issue a command in the shell that
 resembles the following:
 
 .. code-block:: javascript
@@ -26,7 +26,7 @@ convert to kilobytes, use the following form:
    db.stats(1024)
    db.runCommand( { dbStats: 1, scale: 1024 } )
 
-The above commands are equivalent. See :command:`dbStats` for more
+The above commands are equivalent. See :dbcommand:`dbStats` for more
 information.
 
 Fields

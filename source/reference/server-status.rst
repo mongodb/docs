@@ -4,7 +4,7 @@ Server Status Reference
 
 .. default-domain:: mongodb
 
-The :command:`serverStatus` returns a collection of information that
+The :dbcommand:`serverStatus` returns a collection of information that
 reflects the database's status. These data are useful for diagnosing
 and assessing the performance of your MongoDB instance. This reference
 catalogs each datum included in the output of this command and

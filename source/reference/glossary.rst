@@ -495,7 +495,7 @@ Glossary
       from one :term:`shard` to another. Shards must be drained before
       they can be removed from the cluster.
 
-      .. seealso:: :mongodb:command:`removeshard``
+      .. seealso:: :mongodb:dbcommand:`removeshard``
 
    single master replication
       A :term:`replication` method where only a single database
@@ -570,7 +570,7 @@ Glossary
    hidden node
       A member of a :term:`replica set` that cannot become primary and
       is not advertised as part of the set in the :term:`database
-      command` :mongodb:command:`isMaster`, which prevents it from
+      command` :mongodb:dbcommand:`isMaster`, which prevents it from
       receiving read-only queries depending on :term:`read
       preference`.
 

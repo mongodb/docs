@@ -23,8 +23,8 @@ All ``mongofiles`` commands take arguments in three groups:
 3. A file name representing either the name of a file on your system's
    file system, a GridFS object.
 
-Like :command:`mongodump`, :command:`mongoexport`,
-:command:`mongoimport`, and :command:`mongorestore` ``mongofiles`` can
+Like :option:`mongodump`, :option:`mongoexport`,
+:option:`mongoimport`, and :option:`mongorestore` ``mongofiles`` can
 access data stored in a MongoDB data directory without requiring a
 running ``mongod`` instance, if no other ``mongod`` is running.
 
@@ -55,7 +55,7 @@ Commands
    Here, ``<filename>`` refers to the name the object will have in
    GridFS, and ``mongofiles`` assumes that this reflects the name the
    file has on the local file system. If the local filename is
-   different use the :command:`mongofiles --local` option.
+   different use the :option:`mongofiles --local` option.
 
 .. option:: get <filename>
 
@@ -65,7 +65,7 @@ Commands
    Here, ``<filename>`` refers to the name the object will have in
    GridFS, and ``mongofiles`` assumes that this reflects the name the
    file has on the local file system. If the local filename is
-   different use the :command:`mongofiles --local` option.
+   different use the :option:`mongofiles --local` option.
 
 .. option:: delete <filename>
 
@@ -116,7 +116,7 @@ Options
 
    Specifies the port number, if the MongoDB instance is not running on
    the standard port. (i.e. ``27017``) You may also specify a port
-   number using the :command:`mongofiles --host` command.
+   number using the :option:`mongofiles --host` command.
 
 .. option:: --ipv6
 

@@ -209,8 +209,8 @@ Possible causes of replication lag include:
   Check the network routes between the members of your set, to ensure
   that there is no packet loss or network routing issue.
 
-  Use tools including :command:`ping` to test latency between set
-  members and :command:`traceroute` to expose the routing of packets
+  Use tools including :dbcommand:`ping` to test latency between set
+  members and :dbcommand:`traceroute` to expose the routing of packets
   network endpoints.
 
 - **Disk Throughput.**
@@ -224,7 +224,7 @@ Possible causes of replication lag include:
   EBS system.)
 
   Use system-level tools to assess disk status including
-  :command:`iostat` or :command:`vmstat`.
+  :dbcommand:`iostat` or :dbcommand:`vmstat`.
 
 - **Concurrency.**
 

@@ -2,6 +2,8 @@
 Convert a Replica Set to a Replicated Shard Cluster
 ===================================================
 
+.. default-domain:: mongodb
+
 Overview
 --------
 
@@ -204,7 +206,7 @@ store the cluster's metadata.
            mongo localhost:27017/admin
 
    2. Add the first shard to the cluster, by issuing the
-      :mongodb:command:`addshard` command as follows:
+      :dbcommand:`addshard` command as follows:
 
       .. code-block: javascript
 
@@ -279,7 +281,7 @@ above, omitting the test data.
 
 
 6. Verify that both shards are properly configured by running the
-   :mongodb:command:`listshards` command. View this and example output
+   :dbcommand:`listshards` command. View this and example output
    below:
 
    .. code-block: javascript
@@ -309,7 +311,7 @@ collection levels.
 Enabling Sharding on the Database Level
 ```````````````````````````````````````
 
-Issue the :mongodb:command:`enablesharding` command. The "``test``"
+Issue the :dbcommand:`enablesharding` command. The "``test``"
 argument specifies the name of the database. See the following
 example:
 

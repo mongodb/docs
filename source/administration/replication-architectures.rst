@@ -2,6 +2,8 @@
 Replication Architectures
 =========================
 
+.. default-domain:: mongodb
+
 There is no single :term:`replica set` architecture that is compatible
 or ideal for every deployment or environment. Indeed the flexibility
 of replica sets is perhaps its greatest strenght. This document
@@ -125,8 +127,8 @@ nodes:
 
 - **Hidden**: These nodes cannot become primary, but are hidden from
   the output of :js:func:`db.isMaster()` or the database command
-  :mongodb:command:`isMaster`, which prevents clients and drivers from
-  using these nodes for secondary reads. (:ref:`see also
+  :dbcommand:`isMaster`, which prevents clients and drivers from using
+  these nodes for secondary reads. (:ref:`see also
   <replica-set-hidden-nodes>`.)
 
 - **Voting**: This changes the number of votes that a node has in

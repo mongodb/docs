@@ -95,7 +95,7 @@ Configuration Variables
 
    When this value is "``true``", the node is hidden and will not be
    displayed in the output of :js:func:`db.isMaster()` or
-   :mongodb:command:`isMaster`. This prevents read operations
+   :mongodb:dbcommand:`isMaster`. This prevents read operations
    (i.e. queries) from ever reaching this host by way of secondary
    :term:`read preference`.
 
@@ -138,7 +138,7 @@ Configuration Variables
    Use in conjunction with :js:data:`settings.getLastErrorModes` and
    :js:data:`settings.getLastErrorDefaults` and
    :js:func:`db.getLastError()`
-   (i.e. :mongodb:command:`getLastError`.)
+   (i.e. :mongodb:dbcommand:`getLastError`.)
 
 .. js:data:: members.slaveDelay
 
@@ -187,9 +187,9 @@ Configuration Variables
 
    **Type**: :term:`JSON`
 
-   Specify arguments to the :mongodb:command:`getLastError` that will
+   Specify arguments to the :mongodb:dbcommand:`getLastError` that will
    be used for members of this replica set when no arguments to
-   :mongodb:command:`getLastError` are used. If you specify *any*
+   :mongodb:dbcommand:`getLastError` are used. If you specify *any*
    arguments, then these settings will be ignored.
 
 .. js:data:: settings.getLastErrorModes
@@ -200,7 +200,7 @@ Configuration Variables
 
    Defines the names and combination of :js:data:`tags <members.tags>`
    that can be used by the application layer to guarantee :term:`write
-   propagation` to database using the :mongodb:command:`getLastError`
+   propagation` to database using the :mongodb:dbcommand:`getLastError`
    command to provide :term:`data center awareness`.
 
 .. _replica-set-reconfiguration-usage:

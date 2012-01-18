@@ -2,23 +2,25 @@
 ``mongoimport`` Utility Manual
 ==============================
 
+.. default-domain:: mongodb
+
 Synopsis
 --------
 
 The ``mongoimport`` utility provides a route to import content from a
-JSON, CSV, or TSV export created by :command:`mongoexport`, or
+JSON, CSV, or TSV export created by :option:`mongoexport`, or
 potentially, another third-party export tool. See the
 ":doc:`/administration/import-export`" document for a more in depth
 usage overview, and the ":doc:`mongoexport`" document for more
-information regarding the :command:`mongoexport` utility, which
+information regarding the :option:`mongoexport` utility, which
 provides the inverse "importing" capability.
 
 .. note::
 
-   ``mongoimport`` and ``mongoexport`` should not be used for
+   Do not use :option:`mongoimport` and :option:`mongoexport` for
    full-scale backups because they may not reliably capture data type
-   information. Use :command:`mongodump` and :command:`mongorestore``
-   as described in ":doc:`/administration/backups`" for this kind of
+   information. Use :option:`mongodump` and :option:`mongorestore` as
+   described in ":doc:`/administration/backups`" for this kind of
    functionality.
 
 Options
@@ -38,7 +40,7 @@ Options
 
 .. option:: --version
 
-   Returns the version of the ``mongoimport`` utility.
+   Returns the version of the :option:`mongoimport` utility.
 
 .. option:: --host <hostname><:port>
 
@@ -65,7 +67,7 @@ Options
 
    Specifies the port number, if the MongoDB instance is not running on
    the standard port. (i.e. ``27017``) You may also specify a port
-   number using the :command:`mongoimport --host` command.
+   number using the :option:`mongoimport --host` command.
 
 .. option:: --ipv6
 
@@ -137,7 +139,7 @@ TODO factcheck
 
 .. option:: --fieldFile [filename]
 
-   As an alternative to ":command:`mongoimport --fields`" the
+   As an alternative to ":option:`mongoimport --fields`" the
    ``--fieldFile`` option allows you to specify a file
    (e.g. ``[file]```) to hold a list of field names to specify a list
    of fields to *include* in the export. All other fields will be
@@ -169,8 +171,8 @@ TODO factcheck
 
 .. option:: --headerline
 
-   If using ":command:`mongoimport --type csv`" or
-   ":command:`mongoimport --type tsv`," use the first line as field
+   If using ":option:`mongoimport --type csv`" or
+   ":option:`mongoimport --type tsv`," use the first line as field
    names. Otherwise, the first line will be imported as a distinct
    document.
 
@@ -198,7 +200,7 @@ TODO factcheck
    Accept import of data expressed with multiple MongoDB document
    within a single :term:`JSON` array.
 
-   Use in conjunction with :command:`mongoexport --jsonArray` to
+   Use in conjunction with :option:`mongoexport --jsonArray` to
    import data written as a single :term:`JSON` array. Limited to
    imports of 4 MB or smaller.
 

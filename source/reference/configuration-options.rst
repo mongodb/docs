@@ -596,7 +596,7 @@ Sharding Cluster Options
    *Default:* false
 
    Disables a "paranoid mode" for data writes for the
-   :command:`moveChunk`.
+   :dbcommand:`moveChunk`.
 
 .. setting:: configdb
 

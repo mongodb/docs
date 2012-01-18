@@ -255,7 +255,7 @@ Database
    succeed.
 
    This function provides a wrapper around the MongoDB :term:`database
-   command` ":command:`clone`." The :command:`copydb` database command
+   command` ":dbcommand:`clone`." The :dbcommand:`copydb` database command
    provide related functionality.
 
 .. js:function:: db.commandHelp(command)
@@ -283,7 +283,7 @@ Database
    databases implicitly when they do not exit.
 
    This function provides a wrapper around the MongoDB :term:`database
-   command` ":command:`copydb`." The :command:`clone` database command
+   command` ":dbcommand:`copydb`." The :dbcommand:`clone` database command
    provide related functionality.
 
 .. js:function:: db.createCollection(name [{size: <value>, capped: <boolean> , max <bytes>}] )
@@ -324,7 +324,7 @@ Database
    5 megabytes (5120 bytes,) or a maximum of 5000 documents.
 
    This command provides a wrapper around the database command
-   ":command:`create`. See the ":doc:`/core/capped-collections`"
+   ":dbcommand:`create`. See the ":doc:`/core/capped-collections`"
    document for more information about capped collections.
 
 .. js:function:: db.currentOp()
@@ -389,7 +389,7 @@ Database
    This "safe mode" is ideal for many--but not all--write operations.
 
    .. seealso:: ":ref:`Replica Set Write Propagation <replica-set-write-propagation>`"
-      and ":command:`getLastError`."
+      and ":dbcommand:`getLastError`."
 
 .. js:function:: db.getLastErrorObj()
 
@@ -421,16 +421,16 @@ Database
    :returns: A status document, containing the errors.
 
    This output reports all errors since the last time the
-   :command:`resetError` (also :js:func:`db.resetError()`)
+   :dbcommand:`resetError` (also :js:func:`db.resetError()`)
    command was issued.
 
    This command provides a wrapper around the
-   :command:`getPrevError` command.
+   :dbcommand:`getPrevError` command.
 
 .. js:function:: db.getProfilingLevel()
 
    This function provides a wrapper around the database command
-   ":command:`profile`" and returns the current profiling
+   ":dbcommand:`profile`" and returns the current profiling
    level.
 
    .. deprecated:: 1.8.4
@@ -438,7 +438,7 @@ Database
 
 .. js:function:: db.getProfilingStatus()
 
-   :returns: The current :command:`profile` level and
+   :returns: The current :dbcommand:`profile` level and
              :setting:`slowms` setting.
 
 .. js:function:: db.getReplicationInfo()
@@ -475,7 +475,7 @@ Database
    authenticated.
 
    This function provides a wrapper around the database command
-   ":command:`logout`".
+   ":dbcommand:`logout`".
 
 .. js:function:: db.printCollectionStats()
 
@@ -522,20 +522,20 @@ Database
    storage. This function is analogous to a ``fsck`` operation for
    file systems. Additionally, the function compacts the database to
    optimize the current database's storage utilization, as with the
-   :command:`compact` command.
+   :dbcommand:`compact` command.
 
    This function has the same effect as using the runtier option
    ":option:`mongodb --repair`," but only operates on the current
    database.
 
    This command provides a wrapper around the database command
-   ":command:`repairDatabase`".
+   ":dbcommand:`repairDatabase`".
 
 .. js:function:: db.resetError()
 
    Resets the error message returned by :js:func:`db.getPrevError` or
-   :command:`getPrevError`. Provides a wrapper around the
-   :command:`resetError` command.
+   :dbcommand:`getPrevError`. Provides a wrapper around the
+   :dbcommand:`resetError` command.
 
 .. js:function:: db.runCommand(command)
 
@@ -561,7 +561,7 @@ Database
    process' state.
 
    This command provides a wrapper around the database command
-   :command:`serverStatus`.
+   :dbcommand:`serverStatus`.
 
    .. seealso:: ":doc:`/reference/server-status`" for complete
       documentation of the output of this function.
@@ -595,7 +595,7 @@ Database
    milliseconds to override the default.
 
    This command provides a wrapper around the :term:`database command`
-   :command:`profile`.
+   :dbcommand:`profile`.
 
    MongoDB writes the output of the database profiler to the
    ``system.profile`` collection.
@@ -608,7 +608,7 @@ Database
    This function will fail if the current database *is not* the admin
    database.
 
-   This command provides a wrapper around the :command:`shutdown`.
+   This command provides a wrapper around the :dbcommand:`shutdown`.
 
 .. js:function:: db.stats(scale)
 
@@ -620,7 +620,7 @@ Database
              reflecting the database system's state.
 
    This function provides a wrapper around the database command
-   ":command:`dbstats`". The "``scale``" option allows you to
+   ":dbcommand:`dbstats`". The "``scale``" option allows you to
    configure how the :option:`mongo` shell scales the output
    values. For example, specify a "``scale``" value of "``1024``" to
    display kilobytes rather than bytes.
@@ -641,7 +641,7 @@ Database
              reflecting the state of the specified collection.
 
    This function provides a wrapper around the database command
-   :command:`collstats`. The "``scale``" option allows you to
+   :dbcommand:`collstats`. The "``scale``" option allows you to
    configure how the :option:`mongo` shell scales the output
    values. For example, specify a "``scale``" value of "``1024``" to
    display kilobytes rather than bytes.
@@ -660,7 +660,7 @@ Database
    releases the lock with the :js:func:`db.fsyncUnlock()` command.
 
    This command provides a simple wrapper around a
-   :command:`fsync` database command with the following
+   :dbcommand:`fsync` database command with the following
    syntax: ::
 
         { fsync: 1, lock: true }
@@ -703,7 +703,7 @@ Sharding
    as in the final two examples.
 
    This function provides a wrapper around the administrative command
-   :command:`addShard`.
+   :dbcommand:`addShard`.
 
 .. js:function:: sh.enableSharding(database)
 
@@ -785,12 +785,12 @@ Sharding
    to the shard described by ``destination``.
 
    This function provides a wrapper around the
-   :command:`moveChunk`. In most circumstances,
+   :dbcommand:`moveChunk`. In most circumstances,
    allow the :term:`balancer` to automatically  migrate
    :term:`chunks`, and avoid calling :js:func:`sh.moveChunk()`
    directly.
 
-   .. seealso:: ":command:`moveChunk`" and ":doc:`/sharding`."
+   .. seealso:: ":dbcommand:`moveChunk`" and ":doc:`/sharding`."
 
 .. js:function:: sh.setBalancerState(state)
 
@@ -849,7 +849,7 @@ Replica Sets
    of the replica set.
 
    This command provides a wrapper around the
-   :command:`replSetGetStatus` :term:`database command`.
+   :dbcommand:`replSetGetStatus` :term:`database command`.
 
    .. seealso:: ":doc:`/reference/replica-status`" for documentation
                 of this output.
@@ -877,7 +877,7 @@ Replica Sets
           }
 
    This function provides a wrapper around the
-   ":command:`replSetInitiate`" :term:`database command`.
+   ":dbcommand:`replSetInitiate`" :term:`database command`.
 
 .. js:function:: rs.conf(configuration)
 
@@ -900,7 +900,7 @@ Replica Sets
    status, and consider the following procedure for modifying a
 
    This function provides a wrapper around the
-   ":command:`replSetReconfig`" :term:`database command`.
+   ":dbcommand:`replSetReconfig`" :term:`database command`.
 
 .. js:function:: rs.add(host,configuration)
 
@@ -926,7 +926,7 @@ Replica Sets
    error even if this command succeeds.
 
    ``rs.add()`` provides a wrapper around some of the functionality of
-   the ":command:`replSetReconfig`" :term:`database command`.
+   the ":dbcommand:`replSetReconfig`" :term:`database command`.
 
 .. js:function:: rs.addArb(hostname)
 
@@ -959,7 +959,7 @@ Replica Sets
    error even if this command succeeds.
 
    ``rs.step()`` provides a wrapper around the :term:`database
-   command` :command:`replSetStepDown`.
+   command` :dbcommand:`replSetStepDown`.
 
 .. js:function:: rs.freeze(seconds)
 
@@ -969,7 +969,7 @@ Replica Sets
    the period specified.
 
    ``rs.freeze()`` provides a wrapper around the :term:`database
-   command` :command:`replSetFreeze`.
+   command` :dbcommand:`replSetFreeze`.
 
 .. js:function:: rs.remove(hostname)
 
@@ -997,7 +997,7 @@ Replica Sets
    replication configuration.
 
    This function provides a wrapper around the :term:`database
-   command` :command:`isMaster`
+   command` :dbcommand:`isMaster`
 
 .. js:function:: rs.help()
 

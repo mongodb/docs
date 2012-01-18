@@ -2,6 +2,8 @@
 Monitoring Database Systems
 ===========================
 
+.. default-domain:: mongodb
+
 Monitoring is a critical component in all database administration
 work. A firm grasp of MongoDB's reporting approach allow you to
 effectively assess and maintain your deployment proactively.
@@ -91,7 +93,7 @@ REST Interface
 
 MongoDB also provides a :term:`REST` interface that exposes a
 diagnostic and monitoring information in a simple web page. Enable
-this by setting :mongodb:setting:`rest` to ``true``, and access this page via
+this by setting :setting:`rest` to ``true``, and access this page via
 the local host interface using the port numbered 1000 more than that
 the database port: in default configurations this is ``28017``.
 
@@ -109,24 +111,24 @@ serverStatus
 ````````````
 
 Return the :doc:`serverStatus data </reference/server-status/>` using
-the :command:`serverStatus` command. The document returned
+the :dbcommand:`serverStatus` command. The document returned
 contains a general overview of the state of the database, including
 disk usage, memory use, connection, journaling, access. The command is
 quick to run and does not impact the performance of your MongoDB
 instance.
 
 You can find a near complete account of the state of a MongoDB
-instance in the output of :mongodb:command:`serverStatus`
+instance in the output of :dbcommand:`serverStatus`
 command. Although, in most cases you will not run this command
 directly to assess the status of a MongoDB instance, it's a good idea
 to be familiar with the data provided by
-:mongodb:command:`serverStatus`.
+:dbcommand:`serverStatus`.
 
 replStats
 `````````
 
 View the :doc:`replStatus data </reference/replica-status>` with the
-:mongodb:command:`replStatus` command. The document returned by this
+:dbcommand:`replStatus` command. The document returned by this
 command contains information regarding the state and configuration of
 the replica set. Use this data to ensure that replication is properly
 configured, and to check the connections between the current host and
@@ -136,7 +138,7 @@ dbStats
 ```````
 
 The :doc:`dbStats data </reference/database-statistics>` is accessible
-by way of the :mongodb:command:`dbStats` command. This command returns
+by way of the :dbcommand:`dbStats` command. This command returns
 a document that contains data reflecting the amount of storage used
 and data contained in the database, as well as object, collection, and
 index counters among other relevant information. Use this data to
@@ -147,8 +149,8 @@ collStats
 `````````
 
 The :doc:`collStats data </reference/collection-statistics>` is
-accessible using the :mongodb:command:`collStats`. command. It
-provides statistics that resemble :mongodb:command:`dbStats` on the
+accessible using the :dbcommand:`collStats`. command. It
+provides statistics that resemble :dbcommand:`dbStats` on the
 collection level: this includes a count of the objects in the
 collection, the size of the collection, the amount of disk space used
 by the collection, and information about the indexes.
@@ -176,15 +178,15 @@ however, if certain operations are long-running, or a queue forms,
 performance slows as requests and operations wait for the lock. To
 determine if this effects your database, begin by checking the data
 conveyed in the :ref:`globalLock` section of the
-:command:`serverStatus` response. If
-:mongodb:status:`globalLock.currentQueue.total` is consistently high,
+:dbcommand:`serverStatus` response. If
+:status:`globalLock.currentQueue.total` is consistently high,
 then there is a chance that a large number of requests waiting for a
 lock. This indicates a possible concurrency issue that might effect
 performance.
 
-If :mongodb:status:`globalLock.toalTime` is high in context of
-:mongodb:status:`uptime` then the database has existed in a lock state
-for a significant amount of time. If :mongodb:status:`globalLock.ratio`
+If :status:`globalLock.toalTime` is high in context of
+:status:`uptime` then the database has existed in a lock state
+for a significant amount of time. If :status:`globalLock.ratio`
 is also high, MongoDB has likely been processing a large number of
 long running queries. Long queries are often the result of a number of
 factors: ineffective use of indexes resulting from non-optimal schema
@@ -202,11 +204,11 @@ it may make it difficult to determine if the amount of RAM is
 sufficient for the data set. Consider :ref:`memory usage statuses
 <memory-status>` to better understand MongoDB's memory utilization.
 
-Check the resident memory use (i.e. :mongodb:status:`mem.resident`:)
+Check the resident memory use (i.e. :status:`mem.resident`:)
 if this exceeds the amount of system memory *and* there's a
 significant amount of data on disk that isn't in RAM, you have
 exceeded the capacity of your system. Additionally, if the amount of
-mapped memory (i.e. :mongodb:status:`mem.mapped`) is greater than the
+mapped memory (i.e. :status:`mem.mapped`) is greater than the
 amount of system memory, some operations will require disk access to
 read data from virtual memory with deleterious effects on performance.
 
@@ -218,8 +220,8 @@ Page Faults
 Page faults represent the number of times that MongoDB requires data
 not located in physical memory, and must read from virtual memory. To
 check for page faults, see the
-:mongodb:status:`extra_info.page_faults` value in the
-:mongodb:command:`serverStatus` command. This data is only available
+:status:`extra_info.page_faults` value in the
+:dbcommand:`serverStatus` command. This data is only available
 on Linux systems.
 
 Alone page faults minor and complete quickly; however, in aggregate,
@@ -244,15 +246,15 @@ server to handle requests which can produce performance
 irregularities. Check the following fields in the :doc:`serverStatus
 </reference/server-status>` document:
 
-- :mongodb:status:`globalLock.activeClients` contains a counter of the total
+- :status:`globalLock.activeClients` contains a counter of the total
   number of clients with active operations in progress or queued.
 
-- :mongodb:status:`connections` is a container for the following two fields:
+- :status:`connections` is a container for the following two fields:
 
-  - :mongodb:status:`connections.current` the total number of current clients
+  - :status:`connections.current` the total number of current clients
     that connect to the database instance.
 
-  - :mongodb:status:`connections.available` the total number of unused
+  - :status:`connections.available` the total number of unused
     collections available for new clients.
 
 If requests are high because there are many concurrent application
@@ -274,7 +276,7 @@ Database Profiling
 
 MongoDB contains a database profiling system that can help identify
 inefficient queries and operations. Enable the profiler by setting the
-:mongodb:command:`profile` value using one of the following command in
+:dbcommand:`profile` value using one of the following command in
 the :option:`mongo` shell. These functions are equivalent:
 
 .. code-block:: javascript
@@ -304,7 +306,7 @@ The following profiling levels are available:
 
 See the output of the profiler in the :option:`mongod` log and use
 this information to optimize your queries and database. You can
-specify the :mongodb:setting:`slowms` to set a threshold above which
+specify the :setting:`slowms` to set a threshold above which
 the profiler considers operations "slow" and thus included in the
 level "``1``" profiling data. :option:`mongod` writes the output of
 the profiler in the ``system.profile`` collection. You can view the
@@ -317,7 +319,7 @@ will return all operations that lasted longer than 100 milliseconds:
    db.system.profile.find( { millis : { $gt : 100 } } )
 
 Ensure that the value specified here (i.e. ``100``) is above the
-:mongodb:setting:`slowms` threshold.
+:setting:`slowms` threshold.
 
 .. seealso:: ":doc:`/applications/optimization`" address strategies
    you can use to improve the performance of your database queries and
@@ -348,7 +350,7 @@ replication lag grows two significant problems emerge:
 Replication issues are most often the result of network connectivity
 issues between members or a :term:`primary` instance that does not
 have the resources to support application and replication traffic. To
-check the status of a replica use the :command:`replSetGetStatus` or
+check the status of a replica use the :dbcommand:`replSetGetStatus` or
 the following helper in the shell: ::
 
      rs.status()
@@ -357,17 +359,17 @@ See the ":doc:`/reference/replica-status`" document for a more in depth
 overview view of this output. In general watch the following two data
 points:
 
-- :mongodb:status:`optimeDate`. Pay particular attention to the difference in
+- :status:`optimeDate`. Pay particular attention to the difference in
   time between the :term:`primary` and the :term:`secondary` members.
 
-- :mongodb:status:`lastHeartbeat`, which reflects the last time each
+- :status:`lastHeartbeat`, which reflects the last time each
   member had any contact to the current member. Compare this to the
-  :mongodb:status:`date` which reflects the current date and time of
+  :status:`date` which reflects the current date and time of
   the member you're currently connected to.
 
 The size of the operation log is configurable at runtime using the
-:option:`mongod --oplogsize` argument to the :command:`mongod`
-command, or preferably the :mongodb:setting:`oplogsize` in the MongoDB
+:option:`mongod --oplogsize` argument to the :option:`mongod` command,
+or preferably the :setting:`oplogsize` in the MongoDB
 configuration file. The default size, is typically 5% of disk space on
 64-bit systems.
 

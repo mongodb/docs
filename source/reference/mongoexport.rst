@@ -9,15 +9,15 @@ Synopsis
 of data stored in a MongoDB instance. See the
 ":doc:`/administration/import-export`" document for a more in depth
 usage overview, and the ":doc:`mongoimport`" document for more
-information regarding the :command:`mongoimport` utility, which
+information regarding the :option:`mongoimport` utility, which
 provides the inverse "importing" capability.
 
 .. note::
 
-   :option:`mongoimport` and :option:`mongoexport` should not be used for
+   Do not use :option:`mongoimport` and :option:`mongoexport` for
    full-scale backups because they may not reliably capture data type
-   information. Use :command:`mongodump` and :command:`mongorestore``
-   as described in ":doc:`/administration/backups`" for this kind of
+   information. Use :option:`mongodump` and :option:`mongorestore` as
+   described in ":doc:`/administration/backups`" for this kind of
    functionality.
 
 Options
@@ -64,7 +64,7 @@ Options
 
    Specifies the port number, if the MongoDB instance is not running on
    the standard port. (i.e. ``27017``) You may also specify a port
-   number using the :command:`mongoexport --host` command.
+   number using the :option:`mongoexport --host` command.
 
 .. option:: --ipv6
 
@@ -131,7 +131,7 @@ Options
 
 .. option:: --fieldFile [file]
 
-   As an alternative to ":command:`--fields <mongoexport --fields>`"
+   As an alternative to ":option:`--fields <mongoexport --fields>`"
    the :option:`--fieldFile` option allows you to specify a file
    (e.g. ``[file]```) to hold a list of field names to specify a list
    of fields to *include* in the export. All other fields will be
@@ -161,7 +161,7 @@ Options
    nodes when using :option:`mongoexport` with a replica set. This
    option is only available if connected to a :option:`mongod`` or
    :option:`mongos` and is not available when used with the
-   ":command:`mongoexport --dbpath`" option.
+   ":option:`mongoexport --dbpath`" option.
 
    This is the default behavior.
 
@@ -196,9 +196,11 @@ in JSON format. ::
 
      mongoexport --db sales --collection contacts --dbpath /srv/mongodb/
 
-.. warning:: The above example will only succeed if there is no
-   :option:`mongod` connected to the data files located in the
-   ``/srv/mongodb/`` directory.
+.. warning::
+
+   The above example will only succeed if there is no :option:`mongod`
+   connected to the data files located in the ``/srv/mongodb/``
+   directory.
 
 The final example exports the collection "``contacts``" from the
 database "``marketing``" . This data resides on the MongoDB instance

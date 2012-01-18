@@ -160,27 +160,30 @@ class MongoDBDomain(Domain):
     label = 'MongoDB'
     # if you add a new object type make sure to edit MongoDBObject.get_index_string
     object_types = {
-        'command':      ObjType(l_('command'),     'command'),
+        'dbcommand':    ObjType(l_('dbcommand'),   'dbcommand'),
         'operator':     ObjType(l_('operator'),    'operator'),
         'setting':      ObjType(l_('setting'),     'setting'),
         'status':       ObjType(l_('status'),      'status'),
         'aggregator':   ObjType(l_('aggregator'),  'aggregator'),
+        'group':        ObjType(l_('group'),       'group'),
         'expression':   ObjType(l_('expression'),  'expression'),
     }
     directives = {
-        'command':       MongoDBCallable,
+        'dbcommand':     MongoDBCallable,
         'operator':      MongoDBCallable,
         'setting':       MongoDBCallable,
         'status':        MongoDBCallable,
         'aggregator':    MongoDBCallable,
+        'group':         MongoDBCallable,
         'expression':    MongoDBCallable,
     }
     roles = {
-        'command':     MongoDBXRefRole(),
+        'dbcommand':   MongoDBXRefRole(),
         'operator':    MongoDBXRefRole(),
         'setting':     MongoDBXRefRole(),
         'status':      MongoDBXRefRole(),
         'aggregator':  MongoDBXRefRole(),
+        'group':       MongoDBXRefRole(),
         'expression':  MongoDBXRefRole(),
     }
     initial_data = {

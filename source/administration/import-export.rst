@@ -57,8 +57,8 @@ a JSON or CSV format.
    covered here, please refer to these documents.
 
    If you want to simply copy a database or collection from one
-   instance to another, consider using the :mongodb:command:`copydb`,
-   :mongodb:command:`clone`, or :mongodb:command:`clonecollection`
+   instance to another, consider using the :dbcommand:`copydb`,
+   :dbcommand:`clone`, or :dbcommand:`clonecollection`
    commands, which may be more suited to this task.
 
 These tools may also be useful for importing data into a MongoDB data

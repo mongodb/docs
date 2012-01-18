@@ -61,7 +61,7 @@ Modifiers
 
    The ``$comment`` makes it possible to attach a comment to a
    query. Because these comments propagate to the
-   :command:`profile` log, adding ``$comment`` modifiers can
+   :dbcommand:`profile` log, adding ``$comment`` modifiers can
    make your profile data much easier to interpret and trace. Consider
    the following example:
 

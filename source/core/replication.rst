@@ -2,6 +2,8 @@
 Replication Fundamentals
 ========================
 
+.. default-domain:: mongodb
+
 This document provides an overview of the core concepts that underpin
 MongoDB's replication functionality, known as ":term:`replica sets
 <replica set>`." In these configurations, multiple :option:`mongod`
@@ -243,7 +245,7 @@ in the :option:`mongo` shell:
 After the set is reconfigured, the node with the "``_id``" of ``0``,
 has a priority of ``0`` so that it cannot become master, while the
 other nodes in the set will not advertise the hidden node in the
-:mongodb:command:`isMaster` or :js:func:`db.isMaster()` output.
+:dbcommand:`isMaster` or :js:func:`db.isMaster()` output.
 
 Hidden nodes are ideal for instances that will have significantly
 different usage patterns than the other nodes, and need to be
@@ -331,7 +333,7 @@ to the *current primary* node, issue the following command:
 Replace the "``"[hostname]:[port]"``" string with the name of the
 hostname and port of the arbiter that you wish to add to the set.
 
-.. seealso:: ":mongodb:setting:`replSet`," ":option:`mongod
+.. seealso:: ":setting:`replSet`," ":option:`mongod
    --replSet`, and ":js:func:`rs.addArb()`."
 
 .. _replica-set-non-voting-nodes:
@@ -396,7 +398,7 @@ node can veto an election. A single node's veto will invalidate the
 election.
 
 An existing primary will step down in response to the
-:mongodb:command:`replSetStepDown` command, or if it sees that one of
+:dbcommand:`replSetStepDown` command, or if it sees that one of
 the current secondaries is eligible for election *and* has a higher
 priority. A secondary node will call for an election if it cannot
 establish a connection to a primary node. Primary nodes will also step
@@ -557,7 +559,7 @@ removed, or "rolled back," to maintain database consistency across the
 replica set.
 
 MongoDB writes the rollback data to a :term:`BSON` file in the
-database's :mongodb:setting:`dbpath` directory. Use :doc:`bsondump
+database's :setting:`dbpath` directory. Use :doc:`bsondump
 </reference/bsondump>` to read the contents of these rollback files
 and then manually apply the changes to the new primary. There is no
 way for MongoDB to appropriately and fairly handle rollback situations
@@ -584,20 +586,20 @@ Write Propagation
 When a :term:`client` sends a write operation to a database server,
 the operation will return without waiting for the operation to succeed
 or return. To verify that the operation is successful, use the
-:mongodb:command:`getLastError`
-command. :mongodb:command:`getLastError` is configurable and can wait
+:dbcommand:`getLastError`
+command. :dbcommand:`getLastError` is configurable and can wait
 to return for journal writes or full disk flush. For replica sets,
-:mongodb:command:`getLastError` can return only when the write
+:dbcommand:`getLastError` can return only when the write
 operation has propagated to more than one node, or a majority of nodes
 in the cluster.
 
 Many drivers have a "safe" or "write concern" mode that automatically
-issues a :mongodb:command:`getLastError` command following write
+issues a :dbcommand:`getLastError` command following write
 operations to ensure that they succeed. In many cases, "safe mode,"
 provides the desired method of operation and should nearly always be
 used with single nodes. However, safe writes can take longer to return
 and are not required in all applications. Using the "``w:
-"majority"``" option for :mongodb:command:`getLastError`, write
+"majority"``" option for :dbcommand:`getLastError`, write
 operations to a replica set will return only after writes have been
 replicated to a majority of the members of the set. At the
 :option:`mongo` shell, use the following command to ensure that writes
@@ -613,7 +615,7 @@ replicated to a second node before the command returns.
 
 .. note::
 
-   :mongodb:command:`getLastError` assumes the current host,
+   :dbcommand:`getLastError` assumes the current host,
    therefore, "``w: 2``" waits until the write operation has been
    committed to the current instance and 1 other node. The current
    node is always counted as "``w: 1``".
@@ -628,14 +630,14 @@ replica set configuration. For instance:
    rs.reconfig(cfg)
 
 When the new configuration is active, the effect of the
-:mongodb:command:`getLastError` operation will wait until the write
+:dbcommand:`getLastError` operation will wait until the write
 operation has succeeded on a majority of the nodes before writing. By
 specifying "``fsync: false``" and "``j: true``" a successful commit of
 the operation to the journal and not a full flush to disk is required
 for ``getLastError`` to return successfully. Use this the
 ``getLastErrorDefaults``" setting on the sever level to define the
 standards for a set-wide "safe mode." The default setting will only
-affect :mongodb:command:`getLastError` commands with *no* other
+affect :dbcommand:`getLastError` commands with *no* other
 arguments.
 
 .. _replica-set-read-preference:
@@ -747,7 +749,7 @@ that:
 
 - If you use MongoDB's authentication system to limit access to your
   infrastructure, ensure that you configure a
-  :mongodb:setting:`keyfile` on all nodes to permit authentication.
+  :setting:`keyfile` on all nodes to permit authentication.
 
 .. seealso:: ":ref:`Replica Set Security <replica-set-security>`"
 

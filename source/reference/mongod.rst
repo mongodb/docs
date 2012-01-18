@@ -440,7 +440,7 @@ Sharding Cluster Options
 .. option:: --noMoveParanoia
 
    Disables a "paranoid mode" for data writes for the
-   :command:`moveChunk`.
+   :dbcommand:`moveChunk`.
 
 Usage
 -----

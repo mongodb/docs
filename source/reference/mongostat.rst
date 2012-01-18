@@ -34,7 +34,7 @@ Options
 
 .. program:: mongostat
 
-.. option:: .. option:: --help
+.. option:: --help
 
    Returns a basic help and usage text.
 
@@ -72,7 +72,7 @@ Options
 
    Specifies the port number, if the MongoDB instance is not running on
    the standard port. (i.e. ``27017``) You may also specify a port
-   number using the :command:`mongostat --host` command.
+   number using the :option:`mongostat --host` command.
 
 .. option:: --ipv6
 
@@ -100,7 +100,7 @@ Options
 
    Controls the number of rows to output. Use in conjunction with
    ":command:`mongostat [sleeptime]`" to control the duration of a
-   ``mongostat`` operation.
+   :option:`mongostat` operation.
 
    Unless specification, ``mongostat`` will return an infinite number
    of rows (e.g. value of ``0``.)
@@ -114,7 +114,7 @@ Options
 
    With this option ``mongostat`` will discover all connected hosts,
    including :term:`slave`, :term:`master`, :term:`secondary`,  and
-   :term:`primary`. The :command:`mongostat --host` option is not
+   :term:`primary`. The :option:`mongostat --host` option is not
    required but potentially useful in this case.
 
 .. option:: --all
@@ -137,12 +137,12 @@ Options
 Fields
 ------
 
-``mongostat`` returns values that reflect the operations over a 1
-second period. When :command:`mongostat [sleeptime]` has a value
-greater than 1, the statistics are averaged to reflect average
-operations per second.
+:option:`mongostat` returns values that reflect the operations over a
+1 second period. When :command:`mongostat [sleeptime]` has a value
+greater than 1, :option:`mongostat` averages the statistics to reflect
+average operations per second.
 
-``mongostat`` outputs the following fields:
+:option:`mongostat` outputs the following fields:
 
 .. describe:: inserts
 

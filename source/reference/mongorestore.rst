@@ -53,7 +53,7 @@ Options
 
    Specifies the port number, if the MongoDB instance is not running
    on the standard port. (i.e. ``27017``) You may also specify a port
-   number using the :command:`--host <mongorestore --host>` command.
+   number using the :option:`--host <mongorestore --host>` command.
 
 .. option:: --ipv6
 
@@ -139,7 +139,7 @@ TODO factcheck
 
    Replays the oplog to create to ensure that the current state of
    the database reflects the point-in-time backup captured with the
-   ":command:`mongodump --oplog`" command.
+   ":option:`mongodump --oplog`" command.
 
 .. option:: --keepIndexVersion
 
@@ -158,7 +158,7 @@ Usage
 See the ":ref:`backup guide section on database dumps
 <database-dumps>`" for a larger overview of ``mongorestore``
 usage. Also see the ":doc:`mongodump`" document for an overview of the
-:command:`mongodump`, which provides the related inverse
+:option:`mongodump`, which provides the related inverse
 functionality.
 
 In the following command, the collection named "``collection``" and

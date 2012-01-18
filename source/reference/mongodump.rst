@@ -5,10 +5,10 @@
 Synopsis
 --------
 
-``mongodump`` is a utility for creating a binary export of the
+:option:`mongodump` is a utility for creating a binary export of the
 contents of a database. Consider using this utility as part an
-effective :doc:`backup strategy </administration/backups>`. Use
-in conjunction with :command:`mongorestore` to provide restore
+effective :doc:`backup strategy </administration/backups>`. Use in
+conjunction with :option:`mongorestore` to provide restore
 functionality.
 
 Options
@@ -42,9 +42,9 @@ Options
 
    To connect to a replica set, use the ``--host`` argument with a
    setname, followed by a slash and a comma separated list of host and
-   port names. The ``mongo`` utility will, given the seed of at least
-   one connected set member, connect to primary node of that set. this
-   option would resemble: ::
+   port names. The ``mongodump`` utility will, given the seed of at
+   least one connected set member, connect to primary node of that
+   set. this option would resemble: ::
 
         --host repl0 mongo0.example.net,mongo0.example.net,27018,mongo1.example.net,mongo2.example.net
 
