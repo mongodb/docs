@@ -2,6 +2,8 @@
 ``mongod`` Manual
 =================
 
+.. default-domain:: mongodb
+
 Synopsis
 --------
 

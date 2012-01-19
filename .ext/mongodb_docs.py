@@ -112,6 +112,8 @@ class MongoDBObject(ObjectDescription):
             return _('%s (setting)') % (name)
         elif self.objtype == 'status':
             return _('%s (status)') % (name)
+        elif self.objtype == 'stats':
+            return _('%s (statistic)') % (name)
         elif self.objtype == 'aggregator':
             return _('%s (aggregation framework pipeline operator)') % (name)
         elif self.objtype == 'expression':
@@ -164,6 +166,7 @@ class MongoDBDomain(Domain):
         'operator':     ObjType(l_('operator'),    'operator'),
         'setting':      ObjType(l_('setting'),     'setting'),
         'status':       ObjType(l_('status'),      'status'),
+        'stats':        ObjType(l_('stats'),       'stats'),
         'aggregator':   ObjType(l_('aggregator'),  'aggregator'),
         'group':        ObjType(l_('group'),       'group'),
         'expression':   ObjType(l_('expression'),  'expression'),
@@ -173,6 +176,7 @@ class MongoDBDomain(Domain):
         'operator':      MongoDBCallable,
         'setting':       MongoDBCallable,
         'status':        MongoDBCallable,
+        'stats':         MongoDBCallable,
         'aggregator':    MongoDBCallable,
         'group':         MongoDBCallable,
         'expression':    MongoDBCallable,
@@ -182,6 +186,7 @@ class MongoDBDomain(Domain):
         'operator':    MongoDBXRefRole(),
         'setting':     MongoDBXRefRole(),
         'status':      MongoDBXRefRole(),
+        'stats':       MongoDBXRefRole(),
         'aggregator':  MongoDBXRefRole(),
         'group':       MongoDBXRefRole(),
         'expression':  MongoDBXRefRole(),

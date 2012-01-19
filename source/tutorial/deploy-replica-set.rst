@@ -2,6 +2,8 @@
 Deploy a Replica Set
 ====================
 
+.. default-domain:: mongodb
+
 This tutorial describes the process for deploying a three member
 :term:`replica set` , with specific instructions for development and
 test as well as for production systems.
@@ -158,7 +160,7 @@ Use the following configuration for each MongoDB instance.
 
    replSet = rs0/mongodb0.example.net,mongodb1.example.net,mongodb2.example.net
 
-Modify the :mongodb:setting:`bind_ip` to reflect a secure interface on
+Modify the :setting:`bind_ip` to reflect a secure interface on
 your system that will be able to access all other members of the set
 *and* on which all other members of the replica set can access the
 current node. The DNS or host names need to point and resolve to this
@@ -167,11 +169,11 @@ IP address. Configure network rules or a virtual private network
 
 .. note::
 
-   The portion of the :mongodb:setting:`replSet` following the ``/``
+   The portion of the :setting:`replSet` following the ``/``
    provides a "seed list" of hosts that are known to be members of the
    same replica set, which is used for fetching changed configurations
    following restarts. It is acceptable to omit this section entirely,
-   and have the :mongodb:setting:`replSet` option resemble:
+   and have the :setting:`replSet` option resemble:
 
    .. code-block:: cfg
 
@@ -179,9 +181,9 @@ IP address. Configure network rules or a virtual private network
 
 Store this file on each system, located at ``/etc/mongodb.conf`` on
 the file system. See the documentation of the configuration options
-used above: :mongodb:setting:`dbpath`, :mongodb:setting:`port`,
-:mongodb:setting:`replSet`, :mongodb:setting:`bind_ip`, and
-:mongodb:setting:`fork`. Also consider
+used above: :setting:`dbpath`, :setting:`port`,
+:setting:`replSet`, :setting:`bind_ip`, and
+:setting:`fork`. Also consider
 any additional :doc:`configuration options </reference/configuration-options>`
 that your deployment may require.
 

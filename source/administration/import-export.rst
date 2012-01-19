@@ -2,6 +2,8 @@
 Importing and Exporting MongoDB Data
 ====================================
 
+.. default-domain:: mongodb
+
 Full :doc:`database instance backups </administration/backups>` are
 useful for disaster recovery protection and routine database backup
 operation; however, some cases require additional import and export

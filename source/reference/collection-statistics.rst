@@ -8,7 +8,7 @@ Collection Statistics Reference
 Synopsis
 --------
 
-To fetch collection statistics, issue the following
+To fetch collection statistics, use the :js:func:`issue the following
 command from the :option:`mongo` shell: ::
 
 .. code-block:: javascript
@@ -42,63 +42,63 @@ See :dbcommand:`colStats` for
 Fields
 ------
 
-.. status:: ns
+.. stats:: ns
 
    The namepsace of the current collection, which follows the format
    "``[database].[collection]``".
 
-.. status:: count
+.. stats:: count
 
    The number of objects or documents in this colection.
 
-.. status:: size
+.. stats:: size
 
    The size of the collection. This value is affected by the
    "``scale``" factor.
 
-.. status:: avgObjSize
+.. stats:: avgObjSize
 
    The average size of an object in the collection. This value is
    affected by the "``scale``" factor.
 
-.. status:: storageSize
+.. stats:: storageSize
 
    The total amount of storage size. This is equal to the total number
    of extents allocated by this collection. This
    value is affected by the "``scale``" factor and the :term:`padding
    factor`.
 
-.. status:: numExtents
+.. stats:: numExtents
 
    The total number of contiguously allocated data file regions.
 
-.. status:: nindexes
+.. stats:: nindexes
 
    The number of indexes on the collection. On standard, non-capped collections, there is
    always at least one index on the primary key (i.e. ``_id``).
 
-.. status:: lastExtentSize
+.. stats:: lastExtentSize
 
    The size of the last extent allocated. This value is affected by
    the "``scale``" factor.
 
-.. status:: paddingFactor
+.. stats:: paddingFactor
 
    The amount of space added to the end of each document at insert time.
    This padding factor is calculated automatically by the server and exists
    to prevent excessive document relocations.
 
-.. status:: flags
+.. stats:: flags
 
    "flags" : 1,
 
 TODO what are flags in collection stats.
 
-.. status:: totalIndexSize
+.. stats:: totalIndexSize
 
    The total size of all indexes. This value is affected by the "``scale``" factor.
 
-.. status:: indexSizes
+.. stats:: indexSizes
 
    This field specifies the key and size
    of every existing index on the collection. This value is affected

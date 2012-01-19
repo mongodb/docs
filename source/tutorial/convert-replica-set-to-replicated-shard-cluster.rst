@@ -183,12 +183,12 @@ store the cluster's metadata.
       If you are using the collection created earlier, or are just
       experimenting with sharding, you can use a small
       :option:`--chunkSize <mongod --chunkSize>` (1MB works well.) The
-      default :mongodb:setting:`chunkSize` of 64MB, means that your
+      default :setting:`chunkSize` of 64MB, means that your
       cluster will need to have 64MB of data before the MongoDB's
       automatic sharding begins working. In production environments,
       do not use a small shard size.
 
-   The :mongodb:setting:`configdb` options specify the *configuration servers*
+   The :setting:`configdb` options specify the *configuration servers*
    (e.g. ``localhost:20001``, ``localhost:20002``, and
    ``localhost:2003``). The :option:`mongos` process runs on the default
    "MongoDB" port (i.e. ``27017``), while the databases themselves, in
@@ -244,7 +244,7 @@ above, omitting the test data.
    .. note::
 
       As above, the second replica set uses the smaller
-      :mongodb:setting:`oplogSize` configuration. Omit this setting in
+      :setting:`oplogSize` configuration. Omit this setting in
       production environments.
 
 3. Connect to one mongodb instance with :option:`mongo` shell, using

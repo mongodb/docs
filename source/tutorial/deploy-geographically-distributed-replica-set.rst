@@ -2,6 +2,8 @@
 Deploy a Geographically Distributed Replica Set
 ===============================================
 
+.. default-domain:: mongodb
+
 This document describes the procedure for deploying a replica set with
 nodes in multiple locations, and addresses both three node replica
 sets, four node replica sets, and replica sets with more than four
@@ -93,8 +95,8 @@ Consider the following features of this deployment:
     between members within a single site to be routed over the local
     area network.
 
-  - Configure authentication using :mongodb:setting:`auth` and
-    :mongodb:setting:`keyFile`, so that only servers and process with
+  - Configure authentication using :setting:`auth` and
+    :setting:`keyFile`, so that only servers and process with
     authentication can connect to the replica set.
 
   - Configure networking and firewall rules so that only traffic
@@ -118,7 +120,7 @@ Use the following configuration for each MongoDB instance:
 
    replSet = rs0/mongodb0.example.net,mongodb1.example.net,mongodb2.example.net
 
-Modify the :mongodb:setting:`bind_ip` to reflect a secure interface on
+Modify the :setting:`bind_ip` to reflect a secure interface on
 your system that will be able to access all other members of the set
 *and* on which all other members of the replica set can access the
 current node. The DNS or host names need to point and resolve to this
@@ -127,11 +129,11 @@ IP address. Configure network rules or a virtual private network
 
 .. note::
 
-   The portion of the :mongodb:setting:`replSet` following the ``/``
+   The portion of the :setting:`replSet` following the ``/``
    provides a "seed list" of hosts that are known to be members of the
    same replica set, which is used for fetching changed configurations
    following restarts. It is acceptable to omit this section entirely,
-   and have the :mongodb:setting:`replSet` option resemble:
+   and have the :setting:`replSet` option resemble:
 
    .. code-block:: cfg
 
@@ -139,9 +141,9 @@ IP address. Configure network rules or a virtual private network
 
 Store this file on each system, located at ``/etc/mongodb.conf`` on
 the file system. See the documentation of the configuration options
-used above: :mongodb:setting:`dbpath`, :mongodb:setting:`port`,
-:mongodb:setting:`replSet`, :mongodb:setting:`bind_ip`, and
-:mongodb:setting:`fork`. Also consider any additional
+used above: :setting:`dbpath`, :setting:`port`,
+:setting:`replSet`, :setting:`bind_ip`, and
+:setting:`fork`. Also consider any additional
 :doc:`configuration options </reference/configuration-options>` that
 your deployment requires.
 
@@ -273,8 +275,8 @@ Consider the following features of this deployment:
     topology allows all traffic between members within a single site
     to be routed over the local area network.
 
-  - Configure authentication using :mongodb:setting:`auth` and
-    :mongodb:setting:`keyFile`, so that only servers and process with
+  - Configure authentication using :setting:`auth` and
+    :setting:`keyFile`, so that only servers and process with
     authentication can connect to the replica set.
 
   - Configure networking and firewall rules so that only traffic
@@ -298,7 +300,7 @@ Use the following configuration for each MongoDB instance:
 
    replSet = rs0/mongodb0.example.net,mongodb1.example.net,mongodb2.example.net,mongodb3.example.net
 
-Modify the :mongodb:setting:`bind_ip` to reflect a secure interface on
+Modify the :setting:`bind_ip` to reflect a secure interface on
 your system that will be able to access all other members of the set
 *and* on which all other members of the replica set can access the
 current node. The DNS or host names need to point and resolve to this
@@ -307,11 +309,11 @@ IP address. Configure network rules or a virtual private network
 
 .. note::
 
-   The portion of the :mongodb:setting:`replSet` following the ``/``
+   The portion of the :setting:`replSet` following the ``/``
    provides a "seed list" of hosts that are known to be members of the
    same replica set, which is used for fetching changed configurations
    following restarts. It is acceptable to omit this section entirely,
-   and have the :mongodb:setting:`replSet` option resemble:
+   and have the :setting:`replSet` option resemble:
 
    .. code-block:: cfg
 
@@ -319,9 +321,9 @@ IP address. Configure network rules or a virtual private network
 
 Store this file on each system, located at ``/etc/mongodb.conf`` on
 the file system. See the documentation of the configuration options
-used above: :mongodb:setting:`dbpath`, :mongodb:setting:`port`,
-:mongodb:setting:`replSet`, :mongodb:setting:`bind_ip`, and
-:mongodb:setting:`fork`. Also consider any additional
+used above: :setting:`dbpath`, :setting:`port`,
+:setting:`replSet`, :setting:`bind_ip`, and
+:setting:`fork`. Also consider any additional
 :doc:`configuration options </reference/configuration-options>` that
 your deployment requires.
 

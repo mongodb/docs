@@ -2,6 +2,8 @@
 Replica Set Administration
 ==========================
 
+.. default-domain:: mongodb
+
 :term:`Replica sets <replica set>` in MongoDB automate the vast
 majority of the administrative complexity typically associated with
 database replication and management. Nevertheless, some deployment and
