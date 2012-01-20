@@ -8,6 +8,8 @@ JavaScript Interface
 Data Manipulation
 -----------------
 
+.. _js-query-and-update-functions:
+
 Query and Update Functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -40,6 +42,10 @@ Query and Update Functions
    If multiple documents satisfy the query, this method returns the
    first document according to the :term:`natural order` or insertion
    order in :term:`capped collections <capped collection>`.
+
+.. js:function:: findAndModify()
+
+TODO fill in missing point
 
 .. js:function:: save()
 
@@ -118,6 +124,8 @@ Query Modifiers
    ``hasNext()`` returns ``true`` if the cursor returned by the
    :js:func:`find()` query contains documents can iterate further to
    return results.
+
+.. _js-query-cursor-methods:
 
 Query Cursor Methods
 ~~~~~~~~~~~~~~~~~~~~
@@ -204,7 +212,13 @@ Query Cursor Methods
    of memory required to return this query by way of an optimized
    algorithm.
 
-TODO factcheck
+   .. warning::
+
+      The sort function requires that the entire sort be able to
+      complete within 32 megabytes. When the sort option consumes more
+      than 32 megabytes, MongoDB will return an error. Use
+      :js:func:`limit()`, or create an index on the field that you're
+      sorting to avoid this error.
 
 Administrative Functions
 ------------------------
@@ -362,7 +376,7 @@ Database
 
       This function does not work with sharded data. However, you may
       use :js:func:`db.eval()` with non-sharded collections and
-      databases stored in :term:`shard cluster <shard clusters>`.
+      databases stored in :term:`shard cluster`.
 
 .. js:function:: db.getCollection(name)
 
@@ -628,27 +642,6 @@ Database
    See the ":doc:`/reference/database-statistics`" document for an
    overview of this output.
 
-.. js:function:: db.collection.stats(scale)
-
-   :param optional scale: Specifies the scale to deliver
-                          results. Unless specified, this command
-                          returns all data in bytes.
-
-   :param collection: Specify the name of the collection in the
-                      function call.
-
-   :returns: A :term:`JSON document` containing statistics that
-             reflecting the state of the specified collection.
-
-   This function provides a wrapper around the database command
-   :dbcommand:`collstats`. The "``scale``" option allows you to
-   configure how the :option:`mongo` shell scales the output
-   values. For example, specify a "``scale``" value of "``1024``" to
-   display kilobytes rather than bytes.
-
-   See the ":doc:`/reference/collection-statistics`" document for an
-   overview of this output.
-
 .. js:function:: db.version()
 
    :returns: The version of the :option:`mongod` instance.
@@ -674,6 +667,174 @@ Database
    of a :js:func:`db.fsyncLock()` operation. Typically used to allow
    writes following a database :doc:`backup operation
    </administration/backups>`.
+
+Collection
+~~~~~~~~~~
+
+TODO write this section DOCS-113
+
+These methods operate on collection objects. Also consider the
+":ref:`js-query-and-update-functions`" and
+":ref:`js-query-cursor-methods`" documentation for additional methods
+that you may use with collection objects.
+
+.. note::
+
+   Call these methods on a :term:`collection` object in the shell
+   (i.e. "``db.collection.[method]()``", where "``collection``" is the
+   name of the collection) to produce the documented behavior.
+
+.. js:function:: dataSize()
+
+   Returns the size of the collection. This method provides a wrapper
+   around the :stats:`size` output of the :dbcommand:`collStats`
+   (i.e. :js:func:`stats()`) command.
+
+.. js:function:: storageSize()
+
+   Returns the amount of storage space, calculated using the number of
+   extents, used by the collection. This method provides a wrapper
+   around the :stats:`storageSize` output of the
+   :dbcommand:`collStats` (i.e. :js:func:`stats()`) command.
+
+.. js:function:: totalIndexSize()
+
+   Returns the total size of all indexes for the collection. This
+   method provides a wrapper around the :stats:`totalIndexSize` output
+   of the :dbcommand:`collStats` (i.e. :js:func:`stats()`) command.
+
+.. js:function:: distinct(field)
+
+   :param field string: A field that exists in a document or documents
+                        within the :term:`collection`.
+
+   Returns an array that contains a list of the distinct values for
+   the specified field.
+
+   .. note::
+
+      The :js:function:`distinct()` method provides a wrapper around
+      the :dbcomand:`distinct`. Results larger than the maximum
+      :ref:`BSON size <limit-maximum-bson-document-size>` (e.g. 16 MB)
+
+.. js:function:: drop()
+
+   Call the :js:func:`drop()` method on a collection to drop it from
+   the database.
+
+   :js:func:`drop()` takes no arguments and will produce an error if
+   called with any arguments.
+
+.. js:function:: dropIndex(name)
+
+   :param index name: The name of the index to drop.
+
+   Drops or removes the specified index. This method provides a
+   wrapper around the :dbcommand:`deleteIndexes`.
+
+   Use :js:func:`getIndexes()` to get a list of the indexes on the
+   current collection, and only call :js:func:`dropIndex()` as a
+   method on a collection object.
+
+.. js:function:: dropIndexes()
+
+   Drops all indexes other than the required index on the "``_id``"
+   field. Only call :js:func:`dropIndexes()` as a method on a
+   collection object.
+
+.. js:function:: ensureIndex(keys, options)
+
+   :param JSON keys: A :term:`JSON Document` that contains key/value
+                     pair or pairs with the name of the field or
+                     fields to index and order of the index.
+
+   :param JSON options: An JSON document that controls the creation of
+                        the database. This argument is optional.
+
+   Creates an index on the field specified, if that index does not
+   already exist. If the ``keys`` document specifies more than one
+   field, than :js:func:`ensureIndex` creates a :term:`compound
+   index`.
+
+   The available options, possible values, and the default settings
+   are as follows:
+
+   ===========  =================  =======
+   Option       Value              Default
+   ===========  =================  =======
+   background   true or false      false
+   unique       true or false      false
+   dropDups     true or false      false
+   sparse       true or false      false
+   v            index version.     1 [#]_
+   ===========  =================  =======
+
+   - Specify "``{ background: true }``" to build the index in the
+     background so that building an index will *not* block other
+     database activities.
+
+   - Specify "``{ unique: true }``" to create a unique index so that
+     the collection will not accept insertion of documents where the
+     index key or keys matches an existing value in the index.
+
+   - Specify "``{ dropDups: true }``" when creating a unique index, on
+     a field that *may* have duplicate to index only the first occurrence of
+     a key, and ignore subsequent occurrences of that key.
+
+   - Specify "``{ sparse: true }``" only references documents with the
+     specified field. These indexes use less space, but behave
+     differently in some situations (particularly sorts.)
+
+   - Only specify a different index version in unusual situations. The
+     latest index version provides a smaller and faster index format.
+
+   .. [#] The default index version depends on the version of
+      :option:`mongod` running when creating the index. Before version
+      2.0, the this value was 0; versions 2.0 and later use version 1.
+
+   .. seealso:: ":doc:`/core/indexes`."
+
+.. js:function:: reIndex()
+
+.. js:function:: getDB()
+
+.. js:function:: getIndexes()
+
+.. js:function:: group()
+
+.. js:function:: mapReduce()
+
+.. js:function:: remove()
+
+.. js:function:: renameCollection()
+
+.. js:function:: validate()
+
+.. js:function:: getShardVersion()
+
+.. js:function:: getShardDistribution()
+
+.. js:function:: stats(scale)
+
+   :param optional scale: Specifies the scale to deliver
+                          results. Unless specified, this command
+                          returns all data in bytes.
+
+   :param collection: Specify the name of the collection in the
+                      method call.
+
+   :returns: A :term:`JSON document` containing statistics that
+             reflecting the state of the specified collection.
+
+   This function provides a wrapper around the database command
+   :dbcommand:`collstats`. The "``scale``" option allows you to
+   configure how the :option:`mongo` shell scales the output
+   values. For example, specify a "``scale``" value of "``1024``" to
+   display kilobytes rather than bytes.
+
+   See the ":doc:`/reference/collection-statistics`" document for an
+   overview of this output.
+
 
 Sharding
 ~~~~~~~~
@@ -785,10 +946,9 @@ Sharding
    to the shard described by ``destination``.
 
    This function provides a wrapper around the
-   :dbcommand:`moveChunk`. In most circumstances,
-   allow the :term:`balancer` to automatically  migrate
-   :term:`chunks`, and avoid calling :js:func:`sh.moveChunk()`
-   directly.
+   :dbcommand:`moveChunk`. In most circumstances, allow the
+   :term:`balancer` to automatically migrate :term:`chunks <chunk>`,
+   and avoid calling :js:func:`sh.moveChunk()` directly.
 
    .. seealso:: ":dbcommand:`moveChunk`" and ":doc:`/sharding`."
 

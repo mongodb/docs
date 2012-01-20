@@ -49,6 +49,7 @@ Core Concepts and Functionality
    core/map-reduce
    core/journaling
    core/capped-collections
+   core/indexes
 
 Administration and Deployment
 -----------------------------

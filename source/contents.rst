@@ -10,6 +10,7 @@ MongoDB Manual Contents
    sharding
    administration
    applications
+   core/indexes
    mongo
    reference
 
