@@ -332,34 +332,35 @@ TODO: link to more complete documentation with common examples.
 
 .. dbcommand:: eval
 
-TODO: would it be possible to have a convention in the command forms indication which parts
-are required and which are options? For instance, required could be in bold.
-
+TODO: would it be possible to have a convention in the command forms indicating which parts
+are required and which are options? For instance, required options could be in bold.
 
    The ``eval`` command evaluates JavaScript functions
    on the database server. Consider the following (trivial) example: ::
 
         { eval: function() { return 3+3 } }
 
-   The shell also provides a helper method. You can also express
+   The shell also provides a helper method, so you can express the above
    the above like so: ::
 
         db.eval( function { return 3+3 } } );
 
-   While you can input functions directly into the shell, they will be
-   evaluated by the shell rather than the database itself. Note
-   the following behaviors and limitations:
+   Note that functions entered directly into the shell will be evaluated
+   by the shell's JavaScript interpreter. If you want to use the server's
+   interpreter, you must run ``eval``.
+
+   Note the following behaviors and limitations:
 
    - ``eval`` does not work in :term:`sharded <sharding>`
      environments.
 
-   - The ``eval`` operation is blocking and prevents all writes to the
-     database until ``eval`` has finished, unless the ``nolock`` flag
-     is set to ``true``. For example: ::
+   - The ``eval`` operation take a write lock by default. This means that writes to
+     database aren't permitted while it's running. You can, however, disable the lock
+     by setting the ``nolock`` flag to ``true``. For example: ::
 
            { eval: function() { return 3+3 }, nolock: true }
 
-TODO: why would you want to run eval with nolock?
+TODO: add some warnings / advice about when to disable the write lock.
 
 .. dbcommand:: dataSize
 
@@ -386,28 +387,31 @@ Replication
 
 .. dbcommand:: resync
 
-   The ``resync`` command forces an out-of-date non-primary/master
-   :option:`mongod` instance to re-synchronize itself.
+   The ``resync`` command forces an out-of-date slave
+   :option:`mongod` instance to re-synchronize itself. Note
+   that this command is relevent to master-slave replication only. It does
+   no apply to replica sets.
 
    .. write-lock, slave-ok, admin-only.
 
 .. dbcommand:: replSetFreeze
 
-   To the greatest extent possible, the ``replSetFreeze`` command
-   freezes the state of a member. Use the following syntax: ::
+   The ``replSetFreeze`` command prevents a replica set member from
+   being elected for the specified number of seconds. This command is
+   used in conjunction with the ``replSetStepDown`` command to make
+   a different node in the replica set a primary.
+
+   The ``replSetFreeze`` command uses the following syntax: ::
 
         { replSetFreeze: <seconds> }
 
-   This will prevent the MongoDB instance from attempting to become
-   primary until the time specified by "``<seconds>``". To reverse
-   this operation and allow the instance to become primary, issue the
-   following command: ::
+   If you want to unfreeze a replica set member before the specified number
+   of seconds has elapsed, you can issue the command with a seconds value of ``0``: ::
 
         { replSetFreeze: 0 }
 
    Restarting the :option:`mongod` process also unfreezes a replica
-   set member, allowing the :option:`mongod` instance to become
-   primary again.
+   set member.
 
    ``replSetFreeze`` is an administrative command that must be issued
    against the ``admin`` database.
@@ -416,18 +420,15 @@ Replication
 
 .. dbcommand:: replSetGetStatus
 
-
    The ``replSetGetStatus`` command returns the status of the replica
-   set form the point of view of the current server, using the
-   information derived from heartbeat packets set to the current
-   instance by other members of the replica set. To get this status,
-   Issue the following command on the :term:`admin database`: ::
-
-        rs.status()
-
-   Command prototype: ::
+   set from the point of view of the current server. The command must be
+   run against the admin database and has the following format: ::
 
         { replSetGetStatus: 1 }
+
+   However, you can also run this command from the shell like so: ::
+
+        rs.status()
 
    .. slave-ok, admin-only
 
@@ -435,14 +436,14 @@ Replication
 
 .. dbcommand:: replSetInitiate
 
-   The ``replSetInititate`` command creates a replica set. Use the
+   The ``replSetInititate`` command initializes a new replica set. Use the
    following syntax: ::
 
-         { replSetInitiate : <config_object> }
+         { replSetInitiate : <config_document> }
 
-   The "``<config_object>``" is a :term:`JSON document` that holds the
-   configuration of a replica set. Consider the following model of the
-   most basic configuration for a 3-member replica set: ::
+   The "``<config_document>``" is a :term:`JSON document` that specifies
+   the replica set's configuration. For instance, here's a config document
+   for creating a simple 3-member replica set: ::
 
           {
               _id : <setname>,
@@ -453,65 +454,81 @@ Replication
                ]
           }
 
-   The ``mongo`` shell provides the :js:func:`rs.conf()` function as a
-   wrapper to `replSetInititate``.
+   A typical way of running this command is to assign the config document to
+   a variable and then to pass the document to the ``rs.initiate()`` helper: ::
 
-        rs.initiate()
+        config = {
+            _id : "my_replica_set",
+             members : [
+                 {_id : 0, host : "rs1.example.net:27017"},
+                 {_id : 1, host : "rs2.example.net:27017"},
+                 {_id : 2, host : "rs3.example.net", arbiterOnly: true},
+             ]
+        }
+
+        rs.initiate(config)
+
+    Notice that omitting the port cause the host to use the default port
+    of 27017. Notice also that you can specify other options in the config
+    documents such as the ``arbiterOnly`` setting in this example.
 
    .. slave-ok, admin-only
 
+TODO: see also -- replica set config options.
+
 .. dbcommand:: replSetReconfig
 
-   The ``replSetReconfig`` provides the ability to modify an existing
-   replica set configuration. Use the following syntax to add
-   configuration to a replica set: ::
+   The ``replSetReconfig`` command modifies the configuration of an existing
+   replica set. You can use this command to add and remove members, and to
+   alter the options set on existing members. Use the following syntax: ::
 
-        { replSetReconfig: <config_object> }
+        { replSetReconfig: <new_config_document>, force: false }
 
-   The JavaScript shell provides the ``rs.reconfig()`` function
-   command as a helper for replica set reconfiguration.
+   You may also run the command using the shell's ``rs.reconfig()`` method.
 
    Be aware of the following ``replSetReconfig`` behaviors:
 
-   - You must issue this command to the admin database of the current
-     primary database in the set.
+   - You must issue this command against the admin database of the current
+     primary member of the replica set.
+
+   - You can optionally force the command to run on a non-primary member
+     by specifying ``{force: true}``.
 
    - A majority of the set's members must be operational for the
      changes to propagate properly.
 
    - This command can cause downtime as the set renegotiates
-     master-status. Typically this is 10-20 seconds; however, you
-     should always perform these operations during scheduled
-     maintenance periods.
+     primary-status. Typically this is 10-20 seconds, but could
+     be as long as a minute or more. Therefore, you should attempt
+     to reconfigure only during scheduled maintenance periods.
 
    - In some cases, ``replSetReconfig`` forces the current primary to
-     step down and forces an election for primary among the members of
-     the replica set. When this happens the set will drop all current
-     collections.
+     step down, initiating an election for primary among the members of
+     the replica set. When this happens, the set will drop all current
+     connections.
 
    .. slave-ok, admin-only
 
 .. dbcommand:: replSetStepDown
 
-   The ``replSetStepDown`` command forces a :option:`mongod` instance
-   to step down as primary, and then (attempt to) avoid reelection to
-   primary for a specified number of seconds. Consider the following
-   syntax for this admin-only command: ::
+   The ``replSetStepDown`` command forces a replica set primary
+   to relinquish its status as primary. A primary election will then
+   be initiated. You may specify a number of seconds for the node
+   to reject a primary status to ensure that it will not be reelected
+   during the election: ::
 
         { replSetStepDown: <seconds> }
 
-   Specify the amount of time, in seconds, for the server to avoid
-   reelection to primary. If you do not specify a value for
-   ``<seconds>``, ``replSetStepDown`` will attempt to avoid reelection
+   If you do not specify a value for ``<seconds>``, ``replSetStepDown`` will attempt to avoid reelection
    to primary for 60 seconds.
 
    .. warning:: This will force all clients currently connected to the
-      database to disconnect, while the set elects a new primary
-      node.
+      database to disconnect. This help to ensure that clients maintain
+      an accurate view of the replica set.
 
    .. slave-ok, admin-only
 
-Geolocation
+Geospatial Commands
 ~~~~~~~~~~~
 
 .. dbcommand:: geoNear
@@ -519,7 +536,7 @@ Geolocation
    The ``geoNear`` command provides an alternative to the
    :mongodb:dbcommand:`$near` operator. In addition to the
    functionality of ``$near``, ``geoNear`` returns the distance of
-   each item from the specified point and additional diagnostic
+   each item from the specified point along with additional diagnostic
    information. For example: ::
 
          { geoNear : "places" , near : [50,50], num : 10 }
@@ -529,14 +546,13 @@ Geolocation
    distances are specified in the same units as the document
    coordinate system:)
 
-   - The `near`` option allows you to specify coordinates (e.g. ``[ x,
-     y ]``) to use as the center of a geographical query.
-   - The ``num`` option specifies the (maximum) number of for the
-     operation to return.
-   - The ``maxDistance`` option allows you to limit results based on
-     their distance from the initial coordinates.
-   - The ``query`` option makes it possible to narrow the results
-     with any standard MongoDB query.
+   - The `near`` option takes the coordinates (e.g. ``[ x,
+     y ]``) to use as the center of a geospatial query.
+   - The ``num`` option specifies the maximum number of documents to return.
+   - The ``maxDistance`` option limits the results to those falling within
+     a given distance of the center coordinate.
+   - The ``query`` option further narrows the results
+     using any standard MongoDB query selector.
    - The ``distanceMultiplier`` option is undocumented.
 
 TODO distanceMultiplier research/definition
@@ -547,18 +563,18 @@ TODO distanceMultiplier research/definition
 
    The ``geoSearch`` command provides an interface to MongoDB's
    :term:`haystack index` functionality. These indexes are useful for
-   returning results based on geolocation coordinates *after*
+   returning results based on location coordinates *after*
    collecting results based on some other query (i.e. a "haystack.")
    Consider the following example: ::
 
         { geoSearch : "foo", near : [33, 33], maxDistance : 6, search : { type : "restaurant" }, limit : 30 }
 
-   The above command returns all documents with a ``type`` filed that
-   holds the a ``restaurants`` value with a maximum distance of 6
+   The above command returns all documents with a ``type`` of
+   ``restaurant`` having a maximum distance of 6
    units from the coordinates "``[30,33]``" up to a maximum of 30
    results.
 
-   Unless specified the ``geoSearch`` command limits results to 50
+   Unless specified otherwise, the ``geoSearch`` command limits results to 50
    documents.
 
    .. read-lock, slave-ok
@@ -569,59 +585,58 @@ Collections
 .. dbcommand:: drop
 
    The ``drop`` command removes an entire collection from a
-   database. Consider the following syntax: ::
+   database. The command has following syntax: ::
 
-        { drop: "collection" }
+        { drop: <collection_name> }
 
-   This drops entire collection named ``collection`` from the
-   database. The ``mongo`` shell provides the equivalent helper
+   The ``mongo`` shell provides the equivalent helper
    method: ::
 
         db.collection.drop();
 
+   Note that this command also removes any indexes associated with the
+   dropped collection.
+
 .. dbcommand:: cloneCollection
 
-   The ``cloneCollection`` command copies a single collection from one
-   server to another. Consider the following example:  ::
+   The ``cloneCollection`` command copies a collection from a remote
+   server to the server on which the command is run. Consider the following example:  ::
 
-        { cloneCollection: collection1, from: <host>, query: { field { $exists: true } }, copyIndexes: false }
+        { cloneCollection: "app.users", from: "db.example.net:27017",
+             query: { active: true } }
 
-   Here, ``collection1`` one from the database host ``<host>`` is
-   copied to the current database. Only documents that satisfy the
-   query "``{ field: { $exists: true } }`` are copied, and none of the
-   indexes are copied. The ``query`` and ``copyIndexes`` parameters
-   are optional.
+   Here we copy the "users" collection from the "app" database on the server at ``db.example.net``.
+   Only documents that satisfy the query "``{ active: true }`` are copied. Indexes are
+   copied by default, but you can disable this by setting ``{copyIndexes: false}``.o
+   The ``query`` and ``copyIndexes`` arguments are optional.
 
    ``cloneCollection`` creates a collection on the current database
    with the same name as the origin collection. If, in the above
-   example, ``collection1`` exists in the local database, it is
-   emptied before copying begins. Do not use ``cloneCollection`` for
-   local operations.
+   example, the ``users`` collection already exists, then the documents
+   in the remote collection will be appended to the destination collection.
 
 .. dbcommand:: create
 
    The ``create`` command explicitly creates a collection. The command
    uses the following syntax: ::
 
-        { create: "collection" }
+        { create: <collection_name> }
 
-   To create a capped collection  command in the following form.
+   To create a capped collection limited to 40 KB, issue command in the following form: ::
 
-        { create: "collection", capped: true, size: 40000, max: 9000 }
+        { create: "collection", capped: true, size: 40 * 1024 }
 
    The options for creating capped collections are:
 
-   - **capped**, is "false," by default. Specify "``true``" to create
-     a :term:`capped collection`.
-   - **size** specifies a maximum "cap," in bytes for capped
-     collections. If you specify a capped collection, you *must*
-     specify a size cap.
-   - **max** specifies a maximum "cap," in number of documents for
-     capped collections. You must also specify ``size`` when
-     specifying ``max``.
-
-   If a collection has a cap on the number of documents and the size
-   in bytes is reached first, older documents will be removed.
+   - **capped**: Specify "``true``" to create a :term:`capped collection`.
+   - **size**: The maximum size for the capped collection. Once a capped collection
+     reaches its max size, old documents will be aged out to make way for the new.
+     The ``size`` argument is requied.
+   - **max**: The maximum number of documents to preserve in the capped collection.
+     Note that this limit is subject to the overall size of the capped collection. If
+     a capped collection reaches its max size before it contains the maximum number of
+     documents, old document will still be removed. Thus, if you use this option, ensure
+     that the total size for the capped collection is sufficient to contain the max.
 
    The :js:func:`db.createCollection` provides a wrapper function that
    provides access to this functionality.
@@ -632,22 +647,11 @@ Collections
    collection to a :term:`capped collection`. Use the following
    syntax: ::
 
-        {convertToCapped: "collection", size: 100000, max: 9000 }
+        {convertToCapped: "collection", size: 100 * 1024 }
 
    Here, ``collection`` (an existing collection) is converted to a
-   capped collection, with a maximum size of 100 kilobytes (specified
-   in bytes) or 9000 records. The options used to specify the
-   parameters of a capped collection are:
-
-   - **size** specifies a maximum "cap," in bytes for capped
-     collections. If you specify a capped collection, you *must*
-     specify a size cap.
-   - **max** specifies a maximum "cap," in number of documents for
-     capped collections. You must also specify ``size`` when
-     specifying ``max``.
-
-   If a collection has a cap on the number of documents and the size
-   in bytes is reached, older documents will be removed.
+   capped collection, with a maximum size of 100 KB. This command supports
+   the ``size`` and ``max`` arguments. See the ``create`` command for details.
 
 .. dbcommand:: emptycapped
 
@@ -659,113 +663,81 @@ Collections
    This command removes all records from the capped collection named
    ``events``.
 
-.. dbcommand:: captrunc
-
-   The ``captrunc`` command removes (i.e. truncates) the most recent
-   additions to a capped collection. Use the following syntax: ::
-
-        { captrunc: "events", n: 1 }
-
-   In this example, the last ``1`` item entered is removed from the
-   capped collection named ``events``. The ``n`` value, specifies the
-   number of documents to truncate.
-
-   The command is not safe to use on non-capped collection.
-
-   .. is this internal?
-
-      The command, in my tests, removes documents from non-capped
-      collections (but it does throw an error.
-
-      There's also an "inc" option which modifies the behavior but I'm
-      not sure what this stands for.
-
-TODO factcheck captrunc
-
-.. dbcommand:: rename Collection
+.. dbcommand:: renameCollection
 
    The ``renameCollection`` command changes the name of an existing
-   collection. Use the following command to rename the collection
-   named ``collection`` to ``events``: ::
+   collection. Use the following form to rename the collection
+   named "things" to "events": ::
 
-        { renameCollection: store.collection, to: store.corpus }
+        { renameCollection: "store.things", to: "store.events" }
 
-   In this command, ``collection`` in the ``store`` database is
-   renamed "``corpus``". This command must be run on the admin
-   database, and thus requires specifying the database name
-   (e.g. "``store``".)
+   This command must be run on the admin database, and thus requires
+   you to specify the complete namespace (i.e., database name and collection name).
 
-   The shell helper "``renameCollection()``" exists to make renaming
-   collections easier. Use the following command in the ``mongo``
-   shell, which is equivalent to the command above:
+   The shell helper "``renameCollection()``" simplifies this. The following
+   is equivalent to the foregoing example:
 
-        db.collection.renameCollection( "corpus" );
+        db.things.renameCollection( "events" )
 
 .. dbcommand:: collStats
 
-   The ``collStats`` command returns a number of regarding a
-   collection. Use the following syntax: ::
+   The ``collStats`` command returns a variety of storage statistics
+   for a given collection. Use the following syntax: ::
 
         { collStats: "database.collection" , scale : 1024 }
 
-   Specify a collection in the form of "``database.collection``" and
-   use the ``scale`` argument to control the output. The above example
+   Specify a namespace "``database.collection``" and
+   use the ``scale`` argument to scale the output. The above example
    will display values in kilobytes.
 
-   Consider the following example output: ::
+   Examine the following example output, which uses the shell's equivalent helper method: ::
 
-        > db.collection.stats()
+        > db.users.stats()
         {
-                "ns" : "database.collection",   // database namespace
+                "ns" : "app.users",             // namespace
                 "count" : 9,                    // number of documents
-                "size" : 432,                   // collection size in bytes unless alternate scale used.
+                "size" : 432,                   // collection size in bytes
                 "avgObjSize" : 48,              // average object size in bytes
                 "storageSize" : 3840,           // (pre)allocated space for the collection
-                "numExtents" : 1,               // extents are contiguously allocated chunks of datafile space
+                "numExtents" : 1,               // number of extents (contiguously allocated chunks of datafile space)
                 "nindexes" : 2,                 // number of indexes
-                "lastExtentSize" : 3840,
+                "lastExtentSize" : 3840,        // size of the most recently created extent
                 "paddingFactor" : 1,            // padding can speed up updates if documents grow
                 "flags" : 1,
                 "totalIndexSize" : 16384,       // total index size in bytes
                 "indexSizes" : {                // size of specific indexes in bytes
                         "_id_" : 8192,
-                        "x_1" : 8192
+                        "username" : 8192
                 },
                 "ok" : 1
         }
 
-   The ``mongo`` shell also provides a helper. The following command
-   is equivalent to the above: ::
-
-        db.collection.stats();
-
 .. dbcommand:: compact
 
-   The ``compact`` command optimizes the storage for a single
-   :term:`capped collection`. This is similar to the
-   :dbcommand:`repairDatabase` command, except that ``compact`` operates
-   on a single collection. The command uses the following syntax: ::
+   The ``compact`` command rewrites and defragments a single
+   collection. Additionally, the command forces all indexes on the collection
+   to be rebuilt. The command has the following syntax: ::
 
-        { compact: "collection" }
+        { compact: "users" }
 
-   In this example, ``collection`` will be compacted. Generally, this
-   operation defragments and optimizes the storage organization of the
-   collection as well as rebuilds and optimizes indexes. Consider the
-   following behaviors:
+   In this example, the collection named "users" will be compacted.
+
+   Note the following command behaviors:
 
    - During a ``compact``, the database blocks all other activity.
 
    - In a :term:`replica set`, ``compact`` will refuse to run on the
-     master node in a replica set unless the "``force: true``" option
-     is specified. For example: ::
+     primary node unless you also specify ``{force: true}``.
+     For example: ::
 
            { compact: "collection", force: true }
 
-   - If you have journeying enabled and "kill" the ``compact``
-     operation, or the database restarts during a ``compact``
-     operation, no data will be lost, although indexes will be
-     absent. Running ``compact`` without journaling may risk data
-     loss.
+   - If you have journaling enabled, your data will be safe even
+     if you kill the operation or restart the server before it has
+     finished. However, you may have to manually rebuild the indexes.
+     Without journaling enabled, the ``compact`` command is much less safe,
+     and there are no guarantees made about the safety of your data in the
+     event of a shutdown or a kill.
 
      .. warning::
 
@@ -776,14 +748,14 @@ TODO factcheck captrunc
      running but unlike :dbcommand:`repairDatabase` it does *not* free
      space equal to the total size of the collection.
 
-   - the ``compact`` command will not return until the operation is
+   - the ``compact`` command blocks until the operation is
      complete.
 
    - ``compact`` removes any :term:`padding factor` in the collection,
      which may impact performance if documents grow regularly.
 
-   - ``compact`` commands do not replicate and can be run on slaves
-     and replica set members.
+   - ``compact`` commands do not replicate. They must be run on slaves
+     and replica set members independently.
 
    - :term:`Capped collections <capped collection>` cannot be
      compacted.
@@ -795,33 +767,24 @@ Administration
 
    ``fsync`` is an administrative command that forces the
    :option:`mongod` process to flush all pending writes to the data
-   files. In default operation, full flush runs within every 60
-   seconds. Running ``fsync`` in the course of normal operations is
-   not required. The command takes the following form: ::
-
-        { fsync: 1 }
-
-   The ``fsync`` command is synchronous and returns only after the
-   operation has completed. To run the command asynchronously, use the
-   following syntax: ::
-
-        { fsync: 1, async: true }
+   files. The server already runs its own fsync every 60 seconds, so
+   running ``fsync`` in the course of normal operations is
+   not required. The primary use of this command is to flush and
+   lock the database for backups.
 
    The ``fsync`` operation blocks all other write operations for a
    while it runs. To toggle a write-lock using ``fsync``, add a lock
    argument, as follows: ::
 
-        { fsync: 1, lock: true }
+       { fsync: 1, lock: true }
 
-   Later, you will need to issue a command to unlock the
-   database. This command will block until the operation is complete:
-   when the command returns the database is unlocked. Such a command
-   would resemble: ::
+   This will sync the data files and lock the database against writes. Later,
+   you must run the following query to unlock the database: ::
 
-        { fsync: 1, lock: false }
+       db.getSiblingDB("admin").$cmd.sys.unlock.findOne();
 
-   In the shell, the following helpers exist to simplify this
-   process: ::
+   In the shell, you may use the following helpers to simplify
+   the process: ::
 
         db.fsyncLock();
         db.fsyncUnlock();
@@ -832,16 +795,17 @@ Administration
 
 .. dbcommand:: dropDatabase
 
-   The ``dropDatabase`` command drops the database from MongoDB and
-   deletes the associated data files. ``dropDatabase`` operates on the
-   current database. In the shell issue the ``use <database>``
+   The ``dropDatabase`` command drops a database, deleting
+   the associated data files. ``dropDatabase`` operates on the
+   current database.
+
+   In the shell issue the ``use <database>``
    command, replacing "``<database>``" with the name of the database
    you wish to delete. Then use the following command form: ::
 
         { dropDatabase: 1 }
 
-   The ``mongo`` shell also provides the following helper method for
-   this function operation: ::
+   The ``mongo`` shell also provides the following equivalent helper method: ::
 
         db.dropDatabase();
 
@@ -849,80 +813,70 @@ Administration
 
 .. dbcommand:: dropIndexes
 
-   The ``dropIndexes`` command provides the ability to drop or remove
-   indexes for the current collection. The command either: removes all
-   databases, or selectively drop indexes. To drop all indexes issue a
-   command in the following format: ::
+   The ``dropIndexes`` command drops one or all indexes from the current collection.
+   To drop all indexes, issue the command like so: ::
 
         { dropIndexes: "collection", index: "*" }
 
-   Specify the field in the "index" parameter to drop indexes with a
-   specific key pattern. For example, to drop all indexes of the
-   "``age``" field, use the following command format: ::
+   To drop a single, issue the command by specifying the name
+   of the index you want to drop. For example, to drop the index
+   named "age_1", use the following command: ::
 
-        { dropIndexes: "collection", index: "age: 1" }
+        { dropIndexes: "collection", index: "age_1" }
 
-   The shell also provides the following command helper: ::
+   The shell provides a useful command helper. Here's the equivalent command: ::
 
-        db.collection.dropIndex();
-
-   Use as above to drop all indexes in ``collection``, and specify
-   fields to only drop specific indexes.
+        db.collection.dropIndex("age_1");
 
 .. dbcommand:: clone
 
-   The ``clone`` provides the ability to clone a database from a
+   The ``clone`` command clone a database from a
    remote MongoDB instance to the current host. ``clone`` copies the
    database on the remote instance with the same name as the current
    database. The command takes the following form: ::
 
-        { clone: "example.com" }
+        { clone: "db1.example.net:27017" }
 
-   Replace ``example.com`` above with the resolvable hostname for the
+   Replace ``db1.example.net:27017`` above with the resolvable hostname for the
    MongoDB instance you wish to copy from. Note the following
    behaviors:
 
    - ``clone`` can run against a :term:`slave` or a
      non-:term:`primary` member of a :term:`replica set`.
    - ``clone`` does not snapshot the database. If the copied database
-     is updated at any point during the clone operation the resulting
+     is updated at any point during the clone operation, the resulting
      database may be inconsistent.
    - You must run ``clone`` on the **destination server**.
-   - The destination server is not locked during the duration of the
-     ``clone`` operation, and ``clone`` will occasionally yield to
-     allow other operations.
+   - The destination server is not locked for the duration of the
+     ``clone`` operation. This means that ``clone`` will occasionally yield to
+     allow other operations to complete.
 
    See :dbcommand:`copydb`  for similar functionality.
-
-.. dbcommand:: closeAllDatabases
-
-   The ``closeAllDatabases`` command forces :option:`mongod` to close
-   all open database files. The command takes the following form: ::
-
-        { closeAllDatabases: 1 }
-
-   .. note::
-
-      A new request will cause the :option:`mongod` to immediately
-      reopen the database files. As a result this command is primarily
-      useful for testing purposes
 
 .. dbcommand:: repairDatabase
 
    The ``repairDatabase`` command checks and repairs errors and
    inconsistencies with the data storage. The command is analogous to
-   a ``fsck`` command for file systems. If your :option:`mongod`
-   instance is not running with journaling and you experience an
+   a ``fsck`` command for file systems.
+
+   If your :option:`mongod` instance is not running with journaling and you experience an
    unexpected system restart or crash, you should run the
    ``repairDatabase`` command to ensure that there are no errors in
-   the data storage. Additionally, the ``repairDatabase`` command will
+   the data storage.
+
+   As a side effect, the ``repairDatabase`` command will
    compact the database, providing functionality equivalent to the
    :dbcommand:`compact` command. Use the following syntax.
 
         { repairDatabase: 1 }
 
-   Be aware that this command can take a long time to run depending on
-   the size of your database.
+   Be aware that this command can take a long time to run if your
+   database is large. In addition, it requires a quantity of free disk
+   space equal to the size of your database. If you lack sufficient
+   free space on the same volume, you can mount a separate volume
+   and use that for the repair. In this case, you must run the
+   command line and use the ``--repairpath`` switch to specify
+   the folder in which to store the temporary repair files.
 
    This command is accessible via a number of different avenues. You
    may:
@@ -936,20 +890,26 @@ Administration
 
            $ mongod --repair
 
+     To add a repair path:
+
+           $ mongod --repair --repairpath /opt/vol2/data
+
      .. note::
 
         This command will fail if your database is not a master or
-        primary. Restart the server on another port without the
-        ``--replSet`` option.
+        primary. If you need to repair a secondary or slave node, first
+        restart the node as a standalone mongod by omitting the
+        ``--replSet`` or ``--slave`` switch, as necessary.
 
-   - Use the following shell helper: ::
+   - You may use the following shell helper: ::
 
            db.repairDatabase();
 
    .. note::
 
-      When :term:`journaling` is enabled, there is no need to run
-      ``repairDatabase``.
+      When :term:`journaling` is enabled, there is almost never any need to run
+      ``repairDatabase``. In the event of an unclean shutdown, the server
+      will be able restore the data files to a pristine state automatically.
 
 .. dbcommand:: shutdown
 
