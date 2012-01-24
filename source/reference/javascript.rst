@@ -2,7 +2,6 @@
 JavaScript Interface
 ====================
 
-.. highlight:: javascript
 .. default-domain:: mongodb
 
 Data Manipulation
@@ -713,8 +712,8 @@ that you may use with collection objects.
 
    .. note::
 
-      The :js:function:`distinct()` method provides a wrapper around
-      the :dbcomand:`distinct`. Results larger than the maximum
+      The :js:func:`distinct()` method provides a wrapper around the
+      :dbcommand:`distinct`. Results larger than the maximum
       :ref:`BSON size <limit-maximum-bson-document-size>` (e.g. 16 MB)
 
 .. js:function:: drop()
@@ -746,15 +745,41 @@ that you may use with collection objects.
 
    :param JSON keys: A :term:`JSON Document` that contains key/value
                      pair or pairs with the name of the field or
-                     fields to index and order of the index.
+                     fields to index and order of the index. A ``1``
+                     specifies ascending and a ``-1`` specifies
+                     descending.
 
    :param JSON options: An JSON document that controls the creation of
                         the database. This argument is optional.
 
+   .. warning:: Index names, including their full namespace
+      (i.e. "``database.collection``") can be no longer than 128
+      characters. See the :js:func:`getIndexes` field
+      ":js:data:`name`" for the names of existing indexes.
+
    Creates an index on the field specified, if that index does not
    already exist. If the ``keys`` document specifies more than one
    field, than :js:func:`ensureIndex` creates a :term:`compound
-   index`.
+   index`. For example:
+
+   .. code-block:: javascript
+
+      db.ensureIndex({ [key]: 1})
+
+   This command creates an index, in ascending order, on the field
+   "``[key]``". To specify a compound index use the following form:
+
+   .. code-block:: javascript
+
+      db.ensureIndex({ [key]: 1, [key1]: -1 })
+
+   This command creates a compound index on the "``key``" field
+   (in ascending order) and "``key1``" field (in descending order.)
+
+   .. note::
+
+      Typically the order of an index is only important when doing
+      :js:func:`sort()` operations on the indexed fields.
 
    The available options, possible values, and the default settings
    are as follows:
@@ -788,31 +813,356 @@ that you may use with collection objects.
    - Only specify a different index version in unusual situations. The
      latest index version provides a smaller and faster index format.
 
+   .. seealso:: ":doc:`/core/indexing`."
+
    .. [#] The default index version depends on the version of
       :option:`mongod` running when creating the index. Before version
       2.0, the this value was 0; versions 2.0 and later use version 1.
 
-   .. seealso:: ":doc:`/core/indexes`."
-
 .. js:function:: reIndex()
+
+   This method drops all indexes and recreates them. This operation
+   may be expensive for collections that have a large amount of data
+   and/or a large number of indexes.
+
+   Call this method, which takes no arguments, on a collection
+   object. For example:
+
+   .. code-block:: javascript
+
+      db.collection.reIndex()
+
+   Change "``collection``" to the name of the collection that you want
+   to reindex.
 
 .. js:function:: getDB()
 
+   Returns the name of the current database as a string.
+
 .. js:function:: getIndexes()
 
-.. js:function:: group()
+   Returns an array that holds a list of documents that identify and
+   describe the existing indexes on the collection. You must call the
+   :js:func:`getIndexes()` on a collection. For example:
 
-.. js:function:: mapReduce()
+   .. code-block:: javascript
 
-.. js:function:: remove()
+      db.collection.getIndexes()
+
+   Change "``collection``" to the name of the collection whose indexes
+   you want to learn.
+
+   The :js:func:`getIndexes()` items consist of the following fields:
+
+   .. js:data:: v
+
+      Holds the version of the index.
+
+      The index version depends on the version of :option:`mongod`
+      that created the index. Before version 2.0 of MongoDB, the this
+      value was 0; versions 2.0 and later use version 1.
+
+   .. js:data:: key
+
+      Contains a document holding the keys held in the index, and the
+      order of the index. Indexes may be either descending or
+      ascending order. A value of negative one (e.g. "``-1``")
+      indicates an index sorted in descending order while a positive
+      value (e.g. "``1``") indicates an index sorted in an ascending
+      order.
+
+   .. js:data:: ns
+
+      The namespace context for the index.
+
+   .. js:data:: name
+
+      A unique name for the index comprised of the field names and
+      orders of all keys.
+
+.. js:function:: group({key, reduce, initial, [keyf,] [cond,] finalize})
+
+   The :js:func:`group()` accepts a single :term:`JSON document` with
+   containing the following:
+
+   :param key: Specify the fields to group by.
+
+   :param reduce: Specify a reduce function that operates over all the
+                  iterated objects. Typically reduce functions perform
+                  some sort of summing or counting. The reduce
+                  function takes two arguments: the current document
+                  and an aggregation counter object.
+
+   :param inital: Initial value of the aggregation counter object.
+
+   :param optional keyf: An optional function that returns a "key
+                         object" for use as the grouping key. Use
+                         ``keyf`` instead of key to specify a key that is
+                         not a single/multiple existing fields. For
+                         example, use to group by day or week in place
+                         of a "key."
+
+   :param optional cond: A statement that must evaluate to true for
+                         the :js:func:`group()` to process this
+                         document. Essentially this argument specifies
+                         a query document (as for
+                         :js:func:`find()`). Unless specified,
+                         :js:func:`group()` runs the "reduce" function
+                         against all documents in the collection.
+
+   :param optional finalize: An optional function that runs each item
+                             in the result set before
+                             :js:func:`group()` returns the final
+                             value. This function can either modify
+                             the document by computing and adding an
+                             average field, or return compute and
+                             return a new document.
+
+   .. warning::
+
+      :js:func:`group()` does not work in :term:`shard environments
+      <shard cluster>`. Use the :term:`aggregation framework` or
+      :term:`map/reduce` in sharded environments`.
+
+   .. note::
+
+      The result set of the :js:func:`group()` must fit within the
+      maximum :term:`BSON` object.
+
+   :js:func:`group()` provides a simple aggregation capability similar
+   to the function of "``GROUP BY``" in SQL statements. Use
+   :js:func:`group()` to return counts and averages from collections
+   of MongoDB documents. Consider the following example
+   :js:func:`group()` command:
+
+   .. code-block:: javascript
+
+      db.collection.group(
+                    {key: { a:true, b:true },
+                     cond: { active: 1 },
+                     reduce: function(obj,prev) { prev.csum += obj.c; },
+                     initial: { csum: 0 }
+                    });
+
+   This command in for the :option:`mongo` shell groups the documents
+   in the collection named "``collection``" by the ``a`` and ``b``
+   fields, when the "``active``" field has a value of ``1``. Then, the
+   reduce function, adds the current value of fields "``a``" "``b``"
+   to the previous value of those fields. This is equivalent to the
+   following SQL statement.
+
+   .. code-block:: sql
+
+      SELECT a,b,sum(c) csum FROM collection WHERE active=1 GROUP BY a,b
+
+   .. seealso:: The ":doc:`/applications/simple-aggregation`" and
+      ":doc:`/core/aggregation`."
+
+.. js:function:: mapReduce(map,reduce,out,[query],[sort],[limit],[finalize],[scope],[jsMode],[verbose])
+
+   The :js:func:`mapReduce()` provides a wrapper around the
+   :dbcommand:`mapReduce` :term:`database command`. Always call the
+   :js:func:`mapReduce()` method on a collection. The following
+   argument list specifies a :term:`JSON document` with 3 required and
+   8 optional fields:
+
+   :param map: A JavaScript function that performs the "map" step of
+               the MapReduce operation. This function references the
+               current input document and calls the
+               "``emit(key,value)``" method that supplies values to
+               the reduce function. Map functions may call ``emit()``,
+               once, more than once, or not at all depending on the
+               type of aggregation.
+
+   :param reduce: A JavaScript function that performs the "reduce"
+                  step of the MapReduce operation. The reduce function
+                  receives an array of emitted values from the map
+                  function, and returns a single value. Because it's
+                  possible to invoke the reduce function more than
+                  once for the same key, the structure of the object
+                  returned by function must be identical to the
+                  structure of the emitted function.
+
+   :param out: Specifies the location of the out of the reduce stage
+               of the operation. Specify a string to write the output
+               of the Map/Reduce job to a collection with that
+               name. See below for additional output options.
+
+   :param optional query: A query object, like the query used by the
+                          :js:func:`find()` method. Use this to filter
+                          to limit the number of documents enter the
+                          map phase of the aggregation.
+
+   :param optional sort: Sorts the input objects using this key. This
+                         option is useful for optimizing the
+                         job. Common uses include sorting by the emit
+                         key so that there are fewer reduces.
+
+   :param optional limit: Species a maximum number of objects to
+                          return from the collection.
+
+   :param optional finalize: Specifies an optional "finalize" function
+                             to run on a result, following the reduce
+                             stage, to modify or control the output of
+                             the :js:func:`mapReduce()` operation.
+
+   :param optional scope: Place a :term:`JSON` document as the contents
+                          of this field, to place fields into the
+                          global javascript scope.
+
+   :param optional jsMode: Boolean. The ``jsMode`` option defaults to
+                           true.
+
+   :param optional verbose: Boolean. The ``verbose`` option provides
+                            statistics on job execution times.
+
+   The "``out``" field of the :js:func:`mapReduce()`, provides a
+   number of additional configuration options that you may use to
+   control how MongoDB returns data from the map/reduce job. Consider
+   the following 4 output types.
+
+   .. versionadded: 1.8
+
+   :param optional replace: Specify a collection name (e.g. ``{ out: {
+                            replace: collectionName } }``) where the
+                            output of the map/reduce overwrites the
+                            contents of the collection specified
+                            (i.e. "``collectionName``") if there is
+                            any data in that collection.
+
+   :param optional merge: Specify a collection name (e.g. ``{ out: {
+                          merge: collectionName } }``) where the
+                          map/reduce operation writes output to an
+                          existing collection
+                          (i.e. "``collectionName``",) and only
+                          overwrites existing documents when a new
+                          document has the same key as an "old"
+                          document in this collection.
+
+   :param optional reduce: This operation behaves as the "``merge``"
+                           option above, except that when an existing
+                           document has the same key as a new
+                           document, "``reduce``" function from the
+                           map reduce job will run on both values and
+                           MongoDB writes the result of this function
+                           to the new collection. The specification
+                           takes the form of "``{ out: { reduce:
+                           collectionName } }``", where
+                           "``collectionName``" is the name of the
+                           results collection.
+
+   :param optional inline: Indicate the inline option (i.e. "``{ out:
+                           { inline: 1 } }``") to perform the map
+                           reduce job in ram and return the results at
+                           the end of the function. This option is
+                           only possible when the entire result set
+                           will fit within the :ref:`maximum size of a
+                           BSON document
+                           <limit-maximum-bson-document-size>`. When
+                           performing map/reduce jobs on secondary
+                           members of replica sets, this is the only
+                           available option.
+
+   .. seealso:: ":doc:`/core/map-reduce`, provides a greater overview
+      of MognoDB's map/reduce functionality. Consider
+      ":doc:`/applications/simple-aggregation` for simple aggregation
+      operations and ":doc:`/core/aggregation`" for a more flexible
+      approach to data aggregation in MongoDB.
+
+.. js:function:: remove(query,justOne)
+
+   Call the :js:func:`remove()` method on a collection object, to
+   remove documents from a collection. Use the following form:
+
+   .. code-block:: javascript
+
+      db.collection.remove()
+
+   Where "``collection``" is the name of the collection that you want
+   to remove. Without arguments, this method removes all documents in
+   the collection. To control the output of :js:func:`remove()`:
+
+   :param optional query: Specify a query object to limit or filter
+                          the documents to remove. See
+                          :js:func:`find()` and the :doc:`operator
+                          reference </reference/operators>` for more
+                          information
+
+   :param optional justOne: Boolean. Specify "``true``" to only delete
+                            the first result. Equivalent to the
+                            operation of :js:func:`findOne()`.
+
+   Consider the following example:
+
+   .. code-block:: javascript
+
+      db.records.remove({expired: 1, archived: 1}, false)
+
+   This is functionally equivalent to:
+
+   .. code-block:: javascript
+
+      db.records.remove({expired: 1, archived: 1})
+
+   These operations remove documents with "``expired``" *and*
+   "``archived``" fields holding a value of "``1``" from the
+   collection named "``records``".
 
 .. js:function:: renameCollection()
 
+   :param string name: Specifies the new name of the
+                       collection. Enclose the string in quotes.
+
+   Call the :js:func:`renameCollection()` method on a collection
+   object, to rename a collection. Specify the new name of the
+   collection as an argument. For example:
+
+   .. code-block:: javascript
+
+      db.rrecord.renameCollection("record")
+
+   This method renames a collection named "``rrecord``" to
+   "``record``". If the target name (i.e. "``record``") is the name of
+   an existing collection, then the operation will fail.
+
+   :js:func:`renameCollection()` provides a wrapper around the
+   :term:`database command` ":dbcommand:`renameCollection`".
+
 .. js:function:: validate()
+
+   :param optional full: Boolean. Specify "``true``" to enable a full
+                         validation. MongoDB disables full validation
+                         by default because it is a potentially
+                         resource intensive operation.
+
+   Provides a wrapper around the :dbcommand:`validate` :term:`database
+   command`. Call the :js:func:`renameCollection()` method on a
+   collection object, to validate the collection itself. Specify the
+   full option to return full statistics.
+
+   The :dbcommand:`validation <validate>` operation scans all of the
+   data structures for correctness and returns a single :term:`JSON
+   Document` that describes the relationship between the logical
+   collection and the physical representation of that data.
+
+   The output can provide a more in depth view of how the collection
+   uses storage. Be aware that this command is potentially resource
+   intensive, and may impact the performance of your MongoDB
+   instance.
+
+   .. seealso:: ":doc:`/reference/collection-validation`"
 
 .. js:function:: getShardVersion()
 
+   This method returns information regarding the state of data in a
+   sharded cluster that is useful when diagnosing underlying issues
+   with a :term:`shard cluster`.
+
+   For internal and diagnostic use only.
+
 .. js:function:: getShardDistribution()
+
+TODO waiting for email from Greg/Tad
 
 .. js:function:: stats(scale)
 
@@ -834,7 +1184,6 @@ that you may use with collection objects.
 
    See the ":doc:`/reference/collection-statistics`" document for an
    overview of this output.
-
 
 Sharding
 ~~~~~~~~

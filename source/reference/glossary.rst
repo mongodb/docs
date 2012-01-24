@@ -13,10 +13,14 @@ Glossary
       `bsonspec.org <http://bsonspec.org/>`_.
 
    database command
-      MongoDB has database commands, which have a specific
-      implementation, and allow you to control the database.
+      Database commands are a special type of operation within MongoDB
+      that make it possible to interact with the database system
+      directly. MongoDB implements database commands as a form of
+      query against the special ":term:`$cmd`" collection. These
+      commands provide a number of administrative and other special
+      operations.
 
-      .. seealso:: ":doc:`/reference/commands`."
+      .. seealso:: ":doc:`/reference/commands`" for a
 
    operator
       Operators provide tools for querying and manipulating
@@ -26,7 +30,7 @@ Glossary
       .. seealso:: ":doc:`/reference/operators`."
 
    MongoDB
-      A document-driven database.
+      A document-driven database documented in this manual.
 
    document
       A record in a MongoDB database. Documents are analogous to, but
@@ -54,7 +58,7 @@ Glossary
 
    $cmd
       This is the special :term:`collection` used to :term:`MongoDB`
-      to implement database commands.
+      to implement :term:`database commands <database command>`.
 
    JSON
       JavaScript Object Notation. A format for expressing structured
@@ -257,9 +261,15 @@ Glossary
       inconsistent state. These operations are typically very
       short-lived, but prevent all other operations from succeeding.
 
-   indexes
+   index
       Indexes provide the database with a fast and reliable way of
-      accessing data without requiring full searches on data.
+      accessing data without requiring full reads of all data in a
+      collection.
+
+   compound index
+      An :term:`index`
+
+      .. seealso:: ":doc:`/core/indexing`"
 
    btree
       btree's are a fast data representation that provides for
