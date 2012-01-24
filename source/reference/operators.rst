@@ -671,9 +671,8 @@ TODO determine what the performance impacts of using $pushAll with single values
       db.collection.update( { field: 1 }, { $bit: { field: { and: 5 } } } );
 
    Here, the ``$bit`` operator updates the integer value of the filed
-   named ``field`` with a bitwise "``and: 5``" operation.
-
-TODO expand coverage of $bit which I need to understand the use better.
+   named ``field`` with a bitwise "``and: 5``" operation. This
+   operator only works with number types.
 
 .. operator:: $atomic
 

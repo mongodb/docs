@@ -6,25 +6,34 @@ Command Reference
 .. highlight:: javascript
 
 This document contains a reference to all :term:`database commands
-<database command>`. All commands are constructed using :term:`BSON`
-documents issued as queries against a special MongoDB
-collection named :term:`$cmd`. The JavaScript shell
-(i.e. :option:`mongo`,) provides the following syntax to facilitate
-running commands: ::
+<database command>`. MongoDB constructs commands using :term:`BSON`
+documents issued as queries against a special MongoDB collection named
+:term:`$cmd`. The JavaScript shell (i.e. :option:`mongo`,) provides
+the following syntax to facilitate running commands:
+
+.. code-block:: javascript
 
       db.runCommand( { <commandname>: <value> [, options] } );
 
 Similarly, you can run administrative commands using the following
-syntax: ::
+syntax:
 
-      db._adminCommand( { <commandname>: <value> [, options] } );
+.. code-block:: javascript
 
-The ``_adminCommand`` helper is shorthand for "``db.getSisterDB("admin").runCommand();``".
+   db._adminCommand( { <commandname>: <value> [, options] } )
+
+The ``_adminCommand`` helper is shorthand for the following JavaScript
+operation:
+
+.. code-block:: javascript
+
+   db.getSisterDB("admin").runCommand()
 
 MongoDB :term:`drivers <driver>`, and the :option:`mongo` shell may
 provide helper interfaces for issuing database commands.
 
-All examples in this reference are provided as documents.
+This document primarily provides examples as "prototype" documents,
+with references to available shell helpers when possible.
 
 User Commands
 -------------
@@ -37,25 +46,27 @@ Sharding
 
 .. dbcommand:: addShard
 
-   The ``addShard`` command registers a new with a sharded cluster.
-   You must run this command against a :option:`mongos` instance. The command
-   takes the following form: ::
+   The ``addShard`` command registers a new with a sharded
+   cluster. You must run this command against a :option:`mongos`
+   instance. The command takes the following form: ::
 
         { addshard: "<hostname>:<port>" }
 
    Replace "``<hostname>:<port>``" with the hostname and port of the
    database instance you want to add as a shard. Because the
    :option:`mongos` instances do not have state and distribute
-   configuration in the :term:`configdb`s, you send this
+   configuration in the :term:`configdbs <configdb>`, you send this
    command to only one :option:`mongos` instance.
 
    There are two optional parameters:
 
-   - **name**. If no name is specified, a name will be automatically
-     provided to uniquely identify the shard.
-   - **maxSize** Unless specified, shards will consume the total amount
-     of available space on their machines if necessary. Use the ``maxSize`` value to
-     limit the amount of space the database can use.
+   - **name**. Unless specified, a name will be automatically provided
+     to uniquely identify the shard.
+
+   - **maxSize** Unless specified, shards will consume the total
+     amount of available space on their machines if necessary. Use the
+     ``maxSize`` value to limit the amount of space the database can
+     use.
 
      .. note::
 
@@ -144,7 +155,7 @@ Sharding
 
    Each database in a sharded cluster is assigned a primary shard. If the shard you want to remove
    is also the primary of one the cluster's databases, then you must manually move the database to
-   a new shard. This can be only after the shard has been drained. See the :mongodb:command:`moveprimary` command
+   a new shard. This can be only after the shard has been drained. See the :dbcommand:`moveprimary` command
    for details.
 
    Once all chunks and databases have been removed from the shard, you
@@ -161,9 +172,9 @@ Sharding
 
    When the command returns, the database's primary location will have been
    shifted to the designated :term:`shard`. To fully decomission a
-   shard, use the :mongodb:dbcommand:`removeshard` command.
+   shard, use the :dbcommand:`removeshard` command.
 
-   .. warning:: Do not use :mongodb:dbcommand:`moveprimary` if you have
+   .. warning:: Do not use :dbcommand:`moveprimary` if you have
       sharded collections and the :term:`draining` process has not
       completed.
 
@@ -260,8 +271,9 @@ Aggregation
 
    Only the ``map`` and ``reduce`` options are required, all other
    fields are optional. The ``map`` and ``reduce`` functions are
-   written in JavaScript. See :doc:`/core/map-reduce` for more information
-   on using the ``mapReduce`` command.
+   written in JavaScript.
+
+   .. seealso:: ":js:func:`mapReduce()`" and ":doc:`/core/map-reduce`"
 
    .. slave-ok
 
@@ -281,8 +293,8 @@ TODO lacking a lot of documentation. Can you describe each option in the way you
 
         { findAndModify: collection, <options> }
 
-   The shell and many :term:`drivers <driver>` also provide a
-   ``db.findAndModify();`` method.
+   The shell and many :term:`drivers <driver>` provide a
+   :js:func:`findAndModify()` helper method.
 
    The following options are available:
 
@@ -320,7 +332,11 @@ TODO: link to more complete documentation with common examples.
 
    Here, all distinct values of the field (or "``key``") ``age`` are
    returned in documents that match the query "``{ field: { $exists:
-   true }``". **Note that the query is optional**.
+   true }``".
+
+   .. note::
+
+      The query portion of the :dbcommand:`distinct` is optional.
 
    The shell and many :term:`drivers <driver>` provide a helper method that provides
    this functionality. You may prefer the following equivalent syntax: ::
@@ -340,13 +356,13 @@ are required and which are options? For instance, required options could be in b
 
         { eval: function() { return 3+3 } }
 
-   The shell also provides a helper method, so you can express the above
-   the above like so: ::
+   The shell also provides a helper method, so you can express the
+   above like so: ::
 
         db.eval( function { return 3+3 } } );
 
-   Note that functions entered directly into the shell will be evaluated
-   by the shell's JavaScript interpreter. If you want to use the server's
+   Note the shell's Java Script interpreter evaluates functions
+   entered directly into the shell. If you want to use the server's
    interpreter, you must run ``eval``.
 
    Note the following behaviors and limitations:
@@ -354,9 +370,10 @@ are required and which are options? For instance, required options could be in b
    - ``eval`` does not work in :term:`sharded <sharding>`
      environments.
 
-   - The ``eval`` operation take a write lock by default. This means that writes to
-     database aren't permitted while it's running. You can, however, disable the lock
-     by setting the ``nolock`` flag to ``true``. For example: ::
+   - The ``eval`` operation take a write lock by default. This means
+     that writes to database aren't permitted while it's running. You
+     can, however, disable the lock by setting the ``nolock`` flag to
+     ``true``. For example: ::
 
            { eval: function() { return 3+3 }, nolock: true }
 
@@ -529,12 +546,12 @@ TODO: see also -- replica set config options.
    .. slave-ok, admin-only
 
 Geospatial Commands
-~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
 .. dbcommand:: geoNear
 
    The ``geoNear`` command provides an alternative to the
-   :mongodb:dbcommand:`$near` operator. In addition to the
+   :dbcommand:`$near` operator. In addition to the
    functionality of ``$near``, ``geoNear`` returns the distance of
    each item from the specified point along with additional diagnostic
    information. For example: ::
@@ -1136,9 +1153,11 @@ Diagnostics
 .. dbcommand:: validate
 
    The ``validate`` command checks the contents of a namespace by
-   scanning data structures,  and indexes for correctness. The command
+   scanning data structures, and indexes for correctness. The command
    can be slow to run particularly on larger data sets. Consider the
-   following syntax: ::
+   following syntax:
+
+   .. code-block:: javascript
 
         { validate: "collection" }
 
@@ -1151,12 +1170,25 @@ Diagnostics
    - "``scandata: false``" skips the scan of the base collection
      without skipping the scan of the index.
 
-   The ``mongo`` shell also provides a shell wrapper which is
-   equivalent to the first example above: ::
+   The :option:`mongo` shell provides the :js:func:`validate()` method
+   around the :dbcommand:`validate` command for easy use. The
+   following command at the :option:`mongo` shell is equivalent to the
+   example above:
+
+   .. code-block:: javascript
 
         db.collection.validate();
 
-TODO factcheck; the options on the REST interface and wiki differ
+   Use one of the following forms to perform the full collection
+   validation:
+
+   .. code-block:: javascript
+
+      db.collection.validate(true)
+      db.runCommand( { validate: "collection", full: true } )
+
+   .. warning:: This command is resource intensive and may have an
+      impact on the performance of your MongoDB instance.
 
 .. dbcommand:: top
 
@@ -1172,7 +1204,7 @@ TODO factcheck; the options on the REST interface and wiki differ
    - insert
    - update
    - remove
-   - commands.
+   - commands
 
    The command takes the following form: ::
 
@@ -1453,6 +1485,11 @@ Other Commands
         { filemd5: "style-guide.rst" }
 
 TODO find md5 "root" argument, and other functionality.
+
+:option:`mongos` commands
+-------------------------
+
+TODO document mongos commands DOCS-112
 
 Internal Use
 ------------

@@ -22,7 +22,7 @@ You may also use the literal command format:
    db.runCommand( { collStats: "collection" } )
 
 Replace "``collection``" in both examples with the name of the
-colection you want statstics for. By default, the return values will
+collection you want statistics for. By default, the return values will
 appear in terms of bytes. You can, however, enter a scaling
 factor. For example, you can convert the return values to kilobytes
 like so: ::
@@ -37,7 +37,8 @@ Or:
 
    db.runCommand( { collStats: "collection", scale: 1024 } )
 
-See :dbcommand:`colStats` for
+.. seealso:: The documentation of the ":dbcommand:`collStats`" command
+   and the ":js:func:`stats()`," method in the :doc:`mongo shell </mongo>`.
 
 Fields
 ------
@@ -49,24 +50,24 @@ Fields
 
 .. stats:: count
 
-   The number of objects or documents in this colection.
+   The number of objects or documents in this collection.
 
 .. stats:: size
 
-   The size of the collection. This value is affected by the
-   "``scale``" factor.
+   The size of the collection. The "``scale``" factor affects this
+   value.
+
 
 .. stats:: avgObjSize
 
-   The average size of an object in the collection. This value is
-   affected by the "``scale``" factor.
+   The average size of an object in the collection. The "``scale``"
+   factor affects this value.
 
 .. stats:: storageSize
 
    The total amount of storage size. This is equal to the total number
-   of extents allocated by this collection. This
-   value is affected by the "``scale``" factor and the :term:`padding
-   factor`.
+   of extents allocated by this collection. The "``scale``" factor affects this
+   value.
 
 .. stats:: numExtents
 
@@ -79,27 +80,28 @@ Fields
 
 .. stats:: lastExtentSize
 
-   The size of the last extent allocated. This value is affected by
-   the "``scale``" factor.
+   The size of the last extent allocated. The "``scale``" factor affects this
+   value.
 
 .. stats:: paddingFactor
 
-   The amount of space added to the end of each document at insert time.
-   This padding factor is calculated automatically by the server and exists
-   to prevent excessive document relocations.
+   The amount of space added to the end of each document at insert
+   time. The server automatically calculates this padding factor,
+   which exists to prevent excessive document relocations.
 
 .. stats:: flags
 
    "flags" : 1,
 
-TODO what are flags in collection stats.
+TODO what are flags in collectionstats.
+
 
 .. stats:: totalIndexSize
 
-   The total size of all indexes. This value is affected by the "``scale``" factor.
+   The total size of all indexes. The "``scale``" factor affects this
+   value.
 
 .. stats:: indexSizes
 
-   This field specifies the key and size
-   of every existing index on the collection. This value is affected
-   by the "``scale``" factor.
+   This field specifies the key and size of every existing index on
+   the collection. The "``scale``" factor affects this value.
