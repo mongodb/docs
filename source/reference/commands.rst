@@ -5,35 +5,57 @@ Command Reference
 .. default-domain:: mongodb
 .. highlight:: javascript
 
-This document contains a reference to all :term:`database commands
-<database command>`. MongoDB constructs commands using :term:`BSON`
-documents issued as queries against a special MongoDB collection named
-:term:`$cmd`. The JavaScript shell (i.e. :option:`mongo`,) provides
-the following syntax to facilitate running commands:
+This document contains a reference to all :term:`database commands <database command>`.
 
+The MongoDB command interface provides access
+to all non-CRUD database operations. Fetching
+server stats, initializing a replica set, and running a map-reduce job
+are all accomplished by running a command.
+
+You specify a command first by constructing a standard :term:`BSON` document
+whose first key is the name of the command. For example, the ``isMaster`` command
+is specified using the following ``BSON`` document: ::
+
+    { isMaster: 1 }
+
+To execute this command, you send this document as a query on the special :term:`$cmd`
+collection: ::
+
+    db.$cmd.findOne( {isMaster: 1} )
+
+The JavaScript shell (i.e. :option:`mongo`,) provides a helper method for
+running commands. Thus, you can also run the above command like so: ::
 .. code-block:: javascript
 
-      db.runCommand( { <commandname>: <value> [, options] } );
+    db.runCommand( { isMaster: 1 } )
 
-Similarly, you can run administrative commands using the following
-syntax:
-
+Quite a few commands even have their own shell helpers: ::
 .. code-block:: javascript
 
-   db._adminCommand( { <commandname>: <value> [, options] } )
+    db.isMaster();
 
-The ``_adminCommand`` helper is shorthand for the following JavaScript
-operation:
-
+Some commands must be run on the ``admin`` database. Normally, that looks like this: ::
 .. code-block:: javascript
 
-   db.getSisterDB("admin").runCommand()
+    use admin
+    db.runCommand( {buildInfo: 1} )
 
-MongoDB :term:`drivers <driver>`, and the :option:`mongo` shell may
-provide helper interfaces for issuing database commands.
+However, there's also a command helper that automatically switches to this database: ::
+.. code-block:: javascript
 
-This document primarily provides examples as "prototype" documents,
-with references to available shell helpers when possible.
+    db._adminCommand( {buildInfo: 1} )
+
+This ``_adminCommand`` helper is shorthand for "``db.getSisterDB("admin").runCommand();``".
+
+All commands return, at minimum, a document with an ``ok`` field indicating whether the
+command has succeeded: ::
+
+    { 'ok': 1 }
+
+If the command fails, the value of ``ok`` will be 0.
+
+In the command descriptions below, we provide the document template for each command.
+In some cases, we also show the relevant ``mongo`` shell helpers.
 
 User Commands
 -------------
@@ -930,41 +952,39 @@ Administration
 
 .. dbcommand:: shutdown
 
-   The ``shutdown`` command shuts down the database process. The
-   command takes the following form: ::
+   The ``shutdown`` command cleans up all database resources and then terminates
+   the process. The command has the following form: ::
 
         { shutdown: 1 }
 
    .. note::
 
       The ``shutdown`` command must be run against the admin
-      database. Additionally, the command must be issued from a
-      connection on localhost, or the connection must be
+      database. Additionally, the command must either be issued
+      from localhost or the connection must be
       authenticated.
 
-   For :doc:`replica set </core/replication>` users, if the current
-   node is primary and no other members of the set are less than 10
-   seconds behind the node then the server will not shut down without
-   a "force" option. See the following example: ::
+   If the node you're trying to shut down is a :doc:`replica set </core/replication>`
+   primary, then the command will succeed only if there exists a secondary node
+   whose oplog data is within 10 seconds of the primary. You can override this protection
+   using the ``force`` option: ::
 
         { shutdown: 1, force: true }
 
-   The ``shutdown`` command also supports a ``timeoutSecs`` argument
+   Alternatively, the ``shutdown`` command also supports a ``timeoutSecs`` argument
    which allows you to specify a number of seconds to wait for other
-   members of the replica set to catch up. That command resembles: ::
+   members of the replica set to catch up: ::
 
         { shutdown: 1, timeoutSecs: 60 }
 
-   The ``mongo`` shell also provides the following helper method: ::
+   The equivalent ``mongo`` shell helper syntax looks like this: ::
 
-        db.shutdownServer();
+        db.shutdownServer({timeoutSecs: 60});
 
 .. dbcommand:: copydb
 
-   The ``copydb`` command copies a database from another host to the
-   current host. This provides similar functionality to
-   :dbcommand:`clone`, but provides additional flexibility. The command
-   uses the following syntax: ::
+   The ``copydb`` command copies a database from a remote host to the
+   current host. The command has the following syntax: ::
 
         { copydb: 1:
           fromhost: <hostname>,
@@ -976,7 +996,7 @@ Administration
           nonce: <nonce>,
           key: <key> }
 
-   The following arguments are optional:
+   All of the following arguments are optional:
 
    - slaveOK
    - username
@@ -987,35 +1007,47 @@ Administration
    Be aware of the following behaviors:
 
    - ``copydb`` can run against a :term:`slave` or a
-     non-:term:`primary` member of a :term:`replica set`.
+     non-:term:`primary` member of a :term:`replica set`. In this case,
+     you must set the ``slaveOk`` option to ``true``.
 
    - ``copydb`` does not snapshot the database. If the copied database is
-     updated at any point during the copydb operation the resulting
+     updated at any point during the operation, the resulting
      database may be inconsistent.
 
    - You must run ``copydb`` on the **destination server**.
 
-   - The destination server is not locked during the duration of the
-     ``copydb`` operation, and ``copydb`` will occasionally yield to
-     other operations.
+   - The destination server is not locked for the duration of the
+     ``clone`` operation. This means that ``clone`` will occasionally yield to
+     allow other operations to complete.
+
+   - If the remote server has authentication enabled, then you must
+     include a username and password. You must also include a nonce
+     and a key. The nonce is a one-time password that you request from
+     the remote server using the ``copydbgetnonce`` command. The ``key`` is
+     a hash generated as follows: ::
+
+         hex_md5(nonce + username + hex_md5(username + ":mongo:" + pass))
+
+     If you need to copy a database and authenticate, it's easiest to use the
+     shell helper: ::
+
+         db.copyDatabase(<remove_db_name>, <local_db_name>, <from_host_name>, <username>, <password>)
 
 .. dbcommand:: logout
 
-   The ``logout`` command forces the current session to end the
-   current authentication session. The command takes the following
-   syntax: ::
+   The ``logout`` command terminates the current authenticated session: ::
 
         { logout: 1 }
 
    .. note::
 
-      If you're not logged on using authentication this command will
+      If you're not logged in and using authentication, this command will
       have no effect.
 
 .. dbcommand:: logRotate
 
    ``logRotate`` is an admin only command that allows you to rotate
-   the MongoDB commands to prevent a single logfile from consuming too
+   the MongoDB logs to prevent a single logfile from consuming too
    much disk space. Use the following syntax: ::
 
         { logRotate: 1 }
@@ -1023,12 +1055,14 @@ Administration
    .. note::
 
       Your :option:`mongod` instance needs to be running with the
-      ``--logpath <file>`` option for the ``logRotate`` command.
+      ``--logpath <file>`` option.
 
-   You may also rotate the logs by sending the :option:`mongod` process the
-   ``SIGUSR1`` signal.
+   You may also rotate the logs by sending a ``SIGUSR1`` signal to the :option:`mongod` process.
+   If your ``mongod`` has a process ID of 2200, here's how to send the signal on Linux: ::
 
-   Rotated files have a number appended to the file name.
+       $ kill -SIGUSR1 2200
+
+   The rotated files will have a timestamp appended to the filename.
 
    .. note::
 
@@ -1037,62 +1071,59 @@ Administration
 
 .. dbcommand:: setParameter
 
-   ``setParamenter`` is an administrative command for modifying the
-   operational parameters of the MongoDB instance. The
+   ``setParameter`` is an administrative command for modifying
+   options normally set on the command line. The
    ``setParameter`` command must be issued against the ``admin``
-   database.  The command takes form: ::
+   database, and it has form: ::
 
         { setParameter: 1, <option>: <value> }
 
    Replace the ``<option>`` with one of the following options
    supported by this command:
 
-   - **journalCommitInterval** specify a ``<value>`` between 1 and 500
-     to control the number of milliseconds (ms) between journal
+   - **journalCommitInterval**: an integer between 1 and 500
+     specifying the number of milliseconds (ms) between journal
      commits.
 
-   - **logLevel** specify a ``<value>`` as an integer between ``0``
-     and ``5`` to determine the verbosity of the logging.
+   - **logLevel**: an integer between ``0``
+     and ``5`` signifying the verbosity of the logging, where larger
+     is more verbose.
 
-   - **notablescan** specify a "``true``" or "``false``" value for this
-     option allow or disable collection (e.g. table) scans.
+   - **notablescan**: If "``true``", queries not using an index
+     will fail.
 
-   - **quiet** specify a "``true``" or "``false``" value for this
-     option to enable or disable a quiet logging mode. This toggles
-     the same option as running :option:`mongod` with the
-     ":option:`--quiet <mongod --quiet>``" flag. This will suppress
-     logging of the following messages:
+   - **quiet**: If "``true``" or "``false``", quiet logging mode will
+     be enabled. This will suppress logging of the following messages:
 
      - Connection events: accepted and closed.
      - Commands: :dbcommand:`drop`, :dbcommand:`dropIndex`, and
        :dbcommand:`daglogging`, :dbcommand:`validate`, :command;`clean`.
      - Replication synchronization activity.
 
-   - **syncdelay** specify a ``<value>``, in seconds, to control the
-     interval that the :option:`mongod` flushes memory to disk. By
-     default :option:`mongod` will flush memory to disk every 60
-     seconds.
+   - **syncdelay**: the interval, in seconds, between fsyncs (i.e., flushes of memory to disk).
+     By default, :option:`mongod` will flush memory to disk every 60
+     seconds. It isn't necessary to change this value unless you see a background flush
+     average greater than 60 seconds.
 
    .. slave-ok, admin-only
 
 .. dbcommand:: getParameter
 
    ``getParemeter`` is an administrative command for retrieving the
-   current operational parameters for a MongoDB instance. Issue
-   commands against the ``admin`` database in the following form: ::
+   value of options normally set on the command line. Issue
+   commands against the ``admin`` database as follows: ::
 
         { getParameter: 1, <option>: 1 }
 
    The values specified for ``getParameter`` and ``<option>`` do not
-   effect the output. The command provides visibility for the
-   following options:
+   affect the output. The command works with the following options:
 
    - **quiet**
    - **notablescan**
    - **logLevel**
    - **syncdelay**
 
-   See :dbcommand:`setParameter` for more regarding these parameters.
+   See :dbcommand:`setParameter` for more about ese parameters.
 
    .. slave-ok, admin-only
 
@@ -1101,20 +1132,22 @@ Diagnostics
 
 .. dbcommand:: dbStats
 
-   The ``dbStats`` command returns a document with information
-   regarding a specific database. This command does not return
-   instantly, and the time required to run the command depends on the
-   total size of the database. The command takes the following syntax:
+   The ``dbStats`` command returns storage statistics for a given database.
+   The command takes the following syntax:
 
         { dbStats: 1, scale: 1 }
 
    The value of the argument (e.g. ``1`` above) to ``dbStats`` does
-   not effect the output of the command. The "``scale``" option
-   allows you to configure how the values of bytes are
-   scaled. For example, specify a "``scale``" value of "``1024``" to
-   display kilobytes rather than bytes.
+   not affect the output of the command. The "``scale``" option
+   allows you to specify how the values of bytes are
+   scaled. For example, a "``scale``" value of "``1024``" will
+   display the results in kilobytes rather than in bytes.
 
-   In the ``mongo`` shell the :js:func:`db.stats()` function provides
+   The time required to run the command depends on the total size of the database.
+   Because the command has to touch all data files, the command may take several
+   seconds to run.
+
+   In the ``mongo`` shell, the :js:func:`db.stats()` function provides
    a wrapper around this functionality. See the
    ":doc:`/reference/database-statistics`" document for an overview of
    this output.
@@ -1122,30 +1155,26 @@ Diagnostics
 .. dbcommand:: connPoolStats
 
    The command ``connPoolStats`` returns information regarding the
-   number of open connections to the current database instance
+   number of open connections to the current database instance,
    including client connections and server-to-server connections for
    replication and clustering. The command takes the following form:
    ::
 
         { connPoolStats: 1 }
 
-   The value of the argument (e.g. ``1`` above) does not effect the
+   The value of the argument (e.g. ``1`` above) does not affect the
    output of the command.
 
 .. dbcommand:: getCmdLineOpts
 
-   The ``getCmdLineOpts`` command returns a document with information
-   regarding the runtime options used by the MongoDB server. Consider
-   the following syntax: ::
+   The ``getCmdLineOpts`` command returns a document containing
+   command line options used to start the given ``mongod``: ::
 
         { getCmdLineOpts: 1 }
 
-   The value of the argument (e.g. ``1`` above) does not effect the
-   output of the command.
-
    This command returns a document with two fields, "``argv``" and
    "``parsed``". The "``argv``" field contains an array with each item
-   from the command string that invoked :option:`mongod`. The document
+   from the command string used to invoke :option:`mongod`. The document
    in the "``parsed``" field includes all runtime options, including
    those parsed from the command line and those specified in the
    configuration file (if specified.)
@@ -1153,16 +1182,13 @@ Diagnostics
 .. dbcommand:: validate
 
    The ``validate`` command checks the contents of a namespace by
-   scanning data structures, and indexes for correctness. The command
-   can be slow to run particularly on larger data sets. Consider the
-   following syntax:
+   scanning a collection's data and indexes for correctness. The command
+   can be slow, particularly on larger data sets: ::
 
-   .. code-block:: javascript
-
-        { validate: "collection" }
+        { validate: "users" }
 
    This command will validate the contents of the collection named
-   "``collection``". You may also specify one of the following
+   "``users``". You may also specify one of the following
    options:
 
    - "``full: true``" provides a more thorough scan of the data.
@@ -1170,11 +1196,7 @@ Diagnostics
    - "``scandata: false``" skips the scan of the base collection
      without skipping the scan of the index.
 
-   The :option:`mongo` shell provides the :js:func:`validate()` method
-   around the :dbcommand:`validate` command for easy use. The
-   following command at the :option:`mongo` shell is equivalent to the
-   example above:
-
+   The ``mongo`` shell also provides a wrapper: ::
    .. code-block:: javascript
 
         db.collection.validate();
@@ -1210,56 +1232,51 @@ Diagnostics
 
         { top: 1 }
 
-   The value of the argument (e.g. ``1`` above) does not effect the
-   output of the command.
-
 .. dbcommand:: buildInfo
 
-   The ``bulidInfo`` command returns information regarding the build
-   of MongoDB currently running. The command takes the following
-   form: ::
+   The ``buildInfo`` command returns a build summary for the current
+   ``mongod``: ::
 
          { buildInfo: 1 }
 
-   The value of the argument (e.g. ``1`` above) does not effect the
-   output of the command. The data returned includes:
+    The information provided includes the following:
 
    - The version of MongoDB currently running.
    - The information about the system that built the
      ":option:`mongod`" binary, including a timestamp for the build.
    - The architecture of the binary (i.e. 64 or 32 bits)
-   - The maximum :term:`BSON` object size in bytes (in the field
+   - The maximum allowable :term:`BSON` object size in bytes (in the field
      "``maxBsonObjectSize``".)
 
-   ``buildInfo`` must be issued while using the ``admin`` database.
+   ``buildInfo`` must be issued against the ``admin`` database.
 
 .. dbcommand:: getLastError
 
    The ``getLastError`` command returns the error status of the last
-   operation *on this connection*. Consider the following syntax: ::
+   operation on the *current connection*: ::
 
         { getLastError: 1 }
 
-   The value of the argument (e.g. ``1`` above) does not effect the
-   output of the command. The following options are available:
+   The following options are available:
 
-   - "``fsync: true``" run an :dbcommand:`fsync` before returning. If
-     your database is running with :doc:`journaling
-     </core/journaling>`, this option will instead wait for the next
-     journal commit before returning.
-   - "``j: true``" waits for the next journal commit before
-     returning.
-   - "``w: <n>``" waits for replication to "``<n>``" number of
-     servers before returning. If specified this value will include
-     the current host. You may also specify the "``majority``" keyword
-     so that the command will wait until more than 50% of a
-     :term:`replica set` have successfully written this data.
-   - "``wtimeout: <ms>``" provides a timeout for for the "``w``"
-     option. Specify this value in milliseconds.
-
+   - **j**: If ``true``, wait for the next journal commit before
+     returning. Applies only if journaling is enabled.
+   - **w**: When running with replication, this is the number of servers to
+     replica to before returning. A ``w`` value of 1 indicates the primary only.
+     A ``w`` value of 2 includes the primary and at least one secondary, etc.
+     In place of a number, you may also set ``w`` to "``majority``" to indicate
+     that the command should wait until the latest write is reflected on a majority
+     of replica set members. If using ``w``, you should also use ``wtimeout``. Specifying
+     a value for ``w`` without also providing a ``wtimeout`` may cause  ``getlasterror`` to block
+     indefinitely.
+   - **wtimeout**: If a ``w`` value is provided, this is the number of milliseconds
+     to wait for replication to the specified number of servers. If replication does not complete
+     in the given timeframe, the ``getlasterror`` command will return with an error status.
    .. seealso:: ":ref:`Replica Set Write Propagation <replica-set-write-propagation>`"
       and ":js:func:`db.getLastError()`."
 
+TODO: standardize on the way options are presented. Here, the standard is "``fsync``" but elsewhere
+we see **fsync**.
 
 .. dbcommand:: getLog
 
@@ -1281,20 +1298,17 @@ Diagnostics
 
 .. dbcommand:: listDatabases
 
-   The ``listDatabases`` command provides a list of the extant
-   databases along with basic statistics regarding the database. The
-   command takes the following form: ::
+   The ``listDatabases`` command provides a list of existing
+   databases along with basic statistics about them: ::
 
         { listDatabases: 1 }
 
    The value (e.g. ``1``) does not effect the output of the
-   command. ``listDatabases`` returns documents for each database, within
-   the "``databases``" array as well a ``totalSize`` field which
-   contains the total amount of disk space used for the database in
-   bytes. The documents for each database contain a "``name``" field
+   command. ``listDatabases`` returns a document for each database
+   Each document contains a "``name``" field
    with the database name, a "``sizeOnDisk``" field with the total
-   size of the database file on disk in bytes, and the "``empty``"
-   field with a true or false value.
+   size of the database file on disk in bytes, and an "``empty``"
+   field specifying whether the database has any data.
 
 .. dbcommand:: cursorInfo
 
@@ -1304,76 +1318,69 @@ Diagnostics
         { cursorInfo: 1 }
 
    The value (e.g. ``1`` above,) does not effect the output of the
-   command. ``cursorInfo`` provides values for the total number of
+   command.
+
+   ``cursorInfo`` returns the total number of
    open cursors ("``totalOpen``",) the size of client cursors in
    current use ("``clientCursors_size``",) and the number of timed out
    cursors since the last server restart ("``timedOut``".)
 
 .. dbcommand:: isMaster
 
-   The ``isMaster`` provides a basic overview of the current
-   replication configuration, and is typically used by :term:`drivers
-   <driver>` and :term:`clients <client>` to discover members of a
-   :term:`replica set`.
+   The ``isMaster`` command provides a basic overview of the current
+   replication configuration. This command is used by the MongoDB :term:`drivers
+   <driver>` and :term:`clients <client>` to determine what kind of node
+   they're connected to and to discover additional members of a :term:`replica set`.
 
    The command takes the following form: ::
 
         { isMaster: 1 }
 
-   This command will returns a JSON document that contains the
-   following data:
+   This command returns a JSON document containing the
+   following fields:
 
    .. js:data:: isMaster.setname
 
-      Contains the name of the current set, in the form of a string.
+      The name of the current replica set, if applicable.
 
    .. js:data:: isMaster.ismaster
 
-      Contains a boolean value. If the field is "``true``", then
-      the current node is the :term:`primary` node in the
-      :term:`replica set`.
+      Whether this node can be written to. If "``true``", then
+      the current node is either a :term:`primary` node in a
+      :term:`replica set`, a `master` node in a master-slave configuration,
+      of a standalone `mongod`.
 
    .. js:data:: isMaster.secondary
 
-      Contains a boolean value. If the field is "``true``", then the
-      current node is a :term:`secondary` node in a :term:`replica
-      set`.
+      A boolean value that, when "``true``", indicates that the
+      current node is a :term:`replica set` :term:`secondary`.
 
    .. js:data:: isMaster.hosts
 
-      Contains an array. The array holds a list of strings in the
-      format of "[hostname]:[port]", contain all nodes in the
+      An array of strings in the format of "[hostname]:[port]"
+      listing all nodes in the
       :term:`replica set` that are not ":term:`hidden <hidden
-      node>`". This is used by :term:`drivers <driver>` and
-      :term:`clients <client>` to distribute read operations to
-      secondary nodes, depending on :term:`read preference`.
+      node>`".
 
    .. js:data:: isMaster.primary
 
-      Contains a string in the "``[hostname]:[port]``" format that
-      describes the primary node in the current :term:`replica set`.
+      The "``[hostname]:[port]``" for the current
+      :term:`replica set` :term:`primary`, if applicable.
 
    .. js:data:: isMaster.me
 
-      Contains a string in the "``[hostname]:[port]``" form that
-      describes the node that responding to this command.
+      The "``[hostname]:[port]``" of the node node responding to this command.
 
    .. js:data:: isMaster.maxBsonObjectSize
 
-      Contains the max size of a :term:`BSON` object in bytes.
-
-   .. js:data:: isMaster.ok
-
-      Returns ``1`` if the command completes successfully with out
-      errors.
-
-TODO factcheck isMaster.BsonObjectSize
+      The maximum permitted size of a :term:`BSON` object in bytes for this ``mongod`` process.
+      If not provided, clients should assume a max size of 4 * 1024 * 1024.
 
 .. dbcommand:: ping
 
-   The ``ping`` command is used to test the server to ensure that it
-   is running. This command will return immediately even if the server
-   has a db lock. Issue the command with the following syntax: ::
+   The ``ping`` command is a no-op used to test whether a server is
+   responding to commands. This command will return immediately even if the server
+   is write-locked: ::
 
         { ping: 1 }
 
@@ -1388,32 +1395,26 @@ TODO factcheck isMaster.BsonObjectSize
 
          { journalLatencyTest: 1 }
 
-   The value (i.e. ``1`` above), does not effect the operation of the
+   The value (i.e. ``1`` above), does not affect the operation of the
    command.
-
-.. dbcommand:: availableQueryOptions
-
-   { "options" : 254, "ok" : 1 }
-
-TODO no documentation exists, and the response I get is the above
 
 .. dbcommand:: serverStatus
 
    The ``serverStatus`` command returns a document that provides an
-   overview of the database process' state. The command takes the
-   following form: ::
+   overview of the database process's state. Most monitoring applications
+   run this command at a regular interval to collection statistics about the
+   instance: ::
 
         { serverStatus: 1 }
 
-   The value (i.e. ``1`` above), does not effect the operation of the
+   The value (i.e. ``1`` above), does not affect the operation of the
    command.
 
    .. seealso:: :js:func:`db.serverStatus()` and ":doc:`/reference/server-status`"
 
 .. dbcommand:: resetError
 
-   The ``resetError`` command resets the error status. Use this
-   command with :dbcommand:`getPrevError`` command.
+   The ``resetError`` command resets the last error status.
 
    .. seealso:: :js:func:`db.resetError()`
 
@@ -1426,22 +1427,28 @@ TODO no documentation exists, and the response I get is the above
 
 .. dbcommand:: forceerror
 
-   The force error command is for testing purposes only. Use
-   ``forceerror`` to force a user assertion exception.
+   The ``forceerror`` command is for testing purposes only. Use
+   ``forceerror`` to force a user assertion exception. This
+   command will always return with an ``ok`` value of 0.
 
 .. dbcommand:: profile
 
-   Use the ``profile`` command to enable, disable or change the
-   profile level. Use the following syntax: ::
+   Use the ``profile`` command to enable, disable, or change the
+   query profiling level. Use the following syntax: ::
 
-        { profile: -1 }
+        { profile: <level> }
 
    The following profiling levels are available:
 
    - ``0`` - off; no profiling.
-   - ``1`` - on; log slow operations only.
+   - ``1`` - on; log slow (> 100ms) operations only.
    - ``2`` - on; log all operations.
    - ``-1`` - return the current profiling level.
+
+   You may optionally set a threshhold in milliseconds for profiling using
+   the ``slowms`` option. To : ::
+
+       { profile: 1, slowms: 200 }
 
    .. seealso:: Additional documentation regarding database profiling
                 :ref:`Database Profiling <database-profiling>`.
@@ -1454,7 +1461,7 @@ TODO no documentation exists, and the response I get is the above
 .. dbcommand:: listCommands
 
    The ``listCommands`` command generates a list of all database
-   commands implemented in the running version of :option:`mongod`.
+   commands implemented for the current :option:`mongod` instance.
 
    .. slave-ok
 
@@ -1463,28 +1470,32 @@ Other Commands
 
 .. dbcommand:: reIndex
 
-   The ``reIndex`` command triggers a rebuild of all indexes for a
+   The ``reIndex`` command rebuilds all indexes for a
    specified collection. Use the following syntax: ::
 
         { reIndex: "collection" }
 
-   Indexes are automatically compacted as they are updated. In routine
-   operations ``reIndex`` is unnecessary; however, you may wish if the
-   collection size changed significantly or the indexes are consuming
-   a disproportionate amount of disk space. The ``reIndex`` process is
-   blocking, and will be slow for larger collections. You can also
+   Normally, indexes are compacted as they're updated. For most users,
+   the ``reIndex`` is unnecessary. However, it may be worth running if the
+   collection size has changed significantly or if the indexes are consuming
+   a disproportionate amount of disk space.
+
+   Note that the ``reIndex`` command will block the server against
+   writes and may take a long time for large collections.
+
    call ``reIndex`` using the following form: ::
 
         db.collection.reIndex();
 
 .. dbcommand:: filemd5
 
-   The ``filemd5`` command returns :term:`md5` hashes for every object
-   in a :term:`GridFS` store. Use the following syntax: ::
+   The ``filemd5`` command returns the :term:`md5` hashes for a single
+   files stored using the :term:`GridFS` specification. Client libraries
+   use this command to verify that files are correctly written to MongoDB.
+   The command takes the ``files_id`` of the file in question and the
+   name of the GridFS root collection being used. For example: ::
 
-        { filemd5: "style-guide.rst" }
-
-TODO find md5 "root" argument, and other functionality.
+        { filemd5: ObjectId("4f1f10e37671b50e4ecd2776"), root: "fs" }
 
 :option:`mongos` commands
 -------------------------
@@ -1542,7 +1553,8 @@ Internal Use
 
 .. dbcommand:: copydbgetnonce
 
-   ``copydbgetnonce`` is an internal command.
+   ``copydbgetnonce`` is used by client libraries to get a one-time password
+   for use with the ``copydb`` command.
 
    .. write-lock, admin-only
 
@@ -1579,7 +1591,8 @@ Internal Use
 
 .. dbcommand:: getnonce
 
-   ``getnonce`` is an internal command.
+   ``getnonce`` is used by client libraries to generate a one-time
+   password for authentication.
 
    .. slave-ok
 
@@ -1638,8 +1651,8 @@ Internal Use
 .. dbcommand:: writeBacksQueued
 
    ``writeBacksQueued`` is an internal command that returns true if
-   there are operations in the write back queue when
-   ``writeBacksQueued`` was called.
+   there are operations in the write back queue for the given ``mongos``.
+   This command applies to sharded clusters only.
 
    .. slave-ok, admin-only
 
@@ -1690,14 +1703,17 @@ TODO factcheck (minor)
 
    ``moveChunk`` is an internal command that supports the sharding
    functionalty and should not be called directly. Use the
-   :js:func:`sh.moveChunk()` function in the :option:`mongo` shell to
-   access this functionality.
+   :js:func:`sh.moveChunk()` function in the :option:`mongo` shell
+   if you must move a chunk manually.
 
    .. admin-only
 
 .. dbcommand:: authenticate
 
-   ``authenticate`` is an internal command.
+   ``authenticate`` is used by client to authenticate on a connection. When
+   using the shell, you should use the command helper like so: ::
+
+       db.authenticate( "username", "password" )
 
    .. read-lock, slave-ok
 
