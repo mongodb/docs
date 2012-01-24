@@ -43,19 +43,61 @@ bar. From left to right, these are:
 - The version of MongoDB running on this process.
 
 The second line contains nine links that control the host statistics
-page. The current selection is displayed in a larger font. These
-options are:
+page. MMS displays the current selection in a larger font. In the
+second line there is a "window" selector that narrows the amount of
+data displayed. These options are:
 
-- "by minute," which is the default setting. All charts plot one data point
-  per minute.
+- "by minute," which is the default setting. All charts plot one data
+  point per minute. The "window" options are:
 
-- "by 5min," which re-plots all charts with five-minute averages.
+  - "one hour," which is the default window for this selection and
+    charts 1 hour of data.
 
-- "by hour," which re-plots all charts with hourly averages.
+  - "six hours," which charts 6 hours of data.
 
-- "by day," which re-plots the chart to display a period of time greater
-  than 24 hours, Possible scopes are: "week," "two week," "month,"
-  "six month" and "year."
+  - "twelve hours," which charts 12 hours of data.
+
+  - "twenty-four hours," which charts 24 hours of data.
+
+- "by 5min," which re-plots all charts with five-minute averages. The
+  "window" options are:
+
+  - "six hours," which charts 6 hours of data.
+
+  - "twelve hours," which charts 12 hours of data.
+
+  - "twenty-four hours," which is the default window for this
+    selection and charts 24 hours of data.
+
+  - "forty-eight hours," which charts 24 hours of data.
+
+- "by hour," which re-plots all charts with hourly averages. The
+  "window" options are:
+
+  - "one day," which charts 1 day of data.
+
+  - "one week," which charts 1 week of data.
+
+  - "two weeks," which charts 2 weeks of data.
+
+  - "one month," which is the default window for this selection and
+    charts 1 month of data.
+
+  - "two months," which charts 2 months of data.
+
+- "by day," which re-plots the chart to display a period of time
+  greater than 24 hours. The "window" options are:
+
+  - "one week," which charts 1 week of data.
+
+  - "two weeks," which charts 2 weeks of data.
+
+  - "one month," which is the default window for this selection and
+    charts 1 month of data
+
+  - "six months," which charts 6 months of data.
+
+  - "one year," which charts 1 year of data.
 
 - "range," which allows you to specify a time rage for the charts to
   display.
