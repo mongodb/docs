@@ -554,9 +554,9 @@ accepted write operations that have replicated to the
 rare and typically occurs as a result of a network partition with
 replication lag. When this node (the former primary) rejoins the
 :term:`replica set` and attempts to continue replication as a
-secondary those operations that were not replicated have to be
-removed, or "rolled back," to maintain database consistency across the
-replica set.
+secondary those operations the former primary must revert these
+operations or "rolled back" these operations to maintain database
+consistency across the replica set.
 
 MongoDB writes the rollback data to a :term:`BSON` file in the
 database's :setting:`dbpath` directory. Use :doc:`bsondump
@@ -565,7 +565,8 @@ and then manually apply the changes to the new primary. There is no
 way for MongoDB to appropriately and fairly handle rollback situations
 without manual intervention. Since rollback situations require an
 administrator's direct intervention, users should strive to avoid
-rollbacks as much as possible.
+rollbacks as much as possible. Until an administrator applies this
+rollback data, the former primary remains in a "rollback" status.
 
 The best strategy for avoiding all rollbacks is to ensure :ref:`write
 propagation <replica-set-write-propagation>` to all or some of the
@@ -577,6 +578,13 @@ that might create rollbacks.
    A :option:`mongod` instance will not rollback more than 300
    megabytes of data. If your system needs to rollback more than 300
    MB, you will need to manually intervene to recover this data.
+
+.. note::
+
+   After a rollback occurs, the former primary will remain in a
+   "rollback" mode until the administrator deals with the rolled back
+   data and restarts the :option:`mongod` instance. Only then can the
+   node becomes a normal :term:`secondary` terms.
 
 .. _replica-set-write-propagation:
 

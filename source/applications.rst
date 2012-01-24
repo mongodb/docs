@@ -9,6 +9,7 @@ Application Development
    :maxdepth: 3
 
    applications/schema-design
+   applications/simple-aggregation
    core/map-reduce
    applications/optimization
    applications/drivers

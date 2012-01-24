@@ -10,7 +10,7 @@ MongoDB Manual Contents
    sharding
    administration
    applications
-   core/indexes
+   core/indexing
    mongo
    reference
 

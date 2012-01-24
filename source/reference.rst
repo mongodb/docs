@@ -30,6 +30,7 @@ Statuses and Errors
    reference/server-status
    reference/database-statistics
    reference/collection-statistics
+   reference/collection-validation
    reference/replica-status
    reference/replica-configuration
    reference/replication-info
