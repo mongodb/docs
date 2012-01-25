@@ -417,7 +417,7 @@ Database
    :returns: The current connection status.
 
    :js:func:`db.getMongo()` returns when the shell initiates. Use this
-   command to test that the :option:`mongo` shell has a connection to
+   command to test that the :program:`mongo` shell has a connection to
    the proper database instance.
 
 .. js:function:: db.setSlaveOk()
@@ -624,7 +624,7 @@ Database
 
 .. js:function:: db.shutdownServer()
 
-   Shuts down the current :option:`mongod` or :option:`mongos`
+   Shuts down the current :program:`mongod` or :program:`mongos`
    process cleanly and safely.
 
    This function will fail if the current database *is not* the admin
@@ -643,7 +643,7 @@ Database
 
    This function provides a wrapper around the database command
    ":dbcommand:`dbStats`". The "``scale``" option allows you to
-   configure how the :option:`mongo` shell scales the output
+   configure how the :program:`mongo` shell scales the output
    values. For example, specify a "``scale``" value of "``1024``" to
    display kilobytes rather than bytes.
 
@@ -652,7 +652,7 @@ Database
 
 .. js:function:: db.version()
 
-   :returns: The version of the :option:`mongod` instance.
+   :returns: The version of the :program:`mongod` instance.
 
 .. js:function:: db.fsyncLock()
 
@@ -825,7 +825,7 @@ that you may use with collection objects.
    .. seealso:: ":doc:`/core/indexing`."
 
    .. [#] The default index version depends on the version of
-      :option:`mongod` running when creating the index. Before version
+      :program:`mongod` running when creating the index. Before version
       2.0, the this value was 0; versions 2.0 and later use version 1.
 
 .. js:function:: reIndex()
@@ -867,7 +867,7 @@ that you may use with collection objects.
 
       Holds the version of the index.
 
-      The index version depends on the version of :option:`mongod`
+      The index version depends on the version of :program:`mongod`
       that created the index. Before version 2.0 of MongoDB, the this
       value was 0; versions 2.0 and later use version 1.
 
@@ -953,7 +953,7 @@ that you may use with collection objects.
                      initial: { csum: 0 }
                     });
 
-   This command in for the :option:`mongo` shell groups the documents
+   This command in for the :program:`mongo` shell groups the documents
    in the collection named "``collection``" by the ``a`` and ``b``
    fields, when the "``active``" field has a value of ``1``. Then, the
    reduce function, adds the current value of fields "``a``" "``b``"
@@ -1184,7 +1184,7 @@ TODO waiting for email from Greg/Tad
 
    This function provides a wrapper around the database command
    :dbcommand:`collStats`. The "``scale``" option allows you to
-   configure how the :option:`mongo` shell scales the output
+   configure how the :program:`mongo` shell scales the output
    values. For example, specify a "``scale``" value of "``1024``" to
    display kilobytes rather than bytes.
 
@@ -1560,12 +1560,12 @@ User Functions
      the shell to evaluate a small amount of JavaScript code, or
 
    - specify a file name with ":ref:`mongo <mongo-shell-file>`".
-     :option:`mongo` will execute the script and then exit. Add the
+     :program:`mongo` will execute the script and then exit. Add the
      :option:`--shell <mongo --shell>` option to return to the shell after
      running the command.
 
    Specify files loaded with the ``load()`` function in relative terms
-   to the current directory of the :option:`mongo` shell
+   to the current directory of the :program:`mongo` shell
    session. Check the current directory using the ":js:func:`pwd()`"
    function.
 
@@ -1641,7 +1641,7 @@ User Functions
    :returns: The :term:`md5` hash of the specified file.
 
    .. note:: The specified filename must refer to a file located on
-             the system running the :option:`mongo` shell.
+             the system running the :program:`mongo` shell.
 
 .. js:function:: mkdir("path")
 
@@ -1655,12 +1655,12 @@ User Functions
 
 .. js:function:: hostname()
 
-   :returns: The hostname of the system running the :option:`mongo`
+   :returns: The hostname of the system running the :program:`mongo`
               shell process.
 
 .. js:function:: getHostName()
 
-   :returns: The hostname of the system running the :option:`mongo`
+   :returns: The hostname of the system running the :program:`mongo`
              shell process.
 
 .. js:function:: removeFile("filename")
@@ -1685,7 +1685,7 @@ User Functions
 
    Returns an array, containing one document per object in the
    directory. This function operates in the context of the
-   :option:`mongo` process. The included fields are:
+   :program:`mongo` process. The included fields are:
 
    .. describe:: name
 

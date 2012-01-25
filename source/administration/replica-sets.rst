@@ -52,13 +52,13 @@ can either:
   window allowed by the :term:`oplog`.
 
 To add a member to an existing :term:`replica set`, deploy a new
-:option:`mongod` instance, specifying the name of the replica set
+:program:`mongod` instance, specifying the name of the replica set
 (i.e. "setname" or ``replSet``) on the command line with the
 :option:`--replSet <mongod --replSet>` option or in the configuration
 with the :mongodb:setting:`replSet`. Take note of the host name and
-port information for the new :option:`mongod` instance.
+port information for the new :program:`mongod` instance.
 
-Then, log in to the current primary using the :option:`mongo`
+Then, log in to the current primary using the :program:`mongo`
 shell. Issue the :js:func:`db.isMaster()` command when connected to
 *any* member of the set to determine the current
 :term:`primary`. Issue the following command to add the new member to
@@ -89,7 +89,7 @@ Removing Members
 
 Administrators can remove any member of a replica set at any time, for
 a number of operational reasons. Use the :js:func:`rs.remove()`
-function in the :option:`mongo` shell while connected to the current
+function in the :program:`mongo` shell while connected to the current
 :term:`primary`. Issue the :js:func:`db.isMaster()` command when
 connected to *any* member of the set to determine the current
 :term:`primary`. Use a command in either of the following forms to
@@ -118,7 +118,7 @@ Replacing a Member
 
 There are two methods for replacing a member of a replica set. First,
 you may remove and then re-add a member using the following procedure
-in the :option:`mongo` shell:
+in the :program:`mongo` shell:
 
 .. code-block:: javascript
 
@@ -156,7 +156,7 @@ Adjusting a Member's Priority
 
 To change the value of the :js:data:`members[n].priority` value in the
 replica set configuration, use the following sequence of commands in
-the :option:`mongo` shell:
+the :program:`mongo` shell:
 
 .. code-block:: javascript
 
@@ -202,7 +202,7 @@ read operations will be inconsistent.
 
 Identify replication lag by checking the values of
 :js:data:`members[n].optimeDate` for each member of the replica set using
-the :js:func:`rs.status()` function in the :option:`mongo` shell.
+the :js:func:`rs.status()` function in the :program:`mongo` shell.
 
 Possible causes of replication lag include:
 

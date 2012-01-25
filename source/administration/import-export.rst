@@ -13,10 +13,10 @@ This document provides an overview of the import and export tools
 available to MongoDB administrators. These utilities are useful when
 you want to backup or export a portion of your database without
 capturing the state of the entire. Because these tools primarily
-operate by interacting with a running :option:`mongod` instance, they
+operate by interacting with a running :program:`mongod` instance, they
 can impact the performance of your running database.
 
-.. note:::option:`mongoimport` and :option:`mongoexport` do not
+.. note:::program:`mongoimport` and :program:`mongoexport` do not
    reliably preserve data types in some situations. Use with care.
 
 Using Database Imports and Exports for Backups
@@ -62,7 +62,7 @@ a JSON or CSV format.
    instance to another, consider using the :dbcommand:`copydb`,
    :dbcommand:`clone`, or :dbcommand:`cloneCollection`
    commands, which may be more suited to this task. The
-   :option:`mongo` shell provides the :js:func`db.copyDatabase()`
+   :program:`mongo` shell provides the :js:func`db.copyDatabase()`
    method.
 
 These tools may also be useful for importing data into a MongoDB data
@@ -71,7 +71,7 @@ from third party applications.
 Database Export with mongoexport
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-With the :option:`mongoexport` utility you can create a backup file. In the
+With the :program:`mongoexport` utility you can create a backup file. In the
 most simple invocation, the command takes the following form: ::
 
      mongoexport --collection collection --out collection.json
@@ -92,13 +92,13 @@ of "``1``. Enclose the query in single quotes (e.g. "``'``") to ensure
 that it does not interact with your shell environment. The resulting
 documents will return on standard output.
 
-By default, :option:`mongoexport` returns one JSON document per
+By default, :program:`mongoexport` returns one JSON document per
 MongoDB document. Specify the ":option:`--jsonArray <mongoexport --jsonArrray>`"
 argument to return the export as a single JSON
 array. Use the ":option:`--csv <mongoexport --csv>`" file to return
 the result in CSV (comma separated values) format.
 
-If your :option:`mongod` instance is not running, you can use the
+If your :program:`mongod` instance is not running, you can use the
 ":option:`--dbpath <mongoexport --dbpath>`" option to specify the
 location to your MongoDB instance's database files. See the following
 example: ::
@@ -106,8 +106,8 @@ example: ::
      mongoexport --db sales --collection contacts --dbpath /srv/MongoDB/
 
 This reads the data files directly. This locks the data directory to
-prevent conflicting writes. The :option:`mongod` process must *not* be
-running or attached to these data files when you run :option:`mongoexport`
+prevent conflicting writes. The :program:`mongod` process must *not* be
+running or attached to these data files when you run :program:`mongoexport`
 in this configuration.
 
 The ":option:`--host <mongoexport --host>`" and ":option:`--port
@@ -116,26 +116,26 @@ to connect to capture the export. Consider the following example: ::
 
      mongoexport --host mongodb1.example.net --port 37017 --username user --password pass --collection contacts --file mdb1-examplenet.json
 
-On any :option:`mongoexport` command you may, as above specify username and
+On any :program:`mongoexport` command you may, as above specify username and
 password credentials as above.
 
 Database Import with mongoimport
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To restore a backup taken with :option:`mongoexport`. Most of the
-arguments to :option:`mongoexport` also exist for
-:option:`mongoimport`. Consider the following command: ::
+To restore a backup taken with :program:`mongoexport`. Most of the
+arguments to :program:`mongoexport` also exist for
+:program:`mongoimport`. Consider the following command: ::
 
      mongoimport --collection collection --file collection.json
 
 This imports the contents of the file ``collection.json`` into the
 collection named "``collection``". If you do not specify a file with
 the ":option:`--file <mongoimport --file>`" option,
-:option:`mongoimport` accepts input over standard input
+:program:`mongoimport` accepts input over standard input
 (e.g. "stdin.")
 
 If you specify the ":option:`--upsert <mongoimport --upsert>`" option,
-all of :option:`mongoimport` operations will attempt to update
+all of :program:`mongoimport` operations will attempt to update
 existing documents in the database and insert other documents. This
 option will cause some performance impact depending on your
 configuration.
@@ -145,10 +145,10 @@ to import these documents to a particular database. If your
 MongoDB instance is not running, you can use the "``--dbpath``" option
 to specify the location to your MongoDB instance's database
 files. Consider using the ":option:`--journal <mongoimport --journal>`"
-option to ensure that :option:`mongoimport` records its
+option to ensure that :program:`mongoimport` records its
 operations in the journal. The ``mongod`` process must *not* be
 running or attached to these data files when you run
-:option:`mongoimport` in this configuration.
+:program:`mongoimport` in this configuration.
 
 Use the ":option:`--ignoreBlanks <mongoimport --ignoreBlanks>`" option
 to ensure that blank fields are. For CSV and TSV imports, this option

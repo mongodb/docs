@@ -10,7 +10,7 @@ Synopsis
 This reference provides an overview of all possible replica set
 configuration options and settings.
 
-Use :js:func:`rs.conf()` in the :option:`mongo` shell to retrieve this
+Use :js:func:`rs.conf()` in the :program:`mongo` shell to retrieve this
 configuration. Note that default values are not explicitly displayed.
 
 .. _replica-set-configuration-variables:
@@ -71,7 +71,7 @@ Configuration Variables
 
    **Default**: true
 
-   Determines weather the :option:`mongod` builds :term:`indexes <index>` on
+   Determines weather the :program:`mongod` builds :term:`indexes <index>` on
    this member. Do not set to "``false``", if a replica set *can*
    become a master, or if any clients ever issue queries against this
    instance.
@@ -80,7 +80,7 @@ Configuration Variables
    **if**:
 
    - You are only using this instance to perform backups using
-     :option:`mongodump`,
+     :program:`mongodump`,
 
    - this instance will receive no queries will, *and*
 
@@ -211,7 +211,7 @@ Usage
 -----
 
 Most modifications of replica set configuration use the
-:option:`mongo` shell. Consider the following example:
+:program:`mongo` shell. Consider the following example:
 
 .. code-block:: javascript
 
@@ -235,7 +235,7 @@ specify any of optional :ref:`replica set configuration variables
 can issue "``cfg = rs.conf()``" at any time before using
 :js:func:`rs.reconfig()` to undo your changes and start from the
 current configuration. If you issue "``cfg``" as an operation at any
-point, the :option:`mongo` shell at any point will output the complete
+point, the :program:`mongo` shell at any point will output the complete
 :term:`JSON document` with modifications for your review.
 
 .. note::

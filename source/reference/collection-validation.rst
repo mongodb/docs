@@ -11,7 +11,7 @@ The collection validation command checks all of the structures within
 a name space for correctness and returns a :term:`JSON Document`
 containing information
 
-Run the validation command in the :option:`mongo` shell using the
+Run the validation command in the :program:`mongo` shell using the
 following form to validate a collection named "``people``":
 
 .. code-block:: javascript

@@ -1,6 +1,11 @@
-===========================
-``bsondump`` Utility Manual
-===========================
+.. _bsondump:
+
+==================================
+:program:`bsondump` Utility Manual
+==================================
+
+.. default-domain:: mongodb
+.. binary:: bsondump
 
 Synopsis
 --------

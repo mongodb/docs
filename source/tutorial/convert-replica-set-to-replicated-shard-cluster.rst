@@ -28,7 +28,7 @@ In brief, the process is as follows:
 2. Start the config servers and create a shard cluster with a single
    shard.
 
-3. Create a second replica set with three new :option:`mongod` processes.
+3. Create a second replica set with three new :program:`mongod` processes.
 
 4. Add the second replica set to the sharded cluster.
 
@@ -67,7 +67,7 @@ set and then insert test data.
 
         mkdir -p /data/example/firstset1 /data/example/firstset2 /data/example/firstset3
 
-2. Start three :option:`mongod` instances by running each of the
+2. Start three :program:`mongod` instances by running each of the
    following commands in a separate terminal window or GNU Screen
    window: ::
 
@@ -79,14 +79,14 @@ set and then insert test data.
 
       Here, the ":option:`--oplogSize 700 <mongod --oplogSize>`"
       option restricts the size of the operation log (i.e. oplog) for
-      each :option:`mongod` process to 700MB. Without the
+      each :program:`mongod` process to 700MB. Without the
       :option:`--oplogSize <mongod --oplogSize>` option, each
-      :option:`mongod` will reserve approximately 5% of the free disk
+      :program:`mongod` will reserve approximately 5% of the free disk
       space on the volume. By limiting the size of the oplog, each
       process will start more quickly. Omit this setting in production
       environments.
 
-3. Connect to one mongodb instance with :option:`mongo` shell by
+3. Connect to one mongodb instance with :program:`mongo` shell by
    running the following command in a new terminal to connect to the
    first node: ::
 
@@ -95,12 +95,12 @@ set and then insert test data.
    .. note::
 
       Above and hereafter, if you are running in a production
-      environment or are testing this process with :option:`mongod`
+      environment or are testing this process with :program:`mongod`
       instances on multiple systems replace "localhost" with a
       resolvable domain, hostname, or the IP address of your system.
 
 4. Initialize the first replica set, using the following command at
-   the :option:`mongo` prompt.
+   the :program:`mongo` prompt.
 
    .. code-block:: javascript
 
@@ -118,7 +118,7 @@ set and then insert test data.
 
       { "_id" : ObjectId("4ed5420b8fc1dd1df5886f70"), "name" : "Greg", "user_id" : 4, "boolean" : true, "added_at" : ISODate("2011-11-29T20:35:23.121Z"), "number" : 74 }
 
-   Use the following sequence of operations from the :option:`mongo` prompt.
+   Use the following sequence of operations from the :program:`mongo` prompt.
 
    .. code-block:: javascript
 
@@ -135,7 +135,7 @@ set and then insert test data.
                                   }
 
    Creating and fully replicating one million documents in the
-   :option:`mongo` shell may take several minutes depending on your
+   :program:`mongo` shell may take several minutes depending on your
    system.
 
 Deploy Sharding Infrastructure
@@ -172,7 +172,7 @@ store the cluster's metadata.
         mongod --configsvr --dbpath /data/example/config2 --port 20002
         mongod --configsvr --dbpath /data/example/config3 --port 20003
 
-3. Start :option:`mongos` instance by running the following
+3. Start :program:`mongos` instance by running the following
    command. Run this command in a new terminal window or GNU Screen
    window: ::
 
@@ -190,18 +190,18 @@ store the cluster's metadata.
 
    The :setting:`configdb` options specify the *configuration servers*
    (e.g. ``localhost:20001``, ``localhost:20002``, and
-   ``localhost:2003``). The :option:`mongos` process runs on the default
+   ``localhost:2003``). The :program:`mongos` process runs on the default
    "MongoDB" port (i.e. ``27017``), while the databases themselves, in
    this example, are running on ports in the ``30001`` series. In the
    above example, since ``27017`` is the default port, you may omit
    the ":option:`--port 27017 <mongos --port>`" option. It is
    included here only as an example.
 
-4. Add the first shard in :option:`mongos`. In a new terminal window
+4. Add the first shard in :program:`mongos`. In a new terminal window
    or GNU Screen session, add the first shard, according to the
    following procedure:
 
-   1. Connect to the :option::option:`mongos` with the following command: ::
+   1. Connect to the :option::program:`mongos` with the following command: ::
 
            mongo localhost:27017/admin
 
@@ -234,7 +234,7 @@ above, omitting the test data.
    - ``/data/example/secondset2``
    - ``/data/example/secondset3``
 
-2. Start three instances of :option:`mongod` in three new terminal
+2. Start three instances of :program:`mongod` in three new terminal
    windows, with the following commands: ::
 
         mongod --dbpath /data/example/secondset1 --port 10004 --replSet secondset --oplogSize 700 --rest
@@ -247,13 +247,13 @@ above, omitting the test data.
       :setting:`oplogSize` configuration. Omit this setting in
       production environments.
 
-3. Connect to one mongodb instance with :option:`mongo` shell, using
+3. Connect to one mongodb instance with :program:`mongo` shell, using
    the following command: ::
 
         mongo localhost:10004/admin
 
 4. Initialize the second replica set, by issuing the following command
-   in the :option:`mongo` shell:
+   in the :program:`mongo` shell:
 
    .. code-block:: javascript
 
@@ -265,7 +265,7 @@ above, omitting the test data.
       }
 
 5. Add the second replica set to the shard cluster with the following
-   procedure. In a connection to the :option:`mongos` instance created
+   procedure. In a connection to the :program:`mongos` instance created
    in the previous step, issue the following sequence of commands:
 
    .. code-block:: javascript
@@ -370,7 +370,7 @@ chunks of documents. You can confirm this activity by switching to the
 Additional documents that are added to this collection will be
 distributed evenly between the shards.
 
-Use the following commands in the :option:`mongo` to return these
+Use the following commands in the :program:`mongo` to return these
 statics against each cluster:
 
 .. code-block:: javascript

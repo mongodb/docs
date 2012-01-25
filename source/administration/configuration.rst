@@ -18,7 +18,7 @@ your operating system, you likely already have a configuration file
 located at ``/etc/mogondb.conf``. Confirm this by checking the content
 of the ``/etc/init.d/mongodb`` or ``/etc/rc.d/mongodb`` script to
 insure that the :term:`control scripts <control script>` starts the
-:option:`mongod` with the appropriate configuration file (see below.)
+:program:`mongod` with the appropriate configuration file (see below.)
 
 To start MongoDB instance using this configuration issue a command in
 the following form: ::
@@ -52,7 +52,7 @@ configuration. It makes several assumptions, but consider the
 following explanation:
 
 - :setting:`fork`" is ``true``, which enables a
-  :term:`daemon` mode for :option:`mongod`, which detaches (i.e. "forks")
+  :term:`daemon` mode for :program:`mongod`, which detaches (i.e. "forks")
   the MongoDB from the current session and allows you to run the
   database as a conventional server.
 
@@ -80,21 +80,21 @@ following explanation:
 - :setting:`dbpath` is ``/srv/mongodb``, which
   specifies where MongoDB will store its data files. ``/srv/mongodb``
   and ``/var/lib/mongodb`` are popular locations. The user account
-  that :option:`mongod` runs under will need read and write access to this
+  that :program:`mongod` runs under will need read and write access to this
   directory.
 
 - :setting:`logpath` is ``/var/log/mongodb/mongod.log``
-  which is where :option:`mongod` will write its output. If you do not set
-  this value, :option:`mongod` writes all output to standard output
+  which is where :program:`mongod` will write its output. If you do not set
+  this value, :program:`mongod` writes all output to standard output
   (e.g. ``stdout``.)
 
 - :setting:`logappend` is ``true``, which ensures that
-  :option:`mongod` does not overwrite an existing log file
+  :program:`mongod` does not overwrite an existing log file
   following the server start operation.
 
 - :setting:`journal` is ``true``, which enables
   :doc:`journaling </core/journaling>` which ensures single instance
-  write-durability. 64-bit builds of :option:`mongod` enable
+  write-durability. 64-bit builds of :program:`mongod` enable
   :term:`journaling` by default. Thus, this setting may be redundant.
 
 Given the default configuration, some of these values may be
@@ -105,7 +105,7 @@ Security Considerations
 -----------------------
 
 The following collection of configuration options are useful for
-limiting access to a :option:`mongod` instance. Consider the
+limiting access to a :program:`mongod` instance. Consider the
 following:
 
 .. code-block:: cfg
@@ -156,7 +156,7 @@ among all members of the staff. Consider the following:
    replSet = set0
 
 Use descriptive names for sets. Once configured use the
-:option:`mongo` shell to add hosts to the replica set. For a more
+:program:`mongo` shell to add hosts to the replica set. For a more
 typical replica set configuration consider the following:
 
 .. code-block:: cfg
@@ -204,13 +204,13 @@ generate a "random" key file:
 Sharding Configuration
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Sharding requires a number of :option:`mongod` instances with
+Sharding requires a number of :program:`mongod` instances with
 different configurations. The config servers stores the cluster's
 metadata, while the cluster distributes data among one or more
 shard servers.
 
 To set up one or three "config server" instances as :ref:`normal
-<base-config>` :option:`mongod` instances, and then add the following
+<base-config>` :program:`mongod` instances, and then add the following
 configuration option:
 
 .. code-block:: cfg
@@ -223,9 +223,9 @@ configuration option:
 This creates a config server running on the private IP address
 ``10.8.0.12`` on port ``27001``. Make sure that there are no port
 conflicts, and that your config server is accessible from all of your
-":option:`mongos`" and ":option:`mongod`" instances.
+":program:`mongos`" and ":program:`mongod`" instances.
 
-To set up shards, configure two or more :option:`mongod` instance
+To set up shards, configure two or more :program:`mongod` instance
 using your :ref:`base configuration <base-config>`, adding the
 :setting:`shardsvr` setting:
 
@@ -234,7 +234,7 @@ using your :ref:`base configuration <base-config>`, adding the
    shardsvr = true
 
 Finally, to establish the cluster, configure at least one
-:option:`mongos` process with the following settings:
+:program:`mongos` process with the following settings:
 
 .. code-block:: cfg
 
@@ -245,7 +245,7 @@ You can specify multiple :setting:`configdb` instances by
 specifying hostnames and ports in the form of a comma separated
 list. In general, avoid modifying the :setting:`chunkSize` from
 the default value of 64, [#chunksize]_ and *should* ensure this setting is consistent
-among all :option:`mongos` instances.
+among all :program:`mongos` instances.
 
 .. [#chunksize] :term:`Chunk` size is 64 megabytes by default, which
    provides the ideal balance between the most even distribution of
@@ -258,10 +258,10 @@ among all :option:`mongos` instances.
 Running Multiple Database Instances on the Same System
 ------------------------------------------------------
 
-In many cases running multiple instances of :option:`mongod` on a
+In many cases running multiple instances of :program:`mongod` on a
 single system is not recommended, on some types of deployments
 [#multimongod]_ and for testing purposes you may need to run more than
-one :option:`mongod` on a single system.
+one :program:`mongod` on a single system.
 
 In these cases, use a :ref:`base configuration <base-config>` for each
 instance, but consider the following configuration values:
@@ -272,11 +272,11 @@ instance, but consider the following configuration values:
    pidfileath = /srv/mongodb/db0.pid
 
 The :setting:`dbpath` value controls the location of the
-:option:`mongod` instance's data directory. Ensure that each database
+:program:`mongod` instance's data directory. Ensure that each database
 has a distinct and well labeled data directory. The
-:setting:`pidfilepath` controls where :option:`mongod` process
+:setting:`pidfilepath` controls where :program:`mongod` process
 places it's :term:`pid` file. As this tracks the specific
-:option:`mongod` file, it is crucial that file be unique and well
+:program:`mongod` file, it is crucial that file be unique and well
 labeled to make it easy to start and stop these processes.
 
 Create additional :term:`control scripts <control script>` and/or
@@ -285,14 +285,14 @@ needed to control these processes.
 
 .. [#multimongod] Single-tenant systems with :term:`SSD` or other high
    performance disks may provide acceptable performance levels for
-   multiple :option:`mongod` instances. Additionally, you may find that
+   multiple :program:`mongod` instances. Additionally, you may find that
    multiple databases with small working sets may function acceptably
    on a single system.
 
 Diagnostic Configurations
 -------------------------
 
-The following configuration options control various :option:`mongod`
+The following configuration options control various :program:`mongod`
 behaviors for diagnostic purposes. The following settings have default
 values that tuned for general production purposes:
 
@@ -321,7 +321,7 @@ needed:
   has a value, queries are not profiled.
 
 - :setting:`verbose` enables a verbose logging mode that
-  modifies :option:`mongod` output and increases logging to include a
+  modifies :program:`mongod` output and increases logging to include a
   greater number of events. Only use this option if you are
   experiencing an issue that is not reflected in the normal logging
   level. If you require additional verbosity, consider the following
@@ -341,13 +341,13 @@ needed:
 - :setting:`diaglog` enables diagnostic logging. Level ``3``
   logs all read and write options.
 
-- :setting:`objcheck` forces :option:`mongod` to validate all
+- :setting:`objcheck` forces :program:`mongod` to validate all
   requests from clients upon receipt. Use this option to ensure that
   invalid requests are not causing errors, particularly when running a
   database with untrusted clients. This option may affect database
   performance.
 
-- :setting:`cpu` forces :option:`mongod` to periodically report CPU
+- :setting:`cpu` forces :program:`mongod` to periodically report CPU
    utilization I/O wait in the logfile. Use this in combination with or
    addition to tools such as :program:`iostat`, :program:`vmstat`, or
    :program:`top` to provide insight into the state of the system

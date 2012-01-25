@@ -9,7 +9,7 @@ Synopsis
 --------
 
 To fetch collection statistics, call the :js:func:`stats()` method on
-a collection object in the :option:`mongo` shell: ::
+a collection object in the :program:`mongo` shell: ::
 
 .. code-block:: javascript
 

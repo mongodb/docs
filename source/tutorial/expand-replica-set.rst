@@ -78,7 +78,7 @@ See the documentation of the configuration options used above:
 :doc:`configuration options </reference/configuration-options>` that
 your deployment may require.
 
-Start the :option:`mongod` process with the following command: ::
+Start the :program:`mongod` process with the following command: ::
 
      mongod --config /etc/mongodb.conf
 
@@ -101,7 +101,7 @@ If this instance is not currently the :term:`primary` node, use the
 
    db.isMaster()
 
-Log into the current :term:`primary` using the :option:`mongo` shell
+Log into the current :term:`primary` using the :program:`mongo` shell
 and issue the following command to add the new set member to the
 replica set.
 

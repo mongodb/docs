@@ -11,7 +11,7 @@ In addition to the :doc:`MongoDB Query Operators
 </reference/operators>`, there are a number of "meta" operators that
 you may use to modify the output or behavior or output of the
 query. Specify these modifiers to a :js:func:`find()` query, in the
-following form (for the :option:`mongo` shell):
+following form (for the :program:`mongo` shell):
 
 .. code-block:: javascript
 
@@ -178,7 +178,7 @@ Modifiers
        db.collection.find()._addSpecial( "$explain", 1 )
 
    The JavaScript function :js:func:`explain()` provides equivalent
-   functionality in the :option:`mongo` shell. See the following
+   functionality in the :program:`mongo` shell. See the following
    example, which is equivalent to the above:
 
    .. code-block:: javascript
@@ -204,7 +204,7 @@ Modifiers
       db.foo.find()._addSpecial( "$snapshot", true )
 
    The JavaScript function :js:func:`snapshot()` provides equivalent
-   functionality in the :option:`mongo` shell. See the following
+   functionality in the :program:`mongo` shell. See the following
    example, which is equivalent to the above:
 
    .. code-block:: javascript

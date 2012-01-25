@@ -28,7 +28,7 @@ special :term:`$cmd` collection:
 
    db.$cmd.findOne( {isMaster: 1} )
 
-The JavaScript shell (i.e. :option:`mongo`,) provides a helper method for
+The JavaScript shell (i.e. :program:`mongo`,) provides a helper method for
 running commands. Thus, you can also run the above command like so:
 
 .. code-block:: javascript
@@ -69,7 +69,7 @@ indicating whether the command has succeeded:
 If the command fails, the value of ``ok`` will be 0.
 
 In the command descriptions below, we provide the document template
-for each command. In some cases, we also show the relevant :option:`mongo`
+for each command. In some cases, we also show the relevant :program:`mongo`
 shell helpers.
 
 User Commands
@@ -94,7 +94,7 @@ Sharding
                              space the database can use.
 
    The :dbcommand:`addShard` command registers a new with a sharded
-   cluster. You must run this command against a :option:`mongos`
+   cluster. You must run this command against a :program:`mongos`
    instance. The command takes the following form:
 
    .. code-block:: javascript
@@ -103,9 +103,9 @@ Sharding
 
    Replace "``<hostname>:<port>``" with the hostname and port of the
    database instance you want to add as a shard. Because the
-   :option:`mongos` instances do not have state and distribute
+   :program:`mongos` instances do not have state and distribute
    configuration in the :term:`configdbs <configdb>`, you send this
-   command to only one :option:`mongos` instance.
+   command to only one :program:`mongos` instance.
 
    .. note::
 
@@ -160,12 +160,12 @@ Sharding
       There's no easy way to disable sharding once you've enabled it. In addition,
       shard keys are immutable. If you must revert a sharded cluster to a single
       node or replica set, you'll have to make a single backup of the entire cluster
-      and then restore the backup to the standalone :option:`mongod`.
+      and then restore the backup to the standalone :program:`mongod`.
 
 .. dbcommand:: shardingState
 
    The :dbcommand:`shardingState` command returns ``true`` if the
-   :option:`mongod` instance is a member of a sharded cluster. Run the
+   :program:`mongod` instance is a member of a sharded cluster. Run the
    command using the following syntax:
 
    .. code-block:: javascript
@@ -308,7 +308,7 @@ Aggregation
 
       db.collection.count():
 
-   In the :option:`mongo` shell, this returns the number of documents in the
+   In the :program:`mongo` shell, this returns the number of documents in the
    collection (e.g. ``collection``). You may also run this command
    using the :js:func:`db.runCommand()` functionality, with the following results:
 
@@ -492,7 +492,7 @@ Replication
 .. dbcommand:: resync
 
    The :dbcommand:`resync` command forces an out-of-date slave
-   :option:`mongod` instance to re-synchronize itself. Note
+   :program:`mongod` instance to re-synchronize itself. Note
    that this command is relevent to master-slave replication only. It does
    no apply to replica sets.
 
@@ -520,7 +520,7 @@ Replication
 
       { replSetFreeze: 0 }
 
-   Restarting the :option:`mongod` process also unfreezes a replica
+   Restarting the :program:`mongod` process also unfreezes a replica
    set member.
 
    :dbcommand:`replSetFreeze` is an administrative command, and you
@@ -719,7 +719,7 @@ Collections
 
         { drop: <collection_name> }
 
-   The :option:`mongo` shell provides the equivalent helper
+   The :program:`mongo` shell provides the equivalent helper
    method: ::
 
         db.collection.drop();
@@ -896,7 +896,7 @@ Administration
 .. dbcommand:: fsync
 
    ``fsync`` is an administrative command that forces the
-   :option:`mongod` process to flush all pending writes to the data
+   :program:`mongod` process to flush all pending writes to the data
    files. The server already runs its own fsync every 60 seconds, so
    running ``fsync`` in the course of normal operations is
    not required. The primary use of this command is to flush and
@@ -935,7 +935,7 @@ Administration
 
         { dropDatabase: 1 }
 
-   The :option:`mongo` shell also provides the following equivalent helper method: ::
+   The :program:`mongo` shell also provides the following equivalent helper method: ::
 
         db.dropDatabase();
 
@@ -989,7 +989,7 @@ Administration
    inconsistencies with the data storage. The command is analogous to
    a ``fsck`` command for file systems.
 
-   If your :option:`mongod` instance is not running with journaling and you experience an
+   If your :program:`mongod` instance is not running with journaling and you experience an
    unexpected system restart or crash, you should run the
    ``repairDatabase`` command to ensure that there are no errors in
    the data storage.
@@ -1014,8 +1014,8 @@ Administration
 
    - Use the shell to run the above command, as above.
 
-   - Run :option:`mongod` directly from your system's shell. Make sure
-     that :option:`mongod` isn't already running, and that you issue
+   - Run :program:`mongod` directly from your system's shell. Make sure
+     that :program:`mongod` isn't already running, and that you issue
      this command as a user that has access to MongoDB's data
      files. Run as: ::
 
@@ -1079,7 +1079,7 @@ Administration
 
       { shutdown: 1, timeoutSecs: 60 }
 
-   The equivalent :option:`mongo` shell helper syntax looks like this:
+   The equivalent :program:`mongo` shell helper syntax looks like this:
 
    .. code-block:: javascript
 
@@ -1168,11 +1168,11 @@ Administration
 
    .. note::
 
-      Your :option:`mongod` instance needs to be running with the
+      Your :program:`mongod` instance needs to be running with the
       :option:`--logpath [file] <mongod --logpath>` option.
 
-   You may also rotate the logs by sending a ``SIGUSR1`` signal to the :option:`mongod` process.
-   If your :option:`mongod` has a process ID of 2200, here's how to send the signal on Linux: ::
+   You may also rotate the logs by sending a ``SIGUSR1`` signal to the :program:`mongod` process.
+   If your :program:`mongod` has a process ID of 2200, here's how to send the signal on Linux: ::
 
        $ kill -SIGUSR1 2200
 
@@ -1219,7 +1219,7 @@ TODO insert new option format here
      - Replication synchronization activity.
 
    - **syncdelay**: the interval, in seconds, between :term:`fsyncs <fsync>` (i.e., flushes of memory to disk).
-     By default, :option:`mongod` will flush memory to disk every 60
+     By default, :program:`mongod` will flush memory to disk every 60
      seconds. It isn't necessary to change this value unless you see a background flush
      average greater than 60 seconds.
 
@@ -1269,7 +1269,7 @@ Diagnostics
    Because the command has to touch all data files, the command may take several
    seconds to run.
 
-   In the :option:`mongo` shell, the :js:func:`db.stats()` function provides
+   In the :program:`mongo` shell, the :js:func:`db.stats()` function provides
    a wrapper around this functionality. See the
    ":doc:`/reference/database-statistics`" document for an overview of
    this output.
@@ -1292,7 +1292,7 @@ Diagnostics
 .. dbcommand:: getCmdLineOpts
 
    The :dbcommand:`getCmdLineOpts` command returns a document containing
-   command line options used to start the given :option:`mongod`:
+   command line options used to start the given :program:`mongod`:
 
    .. code-block:: javascript
 
@@ -1300,7 +1300,7 @@ Diagnostics
 
    This command returns a document with two fields, "``argv``" and
    "``parsed``". The "``argv``" field contains an array with each item
-   from the command string used to invoke :option:`mongod`. The document
+   from the command string used to invoke :program:`mongod`. The document
    in the "``parsed``" field includes all runtime options, including
    those parsed from the command line and those specified in the
    configuration file (if specified.)
@@ -1324,7 +1324,7 @@ Diagnostics
    - "``scandata: false``" skips the scan of the base collection
      without skipping the scan of the index.
 
-   The :option:`mongo` shell also provides a wrapper:
+   The :program:`mongo` shell also provides a wrapper:
 
    .. code-block:: javascript
 
@@ -1366,7 +1366,7 @@ Diagnostics
 .. dbcommand:: buildInfo
 
    The ``buildInfo`` command returns a build summary for the current
-   :option:`mongod`:
+   :program:`mongod`:
 
    .. code-block:: javascript
 
@@ -1376,7 +1376,7 @@ Diagnostics
 
    - The version of MongoDB currently running.
    - The information about the system that built the
-     ":option:`mongod`" binary, including a timestamp for the build.
+     ":program:`mongod`" binary, including a timestamp for the build.
    - The architecture of the binary (i.e. 64 or 32 bits)
    - The maximum allowable :term:`BSON` object size in bytes (in the field
      "``maxBsonObjectSize``".)
@@ -1414,7 +1414,7 @@ TODO: standardize on the way options are presented. Here, the standard is "``fsy
 .. dbcommand:: getLog
 
    The :dbcommand:`getLog` command returns a document with a ``log``
-   array that contains recent messages from the :option:`mongod`
+   array that contains recent messages from the :program:`mongod`
    process's log. Use the following syntax:
 
    .. code-block:: javascript
@@ -1429,7 +1429,7 @@ TODO: standardize on the way options are presented. Here, the standard is "``fsy
 
    - ``"global"`` - to generate the most recent log events from the
      database. This is equivalent to running the "``tail``" command on
-     the :option:`mongod` log in the system shell.
+     the :program:`mongod` log in the system shell.
 
 .. dbcommand:: listDatabases
 
@@ -1490,7 +1490,7 @@ TODO: standardize on the way options are presented. Here, the standard is "``fsy
       A boolean value that reports when this node is writable. If
       "``true``", then the current node is either a :term:`primary`
       node in a :term:`replica set`, a :term:`master` node in a
-      master-slave configuration, of a standalone :option:`mongod`.
+      master-slave configuration, of a standalone :program:`mongod`.
 
    .. js:data:: isMaster.secondary
 
@@ -1517,7 +1517,7 @@ TODO: standardize on the way options are presented. Here, the standard is "``fsy
    .. js:data:: isMaster.maxBsonObjectSize
 
       The maximum permitted size of a :term:`BSON` object in bytes for
-      this :option:`mongod` process. If not provided, clients should
+      this :program:`mongod` process. If not provided, clients should
       assume a max size of "4 * 1024 * 1024."
 
 .. dbcommand:: ping
@@ -1608,13 +1608,13 @@ TODO: standardize on the way options are presented. Here, the standard is "``fsy
 
    .. seealso:: ":js:func:`db.getProfilingStatus()`" and
                 ":js:func:`db.setProfilingLevel()`" provide wrappers
-                around this functionality in the :option:`mongo`
+                around this functionality in the :program:`mongo`
                 shell.
 
 .. dbcommand:: listCommands
 
    The :dbcommand:`listCommands` command generates a list of all
-   database commands implemented for the current :option:`mongod`
+   database commands implemented for the current :program:`mongod`
    instance.
 
    .. slave-ok
@@ -1657,8 +1657,8 @@ Other Commands
 
       { filemd5: ObjectId("4f1f10e37671b50e4ecd2776"), root: "fs" }
 
-:option:`mongos` commands
--------------------------
+:program:`mongos` commands
+--------------------------
 
 TODO document mongos commands DOCS-112
 
@@ -1744,7 +1744,7 @@ Internal Use
 
         { sleep: { w: true, secs: <seconds> } }
 
-   The above command places the :option:`mongod` instance in a
+   The above command places the :program:`mongod` instance in a
    "write-lock" state for a specified (i.e. ``<seconds>``) number of
    seconds. Without arguments, :dbcommand:`sleep`, causes a "read
    lock" for 100 seconds.
@@ -1811,7 +1811,7 @@ Internal Use
 .. dbcommand:: writeBacksQueued
 
    :dbcommand:`writeBacksQueued` is an internal command that returns true if
-   there are operations in the write back queue for the given :option:`mongos`.
+   there are operations in the write back queue for the given :program:`mongos`.
    This command applies to sharded clusters only.
 
    .. slave-ok, admin-only
@@ -1842,7 +1842,7 @@ TODO factcheck (minor)
 
    :dbcommand:`splitChunk` is an internal command. Use the
    :js:func:`sh.splitFind()` and :js:func:`sh.splitAt()` functions in the
-   :option:`mongo` shell to access this functionality.
+   :program:`mongo` shell to access this functionality.
 
    .. admin-only.
 
@@ -1863,7 +1863,7 @@ TODO factcheck (minor)
 
    :dbcommand:`moveChunk` is an internal command that supports the sharding
    functionalty and should not be called directly. Use the
-   :js:func:`sh.moveChunk()` function in the :option:`mongo` shell
+   :js:func:`sh.moveChunk()` function in the :program:`mongo` shell
    if you must move a chunk manually.
 
    .. admin-only

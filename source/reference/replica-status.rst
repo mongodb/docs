@@ -6,7 +6,7 @@ Replica Status Reference
 
 The :dbcommand:`replSetGetStatus` provides an overview of the
 current status of a :term:`replica set`. Issue the following command against
-the "``admin``" database, in the :option:`mongo` shell: ::
+the "``admin``" database, in the :program:`mongo` shell: ::
 
 .. code-block:: javascript
 
@@ -20,12 +20,12 @@ at most 2 seconds out of date.
 
 .. note::
 
-   The :option:`mongod` that you issue the :dbcommand:`replSetGetStatus`
+   The :program:`mongod` that you issue the :dbcommand:`replSetGetStatus`
    command to needs to have replication enabled, and be a member of a
    replica set for this command to return successfully.
 
 .. seealso:: The ":js:func:`rs.status()`" function in the
-   :option:`mongo` shell provides a wrapper around the
+   :program:`mongo` shell provides a wrapper around the
    :dbcommand:`replSetGetStatus` command. Also consider the
    ":doc:`/replication`" documentation index for more information on
    replication.

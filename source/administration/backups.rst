@@ -140,7 +140,7 @@ Snapshots have some limitations:
 With Journaling
 ~~~~~~~~~~~~~~~
 
-If your system has a snapshot capability and :option:`mongod` instance
+If your system has a snapshot capability and :program:`mongod` instance
 has journaling enabled then you can use any kind of file system or
 volume/block level snapshot tool to create backups.
 
@@ -154,7 +154,7 @@ volume/block level snapshot tool to create backups.
    MongoDB disables journaling on 32 bit systems and all pre-1.9.2
    64-bit versions. Specify the ":setting:`journal` = ``true``" in the
    configuration or use the :option:`--journal <mongod --journal>`
-   run-time option for :option:`mongod` to ensure that MongoDB uses
+   run-time option for :program:`mongod` to ensure that MongoDB uses
    journaling.
 
 Many service providers provide a block-level backup service based on
@@ -311,7 +311,7 @@ remote system.
 Without Journaling
 ~~~~~~~~~~~~~~~~~~
 
-If your :option:`mongod` instance does not running with journaling enabled,
+If your :program:`mongod` instance does not running with journaling enabled,
 obtaining a functional backup of a consistent state is more
 complicated. Flush all writes to disk and
 lock the database to prevent writes during the backup
@@ -331,7 +331,7 @@ completed, issue the following command: ::
 .. note::
 
    Version 1.9.0 added :js:func:`db.fsyncLock()` and
-   :js:func:`db.fsyncUnlock()` helpers to the :option:`mongo` shell.
+   :js:func:`db.fsyncUnlock()` helpers to the :program:`mongo` shell.
 
    .. code-block:: javascript
 
@@ -381,36 +381,36 @@ disk-level snapshots are not available.
 Database Export with mongodump
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :option:`mongodump` utility performs a live backup the data, or
+The :program:`mongodump` utility performs a live backup the data, or
 can work against an inactive set of database
-files. :option:`mongodump` utility can create a dump for an entire
+files. :program:`mongodump` utility can create a dump for an entire
 server/database/collection (or part of a collection with a query,)
 even when the database is running and active. If you run
-:option:`mongodump` without any arguments the command will connect to
+:program:`mongodump` without any arguments the command will connect to
 the local database instance (e.g. ``127.0.0.1`` or ``localhost``) and
 create a database backup in a in the current directory named
 "``dump/``".
 
 You can specify  database and collection as options to the
-:option:`mongodump` command to limit the amount of data included in the
+:program:`mongodump` command to limit the amount of data included in the
 database dump. For example: ::
 
      mongodump --collection collection --database test
 
 This command creates a dump in of the database in the "``dump/``"
 directory of only the collection named "``collection``" in the
-database named "``test``". :option:`mongodump` provides the
+database named "``test``". :program:`mongodump` provides the
 ":option:`--oplog <mongodump --oplog>`" option which forces the dump
 operation to use the operation log to take a point-in-time snapshot of
 the database.
 
 If your MongoDB instance is not running, you can use the
 ":option:`--dbpath <mongodump --dbpath>`" option to specify the
-location to your MongoDB instance's database files. :option:`mongodump`
+location to your MongoDB instance's database files. :program:`mongodump`
 reads from the data files directly with this operation. This
 locks the data directory to prevent conflicting writes. The
-:option:`mongod` process must *not* be running or attached to these
-data files when you run :option:`mongodump` in this
+:program:`mongod` process must *not* be running or attached to these
+data files when you run :program:`mongodump` in this
 configuration. Consider the following example: ::
 
      mongodump --dbpath /srv/mongodb
@@ -422,21 +422,21 @@ the following example: ::
 
      mongodump --host mongodb1.example.net --port 3017 --username user --password pass /opt/backup/mongodumpm-2011-10-24
 
-On any :option:`mongodump` command you may, as above specify username
+On any :program:`mongodump` command you may, as above specify username
 and password credentials to specify database authentication.
 
 Database Import with mongorestore
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :option:`mongorestore` restores a binary backup created by the
-:option:`mongodump` utility. Consider the following example command:
+The :program:`mongorestore` restores a binary backup created by the
+:program:`mongodump` utility. Consider the following example command:
 ::
 
      mongorestore dump-2011-10-25/
 
-Here, :option:`mongorestore` imports the database backup located in
+Here, :program:`mongorestore` imports the database backup located in
 the ``dump-2011-10-25`` directory to the :option:``mongod` instance
-running on the localhost interface. By default, :option:`mongorestore`
+running on the localhost interface. By default, :program:`mongorestore`
 will look for a database dump in the "``dump/``" directory and restore
 that. If you wish to restore to a non-default host, the
 ":option:`--host <mongod>`" and ":option:`--port <mongod --port>`"
@@ -445,12 +445,12 @@ the export. Consider the following example: ::
 
      mongorestore --host mongodb1.example.net --port 3017 --username user --password pass /opt/backup/mongodumpm-2011-10-24
 
-On any :option:`mongorestore` command you may, as above specify
+On any :program:`mongorestore` command you may, as above specify
 username and password credentials as above.
 
 If you created your database dump using the :option:`--oplog
 <mongodump --oplog>` option to ensure a point-in-time snapshot, call
-:option:`mongorestore` with the ":option:` --oplogReplay <mongorestore
+:program:`mongorestore` with the ":option:` --oplogReplay <mongorestore
 --oplogReplay>``" option as in the following example: ::
 
      mongorestore --oplogReplay
@@ -459,7 +459,7 @@ You may also consider using the :option:`mongorestore --objcheck`
 option to check the integrity of objects while inserting them into the
 database, or the :option:`mongorestore --drop` option to drop each
 collection from the database before restoring from
-backups. :option:`mongorestore` also includes the ability to a filter
+backups. :program:`mongorestore` also includes the ability to a filter
 to all input before inserting it into the new database. Consider the
 following example:
 
@@ -475,11 +475,11 @@ to ensure that it does not interact with your shell environment.
 
 If your MongoDB instance is not running, you can use the
 ":option:`mongorestore --dbpath`" option to specify the location to
-your MongoDB instance's database files. :option:`mongorestore` inserts
+your MongoDB instance's database files. :program:`mongorestore` inserts
 data into the data files directly with this operation. While the
 command locks the data directory while it runs to prevent conflicting
-writes. The :option:`mongod` process must *not* be running or attached
-to these data files when you run :option:`mongodump` in this
+writes. The :program:`mongod` process must *not* be running or attached
+to these data files when you run :program:`mongodump` in this
 configuration. Consider the following example: ::
 
      mognorestore --dbpath /srv/mongodb
@@ -488,7 +488,7 @@ If your MongoDB instance is not running, you can use the
 ":option:`--dbpath <mongorestore --dbpath>`" option to specify the
 location to your MongoDB instance's database files. Consider using the
 ":option:`--journal <mongorestore --journal>`" option to ensure that
-:option:`mongod` records all operation in the journal.
+:program:`mongod` records all operation in the journal.
 
 .. seealso:: ":doc:`/reference/mongodump`" and
              ":doc:`/reference/mongorestore`."
@@ -515,7 +515,7 @@ Using Database Exports From a Cluster
 `````````````````````````````````````
 
 If you have a small collection of data, the easiest way to connecting
-to the :option:`mongos` and taking a dump or export of the database
+to the :program:`mongos` and taking a dump or export of the database
 from the running copy. This will create a consistent copy of the data
 in your database. If your data corpus is small enough that:
 
@@ -561,7 +561,7 @@ methodology does not require.
    the backup can reflect a highly inconsistent state that will likely
    *not* be restorable.
 
-To stop the balancer, connect to the :option:`mongos` with the :option`mongo`
+To stop the balancer, connect to the :program:`mongos` with the :option`mongo`
 shell and issue the following 2 commands: ::
 
      use config
@@ -573,9 +573,9 @@ following sequence:
 1. Lock all shards, using a process to lock all shard
    instances in as short of an interval as possible.
 
-2. Use :option:`mongodump` to backup the config database. Issue this command
+2. Use :program:`mongodump` to backup the config database. Issue this command
    against the config database itself or the
-   :option:`mongos`, and would resemble the following: ::
+   :program:`mongos`, and would resemble the following: ::
 
         mongodump --database config
 
@@ -585,7 +585,7 @@ following sequence:
 
 4. Restore the balancer.
 
-Use the following command sequence when connected to the :option:`mongos`
+Use the following command sequence when connected to the :program:`mongos`
 with the ``mongo`` shell: ::
 
      use config

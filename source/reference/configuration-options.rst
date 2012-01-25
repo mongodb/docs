@@ -7,7 +7,7 @@ Configuration File Options
 Synopsis
 --------
 
-The behavior and setting of a :option:`mongod` or :option:`mongos`
+The behavior and setting of a :program:`mongod` or :program:`mongos`
 instance is controlled either directly from :doc:`mongod's command
 line arguments </reference/mongod>` or using a configuration
 file. (See :doc:`mongos' command line arguments </reference/mongos>`.)
@@ -16,7 +16,7 @@ similar, The configuration file method is preferable, and if you
 installed from a package and starting MongoDB using your system's
 :term:`control script`, you're already using a configuration file.
 
-To start :option:`mongod` or :option:`mongos` using a config file, use
+To start :program:`mongod` or :program:`mongos` using a config file, use
 one of the following forms: ::
 
      mongod --config /etc/mongodb.conf
@@ -79,14 +79,14 @@ Settings
 
    *Default:* false
 
-   Runs the :option:`mongod` instance in a quiet mode that attempts to limit
+   Runs the :program:`mongod` instance in a quiet mode that attempts to limit
    the amount of output.
 
 .. setting:: port
 
    *Default:* 27017
 
-   Specifies a TCP port for the :option:`mongod` to listen for client
+   Specifies a TCP port for the :program:`mongod` to listen for client
    connections. On UNIX-like systems root access is required for ports
    with numbers lower than 1000.
 
@@ -94,14 +94,14 @@ Settings
 
    *Default:* 127.0.0.1
 
-   Set this option to configure the :option:`mongod` process to bind to and
-   listen for connections from applications. You may attach :option:`mongod`
-   to any interface; however, if you attach :option:`mongod` to a publicly
+   Set this option to configure the :program:`mongod` process to bind to and
+   listen for connections from applications. You may attach :program:`mongod`
+   to any interface; however, if you attach :program:`mongod` to a publicly
    accessible interface ensure that proper authentication or firewall
    restrictions have been implemented to protect the integrity of
    your database.
 
-   You may set this value multiple times to bind :option:`mongod` to
+   You may set this value multiple times to bind :program:`mongod` to
    multiple IP addresses.
 
 .. setting:: maxConns
@@ -109,12 +109,12 @@ Settings
    *Default:* depends on system settings.
 
    Specifies a value to set the maximum number of simultaneous
-   connections that :option:`mongod` or :option:`mongos` will
+   connections that :program:`mongod` or :program:`mongos` will
    accept. This setting will have no effect if it is higher than your
    operating system's configured maximum connection tracking
    threshold.
 
-   This is particularly useful for :option:`mongos` if you have a
+   This is particularly useful for :program:`mongos` if you have a
    client that creates a number of collections but allows them to
    timeout rather than close the collections. When you set
    :setting:`maxConns`, ensure the value is slightly higher than the
@@ -126,7 +126,7 @@ Settings
 
    *Default:* false
 
-   Set to ``true`` to force :option:`mongod` to validate all requests from
+   Set to ``true`` to force :program:`mongod` to validate all requests from
    clients upon receipt  to ensure that invalid objects are never inserted into
    the database.
 
@@ -137,7 +137,7 @@ Settings
    Specify a path for the log file that will hold all diagnostic
    logging information.
 
-   Unless specified, :option:`mongod` will output all log information to the
+   Unless specified, :program:`mongod` will output all log information to the
    standard output. Unless :setting:`logappend` is
    ``true``, the logfile will be overwritten when the process
    restarts.
@@ -155,7 +155,7 @@ Settings
    *Default:* None.
 
    Specify a file location to hold the ":term:`PID`" or process ID of the
-   :option:`mongod` process. Useful for tracking the :option:`mongod` process in
+   :program:`mongod` process. Useful for tracking the :program:`mongod` process in
    combination with the :setting:`fork` setting.
 
    If this option is not set, no PID file is created.
@@ -192,7 +192,7 @@ See the ":doc:`/core/replication`" documentation
 
    *Default:* false
 
-   Set to ``true`` to enable a :term:`daemon` mode for :option:`mongod`
+   Set to ``true`` to enable a :term:`daemon` mode for :program:`mongod`
    which forces the process to the background.
 
 .. setting:: auth
@@ -209,7 +209,7 @@ See the ":doc:`/core/replication`" documentation
 
    *Default:* false
 
-   Set to ``true`` to force :option:`mongod` to report every four
+   Set to ``true`` to force :program:`mongod` to report every four
    seconds CPU utilization and the amount of time that the processor
    waits for I/O operations to complete (i.e. I/O wait.) MongoDB write
    this data to standard output, or the logfile if using the
@@ -219,7 +219,7 @@ See the ":doc:`/core/replication`" documentation
 
    *Default:* ``/data/db/``
 
-   Set this value to designate a directory for the :option:`mongod` instance
+   Set this value to designate a directory for the :program:`mongod` instance
    to store its data. Typically locations such as: "``/srv/mognodb``",
    "``/var/lib/mongodb``" or "``/opt/mongodb``" are used for this
    purpose.
@@ -231,7 +231,7 @@ See the ":doc:`/core/replication`" documentation
 
    *Default:* 0
 
-   Set this value the diagnostic logging level for the :option:`mongod`
+   Set this value the diagnostic logging level for the :program:`mongod`
    instance. Possible values, and their impact are as follows.
 
    =========  ===================================
@@ -274,7 +274,7 @@ See the ":doc:`/core/replication`" documentation
    between 2 and 300 milliseconds.
 
    Set this value to specify the maximum amount of time for
-   :option:`mongod` to allow between journal operations. The default
+   :program:`mongod` to allow between journal operations. The default
    value is 100 milliseconds. Lower values increase the durability of
    the journal, at the possible expense of disk performance.
 
@@ -283,8 +283,8 @@ See the ":doc:`/core/replication`" documentation
    *Default:* false
 
    Set to ``true`` to IPv6 support to allow clients to connect to
-   :option:`mongod` using IPv6 networks. IPv6 support is disabled by
-   default in :option:`mongod` and all utilities.
+   :program:`mongod` using IPv6 networks. IPv6 support is disabled by
+   default in :program:`mongod` and all utilities.
 
 .. setting:: jsonnp
 
@@ -358,7 +358,7 @@ See the ":doc:`/core/replication`" documentation
 
    Modify this value to changes the level of database profiling, which
    inserts information about operation performance into output of
-   :option:`mongod` or the log file. The following levels are available:
+   :program:`mongod` or the log file. The following levels are available:
 
    =========  ==================================
    **Level**  **Setting**
@@ -466,10 +466,10 @@ See the ":doc:`/core/replication`" documentation
    of the files specified by the :setting:`dbpath` to the latest
    version, if needed.
 
-   This option only affects the operation of :option:`mongod` if the
+   This option only affects the operation of :program:`mongod` if the
    data files are in an old format.
 
-   When specified for a :option:`mongos` instance, this option updates
+   When specified for a :program:`mongos` instance, this option updates
    the meta data format used by the :term:`configdb`.
 
 Replica Set Options
@@ -482,7 +482,7 @@ Replica Set Options
    In the context of :term:`replica set` replication, set this option
    to ``true`` if this replica has been seeded with a snapshot of the
    :term:`dbpath` of another member of the set. Otherwise the
-   :option:`mongod` will attempt to perform a full sync.
+   :program:`mongod` will attempt to perform a full sync.
 
 .. setting:: oplogSize
 
@@ -576,7 +576,7 @@ Sharding Cluster Options
 
    *Default:* false
 
-   Set this value to ``true`` to configure this :option:`mongod`
+   Set this value to ``true`` to configure this :program:`mongod`
    instance to operate as the :term:`config database` of a shard
    cluster. The default port with this option is ``27019` and the data
    is stored in the ``/configdb`` sub-directory of the
@@ -586,7 +586,7 @@ Sharding Cluster Options
 
    *Default:* false
 
-   Set this value to ``true`` to configure this :option:`mongod`
+   Set this value to ``true`` to configure this :program:`mongod`
    instance as a node in a shard cluster. The default port for these
    nodes is ``27018``.
 
@@ -608,15 +608,15 @@ Sharding Cluster Options
    specify either 1 configuration server or 3 configuration servers,
    in a comma separated list.
 
-   This setting only affects :option:`mongos` processes.
+   This setting only affects :program:`mongos` processes.
 
 .. setting:: test
 
    *Default:* false
 
-   Only runs unit tests and does not start a :option:`mongos` instance.
+   Only runs unit tests and does not start a :program:`mongos` instance.
 
-   This setting only affects :option:`mongos` processes and is for
+   This setting only affects :program:`mongos` processes and is for
    internal testing use only.
 
 .. setting:: chunkSize
@@ -631,4 +631,4 @@ Sharding Cluster Options
    movement of chunks between nodes. However, in some circumstances
    it may be neccessary to set a different chunk size.
 
-   This setting only affects :option:`mongos` processes.
+   This setting only affects :program:`mongos` processes.

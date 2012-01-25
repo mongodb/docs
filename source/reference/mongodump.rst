@@ -1,14 +1,20 @@
-============================
-``mongodump`` Utility Manual
-============================
+.. _mongodump:
+
+===================================
+:program:`mongodump` Utility Manual
+===================================
+
+.. default-domain:: mongodb
+
+.. binary:: mongodump
 
 Synopsis
 --------
 
-:option:`mongodump` is a utility for creating a binary export of the
+:program:`mongodump` is a utility for creating a binary export of the
 contents of a database. Consider using this utility as part an
 effective :doc:`backup strategy </administration/backups>`. Use in
-conjunction with :option:`mongorestore` to provide restore
+conjunction with :program:`mongorestore` to provide restore
 functionality.
 
 Options
@@ -42,7 +48,7 @@ Options
 
    To connect to a replica set, use the :option:`--host <mongodump --host>` argument with a
    setname, followed by a slash and a comma separated list of host and
-   port names. The :option:`mongodump` utility will, given the seed of
+   port names. The :program:`mongodump` utility will, given the seed of
    at least one connected set member, connect to primary node of that
    set. this option would resemble: ::
 
@@ -59,9 +65,9 @@ Options
 
 .. option:: --ipv6
 
-   Enables :term:`IPv6` support to allow :option:`mongodump` to connect to the
+   Enables :term:`IPv6` support to allow :program:`mongodump` to connect to the
    MongoDB instance using IPv6 connectivity. IPv6 support is disabled
-   by default in the :option:`mongodump` utility.
+   by default in the :program:`mongodump` utility.
 
 .. option:: --username <username>, -u <username>
 
@@ -79,25 +85,25 @@ Options
 .. option:: --dbpath [path]
 
    Specifies the directory of the MongoDB data files. If used, the
-   :option:`--dbpath` option enables :option:`mongodump` to attach
+   :option:`--dbpath` option enables :program:`mongodump` to attach
    directly to local data files and copy the data without the
-   :option:`mongod`. To run with :option:`--dbpath`,
-   :option:`mongodump` needs to lock access to the data directory: as
+   :program:`mongod`. To run with :option:`--dbpath`,
+   :program:`mongodump` needs to lock access to the data directory: as
    a result, no ``mongod`` can be access the same path while the
    process runs.
 
 .. option:: --directoryperdb
 
    Use the :option:`--directoryperdb` in conjunction with the
-   corresponding option to :option:`mongod`, which allows
-   :option:`mongodump` to operate when MongoDB is configured to use an
+   corresponding option to :program:`mongod`, which allows
+   :program:`mongodump` to operate when MongoDB is configured to use an
    on-disk stores where each database is located in a distinct
    directory. This option is only relevant when specifying the
    :option:`--dbpath` option.
 
 .. option:: --journal
 
-   Allows :option:`mongodump` operations to use the durability
+   Allows :program:`mongodump` operations to use the durability
    :term:`journal <journaling>` to ensure that the export is in a
    consistent state. This option is only relevant when specifying the
    :option:`--dbpath` option.
@@ -126,7 +132,7 @@ Options
 .. option:: --query [json], -q [json]
 
    Provides a :term:`JSON` query to limit (optionally) the documents
-   included in the output of :option:`mongodump`.
+   included in the output of :program:`mongodump`.
 
 .. option:: --oplog
 
@@ -159,9 +165,9 @@ Usage
 -----
 
 See the ":ref:`backup guide section on database dumps
-<database-dumps>`" for a larger overview of :option:`mongodump`
+<database-dumps>`" for a larger overview of :program:`mongodump`
 usage. Also see the ":doc:`mongorestore`" document for an overview of
-the :option:`mongorestore`, which provides the related inverse
+the :program:`mongorestore`, which provides the related inverse
 functionality.
 
 The following command, creates a dump file that contains only the
@@ -171,14 +177,14 @@ this case the database is running on the local interface on port
 
      mongodump --collection collection --database test
 
-In the next example, :option:`mongodump` creates a backup of the
+In the next example, :program:`mongodump` creates a backup of the
 database instance stored in the ``/srv/mongodb`` directory on the
-local machine. This requires that no :option:`mongod` instance is
+local machine. This requires that no :program:`mongod` instance is
 using the ``/srv/mongodb`` directory. ::
 
      mongodump --dbpath /srv/mongodb
 
-In the final example, :option:`mongodump` creates a database dump
+In the final example, :program:`mongodump` creates a database dump
 located at ``/opt/backup/mongodumpm-2011-10-24``, from a database
 running on port "``37017``" on the host "``mongodb1.example.net`` and
 authenticating using the username "``user``" and the password

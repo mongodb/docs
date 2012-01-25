@@ -152,7 +152,7 @@ the purpose of creating backups.
 If this node have journaling enabled, you can safely use standard
 :ref:`block level backup methods <block-level-backup>` to create a
 backup of this node. Otherwise, if your underlying system does not
-support snapshots, you can connect :option:`mongodump` to create a
+support snapshots, you can connect :program:`mongodump` to create a
 backup directly from the secondary node. In these cases, use the
 :option:`--oplog <mongodump --oplog>` option to ensure a consistent
 point-in-time dump of the database state.
@@ -233,7 +233,7 @@ environments, in these circumstances, and *any replica set with an
 even number of members*, deploy an arbiter.
 
 To add an arbiter, while connected to the *current primary* node in
-the :option:`mongo` shell, issue the following command:
+the :program:`mongo` shell, issue the following command:
 
 .. code-block:: javascript
 

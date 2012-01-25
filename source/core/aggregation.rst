@@ -244,15 +244,15 @@ splits into two parts. The aggregation framework pushes all of the
 operators up to and including the first :aggregator:`$group` or
 :aggregator:`$sort` to each shard using the results received from the
 shards. [#match-sharding]_ Then, a second pipeline on the
-:option:`mongos` runs. This pipeline consists of the first
+:program:`mongos` runs. This pipeline consists of the first
 :aggregator:`$group` or :aggregator:`$sort` and any remaining pipeline
 operators
 
-The :option:`mongos` pipeline merges :aggregator:`$sort` operations
+The :program:`mongos` pipeline merges :aggregator:`$sort` operations
 from the shards. The :aggregator:`$group`, brings any “sub-totals”
 from the shards and combines them: in some cases these may be
 structures. For example, the :expression:`$avg` expression maintains a
-total and count for each shard; the :option:`mongos` combines these
+total and count for each shard; the :program:`mongos` combines these
 values and then divides.
 
 .. [#match-sharding] If an early :aggregator:`$match` can exclude

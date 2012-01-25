@@ -118,7 +118,7 @@ Glossary
       systems. :term:`Sharding` is an example of partitioning.
 
    mongod
-      :option:`mongod` is the :term:`daemon` that runs MongoDB database
+      :program:`mongod` is the :term:`daemon` that runs MongoDB database
       instances.
 
       .. seealso:: ":doc:`/reference/mongod`."
@@ -146,7 +146,7 @@ Glossary
       a metonym for relational databases.
 
    Cluster
-      Clusters are groups of :option:`mongod` instances running in
+      Clusters are groups of :program:`mongod` instances running in
       conjunction to increase database availability and
       performance. See :term:`sharding` and :term:`replication` for
       more information on two different approaches to clustering with
@@ -294,7 +294,7 @@ Glossary
    pcap
       A packet capture format used by a number of tools to record
       packets captured from network interfaces. Used by
-      :option:`mongosniff`.
+      :program:`mongosniff`.
 
    upsert
       A method of inserting a document into a MongoDB database that,
@@ -462,7 +462,7 @@ Glossary
       Queries are requests that return a selection of documents from
       the database system. Specify MongoDB, queries using :term:`JSON`
       documents and the :term:`database operators <operator>` to
-      describe documents. In the :option:`mongo` shell, issue queries
+      describe documents. In the :program:`mongo` shell, issue queries
       using the :js:func:`find()` and :js:func:`findOne()` functions.
 
    projection

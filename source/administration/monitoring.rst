@@ -67,9 +67,9 @@ current issues with the database.
 mongotop
 ````````
 
-:option:`mongotop` tracks and reports the current read and write
-activity of a MongoDB instance. :option:`mongotop` provides per-collection
-visibility into use. Use :option:`mongotop` to verify that activity and use
+:program:`mongotop` tracks and reports the current read and write
+activity of a MongoDB instance. :program:`mongotop` provides per-collection
+visibility into use. Use :program:`mongotop` to verify that activity and use
 match expectations.
 
 .. seealso:: ":doc:`/reference/mongotop`."
@@ -77,11 +77,11 @@ match expectations.
 monostat
 ````````
 
-:option:`mongostat` captures and returns counters of database
-operations. :option:`mongostat` reports operations on a per-type
+:program:`mongostat` captures and returns counters of database
+operations. :program:`mongostat` reports operations on a per-type
 (e.g. insert, query, update, delete, etc.) basis that makes it easy to
 understand the nature of the load on the server. Use
-:option:`mongostat` to understand the distribution of operation types
+:program:`mongostat` to understand the distribution of operation types
 and to inform capacity development plans.
 
 .. seealso:: ":doc:`/reference/mongostat`."
@@ -268,7 +268,7 @@ requests, and the database is keeping up. If this is the case, then
 you will need increase the size of your deployment. Increase the size
 of your :term:`replica set` and distribute read operations to
 :term:`secondary` members. Add one or more :term:`shards <shard>` to a
-:term:`shard cluster` to distribute load among :option:`mongod`
+:term:`shard cluster` to distribute load among :program:`mongod`
 instances.
 
 Spikes in the number of connections can also be the result of
@@ -283,7 +283,7 @@ Database Profiling
 MongoDB contains a database profiling system that can help identify
 inefficient queries and operations. Enable the profiler by setting the
 :dbcommand:`profile` value using one of the following command in
-the :option:`mongo` shell. These functions are equivalent:
+the :program:`mongo` shell. These functions are equivalent:
 
 .. code-block:: javascript
 
@@ -306,17 +306,17 @@ The following profiling levels are available:
    performance, only enable profiling for strategic intervals and as
    minimally as possible on production systems.
 
-   You may enable profiling on a per-:option:`mongod` basis. This
+   You may enable profiling on a per-:program:`mongod` basis. This
    setting will not propagate across a :term:`replica set` or
    :term:`shard cluster`.
 
-See the output of the profiler in the :option:`mongod` log and use
+See the output of the profiler in the :program:`mongod` log and use
 this information to optimize your queries and database. You can
 specify the :setting:`slowms` to set a threshold above which
 the profiler considers operations "slow" and thus included in the
-level "``1``" profiling data. :option:`mongod` writes the output of
+level "``1``" profiling data. :program:`mongod` writes the output of
 the profiler in the ``system.profile`` collection. You can view the
-profiler with the "``show profile``" in the :option:`mongo` shell. You
+profiler with the "``show profile``" in the :program:`mongo` shell. You
 can query the collection directly. For example the following command
 will return all operations that lasted longer than 100 milliseconds:
 
@@ -374,7 +374,7 @@ points:
   the member you're currently connected to.
 
 The size of the operation log is configurable at runtime using the
-:option:`mongod --oplogsize` argument to the :option:`mongod` command,
+:option:`mongod --oplogsize` argument to the :program:`mongod` command,
 or preferably the :setting:`oplogsize` in the MongoDB
 configuration file. The default size, is typically 5% of disk space on
 64-bit systems.
@@ -400,14 +400,14 @@ Config Servers
 The :term:`configdb` provides a map of documents to shards. The
 cluster updates this map as :term:`chunks <chunk>` move between
 shards. When a configuration server becomes inaccessible, some
-sharding operations like moving chunks and starting :option:`mongos`
+sharding operations like moving chunks and starting :program:`mongos`
 instances become unavailable. However, shard clusters remain
 accessible from already-running mongo instances.
 
 Because inaccessible configuration servers can have a serious impact
 on the availability of a shard cluster, you should keep uptime
 monitoring of the configuration servers to ensure that your shard
-cluster remains well balanced and that :option:`mongos` instances can
+cluster remains well balanced and that :program:`mongos` instances can
 restart.
 
 Balancing and Chunk Distribution
@@ -418,7 +418,7 @@ The most effective :term:`shard clusters <shard cluster>` require that
 :term:`balancer` process that distributes data such that chunks are
 always optimally distributed among the :term:`shards <shard>`. Issue
 the :js:func:`db.printShardingStatus()` or :js:func:`sh.status()`
-command to the :option:`mongos` by way of the :option:`mongo`
+command to the :program:`mongos` by way of the :program:`mongo`
 shell. This returns an overview of the shard cluster including the
 database name, and a list of the chunks.
 
@@ -442,7 +442,7 @@ In nearly every case, all locks used by the balancer are automatically
 released when they become stale. However, because any long lasting
 lock can block future balancing, it's important to insure that all
 locks are legitimate. To check the lock status of the database,
-connect to a :option:`mongos` instance using the :doc:`mongo shell
+connect to a :program:`mongos` instance using the :doc:`mongo shell
 </reference/mongo>`". Issue the following command sequence to switch
 to the config database and display all outstanding locks on the shard
 database: ::
@@ -452,7 +452,7 @@ database: ::
 
 For active deployments, the above query might return an useful result
 set. The balancing process, which originates on a randomly selected
-:option:`mongos`, takes a special "balancer" lock that prevents other
+:program:`mongos`, takes a special "balancer" lock that prevents other
 balancing activity from transpiring. Use the following command, also
 to the ``config`` database, to check the status of the "balancer"
 lock. ::

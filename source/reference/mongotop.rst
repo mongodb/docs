@@ -1,14 +1,19 @@
-===================
-``mongotop`` Manual
-===================
+.. _mongotop:
+
+==========================
+:program:`mongotop` Manual
+==========================
+
+.. default-domain:: mongodb
+.. binary:: mongotop
 
 Synopsis
 --------
 
-:option:`mongotop` provides a method to track the amount of time a
+:program:`mongotop` provides a method to track the amount of time a
 MongoDB instance spends reading and writing data. ``mongotop``
 provides statistics on the per-collection level. In default operation,
-:option:`mongotop` returns values every second.
+:program:`mongotop` returns values every second.
 
 .. seealso::
 
@@ -45,12 +50,12 @@ Options
 
 .. option:: --version
 
-   Returns the version of the :option:`mongotop` utility.
+   Returns the version of the :program:`mongotop` utility.
 
 .. option:: --host <hostname><:port>
 
    Specifies a resolvable hostname for the ``mongod`` from which you
-   want to export data. By default :option:`mongotop` attempts to connect
+   want to export data. By default :program:`mongotop` attempts to connect
    to a MongoDB process ruining on the localhost port number 27017.
 
    Optionally, specify a port number to connect a MongboDB instance
@@ -75,9 +80,9 @@ Options
 
 .. option:: --ipv6
 
-   Enables IPv6 support to allow :option:`mongotop` to connect to the
+   Enables IPv6 support to allow :program:`mongotop` to connect to the
    MongoDB instance using IPv6 connectivity. IPv6 support is disabled
-   by default in the :option:`mongotop` utility.
+   by default in the :program:`mongotop` utility.
 
 .. option:: --username <username>, -u <username>
 
@@ -94,8 +99,8 @@ Options
 .. option:: [sleeptime]
 
    The final argument the length of time, in seconds, that
-   :option:`mongotop` waits in between calls. By default
-   :option:`mongotop` returns data every second.
+   :program:`mongotop` waits in between calls. By default
+   :program:`mongotop` returns data every second.
 
 .. _mongotop-fields:
 
@@ -109,7 +114,7 @@ All time values are provided in milliseconds (ms.)
    The database namespace, and includes the database name and
    collection. Only namespaces with activity are reported. If you
    don't see a collection, it has received no activity. You can issue
-   a simple operation in the :option:`mongo` shell to generate
+   a simple operation in the :program:`mongo` shell to generate
    activity so that an specific namespace appears on the page.
 
 TODO factcheck
@@ -136,18 +141,18 @@ TODO factcheck
 Usage
 -----
 
-By default :option:`mongotop` connects to the MongoDB instance ruining on
+By default :program:`mongotop` connects to the MongoDB instance ruining on
 the localhost port 27017; however, you can optionally connect
-:option:`mongotop` to connect to remote ``mongod`` instances. See the
+:program:`mongotop` to connect to remote ``mongod`` instances. See the
 :ref:`mongotop options <mongotop-options>` for more information.
 
-To force :option:`mongotop` to return less frequently specify a number, in
-seconds at the end of the command. In this example, :option:`mongotop` will
+To force :program:`mongotop` to return less frequently specify a number, in
+seconds at the end of the command. In this example, :program:`mongotop` will
 return every 15 seconds.
 
      mongotop 15
 
-Use the following command to return a :option:`mongotop` report every 5
+Use the following command to return a :program:`mongotop` report every 5
 minutes: ::
 
      mongotop 300

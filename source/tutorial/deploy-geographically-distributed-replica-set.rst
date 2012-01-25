@@ -148,7 +148,7 @@ used above: :setting:`dbpath`, :setting:`port`,
 your deployment requires.
 
 On each system issue the following command to start the
-:option:`mongod` process:
+:program:`mongod` process:
 
 .. code-block:: bash
 
@@ -160,7 +160,7 @@ On each system issue the following command to start the
    :term:`control script` to manage this process based on this
    command. Control scripts are beyond the scope of this document.
 
-Log in with the :option:`mongo` shell to this host using the following
+Log in with the :program:`mongo` shell to this host using the following
 command: ::
 
       mongo
@@ -328,7 +328,7 @@ used above: :setting:`dbpath`, :setting:`port`,
 your deployment requires.
 
 On each system issue the following command to start the
-:option:`mongod` process:
+:program:`mongod` process:
 
 .. code-block:: bash
 
@@ -340,7 +340,7 @@ On each system issue the following command to start the
    :term:`control script` to manage this process based on this
    command. Control scripts are beyond the scope of this document.
 
-Log in with the :option:`mongo` shell to this host using the following
+Log in with the :program:`mongo` shell to this host using the following
 command: ::
 
       mongo

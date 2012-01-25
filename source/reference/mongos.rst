@@ -1,17 +1,21 @@
-=================
-``mongos`` Manual
-=================
+.. _mongos:
+
+========================
+:program:`mongos` Manual
+========================
 
 .. default-domain:: mongodb
+
+.. binary:: mongos
 
 Synopsis
 --------
 
-:option:`mongos` for "MongoDB Shard," is a routing service for MongoDB
+:program:`mongos` for "MongoDB Shard," is a routing service for MongoDB
 shard configurations that processes queries from the application
 layer, and determines where this data is stored in the :term:`shard
 cluster`, in order to complete these operations these operations. From
-the perspective of the application, a :option:`mongos` instance
+the perspective of the application, a :program:`mongos` instance
 behaves identically to any other MongoDB instance.
 
 .. seealso::
@@ -30,7 +34,7 @@ Options
 
 .. option:: --version
 
-   Returns the version of the :option:`mongod` daemon.
+   Returns the version of the :program:`mongod` daemon.
 
 .. option:: --config <filname>, -f <filename>
 
@@ -41,8 +45,8 @@ Options
    mongod. See the ":doc:`/reference/configuration-options`" document
    for more information about these options.
 
-   Not all configuration options for :option:`mongod` make sense in
-   the context of :option:`mongos`.
+   Not all configuration options for :program:`mongod` make sense in
+   the context of :program:`mongos`.
 
 .. option:: --verbose, -v
 
@@ -53,13 +57,13 @@ Options
 
 .. option:: --quiet
 
-   Runs the :option:`mongos` instance in a quiet mode that attempts to limit
+   Runs the :program:`mongos` instance in a quiet mode that attempts to limit
    the amount of output.
 
 .. option:: --port <port>
 
-   Specifies a TCP port for the :option:`mongos` to listen for client
-   connections. By default :option:`mongos` listens for connections on
+   Specifies a TCP port for the :program:`mongos` to listen for client
+   connections. By default :program:`mongos` listens for connections on
    port 27017.
 
    On UNIX-like systems root access is required for ports with numbers
@@ -67,10 +71,10 @@ Options
 
 .. option:: --bind_ip <ip address>
 
-   The IP address that the :option:`mongos` process will bind to and listen
-   for connections. By default :option:`mongos` listens for connections on
+   The IP address that the :program:`mongos` process will bind to and listen
+   for connections. By default :program:`mongos` listens for connections on
    the localhost (i.e. ``127.0.0.1`` address.) You may attach
-   :option:`mongos` to any interface; however, if you attach :option:`mongos` to a
+   :program:`mongos` to any interface; however, if you attach :program:`mongos` to a
    publicly accessible interface ensure that proper authentication or
    firewall restrictions have been implemented to protect the
    integrity of your database.
@@ -78,11 +82,11 @@ Options
 .. option:: --maxConns <number>
 
    Specifies the maximum number of simultaneous connections that
-   :option:`mongos` will accept. This setting will have no effect if
+   :program:`mongos` will accept. This setting will have no effect if
    the value of this setting is higher than your operating system's
    configured maximum connection tracking threshold.
 
-   This is particularly useful for :option:`mongos` if you have a
+   This is particularly useful for :program:`mongos` if you have a
    client that creates a number of collections but allows them to
    timeout rather than close the collections. When you set
    :setting:`maxConns`, ensure the value is slightly higher than the
@@ -92,7 +96,7 @@ Options
 
 .. option:: --objcheck
 
-   Forces the :option:`mongos` to validate all requests from clients upon
+   Forces the :program:`mongos` to validate all requests from clients upon
    receipt.
 
 .. option:: --logpath <path>
@@ -100,7 +104,7 @@ Options
    Specify a path for the log file that will hold all diagnostic
    logging information.
 
-   Unless specified, :option:`mongos` will output all log information to the
+   Unless specified, :program:`mongos` will output all log information to the
    standard output.
 
 .. option:: --logapend
@@ -112,7 +116,7 @@ Options
 .. option:: --pidfilepath <path>
 
    Specify a file location to hold the ":term:`PID`" or process ID of the
-   :option:`mongod` process. Useful for tracking the :option:`mongod` process in
+   :program:`mongod` process. Useful for tracking the :program:`mongod` process in
    combination with the :option:`mongos --fork` option.
 
    If this option is not set, no PID file is created.
@@ -138,7 +142,7 @@ Options
 
 .. option:: --fork
 
-   Enables a :term:`daemon` mode for :option:`mongod` which forces the
+   Enables a :term:`daemon` mode for :program:`mongod` which forces the
    process to the background. This is the normal mode of operation, in
    production and production-like environments, but may *not* be
    desirable for testing.
@@ -153,7 +157,7 @@ Options
 .. option:: --test
 
    This option is for internal testing use only, and runs unit tests
-   without starting a :option:`mongos` instance.
+   without starting a :program:`mongos` instance.
 
 .. option:: --upgrade
 
@@ -173,9 +177,9 @@ Options
 
 .. option:: --ipv6
 
-   Enables IPv6 support to allow clients to connect to :option:`mongos`
+   Enables IPv6 support to allow clients to connect to :program:`mongos`
    using IPv6 networks. MongoDB disables IPv6 support by default in
-   :option:`mongod` and all utilities.
+   :program:`mongod` and all utilities.
 
 .. option:: --jsonnp
 

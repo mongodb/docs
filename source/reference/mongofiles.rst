@@ -1,32 +1,36 @@
-=============================
-``mongofiles`` Utility Manual
-=============================
+.. _mongofiles:
+
+====================================
+:program:`mongofiles` Utility Manual
+====================================
 
 .. default-domain:: mongodb
+
+.. binary:: mongofiles
 
 Synopsis
 --------
 
-The :option:`mongofiles` utility makes it possible to manipulate files
+The :program:`mongofiles` utility makes it possible to manipulate files
 stored in your MongoDB instance in :term:`GridFS` objects from the
 command line. It is particularly useful as it provides an interface
 between objects stored in your file system and GridFS.
 
-All :option:`mongofiles` commands take arguments in three groups:
+All :program:`mongofiles` commands take arguments in three groups:
 
 1. :ref:`Options <mongofiles-options>`. You may use one or more of
-   these options to control the behavior of :option:`mongofiles`.
+   these options to control the behavior of :program:`mongofiles`.
 
 2. :ref:`Commands <mongofiles-commands>`. Use one of these commands to
-   determine the action of :option:`mongofiles`.
+   determine the action of :program:`mongofiles`.
 
 3. A file name representing either the name of a file on your system's
    file system, a GridFS object.
 
-Like :option:`mongodump`, :option:`mongoexport`,
-:option:`mongoimport`, and :option:`mongorestore` :option:`mongofiles` can
+Like :program:`mongodump`, :program:`mongoexport`,
+:program:`mongoimport`, and :program:`mongorestore` :program:`mongofiles` can
 access data stored in a MongoDB data directory without requiring a
-running :option:`mongod` instance, if no other :option:`mongod` is running.
+running :program:`mongod` instance, if no other :program:`mongod` is running.
 
 .. _mongofiles-commands:
 
@@ -53,7 +57,7 @@ Commands
    storage.
 
    Here, ``<filename>`` refers to the name the object will have in
-   GridFS, and :option:`mongofiles` assumes that this reflects the name the
+   GridFS, and :program:`mongofiles` assumes that this reflects the name the
    file has on the local file system. If the local filename is
    different use the :option:`mongofiles --local` option.
 
@@ -63,7 +67,7 @@ Commands
    system.
 
    Here, ``<filename>`` refers to the name the object will have in
-   GridFS, and :option:`mongofiles` assumes that this reflects the name the
+   GridFS, and :program:`mongofiles` assumes that this reflects the name the
    file has on the local file system. If the local filename is
    different use the :option:`mongofiles --local` option.
 
@@ -90,12 +94,12 @@ Options
 
 .. option:: --version
 
-   Returns the version of the :option:`mongofiles` utility.
+   Returns the version of the :program:`mongofiles` utility.
 
 .. option:: --host <hostname><:port>
 
-   Specifies a resolvable hostname for the :option:`mongod` from which you
-   want to export data. By default :option:`mongofiles` attempts to connect
+   Specifies a resolvable hostname for the :program:`mongod` from which you
+   want to export data. By default :program:`mongofiles` attempts to connect
    to a MongoDB process ruining on the localhost port number 27017.
 
    Optionally, specify a port number to connect a MongboDB instance
@@ -120,9 +124,9 @@ Options
 
 .. option:: --ipv6
 
-   Enables IPv6 support to allow :option:`mongofiles` to connect to the
+   Enables IPv6 support to allow :program:`mongofiles` to connect to the
    MongoDB instance using IPv6 connectivity. IPv6 support is disabled
-   by default in the :option:`mongofiles` utility.
+   by default in the :program:`mongofiles` utility.
 
 .. option:: --username <username>, -u <username>
 
@@ -139,16 +143,16 @@ Options
 .. option:: --dbpath [path]
 
    Specifies the directory of the MongoDB data files. If used, the
-   :option:`--dbpath` option enables :option:`mongofiles` to attach directly to
+   :option:`--dbpath` option enables :program:`mongofiles` to attach directly to
    local data files interact with the GridFS data without the
-   :option:`mongod`. To run with :option:`--dbpath`, :option:`mongofiles` needs to lock
-   access to the data directory: as a result, no :option:`mongod` can access
+   :program:`mongod`. To run with :option:`--dbpath`, :program:`mongofiles` needs to lock
+   access to the data directory: as a result, no :program:`mongod` can access
    the same path while the process runs.
 
 .. option:: --directoryperdb
 
    Use the :option:`--directoryperdb` in conjunction with the corresponding
-   option to :option:`mongod`, which allows :option:`mongofiles` when
+   option to :program:`mongod`, which allows :program:`mongofiles` when
    running with the :option:`--dbpath` option and MongoDB uses an
    on-disk format where every database has a distinct
    directory. This option is only relevant when specifying the
@@ -156,10 +160,10 @@ Options
 
 .. option:: --journal
 
-   Allows :option:`mongofiles` operations to use the durability
+   Allows :program:`mongofiles` operations to use the durability
    :term:`journal <journaling>` when running with :option:`--dbpath`
    to ensure that the database maintains a recoverable state. This
-   forces :option:`mongofiles` to record all data on disk regularly.
+   forces :program:`mongofiles` to record all data on disk regularly.
 
 .. option:: --db [db], -d [db]
 
@@ -176,14 +180,14 @@ TODO in the help but doesn't makes sense in this context
 
    In the :command:`mongofiles put` and :command:`mongofiles get`
    commands the required ``<filename>`` modifier refers to the name
-   the object will have in GridFS. :option:`mongofiles` assumes that
+   the object will have in GridFS. :program:`mongofiles` assumes that
    this reflects the file's name on the local file
    system. This setting overrides this default.
 
 .. option:: --type <MIME>, t <MIME>
 
    Provides the ability to specify a :term:`MIME` type to describe the
-   file inserted into GridFS storage. :option:`mongofiles` omits this
+   file inserted into GridFS storage. :program:`mongofiles` omits this
    option in the default operation.
 
    Use only with :command:`mongofiles put` operations.

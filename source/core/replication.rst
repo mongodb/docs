@@ -6,7 +6,7 @@ Replication Fundamentals
 
 This document provides an overview of the core concepts that underpin
 MongoDB's replication functionality, known as ":term:`replica sets
-<replica set>`." In these configurations, multiple :option:`mongod`
+<replica set>`." In these configurations, multiple :program:`mongod`
 run and maintain the same set of data in parallel. Having multiple
 copies of a database updated at the same time, adds redundancy,
 increases "read capacity," and increases the availability of a
@@ -114,7 +114,7 @@ for your data set is crucial.
 Administrators of replica sets also have unique :ref:`monitoring
 <replica-set-monitoring>`, and :ref:`security <replica-set-security>`
 concerns. The :ref:`replica set functions <replica-set-functions>` in
-the :option:`mongo` shell, provide the tools necessary for replica set
+the :program:`mongo` shell, provide the tools necessary for replica set
 administration. In particular use the :js:func:`rs.conf()` to return a
 :term:`JSON document` that holds the :doc:`replica set configuration
 </reference/replica-configuration>`, and :js:func:`rs.reconfig()` to
@@ -156,7 +156,7 @@ for configuration information regarding non-voting nodes.
 
    The :js:func:`rs.reconfig()` shell command can force the current
    primary to step down and causes an election. When the primary node
-   steps down, the :option:`mongod` closes all client
+   steps down, the :program:`mongod` closes all client
    connections. While, this typically takes 10-20 seconds, attempt to
    make these changes during scheduled maintenance periods.
 
@@ -182,7 +182,7 @@ other node is eligible. See :ref:`replica set priorities
 
 Given a three node replica set, with member "``_id``" values of:
 ``0``, ``1``, and ``2``, use the following sequence of operations in
-the :option:`mongo` shell to modify node priorities:
+the :program:`mongo` shell to modify node priorities:
 
 .. code-block:: javascript
 
@@ -233,7 +233,7 @@ able to avoid all normal "non-primary," queries.
 .. seealso:: ":ref:`Replica Set Read Preference <replica-set-read-preference>`."
 
 To configure a hidden node, use the following sequence of operations
-in the :option:`mongo` shell:
+in the :program:`mongo` shell:
 
 .. code-block:: javascript
 
@@ -268,7 +268,7 @@ must have a :term:`priority` set to ``0`` to prevent them from
 becoming primary in their replica sets.
 
 To configure a node with a one hour delay, use the following sequence
-of operations in the :option:`mongo` shell:
+of operations in the :program:`mongo` shell:
 
 .. code-block:: javascript
 
@@ -301,7 +301,7 @@ configure:
 Arbiters
 ~~~~~~~~
 
-Arbiters are special :option:`mongod` instances that do not hold a
+Arbiters are special :program:`mongod` instances that do not hold a
 copy of the data and thus cannot become primary. Arbiters do
 participate in elections to determine which node will become
 primary. Arbiters require very few resources and help prevent
@@ -323,7 +323,7 @@ Use the following command to start an arbiter: ::
      mongod --replSet [setname]
 
 Replace "``[setname]``" with the name of the replica set that the
-arbiter will join. Then in the :option:`mongo` shell, while connected
+arbiter will join. Then in the :program:`mongo` shell, while connected
 to the *current primary* node, issue the following command:
 
 .. code-block:: javascript
@@ -344,7 +344,7 @@ Non-Voting Nodes
 A replica set may contain as many as 12 nodes that each hold copies of
 the data set, but only 7 nodes can have votes at once. To disable a
 node's ability to vote in :ref:`elections <replica-set-elections>` use
-the following command sequence in the :option:`mongo` shell.
+the following command sequence in the :program:`mongo` shell.
 
 .. code-block:: javascript
 
@@ -465,7 +465,7 @@ vote in :ref:`elections <replica-set-elections>`.
    :js:data:`members[n].votes` except to permit more than 7 secondary
    nodes.
 
-Use the following command sequence in the :option:`mongo` shell to set
+Use the following command sequence in the :program:`mongo` shell to set
 or modify a replica set priority:
 
 .. code-block:: javascript
@@ -575,7 +575,7 @@ that might create rollbacks.
 
 .. warning::
 
-   A :option:`mongod` instance will not rollback more than 300
+   A :program:`mongod` instance will not rollback more than 300
    megabytes of data. If your system needs to rollback more than 300
    MB, you will need to manually intervene to recover this data.
 
@@ -583,7 +583,7 @@ that might create rollbacks.
 
    After a rollback occurs, the former primary will remain in a
    "rollback" mode until the administrator deals with the rolled back
-   data and restarts the :option:`mongod` instance. Only then can the
+   data and restarts the :program:`mongod` instance. Only then can the
    node becomes a normal :term:`secondary` terms.
 
 .. _replica-set-write-propagation:
@@ -610,7 +610,7 @@ and are not required in all applications. Using the "``w:
 "majority"``" option for :dbcommand:`getLastError`, write
 operations to a replica set will return only after writes have been
 replicated to a majority of the members of the set. At the
-:option:`mongo` shell, use the following command to ensure that writes
+:program:`mongo` shell, use the following command to ensure that writes
 have propagated to a majority of the nodes in the cluster:
 
 .. code-block:: javascript
@@ -656,7 +656,7 @@ Read Preference
 In the default operation, all read operations are targeted at the
 :term:`primary` node in a cluster. To distribute reads to
 :term:`secondary` nodes, you can set the ``slaveOk`` value for your
-current session. Issue the following command in the :option:`mongo`
+current session. Issue the following command in the :program:`mongo`
 shell to enable secondary reads:
 
 .. code-block:: javascript

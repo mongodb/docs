@@ -1,8 +1,11 @@
+.. _mongo:
+
 =============================
 :program:`mongo` Shell Manual
 =============================
 
 .. default-domain:: mongodb
+.. binary:: mongo
 
 Synopsis
 --------
@@ -19,8 +22,6 @@ usage.
 
 Options
 -------
-
-.. binary:: mongo
 
 .. program:: mongo
 
