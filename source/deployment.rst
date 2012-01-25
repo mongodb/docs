@@ -87,7 +87,7 @@ URL: ::
 
       https://mms-stage.10gen.com/settings/10gen-mms-agent.zip
 
-Unzip this archive and edit the ``setings.py`` file. Replace the
+Unzip this archive and edit the ``settings.py`` file. Replace the
 strings "``@API_KEY@``" and "``@SECRET_KEY@``" with the "API" and
 "Secret Keys" defined for your account. You can find these
 in the "Settings" page of the MMS console.
