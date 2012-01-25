@@ -19,7 +19,7 @@ following form to validate a collection named "``people``":
    db.people.validate()
 
 Alternatively you can use the command prototype and the
-:js.func:`runCommand()` shell method in the following form:
+:js:func:`db.runCommand()` shell helper in the following form:
 
 .. code-block:: javascript
 

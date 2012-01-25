@@ -165,7 +165,7 @@ for configuration information regarding non-voting nodes.
 Secondary-Only Nodes
 ~~~~~~~~~~~~~~~~~~~~
 
-Any node with a :js:data:`members.priority` value greater than ``0``
+Any node with a :js:data:`members[n].priority` value greater than ``0``
 may become primary given the proper network and environmental
 circumstances. If the write and replication traffic associated with
 acting as "primary," would render a node or your application
@@ -217,7 +217,7 @@ primary. Additionally you can maintain nodes in your main data center
 with a higher priority than nodes in a backup facility, to prevent
 "off-site" databases from becoming master except in dire situations.
 
-.. seealso:: ":js:data:`members.priority`" and ":ref:`Replica Set
+.. seealso:: ":js:data:`members[n].priority`" and ":ref:`Replica Set
    Reconfiguration <replica-set-reconfiguration-usage>`."
 
 .. _replica-set-hidden-nodes:
@@ -252,8 +252,8 @@ different usage patterns than the other nodes, and need to be
 separated from normal traffic. Often nodes for reporting, dedicated
 backups, and testing/integration need to operate as hidden needs.
 
-.. seealso:: ":js:data:`members.hidden`,"
-   ":js:data:`members.priority`," and ":ref:`Replica Set
+.. seealso:: ":js:data:`members[n].hidden`,"
+   ":js:data:`members[n].priority`," and ":ref:`Replica Set
    Reconfiguration <replica-set-reconfiguration-usage>`."
 
 .. _replica-set-delayed-nodes:
@@ -293,7 +293,7 @@ configure:
 - The size of the oplog is sufficient to capture *more than* the
   number of operations that typically occur in that period of time.
 
-.. seealso:: ":js:data:`members.slaveDelay`" and ":ref:`Replica Set
+.. seealso:: ":js:data:`members[n].slaveDelay`" and ":ref:`Replica Set
    Reconfiguration <replica-set-reconfiguration-usage>`."
 
 .. _replica-set-arbiters:
@@ -333,8 +333,8 @@ to the *current primary* node, issue the following command:
 Replace the "``"[hostname]:[port]"``" string with the name of the
 hostname and port of the arbiter that you wish to add to the set.
 
-.. seealso:: ":setting:`replSet`," ":option:`mongod
-   --replSet`, and ":js:func:`rs.addArb()`."
+.. seealso:: ":setting:`replSet`," ":option:`mongod --replSet`,
+   and ":js:func:`rs.addArb()`."
 
 .. _replica-set-non-voting-nodes:
 
@@ -370,7 +370,7 @@ event of a network partition.
    <replica-set-node-priority>`" to control which nodes are more
    likely to be elected primary.
 
-.. seealso:: ":js:data:`members.votes`" and ":ref:`Replica Set
+.. seealso:: ":js:data:`members[n].votes`" and ":ref:`Replica Set
    Reconfiguration <replica-set-reconfiguration-usage>`."
 
 .. _replica-set-failover:
@@ -455,14 +455,14 @@ Node Priority
 In a replica set, every node has a "priority," which is used to
 determine eligibility for :ref:`election <replica-set-elections>` to
 "primary." By default, all nodes have a priority of ``1``, unless the
-:js:data:`members.priority` value is modified. All nodes have a single
+:js:data:`members[n].priority` value is modified. All nodes have a single
 vote in :ref:`elections <replica-set-elections>`.
 
 .. warning::
 
-   Always configure the :js:data:`members.priority` value to control
+   Always configure the :js:data:`members[n].priority` value to control
    which nodes will become primary. Do not configure
-   :js:data:`members.votes` except to permit more than 7 secondary
+   :js:data:`members[n].votes` except to permit more than 7 secondary
    nodes.
 
 Use the following command sequence in the :option:`mongo` shell to set
@@ -757,7 +757,7 @@ that:
 
 - If you use MongoDB's authentication system to limit access to your
   infrastructure, ensure that you configure a
-  :setting:`keyfile` on all nodes to permit authentication.
+  :setting:`keyFile` on all nodes to permit authentication.
 
 .. seealso:: ":ref:`Replica Set Security <replica-set-security>`"
 
@@ -775,7 +775,7 @@ architectures.
 This document provides an overview of the *complete* functionality of
 replica sets, which highlights the flexibility of the replica set and
 its configuration. However, for most production deployments a
-conventional 3-node replica set with :js:data:`members.priority`
+conventional 3-node replica set with :js:data:`members[n].priority`
 values of ``1`` are sufficient.
 
 While the additional flexibility discussed is below helpful for

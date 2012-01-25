@@ -68,9 +68,8 @@ Issue the following commands, each in a distinct screen window: ::
 These command start members of a replica set named ``rs0``, each
 running on a distinct port. Alternatively, if you are already using these
 ports, you can select different ports. See the documentation of the
-following options for more information: :option:`--port <mongod
---port>`, :option:`--dbpath <mongod --dbpath>`, and :option:`--replSet
-<mongod --replSet>`.
+following options for more information: :option:`--port <mongod --port>`,
+:option:`--dbpath <mongod --dbpath>`, and :option:`--replSet <mongod --replSet>`.
 
 .. note::
 
@@ -97,7 +96,7 @@ configuration </reference/replica-configuration>`:
 
 .. code-block:: javascript
 
-   rs.config()
+   rs.conf()
 
 Now, issue the following sequence of commands to add two nodes to the
 replica set.
@@ -112,8 +111,8 @@ functional replica set. You may have to wait several moments for the
 new replica set to successfully elect a :term:`primary` node.
 
 See the documentation of the following shell functions for more
-information: :js:func:`rs.initiate()`, :js:func:`rs.config()`, and
-:js:func:`rs.add()`.
+information: :js:func:`rs.initiate()`, :js:func:`rs.conf()`,
+:js:func:`rs.reconfig()` and :js:func:`rs.add()`.
 
 .. [#screen] `GNU Screen <http://www.gnu.org/screen/>`_ is packaged as
    ``screen`` on Debian-based, Fedira/Red Hat-based, and Arch Linux.
@@ -231,6 +230,10 @@ Congratulations, after these commands return you will have a fully
 functional replica set. You may have to wait several moments for the
 new replica set to successfully elect a :term:`primary` node.
 
-See the documentation of the following shell functions for more
-information: :js:func:`rs.initiate()`, :js:func:`rs.config()`, and
-:js:func:`rs.add()`.
+.. seealso:: The documentation of the following shell functions for
+   more information:
+
+   - :js:func:`rs.initiate()`,
+   - :js:func:`rs.conf()`,
+   - :js:func:`rs.reconfig()`, and
+   - :js:func:`rs.add()`.

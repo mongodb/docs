@@ -59,7 +59,7 @@ architectural conditions are true:
 
 - The set only has 7 voting members at any time.
 
-- Every member with a :js:data:`priority <members.priority>` greater
+- Every member with a :js:data:`priority <members[n].priority>` greater
   than ``0`` can function as ``primary`` in a :term:`failover`
   situation. If a member does not have this capability (i.e. resource
   constraints,) set its ``priority`` value to ``0``.
@@ -76,7 +76,7 @@ Geographically Distributed Sets
 If you have infrastructure in more than one facility, you may want to
 consider keeping one member of the replica set in a secondary
 facility. Typically this member should have the :js:data:`priority
-<members.priority>` :ref:`set <replica-set-reconfiguration-usage>` to
+<members[n].priority>` :ref:`set <replica-set-reconfiguration-usage>` to
 ``0`` to prevent the node from ever becoming primary.
 
 In many circumstances, these deployments consist of the following:
@@ -88,7 +88,7 @@ In many circumstances, these deployments consist of the following:
   can become primary at any time.
 
 - One secondary node in another data center, that is ineligible to
-  become primary (i.e. with a :js:data:`members.priority` value of
+  become primary (i.e. with a :js:data:`members[n].priority` value of
   ``0``.)
 
 If any of the members fail, the replica set will still be able to
@@ -187,7 +187,7 @@ required for replication. While hidden nodes are not electable as
 primary, they are still able to *vote* in elections for primary. If
 your operational parameters requires this kind of reporting
 functionality, see ":ref:`Hidden Replica Set Nodes
-<replica-set-hidden-nodes>`" and :js:data:`members.hidden` for more
+<replica-set-hidden-nodes>`" and :js:data:`members[n].hidden` for more
 information regarding this functionality.
 
 Cold Standbys
@@ -216,7 +216,7 @@ members of the set in the case of a site failure.
 .. note::
 
    If your set already has ``7`` nodes, set the
-   :js:data:`members.votes` value to ``0`` for these nodes, so that
+   :js:data:`members[n].votes` value to ``0`` for these nodes, so that
    they won't vote in elections.
 
 .. seealso:: ":ref:`Secondary Only

@@ -36,7 +36,7 @@ Basic Information
 .. status:: uptime
 
    The value of the ``uptime`` field corresponds to the number of
-   seconds that the :option:`mongos`` or :option:`mongod`` process has
+   seconds that the :option:`mongos` or :option:`mongod` process has
    been active.
 
 .. status:: uptimeEstimate
@@ -79,16 +79,17 @@ TODO factcheck
    microseconds, since the database last started, that the
    ``globalLock`` has been *held*.
 
-   Consider this value in combination with
-   :status:`globalLock.totalTime`, which is calculated in the
-   :status:`globalLock.ratio` value. If this value is small
-   but :status:`globalLock.totalTime` is high the
-   ``globalLock`` has typically been held frequently for shorter
-   periods of time, which may be indicative of a more normal use
-   pattern. If the :status:`globalLock.lockTime`` is higher
-   and the :status:`globalLock.totalTime` is smaller
-   (relatively,) then fewer operations are responsible for a greater
-   portion of server's use (relatively.)
+   Consider this value in combination with the value of
+   :status:`globalLock.totalTime`. MongoDB aggregates these values in
+   the :status:`globalLock.ratio` value. If the
+   :status:`globalLock.ratio` value is small but
+   :status:`globalLock.totalTime` is high the ``globalLock`` has
+   typically been held frequently for shorter periods of time, which
+   may be indicative of a more normal use pattern. If the
+   :status:`globalLock.lockTime` is higher and the
+   :status:`globalLock.totalTime` is smaller (relatively,) then fewer
+   operations are responsible for a greater portion of server's use
+   (relatively.)
 
 .. status:: globalLock.ratio
 
@@ -222,7 +223,7 @@ connections
 
 .. status:: connections
 
-   The ``connections`` data structure holds data regarding the
+   The ``connections`` sub document data regarding the
    current connection status and availability of the database
    server. Use these values to asses the current load and capacity
    requirements of the server.
@@ -466,17 +467,16 @@ repl
 
    The ``repl`` data structure contains status information for
    MongoDB's replication (i.e. "replica set") configuration. These
-   values only appear when replication is enabled for the current
-   host.
+   values only appear when the current host has replication enabled.
 
    See :doc:`/core/replication` for more information on replication.
 
 .. status:: repl.setName
 
    The ``repl.setName`` field contains a string with the name of the
-   current replica set. This value is taken from :option:`--replSet
-   <mongod --replSet>`` command line argument, or :setting`replSet`
-   value in the configuration file.
+   current replica set. This value reflects the :option:`--replSet <mongod --replSet>`
+   command line argument, or :setting:`replSet` value in the
+   configuration file.
 
    See :doc:`/core/replication` for more information on replication.
 

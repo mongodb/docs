@@ -65,9 +65,9 @@ Query Modifiers
 
 .. js:function:: next()
 
-   Returns the next document in the cursor returned by the
-   :js:func:`find()` function. See :js:func:`hasNext()` for related
-   functionality.
+   :returns: The next document in the cursor returned by the
+             :js:func:`find()` function. See :js:func:`hasNext()` for
+             related functionality.
 
 .. js:function:: size()
 
@@ -219,6 +219,10 @@ Query Cursor Methods
       :js:func:`limit()`, or create an index on the field that you're
       sorting to avoid this error.
 
+.. js:function:: hint()
+
+TODO document the hint method. use :operator:`$hint`
+
 Administrative Functions
 ------------------------
 
@@ -296,8 +300,8 @@ Database
    databases implicitly when they do not exit.
 
    This function provides a wrapper around the MongoDB :term:`database
-   command` ":dbcommand:`copydb`." The :dbcommand:`clone` database command
-   provide related functionality.
+   command` ":dbcommand:`copydb`." The :dbcommand:`clone` database
+   command provides related functionality.
 
 .. js:function:: db.createCollection(name [{size: <value>, capped: <boolean> , max <bytes>}] )
 
@@ -416,10 +420,15 @@ Database
    command to test that the :option:`mongo` shell has a connection to
    the proper database instance.
 
-.. js:function:: db.getMongo().setSlaveOk()
+.. js:function:: db.setSlaveOk()
 
    For the current session, this command permits read operations from
-   non-master (i.e. :term:`slave` or :term:`secondary`) nodes.
+   non-master (i.e. :term:`slave` or :term:`secondary`)
+   nodes. Practically, use this method in the following form:
+
+   .. code-block:: javascript
+
+      db.getMongo().setSlaveOK()
 
    In essence, this indicates that "eventually consistent" read
    operations are acceptable for the current connection. This function
@@ -492,8 +501,8 @@ Database
 
 .. js:function:: db.printCollectionStats()
 
-   Provides a wrapper around the :js:func:`db.[collection].stats()` and
-   returns statistics from every collection separated by three hyphen
+   Provides a wrapper around the :js:func:`stats()` method. Returns
+   statistics from every collection separated by three hyphen
    characters.
 
    .. seealso:: ":doc:`/reference/collection-statistics`"
@@ -505,8 +514,8 @@ Database
    ":doc:`/reference/replica-status`" for more information regarding
    the contents of this output.
 
-   This function will return :js:func:`printSlaveReplicationInfo()` if
-   issued against a :term:`secondary` node.
+   This function will return :js:func:`db.printSlaveReplicationInfo()`
+   if issued against a :term:`secondary` node.
 
 .. js:function:: db.printSlaveReplicationInfo()
 
@@ -538,7 +547,7 @@ Database
    :dbcommand:`compact` command.
 
    This function has the same effect as using the runtier option
-   ":option:`mongodb --repair`," but only operates on the current
+   ":option:`mongod --repair`," but only operates on the current
    database.
 
    This command provides a wrapper around the database command
@@ -633,7 +642,7 @@ Database
              reflecting the database system's state.
 
    This function provides a wrapper around the database command
-   ":dbcommand:`dbstats`". The "``scale``" option allows you to
+   ":dbcommand:`dbStats`". The "``scale``" option allows you to
    configure how the :option:`mongo` shell scales the output
    values. For example, specify a "``scale``" value of "``1024``" to
    display kilobytes rather than bytes.
@@ -660,7 +669,7 @@ Database
    This function locks the database and create a window for
    :doc:`backup operations </administration/backups>`.
 
-.. js:function:: db.fsyncUnock()
+.. js:function:: db.fsyncUnlock()
 
    Unlocks a database server to allow writes to reverse the operation
    of a :js:func:`db.fsyncLock()` operation. Typically used to allow
@@ -729,7 +738,7 @@ that you may use with collection objects.
    :param index name: The name of the index to drop.
 
    Drops or removes the specified index. This method provides a
-   wrapper around the :dbcommand:`deleteIndexes`.
+   wrapper around the :dbcommand:`dropIndexes`.
 
    Use :js:func:`getIndexes()` to get a list of the indexes on the
    current collection, and only call :js:func:`dropIndex()` as a
@@ -854,7 +863,7 @@ that you may use with collection objects.
 
    The :js:func:`getIndexes()` items consist of the following fields:
 
-   .. js:data:: v
+   .. js:data:: getIndexes.v
 
       Holds the version of the index.
 
@@ -862,7 +871,7 @@ that you may use with collection objects.
       that created the index. Before version 2.0 of MongoDB, the this
       value was 0; versions 2.0 and later use version 1.
 
-   .. js:data:: key
+   .. js:data:: getIndexes.key
 
       Contains a document holding the keys held in the index, and the
       order of the index. Indexes may be either descending or
@@ -871,11 +880,11 @@ that you may use with collection objects.
       value (e.g. "``1``") indicates an index sorted in an ascending
       order.
 
-   .. js:data:: ns
+   .. js:data:: getIndexes.ns
 
       The namespace context for the index.
 
-   .. js:data:: name
+   .. js:data:: getIndexes.name
 
       A unique name for the index comprised of the field names and
       orders of all keys.
@@ -922,7 +931,7 @@ that you may use with collection objects.
 
       :js:func:`group()` does not work in :term:`shard environments
       <shard cluster>`. Use the :term:`aggregation framework` or
-      :term:`map/reduce` in sharded environments`.
+      :term:`map/reduce` in :term:`sharded environments <sharding>`.
 
    .. note::
 
@@ -1170,20 +1179,25 @@ TODO waiting for email from Greg/Tad
                           results. Unless specified, this command
                           returns all data in bytes.
 
-   :param collection: Specify the name of the collection in the
-                      method call.
-
    :returns: A :term:`JSON document` containing statistics that
              reflecting the state of the specified collection.
 
    This function provides a wrapper around the database command
-   :dbcommand:`collstats`. The "``scale``" option allows you to
+   :dbcommand:`collStats`. The "``scale``" option allows you to
    configure how the :option:`mongo` shell scales the output
    values. For example, specify a "``scale``" value of "``1024``" to
    display kilobytes rather than bytes.
 
-   See the ":doc:`/reference/collection-statistics`" document for an
-   overview of this output.
+   Call the :js:func:`stats()` method on a collection object, to
+   return statistics regarding that collection. For example, the
+   following operation returns stats on the ``people`` collection:
+
+   .. code-block:: javascript
+
+      db.people.stats()
+
+   .. seealso:: ":doc:`/reference/collection-statistics`" for an
+      overview of the output of this command.
 
 Sharding
 ~~~~~~~~
@@ -1315,7 +1329,7 @@ Sharding
 
    :returns: boolean.
 
-   ``sh.getBalancerState()`` returns true if the :term:`balancer` is
+   :js:func:`sh.getBalancerState()` returns ``true`` when the :term:`balancer` is
    enabled and false if the balancer is disabled. This does not
    reflect the current state of balancing operations: use
    :js:func:`sh.isBalancerRunning()` to check the balancer's current
@@ -1494,8 +1508,13 @@ Replica Sets
 
 .. js:function:: rs.slaveOk()
 
-   Provides a shorthand for :js:func:`db.getMongo().setSlaveOK()`,
-   which allows the current connection to allow read operations to run
+   Provides a shorthand for the following operation:
+
+   .. code-block:: javascript
+
+      db.getMongo().setSlaveOK()
+
+   This allows the current connection to allow read operations to run
    on :term:`secondary` nodes.
 
 .. js:function:: db.isMaster()
@@ -1523,6 +1542,10 @@ shell. The JavaScript standard library is accessible in the
 
 User Functions
 --------------
+
+.. js:function:: Date()
+
+   :returns: Current date.
 
 .. js:function:: load("file")
 
@@ -1628,7 +1651,7 @@ User Functions
    the entire path specified, if the enclosing directory or
    directories do not already exit.
 
-   Equivalent to :option:`mkdir -p` with BSD or GNU utilities.
+   Equivalent to :command:`mkdir -p` with BSD or GNU utilities.
 
 .. js:function:: hostname()
 

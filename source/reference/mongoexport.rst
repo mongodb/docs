@@ -159,7 +159,7 @@ Options
 
    Allows :option:`mongoexport` to read data from secondary or slave
    nodes when using :option:`mongoexport` with a replica set. This
-   option is only available if connected to a :option:`mongod`` or
+   option is only available if connected to a :option:`mongod` or
    :option:`mongos` and is not available when used with the
    ":option:`mongoexport --dbpath`" option.
 

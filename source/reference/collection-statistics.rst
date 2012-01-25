@@ -8,8 +8,8 @@ Collection Statistics Reference
 Synopsis
 --------
 
-To fetch collection statistics, use the :js:func:`issue the following
-command from the :option:`mongo` shell: ::
+To fetch collection statistics, call the :js:func:`stats()` method on
+a collection object in the :option:`mongo` shell: ::
 
 .. code-block:: javascript
 

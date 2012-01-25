@@ -126,7 +126,7 @@ Member Statuses
       since the last time stamp. This value only increases if there
       are more than one operation per second.
 
-.. status:: members.optimeDate
+.. status:: members[n].optimeDate
 
    An :term:`ISODate` formatted date string that reflects the last
    entry from the :term:`oplog` that this member applied. If this
@@ -139,7 +139,7 @@ Member Statuses
 
    The ``lastHeartbeat`` value provides an :term:`ISODate` formatted
    date of the last heartbeat received from this member. Compare this
-   value to the value of the :status:`date` field to track
+   value to the value of the :status:`date <rs.status.date>` field to track
    latency between these members.
 
    This value does not appear for the member that returns the

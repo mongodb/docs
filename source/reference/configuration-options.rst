@@ -138,15 +138,15 @@ Settings
    logging information.
 
    Unless specified, :option:`mongod` will output all log information to the
-   standard output. Unless :setting:`logapend` is set to
+   standard output. Unless :setting:`logappend` is
    ``true``, the logfile will be overwritten when the process
    restarts.
 
-.. setting:: logapend
+.. setting:: logappend
 
    *Default:* false
 
-   Set to ``true`` to ensure that new entries will be added to the end
+   Set to ``true`` to add new entries  to the end
    of the logfile rather than overwriting the content of the log when
    the process restarts.
 
@@ -400,8 +400,8 @@ See the ":doc:`/core/replication`" documentation
 
    Set to ``true`` to run a repair routine on all databases following
    start up. You may wish to avoid enabling this setting for default
-   operation may not be desirable. Consider using ":option:`mongod
-   --repair`" for this functionality.
+   operation may not be desirable. Consider using ":option:`mongod --repair`"
+   for this functionality.
 
 .. setting:: repairpath
 
@@ -456,8 +456,7 @@ See the ":doc:`/core/replication`" documentation
    information to the log (or standard output if
    :setting:`logpath` is not set) and then exits.
 
-   Typically, this setting will be used by way of :option:`mongod
-   --sysinfo`.
+   Typically, this setting will be used by way of :option:`mongod --sysinfo`.
 
 .. setting:: upgrade
 
@@ -540,8 +539,8 @@ Master/Slave Replication
    Used with the :setting:`slave` setting, set ``autoresync``
    to ``true`` to force the :term:`slave` to automatically resync if
    the is more than 10 seconds behind the master. This setting may be
-   problematic if the :option:`--oplogSize` :term:`oplog` is too small
-   (controlled by the :option:`--oplogSize` option.) If the
+   problematic if the :option:`--oplogSize <mongod --oplogSize>` :term:`oplog` is too small
+   (controlled by the :option:`--oplogSize <mongod --oplogSize>` option.) If the
    :term:`oplog` not large enough to store the difference in changes
    between the master's current state and the state of the slave, this
    node will forcibly resync itself unnecessarily. When

@@ -51,18 +51,18 @@ For most standalone servers, this is a sufficient base
 configuration. It makes several assumptions, but consider the
 following explanation:
 
-- :setting:`fork`" is set to ``true`` to enable a
+- :setting:`fork`" is ``true``, which enables a
   :term:`daemon` mode for :option:`mongod`, which detaches (i.e. "forks")
   the MongoDB from the current session and allows you to run the
   database as a conventional server.
 
-- :setting:`bind_ip` is set to ``127.0.0.1`` and forces the
+- :setting:`bind_ip` is ``127.0.0.1``, which forces the
   server to only listen for requests on the localhost IP. Only bind to
   secure interfaces that the application-level systems can access with
   access control provided by system network filtering
   (i.e. ":term:`firewall`) systems.
 
-- :setting:`port` is set to ``27017``, which is the default
+- :setting:`port` is ``27017``, which is the default
   MongoDB port for database instances. MongoDB can bind to any
   port. You can also filter access based on port using network
   filtering tools.
@@ -70,29 +70,29 @@ following explanation:
   .. note:: UNIX-like systems require superuser privileges to attach
      processes to ports lower than 1000.
 
-- :setting:`quiet` is set to ``true``. This disables all but
+- :setting:`quiet` is ``true``. This disables all but
   the most critical entries in output/log file. In normal operation
   this is the preferable operation to avoid log noise. In diagnostic
-  or testing situations this value should be set to false. Use
+  or testing situations, set this value to ``false``. Use
   :dbcommand:`setParameter` to modify this setting during
   run time.
 
-- :setting:`dbpath` is set to ``/srv/mongodb``, which
+- :setting:`dbpath` is ``/srv/mongodb``, which
   specifies where MongoDB will store its data files. ``/srv/mongodb``
   and ``/var/lib/mongodb`` are popular locations. The user account
-  that ``mongod`` runs under will need read and write access to this
+  that :option:`mongod` runs under will need read and write access to this
   directory.
 
-- :setting:`logpath` is set to ``/var/log/mongodb/mongod.log``
-  which is where ``mongod`` will write its output. If you do not set
+- :setting:`logpath` is ``/var/log/mongodb/mongod.log``
+  which is where :option:`mongod` will write its output. If you do not set
   this value, :option:`mongod` writes all output to standard output
   (e.g. ``stdout``.)
 
-- :setting:`logappend` is set to ``true`` so that the
-  :option:`mongod` process does not overwrite an existing log file
+- :setting:`logappend` is ``true``, which ensures that
+  :option:`mongod` does not overwrite an existing log file
   following the server start operation.
 
-- :setting:`journal` is set to ``true`` to enable
+- :setting:`journal` is ``true``, which enables
   :doc:`journaling </core/journaling>` which ensures single instance
   write-durability. 64-bit builds of :option:`mongod` enable
   :term:`journaling` by default. Thus, this setting may be redundant.
@@ -118,9 +118,9 @@ following:
 
 Consider the following explanation for these configuration decisions:
 
-- ":setting:`bind_ip`" is set to ``127.0.0.1``, the localhost
-  interface, ``10.8.0.10``, a private IP address typically used for
-  local networks and VPN interfaces, and ``192.168.4.24``, a private
+- ":setting:`bind_ip`" has three values: ``127.0.0.1``, the localhost
+  interface; ``10.8.0.10``, a private IP address typically used for
+  local networks and VPN interfaces; and ``192.168.4.24``, a private
   network interface typically used for local networks.
 
   Because production MongoDB instances need to be accessible from
@@ -129,15 +129,15 @@ Consider the following explanation for these configuration decisions:
   servers. At the same time it's important to limit these interfaces
   to interfaces controlled and protected at the network layer.
 
-- ":setting:`nounixsocket`" is set to ``true`` to disable to
+- ":setting:`nounixsocket`" is  ``true`` which disables the
   UNIX Socket, which is otherwise enabled by default. This limits
   access on the local system. This is desirable when running MongoDB
   on with shared access, but in most situations has minimal impact.
 
-- ":setting:`auth`" is set to ``true`` to enable the
-  authentication system within MongoDB. If enabled you will need to
-  log in, by connecting over the ``localhost`` interface for the first
-  time to create user credentials.
+- ":setting:`auth`" is ``true`` which enables the authentication
+  system within MongoDB. If enabled you will need to log in, by
+  connecting over the ``localhost`` interface for the first time to
+  create user credentials.
 
 .. seealso:: ":doc:`/administration/security`"
 
@@ -184,7 +184,7 @@ following option:
 .. versionadded:: 1.8 for replica sets, and 1.9.1 for sharded replica sets.
 
 Setting :setting:`auth` to ``true`` enables authentication,
-while :setting:`keyfile` specifies a key file for the replica
+while :setting:`keyFile` specifies a key file for the replica
 set member use to when authenticating to each other. The content is
 arbitrary and must be under one kilobyte and contain characters in the
 base64 set, and the file must not have group or "world" permissions on
@@ -269,12 +269,12 @@ instance, but consider the following configuration values:
 .. code-block:: cfg
 
    dbpath = /srv/mongodb/db0/
-   pidpath = /srv/mongodb/db0.pid
+   pidfileath = /srv/mongodb/db0.pid
 
 The :setting:`dbpath` value controls the location of the
 :option:`mongod` instance's data directory. Ensure that each database
 has a distinct and well labeled data directory. The
-:setting:`pidpath` controls where :option:`mongod` process
+:setting:`pidfilepath` controls where :option:`mongod` process
 places it's :term:`pid` file. As this tracks the specific
 :option:`mongod` file, it is crucial that file be unique and well
 labeled to make it easy to start and stop these processes.
@@ -285,7 +285,7 @@ needed to control these processes.
 
 .. [#multimongod] Single-tenant systems with :term:`SSD` or other high
    performance disks may provide acceptable performance levels for
-   multiple ``mongod`` instances. Additionally, you may find that
+   multiple :option:`mongod` instances. Additionally, you may find that
    multiple databases with small working sets may function acceptably
    on a single system.
 
@@ -309,10 +309,10 @@ Use the :ref:`base configuration <base-config>` and add these options
 if you are experiencing some unknown issue or performance problem as
 needed:
 
-- :setting:`slowms` configures the threshold for a query to be
-  considered "slow" by the :term:`database profiler` The default value
-  is 100 milliseconds. Set a lower value if the database profiler does
-  not return useful results. See the ":doc:`/applications/optimization`"
+- :setting:`slowms` configures the threshold for the :term:`database
+  profiler` to consider a query "slow." The default value is 100
+  milliseconds. Set a lower value if the database profiler does not
+  return useful results. See the ":doc:`/applications/optimization`"
   for more information on optimizing operations in MongoDB.
 
 - :setting:`profile` sets the :term:`database profiler`
@@ -347,7 +347,7 @@ needed:
   database with untrusted clients. This option may affect database
   performance.
 
-- :setting:`cpu` forces ``mongod`` to periodically report CPU
+- :setting:`cpu` forces :option:`mongod` to periodically report CPU
    utilization I/O wait in the logfile. Use this in combination with or
    addition to tools such as :program:`iostat`, :program:`vmstat`, or
    :program:`top` to provide insight into the state of the system

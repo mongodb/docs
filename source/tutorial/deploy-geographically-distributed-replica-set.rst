@@ -21,7 +21,7 @@ Overview
 --------
 
 While replica sets provide basic protection against single-node
-failure, when all of the instances in a replica set are located in a
+failure, when all of the members of a replica set reside within a
 single facility, the replica set is still susceptible to some classes
 of errors within that facility including power outages, networking
 distortions, and natural disasters. To protect against these classes
@@ -189,18 +189,18 @@ current primary is ``mongodb0.example.net``.
    rs.add("mongodb2.example.net")
    rs.add("mongodb3.example.net")
 
-Ensure that the member that's located within Site B
-(i.e. ``mongodb3.example.net``) is configured as a
-:ref:`secondary-only member <replica-set-secondary-only-nodes>`. First,
-issue the following command determine the :js:data:`rs.members._id`
-value for ``mongodb3.example.net``:
+Make sure that you have configured the member located in Site B
+(i.e. ``mongodb3.example.net``) as a :ref:`secondary-only member
+<replica-set-secondary-only-nodes>`. First, issue the following
+command determine the :js:data:`members[n]._id` value for
+``mongodb3.example.net``:
 
 .. code-block:: javascript
 
    rs.config()
 
 In the :js:data:`member array <rs.conf.members>` for this host, save
-the :js:data:`members._id` value. The next example assumes that this
+the :js:data:`members[n]._id` value. The next example assumes that this
 value is ``2``. Next, in the shell connected to the replica set's
 :term:`primary`, issue the following command sequence:
 
@@ -376,18 +376,18 @@ arbiter node (i.e. "``mongodb4.example.net``"):
 
    rs.addArb("mongodb4.example.net")
 
-Ensure that the member that's located within Site B
-(i.e. ``mongodb3.example.net``) is configured as a
-:ref:`secondary-only member <replica-set-secondary-only-nodes>`. First,
-issue the following command determine the :js:data:`rs.members._id`
-value for ``mongodb3.example.net``:
+Make sure that you have configured the member located in Site B
+(i.e. ``mongodb3.example.net``) as a :ref:`secondary-only member
+<replica-set-secondary-only-nodes>`. First, issue the following
+command determine the :js:data:`members[n]._id` value for
+``mongodb3.example.net``:
 
 .. code-block:: javascript
 
    rs.config()
 
 In the :js:data:`member array <rs.conf.members>` for this host, save
-the :js:data:`members._id` value. The next example assumes that this
+the :js:data:`members[n]._id` value. The next example assumes that this
 value is ``2``. Next, in the shell connected to the replica set's
 :term:`primary`, issue the following command sequence:
 

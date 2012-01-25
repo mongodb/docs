@@ -412,7 +412,7 @@ Glossary
       these files are stored in ``/srv/mongodb`` or
       ``/var/lib/mongodb``.
 
-      .. seealso:: ":mongodb:setting:`dbpath`" or ":option:`--dbpath
+      .. seealso:: ":setting:`dbpath`" or ":option:`--dbpath
          <mongod --dbpath>`."
 
    setname
@@ -505,7 +505,7 @@ Glossary
       from one :term:`shard` to another. Shards must be drained before
       they can be removed from the cluster.
 
-      .. seealso:: :mongodb:dbcommand:`removeshard``
+      .. seealso:: :dbcommand:`removeshard`
 
    single master replication
       A :term:`replication` method where only a single database
@@ -580,12 +580,12 @@ Glossary
    hidden node
       A member of a :term:`replica set` that cannot become primary and
       is not advertised as part of the set in the :term:`database
-      command` :mongodb:dbcommand:`isMaster`, which prevents it from
+      command` :dbcommand:`isMaster`, which prevents it from
       receiving read-only queries depending on :term:`read
       preference`.
 
       .. seealso:: ":ref:`Hidden Nodes <replica-set-hidden-nodes>`,"
-         and :js:data:`member.hidden`.
+         and :js:data:`members[n].hidden`.
 
    delayed node
       A member of a :term:`replica set` that cannot become primary and
@@ -642,7 +642,7 @@ Glossary
       infrastructure (e.g. data center, rack, network up-link, storage
       array) that hosts the database instance.
 
-      .. seealso:: ":js:data:`members.tags`" and ":ref:`data center awareness
+      .. seealso:: ":js:data:`members[n].tags`" and ":ref:`data center awareness
          <replica-set-data-center-awareness>`."
 
    recovering
@@ -719,3 +719,11 @@ Glossary
       maintains state and used by the :operator:`$group` to maintain
       data between documents in the :term:`aggregation`
       :term:`pipeline`.
+
+   crud
+      Create, read, update, and delete. This acronym represents all
+      major functions present in database systems.
+
+   JavaScript
+      An object oriented scripting language used in MongoDB's shell
+      environment.

@@ -266,7 +266,7 @@ The current pipeline operators are:
       pipeline, earlier :aggregator:`$match` operations minimize the
       amount of later processing. If you place a :aggregator:`$match`
       at the very beginning of a pipeline, the query can take
-      advantage of :term:`indexes` like any other :js:func:`find()` or
+      advantage of :term:`indexes <index>` like any other :js:func:`find()` or
       :js:func:`findOne()`.
 
 .. aggregator:: $limit
@@ -405,7 +405,7 @@ The current pipeline operators are:
    this functionality to calculate the average number of page views
    for each page in a website on a daily basis.
 
-
+   Use :aggregator:`$group` depends on the
 
    - [$group\|Aggregation Framework - $group] \\- group documents by
      key and calculate aggregate values for the group
@@ -505,6 +505,10 @@ the second from the first, returning their difference.
 \* If a date is passed as the first entry in the array, the number will
 be treated as a number of days and removed from the date, the resulting
 date is returned.
+
+.. expression:: $avg
+
+TODO confirm existence, appears in an example on the wiki
 
 String Operators
 ~~~~~~~~~~~~~~~~

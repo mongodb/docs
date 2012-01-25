@@ -150,10 +150,6 @@ Options
    specify either 1 configuration server or 3 configuration servers,
    in a comma separated list.
 
-  --test                just run unit tests
-  --upgrade             upgrade meta data version
-  --chunkSize arg       maximum amount of data per chunk
-
 .. option:: --test
 
    This option is for internal testing use only, and runs unit tests
@@ -164,12 +160,12 @@ Options
    This option updates the meta data format used by the
    :term:`configdb`.
 
-.. option:: --chunksize <value>
+.. option:: --chunkSize <value>
 
-   The value of the :option:`--chunksize`` determines the size of each
+   The value of the :option:`--chunkSize` determines the size of each
    :term:`chunk` of data distributed around the :term:`shard
-   cluster`. The default value is 64 megabytes, which is accepted as
-   the ideal size for chunks for most deployments: larger chunk size
+   cluster`. The default value is 64 megabytes, which is
+   the ideal size for chunks in most deployments: larger chunk size
    can lead to uneven data distribution, smaller chunk size often
    leads to inefficient movement of chunks between nodes. However, in
    some circumstances it may be neccessary to set a different chunk
@@ -178,7 +174,7 @@ Options
 .. option:: --ipv6
 
    Enables IPv6 support to allow clients to connect to :option:`mongos`
-   using IPv6 networks. IPv6 support is disabled by default in
+   using IPv6 networks. MongoDB disables IPv6 support by default in
    :option:`mongod` and all utilities.
 
 .. option:: --jsonnp

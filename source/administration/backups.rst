@@ -2,6 +2,8 @@
 Backup and Restoration Strategies
 =================================
 
+.. default-domain:: mongodb
+
 This document provides an inventory of database backup strategies for
 use with MongoDB. Use the :ref:`backup overview <backup-overview>` and
 :ref:`considerations <backup-considerations>` as you develop the most
@@ -35,15 +37,13 @@ With MongoDB, the best way to are two major approaches to backups:
 using system-level tools, like disk image snapshots, and using various
 capacities present in the :ref:`mongodump tool <database-dumps>`
 to provide backup functionality. The underlying goal of these
-strategies is to produce a full copy of the data that can be used to
+strategies is to produce a full copy of the data that you can use to
 bring up a new or replacement database instance.
 
 The methods described in this document operate by copying the data
-file on the disk level, while MongoDB tools dump or export copies of
-the data that can be imported into the new node. If your system does
-not provide a capacity for this kind of backup, see the section on
-:ref:`using database dumps for backups <database-dumps>`" for more
-information.
+file on the disk level. If your system does not provide a capacity for
+this kind of backup, see the section on :ref:`using database dumps for
+backups <database-dumps>`" for more information.
 
 One of the leading challenges for producing reliable backups from
 database systems is ensuring that the state captured backup methods is
@@ -60,10 +60,9 @@ Production Considerations
 When evaluating a backup strategy for your node consider the following
 factors:
 
-- Geography. Ensure that you have backups that are moved away from the
-  site where your primary database infrastructure is located. It's
-  important to be able to restore your database if you loose access to
-  a system or site.
+- Geography. Ensure that you move some backups away from the your
+  primary database infrastructure. It's important to be able to
+  restore your database if you loose access to a system or site.
 
 - System errors. Ensure that your backups can survive situations where
   hardware failures, disk errors, may impact the integrity or
@@ -95,7 +94,7 @@ for your database. Remember that all backup plans must be:
   provides value.
 
 - automated. Database backups need to run regularly and
-  automatically. Testing backup restoration should also be automated.
+  automatically. Also automate tests of backup restoration.
 
 .. _block-level-backup:
 
@@ -111,11 +110,11 @@ implement.
 
 Snapshots typically work by creating pointers between the live data
 and a special snapshot data, you can think about these as "hard
-links." Then, as the working data diverges from the snapshot a
-copy-on-write strategy is used so that the snapshot only stores
-modified data. After making the snapshot, you will mount the snapshot
-image and copy the files off disk image. The resulting backup contains
-full copies of all the data.
+links." Then, as the working data diverges from the snapshot, the
+systems use a copy-on-write strategy. As a result the snapshot only
+stores modified data. After making the snapshot, you will mount the
+snapshot image and copy the files off disk image. The resulting backup
+contains full copies of all the data.
 
 .. moreinfo: <http://www.waterlovinghead.com/StorageLVMSnap>
 
@@ -123,8 +122,7 @@ Snapshots have some limitations:
 
 - The database must be in a consistent or recoverable state when the
   snapshot takes place. With journaling all states are recoverable,
-  without journaling you must ensure that all pending writes are
-  flushed to disk.
+  without journaling you must flush all pending writes to disk.
 
 - Snapshots create an image of an entire disk image. Unless you need
   to back up your entire system, consider isolating your MongoDB data
@@ -153,11 +151,11 @@ volume/block level snapshot tool to create backups.
 
 .. warning::
 
-   Journaling is disabled by default on pre-1.9.2 64-bit versions of
-   MongoDB. Ensure that the journaling option is turned on by
-   specifying ":mongodb:option:`journal` = ``true``" in the
-   configuration or specifying the :option:`--journal <mongod
-   --journal>` run-time option for :option:`mongod`.
+   MongoDB disables journaling on 32 bit systems and all pre-1.9.2
+   64-bit versions. Specify the ":setting:`journal` = ``true``" in the
+   configuration or use the :option:`--journal <mongod --journal>`
+   run-time option for :option:`mongod` to ensure that MongoDB uses
+   journaling.
 
 Many service providers provide a block-level backup service based on
 disk image snapshots. If you manage your own infrastructure on a
@@ -192,16 +190,16 @@ This command creates a snapshot (with the "``--snapshot`` option)
 named "``mdb-snap01``" of the "``mongodb``" volume in the "``vg0``"
 volume group.
 
-In this example, the ``mdb-snap01`` that you create will be located at
+This example creates a snapshot named ``mdb-snap01`` located at
 ``/dev/vg0/mdb-snap01``. The location and paths to your systems volume
 groups and devices may be slightly different on your distributions LVM
 configuration.
 
-The snapshot is capped at 100 megabytes by the parameter "``--size
-100M``". This size does not reflect the total amount of the data on
-the disk, but rather the quantity of differences between the current
-state of ``/dev/vg0/mongodb`` and the instant when
-``/dev/vg0/mdb-snap01`` was created.
+The snapshot has a cap of at 100 megabytes, because of the parameter
+"``--size 100M``". This size does not reflect the total amount of the
+data on the disk, but rather the quantity of differences between the
+current state of ``/dev/vg0/mongodb`` and the creation of the snapshot
+(i.e. ``/dev/vg0/mdb-snap01``.)
 
 .. warning::
 
@@ -209,10 +207,10 @@ state of ``/dev/vg0/mongodb`` and the instant when
    data growth, particularly for a period of that it takes to copy to
    data out of the system or to a temporary image.
 
-   If you your snapshot runs out of space, the snapshot image cannot
-   be used and must be discarded.
+   If you your snapshot runs out of space, the snapshot image
+   becomes unusable. You discard this LVM and create another.
 
-The snapshot is created when the command returns. You can restore
+The snapshot exists when the command returns. You can restore
 directly from the snapshot at any time or by creating a new logical
 volume and restoring from this snapshot to the alternate image.
 
@@ -220,7 +218,7 @@ While snapshots are great for creating high quality backups very
 quickly, they are not ideal as a format for storing backup
 data. Snapshots typically depend and reside on the same storage
 infrastructure as the original disk images. Therefore, it's crucial
-that these snapshots be archived and stored elsewhere.
+that you archive these snapshots and store them elsewhere.
 
 Archive Snapshots
 `````````````````
@@ -305,7 +303,7 @@ procedure: ::
      mount /dev/vg0/mdb-new /srv/mongodb
 
 This sequence is identical to procedures explained above except that
-the output and input is directed (i.e. :term:`piped`) over SSH to the
+the output direct input (i.e. :term:`piped`) over SSH to the
 remote system.
 
 .. _backup-without-journaling:
@@ -313,10 +311,10 @@ remote system.
 Without Journaling
 ~~~~~~~~~~~~~~~~~~
 
-If your ``mongodb`` instance does not running with journaling enabled,
+If your :option:`mongod` instance does not running with journaling enabled,
 obtaining a functional backup of a consistent state is more
-complicated. Make sure that all writes have been flushed to disk and
-that the database is locked to prevent writes during the backup
+complicated. Flush all writes to disk and
+lock the database to prevent writes during the backup
 process.
 
 To flush writes and lock the database before performing the snapshot,
@@ -332,11 +330,13 @@ completed, issue the following command: ::
 
 .. note::
 
-   The ``db.fsyncLock()`` and ``db.fsyncUnlock`` helpers were added in
-   version 1.9.0. Use the following commands with earlier versions: ::
+   Version 1.9.0 added :js:func:`db.fsyncLock()` and
+   :js:func:`db.fsyncUnlock()` helpers to the :option:`mongo` shell.
 
-        db.runCommand( { fsync: 1, lock: true } );
-        db.runCommand( { fsync: 1, lock: false } );
+   .. code-block:: javascript
+
+      db.runCommand( { fsync: 1, lock: true } );
+      db.runCommand( { fsync: 1, lock: false } );
 
 Amazon EBS in Software RAID 10 Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -400,14 +400,14 @@ database dump. For example: ::
 This command creates a dump in of the database in the "``dump/``"
 directory of only the collection named "``collection``" in the
 database named "``test``". :option:`mongodump` provides the
-":option:`--oplog <mongodump --oplog>``" option which forces the dump
+":option:`--oplog <mongodump --oplog>`" option which forces the dump
 operation to use the operation log to take a point-in-time snapshot of
 the database.
 
 If your MongoDB instance is not running, you can use the
-":option:`--dbpath <mongodbump --dbpath>`" option to specify the
-location to your MongoDB instance's database files. :option:`mongod
-ump` reads from the data files directly with this operation. This
+":option:`--dbpath <mongodump --dbpath>`" option to specify the
+location to your MongoDB instance's database files. :option:`mongodump`
+reads from the data files directly with this operation. This
 locks the data directory to prevent conflicting writes. The
 :option:`mongod` process must *not* be running or attached to these
 data files when you run :option:`mongodump` in this
@@ -416,7 +416,7 @@ configuration. Consider the following example: ::
      mongodump --dbpath /srv/mongodb
 
 Additionally, the ":option:`--host <mongodump --host>`" and
-":option:`--port <mongoddump --port>`" options allow you to
+":option:`--port <mongodump --port>`" options allow you to
 specify a non-local host to connect to capture the export. Consider
 the following example: ::
 
@@ -434,11 +434,12 @@ The :option:`mongorestore` restores a binary backup created by the
 
      mongorestore dump-2011-10-25/
 
-Here, the database backup located in the ``dump-2011-10-25`` directory
-is imported to the :option:``mongod` instance running on the localhost
-interface. By default, :option:`mongorestore` will look for a database
-dump in the "``dump/``" directory and restore that. If you wish to
-restore to a non-default host, the "``--host``" and "``--port``"
+Here, :option:`mongorestore` imports the database backup located in
+the ``dump-2011-10-25`` directory to the :option:``mongod` instance
+running on the localhost interface. By default, :option:`mongorestore`
+will look for a database dump in the "``dump/``" directory and restore
+that. If you wish to restore to a non-default host, the
+":option:`--host <mongod>`" and ":option:`--port <mongod --port>`"
 options allow you to specify a non-local host to connect to capture
 the export. Consider the following example: ::
 
@@ -455,14 +456,16 @@ If you created your database dump using the :option:`--oplog
      mongorestore --oplogReplay
 
 You may also consider using the :option:`mongorestore --objcheck`
-option to check the integrity of objects as they are inserted into the
+option to check the integrity of objects while inserting them into the
 database, or the :option:`mongorestore --drop` option to drop each
 collection from the database before restoring from
 backups. :option:`mongorestore` also includes the ability to a filter
-to all input before it is inserted into the new database. Consider the
-following example: ::
+to all input before inserting it into the new database. Consider the
+following example:
 
-     mongorestore --filter '{"field": 1}'
+.. code-block:: sh
+
+   mongorestore --filter '{"field": 1}'
 
 Here, the only documents added to the database running on the local
 system are added from the database dump located in the "``dump/``"
@@ -474,7 +477,7 @@ If your MongoDB instance is not running, you can use the
 ":option:`mongorestore --dbpath`" option to specify the location to
 your MongoDB instance's database files. :option:`mongorestore` inserts
 data into the data files directly with this operation. While the
-command runs, the data directory is locked to prevent conflicting
+command locks the data directory while it runs to prevent conflicting
 writes. The :option:`mongod` process must *not* be running or attached
 to these data files when you run :option:`mongodump` in this
 configuration. Consider the following example: ::
@@ -485,7 +488,7 @@ If your MongoDB instance is not running, you can use the
 ":option:`--dbpath <mongorestore --dbpath>`" option to specify the
 location to your MongoDB instance's database files. Consider using the
 ":option:`--journal <mongorestore --journal>`" option to ensure that
-the operations of ``mon`` are recorded in the journal.
+:option:`mongod` records all operation in the journal.
 
 .. seealso:: ":doc:`/reference/mongodump`" and
              ":doc:`/reference/mongorestore`."
@@ -537,11 +540,11 @@ then you'll need to either snapshot the database using the
 binary dump of each database instance using :ref:`binary export
 systems <database-dumps>`.
 
-These backups must not only be captured when the database is in a
-consistent state as described in the aforementioned procedures, but
-the shard cluster needs to be consistent in itself. All operations
-that balance the data among the collections need to be disabled before
-the backup can be taken.
+These backups must not only capture the database in a
+consistent state, as described in the aforementioned procedures, but
+the :term:`shard cluster` needs to be consistent in itself. Also,
+disable the balancer process that equalizes the distribution of data
+among the :term:`shards <shard>` before taking the backup.
 
 You should also all cluster members so that your backups reflect your
 entire database system at a single point in time, even if your backup
@@ -551,28 +554,28 @@ methodology does not require.
 
    It is essential that you stop the balancer before creating
    backups. If the balancer remains active, your resulting backups
-   could have duplicate data or miss some data, depending on how
-   chunks are moved while backups are recorded.
+   could have duplicate data or miss some data, as :term:`chunks <chunk>`
+   migrate while recording backups.
 
    Similarly, if you do not lock all shards at the same time,
    the backup can reflect a highly inconsistent state that will likely
    *not* be restorable.
 
-To stop the balancer, connect to the ``mongos`` with the ``mango``
+To stop the balancer, connect to the :option:`mongos` with the :option`mongo`
 shell and issue the following 2 commands: ::
 
      use config
      db.settings.update( { _id: "balancer" }, { $set : { stopped: true } } , true );
 
-When the balancer is enabled, proceed with your backup in the
+After disabling the balancer, proceed with your backup in the
 following sequence:
 
-1. Lock all shards, in an operation that ensures that all shard
-   instances are locked in as short of an interval as possible.
+1. Lock all shards, using a process to lock all shard
+   instances in as short of an interval as possible.
 
-2. Use ``mongodump`` to backup the config database. This command can
-   either be issued against the config database itself or the
-   ``mongos``, and would resemble the following: ::
+2. Use :option:`mongodump` to backup the config database. Issue this command
+   against the config database itself or the
+   :option:`mongos`, and would resemble the following: ::
 
         mongodump --database config
 
@@ -582,7 +585,7 @@ following sequence:
 
 4. Restore the balancer.
 
-Use the following command sequence when connected to the ``mongos``
+Use the following command sequence when connected to the :option:`mongos`
 with the ``mongo`` shell: ::
 
      use config

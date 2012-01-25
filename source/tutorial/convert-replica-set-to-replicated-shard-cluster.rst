@@ -182,7 +182,7 @@ store the cluster's metadata.
 
       If you are using the collection created earlier, or are just
       experimenting with sharding, you can use a small
-      :option:`--chunkSize <mongod --chunkSize>` (1MB works well.) The
+      :option:`--chunkSize <mongos --chunkSize>` (1MB works well.) The
       default :setting:`chunkSize` of 64MB, means that your
       cluster will need to have 64MB of data before the MongoDB's
       automatic sharding begins working. In production environments,
@@ -193,8 +193,8 @@ store the cluster's metadata.
    ``localhost:2003``). The :option:`mongos` process runs on the default
    "MongoDB" port (i.e. ``27017``), while the databases themselves, in
    this example, are running on ports in the ``30001`` series. In the
-   above example, since ``27017`` is the default port, the option
-   ":option:`--port 27017 <mongos --port>`" may be omitted. It is
+   above example, since ``27017`` is the default port, you may omit
+   the ":option:`--port 27017 <mongos --port>`" option. It is
    included here only as an example.
 
 4. Add the first shard in :option:`mongos`. In a new terminal window
@@ -205,16 +205,16 @@ store the cluster's metadata.
 
            mongo localhost:27017/admin
 
-   2. Add the first shard to the cluster, by issuing the
-      :dbcommand:`addshard` command as follows:
+   2. Add the first shard to the cluster, by issuing the :dbcommand:`addShard`
+      command as follows:
 
-      .. code-block: javascript
+      .. code-block:: javascript
 
          db.runCommand( { addshard : "firstset/localhost:10001,localhost:10002,localhost:10003" } )
 
    3. Observe the following message, which denotes success:
 
-      .. code-block: javascript
+      .. code-block:: javascript
 
          { "shardAdded" : "firstset", "ok" : 1 }
 
@@ -255,7 +255,7 @@ above, omitting the test data.
 4. Initialize the second replica set, by issuing the following command
    in the :option:`mongo` shell:
 
-   .. code-block: javascript
+   .. code-block:: javascript
 
       db.runCommand({"replSetInitiate" : {"_id" : "secondset", "members" : [{"_id" : 1, "host" : "localhost:10004"}, {"_id" : 2, "host" : "localhost:10005"}, {"_id" : 3, "host" : "localhost:10006"}]}})
 
@@ -268,23 +268,23 @@ above, omitting the test data.
    procedure. In a connection to the :option:`mongos` instance created
    in the previous step, issue the following sequence of commands:
 
-   .. code-block: javascript
+   .. code-block:: javascript
 
       use admin
       db.runCommand( { addshard : "secondset/localhost:10004,localhost:10005,localhost:10006" } )
 
    This command will return the following success message:
 
-   .. code-block: javascript
+   .. code-block:: javascript
 
       { "shardAdded" : "secondset", "ok" : 1 }
 
 
 6. Verify that both shards are properly configured by running the
-   :dbcommand:`listshards` command. View this and example output
+   :dbcommand:`listShards` command. View this and example output
    below:
 
-   .. code-block: javascript
+   .. code-block:: javascript
 
       db.runCommand({listshards:1})
       {
@@ -305,17 +305,17 @@ above, omitting the test data.
 Enable Sharding
 ~~~~~~~~~~~~~~~
 
-Sharding in MongoDB must be enabled on *both* the database and
+MongoDB must have :term:`sharding` on *both* the database and
 collection levels.
 
 Enabling Sharding on the Database Level
 ```````````````````````````````````````
 
-Issue the :dbcommand:`enablesharding` command. The "``test``"
+Issue the :dbcommand:`enableSharding` command. The "``test``"
 argument specifies the name of the database. See the following
 example:
 
-.. code-block: javascript
+.. code-block:: javascript
 
    db.runCommand( { enablesharding : "test" } )
    { "ok" : 1 }
@@ -324,13 +324,13 @@ example:
 Create an Index on the Shard Key
 ````````````````````````````````
 
-Create an index on the shard key. The shard key is used by MongoDB to
-distribute documents between shards. Once selected the shard key
-cannot be changed. Good shard keys:
+Create an index on the shard key. MongoDB uses the shard key to
+distribute documents between shards. Once selected, you cannot change
+the shard key. Good shard keys:
 
 - will have values that are evenly distributed among all documents,
 
-- group documents that are likely to be accessed at the same time in
+- group documents that are often accessed at the same time exist in
   contiguous chunks, and
 
 - allow for effective distribution of activity among shards.
@@ -344,7 +344,7 @@ typically not a good shard key for production deployments.
 
 Create the index with the following procedure:
 
-.. code-block: javascript
+.. code-block:: javascript
 
    use test
    db.test_collection.ensureIndex({number:1})
@@ -355,7 +355,7 @@ Shard the Collection
 
 Issue the following command to shard the collection:
 
-.. code-block: javascript
+.. code-block:: javascript
 
    use admin
    db.runCommand( { shardcollection : "test.test_collection", key : {"number":1} })
@@ -373,7 +373,7 @@ distributed evenly between the shards.
 Use the following commands in the :option:`mongo` to return these
 statics against each cluster:
 
-.. code-block: javascript
+.. code-block:: javascript
 
    use test
    db.stats()

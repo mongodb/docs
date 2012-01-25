@@ -124,15 +124,17 @@ directly to assess the status of a MongoDB instance, it's a good idea
 to be familiar with the data provided by
 :dbcommand:`serverStatus`.
 
-replStats
-`````````
+replSetGetStatus
+````````````````
 
-View the :doc:`replStatus data </reference/replica-status>` with the
-:dbcommand:`replStatus` command. The document returned by this
+View the :doc:`replSetGetStatus data </reference/replica-status>` with the
+:dbcommand:`replSetGetStatus` command. The document returned by this
 command contains information regarding the state and configuration of
 the replica set. Use this data to ensure that replication is properly
 configured, and to check the connections between the current host and
 the members of the replica set.
+
+.. seealso:: ":js:func:`rs.status()`."
 
 dbStats
 ```````
@@ -145,6 +147,8 @@ index counters among other relevant information. Use this data to
 track the state and size of a specific database, to compare
 utilization between databases, or to determine average object size.
 
+.. seealso:: ":js:func:`db.stats()`."
+
 collStats
 `````````
 
@@ -154,6 +158,8 @@ provides statistics that resemble :dbcommand:`dbStats` on the
 collection level: this includes a count of the objects in the
 collection, the size of the collection, the amount of disk space used
 by the collection, and information about the indexes.
+
+.. seealso:: ":js:func:`db.printCollectionStats()`"
 
 Diagnosing Performance Issues
 -----------------------------

@@ -60,8 +60,10 @@ a JSON or CSV format.
 
    If you want to simply copy a database or collection from one
    instance to another, consider using the :dbcommand:`copydb`,
-   :dbcommand:`clone`, or :dbcommand:`clonecollection`
-   commands, which may be more suited to this task.
+   :dbcommand:`clone`, or :dbcommand:`cloneCollection`
+   commands, which may be more suited to this task. The
+   :option:`mongo` shell provides the :js:func`db.copyDatabase()`
+   method.
 
 These tools may also be useful for importing data into a MongoDB data
 from third party applications.
@@ -91,8 +93,8 @@ that it does not interact with your shell environment. The resulting
 documents will return on standard output.
 
 By default, :option:`mongoexport` returns one JSON document per
-MongoDB document. Specify the ":option:`--jsonArray <mongoexport
---jsonArrray>`" argument to return the export as a single JSON
+MongoDB document. Specify the ":option:`--jsonArray <mongoexport --jsonArrray>`"
+argument to return the export as a single JSON
 array. Use the ":option:`--csv <mongoexport --csv>`" file to return
 the result in CSV (comma separated values) format.
 
@@ -138,12 +140,12 @@ existing documents in the database and insert other documents. This
 option will cause some performance impact depending on your
 configuration.
 
-You can specify the database option ":option:`--db <mongoimport
---db>`" to import these documents to a particular database. If your
+You can specify the database option ":option:`--db <mongoimport --db>`"
+to import these documents to a particular database. If your
 MongoDB instance is not running, you can use the "``--dbpath``" option
 to specify the location to your MongoDB instance's database
-files. Consider using the ":option:`--journal <mongoimport
---journal>`" option to ensure that :option:`mongoimport` records its
+files. Consider using the ":option:`--journal <mongoimport --journal>`"
+option to ensure that :option:`mongoimport` records its
 operations in the journal. The ``mongod`` process must *not* be
 running or attached to these data files when you run
 :option:`mongoimport` in this configuration.

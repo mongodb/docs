@@ -103,8 +103,8 @@ Options
 
    Specify a file location to hold the ":term:`PID`" or process ID of
    the :option:`mongod` process. Useful for tracking the
-   :option:`mongod` process in combination with the :option:`mongod
-   --fork` option.
+   :option:`mongod` process in combination with the :option:`mongod --fork`
+   option.
 
    If this option is not set, no PID file is created.
 
@@ -302,8 +302,8 @@ Options
 .. option:: --slowms <value>
 
    Defines the value of "slow," for the :option:`--profile`
-   option. Operations that run take longer than the specified period
-   to run are reported by the profiler.
+   option. The :term:`database profiler` reports operations that take
+   longer to run than the specified period.
 
 .. option:: --smallfiles
 

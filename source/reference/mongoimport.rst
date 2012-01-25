@@ -171,23 +171,23 @@ TODO factcheck
 
 .. option:: --headerline
 
-   If using ":option:`mongoimport --type csv`" or
-   ":option:`mongoimport --type tsv`," use the first line as field
-   names. Otherwise, the first line will be imported as a distinct
-   document.
+   If using ":option:`--type csv <mongoimport --type>`" or
+   ":option:`--type tsv <mongoimport --type>`," use the first line as
+   field names. Otherwise, :option:`mongoimport` will import the first
+   line as a distinct document.
 
 .. option:: --upsert
 
-   Modifies the import process so that existing objects in the
-   database are updated if they match the imported objects and all
-   other objects are inserted.
+   Modifies the import process to update existing objects in the
+   database if they match an imported object, while inserting all
+   other objects.
 
 .. option:: --upsertFields [field1[,filed2]]
 
    Specifies a list of fields for the query portion of the
    :term:`upsert`.
 
-   Ensure that these fields are indexed.
+TODO improve this option documentation.
 
 .. option:: --stopOnError
 

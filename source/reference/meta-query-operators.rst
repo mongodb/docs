@@ -211,8 +211,8 @@ Modifiers
 
       db.foo.find().snapshot()
 
-   Snapshot mode cannot be used with :operator:`$hint`, or
-   :operator:`$orderBy` (:js:func:`sort()`.)
+   Do not use snapshot with :operator:`$hint`, or :operator:`$orderby`
+   (:js:func:`sort()`.)
 
    All queries with response less than 1 megabyte are effectively
    snapshotted.
