@@ -59,9 +59,9 @@ Modifiers
 
 .. operator:: $comment
 
-   The ``$comment`` makes it possible to attach a comment to a
+   The :operator:`$comment` makes it possible to attach a comment to a
    query. Because these comments propagate to the
-   :dbcommand:`profile` log, adding ``$comment`` modifiers can
+   :dbcommand:`profile` log, adding :operator:`$comment` modifiers can
    make your profile data much easier to interpret and trace. Consider
    the following example:
 
@@ -73,7 +73,7 @@ Modifiers
 
 .. operator:: $min
 
-   Specify a ``$min`` value to specify a lower boundary for the value
+   Specify a :operator:`$min` value to specify a lower boundary for the value
    of a field. This boundary is enforced using an index of that field.
 
    .. code-block:: javascript
@@ -90,7 +90,7 @@ Modifiers
 
 .. operator:: $max
 
-   Specify a ``$max`` value to specify an upper boundary for the value
+   Specify a :operator:`$max` value to specify an upper boundary for the value
    of a field. This boundary is enforced using an index of that field.
 
    .. code-block:: javascript
@@ -108,7 +108,7 @@ Modifiers
 
 .. operator:: $query
 
-   The ``$query`` operator provides an interface to describe
+   The :operator:`$query` operator provides an interface to describe
    queries. Consider the following operation.
 
    .. code-block:: javascript
@@ -124,7 +124,7 @@ Modifiers
 
 .. operator:: $orderby
 
-   The ``$orderby`` operator provides the ability to sort the results
+   The :operator:`$orderby` operator provides the ability to sort the results
    of a query in ascending or descending order. Consider the following
    syntax:
 
@@ -141,12 +141,12 @@ Modifiers
 
    In both of these examples all documents in the collection named
    ``collection`` are returned sorted for in descending order from
-   greatest to smallest. Specify a value to ``$orderby`` of negative
+   greatest to smallest. Specify a value to :operator:`$orderby` of negative
    one (e.g. "``-1``", as above) to sort in descending order or a
    positive value (e.g. "``1``") to sort in ascending order.
 
    Unless you have a index for the specified key pattern, use
-   ``$orderby`` in conjunction with :operator:`$maxScan` and
+   :operator:`$orderby` in conjunction with :operator:`$maxScan` and
    :js:func:`limit()` to avoid requiring MongoDB to perform a large
    in-memory sort. :js:func:`limit()` increases the speed and reduce
    the amount of memory required to return this query by way of an
@@ -168,7 +168,7 @@ Modifiers
 
 .. operator:: $explain
 
-   Use the ``$explain`` operator to return a :term:`JSON` document
+   Use the :operator:`$explain` operator to return a :term:`JSON` document
    that describes the process used to return the query. This may
    provide useful insight when attempting to optimize a
    query. Consider the following example:
@@ -187,7 +187,7 @@ Modifiers
 
 .. operator:: $snapshot
 
-   The ``$snapshot`` operator ensures that the results returned by a
+   The :operator:`$snapshot` operator ensures that the results returned by a
    query:
 
    - contains no duplicates.

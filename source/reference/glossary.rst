@@ -159,21 +159,21 @@ Glossary
       MongoDB's :term:`geospatial` indexes and querying system
       provides the ability to build queries around multi-sided
       polygons on 2 dimensional coordinate systems. These queries use
-      the ``$within`` operator and a sequence of points that define
+      the :operator:`$within` operator and a sequence of points that define
       the corners of the polygon. MongoDB assumes that the first point
       is connected to the last.
 
    Circle
       MongoDB's :term:`geospatial` indexes and querying system
       provides the ability to build queries around circles on 2
-      dimensional coordinate systems. These queries use the ``$circle``
+      dimensional coordinate systems. These queries use the :operator:`$circle`
       operator to define circle using the center and the radius of the
       circle.
 
    Box
       MongoDB's :term:`geospatial` indexes and querying system
       provides the ability to build queries around rectangles on 2
-      dimensional coordinate systems. These queries use the ``$box``
+      dimensional coordinate systems. These queries use the :operator:`$box`
       operator to define a shape using the lower-left and the upper
       right coordinates.
 
