@@ -238,7 +238,13 @@ Sharding
 
 .. dbcommand:: printShardingStatus
 
-TODO copy documentation from :js:func:`sh.status()`.
+   Returns data regarding the status of a :term:`shard cluster` and
+   includes information regarding the distribution of
+   :term:`chunks`. :dbcommand:`printShardingStatus` is only available
+   when connected to a :term:`shard cluster` via a
+   :program:`mongos`. Typically, you will use the
+   :js:func:`sh.status()` :program:`mongo` shell wrapper to access
+   this data.
 
 Aggregation
 ~~~~~~~~~~~
@@ -251,52 +257,79 @@ Aggregation
 
    .. code-block:: javascript
 
-      db.users.group(
-                      {key: { school_id: true },
-                       cond: { active: 1 },
-                       reduce: function(obj, prev) { obj.total += 1; },
-                       initial: { total: 0 }
-                      }
-                    );
+      db.users.runCommand( { group:
+                             { key: { school_id: true },
+                               cond: { active: 1 },
+                               reduce: function(obj, prev) { obj.total += 1; },
+                               initial: { total: 0 }
+                              } } );
 
-   Here :dbcommand:`group` runs against the collection "``users``" and
-   counts the total number of active users from each school.
-   Fields allowed by the group command include:
+   More typically, in the :program:`mongo` shell, you will call the
+   :dbcommand:`group` command using the :js:func:`group()`
+   method. Consider the following form:
 
-   - **key** a document specifying one or more fields to group on.
+   .. code-block:: javascript
 
-   - **reduce** a JavaScript function that aggregates (i.e., reduces) the
-     grouped documents. This function typically counts or sums the grouped fields.
+      db.users.group( { key: { school_id: true },
+                        cond: { active: 1 },
+                        reduce: function(obj, prev) { obj.total += 1; },
+                        initial: { total: 0 }
+                       } );
 
-   - **initial** the starting value of the aggregation counter
-     object.
+   In these examples :dbcommand:`group` runs against the collection
+   "``users``" and counts the total number of active users from each
+   school. Fields allowed by the group command include:
 
-   - **keyf** In lieu of ``key``, ``keyf`` takes a JavaScript
-     function. For each grouped document, the key function will return a key object. You'll use ``keyf``
-     to calculated the key in real time.
+   :field JSON key: Specify one or more fields to group by. Use the
+                    form of a :term:`JSON document`.
 
-     One typical use of ``keyf`` is to group documents by day of week. Set ``keyf`` in
-     lieu of a key.
+   :field reduce: Specify a reduce function that operates over all the
+                  iterated objects. Typically these aggregator
+                  functions perform some sort of summing or
+                  counting. The reduce function takes two arguments:
+                  the current document and an aggregation counter
+                  object.
 
-   - **cond** (optional) a query selector that filters the grouped documents.
-     This functions like a :js:func:`find()` query.
+   :field inital: The starting value of the aggregation counter
+                  object.
 
-   - **finalize** (optional) a function applied to every
-     result before returning the item. You can use this to
-     for post-processing or transformations.
+   :field optional keyf: An optional function that returns a "key
+                         object" for use as the grouping key. Use
+                         ``keyf`` instead of ``key`` to specify a key
+                         that is not a single/multiple existing
+                         fields. For example, use ``keyf`` to group by
+                         day or week in place of a fixed ``key``.
 
-   Consider the following limitations:
+   :field optional cond: A statement that must evaluate to true for
+                         the :js:func:`group()` to process this
+                         document. Essentially this argument specifies
+                         a query document (as for
+                         :js:func:`find()`). Unless specified,
+                         :js:func:`group()` runs the "reduce" function
+                         against all documents in the collection.
 
-   - The results of the :dbcommand:`group` command returns a single
-     :term:`BSON` object and therefore must fit within the
-     :ref:`maximum BSON document size <limit-maximum-bson-document-size>`.
+   :field optional finalize: An optional function that runs each item
+                             in the result set before
+                             :js:func:`group()` returns the final
+                             value. This function can either modify
+                             the document by computing and adding an
+                             average field, or return compute and
+                             return a new document.
 
-   - You must ensure that there are fewer then 10,000 unique keys. If you have more than this,
-     use :dbcommand:'mapReduce'.
+   .. note::
 
-   - The :dbcommand`group` command does not operate in :term:`sharded
-     <shard cluster>` environments. Use :dbcommand:`mapReduce` in these
-     situations.
+      The result set of the :js:func:`group()` must fit within the
+      size :ref:`maximum BSON document <limit-maximum-bson-document-size>`.
+
+      Furthermore, you must ensure that there are fewer then 10,000
+      unique keys. If you have more than this, use :dbcommand:`mapReduce`.
+
+   .. warning::
+
+      :js:func:`group()` does not work in :term:`shard environments
+      <shard cluster>`. Use the :term:`aggregation framework` or
+      :term:`map/reduce` (i.e. :db;command:`mapReduce` in
+      :term:`sharded environments <sharding>`.
 
    .. read-lock
 
@@ -323,29 +356,117 @@ Aggregation
 
 .. dbcommand:: mapReduce
 
-   The :dbcommand:`mapReduce` command allows you to run map-reduce-style aggregations
-   over a collection. :dbcommand:`mapReduce` may create a collection to contain the results of
-   the operation or may return the results inline. The :dbcommand:`mapReduce` command has the
-   following syntax:
+   The :dbcommand:`mapReduce` command allows you to run
+   map-reduce-style aggregations over a collection.
 
-   .. code-block:: javascript
+   :option map: A JavaScript function that performs the "map" step of
+                the map/reduce operation. This function references the
+                current input document and calls the
+                "``emit(key,value)``" method that supplies values to
+                the reduce function. Map functions may call
+                ``emit()``, once, more than once, or not at all
+                depending on the type of aggregation.
 
-      { mapreduce : <collection-name>,
-         map : <map-function>,
-         reduce : <reduce-function>,
-         query : <query-filter-object>,
-         sort : <sort-specifier document>,
-         limit : <limits the number of documents in the input set>,
-         out : <output style>,
-         finalize : <finalize-function>,
-         scope : <object where fields go into javascript global scope>,
-         jsMode : true,
-         verbose : true,
-      }
+   :option reduce: A JavaScript function that performs the "reduce"
+                   step of the MapReduce operation. The reduce
+                   function receives an array of emitted values from
+                   the map function, and returns a single
+                   value. Because it's possible to invoke the reduce
+                   function more than once for the same key, the
+                   structure of the object returned by function must
+                   be identical to the structure of the emitted
+                   function.
 
-   Only the ``map`` and ``reduce`` options are required, all other
-   fields are optional. The ``map`` and ``reduce`` functions are
-   written in JavaScript.
+   :option out: Specifies the location of the out of the reduce stage
+                of the operation. Specify a string to write the output
+                of the Map/Reduce job to a collection with that
+                name. See below for additional output options.
+
+   :option optional query: A query object, like the query used by the
+                           :js:func:`find()` method. Use this to
+                           filter to limit the number of documents
+                           enter the map phase of the aggregation.
+
+   :option optional sort: Sorts the input objects using this key. This
+                          option is useful for optimizing the
+                          job. Common uses include sorting by the emit
+                          key so that there are fewer reduces.
+
+   :option optional limit: Species a maximum number of objects to
+                           return from the collection.
+
+   :option optional finalize: Specifies an optional "finalize"
+                              function to run on a result, following
+                              the reduce stage, to modify or control
+                              the output of the :dbcommand:`mapReduce`
+                              operation.
+
+   :option optional scope: Place a :term:`JSON` document as the
+                           contents of this field, to place fields
+                           into the global javascript scope.
+
+   :option optional jsMode: Boolean. The ``jsMode`` option defaults to
+                            true.
+
+   :option optional verbose: Boolean. The ``verbose`` option provides
+                             statistics on job execution times.
+
+   :dbcommand:`mapReduce` only require ``map`` and ``reduce`` options,
+   all other fields are optional. You must write all ``map`` and
+   ``reduce`` functions in JavaScript.
+
+   The "``out``" field of the :dbcommand:`mapReduce`, provides a
+   number of additional configuration options that you may use to
+   control how MongoDB returns data from the map/reduce job. Consider
+   the following 4 output possibilities.
+
+   .. versionadded: 1.8
+
+   :param optional replace: Specify a collection name (e.g. ``{ out: {
+                            replace: collectionName } }``) where the
+                            output of the map/reduce overwrites the
+                            contents of the collection specified
+                            (i.e. "``collectionName``") if there is
+                            any data in that collection.
+
+   :param optional merge: Specify a collection name (e.g. ``{ out: {
+                          merge: collectionName } }``) where the
+                          map/reduce operation writes output to an
+                          existing collection
+                          (i.e. "``collectionName``",) and only
+                          overwrites existing documents when a new
+                          document has the same key as an "old"
+                          document in this collection.
+
+   :param optional reduce: This operation behaves as the "``merge``"
+                           option above, except that when an existing
+                           document has the same key as a new
+                           document, "``reduce``" function from the
+                           map reduce job will run on both values and
+                           MongoDB writes the result of this function
+                           to the new collection. The specification
+                           takes the form of "``{ out: { reduce:
+                           collectionName } }``", where
+                           "``collectionName``" is the name of the
+                           results collection.
+
+   :param optional inline: Indicate the inline option (i.e. "``{ out:
+                           { inline: 1 } }``") to perform the map
+                           reduce job in ram and return the results at
+                           the end of the function. This option is
+                           only possible when the entire result set
+                           will fit within the :ref:`maximum size of a
+                           BSON document
+                           <limit-maximum-bson-document-size>`. When
+                           performing map/reduce jobs on secondary
+                           members of replica sets, this is the only
+                           available option.
+
+   .. seealso:: ":doc:`/core/map-reduce`, provides a greater overview
+      of MognoDB's map/reduce functionality. Consider
+      ":doc:`/applications/simple-aggregation` for simple aggregation
+      operations and ":doc:`/core/aggregation`" for a more flexible
+      approach to data aggregation in MongoDB.
 
    .. seealso:: ":js:func:`mapReduce()`" and ":doc:`/core/map-reduce`"
 
@@ -356,93 +477,142 @@ Aggregation
    See :doc:`/core/map-reduce` for more information on mapReduce
    operations.
 
-TODO lacking a lot of documentation. Can you describe each option in the way you do with 'group'? See the command description in MIA book.
+TODO what additional documentation does the mapreduce shardedfinish need over regular mapReduce
 
    .. slave-ok
 
 .. dbcommand:: findAndModify
 
    The :dbcommand:`findAndModify` command atomically modifies and
-   returns a single document. The command takes the following form:
+   returns a single document. The shell and many :term:`drivers
+   <driver>` provide a :js:funcf:`findAndModify()` helper method. The
+   command has the following prototype form:
 
    .. code-block:: javascript
 
-      { findAndModify: collection, <options> }
+      { findAndModify: "collection", <options> }
 
-   The shell and many :term:`drivers <driver>` provide a
-   :js:func:`findAndModify()` helper method.
+   Replace, "``collection``" with the name of the collection
+   containing the document that you want to modify, and specify
+   options, as a sub-document that specifies the following:
 
-   The following options are available:
+   :field query: A query object. This statement might resemble the
+                  :term:`JSON document` passed to :js:func:`find()`,
+                  and should return *one* document from the database.
 
-   :option query: a query selector for choosing the document to
-                  modify.
+   :field optional sort: If the query selects multiple documents, the
+                         first document given by this sort clause will
+                         be the one modified.
 
-   :option sort: if the query selects multiple documents, the first
-                 document given by this sort clause will be the one
-                 modified.
+   :field remove: When ``true``, :dbcommand:`findAndModify` removes
+                  the selected document.
 
-   :option remove: when ``true``, causes ``findAndModify`` to remove
-                   the selected document.
+   :field update: an :ref:`update operator <update-operators>` to
+                  modify the selected document.
 
-   :option update: an :ref:`update operator <update-operators>` to
-                   modify the selected document.
+   :field new: when ``true``, returns the modified document rather
+               than the original. :dbcommand:`findAndModify` ignores
+               the ``new`` option for ``remove`` operations.
 
-   :option new: when ``true``, returns the modified document rather
-                than the original. ``findAndModify`` ignores the
-                ``new`` option for ``remove`` operations.
+   :field fields: a subset of fields to return. See ":ref:`projection
+                  operators <projection-operators>`" for more
+                  information.
 
-   :option fields: a subset of fields to return. See ":ref:`projection
-                   operators <projection-operators>`" for more
-                   information.
+   :field upsert: when ``true``, creates a new document if the
+                  specified ``query`` returns no documents. The
+                  default is "``false``.
 
-   :option upsert: when ``true``, creates a new document if the
-                   specified ``query`` returns no documents.
 
-TODO: link to more complete documentation with common examples.
+   For example:
+
+   .. code-block:: javascript
+
+      { findAndModify: "people",
+        { query: { name: "Tom", state: "active", rating: { $gt: 10 } },
+          sort: { rating: 1 },
+          update: { $inc: { score: 1 } }
+          }
+        }
+
+   This operation, finds a document in the "``people``" collection
+   where the "``name``" field has the value "``Tom``", the
+   "``active``" value in the "``state``" field and a value in the
+   "``rating``" field :operator:`greater than <$gt>` 10. If there is
+   more than one result for this query, MongoDB sorts the results of
+   the query in descending order, and :operator:`increments <$inc>`
+   the value of the "``score``" field by 1. Using the shell helper,
+   this same operation can take the following form:
+
+   .. code-block:: javascript
+
+      db.people.findAndModify( {
+          query: { name: "Tom", state: "active", rating: { $gt: 10 } },
+          sort: { rating: 1 },
+          update: { $inc: { score: 1 } }
+          } );
+
+   .. warning::
+
+      When using :dbcommand:`findAndModify` in a :term:`sharded
+      <sharding>` environment, the ``query`` must contain the
+      :term:`shard key` for all operations against the shard
+      cluster. :dbcommand:`findAndModify` operations issued against
+      :program:`mongos` instances for non-sharded collections function
+      normally.
+
+TODO factcheck above
+.. after approving the above document, update the
+.. :js:func:`findAndModify()` command.
 
 .. dbcommand:: distinct
 
-   The ``distinct`` command returns an array of distinct values for a
+   The :dbcommand:`distinct` command returns an array of distinct values for a
    given field across a single collection. The command takes the
-   following form: ::
+   following form:
 
-        { distinct: collection, key: age, query: { query: { field: { $exists: true } } } }
+   .. code-block:: javascript
 
-   Here, all distinct values of the field (or "``key``") ``age`` are
-   returned in documents that match the query "``{ field: { $exists:
-   true }``".
+      { distinct: collection, key: age, query: { query: { field: { $exists: true } } } }
+
+   This operation returns all distinct values of the field (or
+   "``key``") ``age`` in documents that match the query "``{ field: {
+   $exists: true }``".
 
    .. note::
 
       The query portion of the :dbcommand:`distinct` is optional.
 
    The shell and many :term:`drivers <driver>` provide a helper method that provides
-   this functionality. You may prefer the following equivalent syntax: ::
+   this functionality. You may prefer the following equivalent syntax:
 
-       db.collection.distinct("age", { field: { $exists: true } } );
+   .. code-block:: javascript
 
-   The ``distinct`` command will use an index to locate and return
-   data.
+      db.collection.distinct("age", { field: { $exists: true } } );
+
+   The :dbcommand:`distinct` command will use an index to locate and
+   return data.
 
 .. dbcommand:: eval
 
-DONE would it be possible to have a convention in the command forms indicating which parts are required and which are options? For instance, required options could be in bold.
-
 TODO figure out which ones are required and which are optional and modify :opt: as needed.
 
-   The ``eval`` command evaluates JavaScript functions
-   on the database server. Consider the following (trivial) example: ::
+   The :dbcommand:`eval` command evaluates JavaScript functions
+   on the database server. Consider the following (trivial) example:
+
+   .. code-block:: javascript
 
         { eval: function() { return 3+3 } }
 
    The shell also provides a helper method, so you can express the
-   above like so: ::
+   above as follows:
 
-        db.eval( function { return 3+3 } } );
+   .. code-block:: javascript
+
+      db.eval( function { return 3+3 } } );
 
    Note the shell's Java Script interpreter evaluates functions
    entered directly into the shell. If you want to use the server's
-   interpreter, you must run ``eval``.
+   interpreter, you must run :dbcommand:`eval`.
 
    Note the following behaviors and limitations:
 
@@ -452,28 +622,18 @@ TODO figure out which ones are required and which are optional and modify :opt: 
    - The ``eval`` operation take a write lock by default. This means
      that writes to database aren't permitted while it's running. You
      can, however, disable the lock by setting the ``nolock`` flag to
-     ``true``. For example: ::
+     ``true``. For example:
 
-           { eval: function() { return 3+3 }, nolock: true }
+     .. code-block:: javascript
 
-TODO: add some warnings / advice about when to disable the write lock.
+        { eval: function() { return 3+3 }, nolock: true }
 
-.. dbcommand:: dataSize
+      .. warning::
 
-   The ``dataSize`` command returns the size data size for a set of
-   data within a certian range: ::
+         Do not disable the write lock if the operation may modify the
+         contents of the database in anyway.
 
-        { dataSize: "database.collection", keyPattern: { field: 1 }, min: { field: 10 }, max: { field: 100 } }
-
-   This will return a document that contains the size of all matching
-   documents. Replace "``database.collection``" value with database
-   and collection from your deployment. The ``keyPattern``, ``min``,
-   and ``max`` parameters are options.
-
-   The amount of time required to return ``dataSize`` depends on the
-   amount of data in the collection.
-
-TODO: not sure that this command should be in the docs. It's mostly for internal use, I believe.
+TODO factcheck; add about when to disable the write lock.
 
 .. dbcommand:: aggregate
 
@@ -715,12 +875,16 @@ Collections
 .. dbcommand:: drop
 
    The ``drop`` command removes an entire collection from a
-   database. The command has following syntax: ::
+   database. The command has following syntax:
+
+   .. code-block:: javascript
 
         { drop: <collection_name> }
 
    The :program:`mongo` shell provides the equivalent helper
-   method: ::
+   method:
+
+   .. code-block:: javascript
 
         db.collection.drop();
 
@@ -729,135 +893,185 @@ Collections
 
 .. dbcommand:: cloneCollection
 
-   The ``cloneCollection`` command copies a collection from a remote
-   server to the server on which the command is run. Consider the following example:  ::
+   The :dbcommand:`cloneCollection` command copies a collection from a
+   remote server to the server where you run the command.
 
-        { cloneCollection: "app.users", from: "db.example.net:27017",
-             query: { active: true } }
+   :opt from: Specify a resolvable hostname, and optional port number
+              of the remote server where the specified collection resides.
 
-   Here we copy the "users" collection from the "app" database on the server at ``db.example.net``.
-   Only documents that satisfy the query "``{ active: true }`` are copied. Indexes are
-   copied by default, but you can disable this by setting ``{copyIndexes: false}``.o
-   The ``query`` and ``copyIndexes`` arguments are optional.
+   :opt optional query: A query document, in the form of a :term:`JSON
+                        document`, that filters the documents in the
+                        remote collection that
+                        :dbcommand:`cloneCollection` will copy to the
+                        current database. See :js:func:`find()`.
 
-   ``cloneCollection`` creates a collection on the current database
-   with the same name as the origin collection. If, in the above
-   example, the ``users`` collection already exists, then the documents
-   in the remote collection will be appended to the destination collection.
+   :opt optional copyIndexes: Boolean. "``true`` by default. When set
+                              to "``false``" the indexes on the
+                              originating server are *not* copied with
+                              the documents in the collection.
+
+   Consider the following example:
+
+   .. code-block:: javascript
+
+      { cloneCollection: "app.users", from: "db.example.net:27017", query: { active: true }, copyIndexes: false }
+
+   This operation copies the "users" collection from the "app"
+   database on the server at ``db.example.net``. The operation only
+   copies documents that satisfy the query "``{ active: true }``" and
+   does not copy indexes. :dbcommand:`cloneCollection` copies indexes
+   by default, but you can disable this behavior by setting "``{
+   copyIndexes: false }``". The ``query`` and ``copyIndexes``
+   arguments are optional.
+
+   :dbcommand:`cloneCollection` creates a collection on the current
+   database with the same name as the origin collection. If, in the
+   above example, the ``users`` collection already exists, then
+   MongoDB appends documents in the remote collection to the
+   destination collection.
 
 .. dbcommand:: create
 
    The ``create`` command explicitly creates a collection. The command
-   uses the following syntax: ::
+   uses the following syntax:
 
-        { create: <collection_name> }
+   .. code-block:: javascript
 
-   To create a capped collection limited to 40 KB, issue command in the following form: ::
+      { create: <collection_name> }
 
-        { create: "collection", capped: true, size: 40 * 1024 }
+   To create a :term:`capped collection` limited to 40 KB, issue command in
+   the following form:
+
+   .. code-block:: javascript
+
+      { create: "collection", capped: true, size: 40 * 1024 }
 
    The options for creating capped collections are:
 
-   - **capped**: Specify "``true``" to create a :term:`capped collection`.
-   - **size**: The maximum size for the capped collection. Once a capped collection
-     reaches its max size, old documents will be aged out to make way for the new.
-     The ``size`` argument is requied.
-   - **max**: The maximum number of documents to preserve in the capped collection.
-     Note that this limit is subject to the overall size of the capped collection. If
-     a capped collection reaches its max size before it contains the maximum number of
-     documents, old document will still be removed. Thus, if you use this option, ensure
-     that the total size for the capped collection is sufficient to contain the max.
+   :option capped: Specify "``true``" to create a :term:`capped collection`.
+
+   :option size: The maximum size for the capped collection. Once a
+                 capped collection reaches its max size, MongoDB will
+                 drop old documents from the database to make way for
+                 the new documents. You must specify a ``size``
+                 argument for all capped collections.
+
+   :option max: The maximum number of documents to preserve in the
+                capped collection. This limit is subject to the
+                overall size of the capped collection. If a capped
+                collection reaches its maximum size before it contains
+                the maximum number of documents, the database will
+                remove old documents. Thus, if you use this option,
+                ensure that the total size for the capped collection
+                is sufficient to contain the max.
 
    The :js:func:`db.createCollection` provides a wrapper function that
    provides access to this functionality.
 
 .. dbcommand:: convertToCapped
 
-   The ``convertToCapped`` command converts an existing, non-capped
-   collection to a :term:`capped collection`. Use the following
-   syntax: ::
+   The :dbcommand:`convertToCapped` command converts an existing,
+   non-capped collection to a :term:`capped collection`. Use the
+   following syntax:
 
-        {convertToCapped: "collection", size: 100 * 1024 }
+   .. code-block:: javascript
 
-   Here, ``collection`` (an existing collection) is converted to a
-   capped collection, with a maximum size of 100 KB. This command supports
-   the ``size`` and ``max`` arguments. See the ``create`` command for details.
+      {convertToCapped: "collection", size: 100 * 1024 }
+
+   This command coverts ``collection``, an existing collection, to a
+   capped collection, with a maximum size of 100 KB. This command
+   accepts the ``size`` and ``max`` options. See the
+   :dbcommand:`create` command for additional details.
 
 .. dbcommand:: emptycapped
 
    The ``emptycapped`` command removes all documents from a capped
-   collection. Use the following syntax: ::
+   collection. Use the following syntax:
 
-        { emptycapped: "events" }
+   .. code-block::
+
+      { emptycapped: "events" }
 
    This command removes all records from the capped collection named
    ``events``.
 
 .. dbcommand:: renameCollection
 
-   The ``renameCollection`` command changes the name of an existing
+   The :dbcommand:`renameCollection` command changes the name of an existing
    collection. Use the following form to rename the collection
-   named "things" to "events": ::
+   named "things" to "events":
 
-        { renameCollection: "store.things", to: "store.events" }
+   .. code-block::
 
-   This command must be run on the admin database, and thus requires
-   you to specify the complete namespace (i.e., database name and collection name).
+      { renameCollection: "store.things", to: "store.events" }
 
-   The shell helper "``renameCollection()``" simplifies this. The following
-   is equivalent to the foregoing example:
+   You must run this command against the admin database. and thus
+   requires you to specify the complete namespace (i.e., database name
+   and collection name.)
 
-        db.things.renameCollection( "events" )
+   The shell helper :js:func:`renameCollection()` provides a more
+   simple interface for this functionality. The following is
+   equivalent to the previous example:
+
+   .. code-block:: javascript
+
+      db.things.renameCollection( "events" )
 
 .. dbcommand:: collStats
 
-   The ``collStats`` command returns a variety of storage statistics
-   for a given collection. Use the following syntax: ::
+   The :dbcommand:`collStats` command returns a variety of storage statistics
+   for a given collection. Use the following syntax:
 
-        { collStats: "database.collection" , scale : 1024 }
+   .. code-block:: javascript
+
+      { collStats: "database.collection" , scale : 1024 }
 
    Specify a namespace "``database.collection``" and
    use the ``scale`` argument to scale the output. The above example
    will display values in kilobytes.
 
-   Examine the following example output, which uses the shell's equivalent helper method: ::
+   Examine the following example output, which uses the
+   :js:func:`stats()` helper in the :program:`mongo` shell.
 
-        > db.users.stats()
-        {
-                "ns" : "app.users",             // namespace
-                "count" : 9,                    // number of documents
-                "size" : 432,                   // collection size in bytes
-                "avgObjSize" : 48,              // average object size in bytes
-                "storageSize" : 3840,           // (pre)allocated space for the collection
-                "numExtents" : 1,               // number of extents (contiguously allocated chunks of datafile space)
-                "nindexes" : 2,                 // number of indexes
-                "lastExtentSize" : 3840,        // size of the most recently created extent
-                "paddingFactor" : 1,            // padding can speed up updates if documents grow
-                "flags" : 1,
-                "totalIndexSize" : 16384,       // total index size in bytes
-                "indexSizes" : {                // size of specific indexes in bytes
-                        "_id_" : 8192,
-                        "username" : 8192
-                },
-                "ok" : 1
-        }
+   .. code-block:: javascript
+
+      > db.users.stats()
+      {
+              "ns" : "app.users",             // namespace
+              "count" : 9,                    // number of documents
+              "size" : 432,                   // collection size in bytes
+              "avgObjSize" : 48,              // average object size in bytes
+              "storageSize" : 3840,           // (pre)allocated space for the collection
+              "numExtents" : 1,               // number of extents (contiguously allocated chunks of datafile space)
+              "nindexes" : 2,                 // number of indexes
+              "lastExtentSize" : 3840,        // size of the most recently created extent
+              "paddingFactor" : 1,            // padding can speed up updates if documents grow
+              "flags" : 1,
+              "totalIndexSize" : 16384,       // total index size in bytes
+              "indexSizes" : {                // size of specific indexes in bytes
+                      "_id_" : 8192,
+                      "username" : 8192
+              },
+              "ok" : 1
+      }
 
 .. dbcommand:: compact
 
-   The ``compact`` command rewrites and defragments a single
+   The :dbcommand:`compact` command rewrites and defragments a single
    collection. Additionally, the command forces all indexes on the collection
-   to be rebuilt. The command has the following syntax: ::
+   to be rebuilt. The command has the following syntax:
 
-        { compact: "users" }
+   .. code-block:: javascript
 
-   In this example, the collection named "users" will be compacted.
+      { compact: "users" }
 
-   Note the following command behaviors:
+   This command compacts the collection named "``users``". Note the
+   following command behaviors:
 
-   - During a ``compact``, the database blocks all other activity.
+   - During a :dbcommand:`compact`, the database blocks all other activity.
 
-   - In a :term:`replica set`, ``compact`` will refuse to run on the
-     primary node unless you also specify ``{force: true}``.
+   - In a :term:`replica set`, :dbcommand:`compact` will refuse to run on the
+     primary node unless you also specify ``{ force: true }``.
      For example: ::
 
            { compact: "collection", force: true }
@@ -865,105 +1079,123 @@ Collections
    - If you have journaling enabled, your data will be safe even
      if you kill the operation or restart the server before it has
      finished. However, you may have to manually rebuild the indexes.
-     Without journaling enabled, the ``compact`` command is much less safe,
+     Without journaling enabled, the :dbcommand:`compact` command is much less safe,
      and there are no guarantees made about the safety of your data in the
      event of a shutdown or a kill.
 
      .. warning::
 
         Always have an up-to-date backup before performing server
-        maintenance such as the ``compact`` operation.
+        maintenance such as the :dbcommand:`compact` operation.
 
-   - ``compact`` requires a small amount of additional diskspace while
+   - :dbcommand:`compact` requires a small amount of additional diskspace while
      running but unlike :dbcommand:`repairDatabase` it does *not* free
      space equal to the total size of the collection.
 
-   - the ``compact`` command blocks until the operation is
+   - the :dbcommand:`compact` command blocks until the operation is
      complete.
 
-   - ``compact`` removes any :term:`padding factor` in the collection,
+   - :dbcommand:`compact` removes any :term:`padding factor` in the collection,
      which may impact performance if documents grow regularly.
 
-   - ``compact`` commands do not replicate. They must be run on slaves
+   - :dbcommand:`compact` commands do not replicate. They must be run on slaves
      and replica set members independently.
 
-   - :term:`Capped collections <capped collection>` cannot be
-     compacted.
+   - It is not possible to compact :term:`capped collections <capped
+     collection>`.
 
 Administration
 ~~~~~~~~~~~~~~
 
 .. dbcommand:: fsync
 
-   ``fsync`` is an administrative command that forces the
+   :dbcommand:`fsync` is an administrative command that forces the
    :program:`mongod` process to flush all pending writes to the data
    files. The server already runs its own fsync every 60 seconds, so
-   running ``fsync`` in the course of normal operations is
+   running :dbcommand:`fsync` in the course of normal operations is
    not required. The primary use of this command is to flush and
    lock the database for backups.
 
-   The ``fsync`` operation blocks all other write operations for a
-   while it runs. To toggle a write-lock using ``fsync``, add a lock
-   argument, as follows: ::
+   The :dbcommand:`fsync` operation blocks all other write operations for a
+   while it runs. To toggle a write-lock using :dbcommand:`fsync`, add a lock
+   argument, as follows:
 
-       { fsync: 1, lock: true }
+   .. code-block:: javascript
+
+      { fsync: 1, lock: true }
 
    This will sync the data files and lock the database against writes. Later,
-   you must run the following query to unlock the database: ::
+   you must run the following query to unlock the database:
 
-       db.getSiblingDB("admin").$cmd.sys.unlock.findOne();
+   .. code-block:: javascript
+
+      db.getSiblingDB("admin").$cmd.sys.unlock.findOne();
 
    In the shell, you may use the following helpers to simplify
-   the process: ::
+   the process:
 
-        db.fsyncLock();
-        db.fsyncUnlock();
+   .. code-block:: javascript
+
+      db.fsyncLock();
+      db.fsyncUnlock();
 
    .. versionadded:: 1.9.0
-      The ``db.fsyncLock()`` and ``db.fsyncUnlock`` helpers in the
-      shell.
+      The :js:func:`db.fsyncLock()` and :js:func:`db.fsyncUnlock()`
+      helpers in the shell.
 
 .. dbcommand:: dropDatabase
 
-   The ``dropDatabase`` command drops a database, deleting
-   the associated data files. ``dropDatabase`` operates on the
+   The ``:dbcommand:`dropDatabase` command drops a database, deleting
+   the associated data files. ``:dbcommand:`dropDatabase` operates on the
    current database.
 
    In the shell issue the ``use <database>``
    command, replacing "``<database>``" with the name of the database
-   you wish to delete. Then use the following command form: ::
+   you wish to delete. Then use the following command form:
 
-        { dropDatabase: 1 }
+   .. code-block:: javascript
 
-   The :program:`mongo` shell also provides the following equivalent helper method: ::
+      { dropDatabase: 1 }
 
-        db.dropDatabase();
+   The :program:`mongo` shell also provides the following equivalent helper method:
+
+   .. code-block:: javascript
+
+      db.dropDatabase();
 
    .. write-lock
 
 .. dbcommand:: dropIndexes
 
-   The ``dropIndexes`` command drops one or all indexes from the current collection.
-   To drop all indexes, issue the command like so: ::
+   The :dbcommand:`dropIndexes` command drops one or all indexes from the current collection.
+   To drop all indexes, issue the command like so:
 
-        { dropIndexes: "collection", index: "*" }
+   .. code-block:: javascript
+
+      { dropIndexes: "collection", index: "*" }
 
    To drop a single, issue the command by specifying the name
    of the index you want to drop. For example, to drop the index
-   named "age_1", use the following command: ::
+   named "``age_1``", use the following command:
 
-        { dropIndexes: "collection", index: "age_1" }
+   .. code-block:: javascript
 
-   The shell provides a useful command helper. Here's the equivalent command: ::
+      { dropIndexes: "collection", index: "age_1" }
 
-        db.collection.dropIndex("age_1");
+   The shell provides a useful command helper. Here's the equivalent command:
+
+   .. code-block:: javascript
+
+      db.collection.dropIndex("age_1");
 
 .. dbcommand:: clone
 
-   The ``clone`` command clone a database from a
-   remote MongoDB instance to the current host. ``clone`` copies the
+   The :dbcommand:`clone` command clone a database from a
+   remote MongoDB instance to the current host. :dbcommand:`clone` copies the
    database on the remote instance with the same name as the current
-   database. The command takes the following form: ::
+   database. The command takes the following form:
+
+   .. code-block:: javascript
 
         { clone: "db1.example.net:27017" }
 
@@ -971,32 +1203,37 @@ Administration
    MongoDB instance you wish to copy from. Note the following
    behaviors:
 
-   - ``clone`` can run against a :term:`slave` or a
+   - :dbcommand:`clone` can run against a :term:`slave` or a
      non-:term:`primary` member of a :term:`replica set`.
-   - ``clone`` does not snapshot the database. If the copied database
+
+   - :dbcommand:`clone` does not snapshot the database. If the copied database
      is updated at any point during the clone operation, the resulting
      database may be inconsistent.
-   - You must run ``clone`` on the **destination server**.
+
+   - You must run :dbcommand:`clone` on the **destination server**.
+
    - The destination server is not locked for the duration of the
-     ``clone`` operation. This means that ``clone`` will occasionally yield to
+     :dbcommand:`clone` operation. This means that :dbcommand:`clone` will occasionally yield to
      allow other operations to complete.
 
    See :dbcommand:`copydb`  for similar functionality.
 
 .. dbcommand:: repairDatabase
 
-   The ``repairDatabase`` command checks and repairs errors and
+   The :dbcommand:`repairDatabase` command checks and repairs errors and
    inconsistencies with the data storage. The command is analogous to
    a ``fsck`` command for file systems.
 
    If your :program:`mongod` instance is not running with journaling and you experience an
    unexpected system restart or crash, you should run the
-   ``repairDatabase`` command to ensure that there are no errors in
+   :dbcommand:`repairDatabase` command to ensure that there are no errors in
    the data storage.
 
-   As a side effect, the ``repairDatabase`` command will
+   As a side effect, the :dbcommand:`repairDatabase` command will
    compact the database, providing functionality equivalent to the
    :dbcommand:`compact` command. Use the following syntax.
+
+   .. code-block:: javascript
 
         { repairDatabase: 1 }
 
@@ -1021,7 +1258,7 @@ Administration
 
            $ mongod --repair
 
-     To add a repair path:
+     To add a repair path: ::
 
            $ mongod --repair --repairpath /opt/vol2/data
 
@@ -1042,7 +1279,7 @@ Administration
    .. note::
 
       When using :term:`journaling`, there is almost never any need to
-      run ``repairDatabase``. In the event of an unclean shutdown, the
+      run :dbcommand:`repairDatabase`. In the event of an unclean shutdown, the
       server will be able restore the data files to a pristine state
       automatically.
 
@@ -1409,7 +1646,7 @@ Diagnostics
    .. seealso:: ":ref:`Replica Set Write Propagation <replica-set-write-propagation>`"
       and ":js:func:`db.getLastError()`."
 
-TODO: standardize on the way options are presented. Here, the standard is "``fsync``" but elsewhere we see **fsync**.
+TODO standardize on the way options are presented. Here, the standard is "fsync" but elsewhere we see **fsync**.
 
 .. dbcommand:: getLog
 
@@ -1657,10 +1894,11 @@ Other Commands
 
       { filemd5: ObjectId("4f1f10e37671b50e4ecd2776"), root: "fs" }
 
-:program:`mongos` commands
+:program:`mongos` Commands
 --------------------------
 
 TODO document mongos commands DOCS-112
+
 
 Internal Use
 ------------
@@ -1867,6 +2105,25 @@ TODO factcheck (minor)
    if you must move a chunk manually.
 
    .. admin-only
+
+.. dbcommand:: dataSize
+
+   For internal use.
+
+   The :dbcommand:`dataSize` command returns the size data size for a set of
+   data within a certian range:
+
+   .. code-block:: javascript
+
+        { dataSize: "database.collection", keyPattern: { field: 1 }, min: { field: 10 }, max: { field: 100 } }
+
+   This will return a document that contains the size of all matching
+   documents. Replace "``database.collection``" value with database
+   and collection from your deployment. The ``keyPattern``, ``min``,
+   and ``max`` parameters are options.
+
+   The amount of time required to return :dbcommand:`dataSize` depends on the
+   amount of data in the collection.
 
 .. dbcommand:: authenticate
 

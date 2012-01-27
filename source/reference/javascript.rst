@@ -40,11 +40,75 @@ Query and Update Functions
 
    If multiple documents satisfy the query, this method returns the
    first document according to the :term:`natural order` or insertion
-   order in :term:`capped collections <capped collection>`.
+   order in :term:`capped collections <capped2 collection>`.
 
 .. js:function:: findAndModify()
 
-TODO fill in missing point
+   The :js:func:`findAndModify()` method atomically modifies and
+   returns a single document. Always call :js:func:`findAndModify()`
+   on a collection object, using the following form:
+
+   .. code-block:: javascript
+
+      db.collection.findAndModify();
+
+   Replace, "``collection``" with the name of the collection
+   containing the document that you want to modify, and specify
+   options, as a sub-document that specifies the following:
+
+   :field query: A query object. This statement might resemble the
+                  :term:`JSON document` passed to :js:func:`find()`,
+                  and should return *one* document from the database.
+
+   :field optional sort: If the query selects multiple documents, the
+                         first document given by this sort clause will
+                         be the one modified.
+
+   :field remove: When ``true``, :dbcommand:`findAndModify` removes
+                  the selected document.
+
+   :field update: an :ref:`update operator <update-operators>` to
+                  modify the selected document.
+
+   :field new: when ``true``, returns the modified document rather
+               than the original. :dbcommand:`findAndModify` ignores
+               the ``new`` option for ``remove`` operations.
+
+   :field fields: a subset of fields to return. See ":ref:`projection
+                  operators <projection-operators>`" for more
+                  information.
+
+   :field upsert: when ``true``, creates a new document if the
+                  specified ``query`` returns no documents. The
+                  default is "``false``.
+
+
+   For example:
+
+   .. code-block:: javascript
+
+      db.people.findAndModify( {
+          query: { name: "Tom", state: "active", rating: { $gt: 10 } },
+          sort: { rating: 1 },
+          update: { $inc: { score: 1 } }
+          } );
+
+   This operation, finds a document in the "``people``" collection
+   where the "``name``" field has the value "``Tom``", the
+   "``active``" value in the "``state``" field and a value in the
+   "``rating``" field :operator:`greater than <$gt>` 10. If there is
+   more than one result for this query, MongoDB sorts the results of
+   the query in descending order, and :operator:`increments <$inc>`
+   the value of the "``score``" field by 1.
+
+   .. warning::
+
+      When using :dbcommand:`findAndModify` in a :term:`sharded
+      <sharding>` environment, the ``query`` must contain the
+      :term:`shard key` for all operations against the shard
+      cluster. :dbcommand:`findAndModify` operations issued against
+      :program:`mongos` instances for non-sharded collections function
+      normally.
 
 .. js:function:: save()
 
@@ -221,7 +285,15 @@ Query Cursor Methods
 
 .. js:function:: hint()
 
-TODO document the hint method. use :operator:`$hint`
+   :argument index: The name of the index to "hint" or force MongoDB
+                    to use when performing the query.
+
+   Call this method on a query to over ride MongoDB's default index
+   selection and query optimization process. Specify, as an argument,
+   the name which index the query should use to fulfill the query. Use
+   :js:func:`getIndexes()' to return a list of indexes on the current collection.
+
+   .. seealso:: ":operator:`$hint`
 
 Administrative Functions
 ------------------------
@@ -891,27 +963,30 @@ that you may use with collection objects.
 
 .. js:function:: group({key, reduce, initial, [keyf,] [cond,] finalize})
 
-   The :js:func:`group()` accepts a single :term:`JSON document` with
-   containing the following:
+   The :js:func:`group()` accepts a single :term:`JSON document` that
+   contains the following:
 
-   :param key: Specify the fields to group by.
+   :field key: Specify one or more fields to group by. Use the
+               form of a :term:`JSON document`.
 
-   :param reduce: Specify a reduce function that operates over all the
-                  iterated objects. Typically reduce functions perform
-                  some sort of summing or counting. The reduce
-                  function takes two arguments: the current document
-                  and an aggregation counter object.
+   :field reduce: Specify a reduce function that operates over all the
+                  iterated objects. Typically these aggregator
+                  functions perform some sort of summing or
+                  counting. The reduce function takes two arguments:
+                  the current document and an aggregation counter
+                  object.
 
-   :param inital: Initial value of the aggregation counter object.
+   :field inital: The starting value of the aggregation counter
+                  object.
 
-   :param optional keyf: An optional function that returns a "key
+   :field optional keyf: An optional function that returns a "key
                          object" for use as the grouping key. Use
-                         ``keyf`` instead of key to specify a key that is
-                         not a single/multiple existing fields. For
-                         example, use to group by day or week in place
-                         of a "key."
+                         ``keyf`` instead of ``key`` to specify a key
+                         that is not a single/multiple existing
+                         fields. For example, use ``keyf`` to group by
+                         day or week in place of a fixed ``key``.
 
-   :param optional cond: A statement that must evaluate to true for
+   :field optional cond: A statement that must evaluate to true for
                          the :js:func:`group()` to process this
                          document. Essentially this argument specifies
                          a query document (as for
@@ -919,7 +994,7 @@ that you may use with collection objects.
                          :js:func:`group()` runs the "reduce" function
                          against all documents in the collection.
 
-   :param optional finalize: An optional function that runs each item
+   :field optional finalize: An optional function that runs each item
                              in the result set before
                              :js:func:`group()` returns the final
                              value. This function can either modify
@@ -937,6 +1012,10 @@ that you may use with collection objects.
 
       The result set of the :js:func:`group()` must fit within the
       maximum :term:`BSON` object.
+
+      Furthermore, you must ensure that there are fewer then 10,000
+      unique keys. If you have more than this, use
+      :dbcommand:`mapReduce`.
 
    :js:func:`group()` provides a simple aggregation capability similar
    to the function of "``GROUP BY``" in SQL statements. Use
@@ -1028,7 +1107,7 @@ that you may use with collection objects.
    The "``out``" field of the :js:func:`mapReduce()`, provides a
    number of additional configuration options that you may use to
    control how MongoDB returns data from the map/reduce job. Consider
-   the following 4 output types.
+   the following 4 output possibilities.
 
    .. versionadded: 1.8
 

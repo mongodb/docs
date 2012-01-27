@@ -5,7 +5,6 @@
 ===================================
 
 .. default-domain:: mongodb
-
 .. binary:: mongodump
 
 Synopsis
