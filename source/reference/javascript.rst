@@ -40,7 +40,7 @@ Query and Update Functions
 
    If multiple documents satisfy the query, this method returns the
    first document according to the :term:`natural order` or insertion
-   order in :term:`capped collections <capped2 collection>`.
+   order in :term:`capped collections <capped collection>`.
 
 .. js:function:: findAndModify()
 
@@ -291,7 +291,7 @@ Query Cursor Methods
    Call this method on a query to over ride MongoDB's default index
    selection and query optimization process. Specify, as an argument,
    the name which index the query should use to fulfill the query. Use
-   :js:func:`getIndexes()' to return a list of indexes on the current collection.
+   :js:func:`getIndexes()` to return a list of indexes on the current collection.
 
    .. seealso:: ":operator:`$hint`
 

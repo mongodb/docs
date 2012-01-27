@@ -240,7 +240,7 @@ Sharding
 
    Returns data regarding the status of a :term:`shard cluster` and
    includes information regarding the distribution of
-   :term:`chunks`. :dbcommand:`printShardingStatus` is only available
+   :term:`chunks <chunk>`. :dbcommand:`printShardingStatus` is only available
    when connected to a :term:`shard cluster` via a
    :program:`mongos`. Typically, you will use the
    :js:func:`sh.status()` :program:`mongo` shell wrapper to access
@@ -485,7 +485,7 @@ TODO what additional documentation does the mapreduce shardedfinish need over re
 
    The :dbcommand:`findAndModify` command atomically modifies and
    returns a single document. The shell and many :term:`drivers
-   <driver>` provide a :js:funcf:`findAndModify()` helper method. The
+   <driver>` provide a :js:func:`findAndModify()` helper method. The
    command has the following prototype form:
 
    .. code-block:: javascript
@@ -988,7 +988,7 @@ Collections
    The ``emptycapped`` command removes all documents from a capped
    collection. Use the following syntax:
 
-   .. code-block::
+   .. code-block:: javascript
 
       { emptycapped: "events" }
 
@@ -1001,7 +1001,7 @@ Collections
    collection. Use the following form to rename the collection
    named "things" to "events":
 
-   .. code-block::
+   .. code-block:: javascript
 
       { renameCollection: "store.things", to: "store.events" }
 
@@ -1145,8 +1145,8 @@ Administration
 
 .. dbcommand:: dropDatabase
 
-   The ``:dbcommand:`dropDatabase` command drops a database, deleting
-   the associated data files. ``:dbcommand:`dropDatabase` operates on the
+   The :dbcommand:`dropDatabase` command drops a database, deleting
+   the associated data files. :dbcommand:`dropDatabase` operates on the
    current database.
 
    In the shell issue the ``use <database>``
