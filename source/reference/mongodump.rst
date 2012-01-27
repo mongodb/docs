@@ -141,6 +141,18 @@ Options
    the update process may cause the backup to reflect an inconsistent
    status.
 
+   :option:`--oplog` has no effect when running :program:`mongodump`
+   against a :program:`mongos` instance to dump the entire contents of
+   a shard cluster. However, you can use :option:`--oplog` to dump
+   individual shards.
+
+   .. note::
+
+      :option:`--oplog` only works against nodes that maintain a
+      :term:`oplog`. This includes all members of a replica set, as
+      well as :term:`master` nodes in master/slave replication
+      deployments.
+
 .. option:: --repair
 
    Use this option to run an repair option in addition to dumping the
