@@ -182,3 +182,8 @@ ReStructured Text and Typesetting
   insert literal blocks into the text. While the double colon,
   "``::``", is functional, the directive makes the source easier to
   read and understand.
+
+- For all mentions of referenced types (i.e. database commands, query
+  operators, aggregation framework expressions and pipeline operators,
+  java script functions, statuses, etc.) use the reference types to
+  ensure uniform formatting and cross-referencing.
