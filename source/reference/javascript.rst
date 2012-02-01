@@ -1052,7 +1052,7 @@ that you may use with collection objects.
       SELECT a,b,sum(c) csum FROM collection WHERE active=1 GROUP BY a,b
 
    .. seealso:: The ":doc:`/applications/simple-aggregation`" and
-      ":doc:`/core/aggregation`."
+      ":doc:`/applications/aggregation`."
 
 .. js:function:: mapReduce(map,reduce,out,[query],[sort],[limit],[finalize],[scope],[jsMode],[verbose])
 
@@ -1162,7 +1162,7 @@ that you may use with collection objects.
    .. seealso:: ":doc:`/core/map-reduce`, provides a greater overview
       of MognoDB's map/reduce functionality. Consider
       ":doc:`/applications/simple-aggregation` for simple aggregation
-      operations and ":doc:`/core/aggregation`" for a more flexible
+      operations and ":doc:`/applications/aggregation`" for a more flexible
       approach to data aggregation in MongoDB.
 
 .. js:function:: remove(query,justOne)

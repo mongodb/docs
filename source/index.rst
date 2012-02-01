@@ -34,7 +34,7 @@ Application Development
 
    applications
    mongo
-   core/aggregation
+   applications/aggregation
    core/map-reduce
 
 Core Concepts and Functionality
@@ -45,7 +45,7 @@ Core Concepts and Functionality
 
    core/replication
    core/sharding
-   core/aggregation
+   applications/aggregation
    core/map-reduce
    core/journaling
    core/capped-collections

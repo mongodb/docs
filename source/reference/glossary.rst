@@ -677,7 +677,7 @@ Glossary
 
       .. seealso:: ":doc:`/core/map-reduce`" for more information
          regarding MongoDB's map/reduce implementation, and
-         ":doc:`/core/aggregation`" for another approach to data
+         ":doc:`/applications/aggregation`" for another approach to data
          aggregation in MongoDB.
 
    SQL
@@ -699,20 +699,20 @@ Glossary
       The MongoDB subsystem that makes it possible to perform basic
       data aggregation functions as part of the query process.
 
-      .. seealso:: ":doc:`/core/aggregation`."
+      .. seealso:: ":doc:`/applications/aggregation`."
 
    pipeline
       Describes the series of operations in the :term:`aggregation`
       process.
 
-      .. seealso:: ":doc:`/core/aggregation`."
+      .. seealso:: ":doc:`/applications/aggregation`."
 
    expression
       In the context of the :term:`aggregation framework`, expressions
       are the stateless transformations that operate on the data that
       passes through the :term:`pipeline`.
 
-      .. seealso:: ":doc:`/core/aggregation`."
+      .. seealso:: ":doc:`/applications/aggregation`."
 
    accumulator
       An :term:`expression` in the :term:`aggregation framework` that

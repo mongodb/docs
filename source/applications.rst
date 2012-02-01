@@ -24,5 +24,5 @@ Aggregation Framework
 .. toctree::
    :maxdepth: 3
 
-   core/aggregation
+   applications/aggregation
    reference/aggregation

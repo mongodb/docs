@@ -465,7 +465,7 @@ Aggregation
    .. seealso:: ":doc:`/core/map-reduce`, provides a greater overview
       of MognoDB's map/reduce functionality. Consider
       ":doc:`/applications/simple-aggregation` for simple aggregation
-      operations and ":doc:`/core/aggregation`" for a more flexible
+      operations and ":doc:`/applications/aggregation`" for a more flexible
       approach to data aggregation in MongoDB.
 
    .. seealso:: ":js:func:`mapReduce()`" and ":doc:`/core/map-reduce`"

@@ -14,7 +14,7 @@ syntax and form as "regular" MongoDB database queries.
 This documentation provides an overview of all aggregation operators,
 their use, and their behavior.
 
-.. seealso:: ":doc:`/core/aggregation`" and
+.. seealso:: ":doc:`/applications/aggregation`" and
    ":ref:`aggregation-framework`" for more information on the
    aggregation functionality.
 
@@ -72,7 +72,7 @@ The current pipeline operators are:
        ]});
 
    This operation includes the ``title`` field and the ``author``
-   field in the document that is returned from the aggregation
+   field in the document that returns from the aggregation
    :term:`pipeline`. Because the first field specification is an
    inclusion, :aggregator:`$project` is in "inclusive" mode, and will
    return only the fields explicitly included (and the ``_id`` field.)
@@ -98,14 +98,15 @@ The current pipeline operators are:
 
    .. warning::
 
-      In the inclusive mode, *no* fields other than the ``_id`` field
-      may be excluded.
+      In the inclusive mode, you may exclude *no* fields other than
+      the ``_id`` field.
 
       A field inclusion in a projection will not create a field that
       does not exist in a document from the collection.
 
-   In the exclusion mode, all fields *except* the ones that are
-   specifically excluded are returned. Consider the following example:
+   In the exclusion mode, the :aggregator:`$project` returns all
+   fields *except* the ones that are explicitly excluded. Consider the
+   following example:
 
    .. code-block:: javascript
 
@@ -117,11 +118,10 @@ The current pipeline operators are:
           }}
       ]});
 
-:aggregator:`$match`:aggregator:`$match`   Here, the projection includes all fields except for the
-   "``comments``" and "``other``" field are retained and passed along
-   the pipeline.
+   Here, the projection propagates all fields except for the
+   "``comments``" and "``other``" fields along the pipeline.
 
-   The :aggregator:`$project` is placed in **exclusive** mode when the
+   The :aggregator:`$project` enters **exclusive** mode when the
    first field in the projection is an exclusion. When the first field
    is an **inclusion** the projection is inclusive.
 
@@ -151,8 +151,8 @@ The current pipeline operators are:
 
    .. note::
 
-      The expression that defines the computed field must be enclosed
-      in braces, so that it resembles an object and conforms to
+      You must enclose expression that defines the computed field in
+      braces, so that it resembles an object and conforms to
       JavaScript syntax.
 
    You may also use :aggregator:`$project` to rename fields. Consider
@@ -211,17 +211,18 @@ The current pipeline operators are:
 
       Because of the :term:`BSON` requirement to preserve field order,
       projections output fields in the same order that they were
-      input. Furthermore, when computed values are added to a
-      document, they will follow all fields from the original and
-      appear in the order that they appeared in the
+      input. Furthermore, when the aggregation framework adds computed
+      values to a document, they will follow all fields from the
+      original and appear in the order that they appeared in the
       :aggregator:`$project` statement.
 
 .. aggregator:: $match
 
    Provides a query-like interface to filter documents out of the
-   aggregation :term:`pipeline`. Documents that do not match the
-   statement are dropped, and documents that do match are passed along
-   the pipeline unaltered.
+   aggregation :term:`pipeline`. The :aggregator:`$match` drops
+   documents that do not match the statement from the aggregation
+   pipeline, and it passes documents that match along the pipeline
+   unaltered.
 
    The syntax passed to the :aggregator:`$match` is always identical
    to the :term:`query` syntax. Consider the following prototype form:
@@ -266,8 +267,8 @@ The current pipeline operators are:
       pipeline, earlier :aggregator:`$match` operations minimize the
       amount of later processing. If you place a :aggregator:`$match`
       at the very beginning of a pipeline, the query can take
-      advantage of :term:`indexes <index>` like any other :js:func:`find()` or
-      :js:func:`findOne()`.
+      advantage of :term:`indexes <index>` like any other
+      :js:func:`find()` or :js:func:`findOne()`.
 
 .. aggregator:: $limit
 
@@ -298,7 +299,7 @@ The current pipeline operators are:
 
    :aggregator:`$skip` takes a single numeric (positive whole number)
    value as a parameter. Once the operation has skipped the specified
-   number of documents, all remaining documents are passed along the
+   number of documents it passes all remaining documents along the
    :term:`pipeline` without alteration. Consider the following
    example:
 
@@ -401,39 +402,170 @@ The current pipeline operators are:
 .. aggregator:: $group
 
    Groups documents together for the purpose of calculating aggregate
-   values based on a collection of documents. Practically, you may use
-   this functionality to calculate the average number of page views
-   for each page in a website on a daily basis.
+   values based on a collection of documents. Practically, group often
+   supports tasks such as average page views for each page in a
+   website on a daily basis.
 
-   Use :aggregator:`$group` depends on the
+   The output of :aggregator:`$group` depends on how you define
+   groups. Begin by specifying an identifier (i.e. a "``_id``" field)
+   for the group you're creating with this aggregator. You can specify
+   a single field from the documents in the pipeline, or specify a
+   previously computed value.
 
-   - [$group\|Aggregation Framework - $group] \\- group documents by
-     key and calculate aggregate values for the group
+   Every group expression must specify an "``_id``" field, which is
+   naturally unique. You may specify the "``_id``" field as a dotted
+   field path reference, a document with multiple fields enclosed in
+   braces (i.e. "``{``" and "``}``"), or constant with a single
+   value. Always prefix the "``_id``" with a dollar sign
+   (i.e. "``$``".)
 
+   .. note::
 
+      Use :aggregator:`$project` as needed to rename the grouped field
+      after an :aggregator:`$group` operation, if necessary.
+
+   Consider the following example:
+
+   .. code-block:: javascript
+
+      db.runCommand(
+      { aggregate : "article", pipeline : [
+          { $group : {
+              _id : "$author",
+              docsPerAuthor : { $sum : 1 },
+              viewsPerAuthor : { $sum : "$pageViews" }
+          }}
+      ]});
+
+   This groups by the "``author``" field and computes two fields, the
+   first "``docsPerAuthor``" is a counter field that increments for
+   each document with a given author field using the :group:`$sum`
+   function. The "``viewsPerAuthor``" field derives from summation of
+   all of the "``pageViews``" fields in the grouped documents.
+
+   Each field that the :aggregator:`$group` must use one of the group
+   aggregation function listed below to generate its composite value:
 
    .. group:: $addToSet
 
+      Returns an array of all the values found in the selected field
+      among the documents in that group. *Every unique value only
+      appears once* in the result set.
+
    .. group:: $first
+
+      Returns the first value it sees for its field argument.
+
+      .. note::
+
+         Only use :group:`$first` when the :aggregator:`$group`
+         follows an :aggregator:`$sort` operation. Otherwise, the
+         result of this operation is unpredictable.
 
    .. group:: $last
 
+      Returns the last value it sees for its field argument.
+
+      .. note::
+
+         Only use :group:`$last` when the :aggregator:`$group`
+         follows an :aggregator:`$sort` operation. Otherwise, the
+         result of this operation is unpredictable.
+
    .. group:: $max
+
+      Returns the highest value among all values of the field in all
+      documents selected by this group.
 
    .. group:: $min
 
+      Returns the lowest value among all values of the field in all
+      documents selected by this group.
+
    .. group:: $push
+
+      Returns an array of all the values found in the selected field
+      among the documents in that group. *A value may appear more than
+      once* in the result set if more than one field in the grouped
+      documents has that value.
 
    .. group:: $sum
 
+      Returns the total or summation of all values for a specified
+      filed in the grouped documents, as in the second use above.
+
+      Alternately, if you specify a value as an argument,
+      :group:`$sum` will increment this field by the specified value
+      for every document in the grouping. Typically, as in the first
+      use above, specify a value of "``1`` " to create a *counter.*
+
+   .. warning::
+
+      The aggregation system stores :aggregator:`$group` operations in
+      memory, which may cause problems when processing a larger number
+      of groups.
+
 .. aggregator:: $sort
 
--  [$sort\|Aggregation Framework - $sort] \\- sort documents by key
+   The :aggregator:`$sort` :term:`pipeline` operator sorts all input
+   documents and returns them to the pipeline in sorted
+   order. Consider the following prototype form:
+
+   .. code-block:: javascript
+
+      db.runCommand(
+      { aggregate : "<collection-name>", pipeline : [
+          { $sort : { <sort-key> } }
+      ]});
+
+   This sorts the documents in the collection named
+   "``<collection-name>``", according to the key and specification in
+   the "``{ <sort-key> }``" document.
+
+   The sorting configuration is identical to the specification of an
+   :term:`index`. Within a document, specify a field or fields that
+   you want to sort by and a value of "``1``" or "``-1``" to specify
+   an ascending or descending sort receptively. See the following
+   example:
+
+   .. code-block:: javascript
+
+      db.runCommand(
+      { aggregate : "users", pipeline : [
+          { $sort : { age : -1, posts: 1 } }
+      ]});
+
+   This operation sorts the documents in the "``users``" collection,
+   in ascending order according by the "``age``" field and then in
+   descending order according to the value in the "``posts``" field.
+
+   .. note::
+
+      The :aggregator:`$sort` cannot begin sorting documents until
+      previous operators in the pipeline have returned all output.
+
+   .. warning:: The entire sort operation as of the current release
+      operates entirely in memory, which may cause problems when
+      sorting large numbers of documents.
 
 .. aggregator:: $out
 
--  [$out\|Aggregation Framework - $out] \\- save documents to a
-   collection and pass them on like a tee
+   Use :aggregator:`$out` to write the contents of the
+   :term:`pipeline`, without concluding the aggregation
+   procedure. Specify the name of a collection as an argument to
+   :aggregator:`$out`. Consider the following trivial example:
+
+   .. code-block:: javascript
+
+      db.runCommand(
+      { aggregate : "users", pipeline : [
+          { $out : "users2" }
+      ]});
+
+   This command reads all documents in the "``users``" collection and
+   writes them to the "``users2``" collection. The documents are then
+   returned by the aggregation framework in an array, which is the
+   default behavior.
 
 .. _aggregation-expression-operators:
 
@@ -446,65 +578,167 @@ framework`.
 Boolean Operators
 ~~~~~~~~~~~~~~~~~
 
-All boolean operators take booleans as their arguments and return
-booleans. Non-boolean values passed as input are converted to booleans
-as per BSON standards. So numeric values that are not zero treated as
-true, as a strings, dates, objects, arrays, etc. However, Null,
-undefined, and zero are treated as false.
+The three boolean operators accept take Booleans as arguments and
+return Booleans as results.
+
+.. note::
+
+   These operators convert non-boolean to Boolean values according to
+   the BSON standards. Here, "Null," undefined, and "zero" values
+   become "false," while non-zero numeric values, strings, dates,
+   objects, and other types become "true."
 
 .. expression:: $and
 
-**$and** takes an array and returns true if all of the values passed are
-true and false otherwise. Note: $and uses short-circuit logic, meaning
-it will stop evaluation when it encounters the first false expression.
+   Takes an array and returns ``true`` if *all* of the values in the
+   array are ``true``. Otherwise :expression:`$and` returns false.
+
+   .. note::
+
+      :expression:`$and` uses short-circuit logic: the operation will
+      stops evaluating after encountering the first ``false`` expression.
 
 .. expression:: $not
 
-**$not** returns the opposite of the boolean value it is passed (true if
-handed false and false if handed true).
+   Returns the boolean opposite value passed to it. When passed a
+   "``true``" value, :expression:`$not` returns ``false``; when passed
+   a "``false``" value, :expression:`$not` returns ``true``.
 
 .. expression:: $or
 
-**$or** takes an array and returns true if any of the values passed are
-true and false otherwise. Note: $or uses short-circuit logic, meaning it
-will stop evaluation when it encounters the first true expression.
+   Takes an array and returns ``true`` if *any* of the values in the
+   array are ``true``. Otherwise :expression:`$or` returns false.
+
+   .. note::
+
+      :expression:`$or` uses short-circuit logic: the operation will
+      stops evaluating after encountering the first ``false``
+      expression.
+
+Comparison Operators
+~~~~~~~~~~~~~~~~~~~~
+
+These operators perform comparisons between two values and return a
+Boolean, in most cases, reflecting that comparison.
+
+All comparison operators take a pair of numbers or an array with a
+pair of strings. Except for :expression:`$cmp`, all comparison
+operators return a Boolean value. :expression:`$cmp` returns an
+integer.
+
+.. expression:: $cmp
+
+   Takes two values, either a pair of numbers or an array with a pair
+   of strings, and returns an integer. The returned value is:
+
+   - A negative number if the first number is less than the second.
+
+   - A positive number if the first number is greater than the second.
+
+   - ``0`` if the the values are equal.
+
+.. expression:: $eq
+
+   Takes two values, either a pair of numbers or an array with a pair
+   of strings, and returns a Boolean. The returned value is:
+
+   - ``true`` when the values are equivalent.
+
+   - ``false`` when the values are **not** equivalent.
+
+.. expression:: $gt
+
+   Takes two values, either a pair of numbers or an array with a pair
+   of strings, and returns a Boolean. The returned value is:
+
+   - ``true`` when the first value is *greater than* the second value.
+
+   - ``false`` when the first value is *less than or equal to* the
+     second value.
+
+.. expression:: $gte
+
+   Takes two values, either a pair of numbers or an array with a pair
+   of strings, and returns a Boolean. The returned value is:
+
+   - ``true`` when the first value is *greater than or equal* to the
+     second value.
+
+   - ``false`` when the first value is *less than* the second value.
+
+.. expression:: $lt
+
+   Takes two values, either a pair of numbers or an array with a pair
+   of strings, and returns a Boolean. The returned value is:
+
+   - ``true`` when the first value is *less than* the second value.
+
+   - ``false`` when the first value is *greater than or equal to* the
+     second value.
+
+.. expression:: $lte
+
+   Takes two values, either a pair of numbers or an array with a pair
+   of strings, and returns a Boolean. The returned value is:
+
+   - ``true`` when the first value is *less than or equal to* the
+     second value.
+
+   - ``false`` when the first value is *greater than* the second
+     value.
+
+.. expression:: $ne
+
+   Takes two values, either a pair of numbers or an array with a pair
+   of strings, and returns a Boolean. The returned value is:
+
+   - ``true`` when the values are **not equivalent**.
+
+   - ``false`` when the values are equivalent.
 
 Arithmetic Operators
 ~~~~~~~~~~~~~~~~~~~~
 
 .. expression:: $add
 
-**$add** takes an array of numbers and adds them together, returning
-their sum.
-\* If a string is present in the array, all the values will be appended
-to one another in the order they are passed and returned as a string.
+   Takes an array of numbers and adds them together, returning the
+   sum.
 
--  If a date is present in the array (and no strings are), all numeric
-   values are treated as a number of days and added to the date, the
-   resulting date is returned.
+   - If the array contains a string, :expression:`$add` concatenates
+     all items and returns the result as a string.
+
+   - If the array contains a date and no strings, :expression:`$add`
+     treats all numbers as a quantity of days and adds them to the
+     date. The result has the date type.
 
 .. expression:: $divide
 
-**$divide** takes an array containing a pair of numbers and returns the
-value of the first number divided by the second number.
+   Takes an array that contains a pair of numbers and returns the
+   value of the first number divided by the second number.
 
 .. expression:: $mod
 
-**$mod** takes an array containing a pair of numbers and computes and
-returns the remainder of the first number divided by the second number.
+   Takes an array that contains a pair of numbers and returns the
+   *remainder* of the first number divided by the second number.
+
+   .. seealso:: :operator:`$mod`
 
 .. expression:: $multiply
 
-**$multiply** takes an array of numbers and multiples them together, the
-resulting product is returned.
+   Takes an array of numbers and multiples them, returning the
+   resulting product.
 
 .. expression:: $subtract
 
-**$subtract** takes an array containing a pair of numbers and subtracts
-the second from the first, returning their difference.
-\* If a date is passed as the first entry in the array, the number will
-be treated as a number of days and removed from the date, the resulting
-date is returned.
+   Takes an array that contains a pair of numbers and subtracts the
+   second from the first, returning their difference.
+
+   .. note::
+
+      If the first entry in the array is a date,
+      :expression:`$subtract` treats the second entry, a number, as a
+      number of days and decrements the date, returning the resulting
+      date.
 
 .. expression:: $avg
 
@@ -513,100 +747,110 @@ TODO confirm existence, appears in an example on the wiki
 String Operators
 ~~~~~~~~~~~~~~~~
 
+These operators manipulate strings within aggregation :term:`pipeline`
+operators.
+
 .. expression:: $strcasecmp
 
-**$strcasecmp** takes in two strings and returns a Javascript long that
-is positive if the first string is “greater than” the second, is
-negative if the first string is “less than” the second, and 0 if they
-are the same string. Note: unlike $cmp the strings are capitalized
-before being compared, so $strcmp is case insensitive.
+   Takes in two strings. Returns a number, of JavaScript type "long."
+   :expression:`$strcasecmp` is positive if the first string is
+   "greater than" the second and negative if the first string is "less
+   than" the second. :expression:`$strcasecmp` returns 0 if the
+   strings are identical.
+
+   .. note::
+
+      :expression:`$strcasecmp` capitalizes all strings, and thus
+      provides a case-*insensitive* comparison. Use :expression:`$cmp`
+      for a case sensitive comparison.
 
 .. expression:: $substr
 
-**$substr** takes a string and two numbers, the first number represents
-the number of characters to skip in the original string and the second
-is the number of characters to take from the original string. The
-resulting string is returned.
+   :expression:`$substr` takes a string and two numbers. The first
+   number represents the number of characters in the string to skip,
+   and the second number specifies the number of characters to return
+   from the string.
 
 .. expression:: $toLower
 
-**$toLower** takes in a single string and returns the same string with
-all uppercase letters replace with their lowercase equivalents.
+   Takes a single string and converts that string to lowercase,
+   returning the result. All upper letters become lowercase.
 
 .. expression:: $toUpper
 
-**$toUpper** takes in a single string and returns the same string with
-all lowercase letters replace with their uppercase equivalents.
+   Takes a single string and converts that string to uppercase,
+   returning the result. All lowercase letters become uppercase.
 
-.. seealso::
-
-   **$add** [see Arithmetic Add \|#Arithmetic Operators]
+.. seealso:: ":expression:`$add`" can also manipulate string objects.
 
 
 Date Operators
 ~~~~~~~~~~~~~~
 
-All date operators, except $add and $subtract, take a Date as their
-single argument and return a Javascript long.
+All date operators, except :expression:`$add` and
+:expression:`$subtract`, take a "Date" typed object as a single
+argument and return a JavaScript "long" typed number object.
 
 .. expression:: $dayOfMonth
 
-**$dayOfMonth** returns the day of the month as a number between 1 and
-31.
+   Takes a date object and returns the day of the month as a number
+   between 1 and 31.
 
 .. expression:: $dayOfWeek
 
-**$dayOfWeek** returns the day of the week as a number between 1 and 7.
+   Takes a date object and returns the day of the week as a number
+   between 1 and 7.
 
 .. expression:: $dayOfYear
 
-**$dayOfYear** returns the day of the year as a number between 1 and
-366.
+   Takes a date object and returns the day of the year as a number
+   between 1 and 366.
 
 .. expression:: $hour
 
-**$hour** returns the hour between 0 and 23.
+   Takes a date object and returns the hour between 0 and 23.
 
 .. expression:: $minute
 
-**$minute** returns the minute between 0 and 59.
+   Takes a date object and returns the minute between 0 and 59.
 
 .. expression:: $month
 
-**$month** returns the month as a number between 1 and 12.
+   Takes a date object and returns the month as a number between 1 and 12.
 
 .. expression:: $second
 
-**$second** returns the second between 0 and 59.
+   Takes a date object and returns the second between 0 and 59.
 
 .. expression:: $week
 
-**$week** returns the week of the year as a number between 0 and 53.
-Weeks start on Sundays and the days before the first Sunday of the year
-are in week 0.
+   Takes a date object and returns the week of the year as a number
+   between 0 and 53.
+
+   Weeks start on Sundays and the days before the first Sunday of the
+   year are in "week 0."
 
 .. expression:: $year
 
-**$year** returns the four digit year.
+   Takes a date object and returns a four digit number.
 
-.. seealso::
+.. seealso:: ":expression:`$add`" and ":expression:`$subtract` can
+   also manipulate date objects.
 
-   **$add** [see Arithmetic Add \|#Arithmetic Operators]
-
-   **$subtract** [see Arithmetic Subtract \|#Arithmetic Operators]
-
-Other
-~~~~~
+Multi-Expressions
+~~~~~~~~~~~~~~~~~
 
 .. expression:: $ifNull
 
-**$ifNull** takes an array of two expressions. If the first expression
-evaluates to a non-false value, it is returned. Otherwise, the second
-expression’s value is returned.
+   Takes an array with two expressions. :expression:`$ifNull` returns
+   the first expression if it evaluates to a non-false
+   value. Otherwise, :expression:`$ifNull` returns the second
+   expression’s value.
 
 .. expression:: $cond
 
-**$cond** takes an array of three expressions, the first of which should
-evaluate to a boolean value. If the first expression is true, $cond
-evaluates and returns the second expression. If the first expression is
-false, $cond evaluates and returns the third expression.
+   Takes an array with three expressions, where the first expression
+   evaluates to a Boolean value. If the first expression is true,
+   :expression:`$cond` returns the second expression. If the first
+   expression is false, :expression:`$cond` evaluates and returns the
+   third expression.
