@@ -25,8 +25,8 @@ Query and Update Functions
    :returns: All of the documents that match the ``query`` document.
 
    Provides access to querying functionality. The argument to
-   ``find()`` takes the form of a :term:`JSON` document. See the
-   ":doc:`/reference/operators`" for an overview of the available
+   :js:func:`find()` takes the form of a :term:`JSON` document. See
+   the ":doc:`/reference/operators`" for an overview of the available
    operators to provide query functionality.
 
 .. js:function:: findOne(query)
@@ -113,16 +113,16 @@ Query and Update Functions
 .. js:function:: save()
 
    Provides the ability to create a new document in the current
-   database and collection. The argument to ``save()`` takes the form
+   database and collection. The argument to :js:func:`save()` takes the form
    of a :term;`JSON` document. See ":ref:`update-operators`" for a
    reference of all operators that affect updates.
 
 .. js:function:: update()
 
    Provides the ability to update an existing document in the current
-   database and collection. The argument to ``update()`` takes the
-   form of a :term;`JSON` document. See ":ref:`update-operators`" for
-   a reference of all operators that affect updates.
+   database and collection. The argument to :js:func:`update()` takes
+   the form of a :term;`JSON` document. See ":ref:`update-operators`"
+   for a reference of all operators that affect updates.
 
 Query Modifiers
 ~~~~~~~~~~~~~~~
@@ -163,9 +163,11 @@ Query Modifiers
    Provides the ability to loop or iterate over the cursor returned by
    a :js:func:`find()` query and returns each result on the
    shell. Specify a JavaScript function as the argument for the
-   ``forEach()`` function. Consider the following example: ::
+   :js:func:`forEach()` function. Consider the following example:
 
-         db.users.find().forEach( function(u) { print("user: " + u.name); } );
+   .. code-block:: javascript
+
+      db.users.find().forEach( function(u) { print("user: " + u.name); } );
 
    .. seealso:: :js:func:`map()` for similar functionality.
 
@@ -174,9 +176,11 @@ Query Modifiers
    Provides the ability to loop or iterate over the cursor returned by
    a :js:func:`find()` query and returns each result as the member of
    an array. Specify a JavaScript function as the argument for the
-   ``map()`` function. Consider the following example: ::
+   :js:func:`map()` function. Consider the following example:
 
-         db.users.find().map( function(u) { print("user: " + u.name); } );
+   .. code-block:: javascript
+
+      db.users.find().map( function(u) { print("user: " + u.name); } );
 
    .. seealso:: :js:func:`forEach()` for similar functionality.
 
@@ -184,7 +188,7 @@ Query Modifiers
 
    :returns: boolean.
 
-   ``hasNext()`` returns ``true`` if the cursor returned by the
+   :js:func:`hasNext()` returns ``true`` if the cursor returned by the
    :js:func:`find()` query contains documents can iterate further to
    return results.
 
@@ -195,46 +199,50 @@ Query Cursor Methods
 
 .. js:function:: count()
 
-   Append the ``count()`` method to a ":js:func:`.find()`" query to
-   return the number of matching objects for any query. ``count()`` is
-   optimized to perform this operation on the MongoDB server rather
-   than in the application code.
+   :param boolean override: Override the effects of the
+                            :js:func:`skip()` and :js:func:`limit()`
+                            methods on the
 
-   In normal operation, ``count()`` ignores the effects of the
+   Append the :js:func:`count()`` on a ":js:func:`.find()`" query to
+   return the number of matching objects for any query.
+
+   In normal operation, :js:func:`count()` ignores the effects of the
    :js:func:`skip()` and :js:func:`limit()`. To consider these
    effects specify "``count(true)``".
 
 .. js:function:: limit()
 
-   Append the ``limit()`` method to a ":js:func:`find()`" query to
-   specifies the maximum number of documents a query will
-   return. ``limit()`` is analogous to the ``LIMIT`` statement in a
-   SQL database.
+   Use the :js:func:`limit()` method on a ":js:func:`find()`" query
+   to specifies the maximum number of documents a query will
+   return. :js:func:`limit()` is analogous to the ``LIMIT`` statement
+   in a SQL database.
 
-   Use ``limit()`` to maximize performance and avoid having MongoDB
-   return more results than are required for processing.
+   Use :js:func:`limit()` to maximize performance and prevent MongoDB
+   from returning more results than required for processing.
 
-   A ``limit()`` value of 0 (e.g. "``.limit(0)``") is equivalent to
+   A :js:func:`limit()` value of 0 (e.g. "``.limit(0)``") is equivalent to
    setting no limit.
 
 .. js:function:: skip()
 
-   Append ``skip()`` to a ":js:func:`.find()`" query to control where
-   MongoDB begins returning results. This approach may be useful in
-   implementing "paged" results. Consider the following JavaScript
-   function as an example of the sort function: ::
+   Call the :js:func:`skip()` method on a ":js:func:`.find()`" query
+   to control where MongoDB begins returning results. This approach
+   may be useful in implementing "paged" results. Consider the
+   following JavaScript function as an example of the sort function:
+
+   .. code-block:: javascript
 
         function printStudents(pageNumber, nPerPage) {
            print("Page: " + pageNumber);
            db.students.find().skip((pageNumber-1)*nPerPage).limit(nPerPage).forEach( function(student) { print(student.name + "<p>"); } );
         }
 
-   The ``skip()`` method can be quite costly because it requires the
-   serer to walk from the beginning of the collection or index to get
-   the offset or skip position before beginning to return result. As
-   offset (e.g. ``pageNumber`` above) increases, ``skip()`` will
-   become slower and more CPU intensive. With larger collections,
-   ``skip()`` may become IO bound.
+   The :js:func:`skip()` method is often expensive because it requires
+   the server to walk from the beginning of the collection or index to
+   get the offset or skip position before beginning to return
+   result. As offset (e.g. ``pageNumber`` above) increases,
+   :js:func:`skip()` will become slower and more CPU intensive. With
+   larger collections, :js:func:`skip()` may become IO bound.
 
    Consider using range-based pagination for these kinds of
    tasks. That is, query for a range of objects, using logic within
@@ -244,7 +252,7 @@ Query Cursor Methods
 
 .. js:function:: snapshot()
 
-   Append the ``snapshot()`` method to the :js:func:`find()` query to
+   Append the :js:func:`snapshot()` method to the :js:func:`find()` query to
    toggle the "snapshot" mode. This ensures that the query will not
    miss any documents and return no duplicates, when other operations
    modify objects while the query runs. Snapshot mode only affects
@@ -255,9 +263,9 @@ Query Cursor Methods
 
 .. js:function:: sort()
 
-   Append the ``sort()`` method to the :js:func:`find()`" queries to
+   Append the :js:func:`sort()` method to the :js:func:`find()`" queries to
    control the order that the query returns matching
-   documents. Consider the following example: ::
+   documents. Consider the following example:
 
    .. code-block:: javascript
 
@@ -269,7 +277,7 @@ Query Cursor Methods
    or a positive value (e.g. "``1``") to sort in ascending order.
 
    Unless you have a index for the specified key pattern, use
-   ``sort()`` in conjunction with :js:func:`limit()` to avoid
+   :js:func:`sort()` in conjunction with :js:func:`limit()` to avoid
    requiring MongoDB to perform a large in-memory
    sort. :js:func:`limit()` increases the speed and reduce the amount
    of memory required to return this query by way of an optimized
@@ -502,9 +510,9 @@ Database
 
       db.getMongo().setSlaveOK()
 
-   In essence, this indicates that "eventually consistent" read
-   operations are acceptable for the current connection. This function
-   Provides the same functionality as :js:func:`rs.slaveOk()`.
+   Indicates that "eventually consistent" read operations are
+   acceptable for the current connection. This function provides the
+   same functionality as :js:func:`rs.slaveOk()`.
 
 .. js:function:: db.getName()
 
@@ -514,9 +522,9 @@ Database
 
    :returns: A status document, containing the errors.
 
-   This output reports all errors since the last time the
-   :dbcommand:`resetError` (also :js:func:`db.resetError()`)
-   command was issued.
+   This output reports all errors since the last time the database
+   received a :dbcommand:`resetError` (also
+   :js:func:`db.resetError()`) command.
 
    This command provides a wrapper around the
    :dbcommand:`getPrevError` command.
@@ -1348,7 +1356,7 @@ Sharding
    automated processes. However, when initially deploying a
    :term:`shard cluster` it is necessary to perform some measure of
    :term:`pre-splitting` using manual methods including
-   ``sh.splitFind()``.
+   :js:func:`sh.splitFind()`.
 
 .. js:function:: sh.splitAt(collection, query)
 
@@ -1370,7 +1378,7 @@ Sharding
    automated processes within MongoDB. However, when initially
    deploying a :term:`shard cluster` it is necessary to perform some
    measure of :term:`pre-splitting` using manual methods including
-   ``sh.splitAt()``.
+   :js:func:`sh.splitAt()`.
 
 .. js:function:: sh.moveChunk(collection, query, destination)
 
@@ -1527,7 +1535,7 @@ Replica Sets
    will be :term:`primary`. As a result, the shell will display an
    error even if this command succeeds.
 
-   ``rs.add()`` provides a wrapper around some of the functionality of
+   :js:func:`rs.add()` provides a wrapper around some of the functionality of
    the ":dbcommand:`replSetReconfig`" :term:`database command`.
 
 .. js:function:: rs.addArb(hostname)
@@ -1560,7 +1568,7 @@ Replica Sets
    will be :term:`primary`. As a result, the shell will display an
    error even if this command succeeds.
 
-   ``rs.step()`` provides a wrapper around the :term:`database
+   :js:func:`rs.step()` provides a wrapper around the :term:`database
    command` :dbcommand:`replSetStepDown`.
 
 .. js:function:: rs.freeze(seconds)
@@ -1570,7 +1578,7 @@ Replica Sets
    Forces the current node to become ineligible to become primary for
    the period specified.
 
-   ``rs.freeze()`` provides a wrapper around the :term:`database
+   :js:func:`rs.freeze()` provides a wrapper around the :term:`database
    command` :dbcommand:`replSetFreeze`.
 
 .. js:function:: rs.remove(hostname)
@@ -1643,7 +1651,7 @@ User Functions
      :option:`--shell <mongo --shell>` option to return to the shell after
      running the command.
 
-   Specify files loaded with the ``load()`` function in relative terms
+   Specify files loaded with the :js:func:`load()` function in relative terms
    to the current directory of the :program:`mongo` shell
    session. Check the current directory using the ":js:func:`pwd()`"
    function.

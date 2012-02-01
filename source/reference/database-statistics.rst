@@ -15,19 +15,38 @@ resembles the following:
 
 .. code-block:: javascript
 
-   db.stats()
    db.runCommand( { dbStats: 1 } )
 
-The above commands are equivalent. This returns values in bytes, to
-convert to kilobytes, use the following form:
+The :program:`mongo` shell provides the :js:func:`db.stats()` as a
+helper. Use the following form:
+
+.. code-block:: javascript
+
+   db.stats()
+
+The above commands are equivalent. Without any arguments,
+:js:func:`db.stats()` returns values in bytes. To convert the returned
+values to kilobytes, use the following form:
 
 .. code-block:: javascript
 
    db.stats(1024)
+
+Or:
+
+.. code-block:: javascript
+
    db.runCommand( { dbStats: 1, scale: 1024 } )
 
-The above commands are equivalent. See :dbcommand:`dbStats` for more
-information.
+.. note::
+
+   Because scaling rounds values to whole number, scaling may return
+   unlikely or unexpected results.
+
+The above commands are equivalent.
+
+.. seealso:: See :dbcommand:`dbStats`, :js:func:`db.stats()`
+   additional more information.
 
 Fields
 ------
@@ -47,20 +66,20 @@ Fields
 
 .. stats:: avgObjSize
 
-   The average size of each object. This value is affected by the
-    "``scale``" factor.
+   The average size of each object. The scale factor affects this
+   value.
 
 .. stats:: dataSize
 
    The total size of the data held in this database. This does not
-   include the :term:`padding factor`, and is affected by the
-   "``scale``" factor.
+   include the :term:`padding factor`. The scaling factor affects this
+   value.
 
 .. stats:: storageSize
 
    The total amount of allocated and preallocated storage for this
-   database. This includes the :term:`padding factor` and is affected
-   by the "``scale``" factor.
+   database. This includes the :term:`padding factor`. The scaling
+   factor affects this value.
 
 .. stats:: numExtents
 
@@ -69,19 +88,19 @@ Fields
 
 .. stats:: indexes
 
-   Contains a count of the total number of indexes across all
+p   Contains a count of the total number of indexes across all
    collections in the database.
 
 .. stats:: indexSize
 
-   The total size of all indexes created on this database. This value
-   is affected by the "``scale``" factor.
+   The total size of all indexes created on this database. The scaling
+   factor affects this value.
 
 .. stats:: fileSize
 
    The total size of the data files that hold the database. This
-   includes preallocated space and the :term:`padding factor`. This
-   value is affected by the "``scale``" factor.
+   includes preallocated space and the :term:`padding factor`. The
+   scaling factor affects this value.
 
 .. stats:: nsSizeMB
 
