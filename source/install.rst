@@ -95,6 +95,11 @@ agent on a Windows host, skip to the :ref:`window instructions
    For more information concerning PyMongo installation, see the `the
    PyMongo documentation <http://api.mongodb.org/python/2.0.1/installation.html>`_.
 
+6. If your datacenter requires that you proxy outbound connections
+   through an, you must use a version of Python greater than
+   2.6.1. Additionally, you will need export the "``https_proxy``"
+   environment variable (or "``HTTPS_PROXY``" on Windows.)
+
 Consider the ``README`` file distributed with the agent for more
 information. When all dependencies are successfully installed, you may
 proceed to installing the agent.
@@ -148,7 +153,18 @@ command in your MongoDB control script or use your system's
 root.
 
 See the ":doc:`deployment`" document for more information on
-strategies for deploying the agent and your monitoring architecture.
+strategies for deploying the agent and your monitoring
+architecture. If your datacenter requires that you route outbound
+https connections via a proxy, export the "``https_proxy``"
+environment variable (or "``HTTPS_PROXY``" on Windows.) Issue the
+following command before running the agent: ::
+
+     export https_proxy='http://proxyserver.example.net:port"
+
+Replace "``http://proxyserver.example.net``" with the name or IP
+address of the proxy server and "``port`` with the TCP port that the
+proxy service runs on. You may choose to export this variable inside
+of your control script.
 
 Once the agent is running, you can return to the web interface to
 begin configuring MMS for your deployment.
