@@ -11,7 +11,7 @@ Registering for MMS
 
 If you already have `jira account <http://jira.mongodb.org/>`_ you may
 sign in with your JIRA credentials. When you sign into MMS for the
-first time, you will be prompted to create a new "group" for your
+first time, the system prompts you to create a new "group" for your
 deployment.
 
 If you do not already have a JIRA account, register for an MMS account
@@ -42,8 +42,9 @@ agent on a Windows host, skip to the :ref:`window instructions
 
 2. You'll need Python's `setuptools <http://pypi.python.org/pypi/setuptools>`_.
 
-   In most cases, setuptools is packaged by your operating system. For example,
-   Debian and Ubuntu users can use the following command to install the package: ::
+   Most operating systems (i.e. distributions) package setuptools. For
+   example, Debian and Ubuntu users can use the following command to
+   install the package: ::
 
         sudo apt-get install python-setuptools
 
@@ -81,9 +82,11 @@ agent on a Windows host, skip to the :ref:`window instructions
 
         sudo yum install gcc python-devel
 
-   ``pymongo`` Version 1.9 is required, but the latest version is
-   recommended. If you have not installed ``pymongo`` issue the
-   following command: ::
+   The agent requires at least version 1.9 of PyMongo. The latest
+   version may provide additional speed and stability, if
+   possible. Use the latest version you can. If you have not installed
+   ``pymongo`` issue the following command to install the latest
+   version: ::
 
         easy_install pymongo
 
@@ -127,9 +130,9 @@ This starts two processes: a parent to monitor the agent daemon and
 perform automatic upgrades and a child process to collect data.
 
 .. warning:: If your MongoDB instance has thousands of databases or
-             collections, you will want to disable database statistics
-             collection. See ":ref:`Database and Collection statistics
-             <db-stats-warning>`" for more information.
+   collections, you will want to disable database statistics
+   collection. See ":ref:`Database and Collection statistics
+   <db-stats-warning>`" for more information.
 
 Running the MMS Agent
 ~~~~~~~~~~~~~~~~~~~~~
@@ -220,8 +223,8 @@ Replace "``<original value>``" with the value that you recorded above.
 Updating the MMS Agent
 ----------------------
 
-The agent perform automatic self-updates when new versions of the
-agent daemon are released.
+The agent automatically updates itself following release of versions
+of the agent.
 
 Auto-updating requires that agent run as a user that is capable of
 writing files to the directory that contains the agent. To manually
@@ -270,10 +273,10 @@ output or logs. For more information, check the MMS console's "Hosts,"
 section in the "Agent Log" and "Pings" tabs. Once MMS has data, you
 can view and begin using the statistics.
 
-If the agent cannot collect information about a host for 24 hours,
-that host is deactivated in the MMS agent and console. Deactivated
-hosts must be manually reactivated from the MMS console if you wish to
-collect data from these hosts.
+If the agent cannot collect information about a host for 24 hours, the
+MMS system deactivates the instance in MMS agent and
+console. Deactivated hosts must be manually reactivated from the MMS
+console if you wish to collect data from these hosts.
 
 .. _troubleshooting:
 
@@ -354,14 +357,15 @@ the "``sudo yum install munin-node``" command. Ensure that
   running. If these "``fetch``" commands return data, then
   ``munin-node`` is running and accessible by MMS agent.
 
-If ``munin-node`` is running but inaccessible, make sure that access
-is granted for the system running the MMS agent and that no firewalls
-block the port between ``munin-node`` and the agent. The munin-node
-configuration file is located at "``/etc/munin-node/munin-node.conf``"
-or "``/etc/munin-node.conf``". If you encounter problems, check the
+If ``munin-node`` is running but inaccessible, make sure that you have
+access granted access for the system running the MMS agent and that no
+firewalls block the port between ``munin-node`` and the agent. You may
+find the ``munin-node`` configuration at
+"``/etc/munin-node/munin-node.conf``" or "``/etc/munin-node.conf``",
+depending on your distribution. If you encounter problems, check the
 log files for ``munin-node`` to ensure that there are no errors with
-Munin. These logs are located in the ``/var/log/`` directory on the
-monitored system.
+Munin. ``munin-node`` writes logs files in the ``/var/log/`` directory
+on the monitored system.
 
 Next Steps with MMS
 ~~~~~~~~~~~~~~~~~~~
