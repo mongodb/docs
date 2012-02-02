@@ -76,6 +76,8 @@ this group.
 Although it's not possible to delete a group, you can remove your user
 account from a group to suppress that data.
 
+.. _automated-agent-installation:
+
 Automated Agent Installation
 ----------------------------
 

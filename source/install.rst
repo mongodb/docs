@@ -134,6 +134,11 @@ perform automatic upgrades and a child process to collect data.
    collection. See ":ref:`Database and Collection statistics
    <db-stats-warning>`" for more information.
 
+.. seelaso:: ":ref:`Automated Installation <automated-agent-installation>`"
+   to see how you can download a copy of the agent without the
+   automatic configuration and then install and manually configure the
+   MMS agent.
+
 Running the MMS Agent
 ~~~~~~~~~~~~~~~~~~~~~
 
