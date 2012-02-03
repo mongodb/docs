@@ -87,7 +87,7 @@ agent deployments from the command line, you will need to manually
 configure the agent. Download an unconfigured agent from the following
 URL: ::
 
-      https://mms-stage.10gen.com/settings/10gen-mms-agent.zip
+      https://mms.10gen.com/settings/10gen-mms-agent.zip
 
 Unzip this archive and edit the ``settings.py`` file. Replace the
 strings "``@API_KEY@``" and "``@SECRET_KEY@``" with the "API" and
@@ -100,8 +100,8 @@ automatically install or redeploy new agents.
 Automated Agent Updates
 -----------------------
 
-The agent perform automatic self-updates when new versions of the
-agent daemon are released.
+The agent perform automatic self-updates when 10gen releases new
+versions of the agent daemon.
 
 Auto-updating requires that agent run as a user that is capable of
 writing files to the directory that contains the agent.
