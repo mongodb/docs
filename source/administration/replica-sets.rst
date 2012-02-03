@@ -37,7 +37,7 @@ From to time, it may be necessary to add an additional member to an
 existing :term:`replica set`. The data directory for the new member
 can either:
 
-- have no data. In this case, all data must be copied as part of the
+- have no data. In this case, you must copy all data as part of the
   replication process before the member can exit ":term:`recovering`"
   status, and become a :term:`secondary` member.
 
@@ -55,7 +55,7 @@ To add a member to an existing :term:`replica set`, deploy a new
 :program:`mongod` instance, specifying the name of the replica set
 (i.e. "setname" or ``replSet``) on the command line with the
 :option:`--replSet <mongod --replSet>` option or in the configuration
-with the :mongodb:setting:`replSet`. Take note of the host name and
+with the :setting:`replSet`. Take note of the host name and
 port information for the new :program:`mongod` instance.
 
 Then, log in to the current primary using the :program:`mongo`

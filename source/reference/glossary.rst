@@ -44,7 +44,7 @@ Glossary
       columns in relational databases.
 
    database
-      Each database is stored in a unique file on the file
+      Each database resides in a unique file on the file
       system. Databases contain a number of :term:`collections
       <collection>`.
 
@@ -66,11 +66,11 @@ Glossary
 
    JSON document
       :term:`JSON` documents are collections of fields and values in a
-      structured format. JSON documents are enclosed in "curly braces."
+      structured format. JSON encloses documents in "curly braces."
 
    Admin Database
       The administration database is a privileged database named
-      "``admin``" that is used to provide special administrative
+      "``admin``", which provide special administrative
       functionality. See :doc:`commands` for more information on these
       commands.
 
@@ -84,12 +84,12 @@ Glossary
          ":doc:`/core/replication`."
 
    Replication
-     A database architecture where the data corpus is duplicated on a
+     A database architecture that replicates the data corpus on a
      number of machines to provide redundancy and load
-     distribution. See also :term:`sharding` and :term:`Replica set`.
+     distribution.
 
-      .. seealso:: :term:`replica set`, ":doc:`/replication`." and
-         ":doc:`/core/replication`."
+      .. seealso:: :term:`replica set`, :term:`sharding`,
+         ":doc:`/replication`." and ":doc:`/core/replication`."
 
    Shard
       A for a :term:`mongod` instance that only stores a portion of
@@ -99,23 +99,23 @@ Glossary
       .. seealso:: ":doc:`/core/sharding`."
 
    Sharding
-      A database architecture where the data corpus is split among
+      A database architecture that splist the data corpus among
       a cluster of system to enable horizontal scaling. MongoDB added
-      support for automatic shading in version 1.6 (TODO) See
-      :term:`shard`.
+      support for automatic shading in version 1.6 See :term:`shard`.
 
       .. seealso:: ":doc:`/core/sharding`."
 
    shard cluster
       A collection of MongoDB instances with a dataset partitioned
-      or ":term:`sharded <sharding>`" among a set of nodes.
+      or ":term:`sharded <sharding>`" among a set of instances.
 
       .. seealso:: ":doc:`/core/sharding`."
 
    partition
-      A distributed system architecture that splits resource (i.e. data
-      corpus) between a number of independent
-      systems. :term:`Sharding` is an example of partitioning.
+      A distributed system architecture that splits resources
+      (i.e. the entire contents of a database between a number of
+      independent systems. :term:`Sharding` is an example of
+      partitioning.
 
    mongod
       :program:`mongod` is the :term:`daemon` that runs MongoDB database
@@ -124,17 +124,17 @@ Glossary
       .. seealso:: ":doc:`/reference/mongod`."
 
    mongos
-      ``mongos`` is a routing and load balancing process that provides
-      an interface between an application and ``mongod`` instances in
-      a :term:`shard cluster`. See ":doc:`/reference/mongos`" for more
-      information.
+      :program:`mongos` is a routing and load balancing process that
+      provides an interface between an application and
+      :program:`mongod` instances in a :term:`shard cluster`. See
+      ":doc:`/reference/mongos`" for more information.
 
       .. seealso:: ":doc:`/reference/mongos`."
 
    mongo
-      The MongoDB Shell. Mongo connects to the :term:`mongod`
+      The MongoDB Shell. Mongo connects to the :program:`mongod`
       database and provides an interface for administration,
-      management, and testing. ``mongo`` uses complete JavaScript
+      management, and testing. :program:`mongo` uses complete JavaScript
       interface.
 
       .. seealso:: ":doc:`/reference/mongo`" and
@@ -160,15 +160,15 @@ Glossary
       provides the ability to build queries around multi-sided
       polygons on 2 dimensional coordinate systems. These queries use
       the :operator:`$within` operator and a sequence of points that define
-      the corners of the polygon. MongoDB assumes that the first point
-      is connected to the last.
+      the corners of the polygon. MongoDB assumes the connection
+      between the first and last point.
 
    Circle
       MongoDB's :term:`geospatial` indexes and querying system
       provides the ability to build queries around circles on 2
-      dimensional coordinate systems. These queries use the :operator:`$circle`
-      operator to define circle using the center and the radius of the
-      circle.
+      dimensional coordinate systems. These queries use the
+      :operator:`$circle` operator to define circle using the center
+      and the radius of the circle.
 
    Box
       MongoDB's :term:`geospatial` indexes and querying system
@@ -180,14 +180,15 @@ Glossary
    capped collection
       Capped collections, are :term:`collections <collection>` that
       have a maximum size, and an (optional) maximum number of
-      documents. These collections are used to prevent collections
+      documents. These kinds of collections prevent collections
       from growing out of control and are useful in the context of
       logging or caching functions.
 
       .. seealso:: ":doc:`/core/capped-collections`."
 
    BSON types
-      BSON objects are typed. The following types are available:
+      BSON types describe the kind of data encoded in the objects
+      themselves. The following types are available:
 
       =======================  ==========
       **Type**                 **Number**
@@ -213,29 +214,31 @@ Glossary
       =======================  ==========
 
    Master
-      In conventional master/:term:`slave` replication, all writes
-      are sent to the master database which ensures consistency. The
-      entire contents of the master instance are replicated to the
-      slave instance.
+      In conventional master/:term:`slave` replication, the master
+      database receives all writes, which ensures consistency. The
+      slave instances replicate the entire contents of the master
+      instance.
 
    Slave
-      In conventional :term:`master`/slave replication, the contents
-      of the database are replicated on the secondary database. Read
-      operations can be directed at the slave database, but all write
-      operations must be directed to the master database.
+      In conventional :term:`master`/slave replication, the slave
+      instances replicate operations from the master database. While,
+      clients and applications can read from slave databases, they
+      must direct all write operations to the master database. Data
+      read from slave instances may not be consistent with the master,
+      depending on the database's consistency pattern.
 
    Primary
-      In a :term:`replica set` the primary node is the current
+      In a :term:`replica set` the primary member is the current
       ":term:`master`," of the set that receives write operations and
-      ensures that the set maintains a consistent state. These nodes
+      ensures that the set maintains a consistent state. These instances
       can assume :term:`secondary` status at a later point.
 
    Secondary
-      In a :term:`replica set` the secondary nodes are the current
+      In a :term:`replica set` the secondary members are the current
       :term:`slave` instances that replicate the content of the
       database and may assume :term:`primary` status at a later
-      point. Secondary nodes can handle read requests, but all write
-      operations are handled by the primary node.
+      point. Secondary members may handle read requests, but only the
+      :term:`primary` members can handle write operations.
 
    GridFS
       A method for storing files in a MongoDB database that exceed the
@@ -256,45 +259,49 @@ Glossary
          ":doc:`/reference/javascript`."
 
    write-lock
-      When a process needs to write to the database, a write-lock is
-      used to prevent other processes from reading or producing an
-      inconsistent state. These operations are typically very
-      short-lived, but prevent all other operations from succeeding.
+      When a process writes to the database, a it takes a write-lock
+      to  prevent other processes from writing or reading, which would
+      produce an inconsistent state. These operations are typically
+      very short-lived, but block all other operations while active.
 
    index
       Indexes provide the database with a fast and reliable way of
       accessing data without requiring full reads of all data in a
       collection.
 
+      .. seealso:: ":doc:`/core/indexing`"
+
    compound index
-      An :term:`index`
+      An :term:`index` that contains more than one key, and may more
+      effectively support a number of different queries.
 
       .. seealso:: ":doc:`/core/indexing`"
 
    btree
-      btree's are a fast data representation that provides for
-      efficient writing and reading binary data. MongoDB uses b-trees
-      for data storage.
+      btree's provide a very efficient data representation that
+      provides for efficient writing and reading binary data. MongoDB
+      uses b-trees for indexes.
 
    ISODate
-      The standard date representation in database fields. MongoDB's
-      date type derives from the JavaScript date representation.
+      The standard date representation fields that hold data of the
+      date type.
 
-   journaling
-      MongoDB's journal provides a transnational log that provides
-      durability for database operations. When using the journal, all
-      data is written to disk in at least two locations, and items are
-      logged to the journal *much* more frequently than the state of
-      the database is flushed to the disk. The journal can thus be
-      used to recover the state of the database in the event of system
-      failure or glitch.
+   journaling MongoDB's journal provides a transnational log that
+      provides durability for database operations. When using the
+      journal, MongoDB writes all data to disk both in the journal and
+      in the database. MongoDB writes operations to the journal *much*
+      more frequently it flushes the state of the database to the
+      disk. The journal makes it possible to recover the state of the
+      database in the event of system failure or other non-clean
+      shutdown without data corruption.
 
       .. seealso:: ":doc:`/core/journaling`."
 
    pcap
       A packet capture format used by a number of tools to record
       packets captured from network interfaces. Used by
-      :program:`mongosniff`.
+      :program:`mongosniff` in the MongoDB package as well as a
+      variety of other programs.
 
    upsert
       A method of inserting a document into a MongoDB database that,
@@ -344,26 +351,25 @@ Glossary
       data amongst the shards.
 
    fsync
-      An operation that ensures that all data has been written to data
-      files to ensure that the data is durable.
+      An operation that ensures that flushes all data to disk to
+      ensure that the data is durable.
 
    chunk
-      In the context of a :term:`shard` cluster, chunks are contiguous
-      (relative to their :term:`shard key`) sections of data that are
-      distributed evenly among shards. In the default configuration
-      chunks are 64 megabytes or less.
+      In the context of a :term:`shard cluster`, chunks are contiguous
+      (relative to their :term:`shard key`) sections of data. Sharding
+      distributes these chunks evenly among shards. In the default
+      configuration chunks are 64 megabytes or less.
 
    geospatial
-      Data that relates to geographical location. Geospatial data may
-      be indexed according to geographical parameters, reference
-      specific coordinates, or simply describe geographical locations
-      Geospatial indexes use a coordinate system.
+      Data that relates to geographical location. In MongoDB, you may
+      index or store geospatial data according to geographical
+      parameters and reference specific coordinates in queries.
 
    checksum
-      Checksums are used to ensure data integrity, by providing a
-      reliable fixed sequence calculated from a set of data that is
-      easily affected by even small changes in the
-      document. :term:`md5` is an example of a checksum.
+      Checksums ensure data integrity, by providing a reliable fixed
+      sequence calculated from a set of data that is easily affected
+      by even small changes in the document. :term:`md5` is an example
+      of a checksum.
 
    haystack index
       In the context of :term:`geospatial` queries, haystack indexes
@@ -389,8 +395,8 @@ Glossary
       process.
 
    pid
-      The process ID, on Unix-like systems. This number can be used to
-      find and identify currently running :term:`daemon` processes.
+      The process ID, on Unix-like systems. This number makes it
+      possible to find and identify running :term:`daemon` processes.
 
    config database
       The database that contains the map of database objects to
@@ -408,9 +414,9 @@ Glossary
       protocol and adhere to the HTTP idiom.
 
    dbpath
-      Refers to the location of MongoDB's data file storage. Typically
-      these files are stored in ``/srv/mongodb`` or
-      ``/var/lib/mongodb``.
+      Refers to the location of MongoDB's data file storage. The
+      default :setting:`dbpath` is ``/data/db``. Though some users may
+      store data files in ``/srv/mongodb`` or ``/var/lib/mongodb``.
 
       .. seealso:: ":setting:`dbpath`" or ":option:`--dbpath
          <mongod --dbpath>`."
@@ -440,9 +446,11 @@ Glossary
       case of :term:`capped collections <capped collection>`.
 
    primary key
-      In relational databases, primary keys are guaranteed to be unique
+      Relational databases use primary keys to guarantee unique
       identifiers for a specific data instance: for each row in a
-      relational table, or for each document in a MongoDB document.
+      relational table. In MongoDB, :term:`unique indexes` can
+      enforce uniqueness for a field. :term:`_id` is an example of a
+      primary key.
 
    firewall
       A system level networking filter that limits higher-level
@@ -473,7 +481,7 @@ Glossary
    pre-splitting
       When deploying a :term:`shard cluster`, it is sometimes
       necessary to expedite the initial distribution of documents
-      among shards. This process is referred to as "pre-splitting."
+      among shards, by manually dividing the collection into chunks.
 
    SSD
       Solid State Disk. A modern alternative to a disk with rotating
@@ -485,14 +493,15 @@ Glossary
       system's RAM.
 
    virtual memory
-      An application's working memory or data that has been moved out
-      of RAM, which is fast and in limited supply, and into a
-      disk-based cache, which is slower but in comparatively unlimited
+      An application's working memory or data that no longer resides
+      in RAM, which is fast and in limited supply. Virtual memory is a
+      disk-based cache, which is slower but is in comparatively unlimited
       supply.
 
    piped
       Directed through a UNIX pipe. In these operations the output of
-      one operation or command is directed to the input of next.
+      one operation or command passes from one operation to the input
+      of the next.
 
    IPv6
       A revision to the IP (Internet Protocol) standard that, among
@@ -502,10 +511,10 @@ Glossary
 
    draining
       The process of removing, or "shedding" :term:`chunks <chunk>`
-      from one :term:`shard` to another. Shards must be drained before
-      they can be removed from the cluster.
+      from one :term:`shard` to another. Administrators must drain
+      shards before removing them from the cluster.
 
-      .. seealso:: :dbcommand:`removeshard`
+      .. seealso:: :dbcommand:`removeshard`, :doc:`sharding`.
 
    single master replication
       A :term:`replication` method where only a single database
@@ -539,7 +548,7 @@ Glossary
    eventual consistency
       The :term:`consistency` condition which allows write or update
       operations to succeed before the data set has reached a
-      consistent state. This typically applies to data sets that are
+      consistent state. This typically applies to data sets
       replicated on multiple systems, but can also refer to the
       consistency of the on-disk representation of the data set.
 
@@ -547,14 +556,14 @@ Glossary
       The :term:`consistency` condition which ensures that write or
       update operations *do not* succeed before the data set has
       reached a consistent state. This typically applies to data sets
-      that are replicated on multiple systems, but can also refer to
-      the consistency of the on-disk representation of the data set.
+      replicated on multiple systems, but can also refer to the
+      consistency of the on-disk representation of the data set.
 
    write propagation
-      The process by which updates are passed from the primary node to
-      the :term:`secondary` members of the replica set. Write
-      propagation is a concern when distributing read operations to
-      secondary nodes that are :term:`eventually consistent <eventual
+      The process where updates pass from the primary node to the
+      :term:`secondary` members of the replica set. Write propagation
+      is a concern when distributing read operations to secondary
+      nodes that are :term:`eventually consistent <eventual
       consistency>` with the primary.
 
       .. seealso:: ":ref:`Write Propagation for Replica Sets
@@ -563,7 +572,7 @@ Glossary
    priority
       In the context of :term:`replica sets <replica set>`, priority
       refers to the setting that administrators can use to control the
-      preference with which nodes will be elected to primary status.
+      outcome of elections for :term:`primary` status.
 
       .. seealso:: ":ref:`Replica Set Node Priority
          <replica-set-node-priority>`"
@@ -585,7 +594,8 @@ Glossary
       preference`.
 
       .. seealso:: ":ref:`Hidden Nodes <replica-set-hidden-nodes>`,"
-         and :js:data:`members[n].hidden`.
+         :dbcommand:`isMaster`, :js:func:`db.isMaster`, and
+         :js:data:`members[n].hidden`.
 
    delayed node
       A member of a :term:`replica set` that cannot become primary and
@@ -615,8 +625,8 @@ Glossary
       The length of time between the last operation in the operation
       log, and the last operation applied to a particular
       :term:`secondary` or :term:`slave` database. High replication
-      lag makes a non-:term:`primary` node ineligible to be elected
-      primary.
+      makes it impossible for non-:term:`primary` members of the set
+      to become primary.
 
    driver
       Drivers provide an interface level between the :term:`MongoDB`
@@ -642,8 +652,8 @@ Glossary
       infrastructure (e.g. data center, rack, network up-link, storage
       array) that hosts the database instance.
 
-      .. seealso:: ":js:data:`members[n].tags`" and ":ref:`data center awareness
-         <replica-set-data-center-awareness>`."
+      .. seealso:: ":js:data:`members[n].tags`" and ":ref:`data center
+         awareness <replica-set-data-center-awareness>`."
 
    recovering
       A :term:`replica set` status, that reflects nodes which are in
@@ -658,8 +668,9 @@ Glossary
 
    control script
       A script used by a UNIX like operating system to start, stop,
-      or restart, a :term:`daemon` process. Typically these scripts
-      are stored in ``/etc/init.d/`` or ``/etc/rc.d/``.
+      or restart, a :term:`daemon` process. On most Unix-like systems
+      you can find these scripts in the ``/etc/init.d/`` or
+      ``/etc/rc.d/`` directories.
 
    election
       The process that replica sets use to choose which member will be
@@ -670,7 +681,7 @@ Glossary
          Priority <replica-set-node-priority>`."
 
    map reduce
-      A data and processing and aggregation  modality containing a
+      A data and processing and aggregation modality containing a
       "map" phase that selects data, and a "reduce" phase that
       transforms the data. In MongoDB, map/reduce provides support for
       smaller and more complex aggregation requirements.

@@ -5,9 +5,9 @@ Deploy a Geographically Distributed Replica Set
 .. default-domain:: mongodb
 
 This document describes the procedure for deploying a replica set with
-nodes in multiple locations, and addresses both three node replica
-sets, four node replica sets, and replica sets with more than four
-nodes.
+members in multiple locations, and addresses both three member replica
+sets, four member replica sets, and replica sets with more than four
+members.
 
 .. seealso:: ":doc:`/core/replication`" and
    ":doc:`/administration/replication-architectures`" for appropriate
@@ -20,34 +20,34 @@ nodes.
 Overview
 --------
 
-While replica sets provide basic protection against single-node
+While replica sets provide basic protection against single-instance
 failure, when all of the members of a replica set reside within a
 single facility, the replica set is still susceptible to some classes
 of errors within that facility including power outages, networking
 distortions, and natural disasters. To protect against these classes
-of failures, deploy a replica set with one or more nodes in a
+of failures, deploy a replica set with one or more members in a
 geographically distinct facility or data center.
 
 Requirements
 ------------
 
-For a three-member replica set you will need two systems in a primary
-facility (hereafter, "Site A") and one node in a secondary facility
-(hereafter, "Site B".) Site A should be the same facility or very
-close to your primary application infrastructure (i.e. application
-servers, caching layer, users, etc.)
+For a three-member replica set you will need two instances in a
+primary facility (hereafter, "Site A") and one member in a secondary
+facility (hereafter, "Site B".) Site A should be the same facility or
+very close to your primary application infrastructure
+(i.e. application servers, caching layer, users, etc.)
 
 For a four-member replica set you will need two systems within Site A,
-two nodes in Site B (or one node in Site B, and one node in Site C,)
-and a single :term:`arbiter` node within Site A.
+two members in Site B (or one member in Site B, and one member in Site
+C,) and a single :term:`arbiter` in Site A.
 
-If you wish to deploy additional nodes in the secondary facility or
+If you wish to deploy additional members in the secondary facility or
 multiple secondary facilities, the requirements are the same with the
 following notes:
 
 - Ensure that a majority of the total number of :ref:`voting nodes
   <replica-set-non-voting-nodes>` are within Site A. This includes
-  :ref:`secondary-only nodes <replica-set-secondary-only-nodes>` and
+  :ref:`secondary-only members <replica-set-secondary-only-nodes>` and
   :ref:`arbiters <replica-set-arbiters>`.
 
 - If you deploy a replica set with an uneven number of members, deploy
@@ -56,23 +56,23 @@ following notes:
 Procedure
 ---------
 
-Although its possible to deploy multiple nodes on a single system,
+Although its possible to deploy multiple members on a single system,
 reduces the redundancy and capacity of the system, these kinds of
 deployments are typically for testing purposes and beyond the scope of
 this tutorial.
 
-Three Node Replica Set
-~~~~~~~~~~~~~~~~~~~~~~
+Three Member Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Consider the following features of this deployment:
 
-- Each member of the replica set, except for the arbiter node (see
+- Each member of the replica set, except for the :term:`arbiter` (see
   below), will reside on it's own machine, and the MongoDB processes
   will all bind to port ``27017``, or the standard MongoDB port.
 
-- All runtime configuration will be specified in :doc:`configuration
-  files </reference/configuration-options>` rather than as
-  :doc:`command line options </reference/mongod>`.
+- :doc:`Configuration files </reference/configuration-options>`
+  provide runtime configuration rather than as :doc:`command line
+  options </reference/mongod>`.
 
 - Each member of the replica set needs to be accessible by way of
   resolvable DNS or hostnames in the following scheme:
@@ -82,18 +82,18 @@ Consider the following features of this deployment:
   - ``mongodb2.example.net``
 
   Configure DNS names appropriately, *or* set up your systems'
-  ``/etc/host`` file to reflect this configuration. Ensure that one of
-  these hoses (e.g. ``mongodb3.example.net``) is located in Site B.
-  All other hosts should be located in Site A.
+  ``/etc/host`` file to reflect this configuration. Ensure that one
+  system (e.g. ``mongodb2.example.net``) resides in Site B. Host all
+  other hosts systems in Site A.
 
-- Ensure that network traffic can pass between all nodes in the
+- Ensure that network traffic can pass between all members in the
   network securely and efficiently. Consider the following:
 
-  - Establish a virtual private network between the nodes in Site A
-    and Site B so that all traffic between the sites are encrypted
-    and private. Ensure that your network topology allows all traffic
-    between members within a single site to be routed over the local
-    area network.
+  - Establish a virtual private network between the systems in Site A
+    and Site B (and Site C if it exists) to encrypt all traffic
+    between the sites and remains private. Ensure that your network
+    topology routs all traffic between members within a single site
+    over the local area network.
 
   - Configure authentication using :setting:`auth` and
     :setting:`keyFile`, so that only servers and process with
@@ -120,20 +120,20 @@ Use the following configuration for each MongoDB instance:
 
    replSet = rs0/mongodb0.example.net,mongodb1.example.net,mongodb2.example.net
 
-Modify the :setting:`bind_ip` to reflect a secure interface on
-your system that will be able to access all other members of the set
-*and* on which all other members of the replica set can access the
-current node. The DNS or host names need to point and resolve to this
-IP address. Configure network rules or a virtual private network
-(i.e. "VPN") to permit this access.
+Modify the :setting:`bind_ip` to reflect a secure interface on your
+system that will be able to access all other members of the set *and*
+that is accessible to all other members of the replica set. The DNS or
+host names need to point and resolve to this IP address. Configure
+network rules or a virtual private network (i.e. "VPN") to permit this
+access.
 
 .. note::
 
-   The portion of the :setting:`replSet` following the ``/``
-   provides a "seed list" of hosts that are known to be members of the
-   same replica set, which is used for fetching changed configurations
-   following restarts. It is acceptable to omit this section entirely,
-   and have the :setting:`replSet` option resemble:
+   The portion of the :setting:`replSet` following the ``/`` provides
+   a "seed list" of known members of the replica
+   set. :program:`mongod` uses this list to fetch configuration
+   changes following restarts. It is acceptable to omit this section
+   entirely, and have the :setting:`replSet` option resemble:
 
    .. code-block:: cfg
 
@@ -141,16 +141,15 @@ IP address. Configure network rules or a virtual private network
 
 Store this file on each system, located at ``/etc/mongodb.conf`` on
 the file system. See the documentation of the configuration options
-used above: :setting:`dbpath`, :setting:`port`,
-:setting:`replSet`, :setting:`bind_ip`, and
-:setting:`fork`. Also consider any additional
+used above: :setting:`dbpath`, :setting:`port`, :setting:`replSet`,
+:setting:`bind_ip`, and :setting:`fork`. Also consider any additional
 :doc:`configuration options </reference/configuration-options>` that
 your deployment requires.
 
 On each system issue the following command to start the
 :program:`mongod` process:
 
-.. code-block:: bash
+.. code-block:: sh
 
    mongod --config /etc/mongodb.conf
 
@@ -160,13 +159,10 @@ On each system issue the following command to start the
    :term:`control script` to manage this process based on this
    command. Control scripts are beyond the scope of this document.
 
-Log in with the :program:`mongo` shell to this host using the following
-command: ::
-
-      mongo
-
-Issue the following shell function to initiate a replica set
-consisting of the current node, using the default configuration:
+Log in with the :program:`mongo` shell to this host using the
+:program:`mongo` command at the system prompt. Call the following
+shell helper to initiate a replica set consisting of the current
+instance, using the default configuration:
 
 .. code-block:: javascript
 
@@ -180,7 +176,7 @@ configuration </reference/replica-configuration>`:
    rs.config()
 
 Now, issue the following sequence of commands to add the remaining
-nodes to the replica set. The following example assumes that the
+members to the replica set. The following example assumes that the
 current primary is ``mongodb0.example.net``.
 
 .. code-block:: javascript
@@ -214,26 +210,26 @@ value is ``2``. Next, in the shell connected to the replica set's
 
    The :js:func:`rs.reconfig()` shell command can force the current
    primary to step down and causes an election in some
-   situations. When the primary node steps down, all clients will
-   disconnect. Do not be alarmed. While, this typically takes 10-20
-   seconds, attempt to make these changes during scheduled maintenance
-   periods.
+   situations. When the primary steps down, all clients will
+   disconnect. This is the intended behavior. While, this typically
+   takes 10-20 seconds, attempt to make these changes during scheduled
+   maintenance periods.
 
 Congratulations! You have now deployed a geographically distributed
-three-node replica set.
+three-member replica set.
 
-Four Node Replica Set
-~~~~~~~~~~~~~~~~~~~~~
+Four Member Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Consider the following features of this deployment:
 
-- Each member of the replica set, except for the arbiter node (see
+- Each member of the replica set, except for the arbiter (see
   below), will reside on it's own machine, and the MongoDB processes
   will all bind to port ``27017``, or the standard MongoDB port.
 
-- All runtime configuration will be specified in :doc:`configuration
-  files </reference/configuration-options>` rather than as
-  :doc:`command line options </reference/mongod>`.
+- :doc:`Configuration files </reference/configuration-options>`
+  provide runtime configuration rather than as :doc:`command line
+  options </reference/mongod>`.
 
 - Each member of the replica set needs to be accessible by way of
   resolvable DNS or hostnames in the following scheme:
@@ -244,11 +240,13 @@ Consider the following features of this deployment:
   - ``mongodb3.example.net``
 
   Configure DNS names appropriately, *or* set up your systems'
-  ``/etc/host`` file to reflect this configuration.
+  ``/etc/host`` file to reflect this configuration. Ensure that one
+  system (e.g. ``mongodb2.example.net``) resides in Site B. Host all
+  other hosts systems in Site A.
 
-- One of the hosts above (e.g. ``mongodb4.example.net``) will be an
-  arbiter node, and can run on a system that is also used for an
-  application server or some other shared purpose.
+- One host (e.g. ``mongodb3.example.net``) will be an ":term:`arbiter`"
+  and can run on a system that is also used for an application server
+  or some other shared purpose.
 
 - There are three possible architectures for this replica set:
 
@@ -264,16 +262,17 @@ Consider the following features of this deployment:
     :ref:`secondary-only member <replica-set-secondary-only-nodes>` in
     Site C and an :term:`arbiter` in site A.
 
-  In most cases the first architecture is preferred.
+  In most cases the first architecture is preferable because it is the
+  lest complex.
 
-- Ensure that network traffic can pass between all nodes in the
+- Ensure that network traffic can pass between all members in the
   network securely and efficiently. Consider the following:
 
-  - Establish a virtual private network between the nodes in Site A
-    and Site B (and Site C if it exists) so that all traffic between
-    the sites are encrypted and private. Ensure that your network
-    topology allows all traffic between members within a single site
-    to be routed over the local area network.
+  - Establish a virtual private network between the systems in Site A
+    and Site B (and Site C if it exists) to encrypt all traffic
+    between the sites and remains private. Ensure that your network
+    topology routs all traffic between members within a single site
+    over the local area network.
 
   - Configure authentication using :setting:`auth` and
     :setting:`keyFile`, so that only servers and process with
@@ -300,20 +299,20 @@ Use the following configuration for each MongoDB instance:
 
    replSet = rs0/mongodb0.example.net,mongodb1.example.net,mongodb2.example.net,mongodb3.example.net
 
-Modify the :setting:`bind_ip` to reflect a secure interface on
-your system that will be able to access all other members of the set
-*and* on which all other members of the replica set can access the
-current node. The DNS or host names need to point and resolve to this
-IP address. Configure network rules or a virtual private network
-(i.e. "VPN") to permit this access.
+Modify the :setting:`bind_ip` to reflect a secure interface on your
+system that will be able to access all other members of the set *and*
+that is accessible to all other members of the replica set. The DNS or
+host names need to point and resolve to this IP address. Configure
+network rules or a virtual private network (i.e. "VPN") to permit this
+access.
 
 .. note::
 
-   The portion of the :setting:`replSet` following the ``/``
-   provides a "seed list" of hosts that are known to be members of the
-   same replica set, which is used for fetching changed configurations
-   following restarts. It is acceptable to omit this section entirely,
-   and have the :setting:`replSet` option resemble:
+   The portion of the :setting:`replSet` following the ``/`` provides
+   a "seed list" of known members of the replica
+   set. :program:`mongod` uses this list to fetch configuration
+   changes following restarts. It is acceptable to omit this section
+   entirely, and have the :setting:`replSet` option resemble:
 
    .. code-block:: cfg
 
@@ -321,9 +320,8 @@ IP address. Configure network rules or a virtual private network
 
 Store this file on each system, located at ``/etc/mongodb.conf`` on
 the file system. See the documentation of the configuration options
-used above: :setting:`dbpath`, :setting:`port`,
-:setting:`replSet`, :setting:`bind_ip`, and
-:setting:`fork`. Also consider any additional
+used above: :setting:`dbpath`, :setting:`port`, :setting:`replSet`,
+:setting:`bind_ip`, and :setting:`fork`. Also consider any additional
 :doc:`configuration options </reference/configuration-options>` that
 your deployment requires.
 
@@ -340,13 +338,10 @@ On each system issue the following command to start the
    :term:`control script` to manage this process based on this
    command. Control scripts are beyond the scope of this document.
 
-Log in with the :program:`mongo` shell to this host using the following
-command: ::
-
-      mongo
-
-Issue the following shell function to initiate a replica set
-consisting of the current node, using the default configuration:
+Log in with the :program:`mongo` shell to this host using the
+:program:`mongo` command at the system prompt. Call the following
+shell helper to initiate a replica set consisting of the current
+instance using the default configuration:
 
 .. code-block:: javascript
 
@@ -360,7 +355,7 @@ configuration </reference/replica-configuration>`:
    rs.config()
 
 Now, issue the following sequence of commands to add the remaining
-nodes to the replica set. The following example assumes that the
+instances to the replica set. The following example assumes that the
 current primary is ``mongodb0.example.net``.
 
 .. code-block:: javascript
@@ -370,7 +365,7 @@ current primary is ``mongodb0.example.net``.
    rs.add("mongodb3.example.net")
 
 In the same shell session, issue the following command to add the
-arbiter node (i.e. "``mongodb4.example.net``"):
+arbiter (i.e. "``mongodb4.example.net``"):
 
 .. code-block:: javascript
 
@@ -387,8 +382,8 @@ command determine the :js:data:`members[n]._id` value for
    rs.config()
 
 In the :js:data:`member array <rs.conf.members>` for this host, save
-the :js:data:`members[n]._id` value. The next example assumes that this
-value is ``2``. Next, in the shell connected to the replica set's
+the :js:data:`members[n]._id` value. The next example assumes that
+this value is ``2``. Next, in the shell connected to the replica set's
 :term:`primary`, issue the following command sequence:
 
 .. code-block:: javascript
@@ -401,37 +396,38 @@ value is ``2``. Next, in the shell connected to the replica set's
 
    The :js:func:`rs.reconfig()` shell command can force the current
    primary to step down and causes an election in some
-   situations. When the primary node steps down, all clients will
-   disconnect. Do not be alarmed. While, this typically takes 10-20
-   seconds, attempt to make these changes during scheduled maintenance
-   periods.
+   situations. When the primary steps down, all clients will
+   disconnect. This is the intended behavior. While, this typically
+   takes 10-20 seconds, attempt to make these changes during scheduled
+   maintenance periods.
 
 Congratulations! You have now deployed a geographically distributed
-four-node replica set.
+four-member replica set.
 
 Larger Replica Set Considerations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The procedure for deploying a geographically distributed set with
-more than three or four nodes closely follows one of the above
-procedures, consider the following:
+The procedure for deploying a geographically distributed set with more
+than three or four members resembles the above procedures. However, consider
+the following:
 
-- Never deploy more than seven voting nodes.
+- Never deploy more than seven voting members.
 
-- Use the procedure for a four node replica set if you have an even
+- Use the procedure for a four member replica set if you have an even
   number of members. Ensure that Site A always has a majority of
   the members by deploying the :term:`arbiter` within Site A.
 
-  For six member sets, deploy at least three voting nodes in addition
-  to the arbiter in Site A, the remaining nodes in alternate sites.
+  For six member sets, deploy at least three voting members in
+  addition to the arbiter in Site A, the remaining rembmers in
+  alternate sites.
 
-- Use the procedure for a three node replica set if you have an odd
+- Use the procedure for a three member replica set if you have an odd
   number of members. Ensure that Site A always has a majority of the
   members of the set. For example, if a set has five members, deploy
-  three nodes within the primary facility and two nodes in other
+  three remember within the primary facility and two remember in other
   facilities.
 
-- If you have a majority of the members of the set *outside* of Site
-  A and the network partitions to prevent communication between sites,
+- If you have a majority of the members of the set *outside* of Site A
+  and the network partitions to prevent communication between sites,
   the current primary in Site A will step down, even if none of the
-  nodes outside of Site A are eligible to become primary.
+  members outside of Site A are eligible to become primary.

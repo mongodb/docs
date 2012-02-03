@@ -21,10 +21,12 @@ insure that the :term:`control scripts <control script>` starts the
 :program:`mongod` with the appropriate configuration file (see below.)
 
 To start MongoDB instance using this configuration issue a command in
-the following form: ::
+the following form:
 
-     mongod --config /etc/mongodb.conf
-     mongod -f /etc/mongodb.conf
+.. code-block:: sh
+
+   mongod --config /etc/mongodb.conf
+   mongod -f /etc/mongodb.conf
 
 Modify the values in the ``/etc/mongodb.conf`` file on your system to
 control the configuration of your database instance.
@@ -67,8 +69,10 @@ following explanation:
   port. You can also filter access based on port using network
   filtering tools.
 
-  .. note:: UNIX-like systems require superuser privileges to attach
-     processes to ports lower than 1000.
+  .. note::
+
+     UNIX-like systems require superuser privileges to attach processes
+     to ports lower than 1000.
 
 - :setting:`quiet` is ``true``. This disables all but
   the most critical entries in output/log file. In normal operation
@@ -163,7 +167,7 @@ typical replica set configuration consider the following:
 
    replSet = set1/peer0.example.net,peer1.example.net:27018,peer3.example.net
 
-Here, the ``replSet`` contains a set name (i.e. "``set1``") followed
+Here, the :setting:`replSet` contains a set name (i.e. "``set1``") followed
 by a slash (i.e. "``/``") and a comma separated list of hostnames of
 set members, with optional port names. This list of hosts serves as a
 "seed," from which this host will derive the replica set

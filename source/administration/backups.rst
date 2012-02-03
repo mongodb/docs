@@ -116,9 +116,7 @@ stores modified data. After making the snapshot, you will mount the
 snapshot image and copy the files off disk image. The resulting backup
 contains full copies of all the data.
 
-.. moreinfo: <http://www.waterlovinghead.com/StorageLVMSnap>
-
-Snapshots have some limitations:
+Snapshots have the following limitations:
 
 - The database must be in a consistent or recoverable state when the
   snapshot takes place. With journaling all states are recoverable,
@@ -182,9 +180,11 @@ Create Snapshot
 ```````````````
 
 To create a snapshot with LVM issue a command, as root, in the
-following format: ::
+following format:
 
-         lvcreate --size 100M --snapshot --name mdb-snap01 /dev/vg0/mongodb
+.. code-block:: sh
+
+   lvcreate --size 100M --snapshot --name mdb-snap01 /dev/vg0/mongodb
 
 This command creates a snapshot (with the "``--snapshot`` option)
 named "``mdb-snap01``" of the "``mongodb``" volume in the "``vg0``"
@@ -226,10 +226,12 @@ Archive Snapshots
 After creating a snapshot, mount the snapshot and move the data to a
 separate storage You. system may wish to compress the backup images as
 you move the offline. Consider the following procedure to fully
-archive the data from the snapshot: ::
+archive the data from the snapshot:
 
-      umount /dev/vg0/mdb-snap01
-      dd if=/dev/vg0/mdb-snap01 | tar -czf mdb-snap01.tar.gz
+.. code-block:: sh
+
+   umount /dev/vg0/mdb-snap01
+   dd if=/dev/vg0/mdb-snap01 | tar -czf mdb-snap01.tar.gz
 
 This command sequence:
 
@@ -249,11 +251,13 @@ Restore Snapshot
 ````````````````
 
 To restore a backup created with the above method, use the following
-procedure: ::
+procedure:
 
-      lvcreate --size 1G --name mdb-new vg0
-      tar -xzf mdb-snap01.tar.gz | dd of=/dev/vg0/mdb-new
-      mount /dev/vg0/mdb-new /srv/mongodb
+.. code-block:: sh
+
+   lvcreate --size 1G --name mdb-new vg0
+   tar -xzf mdb-snap01.tar.gz | dd of=/dev/vg0/mdb-new
+   mount /dev/vg0/mdb-new /srv/mongodb
 
 This sequence:
 
@@ -282,25 +286,29 @@ Restore Directly from a Snapshots
 `````````````````````````````````
 
 To combine the above processes without writing to a compressed ``tar``
-archive, use the following sequence: ::
+archive, use the following sequence:
 
-      umount /dev/vg0/mdb-snap01
-      lvcreate --size 1G --name mdb-new vg0
-      dd if=/dev/vg0/mdb-snap01 of=/dev/vg0/mdb-new
-      mount /dev/vg0/mdb-new /srv/mongodb
+.. code-block:: sh
+
+   umount /dev/vg0/mdb-snap01
+   lvcreate --size 1G --name mdb-new vg0
+   dd if=/dev/vg0/mdb-snap01 of=/dev/vg0/mdb-new
+   mount /dev/vg0/mdb-new /srv/mongodb
 
 Remote Backup Storage
 `````````````````````
 
 You can implement off-system backups using the :ref:`combined process
 <backup-restore-from-snapshot>` and SSH. Consider the following
-procedure: ::
+procedure:
 
-     umount /dev/vg0/mdb-snap01
-     dd if=/dev/vg0/mdb-snap01 | ssh username@example.com tar -czf /opt/backup/mdb-snap01.tar.gz
-     lvcreate --size 1G --name mdb-new vg0
-     ssh username@example.com tar -xzf /opt/backup/mdb-snap01.tar.gz | dd of=/dev/vg0/mdb-new
-     mount /dev/vg0/mdb-new /srv/mongodb
+.. code-block:: sh
+
+   umount /dev/vg0/mdb-snap01
+   dd if=/dev/vg0/mdb-snap01 | ssh username@example.com tar -czf /opt/backup/mdb-snap01.tar.gz
+   lvcreate --size 1G --name mdb-new vg0
+   ssh username@example.com tar -xzf /opt/backup/mdb-snap01.tar.gz | dd of=/dev/vg0/mdb-new
+   mount /dev/vg0/mdb-new /srv/mongodb
 
 This sequence is identical to procedures explained above except that
 the output direct input (i.e. :term:`piped`) over SSH to the
@@ -318,15 +326,19 @@ lock the database to prevent writes during the backup
 process.
 
 To flush writes and lock the database before performing the snapshot,
-issue the following command: ::
+issue the following command:
 
-      db.fsyncLock();
+.. code-block:: javascript
+
+   db.fsyncLock();
 
 Perform the :ref:`backup operation described above <lvm-backup-operation>`
 at this point. To unlock the database after the snapshot has
-completed, issue the following command: ::
+completed, issue the following command:
 
-      db.fsyncUnlock();
+.. code-block:: javascript
+
+   db.fsyncUnlock();
 
 .. note::
 
@@ -393,9 +405,11 @@ create a database backup in a in the current directory named
 
 You can specify  database and collection as options to the
 :program:`mongodump` command to limit the amount of data included in the
-database dump. For example: ::
+database dump. For example:
 
-     mongodump --collection collection --database test
+.. code-block:: sh
+
+   mongodump --collection collection --database test
 
 This command creates a dump in of the database in the "``dump/``"
 directory of only the collection named "``collection``" in the
@@ -411,16 +425,20 @@ reads from the data files directly with this operation. This
 locks the data directory to prevent conflicting writes. The
 :program:`mongod` process must *not* be running or attached to these
 data files when you run :program:`mongodump` in this
-configuration. Consider the following example: ::
+configuration. Consider the following example:
 
-     mongodump --dbpath /srv/mongodb
+.. code-block:: sh
+
+   mongodump --dbpath /srv/mongodb
 
 Additionally, the ":option:`--host <mongodump --host>`" and
 ":option:`--port <mongodump --port>`" options allow you to
 specify a non-local host to connect to capture the export. Consider
-the following example: ::
+the following example:
 
-     mongodump --host mongodb1.example.net --port 3017 --username user --password pass /opt/backup/mongodumpm-2011-10-24
+.. code-block:: sh
+
+   mongodump --host mongodb1.example.net --port 3017 --username user --password pass /opt/backup/mongodumpm-2011-10-24
 
 On any :program:`mongodump` command you may, as above specify username
 and password credentials to specify database authentication.
@@ -430,9 +448,10 @@ Database Import with mongorestore
 
 The :program:`mongorestore` restores a binary backup created by the
 :program:`mongodump` utility. Consider the following example command:
-::
 
-     mongorestore dump-2011-10-25/
+.. code-block:: sh
+
+   mongorestore dump-2011-10-25/
 
 Here, :program:`mongorestore` imports the database backup located in
 the ``dump-2011-10-25`` directory to the :option:``mongod` instance
@@ -441,9 +460,11 @@ will look for a database dump in the "``dump/``" directory and restore
 that. If you wish to restore to a non-default host, the
 ":option:`--host <mongod>`" and ":option:`--port <mongod --port>`"
 options allow you to specify a non-local host to connect to capture
-the export. Consider the following example: ::
+the export. Consider the following example:
 
-     mongorestore --host mongodb1.example.net --port 3017 --username user --password pass /opt/backup/mongodumpm-2011-10-24
+.. code-block:: sh
+
+   mongorestore --host mongodb1.example.net --port 3017 --username user --password pass /opt/backup/mongodumpm-2011-10-24
 
 On any :program:`mongorestore` command you may, as above specify
 username and password credentials as above.
@@ -451,9 +472,11 @@ username and password credentials as above.
 If you created your database dump using the :option:`--oplog
 <mongodump --oplog>` option to ensure a point-in-time snapshot, call
 :program:`mongorestore` with the ":option:` --oplogReplay <mongorestore
---oplogReplay>``" option as in the following example: ::
+--oplogReplay>`" option as in the following example:
 
-     mongorestore --oplogReplay
+.. code-block:: sh
+
+   mongorestore --oplogReplay
 
 You may also consider using the :option:`mongorestore --objcheck`
 option to check the integrity of objects while inserting them into the
@@ -467,11 +490,11 @@ following example:
 
    mongorestore --filter '{"field": 1}'
 
-Here, the only documents added to the database running on the local
-system are added from the database dump located in the "``dump/``"
-folder *if* the documents have a field name "``field``" that holds a
-value of "``1``". Enclose the filter in single quotes (e.g. "``'``")
-to ensure that it does not interact with your shell environment.
+Here, :program:`mognorestore` only adds documents to the database from
+the dump located in the "``dump/``" folder *if* the documents have a
+field name "``field``" that holds a value of "``1``". Enclose the
+filter in single quotes (e.g. "``'``") to prevent the filter from
+interacting with your shell environment.
 
 If your MongoDB instance is not running, you can use the
 ":option:`mongorestore --dbpath`" option to specify the location to
@@ -480,9 +503,11 @@ data into the data files directly with this operation. While the
 command locks the data directory while it runs to prevent conflicting
 writes. The :program:`mongod` process must *not* be running or attached
 to these data files when you run :program:`mongodump` in this
-configuration. Consider the following example: ::
+configuration. Consider the following example:
 
-     mognorestore --dbpath /srv/mongodb
+.. code-block:: sh
+
+   mognorestore --dbpath /srv/mongodb
 
 If your MongoDB instance is not running, you can use the
 ":option:`--dbpath <mongorestore --dbpath>`" option to specify the
@@ -491,7 +516,7 @@ location to your MongoDB instance's database files. Consider using the
 :program:`mongod` records all operation in the journal.
 
 .. seealso:: ":doc:`/reference/mongodump`" and
-             ":doc:`/reference/mongorestore`."
+   ":doc:`/reference/mongorestore`."
 
 .. _backups-with-sharding-and-replication:
 
@@ -558,14 +583,16 @@ methodology does not require.
    migrate while recording backups.
 
    Similarly, if you do not lock all shards at the same time,
-   the backup can reflect a highly inconsistent state that will likely
-   *not* be restorable.
+   the backup can reflect an inconsistent state that is impossible to
+   restore from.
 
 To stop the balancer, connect to the :program:`mongos` with the :option`mongo`
-shell and issue the following 2 commands: ::
+shell and issue the following 2 commands:
 
-     use config
-     db.settings.update( { _id: "balancer" }, { $set : { stopped: true } } , true );
+.. code-block:: javascript
+
+   use config
+   db.settings.update( { _id: "balancer" }, { $set : { stopped: true } } , true );
 
 After disabling the balancer, proceed with your backup in the
 following sequence:
@@ -575,9 +602,11 @@ following sequence:
 
 2. Use :program:`mongodump` to backup the config database. Issue this command
    against the config database itself or the
-   :program:`mongos`, and would resemble the following: ::
+   :program:`mongos`, and would resemble the following:
 
-        mongodump --database config
+   .. code-block:: sh
+
+      mongodump --database config
 
 2. Record a backup of all shards
 
@@ -586,24 +615,28 @@ following sequence:
 4. Restore the balancer.
 
 Use the following command sequence when connected to the :program:`mongos`
-with the ``mongo`` shell: ::
+with the :program:`mongo` shell:
 
-     use config
-     db.settings.update( { _id: "balancer" }, { $set : { stopped: false } } , true );
+.. code-block:: javascript
+
+   use config
+   db.settings.update( { _id: "balancer" }, { $set : { stopped: false } } , true );
 
 If you have an automated backup schedule, you can disable all
 balancing operations for a period of time. For instance, consider the
-following command: ::
+following command:
 
-     use config
-     db.settings.update( { _id : "balancer" }, { $set : { activeWindow : { start : "6:00", stop : "23:00" } } }, true )
+.. code-block:: javascript
 
-Here, the balancer is configured to run between 6:00 am and 11:00pm,
-server time. Schedule your backup operation to run *and complete* in
-this time. Ensure that the backup can complete during the window when
-the balancer is running *and* that the balancer can ensure that the
-collection is balanced among the shards in the window allotted to
-each.
+   use config
+   db.settings.update( { _id : "balancer" }, { $set : { activeWindow : { start : "6:00", stop : "23:00" } } }, true )
+
+This operation configures the balancer to run between 6:00 am and
+11:00pm, server time. Schedule your backup operation to run *and
+complete* in this time. Ensure that the backup can complete during the
+window when the balancer is running *and* that the balancer can
+effectively balance the collection among the shards in the window
+allotted to each.
 
 .. _replica-set-backups:
 

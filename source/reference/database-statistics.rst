@@ -88,7 +88,7 @@ Fields
 
 .. stats:: indexes
 
-p   Contains a count of the total number of indexes across all
+   Contains a count of the total number of indexes across all
    collections in the database.
 
 .. stats:: indexSize
@@ -104,5 +104,6 @@ p   Contains a count of the total number of indexes across all
 
 .. stats:: nsSizeMB
 
-   The total size of the data database  files (i.e. that end with ``.ns``). This
-   includes preallocated space and the :term:`padding factor`.
+   The total size of the data database files (i.e. that end with
+   ``.ns``). This includes preallocated space and the :term:`padding
+   factor`.

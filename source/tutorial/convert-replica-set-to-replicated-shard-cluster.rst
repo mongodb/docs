@@ -59,21 +59,25 @@ set and then insert test data.
 
 1. Create directories for first replica set instance, named firstset:
 
-   - `/data/example/firstset1`
-   - `/data/example/firstset2`
-   - `/data/example/firstset3`
+   - ``/data/example/firstset1``
+   - ``/data/example/firstset2``
+   - ``/data/example/firstset3``
 
-   Issue the following command: ::
+   Issue the following command:
 
-        mkdir -p /data/example/firstset1 /data/example/firstset2 /data/example/firstset3
+   .. code-block:: sh
+
+      mkdir -p /data/example/firstset1 /data/example/firstset2 /data/example/firstset3
 
 2. Start three :program:`mongod` instances by running each of the
    following commands in a separate terminal window or GNU Screen
-   window: ::
+   window:
 
-        mongod --dbpath /data/example/firstset1 --port 10001 --replSet firstset --oplogSize 700 --rest
-        mongod --dbpath /data/example/firstset2 --port 10002 --replSet firstset --oplogSize 700 --rest
-        mongod --dbpath /data/example/firstset3 --port 10003 --replSet firstset --oplogSize 700 --rest
+   .. code-block:: sh
+
+      mongod --dbpath /data/example/firstset1 --port 10001 --replSet firstset --oplogSize 700 --rest
+      mongod --dbpath /data/example/firstset2 --port 10002 --replSet firstset --oplogSize 700 --rest
+      mongod --dbpath /data/example/firstset3 --port 10003 --replSet firstset --oplogSize 700 --rest
 
    .. note::
 
@@ -88,9 +92,11 @@ set and then insert test data.
 
 3. Connect to one mongodb instance with :program:`mongo` shell by
    running the following command in a new terminal to connect to the
-   first node: ::
+   first node:
 
-        mongo localhost:10001/admin
+   .. code-block:: sh
+
+      mongo localhost:10001/admin
 
    .. note::
 
@@ -161,22 +167,28 @@ store the cluster's metadata.
    - ``/data/example/config2``
    - ``/data/example/config3``
 
-   Issue the following command at the system prompt: ::
+   Issue the following command at the system prompt:
 
-        mkdir -p /data/example/config1 /data/example/config2 /data/example/config3
+   .. code-block:: sh
+
+      mkdir -p /data/example/config1 /data/example/config2 /data/example/config3
 
 2. Start the config servers by ruining the following commands in a
-   *separate* terminal window or GNU Screen window: ::
+   *separate* terminal window or GNU Screen window:
 
-        mongod --configsvr --dbpath /data/example/config1 --port 20001
-        mongod --configsvr --dbpath /data/example/config2 --port 20002
-        mongod --configsvr --dbpath /data/example/config3 --port 20003
+   .. code-block:: sh
+
+      mongod --configsvr --dbpath /data/example/config1 --port 20001
+      mongod --configsvr --dbpath /data/example/config2 --port 20002
+      mongod --configsvr --dbpath /data/example/config3 --port 20003
 
 3. Start :program:`mongos` instance by running the following
    command. Run this command in a new terminal window or GNU Screen
-   window: ::
+   window:
 
-        mongos --configdb localhost:20001,localhost:20002,localhost:20003 --port 27017 --chunkSize 1
+   .. code-block:: sh
+
+      mongos --configdb localhost:20001,localhost:20002,localhost:20003 --port 27017 --chunkSize 1
 
    .. note::
 
@@ -194,19 +206,22 @@ store the cluster's metadata.
    "MongoDB" port (i.e. ``27017``), while the databases themselves, in
    this example, are running on ports in the ``30001`` series. In the
    above example, since ``27017`` is the default port, you may omit
-   the ":option:`--port 27017 <mongos --port>`" option. It is
-   included here only as an example.
+   the ":option:`--port 27017 <mongos --port>`" option, it is merely
+   as an example.
 
 4. Add the first shard in :program:`mongos`. In a new terminal window
    or GNU Screen session, add the first shard, according to the
    following procedure:
 
-   1. Connect to the :option::program:`mongos` with the following command: ::
+   1. Connect to the :program:`mongos` with the following
+      command:
 
-           mongo localhost:27017/admin
+      .. code-block:: sh
 
-   2. Add the first shard to the cluster, by issuing the :dbcommand:`addShard`
-      command as follows:
+         mongo localhost:27017/admin
+
+   2. Add the first shard to the cluster, by issuing
+      the :dbcommand:`addShard` command as follows:
 
       .. code-block:: javascript
 
@@ -235,11 +250,13 @@ above, omitting the test data.
    - ``/data/example/secondset3``
 
 2. Start three instances of :program:`mongod` in three new terminal
-   windows, with the following commands: ::
+   windows, with the following commands:
 
-        mongod --dbpath /data/example/secondset1 --port 10004 --replSet secondset --oplogSize 700 --rest
-        mongod --dbpath /data/example/secondset2 --port 10005 --replSet secondset --oplogSize 700 --rest
-        mongod --dbpath /data/example/secondset3 --port 10006 --replSet secondset --oplogSize 700 --rest
+   .. code-block:: sh
+
+      mongod --dbpath /data/example/secondset1 --port 10004 --replSet secondset --oplogSize 700 --rest
+      mongod --dbpath /data/example/secondset2 --port 10005 --replSet secondset --oplogSize 700 --rest
+      mongod --dbpath /data/example/secondset3 --port 10006 --replSet secondset --oplogSize 700 --rest
 
    .. note::
 
@@ -248,9 +265,11 @@ above, omitting the test data.
       production environments.
 
 3. Connect to one mongodb instance with :program:`mongo` shell, using
-   the following command: ::
+   the following command:
 
-        mongo localhost:10004/admin
+   .. code-block:: sh
+
+      mongo localhost:10004/admin
 
 4. Initialize the second replica set, by issuing the following command
    in the :program:`mongo` shell:
@@ -365,9 +384,10 @@ The collection "``test_collection``" is now sharded!
 
 Over the next few minutes the Balancer will begin to redistribute
 chunks of documents. You can confirm this activity by switching to the
-``test`` database and running :js:func:``db.stats()`` or :js:func:`db.printShardingStatus()`.
+``test`` database and running :js:func:`db.stats()` or
+:js:func:`db.printShardingStatus()`.
 
-Additional documents that are added to this collection will be
+As clients insert additional documents into this collection,
 distributed evenly between the shards.
 
 Use the following commands in the :program:`mongo` to return these
@@ -447,5 +467,5 @@ In a few moments you can run these commands for a second time to
 demonstrate that :term:`chunks <chunk>` are migrating from
 ``firstset`` to ``secondset``.
 
-Congratulations you have converted a replica set into a sharded
-cluster where each shard is itself a replica set.
+When this procedure is complete, you will have converted a replica set
+into a sharded cluster where each shard is itself a replica set.
