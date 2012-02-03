@@ -448,9 +448,15 @@ Glossary
    primary key
       Relational databases use primary keys to guarantee unique
       identifiers for a specific data instance: for each row in a
-      relational table. In MongoDB, :term:`unique indexes` can
-      enforce uniqueness for a field. :term:`_id` is an example of a
-      primary key.
+      relational table. In MongoDB, :term:`unique indexes <unique
+      index>` can enforce uniqueness for a field. :term:`_id` is an
+      example of a primary key.
+
+   unique index
+      An index that enforces uniqueness, to guarantee that only one
+      document within the indexed collection has any particular
+      key. Unique indexes prevent write operations that would cause
+      a collision.
 
    firewall
       A system level networking filter that limits higher-level
@@ -514,7 +520,7 @@ Glossary
       from one :term:`shard` to another. Administrators must drain
       shards before removing them from the cluster.
 
-      .. seealso:: :dbcommand:`removeshard`, :doc:`sharding`.
+      .. seealso:: :dbcommand:`removeshard`, :term:`sharding`.
 
    single master replication
       A :term:`replication` method where only a single database

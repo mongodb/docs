@@ -202,7 +202,7 @@ Settings
    *Default:* false
 
    Set to ``true`` to enable database authentication for users
-   connecting from remote hosts. Configure uses via the :doc:`mongo
+   connecting from remote hosts. Configure users via the :doc:`mongo
    shell </reference/mongo>`. If no users exist, the localhost
    interface will continue to have access to the database until the
    you create the first user.
@@ -213,7 +213,7 @@ Settings
 
    Set to ``true`` to force :program:`mongod` to report every four
    seconds CPU utilization and the amount of time that the processor
-   waits for I/O operations to complete (i.e. I/O wait.) MongoDB write
+   waits for I/O operations to complete (i.e. I/O wait.) MongoDB writes
    this data to standard output, or the logfile if using the
    :setting:`logpath` option.
 
@@ -222,7 +222,7 @@ Settings
    *Default:* ``/data/db/``
 
    Set this value to designate a directory for the :program:`mongod`
-   instance to store its data. Typically locations include:
+   instance to store its data. Typical locations include:
    "``/srv/mognodb``", "``/var/lib/mongodb``" or "``/opt/mongodb``"
 
    Unless specified, :program:`mongod` creates data files in the
@@ -252,7 +252,9 @@ Settings
    *Default:* false
 
    Set to ``true`` to modify the storage pattern of the data directory
-   to store each database's files in a distinct folder.
+   to store each database's files in a distinct folder. Use this option to
+   configure MongoDB to store data on a number of distinct disk
+   devices to increase write throughput or disk capacity.
 
    Unless specified, :program:`mongod` saves all database files in the
    directory specified by :setting:`dbpath`.
@@ -421,11 +423,13 @@ Settings
 
    *Default:* 100
 
+   Specify values in milliseconds.
+
    Sets the threshold for :program:`mongod` to consider a query "slow"
    for the database profiler. The database logs all slow queries to
-   the log, even when the profiler is not turned on.
-
-   Specify values in milliseconds.
+   the log, even when the profiler is not turned on. When the database
+   profiler is on, :program:`mongod` the profiler writes to the
+   ``system.profile`` collection.
 
    .. seealso:: ":setting:`profile`"
 
@@ -495,14 +499,16 @@ Replica Set Options
    :term:`dbpath` of another member of the set. Otherwise the
    :program:`mongod` will attempt to perform a full sync.
 
-   .. warning:: If the data is not perfectly synchronized *and*
+   .. warning::
+
+      If the data is not perfectly synchronized *and*
       :program:`mongod` starts with :setting:`fastsync`, then the
       secondary or slave will be permanently out of sync with the
       primary, which may cause significant consistency problems.
 
 .. setting:: oplogSize
 
-   Specifies a maximum size in megabytes for the replication operation
+o   Specifies a maximum size in megabytes for the replication operation
    log (e.g. :term:`oplog`.) By :program:`mongod` creates an
    :term:`oplog` based on the maximum amount of space available. For
    64-bit systems, the op log is typically 5% of available disk space.
@@ -596,9 +602,9 @@ Sharding Cluster Options
 
    Set this value to ``true`` to configure this :program:`mongod`
    instance to operate as the :term:`config database` of a shard
-   cluster. The default port with this option is ``27019` and the data
-   is stored in the ``/configdb`` sub-directory of the
-   :setting:`dbpath` directory.
+   cluster. The default port for :program:`mongod` with this option is
+   ``27019` and :program:`mongod` writes all data files to the
+   ``/configdb`` sub-directory of the :setting:`dbpath` directory.
 
 .. setting:: shardsvr
 
@@ -606,7 +612,7 @@ Sharding Cluster Options
 
    Set this value to ``true`` to configure this :program:`mongod`
    instance as a shard in a partitioned cluster. The default port for
-   these nodes is ``27018``.
+   these instances is ``27018``.
 
 .. setting:: noMoveParanoia
 

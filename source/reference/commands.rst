@@ -1143,7 +1143,7 @@ Administration
       The :js:func:`db.fsyncLock()` and :js:func:`db.fsyncUnlock()`
       helpers in the shell.
 
-.. dbcommand:: dropDatabase
+.. dbcommand:: dropData base
 
    The :dbcommand:`dropDatabase` command drops a database, deleting
    the associated data files. :dbcommand:`dropDatabase` operates on the
@@ -1224,10 +1224,10 @@ Administration
    inconsistencies with the data storage. The command is analogous to
    a ``fsck`` command for file systems.
 
-   If your :program:`mongod` instance is not running with journaling and you experience an
-   unexpected system restart or crash, you should run the
-   :dbcommand:`repairDatabase` command to ensure that there are no errors in
-   the data storage.
+   If your :program:`mongod` instance is not running with journaling
+   and you experience an unexpected system restart or crash, you
+   should run the :dbcommand:`repairDatabase` command to ensure that
+   there are no errors in the data storage.
 
    As a side effect, the :dbcommand:`repairDatabase` command will
    compact the database, providing functionality equivalent to the
@@ -1278,10 +1278,10 @@ Administration
 
    .. note::
 
-      When using :term:`journaling`, there is almost never any need to
-      run :dbcommand:`repairDatabase`. In the event of an unclean shutdown, the
-      server will be able restore the data files to a pristine state
-      automatically.
+      When using :term:`journaling <journal>`, there is almost never
+      any need to run :dbcommand:`repairDatabase`. In the event of an
+      unclean shutdown, the server will be able restore the data files
+      to a pristine state automatically.
 
 .. dbcommand:: shutdown
 
@@ -1836,9 +1836,11 @@ TODO standardize on the way options are presented. Here, the standard is "fsync"
    - ``-1`` - return the current profiling level.
 
    You may optionally set a threshhold in milliseconds for profiling using
-   the ``slowms`` option. To : ::
+   the ``slowms`` option, as follows:
 
-       { profile: 1, slowms: 200 }
+   .. code-block:: javascript
+
+      { profile: 1, slowms: 200 }
 
    .. seealso:: Additional documentation regarding database profiling
                 :ref:`Database Profiling <database-profiling>`.
@@ -1899,6 +1901,19 @@ Other Commands
 
 TODO document mongos commands DOCS-112
 
+.. dbcommand:: avalibleQueryOptions
+
+.. dbcommand:: closeAllDatabases
+
+.. dbcommand:: flushRouterConfig
+
+.. dbcommand:: isdbGrid
+
+.. dbcommand:: movePrimary
+
+.. dbcommand:: netstat
+
+.. dbcommand:: split
 
 Internal Use
 ------------

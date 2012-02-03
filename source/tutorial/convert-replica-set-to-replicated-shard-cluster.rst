@@ -110,7 +110,11 @@ set and then insert test data.
 
    .. code-block:: javascript
 
-      db.runCommand({"replSetInitiate" : {"_id" : "firstset", "members" : [{"_id" : 1, "host" : "localhost:10001"}, {"_id" : 2, "host" : "localhost:10002"}, {"_id" : 3, "host" : "localhost:10003"}]}})
+      db.runCommand({"replSetInitiate" :
+                          {"_id" : "firstset", "members" : [{"_id" : 1, "host" : "localhost:10001"},
+                                                            {"_id" : 2, "host" : "localhost:10002"},
+                                                            {"_id" : 3, "host" : "localhost:10003"}
+                   ]}})
       {
               "info" : "Config now saved locally.  Should come online in about a minute.",
               "ok" : 1
@@ -276,7 +280,12 @@ above, omitting the test data.
 
    .. code-block:: javascript
 
-      db.runCommand({"replSetInitiate" : {"_id" : "secondset", "members" : [{"_id" : 1, "host" : "localhost:10004"}, {"_id" : 2, "host" : "localhost:10005"}, {"_id" : 3, "host" : "localhost:10006"}]}})
+      db.runCommand({"replSetInitiate" :
+                          {"_id" : "secondset",
+                           "members" : [{"_id" : 1, "host" : "localhost:10004"},
+                                        {"_id" : 2, "host" : "localhost:10005"},
+                                        {"_id" : 3, "host" : "localhost:10006"}
+                   ]}})
 
       {
            "info" : "Config now saved locally.  Should come online in about a minute.",

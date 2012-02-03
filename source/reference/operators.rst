@@ -8,8 +8,6 @@ Operator Reference
 This document contains a reference to all :term:`operators <operator>`
 used with MongoDB in version |version|.
 
-TODO possibly develop more clear examples for collection field, field1, value, value1 etc. This gets confusing, but needs to be consistent and generic.
-
 Query Selectors
 ---------------
 
@@ -44,9 +42,11 @@ Comparison
 
    The :operator:`$lte` comparison operator provides the ability to select
    documents where a field is less than or equal to (e.g. "``<=``") a
-   value: ::
+   value:
 
-       db.collection.find( { field: { $lte: value } } );
+   .. code-block:: javascript
+
+      db.collection.find( { field: { $lte: value } } );
 
    This query returns all documents in ``collection`` where the value
    of ``field`` less than or equal to the specified "``value``".
@@ -55,16 +55,20 @@ Comparison
 
    The :operator:`$gte` comparison operator provides the ability to select
    documents where a field is less than or equal to (e.g. "``>=``") a
-   value: ::
+   value:
 
-       db.collection.find( { field: { $lte: value } } );
+   .. code-block:: javascript
+
+      db.collection.find( { field: { $lte: value } } );
 
    This query returns all documents in ``collection`` where the value
    of ``field`` less than or equal to the specified "``value``".
 
-Comparison operators can be combined to specify ranges: ::
+You may combine comparison operators to specify ranges:
 
-     db.collection.find( { field: { $gt: value1, $lt: value2 } } );
+.. code-block:: javascript
+
+   db.collection.find( { field: { $gt: value1, $lt: value2 } } );
 
 This statement returns all instances of ``field`` between
 "``value1``" and "``value2``".
@@ -75,9 +79,11 @@ Document
 .. operator:: $all
 
    The :operator:`$all` operator matches a minimum set of elements that must
-   be present in a document's ``field``, as in the following example: ::
+   be present in a document's ``field``, as in the following example:
 
-        db.collection.find( { field: { $all: [ 1, 2 , 3 ] } } );
+   .. code-block:: javascript
+
+      db.collection.find( { field: { $all: [ 1, 2 , 3 ] } } );
 
    This returns all documents in ``collection`` where the value of
    ``field`` is an array that is equivalent to or a superset of "``[
@@ -87,25 +93,31 @@ Document
 
 .. operator:: $exists
 
-   The :operator:`$exist` operator returns documents if they have, or lack, a
-   field. The :operator:`$exist` operator accepts either true and false
-   values. For example: ::
+   The :operator:`$exist` operator tests documents for the existence
+   of a field. The :operator:`$exist` operator accepts either true and
+   false values. For example:
+
+   .. code-block:: javascript
 
         db.collection.find( { field: { $exists: true } );
 
-   returns all documents in ``collection`` that have ``field``, while ::
+   returns all documents in ``collection`` that have ``field``, while:
 
-        db.collection.find( { field: { $exists: false } );
+   .. code-block:: javascript
+
+      db.collection.find( { field: { $exists: false } );
 
    returns all documents in ``collection`` that *not* have a ``field``
    specified.
 
 .. operator:: $ne
 
-   The :operator:`$ne` operator returns documents where a field is not equal
-   to the specified values. The following command: ::
+   The :operator:`$ne` operator returns documents where a field is not
+   equal to the specified values. The following command:
 
-        db.collection.find( { field: { $ne: 100 } } );
+   .. code-block:: javascript
+
+      db.collection.find( { field: { $ne: 100 } } );
 
    returns all documents in ``collection`` with ``field`` that do not
    equal 100.
@@ -113,15 +125,19 @@ Document
 .. operator:: $in
 
    The :operator:`$in` operator allows you to specify an array of possible
-   matches for any value. Consider the following form: ::
+   matches for any value. Consider the following form:
 
-        db.collection.find( { field: { $in: array } } );
+   .. code-block:: javascript
+
+      db.collection.find( { field: { $in: array } } );
 
    Here, :operator:`$in` returns all documents in ``collection`` where
    ``field`` has a value included in ``array``. This is analogous to
-   the ``IN`` modifier in SQL. For example: ::
+   the ``IN`` modifier in SQL. For example:
 
-        db.collection.find( { age: { $in: [ 1, 2, 3, 5, 7, 11 } } );
+   .. code-block:: javascript
+
+      db.collection.find( { age: { $in: [ 1, 2, 3, 5, 7, 11 } } );
 
    returns all documents in ``collection`` with an "``age``" field
    that has a value in one of the first six prime numbers.
@@ -129,13 +145,14 @@ Document
 .. operator:: $nin
 
    The :operator:`$nin` operator provides a "not in," as the inverse of
-   :operator:`$in`. For example: ::
+   :operator:`$in`. For example:
 
-        db.collection.find( { age: { $nin: [ 3, 5, 7 } } );
+   .. code-block:: javascript
+
+      db.collection.find( { age: { $nin: [ 3, 5, 7 } } );
 
    returns all documents in ``collection`` where the value of ``age``
    is *not* 3, 5, or 7.
-
 
 .. _geolocation-operators:
 
@@ -144,11 +161,13 @@ Geolocation
 
 .. operator:: $near
 
-   The :operator:`$near` operator takes an argument, coordinates in the form
-   of "``[x, y]``", and returns a list of objects that sorted by
-   distance from those coordinates. See the following example: ::
+   The :operator:`$near` operator takes an argument, coordinates in
+   the form of "``[x, y]``", and returns a list of objects that sorted
+   by distance from those coordinates. See the following example:
 
-        db.collection.find( { location: { $near: [100,100] } } );
+   .. code-block:: javascript
+
+      db.collection.find( { location: { $near: [100,100] } } );
 
    This query will return 100 ordered records with a ``location``
    field in ``collection``. Specify a different using the
@@ -160,33 +179,40 @@ Geolocation
    The :operator:`$maxDistance` operator specifies an upward bound to limit
    the results of a geolocation query. See below, where the
    :operator:`$maxDistance` command narrows the results of the
-   :operator:`$near` query: ::
+   :operator:`$near` query:
 
-        db.collection.find( { location: { $near: [100,100], $maxDistance: 10 } } );
+   .. code-block:: javascript
+
+      db.collection.find( { location: { $near: [100,100], $maxDistance: 10 } } );
 
    This query will return, documents with ``location`` fields from
    ``collection`` that have values with a distance of 5 or fewer units
-   from the point ``[100,100]``. These results are ordered by their
-   distance from ``[100,100]``, and the first 100 results are returned
-   unless the :js:func:`limit()` is used.
+   from the point ``[100,100]``. :operator:`$near` returns results
+   ordered by their distance from ``[100,100]``. This operation will
+   return the first 100 results unless you modify the query with the
+   :js:func:`limit()` method.
 
-   The value of the :operator:`$maxDistance` argument is specified in the same
-   units as the document coordinate system.
+   Specify the value of the :operator:`$maxDistance` argument in the
+   same units as the document coordinate system.
 
 .. operator:: $within
 
    The :operator:`$within` operator allows you to select items that exist
    within a shape on a coordinate system. This operator uses the
-   following syntax: ::
+   following syntax:
 
-        db.collection.find( { location: { $within: { shape } } } );
+   .. code-block:: javascript
+
+      db.collection.find( { location: { $within: { shape } } } );
 
    Replace ``{ shape }`` a document that describes a shape. The
    :operator:`$within` command supports three shapes. These shapes and the
    relevant expression follow:
 
    - Rectangles. Use the :operator:`$box` shape, consider the following
-     variable and :operator:`$within` document: ::
+     variable and :operator:`$within` document:
+
+     .. code-block:: javascript
 
         db.collection.find( { location: { $within: { $box: [[100,0], [120,100]] } } } );
 
@@ -194,12 +220,16 @@ Geolocation
      for the query. As a minimum, you must specify the lower-left and
      upper-right corners of the box.
 
-   - Circles. Specify circles in the following form: ::
+   - Circles. Specify circles in the following form:
+
+     .. code-block:: javascript
 
         db.collection.find( { location: { $within: { $circle: [ center, radius } } } );
 
-   - Polygons. Polygons are specified by an array of points. See the
-     following example: ::
+   - Polygons. Specify polygons with an array of points. See the
+     following example:
+
+     .. code-block:: javascript
 
         db.collection.find( { location: { $within: { $box: [[100,120], [100,100], [120,100], [240,200]] } } } );
 
@@ -217,16 +247,16 @@ Geolocation
    document multiple times. When using the :operator:`$within`,
    however, MongoDB returns opposite behavior.
 
-   The :operator:`$uniqueDocs` operator oerrides these default behaviors. By
-   specifying "``$uniqueDocs: false``" in a :operator:`$within`
-   query, will cause true :operator:`$within` queries to return a single
-   document multiple times if there is more than one match. By extension
-   by specifying "``uniqueDocs: true``" as an option to the
-   :dbcommand:`geoNear`, this command will only return a single document
-   once even if there are multiple matches.
+   The :operator:`$uniqueDocs` operator oerrides these default
+   behaviors. By specifying "``$uniqueDocs: false``" in a
+   :operator:`$within` query, will cause true :operator:`$within`
+   queries to return a single document multiple times if there is more
+   than one match. By extension by specifying "``uniqueDocs: true``"
+   as an option to the :dbcommand:`geoNear`, this command will only
+   return a single document once even if there are multiple matches.
 
-   The :operator:`$uniqueDocs` operator cannot be specified with
-   :operator:`$near` queries.
+   You cannot specify :operator:`$uniqueDocs` with :operator:`$near`
+   queries.
 
 TODO clarify $uniqueDocs as the wiki is unclear here. The true/false in the wiki seams to not line up with the behavior.
 
@@ -239,34 +269,41 @@ Logical
 
    The :operator:`$or` operator provides a Boolean ``OR`` expression in
    queries. Use :operator:`$or` to match documents against two or more
-   expressions. For example: ::
+   expressions. For example:
 
-        db.collection.find( { $or [ { key1: value1 }, { key2: value2} ] } );
+   .. code-block:: javascript
+
+      db.collection.find( { $or [ { key1: value1 }, { key2: value2} ] } );
 
    returns all documents in ``collection`` that *either* have a
    ``key1`` field with ``value1`` *or* a ``key2`` field with ``value2``.
 
    You may specify a field and then use the :operator:`$or` operator to
-   further narrow results. Consider the following: ::
+   further narrow results. Consider the following:
 
-        db.collection.find( { age: "19", $or [ { key1: value1 }, { key2: value2} ] } );
+   .. code-block:: javascript
+
+      db.collection.find( { age: "19", $or [ { key1: value1 }, { key2: value2} ] } );
 
    This query returns all documents in ``collection`` with an ``age``
    field that has the value ``19``, and *either* a ``key1`` field with
    ``value1`` *or* a ``key2`` field with ``value2``.
 
-   As of version 2.0 :operator:`$or` operations can be nested; however, these
-   expressions are not as efficiently optimized as top-level :operator:`$or`
-   operations.
+   .. versionadded: 2.0
+      You may nest :operator:`$or` operations; however, these
+      expressions are not as efficiently optimized as top-level
+      :operator:`$or` operations.
 
 .. operator:: $nor
 
    The :operator:`$nor` operators provides a Boolean ``NOR`` expression in
    queries. :operator:`$nor` is the functional inverse of :operator:`$nor`. Use
    :operator:`$nor` to exclude documents that have fields with specific
-   values. For example: ::
+   values. For example:
 
-        db.collection.find( { $nor [ { key1: value1 }, { key2: value2} ] } );
+   .. code-block:: javascript
+
+      db.collection.find( { $nor [ { key1: value1 }, { key2: value2} ] } );
 
    returns all documents in ``collection`` that have *neither* a
    ``key1`` field with ``value1`` *nor* a ``key2`` field with
@@ -274,34 +311,46 @@ Logical
 
 .. operator:: $and
 
+   .. versionadded:: 2.0
+
    The :operator:`$and` operator provides a Boolean ``AND`` expression in
    queries. Use :operator:`$and` to return the documents that satisfy *all*
-   included expressions. For example: ::
+   included expressions. For example:
 
-        db.collection.find( { $and [ { key1: value1 }, { key2: value2} ] } );
+   .. code-block:: javascript
+
+      db.collection.find( { $and [ { key1: value1 }, { key2: value2} ] } );
 
    returns all documents in ``collection`` that have *both* a
    ``key1`` field with ``value1`` *and* a ``key2`` field with
    ``value2``.
 
-   .. the $and operator was added in version 2.0
-
 .. operator:: $not
 
-   :operator:`$not` is a meta operator used to negate a standard operator. It
-   can only affect other operators, and cannot be used to check fields
-   and documents independently. For this functionality see
-   :operator:`$ne`. Consider the following statement: ::
+   :operator:`$not` is a meta operator used to negate a standard
+   operator. It can only affect other operators, and is unable to
+   check fields and documents independently. For this functionality
+   see :operator:`$ne`.
 
-        db.collection.find( { field: { $not: { $type: 2 } } } );
+   Consider the following example of :operator:`$not`:
+
+   .. code-block:: javascript
+
+      db.collection.find( { field: { $not: { $type: 2 } } } );
 
    This query returns all documents in ``collection`` where ``field``
    is *not* a string, using the :operator:`$type` operator.
 
-   The :operator:`$not` operator does not support operations with
-   :operator:`$regex`. When using $not, all regular expressions should
-   be passed using the native BSON type. For example, consider the
-   following expression fragment in Python, using the PyMongo driver: ::
+   .. note::
+
+      The :operator:`$not` operator does not support operations with
+      :operator:`$regex`.
+
+      When using :operator:`$not`, pass all regular expressions using
+      the native BSON type. For example, consider the following
+      expression fragment  in Python, using the PyMongo driver:
+
+      .. code-block:: python
 
         { "$not": re.compile("acme.*corp")}
 
@@ -312,7 +361,9 @@ Element
 
    The :operator:`$type` operator matches field values with a specific data
    type. :operator:`$type` operator allows you to narrow results based on any
-   :term:`BSON` type. For example: ::
+   :term:`BSON` type. For example:
+
+   .. code-block:: javascript
 
         db.collection.find( { field: { $type: 2 } } );
 
@@ -346,10 +397,12 @@ Element
 .. operator:: $regex
 
    The :operator:`$regex` operator provides regular expression capabilities in
-   queries. The following examples are equivalent: ::
+   queries. The following examples are equivalent:
 
-        db.collection.find( { field: /acme.*corp/i } );
-        db.collection.find( { field: { $regex: 'acme.*corp', $options: 'i' } } );
+   .. code-block:: javascript
+
+      db.collection.find( { field: /acme.*corp/i } );
+      db.collection.find( { field: { $regex: 'acme.*corp', $options: 'i' } } );
 
    These expressions match all documents in ``collection`` where the
    value of ``field`` matches the case-insensitive regular expression
@@ -367,32 +420,35 @@ Element
      If there are no newline characters (e.g. "``\n``") or no
      start/end of line construct, the ``m`` option has no effect.
 
-   - ``x`` toggles an "extended" capability. When set, all white space
-     characters are ignored unless escaped or included in a character
-     class.
+   - ``x`` toggles an "extended" capability. When set,
+     :operator:`$regex` ignores all white space characters unless
+     escaped or included in a character class.
 
-     Additionally, characters between an unescaped ``#``
-     character and the next new line are ignored, so that you may
-     include comments in complicated patterns. This only applies to
-     data characters; white space characters may never appear within
-     special character sequences in a pattern.
+     Additionally, it ignores characters between an un-escaped ``#``
+     character and the next new line, so that you may include comments
+     in complicated patterns. This only applies to data characters;
+     white space characters may never appear within special character
+     sequences in a pattern.
 
-     The ``x`` option does not effect the way that the VT character
-     (i.e. code 11) is handled.
+     The ``x`` option does not affect the handling of the VT character
+     (i.e. code 11.)
 
    - ``s`` allows the dot (e.g. "``.``") character to match all
      characters *including* newline characters.
 
-     .. the ``s`` option was added in version 1.9.0.
+     .. versionadded:: 1.9.0
 
-   Only the ``i` and ``m`` options can be used in the short JavaScript
-   syntax (i.e. "``/acme.*corp/i``"). To use "``x`` and "``s``" you
-   must use the ":operator:`$regex`" operator with the ":operator:`$options`" syntax.
+   :option:`$regex` only provides the ``i` and ``m`` options in the
+   short JavaScript syntax (i.e. "``/acme.*corp/i``"). To use "``x``
+   and "``s``" you must use the ":operator:`$regex`" operator with the
+   ":operator:`$options`" syntax.
 
    To combine a regular expression match with other operators, you
-   need to specify the ":operator:`$regex`" operator. For example: ::
+   need to specify the ":operator:`$regex`" operator. For example:
 
-        db.collection.find( { field: $regex: /acme.*corp/i, $nin: [ 'acmeblahcorp' } );
+   .. code-block:: javascript
+
+      db.collection.find( { field: $regex: /acme.*corp/i, $nin: [ 'acmeblahcorp' } );
 
    This expression returns all instances of ``field`` in
    ``collection`` that match the case insensitive regular expression
@@ -400,19 +456,23 @@ Element
 
 .. operator:: $mod
 
-   The :operator:`$mod` operator performs a fast "modulo" query, to reduce the
-   need for expensive :operator:`$where` operator in some
-   cases. :operator:`$mod` performs a modulo operation on the value of a
-   field, and returns all documents that with that modulo value. For
-   example: ::
+   The :operator:`$mod` operator performs a fast "modulo" query, to
+   reduce the need for expensive :operator:`$where` operator in some
+   cases. :operator:`$mod` performs a modulo operation on the value of
+   a field, and returns all documents that with that modulo value. For
+   example:
 
-        db.collection.find( { field: { $mod: [ d, m ] } } );
+   .. code-block:: javascript
+
+      db.collection.find( { field: { $mod: [ d, m ] } } );
 
    returns all documents in ``collection`` with a modulo of ``m``,
    with a divisor of ``d``. This replaces the following
-   :operator:`$where` operation: ::
+   :operator:`$where` operation:
 
-        db.collection.find( "field % d == m" );
+   .. code-block:: javascript
+
+      db.collection.find( "field % d == m" );
 
 JavaScript
 ~~~~~~~~~~
@@ -421,24 +481,30 @@ JavaScript
 
    Use the :operator:`$where` operator to pass a string containing a
    JavaScript expression to the query system to provide greater
-   flexibility with queries. Consider the following: ::
+   flexibility with queries. Consider the following:
 
-        db.collection.find( { $where: "this.a > 3" } );
+   .. code-block:: javascript
+
+      db.collection.find( { $where: "this.a > 3" } );
 
    In this case, the following query is equivalent to the following
-   operation using the :operator:`$gt`: ::
+   operation using the :operator:`$gt`:
 
-        db.collection.find( { a : { $gt: 3 } } );
+   .. code-block:: javascript
+
+      db.collection.find( { a : { $gt: 3 } } );
 
 Array
 ~~~~~
 
 .. operator:: $size
 
-   The :operator:`$size` operator matches any array with the specified number
-   of arguments. For example: ::
+   The :operator:`$size` operator matches any array with the specified
+   number of arguments. For example:
 
-        db.collection.find( { field: { $size: 2 } } );
+   .. code-block:: javascript
+
+      db.collection.find( { field: { $size: 2 } } );
 
    returns all documents in ``collection`` where ``field`` is an array
    with two or more elements. For instance, the above expression will
@@ -451,12 +517,14 @@ Array
 
       db.collection.find( { field: { $size: 1 } } );
 
-   :operator:`$size` does not accept ranges of values. To select documents
-   based on fields with different numbers of elements, create a
-   counter field that you increment when you add elements to a field.
+   :operator:`$size` does not accept ranges of values. To select
+   documents based on fields with different numbers of elements,
+   create a counter field that you increment when you add elements to
+   a field.
 
-   Indexes cannot be used for the $size portion of a query, although
-   the other portions of a query can use indexes if applicable.
+   Queries cannot use indexes for the :operator:`$size` portion of a
+   query, although the other portions of a query can use indexes if
+   applicable.
 
 .. operator:: $elemMatch
 
@@ -468,10 +536,10 @@ Array
       db.collection.find( { array: { $elemMatch: { value1: 1, value2: { $gt: 1 } } } } );
 
    returns all documents in ``collection`` where the array ``array``
-   satisfies all of the conditions in the :operator:`$elemMatch` expression,
-   or where the value of ``value1`` is 1 and the value of ``value2``
-   is greater than 1. Matching arrays must match all specified
-   criteria.
+   satisfies all of the conditions in the :operator:`$elemMatch`
+   expression, or where the value of ``value1`` is 1 and the value of
+   ``value2`` is greater than 1. Matching arrays must match all
+   specified criteria.
 
    .. versionadded:: 1.4
 
@@ -480,27 +548,29 @@ Array
 Update
 ------
 
-TODO does update() iterate over the whole collection or just the first matching record?
-
 .. operator:: $set
 
-  Use the :operator:`$set` operator to set a particular value. The :operator:`$set`
-  operator requires the following syntax: ::
+  Use the :operator:`$set` operator to set a particular value. The
+  :operator:`$set` operator requires the following syntax:
 
-        db.collection.update( { field: value1 }, { $set: { field1: value2 } } );
+  .. code-block:: javascript
 
-  In this statement, the document(s) in ``collection`` where ``field``
-  matches ``value1``, the ``field1`` is added or updated with
-  the value ``value2``. This operator will add the specified field or
-  fields if they do not exist in this document *or* replace the
-  existing value of the specified field(s) if they already exist.
+     db.collection.update( { field: value1 }, { $set: { field1: value2 } } );
+
+  This statement updates in the document in ``collection`` where
+  ``field`` matches ``value1`` by replacing the value of the field
+  ``field1`` with "``value2``". This operator will add the specified
+  field or fields if they do not exist in this document *or* replace
+  the existing value of the specified field(s) if they already exist.
 
 .. operator:: $unset
 
    The :operator:`$unset` operator deletes a particular field. Consider the
-   following example: ::
+   following example:
 
-        db.collection.update( { field: value1 }, { $unset: { field1: "" } } );
+   .. code-block:: javascript
+
+      db.collection.update( { field: value1 }, { $unset: { field1: "" } } );
 
    The above example deletes ``field1`` in ``collection`` from
    documents where ``field`` has a value of ``value1``. The value of
@@ -514,46 +584,54 @@ TODO does update() iterate over the whole collection or just the first matching 
 
 .. operator:: $inc
 
-   The :operator:`$inc` operator increments a value by a specified amount if
-   field is present in the document. If the field does not exist,
-   :operator:`$inc` sets field to the number value. For example: ::
+   The :operator:`$inc` operator increments a value by a specified
+   amount if field is present in the document. If the field does not
+   exist, :operator:`$inc` sets field to the number value. For
+   example:
 
-        db.collection.update( { field: value }, { $inc: { field1: amount } } );
+   .. code-block:: javascript
+
+      db.collection.update( { field: value }, { $inc: { field1: amount } } );
 
    In this example, for all documents in ``collection`` where
    ``field`` has the value ``value``, the value of ``field1``
    increments by the value of ``amount``. Consider the following
-   examples: ::
+   examples:
 
-        db.collection.update( { age: 20 }, { $inc: { age: 1 } } );
-        db.collection.update( { name: "John" }, { $inc: { age: 1 } } );
+   .. code-block:: javascript
+
+      db.collection.update( { age: 20 }, { $inc: { age: 1 } } );
+      db.collection.update( { name: "John" }, { $inc: { age: 1 } } );
 
    In the first example all documents that have an ``age`` field with
-   the value of ``20``, the ``age`` field is increased by one. In the
-   second example, all documents where the ``name`` field has a value
-   of "``John``", the value of the ``age`` field is increased by one.
+   the value of ``20``, the operation increases ``age`` field by
+   one. In the second example, in all documents where the ``name``
+   field has a value of "``John``" the operation increases the value
+   of the ``age`` field by one.
 
    :operator:`$inc` accepts positive and negative incremental amounts.
 
 .. operator:: $push
 
    The :operator:`$push` operator appends a specified value to an array. For
-   example: ::
+   example:
 
-        db.collection.update( { field: value }, { $push: { field: value1 } } );
+   .. code-block:: javascript
+
+      db.collection.update( { field: value }, { $push: { field: value1 } } );
 
    Here, :operator:`$push` appends ``value1`` to the array identified by
    ``value`` in ``field``. Be aware of the following behaviors:
 
-   - If the field specified in the :operator:`$push` statement (e.g. "``{
-     $push: { field: value1 } }``") does not exist in the matched
-     document, a new field with the specified value (e.g. ``value1``)
-     will be added to the matched document.
+   - If the field specified in the :operator:`$push` statement
+     (e.g. "``{ $push: { field: value1 } }``") does not exist in the
+     matched document, the operation adds a new field with the
+     specified value (e.g. ``value1``) to the matched document.
 
    - The operation will fail if the field specified in the :operator:`$push`
      statement is not an array.
 
-   - If ``value`` is an array itself, an array will be appended as an
+   - If ``value`` is an array itself, :operator:`$push` appends an
      element in the identified array. To add multiple items to an
      array, use :operator:`$pushAll`.
 
@@ -573,17 +651,17 @@ TODO does update() iterate over the whole collection or just the first matching 
    If you specify a single value, :operator:`$pushAll` will behave as
    :operator:`$push`.
 
-TODO determine what the performance impacts of using $pushAll with single values are.
-
 .. operator:: $addToSet
 
    The :operator:`$addToSet` operator adds a value to an array only *if* the
    value is *not* in the array already. If the value *is* in the
    array, :operator:`$addToSet` returns without modifying the
    array. Otherwise, :operator:`$addToSet` behaves the same as
-   :operator:`$push`. Consider the following example: ::
+   :operator:`$push`. Consider the following example:
 
-        db.collection.update( { field: value }, { $addToSet: { field: value1 } } );
+   .. code-block:: javascript
+
+      db.collection.update( { field: value }, { $addToSet: { field: value1 } } );
 
    Here, :operator:`$addToSet` appends ``value1`` to the array stored in
    ``field``, *only if* ``value1`` is not already a member of this
@@ -594,25 +672,30 @@ TODO determine what the performance impacts of using $pushAll with single values
    The :operator:`$pop` operator removes the first or last element of an
    array. Pass :operator:`$pop` a value of ``1``` to remove the last element
    in an array and a value of ``-1`` to remove the first element of an
-   array. Consider the following syntax: ::
+   array. Consider the following syntax:
 
-        db.collection.update( {field: value }, { $pop: { field: 1 } } );
+   .. code-block:: javascript
 
-   Here, the last item of the array stored in ``field`` is removed in
+      db.collection.update( {field: value }, { $pop: { field: 1 } } );
+
+   This operation removes the last item of the array in ``field``  in
    the document that matches the query statement "``{ field: value
-   }``". In the following example, the *first* item of the same array
-   is removed: ::
+   }``". The following example removes the *first* item of the same
+   array:
 
-        db.collection.update( {field: value }, { $pop: { field: -1 } } );
+   .. code-block:: javascript
+
+      db.collection.update( {field: value }, { $pop: { field: -1 } } );
 
    Be aware of the following :operator:`$pop` behaviors:
 
-   - The :operator:`$pop` operation fails if ``field`` is not an array.
+   - The :operator:`$pop` operation fails if ``field`` is not an
+     array.
 
    - :operator:`$pop` will successfully remove the last item in an
      array. ``field`` will then hold an empty array.
 
-   .. $pop was added in version 1.1
+   .. versionadded:: 1.1
 
 .. operator:: $pull
 
@@ -689,7 +772,7 @@ TODO determine what the performance impacts of using $pushAll with single values
    :operator:`$inc` operation that increments the value of ``field2``.
 
    .. seealso:: See :js:func:`update()` for more information about the
-      ``update()`` function.
+      :js:func:`update()` function.
 
 .. _projection-operators:
 

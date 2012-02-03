@@ -774,7 +774,7 @@ operators.
 .. expression:: $toLower
 
    Takes a single string and converts that string to lowercase,
-   returning the result. All upper letters become lowercase.
+   returning the result. All uppercase letters become lowercase.
 
 .. expression:: $toUpper
 

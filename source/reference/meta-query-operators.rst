@@ -73,8 +73,9 @@ Modifiers
 
 .. operator:: $min
 
-   Specify a :operator:`$min` value to specify a lower boundary for the value
-   of a field. This boundary is enforced using an index of that field.
+   Specify a :operator:`$min` value to specify a lower boundary for
+   the value of a field. :program:`mongod` enforces this boundary with
+   an index of the field.
 
    .. code-block:: javascript
 
@@ -82,16 +83,18 @@ Modifiers
 
    This operation above limits the documents returned to those that
    match the query described by "``[QUERY]``" where the field
-   "``value``" is at least "``20``". The index is inferred based on
-   the "``query``" unless specified by the :js:func:`hint()` function.
+   "``value``" is at least "``20``". :program:`mongod` infers the
+   index based on the "``query``" unless specified by the
+   :js:func:`hint()` function.
 
    Use operation alone or in conjunction with :operator:`$max`
    to limit results to a specific range.
 
 .. operator:: $max
 
-   Specify a :operator:`$max` value to specify an upper boundary for the value
-   of a field. This boundary is enforced using an index of that field.
+   Specify a :operator:`$max` value to specify an upper boundary for
+   the value of a field. :program:`mongod` enforces this boundary with
+   an index of that field.
 
    .. code-block:: javascript
 
@@ -99,9 +102,9 @@ Modifiers
 
    This operation above limits the documents returned to those that
    match the query described by "``[QUERY]``" where the field
-   "``value``" is less than "``20``". The index is inferred based on
-   on the "``query``" unless specified by the  :js:func:`hint()`
-   function.
+   "``value``" is less than "``20``". :program:`mongod` infers the
+   index based on on the "``query``" unless specified by the
+   :js:func:`hint()` function.
 
    Use operation alone or in conjunction with :operator:`$min`
    to limit results to a specific range.
@@ -124,9 +127,8 @@ Modifiers
 
 .. operator:: $orderby
 
-   The :operator:`$orderby` operator provides the ability to sort the results
-   of a query in ascending or descending order. Consider the following
-   syntax:
+   The :operator:`$orderby` operator sorts the results of a query in
+   ascending or descending order. Consider the following syntax:
 
    .. code-block:: javascript
 
@@ -139,11 +141,11 @@ Modifiers
 
       db.collection.find().sort( { age: -1 } )
 
-   In both of these examples all documents in the collection named
-   ``collection`` are returned sorted for in descending order from
-   greatest to smallest. Specify a value to :operator:`$orderby` of negative
-   one (e.g. "``-1``", as above) to sort in descending order or a
-   positive value (e.g. "``1``") to sort in ascending order.
+   Both of these examples return all documents in the collection named
+   ``collection`` sorted for in descending order from greatest to
+   smallest. Specify a value to :operator:`$orderby` of negative one
+   (e.g. "``-1``", as above) to sort in descending order or a positive
+   value (e.g. "``1``") to sort in ascending order.
 
    Unless you have a index for the specified key pattern, use
    :operator:`$orderby` in conjunction with :operator:`$maxScan` and
@@ -168,10 +170,10 @@ Modifiers
 
 .. operator:: $explain
 
-   Use the :operator:`$explain` operator to return a :term:`JSON` document
-   that describes the process used to return the query. This may
-   provide useful insight when attempting to optimize a
-   query. Consider the following example:
+   Use the :operator:`$explain` operator to return a :term:`JSON
+   document` that describes the process and indexes used to return the
+   query. This may provide useful insight when attempting to optimize
+   a query. Consider the following example:
 
    .. code-block:: javascript
 
@@ -187,17 +189,17 @@ Modifiers
 
 .. operator:: $snapshot
 
-   The :operator:`$snapshot` operator ensures that the results returned by a
-   query:
+   The :operator:`$snapshot` operator ensures that the results
+   returned by a query:
 
    - contains no duplicates.
    - misses no objects.
    - returns all matching objects that were present at the beginning
      and the end of the query.
 
-   Snapshot mode does not guarantee that an object that was present at
-   the beginning of the query but not at the end (due to an update)
-   will be included or not included. Consider the following example:
+   Snapshot mode does not guarantee the inclusion (or omission) of an
+   object present at the beginning of the query but not at the end
+   (due to an update.) Use the following syntax:
 
    .. code-block:: javascript
 
@@ -214,5 +216,5 @@ Modifiers
    Do not use snapshot with :operator:`$hint`, or :operator:`$orderby`
    (:js:func:`sort()`.)
 
-   All queries with response less than 1 megabyte are effectively
+   All queries with responses less than 1 megabyte are effectively
    snapshotted.

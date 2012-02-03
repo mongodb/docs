@@ -7,10 +7,10 @@ JavaScript Interface
 Data Manipulation
 -----------------
 
-.. _js-query-and-update-functions:
+.. _js-query-and-update-methods:
 
-Query and Update Functions
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Query and Update Methods
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. js:function:: find(query,projection)
 
@@ -27,7 +27,7 @@ Query and Update Functions
    Provides access to querying functionality. The argument to
    :js:func:`find()` takes the form of a :term:`JSON` document. See
    the ":doc:`/reference/operators`" for an overview of the available
-   operators to provide query functionality.
+   operators for specifying and narrowing the query.
 
 .. js:function:: findOne(query)
 
@@ -36,11 +36,13 @@ Query and Update Functions
                      </reference/operators>`.
 
    :returns: One document that satisfies the query specified as the
-             argument to this function.
+             argument to this method.
 
-   If multiple documents satisfy the query, this method returns the
-   first document according to the :term:`natural order` or insertion
-   order in :term:`capped collections <capped collection>`.
+   Returns only one document that satisfies the specified query. If
+   multiple documents satisfy the query, this method returns the first
+   document according to the :term:`natural order` which reflects the
+   order of documents on the disc. In :term:`capped collections
+   <capped collection>`, natural order is the same as insertion order.
 
 .. js:function:: findAndModify()
 
@@ -82,7 +84,6 @@ Query and Update Functions
                   specified ``query`` returns no documents. The
                   default is "``false``.
 
-
    For example:
 
    .. code-block:: javascript
@@ -93,7 +94,7 @@ Query and Update Functions
           update: { $inc: { score: 1 } }
           } );
 
-   This operation, finds a document in the "``people``" collection
+   This operation finds a document in the "``people``" collection
    where the "``name``" field has the value "``Tom``", the
    "``active``" value in the "``state``" field and a value in the
    "``rating``" field :operator:`greater than <$gt>` 10. If there is
@@ -113,9 +114,9 @@ Query and Update Functions
 .. js:function:: save()
 
    Provides the ability to create a new document in the current
-   database and collection. The argument to :js:func:`save()` takes the form
-   of a :term;`JSON` document. See ":ref:`update-operators`" for a
-   reference of all operators that affect updates.
+   database and collection. The argument to :js:func:`save()` takes
+   the form of a :term:`JSON` document. See ":ref:`update-operators`"
+   for a reference of all operators that affect updates.
 
 .. js:function:: update()
 
@@ -130,7 +131,7 @@ Query Modifiers
 .. js:function:: next()
 
    :returns: The next document in the cursor returned by the
-             :js:func:`find()` function. See :js:func:`hasNext()` for
+             :js:func:`find()` method. See :js:func:`hasNext()` for
              related functionality.
 
 .. js:function:: size()
@@ -203,7 +204,7 @@ Query Cursor Methods
                             :js:func:`skip()` and :js:func:`limit()`
                             methods on the
 
-   Append the :js:func:`count()`` on a ":js:func:`.find()`" query to
+   Append the :js:func:`count()`` method on a ":js:func:`.find()`" query to
    return the number of matching objects for any query.
 
    In normal operation, :js:func:`count()` ignores the effects of the
@@ -252,29 +253,30 @@ Query Cursor Methods
 
 .. js:function:: snapshot()
 
-   Append the :js:func:`snapshot()` method to the :js:func:`find()` query to
-   toggle the "snapshot" mode. This ensures that the query will not
-   miss any documents and return no duplicates, when other operations
-   modify objects while the query runs. Snapshot mode only affects
-   documents modified documents, not inserted or removed documents.
+   Append the :js:func:`snapshot()` method to the :js:func:`find()`
+   query to toggle the "snapshot" mode. This ensures that the query
+   will not miss any documents and return no duplicates, when other
+   operations modify objects while the query runs. Snapshot mode only
+   affects documents modified documents, not inserted or removed
+   documents.
 
    Queries with results of less than 1 megabyte are effectively
    snapshotted.
 
 .. js:function:: sort()
 
-   Append the :js:func:`sort()` method to the :js:func:`find()`" queries to
-   control the order that the query returns matching
+   Append the :js:func:`sort()` method to the :js:func:`find()`"
+   queries to control the order that the query returns matching
    documents. Consider the following example:
 
    .. code-block:: javascript
 
       db.collection.find().sort( { age: -1 } );
 
-   Here, the query returns all documents in ``collection`` ordered
-   based on the ``age`` field in descending order. Specify a value of
-   negative one (e.g. "``-1``", as above) to sort in descending order
-   or a positive value (e.g. "``1``") to sort in ascending order.
+   Here, the query returns all documents in ``collection`` ordered by
+   the ``age`` field in descending order. Specify a value of negative
+   one (e.g. "``-1``", as above) to sort in descending order or a
+   positive value (e.g. "``1``") to sort in ascending order.
 
    Unless you have a index for the specified key pattern, use
    :js:func:`sort()` in conjunction with :js:func:`limit()` to avoid
@@ -296,10 +298,11 @@ Query Cursor Methods
    :argument index: The name of the index to "hint" or force MongoDB
                     to use when performing the query.
 
-   Call this method on a query to over ride MongoDB's default index
+   Call this method on a query to override MongoDB's default index
    selection and query optimization process. Specify, as an argument,
    the name which index the query should use to fulfill the query. Use
-   :js:func:`getIndexes()` to return a list of indexes on the current collection.
+   :js:func:`getIndexes()` to return a list of indexes on the current
+   collection.
 
    .. seealso:: ":operator:`$hint`
 
@@ -338,14 +341,16 @@ Database
 .. js:function:: db.cloneDatabase("hostname")
 
    :param string hostname: Specifies the hostname to copy the current
-                           node.
+                           instance.
 
    Use this function to copy a database from a remote to the current
    database. The command assumes that the remote database has the same
    name as the current database. Use the following command to change
-   to the database "``importdb``": ::
+   to the database "``importdb``":
 
-        use importdb
+   .. code-block:: javascript
+
+      use importdb
 
    New databases are implicitly created, so the current host does not
    need to have a database named ``importdb`` for this command to
@@ -360,7 +365,10 @@ Database
    :param command: Specifies a :doc:`database command name
                    </reference/commands>`.
 
-   :returns: Help text for a :doc:`database commands </reference/commands>`.
+   :returns: Help text for the specified :term:`database command`. See
+             the :doc:`database command reference
+             </reference/commands>` for full documentation of these
+             commands.
 
 .. js:function:: db.copyDatabase(origin, destination, hostname)
 
@@ -413,9 +421,11 @@ Database
    collections must specify a maximum size, but may also specify a
    maximum document count. The collection will remove older documents
    if a collection reaches the maximum size limit before it reaches
-   the maximum document count. Consider the following example: ::
+   the maximum document count. Consider the following example:
 
-        db..createCollection(log, { size : 5120, capped : true, max : 5000 } )
+   .. code-block:: javascript
+
+      db..createCollection(log, { size : 5120, capped : true, max : 5000 } )
 
    This command creates a collection named log with a maximum size of
    5 megabytes (5120 bytes,) or a maximum of 5000 documents.
@@ -429,8 +439,8 @@ Database
    :returns: A :term:`JSON` document that contains an array named
              "``inprog``".
 
-   The ``inprog`` array reports the current operation in the database
-   instance.
+   The ``inprog`` array reports the current operation in progress for
+   the database instance.
 
 .. js:function:: db.dropDatabase()
 
@@ -445,10 +455,14 @@ Database
    :param arguments: A list of arguments to pass to the JavaScript
                      function.
 
-   Makes it possible to execute JavaScript codes using the JavaScript
-   interpreter embeded in the database server. In this environment the
+   Provides the ability to run JavaScript code using the JavaScript
+   engine embeded in the MongoDB instance. In this environment the
    value of the "``db``" variable on the server is the name of the
    current database.
+
+   Unless you use :js:func:`db.eval()`, the :program:`mongo` shell
+   itself will evaluate all JavaScript entered into :program:`mongo`
+   shell itself.
 
    .. warning::
 
@@ -457,9 +471,9 @@ Database
       :doc:`map reduce </core/map-reduce>` for similar functionality in
       these situations.
 
-      This function does not work with sharded data. However, you may
-      use :js:func:`db.eval()` with non-sharded collections and
-      databases stored in :term:`shard cluster`.
+      The :js:func:`db.eval() method cannot operate on sharded
+      data. However, you may use :js:func:`db.eval()` with non-sharded
+      collections and databases stored in :term:`shard cluster`.
 
 .. js:function:: db.getCollection(name)
 
@@ -490,7 +504,7 @@ Database
 
 .. js:function:: db.getLastErrorObj()
 
-   :returns: A full JSON document with status information.
+   :returns: A full :term:`JSON document` with status information.
 
 .. js:function:: db.getMongo()
 
@@ -504,7 +518,7 @@ Database
 
    For the current session, this command permits read operations from
    non-master (i.e. :term:`slave` or :term:`secondary`)
-   nodes. Practically, use this method in the following form:
+   instances. Practically, use this method in the following form:
 
    .. code-block:: javascript
 
@@ -526,14 +540,13 @@ Database
    received a :dbcommand:`resetError` (also
    :js:func:`db.resetError()`) command.
 
-   This command provides a wrapper around the
+   This method provides a wrapper around the
    :dbcommand:`getPrevError` command.
 
 .. js:function:: db.getProfilingLevel()
 
-   This function provides a wrapper around the database command
-   ":dbcommand:`profile`" and returns the current profiling
-   level.
+   This method provides a wrapper around the database command
+   ":dbcommand:`profile`" and returns the current profiling level.
 
    .. deprecated:: 1.8.4
       Use :js:func:`db.getProfilingStatus()` for related functionality.
@@ -590,17 +603,17 @@ Database
 .. js:function:: db.printReplicationInfo()
 
    Provides a formatted report of the status of a :term:`replica set`
-   from the perspective of the :term:`primary` node. See the
+   from the perspective of the :term:`primary` set member. See the
    ":doc:`/reference/replica-status`" for more information regarding
    the contents of this output.
 
    This function will return :js:func:`db.printSlaveReplicationInfo()`
-   if issued against a :term:`secondary` node.
+   if issued against a :term:`secondary` set member.
 
 .. js:function:: db.printSlaveReplicationInfo()
 
    Provides a formatted report of the status of a :term:`replica set`
-   from the perspective of the :term:`secondary` node. See the
+   from the perspective of the :term:`secondary` set member. See the
    ":doc:`/reference/replica-status`" for more information regarding
    the contents of this output.
 
@@ -644,23 +657,20 @@ Database
    :param JSON command: Specifies a :term:`database command` in the
                         form of a JSON document.
 
-   :param string command: Alternatively, if a :doc:`command
-                          </reference/commands>` is specified as a
-                          string it is transformed to "``{ command: 1 }``".
+   :param string command: When specifying a :doc:`command
+                          </reference/commands>` as a string,
+                          :js:func:`db.runCommand()` transforms the
+                          command into the form "``{ command: 1 }``".
 
-   Provides a method to run :doc:`database commands
-   </reference/commands>` that are specified in the form a
-   :term:`JSON` document. If the command is specified as a string
-   (e.g. "``cmd``") then this function will run a command equivalent
-   to "``{ cmd : 1 }``".
-
-   This is the preferred method to issue database commands, as it
-   provides a consistent interface between the shell and drivers.
+   Provides a helper to run specified :doc:`database commands
+   </reference/commands>`. This is the preferred method to issue
+   database commands, as it provides a consistent interface between
+   the shell and drivers.
 
 .. js:function:: db.serverStatus()
 
-   Returns a JSON document that provides an over view of the database
-   process' state.
+   Returns a :term:`JSON document` that provides an over view of the
+   database process' state.
 
    This command provides a wrapper around the database command
    :dbcommand:`serverStatus`.
@@ -699,16 +709,20 @@ Database
    This command provides a wrapper around the :term:`database command`
    :dbcommand:`profile`.
 
-   MongoDB writes the output of the database profiler to the
+   :program:`mongod` writes the output of the database profiler to the
    ``system.profile`` collection.
+
+   :program:`mongod` records a record of queries that take longer than
+   the :setting:`slowms` to the log even when the database profiler is
+   not active.
 
 .. js:function:: db.shutdownServer()
 
    Shuts down the current :program:`mongod` or :program:`mongos`
    process cleanly and safely.
 
-   This function will fail if the current database *is not* the admin
-   database.
+   This operation fails when the current database *is not* the
+   admin database.
 
    This command provides a wrapper around the :dbcommand:`shutdown`.
 
@@ -742,7 +756,9 @@ Database
 
    This command provides a simple wrapper around a
    :dbcommand:`fsync` database command with the following
-   syntax: ::
+   syntax:
+
+   .. code-block:: javascript
 
         { fsync: 1, lock: true }
 
@@ -759,10 +775,8 @@ Database
 Collection
 ~~~~~~~~~~
 
-TODO write this section DOCS-113
-
 These methods operate on collection objects. Also consider the
-":ref:`js-query-and-update-functions`" and
+":ref:`js-query-and-update-methods`" and
 ":ref:`js-query-cursor-methods`" documentation for additional methods
 that you may use with collection objects.
 
@@ -922,7 +936,7 @@ that you may use with collection objects.
       db.collection.reIndex()
 
    Change "``collection``" to the name of the collection that you want
-   to reindex.
+   to rebuild the index.
 
 .. js:function:: getDB()
 
