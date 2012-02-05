@@ -5,7 +5,7 @@ Drivers
 Applications communicate with MongoDB by way of a client library or
 driver which handles all interaction with the database in language
 appropriate and sensible manner. See the following pages for more
-information regarding the Mongodb `drivers <http://www.mongodb.org/display/DOCS/Drivers>`_:
+information about the MongoDB `drivers <http://www.mongodb.org/display/DOCS/Drivers>`_:
 
 - JavaScript (`wiki <http://mongodb.org/display/DOCS/Javascript+Language+Center>`_, `docs <http://api.mongodb.org/js/current>`_)
 - Python (`wiki <http://mongodb.org/display/DOCS/Python+Language+Center>`_, `docs <http://api.mongodb.org/python/current>`_)
