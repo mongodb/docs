@@ -286,7 +286,8 @@ Glossary
       The standard date representation fields that hold data of the
       date type.
 
-   journaling MongoDB's journal provides a transnational log that
+   journaling
+      MongoDB's journal provides a transnational log that
       provides durability for database operations. When using the
       journal, MongoDB writes all data to disk both in the journal and
       in the database. MongoDB writes operations to the journal *much*
@@ -572,8 +573,8 @@ Glossary
       nodes that are :term:`eventually consistent <eventual
       consistency>` with the primary.
 
-      .. seealso:: ":ref:`Write Propagation for Replica Sets
-         <replica-set-write-propagation>`."
+      .. seealso:: ":ref:`Write Concern for Replica Sets
+         <replica-set-write-concern>`."
 
    priority
       In the context of :term:`replica sets <replica set>`, priority

@@ -594,8 +594,6 @@ TODO factcheck above
 
 .. dbcommand:: eval
 
-TODO figure out which ones are required and which are optional and modify :opt: as needed.
-
    The :dbcommand:`eval` command evaluates JavaScript functions
    on the database server. Consider the following (trivial) example:
 
@@ -639,9 +637,7 @@ TODO factcheck; add about when to disable the write lock.
 
 TODO add aggregation framework documentation pointers
 
-   .. dbcommand:: pipeline
-
-TODO add pipeline documentation. It's an option, but it probably needs to be referencable.
+   .. describe:: pipeline
 
 Replication
 ~~~~~~~~~~~
@@ -1055,6 +1051,8 @@ Collections
               "ok" : 1
       }
 
+   .. seealso:: ":doc:`/reference/collection-statistics`."
+
 .. dbcommand:: compact
 
    The :dbcommand:`compact` command rewrites and defragments a single
@@ -1278,10 +1276,10 @@ Administration
 
    .. note::
 
-      When using :term:`journaling <journal>`, there is almost never
-      any need to run :dbcommand:`repairDatabase`. In the event of an
-      unclean shutdown, the server will be able restore the data files
-      to a pristine state automatically.
+      When using :term:`journaling`, there is almost never any need to
+      run :dbcommand:`repairDatabase`. In the event of an unclean
+      shutdown, the server will be able restore the data files to a
+      pristine state automatically.
 
 .. dbcommand:: shutdown
 
@@ -1409,20 +1407,20 @@ Administration
       :option:`--logpath [file] <mongod --logpath>` option.
 
    You may also rotate the logs by sending a ``SIGUSR1`` signal to the :program:`mongod` process.
-   If your :program:`mongod` has a process ID of 2200, here's how to send the signal on Linux: ::
+   If your :program:`mongod` has a process ID of 2200, here's how to send the signal on Linux:
 
-       $ kill -SIGUSR1 2200
+   .. code-block:: sh
+
+       kill -SIGUSR1 2200
 
    The rotated files will have a timestamp appended to the filneame.
 
    .. note::
 
-     The ``logRotate`` command is not available to mongod instances
+     The :dbcommand:`logRotate` command is not available to mongod instances
      running on windows systems.
 
 .. dbcommand:: setParameter
-
-TODO insert new option format here
 
    :dbcommand:`setParameter` is an administrative command for
    modifying options normally set on the command line. You must issue
@@ -1436,29 +1434,34 @@ TODO insert new option format here
    Replace the ``<option>`` with one of the following options
    supported by this command:
 
-   - **journalCommitInterval**: an integer between 1 and 500
-     specifying the number of milliseconds (ms) between journal
-     commits.
+   :option integer journalCommitInterval: Specify an integer between 1
+                                          and 500 specifying the
+                                          number of milliseconds (ms)
+                                          between journal commits.
 
-   - **logLevel**: an integer between ``0`` and ``5`` signifying the
-     verbosity of the logging, where larger is more verbose.
+   :option integer logLevel: Specify an integer between ``0`` and
+                             ``5`` signifying the verbosity of the
+                             logging, where larger is more verbose.
 
-   - **notablescan**: If "``true``", queries not using an index
-     will fail.
+   :option boolean notablescan: If "``true``", queries that do not
+                                using an index will fail.
 
-   - **quiet**: Enables a quiet logging mode when "``true``". Use
-     "``false``" to disable. Quiet logging suppresses the
-     following messages from the output of MongoDB:
+   :option boolean quiet: Enables a quiet logging mode when
+                          "``true``". Use "``false``" to
+                          disable. Quiet logging removes the following
+                          messages from the log: connection events;
+                          the :dbcommand:`drop`, :dbcommand:`dropIndexes`,
+                          :dbcommand:`diagLogging`, :dbcommand:`validate`, and
+                          :dbcommand:`clean`; and replication
+                          synchronization activity.
 
-     - Connection events: accepted and closed.
-     - Commands: :dbcommand:`drop`, :dbcommand:`dropIndexes`, and
-       :dbcommand:`diagLogging`, :dbcommand:`validate`, :command;`clean`.
-     - Replication synchronization activity.
-
-   - **syncdelay**: the interval, in seconds, between :term:`fsyncs <fsync>` (i.e., flushes of memory to disk).
-     By default, :program:`mongod` will flush memory to disk every 60
-     seconds. It isn't necessary to change this value unless you see a background flush
-     average greater than 60 seconds.
+   :option integer syncdelay: Specify the interval, in seconds,
+                              between :term:`fsyncs <fsync>` (i.e.,
+                              flushes of memory to disk). By default,
+                              :program:`mongod` will flush memory to
+                              disk every 60 seconds. Do not change
+                              this value unless you see a background
+                              flush average greater than 60 seconds.
 
    .. slave-ok, admin-only
 
@@ -1580,8 +1583,8 @@ Diagnostics
 
 .. dbcommand:: top
 
-   The ``top`` command returns raw usage of each database, and
-   provides amount of time, in microseconds, used and a count of
+   The :dbcommand:`top` command returns raw usage of each database,
+   and provides amount of time, in microseconds, used and a count of
    operations for the following event types:
 
    - total
@@ -1602,7 +1605,7 @@ Diagnostics
 
 .. dbcommand:: buildInfo
 
-   The ``buildInfo`` command returns a build summary for the current
+   The :dbcommand:`buildInfo` command returns a build summary for the current
    :program:`mongod`:
 
    .. code-block:: javascript
@@ -1618,35 +1621,52 @@ Diagnostics
    - The maximum allowable :term:`BSON` object size in bytes (in the field
      "``maxBsonObjectSize``".)
 
-   ``buildInfo`` must be issued against the ``admin`` database.
+   You must issue the :dbcommand:`buildInfo` command against the ``admin`` database.
 
 .. dbcommand:: getLastError
 
-   The ``getLastError`` command returns the error status of the last
-   operation on the *current connection*: ::
+   The :dbcommand:`getLastError` command returns the error status of
+   the last operation on the *current connection*. By default MongoDB
+   does not provide a response to confirm the success or failure of a
+   write operation, clients typically use :dbcommand:`getLastError` in
+   combination with write operations to ensure that the write
+   succeeds.
 
-        { getLastError: 1 }
+   Consider the following prototype form.
+
+   .. code-block:: javascript
+
+      { getLastError: 1 }
 
    The following options are available:
 
-   - **j**: If ``true``, wait for the next journal commit before
-     returning. Applies only if journaling is enabled.
-   - **w**: When running with replication, this is the number of servers to
-     replica to before returning. A ``w`` value of 1 indicates the primary only.
-     A ``w`` value of 2 includes the primary and at least one secondary, etc.
-     In place of a number, you may also set ``w`` to "``majority``" to indicate
-     that the command should wait until the latest write is reflected on a majority
-     of replica set members. If using ``w``, you should also use ``wtimeout``. Specifying
-     a value for ``w`` without also providing a ``wtimeout`` may cause  ``getlasterror`` to block
-     indefinitely.
-   - **wtimeout**: If a ``w`` value is provided, this is the number of milliseconds
-     to wait for replication to the specified number of servers. If replication does not complete
-     in the given timeframe, the ``getlasterror`` command will return with an error status.
+   :option boolean j: If ``true``, wait for the next journal commit
+                      before returning, rather than a full disk
+                      flush. If :program:`mongod` does not have
+                      journaling enabled, this option has no effect.
 
-   .. seealso:: ":ref:`Replica Set Write Propagation <replica-set-write-propagation>`"
+   :option w: When running with replication, this is the number of
+              servers to replica to before returning. A ``w`` value of
+              1 indicates the primary only.  A ``w`` value of 2
+              includes the primary and at least one secondary, etc.
+              In place of a number, you may also set ``w`` to
+              "``majority``" to indicate that the command should wait
+              until the latest write propagates to a majority of
+              replica set members. If using ``w``, you should also use
+              ``wtimeout``. Specifying a value for ``w`` without also
+              providing a ``wtimeout`` may cause
+              :dbcommand:`getLastError` to block indefinitely.
+
+   :option integer wtimeout: (Milliseconds; Optional.) Specify a value
+                             in milliseconds to control how long the
+                             to wait for write propagation to
+                             complete. If replication does not
+                             complete in the given timeframe, the
+                             :dbcommand:`getlasterror` command will
+                             return with an error status.
+
+   .. seealso:: ":ref:`Replica Set Write Concern <replica-set-write-concern>`"
       and ":js:func:`db.getLastError()`."
-
-TODO standardize on the way options are presented. Here, the standard is "fsync" but elsewhere we see **fsync**.
 
 .. dbcommand:: getLog
 
@@ -1678,7 +1698,7 @@ TODO standardize on the way options are presented. Here, the standard is "fsync"
       { listDatabases: 1 }
 
    The value (e.g. ``1``) does not effect the output of the
-   command. ``listDatabases`` returns a document for each database
+   command. :dbcommand:`listDatabases` returns a document for each database
    Each document contains a "``name``" field
    with the database name, a "``sizeOnDisk``" field with the total
    size of hte database file on disk in bytes, and an "``empty``"
@@ -1871,14 +1891,14 @@ Other Commands
       { reIndex: "collection" }
 
    Normally, MongoDB compacts indexes during routine updates. For most
-   users, the ``reIndex`` is unnecessary. However, it may be worth
+   users, the :dbcommand:`reIndex` is unnecessary. However, it may be worth
    running if the collection size has changed significantly or if the
    indexes are consuming a disproportionate amount of disk space.
 
    Note that the :dbcommand:`reIndex` command will block the server against
    writes and may take a long time for large collections.
 
-   Call ``reIndex`` using the following form:
+   Call :dbcommand:`reIndex` using the following form:
 
    .. code-block:: javascript
 
@@ -1901,22 +1921,31 @@ Other Commands
 
 TODO document mongos commands DOCS-112
 
-.. dbcommand:: avalibleQueryOptions
-
-.. dbcommand:: closeAllDatabases
-
 .. dbcommand:: flushRouterConfig
 
 .. dbcommand:: isdbGrid
 
 .. dbcommand:: movePrimary
 
-.. dbcommand:: netstat
-
 .. dbcommand:: split
 
 Internal Use
 ------------
+
+.. dbcommand:: avalibleQueryOptions
+
+   :dbcommand:`avalibleQueryOptions` is an internal command that is only
+   available on :program:`mongos` instances.
+
+.. dbcommand:: closeAllDatabases
+
+   :dbcommand:`closeAllDatabase` is an internal command that is only
+   available on :program:`mongos` instances.
+
+.. dbcommand:: netstat
+
+   :dbcommand:`netstat` is an internal command that is only
+   available on :program:`mongos` instances.
 
 .. dbcommand:: setShardVersion
 

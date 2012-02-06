@@ -133,8 +133,8 @@ Configuration Variables
    **Default**: none
 
    Used to represent arbitrary values for describing or tagging nodes
-   for the purposes of extending :ref:`write propagation
-   <replica-set-write-propagation>` to allow configurable data center
+   for the purposes of extending :ref:`write concern
+   <replica-set-write-concern>` to allow configurable data center
    awareness.
 
    Use in conjunction with :js:data:`settings.getLastErrorModes` and

@@ -422,19 +422,6 @@ command to the :program:`mongos` by way of the :program:`mongo`
 shell. This returns an overview of the shard cluster including the
 database name, and a list of the chunks.
 
-.. For clusters with only a few shards and a small amount of data,
-.. verifying that chunks are evenly distributed can be done by way of
-.. approximation. For larger clusters, use the following shell function
-.. to display the distribution of chunks among shards.
-
-.. TODO create a shell function for showing
-..  ::
-..    for shard in cluster; do
-..        print "{ shardName: $shard, numChunks }";
-..    done
-
-.. run group command against chunk collection inside config server
-
 Stale Locks
 ~~~~~~~~~~~
 

@@ -499,7 +499,7 @@ Database
    command to a write operation to ensure that writes succeed. Using
    This "safe mode" is ideal for many--but not all--write operations.
 
-   .. seealso:: ":ref:`Replica Set Write Propagation <replica-set-write-propagation>`"
+   .. seealso:: ":ref:`Replica Set Write Concern <replica-set-write-concern>`"
       and ":dbcommand:`getLastError`."
 
 .. js:function:: db.getLastErrorObj()
