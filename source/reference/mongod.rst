@@ -1,18 +1,21 @@
-=================
-``mongod`` Manual
-=================
+.. _mongod:
+
+========================
+:program:`mongod` Manual
+========================
 
 .. default-domain:: mongodb
+.. binary:: mongod
 
 Synopsis
 --------
 
-:option:`mongod` is the primary daemon process for the MongoDB system. It
-handles data requests, manages data format, and preforms background
-management operations.
+:program:`mongod` is the primary daemon process for the MongoDB
+system. It handles data requests, manages data format, and preforms
+background management operations.
 
 This document provides a complete overview of all command line options
-for :option:`mongod`. These options are primarily useful for testing
+for :program:`mongod`. These options are primarily useful for testing
 purposes. In common operation, use the :doc:`configuration file
 options </reference/configuration-options>` to control the behavior of
 your database, which is fully capable of all operations described
@@ -29,7 +32,7 @@ Options
 
 .. option:: --version
 
-   Returns the version of the :option:`mongod` daemon.
+   Returns the version of the :program:`mongod` daemon.
 
 .. option:: --config <filname>, -f <filename>
 
@@ -49,64 +52,65 @@ Options
 
 .. option:: --quiet
 
-   Runs the :option:`mongod` instance in a quiet mode that attempts to limit
+   Runs the :program:`mongod` instance in a quiet mode that attempts to limit
    the amount of output.
 
 .. option:: --port <port>
 
-   Specifies a TCP port for the :option:`mongod` to listen for client
-   connections. By default :option:`mongod` listens for connections on
+   Specifies a TCP port for the :program:`mongod` to listen for client
+   connections. By default :program:`mongod` listens for connections on
    port 27017.
 
-   On UNIX-like systems root access is required for ports with numbers
+   UNIX-like systems require root privileges to use ports with numbers
    lower than 1000.
 
 .. option:: --bind_ip <ip address>
 
-   The IP address that the :option:`mongod` process will bind to and
-   listen for connections. By default :option:`mongod` listens for
+   The IP address that the :program:`mongod` process will bind to and
+   listen for connections. By default :program:`mongod` listens for
    connections on the localhost (i.e. ``127.0.0.1`` address.) You may
-   attach :option:`mongod` to any interface; however, if you attach
-   :option:`mongod` to a publicly accessible interface ensure that
-   proper authentication or firewall restrictions have been
-   implemented to protect the integrity of your database.
+   attach :program:`mongod` to any interface; however, if you attach
+   :program:`mongod` to a publicly accessible interface ensure that
+   you have implemented proper authentication and/or firewall
+   restrictions to protect the integrity of your database.
 
 .. option:: --maxCons <number>
 
    Specifies the maximum number of simultaneous connections that
-   :option:`mongod` will accept. This setting will have no effect if
+   :program:`mongod` will accept. This setting will have no effect if
    it is higher than your operating system's configured maximum
    connection tracking threshold.
 
 .. option:: --objcheck
 
-   Forces the :option:`mongod` to validate all requests from clients
+   Forces the :program:`mongod` to validate all requests from clients
    upon receipt to ensure that invalid objects are never inserted into
-   the database.
+   the database. This option can produce a significant performance
+   impact.
 
 .. option:: --logpath <path>
 
    Specify a path for the log file that will hold all diagnostic
    logging information.
 
-   Unless specified, :option:`mongod` will output all log information to
-   the standard output. Unless :option:`--logapend` is specified, the
+   Unless specified, :program:`mongod` will output all log information to
+   the standard output. Unless you specify :option:`--logapend`, the
    logfile will be overwritten when the process restarts.
 
 .. option:: --logapend
 
-   Specify to ensure that new entries will be added to the end of the
-   logfile rather than overwriting the content of the log when the
-   process restarts.
+   When specified, this option ensures that :program:`mongod` appends
+   new entries to the end of the logfile rather than overwriting the
+   content of the log when the process restarts.
 
 .. option:: --pidfilepath <path>
 
    Specify a file location to hold the ":term:`PID`" or process ID of
-   the :option:`mongod` process. Useful for tracking the
-   :option:`mongod` process in combination with the :option:`mongod
-   --fork` option.
+   the :program:`mongod` process. Useful for tracking the
+   :program:`mongod` process in combination with the :option:`mongod --fork`
+   option.
 
-   If this option is not set, no PID file is created.
+   If this option is not set, :program:`mongod` will create no PID file.
 
 .. option:: --keyFile <file>
 
@@ -119,17 +123,18 @@ Options
 
 .. option:: --nounixsocket
 
-   Disables listening on the UNIX socket, which is enabled unless
-   this option is specified.
+   Disables listening on the UNIX socket. Unless set to false,
+   :program:`mongod` and :program:`mongos` provide a UNIX-socket.
 
 .. option:: --unixSocketPrefix <path>
 
-   Specifies a path for the UNIX socket. Unless specified the socket
-   is created in the ``/tmp`` path.
+   Specifies a path for the UNIX socket. Unless this option has a
+   value, :program:`mongod` and :program:`mongos`, create a socket
+   with the ``/tmp`` as a prefix.
 
 .. option:: --fork
 
-   Enables a :term:`daemon` mode for :option:`mongod` which forces the
+   Enables a :term:`daemon` mode for :program:`mongod` which forces the
    process to the background. This is the normal mode of operation, in
    production and production-like environments, but may *not* be
    desirable for testing.
@@ -137,34 +142,34 @@ Options
 .. option:: --auth
 
    Enables database authentication for users connecting from remote
-   hosts. Users are configured via the :doc:`mongo shell
-   </reference/mongo>`. If no users exist, the localhost interface
-   will continue to have access to the database until a user has been
-   created.
+   hosts. configure users via the :doc:`mongo shell
+   shell </reference/mongo>`. If no users exist, the localhost
+   interface will continue to have access to the database until the
+   you create the first user.
 
    See the ":doc:`/administration/security`" document for more
    information regarding this functionality.
 
 .. option:: --cpu
 
-   Forces :option:`mongod` to periodically report CPU utilization and the
-   amount of time that the processor waits for I/O operations to
-   complete (i.e. I/O wait.) This data is written to standard output
-   or the logfile if using the :option:`mongod --logpath` option.
+   Forces :program:`mongod` to periodically report CPU utilization and
+   the amount of time that the processor waits for I/O operations to
+   complete (i.e. I/O wait.) MongoDB writes this data to standard
+   output, or the logfile if using the :setting:`logpath` option.
 
 .. option:: --dbpath <path>
 
-   Specify a directory for the :option:`mongod` instance to store its
-   data. Typically locations such as: "``/srv/mognodb``",
-   "``/var/lib/mongodb``" or "``/opt/mongodb``" are used for this
-   purpose.
+   Specify a directory for the :program:`mongod` instance to store its
+   data. Typical locations include: "``/srv/mognodb``",
+   "``/var/lib/mongodb``" or "``/opt/mongodb``"
 
-   Unless specified, the ``/data/db`` directory will be used on
-   Unix-like systems.
+   Unless specified, :program:`mongod` creates data files in the
+   default ``/data/db`` directory. (Windows systems use the
+   ``\data\db`` directory.)
 
 .. option:: --diaglog <value>
 
-   Sets the diagnostic logging level for the :option:`mongod`
+   Sets the diagnostic logging level for the :program:`mongod`
    instance. Possible values, and their impact are as follows.
 
    =========  ===================================
@@ -179,18 +184,19 @@ Options
 
 .. option:: --directoryperdb
 
-   Alters the storage pattern of the data directory so that each
-   database is stored in a distinct folder. Use this option to
+   Alters the storage pattern of the data directory to store each
+   (logical) database in a distinct folder. Use this option to
    configure MongoDB to store data on a number of distinct disk
    devices to increase write throughput or disk capacity.
 
-   Unless specified, all databases will be included in the directory
-   specified by :option:`--dbpath`.
+   Unless specified, :program:`mongod` saves all database files in the
+   directory specified by :option:`--dbpath`.
 
 .. option:: --journal
 
    Enables operation journaling to ensure write durability and data
-   consistency
+   consistency. :program:`mongodb` enables journaling by default on
+   64-bit builds of versions after 2.0.
 
 .. option:: --journalOptions <arguments>
 
@@ -199,7 +205,7 @@ Options
 
 .. option:: --journalCommitInterval <value>
 
-   Specifies the maximum amount of time for :option:`mongod` to allow
+   Specifies the maximum amount of time for :program:`mongod` to allow
    between journal operations. The default value is 100 milliseconds,
    while possible values range from 2 to 300 milliseconds. Lower
    values increase the durability of the journal, at the expense of
@@ -207,9 +213,10 @@ Options
 
 .. option:: --ipv6
 
-   Enables IPv6 support to allow clients to connect to :option:`mongod`
-   using IPv6 networks. IPv6 support is disabled by default in
-   :option:`mongod` and all utilities.
+   Specify this option to enable IPv6 support. This will allow clients
+   to connect to :program:`mongod` using IPv6
+   networks. :program:`mongod` disables IPv6 support by default in
+   :program:`mongod` and all utilities.
 
 .. option:: --jsonnp
 
@@ -228,8 +235,8 @@ Options
 
 .. option:: --nojournal
 
-   Disables the durability journaling, which is enabled by default in
-   64-bit versions after v2.0.
+   Disables the durability journaling. By default, :program:`mongod`
+   enables journaling in 64-bit versions after v2.0.
 
 .. option:: --noprealloc
 
@@ -247,9 +254,8 @@ Options
 
 .. option:: --nssize <value>
 
-   Specifies the default value for namespace files (i.e
-   ``.ns``). This option has no impact on the size of existing
-   namespace files.
+   Specifies the default value for namespace files (i.e ``.ns``). This
+   option has no impact on the size of existing namespace files.
 
    The default value is 16 megabytes, this provides for effectively
    12,000 possible namespace. The maximum size is 2 gigabytes.
@@ -257,7 +263,7 @@ Options
 .. option:: --profile <level>
 
    Changes the level of database profiling, which inserts information
-   about operation performance into output of :option:`mongod` or the log
+   about operation performance into output of :program:`mongod` or the log
    file. The following levels are available:
 
    =========  ==================================
@@ -269,21 +275,20 @@ Options
    =========  ==================================
 
    Profiling is off by default. Database profiling can impact database
-   performance, and can cause potentially sensitive information to be
-   written to the log. Enable this option only after careful
-   consideration.
+   performance. Enable this option only after careful consideration.
 
 .. option:: --quota
 
    Enables a maximum limit for the number data files each database can
-   have. The default quota is 8 data files, if this option is
-   set. Adjust the quota with the :option:`--quotaFiles` option.
+   have. When running with :option:`--quota``, there are a maximum of
+   8 data files per database. Adjust the quota with the
+   :option:`--quotaFiles` option.
 
 .. option:: --quotaFiles <number>
 
    Modify limit on the number of data files per database. This option
-   requires the :option:`--quota` setting. By default this option is
-   set to 8.
+   requires the :option:`--quota` setting. The default value for
+   :option:`--quotaFiles` is 8.
 
 .. option:: --rest
 
@@ -302,8 +307,8 @@ Options
 .. option:: --slowms <value>
 
    Defines the value of "slow," for the :option:`--profile`
-   option. Operations that run take longer than the specified period
-   to run are reported by the profiler.
+   option. The :term:`database profiler` reports operations that take
+   longer to run than the specified period.
 
 .. option:: --smallfiles
 
@@ -319,7 +324,7 @@ Options
 
    Used in :term:`control scripts <control script>`, the
    :option:`--shutdown` will cleanly and safely terminate the
-   :option:`mongod` process. When invoking :option:`mongod` with this
+   :program:`mongod` process. When invoking :program:`mongod` with this
    option you must set the :option:`--dbpath` option either directly
    or by way of the :doc:`configuration file
    </reference/configuration-options>` and the :option:`--config`
@@ -327,16 +332,20 @@ Options
 
 .. option:: --syncdelay <value>
 
-   The maximum number of seconds between disk syncs. The default
-   setting is "``60``". While data is being written do disk all the time,
-   this setting controls the maximum guaranteed length of time between
-   a successful write operation and when that data will be flushed to
-   disk.
+   This setting contrils the maximum number of seconds between disk
+   syncs. While :program:`mongod` is always writing data to disk, this
+   setting controls the maximum guaranteed interval between a
+   successful write operation and the next time the database flushes
+   data to disk.
 
-   If set to "``0``", all operations will be flushed to disk, which
-   may have a significant performance impact. If :option:`--journal`
-   is specified, all writes will be durable, by way of the journal
-   within the time specified by :option:`--journalCommitInterval`.
+   In many cases, the actual interval between write operations and
+   disk flushes is much shorter than the value
+
+   If set to "``0``", :program:`mongod` flushes all operations to disk
+   immediately, which may have a significant performance impact. If
+   :option:`--journal` is ``true``, all writes will be durable, by way
+   of the journal within the time specified by
+   :option:`--journalCommitInterval`.
 
 .. option:: --sysinfo
 
@@ -347,7 +356,7 @@ Options
    Upgrades the on-disk data format of the files specified by the
    :option:`--dbpath` to the latest version, if needed.
 
-   This option only affects the operation of :option:`mongod` if the
+   This option only affects the operation of :program:`mongod` if the
    data files are in an old format.
 
 Replica Set Options
@@ -355,13 +364,24 @@ Replica Set Options
 
 .. option:: --fastsync
 
-   Run with this option if this replica has been seeded with a
-   snapshot of the :term:`dbpath` of another member of the
-   set. Otherwise the :option:`mongod` will attempt to perform a full sync.
+   In the context of :term:`replica set` replication, set this option
+   if you have seeded this replica with a snapshot of the
+   :term:`dbpath` of another member of the set. Otherwise the
+   :program:`mongod` will attempt to perform a full sync.
+
+   .. warning::
+
+      If the data is not perfectly synchronized *and*
+      :program:`mongod` starts with :setting:`fastsync`, then the
+      secondary or slave will be permanently out of sync with the
+      primary, which may cause significant consistency problems.
 
 .. option:: --oplogSize <value>
 
-   Specifies a maximum size in megabytes for the replication op log.
+   Specifies a maximum size in megabytes for the replication operation
+   log (e.g. :term:`oplog`.) By :program:`mongod` creates an
+   :term:`oplog` based on the maximum amount of space available. For
+   64-bit systems, the op log is typically 5% of available disk space.
 
 Master/Slave Replication
 ````````````````````````
@@ -372,18 +392,18 @@ replica sets are the prefered configuration for database replication.
 
 .. option:: --master
 
-   Configures :option:`mongod` to run this node as a replication
+   Configures :program:`mongod` to run as a replication
    :term:`master`.
 
 .. option:: --slave
 
-   Configures :option:`mongod` to run this node as a replication
+   Configures :program:`mongod` to run as a replication
    :term:`slave`.
 
 .. option:: --source <host>:<port>
 
    For use with the :option:`--slave` option, the ``--source`` option
-   designates the node that will replicate.
+   designates the server that this instance will replicate.
 
 .. option:: --only <arg>
 
@@ -398,16 +418,16 @@ replica sets are the prefered configuration for database replication.
 
 .. option:: --autoresync
 
-   For use with the :option:`--slave` option, the ``--autoresync``
-   option allows this slave to automatically resync if the local data
-   is more than 10 seconds behind the master. This option may be
-   problematic if the :term:`oplog` is too small (controlled by the
-   :option:`--oplogSize` option.) If the :term:`oplog` not large
-   enough to store the difference in changes between the master's
-   current state and the state of the slave, this node will forcibly
-   resync itself unnecessarily. If the --autoresync option is
-   specified, the slave will not attempt an automatic resync more than
-   once in a ten minute period.
+   For use with the :option:`--slave` option, the
+   :option:`--autoresync` option allows this slave to automatically
+   resync if the local data is more than 10 seconds behind the
+   master. This option may be problematic if the :term:`oplog` is too
+   small (controlled by the :option:`--oplogSize` option.) If the
+   :term:`oplog` not large enough to store the difference in changes
+   between the master's current state and the state of the slave, this
+   node will forcibly resync itself unnecessarily. When you set the If
+   the :option:`--autoresync` option the slave will not attempt an
+   automatic resync more than once in a ten minute period.
 
 Replica Set Options
 ```````````````````
@@ -429,15 +449,16 @@ Sharding Cluster Options
 
 .. option:: --configsvr
 
-   Declares that this :option:`mongod` instance serves as the
-   :term:`config database` of a shard cluster. The default port with
-   this option is ``27019` and the data is stored in the ``/configdb``
+   Declares that this :program:`mongod` instance serves as the
+   :term:`config database` of a shard cluster. The default port for
+   :program:`mongod` with this option is ``27019` and
+   :program:`mongod` writes all data files to the ``/configdb``
    sub-directory of the :option:`--dbpath` directory.
 
 .. option:: --shardsvr
 
-   Configures this :option:`mongod` instance as a node in a shard
-   cluster. The default port for these nodes is ``27018``.
+   Configures this :program:`mongod` instance as a shard in a
+   partitioned cluster. The default port for these instances is ``27018``.
 
 .. option:: --noMoveParanoia
 
@@ -447,10 +468,10 @@ Sharding Cluster Options
 Usage
 -----
 
-In common usage, the invocation of :option:`mongod` will resemble the
+In common usage, the invocation of :program:`mongod` will resemble the
 following in the context of an initialization or control script: ::
 
         mongod --config /etc/mongodb.conf
 
 See the ":doc:`/reference/configuration-options`" for more information
-on how to configure :option:`mongod` using the configuration file.
+on how to configure :program:`mongod` using the configuration file.

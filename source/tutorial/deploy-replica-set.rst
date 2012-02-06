@@ -27,8 +27,8 @@ Requirements
 ------------
 
 Three distinct systems, so that each system can run its own instance
-of :option:`mongod`. For test systems you can run all three instances
-of the :option:`mongod` process on a local sys em.e. a laptop) or
+of :program:`mongod`. For test systems you can run all three instances
+of the :program:`mongod` process on a local sys em.e. a laptop) or
 within a virtual instance. For production environments, you should
 endeavor to maintain as much separation between the nodes: Deploy
 replica set members on distinct hardware, and on systems that draw
@@ -48,8 +48,8 @@ following guides:
 Development and Test Replica Set
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Begin by starting three instances of :option:`mongod`. For ephemeral
-tests and the purposes of this guide, you may run the :option:`mongod`
+Begin by starting three instances of :program:`mongod`. For ephemeral
+tests and the purposes of this guide, you may run the :program:`mongod`
 instances in separate windows of GNU Screen. OS X and most Linux
 distributions come with screen installed by default [#screen]_
 systems.
@@ -68,18 +68,17 @@ Issue the following commands, each in a distinct screen window: ::
 These command start members of a replica set named ``rs0``, each
 running on a distinct port. Alternatively, if you are already using these
 ports, you can select different ports. See the documentation of the
-following options for more information: :option:`--port <mongod
---port>`, :option:`--dbpath <mongod --dbpath>`, and :option:`--replSet
-<mongod --replSet>`.
+following options for more information: :option:`--port <mongod --port>`,
+:option:`--dbpath <mongod --dbpath>`, and :option:`--replSet <mongod --replSet>`.
 
 .. note::
 
-   If you're running each :option:`mongod` instance on a distinct
+   If you're running each :program:`mongod` instance on a distinct
    system, you can omit the :option:`--port <mongod --port>`
    option. YOu will also need to specify the :option:`--bind_ip
    <mongod --bind_ip>` option.
 
-Log in with the :option:`mongo` shell to the first host. If you're
+Log in with the :program:`mongo` shell to the first host. If you're
 accessing this command remotely, modify the hostname.  using the
 following command: ::
 
@@ -97,7 +96,7 @@ configuration </reference/replica-configuration>`:
 
 .. code-block:: javascript
 
-   rs.config()
+   rs.conf()
 
 Now, issue the following sequence of commands to add two nodes to the
 replica set.
@@ -112,8 +111,8 @@ functional replica set. You may have to wait several moments for the
 new replica set to successfully elect a :term:`primary` node.
 
 See the documentation of the following shell functions for more
-information: :js:func:`rs.initiate()`, :js:func:`rs.config()`, and
-:js:func:`rs.add()`.
+information: :js:func:`rs.initiate()`, :js:func:`rs.conf()`,
+:js:func:`rs.reconfig()` and :js:func:`rs.add()`.
 
 .. [#screen] `GNU Screen <http://www.gnu.org/screen/>`_ is packaged as
    ``screen`` on Debian-based, Fedira/Red Hat-based, and Arch Linux.
@@ -188,7 +187,7 @@ any additional :doc:`configuration options </reference/configuration-options>`
 that your deployment may require.
 
 On each system issue the following command to start the
-:option:`mongod` process:
+:program:`mongod` process:
 
 .. code-block:: bash
 
@@ -200,7 +199,7 @@ On each system issue the following command to start the
    :term:`control script` to manage this process based on this
    command. Control scripts are beyond the scope of this document.
 
-Log in with the :option:`mongo` shell to this host using the following
+Log in with the :program:`mongo` shell to this host using the following
 command: ::
 
       mongo
@@ -231,6 +230,10 @@ Congratulations, after these commands return you will have a fully
 functional replica set. You may have to wait several moments for the
 new replica set to successfully elect a :term:`primary` node.
 
-See the documentation of the following shell functions for more
-information: :js:func:`rs.initiate()`, :js:func:`rs.config()`, and
-:js:func:`rs.add()`.
+.. seealso:: The documentation of the following shell functions for
+   more information:
+
+   - :js:func:`rs.initiate()`,
+   - :js:func:`rs.conf()`,
+   - :js:func:`rs.reconfig()`, and
+   - :js:func:`rs.add()`.

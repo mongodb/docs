@@ -1,20 +1,24 @@
-======================
-``mongo`` Shell Manual
-======================
+.. _mongo:
+
+=============================
+:program:`mongo` Shell Manual
+=============================
+
+.. default-domain:: mongodb
+.. binary:: mongo
 
 Synopsis
 --------
 
-``mongo`` is an interactive JavaScript shell interface to
-MongoDB. ``mongo`` provides a powerful administrative interface for
+:program:`mongo` is an interactive JavaScript shell interface to
+MongoDB. :program:`mongo` provides a powerful administrative interface for
 systems administrators as well as an way to test queries and
 operations directly with the database. To increase the flexibility of
-``mongo``, the shell provides a fully functional JavaScript
+:program:`mongo`, the shell provides a fully functional JavaScript
 environment. This manual contains more extensive documentation of
-``mongo`` in the ":doc:`/mongo`" document. This manual page, addresses
-the basic invocation of the ``mongo`` shell and an overview of its
+:program:`mongo` in the ":doc:`/mongo`" document. This manual page, addresses
+the basic invocation of the :program:`mongo` shell and an overview of its
 usage.
-
 
 Options
 -------
@@ -23,9 +27,10 @@ Options
 
 .. option:: --shell
 
-   If the :option:`mongo` shell is invoked with ":option:`mongo
-   <file.js>`" or ":option:`mongo --eval`" the ``--shell`` provides
-   the user with a shell prompt after the file finishes executing.
+   If you invoke the :program:`mongo` and specify a :term:`JavaScript`
+   file as an argument, or ":option:`mongo --eval`" the
+   :option:`--shell` provides the user with a shell prompt after the
+   file finishes executing.
 
 .. option:: --nodb
 
@@ -34,7 +39,7 @@ Options
 
 .. option:: --norc
 
-   By default ``mongo`` runs the ``~/.mongorc.js`` file when it
+   By default :program:`mongo` runs the ``~/.mongorc.js`` file when it
    starts. Use this option to prevent the shell from sourcing this
    file on start up.
 
@@ -45,19 +50,19 @@ Options
 .. option:: --port <PORT>
 
    Specify the port to which the ``mongod`` or ``mongos`` instance is
-   attached. Unless specified ``mongo`` connects to ``mongod`` instances on
+   attached. Unless specified :program:`mongo` connects to ``mongod`` instances on
    port 27017, which is the default ``mongod`` port.
 
 .. option:: --host <HOSTNAME>
 
    Specific the host where the ``mongod`` or ``mongos`` is running to
-   connect to as "``<HOSTNAME>``". By default ``mongo`` will attempt
+   connect to as "``<HOSTNAME>``". By default :program:`mongo` will attempt
    to connect to MongoDB process running on the localhost.
 
 .. option:: --eval <JAVASCRIPT>
 
    Evaluates a JavaScript specified as an argument to this
-   option. ``mongo`` does not load its own environment when evaluating
+   option. :program:`mongo` does not load its own environment when evaluating
    code: as a result many convinces of the shell environment are not
    available.
 
@@ -88,9 +93,9 @@ Options
 
 .. option:: --ipv6
 
-   Enables IPv6 support to allow ``mongo`` to connect to the MongoDB
+   Enables IPv6 support to allow :program:`mongo` to connect to the MongoDB
    instance using IPv6 connectivity. IPv6 support is disabled by
-   default in the ``mongo`` shell.
+   default in the :program:`mongo` shell.
 
 .. option:: <db address>
 
@@ -99,7 +104,7 @@ Options
 
         mongo admin
 
-   The above command will connect the ``mongo`` shell to the
+   The above command will connect the :program:`mongo` shell to the
    administrative database on the local machine. You may specify a
    remote database instance, with the resolvable hostname or IP
    address. Separate the database name from the hostname using a
@@ -123,8 +128,9 @@ Options
 Usage
 -----
 
-Typically the shell is invoked using the ``mongo`` command at the
-system prompt. Consider the following examples for other scenarios.
+Typically users invoke the shell with the :program:`mongo` command at
+the system prompt. Consider the following examples for other
+scenarios.
 
 To connect to a database on a remote host using authentication and a
 non-standard port, use one of the following forms: ::

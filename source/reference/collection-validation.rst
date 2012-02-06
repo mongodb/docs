@@ -9,9 +9,17 @@ Synopsis
 
 The collection validation command checks all of the structures within
 a name space for correctness and returns a :term:`JSON Document`
-containing information
+containing information regarding the on-disk representation of the
+collection
 
-Run the validation command in the :option:`mongo` shell using the
+.. warning::
+
+   Because :dbcommand:`validate` must scan all data in the collection,
+   this command may consume a significant amount of systems resources
+   and impede the performance of your database while the operation
+   progresses.
+
+Run the validation command in the :program:`mongo` shell using the
 following form to validate a collection named "``people``":
 
 .. code-block:: javascript
@@ -19,7 +27,7 @@ following form to validate a collection named "``people``":
    db.people.validate()
 
 Alternatively you can use the command prototype and the
-:js.func:`runCommand()` shell method in the following form:
+:js:func:`db.runCommand()` shell helper in the following form:
 
 .. code-block:: javascript
 

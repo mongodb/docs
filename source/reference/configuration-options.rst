@@ -7,26 +7,31 @@ Configuration File Options
 Synopsis
 --------
 
-The behavior and setting of a :option:`mongod` or :option:`mongos`
-instance is controlled either directly from :doc:`mongod's command
-line arguments </reference/mongod>` or using a configuration
-file. (See :doc:`mongos' command line arguments </reference/mongos>`.)
+Administrators and users can control :program:`mongod` or
+:program:`mongos` instances at runtime either directly from
+:doc:`mongod's command line arguments </reference/mongod>` or using a
+configuration file.
+
 While both methods are functionally equivalent and all settings are
-similar, The configuration file method is preferable, and if you
+similar, The configuration file method is preferable and if you
 installed from a package and starting MongoDB using your system's
 :term:`control script`, you're already using a configuration file.
 
-To start :option:`mongod` or :option:`mongos` using a config file, use
-one of the following forms: ::
+To start :program:`mongod` or :program:`mongos` using a config file,
+use one of the following forms:
 
-     mongod --config /etc/mongodb.conf
-     mongod -f /etc/mongodb.conf
-     mongos --config /srv/mongodb/mongos.conf
-     mongos -f /srv/mongodb/mongos.conf
+.. code-block:: sh
 
-Declare All settings in this file using the following form: ::
+   mongod --config /etc/mongodb.conf
+   mongod -f /etc/mongodb.conf
+   mongos --config /srv/mongodb/mongos.conf
+   mongos -f /srv/mongodb/mongos.conf
 
-     <setting> = <value>
+Declare All settings in this file using the following form:
+
+.. code-block:: sh
+
+   <setting> = <value>
 
 .. versionadded:: 2.0
    *Before* version 2.0, boolean (i.e. "``true|false``") or "flag"
@@ -79,29 +84,29 @@ Settings
 
    *Default:* false
 
-   Runs the :option:`mongod` instance in a quiet mode that attempts to limit
+   Runs the :program:`mongod` instance in a quiet mode that attempts to limit
    the amount of output.
 
 .. setting:: port
 
    *Default:* 27017
 
-   Specifies a TCP port for the :option:`mongod` to listen for client
-   connections. On UNIX-like systems root access is required for ports
-   with numbers lower than 1000.
+   Specifies a TCP port for the :program:`mongod` to listen for client
+   connections. UNIX-like systems require root access for ports with
+   numbers lower than 1000.
 
 .. setting:: bind_ip
 
    *Default:* 127.0.0.1
 
-   Set this option to configure the :option:`mongod` process to bind to and
-   listen for connections from applications. You may attach :option:`mongod`
-   to any interface; however, if you attach :option:`mongod` to a publicly
-   accessible interface ensure that proper authentication or firewall
-   restrictions have been implemented to protect the integrity of
-   your database.
+   Set this option to configure the :program:`mongod` process to bind
+   to and listen for connections from applications on this
+   address. You may attach :program:`mongod` to any interface;
+   however, if you attach :program:`mongod` to a publicly accessible
+   interface, implement proper authentication or firewall restrictions
+   to protect the integrity of your database.
 
-   You may set this value multiple times to bind :option:`mongod` to
+   You may set this value multiple times to bind :program:`mongod` to
    multiple IP addresses.
 
 .. setting:: maxConns
@@ -109,12 +114,12 @@ Settings
    *Default:* depends on system settings.
 
    Specifies a value to set the maximum number of simultaneous
-   connections that :option:`mongod` or :option:`mongos` will
-   accept. This setting will have no effect if it is higher than your
+   connections that :program:`mongod` or :program:`mongos` will
+   accept. This setting has no effect if it is higher than your
    operating system's configured maximum connection tracking
    threshold.
 
-   This is particularly useful for :option:`mongos` if you have a
+   This is particularly useful for :program:`mongos` if you have a
    client that creates a number of collections but allows them to
    timeout rather than close the collections. When you set
    :setting:`maxConns`, ensure the value is slightly higher than the
@@ -126,9 +131,9 @@ Settings
 
    *Default:* false
 
-   Set to ``true`` to force :option:`mongod` to validate all requests from
-   clients upon receipt  to ensure that invalid objects are never inserted into
-   the database.
+   Set to ``true`` to force :program:`mongod` to validate all requests
+   from clients upon receipt to ensure that invalid objects are never
+   inserted into the database.
 
 .. setting:: logpath
 
@@ -137,28 +142,26 @@ Settings
    Specify a path for the log file that will hold all diagnostic
    logging information.
 
-   Unless specified, :option:`mongod` will output all log information to the
-   standard output. Unless :setting:`logapend` is set to
-   ``true``, the logfile will be overwritten when the process
-   restarts.
+   Unless specified, :program:`mongod` will output all log information
+   to the standard output. Unless :setting:`logappend` is ``true``,
+   the logfile will be overwritten when the process restarts.
 
-.. setting:: logapend
+.. setting:: logappend
 
    *Default:* false
 
-   Set to ``true`` to ensure that new entries will be added to the end
-   of the logfile rather than overwriting the content of the log when
-   the process restarts.
+   Set to ``true`` to add new entries to the end of the logfile rather
+   than overwriting the content of the log when the process restarts.
 
 .. setting:: pidfilepath
 
    *Default:* None.
 
    Specify a file location to hold the ":term:`PID`" or process ID of the
-   :option:`mongod` process. Useful for tracking the :option:`mongod` process in
+   :program:`mongod` process. Useful for tracking the :program:`mongod` process in
    combination with the :setting:`fork` setting.
 
-   If this option is not set, no PID file is created.
+   Without this option, :program:`mongod` creates no PID file.
 
 .. setting:: keyFile
 
@@ -171,28 +174,27 @@ Settings
    .. seealso:: ":ref:`Replica Set Security <replica-set-security>`"
       and ":doc:`/administration/replica-sets`."
 
-See the ":doc:`/core/replication`" documentation
-   for more information.
-
 .. setting:: nounixsocket
 
    *Default:* false
 
-   Set to ``true`` to disable listening on the UNIX socket, which is
-   enabled unless this option is set to ``true``.
+   Set to ``true`` to disable listening on the UNIX socket. Unless set
+   to false, :program:`mongod` and :program:`mongos` provide a
+   UNIX-socket.
 
 .. setting:: unixSocketPrefix
 
    *Default:* ``/tmp``
 
-   Specifies a path for the UNIX socket. Unless specified the socket
-   is created in the ``/tmp`` path.
+   Specifies a path for the UNIX socket. Unless this option has a
+   value, :program:`mongod` and :program:`mongos`, create a socket
+   with the ``/tmp`` as a prefix.
 
 .. setting:: fork
 
    *Default:* false
 
-   Set to ``true`` to enable a :term:`daemon` mode for :option:`mongod`
+   Set to ``true`` to enable a :term:`daemon` mode for :program:`mongod`
    which forces the process to the background.
 
 .. setting:: auth
@@ -200,18 +202,18 @@ See the ":doc:`/core/replication`" documentation
    *Default:* false
 
    Set to ``true`` to enable database authentication for users
-   connecting from remote hosts. Users are configured via the
-   :doc:`mongo shell </reference/mongo>`. If no users exist, the
-   localhost interface will continue to have access to the database
-   until a user has been created.
+   connecting from remote hosts. Configure users via the :doc:`mongo
+   shell </reference/mongo>`. If no users exist, the localhost
+   interface will continue to have access to the database until the
+   you create the first user.
 
 .. setting:: cpu
 
    *Default:* false
 
-   Set to ``true`` to force :option:`mongod` to report every four
+   Set to ``true`` to force :program:`mongod` to report every four
    seconds CPU utilization and the amount of time that the processor
-   waits for I/O operations to complete (i.e. I/O wait.) MongoDB write
+   waits for I/O operations to complete (i.e. I/O wait.) MongoDB writes
    this data to standard output, or the logfile if using the
    :setting:`logpath` option.
 
@@ -219,20 +221,21 @@ See the ":doc:`/core/replication`" documentation
 
    *Default:* ``/data/db/``
 
-   Set this value to designate a directory for the :option:`mongod` instance
-   to store its data. Typically locations such as: "``/srv/mognodb``",
-   "``/var/lib/mongodb``" or "``/opt/mongodb``" are used for this
-   purpose.
+   Set this value to designate a directory for the :program:`mongod`
+   instance to store its data. Typical locations include:
+   "``/srv/mognodb``", "``/var/lib/mongodb``" or "``/opt/mongodb``"
 
-   Unless specified, the ``/data/db`` directory will be used on
-   Unix-like systems.
+   Unless specified, :program:`mongod` creates data files in the
+   default ``/data/db`` directory. (Windows systems use the
+   ``\data\db`` directory.)
 
 .. setting:: diaglog
 
    *Default:* 0
 
-   Set this value the diagnostic logging level for the :option:`mongod`
-   instance. Possible values, and their impact are as follows.
+   Set this value the diagnostic logging level for the
+   :program:`mongod` instance. Possible values, and their impact are
+   as follows.
 
    =========  ===================================
    **Value**  **Setting**
@@ -249,10 +252,12 @@ See the ":doc:`/core/replication`" documentation
    *Default:* false
 
    Set to ``true`` to modify the storage pattern of the data directory
-   so that each database is stored in a distinct folder.
+   to store each database's files in a distinct folder. Use this option to
+   configure MongoDB to store data on a number of distinct disk
+   devices to increase write throughput or disk capacity.
 
-   Unless specified, all databases will be included in the directory
-   specified by :setting:`dbpath`.
+   Unless specified, :program:`mongod` saves all database files in the
+   directory specified by :setting:`dbpath`.
 
 .. setting:: journal
 
@@ -270,21 +275,20 @@ See the ":doc:`/core/replication`" documentation
 
    *Default:* 100
 
-   This value is stored in milliseconds. This option accepts values
-   between 2 and 300 milliseconds.
-
    Set this value to specify the maximum amount of time for
-   :option:`mongod` to allow between journal operations. The default
+   :program:`mongod` to allow between journal operations. The default
    value is 100 milliseconds. Lower values increase the durability of
    the journal, at the possible expense of disk performance.
+
+   This option accepts values between 2 and 300 milliseconds.
 
 .. setting:: ipv6
 
    *Default:* false
 
    Set to ``true`` to IPv6 support to allow clients to connect to
-   :option:`mongod` using IPv6 networks. IPv6 support is disabled by
-   default in :option:`mongod` and all utilities.
+   :program:`mongod` using IPv6 networks. :program:`mongod` disables
+   IPv6 support by default in :program:`mongod` and all utilities.
 
 .. setting:: jsonnp
 
@@ -315,8 +319,9 @@ See the ":doc:`/core/replication`" documentation
 
    *Default:* (on 32-bit systems) true
 
-   Set "``nojournal = true``" to disable durability journaling, which
-   is enabled by default in 64-bit versions after v2.0.
+   Set "``nojournal = true``" to disable durability journaling. By
+   default, :program:`mongod` enables journaling in 64-bit versions
+   after v2.0.
 
 .. setting:: noprealloc
 
@@ -343,10 +348,10 @@ See the ":doc:`/core/replication`" documentation
 
    *Default:* 16
 
-   This value is specified in megabytes.
+   Specify this value in megabytes.
 
-   Specify a value to control the default size for all newly created
-   namespace files (i.e ``.ns``). This option has no impact on the
+   Use this setting to control the default size for all newly created
+   namespace files (i.e ``.NS``). This option has no impact on the
    size of existing namespace files.
 
    The default value is 16 megabytes, this provides for effectively
@@ -358,7 +363,8 @@ See the ":doc:`/core/replication`" documentation
 
    Modify this value to changes the level of database profiling, which
    inserts information about operation performance into output of
-   :option:`mongod` or the log file. The following levels are available:
+   :program:`mongod` or the log file. The following levels are
+   available:
 
    =========  ==================================
    **Level**  **Setting**
@@ -368,9 +374,10 @@ See the ":doc:`/core/replication`" documentation
       2       On. Includes all operations.
    =========  ==================================
 
-   Profiling is disabled by default. Database profiling can impact
-   database performance, because all database operations need to be
-   logged to disk. Enable this option only after careful consideration.
+   By default, :program:`mongod` disables profiling Database profiling
+   can impact database performance because the profiler must record
+   and process all database operations. Enable this option only after
+   careful consideration.
 
 .. setting:: quota
 
@@ -416,11 +423,15 @@ See the ":doc:`/core/replication`" documentation
 
    *Default:* 100
 
-   Sets the threshold for a query to be defined as "slow" for the
-   database profiling functionality accessible by way of the
-   ":setting:`profile`" setting.
+   Specify values in milliseconds.
 
-   Values are specified in milliseconds.
+   Sets the threshold for :program:`mongod` to consider a query "slow"
+   for the database profiler. The database logs all slow queries to
+   the log, even when the profiler is not turned on. When the database
+   profiler is on, :program:`mongod` the profiler writes to the
+   ``system.profile`` collection.
+
+   .. seealso:: ":setting:`profile`"
 
 .. setting:: smallfiles
 
@@ -437,15 +448,18 @@ See the ":doc:`/core/replication`" documentation
    *Default:* 60
 
    This setting contrils the maximum number of seconds between disk
-   syncs. While data is being written do disk all the time, this
-   setting controls the maximum guaranteed length of time between a
-   successful write operation and when that data will be flushed to
-   disk.
+   syncs. While :program:`mongod` is always writing data to disk, this
+   setting controls the maximum guaranteed interval between a
+   successful write operation and the next time the database flushes
+   data to disk.
 
-   If set to "``0``", all operations will be flushed to disk, which
-   may have a significant performance impact. If
-   :setting:`journal` is ``true``, all writes will be durable,
-   by way of the journal within the time specified by
+   In many cases, the actual interval between write operations and
+   disk flushes is much shorter than the value
+
+   If set to "``0``", :program:`mongod` flushes all operations to disk
+   immediately, which may have a significant performance impact. If
+   :setting:`journal` is ``true``, all writes will be durable, by way
+   of the journal within the time specified by
    :setting:`journalCommitInterval`.
 
 .. setting:: sysinfo
@@ -453,11 +467,11 @@ See the ":doc:`/core/replication`" documentation
    *Default:* false
 
    When set to ``true``, ``mognod`` returns diagnostic system
-   information to the log (or standard output if
-   :setting:`logpath` is not set) and then exits.
+   information to the log (or standard output if :setting:`logpath` is
+   not set) and then exits.
 
-   Typically, this setting will be used by way of :option:`mongod
-   --sysinfo`.
+   More typically, run this operation by way of the :option:`mongod
+   --sysinfo` command.
 
 .. setting:: upgrade
 
@@ -467,10 +481,10 @@ See the ":doc:`/core/replication`" documentation
    of the files specified by the :setting:`dbpath` to the latest
    version, if needed.
 
-   This option only affects the operation of :option:`mongod` if the
+   This option only affects the operation of :program:`mongod` if the
    data files are in an old format.
 
-   When specified for a :option:`mongos` instance, this option updates
+   When specified for a :program:`mongos` instance, this option updates
    the meta data format used by the :term:`configdb`.
 
 Replica Set Options
@@ -481,15 +495,23 @@ Replica Set Options
    *Default:* false
 
    In the context of :term:`replica set` replication, set this option
-   to ``true`` if this replica has been seeded with a snapshot of the
+   to ``true`` if you have seeded this replica with a snapshot of the
    :term:`dbpath` of another member of the set. Otherwise the
-   :option:`mongod` will attempt to perform a full sync.
+   :program:`mongod` will attempt to perform a full sync.
+
+   .. warning::
+
+      If the data is not perfectly synchronized *and*
+      :program:`mongod` starts with :setting:`fastsync`, then the
+      secondary or slave will be permanently out of sync with the
+      primary, which may cause significant consistency problems.
 
 .. setting:: oplogSize
 
-   Specifies a maximum size in megabytes for the replication operation
-   log (e.g. :term:`oplog`.) By default this is determined in relation
-   to the maximum amount of space available, typically 5%.
+o   Specifies a maximum size in megabytes for the replication operation
+   log (e.g. :term:`oplog`.) By :program:`mongod` creates an
+   :term:`oplog` based on the maximum amount of space available. For
+   64-bit systems, the op log is typically 5% of available disk space.
 
 Master/Slave Replication
 ````````````````````````
@@ -498,15 +520,15 @@ Master/Slave Replication
 
    *Default:* false
 
-   Set to ``true`` to configure the current node to act as
-   :term:`master` node in a replication configuration.
+   Set to ``true`` to configure the current instance to act as
+   :term:`master` instance in a replication configuration.
 
 .. setting:: slave
 
    *Default:* false
 
-   Set to ``true`` to configure the current node to act as
-   :term:`slave` node in a replication configuration.
+   Set to ``true`` to configure the current instance to act as
+   :term:`slave` instance in a replication configuration.
 
 .. setting:: source
 
@@ -515,7 +537,7 @@ Master/Slave Replication
    *Form:* <host>:<port>
 
    Used with the :setting:`slave` setting to specify the
-   :term:`master` node from which this :term:`slave` node will
+   :term:`master` instance from which this :term:`slave` instance will
    replicate
 
 .. setting:: only
@@ -531,22 +553,23 @@ Master/Slave Replication
 
    Used with the :setting:`slave` setting, the ``slavedelay`` setting
    configures a "delay" in seconds, for this slave to wait to apply
-   operations from the :term:`master` node.
+   operations from the :term:`master` instance.
 
 .. setting:: autoresync
 
    *Default:* false
 
-   Used with the :setting:`slave` setting, set ``autoresync``
-   to ``true`` to force the :term:`slave` to automatically resync if
-   the is more than 10 seconds behind the master. This setting may be
-   problematic if the :option:`--oplogSize` :term:`oplog` is too small
-   (controlled by the :option:`--oplogSize` option.) If the
-   :term:`oplog` not large enough to store the difference in changes
-   between the master's current state and the state of the slave, this
-   node will forcibly resync itself unnecessarily. When
-   :setting:`autoresync` is set, the slave will not attempt an
-   automatic resync more than once in a ten minute period.
+   Used with the :setting:`slave` setting, set ``autoresync`` to
+   ``true`` to force the :term:`slave` to automatically resync if the
+   is more than 10 seconds behind the master. This setting may be
+   problematic if the :option:`--oplogSize <mongod --oplogSize>`
+   :term:`oplog` is too small (controlled by the :option:`--oplogSize
+   <mongod --oplogSize>` option.) If the :term:`oplog` not large
+   enough to store the difference in changes between the master's
+   current state and the state of the slave, this instance will forcibly
+   resync itself unnecessarily. When you set the :setting:`autoresync`
+   option, the slave will not attempt an automatic resync more than
+   once in a ten minute period.
 
 Replica Set Options
 ```````````````````
@@ -577,19 +600,19 @@ Sharding Cluster Options
 
    *Default:* false
 
-   Set this value to ``true`` to configure this :option:`mongod`
+   Set this value to ``true`` to configure this :program:`mongod`
    instance to operate as the :term:`config database` of a shard
-   cluster. The default port with this option is ``27019` and the data
-   is stored in the ``/configdb`` sub-directory of the
-   :setting:`dbpath` directory.
+   cluster. The default port for :program:`mongod` with this option is
+   ``27019` and :program:`mongod` writes all data files to the
+   ``/configdb`` sub-directory of the :setting:`dbpath` directory.
 
 .. setting:: shardsvr
 
    *Default:* false
 
-   Set this value to ``true`` to configure this :option:`mongod`
-   instance as a node in a shard cluster. The default port for these
-   nodes is ``27018``.
+   Set this value to ``true`` to configure this :program:`mongod`
+   instance as a shard in a partitioned cluster. The default port for
+   these instances is ``27018``.
 
 .. setting:: noMoveParanoia
 
@@ -609,15 +632,15 @@ Sharding Cluster Options
    specify either 1 configuration server or 3 configuration servers,
    in a comma separated list.
 
-   This setting only affects :option:`mongos` processes.
+   This setting only affects :program:`mongos` processes.
 
 .. setting:: test
 
    *Default:* false
 
-   Only runs unit tests and does not start a :option:`mongos` instance.
+   Only runs unit tests and does not start a :program:`mongos` instance.
 
-   This setting only affects :option:`mongos` processes and is for
+   This setting only affects :program:`mongos` processes and is for
    internal testing use only.
 
 .. setting:: chunkSize
@@ -626,10 +649,9 @@ Sharding Cluster Options
 
    The value of this option determines the size of each :term:`chunk`
    of data distributed around the :term:`shard cluster`. The default
-   value is 64 megabytes, which is accepted as the ideal size for
-   chunks for most deployments: larger chunk size can lead to uneven
-   data distribution, smaller chunk size often leads to inefficient
-   movement of chunks between nodes. However, in some circumstances
-   it may be neccessary to set a different chunk size.
+   value is 64 megabytes. Larger chunks may lead to an uneven
+   distribution of data, while smaller chunks may lead to frequent and
+   unnecessary migrations. However, in some circumstances it may be
+   neccessary to set a different chunk size.
 
-   This setting only affects :option:`mongos` processes.
+   This setting only affects :program:`mongos` processes.

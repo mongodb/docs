@@ -123,7 +123,7 @@ for your data set is crucial.
 Administrators of replica sets also have unique :ref:`monitoring
 <replica-set-monitoring>`, and :ref:`security <replica-set-security>`
 concerns. The :ref:`replica set functions <replica-set-functions>` in
-the :option:`mongo` shell, provide the tools necessary for replica set
+the :program:`mongo` shell, provide the tools necessary for replica set
 administration. In particular use the :js:func:`rs.conf()` to return a
 :term:`JSON document` that holds the :doc:`replica set configuration
 </reference/replica-configuration>`, and :js:func:`rs.reconfig()` to
@@ -155,7 +155,7 @@ for configuration information regarding non-voting nodes.
 
    The :js:func:`rs.reconfig()` shell command can force the current
    primary to step down and causes an election. When the primary node
-   steps down, the :option:`mongod` closes all client
+   steps down, the :program:`mongod` closes all client
    connections. While, this typically takes 10-20 seconds, attempt to
    make these changes during scheduled maintenance periods.
 
@@ -166,7 +166,7 @@ TODO: this note should go on the practical page.
 Secondary-Only Nodes
 ~~~~~~~~~~~~~~~~~~~~
 
-Any node with a :js:data:`members.priority` value greater than ``0``
+Any node with a :js:data:`members[n].priority` value greater than ``0``
 may become primary given the proper network and environmental
 circumstances. If the write and replication traffic associated with
 acting as "primary," would render a node or your application
@@ -183,7 +183,7 @@ other node is eligible. See :ref:`replica set priorities
 
 Given a three node replica set, with member "``_id``" values of:
 ``0``, ``1``, and ``2``, use the following sequence of operations in
-the :option:`mongo` shell to modify node priorities:
+the :program:`mongo` shell to modify node priorities:
 
 .. code-block:: javascript
 
@@ -218,7 +218,7 @@ primary. Additionally you can maintain nodes in your main data center
 with a higher priority than nodes in a backup facility, to prevent
 "off-site" databases from becoming master except in dire situations.
 
-.. seealso:: ":js:data:`members.priority`" and ":ref:`Replica Set
+.. seealso:: ":js:data:`members[n].priority`" and ":ref:`Replica Set
    Reconfiguration <replica-set-reconfiguration-usage>`."
 
 TODO: this needs to be a lot more concise. Move code to practical part.
@@ -238,7 +238,7 @@ TODO: move most of this to the practical section.
 .. seealso:: ":ref:`Replica Set Read Preference <replica-set-read-preference>`."
 
 To configure a hidden node, use the following sequence of operations
-in the :option:`mongo` shell:
+in the :program:`mongo` shell:
 
 .. code-block:: javascript
 
@@ -257,8 +257,8 @@ different usage patterns than the other nodes, and need to be
 separated from normal traffic. Often nodes for reporting, dedicated
 backups, and testing/integration need to operate as hidden needs.
 
-.. seealso:: ":js:data:`members.hidden`,"
-   ":js:data:`members.priority`," and ":ref:`Replica Set
+.. seealso:: ":js:data:`members[n].hidden`,"
+   ":js:data:`members[n].priority`," and ":ref:`Replica Set
    Reconfiguration <replica-set-reconfiguration-usage>`."
 
 .. _replica-set-delayed-nodes:
@@ -273,7 +273,7 @@ becoming primary in their replica sets.
 TODO: move to practical.
 
 To configure a node with a one hour delay, use the following sequence
-of operations in the :option:`mongo` shell:
+of operations in the :program:`mongo` shell:
 
 .. code-block:: javascript
 
@@ -302,7 +302,7 @@ apply:
 
 TODO: do we talk about sizing the oplog anywhere?
 
-.. seealso:: ":js:data:`members.slaveDelay`" and ":ref:`Replica Set
+.. seealso:: ":js:data:`members[n].slaveDelay`" and ":ref:`Replica Set
    Reconfiguration <replica-set-reconfiguration-usage>`."
 
 .. _replica-set-arbiters:
@@ -327,7 +327,7 @@ Use the following command to start an arbiter: ::
      mongod --replSet [setname]
 
 Replace "``[setname]``" with the name of the replica set that the
-arbiter will join. Then in the :option:`mongo` shell, while connected
+arbiter will join. Then in the :program:`mongo` shell, while connected
 to the *current primary* node, issue the following command:
 
 .. code-block:: javascript
@@ -337,8 +337,8 @@ to the *current primary* node, issue the following command:
 Replace the "``"[hostname]:[port]"``" string with the name of the
 hostname and port of the arbiter that you wish to add to the set.
 
-.. seealso:: ":setting:`replSet`," ":option:`mongod
-   --replSet`, and ":js:func:`rs.addArb()`."
+.. seealso:: ":setting:`replSet`," ":option:`mongod --replSet`,
+   and ":js:func:`rs.addArb()`."
 
 .. _replica-set-non-voting-nodes:
 
@@ -354,7 +354,7 @@ TODO: link whatever config docs will exist on this.
 
 To disable a
 node's ability to vote in :ref:`elections <replica-set-elections>` use
-the following command sequence in the :option:`mongo` shell.
+the following command sequence in the :program:`mongo` shell.
 
 .. code-block:: javascript
 
@@ -380,7 +380,7 @@ event of a network partition.
    <replica-set-node-priority>`" to control which nodes are more
    likely to be elected primary.
 
-.. seealso:: ":js:data:`members.votes`" and ":ref:`Replica Set
+.. seealso:: ":js:data:`members[n].votes`" and ":ref:`Replica Set
    Reconfiguration <replica-set-reconfiguration-usage>`."
 
 .. _replica-set-failover:
@@ -474,14 +474,14 @@ Node Priority
 In a replica set, every node has a "priority," which is used to
 determine eligibility for :ref:`election <replica-set-elections>` to
 "primary." By default, all nodes have a priority of ``1``, unless the
-:js:data:`members.priority` value is modified. All nodes have a single
+:js:data:`members[n].priority` value is modified. All nodes have a single
 vote in :ref:`elections <replica-set-elections>`.
 
 .. warning::
 
-   Always configure the :js:data:`members.priority` value to control
+   Always configure the :js:data:`members[n].priority` value to control
    which nodes will become primary. Do not configure
-   :js:data:`members.votes` except to permit more than 7 secondary
+   :js:data:`members[n].votes` except to permit more than 7 secondary
    nodes.
 
 TODO: move or remove the rest of this.
@@ -596,7 +596,7 @@ that might create rollbacks.
 
 .. warning::
 
-   A :option:`mongod` instance will not rollback more than 300
+   A :program:`mongod` instance will not rollback more than 300
    megabytes of data. If your system needs to rollback more than 300
    MB, you will need to manually intervene to recover this data.
 
@@ -604,7 +604,7 @@ that might create rollbacks.
 
    After a rollback occurs, the former primary will remain in a
    "rollback" mode until the administrator deals with the rolled back
-   data and restarts the :option:`mongod` instance. Only then can the
+   data and restarts the :program:`mongod` instance. Only then can the
    node becomes a normal :term:`secondary` terms.
 
 .. _replica-set-write-propagation:
@@ -631,7 +631,7 @@ and are not required in all applications. Using the "``w:
 "majority"``" option for :dbcommand:`getLastError`, write
 operations to a replica set will return only after writes have been
 replicated to a majority of the members of the set. At the
-:option:`mongo` shell, use the following command to ensure that writes
+:program:`mongo` shell, use the following command to ensure that writes
 have propagated to a majority of the nodes in the cluster:
 
 .. code-block:: javascript
@@ -779,7 +779,7 @@ that:
 
 - If you use MongoDB's authentication system to limit access to your
   infrastructure, ensure that you configure a
-  :setting:`keyfile` on all nodes to permit authentication.
+  :setting:`keyFile` on all nodes to permit authentication.
 
 .. seealso:: ":ref:`Replica Set Security <replica-set-security>`"
 
@@ -797,7 +797,7 @@ architectures.
 This document provides an overview of the *complete* functionality of
 replica sets, which highlights the flexibility of the replica set and
 its configuration. However, for most production deployments a
-conventional 3-node replica set with :js:data:`members.priority`
+conventional 3-node replica set with :js:data:`members[n].priority`
 values of ``1`` are sufficient.
 
 While the additional flexibility discussed is below helpful for

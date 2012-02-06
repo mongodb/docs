@@ -1,22 +1,28 @@
-====================================
-:option:`mongoexport` Utility Manual
-====================================
+.. _mongoexport:
+
+=====================================
+:program:`mongoexport` Utility Manual
+=====================================
+
+.. default-domain:: mongodb
+
+.. binary:: mongoexport
 
 Synopsis
 --------
 
-:option:`mongoexport` is a utility that produces a JSON or CSV export
+:program:`mongoexport` is a utility that produces a JSON or CSV export
 of data stored in a MongoDB instance. See the
 ":doc:`/administration/import-export`" document for a more in depth
 usage overview, and the ":doc:`mongoimport`" document for more
-information regarding the :option:`mongoimport` utility, which
+information regarding the :program:`mongoimport` utility, which
 provides the inverse "importing" capability.
 
 .. note::
 
-   Do not use :option:`mongoimport` and :option:`mongoexport` for
+   Do not use :program:`mongoimport` and :program:`mongoexport` for
    full-scale backups because they may not reliably capture data type
-   information. Use :option:`mongodump` and :option:`mongorestore` as
+   information. Use :program:`mongodump` and :program:`mongorestore` as
    described in ":doc:`/administration/backups`" for this kind of
    functionality.
 
@@ -37,12 +43,12 @@ Options
 
 .. option:: --version
 
-   Returns the version of the :option:`mongoexport` utility.
+   Returns the version of the :program:`mongoexport` utility.
 
 .. option:: --host <hostname><:port>
 
-   Specifies a resolvable hostname for the :option:`mongod` from which you
-   want to export data. By default :option:`mongoexport` attempts to
+   Specifies a resolvable hostname for the :program:`mongod` from which you
+   want to export data. By default :program:`mongoexport` attempts to
    connect to a MongoDB process ruining on the localhost port number
    27017.
 
@@ -68,9 +74,9 @@ Options
 
 .. option:: --ipv6
 
-   Enables IPv6 support to allow :option:`mongoexport` to connect to the
+   Enables IPv6 support to allow :program:`mongoexport` to connect to the
    MongoDB instance using IPv6 connectivity. IPv6 support is disabled
-   by default in the :option:`mongoexport` utility.
+   by default in the :program:`mongoexport` utility.
 
 .. option:: --username <username>, -u <username>
 
@@ -87,24 +93,24 @@ Options
 .. option:: --dbpath [path]
 
    Specifies the directory of the MongoDB data files. If used, the
-   ``--dbpath`` option enables :option:`mongoexport` to attach
+   ``--dbpath`` option enables :program:`mongoexport` to attach
    directly to local data files and insert the data without the
-   :option:`mongod`. To run with ``--dbpath``, :option:`mongoexport`
+   :program:`mongod`. To run with ``--dbpath``, :program:`mongoexport`
    needs to lock access to the data directory: as a result, no
-   :option:`mongod` can access the same path while the process runs.
+   :program:`mongod` can access the same path while the process runs.
 
 .. option:: --directoryperdb
 
    Use the :option:`--directoryperdb` in conjunction with the
-   corresponding option to :option:`mongod`, which allows
-   :option:`mongoexport` to operate when MongoDB is configured to use
+   corresponding option to :program:`mongod`, which allows
+   :program:`mongoexport` to operate when MongoDB is configured to use
    an on-disk stores where each database is located in a distinct
    directory. This option is only relevant when specifying the
    :option:`--dbpath` option.
 
 .. option:: --journal
 
-   Allows :option:`mongoexport` operations to access the durability
+   Allows :program:`mongoexport` operations to access the durability
    :term:`journal <journaling>` to ensure that the export is in a
    consistent state. This option is only relevant when specifying the
    :option:`--dbpath` option.
@@ -112,15 +118,15 @@ Options
 .. option:: --db [db], -d [db]
 
    Use the ``--db`` option to specify a database for
-   :option:`mongoexport` to export data from. If you do not specify a
-   DB, :option:`mongoexport` will export all databases in this
+   :program:`mongoexport` to export data from. If you do not specify a
+   DB, :program:`mongoexport` will export all databases in this
    MongoDB instance. Use this option to create a copy of a smaller
    subset of your data.
 
 .. option:: --collection [collection], -c [collection]
 
    Use the :option:`--collection` option to specify a collection for
-   :option:`mongoexport` to export. If you do not specify a
+   :program:`mongoexport` to export. If you do not specify a
    "``[collection]``", all collections will exported.
 
 .. option:: --fields [field1[,field2]], -f [field1[,field2]]
@@ -145,22 +151,22 @@ Options
 .. option:: --csv
 
    Changes the export format to a comma separated values (CSV)
-   format. By default :option:`mongoexport` writes data using one
+   format. By default :program:`mongoexport` writes data using one
    :term:`JSON` document for every MongoDB document.
 
 .. option:: --jsonArray
 
-   Modifies the output of :option:`mongoexport` so that to write the
+   Modifies the output of :program:`mongoexport` so that to write the
    entire contents of the export as a single :term:`JSON` array. By
-   default :option:`mongoexport` writes data using one JSON document
+   default :program:`mongoexport` writes data using one JSON document
    for every MongoDB document.
 
 .. option:: --slaveOk, -k
 
-   Allows :option:`mongoexport` to read data from secondary or slave
-   nodes when using :option:`mongoexport` with a replica set. This
-   option is only available if connected to a :option:`mongod`` or
-   :option:`mongos` and is not available when used with the
+   Allows :program:`mongoexport` to read data from secondary or slave
+   nodes when using :program:`mongoexport` with a replica set. This
+   option is only available if connected to a :program:`mongod` or
+   :program:`mongos` and is not available when used with the
    ":option:`mongoexport --dbpath`" option.
 
    This is the default behavior.
@@ -168,7 +174,7 @@ Options
 .. option:: --out [file], -o [file]
 
    Specify a file to write the export to. If you do not specify a file
-   name, the :option:`mongoexport` writes data to standard output
+   name, the :program:`mongoexport` writes data to standard output
    (e.g. ``stdout``).
 
 Usage
@@ -198,7 +204,7 @@ in JSON format. ::
 
 .. warning::
 
-   The above example will only succeed if there is no :option:`mongod`
+   The above example will only succeed if there is no :program:`mongod`
    connected to the data files located in the ``/srv/mongodb/``
    directory.
 

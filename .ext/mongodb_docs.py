@@ -108,6 +108,8 @@ class MongoDBObject(ObjectDescription):
             return _('%s (database command)') % name
         elif self.objtype == 'operator':
             return _('%s (operator)') % name
+        elif self.objtype == 'program':
+            return _('%s (program)') % name
         elif self.objtype == 'setting':
             return _('%s (setting)') % (name)
         elif self.objtype == 'status':
@@ -128,6 +130,14 @@ class MongoDBCallable(MongoDBObject):
         TypedField('arguments', label=l_('Arguments'),
                    names=('argument', 'arg', 'parameter', 'param'),
                    typerolename='func', typenames=('paramtype', 'type')),
+        TypedField('options', label=l_('Options'),
+                   names=('options', 'opts', 'option', 'opt'),
+                   typerolename=('dbcommand', 'setting', 'status', 'stats', 'aggregator'),
+                   typenames=('optstype', 'type')),
+        TypedField('fields', label=l_('Fields'),
+                   names=('fields', 'fields', 'field', 'field'),
+                   typerolename=('dbcommand', 'setting', 'status', 'stats', 'aggregator'),
+                   typenames=('fieldtype', 'type')),
         GroupedField('errors', label=l_('Throws'), rolename='err',
                      names=('throws', ),
                      can_collapse=True),
@@ -136,6 +146,39 @@ class MongoDBCallable(MongoDBObject):
         Field('returntype', label=l_('Return type'), has_arg=False,
               names=('rtype',)),
     ]
+
+class MongoDBCallableProgram(MongoDBObject):
+    """Description of a JavaScript function, method or constructor."""
+    has_arguments = False
+    has_content = None
+    parse_node = None
+    required_arguments = 1
+    display = None
+    optional_arguments = 0
+    final_argument_whitespace = True
+    option_spec = {}
+
+    def run(self):
+        display = None
+        return []
+
+class MongoDBProgramXRefRole(XRefRole):
+    def process_link(self, env, refnode, has_explicit_title, title, target):
+        # basically what sphinx.domains.python.PyXRefRole does
+        refnode['mongodb:object'] = env.temp_data.get('mongodb:object')
+        if not has_explicit_title:
+            title = title.lstrip('.')
+            target = target.lstrip('~')
+            if title[0:1] == '~':
+                title = title[1:]
+                dot = title.rfind('.')
+                if dot != -1:
+                    title = title[dot+1:]
+        if target[0:1] == '.':
+            print "it gets here"
+            target = target[1:]
+            refnode['refspecific'] = True
+        return title, target
 
 
 class MongoDBXRefRole(XRefRole):
@@ -164,6 +207,7 @@ class MongoDBDomain(Domain):
     object_types = {
         'dbcommand':    ObjType(l_('dbcommand'),   'dbcommand'),
         'operator':     ObjType(l_('operator'),    'operator'),
+        'program':      ObjType(l_('program'),     'operator'),
         'setting':      ObjType(l_('setting'),     'setting'),
         'status':       ObjType(l_('status'),      'status'),
         'stats':        ObjType(l_('stats'),       'stats'),
@@ -174,6 +218,7 @@ class MongoDBDomain(Domain):
     directives = {
         'dbcommand':     MongoDBCallable,
         'operator':      MongoDBCallable,
+        'binary':        MongoDBCallableProgram,
         'setting':       MongoDBCallable,
         'status':        MongoDBCallable,
         'stats':         MongoDBCallable,
@@ -184,6 +229,7 @@ class MongoDBDomain(Domain):
     roles = {
         'dbcommand':   MongoDBXRefRole(),
         'operator':    MongoDBXRefRole(),
+        'program':     MongoDBProgramXRefRole(),
         'setting':     MongoDBXRefRole(),
         'status':      MongoDBXRefRole(),
         'stats':       MongoDBXRefRole(),

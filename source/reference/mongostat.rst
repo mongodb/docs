@@ -1,6 +1,12 @@
-====================
-``mongostat`` Manual
-====================
+.. _mongostat:
+
+===========================
+:program:`mongostat` Manual
+===========================
+
+.. default-domain:: mongodb
+
+.. binary:: mongostat
 
 Synopsis
 --------
@@ -100,7 +106,7 @@ Options
 
    Controls the number of rows to output. Use in conjunction with
    ":command:`mongostat [sleeptime]`" to control the duration of a
-   :option:`mongostat` operation.
+   :program:`mongostat` operation.
 
    Unless specification, ``mongostat`` will return an infinite number
    of rows (e.g. value of ``0``.)
@@ -137,12 +143,12 @@ Options
 Fields
 ------
 
-:option:`mongostat` returns values that reflect the operations over a
+:program:`mongostat` returns values that reflect the operations over a
 1 second period. When :command:`mongostat [sleeptime]` has a value
-greater than 1, :option:`mongostat` averages the statistics to reflect
+greater than 1, :program:`mongostat` averages the statistics to reflect
 average operations per second.
 
-:option:`mongostat` outputs the following fields:
+:program:`mongostat` outputs the following fields:
 
 .. describe:: inserts
 

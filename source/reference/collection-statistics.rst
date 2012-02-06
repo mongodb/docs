@@ -8,8 +8,8 @@ Collection Statistics Reference
 Synopsis
 --------
 
-To fetch collection statistics, use the :js:func:`issue the following
-command from the :option:`mongo` shell: ::
+To fetch collection statistics, call the :js:func:`stats()` method on
+a collection object in the :program:`mongo` shell:
 
 .. code-block:: javascript
 
@@ -25,7 +25,7 @@ Replace "``collection``" in both examples with the name of the
 collection you want statistics for. By default, the return values will
 appear in terms of bytes. You can, however, enter a scaling
 factor. For example, you can convert the return values to kilobytes
-like so: ::
+like so:
 
 .. code-block:: javascript
 
@@ -57,7 +57,6 @@ Fields
    The size of the collection. The "``scale``" factor affects this
    value.
 
-
 .. stats:: avgObjSize
 
    The average size of an object in the collection. The "``scale``"
@@ -86,15 +85,15 @@ Fields
 .. stats:: paddingFactor
 
    The amount of space added to the end of each document at insert
-   time. The server automatically calculates this padding factor,
-   which exists to prevent excessive document relocations.
+   time. The document padding provides a small amount of extra space
+   on disk to allow a document to grow slightly without needing to
+   move the document. :program:`mongod` automatically calculates this padding factor
 
 .. stats:: flags
 
    "flags" : 1,
 
 TODO what are flags in collectionstats.
-
 
 .. stats:: totalIndexSize
 

@@ -23,20 +23,20 @@ Basic Information
 .. status:: version
 
    The ``version`` field contains the version of MongoDB running on
-   the current :option:`mongod` or :option:`mongos` instance.
+   the current :program:`mongod` or :program:`mongos` instance.
 
 .. status:: process
 
    The ``process`` field identifies which kind of MongoDB instance is
    running. Possible values are:
 
-   - :option:`mongos`
-   - :option:`mongod`
+   - :program:`mongos`
+   - :program:`mongod`
 
 .. status:: uptime
 
    The value of the ``uptime`` field corresponds to the number of
-   seconds that the :option:`mongos`` or :option:`mongod`` process has
+   seconds that the :program:`mongos` or :program:`mongod` process has
    been active.
 
 .. status:: uptimeEstimate
@@ -79,16 +79,17 @@ TODO factcheck
    microseconds, since the database last started, that the
    ``globalLock`` has been *held*.
 
-   Consider this value in combination with
-   :status:`globalLock.totalTime`, which is calculated in the
-   :status:`globalLock.ratio` value. If this value is small
-   but :status:`globalLock.totalTime` is high the
-   ``globalLock`` has typically been held frequently for shorter
-   periods of time, which may be indicative of a more normal use
-   pattern. If the :status:`globalLock.lockTime`` is higher
-   and the :status:`globalLock.totalTime` is smaller
-   (relatively,) then fewer operations are responsible for a greater
-   portion of server's use (relatively.)
+   Consider this value in combination with the value of
+   :status:`globalLock.totalTime`. MongoDB aggregates these values in
+   the :status:`globalLock.ratio` value. If the
+   :status:`globalLock.ratio` value is small but
+   :status:`globalLock.totalTime` is high the ``globalLock`` has
+   typically been held frequently for shorter periods of time, which
+   may be indicative of a more normal use pattern. If the
+   :status:`globalLock.lockTime` is higher and the
+   :status:`globalLock.totalTime` is smaller (relatively,) then fewer
+   operations are responsible for a greater portion of server's use
+   (relatively.)
 
 .. status:: globalLock.ratio
 
@@ -176,12 +177,12 @@ mem
 .. status:: mem
 
    The ``mem`` data structure holds information regarding the target
-   system architecture of :option:`mongod` and current memory use.
+   system architecture of :program:`mongod` and current memory use.
 
 .. status:: mem.bits
 
    The value of ``mem.bits`` is either ``64`` or ``32``, depending the
-   target system architecture for which the :option:`mongod` instance was
+   target system architecture for which the :program:`mongod` instance was
    compiled. In most instances this is ``64``, and this value does not
    change over time.
 
@@ -195,7 +196,7 @@ mem
 .. status:: mem.virtual
 
    ``mem.virtual`` displays the quantity, in bytes, of virtual memory
-   used by the :option:`mongod` process. In typical deployments this value
+   used by the :program:`mongod` process. In typical deployments this value
    is slightly larger than :status:`mem.mapped`. If this value is
    significantly (i.e. gigabytes) larger than :status:`mem.mapped`,
    this could indicate a memory leak.
@@ -222,7 +223,7 @@ connections
 
 .. status:: connections
 
-   The ``connections`` data structure holds data regarding the
+   The ``connections`` sub document data regarding the
    current connection status and availability of the database
    server. Use these values to asses the current load and capacity
    requirements of the server.
@@ -253,7 +254,7 @@ extra_info
 .. status:: extra_info
 
    The ``extra_info`` data structure holds data collected by the
-   :option:`mongod` instance about the underlying system. Your system may
+   :program:`mongod` instance about the underlying system. Your system may
    only report a subset of these fields.
 
 .. status:: extra_info.note
@@ -305,7 +306,7 @@ indexCouters
 .. status:: indexCouters.btree.hits
 
    The ``indexCouters.btree.hits`` value reflects the number of times
-   that an index has been access and :option:`mongod` is able to return the
+   that an index has been access and :program:`mongod` is able to return the
    index from memory.
 
    A higher value indicates that the indexes are being used
@@ -341,7 +342,7 @@ backgroundFlushing
 
 .. status:: backgroundFlushing
 
-   :option:`mongod` periodically flushes writes to disk. In the default
+   :program:`mongod` periodically flushes writes to disk. In the default
    configuration, this happens every 60 seconds. The
    ``backgroundFlushing`` data structure contains data that regarding
    these operations. Consider these values if you have concerns about
@@ -356,7 +357,7 @@ backgroundFlushing
 .. status:: backgroundFlushing.total_ms
 
    The ``backgroundFlushing.total_ms`` value provides the total number
-   of milliseconds (ms) that the :option:`mongod` processes have spent
+   of milliseconds (ms) that the :program:`mongod` processes have spent
    writing (i.e. flushing) data to disk. Because this is an absolute
    value, consider the value of :status:`backgroundFlishing.flushes`
    and :status:`backgroundFlushing.average_ms` to provide better
@@ -439,7 +440,7 @@ network
 
    The value of the ``network.bytesIn`` field reflects the amount of
    network traffic, in bytes, received *by* this database. Use this
-   value to ensure that network traffic sent to the :option:`mongod` process
+   value to ensure that network traffic sent to the :program:`mongod` process
    is consistent with expectations and overall inter-application
    traffic.
 
@@ -447,7 +448,7 @@ network
 
    The value of the ``network.bytesOut`` field reflects the amount of
    network traffic, in bytes, sent *from* this database. Use this
-   value to ensure that network traffic sent by the :option:`mongod` process
+   value to ensure that network traffic sent by the :program:`mongod` process
    is consistent with expectations and overall inter-application
    traffic.
 
@@ -466,17 +467,16 @@ repl
 
    The ``repl`` data structure contains status information for
    MongoDB's replication (i.e. "replica set") configuration. These
-   values only appear when replication is enabled for the current
-   host.
+   values only appear when the current host has replication enabled.
 
    See :doc:`/core/replication` for more information on replication.
 
 .. status:: repl.setName
 
    The ``repl.setName`` field contains a string with the name of the
-   current replica set. This value is taken from :option:`--replSet
-   <mongod --replSet>`` command line argument, or :setting`replSet`
-   value in the configuration file.
+   current replica set. This value reflects the :option:`--replSet <mongod --replSet>`
+   command line argument, or :setting:`replSet` value in the
+   configuration file.
 
    See :doc:`/core/replication` for more information on replication.
 
@@ -519,27 +519,27 @@ optcounters
 .. status:: optcounters.insert
 
    ``opcounters.insert`` provides a counter of the total number of
-   insert operations since the :option:`mongod` instance last started.
+   insert operations since the :program:`mongod` instance last started.
 
 .. status:: optcounters.query
 
    ``opcounters.query`` provides a counter of the total number of
-   queries since the :option:`mongod` instance last started.
+   queries since the :program:`mongod` instance last started.
 
 .. status:: optcounters.update
 
    ``opcounters.update`` provides a counter of the total number of
-   update operations since the :option:`mongod` instance last started.
+   update operations since the :program:`mongod` instance last started.
 
 .. status:: optcounters.delete
 
    ``opcounters.delete`` provides a counter of the total number of
-   delete operations since the :option:`mongod` instance last started.
+   delete operations since the :program:`mongod` instance last started.
 
 .. status:: optcounters.getmore
 
    ``opcounters.getmore`` provides a counter of the total number of
-   "getmore" operations since the :option:`mongod` instance last
+   "getmore" operations since the :program:`mongod` instance last
    started. On a primary node, this counter can be high even if the
    query count is low. Secondary nodes send ``getMore`` operations to
    the primary node as part of the replication process.
@@ -547,7 +547,7 @@ optcounters
 .. status:: optcounters.command
 
    ``opcounters.command`` provides a counter of the total number of
-   commands issued to the database since the :option:`mongod` instance last
+   commands issued to the database since the :program:`mongod` instance last
    started.
 
 asserts
@@ -558,7 +558,7 @@ asserts
    The ``asserts`` data structure provides an account of the number of
    asserts on the database. While assert errors are typically
    uncommon, if there are non-zero values for the ``asserts``, you
-   should check the log file for the :option:`mongod` process for more
+   should check the log file for the :program:`mongod` process for more
    information. In many cases these errors are trivial, but should be
    investigated.
 
@@ -672,7 +672,7 @@ timeMS
 .. status:: dur.timeMS
 
    The ``dur.timeMS`` data structure provides information about the
-   performance of the :option:`mongod` instance for journaling operations.
+   performance of the :program:`mongod` instance for journaling operations.
 
 .. status:: dur.timeMS.dt
 
@@ -712,5 +712,5 @@ Other Statuses
 .. status:: writeBacksQueued
 
    The value of ``writeBacksQueued`` is "``true``" when there are
-   operations from a :option:`mongos` that need to be retried. Typically
+   operations from a :program:`mongos` that need to be retried. Typically
    this option is false.

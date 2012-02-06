@@ -1,25 +1,28 @@
-==============================
-``mongoimport`` Utility Manual
-==============================
+.. _mongoimport:
+
+=====================================
+:program:`mongoimport` Utility Manual
+=====================================
 
 .. default-domain:: mongodb
+.. binary:: mongoimport
 
 Synopsis
 --------
 
 The ``mongoimport`` utility provides a route to import content from a
-JSON, CSV, or TSV export created by :option:`mongoexport`, or
+JSON, CSV, or TSV export created by :program:`mongoexport`, or
 potentially, another third-party export tool. See the
 ":doc:`/administration/import-export`" document for a more in depth
 usage overview, and the ":doc:`mongoexport`" document for more
-information regarding the :option:`mongoexport` utility, which
+information regarding the :program:`mongoexport` utility, which
 provides the inverse "importing" capability.
 
 .. note::
 
-   Do not use :option:`mongoimport` and :option:`mongoexport` for
+   Do not use :program:`mongoimport` and :program:`mongoexport` for
    full-scale backups because they may not reliably capture data type
-   information. Use :option:`mongodump` and :option:`mongorestore` as
+   information. Use :program:`mongodump` and :program:`mongorestore` as
    described in ":doc:`/administration/backups`" for this kind of
    functionality.
 
@@ -40,7 +43,7 @@ Options
 
 .. option:: --version
 
-   Returns the version of the :option:`mongoimport` utility.
+   Returns the version of the :program:`mongoimport` utility.
 
 .. option:: --host <hostname><:port>
 
@@ -91,28 +94,28 @@ Options
 
    Specifies the directory of the MongoDB data files. If used, the
    :option:`--dbpath <mongoimport --dbpath>` option enables
-   :option:`mongoimport` to attach directly to local data files and
-   insert the data without the :option:`mongod`. To run with
-   ``--dbpath``, :option:`mongorestore` needs to lock access to the
-   data directory: as a result, no :option:`mongod` can access the
+   :program:`mongoimport` to attach directly to local data files and
+   insert the data without the :program:`mongod`. To run with
+   ``--dbpath``, :program:`mongorestore` needs to lock access to the
+   data directory: as a result, no :program:`mongod` can access the
    same path while the process runs.
 
 .. option:: --directoryperdb
 
    Use the :option:`--directoryperdb` in conjunction with the
-   corresponding option to :option:`mongod`, which allows
-   :option:`mongoimport` to import data into MongoDB instances where
+   corresponding option to :program:`mongod`, which allows
+   :program:`mongoimport` to import data into MongoDB instances where
    each database is located in a distinct directory on the disk. This
    option is only relevant when specifying the :option:`--dbpath`
    option.
 
 .. option:: --journal
 
-   Enables journaling for all :option:`mongoimport` operations.
+   Enables journaling for all :program:`mongoimport` operations.
 
 .. option:: --db [db], -d [db]
 
-   Use the ``--db`` option to specify a database for :option:`mongoimport`
+   Use the ``--db`` option to specify a database for :program:`mongoimport`
    to restore data. If you do not specify a "``[db]``", new databases will be
    created corresponding to the databases where the data originated
    and data may be overwritten. Use this option to restore data into a
@@ -124,7 +127,7 @@ TODO factcheck
 .. option:: --collection [collection], -c [collection]
 
    Use the :option:`--collection` option to specify a collection for
-   :option:`mongorestore` to restore. If you do not specify a
+   :program:`mongorestore` to restore. If you do not specify a
    "``[collection]``", all collections will be restored or
    created. Existing data may be overwritten. Use this option to
    restore data into a MongoDB instance that already has data, or to
@@ -171,23 +174,23 @@ TODO factcheck
 
 .. option:: --headerline
 
-   If using ":option:`mongoimport --type csv`" or
-   ":option:`mongoimport --type tsv`," use the first line as field
-   names. Otherwise, the first line will be imported as a distinct
-   document.
+   If using ":option:`--type csv <mongoimport --type>`" or
+   ":option:`--type tsv <mongoimport --type>`," use the first line as
+   field names. Otherwise, :program:`mongoimport` will import the first
+   line as a distinct document.
 
 .. option:: --upsert
 
-   Modifies the import process so that existing objects in the
-   database are updated if they match the imported objects and all
-   other objects are inserted.
+   Modifies the import process to update existing objects in the
+   database if they match an imported object, while inserting all
+   other objects.
 
 .. option:: --upsertFields [field1[,filed2]]
 
    Specifies a list of fields for the query portion of the
    :term:`upsert`.
 
-   Ensure that these fields are indexed.
+TODO improve this option documentation.
 
 .. option:: --stopOnError
 

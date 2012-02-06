@@ -1,6 +1,12 @@
-=====================
-``mongosniff`` Manual
-=====================
+.. _mongosniff:
+
+============================
+:program:`mongosniff` Manual
+============================
+
+.. default-domain:: mongodb
+
+.. binary:: mongosniff
 
 Synopsis
 --------

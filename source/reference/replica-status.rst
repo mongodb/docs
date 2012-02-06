@@ -6,7 +6,7 @@ Replica Status Reference
 
 The :dbcommand:`replSetGetStatus` provides an overview of the
 current status of a :term:`replica set`. Issue the following command against
-the "``admin``" database, in the :option:`mongo` shell: ::
+the "``admin``" database, in the :program:`mongo` shell: ::
 
 .. code-block:: javascript
 
@@ -20,12 +20,12 @@ at most 2 seconds out of date.
 
 .. note::
 
-   The :option:`mongod` that you issue the :dbcommand:`replSetGetStatus`
+   The :program:`mongod` that you issue the :dbcommand:`replSetGetStatus`
    command to needs to have replication enabled, and be a member of a
    replica set for this command to return successfully.
 
 .. seealso:: The ":js:func:`rs.status()`" function in the
-   :option:`mongo` shell provides a wrapper around the
+   :program:`mongo` shell provides a wrapper around the
    :dbcommand:`replSetGetStatus` command. Also consider the
    ":doc:`/replication`" documentation index for more information on
    replication.
@@ -126,7 +126,7 @@ Member Statuses
       since the last time stamp. This value only increases if there
       are more than one operation per second.
 
-.. status:: members.optimeDate
+.. status:: members[n].optimeDate
 
    An :term:`ISODate` formatted date string that reflects the last
    entry from the :term:`oplog` that this member applied. If this
@@ -139,7 +139,7 @@ Member Statuses
 
    The ``lastHeartbeat`` value provides an :term:`ISODate` formatted
    date of the last heartbeat received from this member. Compare this
-   value to the value of the :status:`date` field to track
+   value to the value of the :status:`date <rs.status.date>` field to track
    latency between these members.
 
    This value does not appear for the member that returns the
