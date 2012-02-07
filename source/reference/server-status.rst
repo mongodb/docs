@@ -703,7 +703,6 @@ timeMS
    milliseconds, the amount of time remapping copy-on-write memory
    mapped views. Smaller values indicate better journal performance.
 
-
 Other Statuses
 --------------
 

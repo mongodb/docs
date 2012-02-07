@@ -422,9 +422,10 @@ Database
                        JSON document that contains the following three
                        fields:
 
-   :param bytes size: Specifies a maximum size in bytes, for the as a
-                      ":term:`cap <capped collection>` for the
-                      collection.
+   :param bytes size: If ``capped`` is ``true``, ``size`` Specifies a
+                      maximum size in bytes, for the as a ":term:`cap
+                      <capped collection>` for the collection. When
+                      ``capped`` is false, you may use ``size``
 
    :param boolean capped: Enables a :term:`collection cap <capped
                           collection>`. False by default. If enabled,
@@ -436,7 +437,9 @@ Database
 
    Explicitly creates a new collation. Because MongoDB creates
    collections implicitly when referenced, this command is primarily
-   used for creating new capped collections.
+   used for creating new capped collections. In some circumstances,
+   you may use this command to pre-allocate space for a uncapped
+   collection.
 
    Capped collections have maximum size or document counts that limit
    their ability to grow beyond maximum thresholds. All capped
@@ -447,10 +450,17 @@ Database
 
    .. code-block:: javascript
 
-      db..createCollection(log, { size : 5120, capped : true, max : 5000 } )
+      db.createCollection(log, { size : 5120, capped : true, max : 5000 } )
 
    This command creates a collection named log with a maximum size of
    5 megabytes (5120 bytes,) or a maximum of 5000 documents.
+
+   The following command simply pre-allocates a 2 gigabyte, uncapped,
+   collection named "``people``":
+
+   .. code-block:: javascript
+
+      db.createCollection(people, { size: 2147483648 })
 
    This command provides a wrapper around the database command
    ":dbcommand:`create`. See the ":doc:`/core/capped-collections`"
