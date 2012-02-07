@@ -1967,15 +1967,104 @@ Other Commands
 :program:`mongos` Commands
 --------------------------
 
-TODO document mongos commands DOCS-112
-
 .. dbcommand:: flushRouterConfig
+
+   :dbcommand:`flushRouterConfig` clears the current cluster
+   information cached by a :program:`mongos` instance and reloads all
+   :term:`shard cluster` metadata from the configuration database.
+
+   This force an update when the configuration database holds data
+   that is newer that the data cached in the :program:`mongos`
+   process.
+
+   .. warning:: Do not modify the configuration database, except as
+      explicitly documented. Configuration database cannot typically
+      tolerate manipulation.
+
+   :dbcommand:`flushRouterConfig` is an administrative command that is
+   only available for :program:`mongos` instances.
+
+   .. versionadded:: 1.8.2
 
 .. dbcommand:: isdbGrid
 
+   Use this command to determine if the process is a :program:`mongos`
+   or a :program:`mongod`. Consider the following command prototype:
+
+   .. code-block:: javascript
+
+      { isdbGrid: 1 }
+
+   If connected to a :program:`mongos`, the response document
+   resembles the following:
+
+   .. code-block:: javascript
+
+      { "isdbgrid" : 1, "hostname" : "arendt.tychoish.net", "ok" : 1 }
+
+   You can also use the :dbcommand:`isMaster` command, which when
+   connected to a :program:`mongos`, contains the string
+   "``isdbgrid``" in the "``msg``" field of its output document.
+
 .. dbcommand:: movePrimary
 
+   .. warning:: Only use :dbcommand:`movePrimary` in an offline
+      system, and only when you need to remove a :term:`shard` from a
+      cluster.
+
+   :dbcommand:`movePrimary` changes the primary shard for this
+   database. The primary shard holds all un-sharded collections in a
+   database.
+
+   .. note::
+
+      Exercise care when using :dbcommand:`movePrimary` in a
+      system that already holds data. You must drain this shard before
+      running this command because it will move all collections in
+      the database.
+
+   :dbcommand:`movePrimary` is an administrative command that is
+   only available for :program:`mongos` instances.
+
 .. dbcommand:: split
+
+   The :dbcommand:`split` command creates new :term:`chunks <chunk>`
+   in a :term:`sharded` environment. While splitting is typically
+   managed automatically by the :program:`mongos` instances, this
+   command makes it possible for administrators to manually create
+   splits.
+
+   .. note::
+
+      In normal operation there is no need to manually split chunks.
+
+   Consider the following example:
+
+   .. code-block:: javascript
+
+      db.runCommand( { split : "test.people" , find : { _id : 99 } } )
+
+   This command inserts a new :term:`split` in the collection named
+   "``people``" in the "``test``" database. This will split the chunk
+   that contains the document that matches the query "``{ _id : 99
+   }``" in half. If the document specified by the query does not (yet)
+   exist, the :dbcommand:`split` will divide the chunk where that
+   document *would* exist.
+
+   The split divides the chunk in half, and does *not* split the chunk
+   using the identified document as the middle. To define an arbitrary split
+   point, use the following form:
+
+   .. code-block:: javascript
+
+      db.runCommand( { split : "test.people" , middle : { _id : 99 } } )
+
+   This form is typically used when :term:`pre-splitting` data in a
+   collection.
+
+   :dbcommand:`split` is an administrative command that is only
+   available for :program:`mongos` instances.
+
 
 Internal Use
 ------------
@@ -2070,7 +2159,9 @@ Internal Use
 
    :dbcommand:`sleep` is an internal command for testing purposes. The
    :dbcommand:`sleep` command forces the db block all operations. It
-   takes the following options: ::
+   takes the following options:
+
+   .. code-block:: javascript
 
         { sleep: { w: true, secs: <seconds> } }
 
@@ -2081,7 +2172,7 @@ Internal Use
 
 .. dbcommand:: getnonce
 
-   :dbcommand:`getnonce` is used by client libraries to generate a one-time
+   Client libraries use :dbcommand:`getnonce`  to generate a one-time
    password for authentication.
 
    .. slave-ok
@@ -2127,7 +2218,8 @@ Internal Use
 
 .. dbcommand:: replSetHeartbeat
 
-   :dbcommand:`replSetHeartbeat` is an internal command that support replica set functionality.
+   :dbcommand:`replSetHeartbeat` is an internal command that support
+   replica set functionality.
 
    .. slave-ok
 
@@ -2189,10 +2281,10 @@ Internal Use
 
 .. dbcommand:: moveChunk
 
-   :dbcommand:`moveChunk` is an internal command that supports the sharding
-   functionalty and should not be called directly. Use the
-   :js:func:`sh.moveChunk()` function in the :program:`mongo` shell
-   if you must move a chunk manually.
+   :dbcommand:`moveChunk` is an internal command that supports the
+   sharding functionality. Do not call directly. Use the
+   :js:func:`sh.moveChunk()` function in the :program:`mongo` shell if
+   you must move a chunk manually.
 
    .. admin-only
 
@@ -2217,8 +2309,11 @@ Internal Use
 
 .. dbcommand:: authenticate
 
-   :dbcommand:`authenticate` is used by client to authenticate on a connection. When
-   using the shell, you should use the command helper like so: ::
+   Clients use :dbcommand:`authenticate` to authenticate on a
+   connection. When using the shell, you should use the command helper
+   like so:
+
+   .. code-block:: javascript
 
        db.authenticate( "username", "password" )
 
@@ -2238,63 +2333,63 @@ Internal Use
 
 .. dbcommand:: _migrateClone
 
-   :dbcommand:`_migrateClone` is an internal command and should not be called
+   :dbcommand:`_migrateClone` is an internal command. Do not call
    directly.
 
    .. admin-only
 
 .. dbcommand:: _recvChunkAbort
 
-   :dbcommand:`_recvChunkAbort` is an internal command and should not be called
+   :dbcommand:`_recvChunkAbort` is an internal command. Do not call
    directly.
 
    .. admin-only
 
 .. dbcommand:: _recvChunkCommit
 
-   :dbcommand:`_recvChunkCommit` is an internal command and should not be
-   called directly.
+   :dbcommand:`_recvChunkCommit` is an internal command. Do not call
+   directly.
 
    .. admin-only
 
 .. dbcommand:: _recvChunkStatus
 
-   :dbcommand:`_recvChunkStatus` is an internal command and should not be
-   called directly.
+   :dbcommand:`_recvChunkStatus` is an internal command. Do not call
+   directly.
 
    .. admin-only
 
 .. dbcommand:: _skewClockCommand
 
-   :dbcommand:`_skewClockCommand` is an internal command and should not be
-   called directly.
+   :dbcommand:`_skewClockCommand` is an internal command. Do not call
+   directly.
 
    .. admin-only
 
 .. dbcommand:: _testDistLockWithSkew
 
-   :dbcommand:`_testDistLockWithSkew` is an internal command and should not be
-   called directly.
+   :dbcommand:`_testDistLockWithSkew` is an internal command. Do not call
+   directly.
 
    .. admin-only
 
 .. dbcommand:: _testDistLockWithSyncCluster
 
-   :dbcommand:`_testDistLockWithSyncCluster` is an internal command and should
-   not be called directly.
+   :dbcommand:`_testDistLockWithSyncCluster` is an internal command. Do not call
+   directly.
 
    .. admin-only
 
 .. dbcommand:: _transferMods
 
-   :dbcommand:`_transferMods` is an internal command and should not be called
+   :dbcommand:`_transferMods` is an internal command. Do not call
    directly.
 
    .. admin-only
 
 .. dbcommand:: _recvChunkStart
 
-   :dbcommand:`_recvChunkStart` is an internal command and should not be called
+   :dbcommand:`_recvChunkStart` is an internal command. Do not call
    directly.
 
    .. admin-only, write-lock
