@@ -96,4 +96,7 @@ Branches
 This section provides an overview of the git branches in the MongoDB
 documentation repository and their use.
 
-TODO document branches used and the procedures for using them.
+At the present time, future work transpires in the "``master``", with
+the main publication being "``current``." As the documentation
+stabilizes, the documentation team will begin to maintain branches of
+the documentation for specific MongoDB releases.
