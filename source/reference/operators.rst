@@ -8,6 +8,8 @@ Operator Reference
 This document contains a reference to all :term:`operators <operator>`
 used with MongoDB in version |version|.
 
+.. _query-selectors:
+
 Query Selectors
 ---------------
 

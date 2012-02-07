@@ -40,7 +40,7 @@ Options
    ``mongod`` instance. Specify host name and port in the
    "``<host>:<port>``" format.
 
-TODO understand what this is and why this is the post.
+TODO understand mongosniff --forward and its use/purpose.
 
 .. option:: --source <NET [interface]>, <FILE [filename]>
 

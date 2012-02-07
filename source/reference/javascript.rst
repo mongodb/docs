@@ -115,14 +115,36 @@ Query and Update Methods
 
    Provides the ability to create a new document in the current
    database and collection. The argument to :js:func:`save()` takes
-   the form of a :term:`JSON` document. See ":ref:`update-operators`"
+   the form of a :term:`JSON document`. See ":ref:`update-operators`"
    for a reference of all operators that affect updates.
 
-.. js:function:: update()
+.. js:function:: update(query, update, [upsert,] [multi])
+
+   The :js:func:`update()` takes the following for arguments.
+
+   :param query: A query object that selects the record to update. Use
+                 the :ref:`query selectors <query-selectors>` as you
+                 would in a :js:func:`find()` operation.
+
+   :param update: A :term:`JSON document` that will either replace the
+                  matching document, or use :ref:`update operators
+                  <update-operators>` to describe the update. By
+                  default, this operation *only* updates one document.
+
+   :param boolean upsert: Defaults to ``false``. When ``true``, this
+                          operation will update a document if one
+                          matches the query portion and inserts a new
+                          document if *no* documents match the query
+                          portion. Upsets only affect *one* document,
+                          and cannot update more than one document.
+
+   :param boolean multi: Defaults to ``false``. When ``true``, all
+                         the operation updates all documents that
+                         match the query.
 
    Provides the ability to update an existing document in the current
    database and collection. The argument to :js:func:`update()` takes
-   the form of a :term;`JSON` document. See ":ref:`update-operators`"
+   the form of a :term:`JSON document`. See ":ref:`update-operators`"
    for a reference of all operators that affect updates.
 
 Query Modifiers
@@ -524,7 +546,7 @@ Database
 
       db.getMongo().setSlaveOK()
 
-   Indicates that "eventually consistent" read operations are
+   Indicates that ":term:`eventually consistent`" read operations are
    acceptable for the current connection. This function provides the
    same functionality as :js:func:`rs.slaveOk()`.
 
@@ -743,6 +765,11 @@ Database
 
    See the ":doc:`/reference/database-statistics`" document for an
    overview of this output.
+
+   .. note::
+
+      The scale factor rounds values to whole numbers. This can
+      produce unpredictable and unexpected results in some situations.
 
 .. js:function:: db.version()
 
@@ -1272,7 +1299,7 @@ that you may use with collection objects.
 
 .. js:function:: getShardDistribution()
 
-TODO waiting for email from Greg/Tad
+   .. depends on SERVER-4902
 
 .. js:function:: stats(scale)
 

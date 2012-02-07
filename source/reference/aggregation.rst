@@ -742,7 +742,8 @@ Arithmetic Operators
 
 .. expression:: $avg
 
-TODO confirm existence, appears in an example on the wiki
+   Takes an array of numbers and returns and computes the arithmetic
+   mean. :expression:`$avg` returns the average.
 
 String Operators
 ~~~~~~~~~~~~~~~~

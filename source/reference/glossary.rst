@@ -566,12 +566,12 @@ Glossary
       replicated on multiple systems, but can also refer to the
       consistency of the on-disk representation of the data set.
 
-   write propagation
+   write concern
       The process where updates pass from the primary node to the
-      :term:`secondary` members of the replica set. Write propagation
-      is a concern when distributing read operations to secondary
-      nodes that are :term:`eventually consistent <eventual
-      consistency>` with the primary.
+      :term:`secondary` members of the replica set. Write concern
+      is an important consideration when distributing read operations
+      to secondary nodes that are :term:`eventually consistent
+      <eventual consistency>` with the primary.
 
       .. seealso:: ":ref:`Write Concern for Replica Sets
          <replica-set-write-concern>`."
@@ -593,37 +593,37 @@ Glossary
       .. seealso:: ":ref:`Replica Set Elections
          <replica-set-elections>`" and ":term:`priority`."
 
-   hidden node
+   hidden member
       A member of a :term:`replica set` that cannot become primary and
       is not advertised as part of the set in the :term:`database
       command` :dbcommand:`isMaster`, which prevents it from
       receiving read-only queries depending on :term:`read
       preference`.
 
-      .. seealso:: ":ref:`Hidden Nodes <replica-set-hidden-nodes>`,"
+      .. seealso:: ":ref:`Hidden Member <replica-set-hidden-members>`,"
          :dbcommand:`isMaster`, :js:func:`db.isMaster`, and
          :js:data:`members[n].hidden`.
 
-   delayed node
+   delayed member
       A member of a :term:`replica set` that cannot become primary and
       applies operations at a specified delay. This delay is useful
       for protecting data from human error (i.e. unintentionally
       deleted databases) or updates that have unforeseen effects on
       the production database.
 
-      .. seealso:: ":ref:`Delayed Nodes <replica-set-delayed-nodes>`"
+      .. seealso:: ":ref:`Delayed Members <replica-set-delayed-members>`"
 
    arbiter
       A member of a :term:`replica set` that does not hold a copy of
       the data and only votes in elections.
 
-      .. seealso:: ":ref:`Delayed Nodes <replica-set-delayed-nodes>`"
+      .. seealso:: ":ref:`Delayed Nodes <replica-set-delayed-members>`"
 
    read preference
       Describes the behavior of a :term:`replica set` to past some
       queries to :term:`secondary` nodes when possible to distribute
       load from the :term:`primary` node. Read preference and
-      :term:`write propagation` combine to determine the level of
+      :term:`write concern` combine to determine the level of
       set-wide :term:`consistency`.
 
       .. seealso:: ":ref:`Read Preference <replica-set-read-preference>`"

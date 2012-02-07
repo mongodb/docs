@@ -37,6 +37,11 @@ Or:
 
    db.runCommand( { collStats: "collection", scale: 1024 } )
 
+.. note::
+
+   The scale factor rounds values to whole numbers. This can
+   produce unpredictable and unexpected results in some situations.
+
 .. seealso:: The documentation of the ":dbcommand:`collStats`" command
    and the ":js:func:`stats()`," method in the :doc:`mongo shell </mongo>`.
 

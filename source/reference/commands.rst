@@ -560,10 +560,6 @@ TODO what additional documentation does the mapreduce shardedfinish need over re
       :program:`mongos` instances for non-sharded collections function
       normally.
 
-TODO factcheck above
-.. after approving the above document, update the
-.. :js:func:`findAndModify()` command.
-
 .. dbcommand:: distinct
 
    The :dbcommand:`distinct` command returns an array of distinct values for a
@@ -626,18 +622,49 @@ TODO factcheck above
 
         { eval: function() { return 3+3 }, nolock: true }
 
-      .. warning::
+     .. warning::
 
-         Do not disable the write lock if the operation may modify the
-         contents of the database in anyway.
+        Do not disable the write lock if the operation may modify the
+        contents of the database in anyway.
 
-TODO factcheck; add about when to disable the write lock.
+     There are some circumstances where the :dbcommand:`eval()`
+     implements a strictly-read only operation that need not block
+     other operations when disabling the write lock may be useful. Use
+     this functionality with extreme caution.
 
 .. dbcommand:: aggregate
 
-TODO add aggregation framework documentation pointers
+   :dbcommand:`aggregate` implements the :term:`aggregation
+   framework`. Consider the following prototype form:
 
-   .. describe:: pipeline
+   .. code-block:: javascript
+
+      { aggregate: "[collection]", pipeline: ["pipeline"] }
+
+   Where "``[collection]``" specifies the name of the collection that
+   contains the data that you wish to aggregate. The ``pipeline``
+   argument holds an array that contains the specification for the
+   aggregation operation. Consider the following example from the
+   :doc:`aggregation documentation </applications/aggregation>`.
+
+   .. code-block:: javascript
+
+      db.runCommand(
+      { aggregate : “article”, pipeline : [
+        { $project : {
+           author : 1,
+           tags : 1,
+        } },
+        { $unwind : “$tags” },
+        { $group : {
+           _id : { tags : 1 },
+           authors : { $addToSet : “$author” }
+        } }
+       ] }
+      );
+
+    .. seealso:: ":doc:`/applications/aggregation`" and
+       ":doc:`/reference/aggregation`."
 
 Replication
 ~~~~~~~~~~~
@@ -1050,6 +1077,11 @@ Collections
               },
               "ok" : 1
       }
+
+   .. note::
+
+      The scale factor rounds values to whole numbers. This can
+      produce unpredictable and unexpected results in some situations.
 
    .. seealso:: ":doc:`/reference/collection-statistics`."
 
@@ -1841,8 +1873,13 @@ Diagnostics
 
 .. dbcommand:: profile
 
-   Use the :dbcommand:`profile` command to enable, disable, or change the
-   query profiling level. Use the following syntax:
+   Use the :dbcommand:`profile` command to enable, disable, or change
+   the query profiling level. This allows administrators to capture
+   data regarding performance. The database profiling system can
+   impact performance and can allow the server to write the contents
+   of queries to the log, which might information security
+   implications for your deployment. Consider the following prototype
+   syntax:
 
    .. code-block:: javascript
 
@@ -1850,10 +1887,13 @@ Diagnostics
 
    The following profiling levels are available:
 
-   - ``0`` - off; no profiling.
-   - ``1`` - on; log slow (> 100ms) operations only.
-   - ``2`` - on; log all operations.
-   - ``-1`` - return the current profiling level.
+   =========  ==================================
+   **Level**  **Setting**
+   ---------  ----------------------------------
+      0       Off. No profiling.
+      1       On. Only includes slow operations.
+      2       On. Includes all operations.
+   =========  ==================================
 
    You may optionally set a threshhold in milliseconds for profiling using
    the ``slowms`` option, as follows:
@@ -1861,6 +1901,14 @@ Diagnostics
    .. code-block:: javascript
 
       { profile: 1, slowms: 200 }
+
+
+   :program:`mongod` writes the output of the database profiler to the
+   ``system.profile`` collection.
+
+   :program:`mongod` records a record of queries that take longer than
+   the :setting:`slowms` to the log even when the database profiler is
+   not active.
 
    .. seealso:: Additional documentation regarding database profiling
                 :ref:`Database Profiling <database-profiling>`.
@@ -2097,8 +2145,6 @@ Internal Use
    This command applies to sharded clusters only.
 
    .. slave-ok, admin-only
-
-TODO factcheck (minor)
 
 .. dbcommand:: connPoolSync
 
