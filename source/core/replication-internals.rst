@@ -21,7 +21,6 @@ for details.
 All nodes send heartbeats to all other nodes, and will import
 operations into its oplog from the node with the lowest "ping" time.
 
-
 .. _replica-set-implementation:
 
 Implementation
@@ -38,7 +37,7 @@ therefore, reads from secondaries may not always reflect the latest
 writes to the primary. See the ":ref:`consistency
 <replica-set-consistency>`" section for more about
 ":ref:`read preference <replica-set-read-preference>`" and
-":ref:`write propagation <replica-set-write-concern>`."
+":ref:`write concern <replica-set-write-concern>`."
 
 .. note::
 
@@ -60,14 +59,14 @@ Replica sets can also include nodes with four special
 configurations which affect membership behavior in a replica
 set. Consider the following node types:
 
-- :ref:`Secondary-only <replica-set-secondary-only-nodes>` nodes have
+- :ref:`Secondary-only <replica-set-secondary-only-members>` members have
   their "priority" set to 0 and thus not eligible for election as primary nodes.
 
-- :ref:`Hidden <replica-set-hidden-nodes>` nodes do not appear in the
+- :ref:`Hidden <replica-set-hidden-members>` members do not appear in the
   output of :js:func:`db.isMaster()`. This setting prevents clients
   from discovering, and thus potentially queries, the node in question.
 
-- :ref:`Delayed <replica-set-delayed-nodes>` nodes lag a fixed period
+- :ref:`Delayed <replica-set-delayed-members>` members lag a fixed period
   of time behind the the primary node. These nodes are typically used
   for disaster recovery scenarios. For example, if an administrator
   mistakenly truncates a collection, and you discover the mistake within
@@ -118,8 +117,8 @@ connections to prevent clients from unknowingly writing data to a
 non-primary node.
 
 In an election, every member, including :ref:`hidden
-<replica-set-hidden-nodes>` nodes, :ref:`arbiters <replica-set-arbiters>`,
-and even recovering nodes get a single
+<replica-set-hidden-members>` members, :ref:`arbiters
+<replica-set-arbiters>`, and even recovering nodes get a single
 vote. Members will give votes to every eligible node that calls an
 election.
 

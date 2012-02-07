@@ -58,36 +58,35 @@ functions of all the replica set member configurations.
 .. note::
 
    A replica set can have up to 12 nodes, but only 7 nodes can have
-   votes. See ":ref:`non-voting nodes <replica-set-non-voting-nodes>`"
+   votes. See ":ref:`non-voting nodes <replica-set-non-voting-members>`"
    for configuration information regarding non-voting nodes.
+
+.. _replica-set-secondary-only-members:
 
 Secondary-Only
 ~~~~~~~~~~~~~~
 
-TODO increase concision
+All :term:`secondary` members of :term:`replica sets <replica set>`
+may become :term:`primary` in the case of a :term:`failover`
+situation. If the write and replication traffic associated with
+acting as :term:`primary`" would render a member or your application
+inoperable due to network or disk configurations, configure this
+instance in "secondary-only" mode.
 
-Any node with a :js:data:`members[n].priority` value greater than ``0``
-may become primary given the proper network and environmental
-circumstances. If the write and replication traffic associated with
-acting as "primary," would render a node or your application
-inoperable due to network or disk configurations, set the priority to
-``0`` to create a secondary only node.
+Any node with a :js:data:`members[n].priority` value equal to ``0``
+will never seek election and cannot become primary in any
+circumstance. Many users configure all members of their replica sets
+that are not located in their main data centers (i.e. the facilities
+where the primary application servers are) as "secondary-only" to
+prevent these nodes from ever becoming primary.
 
-Replica sets preferentially elect and maintain the primary status of
-the node with the highest ``priority`` setting. Within a replica set,
-you can set some members to have priorities that are higher to increase the
-chance that these instances will become primary and some nodes to values to
-lower values to ensure that they'll become primary if no
-other node is eligible. See :ref:`replica set priorities
-<replica-set-node-priority>`" for more information.
+.. seealso:: ":ref:`Configuring Secondary-Only Members
+   <replica-set-secondary-only-members>`" for a procedure that you can
+   use to place a member in "secondary-only" mode. See :ref:`replica
+   set priorities <replica-set-node-priority>`" for more information
+   on member priorities in general.
 
-Secondary-only nodes are useful if some nodes use harder that's is
-less efficient for writes and therefore less suited to becoming
-primary. Additionally you can maintain nodes in your main data center
-with a higher priority than nodes in a backup facility, to prevent
-"off-site" databases from becoming master except in dire situations.
-
-.. seealso:: ":ref:`Configuring Secondary-Only Nodes <replica-set-secondary-only-nodes>`."
+.. _replica-set-hidden-members:
 
 Hidden
 ~~~~~~
@@ -102,7 +101,9 @@ different usage patterns than the other nodes and require separation
 from normal traffic. Often nodes for reporting, dedicated
 backups, and testing/integration need to operate as hidden needs.
 
-.. seealso:: ":ref:`Configuring Hidden Nodes <replica-set-hidden-nodes>`"
+.. seealso:: ":ref:`Configuring Hidden Members <replica-set-hidden-members>`"
+
+.. _replica-set-delayed-members:
 
 Delayed
 ~~~~~~~
@@ -123,6 +124,8 @@ apply:
 - The size of the oplog is sufficient to capture *more than* the
   number of operations that typically occur in that period of time.
 
+.. _replica-set-arbiters:
+
 Arbiters
 ~~~~~~~~
 
@@ -135,6 +138,8 @@ participate in :term:`elections <election>`.
    Because of their minimal system requirements, you may safely deploy an
    arbiter on a system with another work load such as an application
    server or monitoring node.
+
+.. _replica-set-non-voting-members:
 
 Non-Voting
 ~~~~~~~~~~
@@ -160,22 +165,26 @@ While :term:`failover` is automatic, :term:`replica set <replica set>`
 administrators should still understand exactly how this process
 works. This section below describe failover in detail.
 
-.. _replica-set-elections: 
+.. _replica-set-elections:
 
 Elections
 ~~~~~~~~~
 
+When you initialize a replica set for the first time, and when any
+failover occurs, an election takes place to decide which member should
+become primary.
+
 Elections provide a mechanism for the members of a :term:`replica set`
 to autonomously select a new :term:`primary` node without
 administrator intervention. The election allows replica sets to
-recover from failover situations very quickly and robustly. 
+recover from failover situations very quickly and robustly.
 
 Whenever the primary node becomes unreachable, the secondary nodes
 trigger an :ref:`election <replica-set-elections>`. The first node to
 receive votes from a majority of the set will become primary. The most
 important feature of replica set elections is that a majority of the
 original number of nodes in the replica set must be present for
-election to succeed. If you have a three-node replica set, the set can
+election to succeed. If you have a three-member replica set, the set can
 elect a primary when two or three nodes can connect to each other. If
 two nodes in the replica go offline, then the remaining node will
 remain a secondary.
@@ -276,17 +285,47 @@ that might create rollbacks.
 
    After a rollback occurs, the former primary will remain in a
    "rollback" mode until the administrator deals with the rolled back
-   data and restarts the :program:`mongod` instance. Only thenn can the
+   data and restarts the :program:`mongod` instance. Only then can the
    node becomes a normal :term:`secondary` terms.
 
 Application Concerns
 ~~~~~~~~~~~~~~~~~~~~
 
-TODO write about application operations
+For the most part, client applications are indifferent to the
+operation of replica sets, and whether a MongoDB instance is a single
+server (i.e. "standalone") or a replica set is largely
+irrelevant. While specific configuration depends to some extent on the
+client :doc:`drivers </applications/drivers>`, there is often minimal
+or no differences between applications running with :term:`replica
+sets <replica set>` or standalone instances.
+
+There are two major concepts that *are* important to consider when
+working with replica sets:
+
+1. :ref:`Write Concern <replica-set-write-concern>`.
+
+   By default, MongoDB clients receive no response from the server to
+   confirm successful write operations. Most drivers provide a
+   configurable "safe mode," where the server will return a response
+   for all write operations using :dbcommand:`getLastError`. For
+   replica sets, :term:`write concern` is configurable to ensure that
+   secondary members of the set have replicated operations before the
+   write returns.
+
+2. :ref:`Read Preference <replica-set-read-preference>`
+
+   By default, read operations issued against a replica set return
+   results from the :term:`primary`. Users may
+   configure :term:`read preference` on a per-connection basis to
+   prefer that read operations return on the :term:`secondary`
+   members.
+
+:term:`Read preference` and :term:`write concern` have particular
+:ref:`consistency <replica-set-consistency>` implications.
 
 .. seealso:: ":doc:`/applications/replication`,"
    ":ref:`replica-set-write-concern`," and
-   "ref:`replica-set-read-preference`."
+   ":ref:`replica-set-read-preference`."
 
 Administration and Operations
 -----------------------------
@@ -298,6 +337,13 @@ administrators of replica set deployments.
 
    - ":doc:`/administration/replica-sets`"
    - ":doc:`/administration/replication-architectures`"
+
+.. _replica-set-oplog-sizing:
+
+Oplog
+~~~~~
+
+TODO write oplog sizing
 
 Deployment
 ~~~~~~~~~~
@@ -327,10 +373,10 @@ facility.
 
 Depending on your operational requirements, you may consider adding
 nodes configured for a specific purpose including, a :term:`delayed
-node` to help provide protection against human errors and change
-control, a :term:`hidden node` to provide an isolated node for
-reporting and monitoring, and/or a :ref:`secondary only node
-<replica-set-secondary-only-nodes>` for dedicated backups.
+member` to help provide protection against human errors and change
+control, a :term:`hidden member` to provide an isolated node for
+reporting and monitoring, and/or a :ref:`secondary only member
+<replica-set-secondary-only-members>` for dedicated backups.
 
 The process of establishing a new replica set member can be resource
 intensive on existing nodes. As a result, deploy new members to
@@ -383,7 +429,7 @@ architectures.
 This document provides an overview of the *complete* functionality of
 replica sets, which highlights the flexibility of the replica set and
 its configuration. However, for most production deployments a
-conventional 3-node replica set with :js:data:`members[n].priority`
+conventional 3-member replica set with :js:data:`members[n].priority`
 values of ``1`` are sufficient.
 
 While the additional flexibility discussed is below helpful for
@@ -404,8 +450,8 @@ your replica set:
   attempt to ensure that the set can elect a primary among the nodes in
   the primary data center.
 
-- Consider including a :ref:`hidden <replica-set-hidden-nodes>`
-  or :ref:`delayed node <replica-set-delayed-nodes>` in your replica
+- Consider including a :ref:`hidden <replica-set-hidden-members>`
+  or :ref:`delayed member <replica-set-delayed-members>` in your replica
   set to support dedicated functionality, like backups, reporting, and
   testing.
 

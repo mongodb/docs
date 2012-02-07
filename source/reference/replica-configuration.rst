@@ -52,6 +52,9 @@ Configuration Variables
    number. This name must be resolvable for every host in the replica
    set.
 
+   .. warning:: :js:data:`members[n].host` cannot hold a value that
+      resolves to ``localhost`` or the local interface.
+
 .. js:data:: members[n].arbiterOnly
 
    *Optional*.

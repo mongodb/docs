@@ -75,7 +75,7 @@ of the fields in a :js:data:`members` document, for example:
 
    rs.add({host: "mongo2.example.net:27017", priority: 0, hidden: true})
 
-This configures a :term:`hidden node` that is accessible at
+This configures a :term:`hidden member` that is accessible at
 ``mongo2.example.net:27018``. See ":js:data:`host <members[n].host>`,"
 ":js:data:`priority <members[n].priority>`," and ":js:data:`hidden
 <members[n].hidden>`" for more information about these settings.
@@ -151,7 +151,7 @@ result of this operation.
    succeeds. Clients connected to this replica set will also
    disconnect.
 
-.. _replica-set-node-priority-configuration: 
+.. _replica-set-node-priority-configuration:
 
 Adjusting a Member's Priority
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -178,8 +178,8 @@ final operation calls :js:func:`rs.reconfig()` with the argument of
 
 If a node has :js:data:`members[n].priority` set to ``0``, it is ineligible to become
 primary, and will not seek elections. :ref:`Hidden
-<replica-set-hidden-nodes>`, :ref:`delayed
-<replica-set-delayed-nodes>`, and :ref:`arbiters
+<replica-set-hidden-members>` and :ref:`delayed
+<replica-set-delayed-members>` members and :ref:`arbiters
 <replica-set-arbiters>` have priority set to ``0``. Unless configured,
 all nodes have a :js:data:`members[n].priority`  setting equal to ``1``.
 
@@ -228,7 +228,7 @@ configurations and also describes the arbiter node type.
 .. note::
 
    A replica set can have up to 12 nodes, but only 7 nodes can have
-   votes. See ":ref:`non-voting nodes <replica-set-non-voting-nodes>`"
+   votes. See ":ref:`non-voting members <replica-set-non-voting-members>`"
    for configuration information regarding non-voting nodes.
 
 .. warning::
@@ -283,7 +283,7 @@ all other nodes but doesn't prohibit the possibility.
 Hidden
 ~~~~~~
 
-To configure a :term:`hidden node`, use the following sequence of
+To configure a :term:`hidden member`, use the following sequence of
 operations in the :program:`mongo` shell:
 
 .. code-block:: javascript
@@ -358,10 +358,10 @@ hostname and port of the arbiter that you wish to add to the set.
 .. seealso:: ":setting:`replSet`," ":program:`mongod --replSet`,
    and ":js:func:`rs.addArb()`."
 
-.. _replica-set-non-voting-nodes:
+.. _replica-set-non-voting-configuration:
 
-Non-Voting Nodes
-~~~~~~~~~~~~~~~~
+Non-Voting
+~~~~~~~~~~
 
 To disable a node's ability to vote in :ref:`elections
 <replica-set-elections>` use the following command sequence in the
@@ -379,16 +379,16 @@ This sequence sets gives ``0`` votes to set members with the ``_id``
 values of ``3``, ``4``, and ``5``. This setting allows the set to
 elect these members as :term:`primary`, but does not allow them to
 vote in elections and allows you to add three additional voting nodes
-to your set. Place voting nodes so that your
-designated primary node or nodes can reach a majority of votes in the
-event of a network partition.
+to your set. Place voting nodes so that your designated primary node
+or nodes can reach a majority of votes in the event of a network
+partition.
 
 .. note::
 
    In general use, when possible all nodes should have only 1 vote to
    prevent intermittent ties, deadlock, or the wrong nodes from
    becoming :term:`primary`. Use ":ref:`Replica Set Priorities
-   <replicanode-priority>`" to control which nodes are more
+   <replica-set-node-priority>`" to control which nodes are more
    likely to become primary.
 
 .. seealso:: ":js:data:`members[n].votes`" and ":ref:`Replica Set
@@ -450,7 +450,7 @@ Possible causes of replication lag include:
 
   In some cases, long running operations on the primary can block
   replication on :term:`secondaries <secondary>`. You can use
-  :term:`write propagation` to prevent write operations from returning
+  :term:`write concern` to prevent write operations from returning
   unless replication can keep up with the write load.
 
   Use the :term:`database profiler` to see if there are slow queries
@@ -487,6 +487,6 @@ down. When the former primary begins replicating again it performs a
 the set so that the data set is in a consistent state.
 
 You can prevent Rollbacks prevented by ensuring :term:`write
-propagation`.
+concern`.
 
 .. seealso:: ":ref:`Replica Set Elections <replica-set-elections>`"

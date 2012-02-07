@@ -5,7 +5,7 @@ Application Development with Replica Sets
 .. default-domain:: mongodb
 
 From the perspective of the client applications, whether a MongoDB
-instance is a single server (i.e. "standalone") or a replica seat is
+instance is a single server (i.e. "standalone") or a replica set is
 mostly irrelevant. While specific configuration depends to some extent
 on the client :doc:`drivers </applications/drivers>`, there is often
 minimal or no differences between applications running with

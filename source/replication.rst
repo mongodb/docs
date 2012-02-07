@@ -36,4 +36,4 @@ Tutorials
 
 .. _replica-set-data-center-awareness:
 
-TODO add data center awareness to a document
+.. DOCS-120 need to add data center awareness to an existing document.
