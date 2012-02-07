@@ -143,13 +143,15 @@ completely remove all configuration related to the existing/previous
 set member. The :js:data:`members[n]._id` field does not change as a
 result of this operation.
 
-.. note::
+.. warning::
 
    Replica set configurations can trigger the current :term:`primary`
    to step down forcing an :term:`election`. This causes the current
    shell session to produce an error even when the operation
    succeeds. Clients connected to this replica set will also
    disconnect.
+
+.. _replica-set-node-priority-configuration: 
 
 Adjusting a Member's Priority
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -174,9 +176,223 @@ document for :js:data:`members[n]._id` of ``0``, ``1``, or ``2``. The
 final operation calls :js:func:`rs.reconfig()` with the argument of
 ``cfg`` to initialize the new configuration.
 
+If a node has :js:data:`members[n].priority` set to ``0``, it is ineligible to become
+primary, and will not seek elections. :ref:`Hidden
+<replica-set-hidden-nodes>`, :ref:`delayed
+<replica-set-delayed-nodes>`, and :ref:`arbiters
+<replica-set-arbiters>` have priority set to ``0``. Unless configured,
+all nodes have a :js:data:`members[n].priority`  setting equal to ``1``.
+
+.. note::
+
+   The value of :js:data:`members[n].priority` can be any floating point (i.e. decimal)
+   number between ``0`` and ``1000``, and priorities are only used to
+   determine the preference in election. The priority value is only
+   used in with other instances. With the exception of nodes with a priority of ``0``,
+   the absolute value of the :js:data:`members[n].priority` value is irrelevant.
+
+Replica sets will preferentially elect and maintain the primary status
+of the node with the highest :js:data:`members[n].priority` setting.
+
+.. warning::
+
+   Replica set reconfiguration can force the current primary to step
+   down, leading to an election for primary in the replica
+   set. Elections cause the current primary to close all open
+   :term:`client` connections.
+
+   Perform routine replica set reconfiguration during scheduled
+   maintenance windows.
+
 .. seealso:: The ":ref:`Replica Reconfiguration Usage
    <replica-set-reconfiguration-usage>`" example revolves around
    changing the priorities of the :js:data:`members` of a replica set.
+
+.. _replica-set-procedure-change-oplog-size:
+
+Changing the Oplog Size
+~~~~~~~~~~~~~~~~~~~~~~~
+
+TODO write changing the oplog size procedure
+
+.. _replica-set-node-configurations:
+
+Node Configurations
+-------------------
+
+All replica sets have a single :term:`primary` node and one or more
+:term:`secondary` nodes. Replica sets sets allow you to configure
+secondary nodes in a variey of ways. This section describes these
+configurations and also describes the arbiter node type.
+
+.. note::
+
+   A replica set can have up to 12 nodes, but only 7 nodes can have
+   votes. See ":ref:`non-voting nodes <replica-set-non-voting-nodes>`"
+   for configuration information regarding non-voting nodes.
+
+.. warning::
+
+   The :js:func:`rs.reconfig()` shell command can force the current
+   primary to step down and causes an election. When the primary node
+   steps down, the :program:`mongod` closes all client
+   connections. While, this typically takes 10-20 seconds, attempt to
+   make these changes during scheduled maintenance periods.
+
+.. _replica-set-secondary-only-configuration:
+
+Secondary-Only
+~~~~~~~~~~~~~~
+
+Given a three node replica set, with member "``_id``" values of:
+``0``, ``1``, and ``2``, use the following sequence of operations in
+the :program:`mongo` shell to modify node priorities:
+
+.. code-block:: javascript
+
+   cfg = rs.conf()
+   cfg.members[0].priority = 0
+   cfg.members[1].priority = 0.5
+   cfg.members[2].priority = 1
+   cfg.members[3].priority = 2
+   rs.reconfig(cfg)
+
+This operation sets the member ``0`` to ``0`` and cannot become
+primary. Member ``3`` has a priority of ``2`` and will become primary,
+if eligible, under most circumstances. Member ``2`` has a priority of
+``1``, and will become primary if no node with a higher priority is
+eligible to be primary. Since all additional nodes in the set will
+also have a prio1rity of ``1`` by default, member ``2`` and all
+additional nodes will be equally likely to become primary if higher
+priority nodes are not accessible. Finally, member ``1`` has a
+priority of ``0.5``, which makes it less likely to become primary than
+all other nodes but doesn't prohibit the possibility.
+
+.. note::
+
+   If your replica set has an even number members, add an
+   :ref:`arbiter <replica-set-arbiters>` to ensure that
+   nodes wil be able to quickly obtain a majority of votes in an
+   :ref:`election <replica-set-elections>` for primary.
+
+.. seealso:: ":js:data:`members[n].priority`" and ":ref:`Replica Set
+   Reconfiguration <replica-set-reconfiguration-usage>`."
+
+.. _replica-set-hidden-configuration:
+
+Hidden
+~~~~~~
+
+To configure a :term:`hidden node`, use the following sequence of
+operations in the :program:`mongo` shell:
+
+.. code-block:: javascript
+
+   cfg = rs.conf()
+   cfg.members[0].priority = 0
+   cfg.members[0].hidden = true
+   rs.reconfig(cfg)
+
+After re-configuring the set, the node with the "``_id``" of ``0``,
+has a priority of ``0`` so that it cannot become master, while the
+other nodes in the set will not advertise the hidden node in the
+:dbcommand:`isMaster` or :js:func:`db.isMaster()` output.
+
+.. seealso:: ":ref:`Replica Set Read Preference <replica-set-read-preference>`."
+   ":js:data:`members[n].hidden`," ":js:data:`members[n].priority`,"
+   and ":ref:`Replica Set Reconfiguration <replica-set-reconfiguration-usage>`."
+
+.. _replica-set-delayed-configuration:
+
+Delayed
+~~~~~~~
+
+To configure a node with a one hour delay, use the following sequence
+of operations in the :program:`mongo` shell:
+
+.. code-block:: javascript
+
+   cfg = rs.conf()
+   cfg.members[0].priority = 0
+   cfg.members[0].slaveDelay = 3600
+   rs.reconfig(cfg)
+
+After the set reconfigures, the set member with the "``_id``" of
+``0``, has a priority of ``0`` so that it cannot become primary and
+will delay replication by 3600 seconds, or 1 hour.
+
+.. warning::
+
+   The length of the secondary "``slaveDelay``" must fit within the
+   window of the :term:`oplog`. If the oplog is shorter than the
+   ``slaveDelay`` window the delayed member will not be able to
+   successfully replicate operations.
+
+.. seealso:: ":js:data:`members[n].slaveDelay`," ":ref:`Replica Set
+   Reconfiguration <replica-set-reconfiguration-usage>`," ":ref:`Oplog
+   Sizing <replica-set-oplog-sizing>`," and
+   ":ref:`replica-set-procedure-change-oplog-size`."
+
+.. _replica-set-arbiter-configuration:
+
+Arbiters
+~~~~~~~~
+
+Use the following command to start an arbiter:
+
+.. code-block:: sh
+
+   mongod --replSet [setname]
+
+Replace "``[setname]``" with the name of the replica set that the
+arbiter will join. Then in the :program:`mongo` shell, while connected
+to the *current primary* node, issue the following command:
+
+.. code-block:: javascript
+
+   rs.addArb("[hostname]:[port]")
+
+Replace the "``"[hostname]:[port]"``" string with the name of the
+hostname and port of the arbiter that you wish to add to the set.
+
+.. seealso:: ":setting:`replSet`," ":program:`mongod --replSet`,
+   and ":js:func:`rs.addArb()`."
+
+.. _replica-set-non-voting-nodes:
+
+Non-Voting Nodes
+~~~~~~~~~~~~~~~~
+
+To disable a node's ability to vote in :ref:`elections
+<replica-set-elections>` use the following command sequence in the
+:program:`mongo` shell.
+
+.. code-block:: javascript
+
+   cfg = rs.conf()
+   cfg.members[3].votes = 0
+   cfg.members[4].votes = 0
+   cfg.members[5].votes = 0
+   rs.reconfig(cfg)
+
+This sequence sets gives ``0`` votes to set members with the ``_id``
+values of ``3``, ``4``, and ``5``. This setting allows the set to
+elect these members as :term:`primary`, but does not allow them to
+vote in elections and allows you to add three additional voting nodes
+to your set. Place voting nodes so that your
+designated primary node or nodes can reach a majority of votes in the
+event of a network partition.
+
+.. note::
+
+   In general use, when possible all nodes should have only 1 vote to
+   prevent intermittent ties, deadlock, or the wrong nodes from
+   becoming :term:`primary`. Use ":ref:`Replica Set Priorities
+   <replicanode-priority>`" to control which nodes are more
+   likely to become primary.
+
+.. seealso:: ":js:data:`members[n].votes`" and ":ref:`Replica Set
+   Reconfiguration <replica-set-reconfiguration-usage>`."
 
 Troubleshooting
 ---------------
@@ -188,6 +404,8 @@ these symptoms, the following sections provide good places to start a
 troubleshooting investigation.
 
 .. seealso:: ":doc:`/administration/monitoring`."
+
+.. _replica-set-replication-lag:
 
 Replication Lag
 ~~~~~~~~~~~~~~~
