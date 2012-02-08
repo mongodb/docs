@@ -142,20 +142,20 @@ Options
 .. option:: --auth
 
    Enables database authentication for users connecting from remote
-   hosts. configure users via the :doc:`mongo shell
-   shell </reference/mongo>`. If no users exist, the localhost
-   interface will continue to have access to the database until the
-   you create the first user.
+   hosts. configure users via the :doc:`mongo shell shell
+   </reference/mongo>`. If no users exist, the localhost interface
+   will continue to have access to the database until the you create
+   the first user.
 
    See the ":doc:`/administration/security`" document for more
    information regarding this functionality.
 
 .. option:: --cpu
 
-   Forces :program:`mongod` to periodically report CPU utilization and
-   the amount of time that the processor waits for I/O operations to
-   complete (i.e. I/O wait.) MongoDB writes this data to standard
-   output, or the logfile if using the :setting:`logpath` option.
+   Forces :program:`mongod` to report the percentage of CPU time in
+   write lock. :program:`mongod` generates output ever four
+   seconds. MongoDB writes this data to standard output or the logfile
+   if using the :setting:`logpath` option.
 
 .. option:: --dbpath <path>
 

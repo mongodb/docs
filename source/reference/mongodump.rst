@@ -55,7 +55,7 @@ Options
 
    .. code-block:: javascript
 
-      mongodump --host repl0 mongo0.example.net,mongo0.example.net,27018,mongo1.example.net,mongo2.example.net
+      mongodump --host repl0/mongo0.example.net,mongo0.example.net,27018,mongo1.example.net,mongo2.example.net
 
    You can always connect directly to a single MongoDB instance by
    specifying the host and port number directly.
