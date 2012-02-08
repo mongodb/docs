@@ -23,6 +23,7 @@ Tutorials
    tutorial/deploy-replica-set
    tutorial/expand-replica-set
    tutorial/deploy-geographically-distributed-replica-set
+   tutorial/change-oplog-size
 
 .. seealso:: Additional tutorials that relate to Replica Sets:
 

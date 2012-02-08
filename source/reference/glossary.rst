@@ -745,3 +745,10 @@ Glossary
    JavaScript
       An object oriented scripting language used in MongoDB's shell
       environment.
+
+   idempotent
+      When calling an idempotent operation on a value or state, the
+      operation only affects the value once and the operation can
+      safely run multiple times without affecting the outcome. In the
+      context of MongoDB, :term:`oplog` entries are idempotent and do
+      not have any effect if applied more than once.

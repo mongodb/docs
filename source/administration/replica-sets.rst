@@ -213,7 +213,34 @@ of the node with the highest :js:data:`members[n].priority` setting.
 Changing the Oplog Size
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-TODO write changing the oplog size procedure
+Because the :term:`oplog` exists internally as a :term:`capped
+collection`, you cannot modify their size in the course of normal
+operations. In most cases the default oplog size, which is 5% of total
+disk size, [#default-oplog]_ is an acceptable size; however, in some
+situations you may need a much larger or smaller oplog. The procedure
+follows the following basic steps:
+
+1. Restart the current :term:`primary` instance in the replica set in
+   "standalone" mode, running on a different port.
+
+2. Save the last entry from the old (current) oplog, and create a
+   backup of the old (current) oplog.
+
+3. Drop the current oplog, and create a new oplog of a different size.
+
+4. Insert the previously saved last entry from the old oplog into the
+   new (current) oplog.
+
+5. Restart the server as a member of the replica set on its usual
+   port.
+
+6. Apply this procedure to any other member of the replica set that
+   *could become* :term:`primary`.
+
+.. seealso:: The ":doc:`/tutorial/change-oplog-size`" tutorial.
+
+.. [#default-oplog] The default oplog size is the *greater* of 1
+   gigabyte or 5% of total disk size.
 
 .. _replica-set-node-configurations:
 
@@ -222,7 +249,7 @@ Node Configurations
 
 All replica sets have a single :term:`primary` node and one or more
 :term:`secondary` nodes. Replica sets sets allow you to configure
-secondary nodes in a variey of ways. This section describes these
+secondary nodes in a variety of ways. This section describes these
 configurations and also describes the arbiter node type.
 
 .. note::

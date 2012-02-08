@@ -343,6 +343,58 @@ administrators of replica set deployments.
 Oplog
 ~~~~~
 
+The operation log (i.e. :term:`oplog`) is a :term:`capped collection`
+that stores all operations that modify the data stored in MongoDB. All
+members of the replica set maintain oplogs that allow them to maintain
+the current state of the database. In most cases the default oplog
+size, which is 5% of total disk size, [#default-oplog]_ is an
+acceptable size.
+
+Theoretically, if an oplog that is 5% of the total disk space fits 24
+hours of operations, then nodes can stop copying entries from the
+oplog for 24 hours before they require full resyncing *and* the disk
+will be full in 19 days. If this were the case, you would have a very
+high-volume node: in many circumstances, a default oplog can hold
+days of operations. However, there are some factors that affect oplog
+space utilization.
+
+However, consider the following factors:
+
+- If you delete roughly the same amount of data as you insert.
+
+  In this situation the database will not grow significantly in disk
+  utilization, but the size of the operation log can be quite large.
+
+- If a significant portion of your workload entails in-place updates.
+
+  In-place updates create a large number of operations but do not
+  change the quantity data on disk.
+
+- Update operations that affect multiple documents at once.
+
+  The oplog must translate multi-updates into individual operations,
+  in order to maintain idempotency. This can use a great deal of
+  operation-log space without a corresponding increase in disk
+  utilization.
+
+If you can predict that your replica set's workload will resemble one
+of the above patterns, then you may want to consider creating an oplog
+that's larger than the default. Conversely, if the predominance of
+activity of on your MongoDB-based application are reads and you are
+writing a small amount of data, you may find that you need a much
+smaller oplog.
+
+.. note::
+
+   Once created, you cannot change the size of the oplog without using
+   the :ref:`oplog rezising procedure
+   <replica-set-procedure-change-oplog-size>` outlined in the
+   ":doc:`/tutorial/chage-oplog-size`" guide.
+
+.. [#default-oplog] The default oplog size is the *greater* of 1
+   gigabyte or 5% of total disk size.
+
+
 TODO write oplog sizing
 
 Deployment
