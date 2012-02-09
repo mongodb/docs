@@ -1619,8 +1619,8 @@ Replica Sets
    will be :term:`primary`. As a result, the shell will display an
    error even if this command succeeds.
 
-   :js:func:`rs.step()` provides a wrapper around the :term:`database
-   command` :dbcommand:`replSetStepDown`.
+   :js:func:`rs.stepDown()` provides a wrapper around the
+   :term:`database command` :dbcommand:`replSetStepDown`.
 
 .. js:function:: rs.freeze(seconds)
 

@@ -11,7 +11,7 @@ Synopsis
 --------
 
 :program:`mongotop` provides a method to track the amount of time a
-MongoDB instance spends reading and writing data. ``mongotop``
+MongoDB instance spends reading and writing data. :program:`mongotop`
 provides statistics on the per-collection level. In default operation,
 :program:`mongotop` returns values every second.
 
@@ -61,11 +61,13 @@ Options
    Optionally, specify a port number to connect a MongboDB instance
    running on a port other than 27017.
 
-   To connect to a replica set, use the ``--host`` argument with a
-   setname, followed by a slash and a comma separated list of host and
-   port names. The ``mongo`` utility will, given the seed of at least
-   one connected set member, connect to primary node of that set. this
-   option would resemble: ::
+   To connect to a replica set, use the :option:`--host` argument with
+   a setname, followed by a slash and a comma separated list of host
+   and port names. The :program:`mongo` utility will, given the seed
+   of at least one connected set member, connect to primary node of
+   that set. this option would resemble:
+
+   .. code-block::
 
         --host repl0 mongo0.example.net,mongo0.example.net,27018,mongo1.example.net,mongo2.example.net
 
@@ -81,8 +83,8 @@ Options
 .. option:: --ipv6
 
    Enables IPv6 support to allow :program:`mongotop` to connect to the
-   MongoDB instance using IPv6 connectivity. IPv6 support is disabled
-   by default in the :program:`mongotop` utility.
+   MongoDB instance using IPv6 connectivity. :program:`mongotop` and
+   other MongoDB programs disable IPv6 support by default.
 
 .. option:: --username <username>, -u <username>
 
@@ -107,17 +109,17 @@ Options
 Fields
 ------
 
-All time values are provided in milliseconds (ms.)
+:program:`mongotop` returns time values specified in milliseconds
+(ms.)
 
 .. describe:: ns
 
    The database namespace, and includes the database name and
-   collection. Only namespaces with activity are reported. If you
-   don't see a collection, it has received no activity. You can issue
-   a simple operation in the :program:`mongo` shell to generate
-   activity so that an specific namespace appears on the page.
-
-TODO factcheck
+   collection. :program:`mongotop only reports active namespaces. If
+   you don't see a database or collection, it has received no recent
+   activity. You can issue a simple operation in the :program:`mongo`
+   shell to generate activity so that an specific namespace appears on
+   the page.
 
 .. describe:: total
 
@@ -141,18 +143,23 @@ TODO factcheck
 Usage
 -----
 
-By default :program:`mongotop` connects to the MongoDB instance ruining on
-the localhost port 27017; however, you can optionally connect
-:program:`mongotop` to connect to remote ``mongod`` instances. See the
-:ref:`mongotop options <mongotop-options>` for more information.
+By default :program:`mongotop` connects to the MongoDB instance
+ruining on the localhost port 27017; however, you can optionally
+connect :program:`mongotop` to connect to remote :program:`mongod`
+instances. See the :ref:`mongotop options <mongotop-options>` for more
+information.
 
 To force :program:`mongotop` to return less frequently specify a number, in
 seconds at the end of the command. In this example, :program:`mongotop` will
 return every 15 seconds.
 
-     mongotop 15
+.. code-block:: sh
+
+   mongotop 15
 
 Use the following command to return a :program:`mongotop` report every 5
-minutes: ::
+minutes:
 
-     mongotop 300
+.. code-block:: sh
+
+   mongotop 300

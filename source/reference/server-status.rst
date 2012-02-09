@@ -71,8 +71,6 @@ globalLock
    datum. Also consider the effect of long-running administrative
    operations on this value.
 
-TODO factcheck
-
 .. status:: globalLock.lockTime
 
    The value of :status:`globalLock.lockTime` represents the time, in

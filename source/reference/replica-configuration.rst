@@ -52,7 +52,9 @@ Configuration Variables
    number. This name must be resolvable for every host in the replica
    set.
 
-   .. warning:: :js:data:`members[n].host` cannot hold a value that
+   .. warning::
+
+      :js:data:`members[n].host` cannot hold a value that
       resolves to ``localhost`` or the local interface.
 
 .. js:data:: members[n].arbiterOnly
@@ -104,7 +106,7 @@ Configuration Variables
    prevents read operations (i.e. queries) from ever reaching this
    host by way of secondary :term:`read preference`.
 
-   .. seealso:: ":ref:`Hidden Replica Set Members <replica-set-hidden-nodes>`"
+   .. seealso:: ":ref:`Hidden Replica Set Members <replica-set-hidden-members>`"
 
 .. js:data:: members[n].priority
 
@@ -155,7 +157,7 @@ Configuration Variables
 
    Describes the number of seconds "behind" the master that this
    replica set member should "lag." Use this option to create
-   :ref:`delayed nodes <replica-set-delayed-nodes>`, that
+   :ref:`delayed nodes <replica-set-delayed-members>`, that
    maintain a copy of the data that reflects the state of the data set
    some amount of time (specified in seconds.) Typically these nodes
    help protect against human error, and provide some measure
@@ -183,8 +185,7 @@ Configuration Variables
    **Type**: :term:`JSON`
 
    The setting document holds two optional fields, which affect the
-   available :term:`write propagation` options and default
-   configurations.
+   available :term:`write concern` options and default configurations.
 
 .. js:data:: settings.getLastErrorDefaults
 
@@ -203,10 +204,11 @@ Configuration Variables
 
    **Type**: :term:`JSON`
 
-   Defines the names and combination of :js:data:`tags <members[n].tags>`
-   for use by the application layer to guarantee :term:`write
-   propagation` to database using the :dbcommand:`getLastError`
-   command to provide :term:`data center awareness`.
+   Defines the names and combination of :js:data:`tags
+   <members[n].tags>` for use by the application layer to guarantee
+   :term:`write concern` to database using the
+   :dbcommand:`getLastError` command to provide :term:`data center
+   awareness`.
 
 .. _replica-set-reconfiguration-usage:
 

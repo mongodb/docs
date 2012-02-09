@@ -115,24 +115,22 @@ Options
 
 .. option:: --db [db], -d [db]
 
-   Use the ``--db`` option to specify a database for :program:`mongoimport`
-   to restore data. If you do not specify a "``[db]``", new databases will be
-   created corresponding to the databases where the data originated
-   and data may be overwritten. Use this option to restore data into a
-   MongoDB instance that already has data, or to restore only some
-   data in the specified backup.
-
-TODO factcheck
+   Use the ``--db`` option to specify a database for
+   :program:`mongoimport` to restore data. If you do not specify a
+   "``[db]``", :program:`mongoimport` creates new databases that
+   correspond to the databases where data originated and data may be
+   overwritten. Use this option to restore data into a MongoDB
+   instance that already has data, or to restore only some data in the
+   specified backup.
 
 .. option:: --collection [collection], -c [collection]
 
    Use the :option:`--collection` option to specify a collection for
    :program:`mongorestore` to restore. If you do not specify a
-   "``[collection]``", all collections will be restored or
+   "``[collection]``", :program:`mongoimport` imports all collections
    created. Existing data may be overwritten. Use this option to
    restore data into a MongoDB instance that already has data, or to
    restore only some data in the specified imported data set.
-
 .. option:: --fields [field1[,filed2]], -f [field1[,filed2]]
 
    Specify a field or number fields to *import* from the data
@@ -151,20 +149,20 @@ TODO factcheck
 .. option:: --ignoreBlanks
 
    In :term:`csv` and :term:`tsv` exports, ignore empty fields. If not
-   specified, fields without values will be created in imported
-   documents.
+   specified, :program:`mongoimport` creates fields without values in
+   imported documents.
 
 .. option:: --type [json|csv|tsv]
 
-   Declare the type of export format to be processed and imported. The
-   default format is :term:`JSON`, but it's possible to import
-   :term:`csv` and :term:`tsv` files.
+   Declare the type of export format to import. The default format is
+   :term:`JSON`, but it's possible to import :term:`csv` and
+   :term:`tsv` files.
 
 .. option:: --file [filename]
 
-   Specify the location of a file containing the data to import. If
-   not file is specified, then data is read from standard input
-   (e.g. "stdin.")
+   Specify the location of a file containing the data to
+   import. :program:`mongoimport` will read data from standard input
+   (e.g. "stdin.") if you do not specify a file.
 
 .. option:: --drop
 
@@ -185,16 +183,24 @@ TODO factcheck
    database if they match an imported object, while inserting all
    other objects.
 
-.. option:: --upsertFields [field1[,filed2]]
+   If you do not specify a field or fields using the
+   :option:`--upsertFields` :program:`mongoimport` will upsert on the
+   basis of the "``_id``" field.
+
+.. option:: --upsertFields [field1[,field2]]
 
    Specifies a list of fields for the query portion of the
-   :term:`upsert`.
+   :term:`upsert`. Use this option if the "``_id``" fields in the
+   existing documents don't match the field in the document, but
+   another field or field combination can uniquely identify
+   documents as a basis for performing upsert operations.
 
-TODO improve this option documentation.
+   To ensure adequate performance, indexes should exist for this
+   field or fields.
 
 .. option:: --stopOnError
 
-   Forces ``mongoimport`` to cease operation following after
+   Forces :program:`mongoimport` to cease operation following after
    encountering the first error rather than continuing to import
    despite errors.
 

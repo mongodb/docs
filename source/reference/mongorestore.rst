@@ -105,23 +105,22 @@ Options
 
 .. option:: --db [db], -d [db]
 
-   Use the :option:`--db` option to specify a database for :program:`mongorestore`
-   to restore data. If you do not specify a "``[db]``", new databases will be
-   created corresponding to the databases where the data originated
-   and data may be overwritten. Use this option to restore data into a
-   MongoDB instance that already has data, or to restore only some
-   data in the specified backup.
-
-TODO factcheck
+   Use the ``--db`` option to specify a database for
+   :program:`mongorestore` to restore data. If you do not specify a
+   "``[db]``", :program:`mongorestore` creates new databases that
+   correspond to the databases where data originated and data may be
+   overwritten. Use this option to restore data into a MongoDB
+   instance that already has data, or to restore only some data in the
+   specified backup.
 
 .. option:: --collection [collection], -c [collection]
 
    Use the :option:`--collection` option to specify a collection for
    :program:`mongorestore` to restore. If you do not specify a
-   "``[collection]``", all collections will be restored or
+   "``[collection]``", :program:`mongorestore` imports all collections
    created. Existing data may be overwritten. Use this option to
    restore data into a MongoDB instance that already has data, or to
-   restore only some data in the specified backup.
+   restore only some data in the specified imported data set.
 
 .. option:: --objcheck
 
@@ -137,9 +136,9 @@ TODO factcheck
 
 .. option:: --drop
 
-   Modifies the restoration procedure so that every collection is
-   dropped from the target database before restoring the collection
-   from the dumped backup.
+   Modifies the restoration procedure to drop every collection from
+   the target database before restoring the collection from the dumped
+   backup.
 
 .. option:: --oplogReplay
 
@@ -162,29 +161,36 @@ Usage
 -----
 
 See the ":ref:`backup guide section on database dumps
-<database-dumps>`" for a larger overview of ``mongorestore``
+<database-dumps>`" for a larger overview of :program:`mongorestore`
 usage. Also see the ":doc:`mongodump`" document for an overview of the
 :program:`mongodump`, which provides the related inverse
 functionality.
 
-In the following command, the collection named "``collection``" and
-the database named "``test``" in the instance running on the localhost
-interface on port 27017 is restored with the dump located in the
-"``dump/``" directory. ::
+In the following command restores the collection named
+"``collection``" and database named "``test``" in the instance running
+on the localhost interface on port ``27017`` the dump located in the
+"``dump/``" directory.
 
-     mongorestore --collection collection --database test
+.. code-block:: sh
 
-In the next example, ``mongorestore`` restores a backup of the
+   mongorestore --collection collection --database test
+
+In the next example, :program:`mongorestore` restores a backup of the
 database instance located in "``dump``" to a database instance stored
-in the ``/srv/mongodb`` on the local machine. This requires that no
-``mongod`` instance is connected to the ``/srv/mongodb`` directory. ::
+in the ``/srv/mongodb`` on the local machine. This requires there are
+no active :program:`mongod` instances attached to ``/srv/mongodb``
+data directory.
 
-     mongorestore --dbpath /srv/mongodb
+.. code-block:: sh
 
-In the final example, ``mongodrestore`` restores a database dump
-located at ``/opt/backup/mongodumpm-2011-10-24``, from a database
+   mongorestore --dbpath /srv/mongodb
+
+In the final example, :program:`mongodrestore` restores a database
+dump located at ``/opt/backup/mongodumpm-2011-10-24``, from a database
 running on port "``37017``" on the host "``mongodb1.example.net`` and
 authenticating using the username "``user``" and the password
-"``pass``", as follows: ::
+"``pass``", as follows:
 
-     mongorestore --host mongodb1.example.net --port 37017 --username user --password pass /opt/backup/mongodumpm-2011-10-24
+.. code-block:: sh
+
+   mongorestore --host mongodb1.example.net --port 37017 --username user --password pass /opt/backup/mongodumpm-2011-10-24
