@@ -394,9 +394,6 @@ smaller oplog.
 .. [#default-oplog] The default oplog size is the *greater* of 1
    gigabyte or 5% of total disk size.
 
-
-TODO write oplog sizing
-
 Deployment
 ~~~~~~~~~~
 
