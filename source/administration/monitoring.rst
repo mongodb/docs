@@ -132,7 +132,7 @@ the replica set. Use this data to ensure that replication is properly
 configured, and to check the connections between the current host and
 the members of the replica set.
 
-.. seealso:: ":js:func:`rs.status()`."
+.. seealso:: ":mjs:func:`rs.status()`."
 
 dbStats
 ```````
@@ -145,7 +145,7 @@ index counters among other relevant information. Use this data to
 track the state and size of a specific database, to compare
 utilization between databases, or to determine average object size.
 
-.. seealso:: ":js:func:`db.stats()`."
+.. seealso:: ":mjs:func:`db.stats()`."
 
 collStats
 `````````
@@ -157,7 +157,7 @@ collection level: this includes a count of the objects in the
 collection, the size of the collection, the amount of disk space used
 by the collection, and information about the indexes.
 
-.. seealso:: ":js:func:`db.printCollectionStats()`"
+.. seealso:: ":mjs:func:`db.printCollectionStats()`"
 
 Diagnosing Performance Issues
 -----------------------------
@@ -415,7 +415,7 @@ The most effective :term:`shard clusters <shard cluster>` require that
 :term:`chunks <chunk>` migrate between the shards. MongoDB has a background
 :term:`balancer` process that distributes data such that chunks are
 always optimally distributed among the :term:`shards <shard>`. Issue
-the :js:func:`db.printShardingStatus()` or :js:func:`sh.status()`
+the :mjs:func:`db.printShardingStatus()` or :mjs:func:`sh.status()`
 command to the :program:`mongos` by way of the :program:`mongo`
 shell. This returns an overview of the shard cluster including the
 database name, and a list of the chunks.

@@ -173,7 +173,7 @@ Geolocation
 
    This query will return 100 ordered records with a ``location``
    field in ``collection``. Specify a different using the
-   :js:func:`limit()`, or another :ref:`geolocation operator
+   :mjs:func:`limit()`, or another :ref:`geolocation operator
    <geolocation-operators>` to limit the results of the query.
 
 .. operator:: $maxDistance
@@ -192,7 +192,7 @@ Geolocation
    from the point ``[100,100]``. :operator:`$near` returns results
    ordered by their distance from ``[100,100]``. This operation will
    return the first 100 results unless you modify the query with the
-   :js:func:`limit()` method.
+   :mjs:func:`limit()` method.
 
    Specify the value of the :operator:`$maxDistance` argument in the
    same units as the document coordinate system.
@@ -773,8 +773,8 @@ Update
    This example, isolates the "``{ field1 : 1 }``" update from the
    :operator:`$inc` operation that increments the value of ``field2``.
 
-   .. seealso:: See :js:func:`update()` for more information about the
-      :js:func:`update()` function.
+   .. seealso:: See :mjs:func:`update()` for more information about the
+      :mjs:func:`update()` function.
 
 .. _projection-operators:
 

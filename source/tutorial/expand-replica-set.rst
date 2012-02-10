@@ -94,8 +94,8 @@ issuing the following command: ::
      mongo mongodb0.example.net
 
 If this instance is not currently the :term:`primary` node, use the
-:js:func:`db.isMaster()` function to determine which node is in the
-:js:data:`isMaster.primary` field. Issue the following command: ::
+:mjs:func:`db.isMaster()` function to determine which node is in the
+:mjs:data:`isMaster.primary` field. Issue the following command: ::
 
 .. code-block:: javascript
 
@@ -110,7 +110,7 @@ replica set.
    rs.add("mongodb3.example.net")
 
 Congratulations! You have successfully expanded an existing replica
-set. You can use the :js:func:`rs.status()` function to provide an
+set. You can use the :mjs:func:`rs.status()` function to provide an
 overview of :doc:`replica set status </reference/replica-status>`, or
-the :js:func:`rs.conf()` for the complete :doc:`replica set
+the :mjs:func:`rs.conf()` for the complete :doc:`replica set
 configuration </reference/replica-configuration>`.

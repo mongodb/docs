@@ -115,7 +115,7 @@ to interact with the oplog. Issue the following command:
 
    use local
 
-Then, use the following :js:func:`save()` operation to save the last
+Then, use the following :mjs:func:`save()` operation to save the last
 entry in the oplog to a temporary collection:
 
 .. code-block:: javascript

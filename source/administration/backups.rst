@@ -341,8 +341,8 @@ completed, issue the following command:
 
 .. note::
 
-   Version 1.9.0 added :js:func:`db.fsyncLock()` and
-   :js:func:`db.fsyncUnlock()` helpers to the :program:`mongo` shell.
+   Version 1.9.0 added :mjs:func:`db.fsyncLock()` and
+   :mjs:func:`db.fsyncUnlock()` helpers to the :program:`mongo` shell.
 
    .. code-block:: javascript
 

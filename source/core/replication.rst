@@ -73,7 +73,7 @@ acting as :term:`primary`" would render a member or your application
 inoperable due to network or disk configurations, configure this
 instance in "secondary-only" mode.
 
-Any node with a :js:data:`members[n].priority` value equal to ``0``
+Any node with a :mjs:data:`members[n].priority` value equal to ``0``
 will never seek election and cannot become primary in any
 circumstance. Many users configure all members of their replica sets
 that are not located in their main data centers (i.e. the facilities
@@ -205,14 +205,14 @@ Node Priority
 In a replica set, every node has a "priority," that helps
 determine eligibility for :ref:`election <replica-set-elections>` to
 "primary." By default, all nodes have a priority of ``1``, unless you modify the
-:js:data:`members[n].priority` value. All nodes have a single
+:mjs:data:`members[n].priority` value. All nodes have a single
 vote in :ref:`elections <replica-set-elections>`.
 
 .. warning::
 
-   Always configure the :js:data:`members[n].priority` value to control
+   Always configure the :mjs:data:`members[n].priority` value to control
    which nodes will become primary. Do not configure
-   :js:data:`members[n].votes` except to permit more than 7 secondary
+   :mjs:data:`members[n].votes` except to permit more than 7 secondary
    nodes.
 
 .. seealso:: ":ref:`Node Priority Configuration <replica-set-node-priority-configuration>`"
@@ -478,7 +478,7 @@ architectures.
 This document provides an overview of the *complete* functionality of
 replica sets, which highlights the flexibility of the replica set and
 its configuration. However, for most production deployments a
-conventional 3-member replica set with :js:data:`members[n].priority`
+conventional 3-member replica set with :mjs:data:`members[n].priority`
 values of ``1`` are sufficient.
 
 While the additional flexibility discussed is below helpful for

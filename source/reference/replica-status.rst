@@ -24,7 +24,7 @@ at most 2 seconds out of date.
    command to needs to have replication enabled, and be a member of a
    replica set for this command to return successfully.
 
-.. seealso:: The ":js:func:`rs.status()`" function in the
+.. seealso:: The ":mjs:func:`rs.status()`" function in the
    :program:`mongo` shell provides a wrapper around the
    :dbcommand:`replSetGetStatus` command. Also consider the
    ":doc:`/replication`" documentation index for more information on
@@ -99,7 +99,7 @@ Member Statuses
 
    The ``health`` value is only present for the other members of the
    replica set (i.e. not the member that returns
-   :js:func:`rs.status`.) This field conveys if the member is up
+   :mjs:func:`rs.status`.) This field conveys if the member is up
    (i.e. ``1``) or down (i.e. ``0``.)
 
 .. status:: members.uptime
@@ -108,7 +108,7 @@ Member Statuses
    seconds that this member has been online.
 
    This value does not appear for the member that returns the
-   :js:func:`rs.status()` data.
+   :mjs:func:`rs.status()` data.
 
 .. status:: members.optime
 
@@ -143,7 +143,7 @@ Member Statuses
    latency between these members.
 
    This value does not appear for the member that returns the
-   :js:func:`rs.status()` data.
+   :mjs:func:`rs.status()` data.
 
 .. status:: members.pingMS
 
@@ -152,4 +152,4 @@ Member Statuses
    local instance.
 
    This value does not appear for the member that returns the
-   :js:func:`rs.status()` data.
+   :mjs:func:`rs.status()` data.

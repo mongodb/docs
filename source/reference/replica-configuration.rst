@@ -10,7 +10,7 @@ Synopsis
 This reference provides an overview of all possible replica set
 configuration options and settings.
 
-Use :js:func:`rs.conf()` in the :program:`mongo` shell to retrieve this
+Use :mjs:func:`rs.conf()` in the :program:`mongo` shell to retrieve this
 configuration. Note that default values are not explicitly displayed.
 
 .. _replica-set-configuration-variables:
@@ -18,7 +18,7 @@ configuration. Note that default values are not explicitly displayed.
 Configuration Variables
 -----------------------
 
-.. js:data:: rs.conf._id:
+.. mjs:data:: rs.conf._id:
 
    **Type**: string
 
@@ -28,7 +28,7 @@ Configuration Variables
    the set name configured with :setting:`replSet` or
    :option:`mongod --replSet`.
 
-.. js:data:: rs.conf.members
+.. mjs:data:: rs.conf.members
 
    **Type**: array
 
@@ -37,14 +37,14 @@ Configuration Variables
    number of fields that describe the configuration of each member of
    the replica set.
 
-.. js:data:: members[n]._id
+.. mjs:data:: members[n]._id
 
    **Type**: ordinal
 
    Provides a zero-indexed identifier of every member in the replica
    set.
 
-.. js:data:: members[n].host
+.. mjs:data:: members[n].host
 
    **Type**: <hostname>:<port>
 
@@ -54,10 +54,10 @@ Configuration Variables
 
    .. warning::
 
-      :js:data:`members[n].host` cannot hold a value that
+      :mjs:data:`members[n].host` cannot hold a value that
       resolves to ``localhost`` or the local interface.
 
-.. js:data:: members[n].arbiterOnly
+.. mjs:data:: members[n].arbiterOnly
 
    *Optional*.
 
@@ -66,9 +66,9 @@ Configuration Variables
    **Default**: false
 
    Identifies an arbiter. For arbiters, this value is "``true``", and
-   is automatically configured by :js:func:`rs.addArb()`".
+   is automatically configured by :mjs:func:`rs.addArb()`".
 
-.. js:data:: members[n].buildIndexes
+.. mjs:data:: members[n].buildIndexes
 
    *Optional*.
 
@@ -92,7 +92,7 @@ Configuration Variables
    - index creation and maintenance overburdens the host
      system.
 
-.. js:data:: members[n].hidden
+.. mjs:data:: members[n].hidden
 
    *Optional*.
 
@@ -102,13 +102,13 @@ Configuration Variables
 
    When this value is "``true``", the replica set hides this instance,
    and does not include the member in the output of
-   :js:func:`db.isMaster()` or :dbcommand:`isMaster`. This
+   :mjs:func:`db.isMaster()` or :dbcommand:`isMaster`. This
    prevents read operations (i.e. queries) from ever reaching this
    host by way of secondary :term:`read preference`.
 
    .. seealso:: ":ref:`Hidden Replica Set Members <replica-set-hidden-members>`"
 
-.. js:data:: members[n].priority
+.. mjs:data:: members[n].priority
 
    *Optional*.
 
@@ -122,14 +122,14 @@ Configuration Variables
    other, members of the set will veto elections from nodes when
    another eligible node has a higher absolute priority value.
 
-   A :js:data:`members[n].priority` of ``0`` makes it impossible for a
+   A :mjs:data:`members[n].priority` of ``0`` makes it impossible for a
    node to become primary.
 
    .. seealso:: ":ref:`Replica Set Node Priority
       <replica-set-node-priority>`" and ":ref:`Replica Set Elections
       <replica-set-elections>`."
 
-.. js:data:: members[n].tags
+.. mjs:data:: members[n].tags
 
    *Optional*.
 
@@ -142,12 +142,12 @@ Configuration Variables
    <replica-set-write-concern>` to allow configurable data center
    awareness.
 
-   Use in conjunction with :js:data:`settings.getLastErrorModes` and
-   :js:data:`settings.getLastErrorDefaults` and
-   :js:func:`db.getLastError()`
+   Use in conjunction with :mjs:data:`settings.getLastErrorModes` and
+   :mjs:data:`settings.getLastErrorDefaults` and
+   :mjs:func:`db.getLastError()`
    (i.e. :dbcommand:`getLastError`.)
 
-.. js:data:: members[n].slaveDelay
+.. mjs:data:: members[n].slaveDelay
 
    *Optional*.
 
@@ -164,7 +164,7 @@ Configuration Variables
    of insurance against the unforeseen consequences of changes and
    updates.
 
-.. js:data:: members[n].votes
+.. mjs:data:: members[n].votes
 
    *Optional*.
 
@@ -175,10 +175,10 @@ Configuration Variables
    Controls the number of votes a server has in a :ref:`replica set
    election <replica-set-elections>`. If you need more than 7 nodes,
    use, this setting to add additional non-voting nodes with a
-   :js:data:`members[n].votes` value of ``0``. In nearly all scenarios, this
+   :mjs:data:`members[n].votes` value of ``0``. In nearly all scenarios, this
    value should be ``1``, the default.
 
-.. js:data:: settings
+.. mjs:data:: settings
 
    *Optional*.
 
@@ -187,7 +187,7 @@ Configuration Variables
    The setting document holds two optional fields, which affect the
    available :term:`write concern` options and default configurations.
 
-.. js:data:: settings.getLastErrorDefaults
+.. mjs:data:: settings.getLastErrorDefaults
 
    *Optional*.
 
@@ -198,13 +198,13 @@ Configuration Variables
    :dbcommand:`getLastError` has no arguments. If you specify *any*
    arguments, :dbcommand:`getLastError` , ignores these defaults.
 
-.. js:data:: settings.getLastErrorModes
+.. mjs:data:: settings.getLastErrorModes
 
    *Optional*.
 
    **Type**: :term:`JSON`
 
-   Defines the names and combination of :js:data:`tags
+   Defines the names and combination of :mjs:data:`tags
    <members[n].tags>` for use by the application layer to guarantee
    :term:`write concern` to database using the
    :dbcommand:`getLastError` command to provide :term:`data center
@@ -227,10 +227,10 @@ Most modifications of replica set configuration use the
    rs.reconfig(cfg)
 
 This operation begins by saving the current replica set configuration
-to the local variable "``cfg``" using the :js:func:`rs.conf()`
+to the local variable "``cfg``" using the :mjs:func:`rs.conf()`
 method. Then it adds priority values to the :term:`JSON document`
-where the :js:data:`members[n]._id` field has a value of ``0``, ``1``, or
-``2``. Finally, it calls the :js:func:`rs.reconfig()` method with the
+where the :mjs:data:`members[n]._id` field has a value of ``0``, ``1``, or
+``2``. Finally, it calls the :mjs:func:`rs.reconfig()` method with the
 argument of ``cfg`` to initialize this new configuration.
 
 Using this "dot notation," you can modify any existing setting or
@@ -238,14 +238,14 @@ specify any of optional :ref:`replica set configuration variables
 <replica-set-configuration-variables>`. Until you run
 "``rs.reconfig(cfg)``" at the shell, no changes will take effect. You
 can issue "``cfg = rs.conf()``" at any time before using
-:js:func:`rs.reconfig()` to undo your changes and start from the
+:mjs:func:`rs.reconfig()` to undo your changes and start from the
 current configuration. If you issue "``cfg``" as an operation at any
 point, the :program:`mongo` shell at any point will output the complete
 :term:`JSON document` with modifications for your review.
 
 .. note::
 
-   The :js:func:`rs.reconfig()` shell command can force the current
+   The :mjs:func:`rs.reconfig()` shell command can force the current
    primary to step down and causes an election in some
    situations. When the primary node steps down, all clients will
    disconnect. This is by design. While, this typically takes 10-20

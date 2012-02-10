@@ -41,7 +41,7 @@ writes to the primary. See the ":ref:`consistency
 
 .. note::
 
-   Use :js:func:`db.getReplicationInfo()` from a secondary node
+   Use :mjs:func:`db.getReplicationInfo()` from a secondary node
    and the ":doc:`replication status </reference/replication-info>`
    output to asses the current state of replication, and determine if
    there is any unintended replication delay.
@@ -63,7 +63,7 @@ set. Consider the following node types:
   their "priority" set to 0 and thus not eligible for election as primary nodes.
 
 - :ref:`Hidden <replica-set-hidden-members>` members do not appear in the
-  output of :js:func:`db.isMaster()`. This setting prevents clients
+  output of :mjs:func:`db.isMaster()`. This setting prevents clients
   from discovering, and thus potentially queries, the node in question.
 
 - :ref:`Delayed <replica-set-delayed-members>` members lag a fixed period
@@ -85,9 +85,9 @@ Administrators of replica sets also have unique :ref:`monitoring
 <replica-set-monitoring>`, and :ref:`security <replica-set-security>`
 concerns. The :ref:`replica set functions <replica-set-functions>` in
 the :program:`mongo` shell, provide the tools necessary for replica set
-administration. In particular use the :js:func:`rs.conf()` to return a
+administration. In particular use the :mjs:func:`rs.conf()` to return a
 :term:`JSON document` that holds the :doc:`replica set configuration
-</reference/replica-configuration>`, and :js:func:`rs.reconfig()` to
+</reference/replica-configuration>`, and :mjs:func:`rs.reconfig()` to
 modify the configuration of an existing replica set.
 
 .. _replica-set-election-internals:

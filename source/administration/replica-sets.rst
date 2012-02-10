@@ -14,7 +14,7 @@ addition to general troubleshooting suggestions.
 .. seealso::
 
    - :ref:`Replica Set Reconfiguration Process <replica-set-reconfiguration-usage>`
-   - :js:func:`rs.conf()` and :js:func:`rs.reconfig()`
+   - :mjs:func:`rs.conf()` and :mjs:func:`rs.reconfig()`
    - :doc:`/reference/replica-configuration`
 
    The following tutorials provide task-oriented instructions for
@@ -58,7 +58,7 @@ with the :setting:`replSet`. Take note of the host name and
 port information for the new :program:`mongod` instance.
 
 Then, log in to the current primary using the :program:`mongo`
-shell. Issue the :js:func:`db.isMaster()` command when connected to
+shell. Issue the :mjs:func:`db.isMaster()` command when connected to
 *any* member of the set to determine the current
 :term:`primary`. Issue the following command to add the new member to
 the set.
@@ -68,15 +68,15 @@ the set.
    rs.add("mongo2.example.net:27017")
 
 Alternately, specify an entire configuration document with some or all
-of the fields in a :js:data:`members` document, for example:
+of the fields in a :mjs:data:`members` document, for example:
 
 .. code-block:: javascript
 
    rs.add({host: "mongo2.example.net:27017", priority: 0, hidden: true})
 
 This configures a :term:`hidden member` that is accessible at
-``mongo2.example.net:27018``. See ":js:data:`host <members[n].host>`,"
-":js:data:`priority <members[n].priority>`," and ":js:data:`hidden
+``mongo2.example.net:27018``. See ":mjs:data:`host <members[n].host>`,"
+":mjs:data:`priority <members[n].priority>`," and ":mjs:data:`hidden
 <members[n].hidden>`" for more information about these settings.
 
 .. seealso:: :doc:`/tutorial/expand-replica-set`
@@ -87,9 +87,9 @@ Removing Members
 ~~~~~~~~~~~~~~~~
 
 Administrators can remove any member of a replica set at any time, for
-a number of operational reasons. Use the :js:func:`rs.remove()`
+a number of operational reasons. Use the :mjs:func:`rs.remove()`
 function in the :program:`mongo` shell while connected to the current
-:term:`primary`. Issue the :js:func:`db.isMaster()` command when
+:term:`primary`. Issue the :mjs:func:`db.isMaster()` command when
 connected to *any* member of the set to determine the current
 :term:`primary`. Use a command in either of the following forms to
 remove the member:
@@ -109,7 +109,7 @@ You can re-add a removed member to a replica set at any time using the
 <replica-set-admin-procedure-add-member>`. Additionally, consider
 using the :ref:`replica set reconfiguration procedure
 <replica-set-reconfiguration-usage>` to change the
-:js:data:`members[n].host` value to rename a host in a replica set
+:mjs:data:`members[n].host` value to rename a host in a replica set
 directly.
 
 Replacing a Member
@@ -125,9 +125,9 @@ in the :program:`mongo` shell:
    rs.add({host: "mongo2.example.net:27019", priority: 0, hidden: true})
 
 Second, you may consider using the following procedure to use
-:js:func:`rs.reconfig()` to change the value of the
-:js:data:`members[n].host` field to reflect the new hostname or port
-number. In this case, the :js:data:`members[n]._id` field is not reused
+:mjs:func:`rs.reconfig()` to change the value of the
+:mjs:data:`members[n].host` field to reflect the new hostname or port
+number. In this case, the :mjs:data:`members[n]._id` field is not reused
 by the new nenber.
 
 .. code-block:: javascript
@@ -139,7 +139,7 @@ by the new nenber.
 The second method may be useful if you have an existing configuration
 and only want to change the hostname of a member rather than
 completely remove all configuration related to the existing/previous
-set member. The :js:data:`members[n]._id` field does not change as a
+set member. The :mjs:data:`members[n]._id` field does not change as a
 result of this operation.
 
 .. warning::
@@ -155,7 +155,7 @@ result of this operation.
 Adjusting a Member's Priority
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To change the value of the :js:data:`members[n].priority` value in the
+To change the value of the :mjs:data:`members[n].priority` value in the
 replica set configuration, use the following sequence of commands in
 the :program:`mongo` shell:
 
@@ -169,29 +169,29 @@ the :program:`mongo` shell:
 
 The first operation sets the local variable "``cfg``" to the contents
 of the current replica set configuration using the
-:js:func:`rs.conf()`, which is a :term:`JSON document`. The next three
-operations change the :js:data:`members[n].priority` value in the ``cfg``
-document for :js:data:`members[n]._id` of ``0``, ``1``, or ``2``. The
-final operation calls :js:func:`rs.reconfig()` with the argument of
+:mjs:func:`rs.conf()`, which is a :term:`JSON document`. The next three
+operations change the :mjs:data:`members[n].priority` value in the ``cfg``
+document for :mjs:data:`members[n]._id` of ``0``, ``1``, or ``2``. The
+final operation calls :mjs:func:`rs.reconfig()` with the argument of
 ``cfg`` to initialize the new configuration.
 
-If a node has :js:data:`members[n].priority` set to ``0``, it is ineligible to become
+If a node has :mjs:data:`members[n].priority` set to ``0``, it is ineligible to become
 primary, and will not seek elections. :ref:`Hidden
 <replica-set-hidden-members>` and :ref:`delayed
 <replica-set-delayed-members>` members and :ref:`arbiters
 <replica-set-arbiters>` have priority set to ``0``. Unless configured,
-all nodes have a :js:data:`members[n].priority`  setting equal to ``1``.
+all nodes have a :mjs:data:`members[n].priority`  setting equal to ``1``.
 
 .. note::
 
-   The value of :js:data:`members[n].priority` can be any floating point (i.e. decimal)
+   The value of :mjs:data:`members[n].priority` can be any floating point (i.e. decimal)
    number between ``0`` and ``1000``, and priorities are only used to
    determine the preference in election. The priority value is only
    used in with other instances. With the exception of nodes with a priority of ``0``,
-   the absolute value of the :js:data:`members[n].priority` value is irrelevant.
+   the absolute value of the :mjs:data:`members[n].priority` value is irrelevant.
 
 Replica sets will preferentially elect and maintain the primary status
-of the node with the highest :js:data:`members[n].priority` setting.
+of the node with the highest :mjs:data:`members[n].priority` setting.
 
 .. warning::
 
@@ -205,7 +205,7 @@ of the node with the highest :js:data:`members[n].priority` setting.
 
 .. seealso:: The ":ref:`Replica Reconfiguration Usage
    <replica-set-reconfiguration-usage>`" example revolves around
-   changing the priorities of the :js:data:`members` of a replica set.
+   changing the priorities of the :mjs:data:`members` of a replica set.
 
 .. _replica-set-procedure-change-oplog-size:
 
@@ -259,7 +259,7 @@ configurations and also describes the arbiter node type.
 
 .. warning::
 
-   The :js:func:`rs.reconfig()` shell command can force the current
+   The :mjs:func:`rs.reconfig()` shell command can force the current
    primary to step down and causes an election. When the primary node
    steps down, the :program:`mongod` closes all client
    connections. While, this typically takes 10-20 seconds, attempt to
@@ -301,7 +301,7 @@ all other nodes but doesn't prohibit the possibility.
    nodes wil be able to quickly obtain a majority of votes in an
    :ref:`election <replica-set-elections>` for primary.
 
-.. seealso:: ":js:data:`members[n].priority`" and ":ref:`Replica Set
+.. seealso:: ":mjs:data:`members[n].priority`" and ":ref:`Replica Set
    Reconfiguration <replica-set-reconfiguration-usage>`."
 
 .. _replica-set-hidden-configuration:
@@ -322,10 +322,10 @@ operations in the :program:`mongo` shell:
 After re-configuring the set, the node with the "``_id``" of ``0``,
 has a priority of ``0`` so that it cannot become master, while the
 other nodes in the set will not advertise the hidden node in the
-:dbcommand:`isMaster` or :js:func:`db.isMaster()` output.
+:dbcommand:`isMaster` or :mjs:func:`db.isMaster()` output.
 
 .. seealso:: ":ref:`Replica Set Read Preference <replica-set-read-preference>`."
-   ":js:data:`members[n].hidden`," ":js:data:`members[n].priority`,"
+   ":mjs:data:`members[n].hidden`," ":mjs:data:`members[n].priority`,"
    and ":ref:`Replica Set Reconfiguration <replica-set-reconfiguration-usage>`."
 
 .. _replica-set-delayed-configuration:
@@ -354,7 +354,7 @@ will delay replication by 3600 seconds, or 1 hour.
    ``slaveDelay`` window the delayed member will not be able to
    successfully replicate operations.
 
-.. seealso:: ":js:data:`members[n].slaveDelay`," ":ref:`Replica Set
+.. seealso:: ":mjs:data:`members[n].slaveDelay`," ":ref:`Replica Set
    Reconfiguration <replica-set-reconfiguration-usage>`," ":ref:`Oplog
    Sizing <replica-set-oplog-sizing>`," and
    ":ref:`replica-set-procedure-change-oplog-size`."
@@ -382,7 +382,7 @@ Replace the "``"[hostname]:[port]"``" string with the name of the
 hostname and port of the arbiter that you wish to add to the set.
 
 .. seealso:: ":setting:`replSet`," ":program:`mongod --replSet`,
-   and ":js:func:`rs.addArb()`."
+   and ":mjs:func:`rs.addArb()`."
 
 .. _replica-set-non-voting-configuration:
 
@@ -417,7 +417,7 @@ the event of a network partition.
    <replica-set-node-priority>`" to control which nodes are more
    likely to become primary.
 
-.. seealso:: ":js:data:`members[n].votes`" and ":ref:`Replica Set
+.. seealso:: ":mjs:data:`members[n].votes`" and ":ref:`Replica Set
    Reconfiguration <replica-set-reconfiguration-usage>`."
 
 Troubleshooting
@@ -445,8 +445,8 @@ replication lag makes "lagged" members ineligible to become
 read operations will be inconsistent.
 
 Identify replication lag by checking the values of
-:js:data:`members[n].optimeDate` for each member of the replica set
-using the :js:func:`rs.status()` function in the :program:`mongo`
+:mjs:data:`members[n].optimeDate` for each member of the replica set
+using the :mjs:func:`rs.status()` function in the :program:`mongo`
 shell.
 
 Possible causes of replication lag include:
@@ -499,7 +499,7 @@ errors:
   application systems.
 
 - No member is eligible to become :term:`primary`. Members must have a
-  :js:data:`members[n].priority` setting greater than ``0``, have
+  :mjs:data:`members[n].priority` setting greater than ``0``, have
   state that is less than ten seconds behind the last operation to the
   :term:`replica set`, and generally be *more* up to date than the
   voting members.

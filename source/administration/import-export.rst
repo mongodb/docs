@@ -74,7 +74,7 @@ thereof, to a file in a JSON or CSV format.
    instance to another, consider using the :dbcommand:`copydb`,
    :dbcommand:`clone`, or :dbcommand:`cloneCollection` commands, which
    may be more suited to this task. The :program:`mongo` shell
-   provides the :js:func:`db.copyDatabase()` method.
+   provides the :mjs:func:`db.copyDatabase()` method.
 
 These tools may also be useful for importing data into a MongoDB data
 from third party applications.

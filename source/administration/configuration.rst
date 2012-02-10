@@ -172,7 +172,7 @@ by a slash (i.e. "``/``") and a comma separated list of hostnames of
 set members, with optional port names. This list of hosts serves as a
 "seed," from which this host will derive the replica set
 configuration. You may add additional members at anytime to the
-configuration using :js:func:`rs.reconfig()` function.
+configuration using :mjs:func:`rs.reconfig()` function.
 
 .. seealso:: ":ref:`Replica set reconfiguration
    <replica-set-reconfiguration-usage>`.
