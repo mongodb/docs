@@ -556,9 +556,10 @@ Database
 
       db.getMongo().setSlaveOK()
 
-   Indicates that ":term:`eventually consistent`" read operations are
-   acceptable for the current connection. This function provides the
-   same functionality as :js:func:`rs.slaveOk()`.
+   Indicates that ":term:`eventually consistent <eventual
+   consistency>`" read operations are acceptable for the current
+   connection. This function provides the same functionality as
+   :js:func:`rs.slaveOk()`.
 
 .. js:function:: db.getName()
 

@@ -10,14 +10,22 @@ operation; however, some cases require additional import and export
 functionality.
 
 This document provides an overview of the import and export tools
-available to MongoDB administrators. These utilities are useful when
-you want to backup or export a portion of your database without
-capturing the state of the entire. Because these tools primarily
-operate by interacting with a running :program:`mongod` instance, they
-can impact the performance of your running database.
+provided in distributions of MongoDB administrators. These utilities
+are useful when you want to backup or export a portion of your
+database without capturing the state of the entire database. For more
+complex data migration tasks, you may want to write your own import
+and export scripts using a client driver :term:`driver` to interact
+with the database itself.
 
-.. note:::program:`mongoimport` and :program:`mongoexport` do not
-   reliably preserve data types in some situations. Use with care.
+.. warning::
+
+   Because these tools primarily operate by interacting with a running
+   :program:`mongod` instance, they can impact the performance of your
+   running database.
+
+   :program:`mongoimport` and :program:`mongoexport` do not reliably
+   preserve data types. As a result data exported or imported with
+   these tools may loose some measure of fidelity. Use with care.
 
 Using Database Imports and Exports for Backups
 ----------------------------------------------
@@ -28,42 +36,45 @@ method described in the ":doc:`/administration/backups`" document. The
 tools and operations discussed provide functionality that's useful in
 the context of providing some kinds of backups.
 
-For instance Use import and export tools to backup a small subset of
+By contrast, use import and export tools to backup a small subset of
 your data. These backups may capture a small crucial set of data or a
 frequently modified section of data, for extra insurance, or for ease
-of access. No matter how you decide to back up your data make sure
-that your backups and exports:
+of access. No matter how you decide to import or export your data,
+consider the following guidelines:
 
-- are labeled such that you can identify when the backup was created
-  and what subset of the data corpus is included in the capture, if
-  applicable.
+- Label files so that you can identify what point in time the
+  export or backup reflects.
 
-- are captured when any performance impact from the backup operation
-  will not adversely effect a production deployment.
+- Labeling should describe the contents of the backup, and reflect the
+  subset of the data corpus, captured in the backup or export.
 
-- reflect a consistent data state.
+- Do not create or apply exports if the backup process itself will
+  have an adverse effect on a production system.
 
-- capture data that can be quickly restored, or referenced when
-  needed.
+- Make sure that the reflect a consistent data state. Export or backup
+  processes can impact data integrity (i.e. type fidelity) and
+  consistency if updates continue during the backup process.
+
+- Test backups and exports by restoring and importing to ensure that
+  the backups are useful.
 
 Human Intelligible Import/Export Formats
 ----------------------------------------
 
-This section describes the process for exporting portions of the
-contents of your MongoDB instance, or a portion thereof, to a file in
-a JSON or CSV format.
+This section describes a process for your database, or a portion
+thereof, to a file in a JSON or CSV format.
 
-.. seealso:: The :doc:`/reference/mongoimport` and :doc:`/reference/mongoexport`
-   documents contain complete documentation of these tools. If you
-   have questions about the function and parameters of these tools not
-   covered here, please refer to these documents.
+.. seealso:: The :doc:`/reference/mongoimport` and
+   :doc:`/reference/mongoexport` documents contain complete
+   documentation of these tools. If you have questions about the
+   function and parameters of these tools not covered here, please
+   refer to these documents.
 
    If you want to simply copy a database or collection from one
    instance to another, consider using the :dbcommand:`copydb`,
-   :dbcommand:`clone`, or :dbcommand:`cloneCollection`
-   commands, which may be more suited to this task. The
-   :program:`mongo` shell provides the :js:func`db.copyDatabase()`
-   method.
+   :dbcommand:`clone`, or :dbcommand:`cloneCollection` commands, which
+   may be more suited to this task. The :program:`mongo` shell
+   provides the :js:func:`db.copyDatabase()` method.
 
 These tools may also be useful for importing data into a MongoDB data
 from third party applications.
@@ -71,20 +82,26 @@ from third party applications.
 Database Export with mongoexport
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-With the :program:`mongoexport` utility you can create a backup file. In the
-most simple invocation, the command takes the following form: ::
+With the :program:`mongoexport` utility you can create a backup
+file. In the most simple invocation, the command takes the following
+form:
 
-     mongoexport --collection collection --out collection.json
+.. code-block:: sh
+
+   mongoexport --collection collection --out collection.json
 
 This will export all documents in the collection named
 "``collection``" into the file "``collection.json``". Without the
-output specification (i.e. "``--out collection.json``") the output
-would be sent to standard out (i.e. "stdout.") You can further narrow
-the results by supplying a query filter using the  "``--query``" and
-limit results to a single database using the "``--db``" option. For
-instance: ::
+output specification (i.e. ":option:`--out collection.json
+<mongoexport --out>`",) :program:`mongoexport` writes output to
+standard output (i.e. "stdout.") You can further narrow the results by
+supplying a query filter using the ":option:`--query <mongoexport
+--query>`" and limit results to a single database using the
+":option:`--db <mongoexport --db>`" option. For instance:
 
-     mongoexport --db sales --collection contacts --query '{"field": 1}'
+.. code-block:: sh
+
+   mongoexport --db sales --collection contacts --query '{"field": 1}'
 
 This command returns all documents in the "``sales``" database's
 "``contacts``" collection, with a field named "``field``" with a value
@@ -92,18 +109,20 @@ of "``1``. Enclose the query in single quotes (e.g. "``'``") to ensure
 that it does not interact with your shell environment. The resulting
 documents will return on standard output.
 
-By default, :program:`mongoexport` returns one JSON document per
-MongoDB document. Specify the ":option:`--jsonArray <mongoexport --jsonArrray>`"
-argument to return the export as a single JSON
+By default, :program:`mongoexport` returns one :term:`JSON document`
+per MongoDB document. Specify the ":option:`--jsonArray <mongoexport
+--jsonArrray>`" argument to return the export as a single :term:`JSON`
 array. Use the ":option:`--csv <mongoexport --csv>`" file to return
 the result in CSV (comma separated values) format.
 
 If your :program:`mongod` instance is not running, you can use the
 ":option:`--dbpath <mongoexport --dbpath>`" option to specify the
 location to your MongoDB instance's database files. See the following
-example: ::
+example:
 
-     mongoexport --db sales --collection contacts --dbpath /srv/MongoDB/
+.. code-block:: sh
+
+   mongoexport --db sales --collection contacts --dbpath /srv/MongoDB/
 
 This reads the data files directly. This locks the data directory to
 prevent conflicting writes. The :program:`mongod` process must *not* be
@@ -112,9 +131,11 @@ in this configuration.
 
 The ":option:`--host <mongoexport --host>`" and ":option:`--port
 <mongoexport --port>`" options allow you to specify a non-local host
-to connect to capture the export. Consider the following example: ::
+to connect to capture the export. Consider the following example:
 
-     mongoexport --host mongodb1.example.net --port 37017 --username user --password pass --collection contacts --file mdb1-examplenet.json
+.. code-block:: sh
+
+   mongoexport --host mongodb1.example.net --port 37017 --username user --password pass --collection contacts --file mdb1-examplenet.json
 
 On any :program:`mongoexport` command you may, as above specify username and
 password credentials as above.
@@ -124,9 +145,11 @@ Database Import with mongoimport
 
 To restore a backup taken with :program:`mongoexport`. Most of the
 arguments to :program:`mongoexport` also exist for
-:program:`mongoimport`. Consider the following command: ::
+:program:`mongoimport`. Consider the following command:
 
-     mongoimport --collection collection --file collection.json
+.. code-block:: sh
+
+   mongoimport --collection collection --file collection.json
 
 This imports the contents of the file ``collection.json`` into the
 collection named "``collection``". If you do not specify a file with
@@ -140,15 +163,15 @@ existing documents in the database and insert other documents. This
 option will cause some performance impact depending on your
 configuration.
 
-You can specify the database option ":option:`--db <mongoimport --db>`"
-to import these documents to a particular database. If your
-MongoDB instance is not running, you can use the "``--dbpath``" option
-to specify the location to your MongoDB instance's database
-files. Consider using the ":option:`--journal <mongoimport --journal>`"
-option to ensure that :program:`mongoimport` records its
-operations in the journal. The ``mongod`` process must *not* be
-running or attached to these data files when you run
-:program:`mongoimport` in this configuration.
+You can specify the database option ":option:`--db <mongoimport
+--db>`" to import these documents to a particular database. If your
+MongoDB instance is not running, use the ":option:`--dbpath
+<mongoimport --dbpath>`" option to specify the location of your
+MongoDB instance's database files. Consider using the
+":option:`--journal <mongoimport --journal>`" option to ensure that
+:program:`mongoimport` records its operations in the journal. The
+``mongod`` process must *not* be running or attached to these data
+files when you run :program:`mongoimport` in this configuration.
 
 Use the ":option:`--ignoreBlanks <mongoimport --ignoreBlanks>`" option
 to ensure that blank fields are. For CSV and TSV imports, this option

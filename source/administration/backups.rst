@@ -186,14 +186,14 @@ following format:
 
    lvcreate --size 100M --snapshot --name mdb-snap01 /dev/vg0/mongodb
 
-This command creates a snapshot (with the "``--snapshot`` option)
+This command creates a lvm snapshot (with the "``--snapshot`` option)
 named "``mdb-snap01``" of the "``mongodb``" volume in the "``vg0``"
 volume group.
 
 This example creates a snapshot named ``mdb-snap01`` located at
 ``/dev/vg0/mdb-snap01``. The location and paths to your systems volume
-groups and devices may be slightly different on your distributions LVM
-configuration.
+groups and devices may vary slightly depending on your operating
+system's LVM configuration.
 
 The snapshot has a cap of at 100 megabytes, because of the parameter
 "``--size 100M``". This size does not reflect the total amount of the
@@ -319,11 +319,10 @@ remote system.
 Without Journaling
 ~~~~~~~~~~~~~~~~~~
 
-If your :program:`mongod` instance does not running with journaling enabled,
-obtaining a functional backup of a consistent state is more
-complicated. Flush all writes to disk and
-lock the database to prevent writes during the backup
-process.
+If your :program:`mongod` instance does not run with journaling
+enabled, obtaining a functional backup of a consistent state is more
+complicated. Flush all writes to disk and lock the database to prevent
+writes during the backup process.
 
 To flush writes and lock the database before performing the snapshot,
 issue the following command:
@@ -353,8 +352,8 @@ completed, issue the following command:
 Amazon EBS in Software RAID 10 Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you're using Amazon's Elastic Block Storage (EBS) with RAID
-configured *within* your instance, it is impossible to get a
+If your deployment depends on Amazon's Elastic Block Storage (EBS)
+with RAID configured *within* your instance, it is impossible to get a
 consistent state across all disks using the platform's snapshot
 tool. As a result you may:
 

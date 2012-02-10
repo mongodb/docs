@@ -4,14 +4,16 @@ Monitoring Database Systems
 
 .. default-domain:: mongodb
 
-Monitoring is a critical component in all database administration
-work. A firm grasp of MongoDB's reporting approach allow you to
-effectively assess and maintain your deployment proactively.
-Additionally, a sense of MongoDB's and normal parameters will allow
-you to capably diagnose issues as you encounter them. This document
-provides an overview of the available tools and data provided by
-MongoDB as well as introduction to diagnostic strategies, and
-suggestions for monitoring instances in MongoDB's replica sets and
+Monitoring is a critical component of all database administration. A
+firm grasp of MongoDB's reporting will allow you to assess the state
+and maintain your deployment without crisis.  Additionally, a sense of
+MongoDB's normal operational parameters will allow you to diagnose
+issues as you encounter them, rather than waiting for a crisis or
+failure.
+
+This document provides an overview of the available tools and data
+provided by MongoDB as well as introduction to diagnostic strategies,
+and suggestions for monitoring instances in MongoDB's replica sets and
 shard clusters.
 
 .. seealso::
@@ -32,7 +34,7 @@ shard clusters.
    provides an overview of this diagnostic data in web-access able
    interface.
 
-   `10gen <http://10gen.com>`_ provides a hosted monitoring service
+   `10gen <http://10gen.com/>`_ provides a hosted monitoring service
    which collects and aggregates these data to provide insight into
    the performance and operation of MongoDB deployments. See the
    `MongoDB Monitoring Service (MMS) <http://mms.10gen.com/>`_ and the
@@ -42,15 +44,14 @@ shard clusters.
 Monitoring Tools
 ----------------
 
-MongoDB provides two main methods and several operation for collecting
-that reflects the state and condition of a running MongoDB
-instance. First, there are a set of tools accessible from the system
-shell that provide real time reporting of activity on the
-database. Second, several :doc:`database commands
-</reference/commands>` return fine grained statistics about the
-current database state. Each method provides a data that answer a
-different set of questions, and are useful for monitoring different
-context kinds of activity.
+There are two primary methods for collecting data regarding the state
+of a running MongoDB instance. First, there are a set of tools
+distributed with MongoDB that provide real-time reporting of activity
+on the database. Second, several :doc:`database commands
+</reference/commands>` return statistics regarding the current
+database state with greater fidelity. Both methods allow you to
+collect data that answers a different set of questions, and are useful
+in different contexts.
 
 This section provides an overview of these utilities and statistics,
 along with an example of the kinds of questions that each method is
@@ -59,30 +60,30 @@ most suited to help you address.
 Utilities
 ~~~~~~~~~
 
-The MongoDB distribution includes a number of binary programs that are
-useful for quickly returning statistics about the instances
-performance and activity. These are typically useful for diagnosing
-current issues with the database.
+The MongoDB distribution includes a number of utilities that return
+statistics about instances' performance and activity quickly. These
+are typically most useful for diagnosing issues and assessing normal
+operation.
 
-mongotop
-````````
+:program:`mongotop`
+```````````````````
 
 :program:`mongotop` tracks and reports the current read and write
-activity of a MongoDB instance. :program:`mongotop` provides per-collection
-visibility into use. Use :program:`mongotop` to verify that activity and use
-match expectations.
+activity of a MongoDB instance. :program:`mongotop` provides
+per-collection visibility into use. Use :program:`mongotop` to verify
+that activity and use match expectations.
 
 .. seealso:: ":doc:`/reference/mongotop`."
 
-monostat
-````````
+:program:`monostat`
+```````````````````
 
 :program:`mongostat` captures and returns counters of database
 operations. :program:`mongostat` reports operations on a per-type
-(e.g. insert, query, update, delete, etc.) basis that makes it easy to
-understand the nature of the load on the server. Use
+(e.g. insert, query, update, delete, etc.) basis. This format makes it
+easy to understand the distribution of load on the server. Use
 :program:`mongostat` to understand the distribution of operation types
-and to inform capacity development plans.
+and to inform capacity planning.
 
 .. seealso:: ":doc:`/reference/mongostat`."
 
@@ -102,27 +103,24 @@ Statistics
 
 The MongoDB interface provides a number of commands that return
 statistics about the state of the MongoDB instance. These commands
-useful for capturing the state of the MongoDB instance. Consider using
-their output in scripts and programs to develop custom alerts, or
-modifying the behavior of your application in response to the activity
-of your instance.
+report more granular information on the state of the MongoDB
+instance. Consider using their output in scripts and programs to
+develop custom alerts, or modifying the behavior of your application
+in response to the activity of your instance.
 
 serverStatus
 ````````````
 
-Return the :doc:`serverStatus data </reference/server-status/>` using
-the :dbcommand:`serverStatus` command. The document returned
+Access :doc:`serverStatus data </reference/server-status/>` by way of
+the the :dbcommand:`serverStatus` command. This :term:`JSON document`
 contains a general overview of the state of the database, including
-disk usage, memory use, connection, journaling, access. The command is
-quick to run and does not impact the performance of your MongoDB
-instance.
+disk usage, memory use, connection, journaling, access. The command
+returns quickly and does not impact MongoDB performance.
 
-You can find a near complete account of the state of a MongoDB
-instance in the output of :dbcommand:`serverStatus`
-command. Although, in most cases you will not run this command
-directly to assess the status of a MongoDB instance, it's a good idea
-to be familiar with the data provided by
-:dbcommand:`serverStatus`.
+While this output contains a (nearly) complete account of the state of
+a MongoDB instance, in most cases you will not run this command
+directly. Nevertheless, all administrators should be familiar with the
+data provided by :dbcommand:`serverStatus`.
 
 replSetGetStatus
 ````````````````

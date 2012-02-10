@@ -33,9 +33,8 @@ Procedures
 Adding Members
 ~~~~~~~~~~~~~~
 
-From to time, it may be necessary to add an additional member to an
-existing :term:`replica set`. The data directory for the new member
-can either:
+From to time, you may need to add an additional member to an existing
+:term:`replica set`. The data directory for the new member can:
 
 - have no data. In this case, you must copy all data as part of the
   replication process before the member can exit ":term:`recovering`"
@@ -405,10 +404,10 @@ To disable a node's ability to vote in :ref:`elections
 This sequence sets gives ``0`` votes to set members with the ``_id``
 values of ``3``, ``4``, and ``5``. This setting allows the set to
 elect these members as :term:`primary`, but does not allow them to
-vote in elections and allows you to add three additional voting nodes
-to your set. Place voting nodes so that your designated primary node
-or nodes can reach a majority of votes in the event of a network
-partition.
+vote in elections. If you have three non-voting nodes, you can add
+three additional voting nodes to your set. Place voting nodes so that
+your designated primary node or nodes can reach a majority of votes in
+the event of a network partition.
 
 .. note::
 
@@ -425,10 +424,10 @@ Troubleshooting
 ---------------
 
 This section defines reasonable troubleshooting processes for common
-operational challenges that you may encounter with replica sets. While
-there is no single causes or guaranteed response strategies for any of
-these symptoms, the following sections provide good places to start a
-troubleshooting investigation.
+operational challenges. While there is no single causes or guaranteed
+response strategies for any of these symptoms, the following sections
+provide good places to start a troubleshooting investigation with
+:term:`replica sets <replica set>`.
 
 .. seealso:: ":doc:`/administration/monitoring`."
 
@@ -446,8 +445,9 @@ replication lag makes "lagged" members ineligible to become
 read operations will be inconsistent.
 
 Identify replication lag by checking the values of
-:js:data:`members[n].optimeDate` for each member of the replica set using
-the :js:func:`rs.status()` function in the :program:`mongo` shell.
+:js:data:`members[n].optimeDate` for each member of the replica set
+using the :js:func:`rs.status()` function in the :program:`mongo`
+shell.
 
 Possible causes of replication lag include:
 
@@ -486,7 +486,7 @@ Possible causes of replication lag include:
 Failover and Recovery
 ~~~~~~~~~~~~~~~~~~~~~
 
-In most cases failover occurs with out administrator intervention,
+In most cases, failover occurs with out administrator intervention
 seconds after the :term:`primary` steps down or becomes inaccessible
 and ineligible to act as primary. If your MongoDB deployment does not
 failover according to expectations, consider the following operational
@@ -494,14 +494,15 @@ errors:
 
 - No remaining member is able to form a majority. This can happen as a
   result of network portions that render some members
-  inaccessible. Architect your systems to ensure that a majority of
-  members can elect a primary in the same facility as core application
-  systems.
+  inaccessible. Architect your deployment to ensure that a majority of
+  set members can elect a primary in the same facility as core
+  application systems.
 
 - No member is eligible to become :term:`primary`. Members must have a
-  :js:data:`members[n].priority` setting greater than 0, be less than ten
-  seconds behind the last operation to the :term:`replica set`, and
-  generally be *more* up to date than the voting members.
+  :js:data:`members[n].priority` setting greater than ``0``, have
+  state that is less than ten seconds behind the last operation to the
+  :term:`replica set`, and generally be *more* up to date than the
+  voting members.
 
 In many senses, :ref:`rollbacks <replica-set-rollbacks>` represent a
 graceful recovery from an impossible failover and recovery
@@ -510,10 +511,12 @@ situation.
 Rollbacks occur when a primary accepts writes that other members of
 the set do not successfully replicate before the primary steps
 down. When the former primary begins replicating again it performs a
-"rollback" to discard those operations that were never replicated to
-the set so that the data set is in a consistent state.
+"rollback." Rollbacks remove those operations from the instance that
+were never replicated to the set so that the data set is in a
+consistent state. The :program:`mongod` program writes rolled back
+data to a :term:`BSON`.
 
-You can prevent Rollbacks prevented by ensuring :term:`write
-concern`.
+You can prevent Rollbacks prevented by ensuring safe writes by using
+the appropriate :term:`write concern`.
 
 .. seealso:: ":ref:`Replica Set Elections <replica-set-elections>`"

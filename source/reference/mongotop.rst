@@ -67,9 +67,9 @@ Options
    of at least one connected set member, connect to primary node of
    that set. this option would resemble:
 
-   .. code-block::
+   .. code-block:: sh
 
-        --host repl0 mongo0.example.net,mongo0.example.net,27018,mongo1.example.net,mongo2.example.net
+      --host repl0 mongo0.example.net,mongo0.example.net,27018,mongo1.example.net,mongo2.example.net
 
    You can always connect directly to a single MongoDB instance by
    specifying the host and port number directly.

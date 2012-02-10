@@ -6,9 +6,9 @@ Replication Architectures
 
 There is no single :term:`replica set` architecture that is compatible
 or ideal for every deployment or environment. Indeed the flexibility
-of replica sets is perhaps its greatest strenght. This document
-outlines and describes the most prevalent deployment patterns for
-replica set administrators.
+of replica sets may be its greatest strenght. This document outlines
+and describes the most prevalent deployment patterns for replica set
+administrators.
 
 .. seealso:: ":doc:`/administration/replica-sets`" and
    ":doc:`/reference/replica-configuration`."
@@ -19,17 +19,16 @@ Three Member Sets
 The minimum *recommend* architecture for a :term:`replica set`
 consists of:
 
-- One :term:`primary node <primary>`.
+- One :term:`primary <primary>` for the set.
 
-- Two :term:`secondary nodes <secondary>`, which can become the
-  primary node at any time.
+- Two :term:`secondary members <secondary>`, which can become the
+  primary at any time.
 
 This makes :ref:`failover <replica-set-failover>` possible, and
 ensures that there are two independent copies of the entire data set
-at all times. Even if one node is inaccessible, the set will still be
-able to elect another nodes as :term:`primary`, and continue
-replication until the first node is accessible again or a replacement
-set member can be initialized.
+at all times. Even if one member is inaccessible, the set will still
+be able to elect another member as :term:`primary`, and continue
+replication until the first member can recover.
 
 .. note::
 
@@ -76,15 +75,15 @@ Geographically Distributed Sets
 If you have infrastructure in more than one facility, you may want to
 consider keeping one member of the replica set in a secondary
 facility. Typically this member should have the :js:data:`priority
-<members[n].priority>` :ref:`set <replica-set-reconfiguration-usage>` to
-``0`` to prevent the node from ever becoming primary.
+<members[n].priority>` :ref:`set <replica-set-reconfiguration-usage>`
+to ``0`` to prevent the node from ever becoming primary.
 
 In many circumstances, these deployments consist of the following:
 
-- One :term:`primary node <primary>` in the first (i.e. primary) data
-  center.
+- One :term:`primary <primary>` set member in the first (i.e. primary)
+  data center.
 
-- One :term:`secondary node <secondary>` in the first data center that
+- One :term:`secondary member <secondary>` in the first data center that
   can become primary at any time.
 
 - One secondary node in another data center, that is ineligible to
@@ -99,8 +98,8 @@ to function.
 
 If the primary data center fails, recovering from the database
 instance in the secondary facility requires manual intervention, but
-with proper :term:`write concern <write propagation>` there will be no
-data loss and downtime is typically be minimal.
+with proper :term:`write concern` there will be no data loss and
+downtime is typically be minimal.
 
 For deployments that maintain three members the primary data center,
 adding a node in a second data center will create an even number of
@@ -111,32 +110,33 @@ primary is always electable.
 
 .. seealso:: ":doc:`/tutorial/deploy-geographically-distributed-replica-set`"
 
-Hidden and Non-Voting Nodes
----------------------------
+Hidden and Non-Voting Members
+-----------------------------
 
-In some cases it may be useful to maintain node that has an always
-up-to-date copy of the entire data set, but that cannot become
-primary. Typically these nodes are used for backup, reporting, or as
-cold standbys. There are three settings relevant for these kinds of
-nodes:
+In some cases it may be useful to maintain a member of the set that
+has an always up-to-date copy of the entire data set, but that cannot
+become primary. Typically these members provide backups, support
+reporting, or act as cold standbys in the clusters. There are three
+settings relevant for these kinds of nodes:
 
-- **Priority**: These nodes are configured so that they either cannot
-  become :term:`primary`, or are *very* unlikely to become primary. In
-  all other respects lower-priority nodes are identical any other
-  replica set member. (:ref:`see also <replica-set-secondary-only-nodes>`.)
+- **Priority**: These members have :js:data:`members[n].priority`
+  settings so that they either cannot become :term:`primary`, or are
+  *very* unlikely to become primary. In all other respects
+  lower-priority nodes are identical any other replica set
+  member. (:ref:`see also <replica-set-secondary-only-members>`.)
 
-- **Hidden**: These nodes cannot become primary, but are hidden from
-  the output of :js:func:`db.isMaster()` or the database command
-  :dbcommand:`isMaster`, which prevents clients and drivers from using
-  these nodes for secondary reads. (:ref:`see also
-  <replica-set-hidden-nodes>`.)
+- **Hidden**: These members cannot become primary *and* the set
+  excludes them from the output of :js:func:`db.isMaster()` or the
+  database command :dbcommand:`isMaster`, which prevents clients and
+  drivers from using these nodes for secondary reads. (:ref:`see also
+  <replica-set-hidden-members>`.)
 
-- **Voting**: This changes the number of votes that a node has in
-  elections for master. In general use priority to control the outcome
-  of elections, as weighting votes introduces operational complexities
-  and the potential. Only modify the number of votes, if you need to
-  have more than 7 members of a replica set. (:ref:`see also
-  <replica-set-non-voting-nodes>`.)
+- **Voting**: This changes the number of votes that a member of the
+  set node has in elections for primary. In general use priority to
+  control the outcome of elections, as weighting votes introduces
+  operational complexities and the potential. Only modify the number
+  of votes, if you need to have more than 7 members of a replica
+  set. (:ref:`see also <replica-set-non-voting-members>`.)
 
 Backups
 ~~~~~~~
@@ -146,7 +146,7 @@ backup for dedicated backup purposes is operationally
 advantageous. Ensure this system is close, from a networking
 perspective, to the primary node or likely primary, and that the
 :term:`replication lag` is minimal or non-existent. You may wish to
-create a dedicated :ref:`hidden node <replica-set-hidden-nodes>` for
+create a dedicated :ref:`hidden node <replica-set-hidden-members>` for
 the purpose of creating backups.
 
 If this node have journaling enabled, you can safely use standard
@@ -162,56 +162,57 @@ point-in-time dump of the database state.
 Delayed Nodes
 ~~~~~~~~~~~~~
 
-:term:`Delayed nodes <delayed node>` are special set members that
+:term:`Delayed nodes <delayed member>` are special set members that
 function in most cases like other replica set :term:`secondary`
-members with the following operational differences: they cannot be
-elected primary, do not receive secondary queries, but *do* vote in
-:term:`elections <election>` for primary.
+members with the following operational differences: they are not
+eligible for election to primary, do not receive secondary queries,
+but *do* vote in :term:`elections <election>` for primary.
 
 Delayed nodes, however, apply operations from the :term:`oplog` on a
 delay, to provide running "historical" snapshot of the data set, or a
-rolling backup. Typically these nodes are used to protect against
-human error, such as deleted databases, dropped collections, or failed
-application upgrades or migrations.
+rolling backup. Typically these members provide protection against
+human error, such as unintentionally deleted databases and
+collections, or failed application upgrades or migrations.
 
-See ":ref:`Replica Set Delayed Nodes <replica-set-delayed-nodes>` for
+See ":ref:`Replica Set Delayed Nodes <replica-set-delayed-members>` for
 more information about configuring delayed nodes.
 
 Reporting
 ~~~~~~~~~
 
-Typically :term:`hidden nodes <hidden node>` are used for reporting
-purposes, because they are isolated from the cluster, and because no
-secondary reads reach the node, they receive no traffic beyond what is
-required for replication. While hidden nodes are not electable as
-primary, they are still able to *vote* in elections for primary. If
-your operational parameters requires this kind of reporting
-functionality, see ":ref:`Hidden Replica Set Nodes
-<replica-set-hidden-nodes>`" and :js:data:`members[n].hidden` for more
+Typically :term:`hidden nodes <hidden member>` provide a substrate for
+reporting purposes, because the replica set segregates these instances
+from the cluster. Since no secondary reads reach hidden members, they
+receive no traffic beyond what replication requires. While hidden
+nodes are not electable as primary, they are still able to *vote* in
+elections for primary. If your operational parameters requires this
+kind of reporting functionality, see ":ref:`Hidden Replica Set Nodes
+<replica-set-hidden-members>`" and :js:data:`members[n].hidden` for more
 information regarding this functionality.
 
 Cold Standbys
 ~~~~~~~~~~~~~
 
-For some sets, it may not be possible to initialize a new replica set
-member in a reasonable period of time. In these situations, it may be
-useful to maintain a secondary with an up to date copy for the express
-purpose of replacing another node in the replica set. In most cases,
-these nodes can be ordinary members of the replica set, but in large
-sets, with varied hardware availability, or given some patterns of
+For some sets, it may not be possible to initialize a new members in a
+reasonable amount of time. In these situations, it may be useful to
+maintain a secondary with an up to date copy for the purpose of
+replacing another node in the replica set. In most cases, these nodes
+can be ordinary members of the replica set, but in large sets, with
+varied hardware availability, or given some patterns of
 :ref:`geographical distribution <replica-set-geographical-distribution>`,
 you may want to use a node with a different :term:`priority`,
-:term:`hidden <hidden node>`, or voting status.
+:term:`hidden <hidden member>`, or voting status.
 
-Perhaps, your primary nodes have a different hardware specification or
-are located on a different network segment from (some) replica
-secondaries. In these cases, deploy nodes with :term:`priority` equal
-to ``0`` to ensure that they will never become primary. These nodes
-will vote in elections for primary, but will never be eligible for
-election to primary. Consider likely failover scenarios, such as
-inter-site network partitions, and ensure there will be both nodes
-that are eligible to be elected primary *and* a quorum of voting
-members of the set in the case of a site failure.
+Cold standbys may be valuable when your :term:`primary` and "hot
+standby" :term:`secondaries <secondary>` members have a different
+hardware specification or connect via a different network than the
+main set. In these cases, deploy nodes with :term:`priority` equal to
+``0`` to ensure that they will never become primary. These nodes will
+vote in elections for primary, but will never be eligible for election
+to primary. Consider likely failover scenarios, such as inter-site
+network partitions, and ensure there will be members eligible for
+election as primary *and* a quorum of voting members in the main
+facility.
 
 .. note::
 
@@ -220,8 +221,8 @@ members of the set in the case of a site failure.
    they won't vote in elections.
 
 .. seealso:: ":ref:`Secondary Only
-   <replica-set-secondary-only-nodes>`," and ":ref:`Hidden Nodes
-   <replica-set-hidden-nodes>`.
+   <replica-set-secondary-only-members>`," and ":ref:`Hidden Nodes
+   <replica-set-hidden-members>`.
 
 Arbiter Nodes
 -------------
