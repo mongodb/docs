@@ -10,7 +10,7 @@ Introduction
 In addition to the :doc:`MongoDB Query Operators
 </reference/operators>`, there are a number of "meta" operators that
 you may use to modify the output or behavior or output of the
-query. Specify these modifiers to a :mjs:func:`find()` query, in the
+query. Specify these modifiers to a :func:`find()` query, in the
 following form (for the :program:`mongo` shell):
 
 .. code-block:: javascript
@@ -85,7 +85,7 @@ Modifiers
    match the query described by "``[QUERY]``" where the field
    "``value``" is at least "``20``". :program:`mongod` infers the
    index based on the "``query``" unless specified by the
-   :mjs:func:`hint()` function.
+   :func:`hint()` function.
 
    Use operation alone or in conjunction with :operator:`$max`
    to limit results to a specific range.
@@ -104,7 +104,7 @@ Modifiers
    match the query described by "``[QUERY]``" where the field
    "``value``" is less than "``20``". :program:`mongod` infers the
    index based on on the "``query``" unless specified by the
-   :mjs:func:`hint()` function.
+   :func:`hint()` function.
 
    Use operation alone or in conjunction with :operator:`$min`
    to limit results to a specific range.
@@ -118,7 +118,7 @@ Modifiers
 
       db.collection.find()._addSpecial( "$query" : { value : 100 } )
 
-   This is equivalent to the following :mjs:func:`find()` method that
+   This is equivalent to the following :func:`find()` method that
    may be more familiar to you:
 
    .. code-block:: javascript
@@ -134,7 +134,7 @@ Modifiers
 
       db.collection.find()._addSpecial( "$orderby", { age : -1} )
 
-   This is equivalent to the following :mjs:func:`sort()` method that
+   This is equivalent to the following :func:`sort()` method that
    may be more familiar to you:
 
    .. code-block:: javascript
@@ -149,8 +149,8 @@ Modifiers
 
    Unless you have a index for the specified key pattern, use
    :operator:`$orderby` in conjunction with :operator:`$maxScan` and
-   :mjs:func:`limit()` to avoid requiring MongoDB to perform a large
-   in-memory sort. :mjs:func:`limit()` increases the speed and reduce
+   :func:`limit()` to avoid requiring MongoDB to perform a large
+   in-memory sort. :func:`limit()` increases the speed and reduce
    the amount of memory required to return this query by way of an
    optimized algorithm.
 
@@ -179,7 +179,7 @@ Modifiers
 
        db.collection.find()._addSpecial( "$explain", 1 )
 
-   The JavaScript function :mjs:func:`explain()` provides equivalent
+   The JavaScript function :func:`explain()` provides equivalent
    functionality in the :program:`mongo` shell. See the following
    example, which is equivalent to the above:
 
@@ -205,7 +205,7 @@ Modifiers
 
       db.foo.find()._addSpecial( "$snapshot", true )
 
-   The JavaScript function :mjs:func:`snapshot()` provides equivalent
+   The JavaScript function :func:`snapshot()` provides equivalent
    functionality in the :program:`mongo` shell. See the following
    example, which is equivalent to the above:
 
@@ -214,7 +214,7 @@ Modifiers
       db.foo.find().snapshot()
 
    Do not use snapshot with :operator:`$hint`, or :operator:`$orderby`
-   (:mjs:func:`sort()`.)
+   (:func:`sort()`.)
 
    All queries with responses less than 1 megabyte are effectively
    snapshotted.

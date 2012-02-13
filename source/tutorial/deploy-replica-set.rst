@@ -111,8 +111,8 @@ functional replica set. You may have to wait several moments for the
 new replica set to successfully elect a :term:`primary` node.
 
 See the documentation of the following shell functions for more
-information: :mjs:func:`rs.initiate()`, :mjs:func:`rs.conf()`,
-:mjs:func:`rs.reconfig()` and :mjs:func:`rs.add()`.
+information: :func:`rs.initiate()`, :func:`rs.conf()`,
+:func:`rs.reconfig()` and :func:`rs.add()`.
 
 .. [#screen] `GNU Screen <http://www.gnu.org/screen/>`_ is packaged as
    ``screen`` on Debian-based, Fedira/Red Hat-based, and Arch Linux.
@@ -233,7 +233,7 @@ new replica set to successfully elect a :term:`primary` node.
 .. seealso:: The documentation of the following shell functions for
    more information:
 
-   - :mjs:func:`rs.initiate()`,
-   - :mjs:func:`rs.conf()`,
-   - :mjs:func:`rs.reconfig()`, and
-   - :mjs:func:`rs.add()`.
+   - :func:`rs.initiate()`,
+   - :func:`rs.conf()`,
+   - :func:`rs.reconfig()`, and
+   - :func:`rs.add()`.

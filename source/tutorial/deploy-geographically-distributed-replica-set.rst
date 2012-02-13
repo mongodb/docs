@@ -188,15 +188,15 @@ current primary is ``mongodb0.example.net``.
 Make sure that you have configured the member located in Site B
 (i.e. ``mongodb3.example.net``) as a :ref:`secondary-only member
 <replica-set-secondary-only-members>`. First, issue the following
-command determine the :mjs:data:`members[n]._id` value for
+command determine the :data:`members[n]._id` value for
 ``mongodb3.example.net``:
 
 .. code-block:: javascript
 
    rs.config()
 
-In the :mjs:data:`member array <rs.conf.members>` for this host, save
-the :mjs:data:`members[n]._id` value. The next example assumes that this
+In the :data:`member array <rs.conf.members>` for this host, save
+the :data:`members[n]._id` value. The next example assumes that this
 value is ``2``. Next, in the shell connected to the replica set's
 :term:`primary`, issue the following command sequence:
 
@@ -208,7 +208,7 @@ value is ``2``. Next, in the shell connected to the replica set's
 
 .. note::
 
-   The :mjs:func:`rs.reconfig()` shell command can force the current
+   The :func:`rs.reconfig()` shell command can force the current
    primary to step down and causes an election in some
    situations. When the primary steps down, all clients will
    disconnect. This is the intended behavior. While, this typically
@@ -374,15 +374,15 @@ arbiter (i.e. "``mongodb4.example.net``"):
 Make sure that you have configured the member located in Site B
 (i.e. ``mongodb3.example.net``) as a :ref:`secondary-only member
 <replica-set-secondary-only-members>`. First, issue the following
-command determine the :mjs:data:`members[n]._id` value for
+command determine the :data:`members[n]._id` value for
 ``mongodb3.example.net``:
 
 .. code-block:: javascript
 
    rs.config()
 
-In the :mjs:data:`member array <rs.conf.members>` for this host, save
-the :mjs:data:`members[n]._id` value. The next example assumes that
+In the :data:`member array <rs.conf.members>` for this host, save
+the :data:`members[n]._id` value. The next example assumes that
 this value is ``2``. Next, in the shell connected to the replica set's
 :term:`primary`, issue the following command sequence:
 
@@ -394,7 +394,7 @@ this value is ``2``. Next, in the shell connected to the replica set's
 
 .. note::
 
-   The :mjs:func:`rs.reconfig()` shell command can force the current
+   The :func:`rs.reconfig()` shell command can force the current
    primary to step down and causes an election in some
    situations. When the primary steps down, all clients will
    disconnect. This is the intended behavior. While, this typically

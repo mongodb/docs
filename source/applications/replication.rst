@@ -74,7 +74,7 @@ operation has succeeded on a majority of the nodes before writing. By
 specifying "``fsync: false``" and "``j: true``" a successful commit of
 the operation to the journal is all that :dbcommand:`getLastError`
 requires to return succesullly, rather than a full flush to disk. Use this the
-:mjs:data:`getLastErrorDefaults`" setting on the sever level to define the
+:data:`getLastErrorDefaults`" setting on the sever level to define the
 standards for a set-wide "safe mode." The default setting will only
 affect :dbcommand:`getLastError` commands with *no* other
 arguments.
@@ -96,7 +96,7 @@ secondary reads:
      rs.slaveOk()
 
 Clients set :term:`read preference` on a per-connection
-basis. See ":mjs:func:`rs.slaveOk()`" for more information.
+basis. See ":func:`rs.slaveOk()`" for more information.
 
 Because secondary nodes are not guaranteed to be consistent with the
 state of the primary nodes, setting a read preference that allows

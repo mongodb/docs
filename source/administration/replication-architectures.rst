@@ -58,7 +58,7 @@ architectural conditions are true:
 
 - The set only has 7 voting members at any time.
 
-- Every member with a :mjs:data:`priority <members[n].priority>` greater
+- Every member with a :data:`priority <members[n].priority>` greater
   than ``0`` can function as ``primary`` in a :term:`failover`
   situation. If a member does not have this capability (i.e. resource
   constraints,) set its ``priority`` value to ``0``.
@@ -74,7 +74,7 @@ Geographically Distributed Sets
 
 If you have infrastructure in more than one facility, you may want to
 consider keeping one member of the replica set in a secondary
-facility. Typically this member should have the :mjs:data:`priority
+facility. Typically this member should have the :data:`priority
 <members[n].priority>` :ref:`set <replica-set-reconfiguration-usage>`
 to ``0`` to prevent the node from ever becoming primary.
 
@@ -87,7 +87,7 @@ In many circumstances, these deployments consist of the following:
   can become primary at any time.
 
 - One secondary node in another data center, that is ineligible to
-  become primary (i.e. with a :mjs:data:`members[n].priority` value of
+  become primary (i.e. with a :data:`members[n].priority` value of
   ``0``.)
 
 If any of the members fail, the replica set will still be able to
@@ -119,14 +119,14 @@ become primary. Typically these members provide backups, support
 reporting, or act as cold standbys in the clusters. There are three
 settings relevant for these kinds of nodes:
 
-- **Priority**: These members have :mjs:data:`members[n].priority`
+- **Priority**: These members have :data:`members[n].priority`
   settings so that they either cannot become :term:`primary`, or are
   *very* unlikely to become primary. In all other respects
   lower-priority nodes are identical any other replica set
   member. (:ref:`see also <replica-set-secondary-only-members>`.)
 
 - **Hidden**: These members cannot become primary *and* the set
-  excludes them from the output of :mjs:func:`db.isMaster()` or the
+  excludes them from the output of :func:`db.isMaster()` or the
   database command :dbcommand:`isMaster`, which prevents clients and
   drivers from using these nodes for secondary reads. (:ref:`see also
   <replica-set-hidden-members>`.)
@@ -187,7 +187,7 @@ receive no traffic beyond what replication requires. While hidden
 nodes are not electable as primary, they are still able to *vote* in
 elections for primary. If your operational parameters requires this
 kind of reporting functionality, see ":ref:`Hidden Replica Set Nodes
-<replica-set-hidden-members>`" and :mjs:data:`members[n].hidden` for more
+<replica-set-hidden-members>`" and :data:`members[n].hidden` for more
 information regarding this functionality.
 
 Cold Standbys
@@ -217,7 +217,7 @@ facility.
 .. note::
 
    If your set already has ``7`` nodes, set the
-   :mjs:data:`members[n].votes` value to ``0`` for these nodes, so that
+   :data:`members[n].votes` value to ``0`` for these nodes, so that
    they won't vote in elections.
 
 .. seealso:: ":ref:`Secondary Only
@@ -247,4 +247,4 @@ hold data, to prevent tied :term:`elections <election>`.
 
 .. seealso:: ":ref:`Arbiter Nodes <replica-set-arbiters>`,"
    ":setting:`replSet`," ":option:`mongod --replSet`, and
-   ":mjs:func:`rs.addArb()`."
+   ":func:`rs.addArb()`."

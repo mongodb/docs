@@ -17,7 +17,7 @@ resembles the following:
 
    db.runCommand( { dbStats: 1 } )
 
-The :program:`mongo` shell provides the :mjs:func:`db.stats()` as a
+The :program:`mongo` shell provides the :func:`db.stats()` as a
 helper. Use the following form:
 
 .. code-block:: javascript
@@ -25,7 +25,7 @@ helper. Use the following form:
    db.stats()
 
 The above commands are equivalent. Without any arguments,
-:mjs:func:`db.stats()` returns values in bytes. To convert the returned
+:func:`db.stats()` returns values in bytes. To convert the returned
 values to kilobytes, use the following form:
 
 .. code-block:: javascript
@@ -45,7 +45,7 @@ Or:
 
 The above commands are equivalent.
 
-.. seealso:: See :dbcommand:`dbStats`, :mjs:func:`db.stats()`
+.. seealso:: See :dbcommand:`dbStats`, :func:`db.stats()`
    additional more information.
 
 Fields

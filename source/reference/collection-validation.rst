@@ -27,103 +27,103 @@ following form to validate a collection named "``people``":
    db.people.validate()
 
 Alternatively you can use the command prototype and the
-:mjs:func:`db.runCommand()` shell helper in the following form:
+:func:`db.runCommand()` shell helper in the following form:
 
 .. code-block:: javascript
 
    db.runCommand( { validate: "people", full: true } )
    db.people.validate(true)
 
-.. seealso:: ":dbcommand:`validate`" and ":mjs:func:`validate()`."
+.. seealso:: ":dbcommand:`validate`" and ":func:`validate()`."
 
 Values
 ------
 
-.. mjs:data:: ns
+.. data:: ns
 
-.. mjs:data:: firstExtent
+.. data:: firstExtent
 
-.. mjs:data:: lastExtent
+.. data:: lastExtent
 
-.. mjs:data:: extentCount
+.. data:: extentCount
 
-.. mjs::data:: extents
+.. :data:: extents
 
    .. note::
 
       This sub-document is only returned when you specify the "``full``" option.
 
-   .. mjs::data:: extents.loc
+   .. :data:: extents.loc
 
-   .. mjs::data:: extents.xnext
+   .. :data:: extents.xnext
 
-   .. mjs::data:: extents.xprev
+   .. :data:: extents.xprev
 
-   .. mjs::data:: extents.nsdaig
+   .. :data:: extents.nsdaig
 
-   .. mjs::data:: extents.size
+   .. :data:: extents.size
 
-   .. mjs::data:: extents.firstRecord
+   .. :data:: extents.firstRecord
 
-   .. mjs::data:: extents.lastRecord
+   .. :data:: extents.lastRecord
 
-.. mjs:data:: datasize
+.. data:: datasize
 
-.. mjs:data:: nsrecords
+.. data:: nsrecords
 
-.. mjs:data:: lastExtentSize
+.. data:: lastExtentSize
 
-.. mjs:data:: padding
+.. data:: padding
 
-.. mjs:data:: firstExtentDetails
+.. data:: firstExtentDetails
 
-   .. mjs:data:: firstExtentDetails.loc
+   .. data:: firstExtentDetails.loc
 
-   .. mjs:data:: firstExtentDetails.xnext
+   .. data:: firstExtentDetails.xnext
 
-   .. mjs:data:: firstExtentDetails.xprev
+   .. data:: firstExtentDetails.xprev
 
-   .. mjs:data:: firstExtentDetails.nsdiag
+   .. data:: firstExtentDetails.nsdiag
 
-   .. mjs:data:: firstExtentDetails.size
+   .. data:: firstExtentDetails.size
 
-   .. mjs:data:: firstExtentDetails.firstRecord
+   .. data:: firstExtentDetails.firstRecord
 
-   .. mjs:data:: firstExtentDetails.lastRecord
+   .. data:: firstExtentDetails.lastRecord
 
-.. mjs:data:: objectsFound
+.. data:: objectsFound
 
-.. mjs:data:: invalidObjects
-
-   .. note::
-
-      This field is only included in the validation output when you
-      specify the "``full``" option.
-
-.. mjs:data:: byteswWithHeaders
+.. data:: invalidObjects
 
    .. note::
 
       This field is only included in the validation output when you
       specify the "``full``" option.
 
-.. mjs:data:: bytesWithoutHeaders
+.. data:: byteswWithHeaders
 
    .. note::
 
       This field is only included in the validation output when you
       specify the "``full``" option.
 
-.. mjs:data:: deletedCount
+.. data:: bytesWithoutHeaders
 
-.. mjs:data:: deletedSize
+   .. note::
 
-.. mjs:data:: nIndexes
+      This field is only included in the validation output when you
+      specify the "``full``" option.
 
-.. mjs:data:: keysPerIndex
+.. data:: deletedCount
 
-.. mjs:data:: valid
+.. data:: deletedSize
 
-.. mjs:data:: errors
+.. data:: nIndexes
 
-.. mjs:data:: ok
+.. data:: keysPerIndex
+
+.. data:: valid
+
+.. data:: errors
+
+.. data:: ok

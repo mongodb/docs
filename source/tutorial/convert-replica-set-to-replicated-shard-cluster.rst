@@ -393,8 +393,8 @@ The collection "``test_collection``" is now sharded!
 
 Over the next few minutes the Balancer will begin to redistribute
 chunks of documents. You can confirm this activity by switching to the
-``test`` database and running :mjs:func:`db.stats()` or
-:mjs:func:`db.printShardingStatus()`.
+``test`` database and running :func:`db.stats()` or
+:func:`db.printShardingStatus()`.
 
 As clients insert additional documents into this collection,
 distributed evenly between the shards.
@@ -408,7 +408,7 @@ statics against each cluster:
    db.stats()
    db.printShardingStatus()
 
-The output of the :mjs:func:`db.stats()` command:
+The output of the :func:`db.stats()` command:
 
 .. code-block:: javascript
 
@@ -454,7 +454,7 @@ The output of the :mjs:func:`db.stats()` command:
         "ok" : 1
    }
 
-The output of the :mjs:func:`db.printShardingStatus()` command:
+The output of the :func:`db.printShardingStatus()` command:
 
 .. code-block:: javascript
 

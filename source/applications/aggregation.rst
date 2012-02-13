@@ -103,12 +103,12 @@ Use
 Invocation
 ~~~~~~~~~~
 
-Invoke an :term:`aggregation` operation with the :mjs:func:`aggregate`
+Invoke an :term:`aggregation` operation with the :func:`aggregate`
 wrapper in the :program:`mongo` shell for the :dbcommand:`aggregate`
-:term:`database command`. Always call :mjs:func:`aggregate` on a
+:term:`database command`. Always call :func:`aggregate` on a
 collection object, which will determine the documents that contribute
-to the beginning of the aggregation :term:`pipleine`. The arguments to
-the :mjs:func:`aggregate` function specify a sequence :ref:`pipeline
+to the beginning of the aggregation :term:`pipeline`. The arguments to
+the :func:`aggregate` function specify a sequence :ref:`pipeline
 operators <aggregation-pipeline-operator-reference>`, where each
 :ref:`pipeline operator <aggregation-pipeline-operator-reference>` may
 have a number of operands.
@@ -150,7 +150,7 @@ command:
      } }
    );
 
-This operation uses the :mjs:func:`aggregate` wrapper around the
+This operation uses the :func:`aggregate` wrapper around the
 :term:`database command` :dbcommand:`aggregate`. The aggregation
 pipleine begins with the :term:`collection` "``article``" and selects
 the ``author`` and ``tags`` fields using the :aggregator:`$project`
@@ -180,7 +180,7 @@ Optimizing Performance
 Early Filtering
 ~~~~~~~~~~~~~~~
 
-Because you will always call :mjs:func:`aggregate` on a
+Because you will always call :func:`aggregate` on a
 :term:`collection` object, which inserts the *entire* collection into
 the aggregation pipeline, you may want to increase efficiency in some
 situations by avoiding scanning an entire collection.

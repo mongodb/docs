@@ -259,7 +259,7 @@ The current pipeline operators are:
       amount of later processing. If you place a :aggregator:`$match`
       at the very beginning of a pipeline, the query can take
       advantage of :term:`indexes <index>` like any other
-      :mjs:func:`find()` or :mjs:func:`findOne()`.
+      :func:`find()` or :func:`findOne()`.
 
 .. aggregator:: $limit
 

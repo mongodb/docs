@@ -478,7 +478,7 @@ Glossary
       the database system. Specify MongoDB, queries using :term:`JSON`
       documents and the :term:`database operators <operator>` to
       describe documents. In the :program:`mongo` shell, issue queries
-      using the :mjs:func:`find()` and :mjs:func:`findOne()` functions.
+      using the :func:`find()` and :func:`findOne()` functions.
 
    projection
       A component of complex queries that controls the content that a
@@ -601,8 +601,8 @@ Glossary
       preference`.
 
       .. seealso:: ":ref:`Hidden Member <replica-set-hidden-members>`,"
-         :dbcommand:`isMaster`, :mjs:func:`db.isMaster`, and
-         :mjs:data:`members[n].hidden`.
+         :dbcommand:`isMaster`, :func:`db.isMaster`, and
+         :data:`members[n].hidden`.
 
    delayed member
       A member of a :term:`replica set` that cannot become primary and
@@ -659,7 +659,7 @@ Glossary
       infrastructure (e.g. data center, rack, network up-link, storage
       array) that hosts the database instance.
 
-      .. seealso:: ":mjs:data:`members[n].tags`" and ":ref:`data center
+      .. seealso:: ":data:`members[n].tags`" and ":ref:`data center
          awareness <replica-set-data-center-awareness>`."
 
    recovering

@@ -243,7 +243,7 @@ Sharding
    :term:`chunks <chunk>`. :dbcommand:`printShardingStatus` is only available
    when connected to a :term:`shard cluster` via a
    :program:`mongos`. Typically, you will use the
-   :mjs:func:`sh.status()` :program:`mongo` shell wrapper to access
+   :func:`sh.status()` :program:`mongo` shell wrapper to access
    this data.
 
 Aggregation
@@ -265,7 +265,7 @@ Aggregation
                               } } );
 
    More typically, in the :program:`mongo` shell, you will call the
-   :dbcommand:`group` command using the :mjs:func:`group()`
+   :dbcommand:`group` command using the :func:`group()`
    method. Consider the following form:
 
    .. code-block:: javascript
@@ -301,16 +301,16 @@ Aggregation
                          day or week in place of a fixed ``key``.
 
    :field optional cond: A statement that must evaluate to true for
-                         the :mjs:func:`group()` to process this
+                         the :func:`group()` to process this
                          document. Essentially this argument specifies
                          a query document (as for
-                         :mjs:func:`find()`). Unless specified,
-                         :mjs:func:`group()` runs the "reduce" function
+                         :func:`find()`). Unless specified,
+                         :func:`group()` runs the "reduce" function
                          against all documents in the collection.
 
    :field optional finalize: An optional function that runs each item
                              in the result set before
-                             :mjs:func:`group()` returns the final
+                             :func:`group()` returns the final
                              value. This function can either modify
                              the document by computing and adding an
                              average field, or return compute and
@@ -318,7 +318,7 @@ Aggregation
 
    .. note::
 
-      The result set of the :mjs:func:`group()` must fit within the
+      The result set of the :func:`group()` must fit within the
       size :ref:`maximum BSON document <limit-maximum-bson-document-size>`.
 
       Furthermore, you must ensure that there are fewer then 10,000
@@ -326,7 +326,7 @@ Aggregation
 
    .. warning::
 
-      :mjs:func:`group()` does not work in :term:`shard environments
+      :func:`group()` does not work in :term:`shard environments
       <shard cluster>`. Use the :term:`aggregation framework` or
       :term:`map/reduce` (i.e. :db;command:`mapReduce` in
       :term:`sharded environments <sharding>`.
@@ -343,7 +343,7 @@ Aggregation
 
    In the :program:`mongo` shell, this returns the number of documents in the
    collection (e.g. ``collection``). You may also run this command
-   using the :mjs:func:`db.runCommand()` functionality, with the following results:
+   using the :func:`db.runCommand()` functionality, with the following results:
 
    .. code-block:: javascript
 
@@ -383,7 +383,7 @@ Aggregation
                 name. See below for additional output options.
 
    :option optional query: A query object, like the query used by the
-                           :mjs:func:`find()` method. Use this to
+                           :func:`find()` method. Use this to
                            filter to limit the number of documents
                            enter the map phase of the aggregation.
 
@@ -468,7 +468,7 @@ Aggregation
       operations and ":doc:`/applications/aggregation`" for a more flexible
       approach to data aggregation in MongoDB.
 
-   .. seealso:: ":mjs:func:`mapReduce()`" and ":doc:`/core/map-reduce`"
+   .. seealso:: ":func:`mapReduce()`" and ":doc:`/core/map-reduce`"
 
    .. slave-ok
 
@@ -476,7 +476,7 @@ Aggregation
 
    The :dbcommand:`findAndModify` command atomically modifies and
    returns a single document. The shell and many :term:`drivers
-   <driver>` provide a :mjs:func:`findAndModify()` helper method. The
+   <driver>` provide a :func:`findAndModify()` helper method. The
    command has the following prototype form:
 
    .. code-block:: javascript
@@ -488,7 +488,7 @@ Aggregation
    options, as a sub-document that specifies the following:
 
    :field query: A query object. This statement might resemble the
-                  :term:`JSON document` passed to :mjs:func:`find()`,
+                  :term:`JSON document` passed to :func:`find()`,
                   and should return *one* document from the database.
 
    :field optional sort: If the query selects multiple documents, the
@@ -654,7 +654,7 @@ Aggregation
        ] }
       );
 
-    More typically this operation would use the :mjs:func:`aggregate`
+    More typically this operation would use the :func:`aggregate`
     helper in the :program:`mongo` shell, and would resemble the
     following:
 
@@ -764,7 +764,7 @@ Replication
 
    A typical way of running this command is to assign the config document to
    a variable and then to pass the document to the
-   :mjs:func:`rs.initiate()` helper:
+   :func:`rs.initiate()` helper:
 
    .. code-block:: javascript
 
@@ -800,7 +800,7 @@ Replication
 
       { replSetReconfig: <new_config_document>, force: false }
 
-   You may also run the command using the shell's :mjs:func:`rs.reconfig()` method.
+   You may also run the command using the shell's :func:`rs.reconfig()` method.
 
    Be aware of the following :dbcommand:`replSetReconfig` behaviors:
 
@@ -932,7 +932,7 @@ Collections
                         document`, that filters the documents in the
                         remote collection that
                         :dbcommand:`cloneCollection` will copy to the
-                        current database. See :mjs:func:`find()`.
+                        current database. See :func:`find()`.
 
    :opt optional copyIndexes: Boolean. "``true`` by default. When set
                               to "``false``" the indexes on the
@@ -994,7 +994,7 @@ Collections
                 ensure that the total size for the capped collection
                 is sufficient to contain the max.
 
-   The :mjs:func:`db.createCollection` provides a wrapper function that
+   The :func:`db.createCollection` provides a wrapper function that
    provides access to this functionality.
 
 .. dbcommand:: convertToCapped
@@ -1038,7 +1038,7 @@ Collections
    requires you to specify the complete namespace (i.e., database name
    and collection name.)
 
-   The shell helper :mjs:func:`renameCollection()` provides a more
+   The shell helper :func:`renameCollection()` provides a more
    simple interface for this functionality. The following is
    equivalent to the previous example:
 
@@ -1060,7 +1060,7 @@ Collections
    will display values in kilobytes.
 
    Examine the following example output, which uses the
-   :mjs:func:`stats()` helper in the :program:`mongo` shell.
+   :func:`stats()` helper in the :program:`mongo` shell.
 
    .. code-block:: javascript
 
@@ -1176,7 +1176,7 @@ Administration
       db.fsyncUnlock();
 
    .. versionadded:: 1.9.0
-      The :mjs:func:`db.fsyncLock()` and :mjs:func:`db.fsyncUnlock()`
+      The :func:`db.fsyncLock()` and :func:`db.fsyncUnlock()`
       helpers in the shell.
 
 .. dbcommand:: dropData base
@@ -1547,7 +1547,7 @@ Diagnostics
    Because the command has to touch all data files, the command may take several
    seconds to run.
 
-   In the :program:`mongo` shell, the :mjs:func:`db.stats()` function provides
+   In the :program:`mongo` shell, the :func:`db.stats()` function provides
    a wrapper around this functionality. See the
    ":doc:`/reference/database-statistics`" document for an overview of
    this output.
@@ -1704,7 +1704,7 @@ Diagnostics
                              return with an error status.
 
    .. seealso:: ":ref:`Replica Set Write Concern <replica-set-write-concern>`"
-      and ":mjs:func:`db.getLastError()`."
+      and ":func:`db.getLastError()`."
 
 .. dbcommand:: getLog
 
@@ -1776,40 +1776,40 @@ Diagnostics
    This command returns a :term:`JSON document` containing the
    following fields:
 
-   .. mjs:data:: isMaster.setname
+   .. data:: isMaster.setname
 
       The name of the current replica set, if applicable.
 
-   .. mjs:data:: isMaster.ismaster
+   .. data:: isMaster.ismaster
 
       A boolean value that reports when this node is writable. If
       "``true``", then the current node is either a :term:`primary`
       node in a :term:`replica set`, a :term:`master` node in a
       master-slave configuration, of a standalone :program:`mongod`.
 
-   .. mjs:data:: isMaster.secondary
+   .. data:: isMaster.secondary
 
       A boolean value that, when "``true``", indicates that the
       current node is a :term:`secondary` member of a :term:`replica
       set`.
 
-   .. mjs:data:: isMaster.hosts
+   .. data:: isMaster.hosts
 
       An array of strings in the format of "[hostname]:[port]" listing
       all nodes in the :term:`replica set` that are not ":term:`hidden
       <hidden member>`".
 
-   .. mjs:data:: isMaster.primary
+   .. data:: isMaster.primary
 
       The "``[hostname]:[port]``" for the current
       :term:`replica set` :term:`primary`, if applicable.
 
-   .. mjs:data:: isMaster.me
+   .. data:: isMaster.me
 
       The "``[hostname]:[port]``" of the node responding to this
       command.
 
-   .. mjs:data:: isMaster.maxBsonObjectSize
+   .. data:: isMaster.maxBsonObjectSize
 
       The maximum permitted size of a :term:`BSON` object in bytes for
       this :program:`mongod` process. If not provided, clients should
@@ -1856,20 +1856,20 @@ Diagnostics
    The value (i.e. ``1`` above), does not affect the operation of the
    command.
 
-   .. seealso:: :mjs:func:`db.serverStatus()` and ":doc:`/reference/server-status`"
+   .. seealso:: :func:`db.serverStatus()` and ":doc:`/reference/server-status`"
 
 .. dbcommand:: resetError
 
    The :dbcommand:`resetError` command resets the last error status.
 
-   .. seealso:: :mjs:func:`db.resetError()`
+   .. seealso:: :func:`db.resetError()`
 
 .. dbcommand:: getPrevError
 
    The :dbcommand:`getPrevError` command returns the errors since the
    last :dbcommand:`resetError` command.
 
-   .. seealso:: :mjs:func:`db.getPrevError()`
+   .. seealso:: :func:`db.getPrevError()`
 
 .. dbcommand:: forceerror
 
@@ -1919,8 +1919,8 @@ Diagnostics
    .. seealso:: Additional documentation regarding database profiling
                 :ref:`Database Profiling <database-profiling>`.
 
-   .. seealso:: ":mjs:func:`db.getProfilingStatus()`" and
-                ":mjs:func:`db.setProfilingLevel()`" provide wrappers
+   .. seealso:: ":func:`db.getProfilingStatus()`" and
+                ":func:`db.setProfilingLevel()`" provide wrappers
                 around this functionality in the :program:`mongo`
                 shell.
 
@@ -2267,7 +2267,7 @@ Internal Use
 .. dbcommand:: splitChunk
 
    :dbcommand:`splitChunk` is an internal command. Use the
-   :mjs:func:`sh.splitFind()` and :mjs:func:`sh.splitAt()` functions in the
+   :func:`sh.splitFind()` and :func:`sh.splitAt()` functions in the
    :program:`mongo` shell to access this functionality.
 
    .. admin-only.
@@ -2289,7 +2289,7 @@ Internal Use
 
    :dbcommand:`moveChunk` is an internal command that supports the
    sharding functionality. Do not call directly. Use the
-   :mjs:func:`sh.moveChunk()` function in the :program:`mongo` shell if
+   :func:`sh.moveChunk()` function in the :program:`mongo` shell if
    you must move a chunk manually.
 
    .. admin-only
@@ -2334,8 +2334,8 @@ Internal Use
 .. dbcommand:: mapreduce.shardedfinish
 
    Provides internal functionality to support :term:`map reduce` in
-   :term:`sharded` environments. 
-   
+   :term:`sharded <shard cluster>` environments.
+
    .. seealso:: ":dbcommand:`mapreduce`
 
    .. slave-ok

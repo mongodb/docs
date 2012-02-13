@@ -12,7 +12,7 @@ Data Manipulation
 Query and Update Methods
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. mjs:function:: find(query,projection)
+.. function:: find(query,projection)
 
    :param JSON query: A :term:`JSON document` that specifies the
                      :term:`query` using valid :term:`JSON` and
@@ -25,11 +25,11 @@ Query and Update Methods
    :returns: All of the documents that match the ``query`` document.
 
    Provides access to querying functionality. The argument to
-   :mjs:func:`find()` takes the form of a :term:`JSON` document. See
+   :func:`find()` takes the form of a :term:`JSON` document. See
    the ":doc:`/reference/operators`" for an overview of the available
    operators for specifying and narrowing the query.
 
-.. mjs:function:: findOne(query)
+.. function:: findOne(query)
 
    :param JSON query: A JSON document that specifies the :term:`query`
                      using valid JSON and :doc:`query operators
@@ -44,10 +44,10 @@ Query and Update Methods
    order of documents on the disc. In :term:`capped collections
    <capped collection>`, natural order is the same as insertion order.
 
-.. mjs:function:: findAndModify()
+.. function:: findAndModify()
 
-   The :mjs:func:`findAndModify()` method atomically modifies and
-   returns a single document. Always call :mjs:func:`findAndModify()`
+   The :func:`findAndModify()` method atomically modifies and
+   returns a single document. Always call :func:`findAndModify()`
    on a collection object, using the following form:
 
    .. code-block:: javascript
@@ -59,7 +59,7 @@ Query and Update Methods
    options, as a sub-document that specifies the following:
 
    :field query: A query object. This statement might resemble the
-                  :term:`JSON document` passed to :mjs:func:`find()`,
+                  :term:`JSON document` passed to :func:`find()`,
                   and should return *one* document from the database.
 
    :field optional sort: If the query selects multiple documents, the
@@ -111,20 +111,20 @@ Query and Update Methods
       :program:`mongos` instances for non-sharded collections function
       normally.
 
-.. mjs:function:: save()
+.. function:: save()
 
    Provides the ability to create a new document in the current
-   database and collection. The argument to :mjs:func:`save()` takes
+   database and collection. The argument to :func:`save()` takes
    the form of a :term:`JSON document`. See ":ref:`update-operators`"
    for a reference of all operators that affect updates.
 
-.. mjs:function:: update(query, update, [upsert,] [multi])
+.. function:: update(query, update, [upsert,] [multi])
 
-   The :mjs:func:`update()` takes the following for arguments.
+   The :func:`update()` takes the following for arguments.
 
    :param query: A query object that selects the record to update. Use
                  the :ref:`query selectors <query-selectors>` as you
-                 would in a :mjs:func:`find()` operation.
+                 would in a :func:`find()` operation.
 
    :param update: A :term:`JSON document` that will either replace the
                   matching document, or use :ref:`update operators
@@ -143,25 +143,25 @@ Query and Update Methods
                          match the query.
 
    Provides the ability to update an existing document in the current
-   database and collection. The argument to :mjs:func:`update()` takes
+   database and collection. The argument to :func:`update()` takes
    the form of a :term:`JSON document`. See ":ref:`update-operators`"
    for a reference of all operators that affect updates.
 
 Query Modifiers
 ~~~~~~~~~~~~~~~
 
-.. mjs:function:: next()
+.. function:: next()
 
    :returns: The next document in the cursor returned by the
-             :mjs:func:`find()` method. See :mjs:func:`hasNext()` for
+             :func:`find()` method. See :func:`hasNext()` for
              related functionality.
 
-.. mjs:function:: size()
+.. function:: size()
 
    :returns: A count of the number of documents that match the
-             :mjs:func:`find()` query.
+             :func:`find()` query.
 
-.. mjs:function:: explain()
+.. function:: explain()
 
    :returns: A document that describes the process used to return the
              query.
@@ -173,7 +173,7 @@ Query Modifiers
       ":doc:`/applications/optimization`" regarding optimization
       strategies.
 
-.. mjs:function:: showDiskLoc()
+.. function:: showDiskLoc()
 
    :returns: A document that describes the on-disk location of the
              objects returned by the query.
@@ -181,38 +181,38 @@ Query Modifiers
    .. seealso:: :operator:`$showDiskLoc` for related
       functionality.
 
-.. mjs:function:: forEach()
+.. function:: forEach()
 
    Provides the ability to loop or iterate over the cursor returned by
-   a :mjs:func:`find()` query and returns each result on the
+   a :func:`find()` query and returns each result on the
    shell. Specify a JavaScript function as the argument for the
-   :mjs:func:`forEach()` function. Consider the following example:
+   :func:`forEach()` function. Consider the following example:
 
    .. code-block:: javascript
 
       db.users.find().forEach( function(u) { print("user: " + u.name); } );
 
-   .. seealso:: :mjs:func:`map()` for similar functionality.
+   .. seealso:: :func:`map()` for similar functionality.
 
-.. mjs:function:: map()
+.. function:: map()
 
    Provides the ability to loop or iterate over the cursor returned by
-   a :mjs:func:`find()` query and returns each result as the member of
+   a :func:`find()` query and returns each result as the member of
    an array. Specify a JavaScript function as the argument for the
-   :mjs:func:`map()` function. Consider the following example:
+   :func:`map()` function. Consider the following example:
 
    .. code-block:: javascript
 
       db.users.find().map( function(u) { print("user: " + u.name); } );
 
-   .. seealso:: :mjs:func:`forEach()` for similar functionality.
+   .. seealso:: :func:`forEach()` for similar functionality.
 
-.. mjs:function:: hasNext()
+.. function:: hasNext()
 
    :returns: boolean.
 
-   :mjs:func:`hasNext()` returns ``true`` if the cursor returned by the
-   :mjs:func:`find()` query contains documents can iterate further to
+   :func:`hasNext()` returns ``true`` if the cursor returned by the
+   :func:`find()` query contains documents can iterate further to
    return results.
 
 .. _js-query-cursor-methods:
@@ -220,35 +220,35 @@ Query Modifiers
 Query Cursor Methods
 ~~~~~~~~~~~~~~~~~~~~
 
-.. mjs:function:: count()
+.. function:: count()
 
    :param boolean override: Override the effects of the
-                            :mjs:func:`skip()` and :mjs:func:`limit()`
+                            :func:`skip()` and :func:`limit()`
                             methods on the
 
-   Append the :mjs:func:`count()`` method on a ":mjs:func:`.find()`" query to
+   Append the :func:`count()`` method on a ":func:`.find()`" query to
    return the number of matching objects for any query.
 
-   In normal operation, :mjs:func:`count()` ignores the effects of the
-   :mjs:func:`skip()` and :mjs:func:`limit()`. To consider these
+   In normal operation, :func:`count()` ignores the effects of the
+   :func:`skip()` and :func:`limit()`. To consider these
    effects specify "``count(true)``".
 
-.. mjs:function:: limit()
+.. function:: limit()
 
-   Use the :mjs:func:`limit()` method on a ":mjs:func:`find()`" query
+   Use the :func:`limit()` method on a ":func:`find()`" query
    to specifies the maximum number of documents a query will
-   return. :mjs:func:`limit()` is analogous to the ``LIMIT`` statement
+   return. :func:`limit()` is analogous to the ``LIMIT`` statement
    in a SQL database.
 
-   Use :mjs:func:`limit()` to maximize performance and prevent MongoDB
+   Use :func:`limit()` to maximize performance and prevent MongoDB
    from returning more results than required for processing.
 
-   A :mjs:func:`limit()` value of 0 (e.g. "``.limit(0)``") is equivalent to
+   A :func:`limit()` value of 0 (e.g. "``.limit(0)``") is equivalent to
    setting no limit.
 
-.. mjs:function:: skip()
+.. function:: skip()
 
-   Call the :mjs:func:`skip()` method on a ":mjs:func:`.find()`" query
+   Call the :func:`skip()` method on a ":func:`.find()`" query
    to control where MongoDB begins returning results. This approach
    may be useful in implementing "paged" results. Consider the
    following JavaScript function as an example of the sort function:
@@ -260,12 +260,12 @@ Query Cursor Methods
            db.students.find().skip((pageNumber-1)*nPerPage).limit(nPerPage).forEach( function(student) { print(student.name + "<p>"); } );
         }
 
-   The :mjs:func:`skip()` method is often expensive because it requires
+   The :func:`skip()` method is often expensive because it requires
    the server to walk from the beginning of the collection or index to
    get the offset or skip position before beginning to return
    result. As offset (e.g. ``pageNumber`` above) increases,
-   :mjs:func:`skip()` will become slower and more CPU intensive. With
-   larger collections, :mjs:func:`skip()` may become IO bound.
+   :func:`skip()` will become slower and more CPU intensive. With
+   larger collections, :func:`skip()` may become IO bound.
 
    Consider using range-based pagination for these kinds of
    tasks. That is, query for a range of objects, using logic within
@@ -273,9 +273,9 @@ Query Cursor Methods
    database itself. This approach features better index utilization,
    if you do not need to easily jump to a specific page.
 
-.. mjs:function:: snapshot()
+.. function:: snapshot()
 
-   Append the :mjs:func:`snapshot()` method to the :mjs:func:`find()`
+   Append the :func:`snapshot()` method to the :func:`find()`
    query to toggle the "snapshot" mode. This ensures that the query
    will not miss any documents and return no duplicates, when other
    operations modify objects while the query runs. Snapshot mode only
@@ -285,9 +285,9 @@ Query Cursor Methods
    Queries with results of less than 1 megabyte are effectively
    snapshotted.
 
-.. mjs:function:: sort()
+.. function:: sort()
 
-   Append the :mjs:func:`sort()` method to the :mjs:func:`find()`"
+   Append the :func:`sort()` method to the :func:`find()`"
    queries to control the order that the query returns matching
    documents. Consider the following example:
 
@@ -301,9 +301,9 @@ Query Cursor Methods
    positive value (e.g. "``1``") to sort in ascending order.
 
    Unless you have a index for the specified key pattern, use
-   :mjs:func:`sort()` in conjunction with :mjs:func:`limit()` to avoid
+   :func:`sort()` in conjunction with :func:`limit()` to avoid
    requiring MongoDB to perform a large in-memory
-   sort. :mjs:func:`limit()` increases the speed and reduce the amount
+   sort. :func:`limit()` increases the speed and reduce the amount
    of memory required to return this query by way of an optimized
    algorithm.
 
@@ -312,10 +312,10 @@ Query Cursor Methods
       The sort function requires that the entire sort be able to
       complete within 32 megabytes. When the sort option consumes more
       than 32 megabytes, MongoDB will return an error. Use
-      :mjs:func:`limit()`, or create an index on the field that you're
+      :func:`limit()`, or create an index on the field that you're
       sorting to avoid this error.
 
-.. mjs:function:: hint()
+.. function:: hint()
 
    :argument index: The name of the index to "hint" or force MongoDB
                     to use when performing the query.
@@ -323,7 +323,7 @@ Query Cursor Methods
    Call this method on a query to override MongoDB's default index
    selection and query optimization process. Specify, as an argument,
    the name which index the query should use to fulfill the query. Use
-   :mjs:func:`getIndexes()` to return a list of indexes on the current
+   :func:`getIndexes()` to return a list of indexes on the current
    collection.
 
    .. seealso:: ":operator:`$hint`
@@ -331,9 +331,9 @@ Query Cursor Methods
 Data Aggregation
 ~~~~~~~~~~~~~~~~
 
-.. mjs:function:: aggregate(pipeline)
+.. function:: aggregate(pipeline)
 
-   Always call the :mjs:func:`aggregate()` method on a collection
+   Always call the :func:`aggregate()` method on a collection
    object.
 
    :argument pipeline: Specifies a sequence of data aggregation
@@ -362,9 +362,9 @@ Data Aggregation
        ":doc:`/applications/aggregation`," and
        ":doc:`/reference/aggregation`."
 
-.. mjs:function:: group({key, reduce, initial, [keyf,] [cond,] finalize})
+.. function:: group({key, reduce, initial, [keyf,] [cond,] finalize})
 
-   The :mjs:func:`group()` accepts a single :term:`JSON document` that
+   The :func:`group()` accepts a single :term:`JSON document` that
    contains the following:
 
    :field key: Specify one or more fields to group by. Use the
@@ -388,16 +388,16 @@ Data Aggregation
                          day or week in place of a fixed ``key``.
 
    :field optional cond: A statement that must evaluate to true for
-                         the :mjs:func:`group()` to process this
+                         the :func:`group()` to process this
                          document. Essentially this argument specifies
                          a query document (as for
-                         :mjs:func:`find()`). Unless specified,
-                         :mjs:func:`group()` runs the "reduce" function
+                         :func:`find()`). Unless specified,
+                         :func:`group()` runs the "reduce" function
                          against all documents in the collection.
 
    :field optional finalize: An optional function that runs each item
                              in the result set before
-                             :mjs:func:`group()` returns the final
+                             :func:`group()` returns the final
                              value. This function can either modify
                              the document by computing and adding an
                              average field, or return compute and
@@ -405,24 +405,24 @@ Data Aggregation
 
    .. warning::
 
-      :mjs:func:`group()` does not work in :term:`shard environments
+      :func:`group()` does not work in :term:`shard environments
       <shard cluster>`. Use the :term:`aggregation framework` or
       :term:`map/reduce` in :term:`sharded environments <sharding>`.
 
    .. note::
 
-      The result set of the :mjs:func:`group()` must fit within the
+      The result set of the :func:`group()` must fit within the
       maximum :term:`BSON` object.
 
       Furthermore, you must ensure that there are fewer then 10,000
       unique keys. If you have more than this, use
       :dbcommand:`mapReduce`.
 
-   :mjs:func:`group()` provides a simple aggregation capability similar
+   :func:`group()` provides a simple aggregation capability similar
    to the function of "``GROUP BY``" in SQL statements. Use
-   :mjs:func:`group()` to return counts and averages from collections
+   :func:`group()` to return counts and averages from collections
    of MongoDB documents. Consider the following example
-   :mjs:func:`group()` command:
+   :func:`group()` command:
 
    .. code-block:: javascript
 
@@ -447,11 +447,11 @@ Data Aggregation
    .. seealso:: The ":doc:`/applications/simple-aggregation`" and
       ":doc:`/applications/aggregation`."
 
-.. mjs:function:: mapReduce(map,reduce,out,[query],[sort],[limit],[finalize],[scope],[jsMode],[verbose])
+.. function:: mapReduce(map,reduce,out,[query],[sort],[limit],[finalize],[scope],[jsMode],[verbose])
 
-   The :mjs:func:`mapReduce()` provides a wrapper around the
+   The :func:`mapReduce()` provides a wrapper around the
    :dbcommand:`mapReduce` :term:`database command`. Always call the
-   :mjs:func:`mapReduce()` method on a collection. The following
+   :func:`mapReduce()` method on a collection. The following
    argument list specifies a :term:`JSON document` with 3 required and
    8 optional fields:
 
@@ -478,7 +478,7 @@ Data Aggregation
                name. See below for additional output options.
 
    :param optional query: A query object, like the query used by the
-                          :mjs:func:`find()` method. Use this to filter
+                          :func:`find()` method. Use this to filter
                           to limit the number of documents enter the
                           map phase of the aggregation.
 
@@ -493,7 +493,7 @@ Data Aggregation
    :param optional finalize: Specifies an optional "finalize" function
                              to run on a result, following the reduce
                              stage, to modify or control the output of
-                             the :mjs:func:`mapReduce()` operation.
+                             the :func:`mapReduce()` operation.
 
    :param optional scope: Place a :term:`JSON` document as the contents
                           of this field, to place fields into the
@@ -505,7 +505,7 @@ Data Aggregation
    :param optional verbose: Boolean. The ``verbose`` option provides
                             statistics on job execution times.
 
-   The "``out``" field of the :mjs:func:`mapReduce()`, provides a
+   The "``out``" field of the :func:`mapReduce()`, provides a
    number of additional configuration options that you may use to
    control how MongoDB returns data from the map/reduce job. Consider
    the following 4 output possibilities.
@@ -564,7 +564,7 @@ Administrative Functions
 Database
 ~~~~~~~~
 
-.. mjs:function:: db.addUser("username", "password"[, readOnly])
+.. function:: db.addUser("username", "password"[, readOnly])
 
    :param string username: Specifies a new username.
 
@@ -578,7 +578,7 @@ Database
    restrict this user to only have read-only privileges; however, this
    defaults to false.
 
-.. mjs:function:: db.auth("username", "password")
+.. function:: db.auth("username", "password")
 
    :param string username: Specifies an existing username with access
                            privileges for this database.
@@ -590,7 +590,7 @@ Database
    :option:`--password <mongo --password>` to specify authentication
    credentials.
 
-.. mjs:function:: db.cloneDatabase("hostname")
+.. function:: db.cloneDatabase("hostname")
 
    :param string hostname: Specifies the hostname to copy the current
                            instance.
@@ -612,7 +612,7 @@ Database
    command` ":dbcommand:`clone`." The :dbcommand:`copydb` database command
    provide related functionality.
 
-.. mjs:function:: db.commandHelp(command)
+.. function:: db.commandHelp(command)
 
    :param command: Specifies a :doc:`database command name
                    </reference/commands>`.
@@ -622,7 +622,7 @@ Database
              </reference/commands>` for full documentation of these
              commands.
 
-.. mjs:function:: db.copyDatabase(origin, destination, hostname)
+.. function:: db.copyDatabase(origin, destination, hostname)
 
    :param database origin: Specifies the name of the database on the
                            origin system.
@@ -643,7 +643,7 @@ Database
    command` ":dbcommand:`copydb`." The :dbcommand:`clone` database
    command provides related functionality.
 
-.. mjs:function:: db.createCollection(name [{size: <value>, capped: <boolean> , max <bytes>}] )
+.. function:: db.createCollection(name [{size: <value>, capped: <boolean> , max <bytes>}] )
 
    :param string name: Specifies the name of a collection to create.
 
@@ -696,7 +696,7 @@ Database
    ":dbcommand:`create`. See the ":doc:`/core/capped-collections`"
    document for more information about capped collections.
 
-.. mjs:function:: db.currentOp()
+.. function:: db.currentOp()
 
    :returns: A :term:`JSON` document that contains an array named
              "``inprog``".
@@ -704,13 +704,13 @@ Database
    The ``inprog`` array reports the current operation in progress for
    the database instance.
 
-.. mjs:function:: db.dropDatabase()
+.. function:: db.dropDatabase()
 
    Removes (and deletes) the current database. Does not change the
    current database, so the creation of any documents in this database
    will create.
 
-.. mjs:function:: db.eval(function, arguments)
+.. function:: db.eval(function, arguments)
 
    :param JavaScript function: A JavaScript function.
 
@@ -722,22 +722,22 @@ Database
    value of the "``db``" variable on the server is the name of the
    current database.
 
-   Unless you use :mjs:func:`db.eval()`, the :program:`mongo` shell
+   Unless you use :func:`db.eval()`, the :program:`mongo` shell
    itself will evaluate all JavaScript entered into :program:`mongo`
    shell itself.
 
    .. warning::
 
-      Do not use :mjs:func:`db.eval()` for long running operations, as
-      :mjs:func:`db.eval()` blocks all other operations. Consider using
+      Do not use :func:`db.eval()` for long running operations, as
+      :func:`db.eval()` blocks all other operations. Consider using
       :doc:`map reduce </core/map-reduce>` for similar functionality in
       these situations.
 
-      The :mjs:func:`db.eval() method cannot operate on sharded
-      data. However, you may use :mjs:func:`db.eval()` with non-sharded
+      The :func:`db.eval() method cannot operate on sharded
+      data. However, you may use :func:`db.eval()` with non-sharded
       collections and databases stored in :term:`shard cluster`.
 
-.. mjs:function:: db.getCollection(name)
+.. function:: db.getCollection(name)
 
    :param name: The name of a collection.
 
@@ -748,12 +748,12 @@ Database
    "``_``" or mirror the :doc:`database commands
    </reference/commands>`.
 
-.. mjs:function:: db.getCollectionNames()
+.. function:: db.getCollectionNames()
 
    :returns: An array containing all collections in the existing
              database.
 
-.. mjs:function:: db.getLastError()
+.. function:: db.getLastError()
 
    :returns: The last error message as a string.
 
@@ -764,19 +764,19 @@ Database
    .. seealso:: ":ref:`Replica Set Write Concern <replica-set-write-concern>`"
       and ":dbcommand:`getLastError`."
 
-.. mjs:function:: db.getLastErrorObj()
+.. function:: db.getLastErrorObj()
 
    :returns: A full :term:`JSON document` with status information.
 
-.. mjs:function:: db.getMongo()
+.. function:: db.getMongo()
 
    :returns: The current connection status.
 
-   :mjs:func:`db.getMongo()` returns when the shell initiates. Use this
+   :func:`db.getMongo()` returns when the shell initiates. Use this
    command to test that the :program:`mongo` shell has a connection to
    the proper database instance.
 
-.. mjs:function:: db.setSlaveOk()
+.. function:: db.setSlaveOk()
 
    For the current session, this command permits read operations from
    non-master (i.e. :term:`slave` or :term:`secondary`)
@@ -789,37 +789,37 @@ Database
    Indicates that ":term:`eventually consistent <eventual
    consistency>`" read operations are acceptable for the current
    connection. This function provides the same functionality as
-   :mjs:func:`rs.slaveOk()`.
+   :func:`rs.slaveOk()`.
 
-.. mjs:function:: db.getName()
+.. function:: db.getName()
 
    :returns: the current database name.
 
-.. mjs:function:: db.getPrevError()
+.. function:: db.getPrevError()
 
    :returns: A status document, containing the errors.
 
    This output reports all errors since the last time the database
    received a :dbcommand:`resetError` (also
-   :mjs:func:`db.resetError()`) command.
+   :func:`db.resetError()`) command.
 
    This method provides a wrapper around the
    :dbcommand:`getPrevError` command.
 
-.. mjs:function:: db.getProfilingLevel()
+.. function:: db.getProfilingLevel()
 
    This method provides a wrapper around the database command
    ":dbcommand:`profile`" and returns the current profiling level.
 
    .. deprecated:: 1.8.4
-      Use :mjs:func:`db.getProfilingStatus()` for related functionality.
+      Use :func:`db.getProfilingStatus()` for related functionality.
 
-.. mjs:function:: db.getProfilingStatus()
+.. function:: db.getProfilingStatus()
 
    :returns: The current :dbcommand:`profile` level and
              :setting:`slowms` setting.
 
-.. mjs:function:: db.getReplicationInfo()
+.. function:: db.getReplicationInfo()
 
    :returns: A status document.
 
@@ -828,25 +828,25 @@ Database
    .. seealso:: ":doc:`/reference/replication-info`" for full
       documentation of this output.
 
-.. mjs:function:: db.getSiblingDB()
+.. function:: db.getSiblingDB()
 
    Used to return another database without modifying the current
    "``db``" setting in the shell environment.
 
-.. mjs:function:: db.killOP(opid)
+.. function:: db.killOP(opid)
 
    :param oppid: Specify an operation ID.
 
-   Terminates the specified operation. Use :mjs:func:`db.currentOp()`
+   Terminates the specified operation. Use :func:`db.currentOp()`
    to determine the current operation.
 
-.. mjs:function:: db.listCommands()
+.. function:: db.listCommands()
 
    Provides a list of all database commands. See the
    ":doc:`/reference/commands`" document for a more extensive index of
    these options.
 
-.. mjs:function:: db.logout()
+.. function:: db.logout()
 
    Forces the current session to end the current authentication
    session. This function has no effect if the current session is not
@@ -855,46 +855,46 @@ Database
    This function provides a wrapper around the database command
    ":dbcommand:`logout`".
 
-.. mjs:function:: db.printCollectionStats()
+.. function:: db.printCollectionStats()
 
-   Provides a wrapper around the :mjs:func:`stats()` method. Returns
+   Provides a wrapper around the :func:`stats()` method. Returns
    statistics from every collection separated by three hyphen
    characters.
 
    .. seealso:: ":doc:`/reference/collection-statistics`"
 
-.. mjs:function:: db.printReplicationInfo()
+.. function:: db.printReplicationInfo()
 
    Provides a formatted report of the status of a :term:`replica set`
    from the perspective of the :term:`primary` set member. See the
    ":doc:`/reference/replica-status`" for more information regarding
    the contents of this output.
 
-   This function will return :mjs:func:`db.printSlaveReplicationInfo()`
+   This function will return :func:`db.printSlaveReplicationInfo()`
    if issued against a :term:`secondary` set member.
 
-.. mjs:function:: db.printSlaveReplicationInfo()
+.. function:: db.printSlaveReplicationInfo()
 
    Provides a formatted report of the status of a :term:`replica set`
    from the perspective of the :term:`secondary` set member. See the
    ":doc:`/reference/replica-status`" for more information regarding
    the contents of this output.
 
-.. mjs:function:: db.printShardingStatus()
+.. function:: db.printShardingStatus()
 
    Provides a formatted report of the status of the shards and the
    information regarding the chunks of the database for the current
    :term:`shard cluster`.
 
-   .. seealso:: :mjs:func:`sh.status()`
+   .. seealso:: :func:`sh.status()`
 
-.. mjs:function:: db.removeUser(username)
+.. function:: db.removeUser(username)
 
    :param username: Specify a database username.
 
    Removes the specified username from the database.
 
-.. mjs:function:: db.repairDatabase()
+.. function:: db.repairDatabase()
 
    Checks and repairs errors and inconsistencies with the data
    storage. This function is analogous to a ``fsck`` operation for
@@ -909,20 +909,20 @@ Database
    This command provides a wrapper around the database command
    ":dbcommand:`repairDatabase`".
 
-.. mjs:function:: db.resetError()
+.. function:: db.resetError()
 
-   Resets the error message returned by :mjs:func:`db.getPrevError` or
+   Resets the error message returned by :func:`db.getPrevError` or
    :dbcommand:`getPrevError`. Provides a wrapper around the
    :dbcommand:`resetError` command.
 
-.. mjs:function:: db.runCommand(command)
+.. function:: db.runCommand(command)
 
    :param JSON command: Specifies a :term:`database command` in the
                         form of a JSON document.
 
    :param string command: When specifying a :doc:`command
                           </reference/commands>` as a string,
-                          :mjs:func:`db.runCommand()` transforms the
+                          :func:`db.runCommand()` transforms the
                           command into the form "``{ command: 1 }``".
 
    Provides a helper to run specified :doc:`database commands
@@ -930,7 +930,7 @@ Database
    database commands, as it provides a consistent interface between
    the shell and drivers.
 
-.. mjs:function:: db.serverStatus()
+.. function:: db.serverStatus()
 
    Returns a :term:`JSON document` that provides an over view of the
    database process' state.
@@ -941,7 +941,7 @@ Database
    .. seealso:: ":doc:`/reference/server-status`" for complete
       documentation of the output of this function.
 
-.. mjs:function:: db.setProfilingLevel(level, [slowms])
+.. function:: db.setProfilingLevel(level, [slowms])
 
    :param level: Specify a profiling level, see list of possible
                  values below.
@@ -979,7 +979,7 @@ Database
    the :setting:`slowms` to the log even when the database profiler is
    not active.
 
-.. mjs:function:: db.shutdownServer()
+.. function:: db.shutdownServer()
 
    Shuts down the current :program:`mongod` or :program:`mongos`
    process cleanly and safely.
@@ -989,7 +989,7 @@ Database
 
    This command provides a wrapper around the :dbcommand:`shutdown`.
 
-.. mjs:function:: db.stats(scale)
+.. function:: db.stats(scale)
 
    :param optional scale: Specifies the scale to deliver
                           results. Unless specified, this command
@@ -1012,15 +1012,15 @@ Database
       The scale factor rounds values to whole numbers. This can
       produce unpredictable and unexpected results in some situations.
 
-.. mjs:function:: db.version()
+.. function:: db.version()
 
    :returns: The version of the :program:`mongod` instance.
 
-.. mjs:function:: db.fsyncLock()
+.. function:: db.fsyncLock()
 
    Forces the database to flush all write operations to the disk and
    locks the database to prevent additional writes until the user
-   releases the lock with the :mjs:func:`db.fsyncUnlock()` command.
+   releases the lock with the :func:`db.fsyncUnlock()` command.
 
    This command provides a simple wrapper around a
    :dbcommand:`fsync` database command with the following
@@ -1033,10 +1033,10 @@ Database
    This function locks the database and create a window for
    :doc:`backup operations </administration/backups>`.
 
-.. mjs:function:: db.fsyncUnlock()
+.. function:: db.fsyncUnlock()
 
    Unlocks a database server to allow writes to reverse the operation
-   of a :mjs:func:`db.fsyncLock()` operation. Typically used to allow
+   of a :func:`db.fsyncLock()` operation. Typically used to allow
    writes following a database :doc:`backup operation
    </administration/backups>`.
 
@@ -1054,26 +1054,26 @@ that you may use with collection objects.
    (i.e. "``db.collection.[method]()``", where "``collection``" is the
    name of the collection) to produce the documented behavior.
 
-.. mjs:function:: dataSize()
+.. function:: dataSize()
 
    Returns the size of the collection. This method provides a wrapper
    around the :stats:`size` output of the :dbcommand:`collStats`
-   (i.e. :mjs:func:`stats()`) command.
+   (i.e. :func:`stats()`) command.
 
-.. mjs:function:: storageSize()
+.. function:: storageSize()
 
    Returns the amount of storage space, calculated using the number of
    extents, used by the collection. This method provides a wrapper
    around the :stats:`storageSize` output of the
-   :dbcommand:`collStats` (i.e. :mjs:func:`stats()`) command.
+   :dbcommand:`collStats` (i.e. :func:`stats()`) command.
 
-.. mjs:function:: totalIndexSize()
+.. function:: totalIndexSize()
 
    Returns the total size of all indexes for the collection. This
    method provides a wrapper around the :stats:`totalIndexSize` output
-   of the :dbcommand:`collStats` (i.e. :mjs:func:`stats()`) command.
+   of the :dbcommand:`collStats` (i.e. :func:`stats()`) command.
 
-.. mjs:function:: distinct(field)
+.. function:: distinct(field)
 
    :param field string: A field that exists in a document or documents
                         within the :term:`collection`.
@@ -1083,36 +1083,36 @@ that you may use with collection objects.
 
    .. note::
 
-      The :mjs:func:`distinct()` method provides a wrapper around the
+      The :func:`distinct()` method provides a wrapper around the
       :dbcommand:`distinct`. Results larger than the maximum
       :ref:`BSON size <limit-maximum-bson-document-size>` (e.g. 16 MB)
 
-.. mjs:function:: drop()
+.. function:: drop()
 
-   Call the :mjs:func:`drop()` method on a collection to drop it from
+   Call the :func:`drop()` method on a collection to drop it from
    the database.
 
-   :mjs:func:`drop()` takes no arguments and will produce an error if
+   :func:`drop()` takes no arguments and will produce an error if
    called with any arguments.
 
-.. mjs:function:: dropIndex(name)
+.. function:: dropIndex(name)
 
    :param index name: The name of the index to drop.
 
    Drops or removes the specified index. This method provides a
    wrapper around the :dbcommand:`dropIndexes`.
 
-   Use :mjs:func:`getIndexes()` to get a list of the indexes on the
-   current collection, and only call :mjs:func:`dropIndex()` as a
+   Use :func:`getIndexes()` to get a list of the indexes on the
+   current collection, and only call :func:`dropIndex()` as a
    method on a collection object.
 
-.. mjs:function:: dropIndexes()
+.. function:: dropIndexes()
 
    Drops all indexes other than the required index on the "``_id``"
-   field. Only call :mjs:func:`dropIndexes()` as a method on a
+   field. Only call :func:`dropIndexes()` as a method on a
    collection object.
 
-.. mjs:function:: ensureIndex(keys, options)
+.. function:: ensureIndex(keys, options)
 
    :param JSON keys: A :term:`JSON Document` that contains key/value
                      pair or pairs with the name of the field or
@@ -1125,12 +1125,12 @@ that you may use with collection objects.
 
    .. warning:: Index names, including their full namespace
       (i.e. "``database.collection``") can be no longer than 128
-      characters. See the :mjs:func:`getIndexes` field
-      ":mjs:data:`name`" for the names of existing indexes.
+      characters. See the :func:`getIndexes` field
+      ":data:`name`" for the names of existing indexes.
 
    Creates an index on the field specified, if that index does not
    already exist. If the ``keys`` document specifies more than one
-   field, than :mjs:func:`ensureIndex` creates a :term:`compound
+   field, than :func:`ensureIndex` creates a :term:`compound
    index`. For example:
 
    .. code-block:: javascript
@@ -1150,7 +1150,7 @@ that you may use with collection objects.
    .. note::
 
       Typically the order of an index is only important when doing
-      :mjs:func:`sort()` operations on the indexed fields.
+      :func:`sort()` operations on the indexed fields.
 
    The available options, possible values, and the default settings
    are as follows:
@@ -1190,7 +1190,7 @@ that you may use with collection objects.
       :program:`mongod` running when creating the index. Before version
       2.0, the this value was 0; versions 2.0 and later use version 1.
 
-.. mjs:function:: reIndex()
+.. function:: reIndex()
 
    This method drops all indexes and recreates them. This operation
    may be expensive for collections that have a large amount of data
@@ -1206,15 +1206,15 @@ that you may use with collection objects.
    Change "``collection``" to the name of the collection that you want
    to rebuild the index.
 
-.. mjs:function:: getDB()
+.. function:: getDB()
 
    Returns the name of the current database as a string.
 
-.. mjs:function:: getIndexes()
+.. function:: getIndexes()
 
    Returns an array that holds a list of documents that identify and
    describe the existing indexes on the collection. You must call the
-   :mjs:func:`getIndexes()` on a collection. For example:
+   :func:`getIndexes()` on a collection. For example:
 
    .. code-block:: javascript
 
@@ -1223,9 +1223,9 @@ that you may use with collection objects.
    Change "``collection``" to the name of the collection whose indexes
    you want to learn.
 
-   The :mjs:func:`getIndexes()` items consist of the following fields:
+   The :func:`getIndexes()` items consist of the following fields:
 
-   .. mjs:data:: getIndexes.v
+   .. data:: getIndexes.v
 
       Holds the version of the index.
 
@@ -1233,7 +1233,7 @@ that you may use with collection objects.
       that created the index. Before version 2.0 of MongoDB, the this
       value was 0; versions 2.0 and later use version 1.
 
-   .. mjs:data:: getIndexes.key
+   .. data:: getIndexes.key
 
       Contains a document holding the keys held in the index, and the
       order of the index. Indexes may be either descending or
@@ -1242,18 +1242,18 @@ that you may use with collection objects.
       value (e.g. "``1``") indicates an index sorted in an ascending
       order.
 
-   .. mjs:data:: getIndexes.ns
+   .. data:: getIndexes.ns
 
       The namespace context for the index.
 
-   .. mjs:data:: getIndexes.name
+   .. data:: getIndexes.name
 
       A unique name for the index comprised of the field names and
       orders of all keys.
 
-.. mjs:function:: remove(query,justOne)
+.. function:: remove(query,justOne)
 
-   Call the :mjs:func:`remove()` method on a collection object, to
+   Call the :func:`remove()` method on a collection object, to
    remove documents from a collection. Use the following form:
 
    .. code-block:: javascript
@@ -1262,17 +1262,17 @@ that you may use with collection objects.
 
    Where "``collection``" is the name of the collection that you want
    to remove. Without arguments, this method removes all documents in
-   the collection. To control the output of :mjs:func:`remove()`:
+   the collection. To control the output of :func:`remove()`:
 
    :param optional query: Specify a query object to limit or filter
                           the documents to remove. See
-                          :mjs:func:`find()` and the :doc:`operator
+                          :func:`find()` and the :doc:`operator
                           reference </reference/operators>` for more
                           information
 
    :param optional justOne: Boolean. Specify "``true``" to only delete
                             the first result. Equivalent to the
-                            operation of :mjs:func:`findOne()`.
+                            operation of :func:`findOne()`.
 
    Consider the following example:
 
@@ -1290,12 +1290,12 @@ that you may use with collection objects.
    "``archived``" fields holding a value of "``1``" from the
    collection named "``records``".
 
-.. mjs:function:: renameCollection()
+.. function:: renameCollection()
 
    :param string name: Specifies the new name of the
                        collection. Enclose the string in quotes.
 
-   Call the :mjs:func:`renameCollection()` method on a collection
+   Call the :func:`renameCollection()` method on a collection
    object, to rename a collection. Specify the new name of the
    collection as an argument. For example:
 
@@ -1307,10 +1307,10 @@ that you may use with collection objects.
    "``record``". If the target name (i.e. "``record``") is the name of
    an existing collection, then the operation will fail.
 
-   :mjs:func:`renameCollection()` provides a wrapper around the
+   :func:`renameCollection()` provides a wrapper around the
    :term:`database command` ":dbcommand:`renameCollection`".
 
-.. mjs:function:: validate()
+.. function:: validate()
 
    :param optional full: Boolean. Specify "``true``" to enable a full
                          validation. MongoDB disables full validation
@@ -1318,7 +1318,7 @@ that you may use with collection objects.
                          resource intensive operation.
 
    Provides a wrapper around the :dbcommand:`validate` :term:`database
-   command`. Call the :mjs:func:`renameCollection()` method on a
+   command`. Call the :func:`renameCollection()` method on a
    collection object, to validate the collection itself. Specify the
    full option to return full statistics.
 
@@ -1334,7 +1334,7 @@ that you may use with collection objects.
 
    .. seealso:: ":doc:`/reference/collection-validation`"
 
-.. mjs:function:: getShardVersion()
+.. function:: getShardVersion()
 
    This method returns information regarding the state of data in a
    sharded cluster that is useful when diagnosing underlying issues
@@ -1342,11 +1342,11 @@ that you may use with collection objects.
 
    For internal and diagnostic use only.
 
-.. mjs:function:: getShardDistribution()
+.. function:: getShardDistribution()
 
    .. depends on SERVER-4902
 
-.. mjs:function:: stats(scale)
+.. function:: stats(scale)
 
    :param optional scale: Specifies the scale to deliver
                           results. Unless specified, this command
@@ -1361,7 +1361,7 @@ that you may use with collection objects.
    values. For example, specify a "``scale``" value of "``1024``" to
    display kilobytes rather than bytes.
 
-   Call the :mjs:func:`stats()` method on a collection object, to
+   Call the :func:`stats()` method on a collection object, to
    return statistics regarding that collection. For example, the
    following operation returns stats on the ``people`` collection:
 
@@ -1379,7 +1379,7 @@ Sharding
    sharding technology and methods for creating :term:`shard clusters
    <shard cluster>`.
 
-.. mjs:function:: sh.addShard(host)
+.. function:: sh.addShard(host)
 
    :param hostname host: Specify the hostname of a new shard server.
 
@@ -1402,15 +1402,15 @@ Sharding
    This function provides a wrapper around the administrative command
    :dbcommand:`addShard`.
 
-.. mjs:function:: sh.enableSharding(database)
+.. function:: sh.enableSharding(database)
 
    :param name database: Specify a database name to shard.
 
    Enables sharding on the specified database. This does not
    automatically shard the database, but makes it possible to begin
-   sharding collections using :mjs:func:`sh.shardCollection()`.
+   sharding collections using :func:`sh.shardCollection()`.
 
-.. mjs:function:: sh.shardCollection(collection,key,unique)
+.. function:: sh.shardCollection(collection,key,unique)
 
    :param name collection: The name of the collection to shard.
 
@@ -1425,7 +1425,7 @@ Sharding
    document`. Shard keys may refer to a single document field, or more
    typically several document fields to form a "compound shard key."
 
-.. mjs:function:: sh.splitFind(collection, query)
+.. function:: sh.splitFind(collection, query)
 
    :param string collection: Specify the sharded collection containing
                              the chunk to migrate.
@@ -1436,15 +1436,15 @@ Sharding
 
    Splits the chunk containing the document specified by the ``query``
    at its median point, creating two roughly equal chunks. Use
-   :mjs:func:`sh.splitAt()` to split a collection in a specific point.
+   :func:`sh.splitAt()` to split a collection in a specific point.
 
    In most circumstances, chunk splitting should be left to the
    automated processes. However, when initially deploying a
    :term:`shard cluster` it is necessary to perform some measure of
    :term:`pre-splitting` using manual methods including
-   :mjs:func:`sh.splitFind()`.
+   :func:`sh.splitFind()`.
 
-.. mjs:function:: sh.splitAt(collection, query)
+.. function:: sh.splitAt(collection, query)
 
    :param string collection: Specify the sharded collection containing
                              the chunk to migrate.
@@ -1457,16 +1457,16 @@ Sharding
    as if that document is at the "middle" of the collection, even if
    the specified document is not the actual median of the
    collection. Use this command to manually split chunks unevenly. Use
-   the ":mjs:func:`sh.splitFind()`" function to split a chunk at the
+   the ":func:`sh.splitFind()`" function to split a chunk at the
    actual median.
 
    In most circumstances, you should leave chunk splitting to the
    automated processes within MongoDB. However, when initially
    deploying a :term:`shard cluster` it is necessary to perform some
    measure of :term:`pre-splitting` using manual methods including
-   :mjs:func:`sh.splitAt()`.
+   :func:`sh.splitAt()`.
 
-.. mjs:function:: sh.moveChunk(collection, query, destination)
+.. function:: sh.moveChunk(collection, query, destination)
 
    :param string collection: Specify the sharded collection containing
                              the chunk to migrate.
@@ -1484,46 +1484,46 @@ Sharding
    This function provides a wrapper around the
    :dbcommand:`moveChunk`. In most circumstances, allow the
    :term:`balancer` to automatically migrate :term:`chunks <chunk>`,
-   and avoid calling :mjs:func:`sh.moveChunk()` directly.
+   and avoid calling :func:`sh.moveChunk()` directly.
 
    .. seealso:: ":dbcommand:`moveChunk`" and ":doc:`/sharding`."
 
-.. mjs:function:: sh.setBalancerState(state)
+.. function:: sh.setBalancerState(state)
 
    :param boolean state: ``true`` enables the balancer if disabled,
                          and ``false`` disables the balancer.
 
    Enables or disables the :term:`balancer`. Use
-   :mjs:func:`sh.getBalancerState()` to determine if the balancer is
-   currently enabled or disabled and :mjs:func:`sh.isBalancerRunning()`
+   :func:`sh.getBalancerState()` to determine if the balancer is
+   currently enabled or disabled and :func:`sh.isBalancerRunning()`
    to check its current state.
 
-.. mjs:function:: sh.getBalancerState()
+.. function:: sh.getBalancerState()
 
    :returns: boolean.
 
-   :mjs:func:`sh.getBalancerState()` returns ``true`` when the :term:`balancer` is
+   :func:`sh.getBalancerState()` returns ``true`` when the :term:`balancer` is
    enabled and false if the balancer is disabled. This does not
    reflect the current state of balancing operations: use
-   :mjs:func:`sh.isBalancerRunning()` to check the balancer's current
+   :func:`sh.isBalancerRunning()` to check the balancer's current
    state.
 
-.. mjs:function:: sh.isBalancerRunning()
+.. function:: sh.isBalancerRunning()
 
    :returns: boolean.
 
    Returns true if the :term:`balancer` process is currently running
    and migrating chunks and false if the balancer process is not
-   running. Use :mjs:func:`sh.getBalancerState()` to determine if the
+   running. Use :func:`sh.getBalancerState()` to determine if the
    balancer is enabled or disabled.
 
-.. mjs:function:: sh.status()
+.. function:: sh.status()
 
    :returns: a formatted report of the status of the :term:`shard
              cluster`, including data regarding the distribution of
              chunks.
 
-.. mjs:function:: sh.help()
+.. function:: sh.help()
 
    :returns: a basic help text for all sharding related shell
              functions.
@@ -1536,7 +1536,7 @@ Replica Sets
 .. seealso:: ":doc:`/core/replication`" for more information regarding
    replication.
 
-.. mjs:function:: rs.status()
+.. function:: rs.status()
 
    :returns: A :term:`JSON document` with status information.
 
@@ -1550,7 +1550,7 @@ Replica Sets
    .. seealso:: ":doc:`/reference/replica-status`" for documentation
                 of this output.
 
-.. mjs:function:: rs.initiate(configuration)
+.. function:: rs.initiate(configuration)
 
    :param JSON,optional configuration: A :term:`JSON document` that
                                        specifies the configuration of
@@ -1575,12 +1575,12 @@ Replica Sets
    This function provides a wrapper around the
    ":dbcommand:`replSetInitiate`" :term:`database command`.
 
-.. mjs:function:: rs.conf(configuration)
+.. function:: rs.conf(configuration)
 
    :returns: a :term:`JSON document` that contains the current
              :term:`replica set` configuration object.
 
-.. mjs:function:: rs.reconfig(configuration)
+.. function:: rs.reconfig(configuration)
 
    :param JSON configuration: A :term:`JSON document` that specifies
                               the configuration of a replica set.
@@ -1592,13 +1592,13 @@ Replica Sets
    if this command succeeds.
 
    This function will overwrite the existing replica set
-   configuration. Use :mjs:func:`rs.status()` to retrieve the current
+   configuration. Use :func:`rs.status()` to retrieve the current
    status, and consider the following procedure for modifying a
 
    This function provides a wrapper around the
    ":dbcommand:`replSetReconfig`" :term:`database command`.
 
-.. mjs:function:: rs.add(host,configuration)
+.. function:: rs.add(host,configuration)
 
    Specify one of the following forms:
 
@@ -1621,10 +1621,10 @@ Replica Sets
    will be :term:`primary`. As a result, the shell will display an
    error even if this command succeeds.
 
-   :mjs:func:`rs.add()` provides a wrapper around some of the functionality of
+   :func:`rs.add()` provides a wrapper around some of the functionality of
    the ":dbcommand:`replSetReconfig`" :term:`database command`.
 
-.. mjs:function:: rs.addArb(hostname)
+.. function:: rs.addArb(hostname)
 
    :param string host: Specifies a host (and optionally port-number)
                        for a arbiter member for the replica set.
@@ -1636,7 +1636,7 @@ Replica Sets
    will be :term:`primary`. As a result, the shell will display an
    error even if this command succeeds.
 
-.. mjs:function:: rs.stepDown(seconds)
+.. function:: rs.stepDown(seconds)
 
    :param init seconds: Specify the duration of this operation. If not
                         specified the command uses the default value
@@ -1654,20 +1654,20 @@ Replica Sets
    will be :term:`primary`. As a result, the shell will display an
    error even if this command succeeds.
 
-   :mjs:func:`rs.stepDown()` provides a wrapper around the
+   :func:`rs.stepDown()` provides a wrapper around the
    :term:`database command` :dbcommand:`replSetStepDown`.
 
-.. mjs:function:: rs.freeze(seconds)
+.. function:: rs.freeze(seconds)
 
    :param init seconds: Specify the duration of this operation.
 
    Forces the current node to become ineligible to become primary for
    the period specified.
 
-   :mjs:func:`rs.freeze()` provides a wrapper around the :term:`database
+   :func:`rs.freeze()` provides a wrapper around the :term:`database
    command` :dbcommand:`replSetFreeze`.
 
-.. mjs:function:: rs.remove(hostname)
+.. function:: rs.remove(hostname)
 
    :param hostname: Specify one of the existing hosts to remove from
                     the current replica set.
@@ -1679,7 +1679,7 @@ Replica Sets
    result, the shell will display an error even if this command
    succeeds.
 
-.. mjs:function:: rs.slaveOk()
+.. function:: rs.slaveOk()
 
    Provides a shorthand for the following operation:
 
@@ -1690,7 +1690,7 @@ Replica Sets
    This allows the current connection to allow read operations to run
    on :term:`secondary` nodes.
 
-.. mjs:function:: db.isMaster()
+.. function:: db.isMaster()
 
    Returns a status document with fields that includes the
    "``ismaster`` field that reports if the current node is the
@@ -1700,7 +1700,7 @@ Replica Sets
    This function provides a wrapper around the :term:`database
    command` :dbcommand:`isMaster`
 
-.. mjs:function:: rs.help()
+.. function:: rs.help()
 
    Returns a basic help text for all of the :doc:`replication
    </core/replication>` related shell functions.
@@ -1716,11 +1716,11 @@ shell. The JavaScript standard library is accessible in the
 User Functions
 --------------
 
-.. mjs:function:: Date()
+.. function:: Date()
 
    :returns: Current date.
 
-.. mjs:function:: load("file")
+.. function:: load("file")
 
    :para string file: Specify a path and file name containing
                       JavaScript.
@@ -1737,34 +1737,34 @@ User Functions
      :option:`--shell <mongo --shell>` option to return to the shell after
      running the command.
 
-   Specify files loaded with the :mjs:func:`load()` function in relative terms
+   Specify files loaded with the :func:`load()` function in relative terms
    to the current directory of the :program:`mongo` shell
-   session. Check the current directory using the ":mjs:func:`pwd()`"
+   session. Check the current directory using the ":func:`pwd()`"
    function.
 
-.. mjs:function:: quit()
+.. function:: quit()
 
    Exits the current shell session.
 
-.. mjs:function:: getMemInfo()
+.. function:: getMemInfo()
 
    Returns a document with two fields that report the amount of memory
    used by the JavaScript shell process. The fields returned are
    :term:`resident <resident memory>` and :term:`virtual <virtual
    memory>`.
 
-.. mjs:function:: _srand()
+.. function:: _srand()
 
    For internal use.
 
-.. mjs:function:: _rand()
+.. function:: _rand()
 
    :returns: A random number between ``0`` and ``1``.
 
    This function provides functionality similar to the
    "``Math.rand()``" function from the standard library.
 
-.. mjs:function:: _isWindows()
+.. function:: _isWindows()
 
    :returns: boolean.
 
@@ -1772,21 +1772,21 @@ User Functions
    Windows, or "false"  if the server is running on a Unix or Linux
    systems.
 
-.. mjs:function:: ls()
+.. function:: ls()
 
    Returns a list of the files in the current directory.
 
    This function returns with output relative to the current shell
    session, and does not impact the server.
 
-.. mjs:function:: pwd()
+.. function:: pwd()
 
    Returns the current directory.
 
    This function returns with output relative to the current shell
    session, and does not impact the server.
 
-.. mjs:function:: cd("path")
+.. function:: cd("path")
 
    :param string file: Specify a path on the local file system.
 
@@ -1797,7 +1797,7 @@ User Functions
 
    .. note:: This feature is not yet implemented.
 
-.. mjs:function:: cat("filename")
+.. function:: cat("filename")
 
    :param string filename: Specify a path and file name on the local file
                           system.
@@ -1807,7 +1807,7 @@ User Functions
    This function returns with output relative to the current shell
    session, and does not impact the server.
 
-.. mjs:function:: md5sumFile("filename")
+.. function:: md5sumFile("filename")
 
    :param string filename: a file name.
 
@@ -1816,7 +1816,7 @@ User Functions
    .. note:: The specified filename must refer to a file located on
              the system running the :program:`mongo` shell.
 
-.. mjs:function:: mkdir("path")
+.. function:: mkdir("path")
 
    :param string path: A path on the local filesystem.
 
@@ -1826,17 +1826,17 @@ User Functions
 
    Equivalent to :command:`mkdir -p` with BSD or GNU utilities.
 
-.. mjs:function:: hostname()
+.. function:: hostname()
 
    :returns: The hostname of the system running the :program:`mongo`
               shell process.
 
-.. mjs:function:: getHostName()
+.. function:: getHostName()
 
    :returns: The hostname of the system running the :program:`mongo`
              shell process.
 
-.. mjs:function:: removeFile("filename")
+.. function:: removeFile("filename")
 
    :param string filename: Specify a filename or path to a local
                            file.
@@ -1845,7 +1845,7 @@ User Functions
 
    Removes the specified file from the local file system.
 
-.. mjs:function:: fuzzFile("filename")
+.. function:: fuzzFile("filename")
 
    :param string filename: Specify a filename or path to a local
                            file.
@@ -1854,7 +1854,7 @@ User Functions
 
    For internal use.
 
-.. mjs:function:: listFiles()
+.. function:: listFiles()
 
    Returns an array, containing one document per object in the
    directory. This function operates in the context of the
@@ -1880,54 +1880,54 @@ These functions are accessible in the shell but exist to support other
 functionality in the environment. Do not call these functions
 directly.
 
-.. mjs:function:: _startMognoProgram()
+.. function:: _startMognoProgram()
 
    For internal use.
 
-.. mjs:function:: runProgram()
+.. function:: runProgram()
 
    For internal use.
 
-.. mjs:function:: run()
+.. function:: run()
 
    For internal use.
 
-.. mjs:function:: runMongoProgram()
+.. function:: runMongoProgram()
 
    For internal use.
 
-.. mjs:function:: stopMongod()
+.. function:: stopMongod()
 
    For internal use.
 
-.. mjs:function:: stopMongoProgram()
+.. function:: stopMongoProgram()
 
    For internal use.
 
-.. mjs:function:: stopMongoProgramByPid()
+.. function:: stopMongoProgramByPid()
 
    For internal use.
 
-.. mjs:function:: rawMongoProgramOutput()
+.. function:: rawMongoProgramOutput()
 
    For internal use.
 
-.. mjs:function:: clearRawMongoProgramOutput()
+.. function:: clearRawMongoProgramOutput()
 
    For internal use.
 
-.. mjs:function:: waitProgram()
+.. function:: waitProgram()
 
    For internal use.
 
-.. mjs:function:: waitMongoProgramOnPort()
+.. function:: waitMongoProgramOnPort()
 
    For internal use.
 
-.. mjs:function:: resetDbpath()
+.. function:: resetDbpath()
 
    For internal use.
 
-.. mjs:function:: copyDbpath()
+.. function:: copyDbpath()
 
    For internal use.
