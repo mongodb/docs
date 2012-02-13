@@ -151,11 +151,11 @@ collStats
 `````````
 
 The :doc:`collStats data </reference/collection-statistics>` is
-accessible using the :dbcommand:`collStats`. command. It
-provides statistics that resemble :dbcommand:`dbStats` on the
-collection level: this includes a count of the objects in the
-collection, the size of the collection, the amount of disk space used
-by the collection, and information about the indexes.
+accessible using the :dbcommand:`collStats`. command. It provides
+statistics that resemble :dbcommand:`dbStats` on the collection level:
+this includes a count of the objects in the collection, the size of
+the collection, the amount of disk space used by the collection, and
+information about the indexes.
 
 .. seealso:: ":mjs:func:`db.printCollectionStats()`"
 

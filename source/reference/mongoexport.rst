@@ -108,6 +108,8 @@ Options
    directory. This option is only relevant when specifying the
    :option:`--dbpath` option.
 
+TODO fix passive voice
+
 .. option:: --journal
 
    Allows :program:`mongoexport` operations to access the durability
@@ -117,7 +119,7 @@ Options
 
 .. option:: --db [db], -d [db]
 
-   Use the ``--db`` option to specify a database for
+   Use the :option:`--db` option to specify a database for
    :program:`mongoexport` to export data from. If you do not specify a
    DB, :program:`mongoexport` will export all databases in this
    MongoDB instance. Use this option to create a copy of a smaller

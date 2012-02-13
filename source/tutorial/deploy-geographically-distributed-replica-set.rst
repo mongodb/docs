@@ -46,8 +46,8 @@ multiple secondary facilities, the requirements are the same with the
 following notes:
 
 - Ensure that a majority of the total number of :ref:`voting nodes
-  <replica-set-non-voting-nodes>` are within Site A. This includes
-  :ref:`secondary-only members <replica-set-secondary-only-nodes>` and
+  <replica-set-non-voting-members>` are within Site A. This includes
+  :ref:`secondary-only members <replica-set-secondary-only-members>` and
   :ref:`arbiters <replica-set-arbiters>`.
 
 - If you deploy a replica set with an uneven number of members, deploy
@@ -187,7 +187,7 @@ current primary is ``mongodb0.example.net``.
 
 Make sure that you have configured the member located in Site B
 (i.e. ``mongodb3.example.net``) as a :ref:`secondary-only member
-<replica-set-secondary-only-nodes>`. First, issue the following
+<replica-set-secondary-only-members>`. First, issue the following
 command determine the :mjs:data:`members[n]._id` value for
 ``mongodb3.example.net``:
 
@@ -251,15 +251,15 @@ Consider the following features of this deployment:
 - There are three possible architectures for this replica set:
 
   - Two members in Site A, two :ref:`secondary-only members
-    <replica-set-secondary-only-nodes>` in Site B, and an
+    <replica-set-secondary-only-members>` in Site B, and an
     :term:`arbiter` in Site A.
 
   - Three members in Site A and one :ref:`secondary-only member
-    <replica-set-secondary-only-nodes>` in Site B.
+    <replica-set-secondary-only-members>` in Site B.
 
   - Two members in Site A, one :ref:`secondary-only member
-    <replica-set-secondary-only-nodes>` in Site B, one
-    :ref:`secondary-only member <replica-set-secondary-only-nodes>` in
+    <replica-set-secondary-only-members>` in Site B, one
+    :ref:`secondary-only member <replica-set-secondary-only-members>` in
     Site C and an :term:`arbiter` in site A.
 
   In most cases the first architecture is preferable because it is the
@@ -373,7 +373,7 @@ arbiter (i.e. "``mongodb4.example.net``"):
 
 Make sure that you have configured the member located in Site B
 (i.e. ``mongodb3.example.net``) as a :ref:`secondary-only member
-<replica-set-secondary-only-nodes>`. First, issue the following
+<replica-set-secondary-only-members>`. First, issue the following
 command determine the :mjs:data:`members[n]._id` value for
 ``mongodb3.example.net``:
 

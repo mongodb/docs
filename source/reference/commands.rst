@@ -472,15 +472,6 @@ Aggregation
 
    .. slave-ok
 
-.. dbcommand:: mapreduce.shardedfinish
-
-   See :doc:`/core/map-reduce` for more information on mapReduce
-   operations.
-
-TODO what additional documentation does the mapreduce shardedfinish need over regular mapReduce
-
-   .. slave-ok
-
 .. dbcommand:: findAndModify
 
    The :dbcommand:`findAndModify` command atomically modifies and
@@ -663,8 +654,23 @@ TODO what additional documentation does the mapreduce shardedfinish need over re
        ] }
       );
 
-    .. seealso:: ":doc:`/applications/aggregation`" and
-       ":doc:`/reference/aggregation`."
+    More typically this operation would use the :mjs:func:`aggregate`
+    helper in the :program:`mongo` shell, and would resemble the
+    following:
+
+   .. code-block:: javascript
+
+      db.article.aggregate(
+        { $project : {
+           author : 1,
+           tags : 1,
+        } },
+        { $unwind : “$tags” },
+        { $group : {
+           _id : { tags : 1 },
+           authors : { $addToSet : “$author” }
+        } }
+      );
 
 Replication
 ~~~~~~~~~~~
@@ -868,7 +874,7 @@ Geospatial Commands
      using any standard MongoDB query selector.
    - The ``distanceMultiplier`` option is undocumented.
 
-TODO distanceMultiplier research/definition
+TODO distanceMultiplier research/definition -- EMAIL GREG
 
    .. read-lock, slave-ok
 
@@ -1791,7 +1797,7 @@ Diagnostics
 
       An array of strings in the format of "[hostname]:[port]" listing
       all nodes in the :term:`replica set` that are not ":term:`hidden
-      <hidden node>`".
+      <hidden member>`".
 
    .. mjs:data:: isMaster.primary
 
@@ -2029,10 +2035,10 @@ Other Commands
 .. dbcommand:: split
 
    The :dbcommand:`split` command creates new :term:`chunks <chunk>`
-   in a :term:`sharded` environment. While splitting is typically
-   managed automatically by the :program:`mongos` instances, this
-   command makes it possible for administrators to manually create
-   splits.
+   in a :term:`sharded <sharding>` environment. While splitting is
+   typically managed automatically by the :program:`mongos` instances,
+   this command makes it possible for administrators to manually
+   create splits.
 
    .. note::
 
@@ -2044,7 +2050,7 @@ Other Commands
 
       db.runCommand( { split : "test.people" , find : { _id : 99 } } )
 
-   This command inserts a new :term:`split` in the collection named
+   This command inserts a new split in the collection named
    "``people``" in the "``test``" database. This will split the chunk
    that contains the document that matches the query "``{ _id : 99
    }``" in half. If the document specified by the query does not (yet)
@@ -2322,6 +2328,15 @@ Internal Use
 .. dbcommand:: handshake
 
    :dbcommand:`handshake` is an internal command.
+
+   .. slave-ok
+
+.. dbcommand:: mapreduce.shardedfinish
+
+   Provides internal functionality to support :term:`map reduce` in
+   :term:`sharded` environments. 
+   
+   .. seealso:: ":dbcommand:`mapreduce`
 
    .. slave-ok
 

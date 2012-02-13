@@ -109,13 +109,15 @@ Options
    option is only relevant when specifying the :option:`--dbpath`
    option.
 
+TODO fix is located
+
 .. option:: --journal
 
    Enables journaling for all :program:`mongoimport` operations.
 
 .. option:: --db [db], -d [db]
 
-   Use the ``--db`` option to specify a database for
+   Use the :option:`--db` option to specify a database for
    :program:`mongoimport` to restore data. If you do not specify a
    "``[db]``", :program:`mongoimport` creates new databases that
    correspond to the databases where data originated and data may be
@@ -169,6 +171,8 @@ Options
    Modifies the importation procedure so that every collection is
    dropped from the target database before restoring the collection
    from the dumped backup.
+
+TODO fix passive voice here
 
 .. option:: --headerline
 

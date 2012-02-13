@@ -167,11 +167,12 @@ Options
 
 .. option:: --db [db], -d [db]
 
-TODO in the help but doesn't makes sense in this context
+   Use the :option:`--db` option to specify the MongoDB database that stores
+   or will store the GridFS files.
 
 .. option:: --collection [collection], -c [collection]
 
-TODO in the help but doesn't makes sense in this context
+TODO-pending SERVER-4931
 
 .. option:: --local <filename>, -l <filename>
 

@@ -647,7 +647,7 @@ up data stored in a single instance. It's possible to lock a single
 :term:`slave` or :term:`secondary` database and then create a backup
 from that instance. When you unlock the database, the slave will catch
 :term:`master` or :term:`primary` node. You may also chose to deploy a
-dedicated :term:`hidden node` for backup purposes.
+dedicated :term:`hidden member` for backup purposes.
 
 If you have a sharded cluster where each shard is itself a replica
 set, you can use this method to create a backup of the entire cluster

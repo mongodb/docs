@@ -590,7 +590,7 @@ asserts
    **TK** assertions. Use this value to provide context to the other
    values in the :status:`asserts` data structure.
 
-TODO determine number of assertions per-rollover.
+TODO-pending response from Mathias (determine number of assertions per-rollover.)
 
 .. _durability-status:
 

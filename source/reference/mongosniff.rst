@@ -28,6 +28,8 @@ development.
 Options
 -------
 
+TODO clean up cross referencing in this file
+
 .. program:: mongosniff
 
 .. option:: --help
@@ -36,11 +38,12 @@ Options
 
 .. option:: --forward <host>:<port>
 
-   Declares a host to forward all parsed requests to another
-   ``mongod`` instance. Specify host name and port in the
-   "``<host>:<port>``" format.
-
-TODO understand mongosniff --forward and its use/purpose.
+   Declares a host to forward all parsed requests that the
+   :program:`mongosniff` intercepts to another ``mongod``
+   instance. Specify host name and port in the "``<host>:<port>``"
+   format.
+   
+TODO edit more 
 
 .. option:: --source <NET [interface]>, <FILE [filename]>
 

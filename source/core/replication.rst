@@ -91,15 +91,16 @@ prevent these nodes from ever becoming primary.
 Hidden
 ~~~~~~
 
-Hidden nodes are members of a replica set that are not only unable to
-become primary (i.e. have :ref:`priority
-<replica-set-node-priority>` set to a value of ``0``, ) but are also
-invisible to client applications.
+Hidden members are part of a replica set, but are not only unable to
+become primary (i.e. have :ref:`priority <replica-set-node-priority>`
+set to a value of ``0``, ) but are also invisible to client
+applications.
 
-Hidden nodes are ideal for instances that will have significantly
+Hidden members are ideal for instances that will have significantly
 different usage patterns than the other nodes and require separation
-from normal traffic. Often nodes for reporting, dedicated
-backups, and testing/integration need to operate as hidden needs.
+from normal traffic. Typically hidden members provide reporting,
+dedicated backups, and dedicated read-only testing and integration
+support.
 
 .. seealso:: ":ref:`Configuring Hidden Members <replica-set-hidden-members>`"
 
@@ -108,9 +109,9 @@ backups, and testing/integration need to operate as hidden needs.
 Delayed
 ~~~~~~~
 
-Delayed members apply operations from the primary's :term:`oplog` with a specified
-delay. Delayed members  must have a :term:`priority` set to ``0`` to prevent them from
-becoming primary in their replica sets.
+Delayed members apply operations from the primary's :term:`oplog` with
+a specified delay. Delayed members must have a :term:`priority` set to
+``0`` to prevent them from becoming primary in their replica sets.
 
 Typically delayed members are useful for preventing and recovering from
 various kinds of human error. Such errors may include inadvertently
@@ -389,7 +390,7 @@ smaller oplog.
    Once created, you cannot change the size of the oplog without using
    the :ref:`oplog rezising procedure
    <replica-set-procedure-change-oplog-size>` outlined in the
-   ":doc:`/tutorial/chage-oplog-size`" guide.
+   ":doc:`/tutorial/change-oplog-size`" guide.
 
 .. [#default-oplog] The default oplog size is the *greater* of 1
    gigabyte or 5% of total disk size.

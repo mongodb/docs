@@ -98,7 +98,10 @@ Fields
 
    "flags" : 1,
 
-TODO what are flags in collectionstats.
+TODO edit this.
+
+There is only one flag and it indicates if there's an _id index or
+not. 
 
 .. stats:: totalIndexSize
 
