@@ -328,6 +328,236 @@ Query Cursor Methods
 
    .. seealso:: ":operator:`$hint`
 
+Data Aggregation
+~~~~~~~~~~~~~~~~
+
+.. mjs:function:: aggregate(pipeline)
+
+   Always call the :mjs:func:`aggregate()` method on a collection
+   object.
+
+   :argument pipeline: Specifies a sequence of data aggregation
+                       processes. See the :doc:`aggregation reference
+                       </reference/aggregation>` for documentation of
+                       these operators.
+
+   Consider the following example from the :doc:`aggregation
+   documentation </applications/aggregation>`.
+
+   .. code-block:: javascript
+
+      db.article.aggregate(
+        { $project : {
+           author : 1,
+           tags : 1,
+        } },
+        { $unwind : “$tags” },
+        { $group : {
+           _id : { tags : 1 },
+           authors : { $addToSet : “$author” }
+        } }
+      );
+
+    .. seealso:: ":dbcommand:`aggregate`,"
+       ":doc:`/applications/aggregation`," and
+       ":doc:`/reference/aggregation`."
+
+.. mjs:function:: group({key, reduce, initial, [keyf,] [cond,] finalize})
+
+   The :mjs:func:`group()` accepts a single :term:`JSON document` that
+   contains the following:
+
+   :field key: Specify one or more fields to group by. Use the
+               form of a :term:`JSON document`.
+
+   :field reduce: Specify a reduce function that operates over all the
+                  iterated objects. Typically these aggregator
+                  functions perform some sort of summing or
+                  counting. The reduce function takes two arguments:
+                  the current document and an aggregation counter
+                  object.
+
+   :field inital: The starting value of the aggregation counter
+                  object.
+
+   :field optional keyf: An optional function that returns a "key
+                         object" for use as the grouping key. Use
+                         ``keyf`` instead of ``key`` to specify a key
+                         that is not a single/multiple existing
+                         fields. For example, use ``keyf`` to group by
+                         day or week in place of a fixed ``key``.
+
+   :field optional cond: A statement that must evaluate to true for
+                         the :mjs:func:`group()` to process this
+                         document. Essentially this argument specifies
+                         a query document (as for
+                         :mjs:func:`find()`). Unless specified,
+                         :mjs:func:`group()` runs the "reduce" function
+                         against all documents in the collection.
+
+   :field optional finalize: An optional function that runs each item
+                             in the result set before
+                             :mjs:func:`group()` returns the final
+                             value. This function can either modify
+                             the document by computing and adding an
+                             average field, or return compute and
+                             return a new document.
+
+   .. warning::
+
+      :mjs:func:`group()` does not work in :term:`shard environments
+      <shard cluster>`. Use the :term:`aggregation framework` or
+      :term:`map/reduce` in :term:`sharded environments <sharding>`.
+
+   .. note::
+
+      The result set of the :mjs:func:`group()` must fit within the
+      maximum :term:`BSON` object.
+
+      Furthermore, you must ensure that there are fewer then 10,000
+      unique keys. If you have more than this, use
+      :dbcommand:`mapReduce`.
+
+   :mjs:func:`group()` provides a simple aggregation capability similar
+   to the function of "``GROUP BY``" in SQL statements. Use
+   :mjs:func:`group()` to return counts and averages from collections
+   of MongoDB documents. Consider the following example
+   :mjs:func:`group()` command:
+
+   .. code-block:: javascript
+
+      db.collection.group(
+                    {key: { a:true, b:true },
+                     cond: { active: 1 },
+                     reduce: function(obj,prev) { prev.csum += obj.c; },
+                     initial: { csum: 0 }
+                    });
+
+   This command in for the :program:`mongo` shell groups the documents
+   in the collection named "``collection``" by the ``a`` and ``b``
+   fields, when the "``active``" field has a value of ``1``. Then, the
+   reduce function, adds the current value of fields "``a``" "``b``"
+   to the previous value of those fields. This is equivalent to the
+   following SQL statement.
+
+   .. code-block:: sql
+
+      SELECT a,b,sum(c) csum FROM collection WHERE active=1 GROUP BY a,b
+
+   .. seealso:: The ":doc:`/applications/simple-aggregation`" and
+      ":doc:`/applications/aggregation`."
+
+.. mjs:function:: mapReduce(map,reduce,out,[query],[sort],[limit],[finalize],[scope],[jsMode],[verbose])
+
+   The :mjs:func:`mapReduce()` provides a wrapper around the
+   :dbcommand:`mapReduce` :term:`database command`. Always call the
+   :mjs:func:`mapReduce()` method on a collection. The following
+   argument list specifies a :term:`JSON document` with 3 required and
+   8 optional fields:
+
+   :param map: A JavaScript function that performs the "map" step of
+               the MapReduce operation. This function references the
+               current input document and calls the
+               "``emit(key,value)``" method that supplies values to
+               the reduce function. Map functions may call ``emit()``,
+               once, more than once, or not at all depending on the
+               type of aggregation.
+
+   :param reduce: A JavaScript function that performs the "reduce"
+                  step of the MapReduce operation. The reduce function
+                  receives an array of emitted values from the map
+                  function, and returns a single value. Because it's
+                  possible to invoke the reduce function more than
+                  once for the same key, the structure of the object
+                  returned by function must be identical to the
+                  structure of the emitted function.
+
+   :param out: Specifies the location of the out of the reduce stage
+               of the operation. Specify a string to write the output
+               of the Map/Reduce job to a collection with that
+               name. See below for additional output options.
+
+   :param optional query: A query object, like the query used by the
+                          :mjs:func:`find()` method. Use this to filter
+                          to limit the number of documents enter the
+                          map phase of the aggregation.
+
+   :param optional sort: Sorts the input objects using this key. This
+                         option is useful for optimizing the
+                         job. Common uses include sorting by the emit
+                         key so that there are fewer reduces.
+
+   :param optional limit: Species a maximum number of objects to
+                          return from the collection.
+
+   :param optional finalize: Specifies an optional "finalize" function
+                             to run on a result, following the reduce
+                             stage, to modify or control the output of
+                             the :mjs:func:`mapReduce()` operation.
+
+   :param optional scope: Place a :term:`JSON` document as the contents
+                          of this field, to place fields into the
+                          global javascript scope.
+
+   :param optional jsMode: Boolean. The ``jsMode`` option defaults to
+                           true.
+
+   :param optional verbose: Boolean. The ``verbose`` option provides
+                            statistics on job execution times.
+
+   The "``out``" field of the :mjs:func:`mapReduce()`, provides a
+   number of additional configuration options that you may use to
+   control how MongoDB returns data from the map/reduce job. Consider
+   the following 4 output possibilities.
+
+   .. versionadded: 1.8
+
+   :param optional replace: Specify a collection name (e.g. ``{ out: {
+                            replace: collectionName } }``) where the
+                            output of the map/reduce overwrites the
+                            contents of the collection specified
+                            (i.e. "``collectionName``") if there is
+                            any data in that collection.
+
+   :param optional merge: Specify a collection name (e.g. ``{ out: {
+                          merge: collectionName } }``) where the
+                          map/reduce operation writes output to an
+                          existing collection
+                          (i.e. "``collectionName``",) and only
+                          overwrites existing documents when a new
+                          document has the same key as an "old"
+                          document in this collection.
+
+   :param optional reduce: This operation behaves as the "``merge``"
+                           option above, except that when an existing
+                           document has the same key as a new
+                           document, "``reduce``" function from the
+                           map reduce job will run on both values and
+                           MongoDB writes the result of this function
+                           to the new collection. The specification
+                           takes the form of "``{ out: { reduce:
+                           collectionName } }``", where
+                           "``collectionName``" is the name of the
+                           results collection.
+
+   :param optional inline: Indicate the inline option (i.e. "``{ out:
+                           { inline: 1 } }``") to perform the map
+                           reduce job in ram and return the results at
+                           the end of the function. This option is
+                           only possible when the entire result set
+                           will fit within the :ref:`maximum size of a
+                           BSON document
+                           <limit-maximum-bson-document-size>`. When
+                           performing map/reduce jobs on secondary
+                           members of replica sets, this is the only
+                           available option.
+
+   .. seealso:: ":doc:`/core/map-reduce`, provides a greater overview
+      of MognoDB's map/reduce functionality. Consider
+      ":doc:`/applications/simple-aggregation` for simple aggregation
+      operations and ":doc:`/applications/aggregation`" for a more flexible
+      approach to data aggregation in MongoDB.
+
 Administrative Functions
 ------------------------
 
@@ -1020,202 +1250,6 @@ that you may use with collection objects.
 
       A unique name for the index comprised of the field names and
       orders of all keys.
-
-.. mjs:function:: group({key, reduce, initial, [keyf,] [cond,] finalize})
-
-   The :mjs:func:`group()` accepts a single :term:`JSON document` that
-   contains the following:
-
-   :field key: Specify one or more fields to group by. Use the
-               form of a :term:`JSON document`.
-
-   :field reduce: Specify a reduce function that operates over all the
-                  iterated objects. Typically these aggregator
-                  functions perform some sort of summing or
-                  counting. The reduce function takes two arguments:
-                  the current document and an aggregation counter
-                  object.
-
-   :field inital: The starting value of the aggregation counter
-                  object.
-
-   :field optional keyf: An optional function that returns a "key
-                         object" for use as the grouping key. Use
-                         ``keyf`` instead of ``key`` to specify a key
-                         that is not a single/multiple existing
-                         fields. For example, use ``keyf`` to group by
-                         day or week in place of a fixed ``key``.
-
-   :field optional cond: A statement that must evaluate to true for
-                         the :mjs:func:`group()` to process this
-                         document. Essentially this argument specifies
-                         a query document (as for
-                         :mjs:func:`find()`). Unless specified,
-                         :mjs:func:`group()` runs the "reduce" function
-                         against all documents in the collection.
-
-   :field optional finalize: An optional function that runs each item
-                             in the result set before
-                             :mjs:func:`group()` returns the final
-                             value. This function can either modify
-                             the document by computing and adding an
-                             average field, or return compute and
-                             return a new document.
-
-   .. warning::
-
-      :mjs:func:`group()` does not work in :term:`shard environments
-      <shard cluster>`. Use the :term:`aggregation framework` or
-      :term:`map/reduce` in :term:`sharded environments <sharding>`.
-
-   .. note::
-
-      The result set of the :mjs:func:`group()` must fit within the
-      maximum :term:`BSON` object.
-
-      Furthermore, you must ensure that there are fewer then 10,000
-      unique keys. If you have more than this, use
-      :dbcommand:`mapReduce`.
-
-   :mjs:func:`group()` provides a simple aggregation capability similar
-   to the function of "``GROUP BY``" in SQL statements. Use
-   :mjs:func:`group()` to return counts and averages from collections
-   of MongoDB documents. Consider the following example
-   :mjs:func:`group()` command:
-
-   .. code-block:: javascript
-
-      db.collection.group(
-                    {key: { a:true, b:true },
-                     cond: { active: 1 },
-                     reduce: function(obj,prev) { prev.csum += obj.c; },
-                     initial: { csum: 0 }
-                    });
-
-   This command in for the :program:`mongo` shell groups the documents
-   in the collection named "``collection``" by the ``a`` and ``b``
-   fields, when the "``active``" field has a value of ``1``. Then, the
-   reduce function, adds the current value of fields "``a``" "``b``"
-   to the previous value of those fields. This is equivalent to the
-   following SQL statement.
-
-   .. code-block:: sql
-
-      SELECT a,b,sum(c) csum FROM collection WHERE active=1 GROUP BY a,b
-
-   .. seealso:: The ":doc:`/applications/simple-aggregation`" and
-      ":doc:`/applications/aggregation`."
-
-.. mjs:function:: mapReduce(map,reduce,out,[query],[sort],[limit],[finalize],[scope],[jsMode],[verbose])
-
-   The :mjs:func:`mapReduce()` provides a wrapper around the
-   :dbcommand:`mapReduce` :term:`database command`. Always call the
-   :mjs:func:`mapReduce()` method on a collection. The following
-   argument list specifies a :term:`JSON document` with 3 required and
-   8 optional fields:
-
-   :param map: A JavaScript function that performs the "map" step of
-               the MapReduce operation. This function references the
-               current input document and calls the
-               "``emit(key,value)``" method that supplies values to
-               the reduce function. Map functions may call ``emit()``,
-               once, more than once, or not at all depending on the
-               type of aggregation.
-
-   :param reduce: A JavaScript function that performs the "reduce"
-                  step of the MapReduce operation. The reduce function
-                  receives an array of emitted values from the map
-                  function, and returns a single value. Because it's
-                  possible to invoke the reduce function more than
-                  once for the same key, the structure of the object
-                  returned by function must be identical to the
-                  structure of the emitted function.
-
-   :param out: Specifies the location of the out of the reduce stage
-               of the operation. Specify a string to write the output
-               of the Map/Reduce job to a collection with that
-               name. See below for additional output options.
-
-   :param optional query: A query object, like the query used by the
-                          :mjs:func:`find()` method. Use this to filter
-                          to limit the number of documents enter the
-                          map phase of the aggregation.
-
-   :param optional sort: Sorts the input objects using this key. This
-                         option is useful for optimizing the
-                         job. Common uses include sorting by the emit
-                         key so that there are fewer reduces.
-
-   :param optional limit: Species a maximum number of objects to
-                          return from the collection.
-
-   :param optional finalize: Specifies an optional "finalize" function
-                             to run on a result, following the reduce
-                             stage, to modify or control the output of
-                             the :mjs:func:`mapReduce()` operation.
-
-   :param optional scope: Place a :term:`JSON` document as the contents
-                          of this field, to place fields into the
-                          global javascript scope.
-
-   :param optional jsMode: Boolean. The ``jsMode`` option defaults to
-                           true.
-
-   :param optional verbose: Boolean. The ``verbose`` option provides
-                            statistics on job execution times.
-
-   The "``out``" field of the :mjs:func:`mapReduce()`, provides a
-   number of additional configuration options that you may use to
-   control how MongoDB returns data from the map/reduce job. Consider
-   the following 4 output possibilities.
-
-   .. versionadded: 1.8
-
-   :param optional replace: Specify a collection name (e.g. ``{ out: {
-                            replace: collectionName } }``) where the
-                            output of the map/reduce overwrites the
-                            contents of the collection specified
-                            (i.e. "``collectionName``") if there is
-                            any data in that collection.
-
-   :param optional merge: Specify a collection name (e.g. ``{ out: {
-                          merge: collectionName } }``) where the
-                          map/reduce operation writes output to an
-                          existing collection
-                          (i.e. "``collectionName``",) and only
-                          overwrites existing documents when a new
-                          document has the same key as an "old"
-                          document in this collection.
-
-   :param optional reduce: This operation behaves as the "``merge``"
-                           option above, except that when an existing
-                           document has the same key as a new
-                           document, "``reduce``" function from the
-                           map reduce job will run on both values and
-                           MongoDB writes the result of this function
-                           to the new collection. The specification
-                           takes the form of "``{ out: { reduce:
-                           collectionName } }``", where
-                           "``collectionName``" is the name of the
-                           results collection.
-
-   :param optional inline: Indicate the inline option (i.e. "``{ out:
-                           { inline: 1 } }``") to perform the map
-                           reduce job in ram and return the results at
-                           the end of the function. This option is
-                           only possible when the entire result set
-                           will fit within the :ref:`maximum size of a
-                           BSON document
-                           <limit-maximum-bson-document-size>`. When
-                           performing map/reduce jobs on secondary
-                           members of replica sets, this is the only
-                           available option.
-
-   .. seealso:: ":doc:`/core/map-reduce`, provides a greater overview
-      of MognoDB's map/reduce functionality. Consider
-      ":doc:`/applications/simple-aggregation` for simple aggregation
-      operations and ":doc:`/applications/aggregation`" for a more flexible
-      approach to data aggregation in MongoDB.
 
 .. mjs:function:: remove(query,justOne)
 

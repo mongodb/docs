@@ -103,19 +103,15 @@ Use
 Invocation
 ~~~~~~~~~~
 
-Invoke an :term:`aggregation` operation with the :dbcommand:`aggregate`
-and :dbcommand:`pipeline`. :dbcommand:`aggregate` specifies the name of
-the collection to use at the head of the :term:`pipeline`. The
-:dbcommand:`pipeline` command specifies an array of :ref:`pipeline
+Invoke an :term:`aggregation` operation with the :mjs:func:`aggregate`
+wrapper in the :program:`mongo` shell for the :dbcommand:`aggregate`
+:term:`database command`. Always call :mjs:func:`aggregate` on a
+collection object, which will determine the documents that contribute
+to the beginning of the aggregation :term:`pipleine`. The arguments to
+the :mjs:func:`aggregate` function specify a sequence :ref:`pipeline
 operators <aggregation-pipeline-operator-reference>`, where each
 :ref:`pipeline operator <aggregation-pipeline-operator-reference>` may
 have a number of operands.
-
-Because the :term:`aggregation framework` is accessible by way of the
-:term:`database commands <database command>` the interface is the same
-across all drivers/interfaces. Create a database object that resembles
-the following example and submit that object as a command to the
-database.
 
 First, consider a :term:`collection` of documents named "``article``"
 using the following schema or and format:
@@ -135,15 +131,14 @@ using the following schema or and format:
     other : { foo : 5 }
    }
 
-The following example :term:`pipelines <pipeline>` pivots data to
+The following example aggregation operation pivots data to
 create a set of author names grouped by tags applied to an
 article. Call the aggregation framework by issuing the following
 command:
 
 .. code-block:: javascript
 
-   db.runCommand(
-   { aggregate : “article”, pipeline : [
+   db.article.aggregate(
      { $project : {
         author : 1,
         tags : 1,
@@ -153,12 +148,13 @@ command:
         _id : { tags : 1 },
         authors : { $addToSet : “$author” }
      } }
-    ] }
    );
 
-This command calls the :dbcommand:`aggregate` on the :term:`collection`
-"``article``", selects the fields ``author`` and ``tags`` using the
-:aggregator:`$project`, and runs the :expression:`$unwind` and
+This operation uses the :mjs:func:`aggregate` wrapper around the
+:term:`database command` :dbcommand:`aggregate`. The aggregation
+pipleine begins with the :term:`collection` "``article``" and selects
+the ``author`` and ``tags`` fields using the :aggregator:`$project`
+aggregation operator, and runs the :expression:`$unwind` and
 :expression:`$group` on these fields to pivot the data.
 
 Result
@@ -184,9 +180,10 @@ Optimizing Performance
 Early Filtering
 ~~~~~~~~~~~~~~~
 
-Because the :dbcommand:`aggregate` uses a :term:`collection` as the
-beginning of a pipeline, it may be more efficient in some situations
-to avoid scanning an entire collection.
+Because you will always call :mjs:func:`aggregate` on a
+:term:`collection` object, which inserts the *entire* collection into
+the aggregation pipeline, you may want to increase efficiency in some
+situations by avoiding scanning an entire collection.
 
 If your aggregation operation requires only a subset of the data in a
 collection, use the :aggregator:`$match` to limit the items in the

@@ -63,13 +63,12 @@ The current pipeline operators are:
 
    .. code-block:: javascript
 
-      db.runCommand(
-      { aggregate : "article", pipeline : [
+      db.article.aggregate(
           { $project : {
               title : 1 ,
               author : 1 ,
           }}
-       ]});
+       );
 
    This operation includes the ``title`` field and the ``author``
    field in the document that returns from the aggregation
@@ -84,14 +83,13 @@ The current pipeline operators are:
 
       .. code-block:: javascript
 
-         db.runCommand(
-         { aggregate : "article", pipeline : [
+         db.article.aggregate(
              { $project : {
                  _id : 0 ,
                  title : 1 ,
                  author : 1
              }}
-         ]});
+         );
 
       Here, the projection excludes the ``_id`` field but includes the
       ``title`` and ``author`` fields.
@@ -110,13 +108,12 @@ The current pipeline operators are:
 
    .. code-block:: javascript
 
-      db.runCommand(
-      { aggregate : "article", pipeline : [
+      db.article.aggregate(
           { $project : {
               comments : 0 ,
               other : 0
           }}
-      ]});
+      );
 
    Here, the projection propagates all fields except for the
    "``comments``" and "``other``" fields along the pipeline.
@@ -137,13 +134,12 @@ The current pipeline operators are:
 
    .. code-block:: javascript
 
-      db.runCommand(
-      { aggregate : "article", pipeline : [
+      db.article.aggregate(
           { $project : {
               title : 1,
               doctoredPageViews : { $add:["$pageViews", 10] }
           }}
-      ]});
+      );
 
    Here, the field "``doctoredPageViews``" represents the value of the
    ``pageViews`` field after adding 10 to the original field using the
@@ -160,14 +156,13 @@ The current pipeline operators are:
 
    .. code-block:: javascript
 
-      db.runCommand(
-      { aggregate : "article", pipeline : [
+      db.article.aggregate(
           { $project : {
               title : 1 ,
               page_views : "$pageViews" ,
               florble : "$other.foo"
           }}
-      ]});
+      );
 
 
    This operation renames the "``pageViews``" field "``page_views``",
@@ -183,8 +178,7 @@ The current pipeline operators are:
 
    .. code-block:: javascript
 
-      db.runCommand(
-      { aggregate : "article", pipeline : [
+      db.article.aggregate(
           { $project : {
               title : 1 ,
               stats : {
@@ -193,7 +187,7 @@ The current pipeline operators are:
                   dpv : { $add:["$pageViews", 10] }
               }
           }}
-      ]});
+      );
 
    This projection selects the ``title`` field and places
    :aggregator:`$project` into "inclusive" mode. Then, it creates the
@@ -229,19 +223,17 @@ The current pipeline operators are:
 
    .. code-block:: javascript
 
-      db.runCommand(
-      { aggregate : "article", pipeline : [
+      db.article.aggregate(
           { $match : <match-predicate> }
-      ]});
+      );
 
    The following example performs a simple field equality test:
 
    .. code-block:: javascript
 
-      db.runCommand(
-      { aggregate : "article", pipeline : [
+      db.article.aggregate(
           { $match : { author : "dave" } }
-      ]});
+      );
 
    This operation only returns documents where the "``author``" field
    holds the value "``dave``". Consider the following example,
@@ -249,10 +241,9 @@ The current pipeline operators are:
 
    .. code-block:: javascript
 
-      db.runCommand(
-      { aggregate : "article", pipeline : [
+      db.article.aggregate(
           { $match : { score  : { $gt : 50, $lte : 90 } } }
-      ]});
+      );
 
    Here, all documents return when the ``score`` field holds a value
    that is greater than 50, but less than or equal to 90.
@@ -282,10 +273,9 @@ The current pipeline operators are:
 
    .. code-block:: javascript
 
-      db.runCommand(
-      { aggregate : "article", pipeline : [
+      db.article.aggregate(
           { $limit : 5 }
-      ]});
+      );
 
    This operation returns only the first 5 documents passed to it from
    by the pipeline. :aggregator:`$limit` has no effect on the content
@@ -305,10 +295,9 @@ The current pipeline operators are:
 
    .. code-block:: javascript
 
-      db.runCommand(
-      { aggregate : "article", pipeline : [
+      db.article.aggregate(
           { $skip : 5 }
-      ]});
+      );
 
    This operation skips the first 5 documents passed to it by the
    pipeline. :aggregator:`$skip` has no effect on the content of the
@@ -323,15 +312,14 @@ The current pipeline operators are:
 
    .. code-block:: javascript
 
-      db.runCommand(
-      { aggregate : "article", pipeline : [
+      db.article.aggregate(
           { $project : {
               author : 1 ,
               title : 1 ,
               tags : 1
           }},
           { $unwind : "$tags" }
-      ]});
+      );
 
    .. note::
 
@@ -428,14 +416,13 @@ The current pipeline operators are:
 
    .. code-block:: javascript
 
-      db.runCommand(
-      { aggregate : "article", pipeline : [
+      db.article.aggregate(
           { $group : {
               _id : "$author",
               docsPerAuthor : { $sum : 1 },
               viewsPerAuthor : { $sum : "$pageViews" }
           }}
-      ]});
+      );
 
    This groups by the "``author``" field and computes two fields, the
    first "``docsPerAuthor``" is a counter field that increments for
@@ -513,10 +500,9 @@ The current pipeline operators are:
 
    .. code-block:: javascript
 
-      db.runCommand(
-      { aggregate : "<collection-name>", pipeline : [
+      db.<collection-name>(
           { $sort : { <sort-key> } }
-      ]});
+      );
 
    This sorts the documents in the collection named
    "``<collection-name>``", according to the key and specification in
@@ -530,10 +516,9 @@ The current pipeline operators are:
 
    .. code-block:: javascript
 
-      db.runCommand(
-      { aggregate : "users", pipeline : [
+      db.users.aggregate(
           { $sort : { age : -1, posts: 1 } }
-      ]});
+      );
 
    This operation sorts the documents in the "``users``" collection,
    in ascending order according by the "``age``" field and then in
@@ -557,10 +542,9 @@ The current pipeline operators are:
 
    .. code-block:: javascript
 
-      db.runCommand(
-      { aggregate : "users", pipeline : [
+      db.article.aggregate(
           { $out : "users2" }
-      ]});
+      );
 
    This command reads all documents in the "``users``" collection and
    writes them to the "``users2``" collection. The documents are then
