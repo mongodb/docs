@@ -167,7 +167,7 @@ operations. Possible event types are:
 - "**restart**" occurs when a ``mongod`` or other monitored
   instance restarts.
 
-- "**upgrade**" occurs when a ``mongod`` is upgraded to a new
+- "**upgrade**" occurs after upgrading ``mongod`` to a new
   version.
 
 - "**now secondary**" occurs when a ``mongod`` instance becomes
@@ -181,24 +181,24 @@ Alerts
 
 The "Alerts" section provides access to MMS's alert system. This
 section has three tabs: unresolved alerts, resolved alerts, and alert
-settings. Following the installation of your first MMS agent, an alert
-is configured to send an email when the agent is down. You can delete
-or modify this alert as you like.
+settings. Following the installation of your first MMS agent, the
+system configures an alert to send an email when the agent is
+down. You can delete or modify this alert as you like.
 
 Types
 ~~~~~
 
 There are three possible alert types:
 
-- "**Old Host Version**" is triggered when the version of ``mongod``
-  is out of date.
+- "**Old Host Version**" activates in response to ``mongod`` running
+  an date version.
 
-- "**Host Down**" is triggered when a ``mongod`` or other monitored
-  instance restarts or fails to check in to MMS within 5
+- "**Host Down**" activates int response to a ``mongod`` or other
+  monitored instance restarts or fails to check in to MMS within 5
   minutes. There are no "host down" alerts if the agent is down.
 
-- "**Agent Down**" is triggered when the agent fails to report to MMS
-  within 5  minutes.
+- "**Agent Down**" activates in response to an agent that fails to
+  report to MMS within 5 minutes.
 
 MMS will add additional alert types in the near future.
 
@@ -210,11 +210,11 @@ the plus sign (e.g. ``+``) next to the word "Alerts" at the top of
 these pages. This will raise a dialogue where you can create email
 alerts for any of these event types. You can configure:
 
-- **Address** to specify where alert emails are sent.
+- **Address** specifies an address to send alert emails.
 
 - **Type** to select between text and HTML formats.
 
-- **Frequency** to select how often alerts will be sent, in minutes.
+- **Frequency** to select how often to send alerts, in minutes.
 
 - **Minimum Time Before Notification** to determine how long MMS will
   wait before sending a notification. Raising this value will increase

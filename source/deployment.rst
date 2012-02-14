@@ -24,9 +24,9 @@ Monitoring Architecture
 Only one agent per-group or environment will report to MMS at a time,
 but you can run multiple instances of the agent to provide
 redundancy. Secondary agents act as host standbys If you stop the
-agent process, the agent will be removed from the "Agents" tab within
-a day. If an agent is offline the last ping times for that agent do
-not update. To install a second or third agent, Simply repeat the
+agent process, MMS removes the agent from the "Agents" tab within a
+day. If an agent is offline the last ping times for that agent do not
+update. To install a second or third agent, Simply repeat the
 installation process in the :doc:`installation guide </install>` for
 each new agent. See instructions for automating the agent installation
 in the next section.
@@ -54,14 +54,14 @@ Multiple Environments
 If you have multiple MongoDB systems in distinct environments and
 cannot monitor both system with a single agent, you will need to add a
 new group. Having a second group makes it possible to run two agents,
-because the API and secret keys are unique to the group.
+because the AjikkrPI and secret keys are unique to the group.
 
 To add a new group click on the "Admins" page, and click on the "Add
 New Group" link on the upper right hand side of the page. Then,
 specify the new group name and select the "Add New Group" button on
-the following next page to create the new group. Once created, only
-the current user account be added as a member. To add more people,
-click on the "Admins" page in your new group.
+the following next page to create the new group. After creating a
+group, only the current user account is a member that group.To add
+more people, click on the "Admins" page in your new group.
 
 You may also use a second group and agent to monitor a different set
 of MongoDB instances in the same environment if you want to segregate
@@ -128,5 +128,5 @@ privileges.
 Use the ``update-rc.d`` utility on Debian and Ubuntu and the
 ``chkconfig`` tool on RedHat related systems to add these scripts to
 the initialization process. Be sure to test the control script
-configuration. It is essential that the agent can be started, stopped,
-and restarted following a system reboot.
+configuration. It is essential that you be able to start, stop, and
+restart the agent following a system reboot.
