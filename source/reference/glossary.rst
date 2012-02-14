@@ -386,6 +386,9 @@ Glossary
       operations to facilitate :term:`replication` in the context of a
       :term:`replica set`.
 
+      .. seealso:: ":ref:`Oplog Sizes <replica-set-oplog-sizing>`" and
+         ":doc:`/tutorial/change-oplog-size`."
+
    control script
       A simple shell script, typically located in the ``/etc/rc.d`` or
       ``/etc/init.d`` directory and used by the system's initialization

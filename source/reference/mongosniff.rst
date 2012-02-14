@@ -11,15 +11,15 @@
 Synopsis
 --------
 
-``mongosniff`` provides a low-level operation tracing/sniffing view
-into database activity in real time. Think of ``mongosniff`` as a
+:program:`mongosniff` provides a low-level operation tracing/sniffing view
+into database activity in real time. Think of :program:`mongosniff` as a
 MongoDB-specific analogue of ``tcpdump`` for TCP/IP network
-traffic. Typically, ``mongosniff`` is most frequently used in drier
+traffic. Typically, :program:`mongosniff` is most frequently used in drier
 development.
 
 .. note::
 
-   ``mongosniff`` requires "libcap" and is only available for
+   :program:`mongosniff` requires "libcap" and is only available for
    Unix-like systems.
 
    The Wireshark network sniffing tool is capable of inspecting and
@@ -27,8 +27,6 @@ development.
 
 Options
 -------
-
-TODO clean up cross referencing in this file
 
 .. program:: mongosniff
 
@@ -39,11 +37,11 @@ TODO clean up cross referencing in this file
 .. option:: --forward <host>:<port>
 
    Declares a host to forward all parsed requests that the
-   :program:`mongosniff` intercepts to another ``mongod``
-   instance. Specify host name and port in the "``<host>:<port>``"
+   :program:`mongosniff` intercepts to another :program:`mongod`
+   instance and issue those operations on that database instance.
+
+   Specify the target host name and port in the "``<host>:<port>``"
    format.
-   
-TODO edit more 
 
 .. option:: --source <NET [interface]>, <FILE [filename]>
 
@@ -61,20 +59,25 @@ TODO edit more
 .. option:: <port>
 
    Specifies alternate ports to sniff for traffic. By default,
-   ``mongosniff`` watches for MongoDB traffic on port 27017. Append
-   multiple port numbers to the end of ``mongosniff`` to monitor
+   :program:`mongosniff` watches for MongoDB traffic on port 27017. Append
+   multiple port numbers to the end of :program:`mongosniff` to monitor
    traffic on multiple ports.
 
 Usage
 -----
 
-Use the following command to connect to a ``mongod`` or ``mongos``
-running on port 27017 *and* 27018 on the localhost interface: ::
+Use the following command to connect to a :program:`mongod` or
+:program:`mongos` running on port 27017 *and* 27018 on the localhost
+interface:
 
-     mongosniff --source NET lo 27017 27018
+.. code-block:: sh
 
-Use the following command to only log invalid BSON objects for the
-``mongod`` or ``mongos`` running on the localhost interface and port
-27018, for driver development and troubleshooting: ::
+   mongosniff --source NET lo 27017 27018
 
-     mongosniff --objcheck --source NET lo 27018
+Use the following command to only log invalid :term:`BSON` objects for
+the :program:`mongod` or :program:`mongos` running on the localhost
+interface and port 27018, for driver development and troubleshooting:
+
+.. code-block:: sh
+
+   mongosniff --objcheck --source NET lo 27018

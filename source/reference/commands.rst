@@ -93,7 +93,7 @@ Sharding
                              ``maxSize`` value to limit the amount of
                              space the database can use.
 
-   The :dbcommand:`addShard` command registers a new with a sharded
+   The :dbcomm and:`addShard` command registers a new with a sharded
    cluster. You must run this command against a :program:`mongos`
    instance. The command takes the following form:
 
@@ -625,6 +625,8 @@ Aggregation
 
 .. dbcommand:: aggregate
 
+   .. versionadded:: 2.1.0
+
    :dbcommand:`aggregate` implements the :term:`aggregation
    framework`. Consider the following prototype form:
 
@@ -852,49 +854,57 @@ Geospatial Commands
 
 .. dbcommand:: geoNear
 
-   The ``geoNear`` command provides an alternative to the
+   The :dbcommand:`geoNear` command provides an alternative to the
    :dbcommand:`$near` operator. In addition to the
-   functionality of ``$near``, ``geoNear`` returns the distance of
+   functionality of :operator:`$near`, :dbcommand:`geoNear` returns the distance of
    each item from the specified point along with additional diagnostic
-   information. For example: ::
+   information. For example:
 
-         { geoNear : "places" , near : [50,50], num : 10 }
+   .. code-block:: javascript
 
-   Here, ``geoNear`` returns the 10 items nearest to the coordinates
-   ``[50,50]``. ``geoNear`` provides the following options (all
-   distances are specified in the same units as the document
-   coordinate system:)
+      { geoNear : "places" , near : [50,50], num : 10 }
 
-   - The `near`` option takes the coordinates (e.g. ``[ x,
-     y ]``) to use as the center of a geospatial query.
-   - The ``num`` option specifies the maximum number of documents to return.
-   - The ``maxDistance`` option limits the results to those falling within
-     a given distance of the center coordinate.
-   - The ``query`` option further narrows the results
-     using any standard MongoDB query selector.
-   - The ``distanceMultiplier`` option is undocumented.
+   Here, :dbcommand:`geoNear` returns the 10 items nearest to the coordinates
+   ``[50,50]``. `geoNear` provides the following options (specify
+   all distances in the same units as the document coordinate system:)
 
-TODO distanceMultiplier research/definition -- EMAIL GREG
+   :field near: Takes the coordinates (e.g. ``[ x, y ]``) to use as
+                the center of a geospatial query.
+
+   :field num: Specifies the maximum number of documents to return.
+
+   :field maxDistance: Limits the results to those falling within
+                       a given distance of the center coordinate.
+
+   :field query: Further narrows the results using any standard
+                 MongoDB query operator or selection. See :func:`find()`
+                 and ":doc:`/reference/operators`" for more
+                 information.
+
+   :field distanceMultipler: Undocumented.
+
+TODO-pending response from greg on distanceMultiplier
 
    .. read-lock, slave-ok
 
 .. dbcommand:: geoSearch
 
-   The ``geoSearch`` command provides an interface to MongoDB's
-   :term:`haystack index` functionality. These indexes are useful for
-   returning results based on location coordinates *after*
+   The :dbcommand:`geoSearch` command provides an interface to
+   MongoDB's :term:`haystack index` functionality. These indexes are
+   useful for returning results based on location coordinates *after*
    collecting results based on some other query (i.e. a "haystack.")
-   Consider the following example: ::
+   Consider the following example:
 
-        { geoSearch : "foo", near : [33, 33], maxDistance : 6, search : { type : "restaurant" }, limit : 30 }
+   .. code-block:: javascript
+
+      { geoSearch : "foo", near : [33, 33], maxDistance : 6, search : { type : "restaurant" }, limit : 30 }
 
    The above command returns all documents with a ``type`` of
-   ``restaurant`` having a maximum distance of 6
-   units from the coordinates "``[30,33]``" up to a maximum of 30
-   results.
+   ``restaurant`` having a maximum distance of 6 units from the
+   coordinates "``[30,33]``" up to a maximum of 30 results.
 
-   Unless specified otherwise, the ``geoSearch`` command limits results to 50
-   documents.
+   Unless specified otherwise, the :dbcommand:`geoSearch` command
+   limits results to 50 documents.
 
    .. read-lock, slave-ok
 
@@ -903,7 +913,7 @@ Collections
 
 .. dbcommand:: drop
 
-   The ``drop`` command removes an entire collection from a
+   The :dbcommand:`drop` command removes an entire collection from a
    database. The command has following syntax:
 
    .. code-block:: javascript

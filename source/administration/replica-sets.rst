@@ -58,10 +58,9 @@ with the :setting:`replSet`. Take note of the host name and
 port information for the new :program:`mongod` instance.
 
 Then, log in to the current primary using the :program:`mongo`
-shell. Issue the :func:`db.isMaster()` command when connected to
-*any* member of the set to determine the current
-:term:`primary`. Issue the following command to add the new member to
-the set.
+shell. Issue the :func:`db.isMaster()` command when connected to *any*
+member of the set to determine the current :term:`primary`. Issue the
+following command to add the new member to the set.
 
 .. code-block:: javascript
 
@@ -87,8 +86,8 @@ Removing Members
 ~~~~~~~~~~~~~~~~
 
 Administrators can remove any member of a replica set at any time, for
-a number of operational reasons. Use the :func:`rs.remove()`
-function in the :program:`mongo` shell while connected to the current
+a number of operational reasons. Use the :func:`rs.remove()` function
+in the :program:`mongo` shell while connected to the current
 :term:`primary`. Issue the :func:`db.isMaster()` command when
 connected to *any* member of the set to determine the current
 :term:`primary`. Use a command in either of the following forms to
@@ -128,7 +127,7 @@ Second, you may consider using the following procedure to use
 :func:`rs.reconfig()` to change the value of the
 :data:`members[n].host` field to reflect the new hostname or port
 number. In this case, the :data:`members[n]._id` field is not reused
-by the new nenber.
+by the new member.
 
 .. code-block:: javascript
 
@@ -168,27 +167,29 @@ the :program:`mongo` shell:
    rs.reconfig(cfg)
 
 The first operation sets the local variable "``cfg``" to the contents
-of the current replica set configuration using the
-:func:`rs.conf()`, which is a :term:`JSON document`. The next three
-operations change the :data:`members[n].priority` value in the ``cfg``
-document for :data:`members[n]._id` of ``0``, ``1``, or ``2``. The
-final operation calls :func:`rs.reconfig()` with the argument of
-``cfg`` to initialize the new configuration.
+of the current replica set configuration using the :func:`rs.conf()`,
+which is a :term:`JSON document`. The next three operations change the
+:data:`members[n].priority` value in the ``cfg`` document for
+:data:`members[n]._id` of ``0``, ``1``, or ``2``. The final operation
+calls :func:`rs.reconfig()` with the argument of ``cfg`` to initialize
+the new configuration.
 
-If a node has :data:`members[n].priority` set to ``0``, it is ineligible to become
-primary, and will not seek elections. :ref:`Hidden
-<replica-set-hidden-members>` and :ref:`delayed
-<replica-set-delayed-members>` members and :ref:`arbiters
-<replica-set-arbiters>` have priority set to ``0``. Unless configured,
-all nodes have a :data:`members[n].priority`  setting equal to ``1``.
+If a node has :data:`members[n].priority` set to ``0``, it is
+ineligible to become primary, and will not seek
+elections. :ref:`Hidden <replica-set-hidden-members>` and
+:ref:`delayed <replica-set-delayed-members>` members and
+:ref:`arbiters <replica-set-arbiters>` have priority set to
+``0``. Unless configured, all nodes have a :data:`members[n].priority`
+setting equal to ``1``.
 
 .. note::
 
-   The value of :data:`members[n].priority` can be any floating point (i.e. decimal)
-   number between ``0`` and ``1000``, and priorities are only used to
-   determine the preference in election. The priority value is only
-   used in with other instances. With the exception of nodes with a priority of ``0``,
-   the absolute value of the :data:`members[n].priority` value is irrelevant.
+   The value of :data:`members[n].priority` can be any floating point
+   (i.e. decimal) number between ``0`` and ``1000``, and priorities
+   are only used to determine the preference in election. The priority
+   value is only used in with other instances. With the exception of
+   nodes with a priority of ``0``, the absolute value of the
+   :data:`members[n].priority` value is irrelevant.
 
 Replica sets will preferentially elect and maintain the primary status
 of the node with the highest :data:`members[n].priority` setting.
@@ -499,14 +500,13 @@ errors:
   application systems.
 
 - No member is eligible to become :term:`primary`. Members must have a
-  :data:`members[n].priority` setting greater than ``0``, have
-  state that is less than ten seconds behind the last operation to the
+  :data:`members[n].priority` setting greater than ``0``, have state
+  that is less than ten seconds behind the last operation to the
   :term:`replica set`, and generally be *more* up to date than the
   voting members.
 
 In many senses, :ref:`rollbacks <replica-set-rollbacks>` represent a
-graceful recovery from an impossible failover and recovery
-situation.
+graceful recovery from an impossible failover and recovery situation.
 
 Rollbacks occur when a primary accepts writes that other members of
 the set do not successfully replicate before the primary steps

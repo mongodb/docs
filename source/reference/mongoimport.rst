@@ -104,12 +104,10 @@ Options
 
    Use the :option:`--directoryperdb` in conjunction with the
    corresponding option to :program:`mongod`, which allows
-   :program:`mongoimport` to import data into MongoDB instances where
-   each database is located in a distinct directory on the disk. This
-   option is only relevant when specifying the :option:`--dbpath`
-   option.
-
-TODO fix is located
+   :program:`mongoimport` to import data into MongoDB instances that
+   have every database's files saved in discrete directories on the
+   disk. This option is only relevant when specifying the
+   :option:`--dbpath` option.
 
 .. option:: --journal
 
@@ -168,11 +166,9 @@ TODO fix is located
 
 .. option:: --drop
 
-   Modifies the importation procedure so that every collection is
-   dropped from the target database before restoring the collection
-   from the dumped backup.
-
-TODO fix passive voice here
+   Modifies the importation procedure so that the target instance
+   drops every collection before restoring the collection from the
+   dumped backup.
 
 .. option:: --headerline
 

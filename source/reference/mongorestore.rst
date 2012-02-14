@@ -94,10 +94,10 @@ Options
 
    Use the :option:`--directoryperdb` in conjunction with the
    corresponding option to :program:`mongod`, which allows
-   :program:`mongorestore` to import data into MongoDB instances where
-   each database is located in a distinct directory on the disk. This
-   option is only relevant when specifying the :option:`--dbpath`
-   option.
+   :program:`mongorestore` to import data into MongoDB instances that
+   have every database's files saved in discrete directories on the
+   disk. This option is only relevant when specifying the
+   :option:`--dbpath` option.
 
 .. option:: --journal
 

@@ -177,10 +177,10 @@ mem
 
 .. status:: mem.bits
 
-   The value of :status:`mem.bits` is either ``64`` or ``32``, depending the
-   target system architecture for which the :program:`mongod` instance was
-   compiled. In most instances this is ``64``, and this value does not
-   change over time.
+   The value of :status:`mem.bits` is either ``64`` or ``32``,
+   depending on which target architecture specified during the
+   :program:`mongod` compilation process. In most instances this is
+   ``64``, and this value does not change over time.
 
 .. status:: mem.resident
 
@@ -644,9 +644,9 @@ Durability refers to :term:`journaling`.
 
 .. status:: dur.compression
 
-   The :status:`dur.compression` value ...
+   The :status:`dur.compression` value undocumented.
 
-TODO dur.compression  not included in existing documentation. and not apparent
+TODO-pending waiting on email from dwight
 
 .. status:: dur.commitsInWriteLock
 

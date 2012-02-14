@@ -247,20 +247,23 @@ Geolocation
    When using the :dbcommand:`geoNear`, if document contains more than
    one field with coordinate values, MongoDB will return the same
    document multiple times. When using the :operator:`$within`,
-   however, MongoDB returns opposite behavior.
+   however, MongoDB provides opposite behavior: if a document contains
+   more than one field with coordinate values, MongoDB will only
+   return the document once.
 
-   The :operator:`$uniqueDocs` operator oerrides these default
-   behaviors. By specifying "``$uniqueDocs: false``" in a
-   :operator:`$within` query, will cause true :operator:`$within`
-   queries to return a single document multiple times if there is more
-   than one match. By extension by specifying "``uniqueDocs: true``"
-   as an option to the :dbcommand:`geoNear`, this command will only
-   return a single document once even if there are multiple matches.
+   The :operator:`$uniqueDocs` operator overrides these default
+   behaviors.
+
+   By specifying "``$uniqueDocs: false``" in a :operator:`$within`
+   query, will cause the query to return a single document multiple
+   times if there is more than one match.
+
+   By contrast, if you specify "``uniqueDocs: true``" as an option to
+   the a :dbcommand:`geoNear` command, then :dbcommand:`geoNear` only
+   returns a single document even if there are multiple matches.
 
    You cannot specify :operator:`$uniqueDocs` with :operator:`$near`
    queries.
-
-TODO clarify $uniqueDocs as the wiki is unclear here. The true/false in the wiki seams to not line up with the behavior.
 
 Logical
 ~~~~~~~

@@ -79,29 +79,28 @@ Fields
 
 .. stats:: nindexes
 
-   The number of indexes on the collection. On standard, non-capped collections, there is
-   always at least one index on the primary key (i.e. ``_id``).
+   The number of indexes on the collection. On standard, non-capped
+   collections, there is always at least one index on the primary key
+   (i.e. :term:`_id`).
 
 .. stats:: lastExtentSize
 
-   The size of the last extent allocated. The "``scale``" factor affects this
-   value.
+   The size of the last extent allocated. The "``scale``" factor
+   affects this value.
 
 .. stats:: paddingFactor
 
    The amount of space added to the end of each document at insert
    time. The document padding provides a small amount of extra space
    on disk to allow a document to grow slightly without needing to
-   move the document. :program:`mongod` automatically calculates this padding factor
+   move the document. :program:`mongod` automatically calculates this
+   padding factor
 
 .. stats:: flags
 
-   "flags" : 1,
-
-TODO edit this.
-
-There is only one flag and it indicates if there's an _id index or
-not. 
+   Indicates the number of flags on the current collection. At the
+   preset, the only flag notes the existence of an :term:`index` on
+   the :term:`_id` field.
 
 .. stats:: totalIndexSize
 

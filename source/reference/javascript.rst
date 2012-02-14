@@ -333,6 +333,8 @@ Data Aggregation
 
 .. function:: aggregate(pipeline)
 
+   .. versionadded:: 2.1.0
+
    Always call the :func:`aggregate()` method on a collection
    object.
 

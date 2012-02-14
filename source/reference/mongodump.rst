@@ -30,8 +30,8 @@ Options
 .. option:: --verbose, -v
 
    Increases the amount of internal reporting returned on the command
-   line. Increase the verbosity with the ``-v`` form by including
-   the option multiple times, (e.g. ``-vvvvv``.)
+   line. Increase the verbosity with the ``-v`` form by including the
+   option multiple times, (e.g. ``-vvvvv``.)
 
 .. option:: --version
 

@@ -103,12 +103,10 @@ Options
 
    Use the :option:`--directoryperdb` in conjunction with the
    corresponding option to :program:`mongod`, which allows
-   :program:`mongoexport` to operate when MongoDB is configured to use
-   an on-disk stores where each database is located in a distinct
-   directory. This option is only relevant when specifying the
+   :program:`mongoexport` to export data into MongoDB instances that
+   have every database's files saved in discrete directories on the
+   disk. This option is only relevant when specifying the
    :option:`--dbpath` option.
-
-TODO fix passive voice
 
 .. option:: --journal
 
