@@ -6,17 +6,26 @@ Replication Internals
 
 .. _replica-set-oplog:
 
+Synopsis
+--------
+
+This document provides a more in-depth explanation of the internals
+and operation of replica set features. This material is not necessary
+for normal operation or application development, but may be
+useful for troubleshooting, helpful understanding MongoDB's behavior,
+or interesting for learning about MongoDB's approach.
+
 Oplog
 -----
 
 Replication itself works by way of a special :term:`capped collection`
-called the :term:`oplog`. This collection keeps a rolling record of all
-operations applied to the primary node. Secondary nodes then replicate this log by
-applying the operations to themselves. Note that this process is asynchronous.
-Under normal operation, secondary nodes will reflect writes within one
-second of the primary. However, various exceptional situations may
-cause secondaries lag behind further. See :term:`replication lag`
-for details.
+called the :term:`oplog`. This collection keeps a rolling record of
+all operations applied to the primary node. Secondary nodes then
+replicate this log by applying the operations to themselves. Note that
+this process is asynchronous.  Under normal operation, secondary nodes
+will reflect writes within one second of the primary. However, various
+exceptional situations may cause secondaries lag behind further. See
+:term:`replication lag` for details.
 
 All nodes send heartbeats to all other nodes, and will import
 operations into its oplog from the node with the lowest "ping" time.
@@ -30,14 +39,14 @@ MongoDB uses :term:`single master replication` to ensure that the
 database remains consistent. However, clients possible to modify the
 :ref:`read preferences <replica-set-read-preference>` on a
 per-connection basis in order to distribute read operations to the
-secondary members of a replica set. Read-heavy deployments may
-achieve greater query volumes by distributing reads to secondary
-nodes. But keep in mind that replication is asynchronous;
-therefore, reads from secondaries may not always reflect the latest
-writes to the primary. See the ":ref:`consistency
-<replica-set-consistency>`" section for more about
-":ref:`read preference <replica-set-read-preference>`" and
-":ref:`write concern <replica-set-write-concern>`."
+secondary members of a replica set. Read-heavy deployments may achieve
+greater query volumes by distributing reads to secondary nodes. But
+keep in mind that replication is asynchronous; therefore, reads from
+secondaries may not always reflect the latest writes to the
+primary. See the ":ref:`consistency <replica-set-consistency>`"
+section for more about ":ref:`read preference
+<replica-set-read-preference>`" and ":ref:`write concern
+<replica-set-write-concern>`."
 
 .. note::
 

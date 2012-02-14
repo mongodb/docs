@@ -588,7 +588,7 @@ asserts
    the rollover counters have rolled over since the last time the
    server process started. The counters will rollover to zero after
    **TK** assertions. Use this value to provide context to the other
-   values in the :status:`asserts` data structure.
+   values in the :status:`asserts` data structure
 
 TODO-pending response from Mathias (determine number of assertions per-rollover.)
 
@@ -596,6 +596,8 @@ TODO-pending response from Mathias (determine number of assertions per-rollover.
 
 dur
 ---
+
+.. versionadded:: 1.8
 
 Durability
 ~~~~~~~~~~
@@ -644,9 +646,10 @@ Durability refers to :term:`journaling`.
 
 .. status:: dur.compression
 
-   The :status:`dur.compression` value undocumented.
+   .. versionadded:: 2.0
 
-TODO-pending waiting on email from dwight
+   The :status:`dur.compression` represents the compression ratio of
+   the :term:`journal <journaling>`.
 
 .. status:: dur.commitsInWriteLock
 
