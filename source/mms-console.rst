@@ -118,6 +118,12 @@ On the next line, a slider allows you to change the scope of all
 charts at once. Move the sliders on either end of this bar to narrow
 all of the charts on this page at once.
 
+.. note::
+
+   The "Personalization" section of the "Settings" tab provides an
+   interface to set a default chart display type (e.g. "avg/sec,")
+   epoch type (e.g. "by day,") and window (e.g. "six months.")
+
 Specific Chart Controls
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -154,7 +160,6 @@ are:
 
 - "Info," the character ``i`` in a circle, raises a box with a key to
   the chart.
-
 
 Host Aliases
 ------------
@@ -234,8 +239,8 @@ To add additional users who have existing accounts created in `Jira
 <http://jira.mongodb.org/>`_, enter their username in the dialogue
 that appears. To add additional users who created accounts with the
 "`account registration page <https://mms.10gen.com/user/register/user>`_",
-enter their email addresses as their username. If the account
-specified is found, these users now have access to MMS account.
+enter their email addresses as their username. If the console finds the
+specified account, these users will now have access to MMS account.
 
 If you are using :ref:`MMS groups <mms-groups>`, you can create
 secondary groups to segregate monitored servers and users within a
