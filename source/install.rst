@@ -82,11 +82,10 @@ agent on a Windows host, skip to the :ref:`window instructions
 
         sudo yum install gcc python-devel
 
-   The agent requires at least version 1.9 of PyMongo. The latest
-   version may provide additional speed and stability, if
-   possible. Use the latest version you can. If you have not installed
-   ``pymongo`` issue the following command to install the latest
-   version: ::
+   Use the latest possible version of PyMongo for the best possible
+   speed and stability. The agent is not compatible with versions of
+   PyMongo before 1.9. If you have not installed ``pymongo`` issue the
+   following command to install the latest version: ::
 
         easy_install pymongo
 
@@ -99,7 +98,7 @@ agent on a Windows host, skip to the :ref:`window instructions
    PyMongo documentation <http://api.mongodb.org/python/2.0.1/installation.html>`_.
 
 6. If your datacenter requires that you proxy outbound connections
-   through an, you must use a version of Python greater than
+   through a gateway, you must use a version of Python greater than
    2.6.1. Additionally, you will need export the "``https_proxy``"
    environment variable (or "``HTTPS_PROXY``" on Windows.)
 
