@@ -17,7 +17,7 @@ document whose first key is the name of the command. For example,
 specify the :dbcommand:`isMaster` command using the following
 :term:`BSON` document:
 
-.. code-block:: javascript
+.. code-block:: json
 
    { isMaster: 1 }
 
@@ -62,7 +62,7 @@ The ``_adminCommand`` helper is shorthand for
 All commands return, at minimum, a document with an ``ok`` field
 indicating whether the command has succeeded:
 
-.. code-block:: javascript
+.. code-block:: json
 
    { 'ok': 1 }
 
@@ -97,7 +97,7 @@ Sharding
    cluster. You must run this command against a :program:`mongos`
    instance. The command takes the following form:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { addShard: "<hostname>:<port>" }
 
@@ -118,7 +118,7 @@ Sharding
    Use the :dbcommand:`listShards` command to return a list of
    configured shards. The command takes the following form:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
         { listShards: 1 }
 
@@ -127,7 +127,7 @@ Sharding
    The :dbcommand:`enableSharding` command enables sharding on a per-database
    level. Use the following command form:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { enableSharding: 1 }
 
@@ -141,7 +141,7 @@ Sharding
    :dbcommand:`enableSharding` on a database before running the
    :dbcommand:`shardCollection` command.
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { shardcollection: "<db>.<collection>", key: "<shardkey>" }
 
@@ -168,7 +168,7 @@ Sharding
    :program:`mongod` instance is a member of a sharded cluster. Run the
    command using the following syntax:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { shardingState: 1 }
 
@@ -180,7 +180,7 @@ Sharding
    cluster`. This is a multi-stage process. Begin by issuing the following
    command:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { removeshard : "shardName" }
 
@@ -191,14 +191,14 @@ Sharding
 
    The command returns immediately, with the following message:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { msg : "draining started successfully" , state: "started" , shard: "shardName" , ok : 1 }
 
    If you run the command again, you'll see the following progress
    output:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { msg: "draining ongoing" ,  state: "ongoing" , remaining: { chunks: 23 , dbs: 1 }, ok: 1 }
 
@@ -215,7 +215,7 @@ Sharding
    After removing all chunks and databases from the shard, you
    may issue the command again, to return:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
         { msg: "remove shard completed successfully , stage: "completed", host: "shardName", ok : 1 }
 
@@ -224,7 +224,7 @@ Sharding
    In a :term:`shard cluster`, this command reassigns a databases primary shard.
    The command takes the following form:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { moveprimary : "test", to : "shard0001" }
 
@@ -479,7 +479,7 @@ Aggregation
    <driver>` provide a :func:`findAndModify()` helper method. The
    command has the following prototype form:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { findAndModify: "collection", <options> }
 
@@ -516,7 +516,7 @@ Aggregation
 
    For example:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { findAndModify: "people",
         { query: { name: "Tom", state: "active", rating: { $gt: 10 } },
@@ -557,7 +557,7 @@ Aggregation
    given field across a single collection. The command takes the
    following form:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { distinct: collection, key: age, query: { query: { field: { $exists: true } } } }
 
@@ -584,7 +584,7 @@ Aggregation
    The :dbcommand:`eval` command evaluates JavaScript functions
    on the database server. Consider the following (trivial) example:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
         { eval: function() { return 3+3 } }
 
@@ -609,7 +609,7 @@ Aggregation
      can, however, disable the lock by setting the ``nolock`` flag to
      ``true``. For example:
 
-     .. code-block:: javascript
+     .. code-block:: json
 
         { eval: function() { return 3+3 }, nolock: true }
 
@@ -630,7 +630,7 @@ Aggregation
    :dbcommand:`aggregate` implements the :term:`aggregation
    framework`. Consider the following prototype form:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { aggregate: "[collection]", pipeline: ["pipeline"] }
 
@@ -699,7 +699,7 @@ Replication
 
    The :dbcommand:`replSetFreeze` command uses the following syntax:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { replSetFreeze: <seconds> }
 
@@ -707,7 +707,7 @@ Replication
    of seconds has elapsed, you can issue the command with a seconds
    value of ``0``:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { replSetFreeze: 0 }
 
@@ -726,7 +726,7 @@ Replication
    command against the admin database. The command has the following
    prototype format:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { replSetGetStatus: 1 }
 
@@ -745,7 +745,7 @@ Replication
    The :dbcommand:`replSetInitiate` command initializes a new replica set. Use the
    following syntax:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { replSetInitiate : <config_document> }
 
@@ -753,7 +753,7 @@ Replication
    the replica set's configuration. For instance, here's a config document
    for creating a simple 3-member replica set:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       {
           _id : <setname>,
@@ -798,7 +798,7 @@ Replication
    alter the options set on existing members. Use the following
    syntax:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { replSetReconfig: <new_config_document>, force: false }
 
@@ -834,7 +834,7 @@ Replication
    election for primary. You may specify a number of seconds for the
    node to avoid election to primary:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
 
 
@@ -860,7 +860,7 @@ Geospatial Commands
    each item from the specified point along with additional diagnostic
    information. For example:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { geoNear : "places" , near : [50,50], num : 10 }
 
@@ -900,7 +900,7 @@ Geospatial Commands
    collecting results based on some other query (i.e. a "haystack.")
    Consider the following example:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { geoSearch : "foo", near : [33, 33], maxDistance : 6, search : { type : "restaurant" }, limit : 30 }
 
@@ -921,7 +921,7 @@ Collections
    The :dbcommand:`drop` command removes an entire collection from a
    database. The command has following syntax:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
         { drop: <collection_name> }
 
@@ -956,7 +956,7 @@ Collections
 
    Consider the following example:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { cloneCollection: "app.users", from: "db.example.net:27017", query: { active: true }, copyIndexes: false }
 
@@ -979,14 +979,14 @@ Collections
    The ``create`` command explicitly creates a collection. The command
    uses the following syntax:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { create: <collection_name> }
 
    To create a :term:`capped collection` limited to 40 KB, issue command in
    the following form:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { create: "collection", capped: true, size: 40 * 1024 }
 
@@ -1018,7 +1018,7 @@ Collections
    non-capped collection to a :term:`capped collection`. Use the
    following syntax:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       {convertToCapped: "collection", size: 100 * 1024 }
 
@@ -1032,7 +1032,7 @@ Collections
    The ``emptycapped`` command removes all documents from a capped
    collection. Use the following syntax:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { emptycapped: "events" }
 
@@ -1045,7 +1045,7 @@ Collections
    collection. Use the following form to rename the collection
    named "things" to "events":
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { renameCollection: "store.things", to: "store.events" }
 
@@ -1066,7 +1066,7 @@ Collections
    The :dbcommand:`collStats` command returns a variety of storage statistics
    for a given collection. Use the following syntax:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { collStats: "database.collection" , scale : 1024 }
 
@@ -1112,7 +1112,7 @@ Collections
    collection. Additionally, the command forces all indexes on the collection
    to be rebuilt. The command has the following syntax:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { compact: "users" }
 
@@ -1123,9 +1123,11 @@ Collections
 
    - In a :term:`replica set`, :dbcommand:`compact` will refuse to run on the
      primary node unless you also specify ``{ force: true }``.
-     For example: ::
+     For example:
 
-           { compact: "collection", force: true }
+     .. code-block:: json
+
+        { compact: "collection", force: true }
 
    - If you have journaling enabled, your data will be safe even
      if you kill the operation or restart the server before it has
@@ -1171,7 +1173,7 @@ Administration
    while it runs. To toggle a write-lock using :dbcommand:`fsync`, add a lock
    argument, as follows:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { fsync: 1, lock: true }
 
@@ -1204,7 +1206,7 @@ Administration
    command, replacing "``<database>``" with the name of the database
    you wish to delete. Then use the following command form:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { dropDatabase: 1 }
 
@@ -1221,7 +1223,7 @@ Administration
    The :dbcommand:`dropIndexes` command drops one or all indexes from the current collection.
    To drop all indexes, issue the command like so:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { dropIndexes: "collection", index: "*" }
 
@@ -1229,7 +1231,7 @@ Administration
    of the index you want to drop. For example, to drop the index
    named "``age_1``", use the following command:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { dropIndexes: "collection", index: "age_1" }
 
@@ -1246,7 +1248,7 @@ Administration
    database on the remote instance with the same name as the current
    database. The command takes the following form:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
         { clone: "db1.example.net:27017" }
 
@@ -1284,7 +1286,7 @@ Administration
    compact the database, providing functionality equivalent to the
    :dbcommand:`compact` command. Use the following syntax.
 
-   .. code-block:: javascript
+   .. code-block:: json
 
         { repairDatabase: 1 }
 
@@ -1340,7 +1342,7 @@ Administration
    and then terminates the process. The command has the following
    form:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { shutdown: 1 }
 
@@ -1355,7 +1357,7 @@ Administration
    whose oplog data is within 10 seconds of the primary. You can override this protection
    using the ``force`` option:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { shutdown: 1, force: true }
 
@@ -1363,7 +1365,7 @@ Administration
    which allows you to specify a number of seconds to wait for other
    members of the replica set to catch up:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { shutdown: 1, timeoutSecs: 60 }
 
@@ -1378,7 +1380,7 @@ Administration
    The :dbcommand:`copydb` command copies a database from a remote
    host to the current host. The command has the following syntax:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { copydb: 1:
         fromhost: <hostname>,
@@ -1437,7 +1439,7 @@ Administration
    The :dbcommand:`logout` command terminates the current
    authenticated session:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { logout: 1 }
 
@@ -1480,7 +1482,7 @@ Administration
    the :dbcommand:`setParameter` command must against the ``admin``
    database, and it has form:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { setParameter: 1, <option>: <value> }
 
@@ -1524,7 +1526,7 @@ Administration
    retrieving the value of options normally set on the command
    line. Issue commands against the ``admin`` database as follows:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { getParameter: 1, <option>: 1 }
 
@@ -1548,7 +1550,7 @@ Diagnostics
    The :dbcommand:`dbStats` command returns storage statistics for a
    given database. The command takes the following syntax:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { dbStats: 1, scale: 1 }
 
@@ -1575,7 +1577,7 @@ Diagnostics
    connections for replication and clustering. The command takes the
    following form:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { connPoolStats: 1 }
 
@@ -1587,7 +1589,7 @@ Diagnostics
    The :dbcommand:`getCmdLineOpts` command returns a document containing
    command line options used to start the given :program:`mongod`:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { getCmdLineOpts: 1 }
 
@@ -1604,7 +1606,7 @@ Diagnostics
    scanning a collection's data and indexes for correctness. The command
    can be slow, particularly on larger data sets:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { validate: "users" }
 
@@ -1652,7 +1654,7 @@ Diagnostics
 
    The command takes the following form:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { top: 1 }
 
@@ -1661,7 +1663,7 @@ Diagnostics
    The :dbcommand:`buildInfo` command returns a build summary for the current
    :program:`mongod`:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { buildInfo: 1 }
 
@@ -1687,7 +1689,7 @@ Diagnostics
 
    Consider the following prototype form.
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { getLastError: 1 }
 
@@ -1727,7 +1729,7 @@ Diagnostics
    array that contains recent messages from the :program:`mongod`
    process's log. Use the following syntax:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { getLog: <log> }
 
@@ -1746,7 +1748,7 @@ Diagnostics
    The :dbcommand:`listDatabases` command provides a list of existing
    databases along with basic statistics about them:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { listDatabases: 1 }
 
@@ -1762,7 +1764,7 @@ Diagnostics
    The :dbcommand:`cursorInfo` command returns information about current cursor
    allotment and use. Use the following form:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { cursorInfo: 1 }
 
@@ -1784,7 +1786,7 @@ Diagnostics
 
    The command takes the following form:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { isMaster: 1 }
 
@@ -1836,7 +1838,7 @@ Diagnostics
    server is responding to commands. This command will return
    immediately even if the server is write-locked:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { ping: 1 }
 
@@ -1850,7 +1852,7 @@ Diagnostics
    (e.g. :term:`fsync`) for a file in the journal directory. The
    command syntax is:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { journalLatencyTest: 1 }
 
@@ -1864,7 +1866,7 @@ Diagnostics
    monitoring applications run this command at a regular interval to
    collection statistics about the instance:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { serverStatus: 1 }
 
@@ -1902,7 +1904,7 @@ Diagnostics
    implications for your deployment. Consider the following prototype
    syntax:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { profile: <level> }
 
@@ -1919,7 +1921,7 @@ Diagnostics
    You may optionally set a threshhold in milliseconds for profiling using
    the ``slowms`` option, as follows:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { profile: 1, slowms: 200 }
 
@@ -1955,7 +1957,7 @@ Other Commands
    The :dbcommand:`reIndex` command rebuilds all indexes for a
    specified collection. Use the following syntax:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { reIndex: "collection" }
 
@@ -1981,7 +1983,7 @@ Other Commands
    The command takes the ``files_id`` of the file in question and the
    name of the GridFS root collection as arguments. For example:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { filemd5: ObjectId("4f1f10e37671b50e4ecd2776"), root: "fs" }
 
@@ -2012,14 +2014,14 @@ Other Commands
    Use this command to determine if the process is a :program:`mongos`
    or a :program:`mongod`. Consider the following command prototype:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { isdbGrid: 1 }
 
    If connected to a :program:`mongos`, the response document
    resembles the following:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
       { "isdbgrid" : 1, "hostname" : "arendt.tychoish.net", "ok" : 1 }
 
@@ -2182,7 +2184,7 @@ Internal Use
    :dbcommand:`sleep` command forces the db block all operations. It
    takes the following options:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
         { sleep: { w: true, secs: <seconds> } }
 
@@ -2316,7 +2318,7 @@ Internal Use
    The :dbcommand:`dataSize` command returns the size data size for a set of
    data within a certian range:
 
-   .. code-block:: javascript
+   .. code-block:: json
 
         { dataSize: "database.collection", keyPattern: { field: 1 }, min: { field: 10 }, max: { field: 100 } }
 

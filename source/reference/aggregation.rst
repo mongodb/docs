@@ -28,7 +28,7 @@ operators in a sequence. All examples in this section, assume that the
 aggregation pipeline beings with a collection named "``article`` that
 contains documents that resemble the following:
 
-.. code-block:: javascript
+.. code-block:: json
 
    {
     title : "this is my title" ,

@@ -88,7 +88,7 @@ about your repository. If you are running a 64-bit system
 (recommended,) place the following configuration in
 ``/etc/yum.repos.d/10gen.repo`` file:
 
-.. code-block:: config
+.. code-block:: cfg
 
    [10gen]
    name=10gen Repository
@@ -99,7 +99,7 @@ If you are running a 32-bit system, which isn't recommended for
 production deployments, place the following configuration in
 ``/etc/yum.repos.d/10gen.repo`` file:
 
-.. code-block:: config
+.. code-block:: cfg
 
    [10gen]
    name=10gen Repository

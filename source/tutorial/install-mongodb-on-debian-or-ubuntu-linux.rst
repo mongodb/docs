@@ -82,14 +82,14 @@ If you use an Ubuntu version with "Upstart" (i.e. any since version
 9.10 "Karmic,") or are running with Upstart on Debian, use the
 following line:
 
-.. code-block:: conf
+.. code-block:: sources.list
 
    deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen
 
 If you are using Debian or Ubuntu that uses SysV style init process,
 use the following line:
 
-.. code-block:: conf
+.. code-block:: sources.list
 
    deb http://downloads-distro.mongodb.org/repo/debian-sysvinit dist 10gen
 
