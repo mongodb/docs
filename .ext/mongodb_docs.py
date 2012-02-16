@@ -21,11 +21,6 @@ from sphinx.domains.python import _pseudo_parse_arglist
 from sphinx.util.nodes import make_refnode
 from sphinx.util.docfields import Field, GroupedField, TypedField
 
-from docutils.parsers.rst import Directive, directives
-from docutils.parsers.rst.directives.misc import Class
-from docutils.parsers.rst.directives.misc import Include as BaseInclude
-from sphinx.util.compat import make_admonition
-
 class MongoDBObject(ObjectDescription):
     """
     Description of a MongoDB object.
@@ -133,8 +128,8 @@ class MongoDBObject(ObjectDescription):
         return ''
 
 class MongoDBCallable(MongoDBObject):
-    """Description of a JavaScript function, method or constructor."""
-    has_arguments = False
+    """Description of a MongoDB function, method or constructor."""
+    has_arguments = True
 
     doc_field_types = [
         TypedField('arguments', label=l_('Arguments'),
@@ -159,7 +154,7 @@ class MongoDBCallable(MongoDBObject):
 
 class MongoDBCallableProgram(MongoDBObject):
     """Description of a MognoDB function, method or constructor."""
-    has_arguments = False
+    has_arguments = True
     required_arguments = 1
     display = None
 
@@ -264,25 +259,6 @@ class MongoDBDomain(Domain):
     def get_objects(self):
         for refname, (docname, type) in self.data['objects'].items():
             yield refname, refname, type, docname, refname, 1
-
-class Optional(Directive):
-    """
-    An admonition mentioning things to look at as reference.
-    """
-    has_content = True
-    required_arguments = 0
-    optional_arguments = 1
-    final_argument_whitespace = True
-    option_spec = {}
-
-    def run(self):
-        ret = make_admonition(
-            addnodes.seealso, self.name, [_('Optional')], self.options,
-            self.content, self.lineno, self.content_offset, self.block_text,
-            self.state, self.state_machine)
-        return ret
-
-directives.register_directive('optional', Optional)
 
 def setup(app):
     app.add_domain(MongoDBDomain)
