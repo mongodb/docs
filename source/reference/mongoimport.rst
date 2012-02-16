@@ -1,11 +1,12 @@
 .. _mongoimport:
 
+.. default-domain:: mongodb
+
+.. binary:: mongoimport
+
 =====================================
 :program:`mongoimport` Utility Manual
 =====================================
-
-.. default-domain:: mongodb
-.. binary:: mongoimport
 
 Synopsis
 --------

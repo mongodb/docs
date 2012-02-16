@@ -1,11 +1,12 @@
 .. _mongos:
 
+.. default-domain:: mongodb
+
+.. binary:: mongos
+
 ========================
 :program:`mongos` Manual
 ========================
-
-.. default-domain:: mongodb
-.. binary:: mongos
 
 Synopsis
 --------

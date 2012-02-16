@@ -13,43 +13,36 @@ Getting Started
 
    getting-started
 
-Major Topics
-------------
-
-.. toctree::
-   :maxdepth: 2
-
-   getting-started
-   replication
-   sharding
-   administration
-   reference
-
-
 Application Development
 -----------------------
 
 .. toctree::
    :maxdepth: 3
 
-   applications
-   mongo
    applications/aggregation
+
+.. toctree::
+   :hidden:
+
    core/map-reduce
 
-Core Concepts and Functionality
--------------------------------
+Core Functionality
+------------------
 
 .. toctree::
    :maxdepth: 3
 
    core/replication
-   core/sharding
-   applications/aggregation
+   core/replication-internals
+
+.. toctree::
+   :hidden:
+
    core/map-reduce
    core/journaling
    core/capped-collections
    core/indexing
+   core/sharding
 
 Administration and Deployment
 -----------------------------
@@ -60,14 +53,19 @@ Administration and Deployment
    administration/backups
    administration/import-export
    administration/monitoring
-   administration/replica-sets
-   administration/security
    administration/configuration
-   administration/hardware-platform
-   administration/operating-systems
+   administration/replica-sets
    administration/replication-architectures
+
+.. toctree::
+   :hidden:
+
    administration/sharding
    administration/sharding-architectures
+   administration/hardware-platform
+   administration/operating-systems
+   administration/security
+
 
 MongoDB Shell
 -------------
@@ -75,28 +73,57 @@ MongoDB Shell
 .. toctree::
    :maxdepth: 2
 
-   mongo
    reference/javascript
    reference/commands
    reference/operators
    reference/meta-query-operators
 
-Developing MongoDB
-------------------
+.. toctree::
+   :hidden:
 
-- Internal Architecture
-- Client Interfaces
-- Building MongoDB
+   mongo
 
-Frequently Asked Questions
---------------------------
+.. Developing MongoDB
+.. ------------------
 
-- Interface FAQ
-- Replication FAQ
-- Sharding FAQ
+.. - Internal Architecture
+.. - Client Interfaces
+.. - Building MongoDB
+
+.. Frequently Asked Questions
+.. --------------------------
+
+.. - Interface FAQ
+.. - Replication FAQ
+.. - Sharding FAQ
+
+Chapters
+--------
+
+.. toctree::
+   :maxdepth: 1
+
+   getting-started
+   applications
+   replication
+   administration
+   reference
+
+.. toctree::
+   :hidden:
+
+   mongo
+   sharding
+
 
 Reference
 ---------
+
+.. toctree::
+   :hidden:
+
+   reference/limits
+   reference/error-codes
 
 MongoDB Programs
 ~~~~~~~~~~~~~~~~

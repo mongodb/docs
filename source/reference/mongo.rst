@@ -1,11 +1,12 @@
 .. _mongo:
 
+.. default-domain:: mongodb
+
+.. binary:: mongo
+
 =============================
 :program:`mongo` Shell Manual
 =============================
-
-.. default-domain:: mongodb
-.. binary:: mongo
 
 Synopsis
 --------

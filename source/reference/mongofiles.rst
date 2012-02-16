@@ -1,12 +1,12 @@
 .. _mongofiles:
 
-====================================
-:program:`mongofiles` Utility Manual
-====================================
-
 .. default-domain:: mongodb
 
 .. binary:: mongofiles
+
+====================================
+:program:`mongofiles` Utility Manual
+====================================
 
 Synopsis
 --------

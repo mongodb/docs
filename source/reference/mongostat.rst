@@ -1,12 +1,12 @@
 .. _mongostat:
 
-===========================
-:program:`mongostat` Manual
-===========================
-
 .. default-domain:: mongodb
 
 .. binary:: mongostat
+
+===========================
+:program:`mongostat` Manual
+===========================
 
 Synopsis
 --------

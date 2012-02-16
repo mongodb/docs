@@ -1,11 +1,12 @@
 .. _mongodump:
 
+.. default-domain:: mongodb
+
+.. binary:: mongodump
+
 ===================================
 :program:`mongodump` Utility Manual
 ===================================
-
-.. default-domain:: mongodb
-.. binary:: mongodump
 
 Synopsis
 --------

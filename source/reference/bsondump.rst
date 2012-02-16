@@ -1,11 +1,12 @@
 .. _bsondump:
 
+.. default-domain:: mongodb
+
+.. binary:: bsondump
+
 ==================================
 :program:`bsondump` Utility Manual
 ==================================
-
-.. default-domain:: mongodb
-.. binary:: bsondump
 
 Synopsis
 --------

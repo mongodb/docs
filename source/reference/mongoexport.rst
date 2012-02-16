@@ -1,12 +1,12 @@
 .. _mongoexport:
 
-=====================================
-:program:`mongoexport` Utility Manual
-=====================================
-
 .. default-domain:: mongodb
 
 .. binary:: mongoexport
+
+=====================================
+:program:`mongoexport` Utility Manual
+=====================================
 
 Synopsis
 --------

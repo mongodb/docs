@@ -1,12 +1,12 @@
 .. _mongorestore:
 
-======================================
-:program:`mongorestore` Utility Manual
-======================================
-
 .. default-domain:: mongodb
 
 .. binary:: mongorestore
+
+======================================
+:program:`mongorestore` Utility Manual
+======================================
 
 Synopsis
 --------

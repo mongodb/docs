@@ -1,11 +1,12 @@
 .. _mongotop:
 
+.. default-domain:: mongodb
+
+.. binary:: mongotop
+
 ==========================
 :program:`mongotop` Manual
 ==========================
-
-.. default-domain:: mongodb
-.. binary:: mongotop
 
 Synopsis
 --------
@@ -55,8 +56,9 @@ Options
 .. option:: --host <hostname><:port>
 
    Specifies a resolvable hostname for the ``mongod`` from which you
-   want to export data. By default :program:`mongotop` attempts to connect
-   to a MongoDB process ruining on the localhost port number 27017.
+   want to export data. By default :program:`mongotop` attempts to
+   connect to a MongoDB process ruining on the localhost port number
+   ``27017``.
 
    Optionally, specify a port number to connect a MongboDB instance
    running on a port other than 27017.
@@ -88,15 +90,16 @@ Options
 
 .. option:: --username <username>, -u <username>
 
-   Specifies a username to authenticate to the MongoDB instance, if your
-   database requires authentication. Use in conjunction with the
-   :option:`mongotop --password` option to supply a password.
+   Specifies a username to authenticate to the MongoDB instance, if
+   your database requires authentication. Use in conjunction with the
+   :option:`mongotop <mongotop --password>` option to supply a
+   password.
 
 .. option:: --password [password]
 
    Specifies a password to authenticate to the MongoDB instance. Use
-   in conjunction with the :option:`mongotop --username` option to
-   supply a username.
+   in conjunction with the :option:`--username <mongotop --username>`
+   option to supply a username.
 
 .. option:: [sleeptime]
 
@@ -112,31 +115,31 @@ Fields
 :program:`mongotop` returns time values specified in milliseconds
 (ms.)
 
-.. describe:: ns
+.. data:: ns
 
    The database namespace, and includes the database name and
-   collection. :program:`mongotop only reports active namespaces. If
+   collection. :program:`mongotop` only reports active namespaces. If
    you don't see a database or collection, it has received no recent
    activity. You can issue a simple operation in the :program:`mongo`
    shell to generate activity so that an specific namespace appears on
    the page.
 
-.. describe:: total
+.. data:: total
 
-   Provides the total amount of time that this ``mongod`` spent
+   Provides the total amount of time that this :program:`mongod` spent
    operating on this namespace.
 
-.. describe:: read
+.. data:: read
 
-   Provides the amount of time that this ``mongod`` spent performing
-   read operations on this namespace.
+   Provides the amount of time that this :program:`mongod` spent
+   performing read operations on this namespace.
 
-.. describe:: write
+.. data:: write
 
-   Provides the amount of time that this ``mongod`` spent performing
-   write operations on this namespace.
+   Provides the amount of time that this :program:`mongod` spent
+   performing write operations on this namespace.
 
-.. describe:: [timestamp]
+.. data:: [timestamp]
 
    Provides a time stamp for the returned data.
 

@@ -1,11 +1,12 @@
 .. _mongod:
 
+.. default-domain:: mongodb
+
+.. binary:: mongod
+
 ========================
 :program:`mongod` Manual
 ========================
-
-.. default-domain:: mongodb
-.. binary:: mongod
 
 Synopsis
 --------
@@ -469,9 +470,11 @@ Usage
 -----
 
 In common usage, the invocation of :program:`mongod` will resemble the
-following in the context of an initialization or control script: ::
+following in the context of an initialization or control script:
 
-        mongod --config /etc/mongodb.conf
+.. code-block:: sh
+
+   mongod --config /etc/mongodb.conf
 
 See the ":doc:`/reference/configuration-options`" for more information
 on how to configure :program:`mongod` using the configuration file.
