@@ -21,6 +21,10 @@ from sphinx.domains.python import _pseudo_parse_arglist
 from sphinx.util.nodes import make_refnode
 from sphinx.util.docfields import Field, GroupedField, TypedField
 
+from docutils.parsers.rst import Directive, directives
+from docutils.parsers.rst.directives.misc import Class
+from docutils.parsers.rst.directives.misc import Include as BaseInclude
+from sphinx.util.compat import make_admonition
 
 class MongoDBObject(ObjectDescription):
     """
@@ -108,7 +112,9 @@ class MongoDBObject(ObjectDescription):
             return _('%s (database command)') % name
         elif self.objtype == 'operator':
             return _('%s (operator)') % name
-        elif self.objtype == 'program':
+        elif self.objtype == 'binary':
+            return _('%s (program)') % name
+        elif self.objtype == 'dbprogram':
             return _('%s (program)') % name
         elif self.objtype == 'setting':
             return _('%s (setting)') % (name)
@@ -152,38 +158,14 @@ class MongoDBCallable(MongoDBObject):
     ]
 
 class MongoDBCallableProgram(MongoDBObject):
-    """Description of a JavaScript function, method or constructor."""
+    """Description of a MognoDB function, method or constructor."""
     has_arguments = False
-    has_content = None
-    parse_node = None
     required_arguments = 1
     display = None
-    optional_arguments = 0
-    final_argument_whitespace = True
-    option_spec = {}
 
     def run(self):
         display = None
         return []
-
-class MongoDBProgramXRefRole(XRefRole):
-    def process_link(self, env, refnode, has_explicit_title, title, target):
-        # basically what sphinx.domains.python.PyXRefRole does
-        refnode['mongodb:object'] = env.temp_data.get('mongodb:object')
-        if not has_explicit_title:
-            title = title.lstrip('.')
-            target = target.lstrip('~')
-            if title[0:1] == '~':
-                title = title[1:]
-                dot = title.rfind('.')
-                if dot != -1:
-                    title = title[dot+1:]
-        if target[0:1] == '.':
-            print "it gets here"
-            target = target[1:]
-            refnode['refspecific'] = True
-        return title, target
-
 
 class MongoDBXRefRole(XRefRole):
     def process_link(self, env, refnode, has_explicit_title, title, target):
@@ -202,7 +184,6 @@ class MongoDBXRefRole(XRefRole):
             refnode['refspecific'] = True
         return title, target
 
-
 class MongoDBDomain(Domain):
     """MongoDB Documentation domain."""
     name = 'mongodb'
@@ -210,8 +191,8 @@ class MongoDBDomain(Domain):
     # if you add a new object type make sure to edit MongoDBObject.get_index_string
     object_types = {
         'dbcommand':    ObjType(l_('dbcommand'),   'dbcommand'),
+        'binary':       ObjType(l_('binary'),      'program'),
         'operator':     ObjType(l_('operator'),    'operator'),
-        'program':      ObjType(l_('program'),     'operator'),
         'setting':      ObjType(l_('setting'),     'setting'),
         'status':       ObjType(l_('status'),      'status'),
         'stats':        ObjType(l_('stats'),       'stats'),
@@ -221,6 +202,7 @@ class MongoDBDomain(Domain):
         'group':        ObjType(l_('group'),       'group'),
         'expression':   ObjType(l_('expression'),  'expression'),
     }
+
     directives = {
         'dbcommand':     MongoDBCallable,
         'operator':      MongoDBCallable,
@@ -236,8 +218,8 @@ class MongoDBDomain(Domain):
     }
     roles = {
         'dbcommand':   MongoDBXRefRole(),
+        'program':     MongoDBXRefRole(),
         'operator':    MongoDBXRefRole(),
-        'program':     MongoDBProgramXRefRole(),
         'setting':     MongoDBXRefRole(),
         'status':      MongoDBXRefRole(),
         'stats':       MongoDBXRefRole(),
@@ -246,6 +228,7 @@ class MongoDBDomain(Domain):
         'aggregator':  MongoDBXRefRole(),
         'group':       MongoDBXRefRole(),
         'expression':  MongoDBXRefRole(),
+        'util':        MongoDBXRefRole(),
     }
     initial_data = {
         'objects': {}, # fullname -> docname, objtype
@@ -281,6 +264,25 @@ class MongoDBDomain(Domain):
     def get_objects(self):
         for refname, (docname, type) in self.data['objects'].items():
             yield refname, refname, type, docname, refname, 1
+
+class Optional(Directive):
+    """
+    An admonition mentioning things to look at as reference.
+    """
+    has_content = True
+    required_arguments = 0
+    optional_arguments = 1
+    final_argument_whitespace = True
+    option_spec = {}
+
+    def run(self):
+        ret = make_admonition(
+            addnodes.seealso, self.name, [_('Optional')], self.options,
+            self.content, self.lineno, self.content_offset, self.block_text,
+            self.state, self.state_machine)
+        return ret
+
+directives.register_directive('optional', Optional)
 
 def setup(app):
     app.add_domain(MongoDBDomain)
