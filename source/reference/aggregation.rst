@@ -4,7 +4,7 @@ Aggregation Framework Operators
 
 .. versionadded:: 2.1.0
 
-.. default-domain:: mongodb
+.. default-domain:: agg
 
 The aggregation framework provides the ability to project, process,
 and/or control the output of the query, without using ":term:`map
@@ -28,7 +28,7 @@ operators in a sequence. All examples in this section, assume that the
 aggregation pipeline beings with a collection named "``article`` that
 contains documents that resemble the following:
 
-.. code-block:: json
+.. code-block:: javascript
 
    {
     title : "this is my title" ,
@@ -45,11 +45,11 @@ contains documents that resemble the following:
 
 The current pipeline operators are:
 
-.. aggregator:: $project
+.. pipeline:: $project
 
    Reshapes a document stream by renaming, adding, or removing
-   fields. Also use :aggregator:`$project` to create computed values
-   or sub-objects. Use :aggregator:`$project` to:
+   fields. Also use :pipeline:`$project` to create computed values
+   or sub-objects. Use :pipeline:`$project` to:
 
    - Include fields from the original document.
    - Exclude fields from the original document.
@@ -57,7 +57,7 @@ The current pipeline operators are:
    - Rename fields.
    - Create and populate fields that hold sub-documents.
 
-   Use :aggregator:`$project` to quickly select the fields that you
+   Use :pipeline:`$project` to quickly select the fields that you
    want to include or exclude from the response. Consider the
    following aggregation framework operation.
 
@@ -73,7 +73,7 @@ The current pipeline operators are:
    This operation includes the ``title`` field and the ``author``
    field in the document that returns from the aggregation
    :term:`pipeline`. Because the first field specification is an
-   inclusion, :aggregator:`$project` is in "inclusive" mode, and will
+   inclusion, :pipeline:`$project` is in "inclusive" mode, and will
    return only the fields explicitly included (and the ``_id`` field.)
 
    .. note::
@@ -102,7 +102,7 @@ The current pipeline operators are:
       A field inclusion in a projection will not create a field that
       does not exist in a document from the collection.
 
-   In the exclusion mode, the :aggregator:`$project` returns all
+   In the exclusion mode, the :pipeline:`$project` returns all
    fields *except* the ones that are explicitly excluded. Consider the
    following example:
 
@@ -118,7 +118,7 @@ The current pipeline operators are:
    Here, the projection propagates all fields except for the
    "``comments``" and "``other``" fields along the pipeline.
 
-   The :aggregator:`$project` enters **exclusive** mode when the
+   The :pipeline:`$project` enters **exclusive** mode when the
    first field in the projection is an exclusion. When the first field
    is an **inclusion** the projection is inclusive.
 
@@ -151,7 +151,7 @@ The current pipeline operators are:
       braces, so that it resembles an object and conforms to
       JavaScript syntax.
 
-   You may also use :aggregator:`$project` to rename fields. Consider
+   You may also use :pipeline:`$project` to rename fields. Consider
    the following example:
 
    .. code-block:: javascript
@@ -172,7 +172,7 @@ The current pipeline operators are:
    or surrounding braces. All aggregation field references can use
    dotted paths to refer to fields in nested documents.
 
-   Finally, you can use the :aggregator:`$project` to create and
+   Finally, you can use the :pipeline:`$project` to create and
    populates new sub-documents. Consider the following example that
    creates a new field named ``stats`` that holds a number of values:
 
@@ -190,7 +190,7 @@ The current pipeline operators are:
       );
 
    This projection selects the ``title`` field and places
-   :aggregator:`$project` into "inclusive" mode. Then, it creates the
+   :pipeline:`$project` into "inclusive" mode. Then, it creates the
    ``stats`` documents with the following fields:
 
    - "``pv``" which includes and renames the "``pageViews``" from the
@@ -208,17 +208,17 @@ The current pipeline operators are:
       input. Furthermore, when the aggregation framework adds computed
       values to a document, they will follow all fields from the
       original and appear in the order that they appeared in the
-      :aggregator:`$project` statement.
+      :pipeline:`$project` statement.
 
-.. aggregator:: $match
+.. pipeline:: $match
 
    Provides a query-like interface to filter documents out of the
-   aggregation :term:`pipeline`. The :aggregator:`$match` drops
+   aggregation :term:`pipeline`. The :pipeline:`$match` drops
    documents that do not match the statement from the aggregation
    pipeline, and it passes documents that match along the pipeline
    unaltered.
 
-   The syntax passed to the :aggregator:`$match` is always identical
+   The syntax passed to the :pipeline:`$match` is always identical
    to the :term:`query` syntax. Consider the following prototype form:
 
    .. code-block:: javascript
@@ -248,25 +248,25 @@ The current pipeline operators are:
    Here, all documents return when the ``score`` field holds a value
    that is greater than 50, but less than or equal to 90.
 
-   .. seealso:: :operator:`$gt` and :operator:`$lte`.
+   .. seealso:: :mongodb:operator:`$gt` and :mongodb:operator:`$lte`.
 
    .. note::
 
-      Place the :aggregator:`$match` as early in the aggregation
-      :term:`pipeline` as possible. Because :aggregator:`$match`
+      Place the :pipeline:`$match` as early in the aggregation
+      :term:`pipeline` as possible. Because :pipeline:`$match`
       limits the total number of documents in the aggregation
-      pipeline, earlier :aggregator:`$match` operations minimize the
-      amount of later processing. If you place a :aggregator:`$match`
+      pipeline, earlier :pipeline:`$match` operations minimize the
+      amount of later processing. If you place a :pipeline:`$match`
       at the very beginning of a pipeline, the query can take
       advantage of :term:`indexes <index>` like any other
-      :func:`find()` or :func:`findOne()`.
+      :mongodb:func:`find()` or :mongodb:func:`findOne()`.
 
-.. aggregator:: $limit
+.. pipeline:: $limit
 
    Restricts the number of :term:`JSON documents <json document>` that
-   pass through the :aggregator:`$limit` in the :term:`pipeline`.
+   pass through the :pipeline:`$limit` in the :term:`pipeline`.
 
-   :aggregator:`$limit` takes a single numeric (positive whole number)
+   :pipeline:`$limit` takes a single numeric (positive whole number)
    value as a parameter. Once the specified number of documents pass
    through the pipeline operator, no more will. Consider the following
    example:
@@ -278,16 +278,16 @@ The current pipeline operators are:
       );
 
    This operation returns only the first 5 documents passed to it from
-   by the pipeline. :aggregator:`$limit` has no effect on the content
+   by the pipeline. :pipeline:`$limit` has no effect on the content
    of the documents it passes.
 
-.. aggregator:: $skip
+.. pipeline:: $skip
 
    Skips over a number of :term:`JSON document <json document>` that
-   pass through the :aggregator:`$limit` in the
+   pass through the :pipeline:`$limit` in the
    :term:`pipeline`. before passing all of the remaining input.
 
-   :aggregator:`$skip` takes a single numeric (positive whole number)
+   :pipeline:`$skip` takes a single numeric (positive whole number)
    value as a parameter. Once the operation has skipped the specified
    number of documents it passes all remaining documents along the
    :term:`pipeline` without alteration. Consider the following
@@ -300,13 +300,13 @@ The current pipeline operators are:
       );
 
    This operation skips the first 5 documents passed to it by the
-   pipeline. :aggregator:`$skip` has no effect on the content of the
+   pipeline. :pipeline:`$skip` has no effect on the content of the
    documents it passes along the pipeline.
 
-.. aggregator:: $unwind
+.. pipeline:: $unwind
 
    Peels off the elements of an array individually, and returns a
-   stream of documents. :aggregator:`$unwind` returns one document for
+   stream of documents. :pipeline:`$unwind` returns one document for
    every member of the unwound array, within every source
    document. Take the following aggregation command:
 
@@ -324,12 +324,12 @@ The current pipeline operators are:
    .. note::
 
       The dollar sign (i.e. "``$``") must proceed the field
-      specification handed to the :aggregator:`$unwind` operator.
+      specification handed to the :pipeline:`$unwind` operator.
 
-   In the above aggregation :aggregator:`$project`, and selects
+   In the above aggregation :pipeline:`$project`, and selects
    (inclusively) the ``author``, ``title``, and ``tags`` fields, as
    well as the ``_id`` field implicitly. Then the pipeline passes the
-   results of the projection to the :aggregator:`$unwind` operator,
+   results of the projection to the :pipeline:`$unwind` operator,
    which will unwind the "``tags`` field. This operation may return
    a sequence of documents that resemble the following for a
    collection that contains one document holding a "``tags``" field
@@ -367,36 +367,36 @@ The current pipeline operators are:
 
    .. note::
 
-      The following behaviors are present in :aggregator:`$unwind`:
+      The following behaviors are present in :pipeline:`$unwind`:
 
-      - :aggregator:`$unwind` is most useful in combination
-        with :aggregator:`$group`.
+      - :pipeline:`$unwind` is most useful in combination
+        with :pipeline:`$group`.
 
       - The effects of an unwind can be undone with the
-        :aggregator:`$push` or :aggregator:`$group` pipeline
+        :pipeline:`$push` or :pipeline:`$group` pipeline
         operators.
 
-      - If you specify a target field for :aggregator:`$unwind` that
+      - If you specify a target field for :pipeline:`$unwind` that
         does not exist in an input document, the document passes
-        through :aggregator:`$unwind` unchanged.
+        through :pipeline:`$unwind` unchanged.
 
-      - If you specify a target field for :aggregator:`$unwind` that
-        is not an array, the :dbcommand:`aggregate` generates an error.
+      - If you specify a target field for :pipeline:`$unwind` that is
+        not an array, :mongodb:func:`aggregate()` generates an error.
 
-      - If you specify a target field for :aggregator:`$unwind` that
+      - If you specify a target field for :pipeline:`$unwind` that
         holds an empty array ("``[]``"), then the document passes
         through unchanged.
 
-.. aggregator:: $group
+.. pipeline:: $group
 
    Groups documents together for the purpose of calculating aggregate
    values based on a collection of documents. Practically, group often
    supports tasks such as average page views for each page in a
    website on a daily basis.
 
-   The output of :aggregator:`$group` depends on how you define
+   The output of :pipeline:`$group` depends on how you define
    groups. Begin by specifying an identifier (i.e. a "``_id``" field)
-   for the group you're creating with this aggregator. You can specify
+   for the group you're creating with this pipeline. You can specify
    a single field from the documents in the pipeline, or specify a
    previously computed value.
 
@@ -409,8 +409,8 @@ The current pipeline operators are:
 
    .. note::
 
-      Use :aggregator:`$project` as needed to rename the grouped field
-      after an :aggregator:`$group` operation, if necessary.
+      Use :pipeline:`$project` as needed to rename the grouped field
+      after an :pipeline:`$group` operation, if necessary.
 
    Consider the following example:
 
@@ -430,7 +430,7 @@ The current pipeline operators are:
    function. The "``viewsPerAuthor``" field derives from summation of
    all of the "``pageViews``" fields in the grouped documents.
 
-   Each field that the :aggregator:`$group` must use one of the group
+   Each field that the :pipeline:`$group` must use one of the group
    aggregation function listed below to generate its composite value:
 
    .. group:: $addToSet
@@ -445,8 +445,8 @@ The current pipeline operators are:
 
       .. note::
 
-         Only use :group:`$first` when the :aggregator:`$group`
-         follows an :aggregator:`$sort` operation. Otherwise, the
+         Only use :group:`$first` when the :pipeline:`$group`
+         follows an :pipeline:`$sort` operation. Otherwise, the
          result of this operation is unpredictable.
 
    .. group:: $last
@@ -455,8 +455,8 @@ The current pipeline operators are:
 
       .. note::
 
-         Only use :group:`$last` when the :aggregator:`$group`
-         follows an :aggregator:`$sort` operation. Otherwise, the
+         Only use :group:`$last` when the :pipeline:`$group`
+         follows an :pipeline:`$sort` operation. Otherwise, the
          result of this operation is unpredictable.
 
    .. group:: $max
@@ -488,13 +488,13 @@ The current pipeline operators are:
 
    .. warning::
 
-      The aggregation system stores :aggregator:`$group` operations in
+      The aggregation system stores :pipeline:`$group` operations in
       memory, which may cause problems when processing a larger number
       of groups.
 
-.. aggregator:: $sort
+.. pipeline:: $sort
 
-   The :aggregator:`$sort` :term:`pipeline` operator sorts all input
+   The :pipeline:`$sort` :term:`pipeline` operator sorts all input
    documents and returns them to the pipeline in sorted
    order. Consider the following prototype form:
 
@@ -526,19 +526,19 @@ The current pipeline operators are:
 
    .. note::
 
-      The :aggregator:`$sort` cannot begin sorting documents until
+      The :pipeline:`$sort` cannot begin sorting documents until
       previous operators in the pipeline have returned all output.
 
    .. warning:: The entire sort operation as of the current release
       operates entirely in memory, which may cause problems when
       sorting large numbers of documents.
 
-.. aggregator:: $out
+.. pipeline:: $out
 
-   Use :aggregator:`$out` to write the contents of the
+   Use :pipeline:`$out` to write the contents of the
    :term:`pipeline`, without concluding the aggregation
    procedure. Specify the name of a collection as an argument to
-   :aggregator:`$out`. Consider the following trivial example:
+   :pipeline:`$out`. Consider the following trivial example:
 
    .. code-block:: javascript
 
@@ -705,7 +705,7 @@ Arithmetic Operators
    Takes an array that contains a pair of numbers and returns the
    *remainder* of the first number divided by the second number.
 
-   .. seealso:: :operator:`$mod`
+   .. seealso:: :mongodb:operator:`$mod`
 
 .. expression:: $multiply
 

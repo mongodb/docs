@@ -94,6 +94,11 @@ class MongoDBObject(ObjectDescription):
             #         self.env.doc2path(objects[fullname][0]),
             #         line=self.lineno)
             objects[fullname] = self.env.docname, self.objtype
+        # elif self.objtype == "binary":
+        #     signode['names'].append(fullname + "-bin")
+        #     signode['ids'].append(fullname.replace('$', '_S_') +"-bin")
+        #     signode['first'] = not self.names
+        #     self.state.document.note_explicit_target(signode)
 
         indextext = self.get_index_text(objectname, name_obj)
         if indextext:
@@ -107,9 +112,7 @@ class MongoDBObject(ObjectDescription):
             return _('%s (database command)') % name
         elif self.objtype == 'operator':
             return _('%s (operator)') % name
-        elif self.objtype == 'binary':
-            return _('%s (program)') % name
-        elif self.objtype == 'dbprogram':
+        elif self.objtype == 'program':
             return _('%s (program)') % name
         elif self.objtype == 'setting':
             return _('%s (setting)') % (name)
@@ -121,11 +124,10 @@ class MongoDBObject(ObjectDescription):
             return _('%s (JavaScript Output)') % (name)
         elif self.objtype == 'function':
             return _('%s (JavaScript Method)') % (name)
-        elif self.objtype == 'aggregator':
-            return _('%s (aggregation framework pipeline operator)') % (name)
-        elif self.objtype == 'expression':
-            return _('%s (aggregation framework transformation expression)') % (name)
         return ''
+
+    def run(self):
+        return super(MongoDBObject, self).run()
 
 class MongoDBCallable(MongoDBObject):
     """Description of a MongoDB function, method or constructor."""
@@ -151,16 +153,8 @@ class MongoDBCallable(MongoDBObject):
         Field('returntype', label=l_('Return type'), has_arg=False,
               names=('rtype',)),
     ]
-
 class MongoDBCallableProgram(MongoDBObject):
-    """Description of a MognoDB function, method or constructor."""
-    has_arguments = True
-    required_arguments = 1
-    display = None
-
-    def run(self):
-        display = None
-        return []
+    pass
 
 class MongoDBXRefRole(XRefRole):
     def process_link(self, env, refnode, has_explicit_title, title, target):
