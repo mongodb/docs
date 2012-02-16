@@ -2,8 +2,6 @@
 
 .. default-domain:: mongodb
 
-.. binary:: mongotop
-
 ==========================
 :program:`mongotop` Manual
 ==========================
