@@ -1,0 +1,218 @@
+=============================================================
+Install MongoDB on RedHat Enterprise, CentOS, or Fedora Linux
+=============================================================
+
+.. default-domain:: mongodb
+
+Synopsis
+--------
+
+This tutorial outlines the basic installation process for deploying
+:term:`MongoDB` on RedHat Enterprise Linux, CentOS Linux, Fedora Linux
+and related systems. This procedure uses ``.rpm`` packages as the
+basis of the installation. 10gen publishes packages of the MongoDB
+releases as ``.rpm`` packages for easy installation and management for
+users of Debian systems. While some of these distributions include
+their own MongoDB packages, the 10gen packages are generally more up
+to date.
+
+This tutorial includes: an overview of the available packages,
+instructions for configuring the package manager, the process install
+packages from the 10gen repository, and preliminary MongoDB
+configuration and operation.
+
+.. seealso:: The documentation of following related processes and
+   concepts.
+
+   Other installation tutorials:
+
+   - :doc:`/tutorial/install-mongodb-on-debian-or-ubuntu-linux`
+   - :doc:`/tutorial/install-mongodb-on-linux`
+   - :doc:`/tutorial/install-mongodb-on-os-x`
+   - :doc:`/tutorial/install-mongodb-on-windows`
+
+   Documentation for getting started with MongoDB:
+
+   - :doc:`/getting-started`
+   - :doc:`/tutorial/insert-test-data-into-a-mongodb-database`
+
+Package Options
+---------------
+
+The 10gen repository contains for packages:
+
+- ``mongo-10gen``
+
+  This package contains MongoDB tools from latest **stable**
+  release. Install this package on all production MongoDB hosts and
+  optionally on other systems from which you may need to administer
+  MongoDB systems.
+
+- ``mongo-server-10gen``
+
+  This package contains the :program:`mongod` and :program:`mongos`
+  daemons from the latest **stable** release and associated
+  configuration and init scripts.
+
+- ``mongo18-10gen``
+
+  This package contains MongoDB tools from previous release. Install
+  this package on all production MongoDB hosts and optionally on other
+  systems from which you may need to administer MongoDB systems.
+
+- ``mongo18-server-10gen``
+
+  This package contains the :program:`mongod` and :program:`mongos`
+  daemons from previous stable release and associated configuration and init
+  scripts.
+
+The MongoDB tools included in the ``mongo-10gen`` packages are:
+
+- :program:`mongo`
+- :program:`mongodump`
+- :program:`mongorestore`
+- :program:`mongoexport`
+- :program:`mongoimport`
+- :program:`mongostat`
+- :program:`mongotop`
+- :program:`bsondump`
+
+Installing MongoDB
+------------------
+
+Configure Package Management System (YUM)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create a ``/etc/yum.repos.d/10gen.repo`` file to hold information
+about your repository. If you are running a 64-bit system
+(recommended,) place the following configuration in
+``/etc/yum.repos.d/10gen.repo`` file:
+
+.. code-block:: config
+
+   [10gen]
+   name=10gen Repository
+   baseurl=http://downloads-distro.mongodb.org/repo/redhat/os/x86_64
+   gpgcheck=0
+
+If you are running a 32-bit system, which isn't recommended for
+production deployments, place the following configuration in
+``/etc/yum.repos.d/10gen.repo`` file:
+
+.. code-block:: config
+
+   [10gen]
+   name=10gen Repository
+   baseurl=http://downloads-distro.mongodb.org/repo/redhat/os/i686
+   gpgcheck=0
+
+Installing Packages
+~~~~~~~~~~~~~~~~~~~
+
+Issue the following command (as root or with ``sudo``) to install the
+latest stable version of MongoDB and the associated tools:
+
+.. code-block:: sh
+
+   yum install mongo-10gen mongo-10gen-server
+
+When this command completes, you have successfully installed MongoDB!
+Continue for configuration and start-up suggestions.
+
+Configure MongoDB
+-----------------
+
+These packages configure MongoDB using the ``/etc/mongod.conf`` file
+in conjunction with the :term:`control script`.  You can find the init
+script at ``/etc/rc.d/init.d/mongod``.
+
+This MongoDB instance will store its data files in the
+``/var/lib/mongo`` and its log files in ``/var/log/mongo``, and
+run using the ``mongod`` user account.
+
+.. note::
+
+   If you change the user that runs the MongoDB process, you will need
+   to modify the access control rights to the ``/var/lib/mongo`` and
+   ``/var/log/mongo`` directories.
+
+Control MongoDB
+---------------
+
+Start MongoDB
+~~~~~~~~~~~~~
+
+Start the :program:`mongod` process by issuing the following command
+(as root, or with ``sudo``):
+
+.. code-block:: sh
+
+   service mongodb start
+
+You can verify that the :program:`mongod` process has started
+successfully by checking the contents of the log file at
+``/var/log/mongo/mongod.log``.
+
+You may optionally, ensure that MongoDB will start folloing a system
+reboot, by issuing the following command (with root privileges:)
+
+.. code-block:: sh
+
+   chkconfig mongod on
+
+Stop MongoDB
+~~~~~~~~~~~~
+
+Stop the :program:`mongod` process by issuing the following command
+(as root, or with ``sudo``):
+
+.. code-block:: sh
+
+   service mongodb stop
+
+Restart MongoDB
+~~~~~~~~~~~~~~~
+
+You can restart the :program:`mongod` process by issuing the following
+command (as root, or with ``sudo``):
+
+.. code-block:: sh
+
+   service mongodb restart
+
+Follow the state of this process by watching the output in the
+``/var/log/mongo/mongod.log`` file to watch for errors or important
+messages from the server.
+
+Control :program:`mongos`
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+As of the current release, there are no :term:`control scripts
+<control script>` for :program:`mongos`. :program:`mongos` is only
+used in sharding deployments and typically do not run on the same
+systems where :program:`mongod` runs. You can use the ``mongodb``
+script referenced above to derive your own :program:`mongos` control
+script.
+
+Using MongoDB
+-------------
+
+Among the tools included in the ``mongo-10gen`` package, is the
+:program:`mongo` shell. You can connect to your MongoDB instance by
+issuing the following command at the system prompt:
+
+.. code-block:: sh
+
+   mongo
+
+This will connect to the database running on the localhost interface
+by default. At the :program:`mongo` prompt, issue the following two
+commands to insert a record in the "test" :term:`collection` of the
+(default) "test" database and then retrieve that document.
+
+.. code-block:: javascript
+
+   > db.test.save( { a: 1 } )
+   > db.test.find()
+
+.. seealso:: ":program:`mongo`" and ":doc:`/reference/javascript`"
