@@ -881,9 +881,14 @@ Geospatial Commands
                  and ":doc:`/reference/operators`" for more
                  information.
 
-   :field distanceMultipler: Undocumented.
-
-TODO-pending response from greg on distanceMultiplier
+   :field distanceMultipler: Specifies a factor to multiply
+                             all distances returned by
+                             :dbcommand:`geoNear`. For example, use
+                             ``distanceMultiplier`` to convert from
+                             spherical queries returned in radians to
+                             linear units (i.e. miles or kilometers)
+                             by multiplying by the radius of the
+                             Earth.
 
    .. read-lock, slave-ok
 

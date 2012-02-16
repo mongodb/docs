@@ -69,8 +69,8 @@ the system shell:
 
    port install mongodb
 
-Using MongoDB installed with Homebrew and MacPorts
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Using MongoDB from Homebrew and MacPorts
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The packages installed with Homebrew and MacPorts contain no
 :term:`control scripts <control script>` or interaction with the system's process
@@ -105,8 +105,8 @@ Installing from 10gen Builds
 10gen provides compiled binaries of all MongoDB software compiled for
 OS X, which may provide a more straightforward installation process.
 
-Retrieve the Software
-~~~~~~~~~~~~~~~~~~~~~
+Download MongoDB
+~~~~~~~~~~~~~~~~
 
 In a terminal session, begin by downloading the latest release. In
 most cases you will want to download the 64-bit version of MongoDB.
@@ -138,8 +138,10 @@ extract the files from the archive:
 
    tar -zxvf mongo.tgz
 
-.. optional:: You may use the following command to move the extracted
-   folder into a more generic location
+.. optional::
+
+   You may use the following command to move the extracted folder into
+   a more generic location.
 
    .. code-block:: sh
 
@@ -149,8 +151,8 @@ You can find the :program:`mongod` binary, and the binaries all of the
 associated MongoDB utilities, in the "``bin/``" directory within the
 archive.
 
-Using MongoDB Installed from 10gen Builds
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Using MongoDB from 10gen Builds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Before you start :program:`mongod` for the first time, you will need
 to create the data directory. By default, :program:`mongod` writes
@@ -162,14 +164,14 @@ following command:
    mkdir -p /data/db
 
 You can specify, and create, an alternate path using the
-:option:`--dbpath <mongod>` option to :program:`mongod` and the above
-command.
+:option:`--dbpath <mongod --dbpath>` option to :program:`mongod` and
+the above command.
 
 The 10gen builds of MongoDB contain no :term:`control scripts <control
 script>` or method to control the :program:`mongod` process. You may
-wish to create control scripts, modify your path, or create symbolic
-links to the MongoDB programs in your ``/usr/local/bin`` directory for
-easier use.
+wish to create control scripts, modify your path, and/or create
+symbolic links to the MongoDB programs in your ``/usr/local/bin``
+directory for easier use.
 
 Among the tools included with this MongoDB distribution, is the
 :program:`mongo` shell. You can use this shell to connect to your
