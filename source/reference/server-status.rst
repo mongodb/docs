@@ -584,13 +584,11 @@ asserts
 
 .. status:: asserts.rollovers
 
-   The :status:`asserts.rollovers` counter displays the number of times that
-   the rollover counters have rolled over since the last time the
-   server process started. The counters will rollover to zero after
-   **TK** assertions. Use this value to provide context to the other
-   values in the :status:`asserts` data structure
-
-TODO-pending response from Mathias (determine number of assertions per-rollover.)
+   The :status:`asserts.rollovers` counter displays the number of
+   times that the rollover counters have rolled over since the last
+   time the server process started. The counters will rollover to zero
+   after 2\ :superscript:`30` assertions. Use this value to provide
+   context to the other values in the :status:`asserts` data structure
 
 .. _durability-status:
 
