@@ -309,6 +309,14 @@ Options
 
    Runs a repair routine on all databases.
 
+   .. note::
+
+      Because :program:`mongod` rewrites all of the database files
+      during the repair routine, if you do not run :option:`--repair`
+      under the same user account as :program:`mongod` usually runs,
+      you will need to run ``chown`` on your database files to correct
+      the permissions before starting :program:`mongod` again.
+
 .. option:: --repairpath <path>
 
    Specifies the root directory containing MongoDB data files, to use

@@ -419,7 +419,15 @@ Settings
    Set to ``true`` to run a repair routine on all databases following
    start up. You may wish to avoid enabling this setting for default
    operation may not be desirable. Consider using ":option:`mongod
-   --repair`" for this functionality.
+   --repair`" to access this functionality.
+
+   .. note::
+
+      Because :program:`mongod` rewrites all of the database files
+      during the repair routine, if you do not run :setting:`repair`
+      under the same user account as :program:`mongod` usually runs,
+      you will need to run ``chown`` on your database files to correct
+      the permissions before starting :program:`mongod` again.
 
 .. setting:: repairpath
 
