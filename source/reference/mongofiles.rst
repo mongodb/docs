@@ -105,13 +105,15 @@ Options
    Optionally, specify a port number to connect a MongboDB instance
    running on a port other than 27017.
 
-   To connect to a replica set, use the ``--host`` argument with a
-   setname, followed by a slash and a comma separated list of host and
-   port names. The ``mongo`` utility will, given the seed of at least
-   one connected set member, connect to primary node of that set. this
-   option would resemble: ::
+   To connect to a replica set, use the :option:`--host` argument with
+   a setname, followed by a slash and a comma separated list of host
+   and port names. The :program:`mongo` utility will, given the seed
+   of at least one connected set member, connect to primary node of
+   that set. this option would resemble:
 
-        --host repl0 mongo0.example.net,mongo0.example.net,27018,mongo1.example.net,mongo2.example.net
+   .. code-block:: sh
+
+      --host repl0 mongo0.example.net,mongo0.example.net,27018,mongo1.example.net,mongo2.example.net
 
    You can always connect directly to a single MongoDB instance by
    specifying the host and port number directly.
@@ -124,9 +126,10 @@ Options
 
 .. option:: --ipv6
 
-   Enables IPv6 support to allow :program:`mongofiles` to connect to the
-   MongoDB instance using IPv6 connectivity. IPv6 support is disabled
-   by default in the :program:`mongofiles` utility.
+   Enables IPv6 support to allow :program:`mongofiles` to connect to
+   the MongoDB instance using IPv6 connectivity. All MongoDB programs
+   and processes, including :program:`mongofiles`, disable IPv6 support by
+   default.
 
 .. option:: --username <username>, -u <username>
 
@@ -172,7 +175,8 @@ Options
 
 .. option:: --collection [collection], -c [collection]
 
-TODO-pending SERVER-4931
+   This option has no use in this context and a future release may
+   remove it. See :issue:`SERVER-4931` for more information.
 
 .. option:: --local <filename>, -l <filename>
 

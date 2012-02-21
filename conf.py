@@ -25,7 +25,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), ".ext"))
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.todo', 'mongodb_docs', "optional", "aggregation_domain"]
+extensions = ['sphinx.ext.todo', "sphinx.ext.extlinks", 'mongodb_docs', "optional", "aggregation_domain"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['.templates']
@@ -86,6 +86,11 @@ pygments_style = 'sphinx'
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
 
+extlinks = {
+    'issue': ('https://jira.mongodb.org/browse/%s', '' ),
+    'wiki': ('http://www.mongodb.org/display/DOCS/%s', ''),
+    'api': ('http://api.mongodb.org/%s', '')
+    }
 
 # -- Options for HTML output ---------------------------------------------------
 

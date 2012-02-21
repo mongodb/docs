@@ -14,9 +14,9 @@ syntax and form as "regular" MongoDB database queries.
 This documentation provides an overview of all aggregation operators,
 their use, and their behavior.
 
-.. seealso:: ":doc:`/applications/aggregation`" and
-   ":ref:`aggregation-framework`" for more information on the
-   aggregation functionality.
+.. seealso:: ":doc:`/applications/aggregation`" and ":ref:`Aggregation
+   Framework Documentation Index <aggregation-framework>`" for more
+   information on the aggregation functionality.
 
 .. _aggregation-pipeline-operator-reference:
 
@@ -534,6 +534,12 @@ The current pipeline operators are:
       sorting large numbers of documents.
 
 .. pipeline:: $out
+
+   .. note::
+
+      The :pipeline:`$out` is not implemented as of version
+      2.1.0. Follow :issue:`SERVER-3254` to track the progress of
+      development for :pipeline:`$out`.
 
    Use :pipeline:`$out` to write the contents of the
    :term:`pipeline`, without concluding the aggregation

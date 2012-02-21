@@ -131,7 +131,7 @@ class MongoDBObject(ObjectDescription):
 
 class MongoDBCallable(MongoDBObject):
     """Description of a MongoDB function, method or constructor."""
-    has_arguments = True
+    has_arguments = False
 
     doc_field_types = [
         TypedField('arguments', label=l_('Arguments'),
@@ -153,6 +153,7 @@ class MongoDBCallable(MongoDBObject):
         Field('returntype', label=l_('Return type'), has_arg=False,
               names=('rtype',)),
     ]
+
 class MongoDBCallableProgram(MongoDBObject):
     pass
 
