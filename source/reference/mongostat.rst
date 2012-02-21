@@ -11,10 +11,11 @@
 Synopsis
 --------
 
-The ``mongostat`` utility provides a quick overview of the status of a
-currently running ``mongod`` instance. ``mongostat`` is functionally
-similar to the Unix/Linux file system utility ``vmstat`` specifically
-for ``mongod`` instances.
+The :program:`mongostat` utility provides a quick overview of the
+status of a currently running :program:`mongod`
+instance. :program:`mongostat` is functionally similar to the
+UNIX/Linux file system utility ``vmstat``, but provides data regarding
+:program:`mongod` instances.
 
 .. seealso::
 
@@ -31,9 +32,10 @@ for ``mongod`` instances.
    For an additional utility that provides MongoDB metrics see
    ":doc:`mongotop </reference/mongotop>`."
 
-``mongostat`` connects to the ``mongod`` process running on the local
-host interface on TCP port 27017, but it can be used to connect to any
-accessible remote MongoDB process.
+:program:`mongostat` connects to the :program:`mongod` process running
+on the local host interface on TCP port 27017, but
+:program:`mongostat` can connect to any accessible remote MongoDB
+process.
 
 Options
 -------
@@ -52,24 +54,26 @@ Options
 
 .. option:: --version
 
-   Returns the version of the ``mongostat`` utility.
+   Returns the version of the :program:`mongostat` utility.
 
 .. option:: --host <hostname><:port>
 
-   Specifies a resolvable hostname for the ``mongod`` from which you
-   want to export data. By default ``mongostat`` attempts to connect
+   Specifies a resolvable hostname for the :program:`mongod` from which you
+   want to export data. By default :program:`mongostat` attempts to connect
    to a MongoDB process ruining on the localhost port number 27017.
 
    Optionally, specify a port number to connect a MongboDB instance
    running on a port other than 27017.
 
-   To connect to a replica set, use the ``--host`` argument with a
-   setname, followed by a slash and a comma separated list of host and
-   port names. The ``mongo`` utility will, given the seed of at least
-   one connected set member, connect to primary node of that set. this
-   option would resemble: ::
+   To connect to a replica set, use the :option:`--host` argument with
+   a setname, followed by a slash and a comma separated list of host
+   and port names. The :program:`mongo` utility will, given the seed
+   of at least one connected set member, connect to primary node of
+   that set. this option would resemble:
 
-        --host repl0 mongo0.example.net,mongo0.example.net,27018,mongo1.example.net,mongo2.example.net
+   .. code-block:: sh
+
+       --host repl0 mongo0.example.net,mongo0.example.net,27018,mongo1.example.net,mongo2.example.net
 
    You can always connect directly to a single MongoDB instance by
    specifying the host and port number directly.
@@ -82,9 +86,10 @@ Options
 
 .. option:: --ipv6
 
-   Enables IPv6 support to allow ``mongostat`` to connect to the
-   MongoDB instance using IPv6 connectivity. IPv6 support is disabled
-   by default in the ``mongostat`` utility.
+   Enables IPv6 support to allow :program:`mongostat` to connect to
+   the MongoDB instance using IPv6 connectivity. All MongoDB programs
+   and processes, including :program:`mongostat`, disable IPv6 support
+   by default.
 
 .. option:: --username <username>, -u <username>
 
@@ -108,35 +113,36 @@ Options
    ":command:`mongostat [sleeptime]`" to control the duration of a
    :program:`mongostat` operation.
 
-   Unless specification, ``mongostat`` will return an infinite number
+   Unless specification, :program:`mongostat` will return an infinite number
    of rows (e.g. value of ``0``.)
 
 .. option:: --http
 
-   Configures ``mongostat`` to collect data using HTTP interface
+   Configures :program:`mongostat` to collect data using HTTP interface
    rather than a raw database connection.
 
 .. option:: --discover
 
-   With this option ``mongostat`` will discover all connected hosts,
+   With this option :program:`mongostat` will discover all connected hosts,
    including :term:`slave`, :term:`master`, :term:`secondary`,  and
    :term:`primary`. The :option:`mongostat --host` option is not
    required but potentially useful in this case.
 
 .. option:: --all
 
-   Configures ``mongostat`` to return all optional :ref:`fields
+   Configures :program:`mongostat` to return all optional :ref:`fields
    <mongostat-fields>`.
 
 .. option:: [sleeptime]
 
    The final argument the length of time, in seconds, that
-   ``mongostat`` waits in between calls. By default ``mongostat``
+   :program:`mongostat` waits in between calls. By default :program:`mongostat`
    returns one call every second.
 
-   ``mongostat`` returns values that reflect the operations over a 1
-   second period. For values of "``[sleeptime]``" greater than 1, the
-   statistics are averaged to reflect average operations per second.
+   :program:`mongostat` returns values that reflect the operations
+   over a 1 second period. For values of "``[sleeptime]``" greater
+   than 1, :program:`mongostat` averages data to reflect average
+   operations per second.
 
 .. _mongostat-fields:
 
@@ -175,9 +181,9 @@ average operations per second.
 .. describe:: command
 
    The number of commands per second. On :term:`slave` and
-   :term:`secondary` systems, two values are presented separated by a
-   pipe character (e.g. ``|``), in the form of "``local|replicated``"
-   commands.
+   :term:`secondary` systems, :program:`mongostat` presents two values
+   separated by a pipe character (e.g. ``|``), in the form of
+   "``local|replicated``" commands.
 
 .. describe:: flushes
 
@@ -186,17 +192,17 @@ average operations per second.
 .. describe:: mapped
 
    The total amount of data mapped in megabytes. This is the total
-   data size at the time of the last ``mongostat`` call.
+   data size at the time of the last :program:`mongostat` call.
 
 .. describe:: size
 
    The amount of (virtual) memory used by the process at the time of
-   the last ``mongostat`` call.
+   the last :program:`mongostat` call.
 
 .. describe:: res
 
    The amount of (resident) memory used by the process at the time of
-   the last ``mongostat`` call.
+   the last :program:`mongostat` call.
 
 .. describe:: faults
 
@@ -233,13 +239,13 @@ average operations per second.
 
    The amount of network traffic, in *bits*, received by the MongoDB.
 
-   This includes traffic from ``mongostat`` itself.
+   This includes traffic from :program:`mongostat` itself.
 
 .. describe:: netOut
 
    The amount of network traffic, in *bits*, sent by the MongoDB.
 
-   This includes traffic from ``mongostat`` itself.
+   This includes traffic from :program:`mongostat` itself.
 
 .. describe:: conn
 
@@ -266,30 +272,38 @@ average operations per second.
 Usage
 -----
 
-In the first example, ``mongostat`` will return data every second for
-20 seconds. Data is collected from the MongoDB instance running on the
-localhost interface on port 27017. All of the following invocations
-produce identical behavior: ::
+In the first example, :program:`mongostat` will return data every
+second for 20 seconds. :program:`mongostat` collects data from the
+:program:`mongod` instance running on the localhost interface on
+port 27017. All of the following invocations produce identical
+behavior:
 
-      mongostat --rowcount 20 1
-      mongostat --rowcount 20
-      mongostat -n 20 1
-      mongostat -n 20
+.. code-block:: sh
 
-In the next example, ``mongostat`` will return data every 5 minutes
-(or 300 seconds) until the program is terminated. Data is collected
-from the MongoDB instance running on the localhost interface on
-port 27017. Both of the following invocations produce identical
-behavior. ::
+   mongostat --rowcount 20 1
+   mongostat --rowcount 20
+   mongostat -n 20 1
+   mongostat -n 20
 
-      mongostat --rowcount 0 300
-      mongostat -n 0 300
-      mongostat 300
+In the next example, :program:`mongostat` returns data every 5 minutes
+(or 300 seconds) for as long as the program runs. :program:`mongostat`
+collects data from the :program:`mongod` instance running on the
+localhost interface on port ``27017``. Both of the following
+invocations produce identical behavior.
 
-In the following example, ``mongostat`` returns data every 5 minutes
-for an hour (12 times.) Data is collected from the MongoDB instance
-running on the localhost interface on port 27017. Both of the following
-invocations produce identical behavior. ::
+.. code-block:: sh
 
-      mongostat --rowcount 12 300
-      mongostat -n 12 300
+   mongostat --rowcount 0 300
+   mongostat -n 0 300
+   mongostat 300
+
+In the following example, :program:`mongostat` returns data every 5
+minutes for an hour (12 times.) :program:`mongostat` collects data
+from the :program:`mongod` instance running on the localhost interface
+on port 27017. Both of the following invocations produce identical
+behavior.
+
+.. code-block:: sh
+
+   mongostat --rowcount 12 300
+   mongostat -n 12 300

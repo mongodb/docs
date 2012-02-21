@@ -502,58 +502,61 @@ optcounters
 
 .. status:: optcounters
 
-   The :status:`opcounters` data structure provides an overview of database
-   operations by type and makes it possible to analyze the load on
-   the database in more granular manner.
+   The :status:`opcounters` data structure provides an overview of
+   database operations by type and makes it possible to analyze the
+   load on the database in more granular manner.
 
    These numbers will grow over time and in response to database
    use. Analyze these values over time to track database utilization.
 
 .. status:: optcounters.insert
 
-   :status:`opcounters.insert` provides a counter of the total number of
-   insert operations since the :program:`mongod` instance last started.
+   :status:`opcounters.insert` provides a counter of the total number
+   of insert operations since the :program:`mongod` instance last
+   started.
 
 .. status:: optcounters.query
 
-   :status:`opcounters.query` provides a counter of the total number of
-   queries since the :program:`mongod` instance last started.
+   :status:`opcounters.query` provides a counter of the total number
+   of queries since the :program:`mongod` instance last started.
 
 .. status:: optcounters.update
 
-   :status:`opcounters.update` provides a counter of the total number of
-   update operations since the :program:`mongod` instance last started.
+   :status:`opcounters.update` provides a counter of the total number
+   of update operations since the :program:`mongod` instance last
+   started.
 
 .. status:: optcounters.delete
 
-   :status:`opcounters.delete` provides a counter of the total number of
-   delete operations since the :program:`mongod` instance last started.
+   :status:`opcounters.delete` provides a counter of the total number
+   of delete operations since the :program:`mongod` instance last
+   started.
 
 .. status:: optcounters.getmore
 
-   :status:`opcounters.getmore` provides a counter of the total number of
-   "getmore" operations since the :program:`mongod` instance last
+   :status:`opcounters.getmore` provides a counter of the total number
+   of "getmore" operations since the :program:`mongod` instance last
    started. On a primary node, this counter can be high even if the
    query count is low. Secondary nodes send ``getMore`` operations to
    the primary node as part of the replication process.
 
 .. status:: optcounters.command
 
-   :status:`opcounters.command` provides a counter of the total number of
-   commands issued to the database since the :program:`mongod` instance last
-   started.
+   :status:`opcounters.command` provides a counter of the total number
+   of commands issued to the database since the :program:`mongod`
+   instance last started.
 
 asserts
 -------
 
 .. status:: asserts
 
-   The :status:`asserts` data structure provides an account of the number of
-   asserts on the database. While assert errors are typically
-   uncommon, if there are non-zero values for the :status:`asserts`, you
-   should check the log file for the :program:`mongod` process for more
-   information. In many cases these errors are trivial, but are worth
-   investigating.
+   The :status:`asserts` data structure provides an account of the
+   number of asserts on the database. While assert errors are
+   typically uncommon, if there are non-zero values for the
+   :status:`asserts`, you should check the log file for the
+   :program:`mongod` process for more information. In many cases these
+   errors are trivial, but are worth investigating.
 
 .. status:: asserts.regular
 
@@ -569,9 +572,9 @@ asserts
 
 .. status:: asserts.msg
 
-   The :status:`asserts.msg` counter tracks the number of message assertions
-   raised since the server process started. Check the log file for
-   more information about these messages.
+   The :status:`asserts.msg` counter tracks the number of message
+   assertions raised since the server process started. Check the log
+   file for more information about these messages.
 
 .. status:: asserts.user
 

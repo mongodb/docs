@@ -48,21 +48,23 @@ Options
 
 .. option:: --host <hostname><:port>
 
-   Specifies a resolvable hostname for the ``mongod`` to which you
-   want to restore the database. By default ``mongoimport`` will
-   attempt to connect to a MongoDB process ruining on the localhost
-   port number 27017.
+   Specifies a resolvable hostname for the :program:`mongod` to which
+   you want to restore the database. By default :program:`mongoimport`
+   will attempt to connect to a MongoDB process ruining on the
+   localhost port numbered ``27017``.
 
    Optionally, specify a port number to connect a MongboDB instance
-   running on a port other than 27017.
+   running on a port other than ``27017``.
 
-   To connect to a replica set, use the ``--host`` argument with a
+   To connect to a replica set, use the :option:`--host` argument with a
    setname, followed by a slash and a comma separated list of host and
-   port names. The ``mongo`` utility will, given the seed of at least
+   port names. The :program:`mongo` utility will, given the seed of at least
    one connected set member, connect to primary node of that set. this
-   option would resemble: ::
+   option would resemble:
 
-        --host repl0 mongo0.example.net,mongo0.example.net,27018,mongo1.example.net,mongo2.example.net
+   .. code-block:: sh
+
+      --host repl0 mongo0.example.net,mongo0.example.net,27018,mongo1.example.net,mongo2.example.net
 
    You can always connect directly to a single MongoDB instance by
    specifying the host and port number directly.
@@ -75,9 +77,10 @@ Options
 
 .. option:: --ipv6
 
-   Enables IPv6 support to allow ``mongoimport`` to connect to the
-   MongoDB instance using IPv6 connectivity. IPv6 support is disabled
-   by default in the ``mongoimport`` utility.
+   Enables IPv6 support to allow :program:`mongoimport` to connect to
+   the MongoDB instance using IPv6 connectivity. All MongoDB programs
+   and processes, including :program:`mongoimport`, disable IPv6
+   support by default.
 
 .. option:: --username <username>, -u <username>
 
@@ -142,7 +145,7 @@ Options
 .. option:: --fieldFile [filename]
 
    As an alternative to ":option:`mongoimport --fields`" the
-   ``--fieldFile`` option allows you to specify a file
+   :option:`--fieldFile` option allows you to specify a file
    (e.g. ``[file]```) to hold a list of field names to specify a list
    of fields to *include* in the export. All other fields will be
    *excluded* from the export. Place one field per line.

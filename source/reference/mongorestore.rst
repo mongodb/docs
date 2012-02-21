@@ -64,8 +64,9 @@ Options
 .. option:: --ipv6
 
    Enables :term:`IPv6` support to allow :program:`mongorestore` to
-   connect to the MongoDB instance using the IPv6 network. IPv6
-   support is disabled by default in the ``mongorestore`` utility.
+   connect to the MongoDB instance using the IPv6
+   network. All MongoDB programs and processes, including
+   :program:`mongorestore`, disable IPv6 support by default.
 
 .. option:: --username <username>, -u <username>
 

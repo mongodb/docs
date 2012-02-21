@@ -74,9 +74,10 @@ Options
 
 .. option:: --ipv6
 
-   Enables IPv6 support to allow :program:`mongoexport` to connect to the
-   MongoDB instance using IPv6 connectivity. IPv6 support is disabled
-   by default in the :program:`mongoexport` utility.
+   Enables IPv6 support to allow :program:`mongoexport` to connect to
+   the MongoDB instance using IPv6 connectivity. All MongoDB programs
+   and processes, including :program:`mongoexport`, disable IPv6
+   support by default.
 
 .. option:: --username <username>, -u <username>
 

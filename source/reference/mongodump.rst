@@ -71,7 +71,8 @@ Options
 
    Enables :term:`IPv6` support to allow :program:`mongodump` to
    connect to the MongoDB instance using IPv6
-   connectivity. :program:`mongodump` does not provide IPv6 support.
+   connectivity. All MongoDB programs and processes, including
+   :program:`mongodump`, disable IPv6 support by default.
 
 .. option:: --username <username>, -u <username>
 

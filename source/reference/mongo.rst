@@ -50,13 +50,14 @@ Options
 
 .. option:: --port <PORT>
 
-   Specify the port to which the ``mongod`` or ``mongos`` instance is
-   attached. Unless specified :program:`mongo` connects to ``mongod`` instances on
-   port 27017, which is the default ``mongod`` port.
+   Specify the port where the :program:`mongod` or :program:`mongos`
+   instance is listening. Unless specified :program:`mongo` connects
+   to :program:`mongod` instances on port 27017, which is the default
+   :program:`mongod` port.
 
 .. option:: --host <HOSTNAME>
 
-   Specific the host where the ``mongod`` or ``mongos`` is running to
+   Specific the host where the :program:`mongod` or :program:`mongos` is running to
    connect to as "``<HOSTNAME>``". By default :program:`mongo` will attempt
    to connect to MongoDB process running on the localhost.
 
@@ -94,9 +95,10 @@ Options
 
 .. option:: --ipv6
 
-   Enables IPv6 support to allow :program:`mongo` to connect to the MongoDB
-   instance using IPv6 connectivity. IPv6 support is disabled by
-   default in the :program:`mongo` shell.
+   Enables IPv6 support to allow :program:`mongo` to connect to the
+   MongoDB instance using IPv6 connectivity. All MongoDB programs and
+   processes, including :program:`mongo`, disable IPv6 support by
+   default.
 
 .. option:: <db address>
 
@@ -134,24 +136,35 @@ the system prompt. Consider the following examples for other
 scenarios.
 
 To connect to a database on a remote host using authentication and a
-non-standard port, use one of the following forms: ::
+non-standard port, use the following form:
 
-     mogno --username <user> --password <pass> --hostname <host> --port 28015
-     mogno -u <user> -p <pass> --host <host> --port 28015
+.. code-block:: sh
+
+   mogno --username <user> --password <pass> --hostname <host> --port 28015
+
+Alternatively, consider the following short form:
+
+.. code-block:: sh
+
+   mogno -u <user> -p <pass> --host <host> --port 28015
 
 Replace ``<user>``, ``<pass>``, and ``<host>`` with the appropriate
-values for your situation and substitute or omit the ``--port``
+values for your situation and substitute or omit the :option:`--port`
 as needed.
 
 To execute a JavaScript file without evaluating the ``~/.mongorc.js``
-file before starting a sell session, use the following form: ::
+file before starting a sell session, use the following form:
 
-     mongo --shell --norc alternate-environment.js
+.. code-block:: sh
+
+   mongo --shell --norc alternate-environment.js
 
 To print return a query as JSON, from the system prompt using the eval
-functionality, use the following form: ::
+functionality, use the following form:
 
-     mongo --eval 'db.collection.find().forEach(printJson)'
+.. code-block:: sh
+
+   mongo --eval 'db.collection.find().forEach(printJson)'
 
 Note the use of single quotes (e.g. ``'``) to enclose the JavaScript,
 as well as the additional JavaScript required to generate this

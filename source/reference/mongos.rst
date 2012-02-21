@@ -11,12 +11,13 @@
 Synopsis
 --------
 
-:program:`mongos` for "MongoDB Shard," is a routing service for MongoDB
-shard configurations that processes queries from the application
-layer, and determines where this data is stored in the :term:`shard
-cluster`, in order to complete these operations these operations. From
-the perspective of the application, a :program:`mongos` instance
-behaves identically to any other MongoDB instance.
+:program:`mongos` for "MongoDB Shard," is a routing service for
+MongoDB shard configurations that processes queries from the
+application layer, and determines the location of this data in the
+:term:`shard cluster`, in order to complete these operations these
+operations. From the perspective of the application, a
+:program:`mongos` instance behaves identically to any other MongoDB
+instance.
 
 .. seealso::
 
@@ -66,18 +67,18 @@ Options
    connections. By default :program:`mongos` listens for connections on
    port 27017.
 
-   On UNIX-like systems root access is required for ports with numbers
+   UNIX-like systems require root access to access ports with numbers
    lower than 1000.
 
 .. option:: --bind_ip <ip address>
 
-   The IP address that the :program:`mongos` process will bind to and listen
-   for connections. By default :program:`mongos` listens for connections on
-   the localhost (i.e. ``127.0.0.1`` address.) You may attach
-   :program:`mongos` to any interface; however, if you attach :program:`mongos` to a
-   publicly accessible interface ensure that proper authentication or
-   firewall restrictions have been implemented to protect the
-   integrity of your database.
+   The IP address that the :program:`mongos` process will bind to and
+   listen for connections. By default :program:`mongos` listens for
+   connections on the localhost (i.e. ``127.0.0.1`` address.) You may
+   attach :program:`mongos` to any interface; however, if you attach
+   :program:`mongos` to a publicly accessible interface you must
+   implement proper authentication or firewall restrictions to protect
+   the integrity of your database.
 
 .. option:: --maxConns <number>
 
@@ -109,9 +110,9 @@ Options
 
 .. option:: --logapend
 
-   Specify to ensure that new entries will be added to the end of the
-   logfile rather than overwriting the content of the log when the
-   process restarts.
+   Specify to ensure that :program:`mongos` appends additional logging
+   data to the end of the logfile rather than overwriting the content
+   of the log when the process restarts.
 
 .. option:: --pidfilepath <path>
 
@@ -119,7 +120,7 @@ Options
    :program:`mongod` process. Useful for tracking the :program:`mongod` process in
    combination with the :option:`mongos --fork` option.
 
-   If this option is not set, no PID file is created.
+   Without this option, :program:`mongos` will create a PID file.
 
 .. option:: --keyFile <file>
 
@@ -132,13 +133,13 @@ Options
 
 .. option:: --nounixsocket
 
-   Disables listening on the UNIX socket, which is enabled unless
-   this option is specified.
+   Disables listening on the UNIX socket. Without this option
+   :program:`mongos` creates a UNIX socket.
 
 .. option:: --unixSocketPrefix <path>
 
-   Specifies a path for the UNIX socket. Unless specified the socket
-   is created in the ``/tmp`` path.
+   Specifies a path for the UNIX socket. Unless specified,
+   :program:`mongos` creates a socket in the ``/tmp`` path.
 
 .. option:: --fork
 
