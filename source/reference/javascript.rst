@@ -1699,8 +1699,8 @@ Replica Sets
    :term:`primary` node, as well as a report of the current
    replication configuration.
 
-   This function provides a wrapper around the :term:`database
-   command` :dbcommand:`isMaster`
+   This function provides a wrapper around the :term:`database command`
+   :dbcommand:`isMaster`
 
 .. function:: rs.help()
 

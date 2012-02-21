@@ -1832,6 +1832,12 @@ Diagnostics
       this :program:`mongod` process. If not provided, clients should
       assume a max size of "4 * 1024 * 1024."
 
+   .. data:: isMaster.localTime
+
+      .. versionadded:: 2.1.1
+
+      Returns the local server time for the current system.
+
 .. dbcommand:: ping
 
    The :dbcommand:`ping` command is a no-op used to test whether a
