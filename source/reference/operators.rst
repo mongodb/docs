@@ -332,8 +332,14 @@ Logical
 
 .. operator:: $not
 
-   :operator:`$not` is a meta operator used to negate a standard
-   operator. *It can only affect other operators*, and is unable to
+   :operator:`$not` is a meta operator used to reverse the operation
+   of a standard operator. If a document does not match a query statement,
+   passing that query statement to the :operator:`$not` will return
+   that document. The operation of :operator:`$not` is consistent with
+   the behavior of other operators, but may yield unexpected results
+   with some data types, like arrays.
+
+   :operator:`$not` only affects *other operators*, and is unable to
    check fields and documents independently. Use :operator:`$ne` to
    test the contents of fields directly and :operator:`$nor` for
    logical disjunctions.
