@@ -276,20 +276,20 @@ extra_info
    memory environments and larger data sets. Limited and sporadic page
    faults do not in and of themselves indicate an issue.
 
-indexCouters
-------------
+indexCounters
+-------------
 
-.. status:: indexCouters
+.. status:: indexCounters
 
    The :status:`indexCounters` data structure contains information about the
    state and use of the indexes in MongoDB.
 
-.. status:: indexCouters.btree
+.. status:: indexCounters.btree
 
    The :status:`indexCounters.btree` data stricture contains data regarding
    MongoDB's :term:`btree` indexes.
 
-.. status:: indexCouters.btree.accesses
+.. status:: indexCounters.btree.accesses
 
    :status:`indexCounters.btree.accesses` reports the number of times
    that operations have accessed indexes. This value is the
@@ -299,9 +299,9 @@ indexCouters
    these indexes. If this number does not grow over time, this might
    indicate that your indexes do not effectively support your use.
 
-.. status:: indexCouters.btree.hits
+.. status:: indexCounters.btree.hits
 
-   The :status:`indexCouters.btree.hits` value reflects the number of times
+   The :status:`indexCounters.btree.hits` value reflects the number of times
    that an index has been access and :program:`mongod` is able to return the
    index from memory.
 
@@ -310,7 +310,7 @@ indexCouters
    greater proportion of the :status:`indexCounters.btree.accesses`
    value, tend to indicate more effective index configuration.
 
-.. status:: indexCouters.btree.misses
+.. status:: indexCounters.btree.misses
 
    The :status:`indexCounters.btree.misses` value represents the
    number of times that an operation attempted to access an index that
@@ -327,7 +327,7 @@ indexCouters
    to provide context for the data specified by other
    :status:`indexCounters` values.
 
-.. status:: indexCouters.btree.missRatio
+.. status:: indexCounters.btree.missRatio
 
    The :status:`indexCounters.btree.missRatio` value is the ratio of
    :status:`indexCounters.btree.hits` to
