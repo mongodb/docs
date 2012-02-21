@@ -123,10 +123,17 @@ Options
 
 .. option:: --discover
 
-   With this option :program:`mongostat` will discover all connected hosts,
-   including :term:`slave`, :term:`master`, :term:`secondary`,  and
-   :term:`primary`. The :option:`mongostat --host` option is not
-   required but potentially useful in this case.
+   With this option :program:`mongostat` discovers and reports on
+   statistics from all members of a :term:`replica set` or
+   :term:`shard cluster`. When connected to any member of a replica
+   set, :option:`--discover` all non-:term:`hidden members <hidden
+   member>` of the replica set. When connected to a :program:`mongos`,
+   :program:`mongostat` will return data from all :term:`shards` in
+   the cluster, and when a replica set is provides a shard in the
+   shard cluster all non-hidden members of that replica set.
+
+   The :option:`mongostat --host` option is not required but
+   potentially useful in this case.
 
 .. option:: --all
 
@@ -307,3 +314,14 @@ behavior.
 
    mongostat --rowcount 12 300
    mongostat -n 12 300
+
+In many cases, use the :option:`--discover <mongostat --discover>`
+will help provide a more complete snapshot of the state of an entire
+group of machines. If a :program:`mongos` process connected to a
+:term:`shard cluster` is running on port ``27017`` of the local
+machine, you can use the following form to return statistics from all
+members of the cluster:
+
+.. code-block:: sh
+
+   mongostat --discover
