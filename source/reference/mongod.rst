@@ -111,8 +111,7 @@ Options
    Sends all logging output to the host's :term:`syslog` system rather
    than to standard output or a log file as with :option:`--logpath`.
 
-   .. warning:: You cannot use :option:`--syslog` with
-      :option:`--logpath`.
+   .. warning:: You cannot use :option:`--syslog` with :option:`--logpath`.
 
 .. option:: --pidfilepath <path>
 

@@ -160,9 +160,7 @@ Settings
    Sends all logging output to the host's :term:`syslog` system rather
    than to standard output or a log file as with :setting:`logpath`.
 
-   .. warning:: You cannot use :setting:`syslog` with
-      :setting:`logpath`.
-
+   .. warning:: You cannot use :setting:`syslog` with :setting:`logpath`.
 
 .. setting:: pidfilepath
 

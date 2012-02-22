@@ -128,9 +128,9 @@ Options
    :term:`shard cluster`. When connected to any member of a replica
    set, :option:`--discover` all non-:term:`hidden members <hidden
    member>` of the replica set. When connected to a :program:`mongos`,
-   :program:`mongostat` will return data from all :term:`shards` in
-   the cluster, and when a replica set is provides a shard in the
-   shard cluster all non-hidden members of that replica set.
+   :program:`mongostat` will return data from all :term:`shards
+   <shard>` in the cluster, and when a replica set is provides a shard
+   in the shard cluster all non-hidden members of that replica set.
 
    The :option:`mongostat --host` option is not required but
    potentially useful in this case.

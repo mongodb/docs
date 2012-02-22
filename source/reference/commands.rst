@@ -1837,6 +1837,7 @@ Diagnostics
       .. versionadded:: 2.1.1
 
       Returns the local server time for the current system.
+      
 
 .. dbcommand:: ping
 
@@ -2230,6 +2231,8 @@ Internal Use
    functionality.
 
    .. write-lock
+
+   .. see: DOCS-133; SERVER-4259
 
 .. dbcommand:: replSetElect
 

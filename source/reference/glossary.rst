@@ -755,3 +755,7 @@ Glossary
       safely run multiple times without affecting the outcome. In the
       context of MongoDB, :term:`oplog` entries are idempotent and do
       not have any effect if applied more than once.
+
+   syslog
+      A standard system logging process that provides a uniform way
+      for serves and process to submit logging information.
