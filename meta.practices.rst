@@ -56,39 +56,31 @@ Publication
 The makefile for this repository contains targets for the publication
 process. In order to maintain multiple versions of the documentation
 (to reflect different versions of the MongoDB server, for editing,
-review, etc.,) the makefile has a "``publish-mode``" where the Sphinx
-can create builds in directories that reflect the name of the current
-branch. Then a ``deploy`` target moves these targets into a local
-mirror (i.e. "``../public-docs``") of the documentation resource and
-calls a "``publish.sh``" script that handles the upload process
-itself. The makefile exposes all operations required for building and
-publishing the documentation.
+review, etc.,) the makefile adds a couple of targets to the default
+Sphinx makefile. In the ``build-branch`` target, Sphinx builds the
+documentation into branch-specific folders. The ``deploy`` target
+moves these builds to into a local mirror (i.e. "``../public-docs``")
+of the documentation resource and calls a "``publish.sh``" script that
+handles the upload process itself.
 
 To publish the documentation, use the following procedure:
 
 1. Checkout the branch of the documentation that you want to publish,
    make/apply all changes that you wish to publish.
 
-2. Run the following command to place the repository in publication
-   mode: ::
-
-        make publish-mode
-
-3. Build the following target to build all components of the build
-   required for publication. ::
+2. Build the following target. This operation builds all components of
+   the documentation required for publication . ::
 
         make build-branch
 
-4. Build the following target to export the build to the
-   "``../public-docs``" directory, and run the "``publish.sh``"
+3. Build the following target. This procedure exports the build to the
+   "``../public-docs``" directory and runs the "``publish.sh``"
    script. ::
 
         make deploy
 
 The ``publish`` target (i.e. "``make publish``") combines
-``build-branch`` and ``deploy`` procedures. When you're done
-publishing the documentation, you can remove your repository from
-publication mode by running "``make dev-mode``".
+``build-branch`` and ``deploy`` procedures. 
 
 Branches
 --------

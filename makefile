@@ -14,7 +14,7 @@ current-branch := $(shell git branch --no-color 2> /dev/null | sed -e "/^[^*]/d"
 root-build = build
 branch-build = $(root-build)/$(current-branch)
 
-ifeq ($(shell test -f publish-mode || echo t),)
+ifeq ($(MODE),publish)
 	BUILDDIR = $(branch-build)
 else
 	BUILDDIR = $(root-build)
@@ -25,7 +25,7 @@ PAPEROPT_a4	= -D latex_paper_size=a4
 PAPEROPT_letter = -D latex_paper_size=letter
 ALLSPHINXOPTS	= -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
 
-.PHONY: help clean html dirhtml singlehtml epub latex latexpdf text man changes linkcheck build-branch setup-branches dev-mode publish
+.PHONY: help clean html dirhtml singlehtml epub latex latexpdf text man changes linkcheck build-branch setup-branches publish
 
 
 help:
@@ -36,14 +36,11 @@ help:
 	@echo "	 epub	    to make an epub"
 	@echo "	 latex	    to make LaTeX files, you can set PAPER=a4 or PAPER=letter"
 	@echo "	 latexpdf   to make LaTeX files and run them through pdflatex"
-	@echo "	 text	    to make text files"
 	@echo "	 man	    to make manual pages"
 	@echo "	 changes    to make an overview of all changed/added/deprecated items"
 	@echo "	 linkcheck  to check all external links for integrity"
 	@echo ""
-	@echo "MongoDB Manual Specific Things"
-	@echo "	 publish-mode	to enable publication mode"
-	@echo "	 dev-mode	to disable publication mode."
+	@echo "MongoDB Manual Specific Targets."
 	@echo "	 branch-setup	to setup git branches for the first time."
 	@echo "	 build-branch	to build the current branch."
 	@echo "	 deploy		moves builds to ."
@@ -54,25 +51,23 @@ help:
 # Meta targets that control the build and publication process.
 #
 
-build-branch: publish-mode
+build-branch:
 	@echo Running a build of the \$(current-branch)\ branch.
 	@echo ""
-	make dirhtml
-	make singlehtml
-	make text
+	make MODE='publish' dirhtml
+	make MODE='publish' singlehtml
 	@echo "All builds complete. Verify the build now and then run 'make deploy'"
 	@echo "to complete the build process."
 
-publish: publish-mode
-	make build-branch
-	make deploy
+publish:
+	make MODE='publish' build-branch
+	make MODE='publish' deploy
 
-deploy: publish-mode
+deploy:
 	@echo "Exporting builds..."
 	mkdir -p $(publication-output)/$(current-branch)/single/
 	cp -R $(BUILDDIR)/dirhtml/* $(publication-output)/$(current-branch)
 	cp -R $(BUILDDIR)/singlehtml/* $(publication-output)/$(current-branch)/single/
-	cp -R $(BUILDDIR)/text/text.txt $(publication-output)/$(current-branch)/MongoDB-manual-$(current-branch).txt
 	@echo "Running the publication routine..."
 	$(publication-script)
 	@echo "Publication succeessfully deployed."
@@ -84,19 +79,6 @@ disabled-builds:
 	@echo cp -R $(BUILDDIR)/latex/MongoDB.pdf $(publication-output)/$(current-branch)/MongoDB-manual-$(current-branch).pdf
 	@echo
 	@echo This target did nothing, eventually these procedures will generate epub and latex builds.
-
-#
-# Create and remove a file as needed to change where builds end up.
-#
-
-publish-mode:
-	touch publish-mode
-	@echo "Publishing mode enabled."
-	@echo "See 'meta.build-process.rst' and run 'make' again to continue."
-	exit 1
-
-dev-mode:
-	-rm -f publish-mode
 
 #
 # Configures the repository for the branched documentaion workflow.
@@ -111,8 +93,8 @@ branch-setup:
 	@echo git branch --track 2.0-series origin/2.0-series
 	@echo "this will do more once branching works"
 
-# TODO: create helpers for branch switching/building.
-# TODO: create helpers for chery picking repos.
+# TODO create helpers for branch switching/building.
+# TODO create helpers for chery picking repos.
 
 #
 # Clean up/removal targets
@@ -120,10 +102,8 @@ branch-setup:
 
 clean:
 	-rm -rf $(BUILDDIR)/*
-	-rm -f publish-mode
 clean-all:
 	-rm -rf $(root-build)/*
-	-rm -f publish-mode
 
 ######################################################################
 #
@@ -167,12 +147,6 @@ latexpdf:
 	$(MAKE) -C $(BUILDDIR)/latex all-pdf
 	@echo "pdflatex finished; the PDF files are in $(BUILDDIR)/latex."
 
-text:
-	$(SPHINXBUILD) -b text $(ALLSPHINXOPTS) $(BUILDDIR)/text
-	mv $(BUILDDIR)/text/contents.txt $(BUILDDIR)/text/text.txt
-	@echo
-	@echo "Build finished. The text files are in $(BUILDDIR)/text."
-
 man:
 	$(SPHINXBUILD) -b man $(ALLSPHINXOPTS) $(BUILDDIR)/man
 	@echo
@@ -203,6 +177,7 @@ linkcheck:
 #	@echo "	 pickle	    to make pickle files"
 #	@echo "	 htmlhelp   to make HTML files and a HTML help project"
 #	@echo "	 qthelp	    to make HTML files and a qthelp project"
+#	@echo "	 text	    to make text files"
 #	@echo "	 devhelp    to make HTML files and a Devhelp project"
 #
 # pickle:
@@ -220,6 +195,12 @@ linkcheck:
 #	@echo
 #	@echo "Build finished; now you can run HTML Help Workshop with the" \
 #	      ".hhp project file in $(BUILDDIR)/htmlhelp."
+#
+# text:
+#	$(SPHINXBUILD) -b text $(ALLSPHINXOPTS) $(BUILDDIR)/text
+#	mv $(BUILDDIR)/text/contents.txt $(BUILDDIR)/text/text.txt
+#	@echo
+#	@echo "Build finished. The text files are in $(BUILDDIR)/text."
 #
 # qthelp:
 #	$(SPHINXBUILD) -b qthelp $(ALLSPHINXOPTS) $(BUILDDIR)/qthelp
