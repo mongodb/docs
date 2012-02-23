@@ -155,10 +155,13 @@ Options
    specify either 1 configuration server or 3 configuration servers,
    in a comma separated list.
 
-   Note that each mongos will read from the first config server in the
-   list provided. If you're running config servers across more than one
-   data center, you should specify the closest config servers as the first
-   servers in the list.
+   .. note::
+
+      Each :program:`mongos` reads from the first :term:`config server
+      <config database>` in the list provided. If your configuration
+      databases reside in more that one data center, you should
+      specify the closest config servers as the first servers in the
+      list.
 
 .. option:: --test
 
