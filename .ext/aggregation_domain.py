@@ -12,7 +12,7 @@
     inc. (Sam Kleinman, et al.)
 """
 
-from mongodb_docs import MongoDBObject, MongoDBCallable, MongoDBXRefRole, MongoDBDomain
+from mongodb_domain import MongoDBObject, MongoDBCallable, MongoDBXRefRole, MongoDBDomain
 
 from sphinx.locale import l_, _
 from sphinx.domains import Domain, ObjType

@@ -18,14 +18,14 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), ".ext"))
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #sys.path.insert(0, os.path.abspath('.'))
 
-# -- General configuration -----------------------------------------------------
+# -- General configuration ----------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #needs_sphinx = '1.0'
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.todo', "sphinx.ext.extlinks", 'mongodb_docs', "optional", "aggregation_domain"]
+extensions = ['sphinx.ext.todo', "sphinx.ext.extlinks", 'mongodb_domain', "optional", "aggregation_domain"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['.templates']
@@ -41,7 +41,7 @@ master_doc = 'contents'
 
 # General information about the project.
 project = u'MongoDB'
-copyright = u'2011, MongoDB Documentation Team'
+copyright = u'2011, MongoDB Documentation Project'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -101,7 +101,7 @@ html_theme = 'mongodb'
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
+# html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
 html_theme_path = ['themes']
@@ -129,38 +129,19 @@ html_static_path = ['source/.static']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
-#html_last_updated_fmt = '%b %d, %Y'
+html_last_updated_fmt = '%b %d, %Y'
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.
 
 html_use_smartypants = True
 
-# Custom sidebar templates, maps document names to template names.
-#html_sidebars = {}
-
-# Additional templates that should be rendered to pages, maps page names to
-# template names.
-#html_additional_pages = {}
-
-# If false, no module index is generated.
-#html_domain_indices = True
-
-# If false, no index is generated.
-
+html_domain_indices = True
 html_use_index = True
-
-# If true, the index is split into individual pages for each letter.
-html_split_index = True
-
-# If true, links to the reST sources are added to the pages.
-#html_show_sourcelink = True
-
-# If true, "Created using Sphinx" is shown in the HTML footer. Default is True.
-#html_show_sphinx = True
-
-# If true, "(C) Copyright ..." is shown in the HTML footer. Default is True.
-#html_show_copyright = True
+html_split_index = False
+html_show_sourcelink = True
+html_show_sphinx = True
+html_show_copyright = True
 
 # If true, an OpenSearch description file will be output, and all pages will
 # contain a <link> tag referring to it.  The value of this option must be the
@@ -172,7 +153,6 @@ html_split_index = True
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'MongoDBdoc'
-
 
 # -- Options for LaTeX output --------------------------------------------------
 
@@ -186,7 +166,7 @@ htmlhelp_basename = 'MongoDBdoc'
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('contents', 'MongoDB.tex', u'MongoDB Documentation',
-   u'MongoDB Documentation Team', 'manual'),
+   u'MongoDB Documentation Project', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -201,7 +181,7 @@ latex_documents = [
 #latex_show_pagerefs = False
 
 # If true, show URL addresses after external links.
-#latex_show_urls = False
+latex_show_urls = False
 
 # Additional stuff for the LaTeX preamble.
 #latex_preamble = ''
@@ -210,7 +190,7 @@ latex_documents = [
 #latex_appendices = []
 
 # If false, no module index is generated.
-#latex_domain_indices = True
+latex_domain_indices = True
 
 
 # -- Options for manual page output --------------------------------------------
@@ -219,7 +199,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'mongodb', u'MongoDB Documentation',
-     [u'MongoDB Documentation Team'], 1)
+     [u'MongoDB Documentation Project'], 1)
 ]
 
 
@@ -227,9 +207,9 @@ man_pages = [
 
 # Bibliographic Dublin Core info.
 epub_title = u'MongoDB'
-epub_author = u'MongoDB Documentation Team'
-epub_publisher = u'MongoDB Documentation Team'
-epub_copyright = u'2011, MongoDB Documentation Team'
+epub_author = u'MongoDB Documentation Project'
+epub_publisher = u'MongoDB Documentation Project'
+epub_copyright = u'2011, MongoDB Documentation Project'
 
 # The language of the text. It defaults to the language option
 # or en if the language is not set.

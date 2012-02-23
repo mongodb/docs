@@ -121,9 +121,9 @@ class MongoDBObject(ObjectDescription):
         elif self.objtype == 'stats':
             return _('%s (statistic)') % (name)
         elif self.objtype == 'data':
-            return _('%s (JavaScript Output)') % (name)
+            return _('%s (shell output)') % (name)
         elif self.objtype == 'function':
-            return _('%s (JavaScript Method)') % (name)
+            return _('%s (shell method)') % (name)
         return ''
 
     def run(self):

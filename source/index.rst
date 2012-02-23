@@ -17,7 +17,7 @@ Application Development
 -----------------------
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
 
    applications/aggregation
 
@@ -30,7 +30,7 @@ Core Functionality
 ------------------
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
 
    core/replication
    core/replication-internals
@@ -48,7 +48,7 @@ Administration and Deployment
 -----------------------------
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
 
    administration/backups
    administration/import-export
