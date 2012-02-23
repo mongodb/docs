@@ -4,9 +4,9 @@
 
 .. binary:: mongodump
 
-===================================
-:program:`mongodump` Utility Manual
-===================================
+===========================
+:program:`mongodump` Manual
+===========================
 
 Synopsis
 --------

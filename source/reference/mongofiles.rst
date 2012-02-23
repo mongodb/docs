@@ -4,9 +4,9 @@
 
 .. binary:: mongofiles
 
-====================================
-:program:`mongofiles` Utility Manual
-====================================
+============================
+:program:`mongofiles` Manual
+============================
 
 Synopsis
 --------

@@ -4,9 +4,9 @@
 
 .. binary:: mongorestore
 
-======================================
-:program:`mongorestore` Utility Manual
-======================================
+==============================
+:program:`mongorestore` Manual
+==============================
 
 Synopsis
 --------

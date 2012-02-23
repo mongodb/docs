@@ -4,9 +4,9 @@
 
 .. binary:: bsondump
 
-==================================
-:program:`bsondump` Utility Manual
-==================================
+==========================
+:program:`bsondump` Manual
+==========================
 
 Synopsis
 --------

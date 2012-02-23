@@ -4,9 +4,9 @@
 
 .. binary:: mongoimport
 
-=====================================
-:program:`mongoimport` Utility Manual
-=====================================
+=============================
+:program:`mongoimport` Manual
+=============================
 
 Synopsis
 --------
@@ -46,7 +46,7 @@ Options
 
    Returns the version of the :program:`mongoimport` utility.
 
-.. option:: --host <hostname><:port>
+.. option:: --host <hostname><:port>, -h
 
    Specifies a resolvable hostname for the :program:`mongod` to which
    you want to restore the database. By default :program:`mongoimport`

@@ -4,9 +4,9 @@
 
 .. binary:: mongoexport
 
-=====================================
-:program:`mongoexport` Utility Manual
-=====================================
+=============================
+:program:`mongoexport` Manual
+=============================
 
 Synopsis
 --------
