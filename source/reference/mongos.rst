@@ -155,6 +155,11 @@ Options
    specify either 1 configuration server or 3 configuration servers,
    in a comma separated list.
 
+   Note that each mongos will read from the first config server in the
+   list provided. If you're running config servers across more than one
+   data center, you should specify the closest config servers as the first
+   servers in the list.
+
 .. option:: --test
 
    This option is for internal testing use only, and runs unit tests
