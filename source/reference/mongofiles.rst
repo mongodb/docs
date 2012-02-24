@@ -137,13 +137,13 @@ Options
    database requires authentication. Use in conjunction with the
    :option:`mongofiles --password` option to supply a password.
 
-.. option:: --password [password]
+.. option:: --password <password>
 
    Specifies a password to authenticate to the MongoDB instance. Use
    in conjunction with the :option:`mongofiles --username` option to
    supply a username.
 
-.. option:: --dbpath [path]
+.. option:: --dbpath <path>
 
    Specifies the directory of the MongoDB data files. If used, the
    :option:`--dbpath` option enables :program:`mongofiles` to attach directly to
@@ -168,12 +168,12 @@ Options
    to ensure that the database maintains a recoverable state. This
    forces :program:`mongofiles` to record all data on disk regularly.
 
-.. option:: --db [db], -d [db]
+.. option:: --db <db>, -d <db>
 
    Use the :option:`--db` option to specify the MongoDB database that stores
    or will store the GridFS files.
 
-.. option:: --collection [collection], -c [collection]
+.. option:: --collection <collection>, -c <collection>
 
    This option has no use in this context and a future release may
    remove it. See :issue:`SERVER-4931` for more information.

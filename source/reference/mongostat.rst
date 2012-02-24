@@ -97,7 +97,7 @@ Options
    database requires authentication. Use in conjunction with the
    :option:`mongostat --password` option to supply a password.
 
-.. option:: --password [password]
+.. option:: --password <password>
 
    Specifies a password to authenticate to the MongoDB instance. Use
    in conjunction with the :option:`mongostat --username` option to
@@ -110,7 +110,7 @@ Options
 .. option:: --rowcount <number>, -n <number>
 
    Controls the number of rows to output. Use in conjunction with
-   ":command:`mongostat [sleeptime]`" to control the duration of a
+   ":command:`mongostat <sleeptime>`" to control the duration of a
    :program:`mongostat` operation.
 
    Unless specification, :program:`mongostat` will return an infinite number
@@ -140,14 +140,14 @@ Options
    Configures :program:`mongostat` to return all optional :ref:`fields
    <mongostat-fields>`.
 
-.. option:: [sleeptime]
+.. option:: <sleeptime>
 
    The final argument the length of time, in seconds, that
    :program:`mongostat` waits in between calls. By default :program:`mongostat`
    returns one call every second.
 
    :program:`mongostat` returns values that reflect the operations
-   over a 1 second period. For values of "``[sleeptime]``" greater
+   over a 1 second period. For values of "``<sleeptime>``" greater
    than 1, :program:`mongostat` averages data to reflect average
    operations per second.
 
@@ -157,7 +157,7 @@ Fields
 ------
 
 :program:`mongostat` returns values that reflect the operations over a
-1 second period. When :command:`mongostat [sleeptime]` has a value
+1 second period. When :command:`mongostat <sleeptime>` has a value
 greater than 1, :program:`mongostat` averages the statistics to reflect
 average operations per second.
 

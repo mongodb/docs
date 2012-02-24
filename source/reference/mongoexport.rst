@@ -85,13 +85,13 @@ Options
    database requires authentication. Use in conjunction with the
    :option:`mongoexport --password` option to supply a password.
 
-.. option:: --password [password]
+.. option:: --password <password>
 
    Specifies a password to authenticate to the MongoDB instance. Use
    in conjunction with the :option:`--username` option to supply a
    username.
 
-.. option:: --dbpath [path]
+.. option:: --dbpath <path>
 
    Specifies the directory of the MongoDB data files. If used, the
    ``--dbpath`` option enables :program:`mongoexport` to attach
@@ -116,7 +116,7 @@ Options
    consistent state. This option is only relevant when specifying the
    :option:`--dbpath` option.
 
-.. option:: --db [db], -d [db]
+.. option:: --db <db>, -d <db>
 
    Use the :option:`--db` option to specify a database for
    :program:`mongoexport` to export data from. If you do not specify a
@@ -124,27 +124,27 @@ Options
    MongoDB instance. Use this option to create a copy of a smaller
    subset of your data.
 
-.. option:: --collection [collection], -c [collection]
+.. option:: --collection <collection>, -c <collection>
 
    Use the :option:`--collection` option to specify a collection for
    :program:`mongoexport` to export. If you do not specify a
-   "``[collection]``", all collections will exported.
+   "``<collection>``", all collections will exported.
 
-.. option:: --fields [field1[,field2]], -f [field1[,field2]]
+.. option:: --fields <field1[,field2]>, -f <field1[,field2]>
 
    Specify a field or number fields to *include* in the export. All
    other fields will be *excluded* from the export. Comma separate a
    list of fields to limit the fields exported.
 
-.. option:: --fieldFile [file]
+.. option:: --fieldFile <file>
 
    As an alternative to ":option:`--fields <mongoexport --fields>`"
    the :option:`--fieldFile` option allows you to specify a file
-   (e.g. ``[file]```) to hold a list of field names to specify a list
+   (e.g. ``<file>```) to hold a list of field names to specify a list
    of fields to *include* in the export. All other fields will be
    *excluded* from the export. Place one field per line.
 
-.. option:: --query [JSON]
+.. option:: --query <JSON>
 
    Provides a :term:`JSON document` as a query that optionally limits
    the documents returned in the export.
@@ -172,7 +172,7 @@ Options
 
    This is the default behavior.
 
-.. option:: --out [file], -o [file]
+.. option:: --out <file>, -o <file>
 
    Specify a file to write the export to. If you do not specify a file
    name, the :program:`mongoexport` writes data to standard output
@@ -181,27 +181,33 @@ Options
 Usage
 -----
 
-In the following example, the collection "``contacts``" from the
-"``users``" database is exported from the MongoDB instance running on
-the localhost port number 27017. This command writes the export data
-in CSV format into a file located at
-"``/opt/backups/contacts.csv``". ::
+In the following example, :program:`mongoexport` exports the
+collection "``contacts``" from the "``users``" database from the
+:program:`mongod` instance running on the localhost port
+number 27017. This command writes the export data in :term:`CSV`
+format into a file located at "``/opt/backups/contacts.csv``".
 
-     mongoexport --db users --collection contacts --csv --file /opt/backups/contacts.csv
+.. code-block:: sh
+
+   mongoexport --db users --collection contacts --csv --file /opt/backups/contacts.csv
 
 The next example creates an export of the collection "``contacts``"
-from the MongoDB instance running on the localhost port number 27017,
+from the MongoDB instance running on the localhost port number ``27017``,
 with journaling explicitly enabled. This writes the export to the
-``contacts.json`` file in JSON format. ::
+``contacts.json`` file in :term:`JSON` format.
 
-     mongoexport --collection contacts --file contacts.json --journal
+.. code-block:: sh
+
+   mongoexport --collection contacts --file contacts.json --journal
 
 The following example exports the collection "``contacts``" from the
 "``sales``" database located in the MongoDB data files located at
 ``/srv/mongodb/``. This operation writes the export to standard output
-in JSON format. ::
+in :term:`JSON` format.
 
-     mongoexport --db sales --collection contacts --dbpath /srv/mongodb/
+.. code-block:: sh
+
+   mongoexport --db sales --collection contacts --dbpath /srv/mongodb/
 
 .. warning::
 
@@ -213,6 +219,8 @@ The final example exports the collection "``contacts``" from the
 database "``marketing``" . This data resides on the MongoDB instance
 located on the host ``mongodb1.example.net``" running on port
 ``37017``", which requires the username "``user``" and the password
-"``pass``". ::
+"``pass``".
 
-     mongoexport --host mongodb1.example.net --port 37017 --username user --password pass --collection contacts --db marketing --file mdb1-examplenet.json
+.. code-block:: sh
+
+   mongoexport --host mongodb1.example.net --port 37017 --username user --password pass --collection contacts --db marketing --file mdb1-examplenet.json

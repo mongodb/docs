@@ -88,13 +88,13 @@ Options
    database requires authentication. Use in conjunction with the
    :option:`mongoimport --password` option to supply a password.
 
-.. option:: --password [password]
+.. option:: --password <password>
 
    Specifies a password to authenticate to the MongoDB instance. Use
    in conjunction with the :option:`mongoimport --username` option to
    supply a username.
 
-.. option:: --dbpath [path]
+.. option:: --dbpath <path>
 
    Specifies the directory of the MongoDB data files. If used, the
    :option:`--dbpath <mongoimport --dbpath>` option enables
@@ -117,36 +117,37 @@ Options
 
    Enables journaling for all :program:`mongoimport` operations.
 
-.. option:: --db [db], -d [db]
+.. option:: --db <db>, -d <db>
 
    Use the :option:`--db` option to specify a database for
    :program:`mongoimport` to restore data. If you do not specify a
-   "``[db]``", :program:`mongoimport` creates new databases that
+   "``<db>``", :program:`mongoimport` creates new databases that
    correspond to the databases where data originated and data may be
    overwritten. Use this option to restore data into a MongoDB
    instance that already has data, or to restore only some data in the
    specified backup.
 
-.. option:: --collection [collection], -c [collection]
+.. option:: --collection <collection>, -c <collection>
 
    Use the :option:`--collection` option to specify a collection for
    :program:`mongorestore` to restore. If you do not specify a
-   "``[collection]``", :program:`mongoimport` imports all collections
+   "``<collection>``", :program:`mongoimport` imports all collections
    created. Existing data may be overwritten. Use this option to
    restore data into a MongoDB instance that already has data, or to
    restore only some data in the specified imported data set.
-.. option:: --fields [field1[,filed2]], -f [field1[,filed2]]
+
+.. option:: --fields <field1[,filed2]>, -f <field1[,filed2]>
 
    Specify a field or number fields to *import* from the data
    export. All other fields present in the export will be *excluded*
    during importation. Comma separate a list of fields to limit the
    fields imported.
 
-.. option:: --fieldFile [filename]
+.. option:: --fieldFile <filename>
 
    As an alternative to ":option:`mongoimport --fields`" the
    :option:`--fieldFile` option allows you to specify a file
-   (e.g. ``[file]```) to hold a list of field names to specify a list
+   (e.g. ``<file>```) to hold a list of field names to specify a list
    of fields to *include* in the export. All other fields will be
    *excluded* from the export. Place one field per line.
 
@@ -156,13 +157,13 @@ Options
    specified, :program:`mongoimport` creates fields without values in
    imported documents.
 
-.. option:: --type [json|csv|tsv]
+.. option:: --type <json|csv|tsv>
 
    Declare the type of export format to import. The default format is
    :term:`JSON`, but it's possible to import :term:`csv` and
    :term:`tsv` files.
 
-.. option:: --file [filename]
+.. option:: --file <filename>
 
    Specify the location of a file containing the data to
    import. :program:`mongoimport` will read data from standard input
@@ -191,7 +192,7 @@ Options
    :option:`--upsertFields` :program:`mongoimport` will upsert on the
    basis of the "``_id``" field.
 
-.. option:: --upsertFields [field1[,field2]]
+.. option:: --upsertFields <field1[,field2]>
 
    Specifies a list of fields for the query portion of the
    :term:`upsert`. Use this option if the "``_id``" fields in the
@@ -220,33 +221,43 @@ Options
 Usage
 -----
 
-In this example, the :term:`csv` formatted data in the
-"``/opt/backups/contacts.csv``" is imported into the collection
-"``contacts``" in the "``users``" database on the MongoDB instance
-running on the localhost port numbered 27017. ::
+In this example, :program:`mongoimport` imports the :term:`csv`
+formatted data in the "``/opt/backups/contacts.csv``" into the
+collection "``contacts``" in the "``users``" database on the MongoDB
+instance running on the localhost port numbered ``27017``.
 
-     mongoexport --db users --collection contacts --type csv --file /opt/backups/contacts.csv
+.. code-block:: sh
 
-In the following example, the data in the :term:`JSON` formatted file
-"``contacts.json`` is imported into the collection "``contacts``" on
-the MongoDB instance running on the localhost port
-number 27017. Journaling is explicitly enabled. ::
+   mongoexport --db users --collection contacts --type csv --file /opt/backups/contacts.csv
 
-     mongoexport --collection contacts --file contacts.json --journal
+In the following example, :program:`mongoimport` imports the data in
+the :term:`JSON` formatted file "``contacts.json`` into the collection
+"``contacts``" on the MongoDB instance running on the localhost port
+number 27017. Journaling is explicitly enabled.
 
-In the next example, data passed to ``mongoimport`` on standard input
-(i.e. with a "``|``" pipe.) is imported into the collection
-"``contacts``" in the "``sales``" database is the the MongoDB
-datafiles located at ``/srv/mongodb/``. if the import process
-encounters an error, the ``mongoimport`` will halt. ::
+.. code-block:: sh
 
-     mongoexport --db sales --collection contacts --stopOnError --dbpath /srv/mongodb/
+   mongoexport --collection contacts --file contacts.json --journal
 
-In the final example, data from the file
-"``/opt/backups/mdb1-examplenet.json``" is import into the collection
+In the next example, :program:`mongoimport` takes data passed to it on
+standard input (i.e. with a "``|``" pipe.)  and imports it into the
+collection "``contacts``" in the "``sales``" database is the
+MongoDB datafiles located at ``/srv/mongodb/``. if the import process
+encounters an error, the :program:`mongoimport` will halt because of
+the :option:`--stopOnError <mongoimport --stopOnError>` option.
+
+.. code-block:: sh
+
+   mongoexport --db sales --collection contacts --stopOnError --dbpath /srv/mongodb/
+
+In the final example, :program:`mongoimport` imports data from the
+file "``/opt/backups/mdb1-examplenet.json``" into the collection
 "``contacts``" within the database "``marketing``" on a remote MongoDB
-database. This instance is located on the host
-``mongodb1.example.net``" running on port ``37017``", which requires
-the username "``user``" and the password "``pass``". ::
+database. This :program:`mongoimport` accesses the :program:`mongod`
+instance running on the host ``mongodb1.example.net``" over port
+``37017``", which requires the username "``user``" and the password
+"``pass``".
 
-     mongoexport --host mongodb1.example.net --port 37017 --username user --password pass --collection contacts --db marketing --file /opt/backups/mdb1-examplenet.json
+.. code-block:: sh
+
+   mongoexport --host mongodb1.example.net --port 37017 --username user --password pass --collection contacts --db marketing --file /opt/backups/mdb1-examplenet.json

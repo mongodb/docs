@@ -93,13 +93,13 @@ Options
    :option:`mongotop <mongotop --password>` option to supply a
    password.
 
-.. option:: --password [password]
+.. option:: --password <password>
 
    Specifies a password to authenticate to the MongoDB instance. Use
    in conjunction with the :option:`--username <mongotop --username>`
    option to supply a username.
 
-.. option:: [sleeptime]
+.. option:: <sleeptime>
 
    The final argument the length of time, in seconds, that
    :program:`mongotop` waits in between calls. By default
@@ -137,7 +137,7 @@ Fields
    Provides the amount of time that this :program:`mongod` spent
    performing write operations on this namespace.
 
-.. data:: [timestamp]
+.. data:: <timestamp>
 
    Provides a time stamp for the returned data.
 

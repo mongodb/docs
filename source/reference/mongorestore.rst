@@ -75,13 +75,13 @@ Options
    :option:`--password <mongorestore --password>` option to supply a
    password.
 
-.. option:: --password [password]
+.. option:: --password <password>
 
    Specifies a password to authenticate to the MongoDB instance. Use
    in conjunction with the :option:`mongorestore --username` option to
    supply a username.
 
-.. option:: --dbpath [path]
+.. option:: --dbpath <path>
 
    Specifies the directory of the MongoDB data files. If used, the
    :option:`--dbpath` option enables :program:`mongorestore` to attach
@@ -104,21 +104,21 @@ Options
 
    Enables journaling for all :program:`mongorestore` operations.
 
-.. option:: --db [db], -d [db]
+.. option:: --db <db>, -d <db>
 
    Use the ``--db`` option to specify a database for
    :program:`mongorestore` to restore data. If you do not specify a
-   "``[db]``", :program:`mongorestore` creates new databases that
+   "``<db>``", :program:`mongorestore` creates new databases that
    correspond to the databases where data originated and data may be
    overwritten. Use this option to restore data into a MongoDB
    instance that already has data, or to restore only some data in the
    specified backup.
 
-.. option:: --collection [collection], -c [collection]
+.. option:: --collection <collection>, -c <collection>
 
    Use the :option:`--collection` option to specify a collection for
    :program:`mongorestore` to restore. If you do not specify a
-   "``[collection]``", :program:`mongorestore` imports all collections
+   "``<collection>``", :program:`mongorestore` imports all collections
    created. Existing data may be overwritten. Use this option to
    restore data into a MongoDB instance that already has data, or to
    restore only some data in the specified imported data set.
@@ -152,7 +152,7 @@ Options
    Prevents :program:`mongorestore` from upgrading the index to the latest
    version durring the restoration process.
 
-.. option::  [path]
+.. option::  <path>
 
    The final argument of the :program:`mongorestore` command is a
    directory path. This argument specifies the location of the

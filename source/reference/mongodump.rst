@@ -81,21 +81,21 @@ Options
    :option:`--password <mongodump --password>` option to supply a
    password.
 
-.. option:: --password [password]
+.. option:: --password <password>
 
    Specifies a password to authenticate to the MongoDB instance. Use
    in conjunction with the :option:`--username <mongodump --username>`
    option to supply a username.
 
-.. option:: --dbpath [path]
+.. option:: --dbpath <path>
 
    Specifies the directory of the MongoDB data files. If used, the
    :option:`--dbpath` option enables :program:`mongodump` to attach
    directly to local data files and copy the data without the
    :program:`mongod`. To run with :option:`--dbpath`,
-   :program:`mongodump` needs to lock access to the data directory: as
-   a result, no :program:`mongod` can be access the same path while the
-   process runs.
+   :program:`mongodump` needs to restrict access to the data
+   directory: as a result, no :program:`mongod` can be access the same
+   path while the process runs.
 
 .. option:: --directoryperdb
 
@@ -108,11 +108,11 @@ Options
 .. option:: --journal
 
    Allows :program:`mongodump` operations to use the durability
-   :term:`journal <journaling>` to ensure that the export is in a consistent
-   state. This option is only relevant when specifying the
+   :term:`journal <journaling>` to ensure that the export is in a
+   consistent state. This option is only relevant when specifying the
    :option:`--dbpath` option.
 
-.. option:: --db [db], -d [db]
+.. option:: --db <db>, -d <db>
 
    Use the :option:`--db` option to specify a database for
    :program:`mongodump` to backup. If you do not specify a DB,
@@ -120,7 +120,7 @@ Options
    dump files. Use this option to backup or copy a smaller subset of
    your data.
 
-.. option:: --collection [collection], -c [c]
+.. option:: --collection <collection>, -c <c>
 
    Use the :option:`--collection` option to specify a collection for
    :program:`mongodump` to backup. If you do not specify a collection,
@@ -128,13 +128,13 @@ Options
    instance to the dump files. Use this option to backup or copy a
    smaller subset of your data.
 
-.. option:: --out [path], -o [path]
+.. option:: --out <path>, -o <path>
 
    Specifies a path where :program:`mongodump` and store the output the
    database dump. If you want to output the the database dump to
    standard output, specify a '``-``" rather than a path.
 
-.. option:: --query [json], -q [json]
+.. option:: --query <json>, -q <json>
 
    Provides a :term:`JSON` query to limit (optionally) the documents
    included in the output of :program:`mongodump`.
