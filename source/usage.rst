@@ -207,12 +207,20 @@ Configuring Notifications
 
 You can create notifications for any of the above alert types. Click on
 the plus sign (e.g. ``+``) next to the word "Alerts" at the top of
-these pages. This will raise a dialogue where you can create email
+these pages. This will raise a dialogue where you can create email or SMS
 alerts for any of these event types. You can configure:
 
-- **Address** specifies an address to send alert emails.
+- **Address** specifies an address to send alert emails. For SMS
+  alerts specify the telephone number that will receive the alert.
 
-- **Type** to select between text and HTML formats.
+  .. warning::
+
+     Telephone numbers are not validated or checked, and users must
+     ensure that they have entered the correct number into the Alerts
+     interface.
+
+- **Type** to select between text email, HTML formatted email, and SMS
+  alerts.
 
 - **Frequency** to select how often to send alerts, in minutes.
 
