@@ -68,6 +68,10 @@ replica set configuration. For instance:
    cfg.settings.getLastErrorDefaults = "w: majority, fsync: false, j: true"
    rs.reconfig(cfg)
 
+TODO: Incorrect getLastErrorDefaults setting:
+   cfg.settings.getLastErrorDefaults = {w: "majority", fsync: false, j: true}
+
+
 When the new configuration is active, the effect of the
 :dbcommand:`getLastError` operation will wait until the write
 operation has succeeded on a majority of the nodes before writing. By
