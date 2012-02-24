@@ -8,187 +8,188 @@ Glossary
    :sorted:
 
    BSON
-      Binary JSON. BSON is MongoDB's internal representation format
-      and wire-trasmission format. For more information see
-      `bsonspec.org <http://bsonspec.org/>`_.
+      A serialization format used to store documents and make remote
+      procedure calls in MongoDB. "BSON" is a a portmanteau of the words
+      "binary" and "JSON". BSON can be thought of as a binary representation
+      of JSON (JavaScript Object Notation) documents. For a detailed spec,
+      see `bsonspec.org <http://bsonspec.org/>`_.
 
    database command
-      Database commands are a special type of operation within MongoDB
-      that make it possible to interact with the database system
-      directly. MongoDB implements database commands as a form of
-      query against the special ":term:`$cmd`" collection. These
-      commands provide a number of administrative and other special
-      operations.
+      Any MongoDB operation other than an insert, update, remove,
+      or query. MongoDB exposes commands as queries
+      query against the special ":term:`$cmd`" collection. For example,
+      ``count`` is run as a command.
 
       .. seealso:: ":doc:`/reference/commands`" for a
 
    operator
-      Operators provide tools for querying and manipulating
-      documents. See the ":doc:`/reference/operators`" for more
+      A keyword beginning with a ``$`` used to express a complex
+      query, update, or data transformation. For example, ``$gt``
+      is the query language's "greater than" operator.
+      See the ":doc:`/reference/operators`" for more
       information about the available operators.
 
       .. seealso:: ":doc:`/reference/operators`."
 
    MongoDB
-      A document-driven database documented in this manual.
+      The document-based database server described in this manual.
 
    document
-      A record in a MongoDB database. Documents are analogous to, but
-      more flexible than, a row in relational databases. Documents
-      contain a number of :term:`fields <field>`, and are members of
-      :term:`collections <collection>`.
+      A record in a MongoDB collection, and the basic unit of data
+      in MongoDB. Documents are analogous to JSON object, but are
+      stored in a more type-rich format known as BSON.
 
    field
-      A value or item in a :term:`document`. Documents have one
-      or more fields. Fields are analogous to, but more flexible than,
+      A name-value pair in a term:`document`. Documents have zero
+      or more fields. Fields are analogous to
       columns in relational databases.
 
    database
-      Each database resides in a unique file on the file
-      system. Databases contain a number of :term:`collections
-      <collection>`.
+      A physical container for :term:`collections <collection>`.
+      Each database gets its own set of files on the file
+      system. A single MongoDB server typically servers multiple
+      databases.
 
    collection
-      A group of :term:`document`. Collections are analogous to, but
-      more flexible than, tables in relational databases. A
-      :term:`database` contains a number of commands .
+      A namespace within a database for containing :term:`documents <document>`.
+      Collections do not enforce a schema, but they are otherwise
+      mostly analogous to RDBMS tables.
 
-   Map/Reduce
-      A data processing paradigm formalized at Google.
+   map-reduce
+      A paradigm from functional programming used to implement aggregation
+      in a number of popular database servers. MongoDB uses map-reduce
+      in a command called ``mapreduce`` for basic aggregation.
 
    $cmd
-      This is the special :term:`collection` used to :term:`MongoDB`
-      to implement :term:`database commands <database command>`.
+      A virtual :term:`collection` that exposes :term:`MongoDB`'s
+      term:`database commands <database command>`.
 
    JSON
-      JavaScript Object Notation. A format for expressing structured
-      data in human readable plain text.
+      JavaScript Object Notation. A human-readable, plain text format
+      for expressing structured data.
 
    JSON document
-      :term:`JSON` documents are collections of fields and values in a
-      structured format. JSON encloses documents in "curly braces."
+      A :term:`JSON` documents are collections of fields and values in a
+      structured format. The following is a sample JSON document with
+      two fields::
 
-   Admin Database
-      The administration database is a privileged database named
-      "``admin``", which provide special administrative
-      functionality. See :doc:`commands` for more information on these
-      commands.
+          { name: "MongoDB",
+            type: "database" }
+
+   admin database
+      A privileged database named "``admin``". Users must have access
+      to this database to run certain administrative commands.
+      See :doc:`commands` for more information on these commands.
 
    replica set
-      A MongoDB feature whereby a collection of hosts can, as a database
-      cluster, provide replication while allowing the "master"
-      instance to automatically reassign itself based on the cluster
-      conditions.
+      A cluster of MongoDB servers that implements master-slave
+      replication and automated failover. MongoDB's recommended
+      replication strategy.
 
       .. seealso:: :term:`replication`, ":doc:`/replication`" and
          ":doc:`/core/replication`."
 
-   Replication
-     A database architecture that replicates the data corpus on a
-     number of machines to provide redundancy and load
-     distribution.
+   replication
+     A feature allowing multiple database servers to share the same
+     data, thereby ensuring redundancy and facilitating load balancing.
+     MongoDB supports two flavors of replication: master-slave replication
+     and replica sets
 
       .. seealso:: :term:`replica set`, :term:`sharding`,
          ":doc:`/replication`." and ":doc:`/core/replication`."
 
-   Shard
-      A for a :term:`mongod` instance that only stores a portion of
-      the total dataset corpus as part of a :term:`cluster`. See
-      :term:`sharding`.
+   shard
+      A single replica set that stores some portion of a shard cluster's
+      total data set. See :term:`sharding`.
 
       .. seealso:: ":doc:`/core/sharding`."
 
-   Sharding
-      A database architecture that splist the data corpus among
-      a cluster of system to enable horizontal scaling. MongoDB added
-      support for automatic shading in version 1.6 See :term:`shard`.
+   sharding
+      A database architecture that enable horizontal scaling by splitting
+      data into key ranges among two or more replica sets. This architecture
+      is also known as "range-based partitioning." See :term:`shard`.
 
       .. seealso:: ":doc:`/core/sharding`."
 
    shard cluster
-      A collection of MongoDB instances with a dataset partitioned
-      or ":term:`sharded <sharding>`" among a set of instances.
+      The set of nodes comprising a :term:`sharded <sharding>` MongoDB deployment. A shard cluster
+      consists of three config processes, one or more replica sets, and one or more
+      ``mongos`` routing processes.
 
       .. seealso:: ":doc:`/core/sharding`."
 
    partition
-      A distributed system architecture that splits resources
-      (i.e. the entire contents of a database between a number of
-      independent systems. :term:`Sharding` is an example of
-      partitioning.
+      A distributed system architecture that splits data into ranges.
+      :term:`Sharding` is a kind of partitioning.
 
    mongod
-      :program:`mongod` is the :term:`daemon` that runs MongoDB database
-      instances.
+      The program implemeting the MongoDB database server. This server
+      typically runs as a :term:`daemon`.
 
       .. seealso:: ":doc:`/reference/mongod`."
 
    mongos
-      :program:`mongos` is a routing and load balancing process that
-      provides an interface between an application and
-      :program:`mongod` instances in a :term:`shard cluster`. See
+      The routing and load balancing process that
+      acts an interface between an application and
+      a MongoDB :term:`shard cluster`. See
       ":doc:`/reference/mongos`" for more information.
 
       .. seealso:: ":doc:`/reference/mongos`."
 
    mongo
-      The MongoDB Shell. Mongo connects to the :program:`mongod`
-      database and provides an interface for administration,
-      management, and testing. :program:`mongo` uses complete JavaScript
+      The MongoDB Shell. ``mongo`` connects to :program:`mongod`
+      and :program:`mongos` instances, allowing administration,
+      management, and testing. :program:`mongo` has a JavaScript
       interface.
 
       .. seealso:: ":doc:`/reference/mongo`" and
          ":doc:`/reference/javascript`."
 
    SQL
-      Standard Query Language. This is the standard method for
-      querying and interacting with relational databases. Often SQL is
+      Standard Query Language. SQL is the language used to interacting
+      with nearly all relational databases. Because of this, ``SQL`` is
       a metonym for relational databases.
 
-   Cluster
-      Clusters are groups of :program:`mongod` instances running in
+   cluster
+      A set of :program:`mongod` instances running in
       conjunction to increase database availability and
       performance. See :term:`sharding` and :term:`replication` for
-      more information on two different approaches to clustering with
+      more information on the two different approaches to clustering with
       MongoDB.
 
-      Typically groups of replicating nodes are "*set*" while
-      "*cluster*" refers primarily to :term:`sharding`.
-
-   Polygon
+   polygon
       MongoDB's :term:`geospatial` indexes and querying system
-      provides the ability to build queries around multi-sided
-      polygons on 2 dimensional coordinate systems. These queries use
+      allow you to build queries around multi-sided
+      polygons on two-dimensional coordinate systems. These queries use
       the :operator:`$within` operator and a sequence of points that define
-      the corners of the polygon. MongoDB assumes the connection
-      between the first and last point.
+      the corners of the polygon.
 
-   Circle
+   circle
       MongoDB's :term:`geospatial` indexes and querying system
-      provides the ability to build queries around circles on 2
-      dimensional coordinate systems. These queries use the
+      allow you to build queries around circles on two-dimensional
+      coordinate systems. These queries use the
       :operator:`$circle` operator to define circle using the center
       and the radius of the circle.
 
-   Box
+   box
       MongoDB's :term:`geospatial` indexes and querying system
-      provides the ability to build queries around rectangles on 2
-      dimensional coordinate systems. These queries use the :operator:`$box`
-      operator to define a shape using the lower-left and the upper
-      right coordinates.
+      allow you to to build queries around rectangles on two-dimensional
+      coordinate systems. These queries use the :operator:`$box`
+      operator to define a shape using the lower-left
+      and the upper-right coordinates.
 
    capped collection
-      Capped collections, are :term:`collections <collection>` that
-      have a maximum size, and an (optional) maximum number of
-      documents. These kinds of collections prevent collections
-      from growing out of control and are useful in the context of
-      logging or caching functions.
+      A fixed-sized :term:`collection <collection>`. Once they reach
+      their fixed size, capped collections
+      automatically overwrite their oldest entries. These collections
+      are used to implement replication, but they may also be created
+      by application developers.
 
       .. seealso:: ":doc:`/core/capped-collections`."
 
    BSON types
-      BSON types describe the kind of data encoded in the objects
-      themselves. The following types are available:
+      The set of types supported by the :term:`BSON` serialization
+      format. The following types are available:
 
       =======================  ==========
       **Type**                 **Number**
@@ -213,36 +214,35 @@ Glossary
       Max key                    127
       =======================  ==========
 
-   Master
+   master
       In conventional master/:term:`slave` replication, the master
-      database receives all writes, which ensures consistency. The
-      slave instances replicate the entire contents of the master
-      instance.
+      database receives all writes. The
+      :term:`slave` instances replicate from the master instance
+      in real time.
 
-   Slave
-      In conventional :term:`master`/slave replication, the slave
-      instances replicate operations from the master database. While,
-      clients and applications can read from slave databases, they
-      must direct all write operations to the master database. Data
-      read from slave instances may not be consistent with the master,
-      depending on the database's consistency pattern.
+   slave
+      In conventional :term:`master`/slave replication, the `slave`s
+      are read-only instances that replicate operations from the
+      :term:`master` database. Data read from slave instances may
+      not be completely consistent with the master. Therefore, applications
+      requiring consistent reads must read from the master database instance.
 
-   Primary
-      In a :term:`replica set` the primary member is the current
-      ":term:`master`," of the set that receives write operations and
-      ensures that the set maintains a consistent state. These instances
-      can assume :term:`secondary` status at a later point.
+   primary
+      In a :term:`replica set`, the primary member is the current
+      ":term:`master`" instance, which receives all write operations.
 
-   Secondary
-      In a :term:`replica set` the secondary members are the current
-      :term:`slave` instances that replicate the content of the
-      database and may assume :term:`primary` status at a later
-      point. Secondary members may handle read requests, but only the
+   secondary
+      In a :term:`replica set`, the ``secondary`` members are the current
+      :term:`slave` instances that replicate the contents of the
+      master database. Secondary members may handle read requests, but only the
       :term:`primary` members can handle write operations.
 
    GridFS
-      A method for storing files in a MongoDB database that exceed the
-      16 megabyte limit for :term:`BSON` objects.
+      A convention for storing large files in a MongoDB database. All
+      of the official MongoDB drivers support this convention, as
+      does the ``mongofiles`` program.
+
+      .. seealso:: ":doc:`/reference/mongofiles`".
 
    md5
       ``md5`` is a hashing algorithm used to efficiently provide
@@ -259,34 +259,31 @@ Glossary
          ":doc:`/reference/javascript`."
 
    write-lock
-      When a process writes to the database, a it takes a write-lock
-      to  prevent other processes from writing or reading, which would
-      produce an inconsistent state. These operations are typically
-      very short-lived, but block all other operations while active.
+      A lock on the database for a given writer.
+      When a process writes to the database, it takes an exlcusive write-lock
+      to prevent other processes from writing or reading.
 
    index
-      Indexes provide the database with a fast and reliable way of
-      accessing data without requiring full reads of all data in a
-      collection.
+      A data structure that optimizes queries.
 
       .. seealso:: ":doc:`/core/indexing`"
 
    compound index
-      An :term:`index` that contains more than one key, and may more
-      effectively support a number of different queries.
+      An :term:`index` consisting of two or more keys.
 
       .. seealso:: ":doc:`/core/indexing`"
 
    btree
-      btree's provide a very efficient data representation that
-      provides for efficient writing and reading binary data. MongoDB
-      uses b-trees for indexes.
+      A data structure used by most database management systems
+      for to store indexes. MongoDB also uses b-trees for its indexes.
 
    ISODate
-      The standard date representation fields that hold data of the
-      date type.
+     The international date format used by the MongoDB JavaScript shell
+     to display dates.
 
-   journaling
+TODO: continue here
+
+   journal
       MongoDB's journal provides a transnational log that
       provides durability for database operations. When using the
       journal, MongoDB writes all data to disk both in the journal and
