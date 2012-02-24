@@ -38,8 +38,8 @@ Both community package management tools, `Homebrew
 configuration. This configuration is beyond the scope of this
 document. You only need to use one of these tools.
 
-If you can't decide, choose homebrew in the interest of time
-and simplicity.
+If you want to use package management, and do not already have a
+system installed, Homebrew is typically easier and simpler to use.
 
 Homebrew
 ~~~~~~~~
@@ -76,14 +76,14 @@ Using MongoDB from Homebrew and MacPorts
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The packages installed with Homebrew and MacPorts contain no
-:term:`control scripts <control script>` or interaction with the system's process
-manager.
+:term:`control scripts <control script>` or interaction with the
+system's process manager.
 
 If you have configured Homebrew and MacPorts correctly, including
 setting your ``PATH``, the MongoDB applications and utilities will be
 accessible from the system shell. Start the :program:`mongod` process
 in a terminal (for testing or development) or using a process
-management tool. 
+management tool.
 
 .. code-block:: sh
 
@@ -132,7 +132,10 @@ If you need to run the 32-bit version, use the following command:
 
 .. note::
 
-   Replace x.y.z with the current version such as 2.0.2 or 2.0.0
+   Replace x.y.z with the current stable version (i.e. |version|).
+
+   You may also choose to install a development release, in which case
+   you will need to specify that version number above.
 
 .. note::
 
@@ -159,6 +162,11 @@ extract the files from the archive:
    .. code-block:: sh
 
       mv -n mongodb-osx-[platform]-[version]/ /path/to/new/location/
+
+
+   Replace ``[platform]`` with ``i386`` or ``x86_64`` depending on
+   your system and the version you downloaded, and ``[version]`` with
+   |version| or the version of MongoDB that you are installing.
 
 You can find the :program:`mongod` binary, and the binaries all of the
 associated MongoDB utilities, in the "``bin/``" directory within the
@@ -189,7 +197,7 @@ directory for easier use.
 Among the tools included with this MongoDB distribution, is the
 :program:`mongo` shell. You can use this shell to connect to your
 MongoDB instance by issuing the following command at the system
-prompt from inside of the directory where mongo was extracted:
+prompt from inside of the directory where you extracted :program:`mongo`:
 
 .. code-block:: sh
 
