@@ -39,7 +39,7 @@ configuration and operation.
 Package Options
 ---------------
 
-The 10gen repository contains for packages:
+The 10gen repository contains four packages:
 
 - ``mongo-10gen``
 
@@ -82,6 +82,8 @@ Installing MongoDB
 
 Configure Package Management System (YUM)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+// TODO: please add instructions for yum update and that it needs to be executed after adding the repo.
 
 Create a ``/etc/yum.repos.d/10gen.repo`` file to hold information
 about your repository. If you are running a 64-bit system
