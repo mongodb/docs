@@ -10,6 +10,8 @@ of replica sets may be its greatest strenght. This document outlines
 and describes the most prevalent deployment patterns for replica set
 administrators.
 
+TODO: strenght?
+
 .. seealso:: ":doc:`/administration/replica-sets`" and
    ":doc:`/reference/replica-configuration`."
 
@@ -64,6 +66,8 @@ architectural conditions are true:
   constraints,) set its ``priority`` value to ``0``.
 
 - A majority *of the set's* members exist in the main data center.
+
+TODO: I don't understand why "of the set's" is emphasized.
 
 .. seealso:: ":doc:`/tutorial/expand-replica-set`."
 
@@ -138,6 +142,8 @@ settings relevant for these kinds of nodes:
   of votes, if you need to have more than 7 members of a replica
   set. (:ref:`see also <replica-set-non-voting-members>`.)
 
+TODO: and the potential... for royally screwing yourself.
+
 Backups
 ~~~~~~~
 
@@ -148,6 +154,9 @@ perspective, to the primary node or likely primary, and that the
 :term:`replication lag` is minimal or non-existent. You may wish to
 create a dedicated :ref:`hidden node <replica-set-hidden-members>` for
 the purpose of creating backups.
+
+TODO: Glitch in the matrix: "a replica set member for dedicated
+backup for dedicated backup purposes"
 
 If this node have journaling enabled, you can safely use standard
 :ref:`block level backup methods <block-level-backup>` to create a

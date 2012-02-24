@@ -18,6 +18,8 @@ ensure high availability, simplifies certain administrative tasks
 such as backups, and may increase read capacity. Most production
 deployments are or should use replication.
 
+TODO: "are or should use replication."  are use replication?
+
 If you're familiar with other database systems, you may think about
 replica sets as a more sophisticated form of traditional master-slave replication. [#master-slave]_
 In master-slave replication, a ":term:`master`" node accepts writes while one or more
@@ -196,6 +198,8 @@ remain a secondary.
    all client connections. This ensures that the clients maintain an accurate
    view of the :term:`replica set` and helps prevent :term:`rollbacks <rollback>`.
 
+TODO: it's actually just when a primary steps down that connections are closed.
+
 .. seealso:: ":ref:`Replica Set Election Internals <replica-set-election-internals>`"
 
 .. _replica-set-node-priority:
@@ -261,6 +265,14 @@ secondary those operations the former primary must revert these
 operations or "rolled back" these operations to maintain database
 consistency across the replica set.
 
+TODO: ":term:`primary` nodes will have
+accepted write operations that have replicated to the
+:term:`secondaries <secondary>`" -> have not replicated to the secondary
+
+TODO: "as a
+secondary those operations the former primary must revert these
+operations or" those operations...these operations
+
 MongoDB writes the rollback data to a :term:`BSON` file in the
 database's :setting:`dbpath` directory. Use :doc:`bsondump
 </reference/bsondump>` to read the contents of these rollback files
@@ -270,6 +282,9 @@ without manual intervention. Since rollback situations require an
 administrator's direct intervention, users should strive to avoid
 rollbacks as much as possible. Until an administrator applies this
 rollback data, the former primary remains in a "rollback" status.
+
+TODO: "Until an administrator applies this
+rollback data, the former primary remains in a "rollback" status." Untrue!  ROLLBACK state should automatically correct itself and the server will end up in SECONDARY state.
 
 The best strategy for avoiding all rollbacks is to ensure :ref:`write
 propagation <replica-set-write-concern>` to all or some of the
@@ -288,6 +303,8 @@ that might create rollbacks.
    "rollback" mode until the administrator deals with the rolled back
    data and restarts the :program:`mongod` instance. Only then can the
    node becomes a normal :term:`secondary` terms.
+
+TODO: not true...
 
 Application Concerns
 ~~~~~~~~~~~~~~~~~~~~
@@ -441,6 +458,8 @@ the existing members.
    MongoDB instance terminates ungracefully, the database can loose up to 60 seconds of data,
    and the database may remain in an inconsistent state and
    unrecoverable state.
+
+TODO: this isn't true.  If you are running w/out journaling and mongod terminates "ungracefully" you can lose _all_ data.  Also, you should assume, after a crash w/out journaling, that the db is in an inconsistent (i.e., corrupt) state.
 
    **Use journaling**, however, do not forego proper replication
    because of journaling.

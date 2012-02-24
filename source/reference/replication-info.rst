@@ -73,6 +73,9 @@ The following fields appear in the output of
    Returns a time stamp for the first (i.e. earliest) operation in the
    :term:`oplog`. Compare this value to :status:`now`.
 
+TODO: copypasta with tFirst
+Also, please don't encourage people to compare this with "now", they should compare it to the last time they did a write.  tLast could be days ago, but if there haven't been any writes since, lag is 0.
+
 .. status:: now
 
    Returns a time stamp reflecting the current time. The shell process

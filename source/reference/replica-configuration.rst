@@ -57,6 +57,8 @@ Configuration Variables
       :data:`members[n].host` cannot hold a value that
       resolves to ``localhost`` or the local interface.
 
+TODO: unless all of the members in the set do.  You can have all-or-none localhost.
+
 .. data:: members[n].arbiterOnly
 
    *Optional*.
@@ -80,6 +82,9 @@ Configuration Variables
    this member. Do not set to "``false``", if a replica set *can*
    become a master, or if any clients ever issue queries against this
    instance.
+
+TODO: whether, not weather
+Probably "Do not set to false if a member *can* become a master..."
 
    Omitting index creation, and thus this setting, may be useful,
    **if**:
