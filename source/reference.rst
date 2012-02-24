@@ -17,6 +17,7 @@ MongoDB Programs
    reference/mongoexport
    reference/mongostat
    reference/mongotop
+   reference/mongooplog
    reference/mongosniff
    reference/mongofiles
    reference/bsondump
