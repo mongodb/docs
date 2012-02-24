@@ -38,6 +38,9 @@ Both community package management tools, `Homebrew
 configuration. This configuration is beyond the scope of this
 document. You only need to use one of these tools.
 
+If you can't decide, choose homebrew in the interest of time
+and simplicity.
+
 Homebrew
 ~~~~~~~~
 
@@ -80,7 +83,13 @@ If you have configured Homebrew and MacPorts correctly, including
 setting your ``PATH``, the MongoDB applications and utilities will be
 accessible from the system shell. Start the :program:`mongod` process
 in a terminal (for testing or development) or using a process
-management tool. Then open the :program:`mongo` shell by issuing the
+management tool. 
+
+.. code-block:: sh
+
+  mongod
+
+Then open the :program:`mongo` shell by issuing the
 following command at the system prompt:
 
 .. code-block:: sh
@@ -113,13 +122,17 @@ most cases you will want to download the 64-bit version of MongoDB.
 
 .. code-block:: sh
 
-   curl http://downloads.mongodb.org/osx/mongodb-osx-x86_64-latest.tgz > mongo.tgz
+   curl http://downloads.mongodb.org/osx/mongodb-osx-x86_64-x.y.z.tgz > mongo.tgz
 
-If you need to run the 32-bit version, use the following command.
+If you need to run the 32-bit version, use the following command:
 
 .. code-block:: sh
 
-   curl http://downloads.mongodb.org/osx/mongodb-osx-i386-latest.tgz > mongo.tgz
+   curl http://downloads.mongodb.org/osx/mongodb-osx-i386-x.y.z.tgz > mongo.tgz
+
+.. note::
+
+   Replace x.y.z with the current version such as 2.0.2 or 2.0.0
 
 .. note::
 
@@ -145,7 +158,7 @@ extract the files from the archive:
 
    .. code-block:: sh
 
-      mv -n mongodb-osx-20??-??-??/ mongodb
+      mv -n mongodb-osx-[platform]-[version]/ /path/to/new/location/
 
 You can find the :program:`mongod` binary, and the binaries all of the
 associated MongoDB utilities, in the "``bin/``" directory within the
@@ -156,16 +169,16 @@ Using MongoDB from 10gen Builds
 
 Before you start :program:`mongod` for the first time, you will need
 to create the data directory. By default, :program:`mongod` writes
-data to the ``/data/db/`` directory. To create this directory, use the
-following command:
+data to the ``/data/db/`` directory. To create this directory, and set
+the appropriate permissions use the following commands:
 
 .. code-block:: sh
 
-   mkdir -p /data/db
+   sudo mkdir -p /data/db
+   sudo chown `id -u` /data/db
 
-You can specify, and create, an alternate path using the
-:option:`--dbpath <mongod --dbpath>` option to :program:`mongod` and
-the above command.
+You can specify an alternate path for data files using the
+:option:`--dbpath <mongod --dbpath>` option to :program:`mongod`.
 
 The 10gen builds of MongoDB contain no :term:`control scripts <control
 script>` or method to control the :program:`mongod` process. You may
@@ -176,7 +189,7 @@ directory for easier use.
 Among the tools included with this MongoDB distribution, is the
 :program:`mongo` shell. You can use this shell to connect to your
 MongoDB instance by issuing the following command at the system
-prompt:
+prompt from inside of the directory where mongo was extracted:
 
 .. code-block:: sh
 
