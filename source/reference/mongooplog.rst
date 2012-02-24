@@ -1,0 +1,258 @@
+ .. _mongooplog:
+
+.. default-domain:: mongodb
+
+.. binary:: mongooplog
+
+============================
+:program:`mongooplog` Manual
+============================
+
+.. versionadded:: 2.1.1
+
+Synopsis
+--------
+
+:program:`mongooplog` is a simple tool that polls  operations from
+the :term:`replication` :term:`oplog` of a remote server, and applies
+them to the local server. This capability supports certain classes of
+real-time migrations that require that the source server remain online
+and operation throughout the migration process.
+
+Typically this command will take the following form:
+
+.. code-block:: sh
+
+   mongooplog  --from mongodb0.example.net --host mongodb1.example.net
+
+This command copies oplog entries from the :program:`mongod` instance
+running on the host "``mongodb0.example.net``" and duplicates
+operations to the host "``mongodb1.example.net``". If you do not need
+to keep the :option:`--from <mongooplog --from>` host running during
+the migration, consider using :program:`mongodump` and
+:program:`mongorestore` or another :doc:`backup
+</administration/backups>` operation may be better suited to your
+operation.
+
+.. note::
+
+   If the :program:`mongod` instance specified by the :option:`--from <mongooplog --from>`
+   argument is running with :setting:`authentication <auth>`, then
+   :program:`mongooplog` will not be able to copy oplog entries.
+
+.. seealso:: :program:`mongodump`, :program:`mongorestore`,
+   ":doc:`/administration/backups`," ":ref:`Oplog Internals Overview
+   <replica-set-oplog>`, and ":ref:`Replica Set Oplog Sizing
+   <replica-set-oplog-sizing>`".
+
+Options
+-------
+
+.. program:: mongooplog
+
+.. option:: --help
+
+   Returns a basic help and usage text.
+
+.. option:: --verbose, -v
+
+   Increases the amount of internal reporting returned on the command
+   line. Increase the verbosity with the ``-v`` form by including the
+   option multiple times, (e.g. ``-vvvvv``.)
+
+.. option:: --version
+
+   Returns the version of the :program:`mongooplog` utility.
+
+.. option:: --host <hostname><:port>, -h
+
+   Specifies a resolvable hostname for the :program:`mongod` instance
+   to which :program:`mongooplog` will apply :term:`oplog` operations
+   retrieved from the serve specified by the :option:`--from <mongooplog --from>`
+   option.
+
+   :program:`mongooplog` assumes that all targetn  :program:`mongod`
+   instances are accessible by way of port ``27017``. You may,
+   optionally, declare an alternate port number as part of the
+   hostname argument.
+
+   To connect to a replica set, use the :option:`--host <mongooplog
+   --host>` argument with a setname, followed by a slash and a comma
+   separated list of host and port names. The :program:`mongooplog`
+   utility will, given the seed of at least one connected set member,
+   connect to primary member of that set. this option would resemble:
+
+   .. code-block:: javascript
+
+      mongodump --host repl0/mongo0.example.net,mongo0.example.net,27018,mongo1.example.net,mongo2.example.net
+
+   You can always connect directly to a single :program:`mongod`
+   instance by specifying the host and port number directly.
+
+.. option:: --port
+
+   Specifies the port number of the :program:`mongod` instance where
+   :program:`mongooplog` will apply :term:`oplog` entries. Only
+   specify this option if the MongoDB instance that you wish to
+   connect to is not running on the standard port. (i.e. ``27017``)
+   You may also specify a port number using the :option:`--host
+   <mongooplog --host>` command.
+
+.. option:: --ipv6
+
+   Enables :term:`IPv6` support to allow :program:`mongooplog` to
+   connect to the MongoDB instance using IPv6 connectivity. All
+   MongoDB programs and processes, including :program:`mongooplog`,
+   disable IPv6 support by default.
+
+.. option:: --username <username>, -u <username>
+
+   Specifies a username to authenticate to the MongoDB instance, if
+   your database requires authentication. Use in conjunction with the
+   :option:`--password <mongooplog --password>` option to supply a
+   password.
+
+.. option:: --password <password>, -u <password>
+
+   Specifies a password to authenticate to the MongoDB instance. Use
+   in conjunction with the :option:`--username <mongooplog --username>`
+   option to supply a username.
+
+.. option:: --dbpath <path>
+
+   Specifies a directory, containing MongoDB data files, to which
+   :program:`mongooplog` will apply operations from the :term:`oplog`
+   of the database specified with the :option:`--from <mongooplog
+   --from>` option.  When used, the :option:`--dbpath` option enables
+   :program:`mongo` to attach directly to local data files and write
+   data without a running :program:`mongod` instance. To run with
+   :option:`--dbpath`, :program:`mongooplog` needs to restrict access
+   to the data directory: as a result, no :program:`mongod` can be
+   access the same path while the process runs.
+
+.. option:: --directoryperdb
+
+   Use the :option:`--directoryperdb` in conjunction with the
+   corresponding option to :program:`mongod`. This option allows
+   :program:`mongooplog` to write to data files organized with each
+   database located in a distinct directory. This option is only
+   relevant when specifying the :option:`--dbpath` option.
+
+.. option:: --journal
+
+   Allows :program:`mongooplog` operations to use the durability
+   :term:`journal <journaling>` to ensure that the data files will
+   remain in a consistent state during the writing process. This
+   option is only relevant when specifying the :option:`--dbpath`
+   option.
+
+.. option:: --db <db>, -d <db>
+
+   Use the :option:`--db` option to specify a database for
+   :program:`mongooplog` to write data to. If you do not specify a DB,
+   :program:`mongooplog` will apply operations that apply to all
+   databases that appear in the oplog. Use this option to migrate a
+   smaller subset of your data.
+
+.. option:: --collection <collection>, -c <c>
+
+   Use the :option:`--collection` option to specify a collection for
+   :program:`mongooplog` to backup. If you do not specify a collection,
+   this options copies all collections in the specified database or
+   instance to the dump files. Use this option to backup or copy a
+   smaller subset of your data.
+
+.. option:: --fields [field1[,field2]], -f [field1[,field2]]
+
+   Specify a field or number fields to constrain which data
+   :program:`mongooplog` will migrate. All other fields will be
+   *excluded* from the migration. Comma separate a list of fields to
+   limit the applied fields.
+
+.. option:: --fieldFile <file>
+
+   As an alternative to ":option:`--fields <mongooplog --fields>`" the
+   :option:`--fieldFile` option allows you to specify a file
+   (e.g. ``<file>```) that holds a list of field names to *include* in
+   the migration. All other fields will be *excluded* from the
+   migration. Place one field per line.
+
+.. option:: --seconds <number>, -s <number>
+
+   Specify a number of seconds of operations for :program:`mongooplog`
+   to pull from the :option:`remote host <mongooplog --from>`. Unless
+   specified the default value is ``86400`` seconds, or 24 hours.
+
+.. option:: --from <host[:port]>
+
+   Specify the host for :program:`mongooplog` to retrieve :term:`oplog`
+   operations from. :program:`mongooplog` *requires* this
+   option. Without the :option:`--host <mongooplog --host>` option,
+   :program:`mongooplog` will apply these operations to oplog to the
+   :program:`mongod` instance running on the local host interface
+   connected to port ``27017``.
+
+.. option:: --oplogns <namespace>
+
+   Specify a namespace in the :option:`--from <mongooplog --from>`
+   host where the oplog resides. The default value is
+   ``local.oplog.rs``, which is the where :term:`replica set` members
+   store their operation log. However, if you've copied :term:`oplog`
+   entries into another database or collection, use this option to
+   copy oplog entries stored in another location.
+
+   :term:`Namespaces <namespace>` take the form of
+   "``[database].[collection]``".
+
+Usage
+~~~~~
+
+Consider the following prototype :program:`mongooplog` command:
+
+.. code-block:: sh
+
+   mongooplog  --from mongodb0.example.net --host mongodb1.example.net
+
+Here, entries from the :term:`oplog` of the :program:`mongod` running
+on port ``27017``. This only pull entries from the last 24 hours.
+
+In the next command, the parameters limit this operation to only apply
+operations to the database ``people`` in the collection ``usage`` on
+the target host (i.e. ``mongodb1.example.net``):
+
+.. code-block:: sh
+
+   mongooplog  --from mongodb0.example.net --host mongodb1.example.net --database people --collection usage
+
+This operation only applies oplog entries from the last 24 hours. Use
+the :option:`--seconds <mongooplog --seconds>` argument to capture a
+greater or smaller amount of time. Consider the following example:
+
+.. code-block:: sh
+
+   mongooplog  --from mongodb0.example.net --seconds 172800
+
+In this operation, :program:`mongooplog` captures 2 full days of
+operations. To migrate 12 hours of :term:`oplog` entries, use the
+following form:
+
+.. code-block:: sh
+
+   mongooplog  --from mongodb0.example.net --seconds 43200
+
+For the previous two examples, :program:`mongooplog` migrates entries
+to the :program:`mongod` process running on the localhost interface
+connected to the ``27017`` port. :program:`mongooplog` can also
+operate directly on MongoDB's data files if no :program:`mongod` is
+running on the *target* host. Consider the following example:
+
+.. code-block:: sh
+
+   mongooplog  --from mongodb0.example.net --dbpath /srv/mongodb --journal
+
+Here, :program:`mongooplog` imports :term:`oplog` operations from the
+:program:`mongod` host connected to port ``27017``. This migrates
+operations to the MognoDB data files stored in the ``/srv/mongodb``
+directory. Additionally :program:`mongooplog` will use the durability
+:term:`journal` to ensure that the data files remain in a consistent
+state.

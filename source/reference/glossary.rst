@@ -759,3 +759,8 @@ Glossary
    syslog
       A standard system logging process that provides a uniform way
       for serves and process to submit logging information.
+
+   namespace
+      The concatenation of the database and index name that takes the
+      form of "``[database].[collection]``". All documents belong to a
+      namespace.
