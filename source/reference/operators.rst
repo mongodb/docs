@@ -466,6 +466,15 @@ Element
    ``collection`` that match the case insensitive regular expression
    "``acme.*corp``" that *don't* match "``acmeblahcorp``".
 
+   :operator:`$regex` uses :term:`indexes <index>` only when the
+   regular expression has an anchor for the beginning (i.e. "``^``")
+   or end (i.e "``$``") of a string. Additionally, while "``/^a/``",
+   "``/^a.*/``", and "``/^a.*$/``" are equivalent, they have different
+   performance characteristics. All of these expressions use an index
+   if an appropriate index exists; however, "``/^a.*/``", and
+   "``/^a.*$/``" are slower becasue they have to scan the entire
+   string. "``/^a/``" can stop scanning after matching the prefix.
+
 .. operator:: $mod
 
    The :operator:`$mod` operator performs a fast "modulo" query, to
