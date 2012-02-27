@@ -30,6 +30,8 @@ exceptional situations may cause secondaries lag behind further. See
 All nodes send heartbeats to all other nodes, and will import
 operations into its oplog from the node with the lowest "ping" time.
 
+TODO: the lowest "ping" time thing is very specific to 2.0, it wasn't true in 1.8 and probably will be different again in 2.2.  Not sure if you care or not.
+
 .. _replica-set-implementation:
 
 Implementation
@@ -47,6 +49,8 @@ primary. See the ":ref:`consistency <replica-set-consistency>`"
 section for more about ":ref:`read preference
 <replica-set-read-preference>`" and ":ref:`write concern
 <replica-set-write-concern>`."
+
+TODO: "However, clients possible..."
 
 .. note::
 
@@ -114,6 +118,8 @@ primary node that "steps down" or a :term:`secondary` member that
 looses contact with a :term:`primary` node. All members have one vote
 in an election, and every :program:`mongod` can veto an election. A
 single member's veto will invalidate the election.
+
+TODO: sp: looses
 
 An existing primary will step down in response to the
 :dbcommand:`replSetStepDown` command, or if it sees that one of

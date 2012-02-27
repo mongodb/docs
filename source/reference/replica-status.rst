@@ -18,6 +18,8 @@ in heartbeats sent to the current instance by other members of the
 replica set: because of the frequency of heartbeats, these data can be
 at most 2 seconds out of date.
 
+TODO: not sure I'd commit to 2 seconds, as the timeout before heartbeat fails is ~20 seconds. So maybe "this data can be a few seconds out-of-date"?
+
 .. note::
 
    The :program:`mongod` that you issue the :dbcommand:`replSetGetStatus`
@@ -38,6 +40,8 @@ Statuses
    The ``set`` value is the name of the replica set, configured in the
    :setting:`replSet` setting.
 
+TODO: might want to mention it's the same as the _id in rs.conf(), but no one's ever expressed confusion about that, so minor point.
+
 .. status:: rs.status.date
 
    The value of the ``date`` field is an :term:`ISODate` of the
@@ -52,6 +56,8 @@ Statuses
    replica set member. An integer between ``0`` and ``9`` represents
    the state of the member. These integers map to states, as described
    in the following table:
+
+TODO: an integer between 0 and 10, now.
 
    ==========  ==========================================================
    **Number**  **State**
@@ -75,6 +81,8 @@ Statuses
    every member in the replica set. See the ":ref:`Member Statuses
    <repl-set-member-statuses>`" for an overview of the values included
    in these documents.
+
+TODO: this is missing the syncedTo field, only present on secondaries (and recovering nodes) that shows who they're syncing from.
 
 .. _repl-set-member-statuses:
 
@@ -121,11 +129,15 @@ Member Statuses
       A 64-bit timestamp of the last operation applied to this member
       of the replica set from the :term:`oplog`.
 
+TODO: 32-bit (t+i=64-bit)
+
    .. status:: members.optime.i
 
       An incremented field, which reflects the number of operations in
       since the last time stamp. This value only increases if there
       are more than one operation per second.
+
+TODO: ...if there is more
 
 .. status:: members[n].optimeDate
 

@@ -40,8 +40,12 @@ From to time, you may need to add an additional member to an existing
   replication process before the member can exit ":term:`recovering`"
   status, and become a :term:`secondary` member.
 
+TODO: might be worth mentioning that "you" don't have to copy this data, it's done automatically.
+
 - copy the data directory from an existing member to limit the amount
   of time that the recovery process takes.
+
+TODO: if you copy from an existing member, the new member will immediately be a secondary (not recovering).
 
   If the difference in the amount of time between the most recent
   operation and the most recent operation to the database exceeds the
@@ -50,12 +54,17 @@ From to time, you may need to add an additional member to an existing
   copy the data to the new system and begin replication within the
   window allowed by the :term:`oplog`.
 
+TODO: maybe mention you can do this with the db.printReplicationInfo() function.
+
 To add a member to an existing :term:`replica set`, deploy a new
 :program:`mongod` instance, specifying the name of the replica set
 (i.e. "setname" or ``replSet``) on the command line with the
 :option:`--replSet <mongod --replSet>` option or in the configuration
 with the :setting:`replSet`. Take note of the host name and
 port information for the new :program:`mongod` instance.
+
+TODO: "the configuration
+with" -> the configuration file with
 
 Then, log in to the current primary using the :program:`mongo`
 shell. Issue the :func:`db.isMaster()` command when connected to *any*
@@ -72,6 +81,8 @@ of the fields in a :data:`members` document, for example:
 .. code-block:: javascript
 
    rs.add({host: "mongo2.example.net:27017", priority: 0, hidden: true})
+
+TODO: is the _id field automatically populated?
 
 This configures a :term:`hidden member` that is accessible at
 ``mongo2.example.net:27018``. See ":data:`host <members[n].host>`,"
@@ -122,6 +133,8 @@ in the :program:`mongo` shell:
 
    rs.remove("mongo2.example.net:27018")
    rs.add({host: "mongo2.example.net:27019", priority: 0, hidden: true})
+
+TODO: prior to 2.2, this will almost never work because the _id will change.
 
 Second, you may consider using the following procedure to use
 :func:`rs.reconfig()` to change the value of the
@@ -284,6 +297,8 @@ the :program:`mongo` shell to modify node priorities:
    cfg.members[3].priority = 2
    rs.reconfig(cfg)
 
+TODO: this is actually 4 nodes...
+
 This operation sets the member ``0`` to ``0`` and cannot become
 primary. Member ``3`` has a priority of ``2`` and will become primary,
 if eligible, under most circumstances. Member ``2`` has a priority of
@@ -319,6 +334,10 @@ operations in the :program:`mongo` shell:
    cfg.members[0].priority = 0
    cfg.members[0].hidden = true
    rs.reconfig(cfg)
+
+TODO: it might be worth noting that, currently, you must send the reconfig command to
+a member that can become primary in the new configuration.  So, if members[0] is the
+current primary, this reconfig won't work.
 
 After re-configuring the set, the node with the "``_id``" of ``0``,
 has a priority of ``0`` so that it cannot become master, while the
@@ -518,5 +537,7 @@ data to a :term:`BSON`.
 
 You can prevent Rollbacks prevented by ensuring safe writes by using
 the appropriate :term:`write concern`.
+
+TODO: "rollback" is not a proper noun.
 
 .. seealso:: ":ref:`Replica Set Elections <replica-set-elections>`"
