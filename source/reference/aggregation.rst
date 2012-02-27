@@ -8,11 +8,27 @@ Aggregation Framework Operators
 
 The aggregation framework provides the ability to project, process,
 and/or control the output of the query, without using ":term:`map
-reduce`." Aggregation uses a syntax that resembles the same
-syntax and form as "regular" MongoDB database queries.
+reduce`." Aggregation uses a syntax that resembles the same syntax and
+form as "regular" MongoDB database queries.
 
-This documentation provides an overview of all aggregation operators,
-their use, and their behavior.
+These aggregation operations are all accessible by way of the
+:func:`aggregate()`. While all examples in this document use this
+function, :func:`aggregate()` is merely a wrapper around the
+:term:`database command` :dbcommand:`aggregate`. Therefore the
+following prototype aggregate are equivelent:
+
+.. code-block:: javascript
+
+   db.people.aggregate( { [pipeline] } )
+   db.runCommand( { aggregate: "people", { [pipeline] } } )
+
+Both of these operations perform aggregation routines on the
+collection named "``people``". "``[pipeline]``" is a placeholder for
+the aggregation :term:`pipeline` definition.
+
+This documentation provides an overview of all aggregation operators
+available for use in the aggregation pipeline as well as details
+regarding their use and behavior.
 
 .. seealso:: ":doc:`/applications/aggregation`" and ":ref:`Aggregation
    Framework Documentation Index <aggregation-framework>`" for more
