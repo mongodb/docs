@@ -156,6 +156,17 @@ documentation for instructions for using the profiler. There is a link
 at the bottom of the Host Statistics page that displays the profile
 levels.
 
+If you have profiling data, and wish to delete it from the system,
+there is a button on the bottom of the "Profile Data" tab, that says
+"Delete Profile Data." When you click on this button, the MMS Console
+raises a confirmation dialogue. When you confirm, MMS will begin
+removing stored profile data from this server's record.
+
+.. note::
+
+   If MMS is storing a large amount of profile data for your instance,
+   the removal process will not be instantaneous.
+
 Events
 ------
 
