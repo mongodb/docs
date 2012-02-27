@@ -38,8 +38,8 @@ underpin the aggregation framework: :term:`pipelines <pipeline>` and
 Pipelines
 ~~~~~~~~~
 
-Conceptually, documents from a collection are passed through an
-aggregation pipeline, and are transformed as they pass through it.
+Conceptually, documents from a collection pass through an
+aggregation pipeline, which transforms these objects they pass through.
 For those familiar with UNIX-like shells (e.g. bash,) the concept is
 analogous to the pipe (i.e. "``|``") used to string text filters together.
 
@@ -49,7 +49,7 @@ aggregation pipeline streams MongoDB documents from one :doc:`pipeline
 operator </reference/aggregation>` to the next to process the
 documents.
 
-All pipeline operators process a stream of documents, and the
+All pipeline operators process a stream of documents and the
 pipeline behaves as if the operation scans a :term:`collection` and
 passes all matching documents into the "top" of the pipeline.
 Each operator in the pipleine transforms each document as it passes
@@ -71,18 +71,18 @@ through the pipeline.
    - :agg:pipeline:`$unwind`
    - :agg:pipeline:`$group`
    - :agg:pipeline:`$sort`
-TODO I'd remove references to $out, since we don't have it yet
-   - :agg:pipeline:`$out`
+   .. - :agg:pipeline:`$out`
 
 .. _aggregation-expressions:
 
 Expressions
 ~~~~~~~~~~~
 
-Expressions calculate values based on documents passing through the pipeline,
-and contribute their results to documents flowing through the pipeline.
-The aggregation framework defines expressions in :term:`JSON` using a prefix
-format.
+Expressions calculate values from documents as they pass through the
+pipeline and collect these results with calculated values from the
+other documents that have flowed through the pipeline.  The
+aggregation framework defines expressions in :term:`JSON` using a
+prefix format.
 
 Often, expressions are stateless and are only evaluated when seen by
 the aggregation process. Stateless expressions perform operations such
@@ -90,7 +90,7 @@ as adding the values of two fields together or extracting the year
 from a date.
 
 The :term:`accumulator` expressions *do* retain state, and the
-:agg:pipeline:`$group` operator  maintains that state (e.g.
+:agg:pipeline:`$group` operator maintains that state (e.g.
 totals, maximums, minimums, and related data.) as documents progress
 through the :term:`pipeline`.
 
@@ -109,7 +109,7 @@ wrapper in the :program:`mongo` shell or the :dbcommand:`aggregate`
 :term:`database command`. Always call :func:`aggregate` on a
 collection object, which will determine the documents that contribute
 to the beginning of the aggregation :term:`pipeline`. The arguments to
-the :func:`aggregate` function specify a sequence of :ref:`pipeline
+the :func:`aggregate` function specifies a sequence of :ref:`pipeline
 operators <aggregation-pipeline-operator-reference>`, where each
 :ref:`pipeline operator <aggregation-pipeline-operator-reference>` may
 have a number of operands.
@@ -172,11 +172,11 @@ The aggregation operation in the previous section returns a
 As a document, the result is subject to the current :ref:`BSON
 Document size <limit-maximum-bson-document-size>`.
 
-TODO $out is not going to be available in 2.2, so I'd eliminate this reference
- If you expect the
-aggregation framework to return a larger result, consider using the
-use the :agg:pipeline:`$out` pipeline operator to write the output to a
-collection.
+.. OMMITED: as $out will not be available in 2.2
+..
+.. If you expect the aggregation framework to return a larger result,
+.. consider using the use the :agg:pipeline:`$out` pipeline operator to
+.. write the output to a collection.
 
 Optimizing Performance
 ----------------------
@@ -190,26 +190,28 @@ the aggregation pipeline, you may want to optimize the operation
 by avoiding scanning the entire collection whenever possible.
 
 If your aggregation operation requires only a subset of the data in a
-collection, use the :agg:pipeline:`$match` to restrict which items go in
-to the top of the
-pipeline, as in a query. When placed early in a pipeline, these
-:agg:pipeline:`$match` operations will use
-suitable indexes to scan only the matching documents in a collection.
+collection, use the :agg:pipeline:`$match` to restrict which items go
+in to the top of the pipeline, as in a query. When placed early in a
+pipeline, these :agg:pipeline:`$match` operations use suitable indexes
+to scan only the matching documents in a collection.
 
-TODO we don't do the following yet, but there's a ticket for it.  Should we
-leave it out for now?
-:term:`Aggregation` operations have an optimization phase, before
-execution, which attempts to re-arrange the pipeline by moving
-:agg:pipeline:`$match` operators towards the beginning to the greatest
-extent possible. For example, if a :term:`pipeline` begins with a
-:agg:pipeline:`$project` that renames fields, followed by a
-:agg:pipeline:`$match`, the optimizer can improve performance without
-affecting the result by moving the :agg:pipeline:`$match` operator in
-front of the :agg:pipeline:`$project`.
+.. OMMITED: this feature is pending SERVER-4506. Other optimizations
+.. are pending SERVER-4507 SERVER-4644 SERVER-4656 SERVER-4816
+..
+.. :term:`Aggregation` operations have an optimization phase, before
+.. execution, which attempts to re-arrange the pipeline by moving
+.. :agg:pipeline:`$match` operators towards the beginning to the
+.. greatest extent possible. For example, if a :term:`pipeline` begins
+.. with a :agg:pipeline:`$project` that renames fields, followed by a
+.. :agg:pipeline:`$match`, the optimizer can improve performance
+.. without affecting the result by moving the :agg:pipeline:`$match`
+.. operator in front of the :agg:pipeline:`$project`.
 
-In future versions there may be additional optimizations of this type;
-however, to ensure ideal performance place :agg:pipeline:`$match`
-operators at or near the beginning of the pipeline at when possible.
+In future versions there may be pipleine optimization phase in the
+pipleine that reorders the operations to increase performance without
+affecting the result. However, at this time place
+:agg:pipeline:`$match` operators at the beginning of the pipeline at
+when possible.
 
 Memory for Cumulative Operators
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -240,13 +242,13 @@ Sharded Operation
 The aggregation framework is compatible with sharded collections.
 
 When operating on a sharded collection, the aggregation pipeline
-splits the pipeline into two parts. The aggregation framework pushes all of the
-operators up to and including the first :agg:pipeline:`$group` or
-:agg:pipeline:`$sort` to each shard.
-[#match-sharding]_ Then, a second pipeline on the
-:program:`mongos` runs. This pipeline consists of the first
-:agg:pipeline:`$group` or :agg:pipeline:`$sort` and any remaining pipeline
-operators; this is run on the results received from the shards.
+splits the pipeline into two parts. The aggregation framework pushes
+all of the operators up to and including the first
+:agg:pipeline:`$group` or :agg:pipeline:`$sort` to each shard.
+[#match-sharding]_ Then, a second pipeline on the :program:`mongos`
+runs. This pipeline consists of the first :agg:pipeline:`$group` or
+:agg:pipeline:`$sort` and any remaining pipeline operators; this is
+run on the results received from the shards.
 
 The :program:`mongos` pipeline merges :agg:pipeline:`$sort` operations
 from the shards. The :agg:pipeline:`$group`, brings any “sub-totals”

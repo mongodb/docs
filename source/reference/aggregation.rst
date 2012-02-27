@@ -25,7 +25,7 @@ Pipeline
 
 Pipeline operators appear in an array. Conceptually, documents pass through
 these operators in a sequence. All examples in this section assume that the
-aggregation pipeline begins with a collection named "``article`` which
+aggregation pipeline begins with a collection named "``article``" that
 contains documents that resemble the following:
 
 .. code-block:: javascript
@@ -165,7 +165,7 @@ The current pipeline operators are:
       );
 
 
-   This operation renames the "``pageViews``" field as "``page_views``",
+   This operation renames the "``pageViews``" field to "``page_views``",
    and renames the "``foo``" field in the "``other``" sub-document as
    the top-level field "``florable``". The field references used for
    renaming fields are direct expressions and do not use an operator
@@ -174,7 +174,7 @@ The current pipeline operators are:
 
    Finally, you can use the :pipeline:`$project` to create and
    populate new sub-documents. Consider the following example that
-   creates a new object-valued field named ``stats,`` which holds a number
+   creates a new object-valued field named ``stats`` that holds a number
    of values:
 
    .. code-block:: javascript
@@ -284,13 +284,13 @@ The current pipeline operators are:
 
 .. pipeline:: $skip
 
-   Skips over the specified number of :term:`JSON document <json document>`s
-   that pass through the :pipeline:`$skip` in the
-   :term:`pipeline` before passing all of the remaining input.
+   Skips over the specified number of :term:`JSON documents <json document>`
+   that pass through the :pipeline:`$skip` in the :term:`pipeline`
+   before passing all of the remaining input.
 
    :pipeline:`$skip` takes a single numeric (positive whole number)
    value as a parameter. Once the operation has skipped the specified
-   number of documents it passes all the remaining documents along the
+   number of documents, it passes all the remaining documents along the
    :term:`pipeline` without alteration. Consider the following
    example:
 
@@ -533,38 +533,29 @@ The current pipeline operators are:
       The :pipeline:`$sort` cannot begin sorting documents until
       previous operators in the pipeline have returned all output.
 
-   .. warning:: Unless an index can be used, the sort operation as of the
-      current release operates entirely in memory, which may cause problems when
-      sorting large numbers of documents.
+   .. warning:: Unless the :pipline:`$sort` operator can use an index,
+      in the current release, the sort must fit within memory. This
+      may cause problems when sorting large numbers of documents.
 
-TODO  We haven't settled on the syntax for $out, so I wouldn't even include
-it at this time.  We're still not sure what all the options will be, but it's
-bound to be more complex than this because we want to have some of the existing
-map/reduce options available.
-
-.. pipeline:: $out
-
-   .. note::
-
-      The :pipeline:`$out` is not implemented as of version
-      2.2.0. Follow :issue:`SERVER-3254` to track the progress of
-      development for :pipeline:`$out`.
-
-   Use :pipeline:`$out` to write the contents of the
-   :term:`pipeline`, without concluding the aggregation pipeline.
-   Specify the name of a collection as an argument to
-   :pipeline:`$out`. Consider the following trivial example:
-
-   .. code-block:: javascript
-
-      db.article.aggregate(
-          { $out : "users2" }
-      );
-
-   This command reads all documents in the "``users``" collection and
-   writes them to the "``users2``" collection. The documents are then
-   returned by the aggregation framework in an array, which is the
-   default behavior.
+.. OMITTED: Pending SERVER-3254, $out will not be in 2.2.
+..
+.. .. pipeline:: $out
+..
+..    Use :pipeline:`$out` to write the contents of the
+..    :term:`pipeline`, without concluding the aggregation pipeline.
+..    Specify the name of a collection as an argument to
+..    :pipeline:`$out`. Consider the following trivial example:
+..
+..    .. code-block:: javascript
+..
+..       db.article.aggregate(
+..           { $out : "users2" }
+..       );
+..
+..    This command reads all documents in the "``users``" collection and
+..    writes them to the "``users2``" collection. The documents are then
+..    returned by the aggregation framework in an array, which is the
+..    default beh avior.
 
 .. _aggregation-expression-operators:
 
@@ -619,10 +610,10 @@ Comparison Operators
 These operators perform comparisons between two values and return a
 Boolean, in most cases, reflecting the result of that comparison.
 
-All comparison operators take an array with a pair of values.  Comparisons
-can be made between numbers, strings, and dates. Except for
-:expression:`$cmp`, all comparison operators return a
-Boolean value. :expression:`$cmp` returns an integer.
+All comparison operators take an array with a pair of values. You may
+compare numbers, strings, and dates. Except for :expression:`$cmp`,
+all comparison operators return a Boolean value. :expression:`$cmp`
+returns an integer.
 
 .. expression:: $cmp
 
@@ -755,7 +746,7 @@ These operators manipulate strings within projection expressions.
    .. note::
 
       :expression:`$strcasecmp` internally capitalizes strings before
-      comparing them, and thus provides a case-*insensitive* comparison.
+      comparing them to provide a case-*insensitive* comparison.
       Use :expression:`$cmp` for a case sensitive comparison.
 
 .. expression:: $substr
@@ -773,7 +764,7 @@ These operators manipulate strings within projection expressions.
    .. note::
 
       :expression:`$toLower` may not make sense when applied to glyphs outside
-      the roman alphabet.
+      the Roman alphabet.
 
 .. expression:: $toUpper
 
@@ -783,11 +774,9 @@ These operators manipulate strings within projection expressions.
    .. note::
 
       :expression:`$toUpper` may not make sense when applied to glyphs outside
-      the roman alphabet.
+      the Roman alphabet.
 
-
-.. seealso:: ":expression:`$add`" which can be used to concatenate strings.
-
+.. seealso:: ":expression:`$add`", which concatenates strings.
 
 Date Operators
 ~~~~~~~~~~~~~~
@@ -815,8 +804,6 @@ argument and return a JavaScript "long" number.
 
    Takes a date and returns the hour between 0 and 23.
 
-TODO need to add $isoDate.  See my addition to the wiki.
-
 .. expression:: $minute
 
    Takes a date and returns the minute between 0 and 59.
@@ -841,8 +828,26 @@ TODO need to add $isoDate.  See my addition to the wiki.
 
    Takes a date and returns a four digit number.
 
+.. expression:: $isoDate
+
+   Converts a :term:`JSON document` that contains date constituents
+   into an date-typed object (i.e. in :term:`ISODate` format.)
+
+   :expression:`$isoDate` takes the following form:
+
+   .. code-block:: javascript
+
+      $isoDate:{$year: <year>,
+                $month: <month>,
+                $dayOfMonth: <dayOfMonth>,
+                $hour: <hour>,
+                $minute: <minute>,
+                $second: <second>
+               }
+
 .. seealso:: ":expression:`$add`" and ":expression:`$subtract` can
    also manipulate date objects.
+
 
 Multi-Expressions
 ~~~~~~~~~~~~~~~~~
@@ -857,7 +862,7 @@ Multi-Expressions
 .. expression:: $cond
 
    Takes an array with three expressions, where the first expression
-   evaluates to a Boolean value. If the first expression evaluates to  true,
+   evaluates to a Boolean value. If the first expression evaluates to true,
    :expression:`$cond` returns the value of the second expression. If the
    first expression evaluates to false, :expression:`$cond` evaluates and
    returns the third expression.
