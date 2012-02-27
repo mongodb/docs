@@ -409,7 +409,7 @@ Data Aggregation
 
       :func:`group()` does not work in :term:`shard environments
       <shard cluster>`. Use the :term:`aggregation framework` or
-      :term:`map/reduce` in :term:`sharded environments <sharding>`.
+      :term:`map-reduce` in :term:`sharded environments <sharding>`.
 
    .. note::
 

@@ -141,7 +141,7 @@ Options
 .. option:: --journal
 
    Allows :program:`mongooplog` operations to use the durability
-   :term:`journal <journaling>` to ensure that the data files will
+   :term:`journal` to ensure that the data files will
    remain in a consistent state during the writing process. This
    option is only relevant when specifying the :option:`--dbpath`
    option.

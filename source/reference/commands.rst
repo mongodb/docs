@@ -328,8 +328,8 @@ Aggregation
 
       :func:`group()` does not work in :term:`shard environments
       <shard cluster>`. Use the :term:`aggregation framework` or
-      :term:`map/reduce` (i.e. :db;command:`mapReduce` in
-      :term:`sharded environments <sharding>`.
+      :term:`map-reduce` (i.e. :command:`mapReduce` in :term:`sharded
+      environments <sharding>`.
 
    .. read-lock
 
@@ -1331,7 +1331,7 @@ Administration
 
    .. note::
 
-      When using :term:`journaling`, there is almost never any need to
+      When using :term:`journaling <journal>`, there is almost never any need to
       run :dbcommand:`repairDatabase`. In the event of an unclean
       shutdown, the server will be able restore the data files to a
       pristine state automatically.
@@ -1837,7 +1837,6 @@ Diagnostics
       .. versionadded:: 2.1.1
 
       Returns the local server time for the current system.
-      
 
 .. dbcommand:: ping
 

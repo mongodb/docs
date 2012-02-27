@@ -435,7 +435,7 @@ the existing members.
 
 .. note::
 
-   :term:`Journaling`, provides single-instance
+   :term:`Journaling <journal>`, provides single-instance
    write durability. The journaling greatly improves the reliability
    and durability of a database. Unless MongoDB runs with journaling, when a
    MongoDB instance terminates ungracefully, the database can loose up to 60 seconds of data,

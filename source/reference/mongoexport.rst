@@ -112,7 +112,7 @@ Options
 .. option:: --journal
 
    Allows :program:`mongoexport` operations to access the durability
-   :term:`journal <journaling>` to ensure that the export is in a
+   :term:`journal` to ensure that the export is in a
    consistent state. This option is only relevant when specifying the
    :option:`--dbpath` option.
 

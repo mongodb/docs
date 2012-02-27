@@ -10,17 +10,19 @@ Glossary
    BSON
       A serialization format used to store documents and make remote
       procedure calls in MongoDB. "BSON" is a a portmanteau of the words
-      "binary" and "JSON". BSON can be thought of as a binary representation
+      "binary" and "JSON". Think of BSON as a binary representation
       of JSON (JavaScript Object Notation) documents. For a detailed spec,
       see `bsonspec.org <http://bsonspec.org/>`_.
 
    database command
       Any MongoDB operation other than an insert, update, remove,
       or query. MongoDB exposes commands as queries
-      query against the special ":term:`$cmd`" collection. For example,
-      ``count`` is run as a command.
+      query against the special ":term:`$cmd`" collection. For
+      example, the implementation of :dbcommand:`count` for MongoDB is
+      a command.
 
-      .. seealso:: ":doc:`/reference/commands`" for a
+      .. seealso:: ":doc:`/reference/commands`" for a full list of
+         database commands in MongoDB
 
    operator
       A keyword beginning with a ``$`` used to express a complex
@@ -36,13 +38,13 @@ Glossary
 
    document
       A record in a MongoDB collection, and the basic unit of data
-      in MongoDB. Documents are analogous to JSON object, but are
-      stored in a more type-rich format known as BSON.
+      in MongoDB. Documents are analogous to JSON object, but exist in
+      the Database in a more type-rich format known as :term:`BSON`.
 
    field
       A name-value pair in a term:`document`. Documents have zero
-      or more fields. Fields are analogous to
-      columns in relational databases.
+      or more fields. Fields are analogous to columns in relational
+      databases.
 
    database
       A physical container for :term:`collections <collection>`.
@@ -66,15 +68,18 @@ Glossary
 
    JSON
       JavaScript Object Notation. A human-readable, plain text format
-      for expressing structured data.
+      for expressing structured data with support in many programming
+      languages.
 
    JSON document
-      A :term:`JSON` documents are collections of fields and values in a
-      structured format. The following is a sample JSON document with
-      two fields::
+      A :term:`JSON` document is a collection of fields and values in a
+      structured format. The following is a sample :term:`JSON
+      document` with two fields:
 
-          { name: "MongoDB",
-            type: "database" }
+      .. code-block:: javascript
+
+         { name: "MongoDB",
+           type: "database" }
 
    admin database
       A privileged database named "``admin``". Users must have access
@@ -114,7 +119,7 @@ Glossary
    shard cluster
       The set of nodes comprising a :term:`sharded <sharding>` MongoDB deployment. A shard cluster
       consists of three config processes, one or more replica sets, and one or more
-      ``mongos`` routing processes.
+      :program:`mongos` routing processes.
 
       .. seealso:: ":doc:`/core/sharding`."
 
@@ -180,10 +185,10 @@ Glossary
 
    capped collection
       A fixed-sized :term:`collection <collection>`. Once they reach
-      their fixed size, capped collections
-      automatically overwrite their oldest entries. These collections
-      are used to implement replication, but they may also be created
-      by application developers.
+      their fixed size, capped collections automatically overwrite
+      their oldest entries. MongoDB's replication mechanism depends on
+      capped collections, but developers may also use them in their
+      applications.
 
       .. seealso:: ":doc:`/core/capped-collections`."
 
@@ -216,16 +221,16 @@ Glossary
 
    master
       In conventional master/:term:`slave` replication, the master
-      database receives all writes. The
-      :term:`slave` instances replicate from the master instance
-      in real time.
+      database receives all writes. The :term:`slave` instances
+      replicate from the master instance in real time.
 
    slave
-      In conventional :term:`master`/slave replication, the `slave`s
+      In conventional :term:`master`/slave replication, slaves
       are read-only instances that replicate operations from the
       :term:`master` database. Data read from slave instances may
-      not be completely consistent with the master. Therefore, applications
-      requiring consistent reads must read from the master database instance.
+      not be completely consistent with the master. Therefore,
+      applications requiring consistent reads must read from the
+      master database instance.
 
    primary
       In a :term:`replica set`, the primary member is the current
@@ -260,8 +265,8 @@ Glossary
 
    write-lock
       A lock on the database for a given writer.
-      When a process writes to the database, it takes an exlcusive write-lock
-      to prevent other processes from writing or reading.
+      When a process writes to the database, it takes an exclusive
+      write-lock to prevent other processes from writing or reading.
 
    index
       A data structure that optimizes queries.
@@ -275,7 +280,7 @@ Glossary
 
    btree
       A data structure used by most database management systems
-      for to store indexes. MongoDB also uses b-trees for its indexes.
+      for to store indexes. MongoDB uses b-trees for its indexes.
 
    ISODate
      The international date format used by the MongoDB JavaScript shell

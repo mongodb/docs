@@ -197,7 +197,7 @@ mem
    significantly (i.e. gigabytes) larger than :status:`mem.mapped`,
    this could indicate a memory leak.
 
-   With :term:`journaling` enabled the value of :status:`mem.virtual`
+   With :term:`journaling <journal>` enabled, the value of :status:`mem.virtual`
    is twice the value of :status:`mem.mapped`.
 
 .. status:: mem.supported
@@ -603,7 +603,7 @@ dur
 Durability
 ~~~~~~~~~~
 
-Durability refers to :term:`journaling`.
+Durability refers to :term:`journaling <journal>`.
 
 .. status:: dur
 
@@ -650,7 +650,7 @@ Durability refers to :term:`journaling`.
    .. versionadded:: 2.0
 
    The :status:`dur.compression` represents the compression ratio of
-   the :term:`journal <journaling>`.
+   :term:`journal`.
 
 .. status:: dur.commitsInWriteLock
 

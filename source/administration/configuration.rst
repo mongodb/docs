@@ -99,7 +99,7 @@ following explanation:
 - :setting:`journal` is ``true``, which enables
   :doc:`journaling </core/journaling>` which ensures single instance
   write-durability. 64-bit builds of :program:`mongod` enable
-  :term:`journaling` by default. Thus, this setting may be redundant.
+  :term:`journaling <journal>` by default. Thus, this setting may be redundant.
 
 Given the default configuration, some of these values may be
 redundant. However, in many situations explicitly stating the
