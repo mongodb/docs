@@ -54,10 +54,9 @@ Configuration Variables
 
    .. warning::
 
-      :data:`members[n].host` cannot hold a value that
-      resolves to ``localhost`` or the local interface.
-
-TODO: unless all of the members in the set do.  You can have all-or-none localhost.
+      :data:`members[n].host` cannot hold a value that resolves to
+      ``localhost`` or the local interface unless *all* members of the
+      set are on hosts that resolve to localhost.
 
 .. data:: members[n].arbiterOnly
 
@@ -78,13 +77,10 @@ TODO: unless all of the members in the set do.  You can have all-or-none localho
 
    **Default**: true
 
-   Determines weather the :program:`mongod` builds :term:`indexes <index>` on
-   this member. Do not set to "``false``", if a replica set *can*
-   become a master, or if any clients ever issue queries against this
-   instance.
-
-TODO: whether, not weather
-Probably "Do not set to false if a member *can* become a master..."
+   Determines whether the :program:`mongod` builds :term:`indexes
+   <index>` on this member. Do not set to "``false``" if a replica set
+   *can* become a master, or if any clients ever issue queries against
+   this instance.
 
    Omitting index creation, and thus this setting, may be useful,
    **if**:

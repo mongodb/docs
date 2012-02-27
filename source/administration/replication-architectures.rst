@@ -6,11 +6,9 @@ Replication Architectures
 
 There is no single :term:`replica set` architecture that is compatible
 or ideal for every deployment or environment. Indeed the flexibility
-of replica sets may be its greatest strenght. This document outlines
+of replica sets may be its greatest strength. This document outlines
 and describes the most prevalent deployment patterns for replica set
 administrators.
-
-TODO: strenght?
 
 .. seealso:: ":doc:`/administration/replica-sets`" and
    ":doc:`/reference/replica-configuration`."
@@ -65,9 +63,7 @@ architectural conditions are true:
   situation. If a member does not have this capability (i.e. resource
   constraints,) set its ``priority`` value to ``0``.
 
-- A majority *of the set's* members exist in the main data center.
-
-TODO: I don't understand why "of the set's" is emphasized.
+- A majority of the set's members exist in the main data center.
 
 .. seealso:: ":doc:`/tutorial/expand-replica-set`."
 
@@ -138,25 +134,19 @@ settings relevant for these kinds of nodes:
 - **Voting**: This changes the number of votes that a member of the
   set node has in elections for primary. In general use priority to
   control the outcome of elections, as weighting votes introduces
-  operational complexities and the potential. Only modify the number
-  of votes, if you need to have more than 7 members of a replica
-  set. (:ref:`see also <replica-set-non-voting-members>`.)
-
-TODO: and the potential... for royally screwing yourself.
+  operational complexities and risks set failure. Only modify the
+  number of votes, if you need to have more than 7 members of a
+  replica set. (:ref:`see also <replica-set-non-voting-members>`.)
 
 Backups
 ~~~~~~~
 
 For some deployments, keeping a replica set member for dedicated
-backup for dedicated backup purposes is operationally
-advantageous. Ensure this system is close, from a networking
-perspective, to the primary node or likely primary, and that the
-:term:`replication lag` is minimal or non-existent. You may wish to
-create a dedicated :ref:`hidden node <replica-set-hidden-members>` for
-the purpose of creating backups.
-
-TODO: Glitch in the matrix: "a replica set member for dedicated
-backup for dedicated backup purposes"
+backup purposes is operationally advantageous. Ensure this system is
+close, from a networking perspective, to the primary node or likely
+primary, and that the :term:`replication lag` is minimal or
+non-existent. You may wish to create a dedicated :ref:`hidden node
+<replica-set-hidden-members>` for the purpose of creating backups.
 
 If this node have journaling enabled, you can safely use standard
 :ref:`block level backup methods <block-level-backup>` to create a

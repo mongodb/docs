@@ -16,9 +16,7 @@ The value specified (e.g "``1``" above,) does not impact the output of
 the command. Data provided by this command derives from data included
 in heartbeats sent to the current instance by other members of the
 replica set: because of the frequency of heartbeats, these data can be
-at most 2 seconds out of date.
-
-TODO: not sure I'd commit to 2 seconds, as the timeout before heartbeat fails is ~20 seconds. So maybe "this data can be a few seconds out-of-date"?
+several seconds out of date.
 
 .. note::
 
@@ -38,9 +36,8 @@ Statuses
 .. status:: rs.status.set
 
    The ``set`` value is the name of the replica set, configured in the
-   :setting:`replSet` setting.
-
-TODO: might want to mention it's the same as the _id in rs.conf(), but no one's ever expressed confusion about that, so minor point.
+   :setting:`replSet` setting. This is the same value as :data:`_id
+   <rs.conf._id>` in :func:`rs.conf()`.
 
 .. status:: rs.status.date
 
@@ -53,11 +50,9 @@ TODO: might want to mention it's the same as the _id in rs.conf(), but no one's 
 .. status:: rs.status.myState
 
    The value of the ``myState`` value reflect state of the current
-   replica set member. An integer between ``0`` and ``9`` represents
+   replica set member. An integer between ``0`` and ``10`` represents
    the state of the member. These integers map to states, as described
    in the following table:
-
-TODO: an integer between 0 and 10, now.
 
    ==========  ==========================================================
    **Number**  **State**
@@ -82,7 +77,12 @@ TODO: an integer between 0 and 10, now.
    <repl-set-member-statuses>`" for an overview of the values included
    in these documents.
 
-TODO: this is missing the syncedTo field, only present on secondaries (and recovering nodes) that shows who they're syncing from.
+.. status:: rs.status.syncedTo
+
+   The ``syncedTo`` field is only present on the output of
+   :func:`rs.status()` on :term:`secondary` and recovering members,
+   and holds the hostname of the member from which this instance is
+   syncing.
 
 .. _repl-set-member-statuses:
 
@@ -126,18 +126,14 @@ Member Statuses
 
    .. status:: members.optime.t
 
-      A 64-bit timestamp of the last operation applied to this member
+      A 32-bit timestamp of the last operation applied to this member
       of the replica set from the :term:`oplog`.
-
-TODO: 32-bit (t+i=64-bit)
 
    .. status:: members.optime.i
 
       An incremented field, which reflects the number of operations in
       since the last time stamp. This value only increases if there
-      are more than one operation per second.
-
-TODO: ...if there is more
+      is more than one operation per second.
 
 .. status:: members[n].optimeDate
 

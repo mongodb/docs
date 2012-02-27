@@ -22,12 +22,11 @@ Write Concern
 When a :term:`client` sends a write operation to a database server,
 the operation will return without waiting for the operation to succeed
 or return. To verify that the operation is successful, use the
-:dbcommand:`getLastError`
-command. :dbcommand:`getLastError` is configurable and can wait
-to return for journal writes or full disk flush. For replica sets,
-:dbcommand:`getLastError` can return only when the write
-operation has propagated to more than one node, or a majority of nodes
-in the cluster.
+:dbcommand:`getLastError` command. :dbcommand:`getLastError` is
+configurable and can wait to return for journal writes or full disk
+flush. For replica sets, :dbcommand:`getLastError` can return only
+when the write operation has propagated to more than one node, or a
+majority of nodes in the cluster.
 
 Many drivers have a "safe" or "write concern" mode that automatically
 issues a :dbcommand:`getLastError` command following write
@@ -65,12 +64,8 @@ replica set configuration. For instance:
 .. code-block:: javascript
 
    cfg = rs.conf()
-   cfg.settings.getLastErrorDefaults = "w: majority, fsync: false, j: true"
-   rs.reconfig(cfg)
-
-TODO: Incorrect getLastErrorDefaults setting:
    cfg.settings.getLastErrorDefaults = {w: "majority", fsync: false, j: true}
-
+   rs.reconfig(cfg)
 
 When the new configuration is active, the effect of the
 :dbcommand:`getLastError` operation will wait until the write

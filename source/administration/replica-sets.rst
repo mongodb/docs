@@ -36,16 +36,15 @@ Adding Members
 From to time, you may need to add an additional member to an existing
 :term:`replica set`. The data directory for the new member can:
 
-- have no data. In this case, you must copy all data as part of the
-  replication process before the member can exit ":term:`recovering`"
-  status, and become a :term:`secondary` member.
+- have no data. In this case, MongoDB must copy all data as part of
+  the replication process before the member can exit
+  ":term:`recovering`" status, and become a :term:`secondary`
+  member. This process can be time intensive, but does not require
+  administrator intervention.
 
-TODO: might be worth mentioning that "you" don't have to copy this data, it's done automatically.
-
-- copy the data directory from an existing member to limit the amount
-  of time that the recovery process takes.
-
-TODO: if you copy from an existing member, the new member will immediately be a secondary (not recovering).
+- copy the data directory from an existing member. The new member
+  becomes a secondary, and will catch up to the current state of the
+  replica set after a short interval.
 
   If the difference in the amount of time between the most recent
   operation and the most recent operation to the database exceeds the
@@ -54,22 +53,20 @@ TODO: if you copy from an existing member, the new member will immediately be a 
   copy the data to the new system and begin replication within the
   window allowed by the :term:`oplog`.
 
-TODO: maybe mention you can do this with the db.printReplicationInfo() function.
+  Use :fun:`db.printReplicationInfo()` to check the current state of
+  replica set members with regards to the oplog.
 
 To add a member to an existing :term:`replica set`, deploy a new
 :program:`mongod` instance, specifying the name of the replica set
 (i.e. "setname" or ``replSet``) on the command line with the
 :option:`--replSet <mongod --replSet>` option or in the configuration
-with the :setting:`replSet`. Take note of the host name and
-port information for the new :program:`mongod` instance.
-
-TODO: "the configuration
-with" -> the configuration file with
+file with the :setting:`replSet`. Take note of the host name and port
+information for the new :program:`mongod` instance.
 
 Then, log in to the current primary using the :program:`mongo`
 shell. Issue the :func:`db.isMaster()` command when connected to *any*
 member of the set to determine the current :term:`primary`. Issue the
-following command to add the new member to the set.
+following command to add the new member to the set:
 
 .. code-block:: javascript
 
@@ -80,14 +77,15 @@ of the fields in a :data:`members` document, for example:
 
 .. code-block:: javascript
 
-   rs.add({host: "mongo2.example.net:27017", priority: 0, hidden: true})
-
-TODO: is the _id field automatically populated?
+   rs.add({_id: 1, host: "mongo2.example.net:27017", priority: 0, hidden: true})
 
 This configures a :term:`hidden member` that is accessible at
 ``mongo2.example.net:27018``. See ":data:`host <members[n].host>`,"
 ":data:`priority <members[n].priority>`," and ":data:`hidden
-<members[n].hidden>`" for more information about these settings.
+<members[n].hidden>`" for more information about these settings. When
+you specify a full configuration object with :fun:`rs.add()`, you must
+declare the ``_id`` field, which is not automatically populated in
+this case.
 
 .. seealso:: :doc:`/tutorial/expand-replica-set`
 
@@ -134,7 +132,14 @@ in the :program:`mongo` shell:
    rs.remove("mongo2.example.net:27018")
    rs.add({host: "mongo2.example.net:27019", priority: 0, hidden: true})
 
-TODO: prior to 2.2, this will almost never work because the _id will change.
+.. note::
+
+   Because the set member tracks its own replica set member ``_id``
+   which can cause conflicts when trying to re-add a previous member.
+
+   To resolve this issue, you can either restart the :program:`mongod`
+   process on the host that you're re-adding, or make sure that you
+   specify an "``_id``" in the :func:`rs.add()` document.
 
 Second, you may consider using the following procedure to use
 :func:`rs.reconfig()` to change the value of the
@@ -284,9 +289,9 @@ configurations and also describes the arbiter node type.
 Secondary-Only
 ~~~~~~~~~~~~~~
 
-Given a three node replica set, with member "``_id``" values of:
-``0``, ``1``, and ``2``, use the following sequence of operations in
-the :program:`mongo` shell to modify node priorities:
+Given a four-member replica set, with member "``_id``" values of:
+``0``, ``1``, ``2``, and ``3`` use the following sequence of
+operations in the :program:`mongo` shell to modify node priorities:
 
 .. code-block:: javascript
 
@@ -296,8 +301,6 @@ the :program:`mongo` shell to modify node priorities:
    cfg.members[2].priority = 1
    cfg.members[3].priority = 2
    rs.reconfig(cfg)
-
-TODO: this is actually 4 nodes...
 
 This operation sets the member ``0`` to ``0`` and cannot become
 primary. Member ``3`` has a priority of ``2`` and will become primary,
@@ -335,14 +338,17 @@ operations in the :program:`mongo` shell:
    cfg.members[0].hidden = true
    rs.reconfig(cfg)
 
-TODO: it might be worth noting that, currently, you must send the reconfig command to
-a member that can become primary in the new configuration.  So, if members[0] is the
-current primary, this reconfig won't work.
-
 After re-configuring the set, the node with the "``_id``" of ``0``,
 has a priority of ``0`` so that it cannot become master, while the
 other nodes in the set will not advertise the hidden node in the
 :dbcommand:`isMaster` or :func:`db.isMaster()` output.
+
+.. note::
+
+   You must send the :func:`rs.reconfig()` command to a set member
+   that *can* become :term:`primary`. In the above example, if issue
+   the :func:`rs.reconfig()` operation to the member with the ``_id``
+   of ``0``, the operation will fail.
 
 .. seealso:: ":ref:`Replica Set Read Preference <replica-set-read-preference>`."
    ":data:`members[n].hidden`," ":data:`members[n].priority`,"
@@ -535,9 +541,7 @@ were never replicated to the set so that the data set is in a
 consistent state. The :program:`mongod` program writes rolled back
 data to a :term:`BSON`.
 
-You can prevent Rollbacks prevented by ensuring safe writes by using
+You can prevent rollbacks prevented by ensuring safe writes by using
 the appropriate :term:`write concern`.
-
-TODO: "rollback" is not a proper noun.
 
 .. seealso:: ":ref:`Replica Set Elections <replica-set-elections>`"
