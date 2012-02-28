@@ -54,17 +54,19 @@ Basic Information
 globalLock
 ----------
 
+TODO: How might this section change in 2.2 with concurrency changes?
+
 .. status:: globalLock
 
    The :status:`globalLock` data structure contains information regarding
    the database's current lock state, historical lock status, current
    operation queue, and the number of active clients.
 
-.. status:: globalLock.toalTime
+.. status:: globalLock.totalTime
 
    The value of :status:`globalLock.totalTime` represents the time, in
-   microseconds, since the database last started, that the
-   :status:`globalLock` has existed.
+   microseconds, since the database last started and that the
+   :status:`globalLock` was created.
 
    Larger values indicate that the database has been unavailable for
    more time; however, :status:`uptime` provides context for this
