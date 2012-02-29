@@ -13,10 +13,15 @@ About MongoDB and this Manual
 Introduction to MongoDB
 -----------------------
 
-- What is MongoDB?
-- Installation
-- Drivers
+.. toctree::
+   :maxdepth: 2
+
+   faq
+
+- :doc:`/applications/drivers`
+
 - Basic Concepts
+
 
 Tutorials
 ---------
@@ -28,6 +33,14 @@ Tutorials
    tutorial/install-mongodb-on-debian-or-ubuntu-linux
    tutorial/install-mongodb-on-linux
    tutorial/install-mongodb-on-os-x
+
+Stubs
+~~~~~
+
+.. toctree::
+   :maxdepth: 1
+
+
    tutorial/install-mongodb-on-windows
    tutorial/install-mongodb-for-testing-and-development
    tutorial/install-mongodb-in-production-environments

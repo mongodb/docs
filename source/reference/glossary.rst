@@ -766,3 +766,7 @@ TODO: continue here
       The concatenation of the database and index name that takes the
       form of "``[database].[collection]``". All documents belong to a
       namespace.
+
+   replica pairs
+      The precursor to the :term:`replica set` functionality. MongoDB
+      deprecated this feature in version 1.6.

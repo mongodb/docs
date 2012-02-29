@@ -12,6 +12,7 @@ Getting Started
    :maxdepth: 2
 
    getting-started
+   faq
 
 Application Development
 -----------------------
@@ -89,13 +90,6 @@ MongoDB Shell
 .. - Internal Architecture
 .. - Client Interfaces
 .. - Building MongoDB
-
-.. Frequently Asked Questions
-.. --------------------------
-
-.. - Interface FAQ
-.. - Replication FAQ
-.. - Sharding FAQ
 
 Chapters
 --------
