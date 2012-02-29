@@ -71,6 +71,7 @@ through the pipeline.
    - :agg:pipeline:`$unwind`
    - :agg:pipeline:`$group`
    - :agg:pipeline:`$sort`
+
    .. - :agg:pipeline:`$out`
 
 .. _aggregation-expressions:
