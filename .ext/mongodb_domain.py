@@ -129,10 +129,6 @@ class MongoDBObject(ObjectDescription):
     def run(self):
         return super(MongoDBObject, self).run()
 
-class MongoDBCallable(MongoDBObject):
-    """Description of a MongoDB function, method or constructor."""
-    has_arguments = False
-
     doc_field_types = [
         TypedField('arguments', label=l_('Arguments'),
                    names=('argument', 'arg', 'parameter', 'param'),
@@ -153,6 +149,15 @@ class MongoDBCallable(MongoDBObject):
         Field('returntype', label=l_('Return type'), has_arg=False,
               names=('rtype',)),
     ]
+
+
+class MongoDBCallable(MongoDBObject):
+    """Description of a MongoDB function, method or constructor."""
+    has_arguments = False
+
+class MongoDBCallableComplex(MongoDBObject):
+    """Description of a MongoDB function, method or constructor."""
+    has_arguments = True
 
 class MongoDBCallableProgram(MongoDBObject):
     pass
@@ -181,8 +186,8 @@ class MongoDBDomain(Domain):
     # if you add a new object type make sure to edit MongoDBObject.get_index_string
     object_types = {
         'dbcommand':    ObjType(l_('dbcommand'),   'dbcommand'),
-        'binary':       ObjType(l_('binary'),      'program'),
         'operator':     ObjType(l_('operator'),    'operator'),
+        'binary':       ObjType(l_('binary'),      'program'),
         'setting':      ObjType(l_('setting'),     'setting'),
         'status':       ObjType(l_('status'),      'status'),
         'stats':        ObjType(l_('stats'),       'stats'),
@@ -196,11 +201,11 @@ class MongoDBDomain(Domain):
     directives = {
         'dbcommand':     MongoDBCallable,
         'operator':      MongoDBCallable,
-        'binary':        MongoDBCallableProgram,
+        'binary':        MongoDBCallable,
         'setting':       MongoDBCallable,
         'status':        MongoDBCallable,
         'stats':         MongoDBCallable,
-        'function':      MongoDBCallable,
+        'function':      MongoDBCallableComplex,
         'data':          MongoDBCallable,
         'aggregator':    MongoDBCallable,
         'group':         MongoDBCallable,
@@ -208,8 +213,8 @@ class MongoDBDomain(Domain):
     }
     roles = {
         'dbcommand':   MongoDBXRefRole(),
-        'program':     MongoDBXRefRole(),
         'operator':    MongoDBXRefRole(),
+        'program':     MongoDBXRefRole(),
         'setting':     MongoDBXRefRole(),
         'status':      MongoDBXRefRole(),
         'stats':       MongoDBXRefRole(),
@@ -218,7 +223,6 @@ class MongoDBDomain(Domain):
         'aggregator':  MongoDBXRefRole(),
         'group':       MongoDBXRefRole(),
         'expression':  MongoDBXRefRole(),
-        'util':        MongoDBXRefRole(),
     }
     initial_data = {
         'objects': {}, # fullname -> docname, objtype

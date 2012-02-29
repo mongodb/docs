@@ -88,7 +88,8 @@ pygments_style = 'sphinx'
 extlinks = {
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
     'wiki': ('http://www.mongodb.org/display/DOCS/%s', ''),
-    'api': ('http://api.mongodb.org/%s', '')
+    'api': ('http://api.mongodb.org/%s', ''),
+    'source': ('http://github.com/mongodb/mongo/blob/master/%s', '')
     }
 
 # -- Options for HTML output ---------------------------------------------------
