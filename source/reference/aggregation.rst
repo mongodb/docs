@@ -7,14 +7,14 @@ Aggregation Framework Operators
 .. default-domain:: agg
 
 The aggregation framework provides the ability to project, process,
-and/or control the output of the query, without using ":term:`map
-reduce`." Aggregation uses a syntax that resembles the same syntax and
+and/or control the output of the query, without using ":term:`map-reduce`."
+Aggregation uses a syntax that resembles the same syntax and
 form as "regular" MongoDB database queries.
 
 These aggregation operations are all accessible by way of the
-:func:`aggregate()`. While all examples in this document use this
-function, :func:`aggregate()` is merely a wrapper around the
-:term:`database command` :dbcommand:`aggregate`. Therefore the
+:mongodb:func:`aggregate()`. While all examples in this document use this
+function, :mongodb:func:`aggregate()` is merely a wrapper around the
+:term:`database command` :mongodb:dbcommand:`aggregate`. Therefore the
 following prototype aggregate are equivelent:
 
 .. code-block:: javascript
@@ -555,7 +555,7 @@ The current pipeline operators are:
       The :pipeline:`$sort` cannot begin sorting documents until
       previous operators in the pipeline have returned all output.
 
-   .. warning:: Unless the :pipline:`$sort` operator can use an index,
+   .. warning:: Unless the :pipeline:`$sort` operator can use an index,
       in the current release, the sort must fit within memory. This
       may cause problems when sorting large numbers of documents.
 

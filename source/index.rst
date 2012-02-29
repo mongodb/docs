@@ -2,6 +2,8 @@
 The MongoDB Manual
 ==================
 
+.. default-domain:: mongodb
+
 .. seealso:: The :ref:`MongoDB Wiki <mongodb-wiki>` for additional
    documentation.
 

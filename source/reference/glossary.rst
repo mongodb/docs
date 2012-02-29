@@ -508,7 +508,7 @@ Glossary
       necessary to expedite the initial distribution of documents
       among shards, by manually dividing the collection into chunks.
       In this case, you pre-split the chunks instead of waiting for
-      the :terms:`balancer` to do it.
+      MongoDB to create splits.
 
    SSD
       Solid State Disk. A high-performance disk drive that uses solid

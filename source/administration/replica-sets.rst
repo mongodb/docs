@@ -84,7 +84,7 @@ This configures a :term:`hidden member` that is accessible at
 ``mongo2.example.net:27018``. See ":data:`host <members[n].host>`,"
 ":data:`priority <members[n].priority>`," and ":data:`hidden
 <members[n].hidden>`" for more information about these settings. When
-you specify a full configuration object with :fun:`rs.add()`, you must
+you specify a full configuration object with :func:`rs.add()`, you must
 declare the ``_id`` field, which is not automatically populated in
 this case.
 

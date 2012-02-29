@@ -2,6 +2,8 @@
 
 .. default-domain:: mongodb
 
+.. binary:: mongotop
+
 ==========================
 :program:`mongotop` Manual
 ==========================
@@ -37,7 +39,7 @@ Options
 
 .. program:: mongotop
 
-.. option:: .. option:: --help
+.. option:: --help
 
    Returns a basic help and usage text.
 
