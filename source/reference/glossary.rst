@@ -107,21 +107,27 @@ Glossary
       A single replica set that stores some portion of a shard cluster's
       total data set. See :term:`sharding`.
 
-      .. seealso:: ":doc:`/core/sharding`."
+      .. seealso:: The ":wiki:`Sharding`" wiki page.
+
+      .. STUB ":doc:`/core/sharding`."
 
    sharding
       A database architecture that enable horizontal scaling by splitting
       data into key ranges among two or more replica sets. This architecture
       is also known as "range-based partitioning." See :term:`shard`.
 
-      .. seealso:: ":doc:`/core/sharding`."
+      .. seealso:: The ":wiki:`Sharding`" wiki page.
+
+      .. STUB ":doc:`/core/sharding`."
 
    shard cluster
       The set of nodes comprising a :term:`sharded <sharding>` MongoDB deployment. A shard cluster
       consists of three config processes, one or more replica sets, and one or more
       :program:`mongos` routing processes.
 
-      .. seealso:: ":doc:`/core/sharding`."
+      .. seealso:: The ":wiki:`Sharding`" wiki page.
+
+      .. STUB ":doc:`/core/sharding`."
 
    partition
       A distributed system architecture that splits data into ranges.
@@ -147,8 +153,7 @@ Glossary
       management, and testing. :program:`mongo` has a JavaScript
       interface.
 
-      .. seealso:: ":doc:`/reference/mongo`" and
-         ":doc:`/reference/javascript`."
+      .. seealso:: ":doc:`/reference/mongo`" and ":doc:`/reference/javascript`."
 
    SQL
       Standard Query Language. SQL is the language used to interacting
@@ -190,7 +195,9 @@ Glossary
       capped collections, but developers may also use them in their
       applications.
 
-      .. seealso:: ":doc:`/core/capped-collections`."
+      .. seealso:: The ":wiki:`Capped Collections <Capped+Collections>`" wiki page.
+
+      .. STUB ":doc:`/core/capped-collections`."
 
    BSON types
       The set of types supported by the :term:`BSON` serialization
@@ -271,12 +278,16 @@ Glossary
    index
       A data structure that optimizes queries.
 
-      .. seealso:: ":doc:`/core/indexing`"
+      .. seealso:: The ":wiki:`Indexing`" wiki page.
+
+      .. STUB ":doc:`/core/indexing`"
 
    compound index
       An :term:`index` consisting of two or more keys.
 
-      .. seealso:: ":doc:`/core/indexing`"
+      .. seealso:: The ":wiki:`Indexing`" wiki page.
+
+      .. STUB ":doc:`/core/indexing`"
 
    btree
       A data structure used by most database management systems
@@ -294,7 +305,9 @@ Glossary
       data files. Journal commits are synced to disk every 100ms, but
       this is configurable using the ``journalCommitInterval`` option.
 
-      .. seealso:: ":doc:`/core/journaling`."
+      .. seealso:: The ":wiki:`Journaling`" wiki page.
+
+      .. STUB ":doc:`/core/journaling`."
 
    pcap
       A packet capture format used by :program:`mongosniff` to record
@@ -688,10 +701,12 @@ valid definitions, and it depends on the context.
       transforms the data. In MongoDB, you can run abitrary aggregations
       over data using map-reduce.
 
-      .. seealso:: ":doc:`/core/map-reduce`" for more information
+      .. seealso:: The ":wiki:`Map Reduce <MapReduce>`" wiki page  for more information
          regarding MongoDB's map/reduce implementation, and
          ":doc:`/applications/aggregation`" for another approach to data
          aggregation in MongoDB.
+
+      .. STUB ":doc:`/core/map-reduce`"
 
    SQL
       Standard Query Langauge. A declarative language typically
