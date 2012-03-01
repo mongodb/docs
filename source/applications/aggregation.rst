@@ -61,6 +61,12 @@ through the pipeline.
    input document: operators may also generate new documents or filter
    out documents.
 
+.. warning::
+
+   The pipeline cannot operate on collects with documents that contain
+   one of the following "special fields:" ``MinKey``, ``MaxKey``,
+   ``EOO``, ``Undefined``, ``DBRef``, ``Code``.
+
 .. seealso:: The ":doc:`/reference/aggregation`" reference includes
    documentation of the following pipeline operators:
 

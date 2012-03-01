@@ -39,6 +39,12 @@ regarding their use and behavior.
 Pipeline
 --------
 
+.. warning::
+
+   The pipeline cannot operate on collects with documents that contain
+   one of the following "special fields:" ``MinKey``, ``MaxKey``,
+   ``EOO``, ``Undefined``, ``DBRef``, ``Code``.
+
 Pipeline operators appear in an array. Conceptually, documents pass through
 these operators in a sequence. All examples in this section assume that the
 aggregation pipeline begins with a collection named "``article``" that
