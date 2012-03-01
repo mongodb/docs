@@ -151,7 +151,7 @@ Options
 .. option:: --configdb <config1>,<config2><:port>,<config3>
 
    Set this option to specify a configuration database
-   (i.e. :term:`configdb`) for the :term:`shard cluster`. You may
+   (i.e. :term:`config database`) for the :term:`shard cluster`. You may
    specify either 1 configuration server or 3 configuration servers,
    in a comma separated list.
 
@@ -171,7 +171,7 @@ Options
 .. option:: --upgrade
 
    This option updates the meta data format used by the
-   :term:`configdb`.
+   :term:`config database`.
 
 .. option:: --chunkSize <value>
 

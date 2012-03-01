@@ -350,7 +350,7 @@ Glossary
       held allows concurrent readers, but no writers.
 
    config database
-      One of three mongod instances that store all the
+      One or three :program:`mongod` instances that store all the
       metadata associated with a :term:`shard cluster`.
 
    balancer
@@ -670,8 +670,8 @@ Glossary
          awareness <replica-set-data-center-awareness>`."
 
    tag
-     One or more labels applied to a given replica set member that may
-     be used to issue data-center aware operations.
+     One or more labels applied to a given replica set member that
+     clients may use to issue data-center aware operations.
 
    recovering
       A :term:`replica set` memeber status indicating that a member

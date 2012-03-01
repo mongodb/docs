@@ -37,7 +37,7 @@ but faster, more powerful, and less work to set up.
 What languages can I use to work with the MongoDB?
 --------------------------------------------------
 
-MongoDB, by way of :term:`client drivers <drivers>`, can communicate
+MongoDB, by way of :term:`client drivers <driver>`, can communicate
 is accessible from many different programming languages.
 
 .. seealso:: ":doc:`/applications/drivers`."
@@ -48,7 +48,7 @@ Does MongoDB support SQL?
 No.
 
 MongoDB does support rich ad-hoc queries by way of a JSON-style query
-language using :term:`operators`.
+language using :term:`operators <operator>`.
 
 .. seealso:: ":doc:`/reference/operators`" document and the
    :wiki:`Query Overview <Advanced+Queries>` and the :wiki:`Tour
@@ -127,7 +127,7 @@ ORM/``memcached``/MySQL stack. However, some MongoDB users integrate
 What language is MongoDB written in?
 ------------------------------------
 
-MongoDB is implemented in C++.  :term:`Drivers` and client libraries
+MongoDB is implemented in C++.  :term:`Drivers <driver>` and client libraries
 are typically written in their respective languages, although some
 drivers use C extensions to provide speed.
 

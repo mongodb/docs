@@ -19,8 +19,6 @@ development using MongoDB.
    - :doc:`sharding`
    - :wiki:`Indexing FAQ <Indexing+Advice+and+FAQ>` wiki page
 
-   - :doc:`indexing`
-
 What is a "namespace?"
 ----------------------
 

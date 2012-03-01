@@ -502,7 +502,7 @@ Settings
    data files are in an old format.
 
    When specified for a :program:`mongos` instance, this option updates
-   the meta data format used by the :term:`configdb`.
+   the meta data format used by the :term:`config database`.
 
 Replica Set Options
 ```````````````````
@@ -600,7 +600,7 @@ Replica Set Options
    *Form:* <setname>/<seed-host1>,<host2>:<port>
 
    Use this setting to configure replication with replica
-   sets. Specify a :term:`setname` as an argument to this set. All
+   sets. Specify a replica set name as an argument to this set. All
    hosts must have the same set name. You can add one or more "seed"
    hosts to one or more host in the set to initiate the cluster. Use
    the following form: ::
@@ -645,7 +645,7 @@ Sharding Cluster Options
    *Format:* <config1>,<config2><:port>,<config3>
 
    Set this option to specify a configuration database
-   (i.e. :term:`configdb`) for the :term:`shard cluster`. You may
+   (i.e. :term:`config database`) for the :term:`shard cluster`. You may
    specify either 1 configuration server or 3 configuration servers,
    in a comma separated list.
 
