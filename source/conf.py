@@ -37,7 +37,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'MongoDB Monitoring System (MMS)'
+project = u'MongoDB Monitoring Service (MMS)'
 copyright = u'2011, MongoDB Documentation Team'
 
 # The version info for the project you're documenting, acts as replacement for
