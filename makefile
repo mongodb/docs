@@ -41,36 +41,39 @@ help:
 	@echo "	 linkcheck  to check all external links for integrity"
 	@echo ""
 	@echo "MongoDB Manual Specific Targets."
+	@echo "	 publish	runs 'make build-branch' and then deploys the build to $(publication-output)"
 	@echo "	 branch-setup	to setup git branches for the first time."
 	@echo "	 build-branch	to build the current branch."
-	@echo "	 deploy		moves builds to ."
-	@echo "	 publish	runs make build-branch and make deploy."
 	@echo "See 'meta.build-process.rst' for more information."
 
 #
 # Meta targets that control the build and publication process.
 #
 
+publish:
+	make MODE='publish' build-branch
+	make MODE='publish' deploy
+
 build-branch:
 	@echo Running a build of the \$(current-branch)\ branch.
 	@echo ""
 	make MODE='publish' dirhtml
 	make MODE='publish' singlehtml
-	@echo "All builds complete. Verify the build now and then run 'make deploy'"
+	@echo "All builds complete.'"
 	@echo "to complete the build process."
 
-publish:
-	make MODE='publish' build-branch
-	make MODE='publish' deploy
-
+ifeq ($(MODE),publish)
 deploy:
 	@echo "Exporting builds..."
+	sed -i 's/href="contents.html/href="index.html/g' $(BUILDDIR)/singlehtml/index.html
+	cp $(BUILDDIR)/dirhtml/search/index.html $(BUILDDIR)/singlehtml/search.html
 	mkdir -p $(publication-output)/$(current-branch)/single/
 	cp -R $(BUILDDIR)/dirhtml/* $(publication-output)/$(current-branch)
 	cp -R $(BUILDDIR)/singlehtml/* $(publication-output)/$(current-branch)/single/
 	@echo "Running the publication routine..."
 	$(publication-script)
 	@echo "Publication succeessfully deployed."
+endif
 
 disabled-builds:
 	@echo make epub
