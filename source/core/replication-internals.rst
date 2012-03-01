@@ -99,7 +99,7 @@ Administrators of replica sets also have unique :ref:`monitoring
 concerns. The :ref:`replica set functions <replica-set-functions>` in
 the :program:`mongo` shell, provide the tools necessary for replica set
 administration. In particular use the :func:`rs.conf()` to return a
-:term:`JSON document` that holds the :doc:`replica set configuration
+:term:`document` that holds the :doc:`replica set configuration
 </reference/replica-configuration>`, and :func:`rs.reconfig()` to
 modify the configuration of an existing replica set.
 

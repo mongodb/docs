@@ -187,7 +187,7 @@ the :program:`mongo` shell:
 
 The first operation sets the local variable "``cfg``" to the contents
 of the current replica set configuration using the :func:`rs.conf()`,
-which is a :term:`JSON document`. The next three operations change the
+which is a :term:`document`. The next three operations change the
 :data:`members[n].priority` value in the ``cfg`` document for
 :data:`members[n]._id` of ``0``, ``1``, or ``2``. The final operation
 calls :func:`rs.reconfig()` with the argument of ``cfg`` to initialize

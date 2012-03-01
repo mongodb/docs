@@ -112,7 +112,7 @@ serverStatus
 ````````````
 
 Access :doc:`serverStatus data </reference/server-status/>` by way of
-the :dbcommand:`serverStatus` command. This :term:`JSON document`
+the :dbcommand:`serverStatus` command. This :term:`document`
 contains a general overview of the state of the database, including
 disk usage, memory use, connection, journaling, access. The command
 returns quickly and does not impact MongoDB performance.

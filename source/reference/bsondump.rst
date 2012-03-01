@@ -36,19 +36,19 @@ Options
 
 .. option:: --objcheck
 
-   Validates each BSON object before outputting it in JSON format. Use
+   Validates each :term:`BSON` object before outputting it in :term:`JSON` format. Use
    this option to filter corrupt objects from the output.
 
 .. option:: --filter '<JSON>'
 
    Limits the documents that :program:`bsondump` exports to only those
-   documents that match the JSON document specified as `'<JSON>'`. Be
+   documents that match the :term:`JSON document` specified as `'<JSON>'`. Be
    sure to include the document in single quotes to avoid a poor
    interaction with your shell.
 
 .. option:: --type <=json|=debug>
 
-   Changes the operation of :program:`bsondump` from outputting "JSON" (the
+   Changes the operation of :program:`bsondump` from outputting ":term:`JSON`" (the
    default) to a debugging format.
 
 .. option:: <bsonfilename>

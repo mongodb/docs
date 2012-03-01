@@ -286,7 +286,7 @@ The current pipeline operators are:
 
 .. pipeline:: $limit
 
-   Restricts the number of :term:`JSON documents <json document>` that
+   Restricts the number of :term:`documents <document>` that
    pass through the :pipeline:`$limit` in the :term:`pipeline`.
 
    :pipeline:`$limit` takes a single numeric (positive whole number)
@@ -306,7 +306,7 @@ The current pipeline operators are:
 
 .. pipeline:: $skip
 
-   Skips over the specified number of :term:`JSON documents <json document>`
+   Skips over the specified number of :term:`documents <document>`
    that pass through the :pipeline:`$skip` in the :term:`pipeline`
    before passing all of the remaining input.
 
@@ -852,7 +852,7 @@ argument and return a JavaScript "long" number.
 
 .. expression:: $isoDate
 
-   Converts a :term:`JSON document` that contains date constituents
+   Converts a :term:`document` that contains date constituents
    into an date-typed object (i.e. in :term:`ISODate` format.)
 
    :expression:`$isoDate` takes the following form:

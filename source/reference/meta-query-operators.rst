@@ -170,8 +170,8 @@ Modifiers
 
 .. operator:: $explain
 
-   Use the :operator:`$explain` operator to return a :term:`JSON
-   document` that describes the process and indexes used to return the
+   Use the :operator:`$explain` operator to return a :term:`document`
+   that describes the process and indexes used to return the
    query. This may provide useful insight when attempting to optimize
    a query. Consider the following example:
 

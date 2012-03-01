@@ -136,8 +136,8 @@ Options
 
 .. option:: --query <json>, -q <json>
 
-   Provides a :term:`JSON` query to limit (optionally) the documents
-   included in the output of :program:`mongodump`.
+   Provides a query to limit (optionally) the documents included in
+   the output of :program:`mongodump`.
 
 .. option:: --oplog
 
