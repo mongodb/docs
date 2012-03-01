@@ -299,11 +299,12 @@ Glossary
 
    journal
       A sequential, binary transaction used to bring the database into
-      a consistent state in the event of a hard shutdown. The journal is
-      enabled by default in MongoDB v2.0 and later. When enabled,
-      MongoDB writes data first to the journal and after to the core
-      data files. Journal commits are synced to disk every 100ms, but
-      this is configurable using the ``journalCommitInterval`` option.
+      a consistent state in the event of a hard shutdown. MongoDB
+      enables journaling by default for 64-bit builds of MongoDB
+      version 2.0 and later. When enabled, MongoDB writes data first
+      to the journal and after to the core data files. MongoDB commits
+      to the Journal every 100ms, but this is configurable using the
+      :setting:`journalCommitInterval` runtime option.
 
       .. seealso:: The ":wiki:`Journaling`" wiki page.
 
@@ -340,21 +341,12 @@ Glossary
 
    padding factor
       An automatically-calibrated constant used to determine how much
-      extra space should be allocated per document container on disk.
+      extra space MongoDB should allocate per document container on disk.
       A padding factor greater than 1 may allow a document to be rewritten
-      in-place if the document is ever enlarged by an update.
-
-
-TODO: I don't believe that there's any reason to define lock in the abstract.
-
-   lock
-      An approach to concurrency where a single process or thread
-      prevents sibling process from accessing or changing a value
-      until the original process or thread has completed its
-      operation.
+      in-place if an update requires the document to grow.
 
    read-lock
-      In the context of a reader-writer lock, a :term:`lock` that while
+      In the context of a reader-writer lock, a lock that while
       held allows concurrent readers, but no writers.
 
    config database
@@ -364,8 +356,8 @@ TODO: I don't believe that there's any reason to define lock in the abstract.
    balancer
       An internal MongoDB process that runs in the context of a
       :term:`shard cluster` and manages the splitting and
-      migration of :term:`chunks <chunk>`. The balancer must
-      be disabled for all maintenance operations on a shard cluster.
+      migration of :term:`chunks <chunk>`. Administrators must disable
+      the balancer for all maintenance operations on a shard cluster.
 
    fsync
       An system call that flushes all dirty, in-memory pages to disk. MongoDB
@@ -375,7 +367,8 @@ TODO: I don't believe that there's any reason to define lock in the abstract.
       In the context of a :term:`shard cluster`, a chunk is a contiguous
       range of :term:`shard key` values assigned to a particular :term:`shard`.
       By default, chunks are 64 megabytes or less. When they grow beyond the
-      configured chunk size, they are split in two.
+      configured chunk size, a :program:`mongos` splits the chunk into
+      two chunks.
 
    geospatial
       Data that relates to geographical location. In MongoDB, you may
@@ -396,11 +389,13 @@ TODO: I don't believe that there's any reason to define lock in the abstract.
 
       .. code-block:: javascript
 
-        db.places.ensureIndex({position: "geoHaystack", type: 1})
+         db.places.ensureIndex( { position: "geoHaystack", type: 1 } )
 
       You can then query on position and type:
 
-        db.places.find({position: [34.2, 33.3], type: "restaurant"})
+      .. code-block:: javascript
+
+         db.places.find( { position: [34.2, 33.3], type: "restaurant" } )
 
    oplog
       A :term:`capped collection` that stores an ordered history of
@@ -424,8 +419,6 @@ TODO: I don't believe that there's any reason to define lock in the abstract.
       each running process. You can use a process's PID to inspect
       a running process and send signals to it.
 
-TODO: where is this even used in the docs?
-
    JSONP
       :term:`JSON` with Padding. Refers to a method of injecting JSON
       into applications. Presents potential security concerns.
@@ -434,7 +427,7 @@ TODO: where is this even used in the docs?
      An API design pattern centered around the idea of
      resources and the CRUD operations that apply to them. Typically
      implemented over HTTP. MongoDB provides a simple HTTP REST interface
-     that allows commands to be run against the server.
+     that allows HTTP clients to run commands against the server.
 
    dbpath
       Refers to the location of MongoDB's data file storage. The
@@ -447,17 +440,18 @@ TODO: where is this even used in the docs?
    set name
       In the context of a :term:`replica set`, the ``set name`` refers to
       an arbitrary name given to a replica set when it's first configured.
-      All members of a replica set must have the same name, which is specified
-      using the ``--replSet`` flag on :program:`mongod`.
+      All members of a replica set must have the same name specified
+      with the :setting:`replSet` setting (or :option:`--replSet
+      <mongod --replSet>` option for :program:`mongod`.)
 
       .. seealso:: :term:`replication`, ":doc:`/replication`" and
          ":doc:`/core/replication`."
 
    _id
       A field containing a unique ID, typically a BSON Object ID.
-      If not specified, this value is automatically assigned
-      when a new document is created. The ``_id`` field can
-      be thought of as a document's :term:`primary key`.
+      If not specified, this value is automatically assigned while
+      upon the creation of a new document. You can think of the
+      ``_id`` as the document's :term:`primary key`.
 
    lvm
       Logical volume manager. LVM is a program that abstracts disk
@@ -475,8 +469,8 @@ TODO: where is this even used in the docs?
    primary key
       A record's unique, immutable identifier. In an RDBMS, the primary
       key is typically an integer stored in each row's ``id`` field.
-      In MongoDB, a document's primary key is stored in a document's :term:`_id`
-      field and is usually a BSON Object ID.
+      In MongoDB, the :term:`_id` field holds a document's primary
+      key. Primary keys are usually :term:`BSON` Object IDs.
 
    unique index
       An index that enforces uniqueness for a particular field across
@@ -493,19 +487,21 @@ TODO: where is this even used in the docs?
       profiler is most often used to diagnose slow queries.
 
    shard key
-      In a sharded collection, a shard key is the field whose value
-      is used to distribute documents among members of the
+      In a sharded collection, a shard key is the field that MongoDB
+      uses to  distribute documents among members of the
       :term:`shard cluster`.
 
    query
-      A read request. MongoDB queries use a :term:`JSON`-like
-      query language that includes a variety of :term:`database operators` whose names
-      begin with a ``$`` character. In the :program:`mongo` shell, you can issue queries
-      using the :func:`db.collection.find()` and :func:`db.collection.findOne()` methods.
+      A read request. MongoDB queries use a :term:`JSON`-like query
+      language that includes a variety of :term:`query operators <operator>`
+      with names that begin with a ``$`` character. In the
+      :program:`mongo` shell, you can issue queries using the
+      :func:`db.collection.find() <find>` and
+      :func:`db.collection.findOne() <findOne>` methods.
 
    projection
       A document given to a :term:`query` that specifies which fields
-      from the documents in the result set should be returned.
+      MongoDB will return from the documents in the result set.
 
    pre-splitting
       When deploying a :term:`shard cluster`, it is sometimes
@@ -531,7 +527,7 @@ TODO: where is this even used in the docs?
    pipe
       A communication channel UNIX allowing independent processes
       to send and receive data. In the UNIX shell, piped operations
-      allow the output of one commmand to be passed as the input
+      allow users to direct the output of one command into the input
       of another.
 
    IPv6
@@ -559,48 +555,38 @@ TODO: where is this even used in the docs?
       consistency and, therefore, does not provide multi-master replication.
 
    rollback
-      A process that, in certain replica set situations, reverts writes opertaions
-      to ensure the consistency of all replica set members.
-
-TODO: we need to rewrite the definitely completely. There are lots of
-valid definitions, and it depends on the context.
-
-   consistency
-      The condition "up to date," and reliable quality of a database
-      system with multiple nodes and multiple instances of the same
-      data. A system may be ":term:`eventually consistent <eventual
-      consistency>`," with write or update operations returning
-      successfully before all copies of the data are in a consistent
-      state, or ":term:`strictly consistent <strict consistency>`,"
-      with no write or update operations returning before all copies of
-      the data are in a consistent state.
+      A process that, in certain replica set situations, reverts
+      writes operations to ensure the consistency of all replica set
+      members.
 
    eventual consistency
       A property of a distributed system allowing changes to the
       system to propagate gradually. In a database system, this means
-      that readable nodes are not required to reflect the latest writes
-      at all times. In MongoDB, reads to a primary are consistent; reads
-      to secondary nodes are eventually consistent.
+      that readable nodes are not required to reflect the latest
+      writes at all times. In MongoDB, reads to a primary have
+      :term:`strict consistency`; reads to secondary nodes have
+      :term:`eventual consistency`.
 
    strict consistency
-      A property of a distributed system requiring that all nodes always
-      reflect the latest changes to the system. In a database system, this means
-      that readable nodes are required to reflect the latest writes
-      at all times. In MongoDB, reads to a primary are consistent; reads
-      to secondary nodes are eventually consistent.
+      A property of a distributed system requiring that all nodes
+      always reflect the latest changes to the system. In a database
+      system, this means that any system that can provide data must
+      reflect the latest writes at all times. In MongoDB, reads to a
+      primary have :term:`strict consistency`; reads to secondary
+      nodes have :term:`eventual consistency`.
 
    write concern
       A setting on writes to MongoDB that allows the use to specify,
-      among other things, how far a write should be replicated
-      before returning.
+      how the database will handle a write operation before
+      retiring. This often determines how many :term:`replica set`
+      members should propagate a write before returning.
 
-      .. seealso:: ":ref:`Write Concern for Replica Sets
-         <replica-set-write-concern>`."
+      .. seealso:: ":ref:`Write Concern for Replica Sets <replica-set-write-concern>`."
 
    priority
       In the context of :term:`replica sets <replica set>`, priority
-      is a configurable values that help determine whih nodes in
-      a replica set are most likely to be elected: term:`primary`.
+      is a configurable values that help determine which nodes in
+      a replica set are most likely to become :term:`primary`.
 
       .. seealso:: ":ref:`Replica Set Node Priority
          <replica-set-node-priority>`"
@@ -640,10 +626,13 @@ valid definitions, and it depends on the context.
       .. seealso:: ":ref:`Delayed Nodes <replica-set-delayed-members>`"
 
    read preference
-      A setting on the MongoDB drivers that determines where reads
-      to any replica set, including shards, should be directed. By
-      default, reads are directed to primary nodes. However, you may
-      also direct reads to secondary nodes.
+      A setting on the MongoDB :doc:`drivers </applications/drivers>`
+      that determines where how the clients direct read
+      operations. Read preference affects all replica sets including
+      shards. By default, drivers direct all reads to :term:`primary`
+      nodes for :term:`strict consistency`. However, you may also
+      direct reads to secondary nodes for :term:`eventually consistent
+      <eventual consistency>` reads..
 
       .. seealso:: ":ref:`Read Preference <replica-set-read-preference>`"
 
@@ -671,7 +660,7 @@ valid definitions, and it depends on the context.
       .. seealso:: ":ref:`Replica Set Failover <replica-set-failover>`."
 
    data-center awareness
-      A property that allows nodes in a system to be addressed
+      A property that allows clients to address nodes in a system to
       based upon their location.
 
       :term:`Replica sets <replica set>` implement data-center
@@ -767,5 +756,7 @@ valid definitions, and it depends on the context.
       namespace.
 
    replica pairs
-      The precursor to the MongoDB :term:`replica sets <replica set>`. Replica
-      pairs were deprecated in MongoDB v1.6.
+      The precursor to the MongoDB :term:`replica sets <replica
+      set>`.
+
+      .. deprecated:: 1.6
