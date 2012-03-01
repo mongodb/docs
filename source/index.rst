@@ -23,11 +23,10 @@ Application Development
    :maxdepth: 2
 
    applications/aggregation
+   applications/drivers
+   applications/replication
 
-.. toctree::
-   :hidden:
-
-   core/map-reduce
+.. core/map-reduce
 
 Core Functionality
 ------------------
@@ -38,14 +37,11 @@ Core Functionality
    core/replication
    core/replication-internals
 
-.. toctree::
-   :hidden:
-
-   core/map-reduce
-   core/journaling
-   core/capped-collections
-   core/indexing
-   core/sharding
+.. core/map-reduce
+.. core/journaling
+.. core/capped-collections
+.. core/indexing
+.. core/sharding
 
 Administration and Deployment
 -----------------------------
@@ -60,14 +56,11 @@ Administration and Deployment
    administration/replica-sets
    administration/replication-architectures
 
-.. toctree::
-   :hidden:
-
-   administration/sharding
-   administration/sharding-architectures
-   administration/hardware-platform
-   administration/operating-systems
-   administration/security
+.. administration/sharding
+.. administration/sharding-architectures
+.. administration/hardware-platform
+.. administration/operating-systems
+.. administration/security
 
 
 MongoDB Shell
@@ -81,10 +74,7 @@ MongoDB Shell
    reference/operators
    reference/meta-query-operators
 
-.. toctree::
-   :hidden:
-
-   mongo
+.. mongo
 
 .. Developing MongoDB
 .. ------------------
@@ -103,73 +93,20 @@ Chapters
    applications
    replication
    administration
-   reference
 
-.. toctree::
-   :hidden:
-
-   mongo
-   sharding
-
+.. mongo
+.. sharding
 
 Reference
 ---------
 
 .. toctree::
-   :hidden:
+   :maxdepth: 3
 
-   reference/limits
-   reference/error-codes
+   reference
 
-MongoDB Programs
-~~~~~~~~~~~~~~~~
-
-.. toctree::
-   :maxdepth: 1
-
-   reference/mongod
-   reference/mongos
-   reference/mongo
-   reference/mongodump
-   reference/mongorestore
-   reference/mongoimport
-   reference/mongoexport
-   reference/mongostat
-   reference/mongotop
-   reference/mongooplog
-   reference/mongosniff
-   reference/mongofiles
-   reference/bsondump
-
-Statuses and Errors
-~~~~~~~~~~~~~~~~~~~
-
-.. toctree::
-   :maxdepth: 1
-
-   reference/server-status
-   reference/database-statistics
-   reference/collection-statistics
-   reference/replica-status
-   reference/replica-configuration
-   reference/replication-info
-   reference/error-codes
-
-General Reference
-~~~~~~~~~~~~~~~~~
-
-.. toctree::
-   :maxdepth: 1
-
-   reference/configuration-options
-   reference/operators
-   reference/commands
-   reference/javascript
-   reference/meta-query-operators
-   reference/glossary
-
-Indices
-~~~~~~~
+Indexes
+-------
 
 - :ref:`genindex`
 - :ref:`search`
@@ -181,55 +118,55 @@ Indices
 
 - Getting Started
 
-  - `Quickstart <http://mongodb.org/display/DOCS/Quickstart>`_
-  - `Introduction <http://mongodb.org/display/DOCS/Introduction>`_
-  - `Downloads <http://mongodb.org/display/DOCS/Downloads>`_
-  - `Features <http://mongodb.org/display/DOCS/Features>`_
-  - `SQL to MongoDB Mapping <http://mongodb.org/display/DOCS/SQL+to+MongoDB+Mapping+Chart>`_
+  - :wiki:`Quickstart <Quickstart>`
+  - :wiki:`Introduction <Introduction>`
+  - :wiki:`Downloads <Downloads>`
+  - :wiki:`Features <Features>`
+  - :wiki:`SQL to MongoDB Mapping <SQL+to+MongoDB+Mapping+Chart>`
 
-- `Developer Documentation <http://mongodb.org/display/DOCS/Developer+Zone>`_
+- :wiki:`Developer Documentation <Developer+Zone>`
 
-  - `Connections <http://mongodb.org/display/DOCS/Connections>`_
-  - `Databases <http://mongodb.org/display/DOCS/Databases>`_
-  - `Collections <http://mongodb.org/display/DOCS/Collections>`_
-  - `Documents <http://mongodb.org/display/DOCS/Documents>`_
-  - `GridFS <http://mongodb.org/display/DOCS/GridFS>`_
-  - `Indexes <http://mongodb.org/display/DOCS/Indexes>`_
-  - `Querying <http://mongodb.org/display/DOCS/Querying>`_
-  - `Aggregation <http://mongodb.org/display/DOCS/Aggregation>`_
-  - `Optization <http://mongodb.org/display/DOCS/Optization>`_
-  - `Inserting <http://mongodb.org/display/DOCS/Inserting>`_
-  - `Updating <http://mongodb.org/display/DOCS/Updating>`_
-  - `Removing <http://mongodb.org/display/DOCS/Removing>`_
-  - `MapReduce <http://mongodb.org/display/DOCS/MapReduce>`_
+  - :wiki:`Connections <Connections>`
+  - :wiki:`Databases <Databases>`
+  - :wiki:`Collections <Collections>`
+  - :wiki:`Documents <Documents>`
+  - :wiki:`GridFS <GridFS>`
+  - :wiki:`Indexes <Indexes>`
+  - :wiki:`Querying <Querying>`
+  - :wiki:`Aggregation <Aggregation>`
+  - :wiki:`Optization <Optization>`
+  - :wiki:`Inserting <Inserting>`
+  - :wiki:`Updating <Updating>`
+  - :wiki:`Removing <Removing>`
+  - :wiki:`MapReduce <MapReduce>`
 
-- `Administrative Documentation <http://mongodb.org/display/DOCS/Admin+Zone>`_
+- :wiki:`Administrative Documentation <Admin+Zone>`
 
-  - `Components <http://mongodb.org/display/DOCS/Components>`_
-  - `Journaling <http://mongodb.org/display/DOCS/Journaling>`_
-  - `Production Notes <http://mongodb.org/display/DOCS/Production+Notes>`_
-  - `Replication <http://mongodb.org/display/DOCS/Replication>`_
-  - `Sharding <http://mongodb.org/display/DOCS/Sharding>`_
-  - `Monitoring and Diagnostics <http://mongodb.org/display/DOCS/Monitoring+and+Diagnostics>`_
-  - `Backups <http://mongodb.org/display/DOCS/Backups>`_
-  - `Durability and Repair <http://mongodb.org/display/DOCS/Durability+and+Repair>`_
-  - `Security and Authentication <http://mongodb.org/display/DOCS/Security+and+Authentication>`_
-  - `Starting and Stopping MongoDB <http://mongodb.org/display/DOCS/Starting+and+Stopping+Mongo>`_
-  - `GridFS Tools <http://mongodb.org/display/DOCS/GridFS+Tools>`_
-  - `DB Operations from the Shell <http://mongodb.org/display/DOCS/DBA+Operations+from+the+Shell>`_
-  - `Architecture and Components <http://mongodb.org/display/DOCS/Architecture+and+Components>`_
-  - `Windows <http://mongodb.org/display/DOCS/Windows>`_
-  - `Troubleshooting <http://mongodb.org/display/DOCS/Troubleshooting>`_
+  - :wiki:`Components <Components>`
+  - :wiki:`Journaling <Journaling>`
+  - :wiki:`Production Notes <Production+Notes>`
+  - :wiki:`Replication <Replication>`
+  - :wiki:`Sharding <Sharding>`
+  - :wiki:`Monitoring and Diagnostics <Monitoring+and+Diagnostics>`
+  - :wiki:`Backups <Backups>`
+  - :wiki:`Durability and Repair <Durability+and+Repair>`
+  - :wiki:`Security and Authentication <Security+and+Authentication>`
+  - :wiki:`Starting and Stopping MongoDB <Starting+and+Stopping+Mongo>`
+  - :wiki:`GridFS Tools <GridFS+Tools>`
+  - :wiki:`DB Operations from the Shell <DBA+Operations+from+the+Shell>`
+  - :wiki:`Architecture and Components <Architecture+and+Components>`
+  - :wiki:`Windows <Windows>`
+  - :wiki:`Troubleshooting <Troubleshooting>`
 
-- `Community <http://www.mongodb.org/display/DOCS/Community>`_ and Ecosystem
+- :wiki:`Community <http://www.mongodb.org/display/DOCS/Community>` and Ecosystem
 
-  - `10gen <http://10gen.com>`_
-  - `Meetup Events <http://mongodb.org/display/DOCS/MeetupAPI+Events+Page>`_
-  - `MongoDB Masters <http://mongodb.org/display/DOCS/MongoDB+Masters>`_
-  - `Slides and Video <http://mongodb.org/display/DOCS/Slides+and+Video>`_
-  - `Cookbook <http://cookbook.mongodb.org/>`_
-  - `Hosting Center <http://mongodb.org/display/DOCS/Hosting+Center>`_
-  - `MongoDB Monitoring Service <http://mongodb.org/display/DOCS/MongoDB+Monitoring+Service>`_ (`docs <http://mms.10gen.com/help/>`_)
-  - `Administrative Interfaces <http://mongodb.org/display/DOCS/Admin+UIs>`_
-  - `International Documentation <http://mongodb.org/display/DOCS/International+Docs>`_
-  - `MongoDB Books <http://mongodb.org/display/DOCS/Books>`_
+  - :wiki:`10gen <http://10gen.com>`
+  - :wiki:`Meetup Events <MeetupAPI+Events+Page>`
+  - :wiki:`MongoDB Masters <MongoDB+Masters>`
+  - :wiki:`Slides and Video <Slides+and+Video>`
+  - :wiki:`Cookbook <http://cookbook.mongodb.org/>`
+  - :wiki:`Hosting Center <Hosting+Center>`
+  - :wiki:`MongoDB Monitoring Service <MongoDB+Monitoring+Service>` (`docs <http://mms.10gen.com/help/>`_)
+  - :wiki:`Administrative Interfaces <Admin+UIs>`
+  - :wiki:`International Documentation <International+Docs>`
+  - :wiki:`MongoDB Books <Books>`

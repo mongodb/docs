@@ -7,11 +7,13 @@ MongoDB Manual Contents
 
    getting-started
    replication
-   sharding
    administration
    applications
-   core/indexing
-   mongo
    reference
+
+.. sharding
+.. core/indexing
+.. mongo
+
 
 - :ref:`genindex`

@@ -8,13 +8,16 @@ Application Development
 .. toctree::
    :maxdepth: 3
 
-   applications/schema-design
-   applications/simple-aggregation
-   core/map-reduce
-   applications/optimization
    applications/drivers
-   core/journaling
-   core/capped-collections
+
+.. applications/optimization
+.. applications/schema-design
+.. applications/simple-aggregation
+.. core/map-reduce
+.. core/journaling
+.. core/capped-collections
+
+.. seealso:: ":doc:`/applications/replication`."
 
 .. _aggregation-framework:
 
@@ -26,3 +29,21 @@ Aggregation Framework
 
    applications/aggregation
    reference/aggregation
+
+Tutorials
+---------
+
+.. toctree::
+   :maxdepth: 1
+
+   tutorial/convert-replica-set-to-replicated-shard-cluster
+
+- :doc:`/tutorial/deploy-replica-set`
+- :doc:`/tutorial/convert-replica-set-to-replicated-shard-cluster`
+- :doc:`/tutorial/install-mongodb-on-linux`
+- :doc:`/tutorial/expand-replica-set`
+- :doc:`/tutorial/deploy-geographically-distributed-replica-set`
+- :doc:`/tutorial/install-mongodb-on-redhat-centos-or-fedora-linux`
+- :doc:`/tutorial/install-mongodb-on-os-x`
+- :doc:`/tutorial/change-oplog-size`
+- :doc:`/tutorial/install-mongodb-on-debian-or-ubuntu-linux`
