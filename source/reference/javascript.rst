@@ -446,8 +446,10 @@ Data Aggregation
 
       SELECT a,b,sum(c) csum FROM collection WHERE active=1 GROUP BY a,b
 
-   .. seealso:: The ":doc:`/applications/simple-aggregation`" and
+   .. seealso:: The ":wiki:`Aggregation`" wiki page and
       ":doc:`/applications/aggregation`."
+
+      .. STUB ":doc:`/applications/simple-aggregation`"
 
 .. function:: mapReduce(map,reduce,out,[query],[sort],[limit],[finalize],[scope],[jsMode],[verbose])
 
@@ -554,11 +556,18 @@ Data Aggregation
                            members of replica sets, this is the only
                            available option.
 
-   .. seealso:: ":doc:`/core/map-reduce`, provides a greater overview
-      of MognoDB's map/reduce functionality. Consider
-      ":doc:`/applications/simple-aggregation` for simple aggregation
-      operations and ":doc:`/applications/aggregation`" for a more flexible
-      approach to data aggregation in MongoDB.
+   .. seealso:: :term:`map-reduce`, provides a greater overview
+      of MognoDB's map-reduce functionality.
+
+      Also consider ":doc:`/applications/aggregation`" for a more
+      flexible approach to data aggregation in MongoDB, and the
+      ":wiki:`Aggregation`" wiki page for an over view of aggregation
+      in MongoDB.
+
+      .. Consider
+      .. STUB ":doc:`/applications/simple-aggregation` for simple aggregation
+      .. operations and ":doc:`/applications/aggregation`" for a more flexible
+      .. approach to data aggregation in MongoDB.
 
 Administrative Functions
 ------------------------
@@ -695,8 +704,10 @@ Database
       db.createCollection(people, { size: 2147483648 })
 
    This command provides a wrapper around the database command
-   ":dbcommand:`create`. See the ":doc:`/core/capped-collections`"
-   document for more information about capped collections.
+   ":dbcommand:`create`. See the ":wiki:`Capped Collections <Capped+Collections>`"
+   wiki page for more information about capped collections.
+
+   .. STUB :doc:`/core/capped-collections`"
 
 .. function:: db.currentOp()
 
@@ -732,8 +743,8 @@ Database
 
       Do not use :func:`db.eval()` for long running operations, as
       :func:`db.eval()` blocks all other operations. Consider using
-      :doc:`map reduce </core/map-reduce>` for similar functionality in
-      these situations.
+      :term:`map-reduce` for similar functionality in these
+      situations.
 
       The :func:`db.eval() method cannot operate on sharded
       data. However, you may use :func:`db.eval()` with non-sharded
@@ -1186,7 +1197,7 @@ that you may use with collection objects.
    - Only specify a different index version in unusual situations. The
      latest index version provides a smaller and faster index format.
 
-   .. seealso:: ":doc:`/core/indexing`."
+   .. STUB .. seealso:: ":doc:`/core/indexing`."
 
    .. [#] The default index version depends on the version of
       :program:`mongod` running when creating the index. Before version
@@ -1377,9 +1388,11 @@ that you may use with collection objects.
 Sharding
 ~~~~~~~~
 
-.. seealso:: ":doc:`/core/sharding`" for more information on the
+.. seealso:: The ":wiki:`Sharding`" page for more information on the
    sharding technology and methods for creating :term:`shard clusters
    <shard cluster>`.
+
+.. STUB ":doc:`/core/sharding`"
 
 .. function:: sh.addShard(host)
 
@@ -1488,7 +1501,9 @@ Sharding
    :term:`balancer` to automatically migrate :term:`chunks <chunk>`,
    and avoid calling :func:`sh.moveChunk()` directly.
 
-   .. seealso:: ":dbcommand:`moveChunk`" and ":doc:`/sharding`."
+   .. seealso:: ":dbcommand:`moveChunk`" and the ":wiki:`Sharding`" wiki page.
+
+.. STUB ":doc:`/sharding`."
 
 .. function:: sh.setBalancerState(state)
 

@@ -43,7 +43,7 @@ Or:
    produce unpredictable and unexpected results in some situations.
 
 .. seealso:: The documentation of the ":dbcommand:`collStats`" command
-   and the ":func:`stats()`," method in the :doc:`mongo shell </mongo>`.
+   and the ":func:`stats()`," method in the :program:`mongo` shell.
 
 Fields
 ------

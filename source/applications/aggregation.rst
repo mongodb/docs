@@ -10,10 +10,10 @@ Overview
 --------
 
 The MongoDB aggregation framework provides a means to calculate
-aggregate values without having to use :doc:`map/reduce
-</core/map-reduce>`. While map/reduce is powerful, using map/reduce is
-more difficult than necessary for many simple aggregation tasks, such as
-totaling or averaging field values.
+aggregate values without having to use :term::`map-reduce`. While
+map-reduce is powerful, using map-reduce is more difficult than
+necessary for many simple aggregation tasks, such as totaling or
+averaging field values.
 
 If you're familiar with :term:`SQL`, the aggregation framework
 provides similar functionality to "``GROUP BY``" and related SQL

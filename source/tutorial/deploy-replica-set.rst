@@ -21,7 +21,7 @@ system failures. A replica set of this size provides sufficient
 capacity to host many distributed read operations. While MongoDB's
 replica set functionality provides a great deal of flexibility and
 specific definable node behaviors or types, it's best to avoid this
-additional complexity unless the functionality is required.
+additional complexity your application requires the functionality.
 
 Requirements
 ------------
@@ -40,10 +40,7 @@ Procedure
 This procedure assumes that you already have instances of MongoDB
 installed on all systems that you hope to have as members of your
 replica set. If you have not already installed MongoDB, see the
-following guides:
-
-- ":doc:`/tutorial/install-mongodb-for-testing-and-development`"
-- ":doc:`/tutorial/install-mongodb-in-production-environments`."
+:ref:`installation tutorials <tutorials-installation>`.
 
 Development and Test Replica Set
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

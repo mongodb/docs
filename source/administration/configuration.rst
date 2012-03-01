@@ -96,10 +96,10 @@ following explanation:
   :program:`mongod` does not overwrite an existing log file
   following the server start operation.
 
-- :setting:`journal` is ``true``, which enables
-  :doc:`journaling </core/journaling>` which ensures single instance
-  write-durability. 64-bit builds of :program:`mongod` enable
-  :term:`journaling <journal>` by default. Thus, this setting may be redundant.
+- :setting:`journal` is ``true``, which enables :term:`journaling <journal>`.
+   Journaling ensures single instance write-durability. 64-bit builds
+   of :program:`mongod` enable journaling by default. Thus, this
+   setting may be redundant.
 
 Given the default configuration, some of these values may be
 redundant. However, in many situations explicitly stating the
@@ -143,7 +143,9 @@ Consider the following explanation for these configuration decisions:
   connecting over the ``localhost`` interface for the first time to
   create user credentials.
 
-.. seealso:: ":doc:`/administration/security`"
+.. seealso:: The ":wiki:`Security and Authentication <Security+and+Authentication>`" wiki page.
+
+.. STUB ":doc:`/administration/security`"
 
 Replication and Sharding Configuration
 --------------------------------------
@@ -256,8 +258,10 @@ among all :program:`mongos` instances.
    data, for which smaller chunk sizes are best, and minimizing chunk
    migration, for which larger chunk sizes are optimal.
 
-.. seealso:: ":doc:`/core/sharding`" for more information on sharding
-   and shard cluster configuration.
+.. seealso:: The ":wiki:`Sharding`" wiki page for more information on
+   sharding and shard cluster configuration.
+
+   .. STUB ":doc:`/core/sharding`"
 
 Running Multiple Database Instances on the Same System
 ------------------------------------------------------
@@ -316,8 +320,10 @@ needed:
 - :setting:`slowms` configures the threshold for the :term:`database
   profiler` to consider a query "slow." The default value is 100
   milliseconds. Set a lower value if the database profiler does not
-  return useful results. See the ":doc:`/applications/optimization`"
+  return useful results. See the ":wiki:`Optimization`" wiki page
   for more information on optimizing operations in MongoDB.
+
+  .. STUB ":doc:`/applications/optimization`"
 
 - :setting:`profile` sets the :term:`database profiler`
   level. The profiler is not active by default because of the possible

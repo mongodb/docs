@@ -337,9 +337,11 @@ This returns all operations that lasted longer than 100 milliseconds.
 Ensure that the value specified here (i.e. ``100``) is above the
 :setting:`slowms` threshold.
 
-.. seealso:: ":doc:`/applications/optimization`" addresses strategies
+.. seealso:: The ":wiki:`Optimization`" wiki page addresses strategies
    that may improve the performance of your database queries and
    operations.
+
+.. STUB ":doc:`/applications/optimization`"
 
 .. _replica-set-monitoring:
 
@@ -395,8 +397,10 @@ instances. Additionally, shard clusters require monitoring to ensure
 that data is effectively distributed among nodes and that sharding
 operations are functioning appropriately.
 
-.. seealso:: See the ":doc:`/core/sharding`" document for more
+.. seealso:: See the ":wiki:`Sharding`" wiki page for more
    information.
+
+.. STUB ":doc:`/core/sharding`"
 
 Config Servers
 ~~~~~~~~~~~~~~
