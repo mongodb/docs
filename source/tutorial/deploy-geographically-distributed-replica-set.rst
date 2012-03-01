@@ -103,8 +103,7 @@ Consider the following features of this deployment:
     (incoming and outgoing packets) on the default MongoDB port
     (e.g. ``27017``) from *within* your deployment.
 
-    .. seealso:: The ":doc:`/administration/security`" document for
-       more information regarding security and firewalls.
+    .. seealso:: The ":ref:`replica-set-security`" section for more information regarding security and firewalls.
 
 Use the following configuration for each MongoDB instance:
 

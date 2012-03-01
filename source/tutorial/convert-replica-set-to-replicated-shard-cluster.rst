@@ -37,8 +37,8 @@ In brief, the process is as follows:
 Process
 -------
 
-Install MongoDB for a ":doc:`development or testing environment
-</tutorial/install-mongodb-for-testing-and-development>`".
+Install MongoDB according to a ":ref:`MongoDB Installation Tutorial
+<tutorials-installation>`".
 
 .. note::
 
@@ -47,9 +47,10 @@ Install MongoDB for a ":doc:`development or testing environment
    </tutorial/install-mongodb-in-production-environments>`.
 
    If your existing deployment is already a replica set, you can omit
-   the next step. If your existing deployment is a standalone
-   instance, use :doc:`these instructions to convert a standalone
-   instance to a replica set </tutorial/convert-standalone-node-to-shard-cluster>`.
+   the next step.
+
+   .. STUB If your existing deployment is a standalone
+   .. STUB instance, use :doc:`these instructions to convert a standalone instance to a replica set </tutorial/convert-standalone-node-to-shard-cluster>`.
 
 Deploy a Replica Set with Test Data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

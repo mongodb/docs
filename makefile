@@ -21,12 +21,12 @@ else
 endif
 
 # Internal variables.
-PAPEROPT_a4	= -D latex_paper_size=a4
-PAPEROPT_letter = -D latex_paper_size=letter
-ALLSPHINXOPTS	= -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
+PAPEROPT_a4		= -D latex_paper_size=a4
+PAPEROPT_letter 	= -D latex_paper_size=letter
+ALLSPHINXOPTS		= -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
+ASPIRATIONALOPTS	= -d $(BUILDDIR)/aspiration-doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) aspiration
 
 .PHONY: help clean html dirhtml singlehtml epub latex latexpdf text man changes linkcheck build-branch setup-branches publish
-
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
@@ -41,36 +41,39 @@ help:
 	@echo "	 linkcheck  to check all external links for integrity"
 	@echo ""
 	@echo "MongoDB Manual Specific Targets."
+	@echo "	 publish	runs 'make build-branch' and then deploys the build to $(publication-output)"
 	@echo "	 branch-setup	to setup git branches for the first time."
 	@echo "	 build-branch	to build the current branch."
-	@echo "	 deploy		moves builds to ."
-	@echo "	 publish	runs make build-branch and make deploy."
 	@echo "See 'meta.build-process.rst' for more information."
 
 #
 # Meta targets that control the build and publication process.
 #
 
+publish:
+	make MODE='publish' build-branch
+	make MODE='publish' deploy
+
 build-branch:
 	@echo Running a build of the \$(current-branch)\ branch.
 	@echo ""
 	make MODE='publish' dirhtml
 	make MODE='publish' singlehtml
-	@echo "All builds complete. Verify the build now and then run 'make deploy'"
+	@echo "All builds complete.'"
 	@echo "to complete the build process."
 
-publish:
-	make MODE='publish' build-branch
-	make MODE='publish' deploy
-
+ifeq ($(MODE),publish)
 deploy:
 	@echo "Exporting builds..."
+	sed -i 's/href="contents.html/href="index.html/g' $(BUILDDIR)/singlehtml/index.html
+	cp $(BUILDDIR)/dirhtml/search/index.html $(BUILDDIR)/singlehtml/search.html
 	mkdir -p $(publication-output)/$(current-branch)/single/
 	cp -R $(BUILDDIR)/dirhtml/* $(publication-output)/$(current-branch)
 	cp -R $(BUILDDIR)/singlehtml/* $(publication-output)/$(current-branch)/single/
 	@echo "Running the publication routine..."
 	$(publication-script)
 	@echo "Publication succeessfully deployed."
+endif
 
 disabled-builds:
 	@echo make epub
@@ -134,19 +137,6 @@ epub:
 	@echo
 	@echo "Build finished. The epub file is in $(BUILDDIR)/epub."
 
-latex:
-	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
-	@echo
-	@echo "Build finished; the LaTeX files are in $(BUILDDIR)/latex."
-	@echo "Run \`make' in that directory to run these through (pdf)latex" \
-	      "(use \`make latexpdf' here to do that automatically)."
-
-latexpdf:
-	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
-	@echo "Running LaTeX files through pdflatex..."
-	$(MAKE) -C $(BUILDDIR)/latex all-pdf
-	@echo "pdflatex finished; the PDF files are in $(BUILDDIR)/latex."
-
 man:
 	$(SPHINXBUILD) -b man $(ALLSPHINXOPTS) $(BUILDDIR)/man
 	@echo
@@ -162,6 +152,43 @@ linkcheck:
 	@echo
 	@echo "Link check complete; look for any errors in the above output " \
 	      "or in $(BUILDDIR)/linkcheck/output.txt."
+
+
+######################################################################
+#
+# Build Targets for Aspirational Builds.
+#
+######################################################################
+
+
+aspirational-html:
+	$(SPHINXBUILD) -b html $(ASPIRATIONALOPTS) $(BUILDDIR)/aspiration-html
+	@echo
+	@echo "Build finished. The Aspirational HTML pages are in $(BUILDDIR)/aspiration-html."
+
+aspirational-dirhtml:
+	$(SPHINXBUILD) -b dirhtml $(ASPIRATIONALOPTS) $(BUILDDIR)/aspiration-dirhtml
+	@echo
+	@echo "Build finished. The Aspirational HTML pages are in $(BUILDDIR)/aspiration-dirhtml."
+
+aspirational-latex:
+	$(SPHINXBUILD) -b latex $(ASPIRATIONALOPTS) $(BUILDDIR)/aspiration-latex
+	@echo
+	@echo "Build finished; the Aspirational LaTeX files are in $(BUILDDIR)/aspiration-latex."
+	@echo "Run \`make' in that directory to run these through (pdf)latex" \
+	      "(use \`make latexpdf' here to do that automatically)."
+
+aspirational-latexpdf:
+	$(SPHINXBUILD) -b latex $(ASPIRATIONALOPTS) $(BUILDDIR)/aspiration-latex
+	@echo "Running LaTeX files through pdflatex..."
+	$(MAKE) -C $(BUILDDIR)/latex all-pdf
+	@echo "pdflatex finished; the Aspirational PDF files are in $(BUILDDIR)/aspiration-latex."
+
+aspirational-linkcheck:
+	$(SPHINXBUILD) -b linkcheck $(ASPIRATIONALOPTS) $(BUILDDIR)/aspiration-linkcheck
+	@echo
+	@echo "Aspirational link check complete; look for any errors in the above output " \
+	      "or in $(BUILDDIR)/aspiration-linkcheck/output.txt."
 
 ######################################################################
 #

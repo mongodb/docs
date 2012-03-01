@@ -22,9 +22,10 @@ Introduction to MongoDB
 
 - Basic Concepts
 
+.. _tutorials-installation:
 
-Tutorials
----------
+MongoDB Installation Tutorials
+------------------------------
 
 .. toctree::
    :maxdepth: 1
@@ -33,15 +34,3 @@ Tutorials
    tutorial/install-mongodb-on-debian-or-ubuntu-linux
    tutorial/install-mongodb-on-linux
    tutorial/install-mongodb-on-os-x
-
-Stubs
-~~~~~
-
-.. toctree::
-   :maxdepth: 1
-
-
-   tutorial/install-mongodb-on-windows
-   tutorial/install-mongodb-for-testing-and-development
-   tutorial/install-mongodb-in-production-environments
-   tutorial/insert-test-data-into-a-mongodb-database

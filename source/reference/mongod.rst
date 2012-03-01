@@ -157,8 +157,10 @@ Options
    will continue to have access to the database until the you create
    the first user.
 
-   See the ":doc:`/administration/security`" document for more
-   information regarding this functionality.
+   See the ":wiki:`Security and Authentication <Security+and+Authentication>`
+   wiki page for more information regarding this functionality.
+
+   .. STUB ":doc:`/administration/security`"
 
 .. option:: --cpu
 

@@ -78,8 +78,10 @@ User Commands
 Sharding
 ~~~~~~~~
 
-.. seealso:: ":doc:`/core/sharding`" for more information about
-   MongoDB's sharding functionality.
+.. seealso:: The ":wiki:`Sharding`" wiki page for more information
+   about MongoDB's sharding functionality.
+
+.. STUB ":doc:`/core/sharding`"
 
 .. dbcommand:: addShard
 
@@ -152,8 +154,10 @@ Sharding
    Choosing the right shard key to effectively distribute load among
    your shards requires some planning.
 
-   .. seealso:: ":doc:`/core/sharding`" for more information
+   .. seealso:: The ":wiki:`Sharding`" wiki page  for more information
       related to sharding and the choice of shard key.
+
+   .. STUB ":doc:`/core/sharding`"
 
    .. warning::
 
@@ -462,13 +466,13 @@ Aggregation
                            members of replica sets, this is the only
                            available option.
 
-   .. seealso:: ":doc:`/core/map-reduce`, provides a greater overview
-      of MognoDB's map/reduce functionality. Consider
-      ":doc:`/applications/simple-aggregation` for simple aggregation
-      operations and ":doc:`/applications/aggregation`" for a more flexible
-      approach to data aggregation in MongoDB.
+   .. seealso:: ":func:`mapReduce()`" and ":term:`map-reduce`."
 
-   .. seealso:: ":func:`mapReduce()`" and ":doc:`/core/map-reduce`"
+      Also, the ":wiki:`MapReduce` page, provides a greater overview
+      of MognoDB's map/reduce functionality. Consider the
+      ":wiki:`Simple application <Aggregation>`" support for basic
+      aggregation operations and ":doc:`/applications/aggregation`"
+      for a more flexible approach to data aggregation in MongoDB.
 
    .. slave-ok
 
