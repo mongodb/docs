@@ -48,6 +48,11 @@ agent on a Windows host, skip to the :ref:`window instructions
 
         sudo apt-get install python-setuptools
 
+   For Red Hat Enterprise Linux (RHEL,) CentOS, or Fedora users, the
+   the following command will install the package: ::
+
+        sudo yum install python-setuputils
+
 3. If your system is running Python 2.4, you will need to install the
    following Python modules:
 
