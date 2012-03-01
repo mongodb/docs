@@ -96,6 +96,8 @@ about your repository. If you are running a 64-bit system
    name=10gen Repository
    baseurl=http://downloads-distro.mongodb.org/repo/redhat/os/x86_64
    gpgcheck=0
+   // TODO : Dan Crosta suggested that this line be added 
+   enabled=1
 
 If you are running a 32-bit system, which isn't recommended for
 production deployments, place the following configuration in
@@ -107,6 +109,8 @@ production deployments, place the following configuration in
    name=10gen Repository
    baseurl=http://downloads-distro.mongodb.org/repo/redhat/os/i686
    gpgcheck=0
+   // TODO : Dan Crosta suggested that this line be added 
+   enabled=1
 
 Installing Packages
 ~~~~~~~~~~~~~~~~~~~
@@ -147,6 +151,8 @@ Start MongoDB
 Start the :program:`mongod` process by issuing the following command
 (as root, or with ``sudo``):
 
+// TODO : should be service mongod start and not 'mongodb' start
+
 .. code-block:: sh
 
    service mongodb start
@@ -168,6 +174,8 @@ Stop MongoDB
 Stop the :program:`mongod` process by issuing the following command
 (as root, or with ``sudo``):
 
+// TODO : should be service mongod stop and not 'mongodb' stop
+
 .. code-block:: sh
 
    service mongodb stop
@@ -177,6 +185,8 @@ Restart MongoDB
 
 You can restart the :program:`mongod` process by issuing the following
 command (as root, or with ``sudo``):
+
+// TODO : should be service mongod restart and not 'mongodb' restart
 
 .. code-block:: sh
 
