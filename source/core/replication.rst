@@ -205,11 +205,11 @@ remain a secondary.
 Node Priority
 ~~~~~~~~~~~~~
 
-In a replica set, every node has a "priority," that helps
-determine eligibility for :ref:`election <replica-set-elections>` to
-"primary." By default, all nodes have a priority of ``1``, unless you modify the
-:data:`members[n].priority` value. All nodes have a single
-vote in :ref:`elections <replica-set-elections>`.
+In a replica set, every node has a "priority," that helps determine
+eligibility for :ref:`election <replica-set-elections>` to
+:term:`primary`. By default, all nodes have a priority of ``1``,
+unless you modify the :data:`members[n].priority` value. All nodes
+have a single vote in :ref:`elections <replica-set-elections>`.
 
 .. warning::
 

@@ -53,7 +53,7 @@ From to time, you may need to add an additional member to an existing
   copy the data to the new system and begin replication within the
   window allowed by the :term:`oplog`.
 
-  Use :fun:`db.printReplicationInfo()` to check the current state of
+  Use :func:`db.printReplicationInfo()` to check the current state of
   replica set members with regards to the oplog.
 
 To add a member to an existing :term:`replica set`, deploy a new
@@ -73,7 +73,8 @@ following command to add the new member to the set:
    rs.add("mongo2.example.net:27017")
 
 Alternately, specify an entire configuration document with some or all
-of the fields in a :data:`members` document, for example:
+of the fields in a :data:`members <rs.conf.members>` document, for
+example:
 
 .. code-block:: javascript
 
@@ -161,10 +162,10 @@ result of this operation.
 
 .. warning::
 
-   Replica set configurations can trigger the current :term:`primary`
-   to step down forcing an :term:`election`. This causes the current
-   shell session to produce an error even when the operation
-   succeeds. Clients connected to this replica set will also
+   Replica set configuration changes can trigger the current
+   :term:`primary` to step down forcing an :term:`election`. This
+   causes the current shell session to produce an error even when the
+   operation succeeds. Clients connected to this replica set will also
    disconnect.
 
 .. _replica-set-node-priority-configuration:
@@ -375,10 +376,11 @@ will delay replication by 3600 seconds, or 1 hour.
 
 .. warning::
 
-   The length of the secondary "``slaveDelay``" must fit within the
-   window of the :term:`oplog`. If the oplog is shorter than the
-   ``slaveDelay`` window the delayed member will not be able to
-   successfully replicate operations.
+   The length of the secondary ":data:`slaveDelay
+   <members[n].slaveDelay>`" must fit within the window of the
+   :term:`oplog`. If the oplog is shorter than the :data:`slaveDelay
+   <members[n].slaveDelay>` window the delayed member will not be able
+   to successfully replicate operations.
 
 .. seealso:: ":data:`members[n].slaveDelay`," ":ref:`Replica Set
    Reconfiguration <replica-set-reconfiguration-usage>`," ":ref:`Oplog
@@ -404,10 +406,10 @@ to the *current primary* node, issue the following command:
 
    rs.addArb("[hostname]:[port]")
 
-Replace the "``"[hostname]:[port]"``" string with the name of the
+Replace the "``[hostname]:[port]``" string with the name of the
 hostname and port of the arbiter that you wish to add to the set.
 
-.. seealso:: ":setting:`replSet`," ":program:`mongod --replSet`,
+.. seealso:: ":setting:`replSet`," ":option:`--replSet <mongod --replSet>`,
    and ":func:`rs.addArb()`."
 
 .. _replica-set-non-voting-configuration:
