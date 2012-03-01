@@ -170,8 +170,10 @@ Query Modifiers
    a query.
 
    .. seealso:: :operator:`$explain` for related functionality and
-      ":doc:`/applications/optimization`" regarding optimization
-      strategies.
+      the ":wiki:`Optimization`" wiki page for information regarding
+      optimization strategies.
+
+      .. STUB ":doc:`/applications/optimization`"
 
 .. function:: showDiskLoc()
 

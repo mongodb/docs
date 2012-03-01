@@ -38,16 +38,10 @@ Process
 -------
 
 Install MongoDB according to a ":ref:`MongoDB Installation Tutorial
-<tutorials-installation>`".
+<tutorials-installation>`". If have an existing MongoDB :term:`replica
+set` deployment, you may omit the next step.
 
-.. note::
-
-   If you're converting an existing production set to a shard cluster,
-   install MongoDB for a :doc:`production environment
-   </tutorial/install-mongodb-in-production-environments>`.
-
-   If your existing deployment is already a replica set, you can omit
-   the next step.
+   .. .. note::
 
    .. STUB If your existing deployment is a standalone
    .. STUB instance, use :doc:`these instructions to convert a standalone instance to a replica set </tutorial/convert-standalone-node-to-shard-cluster>`.
