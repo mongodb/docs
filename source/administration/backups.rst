@@ -311,7 +311,7 @@ procedure:
    mount /dev/vg0/mdb-new /srv/mongodb
 
 This sequence is identical to procedures explained above except that
-the output direct input (i.e. :term:`piped`) over SSH to the
+the output direct input (i.e. :term:`piped <pipe>`) over SSH to the
 remote system.
 
 .. _backup-without-journaling:

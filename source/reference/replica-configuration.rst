@@ -208,7 +208,7 @@ Configuration Variables
    Defines the names and combination of :data:`tags
    <members[n].tags>` for use by the application layer to guarantee
    :term:`write concern` to database using the
-   :dbcommand:`getLastError` command to provide :term:`data center
+   :dbcommand:`getLastError` command to provide :term:`data-center
    awareness`.
 
 .. _replica-set-reconfiguration-usage:

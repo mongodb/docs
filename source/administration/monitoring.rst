@@ -405,7 +405,7 @@ operations are functioning appropriately.
 Config Servers
 ~~~~~~~~~~~~~~
 
-The :term:`configdb` provides a map of documents to shards. The
+The :term:`config database` provides a map of documents to shards. The
 cluster updates this map as :term:`chunks <chunk>` move between
 shards. When a configuration server becomes inaccessible, some
 sharding operations like moving chunks and starting :program:`mongos`

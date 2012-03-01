@@ -159,7 +159,7 @@ store the cluster's metadata.
    Nevertheless, these instructions specify creating three config
    servers.
 
-1. Create the following data directories for three :term:`configsrv`
+1. Create the following data directories for three :term:`config database`
    instances:
 
    - ``/data/example/config1``

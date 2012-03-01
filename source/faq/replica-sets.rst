@@ -42,7 +42,7 @@ possible.
 
 .. note::
 
-   :term:`Eventually consistent` reads, like the ones that will return
+   :term:`Eventually consistent <eventual consistency>` reads, like the ones that will return
    from a replica set are only possible with a :term:`write concern`
    that permits reads from :term:`secondary` members.
 
@@ -52,7 +52,7 @@ What do the terms "primary" and "master" mean?
 :term:`Primary` and :term:`master` are states that a :term:`mongod`
 process can have that control if the instance can accept write
 operations in a :term:`replica set` or conventional
-:term:`master/slave` configuration, respectively. MongoDB's
+:term:`master`-:term:`slave` configuration, respectively. MongoDB's
 replication is "single-master:" only one node can accept write
 operations at a time, to ensure consistency.
 
@@ -68,7 +68,7 @@ What do the terms "secondary" and "slave" mean?
 
 :term:`Secondary` and :term:`slave` nodes are states that a
 :term:`mongod` process can have in :term:`replica sets <replica set>`
-or :term:`master/slave` replication deployment respectively. This
+or :term:`master`-:term:`slave` replication deployment respectively. This
 state indicates that these instances *do not* accept write operations,
 and only replicate operations from :term:`primary` or :term:`master`
 instances.
@@ -117,9 +117,9 @@ What is the preferred replication method: replica sets or replica pairs?
 
 .. deprecated:: 1.6
 
-:term:`Replica sets <replica set>` replaced :term:`replica pairs
-<replica pair>` in version 1.6. :term:`Replica sets <replica set>` are
-the preferred :term:`replication` mechanism in MongoDB.
+:term:`Replica sets <replica set>` replaced :term:`replica pairs` in
+version 1.6. :term:`Replica sets <replica set>` are the preferred
+:term:`replication` mechanism in MongoDB.
 
 Why use journaling if replication already provides data redundancy?
 -------------------------------------------------------------------
@@ -166,7 +166,7 @@ How many arbiters do replica sets need?
 ---------------------------------------
 
 Some configurations do not require any :term:`arbiter`
-instances. Arbiters vote in :term:`elections` for :term:`primary` but
+instances. Arbiters vote in :term:`elections <election>` for :term:`primary` but
 do not replicate data like :term:`secondary` members. Because :term:`replica
 sets <replica set>` require a majority of the nodes to elect a primary, arbiters
 provide a lightweight method to support the operation set.

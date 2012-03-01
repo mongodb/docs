@@ -39,7 +39,7 @@ cluster.
 Implementation
 --------------
 
-MongoDB uses :term:`single master replication` to ensure that the
+MongoDB uses :term:`single-master replication` to ensure that the
 database remains consistent. However, clients may modify the
 :ref:`read preferences <replica-set-read-preference>` on a
 per-connection basis in order to distribute read operations to the

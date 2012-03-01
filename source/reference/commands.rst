@@ -106,7 +106,7 @@ Sharding
    Replace "``<hostname>:<port>``" with the hostname and port of the
    database instance you want to add as a shard. Because the
    :program:`mongos` instances do not have state and distribute
-   configuration in the :term:`configdbs <configdb>`, you send this
+   configuration in the :term:`config database`, send this
    command to only one :program:`mongos` instance.
 
    .. note::
@@ -2362,7 +2362,7 @@ Internal Use
 
 .. dbcommand:: mapreduce.shardedfinish
 
-   Provides internal functionality to support :term:`map reduce` in
+   Provides internal functionality to support :term:`map-reduce` in
    :term:`sharded <shard cluster>` environments.
 
    .. seealso:: ":dbcommand:`mapreduce`

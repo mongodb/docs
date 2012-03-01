@@ -151,7 +151,7 @@ After sharding, why is all the data still on one server?
 
 Ensure that you have declared a :term:`shard key` for your
 collections. Until you have configured the shard key, MongoDB will not
-create :term:`chunks` and :term:`sharding` will not occur.
+create :term:`chunks <chunk>` and :term:`sharding` will not occur.
 
 In the current implementation, the default chunk size is 64 megabytes,
 which means the collection must have at least 64 megabytes before a
@@ -230,7 +230,7 @@ What is the process for moving, renaming, or changing the number of config serve
 When do the :program:`mongos` servers pickup config server changes?
 -------------------------------------------------------------------
 
-:program:`mongos` instances maintain a cache of the :term:`configdb`
+:program:`mongos` instances maintain a cache of the :term:`config database`
 that holds the metadata for the :term:`shard cluster`. This meta data
 includes :term:`chunk` placement on :term:`shards <shard>`.
 
