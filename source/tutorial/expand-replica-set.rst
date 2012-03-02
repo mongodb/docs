@@ -52,12 +52,19 @@ following is located on the file system at ``/etc/mongodb.conf``.
 
    replSet = rs0/mongodb0.example.net,mongodb1.example.net,mongodb2.example.net,mongodb3.example.net
 
+//TODO : On using fork=true, I received an error saying that "--fork has to be used with --logpath" 
+         Please verify
+  
+
 Modify the :setting:`bind_ip` to reflect a secure interface on
 your system that will be able to access all other members of the set
 *and* on which all other members of the replica set can access the
 current node. The DNS or host names need to resolve to this IP address
 on the other members of the set. Configure network rules or a virtual
 private network (i.e. "VPN") to permit this access.
+
+// TODO : Please also add a line about the port variable
+
 
 .. note::
 
