@@ -10,6 +10,10 @@ About MongoDB and this Manual
 - About this Documentation
 - MongoDB Resources
 
+.. seealso:: The ":wiki:`About`," ":wiki:`Tutorial`," and
+   ":wiki:`Community`" wiki pages for more information about the
+   MongoDB project.
+
 Introduction to MongoDB
 -----------------------
 
@@ -19,8 +23,6 @@ Introduction to MongoDB
    faq
 
 - :doc:`/applications/drivers`
-
-- Basic Concepts
 
 .. _tutorials-installation:
 

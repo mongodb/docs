@@ -4,11 +4,25 @@ The MongoDB Manual
 
 .. default-domain:: mongodb
 
+.. toctree::
+   :maxdepth: 1
+
+   getting-started
+   applications
+   replication
+   administration
+   reference
+
+.. mongo
+.. sharding
+
 .. seealso:: The :ref:`MongoDB Wiki <mongodb-wiki>` for additional
    documentation.
 
 Getting Started
 ---------------
+
+*Documentation, FAQ, and tutorials for new MongoDB users.*
 
 .. toctree::
    :maxdepth: 2
@@ -16,8 +30,21 @@ Getting Started
    getting-started
    faq
 
-Application Development
------------------------
+.. seealso:: The ":wiki:`About`," ":wiki:`Tutorial`," and
+   ":wiki:`Community`" wiki pages for more information about the
+   MongoDB project.
+
+MongoDB for Developers
+----------------------
+
+*Documentation on developing applications with MongoDB.*
+
+.. note::
+
+   This section is under heavy development, and will eventually
+   contain more information for developers who want to use MongoDB in
+   their projects. See the ":wiki:`Developer Zone <Developer+Zone>`"
+   in the MongoDB wiki.
 
 .. toctree::
    :maxdepth: 2
@@ -26,16 +53,34 @@ Application Development
    applications/drivers
    applications/replication
 
+.. seealso:: ":wiki:`Developer Zone <Developer+Zone>`" wiki pages and
+   the ":doc:`faq/developers`" document. Developers should be familiar
+   with the :doc:`mongo` shell and the
+
 .. core/map-reduce
 
 Core Functionality
 ------------------
+
+*Documentation on the operation and functioning of key MongoDB features.*
+
+.. note::
+
+   This section is under heavy development, and will eventually
+   contain more information regarding additional MongoDB features. In
+   the mean time see the :wiki:`MongoDB Wiki <>` for more
+   information on these topics.
 
 .. toctree::
    :maxdepth: 2
 
    core/replication
    core/replication-internals
+
+.. seealso:: The :wiki:`MongoDB Wiki <>` generally, and the
+   ":wiki:`Administrative <Admin+Zone>`" and
+   ":wiki:`Developer-centeric <Developer+Zone>`" areas of the wiki
+   which describes MongoDB's core functionality and operation.
 
 .. core/map-reduce
 .. core/journaling
@@ -45,6 +90,9 @@ Core Functionality
 
 Administration and Deployment
 -----------------------------
+
+*Documentation of MongoDB's operational aspects for systems
+administrators and users responsible MongoDB deployments.*
 
 .. toctree::
    :maxdepth: 2
@@ -56,25 +104,29 @@ Administration and Deployment
    administration/replica-sets
    administration/replication-architectures
 
+.. seealso:: The ":wiki:`Administration Zone <Admin+Zone>`" wiki page.
+
 .. administration/sharding
 .. administration/sharding-architectures
 .. administration/hardware-platform
 .. administration/operating-systems
 .. administration/security
 
-
 MongoDB Shell
 -------------
+
+*Documentation of the :program:`mongo` shell which provides a
+command-line interface to MongoDB for administration and testing. This
+documentation addresses the shell itself as well as the interface.*
 
 .. toctree::
    :maxdepth: 2
 
-   reference/javascript
-   reference/commands
-   reference/operators
-   reference/meta-query-operators
+   mongo
 
-.. mongo
+.. seealso:: The introductory ":wiki:`Tutorial`" in the MongoDB wiki
+   and the ":wiki:`Mongo Shell <mongo+-+The+Interactive+Shell>`" wiki
+   pages.
 
 .. Developing MongoDB
 .. ------------------
@@ -82,20 +134,6 @@ MongoDB Shell
 .. - Internal Architecture
 .. - Client Interfaces
 .. - Building MongoDB
-
-Chapters
---------
-
-.. toctree::
-   :maxdepth: 1
-
-   getting-started
-   applications
-   replication
-   administration
-
-.. mongo
-.. sharding
 
 Reference
 ---------
