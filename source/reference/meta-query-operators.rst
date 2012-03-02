@@ -9,17 +9,17 @@ Introduction
 
 In addition to the :doc:`MongoDB Query Operators
 </reference/operators>`, there are a number of "meta" operators that
-you may use to modify the output or behavior or output of the
+you may use to modify the output or behavior of a
 query. Specify these modifiers to a :func:`find()` query, in the
 following form (for the :program:`mongo` shell):
 
 .. code-block:: javascript
 
-   db.collection.find( { [QUERY] } )._addSpecial( [MODIFER] )
+   db.collection.find( { [QUERY] } )._addSpecial( [MODIFIER] )
 
 Here, the query specified by "``[QUERY]``" runs on the collection
-named ``collection`` while the operation specified by the
-``[MODIFER]`` The results are then processed by a modifier expression
+named ``collection`` with the operation specified by the
+"``[MODIFIER]``". The results are then processed by a modifier expression
 selected from the following list. Many of the operators have
 corresponding :doc:`methods in the shell </reference/javascript>`. For
 the proposes of this reference, this document assumes the above form
@@ -90,6 +90,12 @@ Modifiers
    Use operation alone or in conjunction with :operator:`$max`
    to limit results to a specific range.
 
+
+   .. note::
+
+      In most cases, you should avoid this operator in favor of
+      :operator:`$gte`.
+
 .. operator:: $max
 
    Specify a :operator:`$max` value to specify an upper boundary for
@@ -108,6 +114,11 @@ Modifiers
 
    Use operation alone or in conjunction with :operator:`$min`
    to limit results to a specific range.
+
+   .. note::
+
+      In most cases, you should avoid this operator in favor of
+      :operator:`$lt`.
 
 .. operator:: $query
 
@@ -148,7 +159,7 @@ Modifiers
    value (e.g. "``1``") to sort in ascending order.
 
    Unless you have a index for the specified key pattern, use
-   :operator:`$orderby` in conjunction with :operator:`$maxScan` and
+   :operator:`$orderby` in conjunction with :operator:`$maxScan` and/or
    :func:`limit()` to avoid requiring MongoDB to perform a large
    in-memory sort. :func:`limit()` increases the speed and reduce
    the amount of memory required to return this query by way of an
@@ -157,8 +168,9 @@ Modifiers
 .. operator:: $hint
 
    Use the :operator:`$hint` operator to force the query optimizer to
-   use a specific index to fulfill the query. Consider the following
-   form:
+   use a specific index to fulfill the query.  Use :operator:`$hint`
+   for testing query performance and indexing strategies. Consider
+   the following form:
 
    .. code-block:: javascript
 
@@ -166,7 +178,8 @@ Modifiers
 
    This operation returns all documents in the collection named
    "``collection``" using the index on the "``_id``" field. Use this
-   operator to prevent MongoDB from performing inefficient queries.
+   operator to override MongoDB's default index selection process and
+   pick indexes manually.
 
 .. operator:: $explain
 
@@ -216,5 +229,7 @@ Modifiers
    Do not use snapshot with :operator:`$hint`, or :operator:`$orderby`
    (:func:`sort()`.)
 
-   All queries with responses less than 1 megabyte are effectively
-   snapshotted.
+   .. All queries with responses less than 1 megabyte are effectively
+   .. snapshotted.
+
+   .. TODO "I don't think that's right about < 1 mb" --astaple
