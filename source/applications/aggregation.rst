@@ -88,8 +88,8 @@ Expressions
 Expressions calculate values from documents as they pass through the
 pipeline and collect these results with calculated values from the
 other documents that have flowed through the pipeline.  The
-aggregation framework defines expressions in :term:`JSON` using a
-prefix format.
+aggregation framework defines expressions in a :term:`JSON` like format using
+prefixes.
 
 Often, expressions are stateless and are only evaluated when seen by
 the aggregation process. Stateless expressions perform operations such
@@ -169,7 +169,7 @@ Result
 ~~~~~~
 
 The aggregation operation in the previous section returns a
-:term:`JSON document` with two fields:
+:term:`document` with two fields:
 
 - ``result`` which holds an array of documents returned by the :term:`pipeline`
 

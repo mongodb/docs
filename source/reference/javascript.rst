@@ -14,26 +14,26 @@ Query and Update Methods
 
 .. function:: find(query,projection)
 
-   :param JSON query: A :term:`JSON document` that specifies the
-                     :term:`query` using valid :term:`JSON` and
-                     :doc:`query operators </reference/operators>`.
+   :param document query: A :term:`document` that specifies the
+                          :term:`query` using the JSON-like syntax and
+                          :doc:`query operators </reference/operators>`.
 
-   :param JSON projection: A JSON document that controls the
+   :param document projection: A :term:`document` that controls the
                            :term:`projection`, or the contents of the
                            data returned.
 
    :returns: All of the documents that match the ``query`` document.
 
    Provides access to querying functionality. The argument to
-   :func:`find()` takes the form of a :term:`JSON` document. See
+   :func:`find()` takes the form of a :term:`document`. See
    the ":doc:`/reference/operators`" for an overview of the available
    operators for specifying and narrowing the query.
 
 .. function:: findOne(query)
 
-   :param JSON query: A JSON document that specifies the :term:`query`
-                     using valid JSON and :doc:`query operators
-                     </reference/operators>`.
+   :param document query: A :term:`document` that specifies the :term:`query`
+                          using the JSON-like syntax and :doc:`query operators
+                          </reference/operators>`.
 
    :returns: One document that satisfies the query specified as the
              argument to this method.
@@ -59,7 +59,7 @@ Query and Update Methods
    options, as a sub-document that specifies the following:
 
    :field query: A query object. This statement might resemble the
-                  :term:`JSON document` passed to :func:`find()`,
+                  :term:`document` passed to :func:`find()`,
                   and should return *one* document from the database.
 
    :field optional sort: If the query selects multiple documents, the
@@ -115,7 +115,7 @@ Query and Update Methods
 
    Provides the ability to create a new document in the current
    database and collection. The argument to :func:`save()` takes
-   the form of a :term:`JSON document`. See ":ref:`update-operators`"
+   the form of a :term:`document`. See ":ref:`update-operators`"
    for a reference of all operators that affect updates.
 
 .. function:: update(query, update, [upsert,] [multi])
@@ -126,7 +126,7 @@ Query and Update Methods
                  the :ref:`query selectors <query-selectors>` as you
                  would in a :func:`find()` operation.
 
-   :param update: A :term:`JSON document` that will either replace the
+   :param update: A :term:`document` that will either replace the
                   matching document, or use :ref:`update operators
                   <update-operators>` to describe the update. By
                   default, this operation *only* updates one document.
@@ -144,7 +144,7 @@ Query and Update Methods
 
    Provides the ability to update an existing document in the current
    database and collection. The argument to :func:`update()` takes
-   the form of a :term:`JSON document`. See ":ref:`update-operators`"
+   the form of a :term:`document`. See ":ref:`update-operators`"
    for a reference of all operators that affect updates.
 
 Query Modifiers
@@ -368,11 +368,11 @@ Data Aggregation
 
 .. function:: group({key, reduce, initial, [keyf,] [cond,] finalize})
 
-   The :func:`group()` accepts a single :term:`JSON document` that
+   The :func:`group()` accepts a single :term:`document` that
    contains the following:
 
    :field key: Specify one or more fields to group by. Use the
-               form of a :term:`JSON document`.
+               form of a :term:`document`.
 
    :field reduce: Specify a reduce function that operates over all the
                   iterated objects. Typically these aggregator
@@ -458,7 +458,7 @@ Data Aggregation
    The :func:`mapReduce()` provides a wrapper around the
    :dbcommand:`mapReduce` :term:`database command`. Always call the
    :func:`mapReduce()` method on a collection. The following
-   argument list specifies a :term:`JSON document` with 3 required and
+   argument list specifies a :term:`document` with 3 required and
    8 optional fields:
 
    :param map: A JavaScript function that performs the "map" step of
@@ -501,7 +501,7 @@ Data Aggregation
                              stage, to modify or control the output of
                              the :func:`mapReduce()` operation.
 
-   :param optional scope: Place a :term:`JSON` document as the contents
+   :param optional scope: Place a :term:`document` as the contents
                           of this field, to place fields into the
                           global javascript scope.
 
@@ -660,10 +660,11 @@ Database
 
    :param string name: Specifies the name of a collection to create.
 
-   :param JSON capped: Optional. If specified this document creates a
-                       capped collection. The capped argument is a
-                       JSON document that contains the following three
-                       fields:
+   :param document capped: Optional. If this :term:`document` is
+                           present, this command creates a capped
+                           collection. The capped argument is a
+                           :term:`document` that contains the
+                           following three fields:
 
    :param bytes size: If ``capped`` is ``true``, ``size`` Specifies a
                       maximum size in bytes, for the as a ":term:`cap
@@ -713,7 +714,7 @@ Database
 
 .. function:: db.currentOp()
 
-   :returns: A :term:`JSON` document that contains an array named
+   :returns: A :term:`document` that contains an array named
              "``inprog``".
 
    The ``inprog`` array reports the current operation in progress for
@@ -781,7 +782,7 @@ Database
 
 .. function:: db.getLastErrorObj()
 
-   :returns: A full :term:`JSON document` with status information.
+   :returns: A full :term:`document` with status information.
 
 .. function:: db.getMongo()
 
@@ -932,8 +933,8 @@ Database
 
 .. function:: db.runCommand(command)
 
-   :param JSON command: Specifies a :term:`database command` in the
-                        form of a JSON document.
+   :param document command: Specifies a :term:`database command` in the
+                            form of a :term:`document`.
 
    :param string command: When specifying a :doc:`command
                           </reference/commands>` as a string,
@@ -947,7 +948,7 @@ Database
 
 .. function:: db.serverStatus()
 
-   Returns a :term:`JSON document` that provides an over view of the
+   Returns a :term:`document` that provides an over view of the
    database process' state.
 
    This command provides a wrapper around the database command
@@ -1010,8 +1011,8 @@ Database
                           results. Unless specified, this command
                           returns all data in bytes.
 
-   :returns: A :term:`JSON document` that contains statistics
-             reflecting the database system's state.
+   :returns: A :term:`document` that contains statistics reflecting
+             the database system's state.
 
    This function provides a wrapper around the database command
    ":dbcommand:`dbStats`". The "``scale``" option allows you to
@@ -1129,14 +1130,14 @@ that you may use with collection objects.
 
 .. function:: ensureIndex(keys, options)
 
-   :param JSON keys: A :term:`JSON Document` that contains key/value
-                     pair or pairs with the name of the field or
-                     fields to index and order of the index. A ``1``
-                     specifies ascending and a ``-1`` specifies
-                     descending.
+   :param document keys: A :term:`document` that contains key/value
+                         pair or pairs with the name of the field or
+                         fields to index and order of the index. A
+                         ``1`` specifies ascending and a ``-1``
+                         specifies descending.
 
-   :param JSON options: An JSON document that controls the creation of
-                        the database. This argument is optional.
+   :param document options: A :term:`document` that controls the creation
+                            of the database. This argument is optional.
 
    .. warning:: Index names, including their full namespace
       (i.e. "``database.collection``") can be no longer than 128
@@ -1338,9 +1339,9 @@ that you may use with collection objects.
    full option to return full statistics.
 
    The :dbcommand:`validation <validate>` operation scans all of the
-   data structures for correctness and returns a single :term:`JSON
-   Document` that describes the relationship between the logical
-   collection and the physical representation of that data.
+   data structures for correctness and returns a single
+   :term:`document` that describes the relationship between the
+   logical collection and the physical representation of that data.
 
    The output can provide a more in depth view of how the collection
    uses storage. Be aware that this command is potentially resource
@@ -1367,7 +1368,7 @@ that you may use with collection objects.
                           results. Unless specified, this command
                           returns all data in bytes.
 
-   :returns: A :term:`JSON document` containing statistics that
+   :returns: A :term:`document` containing statistics that
              reflecting the state of the specified collection.
 
    This function provides a wrapper around the database command
@@ -1431,31 +1432,32 @@ Sharding
 
    :param name collection: The name of the collection to shard.
 
-   :param JSON key: A JSON document containing :term:`shard key` that
-                    the sharding system uses to :term:`partition` and
-                    distribute objects among the shards.
+   :param document key: A :term:`document` containing :term:`shard key`
+                        that the sharding system uses to
+                        :term:`partition` and distribute objects among
+                        the shards.
 
    :param boolean unique: Set true.
 
    Shards the named collection, according to the specified
-   :term:`shard key`. Specify shard keys in the form of a :term:`JSON
-   document`. Shard keys may refer to a single document field, or more
-   typically several document fields to form a "compound shard key."
+   :term:`shard key`. Specify shard keys in the form of a :term:`document`.
+   Shard keys may refer to a single document field, or more typically
+   several document fields to form a "compound shard key."
 
 .. function:: sh.splitFind(collection, query)
 
    :param string collection: Specify the sharded collection containing
                              the chunk to migrate.
 
-   :param JSON query: Specify a query to identify a document in a
-                      specific chunk. Typically specify the
-                      :term:`shard key` for a document as the query.
+   :param query: Specify a query to identify a document in a specific
+                 chunk. Typically specify the :term:`shard key` for a
+                 document as the query.
 
    Splits the chunk containing the document specified by the ``query``
    at its median point, creating two roughly equal chunks. Use
    :func:`sh.splitAt()` to split a collection in a specific point.
 
-   In most circumstances, chunk splitting should be left to the
+   In most circumstances, you should leave chunk splitting to the
    automated processes. However, when initially deploying a
    :term:`shard cluster` it is necessary to perform some measure of
    :term:`pre-splitting` using manual methods including
@@ -1466,9 +1468,10 @@ Sharding
    :param string collection: Specify the sharded collection containing
                              the chunk to migrate.
 
-   :param JSON query: Specify a query to identify a document in a
-                      specific chunk. Typically specify the
-                      :term:`shard key` for a document as the query.
+   :param document query: Specify a query to identify a document in a
+                          specific chunk. Typically specify the
+                          :term:`shard key` for a document as the
+                          query.
 
    Splits the chunk containing the document specified by the ``query``
    as if that document is at the "middle" of the collection, even if
@@ -1488,9 +1491,9 @@ Sharding
    :param string collection: Specify the sharded collection containing
                              the chunk to migrate.
 
-   :param JSON query: Specify a query to identify a document in a
-                      specific chunk. Typically specify the
-                      :term:`shard key` for a document as the query.
+   :param query: Specify a query to identify a document in a specific
+                 chunk. Typically specify the :term:`shard key` for a
+                 document as the query.
 
    :param string destination: Specify the name of the shard that you
                               wish to move the designated chunk to.
@@ -1557,7 +1560,7 @@ Replica Sets
 
 .. function:: rs.status()
 
-   :returns: A :term:`JSON document` with status information.
+   :returns: A :term:`document` with status information.
 
    This output reflects the current status of the replica set, using
    data derived from the heartbeat packets sent by the other members
@@ -1571,14 +1574,13 @@ Replica Sets
 
 .. function:: rs.initiate(configuration)
 
-   :param JSON,optional configuration: A :term:`JSON document` that
-                                       specifies the configuration of
-                                       a replica set. If not
-                                       specified, a default
-                                       configuration is used.
+   :param optional configuration: A :term:`document` that specifies
+                                  the configuration of a replica
+                                  set. If not specified, MongoDB will
+                                  use a default configuration.
 
    Initiates a replica set. Optionally takes a configuration argument
-   in the form of a :term:`JSON document` that holds the configuration
+   in the form of a :term:`document` that holds the configuration
    of a replica set. Consider the following model of the most basic
    configuration for a 3-member replica set: ::
 
@@ -1596,12 +1598,12 @@ Replica Sets
 
 .. function:: rs.conf(configuration)
 
-   :returns: a :term:`JSON document` that contains the current
+   :returns: a :term:`document` that contains the current
              :term:`replica set` configuration object.
 
 .. function:: rs.reconfig(configuration)
 
-   :param JSON configuration: A :term:`JSON document` that specifies
+   :param configuration: A :term:`document` that specifies
                               the configuration of a replica set.
 
    Initializes a new :term:`replica set` configuration. This function
@@ -1622,18 +1624,18 @@ Replica Sets
    Specify one of the following forms:
 
    :param string host: Specifies a host (and optionally port-number)
-                       for a new host member for the replica set. This
-                       host will be added with the default
-                       configuration.
+                       for a new host member for the replica
+                       set. MongoDB will add this host with the
+                       default configuration.
 
-   :param JSON configuration: A :term:`JSON document` that specifies a
-                              new replica set member, with a custom
-                              configuration.
+   :param document configuration: A :term:`document` that specifies a
+                                  new replica set member, with a
+                                  custom configuration.
 
    Provides a simple method to add a member to an existing
    :term:`replica set`. You can specify new hosts in one of two ways:
    as a "hostname" with an optional port number to use the default
-   configuration, or a as a JSON configuration object.
+   configuration, or as a configuration :term:`document`.
 
    This function will disconnect the shell briefly and forces a
    reconnection as the replica set renegotiates negotiates which node

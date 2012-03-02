@@ -22,7 +22,7 @@ or considering MongoDB for a new project or system.
 What kind of Database is MongoDB?
 ---------------------------------
 
-MongoDB is a document-oriented DBMS. Think of MySQL but with
+MongoDB is :term:`document`-oriented DBMS. Think of MySQL but with
 :term:`JSON` as the data model, rather than a relational model. There
 are no joins. If you have used object-relational mapping layers before
 in your programs, you will find the Mongo interface similar to use,

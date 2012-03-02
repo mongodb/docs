@@ -206,10 +206,9 @@ Sharding
 
       { msg: "draining ongoing" ,  state: "ongoing" , remaining: { chunks: 23 , dbs: 1 }, ok: 1 }
 
-   The ``remaining`` :term:`document <JSON document>`" specifies how
-   many chunks and databases remain on the shard. Use
-   :dbcommand:`printShardingStatus` to list the databases that you
-   must move from the shard.
+   The ``remaining`` :term:`document`" specifies how many chunks and
+   databases remain on the shard. Use :dbcommand:`printShardingStatus`
+   to list the databases that you must move from the shard.
 
    Each database in a sharded cluster has a primary shard. If the shard you want to remove
    is also the primary of one the cluster's databases, then you must manually move the database to
@@ -284,8 +283,8 @@ Aggregation
    "``users``" and counts the total number of active users from each
    school. Fields allowed by the group command include:
 
-   :field JSON key: Specify one or more fields to group by. Use the
-                    form of a :term:`JSON document`.
+   :field document key: Specify one or more fields to group by. Use the
+                        form of a :term:`document`.
 
    :field reduce: Specify a reduce function that operates over all the
                   iterated objects. Typically these aggregator
@@ -405,9 +404,9 @@ Aggregation
                               the output of the :dbcommand:`mapReduce`
                               operation.
 
-   :option optional scope: Place a :term:`JSON` document as the
-                           contents of this field, to place fields
-                           into the global javascript scope.
+   :option optional scope: Place a :term:`document` as the contents of
+                           this field, to place fields into the global
+                           javascript scope.
 
    :option optional jsMode: Boolean. The ``jsMode`` option defaults to
                             true.
@@ -492,8 +491,8 @@ Aggregation
    options, as a sub-document that specifies the following:
 
    :field query: A query object. This statement might resemble the
-                  :term:`JSON document` passed to :func:`find()`,
-                  and should return *one* document from the database.
+                  :term:`document` passed to :func:`find()`, and
+                  should return *one* document from the database.
 
    :field optional sort: If the query selects multiple documents, the
                          first document given by this sort clause will
@@ -753,7 +752,7 @@ Replication
 
       { replSetInitiate : <config_document> }
 
-   The "``<config_document>``" is a :term:`JSON document` that specifies
+   The "``<config_document>``" is a :term:`document` that specifies
    the replica set's configuration. For instance, here's a config document
    for creating a simple 3-member replica set:
 
@@ -947,9 +946,9 @@ Collections
    :opt from: Specify a resolvable hostname, and optional port number
               of the remote server where the specified collection resides.
 
-   :opt optional query: A query document, in the form of a :term:`JSON
-                        document`, that filters the documents in the
-                        remote collection that
+   :opt optional query: A query document, in the form of a
+                        :term:`document`, that filters the documents
+                        in the remote collection that
                         :dbcommand:`cloneCollection` will copy to the
                         current database. See :func:`find()`.
 
@@ -1794,7 +1793,7 @@ Diagnostics
 
       { isMaster: 1 }
 
-   This command returns a :term:`JSON document` containing the
+   This command returns a :term:`document` containing the
    following fields:
 
    .. data:: isMaster.setname

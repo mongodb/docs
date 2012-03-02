@@ -32,7 +32,7 @@ Configuration Variables
 
    **Type**: array
 
-   Contains an array holding an embeded :term:`JSON document` for each
+   Contains an array holding an embeded :term:`document` for each
    member of the replica set. The ``members`` document contains a
    number of fields that describe the configuration of each member of
    the replica set.
@@ -134,7 +134,7 @@ Configuration Variables
 
    *Optional*.
 
-   **Type**: term:`JSON document`
+   **Type**: :term:`MongoDB Document <document>`
 
    **Default**: none
 
@@ -183,7 +183,7 @@ Configuration Variables
 
    *Optional*.
 
-   **Type**: :term:`JSON`
+   **Type**: :term:`MongoDB Document <document>`
 
    The setting document holds two optional fields, which affect the
    available :term:`write concern` options and default configurations.
@@ -192,7 +192,7 @@ Configuration Variables
 
    *Optional*.
 
-   **Type**: :term:`JSON`
+   **Type**: :term:`MongoDB Document <document>`
 
    Specify arguments to the :dbcommand:`getLastError` that
    members of this replica set will use when no arguments to
@@ -203,7 +203,7 @@ Configuration Variables
 
    *Optional*.
 
-   **Type**: :term:`JSON`
+   **Type**: :term:`MongoDB Document <document>`
 
    Defines the names and combination of :data:`tags
    <members[n].tags>` for use by the application layer to guarantee
@@ -229,7 +229,7 @@ Most modifications of replica set configuration use the
 
 This operation begins by saving the current replica set configuration
 to the local variable "``cfg``" using the :func:`rs.conf()`
-method. Then it adds priority values to the :term:`JSON document`
+method. Then it adds priority values to the :term:`document`
 where the :data:`members[n]._id` field has a value of ``0``, ``1``, or
 ``2``. Finally, it calls the :func:`rs.reconfig()` method with the
 argument of ``cfg`` to initialize this new configuration.
@@ -242,7 +242,7 @@ can issue "``cfg = rs.conf()``" at any time before using
 :func:`rs.reconfig()` to undo your changes and start from the
 current configuration. If you issue "``cfg``" as an operation at any
 point, the :program:`mongo` shell at any point will output the complete
-:term:`JSON document` with modifications for your review.
+:term:`document` with modifications for your review.
 
 .. note::
 
