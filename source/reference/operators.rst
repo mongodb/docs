@@ -40,8 +40,9 @@ Comparison
    This query returns all documents in ``collection`` where a value
    of ``field`` is greater than the specified "``value``".
 
-TODO If field is an array there can be multiple values for a field and only one needs to match.  This info
-might not be important to include this early in the docs but thought I would include in case helpful.
+   If "``field``" holds an array, only one value in the array needs to
+   be greater than the specified "``value``" to produce a succesful
+   match.
 
 .. operator:: $lte
 
@@ -78,8 +79,20 @@ You may combine comparison operators to specify ranges:
 This statement returns all documents with ``field`` between
 "``value1``" and "``value2``".
 
-TODO Also matches if query is { $gt:0, $lt:2 } and doc is { field: [-1,3] }.
+.. note::
 
+   Fields containg arrays match conditional operators, if only one
+   item matches. Therefore, the following query:
+
+   .. code-block:: javascript
+
+      db.collection.find( { field: { $gt:0, $lt:2 } } );
+
+   Will match a document that contains the following field:
+
+   .. code-block:: javascript
+
+      { field: [-1,3] }
 
 Document
 ~~~~~~~~
@@ -99,8 +112,10 @@ Document
    that are subsets; for example, the above query matches "``{ field: [
    1, 2, 3, 4] }``" but not "``{ field: [ 2, 3 ] }``".
 
-TODO Typically arrays aren't treated as sets - this is a bit special for us - might want to call out
-this behavior specifically.
+   .. note::
+
+      In most cases, MongoDB does not treat arrays as sets. This
+      operator provides a notable exception to this general approach
 
 .. operator:: $exists
 
@@ -170,7 +185,10 @@ this behavior specifically.
 Geolocation
 ~~~~~~~~~~~
 
-TOOD Call out specific requirements for geo searches.  A geo index must be created.
+.. note::
+
+   A geospatial index *must* exist on a field holding coordinates
+   before using any of the geolocation query operators.
 
 .. operator:: $near
 
@@ -185,9 +203,8 @@ TOOD Call out specific requirements for geo searches.  A geo index must be creat
    This query will return 100 ordered records with a ``location``
    field in ``collection``. Specify a different limit using the
    :func:`limit()`, or another :ref:`geolocation operator
-   <geolocation-operators>` to limit the results of the query.
-
-TODO can also specify a non geo operator to filter the results.
+   <geolocation-operators>`, or a non-geospatial operator to limit the
+   results of the query.
 
 .. operator:: $maxDistance
 
@@ -235,8 +252,6 @@ TODO can also specify a non geo operator to filter the results.
      for the query. As a minimum, you must specify the lower-left and
      upper-right corners of the box.
 
-TODO be more explicit about what the box parameters mean.
-
    - Circles. Specify circles in the following form:
 
      .. code-block:: javascript
@@ -278,18 +293,14 @@ TODO be more explicit about what the box parameters mean.
    returns a single document even if there are multiple matches.
 
    You cannot specify :operator:`$uniqueDocs` with :operator:`$near`
-   queries.
-
-TODO And not with haystack either I don't think.
+   or haystack queries.
 
 Logical
 ~~~~~~~
 
 .. operator:: $or
 
-   .. present in versions greater than 1.6
-
-TODO I think >= 1.6 but not sure
+   .. versionadded:: 1.6
 
    The :operator:`$or` operator provides a Boolean ``OR`` expression in
    queries. Use :operator:`$or` to match documents against two or more
@@ -369,8 +380,6 @@ TODO I think >= 1.6 but not sure
 
       db.collection.find( { field: { $not: { $type: 2 } } } );
 
-TODO $type hasn't been introduced yet.
-
    This query returns all documents in ``collection`` where ``field``
    is *not* a string, using the :operator:`$type` operator.
 
@@ -386,6 +395,8 @@ TODO $type hasn't been introduced yet.
       .. code-block:: python
 
         { "$not": re.compile("acme.*corp")}
+
+   .. seealso:: The :operator:`$type` operator, used in the above example.
 
 Element
 ~~~~~~~
@@ -483,23 +494,17 @@ Element
 
       db.collection.find( { field: $regex: /acme.*corp/i, $nin: [ 'acmeblahcorp' } );
 
-TODO or you can use $and
-
    This expression returns all instances of ``field`` in
    ``collection`` that match the case insensitive regular expression
    "``acme.*corp``" that *don't* match "``acmeblahcorp``".
 
    :operator:`$regex` uses :term:`indexes <index>` only when the
    regular expression has an anchor for the beginning (i.e. "``^``")
-   or end (i.e "``$``") of a string. Additionally, while "``/^a/``",
-   "``/^a.*/``", and "``/^a.*$/``" are equivalent, they have different
-   performance characteristics. All of these expressions use an index
-   if an appropriate index exists; however, "``/^a.*/``", and
-   "``/^a.*$/``" are slower becasue they have to scan the entire
-   string. "``/^a/``" can stop scanning after matching the prefix.
-
-TODO anchor at the end won't use an index.
-TODO I think the part about scanning the whole string might not be right.  I'd just say /^a/ is faster.
+   of a string. Additionally, while "``/^a/``", "``/^a.*/``", and
+   "``/^a.*$/``" are equivalent, they have different performance
+   characteristics. All of these expressions use an index if an
+   appropriate index exists; however, "``/^a.*/``", and "``/^a.*$/``"
+   are slower. "``/^a/``" can stop scanning after matching the prefix.
 
 .. operator:: $mod
 
@@ -508,8 +513,6 @@ TODO I think the part about scanning the whole string might not be right.  I'd j
    cases. :operator:`$mod` performs a modulo operation on the value of
    a field, and returns all documents that with the specified remainder value. For
    example:
-
-TODO $where not introduced yet
 
    .. code-block:: javascript
 
@@ -534,37 +537,27 @@ JavaScript
 
    .. code-block:: javascript
 
-      db.collection.find( { $where: "this.a > 3" } );
-
-   In this case, the following query is equivalent to the following
-   operation using the :operator:`$gt`:
-
-   .. code-block:: javascript
-
-      db.collection.find( { a : { $gt: 3 } } );
-
-TODO provide an example that can't be accomplished with normal operators, eg this.a == this.b
+      db.collection.find( { $where: "this.a == this.b" } );
 
 Array
 ~~~~~
 
 .. operator:: $size
 
-   The :operator:`$size` operator matches any array with the specified
-   number of arguments. For example:
+   The :operator:`$size` operator matches any array with the number of
+   elements specified by the arguement. For example:
 
    .. code-block:: javascript
 
       db.collection.find( { field: { $size: 2 } } );
 
    returns all documents in ``collection`` where ``field`` is an array
-   with two or more elements. For instance, the above expression will
+   with 2 or more elements. For instance, the above expression will
    return "``{ field: [ red, green ] }``" and "``{ field: [ apple,
    lime ] }``" but *not* "``{ field: fruit }``" or "``{ field: [
    orange, lemon, grapefruit ] }``". To match fields with only one
-   element use :operator:`$size` with a value of 1, as follows:
-
-TODO Might want to state explicitly it's only one element within an array.
+   element within an array use :operator:`$size` with a value of 1, as
+   follows:
 
    .. code-block:: javascript
 
@@ -581,6 +574,8 @@ TODO Might want to state explicitly it's only one element within an array.
 
 .. operator:: $elemMatch
 
+   .. versionadded:: 1.4
+
    The :operator:`$elemMatch` operator matches more than one component within
    an array element. For example,
 
@@ -591,20 +586,19 @@ TODO Might want to state explicitly it's only one element within an array.
    returns all documents in ``collection`` where the array ``array``
    satisfies all of the conditions in the :operator:`$elemMatch`
    expression, or where the value of ``value1`` is 1 and the value of
-   ``value2`` is greater than 1. Matching arrays must match all
-   specified criteria.
+   ``value2`` is greater than 1. Matching arrays must have one element
+   that matches all specified criteria. Therefore, the following
+   document would not match the above query:
 
-TODO The point here is that there must be one element of array that matches all the operators.  So
-this would not match
+   .. code-block:: javascript
 
-{ array: [ { value1:1, value2:0 }, { value1:2, value2:2 } ] }
+      { array: [ { value1:1, value2:0 }, { value1:2, value2:2 } ] }
 
-but this would
+   while the following document would match this query:
 
-{ array: [ { value1:1, value2:0 }, { value1:1, value2:2 } ] }
+   .. code-block:: javascript
 
-
-   .. versionadded:: 1.4
+      { array: [ { value1:1, value2:0 }, { value1:1, value2:2 } ] }
 
 .. _update-operators:
 
@@ -656,12 +650,11 @@ Update
 
       db.collection.update( { field: value }, { $inc: { field1: amount } } );
 
-   In this example, for all documents in ``collection`` where
+   In this example, for documents in ``collection`` where
    ``field`` has the value ``value``, the value of ``field1``
-   increments by the value of ``amount``. Consider the following
-   examples:
-
-TODO I don't think it's all documents that get updated just the first (unless multi is specified)
+   increments by the value of ``amount``. The above operation only
+   increments the *first* matching document *unless* you specify
+   multi-update:
 
    .. code-block:: javascript
 
@@ -690,15 +683,13 @@ TODO I don't think it's all documents that get updated just the first (unless mu
 
    - If the field specified in the :operator:`$push` statement
      (e.g. "``{ $push: { field: value1 } }``") does not exist in the
-     matched document, the operation adds a new field with the
-     specified value (e.g. ``value1``) to the matched document.
+     matched document, the operation adds a new array with the
+     specified field and value (e.g. ``value1``) to the matched
+     document.
 
-TODO It adds a new array with the field in it.
-
-   - The operation will fail if the field specified in the :operator:`$push`
-     statement is not an array.
-
-TODO Unless it's missing in which case it will not fail.
+   - The operation will fail if the field specified in the
+     :operator:`$push` statement is *not* an array. :operator:`$push`
+     does not fail when pushing a value to a non-existant field.
 
    - If ``value1`` is an array itself, :operator:`$push` appends the whole array as an
      element in the identified array. To add multiple items to an
@@ -768,9 +759,8 @@ TODO Unless it's missing in which case it will not fail.
 
 .. operator:: $pull
 
-   The :operator:`$pull` operator removes a value from an existing
-   array. :operator:`$pull` provides the inverse operation of the
-   :operator:`$push` operator. Consider the following example:
+   The :operator:`$pull` operator removes all instances of a value
+   from an existing array. Consider the following example:
 
    .. code-block:: javascript
 
@@ -778,9 +768,9 @@ TODO Unless it's missing in which case it will not fail.
 
    :operator:`$pull` removes the value ``value1`` from the array in ``field``,
    in the document that matches the query statement "``{ field: valppppue
-   }``" in ``collection``.
-
-TODO It is not really the inverse of push.  It removes all occurrences of the specified value1.
+   }``" in ``collection``. If ``value1`` existed multiple times in the
+   ``field`` array, :operator:`pull` would remove all instances of
+   ``value1`` in this array.
 
 .. operator:: $pullAll
 
@@ -809,11 +799,9 @@ TODO It is not really the inverse of push.  It removes all occurrences of the sp
   field to ``new_field``, in the document that matches the query "``{
   field: value }``" in ``collection``.
 
-  The :operator:`$rename` operator does not expand arrays or sub-fields to
-  find a match for field names (e.g. "``old_field``" in the example
-  above.)
-
-TODO It does expand sub documents.
+  The :operator:`$rename` operator will expand arrays and
+  sub-documents to find a match for field names (e.g. "``old_field``"
+  in the example above.)
 
    .. versionadded:: 1.7.2
 
@@ -832,21 +820,20 @@ TODO It does expand sub documents.
 
 .. operator:: $atomic
 
-   In multi-update mode, it's possible to specify an :operator:`$atomic`
-   "operator" that allows you to isolate some updates from each
-   other. In a global sense this is not atomic, but rather in context
-   of this operation. Consider the following example:
-
-TODO Not clear what context of this operation vs global context means.
+   In multi-update mode, it's possible to specify an
+   :operator:`$atomic` "operator" that allows you to **isolate** some
+   updates from each other within this operation. Consider the
+   following example:
 
    .. code-block:: javascript
 
       db.foo.update( { field1 : 1 , $atomic : 1 }, { $inc : { field2 : 1 } } ,  false , true )
 
-   This example, isolates the "``{ field1 : 1 }``" update from the
-   :operator:`$inc` operation that increments the value of ``field2``.
-
-TODO What does that mean?
+   Without the :operator:`$atomic` operator, multi-updates will allow
+   other operations to interleave with this updates. If these
+   interleaved operations contain writes, the update operation may
+   produce unexpected results. By specifying :operator:`$atomic` you
+   can garuentee isolation for the entire multi-update.
 
    .. seealso:: See :func:`update()` for more information about the
       :func:`update()` function.
@@ -859,7 +846,7 @@ Projection
 .. operator:: $slice
 
    The :operator:`$slice` operator controls the number of items of an array
-   that a query returns. Consider the following example:
+   that a query returns. Consider the following prototype query:
 
    .. code-block:: javascript
 
@@ -872,4 +859,38 @@ Projection
    than the number of elements in ``array`` the query returns all
    elements of the array.
 
-TODO There are other types of arguments, like negative numbers and arrays.
+   :operator:`$slice` accepts arguments in a number of formats,
+   including negative values and arrays. Consider the following
+   examples:
+
+   .. code-block:: javascript
+
+      db.posts.find( {}, { comments: { $slice: 5 } } )
+
+   Here, :operator:`$slice` selects the first five items in an array
+   in the ``comments`` field.
+
+   .. code-block:: javascript
+
+      db.posts.find( {}, { comments: { $slice: -5 } } )
+
+   This operation returns the last five items in array.
+
+   The following examples specify an array as an argument to
+   slice. Arrays take the form of "``[ skip , limit ]``", where the
+   first value indicates the number of items in the array to skip and
+   the second value indicates the number of items to return.
+
+   .. code-block:: javascript
+
+      db.posts.find( {}, { comments: { $slice: [ 20, 10 ] } } )
+
+   Here, the query will only return 10 items, after skipping the first
+   20 items of that array.
+
+   .. code-block:: javascript
+
+      db.posts.find( {}, { comments: { $slice: [ -20, 10 ] } } )
+
+   This operation returns 10 items as well, beginning with the item
+   that is 20th from the last item of the array.

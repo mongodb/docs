@@ -15,11 +15,11 @@ following form (for the :program:`mongo` shell):
 
 .. code-block:: javascript
 
-   db.collection.find( { [QUERY] } )._addSpecial( [MODIFER] )
+   db.collection.find( { [QUERY] } )._addSpecial( [MODIFIER] )
 
 Here, the query specified by "``[QUERY]``" runs on the collection
 named ``collection`` with the operation specified by the
-``[MODIFER]`` The results are then processed by a modifier expression
+"``[MODIFIER]``". The results are then processed by a modifier expression
 selected from the following list. Many of the operators have
 corresponding :doc:`methods in the shell </reference/javascript>`. For
 the proposes of this reference, this document assumes the above form
@@ -90,7 +90,11 @@ Modifiers
    Use operation alone or in conjunction with :operator:`$max`
    to limit results to a specific range.
 
-TODO This should be avoided unless necessary, use $gte instead.
+
+   .. note::
+
+      In most cases, you should avoid this operator in favor of
+      :operator:`$gte`.
 
 .. operator:: $max
 
@@ -111,7 +115,10 @@ TODO This should be avoided unless necessary, use $gte instead.
    Use operation alone or in conjunction with :operator:`$min`
    to limit results to a specific range.
 
-TODO This should be avoided unless necessary, use $lt instead.
+   .. note::
+
+      In most cases, you should avoid this operator in favor of
+      :operator:`$lt`.
 
 .. operator:: $query
 
@@ -161,8 +168,9 @@ TODO This should be avoided unless necessary, use $lt instead.
 .. operator:: $hint
 
    Use the :operator:`$hint` operator to force the query optimizer to
-   use a specific index to fulfill the query. Consider the following
-   form:
+   use a specific index to fulfill the query.  Use :operator:`$hint`
+   for testing query performance and indexing strategies. Consider
+   the following form:
 
    .. code-block:: javascript
 
@@ -170,9 +178,8 @@ TODO This should be avoided unless necessary, use $lt instead.
 
    This operation returns all documents in the collection named
    "``collection``" using the index on the "``_id``" field. Use this
-   operator to prevent MongoDB from performing inefficient queries.
-
-TODO - won't necessarily prevent an inefficient query, just lets you pick index manually.
+   operator to override MongoDB's default index selection process and
+   pick indexes manually.
 
 .. operator:: $explain
 
@@ -222,7 +229,7 @@ TODO - won't necessarily prevent an inefficient query, just lets you pick index 
    Do not use snapshot with :operator:`$hint`, or :operator:`$orderby`
    (:func:`sort()`.)
 
-   All queries with responses less than 1 megabyte are effectively
-   snapshotted.
+   .. All queries with responses less than 1 megabyte are effectively
+   .. snapshotted.
 
-TODO I don't think that's right about < 1 mb
+   .. TODO "I don't think that's right about < 1 mb" --astaple
