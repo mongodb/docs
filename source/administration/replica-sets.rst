@@ -448,6 +448,57 @@ the event of a network partition.
 .. seealso:: ":data:`members[n].votes`" and ":ref:`Replica Set
    Reconfiguration <replica-set-reconfiguration-usage>`."
 
+.. _replica-set-security:
+
+Security
+--------
+
+In most cases, the most effective ways to control access and secure
+the connection between members of a :term:`replica set` depend on
+network level access control. Use your environment's firewall and
+network routing to ensure that *only* traffic from clients and other
+replica set members can reach your :program:`mongod` instances. Use
+virtual private networks (VPNs) if needed to ensure secure connections
+over wide area networks (WANs.)
+
+Additionally, MongoDB provides an authentication mechanism for
+:program:`mognod` and :program:`mongos` instances connecting to
+replica sets. These instances enable authentication but specify a
+shared key file that serves as a shared password.
+
+.. versionadded:: 1.8 for replica sets (1.9.1 for sharded replica sets) added support for authentication.
+
+To enable authentication using a key file for the :term:`replica set`,
+add the following option to your configuration file.
+
+.. code-block:: cfg
+
+   auth = true
+   keyfile = /srv/mongodb/keyfile
+
+.. note::
+
+   You may chose to set these run-time configuration options using the
+   :option:`mongod --auth` and :option:`--keyfile <mongod --keyfile>`
+   (or :option:`mongos --auth` and :option:`--keyfile <mongod
+   --keyfile>`) options on the command line.
+
+Setting :setting:`auth` to ``true`` enables authentication, while
+:setting:`keyFile` specifies a key file for the replica set member use
+to when authenticating to each other. The content of the key file is
+arbitrary. The keyfile must be less one kilobyte in size and may only
+contain characters in the base64 set and file must not have group or
+"world" permissions on UNIX systems. Use the following command to use
+the OpenSSL package to generate a "random" key file:
+
+.. code-block:: bash
+
+   openssl rand -base64 753
+
+.. note::
+
+   Key file permissions are not checked on Windows systems.
+
 Troubleshooting
 ---------------
 

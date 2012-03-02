@@ -167,43 +167,24 @@ typical replica set configuration consider the following:
 
    replSet = set1/peer0.example.net,peer1.example.net:27018,peer3.example.net
 
-Here, the :setting:`replSet` contains a set name (i.e. "``set1``") followed
-by a slash (i.e. "``/``") and a comma separated list of hostnames of
-set members, with optional port names. This list of hosts serves as a
-"seed," from which this host will derive the replica set
+Here, the :setting:`replSet` contains a set name (i.e. "``set1``")
+followed by a slash (i.e. "``/``") and a comma separated list of
+hostnames of set members, with optional port names. This list of hosts
+serves as a "seed," from which this host will derive the replica set
 configuration. You may add additional members at anytime to the
 configuration using :func:`rs.reconfig()` function.
 
-.. seealso:: ":ref:`Replica set reconfiguration
-   <replica-set-reconfiguration-usage>`.
+.. seealso:: The ":ref:`Replica set Reconfiguration <replica-set-reconfiguration-usage>`
+   section for information regarding the process for changing replica
+   set during operation.
 
-To enable authentication for the :term:`replica set`, add the
-following option:
+   Additionally, consider the ":ref:`Replica Set Security <replica-set-security>`"
+   section for information on configuring authentication with replica
+   sets.
 
-.. code-block:: cfg
-
-   auth = true
-   keyfile = /srv/mongodb/keyfile
-
-.. versionadded:: 1.8 for replica sets, and 1.9.1 for sharded replica sets.
-
-Setting :setting:`auth` to ``true`` enables authentication,
-while :setting:`keyFile` specifies a key file for the replica
-set member use to when authenticating to each other. The content is
-arbitrary and must be under one kilobyte and contain characters in the
-base64 set, and the file must not have group or "world" permissions on
-UNIX systems. Use the following command to use the OpenSSL package to
-generate a "random" key file:
-
-.. code-block:: bash
-
-   openssl rand -base64 753
-
-.. note:: Keyfile permissions are not checked on Windows systems.
-
-.. seealso:: The ":doc:`/replication`" index and the
+   Finally, see the ":doc:`/replication`" index and the
    ":doc:`/core/replication`" document for more information on
-   replication and replica set configuration.
+   replication in MongoDB and replica set configuration in general.
 
 Sharding Configuration
 ~~~~~~~~~~~~~~~~~~~~~~
