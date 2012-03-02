@@ -364,7 +364,7 @@ Aggregation
    map-reduce-style aggregations over a collection.
 
    :option map: A JavaScript function that performs the "map" step of
-                the map/reduce operation. This function references the
+                the map-reduce operation. This function references the
                 current input document and calls the
                 "``emit(key,value)``" method that supplies values to
                 the reduce function. Map functions may call
@@ -421,21 +421,21 @@ Aggregation
 
    The "``out``" field of the :dbcommand:`mapReduce`, provides a
    number of additional configuration options that you may use to
-   control how MongoDB returns data from the map/reduce job. Consider
+   control how MongoDB returns data from the map-reduce job. Consider
    the following 4 output possibilities.
 
    .. versionadded: 1.8
 
    :param optional replace: Specify a collection name (e.g. ``{ out: {
                             replace: collectionName } }``) where the
-                            output of the map/reduce overwrites the
+                            output of the map-reduce overwrites the
                             contents of the collection specified
                             (i.e. "``collectionName``") if there is
                             any data in that collection.
 
    :param optional merge: Specify a collection name (e.g. ``{ out: {
                           merge: collectionName } }``) where the
-                          map/reduce operation writes output to an
+                          map-reduce operation writes output to an
                           existing collection
                           (i.e. "``collectionName``",) and only
                           overwrites existing documents when a new
@@ -462,14 +462,14 @@ Aggregation
                            will fit within the :ref:`maximum size of a
                            BSON document
                            <limit-maximum-bson-document-size>`. When
-                           performing map/reduce jobs on secondary
+                           performing map-reduce jobs on secondary
                            members of replica sets, this is the only
                            available option.
 
    .. seealso:: ":func:`mapReduce()`" and ":term:`map-reduce`."
 
       Also, the ":wiki:`MapReduce` page, provides a greater overview
-      of MognoDB's map/reduce functionality. Consider the
+      of MognoDB's map-reduce functionality. Consider the
       ":wiki:`Simple application <Aggregation>`" support for basic
       aggregation operations and ":doc:`/applications/aggregation`"
       for a more flexible approach to data aggregation in MongoDB.

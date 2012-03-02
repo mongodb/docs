@@ -75,7 +75,7 @@ Options
    you have implemented proper authentication and/or firewall
    restrictions to protect the integrity of your database.
 
-.. option:: --maxCons <number>
+.. option:: --maxConns <number>
 
    Specifies the maximum number of simultaneous connections that
    :program:`mongod` will accept. This setting will have no effect if

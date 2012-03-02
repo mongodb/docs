@@ -60,7 +60,8 @@ Glossary
    map-reduce
       A paradigm from functional programming used to implement aggregation
       in a number of popular database servers. MongoDB uses map-reduce
-      in a command called ``mapreduce`` for basic aggregation.
+      in a command called :dbcommand:`mapreduce` to provide basic
+      map-reduce style aggregation.
 
    $cmd
       A virtual :term:`collection` that exposes :term:`MongoDB`'s
@@ -691,7 +692,7 @@ Glossary
       over data using map-reduce.
 
       .. seealso:: The ":wiki:`Map Reduce <MapReduce>`" wiki page  for more information
-         regarding MongoDB's map/reduce implementation, and
+         regarding MongoDB's map-reduce implementation, and
          ":doc:`/applications/aggregation`" for another approach to data
          aggregation in MongoDB.
 
