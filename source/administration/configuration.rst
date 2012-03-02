@@ -151,28 +151,36 @@ Replication and Sharding Configuration
 Replication Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:term:`Replica set` configuration is very straightforward, and only
+:term:`Replica set` configuration is straightforward, and only
 requires that the :setting:`replSet` have a value that is consistent
-among all members of the staff. Consider the following:
+among all members of the set. Consider the following:
 
 .. code-block:: cfg
 
    replSet = set0
 
 Use descriptive names for sets. Once configured use the
-:program:`mongo` shell to add hosts to the replica set. For a more
-typical replica set configuration consider the following:
+:program:`mongo` shell to add hosts to the replica set.
+
+.. seealso:: ":ref:`Replica set reconfiguration
+   <replica-set-reconfiguration-usage>`.
+
+To enable authentication for the :term:`replica set`, add the
+following option:
 
 .. code-block:: cfg
 
-   replSet = set1/peer0.example.net,peer1.example.net:27018,peer3.example.net
+   keyfile = /srv/mongodb/keyfile
 
-Here, the :setting:`replSet` contains a set name (i.e. "``set1``")
-followed by a slash (i.e. "``/``") and a comma separated list of
-hostnames of set members, with optional port names. This list of hosts
-serves as a "seed," from which this host will derive the replica set
-configuration. You may add additional members at anytime to the
-configuration using :func:`rs.reconfig()` function.
+.. versionadded:: 1.8 for replica sets, and 1.9.1 for sharded replica sets.
+
+Setting :setting:`keyFile` enables authentication and specifies a key
+file for the replica set member use to when authenticating to each
+other. The content of the key file is arbitrary, but must be the same
+on all members of the :term:`replica set` and :program:`mongos`
+instances that connect to the set. The keyfile must be less one
+kilobyte in size and may only contain characters in the base64 set and
+file must not have group or "world" permissions on UNIX systems.
 
 .. seealso:: The ":ref:`Replica set Reconfiguration <replica-set-reconfiguration-usage>`
    section for information regarding the process for changing replica

@@ -462,7 +462,7 @@ virtual private networks (VPNs) if needed to ensure secure connections
 over wide area networks (WANs.)
 
 Additionally, MongoDB provides an authentication mechanism for
-:program:`mognod` and :program:`mongos` instances connecting to
+:program:`mongod` and :program:`mongos` instances connecting to
 replica sets. These instances enable authentication but specify a
 shared key file that serves as a shared password.
 
@@ -473,23 +473,24 @@ add the following option to your configuration file.
 
 .. code-block:: cfg
 
-   auth = true
    keyfile = /srv/mongodb/keyfile
 
 .. note::
 
    You may chose to set these run-time configuration options using the
-   :option:`mongod --auth` and :option:`--keyfile <mongod --keyfile>`
-   (or :option:`mongos --auth` and :option:`--keyfile <mongod
-   --keyfile>`) options on the command line.
+   :option:`--keyfile <mongod --keyfile>` (or :option:`mongos --keyfile`)
+   options on the command line.
 
-Setting :setting:`auth` to ``true`` enables authentication, while
-:setting:`keyFile` specifies a key file for the replica set member use
-to when authenticating to each other. The content of the key file is
-arbitrary. The keyfile must be less one kilobyte in size and may only
-contain characters in the base64 set and file must not have group or
-"world" permissions on UNIX systems. Use the following command to use
-the OpenSSL package to generate a "random" key file:
+Setting :setting:`keyFile` enables authentication and specifies a key
+file for the replica set member use to when authenticating to each
+other. The content of the key file is arbitrary, but must be the same
+on all members of the :term:`replica set` and :program:`mongos`
+instances that connect to the set.
+
+The keyfile must be less one kilobyte in size and may only contain
+characters in the base64 set and file must not have group or "world"
+permissions on UNIX systems. Use the following command to use the
+OpenSSL package to generate "random" content for use in a key file:
 
 .. code-block:: bash
 
