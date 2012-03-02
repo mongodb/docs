@@ -228,8 +228,3 @@ Modifiers
 
    Do not use snapshot with :operator:`$hint`, or :operator:`$orderby`
    (:func:`sort()`.)
-
-   .. All queries with responses less than 1 megabyte are effectively
-   .. snapshotted.
-
-   .. TODO "I don't think that's right about < 1 mb" --astaple
