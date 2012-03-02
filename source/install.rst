@@ -229,6 +229,54 @@ following command: ::
 
 Replace "``<original value>``" with the value that you recorded above.
 
+Installing Native Extensions
+----------------------------
+
+.. note::
+
+   The native extensions for PyMongo are *strongly* recommended for
+   use with the MMS agent because they provide the agent with greater
+   performance and reduced resource requirements.
+
+If you installed PyMongo *with* the native extensions (i.e. on a
+system with a C compiler, or using the Windows installer) then you can
+disregard this section. Otherwise use the following procedure to
+reinstall your agent with native extensions.
+
+1. Install ``gcc``, a C compiler, and the necessary development
+   packages:
+
+   Debian and Ubuntu users should issue the following command: ::
+
+        sudo apt-get install build-essential python-dev
+
+   RedHat, CentOS, and Fedora Users should issue the following
+   command: ::
+
+        sudo yum install gcc python-devel
+
+2. Install the ``pip`` utility that will make it possible for you be
+   able to uninstall the existing instance of PyMongo, by issuing the
+   following command: ::
+
+        sudo easy_install pip
+
+3. Remove the existing copy of PyMongo with the following command: ::
+
+        pip uninstall pymongo
+
+4. Now re-install PyMongo with the following command: ::
+
+        pip install pymongo
+
+After upgrading PyMongo, you will need to restart your MMS agent to
+receive the full effect of the improvement.
+
+.. note::
+
+   When you restart your agent there is a 5 minute timeout before the
+   agent will begin sending data to MMS again.
+
 Updating the MMS Agent
 ----------------------
 
