@@ -9,7 +9,7 @@ Introduction
 
 In addition to the :doc:`MongoDB Query Operators
 </reference/operators>`, there are a number of "meta" operators that
-you may use to modify the output or behavior or output of the
+you may use to modify the output or behavior of a
 query. Specify these modifiers to a :func:`find()` query, in the
 following form (for the :program:`mongo` shell):
 
@@ -18,7 +18,7 @@ following form (for the :program:`mongo` shell):
    db.collection.find( { [QUERY] } )._addSpecial( [MODIFER] )
 
 Here, the query specified by "``[QUERY]``" runs on the collection
-named ``collection`` while the operation specified by the
+named ``collection`` with the operation specified by the
 ``[MODIFER]`` The results are then processed by a modifier expression
 selected from the following list. Many of the operators have
 corresponding :doc:`methods in the shell </reference/javascript>`. For
@@ -90,6 +90,8 @@ Modifiers
    Use operation alone or in conjunction with :operator:`$max`
    to limit results to a specific range.
 
+TODO This should be avoided unless necessary, use $gte instead.
+
 .. operator:: $max
 
    Specify a :operator:`$max` value to specify an upper boundary for
@@ -108,6 +110,8 @@ Modifiers
 
    Use operation alone or in conjunction with :operator:`$min`
    to limit results to a specific range.
+
+TODO This should be avoided unless necessary, use $lt instead.
 
 .. operator:: $query
 
@@ -148,7 +152,7 @@ Modifiers
    value (e.g. "``1``") to sort in ascending order.
 
    Unless you have a index for the specified key pattern, use
-   :operator:`$orderby` in conjunction with :operator:`$maxScan` and
+   :operator:`$orderby` in conjunction with :operator:`$maxScan` and/or
    :func:`limit()` to avoid requiring MongoDB to perform a large
    in-memory sort. :func:`limit()` increases the speed and reduce
    the amount of memory required to return this query by way of an
@@ -167,6 +171,8 @@ Modifiers
    This operation returns all documents in the collection named
    "``collection``" using the index on the "``_id``" field. Use this
    operator to prevent MongoDB from performing inefficient queries.
+
+TODO - won't necessarily prevent an inefficient query, just lets you pick index manually.
 
 .. operator:: $explain
 
@@ -218,3 +224,5 @@ Modifiers
 
    All queries with responses less than 1 megabyte are effectively
    snapshotted.
+
+TODO I don't think that's right about < 1 mb

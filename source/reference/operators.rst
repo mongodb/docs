@@ -25,8 +25,8 @@ Comparison
 
        db.collection.find( { field: { $lt: value } } );
 
-   This query returns all documents in ``collection`` where the value
-   of ``field`` less than the specified "``value``".
+   This query returns all documents in ``collection`` where a value
+   of ``field`` is less than the specified "``value``".
 
 .. operator:: $gt
 
@@ -37,8 +37,11 @@ Comparison
 
       db.collection.find( { field: { $gt: value } } );
 
-   This query returns all documents in ``collection`` where the value
-   of ``field`` greater than the specified "``value``".
+   This query returns all documents in ``collection`` where a value
+   of ``field`` is greater than the specified "``value``".
+
+TODO If field is an array there can be multiple values for a field and only one needs to match.  This info
+might not be important to include this early in the docs but thought I would include in case helpful.
 
 .. operator:: $lte
 
@@ -56,15 +59,15 @@ Comparison
 .. operator:: $gte
 
    The :operator:`$gte` comparison operator provides the ability to select
-   documents where a field is less than or equal to (e.g. "``>=``") a
+   documents where a field is greater than or equal to (e.g. "``>=``") a
    value:
 
    .. code-block:: javascript
 
-      db.collection.find( { field: { $lte: value } } );
+      db.collection.find( { field: { $gte: value } } );
 
    This query returns all documents in ``collection`` where the value
-   of ``field`` less than or equal to the specified "``value``".
+   of ``field`` greater than or equal to the specified "``value``".
 
 You may combine comparison operators to specify ranges:
 
@@ -72,8 +75,11 @@ You may combine comparison operators to specify ranges:
 
    db.collection.find( { field: { $gt: value1, $lt: value2 } } );
 
-This statement returns all instances of ``field`` between
+This statement returns all documents with ``field`` between
 "``value1``" and "``value2``".
+
+TODO Also matches if query is { $gt:0, $lt:2 } and doc is { field: [-1,3] }.
+
 
 Document
 ~~~~~~~~
@@ -90,13 +96,16 @@ Document
    This returns all documents in ``collection`` where the value of
    ``field`` is an array that is equivalent to or a superset of "``[
    1, 2, 3, ]``". The :operator:`$all` operator will not return any arrays
-   that are subset; for example, the above query matches "``{ field: [
+   that are subsets; for example, the above query matches "``{ field: [
    1, 2, 3, 4] }``" but not "``{ field: [ 2, 3 ] }``".
+
+TODO Typically arrays aren't treated as sets - this is a bit special for us - might want to call out
+this behavior specifically.
 
 .. operator:: $exists
 
-   The :operator:`$exist` operator tests documents for the existence
-   of a field. The :operator:`$exist` operator accepts either true and
+   The :operator:`$exists` operator tests documents for the existence
+   of a field. The :operator:`$exists` operator accepts either true and
    false values. For example:
 
    .. code-block:: javascript
@@ -109,24 +118,24 @@ Document
 
       db.collection.find( { field: { $exists: false } );
 
-   returns all documents in ``collection`` that *not* have a ``field``
+   returns all documents in ``collection`` that do *not* have ``field``
    specified.
 
 .. operator:: $ne
 
    The :operator:`$ne` operator returns documents where a field is not
-   equal to the specified values. The following command:
+   equal to the specified value. The following command:
 
    .. code-block:: javascript
 
       db.collection.find( { field: { $ne: 100 } } );
 
-   returns all documents in ``collection`` with ``field`` that do not
+   returns all documents in ``collection`` with ``field`` that does not
    equal 100.
 
 .. operator:: $in
 
-   The :operator:`$in` operator allows you to specify an array of possible
+   The :operator:`$in` operator allows you to specify a set of possible
    matches for any value. Consider the following form:
 
    .. code-block:: javascript
@@ -135,14 +144,14 @@ Document
 
    Here, :operator:`$in` returns all documents in ``collection`` where
    ``field`` has a value included in ``array``. This is analogous to
-   the ``IN`` modifier in SQL. For example:
+   the ``IN`` modifier ??? in SQL. For example:
 
    .. code-block:: javascript
 
       db.collection.find( { age: { $in: [ 1, 2, 3, 5, 7, 11 } } );
 
    returns all documents in ``collection`` with an "``age``" field
-   that has a value in one of the first six prime numbers.
+   that is one of the first six prime numbers.
 
 .. operator:: $nin
 
@@ -161,10 +170,12 @@ Document
 Geolocation
 ~~~~~~~~~~~
 
+TOOD Call out specific requirements for geo searches.  A geo index must be created.
+
 .. operator:: $near
 
    The :operator:`$near` operator takes an argument, coordinates in
-   the form of "``[x, y]``", and returns a list of objects that sorted
+   the form of "``[x, y]``", and returns a list of objects sorted
    by distance from those coordinates. See the following example:
 
    .. code-block:: javascript
@@ -172,22 +183,24 @@ Geolocation
       db.collection.find( { location: { $near: [100,100] } } );
 
    This query will return 100 ordered records with a ``location``
-   field in ``collection``. Specify a different using the
+   field in ``collection``. Specify a different limit using the
    :func:`limit()`, or another :ref:`geolocation operator
    <geolocation-operators>` to limit the results of the query.
 
+TODO can also specify a non geo operator to filter the results.
+
 .. operator:: $maxDistance
 
-   The :operator:`$maxDistance` operator specifies an upward bound to limit
+   The :operator:`$maxDistance` operator specifies an upper bound to limit
    the results of a geolocation query. See below, where the
-   :operator:`$maxDistance` command narrows the results of the
+   :operator:`$maxDistance` operator narrows the results of the
    :operator:`$near` query:
 
    .. code-block:: javascript
 
       db.collection.find( { location: { $near: [100,100], $maxDistance: 10 } } );
 
-   This query will return, documents with ``location`` fields from
+   This query will return documents with ``location`` fields from
    ``collection`` that have values with a distance of 5 or fewer units
    from the point ``[100,100]``. :operator:`$near` returns results
    ordered by their distance from ``[100,100]``. This operation will
@@ -207,9 +220,9 @@ Geolocation
 
       db.collection.find( { location: { $within: { shape } } } );
 
-   Replace ``{ shape }`` a document that describes a shape. The
+   Replace ``{ shape }`` with a document that describes a shape. The
    :operator:`$within` command supports three shapes. These shapes and the
-   relevant expression follow:
+   relevant expressions follow:
 
    - Rectangles. Use the :operator:`$box` shape, consider the following
      variable and :operator:`$within` document:
@@ -221,6 +234,8 @@ Geolocation
      Here a box, "``[[100,120], [100,0]]``" describes the parameter
      for the query. As a minimum, you must specify the lower-left and
      upper-right corners of the box.
+
+TODO be more explicit about what the box parameters mean.
 
    - Circles. Specify circles in the following form:
 
@@ -265,12 +280,16 @@ Geolocation
    You cannot specify :operator:`$uniqueDocs` with :operator:`$near`
    queries.
 
+TODO And not with haystack either I don't think.
+
 Logical
 ~~~~~~~
 
 .. operator:: $or
 
    .. present in versions greater than 1.6
+
+TODO I think >= 1.6 but not sure
 
    The :operator:`$or` operator provides a Boolean ``OR`` expression in
    queries. Use :operator:`$or` to match documents against two or more
@@ -302,7 +321,7 @@ Logical
 .. operator:: $nor
 
    The :operator:`$nor` operators provides a Boolean ``NOR`` expression in
-   queries. :operator:`$nor` is the functional inverse of :operator:`$nor`. Use
+   queries. :operator:`$nor` is the functional inverse of :operator:`$or`. Use
    :operator:`$nor` to exclude documents that have fields with specific
    values. For example:
 
@@ -349,6 +368,8 @@ Logical
    .. code-block:: javascript
 
       db.collection.find( { field: { $not: { $type: 2 } } } );
+
+TODO $type hasn't been introduced yet.
 
    This query returns all documents in ``collection`` where ``field``
    is *not* a string, using the :operator:`$type` operator.
@@ -462,6 +483,8 @@ Element
 
       db.collection.find( { field: $regex: /acme.*corp/i, $nin: [ 'acmeblahcorp' } );
 
+TODO or you can use $and
+
    This expression returns all instances of ``field`` in
    ``collection`` that match the case insensitive regular expression
    "``acme.*corp``" that *don't* match "``acmeblahcorp``".
@@ -475,19 +498,24 @@ Element
    "``/^a.*$/``" are slower becasue they have to scan the entire
    string. "``/^a/``" can stop scanning after matching the prefix.
 
+TODO anchor at the end won't use an index.
+TODO I think the part about scanning the whole string might not be right.  I'd just say /^a/ is faster.
+
 .. operator:: $mod
 
    The :operator:`$mod` operator performs a fast "modulo" query, to
    reduce the need for expensive :operator:`$where` operator in some
    cases. :operator:`$mod` performs a modulo operation on the value of
-   a field, and returns all documents that with that modulo value. For
+   a field, and returns all documents that with the specified remainder value. For
    example:
+
+TODO $where not introduced yet
 
    .. code-block:: javascript
 
       db.collection.find( { field: { $mod: [ d, m ] } } );
 
-   returns all documents in ``collection`` with a modulo of ``m``,
+   returns all documents in ``collection`` with a remainder of ``m``,
    with a divisor of ``d``. This replaces the following
    :operator:`$where` operation:
 
@@ -515,6 +543,8 @@ JavaScript
 
       db.collection.find( { a : { $gt: 3 } } );
 
+TODO provide an example that can't be accomplished with normal operators, eg this.a == this.b
+
 Array
 ~~~~~
 
@@ -534,6 +564,8 @@ Array
    orange, lemon, grapefruit ] }``". To match fields with only one
    element use :operator:`$size` with a value of 1, as follows:
 
+TODO Might want to state explicitly it's only one element within an array.
+
    .. code-block:: javascript
 
       db.collection.find( { field: { $size: 1 } } );
@@ -550,7 +582,7 @@ Array
 .. operator:: $elemMatch
 
    The :operator:`$elemMatch` operator matches more than one component within
-   an array. For example,
+   an array element. For example,
 
    .. code-block:: javascript
 
@@ -561,6 +593,16 @@ Array
    expression, or where the value of ``value1`` is 1 and the value of
    ``value2`` is greater than 1. Matching arrays must match all
    specified criteria.
+
+TODO The point here is that there must be one element of array that matches all the operators.  So
+this would not match
+
+{ array: [ { value1:1, value2:0 }, { value1:2, value2:2 } ] }
+
+but this would
+
+{ array: [ { value1:1, value2:0 }, { value1:1, value2:2 } ] }
+
 
    .. versionadded:: 1.4
 
@@ -619,6 +661,8 @@ Update
    increments by the value of ``amount``. Consider the following
    examples:
 
+TODO I don't think it's all documents that get updated just the first (unless multi is specified)
+
    .. code-block:: javascript
 
       db.collection.update( { age: 20 }, { $inc: { age: 1 } } );
@@ -649,10 +693,14 @@ Update
      matched document, the operation adds a new field with the
      specified value (e.g. ``value1``) to the matched document.
 
+TODO It adds a new array with the field in it.
+
    - The operation will fail if the field specified in the :operator:`$push`
      statement is not an array.
 
-   - If ``value`` is an array itself, :operator:`$push` appends an
+TODO Unless it's missing in which case it will not fail.
+
+   - If ``value1`` is an array itself, :operator:`$push` appends the whole array as an
      element in the identified array. To add multiple items to an
      array, use :operator:`$pushAll`.
 
@@ -732,6 +780,8 @@ Update
    in the document that matches the query statement "``{ field: valppppue
    }``" in ``collection``.
 
+TODO It is not really the inverse of push.  It removes all occurrences of the specified value1.
+
 .. operator:: $pullAll
 
    The :operator:`$pullAll` operator removes multiple values from an existing
@@ -763,6 +813,8 @@ Update
   find a match for field names (e.g. "``old_field``" in the example
   above.)
 
+TODO It does expand sub documents.
+
    .. versionadded:: 1.7.2
 
 .. operator:: $bit
@@ -774,7 +826,7 @@ Update
 
       db.collection.update( { field: 1 }, { $bit: { field: { and: 5 } } } );
 
-   Here, the :operator:`$bit` operator updates the integer value of the filed
+   Here, the :operator:`$bit` operator updates the integer value of the field
    named ``field`` with a bitwise "``and: 5``" operation. This
    operator only works with number types.
 
@@ -785,12 +837,16 @@ Update
    other. In a global sense this is not atomic, but rather in context
    of this operation. Consider the following example:
 
+TODO Not clear what context of this operation vs global context means.
+
    .. code-block:: javascript
 
       db.foo.update( { field1 : 1 , $atomic : 1 }, { $inc : { field2 : 1 } } ,  false , true )
 
    This example, isolates the "``{ field1 : 1 }``" update from the
    :operator:`$inc` operation that increments the value of ``field2``.
+
+TODO What does that mean?
 
    .. seealso:: See :func:`update()` for more information about the
       :func:`update()` function.
@@ -815,3 +871,5 @@ Projection
    stored in the "``array``" field. If ``count`` has a value greater
    than the number of elements in ``array`` the query returns all
    elements of the array.
+
+TODO There are other types of arguments, like negative numbers and arrays.
