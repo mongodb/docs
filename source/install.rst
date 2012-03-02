@@ -62,14 +62,14 @@ agent on a Windows host, skip to the :ref:`window instructions
 
    Issue the following command: ::
 
-        easy_install simplejson hmac hashlib
+        sudo easy_install simplejson hmac hashlib
 
    Do not use ``pip``, as there are some compatibility issues.
 
 4. If your system is running Python 2.5, you will need to install the
    ``simplejson`` module. Issue the following command: ::
 
-        easy_install simplejson
+        sudo easy_install simplejson
 
    Do not use ``pip``, as there are some compatibility issues.
 
@@ -92,12 +92,12 @@ agent on a Windows host, skip to the :ref:`window instructions
    PyMongo before 1.9. If you have not installed ``pymongo`` issue the
    following command to install the latest version: ::
 
-        easy_install pymongo
+        sudo easy_install pymongo
 
    To upgrade to the latest version of the driver, use the following
    command: ::
 
-        easy_install -U pymongo
+        sudo easy_install -U pymongo
 
    For more information concerning PyMongo installation, see the `the
    PyMongo documentation <http://api.mongodb.org/python/2.0.1/installation.html>`_.
@@ -229,8 +229,8 @@ following command: ::
 
 Replace "``<original value>``" with the value that you recorded above.
 
-Installing Native Extensions
-----------------------------
+Installing Native PyMongo Extensions
+------------------------------------
 
 .. note::
 
@@ -255,19 +255,18 @@ reinstall your agent with native extensions.
 
         sudo yum install gcc python-devel
 
-2. Install the ``pip`` utility that will make it possible for you be
-   able to uninstall the existing instance of PyMongo, by issuing the
-   following command: ::
+2. Install the ``pip`` utility so that you can uninstall the existing
+   instance of PyMongo, by issuing the following command: ::
 
         sudo easy_install pip
 
 3. Remove the existing copy of PyMongo with the following command: ::
 
-        pip uninstall pymongo
+        sudo pip uninstall pymongo
 
 4. Now re-install PyMongo with the following command: ::
 
-        pip install pymongo
+        sudo pip install pymongo
 
 After upgrading PyMongo, you will need to restart your MMS agent to
 receive the full effect of the improvement.
