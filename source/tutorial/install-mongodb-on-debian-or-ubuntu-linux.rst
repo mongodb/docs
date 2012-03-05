@@ -138,6 +138,9 @@ Controlling  MongoDB
 Starting MongoDB
 ~~~~~~~~~~~~~~~~
 
+// TODO : Please add that the following commands should be run with root (sudo) privileges. 
+       
+
 Upstart users can start the :program:`mongod` process by issuing the following
 command:
 

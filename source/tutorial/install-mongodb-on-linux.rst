@@ -8,9 +8,9 @@ Synopsis
 --------
 
 10gen provides compiled versions of :term:`MongoDB` for use on Linux
-that provides an simple option for users who cannot use packages. This
+that provides a simple option for users who cannot use packages. This
 tutorial outlines the basic installation of MongoDB using these
-packages and an initial usage guide.
+compiled versions and an initial usage guide.
 
 .. seealso:: The documentation of following related processes and
    concepts.
@@ -61,13 +61,17 @@ extract the files from the archive:
    You may use the following command to move the extracted folder into
    a more generic location.
 
+   //TODO: this is an installation guide for linux hence the package that will be downloaded
+           will probably have name like mongodb-linux-x86_64?-20??-??-?? 
+           and not mongdo-osx-20??-??-?? that you have mentioned below.
+
    .. code-block:: sh
 
       mv -n mongodb-osx-20??-??-??/ mongodb
 
 You can find the :program:`mongod` binary, and the binaries all of the
 associated MongoDB utilities, in the "``bin/``" directory within the
-archive.
+extracted directory.
 
 Using MongoDB
 ~~~~~~~~~~~~~
@@ -81,9 +85,17 @@ following command:
 
    mkdir -p /data/db
 
+// TODO: you might want to mention that the users should also give write permissions
+         to the directory /data/db or wherever they want the dbpath to point to.
+
 You can specify, and create, an alternate path using the
 :option:`--dbpath <mongod>` option to :program:`mongod` and the above
 command.
+
+// TODO : the part to start mongod is completely missing. I think we should add a few lines
+          on how to  start the mongod process. The previous step tells how to create a directory,
+          the next step tells how to use the mongo shell. We should definitely have a line on how to start
+          the mongod process.
 
 The 10gen builds of MongoDB contain no :term:`control scripts <control
 script>` or method to control the :program:`mongod` process. You may
@@ -95,6 +107,9 @@ Among the tools included with this MongoDB distribution, is the
 :program:`mongo` shell. You can use this shell to connect to your
 MongoDB instance by issuing the following command at the system
 prompt:
+  
+   TODO : You might want to add that the following command is to be issued
+         from the directory in which mongodb was extracted to. './bin' is not very descritpive.
 
 .. code-block:: sh
 

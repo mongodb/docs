@@ -55,9 +55,11 @@ following notes:
 
 Procedure
 ---------
+// TODO : Can you please rewrite this sentence. Its clear what you are trying to say
+but when read as a whole line, i feel as if it doesn't flow as a sentence.
 
 Although its possible to deploy multiple members on a single system,
-reduces the redundancy and capacity of the system, these kinds of
+it reduces the redundancy and capacity of the system, these kinds of
 deployments are typically for testing purposes and beyond the scope of
 this tutorial.
 
@@ -176,7 +178,7 @@ configuration </reference/replica-configuration>`:
    rs.config()
 
 Now, issue the following sequence of commands to add the remaining
-members to the replica set. The following example assumes that the
+members to the replica set. The following examrsple assumes that the
 current primary is ``mongodb0.example.net``.
 
 .. code-block:: javascript
