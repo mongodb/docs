@@ -539,17 +539,18 @@ JavaScript
 
       db.collection.find( { $where: "this.a == this.b" } );
 
-.. warning::
+   .. warning::
 
-   `$where` evaluates JavaScript and cannot take advantage of indexes.
-   You'll therefore see much better query performance if you express your query
-   using the standard MongoDB operators (e.g., :operator:`$gt`, :operator:`$in`).
+      :operator:`$where` evaluates JavaScript and cannot take
+      advantage of indexes.  Therefore, query performance improves
+      when you express your query using the standard MongoDB operators
+      (e.g., :operator:`$gt`, :operator:`$in`).
 
-   In general, you should use
-   :operator:`$where` only when you can't express your query using another operator.
-   If you must use :operator:`$where`, try to include at least one other standard
-   query operator to filter the result set. Using :operator:`$where` alone
-   necessarily implies a table scan.
+      In general, you should use :operator:`$where` only when you
+      can't express your query using another operator.  If you must
+      use :operator:`$where`, try to include at least one other
+      standard query operator to filter the result set. Using
+      :operator:`$where` alone requires a table scan.
 
 Array
 ~~~~~
