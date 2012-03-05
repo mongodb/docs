@@ -37,8 +37,8 @@ tutorials which address these processes:
 Procedure
 ---------
 
-On the new system, ensure that a configuration file that resembles the
-following is located on the file system at ``/etc/mongodb.conf``.
+On the new system, create a configuration file that resembles the
+following on your system at ``/etc/mongodb.conf``.
 
 .. code-block:: cfg
 
@@ -48,9 +48,11 @@ following is located on the file system at ``/etc/mongodb.conf``.
 
    dbpath = /srv/mongodb/
 
+   logpath = /var/log/mongodb.log
+
    fork = true
 
-   replSet = rs0/mongodb0.example.net,mongodb1.example.net,mongodb2.example.net,mongodb3.example.net
+   replSet = rs0
 
 Modify the :setting:`bind_ip` to reflect a secure interface on
 your system that will be able to access all other members of the set
@@ -59,28 +61,28 @@ current node. The DNS or host names need to resolve to this IP address
 on the other members of the set. Configure network rules or a virtual
 private network (i.e. "VPN") to permit this access.
 
-.. note::
-
-   The portion of the :setting:`replSet` following the ``/``
-   provides a "seed list" of hosts that are known to be members of the
-   same replica set, which is used for fetching changed configurations
-   following restarts. It is acceptable to omit this section entirely,
-   and have the :setting:`replSet` option resemble:
-
-   .. code-block:: cfg
-
-      replSet = rs0
+// TODO : Please also add a line about the port variable
 
 See the documentation of the configuration options used above:
-:setting:`dbpath`, :setting:`port`,
-:setting:`replSet`, :setting:`bind_ip`, and
-:setting:`fork`. Also consider any additional
+:setting:`dbpath`, :setting:`port`, :setting:`replSet`,
+:setting:`bind_ip`, and :setting:`fork`. Also consider any additional
 :doc:`configuration options </reference/configuration-options>` that
 your deployment may require.
 
-Start the :program:`mongod` process with the following command: ::
+.. note::
 
-     mongod --config /etc/mongodb.conf
+   The default MongoDB port is ``27017``, and the remainder of the
+   tutorial assumes that all MongoDB instances are running on the
+   default port. If your MongoDB instances run on a different port,
+   you will need to change the :setting:`port` above, and append a
+   colon (``:``) and the port number to all host name references
+   below.
+
+Start the :program:`mongod` process with the following command:
+
+.. code-block:: sh
+
+   mongod --config /etc/mongodb.conf
 
 .. note::
 
@@ -89,9 +91,11 @@ Start the :program:`mongod` process with the following command: ::
    command. Control scripts are beyond the scope of this document.
 
 Log into one of the existing members of the current replica set by
-issuing the following command: ::
+issuing the following command:
 
-     mongo mongodb0.example.net
+.. code-block:: sh
+
+   mongo mongodb0.example.net
 
 If this instance is not currently the :term:`primary` node, use the
 :func:`db.isMaster()` function to determine which node is in the

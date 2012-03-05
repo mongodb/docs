@@ -63,7 +63,7 @@ The Debian/Ubuntu package management tool (i.e. ``dpkg`` and ``apt``)
 ensure package consistency and authenticity by requring that
 distributors sign packages with GPG keys. Issue the following command
 to import the `10gen public GPG Key </_static/10gen-gpg-key.asc>`_ as
-the root user:
+the root user (or with ``sudo``:)
 
 .. code-block:: sh
 
@@ -73,7 +73,7 @@ Alternatively, you may use ``sudo`` to get root privileges:
 
 .. code-block:: sh
 
-   sudo apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10
+   apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10
 
 Edit the ``/etc/apt/sources.list`` file to include the 10gen
 repository.
@@ -138,18 +138,18 @@ Controlling  MongoDB
 Starting MongoDB
 ~~~~~~~~~~~~~~~~
 
-Upstart users can start the :program:`mongod` process by issuing the following
-command:
+Upstart users can start the :program:`mongod` process by issuing the
+following command:
 
 .. code-block:: sh
 
-   service mongodb start
+   sudo service mongodb start
 
 All other users can issue the following command to start :program:`mongod`:
 
 .. code-block:: sh
 
-   /etc/init.d/mongodb start
+   sudo /etc/init.d/mongodb start
 
 You can verify that :program:`mongod` has started successfully by checking the
 contents of the log file at ``/var/log/mongodb/mongodb.log``.
@@ -162,13 +162,13 @@ command:
 
 .. code-block:: sh
 
-   service mongodb stop
+   sudo service mongodb stop
 
 All other users can issue the following command to stop :program:`mongod`:
 
 .. code-block:: sh
 
-   /etc/init.d/mongodb stop
+   sudo /etc/init.d/mongodb stop
 
 Restarting MongoDB
 ~~~~~~~~~~~~~~~~~~
@@ -178,14 +178,14 @@ following command:
 
 .. code-block:: sh
 
-   service mongodb restart
+   sudo service mongodb restart
 
 All other users can issue the following command to restart
 :program:`mongod`:
 
 .. code-block:: sh
 
-   /etc/init.d/mongodb restart
+   sudo /etc/init.d/mongodb restart
 
 Controlling :program:`mongos`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
