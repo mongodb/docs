@@ -173,6 +173,19 @@ wish to create control scripts, modify your path, and/or create
 symbolic links to the MongoDB programs in your ``/usr/local/bin``
 directory for easier use.
 
+For testing purposes, you can start a :program:`mongod` directly in
+the terminal without creating a control script:
+
+.. code-block:: sh
+
+   mongod --config /etc/mongod.conf
+
+.. note::
+
+   This command assumes that the :program:`mongod` binary is
+   accessible via your system's search path, and that you have created
+   a default configuration file located at ``/etc/mongod.conf``.
+
 Among the tools included with this MongoDB distribution, is the
 :program:`mongo` shell. You can use this shell to connect to your
 MongoDB instance by issuing the following command at the system
@@ -181,6 +194,14 @@ prompt:
 .. code-block:: sh
 
    ./bin/mongo
+
+
+.. note::
+
+   The ``./bin/mongo`` command assumes that the :program:`mongo`
+   binary is in the "``bin/``" sub-directory of the current
+   directory. This is the directory into which you extracted the
+   "``.tgz``" file.
 
 This will connect to the database running on the localhost interface
 by default. At the :program:`mongo` prompt, issue the following two

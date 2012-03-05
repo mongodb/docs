@@ -55,13 +55,11 @@ following notes:
 
 Procedure
 ---------
-// TODO : Can you please rewrite this sentence. Its clear what you are trying to say
-but when read as a whole line, i feel as if it doesn't flow as a sentence.
 
-Although its possible to deploy multiple members on a single system,
-it reduces the redundancy and capacity of the system, these kinds of
-deployments are typically for testing purposes and beyond the scope of
-this tutorial.
+Although you may to deploy more than one replica set member on a
+single system, this configuration reduces the redundancy and capacity
+of the replica set. Such deployments are typically for testing
+purposes and beyond the scope of this tutorial.
 
 Three Member Replica Set
 ~~~~~~~~~~~~~~~~~~~~~~~~
