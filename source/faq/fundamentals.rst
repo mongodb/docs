@@ -61,15 +61,15 @@ of it's own.
    <MongoDB+-+A+Developer's+Tour>` pages from the wiki.
 
 What are typical uses for MongoDB?
----------------------------------------
+----------------------------------
 
 MongoDB has a general-purpose design, making it appropriate for a large
 number of use cases. Examples include content management
 systems, mobile app, gaming, e-commerce, analytics,
 archiving, and logging.
 
-MongoDB should not be used for systems that require SQL,
-joins, and mult-object transations.
+Do not use MongoDB for systems that require SQL,
+joins, and multi-object transactions.
 
 Does MongoDB support transactions?
 ----------------------------------
@@ -83,15 +83,15 @@ are fields within the same document. Because documents can be rich,
 some documents contain thousands of fields, with support for testing
 fields in sub-documents.
 
-Additionally, writes in MongoDB can be made durable (the 'D' in
+Additionally, you can make writes in MongoDB durable (the 'D' in
 ACID). To get durable writes, you must enable journaling,
 which is on by default in 64-bit builds. You must also issue
-writes with a write concern of `{j: true}` to ensure that the
-writes block until the journal has been synced to disk.
+writes with a write concern of ``{j: true}`` to ensure that the
+writes block until the journal has synced to disk.
 
 Users have built successful e-commerce systems using MongoDB,
 but application requiring multi-object commit with rollback
-generally aren't feasable.
+generally aren't feasible.
 
 Does MongoDB require a lot of RAM?
 ---------------------------------
@@ -104,11 +104,11 @@ cache. System resource monitors show that MongoDB uses a lot of
 memory, but it's usage is dynamic. If another process suddenly needs
 half the server's RAM, MongoDB will yield cached memory to the other process.
 
-Technically, MongoDB's memory is managed by the operating system's
-virtual memory subsystem. This means that MongoDB will use as much
-free memory as it can, swapping to disk as needed. Deployments with
-enough memory to fit the application's working data set in RAM will
-achieve the best performance.
+Technically, the operating system's virtual memory subsystem manages
+MongoDB's memory. This means that MongoDB will use as much free memory
+as it can, swapping to disk as needed. Deployments with enough memory
+to fit the application's working data set in RAM will achieve the best
+performance.
 
 How do I configure the cache size?
 ----------------------------------
@@ -133,12 +133,12 @@ has enough information to ensure crash recovery.
 Does MongoDB handle caching?
 ----------------------------
 
-Yes. MongoDB keeps all of the most recently used data in RAM. If
-you're queries are indexed and your working data set fits in RAM,
-all queries will be served from memory.
+Yes. MongoDB keeps all of the most recently used data in RAM. If you
+have created indexes for your queries and your working data set fits
+in RAM, MongoDB serves all queries will from memory.
 
-Note that MongoDB does not implement a query cache; all queries are
-served directly from the indexes and/or data files.
+MongoDB does not implement a query cache: MongoDB serves all queries
+directly from the indexes and/or data files.
 
 What language is MongoDB written in?
 ------------------------------------
@@ -152,8 +152,8 @@ What are the 32-bit limitations?
 
 MongoDB uses memory-mapped files.  When running a 32-bit build of
 MongoDB, the total storage size for the server, including data and
-indexes, is 2.5 gigabytes. For this reason, MongoDB should not be
-deployed to production on 32-bit machines.
+indexes, is 2.5 gigabytes. For this reason, do not deploy MongoDB to
+production on 32-bit machines.
 
 If you're running a 64-bit build of MongoDB, there's virtually no
 limit to storage size. For production

@@ -48,10 +48,10 @@ In a replica set, if a the current "primary" node fails or becomes
 inaccessible, the other members can autonomously :term:`elect
 <election>` one of the other members of the set to be the new "primary".
 
-By default, all reads are sent to the primary;
+By default, clients send all reads to the primary;
 however, ":term:`read preference`" is configurable at the
-client level on a per-connection basis, allowing reads to be sent
-to secondary nodes instead.
+client level on a per-connection basis, which makes it possible to
+send reads to secondary nodes instead.
 
 What do the terms "secondary" and "slave" mean?
 -----------------------------------------------
@@ -68,8 +68,7 @@ secondary nodes is just few milliseconds on a local network connection.
 How long does replica set failover take?
 ----------------------------------------
 
-It varies, but a primarly will almost always be elected
-within a minute.
+It varies, but a replica set will select a new primary within a minute.
 
 It may take 10-30 seconds for the members of a :term:`replica
 set` to declare a :term:`primary` inaccessible. This
@@ -90,7 +89,7 @@ Does replication work over the Internet and WAN connections?
 
 Yes.
 
-For example, a deployments might keep a :term:`primary` and :term:`secondary`
+For example, a deployment may maintain a :term:`primary` and :term:`secondary`
 in an East-coast data center along with a :term:`secondary` member for disaster
 recovery in a West-coast data center.
 
@@ -158,11 +157,12 @@ Yes.
 
 However, if you want confirmation that a given write has arrived
 safely at the server, you must also run the :dbcommand:`getLastError`
-command after each write. If you enable your driver's :term:`write concern`,
-or "safe mode", then this will be done for you automatically. If you want
-to guarantee that a given write has been synced to the journal, you must
-pass the `{j: true}` option :dbcommand:`getLastError` (or specify it
-as part of the write concern).
+command after each write. If you enable your driver's :term:`write
+concern`, or "safe mode", the driver will automatically send
+:dbcommand:`getLastError` this command. If you want to guarantee that
+a given write syncs to the journal, you must pass the ``{j: true}``
+option :dbcommand:`getLastError` (or specify it as part of the write
+concern).
 
 How many arbiters do replica sets need?
 ---------------------------------------

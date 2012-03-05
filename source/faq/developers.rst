@@ -178,19 +178,19 @@ C++ example:
    auto_ptr<DBClientCursor> cursor = c.query("tutorial.persons", my_query);
 
 Here, ``my_query`` then will have a value such as ``{ name : "Joe"
-}``. If ``my_query`` contained special characters (e.g. "``,``",
-"``:``", "``{``", the query simply wouldn't match any documents. Note
-that it's not possible for a user to hijack a query and convert it to
-a delete, for example.
+}``. If ``my_query`` contained special characters, for example
+"``,``", "``:``", and "``{``", the query simply wouldn't match any
+documents. For example, users cannot hijack a query and convert it to
+a delete.
 
 JavaScript
 ~~~~~~~~~~
 
 All of the following MongoDB operations permit you to run arbitrary JavaScript
-expressions directly on the server:- :operator:`$where`: 
+expressions directly on the server:- :operator:`$where`:
 
 - :operator:`$where`
-- :func:`db.eval()` 
+- :func:`db.eval()`
 - :dbcommand:`mapReduce`
 - :dbcommand:`group`
 
