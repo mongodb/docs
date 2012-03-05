@@ -17,10 +17,16 @@ About MongoDB and this Manual
 Introduction to MongoDB
 -----------------------
 
-.. toctree::
-   :maxdepth: 2
+Frequently Asked Questions
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   faq
+- :doc:`/faq/fundamentals`
+- :doc:`/faq/developers`
+- :doc:`/faq/sharding`
+- :doc:`/faq/replica-sets`
+
+Client Libraries (Drivers)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - :doc:`/applications/drivers`
 

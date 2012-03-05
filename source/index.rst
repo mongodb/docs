@@ -115,7 +115,7 @@ administrators and users responsible MongoDB deployments.*
 MongoDB Shell
 -------------
 
-*Documentation of the :program:`mongo` shell which provides a
+*Documentation of the* :program:`mongo` *shell which provides a
 command-line interface to MongoDB for administration and testing. This
 documentation addresses the shell itself as well as the interface.*
 

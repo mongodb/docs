@@ -4,9 +4,9 @@
 
 .. binary:: mongo
 
-=============================
-:program:`mongo` Shell Manual
-=============================
+=======================
+:program:`mongo` Manual
+=======================
 
 Synopsis
 --------
@@ -159,8 +159,8 @@ file before starting a sell session, use the following form:
 
    mongo --shell --norc alternate-environment.js
 
-To print return a query as JSON, from the system prompt using the eval
-functionality, use the following form:
+To print return a query as :term:`JSON`, from the system prompt using
+the :option:`--eval <mongo --eval>` option, use the following form:
 
 .. code-block:: sh
 
