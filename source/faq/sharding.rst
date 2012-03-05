@@ -4,8 +4,8 @@ FAQ: Sharding with MongoDB
 
 .. default-domain:: mongodb
 
-This provides answers to common questions regarding horizontal scaling
-and MongoDB's :term:`sharding` functionality.
+This document answers common questions about horizontal scaling
+using MongoDB's :term:`sharding`.
 
 .. contents:: Frequently Asked Questions:
    :backlinks: none
@@ -22,49 +22,43 @@ and MongoDB's :term:`sharding` functionality.
 Is sharding appropriate for a new deployment?
 ---------------------------------------------
 
-Many most cases, no.
+Sometimes.
 
-Unless your data set is too big to fit on single servers, begin with
-unsharded environments .
+If your data set fits on a single servers, you should begin
+with an unsharded deployment.
 
 Converting an unsharded database to a :term:`shard cluster` is easy
-and seamless, so there is *little advantage* to configuring sharding
+and seamless, so there is *little advantage* in configuring sharding
 while your data set is small.
 
-In any case, new production deployments should use :term:`replica sets
+Still, all production deployments should use :term:`replica sets
 <replication>` to provide high availability and disaster recovery.
 
 How does sharding work with replication?
 ----------------------------------------
 
-Each :term:`shard` is a logical collection of partitioned data.
-
-A single :program:`mongod` instance or preferably, an independent
-:term:`replica set` can hold the data for every shard.
+Each :term:`shard` is deployed as its own replica set.
 
 What happens to unsharded collections in sharded databases?
 -----------------------------------------------------------
 
 In the current implementation, all databases in a :term:`shard
-cluster` have a "primary :term:`shard`." Any collection that is not
-sharded resides in its entirety on the primary shard for its
-database.
+cluster` have a "primary :term:`shard`." All unsharded
+collection within that database will reside on the same shard.
 
-Future versions will distributed un-sharded collections to
-different shards so that collections may reside on any *single*
-shard.
+Future versions will distributed unsharded collections to
+different shards.
 
-When will MongoDB distribute data to multiple shards?
+How does MongoDB distribute data across shards?
 -----------------------------------------------------
 
-MongoDB :term:`sharding` is range based. As a result, all documents in
-a collection belong to a :term:`chunk`. Migrations, which distribute
-chunks among :term:`shards <shard>`, only occur when there are
-multiple chunks and an unequal distribution of chunks among shards.
+Sharding must be specifically enabled on a collection for the collection
+to be distributed across shards. Once sharding is enabled on the collection,
+MongoDB will assign various ranges of collection data to the different
+shards in the cluster. The cluster will correct imbalances between shards
+by migrating ranges of data from one shard to another.
 
-In the current implementation, the default chunk size is 64 megabytes,
-which means the collection must have at least 64 megabytes before a
-migration will occur.
+TODO: continue from here.
 
 What happens if a client updates a document in a chunk during a migration?
 --------------------------------------------------------------------------

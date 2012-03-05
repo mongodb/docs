@@ -4,8 +4,8 @@ FAQ: MongoDB Fundamentals
 
 .. default-domain:: mongodb
 
-This document addresses basic questions for anyone evaluating MongoDB
-or considering MongoDB for a new project or system.
+This document answers basic questions for anyone evaluating MongoDB
+for a new project or system.
 
 .. contents:: Frequently Asked Questions:
    :backlinks: none
@@ -23,22 +23,28 @@ What kind of Database is MongoDB?
 ---------------------------------
 
 MongoDB is :term:`document`-oriented DBMS. Think of MySQL but with
-:term:`JSON` as the data model, rather than a relational model. There
-are no joins. If you have used object-relational mapping layers before
-in your programs, you will find the Mongo interface similar to use,
-but faster, more powerful, and less work to set up.
+:term:`JSON`-like objects comprising the data model, rather than RDBMS
+tables. Significantly, MongoDB supports neither joins nor transactions.
+However, it features secondary indexes, an expressive query language,
+atomic writes on a per-document level, and fully-consistent reads.
+
+Operationally, MongoDB features master-slave replication with automated
+failover and built-in horizontal scaling via automated range-based
+partitioning.
 
 .. note::
 
-   MongoDB uses :term:`BSON`, a binary object notation that resembles
-   a rich binary :term:`JSON` format, as the foundation of the data
-   model.
+   MongoDB uses :term:`BSON`, a binary object format similar
+   to, but more expressive than, :term:`JSON`.
 
 What languages can I use to work with the MongoDB?
 --------------------------------------------------
 
-MongoDB, by way of :term:`client drivers <driver>`, can communicate
-is accessible from many different programming languages.
+MongoDB :term:`client drivers <driver>` exist for
+all of the most popular programming languages, and many
+of the less popular ones. See the `latest list of
+drivers <http://www.mongodb.org/display/DOCS/Drivers>`_
+for details.
 
 .. seealso:: ":doc:`/applications/drivers`."
 
@@ -47,59 +53,68 @@ Does MongoDB support SQL?
 
 No.
 
-MongoDB does support rich ad-hoc queries by way of a JSON-style query
-language using :term:`operators <operator>`.
+However, MongoDB does support a rich, ad-hoc query language
+of it's own.
 
-.. seealso:: ":doc:`/reference/operators`" document and the
+.. seealso:: The query ":doc:`/reference/operators`" document and the
    :wiki:`Query Overview <Advanced+Queries>` and the :wiki:`Tour
    <MongoDB+-+A+Developer's+Tour>` pages from the wiki.
 
-What are typical use cases for MongoDB?
+What are typical uses for MongoDB?
 ---------------------------------------
 
-MongoDB has a general purpose design that is appropriate for a large
-number of use cases. Example use cases include: content management
-systems, mobile, gaming, e-commerce, real-time report statistics,
+MongoDB has a general-purpose design, making it appropriate for a large
+number of use cases. Examples include content management
+systems, mobile app, gaming, e-commerce, analytics,
 archiving, and logging.
+
+MongoDB should not be used for systems that require SQL,
+joins, and mult-object transations.
 
 Does MongoDB support transactions?
 ----------------------------------
 
-MongoDB does not provide fully generalized transactions; however,
-MongoDB does provide some transactional capabilities. Atomic
+MongoDB does not provide ACID transactions.
+
+However, MongoDB does provide some basic transactional capabilities. Atomic
 operations are possible within the scope of a single document: that
 is, we can debit "``a``" and credit "``b``" as a transaction if they
 are fields within the same document. Because documents can be rich,
 some documents contain thousands of fields, with support for testing
-fields in sub-documents. In may cases, this is quite powerful.
+fields in sub-documents.
 
-Additionally, all writes in MongoDB are durable, which is the 'D' in
-ACID. Journaling, which is on by default in 64-bit builds, in
-combination with the :command:`getLastError` command to ensure safe
-writes and on-disk consistency.
+Additionally, writes in MongoDB can be made durable (the 'D' in
+ACID). To get durable writes, you must enable journaling,
+which is on by default in 64-bit builds. You must also issue
+writes with a write concern of `{j: true}` to ensure that the
+writes block until the journal has been synced to disk.
 
-Some users have built successful e-commerce systems using MongoDB. At
-the same time, an application like a general ledger, would be
-difficult to build with MongoDB because of the highly transactional
-nature of that problem.
+Users have built successful e-commerce systems using MongoDB,
+but application requiring multi-object commit with rollback
+generally aren't feasable.
 
-Does MongoDB require lots of RAM?
+Does MongoDB require a lot of RAM?
 ---------------------------------
 
-No; in fact it is possible to run MongoDB on a machine with a small
-amount of free RAM.
+Not necessarily. It's certainly possible to run MongoDB
+on a machine with a small amount of free RAM.
 
 MongoDB automatically uses all free memory on the machine as its
 cache. System resource monitors show that MongoDB uses a lot of
-memory--and it is for the cache--but it's usage is dynamic: if another
-process suddenly needed half the server's RAM, MongoDB will yield
-cached memory to the other process.
+memory, but it's usage is dynamic. If another process suddenly needs
+half the server's RAM, MongoDB will yield cached memory to the other process.
+
+Technically, MongoDB's memory is managed by the operating system's
+virtual memory subsystem. This means that MongoDB will use as much
+free memory as it can, swapping to disk as needed. Deployments with
+enough memory to fit the application's working data set in RAM will
+achieve the best performance.
 
 How do I configure the cache size?
 ----------------------------------
 
 MongoDB has no configurable cache. MongoDB uses all *free* memory on
-the system automatically in the form of memory mapped files. Operating
+the system automatically by way of memory-mapped files. Operating
 systems use the same approach with their file system caches.
 
 Are writes written to disk immediately, or lazily?
@@ -107,38 +122,42 @@ Are writes written to disk immediately, or lazily?
 
 Writes are physically written to the journal within 100
 milliseconds. At that point, the write is "durable" in the sense that
-after a pull-plug-from-wall event, the data should still be there on
-restart.
+after a pull-plug-from-wall event, the data will still be recoverable after
+a hard restart.
 
 While the journal commit is nearly instant, MongoDB writes to the data
 files lazily. MongoDB may wait to write data to the data files for as
-much as one minute. This does not effect durability, as the journal
-has enough information to protect against crash recovery.
+much as one minute. This does not affect durability, as the journal
+has enough information to ensure crash recovery.
 
 Does MongoDB handle caching?
 ----------------------------
 
-For simple queries (with an index) MongoDB is fast enough that you can
-query the database directly without a dedicated caching layer. MongoDB
-should provide an alternative to all layers of a typical
-ORM/``memcached``/MySQL stack. However, some MongoDB users integrate
-``memcached`` and MongoDB.
+Yes. MongoDB keeps all of the most recently used data in RAM. If
+you're queries are indexed and your working data set fits in RAM,
+all queries will be served from memory.
+
+Note that MongoDB does not implement a query cache; all queries are
+served directly from the indexes and/or data files.
 
 What language is MongoDB written in?
 ------------------------------------
 
-MongoDB is implemented in C++.  :term:`Drivers <driver>` and client libraries
+MongoDB is implemented in C++. :term:`Drivers <driver>` and client libraries
 are typically written in their respective languages, although some
-drivers use C extensions to provide speed.
+drivers use C extensions for better performance.
 
 What are the 32-bit limitations?
 --------------------------------
 
 MongoDB uses memory-mapped files.  When running a 32-bit build of
-MongoDB, the total storage size for the server including data and
-indexes is 2.5 gigabytes. If you are running on a 64-bit build of
-MongoDB, there is virtually no limit to storage size.  For production
-deployments, use 64-bit operating systems and MongoDB builds.
+MongoDB, the total storage size for the server, including data and
+indexes, is 2.5 gigabytes. For this reason, MongoDB should not be
+deployed to production on 32-bit machines.
+
+If you're running a 64-bit build of MongoDB, there's virtually no
+limit to storage size. For production
+deployments, 64-bit builts and operating systems are strongly recommended.
 
 .. seealso:: "`Blog Post: 32-bit Limitations <http://blog.mongodb.org/post/137788967/32-bit-limitations>`_
 
@@ -146,4 +165,4 @@ deployments, use 64-bit operating systems and MongoDB builds.
 
    32-bit builds disable :term:`journaling <journal>` by default
    because journaling further limits the maximum amount of data that
-   database can store.
+   the database can store.

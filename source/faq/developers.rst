@@ -4,7 +4,7 @@ FAQ: MongoDB for Application Developers
 
 .. default-domain:: mongodb
 
-This provides answers to common questions related to the application
+This document answers common questions about application
 development using MongoDB.
 
 .. contents:: Frequently Asked Questions:
@@ -22,11 +22,11 @@ development using MongoDB.
 What is a "namespace?"
 ----------------------
 
-The :term:`namespace` is the concatenation of the :term:`database`
-name and the :term:`collection` name with a period character in
+A :term:`namespace` is the concatenation of the :term:`database`
+name and the :term:`collection` names with a period character in
 between.
 
-Collections are logical grouping of similar documents that share one
+Collections are containers for documents. that share one
 or more indexes. Databases are groups of collections stored on disk
 in a single collection of data files.
 
@@ -58,7 +58,7 @@ duplicate the entire collection:
 Also consider the :dbcommand:`cloneCollection` :term:`command
 <database command>` that may provide some of this functionality.
 
-If you remove an object attribute does MongoDB remove it from disk?
+If you remove a document, does MongoDB remove it from disk?
 -------------------------------------------------------------------
 
 Yes.
@@ -68,7 +68,6 @@ MongoDB's on-disk data storage.
 
 Does MongoDB permit null values?
 --------------------------------
-
 
 
 When does MongoDB write updates to disk?
@@ -153,9 +152,9 @@ MongoDB on the EC2 platform using EBS disks.
 Why are MongoDB's data files so large?
 --------------------------------------
 
-MongoDB aggressively preallocates data files to reserved space and
+MongoDB aggressively preallocates data files to reserve space and
 avoid file system fragmentation. You can use the :setting:`smallfiles`
-to modify the file prealocation strategy.
+flag to modify the file prealocation strategy.
 
 .. seealso:: This wiki page that address :wiki:`MongoDB disk use <http://www.mongodb.org/display/DOCS/Excessive+Disk+Space>`.
 
@@ -166,10 +165,10 @@ BSON
 ~~~~
 
 As a client program assembles a query in MongoDB, it builds a BSON object, not a string. Thus
-traditional SQL Injection attacks are not a problem. More details and some nuances are covered below.
+traditional SQL injection attacks are not a problem. More details and some nuances are covered below.
 
 MongoDB represents queries as :term:`BSON` objects. Typically
-:doc:`client library </applications/drivers>` provides a convenient,
+:doc:`client libraries </applications/drivers>` provide a convenient,
 injection free, process to build these objects. Consider the following
 C++ example:
 
@@ -180,25 +179,29 @@ C++ example:
 
 Here, ``my_query`` then will have a value such as ``{ name : "Joe"
 }``. If ``my_query`` contained special characters (e.g. "``,``",
-"``:``", "``{``" or others) then a malicious user cannot inject code.
+"``:``", "``{``", the query simply wouldn't match any documents. Note
+that it's not possible for a user to hijack a query and convert it to
+a delete, for example.
 
 JavaScript
 ~~~~~~~~~~
 
-Developers should, as always, exercise care when using server-side
-JavaScript with MongoDB. When using the :operator:`$where` statement
-in a query, do not concatenate data from the user when building
-Javascript code. Allowing user-submitted data to appear in JavaScript
-code sent to the server is analogous to a SQL injection
-vulnerability.
+All of the following MongoDB operations permit you to run arbitrary JavaScript
+expressions directly on the server:- :operator:`$where`: 
+
+- :operator:`$where`
+- :func:`db.eval()` 
+- :dbcommand:`mapReduce`
+- :dbcommand:`group`
+
+You must exercise care in these cases to prevent users from
+submitting malicious JavaScript.
 
 Fortunately, you can express most queries in MongoDB without
 JavaScript and for queries that require JavaScript, you can mix
 JavaScript and non-JavaScript in a single query. Place all the
 user-supplied fields directly in a :term:`BSON` field and pass
 JavaScript code to the :operator:`$where` field.
-
-Consider the following alternatives:
 
 - If you need to pass user-supplied values in a :operator:`$where`
   clause, you may escape these values with the ``CodeWScope``
@@ -216,15 +219,15 @@ Consider the following alternatives:
              user_value);
 
   This will ensure that your application sends ``user_value`` to the
-  dataase server as data rather than code.
+  database server as data rather than code.
 
 Dollar Sign Operator Escaping
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Field names in MongoDB's query language has semantic meaning. The
+Field names in MongoDB's query language have a semantic. The
 dollar sign (i.e "``$``) is a reserved character used to represent
-:doc:`operators </reference/operators>` (i.e. :operator:`$inc`.) Use
-care to assure that your application's users can not inject operators
+:doc:`operators </reference/operators>` (i.e. :operator:`$inc`.) Thus,
+you should ensure that your application's users cannot inject operators
 into their inputs.
 
 In some cases, you may wish to build a BSON object with a
@@ -243,7 +246,7 @@ The user may have supplied a ``$`` value in the ``a_key`` value. At
 the same time, ``my_object`` might be "``{ $where : "things"
 }``". Consider the following cases:
 
-- **Inserting**. Inserting this into the database does no harm. The
+- **Insert**. Inserting this into the database does no harm. The
   insert process does not evaluate the object as a query.
 
   .. note::
@@ -252,25 +255,20 @@ the same time, ``my_object`` might be "``{ $where : "things"
      reserved characters in keys on inserts.
 
 - **Update**.  The :func:`update()` operation permits ``$`` operators
-  in the second field. The :func:`update()` does not support the
-  :operator:`$where` operator in update. At the same time, some users
+  in the update argument but does not support the
+  :operator:`$where` operator. Still, some users
   may be able to inject operators that can manipulate a single
   document only. Therefore your application should escape keys, as
   mentioned above, if reserved characters are possible.
 
-- **Querying.** Generally this is not a problem for queries that
+- **Query** Generally this is not a problem for queries that
   resemble "``{ x : user_obj }``": dollar signs are not top level and
   have no effect. Theoretically it may be possible for the user to
-  build a query themselves. Checking the user submitted content for
+  build a query themselves. But checking the user-submitted content for
   "``$``" characters in key names may help protect against this kind
-  of injection. These query injections are, nonetheless, highly
-  unusual.
+  of injection.
 
-Additionally, if you refrain from placing user-generated keys in the
-top-level, and restrict them to the sub-objects, you may be able to
-protect against these kinds of attacks.
-
-Driver Specific Issues
+Driver-Specific Issues
 ~~~~~~~~~~~~~~~~~~~~~~
 
 See the "`PHP MongoDB Driver Security Notes
@@ -280,12 +278,30 @@ driver documentation for more information
 How does MongoDB provide concurrency?
 -------------------------------------
 
+MongoDB implements a server-wide reader-writer lock. This means that
+at any one time, only one client may be writing or any number
+of clients may be reading, but that reading and writing cannot
+occur simultaneously.
+
+The lock is scoped to a single primary node. In a sharded cluster,
+the lock applies to each individual shard, not to the whole cluster.
+
+A more granular approach to locking will appear in MongoDB v2.2. For now,
+several yielding optimizations exist to mitigate the coarseness of the lock. These include:
+
+- Yielding on long operations. Queries and updates that operate on multiple
+document may yield to writers
+
+- Yielding on page faults. If an update or query is likely to trigger a
+page fault, then the operation will yield to keep from blocking other
+clients for the duration of the page fault.
+
 What is the compare Order for BSON types?
 -----------------------------------------
 
-MongoDB permits documents within a single collection to have common
-values that hold data of different :term:`BSON` types. For instance,
-the following documents may exist within a single document.
+MongoDB permits documents within a single collection to
+have fields with different :term:`BSON` types. For instance,
+the following documents may exist within a single collection.
 
 .. code-block:: javascript
 
@@ -293,7 +309,7 @@ the following documents may exist within a single document.
    { x: 42 }
 
 When comparing values of different :term:`BSON` types, the following
-convention determines order:
+compare order is used:
 
 - Null
 - Numbers (ints, longs, doubles)
@@ -308,8 +324,8 @@ convention determines order:
 
 .. note::
 
-   MongoDB treats some types as equivalent for comparison purposes:
-   for instance, numeric types undergo conversion before comparison.
+   MongoDB treats some types as equivalent for comparison purposes.
+   For instance, numeric types undergo conversion before comparison.
 
 Consider the following :program:`mongo` example:
 
@@ -326,11 +342,15 @@ Consider the following :program:`mongo` example:
    { "_id" : ObjectId("4b031566ce8de6586fb002c9"), "x" : true }
    { "_id" : ObjectId("4b031563ce8de6586fb002c8"), "x" : "Tue Nov 17 2009 16:28:03 GMT-0500 (EST)" }
 
+.. warning::
+
+   Mixing types for the same field is not encouraged.
+
 MinKey and MaxKey
 ~~~~~~~~~~~~~~~~~
 
-MongoDB provides two special types: ``MinKey`` and ``MaxKey`` are less
-than and greater than all other possible :term:`BSON` element values
+MongoDB provides two special types, ``MinKey`` and ``MaxKey``, that
+compare less than and greater than all other possible :term:`BSON` element values,
 respectively.
 
 To continue the example from above:
@@ -346,6 +366,10 @@ To continue the example from above:
    { "_id" : ObjectId("4b031566ce8de6586fb002c9"), "x" : true }
    { "_id" : ObjectId("4b031563ce8de6586fb002c8"), "x" : "Tue Nov 17 2009 16:28:03 GMT-0500 (EST)" }
    { "_id" : ObjectId("4b0409487c65b846e2090111"), "x" : { $maxKey : 1 } }
+
+.. note::
+
+   These types are mostly for internal use.
 
 .. seealso::
 
