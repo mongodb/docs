@@ -322,7 +322,7 @@ Aggregation
    .. note::
 
       The result set of the :func:`group()` must fit within the
-      size :ref:`maximum BSON document <limit-maximum-bson-document-size>`.
+      size :ref:`maximum BSON document <limit-bson-document-size>`.
 
       Furthermore, you must ensure that there are fewer then 10,000
       unique keys. If you have more than this, use :dbcommand:`mapReduce`.
@@ -459,11 +459,10 @@ Aggregation
                            the end of the function. This option is
                            only possible when the entire result set
                            will fit within the :ref:`maximum size of a
-                           BSON document
-                           <limit-maximum-bson-document-size>`. When
-                           performing map-reduce jobs on secondary
-                           members of replica sets, this is the only
-                           available option.
+                           BSON document <limit-bson-document-size>`.
+                           When performing map-reduce jobs on
+                           secondary members of replica sets, this is
+                           the only available option.
 
    .. seealso:: ":func:`mapReduce()`" and ":term:`map-reduce`."
 

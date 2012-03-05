@@ -177,7 +177,7 @@ The aggregation operation in the previous section returns a
   if there was an error
 
 As a document, the result is subject to the current :ref:`BSON
-Document size <limit-maximum-bson-document-size>`.
+Document size <limit-bson-document-size>`.
 
 .. OMMITED: as $out will not be available in 2.2
 ..

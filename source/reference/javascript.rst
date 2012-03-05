@@ -552,11 +552,10 @@ Data Aggregation
                            the end of the function. This option is
                            only possible when the entire result set
                            will fit within the :ref:`maximum size of a
-                           BSON document
-                           <limit-maximum-bson-document-size>`. When
-                           performing map-reduce jobs on secondary
-                           members of replica sets, this is the only
-                           available option.
+                           BSON document <limit-bson-document-size>`.
+                           When performing map-reduce jobs on
+                           secondary members of replica sets, this is
+                           the only available option.
 
    .. seealso:: :term:`map-reduce`, provides a greater overview
       of MognoDB's map-reduce functionality.
@@ -1101,7 +1100,7 @@ that you may use with collection objects.
 
       The :func:`distinct()` method provides a wrapper around the
       :dbcommand:`distinct`. Results larger than the maximum
-      :ref:`BSON size <limit-maximum-bson-document-size>` (e.g. 16 MB)
+      :ref:`BSON size <limit-bson-document-size>` (e.g. 16 MB)
 
 .. function:: drop()
 
