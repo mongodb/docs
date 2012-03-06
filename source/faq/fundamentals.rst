@@ -94,7 +94,7 @@ but application requiring multi-object commit with rollback
 generally aren't feasible.
 
 Does MongoDB require a lot of RAM?
----------------------------------
+----------------------------------
 
 Not necessarily. It's certainly possible to run MongoDB
 on a machine with a small amount of free RAM.

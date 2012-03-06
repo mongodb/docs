@@ -256,7 +256,6 @@ to add the views:
 .. _`generic views`: https://docs.djangoproject.com/en/1.3/topics/class-based-views/
 .. _`django-mongodb`: http://django-mongodb.org/
 
-
 Add Templates
 ~~~~~~~~~~~~~
 
@@ -577,7 +576,7 @@ Once done run the server and you can login to admin by going to
    :align: center
 
 .. _`SITE_ID issues`: http://django-mongodb.org/troubleshooting.html#site-id-issues
-
+.. _`django admin`: https://docs.djangoproject.com/en/dev/ref/contrib/admin/
 
 Convert the Blog to a Tumblelog
 -------------------------------
