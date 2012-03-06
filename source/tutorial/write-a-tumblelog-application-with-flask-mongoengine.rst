@@ -1,9 +1,9 @@
-=====================
-Flask and MongoEngine
-=====================
+==========================================================
+Writing A Tumblelog Application With Flask And MongoEngine
+==========================================================
 
-Overview
---------
+Introduction
+------------
 
 In this tutorial, you will learn how to create a basic tumblelog
 application using the popular `Flask`_ framework and `MongoDB`_ as the
@@ -24,6 +24,13 @@ to MongoDB.
     If you're having trouble going through this tutorial, please post a message
     to `mongodb-user`_ or drop by `#mongodb on irc.freenode.net`_ to chat
     with other MongoDB users who might be able to help.
+
+.. _Flask: http://flask.pocoo.org/
+.. _MongoDB: http://mongodb.org
+.. _configured MongoDB installation: http://www.mongodb.org/display/DOCS/Quickstart
+.. _MongoEngine: http://mongoengine.org/
+.. _mongodb-user: http://groups.google.com/group/mongodb-user
+.. _#mongodb on irc.freenode.net: irc://irc.freenode.net/mongodb
 
 
 Installation
@@ -51,8 +58,10 @@ To activate `myproject` environment in Bash type
 
     source myproject/bin/activate
 
+.. _pip: http://pypi.python.org/pypi/pip
+.. _virtualenv: http://virtualenv.org
 
-Installing packages
+Installing Packages
 ~~~~~~~~~~~~~~~~~~~
 
 As Flask is a microframework you need to install some extensions to
@@ -74,9 +83,13 @@ To install simply
 
 That's all you need to start building a tumblelog!
 
+.. _WTForms: http://wtforms.simplecodes.com/docs/dev/
+.. _Flask-Script: http://pypi.python.org/pypi/Flask-Script
+.. _Flask-MongoEngine: http://github.com/rozza/flask-mongoengine
 
-Getting started
----------------
+
+Getting Started By Building A Blog
+----------------------------------
 
 First, lets create a barebones application to get up and running. Create a
 directory called :file:`tumblelog` for the project and then inside that directory
@@ -128,8 +141,8 @@ without errors and going to `http://localhost:5000/ <http://localhost:5000/>`_
 should output a 404 page.
 
 
-Setting up MongoEngine
-~~~~~~~~~~~~~~~~~~~~~~
+Configuring MongoEngine And Flask
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 First install the flask extension and add the configuration. Update
 :file:`__init__.py` to:
@@ -149,8 +162,11 @@ First install the flask extension and add the configuration. Update
 
 See the `MongoEngine Settings`_ docs for more configuration options.
 
-Define the schema
-~~~~~~~~~~~~~~~~~
+
+.. _`MongoEngine Settings`: http://readthedocs.org/docs/mongoengine-odm/en/latest/guide/connecting.html
+
+Defining The Schema
+~~~~~~~~~~~~~~~~~~~
 
 The first step in writing a tumblelog in Flask_ is to define the models or in
 MongoDB parlance *documents*.
@@ -196,8 +212,8 @@ familiar to those from a Django background. You've defined a couple of indexes
 to  ``Post``. One for the ``created_at`` date as our frontpage will order by
 date and another for the individual post ``slug``.
 
-Trying out the shell
-~~~~~~~~~~~~~~~~~~~~
+Adding Data Into MongoDB Via The Shell
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Its nearly time to setup our urls and views, but first lets try it out in the
 python shell. To load the python shell run:
@@ -206,7 +222,7 @@ python shell. To load the python shell run:
 
     python manage.py shell
 
-Now lets create the first post:
+Create the first post:
 
 .. code-block:: pycon
 
@@ -218,7 +234,9 @@ Now lets create the first post:
     ... )
     >>> post.save()
 
-    # Surely we want to add some comments.
+Next add some comments:
+
+.. code-block:: pycon
 
     >>> post.comments
     []
@@ -229,7 +247,9 @@ Now lets create the first post:
     >>> post.comments.append(comment)
     >>> post.save()
 
-    # Look and see, it has actually been saved!
+Finally inspect the post:
+
+.. code-block:: pycon
 
     >>> post = Post.objects.get()
     >>> post
@@ -238,7 +258,7 @@ Now lets create the first post:
     [<Comment: Comment object>]
 
 
-Adding the views
+Adding The Views
 ~~~~~~~~~~~~~~~~
 
 Using Flask's Class based views will let you quickly produce a List and Detail
@@ -287,7 +307,10 @@ dependency by registering the blueprints in a method. Add the following code:
     register_blueprints(app)
 
 
-Adding templates
+.. _blueprint: http://flask.pocoo.org/docs/blueprints/
+
+
+Adding Templates
 ~~~~~~~~~~~~~~~~
 
 In the tumblelog directory add the following directories :file:`templates`
@@ -390,8 +413,8 @@ Now run ``python manage.py runserver`` and see your new tumblelog! Go to
     .. image:: .static/flask-mongoengine-frontpage.png
 
 
-Adding comments
----------------
+Adding Comments To The Blog
+---------------------------
 
 The next step is to allow the tumblelog readers to comment on posts.
 To achieve this we'll setup the form with `WTForms`_, update the view to
@@ -399,8 +422,8 @@ handle the form data and update the template to include the form. Lets get
 started!
 
 
-Updating the view
-~~~~~~~~~~~~~~~~~
+Handling Comments In The View
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 First :file:`views.py` needs updating and refactoring to handle the form add
 the import and update the DetailView to:
@@ -452,8 +475,8 @@ the import and update the DetailView to:
     comment is appended to the post.
 
 
-Updating templates
-~~~~~~~~~~~~~~~~~~
+Adding Comments To The Templates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The final stage is adding the form to the templates, so then readers can
 comment away! Creating a macro for the forms in :file:`templates/_forms.html`
@@ -517,15 +540,15 @@ Your tumblelog readers can now comment on your posts! Run
     .. image:: .static/flask-mongoengine-comment-form.png
 
 
-Administration
---------------
+Adding Site Administration
+--------------------------
 
 Adding new posts via the shell is going to get tiring quickly, but adding an
 admin is a case of adding authentication and some of Admin Views. This
 tutorial only covers adding and editing posts - adding a delete view and
 handling slug collisions is left as an exercise for the reader.
 
-Adding basic authentication
+Adding Basic Authentication
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For the purposes of this tutorial all we need is a very basic form of
@@ -568,8 +591,8 @@ authentication.  The following example is based off this
     The username is ``admin`` and password is ``secret``.
 
 
-Admin View
-~~~~~~~~~~
+Writing An Administration View
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Create the views and admin blueprint in :file:`admin.py`. As in the next stage
 extends the admin, its been deliberately made generic.
@@ -665,8 +688,8 @@ the new admin blueprint.
 
 
 
-Add admin templates
-~~~~~~~~~~~~~~~~~~~
+Creating Administration Templates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Similar to the frontend, the admin requires three templates, a base template
 a list view and a detail view.
@@ -754,8 +777,8 @@ admin by going to `http://localhost:5000/admin/ <http://localhost:5000/admin/>`_
     .. image:: .static/flask-mongoengine-admin.png
 
 
-Blog to Tumblelog
------------------
+Converting The Blog To A Tumblelog
+----------------------------------
 
 Currently, the tumblelog only supports posts but tumblelogs traditionally
 support different types of media. Add the following types: *Video*, *Image*
@@ -853,8 +876,8 @@ And in :file:`templates/posts/detail.html` output the full posts:
     {% endif %}
 
 
-Updating the admin
-~~~~~~~~~~~~~~~~~~
+Updating The Administration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The final stage is to update the admin to support the new post types.
 Update :file:`admin.py` to import the new document models and then update
@@ -942,19 +965,3 @@ dropdown in the toolbar:
 Now you have a fully fledged tumbleblog using Flask and MongoEngine!
 
     .. image:: .static/flask-mongoengine-tumblelog.png
-
-
-.. _Flask: http://flask.pocoo.org/
-.. _MongoDB: http://mongodb.org
-.. _configured MongoDB installation: http://www.mongodb.org/display/DOCS/Quickstart
-.. _mongodb-user: http://groups.google.com/group/mongodb-user
-.. _#mongodb on irc.freenode.net: irc://irc.freenode.net/mongodb
-.. _pip: http://pypi.python.org/pypi/pip
-.. _virtualenv: http://virtualenv.org
-.. _MongoEngine: http://mongoengine.org/
-.. _WTForms: http://wtforms.simplecodes.com/docs/dev/
-.. _Flask-Script: http://pypi.python.org/pypi/Flask-Script
-.. _Flask-MongoEngine: http://github.com/rozza/flask-mongoengine
-.. _`MongoEngine Settings`: http://mongoengine.org/docs/v0.5/guide/connecting.html
-.. _blueprint: http://flask.pocoo.org/docs/blueprints/
-

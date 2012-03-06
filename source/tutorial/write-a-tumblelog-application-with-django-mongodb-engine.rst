@@ -1,9 +1,9 @@
-=============
-Django NonRel
-=============
+==========================================================
+Writing A Tumblelog Application With Django MongoDB Engine
+==========================================================
 
-Overview
---------
+Introduction
+------------
 
 In this tutorial, you will learn how to create a basic tumblelog
 application using the popular `Django`_ framework and `MongoDB`_ as the
@@ -29,6 +29,14 @@ basic idea of MongoDB operation and have a `configured MongoDB installation`_.
     `Django MongoDB Engine`_ uses the a forked version of Django 1.3 that adds
     non-relational support.
 
+.. _Django: http://www.djangoproject.com
+.. _MongoDB: http://mongodb.org
+.. _configured MongoDB installation: http://www.mongodb.org/display/DOCS/Quickstart
+.. _mongodb-user: http://groups.google.com/group/mongodb-user
+.. _#mongodb on irc.freenode.net: irc://irc.freenode.net/mongodb
+.. _Django MongoDB Engine: http://django-mongodb.org/
+
+
 Installation
 ------------
 
@@ -50,8 +58,10 @@ To activate `myproject` environment in Bash type::
 
     source myproject/bin/activate
 
+.. _pip: http://pypi.python.org/pypi/pip
+.. _virtualenv: http://virtualenv.org
 
-Installing packages
+Installing Packages
 ~~~~~~~~~~~~~~~~~~~
 
 Django MongoDB Engine directly depends on:
@@ -72,8 +82,12 @@ To install simply:
 
 That's all thats needed to start building our tumblelog!
 
-Getting started
----------------
+
+.. _Django-nonrel: http://www.allbuttonspressed.com/projects/django-nonrel
+.. _djangotoolbox: http://www.allbuttonspressed.com/projects/djangotoolbox
+
+Getting Started By Building A Blog
+----------------------------------
 
 The first focus is on getting the basic tumblelog up and running, with
 the first post manually added via the shell, later we'll use django admin.
@@ -86,8 +100,8 @@ the basic project skeleton:
   django-admin.py startproject tumblelog
 
 
-Configure Django
-~~~~~~~~~~~~~~~~
+Configuring Django
+~~~~~~~~~~~~~~~~~~
 
 Configure the database in :file:`tumblelog/settings.py`:
 
@@ -102,10 +116,12 @@ Configure the database in :file:`tumblelog/settings.py`:
 
 See the `Django MongoDB Engine Settings`_ docs for more configuration options.
 
-Define the schema
-~~~~~~~~~~~~~~~~~
+.. _Django MongoDB Engine Settings: http://django-mongodb.org/reference/settings.html
 
-The first step in writing a tumblelog in Django_ is to define the models or in
+Defining The Schema
+~~~~~~~~~~~~~~~~~~~
+
+The first step in writing a tumblelog in Django is to define the models or in
 MongoDB parlance *documents*.
 
 In our simple tumblelog app, initally all that is needed are posts and
@@ -153,8 +169,11 @@ our frontpage will order by date - theres no need to add ``db_index`` on the
 ``SlugField`` as its indexed by default.
 
 
-Trying out the shell
-~~~~~~~~~~~~~~~~~~~~
+.. _fields: http://django-mongodb.org/reference/fields.html
+
+
+Adding Data Into MongoDB Via The Shell
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Its nearly time to setup our urls and views, but first lets try it out in the
 python shell.  To load the python shell run:
@@ -163,9 +182,9 @@ python shell.  To load the python shell run:
 
     python manage.py shell
 
-Now create the first post:
+Create the first post:
 
-.. code-block:: python
+.. code-block:: pycon
 
     >>> from tumblelog.models import *
     >>> post = Post(
@@ -175,7 +194,9 @@ Now create the first post:
     ... )
     >>> post.save()
 
-    # Surely we want to add some comments.
+Next add some comments:
+
+.. code-block:: pycon
 
     >>> post.comments
     []
@@ -185,7 +206,9 @@ Now create the first post:
     >>> post.comments.append(comment)
     >>> post.save()
 
-    # Look and see, it has actually been saved!
+Finally inspect the post:
+
+.. code-block:: pycon
 
     >>> post = Post.objects.get()
     >>> post
@@ -194,7 +217,7 @@ Now create the first post:
     [<Comment: Comment object>]
 
 
-Adding the views
+Adding The Views
 ~~~~~~~~~~~~~~~~
 
 Thanks to django-mongodb tight integration to Django you can use `generic
@@ -220,8 +243,10 @@ as setting :file:`urls.py`:
         ),
     )
 
+.. _`generic views`: https://docs.djangoproject.com/en/1.3/topics/class-based-views/
 
-Adding templates
+
+Adding Templates
 ~~~~~~~~~~~~~~~~
 
 
@@ -332,16 +357,16 @@ Now run ``python manage.py runserver`` and see your new tumblelog! Got to
     .. image:: .static/django-nonrel-frontpage.png
 
 
-Adding comments
----------------
+Adding Comments To The Blog
+---------------------------
 
 The next step is to allow your tumblelog readers to comment on posts. Custom
 views are needed to do this effectively with a custom form and a view that
 handles the form data and update the template to include the form. Lets get
 started!
 
-Creating the form
-~~~~~~~~~~~~~~~~~
+Creating The Comments Form
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Form handling needs to be customised to deal with embedded comments.  By
 extending :class:`ModelForm` so we can append the comment to the post on save.
@@ -372,8 +397,8 @@ Create and add the following to :file:`forms.py`:
             model = Comment
 
 
-Adding the view
-~~~~~~~~~~~~~~~
+Handling Comments In The View
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The generic views need to be extended to handle the form logic.  Add
 :file:`views.py`:
@@ -413,8 +438,9 @@ The generic views need to be extended to handle the form logic.  Add
 Don't forget to update :file:`urls.py` and import your :class:`PostDetailView`
 which replaces :class:`DetailView`.
 
-Updating templates
-~~~~~~~~~~~~~~~~~~
+
+Adding Comments To The Templates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The final stage is adding the form to the templates, so then readers can
 comment away! Splitting the template for the forms out into
@@ -465,8 +491,8 @@ and you should see:
     .. image:: .static/django-nonrel-comment-form.png
 
 
-Administration
---------------
+Adding Site Administration
+--------------------------
 
 Adding new posts via the shell is going to get tiring quickly, but adding an
 admin for the posts is easy with Django.
@@ -532,8 +558,11 @@ Once done run the server and you can login to admin by going to
     .. image:: .static/django-nonrel-admin.png
 
 
-Blog to Tumblelog
------------------
+.. _`SITE_ID issues`: http://django-mongodb.org/troubleshooting.html#site-id-issues
+
+
+Converting The Blog To A Tumblelog
+----------------------------------
 
 Currently, the web app only support posts but tumblelogs traditionally support
 different types of media.  The next step is to add the following types:
@@ -626,20 +655,3 @@ And on :file:`post_detail.html` output the full posts:
 Now you have a fully fledged tumbleblog using Django and MongoDB!
 
     .. image:: .static/django-nonrel-tumblelog.png
-
-
-.. _Django: http://www.djangoproject.com
-.. _MongoDB: http://mongodb.org
-.. _configured MongoDB installation: http://www.mongodb.org/display/DOCS/Quickstart
-.. _mongodb-user: http://groups.google.com/group/mongodb-user
-.. _#mongodb on irc.freenode.net: irc://irc.freenode.net/mongodb
-.. _Django MongoDB Engine: http://django-mongodb.org/
-.. _pip: http://pypi.python.org/pypi/pip
-.. _virtualenv: http://virtualenv.org
-.. _Django-nonrel: http://www.allbuttonspressed.com/projects/django-nonrel
-.. _djangotoolbox: http://www.allbuttonspressed.com/projects/djangotoolbox
-.. _Django MongoDB Engine Settings: http://django-mongodb.org/reference/settings.html
-.. _fields: http://django-mongodb.org/reference/fields.html
-.. _`generic views`: https://docs.djangoproject.com/en/1.3/topics/class-based-views/
-.. _`SITE_ID issues`: http://django-mongodb.org/troubleshooting.html#site-id-issues
-
