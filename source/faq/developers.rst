@@ -289,12 +289,12 @@ the lock applies to each individual shard, not to the whole cluster.
 A more granular approach to locking will appear in MongoDB v2.2. For now,
 several yielding optimizations exist to mitigate the coarseness of the lock. These include:
 
-- Yielding on long operations. Queries and updates that operate on multiple
-document may yield to writers
+- Yielding on long operations. Queries and updates that operate on
+  multiple document may yield to writers
 
-- Yielding on page faults. If an update or query is likely to trigger a
-page fault, then the operation will yield to keep from blocking other
-clients for the duration of the page fault.
+- Yielding on page faults. If an update or query is likely to trigger
+  a page fault, then the operation will yield to keep from blocking
+  other clients for the duration of the page fault.
 
 What is the compare Order for BSON types?
 -----------------------------------------

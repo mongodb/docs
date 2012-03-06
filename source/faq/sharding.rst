@@ -37,7 +37,8 @@ Still, all production deployments should use :term:`replica sets
 How does sharding work with replication?
 ----------------------------------------
 
-Each :term:`shard` is deployed as its own replica set.
+To use replication with sharding, deploy each :term:`shard` as a
+:term:`replica set`.
 
 What happens to unsharded collections in sharded databases?
 -----------------------------------------------------------
@@ -50,13 +51,13 @@ Future versions will distributed unsharded collections to
 different shards.
 
 How does MongoDB distribute data across shards?
------------------------------------------------------
+-----------------------------------------------
 
-Sharding must be specifically enabled on a collection for the collection
-to be distributed across shards. Once sharding is enabled on the collection,
-MongoDB will assign various ranges of collection data to the different
-shards in the cluster. The cluster will correct imbalances between shards
-by migrating ranges of data from one shard to another.
+Sharding must be specifically enabled on a collection. After enabling
+sharding on the collection, MongoDB will assign various ranges of
+collection data to the different shards in the cluster. The cluster
+automatically corrects imbalances between shards by migrating ranges
+of data from one shard to another.
 
 What happens if a client updates a document in a chunk during a migration?
 --------------------------------------------------------------------------
@@ -77,8 +78,8 @@ However, a client may set the ``partial`` query bit, which will then
 return results from all available shards, regardless of whether a
 given shard is unavailable.
 
-If a shard is responding slowly,
-:program:`mongos` will merely wait for the shard to return results.
+If a shard is responding slowly, :program:`mongos` will merely wait
+for the shard to return results.
 
 
 How does MongoDB distribute queries among shards?
@@ -193,8 +194,8 @@ run the following command:
 
    db._adminCommand("connPoolStats");
 
-I'm seeing ``writebacklisten`` in the log. What does this mean?
----------------------------------------------------------------
+What does ``writebacklisten`` in the log mean?
+----------------------------------------------
 
 The writeback listener is a process that opens a long poll to detect
 non-safe writes sent to a server and to send them back to the correct
@@ -240,7 +241,7 @@ intervention over time. However, if you want to force the
 :dbcommand:`flushRouterConfig` command against to each :program:`mongos` directly.
 
 What does the ``maxConns`` setting on :program:`mongos` do?
--------------------------------------------------------
+-----------------------------------------------------------
 
 The :setting:`maxConns` option limits the number of connections
 accepted by :program:`mongos`.
