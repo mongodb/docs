@@ -16,8 +16,8 @@ and settings, this document primarily uses the configuration file
 interface. If you run MongoDB using a control script or packaged for
 your operating system, you likely already have a configuration file
 located at ``/etc/mogondb.conf``. Confirm this by checking the content
-of the ``/etc/init.d/mongodb`` or ``/etc/rc.d/mongodb`` script to
-insure that the :term:`control scripts <control script>` starts the
+of the ``/etc/init.d/mongod`` or ``/etc/rc.d/mongod`` script to
+insure that the :term:`control scripts <control script>` start the
 :program:`mongod` with the appropriate configuration file (see below.)
 
 To start MongoDB instance using this configuration issue a command in
@@ -202,6 +202,8 @@ different configurations. The config servers stores the cluster's
 metadata, while the cluster distributes data among one or more
 shard servers.
 
+TODO: Make a point that the config servers are not a replica set?
+
 To set up one or three "config server" instances as :ref:`normal
 <base-config>` :program:`mongod` instances, and then add the following
 configuration option:
@@ -345,3 +347,5 @@ needed:
    addition to tools such as :program:`iostat`, :program:`vmstat`, or
    :program:`top` to provide insight into the state of the system
    in context of the log.
+
+TODO: This setting doesn't actually work as explained. See here: https://jira.mongodb.org/browse/CS-2260?focusedCommentId=86579&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-86579
