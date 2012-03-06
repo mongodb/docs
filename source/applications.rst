@@ -26,3 +26,12 @@ Aggregation Framework
 
    applications/aggregation
    reference/aggregation
+
+Python Application Development
+------------------------------
+
+.. toctree::
+   :maxdepth: 3
+
+   tutorial/write-a-tumblelog-application-with-django-mongodb-engine
+   tutorial/write-a-tumblelog-application-with-flask-mongoengine
