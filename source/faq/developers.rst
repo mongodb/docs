@@ -59,16 +59,12 @@ Also consider the :dbcommand:`cloneCollection` :term:`command
 <database command>` that may provide some of this functionality.
 
 If you remove a document, does MongoDB remove it from disk?
--------------------------------------------------------------------
+-----------------------------------------------------------
 
 Yes.
 
 When you use :func:`remove`, the object will no longer exist in
 MongoDB's on-disk data storage.
-
-Does MongoDB permit null values?
---------------------------------
-
 
 When does MongoDB write updates to disk?
 ----------------------------------------
@@ -283,11 +279,14 @@ at any one time, only one client may be writing or any number
 of clients may be reading, but that reading and writing cannot
 occur simultaneously.
 
-The lock is scoped to a single primary node. In a sharded cluster,
-the lock applies to each individual shard, not to the whole cluster.
+In standalone and :term:`replica sets <replica set>` the lock's scope
+applies to a single :program:`mongod` instance or :term:`primary`
+instance. In a sharded cluster, locks apply to each individual shard,
+not to the whole cluster.
 
-A more granular approach to locking will appear in MongoDB v2.2. For now,
-several yielding optimizations exist to mitigate the coarseness of the lock. These include:
+A more granular approach to locking will appear in MongoDB v2.2. For
+now, several yielding optimizations exist to mitigate the coarseness
+of the lock. These include:
 
 - Yielding on long operations. Queries and updates that operate on
   multiple document may yield to writers
@@ -308,8 +307,8 @@ the following documents may exist within a single collection.
    { x: "string" }
    { x: 42 }
 
-When comparing values of different :term:`BSON` types, the following
-compare order is used:
+When comparing values of different :term:`BSON` types, MongoDB uses the following
+compare order:
 
 - Null
 - Numbers (ints, longs, doubles)
