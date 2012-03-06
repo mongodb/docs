@@ -1,22 +1,23 @@
-==========================================================
-Writing A Tumblelog Application With Django MongoDB Engine
-==========================================================
+========================================================
+Write a Tumblelog Application with Django MongoDB Engine
+========================================================
 
 Introduction
 ------------
 
 In this tutorial, you will learn how to create a basic tumblelog
-application using the popular `Django`_ framework and `MongoDB`_ as the
-database.
+application using the popular `Django`_ Python web-framework and the
+:term:`MongoDB` database.
 
 The tumblelog will consist of two parts:
 
-  #. A public site that lets people view posts and comment on them.
-  #. An admin site that lets you add, change and delete posts and publish
-     comments.
+#. A public site that lets people view posts and comment on them.
+#. An admin site that lets you add, change and delete posts and publish
+   comments.
 
-This tutorial assumes that you are already familiar with Django and have a
-basic idea of MongoDB operation and have a `configured MongoDB installation`_.
+This tutorial assumes that you are already familiar with Django and
+have a basic familiarity with MongoDB operation and have
+:ref:`installed MongoDB <tutorials-installation>`.
 
 .. admonition :: Where to get help
 
@@ -24,39 +25,44 @@ basic idea of MongoDB operation and have a `configured MongoDB installation`_.
     message to `mongodb-user`_ or drop by `#mongodb on irc.freenode.net`_ to
     chat with other MongoDB users who might be able to help.
 
-.. note ::
+.. note::
 
-    `Django MongoDB Engine`_ uses the a forked version of Django 1.3 that adds
-    non-relational support.
+   `Django MongoDB Engine`_ uses the a forked version of Django 1.3
+   that adds non-relational support.
 
 .. _Django: http://www.djangoproject.com
-.. _MongoDB: http://mongodb.org
-.. _configured MongoDB installation: http://www.mongodb.org/display/DOCS/Quickstart
 .. _mongodb-user: http://groups.google.com/group/mongodb-user
 .. _#mongodb on irc.freenode.net: irc://irc.freenode.net/mongodb
 .. _Django MongoDB Engine: http://django-mongodb.org/
 
-
 Installation
 ------------
 
-First you need to install the required packages to get up and running.
+Begin by installing packages required by later steps in this tutorial.
 
 Prerequisite
 ~~~~~~~~~~~~
 
-In this tutorial we'll be using a pip_ its not a requirement but it helps, also
-its advisable to use virtualenv_ for your the project to isolate the environment
-and stop any conflict with other Python setups.
+This tutorial uses pip_ to install packages and virtualenv_ to isolate
+Python environments. While these tools and this configuration are not
+required as such, they ensure a standard environment and are strongly
+recommended. Issue the following command at the system prompt:
 
-To setup virtualenv and environment::
+.. code-block:: sh
 
-    pip install virtualenv  # Installs virtualenv
-    virtualenv myproject    # Creates an environment called: myproject
+   pip install virtualenv
+   virtualenv myproject
 
-To activate `myproject` environment in Bash type::
+Respectively, these commands: install the ``virtualenv`` program
+(using ``pip``) and create a isolated python environment for this
+project (named "``myproject``".)
 
-    source myproject/bin/activate
+To activate ``myproject`` environment at the system prompt, use the
+following command:
+
+.. code-block:: bash
+
+   source myproject/bin/activate
 
 .. _pip: http://pypi.python.org/pypi/pip
 .. _virtualenv: http://virtualenv.org
@@ -66,12 +72,12 @@ Installing Packages
 
 Django MongoDB Engine directly depends on:
 
-* Django-nonrel_, a fork of Django 1.3 that adds support for non-relational
+- Django-nonrel_, a fork of Django 1.3 that adds support for non-relational
   databases
-* djangotoolbox_, a bunch of utilities for non-relational Django applications
+- djangotoolbox_, a bunch of utilities for non-relational Django applications
   and backends
 
-To install simply:
+Install by issuing the following commands:
 
 .. code-block:: bash
 
@@ -79,233 +85,237 @@ To install simply:
     pip install https://bitbucket.org/wkornewald/djangotoolbox/get/tip.tar.gz
     pip install https://github.com/django-nonrel/mongodb-engine/tarball/master
 
-
-That's all thats needed to start building our tumblelog!
-
+Continue with the tutorial to begin building the "tumblelog"
+application.
 
 .. _Django-nonrel: http://www.allbuttonspressed.com/projects/django-nonrel
 .. _djangotoolbox: http://www.allbuttonspressed.com/projects/djangotoolbox
 
-Getting Started By Building A Blog
-----------------------------------
+Build a Blog to Get Started
+---------------------------
 
-The first focus is on getting the basic tumblelog up and running, with
-the first post manually added via the shell, later we'll use django admin.
+In this tutorial you will build a basic blog as the foundation of this
+application and use this as the basis of your tumblelog
+application. You will add the first post using the shell and then
+later use the Django administrative interface.
 
-As with any Django project you call `startproject` to get started and create
-the basic project skeleton:
+Call the ``startproject`` command, as with other Django projects, to
+get started and create the basic project skeleton:
 
 .. code-block:: bash
 
-  django-admin.py startproject tumblelog
-
+   django-admin.py startproject tumblelog
 
 Configuring Django
 ~~~~~~~~~~~~~~~~~~
 
-Configure the database in :file:`tumblelog/settings.py`:
+Configure the database in the :file:`tumblelog/settings.py` file:
 
 .. code-block:: python
 
-   DATABASES = {
-      'default': {
-         'ENGINE': 'django_mongodb_engine',
-         'NAME': 'my_tumble_log'
-      }
-   }
+    DATABASES = {
+       'default': {
+          'ENGINE': 'django_mongodb_engine',
+          'NAME': 'my_tumble_log'
+       }
+    }
 
-See the `Django MongoDB Engine Settings`_ docs for more configuration options.
+.. seealso:: The `Django MongoDB Engine Settings`_ documentation for
+   more configuration options.
 
-.. _Django MongoDB Engine Settings: http://django-mongodb.org/reference/settings.html
+   .. _Django MongoDB Engine Settings: http://django-mongodb.org/reference/settings.html
 
-Defining The Schema
-~~~~~~~~~~~~~~~~~~~
+Define the Schema
+~~~~~~~~~~~~~~~~~
 
-The first step in writing a tumblelog in Django is to define the models or in
-MongoDB parlance *documents*.
+The first step in writing a tumblelog in `Django`_ is to define the
+"models" or in MongoDB's terminology :term:`documents <document>`.
 
-In our simple tumblelog app, initally all that is needed are posts and
-comments.  Each Post can contain a list of Comments. Edit the
-:file:`tumblelog/models.py` file so it looks like this:
+In this application, you will define posts and comments, so that each
+:py:class:`Post` can contain a list of :py:class:`Comments`. Edit the
+:file:`tumblelog/models.py` file so it resembles the following:
 
 .. code-block:: python
 
-    from django.db import models
-    from django.core.urlresolvers import reverse
+   from django.db import models
+   from django.core.urlresolvers import reverse
 
-    from djangotoolbox.fields import ListField, EmbeddedModelField
-
-
-    class Post(models.Model):
-        created_at = models.DateTimeField(auto_now_add=True, db_index=True)
-        title = models.CharField(max_length=255)
-        slug = models.SlugField()
-        body = models.TextField()
-        comments = ListField(EmbeddedModelField('Comment'), editable=False)
-
-        def get_absolute_url(self):
-            return reverse('post', kwargs={"slug": self.slug})
-
-        def __unicode__(self):
-            return self.title
-
-        class Meta:
-            ordering = ["-created_at"]
+   from djangotoolbox.fields import ListField, EmbeddedModelField
 
 
-    class Comment(models.Model):
-        created_at = models.DateTimeField(auto_now_add=True)
-        body = models.TextField(verbose_name="Comment")
-        author = models.CharField(verbose_name="Name", max_length=255)
+   class Post(models.Model):
+       created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+       title = models.CharField(max_length=255)
+       slug = models.SlugField()
+       body = models.TextField()
+       comments = ListField(EmbeddedModelField('Comment'), editable=False)
+
+       def get_absolute_url(self):
+           return reverse('post', kwargs={"slug": self.slug})
+
+       def __unicode__(self):
+           return self.title
+
+       class Meta:
+           ordering = ["-created_at"]
 
 
-The Django nonrel code looks the same as vanilla Django however, there is no
-inbuilt support for some of MongoDB's native datatypes like Lists
-and Embedded data, djangotoolbox is used to handle those definitions
-(For more information see the Django MongoDB Engine fields_ documentation).
+   class Comment(models.Model):
+       created_at = models.DateTimeField(auto_now_add=True)
+       body = models.TextField(verbose_name="Comment")
+       author = models.CharField(verbose_name="Name", max_length=255)
 
-The models declare an index to ``Post``. One for the ``created_at`` date as
-our frontpage will order by date - theres no need to add ``db_index`` on the
-``SlugField`` as its indexed by default.
 
+The Django "nonrel" code looks the same as vanilla Django however,
+there is no built in support for some of MongoDB's native data types
+like Lists and Embedded data. :py:mod:`djangotoolbox` handles these
+definitions.
+
+.. see:: The Django MongoDB Engine fields_ documentation for more.
+
+The models declare an index to :py:class:`Post`. One for the
+:py:obj:`created_at` date as our frontpage will order by date: there
+is no need to add :py:obj:`db_index` on :py:obj:`SlugField` because
+there is a default index on :py:obj:`SlugField`.
 
 .. _fields: http://django-mongodb.org/reference/fields.html
 
+Add Data with the Shell
+~~~~~~~~~~~~~~~~~~~~~~~
 
-Adding Data Into MongoDB Via The Shell
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Its nearly time to setup our urls and views, but first lets try it out in the
-python shell.  To load the python shell run:
+The :file:`manage.py` provides a shell interface for the application
+that you can use to insert data into the tumblelog. Begin by issuing
+the following command to load the Python shell:
 
 .. code-block:: bash
 
-    python manage.py shell
+   python manage.py shell
 
-Create the first post:
-
-.. code-block:: pycon
-
-    >>> from tumblelog.models import *
-    >>> post = Post(
-    ... title="Hello World!",
-    ... slug="hello-world",
-    ... body = "Welcome to my new shiny Tumble log powered by MongoDB and Django-MongoDB!"
-    ... )
-    >>> post.save()
-
-Next add some comments:
+Create the first post using the following sequence of operations
 
 .. code-block:: pycon
 
-    >>> post.comments
-    []
-    >>> comment = Comment(
-    ... author="Joe Bloggs",
-    ... body="Great post! I'm looking forward to reading your blog")
-    >>> post.comments.append(comment)
-    >>> post.save()
+   >>> from tumblelog.models import *
+   >>> post = Post(
+   ... title="Hello World!",
+   ... slug="hello-world",
+   ... body = "Welcome to my new shiny Tumble log powered by MongoDB and Django-MongoDB!"
+   ... )
+   >>> post.save()
 
-Finally inspect the post:
+Add comments using the following sequence of operations:
 
 .. code-block:: pycon
 
-    >>> post = Post.objects.get()
-    >>> post
-    <Post: Hello World!>
-    >>> post.comments
-    [<Comment: Comment object>]
+   >>> post.comments
+   []
+   >>> comment = Comment(
+   ... author="Joe Bloggs",
+   ... body="Great post! I'm looking forward to reading your blog")
+   >>> post.comments.append(comment)
+   >>> post.save()
+
+Finally, inspect the post:
+
+.. code-block:: pycon
+
+   >>> post = Post.objects.get()
+   >>> post
+   <Post: Hello World!>
+   >>> post.comments
+   [<Comment: Comment object>]
 
 
-Adding The Views
-~~~~~~~~~~~~~~~~
+Add the Views
+~~~~~~~~~~~~~
 
-Thanks to django-mongodb tight integration to Django you can use `generic
-views`_ to display our frontpage and post page.  Adding the views is as simple
-as setting :file:`urls.py`:
+Because django-mongodb_ provides tight integration with Django you can
+use `generic views`_ to display the frontpage and post pages for the
+tumblelog.  Insert the following content into the :file:`urls.py` file
+to add the views:
 
 .. code-block:: python
 
-    from django.conf.urls.defaults import patterns, include, url
-    from django.views.generic import ListView, DetailView
-    from tumblelog.models import Post
+   from django.conf.urls.defaults import patterns, include, url
+   from django.views.generic import ListView, DetailView
+   from tumblelog.models import Post
 
-    urlpatterns = patterns('',
-        url(r'^$', ListView.as_view(
-            queryset=Post.objects.all(),
-            context_object_name="posts_list"),
-            name="home"
-        ),
-        url(r'^post/(?P<slug>[a-zA-Z0-9-]+)/$', DetailView.as_view(
-            queryset=Post.objects.all(),
-            context_object_name="post"),
-            name="post"
-        ),
-    )
+   urlpatterns = patterns('',
+       url(r'^$', ListView.as_view(
+           queryset=Post.objects.all(),
+           context_object_name="posts_list"),
+           name="home"
+       ),
+       url(r'^post/(?P<slug>[a-zA-Z0-9-]+)/$', DetailView.as_view(
+           queryset=Post.objects.all(),
+           context_object_name="post"),
+           name="post"
+       ),
+   )
 
 .. _`generic views`: https://docs.djangoproject.com/en/1.3/topics/class-based-views/
+.. _`django-mongodb`: http://django-mongodb.org/
 
 
 Adding Templates
 ~~~~~~~~~~~~~~~~
-
 
 In the tumblelog directory add the following directories :file:`templates`
 and :file:`templates/tumblelog` for storing the tumblelog templates:
 
 .. code-block:: bash
 
-    mkdir -p templates/tumblelog
+   mkdir -p templates/tumblelog
 
-
-Configure Django so it can find the templates by updating **TEMPLATE_DIRS** in
-:file:`settings.py` to
+Configure Django so it can find the templates by updating
+:py:obj:`TEMPLATE_DIRS` in the :file:`settings.py` file to the
+following:
 
 .. code-block:: python
 
-    import os.path
-    TEMPLATE_DIRS = (
-        os.path.join(os.path.realpath(__file__), '../templates'),
-    )
+   import os.path
+   TEMPLATE_DIRS = (
+       os.path.join(os.path.realpath(__file__), '../templates'),
+   )
 
-
-It's best practise to add a base template that all others can inherit from.
-Add the following to :file:`templates/base.html`:
+Then add a base template that all others can inherit from. Add the
+following to :file:`templates/base.html`:
 
 .. code-block:: html
 
-    <!DOCTYPE html>
-    <html lang="en">
-      <head>
-        <meta charset="utf-8">
-        <title>My Tumblelog</title>
-        <link href="http://twitter.github.com/bootstrap/1.4.0/bootstrap.css" rel="stylesheet">
-        <style>.content {padding-top: 80px;}</style>
-      </head>
+   <!DOCTYPE html>
+   <html lang="en">
+     <head>
+       <meta charset="utf-8">
+       <title>My Tumblelog</title>
+       <link href="http://twitter.github.com/bootstrap/1.4.0/bootstrap.css" rel="stylesheet">
+       <style>.content {padding-top: 80px;}</style>
+     </head>
 
-      <body>
+     <body>
 
-        <div class="topbar">
-          <div class="fill">
-            <div class="container">
-              <h1><a href="/" class="brand">My Tumblelog</a> <small>Starring MongoDB and Django-Mongodb</small></h1>
-            </div>
-          </div>
-        </div>
+       <div class="topbar">
+         <div class="fill">
+           <div class="container">
+             <h1><a href="/" class="brand">My Tumblelog</a>! <small>Starring MongoDB and Django-MongoDB.</small></h1>
+           </div>
+         </div>
+       </div>
 
-        <div class="container">
-          <div class="content">
-            {% block page_header %}{% endblock %}
-            {% block content %}{% endblock %}
-          </div>
-        </div>
+       <div class="container">
+         <div class="content">
+           {% block page_header %}{% endblock %}
+           {% block content %}{% endblock %}
+         </div>
+       </div>
 
-      </body>
-    </html>
+     </body>
+   </html>
 
 
-Now create the frontpage for the blog, which should list all the posts. Add
-the following to :file:`templates/tumblelog/post_list.html`:
+Create the frontpage for the blog, which should list all the
+posts. Add the following template to the
+:file:`templates/tumblelog/post_list.html`:
 
 .. code-block:: html
 
@@ -351,99 +361,100 @@ posts:
       {% endif %}
     {% endblock %}
 
-Now run ``python manage.py runserver`` and see your new tumblelog! Got to
+Run ``python manage.py runserver`` to see your new tumblelog! Go to
 `http://localhost:8000/ <http://localhost:8000/>`_ and you should see:
 
-    .. image:: .static/django-nonrel-frontpage.png
-
+.. image:: .static/django-nonrel-frontpage.png
+   :align: center
 
 Adding Comments To The Blog
 ---------------------------
 
-The next step is to allow your tumblelog readers to comment on posts. Custom
-views are needed to do this effectively with a custom form and a view that
-handles the form data and update the template to include the form. Lets get
-started!
+In the next step you will provide the facility for readers of the
+tumblelog to comment on posts. This a requires custom form and view to
+handle the form, and data. You will also update the template to
+include the form.
 
 Creating The Comments Form
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Form handling needs to be customised to deal with embedded comments.  By
-extending :class:`ModelForm` so we can append the comment to the post on save.
-Create and add the following to :file:`forms.py`:
+You must customize form handling to deal with embedded comments.  By
+extending :class:`ModelForm`, it is possible to append the comment to
+the post on save.  Create and add the following to :file:`forms.py`:
 
 .. code-block:: python
 
-    from django.forms import ModelForm
-    from tumblelog.models import Comment
+   from django.forms import ModelForm
+   from tumblelog.models import Comment
 
 
-    class CommentForm(ModelForm):
+   class CommentForm(ModelForm):
 
-        def __init__(self, object, *args, **kwargs):
-            """Override the default to store the original document
-            that comments are embedded in.
-            """
-            self.object = object
-            return super(CommentForm, self).__init__(*args, **kwargs)
+       def __init__(self, object, *args, **kwargs):
+           """Override the default to store the original document
+           that comments are embedded in.
+           """
+           self.object = object
+           return super(CommentForm, self).__init__(*args, **kwargs)
 
-        def save(self, *args):
-            """Append to the comments list and save the post"""
-            self.object.comments.append(self.instance)
-            self.object.save()
-            return self.object
+       def save(self, *args):
+           """Append to the comments list and save the post"""
+           self.object.comments.append(self.instance)
+           self.object.save()
+           return self.object
 
-        class Meta:
-            model = Comment
+       class Meta:
+           model = Comment
 
+Handle Comments in the View
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Handling Comments In The View
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The generic views need to be extended to handle the form logic.  Add
-:file:`views.py`:
+You must extend the generic views need to handle the form logic. Add
+the following to the :file:`views.py` file:
 
 .. code-block:: python
 
-    from django.http import HttpResponseRedirect
-    from django.views.generic import DetailView
-    from tumblelog.forms import CommentForm
+   from django.http import HttpResponseRedirect
+   from django.views.generic import DetailView
+   from tumblelog.forms import CommentForm
 
 
-    class PostDetailView(DetailView):
-        methods = ['get', 'post']
+   class PostDetailView(DetailView):
+       methods = ['get', 'post']
 
-        def get(self, request, *args, **kwargs):
-            self.object = self.get_object()
-            form = CommentForm(object=self.object)
-            context = self.get_context_data(object=self.object, form=form)
-            return self.render_to_response(context)
+       def get(self, request, *args, **kwargs):
+           self.object = self.get_object()
+           form = CommentForm(object=self.object)
+           context = self.get_context_data(object=self.object, form=form)
+           return self.render_to_response(context)
 
-        def post(self, request, *args, **kwargs):
-            self.object = self.get_object()
-            form = CommentForm(object=self.object, data=request.POST)
+       def post(self, request, *args, **kwargs):
+           self.object = self.get_object()
+           form = CommentForm(object=self.object, data=request.POST)
 
-            if form.is_valid():
-                form.save()
-                return HttpResponseRedirect(self.object.get_absolute_url())
+           if form.is_valid():
+               form.save()
+               return HttpResponseRedirect(self.object.get_absolute_url())
 
-            context = self.get_context_data(object=self.object, form=form)
-            return self.render_to_response(context)
+           context = self.get_context_data(object=self.object, form=form)
+           return self.render_to_response(context)
 
 .. note::
-    The default DetailView has been extended to handle GET and POST
-    requests.  When the form is POSTed the form is validated and if valid the
-    ``Comment`` is added to the ``Post``.
 
-Don't forget to update :file:`urls.py` and import your :class:`PostDetailView`
-which replaces :class:`DetailView`.
+   :py:class:`PostDetailView` extends the :py:class:`DetailView` so
+   that it can handle ``GET`` and ``POST`` requests.  On ``POST``,
+   :py:func:`post` validates the comment: if valid, :py:func:`post`
+   appends the comment to the post.
 
+Don't forget to update the :file:`urls.py` file and import the
+:py:class:`PostDetailView` class to replace the :py:class:`DetailView`
+class.
 
-Adding Comments To The Templates
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Add Comments to the Templates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The final stage is adding the form to the templates, so then readers can
-comment away! Splitting the template for the forms out into
+Finally, you can add the form to the templates, so that readers can
+create comments. Splitting the template for the forms out into
 :file:`templates/_forms.html` will allow maximum reuse of forms code:
 
 .. code-block:: html
@@ -470,153 +481,166 @@ comment away! Splitting the template for the forms out into
     <div style="display:none">{% for h in form.hidden_fields %} {{ h }}{% endfor %}</div>
     </fieldset>
 
-After the comments in :file:`post_detail.html` add in the following code to
-output the comments form :
+
+After the comments section in :file:`post_detail.html` add the
+following code to generate the comments form:
 
 .. code-block:: html
 
-    <h2>Add a comment</h2>
-    <form action="." method="post">
-      {% include "_forms.html" %}
-      <div class="actions">
-        <input type="submit" class="btn primary" value="comment">
-      </div>
-    </form>
+   <h2>Add a comment</h2>
+   <form action="." method="post">
+     {% include "_forms.html" %}
+     <div class="actions">
+       <input type="submit" class="btn primary" value="comment">
+     </div>
+   </form>
 
-Your tumblelog readers can now comment on your posts! Now run
-``python manage.py runserver`` and goto
-`http://localhost:8000/hello-world/ <http://localhost:8000/hello-world/>`_
-and you should see:
+Your tumblelog's readers can now comment on your posts! Run ``python
+manage.py runserver`` to see the changes. Run ``python manage.py
+runserver`` and go to `http://localhost:8000/hello-world/
+<http://localhost:8000/hello-world/>`_ to see the following:
 
-    .. image:: .static/django-nonrel-comment-form.png
+.. image:: .static/django-nonrel-comment-form.png
+   :align: center
 
+Add Site Administration Interface
+---------------------------------
 
-Adding Site Administration
---------------------------
+While you may always add posts using the shell interface as above, you
+can easily create an administrative interface for posts with
+Django. Enable the admin by adding the following apps to
+:py:obj:`INSTALLED_APPS` in :file:`settings.py`.
 
-Adding new posts via the shell is going to get tiring quickly, but adding an
-admin for the posts is easy with Django.
+- :py:mod:`django.contrib.admin`
+- :py:mod:`django_mongodb_engine`
+- :py:mod:`djangotoolbox`
+- :py:mod:`tumblelog`
 
-Enable the admin by adding the following apps to `INSTALLED_APPS`
-in :file:`settings.py`.
+.. warning::
 
- * django.contrib.admin
- * django_mongodb_engine
- * djangotoolbox
- * tumblelog
+   This application does not require the :py:class:`Sites`
+   framework. As a result, remove :py:mod:`django.contrib.sites` from
+   :py:obj:`INSTALLED_APPS`.  If you need it later please read
+   `SITE_ID issues`_ document.
 
-.. important::
-
-    The Sites framework isn't needed please remove **'django.contrib.sites'**
-    from **INSTALLED_APPS**.  If you need it later please read `SITE_ID issues`_.
-
-Create a basic :file:`admin.py` and register Post model with the admin app:
-
-.. code-block:: python
-
-    from django.contrib import admin
-    from tumblelog.models import Post
-
-    admin.site.register(Post)
-
-
-.. note ::
-
-    We've had to work round django-nonrel / djangotoolbox a little here. The
-    **comments** field has been excluded, by making it non editable in the
-    model definition, otherwise the admin wouldn't function.
-
-    If you need an admin for a ListField you'd have to write your own Form /
-    Widget.  See Django Admin docs for more details.
-
-Update the :file:`urls.py` to enable admin.  Add the import and discovery
-mechanism to the top of the file, then add the admin import rule to the
-``urlpatterns``:
+Create a :file:`admin.py` file and register the :py:class:`Post` model
+with the admin app:
 
 .. code-block:: python
 
-    # Enable admin
-    from django.contrib import admin
-    admin.autodiscover()
+   from django.contrib import admin
+   from tumblelog.models import Post
 
-    urlpatterns = patterns('',
+   admin.site.register(Post)
 
-        ...
+.. note::
 
-        url(r'^admin/', include(admin.site.urls)),
-    )
+   The above modifications deviate from the default django-nonrel_ and
+   :py:mod:`djangotoolbox` mode of operation. Django's administration
+   module will not work unless you exclude the ``comments`` field. By
+   making the ``comments`` field non-editable in the "admin" model
+   definition, you will allow the administrative interface to function.
 
-Finally, add a superuser and setup the indexes by running:
+   If you need an administrative interface for a ListField you must
+   write your own Form / Widget.
+
+   .. see:: The `Django Admin`_ documentation docs for additional information.
+
+Update the :file:`urls.py` to enable the administrative interface.
+Add the import and discovery mechanism to the top of the file and then
+add the admin import rule to the :py:obj:`urlpatterns`:
+
+.. code-block:: python
+
+   # Enable admin
+   from django.contrib import admin
+   admin.autodiscover()
+
+   urlpatterns = patterns('',
+
+       # ...
+
+       url(r'^admin/', include(admin.site.urls)),
+   )
+
+Finally, add a superuser and setup the indexes by issuing the
+following command at the system prompt:
 
 .. code-block:: bash
 
-    python manage.py syncdb
+   python manage.py syncdb
 
 Once done run the server and you can login to admin by going to
 `http://localhost:8000/admin/ <http://localhost:8000/admin/>`_.
 
-    .. image:: .static/django-nonrel-admin.png
-
+.. image:: .static/django-nonrel-admin.png
+   :align: center
 
 .. _`SITE_ID issues`: http://django-mongodb.org/troubleshooting.html#site-id-issues
 
 
-Converting The Blog To A Tumblelog
-----------------------------------
+Convert the Blog to a Tumblelog
+-------------------------------
 
-Currently, the web app only support posts but tumblelogs traditionally support
-different types of media.  The next step is to add the following types:
-*Video*, *Image* and *Quote*. No migration is needed to start adding this data!
-In :file:`models.py` update the :class:`Post` class to add new fields for the
-new post types, we mark ``blank=True`` so that they don't have to store a
-value.
 
-Update :class:`Post` in :file:`models.py` to:
+Currently, the application only supports posts. In this section you
+will add special post types including: *Video*, *Image* and *Quote* to
+provide a more traditional tumblelog application. Adding this data
+requires no migration.
+
+In :file:`models.py` update the :py:class:`Post` class to add new
+fields for the new post types. Mark these fields with "``blank=True``"
+so that the fields can be empty.
+
+Update :class:`Post` in the :file:`models.py` files to resemble the
+following:
 
 .. code-block:: python
 
+   POST_CHOICES = (
+       ('p', 'post'),
+       ('v', 'video'),
+       ('i', 'image'),
+       ('q', 'quote'),
+   )
 
-    POST_CHOICES = (
-        ('p', 'post'),
-        ('v', 'video'),
-        ('i', 'image'),
-        ('q', 'quote'),
-    )
 
+   class Post(models.Model):
+       created_at = models.DateTimeField(auto_now_add=True)
+       title = models.CharField(max_length=255)
+       slug = models.SlugField()
 
-    class Post(models.Model):
-        created_at = models.DateTimeField(auto_now_add=True)
-        title = models.CharField(max_length=255)
-        slug = models.SlugField()
+       comments = ListField(EmbeddedModelField('Comment'), editable=False)
 
-        comments = ListField(EmbeddedModelField('Comment'), editable=False)
+       post_type = models.CharField(max_length=1, choices=POST_CHOICES, default='p')
 
-        post_type = models.CharField(max_length=1, choices=POST_CHOICES, default='p')
+       body = models.TextField(blank=True, help_text="The body of the Post / Quote")
+       embed_code = models.TextField(blank=True, help_text="The embed code for video")
+       image_url = models.URLField(blank=True, help_text="Image src")
+       author = models.CharField(blank=True, max_length=255, help_text="Author name")
 
-        body = models.TextField(blank=True, help_text="The body of the Post / Quote")
-        embed_code = models.TextField(blank=True, help_text="The embed code for video")
-        image_url = models.URLField(blank=True, help_text="Image src")
-        author = models.CharField(blank=True, max_length=255, help_text="Author name")
+       def get_absolute_url(self):
+           return reverse('post', kwargs={"slug": self.slug})
 
-        def get_absolute_url(self):
-            return reverse('post', kwargs={"slug": self.slug})
-
-        def __unicode__(self):
-            return self.title
+       def __unicode__(self):
+           return self.title
 
 
 .. note::
-    Django Nonrel doesn't support multi-table inheritance which means that
-    you have to manually create an admin form to handle data validation for
-    the different post types.
 
-    Using Abstract Inheritance would mean that our view logic
-    would have to merge data from multiple collections.
+   `Django-Nonrel`_ doesn't support multi-table inheritance. This
+   means that you will have to manually create an administrative form
+   to handle data validation for the different post types.
 
-The admin should now handle adding multiple types of post. All that is left is
-updating the frontend to handle and output the different post types.
+   The "Abstract Inheritance" facility means that the view logic would
+   need to merge data from multiple collections.
 
-In :file:`post_list.html` change outputting the post to:
+The administrative interface should now handle adding multiple types
+of post. To conclude this process, you must update the frontend
+display to handle and output the different post types.
+
+In the :file:`post_list.html` file, change the post output display to
+resemble the following:
 
 .. code-block:: html
 
@@ -634,7 +658,8 @@ In :file:`post_list.html` change outputting the post to:
       <p>{{ post.author }}</p>
     {% endif %}
 
-And on :file:`post_detail.html` output the full posts:
+In the :file:`post_detail.html` file, change the output for full
+posts:
 
 .. code-block:: html
 
@@ -654,4 +679,5 @@ And on :file:`post_detail.html` output the full posts:
 
 Now you have a fully fledged tumbleblog using Django and MongoDB!
 
-    .. image:: .static/django-nonrel-tumblelog.png
+.. image:: .static/django-nonrel-tumblelog.png
+   :align: center
