@@ -163,7 +163,7 @@ Options
 .. option:: --cpu
 
    Forces :program:`mongod` to report the percentage of CPU time in
-   write lock. :program:`mongod` generates output ever four
+   write lock. :program:`mongod` generates output every four
    seconds. MongoDB writes this data to standard output or the logfile
    if using the :setting:`logpath` option.
 
