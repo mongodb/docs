@@ -191,7 +191,7 @@ the following command to load the Python shell:
 
    python manage.py shell
 
-Create the first post using the following sequence of operations
+Create the first post using the following sequence of operations:
 
 .. code-block:: pycon
 
@@ -257,8 +257,8 @@ to add the views:
 .. _`django-mongodb`: http://django-mongodb.org/
 
 
-Adding Templates
-~~~~~~~~~~~~~~~~
+Add Templates
+~~~~~~~~~~~~~
 
 In the tumblelog directory add the following directories :file:`templates`
 and :file:`templates/tumblelog` for storing the tumblelog templates:
@@ -367,16 +367,16 @@ Run ``python manage.py runserver`` to see your new tumblelog! Go to
 .. image:: .static/django-nonrel-frontpage.png
    :align: center
 
-Adding Comments To The Blog
----------------------------
+Add Comments to the Blog
+------------------------
 
 In the next step you will provide the facility for readers of the
 tumblelog to comment on posts. This a requires custom form and view to
 handle the form, and data. You will also update the template to
 include the form.
 
-Creating The Comments Form
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Creat the Comments Form
+~~~~~~~~~~~~~~~~~~~~~~~
 
 You must customize form handling to deal with embedded comments.  By
 extending :class:`ModelForm`, it is possible to append the comment to
@@ -581,7 +581,6 @@ Once done run the server and you can login to admin by going to
 
 Convert the Blog to a Tumblelog
 -------------------------------
-
 
 Currently, the application only supports posts. In this section you
 will add special post types including: *Video*, *Image* and *Quote* to
