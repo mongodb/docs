@@ -61,8 +61,6 @@ current node. The DNS or host names need to resolve to this IP address
 on the other members of the set. Configure network rules or a virtual
 private network (i.e. "VPN") to permit this access.
 
-// TODO : Please also add a line about the port variable
-
 See the documentation of the configuration options used above:
 :setting:`dbpath`, :setting:`port`, :setting:`replSet`,
 :setting:`bind_ip`, and :setting:`fork`. Also consider any additional

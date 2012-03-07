@@ -271,9 +271,9 @@ Glossary
          ":doc:`/reference/javascript`."
 
    write-lock
-      A lock on the database for a given writer.
-      When a process writes to the database, it takes an exclusive
-      write-lock to prevent other processes from writing or reading.
+      A lock on the database for a given writer. When a process
+      writes to the database, it takes an exclusive write-lock to
+      prevent other processes from writing or reading.
 
    index
       A data structure that optimizes queries.
