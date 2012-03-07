@@ -97,16 +97,20 @@ Options
 
 .. option:: --objcheck
 
-   Forces the :program:`mongos` to validate all requests from clients upon
-   receipt.
+   Forces the :program:`mongos` to validate all requests from clients
+   upon receipt to ensure that invalid objects are never inserted into
+   the database. This option can produce a significant performance
+   impact, and is not enabled by default.
 
 .. option:: --logpath <path>
 
    Specify a path for the log file that will hold all diagnostic
    logging information.
 
-   Unless specified, :program:`mongos` will output all log information to the
-   standard output.
+   Unless specified, :program:`mongos` will output all log information
+   to the standard output. Additionally, unless you also specify
+   :option:`--logapend`, the logfile will be overwritten when the
+   process restarts.
 
 .. option:: --logapend
 
@@ -151,7 +155,7 @@ Options
 .. option:: --configdb <config1>,<config2><:port>,<config3>
 
    Set this option to specify a configuration database
-   (i.e. :term:`config database`) for the :term:`shard cluster`. You may
+   (i.e. :term:`config database`) for the :term:`shard cluster`. You must
    specify either 1 configuration server or 3 configuration servers,
    in a comma separated list.
 

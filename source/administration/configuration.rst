@@ -198,11 +198,14 @@ Sharding Configuration
 ~~~~~~~~~~~~~~~~~~~~~~
 
 Sharding requires a number of :program:`mongod` instances with
-different configurations. The config servers stores the cluster's
-metadata, while the cluster distributes data among one or more
-shard servers.
+different configurations. The config servers store the cluster's
+metadata, while the cluster distributes data among one or more shard
+servers.
 
-TODO: Make a point that the config servers are not a replica set?
+.. note::
+
+   :term:`Config servers <config database>` are not :term:`replica
+   sets <replica set>`.
 
 To set up one or three "config server" instances as :ref:`normal
 <base-config>` :program:`mongod` instances, and then add the following
@@ -342,10 +345,8 @@ needed:
   database with untrusted clients. This option may affect database
   performance.
 
-- :setting:`cpu` forces :program:`mongod` to periodically report CPU
-   utilization I/O wait in the logfile. Use this in combination with or
-   addition to tools such as :program:`iostat`, :program:`vmstat`, or
-   :program:`top` to provide insight into the state of the system
-   in context of the log.
-
-TODO: This setting doesn't actually work as explained. See here: https://jira.mongodb.org/browse/CS-2260?focusedCommentId=86579&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-86579
+- :setting:`cpu` forces :program:`mongod` to report the percentage of
+   the last interval spent in :term:`write-lock`. The interval is
+   typically 4 seconds, and each output line in the log includes both
+   the actual interval since the last report and the percentage of
+   time spent in write lock.
