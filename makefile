@@ -22,7 +22,7 @@ endif
 
 # Internal variables.
 PAPEROPT_a4		= -D latex_paper_size=a4
-PAPEROPT_letter 	= -D latex_paper_size=letter
+PAPEROPT_letter		= -D latex_paper_size=letter
 ALLSPHINXOPTS		= -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
 ASPIRATIONALOPTS	= -d $(BUILDDIR)/aspiration-doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) aspiration
 
@@ -76,8 +76,8 @@ deploy:
 endif
 
 disabled-builds:
-	@echo make epub
-	@echo make latexpdf
+	@echo make MODE='publish' epub
+	@echo make MODE='publish' latexpdf
 	@echo cp -R $(BUILDDIR)/epub/MongoDB.epub $(publication-output)/$(current-branch)/MongoDB-manual-$(current-branch).epub
 	@echo cp -R $(BUILDDIR)/latex/MongoDB.pdf $(publication-output)/$(current-branch)/MongoDB-manual-$(current-branch).pdf
 	@echo
@@ -113,7 +113,6 @@ clean-all:
 # Default Sphinx build targets in use.
 #
 ######################################################################
-
 
 
 html:
@@ -153,6 +152,18 @@ linkcheck:
 	@echo "Link check complete; look for any errors in the above output " \
 	      "or in $(BUILDDIR)/linkcheck/output.txt."
 
+latex:
+	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
+	@echo
+	@echo "Build finished; the Aspirational LaTeX files are in $(BUILDDIR)/latex."
+	@echo "Run \`make' in that directory to run these through (pdf)latex" \
+	      "(use \`make latexpdf' here to do that automatically)."
+
+latexpdf:
+	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
+	@echo "Running LaTeX files through pdflatex..."
+	$(MAKE) -C $(BUILDDIR)/latex all-pdf
+	@echo "pdflatex finished; the Aspirational PDF files are in $(BUILDDIR)/latex."
 
 ######################################################################
 #
@@ -160,6 +171,7 @@ linkcheck:
 #
 ######################################################################
 
+.PHONY: aspirational-html aspirational-dirhtml aspirational-latex aspirational-latexpdf aspirational-linkcheck
 
 aspirational-html:
 	$(SPHINXBUILD) -b html $(ASPIRATIONALOPTS) $(BUILDDIR)/aspiration-html
