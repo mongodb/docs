@@ -7,7 +7,7 @@
   - `Introduction <http://mongodb.org/display/DOCS/Introduction>`_
   - `Downloads <http://mongodb.org/display/DOCS/Downloads>`_
   - `Features <http://mongodb.org/display/DOCS/Features>`_
-  - `SQL to MongoDB Mapping <http://mongodb.org/display/DOCS/SQL+to+MongoDB+Mapping+Chart>`_
+  - `SQL to MongoDB Mapping <http://mongodb.org/display/DOCS/SQL+to+Mongo+Mapping+Chart>`_
 
 - `Developer Documentation <http://mongodb.org/display/DOCS/Developer+Zone>`_
 

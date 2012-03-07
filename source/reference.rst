@@ -37,7 +37,7 @@ Statuses and Errors
    reference/replication-info
    reference/error-codes
 
-General Reference
+MongoDB Interface
 -----------------
 
 .. toctree::
@@ -49,6 +49,13 @@ General Reference
    reference/javascript
    reference/aggregation
    reference/meta-query-operators
+
+General Reference
+-----------------
+
+.. toctree::
+   :maxdepth: 1
+
    reference/limits
    reference/glossary
 

@@ -5,26 +5,50 @@ Getting Started With MongoDB
 About MongoDB and this Manual
 -----------------------------
 
-- What's New in 2.2?
-- Getting Involved in the MongoDB Project (contributions, bug reports, etc.)
-- About this Documentation
-- MongoDB Resources
+About MongoDB
+~~~~~~~~~~~~~
+
+- :doc:`/about`:
+
+  - :ref:`About MongoDB <meta-about-mongodb>`
+  - :ref:`About the MongoDB Documentation Project <meta-about-documentation-project>`
+
+.. seealso:: The ":wiki:`About`," ":wiki:`Tutorial`," and
+   ":wiki:`Community`" wiki pages for more information about the
+   MongoDB project.
+
+Release Notes
+~~~~~~~~~~~~~
+
+- Current Stable Releases
+
+  - :wiki:`2.0 Release Notes <2.0+Release+Notes>`
+  - :wiki:`1.8 Release Notes <1.8+Release+Notes>`
+
+- Current Development Release (2.1-series)
+
+  - :wiki:`2.2 Release Notes <2.2+Release+Notes>`
 
 Introduction to MongoDB
 -----------------------
 
-.. toctree::
-   :maxdepth: 2
+Frequently Asked Questions
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   faq
+- :doc:`/faq/fundamentals`
+- :doc:`/faq/developers`
+- :doc:`/faq/sharding`
+- :doc:`/faq/replica-sets`
+
+Client Libraries (Drivers)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - :doc:`/applications/drivers`
 
-- Basic Concepts
+.. _tutorials-installation:
 
-
-Tutorials
----------
+MongoDB Installation Tutorials
+------------------------------
 
 .. toctree::
    :maxdepth: 1
@@ -33,15 +57,3 @@ Tutorials
    tutorial/install-mongodb-on-debian-or-ubuntu-linux
    tutorial/install-mongodb-on-linux
    tutorial/install-mongodb-on-os-x
-
-Stubs
-~~~~~
-
-.. toctree::
-   :maxdepth: 1
-
-
-   tutorial/install-mongodb-on-windows
-   tutorial/install-mongodb-for-testing-and-development
-   tutorial/install-mongodb-in-production-environments
-   tutorial/insert-test-data-into-a-mongodb-database

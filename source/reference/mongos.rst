@@ -21,8 +21,10 @@ instance.
 
 .. seealso::
 
-   See the ":doc:`/core/sharding`" for more information regarding
+   See the ":wiki:`Sharding`" wiki page for more information regarding
    MongoDB's sharding functionality.
+
+.. STUB ":doc:`/core/sharding`"
 
 Options
 -------
@@ -130,10 +132,10 @@ Options
 
    Specify the path to a key file to store authentication
    information. This option is only useful for the connection between
-   replica set members. See the ":doc:`/core/replication`,"
-   ":doc:`/administration/replica-sets`," and
-   ":doc:`/administration/security`" documentation for more
-   information.
+   replica set members.
+
+   .. seealso:: ":ref:`Replica Set Security <replica-set-security>`"
+      and ":doc:`/administration/replica-sets`."
 
 .. option:: --nounixsocket
 
@@ -180,7 +182,7 @@ Options
 .. option:: --chunkSize <value>
 
    The value of the :option:`--chunkSize` determines the size of each
-   :term:`chunk` of data distributed around the :term:`shard
+   :term:`chunk` of data distributed around thee :term:`shard
    cluster`. The default value is 64 megabytes, which is
    the ideal size for chunks in most deployments: larger chunk size
    can lead to uneven data distribution, smaller chunk size often

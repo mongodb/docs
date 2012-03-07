@@ -29,12 +29,13 @@ configuration and operation.
    - :doc:`/tutorial/install-mongodb-on-debian-or-ubuntu-linux`
    - :doc:`/tutorial/install-mongodb-on-linux`
    - :doc:`/tutorial/install-mongodb-on-os-x`
-   - :doc:`/tutorial/install-mongodb-on-windows`
 
-   Documentation for getting started with MongoDB:
+   .. STUB - :doc:`/tutorial/install-mongodb-on-windows`
 
-   - :doc:`/getting-started`
-   - :doc:`/tutorial/insert-test-data-into-a-mongodb-database`
+   .. Documentation for getting started with MongoDB:
+
+   .. - :doc:`/getting-started`
+   .. STUB - :doc:`/tutorial/insert-test-data-into-a-mongodb-database`
 
 Package Options
 ---------------

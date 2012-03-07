@@ -75,7 +75,7 @@ Options
    you have implemented proper authentication and/or firewall
    restrictions to protect the integrity of your database.
 
-.. option:: --maxCons <number>
+.. option:: --maxConns <number>
 
    Specifies the maximum number of simultaneous connections that
    :program:`mongod` will accept. This setting will have no effect if
@@ -163,8 +163,10 @@ Options
    will continue to have access to the database until the you create
    the first user.
 
-   See the ":doc:`/administration/security`" document for more
-   information regarding this functionality.
+   See the ":wiki:`Security and Authentication <Security+and+Authentication>`
+   wiki page for more information regarding this functionality.
+
+   .. STUB ":doc:`/administration/security`"
 
 .. option:: --cpu
 

@@ -612,8 +612,10 @@ Durability refers to :term:`journaling <journal>`.
    with journaling for these data to appear in the output of
    ":dbcommand:`serverStatus`".
 
-   See :doc:`/core/journaling` for more information about journaling
-   operations.
+   See the ":wiki:`Journaling`" wiki page for more information about
+   journaling operations.
+
+.. STUB :doc:`/core/journaling`
 
 .. status:: dur.commits
 

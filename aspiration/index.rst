@@ -1,0 +1,70 @@
+==================================
+Aspirational MongoDB Documentation
+==================================
+
+The purpose of this documentation build is to hold and test stubs that
+have not made it into the main documentation build because they are
+too sparse, or would conflict with documentation that currently exists
+in the :wiki:`MongoDB Wiki <Home>`.
+
+Contents
+--------
+
+Core
+~~~~
+
+.. toctree::
+   :glob:
+   :maxdepth: 2
+
+   core/*
+
+Applications
+~~~~~~~~~~~~
+
+.. toctree::
+   :glob:
+   :maxdepth: 2
+
+   applications/*
+
+Administration
+~~~~~~~~~~~~~~
+
+.. toctree::
+   :glob:
+   :maxdepth: 2
+
+   administration/*
+
+Tutorial
+~~~~~~~~
+
+.. toctree::
+   :glob:
+   :maxdepth: 2
+
+   tutorial/*
+
+Signposts
+~~~~~~~~~
+
+.. toctree::
+   :glob:
+   :maxdepth: 2
+
+   mongo
+   sharding
+
+Reference
+~~~~~~~~~
+
+The refrence section from the production version of the document is
+present in this build by way of a symbolic link, but hidden from the
+table of contents. This makes *most* cross references work.
+
+.. toctree::
+   :glob:
+   :maxdepth: 1
+
+   reference/*

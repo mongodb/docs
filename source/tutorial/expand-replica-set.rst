@@ -25,20 +25,15 @@ Requirements
    installed. This system needs to be accessible by way of a
    resolvable DNS or hostname as: "``mongodb3.example.net``".
 
-If either of these conditions are not supplied, consider the following
-tutorials which address these processes:
-
-- :doc:`/tutorial/deploy-replica-set`
-
-- :doc:`/tutorial/install-mongodb-in-production-environments`
-
-- :doc:`/tutorial/install-mongodb-for-testing-and-development`
+If either of these conditions are not supplied, use the MongoDB
+:ref:`installation tutorial <tutorials-installation>`.  and the
+":doc:`/tutorial/deploy-replica-set`" guide to get started.
 
 Procedure
 ---------
 
-On the new system, create a configuration file that resembles the
-following on your system at ``/etc/mongodb.conf``.
+On the new system, ensure that a configuration file that resembles the
+following exists on the new file system at ``/etc/mongodb.conf``.
 
 .. code-block:: cfg
 

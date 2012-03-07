@@ -4,22 +4,22 @@
 
 .. binary:: mongo
 
-=============================
-:program:`mongo` Shell Manual
-=============================
+=======================
+:program:`mongo` Manual
+=======================
 
 Synopsis
 --------
 
 :program:`mongo` is an interactive JavaScript shell interface to
-MongoDB. :program:`mongo` provides a powerful administrative interface for
-systems administrators as well as an way to test queries and
+MongoDB. :program:`mongo` provides a powerful administrative interface
+for systems administrators as well as an way to test queries and
 operations directly with the database. To increase the flexibility of
 :program:`mongo`, the shell provides a fully functional JavaScript
-environment. This manual contains more extensive documentation of
-:program:`mongo` in the ":doc:`/mongo`" document. This manual page, addresses
-the basic invocation of the :program:`mongo` shell and an overview of its
-usage.
+environment. This manual page, addresses the basic invocation of the
+:program:`mongo` shell and an overview of its usage.
+
+.. STUB -- This manual contains more extensive documentation of :program:`mongo` in the ":doc:`/mongo`" document.
 
 Options
 -------
@@ -159,8 +159,8 @@ file before starting a sell session, use the following form:
 
    mongo --shell --norc alternate-environment.js
 
-To print return a query as JSON, from the system prompt using the eval
-functionality, use the following form:
+To print return a query as :term:`JSON`, from the system prompt using
+the :option:`--eval <mongo --eval>` option, use the following form:
 
 .. code-block:: sh
 
