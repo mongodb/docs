@@ -16,8 +16,8 @@ and settings, this document primarily uses the configuration file
 interface. If you run MongoDB using a control script or packaged for
 your operating system, you likely already have a configuration file
 located at ``/etc/mogondb.conf``. Confirm this by checking the content
-of the ``/etc/init.d/mongodb`` or ``/etc/rc.d/mongodb`` script to
-insure that the :term:`control scripts <control script>` starts the
+of the ``/etc/init.d/mongod`` or ``/etc/rc.d/mongod`` script to
+insure that the :term:`control scripts <control script>` start the
 :program:`mongod` with the appropriate configuration file (see below.)
 
 To start MongoDB instance using this configuration issue a command in
@@ -198,9 +198,14 @@ Sharding Configuration
 ~~~~~~~~~~~~~~~~~~~~~~
 
 Sharding requires a number of :program:`mongod` instances with
-different configurations. The config servers stores the cluster's
-metadata, while the cluster distributes data among one or more
-shard servers.
+different configurations. The config servers store the cluster's
+metadata, while the cluster distributes data among one or more shard
+servers.
+
+.. note::
+
+   :term:`Config servers <config database>` are not :term:`replica
+   sets <replica set>`.
 
 To set up one or three "config server" instances as :ref:`normal
 <base-config>` :program:`mongod` instances, and then add the following
@@ -340,8 +345,8 @@ needed:
   database with untrusted clients. This option may affect database
   performance.
 
-- :setting:`cpu` forces :program:`mongod` to periodically report CPU
-   utilization I/O wait in the logfile. Use this in combination with or
-   addition to tools such as :program:`iostat`, :program:`vmstat`, or
-   :program:`top` to provide insight into the state of the system
-   in context of the log.
+- :setting:`cpu` forces :program:`mongod` to report the percentage of
+   the last interval spent in :term:`write-lock`. The interval is
+   typically 4 seconds, and each output line in the log includes both
+   the actual interval since the last report and the percentage of
+   time spent in write lock.

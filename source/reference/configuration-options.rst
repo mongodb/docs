@@ -13,8 +13,8 @@ Administrators and users can control :program:`mongod` or
 configuration file.
 
 While both methods are functionally equivalent and all settings are
-similar, The configuration file method is preferable and if you
-installed from a package and starting MongoDB using your system's
+similar, the configuration file method is preferable. If you
+installed from a package and have started MongoDB using your system's
 :term:`control script`, you're already using a configuration file.
 
 To start :program:`mongod` or :program:`mongos` using a config file,
@@ -27,21 +27,19 @@ use one of the following forms:
    mongos --config /srv/mongodb/mongos.conf
    mongos -f /srv/mongodb/mongos.conf
 
-Declare All settings in this file using the following form:
+Declare all settings in this file using the following form:
 
 .. code-block:: sh
 
    <setting> = <value>
 
 .. versionadded:: 2.0
-   *Before* version 2.0, boolean (i.e. "``true|false``") or "flag"
+   *Before* version 2.0, Boolean (i.e. "``true|false``") or "flag"
    parameters, register as true, if they appear in the configuration
    file, regardless of their value.
 
 Settings
 --------
-
-.. program:: conf
 
 .. setting:: verbose
 
@@ -84,34 +82,36 @@ Settings
 
    *Default:* false
 
-   Runs the :program:`mongod` instance in a quiet mode that attempts to limit
-   the amount of output.
+   Runs the :program:`mongod` or :program:`mongos` instance in a quiet
+   mode that attempts to limit the amount of output.
 
 .. setting:: port
 
    *Default:* 27017
 
-   Specifies a TCP port for the :program:`mongod` to listen for client
-   connections. UNIX-like systems require root access for ports with
-   numbers lower than 1000.
+   Specifies a TCP port for the :program:`mongod` or :program:`mongos`
+   instance to listen for client connections. UNIX-like systems
+   require root access for ports with numbers lower than 1000.
 
 .. setting:: bind_ip
 
-   *Default:* 127.0.0.1
+   *Default:* All interfaces.
 
-   Set this option to configure the :program:`mongod` process to bind
-   to and listen for connections from applications on this
-   address. You may attach :program:`mongod` to any interface;
-   however, if you attach :program:`mongod` to a publicly accessible
-   interface, implement proper authentication or firewall restrictions
-   to protect the integrity of your database.
+   Set this option to configure the :program:`mongod` or
+   :program:`mongos` process to bind to and listen for connections
+   from applications on this address. You may attach :program:`mongod`
+   or :program:`mongos` instances to any interface; however, if you
+   attach the process to a publicly accessible interface, implement
+   proper authentication or firewall restrictions to protect the
+   integrity of your database.
 
    You may set this value multiple times to bind :program:`mongod` to
    multiple IP addresses.
 
 .. setting:: maxConns
 
-   *Default:* depends on system settings.
+   *Default:* depends on system (i.e. ulimit and file descriptor)
+   limits. Unless set MongoDB will not limit its own connections.
 
    Specifies a value to set the maximum number of simultaneous
    connections that :program:`mongod` or :program:`mongos` will
@@ -132,19 +132,27 @@ Settings
    *Default:* false
 
    Set to ``true`` to force :program:`mongod` to validate all requests
-   from clients upon receipt to ensure that invalid objects are never
-   inserted into the database.
+   from clients upon receipt to ensure that invalid :term:`BSON`
+   objects are never inserted into the database. :program:`mongod`
+   does not enable this by default because of the required overhead.
 
 .. setting:: logpath
 
    *Default:* None. (i.e. ``/dev/stdout``)
 
-   Specify a path for the log file that will hold all diagnostic
-   logging information.
+   Specify the path to a file name for the log file that will hold all
+   diagnostic logging information.
 
    Unless specified, :program:`mongod` will output all log information
    to the standard output. Unless :setting:`logappend` is ``true``,
    the logfile will be overwritten when the process restarts.
+
+   .. note::
+
+      Currently, MongoDB will overwrite the contents of the log file
+      if the :setting:`logappend` is not used. This behavior may
+      change in the future depending on the outcome of
+      :issue:`SERVER-4499`.
 
 .. setting:: logappend
 
@@ -152,6 +160,14 @@ Settings
 
    Set to ``true`` to add new entries to the end of the logfile rather
    than overwriting the content of the log when the process restarts.
+
+   If this setting is not specified, then MongoDB will overwrite the
+   existing logfile upon start up.
+
+   .. note::
+
+      The behavior of the logging system may change in the near
+      future in response to the :issue:`SERVER-4499` case.
 
 .. setting:: syslog
 
@@ -203,8 +219,8 @@ Settings
 
    *Default:* false
 
-   Set to ``true`` to enable a :term:`daemon` mode for :program:`mongod`
-   which forces the process to the background.
+   Set to ``true`` to enable a :term:`daemon` mode for
+   :program:`mongod` that runs the process in the background.
 
 .. setting:: auth
 
@@ -232,19 +248,25 @@ Settings
 
    Set this value to designate a directory for the :program:`mongod`
    instance to store its data. Typical locations include:
-   "``/srv/mognodb``", "``/var/lib/mongodb``" or "``/opt/mongodb``"
+   "``/srv/mongodb``", "``/var/lib/mongodb``" or "``/opt/mongodb``"
 
-   Unless specified, :program:`mongod` creates data files in the
+   Unless specified, :program:`mongod` will look for data files in the
    default ``/data/db`` directory. (Windows systems use the
-   ``\data\db`` directory.)
+   ``\data\db`` directory.) If you installed using a package
+   management system. Check the ``/etc/mongodb.conf`` file provided by
+   your packages to see the configuration of the :setting:`dbpath`.
 
 .. setting:: diaglog
 
    *Default:* 0
 
-   Set this value the diagnostic logging level for the
-   :program:`mongod` instance. Possible values, and their impact are
-   as follows.
+   Creates a very verbose, diagnostic log for troubleshooting and
+   recording various errors. MongoDB writes these log files in the
+   :setting:`dbpath` in a series of files that begin with the string
+   "``diaglog``".
+
+   The value of this setting configures the level of
+   verbosity. Possible values, and their impact are as follows.
 
    =========  ===================================
    **Value**  **Setting**
@@ -256,17 +278,22 @@ Settings
       7       Log write and some read operations.
    =========  ===================================
 
+   :setting:`diaglog` is for internal use and not intended for most
+   users.
+
 .. setting:: directoryperdb
 
    *Default:* false
 
    Set to ``true`` to modify the storage pattern of the data directory
-   to store each database's files in a distinct folder. Use this option to
-   configure MongoDB to store data on a number of distinct disk
-   devices to increase write throughput or disk capacity.
+   to store each database's files in a distinct folder. This option
+   will create directories within the :setting:`dbpath` named for each
+   directory.
 
-   Unless specified, :program:`mongod` saves all database files in the
-   directory specified by :setting:`dbpath`.
+   Use this option in conjunction with your file system and device
+   configuration so that MongoDB will store data on a number of
+   distinct disk devices to increase write throughput or disk
+   capacity.
 
 .. setting:: journal
 
@@ -320,7 +347,9 @@ Settings
 
    *Default:* false
 
-   Set to ``true`` to disable the HTTP interface.
+   Set to ``true`` to disable the HTTP interface. This command will
+   override the :setting:`rest` and disable the HTTP interface if you
+   specify both.
 
 .. setting:: nojournal
 
@@ -360,7 +389,7 @@ Settings
    Specify this value in megabytes.
 
    Use this setting to control the default size for all newly created
-   namespace files (i.e ``.NS``). This option has no impact on the
+   namespace files (i.e ``.ns``). This option has no impact on the
    size of existing namespace files.
 
    The default value is 16 megabytes, this provides for effectively
@@ -372,8 +401,8 @@ Settings
 
    Modify this value to changes the level of database profiling, which
    inserts information about operation performance into output of
-   :program:`mongod` or the log file. The following levels are
-   available:
+   :program:`mongod` or the log file if specified by
+   :setting:`logpath`. The following levels are available:
 
    =========  ==================================
    **Level**  **Setting**
@@ -383,7 +412,7 @@ Settings
       2       On. Includes all operations.
    =========  ==================================
 
-   By default, :program:`mongod` disables profiling Database profiling
+   By default, :program:`mongod` disables profiling. Database profiling
    can impact database performance because the profiler must record
    and process all database operations. Enable this option only after
    careful consideration.
@@ -458,13 +487,13 @@ Settings
    file size. Specifically, :setting:`smallfiles` quarters the initial
    file size for data files and limits the maximum file size to 512
    megabytes. Use :setting:`smallfiles` if you have a large number of
-   databases that each holds a small quaint of data.
+   databases that each holds a small quantity of data.
 
 .. setting:: syncdelay
 
    *Default:* 60
 
-   This setting contrils the maximum number of seconds between disk
+   This setting controls the maximum number of seconds between disk
    syncs. While :program:`mongod` is always writing data to disk, this
    setting controls the maximum guaranteed interval between a
    successful write operation and the next time the database flushes
@@ -483,12 +512,14 @@ Settings
 
    *Default:* false
 
-   When set to ``true``, ``mognod`` returns diagnostic system
-   information to the log (or standard output if :setting:`logpath` is
-   not set) and then exits.
+   When set to ``true``, :program:`mognod` returns diagnostic system
+   information regarding the page size, the number of physical pages,
+   and the number of available physical pages to standard output.
 
    More typically, run this operation by way of the :option:`mongod
-   --sysinfo` command.
+   --sysinfo` command. When running with the :setting:`sysinfo`, only
+   :program:`mongod` only outputs the page information and no database
+   process will start.
 
 .. setting:: upgrade
 
@@ -504,7 +535,14 @@ Settings
    When specified for a :program:`mongos` instance, this option updates
    the meta data format used by the :term:`config database`.
 
-Replica Set Options
+   .. note::
+
+      In most cases you should **not** set this value, so you can
+      exercise the most control over your upgrade process. See the MongoDB
+      `release notes <http://www.mongodb.org/downloads>`_ (on the
+      download page) for more information about the upgrade process.
+
+Replication Options
 ```````````````````
 
 .. setting:: fastsync
@@ -525,10 +563,24 @@ Replica Set Options
 
 .. setting:: oplogSize
 
-o   Specifies a maximum size in megabytes for the replication operation
+   Specifies a maximum size in megabytes for the replication operation
    log (e.g. :term:`oplog`.) By :program:`mongod` creates an
    :term:`oplog` based on the maximum amount of space available. For
    64-bit systems, the op log is typically 5% of available disk space.
+
+.. setting:: replSet
+
+   *Default:* <none>
+
+   *Form:* <setname>
+
+   Use this setting to configure replication with replica
+   sets. Specify a replica set name as an argument to this set. All
+   hosts must have the same set name.
+
+   .. seealso:: ":doc:`/replication`,"
+      ":doc:`/administration/replica-sets`," and
+      ":doc:`/reference/replica-configuration`"
 
 Master/Slave Replication
 ````````````````````````
@@ -559,7 +611,7 @@ Master/Slave Replication
 
 .. setting:: only
 
-   *Default:* false
+   *Default:* <>
 
    Used with the :setting:`slave` option, the ``only`` setting
    specifies only a single :term:`database` to replicate.
@@ -587,28 +639,6 @@ Master/Slave Replication
    resync itself unnecessarily. When you set the :setting:`autoresync`
    option, the slave will not attempt an automatic resync more than
    once in a ten minute period.
-
-Replica Set Options
-```````````````````
-
-.. setting:: replSet
-
-   *Default:* <none>
-
-   *Form:* <setname>
-
-   *Form:* <setname>/<seed-host1>,<host2>:<port>
-
-   Use this setting to configure replication with replica
-   sets. Specify a replica set name as an argument to this set. All
-   hosts must have the same set name. You can add one or more "seed"
-   hosts to one or more host in the set to initiate the cluster. Use
-   the following form: ::
-
-        replSet = <setname>/<host1>,<host2>:<port>
-
-   When you add or reconfigure the replica set on one host, these
-   changes propagate throughout the cluster.
 
 Sharding Cluster Options
 ````````````````````````
@@ -645,9 +675,9 @@ Sharding Cluster Options
    *Format:* <config1>,<config2><:port>,<config3>
 
    Set this option to specify a configuration database
-   (i.e. :term:`config database`) for the :term:`shard cluster`. You may
-   specify either 1 configuration server or 3 configuration servers,
-   in a comma separated list.
+   (i.e. :term:`config database`) for the :term:`shard cluster`. You
+   must specify either 1 configuration server or 3 configuration
+   servers, in a comma separated list.
 
    This setting only affects :program:`mongos` processes.
 
