@@ -5,6 +5,7 @@ MongoDB Manual Contents
 .. toctree::
    :maxdepth: 3
 
+   about
    getting-started
    faq
    administration

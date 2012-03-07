@@ -5,14 +5,29 @@ Getting Started With MongoDB
 About MongoDB and this Manual
 -----------------------------
 
-- What's New in 2.2?
-- Getting Involved in the MongoDB Project (contributions, bug reports, etc.)
-- About this Documentation
-- MongoDB Resources
+About MongoDB
+~~~~~~~~~~~~~
+
+- :doc:`/about`:
+
+  - :ref:`About MongoDB <meta-about-mongodb>`
+  - :ref:`About the MongoDB Documentation Project <meta-about-documentation-project>`
 
 .. seealso:: The ":wiki:`About`," ":wiki:`Tutorial`," and
    ":wiki:`Community`" wiki pages for more information about the
    MongoDB project.
+
+Release Notes
+~~~~~~~~~~~~~
+
+- Current Stable Releases
+
+  - :wiki:`2.0 Release Notes <2.0+Release+Notes>`
+  - :wiki:`1.8 Release Notes <1.8+Release+Notes>`
+
+- Current Development Release (2.1-series)
+
+  - :wiki:`2.2 Release Notes <2.2+Release+Notes>`
 
 Introduction to MongoDB
 -----------------------

@@ -1,3 +1,5 @@
+:orphan:
+
 ==================
 The MongoDB Manual
 ==================
@@ -27,6 +29,7 @@ Getting Started
 .. toctree::
    :maxdepth: 2
 
+   about
    getting-started
    faq
 
@@ -156,53 +159,53 @@ Indexes
 
 - Getting Started
 
-  - :wiki:`Quickstart <Quickstart>`
-  - :wiki:`Introduction <Introduction>`
-  - :wiki:`Downloads <Downloads>`
-  - :wiki:`Features <Features>`
+  - :wiki:`Quickstart`
+  - :wiki:`Introduction`
+  - :wiki:`Downloads`
+  - :wiki:`Features`
   - :wiki:`SQL to MongoDB Mapping <SQL+to+MongoDB+Mapping+Chart>`
 
 - :wiki:`Developer Documentation <Developer+Zone>`
 
-  - :wiki:`Connections <Connections>`
-  - :wiki:`Databases <Databases>`
-  - :wiki:`Collections <Collections>`
-  - :wiki:`Documents <Documents>`
-  - :wiki:`GridFS <GridFS>`
-  - :wiki:`Indexes <Indexes>`
-  - :wiki:`Querying <Querying>`
-  - :wiki:`Aggregation <Aggregation>`
-  - :wiki:`Optization <Optization>`
-  - :wiki:`Inserting <Inserting>`
-  - :wiki:`Updating <Updating>`
-  - :wiki:`Removing <Removing>`
-  - :wiki:`MapReduce <MapReduce>`
+  - :wiki:`Connections`
+  - :wiki:`Databases`
+  - :wiki:`Collections`
+  - :wiki:`Documents`
+  - :wiki:`GridFS`
+  - :wiki:`Indexes`
+  - :wiki:`Querying`
+  - :wiki:`Aggregation`
+  - :wiki:`Optization`
+  - :wiki:`Inserting`
+  - :wiki:`Updating`
+  - :wiki:`Removing`
+  - :wiki:`MapReduce`
 
 - :wiki:`Administrative Documentation <Admin+Zone>`
 
-  - :wiki:`Components <Components>`
-  - :wiki:`Journaling <Journaling>`
-  - :wiki:`Production Notes <Production+Notes>`
-  - :wiki:`Replication <Replication>`
-  - :wiki:`Sharding <Sharding>`
+  - :wiki:`Components`
+  - :wiki:`Journaling`
+  - :wiki:`Production Notes`
+  - :wiki:`Replication`
+  - :wiki:`Sharding`
   - :wiki:`Monitoring and Diagnostics <Monitoring+and+Diagnostics>`
-  - :wiki:`Backups <Backups>`
+  - :wiki:`Backups`
   - :wiki:`Durability and Repair <Durability+and+Repair>`
   - :wiki:`Security and Authentication <Security+and+Authentication>`
   - :wiki:`Starting and Stopping MongoDB <Starting+and+Stopping+Mongo>`
   - :wiki:`GridFS Tools <GridFS+Tools>`
   - :wiki:`DB Operations from the Shell <DBA+Operations+from+the+Shell>`
   - :wiki:`Architecture and Components <Architecture+and+Components>`
-  - :wiki:`Windows <Windows>`
-  - :wiki:`Troubleshooting <Troubleshooting>`
+  - :wiki:`Windows`
+  - :wiki:`Troubleshooting`
 
-- :wiki:`Community <http://www.mongodb.org/display/DOCS/Community>` and Ecosystem
+- :wiki:`Community` and Ecosystem
 
-  - :wiki:`10gen <http://10gen.com>`
+  - `10gen <http://10gen.com>`_
   - :wiki:`Meetup Events <MeetupAPI+Events+Page>`
   - :wiki:`MongoDB Masters <MongoDB+Masters>`
   - :wiki:`Slides and Video <Slides+and+Video>`
-  - :wiki:`Cookbook <http://cookbook.mongodb.org/>`
+  - `Cookbook <http://cookbook.mongodb.org/>`_
   - :wiki:`Hosting Center <Hosting+Center>`
   - :wiki:`MongoDB Monitoring Service <MongoDB+Monitoring+Service>` (`docs <http://mms.10gen.com/help/>`_)
   - :wiki:`Administrative Interfaces <Admin+UIs>`
