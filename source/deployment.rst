@@ -97,26 +97,28 @@ in the "Settings" page of the MMS console.
 You may embed this process in your existing deployment scripts to
 automatically install or redeploy new agents.
 
-.. _pymongo-package-native-extensions:
+.. _pymongo-package-c-extensions:
 
-Build PyMongo Packages with Native Extensions
----------------------------------------------
+Build PyMongo Packages with C Extensions
+----------------------------------------
 
 If you are installing PyMongo and the MMS agent on systems that do not
 have C compilers, you can create a ``.egg`` package of PyMongo with
-native extensions to install on your system or systems.
+C extensions to install on your system or systems.
 
 .. note::
 
    The `packages distributed in PyPI <http://pypi.python.org/pypi/pymongo>`_
-   for Windows include native extensions.
+   for Windows include C extensions.
 
 First, on a system that has a C-compiler, download the PyMongo
-source. Issue the following command: ::
+source. Always download the latest version of the driver, which you
+can find at the `PyMongo page at PyPi <http://pypi.python.org/pypi/pymongo>`_.
+
+The following example uses version 2.1.1. Issue the following command:
+::
 
      curl http://pypi.python.org/packages/source/p/pymongo/pymongo-2.1.1.tar.gz > pymongo-2.1.1.tar.gz
-
-You can find the latest version on the `PyMongo page at PyPi <http://pypi.python.org/pypi/pymongo>`_.
 
 .. note::
 

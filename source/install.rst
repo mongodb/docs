@@ -74,7 +74,7 @@ agent on a Windows host, skip to the :ref:`window instructions
    Do not use ``pip``, as there are some compatibility issues.
 
 5. All users must install `PyMongo  <http://pypi.python.org/pypi/pymongo/>`_,
-   the Python driver for MongoDB. While the native C extensions are
+   the Python driver for MongoDB. While the C extensions are
    not required, they significantly improve performance. To install
    these extensions, make sure you have a C compiler (e.g. ``gcc``)
    and Python header files installed on your system. Debian and Ubuntu
@@ -229,19 +229,19 @@ following command: ::
 
 Replace "``<original value>``" with the value that you recorded above.
 
-Installing Native PyMongo Extensions
-------------------------------------
+Installing C PyMongo Extensions
+-------------------------------
 
 .. note::
 
-   The native extensions for PyMongo are *strongly* recommended for
+   The C extensions for PyMongo are *strongly* recommended for
    use with the MMS agent because they provide the agent with greater
    performance and reduced resource requirements.
 
-If you installed PyMongo *with* the native extensions (i.e. on a
+If you installed PyMongo *with* the C extensions (i.e. on a
 system with a C compiler, or using the Windows installer) then you can
 disregard this section. Otherwise use the following procedure to
-reinstall your agent with native extensions.
+reinstall your agent with C extensions.
 
 1. Install ``gcc``, a C compiler, and the necessary development
    packages:
@@ -276,7 +276,7 @@ receive the full effect of the improvement.
    When you restart your agent there is a 5 minute timeout before the
    agent will begin sending data to MMS again.
 
-.. seealso:: ":ref:`Build PyMongo Packages with Native Extensions <pymongo-package-native-extensions>`
+.. seealso:: ":ref:`Build PyMongo Packages with C Extensions <pymongo-package-c-extensions>`
 
 Updating the MMS Agent
 ----------------------
