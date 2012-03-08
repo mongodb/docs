@@ -232,7 +232,7 @@ following command: ::
 
 Replace "``<original value>``" with the value that you recorded above.
 
-Installing C PyMongo Extensions
+Installing PyMongo C Extensions
 -------------------------------
 
 .. note::
