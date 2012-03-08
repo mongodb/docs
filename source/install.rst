@@ -56,15 +56,18 @@ agent on a Windows host, skip to the :ref:`window instructions
 3. If your system is running Python 2.4, you will need to install the
    following Python modules:
 
-   - simplejson
-   - hmac
-   - hashlib
+   - ``simplejson``
+   - ``hmac``
+   - ``hashlib``
 
    Issue the following command: ::
 
         sudo easy_install simplejson hmac hashlib
 
-   Do not use ``pip``, as there are some compatibility issues.
+   Do not use ``pip``, as there are some compatibility issues. Some
+   use have reported problems installing ``hmac``, if ``easy_install``
+   produces an error or you suspect a problem with these libraries see
+   :ref:`instructions for installing hmac manually <troubleshooting-hmac>`.
 
 4. If your system is running Python 2.5, you will need to install the
    ``simplejson`` module. Issue the following command: ::

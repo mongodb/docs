@@ -113,7 +113,7 @@ C extensions to install on your system or systems.
 
 First, on a system that has a C-compiler, download the PyMongo
 source. Always download the latest version of the driver, which you
-can find at the `PyMongo page at PyPi <http://pypi.python.org/pypi/pymongo>`_.
+can find at the `PyMongo page on PyPi <http://pypi.python.org/pypi/pymongo>`_.
 
 The following example uses version 2.1.1. Issue the following command:
 ::
@@ -193,3 +193,41 @@ Use the ``update-rc.d`` utility on Debian and Ubuntu and the
 the initialization process. Be sure to test the control script
 configuration. It is essential that you be able to start, stop, and
 restart the agent following a system reboot.
+
+Troubleshooting: hmac Installation
+----------------------------------
+
+.. note::
+
+   This section addresses a potential issue for users running a
+   version of Python in the 2.4-series. Users of later Python
+   versions do not require hmac.
+
+If ``easy_install`` produces an error, or you see the following error
+in your agent logs, you will need to install the ``hmac`` package
+manually: ::
+
+     AttributeError:'builtin_function_or_method' object has no attribute 'new'
+
+To install the ``hmac`` package, begin by downloading the latest
+source package. The following example uses version ``20101005``.
+Issue the following command: ::
+
+     curl http://pypi.python.org/packages/source/h/hmac/hmac-20101005.tar.gz > hmac-20101005.tar.gz
+
+Always download the latest version of ``hmac``, which
+you can find at the `hmac page on PyPi <http://pypi.python.org/pypi/hmac>`_.
+
+Extract the files from the archive with the following command: ::
+
+     tar -zxvf hmac-20101005.tar.gz
+
+Change directories, build and install the package with the following
+sequence: ::
+
+     cd hmac-20101005/
+     python setup.py build
+     python setup.py install
+
+You may need root (i.e. ``sudo``) privileges to run the final
+``install`` step.
