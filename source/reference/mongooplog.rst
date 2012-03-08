@@ -13,7 +13,7 @@
 Synopsis
 --------
 
-:program:`mongooplog` is a simple tool that polls  operations from
+:program:`mongooplog` is a simple tool that polls operations from
 the :term:`replication` :term:`oplog` of a remote server, and applies
 them to the local server. This capability supports certain classes of
 real-time migrations that require that the source server remain online
@@ -89,6 +89,8 @@ Options
    You can always connect directly to a single :program:`mongod`
    instance by specifying the host and port number directly.
 
+TODO second paragraph typo ("targetn")
+
 .. option:: --port
 
    Specifies the port number of the :program:`mongod` instance where
@@ -117,6 +119,8 @@ Options
    Specifies a password to authenticate to the MongoDB instance. Use
    in conjunction with the :option:`--username <mongooplog --username>`
    option to supply a username.
+
+TODO copypaste
 
 .. option:: --dbpath <path>
 
@@ -252,7 +256,7 @@ running on the *target* host. Consider the following example:
 
 Here, :program:`mongooplog` imports :term:`oplog` operations from the
 :program:`mongod` host connected to port ``27017``. This migrates
-operations to the MognoDB data files stored in the ``/srv/mongodb``
+operations to the MongoDB data files stored in the ``/srv/mongodb``
 directory. Additionally :program:`mongooplog` will use the durability
 :term:`journal` to ensure that the data files remain in a consistent
 state.

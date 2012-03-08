@@ -46,6 +46,8 @@ Commands
    returned items to files that begin with that string of
    characters.
 
+TODO double space after characters
+
 .. option:: search <string>
 
    Lists the files in the GridFS store with names that match any
@@ -118,6 +120,8 @@ Options
    You can always connect directly to a single MongoDB instance by
    specifying the host and port number directly.
 
+TODO "from which you want to *export* data" doesn't quite make sense in context
+
 .. option:: --port <port>
 
    Specifies the port number, if the MongoDB instance is not running on
@@ -130,6 +134,8 @@ Options
    the MongoDB instance using IPv6 connectivity. All MongoDB programs
    and processes, including :program:`mongofiles`, disable IPv6 support by
    default.
+
+TODO copypaste
 
 .. option:: --username <username>, -u <username>
 

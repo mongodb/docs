@@ -55,6 +55,8 @@ Options
    You can always connect directly to a single MongoDB instance by
    specifying the host and port number directly.
 
+TODO first paragraph, second sentence: "ruining" should be "running"
+
 .. option:: --port <port>
 
    Specifies the port number, if the MongoDB instance is not running
@@ -80,6 +82,8 @@ Options
    Specifies a password to authenticate to the MongoDB instance. Use
    in conjunction with the :option:`mongorestore --username` option to
    supply a username.
+
+TODO leave out password to be prompted
 
 .. option:: --dbpath <path>
 
@@ -135,6 +139,8 @@ Options
    ``'<JSON>'``. Be sure to include the document in single quotes to
    avoid a poor interaction with your shell.
 
+TODO poor interaction with shell again; not sure how you feel about these
+
 .. option:: --drop
 
    Modifies the restoration procedure to drop every collection from
@@ -172,6 +178,8 @@ In the following command restores the collection named
 on the localhost interface on port ``27017`` the dump located in the
 "``dump/``" directory.
 
+TODO the above is clumsy and hard to follow
+
 .. code-block:: sh
 
    mongorestore --collection collection --database test
@@ -182,6 +190,8 @@ in the ``/srv/mongodb`` on the local machine. This requires there are
 no active :program:`mongod` instances attached to ``/srv/mongodb``
 data directory.
 
+TODO "This requires *that* there are..." - is this better?
+
 .. code-block:: sh
 
    mongorestore --dbpath /srv/mongodb
@@ -191,6 +201,8 @@ dump located at ``/opt/backup/mongodumpm-2011-10-24``, from a database
 running on port "``37017``" on the host "``mongodb1.example.net`` and
 authenticating using the username "``user``" and the password
 "``pass``", as follows:
+
+TODO is "authenticating" the right tense? goodness, my grammar is rusty
 
 .. code-block:: sh
 

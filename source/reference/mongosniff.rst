@@ -17,6 +17,8 @@ MongoDB-specific analogue of ``tcpdump`` for TCP/IP network
 traffic. Typically, :program:`mongosniff` is most frequently used in drier
 development.
 
+TODO s/drier/driver/
+
 .. note::
 
    :program:`mongosniff` requires "libcap" and is only available for
