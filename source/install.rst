@@ -276,6 +276,8 @@ receive the full effect of the improvement.
    When you restart your agent there is a 5 minute timeout before the
    agent will begin sending data to MMS again.
 
+.. seealso:: ":ref:`Build PyMongo Packages with Native Extensions <pymongo-package-native-extensions>`
+
 Updating the MMS Agent
 ----------------------
 

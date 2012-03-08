@@ -97,6 +97,67 @@ in the "Settings" page of the MMS console.
 You may embed this process in your existing deployment scripts to
 automatically install or redeploy new agents.
 
+.. _pymongo-package-native-extensions:
+
+Build PyMongo Packages with Native Extensions
+---------------------------------------------
+
+If you are installing PyMongo and the MMS agent on systems that do not
+have C compilers, you can create a ``.egg`` package of PyMongo with
+native extensions to install on your system or systems.
+
+.. note::
+
+   The `packages distributed in PyPI <http://pypi.python.org/pypi/pymongo>`_
+   for Windows include native extensions.
+
+First, on a system that has a C-compiler, download the PyMongo
+source. Issue the following command: ::
+
+     curl http://pypi.python.org/packages/source/p/pymongo/pymongo-2.1.1.tar.gz > pymongo-2.1.1.tar.gz
+
+You can find the latest version on the `PyMongo page at PyPi <http://pypi.python.org/pypi/pymongo>`_.
+
+.. note::
+
+   To install a C-compiler (i.e. ``gcc``) and the necessary
+   dependencies, Debian and Ubuntu users should issue the following
+   command: ::
+
+        sudo apt-get install build-essential python-dev
+
+   RedHat, CentOS, and Fedora Users should issue the following
+   command: ::
+
+        sudo yum install gcc python-devel
+
+Extract the driver as follows: ::
+
+     tar -zxvf pymongo-2.1.1.tar.gz
+
+Change directories and build the ``.egg`` package with the following
+sequence: ::
+
+     cd pymongo-2.1.1
+     python setup.py bdist_egg
+
+You can find  ``.egg`` file in the ``dist/`` sub-directory. The file
+name will resemble "``pymongo-2.1.1-py2.7-linux-x86_64.egg``" but may
+have a different name depending on your platform and the version of
+python you use to compile.
+
+.. warning::
+
+   These "binary distributions," will only work on systems that
+   resemble the environment on which you built the package. In other
+   words, ensure that operating systems and versions of Python and
+   architecture (i.e. "32" or "64" bit) match.
+
+Copy this file to the target system and issue the following command to
+install the package (with root or "``sudo``" privileges:) ::
+
+     easy_install pymongo-2.1.1-py2.7-linux-x86_64.egg
+
 Automated Agent Updates
 -----------------------
 
