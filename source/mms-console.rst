@@ -258,5 +258,5 @@ others access with great care.
    If you create an account in Jira or make any changes to that
    account from *within* Jira, it can take up to 30 minutes for that
    change to propagate to MMS. During this window you cannot add a
-   user to a group in MMS. Also, passwords changed in Jira will not
-   propagate to MMS.
+   user to a group in MMS. Also, passwords changed in Jira are subject
+   to the same propagation delay for MMS accounts.
