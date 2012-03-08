@@ -159,14 +159,37 @@ Document
 
    Here, :operator:`$in` returns all documents in ``collection`` where
    ``field`` has a value included in ``array``. This is analogous to
-   the ``IN`` modifier ??? in SQL. For example:
+   the ``IN`` modifier in SQL. For example:
 
    .. code-block:: javascript
 
       db.collection.find( { age: { $in: [ 1, 2, 3, 5, 7, 11 } } );
 
    returns all documents in ``collection`` with an "``age``" field
-   that is one of the first six prime numbers.
+   that is *one* of the first six prime numbers, including all of the
+   following documents:
+
+   .. code-block:: javascript
+
+      { age: 7 }
+      { age: 11 }
+      { age: 3 }
+
+   When the field that :operator:`$in` inspects (i.e. ``age`` in the
+   above example) is itself an array, only *one* of the values in the
+   array must match *one* of the values in the :operator:`$in`
+   array. Therefore, the following query:
+
+   .. code-block:: javascript
+
+      db.collection.find( { a: { $in: [1, 2] } } )
+
+   will match both of the following documents:
+
+   .. code-block:: javascript
+
+      { a: [ 1, 3, 5, 7, 9 ] }
+      { a: [ 0, 2, 4, 6, 8 ] }
 
 .. operator:: $nin
 
