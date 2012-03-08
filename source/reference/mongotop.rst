@@ -16,6 +16,8 @@ MongoDB instance spends reading and writing data. :program:`mongotop`
 provides statistics on the per-collection level. In default operation,
 :program:`mongotop` returns values every second.
 
+TODO "in default operation" = "by default", maybe less confusing
+
 .. seealso::
 
    For more information about monitoring MongoDB, see
@@ -69,6 +71,8 @@ Options
    of at least one connected set member, connect to primary node of
    that set. this option would resemble:
 
+TODO is "setname" a well-defined mongodb term? I usually write "replica set name" which is pretty clumsy sounding
+
    .. code-block:: sh
 
       --host repl0 mongo0.example.net,mongo0.example.net,27018,mongo1.example.net,mongo2.example.net
@@ -88,6 +92,8 @@ Options
    MongoDB instance using IPv6 connectivity. :program:`mongotop` and
    other MongoDB programs disable IPv6 support by default.
 
+TODO I'm not an ipv6 whiz by any means -- but is "connectivity" the right word? (seems like too much connect* in one sentence)
+
 .. option:: --username <username>, -u <username>
 
    Specifies a username to authenticate to the MongoDB instance, if
@@ -100,6 +106,8 @@ Options
    Specifies a password to authenticate to the MongoDB instance. Use
    in conjunction with the :option:`--username <mongotop --username>`
    option to supply a username.
+
+TODO I believe that mongotools will prompt for a password if flag is used without a value
 
 .. option:: <sleeptime>
 
@@ -123,6 +131,8 @@ Fields
    activity. You can issue a simple operation in the :program:`mongo`
    shell to generate activity so that an specific namespace appears on
    the page.
+
+TODO ", and includes" should this be ", which includes"?
 
 .. data:: total
 

@@ -66,6 +66,8 @@ Options
    You can always connect directly to a single MongoDB instance by
    specifying the host and port number directly.
 
+TODO copypaste
+
 .. option:: --port <port>
 
    Specifies the port number, if the MongoDB instance is not running on
@@ -78,6 +80,8 @@ Options
    the MongoDB instance using IPv6 connectivity. All MongoDB programs
    and processes, including :program:`mongoexport`, disable IPv6
    support by default.
+
+TODO copypaste
 
 .. option:: --username <username>, -u <username>
 

@@ -82,6 +82,8 @@ Options
    and processes, including :program:`mongoimport`, disable IPv6
    support by default.
 
+TODO copypaste
+
 .. option:: --username <username>, -u <username>
 
    Specifies a username to authenticate to the MongoDB instance, if your
@@ -93,6 +95,8 @@ Options
    Specifies a password to authenticate to the MongoDB instance. Use
    in conjunction with the :option:`mongoimport --username` option to
    supply a username.
+
+TODO copypaste
 
 .. option:: --dbpath <path>
 
@@ -117,6 +121,8 @@ Options
 
    Enables journaling for all :program:`mongoimport` operations.
 
+TODO this description seems less detailed than the other --journal descriptions; maybe should describe in more depth.
+
 .. option:: --db <db>, -d <db>
 
    Use the :option:`--db` option to specify a database for
@@ -136,12 +142,16 @@ Options
    restore data into a MongoDB instance that already has data, or to
    restore only some data in the specified imported data set.
 
+TODO this should be mongoimport, not mongorestore
+
 .. option:: --fields <field1[,filed2]>, -f <field1[,filed2]>
 
    Specify a field or number fields to *import* from the data
    export. All other fields present in the export will be *excluded*
    during importation. Comma separate a list of fields to limit the
    fields imported.
+
+TODO "import form the data export" is a little confusing
 
 .. option:: --fieldFile <filename>
 
@@ -261,3 +271,5 @@ instance running on the host ``mongodb1.example.net``" over port
 .. code-block:: sh
 
    mongoexport --host mongodb1.example.net --port 37017 --username user --password pass --collection contacts --db marketing --file /opt/backups/mdb1-examplenet.json
+
+TODO these are all mongoexport instead of mongoimport

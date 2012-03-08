@@ -42,9 +42,11 @@ Options
 .. option:: --filter '<JSON>'
 
    Limits the documents that :program:`bsondump` exports to only those
-   documents that match the :term:`JSON document` specified as `'<JSON>'`. Be
+   documents that match the :term:`JSON document` specified as ``'<JSON>'``. Be
    sure to include the document in single quotes to avoid a poor
    interaction with your shell.
+
+TODO "poor interaction" may not be appropriate.
 
 .. option:: --type <=json|=debug>
 
@@ -55,12 +57,16 @@ Options
 
    The final argument to :program:`bsondump` is a bson
 
+TODO above is incomplete sentence. Fix?
+
 Usage
 -----
 
 The output of :program:`bsondump` returns on standard output. To
 create corresponding :term:`JSON` files, you will need to use the
 shell redirect. See the following command:
+
+TODO not sure if "returns on standard output" makes sense. "The output of bsondump defaults to standard output."
 
 .. code-block:: sh
 

@@ -37,6 +37,8 @@ on the local host interface on TCP port 27017, but
 :program:`mongostat` can connect to any accessible remote MongoDB
 process.
 
+TODO "but mongostat [can also] ... [as well]"?
+
 Options
 -------
 
@@ -78,6 +80,8 @@ Options
    You can always connect directly to a single MongoDB instance by
    specifying the host and port number directly.
 
+TODO s/ruining/running
+
 .. option:: --port <port>
 
    Specifies the port number, if the MongoDB instance is not running on
@@ -91,6 +95,8 @@ Options
    and processes, including :program:`mongostat`, disable IPv6 support
    by default.
 
+TODO tentative copypaste
+
 .. option:: --username <username>, -u <username>
 
    Specifies a username to authenticate to the MongoDB instance, if your
@@ -102,6 +108,8 @@ Options
    Specifies a password to authenticate to the MongoDB instance. Use
    in conjunction with the :option:`mongostat --username` option to
    supply a username.
+
+TODO copypaste
 
 .. option:: --noheaders
 
@@ -321,6 +329,8 @@ group of machines. If a :program:`mongos` process connected to a
 :term:`shard cluster` is running on port ``27017`` of the local
 machine, you can use the following form to return statistics from all
 members of the cluster:
+
+TODO "use the --etc will help" - looks like s/use/using/
 
 .. code-block:: sh
 
