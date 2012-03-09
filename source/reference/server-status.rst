@@ -11,6 +11,9 @@ catalogs each datum included in the output of this command and
 provides context for using this data to more effectively administer
 your database.
 
+TODO: Maybe mention that much of this information is displayed in a dynamic
+manner by the mongostat command
+
 Basic Information
 -----------------
 
@@ -54,17 +57,20 @@ Basic Information
 globalLock
 ----------
 
+TODO: How will this section change in 2.2 with concurrency changes?  All global 
+lock will fork with version
+
 .. status:: globalLock
 
    The :status:`globalLock` data structure contains information regarding
    the database's current lock state, historical lock status, current
    operation queue, and the number of active clients.
 
-.. status:: globalLock.toalTime
+.. status:: globalLock.totalTime
 
    The value of :status:`globalLock.totalTime` represents the time, in
-   microseconds, since the database last started, that the
-   :status:`globalLock` has existed.
+   microseconds, since the database last started and that the
+   :status:`globalLock` was created.
 
    Larger values indicate that the database has been unavailable for
    more time; however, :status:`uptime` provides context for this
@@ -262,12 +268,12 @@ extra_info
 .. status:: extra_info.heap_usage_bytes
 
    The :status:`extra_info.heap_usage_bytes` field is only available on
-   Linux systems, and relates the total size in bytes of heap space
+   Unix/Linux systems, and relates the total size in bytes of heap space
    used by the database process.
 
 .. status:: extra_info.page_faults
 
-   The :status:`extra_info.page_faults` field is only available on Linux
+   The :status:`extra_info.page_faults` field is only available on Unix/Linux
    systems, and relates the total number of page faults that require
    disk operations. Page faults refer to operations that require the
    database server to access data which isn't available in active
@@ -497,10 +503,10 @@ repl
 
    See :doc:`/core/replication` for more information on replication.
 
-optcounters
+opcounters
 -----------
 
-.. status:: optcounters
+.. status:: opcounters
 
    The :status:`opcounters` data structure provides an overview of
    database operations by type and makes it possible to analyze the
@@ -509,38 +515,38 @@ optcounters
    These numbers will grow over time and in response to database
    use. Analyze these values over time to track database utilization.
 
-.. status:: optcounters.insert
+.. status:: opcounters.insert
 
    :status:`opcounters.insert` provides a counter of the total number
    of insert operations since the :program:`mongod` instance last
    started.
 
-.. status:: optcounters.query
+.. status:: opcounters.query
 
    :status:`opcounters.query` provides a counter of the total number
    of queries since the :program:`mongod` instance last started.
 
-.. status:: optcounters.update
+.. status:: opcounters.update
 
    :status:`opcounters.update` provides a counter of the total number
    of update operations since the :program:`mongod` instance last
    started.
 
-.. status:: optcounters.delete
+.. status:: opcounters.delete
 
    :status:`opcounters.delete` provides a counter of the total number
    of delete operations since the :program:`mongod` instance last
    started.
 
-.. status:: optcounters.getmore
+.. status:: opcounters.getmore
 
    :status:`opcounters.getmore` provides a counter of the total number
    of "getmore" operations since the :program:`mongod` instance last
-   started. On a primary node, this counter can be high even if the
-   query count is low. Secondary nodes send ``getMore`` operations to
-   the primary node as part of the replication process.
+   started. This counter can be high even if the query count is low. 
+   Secondary nodes send ``getMore`` operations as part of the replication 
+   process.
 
-.. status:: optcounters.command
+.. status:: opcounters.command
 
    :status:`opcounters.command` provides a counter of the total number
    of commands issued to the database since the :program:`mongod`
@@ -715,3 +721,4 @@ Other Statuses
    The value of :status:`writeBacksQueued` is "``true``" when there
    are operations from a :program:`mongos` instance queued for
    retrying. Typically this option is false.
+   TODO: should we have a glossary entry for writeBacks?
