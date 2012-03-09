@@ -766,3 +766,8 @@ Glossary
       The process within the sharding system that ensures that writes
       issued to a :term:`shard` that isn't responsible for the relevant
       chunk, get applied to the proper shard.
+
+   page fault
+      The event that occurs when a process requests stored data
+      (i.e. a page) from memory that the operating system has moved to
+      virtual memory.

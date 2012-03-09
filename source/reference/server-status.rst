@@ -14,7 +14,7 @@ your database.
 
 .. seealso:: Much of the output of :dbcommand:`serverStatus` is also
    displayed dynamically by :program:`mongostat`. See the
-   :doc:`/ref/mongostat`  reference for more information.
+   :doc:`/reference/mongostat`  reference for more information.
 
 Basic Information
 -----------------

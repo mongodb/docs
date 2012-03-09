@@ -229,7 +229,7 @@ in RAM, you may have exceeded the capacity of your system.
 
 Also check the amount of mapped memory (i.e. :status:`mem.mapped`.) If
 this value is greater than the amount of system memory, some
-operations will require disk access :term:`page faults` to read data
+operations will require disk access :term:`page faults <page fault>` to read data
 from virtual memory with deleterious effects on performance.
 
 .. _administration-monitoring-page-faults:
