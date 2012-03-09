@@ -54,7 +54,8 @@ Basic Information
 globalLock
 ----------
 
-TODO: How might this section change in 2.2 with concurrency changes?
+TODO: How will this section change in 2.2 with concurrency changes?  All global 
+lock will fork with version
 
 .. status:: globalLock
 
