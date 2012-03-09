@@ -71,25 +71,13 @@ Options
    retrieved from the serve specified by the :option:`--from <mongooplog --from>`
    option.
 
-   :program:`mongooplog` assumes that all targetn  :program:`mongod`
+   :program:`mongooplog` assumes that all target  :program:`mongod`
    instances are accessible by way of port ``27017``. You may,
    optionally, declare an alternate port number as part of the
    hostname argument.
 
-   To connect to a replica set, use the :option:`--host <mongooplog
-   --host>` argument with a setname, followed by a slash and a comma
-   separated list of host and port names. The :program:`mongooplog`
-   utility will, given the seed of at least one connected set member,
-   connect to primary member of that set. this option would resemble:
-
-   .. code-block:: javascript
-
-      mongodump --host repl0/mongo0.example.net,mongo0.example.net,27018,mongo1.example.net,mongo2.example.net
-
    You can always connect directly to a single :program:`mongod`
    instance by specifying the host and port number directly.
-
-TODO second paragraph typo ("targetn")
 
 .. option:: --port
 
@@ -102,10 +90,10 @@ TODO second paragraph typo ("targetn")
 
 .. option:: --ipv6
 
-   Enables :term:`IPv6` support to allow :program:`mongooplog` to
-   connect to the MongoDB instance using IPv6 connectivity. All
-   MongoDB programs and processes, including :program:`mongooplog`,
-   disable IPv6 support by default.
+   Enables IPv6 support that allows :program:`mongooplog` to connect
+   to the MongoDB instance using an IPv6 network. All MongoDB programs
+   and processes, including :program:`mongooplog`, disable IPv6
+   support by default.
 
 .. option:: --username <username>, -u <username>
 
@@ -114,13 +102,15 @@ TODO second paragraph typo ("targetn")
    :option:`--password <mongooplog --password>` option to supply a
    password.
 
-.. option:: --password <password>, -u <password>
+.. option:: --password <password>, -p <password>
 
    Specifies a password to authenticate to the MongoDB instance. Use
    in conjunction with the :option:`--username <mongooplog --username>`
    option to supply a username.
 
-TODO copypaste
+   If you specify a :option:`--username <mongooplog --username>`
+   without the :option:`--password` option, :program:`mongooplog` will
+   prompt for a password interactively.
 
 .. option:: --dbpath <path>
 

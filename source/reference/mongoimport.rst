@@ -77,12 +77,10 @@ Options
 
 .. option:: --ipv6
 
-   Enables IPv6 support to allow :program:`mongoimport` to connect to
-   the MongoDB instance using IPv6 connectivity. All MongoDB programs
+   Enables IPv6 support that allows :program:`mongoimport` to connect
+   to the MongoDB instance using an IPv6 network. All MongoDB programs
    and processes, including :program:`mongoimport`, disable IPv6
    support by default.
-
-TODO copypaste
 
 .. option:: --username <username>, -u <username>
 
@@ -96,7 +94,9 @@ TODO copypaste
    in conjunction with the :option:`mongoimport --username` option to
    supply a username.
 
-TODO copypaste
+   If you specify a :option:`--username <mongoimport --username>`
+   without the :option:`--password` option, :program:`mongoimport`
+   will prompt for a password interactively.
 
 .. option:: --dbpath <path>
 
@@ -104,7 +104,7 @@ TODO copypaste
    :option:`--dbpath <mongoimport --dbpath>` option enables
    :program:`mongoimport` to attach directly to local data files and
    insert the data without the :program:`mongod`. To run with
-   ``--dbpath``, :program:`mongorestore` needs to lock access to the
+   ``--dbpath``, :program:`mongoimport` needs to lock access to the
    data directory: as a result, no :program:`mongod` can access the
    same path while the process runs.
 
@@ -119,9 +119,10 @@ TODO copypaste
 
 .. option:: --journal
 
-   Enables journaling for all :program:`mongoimport` operations.
-
-TODO this description seems less detailed than the other --journal descriptions; maybe should describe in more depth.
+   Allows :program:`mongoexport` write to the durability
+   :term:`journal` to ensure that the data files will remain in a
+   consistent state during the write process. This option is only
+   relevant when specifying the :option:`--dbpath` option.
 
 .. option:: --db <db>, -d <db>
 
@@ -142,16 +143,12 @@ TODO this description seems less detailed than the other --journal descriptions;
    restore data into a MongoDB instance that already has data, or to
    restore only some data in the specified imported data set.
 
-TODO this should be mongoimport, not mongorestore
-
 .. option:: --fields <field1[,filed2]>, -f <field1[,filed2]>
 
-   Specify a field or number fields to *import* from the data
-   export. All other fields present in the export will be *excluded*
+   Specify a field or number fields to *import* from the specified
+   file. All other fields present in the export will be *excluded*
    during importation. Comma separate a list of fields to limit the
    fields imported.
-
-TODO "import form the data export" is a little confusing
 
 .. option:: --fieldFile <filename>
 
@@ -238,7 +235,7 @@ instance running on the localhost port numbered ``27017``.
 
 .. code-block:: sh
 
-   mongoexport --db users --collection contacts --type csv --file /opt/backups/contacts.csv
+   mongoimport --db users --collection contacts --type csv --file /opt/backups/contacts.csv
 
 In the following example, :program:`mongoimport` imports the data in
 the :term:`JSON` formatted file "``contacts.json`` into the collection
@@ -247,7 +244,7 @@ number 27017. Journaling is explicitly enabled.
 
 .. code-block:: sh
 
-   mongoexport --collection contacts --file contacts.json --journal
+   mongoimport --collection contacts --file contacts.json --journal
 
 In the next example, :program:`mongoimport` takes data passed to it on
 standard input (i.e. with a "``|``" pipe.)  and imports it into the
@@ -258,7 +255,7 @@ the :option:`--stopOnError <mongoimport --stopOnError>` option.
 
 .. code-block:: sh
 
-   mongoexport --db sales --collection contacts --stopOnError --dbpath /srv/mongodb/
+   mongoimport --db sales --collection contacts --stopOnError --dbpath /srv/mongodb/
 
 In the final example, :program:`mongoimport` imports data from the
 file "``/opt/backups/mdb1-examplenet.json``" into the collection
@@ -270,6 +267,4 @@ instance running on the host ``mongodb1.example.net``" over port
 
 .. code-block:: sh
 
-   mongoexport --host mongodb1.example.net --port 37017 --username user --password pass --collection contacts --db marketing --file /opt/backups/mdb1-examplenet.json
-
-TODO these are all mongoexport instead of mongoimport
+   mongoimport --host mongodb1.example.net --port 37017 --username user --password pass --collection contacts --db marketing --file /opt/backups/mdb1-examplenet.json

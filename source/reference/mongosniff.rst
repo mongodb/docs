@@ -14,10 +14,8 @@ Synopsis
 :program:`mongosniff` provides a low-level operation tracing/sniffing view
 into database activity in real time. Think of :program:`mongosniff` as a
 MongoDB-specific analogue of ``tcpdump`` for TCP/IP network
-traffic. Typically, :program:`mongosniff` is most frequently used in drier
+traffic. Typically, :program:`mongosniff` is most frequently used in driver
 development.
-
-TODO s/drier/driver/
 
 .. note::
 

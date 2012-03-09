@@ -36,26 +36,13 @@ Options
 
 .. option:: --host <hostname><:port>
 
-   Specifies a resolvable hostname for the :program:`mongod` to which you
-   want to restore the database. By default :program:`mongorestore` will
-   attempt to connect to a MongoDB process ruining on the localhost
-   port number 27017.
+   Specifies a resolvable hostname for the :program:`mongod` to which
+   you want to restore the database. By default
+   :program:`mongorestore` will attempt to connect to a MongoDB
+   process running on the localhost port number ``27017``.
 
    Optionally, specify a port number to connect a MongboDB instance
-   running on a port other than 27017.
-
-   To connect to a replica set, use the :option:`--host` argument with a
-   setname, followed by a slash and a comma separated list of host and
-   port names. The :program:`mongo` utility will, given the seed of at least
-   one connected set member, connect to primary node of that set. this
-   option would resemble: ::
-
-        --host repl0 mongo0.example.net,mongo0.example.net,27018,mongo1.example.net,mongo2.example.net
-
-   You can always connect directly to a single MongoDB instance by
-   specifying the host and port number directly.
-
-TODO first paragraph, second sentence: "ruining" should be "running"
+   running on a port other than ``27017``.
 
 .. option:: --port <port>
 
@@ -65,10 +52,10 @@ TODO first paragraph, second sentence: "ruining" should be "running"
 
 .. option:: --ipv6
 
-   Enables :term:`IPv6` support to allow :program:`mongorestore` to
-   connect to the MongoDB instance using the IPv6
-   network. All MongoDB programs and processes, including
-   :program:`mongorestore`, disable IPv6 support by default.
+   Enables IPv6 support that allows :program:`mongorestore` to connect
+   to the MongoDB instance using an IPv6 network. All MongoDB programs
+   and processes, including :program:`mongorestore`, disable IPv6
+   support by default.
 
 .. option:: --username <username>, -u <username>
 
@@ -83,7 +70,9 @@ TODO first paragraph, second sentence: "ruining" should be "running"
    in conjunction with the :option:`mongorestore --username` option to
    supply a username.
 
-TODO leave out password to be prompted
+   If you specify a :option:`--username <mongorestore --username>`
+   without the :option:`--password` option, :program:`mongorestore`
+   will prompt for a password interactively.
 
 .. option:: --dbpath <path>
 
@@ -106,7 +95,10 @@ TODO leave out password to be prompted
 
 .. option:: --journal
 
-   Enables journaling for all :program:`mongorestore` operations.
+   Allows :program:`mongorestore` write to the durability
+   :term:`journal` to ensure that the data files will remain in a
+   consistent state during the write process. This option is only
+   relevant when specifying the :option:`--dbpath` option.
 
 .. option:: --db <db>, -d <db>
 
@@ -137,9 +129,7 @@ TODO leave out password to be prompted
    Limits the documents that :program:`mongorestore` imports to only
    those documents that match the JSON document specified as
    ``'<JSON>'``. Be sure to include the document in single quotes to
-   avoid a poor interaction with your shell.
-
-TODO poor interaction with shell again; not sure how you feel about these
+   avoid interaction with your system's shell environment.
 
 .. option:: --drop
 
@@ -173,24 +163,23 @@ usage. Also see the ":doc:`mongodump`" document for an overview of the
 :program:`mongodump`, which provides the related inverse
 functionality.
 
-In the following command restores the collection named
-"``collection``" and database named "``test``" in the instance running
-on the localhost interface on port ``27017`` the dump located in the
-"``dump/``" directory.
-
-TODO the above is clumsy and hard to follow
+Consider the following example:
 
 .. code-block:: sh
 
-   mongorestore --collection collection --database test
+   mongorestore --collection people --database accounts
+
+Here, :program:`mongorestore` reads the database dump in the ``dump/``
+sub-directory of the current directory, and restores *only* the
+documents in the collection named "``people``" from the database named
+"``accounts``". :program:`mongorestore` restores data to the instance
+running on the localhost interface on port ``27017``.
 
 In the next example, :program:`mongorestore` restores a backup of the
 database instance located in "``dump``" to a database instance stored
-in the ``/srv/mongodb`` on the local machine. This requires there are
-no active :program:`mongod` instances attached to ``/srv/mongodb``
+in the ``/srv/mongodb`` on the local machine. This requires that there
+are no active :program:`mongod` instances attached to ``/srv/mongodb``
 data directory.
-
-TODO "This requires *that* there are..." - is this better?
 
 .. code-block:: sh
 
@@ -198,11 +187,10 @@ TODO "This requires *that* there are..." - is this better?
 
 In the final example, :program:`mongodrestore` restores a database
 dump located at ``/opt/backup/mongodumpm-2011-10-24``, from a database
-running on port "``37017``" on the host "``mongodb1.example.net`` and
-authenticating using the username "``user``" and the password
-"``pass``", as follows:
-
-TODO is "authenticating" the right tense? goodness, my grammar is rusty
+running on port "``37017``" on the host
+"``mongodb1.example.net``. :program:`mongorestore`` authenticates to
+the this MongoDB instance using the username "``user``" and the
+password "``pass``", as follows:
 
 .. code-block:: sh
 

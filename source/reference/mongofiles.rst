@@ -41,12 +41,9 @@ Commands
 
 .. option:: list <prefix>
 
-   Lists the files in the GridFS store. The characters  specified
-   after "``list``" (e.g. "``<prefix>``") optionally limit the list of
-   returned items to files that begin with that string of
-   characters.
-
-TODO double space after characters
+   Lists the files in the GridFS store. The characters specified after
+   "``list``" (e.g. "``<prefix>``") optionally limit the list of
+   returned items to files that begin with that string of characters.
 
 .. option:: search <string>
 
@@ -100,27 +97,13 @@ Options
 
 .. option:: --host <hostname><:port>
 
-   Specifies a resolvable hostname for the :program:`mongod` from which you
-   want to export data. By default :program:`mongofiles` attempts to connect
-   to a MongoDB process ruining on the localhost port number 27017.
+   Specifies a resolvable hostname for the :program:`mongod` that
+   holds your GridFS system. By default :program:`mongofiles` attempts
+   to connect to a MongoDB process ruining on the localhost port
+   number ``27017``.
 
    Optionally, specify a port number to connect a MongboDB instance
    running on a port other than 27017.
-
-   To connect to a replica set, use the :option:`--host` argument with
-   a setname, followed by a slash and a comma separated list of host
-   and port names. The :program:`mongo` utility will, given the seed
-   of at least one connected set member, connect to primary node of
-   that set. this option would resemble:
-
-   .. code-block:: sh
-
-      --host repl0 mongo0.example.net,mongo0.example.net,27018,mongo1.example.net,mongo2.example.net
-
-   You can always connect directly to a single MongoDB instance by
-   specifying the host and port number directly.
-
-TODO "from which you want to *export* data" doesn't quite make sense in context
 
 .. option:: --port <port>
 
@@ -130,12 +113,10 @@ TODO "from which you want to *export* data" doesn't quite make sense in context
 
 .. option:: --ipv6
 
-   Enables IPv6 support to allow :program:`mongofiles` to connect to
-   the MongoDB instance using IPv6 connectivity. All MongoDB programs
-   and processes, including :program:`mongofiles`, disable IPv6 support by
-   default.
-
-TODO copypaste
+   Enables IPv6 support that allows :program:`mongofiles` to connect
+   to the MongoDB instance using an IPv6 network. All MongoDB programs
+   and processes, including :program:`mongofiles`, disable IPv6
+   support by default.
 
 .. option:: --username <username>, -u <username>
 
@@ -148,6 +129,11 @@ TODO copypaste
    Specifies a password to authenticate to the MongoDB instance. Use
    in conjunction with the :option:`mongofiles --username` option to
    supply a username.
+
+   If you specify a :option:`--username <mongofile --username>`
+   without the :option:`--password` option, :program:`mongofile`
+   will prompt for a password interactively.
+
 
 .. option:: --dbpath <path>
 
