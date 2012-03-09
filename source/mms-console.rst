@@ -215,12 +215,12 @@ hostname. Below the host configuration options you may toggle an
 option to "group hosts in chart," which creates a single composite
 chart for all matching charts.
 
-Below this, there are 17 :ref:`chart types <mms-chart-types>` that you
-can use to select charts for this dashboard. Below the chart
-selection, the final row of buttons allows you to: (optionally) test
-the "host regexp" to ensure that your regular expression is
-sufficiently selective; preview the charts that this operation will
-add to the dashboard; and submit these changes to the dashboards.
+Below this, there are 17 chart types that you can use to select charts
+for this dashboard. Below the chart selection, the final row of
+buttons allows you to: (optionally) test the "host regexp" to ensure
+that your regular expression is sufficiently selective; preview the
+charts that this operation will add to the dashboard; and submit these
+changes to the dashboards.
 
 You can add and remove charts to these dashbaords manually. You may
 also add additional charts using the "advanced create dashboard"

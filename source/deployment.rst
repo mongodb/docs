@@ -97,7 +97,7 @@ in the "Settings" page of the MMS console.
 You may embed this process in your existing deployment scripts to
 automatically install or redeploy new agents.
 
-.. _pymongo-package-pymongo-c-extensions:
+.. _pymongo-c-extensions-package:
 
 Build PyMongo Packages with PyMongo C Extensions
 ------------------------------------------------
@@ -193,6 +193,8 @@ Use the ``update-rc.d`` utility on Debian and Ubuntu and the
 the initialization process. Be sure to test the control script
 configuration. It is essential that you be able to start, stop, and
 restart the agent following a system reboot.
+
+.. _troubleshooting-hmac:
 
 Troubleshooting: hmac Installation
 ----------------------------------
