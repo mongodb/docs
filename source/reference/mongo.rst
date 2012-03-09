@@ -78,7 +78,10 @@ Options
 
    Specify a password to authenticate to the MongoDB instance, if your
    database requires authentication. Use in conjunction with the
-   :option:`mongo --username` option to supply a username.
+   :option:`mongo --username` option to supply a username. If you
+   specify a :option:`--username <mongo --username>` without the
+   :option:`--password` option, :program:`mongo` will prompt for a
+   password interactively.
 
 .. option:: --help,  -h
 
@@ -95,10 +98,10 @@ Options
 
 .. option:: --ipv6
 
-   Enables IPv6 support to allow :program:`mongo` to connect to the
-   MongoDB instance using IPv6 connectivity. All MongoDB programs and
-   processes, including :program:`mongo`, disable IPv6 support by
-   default.
+   Enables IPv6 support that allows :program:`mongo` to connect
+   to the MongoDB instance using an IPv6 network. All MongoDB programs
+   and processes, including :program:`mongo`, disable IPv6
+   support by default.
 
 .. option:: <db address>
 

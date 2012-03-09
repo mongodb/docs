@@ -33,7 +33,7 @@ UNIX/Linux file system utility ``vmstat``, but provides data regarding
    ":doc:`mongotop </reference/mongotop>`."
 
 :program:`mongostat` connects to the :program:`mongod` process running
-on the local host interface on TCP port 27017, but
+on the local host interface on TCP port ``27017``; however,
 :program:`mongostat` can connect to any accessible remote MongoDB
 process.
 
@@ -60,23 +60,10 @@ Options
 
    Specifies a resolvable hostname for the :program:`mongod` from which you
    want to export data. By default :program:`mongostat` attempts to connect
-   to a MongoDB process ruining on the localhost port number 27017.
+   to a MongoDB process running on the localhost port number ``27017``.
 
    Optionally, specify a port number to connect a MongboDB instance
-   running on a port other than 27017.
-
-   To connect to a replica set, use the :option:`--host` argument with
-   a setname, followed by a slash and a comma separated list of host
-   and port names. The :program:`mongo` utility will, given the seed
-   of at least one connected set member, connect to primary node of
-   that set. this option would resemble:
-
-   .. code-block:: sh
-
-       --host repl0 mongo0.example.net,mongo0.example.net,27018,mongo1.example.net,mongo2.example.net
-
-   You can always connect directly to a single MongoDB instance by
-   specifying the host and port number directly.
+   running on a port other than ``27017``.
 
 .. option:: --port <port>
 
@@ -86,10 +73,10 @@ Options
 
 .. option:: --ipv6
 
-   Enables IPv6 support to allow :program:`mongostat` to connect to
-   the MongoDB instance using IPv6 connectivity. All MongoDB programs
-   and processes, including :program:`mongostat`, disable IPv6 support
-   by default.
+   Enables IPv6 support that allows :program:`mongostat` to connect
+   to the MongoDB instance using an IPv6 network. All MongoDB programs
+   and processes, including :program:`mongostat`, disable IPv6
+   support by default.
 
 .. option:: --username <username>, -u <username>
 
@@ -102,6 +89,10 @@ Options
    Specifies a password to authenticate to the MongoDB instance. Use
    in conjunction with the :option:`mongostat --username` option to
    supply a username.
+
+   If you specify a :option:`--username <mongostat --username>`
+   without the :option:`--password` option, :program:`mongostat` will
+   prompt for a password interactively.
 
 .. option:: --noheaders
 
@@ -315,7 +306,7 @@ behavior.
    mongostat --rowcount 12 300
    mongostat -n 12 300
 
-In many cases, use the :option:`--discover <mongostat --discover>`
+In many cases, using the :option:`--discover <mongostat --discover>`
 will help provide a more complete snapshot of the state of an entire
 group of machines. If a :program:`mongos` process connected to a
 :term:`shard cluster` is running on port ``27017`` of the local
