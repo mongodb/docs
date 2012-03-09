@@ -64,13 +64,6 @@ Chart Colors
 
 - A *yellow bar* indicates the server is now a secondary.
 
-.. _mms-chart-types:
-
-MMS Chart Types
----------------
-
-There are 17 possible charts provided by MMS. They are:
-
 Status Page
 ~~~~~~~~~~~
 
