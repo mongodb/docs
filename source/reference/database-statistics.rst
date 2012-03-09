@@ -8,17 +8,17 @@ Database Statistics Reference
 Synopsis
 --------
 
-MongoDB can report data reflecting the current state of the current
-database. In this context "database," refers to a single MongoDB
-database. To run :dbcommand:`dbStats` issue a command in the shell that
-resembles the following:
+MongoDB can report data that reflects the current state of the
+"active" database. In this context "database," refers to a single
+MongoDB database. To run :dbcommand:`dbStats` issue this command in
+the shell:
 
 .. code-block:: javascript
 
    db.runCommand( { dbStats: 1 } )
 
-The :program:`mongo` shell provides the :func:`db.stats()` as a
-helper. Use the following form:
+The :program:`mongo` shell provides the helper function :func:`db.stats()`.
+Use the following form:
 
 .. code-block:: javascript
 
@@ -66,7 +66,7 @@ Fields
 
 .. stats:: avgObjSize
 
-   The average size of each object. The scale factor affects this
+   The average size of each object. The scaling factor affects this
    value.
 
 .. stats:: dataSize
@@ -104,6 +104,10 @@ Fields
 
 .. stats:: nsSizeMB
 
-   The total size of the data database files (i.e. that end with
-   ``.ns``). This includes preallocated space and the :term:`padding
-   factor`.
+   The total size of the :term:`namespace` files (i.e. that end with
+   ``.ns``) for this database. You cannot change the size of the
+   namespace file after creating a database, but you can change the
+   default size for all new namespace files with the
+   :setting:`nssize` runtime option.
+
+   .. seealso:: The :setting:`nssize` option, and :ref:`Maximum Namespace File Size <limit-size-of-namespace-file>`

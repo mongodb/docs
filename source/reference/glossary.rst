@@ -761,3 +761,8 @@ Glossary
       set>`.
 
       .. deprecated:: 1.6
+
+   writeBacks
+      The process within the sharding system that ensures that writes
+      issued to a :term:`shard` that isn't responsible for the relevant
+      chunk, get applied to the proper shard.
