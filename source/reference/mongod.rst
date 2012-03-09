@@ -75,7 +75,7 @@ Options
    you have implemented proper authentication and/or firewall
    restrictions to protect the integrity of your database.
 
-.. option:: --maxCons <number>
+.. option:: --maxConns <number>
 
    Specifies the maximum number of simultaneous connections that
    :program:`mongod` will accept. This setting will have no effect if
@@ -87,16 +87,22 @@ Options
    Forces the :program:`mongod` to validate all requests from clients
    upon receipt to ensure that invalid objects are never inserted into
    the database. This option can produce a significant performance
-   impact.
+   impact, and is not enabled by default.
 
 .. option:: --logpath <path>
 
    Specify a path for the log file that will hold all diagnostic
    logging information.
 
-   Unless specified, :program:`mongod` will output all log information to
-   the standard output. Unless you specify :option:`--logapend`, the
-   logfile will be overwritten when the process restarts.
+   Unless specified, :program:`mongod` will output all log information
+   to the standard output. Additionally, unless you also specify
+   :option:`--logapend`, the logfile will be overwritten when the
+   process restarts.
+
+   .. note::
+
+      The behavior of the logging system may change in the near
+      future in response to the :issue:`SERVER-4499` case.
 
 .. option:: --logapend
 
@@ -144,7 +150,7 @@ Options
 
 .. option:: --fork
 
-   Enables a :term:`daemon` mode for :program:`mongod` which forces the
+   Enables a :term:`daemon` mode for :program:`mongod` that runs the
    process to the background. This is the normal mode of operation, in
    production and production-like environments, but may *not* be
    desirable for testing.
@@ -157,13 +163,15 @@ Options
    will continue to have access to the database until the you create
    the first user.
 
-   See the ":doc:`/administration/security`" document for more
-   information regarding this functionality.
+   See the ":wiki:`Security and Authentication <Security+and+Authentication>`
+   wiki page for more information regarding this functionality.
+
+   .. STUB ":doc:`/administration/security`"
 
 .. option:: --cpu
 
    Forces :program:`mongod` to report the percentage of CPU time in
-   write lock. :program:`mongod` generates output ever four
+   write lock. :program:`mongod` generates output every four
    seconds. MongoDB writes this data to standard output or the logfile
    if using the :setting:`logpath` option.
 
@@ -173,14 +181,21 @@ Options
    data. Typical locations include: "``/srv/mognodb``",
    "``/var/lib/mongodb``" or "``/opt/mongodb``"
 
-   Unless specified, :program:`mongod` creates data files in the
+   Unless specified, :program:`mongod` will look for data files in the
    default ``/data/db`` directory. (Windows systems use the
-   ``\data\db`` directory.)
+   ``\data\db`` directory.) If you installed using a package
+   management system. Check the ``/etc/mongodb.conf`` file provided by
+   your packages to see the configuration of the :setting:`dbpath`.
 
 .. option:: --diaglog <value>
 
-   Sets the diagnostic logging level for the :program:`mongod`
-   instance. Possible values, and their impact are as follows.
+   Creates a very verbose, diagnostic log for troubleshooting and
+   recording various errors. MongoDB writes these log files in the
+   :setting:`dbpath` in a series of files that begin with the string
+   "``diaglog``".
+
+   The specified value configures the level of verbosity. Possible
+   values, and their impact are as follows.
 
    =========  ===================================
    **Value**  **Setting**
@@ -192,15 +207,19 @@ Options
       7       Log write and some read operations.
    =========  ===================================
 
+   :option:`--diaglog` is for internal use and not intended for most
+   users.
+
 .. option:: --directoryperdb
 
    Alters the storage pattern of the data directory to store each
-   (logical) database in a distinct folder. Use this option to
-   configure MongoDB to store data on a number of distinct disk
-   devices to increase write throughput or disk capacity.
+   database's files in a distinct folder. This option will create
+   directories within the :option:`--dbpath` named for each directory.
 
-   Unless specified, :program:`mongod` saves all database files in the
-   directory specified by :option:`--dbpath`.
+   Use this option in conjunction with your file system and device
+   configuration so that MongoDB will store data on a number of
+   distinct disk devices to increase write throughput or disk
+   capacity.
 
 .. option:: --journal
 
@@ -336,7 +355,7 @@ Options
    megabytes.
 
    Use :option:`--smallfiles` if you have a large number of databases
-   that each holds a small quaint of data.
+   that each holds a small quantity of data.
 
 .. option:: --shutdown
 
@@ -367,7 +386,9 @@ Options
 
 .. option:: --sysinfo
 
-   Returns diagnostic system information and then exits.
+   Returns diagnostic system information and then exits. The
+   information provides the page size, the number of physical pages,
+   and the number of available physical pages.
 
 .. option:: --upgrade
 
@@ -377,7 +398,14 @@ Options
    This option only affects the operation of :program:`mongod` if the
    data files are in an old format.
 
-Replica Set Options
+   .. note::
+
+      In most cases you should **not** set this value, so you can
+      exercise the most control over your upgrade process. See the MongoDB
+      `release notes <http://www.mongodb.org/downloads>`_ (on the
+      download page) for more information about the upgrade process.
+
+Replication Options
 ```````````````````
 
 .. option:: --fastsync
@@ -400,6 +428,16 @@ Replica Set Options
    log (e.g. :term:`oplog`.) By :program:`mongod` creates an
    :term:`oplog` based on the maximum amount of space available. For
    64-bit systems, the op log is typically 5% of available disk space.
+
+.. option:: --replSet <setname>
+
+   Use this option to configure replication with replica sets. Specify
+   a setname as an argument to this set. All hosts must have the same
+   set name.
+
+   .. seealso:: ":doc:`/replication`,"
+      ":doc:`/administration/replica-sets`," and
+      ":doc:`/reference/replica-configuration`"
 
 Master/Slave Replication
 ````````````````````````
@@ -446,21 +484,6 @@ replica sets are the prefered configuration for database replication.
    node will forcibly resync itself unnecessarily. When you set the If
    the :option:`--autoresync` option the slave will not attempt an
    automatic resync more than once in a ten minute period.
-
-Replica Set Options
-```````````````````
-
-.. option:: --replSet <setname>
-
-   Use this option to configure replication with replica sets. Specify
-   a setname as an argument to this set. All hosts must have the same
-   set name. You can add one or more "seed" hosts to one or more host
-   in the set to initiate the cluster. Use the following form: ::
-
-        <setname>/<host1>,<host2>:<port>
-
-   When you add or reconfigure the replica set on one host, these
-   changes propagate throughout the cluster.
 
 Sharding Cluster Options
 ````````````````````````

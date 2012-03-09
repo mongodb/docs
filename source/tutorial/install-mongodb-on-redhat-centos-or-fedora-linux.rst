@@ -29,17 +29,18 @@ configuration and operation.
    - :doc:`/tutorial/install-mongodb-on-debian-or-ubuntu-linux`
    - :doc:`/tutorial/install-mongodb-on-linux`
    - :doc:`/tutorial/install-mongodb-on-os-x`
-   - :doc:`/tutorial/install-mongodb-on-windows`
 
-   Documentation for getting started with MongoDB:
+   .. STUB - :doc:`/tutorial/install-mongodb-on-windows`
 
-   - :doc:`/getting-started`
-   - :doc:`/tutorial/insert-test-data-into-a-mongodb-database`
+   .. Documentation for getting started with MongoDB:
+
+   .. - :doc:`/getting-started`
+   .. STUB - :doc:`/tutorial/insert-test-data-into-a-mongodb-database`
 
 Package Options
 ---------------
 
-The 10gen repository contains for packages:
+The 10gen repository contains four packages:
 
 - ``mongo-10gen``
 
@@ -94,6 +95,7 @@ about your repository. If you are running a 64-bit system
    name=10gen Repository
    baseurl=http://downloads-distro.mongodb.org/repo/redhat/os/x86_64
    gpgcheck=0
+   enabled=1
 
 If you are running a 32-bit system, which isn't recommended for
 production deployments, place the following configuration in
@@ -105,6 +107,14 @@ production deployments, place the following configuration in
    name=10gen Repository
    baseurl=http://downloads-distro.mongodb.org/repo/redhat/os/i686
    gpgcheck=0
+   enabled=1
+
+After saving the new ``.repo`` files, users of both platforms should
+issue the following command to update the local package database:
+
+.. code-block:: sh
+
+   yum update
 
 Installing Packages
 ~~~~~~~~~~~~~~~~~~~
@@ -147,7 +157,7 @@ Start the :program:`mongod` process by issuing the following command
 
 .. code-block:: sh
 
-   service mongodb start
+   service mongod start
 
 You can verify that the :program:`mongod` process has started
 successfully by checking the contents of the log file at
@@ -168,7 +178,7 @@ Stop the :program:`mongod` process by issuing the following command
 
 .. code-block:: sh
 
-   service mongodb stop
+   service mongod stop
 
 Restart MongoDB
 ~~~~~~~~~~~~~~~
@@ -178,7 +188,7 @@ command (as root, or with ``sudo``):
 
 .. code-block:: sh
 
-   service mongodb restart
+   service mongod restart
 
 Follow the state of this process by watching the output in the
 ``/var/log/mongo/mongod.log`` file to watch for errors or important

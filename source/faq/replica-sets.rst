@@ -1,0 +1,197 @@
+============================================
+FAQ: Replica Sets and Replication in MongoDB
+============================================
+
+.. default-domain:: mongodb
+
+This document answers common questions about database replication
+in MongoDB.
+
+.. contents:: Frequently Asked Questions:
+   :backlinks: none
+   :local:
+
+.. seealso:: The following FAQ documents may provide the answers to
+   questions that are not addressed here:
+
+   - :doc:`fundamentals`
+   - :doc:`developers`
+   - :doc:`sharding`
+   - :wiki:`Indexing FAQ <Indexing+Advice+and+FAQ>` wiki page
+
+   Additionally the following documentation provides information
+   regarding MongoDB's replication support:
+
+   - :doc:`/core/replication`
+   - :doc:`/administration/replication-architectures`
+   - :doc:`/administration/replica-sets`
+   - :doc:`/core/replication-internals`
+   - :doc:`/reference/replication-info`
+   - :doc:`/reference/replica-configuration`
+   - :doc:`/reference/replica-status`
+
+What kinds of replication does MongoDB support?
+-----------------------------------------------
+
+MongoDB supports master-slave replication and a variation
+on master-slave replication known as replica sets. Replica
+sets are the recommended replication topology.
+
+What do the terms "primary" and "master" mean?
+----------------------------------------------
+
+:term:`Primary` and :term:`master` nodes are the nodes
+that can accept writes. MongoDB's replication is
+"single-master:" only one node can accept write operations at a time.
+
+In a replica set, if a the current "primary" node fails or becomes
+inaccessible, the other members can autonomously :term:`elect
+<election>` one of the other members of the set to be the new "primary".
+
+By default, clients send all reads to the primary;
+however, ":term:`read preference`" is configurable at the
+client level on a per-connection basis, which makes it possible to
+send reads to secondary nodes instead.
+
+What do the terms "secondary" and "slave" mean?
+-----------------------------------------------
+
+:term:`Secondary` and :term:`slave` nodes are read-only nodes
+that replicate from the :term:`primary`.
+
+Replication operates by way of an :term:`oplog`, from which secondary/slave
+members apply new operations to themselves. This replication process
+is asynchronous, so secondary/slave nodes may not always reflect the
+latest writes to the primary. But usually, the gap between the primary and
+secondary nodes is just few milliseconds on a local network connection.
+
+How long does replica set failover take?
+----------------------------------------
+
+It varies, but a replica set will select a new primary within a minute.
+
+It may take 10-30 seconds for the members of a :term:`replica
+set` to declare a :term:`primary` inaccessible. This
+triggers an :term:`election`. During the election, the cluster
+is unavailable for writes.
+
+The election itself may take another 10-30 seconds.
+
+.. note::
+
+   :term:`Eventually consistent <eventual consistency>` reads, like the ones that will return
+   from a replica set are only possible with a :term:`write concern`
+   that permits reads from :term:`secondary` members.
+
+
+Does replication work over the Internet and WAN connections?
+------------------------------------------------------------
+
+Yes.
+
+For example, a deployment may maintain a :term:`primary` and :term:`secondary`
+in an East-coast data center along with a :term:`secondary` member for disaster
+recovery in a West-coast data center.
+
+.. seealso:: ":doc:`/tutorial/deploy-geographically-distributed-replica-set`"
+
+Can MongoDB replicate over a "noisy" connection?
+------------------------------------------------
+
+Yes, but not without connection failures and the obvious latency.
+
+Members of the set will attempt to reconnect to the other members of
+the set in response to networking flaps. This does not require
+administrator intervention. However, if the network connections
+between the nodes in the replica set are very slow, it might not be
+possible for the members of the node to keep up with the replication.
+
+If the TCP connection between the secondaries and the :term:`primary`
+instance breaks, a :term:`replica set` the set will automatically
+elect one of the :term:`secondary` members of the set as primary.
+
+What is the preferred replication method: master/slave or replica sets?
+-----------------------------------------------------------------------
+
+.. versionadded:: 1.8
+
+:term:`Replica sets <replica set>` are the preferred
+:term:`replication` mechanism in MongoDB. However, if your deployment
+requires more than 12 nodes, you must use master/slave replication.
+
+What is the preferred replication method: replica sets or replica pairs?
+------------------------------------------------------------------------
+
+.. deprecated:: 1.6
+
+:term:`Replica sets <replica set>` replaced :term:`replica pairs` in
+version 1.6. :term:`Replica sets <replica set>` are the preferred
+:term:`replication` mechanism in MongoDB.
+
+Why use journaling if replication already provides data redundancy?
+-------------------------------------------------------------------
+
+:term:`Journaling <journal>` facilitates faster crash recovery.
+Prior to journaling, crashes often required :dbcommand:`database repairs <repairDatabase>`
+or full data resync. Both were slow, and the first was unreliable.
+
+Journaling is particularly useful for protection
+against power failures, especially if your replica set resides in a single data
+center or power circuit.
+
+When a :term:`replica set` runs with journaling, :program:`mongod`
+instances can safely restart without any administrator intervention.
+
+.. note::
+
+   Journaling requires some resource overhead for write
+   operations. Journaling has no effect on read performance, however.
+
+   Journaling is enabled by default on all 64-bit
+   builds of MongoDB v2.0 and greater.
+
+Are write operations durable without :dbcommand:`getLastError`?
+---------------------------------------------------------------
+
+Yes.
+
+However, if you want confirmation that a given write has arrived
+safely at the server, you must also run the :dbcommand:`getLastError`
+command after each write. If you enable your driver's :term:`write
+concern`, or "safe mode", the driver will automatically send
+:dbcommand:`getLastError` this command. If you want to guarantee that
+a given write syncs to the journal, you must pass the ``{j: true}``
+option :dbcommand:`getLastError` (or specify it as part of the write
+concern).
+
+How many arbiters do replica sets need?
+---------------------------------------
+
+Some configurations do not require any :term:`arbiter`
+instances. Arbiters vote in :term:`elections <election>`
+for :term:`primary` but do not replicate the data like
+:term:`secondary` members.
+
+:term:`Replica sets <replica set>` require a majority of the
+original nodes present to elect a primary. Arbiters allow you
+to construct this majorty without the overhead of adding replicating
+nodes to the system.
+
+There ara many possible replica set :doc:`architectures
+</administration/replication-architectures>`.
+
+If you have a three node replica set, you don't need an arbiter.
+
+But a common configuration consists of two replicating nodes, one of which is
+:term:`primary` and the other is :term:`secondary`, as well as an
+arbiter for the third node. This configuration makes it possible for
+the set to elect a primary in the event of a failure without requiring
+three replicating nodes.
+
+You may also consider adding an arbiter to a set if it has an equal
+number of nodes in two facilities and network partitions between the
+facilities are possible. In these cases, the arbiter will break
+the tie between the two facilities and allow the set to elect a new
+primary.
+
+.. seealso:: :doc:`/administration/replication-architectures`

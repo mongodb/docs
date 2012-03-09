@@ -1,6 +1,22 @@
+:orphan:
+
 ==================
 The MongoDB Manual
 ==================
+
+.. default-domain:: mongodb
+
+.. toctree::
+   :maxdepth: 1
+
+   getting-started
+   applications
+   replication
+   administration
+   reference
+
+.. mongo
+.. sharding
 
 .. seealso:: The :ref:`MongoDB Wiki <mongodb-wiki>` for additional
    documentation.
@@ -8,26 +24,55 @@ The MongoDB Manual
 Getting Started
 ---------------
 
+*Documentation, FAQ, and tutorials for new MongoDB users.*
+
 .. toctree::
    :maxdepth: 2
 
+   about
    getting-started
+   faq
 
-Application Development
------------------------
+.. seealso:: The ":wiki:`About`," ":wiki:`Tutorial`," and
+   ":wiki:`Community`" wiki pages for more information about the
+   MongoDB project.
+
+MongoDB for Developers
+----------------------
+
+*Documentation on developing applications with MongoDB.*
+
+.. note::
+
+   This section is under heavy development, and will eventually
+   contain more information for developers who want to use MongoDB in
+   their projects. See the ":wiki:`Developer Zone <Developer+Zone>`"
+   in the MongoDB wiki.
 
 .. toctree::
    :maxdepth: 2
 
    applications/aggregation
+   applications/drivers
+   applications/replication
 
-.. toctree::
-   :hidden:
+.. seealso:: ":wiki:`Developer Zone <Developer+Zone>`" wiki pages and
+   the ":doc:`faq/developers`" document. Developers should be familiar
+   with the :doc:`mongo` shell and the
 
-   core/map-reduce
+.. core/map-reduce
 
 Core Functionality
 ------------------
+
+*Documentation on the operation and functioning of key MongoDB features.*
+
+.. note::
+
+   This section is under heavy development, and will eventually
+   contain more information regarding additional MongoDB features. In
+   the mean time see the :wiki:`MongoDB Wiki <>` for more
+   information on these topics.
 
 .. toctree::
    :maxdepth: 2
@@ -35,17 +80,22 @@ Core Functionality
    core/replication
    core/replication-internals
 
-.. toctree::
-   :hidden:
+.. seealso:: The :wiki:`MongoDB Wiki <>` generally, and the
+   ":wiki:`Administrative <Admin+Zone>`" and
+   ":wiki:`Developer-centeric <Developer+Zone>`" areas of the wiki
+   which describes MongoDB's core functionality and operation.
 
-   core/map-reduce
-   core/journaling
-   core/capped-collections
-   core/indexing
-   core/sharding
+.. core/map-reduce
+.. core/journaling
+.. core/capped-collections
+.. core/indexing
+.. core/sharding
 
 Administration and Deployment
 -----------------------------
+
+*Documentation of MongoDB's operational aspects for systems
+administrators and users responsible MongoDB deployments.*
 
 .. toctree::
    :maxdepth: 2
@@ -57,31 +107,29 @@ Administration and Deployment
    administration/replica-sets
    administration/replication-architectures
 
-.. toctree::
-   :hidden:
+.. seealso:: The ":wiki:`Administration Zone <Admin+Zone>`" wiki page.
 
-   administration/sharding
-   administration/sharding-architectures
-   administration/hardware-platform
-   administration/operating-systems
-   administration/security
-
+.. administration/sharding
+.. administration/sharding-architectures
+.. administration/hardware-platform
+.. administration/operating-systems
+.. administration/security
 
 MongoDB Shell
 -------------
 
+*Documentation of the* :program:`mongo` *shell which provides a
+command-line interface to MongoDB for administration and testing. This
+documentation addresses the shell itself as well as the interface.*
+
 .. toctree::
    :maxdepth: 2
 
-   reference/javascript
-   reference/commands
-   reference/operators
-   reference/meta-query-operators
-
-.. toctree::
-   :hidden:
-
    mongo
+
+.. seealso:: The introductory ":wiki:`Tutorial`" in the MongoDB wiki
+   and the ":wiki:`Mongo Shell <mongo+-+The+Interactive+Shell>`" wiki
+   pages.
 
 .. Developing MongoDB
 .. ------------------
@@ -90,89 +138,16 @@ MongoDB Shell
 .. - Client Interfaces
 .. - Building MongoDB
 
-.. Frequently Asked Questions
-.. --------------------------
-
-.. - Interface FAQ
-.. - Replication FAQ
-.. - Sharding FAQ
-
-Chapters
---------
-
-.. toctree::
-   :maxdepth: 1
-
-   getting-started
-   applications
-   replication
-   administration
-   reference
-
-.. toctree::
-   :hidden:
-
-   mongo
-   sharding
-
-
 Reference
 ---------
 
 .. toctree::
-   :hidden:
+   :maxdepth: 3
 
-   reference/limits
-   reference/error-codes
+   reference
 
-MongoDB Programs
-~~~~~~~~~~~~~~~~
-
-.. toctree::
-   :maxdepth: 1
-
-   reference/mongod
-   reference/mongos
-   reference/mongo
-   reference/mongodump
-   reference/mongorestore
-   reference/mongoimport
-   reference/mongoexport
-   reference/mongostat
-   reference/mongotop
-   reference/mongosniff
-   reference/mongofiles
-   reference/bsondump
-
-Statuses and Errors
-~~~~~~~~~~~~~~~~~~~
-
-.. toctree::
-   :maxdepth: 1
-
-   reference/server-status
-   reference/database-statistics
-   reference/collection-statistics
-   reference/replica-status
-   reference/replica-configuration
-   reference/replication-info
-   reference/error-codes
-
-General Reference
-~~~~~~~~~~~~~~~~~
-
-.. toctree::
-   :maxdepth: 1
-
-   reference/configuration-options
-   reference/operators
-   reference/commands
-   reference/javascript
-   reference/meta-query-operators
-   reference/glossary
-
-Indices
-~~~~~~~
+Indexes
+-------
 
 - :ref:`genindex`
 - :ref:`search`
@@ -184,55 +159,55 @@ Indices
 
 - Getting Started
 
-  - `Quickstart <http://mongodb.org/display/DOCS/Quickstart>`_
-  - `Introduction <http://mongodb.org/display/DOCS/Introduction>`_
-  - `Downloads <http://mongodb.org/display/DOCS/Downloads>`_
-  - `Features <http://mongodb.org/display/DOCS/Features>`_
-  - `SQL to MongoDB Mapping <http://mongodb.org/display/DOCS/SQL+to+MongoDB+Mapping+Chart>`_
+  - :wiki:`Quickstart`
+  - :wiki:`Introduction`
+  - :wiki:`Downloads`
+  - :wiki:`Features`
+  - :wiki:`SQL to MongoDB Mapping <SQL+to+MongoDB+Mapping+Chart>`
 
-- `Developer Documentation <http://mongodb.org/display/DOCS/Developer+Zone>`_
+- :wiki:`Developer Documentation <Developer+Zone>`
 
-  - `Connections <http://mongodb.org/display/DOCS/Connections>`_
-  - `Databases <http://mongodb.org/display/DOCS/Databases>`_
-  - `Collections <http://mongodb.org/display/DOCS/Collections>`_
-  - `Documents <http://mongodb.org/display/DOCS/Documents>`_
-  - `GridFS <http://mongodb.org/display/DOCS/GridFS>`_
-  - `Indexes <http://mongodb.org/display/DOCS/Indexes>`_
-  - `Querying <http://mongodb.org/display/DOCS/Querying>`_
-  - `Aggregation <http://mongodb.org/display/DOCS/Aggregation>`_
-  - `Optization <http://mongodb.org/display/DOCS/Optization>`_
-  - `Inserting <http://mongodb.org/display/DOCS/Inserting>`_
-  - `Updating <http://mongodb.org/display/DOCS/Updating>`_
-  - `Removing <http://mongodb.org/display/DOCS/Removing>`_
-  - `MapReduce <http://mongodb.org/display/DOCS/MapReduce>`_
+  - :wiki:`Connections`
+  - :wiki:`Databases`
+  - :wiki:`Collections`
+  - :wiki:`Documents`
+  - :wiki:`GridFS`
+  - :wiki:`Indexes`
+  - :wiki:`Querying`
+  - :wiki:`Aggregation`
+  - :wiki:`Optization`
+  - :wiki:`Inserting`
+  - :wiki:`Updating`
+  - :wiki:`Removing`
+  - :wiki:`MapReduce`
 
-- `Administrative Documentation <http://mongodb.org/display/DOCS/Admin+Zone>`_
+- :wiki:`Administrative Documentation <Admin+Zone>`
 
-  - `Components <http://mongodb.org/display/DOCS/Components>`_
-  - `Journaling <http://mongodb.org/display/DOCS/Journaling>`_
-  - `Production Notes <http://mongodb.org/display/DOCS/Production+Notes>`_
-  - `Replication <http://mongodb.org/display/DOCS/Replication>`_
-  - `Sharding <http://mongodb.org/display/DOCS/Sharding>`_
-  - `Monitoring and Diagnostics <http://mongodb.org/display/DOCS/Monitoring+and+Diagnostics>`_
-  - `Backups <http://mongodb.org/display/DOCS/Backups>`_
-  - `Durability and Repair <http://mongodb.org/display/DOCS/Durability+and+Repair>`_
-  - `Security and Authentication <http://mongodb.org/display/DOCS/Security+and+Authentication>`_
-  - `Starting and Stopping MongoDB <http://mongodb.org/display/DOCS/Starting+and+Stopping+Mongo>`_
-  - `GridFS Tools <http://mongodb.org/display/DOCS/GridFS+Tools>`_
-  - `DB Operations from the Shell <http://mongodb.org/display/DOCS/DBA+Operations+from+the+Shell>`_
-  - `Architecture and Components <http://mongodb.org/display/DOCS/Architecture+and+Components>`_
-  - `Windows <http://mongodb.org/display/DOCS/Windows>`_
-  - `Troubleshooting <http://mongodb.org/display/DOCS/Troubleshooting>`_
+  - :wiki:`Components`
+  - :wiki:`Journaling`
+  - :wiki:`Production Notes`
+  - :wiki:`Replication`
+  - :wiki:`Sharding`
+  - :wiki:`Monitoring and Diagnostics <Monitoring+and+Diagnostics>`
+  - :wiki:`Backups`
+  - :wiki:`Durability and Repair <Durability+and+Repair>`
+  - :wiki:`Security and Authentication <Security+and+Authentication>`
+  - :wiki:`Starting and Stopping MongoDB <Starting+and+Stopping+Mongo>`
+  - :wiki:`GridFS Tools <GridFS+Tools>`
+  - :wiki:`DB Operations from the Shell <DBA+Operations+from+the+Shell>`
+  - :wiki:`Architecture and Components <Architecture+and+Components>`
+  - :wiki:`Windows`
+  - :wiki:`Troubleshooting`
 
-- `Community <http://www.mongodb.org/display/DOCS/Community>`_ and Ecosystem
+- :wiki:`Community` and Ecosystem
 
   - `10gen <http://10gen.com>`_
-  - `Meetup Events <http://mongodb.org/display/DOCS/MeetupAPI+Events+Page>`_
-  - `MongoDB Masters <http://mongodb.org/display/DOCS/MongoDB+Masters>`_
-  - `Slides and Video <http://mongodb.org/display/DOCS/Slides+and+Video>`_
+  - :wiki:`Meetup Events <MeetupAPI+Events+Page>`
+  - :wiki:`MongoDB Masters <MongoDB+Masters>`
+  - :wiki:`Slides and Video <Slides+and+Video>`
   - `Cookbook <http://cookbook.mongodb.org/>`_
-  - `Hosting Center <http://mongodb.org/display/DOCS/Hosting+Center>`_
-  - `MongoDB Monitoring Service <http://mongodb.org/display/DOCS/MongoDB+Monitoring+Service>`_ (`docs <http://mms.10gen.com/help/>`_)
-  - `Administrative Interfaces <http://mongodb.org/display/DOCS/Admin+UIs>`_
-  - `International Documentation <http://mongodb.org/display/DOCS/International+Docs>`_
-  - `MongoDB Books <http://mongodb.org/display/DOCS/Books>`_
+  - :wiki:`Hosting Center <Hosting+Center>`
+  - :wiki:`MongoDB Monitoring Service <MongoDB+Monitoring+Service>` (`docs <http://mms.10gen.com/help/>`_)
+  - :wiki:`Administrative Interfaces <Admin+UIs>`
+  - :wiki:`International Documentation <International+Docs>`
+  - :wiki:`MongoDB Books <Books>`

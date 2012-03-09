@@ -8,9 +8,9 @@ Synopsis
 --------
 
 10gen provides compiled versions of :term:`MongoDB` for use on Linux
-that provides an simple option for users who cannot use packages. This
+that provides a simple option for users who cannot use packages. This
 tutorial outlines the basic installation of MongoDB using these
-packages and an initial usage guide.
+compiled versions and an initial usage guide.
 
 .. seealso:: The documentation of following related processes and
    concepts.
@@ -20,12 +20,13 @@ packages and an initial usage guide.
    - :doc:`/tutorial/install-mongodb-on-redhat-centos-or-fedora-linux`
    - :doc:`/tutorial/install-mongodb-on-debian-or-ubuntu-linux`
    - :doc:`/tutorial/install-mongodb-on-os-x`
-   - :doc:`/tutorial/install-mongodb-on-windows`
 
-   Documentation for getting started with MongoDB:
+   .. STUB - :doc:`/tutorial/install-mongodb-on-windows`
 
-   - :doc:`/getting-started`
-   - :doc:`/tutorial/insert-test-data-into-a-mongodb-database`
+   .. Documentation for getting started with MongoDB:
+
+   .. - :doc:`/getting-started`
+   .. STUB - :doc:`/tutorial/insert-test-data-into-a-mongodb-database`
 
 Download MongoDB
 ----------------
@@ -41,13 +42,20 @@ most cases you will want to download the 64-bit version of MongoDB.
 
 .. code-block:: sh
 
-   curl http://downloads.mongodb.org/linux/mongodb-linux-x86_64-latest.tgz > mongo.tgz
+   curl http://downloads.mongodb.org/linux/mongodb-linux-x86_64-x.y.z.tgz > mongo.tgz
 
 If you need to run the 32-bit version, use the following command.
 
 .. code-block:: sh
 
-   curl http://downloads.mongodb.org/linux/mongodb-linux-i686-latest.tgz > mongo.tgz
+   curl http://downloads.mongodb.org/linux/mongodb-linux-i686-x.y.z.tgz > mongo.tgz
+
+.. note::
+
+   Replace x.y.z with the current stable version (i.e. |version|).
+
+   You may also choose to install a development release, in which case
+   you will need to specify that version number above.
 
 Once you've downloaded the release, issue the following command to
 extract the files from the archive:
@@ -58,16 +66,16 @@ extract the files from the archive:
 
 .. optional::
 
-   You may use the following command to move the extracted folder into
+   You may use the following command to copy the extracted folder into
    a more generic location.
 
    .. code-block:: sh
 
-      mv -n mongodb-osx-20??-??-??/ mongodb
+      cp -R -n  mongodb-osx-20??-??-??/ mongodb
 
 You can find the :program:`mongod` binary, and the binaries all of the
 associated MongoDB utilities, in the "``bin/``" directory within the
-archive.
+extracted directory.
 
 Using MongoDB
 ~~~~~~~~~~~~~
@@ -81,6 +89,20 @@ following command:
 
    mkdir -p /data/db
 
+.. note::
+
+   Ensure that the system account that will run the :program:`mongod`
+   process has read and write permissions to this directory. If
+   :program:`mongod` runs under the ``mongo`` user account, issue the
+   following command to change the owner of this folder:
+
+   .. code-block:: sh
+
+      chown mongo /data/db
+
+   If you use an alternate location for your data directory, ensure
+   that this user can write to your chosen data path.
+
 You can specify, and create, an alternate path using the
 :option:`--dbpath <mongod>` option to :program:`mongod` and the above
 command.
@@ -91,6 +113,19 @@ wish to create control scripts, modify your path, and/or create
 symbolic links to the MongoDB programs in your ``/usr/local/bin`` or
 "``/usr/bin``" directory for easier use.
 
+For testing purposes, you can start a :program:`mongod` directly in
+the terminal without creating a control script:
+
+.. code-block:: sh
+
+   mongod --config /etc/mongod.conf
+
+.. note::
+
+   The above command assumes that the :program:`mongod` binary is
+   accessible via your system's search path, and that you have created
+   a default configuration file located at ``/etc/mongod.conf``.
+
 Among the tools included with this MongoDB distribution, is the
 :program:`mongo` shell. You can use this shell to connect to your
 MongoDB instance by issuing the following command at the system
@@ -99,6 +134,13 @@ prompt:
 .. code-block:: sh
 
    ./bin/mongo
+
+.. note::
+
+   The ``./bin/mongo`` command assumes that the :program:`mongo`
+   binary is in the "``bin/``" sub-directory of the current
+   directory. This is the directory into which you extracted the
+   "``.tgz``" file.
 
 This will connect to the database running on the localhost interface
 by default. At the :program:`mongo` prompt, issue the following two

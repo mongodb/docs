@@ -66,16 +66,18 @@ The following fields appear in the output of
 .. status:: tFirst
 
    Returns a time stamp for the first (i.e. earliest) operation in the
-   :term:`oplog`. Compare this value to :status:`now`.
+   :term:`oplog`. Compare this value to the last write operation
+   issued against the server.
 
 .. status:: tLast
 
-   Returns a time stamp for the first (i.e. earliest) operation in the
-   :term:`oplog`. Compare this value to :status:`now`.
+   Returns a time stamp for the last (i.e. latest) operation in the
+   :term:`oplog`. Compare this value to the last write operation
+   issued against the server.
 
 .. status:: now
 
    Returns a time stamp reflecting the current time. The shell process
    generates this value, and the datum may differ slightly from the
-   server time if you're connecting from a remote host as a reult. Equivalent to
-   :func:`Date()`.
+   server time if you're connecting from a remote host as a
+   reult. Equivalent to :func:`Date()`.

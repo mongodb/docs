@@ -153,6 +153,10 @@ General Formulations
   - standalone
   - workflow
 
+- Use "unavailable," "offline," or "unreachable" to refer to a
+  ``mongod`` instance that cannot be accessed rather than the
+  colloquialism "down."
+
 ReStructured Text and Typesetting
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

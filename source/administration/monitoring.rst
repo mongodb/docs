@@ -115,7 +115,7 @@ serverStatus
 ````````````
 
 Access :doc:`serverStatus data </reference/server-status/>` by way of
-the :dbcommand:`serverStatus` command. This :term:`JSON document`
+the :dbcommand:`serverStatus` command. This :term:`document`
 contains a general overview of the state of the database, including
 disk usage, memory use, connection, journaling, index accesses. The 
 command returns quickly and does not impact MongoDB performance.
@@ -364,9 +364,11 @@ This returns all operations that lasted longer than 100 milliseconds.
 Ensure that the value specified here (i.e. ``100``) is above the
 :setting:`slowms` threshold.
 
-.. seealso:: ":doc:`/applications/optimization`" addresses strategies
+.. seealso:: The ":wiki:`Optimization`" wiki page addresses strategies
    that may improve the performance of your database queries and
    operations.
+
+.. STUB ":doc:`/applications/optimization`"
 
 .. _replica-set-monitoring:
 
@@ -427,13 +429,15 @@ instances. Additionally, shard clusters require monitoring to ensure
 that data is effectively distributed among nodes and that sharding
 operations are functioning appropriately.
 
-.. seealso:: See the ":doc:`/core/sharding`" document for more
+.. seealso:: See the ":wiki:`Sharding`" wiki page for more
    information.
+
+.. STUB ":doc:`/core/sharding`"
 
 Config Servers
 ~~~~~~~~~~~~~~
 
-The :term:`configdb` provides a map of documents to shards. The
+The :term:`config database` provides a map of documents to shards. The
 cluster updates this map as :term:`chunks <chunk>` move between
 shards. When a configuration server becomes inaccessible, some
 sharding operations like moving chunks and starting :program:`mongos`

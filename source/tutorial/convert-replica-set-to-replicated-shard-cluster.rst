@@ -37,19 +37,14 @@ In brief, the process is as follows:
 Process
 -------
 
-Install MongoDB for a ":doc:`development or testing environment
-</tutorial/install-mongodb-for-testing-and-development>`".
+Install MongoDB according to a ":ref:`MongoDB Installation Tutorial
+<tutorials-installation>`". If have an existing MongoDB :term:`replica
+set` deployment, you may omit the next step.
 
-.. note::
+   .. .. note::
 
-   If you're converting an existing production set to a shard cluster,
-   install MongoDB for a :doc:`production environment
-   </tutorial/install-mongodb-in-production-environments>`.
-
-   If your existing deployment is already a replica set, you can omit
-   the next step. If your existing deployment is a standalone
-   instance, use :doc:`these instructions to convert a standalone
-   instance to a replica set </tutorial/convert-standalone-node-to-shard-cluster>`.
+   .. STUB If your existing deployment is a standalone
+   .. STUB instance, use :doc:`these instructions to convert a standalone instance to a replica set </tutorial/convert-standalone-node-to-shard-cluster>`.
 
 Deploy a Replica Set with Test Data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -164,7 +159,7 @@ store the cluster's metadata.
    Nevertheless, these instructions specify creating three config
    servers.
 
-1. Create the following data directories for three :term:`configsrv`
+1. Create the following data directories for three :term:`config database`
    instances:
 
    - ``/data/example/config1``

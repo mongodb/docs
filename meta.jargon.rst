@@ -2,16 +2,18 @@
 MongoDB Documentation Jargon Conventions
 ========================================
 
-MongoDB
--------
+MongoDB and Database Organization
+---------------------------------
 
 Refer to MongoDB as "MongoDB" rather than mongo or Mongo when referring
 to the entire database system, including possibly ``mongod`` and
 ``mongos``.
 
-Refer to ``mongod`` or ``mongos`` to indicate the database process, or
-server instance itself. Use "database process," rather than "node,"
-"instance," or "host," to refer to the running database process.
+Refer to ``mongod`` or ``mongos`` by name to indicate the database
+process, or server instance itself. These are "processes" or
+"instances." Reserve "database" for referring to a database (i.e. the
+structure that holds collections and refers to a group of files on
+disk.)
 
 Data Structures
 ---------------

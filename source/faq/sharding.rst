@@ -1,0 +1,259 @@
+==========================
+FAQ: Sharding with MongoDB
+==========================
+
+.. default-domain:: mongodb
+
+This document answers common questions about horizontal scaling
+using MongoDB's :term:`sharding`.
+
+.. contents:: Frequently Asked Questions:
+   :backlinks: none
+   :local:
+
+.. seealso:: The following FAQ documents may provide the answers to
+   questions that are not addressed here:
+
+   - :doc:`fundamentals`
+   - :doc:`developers`
+   - :doc:`replica-sets`
+   - :wiki:`Indexing FAQ <Indexing+Advice+and+FAQ>` wiki page
+
+Is sharding appropriate for a new deployment?
+---------------------------------------------
+
+Sometimes.
+
+If your data set fits on a single servers, you should begin
+with an unsharded deployment.
+
+Converting an unsharded database to a :term:`shard cluster` is easy
+and seamless, so there is *little advantage* in configuring sharding
+while your data set is small.
+
+Still, all production deployments should use :term:`replica sets
+<replication>` to provide high availability and disaster recovery.
+
+How does sharding work with replication?
+----------------------------------------
+
+To use replication with sharding, deploy each :term:`shard` as a
+:term:`replica set`.
+
+What happens to unsharded collections in sharded databases?
+-----------------------------------------------------------
+
+In the current implementation, all databases in a :term:`shard
+cluster` have a "primary :term:`shard`." All unsharded
+collection within that database will reside on the same shard.
+
+Future versions will distributed unsharded collections to
+different shards.
+
+How does MongoDB distribute data across shards?
+-----------------------------------------------
+
+Sharding must be specifically enabled on a collection. After enabling
+sharding on the collection, MongoDB will assign various ranges of
+collection data to the different shards in the cluster. The cluster
+automatically corrects imbalances between shards by migrating ranges
+of data from one shard to another.
+
+What happens if a client updates a document in a chunk during a migration?
+--------------------------------------------------------------------------
+
+The :program:`mongos` routes the operation to the "old" shard, where
+it will succeed immediately. Then the :term:`shard` :program:`mongod`
+instances will replicate the modification to the "new" shard before
+the :term:`shard cluster` updates that chunk's "ownership," which
+effectively finalizes the migration process.
+
+What happens to queries if a shard is inaccessible or slow?
+-----------------------------------------------------------
+
+If a :term:`shard` is inaccessible or unavailable, queries will return
+with an error.
+
+However, a client may set the ``partial`` query bit, which will then
+return results from all available shards, regardless of whether a
+given shard is unavailable.
+
+If a shard is responding slowly, :program:`mongos` will merely wait
+for the shard to return results.
+
+
+How does MongoDB distribute queries among shards?
+-------------------------------------------------
+
+The exact method for distributing queries among a :term:`shard
+cluster` depends on the nature of the query and the configuration of
+the shard cluster. Consider a sharded collection, using the
+:term:`shard key` "``user_id``", that has "``last_login``" and "``email``" attributes:
+
+- For a query that selects "``user_id``" and also sorts by "``user_id``":
+
+  :program:`mongos` can make a straightforward translation of this
+  operation into a series of queries against successive shards,
+  ordered by "``user_id``".  This is faster than querying all shards in
+  parallel because :program:`mongos` can determine which shards
+  contain the relevant chunks without waiting for all shards to return
+  results.
+
+- For queries that select on "``user_id``" and sort by "``last_login``":
+
+  :program:`mongos` executes queries in parallel on
+  the appropriate shards, and performs a merge-sort on the "``last_login``" key
+  of all documents returned from the shards.
+
+- For queries that select on "``last_login``:
+
+  These queries must run on all shards:
+
+  - When the query sorts by "``last_login``, :program:`mongos` serializes the query
+    over the shards in ordered by "``last_login``".
+
+  - If the query sorts by "``email``", :program:`mongos` must parallelize
+    the query over the shards and perform a merge-sort on the "``email``"
+    of the documents found.
+
+How does MongoDB sort queries in sharded environments?
+------------------------------------------------------
+
+If you call the :func:`sort()` method on a query in a sharded
+environment, the :program:`mongod` for each shard will sort its
+results, and the :program:`mongos` merges each shard's results before returning
+them to the client.
+
+How does MongoDB ensure a unique shard key when using a shard key *other* than ``_id``?
+----------------------------------------------------------------------------------------
+
+If you do not use ``id`` as the shard key, then your
+application/client layer must be responsible for keeping the ``_id``
+field unique. It is problematic for collections to have
+duplicate ``_id`` values.
+
+If you're not sharding your collection by the
+"``_id``" field, then you should be sure to store a globally unique
+identifier in that field. The default :wiki:`BSON ObjectID <Object+IDs>`
+works well in this case.
+
+I've enabled sharding and added a second shard, but all the data is still on one server. Why?
+---------------------------------------------------------------------------------------------
+
+First, ensure that you've declared a :term:`shard key` for your
+collection. Until you have configured the shard key, MongoDB will not
+create :term:`chunks <chunk>`, and :term:`sharding` will not occur.
+
+Next, keep in mind that the default chunk size is 64 MB,
+which means the collection must have at least 64 MB before a
+migration will occur.
+
+Additionally, the system which balances chunks
+among the servers attempts to avoid superfluous migrations. Depending
+on the number of shards, your shard key, and the amount of data, systems
+often require at least 10 chunks of data to trigger migrations.
+
+You can run :func:`db.printShardingStatus()` to see all the chunks present
+in your cluster.
+
+Is it safe to remove old files in the :dbcommand:`moveChunk` directory?
+-----------------------------------------------------------------------
+
+Yes. :program:`mongod` creates these files as backups during normal
+:term:`shard` balancing operations.
+
+Once these migrations are complete, you may delete these
+files.
+
+How many connections does each :program:`mongos` need?
+------------------------------------------------------
+
+Typically, :program:`mongos` uses one connection from each client, as
+well as one outgoing connection to each shard, or each member of the
+replica set that backs each shard. If you've enabled the ``slaveOk``
+bit, then the mongos may create two or more connections per replica set.
+
+Why does :term:`mongos` hold connections?
+-----------------------------------------
+
+:program:`mongos` uses a set of connection pools to communicate with
+each :term:`shard`.  These pools do not shrink when the number of
+clients decreases.
+
+This can lead to an unused :program:`mongos` with a large number open
+of connections. If the :program:`mongos` is no longer in use, you're
+safe restaring the process to close existing connections.
+
+Where does MongoDB report on connections used by :program:`mongos`?
+-------------------------------------------------------------------
+
+Connect to the :program:`mongos` with the :program:`mongo` shell, and
+run the following command:
+
+.. code-block:: sh
+
+   db._adminCommand("connPoolStats");
+
+What does ``writebacklisten`` in the log mean?
+----------------------------------------------
+
+The writeback listener is a process that opens a long poll to detect
+non-safe writes sent to a server and to send them back to the correct
+server if necessary.
+
+These messages are a key part of the sharding infrastructure and should
+not cause concern.
+
+How should administrators deal with failed migrations?
+------------------------------------------------------
+
+Failed migrations require no administrative intervention. Chunk moves are
+consistent and deterministic.
+
+If a migration fails to complete for some reason, the :term:`shard
+cluster` will retry. When the migration completes successfully, the
+data will reside only on the new shard.
+
+What is the process for moving, renaming, or changing the number of config servers?
+-----------------------------------------------------------------------------------
+
+.. see:: The wiki page that describes this process: ":wiki:`Changing Configuration Servers <Changing+Config+Servers>`."
+
+When do the :program:`mongos` servers detect config server changes?
+-------------------------------------------------------------------
+
+:program:`mongos` instances maintain a cache of the :term:`config database`
+that holds the metadata for the :term:`shard cluster`. This metadata
+includes the mapping of :term:`chunks <chunk>` to :term:`shards <shard>`.
+
+:program:`mongos` updates its cache lazily by issuing a request to a shard
+and discovering that its metadata is out of date.
+There is no way to control this behavior from the client,
+but you can run the :dbcommand:`flushRouterConfig` command against any
+:program:`mongos` to force force it to refresh its cache.
+
+Is it possible to quickly update :program:`mongos` servers after updating a replica set configuration?
+------------------------------------------------------------------------------------------------------
+
+The :program:`mongos` instances will detect these changes without
+intervention over time. However, if you want to force the
+:program:`mongos` to reload its configuration, run the
+:dbcommand:`flushRouterConfig` command against to each :program:`mongos` directly.
+
+What does the ``maxConns`` setting on :program:`mongos` do?
+-----------------------------------------------------------
+
+The :setting:`maxConns` option limits the number of connections
+accepted by :program:`mongos`.
+
+If your client driver or application creates a large number of
+connections but allows them to time out rather than closing them
+explicitly, then it might make sense to limit the number of
+connections at the :program:`mongos` layer.
+
+Set :setting:`maxConns` to a value slightly higher than the
+maximum number of connections that the client creates, or the maximum
+size of the connection pool. This setting prevents the
+:program:`mongos` from causing connection spikes on the individual
+:term:`shards <shard>`. Spikes like these may disrupt the operation
+and memory allocation of the :term:`shard cluster`.

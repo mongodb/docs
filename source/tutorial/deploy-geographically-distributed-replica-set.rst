@@ -56,10 +56,10 @@ following notes:
 Procedure
 ---------
 
-Although its possible to deploy multiple members on a single system,
-reduces the redundancy and capacity of the system, these kinds of
-deployments are typically for testing purposes and beyond the scope of
-this tutorial.
+Although you may to deploy more than one replica set member on a
+single system, this configuration reduces the redundancy and capacity
+of the replica set. Such deployments are typically for testing
+purposes and beyond the scope of this tutorial.
 
 Three Member Replica Set
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -103,8 +103,7 @@ Consider the following features of this deployment:
     (incoming and outgoing packets) on the default MongoDB port
     (e.g. ``27017``) from *within* your deployment.
 
-    .. seealso:: The ":doc:`/administration/security`" document for
-       more information regarding security and firewalls.
+    .. seealso:: The ":ref:`replica-set-security`" section for more information regarding security and firewalls.
 
 Use the following configuration for each MongoDB instance:
 
@@ -176,7 +175,7 @@ configuration </reference/replica-configuration>`:
    rs.config()
 
 Now, issue the following sequence of commands to add the remaining
-members to the replica set. The following example assumes that the
+members to the replica set. The following examrsple assumes that the
 current primary is ``mongodb0.example.net``.
 
 .. code-block:: javascript
@@ -282,8 +281,9 @@ Consider the following features of this deployment:
     (incoming and outgoing packets) on the default MongoDB port
     (e.g. ``27017``) from *within* your deployment.
 
-    .. seealso:: The ":doc:`/administration/security`" document for
-       more information regarding security and firewalls.
+    .. seealso:: The ":ref:`replica-set-security`" section for
+       more information regarding security practices with replica
+       sets.
 
 Use the following configuration for each MongoDB instance:
 

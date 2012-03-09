@@ -36,12 +36,15 @@ Adding Members
 From to time, you may need to add an additional member to an existing
 :term:`replica set`. The data directory for the new member can:
 
-- have no data. In this case, you must copy all data as part of the
-  replication process before the member can exit ":term:`recovering`"
-  status, and become a :term:`secondary` member.
+- have no data. In this case, MongoDB must copy all data as part of
+  the replication process before the member can exit
+  ":term:`recovering`" status, and become a :term:`secondary`
+  member. This process can be time intensive, but does not require
+  administrator intervention.
 
-- copy the data directory from an existing member to limit the amount
-  of time that the recovery process takes.
+- copy the data directory from an existing member. The new member
+  becomes a secondary, and will catch up to the current state of the
+  replica set after a short interval.
 
   If the difference in the amount of time between the most recent
   operation and the most recent operation to the database exceeds the
@@ -50,33 +53,40 @@ From to time, you may need to add an additional member to an existing
   copy the data to the new system and begin replication within the
   window allowed by the :term:`oplog`.
 
+  Use :func:`db.printReplicationInfo()` to check the current state of
+  replica set members with regards to the oplog.
+
 To add a member to an existing :term:`replica set`, deploy a new
 :program:`mongod` instance, specifying the name of the replica set
 (i.e. "setname" or ``replSet``) on the command line with the
 :option:`--replSet <mongod --replSet>` option or in the configuration
-with the :setting:`replSet`. Take note of the host name and
-port information for the new :program:`mongod` instance.
+file with the :setting:`replSet`. Take note of the host name and port
+information for the new :program:`mongod` instance.
 
 Then, log in to the current primary using the :program:`mongo`
 shell. Issue the :func:`db.isMaster()` command when connected to *any*
 member of the set to determine the current :term:`primary`. Issue the
-following command to add the new member to the set.
+following command to add the new member to the set:
 
 .. code-block:: javascript
 
    rs.add("mongo2.example.net:27017")
 
 Alternately, specify an entire configuration document with some or all
-of the fields in a :data:`members` document, for example:
+of the fields in a :data:`members <rs.conf.members>` document, for
+example:
 
 .. code-block:: javascript
 
-   rs.add({host: "mongo2.example.net:27017", priority: 0, hidden: true})
+   rs.add({_id: 1, host: "mongo2.example.net:27017", priority: 0, hidden: true})
 
 This configures a :term:`hidden member` that is accessible at
 ``mongo2.example.net:27018``. See ":data:`host <members[n].host>`,"
 ":data:`priority <members[n].priority>`," and ":data:`hidden
-<members[n].hidden>`" for more information about these settings.
+<members[n].hidden>`" for more information about these settings. When
+you specify a full configuration object with :func:`rs.add()`, you must
+declare the ``_id`` field, which is not automatically populated in
+this case.
 
 .. seealso:: :doc:`/tutorial/expand-replica-set`
 
@@ -123,6 +133,15 @@ in the :program:`mongo` shell:
    rs.remove("mongo2.example.net:27018")
    rs.add({host: "mongo2.example.net:27019", priority: 0, hidden: true})
 
+.. note::
+
+   Because the set member tracks its own replica set member ``_id``
+   which can cause conflicts when trying to re-add a previous member.
+
+   To resolve this issue, you can either restart the :program:`mongod`
+   process on the host that you're re-adding, or make sure that you
+   specify an "``_id``" in the :func:`rs.add()` document.
+
 Second, you may consider using the following procedure to use
 :func:`rs.reconfig()` to change the value of the
 :data:`members[n].host` field to reflect the new hostname or port
@@ -143,10 +162,10 @@ result of this operation.
 
 .. warning::
 
-   Replica set configurations can trigger the current :term:`primary`
-   to step down forcing an :term:`election`. This causes the current
-   shell session to produce an error even when the operation
-   succeeds. Clients connected to this replica set will also
+   Replica set configuration changes can trigger the current
+   :term:`primary` to step down forcing an :term:`election`. This
+   causes the current shell session to produce an error even when the
+   operation succeeds. Clients connected to this replica set will also
    disconnect.
 
 .. _replica-set-node-priority-configuration:
@@ -168,7 +187,7 @@ the :program:`mongo` shell:
 
 The first operation sets the local variable "``cfg``" to the contents
 of the current replica set configuration using the :func:`rs.conf()`,
-which is a :term:`JSON document`. The next three operations change the
+which is a :term:`document`. The next three operations change the
 :data:`members[n].priority` value in the ``cfg`` document for
 :data:`members[n]._id` of ``0``, ``1``, or ``2``. The final operation
 calls :func:`rs.reconfig()` with the argument of ``cfg`` to initialize
@@ -271,9 +290,9 @@ configurations and also describes the arbiter node type.
 Secondary-Only
 ~~~~~~~~~~~~~~
 
-Given a three node replica set, with member "``_id``" values of:
-``0``, ``1``, and ``2``, use the following sequence of operations in
-the :program:`mongo` shell to modify node priorities:
+Given a four-member replica set, with member "``_id``" values of:
+``0``, ``1``, ``2``, and ``3`` use the following sequence of
+operations in the :program:`mongo` shell to modify node priorities:
 
 .. code-block:: javascript
 
@@ -325,6 +344,13 @@ has a priority of ``0`` so that it cannot become master, while the
 other nodes in the set will not advertise the hidden node in the
 :dbcommand:`isMaster` or :func:`db.isMaster()` output.
 
+.. note::
+
+   You must send the :func:`rs.reconfig()` command to a set member
+   that *can* become :term:`primary`. In the above example, if issue
+   the :func:`rs.reconfig()` operation to the member with the ``_id``
+   of ``0``, the operation will fail.
+
 .. seealso:: ":ref:`Replica Set Read Preference <replica-set-read-preference>`."
    ":data:`members[n].hidden`," ":data:`members[n].priority`,"
    and ":ref:`Replica Set Reconfiguration <replica-set-reconfiguration-usage>`."
@@ -350,10 +376,11 @@ will delay replication by 3600 seconds, or 1 hour.
 
 .. warning::
 
-   The length of the secondary "``slaveDelay``" must fit within the
-   window of the :term:`oplog`. If the oplog is shorter than the
-   ``slaveDelay`` window the delayed member will not be able to
-   successfully replicate operations.
+   The length of the secondary ":data:`slaveDelay
+   <members[n].slaveDelay>`" must fit within the window of the
+   :term:`oplog`. If the oplog is shorter than the :data:`slaveDelay
+   <members[n].slaveDelay>` window the delayed member will not be able
+   to successfully replicate operations.
 
 .. seealso:: ":data:`members[n].slaveDelay`," ":ref:`Replica Set
    Reconfiguration <replica-set-reconfiguration-usage>`," ":ref:`Oplog
@@ -379,10 +406,10 @@ to the *current primary* node, issue the following command:
 
    rs.addArb("[hostname]:[port]")
 
-Replace the "``"[hostname]:[port]"``" string with the name of the
+Replace the "``[hostname]:[port]``" string with the name of the
 hostname and port of the arbiter that you wish to add to the set.
 
-.. seealso:: ":setting:`replSet`," ":program:`mongod --replSet`,
+.. seealso:: ":setting:`replSet`," ":option:`--replSet <mongod --replSet>`,
    and ":func:`rs.addArb()`."
 
 .. _replica-set-non-voting-configuration:
@@ -420,6 +447,58 @@ the event of a network partition.
 
 .. seealso:: ":data:`members[n].votes`" and ":ref:`Replica Set
    Reconfiguration <replica-set-reconfiguration-usage>`."
+
+.. _replica-set-security:
+
+Security
+--------
+
+In most cases, the most effective ways to control access and secure
+the connection between members of a :term:`replica set` depend on
+network level access control. Use your environment's firewall and
+network routing to ensure that *only* traffic from clients and other
+replica set members can reach your :program:`mongod` instances. Use
+virtual private networks (VPNs) if needed to ensure secure connections
+over wide area networks (WANs.)
+
+Additionally, MongoDB provides an authentication mechanism for
+:program:`mongod` and :program:`mongos` instances connecting to
+replica sets. These instances enable authentication but specify a
+shared key file that serves as a shared password.
+
+.. versionadded:: 1.8 for replica sets (1.9.1 for sharded replica sets) added support for authentication.
+
+To enable authentication using a key file for the :term:`replica set`,
+add the following option to your configuration file.
+
+.. code-block:: cfg
+
+   keyfile = /srv/mongodb/keyfile
+
+.. note::
+
+   You may chose to set these run-time configuration options using the
+   :option:`--keyfile <mongod --keyfile>` (or :option:`mongos --keyfile`)
+   options on the command line.
+
+Setting :setting:`keyFile` enables authentication and specifies a key
+file for the replica set member use to when authenticating to each
+other. The content of the key file is arbitrary, but must be the same
+on all members of the :term:`replica set` and :program:`mongos`
+instances that connect to the set.
+
+The keyfile must be less one kilobyte in size and may only contain
+characters in the base64 set and file must not have group or "world"
+permissions on UNIX systems. Use the following command to use the
+OpenSSL package to generate "random" content for use in a key file:
+
+.. code-block:: bash
+
+   openssl rand -base64 753
+
+.. note::
+
+   Key file permissions are not checked on Windows systems.
 
 Troubleshooting
 ---------------
@@ -516,7 +595,7 @@ were never replicated to the set so that the data set is in a
 consistent state. The :program:`mongod` program writes rolled back
 data to a :term:`BSON`.
 
-You can prevent Rollbacks prevented by ensuring safe writes by using
+You can prevent rollbacks prevented by ensuring safe writes by using
 the appropriate :term:`write concern`.
 
 .. seealso:: ":ref:`Replica Set Elections <replica-set-elections>`"

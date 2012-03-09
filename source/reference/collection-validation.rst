@@ -8,9 +8,8 @@ Synopsis
 --------
 
 The collection validation command checks all of the structures within
-a name space for correctness and returns a :term:`JSON Document`
-containing information regarding the on-disk representation of the
-collection
+a name space for correctness and returns a :term:`document` containing
+information regarding the on-disk representation of the collection
 
 .. warning::
 

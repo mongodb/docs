@@ -164,7 +164,7 @@ Options
 .. option:: --journal
 
    Allows :program:`mongofiles` operations to use the durability
-   :term:`journal <journaling>` when running with :option:`--dbpath`
+   :term:`journal` when running with :option:`--dbpath`
    to ensure that the database maintains a recoverable state. This
    forces :program:`mongofiles` to record all data on disk regularly.
 

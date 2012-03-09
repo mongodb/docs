@@ -21,8 +21,10 @@ instance.
 
 .. seealso::
 
-   See the ":doc:`/core/sharding`" for more information regarding
+   See the ":wiki:`Sharding`" wiki page for more information regarding
    MongoDB's sharding functionality.
+
+.. STUB ":doc:`/core/sharding`"
 
 Options
 -------
@@ -97,16 +99,20 @@ Options
 
 .. option:: --objcheck
 
-   Forces the :program:`mongos` to validate all requests from clients upon
-   receipt.
+   Forces the :program:`mongos` to validate all requests from clients
+   upon receipt to ensure that invalid objects are never inserted into
+   the database. This option can produce a significant performance
+   impact, and is not enabled by default.
 
 .. option:: --logpath <path>
 
    Specify a path for the log file that will hold all diagnostic
    logging information.
 
-   Unless specified, :program:`mongos` will output all log information to the
-   standard output.
+   Unless specified, :program:`mongos` will output all log information
+   to the standard output. Additionally, unless you also specify
+   :option:`--logapend`, the logfile will be overwritten when the
+   process restarts.
 
 .. option:: --logapend
 
@@ -126,10 +132,10 @@ Options
 
    Specify the path to a key file to store authentication
    information. This option is only useful for the connection between
-   replica set members. See the ":doc:`/core/replication`,"
-   ":doc:`/administration/replica-sets`," and
-   ":doc:`/administration/security`" documentation for more
-   information.
+   replica set members.
+
+   .. seealso:: ":ref:`Replica Set Security <replica-set-security>`"
+      and ":doc:`/administration/replica-sets`."
 
 .. option:: --nounixsocket
 
@@ -151,7 +157,7 @@ Options
 .. option:: --configdb <config1>,<config2><:port>,<config3>
 
    Set this option to specify a configuration database
-   (i.e. :term:`configdb`) for the :term:`shard cluster`. You may
+   (i.e. :term:`config database`) for the :term:`shard cluster`. You must
    specify either 1 configuration server or 3 configuration servers,
    in a comma separated list.
 
@@ -171,12 +177,12 @@ Options
 .. option:: --upgrade
 
    This option updates the meta data format used by the
-   :term:`configdb`.
+   :term:`config database`.
 
 .. option:: --chunkSize <value>
 
    The value of the :option:`--chunkSize` determines the size of each
-   :term:`chunk` of data distributed around the :term:`shard
+   :term:`chunk` of data distributed around thee :term:`shard
    cluster`. The default value is 64 megabytes, which is
    the ideal size for chunks in most deployments: larger chunk size
    can lead to uneven data distribution, smaller chunk size often

@@ -108,7 +108,7 @@ Options
 .. option:: --journal
 
    Allows :program:`mongodump` operations to use the durability
-   :term:`journal <journaling>` to ensure that the export is in a
+   :term:`journal` to ensure that the export is in a
    consistent state. This option is only relevant when specifying the
    :option:`--dbpath` option.
 
@@ -136,8 +136,8 @@ Options
 
 .. option:: --query <json>, -q <json>
 
-   Provides a :term:`JSON` query to limit (optionally) the documents
-   included in the output of :program:`mongodump`.
+   Provides a query to limit (optionally) the documents included in
+   the output of :program:`mongodump`.
 
 .. option:: --oplog
 
@@ -190,7 +190,7 @@ functionality.
 The following command, creates a dump file that contains only the
 collection named "``collection``" in the database named "``test``". In
 this case the database is running on the local interface on port
-27017:
+``27017``:
 
 .. code-block:: sh
 

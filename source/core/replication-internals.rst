@@ -27,16 +27,20 @@ will reflect writes within one second of the primary. However, various
 exceptional situations may cause secondaries lag behind further. See
 :term:`replication lag` for details.
 
-All nodes send heartbeats to all other nodes, and will import
-operations into its oplog from the node with the lowest "ping" time.
+All nodes send heartbeats to all other nodes, and can import
+operations to into its oplog from any other node in the
+cluster.
+
+.. In 2.0, replicas would import entries from the member lowest
+.. "ping," This wasn't true in 1.8 and will likely change in 2.2.
 
 .. _replica-set-implementation:
 
 Implementation
 --------------
 
-MongoDB uses :term:`single master replication` to ensure that the
-database remains consistent. However, clients possible to modify the
+MongoDB uses :term:`single-master replication` to ensure that the
+database remains consistent. However, clients may modify the
 :ref:`read preferences <replica-set-read-preference>` on a
 per-connection basis in order to distribute read operations to the
 secondary members of a replica set. Read-heavy deployments may achieve
@@ -95,7 +99,7 @@ Administrators of replica sets also have unique :ref:`monitoring
 concerns. The :ref:`replica set functions <replica-set-functions>` in
 the :program:`mongo` shell, provide the tools necessary for replica set
 administration. In particular use the :func:`rs.conf()` to return a
-:term:`JSON document` that holds the :doc:`replica set configuration
+:term:`document` that holds the :doc:`replica set configuration
 </reference/replica-configuration>`, and :func:`rs.reconfig()` to
 modify the configuration of an existing replica set.
 
@@ -111,7 +115,7 @@ member should become primary.
 Elections are the process that the members of a replica set use to
 select the primary node in a cluster. Elections follow two events:
 primary node that "steps down" or a :term:`secondary` member that
-looses contact with a :term:`primary` node. All members have one vote
+loses contact with a :term:`primary` node. All members have one vote
 in an election, and every :program:`mongod` can veto an election. A
 single member's veto will invalidate the election.
 

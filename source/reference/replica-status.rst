@@ -16,7 +16,7 @@ The value specified (e.g "``1``" above,) does not impact the output of
 the command. Data provided by this command derives from data included
 in heartbeats sent to the current instance by other members of the
 replica set: because of the frequency of heartbeats, these data can be
-at most 2 seconds out of date.
+several seconds out of date.
 
 .. note::
 
@@ -36,7 +36,8 @@ Statuses
 .. status:: rs.status.set
 
    The ``set`` value is the name of the replica set, configured in the
-   :setting:`replSet` setting.
+   :setting:`replSet` setting. This is the same value as :data:`_id
+   <rs.conf._id>` in :func:`rs.conf()`.
 
 .. status:: rs.status.date
 
@@ -49,7 +50,7 @@ Statuses
 .. status:: rs.status.myState
 
    The value of the ``myState`` value reflect state of the current
-   replica set member. An integer between ``0`` and ``9`` represents
+   replica set member. An integer between ``0`` and ``10`` represents
    the state of the member. These integers map to states, as described
    in the following table:
 
@@ -75,6 +76,13 @@ Statuses
    every member in the replica set. See the ":ref:`Member Statuses
    <repl-set-member-statuses>`" for an overview of the values included
    in these documents.
+
+.. status:: rs.status.syncedTo
+
+   The ``syncedTo`` field is only present on the output of
+   :func:`rs.status()` on :term:`secondary` and recovering members,
+   and holds the hostname of the member from which this instance is
+   syncing.
 
 .. _repl-set-member-statuses:
 
@@ -118,14 +126,14 @@ Member Statuses
 
    .. status:: members.optime.t
 
-      A 64-bit timestamp of the last operation applied to this member
+      A 32-bit timestamp of the last operation applied to this member
       of the replica set from the :term:`oplog`.
 
    .. status:: members.optime.i
 
       An incremented field, which reflects the number of operations in
       since the last time stamp. This value only increases if there
-      are more than one operation per second.
+      is more than one operation per second.
 
 .. status:: members[n].optimeDate
 

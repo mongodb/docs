@@ -16,7 +16,7 @@ the secondary nodes replicate from the primary asynchronously.
 Database replication with MongoDB, as with other systems, adds redundancy, helps to
 ensure high availability, simplifies certain administrative tasks
 such as backups, and may increase read capacity. Most production
-deployments are or should use replication.
+deployments are using or should use replication.
 
 If you're familiar with other database systems, you may think about
 replica sets as a more sophisticated form of traditional master-slave replication. [#master-slave]_
@@ -192,9 +192,11 @@ remain a secondary.
 
 .. note::
 
-   When an election occurs, the :program:`mongod` instances will close
-   all client connections. This ensures that the clients maintain an accurate
-   view of the :term:`replica set` and helps prevent :term:`rollbacks <rollback>`.
+   When the current :term:`primary` steps down and triggers an
+   election, the :program:`mongod` instances will close all client
+   connections. This ensures that the clients maintain an accurate
+   view of the :term:`replica set` and helps prevent :term:`rollbacks
+   <rollback>`.
 
 .. seealso:: ":ref:`Replica Set Election Internals <replica-set-election-internals>`"
 
@@ -203,11 +205,11 @@ remain a secondary.
 Node Priority
 ~~~~~~~~~~~~~
 
-In a replica set, every node has a "priority," that helps
-determine eligibility for :ref:`election <replica-set-elections>` to
-"primary." By default, all nodes have a priority of ``1``, unless you modify the
-:data:`members[n].priority` value. All nodes have a single
-vote in :ref:`elections <replica-set-elections>`.
+In a replica set, every node has a "priority," that helps determine
+eligibility for :ref:`election <replica-set-elections>` to
+:term:`primary`. By default, all nodes have a priority of ``1``,
+unless you modify the :data:`members[n].priority` value. All nodes
+have a single vote in :ref:`elections <replica-set-elections>`.
 
 .. warning::
 
@@ -252,13 +254,13 @@ Rollbacks
 ~~~~~~~~~
 
 In some :term:`failover` situations :term:`primary` nodes will have
-accepted write operations that have replicated to the
+accepted write operations that have *not* replicated to the
 :term:`secondaries <secondary>` after a failover occurs. This case is
 rare and typically occurs as a result of a network partition with
 replication lag. When this node (the former primary) rejoins the
 :term:`replica set` and attempts to continue replication as a
-secondary those operations the former primary must revert these
-operations or "rolled back" these operations to maintain database
+secondary the former primary must revert these
+operations or "roll back" these operations to maintain database
 consistency across the replica set.
 
 MongoDB writes the rollback data to a :term:`BSON` file in the
@@ -266,10 +268,10 @@ database's :setting:`dbpath` directory. Use :doc:`bsondump
 </reference/bsondump>` to read the contents of these rollback files
 and then manually apply the changes to the new primary. There is no
 way for MongoDB to appropriately and fairly handle rollback situations
-without manual intervention. Since rollback situations require an
-administrator's direct intervention, users should strive to avoid
-rollbacks as much as possible. Until an administrator applies this
-rollback data, the former primary remains in a "rollback" status.
+without manual intervention. Even after the node completes the
+rollback and returns to secondary status, administrators will need to
+apply or decide to ignore the rollback data. MongoDB users should strive to avoid
+rollbacks as much as possible.
 
 The best strategy for avoiding all rollbacks is to ensure :ref:`write
 propagation <replica-set-write-concern>` to all or some of the
@@ -281,13 +283,6 @@ that might create rollbacks.
    A :program:`mongod` instance will not rollback more than 300
    megabytes of data. If your system needs to rollback more than 300
    MB, you will need to manually intervene to recover this data.
-
-.. note::
-
-   After a rollback occurs, the former primary will remain in a
-   "rollback" mode until the administrator deals with the rolled back
-   data and restarts the :program:`mongod` instance. Only then can the
-   node becomes a normal :term:`secondary` terms.
 
 Application Concerns
 ~~~~~~~~~~~~~~~~~~~~
@@ -435,12 +430,15 @@ the existing members.
 
 .. note::
 
-   :term:`Journaling`, provides single-instance
+   :term:`Journaling <journal>`, provides single-instance
    write durability. The journaling greatly improves the reliability
    and durability of a database. Unless MongoDB runs with journaling, when a
-   MongoDB instance terminates ungracefully, the database can loose up to 60 seconds of data,
-   and the database may remain in an inconsistent state and
-   unrecoverable state.
+   MongoDB instance terminates ungracefully, the database can end in a
+   corrupt and unrecoverable state.
+
+   You should assume that a database, running without journaling, that
+   suffers a crash or unclean shutdown is in corrupt or inconsistent
+   state.
 
    **Use journaling**, however, do not forego proper replication
    because of journaling.

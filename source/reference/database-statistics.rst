@@ -61,7 +61,7 @@ Fields
 
 .. stats:: objects
 
-   Contains a count of the number of objects (i.e. JSON documents) in
+   Contains a count of the number of objects (i.e. :term:`documents <document>`) in
    the database across all collections.
 
 .. stats:: avgObjSize

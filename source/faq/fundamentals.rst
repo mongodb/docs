@@ -1,0 +1,168 @@
+=========================
+FAQ: MongoDB Fundamentals
+=========================
+
+.. default-domain:: mongodb
+
+This document answers basic questions for anyone evaluating MongoDB
+for a new project or system.
+
+.. contents:: Frequently Asked Questions:
+   :backlinks: none
+   :local:
+
+.. seealso:: The following FAQ documents may provide the answers to
+   questions that are not addressed here.
+
+   - :doc:`developers`
+   - :doc:`replica-sets`
+   - :doc:`sharding`
+   - :wiki:`Indexing FAQ <Indexing+Advice+and+FAQ>` wiki page
+
+What kind of Database is MongoDB?
+---------------------------------
+
+MongoDB is :term:`document`-oriented DBMS. Think of MySQL but with
+:term:`JSON`-like objects comprising the data model, rather than RDBMS
+tables. Significantly, MongoDB supports neither joins nor transactions.
+However, it features secondary indexes, an expressive query language,
+atomic writes on a per-document level, and fully-consistent reads.
+
+Operationally, MongoDB features master-slave replication with automated
+failover and built-in horizontal scaling via automated range-based
+partitioning.
+
+.. note::
+
+   MongoDB uses :term:`BSON`, a binary object format similar
+   to, but more expressive than, :term:`JSON`.
+
+What languages can I use to work with the MongoDB?
+--------------------------------------------------
+
+MongoDB :term:`client drivers <driver>` exist for
+all of the most popular programming languages, and many
+of the less popular ones. See the `latest list of
+drivers <http://www.mongodb.org/display/DOCS/Drivers>`_
+for details.
+
+.. seealso:: ":doc:`/applications/drivers`."
+
+Does MongoDB support SQL?
+-------------------------
+
+No.
+
+However, MongoDB does support a rich, ad-hoc query language
+of it's own.
+
+.. seealso:: The query ":doc:`/reference/operators`" document and the
+   :wiki:`Query Overview <Advanced+Queries>` and the :wiki:`Tour
+   <MongoDB+-+A+Developer's+Tour>` pages from the wiki.
+
+What are typical uses for MongoDB?
+----------------------------------
+
+MongoDB has a general-purpose design, making it appropriate for a large
+number of use cases. Examples include content management
+systems, mobile app, gaming, e-commerce, analytics,
+archiving, and logging.
+
+Do not use MongoDB for systems that require SQL,
+joins, and multi-object transactions.
+
+Does MongoDB support transactions?
+----------------------------------
+
+MongoDB does not provide ACID transactions.
+
+However, MongoDB does provide some basic transactional capabilities. Atomic
+operations are possible within the scope of a single document: that
+is, we can debit "``a``" and credit "``b``" as a transaction if they
+are fields within the same document. Because documents can be rich,
+some documents contain thousands of fields, with support for testing
+fields in sub-documents.
+
+Additionally, you can make writes in MongoDB durable (the 'D' in
+ACID). To get durable writes, you must enable journaling,
+which is on by default in 64-bit builds. You must also issue
+writes with a write concern of ``{j: true}`` to ensure that the
+writes block until the journal has synced to disk.
+
+Users have built successful e-commerce systems using MongoDB,
+but application requiring multi-object commit with rollback
+generally aren't feasible.
+
+Does MongoDB require a lot of RAM?
+----------------------------------
+
+Not necessarily. It's certainly possible to run MongoDB
+on a machine with a small amount of free RAM.
+
+MongoDB automatically uses all free memory on the machine as its
+cache. System resource monitors show that MongoDB uses a lot of
+memory, but it's usage is dynamic. If another process suddenly needs
+half the server's RAM, MongoDB will yield cached memory to the other process.
+
+Technically, the operating system's virtual memory subsystem manages
+MongoDB's memory. This means that MongoDB will use as much free memory
+as it can, swapping to disk as needed. Deployments with enough memory
+to fit the application's working data set in RAM will achieve the best
+performance.
+
+How do I configure the cache size?
+----------------------------------
+
+MongoDB has no configurable cache. MongoDB uses all *free* memory on
+the system automatically by way of memory-mapped files. Operating
+systems use the same approach with their file system caches.
+
+Are writes written to disk immediately, or lazily?
+--------------------------------------------------
+
+Writes are physically written to the journal within 100
+milliseconds. At that point, the write is "durable" in the sense that
+after a pull-plug-from-wall event, the data will still be recoverable after
+a hard restart.
+
+While the journal commit is nearly instant, MongoDB writes to the data
+files lazily. MongoDB may wait to write data to the data files for as
+much as one minute. This does not affect durability, as the journal
+has enough information to ensure crash recovery.
+
+Does MongoDB handle caching?
+----------------------------
+
+Yes. MongoDB keeps all of the most recently used data in RAM. If you
+have created indexes for your queries and your working data set fits
+in RAM, MongoDB serves all queries will from memory.
+
+MongoDB does not implement a query cache: MongoDB serves all queries
+directly from the indexes and/or data files.
+
+What language is MongoDB written in?
+------------------------------------
+
+MongoDB is implemented in C++. :term:`Drivers <driver>` and client libraries
+are typically written in their respective languages, although some
+drivers use C extensions for better performance.
+
+What are the 32-bit limitations?
+--------------------------------
+
+MongoDB uses memory-mapped files.  When running a 32-bit build of
+MongoDB, the total storage size for the server, including data and
+indexes, is 2.5 gigabytes. For this reason, do not deploy MongoDB to
+production on 32-bit machines.
+
+If you're running a 64-bit build of MongoDB, there's virtually no
+limit to storage size. For production
+deployments, 64-bit builts and operating systems are strongly recommended.
+
+.. seealso:: "`Blog Post: 32-bit Limitations <http://blog.mongodb.org/post/137788967/32-bit-limitations>`_
+
+.. note::
+
+   32-bit builds disable :term:`journaling <journal>` by default
+   because journaling further limits the maximum amount of data that
+   the database can store.

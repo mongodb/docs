@@ -16,8 +16,8 @@ and settings, this document primarily uses the configuration file
 interface. If you run MongoDB using a control script or packaged for
 your operating system, you likely already have a configuration file
 located at ``/etc/mogondb.conf``. Confirm this by checking the content
-of the ``/etc/init.d/mongodb`` or ``/etc/rc.d/mongodb`` script to
-insure that the :term:`control scripts <control script>` starts the
+of the ``/etc/init.d/mongod`` or ``/etc/rc.d/mongod`` script to
+insure that the :term:`control scripts <control script>` start the
 :program:`mongod` with the appropriate configuration file (see below.)
 
 To start MongoDB instance using this configuration issue a command in
@@ -96,10 +96,10 @@ following explanation:
   :program:`mongod` does not overwrite an existing log file
   following the server start operation.
 
-- :setting:`journal` is ``true``, which enables
-  :doc:`journaling </core/journaling>` which ensures single instance
-  write-durability. 64-bit builds of :program:`mongod` enable
-  :term:`journaling` by default. Thus, this setting may be redundant.
+- :setting:`journal` is ``true``, which enables :term:`journaling <journal>`.
+   Journaling ensures single instance write-durability. 64-bit builds
+   of :program:`mongod` enable journaling by default. Thus, this
+   setting may be redundant.
 
 Given the default configuration, some of these values may be
 redundant. However, in many situations explicitly stating the
@@ -143,7 +143,9 @@ Consider the following explanation for these configuration decisions:
   connecting over the ``localhost`` interface for the first time to
   create user credentials.
 
-.. seealso:: ":doc:`/administration/security`"
+.. seealso:: The ":wiki:`Security and Authentication <Security+and+Authentication>`" wiki page.
+
+.. STUB ":doc:`/administration/security`"
 
 Replication and Sharding Configuration
 --------------------------------------
@@ -151,28 +153,16 @@ Replication and Sharding Configuration
 Replication Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:term:`Replica set` configuration is very straightforward, and only
+:term:`Replica set` configuration is straightforward, and only
 requires that the :setting:`replSet` have a value that is consistent
-among all members of the staff. Consider the following:
+among all members of the set. Consider the following:
 
 .. code-block:: cfg
 
    replSet = set0
 
 Use descriptive names for sets. Once configured use the
-:program:`mongo` shell to add hosts to the replica set. For a more
-typical replica set configuration consider the following:
-
-.. code-block:: cfg
-
-   replSet = set1/peer0.example.net,peer1.example.net:27018,peer3.example.net
-
-Here, the :setting:`replSet` contains a set name (i.e. "``set1``") followed
-by a slash (i.e. "``/``") and a comma separated list of hostnames of
-set members, with optional port names. This list of hosts serves as a
-"seed," from which this host will derive the replica set
-configuration. You may add additional members at anytime to the
-configuration using :func:`rs.reconfig()` function.
+:program:`mongo` shell to add hosts to the replica set.
 
 .. seealso:: ":ref:`Replica set reconfiguration
    <replica-set-reconfiguration-usage>`.
@@ -182,36 +172,42 @@ following option:
 
 .. code-block:: cfg
 
-   auth = true
    keyfile = /srv/mongodb/keyfile
 
 .. versionadded:: 1.8 for replica sets, and 1.9.1 for sharded replica sets.
 
-Setting :setting:`auth` to ``true`` enables authentication,
-while :setting:`keyFile` specifies a key file for the replica
-set member use to when authenticating to each other. The content is
-arbitrary and must be under one kilobyte and contain characters in the
-base64 set, and the file must not have group or "world" permissions on
-UNIX systems. Use the following command to use the OpenSSL package to
-generate a "random" key file:
+Setting :setting:`keyFile` enables authentication and specifies a key
+file for the replica set member use to when authenticating to each
+other. The content of the key file is arbitrary, but must be the same
+on all members of the :term:`replica set` and :program:`mongos`
+instances that connect to the set. The keyfile must be less one
+kilobyte in size and may only contain characters in the base64 set and
+file must not have group or "world" permissions on UNIX systems.
 
-.. code-block:: bash
+.. seealso:: The ":ref:`Replica set Reconfiguration <replica-set-reconfiguration-usage>`
+   section for information regarding the process for changing replica
+   set during operation.
 
-   openssl rand -base64 753
+   Additionally, consider the ":ref:`Replica Set Security <replica-set-security>`"
+   section for information on configuring authentication with replica
+   sets.
 
-.. note:: Keyfile permissions are not checked on Windows systems.
-
-.. seealso:: The ":doc:`/replication`" index and the
+   Finally, see the ":doc:`/replication`" index and the
    ":doc:`/core/replication`" document for more information on
-   replication and replica set configuration.
+   replication in MongoDB and replica set configuration in general.
 
 Sharding Configuration
 ~~~~~~~~~~~~~~~~~~~~~~
 
 Sharding requires a number of :program:`mongod` instances with
-different configurations. The config servers stores the cluster's
-metadata, while the cluster distributes data among one or more
-shard servers.
+different configurations. The config servers store the cluster's
+metadata, while the cluster distributes data among one or more shard
+servers.
+
+.. note::
+
+   :term:`Config servers <config database>` are not :term:`replica
+   sets <replica set>`.
 
 To set up one or three "config server" instances as :ref:`normal
 <base-config>` :program:`mongod` instances, and then add the following
@@ -256,8 +252,10 @@ among all :program:`mongos` instances.
    data, for which smaller chunk sizes are best, and minimizing chunk
    migration, for which larger chunk sizes are optimal.
 
-.. seealso:: ":doc:`/core/sharding`" for more information on sharding
-   and shard cluster configuration.
+.. seealso:: The ":wiki:`Sharding`" wiki page for more information on
+   sharding and shard cluster configuration.
+
+   .. STUB ":doc:`/core/sharding`"
 
 Running Multiple Database Instances on the Same System
 ------------------------------------------------------
@@ -316,8 +314,10 @@ needed:
 - :setting:`slowms` configures the threshold for the :term:`database
   profiler` to consider a query "slow." The default value is 100
   milliseconds. Set a lower value if the database profiler does not
-  return useful results. See the ":doc:`/applications/optimization`"
+  return useful results. See the ":wiki:`Optimization`" wiki page
   for more information on optimizing operations in MongoDB.
+
+  .. STUB ":doc:`/applications/optimization`"
 
 - :setting:`profile` sets the :term:`database profiler`
   level. The profiler is not active by default because of the possible
@@ -351,8 +351,8 @@ needed:
   database with untrusted clients. This option may affect database
   performance.
 
-- :setting:`cpu` forces :program:`mongod` to periodically report CPU
-   utilization I/O wait in the logfile. Use this in combination with or
-   addition to tools such as :program:`iostat`, :program:`vmstat`, or
-   :program:`top` to provide insight into the state of the system
-   in context of the log.
+- :setting:`cpu` forces :program:`mongod` to report the percentage of
+   the last interval spent in :term:`write-lock`. The interval is
+   typically 4 seconds, and each output line in the log includes both
+   the actual interval since the last report and the percentage of
+   time spent in write lock.
