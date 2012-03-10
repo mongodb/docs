@@ -193,15 +193,30 @@ The MMS agent distribution includes a ``WINDOWS.txt`` file with
 instructions for using the agent on Windows platforms. Consider the
 following special requirements:
 
-- Install Python 2.7.
+- If you do not have python 2.x installed on your machine,
+  install the latest version of Python 2.7.x. The 64 bit 
+  version is preferred. e.g. http://www.python.org/ftp/python/2.7.2/python-2.7.2.amd64.msi
 
 - Use the Windows installer to install `PyMongo from PyPi
-  <http://pypi.python.org/pypi/pymongo/2.0.1>`_. Ensure that you
-  install the correct 2.7 PyMongo build for your Python installation
-  (i.e. 32 or 64-bit.)
+  <http://pypi.python.org/pypi/pymongo/>`_. Ensure that you
+  install the correct PyMongo build for your Python installation.
+  Ensure you install for the right version of python (2.6, 2.7 etc.)
+  and also the right binaries (i.e. 32 or 64-bit.)
 
-- Enable PowerShell Script Execution.
-
+- Windows powershell v2.0 is used to install MMS as a Windows Service. If you
+  are running on Windows 2003 or you have an older version of powershell you need
+  to install powershell version 2.0. To check the version of
+  powershell installed, start a powershell command window and issue
+  the following command: ::
+  
+       Get-Host
+	   
+	   
+  If you need to install powershell version 2.0 it is part of `Windows
+  Management Framework<http://support.microsoft.com/kb/968929>`_.
+  The version of powershell is printed out. Once you ensure you have
+  powershell version 2.0 installed, you need to enable script
+  execution.
   Right click the PowerShell icon in the "Start Menu," and run
   PowerShell as administrator. Issue the following command: ::
 
