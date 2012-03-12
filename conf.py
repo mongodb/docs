@@ -11,12 +11,9 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
+import sys, os, subprocess
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), ".ext")))
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.insert(0, os.path.abspath('.'))
+current_git_branch = subprocess.check_output('git symbolic-ref HEAD 2>/dev/null | cut -d "/" -f "3"', shell=True).decode().split('\n')[0]
 
 # -- General configuration ----------------------------------------------------
 
@@ -135,7 +132,6 @@ html_last_updated_fmt = '%b %d, %Y'
 # typographically correct entities.
 
 html_use_smartypants = True
-
 html_domain_indices = True
 html_use_index = True
 html_split_index = False
@@ -192,7 +188,6 @@ latex_show_urls = False
 # If false, no module index is generated.
 latex_domain_indices = True
 
-
 # -- Options for manual page output --------------------------------------------
 
 # One entry per manual page. List of tuples
@@ -202,7 +197,6 @@ man_pages = [
      [u'MongoDB Documentation Project'], 1)
 ]
 
-
 # -- Options for Epub output ---------------------------------------------------
 
 # Bibliographic Dublin Core info.
@@ -210,34 +204,15 @@ epub_title = u'MongoDB'
 epub_author = u'MongoDB Documentation Project'
 epub_publisher = u'MongoDB Documentation Project'
 epub_copyright = u'2011, MongoDB Documentation Project'
+epub_theme = 'epub_mongodb'
+epub_tocdup = True
+epub_tocdepth = 3
+epub_language = 'en'
+epub_scheme = 'url'
+epub_identifier = 'http://docs.mongodb.org/' + current_git_branch
+epub_exclude_files = []
 
-# The language of the text. It defaults to the language option
-# or en if the language is not set.
-#epub_language = ''
-
-# The scheme of the identifier. Typical schemes are ISBN or URL.
-#epub_scheme = ''
-
-# The unique identifier of the text. This can be a ISBN number
-# or the project homepage.
-#epub_identifier = ''
-
-# A unique identification for the text.
-#epub_uid = ''
-
-# HTML files that should be inserted before the pages created by sphinx.
+# HTML files that should be inserted before/after the pages created by sphinx.
 # The format is a list of tuples containing the path and title.
 #epub_pre_files = []
-
-# HTML files shat should be inserted after the pages created by sphinx.
-# The format is a list of tuples containing the path and title.
 #epub_post_files = []
-
-# A list of files that should not be packed into the epub file.
-#epub_exclude_files = []
-
-# The depth of the table of contents in toc.ncx.
-#epub_tocdepth = 3
-
-# Allow duplicate toc entries.
-#epub_tocdup = True

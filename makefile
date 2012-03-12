@@ -8,7 +8,7 @@ PAPER	      =
 # change this to reflect the location of the public repo
 publication-output = ../public-docs
 publication-script = $(publication-output)/publish.sh $(publication-output)
-current-branch := $(shell git branch --no-color 2> /dev/null | sed -e "/^[^*]/d" -e "s/* \(.*\)/\1/" )
+current-branch := $(shell git symbolic-ref HEAD 2>/dev/null | cut -d "/" -f "3" )
 
 # Build directory tweaking.
 root-build = build
@@ -42,7 +42,6 @@ help:
 	@echo ""
 	@echo "MongoDB Manual Specific Targets."
 	@echo "	 publish	runs 'make build-branch' and then deploys the build to $(publication-output)"
-	@echo "	 branch-setup	to setup git branches for the first time."
 	@echo "	 build-branch	to build the current branch."
 	@echo "See 'meta.build-process.rst' for more information."
 
@@ -57,6 +56,7 @@ publish:
 build-branch:
 	@echo Running a build of the \$(current-branch)\ branch.
 	@echo ""
+	make MODE='publish' html
 	make MODE='publish' dirhtml
 	make MODE='publish' singlehtml
 	@echo "All builds complete.'"
@@ -65,15 +65,19 @@ build-branch:
 ifeq ($(MODE),publish)
 deploy:
 	@echo "Exporting builds..."
-	sed -i 's/href="contents.html/href="index.html/g' $(BUILDDIR)/singlehtml/index.html
-	cp $(BUILDDIR)/dirhtml/search/index.html $(BUILDDIR)/singlehtml/search.html
 	mkdir -p $(publication-output)/$(current-branch)/single/
 	cp -R $(BUILDDIR)/dirhtml/* $(publication-output)/$(current-branch)
 	cp -R $(BUILDDIR)/singlehtml/* $(publication-output)/$(current-branch)/single/
+	cp $(BUILDDIR)/dirhtml/search/index.html $(publication-output)/$(current-branch)/single/search.html
+	cp $(BUILDDIR)/html/genindex.html $(publication-output)/$(current-branch)/single/
+	sed -i 's/href="contents.html/href="index.html/g' $(publication-output)/$(current-branch)/single/index.html
+	sed -i -r 's@(<dt><a href=").*html#@\1./#@' $(publication-output)/$(current-branch)/single/genindex.html
 	@echo "Running the publication routine..."
-	$(publication-script)
+	git rev-parse --verify HEAD >|$(publication-output)/$(current-branch)/release.txt
+	# $(publication-script)
 	@echo "Publication succeessfully deployed."
 endif
+
 
 disabled-builds:
 	@echo make MODE='publish' epub
@@ -82,22 +86,6 @@ disabled-builds:
 	@echo cp -R $(BUILDDIR)/latex/MongoDB.pdf $(publication-output)/$(current-branch)/MongoDB-manual-$(current-branch).pdf
 	@echo
 	@echo This target did nothing, eventually these procedures will generate epub and latex builds.
-
-#
-# Configures the repository for the branched documentaion workflow.
-#
-
-branch-setup:
-	@echo git checkout master
-	@echo git config branch.autosetupmerge true
-	@echo git branch --track current origin/current
-	@echo git branch --track hyperalpha origin/hyperalpha
-	@echo git branch --track 1.8-series origin/1.8-series
-	@echo git branch --track 2.0-series origin/2.0-series
-	@echo "this will do more once branching works"
-
-# TODO create helpers for branch switching/building.
-# TODO create helpers for chery picking repos.
 
 #
 # Clean up/removal targets
