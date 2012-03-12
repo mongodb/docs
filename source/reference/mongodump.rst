@@ -65,14 +65,14 @@ Options
 
    Specifies the port number, if the MongoDB instance is not running
    on the standard port. (i.e. ``27017``) You may also specify a port
-   number using the :option:`--host <mongodump --host>` command.
+   number using the :option:`--host <mongodump --host>` option.
 
 .. option:: --ipv6
 
-   Enables :term:`IPv6` support to allow :program:`mongodump` to
-   connect to the MongoDB instance using IPv6
-   connectivity. All MongoDB programs and processes, including
-   :program:`mongodump`, disable IPv6 support by default.
+   Enables IPv6 support that allows :program:`mongodump` to connect to
+   the MongoDB instance using an IPv6 network. All MongoDB programs
+   and processes, including :program:`mongodump`, disable IPv6 support
+   by default.
 
 .. option:: --username <username>, -u <username>
 
@@ -86,6 +86,10 @@ Options
    Specifies a password to authenticate to the MongoDB instance. Use
    in conjunction with the :option:`--username <mongodump --username>`
    option to supply a username.
+
+   If you specify a :option:`--username <mongodump --username>`
+   without the :option:`--password` option, :program:`mongodump` will
+   prompt for a password interactively.
 
 .. option:: --dbpath <path>
 
@@ -161,7 +165,7 @@ Options
 
 .. option:: --repair
 
-   Use this option to run an repair option in addition to dumping the
+   Use this option to run a repair option in addition to dumping the
    database. The repair option attempts to repair a database that may
    be an inconsistent state as a result of an improper shutdown or
    :program:`mongod` crash.

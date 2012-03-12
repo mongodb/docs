@@ -11,8 +11,10 @@ catalogs each datum included in the output of this command and
 provides context for using this data to more effectively administer
 your database.
 
-TODO: Maybe mention that much of this information is displayed in a dynamic
-manner by the mongostat command
+
+.. seealso:: Much of the output of :dbcommand:`serverStatus` is also
+   displayed dynamically by :program:`mongostat`. See the
+   :doc:`/reference/mongostat`  reference for more information.
 
 Basic Information
 -----------------
@@ -57,9 +59,6 @@ Basic Information
 globalLock
 ----------
 
-TODO: How will this section change in 2.2 with concurrency changes?  All global 
-lock will fork with version
-
 .. status:: globalLock
 
    The :status:`globalLock` data structure contains information regarding
@@ -69,13 +68,9 @@ lock will fork with version
 .. status:: globalLock.totalTime
 
    The value of :status:`globalLock.totalTime` represents the time, in
-   microseconds, since the database last started and that the
-   :status:`globalLock` was created.
-
-   Larger values indicate that the database has been unavailable for
-   more time; however, :status:`uptime` provides context for this
-   datum. Also consider the effect of long-running administrative
-   operations on this value.
+   microseconds, since the database last started and creation of the
+   :status:`globalLock`. This is roughly equivelent to total server
+   uptime.
 
 .. status:: globalLock.lockTime
 
@@ -542,8 +537,8 @@ opcounters
 
    :status:`opcounters.getmore` provides a counter of the total number
    of "getmore" operations since the :program:`mongod` instance last
-   started. This counter can be high even if the query count is low. 
-   Secondary nodes send ``getMore`` operations as part of the replication 
+   started. This counter can be high even if the query count is low.
+   Secondary nodes send ``getMore`` operations as part of the replication
    process.
 
 .. status:: opcounters.command
@@ -721,4 +716,5 @@ Other Statuses
    The value of :status:`writeBacksQueued` is "``true``" when there
    are operations from a :program:`mongos` instance queued for
    retrying. Typically this option is false.
-   TODO: should we have a glossary entry for writeBacks?
+
+   .. seealso:: :term:`writeBacks`

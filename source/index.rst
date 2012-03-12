@@ -150,6 +150,7 @@ Indexes
 -------
 
 - :ref:`genindex`
+- :doc:`Outline <contents>`
 - :ref:`search`
 
 .. _mongodb-wiki:

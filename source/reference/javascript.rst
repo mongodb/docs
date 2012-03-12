@@ -1180,24 +1180,32 @@ that you may use with collection objects.
    v            index version.     1 [#]_
    ===========  =================  =======
 
-   - Specify "``{ background: true }``" to build the index in the
-     background so that building an index will *not* block other
-     database activities.
+   :option Boolean background: Specify "``true``" to build the index
+                               in the background so that building an
+                               index will *not* block other database
+                               activities.
 
-   - Specify "``{ unique: true }``" to create a unique index so that
-     the collection will not accept insertion of documents where the
-     index key or keys matches an existing value in the index.
+   :option Boolean unique: Specify "``true``" to create a unique index
+                           so that the collection will not accept
+                           insertion of documents where the index key
+                           or keys matches an existing value in the
+                           index.
 
-   - Specify "``{ dropDups: true }``" when creating a unique index, on
-     a field that *may* have duplicate to index only the first occurrence of
-     a key, and ignore subsequent occurrences of that key.
+   :option Boolean dropDups: Specify "``true``" when creating a unique
+                             index, on a field that *may* have
+                             duplicate to index only the first
+                             occurrence of a key, and ignore
+                             subsequent occurrences of that key.
 
-   - Specify "``{ sparse: true }``" only references documents with the
-     specified field. These indexes use less space, but behave
-     differently in some situations (particularly sorts.)
+   :option Boolean sparse: Specify "``true``" only references
+                           documents with the specified field. These
+                           indexes use less space, but behave
+                           differently in some situations
+                           (particularly sorts.)
 
-   - Only specify a different index version in unusual situations. The
-     latest index version provides a smaller and faster index format.
+   :option v: Only specify a different index version in unusual
+              situations. The latest index version provides a smaller
+              and faster index format.
 
    .. STUB .. seealso:: ":doc:`/core/indexing`."
 

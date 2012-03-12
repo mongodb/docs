@@ -10,9 +10,11 @@ Administration
    administration/monitoring
    administration/configuration
 
-.. administration/security
-.. administration/hardware-platform
-.. administration/operating-systems
+.. STUBS:
+
+   .. administration/security
+   .. administration/hardware-platform
+   .. administration/operating-systems
 
 .. seealso:: For more information regarding :term:`replica set`
    administration, see ":doc:`/administration/replica-sets`" and
