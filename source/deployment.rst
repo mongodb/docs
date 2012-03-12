@@ -222,13 +222,12 @@ you can find at the `hmac page on PyPi <http://pypi.python.org/pypi/hmac>`_.
 
 Extract the files from the archive with the following command: ::
 
-     tar -zxvf hmac-20101005.tar.gz
+     tar -zxf hmac-20101005.tar.gz
 
 Change directories, build and install the package with the following
 sequence: ::
 
      cd hmac-20101005/
-     python setup.py build
      python setup.py install
 
 You may need root (i.e. ``sudo``) privileges to run the final

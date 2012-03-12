@@ -65,7 +65,7 @@ agent on a Windows host, skip to the :ref:`window instructions
         sudo easy_install simplejson hmac hashlib
 
    Do not use ``pip``, as there are some compatibility issues. Some
-   use have reported problems installing ``hmac``, if ``easy_install``
+   users have reported problems installing ``hmac``, if ``easy_install``
    produces an error or you suspect a problem with these libraries see
    :ref:`instructions for installing hmac manually <troubleshooting-hmac>`.
 
