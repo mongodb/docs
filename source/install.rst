@@ -193,32 +193,36 @@ The MMS agent distribution includes a ``WINDOWS.txt`` file with
 instructions for using the agent on Windows platforms. Consider the
 following special requirements:
 
-- If you do not have python 2.x installed on your machine,
-  install the latest version of Python 2.7.x. The 64 bit 
-  version is preferred. e.g. http://www.python.org/ftp/python/2.7.2/python-2.7.2.amd64.msi
+- If you do not have a 2.x-series Python installation on your system,
+  install the latest version of Python 2.7.x. If your system supports
+  64-bit executable, use the 64-bit version.
 
 - Use the Windows installer to install `PyMongo from PyPi
-  <http://pypi.python.org/pypi/pymongo/>`_. Ensure that you
-  install the correct PyMongo build for your Python installation.
-  Ensure you install for the right version of python (2.6, 2.7 etc.)
-  and also the right binaries (i.e. 32 or 64-bit.)
+  <http://pypi.python.org/pypi/pymongo/>`_. Ensure that you install
+  the correct PyMongo build for your Python installation both in terms
+  of version number (e.g .2.6, 2.7, etc.) and system architecture
+  (e.g. 32 or 64-bit.)
 
-- Windows powershell v2.0 is used to install MMS as a Windows Service. If you
-  are running on Windows 2003 or you have an older version of powershell you need
-  to install powershell version 2.0. To check the version of
-  powershell installed, start a powershell command window and issue
-  the following command: ::
-  
+  See the `Python Download Page <http://www.python.org/download/>` for
+  the most up to date Python distribution downloads, or use the direct
+  link for the `Python 2.7 64-bit Windows
+  Installer <http://www.python.org/ftp/python/2.7.2/python-2.7.2.amd64.msi>`_.
+
+- If you do not have Windows PowerShell version 2.0 to install,
+  install it now. PowerShell is available as part of the `Windows
+  Management Framework <http://support.microsoft.com/kb/968929>`_.
+
+  Check your installed version of PowerShell by starting a PowerShell
+  command window and issuing the following command: ::
+
        Get-Host
-	   
-	   
-  If you need to install powershell version 2.0 it is part of `Windows
-  Management Framework<http://support.microsoft.com/kb/968929>`_.
-  The version of powershell is printed out. Once you ensure you have
-  powershell version 2.0 installed, you need to enable script
-  execution.
-  Right click the PowerShell icon in the "Start Menu," and run
-  PowerShell as administrator. Issue the following command: ::
+
+  Install the correct version if your version number is lower than
+  2.0.
+
+- Enable script execution in PowerShell. After installing the correct
+  version, right click the PowerShell icon in the "Start Menu," and
+  run PowerShell as administrator. Issue the following command: ::
 
        Get-ExecutionPolicy
 
