@@ -2,6 +2,8 @@
 About MongoDB Documentation
 ===========================
 
+.. default-domain:: mongodb
+
 .. _meta-about-mongodb:
 
 About MongoDB
@@ -38,6 +40,32 @@ of all content in this manual. The information in this resource is
 replacing MongoDB's first documentation resource, located on the
 `MongoDB Wiki <http://mongodb.org>`_ (for a topical overview see the
 :ref:`MongoDB wiki outline <mongodb-wiki>`.)
+
+Licensing
+`````````
+
+This manual is Copyright |copy| 2011-2012 10gen, Inc.
+
+Content licensed under a Creative Commons
+"`Attribution-NonCommercial-ShareAlike 3.0 Unported <http://creativecommons.org/licenses/by-nc-sa/3.0/>`_"
+(CC-BY-NC-SA) license.
+
+.. seealso:: The "`10gen Contributor Agreement <http://www.10gen.com/contributor>`_."
+
+Version and Revisions
+`````````````````````
+
+See the `MongoDB Documentation Project Page <http://docs.mongodb.org>`_
+for an overview of all editions and output formats of the MongoDB
+Manual.
+
+You can see the full revision history of the Manual in the `GitHub
+Repository <https://github.com/mongodb/docs>`_. This version of the
+manual reflects version |version| of MongoDB, built from the
+"|branch|" branch of the documentation as of the "|commit|"
+revision. This branch is explicitly accessible via "|hardlink|," and
+you can always reference the commit of the current manual in the
+:hardlink:`release.txt` file.
 
 Contributing to the Documentation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -56,6 +56,7 @@ publish:
 build-branch:
 	@echo Running a build of the \$(current-branch)\ branch.
 	@echo ""
+	touch source/about.rst
 	make MODE='publish' html
 	make MODE='publish' dirhtml
 	make MODE='publish' singlehtml
