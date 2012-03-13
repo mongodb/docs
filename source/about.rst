@@ -46,26 +46,31 @@ Licensing
 
 This manual is Copyright |copy| 2011-2012 10gen, Inc.
 
-Content licensed under a Creative Commons
-"`Attribution-NonCommercial-ShareAlike 3.0 Unported <http://creativecommons.org/licenses/by-nc-sa/3.0/>`_"
-(CC-BY-NC-SA) license.
+The full contents of this manual is licensed under a Creative Commons
+"`Attribution-NonCommercial-ShareAlike 3.0 Unported
+<http://creativecommons.org/licenses/by-nc-sa/3.0/>`_"
+(i.e. "CC-BY-NC-SA") license.
 
 .. seealso:: The "`10gen Contributor Agreement <http://www.10gen.com/contributor>`_."
 
 Version and Revisions
 `````````````````````
 
+This version of the manual reflects version |version| of MongoDB.
+
 See the `MongoDB Documentation Project Page <http://docs.mongodb.org>`_
 for an overview of all editions and output formats of the MongoDB
-Manual.
+Manual. You can see the full revision history, and track ongoing
+improvements and additions for all versions of the manual the `GitHub
+repository <https://github.com/mongodb/docs>`_.
 
-You can see the full revision history of the Manual in the `GitHub
-Repository <https://github.com/mongodb/docs>`_. This version of the
-manual reflects version |version| of MongoDB, built from the
-"|branch|" branch of the documentation as of the "|commit|"
-revision. This branch is explicitly accessible via "|hardlink|," and
-you can always reference the commit of the current manual in the
-:hardlink:`release.txt` file.
+This edition of manual reflects "|branch|" branch of the documentation
+as of the "|commit|" revision. This branch is explicitly accessible
+via "|hardlink|" and you can always reference the commit of the
+current manual in the :hardlink:`release.txt` file.
+
+The most up-to-date, current, and stable version of the manual is
+always avalible at "http://docs.mongodb.org/manual/."
 
 Contributing to the Documentation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
