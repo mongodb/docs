@@ -204,7 +204,7 @@ Sharding
 
    .. code-block:: javascript
 
-      { msg: "draining ongoing" ,  state: "ongoing" , remaining: { chunks: 23 , dbs: 1 }, ok: 1 }
+      { msg: "draining ongoing" , state: "ongoing" , remaining: { chunks: 23 , dbs: 1 }, ok: 1 }
 
    The ``remaining`` :term:`document`" specifies how many chunks and
    databases remain on the shard. Use :dbcommand:`printShardingStatus`
