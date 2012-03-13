@@ -12,26 +12,27 @@ Data Manipulation
 Query and Update Methods
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. function:: find(query,projection)
+.. function:: db.collection.find(query,projection)
 
    :param document query: A :term:`document` that specifies the
                           :term:`query` using the JSON-like syntax and
                           :doc:`query operators </reference/operators>`.
 
-   :param document projection: A :term:`document` that controls the
+   :param optional document projection: A :term:`document` that controls the
                            :term:`projection`, or the contents of the
                            data returned.
 
-   :returns: All of the documents that match the ``query`` document.
+   :returns: A cursor whose iteration visits all of the documents that
+   match the ``query`` document.
 
-   Provides access to querying functionality. The argument to
+   Queries for documents matching ``query``. The argument to
    :func:`find()` takes the form of a :term:`document`. See
    the ":doc:`/reference/operators`" for an overview of the available
    operators for specifying and narrowing the query.
 
-.. function:: findOne(query)
+.. function:: db.collection.findOne(query)
 
-   :param document query: A :term:`document` that specifies the :term:`query`
+   :param optional document query: A :term:`document` that specifies the :term:`query`
                           using the JSON-like syntax and :doc:`query operators
                           </reference/operators>`.
 
@@ -44,7 +45,7 @@ Query and Update Methods
    order of documents on the disc. In :term:`capped collections
    <capped collection>`, natural order is the same as insertion order.
 
-.. function:: findAndModify()
+.. function:: db.collection.findAndModify()
 
    The :func:`findAndModify()` method atomically modifies and
    returns a single document. Always call :func:`findAndModify()`
@@ -66,21 +67,22 @@ Query and Update Methods
                          first document given by this sort clause will
                          be the one modified.
 
-   :field remove: When ``true``, :dbcommand:`findAndModify` removes
-                  the selected document.
+   :field optional remove: When ``true``, :dbcommand:`findAndModify` removes
+                  the selected document. The default is ``false``
 
    :field update: an :ref:`update operator <update-operators>` to
                   modify the selected document.
 
-   :field new: when ``true``, returns the modified document rather
-               than the original. :dbcommand:`findAndModify` ignores
-               the ``new`` option for ``remove`` operations.
+   :field optional new: when ``true``, returns the modified document
+               rather than the original. :dbcommand:`findAndModify`
+               ignores the ``new`` option for ``remove``
+               operations. The default is ``false``.
 
-   :field fields: a subset of fields to return. See ":ref:`projection
+   :field optional fields: a subset of fields to return. See ":ref:`projection
                   operators <projection-operators>`" for more
                   information.
 
-   :field upsert: when ``true``, creates a new document if the
+   :field optional upsert: when ``true``, creates a new document if the
                   specified ``query`` returns no documents. The
                   default is "``false``.
 
@@ -97,10 +99,11 @@ Query and Update Methods
    This operation finds a document in the "``people``" collection
    where the "``name``" field has the value "``Tom``", the
    "``active``" value in the "``state``" field and a value in the
-   "``rating``" field :operator:`greater than <$gt>` 10. If there is
-   more than one result for this query, MongoDB sorts the results of
-   the query in descending order, and :operator:`increments <$inc>`
-   the value of the "``score``" field by 1.
+   "``rating``" field :operator:`greater than <$gt>` 10, and
+   :operator:`increments <$inc>` the value of the "``score``" field by
+   1. If there is more than one result for this query, MongoDB sorts
+   the results of the query in ascending order, and updates and
+   returns the first matching document found.
 
    .. warning::
 
@@ -111,57 +114,72 @@ Query and Update Methods
       :program:`mongos` instances for non-sharded collections function
       normally.
 
-.. function:: save()
+.. function:: db.collection.save(document)
 
-   Provides the ability to create a new document in the current
-   database and collection. The argument to :func:`save()` takes
-   the form of a :term:`document`. See ":ref:`update-operators`"
-   for a reference of all operators that affect updates.
+   If `document` has an `_id` field, then perform an :func:`update()`
+   with no :ref:`update-operators<update-operators>`.  Otherwise,
+   insert a new document with fields from `document` and a newly
+   generated ObjectId() for the _id.
 
-.. function:: update(query, update, [upsert,] [multi])
+   :param document: The document to be saved.
+
+.. function:: db.collection.update(query, update, [upsert,] [multi])
 
    The :func:`update()` takes the following for arguments.
 
-   :param query: A query object that selects the record to update. Use
-                 the :ref:`query selectors <query-selectors>` as you
-                 would in a :func:`find()` operation.
+   :param query: A query object that selects one or more records to
+                 update. Use the :ref:`query selectors
+                 <query-selectors>` as you would in a :func:`find()`
+                 operation.
 
-   :param update: A :term:`document` that will either replace the
-                  matching document, or use :ref:`update operators
-                  <update-operators>` to describe the update. By
-                  default, this operation *only* updates one document.
+   :param update: A :term:`document`. If the update document's fields
+                  include any :ref:`update operators
+                  <update-operators>`, then all the fields must be
+                  update operators, and those operators are applied to
+                  values in the matching document.  If none of the
+                  update document's the fields are update operators,
+                  then all of the matching document's fields except
+                  the _id are replaced by the fields in the update
+                  document.
 
-   :param boolean upsert: Defaults to ``false``. When ``true``, this
-                          operation will update a document if one
-                          matches the query portion and inserts a new
-                          document if *no* documents match the query
-                          portion. Upsets only affect *one* document,
-                          and cannot update more than one document.
+   :param optional boolean upsert: Defaults to ``false``. When
+                          ``true``, this operation will update a
+                          document if one matches the query portion
+                          and insert a new document if *no* documents
+                          match the query portion. The new document
+                          will consist of the union of fields and
+                          values from the query document and update document
 
-   :param boolean multi: Defaults to ``false``. When ``true``, all
-                         the operation updates all documents that
-                         match the query.
+			  Upserts only affect *one* document, and
+			  cannot update more than one document.
+
+   :param optional boolean multi: Defaults to ``false``. When
+                            ``true``, all the operation updates all
+                            documents that match the query.  When
+                            ``false``, update only the first document
+                            that matches the query.
 
    Provides the ability to update an existing document in the current
-   database and collection. The argument to :func:`update()` takes
-   the form of a :term:`document`. See ":ref:`update-operators`"
+   database and collection. The second argument to :func:`update()`
+   takes the form of a :term:`document`. See ":ref:`update-operators`"
    for a reference of all operators that affect updates.
 
 Query Modifiers
 ~~~~~~~~~~~~~~~
 
-.. function:: next()
+.. function:: cursor.next()
 
    :returns: The next document in the cursor returned by the
              :func:`find()` method. See :func:`hasNext()` for
              related functionality.
 
-.. function:: size()
+.. function:: cursor.size()
 
    :returns: A count of the number of documents that match the
-             :func:`find()` query.
+             :func:`find()` query after applying any skip() and
+             limit() methods.
 
-.. function:: explain()
+.. function:: cursor.explain()
 
    :returns: A document that describes the process used to return the
              query.
@@ -175,15 +193,17 @@ Query Modifiers
 
       .. STUB ":doc:`/applications/optimization`"
 
-.. function:: showDiskLoc()
+.. function:: cursor.showDiskLoc()
 
-   :returns: A document that describes the on-disk location of the
-             objects returned by the query.
+   :returns: The cursor object, after modifying the query operation to
+   be executed on the server.
 
    .. seealso:: :operator:`$showDiskLoc` for related
       functionality.
 
-.. function:: forEach()
+.. function:: cursor.forEach(function)
+
+   :param function: function to apply to each document visited by the cursor.
 
    Provides the ability to loop or iterate over the cursor returned by
    a :func:`find()` query and returns each result on the
@@ -196,33 +216,33 @@ Query Modifiers
 
    .. seealso:: :func:`map()` for similar functionality.
 
-.. function:: map()
+.. function:: cursor.map(function)
 
-   Provides the ability to loop or iterate over the cursor returned by
-   a :func:`find()` query and returns each result as the member of
-   an array. Specify a JavaScript function as the argument for the
-   :func:`map()` function. Consider the following example:
+   :param function: function to apply to each document visited by the cursor.
+
+   Apply `function` to each document visited by the cursor, and
+   collect the return values from successive application into
+   an array.  Consider the following example:
 
    .. code-block:: javascript
 
-      db.users.find().map( function(u) { print("user: " + u.name); } );
+      db.users.find().map( function(u) { return u.name; } );
 
    .. seealso:: :func:`forEach()` for similar functionality.
 
-.. function:: hasNext()
+.. function:: cursor.hasNext()
 
    :returns: boolean.
 
    :func:`hasNext()` returns ``true`` if the cursor returned by the
-   :func:`find()` query contains documents can iterate further to
-   return results.
+   :func:`find()` query can iterate further to return more documents.
 
 .. _js-query-cursor-methods:
 
 Query Cursor Methods
 ~~~~~~~~~~~~~~~~~~~~
 
-.. function:: count()
+.. function:: cursor.count()
 
    :param boolean override: Override the effects of the
                             :func:`skip()` and :func:`limit()`
@@ -233,14 +253,15 @@ Query Cursor Methods
 
    In normal operation, :func:`count()` ignores the effects of the
    :func:`skip()` and :func:`limit()`. To consider these
-   effects specify "``count(true)``".
+   effects specify "``count(true)``". .. seealso:: :func:`size()`.
 
-.. function:: limit()
+.. function:: cursor.limit()
 
-   Use the :func:`limit()` method on a ":func:`find()`" query
-   to specifies the maximum number of documents a query will
-   return. :func:`limit()` is analogous to the ``LIMIT`` statement
-   in a SQL database.
+   Use the :func:`limit()` method on a cursor to specify the maximum
+   number of documents a the cursor will return. :func:`limit()` is
+   analogous to the ``LIMIT`` statement in a SQL database. Note that
+   :func:`limit()` must be applied to the cursor before retrieving any
+   documents from the database.
 
    Use :func:`limit()` to maximize performance and prevent MongoDB
    from returning more results than required for processing.
@@ -248,12 +269,16 @@ Query Cursor Methods
    A :func:`limit()` value of 0 (e.g. "``.limit(0)``") is equivalent to
    setting no limit.
 
-.. function:: skip()
+.. function:: cursor.skip()
 
-   Call the :func:`skip()` method on a ":func:`.find()`" query
-   to control where MongoDB begins returning results. This approach
-   may be useful in implementing "paged" results. Consider the
-   following JavaScript function as an example of the sort function:
+   Call the :func:`skip()` method on a cursor to control where MongoDB
+   begins returning results. This approach may be useful in
+   implementing "paged" results. Note that :func:`skip()` must be
+   applied to the cursor before retrieving any documents from the
+   database.
+
+   Consider the following JavaScript function as an example of the
+   sort function:
 
    .. code-block:: javascript
 
@@ -275,23 +300,33 @@ Query Cursor Methods
    database itself. This approach features better index utilization,
    if you do not need to easily jump to a specific page.
 
-.. function:: snapshot()
+.. function:: cursor.snapshot()
 
-   Append the :func:`snapshot()` method to the :func:`find()`
-   query to toggle the "snapshot" mode. This ensures that the query
-   will not miss any documents and return no duplicates, when other
-   operations modify objects while the query runs. Snapshot mode only
-   affects documents modified documents, not inserted or removed
-   documents.
+   Append the :func:`snapshot()` method to a cursor to toggle the
+   "snapshot" mode. This ensures that the query will not miss any
+   documents and return no duplicates, even if other operations modify
+   objects while the query runs. Note that :func:`snapshot()` must be
+   applied to the cursor before retrieving any documents from the
+   database.
 
    Queries with results of less than 1 megabyte are effectively
-   snapshotted.
+   implicitly snapshotted.
 
-.. function:: sort()
+.. function:: cursor.sort(sort)
 
-   Append the :func:`sort()` method to the :func:`find()`"
-   queries to control the order that the query returns matching
-   documents. Consider the following example:
+   :param sort: A document whose fields specify the attributes on
+   which to sort the result set.
+
+   Append the :func:`sort()` method to a cursor to control the order
+   in which the query returns matching documents.  For each field in
+   the sort document, if the field's corresponding value is positive,
+   then the query results are returned in ascending order for that
+   attribute; if the field's corresponding value is negative, then
+   query results are returned in descending order.  Note that
+   :func:`sort()` must be applied to the cursor before retrieving any
+   documents from the database.
+
+   Consider the following example:
 
    .. code-block:: javascript
 
@@ -304,8 +339,8 @@ Query Cursor Methods
 
    Unless you have a index for the specified key pattern, use
    :func:`sort()` in conjunction with :func:`limit()` to avoid
-   requiring MongoDB to perform a large in-memory
-   sort. :func:`limit()` increases the speed and reduce the amount
+   requiring MongoDB to perform a large, in-memory
+   sort. :func:`limit()` increases the speed and reduces the amount
    of memory required to return this query by way of an optimized
    algorithm.
 
@@ -317,15 +352,15 @@ Query Cursor Methods
       :func:`limit()`, or create an index on the field that you're
       sorting to avoid this error.
 
-.. function:: hint()
+.. function:: cursor.hint(index)
 
-   :argument index: The name of the index to "hint" or force MongoDB
-                    to use when performing the query.
+   :argument index: The specification for the index to "hint" or force
+                    MongoDB to use when performing the query.
 
    Call this method on a query to override MongoDB's default index
-   selection and query optimization process. Specify, as an argument,
-   the name which index the query should use to fulfill the query. Use
-   :func:`getIndexes()` to return a list of indexes on the current
+   selection and query optimization process. The argument is an index
+   specification, as if to :func:`ensureIndex()`. Use
+   :func:`getIndexes()` to return the list of current indexes on a
    collection.
 
    .. seealso:: ":operator:`$hint`
@@ -333,7 +368,7 @@ Query Cursor Methods
 Data Aggregation
 ~~~~~~~~~~~~~~~~
 
-.. function:: aggregate(pipeline)
+.. function:: db.collection.aggregate(pipeline)
 
    .. versionadded:: 2.1.0
 
@@ -366,13 +401,12 @@ Data Aggregation
        ":doc:`/applications/aggregation`," and
        ":doc:`/reference/aggregation`."
 
-.. function:: group({key, reduce, initial, [keyf,] [cond,] finalize})
+.. function:: db.collection.group({key, reduce, initial, [keyf,] [cond,] finalize})
 
    The :func:`group()` accepts a single :term:`document` that
    contains the following:
 
-   :field key: Specify one or more fields to group by. Use the
-               form of a :term:`document`.
+   :field key: Specify one or more fields to group by.
 
    :field reduce: Specify a reduce function that operates over all the
                   iterated objects. Typically these aggregator
@@ -415,8 +449,8 @@ Data Aggregation
 
    .. note::
 
-      The result set of the :func:`group()` must fit within the
-      maximum :term:`BSON` object.
+      The result set of the :func:`group()` must fit within a 
+      single :term:`BSON` object.
 
       Furthermore, you must ensure that there are fewer then 10,000
       unique keys. If you have more than this, use
@@ -437,12 +471,12 @@ Data Aggregation
                      initial: { csum: 0 }
                     });
 
-   This command in for the :program:`mongo` shell groups the documents
-   in the collection named "``collection``" by the ``a`` and ``b``
-   fields, when the "``active``" field has a value of ``1``. Then, the
-   reduce function, adds the current value of fields "``a``" "``b``"
-   to the previous value of those fields. This is equivalent to the
-   following SQL statement.
+   This command in the :program:`mongo` shell groups the documents in
+   the collection where the field "``active``" equals ``1`` into sets
+   for all combinations of combinations values of the ``a`` and ``b``
+   fields. Then, within each group, the reduce function adds up each document's
+   c field into the csum field in the aggregation counter document. This is
+   equivalent to the following SQL statement.
 
    .. code-block:: sql
 
@@ -453,7 +487,7 @@ Data Aggregation
 
       .. STUB ":doc:`/applications/simple-aggregation`"
 
-.. function:: mapReduce(map,reduce,out,[query],[sort],[limit],[finalize],[scope],[jsMode],[verbose])
+.. function:: db.collection.mapReduce(map,reduce,out,[query],[sort],[limit],[finalize],[scope],[jsMode],[verbose])
 
    The :func:`mapReduce()` provides a wrapper around the
    :dbcommand:`mapReduce` :term:`database command`. Always call the
@@ -464,19 +498,20 @@ Data Aggregation
    :param map: A JavaScript function that performs the "map" step of
                the MapReduce operation. This function references the
                current input document and calls the
-               "``emit(key,value)``" method that supplies values to
-               the reduce function. Map functions may call ``emit()``,
-               once, more than once, or not at all depending on the
-               type of aggregation.
+               "``emit(key,value)``" method to supply the value
+               argument to the reduce function, grouped by the key
+               argument. Map functions may call ``emit()``, once, more
+               than once, or not at all depending on the type of
+               aggregation.
 
    :param reduce: A JavaScript function that performs the "reduce"
                   step of the MapReduce operation. The reduce function
-                  receives an array of emitted values from the map
-                  function, and returns a single value. Because it's
-                  possible to invoke the reduce function more than
-                  once for the same key, the structure of the object
-                  returned by function must be identical to the
-                  structure of the emitted function.
+                  receives a key value and an array of emitted values
+                  from the map function, and returns a single
+                  value. Because it's possible to invoke the reduce
+                  function more than once for the same key, the
+                  structure of the object returned by function must be
+                  identical to the structure of the emitted function.
 
    :param out: Specifies the location of the out of the reduce stage
                of the operation. Specify a string to write the output
@@ -484,16 +519,16 @@ Data Aggregation
                name. See below for additional output options.
 
    :param optional query: A query object, like the query used by the
-                          :func:`find()` method. Use this to filter
-                          to limit the number of documents enter the
-                          map phase of the aggregation.
+                          :func:`find()` method. Use this to specify
+                          which documents should enter the map phase
+			  of the aggregation.
 
    :param optional sort: Sorts the input objects using this key. This
                          option is useful for optimizing the
                          job. Common uses include sorting by the emit
                          key so that there are fewer reduces.
 
-   :param optional limit: Species a maximum number of objects to
+   :param optional limit: Specifies a maximum number of objects to
                           return from the collection.
 
    :param optional finalize: Specifies an optional "finalize" function
@@ -501,12 +536,42 @@ Data Aggregation
                              stage, to modify or control the output of
                              the :func:`mapReduce()` operation.
 
-   :param optional scope: Place a :term:`document` as the contents
-                          of this field, to place fields into the
-                          global javascript scope.
+   :param optional scope: Place a :term:`document` as the contents of
+                          this field, to place fields into the global
+                          javascript scope for the execution of the
+                          map-reduce command.
 
-   :param optional jsMode: Boolean. The ``jsMode`` option defaults to
-                           true.
+
+   :param optional jsMode: Boolean; specifies whether to convert
+                           intermediate data into BSON format between
+                           the mapping and reducing steps.
+
+			   If false, map-reduce execution
+                           internally converts the values emitted
+                           during the map function from JavaScript
+                           objects into BSON objects, and so must
+                           convert those BSON objects into JavaScript
+                           objects when calling the reduce function.
+			   When this argument is false, the BSON
+			   objects used for intermediate values can be
+			   placed in temporary, on-disk storage,
+			   allowing the map-reduce job to execute over
+			   arbitrarily large data sets.
+
+                           If true, map-reduce execution retains the
+                           values emitted by the map function and
+                           returned as JavaScript objects, and so does
+                           not need to do extra conversion work to
+                           call the reduce function.  When this
+                           argument is true, the map-reduce job can
+                           execute faster, but can only work for
+                           result sets with less than 500K distinct
+                           key arguments to the mapper's emit function.
+			   
+			   The ``jsMode`` option defaults to
+                           true.  FIXME: really?
+
+   .. versionadded: 2.0
 
    :param optional verbose: Boolean. The ``verbose`` option provides
                             statistics on job execution times.
@@ -530,16 +595,17 @@ Data Aggregation
                           map-reduce operation writes output to an
                           existing collection
                           (i.e. "``collectionName``",) and only
-                          overwrites existing documents when a new
-                          document has the same key as an "old"
-                          document in this collection.
+                          overwrites existing documents in the
+                          collection when a new document has the same
+                          key as a document that existed before the
+                          map-reduce operation began.
 
-   :param optional reduce: This operation behaves as the "``merge``"
+   :param optional reduce: This operation behaves like the "``merge``"
                            option above, except that when an existing
                            document has the same key as a new
                            document, "``reduce``" function from the
                            map reduce job will run on both values and
-                           MongoDB writes the result of this function
+                           MongoDB will write the result of this function
                            to the new collection. The specification
                            takes the form of "``{ out: { reduce:
                            collectionName } }``", where
@@ -548,14 +614,14 @@ Data Aggregation
 
    :param optional inline: Indicate the inline option (i.e. "``{ out:
                            { inline: 1 } }``") to perform the map
-                           reduce job in ram and return the results at
-                           the end of the function. This option is
+                           reduce job in memory and return the results
+                           at the end of the function. This option is
                            only possible when the entire result set
                            will fit within the :ref:`maximum size of a
                            BSON document <limit-bson-document-size>`.
                            When performing map-reduce jobs on
                            secondary members of replica sets, this is
-                           the only available option.
+                           the only available :param:`out` option.
 
    .. seealso:: :term:`map-reduce`, provides a greater overview
       of MognoDB's map-reduce functionality.
@@ -586,9 +652,9 @@ Database
                             only. Defaults to false.
 
    Use this function to create new database users, by specifying a
-   username, password as arguments to the command. If you want to
-   restrict this user to only have read-only privileges; however, this
-   defaults to false.
+   username and password as arguments to the command. If you want to
+   restrict the user to have only read-only privileges, supply a true
+   third argument; however, this defaults to false.
 
 .. function:: db.auth("username", "password")
 
@@ -609,12 +675,13 @@ Database
 
    Use this function to copy a database from a remote to the current
    database. The command assumes that the remote database has the same
-   name as the current database. Use the following command to change
-   to the database "``importdb``":
+   name as the current database. For example, to clone a database
+   named ``importdb`` on a host named ``hostname``, do
 
    .. code-block:: javascript
 
       use importdb
+      db.cloneDatabase("hostname");
 
    New databases are implicitly created, so the current host does not
    need to have a database named ``importdb`` for this command to
@@ -622,7 +689,7 @@ Database
 
    This function provides a wrapper around the MongoDB :term:`database
    command` ":dbcommand:`clone`." The :dbcommand:`copydb` database command
-   provide related functionality.
+   provides related functionality.
 
 .. function:: db.commandHelp(command)
 
@@ -649,13 +716,13 @@ Database
    Use this function to copy a specific database, named "``origin``"
    running on the system accessible via "``hostname``" into the local
    database named "``destination``". The command creates destination
-   databases implicitly when they do not exit.
+   databases implicitly when they do not exist.
 
    This function provides a wrapper around the MongoDB :term:`database
    command` ":dbcommand:`copydb`." The :dbcommand:`clone` database
    command provides related functionality.
 
-.. function:: db.createCollection(name [{size: <value>, capped: <boolean> , max <bytes>}] )
+.. function:: db.createCollection(name, [{capped: <boolean>, size: <value>, max <bytes>}] )
 
    :param string name: Specifies the name of a collection to create.
 
@@ -665,14 +732,14 @@ Database
                            :term:`document` that contains the
                            following three fields:
 
+   :param boolean capped: Enables a :term:`collection cap <capped
+                          collection>`. False by default. If enabled,
+                          you must specify a ``size`` parameter.
+
    :param bytes size: If ``capped`` is ``true``, ``size`` Specifies a
                       maximum size in bytes, for the as a ":term:`cap
                       <capped collection>` for the collection. When
                       ``capped`` is false, you may use ``size``
-
-   :param boolean capped: Enables a :term:`collection cap <capped
-                          collection>`. False by default. If enabled,
-                          you must specify a ``size`` parameter.
 
    :param int max: Optional. Specifies a maximum "cap," in number of
                    documents for capped collections. You must also
@@ -681,11 +748,11 @@ Database
    Explicitly creates a new collation. Because MongoDB creates
    collections implicitly when referenced, this command is primarily
    used for creating new capped collections. In some circumstances,
-   you may use this command to pre-allocate space for a uncapped
+   you may use this command to pre-allocate space for an ordinary
    collection.
 
-   Capped collections have maximum size or document counts that limit
-   their ability to grow beyond maximum thresholds. All capped
+   Capped collections have maximum size or document counts that
+   prevent them from growing beyond maximum thresholds. All capped
    collections must specify a maximum size, but may also specify a
    maximum document count. The collection will remove older documents
    if a collection reaches the maximum size limit before it reaches
@@ -693,17 +760,17 @@ Database
 
    .. code-block:: javascript
 
-      db.createCollection(log, { size : 5120, capped : true, max : 5000 } )
+      db.createCollection("log", { capped : true, size : 536870912, max : 5000 } )
 
    This command creates a collection named log with a maximum size of
-   5 megabytes (5120 bytes,) or a maximum of 5000 documents.
+   5 megabytes (512 kilobytes) or a maximum of 5000 documents.
 
    The following command simply pre-allocates a 2 gigabyte, uncapped,
    collection named "``people``":
 
    .. code-block:: javascript
 
-      db.createCollection(people, { size: 2147483648 })
+      db.createCollection("people", { size: 2147483648 })
 
    This command provides a wrapper around the database command
    ":dbcommand:`create`. See the ":wiki:`Capped Collections <Capped+Collections>`"
@@ -719,11 +786,13 @@ Database
    The ``inprog`` array reports the current operation in progress for
    the database instance.
 
+FIXME: we need a cross reference or something to doc about what's in the inprog array.
+
 .. function:: db.dropDatabase()
 
-   Removes (and deletes) the current database. Does not change the
-   current database, so the creation of any documents in this database
-   will create.
+   Removes the current database. Does not change the current database,
+   so the insertion of any documents in this database will allocate a
+   fresh set of data files.
 
 .. function:: db.eval(function, arguments)
 
@@ -748,7 +817,7 @@ Database
       :term:`map-reduce` for similar functionality in these
       situations.
 
-      The :func:`db.eval() method cannot operate on sharded
+      The :func:`db.eval()` method cannot operate on sharded
       data. However, you may use :func:`db.eval()` with non-sharded
       collections and databases stored in :term:`shard cluster`.
 
@@ -756,11 +825,11 @@ Database
 
    :param name: The name of a collection.
 
-   :returns: The name of a collection.
+   :returns: A collection.
 
-   Use this command to describe collections that may interact with the
-   shell itself, including collections with names that begin with
-   "``_``" or mirror the :doc:`database commands
+   Use this command to obtain a handle on a collection whose name
+   might interact with the shell itself, including collections with
+   names that begin with "``_``" or mirror the :doc:`database commands
    </reference/commands>`.
 
 .. function:: db.getCollectionNames()
@@ -770,11 +839,12 @@ Database
 
 .. function:: db.getLastError()
 
-   :returns: The last error message as a string.
+   :returns: The last error message string.
 
-   In many situation MongoDB drivers and users will, attach this
-   command to a write operation to ensure that writes succeed. Using
-   This "safe mode" is ideal for many--but not all--write operations.
+   In many situation MongoDB drivers and users will follow a write
+   operation with this command in order to ensure that the write
+   succeeded. Using this "safe mode" is recommended for most write
+   operations.
 
    .. seealso:: ":ref:`Replica Set Write Concern <replica-set-write-concern>`"
       and ":dbcommand:`getLastError`."
@@ -785,13 +855,13 @@ Database
 
 .. function:: db.getMongo()
 
-   :returns: The current connection status.
+   :returns: The current database connection.
 
-   :func:`db.getMongo()` returns when the shell initiates. Use this
+   :func:`db.getMongo()` runs when the shell initiates. Use this
    command to test that the :program:`mongo` shell has a connection to
    the proper database instance.
 
-.. function:: db.setSlaveOk()
+.. function:: mongo.setSlaveOk()
 
    For the current session, this command permits read operations from
    non-master (i.e. :term:`slave` or :term:`secondary`)
@@ -803,12 +873,14 @@ Database
 
    Indicates that ":term:`eventually consistent <eventual
    consistency>`" read operations are acceptable for the current
-   connection. This function provides the same functionality as
+   application. This function provides the same functionality as
    :func:`rs.slaveOk()`.
 
 .. function:: db.getName()
 
    :returns: the current database name.
+
+TODO getPrevError is deprecated, shouldn't be documented.
 
 .. function:: db.getPrevError()
 
@@ -838,22 +910,22 @@ Database
 
    :returns: A status document.
 
-   This output reports statistics related to replication.
+   The output reports statistics related to replication.
 
    .. seealso:: ":doc:`/reference/replication-info`" for full
       documentation of this output.
 
 .. function:: db.getSiblingDB()
 
-   Used to return another database without modifying the current
-   "``db``" setting in the shell environment.
+   Used to return another database without modifying the 
+   "``db``" variable in the shell environment.
 
 .. function:: db.killOP(opid)
 
    :param oppid: Specify an operation ID.
 
    Terminates the specified operation. Use :func:`db.currentOp()`
-   to determine the current operation.
+   to find operations and their correspoinding ids.
 
 .. function:: db.listCommands()
 
@@ -863,9 +935,8 @@ Database
 
 .. function:: db.logout()
 
-   Forces the current session to end the current authentication
-   session. This function has no effect if the current session is not
-   authenticated.
+   Ends the current authentication session. This function has no effect
+   if the current session is not authenticated.
 
    This function provides a wrapper around the database command
    ":dbcommand:`logout`".
@@ -897,9 +968,8 @@ Database
 
 .. function:: db.printShardingStatus()
 
-   Provides a formatted report of the status of the shards and the
-   information regarding the chunks of the database for the current
-   :term:`shard cluster`.
+   Provides a formatted report of the sharding configuration and the
+   information regarding existing chunks in a :term:`shard cluster`.
 
    .. seealso:: :func:`sh.status()`
 
@@ -914,7 +984,7 @@ Database
    Checks and repairs errors and inconsistencies with the data
    storage. This function is analogous to a ``fsck`` operation for
    file systems. Additionally, the function compacts the database to
-   optimize the current database's storage utilization, as with the
+   minimize the current database's storage utilization, similar to the
    :dbcommand:`compact` command.
 
    This function has the same effect as using the runtier option
@@ -923,6 +993,14 @@ Database
 
    This command provides a wrapper around the database command
    ":dbcommand:`repairDatabase`".
+
+TODO need to explain more about running repair for recovery purposes
+somewhere (probably not here).  Specifically: it's lossy, and should
+never be run on a member of a replica set if any other members are
+available.
+
+TODO resetError goes with getPrevError, which is deprecated.
+Probably shouldn't document.
 
 .. function:: db.resetError()
 
@@ -947,8 +1025,8 @@ Database
 
 .. function:: db.serverStatus()
 
-   Returns a :term:`document` that provides an over view of the
-   database process' state.
+   Returns a :term:`document` that provides an overview of the
+   database process's state.
 
    This command provides a wrapper around the database command
    :dbcommand:`serverStatus`.
@@ -990,7 +1068,7 @@ Database
    :program:`mongod` writes the output of the database profiler to the
    ``system.profile`` collection.
 
-   :program:`mongod` records a record of queries that take longer than
+   :program:`mongod` prints information about queries that take longer than
    the :setting:`slowms` to the log even when the database profiler is
    not active.
 
@@ -1015,9 +1093,9 @@ Database
 
    This function provides a wrapper around the database command
    ":dbcommand:`dbStats`". The "``scale``" option allows you to
-   configure how the :program:`mongo` shell scales the output
-   values. For example, specify a "``scale``" value of "``1024``" to
-   display kilobytes rather than bytes.
+   configure how the :program:`mongo` shell scales the the sizes
+   of things in the output. For example, specify a "``scale``"
+   value of "``1024``" to display kilobytes rather than bytes.
 
    See the ":doc:`/reference/database-statistics`" document for an
    overview of this output.
@@ -1050,7 +1128,7 @@ Database
 
 .. function:: db.fsyncUnlock()
 
-   Unlocks a database server to allow writes to reverse the operation
+   Unlocks a database server to allow writes. Reverses the operation
    of a :func:`db.fsyncLock()` operation. Typically used to allow
    writes following a database :doc:`backup operation
    </administration/backups>`.
@@ -1099,8 +1177,8 @@ that you may use with collection objects.
    .. note::
 
       The :func:`distinct()` method provides a wrapper around the
-      :dbcommand:`distinct`. Results larger than the maximum
-      :ref:`BSON size <limit-bson-document-size>` (e.g. 16 MB)
+      :dbcommand:`distinct`. Results must not be larger than the maximum
+      :ref:`BSON size <limit-bson-document-size>`.
 
 .. function:: drop()
 
@@ -1129,14 +1207,14 @@ that you may use with collection objects.
 
 .. function:: ensureIndex(keys, options)
 
-   :param document keys: A :term:`document` that contains key/value
-                         pair or pairs with the name of the field or
+   :param document keys: A :term:`document` that contains
+                         pairs with the name of the field or
                          fields to index and order of the index. A
                          ``1`` specifies ascending and a ``-1``
                          specifies descending.
 
    :param document options: A :term:`document` that controls the creation
-                            of the database. This argument is optional.
+                            of the index. This argument is optional.
 
    .. warning:: Index names, including their full namespace
       (i.e. "``database.collection``") can be no longer than 128
@@ -1197,14 +1275,14 @@ that you may use with collection objects.
                              occurrence of a key, and ignore
                              subsequent occurrences of that key.
 
-   :option Boolean sparse: Specify "``true``" only references
+   :option Boolean sparse: If "``true``", the index only references
                            documents with the specified field. These
                            indexes use less space, but behave
                            differently in some situations
                            (particularly sorts.)
 
    :option v: Only specify a different index version in unusual
-              situations. The latest index version provides a smaller
+              situations. The latest index version (version 1) provides a smaller
               and faster index format.
 
    .. STUB .. seealso:: ":doc:`/core/indexing`."
@@ -1341,7 +1419,7 @@ that you may use with collection objects.
                          resource intensive operation.
 
    Provides a wrapper around the :dbcommand:`validate` :term:`database
-   command`. Call the :func:`renameCollection()` method on a
+   command`. Call the :func:`validate()` method on a
    collection object, to validate the collection itself. Specify the
    full option to return full statistics.
 
@@ -1373,16 +1451,16 @@ that you may use with collection objects.
 
    :param optional scale: Specifies the scale to deliver
                           results. Unless specified, this command
-                          returns all data in bytes.
+                          returns all sizes in bytes.
 
    :returns: A :term:`document` containing statistics that
              reflecting the state of the specified collection.
 
    This function provides a wrapper around the database command
    :dbcommand:`collStats`. The "``scale``" option allows you to
-   configure how the :program:`mongo` shell scales the output
-   values. For example, specify a "``scale``" value of "``1024``" to
-   display kilobytes rather than bytes.
+   configure how the :program:`mongo` shell scales the the sizes
+   of things in the output. For example, specify a "``scale``"
+   value of "``1024``" to display kilobytes rather than bytes.
 
    Call the :func:`stats()` method on a collection object, to
    return statistics regarding that collection. For example, the
@@ -1432,7 +1510,7 @@ Sharding
    :param name database: Specify a database name to shard.
 
    Enables sharding on the specified database. This does not
-   automatically shard the database, but makes it possible to begin
+   automatically shard any collections, but makes it possible to begin
    sharding collections using :func:`sh.shardCollection()`.
 
 .. function:: sh.shardCollection(collection,key,unique)
@@ -1444,7 +1522,7 @@ Sharding
                         :term:`partition` and distribute objects among
                         the shards.
 
-   :param boolean unique: Set true.
+   :param boolean unique: TODO ???
 
    Shards the named collection, according to the specified
    :term:`shard key`. Specify shard keys in the form of a :term:`document`.
@@ -1454,7 +1532,7 @@ Sharding
 .. function:: sh.splitFind(collection, query)
 
    :param string collection: Specify the sharded collection containing
-                             the chunk to migrate.
+                             the chunk to be split.
 
    :param query: Specify a query to identify a document in a specific
                  chunk. Typically specify the :term:`shard key` for a
@@ -1473,7 +1551,7 @@ Sharding
 .. function:: sh.splitAt(collection, query)
 
    :param string collection: Specify the sharded collection containing
-                             the chunk to migrate.
+                             the chunk to be split.
 
    :param document query: Specify a query to identify a document in a
                           specific chunk. Typically specify the
@@ -1481,7 +1559,7 @@ Sharding
                           query.
 
    Splits the chunk containing the document specified by the ``query``
-   as if that document is at the "middle" of the collection, even if
+   as if that document were at the "middle" of the collection, even if
    the specified document is not the actual median of the
    collection. Use this command to manually split chunks unevenly. Use
    the ":func:`sh.splitFind()`" function to split a chunk at the
@@ -1498,14 +1576,14 @@ Sharding
    :param string collection: Specify the sharded collection containing
                              the chunk to migrate.
 
-   :param query: Specify a query to identify a document in a specific
+   :param query: Specify a query to identify documents in a specific
                  chunk. Typically specify the :term:`shard key` for a
                  document as the query.
 
    :param string destination: Specify the name of the shard that you
                               wish to move the designated chunk to.
 
-   Moves the chunk containing the document specified by the ``query``
+   Moves the chunk containing the documents specified by the ``query``
    to the shard described by ``destination``.
 
    This function provides a wrapper around the
@@ -1615,7 +1693,7 @@ Replica Sets
 
    Initializes a new :term:`replica set` configuration. This function
    will disconnect the shell briefly and forces a reconnection as the
-   replica set renegotiates negotiates which node will be
+   replica set renegotiates which node will be
    :term:`primary`. As a result, the shell will display an error even
    if this command succeeds.
 
@@ -1623,21 +1701,24 @@ Replica Sets
    configuration. Use :func:`rs.status()` to retrieve the current
    status, and consider the following procedure for modifying a
 
+TODO for modifying a ...?  Also, you probably mean "Use rs.conf() to
+retrieve the current configuration..."
+
    This function provides a wrapper around the
    ":dbcommand:`replSetReconfig`" :term:`database command`.
 
-.. function:: rs.add(host,configuration)
+.. function:: rs.add(hostspec,arbiterOnly)
 
    Specify one of the following forms:
 
-   :param string host: Specifies a host (and optionally port-number)
+   :param string host: Either a string or a document.  If a string,
+                       specifies a host (and optionally port-number)
                        for a new host member for the replica
-                       set. MongoDB will add this host with the
-                       default configuration.
+                       set; MongoDB will add this host with the
+                       default configuration. If a document, specifies 
+		       any attributes about a member of a replica set.
 
-   :param document configuration: A :term:`document` that specifies a
-                                  new replica set member, with a
-                                  custom configuration.
+   :param optional arbiterOnly: If ``true``, this host is an arbiter.
 
    Provides a simple method to add a member to an existing
    :term:`replica set`. You can specify new hosts in one of two ways:
@@ -1645,7 +1726,7 @@ Replica Sets
    configuration, or as a configuration :term:`document`.
 
    This function will disconnect the shell briefly and forces a
-   reconnection as the replica set renegotiates negotiates which node
+   reconnection as the replica set renegotiates which node
    will be :term:`primary`. As a result, the shell will display an
    error even if this command succeeds.
 
@@ -1722,8 +1803,8 @@ Replica Sets
 
    Returns a status document with fields that includes the
    "``ismaster`` field that reports if the current node is the
-   :term:`primary` node, as well as a report of the current
-   replication configuration.
+   :term:`primary` node, as well as a report of a subset of current
+   replica set configuration.
 
    This function provides a wrapper around the :term:`database command`
    :dbcommand:`isMaster`
@@ -1746,7 +1827,7 @@ User Functions
 
 .. function:: Date()
 
-   :returns: Current date.
+   :returns: Current date, as a string.
 
 .. function:: load("file")
 
@@ -1780,6 +1861,8 @@ User Functions
    used by the JavaScript shell process. The fields returned are
    :term:`resident <resident memory>` and :term:`virtual <virtual
    memory>`.
+
+TODO do we really want to document _underscored function names that are for internal use?
 
 .. function:: _srand()
 
@@ -1818,7 +1901,7 @@ User Functions
 
    :param string file: Specify a path on the local file system.
 
-   Changes the current context to the specified path.
+   Changes the current working directory to the specified path.
 
    This function returns with output relative to the current shell
    session, and does not impact the server.
