@@ -20,6 +20,10 @@ else
 	BUILDDIR = $(root-build)
 endif
 
+# Helpers to compress the man pages
+UNCOMPRESSED_MAN := $(shell find $(BUILDDIR)/man/ -name "*.1")
+COMPRESSED_MAN := $(subst .1,.1.gz,$(UNCOMPRESSED_MAN))
+
 # Internal variables.
 PAPEROPT_a4		= -D latex_paper_size=a4
 PAPEROPT_letter		= -D latex_paper_size=letter
@@ -75,18 +79,26 @@ deploy:
 	sed -i -r 's@(<dt><a href=").*html#@\1./#@' $(publication-output)/$(current-branch)/single/genindex.html
 	@echo "Running the publication routine..."
 	git rev-parse --verify HEAD >|$(publication-output)/$(current-branch)/release.txt
-	# $(publication-script)
-	@echo "Publication succeessfully deployed."
+	@echo "Publication succeessfully deployed to '$(publication-output)'."
 endif
 
 
 disabled-builds:
 	@echo make MODE='publish' epub
 	@echo make MODE='publish' latexpdf
-	@echo cp -R $(BUILDDIR)/epub/MongoDB.epub $(publication-output)/$(current-branch)/MongoDB-manual-$(current-branch).epub
-	@echo cp -R $(BUILDDIR)/latex/MongoDB.pdf $(publication-output)/$(current-branch)/MongoDB-manual-$(current-branch).pdf
+	@echo cp -R $(BUILDDIR)/epub/MongoDB.epub $(publication-output)/$(current-branch)/MongoDB-Manual-$(current-branch).epub
+	@echo cp -R $(BUILDDIR)/latex/MongoDB.pdf $(publication-output)/$(current-branch)/MongoDB-Manual-$(current-branch).pdf
 	@echo
 	@echo This target did nothing, eventually these procedures will generate epub and latex builds.
+
+#
+# Helpers to build compressed man pages.
+#
+
+build-man: man $(COMPRESSED_MAN)
+
+$(BUILDDIR)/man/%.1.gz:$(BUILDDIR)/man/%.1
+	gzip $< -c > $@
 
 #
 # Clean up/removal targets
@@ -125,10 +137,11 @@ epub:
 	@echo
 	@echo "Build finished. The epub file is in $(BUILDDIR)/epub."
 
-man:
+build-man:
 	$(SPHINXBUILD) -b man $(ALLSPHINXOPTS) $(BUILDDIR)/man
 	@echo
 	@echo "Build finished. The manual pages are in $(BUILDDIR)/man."
+	@echo
 
 changes:
 	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) $(BUILDDIR)/changes
