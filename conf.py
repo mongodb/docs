@@ -34,7 +34,7 @@ master_doc = 'contents'
 
 # General information about the project.
 project = u'MongoDB'
-copyright = u'2011-2012, 10gen, Inc'
+copyright = u'2011-2012, 10gen, Inc.'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -134,9 +134,6 @@ html_static_path = ['source/.static']
 # using the given strftime format.
 html_last_updated_fmt = '%b %d, %Y'
 
-# If true, SmartyPants will be used to convert quotes and dashes to
-# typographically correct entities.
-
 html_use_smartypants = True
 html_domain_indices = True
 html_use_index = True
@@ -158,50 +155,47 @@ htmlhelp_basename = 'MongoDBdoc'
 
 # -- Options for LaTeX output --------------------------------------------------
 
-# The paper size ('letter' or 'a4').
-#latex_paper_size = 'letter'
-
-# The font size ('10pt', '11pt' or '12pt').
-#latex_font_size = '10pt'
-
-# Grouping the document tree into LaTeX files. List of tuples
-# (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('contents', 'MongoDB.tex', u'MongoDB Documentation',
-   u'MongoDB Documentation Project', 'manual'),
+  # (source start file, target name, title, author, documentclass [howto/manual]).
+    ('contents', 'MongoDB.tex', u'MongoDB Documentation', u'MongoDB Documentation Project', 'manual'),
 ]
 
-# The name of an image file (relative to this directory) to place at the top of
-# the title page.
-#latex_logo = None
+latex_elements = { 'preamble': '\DeclareUnicodeCharacter{FF04}{\$} \DeclareUnicodeCharacter{FF0E}{.}',
+                   'pointsize': '10pt',
+                   'papersize': 'letterpaper'
+                   }
 
-# For "manual" documents, if this is true, then toplevel headings are parts,
-# not chapters.
-#latex_use_parts = False
-
-# If true, show page references after internal links.
-#latex_show_pagerefs = False
-
-# If true, show URL addresses after external links.
+latex_use_parts = True
+latex_show_pagerefs = True
 latex_show_urls = False
+latex_domain_indices = True
 
-# Additional stuff for the LaTeX preamble.
-#latex_preamble = ''
+# The name of an image file (relative to this directory) to place at the top of the title page.
+#latex_logo = None
 
 # Documents to append as an appendix to all manuals.
 #latex_appendices = []
 
-# If false, no module index is generated.
-latex_domain_indices = True
-
 # -- Options for manual page output --------------------------------------------
 
-# One entry per manual page. List of tuples
-# (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'mongodb', u'MongoDB Documentation',
-     [u'MongoDB Documentation Project'], 1)
+  # (source start file, name, description, authors, manual section).
+    ('contents', 'mongodb', u'MongoDB Manual', [u'MongoDB Documentation Project'], 1),
+    ('reference/bsondump', 'bsondump', u'MongoDB BSON utility', [u'MongoDB Documentation Project'], 1),
+    ('reference/mongo', 'mongo', u'MongoDB Shell', [u'MongoDB Documentation Project'], 1),
+    ('reference/mongod', 'mongod', u'MongoDB Server', [u'MongoDB Documentation Project'], 1),
+    ('reference/mongos', 'mongos', u'MongoDB Shard Utility', [u'MongoDB Documentation Project'], 1),
+    ('reference/mongodump', 'mongodump', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/mongoexport', 'mongoexport', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/mongofiles', 'mongofiles', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/mongoimport', 'mongoimport', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/mongooplog', 'mongooplog', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/mongorestore', 'mongorestore', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/mongostat', 'mongostat', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/mongosniff', 'mongosniff', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/mongotop', 'mongotop', u'MongoDB', [u'MongoDB Documentation Project'], 1),
 ]
+
 
 # -- Options for Epub output ---------------------------------------------------
 
