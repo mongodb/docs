@@ -85,15 +85,15 @@ Sharding
 
 .. dbcommand:: addShard
 
-   :option optional name: Unless specified, a name will be
-                          automatically provided to uniquely identify
-                          the shard.
+   :option name: Optional. Unless specified, a name will be
+                 automatically provided to uniquely identify
+                 the shard.
 
-   :option optional maxSize: Unless specified, shards will consume the
-                             total amount of available space on their
-                             machines if necessary. Use the
-                             ``maxSize`` value to limit the amount of
-                             space the database can use.
+   :option maxSize: Optional. Unless specified, shards will consume the
+                    total amount of available space on their
+                    machines if necessary. Use the
+                    ``maxSize`` value to limit the amount of
+                    space the database can use.
 
    The :dbcomm and:`addShard` command registers a new with a sharded
    cluster. You must run this command against a :program:`mongos`
@@ -296,32 +296,32 @@ Aggregation
    :field inital: The starting value of the aggregation counter
                   object.
 
-   :field optional keyf: An optional function that returns a "key
-                         object" for use as the grouping key. Use
-                         ``keyf`` instead of ``key`` to specify a key
-                         that is not a single/multiple existing
-                         fields. For example, use ``keyf`` to group by
-                         day or week in place of a fixed ``key``.
+   :field keyf: Optional. A function that returns a "key
+                object" for use as the grouping key. Use
+                ``keyf`` instead of ``key`` to specify a key
+                that is not a single/multiple existing
+                fields. For example, use ``keyf`` to group by
+                day or week in place of a fixed ``key``.
 
-   :field optional cond: A statement that must evaluate to true for
-                         the :func:`group()` to process this
-                         document. Essentially this argument specifies
-                         a query document (as for
-                         :func:`find()`). Unless specified,
-                         :func:`group()` runs the "reduce" function
-                         against all documents in the collection.
+   :field cond: Optional. A statement that must evaluate to true for
+                the :func:`db.collection.group()` to process this
+                document. Essentially this argument specifies
+                a query document (as for
+                :func:`db.collection.find()`). Unless specified,
+                :func:`db.collection.group()` runs the "reduce" function
+                against all documents in the collection.
 
-   :field optional finalize: An optional function that runs each item
-                             in the result set before
-                             :func:`group()` returns the final
-                             value. This function can either modify
-                             the document by computing and adding an
-                             average field, or return compute and
-                             return a new document.
+   :field finalize: Optional. A function that runs each item
+                    in the result set before
+                    :func:`db.collection.group()` returns the final
+                    value. This function can either modify
+                    the document by computing and adding an
+                    average field, or return compute and
+                    return a new document.
 
    .. note::
 
-      The result set of the :func:`group()` must fit within the
+      The result set of the :func:`db.collection.group()` must fit within the
       size :ref:`maximum BSON document <limit-bson-document-size>`.
 
       Furthermore, you must ensure that there are fewer then 10,000
@@ -385,34 +385,34 @@ Aggregation
                 of the Map/Reduce job to a collection with that
                 name. See below for additional output options.
 
-   :option optional query: A query object, like the query used by the
-                           :func:`find()` method. Use this to
-                           filter to limit the number of documents
-                           enter the map phase of the aggregation.
+   :option query: Optional. A query object, like the query used by the
+                  :func:`db.collection.find()` method. Use this to
+                  filter to limit the number of documents
+                  enter the map phase of the aggregation.
 
-   :option optional sort: Sorts the input objects using this key. This
-                          option is useful for optimizing the
-                          job. Common uses include sorting by the emit
-                          key so that there are fewer reduces.
+   :option sort: Optional. Sorts the input objects using this key. This
+                 option is useful for optimizing the
+                 job. Common uses include sorting by the emit
+                 key so that there are fewer reduces.
 
-   :option optional limit: Species a maximum number of objects to
-                           return from the collection.
+   :option limit: Optional. Species a maximum number of objects to
+                  return from the collection.
 
-   :option optional finalize: Specifies an optional "finalize"
-                              function to run on a result, following
-                              the reduce stage, to modify or control
-                              the output of the :dbcommand:`mapReduce`
-                              operation.
+   :option finalize: Optional. Specifies an optional "finalize"
+                     function to run on a result, following
+                     the reduce stage, to modify or control
+                     the output of the :dbcommand:`mapReduce`
+                     operation.
 
-   :option optional scope: Place a :term:`document` as the contents of
-                           this field, to place fields into the global
-                           javascript scope.
+   :option scope: Optional. Place a :term:`document` as the contents of
+                  this field, to place fields into the global
+                  javascript scope.
 
-   :option optional jsMode: Boolean. The ``jsMode`` option defaults to
-                            true.
+   :option Boolean jsMode: Optional. The ``jsMode`` option defaults to
+                           ``false``.
 
-   :option optional verbose: Boolean. The ``verbose`` option provides
-                             statistics on job execution times.
+   :option Boolean verbose: Optional. The ``verbose`` option provides
+                            statistics on job execution times.
 
    :dbcommand:`mapReduce` only require ``map`` and ``reduce`` options,
    all other fields are optional. You must write all ``map`` and
@@ -425,44 +425,44 @@ Aggregation
 
    .. versionadded: 1.8
 
-   :param optional replace: Specify a collection name (e.g. ``{ out: {
-                            replace: collectionName } }``) where the
-                            output of the map-reduce overwrites the
-                            contents of the collection specified
-                            (i.e. "``collectionName``") if there is
-                            any data in that collection.
+   :param replace: Optional. Specify a collection name (e.g. ``{ out: {
+                   replace: collectionName } }``) where the
+                   output of the map-reduce overwrites the
+                   contents of the collection specified
+                   (i.e. "``collectionName``") if there is
+                   any data in that collection.
 
-   :param optional merge: Specify a collection name (e.g. ``{ out: {
-                          merge: collectionName } }``) where the
-                          map-reduce operation writes output to an
-                          existing collection
-                          (i.e. "``collectionName``",) and only
-                          overwrites existing documents when a new
-                          document has the same key as an "old"
-                          document in this collection.
+   :param merge: Optional. Specify a collection name (e.g. ``{ out: {
+                 merge: collectionName } }``) where the
+                 map-reduce operation writes output to an
+                 existing collection
+                 (i.e. "``collectionName``",) and only
+                 overwrites existing documents when a new
+                 document has the same key as an "old"
+                 document in this collection.
 
-   :param optional reduce: This operation behaves as the "``merge``"
-                           option above, except that when an existing
-                           document has the same key as a new
-                           document, "``reduce``" function from the
-                           map reduce job will run on both values and
-                           MongoDB writes the result of this function
-                           to the new collection. The specification
-                           takes the form of "``{ out: { reduce:
-                           collectionName } }``", where
-                           "``collectionName``" is the name of the
-                           results collection.
+   :param reduce: Optional. This operation behaves as the "``merge``"
+                  option above, except that when an existing
+                  document has the same key as a new
+                  document, "``reduce``" function from the
+                  map reduce job will run on both values and
+                  MongoDB writes the result of this function
+                  to the new collection. The specification
+                  takes the form of "``{ out: { reduce:
+                  collectionName } }``", where
+                  "``collectionName``" is the name of the
+                  results collection.
 
-   :param optional inline: Indicate the inline option (i.e. "``{ out:
-                           { inline: 1 } }``") to perform the map
-                           reduce job in ram and return the results at
-                           the end of the function. This option is
-                           only possible when the entire result set
-                           will fit within the :ref:`maximum size of a
-                           BSON document <limit-bson-document-size>`.
-                           When performing map-reduce jobs on
-                           secondary members of replica sets, this is
-                           the only available option.
+   :param inline: Optional. Indicate the inline option (i.e. "``{ out:
+                  { inline: 1 } }``") to perform the map
+                  reduce job in ram and return the results at
+                  the end of the function. This option is
+                  only possible when the entire result set
+                  will fit within the :ref:`maximum size of a
+                  BSON document <limit-bson-document-size>`.
+                  When performing map-reduce jobs on
+                  secondary members of replica sets, this is
+                  the only available option.
 
    .. seealso:: ":func:`mapReduce()`" and ":term:`map-reduce`."
 
@@ -490,12 +490,12 @@ Aggregation
    options, as a sub-document that specifies the following:
 
    :field query: A query object. This statement might resemble the
-                  :term:`document` passed to :func:`find()`, and
+                  :term:`document` passed to :func:`db.collection.find()`, and
                   should return *one* document from the database.
 
-   :field optional sort: If the query selects multiple documents, the
-                         first document given by this sort clause will
-                         be the one modified.
+   :field sort: Optional. If the query selects multiple documents, the
+                first document given by this sort clause will be the
+                one modified.
 
    :field remove: When ``true``, :dbcommand:`findAndModify` removes
                   the selected document.
@@ -879,7 +879,7 @@ Geospatial Commands
                        a given distance of the center coordinate.
 
    :field query: Further narrows the results using any standard
-                 MongoDB query operator or selection. See :func:`find()`
+                 MongoDB query operator or selection. See :func:`db.collection.find()`
                  and ":doc:`/reference/operators`" for more
                  information.
 
@@ -945,13 +945,13 @@ Collections
    :opt from: Specify a resolvable hostname, and optional port number
               of the remote server where the specified collection resides.
 
-   :opt optional query: A query document, in the form of a
-                        :term:`document`, that filters the documents
-                        in the remote collection that
-                        :dbcommand:`cloneCollection` will copy to the
-                        current database. See :func:`find()`.
+   :opt query: Optional. A query document, in the form of a
+               :term:`document`, that filters the documents
+               in the remote collection that
+               :dbcommand:`cloneCollection` will copy to the
+               current database. See :func:`db.collection.find()`.
 
-   :opt optional copyIndexes: Boolean. "``true`` by default. When set
+   :opt Boolean copyIndexes: Optional. "``true`` by default. When set
                               to "``false``" the indexes on the
                               originating server are *not* copied with
                               the documents in the collection.
@@ -1077,7 +1077,7 @@ Collections
    will display values in kilobytes.
 
    Examine the following example output, which uses the
-   :func:`stats()` helper in the :program:`mongo` shell.
+   :func:`db.collection.stats()` helper in the :program:`mongo` shell.
 
    .. code-block:: javascript
 
@@ -1198,7 +1198,7 @@ Administration
       The :func:`db.fsyncLock()` and :func:`db.fsyncUnlock()`
       helpers in the shell.
 
-.. dbcommand:: dropData base
+.. dbcommand:: dropDatabase
 
    The :dbcommand:`dropDatabase` command drops a database, deleting
    the associated data files. :dbcommand:`dropDatabase` operates on the
@@ -1719,7 +1719,7 @@ Diagnostics
                              to wait for write propagation to
                              complete. If replication does not
                              complete in the given timeframe, the
-                             :dbcommand:`getlasterror` command will
+                             :dbcommand:`getLastError` command will
                              return with an error status.
 
    .. seealso:: ":ref:`Replica Set Write Concern <replica-set-write-concern>`"
@@ -2107,7 +2107,7 @@ Internal Use
 
 .. dbcommand:: closeAllDatabases
 
-   :dbcommand:`closeAllDatabase` is an internal command that is only
+   :dbcommand:`closeAllDatabases` is an internal command that is only
    available on :program:`mongos` instances.
 
 .. dbcommand:: netstat
@@ -2363,7 +2363,7 @@ Internal Use
    Provides internal functionality to support :term:`map-reduce` in
    :term:`sharded <shard cluster>` environments.
 
-   .. seealso:: ":dbcommand:`mapreduce`
+   .. seealso:: ":dbcommand:`mapReduce`
 
    .. slave-ok
 

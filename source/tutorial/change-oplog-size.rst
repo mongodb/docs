@@ -84,8 +84,8 @@ If this node is the primary this will trigger a failover situation and
 another node in the replica set will become primary.
 
 Then restart the instance running on a different port in standalone
-(i.e. without :setting:`replSet` or :option:`--replSet <mongod
---replSet>`,) using the following command and the system shell:
+(i.e. without :setting:`replSet` or :option:`--replSet <mongod --replSet>`,) 
+using the following command and the system shell:
 
 .. code-block:: sh
 
@@ -115,7 +115,7 @@ to interact with the oplog. Issue the following command:
 
    use local
 
-Then, use the following :func:`save()` operation to save the last
+Then, use the following :func:`db.collection.save()` operation to save the last
 entry in the oplog to a temporary collection:
 
 .. code-block:: javascript

@@ -116,8 +116,8 @@ Options
 
    Specifies a directory, containing MongoDB data files, to which
    :program:`mongooplog` will apply operations from the :term:`oplog`
-   of the database specified with the :option:`--from <mongooplog
-   --from>` option.  When used, the :option:`--dbpath` option enables
+   of the database specified with the :option:`--from <mongooplog --from>`
+   option.  When used, the :option:`--dbpath` option enables
    :program:`mongo` to attach directly to local data files and write
    data without a running :program:`mongod` instance. To run with
    :option:`--dbpath`, :program:`mongooplog` needs to restrict access

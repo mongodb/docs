@@ -309,7 +309,7 @@ Options
 .. option:: --quota
 
    Enables a maximum limit for the number data files each database can
-   have. When running with :option:`--quota``, there are a maximum of
+   have. When running with :option:`--quota`, there are a maximum of
    8 data files per database. Adjust the quota with the
    :option:`--quotaFiles` option.
 

@@ -478,7 +478,7 @@ add the following option to your configuration file.
 .. note::
 
    You may chose to set these run-time configuration options using the
-   :option:`--keyfile <mongod --keyfile>` (or :option:`mongos --keyfile`)
+   :option:`--keyfile <mongod --keyFile>` (or :option:`mongos --keyFile`)
    options on the command line.
 
 Setting :setting:`keyFile` enables authentication and specifies a key

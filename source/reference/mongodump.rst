@@ -48,8 +48,8 @@ Options
    Optionally, specify a port number to connect a MongboDB instance
    running on a port other than ``27017``.
 
-   To connect to a replica set, use the :option:`--host <mongodump
-   --host>` argument with a setname, followed by a slash and a comma
+   To connect to a replica set, use the :option:`--host <mongodump --host>`
+   argument with a setname, followed by a slash and a comma
    separated list of host and port names. The :program:`mongodump`
    utility will, given the seed of at least one connected set member,
    connect to primary member of that set. this option would resemble:

@@ -60,7 +60,7 @@ Glossary
    map-reduce
       A paradigm from functional programming used to implement aggregation
       in a number of popular database servers. MongoDB uses map-reduce
-      in a command called :dbcommand:`mapreduce` to provide basic
+      in a command called :dbcommand:`mapReduce` to provide basic
       map-reduce style aggregation.
 
    $cmd
@@ -497,8 +497,8 @@ Glossary
       language that includes a variety of :term:`query operators <operator>`
       with names that begin with a ``$`` character. In the
       :program:`mongo` shell, you can issue queries using the
-      :func:`db.collection.find() <find>` and
-      :func:`db.collection.findOne() <findOne>` methods.
+      :func:`db.collection.find()` and
+      :func:`db.collection.findOne()` methods.
 
    projection
       A document given to a :term:`query` that specifies which fields

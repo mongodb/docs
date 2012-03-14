@@ -104,7 +104,7 @@ following command:
    that this user can write to your chosen data path.
 
 You can specify, and create, an alternate path using the
-:option:`--dbpath <mongod>` option to :program:`mongod` and the above
+:option:`--dbpath <mongod --dbpath>` option to :program:`mongod` and the above
 command.
 
 The 10gen builds of MongoDB contain no :term:`control scripts <control

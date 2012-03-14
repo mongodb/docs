@@ -445,8 +445,8 @@ Settings
 
    Set to ``true`` to run a repair routine on all databases following
    start up. You may wish to avoid enabling this setting for default
-   operation may not be desirable. Consider using ":option:`mongod
-   --repair`" to access this functionality.
+   operation may not be desirable. Consider using ":option:`mongod --repair`" 
+   to access this functionality.
 
    .. note::
 
@@ -516,8 +516,8 @@ Settings
    information regarding the page size, the number of physical pages,
    and the number of available physical pages to standard output.
 
-   More typically, run this operation by way of the :option:`mongod
-   --sysinfo` command. When running with the :setting:`sysinfo`, only
+   More typically, run this operation by way of the :option:`mongod --sysinfo`
+   command. When running with the :setting:`sysinfo`, only
    :program:`mongod` only outputs the page information and no database
    process will start.
 

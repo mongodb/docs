@@ -225,7 +225,7 @@ Geolocation
 
    This query will return 100 ordered records with a ``location``
    field in ``collection``. Specify a different limit using the
-   :func:`limit()`, or another :ref:`geolocation operator
+   :func:`cursor.limit()`, or another :ref:`geolocation operator
    <geolocation-operators>`, or a non-geospatial operator to limit the
    results of the query.
 
@@ -245,7 +245,7 @@ Geolocation
    from the point ``[100,100]``. :operator:`$near` returns results
    ordered by their distance from ``[100,100]``. This operation will
    return the first 100 results unless you modify the query with the
-   :func:`limit()` method.
+   :func:`cursor.limit()` method.
 
    Specify the value of the :operator:`$maxDistance` argument in the
    same units as the document coordinate system.
@@ -871,8 +871,8 @@ Update
    produce unexpected results. By specifying :operator:`$atomic` you
    can garuentee isolation for the entire multi-update.
 
-   .. seealso:: See :func:`update()` for more information about the
-      :func:`update()` function.
+   .. seealso:: See :func:`db.collection.update()` for more information about the
+      :func:`db.collection.update()` method.
 
 .. _projection-operators:
 

@@ -63,7 +63,7 @@ If you remove a document, does MongoDB remove it from disk?
 
 Yes.
 
-When you use :func:`remove`, the object will no longer exist in
+When you use :func:`db.collection.remove()`, the object will no longer exist in
 MongoDB's on-disk data storage.
 
 When does MongoDB write updates to disk?
@@ -132,7 +132,8 @@ application server to decrease the connection overhead.
 
 If these connections do not impact your performance you can use the
 run-time :setting:`quiet` option or the command-line option
-:option:`--quiet <mongod>` to suppress these messages from the log.
+:option:`--quiet <mongod --quiet>` to suppress these messages from the
+log.
 
 Does MongoDB run on Amazon EBS?
 -------------------------------
@@ -250,7 +251,7 @@ the same time, ``my_object`` might be "``{ $where : "things"
      MongoDB client drivers, if properly implemented, check for
      reserved characters in keys on inserts.
 
-- **Update**.  The :func:`update()` operation permits ``$`` operators
+- **Update**.  The :func:`db.collection.update()` operation permits ``$`` operators
   in the update argument but does not support the
   :operator:`$where` operator. Still, some users
   may be able to inject operators that can manipulate a single

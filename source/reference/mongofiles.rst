@@ -130,10 +130,9 @@ Options
    in conjunction with the :option:`mongofiles --username` option to
    supply a username.
 
-   If you specify a :option:`--username <mongofile --username>`
-   without the :option:`--password` option, :program:`mongofile`
+   If you specify a :option:`--username <mongofiles --username>`
+   without the :option:`--password` option, :program:`mongofiles`
    will prompt for a password interactively.
-
 
 .. option:: --dbpath <path>
 

@@ -119,7 +119,7 @@ the shard cluster. Consider a sharded collection, using the
 How does MongoDB sort queries in sharded environments?
 ------------------------------------------------------
 
-If you call the :func:`sort()` method on a query in a sharded
+If you call the :func:`cursor.sort()` method on a query in a sharded
 environment, the :program:`mongod` for each shard will sort its
 results, and the :program:`mongos` merges each shard's results before returning
 them to the client.

@@ -282,7 +282,7 @@ The current pipeline operators are:
       amount of later processing. If you place a :pipeline:`$match`
       at the very beginning of a pipeline, the query can take
       advantage of :term:`indexes <index>` like any other
-      :mongodb:func:`find()` or :mongodb:func:`findOne()`.
+      :mongodb:func:`db.collection.find()` or :mongodb:func:`db.collection.findOne()`.
 
 .. pipeline:: $limit
 
