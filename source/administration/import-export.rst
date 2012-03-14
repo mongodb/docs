@@ -23,16 +23,20 @@ with the database itself.
    :program:`mongod` instance, they can impact the performance of your
    running database.
 
-   TODO Do you want to mention why? For instance, traversing your entire
-   database will pull in ALL data, potentially evicting current working
-   set.  This could be potentially linked to some page discussing 
-   memory mapped files, etc...
+   Not only do these backup processes create traffic for a running
+   database instance, they also force the database to read all data
+   through memory. When MongoDB reads infrequently used data, it can
+   supplant more frequently accessed data, causing a deterioration in
+   performance for the database's regular workload.
 
    :program:`mongoimport` and :program:`mongoexport` do not reliably
-   preserve data types. As a result data exported or imported with
-   these tools may lose some measure of fidelity. Use with care.
-   
-   TODO link to caveat section about which types are kept or lost
+   preserve all rich :term:`BSON` data types, because :term:`BSON` is
+   a superset of :term:`JSON`. For example :term:`JSON` has no date or
+   regex types, and only has one number type. Thus,
+   :program:`mongoimport` and :program:`mongoexport` cannot represent
+   :term:`BSON` data accurately in :term:`JSON`. As a result data
+   exported or imported with these tools may lose some measure of
+   fidelity. Use with care.
 
 Using Database Imports and Exports for Backups
 ----------------------------------------------
@@ -44,9 +48,9 @@ tools and operations discussed provide functionality that's useful in
 the context of providing some kinds of backups.
 
 By contrast, use import and export tools to backup a small subset of
-your data or to move data to or from a 3rd party system. These backups may 
-capture a small crucial set of data or a frequently modified section of 
-data, for extra insurance, or for ease of access. No matter how you 
+your data or to move data to or from a 3rd party system. These backups may
+capture a small crucial set of data or a frequently modified section of
+data, for extra insurance, or for ease of access. No matter how you
 decide to import or export your data, consider the following guidelines:
 
 - Label files so that you can identify what point in time the
@@ -68,8 +72,8 @@ decide to import or export your data, consider the following guidelines:
 Human Intelligible Import/Export Formats
 ----------------------------------------
 
-This section describes a process to import/export your database, 
-or a portion thereof, to a file in a JSON or CSV format.
+This section describes a process to import/export your database, or a
+portion thereof, to a file in a :term:`JSON` or :term:`CSV` format.
 
 .. seealso:: The :doc:`/reference/mongoimport` and
    :doc:`/reference/mongoexport` documents contain complete
@@ -181,8 +185,8 @@ MongoDB instance's database files. Consider using the
 files when you run :program:`mongoimport` in this configuration.
 
 Use the ":option:`--ignoreBlanks <mongoimport --ignoreBlanks>`" option
-to ensure that blank fields are ignored. For CSV and TSV imports, this 
-option provides the desired functionality in most cases: it avoids 
+to ignore blank fields. For :term:`CSV` and :term:`TSV` imports, this
+option provides the desired functionality in most cases: it avoids
 inserting blank fields in MongoDB documents.
 
 .. seealso:: See the ":doc:`/administration/backups`" document for
