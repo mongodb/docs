@@ -44,14 +44,12 @@ replacing MongoDB's first documentation resource, located on the
 Licensing
 `````````
 
-This manual is Copyright |copy| 2011-2012 10gen, Inc.
-
 The full contents of this manual is licensed under a Creative Commons
 "`Attribution-NonCommercial-ShareAlike 3.0 Unported
 <http://creativecommons.org/licenses/by-nc-sa/3.0/>`_"
 (i.e. "CC-BY-NC-SA") license.
 
-.. seealso:: The "`10gen Contributor Agreement <http://www.10gen.com/contributor>`_."
+The MongoDB Manual is copyright |copy| 2011-2012 10gen, Inc.
 
 Version and Revisions
 `````````````````````
@@ -87,15 +85,15 @@ system shell:
 
 If you have a GitHub account want to fork this repository, feel free
 to issue pull requests and someone on the documentation team will
-merge in your contributions promptly.
+merge in your contributions promptly. Please complete the
+`MongoDB/10gen Contributor Agreement <http://www.10gen.com/contributor>`_
+so that we can expedite the  merge process.
 
 The project tracks issues using the `MongoDB Jira Instance
 <http://jira.mongodb.org/>`_ and the :issue:`DOCS` project. Feel free
 to open a :issue:`DOCS` case if you see a problem with the
 documentation and someone on the documentation team will work to
 resolve this issue as quickly as possible.
-
-.. seealso:: `MongoDB/10gen Contributor Agreement <http://www.10gen.com/contributor>`_.
 
 Writing Documentation
 ~~~~~~~~~~~~~~~~~~~~~
