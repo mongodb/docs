@@ -341,7 +341,7 @@ functional backup of a consistent state is more complicated. Flush all
 writes to disk and lock the database to prevent writes during the
 backup process. If you have a :term:`replica set` configuration, use a
 :term:`secondary` that is not receiving reads (i.e. :term:`hidden
-node`) for backup purposes.
+member`) for backup purposes.
 
 You can flush writes to disk, and "lock" the database to prevent
 further writes with the :func:`db.fsyncLock()` command in the
