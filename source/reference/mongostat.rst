@@ -2,8 +2,6 @@
 
 .. default-domain:: mongodb
 
-.. binary:: mongostat
-
 ===========================
 :program:`mongostat` Manual
 ===========================
@@ -39,6 +37,8 @@ process.
 
 Options
 -------
+
+.. binary:: mongostat
 
 .. program:: mongostat
 

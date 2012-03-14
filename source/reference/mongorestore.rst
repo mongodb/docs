@@ -2,8 +2,6 @@
 
 .. default-domain:: mongodb
 
-.. binary:: mongorestore
-
 ==============================
 :program:`mongorestore` Manual
 ==============================
@@ -17,6 +15,8 @@ inverse functionality of :program:`mongodump`.
 
 Options
 -------
+
+.. binary:: mongorestore
 
 .. program:: mongorestore
 

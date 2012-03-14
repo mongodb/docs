@@ -2,8 +2,6 @@
 
 .. default-domain:: mongodb
 
-.. binary:: mongofiles
-
 ============================
 :program:`mongofiles` Manual
 ============================
@@ -36,6 +34,8 @@ running :program:`mongod` instance, if no other :program:`mongod` is running.
 
 Commands
 --------
+
+.. binary:: mongofiles
 
 .. program:: mongofiles
 

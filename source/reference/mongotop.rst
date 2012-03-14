@@ -2,8 +2,6 @@
 
 .. default-domain:: mongodb
 
-.. binary:: mongotop
-
 ==========================
 :program:`mongotop` Manual
 ==========================
@@ -36,6 +34,8 @@ provides statistics on the per-collection level. By default,
 
 Options
 -------
+
+.. binary:: mongotop
 
 .. program:: mongotop
 

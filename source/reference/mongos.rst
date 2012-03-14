@@ -2,8 +2,6 @@
 
 .. default-domain:: mongodb
 
-.. binary:: mongos
-
 ========================
 :program:`mongos` Manual
 ========================
@@ -28,6 +26,8 @@ instance.
 
 Options
 -------
+
+.. binary:: mongos
 
 .. program:: mongos
 

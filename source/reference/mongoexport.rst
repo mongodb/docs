@@ -2,8 +2,6 @@
 
 .. default-domain:: mongodb
 
-.. binary:: mongoexport
-
 =============================
 :program:`mongoexport` Manual
 =============================
@@ -28,6 +26,8 @@ provides the inverse "importing" capability.
 
 Options
 -------
+
+.. binary:: mongoexport
 
 .. program:: mongoexport
 

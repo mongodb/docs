@@ -2,8 +2,6 @@
 
 .. default-domain:: mongodb
 
-.. binary:: mongooplog
-
 ============================
 :program:`mongooplog` Manual
 ============================
@@ -47,6 +45,8 @@ operation.
 
 Options
 -------
+
+.. binary:: mongooplog
 
 .. program:: mongooplog
 

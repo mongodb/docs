@@ -2,8 +2,6 @@
 
 .. default-domain:: mongodb
 
-.. binary:: mongo
-
 =======================
 :program:`mongo` Manual
 =======================
@@ -23,6 +21,8 @@ environment. This manual page, addresses the basic invocation of the
 
 Options
 -------
+
+.. binary:: mongo
 
 .. program:: mongo
 

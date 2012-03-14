@@ -2,8 +2,6 @@
 
 .. default-domain:: mongodb
 
-.. binary:: mongodump
-
 ===========================
 :program:`mongodump` Manual
 ===========================
@@ -21,6 +19,8 @@ functionality.
 
 Options
 -------
+
+.. binary:: mongodump
 
 .. program:: mongodump
 

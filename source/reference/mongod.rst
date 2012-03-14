@@ -2,8 +2,6 @@
 
 .. default-domain:: mongodb
 
-.. binary:: mongod
-
 ========================
 :program:`mongod` Manual
 ========================
@@ -24,6 +22,8 @@ below.
 
 Options
 -------
+
+.. binary:: mongod
 
 .. program:: mongod
 

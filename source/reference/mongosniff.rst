@@ -2,8 +2,6 @@
 
 .. default-domain:: mongodb
 
-.. binary:: mongosniff
-
 ============================
 :program:`mongosniff` Manual
 ============================
@@ -27,6 +25,8 @@ development.
 
 Options
 -------
+
+.. binary:: mongosniff
 
 .. program:: mongosniff
 
