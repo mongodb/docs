@@ -2,6 +2,8 @@
 Sharding Fundamentals
 =====================
 
+.. default-domain:: mongodb
+
 MognoDB's sharding functionality allows users to :term:`partition` the
 data of a :term:`collection` within a database so that the documents
 are automatically distributed among a number of :program:`mongod`
@@ -29,8 +31,20 @@ lightweight routing processes, :doc:`mongos </reference/mongos>`, that
 routes operations to the correct shard based on the operation and the
 cluster metadata.
 
+.. _sharding-requirements:
+
 Requirements
 ------------
+
+A shard cluster has the following components: 
+
+- 1 or more :program:`mongos` instances. 
+
+  These lightweight, stateless provide a single interface for the
+  entire shard cluster. route 3 
+- queirs configuration servers. 
+
+
 
 Data
 ~~~~
@@ -41,11 +55,23 @@ Architectures
 Configuration Servers
 ---------------------
 
+.. _sharding-shard-keys:
+
 Shard Keys
 ----------
 
+
+.. _sharding-mnongos:
+
 :program:`mongos`
 -----------------
+
+.. note:: 
+
+   The :term:`aggregation` framework provided by the
+   :dbcommand:`aggregate` command can 
+
+.. _sharding-balancing:
 
 Balancing and Distribution
 --------------------------
