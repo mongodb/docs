@@ -20,8 +20,9 @@ else
 	BUILDDIR = $(root-build)
 endif
 
-# Helpers to compress the man pages
-UNCOMPRESSED_MAN := $(shell find $(BUILDDIR)/man/ -name "*.1")
+# helpers for compressing man pages
+
+UNCOMPRESSED_MAN := $(shell find $(BUILDDIR)/man/ -name "*.1" 2>/dev/null )
 COMPRESSED_MAN := $(subst .1,.1.gz,$(UNCOMPRESSED_MAN))
 
 # Internal variables.
@@ -92,16 +93,16 @@ disabled-builds:
 	@echo This target did nothing, eventually these procedures will generate epub and latex builds.
 
 #
-# Helpers to build compressed man pages.
+# Targets to build compressed man pages.
 #
 
 build-man: man $(COMPRESSED_MAN)
-
-$(BUILDDIR)/man/%.1.gz:$(BUILDDIR)/man/%.1
+compress-man: $(COMPRESSED_MAN)
+$(BUILDDIR)/man/%.1.gz: $(BUILDDIR)/man/%.1
 	gzip $< -c > $@
 
 #
-# Clean up/removal targets
+# Clean up/removal targets.
 #
 
 clean:
@@ -137,7 +138,7 @@ epub:
 	@echo
 	@echo "Build finished. The epub file is in $(BUILDDIR)/epub."
 
-build-man:
+man:
 	$(SPHINXBUILD) -b man $(ALLSPHINXOPTS) $(BUILDDIR)/man
 	@echo
 	@echo "Build finished. The manual pages are in $(BUILDDIR)/man."
