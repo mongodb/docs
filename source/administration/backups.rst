@@ -2,6 +2,9 @@
 Backup and Restoration Strategies
 =================================
 
+TODO: consistent use of LVM, lvm and where it's linked or not needs to 
+be addressed.
+
 .. default-domain:: mongodb
 
 This document provides an inventory of database backup strategies for
@@ -12,6 +15,9 @@ use the examples from the :ref:`block level backup methods
 <block-level-backup>` or the ":ref:`backups using
 mongodump <database-dumps>`" sections to implement the backup
 solution that is best suited to your deployment's needs.
+
+TODO: why are some links in quotes and some not? (see: backups using mongodump 
+vs. block level...)
 
 .. note::
 
@@ -33,21 +39,21 @@ Overview
 If you are familiar with backups systems in the context of database
 systems please skip ahead to :ref:`backup considerations <backup-considerations>`.
 
-With MongoDB, the best way to are two major approaches to backups:
+With MongoDB, there are two major approaches to backups:
 using system-level tools, like disk image snapshots, and using various
-capacities present in the :ref:`mongodump tool <database-dumps>`
-to provide backup functionality. The underlying goal of these
-strategies is to produce a full copy of the data that you can use to
-bring up a new or replacement database instance.
+capacities present in the :ref:`mongodump tool <database-dumps>`.
+The underlying goal of these strategies is to produce a full and consistent 
+copy of the data that you can use to bring up a new or replacement 
+database instance.
 
 The methods described in this document operate by copying the data
-file on the disk level. If your system does not provide a capacity for
+file on the disk level. If your system does not provide functionality for
 this kind of backup, see the section on :ref:`using database dumps for
 backups <database-dumps>`" for more information.
 
-One of the leading challenges for producing reliable backups from
-database systems is ensuring that the state captured backup methods is
-in a consistent and steerable state. Because every environment is
+One of the primary challenges for producing reliable backups of 
+database systems is ensuring that the state captured during backup is
+in a consistent and usable???? state. Because every environment is
 unique it's important to regularly test the backups that you capture
 to ensure that your backup system is practically, and not just
 theoretically, functional.
@@ -62,10 +68,10 @@ factors:
 
 - Geography. Ensure that you move some backups away from the your
   primary database infrastructure. It's important to be able to
-  restore your database if you loose access to a system or site.
+  restore your database if you lose access to a system or site.
 
 - System errors. Ensure that your backups can survive situations where
-  hardware failures, disk errors, may impact the integrity or
+  hardware failures, disk errors, or ???? may impact the integrity or
   availability of your backups.
 
 - Production constraints. Backup operations themselves sometimes
@@ -74,11 +80,11 @@ factors:
   windows.
 
 - System capabilities. In order to use some of the block-level
-  snapshot tools require special support on the operating-system or
+  snapshot tools requires special support on the operating-system or
   infrastructure level.
 
 - Database configuration. Cluster configuration including replication
-  and sharding can affect the procured, timing, and impact of the
+  and sharding can affect the process???, timing, and impact of the
   backup process.
 
 - Actual requirements. You may be able to save time, effort, and space
@@ -88,12 +94,12 @@ factors:
 With this information in hand you can begin to develop a backup plan
 for your database. Remember that all backup plans must be:
 
-- tested. If you cannot effectively restore your database from the
+- Tested. If you cannot effectively restore your database from the
   backup, then your backups are useless. Test backup restoration
   regularly in practical situations to ensure that your backup system
   provides value.
 
-- automated. Database backups need to run regularly and
+- Automated. Database backups need to run regularly and
   automatically. Also automate tests of backup restoration.
 
 .. _block-level-backup:
@@ -105,15 +111,15 @@ This section will provides an overview of using disk/block level
 snapshots (i.e. :term:`LVM` or storage appliance) to backup a MongoDB
 instance. These tools make a quick block-level backup of the device
 that holds MongoDB's data files. These methods complete quickly, work
-reliably, and typically provide the easiest backup systems methods to
+reliably, and typically provide the easiest backup systems method to
 implement.
 
 Snapshots typically work by creating pointers between the live data
-and a special snapshot data, you can think about these as "hard
-links." Then, as the working data diverges from the snapshot, the
+and a special snapshot data partition???, you can think about these as "hard
+links." Then, as the working data diverges from the snapshot, these
 systems use a copy-on-write strategy. As a result the snapshot only
 stores modified data. After making the snapshot, you will mount the
-snapshot image and copy the files off disk image. The resulting backup
+snapshot image and copy the files off the???? disk image. The resulting backup
 contains full copies of all the data.
 
 Snapshots have the following limitations:
@@ -122,9 +128,13 @@ Snapshots have the following limitations:
   snapshot takes place. With journaling all states are recoverable,
   without journaling you must flush all pending writes to disk.
 
+  TODO Might should explain this in more detail.  Esp that snapshot with
+  journal needs journal to be on same volume as data, which in itself
+  has tradeoffs.... Often confuses people
+
 - Snapshots create an image of an entire disk image. Unless you need
   to back up your entire system, consider isolating your MongoDB data
-  files, journal (if applicable,) and configuration on one logical
+  files, journal (if applicable), and configuration on one logical
   disk that doesn't contain any other data.
 
   Alternately, store all MongoDB data files on a dedicated device to
@@ -138,9 +148,11 @@ Snapshots have the following limitations:
 With Journaling
 ~~~~~~~~~~~~~~~
 
-If your system has a snapshot capability and :program:`mongod` instance
+If your system has snapshot capability and your :program:`mongod` instance
 has journaling enabled then you can use any kind of file system or
 volume/block level snapshot tool to create backups.
+
+TODO: do you need the note and the warning?  Just warning?
 
 .. note::
 
@@ -150,10 +162,12 @@ volume/block level snapshot tool to create backups.
 .. warning::
 
    MongoDB disables journaling on 32 bit systems and all pre-1.9.2
-   64-bit versions. Specify the ":setting:`journal` = ``true``" in the
+   64-bit versions. Specify ":setting:`journal` = ``true``" in the
    configuration or use the :option:`--journal <mongod --journal>`
    run-time option for :program:`mongod` to ensure that MongoDB uses
    journaling.
+
+TODO: I don't quite understand the wording in this block
 
 Many service providers provide a block-level backup service based on
 disk image snapshots. If you manage your own infrastructure on a
@@ -168,6 +182,7 @@ LVM-based setups *within* a cloud/virtualized environment.
 
    If you use Amazon's EBS service in a software RAID 10 (e.g. 1+0)
    configuration, use LVM to capture a consistent disk image.
+   TODO: link to Amazon section in this file
 
 The following sections provide an overview of a simple backup process
 using LVM on a Linux system. While the tools, commands, and paths may
@@ -186,7 +201,7 @@ following format:
 
    lvcreate --size 100M --snapshot --name mdb-snap01 /dev/vg0/mongodb
 
-This command creates a lvm snapshot (with the "``--snapshot`` option)
+This command creates an LVM snapshot (with the "``--snapshot`` option)
 named "``mdb-snap01``" of the "``mongodb``" volume in the "``vg0``"
 volume group.
 
@@ -204,13 +219,13 @@ current state of ``/dev/vg0/mongodb`` and the creation of the snapshot
 .. warning::
 
    Ensure that you create snapshots with enough space to account for
-   data growth, particularly for a period of that it takes to copy to
+   data growth, particularly for the period of time that it takes to copy 
    data out of the system or to a temporary image.
 
    If you your snapshot runs out of space, the snapshot image
-   becomes unusable. You discard this LVM and create another.
+   becomes unusable. Discard this LVM and create another.
 
-The snapshot exists when the command returns. You can restore
+The snapshot has been created when the command returns. You can restore
 directly from the snapshot at any time or by creating a new logical
 volume and restoring from this snapshot to the alternate image.
 
@@ -223,8 +238,8 @@ that you archive these snapshots and store them elsewhere.
 Archive Snapshots
 `````````````````
 
-After creating a snapshot, mount the snapshot and move the data to a
-separate storage You. system may wish to compress the backup images as
+After creating a snapshot, mount the snapshot and move the data to
+separate storage. Your system may wish to compress the backup images as
 you move the offline. Consider the following procedure to fully
 archive the data from the snapshot:
 
@@ -282,8 +297,8 @@ This sequence:
 
 .. _backup-restore-from-snapshot:
 
-Restore Directly from a Snapshots
-`````````````````````````````````
+Restore Directly from a Snapshot
+````````````````````````````````
 
 To combine the above processes without writing to a compressed ``tar``
 archive, use the following sequence:
@@ -311,7 +326,7 @@ procedure:
    mount /dev/vg0/mdb-new /srv/mongodb
 
 This sequence is identical to procedures explained above except that
-the output direct input (i.e. :term:`piped <pipe>`) over SSH to the
+the output direct input ???? (i.e. :term:`piped <pipe>`) over SSH to the
 remote system.
 
 .. _backup-without-journaling:
@@ -320,9 +335,14 @@ Without Journaling
 ~~~~~~~~~~~~~~~~~~
 
 If your :program:`mongod` instance does not run with journaling
-enabled, obtaining a functional backup of a consistent state is more
+enabled (OR if your journal is on a separate volume), obtaining a 
+functional backup of a consistent state is more
 complicated. Flush all writes to disk and lock the database to prevent
 writes during the backup process.
+
+TODO: Need to recommend that this is done on a secondary which is not 
+currently receiving reads, e.g., hidden secondary.  Need to specify
+what db.fsyncLock() does and link.
 
 To flush writes and lock the database before performing the snapshot,
 issue the following command:
@@ -342,7 +362,8 @@ completed, issue the following command:
 .. note::
 
    Version 1.9.0 added :func:`db.fsyncLock()` and
-   :func:`db.fsyncUnlock()` helpers to the :program:`mongo` shell.
+   :func:`db.fsyncUnlock()` helpers to the :program:`mongo` shell.  Prior to this 
+   version, use the following commands:
 
    .. code-block:: javascript
 
