@@ -142,6 +142,14 @@ html_show_sourcelink = True
 html_show_sphinx = True
 html_show_copyright = True
 
+manual_edition_path = 'http://docs.mongodb.org/' + current_git_branch + '/MongoDB-Manual-' + current_git_branch
+
+html_theme_options = { 'branch': current_git_branch,
+                       'commit': current_git_commit,
+                       'pdfpath':  manual_edition_path + '.pdf',
+                       'epubpath':  manual_edition_path + '.epub'
+                       }
+
 # If true, an OpenSearch description file will be output, and all pages will
 # contain a <link> tag referring to it.  The value of this option must be the
 # base URL from which the finished HTML is served.
@@ -203,7 +211,7 @@ man_pages = [
 epub_title = u'MongoDB'
 epub_author = u'MongoDB Documentation Project'
 epub_publisher = u'MongoDB Documentation Project'
-epub_copyright = u'2011, MongoDB Documentation Project'
+epub_copyright = u'2011, 10gen Inc.'
 epub_theme = 'epub_mongodb'
 epub_tocdup = True
 epub_tocdepth = 3

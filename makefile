@@ -7,7 +7,9 @@ PAPER	      =
 
 # change this to reflect the location of the public repo
 publication-output = ../public-docs
-publication-script = $(publication-output)/publish.sh $(publication-output)
+# change this to reflect the branch that "manual/" will point to
+manual-branch = master
+# intuit the current branch
 current-branch := $(shell git symbolic-ref HEAD 2>/dev/null | cut -d "/" -f "3" )
 
 # Build directory tweaking.
@@ -65,13 +67,26 @@ build-branch:
 	make MODE='publish' html
 	make MODE='publish' dirhtml
 	make MODE='publish' singlehtml
+	make MODE='publish' epub
+	make MODE='publish' latexpdf
 	@echo "All builds complete.'"
 	@echo "to complete the build process."
 
 ifeq ($(MODE),publish)
+import-pdfs: 
+	cp $(BUILDDIR)/epub/MongoDB.epub $(publication-output)/$(current-branch)/MongoDB-Manual-$(current-branch).epub
+	cp $(BUILDDIR)/latex/MongoDB.pdf $(publication-output)/$(current-branch)/MongoDB-Manual-$(current-branch).pdf
+	rm -f $(publication-output)/$(current-branch)/MongoDB-Manual.pdf $(publication-output)/$(current-branch)/MongoDB-Manual.epub
+ifeq ($(manual-branch),$(current-branch))
+	ln -s MongoDB-Manual-$(current-branch).pdf $(publication-output)/$(current-branch)/MongoDB-Manual.pdf
+	ln -s MongoDB-Manual-$(current-branch).epub $(publication-output)/$(current-branch)/MongoDB-Manual.epub
+endif
+
 deploy:
 	@echo "Exporting builds..."
 	mkdir -p $(publication-output)/$(current-branch)/single/
+	make MODE='publish' import-pdfs
+	exit 1
 	cp -R $(BUILDDIR)/dirhtml/* $(publication-output)/$(current-branch)
 	cp -R $(BUILDDIR)/singlehtml/* $(publication-output)/$(current-branch)/single/
 	cp $(BUILDDIR)/dirhtml/search/index.html $(publication-output)/$(current-branch)/single/search.html
@@ -84,13 +99,6 @@ deploy:
 endif
 
 
-disabled-builds:
-	@echo make MODE='publish' epub
-	@echo make MODE='publish' latexpdf
-	@echo cp -R $(BUILDDIR)/epub/MongoDB.epub $(publication-output)/$(current-branch)/MongoDB-Manual-$(current-branch).epub
-	@echo cp -R $(BUILDDIR)/latex/MongoDB.pdf $(publication-output)/$(current-branch)/MongoDB-Manual-$(current-branch).pdf
-	@echo
-	@echo This target did nothing, eventually these procedures will generate epub and latex builds.
 
 #
 # Targets to build compressed man pages.
