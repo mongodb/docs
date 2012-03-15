@@ -31,12 +31,89 @@ with the database itself.
 
    :program:`mongoimport` and :program:`mongoexport` do not reliably
    preserve all rich :term:`BSON` data types, because :term:`BSON` is
-   a superset of :term:`JSON`. For example :term:`JSON` has no date or
-   regex types, and only has one number type. Thus,
-   :program:`mongoimport` and :program:`mongoexport` cannot represent
-   :term:`BSON` data accurately in :term:`JSON`. As a result data
-   exported or imported with these tools may lose some measure of
-   fidelity. Use with care.
+   a superset of :term:`JSON`. Thus, :program:`mongoimport` and
+   :program:`mongoexport` cannot represent :term:`BSON` data
+   accurately in :term:`JSON`. As a result data exported or imported
+   with these tools may lose some measure of fidelity. See the
+   ":wiki:`MongoDB Extended JSON <Mongo+Extended+JSON>`" wiki page for
+   more information about Use with care.
+
+Data Type Fidelity
+------------------
+
+:term:`JSON` does not have the following data types that exist in
+:term:`BSON` documents: ``data_binary``, ``data_date``,
+``data_timestamp``, ``data_regex``, ``data_oid`` and ``data_ref``. As
+a result using any tool that decodes BSON :term:`documents <document>`
+into JSON will suffer some loss of fidelity.
+
+If maintaining type fidelity is important, consider writing a data
+import and export system that does not force BSON documents into JSON
+form as part of the process. The following list of types contain
+examples for how MongoDB will represent how BSON documents render in
+JSON.
+
+- ``data_binary``
+
+  .. code-block:: javascript
+
+     { "$binary" : "<bindata>", "$type" : "<t>" }
+
+  ``<bindata>`` is the base64 representation of a binary string. <t>
+  is the hexadecimal representation of a single byte indicating the
+  data type.
+
+- ``data_date``
+
+  .. code-block:: javascript
+
+     Date( <date> )
+
+  ``<date>`` is the JSON representation of a 64-bit signed integer for
+  milliseconds since epoch.
+
+- ``data_timestamp``
+
+  .. code-block:: javascript
+
+     Timestamp( <t>, <i> )
+
+  ``<t>`` is the JSON representation of a 32-bit unsigned integer for
+  milliseconds since epoch. ``<i>`` is a 32-bit unsigned integer for
+  the increment.
+
+- ``data_regex``
+
+  .. code-block:: javascript
+
+     /<jRegex>/<jOptions>
+
+  ``<jRegex>`` is a string that may contain valid JSON characters and
+  unescaped double quote (i.e. ``"``) characters, but may not contain
+  unescaped forward slash (i.e. ``/``) characters. ``<jOptions>`` is a
+  string that may contain only the characters "``g``", "``i``",
+  "``m``", and "``s``".
+
+- ``data_oid``
+
+  .. code-block:: javascript
+
+     ObjectId( "<id>" )
+
+  ``<id>`` is a 24 character hexadecimal string. These representations
+  require that ``data_oid`` values have an associated field named
+  ":term:`_id`."
+
+- ``data_ref``
+
+  .. code-block:: javascript
+
+     Dbref( "<name>", "<id>" )
+
+  ``<name>`` is a string of valid JSON characters. ``<id>`` is a 24
+  character hexadecimal string.
+
+.. seealso:: ":wiki:`MongoDB Extended JSON <Mongo+Extended+JSON>`" wiki page.
 
 Using Database Imports and Exports for Backups
 ----------------------------------------------
