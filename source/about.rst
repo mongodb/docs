@@ -12,7 +12,7 @@ About MongoDB
 MongoDB is a :term:`document`-oriented database management system
 designed for performance, horizontal scalability, high
 availability, and advanced queryabiliy. See the following :wiki:`wiki
-pages <>` for about MongoDB
+pages <>` for more information about MongoDB:
 
 - :wiki:`Introduction`
 - :wiki:`Philosophy`
@@ -82,24 +82,25 @@ system shell:
    git clone git://github.com/mongodb/docs.git
 
 If you have a GitHub account and want to fork this repository, you may
-issue pull requests, and someone on the documentation team will
-merge in your contributions promptly. For your changes to be accepted,
-you'll have to complete the `MongoDB/10gen Contributor Agreement <http://www.10gen.com/contributor>`_.
+issue pull requests, and someone on the documentation team will merge
+in your contributions promptly. In order to accept your changes to the
+Manual, you have to complete the `MongoDB/10gen Contributor Agreement
+<http://www.10gen.com/contributor>`_.
 
 This project tracks issues at MongoDB's :issue:`DOCS` project.
-If you see a problem with the documentation, please report it here.
+If you see a problem with the documentation, please report it there.
 
 Writing Documentation
 ~~~~~~~~~~~~~~~~~~~~~
 
 The MongoDB Manual uses `Sphinx <http://sphinx.pocoo.org/>`_, a
 sophisticated documentation engine built upon `Python Docutils
-<http://docutils.sourceforge.net/>`_. The original
-`reStructured Text <http://docutils.sourceforge.net/rst.html>`_
-files, as well as all necessary Sphinx extensions and build tools,
-are available in the same repository as the documentation.
+<http://docutils.sourceforge.net/>`_. The original `reStructured Text
+<http://docutils.sourceforge.net/rst.html>`_ files, as well as all
+necessary Sphinx extensions and build tools, are available in the same
+repository as the documentation.
 
-You can view the documentation style guide
-and the build instructions in reSturctured Text files in the top-level of
-the `documentation repository <https://github.com/mongodb/docs>`_. If
-you have any questions, please feel free to open a `Jira Case <https://jira.mongodb.org/browse/DOCS>`_.
+You can view the documentation style guide and the build instructions
+in reSturctured Text files in the top-level of the `documentation
+repository <https://github.com/mongodb/docs>`_. If you have any
+questions, please feel free to open a :issue:`Jira Case <DOCS>`.
