@@ -47,8 +47,8 @@ release = version
 current_git_commit = VersionMeta.commit
 current_git_branch = VersionMeta.branch
 
-rst_epilog = ".. |branch| replace:: ``" + current_git_branch + """``
-.. |commit| replace:: ``""" + current_git_commit + """``
+rst_epilog = ".. |branch| replace:: ``" + current_git_branch + "``" + """
+.. |commit| replace:: ``""" + current_git_commit + "``" + """
 .. |copy| unicode:: U+000A9
 .. |hardlink| replace:: http://docs.mongodb.org/""" + current_git_branch
 

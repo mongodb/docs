@@ -56,6 +56,10 @@ help:
 # Meta targets that control the build and publication process.
 #
 
+push:publish
+	rsync -arz ../public-docs/ www@www-c1.10gen.cc:/data/sites/docs
+	rsync -arz ../public-docs/ www@www-c2.10gen.cc:/data/sites/docs
+
 publish:
 	make MODE='publish' build-branch
 	make MODE='publish' deploy
@@ -78,13 +82,15 @@ import-pdfs:
 	cp $(BUILDDIR)/latex/MongoDB.pdf $(publication-output)/$(current-branch)/MongoDB-Manual-$(current-branch).pdf
 	rm -f $(publication-output)/$(current-branch)/MongoDB-Manual.pdf $(publication-output)/$(current-branch)/MongoDB-Manual.epub
 ifeq ($(manual-branch),$(current-branch))
-	ln -s MongoDB-Manual-$(current-branch).pdf $(publication-output)/$(current-branch)/MongoDB-Manual.pdf
-	ln -s MongoDB-Manual-$(current-branch).epub $(publication-output)/$(current-branch)/MongoDB-Manual.epub
+	ln -s -f MongoDB-Manual-$(current-branch).pdf $(publication-output)/$(current-branch)/MongoDB-Manual.pdf
+	ln -s -f MongoDB-Manual-$(current-branch).epub $(publication-output)/$(current-branch)/MongoDB-Manual.epub
 endif
 
 deploy:
 	@echo "Exporting builds..."
 	mkdir -p $(publication-output)/$(current-branch)/single/
+	ln -f -s $(manual-branch) $(publication-output)/manual
+	cp themes/docs.mongodb.org/index.html $(publication-output)/
 	make MODE='publish' import-pdfs
 	cp -R $(BUILDDIR)/dirhtml/* $(publication-output)/$(current-branch)
 	cp -R $(BUILDDIR)/singlehtml/* $(publication-output)/$(current-branch)/single/

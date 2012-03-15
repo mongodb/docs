@@ -10,7 +10,8 @@ def shell_value( args ):
         args = r.split( args )
     p = subprocess.Popen( args , stdout=subprocess.PIPE , stderr=subprocess.PIPE )
     r = p.communicate()
-    return r[0]
+    value = r[0].decode().rstrip()
+    return value
 
 class VersionMeta:
     branch = shell_value('git symbolic-ref HEAD').split('/')[2]
