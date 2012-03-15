@@ -73,7 +73,7 @@ build-branch:
 	@echo "to complete the build process."
 
 ifeq ($(MODE),publish)
-import-pdfs: 
+import-pdfs:
 	cp $(BUILDDIR)/epub/MongoDB.epub $(publication-output)/$(current-branch)/MongoDB-Manual-$(current-branch).epub
 	cp $(BUILDDIR)/latex/MongoDB.pdf $(publication-output)/$(current-branch)/MongoDB-Manual-$(current-branch).pdf
 	rm -f $(publication-output)/$(current-branch)/MongoDB-Manual.pdf $(publication-output)/$(current-branch)/MongoDB-Manual.epub
@@ -86,7 +86,6 @@ deploy:
 	@echo "Exporting builds..."
 	mkdir -p $(publication-output)/$(current-branch)/single/
 	make MODE='publish' import-pdfs
-	exit 1
 	cp -R $(BUILDDIR)/dirhtml/* $(publication-output)/$(current-branch)
 	cp -R $(BUILDDIR)/singlehtml/* $(publication-output)/$(current-branch)/single/
 	cp $(BUILDDIR)/dirhtml/search/index.html $(publication-output)/$(current-branch)/single/search.html
