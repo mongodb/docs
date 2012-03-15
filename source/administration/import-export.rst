@@ -38,6 +38,8 @@ with the database itself.
    ":wiki:`MongoDB Extended JSON <Mongo+Extended+JSON>`" wiki page for
    more information about Use with care.
 
+.. _bson-json-type-conversion-fidelity:
+
 Data Type Fidelity
 ------------------
 

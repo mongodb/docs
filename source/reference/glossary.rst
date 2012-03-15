@@ -14,6 +14,9 @@ Glossary
       of JSON (JavaScript Object Notation) documents. For a detailed spec,
       see `bsonspec.org <http://bsonspec.org/>`_.
 
+      .. seealso:: The ":ref:`bson-json-type-conversion-fidelity`"
+         section.
+
    database command
       Any MongoDB operation other than an insert, update, remove,
       or query. MongoDB exposes commands as queries
