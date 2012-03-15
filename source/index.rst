@@ -6,6 +6,11 @@ The MongoDB Manual
 
 .. default-domain:: mongodb
 
+.. note::
+
+   This manual is currently under development. See the
+   :ref:`MongoDB Wiki <mongodb-wiki>` for additional documentation.
+
 .. toctree::
    :maxdepth: 1
 
@@ -17,9 +22,6 @@ The MongoDB Manual
 
 .. mongo
 .. sharding
-
-.. seealso:: The :ref:`MongoDB Wiki <mongodb-wiki>` for additional
-   documentation.
 
 Getting Started
 ---------------
