@@ -227,7 +227,7 @@ current state of ``/dev/vg0/mongodb`` and the creation of the snapshot
    If you your snapshot runs out of space, the snapshot image
    becomes unusable. Discard this logical volume and create another.
 
-The snapshot has been created when the command returns. You can restore
+The snapshot will exist when the command returns. You can restore
 directly from the snapshot at any time or by creating a new logical
 volume and restoring from this snapshot to the alternate image.
 
@@ -413,8 +413,8 @@ disk-level snapshots are not available.
    If your system has disk level snapshot capabilities, consider the
    backup methods described :ref:`above <block-level-backup>`.
 
-Database Export with mongodump
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Database Export with :program:`mongodump`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The :program:`mongodump` utility performs a live backup the data, or
 can work against an inactive set of database
@@ -437,11 +437,17 @@ database dump. For example:
 This command creates a dump in of the database in the "``dump/``"
 directory of only the collection named "``collection``" in the
 database named "``test``". :program:`mongodump` provides the
-":option:`--oplog <mongodump --oplog>`" option which forces the dump
+":option:`--oplog <mongodump --oplog>`" option that forces the dump
 operation to use the operation log to take a point-in-time snapshot of
 the database.
 
-TODO: We need to explain how this works.  Can help you on this tmrw.
+With ":option:`--oplog <mongodump --oplog>`" , :program:`mongodump`
+copies all the data from the source database, as well as all of the
+:term:`oplog` entries from the beginning of the backup procedure to
+until the backup procedure completes. This backup procedure, in
+conjunction with :option:`mongorestore --oplogReplay`, allows you to
+restore a backup that reflects a consistent and specific moment in
+time.
 
 If your MongoDB instance is not running, you can use the
 ":option:`--dbpath <mongodump --dbpath>`" option to specify the
@@ -468,10 +474,10 @@ the following example:
 On any :program:`mongodump` command you may, as above specify username
 and password credentials to specify database authentication.
 
-Database Import with mongorestore
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Database Import with :program:`mongorestore`
+--------------------------------------------
 
-The :program:`mongorestore` utility restores a binary backup created by 
+The :program:`mongorestore` utility restores a binary backup created by
 :program:`mongodump`. Consider the following example command:
 
 .. code-block:: sh
@@ -521,29 +527,18 @@ field name "``field``" that holds a value of "``1``". Enclose the
 filter in single quotes (e.g. "``'``") to prevent the filter from
 interacting with your shell environment.
 
-TODO: You already referenced --dbpath option above, but this actually
-seems more fleshed out..
-
-If your MongoDB instance is not running, you can use the
-":option:`mongorestore --dbpath`" option to specify the location to
-your MongoDB instance's database files. :program:`mongorestore` inserts
-data into the data files directly with this operation. While the
-command locks the data directory while it runs to prevent conflicting
-writes. The :program:`mongod` process must *not* be running or attached
-to these data files when you run :program:`mongodump` in this
-configuration. Consider the following example:
-
 .. code-block:: sh
 
-   mognorestore --dbpath /srv/mongodb
+   mongorestore --dbpath /srv/mongodb --journal
 
-TODO: third ref to --dbpath
-
-If your MongoDB instance is not running, you can use the
-":option:`--dbpath <mongorestore --dbpath>`" option to specify the
-location to your MongoDB instance's database files. Consider using the
-":option:`--journal <mongorestore --journal>`" option to ensure that
-:program:`mongod` records all operation in the journal.
+Here, :program:`mongorestore` restores the database dump located in
+``dump/`` folder into the data files located at ``/srv/mongodb``, with
+the :option:`--dbpath <mongorestore --dbpath>` option. Additionally,
+the ":option:`--journal <mongorestore --journal>`" option ensures that
+:program:`mongorestore` records all operation in the durability
+:term:`journal`. The journal prevents data file corruption if anything
+(e.g. power failure, disk failure, etc.)  interrupts the restore
+operation.
 
 .. seealso:: ":doc:`/reference/mongodump`" and
    ":doc:`/reference/mongorestore`."
