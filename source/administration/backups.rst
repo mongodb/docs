@@ -418,8 +418,8 @@ Database Export with mongodump
 
 The :program:`mongodump` utility performs a live backup the data, or
 can work against an inactive set of database
-files. :program:`mongodump` utility can create a dump for an entire
-server/database/collection (or part of a collection with a query,)
+files. The :program:`mongodump` utility can create a dump for an entire
+server/database/collection (or part of a collection using of query,)
 even when the database is running and active. If you run
 :program:`mongodump` without any arguments the command will connect to
 the local database instance (e.g. ``127.0.0.1`` or ``localhost``) and
@@ -440,6 +440,8 @@ database named "``test``". :program:`mongodump` provides the
 ":option:`--oplog <mongodump --oplog>`" option which forces the dump
 operation to use the operation log to take a point-in-time snapshot of
 the database.
+
+TODO: We need to explain how this works.  Can help you on this tmrw.
 
 If your MongoDB instance is not running, you can use the
 ":option:`--dbpath <mongodump --dbpath>`" option to specify the
@@ -469,15 +471,15 @@ and password credentials to specify database authentication.
 Database Import with mongorestore
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :program:`mongorestore` restores a binary backup created by the
-:program:`mongodump` utility. Consider the following example command:
+The :program:`mongorestore` utility restores a binary backup created by 
+:program:`mongodump`. Consider the following example command:
 
 .. code-block:: sh
 
    mongorestore dump-2011-10-25/
 
 Here, :program:`mongorestore` imports the database backup located in
-the ``dump-2011-10-25`` directory to the :option:``mongod` instance
+the ``dump-2011-10-25`` directory to the :option:`mongod` instance
 running on the localhost interface. By default, :program:`mongorestore`
 will look for a database dump in the "``dump/``" directory and restore
 that. If you wish to restore to a non-default host, the
@@ -494,7 +496,7 @@ username and password credentials as above.
 
 If you created your database dump using the :option:`--oplog
 <mongodump --oplog>` option to ensure a point-in-time snapshot, call
-:program:`mongorestore` with the ":option:` --oplogReplay <mongorestore
+:program:`mongorestore` with the ":option:`--oplogReplay <mongorestore
 --oplogReplay>`" option as in the following example:
 
 .. code-block:: sh
@@ -513,11 +515,14 @@ following example:
 
    mongorestore --filter '{"field": 1}'
 
-Here, :program:`mognorestore` only adds documents to the database from
+Here, :program:`mongorestore` only adds documents to the database from
 the dump located in the "``dump/``" folder *if* the documents have a
 field name "``field``" that holds a value of "``1``". Enclose the
 filter in single quotes (e.g. "``'``") to prevent the filter from
 interacting with your shell environment.
+
+TODO: You already referenced --dbpath option above, but this actually
+seems more fleshed out..
 
 If your MongoDB instance is not running, you can use the
 ":option:`mongorestore --dbpath`" option to specify the location to
@@ -531,6 +536,8 @@ configuration. Consider the following example:
 .. code-block:: sh
 
    mognorestore --dbpath /srv/mongodb
+
+TODO: third ref to --dbpath
 
 If your MongoDB instance is not running, you can use the
 ":option:`--dbpath <mongorestore --dbpath>`" option to specify the
