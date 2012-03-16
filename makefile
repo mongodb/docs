@@ -67,12 +67,9 @@ publish:
 build-branch:
 	@echo Running a build of the \$(current-branch)\ branch.
 	@echo ""
-	touch source/about.rst
-	make MODE='publish' html
-	make MODE='publish' dirhtml
-	make MODE='publish' singlehtml
-	make MODE='publish' epub
-	make MODE='publish' latexpdf
+	touch source/about.txt
+	make -j 1 MODE='publish' dirhtml epub
+	make -j 3 MODE='publish' latexpdf singlehtml html
 	@echo "All builds complete.'"
 	@echo "to complete the build process."
 
@@ -180,7 +177,8 @@ latexpdf:
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
 	sed -i -r 's/\\bfcode\{--(.*)\}/\\bfcode\{-{-}\1\}/' $(BUILDDIR)/latex/*.tex
 	@echo "Running LaTeX files through pdflatex..."
-	$(MAKE) -C $(BUILDDIR)/latex all-pdf
+	$(MAKE) -C $(BUILDDIR)/latex all-pdf >/tmp/sphinx-latex-build.log
+	@echo -e "\nSee '/tmp/sphinx-latex-build.log' for the full LaTeX output...\n"
 	@echo "pdflatex finished; the PDF files are in $(BUILDDIR)/latex."
 
 ######################################################################
