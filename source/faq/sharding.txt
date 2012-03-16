@@ -85,36 +85,41 @@ for the shard to return results.
 How does MongoDB distribute queries among shards?
 -------------------------------------------------
 
+.. versionchanged:: 2.0
+
 The exact method for distributing queries among a :term:`shard
 cluster` depends on the nature of the query and the configuration of
 the shard cluster. Consider a sharded collection, using the
-:term:`shard key` "``user_id``", that has "``last_login``" and "``email``" attributes:
+:term:`shard key` "``user_id``", that has "``last_login``" and
+"``email``" attributes:
+
+- For a query that selects a value for the "``user_id``" key:
+
+  :program:`mongos` determines which shard or shards contains the
+  relevant data, based on the cluster metadata, and directs a query to
+  that specific shard, and returns those results to the client.
 
 - For a query that selects "``user_id``" and also sorts by "``user_id``":
 
   :program:`mongos` can make a straightforward translation of this
-  operation into a series of queries against successive shards,
-  ordered by "``user_id``".  This is faster than querying all shards in
-  parallel because :program:`mongos` can determine which shards
-  contain the relevant chunks without waiting for all shards to return
-  results.
+  operation into a number of queries against the relevant shards,
+  ordered by "``user_id``". The :program:`mongos` holds open cursors
+  while collecting results to prevent irregularities caused by
+  possible chunk migrations. When the sorted queries return from all
+  shards, the :program:`mongos` merges the sorted results and returns
+  the complete result to the client.
 
 - For queries that select on "``user_id``" and sort by "``last_login``":
 
-  :program:`mongos` executes queries in parallel on
-  the appropriate shards, and performs a merge-sort on the "``last_login``" key
-  of all documents returned from the shards.
+  :program:`mongos` executes queries in parallel on the appropriate
+  shards, and performs a merge-sort on the "``last_login``" key of all
+  documents returned from the shards.
 
 - For queries that select on "``last_login``:
 
-  These queries must run on all shards:
-
-  - When the query sorts by "``last_login``, :program:`mongos` serializes the query
-    over the shards in ordered by "``last_login``".
-
-  - If the query sorts by "``email``", :program:`mongos` must parallelize
-    the query over the shards and perform a merge-sort on the "``email``"
-    of the documents found.
+  These queries must run on all shards: :program:`mongos` must
+  parallelize the query over the shards and perform a merge-sort on
+  the "``email``" of the documents found.
 
 How does MongoDB sort queries in sharded environments?
 ------------------------------------------------------
@@ -230,7 +235,7 @@ includes the mapping of :term:`chunks <chunk>` to :term:`shards <shard>`.
 and discovering that its metadata is out of date.
 There is no way to control this behavior from the client,
 but you can run the :dbcommand:`flushRouterConfig` command against any
-:program:`mongos` to force force it to refresh its cache.
+:program:`mongos` to force it to refresh its cache.
 
 Is it possible to quickly update :program:`mongos` servers after updating a replica set configuration?
 ------------------------------------------------------------------------------------------------------
