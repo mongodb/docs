@@ -1,0 +1,746 @@
+CMS: Storing Comments
+=====================
+
+Problem[a]
+----------
+
+In your content management system (CMS) you would like to store
+user-generated comments on the various types of content you generate.
+
+Solution overview
+-----------------
+
+Rather than describing the One True Way to implement comments in this
+solution, we will explore different options and the trade-offs with
+each. The three major designs we will discuss here are:
+
+-  **One document per comment** - This provides the greatest degree of
+   flexibility, as it is relatively straightforward to display the
+   comments as either threaded or chronological. There are also no
+   restrictions on the number of comments that can participate in a
+   discussion.
+-  **All comments embedded** - In this design, all the comments are
+   embedded in their parent document, whether that be a blog article,
+   news story, or forum topic. This can be the highest performance
+   design, but is also the most restrictive, as the display format of
+   the comments is tied to the embedded structure. There are also
+   potential problems with extremely active discussions where the total
+   data (topic data + comments) exceeds the 16MB limit of MongoDB
+   documents.
+-  **Hybrid design** - Here, we store comments separately from their
+   parent topic, but we aggregate comments together into a few
+   documents, each containing many comments.
+
+Another decision that needs to be considered in desniging a commenting
+system is whether to support threaded commenting (explicit replies to a
+parent comment). We will explore how this threaded comment support
+decision affects our schema design and operations as well.
+
+Schema design: One Document Per Comment
+---------------------------------------
+
+A comment in the one document per comment format might have a structure
+similar to the following:
+
+\`
+
+``{``
+
+``_id: ObjectId(…),``
+
+``discussion_id: ObjectId(…),``
+
+``slug: '34db',``
+
+``posted: ISODateTime(…),``
+
+``author: { id: ObjectId(…), name: 'Rick' },``
+
+``text: 'This is so bogus … '``
+
+``}``
+
+\`
+
+The format above is really only suitable for chronological display of
+commentary. We maintain a reference to the discussion in which this
+comment participates, a url-friendly 'slug' to identify it, posting time
+and author, and the comment text. If we want to support threading in
+this format, we need to maintain some notion of hierarchy in the comment
+model as well:
+
+\`
+
+``{``
+
+``_id: ObjectId(…),``
+
+``discussion_id: ObjectId(…),``
+
+``parent_id: ObjectId(…),``
+
+``slug: '34db/8bda',``
+
+``full_slug: '34db:2012.02.08.12.21.08/8bda:2012.02.09.22.19.16',``
+
+``posted: ISODateTime(…),``
+
+``author: { id: ObjectId(…), name: 'Rick' },``
+
+``text: 'This is so bogus … '``
+
+``}``
+
+\`
+
+Here, we have stored some extra information into the document that
+represents this document's position in the hierarchy. In addition to
+maintaining the parent\_id for the comment, we have modified the slug
+format and added a new field, full\_slug. The slug is now a path
+consisting of the parent's slug plus the comment's unique slug portion.
+The full\_slug is also included to facilitate sorting documents in a
+threaded discussion by posting date.
+
+Operations: One comment per document
+------------------------------------
+
+Here, we describe the various operations we might perform with the above
+single comment per document schema.
+
+Post a new comment
+~~~~~~~~~~~~~~~~~~
+
+In order to post a new comment in a chronologically ordered (unthreaded)
+system, all we need to do is the following:
+
+``slug = generate_psuedorandom_slug()``
+
+``db.comments.insert({``
+
+``'discussion_id': discussion_id,``
+
+``'slug': slug,``
+
+``'posted': datetime.utcnow(),``
+
+``'author': author_info,``
+
+``'text': comment_text })``
+
+In the case of a threaded discussion, we have a bit more work to do in
+order to generate a 'pathed' slug and full\_slug:
+
+``posted = datetime.utcnow()``
+
+\`
+
+``# generate the unique portions of the slug and full_slug``
+
+``slug_part = generate_psuedorandom_slug()``
+
+``full_slug_part = slug_part + ':' + posted.strftime(``
+
+``'%Y.%m.%d.%H.%M.%S')``
+
+\`
+
+``# load the parent comment (if any)``
+
+``if parent_slug:``
+
+``parent = db.comments.find_one(``
+
+``{'discussion_id': discussion_id, 'slug': parent_slug })``
+
+``slug = parent['slug'] + '/' + slug_part``
+
+``full_slug = parent['full_slug'] + '/' + full_slug_part``
+
+``else:``
+
+``slug = slug_part``
+
+``full_slug = full_slug_part``
+
+\`
+
+``# actually insert the comment``
+
+``db.comments.insert({``
+
+``'discussion_id': discussion_id,``
+
+``'slug': slug, 'full_slug': full_slug,``
+
+``'posted': posted,``
+
+``'author': author_info,``
+
+``'text': comment_text })``
+
+View the (paginated) comments for a discussion
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To actually view the comments in the non-threaded design, we need merely
+to select all comments participating in a discussion, sorted by date:
+
+``cursor = db.comments.find({'discussion_id': discussion_id})``
+
+``cursor = cursor.sort('posted')``
+
+``cursor = cursor.skip(page_num * page_size)``
+
+``cursor = cursor.limit(page_size)``
+
+\`
+
+Since the full\_slug embeds both hierarchical information via the path
+and chronological information, we can use a simple sort on the
+full\_slug property to retrieve a threaded view:
+
+``cursor = db.comments.find({'discussion_id': discussion_id})``
+
+``cursor = cursor.sort('full_slug')``
+
+``cursor = cursor.skip(page_num * page_size)``
+
+``cursor = cursor.limit(page_size)``
+
+Index support
+^^^^^^^^^^^^^
+
+In order to efficiently support the queries above, we should maintain
+two compound indexes, one on (discussion\_id, posted), and the other on
+(discussion\_id, full\_slug):
+
+``>>> db.comments.ensure_index([``
+
+``...    ('discussion_id', 1), ('posted', 1)])``
+
+``>>> db.comments.ensure_index([``
+
+``...    ('discussion_id', 1), ('full_slug', 1)])``
+
+Note that we must ensure that the final element in a compound index is
+the field by which we are sorting to ensure efficient performance of
+these queries.
+
+Retrieve a comment via slug ("permalink")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Here, we wish to directly retrieve a comment (e.g. *not* requiring
+paging through all preceeding pages of commentary). In this case, we
+simply use the slug:
+
+``comment = db.comments.find_one({``
+
+``'discussion_id': discussion_id,``
+
+``'slug': comment_slug})``
+
+We can also retrieve a sub-discussion (a comment and all of its
+descendants recursively) by performing a prefix query on the full\_slug
+field:
+
+``subdiscussion = db.comments.find_one({``
+
+``'discussion_id': discussion_id,``
+
+``'full_slug': re.compile('^' + re.escape(parent_slug)) })``
+
+``subdiscussion = subdiscussion.sort('full_slug')``
+
+Index support
+^^^^^^^^^^^^^
+
+Since we already have indexes on (discussion\_id, full\_slug) to support
+retrieval of subdiscussion, all we need is an index on (discussion\_id,
+slug) to efficiently support retrieval of a comment by 'permalink':
+
+``>>> db.comments.ensure_index([``
+
+``...    ('discussion_id', 1), ('slug', 1)])``
+
+Schema design: All comments embedded
+------------------------------------
+
+In this design, we wish to embed an entire discussion within its topic
+document, be it a blog article, news story, or discussion thread. A
+topic document, then, might look something like the following:
+
+\`
+
+``{``
+
+``_id: ObjectId(…),``
+
+``… lots of topic data …``
+
+``comments: [``
+
+``{ posted: ISODateTime(…),``
+
+``author: { id: ObjectId(…), name: 'Rick' },``
+
+``text: 'This is so bogus … ' },``
+
+``… ]``
+
+``}``
+
+\`
+
+The format above is really only suitable for chronological display of
+commentary. The comments are embedded in chronological order, with their
+posting date, author, and text. Note that, since we are storing the
+comments in sorted order, there is no need to maintain a slug per
+comment. If we want to support threading in the embedded format, we need
+to embed comments within comments:
+
+\`
+
+``{``
+
+``_id: ObjectId(…),``
+
+``… lots of topic data …``
+
+``replies: [``
+
+``{ posted: ISODateTime(…),``
+
+``author: { id: ObjectId(…), name: 'Rick' },``
+
+\`
+
+``text: 'This is so bogus … ',``
+
+``replies: [``
+
+``{ author: { … }, … },``
+
+``… ]``
+
+``}``
+
+\`
+
+Here, we have added a 'replies' property to each comment which can hold
+sub- comments and so on. One thing in particular to note about the
+embedded document formats is we give up some flexibility when we embed
+the documents, effectively 'baking in' the decisions we've made about
+the proper display format. If we (or our users) someday wish to switch
+from chronological or vice-versa, this schema makes such a migration
+quite expensive.
+
+In popular discussions, we also have a potential issue with document
+size. If we have a particularly avid discussion, for example, we may
+outgrow the 16MB limit that MongoDB places on document size. We can also
+run into scaling issues, particularly in the threaded design, as
+documents need to be frequently moved on disk as they outgrow the space
+allocated to them.
+
+Operations: All comments embedded
+---------------------------------
+
+Here, we describe the various operations we might perform with the above
+single comment per document schema. Note that, in all the cases below,
+we need no additional indexes since all our operations are
+intra-document, and the document itself (the 'discussion') is retrieved
+by its \_id field, which is automatically indexed by MongoDB.
+
+Post a new comment
+~~~~~~~~~~~~~~~~~~
+
+In order to post a new comment in a chronologically ordered (unthreaded)
+system, all we need to do is the following:
+
+``db.discussion.update(``
+
+``{ 'discussion_id': discussion_id },``
+
+``{ '$push': { 'comments': {``
+
+``'posted': datetime.utcnow(),``
+
+``'author': author_info,``
+
+``'text': comment_text } } } )``
+
+Note that since we use the $push operator, all the comments will be
+inserted in their correct chronological order. In the case of a threaded
+discussion, we have a good bit more work to do. In order to reply to a
+comment, we will assume that we have the 'path' to the comment we are
+replying to as a list of positions:
+
+``if path != []:``
+
+``str_path = '.'.join('replies.%d' % part for part in path)``
+
+``str_path += '.replies'``
+
+``else:``
+
+``str_path = 'replies'``
+
+``db.discussion.update(``
+
+``{ 'discussion_id': discussion_id },``
+
+``{ '$push': {``
+
+``str_path: {``
+
+``'posted': datetime.utcnow(),``
+
+``'author': author_info,``
+
+``'text': comment_text } } } )``
+
+\`
+
+Here, we first construct a field name of the form
+'replies.0.replies.2...' as str\_path and then use that to $push the new
+comment into its parent comment's 'replies' property.
+
+View the (paginated) comments for a discussion
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To actually view the comments in the non-threaded design, we need to use
+the $slice operator:
+
+``discussion = db.discussion.find_one(``
+
+``{'discussion_id': discussion_id},``
+
+``{ … some fields relevant to our page from the root discussion …,``
+
+``'comments': { '$slice': [ page_num * page_size, page_size ] }``
+
+``})``
+
+\`
+
+If we wish to view paginated comments for the threaded design, we need
+to do retrieve the whole document and paginate in our application:
+
+``discussion = db.discussion.find_one({'discussion_id': discussion_id})``
+
+\`
+
+``def iter_comments(obj):``
+
+``for reply in obj['replies']:``
+
+``yield reply``
+
+``for subreply in iter_comments(reply):``
+
+``yield subreply``
+
+\`
+
+``paginated_comments = itertools.slice(``
+
+``iter_comments(discussion),``
+
+``page_size * page_num,``
+
+``page_size * (page_num + 1))``
+
+Retrieve a comment via position or path ("permalink")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Instead of using slugs as above, here we retrieve comments by their
+position in the comment list or tree. In the case of the chronological
+(non-threaded) design, we need simply to use the $slice operator to
+extract the correct comment:
+
+``discussion = db.discussion.find_one(``
+
+``{'discussion_id': discussion_id},``
+
+``{'comments': { '$slice': [ position, position ] } })``
+
+``comment = discussion['comments'][0]``
+
+\`
+
+In the case of the threaded design, we are faced with the task of
+finding the correct path through the tree in our application:
+
+``discussion = db.discussion.find_one({'discussion_id': discussion_id})``
+
+``current = discussion``
+
+``for part in path:``
+
+``current = current.replies[part]``
+
+``comment = current``
+
+Note that, since the replies to comments are embedded in their parents,
+we have actually retrieved the entire sub-discussion rooted in the
+comment we were looking for as well.
+
+Schema design: Hybrid
+---------------------
+
+Comments in the hybrid format are stored in 'buckets' of about 100
+comments each:
+
+\`
+
+``{``
+
+``_id: ObjectId(…),``
+
+``discussion_id: ObjectId(…),``
+
+``page: 1,``
+
+``count: 42,``
+
+``comments: [ {``
+
+``slug: '34db',``
+
+``posted: ISODateTime(…),``
+
+``author: { id: ObjectId(…), name: 'Rick' },``
+
+``text: 'This is so bogus … ' },``
+
+``… ]``
+
+``}``
+
+\`
+
+Here, we have a 'page' of comment data, containing a bit of metadata
+about the page (in particular, the page number and the comment count),
+as well as the comment bodies themselves. Using a hybrid format actually
+makes storing comments hierarchically quite complex, so we won't cover
+it in this document.
+
+Note that in this design, 100 comments is a 'soft' limit to the number
+of comments per page, chosen mainly for performance reasons and to
+ensure that the comment page never grows beyond the 16MB limit MongoDB
+imposes on document size. There may be occasions when the number of
+comments is slightly larger than 100, but this does not affect the
+correctness of the design.
+
+Operations: Hybrid
+------------------
+
+Here, we describe the various operations we might perform with the above
+100-comment 'pages'.
+
+Post a new comment
+~~~~~~~~~~~~~~~~~~
+
+In order to post a new comment, we need to $push the comment onto the
+last page and $inc its comment count. If the page has more than 100
+comments, we will insert a new page as well. For this operation, we
+assume that we already have a reference to the discussion document, and
+that the discussion document has a property that tracks the number of
+pages:
+
+``page = db.comment_pages.find_and_modify(``
+
+``{ 'discussion_id': discussion['_id'],``
+
+``'page': discussion['num_pages'] },``
+
+``{ '$inc': { 'count': 1 },``
+
+``'$push': {``
+
+``'comments': { 'slug': slug, … } } },``
+
+``fields={'count':1},``
+
+``upsert=True,``
+
+``new=True )``
+
+Note that we have written the find\_and\_modify above as an upsert
+operation; if we don't find the page number, the find\_and\_modify will
+create it for us, initialized with appropriate values for 'count' and
+'comments'. Since we are limiting the number of comments per page, we
+also need to create new pages as they become necessary:
+
+``if page['count'] > 100:``
+
+``db.discussion.update(``
+
+``{ 'discussion_id: discussion['_id'],``
+
+``'num_pages': discussion['num_pages'] },``
+
+``{ '$inc': { 'num_pages': 1 } } )``
+
+Our update here includes the last know number of pages in the query to
+ensure we don't have a race condition where the number of pages is
+double- incremented, resulting in a nearly or totally empty page. If
+some other process has incremented the number of pages in the
+discussion, then update above simply does nothing.
+
+Index support
+^^^^^^^^^^^^^
+
+In order to efficiently support our find\_and\_modify and update
+operations above, we need to maintain a compound index on
+(discussion\_id, page) in the comment\_pages collection:
+
+``>>> db.comment_pages.ensure_index([``
+
+``...    ('discussion_id', 1), ('page', 1)])``
+
+View the (paginated) comments for a discussion
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In order to paginate our comments with a fixed page size, we need to do
+a bit of extra work in Python:
+
+``def find_comments(discussion_id, skip, limit):``
+
+``result = []``
+
+``page_query = db.comment_pages.find(``
+
+``{ 'discussion_id': discussion_id },``
+
+``{ 'count': 1, 'comments': { '$slice': [ skip, limit ] } })``
+
+``page_query = page_query.sort('page')``
+
+``for page in page_query:``
+
+``result += page['comments']``
+
+``skip = max(0, skip - page['count'])``
+
+``limit -= len(page['comments'])``
+
+``if limit == 0: break``
+
+``return result``
+
+\`
+
+Here, we use the $slice operator to pull out comments from each page,
+but *only if we have satisfied our skip requirement* . An example will
+help illustrate the logic here. Suppose we have 3 pages with 100, 102,
+101, and 22 comments on each. respectively. We wish to retrieve comments
+with skip=300 and limit=50. The algorithm proceeds as follows:
+
+Skip
+
+Limit
+
+Discussion
+
+300
+
+50
+
+{$slice: [ 300, 50 ] } matches no comments in page #1; subtract page
+#1's count from 'skip' and continue
+
+200
+
+50
+
+{$slice: [ 200, 50 ] } matches no comments in page #2; subtract page
+#2's count from 'skip' and continue
+
+98
+
+50
+
+{$slice: [ 98, 50 ] } matches 2 comments in page #3; subtract page #3's
+count from 'skip' (saturating at 0), subtract 2 from limit, and continue
+
+0
+
+48
+
+{$slice: [ 0, 48 ] } matches all 22 comments in page #4; subtract 22
+from limit and continue
+
+0
+
+26
+
+There are no more pages; terminate loop
+
+Index support
+^^^^^^^^^^^^^
+
+SInce we already have an index on (discussion\_id, page) in our
+comment\_pages collection, we will be able to satisfy these queries
+efficiently.
+
+Retrieve a comment via slug ("permalink")
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Here, we wish to directly retrieve a comment (e.g. *not* requiring
+paging through all preceeding pages of commentary). In this case, we can
+use the slug to find the correct page, and then use our application to
+find the correct comment:
+
+``page = db.comment_pages.find_one(``
+
+``{ 'discussion_id': discussion_id,``
+
+``'comments.slug': comment_slug},``
+
+``{ 'comments': 1 })``
+
+``for comment in page['comments']:``
+
+``if comment['slug'] = comment_slug:``
+
+``break``
+
+Index support
+^^^^^^^^^^^^^
+
+Here, we need a new index on (discussion\_id, comments.slug) to
+efficiently support retrieving the page number of the comment by slug:
+
+``>>> db.comment_pages.ensure_index([``
+
+``...    ('discussion_id', 1), ('comments.slug', 1)])``
+
+Sharding
+--------
+
+In each of the cases above, it's likely that our discussion\_id will at
+least participate in the shard key if we should choose to shard.
+
+In the case of the one document per comment approach, it would be nice
+to use our slug (or full\_slug, in the case of threaded comments) as
+part of the shard key to allow routing of requests by slug:
+
+``>>> db.command('shardcollection', 'comments', {``
+
+``...     key : { 'discussion_id' : 1, 'full_slug': 1 } })``
+
+``{ "collectionsharded" : "comments", "ok" : 1 }``
+
+In the case of the fully-embedded comments, of course, the discussion is
+the only thing we need to shard, and its shard key will probably be
+determined by concerns outside the scope of this document.
+
+In the case of hybrid documents, we want to use the page number of the
+comment page in our shard key:
+
+``>>> db.command('shardcollection', 'comment_pages', {``
+
+``...     key : { 'discussion_id' : 1, ``'page'``: 1 } })``
+
+``{ "collectionsharded" : "comment_pages", "ok" : 1 }``
+
+Page of
