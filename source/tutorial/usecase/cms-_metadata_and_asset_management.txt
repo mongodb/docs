@@ -43,67 +43,43 @@ a url-friendly representation of the node that is unique within its
 section, and is used for mapping URLs to nodes. Each document also
 contains a 'detail' field which will vary per document type:
 
-``{``
+::
 
-``_id: ObjectId(…),``
-
-``nonce: ObjectId(…),``
-
-``metadata: {``
-
-``type: 'basic-page'``
-
-``section: 'my-photos',``
-
-``slug: 'about',``
-
-``title: 'About Us',``
-
-``created: ISODate(…),``
-
-``author: { _id: ObjectId(…), name: 'Rick' },``
-
-``tags: [ … ],``
-
-``detail: { text: '# About Us\n…' }``
-
-``}``
-
-``}``
-
-\`
+    {
+        _id: ObjectId(…),
+        nonce: ObjectId(…),
+        metadata: {
+            type: 'basic-page'
+            section: 'my-photos',
+            slug: 'about',
+            title: 'About Us',
+            created: ISODate(…),
+            author: { _id: ObjectId(…), name: 'Rick' },
+            tags: [ … ],
+            detail: { text: '# About Us\n…' }
+        }
+    }
 
 For the basic page above, the detail field might simply contain the text
 of the page. In the case of a blog entry, the document might resemble
 the following instead:
 
-``{``
+::
 
-``…``
-
-``metadata: {``
-
-``…``
-
-``type: 'blog-entry',``
-
-``section: 'my-blog',``
-
-``slug: '2012-03-noticed-the-news',``
-
-``…``
-
-``detail: {``
-
-``publish_on: ISODate(…),``
-
-``text: 'I noticed the news from Washington today…'``
-
-``}``
-
-``}``
-
-``}``
+    {
+        …
+        metadata: {
+            …
+            type: 'blog-entry',
+            section: 'my-blog',
+            slug: '2012-03-noticed-the-news',
+            …
+            detail: {
+                publish_on: ISODate(…),
+                text: 'I noticed the news from Washington today…'
+            }
+        }
+    }
 
 Photos present something of a special case. Since we will need to store
 potentially very large photos, we would like separate our binary storage
@@ -115,50 +91,32 @@ our case, we will call the two collections 'cms.assets.files' and
 collection to store the normal GridFS metadata as well as our node
 metadata:
 
-``{``
+::
 
-``_id: ObjectId(…),``
-
-``length: 123...,``
-
-``chunkSize: 262144,``
-
-``uploadDate: ISODate(…),``
-
-``contentType: 'image/jpeg',``
-
-``md5: 'ba49a...',``
-
-``metadata: {``
-
-``nonce: ObjectId(…),``
-
-``slug: '2012-03-invisible-bicycle',``
-
-``type: 'photo',``
-
-``section: 'my-album',``
-
-``title: 'Kitteh',``
-
-``created: ISODate(…),``
-
-``author: { _id: ObjectId(…), name: 'Jared' },``
-
-``tags: [ … ],``
-
-``detail: {``
-
-``filename: 'kitteh_invisible_bike.jpg',``
-
-``resolution: [ 1600, 1600 ], … }``
-
-``}``
-
-``}``
+    {
+        _id: ObjectId(…),
+        length: 123...,
+        chunkSize: 262144,
+        uploadDate: ISODate(…),
+        contentType: 'image/jpeg',
+        md5: 'ba49a...',
+        metadata: {
+            nonce: ObjectId(…),
+            slug: '2012-03-invisible-bicycle',
+            type: 'photo',
+            section: 'my-album',
+            title: 'Kitteh',
+            created: ISODate(…),
+            author: { _id: ObjectId(…), name: 'Jared' },
+            tags: [ … ],
+            detail: {
+                filename: 'kitteh_invisible_bike.jpg',
+                resolution: [ 1600, 1600 ], … }
+        }
+    }
 
 Here, we have embedded the schema for our 'normal' nodes so we can share
-node- manipulation code among all types of nodes.
+node-manipulation code among all types of nodes.
 
 Operations
 ----------
@@ -174,71 +132,49 @@ The content producers using our CMS will be creating and editing content
 most of the time. Most content-creation activities are relatively
 straightforward:
 
-``db.cms.nodes.insert({``
+::
 
-``'nonce': ObjectId(),``
-
-``'metadata': {``
-
-``'section': 'myblog',``
-
-``'slug': '2012-03-noticed-the-news',``
-
-``'type': 'blog-entry',``
-
-``'title': 'Noticed in the News',``
-
-``'created': datetime.utcnow(),``
-
-``'author': { 'id': user_id, 'name': 'Rick' },``
-
-``'tags': [ 'news', 'musings' ],``
-
-``'detail': {``
-
-``'publish_on': datetime.utcnow(),``
-
-``'text': 'I noticed the news from Washington today…' }``
-
-``}``
-
-``})``
+    db.cms.nodes.insert({
+        'nonce': ObjectId(),
+        'metadata': {
+            'section': 'myblog',
+            'slug': '2012-03-noticed-the-news',
+            'type': 'blog-entry',
+            'title': 'Noticed in the News',
+            'created': datetime.utcnow(),
+            'author': { 'id': user_id, 'name': 'Rick' },
+            'tags': [ 'news', 'musings' ],
+            'detail': {
+                'publish_on': datetime.utcnow(),
+                'text': 'I noticed the news from Washington today…' }
+            }
+         })
 
 Once the node is in the database, we have a potential problem with
 multiple editors. In order to support this, we use the special 'nonce'
 value to detect when another editor may have modified the document and
 allow the application to resolve any conflicts:
 
-``def update_text(section, slug, nonce, text):``
+::
 
-``result = db.cms.nodes.update(``
-
-``{ 'metadata.section': section,``
-
-``'metadata.slug': slug,``
-
-``'nonce': nonce },``
-
-``{ '$set':{'metadata.detail.text': text, 'nonce': ObjectId() } },``
-
-``safe=True)``
-
-``if not result['updatedExisting']:``
-
-``raise ConflictError()``
-
-\`
+    def update_text(section, slug, nonce, text):
+        result = db.cms.nodes.update(
+            { 'metadata.section': section,
+              'metadata.slug': slug,
+              'nonce': nonce },
+            { '$set':{'metadata.detail.text': text, 'nonce': ObjectId() } },
+            safe=True)
+        if not result['updatedExisting']:
+            raise ConflictError()
 
 We might also want to perform metadata edits to the item such as adding
 tags:
 
-``db.cms.nodes.update(``
+::
 
-``{ 'metadata.section': section, 'metadata.slug': slug },``
-
-``{ '$addToSet': { 'tags': { '$each': [ 'interesting', 'funny' ] } } })``
-
-\`
+    db.cms.nodes.update(
+        { 'metadata.section': section, 'metadata.slug': slug },
+        { '$addToSet': { 'tags': { '$each': [ 'interesting', 'funny' ] } } })
 
 In this case, we don't actually need to supply the nonce (nor update it)
 since we are using the atomic $addToSet modifier in MongoDB.
@@ -250,21 +186,19 @@ Our updates in this case are based on equality queries containing the
 (section, slug, and nonce) values. To support these queries, we might
 use the following index:
 
-``>>> db.cms.nodes.ensure_index([``
+::
 
-``...    ('metadata.section', 1), ('metadata.slug', 1), ('nonce', 1) ])``
-
-\`
+    >>> db.cms.nodes.ensure_index([
+    ...    ('metadata.section', 1), ('metadata.slug', 1), ('nonce', 1) ])
 
 Also note, however, that we would like to ensure that two editors don't
 create two documents with the same section and slug. To support this, we
 will use a second index with a unique constraint:
 
-\`
+::
 
-``>>> db.cms.nodes.ensure_index([``
-
-``...    ('metadata.section', 1), ('metadata.slug', 1)], unique=True)``
+    >>> db.cms.nodes.ensure_index([
+    ...    ('metadata.section', 1), ('metadata.slug', 1)], unique=True)
 
 In fact, since we expect that most of the time (section, slug, nonce) is
 going to be unique, we don't actually get much benefit from the first
@@ -277,55 +211,31 @@ Upload a photo
 Uploading photos to our site shares some things in common with node
 update, but it also has some extra nuances:
 
-\`
+::
 
-``def upload_new_photo(``
-
-``input_file, section, slug, title, author, tags, details):``
-
-``fs = GridFS(db, 'cms.assets')``
-
-``with fs.new_file(``
-
-``content_type='image/jpeg',``
-
-``metadata=dict(``
-
-``type='photo',``
-
-``locked=datetime.utcnow(),``
-
-``section=section,``
-
-``slug=slug,``
-
-``title=title,``
-
-``created=datetime.utcnow(),``
-
-``author=author,``
-
-``tags=tags,``
-
-``detail=detail)) as upload_file:``
-
-``while True:``
-
-``chunk = input_file.read(upload_file.chunk_size)``
-
-``if not chunk: break``
-
-``upload_file.write(chunk)``
-
-``# unlock the file``
-
-``db.assets.files.update(``
-
-``{'_id': upload_file._id},``
-
-``{'$set': { 'locked': None } } )``
-
-\`
+    def upload_new_photo(
+        input_file, section, slug, title, author, tags, details):
+        fs = GridFS(db, 'cms.assets')
+        with fs.new_file(
+            content_type='image/jpeg',
+            metadata=dict(
+                type='photo',
+                locked=datetime.utcnow(),
+                section=section,
+                slug=slug,
+                title=title,
+                created=datetime.utcnow(),
+                author=author,
+                tags=tags,
+                detail=detail)) as upload_file:
+            while True:
+                chunk = input_file.read(upload_file.chunk_size)
+                if not chunk: break
+                upload_file.write(chunk)
+        # unlock the file
+        db.assets.files.update(
+            {'_id': upload_file._id},
+            {'$set': { 'locked': None } } )
 
 Here, since uploading the photo is a non-atomic operation, we have
 locked the file during upload by writing the current datetime into the
@@ -333,76 +243,49 @@ record. This lets us detect when a file upload may be stalled, which is
 helpful when working with multiple editors. In this case, we will assume
 that the last update wins:
 
-\`
+::
 
-``def update_photo_content(input_file, section, slug):``
+    def update_photo_content(input_file, section, slug):
+        fs = GridFS(db, 'cms.assets')
 
-``fs = GridFS(db, 'cms.assets')``
 
-\`
+        # Delete the old version if it's unlocked or was locked more than 5
+        #    minutes ago
+        file_obj = db.cms.assets.find_one(
+            { 'metadata.section': section,
+              'metadata.slug': slug,
+              'metadata.locked': None })
+        if file_obj is None:
+            threshold = datetime.utcnow() - timedelta(seconds=300)
+            file_obj = db.cms.assets.find_one(
+                { 'metadata.section': section,
+                  'metadata.slug': slug,
+                  'metadata.locked': { '$lt': threshold } })
+        if file_obj is None: raise FileDoesNotExist()
+        fs.delete(file_obj['_id'])
 
-``# Delete the old version if it's unlocked or was locked more than 5``
 
-``#    minutes ago``
-
-``file_obj = db.cms.assets.find_one(``
-
-``{ 'metadata.section': section,``
-
-``'metadata.slug': slug,``
-
-``'metadata.locked': None })``
-
-``if file_obj is None:``
-
-``threshold = datetime.utcnow() - timedelta(seconds=300)``
-
-``file_obj = db.cms.assets.find_one(``
-
-``{ 'metadata.section': section,``
-
-``'metadata.slug': slug,``
-
-``'metadata.locked': { '$lt': threshold } })``
-
-``if file_obj is None: raise FileDoesNotExist()``
-
-``fs.delete(file_obj['_id'])``
-
-\`
-
-``# update content, keep metadata unchanged``
-
-``file_obj['locked'] = datetime.utcnow()``
-
-``with fs.new_file(**file_obj):``
-
-``while True:``
-
-``chunk = input_file.read(upload_file.chunk_size)``
-
-``if not chunk: break``
-
-``upload_file.write(chunk)``
-
-``# unlock the file``
-
-``db.assets.files.update(``
-
-``{'_id': upload_file._id},``
-
-``{'$set': { 'locked': None } } )``
+        # update content, keep metadata unchanged
+        file_obj['locked'] = datetime.utcnow()
+        with fs.new_file(**file_obj):
+            while True:
+                chunk = input_file.read(upload_file.chunk_size)
+                if not chunk: break
+                upload_file.write(chunk)
+        # unlock the file
+        db.assets.files.update(
+            {'_id': upload_file._id},
+            {'$set': { 'locked': None } } )
 
 We can, of course, perform metadata edits to the item such as adding
 tags without the extra complexity:
 
-``db.cms.assets.files.update(``
+::
 
-``{ 'metadata.section': section, 'metadata.slug': slug },``
-
-``{ '$addToSet': {``
-
-``'metadata.tags': { '$each': [ 'interesting', 'funny' ] } } })``
+    db.cms.assets.files.update(
+        { 'metadata.section': section, 'metadata.slug': slug },
+        { '$addToSet': {
+            'metadata.tags': { '$each': [ 'interesting', 'funny' ] } } })
 
 Index support
 ^^^^^^^^^^^^^
@@ -414,11 +297,10 @@ unique constraint on (section, slug) to ensure that one of the calls to
 GridFS.new\_file() will fail multiple editors try to create or update
 the file simultaneously.
 
-\`
+::
 
-``>>> db.cms.assets.files.ensure_index([``
-
-``...    ('metadata.section', 1), ('metadata.slug', 1)], unique=True)``
+    >>> db.cms.assets.files.ensure_index([
+    ...    ('metadata.section', 1), ('metadata.slug', 1)], unique=True)
 
 Locate and render a node
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -427,9 +309,10 @@ We want to be able to locate a node based on its section and slug, which
 we assume have been extracted from the page definition and URL by some
 other technology.
 
-``node = db.nodes.find_one(``
+::
 
-``{'metadata.section': section, 'metadata.slug': slug })``
+    node = db.nodes.find_one(
+        {'metadata.section': section, 'metadata.slug': slug })
 
 Index support
 ^^^^^^^^^^^^^
@@ -444,13 +327,12 @@ We want to be able to locate an image based on its section and slug,
 which we assume have been extracted from the page definition and URL
 just as with other nodes.
 
-``fs = GridFS(db, 'cms.assets')``
+::
 
-``with fs.get_version(``
-
-``**{'metadata.section': section, 'metadata.slug': slug }) as img_fp:``
-
-``# do something with our image file``
+    fs = GridFS(db, 'cms.assets')
+    with fs.get_version(
+        **{'metadata.section': section, 'metadata.slug': slug }) as img_fp:
+       # do something with our image file
 
 Index support
 ^^^^^^^^^^^^^
@@ -463,9 +345,9 @@ Search for nodes by tag
 
 Here we would like to retrieve a list of nodes based on their tag:
 
-\`
+::
 
-``nodes = db.nodes.find({'metadata.tags': tag })``
+    nodes = db.nodes.find({'metadata.tags': tag })
 
 Index support
 ^^^^^^^^^^^^^
@@ -473,30 +355,23 @@ Index support
 To support searching efficiently, we should define indexes on any fields
 we intend on using in our query:
 
-\`
+::
 
-``>>> db.cms.nodes.ensure_index('tags')``
-
-\`
+    >>> db.cms.nodes.ensure_index('tags')
 
 Search for images by tag
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 Here we would like to retrieve a list of images based on their tag:
 
-\`
+::
 
-``image_file_objects = db.cms.assets.files.find({'metadata.tags': tag })``
-
-``fs = GridFS(db, 'cms.assets')``
-
-``for image_file_object in db.cms.assets.files.find(``
-
-``{'metadata.tags': tag }):``
-
-``image_file = fs.get(image_file_object['_id'])``
-
-``# do something with the image file``
+    image_file_objects = db.cms.assets.files.find({'metadata.tags': tag })
+    fs = GridFS(db, 'cms.assets')
+    for image_file_object in db.cms.assets.files.find(
+        {'metadata.tags': tag }):
+        image_file = fs.get(image_file_object['_id'])
+        # do something with the image file
 
 Index support
 ^^^^^^^^^^^^^
@@ -504,9 +379,9 @@ Index support
 As above, in order to support searching efficiently, we should define
 indexes on any fields we intend on using in our query:
 
-\`
+::
 
-``>>> db.cms.assets.files.ensure_index('tags')``
+    >>> db.cms.assets.files.ensure_index('tags')
 
 Generate a feed of recently published blog articles
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -514,15 +389,12 @@ Generate a feed of recently published blog articles
 Here, we wish to generate an .rss or .atom feed for our recently
 published blog articles, sorted by date descending:
 
-\`
+::
 
-``articles = db.nodes.find({``
-
-``'metadata.section': 'my-blog'``
-
-``'metadata.published': { '$lt': datetime.utcnow() } })``
-
-``articles = articles.sort({'metadata.published': -1})``
+    articles = db.nodes.find({
+        'metadata.section': 'my-blog'
+        'metadata.published': { '$lt': datetime.utcnow() } })
+    articles = articles.sort({'metadata.published': -1})
 
 In order to support this operation, we will create an index on (section,
 published) so the items are 'in order' for our query. Note that in cases
@@ -530,11 +402,10 @@ where we are sorting or using range queries, as here, the field on which
 we're sorting or performing a range query must be the final field in our
 index:
 
-\`
+::
 
-``>>> db.cms.nodes.ensure_index(``
-
-``...     [ ('metadata.section', 1), ('metadata.published', -1) ])``
+    >>> db.cms.nodes.ensure_index(
+    ...     [ ('metadata.section', 1), ('metadata.published', -1) ])
 
 Sharding
 --------
@@ -542,43 +413,32 @@ Sharding
 In a CMS system, our read performance is generally much more important
 than our write performance. As such, we will optimize the sharding setup
 for read performance. In order to achieve the best read performance, we
-need to ensure that queries are *routeable* by the mongos process.
-
-A second consideration when sharding is that unique indexes do not span
+need to ensure that queries are *routeable* by the mongos process. A
+second consideration when sharding is that unique indexes do not span
 shards. As such, our shard key must include the unique indexes we have
 defined in order to get the same semantics as we have described. Given
 these constraints, sharding the nodes and assets on (section, slug)
 seems to be a reasonable approach:
 
-\`
+::
 
-``>>> db.command('shardcollection', 'cms.nodes', {``
-
-``...     key : { 'metadata.section': 1, 'metadata.slug' : 1 } })``
-
-``{ "collectionsharded" : "cms.nodes", "ok" : 1 }``
-
-``>>> db.command('shardcollection', 'cms.assets.files', {``
-
-``...     key : { 'metadata.section': 1, 'metadata.slug' : 1 } })``
-
-``{ "collectionsharded" : "cms.assets.files", "ok" : 1 }``
-
-\`
+    >>> db.command('shardcollection', 'cms.nodes', {
+    ...     key : { 'metadata.section': 1, 'metadata.slug' : 1 } })
+    { "collectionsharded" : "cms.nodes", "ok" : 1 }
+    >>> db.command('shardcollection', 'cms.assets.files', {
+    ...     key : { 'metadata.section': 1, 'metadata.slug' : 1 } })
+    { "collectionsharded" : "cms.assets.files", "ok" : 1 }
 
 If we wish to shard our 'cms.assets.chunks' collection, we need to shard
 on the \_id field (none of our metadata is available on the chunks
 collection in gridfs):
 
-\`
+::
 
-``>>> db.command('shardcollection', 'cms.assets.chunks'``
-
-``{ "collectionsharded" : "cms.assets.chunks", "ok" : 1 }``
+    >>> db.command('shardcollection', 'cms.assets.chunks'
+    { "collectionsharded" : "cms.assets.chunks", "ok" : 1 }
 
 This actually still maintains our query-routability constraint, since
 all reads from gridfs must first look up the document in 'files' and
 then look up the chunks separately (though the GridFS API sometimes
-hides this detail from us.)
-
-Page of
+hides this detail from us.) Page of

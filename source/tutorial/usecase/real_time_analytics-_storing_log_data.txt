@@ -19,7 +19,6 @@ case when logging a high-bandwidth event stream).
 Schema design
 -------------
 
-\*\*
 The schema design in this case will depend largely on the particular
 format of the event data you want to store. For a simple example, let's
 take standard request logs from the Apache web server using the combined
@@ -27,20 +26,19 @@ log format. For this example we will assume you're using an uncapped
 collection to store the event data. A line from such a log file might
 look like the following:
 
-``127.0.0.1 - frank [10/Oct/2000:13:55:36 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326 "``[http://www.example.com/start.html](http://www.example.com/start.html)``" "Mozilla/4.08 [en] (Win98; I ;Nav)"``
+::
 
-\`
+    127.0.0.1 - frank [10/Oct/2000:13:55:36 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326 "[http://www.example.com/start.html](http://www.example.com/start.html)" "Mozilla/4.08 [en] (Win98; I ;Nav)"
 
 The simplest approach to storing the log data would be putting the exact
 text of the log record into a document:
 
-``{``
+::
 
-``_id: ObjectId('4f442120eb03305789000000'),``
-
-``line: '127.0.0.1 - frank [10/Oct/2000:13:55:36 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326 "``[http://www.example.com/start.html](http://www.example.com/start.html)``" "Mozilla/4.08 [en] (Win98; I ;Nav)"'``
-
-``}``
+    {
+    _id: ObjectId('4f442120eb03305789000000'),
+            line: '127.0.0.1 - frank [10/Oct/2000:13:55:36 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326 "[http://www.example.com/start.html](http://www.example.com/start.html)" "Mozilla/4.08 [en] (Win98; I ;Nav)"'
+    }
 
 While this is a possible solution, it's not likely to be the optimal
 solution. For instance, if we decided we wanted to find events that hit
@@ -49,7 +47,7 @@ would require a full collection scan. A better approach would be to
 extract the relevant fields into individual properties. When doing the
 extraction, we should pay attention to the choice of data types for the
 various fields. For instance, the date field in the log line
-``[10/Oct/2000:13:55:36 -0700]``is 28 bytes long. If we instead store
+``[10/Oct/2000:13:55:36 -0700]`` is 28 bytes long. If we instead store
 this as a UTC timestamp, it shrinks to 8 bytes. Storing the date as a
 timestamp also gives us the advantage of being able to make date range
 queries, whereas comparing two date *strings* is nearly useless. A
@@ -61,78 +59,53 @@ We should also consider what information we might want to omit from the
 log record. For instance, if we wanted to record exactly what was in the
 log record, we might create a document like the following:
 
-``{``
+::
 
-``_id: ObjectId('4f442120eb03305789000000'),``
-
-``host: "127.0.0.1",``
-
-``logname: null,``
-
-``user: 'frank',``
-
-``time:  ,``
-
-``request: "GET /apache_pb.gif HTTP/1.0",``
-
-``status: 200,``
-
-``response_size: 2326,``
-
-``referer: "``[http://www.example.com/start.html](http://www.example.com/start.html)``",``
-
-``user_agent: "Mozilla/4.08 [en] (Win98; I ;Nav)"``
-
-``}``
-
-\`
+    {
+         _id: ObjectId('4f442120eb03305789000000'),
+         host: "127.0.0.1",
+         logname: null,
+         user: 'frank',
+         time:  ,
+         request: "GET /apache_pb.gif HTTP/1.0",
+         status: 200,
+         response_size: 2326,
+         referer: "[http://www.example.com/start.html](http://www.example.com/start.html)",
+         user_agent: "Mozilla/4.08 [en] (Win98; I ;Nav)"
+    }
 
 In most cases, however, we probably are only interested in a subset of
 the data about the request. Here, we may want to keep the host, time,
 path, user agent, and referer for a web analytics application:
 
-``{``
+::
 
-``_id: ObjectId('4f442120eb03305789000000'),``
-
-``host: "127.0.0.1",``
-
-``time:  ISODate("2000-10-10T20:55:36Z"),``
-
-``path: "/apache_pb.gif",``
-
-``referer: "``[http://www.example.com/start.html](http://www.example.com/start.html)``",``
-
-``user_agent: "Mozilla/4.08 [en] (Win98; I ;Nav)"``
-
-``}``
-
-\`
+    {
+         _id: ObjectId('4f442120eb03305789000000'),
+         host: "127.0.0.1",
+         time:  ISODate("2000-10-10T20:55:36Z"),
+         path: "/apache_pb.gif",
+         referer: "[http://www.example.com/start.html](http://www.example.com/start.html)",
+         user_agent: "Mozilla/4.08 [en] (Win98; I ;Nav)"
+    }
 
 It might even be possible to remove the time, since ObjectIds embed
 their the time they are created:
 
-``{``
+::
 
-``_id: ObjectId('4f442120eb03305789000000'),``
+    {
+         _id: ObjectId('4f442120eb03305789000000'),
+         host: "127.0.0.1",
+         time:  ISODate("2000-10-10T20:55:36Z"),
+         path: "/apache_pb.gif",
+         referer: "[http://www.example.com/start.html](http://www.example.com/start.html)",
+         user_agent: "Mozilla/4.08 [en] (Win98; I ;Nav)"
+    }
 
-``host: "127.0.0.1",``
+System Architecture
+~~~~~~~~~~~~~~~~~~~
 
-``time:  ISODate("2000-10-10T20:55:36Z"),``
-
-``path: "/apache_pb.gif",``
-
-``referer: "``[http://www.example.com/start.html](http://www.example.com/start.html)``",``
-
-``user_agent: "Mozilla/4.08 [en] (Win98; I ;Nav)"``
-
-``}``
-
-\`
-
-**System Architecture**
-
-\*\*
 For an event logging system, we are mainly concerned with two
 performance considerations: 1) how many inserts per second can we
 perform (this will limit our event throughput) and 2) how will we manage
@@ -156,35 +129,24 @@ In many event logging applications, we can accept some degree of risk
 when it comes to dropping events. In others, we need to be absolutely
 sure we don't drop any events. MongoDB supports both models. In the case
 where we can tolerate a risk of loss, we can insert records
-*asynchronously* using a fire- and-forget model:
+*asynchronously* using a fire-and-forget model:
 
-``>>> import bson``
+::
 
-``>>> import pymongo``
-
-``>>> from datetime import datetime``
-
-``>>> conn = pymongo.Connection()``
-
-``>>> db = conn.event_db``
-
-``>>> event = {``
-
-``...     _id: bson.ObjectId(),``
-
-``...     host: "127.0.0.1",``
-
-``...     time:  datetime(2000,10,10,20,55,36),``
-
-``...     path: "/apache_pb.gif",``
-
-``...     referer: "``[http://www.example.com/start.html](http://www.example.com/start.html)``",``
-
-``...     user_agent: "Mozilla/4.08 [en] (Win98; I ;Nav)"``
-
-``...}``
-
-``>>> db.events.insert(event, safe=False)``
+    >>> import bson
+    >>> import pymongo
+    >>> from datetime import datetime
+    >>> conn = pymongo.Connection()
+    >>> db = conn.event_db
+    >>> event = {
+    ...     _id: bson.ObjectId(),
+    ...     host: "127.0.0.1",
+    ...     time:  datetime(2000,10,10,20,55,36),
+    ...     path: "/apache_pb.gif",
+    ...     referer: "[http://www.example.com/start.html](http://www.example.com/start.html)",
+    ...     user_agent: "Mozilla/4.08 [en] (Win98; I ;Nav)"
+    ...}
+    >>> db.events.insert(event, safe=False)
 
 This is the fastest approach, as our code doesn't even require a
 round-trip to the MongoDB server to ensure that the insert was received.
@@ -194,29 +156,33 @@ index). If we want to make sure we have an acknowledgement from the
 server that our insertion succeeded (for some definition of success), we
 can pass safe=True:
 
-``>>> db.events.insert(event, safe=True)``
+::
 
-\`
+    >>> db.events.insert(event, safe=True)
 
 If our tolerance for data loss risk is somewhat less, we can require
 that the server to which we write the data has committed the event to
 the on-disk journal before we continue operation (``safe=True`` is
 implied by all the following options):
 
-``>>> db.events.insert(event, j=True)``
+::
 
-\`
+    >>> db.events.insert(event, j=True)
 
 Finally, if we have *extremely low* tolerance for event data loss, we
 can require the data to be replicated to multiple secondary servers
 before returning:
 
-``>>> db.events.insert(event, w=2)``
+::
+
+    >>> db.events.insert(event, w=2)
 
 In this case, we have requested acknowledgement that the data has been
 replicated to 2 replicas. We can combine options as well:
 
-``>>> db.events.insert(event, j=True, w=2)``
+::
+
+    >>> db.events.insert(event, j=True, w=2)
 
 In this case, we are waiting on both a journal commit *and* a
 replication acknowledgement. Although this is the safest option, it is
@@ -240,9 +206,9 @@ For a web analytics-type operation, getting the logs for a particular
 web page might be a common operation that we would want to optimize for.
 In this case, the query would be as follows:
 
-``>>> q_events = db.events.find({'path': '/apache_pb.gif'})``
+::
 
-\`
+    >>> q_events = db.events.find({'path': '/apache_pb.gif'})
 
 Note that the sharding setup we use (should we decide to shard this
 collection) has performance implications for this operation. For
@@ -257,11 +223,9 @@ Index support
 This operation would benefit significantly from an index on the 'path'
 attribute:
 
-\`
+::
 
-``>>> db.events.ensure_index('path')``
-
-\`
+    >>> db.events.ensure_index('path')
 
 One potential downside to this index is that it is relatively randomly
 distributed, meaning that for efficient operation the entire index
@@ -275,20 +239,19 @@ Finding all the events for a particular date
 We may also want to find all the events for a particular date. In this
 case, we would perform the following query:
 
-``>>> q_events = db.events.find('time':``
+::
 
-``...     { '$gte':datetime(2000,10,10),'$lt':datetime(2000,10,11)})``
-
-\`
+    >>> q_events = db.events.find('time':
+    ...     { '$gte':datetime(2000,10,10),'$lt':datetime(2000,10,11)})
 
 Index support
 ^^^^^^^^^^^^^
 
 In this case, an index on 'time' would provide optimal performance:
 
-\`
+::
 
-``>>> db.events.ensure_index('time')``
+    >>> db.events.ensure_index('time')
 
 One of the nice things about this index is that it is *right-aligned.*
 Since we are always inserting events in ascending time order, the
@@ -301,19 +264,16 @@ our system memory.
 Finding all the events for a particular host/date
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-\`
-
 We might also want to analyze the behavior of a particular host on a
 particular day, perhaps for analyzing suspicious behavior by a
 particular IP address. In that case, we would write a query such as:
 
-``>>> q_events = db.events.find({``
+::
 
-``...     'host': '127.0.0.1',``
-
-``...     'time': {'$gte':datetime(2000,10,10),'$lt':datetime(2000,10,11)}``
-
-``... })``
+    >>> q_events = db.events.find({
+    ...     'host': '127.0.0.1',
+    ...     'time': {'$gte':datetime(2000,10,10),'$lt':datetime(2000,10,11)}
+    ... })
 
 Index support
 ^^^^^^^^^^^^^
@@ -322,82 +282,41 @@ Once again, our choice of indexes affects the performance
 characteristics of this query significantly. For instance, suppose we
 create a compound index on (time, host):
 
-``>>> db.events.ensure_index([('time', 1), ('host', 1)])``
+::
+
+    >>> db.events.ensure_index([('time', 1), ('host', 1)])
 
 In this case, the query plan would be the following (retrieved via
-q\_events.explain()):
-
-``{``
-
-``…``
-
-``u'cursor': u'BtreeCursor time_1_host_1',``
-
-``u'indexBounds': {u'host': [[u'127.0.0.1', u'127.0.0.1']],``
-
-``u'time': [[datetime.datetime(2000, 10, 10, 0, 0),``
-
-``datetime.datetime(2000, 10, 11, 0, 0)]]},``
-
-``…``
-
-``u'millis': 4,``
-
-``u'n': 11,``
-
-``…``
-
-``u'nscanned': 1296,``
-
-``u'nscannedObjects': 11,``
-
-``…``
-
-``}``
-
-\`
+q\_events.explain()): { … u'cursor': u'BtreeCursor time\_1\_host\_1',
+u'indexBounds': {u'host': [[u'127.0.0.1', u'127.0.0.1']], u'time':
+[[datetime.datetime(2000, 10, 10, 0, 0), datetime.datetime(2000, 10, 11,
+0, 0)]]}, … u'millis': 4, u'n': 11, … u'nscanned': 1296,
+u'nscannedObjects': 11, … }
 
 If, however, we create a compound index on (host, time)...
 
-\`
+::
 
-``>>> db.events.ensure_index([('host', 1), ('time', 1)])``
-
-\`
+    >>> db.events.ensure_index([('host', 1), ('time', 1)])
 
 We get a much more efficient query plan and much better performance:
 
-\`
+::
 
-``{``
-
-``…``
-
-``u'cursor': u'BtreeCursor host_1_time_1',``
-
-``u'indexBounds': {u'host': [[u'127.0.0.1', u'127.0.0.1']],``
-
-``u'time': [[datetime.datetime(2000, 10, 10, 0, 0),``
-
-``datetime.datetime(2000, 10, 11, 0, 0)]]},``
-
-``…``
-
-``u'millis': 0,``
-
-``u'n': 11,``
-
-``…``
-
-``u'nscanned': 11,``
-
-``u'nscannedObjects': 11,``
-
-``…``
-
-``}``
-
-\`
+    {
+    …
+        u'cursor': u'BtreeCursor host_1_time_1',
+        u'indexBounds': {u'host': [[u'127.0.0.1', u'127.0.0.1']],
+        u'time': [[datetime.datetime(2000, 10, 10, 0, 0),
+            datetime.datetime(2000, 10, 11, 0, 0)]]},
+            …
+        u'millis': 0,
+        u'n': 11,
+            …
+        u'nscanned': 11,
+        u'nscannedObjects': 11,
+            …
+    }
 
 In this case, MongoDB is able to visit just 11 entries in the index to
 satisfy the query, whereas in the first it needed to visit 1296 entries.
@@ -428,47 +347,27 @@ of MongoDB. Suppose we want to find out how many requests there were for
 each day and page over the last month, for instance. In this case, we
 could build up the following aggregation pipeline:
 
-\`
+::
 
-``>>> result = db.command('aggregate', 'events', pipeline=[``
-
-``...         {  '$match': {``
-
-``...               'time': {``
-
-``...                   '$gte': datetime(2000,10,1),``
-
-``...                   '$lt':  datetime(2000,11,1) } } },``
-
-``...         {  '$project': {``
-
-``...                 'path': 1,``
-
-``...                 'date': {``
-
-``...                     'y': { '$year': '$time' },``
-
-``...                     'm': { '$month': '$time' },``
-
-``...                     'd': { '$dayOfMonth': '$time' } } } },``
-
-``...         { '$group': {``
-
-``...                 '_id': {``
-
-``...                     'p':'$path',``
-
-``...                     'y': '$date.y',``
-
-``...                     'm': '$date.m',``
-
-``...                     'd': '$date.d' },``
-
-``...                 'hits': { '$sum': 1 } } },``
-
-``...         ])``
-
-\`
+    >>> result = db.command('aggregate', 'events', pipeline=[
+    ...         {  '$match': {
+    ...               'time': {
+    ...                   '$gte': datetime(2000,10,1),
+    ...                   '$lt':  datetime(2000,11,1) } } },
+    ...         {  '$project': {
+    ...                 'path': 1,
+    ...                 'date': {
+    ...                     'y': { '$year': '$time' },
+    ...                     'm': { '$month': '$time' },
+    ...                     'd': { '$dayOfMonth': '$time' } } } },
+    ...         { '$group': {
+    ...                 '_id': {
+    ...                     'p':'$path',
+    ...                     'y': '$date.y',
+    ...                     'm': '$date.m',
+    ...                     'd': '$date.d' },
+    ...                 'hits': { '$sum': 1 } } },
+    ...         ])
 
 The performance of this aggregation is dependent, of course, on our
 choice of shard key if we're sharding. What we'd like to ensure is that
@@ -482,11 +381,9 @@ Index support
 In this case, we want to make sure we have an index on the initial
 $match query:
 
-\`
+::
 
-``>>> db.events.ensure_index('time')``
-
-\`
+    >>> db.events.ensure_index('time')
 
 If we already have an index on ('time', 'host') as discussed above,
 however, there is no need to create a separate index on 'time' alone,
@@ -524,33 +421,21 @@ Option 1: Shard on a random(ish) key
 Supose instead that we decided to shard on a key with a random
 distribution, say the md5 or sha1 hash of the '\_id' field:
 
-\`
+::
 
-``>>> from bson import Binary``
-
-``>>> from hashlib import sha1``
-
-``>>>``
-
-``>>> # Introduce the synthetic shard key (this should actually be done at``
-
-``>>> #     event insertion time)``
-
-``>>>``
-
-``>>> for ev in db.events.find({}, {'_id':1}):``
-
-``...     ssk = Binary(sha1(str(ev._id))).digest())``
-
-``...     db.events.update({'_id':ev['_id']}, {'$set': {'ssk': ssk} })``
-
-``...``
-
-``>>> db.command('shardcollection', 'events', {``
-
-``...     key : { 'ssk' : 1 } })``
-
-``{ "collectionsharded" : "events", "ok" : 1 }``
+    >>> from bson import Binary
+    >>> from hashlib import sha1
+    >>>
+    >>> # Introduce the synthetic shard key (this should actually be done at
+    >>> #     event insertion time)
+    >>>
+    >>> for ev in db.events.find({}, {'_id':1}):
+    ...     ssk = Binary(sha1(str(ev._id))).digest())
+    ...     db.events.update({'_id':ev['_id']}, {'$set': {'ssk': ssk} })
+    ...
+    >>> db.command('shardcollection', 'events', {
+    ...     key : { 'ssk' : 1 } })
+    { "collectionsharded" : "events", "ok" : 1 }
 
 This does introduce some complexity into our application in order to
 generate the random key, but it provides us linear scaling on our
@@ -570,11 +455,11 @@ Option 2: Shard on a naturally evenly-distributed key
 In this case, we might choose to shard on the 'path' attribute, since it
 seems to be relatively evenly distributed:
 
-``>>> db.command('shardcollection', 'events', {``
+::
 
-``...     key : { 'path' : 1 } })``
-
-``{ "collectionsharded" : "events", "ok" : 1 }``
+    >>> db.command('shardcollection', 'events', {
+    ...     key : { 'path' : 1 } })
+    { "collectionsharded" : "events", "ok" : 1 }
 
 This has a couple of advantages: a) writes tend to be evenly balanced,
 and b) reads tend to be selective (assuming they include the 'path'
@@ -593,13 +478,11 @@ This approach is perhaps the best combination of read and write
 performance for our application. We can define the shard key to be
 (path, sha1(\_id)):
 
-\`
+::
 
-``>>> db.command('shardcollection', 'events', {``
-
-``...     key : { 'path' : 1, 'ssk': 1 } })``
-
-``{ "collectionsharded" : "events", "ok" : 1 }``
+    >>> db.command('shardcollection', 'events', {
+    ...     key : { 'path' : 1, 'ssk': 1 } })
+    { "collectionsharded" : "events", "ok" : 1 }
 
 We still need to calculate a synthetic key in the application client,
 but in return we get good write balancing as well as good read

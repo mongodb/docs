@@ -25,11 +25,16 @@ hourly, daily, weekly, monthly, and yearly. We will use a hierarchical
 approach to running our map-reduce jobs. The input and output of each
 job is illustrated below:
 
-.. figure:: https://docs.google.com/a/arborian.com/drawings/image?id=syuQgkoNVdeOo7UC4%20WepaPQ&rev=1&h=208&w=268&ac=1
+.. figure:: https://docs.google.com/a/arborian.com/drawings/image?id=syuQgkoNVdeOo7UC4WepaPQ&rev=1&h=208&w=268&ac=1
    :align: center
-   :alt:
+   :alt: Hierarchy
+
+   Hierarchy
+Note that the events rolling into the hourly collection is qualitatively
+different than the hourly statistics rolling into the daily collection.
+
 Aside: Map-Reduce Algorithm
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Map/reduce is a popular aggregation algorithm that is optimized for
 embarrassingly parallel problems. The psuedocode (in Python) of the
@@ -38,59 +43,37 @@ psuedocode for a particular type of map/reduce where the results of the
 map/reduce operation are *reduced* into the result collection, allowing
 us to perform incremental aggregation which we'll need in this case.
 
-\`
+::
 
-``def map_reduce(icollection, query,``
+    def map_reduce(icollection, query,
+        mapf, reducef, finalizef, ocollection):
+        '''Psuedocode for map/reduce with output type="reduce" in MongoDB'''
+        map_results = defaultdict(list)
+        def emit(key, value):
+            '''helper function used inside mapf'''
+            map_results[key].append(value)
 
-``mapf, reducef, finalizef, ocollection):``
 
-``'''Psuedocode for map/reduce with output type="reduce" in MongoDB'''``
+        # The map phase
+        for doc in icollection.find(query):
+            mapf(doc)
 
-``map_results = defaultdict(list)``
 
-``def emit(key, value):``
+        # Pull in documents from the output collection for
+        # output type='reduce'
+        for doc in ocollection.find({'_id': {'$in': map_results.keys() } }):
+            map_results[doc['_id']].append(doc['value'])
 
-``'''helper function used inside mapf'''``
 
-``map_results[key].append(value)``
+        # The reduce phase
+        for key, values in map_results.items():
+            reduce_results[key] = reducef(key, values)
 
-\`
 
-``# The map phase``
-
-``for doc in icollection.find(query):``
-
-``mapf(doc)``
-
-\`
-
-``# Pull in documents from the output collection for``
-
-``# output type='reduce'``
-
-``for doc in ocollection.find({'_id': {'$in': map_results.keys() } }):``
-
-``map_results[doc['_id']].append(doc['value'])``
-
-\`
-
-``# The reduce phase``
-
-``for key, values in map_results.items():``
-
-``reduce_results[key] = reducef(key, values)``
-
-\`
-
-``# Finalize and save the results back``
-
-``for key, value in reduce_results.items():``
-
-``final_value = finalizef(key, value)``
-
-``ocollection.save({'_id': key, 'value': final_value})``[a]
-
-\` \`
+        # Finalize and save the results back
+        for key, value in reduce_results.items():
+            final_value = finalizef(key, value)
+            ocollection.save({'_id': key, 'value': final_value})
 
 The embarrassingly parallel part of the map/reduce algorithm lies in the
 fact that each invocation of mapf, reducef, and finalizef are
@@ -98,8 +81,8 @@ independent of each other and can, in fact, be distributed to different
 servers. In the case of MongoDB, this parallelism can be achieved by
 using sharding on the collection on which we are performing map/reduce.
 
-Schema design[b]
-----------------
+Schema design
+-------------
 
 When designing the schema for event storage, we need to keep in mind the
 necessity to differentiate between events which have been included in
@@ -112,17 +95,14 @@ If we are able to batch up our inserts into the event table, we can
 still use an auto-increment primary key by using the find\_and\_modify
 command to generate our \_id values:
 
-``>>> obj = db.my_sequence.find_and_modify(``
+::
 
-``...     query={'_id':0},``
-
-``...     update={'$inc': {'inc': 50}}``
-
-``...     upsert=True,``
-
-``...     new=True)``
-
-``>>> batch_of_ids = range(obj['inc']-50, obj['inc'])``
+    >>> obj = db.my_sequence.find_and_modify(
+    ...     query={'_id':0},
+    ...     update={'$inc': {'inc': 50}}
+    ...     upsert=True,
+    ...     new=True)
+    >>> batch_of_ids = range(obj['inc']-50, obj['inc'])
 
 In most cases, however, it is sufficient to include a timestamp with
 each event that we can use as a marker of which events have been
@@ -131,17 +111,13 @@ we'll assume that we are calculating average session length for
 logged-in users on a website. Our event format will thus be the
 following:
 
-``{``
+::
 
-``"userid": "rick",``
-
-``"ts": ISODate('2010-10-10T14:17:22Z'),``
-
-``"length":95``
-
-``}``
-
-\`
+    {
+        "userid": "rick",
+        "ts": ISODate('2010-10-10T14:17:22Z'),
+        "length":95
+    }
 
 We want to calculate total and average session times for each user at
 the hour, day, week, month, and year. In each case, we will also store
@@ -149,23 +125,16 @@ the number of sessions to enable us to incrementally recompute the
 average session times. Each of our aggregate documents, then, looks like
 the following:
 
-``{``
+::
 
-``_id: { u: "rick", d: ISODate("2010-10-10T14:00:00Z") },``
-
-``value: {``
-
-``ts: ISODate('2010-10-10T15:01:00Z'),``
-
-``total: 254,``
-
-``count: 10,``
-
-``mean: 25.4 }``
-
-``}``
-
-\`
+    {
+       _id: { u: "rick", d: ISODate("2010-10-10T14:00:00Z") },
+       value: {
+           ts: ISODate('2010-10-10T15:01:00Z'),
+           total: 254,
+           count: 10,
+           mean: 25.4 }
+    }
 
 Note in particular that we have added a timestamp to the aggregate
 document. This will help us as we incrementally update the various
@@ -192,67 +161,44 @@ and PyMongo to interface with the MongoDB server, note that the various
 functions (map, reduce, and finalize) that we pass to the mapreduce
 command must be Javascript functions. The map function appears below:
 
-``mapf_hour = bson.Code('''function() {``
+::
 
-``var key = {``
-
-``u: this.userid,``
-
-``d: new Date(``
-
-``this.ts.getFullYear(),``
-
-``this.ts.getMonth(),``
-
-``this.ts.getDate(),``
-
-``this.ts.getHours(),``
-
-``0, 0, 0);``
-
-``emit(``
-
-``key,``
-
-``{``
-
-``total: this.length,``
-
-``count: 1,``
-
-``mean: 0,``
-
-``ts: new Date(); });``
-
-``}''')``
-
-\`
+    mapf_hour = bson.Code('''function() {
+        var key = {
+            u: this.userid,
+            d: new Date(
+                this.ts.getFullYear(),
+                this.ts.getMonth(),
+                this.ts.getDate(),
+                this.ts.getHours(),
+                0, 0, 0);
+        emit(
+            key,
+            {
+                total: this.length,
+                count: 1,
+                mean: 0,
+                ts: new Date(); });
+    }''')
 
 In this case, we are emitting key, value pairs which contain the
 statistics we want to aggregate as you'd expect, but we are also
 emitting 'ts' value. This will be used in the cascaded aggregations
 (hour to day, etc.) to determine when a particular hourly aggregation
-was performed.\` \`
-
-\`
+was performed.
 
 Our reduce function is also fairly straightforward:
 
-``reducef = bson.Code('''function(key, values) {``
+::
 
-``var r = { total: 0, count: 0, mean: 0, ts: null };``
-
-``values.forEach(function(v) {``
-
-``r.total += v.total;``
-
-``r.count += v.count;``
-
-``});``
-
-``return r;``
-
-``}''')``
+    reducef = bson.Code('''function(key, values) {
+        var r = { total: 0, count: 0, mean: 0, ts: null };
+        values.forEach(function(v) {
+            r.total += v.total;
+            r.count += v.count;
+        });
+        return r;
+    }''')
 
 A few things are notable here. First of all, note that the returned
 document from our reduce function has the same format as the result of
@@ -262,49 +208,35 @@ finalize results can lead to difficult-to-debug errors. Also note that
 we are ignoring the 'mean' and 'ts' values. These will be provided in
 the 'finalize' step:
 
-\`
+::
 
-``finalizef = bson.Code('''function(key, value) {``
-
-``if(value.count > 0) {``
-
-``value.mean = value.total / value.count;``
-
-``}``
-
-``value.ts = new Date();``
-
-``return value;``
-
-``}''')``
-
-\`
+    finalizef = bson.Code('''function(key, value) {
+        if(value.count > 0) {
+            value.mean = value.total / value.count;
+        }
+        value.ts = new Date();
+        return value;
+    }''')
 
 Here, we compute the mean value as well as the timestamp we will use to
 write back to the output collection. Now, to bind it all together, here
 is our Python code to invoke the mapreduce command:
 
-``cutoff = datetime.utcnow() - timedelta(seconds=60)``
+::
 
-``query = { 'ts': { '$gt': last_run, '$lt': cutoff } }``
+    cutoff = datetime.utcnow() - timedelta(seconds=60)
+    query = { 'ts': { '$gt': last_run, '$lt': cutoff } }
 
-\`
 
-``db.events.map_reduce(``
+    db.events.map_reduce(
+        map=mapf_hour,
+        reduce=reducef,
+        finalize=finalizef,
+        query=query,
+        out={ 'reduce': 'stats.hourly' })
 
-``map=mapf_hour,``
 
-``reduce=reducef,``
-
-``finalize=finalizef,``
-
-``query=query,``
-
-``out={ 'reduce': 'stats.hourly' })``
-
-\`
-
-``last_run = cutoff``
+    last_run = cutoff
 
 Because we used the 'reduce' option on our output, we are able to run
 this aggregation as often as we like as long as we update the last\_run
@@ -317,14 +249,13 @@ Since we are going to be running the initial query on the input events
 frequently, we would benefit significantly from and index on the
 timestamp of incoming events:
 
-``>>> db.stats.hourly.ensure_index('ts')``
+::
+
+    >>> db.stats.hourly.ensure_index('ts')
 
 Since we are always reading and writing the most recent events, this
-index
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-has the advantage of being right-aligned, which basically means we only
-need a thin slice of the index (the most recent values) in RAM to
+index has the advantage of being right-aligned, which basically means we
+only need a thin slice of the index (the most recent values) in RAM to
 achieve good performance.
 
 Aggregate from hour to day
@@ -334,37 +265,24 @@ In calculating the daily statistics, we will use the hourly statistics
 as input. Our map function looks quite similar to our hourly map
 function:
 
-``mapf_day = bson.Code('''function() {``
+::
 
-``var key = {``
-
-``u: this._id.u,``
-
-``d: new Date(``
-
-``this._id.d.getFullYear(),``
-
-``this._id.d.getMonth(),``
-
-``this._id.d.getDate(),``
-
-``0, 0, 0, 0) };``
-
-``emit(``
-
-``key,``
-
-``{``
-
-``total: this.value.total,``
-
-``count: this.value.count,``
-
-``mean: 0,``
-
-``ts: null });``
-
-``}''')``
+    mapf_day = bson.Code('''function() {
+        var key = {
+            u: this._id.u,
+            d: new Date(
+                this._id.d.getFullYear(),
+                this._id.d.getMonth(),
+                this._id.d.getDate(),
+                0, 0, 0, 0) };
+        emit(
+            key,
+            {
+                total: this.value.total,
+                count: this.value.count,
+                mean: 0,
+                ts: null });
+    }''')
 
 There are a few differences to note here. First of all, the key to which
 we aggregate is the (userid, date) rather than (userid, hour) to allow
@@ -378,27 +296,21 @@ hourly aggregations, we can, in fact, use the same reduce and finalize
 functions. The actual Python code driving this level of aggregation is
 as follows:
 
-``cutoff = datetime.utcnow() - timedelta(seconds=60)``
+::
 
-``query = { 'value.ts': { '$gt': last_run, '$lt': cutoff } }``
+    cutoff = datetime.utcnow() - timedelta(seconds=60)
+    query = { 'value.ts': { '$gt': last_run, '$lt': cutoff } }
 
-\`
 
-``db.stats.hourly.map_reduce(``
+    db.stats.hourly.map_reduce(
+        map=mapf_day,
+        reduce=reducef,
+        finalize=finalizef,
+        query=query,
+        out={ 'reduce': 'stats.daily' })
 
-``map=mapf_day,``
 
-``reduce=reducef,``
-
-``finalize=finalizef,``
-
-``query=query,``
-
-``out={ 'reduce': 'stats.daily' })``
-
-\`
-
-``last_run = cutoff``
+    last_run = cutoff
 
 There are a couple of things to note here. First of all, our query is
 not on 'ts' now, but 'value.ts', the timestamp we wrote during the
@@ -413,13 +325,13 @@ Since we are going to be running the initial query on the hourly
 statistics collection frequently, an index on 'value.ts' would be nice
 to have:
 
-``>>> db.stats.hourly.ensure_index('value.ts')``
+::
+
+    >>> db.stats.hourly.ensure_index('value.ts')
 
 Once again, this is a right-aligned index that will use very little RAM
-for
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-efficient operation.
+for efficient operation.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Other aggregations
 ~~~~~~~~~~~~~~~~~~
@@ -427,188 +339,118 @@ Other aggregations
 Once we have our daily statistics, we can use them to calculate our
 weekly and monthly statistics. Our weekly map function is as follows:
 
-``mapf_week = bson.Code('''function() {``
+::
 
-``var key = {``
-
-``u: this._id.u,``
-
-``d: new Date(``
-
-``this._id.d.valueOf()``
-
-``- dt.getDay()*24*60*60*1000) };``
-
-``emit(``
-
-``key,``
-
-``{``
-
-``total: this.value.total,``
-
-``count: this.value.count,``
-
-``mean: 0,``
-
-``ts: null });``
-
-``}''')``
-
-\`
+    mapf_week = bson.Code('''function() {
+        var key = {
+            u: this._id.u,
+            d: new Date(
+                this._id.d.valueOf()
+                - dt.getDay()*24*60*60*1000) };
+        emit(
+            key,
+            {
+                total: this.value.total,
+                count: this.value.count,
+                mean: 0,
+                ts: null });
+    }''')
 
 Here, in order to get our group key, we are simply taking the date and
 subtracting days until we get to the beginning of the week. In our
 weekly map function, we will choose the first day of the month as our
 group key:
 
-``mapf_month = bson.Code('''function() {``
+::
 
-``d: new Date(``
-
-``this._id.d.getFullYear(),``
-
-``this._id.d.getMonth(),``
-
-``1, 0, 0, 0, 0) };``
-
-``emit(``
-
-``key,``
-
-``{``
-
-``total: this.value.total,``
-
-``count: this.value.count,``
-
-``mean: 0,``
-
-``ts: null });``
-
-``}''')``
+    mapf_month = bson.Code('''function() {
+            d: new Date(
+                this._id.d.getFullYear(),
+                this._id.d.getMonth(),
+                1, 0, 0, 0, 0) };
+        emit(
+            key,
+            {
+                total: this.value.total,
+                count: this.value.count,
+                mean: 0,
+                ts: null });
+    }''')
 
 One thing in particular to notice about these map functions is that they
 are identical to one another except for the date calculation. We can use
 Python's string interpolation to refactor our map function definitions
 as follows:
 
-\`
+::
 
-``mapf_hierarchical = '''function() {``
+    mapf_hierarchical = '''function() {
+        var key = {
+            u: this._id.u,
+            d: %s };
+        emit(
+            key,
+            {
+                total: this.value.total,
+                count: this.value.count,
+                mean: 0,
+                ts: null });
+    }'''
 
-``var key = {``
 
-``u: this._id.u,``
+    mapf_day = bson.Code(
+        mapf_hierarchical % '''new Date(
+                this._id.d.getFullYear(),
+                this._id.d.getMonth(),
+                this._id.d.getDate(),
+                0, 0, 0, 0)''')
 
-``d: %s };``
 
-``emit(``
+    mapf_week = bson.Code(
+        mapf_hierarchical % '''new Date(
+                this._id.d.valueOf()
+                - dt.getDay()*24*60*60*1000)''')
 
-``key,``
 
-``{``
+    mapf_month = bson.Code(
+        mapf_hierarchical % '''new Date(
+                this._id.d.getFullYear(),
+                this._id.d.getMonth(),
+                1, 0, 0, 0, 0)''')
 
-``total: this.value.total,``
 
-``count: this.value.count,``
-
-``mean: 0,``
-
-``ts: null });``
-
-``}'''``
-
-\`
-
-``mapf_day = bson.Code(``
-
-``mapf_hierarchical % '''new Date(``
-
-``this._id.d.getFullYear(),``
-
-``this._id.d.getMonth(),``
-
-``this._id.d.getDate(),``
-
-``0, 0, 0, 0)''')``
-
-\`
-
-``mapf_week = bson.Code(``
-
-``mapf_hierarchical % '''new Date(``
-
-``this._id.d.valueOf()``
-
-``- dt.getDay()*24*60*60*1000)''')``
-
-\`
-
-``mapf_month = bson.Code(``
-
-``mapf_hierarchical % '''new Date(``
-
-``this._id.d.getFullYear(),``
-
-``this._id.d.getMonth(),``
-
-``1, 0, 0, 0, 0)''')``
-
-\`
-
-``mapf_year = bson.Code(``
-
-``mapf_hierarchical % '''new Date(``
-
-``this._id.d.getFullYear(),``
-
-``1, 1, 0, 0, 0, 0)''')``
-
-\`
+    mapf_year = bson.Code(
+        mapf_hierarchical % '''new Date(
+                this._id.d.getFullYear(),
+                1, 1, 0, 0, 0, 0)''')
 
 Our Python driver can also be refactored so we have much less code
 duplication:
 
-``def aggregate(icollection, ocollection, mapf, cutoff, last_run):``
+::
 
-``query = { 'value.ts': { '$gt': last_run, '$lt': cutoff } }``
-
-``icollection.map_reduce(``
-
-``map=mapf,``
-
-``reduce=reducef,``
-
-``finalize=finalizef,``
-
-``query=query,``
-
-``out={ 'reduce': ocollection.name })``
-
-\`
+    def aggregate(icollection, ocollection, mapf, cutoff, last_run):
+        query = { 'value.ts': { '$gt': last_run, '$lt': cutoff } }
+        icollection.map_reduce(
+            map=mapf,
+            reduce=reducef,
+            finalize=finalizef,
+            query=query,
+            out={ 'reduce': ocollection.name })
 
 Once this is defined, we can perform all our aggregations as follows:
 
-``cutoff = datetime.utcnow() - timedelta(seconds=60)``
+::
 
-``aggregate(db.events, db.stats.hourly, mapf_hour, cutoff, last_run)``
-
-``aggregate(db.stats.hourly, db.stats.daily, mapf_day, cutoff, last_run)``
-
-``aggregate(db.stats.daily, db.stats.weekly, mapf_week, cutoff, last_run)``
-
-``aggregate(db.stats.daily, db.stats.monthly, mapf_month, cutoff,``
-
-``last_run)``
-
-``aggregate(db.stats.monthly, db.stats.yearly, mapf_year, cutoff,``
-
-``last_run)``
-
-``last_run = cutoff``
-
-\`
+    cutoff = datetime.utcnow() - timedelta(seconds=60)
+    aggregate(db.events, db.stats.hourly, mapf_hour, cutoff, last_run)
+    aggregate(db.stats.hourly, db.stats.daily, mapf_day, cutoff, last_run)
+    aggregate(db.stats.daily, db.stats.weekly, mapf_week, cutoff, last_run)
+    aggregate(db.stats.daily, db.stats.monthly, mapf_month, cutoff,
+        last_run)
+    aggregate(db.stats.monthly, db.stats.yearly, mapf_year, cutoff,
+        last_run)
+    last_run = cutoff
 
 So long as we save/restore our 'last\_run' variable between
 aggregations, we can run these aggregations as often as we like since
@@ -619,11 +461,12 @@ Index support
 
 Our indexes will continue to be on the value's timestamp to ensure
 efficient operation of the next level of the aggregation (and they
-continue to be right- aligned):
+continue to be right-aligned):
 
-``>>> db.stats.daily.ensure_index('value.ts')``
+::
 
-``>>> db.stats.monthly.ensure_index('value.ts')``
+    >>> db.stats.daily.ensure_index('value.ts')
+    >>> db.stats.monthly.ensure_index('value.ts')
 
 Sharding
 --------
@@ -637,81 +480,22 @@ makes sense as the most significant part of the shard key.
 
 In order to prevent a single, active user from creating a large,
 unsplittable chunk, we will use a compound shard key with (username,
-timestamp) on each of our collections:
-
-``>>> db.command('shardcollection', 'events', {``
-
-``...     key : { 'userid': 1, 'ts' : 1} } )``
-
-``{ "collectionsharded" : "events", "ok" : 1 }``
-
-``>>> db.command('shardcollection', 'stats.daily', {``
-
-``...     key : { '_id': 1} } )``
-
-``{ "collectionsharded" : "stats.daily", "ok" : 1 }``
-
-``>>> db.command('shardcollection', 'stats.weekly', {``
-
-``...     key : { '_id': 1} } )``
-
-``{ "collectionsharded" : "stats.weekly", "ok" : 1 }``
-
-``>>> db.command('shardcollection', 'stats.monthly', {``
-
-``...     key : { '_id': 1} } )``
-
-``{ "collectionsharded" : "stats.monthly", "ok" : 1 }``
-
-``>>> db.command('shardcollection', 'stats.yearly', {``
-
-``...     key : { '_id': 1} } )``
-
-``{ "collectionsharded" : "stats.yearly", "ok" : 1 }``
+timestamp) on each of our collections: >>> db.command('shardcollection',
+'events', { ... key : { 'userid': 1, 'ts' : 1} } ) { "collectionsharded"
+: "events", "ok" : 1 } >>> db.command('shardcollection', 'stats.daily',
+{ ... key : { '\_id': 1} } ) { "collectionsharded" : "stats.daily", "ok"
+: 1 } >>> db.command('shardcollection', 'stats.weekly', { ... key : {
+'\_id': 1} } ) { "collectionsharded" : "stats.weekly", "ok" : 1 } >>>
+db.command('shardcollection', 'stats.monthly', { ... key : { '\_id': 1}
+} ) { "collectionsharded" : "stats.monthly", "ok" : 1 } >>>
+db.command('shardcollection', 'stats.yearly', { ... key : { '\_id': 1} }
+) { "collectionsharded" : "stats.yearly", "ok" : 1 }
 
 We should also update our map/reduce driver so that it notes the output
 should be sharded. This is accomplished by adding 'sharded':True to the
 output argument:
 
-…
-
-``out={ 'reduce': ocollection.name, 'sharded': True })``
-
-…
+… out={ 'reduce': ocollection.name, 'sharded': True }) …
 
 Note that the output collection of a mapreduce command, if sharded, must
 be sharded using \_id as the shard key.
-
-Page of
-
-[a]jsr:
-
-It's a little weird to have the code sample in python since we'll
-actually be doing the map reduce in javascript. Is it significantly more
-code to do this as javascript?
-
---------------
-
-rick446:
-
-I could rewrite all the code examples in this doc as Javascript if
-that's what you want. I don't think we should do some of the snippets in
-Python and some in JS, however.
-
-Also, the docs focus on JS, so it might be nice to see how you do this
-in a non-JS environment (Answering the question of how *do* you send the
-mapf and reducef from non-JS)
-
-[b]jsr:
-
-It's worth describing the set of collections we'll have. 1) the raw data
-logs, 2) hourly data, 3) daily data. And show that there's a map reduce
-job between each collection. E.g. job1 takes raw data to hourly. job2
-takes hourly data to daily data.
-
---------------
-
-rick446:
-
-I added an illustration above in the solution overview; is that
-sufficient?

@@ -14,7 +14,7 @@ We will keep each category in its own document, along with a list of its
 ancestors. The category hierarchy we will use in this solution will be
 based on different categories of music:
 
-.. figure:: https://docs.google.com/a/arborian.com/drawings/image?id=sYoXu6LHwYVB_WXz1%20Y_k8XA&rev=27&h=250&w=443&ac=1
+.. figure:: https://docs.google.com/a/arborian.com/drawings/image?id=sYoXu6LHwYVB_WXz1Y_k8XA&rev=27&h=250&w=443&ac=1
    :align: center
    :alt:
 Since categories change relatively infrequently, we will focus mostly in
@@ -31,29 +31,20 @@ cross-referencing as well as a human-readable name and a url-friendly
 with each document to facilitate displaying a category along with all
 its ancestors in a single query.
 
-``{ "_id" : ObjectId("4f5ec858eb03303a11000002"),``
+::
 
-``"name" : "Modal Jazz",``
-
-``"parent" : ObjectId("4f5ec858eb03303a11000001"),``
-
-``"slug" : "modal-jazz",``
-
-``"ancestors" : [``
-
-``{ "_id" : ObjectId("4f5ec858eb03303a11000001"),``
-
-``"slug" : "bop",``
-
-``"name" : "Bop" },``
-
-``{ "_id" : ObjectId("4f5ec858eb03303a11000000"),``
-
-``"slug" : "ragtime",``
-
-``"name" : "Ragtime" } ]``
-
-``}``
+    { "_id" : ObjectId("4f5ec858eb03303a11000002"),
+      "name" : "Modal Jazz",
+      "parent" : ObjectId("4f5ec858eb03303a11000001"),
+      "slug" : "modal-jazz",
+      "ancestors" : [
+             { "_id" : ObjectId("4f5ec858eb03303a11000001"),
+            "slug" : "bop",
+            "name" : "Bop" },
+             { "_id" : ObjectId("4f5ec858eb03303a11000000"),
+               "slug" : "ragtime",
+               "name" : "Ragtime" } ]
+    }
 
 Operations
 ----------
@@ -69,13 +60,11 @@ case, we might want to display a category along with a list of 'bread
 crumbs' leading back up the hierarchy. In an E-commerce site, we will
 most likely have the slug of the category available for our query.
 
-``category = db.categories.find(``
+::
 
-``{'slug':slug},``
-
-``{'_id':0, 'name':1, 'ancestors.slug':1, 'ancestors.name':1 })``
-
-\`
+    category = db.categories.find(
+        {'slug':slug},
+        {'_id':0, 'name':1, 'ancestors.slug':1, 'ancestors.name':1 })
 
 Here, we use the slug to retrieve the category and retrieve only those
 fields we wish to display.
@@ -87,53 +76,42 @@ In order to support this common operation efficiently, we need an index
 on the 'slug' field. Since slug is also intended to be unique, we will
 add that constraint to our index as well:
 
-``db.categories.ensure_index('slug', unique=True)``
+::
+
+    db.categories.ensure_index('slug', unique=True)
 
 Add a category to the hierarchy
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Adding a category to a hierarchy is relatively simple. Suppose we wish
-to add a new category 'Swing' as a child of 'Ragtime':
+to add a new category 'Swing' as a child of 'Ragtime': |image0|
 
-.. figure:: https://docs.google.com/a/arborian.com/drawings/image?id=sRXRjZMEZDN2azKBl%20sOoXoA&rev=7&h=250&w=443&ac=1
-   :align: center
-   :alt:
 In this case, the initial insert is simple enough, but after this
 insert, we are still missing the ancestors array in the 'Swing'
 category. To define this, we will add a helper function to build our
 ancestor list:
 
-\`
+::
 
-``def build_ancestors(_id, parent_id):``
-
-``parent = db.categories.find_one(``
-
-``{'_id': parent_id},``
-
-``{'name': 1, 'slug': 1, 'ancestors':1})``
-
-``parent_ancestors = parent.pop('ancestors')``
-
-``ancestors = [ parent ] + parent_ancestors``
-
-``db.categories.update(``
-
-``{'_id': _id},``
-
-``{'$set': { 'ancestors': ancestors } })``
+    def build_ancestors(_id, parent_id):
+        parent = db.categories.find_one(
+            {'_id': parent_id},
+            {'name': 1, 'slug': 1, 'ancestors':1})
+        parent_ancestors = parent.pop('ancestors')
+        ancestors = [ parent ] + parent_ancestors
+        db.categories.update(
+            {'_id': _id},
+            {'$set': { 'ancestors': ancestors } })
 
 Note that we only need to travel one level in our hierarchy to get the
 ragtime's ancestors and build swing's entire ancestor list. Now we can
 actually perform the insert and rebuild the ancestor list:
 
-``doc = dict(name='Swing', slug='swing', parent=ragtime_id)``
+::
 
-``swing_id = db.categories.insert(doc)``
-
-``build_ancestors(swing_id, ragtime_id)``
-
-\`
+    doc = dict(name='Swing', slug='swing', parent=ragtime_id)
+    swing_id = db.categories.insert(doc)
+    build_ancestors(swing_id, ragtime_id)
 
 Index Support
 ^^^^^^^^^^^^^
@@ -148,57 +126,45 @@ Change the ancestry of a category
 Our goal here is to reorganize the hierarchy by moving 'bop' under
 'swing':
 
-.. figure:: https://docs.google.com/a/arborian.com/drawings/image?id=sFB8ph8n7c768f-%20MLTOkY-w&rev=6&h=354&w=443&ac=1
+.. figure:: https://docs.google.com/a/arborian.com/drawings/image?id=sFB8ph8n7c768f-MLTOkY-w&rev=6&h=354&w=443&ac=1
    :align: center
    :alt:
 The initial update is straightforward:
 
-``db.categories.update(``
+::
 
-``{'_id':bop_id}, {'$set': { 'parent': swing_id } } )``
+    db.categories.update(
+        {'_id':bop_id}, {'$set': { 'parent': swing_id } } )
 
 Now, we need to update the ancestor list for bop and all its
 descendants. In this case, we can't guarantee that the ancestor list of
 the parent category is always correct, however (since we may be
-processing the categories out-of- order), so we will need a new
+processing the categories out-of-order), so we will need a new
 ancestor-building function:
 
-\`
+::
 
-``def build_ancestors_full(_id, parent_id):``
-
-``ancestors = []``
-
-``while parent_id is not None:``
-
-``parent = db.categories.find_one(``
-
-``{'_id': parent_id},``
-
-``{'parent': 1, 'name': 1, 'slug': 1, 'ancestors':1})``
-
-``parent_id = parent.pop('parent')``
-
-``ancestors.append(parent)``
-
-``db.categories.update(``
-
-``{'_id': _id},``
-
-``{'$set': { 'ancestors': ancestors } })``
-
-\`
+    def build_ancestors_full(_id, parent_id):
+        ancestors = []
+        while parent_id is not None:
+            parent = db.categories.find_one(
+                {'_id': parent_id},
+                {'parent': 1, 'name': 1, 'slug': 1, 'ancestors':1})
+            parent_id = parent.pop('parent')
+            ancestors.append(parent)
+        db.categories.update(
+            {'_id': _id},
+            {'$set': { 'ancestors': ancestors } })
 
 Now, at the expense of a few more queries up the hierarchy, we can
 easily reconstruct all the descendants of 'bop':
 
-``for cat in db.categories.find(``
+::
 
-``{'ancestors._id': bop_id},``
-
-``{'parent_id': 1}):``
-
-``build_ancestors_full(cat['_id'], cat['parent_id'])``
+    for cat in db.categories.find(
+        {'ancestors._id': bop_id},
+        {'parent_id': 1}):
+        build_ancestors_full(cat['_id'], cat['parent_id'])
 
 Index Support
 ^^^^^^^^^^^^^
@@ -206,9 +172,9 @@ Index Support
 In this case, an index on 'ancestors.\_id' would be helpful in
 determining which descendants need to be updated:
 
-\`
+::
 
-``db.categories.ensure_index('ancestors._id')``
+    db.categories.ensure_index('ancestors._id')
 
 Renaming a category
 ~~~~~~~~~~~~~~~~~~~
@@ -217,28 +183,21 @@ Renaming a category would normally be an extremely quick operation, but
 in this case due to our denormalization, we also need to update the
 descendants. Here, we will rename 'Bop' to 'BeBop':
 
-.. figure:: https://docs.google.com/a/arborian.com/drawings/image?id=sqRIXKA2lGr_bm5ys%20M7KWQA&rev=3&h=354&w=443&ac=1
-   :align: center
-   :alt:
-First, we need to update the category name itself:
+|image1| First, we need to update the category name itself:
 
-\`
+::
 
-``db.categories.update(``
-
-``{'_id':bop_id}, {'$set': { 'name': 'BeBop' } } )``
+    db.categories.update(
+        {'_id':bop_id}, {'$set': { 'name': 'BeBop' } } )
 
 Next, we need to update each descendant's ancestors list:
 
-``db.categories.update(``
+::
 
-``{'ancestors._id': bop_id},``
-
-``{'$set': { 'ancestors.$.name': 'BeBop' } },``
-
-``multi=True)``
-
-\`
+    db.categories.update(
+        {'ancestors._id': bop_id},
+        {'$set': { 'ancestors.$.name': 'BeBop' } },
+        multi=True)
 
 Here, we use the positional operation '$' to match the exact 'ancestor'
 entry that matches our query, as well as the 'multi' option on our
@@ -260,13 +219,13 @@ shard, the use of an \_id field for most of our updates makes \_id an
 ideal sharding candidate. The sharding commands we would use to shard
 the category collection would then be the following:
 
-``>>> db.command('shardcollection', 'categories')``
+::
 
-``{ "collectionsharded" : "categories", "ok" : 1 }``
-
-\`
+    >>> db.command('shardcollection', 'categories')
+    { "collectionsharded" : "categories", "ok" : 1 }
 
 Note that there is no need to specify the shard key, as MongoDB will
-default to using \_id as a shard key.
+default to using \_id as a shard key. Page of
 
-Page of
+.. |image0| image:: https://docs.google.com/a/arborian.com/drawings/image?id=sRXRjZMEZDN2azKBlsOoXoA&rev=7&h=250&w=443&ac=1
+.. |image1| image:: https://docs.google.com/a/arborian.com/drawings/image?id=sqRIXKA2lGr_bm5ysM7KWQA&rev=3&h=354&w=443&ac=1

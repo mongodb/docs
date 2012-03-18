@@ -28,15 +28,15 @@ want to count the number of hits to a collection of web site at various
 levels of time-granularity (by minute, hour, day, week, and month) as
 well as by path. We will assume that either you have some code that can
 run as part of your web app when it is rendering the page, or you have
-some set of logfile post- processors that can run in order to integrate
+some set of logfile post-processors that can run in order to integrate
 the statistics.
 
 Schema design
 -------------
 
 There are two important considerations when designing the schema for a
-real- time analytics system: the ease & speed of updates and the ease &
-speed of queries[a]. In particular, we want to avoid the following
+real-time analytics system: the ease & speed of updates and the ease &
+speed of queries. In particular, we want to avoid the following
 performance-killing circumstances:
 
 -  documents changing in size significantly, causing reallocations on
@@ -63,41 +63,26 @@ Design 0: one document per page/day
 Our initial approach will be to simply put all the statistics in which
 we're interested into a single document per page:
 
-``{``
+::
 
-``_id: "20101010/site-1/apache_pb.gif",``
-
-``metadata: {``
-
-``date: ISODate("2000-10-10T00:00:00Z"),``
-
-``site: "site-1",``
-
-``page: "/apache_pb.gif" },``
-
-``daily: 5468426,``
-
-``hourly: {``
-
-``"0": 227850,``
-
-``"1": 210231,``
-
-``…``
-
-``"23": 20457 },``
-
-``minute: {``
-
-``"0": 3612,``
-
-``"1": 3241,``
-
-``…``
-
-``"1439": 2819 }``
-
-``}``[b]
+    {
+        _id: "20101010/site-1/apache_pb.gif",
+        metadata: {
+            date: ISODate("2000-10-10T00:00:00Z"),
+            site: "site-1",
+            page: "/apache_pb.gif" },
+        daily: 5468426,
+        hourly: {
+            "0": 227850,
+            "1": 210231,
+                    …
+            "23": 20457 },
+        minute: {
+            "0": 3612,
+            "1": 3241,
+                    …
+            "1439": 2819 }
+    }
 
 This approach has a couple of advantages: a) it only requires a single
 update per hit to the website, b) intra-day reports for a single page
@@ -138,78 +123,49 @@ sequence of (key, value) pairs, *not* as a hash table. What this means
 for us is that writing to stats.mn.0 is *much* faster than writing to
 stats.mn.1439. [c]
 
-.. figure:: https://docs.google.com/a/arborian.com/drawings/image?id=sg_d2tpKfXUsecEyv%20pgRg8w&rev=1&h=82&w=410&ac=1
+.. figure:: https://docs.google.com/a/arborian.com/drawings/image?id=sg_d2tpKfXUsecEyvpgRg8w&rev=1&h=82&w=410&ac=1
    :align: center
    :alt:
 In order to speed this up, we can introduce some intra-document
 hierarchy. In particular, we can split the 'mn' field up into 24 hourly
 fields:
 
-\`
-
-``{``
-
-``_id: "20101010/site-1/apache_pb.gif",``
-
-``metadata: {``
-
-``date: ISODate("2000-10-10T00:00:00Z"),``
-
-``site: "site-1",``
-
-``page: "/apache_pb.gif" },``
-
-``daily: 5468426,``
-
-``hourly: {``
-
-``"0": 227850,``
-
-``"1": 210231,``
-
-``…``
-
-``"23": 20457 },``
-
-``minute: {``
-
-``"0": {``
-
-``"0": 3612,``
-
-``"1": 3241,``
-
-``…``
-
-``"59": 2130 },``
-
-\` "1": {
-
 ::
 
-           "60": … ,
+    {
+        _id: "20101010/site-1/apache_pb.gif",
+        metadata: {
+            date: ISODate("2000-10-10T00:00:00Z"),
+            site: "site-1",
+            page: "/apache_pb.gif" },
+        daily: 5468426,
+        hourly: {
+            "0": 227850,
+            "1": 210231,
+                    …
+            "23": 20457 },
+        minute: {
+            "0": {
+                "0": 3612,
+                "1": 3241,
+                            …
+                "59": 2130 },
+            "1": {
+            "60": … ,
 
-\`
-
-``},``
-
-``…``
-
-``"23": {``
-
-``…``
-
-``"1439": 2819 }``
-
-``}``
-
-``}``
+            },
+                    …
+            "23": {
+                    …
+                "1439": 2819 }
+        }
+    }
 
 This allows MongoDB to "skip forward" when updating the minute
 statistics later in the day, making our performance more uniform and
 generally faster.
 
-.. figure:: https://docs.google.com/a/arborian.com/drawings/image?id=sGv9KIXyF_XZvpnNP%20Vyojcg&rev=21&h=148&w=410&ac=1
+.. figure:: https://docs.google.com/a/arborian.com/drawings/image?id=sGv9KIXyF_XZvpnNPVyojcg&rev=21&h=148&w=410&ac=1
    :align: center
    :alt:
 Design #2: Create separate documents for different granularities
@@ -228,88 +184,52 @@ follows:
 Daily Statistics
 ^^^^^^^^^^^^^^^^
 
-``{``
-
-``_id: "20101010/site-1/apache_pb.gif",``
-
-``metadata: {``
-
-``date: ISODate("2000-10-10T00:00:00Z"),``
-
-``site: "site-1",``
-
-``page: "/apache_pb.gif" },``
-
-``hourly: {``
-
-``"0": 227850,``
-
-``"1": 210231,``
-
-``…``
-
-``"23": 20457 },``
-
-``minute: {``
-
-``"0": {``
-
-``"0": 3612,``
-
-``"1": 3241,``
-
-``…``
-
-``"59": 2130 },``
-
-\` "1": {
-
 ::
 
-           "0": … ,
+    {
+        _id: "20101010/site-1/apache_pb.gif",
+        metadata: {
+            date: ISODate("2000-10-10T00:00:00Z"),
+            site: "site-1",
+            page: "/apache_pb.gif" },
+        hourly: {
+            "0": 227850,
+            "1": 210231,
+                           …
+            "23": 20457 },
+        minute: {
+            "0": {
+                "0": 3612,
+                "1": 3241,
+                            …
+                    "59": 2130 },
+            "1": {
+            "0": … ,
 
-\`
-
-``},``
-
-``…``
-
-``"23": {``
-
-``…``
-
-``"59": 2819 }``
-
-``}``
-
-``}``
+            },
+                    …
+            "23": {
+                    …
+                "59": 2819 }
+        }
+    }
 
 Monthly Statistics
 ^^^^^^^^^^^^^^^^^^
 
-\`
+::
 
-``{``
-
-``_id: "201010/site-1/apache_pb.gif",``
-
-``metadata: {``
-
-``date: ISODate("2000-10-00T00:00:00Z"),``
-
-``site: "site-1",``
-
-``page: "/apache_pb.gif" },``
-
-``daily: {``
-
-``"1": 5445326,``
-
-``"2": 5214121,``
-
-``… }``
-
-``}``
+    {
+        _id: "201010/site-1/apache_pb.gif",
+        metadata: {
+            date: ISODate("2000-10-00T00:00:00Z"),
+            site: "site-1",
+            page: "/apache_pb.gif" },
+        daily: {
+            "1": 5445326,
+            "2": 5214121,
+                    … }
+    }
 
 Operations
 ----------
@@ -327,67 +247,43 @@ Logging a hit to a page in our website is the main 'write' activity in
 our system. In order to maximize performance, we will be doing in-place
 updates with the upsert operation:
 
-``from datetime import datetime, time``
+::
 
-\`
+    from datetime import datetime, time
 
-``def log_hit(db, dt_utc, site, page):``
 
-\`
+    def log_hit(db, dt_utc, site, page):
 
-``# Update daily stats doc``
 
-``id_daily = dt_utc.strftime('%Y%m%d/') + site + page``
+        # Update daily stats doc
+        id_daily = dt_utc.strftime('%Y%m%d/') + site + page
+        hour = dt_utc.hour
+        minute = dt_utc.minute
 
-``hour = dt_utc.hour``
 
-``minute = dt_utc.minute``
+        # Get a datetime that only includes date info
+        d = datetime.combine(dt_utc.date(), time.min)
+        query = {
+            '_id': id_daily,
+            'metadata': { 'date': d, 'site': site, 'page': page } }
+        update = { '$inc': {
+                'hourly.%d' % (hour,): 1,
+                'minute.%d.%d' % (hour,minute): 1 } }
+        db.stats.daily.update(query, update, upsert=True)
 
-\`
 
-``# Get a datetime that only includes date info``
-
-``d = datetime.combine(dt_utc.date(), time.min)``
-
-``query = {``
-
-``'_id': id_daily,``
-
-``'metadata': { 'date': d, 'site': site, 'page': page } }``
-
-``update = { '$inc': {``
-
-``'hourly.%d' % (hour,): 1,``
-
-``'minute.%d.%d' % (hour,minute): 1 } }``
-
-``db.stats.daily.update(query, update, upsert=True)``
-
-\`
-
-``# Update monthly stats document``
-
-``id_monthly = dt_utc.strftime('%Y%m/') + site + page``
-
-``day_of_month = dt_utc.day``
-
-``query = {``
-
-``'_id': id_monthly,``
-
-``'metadata': {``
-
-``'date': d.replace(day=1),``
-
-``'site': site,``
-
-``'page': page } }``
-
-``update = { '$inc': {``
-
-``'daily.%d' % day_of_month: 1} }``
-
-``db.stats.monthly.update(query, update, upsert=True)``
+        # Update monthly stats document
+        id_monthly = dt_utc.strftime('%Y%m/') + site + page
+        day_of_month = dt_utc.day
+        query = {
+            '_id': id_monthly,
+            'metadata': {
+                'date': d.replace(day=1),
+                'site': site,
+                'page': page } }
+        update = { '$inc': {
+                'daily.%d' % day_of_month: 1} }
+        db.stats.monthly.update(query, update, upsert=True)
 
 Since we are using the upsert operation, this function will perform
 correctly whether the document is already present or not, which is
@@ -406,83 +302,50 @@ zero for all time periods so that later, the document doesn't need to
 grow to accomodate the upserts. Here, we add this preallocation as its
 own function:
 
-``def preallocate(db, dt_utc, site, page):``
+::
 
-\`
+    def preallocate(db, dt_utc, site, page):
 
-``# Get id values``
 
-``id_daily = dt_utc.strftime('%Y%m%d/') + site + page``
+        # Get id values
+        id_daily = dt_utc.strftime('%Y%m%d/') + site + page
+        id_monthly = dt_utc.strftime('%Y%m/') + site + page
 
-``id_monthly = dt_utc.strftime('%Y%m/') + site + page``
 
-\`
+        # Get daily metadata
+        daily_metadata = {
+            'date': datetime.combine(dt_utc.date(), time.min),
+            'site': site,
+            'page': page }
+        # Get monthly metadata
+        monthly_metadata = {
+            'date': daily_m['d'].replace(day=1),
+            'site': site,
+            'page': page }
 
-``# Get daily metadata``
 
-``daily_metadata = {``
+        # Initial zeros for statistics
+        hourly = dict((str(i), 0) for i in range(24))
+        minute = dict(
+            (str(i), dict((str(j), 0) for j in range(60)))
+            for i in range(24))
+        daily = dict((str(i), 0) for i in range(1, 32))
 
-``'date': datetime.combine(dt_utc.date(), time.min),``
 
-``'site': site,``
-
-``'page': page }``
-
-``# Get monthly metadata``
-
-``monthly_metadata = {``
-
-``'date': daily_m['d'].replace(day=1),``
-
-``'site': site,``
-
-``'page': page }``
-
-\`
-
-``# Initial zeros for statistics``
-
-``hourly = dict((str(i), 0) for i in range(24))``
-
-``minute = dict(``
-
-``(str(i), dict((str(j), 0) for j in range(60)))``
-
-``for i in range(24))``
-
-``daily = dict((str(i), 0) for i in range(1, 32))``
-
-\`
-
-``# Perform upserts, setting metadata``
-
-``db.stats.daily.update(``
-
-``{``
-
-``'_id': id_daily,``
-
-``'hourly': hourly,``
-
-``'minute': minute},``
-
-``{ '$set': { 'metadata': daily_metadata }},``
-
-``upsert=True)``
-
-``db.stats.monthly.update(``
-
-``{``
-
-``'_id': id_monthly,``
-
-``'daily': daily },``
-
-``{ '$set': { 'm': monthly_metadata }},``
-
-``upsert=True)``
-
-\`
+        # Perform upserts, setting metadata
+        db.stats.daily.update(
+            {
+                '_id': id_daily,
+                'hourly': hourly,
+                'minute': minute},
+            { '$set': { 'metadata': daily_metadata }},
+            upsert=True)
+        db.stats.monthly.update(
+            {
+                '_id': id_monthly,
+                'daily': daily },
+            { '$set': { 'm': monthly_metadata }},
+            upsert=True)
 
 In this case, note that we went ahead and preallocated the monthly
 document while we were preallocating the daily document. While we could
@@ -500,29 +363,21 @@ probabilistically preallocate each time we log a hit, with a probability
 tuned to make preallocation likely without performing too many
 unnecessary calls to preallocate:
 
-\_
+::
 
-``from random import random``
+    from random import random
+    from datetime import datetime, timedelta, time
 
-``from datetime import datetime, timedelta, time``
 
-\`
+    # Example probability based on 500k hits per day per page
+    prob_preallocate = 1.0 / 500000
 
-``# Example probability based on 500k hits per day per page``
 
-``prob_preallocate = 1.0 / 500000``
-
-\`
-
-``def log_hit(db, dt_utc, site, page):``
-
-``if random.random() < prob_preallocate:``
-
-``preallocate(db, dt_utc + timedelta(days=1), site_page)``
-
-``# Update daily stats doc``
-
-``…``
+    def log_hit(db, dt_utc, site, page):
+        if random.random() < prob_preallocate:
+            preallocate(db, dt_utc + timedelta(days=1), site_page)
+        # Update daily stats doc
+        …
 
 Now with a high probability, we will preallocate each document before
 it's used, preventing the midnight spike as well as eliminating the
@@ -535,43 +390,33 @@ One chart that we may be interested in seeing would be the number of
 hits to a particular page over the last hour. In that case, our query is
 fairly straightforward:
 
-``>>>``db.stats.daily.find_one(``
+::
 
-``...     {'metadata': {'date':dt, 'site':'site-1', 'page':'/foo.gif'}},``
-
-``...     { 'minute': 1 })``
+    >>>``db.stats.daily.find_one(
+    ...     {'metadata': {'date':dt, 'site':'site-1', 'page':'/foo.gif'}},
+    ...     { 'minute': 1 })
 
 Likewise, we can get the number of hits to a page over the last day,
 with hourly granularity:
 
-\`
+::
 
-``>>> db.stats.daily.find_one(``
-
-``...     {'metadata': {'date':dt, 'site':'site-1', 'page':'/foo.gif'}},``
-
-``...     { 'hy': 1 })``
-
-\`
+    >>> db.stats.daily.find_one(
+    ...     {'metadata': {'date':dt, 'site':'site-1', 'page':'/foo.gif'}},
+    ...     { 'hy': 1 })
 
 If we want a few days' worth of hourly data, we can get it using the
 following query:
 
-\`
+::
 
-``>>> db.stats.daily.find(``
-
-``...     {``
-
-``...         'metadata.date': { '$gte': dt1, '$lte': dt2 },``
-
-``...         'metadata.site': 'site-1',``
-
-``...         'metadata.page': '/foo.gif'},``
-
-``...     { 'metadata.date': 1, 'hourly': 1 } },``
-
-``...     sort=[('metadata.date', 1)])``
+    >>> db.stats.daily.find(
+    ...     {
+    ...         'metadata.date': { '$gte': dt1, '$lte': dt2 },
+    ...         'metadata.site': 'site-1',
+    ...         'metadata.page': '/foo.gif'},
+    ...     { 'metadata.date': 1, 'hourly': 1 } },
+    ...     sort=[('metadata.date', 1)])
 
 In this case, we are retrieving the date along with the statistics since
 it's possible (though highly unlikely) that we could have a gap of one
@@ -584,20 +429,18 @@ Index support
 These operations would benefit significantly from indexes on the
 metadata of the daily statistics:
 
-``>>> db.stats.daily.ensure_index([``
+::
 
-``...     ('metadata.site', 1),``
-
-``...     ('metadata.page', 1),``
-
-``...     ('metadata.date', 1)])``
+    >>> db.stats.daily.ensure_index([
+    ...     ('metadata.site', 1),
+    ...     ('metadata.page', 1),
+    ...     ('metadata.date', 1)])
 
 Note in particular that we indexed on the page first, date second. This
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 allows us to perform the third query above (a single page over a range
 of days) quite efficiently. Having any compound index on page and date,
 of course, allows us to look up a single day's statistics efficiently.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Get data for a historical chart
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -605,38 +448,27 @@ Get data for a historical chart
 In order to retrieve daily data for a single month, we can perform the
 following query:
 
-``>>> db.stats.monthly.find_one(``
+::
 
-``...     {'metadata':``
-
-``...         {'date':dt,``
-
-``...         'site': 'site-1',``
-
-``...         'page':'/foo.gif'}},``
-
-``...     { 'daily': 1 })``
-
-\`
+    >>> db.stats.monthly.find_one(
+    ...     {'metadata':
+    ...         {'date':dt,
+    ...         'site': 'site-1',
+    ...         'page':'/foo.gif'}},
+    ...     { 'daily': 1 })
 
 If we want several months' worth of daily data, of course, we can do the
 same trick as above:
 
-\`
+::
 
-``>>> db.stats.monthly.find(``
-
-``...     {``
-
-``...         'metadata.date': { '$gte': dt1, '$lte': dt2 },``
-
-``...         'metadata.site': 'site-1',``
-
-``...         'metadata.page': '/foo.gif'},``
-
-``...     { 'metadata.date': 1, 'hourly': 1 } },``
-
-``...     sort=[('metadata.date', 1)])``
+    >>> db.stats.monthly.find(
+    ...     {
+    ...         'metadata.date': { '$gte': dt1, '$lte': dt2 },
+    ...         'metadata.site': 'site-1',
+    ...         'metadata.page': '/foo.gif'},
+    ...     { 'metadata.date': 1, 'hourly': 1 } },
+    ...     sort=[('metadata.date', 1)])
 
 Index support
 ^^^^^^^^^^^^^
@@ -644,19 +476,16 @@ Index support
 Once again, these operations would benefit significantly from indexes on
 the metadata of the monthly statistics:
 
-``>>> db.stats.monthly.ensure_index([``
+::
 
-``...     ('metadata.site', 1),``
-
-``...     ('metadata.page', 1),``
-
-``...     ('metadata.date', 1)])``
+    >>> db.stats.monthly.ensure_index([
+    ...     ('metadata.site', 1),
+    ...     ('metadata.page', 1),
+    ...     ('metadata.date', 1)])
 
 The order of our index is once again designed to efficiently support
-range
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-queries for a single page over several months, as above.
+range queries for a single page over several months, as above.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Sharding
 --------
@@ -669,17 +498,14 @@ reasonable shard key for us would thus be ('metadata.site',
 'metadata.page'), the site-page combination for which we are calculating
 statistics:
 
-``>>> db.command('shardcollection', 'stats.daily', {``
+::
 
-``...     key : { 'metadata.site': 1, 'metadata.page' : 1 } })``
-
-``{ "collectionsharded" : "stats.daily", "ok" : 1 }``
-
-``>>> db.command('shardcollection', 'stats.monthly', {``
-
-``...     key : { 'metadata.site': 1, 'metadata.page' : 1 } })``
-
-``{ "collectionsharded" : "stats.monthly", "ok" : 1 }``
+    >>> db.command('shardcollection', 'stats.daily', {
+    ...     key : { 'metadata.site': 1, 'metadata.page' : 1 } })
+    { "collectionsharded" : "stats.daily", "ok" : 1 }
+    >>> db.command('shardcollection', 'stats.monthly', {
+    ...     key : { 'metadata.site': 1, 'metadata.page' : 1 } })
+    { "collectionsharded" : "stats.monthly", "ok" : 1 }
 
 One downside to using ('metadata.site', 'metadata.page') as our shard
 key is that, if one page dominates all our traffic, all updates to that
@@ -693,17 +519,14 @@ these will all be handled by the same shard. A (slightly) better shard
 key would the include the date as well as the site/page so that we could
 serve different historical ranges with different shards:
 
-``>>> db.command('shardcollection', 'stats.daily', {``
+::
 
-``...     key:{'metadata.site':1,'metadata.page':1,'metadata.date':1}})``
-
-``{ "collectionsharded" : "stats.daily", "ok" : 1 }``
-
-``>>> db.command('shardcollection', 'stats.monthly', {``
-
-``...     key:{'metadata.site':1,'metadata.page':1,'metadata.date':1}})``
-
-``{ "collectionsharded" : "stats.monthly", "ok" : 1 }``
+    >>> db.command('shardcollection', 'stats.daily', {
+    ...     key:{'metadata.site':1,'metadata.page':1,'metadata.date':1}})
+    { "collectionsharded" : "stats.daily", "ok" : 1 }
+    >>> db.command('shardcollection', 'stats.monthly', {
+    ...     key:{'metadata.site':1,'metadata.page':1,'metadata.date':1}})
+    { "collectionsharded" : "stats.monthly", "ok" : 1 }
 
 It is worth noting in this discussion of sharding that, depending on the
 number of sites/pages you are tracking and the number of hits per page,
@@ -712,57 +535,3 @@ requirements, so sharding may be overkill. In the case of the MongoDB
 Monitoring Service (MMS), a single shard is able to keep up with the
 totality of traffic generated by all the customers using this (free)
 service.
-
-Page of
-
-[a]jsr:
-
-It's worth mentioning that if we organize events as we did in the "log
-collection" use case, then queries need to hit lots of documents. the
-appeal of this approach is that queries are fast because data is
-pre-aggregated.
-
---------------
-
-rick446:
-
-Added a paragraph below to talk about why we don't want individual docs
-for each 'tick'
-
-[b]jsr:
-
-Let's expand the attribute names to full words so it's more readable.
-
---------------
-
-rick446:
-
-done
-
-[c]jsr:
-
-Similar to table-scan vs. tree. Perhaps a diagram showing the difference
-between iterating through 1439 elements in a flat array vs. traversing a
-tree.
-
---------------
-
-rick446:
-
-Added some diagrams to illustrate the BSON layout and # of 'skip
-forward' operations needed to do with each schema
-
-[d]jsr:
-
-It's a little unclear why we need pre-allocation. Ryan had a graph that
-showed big spikes in insert latency at the beginning of the day, and
-then another chart showing smoother performance when pre-allocation was
-added. Maybe recreate this chart.
-
---------------
-
-rick446:
-
-I could possibly recreate the chart (though that would take several
-hours to actually implement). Is the verbiage I added sufficient to get
-across the reasoning?
