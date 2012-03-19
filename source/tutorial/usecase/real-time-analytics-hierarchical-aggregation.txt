@@ -11,24 +11,26 @@ multiple levels of aggregation.
 Solution Overview
 =================
 
-For this solution we will assume that the incoming event data is already
-stored in an incoming 'events' collection. For details on how we could
-get the event data into the events collection, please see "Real Time
-Analytics: Storing Log Data."
+This solution assumes that the incoming event data is already
+stored in an incoming ``events`` collection. For details on how you might
+get the event data into the events collection, please see :doc:`Real Time
+Analytics: Storing Log Data <real-time-analytics-storing-log-data>`.
 
-Once the event data is in the events collection, we need to aggregate
-event data to the finest time granularity we're interested in. Once that
-data is aggregated, we will use it to aggregate up to the next level of
-the hierarchy, and so on. To perform the aggregations, we will use
-MongoDB's mapreduce command. Our schema will use several collections:
+Once the event data is in the events collection, you need to aggregate
+event data to the finest time granularity you're interested in. Once that
+data is aggregated, you'll use it to aggregate up to the next level of
+the hierarchy, and so on. To perform the aggregations, you'll use
+MongoDB's ``mapreduce`` command. The schema will use several collections:
 the raw data (event) logs and collections for statistics aggregated
-hourly, daily, weekly, monthly, and yearly. We will use a hierarchical
-approach to running our map-reduce jobs. The input and output of each
+hourly, daily, weekly, monthly, and yearly. This solution uses a hierarchical
+approach to running your map-reduce jobs. The input and output of each
 job is illustrated below:
 
 .. figure:: img/rta-hierarchy1.png
    :align: center
    :alt: Hierarchy
+
+   Hierarchy of statistics collected
 
 Note that the events rolling into the hourly collection is qualitatively
 different than the hourly statistics rolling into the daily collection.
@@ -37,10 +39,10 @@ different than the hourly statistics rolling into the daily collection.
 
     **Map/reduce** is a popular aggregation algorithm that is optimized for
     embarrassingly parallel problems. The psuedocode (in Python) of the
-    map/reduce algorithm appears below. Note that we are providing the
-    psuedocode for a particular type of map/reduce where the results of the
+    map/reduce algorithm appears below. Note that this psuedocode is for a
+    particular type of map/reduce where the results of the
     map/reduce operation are *reduced* into the result collection, allowing
-    us to perform incremental aggregation which we'll need in this case.
+    you to perform incremental aggregation which you'll need in this case.
 
     .. code-block:: python
 
@@ -83,16 +85,15 @@ different than the hourly statistics rolling into the daily collection.
 Schema Design
 =============
 
-When designing the schema for event storage, we need to keep in mind the
-necessity to differentiate between events which have been included in
-our aggregations and events which have not yet been included. A simple
-approach in a relational database would be to use an auto-increment
+When designing the schema for event storage, it's important to track whichevents
+which have been included in your aggregations and events which have not yet been
+included. A simple approach in a relational database would be to use an auto-increment
 integer primary key, but this introduces a big performance penalty to
-our event logging process as it has to fetch event keys one-by one.
+your event logging process as it has to fetch event keys one-by one.
 
-If we are able to batch up our inserts into the event table, we can
-still use an auto-increment primary key by using the find\_and\_modify
-command to generate our ``_id`` values:
+If you're able to batch up your inserts into the event table, you can
+still use an auto-increment primary key by using the ``find_and_modify``
+command to generate your ``_id`` values:
 
 .. code-block:: python
 
@@ -103,11 +104,13 @@ command to generate our ``_id`` values:
     ...     new=True)
     >>> batch_of_ids = range(obj['inc']-50, obj['inc'])
 
-In most cases, however, it is sufficient to include a timestamp with
-each event that we can use as a marker of which events have been
-processed and which ones remain to be processed. For this use case,
-we'll assume that we are calculating average session length for
-logged-in users on a website. Our event format will thus be the
+In most cases, however, it's sufficient to include a timestamp with
+each event that you can use as a marker of which events have been
+processed and which ones remain to be processed.
+
+This use case assumes that you
+are calculating average session length for
+logged-in users on a website. Your event format will thus be the
 following:
 
 .. code-block:: javascript
@@ -118,10 +121,10 @@ following:
         "length":95
     }
 
-We want to calculate total and average session times for each user at
-the hour, day, week, month, and year. In each case, we will also store
-the number of sessions to enable us to incrementally recompute the
-average session times. Each of our aggregate documents, then, looks like
+You want to calculate total and average session times for each user at
+the hour, day, week, month, and year. In each case, you will also store
+the number of sessions to enable MongoDB to incrementally recompute the
+average session times. Each of your aggregate documents, then, looks like
 the following:
 
 .. code-block:: javascript
@@ -135,30 +138,29 @@ the following:
            mean: 25.4 }
     }
 
-Note in particular that we have added a timestamp to the aggregate
-document. This will help us as we incrementally update the various
-levels of the hierarchy.
+Note in particular the timestamp field in the aggregate document. This allows you
+to incrementally update the various levels of the hierarchy.
 
 Operations
 ==========
 
-In the discussion below, we will assume that all the events have been
-inserted and appropriately timestamped, so our main operations are
+In the discussion below, it is assume that all the events have been
+inserted and appropriately timestamped, so your main operations are
 aggregating from events into the smallest aggregate (the hourly totals)
 and aggregating from smaller granularity to larger granularity. In each
-case, we will assume that the last time the particular aggregation was
-run is stored in a last\_run variable. (This variable might be loaded
-from MongoDB or another persistence mechanism.)
+case, the last time the particular aggregation is run is stored in a ``last_run``
+variable. (This variable might be loaded from MongoDB or another persistence
+mechanism.)
 
 Aggregate From Events to the Hourly Level
 -----------------------------------------
 
-Here, we want to load all the events since our last run until one minute
-ago (to allow for some lag in logging events). The first thing we need
-to do is create our map function. Even though we will be using Python
-and PyMongo to interface with the MongoDB server, note that the various
-functions (map, reduce, and finalize) that we pass to the mapreduce
-command must be Javascript functions. The map function appears below:
+Here, you want to load all the events since your last run until one minute
+ago (to allow for some lag in logging events). The first thing you
+need to do is create your map function. Even though this solution uses Python
+and ``pymongo`` to interface with the MongoDB server, note that the various
+functions (``mapf``, ``reducef``, and ``finalizef``) that we pass to the
+``mapreduce`` command must be Javascript functions. The map function appears below:
 
 .. code-block:: python
 
@@ -180,13 +182,13 @@ command must be Javascript functions. The map function appears below:
                 ts: new Date(); });
     }''')
 
-In this case, we are emitting key, value pairs which contain the
-statistics we want to aggregate as you'd expect, but we are also
-emitting 'ts' value. This will be used in the cascaded aggregations
+In this case, it emits key, value pairs which contain the
+statistics you want to aggregate as you'd expect, but it also emits a `ts`
+value. This will be used in the cascaded aggregations
 (hour to day, etc.) to determine when a particular hourly aggregation
 was performed.
 
-Our reduce function is also fairly straightforward:
+The reduce function is also fairly straightforward:
 
 .. code-block:: python
 
@@ -200,12 +202,12 @@ Our reduce function is also fairly straightforward:
     }''')
 
 A few things are notable here. First of all, note that the returned
-document from our reduce function has the same format as the result of
-our map. This is a characteristic of our map/reduce that we would like
+document from the reduce function has the same format as the result of
+our map. This is a characteristic of our map/reduce that it's nice
 to maintain, as differences in structure between map, reduce, and
 finalize results can lead to difficult-to-debug errors. Also note that
-we are ignoring the 'mean' and 'ts' values. These will be provided in
-the 'finalize' step:
+the ``mean`` and ``ts`` values are ignored in the ``reduce`` function. These will be
+computed in the 'finalize' step:
 
 .. code-block:: python
 
@@ -217,9 +219,9 @@ the 'finalize' step:
         return value;
     }''')
 
-Here, we compute the mean value as well as the timestamp we will use to
-write back to the output collection. Now, to bind it all together, here
-is our Python code to invoke the mapreduce command:
+The finalize function computes the mean value as well as the timestamp you'll
+use to write back to the output collection. Now, to bind it all together, here
+is the Python code to invoke the ``mapreduce`` command:
 
 .. code-block:: python
 
@@ -237,31 +239,31 @@ is our Python code to invoke the mapreduce command:
 
     last_run = cutoff
 
-Because we used the 'reduce' option on our output, we are able to run
-this aggregation as often as we like as long as we update the last\_run
-variable.
+Through the use you the 'reduce' option on your output, you can safely run this
+aggregation as often as you like so long as you update the ``last_run`` variable
+each time.
 
 Index Support
 ~~~~~~~~~~~~~
 
-Since we are going to be running the initial query on the input events
-frequently, we would benefit significantly from and index on the
+Since you'll be running the initial query on the input events
+frequently, you'd benefit significantly from an index on the
 timestamp of incoming events:
 
 .. code-block:: python
 
     >>> db.stats.hourly.ensure_index('ts')
 
-Since we are always reading and writing the most recent events, this
-index has the advantage of being right-aligned, which basically means we
-only need a thin slice of the index (the most recent values) in RAM to
+Since you're always reading and writing the most recent events, this
+index has the advantage of being right-aligned, which basically means MongoDB
+only needs a thin slice of the index (the most recent values) in RAM to
 achieve good performance.
 
 Aggregate from Hour to Day
 --------------------------
 
-In calculating the daily statistics, we will use the hourly statistics
-as input. Our map function looks quite similar to our hourly map
+In calculating the daily statistics, you'll use the hourly statistics
+as input. The daily  map function looks quite similar to the hourly map
 function:
 
 .. code-block:: python
@@ -283,15 +285,15 @@ function:
                 ts: null });
     }''')
 
-There are a few differences to note here. First of all, the key to which
-we aggregate is the (userid, date) rather than (userid, hour) to allow
-for daily aggregation. Secondly, note that the keys and values we emit
-are actually the total and count values from our hourly aggregates
+There are a few differences to note here. First of all, the aggregation key is
+the (userid, date) rather than (userid, hour) to allow
+for daily aggregation. Secondly, note that the keys and values ``emit``\ ted
+are actually the total and count values from the hourly aggregates
 rather than properties from event documents. This will be the case in
-all our higher-level hierarchical aggregations.
+all the higher-level hierarchical aggregations.
 
-Since we are using the same format for map output as we used in the
-hourly aggregations, we can, in fact, use the same reduce and finalize
+Since you're using the same format for map output as we used in the
+hourly aggregations, you can, in fact, use the same reduce and finalize
 functions. The actual Python code driving this level of aggregation is
 as follows:
 
@@ -311,16 +313,16 @@ as follows:
 
     last_run = cutoff
 
-There are a couple of things to note here. First of all, our query is
-not on 'ts' now, but 'value.ts', the timestamp we wrote during the
-finalization of our hourly aggregates. Also note that we are, in fact,
-aggregating from the stats.hourly collection into the stats.daily
+There are a couple of things to note here. First of all, the query is
+not on ``ts`` now, but ``value.ts``, the timestamp written during the
+finalization of the hourly aggregates. Also note that you are, in fact,
+aggregating from the ``stats.hourly`` collection into the ``stats.daily``
 collection.
 
 Index support
 ~~~~~~~~~~~~~
 
-Since we are going to be running the initial query on the hourly
+Since you're going to be running the initial query on the hourly
 statistics collection frequently, an index on 'value.ts' would be nice
 to have:
 
@@ -334,8 +336,8 @@ for efficient operation.
 Other Aggregations
 ------------------
 
-Once we have our daily statistics, we can use them to calculate our
-weekly and monthly statistics. Our weekly map function is as follows:
+Once you have your daily statistics, you can use them to calculate your
+weekly and monthly statistics. The weekly map function is as follows:
 
 .. code-block:: python
 
@@ -354,9 +356,9 @@ weekly and monthly statistics. Our weekly map function is as follows:
                 ts: null });
     }''')
 
-Here, in order to get our group key, we are simply taking the date and
-subtracting days until we get to the beginning of the week. In our
-weekly map function, we will choose the first day of the month as our
+Here, in order to get the group key, you simply takes the date and subtracts days
+until you get to the beginning of the week. In the
+weekly map function, you'll use the first day of the month as the
 group key:
 
 .. code-block:: python
@@ -376,7 +378,7 @@ group key:
     }''')
 
 One thing in particular to notice about these map functions is that they
-are identical to one another except for the date calculation. We can use
+are identical to one another except for the date calculation. You can use
 Python's string interpolation to refactor our map function definitions
 as follows:
 
@@ -422,7 +424,7 @@ as follows:
                 this._id.d.getFullYear(),
                 1, 1, 0, 0, 0, 0)''')
 
-Our Python driver can also be refactored so we have much less code
+The Python driver can also be refactored so there is much less code
 duplication:
 
 .. code-block:: python
@@ -436,7 +438,7 @@ duplication:
             query=query,
             out={ 'reduce': ocollection.name })
 
-Once this is defined, we can perform all our aggregations as follows:
+Once this is defined, you can perform all the aggregations as follows:
 
 .. code-block:: python
 
@@ -450,14 +452,14 @@ Once this is defined, we can perform all our aggregations as follows:
         last_run)
     last_run = cutoff
 
-So long as we save/restore our 'last\_run' variable between
-aggregations, we can run these aggregations as often as we like since
+So long as you save/restore the ``last_run`` variable between
+aggregations, you can run these aggregations as often as we like since
 each aggregation individually is incremental.
 
 Index Support
 ~~~~~~~~~~~~~
 
-Our indexes will continue to be on the value's timestamp to ensure
+Your indexes will continue to be on the value's timestamp to ensure
 efficient operation of the next level of the aggregation (and they
 continue to be right-aligned):
 
@@ -469,22 +471,29 @@ continue to be right-aligned):
 Sharding
 ========
 
-To take advantage of distinct shards when performing map/reduce, our
+To take advantage of distinct shards when performing map/reduce, your
 input collections should be sharded. In order to achieve good balancing
-between nodes, we should make sure that the shard key we use is not
+between nodes, you should make sure that the shard key is not
 simply the incoming timestamp, but rather something that varies
 significantly in the most recent documents. In this case, the username
 makes sense as the most significant part of the shard key.
 
 In order to prevent a single, active user from creating a large,
 unsplittable chunk, we will use a compound shard key with (username,
-timestamp) on each of our collections:
+timestamp) on the events collection.
 
 .. code-block:: python
 
     >>> db.command('shardcollection','events', {
     ... key : { 'userid': 1, 'ts' : 1} } )
     { "collectionsharded": "events", "ok" : 1 }
+
+In order to take advantage of sharding on
+the aggregate collections, you *must* shard on the ``_id`` field (if you decide
+to shard these collections:)
+
+.. code-block:: python
+
     >>> db.command('shardcollection', 'stats.daily')
     { "collectionsharded" : "stats.daily", "ok": 1 }
     >>> db.command('shardcollection', 'stats.weekly')
@@ -494,7 +503,7 @@ timestamp) on each of our collections:
     >>> db.command('shardcollection', 'stats.yearly')
     { "collectionsharded" : "stats.yearly", "ok" : 1 }
 
-We should also update our map/reduce driver so that it notes the output
+You should also update your map/reduce driver so that it notes the output
 should be sharded. This is accomplished by adding 'sharded':True to the
 output argument:
 
@@ -502,5 +511,3 @@ output argument:
 
     ... out={ 'reduce': ocollection.name, 'sharded': True })...
 
-Note that the output collection of a mapreduce command, if sharded, must
-be sharded using ``_id`` as the shard key.
