@@ -1,39 +1,40 @@
+=====================================
 Real Time Analytics: Storing Log Data
 =====================================
 
 Problem
--------
+=======
 
 You have one or more servers generating events that you would like to
 persist to a MongoDB collection.
 
-Solution overview
------------------
+Solution Overview
+=================
 
-For this solution, we will assume that each server generating events has
-access to the MongoDB server(s). We will also assume that the consumer
-of the event data has access to the MongoDB server(s) and that the query
+This solution will assume that each server generating events, as well as the
+consumer of the event data, has access to the MongoDB server(s). Furthermore,
+this design will optimize based on the assumption that the query
 rate is (substantially) lower than the insert rate (as is most often the
 case when logging a high-bandwidth event stream).
 
-Schema design
--------------
+Schema Design
+=============
 
 The schema design in this case will depend largely on the particular
 format of the event data you want to store. For a simple example, let's
 take standard request logs from the Apache web server using the combined
-log format. For this example we will assume you're using an uncapped
+log format. This example assumes you're using an uncapped
 collection to store the event data. A line from such a log file might
 look like the following:
 
-::
+.. code-block:: text
 
     127.0.0.1 - frank [10/Oct/2000:13:55:36 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326 "[http://www.example.com/start.html](http://www.example.com/start.html)" "Mozilla/4.08 [en] (Win98; I ;Nav)"
 
 The simplest approach to storing the log data would be putting the exact
 text of the log record into a document:
 
-::
+.. code-block:: javascript
 
     {
     _id: ObjectId('4f442120eb03305789000000'),
@@ -41,25 +42,25 @@ text of the log record into a document:
     }
 
 While this is a possible solution, it's not likely to be the optimal
-solution. For instance, if we decided we wanted to find events that hit
-the same page, we would need to use a regular expression query, which
+solution. For instance, if you decided you wanted to find events that hit
+the same page, you'd need to use a regular expression query, which
 would require a full collection scan. A better approach would be to
 extract the relevant fields into individual properties. When doing the
-extraction, we should pay attention to the choice of data types for the
+extraction, it's important to pay attention to the choice of data types for the
 various fields. For instance, the date field in the log line
-``[10/Oct/2000:13:55:36 -0700]`` is 28 bytes long. If we instead store
+``[10/Oct/2000:13:55:36 -0700]`` is 28 bytes long. If you instead store
 this as a UTC timestamp, it shrinks to 8 bytes. Storing the date as a
-timestamp also gives us the advantage of being able to make date range
+timestamp also allows you to make date range
 queries, whereas comparing two date *strings* is nearly useless. A
 similar argument applies to numeric fields; storing them as strings is
 suboptimal, taking up more space and making the appropriate types of
 queries much more difficult.
 
-We should also consider what information we might want to omit from the
-log record. For instance, if we wanted to record exactly what was in the
-log record, we might create a document like the following:
+It's also important to consider what information you might want to omit from the
+log record. For instance, if you wanted to record exactly what was in the
+log record, you might create a document like the following:
 
-::
+.. code-block:: javascript
 
     {
          _id: ObjectId('4f442120eb03305789000000'),
@@ -74,11 +75,12 @@ log record, we might create a document like the following:
          user_agent: "Mozilla/4.08 [en] (Win98; I ;Nav)"
     }
 
-In most cases, however, we probably are only interested in a subset of
-the data about the request. Here, we may want to keep the host, time,
+
+In most cases, however, you're probably are only interested in a subset of
+the data about the request. Here, you may want to keep the host, time,
 path, user agent, and referer for a web analytics application:
 
-::
+.. code-block:: javascript
 
     {
          _id: ObjectId('4f442120eb03305789000000'),
@@ -89,10 +91,10 @@ path, user agent, and referer for a web analytics application:
          user_agent: "Mozilla/4.08 [en] (Win98; I ;Nav)"
     }
 
-It might even be possible to remove the time, since ObjectIds embed
-their the time they are created:
+It might even be possible to remove the time, since ``ObjectId``\ s embed
+the time they are created:
 
-::
+.. code-block:: javascript
 
     {
          _id: ObjectId('4f442120eb03305789000000'),
@@ -104,34 +106,34 @@ their the time they are created:
     }
 
 System Architecture
-~~~~~~~~~~~~~~~~~~~
+-------------------
 
-For an event logging system, we are mainly concerned with two
-performance considerations: 1) how many inserts per second can we
-perform (this will limit our event throughput) and 2) how will we manage
+Event logging systems are mainly concerned with two
+performance considerations: 1) how many inserts per second can it
+perform (this will limit its event throughput) and 2) how will the system manage
 the growth of event data. Concerning insert performance, the best way to
 scale the architecture is via sharding.
 
 Operations
-----------
+==========
 
-The main performance-critical operation we're concerned with in storing
-an event log is the insertion speed. However, we also need to be able to
+The main performance-critical operation in storing
+an event log is the insertion speed. However, you also need to be able to
 query the event data for relevant statistics. This section will describe
 each of these operations, using the Python programming language and the
-pymongo MongoDB driver. These operations would be similar in other
+``pymongo`` MongoDB driver. These operations would be similar in other
 languages as well.
 
-Inserting a log record
-~~~~~~~~~~~~~~~~~~~~~~
+Inserting a Log Record
+----------------------
 
-In many event logging applications, we can accept some degree of risk
-when it comes to dropping events. In others, we need to be absolutely
-sure we don't drop any events. MongoDB supports both models. In the case
-where we can tolerate a risk of loss, we can insert records
+In many event logging applications, you might accept some degree of risk
+when it comes to dropping events. In others, you need to be absolutely
+sure you don't drop any events. MongoDB supports both models. In the case
+where you can tolerate a risk of loss, you can insert records
 *asynchronously* using a fire-and-forget model:
 
-::
+.. code-block:: python
 
     >>> import bson
     >>> import pymongo
@@ -148,82 +150,81 @@ where we can tolerate a risk of loss, we can insert records
     ...}
     >>> db.events.insert(event, safe=False)
 
-This is the fastest approach, as our code doesn't even require a
+This is the fastest approach, as this code doesn't even require a
 round-trip to the MongoDB server to ensure that the insert was received.
-It is thus also the riskiest approach, as we will not detect network
-failures nor server errors (such as DuplicateKeyErrors on a unique
-index). If we want to make sure we have an acknowledgement from the
-server that our insertion succeeded (for some definition of success), we
+It is thus also the riskiest approach, as network and server failures (such as
+DuplicateKeyErrors on a unique index) will go undetected.  If you want to make
+sure you have an acknowledgement from the
+server that your insertion succeeded (for some definition of success), you
 can pass safe=True:
 
-::
+.. code-block:: python
 
     >>> db.events.insert(event, safe=True)
 
-If our tolerance for data loss risk is somewhat less, we can require
-that the server to which we write the data has committed the event to
-the on-disk journal before we continue operation (``safe=True`` is
-implied by all the following options):
+If your tolerance for data loss risk is somewhat less, you can require
+that the server to which you write the data has committed the event to
+the on-disk journal before you continue operation (``safe=True`` is
+implied by all the following options:)
 
-::
+.. code-block:: python
 
     >>> db.events.insert(event, j=True)
 
-Finally, if we have *extremely low* tolerance for event data loss, we
+Finally, if you have *extremely low* tolerance for event data loss, you
 can require the data to be replicated to multiple secondary servers
 before returning:
 
-::
+.. code-block:: python
 
     >>> db.events.insert(event, w=2)
 
-In this case, we have requested acknowledgement that the data has been
-replicated to 2 replicas. We can combine options as well:
+In this case, you will get acknowledgement that the data has been
+replicated to 2 replicas. You can combine options as well:
 
-::
+.. code-block:: python
 
     >>> db.events.insert(event, j=True, w=2)
 
-In this case, we are waiting on both a journal commit *and* a
+In this case, the insert waits on both a journal commit *and* a
 replication acknowledgement. Although this is the safest option, it is
 also the slowest, so you should be aware of the trade-off when
 performing your inserts.
 
-Aside: Bulk Inserts
-^^^^^^^^^^^^^^^^^^^
+.. note::
 
-If at all possible in our application architecture, we should consider
-using bulk inserts to insert event data. All the options discussed above
-apply to bulk inserts, but you can actually pass multiple events as the
-first parameter to .insert(). By passing multiple documents into a
-single insert() call, we are able to amortize the performance penalty we
-incur by using the 'safe' options such as j=True or w=2.
+    If at all possible in your application architecture, you should consider
+    using bulk inserts to insert event data. All the options discussed above
+    apply to bulk inserts, but you can actually pass multiple events as the
+    first parameter to .insert(). By passing multiple documents into a
+    single insert() call, MongoDB are able to amortize the performance penalty you
+    incur by using the 'safe' options such as j=True or w=2.
 
-Finding all the events for a particular page
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Finding All the Events for a Particular Page
+--------------------------------------------
 
 For a web analytics-type operation, getting the logs for a particular
-web page might be a common operation that we would want to optimize for.
+web page might be a common operation for which  you would want to optimize.
 In this case, the query would be as follows:
 
-::
+.. code-block:: python
 
     >>> q_events = db.events.find({'path': '/apache_pb.gif'})
 
-Note that the sharding setup we use (should we decide to shard this
+Note that the sharding setup you use (should you decide to shard this
 collection) has performance implications for this operation. For
-instance, if we shard on the 'path' property, then this query will be
-handled by a single shard, whereas if we shard on some other property or
+instance, if you shard on the 'path' property, then this query will be
+handled by a single shard, whereas if you shard on some other property or
 combination of properties, the mongos instance will be forced to do a
 scatter/gather operation which involves *all* the shards.
 
-Index support
-^^^^^^^^^^^^^
+Index Support
+~~~~~~~~~~~~~
 
 This operation would benefit significantly from an index on the 'path'
 attribute:
 
-::
+.. code-block:: python
 
     >>> db.events.ensure_index('path')
 
@@ -233,102 +234,113 @@ should be resident in RAM. Since there is likely to be a relatively
 small number of distinct paths in the index, however, this will probably
 not be a problem.
 
-Finding all the events for a particular date
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Finding All the Events for a Particular Date
+--------------------------------------------
 
-We may also want to find all the events for a particular date. In this
-case, we would perform the following query:
+You may also want to find all the events for a particular date. In this
+case, you'd perform the following query:
 
-::
+.. code-block:: python
 
     >>> q_events = db.events.find('time':
     ...     { '$gte':datetime(2000,10,10),'$lt':datetime(2000,10,11)})
 
-Index support
-^^^^^^^^^^^^^
+Index Support
+~~~~~~~~~~~~~
 
 In this case, an index on 'time' would provide optimal performance:
 
-::
+.. code-block:: python
 
     >>> db.events.ensure_index('time')
 
-One of the nice things about this index is that it is *right-aligned.*
-Since we are always inserting events in ascending time order, the
+One of the nice things about this index is that it is *right-aligned*.
+Since you are always inserting events in ascending time order, the
 right-most slice of the B-tree will always be resident in RAM. So long
-as our queries focus mainly on recent events, the *only* part of the
+as your queries focus mainly on recent events, the *only* part of the
 index that needs to be resident in RAM is the right-most slice of the
-B-tree, allowing us to keep quite a large index without using up much of
-our system memory.
+B-tree, allowing MongoDB to keep quite a large index without using up much of
+the system memory.
 
-Finding all the events for a particular host/date
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Finding All the Events for a Particular Host/Date
+-------------------------------------------------
 
-We might also want to analyze the behavior of a particular host on a
+You might also want to analyze the behavior of a particular host on a
 particular day, perhaps for analyzing suspicious behavior by a
-particular IP address. In that case, we would write a query such as:
+particular IP address. In that case, you'd write a query such as:
 
-::
+.. code-block:: python
 
     >>> q_events = db.events.find({
     ...     'host': '127.0.0.1',
     ...     'time': {'$gte':datetime(2000,10,10),'$lt':datetime(2000,10,11)}
     ... })
 
-Index support
-^^^^^^^^^^^^^
+Index Support
+~~~~~~~~~~~~~
 
-Once again, our choice of indexes affects the performance
-characteristics of this query significantly. For instance, suppose we
+Once again, your choice of indexes affects the performance
+characteristics of this query significantly. For instance, suppose you
 create a compound index on (time, host):
 
-::
+.. code-block:: python
 
     >>> db.events.ensure_index([('time', 1), ('host', 1)])
 
 In this case, the query plan would be the following (retrieved via
-q\_events.explain()): { … u'cursor': u'BtreeCursor time\_1\_host\_1',
-u'indexBounds': {u'host': [[u'127.0.0.1', u'127.0.0.1']], u'time':
-[[datetime.datetime(2000, 10, 10, 0, 0), datetime.datetime(2000, 10, 11,
-0, 0)]]}, … u'millis': 4, u'n': 11, … u'nscanned': 1296,
-u'nscannedObjects': 11, … }
+``q_events.explain()``):
 
-If, however, we create a compound index on (host, time)...
+.. code-block: python
 
-::
+    { ...
+      u'cursor': u'BtreeCursor time_1_host_1',
+      u'indexBounds': {u'host': [[u'127.0.0.1', u'127.0.0.1']],
+      u'time': [
+          [ datetime.datetime(2000, 10, 10, 0, 0),
+            datetime.datetime(2000, 10, 11, 0, 0)]]
+      },
+      ...
+      u'millis': 4,
+      u'n': 11,
+      u'nscanned': 1296,
+      u'nscannedObjects': 11,
+      ... }
+
+If, however, you create a compound index on (host, time)...
+
+.. code-block:: python
 
     >>> db.events.ensure_index([('host', 1), ('time', 1)])
 
-We get a much more efficient query plan and much better performance:
+then get a much more efficient query plan and much better performance:
 
-::
+.. code-block:: python
 
-    {
-    …
-        u'cursor': u'BtreeCursor host_1_time_1',
-        u'indexBounds': {u'host': [[u'127.0.0.1', u'127.0.0.1']],
-        u'time': [[datetime.datetime(2000, 10, 10, 0, 0),
-            datetime.datetime(2000, 10, 11, 0, 0)]]},
-            …
-        u'millis': 0,
-        u'n': 11,
-            …
-        u'nscanned': 11,
-        u'nscannedObjects': 11,
-            …
+    { ...
+      u'cursor': u'BtreeCursor host_1_time_1',
+      u'indexBounds': {u'host': [[u'127.0.0.1', u'127.0.0.1']],
+      u'time': [[datetime.datetime(2000, 10, 10, 0, 0),
+          datetime.datetime(2000, 10, 11, 0, 0)]]},
+      ...
+      u'millis': 0,
+      u'n': 11,
+      ...
+      u'nscanned': 11,
+      u'nscannedObjects': 11,
+      ...
     }
 
 In this case, MongoDB is able to visit just 11 entries in the index to
 satisfy the query, whereas in the first it needed to visit 1296 entries.
 This is because the query using (host, time) needs to search the index
-range from ('127.0.0.1', datetime(2000,10,10)) to ('127.0.0.1',
-datetime(2000,10,11)) to satisfy the above query, whereas if we used
-(time, host), the index range would be (datetime(2000,10,10), MIN\_KEY)
-to (datetime(2000,10,10), MAX\_KEY), a much larger range (in this case,
+range from ``('127.0.0.1', datetime(2000,10,10))`` to
+``('127.0.0.1', datetime(2000,10,11))`` to satisfy the above query, whereas if you
+used (time, host), the index range would be ``(datetime(2000,10,10), MIN_KEY)``
+to ``(datetime(2000,10,10), MAX_KEY)``, a much larger range (in this case,
 1296 entries) which will yield a correspondingly slower performance.
 
 Although the index order has an impact on the performance of the query,
-one thing to keep in mind is that an index scan is *much* faster than a
+one thing to keep in mind is that an index scan is still *much* faster than a
 collection scan. So using a (time, host) index would still be much
 faster than an index on (time) alone. There is also the issue of
 right-alignedness to consider, as the (time, host) index will be
@@ -337,17 +349,17 @@ that the right-alignedness of a (time, host) index will make up for the
 increased number of index entries that need to be visited to satisfy
 this query.
 
-Counting the number of requests by day and page
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Counting the Number of Requests by Day and Page
+-----------------------------------------------
 
-MongoDB 2.1 introduced a new aggregation framework that allows us to
+MongoDB 2.1 introduced a new aggregation framework that allows you to
 perform queries that aggregate large numbers of documents significantly
 faster than the old 'mapreduce' and 'group' commands in prior versions
-of MongoDB. Suppose we want to find out how many requests there were for
-each day and page over the last month, for instance. In this case, we
+of MongoDB. Suppose you'd like to find out how many requests there were for
+each day and page over the last month, for instance. In this case, you
 could build up the following aggregation pipeline:
 
-::
+.. code-block:: python
 
     >>> result = db.command('aggregate', 'events', pipeline=[
     ...         {  '$match': {
@@ -369,59 +381,59 @@ could build up the following aggregation pipeline:
     ...                 'hits': { '$sum': 1 } } },
     ...         ])
 
-The performance of this aggregation is dependent, of course, on our
-choice of shard key if we're sharding. What we'd like to ensure is that
-all the items in a particular 'group' are on the same server, which we
-can do by sharding on date (probably not wise, as we discuss below) or
+The performance of this aggregation is dependent, of course, on your
+choice of shard key if we're sharding. What you'd like to ensure is that
+all the items in a particular 'group' are on the same server, which you
+can do by sharding on date (probably not wise, as discussed below) or
 path (possibly a good idea).
 
-Index support
-^^^^^^^^^^^^^
+Index Support
+~~~~~~~~~~~~~
 
-In this case, we want to make sure we have an index on the initial
+In this case, you want to make sure you have an index on the initial
 $match query:
 
-::
+.. code-block:: python
 
     >>> db.events.ensure_index('time')
 
-If we already have an index on ('time', 'host') as discussed above,
+If you already have an index on (time, host) as discussed above,
 however, there is no need to create a separate index on 'time' alone,
-since the ('time', 'host') index can be used to satisfy range queries on
+since the (time, host) index can be used to satisfy range queries on
 'time' alone.
 
 Sharding
---------
+========
 
-Our insertion rate is going to be limited by the number of shards we
-maintain in our cluster as well as by our choice of a shard key. The
+Your insertion rate is going to be limited by the number of shards you
+maintain in your cluster as well as by the choice of a shard key. The
 choice of a shard key is important because MongoDB uses *range-based
-sharding* . What we *want* to happen is for the insertions to be
-balanced equally among the shards, so we want to avoid using something
-like a timestamp, sequence number, or ObjectId as a shard key, as new
+sharding* . What you *want* to happen is for the insertions to be
+balanced equally among the shards, so you'd like to avoid using something
+like a timestamp, sequence number, or ``ObjectId`` as a shard key, as new
 inserts would tend to cluster around the same values (and thus the same
-shard). But what we also *want* to happen is for each of our queries to
-be routed to a single shard. Here, we discuss the pros and cons of each
+shard). But what you also *want* to happen is for each of your queries to
+be routed to a single shard. The following are the pros and cons of each
 approach.
 
-Option 0: Shard on time
-~~~~~~~~~~~~~~~~~~~~~~~
+Option 0: Shard on Time
+-----------------------
 
-Although an ObjectId or timestamp might seem to be an attractive
+Although an ``ObjectId`` or timestamp might seem to be an attractive
 sharding key at first, particularly given the right-alignedness of the
 index, it turns out to provide the worst of all worlds when it comes to
-read and write performance. In this case, all of our inserts will always
+read and write performance. In this case, all of your inserts will always
 flow to the same shard, providing no performance benefit write-side from
-sharding. Our reads will also tend to cluster in the same shard, so we
+sharding. Your reads will also tend to cluster in the same shard, so you
 would get no performance benefit read-side either.
 
-Option 1: Shard on a random(ish) key
+Option 1: Shard On a Random(ish) Key
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Supose instead that we decided to shard on a key with a random
-distribution, say the md5 or sha1 hash of the '\_id' field:
+Suppose instead that you decided to shard on a key with a random
+distribution, say the md5 or sha1 hash of the ``_id`` field:
 
-::
+.. code-block:: python
 
     >>> from bson import Binary
     >>> from hashlib import sha1
@@ -437,25 +449,25 @@ distribution, say the md5 or sha1 hash of the '\_id' field:
     ...     key : { 'ssk' : 1 } })
     { "collectionsharded" : "events", "ok" : 1 }
 
-This does introduce some complexity into our application in order to
-generate the random key, but it provides us linear scaling on our
+This does introduce some complexity into your application in order to
+generate the random key, but it provides you linear scaling on your
 inserts, so 5 shards should yield a 5x speedup in inserting. The
 downsides to using a random shard key are the following: a) the shard
-key's index will tend to take up more space (and we need an index to
+key's index will tend to take up more space (and you need an index to
 determine where to place each new insert), and b) queries (unless they
-include our synthetic, random-ish shard key) will need to be distributed
-to all our shards in parallel. This may be acceptable, since in our
-scenario our write performance is much more important than our read
-performance, but we should be aware of the downsides to using a random
+include the synthetic, random-ish shard key) will need to be distributed
+to all your shards in parallel. This may be acceptable, since in this
+scenario write performance is much more important than  read
+performance, but you should be aware of the downsides to using a random
 key distribution.
 
-Option 2: Shard on a naturally evenly-distributed key
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Option 2: Shard On a Naturally Evenly-Distributed Key
+-----------------------------------------------------
 
-In this case, we might choose to shard on the 'path' attribute, since it
+In this case, you might choose to shard on the 'path' attribute, since it
 seems to be relatively evenly distributed:
 
-::
+.. code-block:: python
 
     >>> db.command('shardcollection', 'events', {
     ...     key : { 'path' : 1 } })
@@ -467,29 +479,29 @@ attribute in the query). There is a potential downside to this approach,
 however, particularly in the case where there are a limited number of
 distinct values for the path. In that case, you can end up with large
 shard 'chunks' that cannot be split or rebalanced because they contain
-only a single shard key. The rule of thumb here is that we should not
+only a single shard key. The rule of thumb here is that you should not
 pick a shard key which allows large numbers of documents to have the
 same shard key since this prevents rebalancing.
 
-Option 3: Combine a natural and synthetic key
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Option 3: Combine a Natural and Synthetic Key
+---------------------------------------------
 
 This approach is perhaps the best combination of read and write
-performance for our application. We can define the shard key to be
+performance for the application. You can define the shard key to be
 (path, sha1(\_id)):
 
-::
+.. code-block:: python
 
     >>> db.command('shardcollection', 'events', {
     ...     key : { 'path' : 1, 'ssk': 1 } })
     { "collectionsharded" : "events", "ok" : 1 }
 
-We still need to calculate a synthetic key in the application client,
-but in return we get good write balancing as well as good read
+You still need to calculate a synthetic key in the application client,
+but in return you get good write balancing as well as good read
 selectivity.
 
-Sharding conclusion: Test with your own data
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Sharding Conclusion: Test With Your Own Data
+--------------------------------------------
 
 Picking a good shard key is unfortunately still one of those decisions
 that is simultaneously difficult to make, high-impact, and difficult to
@@ -501,7 +513,7 @@ approach is to analyze the actual insertions and queries you are using
 in your own application.
 
 Variation: Capped Collections
------------------------------
+=============================
 
 One variation that you may want to consider based on your data retention
 requirements is whether you might be able to use a `capped
@@ -516,39 +528,39 @@ collections (the default) will persist documents until they are
 explicitly removed from the collection or the collection is dropped.
 
 Appendix: Managing Event Data Growth
-------------------------------------
+====================================
 
 MongoDB databases, in the course of normal operation, never relinquish
 disk space back to the file system. This can create difficulties if you
-don't manage the size of your databases up front. For event data, we
+don't manage the size of your databases up front. For event data, you
 have a few options for managing the data growth:
 
 Single Collection
-~~~~~~~~~~~~~~~~~
+-----------------
 
 This is the simplest option: keep all events in a single collection,
-periodically removing documents that we don't need any more. The
+periodically removing documents that you don't need any more. The
 advantage of simplicity, however, is offset by some performance
-considerations. First, when we execute our remove, MongoDB will actually
+considerations. First, when you execute your remove, MongoDB will actually
 bring the documents being removed into memory. Since these are documents
-that presumably we haven't touched in a while (that's why we're deleting
+that presumably you haven't touched in a while (that's why you're deleting
 them), this will force more relevant data to be flushed out to disk.
-Second, in order to do a reasonably fast remove operation, we probably
+Second, in order to do a reasonably fast remove operation, you probably
 want to keep an index on a timestamp field. This will tend to slow down
-our inserts, as the inserts have to update the index as well as write
+your inserts, as the inserts have to update the index as well as write
 the event data. Finally, removing data periodically will also be the
 option that has the most potential for fragmenting the database, as
 MongoDB attempts to reuse the space freed by the remove operations for
 new events.
 
 Multiple Collections, Single Database
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------
 
-Our next option is to periodically *rename* our event collection,
-rotating collections in much the same way we might rotate log files. We
+The next option is to periodically *rename* your event collection,
+rotating collections in much the same way you might rotate log files. You
 would then drop the oldest collection from the database. This has
 several advantages over the single collection approach. First off,
-collection renames are both fast and atomic. Secondly, we don't actually
+collection renames are both fast and atomic. Secondly, you don't actually
 have to touch any of the documents to drop a collection. Finally, since
 MongoDB allocates storage in *extents* that are owned by collections,
 dropping a collection will free up entire extents, mitigating the
@@ -558,12 +570,12 @@ current event collection and the previous event collection for any data
 analysis you perform.
 
 Multiple Databases
-~~~~~~~~~~~~~~~~~~
+------------------
 
-In the multiple database option, we take the multiple collection option
-a step further. Now, rather than rotating our collections, we will
-rotate our databases. At the cost of rather increased complexity both in
-insertions and queries, we do gain one benefit: as our databases get
+In the multiple database option, you take the multiple collection option
+a step further. Now, rather than rotating your collections, you will
+rotate your databases. At the cost of rather increased complexity both in
+insertions and queries, you do gain one benefit: as your databases get
 dropped, disk space gets returned to the operating system. This option
 would only really make sense if you had extremely variable event
 insertion rates or if you had variable data retention requirements. For
