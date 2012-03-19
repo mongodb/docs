@@ -34,17 +34,15 @@ install the full dependencies: ::
 
 On Debian/Ubuntu systems use the following command: ::
 
-     apt-get install python-sphinx texlive-latex-recommended texlive-latex-recomended
+     apt-get install python-sphinx texlive-latex-recommended texlive-latex-recommended
 
-.. admonition:: Note
+**Note:** *The Debian/Ubuntu dependencies, have not been thoroughly
+tested. If you find an additional dependency, please submit a pull
+request to modify this document.*
 
-   The Debian/Ubuntu dependencies, have not been thoroughly tested. If
-   you find an additional dependency, please submit a pull request to
-   modify this document.
-
-   Additionally, if you have a dependency list for OS X or for Fedora,
-   CentOS, Red Hat, or other related distributions, please submit a
-   pull request to add this information to this document.
+*Additionally, if you have a dependency list for OS X or for Fedora,
+CentOS, Red Hat, or other related distributions, please submit a
+pull request to add this information to this document.*
 
 To build a test version of the Manual, issue the following command: ::
 
@@ -58,15 +56,12 @@ To publish a new build of the manual, issue the following command:
 
      make push
 
-.. admonition:: warning
+**Warning:** *This target depends on* ``publish``, *and simply uses*
+``rsync`` *to move the content of the* "``../public-docs/``" *to the web
+servers. You must have the proper credentials to run these operations.*
 
-   This target depends on ``publish``, and simply uses ``rsync`` to
-   move the content of the "``../public-docs/``" to the web
-   servers. You must have the proper credentials to run these
-   operations.
-
-   Run ``publish`` procedure and thoroughly test the build before
-   pushing it live.
+*Run* ``publish`` *procedure and thoroughly test the build before pushing
+it live.*
 
 To build a quick demo build for viewing the documentation locally and
 testing features of the documentation, use the following target:
