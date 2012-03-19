@@ -28,6 +28,7 @@ organization:
 - `Style Guide <meta.style-guide.rst>`_ (meta.style-guide.rst)
 - `Documentation Practices <meta.practices.rst>`_ (meta.practices.rst)
 - `Documentation Organization <meta.organization.rst>`_ (meta.organization.rst)
+- `Build Instructions <meta.build.rst>`_ (meta.build.rst)
 
 All documentation is available under the terms of a `Creative Commons
 License <http://creativecommons.org/licenses/by-nc-sa/3.0/>`_.
