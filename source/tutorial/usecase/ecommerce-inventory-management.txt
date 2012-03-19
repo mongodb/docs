@@ -1,15 +1,16 @@
+================================
 E-Commerce: Inventory Management
 ================================
 
 Problem
--------
+=======
 
 You have a product catalog and you would like to maintain an accurate
 inventory count as users shop your online store, adding and removing
 things from their cart.
 
-Solution overview
------------------
+Solution Overview
+=================
 
 In an ideal world, consumers would begin browsing an online store, add
 items to their shopping cart, and proceed in a timely manner to checkout
@@ -28,15 +29,15 @@ transition diagram for a shopping cart is below:
    :align: center
    :alt:
 
-Schema design
--------------
+Schema Design
+=============
 
 In our inventory collection, we will maintain the current available
 inventory of each stock-keeping unit (SKU) as well as a list of 'carted'
 items that may be released back to available inventory if their shopping
 cart times out:
 
-::
+.. code-block:: javascript
 
     {
         _id: '00e8da9b',
@@ -59,7 +60,7 @@ for a total of 19 unsold items of merchandise.
 For our shopping cart model, we will maintain a list of (sku, quantity,
 price) line items:
 
-::
+.. code-block:: javascript
 
     {
         _id: 42,
@@ -77,13 +78,13 @@ without needing a second query back to the catalog collection to display
 the details.
 
 Operations
-----------
+==========
 
 Here, we will describe the various inventory-related operations we will
 perform during the course of operation.
 
-Add an item to a shopping cart
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Add an Item to a Shopping Cart
+------------------------------
 
 Our most basic operation is moving an item off the 'shelf' in to the
 'cart'. Our constraint is that we would like to guarantee that we never
@@ -91,7 +92,7 @@ move an unavailable item off the shelf into the cart. To solve this
 problem, we will ensure that inventory is only updated if there is
 sufficient inventory to satisfy the request:
 
-::
+.. code-block:: python
 
     def add_item_to_cart(cart_id, sku, qty, details):
         now = datetime.utcnow()
@@ -136,21 +137,21 @@ these two updates allows us to report back an error to the user if the
 cart has become inactive or available quantity is insufficient to
 satisfy the request.
 
-Index support
-^^^^^^^^^^^^^
+Index Support
+~~~~~~~~~~~~~
 
 To support this query efficiently, all we really need is an index on
 \_id, which MongoDB provides us by default.
 
-Modifying the quantity in the cart
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Modifying the Quantity in the Cart
+----------------------------------
 
 Here, we want to allow the user to adjust the quantity of items in their
 cart. We must make sure that when they adjust the quantity upward, there
 is sufficient inventory to cover the quantity, as well as updating the
 particular 'carted' entry for the user's cart.
 
-::
+.. code-block:: python
 
     def update_quantity(cart_id, sku, old_qty, new_qty):
         now = datetime.utcnow()
@@ -192,19 +193,19 @@ we need to 'rollback' the cart in a single atomic operation. We will
 also ensure the cart is active and timestamp it as in the case of adding
 items to the cart.
 
-Index support
-^^^^^^^^^^^^^
+Index Support
+~~~~~~~~~~~~~
 
 To support this query efficiently, all we really need is an index on
 \_id, which MongoDB provides us by default.
 
-Checking out
-~~~~~~~~~~~~
+Checking Out
+------------
 
 During checkout, we want to validate the method of payment and remove
 the various 'carted' items after the transaction has succeeded.
 
-::
+.. code-block:: python
 
     def checkout(cart_id):
         now = datetime.utcnow()
@@ -242,20 +243,20 @@ inventory and set the cart to 'complete'. If payment is unsuccessful, we
 unlock the cart by setting its status back to 'active' and report a
 payment error.
 
-Index support
-^^^^^^^^^^^^^
+Index Support
+~~~~~~~~~~~~~
 
 To support this query efficiently, all we really need is an index on
 \_id, which MongoDB provides us by default.
 
-Returning timed-out items to inventory
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Returning Timed-Out Items to Inventory
+--------------------------------------
 
 Periodically, we want to expire carts that have been inactive for a
 given number of seconds, returning their line items to available
 inventory:
 
-::
+.. code-block:: python
 
     def expire_carts(timeout):
         now = datetime.utcnow()
@@ -284,14 +285,14 @@ Here, we first find all carts to be expired and then, for each cart,
 return its items to inventory. Once all items have been returned to
 inventory, the cart is moved to the 'expired' state.
 
-Index support
-^^^^^^^^^^^^^
+Index Support
+~~~~~~~~~~~~~
 
 In this case, we need to be able to efficiently query carts based on
 their status and last\_modified values, so an index on these would help
 the performance of our periodic expiration process:
 
-::
+.. code-block:: python
 
     >>> db.cart.ensure_index([('status', 1), ('last_modified', 1)])
 
@@ -302,7 +303,7 @@ define an index on the 'status' field alone, as any queries for status
 can use the compound index we have defined here.
 
 Error Handling
-~~~~~~~~~~~~~~
+--------------
 
 There is one failure mode above that we have not handled adequately: the
 case of an exception that occurs after updating the inventory collection
@@ -312,7 +313,7 @@ items in the inventory have not been returned to available inventory. To
 account for this case, we will run a cleanup method periodically that
 will find old 'carted' items and check the status of their cart:
 
-::
+.. code-block:: python
 
     def cleanup_inventory(timeout):
         now = datetime.utcnow()
@@ -360,7 +361,7 @@ slowing down other updates and queries, so it should be used
 infrequently.
 
 Sharding
---------
+========
 
 If we choose to shard this system, the use of an \_id field for most of
 our updates makes \_id an ideal sharding candidate, for both carts and
@@ -383,7 +384,7 @@ minimize server load.
 The sharding commands we would use to shard the cart and inventory
 collections, then, would be the following:
 
-::
+.. code-block:: python
 
     >>> db.command('shardcollection', 'inventory')
     { "collectionsharded" : "inventory", "ok" : 1 }
