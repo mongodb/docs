@@ -19,7 +19,7 @@ charged. In the real world, however, customers often add or remove items
 from their shopping cart, change quantities, abandon the cart, and have
 problems at checkout time.
 
-In this solution, we will keep the metaphor of the shopping cart, but
+This solution keeps the traditional metaphor of the shopping cart, but
 the shopping cart will *age* . Once a shopping cart has not been active
 for a certain period of time, all the items in the cart once again
 become part of available inventory and the cart is cleared. The state
@@ -32,7 +32,7 @@ transition diagram for a shopping cart is below:
 Schema Design
 =============
 
-In our inventory collection, we will maintain the current available
+In your inventory collection, you need to maintain the current available
 inventory of each stock-keeping unit (SKU) as well as a list of 'carted'
 items that may be released back to available inventory if their shopping
 cart times out:
@@ -50,15 +50,15 @@ cart times out:
         ]
     }
 
-(Note that, while in an actual implementation, we might choose to merge
-this schema with the product catalog schema described in "E-Commerce:
-Product Catalog", we've simplified the inventory schema here for
-brevity.) If we continue the metaphor of the brick-and-mortar store,
-then our SKU has 16 items on the shelf, 1 in one cart, and 2 in another
-for a total of 19 unsold items of merchandise.
+(Note that, while in an actual implementation, you might choose to merge
+this schema with the product catalog schema described in
+:doc:`E-Commerce: Product Catalog <ecommerce-product-catalog>`, the inventory
+schema is simplified here for brevity.) Continuing the metaphor of the
+brick-and-mortar store, your SKU above has 16 items on the shelf, 1 in one cart,
+and 2 in another for a total of 19 unsold items of merchandise.
 
-For our shopping cart model, we will maintain a list of (sku, quantity,
-price) line items:
+For the shopping cart model, you need to maintain a list of (``sku``,
+``quantity``, ``price``) line items:
 
 .. code-block:: javascript
 
@@ -72,31 +72,32 @@ price) line items:
         ]
     }
 
-Note in the cart model that we have included item details in each line
-item. This allows us to display the contents of the cart to the user
-without needing a second query back to the catalog collection to display
+Note that the cart model includes item details in each line
+item. This allows your app to display the contents of the cart to the user
+without needing a second query back to the catalog collection to fetch
 the details.
 
 Operations
 ==========
 
-Here, we will describe the various inventory-related operations we will
-perform during the course of operation.
+Here, the various inventory-related operations in an ecommerce site are described
+as they would occur using our schema above. The examples use the Python
+programming language and the ``pymongo`` MongoDB driver, but implementations
+would be similar in other languages as well.
 
 Add an Item to a Shopping Cart
 ------------------------------
 
-Our most basic operation is moving an item off the 'shelf' in to the
-'cart'. Our constraint is that we would like to guarantee that we never
+The most basic operation is moving an item off the "shelf" in to the
+"cart." The constraint is that you would like to guarantee that you never
 move an unavailable item off the shelf into the cart. To solve this
-problem, we will ensure that inventory is only updated if there is
+problem, this solution ensures that inventory is only updated if there is
 sufficient inventory to satisfy the request:
 
 .. code-block:: python
 
     def add_item_to_cart(cart_id, sku, qty, details):
         now = datetime.utcnow()
-
 
         # Make sure the cart is still active and add the line item
         result = db.cart.update(
@@ -108,7 +109,6 @@ sufficient inventory to satisfy the request:
             safe=True)
         if not result['updatedExisting']:
             raise CartInactive()
-
 
         # Update the inventory
         result = db.inventory.update(
@@ -126,37 +126,36 @@ sufficient inventory to satisfy the request:
             )
             raise InadequateInventory()
 
-Note here in particular that we do not trust that the request is
-satisfiable. Our first check makes sure that the cart is still 'active'
-(more on inactive carts below) before adding a line item. Our next check
+Note here in particular that the system does not trust that the request is
+satisfiable. The first check makes sure that the cart is still "active"
+(more on inactive carts below) before adding a line item. The next check
 verifies that sufficient inventory exists to satisfy the request before
-decrementing inventory. In the case of inadequate inventory, we
-*compensate* for the non-transactional nature of MongoDB by removing our
+decrementing inventory. In the case of inadequate inventory, the system
+*compensates* for the non-transactional nature of MongoDB by removing the
 cart update. Using safe=True and checking the result in the case of
-these two updates allows us to report back an error to the user if the
+these two updates allows you to report back an error to the user if the
 cart has become inactive or available quantity is insufficient to
 satisfy the request.
 
 Index Support
 ~~~~~~~~~~~~~
 
-To support this query efficiently, all we really need is an index on
-\_id, which MongoDB provides us by default.
+To support this query efficiently, all you really need is an index on
+``_id``, which MongoDB provides us by default.
 
 Modifying the Quantity in the Cart
 ----------------------------------
 
-Here, we want to allow the user to adjust the quantity of items in their
-cart. We must make sure that when they adjust the quantity upward, there
+Here, you'd like to allow the user to adjust the quantity of items in their
+cart. The system must ensure that when they adjust the quantity upward, there
 is sufficient inventory to cover the quantity, as well as updating the
-particular 'carted' entry for the user's cart.
+particular ``carted`` entry for the user's cart.
 
 .. code-block:: python
 
     def update_quantity(cart_id, sku, old_qty, new_qty):
         now = datetime.utcnow()
         delta_qty = new_qty - old_qty
-
 
         # Make sure the cart is still active and add the line item
         result = db.cart.update(
@@ -168,7 +167,6 @@ particular 'carted' entry for the user's cart.
             safe=True)
         if not result['updatedExisting']:
             raise CartInactive()
-
 
         # Update the inventory
         result = db.inventory.update(
@@ -186,29 +184,29 @@ particular 'carted' entry for the user's cart.
             })
             raise InadequateInventory()
 
-Note in particular here that we are using the positional operator '$' to
-update the particular 'carted' entry and line item that matched for our
-query. This allows us to update the inventory and keep track of the data
-we need to 'rollback' the cart in a single atomic operation. We will
-also ensure the cart is active and timestamp it as in the case of adding
+Note in particular here the use of the positional operator '$' to
+update the particular ``carted`` entry and line item that matched for the
+query. This allows the system to update the inventory and keep track of the data
+necessary need to "rollback" the cart in a single atomic operation. The code above
+also ensures the cart is active and timestamp it as in the case of adding
 items to the cart.
 
 Index Support
 ~~~~~~~~~~~~~
 
-To support this query efficiently, all we really need is an index on
-\_id, which MongoDB provides us by default.
+To support this query efficiently, again all we really need is an index on ``_id``.
 
 Checking Out
 ------------
 
-During checkout, we want to validate the method of payment and remove
-the various 'carted' items after the transaction has succeeded.
+During checkout, you'd like to validate the method of payment and remove
+the various ``carted`` items after the transaction has succeeded.
 
 .. code-block:: python
 
     def checkout(cart_id):
         now = datetime.utcnow()
+
         # Make sure the cart is still active and set to 'pending'. Also
         #     fetch the cart details so we can calculate the checkout price
         cart = db.cart.find_and_modify(
@@ -217,9 +215,9 @@ the various 'carted' items after the transaction has succeeded.
         if cart is None:
             raise CartInactive()
 
-
         # Validate payment details; collect payment
-        if payment_is_successful(cart):
+        try:
+            collect_payment(cart)
             db.cart.update(
                 {'_id': cart_id },
                 {'$set': { 'status': 'complete' } } )
@@ -227,32 +225,31 @@ the various 'carted' items after the transaction has succeeded.
                 {'carted.cart_id': cart_id},
                 {'$pull': {'cart_id': cart_id} },
                 multi=True)
-        else:
+        except:
             db.cart.update(
                 {'_id': cart_id },
                 {'$set': { 'status': 'active' } } )
-            raise PaymentError()
+            raise
 
-Here, we first 'lock' the cart by setting its status to 'pending'
-(disabling any modifications) and then collect payment data, verifying
-at the same time that the cart is still active. We use MongoDB's
-'findAndModify' command to atomically update the cart and return its
-details so we can capture payment information. If the payment is
-successful, we remove the 'carted' items from individual items'
-inventory and set the cart to 'complete'. If payment is unsuccessful, we
-unlock the cart by setting its status back to 'active' and report a
+Here, the cart is first "locked" by setting its status to "pending"
+(disabling any modifications.) Then the system collects payment data, verifying
+at the same time that the cart is still active. MongoDB's
+``findAndModify`` command is used to atomically update the cart and return its
+details so you can capture payment information. If the payment is
+successful, you then remove the ``carted`` items from individual items'
+inventory and set the cart to "complete." If payment is unsuccessful, you
+unlock the cart by setting its status back to "active" and report a
 payment error.
 
 Index Support
 ~~~~~~~~~~~~~
 
-To support this query efficiently, all we really need is an index on
-\_id, which MongoDB provides us by default.
+Once again the ``_id`` default index is enough to make this operation efficient.
 
 Returning Timed-Out Items to Inventory
 --------------------------------------
 
-Periodically, we want to expire carts that have been inactive for a
+Periodically, you'd like to expire carts that have been inactive for a
 given number of seconds, returning their line items to available
 inventory:
 
@@ -261,13 +258,16 @@ inventory:
     def expire_carts(timeout):
         now = datetime.utcnow()
         threshold = now - timedelta(seconds=timeout)
+
         # Lock and find all the expiring carts
         db.cart.update(
             {'status': 'active', 'last_modified': { '$lt': threshold } },
             {'$set': { 'status': 'expiring' } },
             multi=True )
+
         # Actually expire each cart
         for cart in db.cart.find({'status': 'expiring'}):
+
             # Return all line items to inventory
             for item in cart['items']:
                 db.inventory.update(
@@ -277,41 +277,42 @@ inventory:
                     },
                     {'$inc': { 'qty': item['qty'] },
                      '$pull': { 'carted': { 'cart_id': cart['id'] } } })
+
             db.cart.update(
                 {'_id': cart['id'] },
                 {'$set': { status': 'expired' })
 
-Here, we first find all carts to be expired and then, for each cart,
+Here, you first find all carts to be expired and then, for each cart,
 return its items to inventory. Once all items have been returned to
 inventory, the cart is moved to the 'expired' state.
 
 Index Support
 ~~~~~~~~~~~~~
 
-In this case, we need to be able to efficiently query carts based on
-their status and last\_modified values, so an index on these would help
-the performance of our periodic expiration process:
+In this case, you need to be able to efficiently query carts based on
+their ``status`` and ``last_modified`` values, so an index on these would help
+the performance of the periodic expiration process:
 
 .. code-block:: python
 
     >>> db.cart.ensure_index([('status', 1), ('last_modified', 1)])
 
-Note in particular the order in which we defined the index: in order to
+Note in particular the order in which the index is defined: in order to
 efficiently support range queries ('$lt' in this case), the ranged item
 must be the last item in the index. Also note that there is no need to
-define an index on the 'status' field alone, as any queries for status
+define an index on the ``status`` field alone, as any queries for status
 can use the compound index we have defined here.
 
 Error Handling
 --------------
 
-There is one failure mode above that we have not handled adequately: the
+There is one failure mode above that thusfar has not been handled adequately: the
 case of an exception that occurs after updating the inventory collection
 but before updating the shopping cart. The result of this failure mode
 is a shopping cart that may be absent or expired where the 'carted'
 items in the inventory have not been returned to available inventory. To
-account for this case, we will run a cleanup method periodically that
-will find old 'carted' items and check the status of their cart:
+account for this case, you'll need to run a cleanup method periodically that
+will find old ``carted`` items and check the status of their cart:
 
 .. code-block:: python
 
@@ -319,18 +320,15 @@ will find old 'carted' items and check the status of their cart:
         now = datetime.utcnow()
         threshold = now - timedelta(seconds=timeout)
 
-
         # Find all the expiring carted items
         for item in db.inventory.find(
             {'carted.timestamp': {'$lt': threshold }}):
-
 
             # Find all the carted items that matched
                   carted = dict(
                       (carted_item['cart_id'], carted_item)
                       for carted_item in item['carted']
                       if carted_item['timestamp'] < threshold)
-
 
             # Find any carts that are active and refresh the carted items
             for cart in db.cart.find(
@@ -342,7 +340,6 @@ will find old 'carted' items and check the status of their cart:
                       'carted.cart_id': cart['_id'] },
                     { '$set': {'carted.$.timestamp': now } })
                 del carted[cart['_id']]
-
 
             # All the carted items left in the dict need to now be
             #    returned to inventory
@@ -363,25 +360,25 @@ infrequently.
 Sharding
 ========
 
-If we choose to shard this system, the use of an \_id field for most of
-our updates makes \_id an ideal sharding candidate, for both carts and
-products. Using \_id as our shard key allows all updates that query on
-\_id to be routed to a single mongod process. There are two potential
-drawbacks with using \_id as a shard key, however.
+If you choose to shard this system, the use of an ``_id`` field for most of
+our updates makes ``_id`` an ideal sharding candidate, for both carts and
+products. Using ``_id`` as your shard key allows all updates that query on
+``_id`` to be routed to a single mongod process. There are two potential
+drawbacks with using ``_id`` as a shard key, however.
 
--  If the cart collection's \_id is generated in a generally increasing
+-  If the cart collection's ``_id`` is generated in a generally increasing
    order, new carts will all initially be assigned to a single shard.
 -  Cart expiration and inventory adjustment requires several broadcast
-   queries and updates if \_id is used as a shard key.
+   queries and updates if ``_id`` is used as a shard key.
 
-It turns out we can mitigate the first pitfall by choosing a random
-value (perhaps the sha-1 hash of on ObjectId) as the \_id of each cart
+It turns out you can mitigate the first pitfall by choosing a random
+value (perhaps the sha-1 hash of an ``ObjectId``) as the ``_id`` of each cart
 as it is created. The second objection is valid, but relatively
-unimportant, as our expiration process is an infrequent one and in fact
-can be slowed down by the judicious use of sleep() calls in order to
+unimportant, as the expiration function runs relatively infrequently and can be
+slowed down by the judicious use of ``sleep()`` calls in order to
 minimize server load.
 
-The sharding commands we would use to shard the cart and inventory
+The sharding commands you'd use to shard the cart and inventory
 collections, then, would be the following:
 
 .. code-block:: python
@@ -392,4 +389,4 @@ collections, then, would be the following:
     { "collectionsharded" : "cart", "ok" : 1 }
 
 Note that there is no need to specify the shard key, as MongoDB will
-default to using \_id as a shard key.
+default to using ``_id`` as a shard key.
