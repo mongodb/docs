@@ -26,7 +26,6 @@ thorough overview of the documentation style, process, and overall
 organization:
 
 - `Style Guide <meta.style-guide.rst>`_ (meta.style-guide.rst)
-- `Jargon <meta.jargon.rst>`_ (meta.jargon.rst)
 - `Documentation Practices <meta.practices.rst>`_ (meta.practices.rst)
 - `Documentation Organization <meta.organization.rst>`_ (meta.organization.rst)
 

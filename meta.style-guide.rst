@@ -26,7 +26,7 @@ and other document elements.
 
 - File naming Convention:
 
-  - For Sphinx, all files should have a ``.rst`` extension.
+  - For Sphinx, all files should have a ``.txt`` extension.
 
   - Separate words in file names with hyphens (i.e. ``-``.)
 
@@ -114,22 +114,23 @@ Verb tense and mood preferences, with examples:
   more concise to imply second person using the imperative, as in
   "Before inititating a back up, lock the database."
 
-- When indicated, use the imperative mood. "Backup your databases
-  often." "To prevent data loss, back up your databases."
+- When indicated, use the imperative mood. For example: "Backup your
+  databases often" and "To prevent data loss, back up your databases."
 
-- The future perfect is also useful in some cases. "Creating disk
-  snapshots without locking the database, will lead to an inconsistent
-  state."
+- The future perfect is also useful in some cases. For example,
+  "Creating disk snapshots without locking the database, will lead to
+  an inconsistent state."
 
 - Avoid helper verbs, as possible to increase clarity and
-  concision. For example, attempt to avoid "this does foo" and "this will
-  do foo" when possible, and using "does" over "will do" when "this
-  foos" is unacceptable.
+  concision. For example, attempt to avoid "this does foo" and "this
+  will do foo" when possible. Use "does foo" over "will do foo" in
+  situations where "this foos" is unacceptable.
 
 General Formulations
 ~~~~~~~~~~~~~~~~~~~~
 
-- Contractions are acceptable to increase readability and flow.
+- Contractions are acceptable insofar as they are necessary to
+  increase readability and flow. Avoid otherwise.
 
 - Shorter sentences are better than longer sentences. Use complex
   formations (e.g. compound complex structures that require
@@ -160,7 +161,7 @@ General Formulations
 ReStructured Text and Typesetting
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Use Spaces between nesting parentheticals (and elements) in
+- Use spaces between nesting parentheticals (and elements) in
   JavScript examples. For example, prefer "``{ [ a, a, a ] }``" over
   "``{[a,a,a]}``".
 
@@ -170,12 +171,12 @@ ReStructured Text and Typesetting
     document titles.
   - ``-`` for heading level 2 or h2s.
   - ``~`` for heading level 3 or h3s.
-  - ``~`` for heading level 3 or h3s.
+  - ````` for heading level 4 or h4s.
 
-- Use hyphens (``-``) to indicate items of an ordered list
+- Use hyphens (``-``) to indicate items of an ordered list.
 
-- Place footnotes, if you use them, at the end of a section rather
-  than the end of a file.
+- Place footnotes and other references, if you use them, at the end of
+  a section rather than the end of a file.
 
   Use the footnote format that includes automatic numbering and a
   target name for ease of use. For instance a footnote tag may look
@@ -191,3 +192,57 @@ ReStructured Text and Typesetting
   operators, aggregation framework expressions and pipeline operators,
   java script functions, statuses, etc.) use the reference types to
   ensure uniform formatting and cross-referencing.
+
+Jargon and Common Terms
+-----------------------
+
+MongoDB and Database Organization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Refer to MongoDB as "MongoDB" rather than mongo or Mongo when referring
+to the entire database system, including possibly ``mongod`` and
+``mongos``.
+
+Refer to ``mongod`` or ``mongos`` by name to indicate the database
+process, or server instance itself. These are "processes" or
+"instances." Reserve "database" for referring to a database (i.e. the
+structure that holds collections and refers to a group of files on
+disk.)
+
+Data Structures
+~~~~~~~~~~~~~~~
+
+Use the following convention when referring to specific parts of
+MongoDB data:
+
+- *document* refers to "rows," or records in a MongoDB
+ database. Potential confusion with "JSON Documents."
+
+- *field* refers to a "key" or "identifier" of data within a MongoDB
+ document.
+
+- *value* refers to the contents of a *field*.
+
+Use "sub-document" as needed to describe nested documents.
+
+Other Terms
+~~~~~~~~~~~
+
+- Use "**shard cluster**," to refer to a collection of ``mongod``
+  instances that hold a sharded data set. Use the term "**replica
+  set**," to refer to a collection of ``mongod`` instances that
+  provide a replicated data set. Do not use the word "cluster" to
+  refer to a replication only deployment.
+
+- Use "``example.net``" (and ``.org`` or ``.com`` if needed) for all
+  examples and samples.
+
+The documentation project does not, as of early 2012, have a fixed set
+of nomenclature for describing interface elements, architectural
+components (daemons, databases, processes, drivers, hosts, mongos'
+etc.) Similarly, there is no standard nomenclature or examples for
+field names, values, variables, and other components of code examples.
+
+At some point in the near future creating a more standardized the
+nomenclature for examples of architectural elements and code
+components may be necessary.
