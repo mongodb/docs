@@ -7,6 +7,7 @@ PAPER	      =
 
 # change this to reflect the location of the public repo
 publication-output = ../public-docs
+
 # change this to reflect the branch that "manual/" will point to
 manual-branch = master
 # intuit the current branch
@@ -15,6 +16,7 @@ current-branch := $(shell git symbolic-ref HEAD 2>/dev/null | cut -d "/" -f "3" 
 # Build directory tweaking.
 root-build = build
 branch-build = $(root-build)/$(current-branch)
+CURRENTBUILD = $(publication-output)/$(current-branch)
 
 ifeq ($(MODE),publish)
 	BUILDDIR = $(branch-build)
@@ -23,8 +25,7 @@ else
 endif
 
 # helpers for compressing man pages
-
-UNCOMPRESSED_MAN := $(shell find $(BUILDDIR)/man/ -name "*.1" 2>/dev/null )
+UNCOMPRESSED_MAN := $(wildcard $(BUILDDIR)/man/*.1)
 COMPRESSED_MAN := $(subst .1,.1.gz,$(UNCOMPRESSED_MAN))
 
 # Internal variables.
@@ -33,7 +34,7 @@ PAPEROPT_letter		= -D latex_paper_size=letter
 ALLSPHINXOPTS		= -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
 ASPIRATIONALOPTS	= -d $(BUILDDIR)/aspiration-doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) aspiration
 
-.PHONY: help clean html dirhtml singlehtml epub latex latexpdf text man changes linkcheck build-branch setup-branches publish
+.PHONY: help clean html dirhtml singlehtml epub latex latexpdf text man changes linkcheck build-branch publish process push setup pdfs
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
@@ -48,9 +49,8 @@ help:
 	@echo "	 linkcheck  to check all external links for integrity"
 	@echo ""
 	@echo "MongoDB Manual Specific Targets."
-	@echo "	 publish	runs 'make build-branch' and then deploys the build to $(publication-output)"
-	@echo "	 build-branch	to build the current branch."
-	@echo "See 'meta.build-process.rst' for more information."
+	@echo "	 publish	runs 'make process' and then deploys the build to $(publication-output)"
+	@echo "See 'meta.build.rst' for more information."
 
 #
 # Meta targets that control the build and publication process.
@@ -61,51 +61,70 @@ push:publish
 	rsync -arz ../public-docs/ www@www-c2.10gen.cc:/data/sites/docs
 
 publish:
-	make MODE='publish' build-branch
-	make MODE='publish' deploy
+	@echo "Running the publication and migration routine..."
+	make MODE='publish' pickle
+	make -j MODE='publish' deploy
+	@echo "Publication succeessfully deployed to '$(publication-output)'."
 
-build-branch:
-	@echo Running a build of the \$(current-branch)\ branch.
-	@echo ""
-	touch source/about.txt
-	make -j 1 MODE='publish' dirhtml epub
-	make -j 3 MODE='publish' latexpdf singlehtml html
-	@echo "All builds complete.'"
-	@echo "to complete the build process."
+#
+# Targets that should/need only be accessed in publication, within a protective "ifeq"
+#
 
 ifeq ($(MODE),publish)
-import-pdfs:
-	cp $(BUILDDIR)/epub/MongoDB.epub $(publication-output)/$(current-branch)/MongoDB-Manual-$(current-branch).epub
-	cp $(BUILDDIR)/latex/MongoDB.pdf $(publication-output)/$(current-branch)/MongoDB-Manual-$(current-branch).pdf
-	rm -f $(publication-output)/$(current-branch)/MongoDB-Manual.pdf $(publication-output)/$(current-branch)/MongoDB-Manual.epub
-ifeq ($(manual-branch),$(current-branch))
-	ln -s -f MongoDB-Manual-$(current-branch).pdf $(publication-output)/$(current-branch)/MongoDB-Manual.pdf
-	ln -s -f MongoDB-Manual-$(current-branch).epub $(publication-output)/$(current-branch)/MongoDB-Manual.epub
+# Build dependcies for the publication mode operation. This is the only target that you need to call explictly.
+deploy: $(CURRENTBUILD)/release.txt $(CURRENTBUILD) $(publication-output)/index.html
+
+# Establish dependencies for building the manual.
+$(CURRENTBUILD):$(CURRENTBUILD)/MongoDB-Manual.pdf $(CURRENTBUILD)/MongoDB-Manual.epub $(CURRENTBUILD)/single/ $(CURRENTBUILD)/ 
+
+# Build and Migrate all required Manual Content
+$(CURRENTBUILD)/MongoDB-Manual-$(current-branch).pdf:$(BUILDDIR)/latex/MongoDB.pdf
+	cp $< $@
+$(CURRENTBUILD)/MongoDB-Manual-$(current-branch).epub:$(BUILDDIR)/epub/MongoDB.epub
+	cp $< $@
+$(CURRENTBUILD)/MongoDB-Manual.epub:$(CURRENTBUILD)/MongoDB-Manual-$(current-branch).epub
+	rm -f $@
+	ln -s -f MongoDB-Manual-$(current-branch).epub $@
+$(CURRENTBUILD)/MongoDB-Manual.pdf:$(CURRENTBUILD)/MongoDB-Manual-$(current-branch).pdf
+	rm -f $@
+	ln -s -f MongoDB-Manual-$(current-branch).pdf $@
+$(CURRENTBUILD)/:$(BUILDDIR)/dirhtml
+	cp -R $</* $@
+$(CURRENTBUILD)/single/: $(BUILDDIR)/singlehtml/ $(CURRENTBUILD)/single/search.html $(CURRENTBUILD)/single/genindex.html
+	cp -R $(BUILDDIR)/singlehtml/* $@
+	mv $@contents.html $@index.html
+	sed -i 's/href="contents.html/href="index.html/g' $(CURRENTBUILD)/single/index.html
+$(CURRENTBUILD)/single/search.html:$(BUILDDIR)/dirhtml/search/index.html
+	cp $< $@
+$(CURRENTBUILD)/single/genindex.html:$(BUILDDIR)/html/genindex.html
+	cp $< $@
+	sed -i -r 's@(<dt><a href=").*html#@\1./#@' $@
+$(BUILDDIR)/latex/MongoDB.pdf:$(BUILDDIR)/latex/MongoDB.tex
+
+# Establish proper dependencies with Sphinx aspects of the build.
+$(BUILDDIR)/dirhtml $(BUILDDIR)/dirhtml/search/index.html $(BUILDDIR)/dirhtml/:dirhtml
+$(BUILDDIR)/html/genindex.html:html
+$(BUILDDIR)/singlehtml/:singlehtml
+$(BUILDDIR)/epub/MongoDB.epub:epub
+$(BUILDDIR)/latex/MongoDB.tex:latex
+
+# Deployment related work for the non-Sphinx aspects of the build.
+$(publication-output)/manual:$(CURRENTBUILD)
+$(publication-output)/index.html: themes/docs.mongodb.org/index.html
+	cp $< $@
+$(CURRENTBUILD)/release.txt:deploy-setup $(publication-output)/manual
+	@touch $(CURRENTBUILD)/release.txt
+	git rev-parse --verify HEAD >|$@
+	@touch source/about.txt
+deploy-setup:
+	mkdir -p $(publication-output)/$(current-branch) $(CURRENTBUILD)/single/
+	ln -f -s $(manual-branch) manual
+	mv manual $(publication-output)
 endif
-
-deploy:
-	@echo "Exporting builds..."
-	mkdir -p $(publication-output)/$(current-branch)/single/
-	ln -f -s $(manual-branch) $(publication-output)/manual
-	cp themes/docs.mongodb.org/index.html $(publication-output)/
-	make MODE='publish' import-pdfs
-	cp -R $(BUILDDIR)/dirhtml/* $(publication-output)/$(current-branch)
-	cp -R $(BUILDDIR)/singlehtml/* $(publication-output)/$(current-branch)/single/
-	cp $(BUILDDIR)/dirhtml/search/index.html $(publication-output)/$(current-branch)/single/search.html
-	cp $(BUILDDIR)/html/genindex.html $(publication-output)/$(current-branch)/single/
-	sed -i 's/href="contents.html/href="index.html/g' $(publication-output)/$(current-branch)/single/index.html
-	sed -i -r 's@(<dt><a href=").*html#@\1./#@' $(publication-output)/$(current-branch)/single/genindex.html
-	@echo "Running the publication routine..."
-	git rev-parse --verify HEAD >|$(publication-output)/$(current-branch)/release.txt
-	@echo "Publication succeessfully deployed to '$(publication-output)'."
-endif
-
-
 
 #
 # Targets to build compressed man pages.
 #
-
 build-man: man $(COMPRESSED_MAN)
 compress-man: $(COMPRESSED_MAN)
 $(BUILDDIR)/man/%.1.gz: $(BUILDDIR)/man/%.1
@@ -114,7 +133,6 @@ $(BUILDDIR)/man/%.1.gz: $(BUILDDIR)/man/%.1
 #
 # Clean up/removal targets.
 #
-
 clean:
 	-rm -rf $(BUILDDIR)/*
 clean-all:
@@ -125,7 +143,6 @@ clean-all:
 # Default Sphinx build targets in use.
 #
 ######################################################################
-
 
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
@@ -139,7 +156,6 @@ dirhtml:
 
 singlehtml:
 	$(SPHINXBUILD) -b singlehtml $(ALLSPHINXOPTS) $(BUILDDIR)/singlehtml
-	mv $(BUILDDIR)/singlehtml/contents.html $(BUILDDIR)/singlehtml/index.html
 	@echo
 	@echo "Build finished. The HTML page is in $(BUILDDIR)/singlehtml."
 
@@ -169,16 +185,11 @@ latex:
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
 	sed -i -r 's/\\bfcode\{--(.*)\}/\\bfcode\{-{-}\1\}/' $(BUILDDIR)/latex/*.tex
 	@echo
-	@echo "Build finished; the Aspirational LaTeX files are in $(BUILDDIR)/latex."
-	@echo "Run \`make' in that directory to run these through (pdf)latex" \
-	      "(use \`make latexpdf' here to do that automatically)."
+	@echo "TeX Build finished; the LaTeX files are in $(BUILDDIR)/latex."
 
-latexpdf:
-	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
-	sed -i -r 's/\\bfcode\{--(.*)\}/\\bfcode\{-{-}\1\}/' $(BUILDDIR)/latex/*.tex
+latexpdf:latex
 	@echo "Running LaTeX files through pdflatex..."
-	$(MAKE) -C $(BUILDDIR)/latex all-pdf >/tmp/sphinx-latex-build.log
-	@echo -e "\nSee '/tmp/sphinx-latex-build.log' for the full LaTeX output...\n"
+	$(MAKE) -C $(BUILDDIR)/latex all-pdf
 	@echo "pdflatex finished; the PDF files are in $(BUILDDIR)/latex."
 
 ######################################################################
@@ -201,12 +212,13 @@ aspirational-dirhtml:
 
 aspirational-latex:
 	$(SPHINXBUILD) -b latex $(ASPIRATIONALOPTS) $(BUILDDIR)/aspiration-latex
+	sed -i -r 's/\\bfcode\{--(.*)\}/\\bfcode\{-{-}\1\}/' $(BUILDDIR)/latex/*.tex
 	@echo
-	@echo "Build finished; the Aspirational LaTeX files are in $(BUILDDIR)/aspiration-latex."
+	@echo "TeX build finished; the Aspirational LaTeX files are in $(BUILDDIR)/aspiration-latex."
 	@echo "Run \`make' in that directory to run these through (pdf)latex" \
 	      "(use \`make latexpdf' here to do that automatically)."
 
-aspirational-latexpdf:
+aspirational-latexpdf: aspirational-latex 
 	$(SPHINXBUILD) -b latex $(ASPIRATIONALOPTS) $(BUILDDIR)/aspiration-latex
 	@echo "Running LaTeX files through pdflatex..."
 	$(MAKE) -C $(BUILDDIR)/latex all-pdf
@@ -218,64 +230,47 @@ aspirational-linkcheck:
 	@echo "Aspirational link check complete; look for any errors in the above output " \
 	      "or in $(BUILDDIR)/aspiration-linkcheck/output.txt."
 
-######################################################################
+##########################################################################
 #
-# Default Sphinx targets that we're not using at all.
+# Default Sphinx targets that are totally unused, but around just in case.
 #
-######################################################################
+##########################################################################
+
+.PHONY: pickle json htmlhelp qthelp devhelp doctest
+
+pickle:
+	$(SPHINXBUILD) -b pickle $(ALLSPHINXOPTS) $(BUILDDIR)/pickle
+	@echo
+	@echo "Build finished; now you can process the pickle files."
+
+json:
+	$(SPHINXBUILD) -b json $(ALLSPHINXOPTS) $(BUILDDIR)/json
+	@echo
+	@echo "Build finished; now you can process the JSON files."
+
+text:
+	$(SPHINXBUILD) -b text $(ALLSPHINXOPTS) $(BUILDDIR)/text
+	mv $(BUILDDIR)/text/contents.txt $(BUILDDIR)/text/text.txt
+	@echo
+	@echo "Build finished. The text files are in $(BUILDDIR)/text."
+
+doctest:
+	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(BUILDDIR)/doctest
+	@echo "Testing of doctests in the sources finished, look at the " \
+	      "results in $(BUILDDIR)/doctest/output.txt."
+
+####################
 #
-# .PHONY: pickle json htmlhelp qthelp devhelp doctest
+# PDF Build System.
 #
-# disabled-help:
-#	@echo "	 doctest    to run all doctests embedded in the documentation (if enabled)"
-#	@echo "	 json	    to make JSON files"
-#	@echo "	 pickle	    to make pickle files"
-#	@echo "	 htmlhelp   to make HTML files and a HTML help project"
-#	@echo "	 qthelp	    to make HTML files and a qthelp project"
-#	@echo "	 text	    to make text files"
-#	@echo "	 devhelp    to make HTML files and a Devhelp project"
-#
-# pickle:
-#	$(SPHINXBUILD) -b pickle $(ALLSPHINXOPTS) $(BUILDDIR)/pickle
-#	@echo
-#	@echo "Build finished; now you can process the pickle files."
-#
-# json:
-#	$(SPHINXBUILD) -b json $(ALLSPHINXOPTS) $(BUILDDIR)/json
-#	@echo
-#	@echo "Build finished; now you can process the JSON files."
-#
-# htmlhelp:
-#	$(SPHINXBUILD) -b htmlhelp $(ALLSPHINXOPTS) $(BUILDDIR)/htmlhelp
-#	@echo
-#	@echo "Build finished; now you can run HTML Help Workshop with the" \
-#	      ".hhp project file in $(BUILDDIR)/htmlhelp."
-#
-# text:
-#	$(SPHINXBUILD) -b text $(ALLSPHINXOPTS) $(BUILDDIR)/text
-#	mv $(BUILDDIR)/text/contents.txt $(BUILDDIR)/text/text.txt
-#	@echo
-#	@echo "Build finished. The text files are in $(BUILDDIR)/text."
-#
-# qthelp:
-#	$(SPHINXBUILD) -b qthelp $(ALLSPHINXOPTS) $(BUILDDIR)/qthelp
-#	@echo
-#	@echo "Build finished; now you can run "qcollectiongenerator" with the" \
-#	      ".qhcp project file in $(BUILDDIR)/qthelp, like this:"
-#	@echo "# qcollectiongenerator $(BUILDDIR)/qthelp/MongoDB.qhcp"
-#	@echo "To view the help file:"
-#	@echo "# assistant -collectionFile $(BUILDDIR)/qthelp/MongoDB.qhc"
-#
-# devhelp:
-#	$(SPHINXBUILD) -b devhelp $(ALLSPHINXOPTS) $(BUILDDIR)/devhelp
-#	@echo
-#	@echo "Build finished."
-#	@echo "To view the help file:"
-#	@echo "# mkdir -p $$HOME/.local/share/devhelp/MongoDB"
-#	@echo "# ln -s $(BUILDDIR)/devhelp $$HOME/.local/share/devhelp/MongoDB"
-#	@echo "# devhelp"
-#
-# doctest:
-#	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(BUILDDIR)/doctest
-#	@echo "Testing of doctests in the sources finished, look at the " \
-#	      "results in $(BUILDDIR)/doctest/output.txt."
+####################
+PDFLATEXCOMMAND = TEXINPUTS=".:$(BUILDDIR)/latex/:" pdflatex --interaction batchmode --output-directory $(BUILDDIR)/latex/
+pdfs:latex
+	make MODE='$(MODE)' `find $(BUILDDIR)/latex/ -name "*.tex" | sed "s/\.tex/.pdf/"`
+%.pdf:%.tex
+	$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<'
+	-makeindex -s $(BUILDDIR)/latex/python.ist '$(basename $<).idx'
+	$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<'
+	$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<'
+
+
