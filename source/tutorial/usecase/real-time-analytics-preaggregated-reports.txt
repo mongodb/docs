@@ -1,14 +1,15 @@
+===========================================
 Real Time Analytics: Pre-Aggregated Reports
 ===========================================
 
 Problem
--------
+=======
 
 You have one or more servers generating events for which you want
 real-time statistical information in a MongoDB collection.
 
 Solution overview
------------------
+=================
 
 For this solution we will make a few assumptions:
 
@@ -32,7 +33,7 @@ some set of logfile post-processors that can run in order to integrate
 the statistics.
 
 Schema design
--------------
+=============
 
 There are two important considerations when designing the schema for a
 real-time analytics system: the ease & speed of updates and the ease &
@@ -58,7 +59,7 @@ and discuss the problems with them before finally describing the
 solution we would like to go with.
 
 Design 0: one document per page/day
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------------
 
 Our initial approach will be to simply put all the statistics in which
 we're interested into a single document per page:
@@ -94,7 +95,7 @@ end up needing to reallocate these documents multiple times throughout
 the day, copying the documents to areas with more space.
 
 Design #0.5: Preallocate documents
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------------
 
 In order to mitigate the repeated copying of documents, we can tweak our
 approach slightly by adding a process which will preallocate a document
@@ -116,12 +117,12 @@ doesn't need to pad the records, leading to a more compact
 representation and better usage of our memory.
 
 Design #1: Add intra-document hierarchy
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------------------
 
 One thing to be aware of with BSON is that documents are stored as a
 sequence of (key, value) pairs, *not* as a hash table. What this means
 for us is that writing to stats.mn.0 is *much* faster than writing to
-stats.mn.1439. [c]
+stats.mn.1439.
 
 .. figure:: https://docs.google.com/a/arborian.com/drawings/image?id=sg_d2tpKfXUsecEyvpgRg8w&rev=1&h=82&w=410&ac=1
    :align: center
@@ -168,8 +169,9 @@ generally faster.
 .. figure:: https://docs.google.com/a/arborian.com/drawings/image?id=sGv9KIXyF_XZvpnNPVyojcg&rev=21&h=148&w=410&ac=1
    :align: center
    :alt:
+
 Design #2: Create separate documents for different granularities
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------------------------------------------
 
 Design #1 is certainly a reasonable design for storing intraday
 statistics, but what happens when we want to draw a historical chart
@@ -182,7 +184,7 @@ more than make up for it. At this point, our document structure is as
 follows:
 
 Daily Statistics
-^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~
 
 ::
 
@@ -215,7 +217,7 @@ Daily Statistics
     }
 
 Monthly Statistics
-^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~
 
 ::
 
@@ -232,7 +234,7 @@ Monthly Statistics
     }
 
 Operations
-----------
+==========
 
 In this system, we want balance between read performance and write
 (upsert) performance. This section will describe each of the major
@@ -241,7 +243,7 @@ pymongo MongoDB driver. These operations would be similar in other
 languages as well.
 
 Log a hit to a page
-~~~~~~~~~~~~~~~~~~~
+-------------------
 
 Logging a hit to a page in our website is the main 'write' activity in
 our system. In order to maximize performance, we will be doing in-place
@@ -293,8 +295,8 @@ without preallocation, we end up with a dynamically growing document,
 slowing down our upserts significantly as documents are moved in order
 to grow them.
 
-Preallocate[d]
-~~~~~~~~~~~~~~
+Preallocate
+-----------
 
 In order to keep our documents from growing, we can preallocate them
 before they are needed. When preallocating, we set all the statistics to
@@ -384,7 +386,7 @@ it's used, preventing the midnight spike as well as eliminating the
 movement of dynamically growing documents.
 
 Get data for a real-time chart
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------
 
 One chart that we may be interested in seeing would be the number of
 hits to a particular page over the last hour. In that case, our query is
@@ -424,7 +426,7 @@ day where a) we didn't happen to preallocate that day and b) there were
 no hits to the document on that day.
 
 Index support
-^^^^^^^^^^^^^
+~~~~~~~~~~~~~
 
 These operations would benefit significantly from indexes on the
 metadata of the daily statistics:
@@ -440,10 +442,9 @@ Note in particular that we indexed on the page first, date second. This
 allows us to perform the third query above (a single page over a range
 of days) quite efficiently. Having any compound index on page and date,
 of course, allows us to look up a single day's statistics efficiently.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Get data for a historical chart
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------
 
 In order to retrieve daily data for a single month, we can perform the
 following query:
@@ -471,7 +472,7 @@ same trick as above:
     ...     sort=[('metadata.date', 1)])
 
 Index support
-^^^^^^^^^^^^^
+~~~~~~~~~~~~~
 
 Once again, these operations would benefit significantly from indexes on
 the metadata of the monthly statistics:
@@ -485,10 +486,9 @@ the metadata of the monthly statistics:
 
 The order of our index is once again designed to efficiently support
 range queries for a single page over several months, as above.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Sharding
---------
+========
 
 Our performance in this system will be limited by the number of shards
 in our cluster as well as the choice of our shard key. Our ideal shard
