@@ -35,7 +35,7 @@ Photo
     description, author, and date along with the actual photo binary
     data.
 
-Schema design
+Schema Design
 =============
 
 Your node collection will contain documents of various formats, but they
@@ -68,7 +68,7 @@ For the basic page above, the detail field might simply contain the text
 of the page. In the case of a blog entry, the document might resemble
 the following instead:
 
-::
+.. code-block:: javascript
 
     {
         …
@@ -95,7 +95,7 @@ our case, we will call the two collections 'cms.assets.files' and
 collection to store the normal GridFS metadata as well as our node
 metadata:
 
-::
+.. code-block:: javascript
 
     {
         _id: ObjectId(…),
@@ -123,20 +123,20 @@ Here, we have embedded the schema for our 'normal' nodes so we can share
 node-manipulation code among all types of nodes.
 
 Operations
-----------
+==========
 
 Here, we will describe common queries and updates used in our CMS,
 paying particular attention to 'tweaks' we need to make for our various
 node types.
 
-Create and edit content nodes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Create and Edit Content Nodes
+-----------------------------
 
 The content producers using our CMS will be creating and editing content
 most of the time. Most content-creation activities are relatively
 straightforward:
 
-::
+.. code-block:: python
 
     db.cms.nodes.insert({
         'nonce': ObjectId(),
@@ -159,7 +159,7 @@ multiple editors. In order to support this, we use the special 'nonce'
 value to detect when another editor may have modified the document and
 allow the application to resolve any conflicts:
 
-::
+.. code-block:: python
 
     def update_text(section, slug, nonce, text):
         result = db.cms.nodes.update(
@@ -174,7 +174,7 @@ allow the application to resolve any conflicts:
 We might also want to perform metadata edits to the item such as adding
 tags:
 
-::
+.. code-block:: python
 
     db.cms.nodes.update(
         { 'metadata.section': section, 'metadata.slug': slug },
@@ -183,14 +183,14 @@ tags:
 In this case, we don't actually need to supply the nonce (nor update it)
 since we are using the atomic $addToSet modifier in MongoDB.
 
-Index support
-^^^^^^^^^^^^^
+Index Support
+~~~~~~~~~~~~~
 
 Our updates in this case are based on equality queries containing the
 (section, slug, and nonce) values. To support these queries, we might
 use the following index:
 
-::
+.. code-block:: python
 
     >>> db.cms.nodes.ensure_index([
     ...    ('metadata.section', 1), ('metadata.slug', 1), ('nonce', 1) ])
@@ -199,7 +199,7 @@ Also note, however, that we would like to ensure that two editors don't
 create two documents with the same section and slug. To support this, we
 will use a second index with a unique constraint:
 
-::
+.. code-block:: python
 
     >>> db.cms.nodes.ensure_index([
     ...    ('metadata.section', 1), ('metadata.slug', 1)], unique=True)
@@ -209,13 +209,13 @@ going to be unique, we don't actually get much benefit from the first
 index and can use only the second one to satisfy our update queries as
 well.
 
-Upload a photo
-~~~~~~~~~~~~~~
+Upload a Photo
+--------------
 
 Uploading photos to our site shares some things in common with node
 update, but it also has some extra nuances:
 
-::
+.. code-block:: python
 
     def upload_new_photo(
         input_file, section, slug, title, author, tags, details):
@@ -247,7 +247,7 @@ record. This lets us detect when a file upload may be stalled, which is
 helpful when working with multiple editors. In this case, we will assume
 that the last update wins:
 
-::
+.. code-block:: python
 
     def update_photo_content(input_file, section, slug):
         fs = GridFS(db, 'cms.assets')
@@ -284,15 +284,15 @@ that the last update wins:
 We can, of course, perform metadata edits to the item such as adding
 tags without the extra complexity:
 
-::
+.. code-block:: python
 
     db.cms.assets.files.update(
         { 'metadata.section': section, 'metadata.slug': slug },
         { '$addToSet': {
             'metadata.tags': { '$each': [ 'interesting', 'funny' ] } } })
 
-Index support
-^^^^^^^^^^^^^
+Index Support
+~~~~~~~~~~~~~
 
 Our updates here are also based on equality queries containing the
 (section, slug) values, so we can use the same types of indexes as we
@@ -301,74 +301,74 @@ unique constraint on (section, slug) to ensure that one of the calls to
 GridFS.new\_file() will fail multiple editors try to create or update
 the file simultaneously.
 
-::
+.. code-block:: python
 
     >>> db.cms.assets.files.ensure_index([
     ...    ('metadata.section', 1), ('metadata.slug', 1)], unique=True)
 
-Locate and render a node
-~~~~~~~~~~~~~~~~~~~~~~~~
+Locate and Render a Node
+------------------------
 
 We want to be able to locate a node based on its section and slug, which
 we assume have been extracted from the page definition and URL by some
 other technology.
 
-::
+.. code-block:: python
 
     node = db.nodes.find_one(
         {'metadata.section': section, 'metadata.slug': slug })
 
-Index support
-^^^^^^^^^^^^^
+Index Support
+~~~~~~~~~~~~~
 
 The same indexes we have defined above on (section, slug) would
 efficiently render this node.
 
-Locate and render a file
-~~~~~~~~~~~~~~~~~~~~~~~~
+Locate and Render a File
+------------------------
 
 We want to be able to locate an image based on its section and slug,
 which we assume have been extracted from the page definition and URL
 just as with other nodes.
 
-::
+.. code-block:: python
 
     fs = GridFS(db, 'cms.assets')
     with fs.get_version(
         **{'metadata.section': section, 'metadata.slug': slug }) as img_fp:
        # do something with our image file
 
-Index support
-^^^^^^^^^^^^^
+Index Support
+~~~~~~~~~~~~~
 
 The same indexes we have defined above on (section, slug) would also
 efficiently render this image.
 
-Search for nodes by tag
-~~~~~~~~~~~~~~~~~~~~~~~
+Search for Nodes by Tag
+-----------------------
 
 Here we would like to retrieve a list of nodes based on their tag:
 
-::
+.. code-block:: python
 
     nodes = db.nodes.find({'metadata.tags': tag })
 
-Index support
-^^^^^^^^^^^^^
+Index Support
+~~~~~~~~~~~~~
 
 To support searching efficiently, we should define indexes on any fields
 we intend on using in our query:
 
-::
+.. code-block:: python
 
     >>> db.cms.nodes.ensure_index('tags')
 
-Search for images by tag
-~~~~~~~~~~~~~~~~~~~~~~~~
+Search for Images by Tag
+------------------------
 
 Here we would like to retrieve a list of images based on their tag:
 
-::
+.. code-block:: python
 
     image_file_objects = db.cms.assets.files.find({'metadata.tags': tag })
     fs = GridFS(db, 'cms.assets')
@@ -377,23 +377,23 @@ Here we would like to retrieve a list of images based on their tag:
         image_file = fs.get(image_file_object['_id'])
         # do something with the image file
 
-Index support
-^^^^^^^^^^^^^
+Index Support
+~~~~~~~~~~~~~
 
 As above, in order to support searching efficiently, we should define
 indexes on any fields we intend on using in our query:
 
-::
+.. code-block:: python
 
     >>> db.cms.assets.files.ensure_index('tags')
 
-Generate a feed of recently published blog articles
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Generate a Feed of Recently Published Blog Articles
+---------------------------------------------------
 
 Here, we wish to generate an .rss or .atom feed for our recently
 published blog articles, sorted by date descending:
 
-::
+.. code-block:: python
 
     articles = db.nodes.find({
         'metadata.section': 'my-blog'
@@ -406,13 +406,13 @@ where we are sorting or using range queries, as here, the field on which
 we're sorting or performing a range query must be the final field in our
 index:
 
-::
+.. code-block:: python
 
     >>> db.cms.nodes.ensure_index(
     ...     [ ('metadata.section', 1), ('metadata.published', -1) ])
 
 Sharding
---------
+========
 
 In a CMS system, our read performance is generally much more important
 than our write performance. As such, we will optimize the sharding setup
@@ -424,7 +424,7 @@ defined in order to get the same semantics as we have described. Given
 these constraints, sharding the nodes and assets on (section, slug)
 seems to be a reasonable approach:
 
-::
+.. code-block:: python
 
     >>> db.command('shardcollection', 'cms.nodes', {
     ...     key : { 'metadata.section': 1, 'metadata.slug' : 1 } })
@@ -437,7 +437,7 @@ If we wish to shard our 'cms.assets.chunks' collection, we need to shard
 on the \_id field (none of our metadata is available on the chunks
 collection in gridfs):
 
-::
+.. code-block:: python
 
     >>> db.command('shardcollection', 'cms.assets.chunks'
     { "collectionsharded" : "cms.assets.chunks", "ok" : 1 }
