@@ -102,7 +102,7 @@ $(CURRENTBUILD)/single/genindex.html:$(BUILDDIR)/html/genindex.html
 $(BUILDDIR)/latex/MongoDB.pdf:$(BUILDDIR)/latex/MongoDB.tex
 
 # Establish proper dependencies with Sphinx aspects of the build.
-$(BUILDDIR)/dirhtml $(BUILDDIR)/dirhtml/search/index.html $(BUILDDIR)/dirhtml/:dirhtml
+$(BUILDDIR)/dirhtml $(BUILDDIR)/dirhtml/search/index.html:dirhtml
 $(BUILDDIR)/html/genindex.html:html
 $(BUILDDIR)/singlehtml/:singlehtml
 $(BUILDDIR)/epub/MongoDB.epub:epub
