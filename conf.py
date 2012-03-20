@@ -18,7 +18,7 @@ needs_sphinx = '1.0'
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.todo', "sphinx.ext.extlinks", 'mongodb_domain', "additional_directives", "aggregation_domain"]
+extensions = ["sphinx.ext.intersphinx", "sphinx.ext.extlinks", "mongodb_domain", "additional_directives", "aggregation_domain"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['.templates']
@@ -94,6 +94,8 @@ extlinks = {
     'docsgithub' : ( 'http://github.com/mongodb/docs/blob/' + current_git_branch + '/%s', ''),
     'hardlink' : ( 'http://docs.mongodb.org/' + current_git_branch + '/%s', '')
     }
+
+intersphinx_mapping = {'pymongo': ('http://api.mongodb.org/python/current/', None)}
 
 # -- Options for HTML output ---------------------------------------------------
 
