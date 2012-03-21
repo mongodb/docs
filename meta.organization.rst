@@ -20,7 +20,7 @@ Indexes and Experience
 ~~~~~~~~~~~~~~~~~~~~~~
 
 There are two "index files," for the documentation
-project. "``/contents.rst``" and "``/index.rst``". The "contents" file
+project. "``/contents.txt``" and "``/index.txt``". The "contents" file
 provides an index and top level tree of all documentation in the
 resource and Sphinx uses this organization to power the "Next" and
 "Previous" page functionality and all overarching outlines of the
@@ -48,11 +48,12 @@ makes it possible to provide great flexibility while still maintaining
 a reasonable organization of files and URLs for the
 documentation. Consider the following example:
 
-Given that topic such as "replication," has material regarding the
-administration of replica sets, as well as reference material, an
-overview of the functionality, and operational tutorials, it makes
-more sense to include a few locations for documents, and use the meta
-documents to provide the topic-level organization.
+     Given that topic such as "replication," has material regarding
+     the administration of replica sets, as well as reference
+     material, an overview of the functionality, and operational
+     tutorials, it makes more sense to include a few locations for
+     documents, and use the meta documents to provide the topic-level
+     organization.
 
 Current topical indexes include:
 
@@ -63,11 +64,12 @@ Current topical indexes include:
 - mongo
 - sharding
 - replication
+- faq
 
 Additional topical indexes are forthcoming.
 
-Top Level Folders
------------------
+The Top Level Folders
+---------------------
 
 The documentation has a number of top-level folders, that hold all of
 the content of the resource. Consider the following list and
@@ -85,6 +87,10 @@ explanations below:
   coverage in this context. Topics include: drivers, schema design,
   optimization, replication, and sharding.
 
+  - *applications/use-cases* - contains use cases that detail how
+    MongoDB can support various kinds uses and application designs,
+    including in depth instructions and examples.
+
 - *core* - contains overviews and introduction to the core features,
   functionality, and concepts of MongoDB. Topics include: replication,
   sharding, capped collections, journaling/durability, aggregation.
@@ -96,4 +102,7 @@ explanations below:
 
 - *tutorial* - contains operational guides and tutorials that lead
   users through common tasks (administrative and conceptual) with
-  MongoDB.
+  MongoDB. This includes programming patterns and operational guides.
+
+- *faq* - contains all the frequently asked questions related to
+  MongoDB, in a collection of topical files.
