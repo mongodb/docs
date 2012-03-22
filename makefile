@@ -75,7 +75,7 @@ ifeq ($(MODE),publish)
 deploy: $(CURRENTBUILD)/release.txt $(CURRENTBUILD) $(publication-output)/index.html
 
 # Establish dependencies for building the manual.
-$(CURRENTBUILD):$(CURRENTBUILD)/MongoDB-Manual.pdf $(CURRENTBUILD)/MongoDB-Manual.epub $(CURRENTBUILD)/single/ $(CURRENTBUILD)/ 
+$(CURRENTBUILD):$(CURRENTBUILD)/MongoDB-Manual.pdf $(CURRENTBUILD)/MongoDB-Manual.epub $(CURRENTBUILD)/single/ $(CURRENTBUILD)/
 
 # Build and Migrate all required Manual Content
 $(CURRENTBUILD)/MongoDB-Manual-$(current-branch).pdf:$(BUILDDIR)/latex/MongoDB.pdf
@@ -218,7 +218,7 @@ aspirational-latex:
 	@echo "Run \`make' in that directory to run these through (pdf)latex" \
 	      "(use \`make latexpdf' here to do that automatically)."
 
-aspirational-latexpdf: aspirational-latex 
+aspirational-latexpdf: aspirational-latex
 	$(SPHINXBUILD) -b latex $(ASPIRATIONALOPTS) $(BUILDDIR)/aspiration-latex
 	@echo "Running LaTeX files through pdflatex..."
 	$(MAKE) -C $(BUILDDIR)/latex all-pdf
@@ -273,4 +273,9 @@ pdfs:latex
 	$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<'
 	$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<'
 
-
+case-studies:$(BUILDDIR)/latex/MongoDB-use-case-studies.pdf
+$(BUILDDIR)/latex/MongoDB-use-case-studies.tex:latex
+	sed -i -r -e '/^\\release.*$$/d' $@
+$(BUILDDIR)/latex/MongoDB-use-case-studies.pdf:$(BUILDDIR)/latex/MongoDB-use-case-studies.tex
+	$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<'
+	$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<'

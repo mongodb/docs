@@ -168,6 +168,7 @@ htmlhelp_basename = 'MongoDBdoc'
 latex_documents = [
   # (source start file, target name, title, author, documentclass [howto/manual]).
     ('contents', 'MongoDB.tex', u'MongoDB Documentation', u'MongoDB Documentation Project', 'manual'),
+    ('applications/use-cases/index', 'MongoDB-use-case-studies.tex', u'MongoDB Use Case Studies ', u'MongoDB Documentation Project', 'manual'),
 ]
 
 latex_elements = { 'preamble': '\DeclareUnicodeCharacter{FF04}{\$} \DeclareUnicodeCharacter{FF0E}{.}',
@@ -190,7 +191,6 @@ latex_domain_indices = True
 
 man_pages = [
   # (source start file, name, description, authors, manual section).
-    ('contents', 'mongodb', u'MongoDB Manual', [u'MongoDB Documentation Project'], 1),
     ('reference/bsondump', 'bsondump', u'MongoDB BSON utility', [u'MongoDB Documentation Project'], 1),
     ('reference/mongo', 'mongo', u'MongoDB Shell', [u'MongoDB Documentation Project'], 1),
     ('reference/mongod', 'mongod', u'MongoDB Server', [u'MongoDB Documentation Project'], 1),
@@ -204,6 +204,7 @@ man_pages = [
     ('reference/mongostat', 'mongostat', u'MongoDB', [u'MongoDB Documentation Project'], 1),
     ('reference/mongosniff', 'mongosniff', u'MongoDB', [u'MongoDB Documentation Project'], 1),
     ('reference/mongotop', 'mongotop', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('contents', 'mongodb', u'MongoDB Manual', [u'MongoDB Documentation Project'], 1),
 ]
 
 
