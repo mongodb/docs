@@ -1,0 +1,160 @@
+=================================
+Online Gaming: Storing User State
+=================================
+
+.. default-domain:: mongodb
+
+Overview
+--------
+
+This document outlines the basic patterns and principals for using
+MongoDB as a persistent storage engine for user state data from an online
+game, particularly one that contains role-playing characteristics.
+
+Problem
+~~~~~~~
+
+In designing an online game, there is a need to store various
+data about the user's character. Some of the attributes might include:
+
+Character attributes
+   These might include intrinsic characteristics such as strength,
+   dexterity, charisma, etc., as well as variable characteristics such
+   as health, mana (if your game includes magic), etc.
+Character inventory
+   If your game includes the ability for the user to carry around
+   objects, you will need to keep track of the items carried.
+Character location / relationship to the game world
+   If your game allows the user to move their character from one
+   location to another, this information needs to be stored as well.
+
+In addition, you need to store all this data for large numbers of
+users who might be playing the game simultaneously, and this data
+needs to be both readable and writeable with minimal latency in order
+to ensure responsiveness during gameplay.
+
+Another consideration when designing the persistence backend for an
+online game is its flexibility. Particularly in early releases of a
+game, you may wish to change gameplay mechanics significantly as you
+receive feedback from your users. As you implement these changes, you
+need to be able to migrate your persistent data from one format to
+another with minimal (or no) downtime.
+
+Solution
+~~~~~~~~
+
+The solution presented by this case study assumes that the read and
+write performance for the user state is equally important and must be
+accessible with minimal latency.
+
+Schema Design
+~~~~~~~~~~~~~
+
+Ultimately, the particulars of your schema depends on the particular
+design of your game. When designing your schema for the user state,
+you should attempt to encapsulate all the commonly used data into the
+user object in order to minimize the number of queries to the database
+and the number of seeks in a query. If you can manage to
+encapsulate all relevant user state into a single document, this
+satisfies both these criteria.
+
+In a role-playing game, then, a typical user state document might look
+like the following:
+
+.. code-block:: javascript
+
+   {
+       _id: ObjectId('...'),
+       name: 'Tim',
+       character: {
+           intrinsics: {
+               strength: 10,
+	       dexterity: 16,
+               intelligence: 17,
+               charisma: 8 },
+           class: 'mage',
+           health: 212,
+           mana: 152
+       },
+       location: {
+           id: 'maze-1',
+           description: 'a maze of twisty little passages...',
+	   exits: {n:'maze-2', s:'maze-1', e:'maze-3'},
+           contents: [
+               { qty:1, id:ObjectId('...'), name:'grue' },
+               { qty:1, id:ObjectId('...'), name:'Tim' },
+               { qty:1, id:ObjectId('...'), name:'scroll of cause fear' }]
+        },
+       armor: [
+           { id:ObjectId('...'), region:'head'},
+	   { id:ObjectId('...'), region:'body'},
+	   { id:ObjectId('...'), region:'hands'},
+	   { id:ObjectId('...'), region:'feet'}],
+       weapons: [ {id:ObjectId('...'), hand:'both'} ],
+       inventory: [
+           { qty:1, id:ObjectId('...'), name:'backpack', contents: [
+               { qty:4, id:ObjectId('...'), name: 'potion of healing'},
+	       { qty:1, id:ObjectId('...'), name: 'scroll of magic mapping'},
+               { qty:2, id:ObjectId('...'), name: 'c-rations'} ]},
+           { qty:1, id:ObjectId('...'), name:"wizard's hat", bonus:3},
+	   { qty:1, id:ObjectId('...'), name:"wizard's robe", bonus:0},
+	   { qty:1, id:ObjectId('...'), name:"old boots", bonus:0},
+	   { qty:1, id:ObjectId('...'), name:"quarterstaff", bonus:2},
+	   { qty:523, id:ObjectId('...'), name:"gold" } ]
+   }
+
+There are a few things to note about this document. First, information
+about the character's location in the game is encapsulated under the
+``location`` attribute. Note in particular that all of the information
+necessary to render the room is encapsulated within the user's state
+document. This allows the game system to render the room without
+making a second query to the database to get room information.
+
+Second, notice that the ``armor`` and ``weapons`` attributes contain
+little information about the actual items being worn or carried. This
+information is actually stored under the ``inventory`` property. Since
+the inventory information is stored in the same document, there is no
+need to replicate the detailed information about each item into the
+``armor`` and ``weapons`` properties.
+
+Finally, note that ``inventory`` contains the item details necessary
+for rendering each item in the character's posession, including any
+enchantments (``bonus``) and ``quantity``. Once again, embedding this data
+into the character record means you don't have to perform a separate
+query to fetch item details necessary for display.
+
+Operations
+----------
+
+TODO: summary of the operations section
+
+The examples that follow use the Python programming language and the
+:api:`PyMongo <python/current>` :term:`driver` for MongoDB, but you
+can implement this system using any language you choose.
+
+Operation 1
+~~~~~~~~~~~
+
+TODO: describe what the operation is (optional)
+
+Query
+`````
+
+TODO: describe query
+
+Index Support
+`````````````
+
+TODO: describe indexes to optimize this query
+
+Sharding
+--------
+
+Eventually your system's events will exceed the capacity of a single
+event logging database instance. In these situations you will want to
+use a :term:`shard cluster`, which takes advantage of MongoDB's
+:term:`sharding` functionality. This section introduces the unique
+sharding concerns for this use case.
+
+.. seealso:: ":doc:`/faq/sharding`" and the ":wiki:`Sharding` wiki
+   page.
