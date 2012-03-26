@@ -2,23 +2,28 @@
 Real Time Analytics: Pre-Aggregated Reports
 ===========================================
 
+Overview
+--------
+
 Problem
-=======
+~~~~~~~
 
 You have one or more servers generating events for which you want
 real-time statistical information in a MongoDB collection.
 
-Solution Overview
-=================
+Solution
+~~~~~~~~
 
 This solution assumes the following:
 
--  There is no need to retain transactional event data in MongoDB, or
-   that retention is handled outside the scope of this use case.
--  You need statistical data to be up-to-the minute (or up-to-the-second,
-   if possible.)
--  The queries to retrieve time series of statistical data need to be as
-   fast as possible.
+- There is no need to retain transactional event data in MongoDB, or
+  that retention is handled outside the scope of this use case.
+
+- You need statistical data to be up-to-the minute (or up-to-the-second,
+  if possible.)
+
+- The queries to retrieve time series of statistical data need to be as
+  fast as possible.
 
 The general approach is to use upserts and increments to generate the
 statistics and simple range-based queries and filters to draw the time
@@ -29,18 +34,20 @@ want to count the number of hits to a collection of web site at various
 levels of time-granularity (by minute, hour, day, week, and month) as
 well as by path.
 
-Schema Design
-=============
+Schema
+------
 
 There are two important considerations when designing the schema for a
 real-time analytics system: the ease & speed of updates and the ease &
 speed of queries. In particular, you want to avoid the following
 performance-killing circumstances:
 
--  documents changing in size significantly, causing reallocations on
-   disk
--  queries that require large numbers of disk seeks in order to be satisfied
--  document structures that make accessing a particular field slow
+- documents changing in size significantly, causing reallocations on
+  disk
+
+- queries that require large numbers of disk seeks in order to be satisfied
+
+- document structures that make accessing a particular field slow
 
 One approach you *could* use to make updates easier would be to keep your
 hit counts in individual documents, one document per
@@ -54,36 +61,37 @@ In order to illustrate some of the other issues you might encounter, the
 following are several schema designs that you might try as well as discussion of
 the problems each of with them.
 
-Design 0: One Document Per Page/Day
------------------------------------
+One Document Per Page or Day
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Initially, you might try putting all the statistics you need into a single
 document per page:
 
 .. code-block:: javascript
 
-    {
-        _id: "20101010/site-1/apache_pb.gif",
-        metadata: {
-            date: ISODate("2000-10-10T00:00:00Z"),
-            site: "site-1",
-            page: "/apache_pb.gif" },
-        daily: 5468426,
-        hourly: {
-            "0": 227850,
-            "1": 210231,
-            ...
-            "23": 20457 },
-        minute: {
-            "0": 3612,
-            "1": 3241,
-            ...
-            "1439": 2819 }
-    }
+   {
+       _id: "20101010/site-1/apache_pb.gif",
+       metadata: {
+           date: ISODate("2000-10-10T00:00:00Z"),
+           site: "site-1",
+           page: "/apache_pb.gif" },
+       daily: 5468426,
+       hourly: {
+           "0": 227850,
+           "1": 210231,
+           ...
+           "23": 20457 },
+       minute: {
+           "0": 3612,
+           "1": 3241,
+           ...
+           "1439": 2819 }
+   }
 
 This approach has a couple of advantages:
 
 - It only requires a single update per hit to the website.
+
 - Intra-day reports for a single page require fetching only a single document.
 
 There are, however, significant
@@ -93,8 +101,8 @@ MongoDB attempts to pad the space required for documents, it will still
 end up needing to reallocate these documents multiple times throughout
 the day, copying the documents to areas with more space and impacting performance.
 
-Design #0.5: Preallocate Documents
-----------------------------------
+Pre-allocate Documents
+~~~~~~~~~~~~~~~~~~~~~~
 
 In order to mitigate the repeated copying of documents, you can tweak your
 approach slightly by adding a process which will preallocate a document
@@ -115,8 +123,8 @@ reallocations that could slow us down in design #0 and b) MongoDB
 doesn't need to pad the records, leading to a more compact
 representation and better usage of your memory.
 
-Design #1: Add Intra-Document Hierarchy
----------------------------------------
+Add Intra-Document Hierarchy
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 One thing to be aware of with BSON is that documents are stored as a
 sequence of (key, value) pairs, *not* as a hash table. What this means
@@ -136,33 +144,33 @@ fields:
 
 .. code-block:: javascript
 
-    {
-        _id: "20101010/site-1/apache_pb.gif",
-        metadata: {
-            date: ISODate("2000-10-10T00:00:00Z"),
-            site: "site-1",
-            page: "/apache_pb.gif" },
-        daily: 5468426,
-        hourly: {
-            "0": 227850,
-            "1": 210231,
-            ...
-            "23": 20457 },
-        minute: {
-            "0": {
-                "0": 3612,
-                "1": 3241,
-                ...
-                "59": 2130 },
-            "1": {
-            "60": ... ,
-            },
-            ...
-            "23": {
-                ...
-                "1439": 2819 }
-        }
-    }
+   {
+       _id: "20101010/site-1/apache_pb.gif",
+       metadata: {
+           date: ISODate("2000-10-10T00:00:00Z"),
+           site: "site-1",
+           page: "/apache_pb.gif" },
+       daily: 5468426,
+       hourly: {
+           "0": 227850,
+           "1": 210231,
+           ...
+           "23": 20457 },
+       minute: {
+           "0": {
+               "0": 3612,
+               "1": 3241,
+               ...
+               "59": 2130 },
+           "1": {
+           "60": ... ,
+           },
+           ...
+           "23": {
+               ...
+               "1439": 2819 }
+       }
+   }
 
 This allows MongoDB to "skip forward" when updating the minute
 statistics later in the day, making your performance more uniform and
@@ -176,8 +184,8 @@ generally faster.
    then skips 59 minutes for only 82 skips as opposed to 1439 skips in the
    previous schema.
 
-Design #2: Create separate documents for different granularities
-----------------------------------------------------------------
+Separate Documents by Granularity Level
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Design #1 is certainly a reasonable design for storing intraday
 statistics, but what happens when you want to draw a historical chart
@@ -190,58 +198,58 @@ more than make up for it. At this point, the document structure is as
 follows:
 
 Daily Statistics
-~~~~~~~~~~~~~~~~
+````````````````
 
 .. code-block:: javascript
 
-    {
-        _id: "20101010/site-1/apache_pb.gif",
-        metadata: {
-            date: ISODate("2000-10-10T00:00:00Z"),
-            site: "site-1",
-            page: "/apache_pb.gif" },
-        hourly: {
-            "0": 227850,
-            "1": 210231,
-            ...
-            "23": 20457 },
-        minute: {
-            "0": {
-                "0": 3612,
-                "1": 3241,
-                ...
-                "59": 2130 },
-            "1": {
-                "0": ...,
-            },
-            ...
-            "23": {
-                "59": 2819 }
-        }
-    }
+   {
+       _id: "20101010/site-1/apache_pb.gif",
+       metadata: {
+           date: ISODate("2000-10-10T00:00:00Z"),
+           site: "site-1",
+           page: "/apache_pb.gif" },
+       hourly: {
+           "0": 227850,
+           "1": 210231,
+           ...
+           "23": 20457 },
+       minute: {
+           "0": {
+               "0": 3612,
+               "1": 3241,
+               ...
+               "59": 2130 },
+           "1": {
+               "0": ...,
+           },
+           ...
+           "23": {
+               "59": 2819 }
+       }
+   }
 
 Monthly Statistics
-~~~~~~~~~~~~~~~~~~
+``````````````````
 
-.. code-block: javascript::
+.. code-block:: javascript
 
-    {
-        _id: "201010/site-1/apache_pb.gif",
-        metadata: {
-            date: ISODate("2000-10-00T00:00:00Z"),
-            site: "site-1",
-            page: "/apache_pb.gif" },
-        daily: {
-            "1": 5445326,
-            "2": 5214121,
-            ... }
-    }
+   {
+       _id: "201010/site-1/apache_pb.gif",
+       metadata: {
+           date: ISODate("2000-10-00T00:00:00Z"),
+           site: "site-1",
+           page: "/apache_pb.gif" },
+       daily: {
+           "1": 5445326,
+           "2": 5214121,
+           ... }
+   }
 
 This is actually the schema design that this use case uses, since it allows for a
 good balance between update efficiency and query performance.
 
 Operations
-==========
+----------
 
 In this system, you'd like to balance between read performance and write
 (upsert) performance. This section will describe each of the major
@@ -250,7 +258,7 @@ pymongo MongoDB driver. These operations would be similar in other
 languages as well.
 
 Log a Hit to a Page
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 Logging a hit to a page in your website is the main "write" activity in
 your system. In order to maximize performance, you'll be doing in-place
@@ -258,52 +266,48 @@ updates with the upsert operation:
 
 .. code-block:: python
 
-    from datetime import datetime, time
+   from datetime import datetime, time
 
+   def log_hit(db, dt_utc, site, page):
 
-    def log_hit(db, dt_utc, site, page):
+       # Update daily stats doc
+       id_daily = dt_utc.strftime('%Y%m%d/') + site + page
+       hour = dt_utc.hour
+       minute = dt_utc.minute
 
+       # Get a datetime that only includes date info
+       d = datetime.combine(dt_utc.date(), time.min)
+       query = {
+           '_id': id_daily,
+           'metadata': { 'date': d, 'site': site, 'page': page } }
+       update = { '$inc': {
+               'hourly.%d' % (hour,): 1,
+               'minute.%d.%d' % (hour,minute): 1 } }
+       db.stats.daily.update(query, update, upsert=True)
 
-        # Update daily stats doc
-        id_daily = dt_utc.strftime('%Y%m%d/') + site + page
-        hour = dt_utc.hour
-        minute = dt_utc.minute
-
-
-        # Get a datetime that only includes date info
-        d = datetime.combine(dt_utc.date(), time.min)
-        query = {
-            '_id': id_daily,
-            'metadata': { 'date': d, 'site': site, 'page': page } }
-        update = { '$inc': {
-                'hourly.%d' % (hour,): 1,
-                'minute.%d.%d' % (hour,minute): 1 } }
-        db.stats.daily.update(query, update, upsert=True)
-
-
-        # Update monthly stats document
-        id_monthly = dt_utc.strftime('%Y%m/') + site + page
-        day_of_month = dt_utc.day
-        query = {
-            '_id': id_monthly,
-            'metadata': {
-                'date': d.replace(day=1),
-                'site': site,
-                'page': page } }
-        update = { '$inc': {
-                'daily.%d' % day_of_month: 1} }
-        db.stats.monthly.update(query, update, upsert=True)
+       # Update monthly stats document
+       id_monthly = dt_utc.strftime('%Y%m/') + site + page
+       day_of_month = dt_utc.day
+       query = {
+           '_id': id_monthly,
+           'metadata': {
+               'date': d.replace(day=1),
+               'site': site,
+               'page': page } }
+       update = { '$inc': {
+               'daily.%d' % day_of_month: 1} }
+       db.stats.monthly.update(query, update, upsert=True)
 
 Since you're using the upsert operation, this function will perform
 correctly whether the document is already present or not, which is
 important, as your preallocation (the next operation) will only
-preallocate documents with a high probability, not 100% certainty. Note however,
+pre-allocate documents with a high probability, not 100% certainty. Note however,
 that without preallocation, you end up with a dynamically growing document,
 slowing down your upserts significantly as documents are moved in order
 to grow them.
 
-Preallocate
------------
+Pre-allocate
+~~~~~~~~~~~~
 
 In order to keep your documents from growing, you can preallocate them
 before they are needed. When preallocating, you set all the statistics to
@@ -313,48 +317,44 @@ own function:
 
 .. code-block:: python
 
-    def preallocate(db, dt_utc, site, page):
+   def preallocate(db, dt_utc, site, page):
 
+       # Get id values
+       id_daily = dt_utc.strftime('%Y%m%d/') + site + page
+       id_monthly = dt_utc.strftime('%Y%m/') + site + page
 
-        # Get id values
-        id_daily = dt_utc.strftime('%Y%m%d/') + site + page
-        id_monthly = dt_utc.strftime('%Y%m/') + site + page
+       # Get daily metadata
+       daily_metadata = {
+           'date': datetime.combine(dt_utc.date(), time.min),
+           'site': site,
+           'page': page }
+       # Get monthly metadata
+       monthly_metadata = {
+           'date': daily_m['d'].replace(day=1),
+           'site': site,
+           'page': page }
 
+       # Initial zeros for statistics
+       hourly = dict((str(i), 0) for i in range(24))
+       minute = dict(
+           (str(i), dict((str(j), 0) for j in range(60)))
+           for i in range(24))
+       daily = dict((str(i), 0) for i in range(1, 32))
 
-        # Get daily metadata
-        daily_metadata = {
-            'date': datetime.combine(dt_utc.date(), time.min),
-            'site': site,
-            'page': page }
-        # Get monthly metadata
-        monthly_metadata = {
-            'date': daily_m['d'].replace(day=1),
-            'site': site,
-            'page': page }
-
-
-        # Initial zeros for statistics
-        hourly = dict((str(i), 0) for i in range(24))
-        minute = dict(
-            (str(i), dict((str(j), 0) for j in range(60)))
-            for i in range(24))
-        daily = dict((str(i), 0) for i in range(1, 32))
-
-
-        # Perform upserts, setting metadata
-        db.stats.daily.update(
-            {
-                '_id': id_daily,
-                'hourly': hourly,
-                'minute': minute},
-            { '$set': { 'metadata': daily_metadata }},
-            upsert=True)
-        db.stats.monthly.update(
-            {
-                '_id': id_monthly,
-                'daily': daily },
-            { '$set': { 'm': monthly_metadata }},
-            upsert=True)
+       # Perform upserts, setting metadata
+       db.stats.daily.update(
+           {
+               '_id': id_daily,
+               'hourly': hourly,
+               'minute': minute},
+           { '$set': { 'metadata': daily_metadata }},
+           upsert=True)
+       db.stats.monthly.update(
+           {
+               '_id': id_monthly,
+               'daily': daily },
+           { '$set': { 'm': monthly_metadata }},
+           upsert=True)
 
 In this case, note that the function went ahead and preallocated the monthly
 document while preallocating the daily document. While you could
@@ -363,7 +363,7 @@ less frequently that daily documents, the performance difference is
 negligible, so the above code is reasonable solution.
 
 The next question you must answer is *when* you should preallocate. You'd
-like to have a high likelihood of the document being preallocated before
+like to have a high likelihood of the document being pre-allocated before
 it is needed, but you don't want to preallocate all at once (say at
 midnight) to ensure you don't create a spike in activity and a
 corresponding increase in latency. The solution here is to
@@ -373,76 +373,77 @@ unnecessary calls to preallocate:
 
 .. code-block:: python
 
-    from random import random
-    from datetime import datetime, timedelta, time
+   from random import random
+   from datetime import datetime, timedelta, time
 
+   # Example probability based on 500k hits per day per page
+   prob_preallocate = 1.0 / 500000
 
-    # Example probability based on 500k hits per day per page
-    prob_preallocate = 1.0 / 500000
-
-
-    def log_hit(db, dt_utc, site, page):
-        if random.random() < prob_preallocate:
-            preallocate(db, dt_utc + timedelta(days=1), site_page)
-        # Update daily stats doc
-        ...
+   def log_hit(db, dt_utc, site, page):
+       if random.random() < prob_preallocate:
+           preallocate(db, dt_utc + timedelta(days=1), site_page)
+       # Update daily stats doc
+       ...
 
 Now with a high probability, you'll preallocate each document before
 it's used, preventing the midnight spike as well as eliminating the
 movement of dynamically growing documents.
 
 Get Data for a Real-Time Chart
-------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Querying
+````````
 
 One chart that you might be interested in seeing would be the number of
 hits to a particular page over the last hour. In that case, the query is
 fairly straightforward:
 
-.. code-block:: python
+.. code-block:: pycon
 
-    >>>``db.stats.daily.find_one(
-    ...     {'metadata': {'date':dt, 'site':'site-1', 'page':'/foo.gif'}},
-    ...     { 'minute': 1 })
+   >>>``db.stats.daily.find_one(
+   ...     {'metadata': {'date':dt, 'site':'site-1', 'page':'/foo.gif'}},
+   ...     { 'minute': 1 })
 
 Likewise, you can get the number of hits to a page over the last day,
 with hourly granularity:
 
-.. code-block:: python
+.. code-block:: pycon
 
-    >>> db.stats.daily.find_one(
-    ...     {'metadata': {'date':dt, 'site':'site-1', 'page':'/foo.gif'}},
-    ...     { 'hy': 1 })
+   >>> db.stats.daily.find_one(
+   ...     {'metadata': {'date':dt, 'site':'site-1', 'page':'/foo.gif'}},
+   ...     { 'hy': 1 })
 
 If you want a few days' worth of hourly data, you can get it using the
 following query:
 
-.. code-block:: python
+.. code-block:: pycon
 
-    >>> db.stats.daily.find(
-    ...     {
-    ...         'metadata.date': { '$gte': dt1, '$lte': dt2 },
-    ...         'metadata.site': 'site-1',
-    ...         'metadata.page': '/foo.gif'},
-    ...     { 'metadata.date': 1, 'hourly': 1 } },
-    ...     sort=[('metadata.date', 1)])
+   >>> db.stats.daily.find(
+   ...     {
+   ...         'metadata.date': { '$gte': dt1, '$lte': dt2 },
+   ...         'metadata.site': 'site-1',
+   ...         'metadata.page': '/foo.gif'},
+   ...     { 'metadata.date': 1, 'hourly': 1 } },
+   ...     sort=[('metadata.date', 1)])
 
 In this case, you're retrieving the date along with the statistics since
 it's possible (though highly unlikely) that you could have a gap of one
 day where a) you didn't happen to preallocate that day and b) there were
 no hits to the document on that day.
 
-Index Support
-~~~~~~~~~~~~~
+Indexing
+````````
 
 These operations would benefit significantly from indexes on the
 metadata of the daily statistics:
 
-.. code-block:: python
+.. code-block:: pycon
 
-    >>> db.stats.daily.ensure_index([
-    ...     ('metadata.site', 1),
-    ...     ('metadata.page', 1),
-    ...     ('metadata.date', 1)])
+   >>> db.stats.daily.ensure_index([
+   ...     ('metadata.site', 1),
+   ...     ('metadata.page', 1),
+   ...     ('metadata.date', 1)])
 
 Note in particular that the index is first on site, then page, then date. This
 allows you to perform the third query above (a single page over a range
@@ -450,51 +451,54 @@ of days) quite efficiently. Having any compound index on page and date,
 of course, allows you to look up a single day's statistics efficiently.
 
 Get Data for a Historical Chart
--------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Querying
+````````
 
 In order to retrieve daily data for a single month, you can perform the
 following query:
 
-.. code-block:: python
+.. code-block:: pycon
 
-    >>> db.stats.monthly.find_one(
-    ...     {'metadata':
-    ...         {'date':dt,
-    ...         'site': 'site-1',
-    ...         'page':'/foo.gif'}},
-    ...     { 'daily': 1 })
+   >>> db.stats.monthly.find_one(
+   ...     {'metadata':
+   ...         {'date':dt,
+   ...         'site': 'site-1',
+   ...         'page':'/foo.gif'}},
+   ...     { 'daily': 1 })
 
 If you want several months' worth of daily data, of course, you can do the
 same trick as above:
 
-.. code-block:: python
+.. code-block:: pycon
 
-    >>> db.stats.monthly.find(
-    ...     {
-    ...         'metadata.date': { '$gte': dt1, '$lte': dt2 },
-    ...         'metadata.site': 'site-1',
-    ...         'metadata.page': '/foo.gif'},
-    ...     { 'metadata.date': 1, 'hourly': 1 } },
-    ...     sort=[('metadata.date', 1)])
+   >>> db.stats.monthly.find(
+   ...     {
+   ...         'metadata.date': { '$gte': dt1, '$lte': dt2 },
+   ...         'metadata.site': 'site-1',
+   ...         'metadata.page': '/foo.gif'},
+   ...     { 'metadata.date': 1, 'hourly': 1 } },
+   ...     sort=[('metadata.date', 1)])
 
-Index support
-~~~~~~~~~~~~~
+Indexing
+````````
 
 Once again, these operations would benefit significantly from indexes on
 the metadata of the monthly statistics:
 
-.. code-block:: python
+.. code-block:: pycon
 
-    >>> db.stats.monthly.ensure_index([
-    ...     ('metadata.site', 1),
-    ...     ('metadata.page', 1),
-    ...     ('metadata.date', 1)])
+   >>> db.stats.monthly.ensure_index([
+   ...     ('metadata.site', 1),
+   ...     ('metadata.page', 1),
+   ...     ('metadata.date', 1)])
 
 The order of the index is once again designed to efficiently support
 range queries for a single page over several months, as above.
 
 Sharding
-========
+--------
 
 The performance of this system will be limited by the number of shards
 in your cluster as well as the choice of your shard key. The ideal shard
@@ -504,14 +508,23 @@ reasonable shard key for this solution would thus be (``metadata.site``,
 ``metadata.page``), the site-page combination for which you're calculating
 statistics:
 
-.. code-block:: python
+.. code-block:: pycon
 
-    >>> db.command('shardcollection', 'stats.daily', {
-    ...     key : { 'metadata.site': 1, 'metadata.page' : 1 } })
-    { "collectionsharded" : "stats.daily", "ok" : 1 }
-    >>> db.command('shardcollection', 'stats.monthly', {
-    ...     key : { 'metadata.site': 1, 'metadata.page' : 1 } })
-    { "collectionsharded" : "stats.monthly", "ok" : 1 }
+   >>> db.command('shardcollection', 'stats.daily', {
+   ...     key : { 'metadata.site': 1, 'metadata.page' : 1 } })
+
+.. code-block:: javascript
+
+   { "collectionsharded" : "stats.daily", "ok" : 1 }
+
+.. code-block:: pycon
+
+   >>> db.command('shardcollection', 'stats.monthly', {
+   ...     key : { 'metadata.site': 1, 'metadata.page' : 1 } })
+
+.. code-block:: javascript
+
+   { "collectionsharded" : "stats.monthly", "ok" : 1 }
 
 One downside to using (``metadata.site``,``metadata.page``) as your shard
 key is that, if one page dominates all your traffic, all updates to that
@@ -525,14 +538,23 @@ these will all be handled by the same shard. A (slightly) better shard
 key would the include the date as well as the site/page so that you could
 serve different historical ranges with different shards:
 
-.. code-block:: python
+.. code-block:: pycon
 
-    >>> db.command('shardcollection', 'stats.daily', {
-    ...     key:{'metadata.site':1,'metadata.page':1,'metadata.date':1}})
-    { "collectionsharded" : "stats.daily", "ok" : 1 }
-    >>> db.command('shardcollection', 'stats.monthly', {
-    ...     key:{'metadata.site':1,'metadata.page':1,'metadata.date':1}})
-    { "collectionsharded" : "stats.monthly", "ok" : 1 }
+   >>> db.command('shardcollection', 'stats.daily', {
+   ...     key:{'metadata.site':1,'metadata.page':1,'metadata.date':1}})
+
+.. code-block:: javascript
+
+   { "collectionsharded" : "stats.daily", "ok" : 1 }
+
+.. code-block:: pycon
+
+   >>> db.command('shardcollection', 'stats.monthly', {
+   ...     key:{'metadata.site':1,'metadata.page':1,'metadata.date':1}})
+
+.. code-block:: javascript
+
+   { "collectionsharded" : "stats.monthly", "ok" : 1 }
 
 It is worth noting in this discussion of sharding that, depending on the
 number of sites/pages you are tracking and the number of hits per page,
