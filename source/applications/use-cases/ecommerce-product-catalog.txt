@@ -2,14 +2,17 @@
 E-Commerce: Product Catalog
 ===========================
 
+Overview
+--------
+
 Problem
-=======
+~~~~~~~
 
 You have a product catalog that you would like to store in MongoDB with
 products of various types and various relevant attributes.
 
-Solution Overview
-=================
+Solution
+~~~~~~~~
 
 In the relational database world, there are several solutions of varying
 performance characteristics used to solve this problem. This section
@@ -20,23 +23,23 @@ to create a table for each product category:
 
 .. code-block:: sql
 
-    CREATE TABLE `product_audio_album` (
-        `sku` char(8) NOT NULL,
-        ...
-        `artist` varchar(255) DEFAULT NULL,
-        `genre_0` varchar(255) DEFAULT NULL,
-        `genre_1` varchar(255) DEFAULT NULL,
-        ...,
-        PRIMARY KEY(`sku`))
-    ...
-    CREATE TABLE `product_film` (
-        `sku` char(8) NOT NULL,
-        ...
-        `title` varchar(255) DEFAULT NULL,
-        `rating` char(8) DEFAULT NULL,
-        ...,
-        PRIMARY KEY(`sku`))
-    ...
+   CREATE TABLE `product_audio_album` (
+       `sku` char(8) NOT NULL,
+       ...
+       `artist` varchar(255) DEFAULT NULL,
+       `genre_0` varchar(255) DEFAULT NULL,
+       `genre_1` varchar(255) DEFAULT NULL,
+       ...,
+       PRIMARY KEY(`sku`))
+   ...
+   CREATE TABLE `product_film` (
+       `sku` char(8) NOT NULL,
+       ...
+       `title` varchar(255) DEFAULT NULL,
+       `rating` char(8) DEFAULT NULL,
+       ...,
+       PRIMARY KEY(`sku`))
+   ...
 
 The main problem with this approach is a lack of flexibility. Each time
 you add a new product category, you need to create a new table.
@@ -49,17 +52,17 @@ a new type of product:
 
 .. code-block:: sql
 
-    CREATE TABLE `product` (
-        `sku` char(8) NOT NULL,
-        ...
-        `artist` varchar(255) DEFAULT NULL,
-        `genre_0` varchar(255) DEFAULT NULL,
-        `genre_1` varchar(255) DEFAULT NULL,
-        ...
-        `title` varchar(255) DEFAULT NULL,
-        `rating` char(8) DEFAULT NULL,
-        ...,
-        PRIMARY KEY(`sku`))
+   CREATE TABLE `product` (
+       `sku` char(8) NOT NULL,
+       ...
+       `artist` varchar(255) DEFAULT NULL,
+       `genre_0` varchar(255) DEFAULT NULL,
+       `genre_1` varchar(255) DEFAULT NULL,
+       ...
+       `title` varchar(255) DEFAULT NULL,
+       `rating` char(8) DEFAULT NULL,
+       ...,
+       PRIMARY KEY(`sku`))
 
 This is more flexible, allowing queries to span different types of
 product, but it's quite wasteful of space. One possible space
@@ -73,32 +76,32 @@ category product tables:
 
 .. code-block:: sql
 
-    CREATE TABLE `product` (
-        `sku` char(8) NOT NULL,
-        `title` varchar(255) DEFAULT NULL,
-        `description` varchar(255) DEFAULT NULL,
-        `price`, ...
-        PRIMARY KEY(`sku`))
+   CREATE TABLE `product` (
+       `sku` char(8) NOT NULL,
+       `title` varchar(255) DEFAULT NULL,
+       `description` varchar(255) DEFAULT NULL,
+       `price`, ...
+       PRIMARY KEY(`sku`))
 
-    CREATE TABLE `product_audio_album` (
-        `sku` char(8) NOT NULL,
-        ...
-        `artist` varchar(255) DEFAULT NULL,
-        `genre_0` varchar(255) DEFAULT NULL,
-        `genre_1` varchar(255) DEFAULT NULL,
-        ...,
-        PRIMARY KEY(`sku`),
-        FOREIGN KEY(`sku`) REFERENCES `product`(`sku`))
-    ...
-    CREATE TABLE `product_film` (
-        `sku` char(8) NOT NULL,
-        ...
-        `title` varchar(255) DEFAULT NULL,
-        `rating` char(8) DEFAULT NULL,
-        ...,
-        PRIMARY KEY(`sku`),
-        FOREIGN KEY(`sku`) REFERENCES `product`(`sku`))
-    ...
+   CREATE TABLE `product_audio_album` (
+       `sku` char(8) NOT NULL,
+       ...
+       `artist` varchar(255) DEFAULT NULL,
+       `genre_0` varchar(255) DEFAULT NULL,
+       `genre_1` varchar(255) DEFAULT NULL,
+       ...,
+       PRIMARY KEY(`sku`),
+       FOREIGN KEY(`sku`) REFERENCES `product`(`sku`))
+   ...
+   CREATE TABLE `product_film` (
+       `sku` char(8) NOT NULL,
+       ...
+       `title` varchar(255) DEFAULT NULL,
+       `rating` char(8) DEFAULT NULL,
+       ...,
+       PRIMARY KEY(`sku`),
+       FOREIGN KEY(`sku`) REFERENCES `product`(`sku`))
+   ...
 
 This is more space-efficient than single-table inheritance and somewhat
 more flexible than concrete-table inheritance, but it does require a
@@ -148,8 +151,8 @@ dynamic schema, however, you need not conform each document to the same
 schema. This allows  you to tailor each product's document to only contain
 attributes relevant to that product category.
 
-Schema Design
-=============
+Schema
+~~~~~~
 
 Your schema should contain general product information that needs to be
 searchable across all products at the beginning of each document, with
@@ -158,42 +161,42 @@ properties that vary from category to category encapsulated in a
 
 .. code-block:: javascript
 
-    {
-      sku: "00e8da9b",
-      type: "Audio Album",
-      title: "A Love Supreme",
-      description: "by John Coltrane",
-      asin: "B0000A118M",
+   {
+     sku: "00e8da9b",
+     type: "Audio Album",
+     title: "A Love Supreme",
+     description: "by John Coltrane",
+     asin: "B0000A118M",
 
-      shipping: {
-        weight: 6,
-        dimensions: {
-          width: 10,
-          height: 10,
-          depth: 1
-        },
-      },
+     shipping: {
+       weight: 6,
+       dimensions: {
+         width: 10,
+         height: 10,
+         depth: 1
+       },
+     },
 
-      pricing: {
-        list: 1200,
-        retail: 1100,
-        savings: 100,
-        pct_savings: 8
-      },
+     pricing: {
+       list: 1200,
+       retail: 1100,
+       savings: 100,
+       pct_savings: 8
+     },
 
-      details: {
-        title: "A Love Supreme [Original Recording Reissued]",
-        artist: "John Coltrane",
-        genre: [ "Jazz", "General" ],
-            ...
-        tracks: [
-          "A Love Supreme Part I: Acknowledgement",
-          "A Love Supreme Part II - Resolution",
-          "A Love Supreme, Part III: Pursuance",
-          "A Love Supreme, Part IV-Psalm"
-        ],
-      },
-    }
+     details: {
+       title: "A Love Supreme [Original Recording Reissued]",
+       artist: "John Coltrane",
+       genre: [ "Jazz", "General" ],
+           ...
+       tracks: [
+         "A Love Supreme Part I: Acknowledgement",
+         "A Love Supreme Part II - Resolution",
+         "A Love Supreme, Part III: Pursuance",
+         "A Love Supreme, Part IV-Psalm"
+       ],
+     },
+   }
 
 A movie title would have the same fields stored for general product
 information, shipping, and pricing, but have quite a different details
@@ -201,24 +204,24 @@ attribute:
 
 .. code-block:: javascript
 
-    {
-      sku: "00e8da9d",
-      type: "Film",
-      ...,
-      asin: "B000P0J0AQ",
+   {
+     sku: "00e8da9d",
+     type: "Film",
+     ...,
+     asin: "B000P0J0AQ",
 
-      shipping: { ... },
+     shipping: { ... },
 
-      pricing: { ... },
+     pricing: { ... },
 
-      details: {
-        title: "The Matrix",
-        director: [ "Andy Wachowski", "Larry Wachowski" ],
-        writer: [ "Andy Wachowski", "Larry Wachowski" ],
-        ...,
-        aspect_ratio: "1.66:1"
-      },
-    }
+     details: {
+       title: "The Matrix",
+       director: [ "Andy Wachowski", "Larry Wachowski" ],
+       writer: [ "Andy Wachowski", "Larry Wachowski" ],
+       ...,
+       aspect_ratio: "1.66:1"
+     },
+   }
 
 Another thing to note in the MongoDB schema is that you can have
 multi-valued attributes without any arbitrary restriction on the number
@@ -228,7 +231,7 @@ a join (as you might have if you normalized the many-to-many "genre"
 relation).
 
 Operations
-==========
+----------
 
 You'll be primarily using the product catalog mainly to perform search
 operations. Thus the focus in this section will be on the various types
@@ -237,59 +240,68 @@ examples will be written in the Python programming language using the
 ``pymongo`` driver, but other language/driver combinations should be
 similar.
 
+
 Find All Jazz Albums, Sorted by Year Produced
----------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Querying
+````````
 
 Here, you'd like to see a group of products with a particular genre,
 sorted by the year in which they were produced:
 
 .. code-block:: python
 
-    query = db.products.find({'type':'Audio Album',
-                              'details.genre': 'jazz'})
-    query = query.sort([('details.issue_date', -1)])
+   query = db.products.find({'type':'Audio Album',
+                             'details.genre': 'jazz'})
+   query = query.sort([('details.issue_date', -1)])
 
-Index Support
-~~~~~~~~~~~~~
+Indexing
+````````
 
 In order to efficiently support this type of query, you need to create a
 compound index on all the properties used in the filter and in the sort:
 
 .. code-block:: python
 
-    db.products.ensure_index([
-        ('type', 1),
-        ('details.genre', 1),
-        ('details.issue_date', -1)])
+   db.products.ensure_index([
+       ('type', 1),
+       ('details.genre', 1),
+       ('details.issue_date', -1)])
 
 Note here that the final component of the index is the sort field. This allows
 MongoDB to traverse the index in the order in which the data is to be returned,
 rather than performing a slow in-memory sort of the data.
 
 Find All Products Sorted by Percentage Discount Descending
-----------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 While most searches would be for a particular type of product (audio
 album or movie, for instance), there may be cases where you'd like to
 find all products in a certain price range, perhaps for a "best daily
-deals" of your website. In this case, you'll use the pricing information
+deals" of your website.
+
+Querying
+````````
+
+In this case, you'll use the pricing information
 that exists in all products to find the products with the highest
 percentage discount:
 
 .. code-block:: python
 
-    query = db.products.find( { 'pricing.pct_savings': {'$gt': 25 })
-    query = query.sort([('pricing.pct_savings', -1)])
+   query = db.products.find( { 'pricing.pct_savings': {'$gt': 25 })
+   query = query.sort([('pricing.pct_savings', -1)])
 
-Index Support
-~~~~~~~~~~~~~
+Indexing
+````````
 
 In order to efficiently support this type of query, you'll need an index on the
 percentage savings:
 
 .. code-block:: python
 
-    db.products.ensure_index('pricing.pct_savings')
+   db.products.ensure_index('pricing.pct_savings')
 
 Since the index is only on a single key, it does not matter in which
 order the index is sorted. Note that, had you wanted to perform a range
@@ -301,7 +313,10 @@ using a different property for a range query and a sort requires some
 degree of scanning, slowing down your query.
 
 Find All Movies in Which Keanu Reeves Acted
--------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Querying
+````````
 
 In this case, you want to search inside the details of a particular type
 of product (a movie) to find all movies containing Keanu Reeves, sorted
@@ -309,64 +324,68 @@ by date descending:
 
 .. code-block:: python
 
-    query = db.products.find({'type': 'Film',
-                              'details.actor': 'Keanu Reeves'})
-    query = query.sort([('details.issue_date', -1)])
+   query = db.products.find({'type': 'Film',
+                             'details.actor': 'Keanu Reeves'})
+   query = query.sort([('details.issue_date', -1)])
 
-Index Support
-~~~~~~~~~~~~~
+Indexing
+````````
 
 Here, you wish to once again index by type first, followed the details
 you're interested in:
 
 .. code-block:: python
 
-    db.products.ensure_index([
-        ('type', 1),
-        ('details.actor', 1),
-        ('details.issue_date', -1)])
+   db.products.ensure_index([
+       ('type', 1),
+       ('details.actor', 1),
+       ('details.issue_date', -1)])
 
 And once again, the final component of the index is the sort field.
 
 Find All Movies With the Word "Hacker" in the Title
----------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Those experienced with relational databases may shudder at this
 operation, since it implies an inefficient LIKE query. In fact, without
 a full-text search engine, some scanning will always be required to
-satisfy this query. In the case of MongoDB, the solution is to use a regular
+satisfy this query.
+
+Querying
+````````
+
+In the case of MongoDB, the solution is to use a regular
 expression. In Python, you can use the ``re`` module to construct the query:
 
 .. code-block:: python
 
-    import re
-    re_hacker = re.compile(r'.*hacker.*', re.IGNORECASE)
+   import re
+   re_hacker = re.compile(r'.*hacker.*', re.IGNORECASE)
 
-
-    query = db.products.find({'type': 'Film', 'title': re_hacker})
-    query = query.sort([('details.issue_date', -1)])
+   query = db.products.find({'type': 'Film', 'title': re_hacker})
+   query = query.sort([('details.issue_date', -1)])
 
 Although this is fairly convenient, MongoDB also provides the option to
 use a special syntax rather than importing the Python ``re`` module:
 
 .. code-block:: python
 
-    query = db.products.find({
-        'type': 'Film',
-        'title': {'$regex': '.*hacker.*', '$options':'i'}})
-    query = query.sort([('details.issue_date', -1)])
+   query = db.products.find({
+       'type': 'Film',
+       'title': {'$regex': '.*hacker.*', '$options':'i'}})
+   query = query.sort([('details.issue_date', -1)])
 
-Index Support
-~~~~~~~~~~~~~
+Indexing
+````````
 
 Here, the best index diverges a bit from the previous index orders:
 
 .. code-block:: python
 
-    db.products.ensure_index([
-        ('type', 1),
-        ('details.issue_date', -1),
-        ('title', 1)])
+   db.products.ensure_index([
+       ('type', 1),
+       ('details.issue_date', -1),
+       ('title', 1)])
 
 You may be wondering why you should include the title field in the index
 if MongoDB has to scan anyway. The reason is that there are two types of
@@ -386,23 +405,23 @@ query plans for different orderings. If you use the (``type``, ``title``,
 .. code-block:: python
    :emphasize-lines: 11,17
 
-    {u'allPlans': [...],
-     u'cursor': u'BtreeCursor type_1_title_1_details.issue_date_-1 multi',
-     u'indexBounds': {u'details.issue_date': [[{u'$maxElement': 1},
-                                               {u'$minElement': 1}]],
-                      u'title': [[u'', {}],
-                                 [<_sre.SRE_Pattern object at 0x2147cd8>,
-                                  <_sre.SRE_Pattern object at 0x2147cd8>]],
-                      u'type': [[u'Film', u'Film']]},
-     u'indexOnly': False,
-     u'isMultiKey': False,
-     u'millis': 208,
-     u'n': 0,
-     u'nChunkSkips': 0,
-     u'nYields': 0,
-     u'nscanned': 10000,
-     u'nscannedObjects': 0,
-     u'scanAndOrder': True}
+   {u'allPlans': [...],
+    u'cursor': u'BtreeCursor type_1_title_1_details.issue_date_-1 multi',
+    u'indexBounds': {u'details.issue_date': [[{u'$maxElement': 1},
+                                              {u'$minElement': 1}]],
+                     u'title': [[u'', {}],
+                                [<_sre.SRE_Pattern object at 0x2147cd8>,
+                                 <_sre.SRE_Pattern object at 0x2147cd8>]],
+                     u'type': [[u'Film', u'Film']]},
+    u'indexOnly': False,
+    u'isMultiKey': False,
+    u'millis': 208,
+    u'n': 0,
+    u'nChunkSkips': 0,
+    u'nYields': 0,
+    u'nscanned': 10000,
+    u'nscannedObjects': 0,
+    u'scanAndOrder': True}
 
 If, however, you use the (``type``, ``details.issue_date``, ``title``) index, you get
 the following plan:
@@ -410,22 +429,22 @@ the following plan:
 .. code-block:: python
    :emphasize-lines: 11
 
-    {u'allPlans': [...],
-     u'cursor': u'BtreeCursor type_1_details.issue_date_-1_title_1 multi',
-     u'indexBounds': {u'details.issue_date': [[{u'$maxElement': 1},
-                                               {u'$minElement': 1}]],
-                      u'title': [[u'', {}],
-                                 [<_sre.SRE_Pattern object at 0x2147cd8>,
-                                  <_sre.SRE_Pattern object at 0x2147cd8>]],
-                      u'type': [[u'Film', u'Film']]},
-     u'indexOnly': False,
-     u'isMultiKey': False,
-     u'millis': 157,
-     u'n': 0,
-     u'nChunkSkips': 0,
-     u'nYields': 0,
-     u'nscanned': 10000,
-     u'nscannedObjects': 0}
+   {u'allPlans': [...],
+    u'cursor': u'BtreeCursor type_1_details.issue_date_-1_title_1 multi',
+    u'indexBounds': {u'details.issue_date': [[{u'$maxElement': 1},
+                                              {u'$minElement': 1}]],
+                     u'title': [[u'', {}],
+                                [<_sre.SRE_Pattern object at 0x2147cd8>,
+                                 <_sre.SRE_Pattern object at 0x2147cd8>]],
+                     u'type': [[u'Film', u'Film']]},
+    u'indexOnly': False,
+    u'isMultiKey': False,
+    u'millis': 157,
+    u'n': 0,
+    u'nChunkSkips': 0,
+    u'nYields': 0,
+    u'nscanned': 10000,
+    u'nscannedObjects': 0}
 
 The two salient features to note are a) the absence of the
 ``scanAndOrder: True`` in the optmal query and b) the difference in time
@@ -434,8 +453,11 @@ lesson learned here is that if you absolutely have to scan, you should
 make the elements you're scanning the *least* significant part of the
 index (even after the sort).
 
+Scaling
+-------
+
 Sharding
-========
+~~~~~~~~
 
 Though the performance in this system is highly dependent on the indexes,
 sharding can enhance that performance further by allowing
@@ -458,11 +480,11 @@ chunks. For this example, assuming that ``details.genre`` is the
 second-most queried field after ``type``, the sharding setup
 would be as follows:
 
-.. code-block:: python
+.. code-block:: pycon
 
-    >>> db.command('shardcollection', 'product', {
-    ...     key : { 'type': 1, 'details.genre' : 1, 'sku':1 } })
-    { "collectionsharded" : "details.genre", "ok" : 1 }
+   >>> db.command('shardcollection', 'product', {
+   ...     key : { 'type': 1, 'details.genre' : 1, 'sku':1 } })
+   { "collectionsharded" : "details.genre", "ok" : 1 }
 
 One important note here is that, even if you choose a shard key that
 requires all queries to be broadcast to all shards, you still get some
@@ -470,8 +492,8 @@ benefits from sharding due to a) the larger amount of memory available
 to store indexes and b) the fact that searches will be parallelized
 across shards, reducing search latency.
 
-Scaling Queries with ``read_preference``
-----------------------------------------
+Read Preference
+~~~~~~~~~~~~~~~
 
 Although sharding is the best way to scale reads and writes, it's not
 always possible to partition your data so that the queries can be routed
@@ -485,13 +507,13 @@ reads on a connection to go to a secondary, the syntax is:
 
 .. code-block:: python
 
-    conn = pymongo.Connection(read_preference=pymongo.SECONDARY)
+   conn = pymongo.Connection(read_preference=pymongo.SECONDARY)
 
 or
 
 .. code-block:: python
 
-    conn = pymongo.Connection(read_preference=pymongo.SECONDARY_ONLY)
+   conn = pymongo.Connection(read_preference=pymongo.SECONDARY_ONLY)
 
 In the first instance, reads will be distributed among all the
 secondaries and the primary, whereas in the second reads will only be
@@ -500,13 +522,13 @@ per-query basis, you can also specify a ``read_preference``:
 
 .. code-block:: python
 
-    results = db.product.find(..., read_preference=pymongo.SECONDARY)
+   results = db.product.find(..., read_preference=pymongo.SECONDARY)
 
 or
 
 .. code-block:: python
 
-    results = db.product.find(..., read_preference=pymongo.SECONDARY_ONLY)
+   results = db.product.find(..., read_preference=pymongo.SECONDARY_ONLY)
 
 It is important to note that reading from a secondary can introduce a
 lag between when inserts and updates occur and when they become visible
