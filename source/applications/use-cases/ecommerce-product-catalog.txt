@@ -5,21 +5,37 @@ E-Commerce: Product Catalog
 Overview
 --------
 
+This document describes the basic patterns and principals for
+designing an E-Commerce product catalog system using MongoDB as a
+storage engine.
+
 Problem
 ~~~~~~~
 
-You have a product catalog that you would like to store in MongoDB with
-products of various types and various relevant attributes.
+Product catalogs must have the capacity to store many differed types
+of objects with different sets of attributes. These kinds of data
+collections are quite compatible with MognoDB's data model, but many
+important considerations and design decisions remain.
 
 Solution
 ~~~~~~~~
 
-In the relational database world, there are several solutions of varying
-performance characteristics used to solve this problem. This section
-examines a few options and then describes the solution enabled by MongoDB.
+For relational databases, there are several solutions that address
+this problem, each with a different performance profile. This section
+examines several of these options and then describes the preferred
+MongoDB solution.
 
-One approach ("concrete table inheritance") to solving this problem is
-to create a table for each product category:
+SQL and Relational Data Models
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _e-commerce-catalog-concrete-table-inheritance:
+
+Concrete Table Inheritance
+``````````````````````````
+
+One approach, in a relational model, is to create a table for each
+product. Consider the following example SQL statement for creating
+database tables:
 
 .. code-block:: sql
 
@@ -41,14 +57,21 @@ to create a table for each product category:
        PRIMARY KEY(`sku`))
    ...
 
-The main problem with this approach is a lack of flexibility. Each time
-you add a new product category, you need to create a new table.
-Furthermore, queries must be tailored to the exact type of product
-expected.
+This approach has limited flexibility for two key reasons:
 
-Another approach ("single table inheritance") is to use a single
-table for all products and add new columns each time you need to store
-a new type of product:
+- You must create a new table for every new category of products.
+
+- You must explicitly tailor all queries for the exact type of
+  product.
+
+.. _e-commerce-catalog-single-table-inheritance:
+
+Single Table Inheritance
+````````````````````````
+
+Another relational data model uses a single table for all products and
+adds new columns anytime you need to store data regarding a new type
+of product. Consider the following SQL statement:
 
 .. code-block:: sql
 
@@ -64,15 +87,21 @@ a new type of product:
        ...,
        PRIMARY KEY(`sku`))
 
-This is more flexible, allowing queries to span different types of
-product, but it's quite wasteful of space. One possible space
-optimization would be to name the columns generically (``str_0``, ``str_1``,
-etc.,) but then you lose visibility into the meaning of the actual data in
-the columns.
+This approach is more flexible than concrete table inheritance: it
+allows single queries to span different product types, but at the
+expense of space. To save space you may choose to name columns
+generically (i.e. ``str_0``, ``str_1``, etc.,) but then you lose
+visibility into the data in the columns.
 
-Multiple table inheritance is yet another approach where common attributes are
-represented in a generic 'product' table and the variations in individual
-category product tables:
+.. _e-commerce-catalog-multiple-table-inheritance:
+
+Multiple Table Inheritance
+``````````````````````````
+
+Also in the relational model, you may use a "multiple table
+inheritance" pattern to represent common attributes in a generic
+"product" table, with some variations in individual category product
+tables. Consider the following SQL statement:
 
 .. code-block:: sql
 
@@ -103,17 +132,26 @@ category product tables:
        FOREIGN KEY(`sku`) REFERENCES `product`(`sku`))
    ...
 
-This is more space-efficient than single-table inheritance and somewhat
-more flexible than concrete-table inheritance, but it does require a
-minimum of one join to actually obtain all the attributes relevant to a
-product.
+Multiple table inheritance is more space-efficient than :ref:`single
+table inheritance <e-commerce-catalog-single-table-inheritance>` and
+somewhat more flexible than :ref:`concrete table inheritance
+<e-commerce-catalog-single-table-inheritance>`.  However, this model
+does require an expensive ``JOIN`` operation to obtain all relevant
+attributes relevant to a product.
 
-Entity-attribute-value schemas are yet another solution, basically
-creating a meta-model for your product data. In this approach, you
-maintain a table with (``entity_id``, ``attribute_id``, ``value``) triples that
-describe each product. For instance, suppose you are describing an audio
-album. In that case you might have a series of rows representing the
-following relationships:
+.. _e-commerce-catalog-entity-attribute-values:
+
+Entity Attribute Values
+```````````````````````
+
+The final substantive pattern from relational modeling is the
+entity-attribute-value schema where you would create a meta-model for
+product data. In this approach, you maintain a table with three
+columns, e.g. ``entity_id``, ``attribute_id``, ``value``, and these
+triples describe each product.
+
+Consider the description of an audio recording. You may have a series
+of rows representing the following relationships:
 
 +-----------------+-------------+------------------+
 | Entity          | Attribute   | Value            |
@@ -133,31 +171,44 @@ following relationships:
 | ...             | ...         | ...              |
 +-----------------+-------------+------------------+
 
-This schema has the advantage of being completely flexible; any entity
-can have any set of any attributes. New product categories do not
-require *any* changes in the DDL for your database. The downside to this
-schema is that any nontrivial query requires large numbers of join
-operations, which results in a large performance penalty.
+This schema is totally flexible:
 
-One other approach that has been used in relational world is to "punt"
-so to speak on the product details and serialize them all into a ``BLOB``
-column. The problem with this approach is that the details become
-difficult to search and sort by. (One exception is with Oracle's ``XMLTYPE``
-columns, which actually resemble a NoSQL document database.)
+- any entity can have any set of any attributes.
 
-The approach best suited to MongoDB is to use a single collection to store all
-the product data, similar to single-table inheritance. Due to MongoDB's
-dynamic schema, however, you need not conform each document to the same
-schema. This allows  you to tailor each product's document to only contain
-attributes relevant to that product category.
+- New product categories do not require *any* changes to the data model in the database.
+
+The downside for these models, is that all nontrivial queries require
+large numbers of ``JOIN`` operations that results in large performance
+penalties.
+
+Avoid Modeling Product Data
+```````````````````````````
+
+Additionally some e-commerce solutions with relational database
+systems avoid choosing one of the the data models above, and serialize
+all of this data into a ``BLOB`` column. While simple, the details
+become difficult to access for search and sort.
+
+Non-Relational Data Model
+`````````````````````````
+
+Because MongoDB is a non-relational database, the data model for your
+product catalog can benefit from this additional flexibility. The best
+models use a single MongoDB collection to store all the product data,
+which is similar to the :ref:`single table inheritance
+<e-commerce-catalog-single-table-inheritance>` relational model. MongoDB's dynamic schema
+means that each :term:`document` need not conform to the same
+schema. As a result, the document for each product only needs to
+contain attributes relevant to that product.
 
 Schema
-~~~~~~
+------
 
-Your schema should contain general product information that needs to be
-searchable across all products at the beginning of each document, with
-properties that vary from category to category encapsulated in a
-'details' property. Thus an audio album might look like the following:
+At the beginning of the document, the schema must contain general
+product information, to facilitate searches of the entire
+catalog. Then, a ``details`` sub-document that contains fields that
+vary between product types. Consider the following example document
+for an album product.
 
 .. code-block:: javascript
 
@@ -198,9 +249,9 @@ properties that vary from category to category encapsulated in a
      },
    }
 
-A movie title would have the same fields stored for general product
-information, shipping, and pricing, but have quite a different details
-attribute:
+A movie item would have the same fields for general product
+information, shipping, and pricing, but have different details
+sub-document. Consider the following:
 
 .. code-block:: javascript
 
@@ -223,32 +274,32 @@ attribute:
      },
    }
 
-Another thing to note in the MongoDB schema is that you can have
-multi-valued attributes without any arbitrary restriction on the number
-of attributes (as you might have if you had ``genre_0`` and ``genre_1``
-columns in a relational database, for instance) and without the need for
-a join (as you might have if you normalized the many-to-many "genre"
-relation).
+.. note::
+
+   In MongoDB, you can have fields that hold multiple values
+   (i.e. arrays) without any restrictions on the number of fields or
+   values (as with "``genre_0``" and "``genre_1``") and also without
+   the need for a JOIN operation.
 
 Operations
 ----------
 
-You'll be primarily using the product catalog mainly to perform search
-operations. Thus the focus in this section will be on the various types
-of queries you might want to support in an e-commerce site. These
-examples will be written in the Python programming language using the
-``pymongo`` driver, but other language/driver combinations should be
-similar.
+For most deployments the primary use of the product catalog is to
+perform search operations. This section provides an overivew of
+various types of queries may be useful for to supporting an e-commerce
+site. All examples in this document use the Python programming
+language and the :api:`PyMongo <python/current>` :term:`driver` for
+MongoDB, but you can implement this system using any language you
+choose.
 
-
-Find All Jazz Albums, Sorted by Year Produced
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Find Albums by Genre and Sort by Year Produced
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Querying
 ````````
 
-Here, you'd like to see a group of products with a particular genre,
-sorted by the year in which they were produced:
+This query returns the documents for the products of a specific genre,
+sorted by their year of issuance:
 
 .. code-block:: python
 
@@ -259,8 +310,8 @@ sorted by the year in which they were produced:
 Indexing
 ````````
 
-In order to efficiently support this type of query, you need to create a
-compound index on all the properties used in the filter and in the sort:
+To support this query, create a compound index on all the properties
+used in the filter and in the sort:
 
 .. code-block:: python
 
@@ -269,24 +320,24 @@ compound index on all the properties used in the filter and in the sort:
        ('details.genre', 1),
        ('details.issue_date', -1)])
 
-Note here that the final component of the index is the sort field. This allows
-MongoDB to traverse the index in the order in which the data is to be returned,
-rather than performing a slow in-memory sort of the data.
+... note::
 
-Find All Products Sorted by Percentage Discount Descending
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    The final component of the index is the sort field. This allows
+    MongoDB to traverse the index in the sorted order to preclude a
+    slow in-memory sort.
 
-While most searches would be for a particular type of product (audio
-album or movie, for instance), there may be cases where you'd like to
-find all products in a certain price range, perhaps for a "best daily
-deals" of your website.
+Find Products Sorted by Percentage Discount Descending
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+While most searches will be for a particular type of product (e.g
+album, movie, etc.,) in some situations you may want to return all
+products in a certain price range, or discount percentage.
 
 Querying
 ````````
 
-In this case, you'll use the pricing information
-that exists in all products to find the products with the highest
-percentage discount:
+To return this data use the pricing information that exists in all
+products to find the products with the highest percentage discount:
 
 .. code-block:: python
 
@@ -296,31 +347,39 @@ percentage discount:
 Indexing
 ````````
 
-In order to efficiently support this type of query, you'll need an index on the
-percentage savings:
+To support this type of query, you will want to create an index on the
+``pricing.pct_savings`` field:
 
 .. code-block:: python
 
    db.products.ensure_index('pricing.pct_savings')
 
-Since the index is only on a single key, it does not matter in which
-order the index is sorted. Note that, had you wanted to perform a range
-query (say all products over $25 retail) and sort by another property
-(perhaps percentage savings), MongoDB would not have been able to use an
-index as effectively. Range queries or sorts must always be the *last*
-property in a compound index in order to avoid scanning entirely. Thus
-using a different property for a range query and a sort requires some
-degree of scanning, slowing down your query.
+Since MongoDB can read indexes in ascending or descending order, the
+order of the index does not matter.
 
-Find All Movies in Which Keanu Reeves Acted
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. note::
+
+   If you want to preform range queries (e.g. "return all products
+   over $25") and then sort by another property like
+   "``pricing.pct_savings``", MongoDB cannot use the index as
+   effectively in this situation.
+
+   The field that you want to select a range, or perform sort
+   operations, must be the *last* field in a compound index in order
+   to avoid scanning an entire collection. Using different properties
+   within a single combined range query and sort operation requires
+   some scanning which will limit the speed of your query.
+
+Find Movies Based on Staring Actor
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Querying
 ````````
 
-In this case, you want to search inside the details of a particular type
-of product (a movie) to find all movies containing Keanu Reeves, sorted
-by date descending:
+Use the following query to select documents within the details of a
+specified product type (i.e. "``Film``") of product (a movie) to find
+products that contain a certain value (i.e. a specific actor in the
+``details.actor`` field,) with the results sorted by date descending:
 
 .. code-block:: python
 
@@ -331,8 +390,7 @@ by date descending:
 Indexing
 ````````
 
-Here, you wish to once again index by type first, followed the details
-you're interested in:
+To support this query, you may want to create the following index.
 
 .. code-block:: python
 
@@ -341,21 +399,22 @@ you're interested in:
        ('details.actor', 1),
        ('details.issue_date', -1)])
 
-And once again, the final component of the index is the sort field.
+This index begins with the ``type`` field and then narrows by the
+other search field, where the final component of the index is the sort
+field to maximize index efficiency.
 
-Find All Movies With the Word "Hacker" in the Title
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Find Movies with a Particular Word in the Title
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Those experienced with relational databases may shudder at this
-operation, since it implies an inefficient LIKE query. In fact, without
-a full-text search engine, some scanning will always be required to
+Regardless of database engine, in order to retrieve this information
+the system will need to scan some number of documents or records to
 satisfy this query.
 
 Querying
 ````````
 
-In the case of MongoDB, the solution is to use a regular
-expression. In Python, you can use the ``re`` module to construct the query:
+MongoDB supports regular expressions within queries. In Python, you
+can use the ":py:mod:`python:re`" module to construct the query:
 
 .. code-block:: python
 
@@ -365,8 +424,9 @@ expression. In Python, you can use the ``re`` module to construct the query:
    query = db.products.find({'type': 'Film', 'title': re_hacker})
    query = query.sort([('details.issue_date', -1)])
 
-Although this is fairly convenient, MongoDB also provides the option to
-use a special syntax rather than importing the Python ``re`` module:
+MongoDB provides a special syntax for regular expression queries
+without the need for the :py:mod:`re` module. Consider the following
+alternative:
 
 .. code-block:: python
 
@@ -378,7 +438,10 @@ use a special syntax rather than importing the Python ``re`` module:
 Indexing
 ````````
 
-Here, the best index diverges a bit from the previous index orders:
+The indexing strategy for these kinds of queries is different from
+previous attempts. Here, create an index on "``{ type: 1,
+details.issue_date: -1, title: 1 }``" using the following command at
+the Python/PyMongo console:
 
 .. code-block:: python
 
@@ -387,71 +450,12 @@ Here, the best index diverges a bit from the previous index orders:
        ('details.issue_date', -1),
        ('title', 1)])
 
-You may be wondering why you should include the title field in the index
-if MongoDB has to scan anyway. The reason is that there are two types of
-scans: index scans and document scans. Document scans require entire
-documents to be loaded into memory, while index scans only require index
-entries to be loaded. So while an index scan on title isn't as efficient
-as a direct lookup, it is certainly faster than a document scan.
-
-The order in which you include the index keys is also different than what
-you might expect. This is once again due to the fact that you're
-scanning. Since the results need to be in sorted order by
-``'details.issue_date``, you should make sure that's the order in which
-MongoDB scans titles. You can observe the difference looking at the
-query plans for different orderings. If you use the (``type``, ``title``,
-``details.issue_date``) index, you get the following plan:
-
-.. code-block:: python
-   :emphasize-lines: 11,17
-
-   {u'allPlans': [...],
-    u'cursor': u'BtreeCursor type_1_title_1_details.issue_date_-1 multi',
-    u'indexBounds': {u'details.issue_date': [[{u'$maxElement': 1},
-                                              {u'$minElement': 1}]],
-                     u'title': [[u'', {}],
-                                [<_sre.SRE_Pattern object at 0x2147cd8>,
-                                 <_sre.SRE_Pattern object at 0x2147cd8>]],
-                     u'type': [[u'Film', u'Film']]},
-    u'indexOnly': False,
-    u'isMultiKey': False,
-    u'millis': 208,
-    u'n': 0,
-    u'nChunkSkips': 0,
-    u'nYields': 0,
-    u'nscanned': 10000,
-    u'nscannedObjects': 0,
-    u'scanAndOrder': True}
-
-If, however, you use the (``type``, ``details.issue_date``, ``title``) index, you get
-the following plan:
-
-.. code-block:: python
-   :emphasize-lines: 11
-
-   {u'allPlans': [...],
-    u'cursor': u'BtreeCursor type_1_details.issue_date_-1_title_1 multi',
-    u'indexBounds': {u'details.issue_date': [[{u'$maxElement': 1},
-                                              {u'$minElement': 1}]],
-                     u'title': [[u'', {}],
-                                [<_sre.SRE_Pattern object at 0x2147cd8>,
-                                 <_sre.SRE_Pattern object at 0x2147cd8>]],
-                     u'type': [[u'Film', u'Film']]},
-    u'indexOnly': False,
-    u'isMultiKey': False,
-    u'millis': 157,
-    u'n': 0,
-    u'nChunkSkips': 0,
-    u'nYields': 0,
-    u'nscanned': 10000,
-    u'nscannedObjects': 0}
-
-The two salient features to note are a) the absence of the
-``scanAndOrder: True`` in the optmal query and b) the difference in time
-(208ms for the suboptimal query versus 157ms for the optimal one). The
-lesson learned here is that if you absolutely have to scan, you should
-make the elements you're scanning the *least* significant part of the
-index (even after the sort).
+This index makes it possible to avoid scanning whole documents by
+using the index for scanning the title rather than forcing MongoDB to
+scan whole documents for the title field. Additionally, to support the
+sort on the "``details.issue_date``" field, by placing this field
+*before* the ``title`` field, ensures that the result set is already
+ordered before MongoDB filters title field.
 
 Scaling
 -------
@@ -459,66 +463,90 @@ Scaling
 Sharding
 ~~~~~~~~
 
-Though the performance in this system is highly dependent on the indexes,
-sharding can enhance that performance further by allowing
-MongoDB to keep larger portions of those indexes in RAM. In order to maximize
-your read scaling, it's also nice to choose a shard key that allows
-mongos to route queries to only one or a few shards rather than all the
-shards globally.
+Database performance for these kinds of deployments are dependent on
+indexes. You may use :term:`sharding` to enhance performance by
+allowing MongoDB to keep larger portions of those indexes in RAM. In
+sharded configurations, select a :term:`shard key` that allows
+:program:`mongos` to route queries directly to a single shard or small
+group of shards.
 
-Since most of the queries in this system include type, it should probably be
-included in the shard key. You may note that most of the
-queries also included ``details.issue_date``, so there may be a
-temptation to include it in the shard key, but this actually wouldn't
-help much since none of the queries were *selective* by date.
+Since most of the queries in this system include the ``type`` field,
+include this in the shard key. Beyond this, the remainder of the shard
+key is difficult to predict without information about your database's
+actual activity and distribution. Consider that:
 
-Since this schema is so flexible, it's hard to say *a priori* what the
-ideal shard key would be, but a reasonable guess would be to include the
-``type`` field, one or more detail fields that are commonly queried, and
-one final random-ish field to ensure you don't get large unsplittable
-chunks. For this example, assuming that ``details.genre`` is the
-second-most queried field after ``type``, the sharding setup
-would be as follows:
+- ``details.issue_date`` would be a poor addition to the shard key
+  because, although it appears in a number of queries, no query was
+  were *selective* by this field.
+
+- you should include one or more fields in the ``detail`` document
+  that you query frequently, and a field that has quasi-random
+  features, to prevent large unsplittable chunks.
+
+In the following example, assume that the ``details.genre`` field is
+the second-most queried field after ``type``. Enable sharding using
+the following :dbcommand:`shardcollection` operation at the
+Python/PyMongo console:
 
 .. code-block:: pycon
 
    >>> db.command('shardcollection', 'product', {
    ...     key : { 'type': 1, 'details.genre' : 1, 'sku':1 } })
+
+Upon success, you will see the following response:
+
+.. code-block:: javascript
+
    { "collectionsharded" : "details.genre", "ok" : 1 }
 
-One important note here is that, even if you choose a shard key that
-requires all queries to be broadcast to all shards, you still get some
-benefits from sharding due to a) the larger amount of memory available
-to store indexes and b) the fact that searches will be parallelized
-across shards, reducing search latency.
+.. note::
+
+   Even if you choose a "poor" shard key that requires
+   :program:`mongos` to broadcast all to all shards, you will still
+   see  some benefits from sharding, because:
+
+   #. Sharding makes a larger amount of memory
+      available to store indexes, and
+
+   #. MongoDB will parallelize queries across shards, reducing
+      latency.
 
 Read Preference
 ~~~~~~~~~~~~~~~
 
-Although sharding is the best way to scale reads and writes, it's not
-always possible to partition your data so that the queries can be routed
-by mongos to a subset of shards. In this case, ``mongos`` will broadcast the
-query to all shards and then accumulate the results before returning to
-the client. In cases like this, you can still scale query performance
-by allowing ``mongos`` to read from the secondary servers in a replica set.
-This is achieved via the ``read_preference`` argument, and can be set at
-the connection or individual query level. For instance, to allow all
-reads on a connection to go to a secondary, the syntax is:
+While :term:`sharding` is the best way to scale operations, some data
+sets make it impossible to partition data so that :program:`mongos`
+can route queries specific shards. In these situations
+:program:`mongos` sends the query to all shards and then combines the
+results before returning to the client.
+
+In these situations, you can add additional read performance by
+allowing :program:`mongos` to read from the :term:`secondary`
+instances in a :term:`replica set` by configuring :term:`read
+preference` in your client. Read preference is configurable on a
+per-connection or per-operation basis. In :api:`PyMongo
+<python/current>`, set the :py:attr:`read_preference
+<pymongo.collection.Collection.read_preference>` argument.
+
+The :py:class:`SECONDARY <pymongo:pymongo.ReadPreference>` property
+following example, permits reads from a :term:`secondary` (as well as
+a primary) for the entire connection .
 
 .. code-block:: python
 
    conn = pymongo.Connection(read_preference=pymongo.SECONDARY)
 
-or
+Conversely, the :py:class:`SECONDARY_ONLY
+<pymongo:pymongo.ReadPreference>` read preference means that the
+client will only send read operation only to the secondary member
 
 .. code-block:: python
 
    conn = pymongo.Connection(read_preference=pymongo.SECONDARY_ONLY)
 
-In the first instance, reads will be distributed among all the
-secondaries and the primary, whereas in the second reads will only be
-sent to the secondary. To allow queries to go to a secondary on a
-per-query basis, you can also specify a ``read_preference``:
+You can also specify :py:attr:`read_preference
+<pymongo.collection.Collection.read_preference>` for specific queries,
+as follows:
 
 .. code-block:: python
 
@@ -530,9 +558,4 @@ or
 
    results = db.product.find(..., read_preference=pymongo.SECONDARY_ONLY)
 
-It is important to note that reading from a secondary can introduce a
-lag between when inserts and updates occur and when they become visible
-to queries. In the case of a product catalog, however, where queries
-happen frequently and updates happen infrequently, such eventual
-consistency (updates visible within a few seconds but not immediately)
-is usually tolerable.
+.. seealso:: ":ref:`Replica Set Read Preference <replica-set-read-preference>`."
