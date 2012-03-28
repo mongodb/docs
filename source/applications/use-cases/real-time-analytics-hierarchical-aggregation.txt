@@ -2,14 +2,17 @@
 Real Time Analytics: Hierarchical Aggregation
 =============================================
 
+Overview
+--------
+
 Problem
-=======
+~~~~~~~
 
 You have a large amount of event data that you want to analyze at
 multiple levels of aggregation.
 
-Solution Overview
-=================
+Solution
+~~~~~~~~
 
 This solution assumes that the incoming event data is already
 stored in an incoming ``events`` collection. For details on how you might
@@ -82,8 +85,8 @@ different than the hourly statistics rolling into the daily collection.
     servers. In the case of MongoDB, this parallelism can be achieved by
     using sharding on the collection on you're are performing map/reduce.
 
-Schema Design
-=============
+Schema
+------
 
 When designing the schema for event storage, it's important to track whichevents
 which have been included in your aggregations and events which have not yet been
@@ -142,7 +145,7 @@ Note in particular the timestamp field in the aggregate document. This allows yo
 to incrementally update the various levels of the hierarchy.
 
 Operations
-==========
+----------
 
 In the discussion below, it is assumed that all the events have been
 inserted and appropriately timestamped, so your main operations are
@@ -152,8 +155,11 @@ case, the last time the particular aggregation is run is stored in a ``last_run`
 variable. (This variable might be loaded from MongoDB or another persistence
 mechanism.)
 
-Aggregate From Events to the Hourly Level
------------------------------------------
+Creating Hourly Views from Event Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Aggregation
+```````````
 
 Here, you want to load all the events since your last run until one minute
 ago (to allow for some lag in logging events). The first thing you
@@ -243,8 +249,8 @@ Through the use you the 'reduce' option on your output, you can safely run this
 aggregation as often as you like so long as you update the ``last_run`` variable
 each time.
 
-Index Support
-~~~~~~~~~~~~~
+Indexing
+````````
 
 Since you'll be running the initial query on the input events
 frequently, you'd benefit significantly from an index on the
@@ -259,8 +265,11 @@ index has the advantage of being right-aligned, which basically means MongoDB
 only needs a thin slice of the index (the most recent values) in RAM to
 achieve good performance.
 
-Aggregate from Hour to Day
---------------------------
+Deriving Day-Level Data
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Aggregation
+```````````
 
 In calculating the daily statistics, you'll use the hourly statistics
 as input. The daily  map function looks quite similar to the hourly map
@@ -319,8 +328,8 @@ finalization of the hourly aggregates. Also note that you are, in fact,
 aggregating from the ``stats.hourly`` collection into the ``stats.daily``
 collection.
 
-Index support
-~~~~~~~~~~~~~
+Indexing
+````````
 
 Since you're going to be running the initial query on the hourly
 statistics collection frequently, an index on 'value.ts' would be nice
@@ -333,8 +342,11 @@ to have:
 Once again, this is a right-aligned index that will use very little RAM
 for efficient operation.
 
-Other Aggregations
-------------------
+Other Operations
+~~~~~~~~~~~~~~~~
+
+Aggregation
+```````````
 
 Once you have your daily statistics, you can use them to calculate your
 weekly and monthly statistics. The weekly map function is as follows:
@@ -363,19 +375,19 @@ group key:
 
 .. code-block:: python
 
-    mapf_month = bson.Code('''function() {
-            d: new Date(
-                this._id.d.getFullYear(),
-                this._id.d.getMonth(),
-                1, 0, 0, 0, 0) };
-        emit(
-            key,
-            {
-                total: this.value.total,
-                count: this.value.count,
-                mean: 0,
-                ts: null });
-    }''')
+   mapf_month = bson.Code('''function() {
+           d: new Date(
+               this._id.d.getFullYear(),
+               this._id.d.getMonth(),
+               1, 0, 0, 0, 0) };
+       emit(
+           key,
+           {
+               total: this.value.total,
+               count: this.value.count,
+               mean: 0,
+               ts: null });
+   }''')
 
 One thing in particular to notice about these map functions is that they
 are identical to one another except for the date calculation. You can use
@@ -384,80 +396,80 @@ as follows:
 
 .. code-block:: python
 
-    mapf_hierarchical = '''function() {
-        var key = {
-            u: this._id.u,
-            d: %s };
-        emit(
-            key,
-            {
-                total: this.value.total,
-                count: this.value.count,
-                mean: 0,
-                ts: null });
-    }'''
+   mapf_hierarchical = '''function() {
+       var key = {
+           u: this._id.u,
+           d: %s };
+       emit(
+           key,
+           {
+               total: this.value.total,
+               count: this.value.count,
+               mean: 0,
+               ts: null });
+   }'''
 
 
-    mapf_day = bson.Code(
-        mapf_hierarchical % '''new Date(
-                this._id.d.getFullYear(),
-                this._id.d.getMonth(),
-                this._id.d.getDate(),
-                0, 0, 0, 0)''')
+   mapf_day = bson.Code(
+       mapf_hierarchical % '''new Date(
+               this._id.d.getFullYear(),
+               this._id.d.getMonth(),
+               this._id.d.getDate(),
+               0, 0, 0, 0)''')
 
 
-    mapf_week = bson.Code(
-        mapf_hierarchical % '''new Date(
-                this._id.d.valueOf()
-                - dt.getDay()*24*60*60*1000)''')
+   mapf_week = bson.Code(
+       mapf_hierarchical % '''new Date(
+               this._id.d.valueOf()
+               - dt.getDay()*24*60*60*1000)''')
 
 
-    mapf_month = bson.Code(
-        mapf_hierarchical % '''new Date(
-                this._id.d.getFullYear(),
-                this._id.d.getMonth(),
-                1, 0, 0, 0, 0)''')
+   mapf_month = bson.Code(
+       mapf_hierarchical % '''new Date(
+               this._id.d.getFullYear(),
+               this._id.d.getMonth(),
+               1, 0, 0, 0, 0)''')
 
 
-    mapf_year = bson.Code(
-        mapf_hierarchical % '''new Date(
-                this._id.d.getFullYear(),
-                1, 1, 0, 0, 0, 0)''')
+   mapf_year = bson.Code(
+       mapf_hierarchical % '''new Date(
+               this._id.d.getFullYear(),
+               1, 1, 0, 0, 0, 0)''')
 
 The Python driver can also be refactored so there is much less code
 duplication:
 
 .. code-block:: python
 
-    def aggregate(icollection, ocollection, mapf, cutoff, last_run):
-        query = { 'value.ts': { '$gt': last_run, '$lt': cutoff } }
-        icollection.map_reduce(
-            map=mapf,
-            reduce=reducef,
-            finalize=finalizef,
-            query=query,
-            out={ 'reduce': ocollection.name })
+   def aggregate(icollection, ocollection, mapf, cutoff, last_run):
+       query = { 'value.ts': { '$gt': last_run, '$lt': cutoff } }
+       icollection.map_reduce(
+           map=mapf,
+           reduce=reducef,
+           finalize=finalizef,
+           query=query,
+           out={ 'reduce': ocollection.name })
 
 Once this is defined, you can perform all the aggregations as follows:
 
 .. code-block:: python
 
-    cutoff = datetime.utcnow() - timedelta(seconds=60)
-    aggregate(db.events, db.stats.hourly, mapf_hour, cutoff, last_run)
-    aggregate(db.stats.hourly, db.stats.daily, mapf_day, cutoff, last_run)
-    aggregate(db.stats.daily, db.stats.weekly, mapf_week, cutoff, last_run)
-    aggregate(db.stats.daily, db.stats.monthly, mapf_month, cutoff,
-        last_run)
-    aggregate(db.stats.monthly, db.stats.yearly, mapf_year, cutoff,
-        last_run)
-    last_run = cutoff
+   cutoff = datetime.utcnow() - timedelta(seconds=60)
+   aggregate(db.events, db.stats.hourly, mapf_hour, cutoff, last_run)
+   aggregate(db.stats.hourly, db.stats.daily, mapf_day, cutoff, last_run)
+   aggregate(db.stats.daily, db.stats.weekly, mapf_week, cutoff, last_run)
+   aggregate(db.stats.daily, db.stats.monthly, mapf_month, cutoff,
+       last_run)
+   aggregate(db.stats.monthly, db.stats.yearly, mapf_year, cutoff,
+       last_run)
+   last_run = cutoff
 
 So long as you save/restore the ``last_run`` variable between
 aggregations, you can run these aggregations as often as you like since
 each aggregation individually is incremental.
 
-Index Support
-~~~~~~~~~~~~~
+Indexing
+````````
 
 Your indexes will continue to be on the value's timestamp to ensure
 efficient operation of the next level of the aggregation (and they
@@ -465,11 +477,11 @@ continue to be right-aligned):
 
 .. code-block:: python
 
-    >>> db.stats.daily.ensure_index('value.ts')
-    >>> db.stats.monthly.ensure_index('value.ts')
+   >>> db.stats.daily.ensure_index('value.ts')
+   >>> db.stats.monthly.ensure_index('value.ts')
 
 Sharding
-========
+--------
 
 To take advantage of distinct shards when performing map/reduce, your
 input collections should be sharded. In order to achieve good balancing
@@ -484,30 +496,55 @@ timestamp) on the events collection.
 
 .. code-block:: python
 
-    >>> db.command('shardcollection','events', {
-    ... key : { 'userid': 1, 'ts' : 1} } )
-    { "collectionsharded": "events", "ok" : 1 }
+.. code-block:: pycon
+
+   >>> db.command('shardcollection','events', {
+   ... key : { 'userid': 1, 'ts' : 1} } )
+
+.. code-block:: javascript
+
+   { "collectionsharded": "events", "ok" : 1 }
 
 In order to take advantage of sharding on
 the aggregate collections, you *must* shard on the ``_id`` field (if you decide
 to shard these collections:)
 
-.. code-block:: python
+.. code-block:: pycon
 
-    >>> db.command('shardcollection', 'stats.daily')
-    { "collectionsharded" : "stats.daily", "ok": 1 }
-    >>> db.command('shardcollection', 'stats.weekly')
-    { "collectionsharded" : "stats.weekly", "ok" : 1 }
-    >>> db.command('shardcollection', 'stats.monthly')
-    { "collectionsharded" : "stats.monthly", "ok" : 1 }
-    >>> db.command('shardcollection', 'stats.yearly')
-    { "collectionsharded" : "stats.yearly", "ok" : 1 }
+   >>> db.command('shardcollection', 'stats.daily')
+
+.. code-block:: javascript
+
+   { "collectionsharded" : "stats.daily", "ok": 1 }
+
+.. code-block:: pycon
+
+   >>> db.command('shardcollection', 'stats.weekly')
+
+.. code-block:: javascript
+
+   { "collectionsharded" : "stats.weekly", "ok" : 1 }
+
+.. code-block:: pycon
+
+   >>> db.command('shardcollection', 'stats.monthly')
+
+.. code-block:: javascript
+
+   { "collectionsharded" : "stats.monthly", "ok" : 1 }
+
+.. code-block:: pycon
+
+   >>> db.command('shardcollection', 'stats.yearly')
+
+.. code-block:: javascript
+
+   { "collectionsharded" : "stats.yearly", "ok" : 1 }
 
 You should also update your map/reduce driver so that it notes the output
 should be sharded. This is accomplished by adding 'sharded':True to the
 output argument:
 
-.. code-block:: python
+.. code-block:: pycon
 
-    ... out={ 'reduce': ocollection.name, 'sharded': True })...
-
+   ... out={ 'reduce': ocollection.name, 'sharded': True })...
