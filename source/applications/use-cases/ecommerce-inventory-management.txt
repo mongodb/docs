@@ -362,20 +362,18 @@ return them to available inventory if they do not.
        threshold = now - timedelta(seconds=timeout)
 
        # Find all the expiring carted items
-       for item in db.inventory.find(
-           {'carted.timestamp': {'$lt': threshold }}):
+       for item in db.inventory.find({'carted.timestamp': {'$lt': threshold }}):
 
            # Find all the carted items that matched
-                 carted = dict(
+           carted = dict(
                      (carted_item['cart_id'], carted_item)
                      for carted_item in item['carted']
                      if carted_item['timestamp'] < threshold)
 
            # Find any carts that are active and refresh the carted items
-           for cart in db.cart.find(
-               { '_id': {'$in': carted.keys() },
-                 'status':'active'}):
+           for cart in db.cart.find({ '_id': {'$in': carted.keys() }, 'status':'active'}):
                cart = carted[cart['_id']]
+
                db.inventory.update(
                    { '_id': item['_id'],
                      'carted.cart_id': cart['_id'] },
