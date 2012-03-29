@@ -1,6 +1,6 @@
-=================================
-Online Gaming: Storing User State
-=================================
+===========================================
+Online Gaming: Creating a Role-Playing Game
+===========================================
 
 .. default-domain:: mongodb
 
@@ -8,35 +8,44 @@ Overview
 --------
 
 This document outlines the basic patterns and principals for using
-MongoDB as a persistent storage engine for user state data from an online
+MongoDB as a persistent storage engine for an online
 game, particularly one that contains role-playing characteristics.
 
 Problem
 ~~~~~~~
 
 In designing an online game, there is a need to store various
-data about the user's character. Some of the attributes might include:
+data about the player's character. Some of the attributes might include:
 
 Character attributes
    These might include intrinsic characteristics such as strength,
    dexterity, charisma, etc., as well as variable characteristics such
    as health, mana (if your game includes magic), etc.
 Character inventory
-   If your game includes the ability for the user to carry around
+   If your game includes the ability for the player to carry around
    objects, you will need to keep track of the items carried.
 Character location / relationship to the game world
-   If your game allows the user to move their character from one
+   If your game allows the player to move their character from one
    location to another, this information needs to be stored as well.
 
 In addition, you need to store all this data for large numbers of
-users who might be playing the game simultaneously, and this data
+playerss who might be playing the game simultaneously, and this data
 needs to be both readable and writeable with minimal latency in order
 to ensure responsiveness during gameplay.
+
+In addition to the above data, you also need to store data for 
+
+Items
+   These include various artifacts that the character might interact with such as
+   weapons, armor, treasure, etc.
+Locations
+   The various locations in which characters and items might find themselves such
+   as rooms, halls, etc.
 
 Another consideration when designing the persistence backend for an
 online game is its flexibility. Particularly in early releases of a
 game, you may wish to change gameplay mechanics significantly as you
-receive feedback from your users. As you implement these changes, you
+receive feedback from your players. As you implement these changes, you
 need to be able to migrate your persistent data from one format to
 another with minimal (or no) downtime.
 
@@ -44,21 +53,24 @@ Solution
 ~~~~~~~~
 
 The solution presented by this case study assumes that the read and
-write performance for the user state is equally important and must be
-accessible with minimal latency.
+write performance is equally important and must be accessible with minimal
+latency.
 
 Schema Design
 ~~~~~~~~~~~~~
 
 Ultimately, the particulars of your schema depends on the particular
-design of your game. When designing your schema for the user state,
-you should attempt to encapsulate all the commonly used data into the
-user object in order to minimize the number of queries to the database
-and the number of seeks in a query. If you can manage to
-encapsulate all relevant user state into a single document, this
+design of your game. When designing your schema, you should attempt to
+encapsulate all the commonly used data into a small number of objects in order to
+minimize the number of queries to the database and the number of seeks in a
+query. Encapsulating all player state into a ``character`` collection, item data
+into an ``item`` collection, and location data into a ``location`` collection
 satisfies both these criteria.
 
-In a role-playing game, then, a typical user state document might look
+Character Schema
+````````````````
+
+In a role-playing game, then, a typical character state document might look
 like the following:
 
 .. code-block:: javascript
@@ -84,7 +96,7 @@ like the following:
                { id:ObjectId('...'), name:'grue' },
                { id:ObjectId('...'), name:'Tim' }
                ],
-           contents: [
+           inventory: [
                { qty:1, id:ObjectId('...'), name:'scroll of cause fear' }]
         },
        gold: 523,
@@ -94,7 +106,7 @@ like the following:
 	   { id:ObjectId('...'), region:'feet'}],
        weapons: [ {id:ObjectId('...'), hand:'both'} ],
        inventory: [
-           { qty:1, id:ObjectId('...'), name:'backpack', contents: [
+           { qty:1, id:ObjectId('...'), name:'backpack', inventory: [
                { qty:4, id:ObjectId('...'), name: 'potion of healing'},
 	       { qty:1, id:ObjectId('...'), name: 'scroll of magic mapping'},
                { qty:2, id:ObjectId('...'), name: 'c-rations'} ]},
@@ -108,7 +120,7 @@ There are a few things to note about this document:
 
 #. Information about the character's location in the game is encapsulated under
    the ``location`` attribute. Note in particular that all of the information
-   necessary to render the room is encapsulated within the user's state
+   necessary to render the room is encapsulated within the character state
    document. This allows the game system to render the room without making a
    second #query to the database to get room information. 
 #. The ``armor`` and ``weapons`` attributes contain little information about the
@@ -116,20 +128,73 @@ There are a few things to note about this document:
    the ``inventory`` property. Since the inventory information is stored in the
    same document, there is no need to replicate the detailed information about
    each item into the ``armor`` and ``weapons`` properties.
-#. Finally, note that ``inventory`` contains the item details necessary for
+#. ``inventory`` contains the item details necessary for
    rendering each item in the character's posession, including anyenchantments
    (``bonus``) and ``quantity``. Once again, embedding this data into the
    character record means you don't have to perform a separate query to fetch
    item details necessary for display.
 
+Item Schema
+```````````
+
+Likewise, the item schema should include all details about all items globally in
+the game:
+
+.. code-block:: javascript
+
+   {
+       _id: ObjectId('...'),
+       name: 'backpack',
+       bonus: null,
+       inventory: [
+           { qty:4, id:ObjectId('...'), name: 'potion of healing'},
+	   { qty:1, id:ObjectId('...'), name: 'scroll of magic mapping'},
+           { qty:2, id:ObjectId('...'), name: 'c-rations'} ]},
+       weight: 12,
+       price: 160,
+       ... 
+   }
+
+Note that this document contains more or less the same information as stored in
+the ``inventory`` attribute of ``character`` documents, as well as additional
+data which may only be needed sporadically in the case of game-play such as
+``weight`` and ``price``. 
+
+Location Schema
+```````````````
+
+Finally, the ``location`` schema specifies the state of the world in the game:
+
+.. code-block:: javascript
+
+   {
+       id: 'maze-1',
+       description: 'a maze of twisty little passages...',
+       exits: {n:'maze-2', s:'maze-1', e:'maze-3'},
+       players: [
+           { id:ObjectId('...'), name:'grue' },
+           { id:ObjectId('...'), name:'Tim' } ],
+       inventory: [
+           { qty:1, id:ObjectId('...'), name:'scroll of cause fear' } ],
+   }
+
+Here, note that ``location`` stores exactly the same information as is stored in
+the ``location`` attribute of the ``character`` document. You will use
+``location`` as the system of record when the game requires interaction between
+multiple characters or between characters and non-inventory items.
+
 Operations
 ----------
 
-In an online gaming system with the character state stored in a single document,
-the primary operations you'll be performing are querying for the character state
-document by ``_id``, extracting relevant data for display, and updating various
-attributes about the character. This section describes procedures for performing
-these queries, extractions, and updates.
+In an online gaming system with the state embedded in a single document for
+``character``, ``item``, and ``location``, the primary operations you'll be
+performing are querying for the character state by ``_id``, extracting relevant
+data for display, and updating various attributes about the character. This
+section describes procedures for performing these queries, extractions, and
+updates.
+
+In particular you should try *not* to load the ``location`` or ``item`` documents
+except when absolutely necessary.
 
 The examples that follow use the Python programming language and the
 :api:`PyMongo <python/current>` :term:`driver` for MongoDB, but you
@@ -143,11 +208,11 @@ The most basic operation in this system is loading the character state.
 Query
 `````
 
-Use the following query to load the user document from MongoDB:
+Use the following query to load the ``character`` document from MongoDB:
 
 .. code-block:: pycon
 
-   >>> character = db.characters.find_one({'_id': user_id})
+   >>> character = db.characters.find_one({'_id': character_id})
 
 Index Support
 `````````````
@@ -158,11 +223,11 @@ sufficient for good performance of this query.
 Extract Armor and Weapon Data for Display
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In order to save space, the schema described above stores item details only in
-the ``inventory`` attribute, storing ``ObjectId``\ s in other locations. To display
-these item details, as on a character summary window, you need to merge the
-information from the ``armor`` and ``weapons`` attributes with information from
-the ``inventory`` attribute.
+In order to save space, the ``character`` schema described above stores item
+details only in the ``inventory`` attribute, storing ``ObjectId``\ s in other
+locations. To display these item details, as on a character summary window, you
+need to merge the information from the ``armor`` and ``weapons`` attributes with
+information from the ``inventory`` attribute.
 
 Suppose, for instance, that your code is displaying the armor data using the
 following Jinja2 template:
@@ -218,11 +283,13 @@ In order to build up this structure, use the following helper functions:
        result = {}
        for item in inventory:
            result[item['_id']] = item
-           if 'contents' in item:
-               result.update(get_item_index(item['contents']))
+           if 'inventory' in item:
+               result.update(get_item_index(item['inventory]))
        return result
 
    def describe_item(item):
+       '''Add a 'description' field to the given item'''
+
        result = dict(item)
        if item['bonus']:
            description = '%+d %s' % (item['bonus'], item['name'])
@@ -246,12 +313,12 @@ In order to actually display the armor, then, you would use the following code:
 .. code-block:: pycon
 
    >>> item_index = get_item_index(
-   ...     character['inventory'] + character['location']['contents'])
+   ...     character['inventory'] + character['location']['inventory'])
    >>> armor = get_armor_for_dislay(character, item_index)
 
 Note in particular that you are building an index not only for the items the
-character is actually carrying in inventory, but also for the items that the user
-might interact with in the room.
+character is actually carrying in inventory, but also for the items that the
+player might interact with in the room.
 
 Similarly, in order to display the weapon information, you need to build a
 structure such as the following:
@@ -299,10 +366,10 @@ data, then, is the following:
    >>> inventory = character['inventory']
    >>> room_data = character['location']
 
-Update Character Inventory
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Pick Up an Item From a Room
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In your game, suppose the user decides to pick up an item from the room and add
+In your game, suppose the player decides to pick up an item from the room and add
 it to their inventory. In this case, you need to update both the character state
 and the global location state:
 
@@ -316,10 +383,10 @@ and the global location state:
        db.character.update(
            { '_id': character['_id'] },
            { '$push': { 'inventory': item },
-             '$pull': { 'location.contents': { '_id': item['id'] } } })
+             '$pull': { 'location.inventory': { '_id': item['id'] } } })
        db.location.update(
            { '_id': character['location']['id'] },
-           { '$pull': { 'contents': { 'id': item_id } } })
+           { '$pull': { 'inventory': { 'id': item_id } } })
 
 While the above code may be for a single-player game, if you allow multiple
 players, or non-player characters, to pick up items, that introduces a problem in
@@ -336,8 +403,8 @@ this case, the code is now the following:
        character['inventory'].append(item)
        result = db.location.update(
            { '_id': character['location']['id'],
-             'contents.id': item_id },
-           { '$pull': { 'contents': { 'id': item_id } } },
+             'inventory.id': item_id },
+           { '$pull': { 'inventory': { 'id': item_id } } },
            safe=True)
         if not result['updatedExisting']:
             raise Conflict()
@@ -350,10 +417,58 @@ By ensuring that the item is present before removing it from the room in the
 ``update`` call above, you guarantee that only one player/non-player
 character/monster can pick up the item.
 
+Remove an Item from a Container
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the game described here, the ``backpack`` item can contain other
+items. You might further suppose that some other items may be similarly
+hierarchical (e.g. a chest in a room). Suppose that the player wishes to move an
+item from one of these "containers" into their active ``inventory`` as a prelude
+to using it. In this case, you need to update both the character state and the
+item state:
+
+.. code-block:: python
+
+   def move_to_active_inventory(character, item_index, container_id, item_id):
+       '''Transfer an item from the given container to the character's active
+       inventory
+       ''' 
+
+       result = db.item.update(
+           { '_id': container_id,
+             'inventory.id': item_id },
+           { '$pull': { 'inventory': { 'id': item_id } } },
+           safe=True)
+       if not result['updatedExisting']:
+           raise Conflict()
+       item = item_index[item_id]
+       container = item_index[item_id]
+       character['inventory'].append(item)
+       container['inventory'] = [ 
+           item for item in container['inventory'] 
+           if item['_id'] != item_id ]
+       db.character.update(
+           { '_id': character['_id'] },
+           { '$push': { 'inventory': item } } )
+       db.character.update(
+           { '_id': character['_id'], 'inventory.id': container_id },
+           { '$pull': { 'inventory.$.inventory': { 'id': item_id } } } )
+
+Note in the code above that you:
+
+- Ensure that the item's state makes this update reasonable (the item is
+  actually contained within the container). Abort with an error if this is not
+  true. 
+- Update the in-memory ``character`` document's inventory, adding the item.
+- Update the in-memory ``container`` document's inventory, removing the item.
+- Update the ``character`` document in MongoDB.
+- In the case that the character is moving an item from a container *in his own
+  inventory*, update the character's inventory representation of the container.
+
 Move the Character to a Different Room
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In your game, suppose the user decides to move north. In this case, you need to
+In your game, suppose the player decides to move north. In this case, you need to
 update the character state to match the new location:
 
 .. code-block:: python
@@ -389,11 +504,12 @@ gold, and update the room:
 
 .. code-block:: python
 
-   def buy(character, shopkeeper, item_id, price):
+   def buy(character, shopkeeper, item_id):
        '''Pick up an item, add to the character's inventory, and transfer
        payment to the shopkeeper
        '''
 
+       price = db.item.find_one({'_id': item_id}, {'price':1})['price']
        result = db.character.update(
            { '_id': character['_id'],
              'gold': { '$gte': price } },
