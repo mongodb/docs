@@ -80,15 +80,17 @@ like the following:
            id: 'maze-1',
            description: 'a maze of twisty little passages...',
 	   exits: {n:'maze-2', s:'maze-1', e:'maze-3'},
+           players: [
+               { id:ObjectId('...'), name:'grue' },
+               { id:ObjectId('...'), name:'Tim' }
+               ],
            contents: [
-               { qty:1, id:ObjectId('...'), name:'grue' },
-               { qty:1, id:ObjectId('...'), name:'Tim' },
                { qty:1, id:ObjectId('...'), name:'scroll of cause fear' }]
         },
+       gold: 523,
        armor: [
            { id:ObjectId('...'), region:'head'},
 	   { id:ObjectId('...'), region:'body'},
-	   { id:ObjectId('...'), region:'hands'},
 	   { id:ObjectId('...'), region:'feet'}],
        weapons: [ {id:ObjectId('...'), hand:'both'} ],
        inventory: [
@@ -99,8 +101,7 @@ like the following:
            { qty:1, id:ObjectId('...'), name:"wizard's hat", bonus:3},
 	   { qty:1, id:ObjectId('...'), name:"wizard's robe", bonus:0},
 	   { qty:1, id:ObjectId('...'), name:"old boots", bonus:0},
-	   { qty:1, id:ObjectId('...'), name:"quarterstaff", bonus:2},
-	   { qty:523, id:ObjectId('...'), name:"gold" } ]
+	   { qty:1, id:ObjectId('...'), name:"quarterstaff", bonus:2} ]
    }
 
 There are a few things to note about this document. First, information
@@ -126,35 +127,321 @@ query to fetch item details necessary for display.
 Operations
 ----------
 
-TODO: summary of the operations section
+In an online gaming system with the character state stored in a single document,
+the primary operations you'll be performing are querying for the character state
+document by ``_id``, extracting relevant data for display, and updating various
+attributes about the character. This section describes procedures for performing
+these queries, extractions, and updates.
 
 The examples that follow use the Python programming language and the
 :api:`PyMongo <python/current>` :term:`driver` for MongoDB, but you
 can implement this system using any language you choose.
 
-Operation 1
-~~~~~~~~~~~
+Load Character Data from MongoDB
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-TODO: describe what the operation is (optional)
+The most basic operation in this system is loading the character state.
 
 Query
 `````
 
-TODO: describe query
+Use the following query to load the user document from MongoDB:
+
+.. code-block:: pycon
+
+   >>> character = db.characters.find_one({'_id': user_id})
 
 Index Support
 `````````````
 
-TODO: describe indexes to optimize this query
+In this case, the default index that MongoDB supplies on the ``_id`` field is
+sufficient for good performance of this query.
+
+Extract Armor and Weapon Data for Display
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In order to save space, the schema described above stores item details only in
+the ``inventory`` attribute, storing ``ObjectId``\ s in other locations. To display
+these item details, as on a character summary window, you need to merge the
+information from the ``armor`` and ``weapons`` attributes with information from
+the ``inventory`` attribute.
+
+Suppose, for instance, that your code is displaying the armor data using the
+following Jinja2 template:
+
+.. code-block:: html
+
+   <div>
+     <h2>Armor</h2>
+     <dl>
+       {% if value.head %}
+         <dt>Helmet</dt>
+         <dd>{{value.head[0].description}}</dd>
+       {% endif %}
+       {% if value.hands %}
+         <dt>Gloves</dt>
+         <dd>{{value.hands[0].description}}</dd>
+       {% endif %}
+       {% if value.feet %}
+         <dt>Boots</dt>
+         <dd>{{value.feet[0].description}}</dd>
+       {% endif %}
+       {% if value.body %}
+         <dt>Body Armor</dt>
+         <dd><ul>{% for piece in value.body %}
+           <li>piece.description</li>
+         {% endfor %}</ul></dd>
+       {% endif %}
+    </dl>
+   </dd>
+
+In this case, you want the various ``description`` fields above to be text
+similar to "+3 wizard's hat." The context passed to the template above, then,
+would be of the following form:
+
+.. code-block:: python
+
+   {
+       "head": [ { "id":..., "description": "+3 wizard's hat" } ],
+       "hands": [],
+       "feet": [ { "id":..., "description": "old boots" } ],
+       "body": [ { "id":..., "description": "wizard's robe" } ],
+   }
+
+In order to build up this structure, use the following helper functions:
+
+.. code-block:: python
+
+   def get_item_index(inventory):
+       '''Given an inventory attribute, recursively build up an item
+       index (including all items contained within other items)
+       '''
+
+       result = {}
+       for item in inventory:
+           result[item['_id']] = item
+           if 'contents' in item:
+               result.update(get_item_index(item['contents']))
+       return result
+
+   def describe_item(item):
+       result = dict(item)
+       if item['bonus']:
+           description = '%+d %s' % (item['bonus'], item['name'])
+       else:
+           description = item['name']
+       result['description'] = description
+       return result
+
+   def get_armor_for_display(character, item_index):
+       '''Given a character document, return an 'armor' value
+       suitable for display'''
+
+       result = dict(head=[], hands=[], feet=[], body=[])
+       for piece in character['armor']:
+           item = describe_item(item_index[piece['id']])
+           result[piece['region']].append(item)
+       return result
+
+In order to actually display the armor, then, you would use the following code:
+
+.. code-block:: pycon
+
+   >>> item_index = get_item_index(
+   ...     character['inventory'] + character['location']['contents'])
+   >>> armor = get_armor_for_dislay(character, item_index)
+
+Note in particular that you are building an index not only for the items the
+character is actually carrying in inventory, but also for the items that the user
+might interact with in the room.
+
+Similarly, in order to display the weapon information, you need to build a
+structure such as the following:
+
+.. code-block:: python
+
+   {
+       "left": None,
+       "right": None,
+       "both": { "description": "+2 quarterstaff" }
+   }
+
+The helper function is similar to that for ``get_armor_for_display``:
+
+.. code-block:: python
+
+   def get_weapons_for_display(character, item_index):
+       '''Given a character document, return a 'weapons' value
+       suitable for display'''
+
+       result = dict(left=None, right=None, both=None)
+       for piece in character['weapons']:
+           item = describe_item(item_index[piece['id']])
+           result[piece['hand']] = item
+       return result
+
+In order to actually display the weapons, then, you would use the following code:
+
+.. code-block:: pycon
+
+   >>> armor = get_weapons_for_dislay(character, item_index)
+
+Extract Character Attributes, Inventory, and Room Information for Display
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In order to display information about the character's attributes, inventory, and
+surroundings, you also need to extract fields from the character state. In this
+case, however, the schema defined above keeps all the relevant information for
+display embedded in those sections of the document. The code for extracting this
+data, then, is the following:
+
+.. code-block:: pycon
+
+   >>> attributes = character['character']
+   >>> inventory = character['inventory']
+   >>> room_data = character['location']
+
+Update Character Inventory
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In your game, suppose the user decides to pick up an item from the room and add
+it to their inventory. In this case, you need to update both the character state
+and the global location state:
+
+.. code-block:: python
+
+   def pick_up_item(character, item_index, item_id):
+       '''Transfer an item from the current room to the character's inventory'''
+
+       item = item_index[item_id]
+       character['inventory'].append(item)
+       db.character.update(
+           { '_id': character['_id'] },
+           { '$push': { 'inventory': item },
+             '$pull': { 'location.contents': { '_id': item['id'] } } })
+       db.location.update(
+           { '_id': character['location']['id'] },
+           { '$pull': { 'contents': { 'id': item_id } } })
+
+While the above code may be for a single-player game, if you allow multiple
+players, or non-player characters, to pick up items, that introduces a problem in
+the above code where two characters may try to pick up an item simultaneously. To
+guard against that, use the ``location`` collection to decide between ties. In
+this case, the code is now the following:
+
+.. code-block:: python
+
+   def pick_up_item(character, item_index, item_id):
+       '''Transfer an item from the current room to the character's inventory'''
+
+       item = item_index[item_id]
+       character['inventory'].append(item)
+       result = db.location.update(
+           { '_id': character['location']['id'],
+             'contents.id': item_id },
+           { '$pull': { 'contents': { 'id': item_id } } },
+           safe=True)
+        if not result['updatedExisting']:
+            raise Conflict()
+       db.character.update(
+           { '_id': character['_id'] },
+           { '$push': { 'inventory': item },
+             '$pull': { 'location': { '_id': item['id'] } } })
+
+By ensuring that the item is present before removing it from the room in the
+``update`` call above, you guarantee that only one player/non-player
+character/monster can pick up the item.
+
+Move the Character to a Different Room
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In your game, suppose the user decides to move north. In this case, you need to
+update the character state to match the new location:
+
+.. code-block:: python
+
+   def move(character, direction):
+       '''Move the character to a new location'''
+
+       # Remove character from current location
+       db.location.update(
+           {'_id': character['location']['id'] },
+           {'$pull': {'players': {'id': character['_id'] } } })
+       # Add character to new location, retrieve new location data
+       new_location = db.location.find_and_modify(
+           { '_id': character['location']['exits'][direction] },
+           { '$push': { 'players': {
+               'id': character['_id'],
+               'name': character['name'] } } },
+           new=True)
+       character['location'] = new_location
+       db.character.update(
+           { '_id': character['_id'] },
+           { '$set': { 'location': new_location } })
+
+Here, note that the code updates the old room, the new room, and the character
+document.
+
+Buy an Item
+~~~~~~~~~~~
+
+If your character wants to buy an item, you need to add that item to the
+character's inventory, decrement the character's gold, increment the shopkeeper's
+gold, and update the room:
+
+.. code-block:: python
+
+   def buy(character, shopkeeper, item_id, price):
+       '''Pick up an item, add to the character's inventory, and transfer
+       payment to the shopkeeper
+       '''
+
+       result = db.character.update(
+           { '_id': character['_id'],
+             'gold': { '$gte': price } },
+           { '$inc': { 'gold': -price } },
+           safe=True )
+       if not result['updatedExisting']:
+            raise InsufficientFunds()
+       try:
+           pick_up_item(character, item_id)
+       except:
+           # Add the gold back to the character
+           result = db.character.update(
+               { '_id': character['_id'] },
+               { '$inc': { 'gold': price } } )
+           raise
+       character['gold'] -= price
+       db.character.update(
+           { '_id': shopkeeper['_id'] },
+           { '$inc': { 'gold': price } } )
+
+Note that the code above ensures that the character has sufficent gold to pay for
+the item using the ``updatedExisting`` trick used for picking up items. The race
+condition for item pickup is handled as well, "rolling back" the removal of gold
+from the character's wallet if the item cannot be picked up.
 
 Sharding
 --------
 
-Eventually your system's events will exceed the capacity of a single
-event logging database instance. In these situations you will want to
+If your system needs to scale beyond a single MongoDB node, you will want to
 use a :term:`shard cluster`, which takes advantage of MongoDB's
-:term:`sharding` functionality. This section introduces the unique
-sharding concerns for this use case.
+:term:`sharding` functionality.
 
 .. seealso:: ":doc:`/faq/sharding`" and the ":wiki:`Sharding` wiki
    page.
+
+Sharding in this use case is fairly
+straightforward, since all our items are always retrieved by ``_id``. To shard
+the ``character`` and ``location`` collections, the commands would be the
+following:
+
+.. code-block:: pycon
+
+   >>> db.command('shardcollection', 'character')
+   { "collectionsharded" : "character", "ok" : 1 }
+   >>> db.command('shardcollection', 'location'))
+   { "collectionsharded" : "location", "ok" : 1 }
+
+Note that there is no need here to specify a :term:`shard key` since MongoDB
+shards on ``_id`` by default.
