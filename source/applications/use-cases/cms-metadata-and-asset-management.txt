@@ -1,15 +1,18 @@
-==================================
-CMS: Metadata and Asset Management
-==================================
+========================================================
+Content Management System: Metadata and Asset Management
+========================================================
+
+Overview
+--------
 
 Problem
-=======
+~~~~~~~
 
 You are designing a content management system (CMS) and you want to use
 MongoDB to store the content of your sites.
 
-Solution Overview
-=================
+Solution
+~~~~~~~~
 
 The approach in this solution is inspired by the design of Drupal, an
 open source CMS written in PHP on relational databases that is available
@@ -36,8 +39,8 @@ Photo
     description, author, and date along with the actual photo binary
     data.
 
-Schema Design
-=============
+Schema
+~~~~~~
 
 The node collection contains documents of various formats, but they
 will all share a similar structure, with each document including an
@@ -125,7 +128,7 @@ NOte that the "normal" node schema is embedded here in the photo schema, allowin
 the use of the same code to manipulate nodes of all types.
 
 Operations
-==========
+----------
 
 Here, some common queries and updates that you might need for your CMS are
 described, paying particular attention to any "tweaks" necessary for the various
@@ -134,7 +137,10 @@ programming language and the ``pymongo`` MongoDB driver, but implementations
 would be similar in other languages as well.
 
 Create and Edit Content Nodes
------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Procedure
+`````````
 
 The content producers using your CMS will be creating and editing content
 most of the time. Most content-creation activities are relatively
@@ -188,7 +194,7 @@ In this case, you don't actually need to supply the nonce (nor update it)
 since you're using the atomic ``$addToSet`` modifier in MongoDB.
 
 Index Support
-~~~~~~~~~~~~~
+`````````````
 
 Updates in this case are based on equality queries containing the
 (``section``, ``slug``, and ``nonce``) values. To support these queries, you
@@ -214,7 +220,10 @@ first index and can use only the second one to satisfy the update queries as
 well.
 
 Upload a Photo
---------------
+~~~~~~~~~~~~~~
+
+Procedure
+`````````
 
 Uploading photos shares some things in common with node
 update, but it also has some extra nuances:
@@ -294,7 +303,7 @@ tags without the extra complexity:
             'metadata.tags': { '$each': [ 'interesting', 'funny' ] } } })
 
 Index Support
-~~~~~~~~~~~~~
+`````````````
 
 Updates here are also based on equality queries containing the
 (``section``, ``slug``) values, so you can use the same types of indexes as were
@@ -309,7 +318,7 @@ the file simultaneously.
     ...    ('metadata.section', 1), ('metadata.slug', 1)], unique=True)
 
 Locate and Render a Node
-------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 You need to be able to locate a node based on its section and slug, which
 have been extracted from the page definition and URL by some
@@ -320,14 +329,13 @@ other technology.
     node = db.nodes.find_one(
         {'metadata.section': section, 'metadata.slug': slug })
 
-Index Support
-~~~~~~~~~~~~~
+.. note::
 
-The same indexes defined above on (``section``, ``slug``) would
-efficiently render this node.
+   The same indexes defined above on (``section``, ``slug``) would
+   efficiently render this node.
 
 Locate and Render a Photo
--------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You want to locate an image based on its section and slug,
 which have been extracted from the page definition and URL
@@ -340,14 +348,16 @@ just as with other nodes.
         **{'metadata.section': section, 'metadata.slug': slug }) as img_fp:
        # do something with the image file
 
-Index Support
-~~~~~~~~~~~~~
+.. note::
 
-The same indexes defined above on (``section``, ``slug``) would also
-efficiently render this image.
+   The same indexes defined above on (``section``, ``slug``) would
+   also efficiently render this image.
 
 Search for Nodes by Tag
------------------------
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Querying
+````````
 
 You'd like to retrieve a list of nodes based on their tags:
 
@@ -355,8 +365,8 @@ You'd like to retrieve a list of nodes based on their tags:
 
     nodes = db.nodes.find({'metadata.tags': tag })
 
-Index Support
-~~~~~~~~~~~~~
+Indexing
+````````
 
 To support searching efficiently, you should define indexes on any fields
 you intend on using in your query:
@@ -366,7 +376,10 @@ you intend on using in your query:
     >>> db.cms.nodes.ensure_index('tags')
 
 Search for Images by Tag
-------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Procedure
+`````````
 
 Here, you'd like to retrieve a list of images based on their tags:
 
@@ -379,8 +392,8 @@ Here, you'd like to retrieve a list of images based on their tags:
         image_file = fs.get(image_file_object['_id'])
         # do something with the image file
 
-Index Support
-~~~~~~~~~~~~~
+Indexing
+````````
 
 As above, in order to support searching efficiently, you should define
 indexes on any fields you expect to use in the query:
@@ -390,7 +403,10 @@ indexes on any fields you expect to use in the query:
     >>> db.cms.assets.files.ensure_index('tags')
 
 Generate a Feed of Recently Published Blog Articles
----------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Querying
+````````
 
 Here, you need to generate an .rss or .atom feed for your recently
 published blog articles, sorted by date descending:
@@ -402,8 +418,8 @@ published blog articles, sorted by date descending:
         'metadata.published': { '$lt': datetime.utcnow() } })
     articles = articles.sort({'metadata.published': -1})
 
-Index Support
-~~~~~~~~~~~~~
+Indexing
+````````
 
 In order to support this operation, you'll need to create an index on (``section``,
 ``published``) so the items are 'in order' for the query. Note that in cases
@@ -417,17 +433,17 @@ index:
     ...     [ ('metadata.section', 1), ('metadata.published', -1) ])
 
 Sharding
-========
+--------
 
 In a CMS system, read performance is generally much more important
-than write performance. As such, you'll want to optimize the sharding setup
-for read performance. In order to achieve the best read performance, you
-need to ensure that queries are *routeable* by the mongos process. A
-second consideration when sharding is that unique indexes do not span
-shards. As such, the shard key must include the unique indexes in order to get
-the same semantics as described above. Given
-these constraints, sharding the nodes and assets on (``section``, ``slug``)
-is a reasonable approach:
+than write performance. As such, you'll want to optimize the sharding
+setup for read performance. In order to achieve the best read
+performance, you need to ensure that queries are *routeable* by the
+mongos process. A second consideration when sharding is that unique
+indexes do not span shards. As such, the shard key must include the
+unique indexes in order to get the same semantics as described
+above. Given these constraints, sharding the nodes and assets on
+(``section``, ``slug``) is a reasonable approach:
 
 .. code-block:: python
 
