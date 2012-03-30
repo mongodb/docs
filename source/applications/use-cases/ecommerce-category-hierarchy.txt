@@ -2,21 +2,25 @@
 E-Commerce: Category Hierarchy
 ==============================
 
+.. default-domain:: mongodb
+
 Overview
 --------
 
-Problem
-~~~~~~~
+This document provides the basic design for modeling a product
+hierarchy stored in MongoDB as well as a collection of common
+operations for interacting with this data that will help you begin to
+write an E-commerce product category hierarchy.
 
-You have a product hierarchy for an e-commerce site that you want to
-query frequently and update somewhat frequently.
+.. seealso:: ":doc:`/applications/use-cases/ecommerce-product-catalog`"
 
 Solution
-~~~~~~~~
+--------
 
-This solution keeps each category in its own document, along with a
-list of its ancestors. The category hierarchy used in this example
-will be based on different categories of music:
+To model a product category hierarchy, this solution keeps each
+category in its own document that also has list of its ancestors or
+"parents." This document uses music genres as the basis of its
+examples:
 
 .. figure:: img/ecommerce-category1.png
    :align: center
@@ -24,43 +28,51 @@ will be based on different categories of music:
 
    Initial category hierarchy
 
-Since categories change relatively infrequently, the focus here will
-be on the operations needed to keep the hierarchy up-to-date and less
-on the performance aspects of updating the hierarchy.
+Because these kinds of categories change infrequently, this model
+focuses on the operations needed to keep the hierarchy up-to-date
+rather than the performance profile of update operations.
 
 Schema
-~~~~~~
+------
 
-Each category in the hierarchy will be represented by a document. That
-document will be identified by an ``ObjectId`` for internal
-cross-referencing as well as a human-readable name and a url-friendly
-``slug`` property. Additionally, the schema stores an ancestors list
-along with each document to facilitate displaying a category along
-with all its ancestors in a single query.
+This schema has the following properties:
+
+- A single document represents each category in the hierarchy.
+
+- An ``ObjectId`` identifies each category document for internal
+  cross-referencing.
+
+- Each category document has a human-readable name and a
+  URL compatible ``slug`` field.
+
+- The schema stores a list of for each category to facilitate
+  displaying a query and its ancestors using only a single query.
+
+Consider the following prototype:
 
 .. code-block:: javascript
 
-    { "_id" : ObjectId("4f5ec858eb03303a11000002"),
-      "name" : "Modal Jazz",
-      "parent" : ObjectId("4f5ec858eb03303a11000001"),
-      "slug" : "modal-jazz",
-      "ancestors" : [
-             { "_id" : ObjectId("4f5ec858eb03303a11000001"),
-            "slug" : "bop",
-            "name" : "Bop" },
-             { "_id" : ObjectId("4f5ec858eb03303a11000000"),
-               "slug" : "ragtime",
-               "name" : "Ragtime" } ]
-    }
+   { "_id" : ObjectId("4f5ec858eb03303a11000002"),
+     "name" : "Modal Jazz",
+     "parent" : ObjectId("4f5ec858eb03303a11000001"),
+     "slug" : "modal-jazz",
+     "ancestors" : [
+            { "_id" : ObjectId("4f5ec858eb03303a11000001"),
+           "slug" : "bop",
+           "name" : "Bop" },
+            { "_id" : ObjectId("4f5ec858eb03303a11000000"),
+              "slug" : "ragtime",
+              "name" : "Ragtime" } ]
+   }
 
 Operations
 ----------
 
-Here, the various category manipulations you may need in an ecommerce
-site are described as they would occur using the schema above. The
-examples use the Python programming language and the ``pymongo``
-MongoDB driver, but implementations would be similar in other
-languages as well.
+This section outlines the category hierarchy manipulations that you
+may need in an E-Commerce site.  All examples in this document use the
+Python programming language and the :api:`PyMongo <python/current>`
+:term:`driver` for MongoDB, but you can implement this system using
+any language you choose.
 
 Read and Display a Category
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -68,11 +80,10 @@ Read and Display a Category
 Querying
 ````````
 
-The simplest operation is reading and displaying a hierarchy. In this
-case, you might want to display a category along with a list of "bread
-crumbs" leading back up the hierarchy. In an E-commerce site, you'll
-most likely have the slug of the category available for your query, as
-it can be parsed from the URL.
+Use the following option to read and display a category
+hierarchy. This query will use the ``slug`` field to return the
+category information and a "bread crumb" trail from the current
+category to the top level category.
 
 .. code-block:: python
 
@@ -80,25 +91,21 @@ it can be parsed from the URL.
         {'slug':slug},
         {'_id':0, 'name':1, 'ancestors.slug':1, 'ancestors.name':1 })
 
-Here, the slug is used to retrieve the category, fetching only those
-fields needed for display.
-
 Indexing
 ````````
 
-In order to support this common operation efficiently, you'll need an
-index on the 'slug' field. Since slug is also intended to be unique,
-the index over it should be unique as well:
+Create a unique index on the ``slug`` field with the following
+operation on the Python/PyMongo console:
 
-.. code-block:: python
+.. code-block:: pycon
 
-    db.categories.ensure_index('slug', unique=True)
+   >>> db.categories.ensure_index('slug', unique=True)
 
 Add a Category to the Hierarchy
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Adding a category to a hierarchy is relatively simple. Suppose you
-wish to add a new category 'Swing' as a child of 'Ragtime':
+To add a category you must first determine its ancestors. Take adding
+a new category "Swing" as a child of "Ragtime", as below:
 
 .. figure:: img/ecommerce-category2.png
    :align: center
@@ -106,31 +113,31 @@ wish to add a new category 'Swing' as a child of 'Ragtime':
 
    Adding a category
 
-In this case, the initial insert is simple enough, but after this
-insert, the "Swing" category is still missing its ancestors array. To
-define this, you'll need a helper function to build the ancestor list:
+The insert operation would trivial except for the ancestors. To define
+this array, consider the following helper function:
 
 .. code-block:: python
 
-    def build_ancestors(_id, parent_id):
-        parent = db.categories.find_one(
-            {'_id': parent_id},
-            {'name': 1, 'slug': 1, 'ancestors':1})
-        parent_ancestors = parent.pop('ancestors')
-        ancestors = [ parent ] + parent_ancestors
-        db.categories.update(
-            {'_id': _id},
-            {'$set': { 'ancestors': ancestors } })
+   def build_ancestors(_id, parent_id):
+       parent = db.categories.find_one(
+           {'_id': parent_id},
+           {'name': 1, 'slug': 1, 'ancestors':1})
+       parent_ancestors = parent.pop('ancestors')
+       ancestors = [ parent ] + parent_ancestors
+       db.categories.update(
+           {'_id': _id},
+           {'$set': { 'ancestors': ancestors } })
 
-Note that you only need to travel one level in the hierarchy to get the
-ragtime's ancestors and build swing's entire ancestor list. Now you can
-actually perform the insert and rebuild the ancestor list:
+You only need to travel "up" one level in the hierarchy to get the
+ancestor list for "Ragtime" that you can use to build the ancestor
+list for "Swing." Then create ate document with the following set of
+operations:
 
 .. code-block:: python
 
-    doc = dict(name='Swing', slug='swing', parent=ragtime_id)
-    swing_id = db.categories.insert(doc)
-    build_ancestors(swing_id, ragtime_id)
+   doc = dict(name='Swing', slug='swing', parent=ragtime_id)
+   swing_id = db.categories.insert(doc)
+   build_ancestors(swing_id, ragtime_id)
 
 .. note::
 
@@ -141,11 +148,8 @@ actually perform the insert and rebuild the ancestor list:
 Change the Ancestry of a Category
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Procedure
-`````````
-
-Suppose you wish to reorganize the hierarchy by moving 'bop' under
-'swing':
+This section address the process for reorganizing the hierarchy by
+moving "bop" under "swing" as follows:
 
 .. figure:: img/ecommerce-category3.png
    :align: center
@@ -153,18 +157,19 @@ Suppose you wish to reorganize the hierarchy by moving 'bop' under
 
    Change the parent of a category
 
-The initial update is straightforward:
+Procedure
+`````````
+
+Update the ``bop`` document to reflect the change in ancestry with the
+following operation:
 
 .. code-block:: python
 
     db.categories.update(
         {'_id':bop_id}, {'$set': { 'parent': swing_id } } )
 
-Now, you still need to update the ancestor list for bop and all its
-descendants. In this case, you can't guarantee that the ancestor list
-of the parent category is always correct, since MongoDB may process
-the categories out-of-order. To handle this, you'll need a new
-ancestor-building function:
+The following helper function, rebuilds the ancestor fields to ensure
+correctness. [#update-correctness]_
 
 .. code-block:: python
 
@@ -180,8 +185,8 @@ ancestor-building function:
             {'_id': _id},
             {'$set': { 'ancestors': ancestors } })
 
-Now, at the expense of a few more queries up the hierarchy, you can
-easily reconstruct all the descendants of 'bop':
+You can use the following loop to reconstruct all the descendants of
+the "bop" category:
 
 .. code-block:: python
 
@@ -190,22 +195,26 @@ easily reconstruct all the descendants of 'bop':
         {'parent_id': 1}):
         build_ancestors_full(cat['_id'], cat['parent_id'])
 
+.. [#update-correctness] Your application cannot guarantee that the
+   ancestor list of a parent category is correct, because MongoDB may
+   process the categories out-of-order.
+
 Indexing
 ````````
 
-In this case, an index on ``ancestors._id`` would be helpful in
-determining which descendants need to be updated:
+Create an index on the ``ancestors._id`` field to support the update
+operation.
 
 .. code-block:: python
 
-    db.categories.ensure_index('ancestors._id')
+   db.categories.ensure_index('ancestors._id')
 
 Rename a Category
 ~~~~~~~~~~~~~~~~~
 
-Renaming a category would normally be an extremely quick operation,
-but in this case due to denormalization, you also need to update the
-descendants. Suppose you need to rename "Bop" to "BeBop:"
+To a rename a category you need to both update the category itself and
+also update all the descendants. Consider renaming "Bop" to
+"BeBop" as in the following figure:
 
 .. figure:: img/ecommerce-category4.png
    :align: center
@@ -213,26 +222,28 @@ descendants. Suppose you need to rename "Bop" to "BeBop:"
 
    Rename a category
 
-First, you need to update the category name itself:
+First, you need to update the category name with the following operation:
 
 .. code-block:: python
 
-    db.categories.update(
-        {'_id':bop_id}, {'$set': { 'name': 'BeBop' } } )
+   db.categories.update(
+       {'_id':bop_id}, {'$set': { 'name': 'BeBop' } } )
 
 Next, you need to update each descendant's ancestors list:
 
 .. code-block:: python
 
-    db.categories.update(
-        {'ancestors._id': bop_id},
-        {'$set': { 'ancestors.$.name': 'BeBop' } },
-        multi=True)
+   db.categories.update(
+       {'ancestors._id': bop_id},
+       {'$set': { 'ancestors.$.name': 'BeBop' } },
+       multi=True)
 
-Here, you can use the positional operation ``$`` to match the exact
-"ancestor" entry that matches the query, as well as the ``multi``
-option on the update to ensure the rename operation occurs in a single
-server round-trip.
+This operation uses:
+
+- the positional operation ``$`` to match the exact "ancestor" entry
+  that matches the query, and
+
+- the ``multi`` option to update all documents that match this query.
 
 .. note::
 
@@ -242,11 +253,11 @@ server round-trip.
 Sharding
 --------
 
-In this solution, it is unlikely that you would want to shard the
-collection since it's likely to be quite small. If you *should* decide
-to shard, the use of an ``_id`` field for most updates makes it an
-ideal sharding candidate. The sharding commands you'd use to shard the
-category collection would then be the following:
+For most deployments, :term:`sharding <shard>` this collection has
+limited value because the collection will be very small. If you do
+need to shard, because most updates query the ``_id`` field, this
+field is a suitable :term:`shard key`. Shard the collection with the
+following operation in the Python/PyMongo console.
 
 .. code-block:: python
 

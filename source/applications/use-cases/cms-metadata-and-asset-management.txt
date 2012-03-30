@@ -1,56 +1,58 @@
-========================================================
+l========================================================
 Content Management System: Metadata and Asset Management
 ========================================================
+
+.. default-domain:: mongodb
 
 Overview
 --------
 
+This document describes the design and pattern of a content management
+system using MongoDB modeled on the popular `Drupal <http://www.drupal.org>`_
+CMS.
+
 Problem
 ~~~~~~~
 
-You are designing a content management system (CMS) and you want to use
-MongoDB to store the content of your sites.
+You are designing a content management system (CMS) and you want to
+use MongoDB to store the content of your sites.
 
 Solution
 ~~~~~~~~
 
-The approach in this solution is inspired by the design of Drupal, an
-open source CMS written in PHP on relational databases that is available
-at `http://www.drupal.org <http://www.drupal.org>`_. In this case, you
-will take advantage of MongoDB's dynamically typed collections to
-*polymorphically* store all your content nodes in the same collection.
-Navigational information will be stored in its own collection since
-it has relatively little in common with the content nodes, and is not covered in
-this use case.
+To build this system you will use MongoDB's flexible schema to store
+all content "nodes" in a single collection regardless of type. This
+guide will provide prototype schema and describe common operations for
+the following primary node types:
 
-The main node types which are covered here are:
+- **Basic Page**.
 
-Basic page
-    Basic pages are useful for displaying
-    infrequently-changing text such as an 'about' page. With a basic
-    page, the salient information is the title and the
-    content.
-Blog entry
-    Blog entries record a "stream" of posts from users
-    on the CMS and store title, author, content, and date as relevant
-    information.
-Photo
-    Photos participate in photo galleries, and store title,
-    description, author, and date along with the actual photo binary
-    data.
+  Basic pages are useful for displaying
+  infrequently-changing text such as an 'about' page. With a basic
+  page, the salient information is the title and the
+  content.
+
+- **Blog entry**.
+
+  Blog entries record a "stream" of posts from users
+  on the CMS and store title, author, content, and date as relevant
+  information.
+
+- **Photo**
+
+  Photos participate in photo galleries, and store title, description,
+  author, and date along with the actual photo binary data.
+
+This solution does not describe schema or process for storing or using
+navigational and organizational information.
 
 Schema
 ~~~~~~
 
-The node collection contains documents of various formats, but they
-will all share a similar structure, with each document including an
-``_id``, ``type``, ``section``, ``slug``, ``title``, ``created`` date,
-``author``, and ``tags``. The
-``section`` property is used to identify groupings of items (grouped to a
-particular blog or photo gallery, for instance). The ``slug`` property is
-a url-friendly representation of the node that is unique within its
-section, and is used for mapping URLs to nodes. Each document also
-contains a ``detail`` field which will vary per document type:
+Although :term:`documents <document>` in the "``nodes``" collection
+contain content of different times, all documents have a similar
+structure and a set of common fields. Consider the following
+prototype document for a "basic page" node type:
 
 .. code-block:: javascript
 
@@ -69,36 +71,41 @@ contains a ``detail`` field which will vary per document type:
         }
     }
 
-For the basic page above, the detail field might simply contain the text
-of the page. In the case of a blog entry, the document might resemble
-the following instead:
+Most fields are descriptively titled. The ``section`` field identifies
+groupings of items, as in a photo gallery, or a particular blog . The
+``slug`` field holds a URL-friendly unique representation of the node,
+usually that is unique within its section for generating URLs.
+
+All documents also have a ``detail`` field that varies with the
+document type. For the basic page above, the detail field might hold
+the the text of the page. For a blog entry, the ``detail`` field might
+hold a sub-document. Consider the following prototype:
 
 .. code-block:: javascript
 
-    {
-        …
-        metadata: {
-            …
-            type: 'blog-entry',
-            section: 'my-blog',
-            slug: '2012-03-noticed-the-news',
-            …
-            detail: {
-                publish_on: ISODate(…),
-                text: 'I noticed the news from Washington today…'
-            }
-        }
-    }
+   {
+       …
+       metadata: {
+           …
+           type: 'blog-entry',
+           section: 'my-blog',
+           slug: '2012-03-noticed-the-news',
+           …
+           detail: {
+               publish_on: ISODate(…),
+               text: 'I noticed the news from Washington today…'
+           }
+       }
+   }
 
-Photos present something of a special case. Since you'll need to store
-potentially very large photos, it's nice to be able to separate the binary
-storage of photo data from the metadata storage. GridFS provides just such a
-mechanism, splitting a "filesystem" of potentially very large "files" into
-two collections, the ``files`` collection and the ``chunks`` collection. In
-this case, the two collections will be called ``cms.assets.files`` and
-``cms.assets.chunks``. Documents in the ``cms.assets.files``
-collection will be used to store the normal GridFS metadata as well as CMS node
-metadata:
+Photos require a different approach. Because photos can be potentially
+large these documents, it's important to separate the binary photo
+storage from the nodes metadata. :term:`GridFS` provides the ability
+to store larger files in MongoDB.  GridFS stores data in two
+collections, in this case, ``cms.assets.files``, which stores
+metadata, and ``cms.assets.chunks`` which stores the data
+itself. Consider the following prototype document from the
+``cms.assets.files`` collection:
 
 .. code-block:: javascript
 
@@ -124,17 +131,20 @@ metadata:
         }
     }
 
-NOte that the "normal" node schema is embedded here in the photo schema, allowing
-the use of the same code to manipulate nodes of all types.
+.. note::
+
+   This document embends the basic node document fields, which allows
+   you to use the same code to manipulate nodes, regardless of type.
 
 Operations
 ----------
 
-Here, some common queries and updates that you might need for your CMS are
-described, paying particular attention to any "tweaks" necessary for the various
-node types. The examples use the Python
-programming language and the ``pymongo`` MongoDB driver, but implementations
-would be similar in other languages as well.
+This section outlines a number of common operations for building and
+interacting with the metadata and asset layer of the cms for all node
+types.  All examples in this document use the Python programming
+language and the :api:`PyMongo <python/current>` :term:`driver` for
+MongoDB, but you can implement this system using any language you
+choose.
 
 Create and Edit Content Nodes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -142,46 +152,46 @@ Create and Edit Content Nodes
 Procedure
 `````````
 
-The content producers using your CMS will be creating and editing content
-most of the time. Most content-creation activities are relatively
-straightforward:
+The most common operations inside of a CMS center on creating and
+editing content. Consider the following :py:meth:`<pymongo:pymongo.collection.Collection.insert>`
+operation:
 
 .. code-block:: python
 
-    db.cms.nodes.insert({
-        'nonce': ObjectId(),
-        'metadata': {
-            'section': 'myblog',
-            'slug': '2012-03-noticed-the-news',
-            'type': 'blog-entry',
-            'title': 'Noticed in the News',
-            'created': datetime.utcnow(),
-            'author': { 'id': user_id, 'name': 'Rick' },
-            'tags': [ 'news', 'musings' ],
-            'detail': {
-                'publish_on': datetime.utcnow(),
-                'text': 'I noticed the news from Washington today…' }
-            }
-         })
+   db.cms.nodes.insert({
+       'nonce': ObjectId(),
+       'metadata': {
+           'section': 'myblog',
+           'slug': '2012-03-noticed-the-news',
+           'type': 'blog-entry',
+           'title': 'Noticed in the News',
+           'created': datetime.utcnow(),
+           'author': { 'id': user_id, 'name': 'Rick' },
+           'tags': [ 'news', 'musings' ],
+           'detail': {
+               'publish_on': datetime.utcnow(),
+               'text': 'I noticed the news from Washington today…' }
+           }
+        })
 
-Once the node is in the database, there is a potential problem with
-multiple editors. In order to support this, the schema uses the special ``nonce``
-value to detect when another editor may have modified the document and
-allow the application to resolve any conflicts:
+Once inserted, your application must have some way of preventing
+multiple concurrent applications. The schema uses the special
+``nonce`` field which makes it possible for the application to detect
+concurrent edits. Consider the following :py:meth:`update <pymongo:pymongo.collection.Collection.update>`
 
 .. code-block:: python
 
-    def update_text(section, slug, nonce, text):
-        result = db.cms.nodes.update(
-            { 'metadata.section': section,
-              'metadata.slug': slug,
-              'nonce': nonce },
-            { '$set':{'metadata.detail.text': text, 'nonce': ObjectId() } },
-            safe=True)
-        if not result['updatedExisting']:
-            raise ConflictError()
+   def update_text(section, slug, nonce, text):
+       result = db.cms.nodes.update(
+           { 'metadata.section': section,
+             'metadata.slug': slug,
+             'nonce': nonce },
+           { '$set':{'metadata.detail.text': text, 'nonce': ObjectId() } },
+           safe=True)
+       if not result['updatedExisting']:
+           raise ConflictError()
 
-You might also want to perform metadata edits to the item such as adding
+You can perform You might also want to perform metadata edits to the item such as adding
 tags:
 
 .. code-block:: python
@@ -190,34 +200,33 @@ tags:
         { 'metadata.section': section, 'metadata.slug': slug },
         { '$addToSet': { 'tags': { '$each': [ 'interesting', 'funny' ] } } })
 
-In this case, you don't actually need to supply the nonce (nor update it)
-since you're using the atomic ``$addToSet`` modifier in MongoDB.
+Because the :operator:`$addToSet` operator is atomic, there's no need
+to supply or update the nonce.
 
 Index Support
 `````````````
 
-Updates in this case are based on equality queries containing the
-(``section``, ``slug``, and ``nonce``) values. To support these queries, you
-*might* use the following index:
+To support updates and queries on the ``metadata.section``, and
+``metadata.slug``, fields *and* to ensure that two editors don't
+create two documents with the same section name or slug. Use the
+following operation at the Python/PyMongo console:
 
-.. code-block:: python
+.. code-block:: pycon
 
-    >>> db.cms.nodes.ensure_index([
-    ...    ('metadata.section', 1), ('metadata.slug', 1), ('nonce', 1) ])
+   >>> db.cms.nodes.ensure_index([
+   ...    ('metadata.section', 1), ('metadata.slug', 1)], unique=True)
 
-Also note, however, that you'd like to ensure that two editors don't
-create two documents with the same section and slug. To support this, you need a
-second index with a unique constraint:
+The ``unique=True`` option prevents to documents from colliding. If
+you want an index to support queries on the above fields and the
+``nonce`` field create the following index:
 
-.. code-block:: python
+.. code-block:: pycon
 
-    >>> db.cms.nodes.ensure_index([
-    ...    ('metadata.section', 1), ('metadata.slug', 1)], unique=True)
+   >>> db.cms.nodes.ensure_index([
+   ...    ('metadata.section', 1), ('metadata.slug', 1), ('nonce', 1) ])
 
-In fact, since the expectation is that most of the time (``section``, ``slug``,
-``nonce``) is going to be unique, you don't actually get much benefit from the
-first index and can use only the second one to satisfy the update queries as
-well.
+However, in most cases, the first index will be sufficient to support
+these operations.
 
 Upload a Photo
 ~~~~~~~~~~~~~~
@@ -225,8 +234,8 @@ Upload a Photo
 Procedure
 `````````
 
-Uploading photos shares some things in common with node
-update, but it also has some extra nuances:
+To update a photo object, use the following operation, which builds
+upon the basic update procedure:
 
 .. code-block:: python
 
@@ -254,104 +263,101 @@ update, but it also has some extra nuances:
             {'_id': upload_file._id},
             {'$set': { 'locked': None } } )
 
-Here, since uploading the photo is a non-atomic operation, you need to
-"lock" the file during upload by writing the current datetime into the
-record. This lets the application detect when a file upload may be stalled, which
-is helpful when working with multiple editors. This solution assumes that, for
-photo upload, the last update wins:
+Because uploading the photo spans multiple documents and is a
+non-atomic operation, you must "lock" the file during upload by
+writing :py:class:`datetime.utcnow() <python:datetime.utcnow>` in the
+record. This helps when there are multiple concurrent editors and
+allows the lets the application detect stalled file uploads. This
+operation assumes that, for photo upload, the last update will
+succeed:
 
 .. code-block:: python
 
-    def update_photo_content(input_file, section, slug):
-        fs = GridFS(db, 'cms.assets')
+   def update_photo_content(input_file, section, slug):
+       fs = GridFS(db, 'cms.assets')
 
-        # Delete the old version if it's unlocked or was locked more than 5
-        #    minutes ago
-        file_obj = db.cms.assets.find_one(
-            { 'metadata.section': section,
-              'metadata.slug': slug,
-              'metadata.locked': None })
-        if file_obj is None:
-            threshold = datetime.utcnow() - timedelta(seconds=300)
-            file_obj = db.cms.assets.find_one(
-                { 'metadata.section': section,
-                  'metadata.slug': slug,
-                  'metadata.locked': { '$lt': threshold } })
-        if file_obj is None: raise FileDoesNotExist()
-        fs.delete(file_obj['_id'])
+       # Delete the old version if it's unlocked or was locked more than 5
+       #    minutes ago
+       file_obj = db.cms.assets.find_one(
+           { 'metadata.section': section,
+             'metadata.slug': slug,
+             'metadata.locked': None })
+       if file_obj is None:
+           threshold = datetime.utcnow() - timedelta(seconds=300)
+           file_obj = db.cms.assets.find_one(
+               { 'metadata.section': section,
+                 'metadata.slug': slug,
+                 'metadata.locked': { '$lt': threshold } })
+       if file_obj is None: raise FileDoesNotExist()
+       fs.delete(file_obj['_id'])
 
-        # update content, keep metadata unchanged
-        file_obj['locked'] = datetime.utcnow()
-        with fs.new_file(**file_obj):
-            while True:
-                chunk = input_file.read(upload_file.chunk_size)
-                if not chunk: break
-                upload_file.write(chunk)
-        # unlock the file
-        db.assets.files.update(
-            {'_id': upload_file._id},
-            {'$set': { 'locked': None } } )
+       # update content, keep metadata unchanged
+       file_obj['locked'] = datetime.utcnow()
+       with fs.new_file(**file_obj):
+           while True:
+               chunk = input_file.read(upload_file.chunk_size)
+               if not chunk: break
+               upload_file.write(chunk)
+       # unlock the file
+       db.assets.files.update(
+           {'_id': upload_file._id},
+           {'$set': { 'locked': None } } )
 
-You can, of course, perform metadata edits to the item such as adding
-tags without the extra complexity:
+As with the basic operations, you can use a much more simple operation
+to edit the tags:
 
 .. code-block:: python
 
-    db.cms.assets.files.update(
-        { 'metadata.section': section, 'metadata.slug': slug },
-        { '$addToSet': {
-            'metadata.tags': { '$each': [ 'interesting', 'funny' ] } } })
+   db.cms.assets.files.update(
+       { 'metadata.section': section, 'metadata.slug': slug },
+       { '$addToSet': { 'metadata.tags': { '$each': [ 'interesting', 'funny' ] } } })
 
 Index Support
 `````````````
 
-Updates here are also based on equality queries containing the
-(``section``, ``slug``) values, so you can use the same types of indexes as were
-used in the "regular" node case. Note in particular that you need a
-unique constraint on (``section``, ``slug``) to ensure that one of the calls to
-``GridFS.new_file()`` will fail if multiple editors try to create or update
-the file simultaneously.
+Create a unique index on ``{ metadata.section: 1, metadata.slug: 1 }``
+to support the above operations and prevent users from creating or
+updating the same file concurrently. Use the following operation in
+the Python/PyMongo console:
 
-.. code-block:: python
+.. code-block:: pycon
 
-    >>> db.cms.assets.files.ensure_index([
-    ...    ('metadata.section', 1), ('metadata.slug', 1)], unique=True)
+   >>> db.cms.assets.files.ensure_index([
+   ...    ('metadata.section', 1), ('metadata.slug', 1)], unique=True)
 
 Locate and Render a Node
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-You need to be able to locate a node based on its section and slug, which
-have been extracted from the page definition and URL by some
-other technology.
+To locate a node based on based on the value of ``metadata.section``
+and ``metadata.slug``, use the following :py:meth:`find_one
+<pymongo:pymongo.collection.Collection.find_one>` operation.
 
 .. code-block:: python
 
-    node = db.nodes.find_one(
-        {'metadata.section': section, 'metadata.slug': slug })
+   node = db.nodes.find_one({'metadata.section': section, 'metadata.slug': slug })
 
 .. note::
 
-   The same indexes defined above on (``section``, ``slug``) would
-   efficiently render this node.
+   The index defined (``section``, ``slug``) created to support the
+   update operation, is sufficient to support this operation as well.
 
 Locate and Render a Photo
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You want to locate an image based on its section and slug,
-which have been extracted from the page definition and URL
-just as with other nodes.
+To locate an image based on the value of ``metadata.section`` and
+``metadata.slug``, use the following :py:meth:`find_one
+<pymongo:pymongo.collection.Collection.find_one>` operation.
 
-.. code-block:: python
+.. code-block:: fs
 
-    fs = GridFS(db, 'cms.assets')
-    with fs.get_version(
-        **{'metadata.section': section, 'metadata.slug': slug }) as img_fp:
-       # do something with the image file
+    python = GridFS(db, 'cms.assets')
+    with fs.get_version({'metadata.section': section, 'metadata.slug': slug }) as img_fpo:
+         # do something with the image file
 
 .. note::
 
-   The same indexes defined above on (``section``, ``slug``) would
-   also efficiently render this image.
+   The index defined (``section``, ``slug``) created to support the
+   update operation, is sufficient to support this operation as well.
 
 Search for Nodes by Tag
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -359,21 +365,22 @@ Search for Nodes by Tag
 Querying
 ````````
 
-You'd like to retrieve a list of nodes based on their tags:
+To retrieve a list of nodes based on their tags, use the following
+query:
 
 .. code-block:: python
 
-    nodes = db.nodes.find({'metadata.tags': tag })
+   nodes = db.nodes.find({'metadata.tags': tag })
 
 Indexing
 ````````
 
-To support searching efficiently, you should define indexes on any fields
-you intend on using in your query:
+Create an index on the ``tags`` field in the ``cms.nodes`` collection,
+to support this query:
 
-.. code-block:: python
+.. code-block:: pycon
 
-    >>> db.cms.nodes.ensure_index('tags')
+   >>> db.cms.nodes.ensure_index('tags')
 
 Search for Images by Tag
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -381,22 +388,23 @@ Search for Images by Tag
 Procedure
 `````````
 
-Here, you'd like to retrieve a list of images based on their tags:
+To retrieve a list of images based on their tags, use the following
+operation:
 
 .. code-block:: python
 
-    image_file_objects = db.cms.assets.files.find({'metadata.tags': tag })
-    fs = GridFS(db, 'cms.assets')
-    for image_file_object in db.cms.assets.files.find(
-        {'metadata.tags': tag }):
-        image_file = fs.get(image_file_object['_id'])
-        # do something with the image file
+   image_file_objects = db.cms.assets.files.find({'metadata.tags': tag })
+   fs = GridFS(db, 'cms.assets')
+   for image_file_object in db.cms.assets.files.find(
+       {'metadata.tags': tag }):
+       image_file = fs.get(image_file_object['_id'])
+       # do something with the image file
 
 Indexing
 ````````
 
-As above, in order to support searching efficiently, you should define
-indexes on any fields you expect to use in the query:
+Create an index on the ``tags`` field in the ``cms.assets.files``
+collection, to support this query:
 
 .. code-block:: python
 
@@ -408,8 +416,9 @@ Generate a Feed of Recently Published Blog Articles
 Querying
 ````````
 
-Here, you need to generate an .rss or .atom feed for your recently
-published blog articles, sorted by date descending:
+Use the following operation to generate a list of recent blog posts
+sorted in descending order by date, for use on the index page of your
+site, or in an ``.rss`` or ``.atom`` feed.
 
 .. code-block:: python
 
@@ -418,52 +427,62 @@ published blog articles, sorted by date descending:
         'metadata.published': { '$lt': datetime.utcnow() } })
     articles = articles.sort({'metadata.published': -1})
 
+.. note::
+
+   In many cases you will want to limit the number of nodes returned
+   by this query.
+
 Indexing
 ````````
 
-In order to support this operation, you'll need to create an index on (``section``,
-``published``) so the items are 'in order' for the query. Note that in cases
-where you're sorting or using range queries, as here, the field on which
-you're sorting or performing a range query must be the final field in the
-index:
+Create an compound index the the ``{ metadata.section: 1,
+metadata.published: 1 }`` fields to support this query and sort
+operation.
 
 .. code-block:: python
 
     >>> db.cms.nodes.ensure_index(
     ...     [ ('metadata.section', 1), ('metadata.published', -1) ])
 
+.. note::
+
+   For all sort or range queries, ensure that field with the sort or
+   range operation is the final field in the index.
+
 Sharding
---------
+-------
 
-In a CMS system, read performance is generally much more important
-than write performance. As such, you'll want to optimize the sharding
-setup for read performance. In order to achieve the best read
-performance, you need to ensure that queries are *routeable* by the
-mongos process. A second consideration when sharding is that unique
-indexes do not span shards. As such, the shard key must include the
-unique indexes in order to get the same semantics as described
-above. Given these constraints, sharding the nodes and assets on
-(``section``, ``slug``) is a reasonable approach:
+In a CMS, read performance is more critical than write performance. To
+achieve the best read performance in a :term:`shard cluster`, ensure
+that the :program:`mongos` can route queries to specific :term:`shards
+<shard>`.
 
-.. code-block:: python
+Also remember that MongoDB can not enforce unique indexes across
+shards. Using a compound :term:`shard key` that consists of
+``metadata.section`` and ``metadata.slug``, will provide the same
+semantics as describe above.
 
-    >>> db.command('shardcollection', 'cms.nodes', {
-    ...     key : { 'metadata.section': 1, 'metadata.slug' : 1 } })
-    { "collectionsharded" : "cms.nodes", "ok" : 1 }
-    >>> db.command('shardcollection', 'cms.assets.files', {
-    ...     key : { 'metadata.section': 1, 'metadata.slug' : 1 } })
-    { "collectionsharded" : "cms.assets.files", "ok" : 1 }
+.. warning::
 
-If you wish to shard the ``cms.assets.chunks`` collection, you need to shard
-on the ``_id`` field (none of the node metadata is available on the
-``cms.assets.chunks`` collection in GridFS:)
+   Consider the actual use and workload of your cluster before
+   configuring sharding for your cluster.
+
+Use the following operation at the Python/PyMongo shell:
+
+.. code-block:: pycon
+
+   >>> db.command('shardcollection', 'cms.nodes', {
+   ...     key : { 'metadata.section': 1, 'metadata.slug' : 1 } })
+   >>> db.command('shardcollection', 'cms.assets.files', {
+   ...     key : { 'metadata.section': 1, 'metadata.slug' : 1 } })
+
+To shard the ``cms.assets.chunks`` collection, you must [#grid-id]_ use the
+``_id`` field as the :term:`shard key`
 
 .. code-block:: python
 
     >>> db.command('shardcollection', 'cms.assets.chunks'
-    { "collectionsharded" : "cms.assets.chunks", "ok" : 1 }
 
-This actually still maintains the query-routability constraint, since
-all reads from GridFS must first look up the document in ``cms.assets.files`` and
-then look up the chunks separately (though the GridFS API sometimes
-hides this detail.)
+This also ensures routable queries becasue all reads from GridFS must
+first look up the document in ``cms.assets.files`` and then look up
+the chunks separately.
