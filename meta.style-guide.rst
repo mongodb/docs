@@ -247,10 +247,15 @@ Use the following convention when referring to specific parts of
 MongoDB data:
 
 - *document* refers to "rows," or records in a MongoDB
- database. Potential confusion with "JSON Documents."
+  database. Potential confusion with "JSON Documents."
+
+  Do not refer to documents as "objects," because drivers (and MongoDB)
+  do not preserve the order of fields when fetching data. If the order
+  of objects matter, use an array.
+
 
 - *field* refers to a "key" or "identifier" of data within a MongoDB
- document.
+  document.
 
 - *value* refers to the contents of a *field*.
 
