@@ -7,13 +7,14 @@ SPHINXBUILD   = sphinx-build
 PAPER	      =
 BUILDDIR      = build
 SRCDIR	      = source
+PUBLISHDIR    = build/publish
 
 # Internal variables.
 PAPEROPT_a4	= -D latex_paper_size=a4
 PAPEROPT_letter = -D latex_paper_size=letter
 ALLSPHINXOPTS	= -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
 
-.PHONY: help clean html dirhtml pickle json htmlhelp qthelp latex changes linkcheck doctest
+.PHONY: help clean html dirhtml pickle json htmlhelp qthelp latex changes linkcheck
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
@@ -26,11 +27,39 @@ help:
 	@echo "	 latex	   to make LaTeX files, you can set PAPER=a4 or PAPER=letter"
 	@echo "	 changes   to make an overview of all changed/added/deprecated items"
 	@echo "	 linkcheck to check all external links for integrity"
-	@echo "	 doctest   to run all doctests embedded in the documentation (if enabled)"
 
-prep:
+build-prep:
 	-mkdir -p $(SRCDIR)/_static
-	@echo directory made
+	-mkdir -p $(PUBLISHDIR)/single
+	@echo directories made
+
+publish: build-prep $(PUBLISHDIR)
+$(PUBLISHDIR): $(PUBLISHDIR)/ $(PUBLISHDIR)/single/ $(PUBLISHDIR)/single/_static
+
+$(PUBLISHDIR)/:$(BUILDDIR)/html/ $(BUILDDIR)/singlehtml/
+	cp -R $</* $@
+$(PUBLISHDIR)/single/: $(PUBLISHDIR)/single/genindex.html
+	cp -R $(BUILDDIR)/singlehtml/* $@
+	sed -i -e 's/id="searchbox"/id="display-none"/g' -e 's/id="editions"/id="display-none"/g' $(PUBLISHDIR)/single/index.html
+$(PUBLISHDIR)/single/genindex.html:$(BUILDDIR)/html/genindex.html
+	cp $< $@
+	sed -i -r -e 's@(<dt><a href=").*html#@\1./index.html#@' -e 's@(class="toctree-l1"><a class="reference internal" href=")(.*).html@\1../\2.html@' -e 's/id="searchbox"/id="display-none"/g' -e 's/id="navigation"/id="display-none"/g' -e 's/id="editions"/id="display-none"/g' $@
+$(PUBLISHDIR)/single/_static:$(PUBLISHDIR)/_static/
+	ln -s ../_static _static
+	mv _static $@
+
+$(PUBLISHDIR)/_static/:$(PUBLISHDIR)/
+$(BUILDDIR)/html/genindex.html:$(BUILDDIR)/html/
+$(BUILDDIR)/html/:html
+$(BUILDDIR)/singlehtml/:singlehtml
+	rm -rf $@_static/
+
+######################################################################
+##
+## Default Sphinx Targets
+##
+######################################################################
+
 
 clean:
 	-rm -rf $(BUILDDIR)/*
@@ -58,6 +87,11 @@ json:
 	$(SPHINXBUILD) -b json $(ALLSPHINXOPTS) $(BUILDDIR)/json
 	@echo
 	@echo "Build finished; now you can process the JSON files."
+
+singlehtml:
+	$(SPHINXBUILD) -b singlehtml $(ALLSPHINXOPTS) $(BUILDDIR)/singlehtml
+	@echo
+	@echo "Build finished. The HTML page is in $(BUILDDIR)/singlehtml."
 
 htmlhelp:
 	$(SPHINXBUILD) -b htmlhelp $(ALLSPHINXOPTS) $(BUILDDIR)/htmlhelp
@@ -100,8 +134,3 @@ linkcheck:
 	@echo
 	@echo "Link check complete; look for any errors in the above output " \
 	      "or in $(BUILDDIR)/linkcheck/output.txt."
-
-doctest:
-	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(BUILDDIR)/doctest
-	@echo "Testing of doctests in the sources finished, look at the " \
-	      "results in $(BUILDDIR)/doctest/output.txt."
