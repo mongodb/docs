@@ -37,9 +37,9 @@ MongoDB has the following features:
 
    Range Based Sharding
       MongoDB uses "range based" sharding, where the database
-      distributes documents among :term:`shards` based on the value
+      distributes documents among :term:`shards <shard>` based on the value
       of the :ref:`shard key <sharding-shard-key>`. Each :term:`chunk`
-      represents a block of :term:`document <documents>` with values
+      represents a block of :term:`document` with values
       that fall within a specific range. When chunks grow beyond the
       :ref:`chunk size <sharding-chunk-size>`, MongoDB divides the
       chunks into smaller chunks (i.e. :term:`splitting <split>`)
@@ -75,7 +75,7 @@ MongoDB has the following features:
          with MongoDB and expand the :term:`working set`.
 
 A typical :term:`shard cluster` consists of the config servers that
-provide metadata that maps :term:`chunks` to shards, the
+provide metadata that maps :term:`chunks <chunk>` to shards, the
 :program:`mongod` instances that hold the data (i.e the :term:`shards
 <shard>`,) and lightweight routing processes, :doc:`mongos
 </reference/mongos>`, that routes operations to the correct shard
@@ -120,8 +120,8 @@ system.
    its crucial that you **do not** wait until your system is
    overcapacity to enable sharding.
 
-.. _sharding-requirements:
 .. index:: sharding; requirements
+.. _sharding-requirements:
 
 Requirements
 ------------
@@ -133,7 +133,7 @@ Infrastructure
 
 A :term:`shard cluster` has the following components:
 
-- Three :term:`config servers`.
+- Three :term:`config servers <config database>`.
 
   These special :program:`mongod` instances store the configuration
   meta data for the cluster. The :program:`mongos` instances cache
@@ -165,7 +165,7 @@ A :term:`shard cluster` has the following components:
   These are "normal," :program:`mongod` instances that hold all of the
   actual data for the cluster.
 
-  Typically a :term:`replica sets` provides each individual shard,
+  Typically a :term:`replica sets <replica set>` provides each individual shard,
   which provides redundancy for all data in the cluster and increases
   the overall reliability and robustness of the cluster.
 
@@ -225,11 +225,11 @@ TODO link this section to <glossary:chunk size>
 
 TODO link this section to <glossary:shard key>
 
-.. _shard-key:
-.. _sharding-shard-key:
-
 .. index:: shard key
    single: sharding; shard key
+
+.. _sharding-shard-key:
+.. _shard-key:
 
 Shard Keys
 ----------
@@ -252,7 +252,7 @@ data and your usage patterns. The ideal shard key:
   possible values are un-ideal, as they can result in some shards that
   are "un-splittable."
 
-  .. see:: ":ref:`sharding-hard-key-cardnality`"
+  .. see:: ":ref:`sharding-shard-key-cardinality`"
 
 - will distribute write operations among the cluster, to prevent any
   single shard from becoming a bottleneck. Shard keys that have a high
@@ -260,7 +260,7 @@ data and your usage patterns. The ideal shard key:
   however, shard keys that have higher "randomness" satisfy this
   requirement better.
 
-  .. see:: ":ref:`sharding-hard-key-scaling`"
+  .. see:: ":ref:`sharding-shard-key-write-scaling`"
 
 - will make it possible for the :program:`mongos` to return most query
   operations directly to a single *specific* :program:`mongod`
@@ -268,7 +268,7 @@ data and your usage patterns. The ideal shard key:
   queries, and fields with a high amount of "randomness" are poor
   choices for this reason.
 
-  .. see:: ":ref:`sharding-hard-key-scaling`"
+  .. see:: ":ref:`sharding-shard-key-query-isolation`"
 
 The challenge when selecting the shard key is that there is not always
 an obvious shard key, and that it's unlikely that a single naturally
@@ -285,8 +285,8 @@ TODO add something about the order of the shard keys
 
 TODO move the remainder of this section (or most of it) to internals doc
 
-.. _sharding-shard-key-cardinality:
 .. index:: shard key; cardinality
+.. _sharding-shard-key-cardinality:
 
 Cardinality
 ~~~~~~~~~~~
@@ -329,18 +329,18 @@ of data such as an "address book" that stores address records:
   Massachusetts,") then you may have a much lower cardinality.
 
 - Consider using the "``phone-number``" field, which would hold the
-  contact's telephone number. This number has a *higher cardnality,*
+  contact's telephone number. This number has a *higher cardinality,*
   because every (or most) users will have different values for this
   field, MongoDB will be able to split in as many chunks as
   needed.
 
-While "high cardnality," is neccessary for ensuring an even
-distribution of data, having a high cardnality does not garen tee
+While "high cardinality," is necessary for ensuring an even
+distribution of data, having a high cardinality does not garen tee
 sufficient :ref:`query isolation <sharding-shard-key-query-isolation>`
 or appropriate :ref:`write scaling <sharding-shard-key-write-scaling>`.
 
-.. _sharding-shard-key-write-scaling:
 .. index:: shard key; write scaling
+.. _sharding-shard-key-write-scaling:
 
 Write Scaling
 ~~~~~~~~~~~~~
@@ -348,7 +348,7 @@ Write Scaling
 TODO add ObjectID to glossary.
 
 Some potential shard keys allow your application to take advantage of
-the increased write capactiy that the shard cluster can provide, while
+the increased write capacity that the shard cluster can provide, while
 others do not. Consider using the default :term:`_id` field, which
 holds an :term:`ObjectID`.
 
@@ -356,7 +356,7 @@ The ``ObjectID`` holds a value, computed upon creation, that is a
 unique identifier for the object. However, the most significant data in
 this value is effectively a time stamp, which means that they increment
 in a regular and predictable pattern. Even though this value has
-:ref:`high cardinality <sharding-shard-key-high-cardinality>`, when
+:ref:`high cardinality <sharding-shard-key-cardinality>`, when
 this, or *any date or other incrementing number* as the shard key all
 insert operations will always end up on the same shard. As a result,
 the capacity of this node will become the effective capacity of the
@@ -378,59 +378,301 @@ an important characteristic of shard keys.
 Querying
 ~~~~~~~~
 
-.. _sharding-shard-key-query-isolation:
+The :program:`mongos` provides an interface for applications
+connecting to sharded systems that hides all of the complexity of
+:term:`partionining <partion>` from the application. The
+:program:`mongos` recieves queries from applications, and then using
+the metadata from the config server to route the query to the
+:program:`mongod` instances that power the :term:`shards
+<shard>`. While the :program:`mongos` succedes in making all querying
+operational in sharded environments, the :term:`shard key` you select
+can have a profound profound effect on query performance.
+
+.. seealso:: The ":ref:`mongos and Sharding <sharding-mongos>`" and
+   ":ref:`config server <sharding-config-server>`" sections for a more
+   general overview of querying in sharded environments.
+
 .. index:: shard key; query isolation
+.. _sharding-shard-key-query-isolation:
 
 Query Isolation
 ```````````````
 
-Sorting Data
-````````````
+The fastest queries in a sharded environment are the ones that
+:program:`mongos` can route to a single shard, using the :term:`shard
+key` and the cluster meta data from the config database. Otherwise,
+:program:`mongos` must query all shards, wait for them to respond and
+then return the result to the application, which can be a long running
+operation.
+
+If your query includes the first component of a compound :term:`shard
+key` [#shard-key-index], then the :program:`mongos` can route the
+query directly to a single shard, or a small number of shards, which
+provides much greater performance. Even you query values of the shard
+key that reside in different chunks, the :program:`mongos` will route
+queires directly to the specific shard.
+
+When choosing a shard key for a collection, first examine your queries
+to determine which fields your queries selct by most frequently, and
+then which of these operations are most perforamance dependent. If
+this field is not sufficently selective (i.e. has low cardinality) you
+can add a second field to the compound shard key to make the cluster
+more splitable.
+
+.. see:: ":ref:`sharding-mongos`" for more information on query
+   operations in the context of sharded clusters.
+
+.. [#shard-key-index] In many ways, you can think of the shard key a
+   cluster-wide unique index. However, be aware that sharded systems
+   cannot enforce cluster-wide unique indexes *unless* the unique
+   field is in the shard key.
+
+   .. see:: The ":wiki:`Indexes`" wiki page for more information on
+      indexes and compound indexes.
+
+Sorting
+```````
+
+If you use the :func:`sort()` method on a query in a sharded MongoDB
+environment *and* the sort is on a field that is *not* part of the
+shard key, then the :program:`mongos` must send the query to all
+:program:`mongod` instances in the cluster, wait for a response from
+every shard before it can merge the results and return data. If you
+require high performance sorted queries, ensure that the key you need
+to sort from is in the shard key.
 
 Operations
 ~~~~~~~~~~
 
+The most important considerations when choosing a :term:`shard key`
+are to ensure that MongoDB will be able to distribute data evenly
+among the shards, to scale writes across the cluster, and to ensure
+that :program:`mongos` can isolate most to specific :program:`mongod`
+instances. However, your choice in shard key can have a couple of
+operational impacts, specifically:
+
 Reliability
-`````````````
+```````````
+
+Because each shard should be a :term:`replica set`, if a specific
+:program:`mongod` instance fails, the replica set will elect another
+member of that set to :term:`primary` and continue functiong. However,
+if an entire shard is unreachable or fails for some reason then that
+data will be unavalible. If your shard key distributes data required
+for every operation throughout the cluster, then the failure of the
+entire shard will render the entire cluster unusable. By contrast, if
+the shard key allows the :program:`mongos` to isolate most operations
+to a single shard, then the failure of a single will lead to only
+partial data unavalibility.
+
+In essence, this reliabily concern simply underscores the importance
+of chosing a shard key that isolates query operations to a single
+shard.
 
 Index Optimization
 ``````````````````
 
+TODO I need to learn more about indexing before I write this section.
+
 Choosing a Shard Key
 ~~~~~~~~~~~~~~~~~~~~
 
-.. _sharding-configuration-servers:
+It is unlikely that any single, naturally occuring key in your
+collection will satisfy all requirements of a good shard key. There
+are three options:
+
+#. Compute a more ideal shard key in your application layer,
+   and store this in all of your documents, potentially in the
+   "``_id``" field.
+
+#. Use a compound shard key, that uses two or three values from all
+   documents that provide the right mix of cardinality with scalable
+   write operations and query isolation.
+
+#. Determine that the concerns of using a less than ideal shard key,
+   is insignifigant in your use case given limited write volume,
+   expected data size, or query patterns and demands.
+
+From a decision making stand point, begin by finding the the field
+that will provide the required :ref:`query isolation
+<sharding-shard-key-query-isolation>`, ensure that writes will scale
+across the cluster, and then add an additional field to provide
+additional cardinality if your primary key does not have
+splitability.
+
+.. _sharding-config-server:
 
 Config Servers
 --------------
 
-TODO write configuration server section
+The configuration servers store the shard metadata that tracks the
+relationship between the range that defines a :term:`chunk` and the
+:program:`mongod` instance (typically a :term:`replica set`) or
+:term:`shard` where that data resides. Without a config server, the
+:program:`mongos` insteances are unable to route queries and write
+operations, and the cluster. This section describes their operation
+and use.
 
-The configuration servers store the shard metadata which keeps track
+Config servers *do not* run as replica sets. Instead, a :term:`shard
+cluster` operates with a group of *three* config servers that use a
+two-phase commit process that ensures imediete consistency and
+reliability. Becasue the :program:`mongos` instances all maintain
+caches of the config server data, the actual traffic on the config
+servers is small. MongoDB will write data to the config server only
+when:
 
-- read only mode.
-- two phase commits for consistency.
+- Creating splits in existing chunks, which happens as data in
+  existing chunks excedes the maximum chunk size.
 
-.. _sharding-mongos:
+- Migrating a chunk between shards.
+
+If a *single* configuration server becomes unavavlible, the cluster's
+metadata becomes *read only*. It is still possible to read and write
+data from the shards, but no chunk migrations or splits will occur
+until all three servers are accessible. At the same time, config
+server data is only read in the following situations:
+
+- A new :program:`mongos` starts for the first time, or an existing
+  :program:`mongos` restarts.
+
+- After a chunk migration, the :program:`mognos` instances update
+  themselves with the new cluster metadata.
+
+TODO clarify this process.
+
+If all three config servers are inaccessible, then you can continue to
+use the cluster as long as you don't restart the :program:`mongos`
+isntances until the config servers are accessible. When the
+:program:`mongos` instances restart and there are no accessible config
+servers they are unable to direct queries or write operations to the
+cluster.
+
+Because the configuration data is small relaitve to the amount of data
+stored in a cluster, the amount activity is relatively low, and 100%
+uptime is not required for a functioning shard cluster, backing up the
+config servers is not difficult. However, becasue the shard cluster
+will become totally inoperatble if you loose your configuration
+servers, precautions to ensure that the config servers remain avalible
+and intact are totally crucial.
 
 .. index:: mongos
+.. _sharding-mongos:
 
-:program:`mongos`
------------------
+:program:`mongos` and Querying
+------------------------------
 
-TODO write mongos overview section
+.. seealso:: ":doc:`/reference/mongos`" and the :program:`mongos`\-only
+   settings: ":setting:`test`" and :setting:`chunkSize`.
 
-run anywhere
-routing processes.
+Operations
+~~~~~~~~~~
+
+The :program:`mongos` provides a single unified interface to a sharded
+cluster for applications using MongoDB. Except for the selection of a
+:term:`shard key` application developers and administrators need not
+consider any of the internal details of sharding because of the
+:program:`mongos`.
+
+:program:`mongos` caches data from the :ref:`config server
+<sharding-config-server>`, and uses this to route operations from the
+applications and clients to the :program:`mongod`
+instances. :program:`mongos` have no *persistent* state and consume
+minimal system resources.
+
+The most common practice is to run :program:`mongos` instances on the
+same systems as your application layer, but you can maintain
+:program:`mongos` instances on the shard or on other dedicated
+resources.
 
 .. note::
 
-   The :term:`aggregation` framework provided by the
-   :dbcommand:`aggregate` command can
+   .. versionchanged:: 2.1
+
+   Some aggregation operations using the :dbcommand:`aggregate` will
+   cause :program:`mongos` instances to require more CPU resources
+   than in previous versions. This modified performance profile may
+   dictate alternate architecture decisions if you make use the
+   :term:`aggregation framework` extensively in a sharded environment.
+
+Query Routing
+~~~~~~~~~~~~~
+
+:program:`mongos` uses information from :ref:`config servers
+<sharding-config-server>` to return queires in the most efficent
+manner possible. MongoDB classifies all operations in a sharded
+environment as "**targeted**" or "**global**, as follows:
+
+#. *Targeted* opeations, where the :program:`mongos` sends the
+   operations to specific :program:`mongod` instance based on the
+   :term:`shard key`.
+
+   For example, given a shard key of "``{ shard_id: 1 }``", the
+   :program:`mongos` would target the following operations at a
+   specific :program:`mongod` or a small number of :program:`mongod`
+   instances:
+
+     .. code-block:: javascript
+
+        db.collection.find( { shard_id: 355 } )
+        db.collection.find( { shard_id: 52, host: "example.org" } )
+        db.collection.insert( { shard_id: 155, host: "example.net", [...] } )
+        db.collection.insert( { [...] } ) // all insert operations are targeted.
+        db.collection.update( { shard_id: 112, host: "example.org"} , { $inc: { counter: 1 } } )
+        db.collection.remove( { shard_id: 355 } )
+
+#. *Global* operations, where the :program:`mongos` sends the
+   operations to *all* :program:`mongod` instances, and then combines
+   the responses before sending them to the the application layer.
+   For example, given a shard key of "``{ shard_id: 1 }``", the
+   :program:`mongos` would have to send all operations to all shards
+   in the cluster, as in the following:
+
+   .. code-block:: javascript
+
+      db.collection.find()
+      db.collection.find( { host: "example.com" } )
+      db.collection.update( { shard_id: 112, host: "example.org"} , { $inc: { counter: 1 } } )
+      db.collection.remove( { host: "test.example.com" } )
+      db.collection.ensureIndex( [...] ) // all index operations are global.
+
+   At the same time we can also divide gobal operations into two
+   categoris: *parallel* and *sequential*.
+
+   Parallel operations must run on all shards, return to the
+   :program:`mongos` which does a final operation on the results and
+   returns to the application. Sequential operations, run on all
+   shards, but the :program:`mongos` will begin returning data to the
+   client as soon as the *first* shard returns data.
+
+   Given a shard key of "``{ shard_id: 1 }``", the following
+   operations are *parallel*:
+
+   .. code-block:: javascript
+
+      db.collection.find( [...] ).sort( { shard_id: 1 } )
+      db.collection.find().count()
+
+   .. note::
+
+      :func:`count() <cursor.count()>` operations on queries
+      (i.e. :func:`find() <db.collection.find()>`) may be global or
+      targeted depending on the underlying query.
+
+   Given a shard key of "``{ shard_id: 1 }``", the following
+   operations are *sequential*:
+
+   .. code-block:: javascript
+
+      db.collection.find()
+      db.collection.find( [...] ).sort( { counter: -1 } )
+
+TODO factcheck above, cite: wiki, doesn't make sense.
+
+While some global operations, may be unavoidable, You can provent
+global operations by ensuring that you include the shard key in your
+queries other and operations.
 
 .. _sharding-balancing:
-
-TODO plan balancing section
 
 Balancing and Distribution
 --------------------------
@@ -441,5 +683,45 @@ Balancing Procedure
 Shard Size
 ~~~~~~~~~~
 
+Balancer Operations
+~~~~~~~~~~~~~~~~~~~
+
+- turn off the balancer during peek times.
+
+- disable the balancer specifically.
+
 Architecture Possibilities
 --------------------------
+
+Minimal System
+~~~~~~~~~~~~~~
+
+Production System
+~~~~~~~~~~~~~~~~~
+
+Sharded and Unsharded Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- moving primaries for databases
+
+Administrative Operations
+-------------------------
+
+TODO add link to deploy sharded cluster
+
+TODO write this tutorial
+
+Removing a Shard
+~~~~~~~~~~~~~~~~
+
+Adding a Shard
+~~~~~~~~~~~~~~
+
+Manually Creating Splits
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Disabling the Balancer During Peek Activity
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Disabling the Balancer for Backup Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
