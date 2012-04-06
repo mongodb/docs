@@ -249,10 +249,9 @@ MongoDB data:
 - *document* refers to "rows," or records in a MongoDB
   database. Potential confusion with "JSON Documents."
 
-  Do not refer to documents as "objects," because drivers (and MongoDB)
-  do not preserve the order of fields when fetching data. If the order
-  of objects matter, use an array.
-
+  Do not refer to documents as "objects," because drivers (and
+  MongoDB) do not preserve the order of fields when fetching data. If
+  the order of objects matter, use an array.
 
 - *field* refers to a "key" or "identifier" of data within a MongoDB
   document.
@@ -260,6 +259,17 @@ MongoDB data:
 - *value* refers to the contents of a *field*.
 
 Use "sub-document" as needed to describe nested documents.
+
+Notes on Specific Features
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Geo-Location
+
+  #. While MongoDB *is capable* of storing coordinates in
+     (sub-documents,) in practice, users should only store coordinates
+     in arrays. (See: `DOCS-41 <https://jira.mongodb.org/browse/DOCS-41>`_)
+
+- *Others...*
 
 Other Terms
 ~~~~~~~~~~~
