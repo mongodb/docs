@@ -93,7 +93,7 @@ profits:
    from random import choice
 
    def choose_ad(site_id, zone_id): 
-       site = db.ad.inventory.find_one({
+       site = db.ad.zone.find_one({
            'site_id': site_id, 'zone_id': zone_id})
        if site is None: return None
        if len(site['ads']) == 0: return None
@@ -109,7 +109,7 @@ to have a compound index on (``site_id``, ``zone_id``):
 
 .. code-block:: pycon
 
-   >>> db.ad.inventory.ensure_index([
+   >>> db.ad.zone.ensure_index([
    ...     ('site_id', 1),
    ...     ('zone_id', 1) ])
 
@@ -124,7 +124,7 @@ period. In this case, the logic is fairly straightforward:
 .. code-block:: python
 
    def deactivate_campaign(campaign_id):
-       db.ad.inventory.update(
+       db.ad.zone.update(
          { 'ads.campaign_id': campaign_id },
          {' $pull': { 'ads', { 'campaign_id': campaign_id } } },
          multi=True)
@@ -141,22 +141,22 @@ In order to execute the multi-update quickly, you should maintain an index on th
 
 .. code-block:: pycon
 
-   >>> db.ad.inventory.ensure_index('ads.campaign_id')
+   >>> db.ad.zone.ensure_index('ads.campaign_id')
 
 Sharding
 ~~~~~~~~
 
 In order to scale beyond the capacity of a single replica set, you will need to
-shard the ``ad.inventory`` collection. To maintain the lowest possible latency in
+shard the ``ad.zone`` collection. To maintain the lowest possible latency in
 the ad selection operation, the :term:`shard key` needs to be chosen to allow
-MongoDB to route the ``ad.inventory`` query to a single shard. In this case, a
+MongoDB to route the ``ad.zone`` query to a single shard. In this case, a
 good approach is to shard on the (``site_id``, ``zone_id``) combination:
 
 .. code-block:: pycon
 
-   >>> db.command('shardcollection', 'ad.inventory', {
+   >>> db.command('shardcollection', 'ad.zone', {
    ...     'key': {'site_id': 1, 'zone_id': 1} })
-   { "collectionsharded": "ad.inventory", "ok": 1 }
+   { "collectionsharded": "ad.zone", "ok": 1 }
 
 Design 2: Adding Frequency Capping
 ----------------------------------
@@ -232,7 +232,7 @@ advertiser's targeting rules (in this case, the frequency cap):
    from datetime import datetime, timedelta
 
    def choose_ad(site_id, zone_id, user_id): 
-      site = db.ad.inventory.find_one({
+      site = db.ad.zone.find_one({
            'site_id': site_id, 'zone_id': zone_id})
       if site is None or len(site['ads']) == 0: return None
       ads = ad_iterator(site['ads'])
@@ -293,5 +293,98 @@ When sharding the ``ad.user`` collection, choosing the ``_id`` field as a
    ...     'key': {'_id': 1 } })
    { "collectionsharded": "ad.user", "ok": 1 }
 
+Design 3: Keyword Targeting
+---------------------------
 
-     
+Where frequency capping above is an example of user profile targeting, you may
+also wish to perform content targeting so that the user receives relevant ads for
+the particular page being viewed. The simplest example of this is targeting ads
+at the result of a search query. In this case, a list of ``keywords`` is sent to
+the ``choose_ad()`` call along with the ``site_id``, ``zone_id``, and
+``user_id``. 
+
+
+Schema Design
+~~~~~~~~~~~~~
+
+In order to choose relevant ads, you'll need to expand the ``ad.zone`` collection
+to store keywords for each ad:
+
+.. code-block:: javascript
+
+   {
+     _id: ObjectId(...),
+     site_id: 'cnn', 
+     zone_id: 'search',
+     ads: [
+       { campaign_id: 'mercedes:c201204_sclass_4',
+         ad_unit_id: 'search1',
+         keywords: [ 'car', 'luxury', 'style' ],
+         ecpm: 250 },
+       { campaign_id: 'mercedes:c201204_sclass_4',
+         ad_unit_id: 'search2',
+         keywords: [ 'car', 'luxury', 'style' ],
+         ecpm: 250 },
+       { campaign_id: 'bmw:c201204_eclass_1',
+         ad_unit_id: 'search1',
+         keywords: [ 'car', 'performance' ],
+         ecpm: 200 },
+       ... ]
+   }
+
+Choosing a Group of Ads to Serve
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the approach described here, you'll choose a number of ads that match the
+keywords used in the search, so the code below has been modified to return an
+iterator over ads in descending order of preference:
+
+.. code-block:: python
+
+   def choose_ads(site_id, zone_id, user_id, keywords): 
+      site = db.ad.zone.find_one({
+           'site_id': site_id, 'zone_id': zone_id})
+      if site is None: return []
+      ads = ad_iterator(site['ads'], keywords)
+      user = db.ad.user.find_one({'user_id': user_id})
+      if user is None: return ads
+      advertiser_ids = ( 
+          ad['campaign_id'].split(':', 1)[0] 
+          for ad in ads )
+      return (
+          ad for ad, advertiser_id in izip(
+              ads, advertiser_ids)
+          if ad_is_acceptible(ad, user[advertiser_id]) )
+
+  def ad_iterator(ads, keywords):
+       '''Find available ads, sorted by score, with random sort for ties'''
+       keywords = set(keywords)
+       scored_ads = [
+           (ad_score(ad, keywords), ad)
+           for ad in ads ]
+       score_groups = groupby(
+           sorted(scored_ads), key=lambda score, ad: score)
+       for score, ad_group in score_groups:
+           ad_group = list(ad_group)
+           shuffle(ad_group)
+           for ad in ad_group: yield ad
+
+  def ad_score(ad, keywords):
+      '''Compute a desirability score based on the ad ecpm and keywords'''
+      matching = set(ad['keywords']).intersection(keywords)
+      return ad['ecpm'] * math.log(
+          1.1 + len(matching))
+
+  def ad_is_acceptible(ad, profile):
+      # same as above
+
+The main thing to note in the code above is that a must now be sorted according
+to some ``score`` which in this case is computed based on a combination of the
+``ecpm`` of the ad as well as the number of keywords matched. More advanced use
+cases may boost the importance of various keywords, but this goes beyond the
+scope of this use case. One thing to keep in mind is that the fact that ads are
+now being sorted at ad display time may cause performance issues if there are are
+large number of ads competing for the same display slot. 
+
+   
+
