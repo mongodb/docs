@@ -1,0 +1,294 @@
+.. -*- rst -*-
+
+==============================
+Online Advertising: Ad Serving
+==============================
+
+.. default-domain:: mongodb
+
+Overview
+--------
+
+This document outlines the basic patterns and principless for using
+MongoDB as a persistent storage engine for an online advertising network. In
+particular, this document focuses on the task of deciding *which* ad to serve
+when a user visits a particular site.
+
+Problem
+~~~~~~~
+
+You want to create an advertising network that will serve ads to a variety of
+online media sites. As part of this ad serving, you want to track which ads are
+available to be served, and decide on a particular ad to be served in a
+particular zone.
+
+Solution
+~~~~~~~~
+
+This solution is structured as a progressive refinement of the ad network,
+starting out with the basic data storage requirements and adding more advanced
+features to the schema to support more advanced ad targeting. The key performance
+criterion for this solution is the latency between receiving an ad request and
+returning the (targeted) ad to be displayed.
+
+The examples that follow use the Python programming language and the
+:api:`PyMongo <python/current>` :term:`driver` for MongoDB, but you
+can implement this system using any language you choose.
+
+Design 1: Basic Ad Serving
+--------------------------
+
+A basic ad serving algorithm consists of the following steps:
+
+#. The network receives a request for an ad, specifying at a minimum the
+   ``site_id`` and ``zone_id`` to be served.
+#. The network consults its inventory of ads available to display and chooses an
+   ad based on various business rules.
+#. The network returns the actual ad to be displayed, possibly recording the
+   decision made as well.
+
+This design uses the ``site_id`` and ``zone_id`` submitted with the ad request,
+as well as information stored in the ad inventory collection, to make the ad
+targeting decisions. Later examples will build on this, allowing more advanced ad
+targeting.
+
+Schema Design
+~~~~~~~~~~~~~
+
+A very basic schema for storing ads available to be served consists of a single
+collection, ``ad.zone``:
+
+.. code-block:: javascript
+
+   {
+     _id: ObjectId(...),
+     site_id: 'cnn',
+     zone_id: 'banner',
+     ads: [
+       { campaign_id: 'mercedes:c201204_sclass_4',
+         ad_unit_id: 'banner23a',
+         ecpm: 250 },
+       { campaign_id: 'mercedes:c201204_sclass_4',
+         ad_unit_id: 'banner23b',
+         ecpm: 250 },
+       { campaign_id: 'bmw:c201204_eclass_1',
+         ad_unit_id: 'banner12',
+         ecpm: 200 },
+       ... ]
+   }
+
+Note that for each (``site``, ``zone``) combination you'll be storing a list of
+ads, sorted by their ``ecpm`` values.
+
+Choosing an Ad to Serve
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The query you'll use to choose which ad to serve selects a compatible ad and
+sorts by the advertiser's ``ecpm`` bid in order to maximize the ad network's
+profits:
+
+.. code-block:: python
+
+   from itertools import groupby
+   from random import choice
+
+   def choose_ad(site_id, zone_id):
+       site = db.ad.inventory.find_one({
+           'site_id': site_id, 'zone_id': zone_id})
+       if site is None: return None
+       if len(site['ads']) == 0: return None
+       ecpm_groups = groupby(site['ads'], key=lambda ad:ad['ecpm'])
+       ecpm, ad_group = ecpm_groups.next()
+       return choice(list(ad_group))
+
+Index Support
+`````````````
+
+In order to execute the ad choice with the lowest latency possible, you'll want
+to have a compound index on (``site_id``, ``zone_id``):
+
+.. code-block:: pycon
+
+   >>> db.ad.inventory.ensure_index([
+   ...     ('site_id', 1),
+   ...     ('zone_id', 1) ])
+
+Making an Ad Campaign Inactive
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+One case you'll have to deal with in this solution making a campaign
+inactive. This may happen for a variety of reasons. For instance, the campaign
+may have reached its end date or exhausted its budget for the current time
+period. In this case, the logic is fairly straightforward:
+
+.. code-block:: python
+
+   def deactivate_campaign(campaign_id):
+       db.ad.inventory.update(
+         { 'ads.campaign_id': campaign_id },
+         {' $pull': { 'ads', { 'campaign_id': campaign_id } } },
+         multi=True)
+
+The update statement above first selects only those ad zones which had avaialable
+ads from the given ``campaign_id`` and then uses the ``$pull`` modifier to remove
+them from rotation.
+
+Index Support
+`````````````
+
+In order to execute the multi-update quickly, you should maintain an index on the
+``ads.campaign_id`` field:
+
+.. code-block:: pycon
+
+   >>> db.ad.inventory.ensure_index('ads.campaign_id')
+
+Sharding
+~~~~~~~~
+
+In order to scale beyond the capacity of a single replica set, you will need to
+shard the ``ad.inventory`` collection. To maintain the lowest possible latency in
+the ad selection operation, the :term:`shard key` needs to be chosen to allow
+MongoDB to route the ``ad.inventory`` query to a single shard. In this case, a
+good approach is to shard on the (``site_id``, ``zone_id``) combination:
+
+.. code-block:: pycon
+
+   >>> db.command('shardcollection', 'ad.inventory', {
+   ...     'key': {'site_id': 1, 'zone_id': 1} })
+   { "collectionsharded": "ad.inventory", "ok": 1 }
+
+Design 2: Adding Frequency Capping
+----------------------------------
+
+One problem with the logic described in Design 1 above is that it will tend to
+display the same ad over and over again until the campaign's budget is
+exhausted. To mitigate this, advertisers may wish to limit the frequency with
+which a given user is presented a particular ad. This process is called frequency
+capping and is an example of user profile targeting in advertising.
+
+In order to perform frequency capping (or any type of user targeting), the ad
+network needs to maintain a profile for each visitor, typically implemented as a
+cookie in the user's browser. This cookie, effectively a ``user_id``, is then
+transmitted to the ad network when logging impressions, clicks, conversions,
+etc., as well as the ad serving decision. This section focuses on how that
+profile data impacts the ad serving decision.
+
+Schema Design
+~~~~~~~~~~~~~
+
+In order to use the user profile data, you need to store it. In this case, it's
+stored in a collection ``ad.user``:
+
+.. code-block:: javascript
+
+   {
+     _id: 'cookie_value',
+     advertisers: {
+       mercedes: {
+         impressions: [
+           { date: ISODateTime(...),
+             campaign: 'c201204_sclass_4',
+             ad_unit_id: 'banner23a',
+             site_id: 'cnn',
+             zone_id: 'banner' } },
+           ... ],
+         clicks: [
+           { date: ISODateTime(...),
+             campaign: 'c201204_sclass_4',
+             ad_unit_id: 'banner23a',
+             site_id: 'cnn',
+             zone_id: 'banner' } },
+         ... ],
+       bmw: [ ... ],
+       ...
+     }
+   }
+
+There are a few things to note about the user profile:
+
+- Profile information is segmented by advertiser. Typically advertising data is
+  sensitive competitive infomration that can't be shared among advertisers, so
+  this must be kept separate.
+- All data is embedded in a single profile document. When you need to query this
+  data (detailed below), you don't necessarily know which advertiser's ads you'll
+  be showing, so it's a good practice to embed all advertisers in a single
+  document.
+- The event information is grouped by event type within an advertiser, and sorted
+  by timestamp. This allows rapid lookups of a stream of a particular type of
+  event.
+
+Choosing an Ad to Serve
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The query you'll use to choose which ad to serve now needs to iterate through
+ads in order of desireability and select the "best" ad that also satisfies the
+advertiser's targeting rules (in this case, the frequency cap):
+
+.. code-block:: python
+
+   from itertools import groupby
+   from random import shuffle
+   from datetime import datetime, timedelta
+
+   def choose_ad(site_id, zone_id, user_id):
+      site = db.ad.inventory.find_one({
+           'site_id': site_id, 'zone_id': zone_id})
+      if site is None or len(site['ads']) == 0: return None
+      ads = ad_iterator(site['ads'])
+      user = db.ad.user.find_one({'user_id': user_id})
+      if user is None:
+          # any ad is acceptable for an unknown user
+          return ads.next()
+      for ad in ads:
+          advertiser_id = ad['campaign_id'].split(':', 1)[0]
+          if ad_is_acceptable(ad, user[advertiser_id]):
+              return ad
+      return None
+
+   def ad_iterator(ads):
+       '''Find available ads, sorted by ecpm, with random sort for ties'''
+       ecpm_groups = groupby(ads, key=lambda ad:ad['ecpm'])
+       for ecpm, ad_group in ecpm_groups:
+           ad_group = list(ad_group)
+           shuffle(ad_group)
+           for ad in ad_group: yield ad
+
+   def ad_is_acceptable(ad, profile):
+       '''Returns False if the user has seen the ad today'''
+       threshold = datetime.utcnow() - timedelta(days=1)
+       for event in reversed(profile['impressions']):
+           if event['timestamp'] < threshold: break
+           if event['detail']['ad_unit_id'] == ad['ad_unit_id']:
+               return False
+       return True
+
+Here, the ``chose_ad()`` function provides the framework for your ad selection
+process. The ``site`` is fetched first, and then passed to the ``ad_iterator()``
+function which will yield ads in order of desirability. Each ad is then checked
+using the ``ad_is_acceptable()`` function to determine if it meets the
+advertiser's rules.
+
+The ``ad_is_acceptable()`` function then iterates over all the ``impressions``
+stored in the user profile, from most recent to oldest, within a certain
+``thresold`` time period (shown here as 1 day). If the same ``ad_unit_id``
+appears in the mipression stream, the ad is rejected. Otherwise it is acceptable
+and can be shown to the user.
+
+Index Support
+`````````````
+
+In order to retrieve the user profile with the lowest latency possible, there
+needs to be an index on the ``_id`` field, which MongoDB supplies by default.
+
+Sharding
+~~~~~~~~
+
+When sharding the ``ad.user`` collection, choosing the ``_id`` field as a
+:term:`shard key` allows MongoDB to route queries and updates to the profile:
+
+.. code-block:: pycon
+
+   >>> db.command('shardcollection', 'ad.user', {
+   ...     'key': {'_id': 1 } })
+   { "collectionsharded": "ad.user", "ok": 1 }
