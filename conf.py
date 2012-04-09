@@ -136,6 +136,7 @@ html_static_path = ['source/.static']
 # using the given strftime format.
 html_last_updated_fmt = '%b %d, %Y'
 
+html_copy_source = True
 html_use_smartypants = True
 html_domain_indices = True
 html_use_index = True
