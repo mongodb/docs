@@ -1,0 +1,224 @@
+.. -*- rst -*-
+
+==================================
+Social Networking: Storing Updates
+==================================
+
+.. default-domain:: mongodb
+
+Overview
+--------
+
+This document outlines the basic patterns and principless for using
+MongoDB as a persistent storage engine for a social network. In particular, this
+document focuses on the task of storing and displaying user updates.
+
+Problem
+~~~~~~~
+
+You want to create an social network that will store profile information about
+each user as well as allow the user to create various types of posts and updates
+which will then be seen on their "friends'" walls.
+
+Solution
+~~~~~~~~
+
+The solution described below assumes a *directed* social graph where a user can
+choose whether or not to follow another user. The solution is designed in such a
+way as to minimize the number of documents that must be loaded in order to
+display any given page, even at the expense of complicating updates.
+
+The particulars of what type of data you want ot host on your social network
+obviously depends on the type of social network you are designing, and is largely
+beyond the scope of this use case. In particular, the main variables that you
+will have to consider in adapting this use case to your particular situation are:
+
+What data should be in a user profile
+    This may include gender, age, interests, relationship status, etc. for a
+    "casual" social network, or may include resume-type data for a more
+    "business-oriented" social network.
+What type of updates are allowed
+    Again, depending on what flavor of social network you are designing, you may
+    wish to allow posts such as status updates, photos, links, checkins, and
+    polls, or you may wish to restrict your users to links and status updates.
+
+Schema Design
+~~~~~~~~~~~~~
+
+In the solution presented here, you will use two main "independent" collections
+and two "dependent" collections to store user profile data and posts.
+
+Independent Collections
+```````````````````````
+
+The first
+collection, ``social.user``, stores the social graph information for a given user
+along with the user's profile data:
+
+.. code-block:: javascript
+
+   {
+     _id: 'T4Y...AC', // base64-encoded ObjectId
+     name: 'Rick',
+     profile: { ... age, location, interests, etc. ... },
+     followers: {
+       "T4Y...AD": { name: 'Jared' },
+       "T4Y...AE": { name: 'Max' },
+       "T4Y...AF": { name: 'Bernie' },
+       "T4Y...AH": { name: 'Paul' },
+       ...
+     ],
+     circles: {
+       work: {
+         "T4Y...AD": { name: 'Jared' },
+         "T4Y...AE": { name: 'Max' },
+         "T4Y...AF": { name: 'Bernie' },
+         "T4Y...AH": { name: 'Paul' },
+         ...  },
+       ...}
+     ]
+   }
+
+There are a few things ot note about this schema:
+
+- Rather than using a "raw" ``ObjectId`` for your ``_id`` field, you'll use a
+  base64-encoded version. This allows you to use ``_id`` values as keys in
+  subdocuments, which both reduces the memory footprint of these subdocuments as
+  well as speeding up some operations.
+- The users being "followed" are broken into ``circles`` to facilitate sharing
+  with a subgroup.
+- The ``followers`` subdocument is technically redundant, since it can be
+  computed from the ``circles`` property. Having ``followers`` available on the
+  ``social.user`` document, however, is useful both for displaying the user's
+  followers on the profile or "wall" page, as well as propagating posts to other
+  users, as you'll see below.
+- The particular profile data stored for the user is isolated into the
+  ``profile`` subdocument, allowing you to evolve the schema as necessary without
+  worrying about introducing bugs into the social graph.
+
+Of course, to make the network interesting, it's necessary to add various types of
+posts. These are stored in the ``social.post`` collection:
+
+.. code-block:: javascript
+
+   {
+      _id: ObjectId(...),
+      by: { id: "T4Y...AE", name: 'Max' },
+      type: 'status',
+      ts: ISODateTime(...),
+      detail: {
+         text: 'Loving MongoDB' },
+      comments: [
+         { by: { id:"T4Y...AG", name: 'Dwight' },
+           ts: ISODateTime(...),
+           text: 'Right on!' },
+           ... all comments listed ... ]
+   }
+
+Here, the post stores the author information (``by``), the post ``type``, a
+timestamp ``ts``, post details ``detail`` (which vary by post type), and a
+``comments`` array. In this case, the schema embeds all comments on a post as a
+time-sorted flat array. For a more in-depth exploration of the other approaches
+to storing comments, please see the document
+:doc:`CMS: Storing Comments <cms-storing-comments>`.
+
+One thing to note about the ``social.post`` collection is that it encapsulates
+the polymorphic ``detail`` subdocument which would store different data for a
+photo post versus a status update, for example.
+
+Dependent Collections
+```````````````````````
+
+social.wall (block of X most recent [partial] posts on user's wall)
+
+.. code-block:: javascript
+
+   {
+      _id: ObjectId(...),
+      user_id: "T4Y...AE",
+      num_posts: 42,
+      posts: [
+         { id: ObjectId(...),
+           ts: ISODateTime(...),
+           by: { id: "T4Y...AE", name: 'Max' },
+           type: 'status',
+           detail: { text: 'Loving MongoDB' },
+           comments: [
+             { by: { id: "T4Y...AG", name: 'Dwight',
+               ts: ISODateTime(...),
+               text: 'Right on!' },
+             ... only last X comments listed ...
+               ]
+         },
+         { id: ObjectId(...),
+           ts: ISODateTime(...),
+           by: { id: "T4Y...AE", name: 'Max' },
+           type: 'checkin',
+           detail: {
+             text: 'Great office!',
+             geo: [ 40.724348,-73.997308 ],
+             name: '10gen Office',
+             photo: 'http://....' },
+           comments: [
+             { by: { id: "T4Y...AD", name: 'Jared' },
+               ts: ISODateTime(...),
+               text: 'Wrong coast!' },
+             ... only last X comments listed ...
+               ]
+         },
+         { id: ObjectId(...),
+           ts: ISODateTime(...),
+           by: { id: "T4Y...g9", name: 'Rick' },
+           type: 'status',
+           detail: {
+             text: 'So when do you crush Oracle?' },
+           comments: [
+             { by: { id: "T4Y...AE", name: 'Max' },
+               ts: ISODateTime(...),
+               text: 'Soon... ;-)' },
+             ... only last X comments listed ...
+               ]
+         },
+      ]
+   }
+
+social.news (block of X most recent [partial] posts on user's news feed)
+
+.. code-block:: javascript
+
+   {
+      _id: ObjectId(...),
+      user_id: "T4Y...AE",
+      num_posts: 42,
+      posts: [ ... ]
+   }
+
+Operations
+----------
+
+TODO: summary of the operations section
+
+The examples that follow use the Python programming language and the
+:api:`PyMongo <python/current>` :term:`driver` for MongoDB, but you
+can implement this system using any language you choose.
+
+Operation 1
+~~~~~~~~~~~
+
+TODO: describe what the operation is (optional)
+
+Query
+`````
+
+TODO: describe query
+
+Index Support
+`````````````
+
+TODO: describe indexes to optimize this query
+
+Sharding
+--------
+
+.. seealso:: ":doc:`/faq/sharding`" and the ":wiki:`Sharding` wiki
+   page.
