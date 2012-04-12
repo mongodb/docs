@@ -57,14 +57,26 @@ help:
 #
 
 push:publish
-	rsync -arz ../public-docs/ www@www-c1.10gen.cc:/data/sites/docs
-	rsync -arz ../public-docs/ www@www-c2.10gen.cc:/data/sites/docs
+	@echo "Copying the new build to the web servers."
+	make -j2 MODE='push' push-dc1 push-dc2
 
 publish:
 	@echo "Running the publication and migration routine..."
-	make MODE='publish' pickle
+	make -j1 MODE='publish' pickle
 	make -j MODE='publish' deploy
 	@echo "Publication succeessfully deployed to '$(publication-output)'."
+	@echo
+
+#
+# Targets for pushing the new build to the web servers.
+#
+
+ifeq ($(MODE),push)
+push-dc1:
+	rsync -arz ../public-docs/ www@www-c1.10gen.cc:/data/sites/docs
+push-dc2:
+	rsync -arz ../public-docs/ www@www-c2.10gen.cc:/data/sites/docs
+endif
 
 #
 # Targets that should/need only be accessed in publication, within a protective "ifeq"
