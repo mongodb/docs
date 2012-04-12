@@ -24,20 +24,22 @@ Solution
 ~~~~~~~~
 
 The solution described below assumes a *directed* social graph where a user can
-choose whether or not to follow another user. The solution is designed in such a
+choose whether or not to follow another user. Additionally, the user can
+designate "circles" of users to follow, in order to facilitate fine-grained
+control of privacy. The solution presented below is designed in such a
 way as to minimize the number of documents that must be loaded in order to
 display any given page, even at the expense of complicating updates.
 
-The particulars of what type of data you want ot host on your social network
+The particulars of what type of data you want to host on your social network
 obviously depends on the type of social network you are designing, and is largely
 beyond the scope of this use case. In particular, the main variables that you
 will have to consider in adapting this use case to your particular situation are:
 
-What data should be in a user profile
+What data should be in a user profile?
     This may include gender, age, interests, relationship status, etc. for a
     "casual" social network, or may include resume-type data for a more
     "business-oriented" social network.
-What type of updates are allowed
+What type of updates are allowed?
     Again, depending on what flavor of social network you are designing, you may
     wish to allow posts such as status updates, photos, links, checkins, and
     polls, or you may wish to restrict your users to links and status updates.
@@ -46,7 +48,7 @@ Schema Design
 ~~~~~~~~~~~~~
 
 In the solution presented here, you will use two main "independent" collections
-and two "dependent" collections to store user profile data and posts. 
+and three "dependent" collections to store user profile data and posts. 
 
 Independent Collections
 ```````````````````````
@@ -62,39 +64,43 @@ along with the user's profile data:
      name: 'Rick',
      profile: { ... age, location, interests, etc. ... },
      followers: {
-       "T4Y...AD": { name: 'Jared' },
-       "T4Y...AE": { name: 'Max' },
-       "T4Y...AF": { name: 'Bernie' },
-       "T4Y...AH": { name: 'Paul' },
+       "T4Y...AD": { name: 'Jared', circles: [ 'python', 'authors'] },
+       "T4Y...AF": { name: 'Bernie', circles: [ 'python' ] },
+       "T4Y...AI": { name: 'Meghan', circles: [ 'python', 'speakers' ] },
        ... 
      ],
      circles: {
-       work: {
+       "10gen": {
          "T4Y...AD": { name: 'Jared' },
          "T4Y...AE": { name: 'Max' },
          "T4Y...AF": { name: 'Bernie' },
          "T4Y...AH": { name: 'Paul' },
          ...  },
        ...}
-     ]
+     },
+     blocked: ['gh1...0d'],
+     pages: { wall: 4, news: 3 }
    }
 
-There are a few things ot note about this schema:
+There are a few things to note about this schema:
 
 - Rather than using a "raw" ``ObjectId`` for your ``_id`` field, you'll use a
   base64-encoded version. This allows you to use ``_id`` values as keys in
   subdocuments, which both reduces the memory footprint of these subdocuments as
   well as speeding up some operations.
-- The users being "followed" are broken into ``circles`` to facilitate sharing
-  with a subgroup.
-- The ``followers`` subdocument is technically redundant, since it can be
-  computed from the ``circles`` property. Having ``followers`` available on the
-  ``social.user`` document, however, is useful both for displaying the user's
-  followers on the profile or "wall" page, as well as propagating posts to other
-  users, as you'll see below.
+- The social graph is stored bidirectionally in the ``followers`` and ``circles``
+  collections. While this is technically redundant, having the bidirectional
+  connections is userful both for displaying the user's followers on the profile
+  page, as well as propagating posts to other users, as shown below.
+- In addition to the normal "positive" social graph, the schema above also stores
+  a block list which contains an array of user ids for posters whose posts never
+  appear on the user's wall or news feed.
 - The particular profile data stored for the user is isolated into the
   ``profile`` subdocument, allowing you to evolve the schema as necessary without
   worrying about introducing bugs into the social graph.
+- The ``pages`` property is used to store the number of pages in the
+  ``social.wall``, and ``social.news`` collections for this
+  particular user.  These will be used below when creating new posts.
 
 Of course, to make the network interesting, it's necessary to add various types of
 posts. These are stored in the ``social.post`` collection:
@@ -104,6 +110,7 @@ posts. These are stored in the ``social.post`` collection:
    {
       _id: ObjectId(...),
       by: { id: "T4Y...AE", name: 'Max' }, 
+      circles: [ '*public*' ],
       type: 'status',
       ts: ISODateTime(...), 
       detail: {
@@ -115,32 +122,53 @@ posts. These are stored in the ``social.post`` collection:
            ... all comments listed ... ]
    }
 
-Here, the post stores the author information (``by``), the post ``type``, a
+Here, the post stores minimal author information (``by``), the post ``type``, a
 timestamp ``ts``, post details ``detail`` (which vary by post type), and a
 ``comments`` array. In this case, the schema embeds all comments on a post as a
 time-sorted flat array. For a more in-depth exploration of the other approaches
 to storing comments, please see the document
 :doc:`CMS: Storing Comments <cms-storing-comments>`. 
 
-One thing to note about the ``social.post`` collection is that it encapsulates
-the polymorphic ``detail`` subdocument which would store different data for a
-photo post versus a status update, for example.
+A couple of points are worthy of further discussion:
+
+- Author information is truncated; just enough is stored in each ``by`` property
+  to display the author name and a link to the author profile. If your user
+  wants more detail on a particular author, you can fetch this information as
+  they request it. Storing minimal information like this helps keep the document
+  small (and therefore fast.)
+- The visibility of the post is controlled via the ``circles`` property; any user
+  that is part of one of the listed circles can view the post. The special values
+  ``"\*public*"`` and ``"\*circles*"`` allow the user to share a post with the
+  whole world or with any users in any of the posting user's circles, respectively.
+- Different types of posts may contain different types of data in the ``detail``
+  field. Isolating this polymorphic information into a subdocument is a good
+  practice, helping you to clearly see which parts of the document are common to
+  all posts and which can vary. In this case, you would store different data for
+  a photo post versus a status update, while still keeping the metadata (``_id``,
+  ``by``, ``circles``, ``type``, ``ts``, and ``comments``) the same.
 
 Dependent Collections
-```````````````````````
+`````````````````````
 
-social.wall (block of X most recent [partial] posts on user's wall)
+In addition to the independent collections above, for optimal performance you'll
+need to create a few dependent collections that will be used to cache
+information for display. The first of these collections is the ``social.wall``
+collection, and is intended to display a "wall" containing posts created by or
+directed to a particular user. The format of the ``social.wall`` collection
+follows. 
    
 .. code-block:: javascript
 
    {
       _id: ObjectId(...),
       user_id: "T4Y...AE",
+      page: 4,
       num_posts: 42,
       posts: [ 
          { id: ObjectId(...),
            ts: ISODateTime(...), 
            by: { id: "T4Y...AE", name: 'Max' },
+           circles: [ '*public*' ],
            type: 'status',
            detail: { text: 'Loving MongoDB' },
            comments: [
@@ -153,6 +181,7 @@ social.wall (block of X most recent [partial] posts on user's wall)
          { id: ObjectId(...),
            ts: ISODateTime(...), 
            by: { id: "T4Y...AE", name: 'Max' },
+           circles: [ '*circles*' ],
            type: 'checkin',
            detail: { 
              text: 'Great office!',
@@ -169,6 +198,7 @@ social.wall (block of X most recent [partial] posts on user's wall)
          { id: ObjectId(...),
            ts: ISODateTime(...), 
            by: { id: "T4Y...g9", name: 'Rick' },
+           circles: [ '10gen' ],
            type: 'status',
            detail: { 
              text: 'So when do you crush Oracle?' },
@@ -179,16 +209,35 @@ social.wall (block of X most recent [partial] posts on user's wall)
              ... only last X comments listed ...
                ]
          },               
+         ...
       ]
    }
 
-social.news (block of X most recent [partial] posts on user's news feed)
+There are a few things to note about this schema:
+
+- Each post is listed with an abbreviated number of comments (3 might be
+  typical.) This is to keep the size of the document reasonable. If you need to
+  display more comments on a post, you would then query the ``social.post``
+  collection for full details.
+- There are actually multiple ``social.wall`` documents for each ``social.user``
+  document. This allows the system to keep a "page" of recent posts in the
+  initial page view, fetching older "pages" if requested. A ``page`` property
+  keeps track of the position of this page of posts on the user's overall wall
+  timeline along with the timestamps on individual posts.
+- Once again, the ``by`` properties store only the minimal author information for
+  display, helping to keep this document small.
+
+The other dependent collection you'll use is ``social.news``, posts from people
+the user follows. This schema includes much of the same information as the
+``social.wall`` information, so the document below has been abbreviated for
+clarity: 
 
 .. code-block:: javascript
 
    {
       _id: ObjectId(...),
       user_id: "T4Y...AE",
+      page: 3,
       num_posts: 42,
       posts: [ ... ]
    }
@@ -196,11 +245,156 @@ social.news (block of X most recent [partial] posts on user's news feed)
 Operations
 ----------
 
-TODO: summary of the operations section
+Since the schemas above optimize for read performance at the possible expense
+of write performance, you should ideally provide a queueing system for
+processing updates which may take longer than your desired web request latency.
 
 The examples that follow use the Python programming language and the
 :api:`PyMongo <python/current>` :term:`driver` for MongoDB, but you
 can implement this system using any language you choose.
+
+Viewing a News Feed or Wall Posts
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The most common operation on a social network probably the display of a
+particular user's news feed, followed by a user's wall posts. Since the
+``social.news`` and ``social.wall`` collections are optimized for these
+operations, the query is fairly straightforward. Since these two collections
+share a schema, viewing the posts for a news feed or a wall are actually quite
+similar operations, and can be supported by the same code:
+
+.. code-block:: python
+
+   def get_posts(collection, user_id, page=None):
+       spec = { 'user_id': viewed_user_id }
+       if page is not None:
+           spec['page'] = {'$lte': page}
+       cur = collection.find(spec)
+       cur = cur.sort('page', -1)
+       for page in cur:
+           for post in reversed(page['posts']):
+               yield page['page'], post
+
+The function ``get_posts`` above will retrieve all the posts on a particular user's
+wall or news feed  in reverse-chronological order. Some special handling is
+required to efficieintly achieve the reverse-chronological ordering:
+
+- The ``posts`` within a page are actually stored in chronological order, so the
+  order of these posts must be reversed before displaying.
+- As a user pages through her wall, it's preferable to avoid fetching the first
+  few pages from the server each time. To achieve this, the code above specifies
+  the first page to fetch in the ``page`` argument, passing this in as an
+  ``$lte`` expression in the query.
+- Rather than only yielding the post itself, the post's page is also yielded from
+  the generator. This provides the ``page`` argument used in any subsequent calls
+  to ``get_posts``.
+
+There is one other issue that needs to be considered in selecting posts for
+display: privacy settings. In order to handle privacy issues effectively, you'll
+need use some filter functions on the posts generated above by ``get_posts``. The
+first of these filters is used to determine whether to show a post when the user
+is viewing his or her own wall:
+
+.. code-block:: python
+
+   def visible_on_own_wall(user, post):
+       '''if poster is followed by user, post is visible'''
+       for circle, users in user['circles'].items():
+           if post['by']['id'] in users: return True
+       return False
+
+In addition to the user's wall, your social network might provide an "incoming"
+page that contains all posts directed towards a user regardless of whether that
+poster is followed by the user. In this case, you would use a block list
+to filter posts:
+
+.. code-block:: python
+
+   def visible_on_own_incoming(user, post):
+       '''if poster is not blocked by user, post is visible'''
+       return post['by']['id'] not in user['blocked']
+
+When viewing a news feed or another user's wall, the permission check is a bit
+different based on the post's ``circles`` property:
+
+.. code-block:: python
+
+   def visible_post(user, post):
+       if post['circles'] == ['*public*']: 
+           # public posts always visible
+           return True
+       circles_user_is_in = set(
+           user['followers'].get(post['by']['id'] []))
+       if not circles_user_is_in:
+           # user is not circled by poster; post is invisible
+           return False
+       if post['circles'] == ['*circles*']:
+           # post is public to all followed users; post is visible
+           return True
+       for circle in post['circles']:
+           if circle in circles_user_is_in:
+               # User is in a circle receiving this post
+               return True
+       return False
+
+Index Support
+`````````````
+
+In order to quickly retrieve the pages in the desired order, you'll need an index
+on (``user_id``, ``page``) in both the ``social.news`` and ``social.wall``
+collections. Since this combination is in fact unique, you should go ahead and
+specify ``unique=True`` for the index (this will become important later).
+
+.. code-block:: pycon
+
+   >>> db.social.news.ensure_index([
+   ...     ('user_id', 1),
+   ...     ('page', -1)],
+   ...     unique=True)
+   >>> db.social.wall.ensure_index([
+   ...     ('user_id', 1),
+   ...     ('page', -1)],
+   ...     unique=True)
+
+
+Creating a New Post
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   from datetime import datetime
+   POSTS_PER_PAGE=25
+
+   def post(user, dest_user, type, detail, circles):
+       ts = datetime.utcnow()
+       post = {
+           'ts': ts, 
+           'by': { id: user['id'], name: user['name'] },
+           'circles': circles,
+           'type': type,
+           'detail': detail, 
+           'comments': [] }
+       # Update global post collection
+       db.social.post.insert(post)
+       if dest_user in user['followers']
+       result = db.social.wall.update(
+           { 'user_id': user['id'], 'page': user['wall_pages'] }
+       
+
+Commenting on a Post
+~~~~~~~~~~~~~~~~~~~~
+
+Adding a User to a Circle
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Removing a User from a Circle
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Viewing a User's Profile
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Another common read operation on social networks is viewing a user's profile,
+including their wall posts. The code is actually quite similar to the code for 
 
 Operation 1
 ~~~~~~~~~~~
