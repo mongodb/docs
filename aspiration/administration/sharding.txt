@@ -1,21 +1,686 @@
-=======================
-Sharding Administration
-=======================
+.. index:: administration; sharding
+.. _sharding-administration:
 
-Pre-Splitting
--------------
+============================
+Shard Cluster Administration
+============================
 
-Manual Chunk Management
------------------------
+This document provides a collection of basic operations and procedures
+for administering :term:`shard clusters`.
 
-Increasing Cluster Size
------------------------
+.. contents:: Sharding Procedures:
+   :backlinks: none
+   :local:
 
-Disabling Balancing
+.. seealso:: The following sections which address background
+information related to sharding operations and use:
+
+   - :doc:`/sharding`
+   - :doc:`/core/sharding`
+   - :doc:`/administration/sharding-architectures`
+   - :doc:`/core/sharding-internals`
+
+.. _sharding-procedure-setup:
+
+Setup and Cluster Initialization
+--------------------------------
+
+If you have an existing replica set, you can use the
+":doc:`/tutorials/convert-replica-set-to-replicated-shard-cluster`"
+tutorial as a guide. If you're deploying a "bare" :term:`shard
+cluster`, use the following procedure as a starting point:
+
+#. Provision the required hardware.
+
+   .. see:: The ":ref:`sharding-requirements`" section for more
+      information on the requirements.
+
+#. On all three (3) config servers instance issue the following
+   command to start the :program:`mongod` process:
+
+   .. code-block:: sh
+
+      mongod --configsvr
+
+   This starts a :program:`mongod` instance running on the TCP port
+   ``27018``, with the data stored in the ``/data/configdb`` path. All other
+   :doc:`command line </reference/mongod>` and :doc:`configuration
+   file </reference/configuration-options>` are available for config
+   server instances.
+
+#. Start a :program:`mongos` instance. Use the following command:
+
+   .. code-block:: sh
+
+      mongos --configdb config0.mongodb.example.net,config1.mongodb.example.net,config3.mongodb.example.net --port 27017
+
+#. Log in to the :program:`mongos` instance using the :program:`mongo`
+   shell. The remainder of this process will use the :doc:`mongo shell
+   </mongo>`
+
+#. Add shards to the cluster.
+
+   Use either the :dbcommand:`addShard` command or the
+   :func:`sh.addShard()` command. Consider the following prototypes:
+
+   .. code-block:: javascript
+
+      db.runCommand( { addShard: "[hostname]:[port]" } )
+
+   Or:
+
+   .. code-block:: javascript
+
+      sh.addShard( "[hostname]:[port]" )
+
+   Replace "``[hostname]``" and "``[port]``" with the hostname and TCP
+   port number of the shard where the shard is accessible. If you do
+   not specify a port number, MongoDB will assume the
+   :program:`mongod` instance is accessible Consider the following
+   examples:
+
+   .. code-block:: javascript
+
+      db.runCommand( { addShard: "mongodb0.example.net" } )
+
+   Or:
+
+   .. code-block:: javascript
+
+      sh.addShard( "mongodb0.example.net:27027" )
+
+   Repeat this step for all of the shards in your cluster.
+
+   .. optional::
+
+      You may specify a "name" as an argument to the
+      :dbcommand:`addShard`, as follows:
+
+      .. code-block:: javascript
+
+         db.runCommand( { addShard: mongodb0.example.net, name: "mongodb0" } )
+         sh.addShard( mongodb0.example.net, name: "mongodb0" )
+
+      If you do not specify a shard name, then MongoDB will assign a
+      name upon creation.
+
+#. Enable sharding for any database that you want to shard.
+
+   Use either the :dbcommand:`enableSharding` command or the
+   :func:`sh.enableSharding()` shell function. Consider the following
+   prototypes:
+
+   .. code-block:: javascript
+
+      db.runCommand( { enableSharding: [database] } )
+
+   Or:
+
+   .. code-block:: javascript
+
+      sh.enableSharding([database])
+
+   Replace "``[database]``"  with the name of the database you wish to
+   enable sharding on.
+
+   .. note::
+
+      MongoDB creates databases implicitly upon the first incidence of
+      use.
+
+      Enabling sharding on a database only makes it possible to use
+      the :dbcommand:`shardCollection` which actually shards the data
+      in the collection.
+
+#. Enable sharding for relevant collections.
+
+   Use the :dbcommand:`shardCollection` command or the
+   :func:`sh.shardCollection()` shell function. Consider the following
+   prototype functions:
+
+   .. code-block:: javascript
+
+      db.runCommand( { shardCollection: "[database].[collection]", key: "[shard-key]" } )
+
+   Or:
+
+   .. code-block:: javascript
+
+      sh.shardCollection("[database].[collection]", "key")
+
+   In actual use, these commands would resemble the following:
+
+   .. code-block:: javascript
+
+      db.runCommand( { shardCollection: "records.processed", key: {shard_id: 1} } )
+      sh.shardCollection("records.processed", {shard_id: 1})
+
+   .. note::
+
+      The selection of the :term:`shard key` is beyond the scope of
+      this document, but is incredibly critical for the long term
+      performance and health of your :term:`shard cluster`.
+
+      .. see:: The ":ref:`Shard Key Overview <sharding-shard-key>`"
+         and :ref:`Shard Key Internals
+         <sharding-internals-shard-keys>` sections for a more
+         exhaustive overview of sharding.
+
+      If you do not specify a shard key, MongoDB will shard the
+      collection using the "``_id``" field.
+
+Cluster Management
+------------------
+
+This section contains the basic processes required for managing an
+existing shard cluster.
+
+.. _sharding-procedure-add-shard:
+
+Add a Shard to a Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To add a shard to an *existing* shard cluster, use the following
+procedure:
+
+#. Log into any :program:`mongos` in the cluster using the
+   :program:`mongo` shell.
+
+#. Use either the :dbcommand:`addShard` command or the
+   :func:`sh.addShard()` command. Consider the following prototypes:
+
+   .. code-block:: javascript
+
+      db.runCommand( { addShard: "[hostname]:[port]" } )
+
+   Or:
+
+   .. code-block:: javascript
+
+      sh.addShard( "[hostname]:[port]" )
+
+   Replace "``[hostname]``" and "``[port]``" with the hostname and TCP
+   port number of the shard where the shard is accessible. If you do
+   not specify a port number, MongoDB will assume the
+   :program:`mongod` instance is accessible Consider the following
+   examples:
+
+   .. code-block:: javascript
+
+      db.runCommand( { addShard: "mongodb0.example.net" } )
+
+   Or:
+
+   .. code-block:: javascript
+
+      sh.addShard( "mongodb0.example.net:27027" )
+
+   .. optional::
+
+      You may specify a "name" as an argument to the
+      :dbcommand:`addShard`, as follows:
+
+      .. code-block:: javascript
+
+         db.runCommand( { addShard: mongodb0.example.net, name: "mongodb0" } )
+         sh.addShard( mongodb0.example.net, name: "mongodb0" )
+
+      If you do not specify a shard name, then MongoDB will assign a
+      name upon creation.
+
+Congratulations! You have now added a new shard to the cluster. You
+can repeat the final step of this procedure for as many shards as you
+want to add to the cluster.
+
+.. note::
+
+   It may take some period of time for :term:`chunks` to migrate to
+   the new shard.
+
+   .. see:: The ":ref:`Balancing and Distribution <sharding-balancing>`"
+      section for an overview of the balancing operation and the
+      ":ref:`Balancing Internals <sharding-balancing-internals>`"
+      section for additional information.
+
+.. _sharding-procedure-remove-shard:
+
+Remove a Shard from a Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To remove a :term:`shard` from your :term:`shard cluster`, you must:
+
+- Begin moving :term:`chunks` off of the shard.
+
+- Ensure that this shard is not the "primary" shard for any databases
+  in the cluster, and move the "primary" status for any databases to
+  other shards.
+
+- Finally, remove the shard for the cluster.
+
+.. note::
+
+   To successfully migrate data from a shard, the :term:`balancer`
+   process **must** be active.
+
+The formal procedure for to remove a shard is as follows:
+
+#. Log into any :program:`mongos` in the cluster using the
+   :program:`mongo` shell.
+
+#. Determine the name of the shard you will be draining.
+
+   You must specify the name of the shard, which you specified as an
+   argument to the :dbcommand:`addShard` when you added the shard to
+   the cluster or MongoDB created a default name.
+
+   The remainder of this process uses the shard name "``mongodb0``".
+
+   .. note::
+
+      You can use the :dbcommand:`listShards` or the
+      :func:`sh.status()`\/:dbcommand:`printShardingStatus` operation
+      to return a list of shards in your cluster.
+
+#. Begin "draining" chunks from the shard.
+
+   Use the :dbcommand:`removeShard`, as follows:
+
+   .. code-block:: javascript
+
+      db.runCommand( { removeshard: "mongodb0" } )
+
+   This operation will return the following response immediately as
+   sharding begins:
+
+   .. code-block:: javascript
+
+      { msg : "draining started successfully" , state: "started" , shard :"mongodb0" , ok : 1 }
+
+   Depending on your network capacity and the amount of data in your
+   cluster, this operation may take a number of minutes or hours to
+   complete.
+
+#. Check the progress of the migration.
+
+   You can run the :dbcommand:`removeShard` again at any stage of the
+   process to check the progress of the migration, as follows:
+
+   .. code-block:: javascript
+
+      db.runCommand( { removeshard: "mongodb0" } )
+
+   Consider the following output:
+
+   .. code-block:: javascript
+
+      { msg: "draining ongoing" ,  state: "ongoing" , remaining: { chunks: 42, dbs : 1 }, ok: 1 }
+
+   In the ``remaining`` sub document, you will see a counter of the
+   total number of chunks that MongoDB must migrate to other shards,
+   and the number of MongoDB databases that have "primary" status on
+   this shard.
+
+   The draining process will remove all chunks that are in sharded
+   collections, but databases require manual intervention. See the
+   next step.
+
+#. Move database primaries to other shards in the cluster.
+
+   MongoDB databases in shard clusters store all of their non-sharded
+   collections on their "primary" shard.
+
+   .. note::
+
+      This step is only necessary if any database have their primary
+      status set to this shard reside on this shard.
+
+   Issue the following command at the :program:`mongo` shell:
+
+   .. code-block:: javascript
+
+      db.runCommand( { movePrimary: "records", to: "mongodb1" })
+
+   This command will migrate all remaining non-sharded data in the
+   database named "``records``" to the shard named "``mongodb1``".
+
+   .. warning::
+
+      Only use the :dbcommand:`movePrimary` when you have *completed*
+      draining for the shard.
+
+   This command can be long running, and will not return until MongoDB
+   completes moving all data. The response from this command will
+   resemble the following:
+
+   .. code-block:: javascript
+
+      { "primary" : "mongodb1", "ok" : 1 }
+
+#. Run :dbcommand:`removeShard` again to clean up all metadata
+   information and finalize the removal, as follows:
+
+   .. code-block:: javascript
+
+      db.runCommand( { removeshard: "mongodb0" } )
+
+   This operation, when successful will return a document that
+   resembles the following:
+
+   .. code-block:: javascript
+
+      { msg: "remove shard completed succesfully" , stage: "completed", host: "mongodb0", ok : 1 }
+
+When this process is complete you fully decommission the processes and
+systems that provide the ``mongodb0`` shard.
+
+Chunk Creation and Management
+-----------------------------
+
+This section describes the process for modifying and managing
+:term:`chunks <chunk>` in :term:`shard clusters <shard cluster>`. In
+most cases MongoDB automates these processes; however, in some cases,
+particularly when you're just establishing a shard cluster, you may
+need to create and manipulate chunks directly.
+
+.. _sharding-procedure-create-split:
+
+Create Chunk Splits Manually
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In normal operations, MongoDB creates :term:`chunk` splits, following
+inserts or updates, when a chunk exceeds the designated :ref:`chunk
+size <sharding-chunk-size>`.
+
+.. note::
+
+   You cannot remove splits or merge chunks, once they're created. As
+   result, too many splits may lead to a cluster with an uneven
+   distribution of data.
+
+Create chunks manually when:
+
+- you have a large amount of data in your cluster that is *not* split,
+  as is the case after creating a shard cluster from an existing data
+  collection, or
+
+- you expect to add a large amount of data to data that would at least
+  initially reside in a single chunk or shard.
+
+  .. example::
+
+     You plan to insert a large amount of data as the result of an
+     import process with a :term:`shard key` values between ``300``
+     and ``400``, *but* all values of your shard key between ``250``
+     and ``500`` are within a single chunk.
+
+  Use :func:`sh.status()` to determine the current ranges of your
+  shard.
+
+To create splits manually use either the :func:`sh.splitAt()` or
+:func:`sh.splitFind()` in the :program:`mongo` shell, which provide
+wrappers around the database commands :dbcommand:`splitAt` and
+:dbcommand:`splitFind`.
+
+.. _sharding-balancing-modify-chunk-size:
+
+Modify Chunk Size
+~~~~~~~~~~~~~~~~~
+
+Use the following procedure to modify the :ref:`chunk size
+<sharding-chunk-size>` of an existing :term:`shard cluster`.
+
+.. note::
+
+   Modifying the chunk size has serveral limitations:
+
+   - Automatic splitting only occurs when inserting :term:`documents 3
+     <document>` or updating existing documents; if you lower the
+     chunk size it may take for all chunks to split to the new size.
+
+   - Splits cannot be "undone;" if you increase the chunk size,
+     existing chunks must grow through insertion or updates until they
+     reach the new size.
+
+#. Log into any :program:`mongos` in the cluster using the
+   :program:`mongo` shell.
+
+#. Issue the following command to switch to the config database:
+
+   .. code-block:: javascript
+
+      use config
+
+#. Issue the following :func:`save() <db.collection.save()>`
+   operation:
+
+   .. code-block:: javascript
+
+      db.settings.save( { _id:"chunksize", value: <size> } )
+
+   Where the value of ``<size>`` reflects the new chunk size in
+   megabytes.
+
+TODO how does this new size affect the runtime option?
+
+.. seealso:: :settting:`chunkSize` or :option:`--chunkSize <mongos --chunkSize>`.
+
+.. _sharding-balancing-manual-migration:
+
+Migrate Chunks Manually
+~~~~~~~~~~~~~~~~~~~~~~~
+
+In most circumstances, you should let the automatic balancer to
+migrate :term:`chunks <chunk>` between :term:`shards <shard>` without
+intervention. However, there are some cirtumstances where you might
+want to migrate chunks manually. The :dbcommand:`moveChunk`
+:term:`database command` supports this procedure.
+
+.. note::
+
+   The following example, assumes that the field "``shard_id``" is the
+   :term:`shard key` for a collection named "``network``" in the
+   "``infrastructure``" database, and that the value
+   "``example.net-192.0.2.1``" exists within a :term:`chunk` in the
+   cluster.
+
+To move a chunk, issue the following command in the :program:`mongo`
+shell connected to any :program:`mongos` insance.
+
+.. code-block:: javascript
+
+   db.adminCommand({moveChunk : "infrastructure.network", find : {shard_id : "example.net-192.0.2.1"}, to : "mongodb-shard3.eample.net"})
+
+This command, moved the chunk that includes the shard key to the
+:term:`shard` with the value "``example.net-192.0.2.1``" to the
+:term:`shard` named "``mongodb-shard3.eample.net``". The command will
+only return when the migration is complete and the chunk now resides
+on the target shard.
+
+.. note::
+
+   You can specify shard names using the ``name`` argument to the
+   :dbcommand:`addShard` :term:`command <database comand>`. If you do
+   not specify a name, MongoDB will assign a name automatically.
+
+   To return a list of shards, use the :dbcommand:`listshards`
+   command.
+
+.. index:: sharding; balancing; operations
+.. _sharding-balancing-operations:
+
+Balancer Operations
 -------------------
 
-Configuring Balancing
----------------------
+TODO modify this section to include the helper functions in the shell.
+
+This section provides an overview of common administrative procedures
+related to balancing and the balancing process.
+
+.. seealso:: ":ref:`sharding-balancing`" and the
+   :dbcommand:`moveChunk` that provides manual :term:`chunk`
+   migrations.
+
+.. _sharding-balancing-check-lock:
+
+Check the Balancer Lock
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To see if the balancer process is active in your :term:`shard
+cluster`, use the following process:
+
+#. Log into any :program:`mongos` in the cluster using the
+   :program:`mongo` shell.
+
+#. Issue the following command to switch to the config database:
+
+   .. code-block:: javascript
+
+      use config
+
+#. Use the following query to return the balancer lock:
+
+   .. code-block:: javascript
+
+      db.locks.find( { _id : "balancer" } );
+
+   You can also use the following shell helper to return the same
+   information:
+
+   .. code-block:: javascript
+
+      sh.getBalancerState()
+
+When this command returns you will see output that resembles the
+following:
+
+.. code-block:: javascript
+
+   { "_id" : "balancer", "process" : "guaruja:1292810611:1804289383", "state" : 2, "ts" : ObjectId("4d0f872630c42d1978be8a2e"), "when" : "Mon Dec 20 2010 11:41:10 GMT-0500 (EST)", "who" : "guaruja:1292810611:1804289383:Balancer:846930886", "why" : "doing balance round" }
+
+Given this response you can determine that:
+
+- The balancer originates from the :program:`mongos` running on the
+  system with the hostname ``guaruja``.
+
+- The value in the ``state`` field indicates that a :program:`mongos`
+  has the lock. For version 2.0 and later, the value of an active lock
+  is ``2``, for earlier versions the value is ``1``.
+
+- The task that the balancer is running in the ``why`` field.
+
+  .. note::
+
+     The following shell helper will show if the balancer is running:
+
+     .. code-block:: javascript
+
+        sh.isBalancerRunning()
+
+.. _sharding-schedule-balancing-window:
+
+Schedule the Balancing Window
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In some situations, particularly when your data set grows slowly and a
+migration can impact performance data it's useful to be able to
+deactivate the balancer except durring a specified window.  Use the
+folloing procedure to limit the window that the :term:`balancer` can
+use to move chunks:
+
+#. Log into any :program:`mongos` in the cluster using the
+   :program:`mongo` shell.
+
+#. Issue the following command to switch to the config database:
+
+   .. code-block:: javascript
+
+      use config
+
+#. Use an operation modeled on the folloiwng prototype :func:`update()
+   <db.collection.update()>` operation to modify the balancer's
+   window:
+
+   .. code-block:: javascript
+
+      db.settings.update({ _id : "balancer" }, { $set : { activeWindow : { start : "<start-time>", stop : "<stop-time>" } } }, true )
+
+   Replace "``<start-time>``" and "``<end-time>``" with time values in
+   24-hour "``H:MM``" format that describe the beginning and end
+   bounds of the balancing window. For instance, consider the
+   following operation that would limit the balancer to run between
+   11PM and 6AM:
+
+   .. code-block:: javascript
+
+      db.settings.update({ _id : "balancer" }, { $set : { activeWindow : { start : "23:00", stop : "6:00" } } }, true )
+
+.. note::
+
+   The balancer window must be sufficent to *complete* the migration
+   of all data inserted during the day.
+
+   As data insert rates can change based on activity and usege
+   patterns its important to ensure that the balancing window you
+   select will be sufficent to support the needs of your deployment.
+
+.. _sharding-balancing-disable-temporally:
+
+Disable the Balancer Temporarily
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default the balancer runs all the time, and only moves chunks when
+needed. To disable the balancer for a short period of time and prevent
+all migrations, use the following procedure:
+
+
+#. Log into any :program:`mongos` in the cluster using the
+   :program:`mongo` shell.
+
+#. Issue the following command to disable the balancer:
+
+   .. code-block:: javascript
+
+      sh.setBalancerState(true)
+
+#. Later, issue the following command to enable the balancer:
+
+   .. code-block:: javascript
+
+      sh.setBalancerState(false)
+
+.. note::
+
+   Use the :func:`sh.getBalancerState()` to check the current state
+   of the balancer.
+
+The above process and the :fun:`sh.setBalancerState()` provides a
+wrapper on the following process, which may be useful if you need to
+run this operation from a driver that does not have helper functions:
+
+#. Log into any :program:`mongos` in the cluster using the
+   :program:`mongo` shell.
+
+#. Issue the following command to switch to the config database:
+
+   .. code-block:: javascript
+
+      use config
+
+#. Issue the following command to disable the balancer:
+
+   .. code-block:: javascript
+
+      db.settings.update( { _id: "balancer" }, { $set : { stopped: true } } , true );
+
+#. To enable the balancer again, use the following operation:
+
+   .. code-block:: javascript
+
+      db.settings.update( { _id: "balancer" }, { $set : { stopped: false } } , true );
+
+.. index:: troubleshooting; sharding
+.. index:: sharding; troubleshooting
+.. _sharding-troubleshooting:
 
 Troubleshooting
 ---------------
