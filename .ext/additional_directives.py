@@ -40,9 +40,15 @@ def visit_mongodb_node(self, node):
 def depart_mongodb_node(self, node):
     self.depart_admonition(node)
 
+def mongodb_add_node(app, type):
+    app.add_node(type,
+                 html=(visit_mongodb_node, depart_mongodb_node),
+                 latex=(visit_mongodb_node, depart_mongodb_node),
+                 text=(visit_mongodb_node, depart_mongodb_node),
+                 man=(visit_mongodb_node, depart_mongodb_node),
+                 texinfo=(visit_mongodb_node, depart_mongodb_node))
 
 ################################################################################
-
 
 class optional_node(nodes.Admonition, nodes.Element): pass
 
@@ -62,16 +68,6 @@ def setup(app):
     app.add_directive('optional', Optional)
     app.add_directive('see', See)
     app.add_directive('example', Example)
-    app.add_node(optional_node,
-                 html=(visit_mongodb_node, depart_mongodb_node),
-                 latex=(visit_mongodb_node, depart_mongodb_node),
-                 text=(visit_mongodb_node, depart_mongodb_node),
-                 man=(visit_mongodb_node, depart_mongodb_node),
-                 texinfo=(visit_mongodb_node, depart_mongodb_node))
 
-    app.add_node(example_node,
-                 html=(visit_mongodb_node, depart_mongodb_node),
-                 latex=(visit_mongodb_node, depart_mongodb_node),
-                 text=(visit_mongodb_node, depart_mongodb_node),
-                 man=(visit_mongodb_node, depart_mongodb_node),
-                 texinfo=(visit_mongodb_node, depart_mongodb_node))
+    mongodb_add_node(app, optional_node)
+    mongodb_add_node(app, example_node)
