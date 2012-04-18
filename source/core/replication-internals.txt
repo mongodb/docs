@@ -114,7 +114,7 @@ member should become primary.
 
 Elections are the process that the members of a replica set use to
 select the primary node in a cluster. Elections follow two events:
-primary node that "steps down" or a :term:`secondary` member that
+a primary node that "steps down" or a :term:`secondary` member that
 loses contact with a :term:`primary` node. All members have one vote
 in an election, and every :program:`mongod` can veto an election. A
 single member's veto will invalidate the election.
@@ -142,26 +142,26 @@ A voting node will veto an election under the following conditions:
 - If the node seeking an election is more than 10 seconds behind the
   most recent operation to the replica set.
 
-- If the node seeking an election has a lower priority than other node
+- If the node seeking an election has a lower priority than another node
   in the set that is also eligible for election.
 
-- If the current :term:`primary` node has more recent operations than the
-  (i.e. a higher "optime") than then node seeking election, from the
+- If the current :term:`primary` node has more recent operations 
+  (i.e. a higher "optime") than the node seeking election, from the
   perspective of the voting node.
 
 - The current primary will also veto an election if it has the same or
-  more recent operations (i.e. a higher or "equal optime") than the
+  more recent operations (i.e. a "higher or equal optime") than the
   node seeking election.
 
 The first node to receive votes from a majority of members in a set
 becomes the next primary until the next election. Be
 aware of the following conditions and possible situations:
 
-- Replica sets send heartbeats (pings) to each other every 2
+- Replica set members send heartbeats (pings) to each other every 2
   seconds. If a heartbeat does not return for more than 10 seconds,
   the other nodes mark the delinquent node as inaccessible.
 
-- Replica set members only compare  priorities with other members of
+- Replica set members only compare priorities with other members of
   the set. The absolute value of priorities does not have any impact on
   the outcome of replica set elections.
 
