@@ -46,7 +46,7 @@ MongoDB Wiki
 - `Community <http://www.mongodb.org/display/DOCS/Community>`_ and Ecosystem
 
   - `10gen <http://10gen.com>`_
-  - `Meetup Events <http://mongodb.org/display/DOCS/MeetupAPI+Events+Page>`_
+  - `MongoDB Events <http://www.mongodb.org/events>`_
   - `MongoDB Masters <http://mongodb.org/display/DOCS/MongoDB+Masters>`_
   - `Slides and Video <http://mongodb.org/display/DOCS/Slides+and+Video>`_
   - `Cookbook <http://cookbook.mongodb.org/>`_
