@@ -1,5 +1,5 @@
-`MongoDB Wiki <http://mongodb.org>`_
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+MongoDB Wiki
+~~~~~~~~~~~~
 
 - Getting Started
 
