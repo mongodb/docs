@@ -5,15 +5,17 @@
 Shard Cluster Administration
 ============================
 
+.. default-domain:: mongodb
+
 This document provides a collection of basic operations and procedures
-for administering :term:`shard clusters`.
+for administering :term:`shard clusters <shard cluster>`.
 
 .. contents:: Sharding Procedures:
    :backlinks: none
    :local:
 
 .. seealso:: The following sections which address background
-information related to sharding operations and use:
+   information related to sharding operations and use:
 
    - :doc:`/sharding`
    - :doc:`/core/sharding`
@@ -161,10 +163,9 @@ cluster`, use the following procedure as a starting point:
       this document, but is incredibly critical for the long term
       performance and health of your :term:`shard cluster`.
 
-      .. see:: The ":ref:`Shard Key Overview <sharding-shard-key>`"
-         and :ref:`Shard Key Internals
-         <sharding-internals-shard-keys>` sections for a more
-         exhaustive overview of sharding.
+      Consider the ":ref:`Shard Key Overview <sharding-shard-key>`"
+      and :ref:`Shard Key Internals <sharding-internals-shard-keys>`
+      sections for a more exhaustive overview of sharding.
 
       If you do not specify a shard key, MongoDB will shard the
       collection using the ``_id`` field.
@@ -237,10 +238,11 @@ want to add to the cluster.
    It may take some period of time for :term:`chunks` to migrate to
    the new shard.
 
-   .. see:: The ":ref:`Balancing and Distribution <sharding-balancing>`"
-      section for an overview of the balancing operation and the
-      ":ref:`Balancing Internals <sharding-balancing-internals>`"
-      section for additional information.
+   For more information on chunk migrations, see the ":ref:`Balancing
+   and Distribution <sharding-balancing>`" section for an overview of
+   the balancing operation and the ":ref:`Balancing Internals
+   <sharding-balancing-internals>`" section for additional
+   information.
 
 .. _sharding-procedure-remove-shard:
 
@@ -416,10 +418,11 @@ Create chunks manually when:
   Use :func:`sh.status()` to determine the current ranges of your
   shard.
 
+TODO expand this section
+
 To create splits manually use either the :func:`sh.splitAt()` or
 :func:`sh.splitFind()` in the :program:`mongo` shell, which provide
-wrappers around the database commands :dbcommand:`splitAt` and
-:dbcommand:`splitFind`.
+wrappers around the :term:`database command` :dbcommand:`split`.
 
 .. _sharding-balancing-modify-chunk-size:
 
@@ -616,12 +619,12 @@ use to move chunks:
 
 .. note::
 
-   The balancer window must be sufficent to *complete* the migration
+   The balancer window must be sufficient to *complete* the migration
    of all data inserted during the day.
 
-   As data insert rates can change based on activity and usege
+   As data insert rates can change based on activity and usage
    patterns its important to ensure that the balancing window you
-   select will be sufficent to support the needs of your deployment.
+   select will be sufficient to support the needs of your deployment.
 
 .. _sharding-balancing-disable-temporally:
 
@@ -631,7 +634,6 @@ Disable the Balancer Temporarily
 By default the balancer runs all the time, and only moves chunks when
 needed. To disable the balancer for a short period of time and prevent
 all migrations, use the following procedure:
-
 
 #. Log into any :program:`mongos` in the cluster using the
    :program:`mongo` shell.
@@ -678,9 +680,340 @@ run this operation from a driver that does not have helper functions:
 
       db.settings.update( { _id: "balancer" }, { $set : { stopped: false } } , true );
 
+.. index:: sharding; config servers; operations
+.. _sharding-procedure-config-server:
+
+Config Server Maintenance
+-------------------------
+
+Config servers provide the necessary metadata to map :term:`chunks`
+(that describe the boundaries of a database) to :term:`shards` in a
+:term:`shard cluster`. This section provides an overview of the basic
+procedures to migrate, replace, and maintain these servers.
+
+.. seealso:: :ref:`sharding-config-server`
+
+Upgrade from One Config Server to Three Config Servers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+All production :term:`shard clusters <shard cluster>`  should use 3
+config servers to provide reliability and redundancy, although you can
+deploy with only a single config server for testing and development
+purposes. Use the following process to convert from one config
+instance to 3 config instances:
+
+#. Shut down all existing MongoDB processes. This includes:
+
+   - all :program:`mongod` instances or :term:`replica sets <replica set>`
+     that provide your shards.
+
+   - the :program:`mongod` instance that provides your existing config
+     database.
+
+   - all :program:`mongos` instances in your cluster.
+
+#. Move the entire :setting:`dbpath` file system tree for the existing
+   config server to the system that will provide the second and third
+   config servers. These commands, issued on the system with the existing
+   config database, may resemble the following:
+
+   .. code-block:: sh
+
+      rsync -az /data/configdb mongo-config1.example.net:/data/configdb
+      rsync -az /data/configdb mongo-config2.example.net:/data/configdb
+
+#. Start all three config servers, using the same invocation that you
+   use for the existing config server. the default configuration
+   resembles the following:
+
+   .. code-block:: sh
+
+      mongod --configsvr
+
+#. Restart all :program:`mongod` processes that provide the shard
+   servers.
+
+.. _sharding-process-config-server-migrate-same-hostname:
+
+Migrate Config Servers with the Same Hostname
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use this process when you need to migrate the config server to a new
+system but the new system will be accessible using the same host
+name.
+
+#. Shut down the config server that you're moving.
+
+   This will render all config data for your cluster "read only:" your
+   application will still be able read and write data to the cluster,
+   but the cluster cannot split chunks as they grow or migrate chunks
+   between shards. For short periods of time this is acceptable.
+
+#. Change the DNS entry that points to the system that provided old
+   config server, so that the *same* hostname points to the new
+   system.
+
+   This procedure depends on how you organize and provide your DNS and
+   hostname resolution services.
+
+#. Move the entire :setting:`dbpath` file system tree from the system
+   that provides the old config server to the system that will provide
+   the new config server. This command, issued on the original system,
+   may resemble the following:
+
+   .. code-block:: sh
+
+      rsync -az /data/configdb mongo-config0.example.net:/data/configdb
+
+#. Start the config instance on the new system. The default invocation
+   is:
+
+   .. code-block:: sh
+
+      mongod --configsrv
+
+When you start the third config server, your cluster will become
+writable and it will be able to create new splits and migrate chunks
+as needed.
+
+.. _sharding-process-config-server-migrate-different-hostname:
+
+Migrate Config Servers with Different Hostname
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use this process when you need to migrate a config database to a new
+server and it *will not* be accessible via the same host name. If
+possible, avoid changing the hostname so that you can use the
+:ref:`previous procedure <sharding-process-config-server-migrate-same-hostname>`.
+
+#. Shut down the config server that you're moving.
+
+   This will render all config data for your cluster "read only:" your
+   application will still be able read and write data to the cluster,
+   but the cluster cannot split chunks as they grow or migrate chunks
+   between shards. For short periods of time this is acceptable.
+
+#. Move the entire :setting:`dbpath` file system tree from the system
+   that provides the old config server to the system that will provide
+   the new config server. This command, issued on the original system,
+   may resemble the following:
+
+   .. code-block:: sh
+
+      rsync -az /data/configdb mongodb.config2.example.net:/data/configdb
+
+#. Start the config instance on the new system. The default invocation
+   is:
+
+   .. code-block:: sh
+
+      mongod --configsrv
+
+#. Shut down all existing MongoDB processes. This includes:
+
+   - all :program:`mongod` instances or :term:`replica sets <replica set>`
+     that provide your shards.
+
+   - the :program:`mongod` instances that provides your existing
+     config databases.
+
+   - all :program:`mongos` instances in your cluster.
+
+#. Restart all :program:`mongod` processes that provide the shard
+   servers.
+
+#. Update the :option:`--configdb <mongos --configdb>` parameter (or
+   :setting:`configdb`) for all :program:`mongos` instances and
+   restart all :program:`mongos` instances.
+
+Replace a Config Server
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Only use this procedure if you need to replace one of your config
+servers after it becomes inoperable (e.g. hardware failure.) This
+process assumes that the hostname of the instance will not change. If
+you must change the hostname of the instance, use the process for
+:ref:`migrating a config server to a different hostname
+<sharding-process-config-server-migrate-different-hostname>`.
+
+#. Provision a new system, with the same hostname as the previous
+   host.
+
+   You will have to ensure that the new system has the same IPA address
+   and Hostname as the system it is replacing *or* you will need to
+   modify the DNS records and wait for them to propagate.
+
+#. Shut down *one* (and only one) of the existing config servers. Copy
+   all this host's :setting:`dbpath` file system tree from the system
+   to the system that will provide the new config server. This
+   command, issued on the system with the data files, may resemble the
+   following:
+
+   .. code-block:: sh
+
+      rsync -az /data/configdb mongodb.config2.example.net:/data/configdb
+
+#. Restart the config server process that you used in the previous
+   step to copy the data files to the new config server instance.
+
+#. Start the new config server instance. The default invocation is:
+
+   .. code-block:: sh
+
+      mongod --configsrv
+
 .. index:: troubleshooting; sharding
 .. index:: sharding; troubleshooting
 .. _sharding-troubleshooting:
 
 Troubleshooting
 ---------------
+
+The two most important factors in maintaining a successful shard cluster are:
+
+- :ref:`choosing an appropriate shard key <sharding-internals-shard-keys>` and
+
+- :ref:`sufficient capacity to support current and future operations
+  <sharding-capacity-planning>`.
+
+You can prevent most issues encountered with sharding by ensuring that
+you choose the best possible :term:`shard key` for your deployment and
+ensure that you are always adding additional capacity to your cluster
+before the current resources saturated.
+
+However, consider the following common issues and their respective
+solutions:
+
+.. _sharding-troubleshooting-not-splitting:
+
+All Data Remains on One Shard
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Your cluster must have sufficient data for sharding to make
+sense. Sharding works by migrating chunks between the shards until
+each shard has roughly the same number of chunks.
+
+The default chunk size is 64 megabytes. MongoDB will not begin
+migrations until the shard with the most chunks has 8 more chunks that
+the shard with the fewest chunks. While the default chunk size is
+configurable with the :setting:`chunkSize` setting, these behaviors
+help prevent unnecessary chunk migrations, which can degrade the
+performance of your cluster as a whole.
+
+If you have just deployed a shard cluster, make sure that you have
+enough data to make sharding effective. If you do not have sufficient
+data to create more than eight 64 megabyte chunks, then all data will
+remain on one shard. Either lower the :ref:`chunk size
+<sharding-chunk-size>` setting, or add more data to the cluster.
+
+As a related problem, the system will only create splits following
+inserts updates, which means that if you configure sharding and do not
+continue to issue insert and update operations the database will not
+create any chunks. You can either wait until your application inserts
+data *or* :ref:`create splits manually <sharding-procedure-create-split>`.
+
+Finally, if your shard key has a low :ref:`cardinality
+<sharding-shard-key-cardinality>`, MongoDB may not be able to create
+sufficient splits among the data 
+
+One Shard Receives too Much Traffic
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In some situations, a single shard or a subset of the cluster will
+receive a disproportionate percentage of the traffic and workload from
+the application. In almost all cases this is the result of a shard key
+that does not effectively allow :ref:`write scaling
+<sharding-shard-key-write-scaling>` and a single or small number of
+shards receive all write operations.
+
+In some cases, this symptom may be an artifact of a situation where a
+majority of your queries are all routed to a single shard. This is
+typically an artifact of poorly distributed writes, but may be a
+symptom of having fewer shards than needed to provide write
+capacity. Only consider this as a possibility if the symptoms remain
+in the absence of write traffic. 
+
+Consider re-sharding your data and :ref:`choosing a different shard
+key <sharding-internals-choose-shard-key>` to correct this pattern.
+
+The Cluster Won't Balance
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have just deployed your sharding configuration, you may want to
+consider the :ref:`troubleshooting suggestions for a new cluster where
+data remains on a single shard <sharding-troubleshooting-not-splitting>`.
+
+If you maintain a shard cluster that balanced data initially, but
+later develops an uneven distribution of data, there are some unique
+potential clusters. Typically this situation results the following
+basic patterns: 
+
+- You have deleted or removed a significant amount of data from the
+  cluster. And if you've added additional data, it may have a
+  different distribution with regards to its shard key.
+
+- Your :term:`shard key` has low :ref:`cardinality <sharding-shard-key-cardinality>` 
+  and MongoDB cannot insert any additional splits in the collection.
+
+- Your data set is growing faster than the balancer can distribute
+  data around the cluster. This is uncommon in normal operations and
+  typically is the result of: 
+
+  - a :ref:`balancing window <sharding-schedule-balancing-window>` that
+    is too short, given the rate of data growth. Expanding 
+    
+  - an uneven distribution of :ref:`write operations
+    <sharding-shard-key-write-scaling>` that requires more data
+    migration. You may have to choose a different shard key to resolve
+    this issue.
+    
+  - poor network connectivity between shards may lead to chunk
+    migrations that take too long to complete. Investigate your
+    network configuration and interconnections between shards. 
+
+Migrations Render Cluster Unusable
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If migrations consume too many system resources to allow your
+applications to use MongoDB effectively there are two primary solutions: 
+
+#. If migrations only interrupt your clusters sporadically, you can
+   limit the :ref:`balancing window
+   <sharding-schedule-balancing-window>` to prevent balancing activity
+   during peek hours. Ensure that there is enough time remaining to
+   permit required balancing.
+
+#. If the balancer is always migrating chunks to the determent of
+   overall cluster performance: 
+   
+   - You may want to attempt :ref:`increasing chunk size <sharding-balancing-modify-chunk-size>`
+     to limit the frequency of migrations. 
+
+   - Your cluster may be over capacity, and you may want to attempt to
+     :ref:`add one or two shards <sharding-procedure-add-shard>` to
+     the cluster to distribute load. 
+     
+Additionally, you may have chosen a shard key that causes your
+application to direct all writes to a single shard, which in turn
+requires the balancer to migrate most data shortly after writing
+it. Consider redeploying sharding with a shard key that provides
+better :ref:`write scaling <sharding-shard-key-write-scaling>`
+
+Migrations Make it Difficult to Perform Backups
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If MongoDB migrates a chunk while you are taking a :doc:`backup
+</administration/backup>`, you can end with an inconsistent snapshot
+of your shard cluster. To compensate:
+
+- Set the :ref:`balancing window <sharding-schedule-balancing-window>`
+  so that the balancer is inactive while you're creating the
+  backup. Ensure that the backup process can complete while you have
+  the balancer disabled.
+  
+- :ref:`manually disable the balancer <sharding-balancing-disable-temporally>`
+  for the duration of the backup procedure.
+
+Always make sure you take a snapshot of the cluster metadata from the
+:ref:`config servers <sharding-config-server>` that reflects the
+current state of the cluster. 
