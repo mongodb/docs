@@ -14,15 +14,8 @@ manual-branch = master
 current-branch := $(shell git symbolic-ref HEAD 2>/dev/null | cut -d "/" -f "3" )
 
 # Build directory tweaking.
-root-build = build
-branch-build = $(root-build)/$(current-branch)
 CURRENTBUILD = $(publication-output)/$(current-branch)
-
-ifeq ($(MODE),publish)
-	BUILDDIR = $(branch-build)
-else
-	BUILDDIR = $(root-build)
-endif
+BUILDDIR = build
 
 # helpers for compressing man pages
 UNCOMPRESSED_MAN := $(wildcard $(BUILDDIR)/man/*.1)
