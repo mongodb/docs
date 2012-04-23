@@ -51,12 +51,12 @@ help:
 
 push:publish
 	@echo "Copying the new build to the web servers."
-	make -j2 MODE='push' push-dc1 push-dc2
+	$(MAKE) -j2 MODE='push' push-dc1 push-dc2
 
 publish:
 	@echo "Running the publication and migration routine..."
-	make -j1 MODE='publish' pickle
-	make -j MODE='publish' deploy
+	$(MAKE) -j1 MODE='publish' pickle
+	$(MAKE) -j MODE='publish' deploy
 	@echo "Publication succeessfully deployed to '$(publication-output)'."
 	@echo
 
@@ -271,7 +271,7 @@ doctest:
 ####################
 PDFLATEXCOMMAND = TEXINPUTS=".:$(BUILDDIR)/latex/:" pdflatex --interaction batchmode --output-directory $(BUILDDIR)/latex/
 pdfs:latex
-	make MODE='$(MODE)' `find $(BUILDDIR)/latex/ -name "*.tex" | sed "s/\.tex/.pdf/"`
+	$(MAKE) MODE='$(MODE)' `find $(BUILDDIR)/latex/ -name "*.tex" | sed "s/\.tex/.pdf/"`
 %.pdf:%.tex
 	$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<'
 	-makeindex -s $(BUILDDIR)/latex/python.ist '$(basename $<).idx'
