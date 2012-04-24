@@ -213,7 +213,7 @@ Sharding
    shard you want to remove is also the primary of one the cluster's
    databases, then you must manually move the database to a new
    shard. This can be only after the shard is empty. See the
-   :dbcommand:`moveprimary` command for details.
+   :dbcommand:`movePrimary` command for details.
 
    After removing all chunks and databases from the shard, you
    may issue the command again, to return:
@@ -221,23 +221,6 @@ Sharding
    .. code-block:: javascript
 
       { msg: "remove shard completed successfully , stage: "completed", host: "shardName", ok : 1 }
-
-.. dbcommand:: moveprimary
-
-   In a :term:`shard cluster`, this command reassigns a databases
-   primary shard.  The command takes the following form:
-
-   .. code-block:: javascript
-
-      { moveprimary : "test", to : "shard0001" }
-
-   When the command returns, the database's primary location will
-   shift to the designated :term:`shard`. To fully decomission a
-   shard, use the :dbcommand:`removeshard` command.
-
-   .. warning:: Do not use :dbcommand:`moveprimary` if you have
-      sharded collections and the :term:`draining` process has not
-      completed.
 
 .. dbcommand:: printShardingStatus
 
@@ -2079,20 +2062,34 @@ Other Commands
 
 .. dbcommand:: movePrimary
 
-   .. warning:: Only use :dbcommand:`movePrimary` in an offline
-      system, and only when you need to remove a :term:`shard` from a
-      cluster.
+   In a :term:`shard cluster`, this command reassigns the database's
+   primary shard. The primary shard for a database holds all
+   un-sharded collections in the database.
 
    :dbcommand:`movePrimary` changes the primary shard for this
-   database. The primary shard holds all un-sharded collections in a
-   database.
+   database in the cluster metadata, and migrates all un-sharded
+   collections to the specified shard. Use a command with the
+   following form:
 
-   .. note::
+   .. code-block:: javascript
 
-      Exercise care when using :dbcommand:`movePrimary` in a
-      system that already holds data. You must drain this shard before
-      running this command because it will move all collections in
-      the database.
+      { moveprimary : "test", to : "shard0001" }
+
+   When the command returns, the database's primary location will
+   shift to the designated :term:`shard`. To fully decomission a
+   shard, use the :dbcommand:`removeshard` command.
+
+   .. warning::
+
+      Before running :dbcommand:`movePrimary` you must ensure that
+      *no* sharded data exists this shard. You must drain this shard
+      before running this command because it will move all collections
+      in the database. Use the :dbcommand:`removeshard` command to
+      migrate chunks from shard.
+
+      If you do not remove all sharded collections before running
+      :dbcommand:`movePrimary`  your shard cluster may have orphaned
+      data. 
 
    :dbcommand:`movePrimary` is an administrative command that is
    only available for :program:`mongos` instances.
