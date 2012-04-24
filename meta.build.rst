@@ -42,10 +42,21 @@ request to modify this document.*
 
 On OS X:
 
+#. You may need to use ``easy_install`` to install ``pip`` using the
+   following command if you have not already done so: :: 
+   
+        easy_install pip
+        
+    Alternately, you may be able to replace ``pip`` with
+    ``easy_install`` in the next step.
+
 #. Install Sphinx, Docutils, and their dependencies with ``pip`` using
    the following command: :: 
    
         pip install Sphinx Jinja2 Pygments docutils
+
+   ``Jinja2``, ``Pygments``, and ``docutils`` are all dependencies of
+   ``Sphinx``.
 
 #. Install a TeX distribution (for building the PDF.) If you do not
    have a LaTeX installation, use `MacTeX <http://www.tug.org/mactex/2011/>`_
@@ -63,7 +74,7 @@ This places a complete version of the manual in
 "``../public-docs/``" named for the current branch (as of
 *2012-03-19*, typically master.)
 
-To publish a new build of the manual, issue the following command:
+To publish a new build of the manual, issue the following command: ::
 
      make push
 
@@ -75,7 +86,7 @@ servers. You must have the proper credentials to run these operations.*
 it live.*
 
 To build a quick demo build for viewing the documentation locally and
-testing features of the documentation, use the following target:
+testing features of the documentation, use the following target: ::
 
      make html
 
