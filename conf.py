@@ -12,6 +12,8 @@ import sys, os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), ".ext")))
 from mongodb_docs_meta import VersionMeta
 
+meta = VersionMeta()
+
 # -- General configuration ----------------------------------------------------
 
 needs_sphinx = '1.0'
@@ -44,8 +46,8 @@ copyright = u'2011-2012, 10gen, Inc.'
 version = '2.0.2'
 release = version
 
-current_git_commit = VersionMeta.commit
-current_git_branch = VersionMeta.branch
+current_git_commit = meta.commit
+current_git_branch = meta.branch
 
 rst_epilog = ".. |branch| replace:: ``" + current_git_branch + "``" + """
 .. |commit| replace:: ``""" + current_git_commit + "``" + """
@@ -150,7 +152,8 @@ manual_edition_path = 'http://docs.mongodb.org/' + current_git_branch + '/MongoD
 html_theme_options = { 'branch': current_git_branch,
                        'commit': current_git_commit,
                        'pdfpath':  manual_edition_path + '.pdf',
-                       'epubpath':  manual_edition_path + '.epub'
+                       'epubpath':  manual_edition_path + '.epub',
+                       'manual_path': meta.manual_path, 
                        }
 
 # If true, an OpenSearch description file will be output, and all pages will
