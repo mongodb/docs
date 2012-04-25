@@ -133,6 +133,19 @@ Verb tense and mood preferences, with examples:
   will do foo" when possible. Use "does foo" over "will do foo" in
   situations where "this foos" is unacceptable.
 
+Referencing
+~~~~~~~~~~~
+
+- To refer to future or planned functionality in MongoDB or a driver,
+  *always* link to the Jira case. The Manual's ``conf.py`` provides
+  for a "``:issue:``" role that will link directly to a Jira case
+  (e.g. ``:issue:\`SERVER-9001\```). 
+  
+- For non-object references (i.e. functions, operators, methods,
+  database commands, settings) always reference only the first
+  occurrence of the reference in a section. You should *always*
+  reference objects, except in section headings. 
+  
 General Formulations
 ~~~~~~~~~~~~~~~~~~~~
 
