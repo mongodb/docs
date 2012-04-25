@@ -138,12 +138,12 @@ html_static_path = ['source/.static']
 # using the given strftime format.
 html_last_updated_fmt = '%b %d, %Y'
 
-html_copy_source = True
+html_copy_source = False
 html_use_smartypants = True
 html_domain_indices = True
 html_use_index = True
 html_split_index = False
-html_show_sourcelink = True
+html_show_sourcelink = False
 html_show_sphinx = True
 html_show_copyright = True
 
@@ -153,7 +153,7 @@ html_theme_options = { 'branch': current_git_branch,
                        'commit': current_git_commit,
                        'pdfpath':  manual_edition_path + '.pdf',
                        'epubpath':  manual_edition_path + '.epub',
-                       'manual_path': meta.manual_path, 
+                       'manual_path': meta.manual_path,
                        }
 
 # If true, an OpenSearch description file will be output, and all pages will

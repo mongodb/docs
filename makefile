@@ -55,7 +55,7 @@ push:publish
 
 publish:
 	@echo "Running the publication and migration routine..."
-	$(MAKE) -j1 MODE='publish' pickle
+	$(MAKE) -j1 html
 	$(MAKE) -j MODE='publish' deploy
 	@echo "Publication succeessfully deployed to '$(publication-output)'."
 	@echo
@@ -76,7 +76,9 @@ endif
 #
 
 ifeq ($(MODE),publish)
-# Build dependcies for the publication mode operation. This is the only target that you need to call explictly.
+# Build dependcies for the publication mode operation. This is the
+# only target that you need to call explictly.
+
 deploy: $(CURRENTBUILD)/release.txt $(CURRENTBUILD) $(publication-output)/index.html
 
 # Establish dependencies for building the manual.
@@ -108,10 +110,14 @@ $(BUILDDIR)/latex/MongoDB.pdf:$(BUILDDIR)/latex/MongoDB.tex
 
 # Establish proper dependencies with Sphinx aspects of the build.
 $(BUILDDIR)/dirhtml $(BUILDDIR)/dirhtml/search/index.html:dirhtml
-$(BUILDDIR)/html/genindex.html:html
+$(BUILDDIR)/html/genindex.html:$(BUILDDIR)/html/
 $(BUILDDIR)/singlehtml/:singlehtml
 $(BUILDDIR)/epub/MongoDB.epub:epub
 $(BUILDDIR)/latex/MongoDB.tex:latex
+
+# Commented out because this will always force a redundant rebuild 
+# given the above method of invocation.
+# $(BUILDDIR)/html/:html 
 
 # Deployment related work for the non-Sphinx aspects of the build.
 $(publication-output)/manual:$(CURRENTBUILD)
@@ -157,7 +163,7 @@ html:
 dirhtml:
 	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(BUILDDIR)/dirhtml
 	@echo
-	@echo "Build finished. The HTML pages are in $(BUILDDIR)/dirhtml."
+	@echo "Build finished. The (dir) HTML pages are in $(BUILDDIR)/dirhtml."
 
 singlehtml:
 	$(SPHINXBUILD) -b singlehtml $(ALLSPHINXOPTS) $(BUILDDIR)/singlehtml
@@ -174,17 +180,6 @@ man:
 	@echo
 	@echo "Build finished. The manual pages are in $(BUILDDIR)/man."
 	@echo
-
-changes:
-	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) $(BUILDDIR)/changes
-	@echo
-	@echo "The overview file is in $(BUILDDIR)/changes."
-
-linkcheck:
-	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) $(BUILDDIR)/linkcheck
-	@echo
-	@echo "Link check complete; look for any errors in the above output " \
-	      "or in $(BUILDDIR)/linkcheck/output.txt."
 
 latex:
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
@@ -243,21 +238,26 @@ aspirational-linkcheck:
 
 .PHONY: pickle json htmlhelp qthelp devhelp doctest
 
-pickle:
-	$(SPHINXBUILD) -b pickle $(ALLSPHINXOPTS) $(BUILDDIR)/pickle
-	@echo
-	@echo "Build finished; now you can process the pickle files."
-
 json:
 	$(SPHINXBUILD) -b json $(ALLSPHINXOPTS) $(BUILDDIR)/json
 	@echo
 	@echo "Build finished; now you can process the JSON files."
 
-text:
-	$(SPHINXBUILD) -b text $(ALLSPHINXOPTS) $(BUILDDIR)/text
-	mv $(BUILDDIR)/text/contents.txt $(BUILDDIR)/text/text.txt
+pickle:
+	$(SPHINXBUILD) -b pickle $(ALLSPHINXOPTS) $(BUILDDIR)/pickle
 	@echo
-	@echo "Build finished. The text files are in $(BUILDDIR)/text."
+	@echo "The pickle file is in $(BUILDDIR)/pickle."
+
+changes:
+	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) $(BUILDDIR)/changes
+	@echo
+	@echo "The overview file is in $(BUILDDIR)/changes."
+
+linkcheck:
+	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) $(BUILDDIR)/linkcheck
+	@echo
+	@echo "Link check complete; look for any errors in the above output " \
+	      "or in $(BUILDDIR)/linkcheck/output.txt."
 
 doctest:
 	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(BUILDDIR)/doctest
