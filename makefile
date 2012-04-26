@@ -194,9 +194,11 @@ latex:
 #
 ######################################################################
 
-.PHONY: aspirational
+.PHONY: aspirational aspiration draft
+aspiration:aspirational
+draft:aspirational
 aspirational:
-	$(SPHINXBUILD) -b html $(ASPIRATIONALOPTS) $(BUILDDIR)/aspiration-html
+	$(SPHINXBUILD) -b html $(ASPIRATIONALOPTS) $(BUILDDIR)/aspirational
 	@echo "Aspirational HTML Build Complete."
 
 ##########################################################################
