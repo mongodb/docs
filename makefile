@@ -17,6 +17,16 @@ current-branch := $(shell git symbolic-ref HEAD 2>/dev/null | cut -d "/" -f "3" 
 CURRENTBUILD = $(publication-output)/$(current-branch)
 BUILDDIR = build
 
+# Fixing `sed` for OS X
+UNAME := $(shell uname)
+
+ifeq ($(UNAME), Linux)
+SED_ARGS = -i -r
+endif
+ifeq ($(UNAME), Darwin)
+SED_ARGS = -i "" -E
+endif
+
 # helpers for compressing man pages
 UNCOMPRESSED_MAN := $(wildcard $(BUILDDIR)/man/*.1)
 COMPRESSED_MAN := $(subst .1,.1.gz,$(UNCOMPRESSED_MAN))
@@ -98,12 +108,12 @@ $(CURRENTBUILD)/:$(BUILDDIR)/dirhtml
 $(CURRENTBUILD)/single/: $(BUILDDIR)/singlehtml/ $(CURRENTBUILD)/single/search.html $(CURRENTBUILD)/single/genindex.html
 	cp -R $(BUILDDIR)/singlehtml/* $@
 	mv $@contents.html $@index.html
-	sed -i 's/href="contents.html/href="index.html/g' $(CURRENTBUILD)/single/index.html
+	sed $(SED_ARGS) -e 's/href="contents.html/href="index.html/g' $(CURRENTBUILD)/single/index.html
 $(CURRENTBUILD)/single/search.html:$(BUILDDIR)/dirhtml/search/index.html
 	cp $< $@
 $(CURRENTBUILD)/single/genindex.html:$(BUILDDIR)/html/genindex.html
 	cp $< $@
-	sed -i -r 's@(<dt><a href=").*html#@\1./#@' $@
+	sed $(SED_ARGS) -e 's@(<dt><a href=").*html#@\1./#@' $@
 $(BUILDDIR)/latex/MongoDB.pdf:$(BUILDDIR)/latex/MongoDB.tex
 
 # Establish proper dependencies with Sphinx aspects of the build.
@@ -244,7 +254,7 @@ LATEX_CORRECTION = "s/(index|bfcode)\{(.*!*)*--(.*)\}/\1\{\2-\{-\}\3\}/g"
 
 $(BUILDDIR)/latex/MongoDB.tex:latex
 $(BUILDDIR)/latex/%.tex:
-	sed -i -r -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) $@
+	sed $(SED_ARGS) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) $@
 
 pdfs:$(subst .tex,.pdf,$(wildcard $(BUILDDIR)/latex/*.tex))	
 
