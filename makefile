@@ -36,7 +36,6 @@ help:
 	@echo "	 singlehtml to make a single large HTML file"
 	@echo "	 epub	    to make an epub"
 	@echo "	 latex	    to make LaTeX files, you can set PAPER=a4 or PAPER=letter"
-	@echo "	 latexpdf   to make LaTeX files and run them through pdflatex"
 	@echo "	 man	    to make manual pages"
 	@echo "	 changes    to make an overview of all changed/added/deprecated items"
 	@echo "	 linkcheck  to check all external links for integrity"
@@ -56,7 +55,7 @@ push:publish
 publish:
 	@echo "Running the publication and migration routine..."
 	$(MAKE) -j1 html
-	$(MAKE) -j MODE='publish' deploy
+	$(MAKE) -j deploy
 	@echo "Publication succeessfully deployed to '$(publication-output)'."
 	@echo
 
@@ -75,7 +74,6 @@ endif
 # Targets that should/need only be accessed in publication, within a protective "ifeq"
 #
 
-ifeq ($(MODE),publish)
 # Build dependcies for the publication mode operation. This is the
 # only target that you need to call explictly.
 
@@ -131,7 +129,6 @@ deploy-setup:
 	mkdir -p $(publication-output)/$(current-branch) $(CURRENTBUILD)/single/
 	ln -f -s $(manual-branch) manual
 	mv manual $(publication-output)
-endif
 
 #
 # Targets to build compressed man pages.
@@ -179,18 +176,11 @@ man:
 	$(SPHINXBUILD) -b man $(ALLSPHINXOPTS) $(BUILDDIR)/man
 	@echo
 	@echo "Build finished. The manual pages are in $(BUILDDIR)/man."
-	@echo
 
 latex:
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
-	sed -i -r 's/\\bfcode\{--(.*)\}/\\bfcode\{-\{-\}\1\}/' $(BUILDDIR)/latex/*.tex
 	@echo
 	@echo "TeX Build finished; the LaTeX files are in $(BUILDDIR)/latex."
-
-latexpdf:latex
-	@echo "Running LaTeX files through pdflatex..."
-	$(MAKE) -C $(BUILDDIR)/latex all-pdf
-	@echo "pdflatex finished; the PDF files are in $(BUILDDIR)/latex."
 
 ######################################################################
 #
@@ -198,37 +188,12 @@ latexpdf:latex
 #
 ######################################################################
 
-.PHONY: aspirational-html aspirational-dirhtml aspirational-latex aspirational-latexpdf aspirational-linkcheck
+.PHONY: aspirational
 
-aspirational-html:
+aspirational:
 	$(SPHINXBUILD) -b html $(ASPIRATIONALOPTS) $(BUILDDIR)/aspiration-html
 	@echo
 	@echo "Build finished. The Aspirational HTML pages are in $(BUILDDIR)/aspiration-html."
-
-aspirational-dirhtml:
-	$(SPHINXBUILD) -b dirhtml $(ASPIRATIONALOPTS) $(BUILDDIR)/aspiration-dirhtml
-	@echo
-	@echo "Build finished. The Aspirational HTML pages are in $(BUILDDIR)/aspiration-dirhtml."
-
-aspirational-latex:
-	$(SPHINXBUILD) -b latex $(ASPIRATIONALOPTS) $(BUILDDIR)/aspiration-latex
-	sed -i -r 's/\\bfcode\{--(.*)\}/\\bfcode\{-{-}\1\}/' $(BUILDDIR)/latex/*.tex
-	@echo
-	@echo "TeX build finished; the Aspirational LaTeX files are in $(BUILDDIR)/aspiration-latex."
-	@echo "Run \`make' in that directory to run these through (pdf)latex" \
-	      "(use \`make latexpdf' here to do that automatically)."
-
-aspirational-latexpdf: aspirational-latex
-	$(SPHINXBUILD) -b latex $(ASPIRATIONALOPTS) $(BUILDDIR)/aspiration-latex
-	@echo "Running LaTeX files through pdflatex..."
-	$(MAKE) -C $(BUILDDIR)/latex all-pdf
-	@echo "pdflatex finished; the Aspirational PDF files are in $(BUILDDIR)/aspiration-latex."
-
-aspirational-linkcheck:
-	$(SPHINXBUILD) -b linkcheck $(ASPIRATIONALOPTS) $(BUILDDIR)/aspiration-linkcheck
-	@echo
-	@echo "Aspirational link check complete; look for any errors in the above output " \
-	      "or in $(BUILDDIR)/aspiration-linkcheck/output.txt."
 
 ##########################################################################
 #
@@ -236,7 +201,12 @@ aspirational-linkcheck:
 #
 ##########################################################################
 
-.PHONY: pickle json htmlhelp qthelp devhelp doctest
+.PHONY: pickle json htmlhelp qthelp devhelp doctest latexpdf
+
+latexpdf:latex
+	@echo "Running LaTeX files through pdflatex..."
+	$(MAKE) -C $(BUILDDIR)/latex all-pdf
+	@echo "pdflatex finished; the PDF files are in $(BUILDDIR)/latex."
 
 json:
 	$(SPHINXBUILD) -b json $(ALLSPHINXOPTS) $(BUILDDIR)/json
@@ -269,9 +239,16 @@ doctest:
 # PDF Build System.
 #
 ####################
+
+LATEX_CORRECTION = "s/(index|bfcode)\{(.*!*)*--(.*)\}/\1\{\2-\{-\}\3\}/g"
+
+$(BUILDDIR)/latex/MongoDB.tex:latex
+$(BUILDDIR)/latex/%.tex:
+	sed -i -r -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) $@
+
+pdfs:$(subst .tex,.pdf,$(wildcard $(BUILDDIR)/latex/*.tex))	
+
 PDFLATEXCOMMAND = TEXINPUTS=".:$(BUILDDIR)/latex/:" pdflatex --interaction batchmode --output-directory $(BUILDDIR)/latex/
-pdfs:latex
-	$(MAKE) MODE='$(MODE)' `find $(BUILDDIR)/latex/ -name "*.tex" | sed "s/\.tex/.pdf/"`
 %.pdf:%.tex
 	$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<'
 	-makeindex -s $(BUILDDIR)/latex/python.ist '$(basename $<).idx'
