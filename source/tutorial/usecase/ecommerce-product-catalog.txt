@@ -1,0 +1,516 @@
+===========================
+E-Commerce: Product Catalog
+===========================
+
+Problem
+=======
+
+You have a product catalog that you would like to store in MongoDB with
+products of various types and various relevant attributes.
+
+Solution Overview
+=================
+
+In the relational database world, there are several solutions of varying
+performance characteristics used to solve this problem. This section
+examines a few options and then describes the solution enabled by MongoDB.
+
+One approach ("concrete table inheritance") to solving this problem is
+to create a table for each product category:
+
+.. code-block:: sql
+
+    CREATE TABLE `product_audio_album` (
+        `sku` char(8) NOT NULL,
+        ...
+        `artist` varchar(255) DEFAULT NULL,
+        `genre_0` varchar(255) DEFAULT NULL,
+        `genre_1` varchar(255) DEFAULT NULL,
+        ...,
+        PRIMARY KEY(`sku`))
+    ...
+    CREATE TABLE `product_film` (
+        `sku` char(8) NOT NULL,
+        ...
+        `title` varchar(255) DEFAULT NULL,
+        `rating` char(8) DEFAULT NULL,
+        ...,
+        PRIMARY KEY(`sku`))
+    ...
+
+The main problem with this approach is a lack of flexibility. Each time
+you add a new product category, you need to create a new table.
+Furthermore, queries must be tailored to the exact type of product
+expected.
+
+Another approach ("single table inheritance") is to use a single
+table for all products and add new columns each time you need to store
+a new type of product:
+
+.. code-block:: sql
+
+    CREATE TABLE `product` (
+        `sku` char(8) NOT NULL,
+        ...
+        `artist` varchar(255) DEFAULT NULL,
+        `genre_0` varchar(255) DEFAULT NULL,
+        `genre_1` varchar(255) DEFAULT NULL,
+        ...
+        `title` varchar(255) DEFAULT NULL,
+        `rating` char(8) DEFAULT NULL,
+        ...,
+        PRIMARY KEY(`sku`))
+
+This is more flexible, allowing queries to span different types of
+product, but it's quite wasteful of space. One possible space
+optimization would be to name the columns generically (``str_0``, ``str_1``,
+etc.,) but then you lose visibility into the meaning of the actual data in
+the columns.
+
+Multiple table inheritance is yet another approach where common attributes are
+represented in a generic 'product' table and the variations in individual
+category product tables:
+
+.. code-block:: sql
+
+    CREATE TABLE `product` (
+        `sku` char(8) NOT NULL,
+        `title` varchar(255) DEFAULT NULL,
+        `description` varchar(255) DEFAULT NULL,
+        `price`, ...
+        PRIMARY KEY(`sku`))
+
+    CREATE TABLE `product_audio_album` (
+        `sku` char(8) NOT NULL,
+        ...
+        `artist` varchar(255) DEFAULT NULL,
+        `genre_0` varchar(255) DEFAULT NULL,
+        `genre_1` varchar(255) DEFAULT NULL,
+        ...,
+        PRIMARY KEY(`sku`),
+        FOREIGN KEY(`sku`) REFERENCES `product`(`sku`))
+    ...
+    CREATE TABLE `product_film` (
+        `sku` char(8) NOT NULL,
+        ...
+        `title` varchar(255) DEFAULT NULL,
+        `rating` char(8) DEFAULT NULL,
+        ...,
+        PRIMARY KEY(`sku`),
+        FOREIGN KEY(`sku`) REFERENCES `product`(`sku`))
+    ...
+
+This is more space-efficient than single-table inheritance and somewhat
+more flexible than concrete-table inheritance, but it does require a
+minimum of one join to actually obtain all the attributes relevant to a
+product.
+
+Entity-attribute-value schemas are yet another solution, basically
+creating a meta-model for your product data. In this approach, you
+maintain a table with (``entity_id``, ``attribute_id``, ``value``) triples that
+describe each product. For instance, suppose you are describing an audio
+album. In that case you might have a series of rows representing the
+following relationships:
+
++-----------------+-------------+------------------+
+| Entity          | Attribute   | Value            |
++=================+=============+==================+
+| sku_00e8da9b    | type        | Audio Album      |
++-----------------+-------------+------------------+
+| sku_00e8da9b    | title       | A Love Supreme   |
++-----------------+-------------+------------------+
+| sku_00e8da9b    | ...         | ...              |
++-----------------+-------------+------------------+
+| sku_00e8da9b    | artist      | John Coltrane    |
++-----------------+-------------+------------------+
+| sku_00e8da9b    | genre       | Jazz             |
++-----------------+-------------+------------------+
+| sku_00e8da9b    | genre       | General          |
++-----------------+-------------+------------------+
+| ...             | ...         | ...              |
++-----------------+-------------+------------------+
+
+This schema has the advantage of being completely flexible; any entity
+can have any set of any attributes. New product categories do not
+require *any* changes in the DDL for your database. The downside to this
+schema is that any nontrivial query requires large numbers of join
+operations, which results in a large performance penalty.
+
+One other approach that has been used in relational world is to "punt"
+so to speak on the product details and serialize them all into a ``BLOB``
+column. The problem with this approach is that the details become
+difficult to search and sort by. (One exception is with Oracle's ``XMLTYPE``
+columns, which actually resemble a NoSQL document database.)
+
+The approach best suited to MongoDB is to use a single collection to store all
+the product data, similar to single-table inheritance. Due to MongoDB's
+dynamic schema, however, you need not conform each document to the same
+schema. This allows  you to tailor each product's document to only contain
+attributes relevant to that product category.
+
+Schema Design
+=============
+
+Your schema should contain general product information that needs to be
+searchable across all products at the beginning of each document, with
+properties that vary from category to category encapsulated in a
+'details' property. Thus an audio album might look like the following:
+
+.. code-block:: javascript
+
+    {
+      sku: "00e8da9b",
+      type: "Audio Album",
+      title: "A Love Supreme",
+      description: "by John Coltrane",
+      asin: "B0000A118M",
+
+      shipping: {
+        weight: 6,
+        dimensions: {
+          width: 10,
+          height: 10,
+          depth: 1
+        },
+      },
+
+      pricing: {
+        list: 1200,
+        retail: 1100,
+        savings: 100,
+        pct_savings: 8
+      },
+
+      details: {
+        title: "A Love Supreme [Original Recording Reissued]",
+        artist: "John Coltrane",
+        genre: [ "Jazz", "General" ],
+            ...
+        tracks: [
+          "A Love Supreme Part I: Acknowledgement",
+          "A Love Supreme Part II - Resolution",
+          "A Love Supreme, Part III: Pursuance",
+          "A Love Supreme, Part IV-Psalm"
+        ],
+      },
+    }
+
+A movie title would have the same fields stored for general product
+information, shipping, and pricing, but have quite a different details
+attribute:
+
+.. code-block:: javascript
+
+    {
+      sku: "00e8da9d",
+      type: "Film",
+      ...,
+      asin: "B000P0J0AQ",
+
+      shipping: { ... },
+
+      pricing: { ... },
+
+      details: {
+        title: "The Matrix",
+        director: [ "Andy Wachowski", "Larry Wachowski" ],
+        writer: [ "Andy Wachowski", "Larry Wachowski" ],
+        ...,
+        aspect_ratio: "1.66:1"
+      },
+    }
+
+Another thing to note in the MongoDB schema is that you can have
+multi-valued attributes without any arbitrary restriction on the number
+of attributes (as you might have if you had ``genre_0`` and ``genre_1``
+columns in a relational database, for instance) and without the need for
+a join (as you might have if you normalized the many-to-many "genre"
+relation).
+
+Operations
+==========
+
+You'll be primarily using the product catalog mainly to perform search
+operations. Thus the focus in this section will be on the various types
+of queries you might want to support in an e-commerce site. These
+examples will be written in the Python programming language using the
+``pymongo`` driver, but other language/driver combinations should be
+similar.
+
+Find All Jazz Albums, Sorted by Year Produced
+---------------------------------------------
+
+Here, you'd like to see a group of products with a particular genre,
+sorted by the year in which they were produced:
+
+.. code-block:: python
+
+    query = db.products.find({'type':'Audio Album',
+                              'details.genre': 'jazz'})
+    query = query.sort([('details.issue_date', -1)])
+
+Index Support
+~~~~~~~~~~~~~
+
+In order to efficiently support this type of query, you need to create a
+compound index on all the properties used in the filter and in the sort:
+
+.. code-block:: python
+
+    db.products.ensure_index([
+        ('type', 1),
+        ('details.genre', 1),
+        ('details.issue_date', -1)])
+
+Note here that the final component of the index is the sort field. This allows
+MongoDB to traverse the index in the order in which the data is to be returned,
+rather than performing a slow in-memory sort of the data.
+
+Find All Products Sorted by Percentage Discount Descending
+----------------------------------------------------------
+
+While most searches would be for a particular type of product (audio
+album or movie, for instance), there may be cases where you'd like to
+find all products in a certain price range, perhaps for a "best daily
+deals" of your website. In this case, you'll use the pricing information
+that exists in all products to find the products with the highest
+percentage discount:
+
+.. code-block:: python
+
+    query = db.products.find( { 'pricing.pct_savings': {'$gt': 25 })
+    query = query.sort([('pricing.pct_savings', -1)])
+
+Index Support
+~~~~~~~~~~~~~
+
+In order to efficiently support this type of query, you'll need an index on the
+percentage savings:
+
+.. code-block:: python
+
+    db.products.ensure_index('pricing.pct_savings')
+
+Since the index is only on a single key, it does not matter in which
+order the index is sorted. Note that, had you wanted to perform a range
+query (say all products over $25 retail) and sort by another property
+(perhaps percentage savings), MongoDB would not have been able to use an
+index as effectively. Range queries or sorts must always be the *last*
+property in a compound index in order to avoid scanning entirely. Thus
+using a different property for a range query and a sort requires some
+degree of scanning, slowing down your query.
+
+Find All Movies in Which Keanu Reeves Acted
+-------------------------------------------
+
+In this case, you want to search inside the details of a particular type
+of product (a movie) to find all movies containing Keanu Reeves, sorted
+by date descending:
+
+.. code-block:: python
+
+    query = db.products.find({'type': 'Film',
+                              'details.actor': 'Keanu Reeves'})
+    query = query.sort([('details.issue_date', -1)])
+
+Index Support
+~~~~~~~~~~~~~
+
+Here, you wish to once again index by type first, followed the details
+you're interested in:
+
+.. code-block:: python
+
+    db.products.ensure_index([
+        ('type', 1),
+        ('details.actor', 1),
+        ('details.issue_date', -1)])
+
+And once again, the final component of the index is the sort field.
+
+Find All Movies With the Word "Hacker" in the Title
+---------------------------------------------------
+
+Those experienced with relational databases may shudder at this
+operation, since it implies an inefficient LIKE query. In fact, without
+a full-text search engine, some scanning will always be required to
+satisfy this query. In the case of MongoDB, the solution is to use a regular
+expression. In Python, you can use the ``re`` module to construct the query:
+
+.. code-block:: python
+
+    import re
+    re_hacker = re.compile(r'.*hacker.*', re.IGNORECASE)
+
+
+    query = db.products.find({'type': 'Film', 'title': re_hacker})
+    query = query.sort([('details.issue_date', -1)])
+
+Although this is fairly convenient, MongoDB also provides the option to
+use a special syntax rather than importing the Python ``re`` module:
+
+.. code-block:: python
+
+    query = db.products.find({
+        'type': 'Film',
+        'title': {'$regex': '.*hacker.*', '$options':'i'}})
+    query = query.sort([('details.issue_date', -1)])
+
+Index Support
+~~~~~~~~~~~~~
+
+Here, the best index diverges a bit from the previous index orders:
+
+.. code-block:: python
+
+    db.products.ensure_index([
+        ('type', 1),
+        ('details.issue_date', -1),
+        ('title', 1)])
+
+You may be wondering why you should include the title field in the index
+if MongoDB has to scan anyway. The reason is that there are two types of
+scans: index scans and document scans. Document scans require entire
+documents to be loaded into memory, while index scans only require index
+entries to be loaded. So while an index scan on title isn't as efficient
+as a direct lookup, it is certainly faster than a document scan.
+
+The order in which you include the index keys is also different than what
+you might expect. This is once again due to the fact that you're
+scanning. Since the results need to be in sorted order by
+``'details.issue_date``, you should make sure that's the order in which
+MongoDB scans titles. You can observe the difference looking at the
+query plans for different orderings. If you use the (``type``, ``title``,
+``details.issue_date``) index, you get the following plan:
+
+.. code-block:: python
+   :emphasize-lines: 11,17
+
+    {u'allPlans': [...],
+     u'cursor': u'BtreeCursor type_1_title_1_details.issue_date_-1 multi',
+     u'indexBounds': {u'details.issue_date': [[{u'$maxElement': 1},
+                                               {u'$minElement': 1}]],
+                      u'title': [[u'', {}],
+                                 [<_sre.SRE_Pattern object at 0x2147cd8>,
+                                  <_sre.SRE_Pattern object at 0x2147cd8>]],
+                      u'type': [[u'Film', u'Film']]},
+     u'indexOnly': False,
+     u'isMultiKey': False,
+     u'millis': 208,
+     u'n': 0,
+     u'nChunkSkips': 0,
+     u'nYields': 0,
+     u'nscanned': 10000,
+     u'nscannedObjects': 0,
+     u'scanAndOrder': True}
+
+If, however, you use the (``type``, ``details.issue_date``, ``title``) index, you get
+the following plan:
+
+.. code-block:: python
+   :emphasize-lines: 11
+
+    {u'allPlans': [...],
+     u'cursor': u'BtreeCursor type_1_details.issue_date_-1_title_1 multi',
+     u'indexBounds': {u'details.issue_date': [[{u'$maxElement': 1},
+                                               {u'$minElement': 1}]],
+                      u'title': [[u'', {}],
+                                 [<_sre.SRE_Pattern object at 0x2147cd8>,
+                                  <_sre.SRE_Pattern object at 0x2147cd8>]],
+                      u'type': [[u'Film', u'Film']]},
+     u'indexOnly': False,
+     u'isMultiKey': False,
+     u'millis': 157,
+     u'n': 0,
+     u'nChunkSkips': 0,
+     u'nYields': 0,
+     u'nscanned': 10000,
+     u'nscannedObjects': 0}
+
+The two salient features to note are a) the absence of the
+``scanAndOrder: True`` in the optmal query and b) the difference in time
+(208ms for the suboptimal query versus 157ms for the optimal one). The
+lesson learned here is that if you absolutely have to scan, you should
+make the elements you're scanning the *least* significant part of the
+index (even after the sort).
+
+Sharding
+========
+
+Though the performance in this system is highly dependent on the indexes,
+sharding can enhance that performance further by allowing
+MongoDB to keep larger portions of those indexes in RAM. In order to maximize
+your read scaling, it's also nice to choose a shard key that allows
+mongos to route queries to only one or a few shards rather than all the
+shards globally.
+
+Since most of the queries in this system include type, it should probably be
+included in the shard key. You may note that most of the
+queries also included ``details.issue_date``, so there may be a
+temptation to include it in the shard key, but this actually wouldn't
+help much since none of the queries were *selective* by date.
+
+Since this schema is so flexible, it's hard to say *a priori* what the
+ideal shard key would be, but a reasonable guess would be to include the
+``type`` field, one or more detail fields that are commonly queried, and
+one final random-ish field to ensure you don't get large unsplittable
+chunks. For this example, assuming that ``details.genre`` is the
+second-most queried field after ``type``, the sharding setup
+would be as follows:
+
+.. code-block:: python
+
+    >>> db.command('shardcollection', 'product', {
+    ...     key : { 'type': 1, 'details.genre' : 1, 'sku':1 } })
+    { "collectionsharded" : "details.genre", "ok" : 1 }
+
+One important note here is that, even if you choose a shard key that
+requires all queries to be broadcast to all shards, you still get some
+benefits from sharding due to a) the larger amount of memory available
+to store indexes and b) the fact that searches will be parallelized
+across shards, reducing search latency.
+
+Scaling Queries with ``read_preference``
+----------------------------------------
+
+Although sharding is the best way to scale reads and writes, it's not
+always possible to partition your data so that the queries can be routed
+by mongos to a subset of shards. In this case, ``mongos`` will broadcast the
+query to all shards and then accumulate the results before returning to
+the client. In cases like this, you can still scale query performance
+by allowing ``mongos`` to read from the secondary servers in a replica set.
+This is achieved via the ``read_preference`` argument, and can be set at
+the connection or individual query level. For instance, to allow all
+reads on a connection to go to a secondary, the syntax is:
+
+.. code-block:: python
+
+    conn = pymongo.Connection(read_preference=pymongo.SECONDARY)
+
+or
+
+.. code-block:: python
+
+    conn = pymongo.Connection(read_preference=pymongo.SECONDARY_ONLY)
+
+In the first instance, reads will be distributed among all the
+secondaries and the primary, whereas in the second reads will only be
+sent to the secondary. To allow queries to go to a secondary on a
+per-query basis, you can also specify a ``read_preference``:
+
+.. code-block:: python
+
+    results = db.product.find(..., read_preference=pymongo.SECONDARY)
+
+or
+
+.. code-block:: python
+
+    results = db.product.find(..., read_preference=pymongo.SECONDARY_ONLY)
+
+It is important to note that reading from a secondary can introduce a
+lag between when inserts and updates occur and when they become visible
+to queries. In the case of a product catalog, however, where queries
+happen frequently and updates happen infrequently, such eventual
+consistency (updates visible within a few seconds but not immediately)
+is usually tolerable.
