@@ -19,7 +19,7 @@ Requirements
 Building the Documentation
 --------------------------
 
-Clone the repostiory: ::
+Clone the repository: ::
 
      git clone git://github.com/mongodb/docs.git
 
@@ -40,9 +40,31 @@ On Debian/Ubuntu systems use the following command: ::
 tested. If you find an additional dependency, please submit a pull
 request to modify this document.*
 
-*Additionally, if you have a dependency list for OS X or for Fedora,
-CentOS, Red Hat, or other related distributions, please submit a
-pull request to add this information to this document.*
+On OS X:
+
+#. You may need to use ``easy_install`` to install ``pip`` using the
+   following command if you have not already done so: :: 
+   
+        easy_install pip
+        
+    Alternately, you may be able to replace ``pip`` with
+    ``easy_install`` in the next step.
+
+#. Install Sphinx, Docutils, and their dependencies with ``pip`` using
+   the following command: :: 
+   
+        pip install Sphinx Jinja2 Pygments docutils
+
+   ``Jinja2``, ``Pygments``, and ``docutils`` are all dependencies of
+   ``Sphinx``.
+
+#. Install a TeX distribution (for building the PDF.) If you do not
+   have a LaTeX installation, use `MacTeX <http://www.tug.org/mactex/2011/>`_
+
+*If you have any corrections to the instructions for these platforms
+or you have a dependency list for Fedora, CentOS, Red Hat, or other
+related distributions, please submit a pull request to add this
+information to this document.*
 
 To build a test version of the Manual, issue the following command: ::
 
@@ -52,7 +74,7 @@ This places a complete version of the manual in
 "``../public-docs/``" named for the current branch (as of
 *2012-03-19*, typically master.)
 
-To publish a new build of the manual, issue the following command:
+To publish a new build of the manual, issue the following command: ::
 
      make push
 
@@ -64,7 +86,7 @@ servers. You must have the proper credentials to run these operations.*
 it live.*
 
 To build a quick demo build for viewing the documentation locally and
-testing features of the documentation, use the following target:
+testing features of the documentation, use the following target: ::
 
      make html
 

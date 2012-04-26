@@ -1,86 +1,482 @@
+.. index:: fundamentals; sharding
+.. _sharding-fundamentals:
+
 =====================
 Sharding Fundamentals
 =====================
 
 .. default-domain:: mongodb
 
-MognoDB's sharding functionality allows users to :term:`partition` the
-data of a :term:`collection` within a database so that the documents
-are automatically distributed among a number of :program:`mongod`
-instances. These systems provides a larger write capacity, and allows
-a single database instance to have a working set or total data size
-that is larger than a single instance can supply.
+MognoDB's sharding allows users to :term:`partition` the data of a
+:term:`collection` within a database so that the documents are
+automatically distributed among a number of :program:`mongod`
+instances or :term:`shards <shard>`. These clusters increase write
+capacity and allow a single database instance to have a larger working
+set and total data size than a single instance could provide.
 
 This document provides an overview of the fundamental concepts and
-operation of MongoDB's sharding functionality.
+operation of sharding with MongoDB.
 
 .. seealso:: The ":doc:`/sharding`" index for a list of all documents
    in this manual that contain information related to the operation
-   and use of shard clusters in MongoDB.
+   and use of shard clusters in MongoDB. This includes:
+
+   - :doc:`/core/sharding-internals`
+   - :doc:`/administration/sharding`
+   - :doc:`/administration/sharding-architectures`
+
+   If you are not yet familiar with sharding, see the :doc:`Sharding
+   FAQ </faq/sharding>` document.
 
 Overview
 --------
 
-MongoDB's sharding is automatic, in that the database will distributes
-documents in the sharded collection among shards based on the
-specified :term:`shard key` without intervention. A typical
-:term:`shard cluster` consists of a configuration server that holds
-the metadata that maps documents to shards, the :program:`mongod`
-instances that hold the data (i.e :term:`shards <shard>`,) and a
-lightweight routing processes, :doc:`mongos </reference/mongos>`, that
-routes operations to the correct shard based on the operation and the
-cluster metadata.
+Features
+~~~~~~~~
 
+With sharding MongoDB automatically distributes data among a
+collection of :program:`mongod` instances. Sharding, as implemented in
+MongoDB has the following features:
+
+.. glossary::
+
+   Range-based Sharding
+      MongoDB distributes documents among :term:`shards <shard>` based
+      on the value of the :ref:`shard key <sharding-shard-key>`. Each
+      :term:`chunk` represents a block of :term:`documents <document>`
+      with values that fall within a specific range. When chunks grow
+      beyond the :ref:`chunk size <sharding-chunk-size>`, MongoDB
+      divides the chunks into smaller chunks (i.e. :term:`splitting
+      <split>`) based on the shard key.
+
+   Automatic Sharding
+      The sharding system automatically balances data across the
+      cluster without intervention from the application
+      layer. Effective automatic sharding depends on a well chosen
+      :ref:`shard key <sharding-shard-key>`, but requires no
+      additional complexity, modifications, or intervention from 
+      developers.
+
+   Transparent Sharding
+      Sharding is completely transparent to the application layer,
+      because all connections to a sharded cluster go through the
+      :program:`mongos` instances. Sharding in MongoDB requires some
+      :ref:`basic initial configuration <sharding-procedure-setup>`,
+      but ongoing function is entirely transparent to the application.
+
+   Sharding Capacity
+      Sharding increases capacity in two ways:
+
+      #. Given an even distribution of data with an effective
+         :term:`shard key`, sharding can provide additional write
+         capacity by increasing the number of :program:`mongod`
+         instances.
+
+      #. Give a shard key with sufficient :ref:`cardinality
+         <sharding-shard-key-cardinality>`, sharding makes it possible
+         to distribute data among a collection of :program:`mongod`
+         instances, and increase the potential amount of data to mange
+         with MongoDB and expand the :term:`working set`.
+
+A typical :term:`shard cluster` consists of the config servers that
+provide metadata that maps :term:`chunks <chunk>` to shards, the
+:program:`mongod` instances that hold the data (i.e the :term:`shards
+<shard>`,) and lightweight routing processes, :doc:`mongos
+</reference/mongos>`, that routes operations to the correct shard
+based on the operation and the cluster metadata.
+
+Indications
+~~~~~~~~~~~
+
+While sharding is a powerful and compelling feature, it comes with
+significant :ref:`infrastructure requirements <sharding-requirements>`
+and some limited complexity costs. As a result its important to use
+sharding only as necessary, and when indicated by actual operational
+requirements. Consider the following overview of indications, which is
+a simple "*when you should shard,*" guide.
+
+You should consider deploying a :term:`shard cluster`, if:
+
+- your data set exceeds the storage capacity of a single node in your
+  system.
+
+- the size of your system's active :term:`working set` *will soon*
+  exceed the capacity of the *maximum* amount of RAM for your system.
+
+- your system has a large amount of write activity, and a single
+  MongoDB instance cannot write data fast enough to meet demand, and
+  all other approaches have not reduced the contention.
+
+TODO factcheck; make sure there aren't addition indications.
+
+If these are not true of your system, sharding may add too much
+complexity to your system without providing much benefit to your
+system.
+
+.. warning::
+
+   It takes time and resources to deploy sharding, and if your system
+   has *already* reached or exceeded its capacity, you will have a
+   difficult time deploying sharding without impacting your
+   application.
+
+   As a result if you know you're going to need sharding eventually,
+   its crucial that you **do not** wait until your system is
+   overcapacity to enable sharding.
+
+.. index:: sharding; requirements
 .. _sharding-requirements:
 
 Requirements
 ------------
 
-A shard cluster has the following components: 
+.. _sharding-requirements-infrastructure:
 
-- 1 or more :program:`mongos` instances. 
+Infrastructure
+~~~~~~~~~~~~~~
 
-  These lightweight, stateless provide a single interface for the
-  entire shard cluster. route 3 
-- queirs configuration servers. 
+A :term:`shard cluster` has the following components:
 
+- Three :term:`config servers <config database>`.
 
+  These special :program:`mongod` instances store the metadata for the
+  cluster. The :program:`mongos` instances cache this data and use it
+  to determine which :term:`shard` is responsible for which
+  :term:`chunk`.
+
+  For testing purposes you may deploy a shard cluster with a single
+  configuration server, but this is not recommended for production.
+
+- Two or more :program:`mongod` instances, to hold data.
+
+  These are "normal," :program:`mongod` instances that hold all of the
+  actual data for the cluster.
+
+  Typically a :term:`replica sets <replica set>` provides each
+  individual shard. The members of the replica set provide redundancy
+  for all data and increase the overall reliability and robustness of
+  the cluster.
+
+  .. warning::
+
+     MongoDB enables data :term:`partitioning <partition>`
+     (i.e. sharding) on a *per collection* basis. You *must* access
+     all data in a sharded cluster via the :program:`mongos`
+     instances.
+
+- One or more :program:`mongos` instances.
+
+  These nodes cache cluster metadata from the config servers and
+  direct queries from the application layer to the :program:`mongod`
+  instances that hold the data.
+
+  .. note::
+
+     In most situations :program:`mongos` instances use minimal
+     resources, and you can run them on your application servers
+     without impacting application performance. However, if you use
+     the :term:`aggregation framework` some processing may occur on
+     the :program:`mongos` instances which will cause them to require
+     more system resources.
 
 Data
 ~~~~
 
-Architectures
-~~~~~~~~~~~~~
+Your cluster must manage a significant quantity of data for sharding
+to have an effect on your collection. The default :term:`chunk` size
+is 64 megabytes, [#chunk-size]_ and the :ref:`balancer
+<sharding-balancing>` will not kick in until the shard with the
+greatest number of chunks has *8 more* chunks than the shard with
+least number of chunks.
 
-Configuration Servers
----------------------
+Practically, this means that unless there is 512 megabytes of data,
+all of the data will remain on the same shard. You can set a smaller
+chunk size, :ref:`manually create splits in your collection
+<sharding-procedure-create-split>` using the :func:`sh.splitFind()` or
+:func:`sh.splitAt()` operations in the :program:`mongo`
+shell. Remember that the default chunk size and migration threshold
+are explicitly configured to prevent unnecessary splitting or
+migrations.
 
-.. _sharding-shard-keys:
+While there are some exceptional situations where you may need to
+shard a small collection of data, most of the time the additional
+complexity added by sharding is not worth the operational costs unless
+you need the additional concurrency/capacity for some reason. If you
+have a small data set, the chances are that a properly configured
+single MongoDB instance or replica set will be more than sufficient
+for your data service needs.
+
+.. [#chunk-size] While the default chunk size is 64 megabytes, the
+   size is :option:`user configurable <mongos --chunkSize>`. When
+   deciding :term:`chunk` size, MongoDB (for defaults) and users (for
+   custom values) must consider that: smaller chunks offer the
+   possibility of more even data distribution, but increase the
+   likelihood of chunk migrations. Larger chunks decrease the need for
+   migrations, but increase the amount of time required for a chunk
+   migration.
+
+   .. seealso:: The ":ref:`sharding-chunk-size`" section in the
+      :doc:`sharding-internals` document.
+
+.. index:: shard key
+   single: sharding; shard key
+
+.. _sharding-shard-key:
+.. _shard-key:
 
 Shard Keys
 ----------
 
+TODO link this section to <glossary:shard key>
 
-.. _sharding-mnongos:
+"Shard keys" refer to the :term:`field` that exists in every
+:term:`document` in a collection that that MongoDB uses to distribute
+documents among the :term:`shards`. Shard keys, like :term:`indexes`,
+can be either a single field, or may be a compound key, consisting of
+multiple fields.
 
-:program:`mongos`
------------------
+Remember, MonoDB's sharding is range-based: each :term:`chunk` holds
+documents with "shard key" within a specific range. Thus, choosing the
+correct shard key can have a great impact on the performance,
+capability, and of functioning your database and cluster.
 
-.. note:: 
+Choosing a shard key depends on the schema of your data and the way
+that your application uses the database. The ideal shard key:
 
-   The :term:`aggregation` framework provided by the
-   :dbcommand:`aggregate` command can 
+- is easily divisible which makes it easy for MongoDB to distribute
+  content among the shards. Shard keys that have a limited number of
+  possible values are un-ideal, as they can result in some shards that
+  are "un-splitable."
 
+  .. see:: ":ref:`sharding-shard-key-cardinality`"
+
+- will distribute write operations among the cluster, to prevent any
+  single shard from becoming a bottleneck. Shard keys that have a high
+  correlation with insert time are poor choices for this reason;
+  however, shard keys that have higher "randomness" satisfy this
+  requirement better.
+
+  .. see:: ":ref:`sharding-shard-key-write-scaling`"
+
+- will make it possible for the :program:`mongos` to return most query
+  operations directly from a single *specific* :program:`mongod`
+  instance. Your shard key should be the primary field used by your
+  queries, and fields with a high amount of "randomness" are poor
+  choices for this reason.
+
+  .. see:: ":ref:`sharding-shard-key-query-isolation`"
+
+The challenge when selecting the shard key is that there is not always
+an obvious shard key, and that it's unlikely that a single naturally
+occurring field in your collection will satisfy all
+requirements. Computing a special-purpose shard key in an additional
+field, or using a compound shard key can help you find a more ideal
+shard key, but choosing a shard key requires some degree of
+compromise.
+
+.. index:: sharding; config servers
+.. index:: config servers
+.. _sharding-config-server:
+
+Config Servers
+--------------
+
+The configuration servers store the shard metadata that tracks the
+relationship between the range that defines a :term:`chunk` and the
+:program:`mongod` instance (typically a :term:`replica set`) or
+:term:`shard` where that data resides. Without a config server, the
+:program:`mongos` instances are unable to route queries and write
+operations, and the cluster. This section describes their operation
+and use.
+
+Config servers *do not* run as replica sets. Instead, a :term:`shard
+cluster` operates with a group of *three* config servers that use a
+two-phase commit process that ensures immediate consistency and
+reliability. Because the :program:`mongos` instances all maintain
+caches of the config server data, the actual traffic on the config
+servers is small. MongoDB will write data to the config server only
+when:
+
+- Creating splits in existing chunks, which happens as data in
+  existing chunks exceeds the maximum chunk size.
+
+- Migrating a chunk between shards.
+
+If a *single* configuration instance becomes unavailable, the
+cluster's metadata becomes *read only*. It is still possible to read
+and write data from the shards, but no chunk migrations or splits will
+occur until all three servers are accessible. At the same time, config
+server data is only read in the following situations:
+
+- A new :program:`mongos` starts for the first time, or an existing
+  :program:`mongos` restarts.
+
+- After a chunk migration, the :program:`mongos` instances update
+  themselves with the new cluster metadata.
+
+If all three config servers are inaccessible, you can continue to use
+the cluster as long as you don't restart the :program:`mongos`
+instances until the after config servers are accessible again. When
+the :program:`mongos` instances restart and there are no accessible
+config servers they are unable to direct queries or write operations
+to the cluster.
+
+Because the configuration data is small relative to the amount of data
+stored in a cluster, the amount activity is relatively low, and 100%
+up time is not required for a functioning shard cluster. As a result,
+backing up the config servers is not difficult. Backups of config
+servers are crucial as shard clusters become totally inoperable when
+you loose all configuration instances and data, precautions to ensure
+that the config servers remain available and intact are totally
+crucial.
+
+.. index:: mongos
+.. _sharding-mongos:
+
+:program:`mongos` and Querying
+------------------------------
+
+.. seealso:: ":doc:`/reference/mongos`" and the :program:`mongos`\-only
+   settings: ":setting:`test`" and :setting:`chunkSize`.
+
+Operations
+~~~~~~~~~~
+
+The :program:`mongos` provides a single unified interface to a sharded
+cluster for applications using MongoDB. Except for the selection of a
+:term:`shard key`, application developers and administrators need not
+consider any of the :ref:`internal details of sharding
+<sharding-internals>` because of the :program:`mongos`.
+
+:program:`mongos` caches data from the :ref:`config server
+<sharding-config-server>`, and uses this to route operations from the
+applications and clients to the :program:`mongod`
+instances. :program:`mongos` have no *persistent* state and consume
+minimal system resources.
+
+The most common practice is to run :program:`mongos` instances on the
+same systems as your application servers, but you can maintain
+:program:`mongos` instances on the shard or on other dedicated
+resources.
+
+.. note::
+
+   .. versionchanged:: 2.1
+
+   Some aggregation operations using the :dbcommand:`aggregate`
+   command (i.e. :func:`db.collection.aggregate()`,) will cause
+   :program:`mongos` instances to require more CPU resources than in
+   previous versions. This modified performance profile may dictate
+   alternate architecture decisions if you make use the
+   :term:`aggregation framework` extensively in a sharded environment.
+
+Query Routing
+~~~~~~~~~~~~~
+
+:program:`mongos` uses information from :ref:`config servers
+<sharding-config-server>` to return queries as efficiently as
+possible. MongoDB classifies all operations in a sharded environment
+as "**targeted**" or "**global**, as follows:
+
+#. *Targeted* operations, where the :program:`mongos` sends the
+   operations to specific :program:`mongod` instance based on the
+   :term:`shard key`.
+
+   For example, given a shard key of ``{ shard_id: 1 }``, the
+   :program:`mongos` would target the following operations at a
+   specific :program:`mongod` or a small number of :program:`mongod`
+   instances:
+
+     .. code-block:: javascript
+
+        db.collection.find( { shard_id: 355 } )
+        db.collection.find( { shard_id: 52, host: "example.org" } )
+        db.collection.insert( { shard_id: 155, host: "example.net", [...] } )
+        db.collection.insert( { [...] } ) // all insert operations are targeted.
+        db.collection.update( { shard_id: 112, host: "example.org"} , { $inc: { counter: 1 } } )
+        db.collection.remove( { shard_id: 355 } )
+
+#. *Global* operations, where the :program:`mongos` sends the
+   operations to *all* :program:`mongod` instances, and then combines
+   the responses before sending them to the the application layer.
+   For example, given a shard key of ``{ shard_id: 1 }``, the
+   :program:`mongos` would have to send all operations to all shards
+   in the cluster, as in the following:
+
+   .. code-block:: javascript
+
+      db.collection.find()
+      db.collection.find( { host: "example.com" } )
+      db.collection.update( { shard_id: 112, host: "example.org"} , { $inc: { counter: 1 } } )
+      db.collection.remove( { host: "test.example.com" } )
+      db.collection.ensureIndex( [...] ) // all index operations are global.
+
+   At the same time we can also divide global operations into two
+   categories: *parallel* and *sequential*.
+
+   Parallel operations must run on all shards, return to the
+   :program:`mongos` which does a final operation on the results and
+   returns to the application. Sequential operations, run on all
+   shards, but the :program:`mongos` will begin returning data to the
+   client as soon as the *first* shard returns data.
+
+   Given a shard key of ``{ shard_id: 1 }``, the following
+   operations are *parallel*:
+
+   .. code-block:: javascript
+
+      db.collection.find( [...] ).sort( { shard_id: 1 } )
+      db.collection.find().count()
+
+   .. note::
+
+      :func:`count() <cursor.count()>` operations on queries
+      (i.e. :func:`find() <db.collection.find()>`) may be global or
+      targeted depending on the underlying query.
+
+   Given a shard key of ``{ shard_id: 1 }``, the following
+   operations are *sequential*:
+
+   .. code-block:: javascript
+
+      db.collection.find()
+      db.collection.find( [...] ).sort( { counter: -1 } )
+
+TODO factcheck above, (the wiki is unclear and I want to make sure this is correct.)
+
+While some global operations may be unavoidable, you can prevent many
+global operations by ensuring that you include the shard key in your
+queries other and operations.
+
+.. index:: balancing
 .. _sharding-balancing:
 
 Balancing and Distribution
 --------------------------
 
-Balancing Procedure
-~~~~~~~~~~~~~~~~~~~
+Balancing refers to the process that MongoDB uses to redistribute data
+among a :term:`shard cluster` when some :term:`shards <shard>` have a
+greater number of :term:`chunks <chunk>` than other shards. The
+balancing process attempts to minimize the impact that balancing can
+have on the cluster, by:
 
-Shard Size
-~~~~~~~~~~
+- Only moving one chunk at a time.
 
-Architecture Possibilities
---------------------------
+- Only imitating a balancing round if there is a difference of *more
+  than* 8 chunks between the shard with the greatest and least number
+  of chunks.
+
+Additionally, it's possible to disable the balancer on a temporary
+basis for maintenance or to limit the window to prevent to prevent the
+balancer process from interacting with production traffic.
+
+.. seealso:: The ":ref:`"Balancing Internals
+   <sharding-balancing-internals>`" and :ref:`Balancer Operations
+   <sharding-balancing-operations>` for more information on balancing.
+
+.. note::
+
+   The balancing procedure for :term:`shard clusters <shard cluster>`
+   is entirely transparent to the user and application layer. This
+   documentation is only included for your edification and possible
+   troubleshooting purposes.

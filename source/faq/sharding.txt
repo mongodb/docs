@@ -7,17 +7,13 @@ FAQ: Sharding with MongoDB
 This document answers common questions about horizontal scaling
 using MongoDB's :term:`sharding`.
 
+If you don't find the answer you're looking for, check
+the :wiki:`sharding docs <Sharding>` or post your question to the
+`MongoDB User Mailing List <https://groups.google.com/forum/?fromgroups#!forum/mongodb-user>`_.
+
 .. contents:: Frequently Asked Questions:
    :backlinks: none
    :local:
-
-.. seealso:: The following FAQ documents may provide the answers to
-   questions that are not addressed here:
-
-   - :doc:`fundamentals`
-   - :doc:`developers`
-   - :doc:`replica-sets`
-   - :wiki:`Indexing FAQ <Indexing+Advice+and+FAQ>` wiki page
 
 Is sharding appropriate for a new deployment?
 ---------------------------------------------
@@ -90,10 +86,10 @@ How does MongoDB distribute queries among shards?
 The exact method for distributing queries among a :term:`shard
 cluster` depends on the nature of the query and the configuration of
 the shard cluster. Consider a sharded collection, using the
-:term:`shard key` "``user_id``", that has "``last_login``" and
-"``email``" attributes:
+:term:`shard key` ``user_id``, that has ``last_login`` and
+``email`` attributes:
 
-- For a query that selects one or more values for the "``user_id``"
+- For a query that selects one or more values for the ``user_id``
   key:
 
   :program:`mongos` determines which shard or shards contains the
@@ -101,19 +97,19 @@ the shard cluster. Consider a sharded collection, using the
   the required shard or shards, and returns those results to the
   client.
 
-- For a query that selects "``user_id``" and also performs a sort:
+- For a query that selects ``user_id`` and also performs a sort:
 
   :program:`mongos` can make a straightforward translation of this
   operation into a number of queries against the relevant shards,
-  ordered by "``user_id``". When the sorted queries return from all
+  ordered by ``user_id``. When the sorted queries return from all
   shards, the :program:`mongos` merges the sorted results and returns
   the complete result to the client.
 
-- For queries that select on "``last_login``:
+- For queries that select on ``last_login``:
 
   These queries must run on all shards: :program:`mongos` must
   parallelize the query over the shards and perform a merge-sort on
-  the "``email``" of the documents found.
+  the ``email`` of the documents found.
 
 How does MongoDB sort queries in sharded environments?
 ------------------------------------------------------
@@ -124,7 +120,7 @@ results, and the :program:`mongos` merges each shard's results before returning
 them to the client.
 
 How does MongoDB ensure a unique shard key when using a shard key *other* than ``_id``?
-----------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------
 
 If you do not use ``id`` as the shard key, then your
 application/client layer must be responsible for keeping the ``_id``
@@ -132,7 +128,7 @@ field unique. It is problematic for collections to have
 duplicate ``_id`` values.
 
 If you're not sharding your collection by the
-"``_id``" field, then you should be sure to store a globally unique
+``_id`` field, then you should be sure to store a globally unique
 identifier in that field. The default :wiki:`BSON ObjectID <Object+IDs>`
 works well in this case.
 
@@ -155,8 +151,8 @@ often require at least 10 chunks of data to trigger migrations.
 You can run :func:`db.printShardingStatus()` to see all the chunks present
 in your cluster.
 
-Is it safe to remove old files in the :dbcommand:`moveChunk` directory?
------------------------------------------------------------------------
+Is it safe to remove old files in the ``moveChunk`` directory?
+--------------------------------------------------------------
 
 Yes. :program:`mongod` creates these files as backups during normal
 :term:`shard` balancing operations.
@@ -164,16 +160,16 @@ Yes. :program:`mongod` creates these files as backups during normal
 Once these migrations are complete, you may delete these
 files.
 
-How many connections does each :program:`mongos` need?
-------------------------------------------------------
+How many connections does each ``mongos`` need?
+-----------------------------------------------
 
 Typically, :program:`mongos` uses one connection from each client, as
 well as one outgoing connection to each shard, or each member of the
 replica set that backs each shard. If you've enabled the ``slaveOk``
 bit, then the mongos may create two or more connections per replica set.
 
-Why does :term:`mongos` hold connections?
------------------------------------------
+Why does ``mongos`` hold connections?
+-------------------------------------
 
 :program:`mongos` uses a set of connection pools to communicate with
 each :term:`shard`.  These pools do not shrink when the number of
@@ -183,8 +179,8 @@ This can lead to an unused :program:`mongos` with a large number open
 of connections. If the :program:`mongos` is no longer in use, you're
 safe restaring the process to close existing connections.
 
-Where does MongoDB report on connections used by :program:`mongos`?
--------------------------------------------------------------------
+Where does MongoDB report on connections used by ``mongos``?
+------------------------------------------------------------
 
 Connect to the :program:`mongos` with the :program:`mongo` shell, and
 run the following command:
@@ -218,29 +214,31 @@ What is the process for moving, renaming, or changing the number of config serve
 
 .. see:: The wiki page that describes this process: ":wiki:`Changing Configuration Servers <Changing+Config+Servers>`."
 
-When do the :program:`mongos` servers detect config server changes?
--------------------------------------------------------------------
+When do the ``mongos`` servers detect config server changes?
+------------------------------------------------------------
 
-:program:`mongos` instances maintain a cache of the :term:`config database`
-that holds the metadata for the :term:`shard cluster`. This metadata
-includes the mapping of :term:`chunks <chunk>` to :term:`shards <shard>`.
+:program:`mongos` instances maintain a cache of the :term:`config
+database` that holds the metadata for the :term:`shard cluster`. This
+metadata includes the mapping of :term:`chunks <chunk>` to
+:term:`shards <shard>`.
 
-:program:`mongos` updates its cache lazily by issuing a request to a shard
-and discovering that its metadata is out of date.
-There is no way to control this behavior from the client,
-but you can run the :dbcommand:`flushRouterConfig` command against any
-:program:`mongos` to force it to refresh its cache.
+:program:`mongos` updates its cache lazily by issuing a request to a
+shard and discovering that its metadata is out of date.  There is no
+way to control this behavior from the client, but you can run the
+:dbcommand:`flushRouterConfig` command against any :program:`mongos`
+to force it to refresh its cache.
 
-Is it possible to quickly update :program:`mongos` servers after updating a replica set configuration?
-------------------------------------------------------------------------------------------------------
+Is it possible to quickly update ``mongos`` servers after updating a replica set configuration?
+-----------------------------------------------------------------------------------------------
 
 The :program:`mongos` instances will detect these changes without
 intervention over time. However, if you want to force the
 :program:`mongos` to reload its configuration, run the
-:dbcommand:`flushRouterConfig` command against to each :program:`mongos` directly.
+:dbcommand:`flushRouterConfig` command against to each
+:program:`mongos` directly.
 
-What does the ``maxConns`` setting on :program:`mongos` do?
------------------------------------------------------------
+What does the ``maxConns`` setting on ``mongos`` do?
+----------------------------------------------------
 
 The :setting:`maxConns` option limits the number of connections
 accepted by :program:`mongos`.

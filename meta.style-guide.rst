@@ -8,6 +8,10 @@ style guide is to provide an accessible base style to ensure that our
 documentation is easy to read, simple to use, and straightforward to
 maintain.
 
+Also consider the `Documentation Organization
+<meta.organization.rst>`_ (meta.organization.rst) document for more
+information regarding the MongoDB Manual organization.
+
 Document History
 ----------------
 
@@ -17,6 +21,9 @@ guidelines, conventions, and questions.
 **2012-01-12**: Document revised based on slight shifts in practice,
 and as part of an effort of making it easier for people outside of the
 documentation team to contribute to documentation.
+
+**2012-03-21**: Merged in content from the Jargon, and cleaned up
+style in light of recent experiences.
 
 Naming Conventions
 ------------------
@@ -126,18 +133,24 @@ Verb tense and mood preferences, with examples:
   will do foo" when possible. Use "does foo" over "will do foo" in
   situations where "this foos" is unacceptable.
 
+Referencing
+~~~~~~~~~~~
+
+- To refer to future or planned functionality in MongoDB or a driver,
+  *always* link to the Jira case. The Manual's ``conf.py`` provides
+  for a "``:issue:``" role that will link directly to a Jira case
+  (e.g. ``:issue:\`SERVER-9001\```). 
+  
+- For non-object references (i.e. functions, operators, methods,
+  database commands, settings) always reference only the first
+  occurrence of the reference in a section. You should *always*
+  reference objects, except in section headings. 
+  
 General Formulations
 ~~~~~~~~~~~~~~~~~~~~
 
 - Contractions are acceptable insofar as they are necessary to
   increase readability and flow. Avoid otherwise.
-
-- Shorter sentences are better than longer sentences. Use complex
-  formations (e.g. compound complex structures that require
-  semi-colons.) only as a last resort, if at all.
-
-- For longer lists and more complex lists, use bulleted items rather
-  than integrating them inline into a sentence.
 
 - Make lists grammatically correct.
 
@@ -157,6 +170,37 @@ General Formulations
 - Use "unavailable," "offline," or "unreachable" to refer to a
   ``mongod`` instance that cannot be accessed rather than the
   colloquialism "down."
+
+Structural Formulations
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- There should be at least two headings at every nesting level. Within
+  an "h2" block, there should either be: no "h3" blocks, 2 "h3"
+  blocks, or more than 2 "h3" blocks.
+
+- Section headers should be in title case (capitalize first, last, and
+  all important words,) and should effectively describe the contents
+  of the section. In a single document you should strive to have
+  section titles that are not redundant and grammatically consistent
+  with each other.
+
+- Use paragraphs and paragraph breaks to increase clarity and
+  flow. Avoid burying critical information in the middle of long
+  paragraphs. Err on the side of shorter paragraphs when possible.
+
+- Shorter sentences are better than longer sentences. Use complex
+  formations (e.g. compound complex structures that require
+  semi-colons.) only as a last resort, if at all.
+
+- In general, avoid paragraphs that consist of single sentences as
+  they often represent a sentence that has unintentionally become too
+  complex or incomplete. However, sometimes such paragraphs are useful
+  for emphasis, summary, or introductions.
+
+  As a corollary, most sections should have multiple paragraphs.
+
+- For longer lists and more complex lists, use bulleted items rather
+  than integrating them inline into a sentence.
 
 ReStructured Text and Typesetting
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -216,14 +260,29 @@ Use the following convention when referring to specific parts of
 MongoDB data:
 
 - *document* refers to "rows," or records in a MongoDB
- database. Potential confusion with "JSON Documents."
+  database. Potential confusion with "JSON Documents."
+
+  Do not refer to documents as "objects," because drivers (and
+  MongoDB) do not preserve the order of fields when fetching data. If
+  the order of objects matter, use an array.
 
 - *field* refers to a "key" or "identifier" of data within a MongoDB
- document.
+  document.
 
 - *value* refers to the contents of a *field*.
 
 Use "sub-document" as needed to describe nested documents.
+
+Notes on Specific Features
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Geo-Location
+
+  #. While MongoDB *is capable* of storing coordinates in
+     (sub-documents,) in practice, users should only store coordinates
+     in arrays. (See: `DOCS-41 <https://jira.mongodb.org/browse/DOCS-41>`_)
+
+- *Others...*
 
 Other Terms
 ~~~~~~~~~~~

@@ -21,6 +21,18 @@ the source file. Additionally, the existing files are "hard wrapped"
 to 70 characters per-line, which you can adhere to if it is easy for
 you.
 
+Standards and Practices
+-----------------------
+
+- All non-trivial at least two people should vet all non-trivial
+  changes to the documentation before publication. One of the
+  reviewers should have significant technical experience with the
+  material covered in the documentation.
+
+- All development and editorial work should transpire in topic
+  branches (or in "forks," on github,) that editors will merge into
+  the publication branches before publication.
+
 Collaboration
 -------------
 
@@ -53,34 +65,20 @@ running builds yourself.
 Publication
 -----------
 
-The makefile for this repository contains targets for the publication
-process. In order to maintain multiple versions of the documentation
-(to reflect different versions of the MongoDB server, for editing,
-review, etc.,) the makefile adds a couple of targets to the default
-Sphinx makefile. In the ``build-branch`` target, Sphinx builds the
-documentation into branch-specific folders. The ``deploy`` target
-moves these builds to into a local mirror (i.e. "``../public-docs``")
-of the documentation resource and calls a "``publish.sh``" script that
-handles the upload process itself.
+The makefile for this repository contains targets that automate the
+publication process. Use "``make html``" to publish a test build of
+the documentation in the "``build/``" directory of your
+repository. Use "``make publish``" to build the full contents of the
+manual from the current branch in the "``../public-docs/``" directory
+relative the docs repository.
 
-To publish the documentation, use the following procedure:
+Other targets include:
 
-1. Checkout the branch of the documentation that you want to publish,
-   make/apply all changes that you wish to publish.
-
-2. Build the following target. This operation builds all components of
-   the documentation required for publication . ::
-
-        make build-branch
-
-3. Build the following target. This procedure exports the build to the
-   "``../public-docs``" directory and runs the "``publish.sh``"
-   script. ::
-
-        make deploy
-
-The ``publish`` target (i.e. "``make publish``") combines
-``build-branch`` and ``deploy`` procedures. 
+- ``man`` - builds UNIX Manual pages for all Mongodb utilities.
+- ``push`` - builds and deploys the contents of the
+  "``../public-docs/``".
+- ``pdfs`` - builds a PDF version of the manual (requires LaTeX
+  dependencies.)
 
 Branches
 --------

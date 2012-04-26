@@ -12,6 +12,8 @@ import sys, os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), ".ext")))
 from mongodb_docs_meta import VersionMeta
 
+meta = VersionMeta()
+
 # -- General configuration ----------------------------------------------------
 
 needs_sphinx = '1.0'
@@ -44,8 +46,8 @@ copyright = u'2011-2012, 10gen, Inc.'
 version = '2.0.2'
 release = version
 
-current_git_commit = VersionMeta.commit
-current_git_branch = VersionMeta.branch
+current_git_commit = meta.commit
+current_git_branch = meta.branch
 
 rst_epilog = ".. |branch| replace:: ``" + current_git_branch + "``" + """
 .. |commit| replace:: ``""" + current_git_commit + "``" + """
@@ -95,8 +97,7 @@ extlinks = {
     'hardlink' : ( 'http://docs.mongodb.org/' + current_git_branch + '/%s', '')
     }
 
-intersphinx_mapping = {'pymongo': ('http://api.mongodb.org/python/current/', None),
-                       'python': ('http://docs.python.org/', None)}
+intersphinx_mapping = {'pymongo': ('http://api.mongodb.org/python/current/', None)}
 
 # -- Options for HTML output ---------------------------------------------------
 
@@ -137,11 +138,12 @@ html_static_path = ['source/.static']
 # using the given strftime format.
 html_last_updated_fmt = '%b %d, %Y'
 
+html_copy_source = False
 html_use_smartypants = True
 html_domain_indices = True
 html_use_index = True
 html_split_index = False
-html_show_sourcelink = True
+html_show_sourcelink = False
 html_show_sphinx = True
 html_show_copyright = True
 
@@ -150,7 +152,8 @@ manual_edition_path = 'http://docs.mongodb.org/' + current_git_branch + '/MongoD
 html_theme_options = { 'branch': current_git_branch,
                        'commit': current_git_commit,
                        'pdfpath':  manual_edition_path + '.pdf',
-                       'epubpath':  manual_edition_path + '.epub'
+                       'epubpath':  manual_edition_path + '.epub',
+                       'manual_path': meta.manual_path,
                        }
 
 # If true, an OpenSearch description file will be output, and all pages will
@@ -167,9 +170,10 @@ htmlhelp_basename = 'MongoDBdoc'
 # -- Options for LaTeX output --------------------------------------------------
 
 latex_documents = [
-  # (source start file, target name, title, author, documentclass [howto/manual]).
+#   (source start file, target name, title, author, documentclass [howto/manual]).
     ('contents', 'MongoDB.tex', u'MongoDB Documentation', u'MongoDB Documentation Project', 'manual'),
-    ('applications/use-cases/index', 'MongoDB-use-case-studies.tex', u'MongoDB Use Case Studies ', u'MongoDB Documentation Project', 'howto'),
+#    ('applications/use-cases/index', 'MongoDB-use-case-studies.tex', u'MongoDB Use Case Studies ', u'MongoDB Documentation Project', 'manual'),
+#    ('replication', 'MongoDB-replication.tex', u'MongoDB Replication ', u'MongoDB Documentation Project', 'manual'),
 ]
 
 latex_elements = { 'preamble': '\DeclareUnicodeCharacter{FF04}{\$} \DeclareUnicodeCharacter{FF0E}{.}',
