@@ -183,7 +183,7 @@ man:
 
 latex:
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
-	sed -i -r 's/\\bfcode\{--(.*)\}/\\bfcode\{-{-}\1\}/' $(BUILDDIR)/latex/*.tex
+	sed -i -r 's/\\bfcode\{--(.*)\}/\\bfcode\{-\{-\}\1\}/' $(BUILDDIR)/latex/*.tex
 	@echo
 	@echo "TeX Build finished; the LaTeX files are in $(BUILDDIR)/latex."
 
