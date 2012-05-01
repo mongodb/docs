@@ -30,7 +30,6 @@ The solution described below assumes that each server
 generates events also consumes event data and that each server can
 access the MongoDB instance. Furthermore, this design assumes that the
 query rate for this logging data is substantially lower than
-the insert rate and optimizes accordingly. This usage profile is
 common for logging applications with a high-bandwidth event stream.
 
 .. note::
@@ -61,7 +60,7 @@ text of the log record into a document:
     line: '127.0.0.1 - frank [10/Oct/2000:13:55:36 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326 "[http://www.example.com/start.html](http://www.example.com/start.html)" "Mozilla/4.08 [en] (Win98; I ;Nav)"'
    }
 
-While solution is does capture all data in a format that MongoDB can
+While this solution is does capture all data in a format that MongoDB can
 use, the data is not particularly useful, or it's not terribly
 efficient: if you need to find events that the same page, you would
 need to use a regular expression query, which would require a full
@@ -129,7 +128,6 @@ You may also consider omitting explicit time fields, because the
     {
          _id: ObjectId('4f442120eb03305789000000'),
          host: "127.0.0.1",
-         time:  ISODate("2000-10-10T20:55:36Z"),
          path: "/apache_pb.gif",
          referer: "[http://www.example.com/start.html](http://www.example.com/start.html)",
          user_agent: "Mozilla/4.08 [en] (Win98; I ;Nav)"
@@ -140,8 +138,8 @@ System Architecture
 
 The primary performance concern for event logging systems are:
 
-#. how many inserts per second can it support, which limits the its
-   event throughput, and
+#. how many inserts per second can it support, which limits the event
+   throughput, and
 
 #. how will the system manage the growth of event data, particularly
    concerning a growth in insert activity.
@@ -303,7 +301,8 @@ the ``/apache_pb.gif`` value in the ``path`` field:
 
    If you choose to :term:`shard` the collection that stores this
    data, the :term:`shard key` you choose can impact the performance
-   of this query.
+   of this query. See the :ref:`sharding <rta-storing-log-data-sharding>`
+   section of the sharding document.
 
 Index Support
 `````````````
@@ -364,7 +363,7 @@ a result, if you query primarily on recent data, MongoDB will be able
 to maintain a large index, quickly fulfill queries, and avoid using
 much system memory.
 
-.. seealso:: The :func:`db.collection.ensureIndex()` JavaScript method
+.. seealso:: The :func:`db.events.ensureIndex() <db.collection.ensureIndex()>` JavaScript method
    and the :py:meth:`db.events.ensure_index() <pymongo:pymongo.collection.Collection.ensure_index>`
    method in :api:`PyMongo <python/current>`.
 
@@ -468,8 +467,9 @@ build more useful queries.
    depending on your other queries, it may make more sense to use the
    ``{ time: 1, host: 1 }`` index depending on usage profile.
 
-.. seealso:: The :func:`db.collection.ensureIndex()` JavaScript method
-   and the :py:meth:`db.events.ensure_index() <pymongo:pymongo.collection.Collection.ensure_index>`
+.. seealso:: The :func:`db.events.ensureIndex()
+   <db.collection.ensureIndex()>` JavaScript method and the
+   :py:meth:`db.events.ensure_index() <pymongo:pymongo.collection.Collection.ensure_index>`
    method in :api:`PyMongo <python/current>`.
 
    .. STUB core/indexes
@@ -493,7 +493,7 @@ documents. The :func:`aggregate()` (and :dbcommand:`aggregate`
 capacity with less complexity than the existing :dbcommand:`mapreduce`
 and :dbcommand:`group` aggregation.
 
-Consider the following aggregation :term:`pipeline`:
+Consider the following aggregation :term:`pipeline`: [#sql-aggregation-equivalents]_
 
 .. code-block:: pycon
 
@@ -516,6 +516,8 @@ Consider the following aggregation :term:`pipeline`:
    ...                     'd': '$date.d' },
    ...                 'hits': { '$sum': 1 } } },
    ...         ])
+
+
 
 This command aggregates documents from the ``events`` collection with
 a pipeline that:
@@ -569,11 +571,17 @@ a pipeline that:
 
    While this distribution of documents would occur if you chose the
    ``time`` field as the shard key, a field like ``path`` also has
-   this property and is a typical choice for sharding.
-
-   .. see:: ":ref:`Sharding Considerations <rta-storing-log-data-sharding>`."
+   this property and is a typical choice for sharding. Also see the
+   ":ref:`sharding considerations <rta-storing-log-data-sharding>`."
+   of this document for additional recommendations for using sharding.
 
 .. seealso:: ":doc:`/applications/aggregation`"
+
+.. [#sql-aggregation-equivalents] To translate statements from the
+   :doc:`aggregation framework </applications/aggregation-framework>`
+   to SQL, you can consider the :agg:pipeline:`$match` equivelent to
+   ``WHERE``, :agg:pipeline:`$project` to ``SELECT``, and
+   :agg:pipeline:`$group` to ``GROUP BY``.
 
 Index Support
 `````````````
@@ -730,13 +738,13 @@ set <rta-storing-log-data-sharding-option-3>` and :ref:`sharding by a
 random key <rta-storing-log-data-sharding-option-2>`. In these
 situations, the shard key would resemble ``{ path: 1 , ssk: 1 }``
 where, ``path`` is an often used "natural key, or value from your
-data and ``ssk`` is a hash of the ``_id`` field. [#ssk]
+data and ``ssk`` is a hash of the ``_id`` field. [#ssk]_
 
 Using this type of shard key, data is largely distributed by the
 natural key, or ``path``, which makes most queries that access the
 ``path`` field local to a single shard or group of shards. At the same
 time, if there is not sufficient distribution for specific values of
-``path``, [#path] the ``ssk`` makes it possible for MongoDB to create
+``path``, the ``ssk`` makes it possible for MongoDB to create
 :term:`chunks <chunk>` and data across the cluster.
 
 In most situations, these kinds of keys provide the ideal balance
@@ -756,23 +764,8 @@ selection.
 
 The :ref:`sharding options <rta-storing-log-data-sharding>` provides a
 good starting point for thinking about :term:`shard key`
-selection. Nevertheless, the best way to selection a shard key is to
+selection. Nevertheless, the best way to select a shard key is to
 analyze the actual insertions and queries from your own application.
-
-.. _rta-storing-log-data-capped-collections:
-
-Capped Collections
-------------------
-
-Depending on your data retention requirements as well as your
-reporting and analytics needs, you may consider using a :term:`capped
-collection` to store your events. Capped collections have a fixed
-size, and drop old data when inserting new data after reaching cap.
-
-.. note::
-
-   In the current version, it is not possible to shard capped
-   collections.
 
 Managing Event Data Growth
 --------------------------
@@ -783,26 +776,20 @@ important in the context of MongoDB may not relinquish data to the
 file system in the way you might expect. Consider the following
 strategies for managing data growth:
 
-Single Collection
-~~~~~~~~~~~~~~~~~
+.. _rta-storing-log-data-capped-collections:
 
-**Strategy:** Store all documents in a single collection and
-periodically remove documents (events) that you no longer need.
+Capped Collections
+~~~~~~~~~~~~~~~~~~
 
-While this approach is simple, there are performance limitations:
+Depending on your data retention requirements as well as your
+reporting and analytics needs, you may consider using a :term:`capped
+collection` to store your events. Capped collections have a fixed
+size, and drop old data when inserting new data after reaching cap.
 
-#. When removing documents, MongoDB must bring these documents into
-   memory. Since these documents, are not likely to be a part of your
-   :term:`working set`, this operation will supplant more active data
-   in memory and degrade performance more generally.
+.. note::
 
-#. Unless, you keep an index on a timestamp field, the remove
-   operation may take a long time to complete. Maintaining an
-   additional index increases overhead for insert operations.
-
-#. Removing data can lead to data fragmentation because MongoDB
-   attempts to reuse freed space, which can degrade the performance of
-   other operations on an ongoing basis.
+   In the current version, it is not possible to shard capped
+   collections.
 
 .. _rta-storing-log-data-multiple-collections-single-database:
 
@@ -827,7 +814,8 @@ approach:
 
 Nevertheless, this operation may increase some complexity for queries,
 if any of your analyses depend on events that may reside in the
-current and previous collection.
+current and previous collection. For most real time data collection
+systems, this approach is the most ideal.
 
 Multiple Databases
 ~~~~~~~~~~~~~~~~~~

@@ -74,7 +74,7 @@ usually that is unique within its section for generating URLs.
 
 All documents also have a ``detail`` field that varies with the
 document type. For the basic page above, the detail field might hold
-the the text of the page. For a blog entry, the ``detail`` field might
+the text of the page. For a blog entry, the ``detail`` field might
 hold a sub-document. Consider the following prototype:
 
 .. code-block:: javascript
@@ -96,12 +96,13 @@ hold a sub-document. Consider the following prototype:
 
 Photos require a different approach. Because photos can be potentially
 large these documents, it's important to separate the binary photo
-storage from the nodes metadata. :term:`GridFS` provides the ability
-to store larger files in MongoDB.  GridFS stores data in two
-collections, in this case, ``cms.assets.files``, which stores
-metadata, and ``cms.assets.chunks`` which stores the data
-itself. Consider the following prototype document from the
-``cms.assets.files`` collection:
+storage from the nodes metadata.
+
+:term:`GridFS` provides the ability to store larger files in MongoDB.
+GridFS stores data in two collections, in this case,
+``cms.assets.files``, which stores metadata, and ``cms.assets.chunks``
+which stores the data itself. Consider the following prototype
+document from the ``cms.assets.files`` collection:
 
 .. code-block:: javascript
 
@@ -152,6 +153,8 @@ The most common operations inside of a CMS center on creating and
 editing content. Consider the following :py:meth:`<pymongo:pymongo.collection.Collection.insert>`
 operation:
 
+TODO figure out what role the nonce plays. mikeo
+
 .. code-block:: python
 
    db.cms.nodes.insert({
@@ -171,7 +174,7 @@ operation:
         })
 
 Once inserted, your application must have some way of preventing
-multiple concurrent applications. The schema uses the special
+multiple concurrent updates. The schema uses the special
 ``nonce`` field which makes it possible for the application to detect
 concurrent edits. Consider the following :py:meth:`update <pymongo:pymongo.collection.Collection.update>`
 
@@ -187,7 +190,7 @@ concurrent edits. Consider the following :py:meth:`update <pymongo:pymongo.colle
        if not result['updatedExisting']:
            raise ConflictError()
 
-You can perform You might also want to perform metadata edits to the item such as adding
+You may  also want to perform metadata edits to the item such as adding
 tags:
 
 .. code-block:: python
@@ -196,8 +199,9 @@ tags:
         { 'metadata.section': section, 'metadata.slug': slug },
         { '$addToSet': { 'tags': { '$each': [ 'interesting', 'funny' ] } } })
 
-Because the :operator:`$addToSet` operator is atomic, there's no need
-to supply or update the nonce.
+In this example the :operator:`$addToSet` operator will only add
+values to the ``tags`` field if they do not already exist in the
+``tags`` array, there's no need to supply or update the nonce.
 
 Index Support
 `````````````
@@ -262,10 +266,9 @@ upon the basic update procedure:
 Because uploading the photo spans multiple documents and is a
 non-atomic operation, you must "lock" the file during upload by
 writing :py:class:`datetime.utcnow() <python:datetime.utcnow>` in the
-record. This helps when there are multiple concurrent editors and
-allows the lets the application detect stalled file uploads. This
-operation assumes that, for photo upload, the last update will
-succeed:
+record. This helps when there are multiple concurrent editors and lets
+the application detect stalled file uploads. This operation assumes
+that, for photo upload, the last update will succeed:
 
 .. code-block:: python
 
@@ -324,8 +327,8 @@ the Python/PyMongo console:
 Locate and Render a Node
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-To locate a node based on based on the value of ``metadata.section``
-and ``metadata.slug``, use the following :py:meth:`find_one
+To locate a node based on the value of ``metadata.section`` and
+``metadata.slug``, use the following :py:meth:`find_one
 <pymongo:pymongo.collection.Collection.find_one>` operation.
 
 .. code-block:: python
@@ -472,13 +475,16 @@ Use the following operation at the Python/PyMongo shell:
    >>> db.command('shardcollection', 'cms.assets.files', {
    ...     key : { 'metadata.section': 1, 'metadata.slug' : 1 } })
 
-To shard the ``cms.assets.chunks`` collection, you must use the
-``_id`` field as the :term:`shard key`
+To shard the ``cms.assetsf.chunks`` collection, you must use the
+``_id`` field as the :term:`shard key`. The following operation will
+shard the collection:
 
 .. code-block:: pycon
 
-   >>> db.command('shardcollection', 'cms.assets.chunks'
+   >>> db.command('shardcollection', 'cms.assets.chunks')
 
-This also ensures routable queries becasue all reads from GridFS must
-first look up the document in ``cms.assets.files`` and then look up
-the chunks separately.
+If you do not specific a shard key, when using the
+:dbcommand:`shardcollection` command, MongoDB will shard based on the
+``_id`` field. This also ensures routable queries becasue all reads
+from GridFS must first look up the document in ``cms.assets.files``
+and then look up the chunks separately.

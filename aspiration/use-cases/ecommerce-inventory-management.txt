@@ -28,10 +28,10 @@ Solution
 ~~~~~~~~
 
 This solution keeps the traditional metaphor of the shopping cart, but
-the shopping cart will *age*. After a shopping cart been inactive for
-a certain period of time, all items in the cart re-enter the available
-inventory and the cart is empty. The state transition diagram for a
-shopping cart is below:
+the shopping cart will *age*. After a shopping cart has been inactive
+for a certain period of time, all items in the cart re-enter the
+available inventory and the cart is empty. The state transition
+diagram for a shopping cart is below:
 
 .. figure:: img/ecommerce-inventory1.png
    :align: center
@@ -43,8 +43,8 @@ Schema
 Inventory collections must maintain counts of the current available
 inventory of each stock-keeping unit (SKU; or item) as well as a list
 of items in carts that may return to the available inventory if they
-are in a shopping cart that times out. Consider the following
-example schema:
+are in a shopping cart that times out. In the following example, the
+``_id`` field stores the SKU:
 
 .. code-block:: javascript
 
@@ -66,7 +66,7 @@ example schema:
    product catalog schema described in the
    ":doc:`/applications/use-cases/ecommerce-product-catalog`" document.
 
-The SKU above has 16 items in stock, 1 item a cart, and 1 items in a
+The SKU above has 16 items in stock, 1 item a cart, and 2 items in a
 second cart.  This leaves a total of 19 unsold items of merchandise.
 
 To model the shopping cart objects, you need to maintain ``sku``,
@@ -94,9 +94,9 @@ To model the shopping cart objects, you need to maintain ``sku``,
 Operations
 ----------
 
-This section provides an overivew of the operations that you may use
-to support an e-commerce site. All examples in this document use the
-Python programming language and the :api:`PyMongo <python/current>`
+This section introduces operations that you may use to support an
+e-commerce site. All examples in this document use the Python
+programming language and the :api:`PyMongo <python/current>`
 :term:`driver` for MongoDB, but you can implement this system using
 any language you choose.
 
@@ -139,8 +139,8 @@ function operation.
            # Roll back our cart update
            db.cart.update(
                {'_id': cart_id },
-               { '$pull': { 'items': {'sku': sku } } }
-           )
+               { '$pull': { 'items': {'sku': sku } } },
+           safe=True)
            raise InadequateInventory()
 
 .. admonition:: The system does not trust that the available inventory can satisfy a request
@@ -162,7 +162,7 @@ function operation.
 Modifying the Quantity in the Cart
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following process underlies adjusting the quantity of items a
+The following process underlies adjusting the quantity of items in a
 users cart. The application must ensure that when a user increases the
 quantity of an item, in addition to updating the ``carted`` entry for
 the user's cart, that the inventory exists to cover the modification.
@@ -196,8 +196,8 @@ the user's cart, that the inventory exists to cover the modification.
            # Roll back our cart update
            db.cart.update(
                {'_id': cart_id, 'items.sku': sku },
-               {'$set': { 'items.$.qty': old_qty }
-           })
+               {'$set': { 'items.$.qty': old_qty } },
+           safe=True)
            raise InadequateInventory()
 
 .. note::
@@ -206,8 +206,8 @@ the user's cart, that the inventory exists to cover the modification.
    ``carted`` entry and item that matched the query.
 
    This allows the application to update the inventory and keep track
-   of the data necessary need to "rollback" the cart in a single
-   atomic operation. The code also ensures that the cart is active.
+   of the data needed to "rollback" the cart in a single atomic
+   operation. The code also ensures that the cart is active.
 
 .. note::
 
@@ -248,7 +248,7 @@ following procedure:
            db.cart.update(
                {'_id': cart_id },
                {'$set': { 'status': 'active' } } )
-           raise
+           raise PaymentError()
 
 Begin by "locking" the cart by setting its status to "pending" Then
 the system will verify that the cart is still active and collect
@@ -345,15 +345,17 @@ Error Handling
 ~~~~~~~~~~~~~~
 
 The above operations do not account for one possible failure
-situation: if an exception occurs after updating the inventory
-collection but before updating the shopping cart. This would result in
-a shopping cart that may be absent or expired but items have not
+situation: if an exception occurs after updating the shopping cart but
+before updating the inventory collection. This would result in a
+shopping cart that may be absent or expired but items have not
 returned to available inventory.
 
 To account for this case, your application will need a periodic
 cleanup operation that finds inventory items that have ``carted``
 items and check that to ensure that they exist in a user's cart, and
 return them to available inventory if they do not.
+
+TODO talk to mikeo
 
 .. code-block:: python
 
@@ -416,6 +418,8 @@ There are two drawbacks for using ``_id`` as a shard key:
   You can mitigate this effect by choosing a random value upon the
   creation of a cart, such as a hash (i.e. MD5 or SHA-1) of an
   ObjectID, as the ``_id``.
+
+TODO insert code example for creating a hashed key in python. mikeo
 
 - Cart expiration and inventory adjustment requires update operations
   and queries to broadcast to all shards when using ``_id`` as a shard

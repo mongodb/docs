@@ -15,15 +15,15 @@ Problem
 ~~~~~~~
 
 Servers and other systems can generate a large number of documents,
-and it's can be difficult to access and analyze such large
-collections of data originating at multiple servers.
+and it can be difficult to access and analyze such large collections
+of data originating from multiple servers.
 
 This document makes the following assumptions about real-time
 analytics:
 
-- There is no need to retain transactional event data in MongoDB, or
-  that how your application handles transactions is outside of the
-  scope of this document.
+- There is no need to retain transactional event data in MongoDB, and
+  how your application handles transactions is outside of the scope of
+  this document.
 
 - You require up-to-the minute data, or up-to-the-second if possible.
 
@@ -36,7 +36,7 @@ Solution
 ~~~~~~~~
 
 The solution described below assumes a simple scenario using data from
-web server access longs. With this data, you will want to return the
+web server access logs. With this data, you will want to return the
 number of hits to a collection of web sites at various levels of
 granularity based on time (i.e. by minute, hour, day, week, and month)
 as well as by the path of a resource.
@@ -54,19 +54,19 @@ Schemas for real-time analytics systems must support simple and fast
 query and update operations. In particular, attempt to avoid the
 following situations which can degrade performance:
 
-- :term:`documents <document>` grow significantly after creation.
+- :term:`documents <document>` growing significantly after creation.
 
   Document growth forces MongoDB to move the document on disk, which
   can be time and resource consuming relative to other operations;
 
-- queries require MongoDB to scan records in the collection without
+- queries requiring MongoDB to scan documents in the collection without
   using indexes; and
 
-- deeply nested document that make accessing particular fields slow.
+- deeply nested documents that make accessing particular fields slow.
 
 Intuitively, you may consider keeping "hit counts" in individual
 documents with one document for every unit of time (i.e. minute, hour,
-day, etc.) However, mandates queries for multiple documents for all
+day, etc.) However, queries must return multiple documents for all
 non-trivial time-rage queries, which can slow overall query
 performance.
 
@@ -111,7 +111,7 @@ This approach has a couple of advantages:
 - For every request on the website, you only need to update one
   document.
 
-- Reports for time periods within the day, for a single only page
+- Reports for time periods within the day, for a single page
   require fetching a single document.
 
 There are, however, significant issues with this approach. The most
@@ -156,7 +156,7 @@ will exist.
    (``h``), and then upsert a blank document upon update with a
    probability of ``1/h``.
 
-Pre-allocating increases performance by initialize that all documents
+Pre-allocating increases performance by initializing all documents
 with ``0`` values in all fields. After create, documents will never
 grow. This means that:
 
@@ -173,7 +173,7 @@ Add Intra-Document Hierarchy
 .. note::
 
    MongoDB stores :term:`BSON` :term:`documents <document>` as a
-   sequence of field/value, *not* as a hash table. As a result,
+   sequence of fields and values, *not* as a hash table. As a result,
    writing to the field ``stats.mn.0`` is considerably faster than
    writing to ``stats.mn.1439``.
 
@@ -226,9 +226,9 @@ faster later in the day.
    :align: center
    :alt: BSON memory layout (optimized)
 
-   To update the value in minute #1349, MongoDB first skips the first 23 hours and
-   then skips 59 minutes for only 82 skips as opposed to 1439 skips in the
-   previous schema.
+   To update the value in minute #1349, MongoDB first skips the first
+   23 hours and then skips 59 minutes for only 82 skips as opposed to
+   1439 skips in the previous schema.
 
 Separate Documents by Granularity Level
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -474,6 +474,8 @@ over the last day, with hour-level granularity:
 If you want a few days of hourly data, you can use a query in the
 following form:
 
+TODO talk to mikeo
+
 .. code-block:: pycon
 
    >>> db.stats.daily.find(
@@ -568,8 +570,8 @@ cluster>`, and the :term:`shard key` that you use.
 
 .. pull-quote::
 
-   An ideal shard key will distribute :term:`upserts <upsert>` beaten the
-   shards while routing all queries to a single shard, or a small
+   An ideal shard key will distribute :term:`upserts <upsert>` between
+   the shards while routing all queries to a single shard, or a small
    number of shards.
 
 While your choice of shard key may depend on the precise workload of

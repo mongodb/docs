@@ -39,7 +39,7 @@ patterns are:
       cannot grow beyond 16 megabytes.
 
 #. A hybrid design, stores comments separately from the "parent," but
-   aggregates comments into a small number documents, where each
+   aggregates comments into a small number of documents, where each
    contains many comments.
 
 Also consider that comments can be *threaded*, where comments are
@@ -90,7 +90,7 @@ structure like the following:
        discussion_id: ObjectId(...),
        parent_id: ObjectId(...),
        slug: '34db/8bda'
-       full_slug: '34db:2012.02.08.12.21.08/8bda:2012.02.09.22.19.16',
+       full_slug: '2012.02.08.12.21.08:34db/2012.02.09.22.19.16:8bda',
        posted: ISODateTime(...),
        author: {
                  id: ObjectId(...),
@@ -98,6 +98,8 @@ structure like the following:
                 },
        text: 'This is so bogus ... '
    }
+
+TODO changed full_slug order; talk to mikeo
 
 This structure:
 
@@ -138,7 +140,7 @@ operation:
 
 .. code-block:: python
 
-   slug = generate_psuedorandom_slug()
+   slug = generate_pseudorandom_slug()
    db.comments.insert({
        'discussion_id': discussion_id,
        'slug': slug,
@@ -155,9 +157,8 @@ following operation:
    posted = datetime.utcnow()
 
    # generate the unique portions of the slug and full_slug
-   slug_part = generate_psuedorandom_slug()
-   full_slug_part = slug_part + ':' + posted.strftime(
-       '%Y.%m.%d.%H.%M.%S')
+   slug_part = generate_pseudorandom_slug()
+   full_slug_part = posted.strftime('%Y.%m.%d.%H.%M.%S') + ':' + slug_part
    # load the parent comment (if any)
    if parent_slug:
        parent = db.comments.find_one(
@@ -235,7 +236,7 @@ Retrieve Comments via Direct Links
 Queries
 ```````
 
-To directly retrieve a comment, without needing to paging through all
+To directly retrieve a comment, without needing to page through all
 comments, you can select by the ``slug`` field:
 
 .. code-block:: python
@@ -271,8 +272,8 @@ Python shell:
    >>> db.comments.ensure_index([
    ...    ('discussion_id', 1), ('slug', 1)])
 
-Emending All Comments
----------------------
+Embedding All Comments
+----------------------
 
 This design embeds the entire discussion of a comment thread inside of
 the topic :term:`document`. In this example, the "topic," document
@@ -336,11 +337,16 @@ sub-comments, which can intern hold sub-comments.
    threaded or from chronological to threaded, this design would make
    that migration quite expensive.
 
-Furthermore, it's conceivable that popular discussions may reach the
-:ref:`16 megabyte BSON document limit <limit-bson-document-size>` that
-limits the size of MongoDB documents. Also, documents that can grow
-significantly after creation can run into issues, as MongoDB must move
-them on disk as they outgrow their allocated space.
+.. warning::
+
+   Remember that :term:`BSON` documents have a :ref:`16 megabyte size
+   limit <limit-bson-document-size>`. If popular discussions grow
+   larger than 16 megabytes, additional document growth will fail.
+
+   Additionally, when MongoDB documents grow significantly after
+   creation you will experience greater storage fragmentation and
+   degraded update performance while MongoDB migrates documents
+   internally.
 
 Operations
 ~~~~~~~~~~
@@ -412,8 +418,8 @@ the :operator:`$slice` operator:
          'comments': { '$slice': [ page_num * page_size, page_size ] }
        })
 
-To return paginated comments for the threaded design, you
-must retrieve the whole document paginate the comments within the
+To return paginated comments for the threaded design, you must
+retrieve the whole document and paginate the comments within the
 application:
 
 .. code-block:: python
@@ -506,7 +512,7 @@ themselves.
    page. This value is arbitrary: choose a value that will prevent the
    maximum document size from growing beyond the 16MB :ref:`BSON
    document size limit <limit-bson-document-size>`, but large enough
-   to ensure that most comment threads will fit isituation's
+   to ensure that most comment threads will fit in a single
    document. In some situations the number of comments per document
    can exceed 100, but this does not affect the correctness of the
    pattern.
