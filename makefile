@@ -34,20 +34,20 @@ COMPRESSED_MAN := $(subst .1,.1.gz,$(UNCOMPRESSED_MAN))
 PAPEROPT_a4		= -D latex_paper_size=a4
 PAPEROPT_letter		= -D latex_paper_size=letter
 ALLSPHINXOPTS		= -q -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
-ASPIRATIONALOPTS	= -d $(BUILDDIR)/aspiration-doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) aspiration
+ASPIRATIONALOPTS	= -q -d $(BUILDDIR)/aspiration-doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) aspiration
 
 .PHONY: publish help clean push-dc1 push-dc2
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
-	@echo "	 html	    	to make standalone HTML files"
-	@echo "	 dirhtml    	to make HTML files named index.html in directories"
-	@echo "	 singlehtml 	to make a single large HTML file"
-	@echo "	 epub	    	to make an epub"
-	@echo "	 latex	    	to make LaTeX files, you can set PAPER=a4 or PAPER=letter"
-	@echo "	 man	    	to make manual pages"
-	@echo "	 changes    	to make an overview of all changed/added/deprecated items"
-	@echo "	 linkcheck  	to check all external links for integrity"
+	@echo "	 html		to make standalone HTML files"
+	@echo "	 dirhtml	to make HTML files named index.html in directories"
+	@echo "	 singlehtml	to make a single large HTML file"
+	@echo "	 epub		to make an epub"
+	@echo "	 latex		to make LaTeX files, you can set PAPER=a4 or PAPER=letter"
+	@echo "	 man		to make manual pages"
+	@echo "	 changes	to make an overview of all changed/added/deprecated items"
+	@echo "	 linkcheck	to check all external links for integrity"
 	@echo
 	@echo "MongoDB Manual Specific Targets."
 	@echo "	 publish	runs publication process and then deploys the build to $(publication-output)"
@@ -195,11 +195,11 @@ latex:
 ######################################################################
 
 .PHONY: aspirational aspiration draft
-aspiration:aspirational
-draft:aspirational
-aspirational:
+aspiration:draft
+aspirational:draft
+draft:
 	$(SPHINXBUILD) -b html $(ASPIRATIONALOPTS) $(BUILDDIR)/aspirational
-	@echo "Aspirational HTML Build Complete."
+	@echo "[DRAFT] HTML build finished."
 
 ##########################################################################
 #
@@ -234,10 +234,11 @@ doctest:
 
 LATEX_CORRECTION = "s/(index|bfcode)\{(.*!*)*--(.*)\}/\1\{\2-\{-\}\3\}/g"
 
+
 $(BUILDDIR)/latex/%.tex:
 	sed $(SED_ARGS) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) $@
 
-pdfs:$(subst .tex,.pdf,$(wildcard $(BUILDDIR)/latex/*.tex))	
+pdfs:$(subst .tex,.pdf,$(wildcard $(BUILDDIR)/latex/*.tex))
 
 PDFLATEXCOMMAND = TEXINPUTS=".:$(BUILDDIR)/latex/:" pdflatex --interaction batchmode --output-directory $(BUILDDIR)/latex/
 %.pdf:%.tex
