@@ -355,8 +355,6 @@ cleanup operation that finds inventory items that have ``carted``
 items and check that to ensure that they exist in a user's cart, and
 return them to available inventory if they do not.
 
-TODO talk to mikeo
-
 .. code-block:: python
 
    def cleanup_inventory(timeout):
@@ -372,7 +370,7 @@ TODO talk to mikeo
                      for carted_item in item['carted']
                      if carted_item['timestamp'] < threshold)
 
-           # Find any carts that are active and refresh the carted items
+           # First Pass: Find any carts that are active and refresh the carted items
            for cart in db.cart.find({ '_id': {'$in': carted.keys() }, 'status':'active'}):
                cart = carted[cart['_id']]
 
@@ -382,7 +380,7 @@ TODO talk to mikeo
                    { '$set': {'carted.$.timestamp': now } })
                del carted[cart['_id']]
 
-           # All the carted items left in the dict need to now be
+           # Second Pass: All the carted items left in the dict need to now be
            #    returned to inventory
            for cart_id, carted_item in carted.items():
                db.inventory.update(
@@ -391,6 +389,18 @@ TODO talk to mikeo
                      'carted.qty': carted_item['qty'] },
                    { '$inc': { 'qty': carted_item['qty'] },
                      '$pull': { 'carted': { 'cart_id': cart_id } } })
+
+TODO edit and polish the next paragraph.
+
+To summarize: This operation finds all "carted" items that have
+time stamps older than the threshold. Then, the process makes two
+passes over these items:
+
+#. Of the items with time stamps older than the threshold, if the cart
+   is still active, it resets the time stamp to maintain the carts.
+
+#. Of the stale items that remain in inactive carts, the operation
+   returns these items to the inventory.
 
 .. note::
 
@@ -417,9 +427,19 @@ There are two drawbacks for using ``_id`` as a shard key:
 
   You can mitigate this effect by choosing a random value upon the
   creation of a cart, such as a hash (i.e. MD5 or SHA-1) of an
-  ObjectID, as the ``_id``.
+  ObjectID, as the ``_id``. The process for this operation would
+  resemble the following:
 
-TODO insert code example for creating a hashed key in python. mikeo
+  .. code-block:: python
+
+     import hashlib
+     import bson
+
+     cart_id = bson.ObjectId()
+     cart_id_hash = hashlib.md5(str(cart_id)).hexdigest()
+
+     cart = { "_id": cart_id, "cart_hash": cart_id_hash }
+     db.cart.insert(cart)
 
 - Cart expiration and inventory adjustment requires update operations
   and queries to broadcast to all shards when using ``_id`` as a shard
