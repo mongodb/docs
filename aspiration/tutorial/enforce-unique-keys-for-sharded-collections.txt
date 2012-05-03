@@ -9,11 +9,11 @@ Overview
 
 The :dbcommand:`unique <ensureIndex>` constraint on indexes, allows
 you to ensure that no two documents can have the same value for a
-field, in a :term:`collection` of MongoDB :term:`documents
-<document>`. For :ref:`sharded collections these unique indexes cannot
-enforce uniqueness <limit-sharding-unique-indexes>` because insert and
-indexing operations are local to specific shards and do not have
-sufficient.
+field or set of fields, in a :term:`collection` of MongoDB
+:term:`documents <document>`. For :ref:`sharded collections these
+unique indexes cannot enforce uniqueness
+<limit-sharding-unique-indexes>` because insert and indexing
+operations are local to specific shards and do not have sufficient.
 
 If you specify a unique index on a sharded collection, MongoDB will
 only be able to enforce uniqueness among the documents located on a
@@ -22,10 +22,13 @@ approaches to enforcing uniqueness:
 
 #. Enforce uniqueness of the shard key.
 
-   MongoDB *can* enforce value uniqueness the shard key. However, for
+   MongoDB *can* enforce value uniqueness the :term:`shard key`. For
    multi-component keys, MongoDB will enforce uniqueness on the
    *entire* key combination, and not for a specific component of the
-   shard key.
+   shard key. You may also create a unique index on a compound key
+   that uses the shard key as a prefix. For example, if you shard on
+   the ``{ "email" : 1 }`` field you can create a unique index on the
+   ``{ "email" : 1, "zipcode" : 1 }``" field.
 
 #. Use a secondary collection to enforce uniqueness.
 
@@ -58,11 +61,10 @@ form:
    db.runCommand( { shardcollection : "test.users" , key : { email : 1 } , unique : true } );
 
 Remember that the index on the ``_id`` field is always unique. MongoDB
-inserts an ``ObjectId`` into the ``_id`` field, but you can manually
-create your own ``_id`` field and use this as the shard key. MongoDB
-will ensure that the "``_id``" field is unique in the sharded
-collection. Use the following operation to use the ``_id`` field as
-the shard key.
+inserts an ``ObjectId`` into the ``_id`` field by default. However,
+you can manually insert your own value into the ``_id`` field and then
+use this as the shard key. Use the following operation to use the
+``_id`` field as the shard key.
 
 .. code-block:: javascript
 
@@ -79,8 +81,8 @@ the shard key.
 Limitations
 ~~~~~~~~~~~
 
-- You can only enforce uniqueness on one field in a collection using
-  this method.
+- You can only enforce uniqueness on one single field in the collection
+  using this method.
 
 - If you use a compound shard key, you will only be able to enforce
   uniqueness of the *combination* of component keys in the shard
