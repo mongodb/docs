@@ -1,0 +1,188 @@
+===========================================
+Enforce Unique Keys for Sharded Collections
+===========================================
+
+.. default-domain:: mongodb
+
+Overview
+--------
+
+The :dbcommand:`unique <ensureIndex>` constraint on indexes, allows
+you to ensure that no two documents can have the same value for a
+field, in a :term:`collection` of MongoDB :term:`documents
+<document>`. For :ref:`sharded collections these unique indexes cannot
+enforce uniqueness <limit-sharding-unique-indexes>` because insert and
+indexing operations are local to specific shards and do not have
+sufficient.
+
+If you specify a unique index on a sharded collection, MongoDB will
+only be able to enforce uniqueness among the documents located on a
+single shard *at time of creation*. This document provides two
+approaches to enforcing uniqueness:
+
+#. Enforce uniqueness of the shard key.
+
+   MongoDB *can* enforce value uniqueness the shard key. However, for
+   multi-component keys, MongoDB will enforce uniqueness on the
+   *entire* key combination, and not for a specific component of the
+   shard key.
+
+#. Use a secondary collection to enforce uniqueness.
+
+   Create a minimal collection that contains just the unique field and
+   also references a document in the main collection. If you always
+   insert to the secondary collection *before* inserting to the main
+   collection, and if you attempt to use a duplicate key MongoDB will
+   produce an error.
+
+   .. note::
+
+      If you have a small data set, you may not need to shard this
+      collection and you can create multiple unique indexes; otherwise
+      you can shard on a single unique key.
+
+Unique Constraints on the Shard Key
+-----------------------------------
+
+.. _sharding-pattern-unique-procedure-shard-key:
+
+Process
+~~~~~~~
+
+When sharding a collection using the :dbcommand:`shardcollection`
+command you can specify a ``unique`` constraint, in the following
+form:
+
+.. code-block:: javascript
+
+   db.runCommand( { shardcollection : "test.users" , key : { email : 1 } , unique : true } );
+
+Remember that the index on the ``_id`` field is always unique. MongoDB
+inserts an ``ObjectId`` into the ``_id`` field, but you can manually
+create your own ``_id`` field and use this as the shard key. MongoDB
+will ensure that the "``_id``" field is unique in the sharded
+collection. Use the following operation to use the ``_id`` field as
+the shard key.
+
+.. code-block:: javascript
+
+   db.runCommand( { shardcollection : "test.users" } )
+
+.. note::
+
+   In any sharded collection where you are *not* sharding by the
+   ``_id`` field, it is incumbent upon you and your application to
+   maintain uniqueness of the ``_id`` field. The best way to ensure
+   unique ``_id`` fields is to use the ``ObjectId`` field, or some
+   sort of other universally unique identifier (UUID.)
+
+Limitations
+~~~~~~~~~~~
+
+- You can only enforce uniqueness on one field in a collection using
+  this method.
+
+- If you use a compound shard key, you will only be able to enforce
+  uniqueness of the *combination* of component keys in the shard
+  key.
+
+In most cases, the best shard keys compound keys that include elements
+that permit :ref:`write scaling <sharding-shard-key-write-scaling>`
+and :ref:`query isolation <sharding-shard-key-query-isolation>` as
+well as :ref:`high cardinality <sharding-shard-key-cardinality>`.
+These ideal shard keys are not often the same keys that require
+uniqueness and this requires a different approach.
+
+Unique Constraints on Arbitrary Fields
+--------------------------------------
+
+If you cannot use your unique field as the shard key, or you need to
+enforce uniqueness over more than one field, you must create another
+:term:`collection` that contains both a reference to the original
+document (i.e. its ``ObjectId``) and the unique key.
+
+If you must shard this "proxy" collection, then shard on the unique
+key using the :ref:`above procedure
+<sharding-pattern-unique-procedure-shard-key>`, otherwise, you can
+simply create unique indexes on the collection.
+
+Process
+~~~~~~~
+
+Consider the following schema for the "proxy collection:"
+
+.. code-block:: javascript
+
+   {
+     "_id" : ObjectId("...")
+     "email" ": "..."
+   }
+
+Here, the ``_id`` field holds the ``ObjectId`` of the
+:term:`document` it reflects, and the ``email`` field is the field on
+which you want to ensure uniqueness.
+
+If you're going to shard this collection, use the following operation
+to shard the collection, using the ``email`` field as the :term:`shard
+key`:
+
+.. code-block:: javascript
+
+   db.runCommand( { shardcollection : "records.proxy" , key : { email : 1 } , unique : true } );
+
+If you do not need to shard the proxy collection, use the following
+command to create a unique index on the ``email`` field:
+
+.. code-block:: javascript
+
+   db.proxy.ensureIndex( { "email" : 1 }, {unique : true} )
+
+You may create multiple unique indexes on this collection if you do
+not plan to shard its contents.
+
+Then, to insert documents, use the following procedure in the
+:ref:`JavaScript shell <mongo>`:
+
+.. code-block:: javascript
+
+   use records
+
+   primary_id = ObjectId()
+
+   db.information.proxy({
+      "_id" : primary_id
+      "email" : "example@example.net"
+   })
+
+   // if: the above operation returns successfully,
+   // then continue:
+
+   db.information.insert({
+      "_id" : primary_id
+      "email": "example@example.net"
+      // additional information...
+   })
+
+You must insert a document into the ``proxy`` collection first. If
+this operation succeeds, the ``email`` field is unique and you may
+continue by inserting the actual document into the ``information``
+collection.
+
+.. see:: The full documentation of: :func:`db.collection.ensureIndex()`,
+   :dbcommand:`ensureIndex`, and :dbcommand:`shardcollection`.
+
+Considerations
+~~~~~~~~~~~~~~
+
+- Your application must catch errors on inserting documents into the
+  "proxy" collection and enforce consistency between the two
+  collections.
+
+- If the proxy collection requires sharding you must shard on the
+  single field on which you want to enforce uniqueness.
+
+- To enforce uniqueness on more than one field, you must have *one*
+  proxy collection for *every* field that you want to enforce
+  uniqueness or you can create multiple unique indexes on a single
+  proxy collection but you will *not* be able to shard the proxy
+  collection.
