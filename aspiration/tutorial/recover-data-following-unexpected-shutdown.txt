@@ -1,0 +1,124 @@
+==================================================
+Recover MongoDB Data following Unexpected Shutdown
+==================================================
+
+.. default-domain:: mongodb
+
+If MongoDB does not shut down cleanly using the :option:`--shutdown
+<mongod --shutdown>` option, the on disk representation of the data
+files will likely reflect an inconsistent state which leads to data
+corruption.
+
+To prevent data inconsistency and corruption, always shut down the
+database cleanly, and use the :ref:`durability journaling
+<setting-journal>`. The journal writes data to disk every 100
+milliseconds by default, and ensurers that MongoDB will be able to
+recover a constant state even in the case of a unclean shutdown due to
+power loss or other system failure.
+
+If you do not have journaling enabled, use the following procedure to
+recover data that may be in an inconsistent state.
+
+Process
+-------
+
+Indications
+~~~~~~~~~~~
+
+When you are aware of a :program:`mongod` instance running without
+journaling that stops unexpectedly you should always run the repair
+operation before starting MongoDB again.
+
+If the ``mongod.lock`` file exists in the data directory, specified by
+:setting:`dbpath` and ``/data/db`` by default, then :program:`mongod`
+will refuse to start, and you will find the following message in your
+log:
+
+.. code-block:: none
+
+   **************
+   old lock file: /data/db/mongod.lock.  probably means unclean shutdown
+   recommend removing file and running --repair
+   see: http://dochub.mongodb.org/core/repair for more information
+   *************
+
+Running repair will remove the lock file and allow the database to
+start normally.
+
+Overview
+~~~~~~~~
+
+There are two processes to repair data files that result from an
+unexpected shutdown:
+
+#. Use just the :option:`--repair <mongod --repair>` option.
+   :program:`mongod` will read the existing data files, write the
+   existing data to new files and replace the existing, possibly
+   corrupt, files with new files.
+
+#. Use the :option:`--repair <mongod --repair>` option in
+   conjunction with the :option:`--repairpath <mongod --repairpath>`
+   option. :program:`mongod` will read the existing data files, and
+   write the existing data to new data files. This does not modify or
+   alter the existing data files.
+
+Procedures
+~~~~~~~~~~
+
+To repair your data files using the :option:`--repairpath <mongod --repairpath>`
+option to preserve the original data files unmodified:
+
+#. Start :program:`mongod` using :option:`--repair <mongod --repair>`
+   to read the existing data files.
+
+   .. code-block:: sh
+
+      mongod --dbpath /data/db --repair --repairpath /data/db0
+
+   When this completes, the new repaired data files will be in the
+   ``/data/db0`` directory.
+
+#. Start :program:`mongod` using the following invocation to point the
+   :setting:`dbpath` at ``/data/db2``:
+
+   .. code-block:: sh
+
+      mongod --dbpath /data/db2
+
+   Once you confirm that the data files are operational you may delete
+   or archive the data files in the ``/data/db`` directory.
+
+To repair your data files without preserving the original files, do
+not use the :option:`--repairpath <mongod --repairpath>` option, as in
+the following procedure:
+
+#. Start :program:`mongod` using :option:`--repair <mongod --repair>`
+   to read the existing data files.
+
+   .. code-block:: sh
+
+      mongod --dbpath /data/db --repair
+
+   When this completes, the repaired data files will replace the
+   original data files in the ``/data/db`` directory.
+
+#. Start :program:`mongod` using the following invocation to point the
+   :setting:`dbpath` at ``/data/db``:
+
+   .. code-block:: sh
+
+      mongod --dbpath /data/db
+
+``mongod.lock``
+---------------
+
+In normal operation, you should **never** remove the ``mongod.lock``
+file, and instead use one of the above methods to recover the database
+and remove the lock files. In dire situations you can remove the
+lockfile, and start the database using the possibly corrupt files, and
+attempt to recover data from the database; however, it's impossible to
+predict the state of the database in these situations.
+
+If you are not running with journaling, and your database shuts down
+unexpectedly for *any* reason, you should always assume that your
+database is in an inconsistent and likely corrupt state.
