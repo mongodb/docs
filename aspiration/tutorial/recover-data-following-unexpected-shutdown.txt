@@ -4,10 +4,9 @@ Recover MongoDB Data following Unexpected Shutdown
 
 .. default-domain:: mongodb
 
-If MongoDB does not shut down cleanly using the :option:`--shutdown
-<mongod --shutdown>` option, the on disk representation of the data
-files will likely reflect an inconsistent state which leads to data
-corruption.
+If MongoDB does not shutdown cleanly [#clean-shutdown]_ the on disk
+representation of the data files will likely reflect an inconsistent
+state which leads to data corruption.
 
 To prevent data inconsistency and corruption, always shut down the
 database cleanly, and use the :ref:`durability journaling
@@ -19,6 +18,15 @@ power loss or other system failure.
 If you do not have journaling enabled, use the following procedure to
 recover data that may be in an inconsistent state.
 
+.. seealso:: The ":doc:`/administration`" documents and the
+   documentation of the :setting:`repair`, :setting:`repairpath`, and
+   :setting:`journal` settings.
+
+.. [#clean-shutdown] To ensure a clean shut down, use the
+   :option:`mongod --shutdown` option, your control script,
+   "Control-C" (when running :program:`mongod` in interactive mode,)
+   or ``kill mongod`` or ``kill -2 mongod``.
+
 Process
 -------
 
@@ -29,21 +37,26 @@ When you are aware of a :program:`mongod` instance running without
 journaling that stops unexpectedly you should always run the repair
 operation before starting MongoDB again.
 
-If the ``mongod.lock`` file exists in the data directory, specified by
-:setting:`dbpath` and ``/data/db`` by default, then :program:`mongod`
-will refuse to start, and you will find the following message in your
-log:
+If the ``mongod.lock`` file has data in the data directory specified
+by :setting:`dbpath`, ``/data/db`` by default, then :program:`mongod`
+will refuse to start, and you will find a message that contains the
+following line in your MongoDB log our output:
 
 .. code-block:: none
 
-   **************
-   old lock file: /data/db/mongod.lock.  probably means unclean shutdown
-   recommend removing file and running --repair
-   see: http://dochub.mongodb.org/core/repair for more information
-   *************
+   Unclean shutdown detected.
 
-Running repair will remove the lock file and allow the database to
-start normally.
+This indicates that you need to remove the lockfile and run repair. If
+you run repair when the ``mongodb.lock`` file exists without the
+:option:`mongod --repairpath` option, you will see a message that
+contains the following line:
+
+.. code-block:: none
+
+   old lock file: /data/db/mongod.lock. probably means unclean shutdown
+
+You must remove the lockfile **and** run the repair operation before
+starting the database normally using the following procedure.
 
 Overview
 ~~~~~~~~
@@ -51,16 +64,22 @@ Overview
 There are two processes to repair data files that result from an
 unexpected shutdown:
 
-#. Use just the :option:`--repair <mongod --repair>` option.
-   :program:`mongod` will read the existing data files, write the
-   existing data to new files and replace the existing, possibly
-   corrupt, files with new files.
-
 #. Use the :option:`--repair <mongod --repair>` option in
    conjunction with the :option:`--repairpath <mongod --repairpath>`
    option. :program:`mongod` will read the existing data files, and
    write the existing data to new data files. This does not modify or
    alter the existing data files.
+
+   You do not need to remove the ``mongod.lock`` file before using
+   this procedure.
+
+#. Use the :option:`--repair <mongod --repair>` option.
+   :program:`mongod` will read the existing data files, write the
+   existing data to new files and replace the existing, possibly
+   corrupt, files with new files.
+
+   You must remove the ``mongod.lock`` file before using this
+   procedure.
 
 Procedures
 ~~~~~~~~~~
@@ -83,7 +102,7 @@ option to preserve the original data files unmodified:
 
    .. code-block:: sh
 
-      mongod --dbpath /data/db2
+      mongod --dbpath /data/db0
 
    Once you confirm that the data files are operational you may delete
    or archive the data files in the ``/data/db`` directory.
@@ -91,6 +110,21 @@ option to preserve the original data files unmodified:
 To repair your data files without preserving the original files, do
 not use the :option:`--repairpath <mongod --repairpath>` option, as in
 the following procedure:
+
+#. Remove the stale lock file:
+
+   .. code-block:: sh
+
+      rm /data/db/mongod.lock
+
+   Replace ``/data/db`` with your :setting:`dbpath` where your MongoDB
+   instance's data files reside.
+
+   .. warning::
+
+      After you remove the ``mongod.lock`` file you *must* run the
+      :option:`--repair <mongod --repair>` process before using your
+      database.
 
 #. Start :program:`mongod` using :option:`--repair <mongod --repair>`
    to read the existing data files.
@@ -113,11 +147,12 @@ the following procedure:
 ---------------
 
 In normal operation, you should **never** remove the ``mongod.lock``
-file, and instead use one of the above methods to recover the database
-and remove the lock files. In dire situations you can remove the
-lockfile, and start the database using the possibly corrupt files, and
-attempt to recover data from the database; however, it's impossible to
-predict the state of the database in these situations.
+file and start :program:`mongod`. Instead use one of the above methods
+to recover the database and remove the lock files. In dire you
+situations can remove the lockfile, and start the database using the
+possibly corrupt files, and attempt to recover data from the database;
+however, it's impossible to predict the state of the database in these
+situations.
 
 If you are not running with journaling, and your database shuts down
 unexpectedly for *any* reason, you should always assume that your
