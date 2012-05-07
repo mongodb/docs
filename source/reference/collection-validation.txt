@@ -1,6 +1,6 @@
-================================
-Collection Validation Statistics
-================================
+==========================
+Collection Validation Data
+==========================
 
 .. default-domain:: mongodb
 
@@ -40,66 +40,146 @@ Values
 
 .. data:: ns
 
+   The full namespace name of the collection. Namespaces include the
+   database name and the collection name in the form
+   ``database.collection``.
+
 .. data:: firstExtent
+
+   The disk location of the first extent in the collection. The value
+   of this field also includes the namespace.
 
 .. data:: lastExtent
 
+   The disk location of the last extent in the collection. The value
+   of this field also includes the namespace.
+
 .. data:: extentCount
 
-.. :data:: extents
+   The number of extents in the collection.
 
-   .. note::
+.. data:: extents
 
-      This sub-document is only returned when you specify the ``full`` option.
+   :dbcommand:`validate` returns one instance of this document for
+   every extent in the collection. This sub-document is only returned
+   when you specify the ``full`` option to the command.
 
-   .. :data:: extents.loc
+   .. data:: extents.loc
 
-   .. :data:: extents.xnext
+      The disk location for the beginning of this extent.
 
-   .. :data:: extents.xprev
+   .. data:: extents.xnext
 
-   .. :data:: extents.nsdaig
+      The disk location for the extent following this one. "null" if
+      this is the end of the linked list of extents.
 
-   .. :data:: extents.size
+   .. data:: extents.xprev
 
-   .. :data:: extents.firstRecord
+      The disk location for the extent preceding this one. "null" if
+      this is the head of the linked list of extents.
 
-   .. :data:: extents.lastRecord
+   .. data:: extents.nsdiag
+
+      The namespace this extent belongs to (should be the same as the
+      namespace shown at the beginning of the validate listing).
+
+   .. data:: extents.size
+
+      The number of bytes in this extent.
+
+   .. data:: extents.firstRecord
+
+      The disk location of the first record in this extent.
+
+   .. data:: extents.lastRecord
+
+      The disk location of the last record in this extent.
 
 .. data:: datasize
 
-.. data:: nsrecords
+   The number of bytes in all data records.  This value does not
+   include deleted records, nor does it include extent headers, nor
+   record headers, nor space in a file unallocated to any
+   extent. :data:`datasize` includes record :term:`padding`.
+
+.. data:: nrecords
+
+   The number of :term:`documents <document>` in the collection.
 
 .. data:: lastExtentSize
 
+   The size of the last new extent created in this collection. This
+   value determines the size of the *next* extent created.
+
 .. data:: padding
+
+   A floating point value between 1 and 2.
+
+   When MongoDB creates a new record it uses the :term:`padding
+   factor` to determine how much additional space to add to the
+   record. The padding factor is automatically adjusted by mongo when
+   it notices that update operations are triggering record moves.
 
 .. data:: firstExtentDetails
 
+   The size of the first extent created in this collection. This data
+   is similar to the data provided by the :data:`extents`
+   sub-document; however, the data reflects only the first extent in
+   the collection and is always returned.
+
    .. data:: firstExtentDetails.loc
+
+      The disk location for the beginning of this extent.
 
    .. data:: firstExtentDetails.xnext
 
+      The disk location for the extent following this one. "null" if
+      this is the end of the linked list of extents, which should only
+      be the case if there is only one extent.
+
    .. data:: firstExtentDetails.xprev
+
+      The disk location for the extent preceding this one. This should
+      always be "null."
 
    .. data:: firstExtentDetails.nsdiag
 
+      The namespace this extent belongs to (should be the same as the
+      namespace shown at the beginning of the validate listing).
+
    .. data:: firstExtentDetails.size
+
+      The number of bytes in this extent.
 
    .. data:: firstExtentDetails.firstRecord
 
+      The disk location of the first record in this extent.
+
    .. data:: firstExtentDetails.lastRecord
+
+      The disk location of the last record in this extent.
 
 .. data:: objectsFound
 
+   The number of records actually encountered in a scan of the
+   collection. This field should have the same value as the
+   :data:`nrecords` field.
+
 .. data:: invalidObjects
+
+   The number of records containing BSON documents that do not pass a
+   validation check.
 
    .. note::
 
       This field is only included in the validation output when you
       specify the ``full`` option.
 
-.. data:: byteswWithHeaders
+.. data:: bytesWithHeaders
+
+   This is similar to datasize, except that :data:`bytesWithHeaders`
+   includes the record headers. In version 2.0, record headers are 16
+   bytes per document.
 
    .. note::
 
@@ -108,6 +188,9 @@ Values
 
 .. data:: bytesWithoutHeaders
 
+   :data:`bytesWithoutHeaders` returns data collected from a scan of
+   all records. The value should be the same as :data:`datasize`.
+
    .. note::
 
       This field is only included in the validation output when you
@@ -115,14 +198,35 @@ Values
 
 .. data:: deletedCount
 
+   The number of deleted or "free" records in the collection.
+
 .. data:: deletedSize
+
+   The size of all deleted or "free" records in the collection.
 
 .. data:: nIndexes
 
+   The number of indexes on the data in the collection.
+
 .. data:: keysPerIndex
+
+   A document containing a field for each index, named after the
+   index's name, that contains the number of keys, or documents
+   referenced, included in the index.
 
 .. data:: valid
 
+   Boolean. ``true``, unless :dbcommand:`validate` determines that an
+   aspect of the collection is not valid. When ``false``, see the
+   :data:`errors` field for more information.
+
 .. data:: errors
 
+   Typically empty; however, if the collection is not valid (i.e
+   :data:`valid` is false,) this field will contain a message
+   describing the validation error.
+
 .. data:: ok
+
+   Set to ``1`` when the command succeeds. If the command fails this
+   the :data:`ok` field has a value of ``0``.
