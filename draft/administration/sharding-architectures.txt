@@ -8,51 +8,45 @@ Shard Cluster Architectures
 
 .. default-domain:: mongodb
 
-This document provides an overview of possible :term:`shard cluster`
-system architectures and deployments
+This document describes various ways to deploy a :term:`shard cluster`.
 
 .. seealso:: The :doc:`/administration/sharding` document, the
    ":ref:`Sharding Requirements <sharding-requirements>`" section,
    and the ":ref:`Sharding Tutorials <sharding-tutorials>`" for more
    information on deploying and maintaing a :term:`shard cluster`.
 
-Minimal System
---------------
+Deploying A Test Cluster
+------------------------
 
-.. warning:: Only use this architecture for testing and development
-   purposes. Systems with these specifications are not sutable for
-   production systems where you care about data integrity and
-   reliability.
+.. warning:: Use this architecture for testing and development only.
 
-You can deploy a very minimal :term:`shard cluster` for development,
-testing, and experimentation with the following components:
+You can deploy a very minimal :term:`shard cluster` for testing
+and development. Such a cluster will have the following components:
 
 - 1 :ref:`config server <sharding-config-server>`.
 
-- 2 :program:`mongod` instances (either :term:`replica sets <replica set>`
-  or standalone.)
+- At least one :program:`mongod` instance (either :term:`replica sets <replica set>`
+  or as a standalone node.)
 
-- 1 :program:`mongos` instance that can run on one of the systems
-  providing the above resources.
+- 1 :program:`mongos` instance.
 
-Production System
------------------
+Deploying a Production Cluster
+------------------------------
 
-Production systems have slightly more significant infrastructure
-requirements; however, they are more robust and able to survive system
-failures and operational disturbances as needed.
+When deploying a shard cluster to production, you must ensure that the data
+is redundant and that your individual nodes are highly available. To that end,
+a production-level shard cluster should have the following:
 
-- 3 :ref:`config servers <sharding-config-server>`.
+- 3 :ref:`config servers <sharding-config-server>`, each residing on a separate node.
 
-- 2 or more :term:`replica sets <replica set>` for :term:`shards
-  <shard>`. Replica sets may consist of:
+- For each shard, a three member :term:`replica set <replica set>` consisting of:
 
-  - 3 :program:`mongod` instances that hold data, or
+  - 3 :program:`mongod` replicas or
 
     .. seealso:: ":doc:`/administration/replication-architectures`"
        and ":doc:`/administration/replication`."
 
-  - 2 :program:`mongod` instances that hold data and a single
+  - 2 :program:`mongod` replicas and a single
     :program:`mongod` instance acting as a :term:`arbiter`.
 
     .. optional::
@@ -60,33 +54,27 @@ failures and operational disturbances as needed.
        All replica set configurations and options are available.
 
        You may also choose to deploy a :ref:`hidden member
-       <replica-set-hidden-member>` for backup purposes or a
-       :ref:`delayed member <replica-set-delayed-member>` if you
-       deployment requires this precaution.
+       <replica-set-hidden-member>` for backups or a
+       :ref:`delayed member <replica-set-delayed-member>`.
 
-       Furthermore, consider keeping a member of each replica set in a
-       geographically distinct facility, to ensure data continuity and
-       avalibility in light of site failures or interruptions.
+       You might also keep a member of each replica set in a
+       geographically distinct data center in case the primary data
+       center becomes unavailable.
 
        See ":doc:`/replication`" for more information on replication
        and :term:`replica sets <replica set>`.
-
-  As your data set grows you will add additional replica sets to your
-  cluster to accommodate the additional resource requirements of your
-  cluster.
 
   .. seealso:: The ":ref:`sharding-procedure-add-shard`" and
      ":ref:`sharding-procedure-remove-shard`" procedures for more
      information.
 
 - :program:`mongos` instances. Typically, you will deploy a single
-  :program:`mongos` instance on every application server.
+  :program:`mongos` instance on every application server. Alternatively,
+  you may deploy several `mongos` nodes and let your application connect
+  to these via a load balancer.
 
-.. warning::
-
-   Because chunk migrations require some overhead, it's crucial that
-   you always add capacity to a shard cluster *before* the cluster
-   reaches capacity.
+TODO: I don't see how this next section fits in. You've explained all of these
+elsewhere. I vote for removing it.
 
 Sharded and Non-Sharded Data
 ----------------------------
@@ -116,10 +104,9 @@ cluster.
 
 .. warning::
 
-   The :dbcommand:`moveprimary` command may have a very high resource
-   requirement, because it must copy all non-sharded data between
-   shards, during which that data will be unavailable for other
-   operations.
+   The :dbcommand:`moveprimary` command can be expensive because
+   it copies all non-sharded data between shards, during which
+   that data will be unavailable for other operations.
 
 When you deploy a new :term:`shard cluster`, the "first shard" becomes
 the primary for all databases before enabling sharding. Databases
@@ -136,23 +123,26 @@ TODO is there anything more to say on which shard a new database will use as pri
    databases and sharding, has nothing to do with the term
    :term:`primary` in the context of :term:`replica sets <replica set>`
 
+
+TODO: also not really sure about the next section.
+QUESTION: why discuss backups here? Backups are already descrived elsewhere.
+
 Replication and Data Integrity
 ------------------------------
 
-Production :term:`shard cluster` deployments should provide a
-:term:`replica set` for each :term:`shard` instance in the
-cluster. Shard clusters *without* replica sets provide no additional
-redundancy beyond what single :program:`mongod` instances can provide.
+Production :term:`shard clusters` should run each
+:term:`shard` as a :term:`replica set`. This ensures each
+each shard remains available in the event of a failure.
 
-The :term:`config database` process use a special system where three
-:program:`mongod` instances that uses two-phrase-commits on write
-operations to ensure consistency while also providing
-redundancy. Config databases cannot operate as replica sets.
+It's also important to run exactly three :term:`config database` instances.
+All nodes in the shard cluster update these databases using a two-phase
+commit, thus guaranteeing consistency. Do note that config databases do not
+operate as replica sets.
 
 Because the shard cluster remains largely operational [#read-only]
 without one of the config database :program:`mongod` instances,
 creating a backup of the cluster metadata from the config database is
-very straight forward:
+very straightforward:
 
 #. Shut down one of the :term:`config databases`.
 
@@ -164,6 +154,8 @@ very straight forward:
 Furthermore, because the activity to the config servers is minimal
 creating a :doc:`backup </administration/backups>` of the config
 instance is straightforward, precise, and non-disruptive.
+
+TODO: this is mentioned elsewhere.
 
 .. [#read-only] While one of the three config servers unavailable, no
    the cluster cannot split any chunks nor can it migrate chunks
@@ -184,38 +176,21 @@ key to a successful shard cluster revolves around knowing when
 sharding is appropriate for your data and in knowing when to add
 capacity to the system:
 
-#. Sharding adds complexity to your database. If you can provision
-   systems (virtual or otherwise,) large enough to support your the
-   size of your database and the associated traffic, then in most
-   cases you may want to avoid using sharding. By not using sharding,
-   query performance is not limited by the :term:`shard key`, there
-   are fewer systems to maintain, and fewer running
-   processes.
+TODO: this point goes under "when to shard."
 
-   However, if you expect that (in the future) your:
+#. Sharding adds complexity. If you can provision
+   hardware powerful enough to support your data and workload,
+   then you may not need sharding. By not using sharding,
+   your database will have fewer moving parts and will be easier
+   to administer.
 
-   - data will grow beyond the capacity of a single machine to store,
+#. That said, you should consider sharding if you know that the hardware
+   you'll be deploying with cannot handle the expected load.
 
-   - :term:`working set` will be large than the maximum amount of
-     allocable RAM, or
+#. In this case, it's important that you enable sharding *before* your system has
+   reached capacity. If you wait until your hardware is already overloaded,
+   then the overhead require to migrate data between shards will only further
+   load the system.
 
-   - request traffic will exceed beyond the ability of a single
-     machine to provide,
-
-   then you will want to consider sharding, at some point in the
-   future. You will want to enable sharding *before* your system has
-   reached this capacity, because of the overhead associated with
-   migrating chunks. Additionally, if you expect that you *may* need
-   to shard your deployment, you may consider potential shard keys
-   as you plan your data schema.
-
-#. There is a certain amount of overhead, associated with chunk
-   migrations, and because MongoDB optimizes the :ref:`balancing
-   system <sharding-balancing>`, to minimize the impact of balancing
-   operations on operational shard clusters. As a result, migrations
-   that involve a lot of data can take a large amount of time.
-
-   Regardless of your architecture, always ensure that your
-   :term:`shard clusters <shard cluster>` have sufficient resources
-   available to support the migration of chunks to new shards when you
-   need to add capacity to the cluster.
+#. If you do plan to shard, you should also give some thought to which collections
+   you'll want to shard along with the corresponding shard keys.
