@@ -83,7 +83,7 @@ endif
 
 ######################################################################
 #
-# Targets that should/need only be accessed in publication, within a protective "ifeq"
+# Targets that should/need only be accessed in publication
 #
 ######################################################################
 
@@ -141,6 +141,8 @@ $(CURRENTBUILD)/single/index.html:$(BUILDDIR)/singlehtml/contents.html
 $(CURRENTBUILD)/release.txt:$(publication-output)/manual
 	git rev-parse --verify HEAD >|$@
 $(publication-output)/$(current-branch):
+	mkdir -p $@
+$(publication-output):
 	mkdir -p $@
 $(publication-output)/manual:manual
 	mv $< $@
@@ -211,7 +213,7 @@ draft:
 latexpdf:latex
 	$(MAKE) -C $(BUILDDIR)/latex all-pdf
 	@echo "[PDF] build complete."
-json:
+njson:
 	$(SPHINXBUILD) -b json $(ALLSPHINXOPTS) $(BUILDDIR)/json
 	@echo "[JSON] build finished."
 changes:
@@ -246,3 +248,15 @@ PDFLATEXCOMMAND = TEXINPUTS=".:$(BUILDDIR)/latex/:" pdflatex --interaction batch
 	-makeindex -s $(BUILDDIR)/latex/python.ist '$(basename $<).idx'
 	$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<'
 	$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<'
+
+##########################################################################
+#
+# Archiving $(publication-output) for cleaner full rebuilds
+#
+##########################################################################
+
+ARCHIVE_DATE := $(shell date +%s)
+archive:$(publication-output).$(ARCHIVE_DATE).tar.gz
+	@echo [archive] $<
+$(publication-output).$(ARCHIVE_DATE).tar.gz:$(publication-output)
+	tar -czvf $@ $<
