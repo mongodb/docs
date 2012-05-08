@@ -15,8 +15,8 @@ Manual, see ":doc:`/sharding`." The ":doc:`/administration/sharding-architecture
 document provides an overview of deployment possibilities 'that you
 may find helpful as you plan to deploy a shard cluster. Finally the
 ":doc:`/core/sharding-internals`" document provides a more detailed
-overview of sharding operations, that you may find useful when
-troubleshooting issues or understanding your cluster's behavior.
+introduction to sharding that you may find useful when troubleshooting
+issues or understanding your cluster's behavior.
 
 .. contents:: Sharding Procedures:
    :backlinks: none
@@ -27,7 +27,7 @@ troubleshooting issues or understanding your cluster's behavior.
 Setup
 -----
 
-If you have an existing replica set, you can use the
+If you have an existing replica set, you can use then
 ":doc:`/tutorials/convert-replica-set-to-replicated-shard-cluster`"
 tutorial as a guide. If you're deploying a :term:`shard
 cluster` from scratch, use the following procedure as a starting point:
@@ -74,23 +74,30 @@ cluster` from scratch, use the following procedure as a starting point:
 
       sh.addShard( "[hostname]:[port]" )
 
-   If each shard is just a single server (note: each shard should be a
-   replica set in production), you should replace ``[hostname]`` and ``[port]``
-   with the hostname and TCP port number of shard where the shard is accessible.
    For example:
 
    .. code-block:: javascript
 
       sh.addShard( "mongodb0.example.net:27027" )
 
-   If each shard is a replica set, then you must specify the replica set name followed
-   by a forward slash, followed by a comma-separated list of seeds for the replica set.
-   For example, if the replica set is called "myapp1", then your `addShard` command might
-   look like this:
+   .. note:: In production deployments, all shards should be replica sets.
 
-   .. code-block:: javascript
+      .. versionchanged:: 2.0.3
 
-      sh.addShard( "myapp1/mongodb0.example.net:27027,mongodb1.example.net:27017" )
+      After version 2.0.3, you may use the above form to add replica
+      sets to a cluster and the cluster will automatically discover
+      the members of the replica set and adjust its configuration
+      accordingly.
+
+      Before version 2.0.3, you must specify the shard in the
+      following form: the replica set name, followed by a forward
+      slash, followed by a comma-separated list of seeds for the
+      replica set. For example, if the name of the replica set is
+      "myapp1", then your :func:`sh.addShard` command might resemble:
+
+      .. code-block:: javascript
+
+         sh.addShard( "myapp1/mongodb0.example.net:27027,mongodb1.example.net:27017" )
 
    Repeat this step for each shards in your cluster.
 
@@ -109,9 +116,9 @@ cluster` from scratch, use the following procedure as a starting point:
 
 #. Enable sharding for any database that you want to shard.
 
-   Sharding is enabled on a per-database basis. To enable sharding
-   for a given database, use the :dbcommand:`enableSharding` command or the
-   :func:`sh.enableSharding()` shell function.
+   MongoDB enables sharding on a per-database basis. To enable
+   sharding for a given database, use the :dbcommand:`enableSharding`
+   command or the :func:`sh.enableSharding()` shell function.
 
    .. code-block:: javascript
 
@@ -130,16 +137,17 @@ cluster` from scratch, use the following procedure as a starting point:
 
       MongoDB creates databases automatically on first use.
 
-      Once you enable sharding for a database, that database will be
-      assigned a "primary" shard, where it will initially live before
-      sharding begins.
+      Once you enable sharding for a database, MongoDB assigns a
+      "primary" shard for that database, where all data lives
+      initially before sharding begins.
 
-#. Enable sharding for relevant collections.
+#. Enable sharding on a per-collection basis.
 
-   Finally, you must explicity designate which collections are to be sharded.
-   The collections must be part of the database(s) for which you've already enabled
-   sharding. When you shard a collection, you also choose the shard key.
-   To get this process started, run the :dbcommand:`shardCollection` command or the
+   Finally, you must explicitly specify collections to shard.  The
+   collections must belong to a database that you has sharding
+   enabled. When you shard a collection, you also choose the shard
+   key. To get this process started, run the
+   :dbcommand:`shardCollection` command or the
    :func:`sh.shardCollection()` shell function.
 
    .. code-block:: javascript
@@ -203,20 +211,31 @@ procedure:
    If each shard is just a single server (note: each shard should be a
    replica set in production), you should replace ``[hostname]`` and ``[port]``
    with the hostname and TCP port number of shard where the shard is accessible.
+
    For example:
 
    .. code-block:: javascript
 
       sh.addShard( "mongodb0.example.net:27027" )
 
-   If each shard is a replica set, then you must specify the replica set name followed
-   by a forward slash, followed by a comma-separated list of seeds for the replica set.
-   For example, if the replica set is called "myapp1", then your `addShard` command might
-   look like this:
+   .. note:: In production deployments, all shards should be replica sets.
 
-   .. code-block:: javascript
+      .. versionchanged:: 2.0.3
 
-      sh.addShard( "myapp1/mongodb0.example.net:27027,mongodb1.example.net:27017" )
+      After version 2.0.3, you may use the above form to add replica
+      sets to a cluster and the cluster will automatically discover
+      the members of the replica set and adjust its configuration
+      accordingly.
+
+      Before version 2.0.3, you must specify the shard in the
+      following form: the replica set name, followed by a forward
+      slash, followed by a comma-separated list of seeds for the
+      replica set. For example, if the name of the replica set is
+      "myapp1", then your :func:`sh.addShard` command might resemble:
+
+      .. code-block:: javascript
+
+         sh.addShard( "myapp1/mongodb0.example.net:27027,mongodb1.example.net:27017" )
 
    Repeat this step for each shards in your cluster.
 
@@ -278,8 +297,8 @@ The formal procedure for to remove a shard is as follows:
 
 #. Begin removing chunks from the shard.
 
-   Start by running the :dbcommand:`removeShard` command. This command will
-   start "draining" chunks from the shard to be removed.
+   Start by running the :dbcommand:`removeShard` command. This will
+   start "draining" chunks from the shard you''re removing.
 
    .. code-block:: javascript
 
@@ -377,9 +396,9 @@ need to create and manipulate chunks directly.
 Splitting Chunks
 ~~~~~~~~~~~~~~~~
 
-Normally, MongoDB splits :term:`chunk` following
-inserts or updates when a chunk exceeds the designated :ref:`chunk
-size <sharding-chunk-size>`.
+Normally, MongoDB splits :term:`chunk` following inserts or updates
+when a chunk exceeds the designated :ref:`chunk size
+<sharding-chunk-size>`.
 
 Still, you may want to split chunks manually if:
 
@@ -416,14 +435,13 @@ TODO: examples of using both helpers.
 Modifying Chunk Size
 ~~~~~~~~~~~~~~~~~~~~
 
-When you initialize a shard cluster, MongoDB selects a
-default chunks size of 64 MB. This default work well for most
-deployments. However, if you notice that the automatic migrations
-are incurring a level of I/O that your hardware can't handle, you
-may want to reduce the default chunks size. For the automatic
-splits and migrations, a small chunk size reduces to total number
-of documents the database has to scan and to total amount of data
-that must be moved.
+When you initialize a shard cluster, MongoDB selects a default chunks
+size of 64 MB. This default work well for most deployments. However,
+if you notice that the automatic migrations are incurring a level of
+I/O that your hardware can't handle, you may want to reduce the
+default chunks size. For the automatic splits and migrations, a small
+chunk size reduces to total number of documents the database has to
+scan and decreases the total amount of data to migrate.
 
 To modify the chunk size, use the following procedure:
 
@@ -578,10 +596,10 @@ Schedule the Balancing Window
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In some situations, particularly when your data set grows slowly and a
-migration can impact performance, it's useful to be able to
-ensure that the balancer is active only at certain times.  Use the
-following procedure to specify a time window during which the :term:`balancer`
-will be allowed to migrate chunks:
+migration can impact performance, it's useful to be able to ensure
+that the balancer is active only at certain times.  Use the following
+procedure to specify a window during which the :term:`balancer` will
+be able to migrate chunks:
 
 #. Connect to any :program:`mongos` in the cluster using the
    :program:`mongo` shell.
@@ -623,7 +641,7 @@ will be allowed to migrate chunks:
 Disable the Balancer
 ~~~~~~~~~~~~~~~~~~~~
 
-By default the balancer is allowed to run at any time and only moves chunks when
+By default the balancer may run at any time and only moves chunks as
 needed. To disable the balancer for a short period of time and prevent
 all migrations, use the following procedure:
 
@@ -691,11 +709,10 @@ Upgrading from One Config Server to Three Config Servers
 For redundancy, all production :term:`shard clusters <shard cluster>` should
 deploy three config servers processes on three different machines.
 
-However, you are allowed to deploy a single config server for testing,
-and users do therefore occasionally deploy to production with a single
-config server. If you're in this situation, you'll want to move to
-three config servers immediately. The following process shows how
-to do this.
+However, you may deploy a single config server for testing. Do not do
+this for production deployments. If you're in this situation, you'll
+want to move to three config servers immediately. The following
+process shows how to do this.
 
 #. Shut down all existing MongoDB processes. This includes:
 
@@ -986,13 +1003,14 @@ requires the balancer to migrate most data shortly after writing
 it. Consider redeploying sharding with a shard key that provides
 better :ref:`write scaling <sharding-shard-key-write-scaling>`.
 
-Ensure that Balancing is Disabled During Backups
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Disable Balancing During Backups
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If MongoDB migrates a chunk while you are taking a :doc:`backup
 </administration/backup>`, you can end with an inconsistent snapshot
-of your shard cluster. You should never run a backup unless you're certain
-that the balancer is disabled. There are two ways to ensure this:
+of your shard cluster. You should never run a backup unless you're
+certain that you have disabled the balancer. There are two ways to
+ensure this:
 
 - Set the :ref:`balancing window <sharding-schedule-balancing-window>`
   so that the balancer is inactive while you're creating the
@@ -1002,5 +1020,5 @@ that the balancer is disabled. There are two ways to ensure this:
 - :ref:`manually disable the balancer <sharding-balancing-disable-temporally>`
   for the duration of the backup procedure.
 
-Either way, make sure that you check that the balancer is disabled
-by running `sh.getBalancerState()` before you start your backups.
+Either way, confirm that you have disabled the balancer by running
+`sh.getBalancerState()` before you start your backups.
