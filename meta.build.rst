@@ -47,8 +47,8 @@ On OS X:
    
         easy_install pip
         
-    Alternately, you may be able to replace ``pip`` with
-    ``easy_install`` in the next step.
+   Alternately, you may be able to replace ``pip`` with
+   ``easy_install`` in the next step.
 
 #. Install Sphinx, Docutils, and their dependencies with ``pip`` using
    the following command: :: 
