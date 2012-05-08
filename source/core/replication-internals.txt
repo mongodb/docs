@@ -180,3 +180,37 @@ aware of the following conditions and possible situations:
   seconds of the latest oplog entry, then the set will *not* elect a
   :term:`primary` until the node with the highest priority catches up
   to the latest operation.
+
+Syncing
+-------
+
+Replica set members sync, or copy :term:`oplog` entries from the
+:term:`primary` or another :term:`secondary` member of the set in
+order to remain up to date with the current state of the set.
+
+When a new member joins a set, or an existing member restarts, the new
+member waits to receive heartbeats from other members. Then, by
+default, a new member will sync from the *the closest* member of the
+who is either: the primary or another secondary with a more recent
+oplog entries. This prevents two secondaries from syncing from each
+other.
+
+In version 2.0, secondaries only change sync targets if the connection
+between secondaries drops or produces an error.
+
+For example:
+
+#. If you have two secondary members in one data center, a primary in
+   a second facility, *and* you start all three instances at roughly
+   the same time (i.e. with no existing data sets or oplog,) both
+   secondaries will likely sync from the primary, as neither secondary
+   has more recent oplog entries.
+
+   If you restart one of the secondaries, when it rejoins the set it
+   will likely begin syncing from the other secondary.
+
+#. If, you have a primary in one facility, and a secondary in an
+   alternate facility, and you add another secondary to the alternate
+   facility, the new secondary will likely sync from the older
+   secondary because this member is closer and has more recent oplog
+   entries.
