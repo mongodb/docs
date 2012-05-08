@@ -31,10 +31,10 @@ UNCOMPRESSED_MAN := $(wildcard $(BUILDDIR)/man/*.1)
 COMPRESSED_MAN := $(subst .1,.1.gz,$(UNCOMPRESSED_MAN))
 
 # Internal variables.
-PAPEROPT_a4		= -D latex_paper_size=a4
-PAPEROPT_letter		= -D latex_paper_size=letter
-ALLSPHINXOPTS		= -q -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
-ASPIRATIONALOPTS	= -q -d $(BUILDDIR)/aspiration-doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) aspiration
+PAPEROPT_a4 = -D latex_paper_size=a4
+PAPEROPT_letter = -D latex_paper_size=letter
+ALLSPHINXOPTS = -q -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
+DRAFTSPHINXOPTS = -q -d $(BUILDDIR)/draft-doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) draft
 
 .PHONY: publish help clean push-dc1 push-dc2
 
@@ -190,7 +190,7 @@ latex:
 
 ######################################################################
 #
-# Build Targets for Aspirational Builds.
+# Build Targets for Draft Build.
 #
 ######################################################################
 
@@ -198,7 +198,7 @@ latex:
 aspiration:draft
 aspirational:draft
 draft:
-	$(SPHINXBUILD) -b html $(ASPIRATIONALOPTS) $(BUILDDIR)/aspirational
+	$(SPHINXBUILD) -b html $(DRAFTSPHINXOPTS) $(BUILDDIR)/draft
 	@echo "[DRAFT] HTML build finished."
 
 ##########################################################################
