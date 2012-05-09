@@ -349,7 +349,7 @@ To locate an image based on the value of ``metadata.section`` and
 
 .. code-block:: python
 
-   python = GridFS(db, 'cms.assets')
+   fs = GridFS(db, 'cms.assets')
    with fs.get_version({'metadata.section': section, 'metadata.slug': slug }) as img_fpo:
         # do something with the image file
 
@@ -472,8 +472,10 @@ Use the following operation at the Python/PyMongo shell:
 
    >>> db.command('shardcollection', 'cms.nodes', {
    ...     key : { 'metadata.section': 1, 'metadata.slug' : 1 } })
+   { "collectionsharded": "cms.nodes", "ok": 1}
    >>> db.command('shardcollection', 'cms.assets.files', {
    ...     key : { 'metadata.section': 1, 'metadata.slug' : 1 } })
+   { "collectionsharded": "cms.assets.files", "ok": 1}
 
 To shard the ``cms.assets.chunks`` collection, you must use the
 ``_id`` field as the :term:`shard key`. The following operation will
@@ -481,10 +483,10 @@ shard the collection
 
 .. code-block:: pycon
 
-   >>> db.command('shardcollection', 'cms.assets.chunks')
+   >>> db.command('shardcollection', 'cms.assets.chunks', {
+   ...     key : { '_id': 1 } })
+   { "collectionsharded": "cms.assets.chunks", "ok": 1}
 
-If you do not specific a shard key, when using the
-:dbcommand:`shardcollection` command, MongoDB will shard based on the
-``_id`` field. This also ensures routable queries because all reads
+Note that sharding on the ``_id`` field ensures routable queries because all reads
 from GridFS must first look up the document in ``cms.assets.files``
 and then look up the chunks separately.
