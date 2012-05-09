@@ -8,12 +8,13 @@ Shard Cluster Architectures
 
 .. default-domain:: mongodb
 
-This document describes various ways to deploy a :term:`shard cluster`.
+This document describes the organization and design of :term:`shard
+cluster` deployments.
 
 .. seealso:: The :doc:`/administration/sharding` document, the
    ":ref:`Sharding Requirements <sharding-requirements>`" section,
    and the ":ref:`Sharding Tutorials <sharding-tutorials>`" for more
-   information on deploying and maintaing a :term:`shard cluster`.
+   information on deploying and maintaining a :term:`shard cluster`.
 
 Deploying A Test Cluster
 ------------------------
@@ -73,18 +74,15 @@ a production-level shard cluster should have the following:
   you may deploy several `mongos` nodes and let your application connect
   to these via a load balancer.
 
-TODO: I don't see how this next section fits in. You've explained all of these
-elsewhere. I vote for removing it.
-
 Sharded and Non-Sharded Data
 ----------------------------
 
-Sharding is always enabled on the collection level. You can shard
-multiple collections within a database, or have multiple databases
-with sharding enabled. [#sharding-databases]_ However, in production
+Sharding operates on the collection level. You can shard multiple
+collections within a database, or have multiple databases with
+sharding enabled. [#sharding-databases]_ However, in production
 deployments some databases and collections will use sharding, while
 other databases and collections will only reside on a single database
-instance or replica set  (i.e. a :term:`shard`.)
+instance or replica set (i.e. a :term:`shard`.)
 
 .. note::
 
@@ -112,8 +110,6 @@ When you deploy a new :term:`shard cluster`, the "first shard" becomes
 the primary for all databases before enabling sharding. Databases
 created subsequently, may reside on any shard in the cluster.
 
-TODO is there anything more to say on which shard a new database will use as primary?
-
 .. [#sharding-databases] As you configure sharding, you will use the
    :dbcommand:`enablesharding` command to enable sharding for a
    database. This simply makes it possible to use the
@@ -121,76 +117,4 @@ TODO is there anything more to say on which shard a new database will use as pri
 
 .. [#overloaded-primary-term] The term "primary" in the context of
    databases and sharding, has nothing to do with the term
-   :term:`primary` in the context of :term:`replica sets <replica set>`
-
-
-TODO: also not really sure about the next section.
-QUESTION: why discuss backups here? Backups are already descrived elsewhere.
-
-Replication and Data Integrity
-------------------------------
-
-Production :term:`shard clusters` should run each
-:term:`shard` as a :term:`replica set`. This ensures each
-each shard remains available in the event of a failure.
-
-It's also important to run exactly three :term:`config database` instances.
-All nodes in the shard cluster update these databases using a two-phase
-commit, thus guaranteeing consistency. Do note that config databases do not
-operate as replica sets.
-
-Because the shard cluster remains largely operational [#read-only]
-without one of the config database :program:`mongod` instances,
-creating a backup of the cluster metadata from the config database is
-very straightforward:
-
-#. Shut down one of the :term:`config databases`.
-
-#. Create a full copy of the data files (i.e. the path specified by
-   the :setting:`dbpath` option for the config instance.
-
-#. Restart the original configuration server.
-
-Furthermore, because the activity to the config servers is minimal
-creating a :doc:`backup </administration/backups>` of the config
-instance is straightforward, precise, and non-disruptive.
-
-TODO: this is mentioned elsewhere.
-
-.. [#read-only] While one of the three config servers unavailable, no
-   the cluster cannot split any chunks nor can it migrate chunks
-   between shards. Your application will be able to write data to the
-   cluster. The ":ref:`sharding-config-server`" section provides more
-   information on this topic.
-
-.. _sharding-capacity-planning:
-
-Capacity Planning
------------------
-
-:term:`Sharding` makes it possible for MongoDB to support very large
-data sets and workload with very little additional administrative
-overhead. At the same time, when designing and administering a
-:term:`shard cluster`, capacity planning remains very important. The
-key to a successful shard cluster revolves around knowing when
-sharding is appropriate for your data and in knowing when to add
-capacity to the system:
-
-TODO: this point goes under "when to shard."
-
-#. Sharding adds complexity. If you can provision
-   hardware powerful enough to support your data and workload,
-   then you may not need sharding. By not using sharding,
-   your database will have fewer moving parts and will be easier
-   to administer.
-
-#. That said, you should consider sharding if you know that the hardware
-   you'll be deploying with cannot handle the expected load.
-
-#. In this case, it's important that you enable sharding *before* your system has
-   reached capacity. If you wait until your hardware is already overloaded,
-   then the overhead require to migrate data between shards will only further
-   load the system.
-
-#. If you do plan to shard, you should also give some thought to which collections
-   you'll want to shard along with the corresponding shard keys.
+   :term:`primary` in the context of :term:`replica sets <replica set>`.
