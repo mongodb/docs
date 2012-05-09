@@ -139,8 +139,7 @@ function operation.
            # Roll back our cart update
            db.cart.update(
                {'_id': cart_id },
-               { '$pull': { 'items': {'sku': sku } } },
-           safe=True)
+               { '$pull': { 'items': {'sku': sku } } })
            raise InadequateInventory()
 
 .. admonition:: The system does not trust that the available inventory can satisfy a request
@@ -196,8 +195,7 @@ the user's cart, that the inventory exists to cover the modification.
            # Roll back our cart update
            db.cart.update(
                {'_id': cart_id, 'items.sku': sku },
-               {'$set': { 'items.$.qty': old_qty } },
-           safe=True)
+               {'$set': { 'items.$.qty': old_qty } })
            raise InadequateInventory()
 
 .. note::
@@ -248,7 +246,7 @@ following procedure:
            db.cart.update(
                {'_id': cart_id },
                {'$set': { 'status': 'active' } } )
-           raise PaymentError()
+           raise
 
 Begin by "locking" the cart by setting its status to "pending" Then
 the system will verify that the cart is still active and collect
@@ -362,7 +360,8 @@ return them to available inventory if they do not.
        threshold = now - timedelta(seconds=timeout)
 
        # Find all the expiring carted items
-       for item in db.inventory.find({'carted.timestamp': {'$lt': threshold }}):
+       for item in db.inventory.find(
+           {'carted.timestamp': {'$lt': threshold }}):
 
            # Find all the carted items that matched
            carted = dict(
@@ -371,7 +370,9 @@ return them to available inventory if they do not.
                      if carted_item['timestamp'] < threshold)
 
            # First Pass: Find any carts that are active and refresh the carted items
-           for cart in db.cart.find({ '_id': {'$in': carted.keys() }, 'status':'active'}):
+           for cart in db.cart.find(
+               { '_id': {'$in': carted.keys() }, 
+               'status':'active'}):
                cart = carted[cart['_id']]
 
                db.inventory.update(
@@ -453,17 +454,11 @@ There are two drawbacks for using ``_id`` as a shard key:
 Use the following commands in the Python/PyMongo console to shard the
 cart and inventory collections:
 
-.. code-block:: python
+.. code-block:: pycon
 
-   db.command('shardcollection', 'inventory')
-   db.command('shardcollection', 'cart')
-
-.. code-block:: javascript
-
+   >>> db.command('shardcollection', 'inventory'
+   ...            'key': { '_id': 1 } )
    { "collectionsharded" : "inventory", "ok" : 1 }
+   >>> db.command('shardcollection', 'cart')
+   ...            'key': { '_id': 1 } )
    { "collectionsharded" : "cart", "ok" : 1 }
-
-.. note::
-
-   There is no need to specify the shard key in these operations,
-   because MongoDB will use the ``_id`` by default.
