@@ -1,18 +1,18 @@
-===========================================
-Online Gaming: Creating a Role-Playing Game
-===========================================
+=============================================
+ Online Gaming: Creating a Role-Playing Game
+=============================================
 
 .. default-domain:: mongodb
 
 Overview
---------
+========
 
 This document outlines the basic patterns and principles for using
 MongoDB as a persistent storage engine for an online
 game, particularly one that contains role-playing characteristics.
 
 Problem
-~~~~~~~
+-------
 
 In designing an online game, there is a need to store various
 data about the player's character. Some of the attributes might include:
@@ -50,14 +50,14 @@ need to be able to migrate your persistent data from one format to
 another with minimal (or no) downtime.
 
 Solution
-~~~~~~~~
+--------
 
 The solution presented by this case study assumes that the read and
 write performance is equally important and must be accessible with minimal
 latency.
 
 Schema Design
-~~~~~~~~~~~~~
+-------------
 
 Ultimately, the particulars of your schema depends on the particular
 design of your game. When designing your schema, you should attempt to
@@ -67,8 +67,8 @@ query. Encapsulating all player state into a ``character`` collection, item data
 into an ``item`` collection, and location data into a ``location`` collection
 satisfies both these criteria.
 
-Character Schema
-````````````````
+Characters
+~~~~~~~~~~
 
 In a role-playing game, then, a typical character state document might look
 like the following:
@@ -81,7 +81,7 @@ like the following:
        character: {
            intrinsics: {
                strength: 10,
-	       dexterity: 16,
+               dexterity: 16,
                intelligence: 17,
                charisma: 8 },
            class: 'mage',
@@ -91,7 +91,7 @@ like the following:
        location: {
            id: 'maze-1',
            description: 'a maze of twisty little passages...',
-	   exits: {n:'maze-2', s:'maze-1', e:'maze-3'},
+           exits: {n:'maze-2', s:'maze-1', e:'maze-3'},
            players: [
                { id:ObjectId('...'), name:'grue' },
                { id:ObjectId('...'), name:'Tim' }
@@ -102,18 +102,18 @@ like the following:
        gold: 523,
        armor: [
            { id:ObjectId('...'), region:'head'},
-	   { id:ObjectId('...'), region:'body'},
-	   { id:ObjectId('...'), region:'feet'}],
+           { id:ObjectId('...'), region:'body'},
+           { id:ObjectId('...'), region:'feet'}],
        weapons: [ {id:ObjectId('...'), hand:'both'} ],
        inventory: [
            { qty:1, id:ObjectId('...'), name:'backpack', inventory: [
                { qty:4, id:ObjectId('...'), name: 'potion of healing'},
-	       { qty:1, id:ObjectId('...'), name: 'scroll of magic mapping'},
+               { qty:1, id:ObjectId('...'), name: 'scroll of magic mapping'},
                { qty:2, id:ObjectId('...'), name: 'c-rations'} ]},
            { qty:1, id:ObjectId('...'), name:"wizard's hat", bonus:3},
-	   { qty:1, id:ObjectId('...'), name:"wizard's robe", bonus:0},
-	   { qty:1, id:ObjectId('...'), name:"old boots", bonus:0},
-	   { qty:1, id:ObjectId('...'), name:"quarterstaff", bonus:2} ]
+           { qty:1, id:ObjectId('...'), name:"wizard's robe", bonus:0},
+           { qty:1, id:ObjectId('...'), name:"old boots", bonus:0},
+           { qty:1, id:ObjectId('...'), name:"quarterstaff", bonus:2} ]
    }
 
 There are a few things to note about this document:
@@ -123,19 +123,21 @@ There are a few things to note about this document:
    necessary to render the room is encapsulated within the character state
    document. This allows the game system to render the room without making a
    second #query to the database to get room information.
+
 #. The ``armor`` and ``weapons`` attributes contain little information about the
    actual items being worn or carried. This information is actually stored under
    the ``inventory`` property. Since the inventory information is stored in the
    same document, there is no need to replicate the detailed information about
    each item into the ``armor`` and ``weapons`` properties.
+
 #. ``inventory`` contains the item details necessary for
    rendering each item in the character's posession, including anyenchantments
    (``bonus``) and ``quantity``. Once again, embedding this data into the
    character record means you don't have to perform a separate query to fetch
    item details necessary for display.
 
-Item Schema
-```````````
+Items
+~~~~~
 
 Likewise, the item schema should include all details about all items globally in
 the game:
@@ -148,7 +150,7 @@ the game:
        bonus: null,
        inventory: [
            { qty:4, id:ObjectId('...'), name: 'potion of healing'},
-	   { qty:1, id:ObjectId('...'), name: 'scroll of magic mapping'},
+           { qty:1, id:ObjectId('...'), name: 'scroll of magic mapping'},
            { qty:2, id:ObjectId('...'), name: 'c-rations'} ]},
        weight: 12,
        price: 160,
@@ -161,7 +163,7 @@ data which may only be needed sporadically in the case of game-play such as
 ``weight`` and ``price``.
 
 Location Schema
-```````````````
+~~~~~~~~~~~~~~~
 
 Finally, the ``location`` schema specifies the state of the world in the game:
 
@@ -193,20 +195,17 @@ data for display, and updating various attributes about the character. This
 section describes procedures for performing these queries, extractions, and
 updates.
 
-In particular you should try *not* to load the ``location`` or ``item`` documents
-except when absolutely necessary.
+In particular you should try *not* to load the ``location`` or
+``item`` documents except when absolutely necessary.
 
 The examples that follow use the Python programming language and the
 :api:`PyMongo <python/current>` :term:`driver` for MongoDB, but you
 can implement this system using any language you choose.
 
-Load Character Data from MongoDB
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Loading Character Data
+~~~~~~~~~~~~~~~~~~~~~~
 
 The most basic operation in this system is loading the character state.
-
-Query
-`````
 
 Use the following query to load the ``character`` document from MongoDB:
 
@@ -214,14 +213,12 @@ Use the following query to load the ``character`` document from MongoDB:
 
    >>> character = db.characters.find_one({'_id': character_id})
 
-Index Support
-`````````````
 
 In this case, the default index that MongoDB supplies on the ``_id`` field is
 sufficient for good performance of this query.
 
-Extract Armor and Weapon Data for Display
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Displaying Armor and Weapon Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In order to save space, the ``character`` schema described above stores item
 details only in the ``inventory`` attribute, storing ``ObjectId``\ s in other
@@ -316,6 +313,9 @@ In order to actually display the armor, then, you would use the following code:
    ...     character['inventory'] + character['location']['inventory'])
    >>> armor = get_armor_for_dislay(character, item_index)
 
+
+TODO fix note
+
 Note in particular that you are building an index not only for the items the
 character is actually carrying in inventory, but also for the items that the
 player might interact with in the room.
@@ -351,8 +351,8 @@ In order to actually display the weapons, then, you would use the following code
 
    >>> armor = get_weapons_for_dislay(character, item_index)
 
-Extract Character Attributes, Inventory, and Room Information for Display
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Displaying Character Attributes, Inventory, and Room Information
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In order to display information about the character's attributes, inventory, and
 surroundings, you also need to extract fields from the character state. In this
@@ -366,8 +366,8 @@ data, then, is the following:
    >>> inventory = character['inventory']
    >>> room_data = character['location']
 
-Pick Up an Item From a Room
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Picking Up an Item From a Room
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In your game, suppose the player decides to pick up an item from the room and add
 it to their inventory. In this case, you need to update both the character state
@@ -417,8 +417,8 @@ By ensuring that the item is present before removing it from the room in the
 ``update`` call above, you guarantee that only one player/non-player
 character/monster can pick up the item.
 
-Remove an Item from a Container
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Removing an Item from a Container
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In the game described here, the ``backpack`` item can contain other
 items. You might further suppose that some other items may be similarly
@@ -465,8 +465,8 @@ Note in the code above that you:
 - In the case that the character is moving an item from a container *in his own
   inventory*, update the character's inventory representation of the container.
 
-Move the Character to a Different Room
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Moving the Character to a Different Room
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In your game, suppose the player decides to move north. In this case, you need to
 update the character state to match the new location:
@@ -495,8 +495,8 @@ update the character state to match the new location:
 Here, note that the code updates the old room, the new room, and the character
 document.
 
-Buy an Item
-~~~~~~~~~~~
+Buying an Item
+~~~~~~~~~~~~~~
 
 If your character wants to buy an item, you need to add that item to the
 character's inventory, decrement the character's gold, increment the shopkeeper's
@@ -558,4 +558,3 @@ following:
    >>> db.command('shardcollection', 'location', {
    ...     'key': { '_id': 1 } })
    { "collectionsharded" : "location", "ok" : 1 }
-

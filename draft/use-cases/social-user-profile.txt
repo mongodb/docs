@@ -1,5 +1,3 @@
-.. -*- rst -*-
-
 ==================================
 Social Networking: Storing Updates
 ==================================
@@ -35,11 +33,12 @@ obviously depends on the type of social network you are designing, and is largel
 beyond the scope of this use case. In particular, the main variables that you
 will have to consider in adapting this use case to your particular situation are:
 
-What data should be in a user profile?
+**What data will you include in a user profile?**
     This may include gender, age, interests, relationship status, etc. for a
     "casual" social network, or may include resume-type data for a more
     "business-oriented" social network.
-What type of updates are allowed?
+
+**What type of updates will you allow?**
     Again, depending on what flavor of social network you are designing, you may
     wish to allow posts such as status updates, photos, links, checkins, and
     polls, or you may wish to restrict your users to links and status updates.
@@ -87,13 +86,16 @@ There are a few things to note about this schema:
   base64-encoded version. This allows you to use ``_id`` values as keys in
   subdocuments, which both reduces the memory footprint of these subdocuments as
   well as speeding up some operations.
+
 - The social graph is stored bidirectionally in the ``followers`` and ``circles``
   collections. While this is technically redundant, having the bidirectional
   connections is userful both for displaying the user's followers on the profile
   page, as well as propagating posts to other users, as shown below.
+
 - In addition to the normal "positive" social graph, the schema above also stores
   a block list which contains an array of user ids for posters whose posts never
   appear on the user's wall or news feed.
+
 - The particular profile data stored for the user is isolated into the
   ``profile`` subdocument, allowing you to evolve the schema as necessary without
 
@@ -121,8 +123,7 @@ Here, the post stores minimal author information (``by``), the post ``type``, a
 timestamp ``ts``, post details ``detail`` (which vary by post type), and a
 ``comments`` array. In this case, the schema embeds all comments on a post as a
 time-sorted flat array. For a more in-depth exploration of the other approaches
-to storing comments, please see the document
-:doc:`CMS: Storing Comments <cms-storing-comments>`.
+to storing comments, please see the document :doc:`CMS: Storing Comments </use-cases/storing-comments>`.
 
 A couple of points are worthy of further discussion:
 
@@ -131,10 +132,12 @@ A couple of points are worthy of further discussion:
   wants more detail on a particular author, you can fetch this information as
   they request it. Storing minimal information like this helps keep the document
   small (and therefore fast.)
+
 - The visibility of the post is controlled via the ``circles`` property; any user
   that is part of one of the listed circles can view the post. The special values
   ``"\*public*"`` and ``"\*circles*"`` allow the user to share a post with the
   whole world or with any users in any of the posting user's circles, respectively.
+
 - Different types of posts may contain different types of data in the ``detail``
   field. Isolating this polymorphic information into a subdocument is a good
   practice, helping you to clearly see which parts of the document are common to
@@ -216,11 +219,14 @@ There are a few things to note about this schema:
   typical.) This is to keep the size of the document reasonable. If you need to
   display more comments on a post, you would then query the ``social.post``
   collection for full details.
+
 - There are actually multiple ``social.wall`` documents for each ``social.user``
   document, one wall document per month. This allows the system to keep a "page" of
   recent posts in the initial page view, fetching older months if requested.
+
 - Once again, the ``by`` properties store only the minimal author information for
   display, helping to keep this document small.
+
 - The number of comments on each post is stored to allow later updates to find
   posts with more than a certain number of comments since the ``$size`` query
   operator does not allow inequality comparisons.
@@ -253,6 +259,9 @@ can implement this system using any language you choose.
 Viewing a News Feed or Wall Posts
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Querying
+````````
+
 The most common operation on a social network probably the display of a
 particular user's news feed, followed by a user's wall posts. Since the
 ``social.news`` and ``social.wall`` collections are optimized for these
@@ -278,10 +287,12 @@ required to efficieintly achieve the reverse-chronological ordering:
 
 - The ``posts`` within a month are actually stored in chronological order, so the
   order of these posts must be reversed before displaying.
+
 - As a user pages through her wall, it's preferable to avoid fetching the first
   few months from the server each time. To achieve this, the code above specifies
   the first month to fetch in the ``month`` argument, passing this in as an
   ``$lte`` expression in the query.
+
 - Rather than only yielding the post itself, the post's month is also yielded from
   the generator. This provides the ``month`` argument to be used in any
   subsequent calls to ``get_posts``.
@@ -334,8 +345,8 @@ different based on the post's ``circles`` property:
                return True
        return False
 
-Index Support
-`````````````
+Indexing
+````````
 
 In order to quickly retrieve the pages in the desired order, you'll need an index
 on (``user_id``, ``month``) in both the ``social.news`` and ``social.wall``
@@ -350,6 +361,9 @@ collections.
 
 Commenting on a Post
 ~~~~~~~~~~~~~~~~~~~~
+
+Updating
+````````
 
 Other than viewing walls and news feeds, creating new posts is the next most
 common action taken on social networks. To create a comment by ``user`` on a
@@ -414,13 +428,14 @@ manageable.:
              '$inc': { 'posts.$.comments_shown': -1 } },
            multi=True)
 
-Index Support
-`````````````
+Indexing
+````````
 In order to execute the updates to the ``social.news`` and ``social.wall``
 collections show above efficiently, you'll need to be able to quickly locate both
 of the following types of documents:
 
 - Documents containing a given post
+
 - Documents containing posts displaying too many comments
 
 To quickly execute these updates, then, you'll need to create the following
@@ -434,6 +449,9 @@ indexes:
 
 Creating a New Post
 ~~~~~~~~~~~~~~~~~~~
+
+Inserting
+`````````
 
 Creating a new post fills out the content-creation activities on a social
 network:
@@ -472,9 +490,14 @@ The basic sequence of operations in the code above is the following:
 
 #. The post first saved into the "system of record," the ``social.post``
    collection.
+
 #. The recipient's wall is updatd with the post.
+
 #. The news feeds of everyone who is 'circled' in the post is updated with the
    post.
+
+Updating
+````````
 
 Updating a particular wall or group of news feeds is then accomplished using the
 ``append_post`` function:
@@ -488,8 +511,8 @@ Updating a particular wall or group of news feeds is then accomplished using the
            { '$push': { 'posts': post } },
            multi=True)
 
-Index Support
-`````````````
+Indexing
+````````
 
 In order to quickly update the ``social.wall`` and ``social.news`` collections,
 you'll once again need an index on both ``user_id`` and ``month``. This time,
@@ -499,14 +522,17 @@ month; having month appear first in the index makes the index *right-aligned*,
 requiring significantly less memory to store the active part of the index.
 
 *However*, in this case, since you have already defined an index on (``user_id``,
- ``month``), which *must* be in that order so that you can do the sort on
- ``month``, adding a second index is unnecessary, and would end up actually using
- more RAM to maintain two indexes. So even though this particular operation would
- benefit from having an index on (``month``, ``user_id``), it's best to leave out
- any additional indexes here.
+``month``), which *must* be in that order so that you can do the sort on
+``month``, adding a second index is unnecessary, and would end up actually using
+more RAM to maintain two indexes. So even though this particular operation would
+benefit from having an index on (``month``, ``user_id``), it's best to leave out
+any additional indexes here.
 
 Maintaining the Social Graph
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Updating
+````````
 
 In your social network, maintaining the social graph is an infrequent but
 essential operation. The code to add a user ``other`` to the current user
@@ -526,11 +552,17 @@ essential operation. The code to add a user ``other`` to the current user
            { '$push': { follower_circles: circle },
              '$set': { follower_name: self['name'] } })
 
-Note that in this solution, previous posts of the ``other`` user are not added to
-the ``self`` user's news feed or wall. To actually include these past posts would
-be an expensive and complex operation, and goes beyond the scope of this use case.
+.. note::
 
-Of course, you'll also need to support *removing* users from circles:
+   Previous posts of the ``other`` user are not added to the ``self``
+   user's news feed or wall. To actually include these past posts
+   would be an expensive and complex operation, and goes beyond the
+   scope of this use case.
+
+Removing
+````````
+
+You will also need to support *removing* users from circles:
 
 .. code-block:: python
 
@@ -548,8 +580,8 @@ Of course, you'll also need to support *removing* users from circles:
            { '_id': other['_id'], follower_circles: {'$size': 0 } },
            { '$unset': { 'followers.' + self['_id' } }})
 
-Index Support
-`````````````
+Indexing
+````````
 
 In both the circling and uncircling cases, the ``_id`` is included in the update
 queries, so no additional indexes are required.
