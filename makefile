@@ -91,8 +91,7 @@ endif
 # Deployment targets to kick off the rest of the build process. Only
 # access these targets through the ``publish`` target.
 
-deploy-stage-one:source/about.txt $(BUILDDIR)/html/
-	touch $(BUILDDIR)/dirhtml/
+deploy-stage-one:source/about.txt $(BUILDDIR)/html
 deploy-stage-two:$(CURRENTBUILD) $(CURRENTBUILD)/release.txt $(CURRENTBUILD)/MongoDB-Manual.pdf $(CURRENTBUILD)/MongoDB-Manual.epub $(CURRENTBUILD)/single
 
 # Establish dependencies for building the manual. Also helpful in
@@ -102,12 +101,20 @@ $(CURRENTBUILD):$(BUILDDIR)/dirhtml
 
 # Establish proper dependencies between the Manual and the Sphinx
 # aspects of the build. Inevitably ``html`` gets built twice.
-$(BUILDDIR)/html/ $(BUILDDIR)/html/genindex.html:html
-$(BUILDDIR)/singlehtml/ $(BUILDDIR)/singlehtml/contents.html:singlehtml
-$(BUILDDIR)/dirhtml $(BUILDDIR)/dirhtml/search/index.html:dirhtml
 $(BUILDDIR)/epub/MongoDB.epub:epub
 $(BUILDDIR)/latex/MongoDB.tex:latex
 $(BUILDDIR)/latex/MongoDB.pdf:$(BUILDDIR)/latex/MongoDB.tex
+
+$(BUILDDIR)/singlehtml/contents.html:$(BUILDDIR)/singlehtml
+$(BUILDDIR)/dirhtml/search/index.html:$(BUILDDIR)/dirhtml
+$(BUILDDIR)/html/genindex.html:$(BUILDDIR)/html
+
+$(BUILDDIR)/dirhtml:dirhtml
+	touch $@
+$(BUILDDIR)/html:html
+	touch $@
+$(BUILDDIR)/singlehtml:singlehtml
+	touch $@
 
 # Build and migrate the epub and PDF.
 $(CURRENTBUILD)/MongoDB-Manual-$(current-branch).pdf:$(BUILDDIR)/latex/MongoDB.pdf
@@ -140,8 +147,6 @@ $(CURRENTBUILD)/single/index.html:$(BUILDDIR)/singlehtml/contents.html
 # Deployment related work for the non-Sphinx aspects of the build.
 $(CURRENTBUILD)/release.txt:$(publication-output)/manual
 	git rev-parse --verify HEAD >|$@
-# $(publication-output)/$(current-branch):
-# 	mkdir -p $@
 $(publication-output):
 	mkdir -p $@
 $(publication-output)/manual:manual
