@@ -66,7 +66,7 @@ push:publish
 publish:
 	@echo "Running the publication and migration routine..."
 	$(MAKE) -j1 deploy-stage-one
-	$(MAKE) -j deploy-stage-two
+	$(MAKE) -j setup deploy-stage-two deploy-stage-three
 	@echo "Publication succeessfully deployed to '$(publication-output)'."
 	@echo
 
@@ -90,17 +90,18 @@ endif
 
 # Deployment targets to kick off the rest of the build process. Only
 # access these targets through the ``publish`` target.
+.PHONY: setup deploy-stage-one deploy-stage-two
 
+setup: 
+	mkdir -p $(BUILDDIR)/{dirhtml,singlehtml,html,epub,latex} $(CURRENTBUILD)/single
 deploy-stage-one:source/about.txt $(BUILDDIR)/html
-deploy-stage-two:$(CURRENTBUILD) $(CURRENTBUILD)/release.txt $(CURRENTBUILD)/MongoDB-Manual.pdf $(CURRENTBUILD)/MongoDB-Manual.epub $(CURRENTBUILD)/single
+deploy-stage-two:$(CURRENTBUILD) $(CURRENTBUILD)/release.txt $(CURRENTBUILD)/MongoDB-Manual.pdf $(CURRENTBUILD)/MongoDB-Manual.epub
+deploy-stage-three:$(CURRENTBUILD)/single $(CURRENTBUILD)/single/search.html $(CURRENTBUILD)/single/genindex.html $(CURRENTBUILD)/single/index.html
+
 
 # Establish dependencies for building the manual. Also helpful in
 # ordering the build itself.
-$(CURRENTBUILD):$(BUILDDIR)/dirhtml
-	cp -R $</* $@/
 
-# Establish proper dependencies between the Manual and the Sphinx
-# aspects of the build. Inevitably ``html`` gets built twice.
 $(BUILDDIR)/epub/MongoDB.epub:epub
 $(BUILDDIR)/latex/MongoDB.tex:latex
 $(BUILDDIR)/latex/MongoDB.pdf:$(BUILDDIR)/latex/MongoDB.tex
@@ -131,10 +132,11 @@ $(CURRENTBUILD)/MongoDB-Manual.pdf:./MongoDB-Manual.pdf
 	mv $< $@
 
 # Build and migrate the HTML components of the build.
-$(CURRENTBUILD)/single/:
-	mkdir -p $@
-$(CURRENTBUILD)/single:$(CURRENTBUILD)/single/ $(CURRENTBUILD)/single/search.html $(CURRENTBUILD)/single/genindex.html $(CURRENTBUILD)/single/index.html
-	cp -R $(BUILDDIR)/singlehtml/* $@
+$(CURRENTBUILD):$(BUILDDIR)/dirhtml
+	cp -R $</* $@/
+$(CURRENTBUILD)/single:$(BUILDDIR)/singlehtml 
+	cp -R $</* $@
+
 $(CURRENTBUILD)/single/search.html:$(BUILDDIR)/dirhtml/search/index.html
 	cp $< $@
 $(CURRENTBUILD)/single/genindex.html:$(BUILDDIR)/html/genindex.html
@@ -218,7 +220,7 @@ draft:
 latexpdf:latex
 	$(MAKE) -C $(BUILDDIR)/latex all-pdf
 	@echo "[PDF] build complete."
-njson:
+json:
 	$(SPHINXBUILD) -b json $(ALLSPHINXOPTS) $(BUILDDIR)/json
 	@echo "[JSON] build finished."
 changes:
