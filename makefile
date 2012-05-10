@@ -20,10 +20,6 @@ help:
 	@echo "Please use \`make <target>' where <target> is one of"
 	@echo "	 html	   to make standalone HTML files"
 	@echo "	 dirhtml   to make HTML files named index.html in directories"
-	@echo "	 pickle	   to make pickle files"
-	@echo "	 json	   to make JSON files"
-	@echo "	 htmlhelp  to make HTML files and a HTML help project"
-	@echo "	 qthelp	   to make HTML files and a qthelp project"
 	@echo "	 latex	   to make LaTeX files, you can set PAPER=a4 or PAPER=letter"
 	@echo "	 changes   to make an overview of all changed/added/deprecated items"
 	@echo "	 linkcheck to check all external links for integrity"
@@ -56,6 +52,23 @@ $(BUILDDIR)/singlehtml/:singlehtml
 
 ######################################################################
 ##
+## Push Documents to Production
+##
+######################################################################
+
+push:publish
+	@echo "Copying the new build to the web servers."
+	$(MAKE) -j2 MODE='push' push-dc1 push-dc2
+
+ifeq ($(MODE),push)
+push-dc1:
+	rsync -arz $(BUILDDIR)/publish/ www@www-c1.10gen.cc:/data/sites/docs/mms
+push-dc2:
+	rsync -arz $(BUILDDIR)/publish/ www@www-c2.10gen.cc:/data/sites/docs/mms
+endif
+
+######################################################################
+##
 ## Default Sphinx Targets
 ##
 ######################################################################
@@ -78,35 +91,10 @@ dirhtml:
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/dirhtml."
 
-pickle:
-	$(SPHINXBUILD) -b pickle $(ALLSPHINXOPTS) $(BUILDDIR)/pickle
-	@echo
-	@echo "Build finished; now you can process the pickle files."
-
-json:
-	$(SPHINXBUILD) -b json $(ALLSPHINXOPTS) $(BUILDDIR)/json
-	@echo
-	@echo "Build finished; now you can process the JSON files."
-
 singlehtml:
 	$(SPHINXBUILD) -b singlehtml $(ALLSPHINXOPTS) $(BUILDDIR)/singlehtml
 	@echo
 	@echo "Build finished. The HTML page is in $(BUILDDIR)/singlehtml."
-
-htmlhelp:
-	$(SPHINXBUILD) -b htmlhelp $(ALLSPHINXOPTS) $(BUILDDIR)/htmlhelp
-	@echo
-	@echo "Build finished; now you can run HTML Help Workshop with the" \
-	      ".hhp project file in $(BUILDDIR)/htmlhelp."
-
-qthelp:
-	$(SPHINXBUILD) -b qthelp $(ALLSPHINXOPTS) $(BUILDDIR)/qthelp
-	@echo
-	@echo "Build finished; now you can run "qcollectiongenerator" with the" \
-	      ".qhcp project file in $(BUILDDIR)/qthelp, like this:"
-	@echo "# qcollectiongenerator $(BUILDDIR)/qthelp/MongoDB.qhcp"
-	@echo "To view the help file:"
-	@echo "# assistant -collectionFile $(BUILDDIR)/qthelp/MongoDB.qhc"
 
 latex:
 	-mkdir -p $(SRCDIR)/_static
