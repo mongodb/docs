@@ -92,11 +92,13 @@ endif
 # access these targets through the ``publish`` target.
 
 deploy-stage-one:source/about.txt $(BUILDDIR)/html/
-deploy-stage-two:$(publication-output)/$(current-branch) $(CURRENTBUILD)/ $(CURRENTBUILD)/release.txt
+	touch $(BUILDDIR)/dirhtml/
+deploy-stage-two:$(CURRENTBUILD) $(CURRENTBUILD)/release.txt $(CURRENTBUILD)/MongoDB-Manual.pdf $(CURRENTBUILD)/MongoDB-Manual.epub $(CURRENTBUILD)/single
 
 # Establish dependencies for building the manual. Also helpful in
 # ordering the build itself.
-$(CURRENTBUILD):$(CURRENTBUILD)/MongoDB-Manual.pdf $(CURRENTBUILD)/MongoDB-Manual.epub $(CURRENTBUILD)/single $(CURRENTBUILD)/
+$(CURRENTBUILD):$(BUILDDIR)/dirhtml
+	cp -R $</* $@/
 
 # Establish proper dependencies between the Manual and the Sphinx
 # aspects of the build. Inevitably ``html`` gets built twice.
@@ -122,8 +124,6 @@ $(CURRENTBUILD)/MongoDB-Manual.pdf:./MongoDB-Manual.pdf
 	mv $< $@
 
 # Build and migrate the HTML components of the build.
-$(CURRENTBUILD)/:$(BUILDDIR)/dirhtml
-	cp -R $</* $@
 $(CURRENTBUILD)/single/:
 	mkdir -p $@
 $(CURRENTBUILD)/single:$(CURRENTBUILD)/single/ $(CURRENTBUILD)/single/search.html $(CURRENTBUILD)/single/genindex.html $(CURRENTBUILD)/single/index.html
@@ -140,8 +140,8 @@ $(CURRENTBUILD)/single/index.html:$(BUILDDIR)/singlehtml/contents.html
 # Deployment related work for the non-Sphinx aspects of the build.
 $(CURRENTBUILD)/release.txt:$(publication-output)/manual
 	git rev-parse --verify HEAD >|$@
-$(publication-output)/$(current-branch):
-	mkdir -p $@
+# $(publication-output)/$(current-branch):
+# 	mkdir -p $@
 $(publication-output):
 	mkdir -p $@
 $(publication-output)/manual:manual
