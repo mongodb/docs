@@ -1,0 +1,187 @@
+===========
+SSL Support
+===========
+
+This document outlines the use and operation of MongoDB's SSL
+support. The `default distribution of MongoDB Binaries`_ does **not**
+contain support for SSL.
+
+.. _`default distribution of MongoDB Binaries`: http://www.mongodb.org/downloads
+
+.. note:: 
+
+   As of the current release, to use SSL you must either: build
+   MongoDB locally passing the "``--ssl``" option to ``scons``, or use
+   the `MongoDB subscriber build <http://www.10gen.com/mongodb-subscriber-edition-download>`_.
+
+These instructions assume that you have already installed one of these
+MongoDB builds, and outline the use and operation of MongoDB with
+SSL.
+
+``mongod`` SSL Use
+------------------
+
+Add the following command line options to your :program:`mongod` invocation:
+
+.. code-block:: sh
+
+     mongod --sslOnNormalPorts --sslPEMKeyFile <pem> --sslPEMKeyPassword <pass>
+
+Replace "``<pem>``" with the path to your SSL certificate ``.pem``
+file, and "``<pass>``" with the password you used to encrypt the
+``.pem`` file.
+
+You may also specify these options in your "``mongodb.conf``" file with
+following options:
+
+.. code-block:: conf
+
+   sslOnNormalPorts = true
+   sslPEMKeyFile = /etc/ssl/mongodb.pem
+   sslPEMKeyPassword = pass
+
+Modify these values to reflect the location of your actual ``.pem``
+file and its password.
+
+You can use any existing SSL certificate, or you can generate your own
+SSL certificate using a command that resembles the following:
+
+.. code-block:: sh
+
+   cd /etc/ssl/
+   openssl req -new -x509 -days 365 -nodes -out mongodb-cert.pem -keyout mongodb-cert.key
+
+To create the combined ``.pem`` file that contains the ``.key`` file
+and the ``.pem`` certificate, use the following command: 
+
+.. code-block:: sh
+
+   cat mongodb-cert.crt mongodb-cert.pem > mongodb.pem  
+
+Clients
+-------
+
+Clients must have support for SSL to work with a :program:`mongod`
+instance that has SSL support enabled. The current versions of the
+Python, Java, Ruby, and Node.js drivers have support for SSL, with
+full support coming in future releases of other drivers.
+
+``mongo``
+~~~~~~~~~
+
+The :program:`mongo` shell distributed with the subscriber build also
+supports SSL using the "``--ssl``" flag. See the following:
+
+.. code-block:: sh
+
+   mongo --ssl --host <host>
+
+MMS
+~~~
+
+The MMS agent will also have to connect via SSL in order to gather its
+stats.  Because the agent already utilizes SSL for its communications
+to the MMS servers, this is just a matter of enabling SSL support in
+MMS itself on a per host basis.
+
+This is done by using the “Edit” host button (i.e. the pencil) on the
+Hosts page in the MMS console and is currently enabled on a group by
+group basis by 10gen.
+
+Please see the `MMS Manual <http://mms.10gen.com/help>`_ for more
+information about MMS configuration.
+
+PyMongo
+~~~~~~~
+
+Add the "``ssl=true`` parameter to a PyMongo connection to create a
+MongoDB connection to an SSL MongoDB instance:
+
+.. code-block:: python
+
+   from pymongo import Connection
+   c = Connection( host="mongodb.example.net", port=27017, ssl=True )
+
+Java
+~~~~
+
+Consider the following example "``sslApp.java``" class file:
+
+.. code-block:: java
+
+   import com.mongodb.*;
+   import javax.net.ssl.SSLContext;
+
+   public class sslApp {
+
+   public static void main(String args[])
+        throws Exception {
+
+        MongoOptions o = new MongoOptions();
+        o.socketFactory = SSLSocketFactory.getDefault();
+
+       Mongo m = new Mongo( "localhost" , o );
+
+       DB db = m.getDB( "test" );
+        DBCollection c = db.getCollection( "foo" );
+
+       System.out.println( c.findOne() );
+
+   }
+   }
+
+Ruby
+~~~~
+
+The recent versions version of the Ruby driver have support for
+connections to SSL servers. Install the latest version of the driver
+with the following command:
+
+.. code-block:: sh
+
+   gem install mongo
+
+Then connect to a standalone instance, using the following form:
+
+.. code-block:: javascript
+
+   require ‘rubygems’
+   require ‘mongo’
+
+   connection = Mongo::Connection.new(‘localhost’, 27017, :ssl => true)
+
+Replace ``connection`` with the following if you're connecting to a
+replica set:
+
+.. code-block:: ruby
+
+   connection = Mongo::ReplSetConnection.new([‘localhost, 27017’],
+                                             [‘localhost’, 27018],
+                                             :ssl => true)
+
+Here, :program:`mongod` instance run on "``localhost:27017``" and
+"``localhost:27018``".
+
+Node.JS (``node-mongodb-native``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the `node-mongodb-native`_ driver, use the following invocation to
+connect to an :program:`mongod` instance via SSL:
+
+.. code-block:: javascript 
+
+   var db1 = new Db(MONGODB, new Server("127.0.0.1", 27017,
+                                        { auto_reconnect: false, poolSize:4, ssl:ssl } );
+
+To connect to a replica set via SSL, use the following form:
+
+.. code-block:: javascript
+
+   var replSet = new ReplSetServers( [
+       new Server( RS.host, RS.ports[1], { auto_reconnect: true } ),
+       new Server( RS.host, RS.ports[0], { auto_reconnect: true } ),
+       ],
+     {rs_name:RS.name, ssl:ssl}
+   );
+
+.. _`node-mongodb-native1`: https://github.com/mongodb/node-mongodb-native   
