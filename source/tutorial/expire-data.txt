@@ -1,0 +1,51 @@
+===========================================
+Expire Data from Collections by Setting TTL
+===========================================
+
+.. versionadded:: 2.2
+
+This document provides an introductions to MongoDB's ":term:`TTL`"
+collection feature. Implemented as a special index type, TTL
+collections makes it possible to store data in MongoDB but have the
+:program:`mongod` automatically remove data after a specified period
+of time. This is ideal for some types of information like machine
+generated event data, logs, and session information that need to be in
+a database for a limited period of time.
+
+Background
+----------
+
+Collections expire by way of a special index that keeps track of
+insertion time in conjunction with a background :program:`mongod`
+process that regularly removes expired :term:`documents <document>`
+from the collection. You can use this feature to expire data from
+:term:`replica sets <replica set>` and :term:`shard clusters
+<shard cluster>`.
+
+You can create "TTL index" on a collection that already has data but
+all existing data will expire at roughly same moment, using the moment
+of insertion into the index as the start point for the TTL.
+
+Use the ``expireAfterSeconds`` option to the :func:`ensureIndex
+<db.collection.ensureIndex()>` method in conjunction with a TTL value
+in seconds to create an expiring collection.
+
+.. note::
+
+   While the field that you create the "TTL index" doesn't affect this
+   functionality, you *cannot* create this index on the ``_id`` field.
+
+   The TTL index may not have multiple fields.
+
+Create Collections with a TTL
+-----------------------------
+
+To set a TTL on the collection "``log.events``" for one hour use the
+following command at the :program:`mongo` shell: 
+
+.. code-block:: javascript
+
+   db.log.events.ensureIndex( { "status": 1 }, { expireAfterSections: 3600 } )
+
+MongoDB will automatically delete documents from this collection after
+storing it for an hour.
