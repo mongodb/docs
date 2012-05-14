@@ -19,16 +19,13 @@ BUILDDIR = build
 
 # Fixing `sed` for OS X
 UNAME := $(shell uname)
+
 ifeq ($(UNAME), Linux)
 SED_ARGS = -i -r
 endif
 ifeq ($(UNAME), Darwin)
 SED_ARGS = -i "" -E
 endif
-
-# helpers for compressing man pages
-UNCOMPRESSED_MAN := $(wildcard $(BUILDDIR)/man/*.1)
-COMPRESSED_MAN := $(subst .1,.1.gz,$(UNCOMPRESSED_MAN))
 
 # Internal variables.
 PAPEROPT_a4 = -D latex_paper_size=a4
@@ -47,11 +44,12 @@ help:
 	@echo "	 latex		to make LaTeX files, you can set PAPER=a4 or PAPER=letter"
 	@echo "	 man		to make manual pages"
 	@echo "	 changes	to make an overview of all changed/added/deprecated items"
-	@echo "	 linkcheck	to check all external links for integrity"
 	@echo
 	@echo "MongoDB Manual Specific Targets."
 	@echo "	 publish	runs publication process and then deploys the build to $(publication-output)"
 	@echo "	 push		runs publication process and pushes to docs site to production."
+	@echo "	 draft		builds a 'draft' build for pre-publication testing ."
+	@echo "	 pdfs		generates pdfs more efficently than latexpdf."
 	@echo
 	@echo "See 'meta.build.rst' for more information."
 
@@ -98,7 +96,6 @@ deploy-stage-one:source/about.txt $(BUILDDIR)/html
 deploy-stage-two:$(CURRENTBUILD) $(CURRENTBUILD)/release.txt $(CURRENTBUILD)/MongoDB-Manual.pdf $(CURRENTBUILD)/MongoDB-Manual.epub
 deploy-stage-three:$(CURRENTBUILD)/single $(CURRENTBUILD)/single/search.html $(CURRENTBUILD)/single/genindex.html $(CURRENTBUILD)/single/index.html
 
-
 # Establish dependencies for building the manual. Also helpful in
 # ordering the build itself.
 
@@ -137,6 +134,7 @@ $(CURRENTBUILD):$(BUILDDIR)/dirhtml
 $(CURRENTBUILD)/single:$(BUILDDIR)/singlehtml 
 	cp -R $</* $@
 
+# fixup the single html page:
 $(CURRENTBUILD)/single/search.html:$(BUILDDIR)/dirhtml/search/index.html
 	cp $< $@
 $(CURRENTBUILD)/single/genindex.html:$(BUILDDIR)/html/genindex.html
@@ -161,41 +159,49 @@ manual:$(CURRENTBUILD)
 source/about.txt:
 	touch source/about.txt
 
-# Targets to build compressed man pages.
-build-man: man $(COMPRESSED_MAN)
-compress-man: $(COMPRESSED_MAN)
-$(BUILDDIR)/man/%.1.gz: $(BUILDDIR)/man/%.1
-	gzip $< -c > $@
-
 # Clean up/removal targets.
 clean:
 	-rm -rf $(BUILDDIR)/*
 
 ######################################################################
 #
-# Default Sphinx build targets in use.
+# Default HTML Sphinx build targets
 #
 ######################################################################
 
-.PHONY: html dirhtml singlehtml epub latex man
+.PHONY: html dirhtml singlehtml epub
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
-	@echo "[HTML] build finished."
+	@echo "[HTML] build complete."
 dirhtml:
 	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(BUILDDIR)/dirhtml
-	@echo "[DIR-HTML] build finished."
+	@echo "[DIR-HTML] build complete."
 singlehtml:
 	$(SPHINXBUILD) -b singlehtml $(ALLSPHINXOPTS) $(BUILDDIR)/singlehtml
-	@echo "[SINGLE-HTML] build finished."
+	@echo "[SINGLE-HTML] build complete."
 epub:
 	$(SPHINXBUILD) -b epub $(ALLSPHINXOPTS) $(BUILDDIR)/epub
-	@echo "[EPUB] Build finished."
+	@echo "[EPUB] Build complete."
+
+######################################################################
+#
+# Targets for manpages
+#
+######################################################################
+
+# helpers for compressing man pages
+UNCOMPRESSED_MAN := $(wildcard $(BUILDDIR)/man/*.1)
+COMPRESSED_MAN := $(subst .1,.1.gz,$(UNCOMPRESSED_MAN))
+
 man:
 	$(SPHINXBUILD) -b man $(ALLSPHINXOPTS) $(BUILDDIR)/man
-	@echo "[MAN] build finished."
-latex:
-	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
-	@echo "[TeX] Build finished."
+	@echo "[MAN] build complete."
+
+# Targets to build compressed man pages.
+build-man: man $(COMPRESSED_MAN)
+compress-man: $(COMPRESSED_MAN)
+$(BUILDDIR)/man/%.1.gz: $(BUILDDIR)/man/%.1
+	gzip $< -c > $@
 
 ######################################################################
 #
@@ -216,10 +222,7 @@ draft:
 #
 ##########################################################################
 
-.PHONY: changes linkcheck json doctest latexpdf
-latexpdf:latex
-	$(MAKE) -C $(BUILDDIR)/latex all-pdf
-	@echo "[PDF] build complete."
+.PHONY: changes linkcheck json doctest
 json:
 	$(SPHINXBUILD) -b json $(ALLSPHINXOPTS) $(BUILDDIR)/json
 	@echo "[JSON] build finished."
@@ -233,16 +236,22 @@ doctest:
 	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(BUILDDIR)/doctest
 	@echo "[TEST] doctest complete."
 
-####################
+######################################################################
 #
 # PDF Build System.
 #
-####################
+######################################################################
 
-.PHONY:pdfs
+.PHONY:pdfs latex latexpdf
+
+latex:
+	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
+	@echo "[TeX] Build complete."
+latexpdf:latex
+	$(MAKE) -C $(BUILDDIR)/latex all-pdf
+	@echo "[PDF] build complete."
 
 LATEX_CORRECTION = "s/(index|bfcode)\{(.*!*)*--(.*)\}/\1\{\2-\{-\}\3\}/g"
-
 
 $(BUILDDIR)/latex/%.tex:
 	sed $(SED_ARGS) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) $@
@@ -250,11 +259,16 @@ $(BUILDDIR)/latex/%.tex:
 pdfs:$(subst .tex,.pdf,$(wildcard $(BUILDDIR)/latex/*.tex))
 
 PDFLATEXCOMMAND = TEXINPUTS=".:$(BUILDDIR)/latex/:" pdflatex --interaction batchmode --output-directory $(BUILDDIR)/latex/
+
 %.pdf:%.tex
-	$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<'
-	-makeindex -s $(BUILDDIR)/latex/python.ist '$(basename $<).idx'
-	$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<'
-	$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<'
+	@$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<'
+	@echo "[PDF]: (1/4) pdflatex $<"
+	@-makeindex -s $(BUILDDIR)/latex/python.ist '$(basename $<).idx'
+	@echo "[PDF]: (2/4) Indexing: $(basename $<).idx"
+	@$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<'
+	@echo "[PDF]: (3/4) pdflatex $<"
+	@$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<'
+	@echo "[PDF]: (4/4) pdflatex $<"
 
 ##########################################################################
 #
