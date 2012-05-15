@@ -1,33 +1,31 @@
-==============================
-Online Advertising: Ad Serving
-==============================
+==========================================
+Serving and Tracking Online Advertisements
+==========================================
 
 .. default-domain:: mongodb
 
 Overview
 --------
 
-This document outlines the basic patterns and principless for using
-MongoDB as a persistent storage engine for an online advertising network. In
-particular, this document focuses on the task of deciding *which* ad to serve
-when a user visits a particular site.
+This document outlines basic patterns and principless for using
+MongoDB as a persistent storage engine for an online advertising
+network. In particular, this document focuses on the task of deciding
+*which* ad to serve when a user visits a particular site.
 
 Problem
 ~~~~~~~
 
-You want to create an advertising network that will serve ads to a variety of
-online media sites. As part of this ad serving, you want to track which ads are
-available to be served, and decide on a particular ad to be served in a
-particular zone.
+You want to create an advertising network to serve ads to online media
+sites. As part of this service, you also want to track which ads are
+available, and decide on a particular to serve to a particular zone.
 
 Solution
 ~~~~~~~~
 
-This solution is structured as a progressive refinement of the ad network,
-starting out with the basic data storage requirements and adding more advanced
-features to the schema to support more advanced ad targeting. The key performance
-criterion for this solution is the latency between receiving an ad request and
-returning the (targeted) ad to be displayed.
+This case study describes a basic advertising service and then refines
+this application to support more advanced ad targeting. The key
+performance requirements for this solution is the latency between
+receiving a request and returning the (targeted) ad for display.
 
 The examples that follow use the Python programming language and the
 :api:`PyMongo <python/current>` :term:`driver` for MongoDB, but you
@@ -36,27 +34,27 @@ can implement this system using any language you choose.
 Serving Basic Ads
 -----------------
 
-A basic ad serving algorithm consists of the following The:
+A basic ad serving algorithm consists of the following steps:
 
-#. steps network receives a request for an ad, specifying at a minimum the
-   ``site_id`` and ``zone_id`` to be served.
+#. The network receives a request for an ad, specifying at a minimum
+   the ``site_id`` and ``zone_id``.
 
-#. The network consults its inventory of ads available to display and chooses an
-   ad based on various business rules.
+#. The network consults its inventory of ads available to display and
+   chooses an ad based on various business rules.
 
-#. The network returns the actual ad to be displayed, possibly recording the
-   decision made as well.
+#. The network returns the actual ad for display, possibly recording
+   the decision.
 
-This design uses the ``site_id`` and ``zone_id`` submitted with the ad request,
-as well as information stored in the ad inventory collection, to make the ad
-targeting decisions. Later examples will build on this, allowing more advanced ad
-targeting.
+This design uses the ``site_id`` and ``zone_id`` with the ad request,
+as well as information stored in the ad inventory collection, to make
+the ad targeting decisions. This design also provides flexibility for
+additional functionality later.
 
 Schema
 ~~~~~~
 
-A very basic schema for storing ads available to be served consists of a single
-collection, ``ad.zone``:
+The schema for storing available ads consists of a single collection,
+``ad.zone``:
 
 .. code-block:: javascript
 
@@ -77,8 +75,8 @@ collection, ``ad.zone``:
        ... ]
    }
 
-Note that for each (``site``, ``zone``) combination you'll be storing a list of
-ads, sorted by their ``ecpm`` values.
+For each (``site``, ``zone``) combination you'll store a list of ads,
+sorted by their ``ecpm`` values.
 
 Choosing an Ad to Serve
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -86,9 +84,9 @@ Choosing an Ad to Serve
 Querying
 ````````
 
-The query you'll use to choose which ad to serve selects a compatible ad and
-sorts by the advertiser's ``ecpm`` bid in order to maximize the ad network's
-profits:
+The query that the application uses to choose an add to serve selects
+a compatible ad and sorts by the advertiser's ``ecpm`` bid in order to
+maximize the ad network's profits. This query resembles the following:
 
 .. code-block:: python
 
@@ -107,8 +105,8 @@ profits:
 Indexing
 ````````
 
-In order to execute the ad choice with the lowest latency possible, you'll want
-to have a compound index on (``site_id``, ``zone_id``):
+To execute the ad choice with the lowest latency possible, create a
+compound index on (``site_id``, ``zone_id``):
 
 .. code-block:: pycon
 
@@ -122,10 +120,10 @@ Making an Ad Campaign Inactive
 Updating
 ````````
 
-One case you'll have to deal with in this solution making a campaign
-inactive. This may happen for a variety of reasons. For instance, the campaign
-may have reached its end date or exhausted its budget for the current time
-period. In this case, the logic is fairly straightforward:
+Ad systems must adjust automatically to the requirements of an ad
+campaign: if the campaign has reached its end date or exhausted its
+budget the system must automatically cease serving those ads. The
+following operation implements this feature:
 
 .. code-block:: python
 
@@ -135,14 +133,14 @@ period. In this case, the logic is fairly straightforward:
          {' $pull': { 'ads', { 'campaign_id': campaign_id } } },
          multi=True)
 
-The update statement above first selects only those ad zones which had avaialable
-ads from the given ``campaign_id`` and then uses the ``$pull`` modifier to remove
-them from rotation.
+The update statement selects only those ad zones that have available
+ads from the given ``campaign_id`` and then uses the :operator:`$pull`
+operator to remove them from rotation.
 
 Indexing
 ````````
 
-In order to execute the multi-update quickly, you should maintain an index on the
+To support the multi-update, you should maintain an index on the
 ``ads.campaign_id`` field:
 
 .. code-block:: pycon
@@ -152,11 +150,12 @@ In order to execute the multi-update quickly, you should maintain an index on th
 Sharding
 ~~~~~~~~
 
-In order to scale beyond the capacity of a single replica set, you will need to
-shard the ``ad.zone`` collection. To maintain the lowest possible latency in
-the ad selection operation, the :term:`shard key` needs to be chosen to allow
-MongoDB to route the ``ad.zone`` query to a single shard. In this case, a
-good approach is to shard on the (``site_id``, ``zone_id``) combination:
+To scale beyond the capacity of a single replica set, you will need to
+shard the ``ad.zone`` collection. To maintain the lowest possible
+latency in the ad selection operation, choose a the :term:`shard key`
+that allows MongoDB to route the ``ad.zone`` query to a single shard
+or limited number of shards. Using the (``site_id``, ``zone_id``)
+field combination as a shard key fulfills this requirement:
 
 .. code-block:: pycon
 
@@ -167,18 +166,19 @@ good approach is to shard on the (``site_id``, ``zone_id``) combination:
 Adding Frequency Capping
 ------------------------
 
-One problem with the logic described in Design 1 above is that it will tend to
-display the same ad over and over again until the campaign's budget is
-exhausted. To mitigate this, advertisers may wish to limit the frequency with
-which a given user is presented a particular ad. This process is called frequency
-capping and is an example of user profile targeting in advertising.
+One problem with the logic described in the basic application design
+is that that it will tend to display the same ad repeatedly until it
+exhausts the campaign's budget. To mitigate this, the system may want
+to limit the frequency that it presents a single user with a specific
+ad. This "frequency capping" is an example of user profile targeting
+in advertising.
 
-In order to perform frequency capping (or any type of user targeting), the ad
-network needs to maintain a profile for each visitor, typically implemented as a
-cookie in the user's browser. This cookie, effectively a ``user_id``, is then
-transmitted to the ad network when logging impressions, clicks, conversions,
-etc., as well as the ad serving decision. This section focuses on how that
-profile data impacts the ad serving decision.
+To provide frequency capping, or any type of user targeting, the ad
+system must maintain a profile for each visitor, typically implemented
+as a cookie in the user's browser. The system uses this cookie,
+effectively a ``user_id``, when logging impressions, clicks,
+conversions, etc., as well as the ad serving decision. This section
+focuses on how that profile data impacts the ad serving decision.
 
 Schema
 ~~~~~~
@@ -211,20 +211,19 @@ stored in a collection ``ad.user``:
      }
    }
 
-There are a few things to note about the user profile:
+This schema:
 
-- Profile information is segmented by advertiser. Typically advertising data is
-  sensitive competitive infomration that can't be shared among advertisers, so
-  this must be kept separate.
+- Segments profile information by advertiser. Typically advertising
+  data is sensitive information that the service can't share between
+  advertisers.
 
-- All data is embedded in a single profile document. When you need to query this
-  data (detailed below), you don't necessarily know which advertiser's ads you'll
-  be showing, so it's a good practice to embed all advertisers in a single
-  document.
+- Embeds all data in a single profile document. When you need to query
+  this data, the application won't know which advertiser's ads it's
+  showing, so it makes sense to store all data in a single document.
 
-- The event information is grouped by event type within an advertiser, and sorted
-  by timestamp. This allows rapid lookups of a stream of a particular type of
-  event.
+- Groups event information by type within an advertiser, and sorts by
+  timestamp. This facilitates rapid lookups of a stream of a
+  particular type of event.
 
 Choosing an Ad to Serve
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -232,9 +231,10 @@ Choosing an Ad to Serve
 Querying
 ````````
 
-The query you'll use to choose which ad to serve now needs to iterate through
-ads in order of desireability and select the "best" ad that also satisfies the
-advertiser's targeting rules (in this case, the frequency cap):
+Use the following query to choose an ad to serve. This operation must
+iterate through ads in order of "desireability" and then select the
+"best" ad that also satisfies the advertiser's targeting rules. In
+this example the frequency cap is the targeting rule.
 
 .. code-block:: python
 
@@ -274,29 +274,32 @@ advertiser's targeting rules (in this case, the frequency cap):
                return False
        return True
 
-Here, the ``chose_ad()`` function provides the framework for your ad selection
-process. The ``site`` is fetched first, and then passed to the ``ad_iterator()``
-function which will yield ads in order of desirability. Each ad is then checked
-using the ``ad_is_acceptable()`` function to determine if it meets the
-advertiser's rules.
+The ``chose_ad()`` function provides the framework for your ad
+selection process. The query fetches ``site`` first, and then passes
+it to the ``ad_iterator()`` function. This yields ads in order of
+desirability. Then, ``ad_is_acceptable()`` checks each add  to
+determine if it meets the advertiser's rules.
 
-The ``ad_is_acceptable()`` function then iterates over all the ``impressions``
-stored in the user profile, from most recent to oldest, within a certain
-``thresold`` time period (shown here as 1 day). If the same ``ad_unit_id``
-appears in the mipression stream, the ad is rejected. Otherwise it is acceptable
-and can be shown to the user.
+The ``ad_is_acceptable()`` function then iterates over all
+``impressions`` in the user's' profile, from most recent to oldest,
+within a certain ``thresold`` time period, which is 1 day in the
+sample above. If the same ``ad_unit_id`` appears in the impression
+stream, the function rejects the ad. Otherwise the service shows the
+first acceptable ad to the user.
 
 Indexing
 ````````
 
-In order to retrieve the user profile with the lowest latency possible, there
-needs to be an index on the ``_id`` field, which MongoDB supplies by default.
+To retrieve the user profile with the lowest latency possible, this
+operation requires an index on the ``_id`` field, which MongoDB
+supplies by default.
 
 Sharding
 ~~~~~~~~
 
-When sharding the ``ad.user`` collection, choosing the ``_id`` field as a
-:term:`shard key` allows MongoDB to route queries and updates to the profile:
+When sharding the ``ad.user`` collection, choosing the ``_id`` field
+as a :term:`shard key` allows MongoDB to route queries and updates to
+the profile:
 
 .. code-block:: pycon
 
@@ -307,18 +310,18 @@ When sharding the ``ad.user`` collection, choosing the ``_id`` field as a
 Keyword Targeting
 -----------------
 
-Where frequency capping above is an example of user profile targeting, you may
-also wish to perform content targeting so that the user receives relevant ads for
-the particular page being viewed. The simplest example of this is targeting ads
-at the result of a search query. In this case, a list of ``keywords`` is sent to
-the ``choose_ad()`` call along with the ``site_id``, ``zone_id``, and
+Where frequency is an example of user profile targeting, you may want
+the system to target ads so that the user receives ads relevant to the
+page they're viewing. For example, you might want to target ads based
+on a search query. In this case, the system sends a list ``keywords``
+to the ``choose_ad()`` function with the ``site_id``, ``zone_id``, and
 ``user_id``.
 
 Schema
 ~~~~~~
 
-In order to choose relevant ads, you'll need to expand the ``ad.zone`` collection
-to store keywords for each ad:
+To choose relevant ads, you will expand the ``ad.zone`` collection to
+store keywords for each ad:
 
 .. code-block:: javascript
 
@@ -345,9 +348,10 @@ to store keywords for each ad:
 Choosing a Group of Ads to Serve
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In the approach described here, you'll choose a number of ads that match the
-keywords used in the search, so the code below has been modified to return an
-iterator over ads in descending order of preference:
+The system will then choose a number of ads that match the keywords
+used in the search. The following ``choose_ads()`` and
+``ad_iterator()`` implementations will return and iterate over ads in
+descending order of preference:
 
 .. code-block:: python
 
@@ -364,10 +368,12 @@ iterator over ads in descending order of preference:
       return (
           ad for ad, advertiser_id in izip(
               ads, advertiser_ids)
-          if ad_is_acceptible(ad, user[advertiser_id]) )
+          if ad_is_acceptable(ad, user[advertiser_id]) )
 
   def ad_iterator(ads, keywords):
-       '''Find available ads, sorted by score, with random sort for ties'''
+       '''Find available ads, sorted by score, with random sort for
+       ties'''
+
        keywords = set(keywords)
        scored_ads = [
            (ad_score(ad, keywords), ad)
@@ -380,18 +386,28 @@ iterator over ads in descending order of preference:
            for ad in ad_group: yield ad
 
   def ad_score(ad, keywords):
-      '''Compute a desirability score based on the ad ecpm and keywords'''
+      '''Compute a desirability score based on the ad ecpm and
+      keywords'''
+
       matching = set(ad['keywords']).intersection(keywords)
       return ad['ecpm'] * math.log(
           1.1 + len(matching))
 
-  def ad_is_acceptible(ad, profile):
-      # same as above
+  # ad_is_acceptable
+  def ad_is_acceptable(ad, profile):
+       '''Returns False if the user has seen the ad today'''
+       threshold = datetime.utcnow() - timedelta(days=1)
+       for event in reversed(profile['impressions']):
+           if event['timestamp'] < threshold: break
+           if event['detail']['ad_unit_id'] == ad['ad_unit_id']:
+               return False
+       return True
 
-The main thing to note in the code above is that a must now be sorted according
-to some ``score`` which in this case is computed based on a combination of the
-``ecpm`` of the ad as well as the number of keywords matched. More advanced use
-cases may boost the importance of various keywords, but this goes beyond the
-scope of this use case. One thing to keep in mind is that the fact that ads are
-now being sorted at ad display time may cause performance issues if there are are
-large number of ads competing for the same display slot.
+With these implementations, ads you must sort ads according to some
+score. Here, ``ad_score()`` computes this value based on a combination
+of the ``ecpm`` value for the ad and the number of keywords
+matched. In more sophisticated implementations you may choose to
+customize the value of some keywords, but this is beyond the scope of
+this document. Because the ad service must sort all ads at display
+time, you may find performance issues if you if there are a large
+number of ads competing for the same display slot.
