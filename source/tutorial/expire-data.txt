@@ -22,30 +22,37 @@ from the collection. You can use this feature to expire data from
 :term:`replica sets <replica set>` and :term:`shard clusters
 <shard cluster>`.
 
-You can create "TTL index" on a collection that already has data but
-all existing data will expire at roughly same moment, using the moment
-of insertion into the index as the start point for the TTL.
-
 Use the ``expireAfterSeconds`` option to the :func:`ensureIndex
 <db.collection.ensureIndex()>` method in conjunction with a TTL value
 in seconds to create an expiring collection.
 
-.. note::
+Constraints
+-----------
 
-   While the field that you create the "TTL index" doesn't affect this
-   functionality, you *cannot* create this index on the ``_id`` field.
+Consider the following limitations:
 
-   The TTL index may not have multiple fields.
+- the indexed field *must* have a component that has a date
+  :term:`BSON type`. If the field does not have a date type, the data
+  will not expire.
+
+- you *cannot* create this index on the ``_id`` field, or if an index
+  *already* exists on this collection.
+
+- the TTL index may not have multiple fields.
+
+- if the field holds an array, and there are multiple date-typed
+  data in the index, the document will expire when the *lowest*
+  (i.e. earliest) matches the expiration threshold.
 
 Create Collections with a TTL
 -----------------------------
 
 To set a TTL on the collection "``log.events``" for one hour use the
-following command at the :program:`mongo` shell: 
+following command at the :program:`mongo` shell:
 
 .. code-block:: javascript
 
    db.log.events.ensureIndex( { "status": 1 }, { expireAfterSections: 3600 } )
 
 MongoDB will automatically delete documents from this collection after
-storing it for an hour.
+storing it for an hour, *if* ``status`` holds date-type information.
