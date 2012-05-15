@@ -90,7 +90,7 @@ endif
 # access these targets through the ``publish`` target.
 .PHONY: setup deploy-stage-one deploy-stage-two
 
-setup: 
+setup:
 	mkdir -p $(BUILDDIR)/{dirhtml,singlehtml,html,epub,latex} $(CURRENTBUILD)/single
 deploy-stage-one:source/about.txt $(BUILDDIR)/html
 deploy-stage-two:$(CURRENTBUILD) $(CURRENTBUILD)/release.txt $(CURRENTBUILD)/MongoDB-Manual.pdf $(CURRENTBUILD)/MongoDB-Manual.epub
@@ -131,7 +131,7 @@ $(CURRENTBUILD)/MongoDB-Manual.pdf:./MongoDB-Manual.pdf
 # Build and migrate the HTML components of the build.
 $(CURRENTBUILD):$(BUILDDIR)/dirhtml
 	cp -R $</* $@/
-$(CURRENTBUILD)/single:$(BUILDDIR)/singlehtml 
+$(CURRENTBUILD)/single:$(BUILDDIR)/singlehtml
 	cp -R $</* $@
 
 # fixup the single html page:
@@ -209,12 +209,18 @@ $(BUILDDIR)/man/%.1.gz: $(BUILDDIR)/man/%.1
 #
 ######################################################################
 
-.PHONY: aspirational aspiration draft
+.PHONY: aspirational aspiration draft draft-pdf draft-pdfs
 aspiration:draft
 aspirational:draft
 draft:
 	$(SPHINXBUILD) -b html $(DRAFTSPHINXOPTS) $(BUILDDIR)/draft
 	@echo "[DRAFT] HTML build finished."
+draft-latex:
+	$(SPHINXBUILD) -b latex $(DRAFTSPHINXOPTS) $(BUILDDIR)/draft-latex
+	@echo "[DRAFT] LaTeX build finished."
+draft-pdf:$(subst .tex,.pdf,$(wildcard $(BUILDDIR)/draft-latex/*.tex))
+draft-pdfs:draft-latex draft-pdf
+
 
 ##########################################################################
 #
