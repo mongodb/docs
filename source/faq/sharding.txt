@@ -255,32 +255,33 @@ size of the connection pool. This setting prevents the
 :term:`shards <shard>`. Spikes like these may disrupt the operation
 and memory allocation of the :term:`shard cluster`.
 
-What is the impact on queries of an index on a sharded collection?
-------------------------------------------------------------------
+How do indexes impact queries in sharded systems?
+-------------------------------------------------
 
 If the query does not include the :term:`shard key`, the
 :program:`mongos` must send the query to all shards as a
-"scatter/gather" operation. Each shard, will in turn, use whatever
-index it has available to fulfill the query.
+"scatter/gather" operation. Each shard will, in turn, use *either* the
+shard key index or another index more efficient index to fulfill the
+query.
 
-If the query includes multiple sub-expression that reference the
+If the query includes multiple sub-expressions that reference the
 fields indexed by the shard key *and* the secondary index, the
 :program:`mongos` can route the queries to a specific shard and the
-shard can will then use the index that will allow it to fulfill the
-query with maximum efficiency. See `this document
-<http://www.mongodb.org/download/attachments/2097354/how+queries+work+with+sharding.pdf>`_
+shard will use the index that will allow it to fulfill most
+efficiently. See `this document <http://www.mongodb.org/download/attachments/2097354/how+queries+work+with+sharding.pdf>`_
 for more information.
 
-Do shard keys need order, or can shard they be random?
-------------------------------------------------------
+Do shard keys need order, or can they be random?
+------------------------------------------------
 
 :term:`Shard keys <shard keys>` can be random. Random keys ensure
-exceptionally good distribution of data across the cluster.
+optimal distribution of data across the cluster.
 
 :term:`Shard clusters <shard cluster>`, attempt to route queries to
 *specific* shards when queries include the shard key as a parameter,
 because these directed queries are more efficient. In many cases,
-random keys make it difficult to direct queries to specific shards.
+random keys can make it difficult to direct queries to specific
+shards.
 
 .. STUB :wiki:`Sharding`
 
@@ -316,19 +317,20 @@ limitation.
 Can shard key be in ascending order, like dates or timestamps?
 --------------------------------------------------------------
 
-If you are inserting documents and the :term:`shard key` field values
-increase monotonically, all inserts will initially belong to the same
-:term:`chunk` on a single :term:`shard`. Although the system will
-eventually divide this chunk and migrate its contents to distribute
-data more evenly, at any moment the cluster can only direct insert
-operations at a single shard. This can limit the throughput of
-inserts. If most of your write operations are updates or read
-operations, rather than inserts this limitation should not impact your
-performance. However, if you have a high insert volume, this may be a
-limitation.
+If you insert documents with monotonically increasing shard keys, all
+inserts will initially belong to the same :term:`chunk` on a single
+:term:`shard`. Although the system will eventually divide this chunk
+and migrate its contents to distribute data more evenly, at any moment
+the cluster can only direct insert operations at a single shard. This
+can limit the throughput of inserts.
+
+If most of your write operations are updates or read operations,
+rather than inserts this limitation should not impact your
+performance. However, if you have a high insert volume, a
+monotonically increasing shard key may be a limitation.
 
 To address this issue, you can use a field with a value that stores
 the hash of a key with an ascending value. While you can compute a
 hashed value in your application and include this value in your
-documents for use as a shard key the :issue:`SERVER-2001` issue, will
+documents for use as a shard key, the :issue:`SERVER-2001` issue will
 implement this capability within MongoDB.
