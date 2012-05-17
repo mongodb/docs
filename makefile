@@ -64,7 +64,7 @@ push:publish
 publish:
 	@echo "Running the publication and migration routine..."
 	$(MAKE) -j1 deploy-stage-one
-	$(MAKE) -j setup deploy-stage-two deploy-stage-three
+	$(MAKE) -j setup deploy-stage-two deploy-stage-three deploy-stage-four
 	@echo "Publication succeessfully deployed to '$(publication-output)'."
 	@echo
 
@@ -92,9 +92,11 @@ endif
 
 setup:
 	mkdir -p $(BUILDDIR)/{dirhtml,singlehtml,html,epub,latex} $(CURRENTBUILD)/single
+
 deploy-stage-one:source/about.txt $(BUILDDIR)/html
 deploy-stage-two:$(CURRENTBUILD) $(CURRENTBUILD)/release.txt $(CURRENTBUILD)/MongoDB-Manual.pdf $(CURRENTBUILD)/MongoDB-Manual.epub
 deploy-stage-three:$(CURRENTBUILD)/single $(CURRENTBUILD)/single/search.html $(CURRENTBUILD)/single/genindex.html $(CURRENTBUILD)/single/index.html
+deploy-stage-four:$(publication-output)/index.html $(publication-output)/10gen-gpg-key.asc
 
 # Establish dependencies for building the manual. Also helpful in
 # ordering the build itself.
@@ -147,12 +149,14 @@ $(CURRENTBUILD)/single/index.html:$(BUILDDIR)/singlehtml/contents.html
 # Deployment related work for the non-Sphinx aspects of the build.
 $(CURRENTBUILD)/release.txt:$(publication-output)/manual
 	git rev-parse --verify HEAD >|$@
-$(publication-output):
+$(publication-output): 
 	mkdir -p $@
 $(publication-output)/manual:manual
 	mv $< $@
 	-rm -f $(CURRENTBUILD)/manual
 $(publication-output)/index.html:themes/docs.mongodb.org/index.html
+	cp $< $@
+$(publication-output)/10gen-gpg-key.asc:themes/docs.mongodb.org/10gen-gpg-key.asc
 	cp $< $@
 manual:$(CURRENTBUILD)
 	ln -f -s $(manual-branch) $@
