@@ -43,9 +43,6 @@ In the current implementation, all databases in a :term:`shard
 cluster` have a "primary :term:`shard`." All unsharded
 collection within that database will reside on the same shard.
 
-Future versions will distributed unsharded collections to
-different shards.
-
 How does MongoDB distribute data across shards?
 -----------------------------------------------
 
@@ -119,18 +116,18 @@ environment, the :program:`mongod` for each shard will sort its
 results, and the :program:`mongos` merges each shard's results before returning
 them to the client.
 
-How does MongoDB ensure a unique shard key when using a shard key *other* than ``_id``?
----------------------------------------------------------------------------------------
+How does MongoDB ensure unique ``_id`` field values when using a shard key *other* than ``_id``?
+------------------------------------------------------------------------------------------------
 
-If you do not use ``id`` as the shard key, then your
+If you do not use ``_id`` as the shard key, then your
 application/client layer must be responsible for keeping the ``_id``
-field unique. It is problematic for collections to have
-duplicate ``_id`` values.
+field unique. It is problematic for collections to have duplicate
+``_id`` values.
 
-If you're not sharding your collection by the
-``_id`` field, then you should be sure to store a globally unique
-identifier in that field. The default :wiki:`BSON ObjectID <Object+IDs>`
-works well in this case.
+If you're not sharding your collection by the ``_id`` field, then you
+should be sure to store a globally unique identifier in that
+field. The default :wiki:`BSON ObjectID <Object+IDs>` works well in
+this case.
 
 I've enabled sharding and added a second shard, but all the data is still on one server. Why?
 ---------------------------------------------------------------------------------------------
@@ -139,17 +136,17 @@ First, ensure that you've declared a :term:`shard key` for your
 collection. Until you have configured the shard key, MongoDB will not
 create :term:`chunks <chunk>`, and :term:`sharding` will not occur.
 
-Next, keep in mind that the default chunk size is 64 MB,
-which means the collection must have at least 64 MB before a
+Next, keep in mind that the default chunk size is 64 MB. As a result,
+in most situations, the collection needs at least 64 MB before a
 migration will occur.
 
-Additionally, the system which balances chunks
-among the servers attempts to avoid superfluous migrations. Depending
-on the number of shards, your shard key, and the amount of data, systems
-often require at least 10 chunks of data to trigger migrations.
+Additionally, the system which balances chunks among the servers
+attempts to avoid superfluous migrations. Depending on the number of
+shards, your shard key, and the amount of data, systems often require
+at least 10 chunks of data to trigger migrations.
 
-You can run :func:`db.printShardingStatus()` to see all the chunks present
-in your cluster.
+You can run :func:`db.printShardingStatus()` to see all the chunks
+present in your cluster.
 
 Is it safe to remove old files in the ``moveChunk`` directory?
 --------------------------------------------------------------
@@ -157,8 +154,7 @@ Is it safe to remove old files in the ``moveChunk`` directory?
 Yes. :program:`mongod` creates these files as backups during normal
 :term:`shard` balancing operations.
 
-Once these migrations are complete, you may delete these
-files.
+Once these migrations are complete, you may delete these files.
 
 How many connections does each ``mongos`` need?
 -----------------------------------------------
@@ -270,10 +266,10 @@ shard will use the index that will allow it to fulfill most
 efficiently. See `this document <http://www.mongodb.org/download/attachments/2097354/how+queries+work+with+sharding.pdf>`_
 for more information.
 
-Do shard keys need order, or can they be random?
-------------------------------------------------
+Can shard keys be randomly generated?
+-------------------------------------
 
-:term:`Shard keys <shard keys>` can be random. Random keys ensure
+:term:`Shard keys <shard key>` can be random. Random keys ensure
 optimal distribution of data across the cluster.
 
 :term:`Shard clusters <shard cluster>`, attempt to route queries to
@@ -295,6 +291,8 @@ However, documents that have the shard key *must* reside in the same
 too many documents with the exact same shard key you will not be able
 to distribute *those* documents across your shard cluster.
 
+.. STUB link to shard key granularity.
+
 Can you shard on the ``_id`` field?
 -----------------------------------
 
@@ -309,7 +307,7 @@ system will eventually divide this chunk and migrate its contents to
 distribute data more evenly, at any moment the cluster can only direct
 insert operations at a single shard. This can limit the throughput of
 inserts. If most of your write operations are updates or read
-operations, rather than inserts, this limitation should not impact
+operations rather than inserts, this limitation should not impact
 your performance. However, if you have a high insert volume, this may
 be a limitation.
 
@@ -323,8 +321,8 @@ and migrate its contents to distribute data more evenly, at any moment
 the cluster can only direct insert operations at a single shard. This
 can limit the throughput of inserts.
 
-If most of your write operations are updates or read operations,
-rather than inserts this limitation should not impact your
+If most of your write operations are updates or read operations
+rather than inserts, this limitation should not impact your
 performance. However, if you have a high insert volume, a
 monotonically increasing shard key may be a limitation.
 
