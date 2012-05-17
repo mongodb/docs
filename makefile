@@ -63,8 +63,8 @@ push:publish
 
 publish:
 	@echo "Running the publication and migration routine..."
-	$(MAKE) -j1 deploy-stage-one
-	$(MAKE) -j setup deploy-stage-two deploy-stage-three deploy-stage-four
+	$(MAKE) -j1 deploy-one
+	$(MAKE) -j setup deploy-two deploy-three deploy-four
 	@echo "Publication succeessfully deployed to '$(publication-output)'."
 	@echo
 
@@ -93,10 +93,10 @@ endif
 setup:
 	mkdir -p $(BUILDDIR)/{dirhtml,singlehtml,html,epub,latex} $(CURRENTBUILD)/single
 
-deploy-stage-one:source/about.txt $(BUILDDIR)/html
-deploy-stage-two:$(CURRENTBUILD) $(CURRENTBUILD)/release.txt $(CURRENTBUILD)/MongoDB-Manual.pdf $(CURRENTBUILD)/MongoDB-Manual.epub
-deploy-stage-three:$(CURRENTBUILD)/single $(CURRENTBUILD)/single/search.html $(CURRENTBUILD)/single/genindex.html $(CURRENTBUILD)/single/index.html
-deploy-stage-four:$(publication-output)/index.html $(publication-output)/10gen-gpg-key.asc
+deploy-one:source/about.txt $(BUILDDIR)/html
+deploy-two:$(CURRENTBUILD) $(CURRENTBUILD)/release.txt $(CURRENTBUILD)/MongoDB-Manual.pdf $(CURRENTBUILD)/MongoDB-Manual.epub
+deploy-three:$(CURRENTBUILD)/single $(CURRENTBUILD)/single/search.html $(CURRENTBUILD)/single/genindex.html $(CURRENTBUILD)/single/index.html
+deploy-four:$(publication-output)/index.html $(publication-output)/10gen-gpg-key.asc
 
 # Establish dependencies for building the manual. Also helpful in
 # ordering the build itself.
@@ -141,14 +141,17 @@ $(CURRENTBUILD)/single/search.html:$(BUILDDIR)/dirhtml/search/index.html
 	cp $< $@
 $(CURRENTBUILD)/single/genindex.html:$(BUILDDIR)/html/genindex.html
 	cp $< $@
-	sed $(SED_ARGS) -e 's@(<dt><a href=").*html#@\1./#@' $@
+	@sed $(SED_ARGS) -e 's@(<dt><a href=").*html#@\1./#@' $@
+	@echo "[SINGLE]: generating '$@'"
 $(CURRENTBUILD)/single/index.html:$(BUILDDIR)/singlehtml/contents.html
 	cp $< $@
-	sed $(SED_ARGS) -e 's/href="contents.html/href="index.html/g' $@
+	@sed $(SED_ARGS) -e 's/href="contents.html/href="index.html/g' $@
+	@echo "[SINGLE]: generating '$@'"
 
 # Deployment related work for the non-Sphinx aspects of the build.
 $(CURRENTBUILD)/release.txt:$(publication-output)/manual
-	git rev-parse --verify HEAD >|$@
+	@git rev-parse --verify HEAD >|$@
+	@echo "[build]: generating '$@' with current release hash."
 $(publication-output): 
 	mkdir -p $@
 $(publication-output)/manual:manual
@@ -183,8 +186,11 @@ dirhtml:
 singlehtml:
 	$(SPHINXBUILD) -b singlehtml $(ALLSPHINXOPTS) $(BUILDDIR)/singlehtml
 	@echo "[SINGLE-HTML] build complete."
+
+epub-command = $(SPHINXBUILD) -b epub $(ALLSPHINXOPTS) $(BUILDDIR)/epub
 epub:
-	$(SPHINXBUILD) -b epub $(ALLSPHINXOPTS) $(BUILDDIR)/epub
+	@echo $(epub-command)
+	@{ $(epub-command) 2>&1 1>&3 | sed -r '/^WARNING: unknown mimetype.*ignoring$$/d' 1>&2; } 3>&1
 	@echo "[EPUB] Build complete."
 
 ######################################################################
@@ -264,21 +270,24 @@ latexpdf:latex
 LATEX_CORRECTION = "s/(index|bfcode)\{(.*!*)*--(.*)\}/\1\{\2-\{-\}\3\}/g"
 
 $(BUILDDIR)/latex/%.tex:
-	sed $(SED_ARGS) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) $@
+	@sed $(SED_ARGS) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) $@
+	@echo "[build]: fixing '$@' TeX from the Sphinx output"
 
 pdfs:$(subst .tex,.pdf,$(wildcard $(BUILDDIR)/latex/*.tex))
 
 PDFLATEXCOMMAND = TEXINPUTS=".:$(BUILDDIR)/latex/:" pdflatex --interaction batchmode --output-directory $(BUILDDIR)/latex/
 
 %.pdf:%.tex
-	@$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<'
+	@$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<' >|$@.log
 	@echo "[PDF]: (1/4) pdflatex $<"
-	@-makeindex -s $(BUILDDIR)/latex/python.ist '$(basename $<).idx'
+	@-makeindex -s $(BUILDDIR)/latex/python.ist '$(basename $<).idx' >>$@.log 2>&1
 	@echo "[PDF]: (2/4) Indexing: $(basename $<).idx"
-	@$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<'
+	@$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<' >>$@.log
 	@echo "[PDF]: (3/4) pdflatex $<"
-	@$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<'
+	@$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<' >>$@.log
 	@echo "[PDF]: (4/4) pdflatex $<"
+	@echo "[PDF]: see '$@.log' for a full report of the pdf build process."
+
 
 ##########################################################################
 #
