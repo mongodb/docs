@@ -18,44 +18,26 @@ the :doc:`complete list of FAQs </faq>` or post your question to the
 What are Memory Mapped Files?
 -----------------------------
 
-Memory mapped files are ____
+Memory mapped files are segments of virtual memory which have been assigned a direct byte-for-byte correlation with some portion of a file or resource.  Once present, this correlation between the file and the memory space permits applications to treat the mapped portion as if it were primary memory.
 
-What is the working set?
-------------------------
-
-The working set is ____ 
-
-A common misconception in using MongoDB is that the working set can be
-reduced to a discrete value.  It's important to understand that the
-working set is simply a way of thinking about the data one is
-accessing and that which MongoDB is working with frequently.
-
-For instance, if you are running a map/reduce job in which the job
-reads every document, then your working set is every document.
-Conversely, if your map/reduce job only reads the most recent 100
-documents, then the working set will be those 100 documents.
-
-How does memory-mapped file access work?
+How does memory-mapped file access work in MongoDB?
 ----------------------------------------
 
-MongoDB uses memory-mapped files for its data file management.
+MongoDB uses memory-mapped files for memory management.
 
-When MongoDB memory-maps the data files (for, say, a map/reduce
-query), you're letting the OS know you'd like the contents of the
-files available as if they were in some portion of memory.  
+MongoDB memory maps the files when they are first accessed; you're letting the OS know you'd like the contents of the files available as if they were in some portion of memory.  It should be noted that each OS caches its own components in memory, and also provides memory buffers for network connections and disk drivers in addition to applications. 
 
-This doesn't necessarily mean it's in memory already-- when you go to
+This doesn't necessarily mean the files are in memory already-- when you go to
 access any point, the OS checks if this 'page' is in physical ram or
-not.
+not.  
 
-If it is, it returns whatever's in memory in that location.  If
-it's not, then it will fetch that portion of the file, make sure it's
-in memory, and then return it to you.
+If the page is already in memory, it returns whatever's in memory in that location.  If the page is not in memory, then it will fetch that portion of the file, make sure it's in memory, and then return it to you.
 
 Writing works in the same fashion-- MongoDB tries to write to a memory
-page. If it's in RAM, then it works quickly (just swapping some bits
+page. If the page is in RAM, then it works quickly (just swapping some bits
 in the memory). The page will then be marked as 'dirty' and the OS
 will take care of flushing it back to disk, persisting your changes.
+
 
 What are page faults?
 ---------------------
@@ -64,12 +46,32 @@ Page faults will occur if you're attempting to access some part of a
 memory-mapped file that *isn't* in memory.  
 
 This could potentially force the OS to find some not-recently-used
-page in physical RAM, get rid of it (maaybe write it back to disk if
+page in physical RAM, get rid of it (maybe write it back to disk if
 it's changed since it loaded), go back to disk, read the page, and
 load it into RAM...an expensive task, overall.
 
 What is the difference between soft and hard page faults?
 ---------------------------------------------------------
 
+A page fault implies a "hard" page fault, which requires disk access.  A "soft" page fault merely moves memory pages from one list to another, and is not as expensive.
+
 What tools can I use to investigate storage use in MongoDB?
+-----------------------------------------------------------
+
+There is a command whose output provides the current state of the "active" database, see :doc: 'Database Statistics Reference </reference/database-statistics>'.
+
+What is the working set?
+------------------------
+
+The working set is an approximation of the set of pages that a certain process will access in the future (say, during the next 't' time units), and more specifically is suggested to be an indication of what pages ought to be kept in main memory to allow most progress to be made in the execution of that process.
+
+A common misconception in using MongoDB is that the working set can be
+reduced to a discrete value.  It's important to understand that the
+working set is simply a way of thinking about the data one is
+accessing and that which MongoDB is working with frequently.
+
+For instance, if you are running a query that has to do a full table scan, then your working set is every document scanned.
+Conversely, if your query only reads the most recent 100
+documents, then the working set will be those 100 documents.
+
 -----------------------------------------------------------
