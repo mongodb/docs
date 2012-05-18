@@ -418,17 +418,38 @@ Still, you may want to split chunks manually if:
   Use :func:`sh.status()` to determine the current chunks ranges across
   the cluster.
 
-TODO expand this section
-
 To split chunks manually, use either the :func:`sh.splitAt()` or
 :func:`sh.splitFind()` helpers in the :program:`mongo` shell.
 These helpers wrap the :dbcommand:`split` command.
 
-TODO: examples of using both helpers.
+Use the following command to split the chunk that the document that
+matches the ``{ "zipcode": 63109 }`` query statement:
+
+.. code-block:: javascript
+
+   sh.splitFind( { "zipcode": 63109 } )
+
+This will split the chunk that contains the *first* document returned
+that matches this query into two equal components. MongoDB will split
+the chunk so that documents that have half of the shard keys in will
+be in one chunk and the documents that have other half of the shard
+keys will be a second chunk. The query in :func:`sh.splitFind()` need
+not contain the shard key, though it almost always makes sense to
+query for the shard key in this case, and including the shard key will
+expedite the operation.
+
+However, the location of the document that this query finds with
+respect to the other documents in the chunk does not affect how the
+chunk splits. Use :func:`sh.splitAt()` to split a chunk in two using
+the queried document as the partition point:
+
+.. code-block:: javascript
+
+   sh.splitAt( { "zipcode": 63109 } )
 
 .. note::
 
-   You cannot merge chunks once you've split them.
+   You cannot merge or combine chunks once you've split them.
 
 .. _sharding-balancing-modify-chunk-size:
 
@@ -528,8 +549,6 @@ block until the migration is complete.
 Balancer Operations
 -------------------
 
-TODO modify this section to include the helper functions in the shell.
-
 This section provides an overview of common administrative procedures
 related to balancing and the balancing process.
 
@@ -584,7 +603,9 @@ Here's what this tells you:
 
   .. note::
 
-     The following shell helper will quickyl tell you whether the balancer is running:
+     Use the :func:`sh.isBalancerRunning()` helper in the
+     :program:`mongo` shell to determine if the balancer is
+     running, as follows:
 
      .. code-block:: javascript
 
