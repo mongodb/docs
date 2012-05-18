@@ -21,10 +21,12 @@ BUILDDIR = build
 UNAME := $(shell uname)
 
 ifeq ($(UNAME), Linux)
-SED_ARGS = -i -r
+SED_ARGS_FILE = -i -r
+SED_ARGS_REGEX = -r
 endif
 ifeq ($(UNAME), Darwin)
-SED_ARGS = -i "" -E
+SED_ARGS_FILE = -i "" -E
+SED_ARGS_REGEX = -E
 endif
 
 # Internal variables.
@@ -141,11 +143,11 @@ $(CURRENTBUILD)/single/search.html:$(BUILDDIR)/dirhtml/search/index.html
 	cp $< $@
 $(CURRENTBUILD)/single/genindex.html:$(BUILDDIR)/html/genindex.html
 	cp $< $@
-	@sed $(SED_ARGS) -e 's@(<dt><a href=").*html#@\1./#@' $@
+	@sed $(SED_ARGS_FILE) -e 's@(<dt><a href=").*html#@\1./#@' $@
 	@echo "[SINGLE]: generating '$@'"
 $(CURRENTBUILD)/single/index.html:$(BUILDDIR)/singlehtml/contents.html
 	cp $< $@
-	@sed $(SED_ARGS) -e 's/href="contents.html/href="index.html/g' $@
+	@sed $(SED_ARGS_FILE) -e 's/href="contents.html/href="index.html/g' $@
 	@echo "[SINGLE]: generating '$@'"
 
 # Deployment related work for the non-Sphinx aspects of the build.
@@ -188,9 +190,10 @@ singlehtml:
 	@echo "[SINGLE-HTML] build complete."
 
 epub-command = $(SPHINXBUILD) -b epub $(ALLSPHINXOPTS) $(BUILDDIR)/epub
+epub-filter = sed $(SED_ARGS_REGEX) '/^WARNING: unknown mimetype.*ignoring$$/d'
 epub:
 	@echo $(epub-command)
-	@{ $(epub-command) 2>&1 1>&3 | sed -r '/^WARNING: unknown mimetype.*ignoring$$/d' 1>&2; } 3>&1
+	@{ $(epub-command) 2>&1 1>&3 | $(epub-filter) 1>&2; } 3>&1
 	@echo "[EPUB] Build complete."
 
 ######################################################################
@@ -270,7 +273,7 @@ latexpdf:latex
 LATEX_CORRECTION = "s/(index|bfcode)\{(.*!*)*--(.*)\}/\1\{\2-\{-\}\3\}/g"
 
 $(BUILDDIR)/latex/%.tex:
-	@sed $(SED_ARGS) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) $@
+	@sed $(SED_ARGS_FILE) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) $@
 	@echo "[build]: fixing '$@' TeX from the Sphinx output"
 
 pdfs:$(subst .tex,.pdf,$(wildcard $(BUILDDIR)/latex/*.tex))
