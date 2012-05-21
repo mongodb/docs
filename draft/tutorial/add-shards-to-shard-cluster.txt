@@ -1,3 +1,98 @@
 ==================================================
 Add Additional Shards to an Existing Shard Cluster
 ==================================================
+
+.. default-domain:: mongodb
+
+Synopsis
+--------
+
+This document outlines the procedure for adding a :term:`shard` to an
+existing :term:`shard cluster`. Typically, if you have a shard
+cluster, as your data set grows, and you need to add "horizontal
+scale," you will add additional shards. See the
+":doc:`/administration/sharding`" document for additional sharding
+procedures.
+
+Concerns
+--------
+
+Distributing :term:`chunks <chunk>` among your cluster requires some
+capacity to support the migration process. When adding a shard to your
+cluster, you should always ensure that your cluster has enough
+capacity to support the migration without impacting legitimate
+production traffic.
+
+In production environments, all shards should be :term:`replica
+sets`. Furthermore, *all* interaction with your sharded cluster should
+pass through a :program:`mongos` instance, and this tutorial assumes
+that you already have a :program:`mongo` shell connection to a
+:program:`mongos` instance.
+
+Process
+-------
+
+First, you need to tell the cluster where to find the individual
+shards. You can do this using the :dbcommand:`addShard` command:
+
+.. code-block:: javascript
+
+   db.runCommand( { addShard: mongodb0.example.net, name: "mongodb0" } )
+
+More practically you will use the :func:`sh.addShard()` helper:
+
+.. code-block:: javascript
+
+   sh.addShard( "[hostname]:[port]" )
+
+Replace ``[hostname]`` and ``[port]`` with the hostname and TCP
+port number of where the shard is accessible.
+
+For example:
+
+.. code-block:: javascript
+
+   sh.addShard( "mongodb0.example.net:27027" )
+
+.. note:: In production deployments, all shards should be replica sets.
+
+   .. versionchanged:: 2.0.3
+
+   After version 2.0.3, you may use the above form to add replica
+   sets to a cluster and the cluster will automatically discover
+   the members of the replica set and adjust its configuration
+   accordingly.
+
+   Before version 2.0.3, you must specify the shard in the
+   following form: the replica set name, followed by a forward
+   slash, followed by a comma-separated list of seeds for the
+   replica set. For example, if the name of the replica set is
+   "myapp1", then your :func:`sh.addShard` command might resemble:
+
+   .. code-block:: javascript
+
+      sh.addShard( "myapp1/mongodb0.example.net:27027,mongodb1.example.net:27017" )
+
+Repeat this step for each shards in your cluster.
+
+.. optional::
+
+   You may specify a "name" as an argument to the
+   :dbcommand:`addShard`and :func:`sh.addShard()`, as follows:
+
+   .. code-block:: javascript
+
+      db.runCommand( { addShard: mongodb0.example.net, name: "mongodb0" } )
+      sh.addShard( mongodb0.example.net, name: "mongodb0" )
+
+   If you do not specify a shard name, then MongoDB will assign a
+   name upon creation.
+
+.. note::
+
+   It may take some time for :term:`chunks` to migrate to
+   the new shard.
+
+   See the ":ref:`Balancing and Distribution <sharding-balancing>`"
+   section for an overview of the balancing operation and the ":ref:`Balancing Internals
+   <sharding-balancing-internals>`" section for additional information.
