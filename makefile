@@ -60,15 +60,15 @@ help:
 #
 
 push:publish
-	@echo "Copying the new build to the web servers."
+	@echo "[build]: copying the new build to the web servers."
 	$(MAKE) -j2 MODE='push' push-dc1 push-dc2
+	@echo "[build]: a new build of the $(manual-branch) branch of the Manual is deployed to the web servers."
 
 publish:
-	@echo "Running the publication and migration routine..."
+	@echo "[build]: running the publication routine for the $(manual-branch) branch of the Manual."
 	$(MAKE) -j1 deploy-one
 	$(MAKE) -j setup deploy-two deploy-three deploy-four
-	@echo "Publication succeessfully deployed to '$(publication-output)'."
-	@echo
+	@echo "[build]: $(manual-branch) branch is succeessfully deployed to '$(publication-output)'."
 
 #
 # Targets for pushing the new build to the web servers.
@@ -93,6 +93,7 @@ endif
 .PHONY: setup deploy-stage-one deploy-stage-two
 
 setup:
+	@echo "[build]: creating required directories."
 	mkdir -p $(BUILDDIR)/{dirhtml,singlehtml,html,epub,latex} $(CURRENTBUILD)/single
 
 deploy-one:source/about.txt $(BUILDDIR)/html
@@ -152,9 +153,9 @@ $(CURRENTBUILD)/single/index.html:$(BUILDDIR)/singlehtml/contents.html
 
 # Deployment related work for the non-Sphinx aspects of the build.
 $(CURRENTBUILD)/release.txt:$(publication-output)/manual
-	@git rev-parse --verify HEAD >|$@
 	@echo "[build]: generating '$@' with current release hash."
-$(publication-output): 
+	@git rev-parse --verify HEAD >|$@
+$(publication-output):
 	mkdir -p $@
 $(publication-output)/manual:manual
 	mv $< $@
@@ -300,6 +301,6 @@ PDFLATEXCOMMAND = TEXINPUTS=".:$(BUILDDIR)/latex/:" pdflatex --interaction batch
 
 ARCHIVE_DATE := $(shell date +%s)
 archive:$(publication-output).$(ARCHIVE_DATE).tar.gz
-	@echo [archive] $<
+	@echo [archive]: $<
 $(publication-output).$(ARCHIVE_DATE).tar.gz:$(publication-output)
 	tar -czvf $@ $<
