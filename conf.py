@@ -38,7 +38,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'MongoDB Monitoring Service (MMS)'
-copyright = u'2011-2012, 10gen'
+copyright = u'2011-2012, 10gen, Inc.'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -91,7 +91,7 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  Major themes that come with
 # Sphinx are currently 'default' and 'sphinxdoc'.
-html_theme = 'mms'
+html_theme = '10gen'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -106,11 +106,11 @@ html_theme_path = ['themes']
 html_title = 'MMS Manual'
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
-#html_short_title = None
+html_short_title = 'MMS'
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = None
+html_logo = "source/.static/logo-10gen.png"
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -190,7 +190,9 @@ latex_documents = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
+
 intersphinx_mapping = {'http://docs.python.org/': None}
+intersphinx_cache_limit = 30
 
 # -- Options for Epub output ---------------------------------------------------
 
