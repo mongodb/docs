@@ -27,15 +27,210 @@ Procedure
 Initiate Config Database Instances
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Begin by configuring three config servers. These are very small
+:program:`mongod` instances that provide cluster metadata. You must
+have exactly *three* instances in production deployments. For
+redundancy these instances should run on different systems and
+servers.
+
+At a system prompt use the following command to start a config server:
+
+.. code-block:: sh
+
+   mongod --configsvr
+
+The :option:`--configsrv` stores config database in the `configdb/`
+subdirectory of the :setting:`dbpath` directory, which is
+``/data/db/`` by default. Additionally, a config server instance will
+be accessible via port ``27019``. You may use other :doc:`mongod
+runtime options </reference/configuration-options>` in addition to
+:setting:`configsvr` as needed.
+
+Repeat this process for all three config servers.
+
+.. note::
+
+   It's important to separate config server :program:`mongod`
+   instances to provide redundancy and ensure that the cluster
+   metadata is secure and durable. Nevertheless, config
+   :program:`mongod` instances themselves do not demand a large number
+   of system resources and receive relatively little traffic. As a
+   result you may choose to run config server instances on a system
+   that also runs another service: on three of the shards, on a server
+   that has a :program:`mongos`, or another component of your
+   infrastructure.
+
 Start ``mongos`` Instances
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+All operations against a shard cluster use a :program:`mongos`
+instance to route queries and operations to the appropriate shards,
+and to interact with the configdb instances. :program:`mongos`
+instances are lightweight and a shard cluster can have many
+:program:`mongos` instances: typically, you will run one
+:program:`mongos` instance on each of your application servers.
+
+Use the following command at a system prompt to start a
+:program:`mongos`:
+
+.. code-block:: sh
+
+   mongos --configdb config0.mongodb.example.net,config1.mongodb.example.net,config2.mongodb.example.net --port 27017
+
+This invocation assumes that you have config servers running on the
+following hosts:
+
+- ``config0.mongodb.example.net``
+- ``config1.mongodb.example.net``
+- ``config2.mongodb.example.net``
+
+The :program:`mongos` will run on the default MongoDB port of
+``27017``.
+
+You must specify three config servers. Use resolvable host names for
+all hosts, using DNS or your systems hostfile to provide operational
+flexibility.
 
 Add Shards to the Cluster
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
+In a production shard cluster, each shard is itself a :term:`replica
+set`. Deploy at least two replica sets, for use as shards. See
+":doc:`/tutorial/deploy-replica-set`" for instructions regarding
+replica set deployment. When you have two active and functioning
+replica sets, continue below.
+
+Log into a :program:`mongos` using the :program:`mongo` shell. If the
+:program:`mongos` is accessible at ``mongos0.mongodb.example.net`` on
+port ``27017`` then this invocation would resemble:
+
+.. code-block:: sh
+
+   mongo mongos0.mongodb.example.net
+
+Then, use the :func:`sh.addShard()` to add each shard to the cluster.
+
+      sh.addShard( "shard0.example.net" )
+      sh.addShard( "shard1.example.net" )
+
+This will add two shards with the hostnames ``shard0.example.net`` and
+``shard1.example.net`` on port ``27017``.
+
+.. note:: In production deployments, all shards should be replica sets.
+
+   .. versionchanged:: 2.0.3
+
+   After version 2.0.3, you may use the above form to add replica
+   sets to a cluster and the cluster will automatically discover
+   the members of the replica set and adjust its configuration
+   accordingly.
+
+   Before version 2.0.3, you must specify the shard in the
+   following form: the replica set name, followed by a forward
+   slash, followed by a comma-separated list of seeds for the
+   replica set. For example, if the name of the replica set is
+   "``repl0``", then your :func:`sh.addShard` command might resemble:
+
+   .. code-block:: javascript
+
+      sh.addShard( "repl0/shard0.example.net,shard1.example.net" )
+
+The :func:`sh.addShard()` helper in the :program:`mongo` shell
+provides a wrapper around the :dbcommand:`addShard` :term:`database
+command`.
+
 Enable Sharding for Databases
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+While sharding operates on a per-collection basis, you must enable
+sharding for each database that holds a database that you would like
+to shard.
+
+Use the following operation in a :program:`mongo` shell session
+connected to a :program:`mongos` instance in your cluster:
+
+.. code-block:: javascript
+
+   sh.enableSharding("records")
+
+Where ``records`` is the name of the database that holds a collection
+that you want to shard. :func:`sh.enableSharding()` is a wrapper
+around the :dbcommand:`enableSharding` :term:`database command`. You
+may enable sharding for as many databases as you like in your
+deployment.
 
 Enable Sharding for Collections
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Finally, you may enable sharding on a per-collection basis. Because
+MongoDB uses :term:`range based sharding` you must specify a
+:term:`shard key` that MongoDB can use to distribute your documents
+among the shards. See the section of this manual that provides an
+:ref:`overview of shard keys <sharding-shard-key>` as well as the
+section that explores the :ref:`features of good shard keys in-depth
+<sharding-shard-key>`.
+
+Enable sharding for a collection using the
+:func:`sh.shardCollection()` helper in the :program:`mongo` shell,
+which provides a wrapper around the :dbcommand:`shardCollection`
+:term:`database command`. The shell helper has the following prototype
+form:
+
+.. code-block:: javascript
+
+   sh.shardCollection("[database].[collection]", "key")
+
+Replace the ``[database].[collection]`` string with the full namespace
+of your database, which consists of the name of your database, a dot
+(e.g. ``.``), and the full name of the collection. The ``key``
+represents your shard key, which you specify in the same form as you
+would an :dbcommand:`index <ensureIndex>`. If you do not specify the
+``key`` argument, MongoDB will use the ``_id`` field as the shard
+key.
+
+Consider the following example invocations of
+:func:`sh.shardCollection()`:
+
+.. code-block:: javascript
+
+   sh.shardCollection("records.people", { "zipcode": 1, "name": 1 } )
+   sh.shardCollection("people.addresses", { "state": 1, "_id": 1 } )
+   sh.shardCollection("assets.chairs", { "type": 1, "_id": 1 } )
+   sh.shardCollection("events.alerts", { "hashed_id": 1 } )
+
+In order, these operations shard:
+
+#. The ``people`` collection in the ``records`` database using the shard key
+   ``{ "zipcode": 1, "name": 1 }``.
+
+   This shard key distributes documents by the value of the
+   ``zipcode`` field. If a number of documents have the same value for
+   this field, then that :term:`chunk` will be :ref:`splitable
+   <sharding-shard-key-cardinality>` by the values of the ``name``
+   field.
+
+#. The ``addresses`` collection in the ``people`` database using the shard key
+   ``{ "state": 1, "_id": 1 }``.
+
+   This shard key distributes documents by the value of the ``state``
+   field. If a number of documents have the same value for this field,
+   then that :term:`chunk` will be :ref:`splitable
+   <sharding-shard-key-cardinality>` by the values of the ``_id``
+   field.
+
+#. The ``chairs`` collection in the ``assets`` database using the shard key
+   ``{ "type": 1, "_id": 1 }``.
+
+   This shard key distributes documents by the value of the ``type``
+   field. If a number of documents have the same value for this field,
+   then that :term:`chunk` will be :ref:`splitable
+   <sharding-shard-key-cardinality>` by the values of the ``_id``
+   field.
+
+#. The ``alerts`` collection in the ``events`` database using the shard key
+   ``{ "hashed_id": 1 }``.
+
+   This shard key distributes documents by the value of the
+   ``hashed_id`` field. Presumably this is a is a computed value that
+   holds the hash of some value in your documents, and will be able to
+   evenly distribute documents throughout your cluster.
