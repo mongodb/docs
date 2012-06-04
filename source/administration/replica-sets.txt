@@ -26,7 +26,6 @@ addition to general troubleshooting suggestions.
    - :doc:`/tutorial/convert-replica-set-to-replicated-shard-cluster`
    - :doc:`/tutorial/deploy-geographically-distributed-replica-set`
 
-
 Procedures
 ----------
 
@@ -46,8 +45,9 @@ From to time, you may need to add an additional member to an existing
 
 - copy the data directory from an existing member. The new member
   becomes a secondary, and will catch up to the current state of the
-  replica set after a short interval. By copying the data over 
-  manually, replication is given a head-start.
+  replica set after a short interval. Copying the data over manually,
+  shortens the amount of time it takes for the new member to become
+  current.
 
   If the difference in the amount of time between the most recent
   operation and the most recent operation to the database exceeds the
@@ -98,13 +98,12 @@ this case.
 Removing Members
 ~~~~~~~~~~~~~~~~
 
-A member of a replica set may be removed at any time, for any number 
-of operational reasons. Use the :func:`rs.remove()` function
-in the :program:`mongo` shell while connected to the current
-:term:`primary`. Issue the :func:`db.isMaster()` command when
-connected to *any* member of the set to determine the current
-:term:`primary`. Use a command in either of the following forms to
-remove the member:
+You may remove a member of a replica at any time, if needed. Use the
+:func:`rs.remove()` function in the :program:`mongo` shell while
+connected to the current :term:`primary`. Issue the
+:func:`db.isMaster()` command when connected to *any* member of the
+set to determine the current :term:`primary`. Use a command in either
+of the following forms to remove the member:
 
 .. code-block:: javascript
 
@@ -127,46 +126,46 @@ directly.
 Replacing a Member
 ~~~~~~~~~~~~~~~~~~
 
-There are two methods for replacing a member of a replica set.
+There are two processes for replacing a member of a replica set:
 
-First, you may remove and then re-add a member using the following 
-procedure in the :program:`mongo` shell:
+#. Remove and then re-add a member using the following procedure in
+   the :program:`mongo` shell:
 
-.. code-block:: javascript
+   .. code-block:: javascript
 
-   rs.remove("mongo2.example.net:27018")
-   rs.add({host: "mongo2.example.net:27019", priority: 0, hidden: true})
+      rs.remove("mongo2.example.net:27018")
+      rs.add({host: "mongo2.example.net:27019", priority: 0, hidden: true})
 
-.. note::
+   .. note::
 
-   Because the set member tracks its own replica set member ``_id``
-   which can cause conflicts when trying to re-add a previous member.
+      Because the set member tracks its own replica set member ``_id``
+      which can cause conflicts when trying to re-add a previous member.
 
-   To resolve this issue, you can either restart the :program:`mongod`
-   process on the host that you're re-adding, or make sure that you
-   specify an ``_id`` in the :func:`rs.add()` document.
+      To resolve this issue, you can either restart the
+      :program:`mongod` process on the host that you're re-adding, or
+      make sure that you specify an ``_id`` in the :func:`rs.add()`
+      document.
 
-Second, you may consider using the following procedure to use
-:func:`rs.reconfig()` to change the value of the
-:data:`members[n].host` field to reflect the new hostname or port
-number. In this case, the :data:`members[n]._id` field is not reused
-by the new member.
+#. Use :func:`rs.reconfig()` to change the value of the
+   :data:`members[n].host` field to reflect the new hostname or port
+   number. In this case, the :data:`members[n]._id` field is not
+   reused by the new member.
 
-.. code-block:: javascript
+   .. code-block:: javascript
 
-   cfg = rs.conf()
-   cfg.members[0].host = "mongo2.example.net:27019"
-   rs.reconfig(cfg)
+      cfg = rs.conf()
+      cfg.members[0].host = "mongo2.example.net:27019"
+      rs.reconfig(cfg)
 
-The second method may be useful if you have an existing configuration
-and only want to change the hostname of a member rather than
-completely remove all configuration related to the existing/previous
-set member. The :data:`members[n]._id` field does not change as a
-result of this operation.
+   The second method may be useful if you have an existing configuration
+   and only want to change the hostname of a member rather than
+   completely remove all configuration related to the existing/previous
+   set member. The :data:`members[n]._id` field does not change as a
+   result of this operation.
 
 .. warning::
 
-   Replica set configuration changes can trigger the current
+   Any replica set configuration change can trigger the current
    :term:`primary` to step down forcing an :term:`election`. This
    causes the current shell session to produce an error even when the
    operation succeeds. Clients connected to this replica set will also
@@ -572,8 +571,8 @@ Failover and Recovery
 
 In most cases, failover occurs without administrator intervention
 seconds after the :term:`primary` steps down, becomes inaccessible,
-or otherwise ineligible to act as primary. If your MongoDB deployment 
-does not failover according to expectations, consider the following 
+or otherwise ineligible to act as primary. If your MongoDB deployment
+does not failover according to expectations, consider the following
 operational errors:
 
 - No remaining member is able to form a majority. This can happen as a
@@ -597,10 +596,8 @@ down. When the former primary begins replicating again it performs a
 "rollback." Rollbacks remove those operations from the instance that
 were never replicated to the set so that the data set is in a
 consistent state. The :program:`mongod` program writes rolled back
-data to a :term:`BSON`.
-
-.. a *what*?  TODO: Clarify what is meant by "program writes rolled
-.. back data to a BSON"
+data to a :term:`BSON` file that you can view using
+:program:`bsondump` apply manually using :program:`mongorestore`.
 
 You can prevent rollbacks prevented by ensuring safe writes by using
 the appropriate :term:`write concern`.
