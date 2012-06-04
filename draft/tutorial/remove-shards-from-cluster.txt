@@ -1,3 +1,145 @@
 ============================================
 Remove Shards from an Existing Shard Cluster
 ============================================
+
+Synopsis
+--------
+
+This document describes the process for safely migrating data from a
+shard so that you may decommission the systems that provide for the
+purpose of migration, or downsizing a cluster in response to actual
+use. 
+
+This process is only required if you need to migrate all data from an
+existing shard and decommission that shard. If you need to migrate an
+entire shard to new hardware, *do not* use this procedure. Rather,
+migrate individual shards as if they were independent replica sets.
+
+.. DOCS-94 will lead to a tutorial about cluster migrations. In the
+.. mean time the above section will necessarily lack links.
+
+The following list outlines the process for removing shards, from a
+high level: 
+
+- Begin moving :term:`chunks` off of the shard.
+
+- Ensure that this shard is not the "primary" shard for any databases
+  in the cluster. If it is, move the "primary" status for these
+  databases to other shards.
+
+- Finally, remove the shard from the cluster's configuration.
+
+Continue reading for a more complete guide to removing and
+decommissioning a shard.
+
+Procedure
+---------
+
+.. note::
+
+   To successfully migrate data from a shard, the :term:`balancer`
+   process **must** be active. Check the balancer state using the
+   :func:`sh.getBalancerState()` helper in the :program:`mongo`
+   shell. See this section on :ref:`balancer operations
+   <sharding-balancing-disable-temporally>` for more information.
+
+The formal procedure for to remove a shard is as follows:
+
+#. Connect to any :program:`mongos` in the cluster using the
+   :program:`mongo` shell.
+
+#. Determine the name of the shard you will be removing.
+
+   You must specify the name of the shard. You may have specified this
+   shard name when you first ran the :dbcommand:`addShard` command. If not,
+   you can find out the name of the shard by running the :dbcommand:`listshards`
+   (or :func:`sh.status()` or :dbcommand:`printShardingStatus`) command.
+
+   In the examples that follow, we'll assume we're removing a shard called ``mongodb0``.
+
+#. Begin removing chunks from the shard.
+
+   Start by running the :dbcommand:`removeShard` command. This will
+   start "draining" chunks from the shard you''re removing.
+
+   .. code-block:: javascript
+
+      db.runCommand( { removeshard: "mongodb0" } )
+
+   This operation will return the following response immediately:
+
+   .. code-block:: javascript
+
+      { msg : "draining started successfully" , state: "started" , shard :"mongodb0" , ok : 1 }
+
+   Depending on your network capacity and the amount of data in your
+   cluster, this operation can take anywhere from a few minutes to several
+   days to complete.
+
+#. Check the progress of the migration.
+
+   You can run the :dbcommand:`removeShard` again at any stage of the
+   process to check the progress of the migration, as follows:
+
+   .. code-block:: javascript
+
+      db.runCommand( { removeshard: "mongodb0" } )
+
+   The output should look something like this:
+
+   .. code-block:: javascript
+
+      { msg: "draining ongoing" ,  state: "ongoing" , remaining: { chunks: 42, dbs : 1 }, ok: 1 }
+
+   In the ``remaining`` sub document, a counter displays the
+   total number of chunks that MongoDB must migrate to other shards,
+   and the number of MongoDB databases that have "primary" status on
+   this shard.
+
+   Continue checking the status of the `removeshard` command until
+   the number of chunks remaining is 0. Then you can proceed to the next step.
+
+#. Move any databases to other shards in the cluster.
+
+   Databases with non-sharded collections store these collections
+   on a so-called "primary" shard. The following step is necessary
+   only when the shard you want to remove is also the "primary" shard
+   for one or more databases.
+
+   Issue the following command at the :program:`mongo` shell:
+
+   .. code-block:: javascript
+
+      db.runCommand( { movePrimary: "myapp", to: "mongodb1" })
+
+   This command will migrate all remaining non-sharded data in the
+   database named ``myapp`` to the shard named ``mongodb1``.
+
+   .. warning::
+
+      Do not run the :dbcommand:`movePrimary` until you have *finished*
+      draining the shard.
+
+   This command can be long-running. It will not return until MongoDB
+   completes moving all data. The response from this command will
+   resemble the following:
+
+   .. code-block:: javascript
+
+      { "primary" : "mongodb1", "ok" : 1 }
+
+#. Run :dbcommand:`removeShard` again to clean up all metadata
+   information and finalize the removal, as follows:
+
+   .. code-block:: javascript
+
+      db.runCommand( { removeshard: "mongodb0" } )
+
+   When successful, this command will return a document like this:
+
+   .. code-block:: javascript
+
+      { msg: "remove shard completed succesfully" , stage: "completed", host: "mongodb0", ok : 1 }
+
+Once the value if "state" is "completed", you may safely stop the processes
+comprising the ``mongodb0`` shard.
