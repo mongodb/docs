@@ -13,6 +13,7 @@ addition to general troubleshooting suggestions.
 
 .. seealso::
 
+   - :func:`rs.status()` and :func:`db.isMaster()`
    - :ref:`Replica Set Reconfiguration Process <replica-set-reconfiguration-usage>`
    - :func:`rs.conf()` and :func:`rs.reconfig()`
    - :doc:`/reference/replica-configuration`
@@ -20,10 +21,11 @@ addition to general troubleshooting suggestions.
    The following tutorials provide task-oriented instructions for
    specific administrative tasks related to replica set operation.
 
-   - :doc:`/tutorial/convert-replica-set-to-replicated-shard-cluster`
-   - :doc:`/tutorial/deploy-geographically-distributed-replica-set`
    - :doc:`/tutorial/deploy-replica-set`
    - :doc:`/tutorial/expand-replica-set`
+   - :doc:`/tutorial/convert-replica-set-to-replicated-shard-cluster`
+   - :doc:`/tutorial/deploy-geographically-distributed-replica-set`
+
 
 Procedures
 ----------
@@ -44,7 +46,8 @@ From to time, you may need to add an additional member to an existing
 
 - copy the data directory from an existing member. The new member
   becomes a secondary, and will catch up to the current state of the
-  replica set after a short interval.
+  replica set after a short interval. By copying the data over 
+  manually, replication is given a head-start.
 
   If the difference in the amount of time between the most recent
   operation and the most recent operation to the database exceeds the
@@ -81,7 +84,7 @@ example:
    rs.add({_id: 1, host: "mongo2.example.net:27017", priority: 0, hidden: true})
 
 This configures a :term:`hidden member` that is accessible at
-``mongo2.example.net:27018``. See ":data:`host <members[n].host>`,"
+``mongo2.example.net:27017``. See ":data:`host <members[n].host>`,"
 ":data:`priority <members[n].priority>`," and ":data:`hidden
 <members[n].hidden>`" for more information about these settings. When
 you specify a full configuration object with :func:`rs.add()`, you must
@@ -95,8 +98,8 @@ this case.
 Removing Members
 ~~~~~~~~~~~~~~~~
 
-Administrators can remove any member of a replica set at any time, for
-a number of operational reasons. Use the :func:`rs.remove()` function
+A member of a replica set may be removed at any time, for any number 
+of operational reasons. Use the :func:`rs.remove()` function
 in the :program:`mongo` shell while connected to the current
 :term:`primary`. Issue the :func:`db.isMaster()` command when
 connected to *any* member of the set to determine the current
@@ -124,9 +127,10 @@ directly.
 Replacing a Member
 ~~~~~~~~~~~~~~~~~~
 
-There are two methods for replacing a member of a replica set. First,
-you may remove and then re-add a member using the following procedure
-in the :program:`mongo` shell:
+There are two methods for replacing a member of a replica set.
+
+First, you may remove and then re-add a member using the following 
+procedure in the :program:`mongo` shell:
 
 .. code-block:: javascript
 
@@ -308,7 +312,7 @@ primary. Member ``3`` has a priority of ``2`` and will become primary,
 if eligible, under most circumstances. Member ``2`` has a priority of
 ``1``, and will become primary if no node with a higher priority is
 eligible to be primary. Since all additional nodes in the set will
-also have a prio1rity of ``1`` by default, member ``2`` and all
+also have a priority of ``1`` by default, member ``2`` and all
 additional nodes will be equally likely to become primary if higher
 priority nodes are not accessible. Finally, member ``1`` has a
 priority of ``0.5``, which makes it less likely to become primary than
@@ -566,15 +570,15 @@ Possible causes of replication lag include:
 Failover and Recovery
 ~~~~~~~~~~~~~~~~~~~~~
 
-In most cases, failover occurs with out administrator intervention
-seconds after the :term:`primary` steps down or becomes inaccessible
-and ineligible to act as primary. If your MongoDB deployment does not
-failover according to expectations, consider the following operational
-errors:
+In most cases, failover occurs without administrator intervention
+seconds after the :term:`primary` steps down, becomes inaccessible,
+or otherwise ineligible to act as primary. If your MongoDB deployment 
+does not failover according to expectations, consider the following 
+operational errors:
 
 - No remaining member is able to form a majority. This can happen as a
-  result of network portions that render some members
-  inaccessible. Architect your deployment to ensure that a majority of
+  result of network partitions that render some members
+  inaccessible. Design your deployment to ensure that a majority of
   set members can elect a primary in the same facility as core
   application systems.
 
@@ -594,6 +598,9 @@ down. When the former primary begins replicating again it performs a
 were never replicated to the set so that the data set is in a
 consistent state. The :program:`mongod` program writes rolled back
 data to a :term:`BSON`.
+
+.. a *what*?  TODO: Clarify what is meant by "program writes rolled
+.. back data to a BSON"
 
 You can prevent rollbacks prevented by ensuring safe writes by using
 the appropriate :term:`write concern`.
