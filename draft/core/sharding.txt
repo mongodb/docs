@@ -226,7 +226,7 @@ for your data service needs.
 Shard Keys
 ----------
 
-TODO link this section to <glossary:shard key>
+.. TODO link this section to <glossary:shard key>
 
 "Shard keys" refer to the :term:`field` that exists in every
 :term:`document` in a collection that that MongoDB uses to distribute
@@ -366,13 +366,13 @@ resources.
    alternate architecture decisions if you make use the
    :term:`aggregation framework` extensively in a sharded environment.
 
-Query Routing
-~~~~~~~~~~~~~
+Routing
+~~~~~~~
 
 :program:`mongos` uses information from :ref:`config servers
-<sharding-config-server>` to return queries as efficiently as
-possible. MongoDB classifies all operations in a sharded environment
-as "**targeted**" or "**global**, as follows:
+<sharding-config-server>` to route operations to the cluster as
+efficiently as possible. In general, operations in a sharded
+environment are either "**targeted**" or "**global**, as follows:
 
 #. *Targeted* operations, where the :program:`mongos` sends the
    operations to specific :program:`mongod` instance based on the
@@ -387,14 +387,17 @@ as "**targeted**" or "**global**, as follows:
 
       db.collection.find( { shard_id: 355 } )
       db.collection.find( { shard_id: 52, host: "example.org" } )
-      db.collection.insert( { shard_id: 155, host: "example.net", [...] } )
-      db.collection.insert( { [...] } ) // all insert operations are targeted.
       db.collection.update( { shard_id: 112, host: "example.org"} , { $inc: { counter: 1 } } )
       db.collection.remove( { shard_id: 355 } )
+      db.collection.insert( { [...] } )
 
-#. *Global* operations, where the :program:`mongos` sends the
-   operations to *all* :program:`mongod` instances, and then combines
-   the responses before sending them to the the application layer.
+   As in the last example, :program:`mongos` can target all insert
+   operations at a specific shard.
+
+#. Other operations are *global*. :program:`mongos` cannot target these
+   operations at specific shard, and must send the operations to *all*
+   :program:`mongod` instances.
+   
    For example, given a shard key of ``{ shard_id: 1 }``, the
    :program:`mongos` would have to send all operations to all shards
    in the cluster, as in the following:
@@ -405,40 +408,39 @@ as "**targeted**" or "**global**, as follows:
       db.collection.find( { host: "example.com" } )
       db.collection.update( { shard_id: 112, host: "example.org"} , { $inc: { counter: 1 } } )
       db.collection.remove( { host: "test.example.com" } )
-      db.collection.ensureIndex( [...] ) // all index operations are global.
+      db.collection.ensureIndex( [...] )
 
-   At the same time we can also divide global operations into two
-   categories: *parallel* and *sequential*.
+   As in the last example, :program:`mongos` must send any index
+   operations to all shards.
 
-   Parallel operations must run on all shards, return to the
-   :program:`mongos` which does a final operation on the results and
-   returns to the application. Sequential operations, run on all
-   shards, but the :program:`mongos` will begin returning data to the
-   client as soon as the *first* shard returns data.
+For most global operations, the :program:`mongos` will begin returning
+results as soon as the *first* shard returns data. These are
+"parallel" operations. However, for some results, the
+:program:`mongos` must wait until *all* shards return results before
+it can begin returning data to the client. In turn, these operations
+are "sequential." Consider the following example:
 
-   Given a shard key of ``{ shard_id: 1 }``, the following
-   operations are *parallel*:
+Given a shard key of ``{ shard_id: 1 }``, the following operations are
+*parallel*:
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      db.collection.find( [...] ).sort( { shard_id: 1 } )
-      db.collection.find().count()
+   db.collection.find( [...] ).sort( { shard_id: 1 } )
+   db.collection.find().count()
 
-   .. note::
+Given a shard key of ``{ shard_id: 1 }``, the following
+operations are *sequential*:
 
-      :func:`count() <cursor.count()>` operations on queries
-      (i.e. :func:`find() <db.collection.find()>`) may be global or
-      targeted depending on the underlying query.
+.. code-block:: javascript
 
-   Given a shard key of ``{ shard_id: 1 }``, the following
-   operations are *sequential*:
+   db.collection.find()
+   db.collection.find( [...] ).sort( { counter: -1 } )
 
-   .. code-block:: javascript
+.. note::
 
-      db.collection.find()
-      db.collection.find( [...] ).sort( { counter: -1 } )
-
-TODO factcheck above, (the wiki is unclear and I want to make sure this is correct.)
+   :func:`count() <cursor.count()>` operations on queries
+   (i.e. :func:`find() <db.collection.find()>`) may be global or
+   targeted depending on the underlying query.
 
 While some global operations may be unavoidable, you can prevent many
 global operations by ensuring that you include the shard key in your
