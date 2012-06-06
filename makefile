@@ -169,6 +169,7 @@ manual:$(CURRENTBUILD)
 source/about.txt:
 	touch source/about.txt
 
+$(CURRENTBUILD)/tutorial:$(CURRENTBUILD)
 tutorials:$(CURRENTBUILD)/tutorial
 	ln -f -s tutorial $@
 $(CURRENTBUILD)/tutorials:tutorials
