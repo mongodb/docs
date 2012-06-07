@@ -372,79 +372,47 @@ Routing
 :program:`mongos` uses information from :ref:`config servers
 <sharding-config-server>` to route operations to the cluster as
 efficiently as possible. In general, operations in a sharded
-environment are either "**targeted**" or "**global**, as follows:
+environment are either:
 
-#. *Targeted* operations, where the :program:`mongos` sends the
-   operations to specific :program:`mongod` instance based on the
-   :term:`shard key`.
+1. Targeted at a single shard or a limited group of shards based on
+   the shard key.
 
-   For example, given a shard key of ``{ shard_id: 1 }``, the
-   :program:`mongos` would target the following operations at a
-   specific :program:`mongod` or a small number of :program:`mongod`
-   instances:
+2. Broadcast to all shards in the cluster hold documents in a
+   collection.
 
-   .. code-block:: javascript
+When possible you should design your operations to be as targeted as
+possible. Operations have the following targeting characteristics:
 
-      db.collection.find( { shard_id: 355 } )
-      db.collection.find( { shard_id: 52, host: "example.org" } )
-      db.collection.update( { shard_id: 112, host: "example.org"} , { $inc: { counter: 1 } } )
-      db.collection.remove( { shard_id: 355 } )
-      db.collection.insert( { [...] } )
+- Query operations broadcast to all shards [#namespace-exception]
+  **unless** the :program:`mongos` can determine which shard or shard
+  stores this data.
 
-   As in the last example, :program:`mongos` can target all insert
-   operations at a specific shard.
+  For queries that include the shard key, :program:`mongos` can target
+  the query at a specific shard. For example:
 
-#. Other operations are *global*. :program:`mongos` cannot target these
-   operations at specific shard, and must send the operations to *all*
-   :program:`mongod` instances.
-   
-   For example, given a shard key of ``{ shard_id: 1 }``, the
-   :program:`mongos` would have to send all operations to all shards
-   in the cluster, as in the following:
+  For queries that contain a component of the shard key, the
+  :program:`mongos` may be able to target the query at a limited
+  subset of shards.
 
-   .. code-block:: javascript
+- All :func:`insert() <db.collection.insert()>` operations
+  target to one shard.
 
-      db.collection.find()
-      db.collection.find( { host: "example.com" } )
-      db.collection.update( { shard_id: 112, host: "example.org"} , { $inc: { counter: 1 } } )
-      db.collection.remove( { host: "test.example.com" } )
-      db.collection.ensureIndex( [...] )
+- All :func:`update() <db.collection.update()>` operations
+  target to one shard. This includes :term:`upsert` operations.
 
-   As in the last example, :program:`mongos` must send any index
-   operations to all shards.
+- The :program:`mongos` brodcasts multi-update operations to every
+  shard.
 
-For most global operations, the :program:`mongos` will begin returning
-results as soon as the *first* shard returns data. These are
-"parallel" operations. However, for some results, the
-:program:`mongos` must wait until *all* shards return results before
-it can begin returning data to the client. In turn, these operations
-are "sequential." Consider the following example:
+- The :program:`mongos` broadcasts :func:`remove()
+  <db.collection.remove()>` operations to every shard.
 
-Given a shard key of ``{ shard_id: 1 }``, the following operations are
-*parallel*:
+While some broadcast-type operations are unavoidable, you can improve
+performance by using as many targeted operations as possible by
+ensuring that your operations include the shard key.
 
-.. code-block:: javascript
-
-   db.collection.find( [...] ).sort( { shard_id: 1 } )
-   db.collection.find().count()
-
-Given a shard key of ``{ shard_id: 1 }``, the following
-operations are *sequential*:
-
-.. code-block:: javascript
-
-   db.collection.find()
-   db.collection.find( [...] ).sort( { counter: -1 } )
-
-.. note::
-
-   :func:`count() <cursor.count()>` operations on queries
-   (i.e. :func:`find() <db.collection.find()>`) may be global or
-   targeted depending on the underlying query.
-
-While some global operations may be unavoidable, you can prevent many
-global operations by ensuring that you include the shard key in your
-queries other and operations.
+.. [#namespace-exception] If a shard does not store chunks from a
+   given collection, queries for documents in that collection are not
+   broadcast to that shard.
 
 .. index:: balancing
 .. _sharding-balancing:
