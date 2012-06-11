@@ -57,6 +57,13 @@ On OS X:
 
    ``Jinja2``, ``Pygments``, and ``docutils`` are all dependencies of
    ``Sphinx``.
+   
+   .. note:: 
+      
+      As of June 6, 2012 and Sphinx version 1.1.3, you **must**
+      compile the MongoDB documentation using the Python 2.x series
+      version of Sphinx. There are serious generation problems with
+      the Python 3 series version of Sphinx.
 
 #. Install a TeX distribution (for building the PDF.) If you do not
    have a LaTeX installation, use `MacTeX <http://www.tug.org/mactex/2011/>`_
