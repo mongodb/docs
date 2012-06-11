@@ -27,11 +27,11 @@ issues or understanding your cluster's behavior.
 Setup
 -----
 
-If you have an existing replica set, you can use then
+If you have an existing replica set, you can use the
 ":doc:`/tutorial/convert-replica-set-to-replicated-shard-cluster`"
 tutorial as a guide. If you're deploying a :term:`shard cluster` from
-scratch, see the ":doc:`/tutorial/deploy-shard-cluster`" tutorial or
-use the following procedure as a starting point:
+scratch, see the ":doc:`/tutorial/deploy-shard-cluster`" tutorial for
+more detail or use the following procedure as a quick starting point:
 
 #. Provision the required hardware.
 
@@ -40,12 +40,11 @@ use the following procedure as a starting point:
 
    .. warning:: Sharding and "localhost" Addresses
 
-      If you use either "localhost" or "``127.0.0.1``" as the hostname
-      portion of any host identifier, either the ``host`` argument to
-      :dbcommand:`addShard` or the value to the :option:`mongos
-      --configdb` run time option, then you must use "localhost" or
-      "``127.0.0.1``" for *all* host settings. If you mix localhost
-      addresses and remote host address, MongoDB will produce errors.
+      If you use either "localhost" or "``127.0.0.1``" as the host
+      identifier, then you must use "localhost" or "``127.0.0.1``" for
+      *all* host settings for any MongoDB instances in the cluster. If
+      you mix localhost addresses with remote host address, MongoDB will
+      produce errors.
 
 #. On all three (3) config server instances, issue the following
    command to start the :program:`mongod` process:
@@ -57,7 +56,7 @@ use the following procedure as a starting point:
    This starts a :program:`mongod` instance running on TCP port
    ``27018``, with the data stored in the ``/data/configdb`` path. All other
    :doc:`command line </reference/mongod>` and :doc:`configuration
-   file </reference/configuration-options>` are available for config
+   file </reference/configuration-options>` options are available for config
    server instances.
 
 #. Start a :program:`mongos` instance. Use the following command:
@@ -66,7 +65,7 @@ use the following procedure as a starting point:
 
       mongos --configdb config0.mongodb.example.net,config1.mongodb.example.net,config2.mongodb.example.net --port 27017
 
-#. Access the :program:`mongos` instance using the :program:`mongo`
+#. Connect to the :program:`mongos` instance using the :program:`mongo`
    shell.
 
    .. code-block:: sh
@@ -75,9 +74,9 @@ use the following procedure as a starting point:
 
 #. Add shards to the cluster.
 
-   In the steps that follow, you'll use the MongoDB shell to run
-   commands against the :program:`mongos` to initialize the cluster.
-
+   Run the following commands while connected to a :program:`mongos` to
+   initialize the cluster.
+ 
    First, you need to tell the cluster where to find the individual
    shards. You can do this using the :dbcommand:`addShard` command.
 
@@ -95,22 +94,17 @@ use the following procedure as a starting point:
 
       .. versionchanged:: 2.0.3
 
-      After version 2.0.3, you may use the above form to add replica
-      sets to a cluster and the cluster will automatically discover
-      the members of the replica set and adjust its configuration
-      accordingly.
-
-      Before version 2.0.3, you must specify the shard in the
-      following form: the replica set name, followed by a forward
-      slash, followed by a comma-separated list of seeds for the
-      replica set. For example, if the name of the replica set is
-      "``repl0``", then your :func:`sh.addShard` command might resemble:
+      Before version 2.0.3, you must specify the shard in the following
+      form: the replica set name, followed by a forward slash, followed
+      by a comma-separated list of seeds for the replica set. For
+      example, if the name of the replica set is "``repl0``", then your
+      :func:`sh.addShard` command would be:
 
       .. code-block:: javascript
 
          sh.addShard( "repl0/mongodb0.example.net:27027,mongodb1.example.net:27017" )
 
-   Repeat this step for each shards in your cluster.
+   Repeat this step for each new shard in your cluster.
 
    .. optional::
 
@@ -120,6 +114,11 @@ use the following procedure as a starting point:
       .. code-block:: javascript
 
          db.runCommand( { addShard: mongodb0.example.net, name: "mongodb0" } )
+
+      Or:
+
+      .. code-block:: javascript
+
          sh.addShard( mongodb0.example.net, name: "mongodb0" )
 
       If you do not specify a shard name, then MongoDB will assign a
@@ -127,7 +126,8 @@ use the following procedure as a starting point:
 
 #. Enable sharding for any database that you want to shard.
 
-   MongoDB enables sharding on a per-database basis. To enable
+   MongoDB enables sharding on a per-database basis. This is only a
+   meta-data change and will not redistribute your data. To enable
    sharding for a given database, use the :dbcommand:`enableSharding`
    command or the :func:`sh.enableSharding()` shell function.
 
@@ -141,25 +141,24 @@ use the following procedure as a starting point:
 
       sh.enableSharding([database])
 
-   Replace ``[database]``  with the name of the database you wish to
+   Replace ``[database]`` with the name of the database you wish to
    enable sharding on.
 
    .. note::
 
-      MongoDB creates databases automatically on first use.
+      MongoDB creates databases automatically upon their first use.
 
       Once you enable sharding for a database, MongoDB assigns a
-      "primary" shard for that database, where all data lives
-      initially before sharding begins.
+      "primary" shard for that database, where MongoDB stores all data
+      before sharding begins.
 
 #. Enable sharding on a per-collection basis.
 
    Finally, you must explicitly specify collections to shard.  The
    collections must belong to a database for which you have enabled
    sharding. When you shard a collection, you also choose the shard
-   key. To get this process started, run the
-   :dbcommand:`shardCollection` command or the
-   :func:`sh.shardCollection()` shell helper.
+   key. To shard a collection, run the :dbcommand:`shardCollection`
+   command or the :func:`sh.shardCollection()` shell helper.
 
    .. code-block:: javascript
 
@@ -171,7 +170,7 @@ use the following procedure as a starting point:
 
       sh.shardCollection("[database].[collection]", "key")
 
-   In actual use, these commands would resemble the following:
+   For example:
 
    .. code-block:: javascript
 
@@ -184,11 +183,11 @@ use the following procedure as a starting point:
    The choice of shard key is incredibly important: it affects
    everything about the cluster from the efficiency of your queries to
    the distribution of data. Furthermore, you cannot change a
-   collection's shard key. Therefore, you should spend some time
-   reading and thinking about this topic.  See the ":ref:`Shard Key
-   Overview <sharding-shard-key>`" and ":ref:`Shard Internals
-   <sharding-internals-shard-keys>`" to help you choose a better shard
-   key.
+   collection's shard key once it has been set. 
+
+   See the ":ref:`Shard Key Overview <sharding-shard-key>`" and
+   ":ref:`Shard Internals <sharding-internals-shard-keys>`" to help you
+   choose a better shard key.
 
    If you do not specify a shard key, MongoDB will shard the
    collection using the ``_id`` field, and this is rarely ideal.
@@ -209,7 +208,7 @@ Adding a Shard to a Cluster
 To add a shard to an *existing* shard cluster, use the following
 procedure:
 
-#. Connect to any :program:`mongos` in the cluster using the
+#. Connect to a :program:`mongos` in the cluster using the
    :program:`mongo` shell.
 
 #. First, you need to tell the cluster where to find the individual
@@ -233,11 +232,6 @@ procedure:
 
       .. versionchanged:: 2.0.3
 
-      After version 2.0.3, you may use the above form to add replica
-      sets to a cluster and the cluster will automatically discover
-      the members of the replica set and adjust its configuration
-      accordingly.
-
       Before version 2.0.3, you must specify the shard in the
       following form: the replica set name, followed by a forward
       slash, followed by a comma-separated list of seeds for the
@@ -248,7 +242,7 @@ procedure:
 
          sh.addShard( "myapp1/mongodb0.example.net:27027,mongodb1.example.net:27017" )
 
-   Repeat this step for each shards in your cluster.
+   Repeat for each shard in your cluster.
 
    .. optional::
 
@@ -258,6 +252,11 @@ procedure:
       .. code-block:: javascript
 
          db.runCommand( { addShard: mongodb0.example.net, name: "mongodb0" } )
+	 
+      Or:
+
+      .. code-block:: javascript
+
          sh.addShard( mongodb0.example.net, name: "mongodb0" )
 
       If you do not specify a shard name, then MongoDB will assign a
@@ -265,8 +264,8 @@ procedure:
 
 .. note::
 
-   It may take some time for :term:`chunks <chunk>` to migrate to
-   the new shard.
+   It may take some time for :term:`chunks <chunk>` to migrate to the
+   new shard.
 
    See the ":ref:`Balancing and Distribution <sharding-balancing>`"
    section for an overview of the balancing operation and the ":ref:`Balancing Internals
@@ -279,11 +278,11 @@ Removing a Shard from a Cluster
 
 To remove a :term:`shard` from a :term:`shard cluster`, you must:
 
-- Begin moving :term:`chunks <chunk>` off of the shard.
+- Migrate :term:`chunks <chunk>` to another shard or database.
 
-- Ensure that this shard is not the "primary" shard for any databases
-  in the cluster. If it is, move the "primary" status for these databases to
-  other shards.
+- Ensure that this shard is not the "primary" shard for any databases in
+  the cluster. If it is, move the "primary" status for these databases
+  to other shards.
 
 - Finally, remove the shard from the cluster's configuration.
 
@@ -292,9 +291,9 @@ To remove a :term:`shard` from a :term:`shard cluster`, you must:
    To successfully migrate data from a shard, the :term:`balancer`
    process **must** be active.
 
-The formal procedure for to remove a shard is as follows:
+The procedure to remove a shard is as follows:
 
-#. Connect to any :program:`mongos` in the cluster using the
+#. Connect to a :program:`mongos` in the cluster using the
    :program:`mongo` shell.
 
 #. Determine the name of the shard you will be removing.
@@ -305,12 +304,13 @@ The formal procedure for to remove a shard is as follows:
    :dbcommand:`listshards` or :dbcommand:`printShardingStatus`
    commands or the :func:`sh.status()` shell helper.
 
-   The examples that follow will remove a shard named ``mongodb0``.
+   The following examples will remove a shard named ``mongodb0`` from the cluster.
 
 #. Begin removing chunks from the shard.
 
    Start by running the :dbcommand:`removeShard` command. This will
-   start "draining" chunks from the shard you''re removing.
+   start "draining" or migrating chunks from the shard you're removing
+   to another shard in the cluster.
 
    .. code-block:: javascript
 
@@ -322,39 +322,37 @@ The formal procedure for to remove a shard is as follows:
 
       { msg : "draining started successfully" , state: "started" , shard :"mongodb0" , ok : 1 }
 
-   Depending on your network capacity and the amount of data in your
-   cluster, this operation can take anywhere from a few minutes to several
+   Depending on your network capacity and the amount of data in the
+   shard, this operation can take anywhere from a few minutes to several
    days to complete.
 
-#. Check the progress of the migration.
+#. View progress of the migration.
 
    You can run the :dbcommand:`removeShard` again at any stage of the
-   process to check the progress of the migration, as follows:
+   process to view the progress of the migration, as follows:
 
    .. code-block:: javascript
 
-      db.runCommand( { removeshard: "mongodb0" } )
+      db.runCommand( { removeShard: "mongodb0" } )
 
    The output should look something like this:
 
    .. code-block:: javascript
 
-      { msg: "draining ongoing" ,  state: "ongoing" , remaining: { chunks: 42, dbs : 1 }, ok: 1 }
+      { msg: "draining ongoing" , state: "ongoing" , remaining: { chunks: 42, dbs : 1 }, ok: 1 }
 
-   In the ``remaining`` sub document, a counter displays the
-   total number of chunks that MongoDB must migrate to other shards,
-   and the number of MongoDB databases that have "primary" status on
-   this shard.
+   In the ``remaining`` sub-document ``{ chunks: xx, dbs: y }``, a
+   counter displays the remaining number of chunks that MongoDB must
+   migrate to other shards and the number of MongoDB databases that have
+   "primary" status on this shard.
 
-   Continue checking the status of the `removeshard` command until
-   the number of chunks remaining is 0. Then you can proceed to the next step.
+   Continue checking the status of the :dbcommand:`removeShard` command
+   until the remaining number of chunks to transfer is 0.
 
-#. Move any databases to other shards in the cluster.
+#. Move any databases to other shards in the cluster as needed.
 
-   Databases with non-sharded collections store these collections
-   on a so-called "primary" shard. The following step is necessary
-   only when the shard you want to remove is also the "primary" shard
-   for one or more databases.
+   This is only necessary when removing a shard that is also the
+   "primary" shard for one or more databases.
 
    Issue the following command at the :program:`mongo` shell:
 
@@ -370,16 +368,15 @@ The formal procedure for to remove a shard is as follows:
       Do not run the :dbcommand:`movePrimary` until you have *finished*
       draining the shard.
 
-   This command can be long-running. It will not return until MongoDB
-   completes moving all data. The response from this command will
-   resemble the following:
+   The command will not return until MongoDB completes moving all
+   data. The response from this command will resemble the following:
 
    .. code-block:: javascript
 
       { "primary" : "mongodb1", "ok" : 1 }
 
 #. Run :dbcommand:`removeShard` again to clean up all metadata
-   information and finalize the removal, as follows:
+   information and finalize the shard removal, as follows:
 
    .. code-block:: javascript
 
@@ -391,8 +388,8 @@ The formal procedure for to remove a shard is as follows:
 
       { msg: "remove shard completed succesfully" , stage: "completed", host: "mongodb0", ok : 1 }
 
-Once the value if "state" is "completed", you may safely stop the processes
-comprising the ``mongodb0`` shard.
+Once the value of the ``stage`` field is "completed," you may safely
+stop the processes comprising the ``mongodb0`` shard.
 
 Chunk Management
 ----------------
@@ -400,7 +397,7 @@ Chunk Management
 This section describes various operations on
 :term:`chunks <chunk>` in :term:`shard clusters <shard cluster>`. In
 most cases MongoDB automates these processes; however, in some cases,
-particularly when you're just establishing a shard cluster, you may
+particularly when you're setting up a shard cluster, you may
 need to create and manipulate chunks directly.
 
 .. _sharding-procedure-create-split:
@@ -409,15 +406,14 @@ Splitting Chunks
 ~~~~~~~~~~~~~~~~
 
 Normally, MongoDB splits :term:`chunk` following inserts or updates
-when a chunk exceeds the designated :ref:`chunk size
-<sharding-chunk-size>`.
+when a chunk exceeds the :ref:`chunk size <sharding-chunk-size>`.
 
-Still, you may want to split chunks manually if:
+You may want to split chunks manually if:
 
 - you have a large amount of data in your cluster that is *not* split,
   as is the case after creating a shard cluster with existing data
 
-- you expect to add a large amount of data to data that would at least
+- you expect to add a large amount of data that would 
   initially reside in a single chunk or shard.
 
   .. example::
@@ -434,8 +430,8 @@ To split chunks manually, use either the :func:`sh.splitAt()` or
 :func:`sh.splitFind()` helpers in the :program:`mongo` shell.
 These helpers wrap the :dbcommand:`split` command.
 
-Use the following command to split the chunk that the document that
-matches the ``{ "zipcode": 63109 }`` query statement:
+For example, the following command will split the chunk that contains
+the value of ``63109`` for the ``zipcode`` field:
 
 .. code-block:: javascript
 
@@ -914,10 +910,9 @@ you must change the hostname of the instance, use the process for
 Backup Cluster Metadata
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Because the shard cluster remains largely operational [#read-only]
-without one the config databases :program:`mongod` instances, creating
-a backup of the cluster metadata from the config database is very
-straightforward:
+The shard cluster remains largely operational [#read-only]_ without one
+of the config databases :program:`mongod` instances, creating a backup
+of the cluster metadata from the config database is straightforward:
 
 #. Shut down one of the :term:`config databases <config database>`.
 
