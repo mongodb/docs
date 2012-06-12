@@ -1,0 +1,274 @@
+==============
+Index Overview
+==============
+
+.. default-domain:: mongodb
+
+Synopsis
+--------
+
+Indexes are an internal representation of the documents in your
+database organized so that MongoDB can use them to quickly locate
+documents and fulfill queries very efficiently. Fundamentally, indexes
+in MongoDB are similar to indexes, MongoDB supports indexes on any
+field or sub-field contained in documents within a MongoDB
+collection. Consider the following core features of indexes:
+
+- MongoDB defines indexes on a per-collection level.
+
+- Every query (including update operations,) can use one and only one
+  index. The query optimizer determines, empirically, the best query
+  plan and indexes to use on a specific query, but can be overridden
+  using the :func:`cursor.hint()` method. However, :ref:`compound
+  indexes <index-types-compound>` make it possible to include multiple
+  fields in a single index.
+
+- Indexes often dramatically increase the performance of queries;
+  however, each index creates a slight overhead for every write
+  operation.
+
+- Queries that are "covered" by the index are return much more quickly
+  than documents that have to scan many individual documents. Using
+  queries with good index coverage it possible for MongoDB to only
+  store the index itself and the most often used documents in memory,
+  which can maximize database capacity, performance and throughput.
+
+Continue reading for a complete overview of indexes in MongoDB,
+including the :ref:`types of indexes <index-types>`, basic
+:ref:`operations with indexes <index-operations>`, and other MongoDB
+:ref:`features <index-features>` implemented using indexes.
+
+.. TODO add index section seealso
+
+.. index:: index types
+.. _index-types:
+
+Index Types
+-----------
+
+All indexes in MongoDB are "B-Tree" indexes. In the :program:`mongo`
+shell, the helper :func:`ensureIndex() <db.collection.ensureIndex()>`
+provides a method for creating indexes. This section provides an
+overview of the types of indexes available in MongoDB as well as an
+introduction to their use.
+
+.. index:: _id index
+.. index:: _id
+.. index:: index; _id
+.. index:: index types; primary
+
+_id
+~~~
+
+The ``_id`` index is a :ref:`unique index <index-type-unique>` on the
+``_id`` field, and MongoDB creates this index by default on all
+collections. [#capped-collections]_ You cannot delete the index on
+``_id``.
+
+The ``_id`` field is the :term:`primary key` for the
+collection, and every document *must* have a unique ``_id`` field. If
+the application or client does not insert a value into the ``_id``
+field, typically an :term:`ObjectId`, the server will insert an
+ObjectId in to the ``_id`` field.
+
+While ObjectIds are 12-byte, unique identifiers, that make suitable
+``_id`` values, the only requirement of this field is that it be
+unique within a collection. You may store any unique value in the
+``_id`` field.
+
+.. note::
+
+   In :term:`shard clusters <shard cluster>`, if the you do *not* use
+   the ``_id`` field as the :term:`shard key`, then your application
+   **must** ensure the uniqueness of the values in the ``_id`` field
+   to prevent errors.
+
+.. [#capped-collections] Capped collections do not have an ``_id``
+   index.
+
+.. _index-types-secondary:
+
+Secondary Indexes
+~~~~~~~~~~~~~~~~~
+
+All indexes other than the index on the ``_id`` field are
+:term:`secondary indexes <secondary index>`. You can create indexes on
+any field within any document or sub-document. Additionally, you can
+create compound indexes with multiple fields, so that a single query
+can match multiple components using the index without needing to scan
+(as many) actual documents.
+
+In general, you should have secondary indexes that support all of your
+primary common and user-facing queries, and require MongoDB to scan
+the fewest number of documents possible.
+
+The specifications an index using the :func:`ensureIndex()
+<db.collection.ensureIndex()>` operation will resemble the following:
+
+.. code-block:: javascript
+
+   { "field": 1 }
+   { "field0.field1": 1 }
+   { "field0": 1, "field1": 1 }
+
+For each field in the index you will specify either ``1`` or ``-1``,
+which represents the order of the keys in the index. For indexes with
+more than one key (i.e. "compound indexes,") the sequence of fields is
+important.
+
+Embedded Fields
+```````````````
+
+You can create indexes on fields that exist in sub-documents within
+your collection. Consider the collection ``people`` that holds
+documents that resemble the following an example document:
+
+.. code-block:: javascript
+
+   {
+    "_id": ObjectId(...)
+    "name": "John Doe"
+    "address": {
+      "street": "Main"
+      "zipcode": 53511
+      "state": "WI"
+    }
+   }
+
+You could create an index on the ``address.zipcode`` field, using the
+following specification:
+
+.. code-block:: javascript
+
+   db.people.ensureIndex( { "address.zipcode": 1 } )
+
+Introspecting sub-documents in this way is commonly called "dot
+notation."
+
+.. _index-types-compound:
+
+Compound Indexes
+````````````````
+
+MongoDB supports "compound indexes," where a single index structure
+holds references to multiple fields within a collection's
+documents. Consider the collection ``products`` that holds documents
+that resemble the following an example document:
+
+.. code-block:: javascript
+
+   {
+    "_id": ObjectId(...)
+    "item": "Banana"
+    "category": ["food", "produce", "grocery"]
+    "stock": 4
+    "type": cases
+    "arrival": Date(...)
+   }
+
+Most queries probably select on the ``item`` field, but a significant
+number of queries will also need to check the ``stock`` field. You can
+specify a single compound index to support all of these queries:
+
+.. code-block:: javascript
+
+   db.products.ensureIndex( { "item": 1, "stock": 1 } )
+
+MongoDB will be able to use this index to support all queries that
+select on the ``item`` field as well as those queries that select on
+the ``item`` field **and** the ``stock`` field. These indexes will not
+support queries that select *only* on the ``stock`` field.
+
+Ascending and Descending
+````````````````````````
+
+Indexes store references to fields in either ascending or descending
+order. Because MongoDB can transverse the index in either direction,
+the order of keys often doesn't matter. However, in compound indexes,
+for some kinds of sort operations, it's useful to have the fields
+running in opposite order.
+
+To specify an index with an ascending order, use the following form:
+
+.. code-block:: javascript
+
+   db.products.ensureIndex( { "field": -1 } )
+
+More typically in the context of a :ref:`compound index
+<index-type-compound>`, the specification would resemble the
+following:
+
+.. code-block:: javascript
+
+   db.products.ensureIndex( { "field0": 1, "field1": -1 } )
+
+.. TODO understand the sort operations better.
+
+.. _index-types-multikey:
+
+Multikey
+````````
+
+Sparse Index
+~~~~~~~~~~~~
+
+.. _index-type-unique:
+
+Unique Index
+~~~~~~~~~~~~
+
+.. discuss compound unique indexes enforce uniqueness over the
+   combination of the fields, not for any specific key.
+
+
+.. _index-creation-operations:
+
+Index Creation Options
+----------------------
+
+Background Construction
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Duplicate Dropping
+~~~~~~~~~~~~~~~~~~
+
+.. _index-features:
+
+Index Features
+--------------
+
+TTL Indexes
+~~~~~~~~~~~
+
+TTL indexes are special indexes that MongoDB can use to automatically
+remove documents from a collection after a certain amount of
+time. This is ideal for some types of information like machine
+generated event data, logs, and session information that only need to
+persist in a database for a limited period of time.
+
+These indexes have the following limitations:
+
+- The index can only contain one field. Compound indexes are *not*
+  supported.
+
+- The indexed field **must** contain a value with a date  type.
+
+- If the field holds an array, and there are multiple date-typed data
+  in the index, the document will expire when the *lowest*
+  (i.e. earliest) matches the expiration threshold.
+
+In all other respects, TTL indexes are normal :ref:`secondary indexes
+<index-types-secondary>`, and if appropriate, MongoDB can uses these
+indexes to fulfill arbitrary queries.
+
+.. see:: :doc:`/tutorial/expire-data`
+
+Geospatial Indexes
+~~~~~~~~~~~~~~~~~~
+
+Index Limitations
+-----------------
+
+- Number of indexes.
+
+- Length of index keys.
