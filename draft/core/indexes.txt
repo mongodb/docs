@@ -20,7 +20,7 @@ collection. Consider the following core features of indexes:
   index. The query optimizer determines, empirically, the best query
   plan and indexes to use on a specific query, but can be overridden
   using the :func:`cursor.hint()` method. However, :ref:`compound
-  indexes <index-types-compound>` make it possible to include multiple
+  indexes <index-type-compound>` make it possible to include multiple
   fields in a single index.
 
 - Indexes often dramatically increase the performance of queries;
@@ -145,7 +145,7 @@ following specification:
 Introspecting sub-documents in this way is commonly called "dot
 notation."
 
-.. _index-types-compound:
+.. _index-type-compound:
 
 Compound Indexes
 ````````````````
@@ -209,19 +209,117 @@ following:
 Multikey
 ````````
 
-Sparse Index
-~~~~~~~~~~~~
+If you index a field, that contains an array, you will create a
+multikey index, which adds entries to the index for *every* item in
+the array. Consider a ``feedback`` collection with documents in the
+following form:
+
+.. code-block:: javascript
+
+   {
+    "_id": ObjectId(...)
+    "title": "Grocery Quality"
+    "comments": [
+       { author_id: ObjectId(..)
+         date: Date(...)
+         text: "Please expand the cheddar selection." },
+       { author_id: ObjectId(..)
+         date: Date(...)
+         text: "Please expand the mustard selection." },
+       { author_id: ObjectId(..)
+         date: Date(...)
+         text: "Please expand the olive selection." }
+    ]
+   }
+
+An index on the ``comments`` field would be a multikey index, and will
+add items to the index for all of the sub-documents in the array. As a
+result you will be able to run the following query, using only the
+index to locate the document:
+
+.. code-block:: javascript
+
+   db.feedback.find( { "comments.text": "Please expand the olive selection." } )
+
+The following operators are useful for interacting with arrays, like
+the ones that you would index using multikey indexes.
+
+- :operator:`$addToSet`
+- :operator:`$push`
+- :operator:`$pull`
+- :operator:`$all`
+
+.. warning::
+
+   MongoDB will refuse to insert documents into a compound index where
+   more than one field is an array (i.e. ``{a: [1, 2], b: [1, 2]}``);
+   however, MongoDB permits documents in collections with compound
+   indexes where only one field per compound index is an array
+   (i.e. ``{a: [1, 2], b: 1}`` and ``{a: 1, b: [1, 2]}``.)
 
 .. _index-type-unique:
 
 Unique Index
 ~~~~~~~~~~~~
 
-.. discuss compound unique indexes enforce uniqueness over the
-   combination of the fields, not for any specific key.
+The unique index will cause MongoDB to reject all documents that
+contain a duplicate value for the index field. Create a unique index
+on the ``user_id`` field, of the ``members`` collection, using the
+following operation in the :program:`mongo` shell:
 
+.. code-block:: javascript
+
+   db.addresses.ensureIndex( { "user_id": 1 }, { unique: true } )
+
+If you use the unique constraint on a :ref:`compound index
+<index-type-compound>` then MongoDB will enforce uniqueness on
+the *combination* of values, rather than individual for any or all
+values of the key.
+
+If a document does not have a value for the indexed field in a unique
+index, the index will store a null value for this document. Because of
+the unique constraint, MongoDB will only permit one document without a
+value in the collection. You can combine with the :ref:`sparse index
+<index-type-sparse>` to filter these null values from the unique
+index.
+
+.. index:: index; sparse
+.. _index-type-sparse:
+
+Sparse Index
+~~~~~~~~~~~~
+
+Sparse indexes only contain entries for documents that have the
+indexed field. By contrast, non-sparse indexes contain all documents
+in a collection, and store null values for documents that do not
+contain the indexed field. Create a sparse index on the ``xmpp_id``
+field, of the ``members`` collection, using the following operation in
+the :program:`mongo` shell:
+
+.. code-block:: javascript
+
+   db.addresses.ensureIndex( { "xmpp_id": 1 }, { sparse: true } )
+
+.. warning::
+
+   Because sparse indexes are not complete for all documents in a
+   collection, using these indexes will sometimes result in incomplete
+   results when filtering or sorting results.
+
+.. note::
+
+   Sparse indexes are not `block-level`_ indexes. Think of them as
+   dense indexes with a specific filter.
+
+   You can combine the sparse index option with the :ref:`unique
+   indexes <index-type-unique>` option so that :program:`mongod` will reject documents
+   that have duplicate values for a field, but that ignore documents
+   that do not have the key.
+
+   .. _`block-level`: http://en.wikipedia.org/wiki/Index_%28database%29#Sparse_index>
 
 .. _index-creation-operations:
+.. _index-operations:
 
 Index Creation Options
 ----------------------
