@@ -1,5 +1,8 @@
-#
-#
+#!/usr/bin/python
+"""
+This module defines a class.
+"""
+
 import subprocess
 import re
 
@@ -24,3 +27,14 @@ class VersionMeta():
             self.manual_path = "manaul"
         else:
             self.manual_path = self.branch
+
+def main():
+    meta = VersionMeta()
+    BREAK = "\n"
+
+    print("MongoDB Manual:" + BREAK +
+          "     Commit: " + meta.commit + BREAK +
+          "     Branch: " + meta.branch)
+
+if __name__ == "__main__":
+    main()
