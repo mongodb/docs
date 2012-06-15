@@ -1,5 +1,5 @@
 ============================
-Add Members to A Replica Set
+Add Members to a Replica Set
 ============================
 
 .. default-domain:: mongodb
@@ -7,9 +7,8 @@ Add Members to A Replica Set
 Overview
 --------
 
-From time to time it may be necessary to add an additional node to an
-existing replica set. This tutorial outlines the process for adding members
-to an existing replica set.
+This is a tutorial explaining how to add an additional node to an
+existing replica set.
 
 Before adding new members, note the
 :doc:`/administration/replication-architectures` documentation for
@@ -18,21 +17,28 @@ more background on replication deployment patterns.
 Requirements
 ------------
 
-1. An active replica set. Hereafter refereed to as ``rs0``
+#. An active replica set.
 
-2. A system capable of supporting your database, with MongoDB
-   installed. This system needs to be accessible by way of a
-   resolvable DNS or hostname as: ``mongodb3.example.net``.
+#. A new MongoDB system capable of supporting your dataset, accessible by
+   the active replica set through the network. 
 
-If either of these conditions are not supplied, use the MongoDB
-:ref:`installation tutorial <tutorials-installation>`.  and the
-":doc:`/tutorial/deploy-replica-set`" guide to get started.
+If neither of these conditions are satisfied, please use the MongoDB
+:ref:`installation tutorial <tutorials-installation>` and the
+":doc:`/tutorial/deploy-replica-set`" guide instead.
 
 Procedure
 ---------
 
-On the new system, ensure that a configuration file that resembles the
-following exists on the new file system at ``/etc/mongodb.conf``.
+For the following procedure, examples are provided using the following
+configuration:
+
+- The active replica set: ``rs0``
+
+- The new MongoDB replica set to be added: ``mongodb3.example.net``.
+
+- :program:`mongod` instance running on default port: ``27017``.
+
+- The ``mongodb.conf`` on the new replica set system resembling the following:
 
 .. code-block:: cfg
 
@@ -48,65 +54,76 @@ following exists on the new file system at ``/etc/mongodb.conf``.
 
    replSet = rs0
 
-Modify the :setting:`bind_ip` to reflect a secure interface on
-your system that will be able to access all other members of the set
-*and* on which all other members of the replica set can access the
-current node. The DNS or host names need to resolve to this IP address
-on the other members of the set. Configure network rules or a virtual
-private network (i.e. "VPN") to permit this access.
-
-See the documentation of the configuration options used above:
+For more documentation of the configuration options used above refer to:
 :setting:`dbpath`, :setting:`port`, :setting:`replSet`,
-:setting:`bind_ip`, and :setting:`fork`. Also consider any additional
+:setting:`bind_ip`, and :setting:`fork`. Consider any additional
 :doc:`configuration options </reference/configuration-options>` that
 your deployment may require.
 
-.. note::
+#. On the primary node, Start the :program:`mongod` process with the
+   following command:
 
-   The default MongoDB port is ``27017``, and the remainder of the
-   tutorial assumes that all MongoDB instances are running on the
-   default port. If your MongoDB instances run on a different port,
-   you will need to change the :setting:`port` above, and append a
-   colon (``:``) and the port number to all host name references
-   below.
+   .. code-block:: sh
 
-Start the :program:`mongod` process with the following command:
+      mongod --config /etc/mongodb.conf
 
-.. code-block:: sh
+   .. note:: 
 
-   mongod --config /etc/mongodb.conf
+      The primary node is the only node which can add or remove
+      members to the replica set. If you do not know the primary
+      node, log into any of the existing members of the current
+      replica set by issuing the following command:
 
-.. note::
+      .. code-block:: sh
 
-   In production deployments you likely want to use and configure a
-   :term:`control script` to manage this process based on this
-   command. Control scripts are beyond the scope of this document.
+         mongo mongodb0.example.net
+  
+      If this instance is not currently the :term:`primary` node, use
+      the :func:`db.isMaster()` function to determine which node is in
+      the :data:`isMaster.primary` field. Issue the following command.
 
-Log into one of the existing members of the current replica set by
-issuing the following command:
+      .. code-block:: javascript
 
-.. code-block:: sh
+         db.isMaster()
 
-   mongo mongodb0.example.net
+      Now disconnect from the current client and reconnect to the
+      primary node.
 
-If this instance is not currently the :term:`primary` node, use the
-:func:`db.isMaster()` function to determine which node is in the
-:data:`isMaster.primary` field. Issue the following command: ::
+#. Now issue the following command to add the new member to the
+   replica set.
 
-.. code-block:: javascript
+   .. code-block:: javascript
 
-   db.isMaster()
-
-Log into the current :term:`primary` using the :program:`mongo` shell
-and issue the following command to add the new set member to the
-replica set.
-
-.. code-block:: javascript
-
-   rs.add("mongodb3.example.net")
+      rs.add("mongodb3.example.net")
 
 Congratulations! You have successfully expanded an existing replica
 set. You can use the :func:`rs.status()` function to provide an
 overview of :doc:`replica set status </reference/replica-status>`, or
 the :func:`rs.conf()` for the complete :doc:`replica set
 configuration </reference/replica-configuration>`.
+
+Production Notes
+----------------
+
+- In production deployments you likely want to use and configure a
+  :term:`control script` to manage this process based on this command.
+
+- A member can be removed from a set and re-added later. If the
+  removed member's data is still relatively fresh, it can recover and
+  catch up from its old data set. See the :func:`rs.add()` and
+  :func:`rs.remove()` helpers.
+
+- If you have a backup or snapshot of an existing member, you can move
+  the data files (i.e. ``/data/db`` or :setting:`dbpath`) to a new
+  system and use them to quickly initiate a new member. These files
+  must be:
+
+  - clean: the existing dataset must be from a consistent copy of the
+    database from a member of the same replica set. See the
+    :doc:`/administration/backups` document for more information.
+
+  - recent: the copy must more recent than the oldest operation in the
+    :term:`primary` member's :term:`oplog`. The new secondary must be
+    able to become current using operations from the primary's oplog.
+
+
