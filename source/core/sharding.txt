@@ -469,3 +469,60 @@ prevent the balancing process from interfering with production traffic.
    is entirely transparent to the user and application layer. This
    documentation is only included for your edification and possible
    troubleshooting purposes.
+
+.. index:: sharding; security
+.. _sharding-security:
+
+Security
+--------
+
+.. note::
+
+   You may always run shard clusters in trusted networking
+   environments that control access to the cluster using network rules
+   and restrictions to ensure that only known traffic reaches your
+   :program:`mongod` and :program:`mongos` instances.
+
+.. warning::  Limitations
+
+   .. versionchanged:: 2.2
+      In version 2.0, shard clusters will not enforce read-only
+      limitations.
+
+   .. versionchanged:: 2.0
+      In version 1.8, shard clusters will not support authentication
+      and access control. You must run your clusters in a trusted
+      environment.
+
+To control access a shard cluster, you must set the :setting:`keyFile`
+option on all components of the shard cluster. Use the
+:option:`--keyFile <mongos --keyFile>` run-time option or
+:setting:`keyFile` configuration file option all :program:`mongos`,
+config database :program:`mongod` instances, and shard
+:program:`mongod` instances.
+
+There are two classes of security credentials in a shard cluster:
+credentials for "admin" users (i.e. for the "admin" database) and
+credentials for all other databases. These credentials reside in
+different locations within the shard cluster and have different roles:
+
+#. Admin database credentials reside on the config databases, to
+   receive admin access to the cluster you *must* authenticate a
+   sessions while connected to a {{mongos}} instance using the "admin"
+   database.
+
+#. Other database credentials reside on the *primary* shard for the
+   database.
+
+This means that you *can* authenticate to these users and databases
+while connected directly to the primary shard for a database. However,
+for clarity and consistency all interactions between the client and
+the database should use a :program:`mongos` instance.
+
+.. note::
+
+   Individual shards can store administrative credentials to their
+   instance, which only permit access to a single shard. MongoDB
+   stores these credentials in the shards "admin" databases and these
+   credentials are *completely* distinct from the cluster-wide
+   administrative credentials.
