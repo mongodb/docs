@@ -313,9 +313,9 @@ the :program:`mongo` shell:
    dense indexes with a specific filter.
 
    You can combine the sparse index option with the :ref:`unique
-   indexes <index-type-unique>` option so that :program:`mongod` will reject documents
-   that have duplicate values for a field, but that ignore documents
-   that do not have the key.
+   indexes <index-type-unique>` option so that :program:`mongod` will
+   reject documents that have duplicate values for a field, but that
+   ignore documents that do not have the key.
 
    .. _`block-level`: http://en.wikipedia.org/wiki/Index_%28database%29#Sparse_index>
 
@@ -325,16 +325,127 @@ the :program:`mongo` shell:
 Index Creation Options
 ----------------------
 
+Most parameters [#index-parameters]_ to the :func:`ensureIndex()
+<db.collection.ensureIndex()>` operation affect the kind of index that
+MongoDB creates. Two options, :ref:`background construction
+<index-creation-background>` and :ref:`duplicate dropping
+<index-creation-duplicate-dropping>`, affect how MongoDB builds the
+indexes.
+
+.. [#index-parameters] Other functionality accessible by way of
+   parameters include :ref:`sparse <index-type-sparse>`, :ref:`unique
+   <index-type-unique>`, and :ref:`TTL <index-feature-ttl>`.
+
+.. _index-creation-background:
+
 Background Construction
 ~~~~~~~~~~~~~~~~~~~~~~~
+
+.. TODO redirect background indexing page here
+   http://www.mongodb.org/display/DOCS/Indexing+as+a+Background+Operation
+
+By default, creating an index is a blocking operation, and will
+prevent all other operations on the database until the index has
+finished building. If you must build an index on a collection that has
+a large collection of data, the operation can take a long time to
+complete. To resolve this issue, the background option can allow you
+to continue to use your :program:`mongod` instance. Create an index in
+the background of the ``zipcide`` field of the ``people`` collection
+using a command that resembles the following:
+
+.. code-block:: javascript
+
+   db.people.ensureIndex( { zipcode: 1}, {background: true} )
+
+You can combine the background option with other options, as in the
+following:
+
+.. code-block:: javascript
+
+   db.people.ensureIndex( { zipcode: 1}, {background: true, sparse: true } )
+
+Be aware of the following behaviors with background index
+construction:
+
+- A single :program:`mongod` can only build a single index at a time.
+
+- The indexing operation runs in the background so that other database
+  operations can run while creating the index. However, the
+  :program:`mongo` shell session or connection where you are creating
+  the index will block until the index build is complete. Open another
+  connection or :program:`mongo` instance to continue using the database.
+
+- Background index builds use an incremental approach that is slower
+  than the normal "foreground" index builds. If the index is larger
+  than RAM, then the incremental process can take *much* longer than
+  the foreground build.
+
+- Background index builds are not built in the background on
+  :term:`replica set` :term:`secondaries <secondary members>` before
+  version 2.1.0.
+
+  To rebuild large indexes on secondaries before version 2.1.0,
+  typically the best approach is to restart each secondary in
+  "standalone" mode and build the index. However, the amount of time
+  required to build the index must be within the window of the
+  :term:`oplog`, so that the secondary can catch up. When all the
+  secondaries have the new index, step down the primary and build the
+  index on the former primary.
+
+  In 2.1.0 and later, you can build indexes in the background.
+
+  Indexes on secondary members in "recovering" mode are always built
+  in the foreground to allow them to catch up as soon as possible.
+
+  .. TODO create tutorials for the replica set reindexing
+     http://www.mongodb.org/display/DOCS/Building+indexes+with+replica+sets
+
+- Administrative operations such as :dbcommand:`repairDatabase` and
+  :dbcommand:`compact` will not run concurrently with a background
+  index build.
+
+- While the index builds, it will exist in the ``system.indexes``
+  database, but queries will not be able to use these indexes until
+  the build is complete.
+
+.. _index-creation-duplicate-dropping:
 
 Duplicate Dropping
 ~~~~~~~~~~~~~~~~~~
 
+MongoDB cannot create a :ref:`unique index <index-type-unique>` on a
+field that has pre-existing duplicate values. To force the creation of
+a unique index, you can specify the ``dropDups`` option, which will
+index the first occurrence of a value for the key, and delete all
+subsequent values.
+
+As in all unique indexes, if a document does not have the indexed
+field, MongoDB will include it in the index with a "null" value. This
+means, if subsequent fields *do not* have the indexed field, MongoDB
+will remove them when deleting the index. If you combine this option
+with the :ref:`sparse <index-type-sparse>` option, this index will
+only include documents in the index that have the value, which
+prevents the database from deleting these values.
+
+To create a unique index that drops duplicates on the ``username``
+field of the ``accounts`` collection, use a command in the following form:
+
+.. code-block:: javascript
+
+   db.accounts.ensureIndex( { username: 1 }, { unique: true, dropDups: true } )
+
+.. warning::
+
+   Specifying ``{ dropDups: true }`` will delete data from your
+   database. Use with extreme caution.
+
 .. _index-features:
+.. _index-feature:
 
 Index Features
 --------------
+
+.. _index-feature-ttl:
 
 TTL Indexes
 ~~~~~~~~~~~
@@ -350,7 +461,8 @@ These indexes have the following limitations:
 - The index can only contain one field. Compound indexes are *not*
   supported.
 
-- The indexed field **must** contain a value with a date  type.
+- The indexed field **must** contain a value with a date :term:`type
+  <bson type>`.
 
 - If the field holds an array, and there are multiple date-typed data
   in the index, the document will expire when the *lowest*
@@ -365,24 +477,72 @@ indexes to fulfill arbitrary queries.
 Geospatial Indexes
 ~~~~~~~~~~~~~~~~~~
 
-.. a brief overview of geo-spatial indexes ~200 words. There should be
-   a more full "/applications/geospatial-indexes" page. That's also
-   (potentially) part of DOCS-219, or we could decide to track this
-   aspect of the documentation separately.
+MongoDB provides "geospatial indexes" to support location-based and
+other similar queries in two dimensional coordinate systems. For
+example, use geospatial indexes when you need to take a collection of
+documents that have coordinates, and return a number of options that
+are "near" a given coordinate pair.
+
+To create a geospatial index, your :term:`documents <document>` must
+have a coordinate pair. For maximum compatibility, these coordinate
+pairs should be in the form of a two element array, such as ``[ x , y
+]``, but other representations are acceptable, including:
+
+.. code-block:: javascript
+
+   { loc : [ 50 , 30 ] }
+   { loc : { x : 50 , y : 30 } }
+   { loc : { foo : 50 , y : 30 } }
+   { loc : { lon : 40.739037, lat: 73.992964 } }
+
+Given the field of ``loc`` in the collection ``places``, you would
+create a geospatial index as follows:
+
+.. code-block:: javascript
+
+   db.places.ensureIndex( { loc : "2d" } )
+
+By default, ``2d`` indexes assume that that the coordinates are
+latitude/longitude systems, and assume that minimum and maximum bounds
+are ``[ -180, 180 ]``. Specify a different minimum and maximum
+values, as follows:
+
+.. code-block:: javascript
+
+   db.places.ensureIndex( { loc : "2d" }, { min: -250 , max: 250 } )
+
+MongoDB will reject documents that have values in the ``loc`` field
+that lie outside of the minimum and maximum values.
+
+.. note::
+
+   MongoDB permits only one geospatial index per collection. Although,
+   MongoDB will allow clients to create multiple geospatial indexes, a
+   single query can use one and only one index.
+
+See the :operator:`$near`, and the database command
+:dbcommand:`geoNear` for more information on accessing geospatial
+data.
+
+.. TODO insert link to special /core/geospatial.txt documentation
+   on this topic. once that document exists.
 
 Index Limitations
 -----------------
 
-..
-   Links to limits sections.
+Be aware of the following current limitations of MongoDB's indexes:
 
-   - Maximum number of indexes.
+- A collection may have no more than :ref:`64 indexes <limit-number-of-indexes-per-collection>`.
 
-   - You must have an _id index (except capped collections, unless you
-     replicate the capped collection.)
+- Indexed items can have no more than :ref:`1024 bytes <limit-index-size>`.
 
-   - Length of index keys.
+  This includes the field value or values, the field name or names,
+  and the :term:`namespace`.
 
-   - Impact on insert speed.
+- The name of an index, including the :term:`namespace` must be
+  shorter than :ref:`128 characters <limit-index-name-length>`.
 
-   A minor note about effectiveness of the index relative to its cost.
+- Every index storage requirements, and impacts insert/update speed
+  to some degree. Create indexes to support queries and other
+  operations, but do not maintain indexes that your MongoDB instance
+  cannot or will not use.
