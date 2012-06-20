@@ -140,6 +140,12 @@ There are a few things to note about this document:
    character record means you don't have to perform a separate query
    to fetch item details necessary for display.
 
+.. should note that using unbounded lists on items can be an issue, past 1000 entries should prob normalize.
+   Also if it ends up being much larger than core data itself, may want to split into own document, to better use RAM.
+
+.. Dont understand why the whole location info is stored here: lots of duplication and consistency issues.
+   Should normalize here and just store location name / coordinates
+
 Items
 `````
 
@@ -189,6 +195,9 @@ attribute of the ``character`` documents. The application will use
 ``location`` as the system of record for interactions between multiple
 characters or between characters and non-inventory items.
 
+.. should avoid storing player information in list here, it may grow and get updated too often if it's MMO.
+   Instead rely on index on location on the user collection
+
 Operations
 ----------
 
@@ -233,7 +242,7 @@ window, you need to merge the information from the ``armor`` and
 ``weapons`` attributes with information from the ``inventory``
 attribute.
 
-Suppose, for instance, that your code is displays armor data using the
+Suppose, for instance, that your code displays armor data using the
 following Jinja2 template:
 
 .. code-block:: html
@@ -391,6 +400,8 @@ and adds it to their inventory:
            { '_id': character['location']['id'] },
            { '$pull': { 'inventory': { 'id': item_id } } })
 
+.. should not require the $pull from location.inventory
+
 While the above code may be for a single-player game, if you allow
 multiple players, or non-player characters, to pick up items at the
 same time, you may introduce a problem when two characters attempt try
@@ -477,6 +488,10 @@ In this code, you:
   *in his own inventory*, update the character's inventory
   representation of the container.
 
+.. I think that the item documents should be immutable, describing types of times in the game.
+   Instances of items exists either in a user or location documents.
+   A backpack can contain other items, but if player picks up backpack he just get the contained items in his inventory.
+
 Moving the Character to a Different Room
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -506,6 +521,8 @@ location:
 
 This operation updates the old room, the new room, and the character
 document to reflect the new state.
+
+.. this should not change the location document using earlier changes
 
 Buying an Item
 ~~~~~~~~~~~~~~

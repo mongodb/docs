@@ -112,6 +112,10 @@ Consider the following features of this schema:
   sub-document, so that you may iterate the schema can evolve as
   necessary without affecting other fields.
 
+..  storing followers in a list would not work well at all in case like twitter, it would grow way too large.
+    should only store people that user is following, and index that to get follower list of a user.
+    Also could use a mapping table for further flexibility in relationship.
+
 Posts, of various types, reside in the ``social.post`` collection:
 
 .. code-block:: javascript
@@ -250,6 +254,11 @@ Consider the following features of this schema:
   certain number of comments because the :operator:`$size` query
   operator does not allow inequality comparisons.
 
+..  not sure this collection is useful, instead just use the post collection.
+    Posts should have an index on {user, time} and hence it is efficient to retrieve the wall.
+    Also wall may be scrolled down to get further items.
+    Dont think it's worth updating this document every time a user posts.
+
 The second dependent collection is is ``social.news``, which collects
 posts from people the user follows. These documents duplicate
 information from the documents in the ``social.wall`` collection:
@@ -263,11 +272,16 @@ information from the documents in the ``social.wall`` collection:
       posts: [ ... ]
    }
 
+..  This is probably too expensive.
+    If someone is followed by 1000+ people, that's a lot of documents to write to.
+    Instead system should use a $in query with people that user is following, sorted by time, with a limit.
+    This query is actually slow today but got improved a lot in 2.2 and there are good workarounds with 2.0.
+
 Operations
 ----------
 
 The data model presented above optimizes for read performance at the
-possible expense of write performance. To As a result, you should ideally
+possible expense of write performance. As a result, you should ideally
 provide a queueing system for processing updates which may take longer
 than your desired web request latency.
 
