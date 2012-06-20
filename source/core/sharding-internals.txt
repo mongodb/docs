@@ -8,7 +8,7 @@ Sharding Internals
 .. default-domain:: mongodb
 
 
-This document introduces lower level sharding concepts for users who
+This document introduces low level sharding concepts for users who
 are familiar with :term:`sharding` generally and want to learn more
 about the internals of sharding in MongoDB. The ":doc:`/core/sharding`"
 document provides an overview of higher level sharding concepts while
@@ -24,7 +24,7 @@ Shard Keys
 Shard keys are the field in a collection that MongoDB uses to
 distribute :term:`documents <document>` within a sharded cluster. See the
 :ref:`overview of shard keys <sharding-shard-key>` for an
-introduction these topics.
+introduction to these topics.
 
 .. index:: shard key; cardinality
 .. _sharding-shard-key-cardinality:
@@ -33,7 +33,7 @@ Cardinality
 ~~~~~~~~~~~
 
 In the context of MongoDB, cardinality, refers to the concept of
-counting or measuring the number of items in a set, represents the
+counting or measuring the number of items in a set. It represents the
 number of :term:`chunks <chunk>` that MongoDB may partition the data into.
 
 For example, consider a collection of data such as an "address book"
@@ -46,11 +46,11 @@ that stores address records:
   same value in the ``state`` field *must* reside on the same shard,
   even if a particular state's chunk exceeds the maximum chunk size.
 
-  Because there are a limited number of possible values for this
+  As there are a limited number of possible values for this
   field, you risk having data unevenly distributed among a small
   number of fixed chunks. This may have a number of effects:
 
-  - If MongoDB cannot split a chunk because it all of its documents
+  - If MongoDB cannot split a chunk because all documents
     have the same shard key, migrations involving these un-splittable
     chunks will take longer than other migrations, and it will be more
     difficult for your data to stay balanced.
@@ -58,32 +58,37 @@ that stores address records:
   - If you have a fixed maximum number of chunks, you will never be
     able to use more than that number of shards for this collection.
 
-- Consider the use of a ``postal-code`` field (i.e. zip code) as a
+- Consider the use of a ``zip-code`` field as a
   shard key:
 
+.. TODO - if the first example uses 'state' (i.e. US oriented), the
+.. next ones should maintain similar orientation (i.e. zip code over postal code)
+
   While this field has a large number of possible values, and thus has
-  *higher cardinality,* it's possible that a large number of users
+  *high cardinality,* it's possible that a large number of users
   could have the same value for the shard key, which would make this
   chunk of users un-splittable.
+
+.. TODO - 'higher cardinality' than what???
 
   In these cases, cardinality depends on the data. If your address book
   stores records for a geographically distributed contact list
   (e.g. "Dry cleaning businesses in America,") then a value like
-  ``postal-code`` would be sufficient. However, if your address book is
+  ``zip-code`` would be sufficient. However, if your address book is
   more geographically concentrated (e.g "ice cream stores in Boston
   Massachusetts,") then you may have a much lower cardinality.
 
 - Consider the use of a ``phone-number`` field as a shard key:
 
-  The contact's telephone number has a *higher cardinality,* because
-  most users will have a unique value for this field, MongoDB will be
-  able to split in as many chunks as needed.
+  Phone number has a *high cardinality,* because users will generally
+  have a unique value for this field, MongoDB will be able to split as
+  many chunks as needed.
 
 While "high cardinality," is necessary for ensuring an even
 distribution of data, having a high cardinality does not guarantee
 sufficient :ref:`query isolation <sharding-shard-key-query-isolation>`
 or appropriate :ref:`write scaling <sharding-shard-key-write-scaling>`.
-Continue reading for more information on these topics.
+Please continue reading for more information on these topics.
 
 .. index:: shard key; write scaling
 .. _sharding-shard-key-write-scaling:
@@ -94,9 +99,9 @@ Write Scaling
 Some possible shard keys will allow your application to take advantage of
 the increased write capacity that the shard cluster can provide, while
 others do not. Consider the following example where you shard by the
-default :term:`_id` field, which holds an :term:`ObjectID`.
+default :term:`_id` field, which is :term:`ObjectID`.
 
-The ``ObjectID`` holds a value, computed upon document creation, that is a
+``ObjectID`` is computed upon document creation, that is a
 unique identifier for the object. However, the most significant bits of data
 in this value represent a time stamp, which means that they increment
 in a regular and predictable pattern. Even though this value has
@@ -106,13 +111,17 @@ key, all insert operations will be storing data into a single chunk, and
 therefore, a single shard. As a result, the write capacity of this shard
 will define the effective write capacity of the cluster.
 
-In most cases want to avoid these kinds of shard keys, except in some
-situations: For example if you have a very low insert rate, most of
-your write operations are :func:`update() <db.collection.update()>`
-operations distributed throughout your entire data set, **and** you're
-sharding to support a large data set. Instead, choose shard keys that
-have *both* high cardinality and that will generally distribute write
-operations across the *entire cluster*.
+A shard key with :ref:`high cardinality` <sharding-shard-key-cardinality>` may be useful: 
+
+- if you have a very low insert rate *and*
+
+- most of your write operations are :func:`update()
+<db.collection.update()>` operations distributed throughout your
+entire data set *and*
+
+- you're sharding to support a large data set.
+
+This will generally distribute write operations across the *entire cluster*.
 
 Typically, a computed shard key that has some amount of "randomness,"
 such as ones that include a cryptographic hash (i.e. MD5 or SHA1) of
@@ -125,15 +134,14 @@ Querying
 ~~~~~~~~
 
 The :program:`mongos` program provides an interface for applications
-that query sharded clusters and :program:`mongos` hides all of the
-complexity of data :term:`partitioning <partition>` from the
-application. A :program:`mongos` receives queries from applications,
-and then, using the metadata from the :ref:`config server
-<sharding-config-server>`, routes queries to the :program:`mongod`
-instances that hold the appropriate the data. While the :program:`mongos`
-succeeds in making all querying operational in sharded environments,
-the :term:`shard key` you select can have a profound affect on query
-performance.
+that query sharded clusters and hides all of the complexity of data
+:term:`partitioning <partition>` from the application. A
+:program:`mongos` receives queries from applications, and uses
+metadata from the :ref:`config server <sharding-config-server>`, to
+route queries to the :program:`mongod` instances with the appropriate
+data. While the :program:`mongos` succeeds in making all querying
+operational in sharded environments, the :term:`shard key` you select
+can have a profound affect on query performance.
 
 .. seealso:: The ":ref:`mongos and Sharding <sharding-mongos>`" and
    ":ref:`config server <sharding-config-server>`" sections for a more
@@ -152,18 +160,29 @@ key` and the cluster meta data from the :ref:`config server
 shards, wait for them to respond and then return the result to the
 application, which can be a long running operation.
 
-If your query includes the first component of a compound :term:`shard
-key` [#shard-key-index], then the :program:`mongos` can route the
-query directly to a single shard, or a small number of shards, which
-provides much greater performance. Even if you query values of the shard
-key that reside in different chunks, the :program:`mongos` will route
-queries directly to the specific shard.
+.. TODO - clarity - otherwise what??? if the shard key has low cardinality? 
+.. does the paragraph below reflect the above?
 
-To select a shard key for a collection: determine which fields are included
-most frequently in queries for a given application and which of these operations
-are most performance dependent. If this field is not sufficiently
-selective (i.e. has low cardinality) you can add a second field to the
-compound shard key to make the data more splittable.
+The fastest queries in a sharded environment are those which mongos
+can route to a single shard. This requires a choice of shard key
+which has high cardinality and a mongo config server which can provide
+the right metadata. If the shard key has low cardinality, mongos must
+query all the shards and wait for all of them to return before
+responding to the application.
+
+If your query includes the first component of a compound :term:`shard
+key` [#shard-key-index]_, the :program:`mongos` can route the
+query directly to a single shard, or a small number of shards, which
+provides much greater performance. Even if query values of the shard
+key reside in different chunks, the :program:`mongos` will route
+queries directly to a specific shard.
+
+To select a shard key for a collection: determine which fields are
+included most frequently in queries for a given application and which
+of these operations are most performance dependent. If this field has
+low cardinality (i.e not sufficiently selective) you should add a
+second field to the shard key making a compound shard key. The data
+may become more splittable with a compound shard key.
 
 .. see:: ":ref:`sharding-mongos`" for more information on query
    operations in the context of sharded clusters.
@@ -179,11 +198,14 @@ Sorting
 
 If you use the :func:`sort() <cursor.sort()>` method on a query in a
 sharded MongoDB environment *and* the sort is on a field that is *not*
-part of the shard key, then the :program:`mongos` must send the query
-to all :program:`mongod` instances in the cluster, wait for a response
-from every shard before it can merge the results and return data. If
-you require high performance sorted queries, ensure that the sort key
-is a component of the shard key.
+part of the shard key, :program:`mongos` must send the query to all
+:program:`mongod` instances in the cluster. :program:`mongos` must
+wait for a response from every shard before it can merge the results
+and return data. If you require high performance sorted queries,
+ensure that the sort key is a component of the shard key.
+
+.. TODO - dude. the first sentence of the paragraph is >75% of the
+.. paragraph. split it up!
 
 Operations and Reliability
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -192,26 +214,29 @@ The most important consideration when choosing a :term:`shard key`
 are:
 
 - to ensure that MongoDB will be able to distribute data evenly among
-  the shards,
+  shards, and
 
 - to scale writes across the cluster, and
 
-- to ensure that :program:`mongos` can isolate most to specific
-  :program:`mongod` instances.
+- to ensure that :program:`mongos` can isolate most queries to a specific
+  :program:`mongod` instance.
 
-In addition, consider the following operational factors that the
-shard key can affect.
+In addition, consider the following operational factors that shard key
+can affect.
 
-Because each shard should be a :term:`replica set`, if a specific
-:program:`mongod` instance fails, the replica set will elect another
-member of that set to be :term:`primary` and continue to function. However,
-if an entire shard is unreachable or fails for some reason, that
-data will be unavailable. If your shard key distributes data required
-for every operation throughout the cluster, then the failure of the
-entire shard will render the entire cluster unusable. By contrast, if
-the shard key allows the :program:`mongos` to isolate most operations
-to a single shard, then the failure of a single will lead to only
-partial unavailability.
+- Each shard should be a :term:`replica set`, if a specific
+  :program:`mongod` instance fails, the replica set members will elect
+  another to be :term:`primary` and continue operation. However, if an
+  entire shard is unreachable or fails for some reason, that data will
+  be unavailable.
+
+- If the shard key allows the :program:`mongos` to isolate most
+  operations to a single shard, then the failure of a single will lead
+  to only partial data unavailability.
+
+- If your shard key distributes data required for every operation
+  throughout the cluster, then the failure of the entire shard will
+  render the entire cluster unavailable. 
 
 In essence, this concern for reliably simply underscores the
 importance of choosing a shard key that isolates query operations to a
@@ -230,13 +255,15 @@ are three options:
    and store this in all of your documents, potentially in the
    ``_id`` field.
 
-#. Use a compound shard key, that uses two or three values from all
+#. Use a compound shard key, one that uses two or three values from all
    documents that provide the right mix of cardinality with scalable
    write operations and query isolation.
 
 #. Determine that the concerns of using a less than ideal shard key,
    is insignificant in your use case given limited write volume,
    expected data size, or query patterns and demands.
+
+.. TODO - huh?! this last point makes no sense. ?_?
 
 From a decision making stand point, begin by finding the field
 that will provide the required :ref:`query isolation
@@ -264,34 +291,34 @@ Balancing Internals
 ~~~~~~~~~~~~~~~~~~~
 
 A balancing round originates from an arbitrary :program:`mongos`
-instance. Because your shard cluster can have a number of
-:program:`mongos` instances, when a balancer process is active it
+instance, because your shard cluster can have a number of
+:program:`mongos` instances. When a balancer process is active :program:`mongos`
 acquires a "lock" by modifying a document on the :term:`config database`.
 
 By default, the balancer process is always running. When the number of
 chunks in a collection is unevenly distributed among the shards, the
-balancer begins migrating :term:`chunks <chunk>` from shards with a
-disproportionate number of chunks to shards with a fewer number of
-chunks. The balancer will continue migrating chunks, one at a time,
-until the data is evenly distributed among the shards (i.e. the
-difference between any two shards is less than 2 chunks.)
+balancer begins migrating :term:`chunks <chunk>` from shards with more
+chunks to shards with a fewer number of chunks. The balancer will
+continue migrating chunks, one at a time, until the data is evenly
+distributed among the shards (i.e. the difference between any two
+shards is less than 2 chunks.)
 
 While these automatic chunk migrations are crucial for distributing
 data, they carry some overhead in terms of bandwidth and workload,
 both of which can impact database performance. As a result, MongoDB
 attempts to minimize the effect of balancing by only migrating chunks
-when the disparity between numbers of chunks on a shard is greater
+when the difference between the number of chunks on shards are greater
 than 8.
 
 .. index:: balancing; migration
 
-The migration process ensures consistency and maximizes availability of
-chunks during balancing: when MongoDB begins migrating a chunk, the
+The migration process ensures consistency and maximizes availability
+of chunks during balancing: when MongoDB begins migrating a chunk, the
 database begins copying the data to the new server and tracks incoming
-write operations. After migrating the chunks, the "from"
-:program:`mongod` sends all new writes, to the receiving server, and *then*
-updates the chunk record in the :term:`config database` to reflect the
-new location of the chunk.
+write operations. After migrating chunks, the "from" :program:`mongod`
+sends all new writes, to the "receiving" server. Finally,
+:program:`mongod` updates the chunk record in the :term:`config
+database` to reflect the new location of the chunk.
 
 .. index:: sharding; chunk size
 .. _sharding-chunk-size:
@@ -301,21 +328,28 @@ Chunk Size
 
 .. TODO link this section to <glossary:chunk size>
 
-The default maximum :term:`chunk` size in MongoDB is 64 megabytes.
+The default :term:`chunk` size in MongoDB is 64 megabytes.
 
-When chunks grow beyond the :ref:`specified maximum chunk size
+.. TODO - chunk size variable sets the max size of a chunk... but
+.. chunk size can be set to have a higher maximum, right??
+.. i.e. 128... 256MB... is there a real limit on what you can set as a
+.. max chunk size? 2GB?
+
+When chunks grow beyond the :ref:`specified chunk size
 <sharding-chunk-size>` a :program:`mongos` instance will split the
-chunk in half, which will eventually lead to migrations, when chunks
-become unevenly distributed among the cluster, the :program:`mongos`
-instances will initiate a round of migrations to redistribute data
-in the cluster.
+chunk in half. This will eventually lead to migrations, when chunks
+become unevenly distributed among the cluster. The :program:`mongos`
+instances will initiate a round of migrations to redistribute data in
+the cluster.
+
+.. TODO - again. this paragraph is a single sentence... 
 
 Chunk size is somewhat arbitrary and must account for the
-following effects:
+following:
 
 #. Small chunks lead to a more even distribution of data at the
-   expense of a larger number of more frequent migrations, which
-   creates expense at the query routing (:program:`mongos`) layer.  or
+   expense of more frequent migrations, which creates expense at the
+   query routing (:program:`mongos`) layer.  Or
 
 #. Large chunks lead to fewer migrations, which is more efficient both
    from the networking perspective *and* in terms internal overhead at
@@ -330,7 +364,7 @@ when modifying chunk size:
 
 - Automatic splitting only occurs when inserting :term:`documents
   <document>` or updating existing documents; if you lower the chunk
-  size it may take for all chunks to split to the new size.
+  size it may take time for all chunks to resize.
 
 - Splits cannot be "undone:" if you increase the chunk size, existing
   chunks must grow through insertion or updates until they reach the
@@ -339,7 +373,7 @@ when modifying chunk size:
 Shard Size
 ~~~~~~~~~~
 
-By default MongoDB will attempt to fill all available disk space with
+By default, MongoDB will attempt to fill all available disk space with
 data on every shard as the data set grows. Monitor disk utilization in
 addition to other performance metrics, to ensure that the cluster
 always has capacity to accommodate additional data.
