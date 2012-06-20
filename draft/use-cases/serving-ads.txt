@@ -75,6 +75,8 @@ The schema for storing available ads consists of a single collection,
        ... ]
    }
 
+.. kind of confusing to call this collection "ad.zone", esp since there is only 1 and zone is just property
+
 For each (``site``, ``zone``) combination you'll store a list of ads,
 sorted by their ``ecpm`` values.
 
@@ -101,6 +103,10 @@ maximize the ad network's profits. This query resembles the following:
        ecpm_groups = groupby(site['ads'], key=lambda ad:ad['ecpm'])
        ecpm, ad_group = ecpm_groups.next()
        return choice(list(ad_group))
+
+.. should be noted that here the list of ads get sorted client side for every call.
+   also full list gets pulled every time.
+   In case that the list is long, would be better to normalize, then use index on {site, zone, ecpm}
 
 Indexing
 ````````
@@ -224,6 +230,11 @@ This schema:
 - Groups event information by type within an advertiser, and sorts by
   timestamp. This facilitates rapid lookups of a stream of a
   particular type of event.
+
+.. probably should warn that storing impressions and clicks within user document can backfire.
+   Could grow very large, e.g. if it's a bot, and past 1000 will start slowing down db.
+   A more robust solution would keep each impression with its possible click in a separate document.
+   Could be in a capped collection if impressions do not need to be kept for long.
 
 Choosing an Ad to Serve
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -411,3 +422,7 @@ customize the value of some keywords, but this is beyond the scope of
 this document. Because the ad service must sort all ads at display
 time, you may find performance issues if you if there are a large
 number of ads competing for the same display slot.
+
+.. here the processing will be done client side for every request.
+   This can become very expensive if a page gets hit a lot and has many possible ads.
+   Again here if normalize each ad, can use index on { site, zone, keywords }
