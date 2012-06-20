@@ -147,7 +147,7 @@ html_show_sourcelink = False
 html_show_sphinx = True
 html_show_copyright = True
 
-manual_edition_path = 'http://docs.mongodb.org/' + current_git_branch + '/MongoDB-Manual-' + current_git_branch
+manual_edition_path = 'http://docs.mongodb.org/' + current_git_branch + '/' + project + '-Manual-' + current_git_branch
 
 html_theme_options = { 'branch': current_git_branch,
                        'commit': current_git_commit,
