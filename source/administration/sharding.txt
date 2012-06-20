@@ -20,6 +20,8 @@ plan to deploy a shard cluster. Finally, the
 introduction to sharding that you may find useful when troubleshooting
 issues or understanding your cluster's behavior.
 
+.. TODO - revise to use less 'you may'
+
 .. contents:: Sharding Procedures:
    :backlinks: none
    :local:
@@ -31,18 +33,16 @@ Setup
 
 If you have an existing replica set, you can use the
 ":doc:`/tutorial/convert-replica-set-to-replicated-shard-cluster`"
-tutorial as a guide. If you are deploying a :term:`shard cluster` from
+tutorial as a guide. If you're deploying a :term:`shard cluster` from
 scratch, see the ":doc:`/tutorial/deploy-shard-cluster`" tutorial for
 more detail or use the following procedure as a quick starting point:
-
-.. TODO - there should be a title here
 
 Sharding Quick Start
 --------------------
 
 #. Provision the required hardware.
 
-   The ":ref:`sharding-requirements`" section describes what you will
+   The ":ref:`sharding-requirements`" section describes what you'll
    need to get started.
 
    .. warning:: Sharding and "localhost" Addresses
@@ -54,7 +54,7 @@ Sharding Quick Start
       produce errors.
 
 #. On all three (3) config server instances, issue the following
-   command to start the :program:`mongod` process.
+   command to start the :program:`mongod` process:
 
    .. code-block:: sh
 
@@ -66,7 +66,7 @@ Sharding Quick Start
    file </reference/configuration-options>` options are available for config
    server instances.
 
-#. Start a :program:`mongos` instance issuing the following command.
+#. Start a :program:`mongos` instance issuing the following command:
 
    .. code-block:: sh
 
@@ -119,32 +119,27 @@ Sharding Quick Start
       If you do not specify a shard name, then MongoDB will assign a
       name upon creation.
 
-   .. versionchanged:: 2.0.3
+   .. note:: 
+
+      .. versionchanged:: 2.0.3
 
       Before version 2.0.3, you must specify the shard in the following
       form: 
       
       .. code-block:: sh
-         replicaSetName/<seed1>,<seed2>,...,<seed-n>
+
+         replicaSetName/<seed1>,<seed2>,<seed3>
 
       For example, if the name of the replica set is "``repl0``", then
       your :func:`sh.addShard` command would be:
 
       .. code-block:: javascript
 
-         sh.addShard( "repl0/mongodb0.example.net:27027,mongodb1.example.net:27017" )
-
-.. TODO - why doesn't the above show up?!
-
-.. TODO verify the above form matches below form:
-..      the replica set name, followed by a forward slash, followed
-..      by a comma-separated list of seeds for the replica set.
+         sh.addShard( "repl0/mongodb0.example.net:27027,mongodb1.example.net:27017,mongodb2.example.net:27017" )
 
 
 Enable Sharding
 ---------------
-
-.. TODO - is this the best title?
 
 #. Enable sharding for any database that you want to shard.
 
@@ -211,7 +206,9 @@ Enable Sharding
 
    See the ":ref:`Shard Key Overview <sharding-shard-key>`" and
    ":ref:`Shard Internals <sharding-internals-shard-keys>`" to help you
-   understand this topic.
+   choose a better shard key.
+
+.. TODO - find internal ref for `shard key`
 
    If you do not specify a shard key, MongoDB will shard the
    collection using the ``_id`` field.
@@ -284,7 +281,7 @@ procedure:
 
       .. code-block:: javascript
 
-         sh.addShard( "myapp1/mongodb0.example.net:27027,mongodb1.example.net:27017" )
+         sh.addShard( "repl0/mongodb0.example.net:27027,mongodb1.example.net:27017,mongodb2.example.net:27017" )
 
 .. note::
 
@@ -299,8 +296,6 @@ procedure:
 
 Removing a Shard from a Cluster
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. TODO - would specifying: To remove 'shard-a' from a shard make things clearer?
 
 To remove a :term:`shard` from a :term:`shard cluster`, you must:
 
@@ -335,7 +330,7 @@ The procedure to remove a shard is as follows:
 #. Begin removing chunks from the shard.
 
    Start by running the :dbcommand:`removeShard` command. This will
-   start "draining" or migrating chunks from the shard you are removing
+   start "draining" or migrating chunks from the shard you're removing
    to another shard in the cluster.
 
    .. code-block:: javascript
@@ -437,7 +432,7 @@ when a chunk exceeds the :ref:`chunk size <sharding-chunk-size>`.
 You may want to split chunks manually if:
 
 - you have a large amount of data in your cluster that is *not* split,
-  as is the case after creating a shard cluster with existing data
+  as is the case after creating a shard cluster with existing data.
 
 - you expect to add a large amount of data that would 
   initially reside in a single chunk or shard.
@@ -487,9 +482,6 @@ document as the partition point:
 
    sh.splitAt( { "zipcode": 63109 } )
 
-
-.. TODO - warning seems more appropriate here than a note.
-
 .. warning::
 
    You cannot merge or combine chunks once you have split them.
@@ -504,8 +496,7 @@ MB. This default chunk size works well for most deployments. However, if you
 notice that automatic migrations are incurring a level of I/O that
 your hardware cannot handle, you may want to reduce the chunk
 size. For the automatic splits and migrations, a small chunk size
-reduces to total number of documents the database has to scan and
-the total amount of data to migrate.
+leads to more rapid chunk migrations, at the cost of more frequent migrations.
 
 To modify the chunk size, use the following procedure:
 
@@ -560,13 +551,13 @@ In most circumstances, you should let the automatic balancer
 migrate :term:`chunks <chunk>` between :term:`shards <shard>`.
 However, you may want to migrate chunks manually in a few cases:
 
-- If you're pre-splitting a sharded cluster, then you'll definitely
-  have to migrate the chunks manually so that all the chunks will be
-  evenly distributed across all shards.
+- If you create chunks by presplitting the data in your collection,
+  you will have to migrate chunks manually, to distribute chunks
+  evenly across the shards.
 
-- If you find that an active shard cluster is out of balance and that
-  the balancer isn't rectifying the situation, then in this case
-  you'll also probably want to migrate manually.
+- If you find an active cluster is out of balance and the balancer
+  cannot migrate chunks fast enough, then you will have to migrate
+  chunks manually.
 
 To migrate chunks, use the :dbcommand:`moveChunk` command.
 
@@ -588,10 +579,10 @@ block until the migration is complete.
 
 .. note::
 
-   To get a list of shards, use the :dbcommand:`listshards`
+   To return a list of shards, use the :dbcommand:`listshards`
    command.
 
-   Shard names are specified in the :dbcommand:`addShard` command
+   Specify shard names using the :dbcommand:`addShard` command
    using the ``name`` argument. If you do not specify a name in the
    :dbcommand:`addShard` command, MongoDB will assign a name
    automatically.
@@ -611,8 +602,8 @@ related to balancing and the balancing process.
 
 .. _sharding-balancing-check-lock:
 
-Check the Balancer Lock State
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Check the Balancer Lock
+~~~~~~~~~~~~~~~~~~~~~~~
 
 To see if the balancer process is active in your :term:`shard
 cluster`, do the following:
@@ -630,14 +621,14 @@ cluster`, do the following:
 
    .. code-block:: javascript
 
-      db.locks.find( { _id : "balancer" } );
+      db.locks.find( { _id : "balancer" } ).pretty;
 
    You can also use the following shell helper to return the same
    information:
 
    .. code-block:: javascript
 
-      sh.getBalancerState()
+      sh.getBalancerState().pretty
 
 When this command returns, you will see output like the following:
 
@@ -680,7 +671,7 @@ Schedule the Balancing Window
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In some situations, particularly when your data set grows slowly and a
-migration can impact performance, it is useful to be able to ensure
+migration can impact performance, it's useful to be able to ensure
 that the balancer is active only at certain times.  Use the following
 procedure to specify a window during which the :term:`balancer` will
 be able to migrate chunks:
@@ -744,10 +735,12 @@ all migration, use the following procedure:
 
       sh.setBalancerState(true)
 
-It is important to note that if a balancing round is in progress, the
-system will complete the current round before the balancer is officially disabled.
-After disabling, you can use the :func:`sh.getBalancerState()` shell
-function to determine whether the balancer is in fact disabled.
+.. note:: 
+   
+   If a balancing round is in progress, the system will complete the
+   current round before the balancer is officially disabled.  After
+   disabling, you can use the :func:`sh.getBalancerState()` shell
+   function to determine whether the balancer is in fact disabled.
 
 The above process and the :func:`sh.setBalancerState()` helper provide a
 wrapper on the following process, which may be useful if you need to
@@ -768,7 +761,7 @@ run this operation from a driver that does not have helper functions:
 
       db.settings.update( { _id: "balancer" }, { $set : { stopped: true } } , true );
 
-#. To enable the balancer again:
+#. To enable the balancer again, alter the value of 'stopped' as follows:
 
    .. code-block:: javascript
 
@@ -794,7 +787,7 @@ For redundancy, all production :term:`shard clusters <shard cluster>` should
 deploy three config servers processes on three different machines.
 
 Do not use only a single config server for production deployments.
-However, you may deploy a single config server for testing.
+Consider deploying a single config server for testing.
 immediately. The following process shows how to upgrade from one to
 three config servers.
 
@@ -808,10 +801,11 @@ three config servers.
 
    - all :program:`mongos` instances in your cluster.
 
-#. Copy the entire :setting:`dbpath` file system tree from the existing
-   config server to the two machines that will provide the additional
-   config servers. These commands, issued on the system with the existing
-   config database, may look like the following from mongo-config0.example.net:
+#. Copy the entire :setting:`dbpath` file system tree from the
+   existing config server to the two machines that will provide the
+   additional config servers. These commands, issued on the system
+   with the existing config database, `mongo-config0.example.net` may
+   look like the following: 
 
    .. code-block:: sh
 
@@ -838,7 +832,9 @@ name.
 
 #. Shut down the config server that you are moving.
 
-   This will render all config data for your cluster "read only:" [#read-only]_ 
+   This will render all config data for your cluster "read only:"
+
+.. TODO - make link to config servers :doc:`read only<core/sharding/#config-servers>`
 
 #. Change the DNS entry that points to the system that provided the old
    config server, so that the *same* hostname points to the new
@@ -853,7 +849,7 @@ name.
 
    .. code-block:: sh
 
-      rsync -az /data/configdb mongo-config-new.example.net:/data/configdb
+      rsync -az /data/configdb mongo-config0.example.net:/data/configdb
 
 #. Start the config instance on the new system. The default invocation
    is:
@@ -878,7 +874,9 @@ possible, avoid changing the hostname so that you can use the
 
 #. Shut down the config server that you are moving.
 
-   This will render all config data for your cluster "read only:" [#read-only]_ 
+   This will render all config data for your cluster "read only:" 
+
+.. TODO - make link to config servers page
 
    .. code-block:: sh
 
@@ -947,7 +945,7 @@ you must change the hostname of the instance, use the process for
 Backup Cluster Metadata
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-The shard cluster can remain largely operational [#read-only]_ without one
+The shard cluster will remain operational [#read-only]_ without one
 of the config databases :program:`mongod` instances, creating a backup
 of the cluster metadata from the config database is straight forward:
 
@@ -1022,12 +1020,12 @@ One Shard Receives Too Much Traffic
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In some situations, a single shard or a subset of the cluster will
-receive a disproportionate percentage of the traffic and workload. In
+receive a disproportionate portion of the traffic and workload. In
 almost all cases this is the result of a shard key that does not
 effectively allow :ref:`write scaling
 <sharding-shard-key-write-scaling>`.
 
-It's also possible that you have some hot chunks. In this case, you may
+It's also possible that you have some "hot chunks". In this case, you may
 be able to solve the problem by splitting and then migrating parts of
 these chunks.
 
@@ -1037,7 +1035,7 @@ In the worst case, you may have to consider re-sharding your data
 and :ref:`choosing a different shard key <sharding-internals-choose-shard-key>`
 to correct this pattern.
 
-The Cluster Will Not Balance
+The Cluster does not Balance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you have just deployed your shard cluster, you may want to
@@ -1087,7 +1085,7 @@ application to use MongoDB effectively, there are two good solutions:
    overall cluster performance:
 
    - You may want to attempt :ref:`decreasing the chunk size <sharding-balancing-modify-chunk-size>`
-     to limit the amount of data being migrated.
+     to limit the size of the migration.
 
    - Your cluster may be over capacity, and you may want to attempt to
      :ref:`add one or two shards <sharding-procedure-add-shard>` to
@@ -1102,14 +1100,14 @@ better :ref:`write scaling <sharding-shard-key-write-scaling>`.
 Disable Balancing During Backups
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If MongoDB migrates a chunk while you are taking a :doc:`backup
+If MongoDB migrates a chunk while you're taking a :doc:`backup
 </administration/backups>`, you can end with an inconsistent snapshot
-of your shard cluster. You should never run a backup unless you are
+of your shard cluster. You should never run a backup unless you're
 certain that you have disabled the balancer. There are two ways to
 ensure this:
 
 - Set the :ref:`balancing window <sharding-schedule-balancing-window>`
-  so that the balancer is inactive while you are creating the
+  so that the balancer is inactive while you're creating the
   backup. Ensure that the backup process can complete while you have
   the balancer disabled.
 
