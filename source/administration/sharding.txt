@@ -14,13 +14,10 @@ For a full introduction to sharding in MongoDB see
 ":doc:`/core/sharding`," and for a complete overview of all sharding
 documentation in the MongoDB Manual, see ":doc:`/sharding`." The
 ":doc:`/administration/sharding-architectures`" document provides an
-overview of deployment possibilities that you may find helpful as you
-plan to deploy a shard cluster. Finally, the
-":doc:`/core/sharding-internals`" document provides a more detailed
-introduction to sharding that you may find useful when troubleshooting
+overview of deployment possibilities to help deploy a shard
+cluster. Finally, the ":doc:`/core/sharding-internals`" document
+provides a more detailed introduction to sharding when troubleshooting
 issues or understanding your cluster's behavior.
-
-.. TODO - revise to use less 'you may'
 
 .. contents:: Sharding Procedures:
    :backlinks: none
@@ -36,9 +33,6 @@ If you have an existing replica set, you can use the
 tutorial as a guide. If you're deploying a :term:`shard cluster` from
 scratch, see the ":doc:`/tutorial/deploy-shard-cluster`" tutorial for
 more detail or use the following procedure as a quick starting point:
-
-Sharding Quick Start
---------------------
 
 #. Provision the required hardware.
 
@@ -137,10 +131,6 @@ Sharding Quick Start
 
          sh.addShard( "repl0/mongodb0.example.net:27027,mongodb1.example.net:27017,mongodb2.example.net:27017" )
 
-
-Enable Sharding
----------------
-
 #. Enable sharding for any database that you want to shard.
 
    MongoDB enables sharding on a per-database basis. This is only a
@@ -204,11 +194,10 @@ Enable Sharding
    the distribution of data. Furthermore, you cannot change a
    collection's shard key once it has been set. 
 
-   See the ":ref:`Shard Key Overview <sharding-shard-key>`" and
-   ":ref:`Shard Internals <sharding-internals-shard-keys>`" to help you
-   choose a better shard key.
-
-.. TODO - find internal ref for `shard key`
+   See the ":ref:`Shard Key Overview <sharding-shard-key>`" and the
+   more in depth documentation of ":ref:`Shard Key Qualities
+   <sharding-internals-shard-keys>`" to help you select better shard
+   keys.
 
    If you do not specify a shard key, MongoDB will shard the
    collection using the ``_id`` field.
@@ -496,7 +485,7 @@ MB. This default chunk size works well for most deployments. However, if you
 notice that automatic migrations are incurring a level of I/O that
 your hardware cannot handle, you may want to reduce the chunk
 size. For the automatic splits and migrations, a small chunk size
-leads to more rapid chunk migrations, at the cost of more frequent migrations.
+leads to more rapid and frequent migrations.
 
 To modify the chunk size, use the following procedure:
 
@@ -552,12 +541,11 @@ migrate :term:`chunks <chunk>` between :term:`shards <shard>`.
 However, you may want to migrate chunks manually in a few cases:
 
 - If you create chunks by presplitting the data in your collection,
-  you will have to migrate chunks manually, to distribute chunks
+  you will have to migrate chunks manually to distribute chunks
   evenly across the shards.
 
-- If you find an active cluster is out of balance and the balancer
-  cannot migrate chunks fast enough, then you will have to migrate
-  chunks manually.
+- If the balancer in an active cluster cannot distribute chunks within
+  the balancing window, then you will have to migrate chunks manually.
 
 To migrate chunks, use the :dbcommand:`moveChunk` command.
 
@@ -631,9 +619,6 @@ cluster`, do the following:
       sh.getBalancerState().pretty
 
 When this command returns, you will see output like the following:
-
-.. TODO - split up multi-line output to make it easier to read & describe
-..        OR maybe specify the original command using .pretty option
 
 .. code-block:: javascript
 
@@ -761,7 +746,7 @@ run this operation from a driver that does not have helper functions:
 
       db.settings.update( { _id: "balancer" }, { $set : { stopped: true } } , true );
 
-#. To enable the balancer again, alter the value of 'stopped' as follows:
+#. To enable the balancer again, alter the value of "stopped" as follows:
 
    .. code-block:: javascript
 
@@ -804,7 +789,7 @@ three config servers.
 #. Copy the entire :setting:`dbpath` file system tree from the
    existing config server to the two machines that will provide the
    additional config servers. These commands, issued on the system
-   with the existing config database, `mongo-config0.example.net` may
+   with the existing config database, ``mongo-config0.example.net`` may
    look like the following: 
 
    .. code-block:: sh
@@ -832,9 +817,8 @@ name.
 
 #. Shut down the config server that you are moving.
 
-   This will render all config data for your cluster "read only:"
-
-.. TODO - make link to config servers :doc:`read only<core/sharding/#config-servers>`
+   This will render all config data for your cluster :ref:`read only
+   <sharding-config-server>`."
 
 #. Change the DNS entry that points to the system that provided the old
    config server, so that the *same* hostname points to the new
@@ -1025,11 +1009,9 @@ almost all cases this is the result of a shard key that does not
 effectively allow :ref:`write scaling
 <sharding-shard-key-write-scaling>`.
 
-It's also possible that you have some "hot chunks". In this case, you may
+It's also possible that you have some "hot chunks." In this case, you may
 be able to solve the problem by splitting and then migrating parts of
 these chunks.
-
-.. TODO - is 'hot chunks' a well defined term?
 
 In the worst case, you may have to consider re-sharding your data
 and :ref:`choosing a different shard key <sharding-internals-choose-shard-key>`
@@ -1100,16 +1082,14 @@ better :ref:`write scaling <sharding-shard-key-write-scaling>`.
 Disable Balancing During Backups
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If MongoDB migrates a chunk while you're taking a :doc:`backup
+If MongoDB migrates a chunk during a :doc:`backup
 </administration/backups>`, you can end with an inconsistent snapshot
-of your shard cluster. You should never run a backup unless you're
-certain that you have disabled the balancer. There are two ways to
-ensure this:
+of your shard cluster. Never run a backup unless the balancer is
+disabled. There are two ways to ensure this:
 
 - Set the :ref:`balancing window <sharding-schedule-balancing-window>`
-  so that the balancer is inactive while you're creating the
-  backup. Ensure that the backup process can complete while you have
-  the balancer disabled.
+  so that the balancer is inactive during the backup. Ensure that the
+  backup can complete while you have the balancer disabled.
 
 - :ref:`manually disable the balancer <sharding-balancing-disable-temporally>`
   for the duration of the backup procedure.
