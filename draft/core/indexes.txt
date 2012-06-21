@@ -17,6 +17,8 @@ indexes:
 
 - MongoDB defines indexes on a per-collection level.
 
+.. TODO - link to 'collections' document description (provide a good refresher for anyone just doing SQL vs. NoSQL comparisons)
+
 - Every query (including update operations,) can use one and only one
   index. The query optimizer determines, empirically, the best query
   plan and indexes to use on a specific query, but can be overridden
@@ -28,11 +30,13 @@ indexes:
   however, each index creates a slight overhead for every write
   operation.
 
-- Queries that are "covered" by the index are return much more quickly
-  than documents that have to scan many individual documents. Using
-  queries with good index coverage it possible for MongoDB to only
+- Queries that are "covered" by the index return more quickly
+  than documents that have to scan many individual documents. By using
+  queries with good index coverage, it possible for MongoDB to only
   store the index itself and the most often used documents in memory,
   which can maximize database capacity, performance and throughput.
+
+.. COMMENT - how do indexes maximize capacity?? doesn't capacity go down because there's additional overhead to store the index?
 
 Continue reading for a complete overview of indexes in MongoDB,
 including the :ref:`types of indexes <index-types>`, basic
@@ -66,16 +70,11 @@ The ``_id`` index is a :ref:`unique index <index-type-unique>` on the
 collections. [#capped-collections]_ You cannot delete the index on
 ``_id``.
 
-The ``_id`` field is the :term:`primary key` for the
-collection, and every document *must* have a unique ``_id`` field. If
-the application or client does not insert a value into the ``_id``
-field, typically an :term:`ObjectId`, the server will insert an
-ObjectId in to the ``_id`` field.
-
-While ObjectIds are 12-byte, unique identifiers, that make suitable
-``_id`` values, the only requirement of this field is that it be
-unique within a collection. You may store any unique value in the
-``_id`` field.
+The ``_id`` field is the :term:`primary key` for the collection, and
+every document *must* have a unique ``_id`` field. You may store any
+unique value in the ``_id`` field. The default value of ``_id`` is
+:term:`ObjectID` on every :func:`insert` operation. :term:`ObjectIds`
+are 12-byte, unique identifiers, that make suitable ``_id`` values.
 
 .. note::
 
@@ -84,8 +83,8 @@ unique within a collection. You may store any unique value in the
    **must** ensure the uniqueness of the values in the ``_id`` field
    to prevent errors.
 
-.. [#capped-collections] Capped collections do not have an ``_id``
-   index.
+.. [#capped-collections] Capped collections are a special collection
+     which do not have an ``_id`` index.
 
 .. _index-types-secondary:
 
@@ -103,8 +102,12 @@ In general, you should have secondary indexes that support all of your
 primary common and user-facing queries, and require MongoDB to scan
 the fewest number of documents possible.
 
-The specifications an index using the :func:`ensureIndex()
-<db.collection.ensureIndex()>` operation will resemble the following:
+.. COMMENT - 'primary common' means??
+
+To create a secondary index, you would use the :func:`ensureIndex()`
+function. The specifications an index using the :func:`ensureIndex()
+<db.collection.ensureIndex()>` operation will resemble the following
+on the MongoDB shell:
 
 .. code-block:: javascript
 
@@ -117,12 +120,14 @@ which represents the order of the keys in the index. For indexes with
 more than one key (i.e. "compound indexes,") the sequence of fields is
 important.
 
+.. TODO - is the order 1 for ascending and -1 for descending??
+
 Embedded Fields
 ```````````````
 
 You can create indexes on fields that exist in sub-documents within
 your collection. Consider the collection ``people`` that holds
-documents that resemble the following an example document:
+documents that resemble the following example document:
 
 .. code-block:: javascript
 
@@ -136,6 +141,9 @@ documents that resemble the following an example document:
     }
    }
 
+.. COMMENT - how can one get such output from mongodb shell??  --> try
+.. to be 'truthful' here.
+
 You could create an index on the ``address.zipcode`` field, using the
 following specification:
 
@@ -145,6 +153,8 @@ following specification:
 
 Introspecting sub-documents in this way is commonly called "dot
 notation."
+
+.. TODO - link to 'doc-notation' document
 
 .. _index-type-compound:
 
@@ -168,26 +178,26 @@ that resemble the following an example document:
    }
 
 Most queries probably select on the ``item`` field, but a significant
-number of queries will also need to check the ``stock`` field. You can
-specify a single compound index to support all of these queries:
+number of queries will also check the ``stock`` field. You can
+specify a single compound index to support both of these queries:
 
 .. code-block:: javascript
 
    db.products.ensureIndex( { "item": 1, "stock": 1 } )
 
-MongoDB will be able to use this index to support all queries that
-select on the ``item`` field as well as those queries that select on
-the ``item`` field **and** the ``stock`` field. These indexes will not
-support queries that select *only* on the ``stock`` field.
+MongoDB will be able to use this index to support queries that select
+the ``item`` field as well as those queries that select the ``item``
+field **and** the ``stock`` field. However, these indexes will not
+support queries that select *only* the ``stock`` field.
 
 Ascending and Descending
 ````````````````````````
 
 Indexes store references to fields in either ascending or descending
-order. Because MongoDB can transverse the index in either direction,
-the order of keys often doesn't matter. However, in compound indexes,
-for some kinds of sort operations, it's useful to have the fields
-running in opposite order.
+order. The order of keys often doesn't matter because MongoDB can
+transverse the index in either direction. However, in compound
+indexes, for some kinds of sort operations, it's useful to have the
+fields running in opposite order.
 
 To specify an index with an ascending order, use the following form:
 
@@ -195,8 +205,8 @@ To specify an index with an ascending order, use the following form:
 
    db.products.ensureIndex( { "field": -1 } )
 
-More typically in the context of a :ref:`compound index
-<index-type-compound>`, the specification would resemble the
+More typically in the context of a :ref:`compound
+index<index-type-compound>`, the specification would resemble the
 following:
 
 .. code-block:: javascript
@@ -210,7 +220,7 @@ following:
 Multikey
 ````````
 
-If you index a field, that contains an array, you will create a
+If you index a field that contains an array, you will create a
 multikey index, which adds entries to the index for *every* item in
 the array. Consider a ``feedback`` collection with documents in the
 following form:
@@ -264,24 +274,26 @@ Unique Index
 ~~~~~~~~~~~~
 
 The unique index will cause MongoDB to reject all documents that
-contain a duplicate value for the index field. Create a unique index
-on the ``user_id`` field, of the ``members`` collection, using the
+contain a duplicate value for the index field. To create a unique index
+on the ``user_id`` field of the ``members`` collection, use the
 following operation in the :program:`mongo` shell:
+
+.. COMMENT - are we using operation or command most of the time?
 
 .. code-block:: javascript
 
    db.addresses.ensureIndex( { "user_id": 1 }, { unique: true } )
 
 If you use the unique constraint on a :ref:`compound index
-<index-type-compound>` then MongoDB will enforce uniqueness on
-the *combination* of values, rather than individual for any or all
+<index-type-compound>` then MongoDB will enforce uniqueness on the
+*combination* of values, rather than individual value for any or all
 values of the key.
 
 If a document does not have a value for the indexed field in a unique
-index, the index will store a null value for this document. Because of
-the unique constraint, MongoDB will only permit one document without a
-value in the collection. You can combine with the :ref:`sparse index
-<index-type-sparse>` to filter these null values from the unique
+index, the index will store a null value for this document. MongoDB
+will only permit one document without a unique value in the collection
+ecause of the unique constraint. You can combine with the :ref:`sparse
+index <index-type-sparse>` to filter these null values from the unique
 index.
 
 .. index:: index; sparse
@@ -303,9 +315,9 @@ the :program:`mongo` shell:
 
 .. warning::
 
-   Because sparse indexes are not complete for all documents in a
-   collection, using these indexes will sometimes result in incomplete
-   results when filtering or sorting results.
+   Using these indexes will sometimes result in incomplete results
+   when filtering or sorting results, because sparse indexes are not
+   complete for all documents in a collection,
 
 .. note::
 
@@ -344,14 +356,13 @@ Background Construction
 .. TODO redirect background indexing page here
    http://www.mongodb.org/display/DOCS/Indexing+as+a+Background+Operation
 
-By default, creating an index is a blocking operation, and will
-prevent all other operations on the database until the index has
-finished building. If you must build an index on a collection that has
-a large collection of data, the operation can take a long time to
-complete. To resolve this issue, the background option can allow you
-to continue to use your :program:`mongod` instance. Create an index in
-the background of the ``zipcide`` field of the ``people`` collection
-using a command that resembles the following:
+By default, creating an index is a blocking operation. Building an
+index on a collection that has a large collection of data, the
+operation can take a long time to complete. To resolve this issue, the
+background option can allow you to continue to use your
+:program:`mongod` instance while the index is being built. Create an
+index in the background of the ``zipcide`` field of the ``people``
+collection using a command that resembles the following:
 
 .. code-block:: javascript
 
@@ -375,14 +386,16 @@ construction:
   the index will block until the index build is complete. Open another
   connection or :program:`mongo` instance to continue using the database.
 
-- Background index builds use an incremental approach that is slower
-  than the normal "foreground" index builds. If the index is larger
-  than RAM, then the incremental process can take *much* longer than
-  the foreground build.
+- The background index operation use an incremental approach that is
+  slower than the normal "foreground" index builds. If the index is
+  larger than the total system RAM, then the incremental process
+  can take *much* longer than the foreground build.
 
-- Background index builds are not built in the background on
-  :term:`replica set` :term:`secondaries <secondary members>` before
-  version 2.1.0.
+.. COMMENT - confirm: ram --> available or system total?
+
+- For MongoDB before version 2.1.0, background index builds cannot be
+  used for :term:`replica set` :term:`secondaries <secondary
+  members>`.
 
   To rebuild large indexes on secondaries before version 2.1.0,
   typically the best approach is to restart each secondary in
@@ -392,7 +405,8 @@ construction:
   secondaries have the new index, step down the primary and build the
   index on the former primary.
 
-  In 2.1.0 and later, you can build indexes in the background.
+.. COMMENT - don't you want to put the secondaries online THEN take
+.. the primary off to perform the index
 
   Indexes on secondary members in "recovering" mode are always built
   in the foreground to allow them to catch up as soon as possible.
@@ -400,13 +414,18 @@ construction:
   .. TODO create tutorials for the replica set reindexing
      http://www.mongodb.org/display/DOCS/Building+indexes+with+replica+sets
 
-- Administrative operations such as :dbcommand:`repairDatabase` and
-  :dbcommand:`compact` will not run concurrently with a background
-  index build.
 
-- While the index builds, it will exist in the ``system.indexes``
-  database, but queries will not be able to use these indexes until
-  the build is complete.
+.. warning:: 
+
+   Administrative operations such as :dbcommand:`repairDatabase` and
+   :dbcommand:`compact` will not run concurrently with a background
+   index build.
+
+.. note::
+   
+   Queries will not use these indexes until the index build is
+   complete because the index builds in the ``system.indexes``
+   database.
 
 .. _index-creation-duplicate-dropping:
 
@@ -416,8 +435,11 @@ Duplicate Dropping
 MongoDB cannot create a :ref:`unique index <index-type-unique>` on a
 field that has pre-existing duplicate values. To force the creation of
 a unique index, you can specify the ``dropDups`` option, which will
-index the first occurrence of a value for the key, and delete all
+only index the first occurrence of a value for the key, and delete all
 subsequent values.
+
+.. COMMENT - 'pre-exisiting' duplicate values? does that mean the
+.. index can index duplicate values AFTER the index has been created?
 
 As in all unique indexes, if a document does not have the indexed
 field, MongoDB will include it in the index with a "null" value. This
@@ -426,6 +448,8 @@ will remove them when deleting the index. If you combine this option
 with the :ref:`sparse <index-type-sparse>` option, this index will
 only include documents in the index that have the value, which
 prevents the database from deleting these values.
+
+.. COMMENT - ?_?
 
 To create a unique index that drops duplicates on the ``username``
 field of the ``accounts`` collection, use a command in the following form:
@@ -454,22 +478,24 @@ TTL indexes are special indexes that MongoDB can use to automatically
 remove documents from a collection after a certain amount of
 time. This is ideal for some types of information like machine
 generated event data, logs, and session information that only need to
-persist in a database for a limited period of time.
+persist in a database for a limited amount of time.
 
 These indexes have the following limitations:
 
-- The index can only contain one field. Compound indexes are *not*
-  supported.
+- Compound indexes are *not* supported.
 
-- The indexed field **must** contain a value with a date :term:`type
-  <bson type>`.
+- The indexed field **must** be a date :term:`type <bson type>`.
 
 - If the field holds an array, and there are multiple date-typed data
   in the index, the document will expire when the *lowest*
   (i.e. earliest) matches the expiration threshold.
 
+.. COMMENT - i'm a bit confused here. please clarify. compound indexes
+.. are not supported, but arrays are? don't array indexes autogenerate
+.. compound indexes?
+
 In all other respects, TTL indexes are normal :ref:`secondary indexes
-<index-types-secondary>`, and if appropriate, MongoDB can uses these
+<index-types-secondary>`, and if appropriate, MongoDB can use these
 indexes to fulfill arbitrary queries.
 
 .. see:: :doc:`/tutorial/expire-data`
@@ -478,7 +504,7 @@ Geospatial Indexes
 ~~~~~~~~~~~~~~~~~~
 
 MongoDB provides "geospatial indexes" to support location-based and
-other similar queries in two dimensional coordinate systems. For
+other similar queries in a two dimensional coordinate systems. For
 example, use geospatial indexes when you need to take a collection of
 documents that have coordinates, and return a number of options that
 are "near" a given coordinate pair.
@@ -502,9 +528,9 @@ create a geospatial index as follows:
 
    db.places.ensureIndex( { loc : "2d" } )
 
-By default, ``2d`` indexes assume that that the coordinates are
+By default, ``2d`` indexes assume that the coordinates are
 latitude/longitude systems, and assume that minimum and maximum bounds
-are ``[ -180, 180 ]``. Specify a different minimum and maximum
+are ``[ -180, 180 ]``. You can specify a different minimum and maximum
 values, as follows:
 
 .. code-block:: javascript
@@ -512,13 +538,13 @@ values, as follows:
    db.places.ensureIndex( { loc : "2d" }, { min: -250 , max: 250 } )
 
 MongoDB will reject documents that have values in the ``loc`` field
-that lie outside of the minimum and maximum values.
+beyond the minimum and maximum values.
 
 .. note::
 
    MongoDB permits only one geospatial index per collection. Although,
    MongoDB will allow clients to create multiple geospatial indexes, a
-   single query can use one and only one index.
+   single query can use only one index.
 
 See the :operator:`$near`, and the database command
 :dbcommand:`geoNear` for more information on accessing geospatial
@@ -542,7 +568,8 @@ Be aware of the following current limitations of MongoDB's indexes:
 - The name of an index, including the :term:`namespace` must be
   shorter than :ref:`128 characters <limit-index-name-length>`.
 
-- Every index storage requirements, and impacts insert/update speed
-  to some degree. Create indexes to support queries and other
-  operations, but do not maintain indexes that your MongoDB instance
-  cannot or will not use.
+- Indexes have storage requirements, and impacts insert/update speed
+  to some degree. 
+
+- Create indexes to support queries and other operations, but do not
+  maintain indexes that your MongoDB instance cannot or will not use.
