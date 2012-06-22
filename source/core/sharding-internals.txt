@@ -254,11 +254,48 @@ then add an additional field to provide additional :ref:`cardinality
 <sharding-shard-key-cardinality>` if your primary key does not have
 sufficient split-ability.
 
+Indexes
+-------
+
+All sharded collections **must** have an index on the :term:`shard
+key`. If you shard a collection that does not yet contain documents
+and does *not* have this index specified, the
+:dbcommand:`shardCollection` will create an index on the shard key. If
+the collection already contains documents, you must create this index
+before using :dbcommand:`shardCollection`.
+
+.. versionchanged:: 2.2
+   The index on the shard key can be an index of the shard key itself,
+   or a :ref:`compound index <sharding-index-type-compound>` where the
+   shard key is the prefix of the index. This index *cannot* be a
+   multikey index.
+
+If you have a collection named ``people``, sharded using the field ``{ zipcode: 1 }``,
+and you want to replace this with an index on the field ``{ zipcode:
+1, username: 1 }``, then:
+
+#. Create an index on ``{ zipcode: 1, username: 1 }``:
+
+   .. code-block:: javascript
+
+      db.people.ensureIndex( { zipcode: 1, username: 1 } );
+
+#. When MongoDB finishes building the index, you can safely drop
+   existing index on ``{ zipcode: 1 }``:
+
+   .. code-block:: javascript
+
+      db.people.dropIndex( { zipcode: 1 } );
+
+.. warning::
+
+   The index on the shard key **cannot** be a multikey index.
+
 .. index:: balancing; internals
 .. _sharding-balancing-internals:
 
-Sharding Balancer
------------------
+Cluster Balancer
+----------------
 
 The :ref:`balancer <sharding-balancing>` sub-process is responsible for
 redistributing chunks evenly among the shards and ensuring that each
