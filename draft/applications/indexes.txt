@@ -39,24 +39,87 @@ Store Indexes in RAM
 Considerations
 --------------
 
+Above all, when developing your indexing strategy you should have a
+deep understanding of:
+
+- the queries that the application use.
+
+- the relative frequency with which any specific query runs.
+
+- the current indexes created for your collections.
+
+- which indexes all, or your most common, queries use.
+
 Selectivity
 ~~~~~~~~~~~
 
-.. ensure the index is selective enough to be able to constrain the
-   match productively.
+Selectivity describes the ability of a query to narrow the result set
+using the index. Effective indexes are more selective, which allows
+MongoDB to use the index for a larger portion of the work associated
+with fulfilling the query.
+
+.. example::
+
+   First, consider an index on a field that has three values evenly
+   distributed across the collection. If MongoDB uses this index for a
+   query, MongoDB will still need to scan a third of the
+   :term:`documents <document>` in the collection to fulfill the rest
+   of the query.
+
+   Then, consider an index on a field that has many values
+   evenly distributed across the collection. If your query selects one
+   of these values using the index, MongoDB will only need to scan a
+   very small number of documents to fulfill the rest of the query.
+
+To ensure optimal performance use indexes that are maximally
+selective, relative to your queries.
 
 Insert Throughput
 ~~~~~~~~~~~~~~~~~
 
-.. inserts
+.. TODO insert link to /source/core/write-operations when that page is complete.
 
-Storage
-~~~~~~~
+.. TODO fact check
 
-.. considerations include:
-   - size of the index
-   - left/right hand hotness
-   - DOCS-224
+MongoDB must update all indexes associated with a collection following
+every insert or update operation. Every index on a collection adds
+some amount of overhead to these operations. In almost every case, the
+performance gains that indexes realize for read operations are worth
+the insertion penalty; however:
+
+- in some cases, an index to support an infrequent query may incur
+  more insert-related costs, than saved read-time.
+
+- in some situations, if you have many indexes on a collection with a
+  high insert throughput and a number of very similar indexes, you may
+  find better overall results by using a slightly less effective index
+  on some queries if it means consolidating the total number of
+  indexes.
+
+Index Size
+~~~~~~~~~~
+
+Indexes require space, both on disk and in RAM. Indexes require less
+space in RAM than the full documents in the collection. In theory, if
+your queries only match a subset of the documents and can use the
+index to locate those documents, MongoDB can maintain a much smaller
+:term:`working set`. Ensure that:
+
+- all of your indexes use less space than the documents in the
+  collection.
+
+- the indexes and a reasonable working set can fit RAM at the same
+  time.
+
+Indexes do not have to fit *entirely* into RAM in all cases. If the
+order of the index field, grows with every insert, and most queries
+select recently added documents, then MongoDB only needs to keep the
+parts of the index that hold the most recent or "right-most" values in
+RAM. This allows for efficient index use for read and write
+operations and minimize the amount of RAM required to support the
+index.
+
+.. To determine the size of the index, see DOCS-224
 
 System
 ~~~~~~
