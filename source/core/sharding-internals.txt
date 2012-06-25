@@ -257,15 +257,16 @@ sufficient split-ability.
 Indexes
 -------
 
-All sharded collections **must** have an index on the :term:`shard
-key`. If you shard a collection that does not yet contain documents
-and does *not* have this index specified, the
-:dbcommand:`shardCollection` will create an index on the shard key. If
-the collection already contains documents, you must create this index
-before using :dbcommand:`shardCollection`.
+All sharded collections **must** have an index that starts with the
+:term:`shard key`. If you shard a collection that does not yet contain
+documents and *without* such an index, the :dbcommand:`shardCollection` 
+will create an index on the shard key. If the collection already
+contains documents, you must create an appropriate index before using
+:dbcommand:`shardCollection`.
 
 .. versionchanged:: 2.2
-   The index on the shard key can be an index of the shard key itself,
+   The index on the shard key no longer needs to be identical to the
+   shard key. This index can be an index of the shard key itself as before,
    or a :ref:`compound index <sharding-index-type-compound>` where the
    shard key is the prefix of the index. This index *cannot* be a
    multikey index.
@@ -291,6 +292,13 @@ and you want to replace this with an index on the field ``{ zipcode:
 
    The index on the shard key **cannot** be a multikey index.
 
+   As above, an index on ``{ zipcode: 1, username: 1 }`` can only
+   replace an index on ``zipcode`` if there are no array values for
+   the ``username`` field.
+
+   If you drop the last appropriate index for the shard key, recover
+   by recreating a index on just the shard key.
+   
 .. index:: balancing; internals
 .. _sharding-balancing-internals:
 
