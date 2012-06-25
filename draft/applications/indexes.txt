@@ -1,6 +1,6 @@
-=============
-Using Indexes
-=============
+===================
+Indexing Strategies
+===================
 
 .. default-domain:: mongodb
 
@@ -26,15 +26,87 @@ Strategies
 Use Covered Queries
 ~~~~~~~~~~~~~~~~~~~
 
+In some cases, MongoDB will be able to fulfill a query using *only*
+the index, without needing to scan actual documents from the
+database. To use a covered index you must:
+
+- ensure that the index includes all of the fields you want to return.
+
+- if any of the indexed fields in any of the documents in the
+  collection includes an array, then the index becomes a
+  :ref:`multi-key index <index-type-multi-key>` index, and cannot
+  support a covered query.
+
+- in the :term:`projection`, explicitly exclude the ``_id`` field from
+  the result set, unless the index includes ``_id``.
+
+Use the :func:`explain() <cursor.explain()>` to test the query. If
+MongoDB was able to use a covered index, then the value of the
+``indexOnly`` field will be ``true``.
+
+Covered queries are much faster than other queries, for two reasons:
+the indexes are typically stored in RAM *or* located sequentially on
+disk, and the indexes are smaller than the documents they catalog.
+
 Sort Using Indexes
 ~~~~~~~~~~~~~~~~~~
 
-Store Indexes in RAM
-~~~~~~~~~~~~~~~~~~~~
+While the :dbcommand:`sort` and the func:`sort() <cursor.sort()>` helper,
+support in-memory sort operations without the use of an index,
+these operations are:
 
-.. check the size of the index in ram.
+#. Significantly slower than sort operations that use an index.
 
-   consider the size of the working set.
+#. Abort when the sort operation consume 32 megabytes of memory.
+
+For the best result, ensure that there is an index on the field you
+want to return sorted results. For example:
+
+- if you have an ``{ username: 1 }`` index, you can use this index to
+  return documents sorted by index.
+
+  *MongoDB can return sorted results in either ascending or descending
+  order using an index in ascending or descending order,* because
+  MongoDB can transverse the items in the index in both directions.
+
+- MongoDB can use a compound index ``{ status: 1, username: 1 }`` to
+  return a query on the ``status`` field sorted by the username.
+
+  When using compound indexes to support sort operations, the sorted
+  field must be the *last* field in the index.
+
+.. TODO add an item here about range queries.
+
+Store Indexes in Memory
+~~~~~~~~~~~~~~~~~~~~~~~
+
+For best results, always ensure that your indexes fit entirely in RAM,
+and that the database doesn't need to read from disk to fulfill a
+query. If your indexes approach or exceed the total size of available
+RAM, they may not fit in memory.
+
+You can check the size of your indexes in the :program:`mongo` shell,
+using the :func:`db.collection.totalIndexSize()` method. You may also
+use :dbcommand:`collStats` or :func:`db.collection.stats()` to return
+this and :doc:`related information </reference/collection-statistics>`.
+
+:func:`db.collection.totalIndexSize()` returns data in bytes. Consider
+the following invocation:
+
+.. code-block:: javascript
+
+   > db.collection.totalIndexSize()
+   4294976499
+
+This reports a total index size of roughly 4 gigabytes. Consider this
+value in contrast to the total amount of system RAM and the rest of
+the :term:`working set`. Also remember:
+
+- if you have and use multiple collections to consider the size of
+  all indexes on your those indexes
+
+- there are some :ref:`limited cases where indexes do not need to fit
+  in RAM <indexing-right-handed>`.
 
 Considerations
 --------------
@@ -49,6 +121,9 @@ deep understanding of:
 - the current indexes created for your collections.
 
 - which indexes all, or your most common, queries use.
+
+Remember that MongoDB can only use *one* index to support any given
+operation.
 
 Selectivity
 ~~~~~~~~~~~
@@ -111,6 +186,8 @@ index to locate those documents, MongoDB can maintain a much smaller
 - the indexes and a reasonable working set can fit RAM at the same
   time.
 
+.. _indexing-right-handed:
+
 Indexes do not have to fit *entirely* into RAM in all cases. If the
 order of the index field, grows with every insert, and most queries
 select recently added documents, then MongoDB only needs to keep the
@@ -120,11 +197,3 @@ operations and minimize the amount of RAM required to support the
 index.
 
 .. To determine the size of the index, see DOCS-224
-
-System
-~~~~~~
-
-.. considerations include:
-   - number of indexs
-   - indexed key limitations
-   - one query per index.
