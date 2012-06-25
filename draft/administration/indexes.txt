@@ -1,0 +1,190 @@
+===================
+Indexing Operations
+===================
+
+.. default-domain:: mongodb
+
+Synopsis
+--------
+
+Indexes allow MongoDB to and fulfill queries very efficiently, by
+creating an small and efficient representation of the documents in the
+collection. Fundamentally, indexes in MongoDB operate in a similar
+manner to indexes in other database systems. Read the
+":doc:`/core/indexes`" documentation for more information on the
+fundamentals of indexing in MongoDB, and the
+":doc:`/applications/indexes`" documentation for practical strategies
+and examples for using indexes in your application.
+
+This document, by contrast provides operational guidelines and
+procedures related to indexing data in MongoDB collections.
+
+Operations
+----------
+
+Creation
+~~~~~~~~
+
+Use the :func:`db.collection.ensureIndex()`, or similar :api:`method
+for your driver <>` to create an index. Consider the following
+prototype operation:
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( { a: 1 } )
+
+The following example creates [#ensure]_ an index on the ``phone-number`` field
+of the ``people`` collection:
+
+.. code-block:: javascript
+
+   db.people.ensureIndex( { phone-number: 1 } )
+
+To create a :ref:`compound index <index-type-compound>`, consider the
+following prototype:
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( { a: 1, b: 1, c: 1 } )
+
+The following example creates an index on the ``item``, ``category``,
+and ``price`` fields of the ``products`` collection:
+
+.. code-block:: javascript
+
+   db.products.ensureIndex( { item: 1, category: 1, price: 1 } )
+
+.. [#ensure] As the name suggests, :func:`ensureIndex() <db.collection.ensureIndex()>`
+   only creates an index if an index of the same specification does
+   not already exist.
+
+Sparse
+``````
+
+To create a :ref:`sparse index <index-type-sparse>` on a field, use
+the following prototype command:
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( { a: 1 }, { sparse: true } )
+
+Use the following example, to create a sparse index on the ``users``
+table that *only* indexes the ``twitter_name`` *if* a document has
+this field. This index will not include documents in this collection
+without the ``twitter_name`` field.
+
+.. code-block:: javascript
+
+   db.users.ensureIndex( { twitter_name: 1 }, { sparse: true } )
+
+.. note::
+
+   MongoDB cannot create sparse indexes on compound indexes.
+
+Unique
+``````
+
+To create a :ref:`unique indexes <index-type-unique>`, consider the
+following prototype:
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( { a: 1 }, { unique: true } )
+
+For example, you may want to create a unique index on the ``tax-id:``
+of the ``accounts`` collection to prevent storing multiple account
+records for the same legal entity:
+
+.. code-block:: javascript
+
+   db.accounts.ensureIndex( { tax-id: 1 }, { unique: true } )
+
+The :ref:`_id index <index-type-primary>` is a unique index. In some
+situations you may want to use the ``_id`` field for these primary
+data rather than using a unique index on another field.
+
+In many situations you will want to combine the ``unique`` constraint
+with the ``sparse`` option. When MongoDB indexes a field, if a
+document does not have a value for a field, the index entry for that
+item will be ``null``. Since unique indexes cannot have duplicate
+values for a field, without the ``sparse`` option, MongoDB will reject
+the second document and all subsequent documents without the indexed
+field. Consider the following prototype.
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( { a: 1 }, { unique: true, sparse: true } )
+
+You can also enforce a unique constraint on :ref:`compound indexes
+<index-type-compound-index>`, as in the following prototype:
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( { a: 1, b: 1 }, { unique: true } )
+
+These indexes enforce uniqueness for the *combination* of index keys
+and *not* for either key individually.
+
+Removal
+~~~~~~~
+
+:func:`db.collection.dropIndex()`
+
+:func:`db.collection.dropIndexes()`
+
+:dbcommand:`deleteIndexes`
+
+Rebuilding
+~~~~~~~~~~
+
+:func:`db.collection.reIndex()`
+
+:dbcommand:`reIndex`
+
+Special Creation Options
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note:: TTL collections use a special ``expire`` index option. See
+   :doc:`/tutorial/expire-data` for more information.
+
+Background
+``````````
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( { a: 1 }, { background: true } )
+
+Drop Duplicates
+```````````````
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( { a: 1 }, { dropDups: true } )
+
+Rebuilding Indexes Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In Version 1.8 and 2.0
+``````````````````````
+
+.. rebuild indexes on secondaries and cycle so that there's never a
+   failover.
+
+In Version 2.2
+``````````````
+
+.. versionchanged:: 2.2
+
+Rebuild operation on :term:`secondary` members of :term:`replica sets
+<replica set>` now run as normal background index operations. Run
+:func:`ensureIndex() <db.collection.ensureIndex()>` normally with the
+``{ background: true }`` option for replica sets.
+
+Measuring Index Utilization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- :func:`cursor.explain()`
+
+- :func:`cursor.hint()`
+
+- :status:`indexCounters`
