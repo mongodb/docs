@@ -440,8 +440,6 @@ To split chunks manually, use either the :func:`sh.splitAt()` or
 :func:`sh.splitFind()` helpers in the :program:`mongo` shell.
 These helpers wrap the :dbcommand:`split` command.
 
-.. TODO - do we really need such an example of a simple function?!
-
 .. example::
 
    The following command will split the chunk that contains
@@ -481,7 +479,7 @@ Modifying Chunk Size
 ~~~~~~~~~~~~~~~~~~~~
 
 When you initialize a shard cluster, the default chunk size is 64
-MB. This default chunk size works well for most deployments. However, if you
+megabytes. This default chunk size works well for most deployments. However, if you
 notice that automatic migrations are incurring a level of I/O that
 your hardware cannot handle, you may want to reduce the chunk
 size. For the automatic splits and migrations, a small chunk size
@@ -678,9 +676,9 @@ be able to migrate chunks:
 
       db.settings.update({ _id : "balancer" }, { $set : { activeWindow : { start : "<start-time>", stop : "<stop-time>" } } }, true )
 
-   Replace ``<start-time>`` and ``<end-time>`` with time values in
-   24-hour ``HH:MM`` format that describe the beginning and end
-   bounds of the balancing window. For instance, running the following
+   Replace ``<start-time>`` and ``<end-time>`` with time values using
+   two digit hour and minute values (e.g ``HH:MM``) that describe the beginning and end
+   boundaries of the balancing window. For instance, running the following
    will force the balancer to run between 11PM and 6AM only:
 
    .. code-block:: javascript
@@ -790,7 +788,7 @@ three config servers.
    existing config server to the two machines that will provide the
    additional config servers. These commands, issued on the system
    with the existing config database, ``mongo-config0.example.net`` may
-   look like the following:
+   resemble the following:
 
    .. code-block:: sh
 
@@ -815,7 +813,7 @@ Use this process when you need to migrate a config server to a new
 system but the new system will be accessible using the same host
 name.
 
-#. Shut down the config server that you are moving.
+#. Shut down the config server that you're moving.
 
    This will render all config data for your cluster :ref:`read only
    <sharding-config-server>`."
@@ -856,11 +854,9 @@ server and it *will not* be accessible via the same hostname. If
 possible, avoid changing the hostname so that you can use the
 :ref:`previous procedure <sharding-process-config-server-migrate-same-hostname>`.
 
-#. Shut down the config server that you are moving.
+#. Shut down the :ref:`config server <sharding-config-server>` you're moving.
 
    This will render all config data for your cluster "read only:"
-
-.. TODO - make link to config servers page
 
    .. code-block:: sh
 
@@ -904,7 +900,7 @@ you must change the hostname of the instance, use the process for
    host.
 
    You will have to ensure that the new system has the same IP address
-   and hostname as the system it is replacing *or* you will need to
+   and hostname as the system it''s replacing *or* you will need to
    modify the DNS records and wait for them to propagate.
 
 #. Shut down *one* (and only one) of the existing config servers. Copy
@@ -1000,16 +996,15 @@ Finally, if your shard key has a low :ref:`cardinality
 <sharding-shard-key-cardinality>`, MongoDB may not be able to create
 sufficient splits among the data.
 
-One Shard Receives Too Much Traffic
+One Shard Receives too much Traffic
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In some situations, a single shard or a subset of the cluster will
 receive a disproportionate portion of the traffic and workload. In
 almost all cases this is the result of a shard key that does not
-effectively allow :ref:`write scaling
-<sharding-shard-key-write-scaling>`.
+effectively allow :ref:`write scaling <sharding-shard-key-write-scaling>`.
 
-It's also possible that you have some "hot chunks." In this case, you may
+It's also possible that you have "hot chunks." In this case, you may
 be able to solve the problem by splitting and then migrating parts of
 these chunks.
 
@@ -1024,9 +1019,8 @@ If you have just deployed your shard cluster, you may want to
 consider the :ref:`troubleshooting suggestions for a new cluster where
 data remains on a single shard <sharding-troubleshooting-not-splitting>`.
 
-If you maintain a shard cluster that balanced data initially, but
-later develops an uneven distribution of data, see if any of the following
-conditions applies:
+If the cluster was initially balanced, but later developed an uneven
+distribution of data, consider the following possible causes:
 
 - You have deleted or removed a significant amount of data from the
   cluster. If you have added additional data, it may have a
@@ -1054,8 +1048,8 @@ conditions applies:
 Migrations Render Cluster Unusable
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If migrations consume too many system resources to allow your
-application to use MongoDB effectively, there are two good solutions:
+If migrations impact your cluster or application's performance,
+consider the following options, depending on the nature of the impact:
 
 #. If migrations only interrupt your clusters sporadically, you can
    limit the :ref:`balancing window
@@ -1073,19 +1067,20 @@ application to use MongoDB effectively, there are two good solutions:
      :ref:`add one or two shards <sharding-procedure-add-shard>` to
      the cluster to distribute load.
 
-Alternatively, you may have chosen a shard key that causes your
-application to direct all writes to a single shard, which in turn
-requires the balancer to migrate most data shortly after writing
-it. Consider redeploying sharding with a shard key that provides
+It's also possible, that your shard key causes your
+application to direct all writes to a single shard. This kind of
+activity pattern can require the balancer to migrate most data soon after writing
+it. Consider redeploying your cluster  with a shard key that provides
 better :ref:`write scaling <sharding-shard-key-write-scaling>`.
 
 Disable Balancing During Backups
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If MongoDB migrates a chunk during a :doc:`backup
+If MongoDB migrates a :term:`chunk` during a :doc:`backup
 </administration/backups>`, you can end with an inconsistent snapshot
-of your shard cluster. Never run a backup unless the balancer is
-disabled. There are two ways to ensure this:
+of your :term:`shard cluster`. Never run a backup while the balancer is
+active. To ensure that the balancer is inactive during your backup
+operation:
 
 - Set the :ref:`balancing window <sharding-schedule-balancing-window>`
   so that the balancer is inactive during the backup. Ensure that the
@@ -1094,5 +1089,7 @@ disabled. There are two ways to ensure this:
 - :ref:`manually disable the balancer <sharding-balancing-disable-temporally>`
   for the duration of the backup procedure.
 
-Either way, confirm that you have disabled the balancer by running
-`sh.getBalancerState()` before you start your backups.
+Confirm that the balancer is not active using the
+:func:`sh.getBalancerState()` operation before you start your
+backups. When the backup procedure is complete you can reactivate the
+balancer process.
