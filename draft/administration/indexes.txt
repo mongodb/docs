@@ -54,6 +54,12 @@ and ``price`` fields of the ``products`` collection:
 
    db.products.ensureIndex( { item: 1, category: 1, price: 1 } )
 
+
+.. note::
+
+   To build indexes for a :term:`replica set`, before version 2.2,
+   see :ref:`index-building-replica-sets`.
+
 .. [#ensure] As the name suggests, :func:`ensureIndex() <db.collection.ensureIndex()>`
    only creates an index if an index of the same specification does
    not already exist.
@@ -128,18 +134,74 @@ and *not* for either key individually.
 Removal
 ~~~~~~~
 
-:func:`db.collection.dropIndex()`
+To remove an index, use the :func:`db.collection.dropIndex()` method,
+as in the following example:
 
-:func:`db.collection.dropIndexes()`
+.. code-block:: javascript
 
-:dbcommand:`deleteIndexes`
+   db.accounts.dropIndex( { tax-id: 1 } )
+
+This will remove the index on the ``tax-id`` field in the ``accounts``
+collection. The shell provides the following document after completing
+the operation:
+
+.. code-block:: javascript
+
+   { "nIndexesWas" : 3, "ok" : 1 }
+
+Where the value of ``nIndexesWas`` reflects the number of indexes
+*before* removing this index. You can also use the
+:func:`db.collection.dropIndexes()` to remove *all* indexes, except
+for the :ref:`_id index <index-type-primary>` from a collection.
+
+These shell helpers provide wrappers around the
+:dbcommand:`deleteIndexes` :term:`database command`. Your :ref:`client
+library </applications/drivers>` may have a different or additional
+interface for these operations.
 
 Rebuilding
 ~~~~~~~~~~
 
-:func:`db.collection.reIndex()`
+If you need to rebuild indexes for a collection you can use the
+:func:`db.collection.reIndex()` method. This will drop all indexes,
+including the :ref:`_id index <index-type-primary>`, and then rebuild
+all indexes. For examples:
 
-:dbcommand:`reIndex`
+.. code-block:: javascript
+
+   db.accounts.reIndex()
+
+MongoDB will return the following document when the operation
+completes:
+
+.. code-block:: javascript
+
+   {
+           "nIndexesWas" : 2,
+           "msg" : "indexes dropped for collection",
+           "nIndexes" : 2,
+           "indexes" : [
+                   {
+                           "key" : {
+                                   "_id" : 1,
+                                   "tax-id" : 1
+                           },
+                           "ns" : "records.accounts",
+                           "name" : "_id_"
+                   }
+           ],
+           "ok" : 1
+   }
+
+This shell helper provides a wrapper around the
+:dbcommand:`reIndex` :term:`database command`. Your :ref:`client
+library </applications/drivers>` may have a different or additional
+interface for this operation.
+
+.. note::
+
+   To rebuild indexes for a :term:`replica set`, before version 2.2,
+   see :ref:`index-rebuilding-replica-sets`.
 
 Special Creation Options
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -150,6 +212,10 @@ Special Creation Options
 Background
 ``````````
 
+To create an index in the background you can specify :ref:`background
+construction <index-creation-background>`. Consider the following
+prototype invocation of :func:`db.collection.ensureIndex()`:
+
 .. code-block:: javascript
 
    db.collection.ensureIndex( { a: 1 }, { background: true } )
@@ -157,21 +223,75 @@ Background
 Drop Duplicates
 ```````````````
 
+To force the creation of a :ref:`unique index <index-type-unique>`
+Inez, you can use the ``dropDups`` option. This will force MongoDB to
+create a unique index by deleting documents with duplicate
+values. Consider the following prototype invocation of
+:func:`db.collection.ensureIndex()`:
+
 .. code-block:: javascript
 
    db.collection.ensureIndex( { a: 1 }, { dropDups: true } )
 
-Rebuilding Indexes Replica Set
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+See the full documentation of :ref:`duplicate dropping
+<index-creation-duplicate-dropping>` for more information.
+
+.. warning::
+
+   Specifying ``{ dropDups: true }`` will delete data from your
+   database. Use with extreme caution.
+
+.. _index-building-replica-sets:
+
+Building Indexes Replica Set
+----------------------------
 
 In Version 1.8 and 2.0
-``````````````````````
+~~~~~~~~~~~~~~~~~~~~~~
+
+For Version 1.8 and 2.0, :ref:`background index creation operations <index-creation-background>`
+become *foreground* indexing operations on :term:`secondary` members
+of replica sets. Because this can block replication on the
+secondaries, especially with long running operations use the following
+procedure for all non-trivial index builds:
+
+#. Stop the :program:`mongod` process on one secondary. Restart the
+   :program:`mongod`  process *without* the
+   :option:`--replSet <mongod --replSet>` option. This instance is
+   now in "standalone" mode.
+
+#. Create the new index or rebuild the index on this :program:`mongod`
+   instance.
+
+#. Restart the :program:`mongod` instance with the
+   :option:`--replSet <mongod --replSet>` option. Allow replication to
+   catch up on this node.
+
+#. Replete this operation on all of the remaining secondaries.
+
+#. Run :func:`rs.stepDown()` on the :term:`primary` member of the set,
+   and then run this procedure on the former primary.
+
+.. warning::
+
+   Ensure that your :ref:`oplog` is large enough to permit the
+   indexing or re-indexing operation to complete without falling too
+   far behind to catch up. See the ":ref:`replica-set-oplog-sizing`"
+   documentation for additional information.
+
+.. note::
+
+   This procedure *does* block indexing on one member of the replica
+   set at a time. However, the foreground indexing operation is more
+   efficient than the background index operation, and will only affect
+   one secondary at a time rather than *all* secondaries at the same
+   time.
 
 .. rebuild indexes on secondaries and cycle so that there's never a
    failover.
 
 In Version 2.2
-``````````````
+~~~~~~~~~~~~~~
 
 .. versionchanged:: 2.2
 
@@ -181,10 +301,34 @@ Rebuild operation on :term:`secondary` members of :term:`replica sets
 ``{ background: true }`` option for replica sets.
 
 Measuring Index Utilization
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------
 
-- :func:`cursor.explain()`
+.. TODO expand the .explain and .hint documentation here.
+
+Query performance is a good general indicator of index utilization;
+however, for more precise insight into index use, MongoDB provides the
+following tools:
+
+- :func:`explain() <cursor.explain()>`
+
+  Append the :func:`explain() <cursor.explain()>` method to any cursor
+  (e.g. a query) to return a document with statistics about the query
+  process, including the index used, and the number of documents
+  scanned.
 
 - :func:`cursor.hint()`
 
+  Append the :func:`hint() <cursor.explain()>` to any cursor (e.g. a
+  query) with the name of an index as the argument to *force* MongoDB
+  to use a specific index to fulfill the query. Consider the following
+  example:
+
+  .. code-block:: javascript
+
+     db.people.find( { name: "John Doe", zipcode: { $gt: 63000 } } } ).hint( { zipcode: 1 } )
+
 - :status:`indexCounters`
+
+  Use the :status:`indexCounters` data in the output of
+  :dbcommand:`serverStatus` for insight into database-wise index
+  utilization.
