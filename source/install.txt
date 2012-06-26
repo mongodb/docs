@@ -455,8 +455,38 @@ access granted access for the system running the MMS agent and that no
 firewalls block the port between ``munin-node`` and the agent. You may
 find the ``munin-node`` configuration at
 "``/etc/munin-node/munin-node.conf``" or "``/etc/munin-node.conf``",
-depending on your distribution. If you encounter problems, check the
-log files for ``munin-node`` to ensure that there are no errors with
+depending on your distribution.
+
+Additional considerations:
+
+- If you have numbered disk devices (e.g. ``/dev/sda1`` and
+  ``/dev/sda2``) then you will need to configure support for numbered
+  disk in the munin iostat plugin. Find the configuration file at
+  ``/etc/munin/plugin-conf.d/munin-node`` or a similar path, and add
+  the following value: ::
+
+       [iostat]
+           env.SHOW_NUMBERED 1
+
+- If you have Munin enabled and do not have ``iostat ios`` data in
+  your Munin charts, your ``munin-node`` may not have write access to
+  required state files in its ``munin/plugin-state/`` directory. See
+  the ``munin-node`` plugin log (i.e. ``/var/log/munin/munin-node.log``
+  or similar depending on your distribution) for more information.
+
+  The full path of this state directory directory depends on the
+  system, but is typically ``/var/lib/munin/plugin-state/``. Run the
+  following command sequence to correct this issue: ::
+
+       touch /var/lib/munin/plugin-state/iostat-ios.state
+       chown -R [username]:[group] /var/lib/munin/plugin-state/
+       chmod -R 660 /var/lib/munin/plugin-state/
+
+  Replace ``[username]`` and ``[group]`` with the username and group
+  that the ``munin-node`` process runs with.
+
+If you encounter any other problems, check the log files for
+``munin-node`` to ensure that there are no errors with
 Munin. ``munin-node`` writes logs files in the ``/var/log/`` directory
 on the monitored system.
 
@@ -482,6 +512,9 @@ To monitor a host with SSL enabled, you can either:
    on the edit (i.e. "Pencil") button on the right hand-side of the
    "Hosts" page. In the dialogue that pops up, click the check-box on
    the SSL tab.
+
+   If you enable SSL support globally you **will not** be able to
+   override this setting on a per-host basis.
 
 .. _troubleshooting:
 
