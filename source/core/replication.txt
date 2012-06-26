@@ -11,34 +11,35 @@ of these designated as the primary node and the rest as secondary
 nodes. Clients direct all writes to the primary node, while
 the secondary nodes replicate from the primary asynchronously.
 
-Database replication with MongoDB, adds redundancy, helps to
+Database replication with MongoDB adds redundancy, helps to
 ensure high availability, simplifies certain administrative tasks
 such as backups, and may increase read capacity. Most production
-deployments are use replication.
+deployments use replication.
 
 If you're familiar with other database systems, you may think about
-replica sets as a more sophisticated form of traditional master-slave replication. [#master-slave]_
-In master-slave replication, a ":term:`master`" node accepts writes while one or more
-":term:`slave`" nodes replicate those write operations and thus
-maintain data sets identical to the master. To use the language of
-replica sets, the node currently accepting write operations is the
-"**primary**", and the replicating nodes are "**secondaries**".
+replica sets as a more sophisticated form of traditional master-slave
+replication. [#master-slave]_ In master-slave replication, a
+":term:`master`" node accepts writes while one or more ":term:`slave`"
+nodes replicate those write operations and thus maintain data sets
+identical to the master. In MongoDB terms, the node that accepts write
+operations is the "**primary**", and the replicating nodes are the
+"**secondaries**".
 
 MongoDB's replica sets provide automated failover. If a
 :term:`primary` node fails, the remaining members will automatically
-try to elect new primary node.
+try to elect a new primary node.
 
 .. seealso:: ":ref:`Replica Set Implementation Details
-   <replica-set-implementation>`" and The ":doc:`/replication`" index
-   for a list of all documents in this manual that contain information
+   <replica-set-implementation>`" and the ":doc:`/replication`" index for
+   a list of all documents in this manual that contain information
    related to the operation and use of MongoDB's replica sets.
 
 .. [#master-slave] MongoDB also provides conventional master/slave
    replication. Master/slave replication operates by way of the same
    mechanism as replica sets, but lacks the automatic failover
    capabilities. While replica sets are the recommended solution for
-   production, a replica set can support only 12 nodes in total.
-   If your deployment requires more than 11 :term:`slave` nodes, you'll
+   production, a replica set can support only 12 members in total.
+   If your deployment requires more than 11 :term:`slave` members, you'll
    need to use master/slave replication.
 
 .. index:: configuration; replica set members
@@ -46,20 +47,20 @@ try to elect new primary node.
 Member Configurations
 ---------------------
 
-All replica sets at most a single :term:`primary` node and one or more
-:term:`secondary` nodes. Replica sets sets allow you to configure
-secondary nodes in a variey of ways. This section describes uses and
+All replica sets at most use a single :term:`primary` member and one or
+more :term:`secondary` members. Replica sets allow you to configure
+secondary members in a variey of ways. This section describes uses and
 functions of all the replica set member configurations.
 
 .. seealso:: ":ref:`Replica Set Node Configurations
-   <replica-set-node-configurations>`" for instructions on
-   configuration your replica set members.
+   <replica-set-node-configurations>`" for instruction on replica set
+   member configuration.
 
 .. note::
 
    A replica set can have up to 12 nodes, but only 7 nodes can have
    votes. See ":ref:`non-voting nodes <replica-set-non-voting-members>`"
-   for configuration information regarding non-voting nodes.
+   for information regarding non-voting nodes.
 
 .. index:: replica set members; secondary only
 .. _replica-set-secondary-only-members:
@@ -67,19 +68,16 @@ functions of all the replica set member configurations.
 Secondary-Only
 ~~~~~~~~~~~~~~
 
-All :term:`secondary` members of :term:`replica sets <replica set>`
-may become :term:`primary` in the case of a :term:`failover`
-situation. If the write and replication traffic associated with
-acting as :term:`primary`" would render a member or your application
-inoperable due to network or disk configurations, configure this
-instance in "secondary-only" mode.
+You can set "secondary-only" mode for any :term:`replica set`
+:term:`secondary` member to prevent the member from becoming a
+:term:`primary` in a :term:`failover`. To set this configuration for a
+member of the set see :ref:`secondary-only configuration <replica-set-secondary-only-configuration>`.
 
-Any node with a :data:`members[n].priority` value equal to ``0``
-will never seek election and cannot become primary in any
-circumstance. Many users configure all members of their replica sets
-that are not located in their main data centers (i.e. the facilities
-where the primary application servers are) as "secondary-only" to
-prevent these nodes from ever becoming primary.
+Any node with a :data:`members[n].priority` value equal to ``0`` will
+never seek election and cannot become primary in any situation. Many
+users configure all members of their replica sets located
+outside of the main data centers as "secondary-only" to prevent these
+members from ever becoming primary.
 
 .. seealso:: ":ref:`Configuring Secondary-Only Members
    <replica-set-secondary-only-members>`" for a procedure that you can
@@ -93,14 +91,13 @@ prevent these nodes from ever becoming primary.
 Hidden
 ~~~~~~
 
-Hidden members are part of a replica set, but are not only unable to
-become primary (i.e. have :ref:`priority <replica-set-node-priority>`
-set to a value of ``0``, ) but are also invisible to client
-applications.
+Hidden members are part of a replica set, but are unable to become
+primary (i.e. have :ref:`priority <replica-set-node-priority>` set to
+a value of ``0``, ) and invisible to client applications.
 
 Hidden members are ideal for instances that will have significantly
 different usage patterns than the other nodes and require separation
-from normal traffic. Typically hidden members provide reporting,
+from normal traffic. Typically, hidden members provide reporting,
 dedicated backups, and dedicated read-only testing and integration
 support.
 
@@ -116,7 +113,7 @@ Delayed members apply operations from the primary's :term:`oplog` with
 a specified delay. Delayed members must have a :term:`priority` set to
 ``0`` to prevent them from becoming primary in their replica sets.
 
-Typically delayed members are useful for preventing and recovering from
+Delayed members may help recover from
 various kinds of human error. Such errors may include inadvertently
 deleted databases or botched application upgrades. Consider the
 following factors when determining the amount of slave delay to
@@ -141,13 +138,13 @@ participate in :term:`elections <election>`.
 .. note::
 
    Because of their minimal system requirements, you may safely deploy an
-   arbiter on a system with another work load such as an application
+   arbiter on a system with another workload such as an application
    server or monitoring node.
 
 .. warning::
 
    Do not run arbiter processes on a system that is an active
-   :term:`primary` or :term:`secondary` of it's replica set.
+   :term:`primary` or :term:`secondary` of its replica set.
 
 .. index:: replica set members; non-voting
 .. _replica-set-non-voting-members:
@@ -156,11 +153,11 @@ Non-Voting
 ~~~~~~~~~~
 
 You may choose to change the number of votes that each node has in
-:term:`elections <election>` for :term:`primary`. In general use, when possible
-all nodes should have only 1 vote to prevent intermittent ties,
-deadlock, or the wrong nodes from becoming :term:`primary`. Use
-":ref:`Replica Set Priorities <replica-set-node-priority>`" to control
-which nodes are more likely to become primary.
+:term:`elections <election>` for :term:`primary`. In general, all
+nodes should have only 1 vote to prevent intermittent ties, deadlock,
+or the wrong nodes from becoming :term:`primary`. Use ":ref:`replica
+set priorities <replica-set-node-priority>`" to control which nodes
+are more likely to become primary.
 
 .. index:: pair: replica set; failover
 .. _replica-set-failover:
@@ -168,12 +165,12 @@ which nodes are more likely to become primary.
 Failover
 --------
 
-Replica sets feature automated failover. If the
-:term:`primary` node goes offline or becomes unresponsive and a majority
-of the original set members  can still connect to each other, the set will
-elect a new primary.
+Replica sets feature automated failover. If the :term:`primary` node
+goes offline or becomes unresponsive and a majority of the original
+set members can still connect to each other, the set will elect a new
+primary.
 
-While :term:`failover` is automatic, :term:`replica set <replica set>`
+While :term:`failover` is automatic, :term:`replica set`
 administrators should still understand exactly how this process
 works. This section below describe failover in detail.
 
@@ -184,9 +181,8 @@ works. This section below describe failover in detail.
 Elections
 ~~~~~~~~~
 
-When you initialize a replica set for the first time, and when any
-failover occurs, an election takes place to decide which member should
-become primary.
+When any failover occurs, an election takes place to decide which
+member should become primary.
 
 Elections provide a mechanism for the members of a :term:`replica set`
 to autonomously select a new :term:`primary` node without
@@ -232,6 +228,8 @@ have a single vote in :ref:`elections <replica-set-elections>`.
    :data:`members[n].votes` except to permit more than 7 secondary
    nodes.
 
+.. COMMENT a bit unclear. ALWAYS set, but except to have more than 7 secondary?
+
 .. seealso:: ":ref:`Node Priority Configuration <replica-set-node-priority-configuration>`"
 
 .. index:: pair: replica set; consistency
@@ -245,7 +243,7 @@ replica set are :term:`consistent <strict consistency>`, with the last
 write operation.
 
 If clients configure the :term:`read preference` to permit allow secondary reads,
-read operations cant return from :term:`secondary` nodes that have not
+read operations cannot return from :term:`secondary` nodes that have not
 replicated more recent updates or operations. In these situations the
 query results may reflect a previous state.
 
@@ -260,8 +258,8 @@ ensure that write operations succeed on all nodes before completing
 successfully.
 
 This section provides an overview of the concepts that underpin
-database consistency and the mechanisms that MongoDB provides to
-ensure that users have access to consistent data states.
+database consistency and the MongoDB mechanisms to ensure that users
+have access to consistent data.
 
 .. index:: rollbacks
    single: replica set; rollbacks
@@ -278,9 +276,9 @@ accepted write operations that have *not* replicated to the
 rare and typically occurs as a result of a network partition with
 replication lag. When this node (the former primary) rejoins the
 :term:`replica set` and attempts to continue replication as a
-secondary the former primary must revert these
-operations or "roll back" these operations to maintain database
-consistency across the replica set.
+secondary the former primary must revert these operations or "roll
+back" these operations to maintain database consistency across the
+replica set.
 
 MongoDB writes the rollback data to a :term:`BSON` file in the
 database's :setting:`dbpath` directory. Use :doc:`bsondump
@@ -289,8 +287,7 @@ and then manually apply the changes to the new primary. There is no
 way for MongoDB to appropriately and fairly handle rollback situations
 without manual intervention. Even after the node completes the
 rollback and returns to secondary status, administrators will need to
-apply or decide to ignore the rollback data. MongoDB users should strive to avoid
-rollbacks as much as possible.
+apply or decide to ignore the rollback data.
 
 The best strategy for avoiding all rollbacks is to ensure :ref:`write
 propagation <replica-set-write-concern>` to all or some of the
@@ -306,13 +303,11 @@ that might create rollbacks.
 Application Concerns
 ~~~~~~~~~~~~~~~~~~~~
 
-For the most part, client applications are indifferent to the
-operation of replica sets, and whether a MongoDB instance is a single
-server (i.e. "standalone") or a replica set is largely
-irrelevant. While specific configuration depends to some extent on the
-client :doc:`drivers </applications/drivers>`, there is often minimal
-or no differences between applications running with :term:`replica
-sets <replica set>` or standalone instances.
+Client applications are indifferent to the configuration and operation
+of replica sets. While specific configuration depends to some extent
+on the client :doc:`drivers </applications/drivers>`, there is often
+minimal or no difference between applications using
+:term:`replica sets <replica set>` or standalone instances.
 
 There are two major concepts that *are* important to consider when
 working with replica sets:
@@ -362,19 +357,24 @@ Oplog
 The operation log (i.e. :term:`oplog`) is a :term:`capped collection`
 that stores all operations that modify the data stored in MongoDB. All
 members of the replica set maintain oplogs that allow them to maintain
-the current state of the database. In most cases the default oplog
-size, which is 5% of total disk size, [#default-oplog]_ is an
-acceptable size.
+the current state of the database. The default oplog size is 5% of
+total disk size. [#default-oplog]_
 
-Theoretically, if an oplog that is 5% of the total disk space fits 24
+For example, if an oplog that is 5% of the total disk space fits 24
 hours of operations, then nodes can stop copying entries from the
 oplog for 24 hours before they require full resyncing *and* the disk
 will be full in 19 days. If this were the case, you would have a very
 high-volume node: in many circumstances, a default oplog can hold
-days of operations. However, there are some factors that affect oplog
-space utilization.
+days of operations.
 
-However, consider the following factors:
+The following factors affect how MongoDB uses space in the oplog:
+
+- Update operations that affect multiple documents at once.
+
+  The oplog must translate multi-updates into individual operations,
+  in order to maintain :term:`idempotency <idempotent>`. This can use
+  a great deal of oplog space without a corresponding increase
+  in disk utilization.
 
 - If you delete roughly the same amount of data as you insert.
 
@@ -386,16 +386,9 @@ However, consider the following factors:
   In-place updates create a large number of operations but do not
   change the quantity data on disk.
 
-- Update operations that affect multiple documents at once.
-
-  The oplog must translate multi-updates into individual operations,
-  in order to maintain idempotency. This can use a great deal of
-  operation-log space without a corresponding increase in disk
-  utilization.
-
 If you can predict that your replica set's workload will resemble one
 of the above patterns, then you may want to consider creating an oplog
-that's larger than the default. Conversely, if the predominance of
+that is larger than the default. Conversely, if the predominance of
 activity of on your MongoDB-based application are reads and you are
 writing a small amount of data, you may find that you need a much
 smaller oplog.
@@ -415,26 +408,25 @@ Deployment
 
 Without replication, a standalone MongoDB instance represents a single
 point of failure and any disruption of the MongoDB system will render
-the database unusable and potentially unrecoverable. Not only does
-replication increase the reliability of the database instance, but
-replica sets are capable of distributing reads to :term:`secondary`
-nodes depending on :term:`read preference`. Particularly for database
-work loads dominated by read operations, (i.e. "read heavy") replica
-sets can greatly increase the capability of the database system.
+the database unusable and potentially unrecoverable. Replication
+increase the reliability of the database instance, and replica sets
+are capable of distributing reads to :term:`secondary` nodes depending
+on :term:`read preference`. For database work loads dominated by read
+operations, (i.e. "read heavy") replica sets can greatly increase the
+capability of the database system.
 
 The minimum requirements for a replica set include two nodes with
-data, for a :term:`primary` and a secondary, and an :ref:`arbiters
+data, for a :term:`primary` and a :term:`secondary`, and an :ref:`arbiters
 <replica-set-arbiters>`. In most circumstances, however, you will want
 to deploy three data nodes.
 
 For those deployments that rely heavily on distributing reads to
-secondary instances, add additional nodes to the set as load increases
-to provide additional resources. Also as your deployment grows,
-consider adding or moving replica set members to secondary data
-centers or to geographically distinct locations for additional
-redundancy. While many architectures are possible, always ensure that
-the quorum of nodes required to elect a primary remains in your main
-facility.
+secondary instances, add additional nodes to the set as load
+increases. As your deployment grows, consider adding or moving
+replica set members to secondary data centers or to geographically
+distinct locations for additional redundancy. While many architectures
+are possible, always ensure that the quorum of nodes required to elect
+a primary remains in your main facility.
 
 Depending on your operational requirements, you may consider adding
 nodes configured for a specific purpose including, a :term:`delayed
@@ -450,11 +442,11 @@ the existing members.
 
 .. note::
 
-   :term:`Journaling <journal>`, provides single-instance
-   write durability. The journaling greatly improves the reliability
-   and durability of a database. Unless MongoDB runs with journaling, when a
-   MongoDB instance terminates ungracefully, the database can end in a
-   corrupt and unrecoverable state.
+   :term:`Journaling <journal>`, provides single-instance write
+   durability. The journaling greatly improves the reliability and
+   durability of a database. Unless MongoDB runs with journaling, when
+   a MongoDB instance terminates ungracefully, the database can end in
+   a corrupt and unrecoverable state.
 
    You should assume that a database, running without journaling, that
    suffers a crash or unclean shutdown is in corrupt or inconsistent
