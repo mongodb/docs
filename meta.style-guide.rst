@@ -139,13 +139,13 @@ Referencing
 - To refer to future or planned functionality in MongoDB or a driver,
   *always* link to the Jira case. The Manual's ``conf.py`` provides
   for a "``:issue:``" role that will link directly to a Jira case
-  (e.g. ``:issue:\`SERVER-9001\```). 
-  
+  (e.g. ``:issue:\`SERVER-9001\```).
+
 - For non-object references (i.e. functions, operators, methods,
   database commands, settings) always reference only the first
   occurrence of the reference in a section. You should *always*
-  reference objects, except in section headings. 
-  
+  reference objects, except in section headings.
+
 General Formulations
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -170,6 +170,9 @@ General Formulations
 - Use "unavailable," "offline," or "unreachable" to refer to a
   ``mongod`` instance that cannot be accessed rather than the
   colloquialism "down."
+
+- Always write out units (e.g. "megabytes") rather than using
+  abbreviations (e.g. "MB".)
 
 Structural Formulations
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -201,6 +204,10 @@ Structural Formulations
 
 - For longer lists and more complex lists, use bulleted items rather
   than integrating them inline into a sentence.
+
+- Do not expect that the content of any example (inline or blocked,)
+  will be self explanatory. Even when it feel redundant, make sure
+  that the function and use of every example is clearly described.
 
 ReStructured Text and Typesetting
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
