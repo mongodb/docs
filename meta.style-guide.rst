@@ -206,7 +206,7 @@ Structural Formulations
   than integrating them inline into a sentence.
 
 - Do not expect that the content of any example (inline or blocked,)
-  will be self explanatory. Even when it feel redundant, make sure
+  will be self explanatory. Even when it feels redundant, make sure
   that the function and use of every example is clearly described.
 
 ReStructured Text and Typesetting
