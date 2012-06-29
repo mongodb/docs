@@ -19,26 +19,34 @@
 Using Geospatial Data
 =====================
 
-Creating Indexes
-----------------
+MongoDB supports rich queries and interaction with geospatial data to
+ store and query data based on location and proximity. For more
+ information about the geospatial indexes and its operations see
+ :doc:`/core/geospatial-indexes`. This document describes how to use
+ geospatial indexes and associated operators.
+
+Create Geospatial Indexes
+-------------------------
 
 Ensure your geospatial data is stored in a collection in a 2
 dimensional array, ``[x,y]`` or ``[y,x]``. For longitude-latitude data,
 ``[latitude,longitude]`` order is recommended.
 
-To create a geospatial index, use the following command on a
+Create a geospatial index with the following command on a
 collection with a location field:
 
-.. codeblock:: javascript
+.. code-block:: javascript
 
    db.collection.ensureIndex( { <location field> : "2d" } )
 
 This will create a special geohash index from the geospatial data. All
-geospatial queries will be 
+geospatial queries will be
+
+.. TOOD finish thought 
 
 For example:
 
-.. codeblock:: javascript
+.. code-block:: javascript
 
    db.example.insert( { location: [0,0] } )
    db.example.insert( { location: [-74, 40.74] } )
@@ -47,61 +55,62 @@ For example:
 
 .. note::
 
-   One collection may only have 1 geospatial index. MongoDB may allow
+   There may be only 1 geospatial index per collection. MongoDB may allow
    multiple geospatial indexes, but this behavior is unsupported and
-   may produced undesireable behavior.
-
-.. TODO clarify technical problems of multiple indexes.
+   may produce undesireable behavior.
 
 Modify Range
 ~~~~~~~~~~~~
 
 By default, the geospatial index assumes you are indexing longitude
-and latitude. The geospatial default range is (-180, 180].
-[#non-inclusive]_ Any values inserted into the index outside the value
-bounds will return an error and will not be inserted into the index.
+and latitude. The geospatial default range is ``(-180, 180]``.
+[#non-inclusive]_ If you insert documents in MongoDB with values
+outside of these bounds, MongoDB will return an error and reject these
+documents.
 
-To modify the index value range, you would use the :option:`min` and
-:option:`max` options with the :func:`ensureIndex` function:
+To modify the index value range, you would use the ``min`` and
+``max`` options with the :func:`ensureIndex` function:
 
-.. codeblock:: javascript
+.. code-block:: javascript
 
    db.collection.ensureIndex( { <location field> : "2d" } , 
                               { min : <lower bound> , max : <upper bound> } )
 
 For example:
 
-.. codeblock:: javascript
+.. code-block:: javascript
 
    db.example.ensureIndex( { <location field> : "2d" } , 
                            { min : ­90 , max : 90 } )
 
-.. [#non-inclusive]
+.. [#non-inclusive] The index space bounds are inclusive of the lower
+   bound and exclusive of the upper bound.
 
-   The index space bounds are inclusive of the lower bound and
-   exclusive of the upper bound.
+.. TODO verify white space requirements on draft server
 
+Precision
+~~~~~~~~~
 
-Bits and Precision
-~~~~~~~~~~~~~~~~~~
+.. TODO add intro & make cross reference to core/geospatial-indexes
 
 The number of bits for the index affect the precision level of the
 geospatial index.
 
 You can change the number of bits the geospatial index will use by
-using the 'bits' option when you use the ensureIndex() command.
+using the 'bits' option when you use the :func:`ensureIndex` function.
 
 The default bits of resolution for geospatial data is 26 bits. This is
 enough precision to about 1 foot when using the default range.
 
-.. codeblock:: javascript
+
+.. code-block:: javascript
 
    db.collection.ensureIndex( {<location field>: "2d"} , 
                               { bits: <bit precision> } )
 
 For example:
 
-.. codeblock:: javascript
+.. code-block:: javascript
 
    db.example.ensureIndex( { location: "2d"} , { bits: 4 } )
 
@@ -112,21 +121,27 @@ The maximum number of bits you can set for the geospatial index is
 Compound Indexes
 ~~~~~~~~~~~~~~~~
 
-If a majority of geospatial queries are in combination with
-another attribute, compound indexes with the attribute will accelerate
-the query.
+For many queries, applications need to filter both by location and by
+another attribute. To support these queries, MongoDB permits
+:term:`compound indexes` where one component is geospatial data, and
+other components store related data.
 
-Geospatial data can be indexed with another field to create a compound
-index. To create a compound index, you would use this command:
+.. TODO lead in restaurant example "query all restaurants near a target"
 
-.. codeblock:: javascript
+If a majority of geospatial queries are in combination with another
+attribute, compound indexes with the attribute will accelerate the
+query.
+
+This is the prototype of the compound index command:
+
+.. code-block:: javascript
 
    db.collection.ensureIndex( { <location field> : "2d" , 
                                 <attribute field> : 1 } );
 
 For example:
 
-.. codeblock:: javascript
+.. code-block:: javascript
 
    db.example.ensureIndex( { location : "2d" , 
                              storeCategory : 1 } );
@@ -140,7 +155,7 @@ parameter . The bucketSize parameter determines the granularity of the
 bucket index - a value of 1 creates an index where keys within 1 unit
 of longitude or latitude are stored in the same bucket.
 
-.. codeblock:: javascript
+.. code-block:: javascript
 
    db.collection.ensureIndex({ <location field> : "geoHaystack", type : 1 }, 
                              { bucketSize : <bucket value> })
@@ -196,25 +211,25 @@ Near
 The :operator:`$near` operator returns the 100 closest points to ``[x,y]`` sorted
 by distance.
 
-.. codeblock:: javascript
+.. code-block:: javascript
 
    db.collection.find( { <location field>: { $near : [x,y] } } )
 
 OR
 
-.. codeblock:: javascript
+.. code-block:: javascript
 
    db.runCommand( {geoNear: "collection", near: [x,y] } )
 
 For example:
 
-.. codeblock:: javascript
+.. code-block:: javascript
 
    db.example.find( { loc: { $near : [-74, 40.74] } } )
 
 OR
 
-.. codeblock:: javascript
+.. code-block:: javascript
 
    db.runCommand( {geoNear: "example", near: [-74,40.74] } )
 
@@ -222,23 +237,23 @@ The default limit to return is 100. To limit the number of points
 further, use the :func:`limit() <cursor.limit()>` function with
 :func:`find` or :option:`num` with geoNear.
 
-.. codeblock:: javascript
+.. code-block:: javascript
 
    db.collection.find( { <location field>: { $near : [x,y] } } ).limit(n)
 
-.. codeblock:: javascript
+.. code-block:: javascript
 
    db.runCommand( {geoNear: "collection", near: [x,y], num: z } )   
 
 For example:
 
-.. codeblock:: javascript
+.. code-block:: javascript
 
    db.example.find( { location: { $near : [-74, 40.74] } } ).limit(20)
 
 OR
 
-.. codeblock:: javascript
+.. code-block:: javascript
 
    db.runCommand( {geoNear: "collection", near: [-74, 40.74], num: 20 } )
 
@@ -246,7 +261,7 @@ To limit searches near a point with a particular distance you can use
 :operator:`$maxDistance` with the :func:`near` function to limit the search
 to a maximum distance for a particular area.
 
-.. codeblock:: javascript
+.. code-block:: javascript
 
   db.collection.find( { <location field>: { $near: [x,y] } , $maxDistance : z } )
 
@@ -268,7 +283,7 @@ as a circle, box, or polygon. Results from :operator:`$within` are
 faster than from :operator:`$near` because they are not sorted by
 distance.
 
-.. codeblock:: javascript
+.. code-block:: javascript
 
    db.collection.find( { <location field> : { "$within" : 
                        { <shape> : <shape dimentions> } } 
@@ -277,7 +292,7 @@ distance.
 To query within a circle, specify the center of the circle and the
 radius for the :option:`$circle` option.
 
-.. codeblock:: javascript
+.. code-block:: javascript
 
    center = [-74, 40.74]
    radius = 10
@@ -289,7 +304,7 @@ radius for the :option:`$circle` option.
 To query within a box, specify the lower-left and upper-right corners
 of the box.
 
-.. codeblock:: javascript
+.. code-block:: javascript
 
    box = [ [0, 0] , [5, 5] ]
 
@@ -299,7 +314,7 @@ To query within a polygon, specify a polygon by a multi-dimensional
 array. The last point in the array is automatically connected to the
 first point in the polygon.
 
-.. codeblock:: javascript
+.. code-block:: javascript
 
    polygon = [ [4,0], [3,2], [2,3], [2,4], [4,5], [6,4], [6,3], [5,2] ]
 
@@ -347,11 +362,11 @@ information, :func:`geoNear`. The geoNear command provides additional
 options for the geospatial queries by also returning additional
 geospatial information
 
-.. codeblock:: javascript
+.. code-block:: javascript
 
    db.runCommand( geoNear: "collection", near: [x,y] )
 
-.. codeblock:: javascript
+.. code-block:: javascript
 
    db.runCommand( geoNear: "example", near: [-74, 40.74] )
 
