@@ -1,0 +1,286 @@
+.. This is the core file
+
+.. 'how this works?'
+.. what situation does this operator let you answer.
+.. what situations would you want/not want to use it in...
+.. near vs. geoNear situations
+.. within vs. near
+
+.. TODO have a better way to handle 2d vs 2D vs 2 dimensional
+
+==================
+Geospatial Indexes
+==================
+
+Overview
+--------
+
+MongoDB supports geospatial data by creating a special index for
+location data points. The index is a geohash calculated from the
+range and data points which can be queried.
+
+To use geospatial functions in MongoDB, you have to structure the
+location data in a 2D array and make an index on this location
+data with special options. 
+
+When you query for locations against the geospatial index, MongoDB
+will automatically query against the geohash index, as well as other
+index configuration.
+
+Indexes
+-------
+
+MongoDB creates the geohash index for you based on specific
+parameters.
+
+.. TODO term geohash
+
+Parameters important to the index are:
+
+- range: the range of geospatial information.
+.. Min Max setting
+
+- precision: the detail level of geospatial information.
+.. bits & precision
+
+- associated data: addition information linked with each point.
+.. compound indexes
+
+- point proximity: if points in a small region can be linked together to
+  accelerate searches.
+.. geospatial haystacking
+
+Compound
+~~~~~~~~
+
+Haystack
+~~~~~~~~
+
+Geospatial haystacking is a special bucket based index which
+accelerates queries over a small region when an additional query is
+required.
+
+.. TODO what?
+
+.. it's kind of like a pre-indexing each point for a maxDistance
+
+In addition to ordinary 2d geospatial indices, mongodb supports the
+use of bucket-based geospatial indexes called "haystack indexing".
+These indexes can accelerate small-region type longitude / latitude
+queries when an additional criteria is required.
+
+Haystack indexes allow you to tune your bucket size to the
+distribution of your data, so that queries only search a very small
+region of 2d space for a particular kind of document.  Haystack
+indexes are not suited for finding the closest documents to a
+particular location, as the closest documents could be far away
+compared to the bucket size.
+
+Data Representation
+-------------------
+
+MongoDB can handle flat and spherical map representation.
+
+.. TODO handle is weird. if you can't think of anyhting more to say,
+.. don't say anything. 
+
+Flat Systems
+~~~~~~~~~~~~
+
+The flat representation is the default in MongoDB and treats all
+distances between points as direct measurements, no matter how far
+the points are.
+
+Spherical Systems
+~~~~~~~~~~~~~~~~~
+
+.. focus on different type of queries (i.e. spherical queries)
+.. "where spherical distances matter"
+.. where you're mainly using long/lat system
+
+The spherical representation factors in the arc degree for distances
+between points. This is very important in longitudinal and latitudinal
+location values which have different arc degree lengths depending
+where the points are. MongoDB can work with lat/long data in spherical
+mode with additional query options.
+
+Queries using the spherical option have a multiplier for distance to
+compensate for the differences in arc-degree in longitude.
+
+Using spherical mode is recommended when working with a range of data
+which varies over 100miles.  (? confirm --> distance of VW track?)
+
+.. TODO use better verbs. 
+
+.. Use sphrical mode with data sets covering large geographical
+.. area. Typically, anything using GPS coordinates. 
+
+.. index:: geospatial; query types
+.. index:: geospatial; query 
+.. _geospatial-query-types:
+
+Query Types
+-----------
+
+There are several specialized query functions to work with
+Geospatial information in MongoDB.
+
+To query geospatial data in MongoDB, the preferred form to query
+geospatial data is with the find() function.
+
+Querying Geospatial info with find() is almost exactly the same as a
+normal query. The only difference is that the collection with location
+information has an index
+built with the geospatial option. Geospatial queries are performed
+against this special geospatial index.
+
+.. _geospatial-near:
+
+Near
+~~~~
+
+The near operator returns points closest to target location, sorting
+them closest first. Near works with the geoHash to find the closest
+points to the target location by searching the index for hash values
+near the target location. Results are sorted by distance and a default
+number returned is 100.
+
+This operator can be used with the maxDistance and limit operator to
+limit results.
+
+See: :doc:`geospatial-query-near` for details on how to use this
+operator. 
+
+Within
+~~~~~~
+
+THe within operator searches for points defined by a boundary such as
+a circle, box, or polygon. 
+
+within - returns points within a boundary. supported boundary types:
+circle, box, or polygon.
+
+geoNear
+~~~~~~~
+
+The geoNear command provides an additional method to query geospatial
+data. This method provides additional geospatial information with each
+result. 
+
+--> lots of concepts
+--> short
+
+
+
+http://www.kchodorow.com/blog/2011/06/08/mongo-in-flatland/
+
+don't duplicate info between pages
+link info between pages
+
+
+
+.. ----
+
+
+Querying
+--------
+
+To perform a bit more generalized target search on, you can use the
+$near operator. The near operator will return a sorted list of the 100
+closest points to your target location. The near operator will look at
+vthe geohash index for points closest to the target location. You can
+limit the list by using the cursor.limit() OR if you want to limit by
+distance around the target, use maxDistance option. MaxDistance will
+limit the search within geohashes which are a particular distance away.
+
+To perform a bounded geospatial query, you would use the $within
+operator with a specified shape such as a circle, box, or polygon. The
+geohash range of values for the shape is calculated and the index is
+searched for any points which fall within the range. 
+
+The geoNear command is another way to query geospatial information in
+MongoDB. With the geoNear command, you can only perform geospatial
+queries but you would gain additional diagnostic information with each
+result such as the distance of each object from the target and
+statistical information about the query in general such as average
+distance of all objects from the target location. The geoNear command
+calculates this additional information in the background during the query.
+
+
+Spherical Querying
+
+All geospatial operators in MongoDB assume an idealized model of the
+Earth, where the earth is flat. This does not take into account
+longitudinal and latitudinal differences found at various parts of the
+earth. (i.e. the equator has longitudinal == latitudinal while the
+poles have longitudinal == 2x latitudinal)
+
+If you would like to work with a spherical model of your data instead
+of a flat model, you would use the spherical functions in MongoDB for
+geospatial data. 
+
+With spherical queries, wih the default range of (-180, 180], each
+additional longitude has an arcdegree factor calculated with it to
+compensate for the roundness of the Earth. 
+
+Compound Indexes
+
+MongoDB allows you to index a geospatial index with another secondary key
+value such as an attribute. This enables quicker queries as both
+the location and the attribute are indexed. To 
+
+GeoNear
+
+ or the geoNear() command.
+
+
+
+
+.. OLD stuff ---- maybe use in another place?
+
+
+MongoDB supports Geospatial data using the Geohash function.
+You can store geospatial data in MongoDB using the loc: function. With
+the loc: function, MongoDB will automatically convert the 2D values
+into a geohash for storage in the database. With geospatial queries,
+MongoDB will use the geohash values for look up with other functions
+to provide full fledge geospatial support.
+
+Geohash
+-------
+
+.. cut this down 
+.. know the geohashes are used for indexes
+.. leave finer parts in the doc. 
+
+.. works on a fixed grid
+.. computed on index creation
+.. geohash used for look up
+.. not cryptographic hash
+.. h
+
+With Geospatial data, MongoDB will store 2D values as geohash
+values. A geohash value is a binary representation of a 2D system
+which can accurately represent 2D data.
+
+Geohash values are generated for a 2D map by continuously dividing a
+2D map into quadrants. Each quadrant is assigned a 2bit value. Basic
+bit assignment for a quadrant:
+
+  01  11
+
+  00  10
+
+These two bits: 00, 01, 10, 11 represent each of the quadrants. If a
+point exists in any of these quadrants, these two bits will represent
+them. The map will be further divided within the same quadrant and
+another two bits will be assigned to the point. This point now has 2
+two bits representing its location, 4 bits total. As the map is
+further divided, each quadrant is assigned the same 2bit value,
+resulting in another two bits describing the map. Further divisions
+will improve further accuracy with more bits for more quadrants
+
+.. Note: each quadrant includes its own left and lower bounds. If
+.. there are any points which lie on the center of two boundaries, the
+.. default would be to 
+
