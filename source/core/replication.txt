@@ -353,12 +353,37 @@ administrators of replica set deployments.
 
 Oplog
 ~~~~~
+..
+  Actual oplog sizing as of 2012-07-02:
+
+  32 bit systems = ~48 megabytes
+  64 bit = larger of 5% of disk or ~1 gigabyte
+  64 bit OS X = ~183 megabytes
 
 The operation log (i.e. :term:`oplog`) is a :term:`capped collection`
 that stores all operations that modify the data stored in MongoDB. All
-members of the replica set have oplogs that allow them to maintain
-the current state of the database. The default oplog size is 5% of
-total available disk space at creation. [#default-oplog]_
+members of the replica set have oplogs that allow them to maintain the
+current state of the database. Unless you modify the size of your
+oplog with the :setting:`oplogSize` option, the *default* size of the
+oplog will be as follows:
+
+- For 64-bit Linux, Solaris, and FreeBSD systems, MongoDB will
+  allocate 5% of the available free disk space to the oplog.
+
+  If this amount is smaller than a gigabyte, then MongoDB will
+  allocate 1 gigabyte of space.
+
+- For 64-bit OS X systems, MongoDB allocates 183 megabytes of space to
+  the oplog.
+
+- For 32-bit systems, MongoDB allocates about 48 megabytes of space to
+  the oplog.
+
+.. note::
+
+   Once created, you cannot change the size of the oplog without using
+   the :ref:`oplog rezising procedure <replica-set-procedure-change-oplog-size>`
+   outlined in the ":doc:`/tutorial/change-oplog-size`" guide.
 
 For example, if an oplog fits 24 hours of operations, then members can
 stop copying entries from the oplog for 24 hours before they require
@@ -391,16 +416,6 @@ that is larger than the default. Conversely, if the predominance of
 activity of your MongoDB-based application are reads and you are
 writing a small amount of data, you may find that you need a much
 smaller oplog.
-
-.. note::
-
-   Once created, you cannot change the size of the oplog without using
-   the :ref:`oplog rezising procedure
-   <replica-set-procedure-change-oplog-size>` outlined in the
-   ":doc:`/tutorial/change-oplog-size`" guide.
-
-.. [#default-oplog] The default oplog size is the *greater* of: 1
-   gigabyte or 5% of total disk size.
 
 Deployment
 ~~~~~~~~~~
