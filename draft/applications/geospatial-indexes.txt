@@ -15,7 +15,7 @@ MongoDB supports rich queries and interaction with geospatial data to
 store and query data based on location and proximity. This document
 describes how to use geospatial indexes and associated operators. For
 more information about the geospatial indexes and its operations see
-:doc:`Geospatial Indexes</core/geospatial-indexes>`.
+:doc:`Geospatial Indexes </core/geospatial-indexes>`.
 
 Create Geospatial Indexes
 -------------------------
@@ -41,21 +41,16 @@ But you may also use an embeded document, as in:
 
 .. code-block:: javascript
 
-   {x:1, y:2}
+   { x: 1, y: 2 }
 
 The order of the coordinates doesn't matter, but you should be
-consistent throughout your data set. If you're storing latitude and
-longitude, store latitude values first, for consistency.
+consistent throughout your data set. If you use latitude-longitude
+values as your coordinate system, always store latitude values first,
+for consistency.
 
 MongoDB will create an index from the location field which will
 consist of a geohash. All geospatial queries will be against this
 geohash index.
-
-For example:
-
-.. code-block:: javascript
-
-   db.example.insert( { loc: [-74, 40.74] } )
 
 .. note::
 
@@ -66,15 +61,16 @@ For example:
 Modify Range
 ~~~~~~~~~~~~
 
-The defaults for geospatial indexes are designed for use with global
-coordinate data (i.e. latidude and longitude for points on Earth.) The
-boundaries, by default, are between -180 inclusive, and 180
-non-inclusive. [#non-inclusive]_ If you insert documents with
+Geospatial indexes have defaults that support global coordinate data
+(i.e. latidude and longitude for points on Earth.) The index is
+bounded by the boundaries. If you insert documents with
 coordinate pairs outside of this boundary, MongoDB will return an
-error and reject these documents.
+error and reject these documents. The boundaries, by
+default, are between -180 inclusive, and 180
+non-inclusive. [#non-inclusive]_ the same as used for global coordinates.
 
-To modify the index value range, you would use the ``min`` and ``max``
-options with the :func:`ensureIndex() <db.collection.ensureIndex()>`
+To modify the bounds of the index, use the ``min`` and ``max`` operations
+with the :func:`ensureIndex() <db.collection.ensureIndex()>`
 operation:
 
 .. code-block:: javascript
@@ -89,54 +85,48 @@ For example:
    db.example.ensureIndex( { loc : "2d" } , 
                            { min : ­90 , max : 90 } )
 
-.. [#non-inclusive] [-180, 180) The index space bounds are inclusive of the lower
-   bound and exclusive of the upper bound.
-
-
 Precision
 ~~~~~~~~~
 
-The number of bits used for the geospatial index affect the
-precision. The more bits used, the more precise your index will
-be. For more information, please refer to :doc:`Geospatial
-Indexes</core/geospatial-indexes>`
+Geospatial indexes record precision, or resolution, in "bits", which
+is configurable during index creation.
+
+If a geospatial index has more bits, then the more precise your index
+will be. An index with fewer bits will be faster to query. For more
+information, please refer to :doc:`Geospatial Indexes
+</core/geospatial-indexes>`
 
 You can change the precision of the geospatial index by
-using the 'bits' option when you use the :func:`ensureIndex()
+using the bits option when you use the :func:`ensureIndex()
 <db.command.ensureIndex()>` function.
 
-The default bits of resolution for geospatial data is precise to about
-1 foot / 30 centimeters when using the default range. The number of
-bits allocated is 26 bits and the maximum allowable for bits is 32
-bits.
+MongoDB allocates 26 bits by default, but allows a maximum of 32
+bits. You may use less bits if your geospatial data has less precision
+or if you would like faster queries, at the expense of precision.
 
 .. code-block:: javascript
 
    db.collection.ensureIndex( {<location field>: "2d"} , 
                               { bits: <bit precision> } )
 
-For example:
-
-.. code-block:: javascript
-
-   db.example.ensureIndex( { loc: "2d"} , { bits: 4 } )
-
 Compound Indexes
 ~~~~~~~~~~~~~~~~
 
-For many queries, applications need to filter both by location and by
-another field. To support these queries, MongoDB permits
-:term:`compound indexes` where one component is geospatial data, and
-other components store related data. By using compound indexes,
-geospatial queries with this component will be accelerated.
+By using compound indexes, MongoDB can use this index for a larger
+portion of operations, which will improve performance. For many
+queries, applications need to filter both by location and by another
+field. To support these queries, MongoDB permits :term:`compound
+indexes` where one component is geospatial data, and other components
+store related data. By using compound indexes, geospatial queries with
+this component will be accelerated.
 
 .. TODO lead in restaurant example "query all restaurants near a target"
 
-For example, if you have a collection of data which describes
-restaurants' location and food category, most queries will be about
-the restaurant location and the food category. A good compound index
-would be the restaurant's location and the food category of the
-restaurant.
+For example, if you have a collection of data that describes
+restaurants' location and type, most queries will be about
+the restaurant location and type.
+
+.. TODO work out this example 
 
 This is the prototype of the compound index command:
 
@@ -155,22 +145,16 @@ For example:
 Geospatial Haystacking
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Geospatial haystacking allows one to build a special ``bucket``
-collection which can accelerate queries over a small region. For more
-information, please refer to :doc:`Geospatial
-Indexes</core/geospatial-indexes>`
+Geospatial haystack makes it possible to build a special ``bucket``
+collection that can better support queries that operate within a
+limited area. For more information, please refer to :doc:`Geospatial
+Indexes </core/geospatial-indexes>`
 
-To use geospatial haystack indexes, the geospatial index must be built
-specifying ``geoHaystack`` for the location field and a ``bucketSize``
-parameter . The bucketSize parameter determines the granularity of the
-bucket index. A bucketSize of 1 creates an index where keys within 1 unit
-of longitude or latitude are stored in the same bucket.
-
-.. TODO clarify this point. does it mean one must manually set the
-.. bucketsize themselves (i.e. can't automagically get a query
-.. optimizer to set it for you?)
-The haystack index can only be used by a database command, it is not
-at present chosen by the query optimizer. 
+Build a geospatial index and specify the ``geoHaystack`` for the
+location field and a ``bucketSize`` parameter . The ``bucketSize``
+parameter determines the granularity of the bucket index. A
+``bucketSize`` of 1 creates an index where keys within 1 unit of
+longitude or latitude are stored in the same bucket.
 
 .. code-block:: javascript
 
@@ -179,7 +163,7 @@ at present chosen by the query optimizer.
 
 .. TODO redo this example
 For example, if we want to index all restaurants in a particular area with a
-given maximum distance of 6 degrees longitude / latitude to accelerate
+given maximum distance of 6 degrees longitude-latitude to accelerate
 searches in this area, set the index by the following command:
 
 .. code-block:: javascript
@@ -189,8 +173,6 @@ searches in this area, set the index by the following command:
 
 .. TODO verify original wiki: by default, there is a 50 document result limit:
 .. this is different than $near (which returns 100 by default)
-
-.. COMMENT the original geoHaystacking example used: geoSearch command.
 
 Querying
 --------
