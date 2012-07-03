@@ -7,17 +7,17 @@ Indexing Operations
 Synopsis
 --------
 
-Indexes allow MongoDB to and fulfill queries very efficiently, by
+Indexes allow MongoDB to process and fulfill queries quickly, by
 creating an small and efficient representation of the documents in the
-collection. Fundamentally, indexes in MongoDB operate in a similar
-manner to indexes in other database systems. Read the
+collection. Fundamentally, indexes in MongoDB are operationally
+similar to indexes in other database systems. Read the
 ":doc:`/core/indexes`" documentation for more information on the
 fundamentals of indexing in MongoDB, and the
 ":doc:`/applications/indexes`" documentation for practical strategies
 and examples for using indexes in your application.
 
-This document, by contrast provides operational guidelines and
-procedures related to indexing data in MongoDB collections.
+This document, provides operational guidelines and procedures related
+to indexing data in MongoDB collections.
 
 Operations
 ----------
@@ -26,7 +26,7 @@ Creation
 ~~~~~~~~
 
 Use the :func:`db.collection.ensureIndex()`, or similar :api:`method
-for your driver <>` to create an index. Consider the following
+for your driver <>`, to create an index. Consider the following
 prototype operation:
 
 .. code-block:: javascript
@@ -40,20 +40,20 @@ of the ``people`` collection:
 
    db.people.ensureIndex( { phone-number: 1 } )
 
-To create a :ref:`compound index <index-type-compound>`, consider the
-following prototype:
+To create a :ref:`compound index <index-type-compound>`, use an
+operation that resembles the following prototype:
 
 .. code-block:: javascript
 
    db.collection.ensureIndex( { a: 1, b: 1, c: 1 } )
 
-The following example creates an index on the ``item``, ``category``,
-and ``price`` fields of the ``products`` collection:
+For example, the following operation will create an index on the
+``item``, ``category``, and ``price`` fields of the ``products``
+collection:
 
 .. code-block:: javascript
 
    db.products.ensureIndex( { item: 1, category: 1, price: 1 } )
-
 
 .. note::
 
@@ -67,14 +67,14 @@ and ``price`` fields of the ``products`` collection:
 Sparse
 ``````
 
-To create a :ref:`sparse index <index-type-sparse>` on a field, use
-the following prototype command:
+To create a :ref:`sparse index <index-type-sparse>` on a field, use an
+operation that resembles the following prototype:
 
 .. code-block:: javascript
 
    db.collection.ensureIndex( { a: 1 }, { sparse: true } )
 
-Use the following example, to create a sparse index on the ``users``
+The following example creates a sparse index on the ``users``
 table that *only* indexes the ``twitter_name`` *if* a document has
 this field. This index will not include documents in this collection
 without the ``twitter_name`` field.
@@ -85,7 +85,7 @@ without the ``twitter_name`` field.
 
 .. note::
 
-   MongoDB cannot create sparse indexes on compound indexes.
+   MongoDB cannot create sparse compound indexes.
 
 Unique
 ``````
@@ -165,7 +165,7 @@ Rebuilding
 If you need to rebuild indexes for a collection you can use the
 :func:`db.collection.reIndex()` method. This will drop all indexes,
 including the :ref:`_id index <index-type-primary>`, and then rebuild
-all indexes. For examples:
+all indexes. The operation takes the following form:
 
 .. code-block:: javascript
 
@@ -193,10 +193,10 @@ completes:
            "ok" : 1
    }
 
-This shell helper provides a wrapper around the
-:dbcommand:`reIndex` :term:`database command`. Your :ref:`client
-library </applications/drivers>` may have a different or additional
-interface for this operation.
+This shell helper provides a wrapper around the :dbcommand:`reIndex`
+:term:`database command`. Your :ref:`client library
+</applications/drivers>` may have a different or additional interface
+for this operation.
 
 .. note::
 
@@ -206,7 +206,9 @@ interface for this operation.
 Special Creation Options
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. note:: TTL collections use a special ``expire`` index option. See
+.. note::
+
+   TTL collections use a special ``expire`` index option. See
    :doc:`/tutorial/expire-data` for more information.
 
 Background
@@ -224,10 +226,10 @@ Drop Duplicates
 ```````````````
 
 To force the creation of a :ref:`unique index <index-type-unique>`
-Inez, you can use the ``dropDups`` option. This will force MongoDB to
-create a unique index by deleting documents with duplicate
-values. Consider the following prototype invocation of
-:func:`db.collection.ensureIndex()`:
+index, you can use the ``dropDups`` option. This will force MongoDB to
+create a *unique* index by deleting documents with duplicate values
+when building the index. Consider the following prototype invocation
+of :func:`db.collection.ensureIndex()`:
 
 .. code-block:: javascript
 
@@ -249,16 +251,17 @@ Building Indexes Replica Set
 In Version 1.8 and 2.0
 ~~~~~~~~~~~~~~~~~~~~~~
 
-For Version 1.8 and 2.0, :ref:`background index creation operations <index-creation-background>`
-become *foreground* indexing operations on :term:`secondary` members
-of replica sets. Because this can block replication on the
-secondaries, especially with long running operations use the following
-procedure for all non-trivial index builds:
+For Version 1.8 and 2.0, :ref:`background index creation operations
+<index-creation-background>` become *foreground* indexing operations
+on :term:`secondary` members of replica sets. These foreground
+operations will block all replication on the secondaries, and can
+impact performance of the entire set. To build indexes with minimal
+impact on a replica set, use the following procedure for all
+non-trivial index builds:
 
 #. Stop the :program:`mongod` process on one secondary. Restart the
-   :program:`mongod`  process *without* the
-   :option:`--replSet <mongod --replSet>` option. This instance is
-   now in "standalone" mode.
+   :program:`mongod`  process *without* the :option:`--replSet <mongod --replSet>`
+   option. This instance is now in "standalone" mode.
 
 #. Create the new index or rebuild the index on this :program:`mongod`
    instance.
@@ -298,12 +301,12 @@ In Version 2.2
 Rebuild operation on :term:`secondary` members of :term:`replica sets
 <replica set>` now run as normal background index operations. Run
 :func:`ensureIndex() <db.collection.ensureIndex()>` normally with the
-``{ background: true }`` option for replica sets.
+``{ background: true }`` option for replica sets. Alternatively, you
+may always use the above operation to isolate and control the impact
+of indexing building operations on a set as a whole.
 
 Measuring Index Utilization
 ---------------------------
-
-.. TODO expand the .explain and .hint documentation here.
 
 Query performance is a good general indicator of index utilization;
 however, for more precise insight into index use, MongoDB provides the
@@ -312,13 +315,13 @@ following tools:
 - :func:`explain() <cursor.explain()>`
 
   Append the :func:`explain() <cursor.explain()>` method to any cursor
-  (e.g. a query) to return a document with statistics about the query
+  (e.g. query) to return a document with statistics about the query
   process, including the index used, and the number of documents
   scanned.
 
 - :func:`cursor.hint()`
 
-  Append the :func:`hint() <cursor.explain()>` to any cursor (e.g. a
+  Append the :func:`hint() <cursor.hint()>` to any cursor (e.g.
   query) with the name of an index as the argument to *force* MongoDB
   to use a specific index to fulfill the query. Consider the following
   example:
@@ -326,6 +329,11 @@ following tools:
   .. code-block:: javascript
 
      db.people.find( { name: "John Doe", zipcode: { $gt: 63000 } } } ).hint( { zipcode: 1 } )
+
+
+  You can use :func:`hint() <cursor.hint()>` and :func:`explain()
+  <cursor.explain()>` in conjunction with each other to compare the
+  effectiveness of a specific index.
 
 - :status:`indexCounters`
 

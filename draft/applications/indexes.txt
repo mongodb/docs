@@ -7,18 +7,16 @@ Indexing Strategies
 Synopsis
 --------
 
-MongoDB supports :doc:`indexes </core/indexes>` that allow the
-database to return results quickly while requiring that the database
-scan a minimal number of documents. This can reduce disk access, and
-help maintain more even performance in general. See the
-":doc:`/core/indexes`" document for more information on the types of
-indexes supported by MongoDB and a general background on the index
-functionality. Also consider the ":doc:`/administration/indexing`"
-document for an introduction to index related operations.
+Indexes allow MongoDB to process and fulfill queries quickly, by
+creating an small and efficient representation of the documents in the
+collection. Read the ":doc:`/core/indexes`" documentation for more
+information on the fundamentals of indexing in MongoDB, and the
+":doc:`/administration/indexes`" documentation for operational
+guidelines and examples for building and managing indexes.
 
-This document provides an overview of the approaches to indexing and
-the strategies that you can use as you develop applications with
-MongoDB.
+This document provides an overview of approaches to indexing with
+MongoDB and a selection of strategies that you can use as you develop
+applications with MongoDB.
 
 Strategies
 ----------
@@ -51,9 +49,9 @@ disk, and the indexes are smaller than the documents they catalog.
 Sort Using Indexes
 ~~~~~~~~~~~~~~~~~~
 
-While the :dbcommand:`sort` and the func:`sort() <cursor.sort()>` helper,
-support in-memory sort operations without the use of an index,
-these operations are:
+While the :dbcommand:`sort` database command and the :func:`sort()
+<cursor.sort()>` helper, support in-memory sort operations without the
+use of an index, these operations are:
 
 #. Significantly slower than sort operations that use an index.
 
@@ -67,7 +65,10 @@ want to return sorted results. For example:
 
   *MongoDB can return sorted results in either ascending or descending
   order using an index in ascending or descending order,* because
-  MongoDB can transverse the items in the index in both directions.
+  MongoDB can transverse the items in the index in both
+  directions. For more information about index order see the section
+  on ":ref:`Ascending and Descending Index Order
+  <index-ascending-and-descending>`."
 
 - MongoDB can use a compound index ``{ status: 1, username: 1 }`` to
   return a query on the ``status`` field sorted by the username.
@@ -75,18 +76,16 @@ want to return sorted results. For example:
   When using compound indexes to support sort operations, the sorted
   field must be the *last* field in the index.
 
-.. TODO add an item here about range queries.
-
 Store Indexes in Memory
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 For best results, always ensure that your indexes fit entirely in RAM,
-and that the database doesn't need to read from disk to fulfill a
-query. If your indexes approach or exceed the total size of available
-RAM, they may not fit in memory.
+and that the database doesn't need to read the index from disk to
+fulfill a query. If your indexes approach or exceed the total size of
+available RAM, they may not fit in memory.
 
 You can check the size of your indexes in the :program:`mongo` shell,
-using the :func:`db.collection.totalIndexSize()` method. You may also
+using the :func:`db.collection.totalIndexSize()` helper. You may also
 use :dbcommand:`collStats` or :func:`db.collection.stats()` to return
 this and :doc:`related information </reference/collection-statistics>`.
 
@@ -99,11 +98,11 @@ the following invocation:
    4294976499
 
 This reports a total index size of roughly 4 gigabytes. Consider this
-value in contrast to the total amount of system RAM and the rest of
-the :term:`working set`. Also remember:
+value in contrast to the total amount of available system RAM and the
+rest of the :term:`working set`. Also remember:
 
 - if you have and use multiple collections to consider the size of
-  all indexes on your those indexes
+  all indexes on all collections.
 
 - there are some :ref:`limited cases where indexes do not need to fit
   in RAM <indexing-right-handed>`.
@@ -120,10 +119,9 @@ deep understanding of:
 
 - the current indexes created for your collections.
 
-- which indexes all, or your most common, queries use.
+- which indexes the most common queries use.
 
-Remember that MongoDB can only use *one* index to support any given
-operation.
+MongoDB can only use *one* index to support any given operation.
 
 Selectivity
 ~~~~~~~~~~~
@@ -141,13 +139,13 @@ with fulfilling the query.
    :term:`documents <document>` in the collection to fulfill the rest
    of the query.
 
-   Then, consider an index on a field that has many values
-   evenly distributed across the collection. If your query selects one
-   of these values using the index, MongoDB will only need to scan a
-   very small number of documents to fulfill the rest of the query.
+   Then, consider an index on a field that has many values evenly
+   distributed across the collection. If your query selects one of
+   these values using the index, MongoDB will only need to scan a very
+   small number of documents to fulfill the rest of the query.
 
-To ensure optimal performance use indexes that are maximally
-selective, relative to your queries.
+To ensure optimal performance, use indexes that are maximally
+selective relative to your queries.
 
 Insert Throughput
 ~~~~~~~~~~~~~~~~~
