@@ -335,72 +335,98 @@ representation in MongoDB.
 Spherical System
 ~~~~~~~~~~~~~~~~
 
-.. TODO write up this section further
+MongoDB has a set of spherical operators to support geospatial data on
+spherical systems.
 
-To use the spherical system, ensure location data is in
-``[latitude, longitude]`` order in your documents.
+To use the spherical system, ensure location data is in ``[latitude,
+longitude]`` order in your documents.
 
-.. note::
+.. note:: 
 
-   The spherical functions will not read the field name (i.e. [ long:
-   x, lat:y ] will produce undesirable results.)
+   The spherical functions will not read the field name (i.e. ``[
+   long: x, lat: y ]`` ) and will produce undesirable results.
 
-.. TODO write up radians <-> distance conversion:
-.. **max_distance / radius_of_earth_in_same_units** 
-.. radius of earth: 6378.137 km or 3963.192 miles
+Radian Representation
++++++++++++++++++++++
 
-.. All distances use radians. This allows you to easily multiply by the radius of the earth (about 6371 km or 3959 miles) to get the distance in your choice of units. Conversely, divide by the radius of the earth when doing queries.
+For spherical queries, you must convert distances to radians and when
+spherical queries return, you must convert from radians to distance.
 
-.. We don't currently handle wrapping at the poles or at the transition from -180° to +180° longitude, however we detect when a search would wrap and raise an error.
+- To convert distance to radians, divide distance by the radius of the
+  Earth in the same units.
 
-.. While the default Earth-like bounds are[-180,180), valid values for latitude are between -90° and 90°. 
+- To convert radians to distance, multiply radians by the radius of
+  the Earth in the same units.
 
-With spherical queries, the range is not degrees, but in radians. You
-must convert any distances to radians for desired results.
+Radius of the Earth is: 3963.192 miles or 6378.137 kilometers
 
-For :dbcommand:`geoNear`: add ``{spherical:true}`` option in the
-command:
+Spherical Queries
+~~~~~~~~~~~~~~~~~
+
+.. TODO reword this
+Querying in spherical mode is similar to flat mode but you use the
+equivalent spherical operators:
+
+For find() use the equivalent spherical operators:
+
+:operator:`$nearSphere` is equivalent to :operator:`$near`
+:operator:`$centerSphere` is equivalent to :operator:`$center`
+
+For example:
 
 .. code-block:: javascript
 
-     db.runCommand( { geoNear: "collection", near: [x,y] , 
-                      spherical: true }  )
+   db.example.find( { loc: { $centerSphere: [ [ -74, 40.74 ] ,
+                                           100 / 6378.137 ] } } )
 
-For :func:`find` use the equivalent operators:
+For :dbcommand:`geoNear`: add ``{ spherical: true }`` option:
 
-.. TODO these are operators, also need to create documentation in the
-.. operator file. follow template.
+For example, find all the points 100 km around the point -74, 40.74:
 
-- For :option:`$near`, the equivalent is: :option:`$nearSphere`
+.. code-block:: javascript
 
-- For :option:`$center`, the equivalent is: center: :option:`$centerSphere`
+   db.runCommand( { geoNear: "example", near: [ -74, 40.74 ],
+                 maxDistance: { 100 / 6378.137 } ,
+                 spherical: true }  )
 
-.. Note on using maxDistance and the conversion from radians 
-.. --> Also, your maxDistance will need to be converted to *radians* by dividing by the radius of the earth in km.
+.. warning:: 
 
-.. TODO write up and move below to geoNear command section.
+   Spherical queries that wrap around the poles or at the transition
+   from -180° to +180° longitude raise an error.
+
+.. note:: 
+
+   While the default Earth-like bounds are ``[-180,180)``, valid values
+   for latitude are between ``-90° and 90°``.
 
 Multi-location Documents
 ------------------------
 
-.. TODO - add in this topic
+To index documents which have multiple locations, such as an employee
+address book with home and office addresses, you would need to specify
+the location data in arrays of sub-objects or in a single field.
 
-Additional Diagnostics information
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+To index documents with multiple locations in an array of sub-objects,
+ensure the location data is an array.
 
-(This section might be better in the commands page? This is getting
-quite detailed)
+For example:
 
-?? What are the diagnostic info from the geoNear command? 
+.. code-block:: javascript
 
-"results" list
-per result details:
-"dis"
-"obj"
+   db.example.insert( { addresses: [ { name: "home", loc: [55.5, 42.3] },
+                                     { name: "work", loc: [-74, 40.74] } ] })
 
-"stats"
-  "time" -> time for query results
-  "objectsLoaded" -> number of objects returned from this query (? why
-  does the example have 2 listed?)
-  "avgDistance" -> average distance of all the objects returned (? or
-  loaded?)
+   db.example.ensureIndex( { "addresses.loc": "2d" } )
+
+To index multiple locations in a single field, ensure the location
+data are all in the same document.
+
+For example:
+
+.. code-block:: javascript
+
+   db.example.insert( { userLastSeenAt: [ { x: 45.3, y: 32.2 },
+                                        [ 54.2, 32.3],
+                                        { lon: 44.1, lat: 38.2 } ] } )
+
+New in version 2.0: Support for multiple locations in a document.
