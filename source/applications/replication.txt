@@ -87,34 +87,53 @@ arguments.
 Read Preference
 ---------------
 
-By default, clients will direct reads to the :term:`primary` node in a
-cluster. To distribute reads to :term:`secondary` nodes, most drivers
-allow you to configure read preference on a per-connection or
-per-operation basis.
+.. TODO crunch this down into smaller details.
 
-Issue the following command in the :program:`mongo` shell to enable
-secondary reads:
+By default, clients will direct reads to the :term:`primary` member in
+a cluster. To distribute reads to :term:`secondary` members issue the
+following command in the :program:`mongo` shell to enable secondary
+reads:
 
 .. code-block:: javascript
 
    rs.slaveOk()
 
-Clients set :term:`read preference` on a per-connection
-basis. See ":func:`rs.slaveOk()`" for more information.
+Most drivers and clients allow you to configure :term:`read
+preference` on a per-connection or per-operation basis. See
+":func:`rs.slaveOk()`" for more information.
 
-Secondary nodes are not guaranteed to be consistent with the state of
-the primary nodes. As a result, setting a read preference that allows
-reading from secondary nodes, accepts the possibility of
+Secondary members are not guaranteed to be consistent with the state
+of the primary members. As a result, setting a :term:`read preference`
+that allows reading from secondary members, accepts the possibility of
 :term:`eventually consistent <eventual consistency>` read
 operations. Do not allow secondary reads, unless you can accept this
 eventual consistency.
 
+Scenarios where secondary reads may be the best solution is for
+running any system operations such as backups, dumps, or reports
+without affecting the front-end application. Secondary reads can
+be a solution to perform low latency local queries.
+
+Secondary reads also provide graceful degradation during failure
+scenarios. Replica set failover may take over 20 seconds to elect a
+new primary member. During this period, reads from the primary member
+is impossible. With read preference set to read from secondary
+members, your application will still be functioning with secondary
+member data.
+
 While read preference controls the consistency of query results from a
 replica set, used in combination with sufficiently strict :ref:`write
-propagation <replica-set-write-concern>` policies a replica set
-can be totally consistent.
+propagation <replica-set-write-concern>` policies a replica set can be
+totally consistent.
 
-.. TODO add in use cases from Wiki
+.. note:: 
+
+   Reads from a secondary member on a replica set do not scale writes
+   at all, but can add some performance improvements as different
+   servers can service queries. To further improve performance use
+   :doc:`sharding </core/sharding>` to scale out. Sharding scales
+   queries just as well as writes, and tends to make better use of the
+   cluster's total resources than replication.
 
 .. note::
 
