@@ -87,10 +87,8 @@ arguments.
 Read Preference
 ---------------
 
-.. TODO crunch this down into smaller details.
-
-By default, clients will direct reads to the :term:`primary` member in
-a cluster. To distribute reads to :term:`secondary` members issue the
+By default, applications direct queries (i.e. read operations) to the :term:`primary` member in
+a :term:`replca set`. To distribute reads to :term:`secondary` members, issue the
 following command in the :program:`mongo` shell to enable secondary
 reads:
 
@@ -98,45 +96,50 @@ reads:
 
    rs.slaveOk()
 
-Most drivers and clients allow you to configure :term:`read
-preference` on a per-connection or per-operation basis. See
-":func:`rs.slaveOk()`" for more information.
+MongoDB :term:`drivers` allow client applications to configure a
+:term:`read preference` on a per-connection or per-operation
+basis. See ":func:`rs.slaveOk()`" for more information about secondary
+read operations in the :program:`mongo` shell, as well as the
+appropriate :ref:`driver` API documentation for more information about read
+preference configuration.
 
-Secondary members are not guaranteed to be consistent with the state
-of the primary members. As a result, setting a :term:`read preference`
+MongoDB does not guarantee that secondary members will be consistent with the state
+of the primary member in a replica set. As a result, setting a :term:`read preference`
 that allows reading from secondary members, accepts the possibility of
 :term:`eventually consistent <eventual consistency>` read
-operations. Do not allow secondary reads, unless you can accept this
-eventual consistency.
+operations. Do not allow secondary reads, unless you can accept
+eventual consistency for these operations.
 
-Scenarios where secondary reads may be the best solution is for
-running any system operations such as backups, dumps, or reports
-without affecting the front-end application. Secondary reads can
-be a solution to perform low latency local queries.
+In many cases, your application will require the :term:`strict consistency`
+that primary reads provide. However, typically secondary reads are
+useful for:
 
-Secondary reads also provide graceful degradation during failure
-scenarios. Replica set failover may take over 20 seconds to elect a
-new primary member. During this period, reads from the primary member
-is impossible. With read preference set to read from secondary
-members, your application will still be functioning with secondary
-member data.
+- running systems operations including backups and reports without
+  impacting the front-end application.
 
-While read preference controls the consistency of query results from a
-replica set, used in combination with sufficiently strict :ref:`write
-propagation <replica-set-write-concern>` policies a replica set can be
-totally consistent.
+- providing low-latency queries for geographically distributed
+  deployments. If one secondary is closer to an application server
+  than the primary or the rest of the set, you may see better
+  performance for that application if you use secondary reads.
 
-.. note:: 
+Secondary reads also provide graceful degradation in
+:ref:`failover <replica-set-failover>` situations. During failover, replica sets may take
+10 seconds or more to new primary member. Because there is no primary,
+applications will not be unable to perform primary reads during this period.
+With read preference set to read from secondary
+members, your application can continue read operations using the
+remaining secondary members.
 
-   Reads from a secondary member on a replica set do not scale writes
-   at all, but can add some performance improvements as different
-   servers can service queries. To further improve performance use
-   :doc:`sharding </core/sharding>` to scale out. Sharding scales
-   queries just as well as writes, and tends to make better use of the
-   cluster's total resources than replication.
+Read preferences only control the consistency of query results from a
+replica set. Use appropriate :ref:`write concern` policies to ensure
+proper data replication and constancy.
 
 .. note::
 
-   See the documentation for the :term:`driver` you are using to
-   interact with MongoDB, regarding the use and default read
-   preference settings.
+   Read preference have no affect on write performance or write
+   operations. If a large portion of your applications traffic are
+   read operations, distributing reads to secondary members may
+   provide some performance improvement. However, in most cases
+   :doc:`sharding </core/sharding>` will provide better support for
+   larger scale operations, because shard clusters can distribute read
+   and write operations across a group of machines.
