@@ -14,10 +14,15 @@ class MongoDBNode(Directive):
     final_argument_whitespace = True
     option_spec = {}
     is_seealso = False
+    is_related = False
 
     def run(self):
         if self.is_seealso:
             ret = make_admonition(addnodes.seealso, self.name, [_('See')], self.options,
+                                  self.content, self.lineno, self.content_offset, self.block_text,
+                                  self.state, self.state_machine)
+        elif self.is_related:
+            ret = make_admonition(addnodes.seealso, self.name, [_('Related')], self.options,
                                   self.content, self.lineno, self.content_offset, self.block_text,
                                   self.state, self.state_machine)
         else:
@@ -64,9 +69,14 @@ class See(MongoDBNode):
     is_seealso = True
     directive_name = ["See"]
 
+class Related(MongoDBNode):
+    is_related = True
+    directive_name = ["Related"]
+
 def setup(app):
     app.add_directive('optional', Optional)
     app.add_directive('see', See)
+    app.add_directive('related', Related)
     app.add_directive('example', Example)
 
     mongodb_add_node(app, optional_node)
