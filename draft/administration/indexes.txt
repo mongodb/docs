@@ -245,68 +245,67 @@ See the full documentation of :ref:`duplicate dropping
 
 .. _index-building-replica-sets:
 
-Building Indexes Replica Set
-----------------------------
+Building Indexes on Replica Sets
+--------------------------------
 
-In Version 1.8 and 2.0
-~~~~~~~~~~~~~~~~~~~~~~
+.. versionchanged:: 2.2 
+   Index rebuilding operations on :term:`secondary` members of
+   :term:`replica sets <replica set>` now run as normal background
+   index operations. Run :func:`ensureIndex()
+   <db.collection.ensureIndex()>` normally with the ``{ background:
+   true }`` option for replica sets. Alternatively, you may always use
+   the following operation to isolate and control the impact of
+   indexing building operations on a set as a whole.
 
-For Version 1.8 and 2.0, :ref:`background index creation operations
-<index-creation-background>` become *foreground* indexing operations
-on :term:`secondary` members of replica sets. These foreground
-operations will block all replication on the secondaries, and can
-impact performance of the entire set. To build indexes with minimal
-impact on a replica set, use the following procedure for all
-non-trivial index builds:
+.. admonition:: For Version 1.8 and 2.0
 
-#. Stop the :program:`mongod` process on one secondary. Restart the
-   :program:`mongod`  process *without* the :option:`--replSet <mongod --replSet>`
-   option. This instance is now in "standalone" mode.
+   :ref:`Background index creation operations
+   <index-creation-background>` became *foreground* indexing
+   operations on :term:`secondary` members of replica sets. These
+   foreground operations will block all replication on the
+   secondaries, and can impact performance of the entire set. To build
+   indexes with minimal impact on a replica set, use the following
+   procedure for all non-trivial index builds:
 
-#. Create the new index or rebuild the index on this :program:`mongod`
-   instance.
+   #. Stop the :program:`mongod` process on one secondary. Restart the
+      :program:`mongod` process *without* the :option:`--replSet <mongod --replSet>` 
+      option. This instance is now in "standalone" mode.
 
-#. Restart the :program:`mongod` instance with the
-   :option:`--replSet <mongod --replSet>` option. Allow replication to
-   catch up on this node.
+   #. Create the new index or rebuild the index on this :program:`mongod`
+      instance.
 
-#. Replete this operation on all of the remaining secondaries.
+   #. Restart the :program:`mongod` instance with the
+      :option:`--replSet <mongod --replSet>` option. Allow replication
+      to catch up on this member.
 
-#. Run :func:`rs.stepDown()` on the :term:`primary` member of the set,
-   and then run this procedure on the former primary.
+   #. Replete this operation on all of the remaining secondaries.
 
-.. warning::
+   #. Run :func:`rs.stepDown()` on the :term:`primary` member of the
+      set, and then run this procedure on the former primary.
 
-   Ensure that your :ref:`oplog` is large enough to permit the
-   indexing or re-indexing operation to complete without falling too
-   far behind to catch up. See the ":ref:`replica-set-oplog-sizing`"
-   documentation for additional information.
+   .. warning::
 
-.. note::
+      Ensure that your :ref:`oplog` is large enough to permit the
+      indexing or re-indexing operation to complete without falling
+      too far behind to catch up. See the ":ref:`replica-set-oplog-sizing`" 
+      documentation for additional information.
 
-   This procedure *does* block indexing on one member of the replica
-   set at a time. However, the foreground indexing operation is more
-   efficient than the background index operation, and will only affect
-   one secondary at a time rather than *all* secondaries at the same
-   time.
+   .. note::
 
-.. rebuild indexes on secondaries and cycle so that there's never a
-   failover.
+      This procedure *does* block indexing on one member of the
+      replica set at a time. However, the foreground indexing
+      operation is more efficient than the background index operation,
+      and will only affect one secondary at a time rather than *all*
+      secondaries at the same time.
 
-.. versionchanged:: 2.2
+For the best results, always create indexes *before* you begin
+inserting data into a collection.
 
-Rebuild operation on :term:`secondary` members of :term:`replica sets
-<replica set>` now run as normal background index operations. Run
-:func:`ensureIndex() <db.collection.ensureIndex()>` normally with the
-``{ background: true }`` option for replica sets. Alternatively, you
-may always use the above operation to isolate and control the impact
-of indexing building operations on a set as a whole.
+Measuring Index Use
+-------------------
 
-Measuring Index Utilization
----------------------------
-
-Query performance is a good general indicator of index utilization;
-however, for more precise insight into index utilization, MongoDB provides the
+Query performance is a good general indicator of index use;
+however, for more precise insight into index use, MongoDB provides the
 following tools:
 
 - :func:`explain() <cursor.explain()>`
