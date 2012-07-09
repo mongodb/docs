@@ -261,7 +261,7 @@ class MongoDBDomain(Domain):
 
     def get_objects(self):
         for refname, (docname, type) in self.data['objects'].items():
-            yield refname, refname, type, docname, refname, 1
+            yield refname, refname, type, docname, refname.replace('$', '_S_'), 1
 
 def setup(app):
     app.add_domain(MongoDBDomain)
