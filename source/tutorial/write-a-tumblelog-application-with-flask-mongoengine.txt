@@ -84,15 +84,15 @@ Install with the following commands:
    pip install flask
    pip install flask-script
    pip install WTForms
-   pip install https://github.com/hmarr/mongoengine/tarball/dev
-   pip install https://github.com/rozza/flask-mongoengine/tarball/master
+   pip install mongoengine
+   pip install flask_mongoengine
 
 Continue with the tutorial to begin building the "tumblelog"
 application.
 
 .. _WTForms: http://wtforms.simplecodes.com/docs/dev/
 .. _Flask-Script: http://pypi.python.org/pypi/Flask-Script
-.. _Flask-MongoEngine: http://github.com/rozza/flask-mongoengine
+.. _Flask-MongoEngine: http://github.com/MongoEngine/flask-mongoengine
 
 Build a Blog to Get Started
 ---------------------------
@@ -120,7 +120,7 @@ provides a development server and shell:
    import os, sys
    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-   from flaskext.script import Manager, Server
+   from flask.ext.script import Manager, Server
    from tumblelog import app
 
    manager = Manager(app)
@@ -157,10 +157,11 @@ Install the Flask_ extension and add the configuration. Update
 .. code-block:: python
 
    from flask import Flask
-   from flaskext.mongoengine import MongoEngine
+   from flask.ext.mongoengine import MongoEngine
 
    app = Flask(__name__)
    app.config["MONGODB_DB"] = "my_tumble_log"
+   app.config["SECRET_KEY"] = "KeepThisS3cr3t"
 
    db = MongoEngine(app)
 
@@ -203,6 +204,7 @@ In this application, you will define posts and comments, so that each
            return self.title
 
        meta = {
+           'allow_inheritance': True,
            'indexes': ['-created_at', 'slug'],
            'ordering': ['-created_at']
        }
@@ -442,7 +444,7 @@ and the :py:class:`DetailView` class to this file:
 
 .. code-block:: python
 
-   from flaskext.mongoengine.wtf import model_form
+   from flask.ext.mongoengine.wtf import model_form
 
    ...
 
@@ -501,7 +503,7 @@ create comments. Create a macro for the forms in
    {% macro render(form) -%}
    <fieldset>
    {% for field in form %}
-   {% if field.type == 'HiddenField' %}
+   {% if field.type in ['CSRFTokenField', 'HiddenField'] %}
      {{ field() }}
    {% else %}
      <div class="clearfix {% if field.errors %}error{% endif %}">
@@ -619,7 +621,7 @@ following view is deliberately generic, to facilitate customization.
    from flask import Blueprint, request, redirect, render_template, url_for
    from flask.views import MethodView
 
-   from flaskext.mongoengine.wtf import model_form
+   from flask.ext.mongoengine.wtf import model_form
 
    from tumblelog.auth import requires_auth
    from tumblelog.models import Post, Comment
@@ -831,6 +833,7 @@ class and create new classes for the new post types. Update the
            return self.__class__.__name__
 
        meta = {
+           'allow_inheritance': True,
            'indexes': ['-created_at', 'slug'],
            'ordering': ['-created_at']
        }
