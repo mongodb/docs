@@ -1,137 +1,165 @@
-
 =====================
 Using Geospatial Data
 =====================
 
-MongoDB supports rich queries and interaction with geospatial data to
-store and query data based on location and proximity. This document
-describes how to use geospatial indexes and associated operators. For
-more information about the geospatial indexes and its operations see
-:doc:`Geospatial Indexes </core/geospatial-indexes>`.
+.. default-domain:: mongodb
 
-Create Geospatial Indexes
--------------------------
+MongoDB supports location-based applications using geospatial
+coordinate with rich location aware queries that return documents
+based on location, and a special geospatial index type to support
+these queries. This document introduces geospatial data modeling,
+indexing operations, and queries using the special :ref:`geospatial
+query operators <geospatial-query-operators>`. For more information about
+the geospatial indexes and its operations see :doc:`Geospatial Indexes
+</core/geospatial-indexes>`.
 
-Ensure your geospatial data is stored in a collection in a 2
-dimensional array, ``[ x, y ]`` or ``[ y, x ]``. For longitude-latitude data,
-``[ latitude, longitude ]`` order is recommended.
+.. _geospatial-coordinates:
 
-To create a geospatial index, use the following operation:
+Geospatial Coordinates
+----------------------
 
-.. code-block:: javascript
-
-   db.collection.ensureIndex( { <location field> : "2d" } )
-
-The field specified by the index must store geospatial
-coordinates. The preferred format is:
+For geospatial indexes, you must model your coordinate data in a field
+that holds a 2 dimensional array. The preferred form is:
 
 .. code-block:: javascript
 
    [ x, y ]
 
-But you may also use an embeded document, as in:
+Consistency is crucial: all documents must store the values in the
+same order. you may also use an embeded document, as in:
 
 .. code-block:: javascript
 
    { x: 1, y: 2 }
 
-The order of the coordinates doesn't matter, but you should be
-consistent throughout your data set.
-
-.. note:: 
-   
-   If you use latitude-longitude data as your coordinate system,
-   always store latitude values first, MongoDB's spherical queries
-   only recognize ``[ latitude, longitude ]`` ordering.
-
-MongoDB will create special index from the location field which will
-consist of a special value. All geospatial queries will be against this
-geospatial index.
+MongoDB will not read field names in embedded documents, so order is
+still important when using this model.
 
 .. note::
 
-   MongoDB only supports 1 geospatial index per collection: any single
-   query will only be able to use one index. Furthermore, if a
-   collection were to have more than one index, geospatial queries
-   cannot return consistent results.
+   If you use latitude/longitude data as your coordinate system,
+   always store latitude values first: MongoDB's :ref:`spherical
+   queries <geospatial-query-spherical>` only recognize ``[
+   latitude, longitude ]`` ordering.
 
-Modify Range
-~~~~~~~~~~~~
+.. _geospatial-indexes:
 
-Geospatial indexes have defaults that support global coordinate data
-(i.e. latidude and longitude for points on Earth.) The index is
-limited by the boundaries. If you insert documents with
-coordinate pairs outside of this boundary, MongoDB will return an
-error and reject these documents. The boundaries, by
-default, are between -180 inclusive, and 180
-non-inclusive, the same as used for global coordinates.
+Geospatial Indexes
+------------------
 
-To modify the bounds of the index, use the ``min`` and ``max`` operators
-with the :func:`ensureIndex() <db.collection.ensureIndex()>`
-operation:
+.. see:: :ref:`geospatial-coordinates` for an overview on modeling
+   location data in MongoDB.
+
+To create a geospatial index, use an operation modeled on the
+following prototype:
 
 .. code-block:: javascript
 
-   db.collection.ensureIndex( { <location field>: "2d" } , 
+   db.collection.ensureIndex( { <location field> : "2d" } )
+
+These operations will create a special index on location field in the
+specified collection. These indexes use :ref:`geospatial-geohash`. All
+geospatial queries will use this geospatial index.
+
+.. note::
+
+   MongoDB only supports *one* geospatial index per collection. As
+   with all indexes in MongoDB, any single query will only be able to
+   use one index. If a collection were to have more than one
+   geospatial index, geospatial queries could not return consistent
+   results.
+
+.. _geospatial-indexes-range:
+
+Range
+~~~~~
+
+All geospatial indexes are bounded and MongoDB will return an error
+and reject documents with coordinate pairs outside of these
+boundaries. The default boundaries support global coordinate data
+(i.e. latitude and longitude for points on Earth,) are between -180
+inclusive, and 180 non-inclusive.
+
+To specify the boundaries of a geospatial index, use the ``min`` and
+``max`` operators with the :func:`ensureIndex() <db.collection.ensureIndex()>`
+operation, as in the following prototype.
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( { <location field>: "2d" } ,
                               { min: <lower bound> , max: <upper bound> } )
 
-For example:
+The following operation will create an index on the  ``places``
+collection, for coordinates in the ``loc`` field, with boundaries
+between ``-90`` and ``90``:
 
 .. code-block:: javascript
 
-   db.places.ensureIndex( { loc: "2d" } , 
-                           { min: ­90 , max: 90 } )
+   db.places.ensureIndex( { loc: "2d" } ,
+                           { min: 90 , max: 90 } )
+
+.. _geospatial-indexes-precision:
 
 Precision
 ~~~~~~~~~
 
 Geospatial indexes record precision, or resolution, in "bits", which
-is configurable during index creation.
+are configurable during index creation. If a geospatial index has a
+higher bits setting, MongoDB will be able to return more precise
+results from the index. However, lower resolution indexes provide
+faster performance. For more information, please refer to the
+:ref:`precision <geospatial-indexes-precision>` section.
 
-If a geospatial index has more bits, then the more precise your index
-will be. An index with fewer bits will be faster to query. For more
-information, please refer to :doc:`Geospatial Indexes
-</core/geospatial-indexes>`
-
-You can change the precision of the geospatial index by
-using the bits option when you use the :func:`ensureIndex()
-<db.command.ensureIndex()>` function.
-
-MongoDB allocates 26 bits by default for precision, but allows a
-maximum of 32 bits. You may use less bits if your geospatial data has
-less precision or if you would like faster queries.
+By default, geospatial indexes in MongoDB have 26 bits of precision
+and supports as many as 32 bits of precision. You can set the
+precision of a geospatial index during creation by specifying the
+``bits`` option to the :func:`ensureIndex()
+<db.command.ensureIndex()>` method, as in the following example.
 
 .. code-block:: javascript
 
-   db.collection.ensureIndex( {<location field>: "2d"} , 
+   db.collection.ensureIndex( {<location field>: "2d"} ,
                               { bits: <bit precision> } )
+
+You may create an index with fewer than 26 bits *if* your the data in
+your collection is less precise and/or you're willing to sacrifice
+precision in exchange for query speed.
 
 Compound Indexes
 ~~~~~~~~~~~~~~~~
 
-By using compound indexes, MongoDB can use this index for a larger
-portion of operations, which will improve performance. For many
-queries, applications need to filter both by location and by another
-field. To support these queries, MongoDB permits :term:`compound
-indexes` where one component is geospatial data, and other components
-are related data.
+MongoDB supports :term:`compound indexes <compound index>` where one component is a
+coordinate in a geospatial index, and the other coordinate is one or
+more fields. This means that, for some operations, MongoDB will be
+able to use this index for a larger portion of an operation, which
+will improve performance for these queries.
 
-This is the prototype of the compound index command:
+Use an operation that resembles the following prototype command to
+create a compound geospatial index.
 
 .. code-block:: javascript
 
-   db.collection.ensureIndex( { <location field>: "2d" , 
-                                <field>: 1 } );
+   db.collection.ensureIndex( { <location field>: "2d", <field>: 1 } );
 
-For example, if you have a collection of data that has fields that
-describe restaurants' location and its type, a compound index on
-these fields would return any query on a restaurant location and type
-faster than without a compound index.
+These compound indexes support queries where you must filter both by
+location and by another field. For example, if you need to return a
+list of restaurants near a given point, but you want to optionally
+select only restaurants that match a certain type (i.e. "take-out," or
+"bar" stored in a ``type`` field.)
 
-Geospatial Haystacking
-~~~~~~~~~~~~~~~~~~~~~~
+See the :ref:`index-type-compound` section for more information on
+geospatial indexes.
 
-Geospatial haystack makes it possible to build a special ``bucket``
+.. note::
+
+   Limits in geospatial queries are always applied to the geospatial
+   component first. This will affect your result set if you specify
+   additional sort operations.
+
+Haystack Indexing
+~~~~~~~~~~~~~~~~~
+
+Geospatial haystack indexes makes it possible to build a special ``bucket``
 collection that can better support queries that operate within a
 limited area. For more information, please refer to :doc:`Geospatial
 Indexes </core/geospatial-indexes>`
@@ -144,281 +172,464 @@ longitude or latitude are stored in the same bucket.
 
 .. code-block:: javascript
 
-   db.collection.ensureIndex({ <location field>: "geoHaystack", type: 1 }, 
+   db.collection.ensureIndex({ <location field>: "geoHaystack", type: 1 },
                              { bucketSize: <bucket value> })
 
-By default, queries on a geospatial haystack index returns 50 documents.
+By default, all queries on a geospatial haystack index returns 50
+documents.
 
-For example, if we want to index all restaurants in a particular area with a
+For example, to index all restaurants in a particular area with a
 given maximum distance of 6 degrees longitude or latitude to accelerate
 searches in this area, create the index using the following command:
 
 .. code-block:: javascript
 
-   db.places.ensureIndex({ loc: "geoHaystack", type: 1} , 
+   db.places.ensureIndex({ loc: "geoHaystack", type: 1} ,
                           { bucketSize: 6 } )
 
-Querying
---------
+.. _geospatial-spherical-representation:
 
-There are specific querying options to use with geospatial
-queries. You can query using the general :func:`find()
-<db.collection.find()>` function or the specialized
-:dbcommand:`geoNear` command. The :dbcommand:`geoNear` command is
-functionally the same as using the :func:`find()
-<db.collection.find()>` function with geospatial options. The
-additional benefit of :dbcommand:`geoNear` is that it provides
-additional geospatial information in the return document.
+Spatial Representation Systems
+------------------------------
 
-Exact Matches
-~~~~~~~~~~~~~
+MongoDB supports two systems for representing and returning geospatial
+results. The default representation is flat and assumes that the
+coordinates represent points on a flat plane. While this
+representation is sufficient for many applications, if the points
+refer to locations on a spherical plane (i.e. coordinates on Earth)
+then sphical queries will provide more accurate results.
 
-The index can be queried directly for an exact match on a location:
+.. note::
+
+   There is no difference between flat and spherical *data* as stored
+   in MongoDB. Rather, the only difference between spherical and flat
+   geospatial systems in MongoDB is in the **queries**.
+
+In general, the flat system is easier and accurate for system data
+sets, but will return imprecise or skewed results if your coordinate
+system reflects points on a curved plane, like the Earth's surface.
+
+For more information on spherical and flat queries see the
+:ref:`geospatial-representation-system` section and for more
+information on query operations for spherical systems see the
+:ref:`spherical queries <geospatial-query-spherical>` section.
+
+.. index:: geospatial queries
+.. _geospatial-queries:
+.. _geospatial-querying:
+
+Queries
+-------
+
+MongoDB provides special :ref:`geospatial query operators
+<geospatial-query-operators>` for performing queries on location data
+inside of normal :func:`find() <db.collection.find()>` operation. The
+:dbcommand:`geoNear` command also returns results using geospatial
+indexes, but also includes additional geospatial information in the
+return documents.
+
+.. note::
+
+   By default all MongoDB assumes that coordinate systems are on flat
+   planes and all distances calculated by the :dbcommand:`geoNear` use
+   the Pythagorean distance formula.
+
+   MongoDB can also calculate and return accurate results for
+   locations in a :ref:`spherical <geospatial-spherical-representation>`
+   coordinate system, suing :ref:`spherical query operations <geospatial-spherical-queries>`.
+
+.. index:: geospatial queries; exact
+
+Exact
+~~~~~
+
+You can use the :func:`find() <db.collection.find()>` method to query
+directly for an exact match on a location. These queries take the
+following prototypical form:
 
 .. code-block:: javascript
 
    db.collection.find( { <location field>: [ x, y ] } )
 
+This query will return any document that where the value of ``[ x, y
+]`` is *exactly* the same as the one specified in the query. To return
+all documents in the ``places`` collection with values in the ``loc``
+field that are exactly ``[ 42, 42 ]``, consider the following example:
+
+.. code-block:: javascript
+
+   db.places.find( { "loc": [ 42, 42 ] } )
+
+Exact geospatial queries are only useful in a limited selection of
+cases, :ref:`proximity <geospatial-query-proximity>` and :ref:`bounded
+<geospatial-query-bounded>` provide more useful results.
+
+.. index:: geospatial queries; proximity
 .. _geospatial-query-near:
+.. _geospatial-query-proximity:
 
-Near
-~~~~
+Proximity
+~~~~~~~~~
 
-The :operator:`$near` operator returns the 100 closest points to
-``[ x, y ]`` sorted by distance.
+Proximity queries take a coordinate pair and return a result set of
+documents from the geospatial index that are close to the query
+coordinates, sorted by distance. You can use the :operator:`$near`
+operator in a :func:`find() <db.collection.find()>` query to return
+the 100 closest points to a coordinate (e.g.  ``[ x, y ]``.)  These
+queries have the following prototype form:
 
 .. code-block:: javascript
 
    db.collection.find( { <location field>: { $near: [ x, y ] } } )
 
-For example:
+Consider the following example query:
 
 .. code-block:: javascript
 
    db.places.find( { loc: { $near: [ -74, 40.74 ] } } )
 
-The :dbcommand:`geoNear` is functionally equivalent to using
-:func:`find() <db.collection.find()>` with :operator:`$near` but
-returns additional information for each document found. To use
-:dbcommand:`geoNear`, the prototype function form:
+This operation will return documents from a collection named
+``places`` that has a geospatial index on the ``loc`` field, near the
+coordinates ``[ -74, 40.74 ]``.
+
+In addition to :operator:`near`, the :dbcommand:`geoNear` command
+provides equivalent geospatial query functionality, but provides
+additional options *and* returns additional information for each
+document found. In its most simple form, the :dbcommand:`geoNear`
+command has the following prototype form:
 
 .. code-block:: javascript
 
-   db.runCommand( {geoNear: "collection", near: [ x, y ] } )
+   db.runCommand( {geoNear: "[collection]", near: [ x, y ] } )
 
-For example:
+The following command returns the same results as the :operator:`near`
+in the previous example:
 
 .. code-block:: javascript
 
    db.runCommand( {geoNear: "places", near: [ -74, 40.74 ] } )
 
-The default number of documents to return is 100. To further limit the
-number of documents further, use the :func:`limit() <cursor.limit()>`
-function with :func:`find() <db.collection.find()>` 
+Limit
+`````
+
+To impose a limit on the result set other than the default 100
+document limit, use the :func:`limit() <cursor.limit()>` method with
+:func:`find() <db.collection.find()>` queries, in the following
+prototype operation.
 
 .. code-block:: javascript
 
    db.collection.find( { <location field>: { $near: [ x, y ] } } ).limit(n)
 
+The following example, will return only 20 results of the above query:
+
 .. code-block:: javascript
 
    db.places.find( { loc: { $near: [ -74, 40.74 ] } } ).limit(20)
 
-or :option:`num` with :dbcommand:`geoNear`.
+You may also use the ``num`` option with the :dbcommand:`geoNear` near
+command, as in the following prototype:
 
 .. code-block:: javascript
 
-   db.runCommand( { geoNear: "collection", near: [ x, y ], num: z } )   
+   db.runCommand( { geoNear: "collection", near: [ x, y ], num: z } )
 
-For example:
+The following command returns the same results as the :operator:`near`
+in the previous example:
 
 .. code-block:: javascript
 
    db.runCommand( {geoNear: "collection", near: [ -74, 40.74 ], num: 20 } )
 
-To limit searches near a point with a particular distance you can use
-:operator:`$maxDistance` with the :func:`near` function to limit the search
-to a maximum distance for a particular area. :operator:`maxDistance`
-is the equivalent option with :dbcommand:`geoNear`.
+.. index:: $maxDistance
+.. index:: geospatial queries; distance limit
+
+Distance
+````````
+
+To limit the result set by a distance from the query point, MongoDB
+provides the :operator:`$maxDistance` operator that you can use in
+:func:`find() <db.collection.find()>` queries with the
+:operator:`$near` operator, as in the following prototype:
 
 .. code-block:: javascript
 
-  db.collection.find( { <location field>: { $near: [ x, y ] } , $maxDistance : z } )
+   db.collection.find( { <location field>: { $near: [ x, y ] } , $maxDistance : z } )
 
-  db.runCommand( { geoNear: "collection", near: [ x, y ], maxDistance: z } )
-
-The distance specified in :operator:`maxDistance` is in the same units as the
-coordinate system specifed. If the indexed location data is in meters, the
-distance unit is also in meters.
-
-Within
-~~~~~~
-
-The :operator:`$within` operator will return points within shapes such
-as a circle, box, or polygon. Results from :operator:`$within` are
-faster than from :operator:`$near` because they are not sorted by
-distance.
+:dbcommand:`geoNear` provides equivalent functionality with the
+``maxDistance`` option, as in the following prototype:
 
 .. code-block:: javascript
 
-   db.collection.find( { <location field> : { "$within" : 
-                       { <shape> : <shape dimentions> } } } )
+   db.runCommand( { geoNear: "collection", near: [ x, y ], maxDistance: z } )
 
-To query within a circle, specify the center of the circle and the
-radius for the :option:`$circle` option.
+The distance specified in :operator:`maxDistance` is in the same units
+as the coordinate system specifed. For example, if the indexed
+location data is in meters, the distance unit is also in meters.
+
+.. _geospatial-within:
+.. _geospatial-query-bounded:
+
+Bounded
+~~~~~~~
+
+MongoDB provides the ability to return documents using geospatial
+index that have coordinates located inside of a bounded shape. Bounded
+queries use the :operator:`$within` operator, and MongoDB does not
+sort the result set. Because result sets from bounded queries are not
+sorted, they are faster than :ref:`proximity
+<geospatial-query-proximity>` queries.
+
+The :operator:`$within` operator returns points within the following
+shapes:
+
+- circles,
+- rectangles (i.e. "boxes,") or
+- polygons.
+
+Bounded queries take the following prototype form:
 
 .. code-block:: javascript
 
-   center = [-74, 40.74]
-   radius = 10
+   db.collection.find( { <location field> :
+                              { "$within" :
+                                { <shape> : <shape dimensions> }
+                              }
+                       } )
 
-   db.places.find( { "location" : { "$within" : { "$center" : [
-   center, radius ] } } } )
+The following sections provide examples of bounded queries using the
+:operator:`$within` operator.
 
-To query within a box, specify the lower-left and upper-right corners
-of the box.
+Circles
+```````
 
-.. code-block:: javascript
-
-   box = [ [0, 0] , [5, 5] ]
-
-   db.places.find( { "location": { "$within": { "$box": box } } } )
-
-To query within a polygon, specify a polygon by a multi-dimensional
-array. The last point in the array is automatically connected to the
-first point in the polygon.
+To return results within the :ref:`bounds <geospatial-query-bounded>`
+of a circle, you must specify the center and the radius of the circle,
+using the :operator:`$within` operator and the :operator:`$circle`
+option. Consider the following prototype query:
 
 .. code-block:: javascript
 
-   polygon = [ [4,0], [3,2], [2,3], [2,4], [4,5], [6,4], [6,3], [5,2] ]
+   db.collection.find( { "field": { "$within": { "$center": [ center, radius ] } } } )
 
-   db.places.find({ "location": { "$within": { "$polygon": polygon } } })
+The following example query will return all documents that have
+coordinates that exist within the circle centered on ``[-74, 40.74]``
+with a radius of ``10``, using a geospatial index on the ``loc`` field:
+
+.. code-block:: javascript
+
+   db.places.find( { "loc": { "$within":
+                               { "$center": [ [-74, 40.74], 10 ] }
+                            }
+                   } )
+
+Boxes
+`````
+
+To return results within the :ref:`bounds <geospatial-query-bounded>`
+of a rectangle or box, you must specify the lower-left and upper-right
+corners of the shape, using the :operator:`$within` operator and the
+:operator:`$box` option. Consider the following prototype query:
+
+.. code-block:: javascript
+
+   db.collection.find( { "field": { "$within": { "$box": [ coordinate0, coordinate1 ] } } } )
+
+The following query will return all documents that have coordinates
+that exist within the rectangle, where the lower-left corner is at ``[
+0, 0 ]`` and the upper-right corner is at ``[ 5, 5 ]`` using a
+geospatial index on the ``loc`` field:
+
+.. code-block:: javascript
+
+   db.places.find( { "loc": { "$within": { "$box": [ [0, 0] , [5, 5] ] } } } )
+
+Polygons
+````````
 
 .. versionadded:: 1.9
    Support for polygon queries.
 
+To return results within the :ref:`bounds <geospatial-query-bounded>`
+of a polygon, you must specify the points where the sides of the
+polygon meet in an array, using the :operator:`$within` operator and
+the :operator:`$box` option. Consider the following prototype query:
 
-Data Representation
--------------------
+.. code-block:: javascript
 
-Flat System
-~~~~~~~~~~~
+   db.places.find({ "loc": { "$within": { "$polygon": [ points ] } } })
 
-To use the flat system, you would query geospatial data using the
-standard query functions. This is the default geospatial
-representation in MongoDB.
+The last point in the ``points`` array is automatically connected to
+the first point in the polygon. Therefore, given the following array
+of points:
 
-Distances returned by the :dbcommand:`geoNear` are computed using
-Pythagorean distance formula in flat system.
+.. code-block:: javascript
 
-Spherical System
-~~~~~~~~~~~~~~~~
+   [4,0], [3,2], [2,3], [2,4], [4,5]
 
-MongoDB has a set of spherical operators to support geospatial data on
-spherical systems.
+The following query will return all documents that have coordinates
+that exist within the bounds of the polygon, where the sides of the
+polygon connects at the above points using a geospatial index on the
+``loc`` field:
 
-To use the spherical system, ensure location data is in ``[latitude,
-longitude]`` order in your documents.
+.. code-block:: javascript
 
-.. note:: 
+   db.places.find({ "loc": { "$within": { "$polygon":
+                                          [4,0], [3,2], [2,3], [2,4], [4,5]
+                           } } })
 
-   The spherical functions will not read the field name (i.e. ``[
-   long: x, lat: y ]`` ) and will produce undesirable results.
+.. _geospatial-query-spherical:
 
-Radian Representation
-+++++++++++++++++++++
+Spherical
+~~~~~~~~~
 
-For spherical queries, you must convert distances to radians and when
-spherical queries return, you must convert from radians to distance.
+If the coordinates in your documents represent points on a
+spherical plane, :ref:`proximity <geospatial-query-proximity>` and
+some :ref:`bounded <geospatial-query-bounded>` queries will not return
+accurate results. To compensate, you can use the following spherical
+queries which adjust for these errors. The following table provides a
+list of spherical query operators and their flat system equivalents:
 
-- To convert distance to radians, divide distance by the radius of the
-  Earth in the same units.
+========================== ===================
+ Spherical                  Flat
+-------------------------- -------------------
+:operator:`$nearSphere`    :operator:`$near`
+:operator:`$centerSphere`  :operator:`$center`
+========================== ===================
 
-- To convert radians to distance, multiply radians by the radius of
-  the Earth in the same units.
+The :dbcommand:`geoNear` will return results for spherical systems if
+you specify the ``{ spherical: true }`` option to the command.
 
-Radius of the Earth: 3963.192 miles or 6378.137 kilometers
+.. admonition:: Spherical Queries Use Radians for Distance
 
-Spherical Queries
-~~~~~~~~~~~~~~~~~
+   You must convert distances to radians when performing a spherical
+   query, and convert the distances returned from radians into the
+   units that your application uses.
 
-To utilize spherical representation in queries, use the spherical
-options: :operator:`$nearSphere`, :operator:`$centerSphere`, and ``{
-spherical: true }`` for :dbCommand:`geoNear`
+   To convert:
 
-For geospatial queries with :func:`find() <db.collection.find()>` use
-the equivalent spherical operators:
+   - *distance to radians*: divide the distance by the radius of the
+     sphere (e.g. the Earth) in the same units as the distance
+     measurement.
 
-:operator:`$nearSphere` is equivalent to :operator:`$near`
-:operator:`$centerSphere` is equivalent to :operator:`$center`
+   - *radians to distnace*: multiply the radian measure by the radius
+     of the sphere (e.g. the Earth) in the units system that you want to
+     convert the distance to.
 
-For example:
+   The radius of the Earth is ``3963.192`` miles or ``6378.137``
+   kilometers.
+
+
+The following query would return documents from the ``places``
+collection, within the circle described by the center ``[ -74, 40.74 ]``
+with a radius of ``100`` kilometers:
 
 .. code-block:: javascript
 
    db.places.find( { loc: { $centerSphere: [ [ -74, 40.74 ] ,
                                            100 / 6378.137 ] } } )
 
-For :dbcommand:`geoNear`: add ``{ spherical: true }`` option:
+Remember that you must convert the distance of the radius to
+radians. This conversion *must* happen in your client
+(i.e. application) code.
 
-For example, find all the points 10 miles around the point -74, 40.74:
+The following spherical proximity query, returns all documents in the
+collection ``places`` within ``100`` miles from the point ``[ -74,
+40.74 ]`` using the geospatial index.
 
 .. code-block:: javascript
 
-   db.runCommand( { geoNear: "places", near: [ -74, 40.74 ],
-                 maxDistance: { 100 / 3963.192 } ,
-                 spherical: true }  )
+   db.runCommand( { geoNear: "places",
+                    near: [ -74, 40.74 ],
+                    maxDistance: { 100 / 3963.192 },
+                    spherical: true
+                  }  )
 
-.. warning:: 
+:dbcommand:`geoNear` returns documents in this result set sorted by
+their distance from the ``[ -74, 40.74 ]`` point.
+
+.. warning::
 
    Spherical queries that wrap around the poles or at the transition
-   from -180° to +180° longitude raise an error.
+   from ``-180`` to ``180`` longitude raise an error.
 
-.. note:: 
+.. note::
 
-   While the default Earth-like bounds are ``[-180,180)``, valid values
-   for latitude are between ``-90° and 90°``.
+   While the default Earth-like bounds for geospatial indexes are
+   between ``-180`` inclusive, and ``180``, valid values for latitude
+   are between ``-90`` and ``90``.
 
 Multi-location Documents
 ------------------------
 
-To index documents which have multiple locations, such as an employee
-address book with home and office addresses, you would need to specify
-the location data in arrays of sub-objects or in a single field.
-
-To index documents with multiple locations in an array of sub-objects,
-ensure the location data is an array.
-
-For example:
-
-.. code-block:: javascript
-
-   db.places.insert( { addresses: [ { name: "home", loc: [55.5, 42.3] },
-                                    { name: "work", loc: [-74, 40.74] } ] })
-
-   db.places.ensureIndex( { "addresses.loc": "2d" } )
-
-To index multiple locations in a single field, ensure the location
-data are all in the same document.
-
-For example:
-
-.. code-block:: javascript
-
-   db.places.insert( { userLastSeenAt: [ { x: 45.3, y: 32.2 },
-                                       [ 54.2, 32.3],
-                                       { lon: 44.1, lat: 38.2 } ] } )
-
 .. versionadded:: 2.0
    Support for multiple locations in a document.
+
+In general, MongoDB cannot support more than one set of coordinates in
+a document; however, using :ref:`multi-key indexes <index-type-multi-key>`,
+you *can* index multiple coordinates in a single document. In the
+simplest example, you may have a field (e.g. ``locs``) that holds an
+array of geospatial coordinates, as in the following prototype data
+model:
+
+.. code-block:: javascript
+
+   {
+    "_id": ObjectId(...),
+    "locs": [
+              [ 55.5, 42.3 ],
+              [ -74, 44.74 ],
+              { "lat": 55.3, "long": 40.2 }
+            ]
+   }
+
+The values of the array may either be arrays holding coordinates, as
+in ``[ 55.5, 42.3 ]`` or embeded documents as in ``{ "lat": 55.3,
+"long": 40.2 }``.
+
+You could then create an index on the ``locs`` field, as in the
+following example:
+
+.. code-block:: javascript
+
+   db.places.ensureIndex( { "locs": "2d" } )
+
+You may also model the location data as a field inside of a
+sub-document. In this case, the document would contain field
+(e.g. ``addresses``) that held an array of documents where each
+document has a field (e.g. ``loc:``) that holds location
+coordinates. Consider the following prototype data model:
+
+.. code-block:: javascript
+
+   {
+    "_id": ObjectId(...),
+    "name": "...",
+    "addresses": [
+                   {
+                    "context": "home",
+                    "loc": [ 55.5, 42.3 ]
+                   },
+                   {
+                    "context": "home",
+                    "loc": [ -74, 44.74 ]
+                   }
+                 ]
+   }
+
+Then, create the geospatial index on the ``addresses.lock`` field as
+in the following example:
+
+.. code-block:: javascript
+
+   db.records.ensureIndex( { "addresses.loc": "2d" } )
 
 Geospatial Indexes and Sharding
 -------------------------------
 
-The shard key for a geospatial collection cannot be the location
-field. However, you can shard your geospatial collection on another
-key. Geospatial queries on sharded collections can be performed using
-:dbcommand:`$geoNear` or :operator:`$within`.
-
-Geospatial queries using :operator:`$near` is not supported on
-geospatial data in sharded collections.
+You cannot use a geospatial index as a :term:`shard key` to shard a
+collection. However, you *can* create and maintain a geospatial index
+on a sharded collection, as long as the shard key is another
+field. Your application may query for geospatial data using
+:dbcommand:`geoNear` and :operator:`$within`; however, queries using
+:operator:`$near` are not supported.
