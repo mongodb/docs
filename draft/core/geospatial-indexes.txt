@@ -1,5 +1,3 @@
-.. TODO have a better way to handle 2d vs 2D vs 2 dimensional
-
 ==================
 Geospatial Indexes
 ==================
@@ -9,11 +7,14 @@ Geospatial Indexes
 Overview
 --------
 
-.. TODO revise introduction
+.. TODO beef this up.
 
-MongoDB supports geospatial data by rceating a special index for
-location data points. The index is a geohash calculated from the
-range and data points which can be queried.
+MongoDB can store and query geospatial data with a focus on
+location-based queries.
+
+MongoDB supports geospatial data by creating a special index for
+location data points. The index is a geohash calculated based on the
+range and data points.
 
 To use geospatial functions in MongoDB, you have to structure the
 location data in a 2D array and make an index on this location
@@ -30,7 +31,9 @@ index configuration.
 Geospatial Indexes
 ------------------
 
-.. TODO put a little bit here.
+In order for MongoDB to use geospatial data, you must specify
+MongoDB to create a geospatial index on the location data in your
+collection. 
 
 .. see:: :ref:`geospatial-coordinates` for an overview on modeling
    location data in MongoDB.
@@ -141,15 +144,15 @@ geospatial indexes.
    component first. This will affect your result set if you specify
    additional sort operations.
 
-Haystack Indexing
-~~~~~~~~~~~~~~~~~
+Haystack Index
+~~~~~~~~~~~~~~
 
 Geospatial haystack indexes makes it possible to build a special ``bucket``
-collection that can better support queries that operate within a
+collection that better support queries that operate within a
 limited area. For more information, please refer to :doc:`Geospatial
 Indexes </core/geospatial-indexes>`
 
-Build a geospatial index and specify the ``geoHaystack`` for the
+To build a geospatial index, specify the ``geoHaystack`` for the
 location field and a ``bucketSize`` parameter . The ``bucketSize``
 parameter determines the granularity of the bucket index. A
 ``bucketSize`` of 1 creates an index where keys within 1 unit of
@@ -172,34 +175,24 @@ searches in this area, create the index using the following command:
    db.places.ensureIndex({ loc: "geoHaystack", type: 1} ,
                           { bucketSize: 6 } )
 
-.. TODO merge in or remove this:
-
-   In addition to ordinary 2d geospatial indices, mongodb supports
-   the use of bucket-based geospatial indexes called "haystack
-   indexing".  These indexes can accelerate small-region type
-   longitude / latitude queries when an additional criteria is
-   required.
-
-   Haystack indexes allow you to tune your bucket size to the
-   distribution of your data, so that queries only search a very small
-   region of 2d space for a particular kind of document.  Haystack
-   indexes are not suited for finding the closest documents to a
-   particular location, as the closest documents could be far away
-   compared to the bucket size.
+Haystack indexes allow you to tune your bucket size to the
+distribution of your data, so that queries only search a very small
+region of 2D space for a particular kind of document. Haystack
+indexes are not suited to finding the closest documents to a
+particular location, as the closest documents could be far away
+compared to the bucket size.
 
 .. _geospatial-spherical-representation:
 
 Spatial Representation Systems
 ------------------------------
 
-.. TODO this might need to be a *bit longer*
-
 MongoDB supports two systems for representing and returning geospatial
 results. The default representation is flat and assumes that the
 coordinates represent points on a flat plane. While this
-representation is sufficient for many applications, if the points
-refer to locations on a spherical plane (i.e. coordinates on Earth)
-then sphical queries will provide more accurate results.
+representation is sufficient for many applications, points that refer
+to locations on a spherical plane (i.e. coordinates on Earth) then
+spherical queries will provide more accurate results.
 
 .. note::
 
@@ -208,7 +201,7 @@ then sphical queries will provide more accurate results.
    geospatial systems in MongoDB is in the **queries**.
 
 In general, the flat system is easier and accurate for system data
-sets, but will return imprecise or skewed results if your coordinate
+sets, but may return imprecise or skewed results if your coordinate
 system reflects points on a curved plane, like the Earth's surface.
 
 For more information on spherical and flat queries see the
@@ -219,41 +212,40 @@ information on query operations for spherical systems see the
 Geohash
 -------
 
-.. TODO revise and make better
+.. TODO this is really an internals stuff
 
-.. cut this down
-.. know the geohashes are used for indexes
-.. leave finer parts in the doc.
+When creating a geospatial index, MongoDB will compute a location's
+geohash value. A geohash value is a binary representation of the
+location on a coordinate grid.
 
-.. works on a fixed grid
-.. computed on index creation
-.. geohash used for look up
-.. not cryptographic hash
-.. h
+Geohash values are generated by continuously dividing a 2D map into
+quadrants. Each quadrant is assigned a two bit value. A basic two bit
+assignment for each quadrant could be:
 
-With Geospatial data, MongoDB will store 2D values as geohash
-values. A geohash value is a binary representation of a 2D system
-which can accurately represent 2D data.
+.. code-block:: javascript
 
-Geohash values are generated for a 2D map by continuously dividing a
-2D map into quadrants. Each quadrant is assigned a 2bit value. Basic
-bit assignment for a quadrant:
+   01  11
 
-  01  11
+   00  10
 
-  00  10
+.. TODO color code these bits?
 
-These two bits: 00, 01, 10, 11 represent each of the quadrants. If a
-point exists in any of these quadrants, these two bits will represent
-them. The map will be further divided within the same quadrant and
-another two bits will be assigned to the point. This point now has 2
-two bits representing its location, 4 bits total. As the map is
-further divided, each quadrant is assigned the same 2bit value,
-resulting in another two bits describing the map. Further divisions
-will improve further accuracy with more bits for more quadrants
+These two bit values (00, 01, 10, 11) each represent one of the four
+quadrants. If a point exists in any of these quadrants, a set of two
+bits will be assigned to describe the location.
 
-.. Note: each quadrant includes its own left and lower bounds. If
-.. there are any points which lie on the center of two boundaries, the
-.. default would be to
+To describe the point's location in more detail using the geohash, the
+map will be further divided within the same quadrant and another two
+bits will be assigned to the point. This point now has 2x two bits
+representing its location, four bits total.
+
+As the map is further divided, another two bit value is
+assigned. Further divisions will provide additional accuracy with more
+bits.
+
+.. TODO insert graphical example to describe? It would be 'nice' for
+.. those that REALLy want to know...
+
+.. TODO this doesn't show up in the draft HTML
 
 .. includes:: /includes/geospatial-sharding.rst
