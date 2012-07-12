@@ -263,12 +263,12 @@ Shard Key Indexes
 
 All sharded collections **must** have an index that starts with the
 :term:`shard key`. If you shard a collection that does not yet contain
-documents and *without* such an index, the :dbcommand:`shardCollection` 
+documents and *without* such an index, the :dbcommand:`shardCollection`
 will create an index on the shard key. If the collection already
 contains documents, you must create an appropriate index before using
 :dbcommand:`shardCollection`.
 
-.. TODO replace the link 
+.. TODO replace the link
 
 .. versionchanged:: 2.2
    The index on the shard key no longer needs to be identical to the
@@ -304,7 +304,7 @@ and you want to replace this with an index on the field ``{ zipcode:
 
    If you drop the last appropriate index for the shard key, recover
    by recreating a index on just the shard key.
-   
+
 .. index:: balancing; internals
 .. _sharding-balancing-internals:
 
@@ -333,8 +333,8 @@ chunks in a collection is unevenly distributed among the shards, the
 balancer begins migrating :term:`chunks <chunk>` from shards with more
 chunks to shards with a fewer number of chunks. The balancer will
 continue migrating chunks, one at a time, until the data is evenly
-distributed among the shards (i.e. the difference between any two
-shards is less than 2 chunks.)
+distributed among the shards. See the :ref:`migration thresholds
+<sharding-migration-thresholds>` section for more information.
 
 While these automatic chunk migrations are crucial for distributing
 data, they carry some overhead in terms of bandwidth and workload,
@@ -352,6 +352,36 @@ write operations. After migrating chunks, the "from" :program:`mongod`
 sends all new writes, to the "receiving" server. Finally,
 :program:`mongos` updates the chunk record in the :term:`config
 database` to reflect the new location of the chunk.
+
+.. _sharding-migration-thresholds:
+
+Migration Thresholds
+~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 2.2
+   The following thresholds appear first in 2.2; prior to this
+   release, balancing would only commence if the shard with the most
+   chunks had 8 more chunks than the shard with the least number of
+   chunks.
+
+In order to minimize the impact of balancing on the cluster, the
+:term:`balancer` will not begin balancing until the distribution of
+chunks has reached certain thresholds. These thresholds apply to the
+difference in number of :term:`chunks <chunk>` between the shard with
+the greatest number of chunks and the shard with the least number of
+chunks. The balancer has the following thresholds:
+
+================  ===================
+Number of Chunks  Migration Threshold
+----------------  -------------------
+Greater than 80    8
+80-21              4
+Less than 20       2
+================  ===================
+
+Once a balancing round starts, the balancer will not stop until the
+difference between the number of chunks on any two shards is *less
+than two.*
 
 .. index:: sharding; chunk size
 .. _sharding-chunk-size:
