@@ -8,48 +8,86 @@ Release Notes for MongoDB Version 2.2
    :backlinks: none
    :local:
 
-MongoDB 2.0 is a standard, incremental production release and works as a drop-in replacement for MongoDB.
-
-Before Upgrading
-----------------
-   
-If using authentificaton, upgrade drivers before upgrading mongod. See <appropriate topic>
-
-Read through these release notes for specific issues you might need to address before upgrading. For example, you might need to change database names, as described in ?????
-
 Upgrading
 ---------
-   
-2.0 processes can talk to 1.8 processes and vice versa, so you can upgrade 
-various parts of a cluster in any order.
 
-Upgrading a Standalone Server
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+MongoDB 2.2 is a standard, incremental production release and works as
+a drop-in replacement for MongoDB 2.0.
 
-#. Download the v2.0 binaries from the MongoDB Download Page.
+Preparation
+~~~~~~~~~~~
 
-#. Shutdown the old mongod and then restart with the new mongod binary. 
+If your MongoDB deployment uses authentication, upgrade your drivers
+(i.e. client libraries) before upgrading your :program:`mongod`
+instances.
+
+.. TODO insert the following line if we eventually have a section on
+   this change. See the :ref:`driver changes <2.2-driver-changes>`
+   section for more information.
+
+Read through all release notes before upgrading, and ensure that no
+changes will affect your deployment.
+
+2.2 processes can inter-operate with 2.0 and 1.8 tools and processes
+in replica sets and shard clusters, if you are not running with
+authentication. As a result, you can safely upgrade the
+:program:`mongod` and :program:`mongos` components of your deployment
+in any order.
+
+.. _2.2-upgrade-standalone:
+
+Upgrading a Standalone ``mongod``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#. Download the v2.2 binaries from the `MongoDB Download Page`_.
+
+#. Shutdown your :program:`mongod` instance, replace the existing
+   binary with the 2.2 :program:`mongod` binary and restart MongoDB.
+
+.. _`MongoDB Download Page`: http://downloads.mongodb.org/
+
+.. _2.2-upgrade-replica-set:
 
 Upgrading a Replica Set
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-This procedure performs the upgrade in the most efficent way possible, while minimizing 
-the amount of downtime.
+While you may upgrade your replica set in any order, to minimize
+downtime, use the following procedure:
 
-#. Upgrade the secondaries one at a time.
+#. Upgrade the :term:`secondary` members of the set one at a time by
+   shutting down the :program:`mongod` and replacing the binary with
+   the 2.2 binary.
 
-#. StepDown the primary and upgrade the primary. Using the stepDown command is better than simply shutting it down since the failover will happen quicker. 
+#. Use the :func:`rs.stepDown()` to step down the primary to allow
+   normal :ref:`failover <replica-set-failover>` procedure.
 
-   Note, after upgrading to 2.0 you can use the shutdown command to shutdown the primary without losing any updates.
+   :func:`rs.stepDown()` and :dbcommand:`replSetStepDown` provide for
+   shorter and more consistent failover procedures than simply
+   shutting down the primary directly.
+
+   When the primary has stepped down, shut the instance down and
+   upgrade by replacing the :program:`mongod` binary with the 2.2
+   binary.
 
 Upgrading a Shard Cluster
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If using authentificaton:
+If your cluster uses authentication, use the following upgrade
+procedure:
 
-- Upgrade drivers before upgrading mongod. See ???
+- Upgrade all :program:`mongos` instances first, in any order.
 
-- If using authentication, you *must* upgrade the ``mongos`` first and then upgrade ``mongod``.
+- Upgrade all other cluster components. Use the :ref:`upgrade
+  procedure for replica sets <2.2-upgrade-replica-set>` for each of
+  the shards and the :ref:`stand alone <2.2-upgrade-standalone>`
+  procedure for each of the config servers. You may upgrade the
+  components of your cluster in any order.
+
+If your cluster *does not* use authentication, you may upgrade the
+components of the cluster in any order, using the :ref:`upgrade
+procedure for replica sets <2.2-upgrade-replica-set>` for each of the
+shards and the :ref:`stand alone <2.2-upgrade-standalone>` procedure
+for each of the config servers.
 
 Changes
 -------
