@@ -191,18 +191,17 @@ Data
 Your cluster must manage a significant quantity of data for sharding
 to have an effect on your collection. The default :term:`chunk` size
 is 64 megabytes, [#chunk-size]_ and the :ref:`balancer
-<sharding-balancing>` will not begin moving data until the shard with
-the greatest number of chunks has *8 more* chunks than the shard with
-least number of chunks.
+<sharding-balancing>` will not begin moving data until the imbalance
+of chunks in the cluster exceeds the :ref:`migration threshold
+<sharding-migration-thresholds>`.
 
-Practically, this means that unless there is 512 megabytes of data,
-all of the data will remain on the same shard. You can set a smaller
-chunk size, or :ref:`manually create splits in your collection
-<sharding-procedure-create-split>` using the :func:`sh.splitFind()` and
-:func:`sh.splitAt()` operations in the :program:`mongo` shell.
-Remember that the default chunk size and migration threshold
-are explicitly configured to prevent unnecessary splitting or
-migrations.
+Practically, this means that unless your cluster has enough data,
+chunks will remain on the same shard. You can set a smaller chunk
+size, or :ref:`manually create splits in your collection
+<sharding-procedure-create-split>` using the :func:`sh.splitFind()`
+and :func:`sh.splitAt()` operations in the :program:`mongo` shell.
+Remember that the default chunk size and migration threshold are
+explicitly configured to prevent unnecessary splitting or migrations.
 
 While there are some exceptional situations where you may need to
 shard a small collection of data, most of the time the additional
@@ -453,9 +452,10 @@ have on the cluster, by:
 
 - Only moving one chunk at a time.
 
-- Only initiating a balancing round if there is a difference of *more
-  than* 8 chunks between the shard with the greatest and the shard with
-  the least number of chunks.
+- Only initiating a balancing round when the difference in number of
+  chunks between the shard with the greatest and the shard with the
+  least number of chunks exceeds the :ref:`migration threshold
+  <sharding-migration-thresholds>`.
 
 Additionally, it's possible to disable the balancer on a temporary
 basis for maintenance and limit the window during which it runs to
