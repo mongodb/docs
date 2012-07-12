@@ -11,10 +11,83 @@ Release Notes for MongoDB Version 2.2
 Upgrading
 ---------
 
-.. TODO crib from 2.0, with caveat about mongos' before mongod with
-   auth.
-   
-also drivers need to upgrade to -next if using authentication.
+MongoDB 2.2 is a standard, incremental production release and works as
+a drop-in replacement for MongoDB 2.0.
+
+Preparation
+~~~~~~~~~~~
+
+If your MongoDB deployment uses authentication, upgrade your drivers
+(i.e. client libraries) before upgrading your :program:`mongod`
+instances.
+
+.. TODO insert the following line if we eventually have a section on
+   this change. See the :ref:`driver changes <2.2-driver-changes>`
+   section for more information.
+
+Read through all release notes before upgrading, and ensure that no
+changes will affect your deployment.
+
+2.2 processes can inter-operate with 2.0 and 1.8 tools and processes
+in replica sets and shard clusters, if you are not running with
+authentication. As a result, you can safely upgrade the
+:program:`mongod` and :program:`mongos` components of your deployment
+in any order.
+
+.. _2.2-upgrade-standalone:
+
+Upgrading a Standalone ``mongod``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#. Download the v2.2 binaries from the `MongoDB Download Page`_.
+
+#. Shutdown your :program:`mongod` instance, replace the existing
+   binary with the 2.2 :program:`mongod` binary and restart MongoDB.
+
+.. _`MongoDB Download Page`: http://downloads.mongodb.org/
+
+.. _2.2-upgrade-replica-set:
+
+Upgrading a Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~
+
+While you may upgrade your replica set in any order, to minimize
+downtime, use the following procedure:
+
+#. Upgrade the :term:`secondary` members of the set one at a time by
+   shutting down the :program:`mongod` and replacing the binary with
+   the 2.2 binary.
+
+#. Use the :func:`rs.stepDown()` to step down the primary to allow
+   normal :ref:`failover <replica-set-failover>` procedure.
+
+   :func:`rs.stepDown()` and :dbcommand:`replSetStepDown` provide for
+   shorter and more consistent failover procedures than simply
+   shutting down the primary directly.
+
+   When the primary has stepped down, shut the instance down and
+   upgrade by replacing the :program:`mongod` binary with the 2.2
+   binary.
+
+Upgrading a Shard Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your cluster uses authentication, use the following upgrade
+procedure:
+
+- Upgrade all :program:`mongos` instances first, in any order.
+
+- Upgrade all other cluster components. Use the :ref:`upgrade
+  procedure for replica sets <2.2-upgrade-replica-set>` for each of
+  the shards and the :ref:`stand alone <2.2-upgrade-standalone>`
+  procedure for each of the config servers. You may upgrade the
+  components of your cluster in any order.
+
+If your cluster *does not* use authentication, you may upgrade the
+components of the cluster in any order, using the :ref:`upgrade
+procedure for replica sets <2.2-upgrade-replica-set>` for each of the
+shards and the :ref:`stand alone <2.2-upgrade-standalone>` procedure
+for each of the config servers.
 
 Changes
 -------
