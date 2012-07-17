@@ -13,7 +13,22 @@ Monotonically Increasing Values
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. what will happen if you try to do inserts.
-.. pros/cons.
+
+Documents with monotonically increasing shard keys, such as the BSON ObjectID, will always
+be inserted into the last chunk in a collection. Although MongoDB can automatically split
+and migrate chunks when they reach a certain size, using an increasing shard key means that
+writes will always hit a single shard at any given time. High volume inserts, therefore,
+could hinder the cluster's performance by placing a significant load on a single replica
+set.
+
+If, however, a single shard can handle the write volume, an increasing shard key may have
+some advantages. For example, if you frequently do queries based on insertion time,
+sharding on the ObjectID ensures that documents created around the same time exist on the
+same shard. Data locality helps to improve query performance.
+
+If you decide to use an monotonically increasing shard key and anticipate large inserts,
+one solution may be to store the hash of the shard key as a separate field. 
+
 
 Even Distribution
 ~~~~~~~~~~~~~~~~~
@@ -34,8 +49,62 @@ Pre-Splitting
 .. when to do this
 .. procedure for this process
 
-Changing Shard Key
+Pre-splitting is the process of specifying shard key ranges for chunks prior to data
+insertion. This process may be important prior to large inserts into a sharded collection
+as a way of ensuring that the write operation is evenly spread around the cluster. You
+should consider pre-splitting before large inserts if the sharded collection is empty, if
+the collection's data or the data being inserted is not evenly distributed, or if the shard
+key is monotonically increasing.
+
+In the example below the pre-split command splits the chunk where the _id 99 would reside
+using that key as the split point. Note that a key need not exist for a chunk to use it in
+its range. The chunk may even be empty.
+
+> use admin
+switched to db admin
+> db.runCommand( { split : "test.foo" , middle : { _id : 99 } } )
+
+Once the key range is specified, chunks can be moved around the cluster using the moveChunk
+command.
+
+> db.runCommand( { moveChunk : "test.foo" , find : { _id : 99 } , to : "shard1" } )
+
+You can repeat these steps as many times as necessary to create or move chunks around the
+cluster. To get information about the two chunks created in this example:
+
+> db.printShardingStatus()
+--- Sharding Status ---
+  sharding version: { "_id" : 1, "version" : 3 }
+  shards:
+      { "_id" : "shard0000", "host" : "localhost:30000" }
+      { "_id" : "shard0001", "host" : "localhost:30001" }
+  databases:
+	{ "_id" : "admin", "partitioned" : false, "primary" : "config" }
+	{ "_id" : "test", "partitioned" : true, "primary" : "shard0001" }
+		test.foo chunks:
+				shard0001	1
+				shard0000	1
+			{ "_id" : { "$MinKey" : true } } -->> { "_id" : "99" } on : shard0001 { "t" : 2000, "i" : 1 }
+			{ "_id" : "99" } -->> { "_id" : { "$MaxKey" : true } } on : shard0000 { "t" : 2000, "i" : 0 }
+
+Once the chunks and the key ranges are evenly distributed, you can proceed with a
+high volume insert.
+
+Changing Shard Key 
 ~~~~~~~~~~~~~~~~~~
+
+There is no automatic support for changing the shard key for a collection. In addition,
+since a document's location within the cluster is determined by its shard key value,
+changing the shard key could force data to move from machine to machine, potentially a
+highly expensive operation.
+
+Thus it is very important to choose the right shard key up front.
+
+If you do need to change a shard key, an export and import is likely the best solution.
+Create a new pre-sharded collection, and then import the exported data to it. If desired
+use a dedicated mongos for the export and the import.
+
+https://jira.mongodb.org/browse/SERVER-4000
 
 Incremental Inserts
 ~~~~~~~~~~~~~~~~~~~
