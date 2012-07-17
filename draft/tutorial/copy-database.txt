@@ -1,30 +1,118 @@
+=============
+Copy Database
+=============
 
-===============
- Copy Database
-===============
+Copy Rename Move Databases
+
+Database transfer without intermediate file
+
+.. default-domain:: mongodb
 
 Sypnosis
 --------
 
 This document oulines the procedure to copy MongoDB databases from one
-server to another. 
+server to another using the :program:`copydb` command. The copy
+database function in MongoDB can help you in several situations such
+as: renaming a database, migrating databases between servers, and seeding
+development from an existing data set for test environments.
 
-There are special commands to copy a MongoDB database from one server to
-another. This is faster than using :program:`mongodump` and
-:program:`mongorestore` programs as there is no intermediate files to
-be created.
+While :program:`mongodump` and :program:`mongorestore` tools are
+available, the copy database commands are faster as there is no
+intermediate files to be created.
 
-Concerns
---------
+.. warning::
+   
+   These copy procedures do not lock the database so writes may still
+   occur during the copy process at the source. This will produce a
+   destination database which is inconsistent with the source
+   database.
 
-- does not lock
+.. TODO find alternatives to this? 
+..   mongodump / mongorestore
+..   disconnect the DB from the network?
+..   perform lock by hand?
+..   Other references? -> mongodump / mongorestore tutorials
+..   mongolock function
+
+Limitations
+-----------
+
+- These commands must be run on the destination server.
+
+- These commands do not work with the total data set of a :term:`shard
+  cluster`.
+
+- These commands may be run on a :term:`secondary` member.
+
+- There must be enough disk storage on the destination server for the database.
 
 
-Process
--------
+Copy a Database from a Server
+-----------------------------
 
-copydb
+To copy database named ``databaseA`` on server ``db1.example.net`` to
+another server ``db2.example.net`` naming it to ``databaseB``.
 
-cloneDatabase
+- verify name of database, ``databaseA``, you want to copy on source
+  server, ``db1.example.net``
 
+- log onto the destination server, ``db2.example.net``
 
+- Run the following command from :program:`mongo shell` on the
+  destination server, ``db2.example.net``
+
+.. code-block:: javascript
+
+   db.copyDatabase( "databaseA", "databaseB", "db1.example.net")
+
+Copy a Database within a Server
+-------------------------------
+
+If you would like rename a database from ``databaseA`` to
+ ``databaseB`` within the same server, ``db2.example.net``:
+
+- log onto the destination server, ``db2.example.net``
+
+- Run the following command from :program:`mongo shell` on the
+  destination server, ``db2.example.net``
+
+.. code-block:: javascript
+
+   db.copyDatabase( "databaseA", "databaseB")
+
+Copy a Database with Authentication
+-----------------------------------
+
+If authentication is required to logon to the source server using
+``username`` and ``password`` authentication on ``db1.example.net``,
+use the following procedure to copy ``databaseA`` to ``databaseB``:
+
+- log onto the destination server, ``db2.example.net``
+
+- Run the following command from :program:`mongo shell` on the
+  destination server, ``db2.example.net``
+
+.. code-block:: javascript
+
+   db.copyDatabase( "databaseA", "databaseB", "db1.example.net",
+                   ``username``, ``password``)
+		   
+Copy a Database Without Name Change
+-----------------------------------
+
+:program:`cloneDatabase` is similar to :program:`copyDatabase` but has
+a simplified syntax to copy a database from another server while
+preserving the database name.
+
+To copy a database from ``db1.example.net`` to ``db2.example.net``,
+on ``db2.example.net`` run command:
+
+- log onto the destination server, ``db2.example.net``
+
+- Run the following command from :program:`mongo shell` on the
+  destination server, ``db2.example.net``
+
+.. code-block:: javascript
+
+   db.cloneDatabase( "``db1.example.net``" )
