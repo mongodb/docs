@@ -9,6 +9,42 @@ Shard Keys
 
    outline the ways that insert operations work given shard keys of the following types
 
+
+
+
+Even Distribution
+~~~~~~~~~~~~~~~~~
+
+If the data's distribution of keys is evenly, MongoDB should be able to distribute writes
+evenly around a the cluster once the chunk key ranges are established. MongoDB will
+automatically split chunks when they grow to a certain size (~64 MB by default) and will
+balance the number of chunks across shards.
+
+When inserting data into a new collection, it may be important to pre-split the key ranges.
+See the section below on pre-splitting and manually moving chunks.
+
+Uneven Distribution
+~~~~~~~~~~~~~~~~~~~
+
+If you need to insert data into a collection that isn't evenly distributed, or if the shard
+keys of the data being inserted aren't evenly distributed, you may need to pre-split your
+data before doing high volume inserts. As an example, consider a collection sharded by last
+name with the following key distribution:
+
+[-∞, "Henri") 
+["Henri", "Peters") 
+["Peters",+∞) 
+
+Although the chunk ranges may be split evenly, inserting lots of users with with a common
+last name such as "Smith" will potentially hammer a single shard. Making the chunk range
+more granular in this portion of the alphabet may improve write performance.
+
+[-∞, "Henri") 
+["Henri", "Peters")
+["Peters", "Smith"] 
+["Smith", "Tyler"]
+["Tyler",+∞)
+
 Monotonically Increasing Values
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -37,33 +73,6 @@ prevent the need to balance chunks by distributing data equally around the clust
 create a hash client-side. In the future, MongoDB may support automatic hashing:
 https://jira.mongodb.org/browse/SERVER-2001
 
-
-Even Distribution
-~~~~~~~~~~~~~~~~~
-
-
-Uneven Distribution
-~~~~~~~~~~~~~~~~~~~
-
-If you need to insert data into a collection that isn't evenly distributed, or if the shard
-keys of the data being inserted aren't evenly distributed, you may need to pre-split your
-data before doing high volume inserts. As an example, consider a collection sharded by last
-name with the following key distribution:
-
-[-∞, "Henri") 
-["Henri", "Peters") 
-["Peters",+∞) 
-
-Although the chunk ranges may be split evenly, inserting lots of users with with a common
-last name such as "Smith" will potentially hammer a single shard. Making the chunk range
-more granular in this portion of the alphabet may improve write performance.
-
-[-∞, "Henri") 
-["Henri", "Peters")
-["Peters", "Smith"] 
-["Smith", "Tyler"]
-["Tyler",+∞)
-
 Operations
 ----------
 
@@ -87,6 +96,20 @@ key is monotonically increasing.
 In the example below the pre-split command splits the chunk where the _id 99 would reside
 using that key as the split point. Note that a key need not exist for a chunk to use it in
 its range. The chunk may even be empty.
+
+The first step is to create a sharded collection to contain the data, which can be done in
+three steps:
+
+> use admin
+> db.runCommand({ enableSharding : "foo" })
+
+Next, we add a unique index to the collection "foo.bar" which is required for the shard
+key.
+
+> use foo
+> db.bar.ensureIndex({ _id : 1 }, { unique : true })
+
+Finally we shard the collection (which contains no data) using the _id value.
 
 > use admin
 switched to db admin
