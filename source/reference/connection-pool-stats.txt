@@ -8,10 +8,10 @@ Synopsis
 --------
 
 :program:`mongos` instances maintain a pool of connections for
-interacting with the constituent members of the :term:`shard clusters
+interacting with constituent members of the :term:`shard clusters
 <shard cluster>`. The :dbcommand:`connPoolStats` command returns
-statistics regarding these connections between :program:`mongod` and
-:program:`mongos`
+statistics regarding these connections between :program:`mongos` and
+:program:`mongod` instances.
 
 .. include:: /includes/note-conn-pool-stats
 
@@ -20,35 +20,39 @@ Output
 
 .. stats:: hosts
 
-   :stats:`hosts` contains a document for every :program:`mongod`
-   member that is connected to the :program:`mongos`.
+   The sub-documents of the :stats:`hosts` :term:`document` report connections
+   between the :program:`mongos` instance and every component
+   :program:`mongod` of the :term:`shard cluster`.
 
-.. stats:: hosts.[host].available
+   .. stats:: hosts.[host].available
 
-   :stats:`hosts.[host].available` reports the total number of
-   connections created by the :program:`mongos`, and used to connect
-   to members of the :term:`shard cluster`.
+      :stats:`hosts.[host].available` reports the total number of
+      connections created by the :program:`mongos`, and used to
+      connect to members of the :term:`shard cluster`.
 
-.. stats:: hosts.[host].created
+   .. stats:: hosts.[host].created
 
-   :stats:`hosts.[host].created` reports the number of connections
-   that has ever been created for this host by the :program:`mongos`.
+      :stats:`hosts.[host].created` reports the number of connections
+      that has ever been created for this host by the
+      :program:`mongos`.
 
 .. stats:: replicaSets
 
-   :stats:`replicaSets` is a :term:`document` that contains detailed
+   :stats:`replicaSets` is a :term:`document` that contains
    :term:`replica set` information for the :term:`shard cluster`.
+
+   .. fix "detailed" 
 
    .. stats:: replicaSets.shard
 
-      The :stats:`replicaSets.shard` :term:`document` reports details
-      on each shard within the :term:`replica set`.
+      The :stats:`replicaSets.shard` :term:`document` reports 
+      on each :term:`shard` within the :term:`shard cluster`
 
    .. stats:: replicaSets.[shard].host
 
-      This :stats:`replicaSets.[shard].host` :term:`document` gives
-      details on each host within the shard in the :term:`replica
-      set`.
+      The :stats:`replicaSets.[shard].host` :term:`document` reports
+       on each host within the :term:`shard` in the :term:`replica
+       set`.
 
       These values derive from the :doc:`replica set status
       </reference/replica-status>` values.
@@ -64,42 +68,45 @@ Output
          :stats:`replicaSets.[shard].[host].ok` reports ``false``
          when:
 
-	    - :program:`mongos` cannot connect to this member.
+	    - the :program:`mongos` cannot connect to instance.
 
-            - an error occurred on this member.
+            - an error occurred on this instance.
 
       .. stats:: replicaSets.[shard].[host].ismaster
 
-         :stats:`replicaSets.[shard].[host].ismaster` reports if this
-         host is the :term:`master` member of the :term:`replica set`.
+         :stats:`replicaSets.[shard].[host].ismaster` reports ``true``
+         if this :stats:`replicaSets.[shard].host` is the
+         :term:`primary` member of the :term:`replica set`.
 
       .. stats:: replicaSets.[shard].[host].hidden
 
-         :stats:`replicaSets.[shard].[host].hidden` reports if this
-         host is a :term:`hidden member` of the :term:`replica set`.
+         :stats:`replicaSets.[shard].[host].hidden` reports ``true``
+         if this :stats:`replicaSets.[shard].host` is a :term:`hidden
+         member` of the :term:`replica set`.
 
       .. stats:: replicaSets.[shard].[host].secondary
 
-         :stats:`replicaSets.[shard].[host].secondary` reports if this
-         host is a :term:`secondary` member of the :term:`replica set`.
+         :stats:`replicaSets.[shard].[host].secondary` reports
+         ``true`` if this :stats:`replicaSets.[shard].host` is a
+         :term:`secondary` member of the :term:`replica set`.
 
       .. stats:: replicaSets.[shard].[host].pingTimeMillis
 
          :stats:`replicaSets.[shard].[host].pingTimeMillis` reports
-         the ping time in miliseconds from the :program:`mongos` to
-         the :stats:`replicaSets.[shard].host`.
+         the ping time in milliseconds from the :program:`mongos` to
+         this :stats:`replicaSets.[shard].host`.
 
    .. stats:: replicaSets.[shard].master
 
       :stats:`replicaSets.[shard].master` reports the number of the
-      host that is the :term:`master` of the :term:`replica set` from the
+      host that is :term:`primary` of the :term:`replica set` from the
       :stats:`replicaSets.[shard].host` list.
 
    .. stats:: replicaSets.[shard].nextSlave
 
-      :stats:`replicaSets.[shard].nextSlave` reports which
-      :term:`secondary` member to use when servicing a new request
-      from a new connection.
+      :stats:`replicaSets.[shard].nextSlave` reports the
+      :term:`secondary` member that the :program:`mongos` will use to
+      service the next request for this :term:`replica set`.
 
       .. note::
 
@@ -111,11 +118,16 @@ Output
    type of connection that :program:`mongos` has created in all
    connection pools.
 
+   There are three connection types :program:`mongos` use to connect
+   to each type of :program:`mongod` instance. The following
+   sub-document contains the total number of each connection type the
+   :program:`mongos` uses.
+
    .. stats:: createdByType.master
 
       :stats:`createdByType.master` reports the total number of
-      connections created to connect to :term:`master` members in the
-      :term:`shard cluster`.
+      connections created to connect to the :term:`primary` member in
+      each :term:`shard cluster`.
 
    .. stats:: createdByType.set
 
@@ -130,20 +142,20 @@ Output
 .. stats:: totalAvailable
 
    :stats:`totalAvailable` reports the running total of connections
-   from :program:`mongos` to all :program:`mongod` in the :term:`shard
-   cluster`
+   from :program:`mongos` to all :program:`mongod` instances in the
+   :term:`shard cluster`
 
 .. stats:: totalCreated
 
    :stats:`totalCreated` reports the total number of connections ever
-   created from :program:`mongos` to all :program:`mongod` in the
-   :term:`shard cluster`.
+   created from :program:`mongos` to all :program:`mongod` instances in
+   the :term:`shard cluster`.
 
 .. stats:: numDBClientConnection
 
    :stats:`numDBClientConnection` reports the number of normal client
    connections created from :program:`mongos` to all :program:`mongod`
-   in the :term:`shard cluster`.
+   instances in the :term:`shard cluster`.
 
 .. stats:: numAScopedConnection
 
