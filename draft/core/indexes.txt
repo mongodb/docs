@@ -270,6 +270,7 @@ index to locate the document:
 
    db.feedback.find( { "comments.text": "Please expand the olive selection." } )
 
+.. include:: /includes/note-build-indexes-on-replica-sets.rst
 
 .. warning::
 
@@ -394,7 +395,8 @@ construction:
   operations can run while creating the index. However, the
   :program:`mongo` shell session or connection where you are creating
   the index will block until the index build is complete. Open another
-  connection or :program:`mongo` instance to continue using the database.
+  connection or :program:`mongo` instance to continue using commands
+  to the database.
 
 - The background index operation use an incremental approach that is
   slower than the normal "foreground" index builds. If the index is
@@ -403,21 +405,25 @@ construction:
 
 .. admonition:: Building Indexes on Secondaries
 
-   .. versionchanged:: 2.1.0
-      Before 2.1.0, :term:`replica sets <replica set>` cannot build
-      indexes in the background on :term:`secondaries <secondary members>`.
+   Background index operations on a :term:`replica set`
+   :term:`primary`, become foreground indexing operations on secondary
+   members of the set. All indexing operations on secondaries block
+   replication.
 
-   To rebuild large indexes on secondaries before version 2.1.0,
-   typically the best approach is to restart each secondary in
-   "standalone" mode and build the index. When the index is rebuilt,
-   restart as a member of the replica set, allow it to catch up with
-   the other members of the set, and then rebuild the index on the
-   next secondary. When all the secondaries have the new index, step
-   down the primary and build the index on the former primary.
+   To rebuild large indexes on secondaries the best approach is to
+   restart one secondary at a time in "standalone" mode and build the
+   index. When the index is rebuilt, restart as a member of the
+   replica set, allow it to catch up with the other members of the
+   set, and then rebuild the index on the next secondary. When all the
+   secondaries have the new index, step down the primary, restart it
+   as a standalone, and build the index on the former primary.
 
    Remember, the amount of time required to build the index on a
    secondary node must be within the window of the :term:`oplog`, so
-   that the secondary can catch up.
+   that the secondary can catch up with the primary.
+
+   See :ref:`index-building-replica-sets` for more information on
+   this process.
 
   Indexes on secondary members in "recovering" mode are always built
   in the foreground to allow them to catch up as soon as possible.
@@ -503,6 +509,8 @@ indexes to fulfill arbitrary queries.
 
 .. see:: :doc:`/tutorial/expire-data`
 
+.. _index-feature-geospatial:
+
 Geospatial Indexes
 ~~~~~~~~~~~~~~~~~~
 
@@ -515,30 +523,12 @@ are "near" a given coordinate pair.
 To create a geospatial index, your :term:`documents <document>` must
 have a coordinate pair. For maximum compatibility, these coordinate
 pairs should be in the form of a two element array, such as ``[ x , y
-]``, but other representations are acceptable, including:
-
-.. code-block:: javascript
-
-   { loc : [ 50 , 30 ] }
-   { loc : { x : 50 , y : 30 } }
-   { loc : { foo : 50 , y : 30 } }
-   { loc : { lon : 40.739037, lat: 73.992964 } }
-
-Given the field of ``loc`` in the collection ``places``, you would
-create a geospatial index as follows:
+]``. Given the field of ``loc``, that held a coordinate pair, in the
+collection ``places``, you would create a geospatial index as follows:
 
 .. code-block:: javascript
 
    db.places.ensureIndex( { loc : "2d" } )
-
-By default, ``2d`` indexes assume that the coordinates are
-latitude/longitude systems, and assume that minimum and maximum bounds
-are ``[ -180, 180 ]``. You can specify a different minimum and maximum
-values, as follows:
-
-.. code-block:: javascript
-
-   db.places.ensureIndex( { loc : "2d" }, { min: -250 , max: 250 } )
 
 MongoDB will reject documents that have values in the ``loc`` field
 beyond the minimum and maximum values.
@@ -556,7 +546,26 @@ data.
 .. TODO insert link to special /core/geospatial.txt documentation
    on this topic. once that document exists.
 
-.. TODO short mention of geoHaystack indexes here?
+Geohaystack Indexes
+~~~~~~~~~~~~~~~~~~~
+
+.. TODO update links in the following session as needed:
+
+In addition to conventional :ref:`geospatial indexes
+<index-feature-geospatial>`, MongoDB also provides a bucket-based
+geospatial index, called "geospatial haystack indexes." These indexes
+support high performance queries for locations within a small area,
+when the query must filter along another dimension.
+
+.. example::
+
+   If you need to return all documents that have coordinates within 25
+   miles of a given point *and* have a type field value of "museum," a
+   haystack index would be provide the best support for these queries.
+
+Haystack indices allow you to tune your bucket size to the
+distribution of your data, so that in general you search only very
+small regions of 2d space for a particular kind of document.
 
 Index Limitations
 -----------------

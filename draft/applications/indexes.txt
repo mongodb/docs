@@ -21,6 +21,9 @@ applications with MongoDB.
 Strategies
 ----------
 
+.. _covered-queries:
+.. _indexes-covered-queries:
+
 Use Covered Queries
 ~~~~~~~~~~~~~~~~~~~
 
@@ -30,15 +33,14 @@ database. To use a covered index you must:
 
 - ensure that the index includes all of the fields in the result.
 
+  This means that the :term:`projection`, must explicitly exclude the
+  ``_id`` field from the result set, unless the index includes
+  ``_id``.
+
 - if any of the indexed fields in any of the documents in the
   collection includes an array, then the index becomes a
   :ref:`multi-key index <index-type-multi-key>` index, and cannot
   support a covered query.
-
-- in the :term:`projection`, explicitly exclude the ``_id`` field from
-  the result set, unless the index includes ``_id``.
-
-TODO: the third point seems like part of the first point.
 
 Use the :func:`explain() <cursor.explain()>` to test the query. If
 MongoDB was able to use a covered index, then the value of the
@@ -51,14 +53,8 @@ disk, and indexes are smaller than the documents they catalog.
 Sort Using Indexes
 ~~~~~~~~~~~~~~~~~~
 
-While the :dbcommand:`sort` database command
-
-TODO: sort database command?  Is "database command" being used in a different
-sense here?
-
- and the :func:`sort()
-<cursor.sort()>` helper support in-memory sort operations without the
-use of an index, these operations are:
+While the :func:`sort() <cursor.sort()>` method supports in-memory
+sort operations without the use of an index, these operations are:
 
 #. Significantly slower than sort operations that use an index.
 
@@ -84,8 +80,10 @@ results. For example:
 When using compound indexes to support sort operations, the sorted
 field must be the *last* field in the index.
 
-TODO: not true!  In 2.2, you can use, say, the index above for a query on
-username, sort by status, too.
+.. TODO: not true!  In 2.2, you can use, say, the index above for a query on
+   username, sort by status, too.
+
+.. is this not true in other version? what changed?
 
 Store Indexes in Memory
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -132,9 +130,9 @@ deep understanding of:
 
 - which indexes the most common queries use.
 
-MongoDB can only use *one* index to support any given operation.
-
-TODO: trickily put.  I hope you menion $or elsewhere?
+MongoDB can only use *one* index to support any given
+operation. However, each clause of an :operator:`$or` query can use
+its own index.
 
 Selectivity
 ~~~~~~~~~~~
@@ -142,48 +140,76 @@ Selectivity
 Selectivity describes the ability of a query to narrow the result set
 using the index. Effective indexes are more selective and allow
 MongoDB to use the index for a larger portion of the work associated
-with fulfilling the query.
+with fulfilling the query. There are two aspects of selectivity:
+
+#. Data need to have a high distribution of the values for the indexed
+   key.
+
+#. Queries need to limit the number of possible documents using the
+   indexed field.
 
 .. example::
 
-   First, consider an index on a field that has three values evenly
-   distributed across the collection. If MongoDB uses this index for a
-   query, MongoDB will still need to scan a third of the
-   :term:`documents <document>` in the collection to fulfill the rest
-   of the query.
+   First, consider an index, ``{ a : 1 }``, on a collection where
+   ``a`` has three values evenly distributed across the collection:
+
+   .. code-block:: javascript
+
+      { _id: ObjectId(), a: 1, b: "ab" }
+      { _id: ObjectId(), a: 1, b: "cd" }
+      { _id: ObjectId(), a: 1, b: "ef" }
+      { _id: ObjectId(), a: 2, b: "jk" }
+      { _id: ObjectId(), a: 2, b: "lm" }
+      { _id: ObjectId(), a: 2, b: "no" }
+      { _id: ObjectId(), a: 3, b: "pq" }
+      { _id: ObjectId(), a: 3, b: "rs" }
+      { _id: ObjectId(), a: 3, b: "tv" }
+
+   If you do a query for ``{ a: 2, b: "no" }`` MongoDB will still need
+   to scan 3 documents of the :term:`documents <document>` in the
+   collection to fulfill the query. Similarly, a query for ``{ a: {
+   $gt: 1}, b: "tv" }``, would need to scan through 6 documents,
+   although both queries would return the same result.
 
    Then, consider an index on a field that has many values evenly
-   distributed across the collection. If your query selects one of
-   these values using the index, MongoDB will only need to scan a very
-   small number of documents to fulfill the rest of the query.
+   distributed across the collection:
 
-TODO: It'd be clearer to use "real" numbers in the second example, too, but I
-think you'd have to re-jigger the example to do so.
+   .. code-block:: javascript
+
+      { _id: ObjectId(), a: 1, b: "ab" }
+      { _id: ObjectId(), a: 2, b: "cd" }
+      { _id: ObjectId(), a: 3, b: "ef" }
+      { _id: ObjectId(), a: 4, b: "jk" }
+      { _id: ObjectId(), a: 5, b: "lm" }
+      { _id: ObjectId(), a: 6, b: "no" }
+      { _id: ObjectId(), a: 7, b: "pq" }
+      { _id: ObjectId(), a: 8, b: "rs" }
+      { _id: ObjectId(), a: 9, b: "tv" }
+
+   Although the index on ``a`` is more selective, in the sense that
+   queries can use the index more effectively, a query such as ``{ a:
+   { $gt: 5 }, b: "tv" }`` would still need to scan 4 documents. By
+   contrast, given a query like ``{ a: 2, b: "cd" }``, MongoDB would
+   only need to scan one document to fulfill the rest of the
+   query. The index and query are more selective because the values of
+   ``a`` are evenly distributed *and* the query can selects a specific
+   document using the index.
 
 To ensure optimal performance, use indexes that are maximally
-selective relative to your queries.
-
-TODO: the example makes selectivity sound like the uniqueness of the index,
-which isn't the whole story.  Having something like {x:{$gt:3}} that matches 60%
-of the collection isn't very selective, even if x has a unique index on it.
-
-I think it's important to emphasize that selectivity is whittling down possible
-results to as small a % as possible.
-
-TODO: Also, might be worth mentioning that, if you cannot get selectivity low
-enough, indexes will actually be slower than table scans.
+selective relative to your queries. At the same time queries need to
+be appropriately selective relative to your indexed data. If overall
+selectivity is low enough, and MongoDB must read a number of documents
+to return results, then some queries may perform faster without
+indexes. See the :ref:`indexes-measuring-use` section for more
+information on testing information.
 
 Insert Throughput
 ~~~~~~~~~~~~~~~~~
 
 .. TODO insert link to /source/core/write-operations when that page is complete.
 
-.. TODO fact check
-
-MongoDB must update all indexes associated with a collection following
-every insert or update operation.
-
-TODO: or delete, too
+MongoDB must update all indexes associated with a collection after
+every insert, update, or delete operation.
 
 Every index on a collection adds
 some amount of overhead to these operations. In almost every case, the
@@ -191,9 +217,7 @@ performance gains that indexes realize for read operations are worth
 the insertion penalty; however:
 
 - in some cases, an index to support an infrequent query may incur
-  more insert-related costs, than saved read-time.
-
-TODO: rm comma: "insert-related costs than saved read-time"
+  more insert-related costs than saved read-time.
 
 - in some situations, if you have many indexes on a collection with a
   high insert throughput and a number of very similar indexes, you may
@@ -201,7 +225,9 @@ TODO: rm comma: "insert-related costs than saved read-time"
   on some queries if it means consolidating the total number of
   indexes.
 
-TODO: do you cover what indexes overlap?
+.. TODO: do you cover what indexes overlap?
+
+.. no. I'm not sure the case to which you're referring.
 
 Index Size
 ~~~~~~~~~~
@@ -212,15 +238,12 @@ your queries only match a subset of the documents and can use the
 index to locate those documents, MongoDB can maintain a much smaller
 :term:`working set`. Ensure that:
 
-- all of your indexes use less space than the documents in the
-  collection.
+- the indexes and the working set can fit RAM at the same time.
 
-TODO: individually or all together?
-
-- the indexes and a reasonable working set can fit RAM at the same
-  time.
-
-TODO: a reasonable working set?
+- all of your indexes use less space than all of the documents in the
+  collection. This may not be an issue all of your queries use
+  :ref:`covered queries <covered-queries>` or indexes do not need to
+  fit into ram, as in the following situation:
 
 .. _indexing-right-handed:
 
