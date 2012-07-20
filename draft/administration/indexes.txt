@@ -38,9 +38,7 @@ of the ``people`` collection:
 
 .. code-block:: javascript
 
-   db.people.ensureIndex( { phone-number: 1 } )
-
-TODO: you need ""s around phone-number, otherwise it's invalid JS (phone minus number).
+   db.people.ensureIndex( { "phone-number": 1 } )
 
 To create a :ref:`compound index <index-type-compound>`, use an
 operation that resembles the following prototype:
@@ -57,21 +55,18 @@ collection:
 
    db.products.ensureIndex( { item: 1, category: 1, price: 1 } )
 
-.. note::
+Some drivers may specify indexes, using ``NumberLong(1)`` rather than
+``1`` as the specification. This does not have any affect on the
+resulting index.
 
-   To build indexes for a :term:`replica set`, before version 2.2,
-   see :ref:`index-building-replica-sets`.
-
-TODO: I don't think anything changed about replica set index builds for 2.2...
+.. include:: /includes/note-build-indexes-on-replica-sets.rst
 
 .. [#ensure] As the name suggests, :func:`ensureIndex() <db.collection.ensureIndex()>`
    only creates an index if an index of the same specification does
    not already exist.
 
-Sparse
-``````
-
-TODO: Sparse?  Maybe "Types of Indexes->Sparse"?
+Sparse Indexes
+``````````````
 
 To create a :ref:`sparse index <index-type-sparse>` on a field, use an
 operation that resembles the following prototype:
@@ -91,16 +86,13 @@ without the ``twitter_name`` field.
 
 .. note::
 
-   MongoDB cannot create sparse compound indexes.
+   Sparse indexes can affect the results returned by the query,
+   particularly with respect to sorts on fields *not* included in the
+   index. See the :ref:`sparse index <index-type-sparse>` section for
+   more information.
 
-TODO: is this true? I thought that it could.
-
-TODO: Is there more doc on spare indexes somewhere?  Seems like this is missing
-some info like getting different results back when the index is used, null
-counts as existing, etc.
-
-Unique
-``````
+Unique Indexes
+``````````````
 
 To create a :ref:`unique indexes <index-type-unique>`, consider the
 following prototype:
@@ -109,21 +101,17 @@ following prototype:
 
    db.collection.ensureIndex( { a: 1 }, { unique: true } )
 
-For example, you may want to create a unique index on the ``tax-id:``
+For example, you may want to create a unique index on the ``"tax-id":``
 of the ``accounts`` collection to prevent storing multiple account
 records for the same legal entity:
 
 .. code-block:: javascript
 
-   db.accounts.ensureIndex( { tax-id: 1 }, { unique: true } )
-
-TODO: tax-id should be in ""s.
+   db.accounts.ensureIndex( { "tax-id": 1 }, { unique: true } )
 
 The :ref:`_id index <index-type-primary>` is a unique index. In some
-situations you may want to use the ``_id`` field for these primary
-data rather than using a unique index on another field.
-
-TODO: "for these primary data"?
+situations you may consider using ``_id`` field itself for this kind
+of data rather than using a unique index on another field.
 
 In many situations you will want to combine the ``unique`` constraint
 with the ``sparse`` option. When MongoDB indexes a field, if a
@@ -155,11 +143,9 @@ as in the following example:
 
 .. code-block:: javascript
 
-   db.accounts.dropIndex( { tax-id: 1 } )
+   db.accounts.dropIndex( { "tax-id": 1 } )
 
-TODO: ""s!
-
-This will remove the index on the ``tax-id`` field in the ``accounts``
+This will remove the index on the ``"tax-id"`` field in the ``accounts``
 collection. The shell provides the following document after completing
 the operation:
 
@@ -216,16 +202,7 @@ This shell helper provides a wrapper around the :dbcommand:`reIndex`
 </applications/drivers>` may have a different or additional interface
 for this operation.
 
-.. note::
-
-   To rebuild indexes for a :term:`replica set`, before version 2.2,
-   see :ref:`index-rebuilding-replica-sets`.
-
-TODO: again, this probably isn't different in 2.2
-
-TODO: one thing that I would appreciate you mentioning is that some drivers may
-create indexes like {a : NumberLong(1)} _which is fine_ and doesn't break
-anything so stop complaining about it.
+.. include:: /includes/note-build-indexes-on-replica-sets.rst
 
 Special Creation Options
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -235,7 +212,8 @@ Special Creation Options
    TTL collections use a special ``expire`` index option. See
    :doc:`/tutorial/expire-data` for more information.
 
-TODO: Are 2d indexes getting a mention?
+.. TODO: insert link here to the geospatial index documents when
+   they're published.
 
 Background
 ``````````
@@ -248,26 +226,17 @@ prototype invocation of :func:`db.collection.ensureIndex()`:
 
    db.collection.ensureIndex( { a: 1 }, { background: true } )
 
-TODO: what does it mean to build an index in the background? You might want to
-mention:
-* performance implications
-* that this type of index build can be killed
-* that this blocks the connection you sent the ensureindex on, but ops from
-  other connections can proceed in
-* that indexes are created on the foreground on secondaries in 2.0,
-  which blocks replication & slave reads.  In 2.2, it does not block reads (but
-  still blocks repl).
+Consider the section on :ref:`background index construction
+<index-creation-background>` for more information about these indexes
+and their implications.
 
 Drop Duplicates
 ```````````````
 
 To force the creation of a :ref:`unique index <index-type-unique>`
-index
-
-TODO: " on a collection with duplicate values in the field to be indexed "
-
-you can use the ``dropDups`` option. This will force MongoDB to
-create a *unique* index by deleting documents with duplicate values
+index on a collection with duplicate values in the field you are
+indexing you can use the ``dropDups`` option. This will force MongoDB
+to create a *unique* index by deleting documents with duplicate values
 when building the index. Consider the following prototype invocation
 of :func:`db.collection.ensureIndex()`:
 
@@ -280,82 +249,63 @@ See the full documentation of :ref:`duplicate dropping
 
 .. warning::
 
-   Specifying ``{ dropDups: true }`` will delete data from your
+   Specifying ``{ dropDups: true }`` may delete data from your
    database. Use with extreme caution.
-
-TODO: I'd say it "may" delete data from your DB, not like it's going to go all
-Shermanesque on your data.
 
 .. _index-building-replica-sets:
 
 Building Indexes on Replica Sets
 --------------------------------
 
-.. versionchanged:: 2.2
-   Index rebuilding operations on :term:`secondary` members of
-   :term:`replica sets <replica set>` now run as normal background
-   index operations. Run :func:`ensureIndex()
-   <db.collection.ensureIndex()>` normally with the ``{ background:
-   true }`` option for replica sets. Alternatively, you may always use
-   the following operation to isolate and control the impact of
-   indexing building operations on a set as a whole.
+Consideration
+~~~~~~~~~~~~~
 
-TODO: I think there needs to be a huge mention that this still blocks
-replication, so the procedure below is recommended.
+:ref:`Background index creation operations
+<index-creation-background>` become *foreground* indexing operations
+on :term:`secondary` members of replica sets. These foreground
+operations will block all replication on the secondaries, and don't
+allow any reads. As a result in most cases use the following procedure
+to build indexes on secondaries.
 
-.. admonition:: For Version 1.8 and 2.0
+Procedure
+~~~~~~~~~
 
-   :ref:`Background index creation operations
-   <index-creation-background>` became *foreground* indexing
-   operations on :term:`secondary` members of replica sets. These
-   foreground operations will block all replication on the
-   secondaries,
+#. Stop the :program:`mongod` process on one secondary. Restart the
+   :program:`mongod` process *without* the :option:`--replSet <mongod --replSet>`
+   option and running on a different port. [#different-port]_ This
+   instance is now in "standalone" mode.
 
-TODO: and don't allow any reads to go through.
+#. Create the new index or rebuild the index on this :program:`mongod`
+   instance.
 
-   and can impact performance of the entire set. To build
-   indexes with minimal impact on a replica set, use the following
-   procedure for all non-trivial index builds:
+#. Restart the :program:`mongod` instance with the
+   :option:`--replSet <mongod --replSet>` option. Allow replication
+   to catch up on this member.
 
-   #. Stop the :program:`mongod` process on one secondary. Restart the
-      :program:`mongod` process *without* the :option:`--replSet <mongod --replSet>`
-      option. This instance is now in "standalone" mode.
+#. Repeat this operation on all of the remaining secondaries.
 
-TODO: generally we recommend running it on a different port, too, so that apps
-& other servers in the set don't try to contact it.
+#. Run :func:`rs.stepDown()` on the :term:`primary` member of the
+   set, and then repeat this procedure on the former primary.
 
-   #. Create the new index or rebuild the index on this :program:`mongod`
-      instance.
+.. warning::
 
-   #. Restart the :program:`mongod` instance with the
-      :option:`--replSet <mongod --replSet>` option. Allow replication
-      to catch up on this member.
+   Ensure that your :ref:`oplog` is large enough to permit the
+   indexing or re-indexing operation to complete without falling
+   too far behind to catch up. See the ":ref:`replica-set-oplog-sizing`"
+   documentation for additional information.
 
-   #. Replete this operation on all of the remaining secondaries.
+.. note::
 
-   #. Run :func:`rs.stepDown()` on the :term:`primary` member of the
-      set, and then run this procedure on the former primary.
+   This procedure *does* take one member out of the replica set at a
+   time. However, this procedure will only affect one member of the
+   set at a time rather than *all* secondaries at the same time.
 
-   .. warning::
+.. [#different-port] By running the :program:`mongod` on a different
+   port, you ensure that the other members of the replica set and all
+   clients will not contact the member while you are building the
+   index.
 
-      Ensure that your :ref:`oplog` is large enough to permit the
-      indexing or re-indexing operation to complete without falling
-      too far behind to catch up. See the ":ref:`replica-set-oplog-sizing`"
-      documentation for additional information.
-
-   .. note::
-
-      This procedure *does* block indexing on one member of the
-      replica set at a time. However, the foreground indexing
-      operation is more efficient than the background index operation,
-      and will only affect one secondary at a time rather than *all*
-      secondaries at the same time.
-
-For the best results, always create indexes *before* you begin
-inserting data into a collection.
-
-TODO: well, sort of.  That'll build the indexes fast, but make the inserts
-slower.  Overall, it's faster to insert data, then build indexes.
+.. _indexes-measuring-use:
 
 Measuring Index Use
 -------------------
@@ -374,12 +324,7 @@ following tools:
 - :func:`cursor.hint()`
 
   Append the :func:`hint() <cursor.hint()>` to any cursor (e.g.
-  query) with the name
-
-TODO: this isn't "the name of an index."  I'd say just "with the index."  The
-name of an index is a string like "zipcode_1".
-
-  of an index as the argument to *force* MongoDB
+  query) with the index as the argument to *force* MongoDB
   to use a specific index to fulfill the query. Consider the following
   example:
 
@@ -387,12 +332,15 @@ name of an index is a string like "zipcode_1".
 
      db.people.find( { name: "John Doe", zipcode: { $gt: 63000 } } } ).hint( { zipcode: 1 } )
 
-
   You can use :func:`hint() <cursor.hint()>` and :func:`explain()
   <cursor.explain()>` in conjunction with each other to compare the
-  effectiveness of a specific index.
+  effectiveness of a specific index. Specify the ``$natural`` operator
+  to the :func:`hint() <cursor.hint()>` method to prevent MongoDB from
+  using *any* index:
 
-TODO: mention $natural to force no index usage?
+  .. code-block:: javascript
+
+     db.people.find( { name: "John Doe", zipcode: { $gt: 63000 } } } ).hint( { $natural: 1 } )
 
 - :status:`indexCounters`
 
@@ -400,5 +348,17 @@ TODO: mention $natural to force no index usage?
   :dbcommand:`serverStatus` for insight into database-wise index
   utilization.
 
-TODO: I'd like to see this also cover how to track how far an index build has
-gotten and how to kill an index build.
+Monitoring and Controlling Index Building
+-----------------------------------------
+
+.. TODO insert links to the values in the inprog array following the
+   completion of DOCS-162
+
+To see the status of the indexing processes, you can use the
+:func:`db.currentOp()` method in the :program:`mongo` shell. The value
+of the ``query`` field and the ``msg`` field will indicate if the
+operation is an index build. The ``msg`` field also indicates the
+percent of the build that is complete.
+
+If you need to terminate an ongoing index build, You can use the
+:func:`db.killOP()` method in the :program:`mongo` shell.
