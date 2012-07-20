@@ -50,6 +50,9 @@ Covered queries are much faster than other queries, for two reasons:
 indexes are typically stored in RAM *or* located sequentially on
 disk, and indexes are smaller than the documents they catalog.
 
+.. _index-sort:
+.. _sorting-with-indexes:
+
 Sort Using Indexes
 ~~~~~~~~~~~~~~~~~~
 
@@ -73,17 +76,55 @@ results. For example:
   on ":ref:`Ascending and Descending Index Order
   <index-ascending-and-descending>`."
 
-- MongoDB can use a compound index ``{ status: 1, username: 1 }`` to
-  return a query on the ``status`` field sorted by the ``username``
-  field.
+- In general, MongoDB can use a compound index to return sorted
+  results *if*:
 
-When using compound indexes to support sort operations, the sorted
-field must be the *last* field in the index.
+  - the first sorted field is first field in the index.
 
-.. TODO: not true!  In 2.2, you can use, say, the index above for a query on
-   username, sort by status, too.
+  - the last field in the index before the first sorted field is an
+    equality match in the query.
 
-.. is this not true in other version? what changed?
+  Consider the example presented below for an illustration of this
+  concept.
+
+.. example::
+
+   Given the following index:
+
+   .. code-block:: javascript
+
+      { a: 1, b: 1, c: 1, d: 1 }
+
+   The following query and sort operations will be able to use the
+   index:
+
+   .. code-block:: javascript
+
+      db.collection.find().sort( { a:1 } )
+      db.collection.find().sort( { a:1, b:1 } )
+
+      db.collection.find( { a:4 } ).sort( { a:1, b:1 } )
+      db.collection.find( { b:5 } ).sort( { a:1, b:1 } )
+
+      db.collection.find( { a:{ $gt:4 } } ).sort( { a:1, b:1 } )
+      db.collection.find( { b:{ $gt:5 } } ).sort( { a:1, b:1 } )
+
+      db.collection.find( { a:5 } ).sort( { a:1, b:1 } )
+      db.collection.find( { a:5 } ).sort( { b:1, c:1 } )
+
+      db.collection.find( { a:5, c:4, b:3 } ).sort( { d:1 } )
+
+      db.collection.find( { a:5, b:3, d:{ $gt:4 } } ).sort( { c:1 } )
+      db.collection.find( { a:5, b:3, c:{ $lt:2 }, d:{ $gt:4 } } ).sort( { c:1 } )
+
+   However, the following query operations would not be able to sort
+   data using the index:
+
+   .. code-block:: javascript
+
+      db.collection.find().sort( { b:1 } )
+      db.collection.find( { b:5 } ).sort( { b:1 } )
+      db.collection.find( { b:{ $gt:5 } } ).sort( { a:1, b:1 } )
 
 Store Indexes in Memory
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -133,6 +174,8 @@ deep understanding of:
 MongoDB can only use *one* index to support any given
 operation. However, each clause of an :operator:`$or` query can use
 its own index.
+
+.. _index-selectivity:
 
 Selectivity
 ~~~~~~~~~~~
@@ -225,9 +268,55 @@ the insertion penalty; however:
   on some queries if it means consolidating the total number of
   indexes.
 
-.. TODO: do you cover what indexes overlap?
+- If your indexes and queries are not very selective, the speed
+  improvements for query operations may not offset the costs of
+  maintaining an index. See the section on :ref:`index selectivity
+  <index-selectivity>` for more information.
 
-.. no. I'm not sure the case to which you're referring.
+- In some cases a single compound on two or more fields index may
+  support all of the queries that index on a single field index, or a
+  smaller compound index. In general, MongoDB can use compound index
+  to support the same queries as any of its prefixes. Consider the
+  following example:
+
+  .. example::
+
+     Given the following index on a collection:
+
+     .. code-block:: javascript
+
+        { x: 1, y: 1, z: 1 }
+
+     Can support a number of queries as well as most of the queries
+     that the following indexes support:
+
+     .. code-block:: javascript
+
+        { x: 1 }
+        { x: 1, y: 1 }
+
+     There are some situations where the prefix indexes may offer
+     better query performance as is the case if ``z`` is a large
+     array. Also, consider the following index on the same collection:
+
+     .. code-block:: javascript
+
+        { x: 1, z: 1 }
+
+     The ``{ x: 1, y: 1, z: 1 }`` index can support many of the same
+     queries as the above index; however, ``{ x: 1, z: 1 }`` has
+     additional use: Given the following query:
+
+     .. code-block:: javascript
+
+        db.collection.find( { x: 5 } ).sort( { z: 1} )
+
+     The ``{ x: 1, z: 1 }`` will support both the query and the sort
+     operation, while the ``{ x: 1, y: 1, z: 1 }`` index can only
+     support the query.
+
+     See the :ref:`sorting-with-indexes` section for more
+     information.
 
 Index Size
 ~~~~~~~~~~
