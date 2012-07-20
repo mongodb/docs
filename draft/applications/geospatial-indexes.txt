@@ -299,8 +299,7 @@ polygon connects at the above points using a geospatial index on the
 .. code-block:: javascript
 
    db.places.find({ "loc": { "$within": { "$polygon":
-                                        [0,0], [3,3], [6,0]
-                           } } })
+                                        [0,0], [3,3], [6,0] } } } )
 
 .. _geospatial-query-spherical:
 
@@ -354,7 +353,10 @@ with a radius of ``100`` miles:
 
 Remember that you must convert the distance of the radius to
 radians. This conversion *must* happen in your client
-(i.e. application) code.
+(i.e. application) code. You may also utilize the
+:option:`distanceMultiplier` option to have the conversion happen on
+the server code. Please see the :ref:`distance multiplier
+<geospatial-distance-multiplier>` section.
 
 The following spherical proximity query, returns all documents in the
 collection ``places`` within ``100`` miles from the point ``[ -74,
@@ -382,58 +384,75 @@ their distance from the ``[ -74, 40.74 ]`` point.
    between ``-180`` inclusive, and ``180``, valid values for latitude
    are between ``-90`` and ``90``.
 
+.. _geospatial-distance-multiplier:
+
 Distance Multiplier
 ~~~~~~~~~~~~~~~~~~~
 
-:func:`distanceMultiplier` is a built-in function which will
-automatically multiply distances in spherical queries by the assigned
-value. All spherical queries using :func:`distanceMultiplier` will
-have distances properly compensated in the result :ref:`document`.
+:option:`distanceMultiplier` is an option that will automatically
+multiply distances in :term:`documents <document>` returned by the assigned
+value.
+
+The :option:`distanceMultiplier` is useful when working with :ref:`spherical queries
+<geospatial-query-spherical>`. :ref:`Documents <document>` returned
+from spherical queries can be multiplied from radians to distance, so there is no need
+to perform the conversion in another function.
+
+:option:`distanceMultiplier` can be useful for multiplying distance
+values of result documents to match a particular view settings.
+
+The following example uses :option:`distanceMultiplier` in geoNear
+with a spherical example:
 
 .. code-block:: javascript
 
    db.runCommand( { geoNear: "places",
                     near: [ -74, 40.74 ],
-                    maxDistance: { 100 },
+                    maxDistance: { 100 / 3963.192 },
                     spherical: true,
                     distanceMultiplier: 3963.192
                   }  )
 
-.. TODO can be used with normal find() query too (i.e. for zooming)
+.. seealso::
+   :ref:`geospatial-query-distance`
 
 .. _geospatial-haystack-queries:
 
 Querying Haystack Indexes
 -------------------------
 
-To query the :ref:`geospatial haystack index
-<geospatial-haystack-index>`, you must use the
-:dbcommand:`geoSearch`.
+:ref:`Geospatial haystack indexes <geospatial-haystack-index>` are
+useful to optimize your location data for certain ``bucketsize`` with
+another field. To utilize the haystack indexes with your queries, you must use
+the :dbcommand:`geoSearch` command with another field. The
+:func:`find() <db.collection.find()>` and :dbcommand:`geoFind` will
+not use the haystack index.
 
-the following prototype:
+The :dbcommand:`geoSearch` has the following prototype:
 
 .. code-block:: javascript
 
    db.runCommand( { geoSearch: <haystack index>, 
                     search: { <field>: <value> } } )
 
-For example:
+For example, to find all the ``restaurants`` within the pre-indexed ``bucketsize`` in
+the ``places`` collection near a particular point, the command would be:
 
 .. code-block:: javascript
 
-   db.runCommand( { geoSearch: "places", 
-                    search: { type: "restaurant" },             
+   db.runCommand( { geoSearch: "places",
+                    search: { type: "restaurant" },
                     near: [-74, 40.74] } )
 
 
-To create geospatial indexes with the haystack option, please see:
-:ref:`Haystack Index <geospatial-haystack-index>`
+To create geospatial indexes with the haystack option and a particular
+``bucketsize``, please see: :ref:`Haystack Index
+<geospatial-haystack-index>`
 
-:ref:`Spherical queries <geospatial-spherical-representation>` are not
-currently supported by haystack indexes.
+.. note::
 
-A geospatial haystack index can *only* be queried using
-the :dbcommand:`geoSearch` command.
+   :ref:`Spherical queries <geospatial-spherical-representation>` are
+   not currently supported by haystack indexes.
 
 
 Multi-location Documents
