@@ -1,25 +1,36 @@
-==============================
-Intro To Aggregation Framework
-==============================
+===============================
+Using the Aggregation Framework
+===============================
 
 .. default-domain:: mongodb
 
-Overview
---------
+MongoDB provides flexible data aggregation functionality by way of the
+:dbcommand:`aggregate` command. These aggregation operations are
+flexible and provide an idiomatic way to combine and perform basic
+transformations on data inside of MongoDB. See the
+:doc:`/applications/aggregation` document for a full overview of
+aggregation capabilities and :doc:`/reference/aggregation` for a
+complete reference of all aggregation operators.
 
-Using a data set containing information about zipcodes, this document will explore mongodb's aggregation framework. You can follow along by downloading `this data set <#>`_. You can import the data with :program:`mongoimport`. In the following examples, the documents used are in the ``zipcodes`` collection.
+This document provides a number of practical examples that display the
+capabilities of the aggregation framework. All examples, refer to an
+example data set including the "zip codes" in the United States, that
+is publicly accessible.
 
 Requirements
 ------------
 
-#. :program:`mongod` and :program:`mongo` v. 2.1.X or later
+#. :program:`mongod` and :program:`mongo`, version 2.1 or later.
 
-#. The zipcode data set
+#. The zipcode data set. These data are available at:
+   `media.mongodb.org/zips.json <http://media.mongodb.org/zips.json>`_.
+   Use :program:`mongoimport` to load this data set into your
+   :program:`mongod` instance.
 
 Data Model
 ----------
 
-The individual documents in this set look like:
+Each document in this collection has the following form:
 
 .. code-block:: javascript
 
@@ -34,20 +45,33 @@ The individual documents in this set look like:
      "_id" : "35004"
    }
 
-- ``loc`` holds the location as a latitude longitude pair
+In these documents:
 
-- ``pop`` holds the population
+- The ``loc`` field holds the location as a latitude longitude pair.
 
-- ``_id`` holds the zipcode as a string
+- The ``pop`` field holds the population.
 
-- ``city`` holds the city
+- The ``_id`` field holds the zipcode as a string.
 
-- ``state`` holds the two letter state abbreviation
+- The ``city`` field holds the city.
+
+- The ``state`` field holds the two letter state abbreviation.
+
+Examples
+--------
+
+All of the following examples use the :func:`aggregate()
+<db.collection.aggregate()>` helper in the :program:`mongo`
+shell. :func:`aggregate() <db.collection.aggregate()>` provides a
+wrapper around the :dbcommand:`aggregate` database command. See the
+documentation for your :doc:`driver </applications/drivers>` for a
+more idiomatic interface for data aggregation operations.
 
 Cities With Populations Over One Million
-----------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To return all cities with a population greater than one million, you can use the aggregation framework thusly:
+To return all cities with a population greater than one million, use
+the following aggregation operation:
 
 .. code-block:: javascript
 
@@ -58,23 +82,47 @@ To return all cities with a population greater than one million, you can use the
                             { $match : {totalpop : { $gte : 1000000 } } }
                           ] );
 
-Aggregate takes only one argument, the pipeline of operations that will be prefermed on the documents in the collection.
+Aggregations operations using the :func:`aggregate()
+<db.collection.aggregate()>` helper, process all documents on the
+``zipcodes`` collection. :func:`aggregate()
+<db.collection.aggregate()>` takes a single argument, which is an
+array of :ref:`pipeline <aggregation-pipelines>` operators that define
+the aggregation process.
 
-The first object in the pipeline is a :agg:pipeline:`$group` that is used to collect and compress documents with the same ``city``, transforming documents about zipcodes into documents about cities. ``totalpop`` is the only other field in the resulting documents. It is defined as the :agg:expression:`$sum` of the population fields of the documents being grouped together. After the :agg:pipeline:`$group` portion of this aggregation, the documents in the pipeline look like:
+In the above example, the pipeline passes all documents in the
+``zipcodes`` collection through the following steps:
 
-.. code-block:: javascript
+- the :agg:pipeline:`$group` operator collects all documents and
+  creates documents for each city.
 
-   {
-     "_id" : "HILLISBURG",
-     "totalpop" : 20713
-   }
+  These new per-city documents have one field in addition the
+  ``_id`` field: ``totalpop`` which is a generated field using the
+  :agg:expression:`$sum` operation to calculate the total value of all
+  ``pop`` fields in the source documents.
 
-The second and final pipeline object is a :agg:pipeline:`$match` used to obtain only the documents where the ``totalpop`` is greater than or equal to one million. As :agg:pipeline:`$match` does not alter the format of the documents in the pipe, the final result contains the same documents as the result of :agg:pipeline:`$group`, but without the entries where the population is less than one million.
+  After the :agg:pipeline:`$group` operation the document in the
+  pipeline resemble the following:
+
+  .. code-block:: javascript
+
+     {
+       "_id" : "HILLISBURG",
+       "totalpop" : 20713
+     }
+
+- the :agg:pipeline:`$match` operation filters these documents so that
+  the only documents that remain are those where the value of
+  ``totalpop`` is greater than or equal to one million.
+
+  The :agg:pipeline:`$match` operation does not alter the documents,
+  which have the same format as the documents output by
+  :agg:pipeline:`$group`.
 
 Largest and Smallest Cities by State
-------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To find each state's largest and smallest cities by population using the aggregation framework, use:
+To return the smallest and largest cities by population for each
+state, use the following aggregation operation:
 
 .. code-block:: javascript
 
@@ -96,33 +144,75 @@ To find each state's largest and smallest cities by population using the aggrega
                                 smallestCity : { name : "$smallestcity", pop : "$smallestpop" } } }
                           ] );
 
-The first :agg:pipeline:`$group` groups by both ``city`` and ``state`` by choosing ``_id`` to be an object containing both of them. This preserves the ``state`` for later. The documents it creates have only one other field ``pop`` that is the :agg:expression:`$sum` of the population fields. The documents now look like:
 
-.. code-block:: javascript
+Aggregations operations using the :func:`aggregate()
+<db.collection.aggregate()>` helper, process all documents on the
+``zipcodes`` collection. :func:`aggregate()
+<db.collection.aggregate()>` takes a single argument, which is an
+array of :ref:`pipeline <aggregation-pipelines>` operators that define
+the aggregation process.
 
-   {
-     "_id" : {
-       "state" : "CO",
-       "city" : "EDGEWATER"
-     },
-     "pop" : 13154
-   }
+In the above example, the pipeline passes all documents in the
+``zipcodes`` collection through the following steps:
 
-:agg:pipeline:`$sort` arranges the documents in the stream in increasing order of ``pop``. This does not alter the documents themselves, just the ordering.
+- the :agg:pipeline:`$group` operator collects all documents and
+  creates new documents for every combination of the ``city`` and
+  ``state`` fields in the source documents.
 
-The next :agg:pipeline:`$group` groups the city-state documents by ``state`` (which is a field inside the nest ``_id`` object), saving the :agg:expression:`$first` and :agg:expression:`$last` documents' ``city`` and ``pop`` in the fields ``smallestcity``, ``smallestpop``, ``biggestcity``, and ``biggestpop``. Since the documents are in increasing order by population, these will be the smallest and largest cities. The documents now look like:
+  By specifying the value of ``_id`` as a sub-document that contains
+  both field, the operation preserves the ``state`` field for use
+  later in the pipeline. The documents produced by this stage of the
+  pipeline have a second field, ``pop``, which uses the
+  :agg:expression:`$sum` operator to provide the total of the ``pop``
+  fields in the source document.
 
-.. code-block:: javascript
+  At this stage in the pipeline, the documents resemble the following:
 
-   {
-     "_id" : "WA",
-     "biggestcity" : "SEATTLE",
-     "biggestpop" : 520096,
-     "smallestcity" : "BENGE",
-     "smallestpop" : 2
-   }
+  .. code-block:: javascript
 
-Lastly, :agg:pipeline:`$project` renames ``_id`` to ``state`` and moves the information about the biggest and smallest cities from toplevel fields into subdocuments ``biggestCity`` and ``smallestCity``. The final results look like:
+     {
+       "_id" : {
+         "state" : "CO",
+         "city" : "EDGEWATER"
+       },
+       "pop" : 13154
+     }
+
+- :agg:pipeline:`$sort` operator orders the documents in the pipeline
+  based on the vale of the ``pop`` field from largest to
+  smallest. This operation does not alter the documents.
+
+- the second :agg:pipeline:`$group` operator collects the documents in
+  the pipeline by the ``state`` field, which is a field inside the
+  nested ``_id`` document.
+
+  Within each per-state document this :agg:pipeline:`$group` operator
+  specifies four fields: Using the :agg:expression:`$last` expression,
+  the :agg:pipeline:`$group` operator creates the ``biggestcity`` and
+  ``biggestpop`` fields that store the city with the largest
+  population and that population. Using the :agg:expression:`$first`
+  expression, the :agg:pipeline:`$group` operator creates the
+  ``smallestcity`` and ``smallestpop`` fields that store the city with
+  the smallest population and that population.
+
+  The documents, at this stage in the pipeline resemble the following:
+
+  .. code-block:: javascript
+
+     {
+       "_id" : "WA",
+       "biggestcity" : "SEATTLE",
+       "biggestpop" : 520096,
+       "smallestcity" : "BENGE",
+       "smallestpop" : 2
+     }
+
+- The final operation is :agg:pipeline:`$project`, which  renames the
+  ``_id`` field  to ``state`` and moves the ``biggestcity``,
+  ``biggestpop``, ``smallestcity``, and ``smallestpop`` into ``biggestCity`` and
+``smallestCity`` sub-documments.
+
+The final output of this aggregation operation is:
 
 .. code-block:: javascript
 
@@ -139,24 +229,54 @@ Lastly, :agg:pipeline:`$project` renames ``_id`` to ``state`` and moves the info
    }
 
 Average City Population by State
---------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To find the average populations for cities in each state using the aggregation framework, run:
+To return the average populations for cities in each state, use the
+following aggregation operation:
 
 .. code-block:: javascript
 
-db.zipcode.aggregate( [
-                        { $group :
-                          { _id : { state : "$state", city : "$city" },
-                            pop : { $sum : "$pop" } } },
-                        { $group :
-                          { _id : "$_id.state",
-                            avgCityPop : { $avg : "$pop" } } },
-                      ] );
+   db.zipcode.aggregate( [
+                           { $group :
+                             { _id : { state : "$state", city : "$city" },
+                               pop : { $sum : "$pop" } } },
+                           { $group :
+                             { _id : "$_id.state",
+                               avgCityPop : { $avg : "$pop" } } },
+                         ] );
 
-The first :agg:pipeline:`$group` is exactly the same as the Largest and Smallest Cities by State example and will have the same result.
+Aggregations operations using the :func:`aggregate()
+<db.collection.aggregate()>` helper, process all documents on the
+``zipcodes`` collection. :func:`aggregate()
+<db.collection.aggregate()>` takes a single argument, which is an
+array of :ref:`pipeline <aggregation-pipelines>` operators that define
+the aggregation process.
 
-The latter :agg:pipeline:`$group` groups the city-state documents by ``state``, and uses :agg:expression:`$avg` to average the populations of all the city-state documents belonging to that ``state`` and store the result in ``avgCityPop``. The resulting documents look like:
+In the above example, the pipeline passes all documents in the
+``zipcodes`` collection through the following steps:
+
+- the :agg:pipeline:`$group` operator collects all documents and
+  creates new documents for every combination of the ``city`` and
+  ``state`` fields in the source document.
+
+  After this stage in the pipeline, the documents resemble the
+  following:
+
+  .. code-block:: javascript
+
+     {
+       "_id" : {
+         "state" : "CO",
+         "city" : "EDGEWATER"
+       },
+       "pop" : 13154
+     }
+
+- the second :agg:pipeline:`$group` operator collects documents by the
+  ``state`` field and use the :agg:expression:`$avg` expression to
+  compute a value for the ``avgCityPop`` field.
+
+The final output of this aggregation operation is:
 
 .. code-block:: javascript
 
