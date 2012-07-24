@@ -9,7 +9,7 @@ that holds a 2 dimensional array. The preferred form is:
    [ x, y ]
 
 Consistency is crucial: all documents must store the values in the
-same order. you may also use an embeded document, as in:
+same order. You may also use an embeded document, as in:
 
 .. code-block:: javascript
 

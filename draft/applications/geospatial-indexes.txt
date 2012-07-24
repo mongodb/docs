@@ -26,7 +26,7 @@ Queries
 
 MongoDB provides special :ref:`geospatial query operators
 <geospatial-query-operators>` for performing queries on location data
-inside the normal :func:`find() <db.collection.find()>` operator. The
+inside the normal :func:`find() <db.collection.find()>` method. The
 :dbcommand:`geoNear` command also returns results using geospatial
 indexes, but also includes additional geospatial information in the
 return documents.
@@ -133,7 +133,7 @@ the prototype operation.
 
    db.collection.find( { <location field>: { $near: [ x, y ] } } ).limit(n)
 
-The following example will return only ``20`` results of the above query:
+The following example will return only 20 results of the above query:
 
 .. code-block:: javascript
 
@@ -153,12 +153,11 @@ in the previous example:
 
    db.runCommand( { geoNear: "collection", near: [ -74, 40.74 ], num: 20 } )
 
-The :func:`limit() <cursor.limit()>` and :operator:`near` do not limit
+The :func:`limit() <cursor.limit()>` method and :operator:`near` method do not limit
 geospatial query results by distance, only the number of returned
 :term:`documents`. To limit geospatial search results by distance,
 please see the :ref:`geospatial-query-distance` section.
 
-.. index:: $maxDistance
 .. index:: geospatial queries; distance limit
 
 .. _geospatial-query-distance:
@@ -187,7 +186,7 @@ as the coordinate system specified. For example, if the indexed
 location data is in meters, the distance units are also in meters.
 
 To limit geospatial query results by the number of returned
-:term:`documents`, please see the :ref:`geospatial-query-limit` section.
+:term:`document`, please see the :ref:`geospatial-query-limit` section.
 
 .. _geospatial-within:
 .. _geospatial-query-bounded:
@@ -306,7 +305,7 @@ polygon connects at the above points using a geospatial index on the
 Spherical
 ~~~~~~~~~
 
-If the coordinates in your :term:`documents` represent points on a
+If the coordinates in your :term:`document` represent points on a
 spherical surface, :ref:`proximity <geospatial-query-proximity>` and
 some :ref:`bounded <geospatial-query-bounded>` queries will not return
 accurate results. To compensate, you can use the following spherical
@@ -320,7 +319,7 @@ list of spherical query operators and their flat surface equivalents:
 :operator:`$centerSphere`  :operator:`$center`
 ========================== ===================
 
-The :dbcommand:`geoNear` will return results for spherical surface if
+The :dbcommand:`geoNear` will return results assuming a spherical surface if
 you specify the ``{ spherical: true }`` option to the command.
 
 .. admonition:: Spherical Queries Use Radians for Distance
@@ -353,8 +352,8 @@ with a radius of ``100`` miles:
 
 Remember that you must convert the distance of the radius to
 radians. This conversion *must* happen in your client
-(i.e. application) code. You may also utilize the
-:option:`distanceMultiplier` option to have the conversion happen on
+(i.e. application) code. You may also use the
+``distanceMultiplier`` option to the :dbcommand:`geoNear` to convert on
 the server code. Please see the :ref:`distance multiplier
 <geospatial-distance-multiplier>` section.
 
@@ -389,20 +388,27 @@ their distance from the ``[ -74, 40.74 ]`` point.
 Distance Multiplier
 ~~~~~~~~~~~~~~~~~~~
 
-``distanceMultiplier`` is an option that will automatically
-multiply distances in :term:`documents <document>` returned by the assigned
-value.
+The ``distanceMultiplier`` option multiplies all distances values in
+the ``distance`` field returned by :dbcommand:`geoNear` command by an
+assigned value.
 
-The :option:`distanceMultiplier` is useful when working with :ref:`spherical queries
-<geospatial-query-spherical>`. :ref:`Documents <document>` returned
-from spherical queries can be multiplied from radians to distance, so there is no need
-to perform the conversion in another function.
+This option is useful when working with :ref:`spherical queries
+<geospatial-query-spherical>`. Distances in the ``distance`` field of
+:dbcommand:`geoNear` queried documents can be multiplied by the proper
+radians to distances ratio before the query returns. Thus, the
+``distance`` field will contain distance values instead of radian
+values for spherical queries.
 
-:option:`distanceMultiplier` can be useful for multiplying distance
-values of result documents to match a particular view settings.
+.. note::
 
-The following example uses ``distanceMultiplier`` in :dbcommand:`geoNear`
-with a :ref:`spherical <geospatial-query-spherical>` example:
+   Because ``distanceMultiplier`` is an option to
+   :dbcommand:`geoNear`, the multiplication operation occurs on the
+   :program:`mongod` process. This multiplication operation will add a
+   slight computational load to the server.
+
+The following example uses ``distanceMultiplier`` in the
+:dbcommand:`geoNear` command with a :ref:`spherical
+<geospatial-query-spherical>` example:
 
 .. code-block:: javascript
 
@@ -414,16 +420,17 @@ with a :ref:`spherical <geospatial-query-spherical>` example:
                   }  )
 
 .. seealso::
-   :ref:`geospatial-query-distance`
+   :ref:`Distance operator <geospatial-query-distance>`
 
 .. _geospatial-haystack-queries:
 
 Querying Haystack Indexes
 -------------------------
 
-:ref:`Geospatial haystack indexes <geospatial-haystack-index>` are
-useful to optimize your location data for certain ``bucketSize`` with
-another field.
+Geospatial haystack indexes are a special geospatial index that can
+optimize your location data with another field. To create geospatial
+indexes with the haystack option and a particular ``bucketSize``,
+please see: :ref:`Haystack Index <geospatial-haystack-index>`
 
 .. note::
 
@@ -431,31 +438,26 @@ another field.
    a particular location, as the closest documents could be far away
    compared to the ``bucketSize``.
 
-To utilize the haystack indexes with your queries, you must use
+To utilize the haystack index with your queries, you must use
 the :dbcommand:`geoSearch` command with another field. The
-:func:`find() <db.collection.find()>` and :dbcommand:`geoFind` will
+:func:`find() <db.collection.find()>` method and :dbcommand:`geoNear` will
 not use the haystack index.
 
-The :dbcommand:`geoSearch` has the following prototype:
+The :dbcommand:`geoSearch` has the following prototype form:
 
 .. code-block:: javascript
 
    db.runCommand( { geoSearch: <haystack index>, 
                     search: { <field>: <value> } } )
 
-For example, to find all the ``restaurants`` within the pre-indexed ``bucketsize`` in
-the ``places`` collection near a particular point, the command would be:
+For example, to return all documents with the value
+``restaurants`` in the ``type`` field near the example point, the command would resemble:
 
 .. code-block:: javascript
 
    db.runCommand( { geoSearch: "places",
                     search: { type: "restaurant" },
                     near: [-74, 40.74] } )
-
-
-To create geospatial indexes with the haystack option and a particular
-``bucketsize``, please see: :ref:`Haystack Index
-<geospatial-haystack-index>`
 
 .. note::
 
