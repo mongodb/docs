@@ -261,13 +261,29 @@ Consideration
 
 :ref:`Background index creation operations
 <index-creation-background>` become *foreground* indexing operations
-on :term:`secondary` members of replica sets. These foreground
-operations will block all replication on the secondaries, and don't
-allow any reads. As a result in most cases use the following procedure
-to build indexes on secondaries.
+on :term:`secondary` members of replica sets. The foreground index
+building process blocks all replication and read operations on the
+secondaries while they build the index.
+
+Secondaries will only begin building indexes *after* the
+:term:`primary` finishes building the index. All secondaries will
+build indexes at the same time. In :term:`sharded clusters <shard
+cluster>`, the :program:`mongos` will send :func:`ensureIndex()
+<db.collection.ensureIndex()>` to the primary members of the replica
+set for each shard, which then replicate to the secondaries after the
+primary finishes building the index.
+
+To minimize the impact of building an index on your replica set, use
+the following procedure to build indexes on secondaries:
 
 Procedure
 ~~~~~~~~~
+
+.. note::
+
+   If you need to build an index in a :term:`shard cluster`, repeat
+   the following procedure for each replica set that provides each
+   :term:`shard`.
 
 #. Stop the :program:`mongod` process on one secondary. Restart the
    :program:`mongod` process *without* the :option:`--replSet <mongod --replSet>`
@@ -285,6 +301,7 @@ Procedure
 
 #. Run :func:`rs.stepDown()` on the :term:`primary` member of the
    set, and then repeat this procedure on the former primary.
+
 
 .. warning::
 
