@@ -2466,26 +2466,42 @@ Internal Use
 
    .. write-lock, slave-ok
 
-.. dbcommand:: applyOps(operations, preCondition:[ ns: namespace, q: query, res: result ])
+.. dbcommand:: applyOps
 
    :param array operations: an array of operations to perform.
-   :param preCondition: Optional. Specifies a precondition which must be met before applying
-                        the entry from the :term:`oplog`.  Use :code:`ns` to specify a :term:`namespace`,
-                        :code:`q` to specify a :term:`query` and :code:`res` to specify the
-                        result which the query should match.
 
-   :dbcommand:`applyOps` is an internal command that supports sharding
-   functionality.
-   It applies :term:`oplog` entries passed to the command in the <operations> array, to a database, or collection if you specify the :term:`ns` option.
+   :param array preCondition: Optional. Defines one or more conditions that the destination must meet
+                              applying the entries from the ``<operations>`` array. ``ns`` to
+                              specify a :term:`namespace`, ``q`` to specify a :term:`query` and
+                              ``res`` to specify the result that the query should match. You may
+                              specify, zero, one, or many ``preCondition`` documents.
 
-.. code-block:: javascript
+   :dbcommand:`applyOps` provides a way to apply entries from an
+   :term:`oplog` created by :term:`replica set` members and
+   :term:`master` instances in a master/:term:`slave`
+   deployment. :dbcommand:`applyOps` is primarily an internal command
+   to support sharding functionality, and has the following prototype
+   form:
 
-     db.runCommand({ { applyOps: <operations>, preCondition: [ ns: <namespace>, q: <query>, res: <result> ] } )
+   .. code-block:: javascript
 
+      db.runCommand( { applyOps: [ <operations> ], preCondition: [ { ns: <namespace>, q: <query>, res: <result> } ] } )
 
-.. write-lock
+   :dbcommand:`applyOps` applies oplog entries from the
+   ``<operations>`` array, to the :program:`mongod` instance. The
+   ``preCondition`` array provides the ability to specify conditions
+   that must be true in order to apply the oplog entry.
 
-.. see: DOCS-133; SERVER-4259
+   You can specify as many ``preCondition`` sets as needed. If you
+   specify the ``ns`` option, :dbcommand:`applyOps` will only apply
+   oplog entries for the :term:`collection` described by that
+   namespace. You may also specify a query in the ``q`` field with a
+   corresponding expected result in the ``res`` field that must match
+   in order to apply the oplog entry.
+
+   .. write-lock
+
+   .. see: DOCS-133; SERVER-4259
 
 .. dbcommand:: replSetElect
 
