@@ -211,6 +211,12 @@ preference modes:
    case during :term:`failover` situations, then these read operations
    can read from secondary members.
 
+   When the read preference includes a :ref:`tag set <replica-set-read-preference-tags>`,
+   the client will first read from the primary, if it is available, and
+   then from :term:`secondaries <secondary>` that match the specified
+   tags. If there are no secondaries with tags that match the
+   specified tags, this read operation will produce an error.
+
 .. readmode:: SECONDARY
 
    With the :readmode:`SECONDARY`  read preference mode, operations
@@ -223,6 +229,13 @@ preference modes:
    with a primary, a secondary, and an :term:`arbiter` may not have
    any secondaries if a member is ever in recovering mode.
 
+   When the read preference includes a :ref:`tag set <replica-set-read-preference-tags>`,
+   the client will attempt to find a secondary members that match the
+   specified tag set and directs reads to a random secondary from
+   among the :ref:`nearest group <replica-set-read-preference-behavior-nearest>`.
+   If there are no secondaries with tags that match the specified tag
+   set, this read operation will produce an error.
+
 .. readmode:: SECONDARY_PREFERRED
 
    With the :readmode:`SECONDARY_PREFERED`, operations will read from
@@ -230,16 +243,30 @@ preference modes:
    has a :term:`primary` instance, the read operation will use the
    set's primary.
 
+   When :readmode:`SECONDARY_PREFERED` reads from a secondary and the
+   read preference includes a :ref:`tag set <replica-set-read-preference-tags>`,
+   the client will attempt to find a secondary members that match the
+   specified tag set and directs reads to a random secondary from
+   among the :ref:`nearest group <replica-set-read-preference-behavior-nearest>`.
+   If there are no secondaries with tags that match the specified tag
+   set, this read operation will produce an error.
+
 .. readmode:: NEAREST
 
    With the :readmode:`NEAREST`, the driver will read from the
    *nearest* member of the :term:`set <replica set>` with regards to
-   the ping time without consideration of the *type* of the set
-   member. Reads in :readmode:`NEAREST` mode may read from both
-   primaries and secondaries.
+   the :ref:`ping time <replica-set-read-preference-behavior-nearest>`.
+   :readmode:`NEAREST` read operations will not have any consideration
+   for the *type* of the set member. Reads in :readmode:`NEAREST` mode
+   may read from both primaries and secondaries.
 
    Set this mode when you want minimize the effect of network latency
    on read operations.
+
+   If you specify a :ref:`tag set <replica-set-read-preference-tags>`,
+   the client will attempt to find a secondary members that match the
+   specified tag set and directs reads to a random secondary from
+   among the :ref:`nearest group <replica-set-read-preference-behavior-nearest>`.
 
    .. For I/O-bound users who want to distribute reads across all
       members evenly regardless of ping time, set
@@ -250,7 +277,9 @@ preference modes:
 
 Tag Sets
 ~~~~~~~~
-      
+
+
+
 .. index:: read preference; behavior
 .. _replica-set-read-preference-behavior:
 
@@ -268,11 +297,11 @@ a :term:`replica set` must balance two concerns:
 #. The client should attempt to maximize consistency and any
    connection should read from the same member of the replica set as
    much as possible.
-  
+
 #. The client should minimize the amount of time that the database is
    inaccessible as the result of a connection issue, networking
    problem, or :term:`failover` in a replica set.
- 
+
 As a result, MongoDB drivers, and :program:`mongos` will:
 
 - reuse a connection to specific :program:`mongod` for as long as
@@ -281,24 +310,24 @@ As a result, MongoDB drivers, and :program:`mongos` will:
 
 - attempt to reconnect to a new member, obeying existing :ref:`read
   preference mode <replica-set-read-preference-modes>` when it loose a
-  connection to its :program:`mongod`. 
-  
+  connection to its :program:`mongod`.
+
   These reconnections are transparent to the application itself. If
   the connection permits reads from :term:`secondary` members, after
   reconnecting, the application can receive two sequential reads
   returning from different secondaries. Depending on the state of the
   individual secondary member's replication, the documents can reflect
   the state of your database at different moments.
-  
+
 - return an error *only* after attempting to connect to three members
   of the set. If there are fewer than three members of the set, the
   client will error after connecting to all existing members of the
   set.
-  
+
   After this error, the driver will select a new member using the
   specified read preference mode, or in absence of a specified read
   preference :readmode:`PRIMARY`.
-  
+
 - after detecting a failover situation, [#failover]_ the driver will
   attempt to refresh its state of the replica set as quickly as
   possible.
@@ -340,6 +369,27 @@ As a result, unless you explicitly set read preference modes on your
 connections or operations, read operations may run with unexpected
 read preference modes.
 
+.. index:: read preference; ping time
+.. index:: read preference; nearest
+.. _replica-set-read-preference-behavior-ping-time:
+.. _replica-set-read-preference-behavior-nearest:
+
+Ping Time
+`````````
+
+Once the driver or mongos has found a list of candidate members based
+on mode and tag sets, determine the "nearest" member as the one with
+the quickest response to a periodic ping command. (The driver already
+knows ping times to all members, see "assumptions" above.) Choose a
+member randomly from those at most 15ms "farther" than the nearest
+member. The 15ms cutoff is overridable with
+"secondaryAcceptableLatencyMS".
+
+.. index:: read preference; sharding
+.. index:: read preference; mongos
+.. _replica-set-read-preference-behavior-sharding:
+.. _replica-set-read-preference-behavior-mongos:
+
 Sharding and ``mongos``
 ```````````````````````
 
@@ -371,7 +421,7 @@ result:
 - all :readmode:`NEAREST` and latency calculations reflect the
   connection between the :program:`mongos` and the :program:`mongod`
   instances, not the client and the :program:`mongod` instances.
-  
+
   This produces the desired result, because all results must pass
   through the :program:`mongos` before returning to the client.
 
@@ -381,7 +431,7 @@ Database Commands
 Because some :term:`database commands <database command>` read and
 return data from the database, all of the official drivers support
 full :`read preference mode semantics
-<replica-set-read-preference-modes>` for the following commands: 
+<replica-set-read-preference-modes>` for the following commands:
 
 - :dbcommand:`group`
 - :dbcommand:`mapReduce` [#inline-map-reduce]_
