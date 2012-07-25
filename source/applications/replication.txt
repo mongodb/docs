@@ -34,7 +34,7 @@ issues a :dbcommand:`getLastError` command following write
 operations to ensure that they succeed. "Safe mode,"
 provides confirmation of write operations to clients, which is often
 the expected method of operation, and is particularly useful when
-using standalone nodes.
+using standalone instances.
 
 However, safe writes can take longer to return and are not required in
 all applications. Using the ``w: "majority"`` option for
@@ -42,7 +42,7 @@ all applications. Using the ``w: "majority"`` option for
 return only after a write operation has replicated to a majority of
 the members of the set. At the :program:`mongo` shell, use the
 following command to ensure that writes have propagated to a majority
-of the nodes in the replica set:
+of the replica set members:
 
 .. code-block:: javascript
 
@@ -50,7 +50,7 @@ of the nodes in the replica set:
    db.getLastError("majority")
 
 You may also specify ``w: 2`` so that the write operation replicates
-to a second node before the command returns.
+to a second member before the command returns.
 
 .. note::
 
@@ -70,7 +70,7 @@ replica set configuration. For instance:
 
 When the new configuration is active, the effect of the
 :dbcommand:`getLastError` operation will wait until the write
-operation has succeeded on a majority of the nodes before writing. By
+operation has succeeded on a majority of the set members before writing. By
 specifying ``fsync: false`` and ``j: true`` a successful commit of
 the operation to the journal is all that :dbcommand:`getLastError`
 requires to return succesullly, rather than a full flush to disk. Use this the
@@ -279,7 +279,7 @@ As a result, MongoDB drivers, and :program:`mongos` will:
   possible after establishing a connection to that instance. This
   connection is *pinned* to this :program:`mongod`.
 
-- attempt to reconnect to a new node, obeying existing :ref:`read
+- attempt to reconnect to a new member, obeying existing :ref:`read
   preference mode <replica-set-read-preference-modes>` when it loose a
   connection to its :program:`mongod`. 
   
@@ -384,7 +384,7 @@ full :`read preference mode semantics
 <replica-set-read-preference-modes>` for the following commands: 
 
 - :dbcommand:`group`
-- :dbcommand:`mapReduce`, unless the mapReduce operation writes data. 
+- :dbcommand:`mapReduce` [#inline-map-reduce]_
 - :dbcommand:`aggregate`
 - :dbcommand:`collStats`
 - :dbcommand:`dbStats`
@@ -393,3 +393,8 @@ full :`read preference mode semantics
 - :dbcommand:`geoNear`
 - :dbcommand:`geoSearch`
 - :dbcommand:`geoWalk`
+
+.. [#inline-map-reduce] Only "inline" :dbcommand:`mapReduce`
+   operations that do not write data support read preference,
+   otherwise these operations must run on the :term:`primary`
+   members.
