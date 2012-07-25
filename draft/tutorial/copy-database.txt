@@ -1,47 +1,52 @@
-=============================
-How to Copy or Clone Database
-=============================
+===========================================
+Copy Databases Between ``mongod`` Instances
+===========================================
 
 .. default-domain:: mongodb
 
 Sypnosis
 --------
 
-One may need to copy a :term:`database` from one server to another,
-rename a database, move a database within the same server, seed a
-development server from a production server, or create a test
-environment with production data. The :dbcommand:`copydb` and
-:dbcommand:`clone` function in MongoDB can help one in these
-situations.
+In some situations, you may need to copy a :term:`database` from one
+MongoDB instance to another. For example, you may use these commands
+to support migrations and data warehousing, seeding test environments,
+or to help perform backups. The :dbcommand:`copydb` and
+:dbcommand:`clone` function in MongoDB can help in these situations.
 
 This document oulines the procedure to copy MongoDB databases using
 the :dbcommand:`copydb` and :dbcommand:`clone` command.
 
 The :dbcommand:`copydb` and :dbcommand:`clone` are faster than
-:program:`mongodump` and :program:`mongorestore` because there are no
-intermediate files to be created in the :dbcommand:`copydb` process.
+:program:`mongodump` and :program:`mongorestore` because the commands
+do not require intermediate files.
 
 .. note::
 
    :dbcommand:`copydb` and :dbcommand:`clone` do not produce
    point-in-time snapshots of the source database. Write traffic to
-   the source database during the copy process may result in databases
-   with different contents.
+   the source or destination database during the copy process may
+   result in databases with different contents.
    
 Considerations
 --------------
 
-- :dbcommand:`copydb` or :dbcommand:`clone` must be run on the
+- You must run :dbcommand:`copydb` or :dbcommand:`clone` on the
   destination server.
 
-- :dbcommand:`copydb` or :dbcommand:`clone` do not work with a sharded
-  database, such as a database a from :term:`shard cluster`.
+- You can use :dbcommand:`copydb` or :dbcommand:`clone` with unsharded
+  databases in a :term:`shard cluster` when you're connected directly
+  to the :program:`mongod` instance.
 
-- :dbcommand:`copydb` or :dbcommand:`clone` commands may be run
-  on a :term:`secondary` member.
+- You can run :dbcommand:`copydb` or :dbcommand:`clone` commands on a
+  :term:`secondary` member.
 
 - There must be enough free disk storage on the destination server for the
-  database from the source server.
+  database from the source server. You can check for the size of the
+  database on the source server by issuing command:
+
+  .. code-block::
+
+     db.runCommand()
 
 Process
 -------
@@ -49,16 +54,16 @@ Process
 Copy a Database to Another Server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Use the :dbcommand:`copydb` command when you need to transfer a database from
-one server to another, such as from a development server a production
-server, changing the database name in the process.
+Use the :dbcommand:`copydb` command to transfer a database from
+one MongoDB instance to another, such as from a development instance
+to a production instance.
 
 This is useful when you want to move a database from the development
 environment to the production environment, or create a remote-branch of the database
 to archive the current database on a different server.
 
 To copy the database named ``test`` on server ``db0.example.net`` to
-another server ``db1.example.net`` renaming it ``records``.
+another server ``db1.example.net`` renaming it ``records`` in the process.
 
 - Verify name of database, ``test``, you want to copy on the source
   server, ``db0.example.net``.
@@ -75,10 +80,10 @@ another server ``db1.example.net`` renaming it ``records``.
 Rename a Database
 ~~~~~~~~~~~~~~~~~
 
-Use the :dbcommand:`copydb` command to rename a database within the same
-server. This is useful when the contents of the database has changed
-from the initial naming of the database and a new name would be more
-appropriate.
+Use the :dbcommand:`copydb` command to copy a database within the same
+server also renaming the database. This is useful when the contents of
+the database has changed from the initial naming of the database and a
+new name would be more appropriate.
 
 To rename a database from ``test`` to ``records`` within the
 same server, ``db1.example.net``.
@@ -95,11 +100,11 @@ same server, ``db1.example.net``.
 Copy a Database with Authentication
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If the source server requires ``username`` and ``password``
-authentication, you can include these parameters in the
-:dbcommand:`copydb` command. This is useful where you need to create
-offsite backups, a local development system which has data from the
-production system, or create a system to produce reports.
+If the source server requires ``username`` and ``password``, you can
+include these parameters in the :dbcommand:`copydb` command. This is
+useful where you need to create offsite backups, a local development
+system which has data from the production system, or create a system
+to produce reports.
 
 To copy ``test`` to ``records`` from the source server
 ``db0.example.net``, which requires ``username`` and ``password``
@@ -112,23 +117,16 @@ authentication, to ``db1.example.net`` use the following procedure.
 
    .. code-block:: javascript
 
-      db.copyDatabase( "test", "records", db0.example.net, username, password)
-
-.. TODO verify that username & password do not have to be in quotes...?
+      db.copyDatabase( "test", "records", db0.example.net, "username", "password")
 
 Clone a Database
 ~~~~~~~~~~~~~~~~
 
 The :dbcommand:`clone` command copies a database between :program:`mongod`
 instances; however, :dbcommand:`clone` preserves the database
-name. For many operations :dbcommand:`clone` has a more
-straightforward syntax than :dbcommand:`copydb` but are functionally
-the same.
-
-You can use :dbcommand:`clone` to quickly create a :term:`secondary`
-member from the :term:`primary` dataset, to seed a development system
-with production data, or to create a system to run reports on instead
-of the main production system.
+name on the destination server. For many operations,
+:dbcommand:`clone` has identical functionality and a simpler syntax
+than :dbcommand:`copydb`.
 
 To clone a database from ``db0.example.net`` to ``db1.example.net``, on
 ``db1.example.net`` follow these procedures.
