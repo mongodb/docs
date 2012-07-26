@@ -92,7 +92,7 @@ Read preference describes how MongoDB clients route read operations to
 :term:`secondary` members of a :term:`replica set`. The
 :ref:`background <replica-set-read-preference-background>` section
 introduces read preference, while the :ref:`mode semantics
-<replica-set-read-preference-mode-semantics>` and :ref:`behavior
+<replica-set-read-preference-modes>` and :ref:`behavior
 <replica-set-read-preference-behavior>` sections address the way that
 MongoDB clients and drivers can handle read preferences. Finally, the
 :ref:`tag sets <replica-set-read-preference-tag-sets>` section
@@ -132,17 +132,17 @@ useful for:
   than the primary or the rest of the set, you may see better
   performance for that application if you use secondary reads.
 
-Secondary reads also provide graceful degradation in
-:ref:`failover <replica-set-failover>` situations. During failover, replica sets may take
-10 seconds or more to new primary member. Because there is no primary,
-applications will not be unable to perform primary reads during this period.
-With read preference set to read from secondary
+Secondary reads also provide graceful degradation in :ref:`failover
+<replica-set-failover>` situations. During failover, replica sets may
+take 10 seconds or more to new primary member. Because there is no
+primary, applications will not be unable to perform primary reads
+during this period.  With read preference set to read from secondary
 members, your application can continue read operations using the
 remaining secondary members.
 
 MongoDB :term:`drivers <driver>` allow client applications to
 configure a :term:`read preference` on a per-connection or
-per-operation basis. See the :func:`rs.slaveOk()` method for more
+per-operation basis. See the :func:`rs.slaveOk()` method for mor
 information about secondary read operations in the :program:`mongo`
 shell, as well as the appropriate :ref:`driver` API documentation for
 more information about read preference configuration. The
@@ -171,8 +171,8 @@ address read preference configuration and operations.
 .. index:: read preference; modes
 .. _replica-set-read-preference-modes:
 
-Mode Semantics
-~~~~~~~~~~~~~~
+Read Preference Modes
+~~~~~~~~~~~~~~~~~~~~~
 
 .. versionadded:: 2.2
 
@@ -188,8 +188,12 @@ for more information. Also see the :api:`documentation for your driver
 all read-preference modes in its connections to the replica sets that
 provide each :term:`shard` in a :term:`shard cluster`.
 
-MongoDB drivers and :program:`mongos` all provide the following read
-preference modes: [#mode-names]_
+MongoDB drivers and :program:`mongos` all provide the five read
+preference modes, which are constants set in the driver itself. The
+exact name of the mode depends on driver implementation and the idioms
+of the host language. In the :program:`mongo` shell, the
+:func:`readPreference() <cursor.readPreference()>` cursor method
+provides access to read preferences, which have the following names.
 
 .. readmode:: primary
 
@@ -201,7 +205,9 @@ preference modes: [#mode-names]_
    If the primary is unavailable, all operations with this preference
    produce an error or throw an exception. :readmode:`primary` read
    preference modes are not compatible with read preferences modes
-   that use :ref:`tag sets <replica-set-read-preference-tag-sets>`.
+   that use :ref:`tag sets <replica-set-read-preference-tag-sets>` If
+   you specify a tag set with :readmode:`primary`, the driver will
+   produce an error.
 
 .. readmode:: primaryPrefered
 
@@ -273,13 +279,6 @@ preference modes: [#mode-names]_
       members evenly regardless of ping time, set
       secondaryAcceptableLatencyMS very high.
 
-.. [#mode-names] Read preference modes are simply constants set within
-   each driver. The syntax of the mode depends on driver
-   implementation itself, and the idioms of the host language. See the
-   :func:`readPreference() <cursor.readPreference()>` cursor
-   method. for documentation of read preference semantics in the
-   :program:`mongo` shell.
-
 .. The :func:`readPreference() <cursor.readPreference()>` reference
    above will error until DOCS-364 is complete.
 
@@ -290,13 +289,41 @@ preference modes: [#mode-names]_
 Tag Sets
 ~~~~~~~~
 
-Tag sets allow you to specify
+Tag sets allow you to specify custom :ref:`read preferences
+<replica-set-read-preference>`, so that your application can target
+read operations to specific members based on custom parameters. Tag
+sets make it possible to ensure that read operations target members of
+the set in a particular data center, or :program:`mongod` instances
+designated for a particular class of operations, such as reporting or
+analytics. The :doc:`/reference/replica-configuration` document
+contains a section on :ref:`tag set configuration
+<replica-set-configuration-tag-sets>`.
+
+Read preference :ref:`modes <replica-set-read-preferences>` interact
+with tag sets, as specified in the documentation of each read
+preference mode. The :readmode:`primary` read preference mode is
+incompatible with tag sets, but you may specify a tag set with one of
+each of the following read preference modes:
+
+- :readmode:`primaryPrefered`
+- :readmode:`secondary`
+- :readmode:`secondaryPrefered`
+- :readmode:`nearest`
+
+See the documentation of each read preference mode for more
+information on the interaction of the read preference mode and tag
+sets. All interfaces use the same :ref:`member selection logic
+<replica-set-read-preference-behavior-member-selection>` to choose a
+member to direct read operations to based on read preference mode and
+tag sets.
 
 .. index:: read preference; behavior
 .. _replica-set-read-preference-behavior:
 
 Behavior
 ~~~~~~~~
+
+.. versionchanged:: 2.2
 
 .. _replica-set-read-preference-behavior-retry:
 
@@ -340,11 +367,11 @@ As a result, MongoDB drivers, and :program:`mongos` will:
   specified read preference mode, or in absence of a specified read
   preference :readmode:`PRIMARY`.
 
-- after detecting a failover situation, [#failover]_ the driver will
+- after detecting a failover situation, [#fn-failover]_ the driver will
   attempt to refresh its state of the replica set as quickly as
   possible.
 
-.. [#failover] When a :term:`failover` occurs, all members of the set
+.. [#fn-failover] When a :term:`failover` occurs, all members of the set
    closes all client connections producing a socket error in the
    driver. This behavior prevents or minimized :term:`rollback`.
 
@@ -422,14 +449,6 @@ for more information.
    15 milliseconds. For :program:`mongos` you can use the
    :option:`--localThreshold` <mongos --localThreshold>` or
    :setting:`localThreshold` runtime options to set this value.
-
-Once the driver or mongos has found a list of candidate members based
-on mode and tag sets, determine the "nearest" member as the one with
-the quickest response to a periodic ping command. (The driver already
-knows ping times to all members, see "assumptions" above.) Choose a
-member randomly from those at most 15ms "farther" than the nearest
-member. The 15ms cutoff is overridable with
-"secondaryAcceptableLatencyMS".
 
 .. index:: read preference; sharding
 .. index:: read preference; mongos
