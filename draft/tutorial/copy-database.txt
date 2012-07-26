@@ -1,0 +1,145 @@
+===========================================
+Copy Databases Between ``mongod`` Instances
+===========================================
+
+.. default-domain:: mongodb
+
+Synopsis
+--------
+
+If you need to copy data between two MongoDB instances, you may
+consider using the :dbcommand:`copydb` and :dbcommand:`clone`
+commands. Both commands copy a :term:`database` from one MongoDB
+instance to another without the use of intermediate files, and are
+also useful for renaming a database within a single MongoDB
+instance. Additional use cases include data migrations and data
+warehousing, seeding test environments, and as a component of a larger
+backup strategy. The :program:`mongo` shell also provides the
+:func:`db.cloneDatabase()` and :func:`db.copyDatabase()` helpers as
+wrappers around these commands.
+
+In some situations you may prefer :dbcommand:`copydb` and
+:dbcommand:`clone` over :program:`mongodump` and
+:program:`mongorestore`, which have similar use profiles, but require
+intermediate files and additional tooling.
+
+This document oulines the procedure to copy MongoDB databases using
+the :dbcommand:`copydb` and :dbcommand:`clone` commands.
+
+.. note::
+
+   :dbcommand:`copydb` and :dbcommand:`clone` do not produce
+   point-in-time snapshots of the source database. Write traffic to
+   the source or destination database during the copy process may
+   result in databases with different contents.
+
+Considerations
+--------------
+
+- You must run :dbcommand:`copydb` or :dbcommand:`clone` on the
+  destination server.
+
+- You can use :dbcommand:`copydb` or :dbcommand:`clone` with unsharded
+  databases in a :term:`shard cluster` when you're connected directly
+  to the :program:`mongod` instance.
+
+- You can run :dbcommand:`copydb` or :dbcommand:`clone` commands on a
+  :term:`secondary` member of a replica set, with properly configured
+  :term:`read preference`.
+
+- There must be enough free disk space on the destination server for
+  the database you are copying. Use the :func:`db.stats()` operation
+  to check the size of the database on the source :program:`mongod`
+  instance. For more information on the output of :func:`db.stats()` see
+  :doc:`/reference/database-statistics` document.
+
+Processes
+---------
+
+Copy and Rename a Database to Another Server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the :dbcommand:`copydb` command, or the :func:`db.copyDatabase()`
+helper in the :program:`mongo` shell, to transfer a database from one
+MongoDB instance to another: for instance seeding a development
+environment or establishing a testing system.
+
+To copy the database named ``test`` on server ``db0.example.net`` to
+the server named ``db1.example.net`` and rename it to ``records``, use
+the following procedure:
+
+- Verify that the database, ``test`` exists on the source
+  :program:`mongod` instance running on the ``db0.example.net`` host.
+
+- Connect to the destination server, running on the
+  ``db1.example.net`` host, using the :program:`mongo` shell.
+
+- Issue the following command:
+
+   .. code-block:: javascript
+
+      db.copyDatabase( "test", "records", db0.example.net )
+
+Rename a Database
+~~~~~~~~~~~~~~~~~
+
+Use the :dbcommand:`copydb` command, or the :func:`db.copyDatabase()`
+helper in the :program:`mongo` shell, to copy a database within the
+same server also renaming the database. You may use this to correct a
+misnamed database or to support a testing process.
+
+To rename a database from ``test`` to ``records`` on the a
+:program:`mongod` instance, use the following procedure:
+
+- Connect to the :program:`mongod` using the :program:`mongo` shell.
+
+- Issue the following command:
+
+   .. code-block:: javascript
+
+      db.copyDatabase( "test", "records" )
+
+Copy a Database with Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the source server has :setting:`auth` enabled, you can include
+these parameters in the :dbcommand:`copydb` command, or as arguments
+to the :func:`db.copyDatabase()` helper in the :program:`mongo`
+shell.
+
+To copy ``test`` to ``records`` from the :program:`mongod` running on
+``db0.example.net``, which requires authentication for all
+connections, to the :program:`mongod` instance running on
+``db1.example.net`` use the following procedure:
+
+- Connect to the destination :program:`mongod` instance running on the
+  ``db1.example.net`` host using the :program:`mongo` shell.
+
+- Issue the following command:
+
+   .. code-block:: javascript
+
+      db.copyDatabase( "test", "records", db0.example.net, "username", "password")
+
+Clone a Database
+~~~~~~~~~~~~~~~~
+
+The :dbcommand:`clone` command copies a database between
+:program:`mongod` instances; however, :dbcommand:`clone` preserves the
+database name on the destination server. For many operations,
+:dbcommand:`clone` has identical functionality and a simpler syntax
+than :dbcommand:`copydb`. The :func:`db.cloneDatabase()` helper in the
+:program:`mongo` shell provides a wrapper around :dbcommand:`clone`.
+
+To clone a database from `the :program:`mongod` running on
+`db0.example.net`` to the :program:`mongod` running on
+``db1.example.net``, use the following procedure:
+
+- Connect to the destination :program:`mongod` instance running on the
+  ``db1.example.net`` host using the :program:`mongo` shell.
+
+- Issue the following command:
+
+   .. code-block:: javascript
+
+      db.cloneDatabase( "db0.example.net" )
