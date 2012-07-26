@@ -303,9 +303,7 @@ Geospatial
 
    All shapes include the border of the shape as part of the shape,
    although this is subject to the imprecision of floating point
-   numbers.
-
-   .. TODO fill in bottom
+   calculations.
 
    .. operator:: $box
 
@@ -315,28 +313,36 @@ Geospatial
       a geospatial dataset such as a specific neighborhood.
 
       To specify the :operator:`$box` shape, you need to declare the
-      bottom left and top right corners, preferrably in an array object. 
-
-      Point 1 = [a,b] point 2 = [c,d]
+      bottom left and top right corners, in an array object. 
 
       .. code-block:: javascript
 
-         db.collection.find( { loc: { $within: { $box: [a,b], [c,d] } } } )
+         db.collection.find( { loc: { $within: { $box: [ [0,0],
+                                                         [100,100] ] } } } )
 
-   .. operator:: $circle
+      This will return all the documents that are within the box: [0,0],
+      [0,100], [100,0], and [100,100]. All points that lie on the
+      borders will be included in the result.
 
-      The :operator:`$circle` option is used with the
+   .. operator:: $center
+
+      The :operator:`$center` option is used with the
       :operator:`$within` option to perform circular bounded
-      searches on geospatial data. :operator:`$circle` provides
+      searches on geospatial data. :operator:`$center` provides
       greater fidelity in searching a specific area than
       :operator:`$near` or :operator:`maxDistance` options.
 
-      To specify the :operator:`$circle` shape, you need to declare
+      To specify the :operator:`$center` shape, you need to declare
       the center point and radius of the circle. 
 
       .. code-block:: javascript
 
-         db.collection.find( { loc: { $within: { $circle: [a,b], radius } } } )
+         db.collection.find( { loc: { $within: { $center: [ [0,0], 100 ] } } } )
+
+      This will return all the documents that are 100 longitude or
+      latitude around point [0,0]. All documents that lie on the
+      boundary of this circle will be included, but some may not due
+      to imprecision of floating point calculation.
 
    .. operator:: $polygon
 
@@ -352,32 +358,45 @@ Geospatial
 
       .. code-block:: javascript
 
-         db.collection.find( { loc: { $within: { $polygon:
-	                                         [a,b], [c,d], [e,f] } } } )
+         db.collection.find( { loc: { $within: { $polygon: [ [0,0], [3,6], [6,0]  ] } } } )
+
+      This will return all the documents that are within the polygon
+      [0,0], [3,6], [6,0]. All documents that lie on the boundaries
+      will be included, but some may not due to imprecision of
+      floating point calculations.
 
 .. operator:: $nearSphere
 
-   The :operator:`$nearSphere` option allows you to perform `$near`
-   searches using spherical representation system. 
+   The :operator:`$nearSphere` option performs `$near` searches using
+   spherical representation system. Use :operator:`$nearSphere` with
+   the ``$maxDistance`` option to utilize spherical
+   representation. Remember that distances must be converted to
+   radians when using spherical operators.
 
    .. code-block:: javascript
 
-      db.collection.find( { loc: { $nearSphere: [a,b] } } )
+      db.collection.find( { loc: { $nearSphere: [0,0],
+                                   $maxDistance: 10 / 3959 } } )
+
+   This will return all documents 10 mile near [0,0] using a spherical
+   representation system.
+
+.. TODO fill in this section
 
 .. operator:: $centerSphere
 
-   The :operator:`$centerSphere` option 
+   The :operator:`$centerSphere` option returns all the documents that
+   are within a certain radius from a point.
 
    .. code-block:: javascript
 
-      db.collection.find( { loc: { $centerSphere: { [a,b], c } } } )
+      db.collection.find( { loc: { $centerSphere: { [0,0], 10 / 3959 }
+      } } )
+
+   This will return all documents within a 10 mile radius from [0,0]
+   using a spherical representation system.
 
 .. operator:: $distanceMultiplier
-
-
-
-.. TODO verify above operator. does it exist? (i.e. I think it does
-.. for geoNear...)
 
 .. TODO put $uniqueDocs in the geonear command ref too? 
 
