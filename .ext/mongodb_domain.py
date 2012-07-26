@@ -212,7 +212,7 @@ class MongoDBDomain(Domain):
         'setting':       MongoDBCallable,
         'status':        MongoDBCallable,
         'stats':         MongoDBCallable,
-        'readprf':       MongoDBCallable,
+        'readmode':      MongoDBCallable,
         'function':      MongoDBCallableComplex,
         'data':          MongoDBCallable,
         'aggregator':    MongoDBCallable,
