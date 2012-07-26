@@ -477,11 +477,43 @@ Element
    Max key                    127
    =======================  ==========
 
+   ``MinKey`` and ``MaxKey`` compare less than and greater than all
+   other possible :term:`BSON` element values, respectively.
+
+   For example:
+
+   .. code-block:: javascript
+
+      db.test.insert( {x : 3});
+      db.test.insert( {x : 2.9} );
+      db.test.insert( {x : new Date()} );
+      db.test.insert( {x : true } );
+      db.test.insert( {x : MaxKey } )
+      db.test.insert( {x : MinKey } )
+      db.test.find().sort({x:1})
+      { "_id" : ObjectId("4b04094b7c65b846e2090112"), "x" : { $minKey : 1 } }
+      { "_id" : ObjectId("4b03155dce8de6586fb002c7"), "x" : 2.9 }
+      { "_id" : ObjectId("4b03154cce8de6586fb002c6"), "x" : 3 }
+      { "_id" : ObjectId("4b031566ce8de6586fb002c9"), "x" : true }
+      { "_id" : ObjectId("4b031563ce8de6586fb002c8"), "x" : "Tue Jul 25 2012 18:42:03 GMT-0500 (EST)" }
+      { "_id" : ObjectId("4b0409487c65b846e2090111"), "x" : { $maxKey : 1 } }
+   
+   .. note::
+
+      For internal usage, the ``MinKey`` value is ``-1`` due to the
+      way ``MinKey`` is evaluated.  For operations such as querying
+      for the minimum value of a :term:`shard key` of a :term:`shard
+      cluster`, use the following code:
+
+      .. code-block:: javascript
+
+         db.chunks.find( { "min.shardKey": { $type: -1 } } )
+
    .. note::
 
       Query statements cannot use :operator:`$type` to test arrays
-      (i.e. ``4``.) Instead use an operation with the
-      :operator:`$where` that resembles the following:
+      (i.e. ``4``.) Instead, use the :operator:`$where` operator that
+      resembles the following:
 
       .. code-block:: javascript
 
@@ -489,6 +521,10 @@ Element
 
       See the :issue:`SERVER-1475` for more information about the
       array type.
+
+   .. warning::
+
+      Mixing types for the same field is not encouraged.
 
 .. operator:: $regex
 
