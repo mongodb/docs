@@ -1,4 +1,5 @@
 .. note::
 
    :dbcommand:`connPoolStats` only returns meaningful results for
-   :program:`mongos` program.
+   :program:`mongos` instances and for :program:`mongod` instances
+   in shard clusters.
