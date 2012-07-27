@@ -271,53 +271,62 @@ Geospatial
       db.collection.find( { location: { $within: { shape } } } );
 
    Replace ``{ shape }`` with a document that describes a shape. The
-   :operator:`$within` command supports three shapes. These shapes and the
-   relevant expressions follow:
+   :operator:`$within` command supports three basic shape types. These
+   shapes and the relevant expressions follow:
 
    .. operator:: $box
 
-      To specify the :operator:`$box` shape, you need to declare the
-      bottom left and top right corners of the box in an array
+      This specifies a box or rectangle shape for :operator:`$box`. To
+      use the :operator:`$box` shape, you need to declare the bottom
+      left and top right corners of the box in an array
       object. Consider the following example:
 
       .. code-block:: javascript
 
-         db.collection.find( { loc: { $within: { $box: [ [0,0],
-                                                         [100,100] ] } } } )
+         db.collection.find( { loc: { $within: { $box: [ [0,0], [100,100] ] } } } )
 
-      This will return all the documents that are within the box: [0,0],
-      [0,100], [100,0], and [100,100].
+      This will return all the documents that are within the box
+      having points: [0,0], [0,100], [100,0], and [100,100].
 
    .. operator:: $center
 
-      To specify the :operator:`$center` shape in the following form:
+      This specifies a circle shape for :operator:`$within`. To use
+      the :operator:`$center` option, you need to specify the center
+      point and the radius of the circle. Considering the following
+      example:
 
       .. code-block:: javascript
 
          db.collection.find( { location: { $within: { $center: [ [0,0], 10 } } } );
 
-      :operator:`$center` provides greater fidelity in searching a
-      specific area than :operator:`$near` or :operator:`maxDistance`
-      options.
+      This will return all the documents that are 10 around point
+      [0,0].
 
-      This will return all the documents that are 100 longitude or
-      latitude around point [0,0].
+      .. note::
+
+         Distances in queries are the same units as the location
+         index.
+
+      :operator:`$center` provides greater fidelity in searching a
+      specific area than :operator:`$near` with :operator:`maxDistance`
+      options.
 
    .. operator:: $polygon
 
-      To specify an arbitrary :operator:`$polygon` with an array of
+      This specifies a polygon shape for :operator:`$within`. You can
+      specify an arbitrary number of points to create an multipoint
+      polygon. To specify a :operator:`$polygon` shape, use an array of
       points. The last point is always implicitly connected to the
       first point. See the following example:
 
-     .. code-block:: javascript
+      .. code-block:: javascript
 
-        db.collection.find( { loc: { $within: { $polygon: [ [0,0], [3,6], [6,0]  ] } } } )
+         db.collection.find( { loc: { $within: { $polygon: [ [0,0], [3,6], [6,0]  ] } } } )
 
-     This will return all the documents that are within the polygon
-     [0,0], [3,6], [6,0]. Here, this is an equilateral triangle. This
-     is useful for searching within specific areas that correspond to
-     irregularly shaped areas such as a dense urban neighborhood.
-
+      This will return all the documents that are within the polygon
+      [0,0], [3,6], [6,0]. This is useful for searching within
+      specific areas that correspond to irregularly shaped areas such
+      as a dense urban neighborhood.
 
    All shapes include the border of the shape as part of the shape,
    although this is subject to the imprecision of floating point
@@ -338,7 +347,8 @@ Geospatial
 .. operator:: $centerSphere
 
    The :operator:`$centerSphere` option returns all the documents that
-   are within a certain radius from a point.
+   are within a certain radius from a point. Remember that all
+   distances, like the radius, have to be converted to radians.
 
    .. code-block:: javascript
 
@@ -348,34 +358,46 @@ Geospatial
    using a spherical representation system to calculate distances from
    [0,0].
 
-.. operator:: $distanceMultiplier
+   .. note::
 
-   
-
-.. TODO put $uniqueDocs in the geonear command ref too? 
+      For spherical queries, you must convert distances to radians for
+      proper results.
 
 .. operator:: $uniqueDocs
 
-   When using the :dbcommand:`geoNear`, if document contains more than
-   one field with coordinate values, MongoDB will return the same
-   document multiple times. When using the :operator:`$within`,
-   however, MongoDB provides opposite behavior: if a document contains
-   more than one field with coordinate values, MongoDB will only
-   return the document once.
+   The :operator:`$uniqueDocs` operator overrides default behaviors in
+   the :dbcommand:`geoNear` and :func:`find() <db.collection.find()>`
+   method with :operator:`$within` when there are multiple location
+   fields in documents (i.e. embedded in an array) 
 
-   The :operator:`$uniqueDocs` operator overrides these default
-   behaviors.
+   When using the :operator:`$within`, if a document contains more
+   than one field with location coordinates, MongoDB will only return the
+   document once.
 
    By specifying ``$uniqueDocs: false`` in a :operator:`$within`
-   query, will cause the query to return a single document multiple
-   times if there is more than one match.
+   query, it will cause the query to return a single document multiple
+   times, even if there is more than one match.
 
-   By contrast, if you specify ``uniqueDocs: true`` as an option to
-   the a :dbcommand:`geoNear` command, then :dbcommand:`geoNear` only
-   returns a single document even if there are multiple matches.
+   .. code-block:: javascript
 
-   You cannot specify :operator:`$uniqueDocs` with :operator:`$near`
-   or haystack queries.
+      db.places.find( { loc : { $within : { $center : [[0.5, 0.5], 20], $uniqueDocs : true } } } )
+      
+   When using the :dbcommand:`geoNear` command, if a document contains
+   more than one field with coordinate values, MongoDB will return the
+   same document multiple times.
+
+   If you specify ``uniqueDocs: true`` as an option to the
+   :dbcommand:`geoNear` command, then MongoDB will only return a
+   single document, even if there are multiple matches.
+
+   .. code-block:: javascript
+
+      db.runCommand( { geoNear : "collection" , near : [0,0], num : 10, uniqueDocs : false } )
+
+   .. note::
+
+      You cannot specify :operator:`$uniqueDocs` with
+      :operator:`$near` or haystack queries.
 
 .. index:: query selectors; logical
 .. _query-selectors-logical:
