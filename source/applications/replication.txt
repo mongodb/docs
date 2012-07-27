@@ -132,12 +132,14 @@ useful for:
   than the primary or the rest of the set, you may see better
   performance for that application if you use secondary reads.
 
-Secondary reads also provide graceful degradation in :ref:`failover
-<replica-set-failover>` situations. During failover, replica sets may
-take 10 seconds or more to new primary member. Because there is no
-primary, applications will not be unable to perform primary reads
-during this period.  With read preference set to read from secondary
-members, your application can continue read operations using the
+Secondary reads also provide graceful degradation in
+:ref:`failover <replica-set-failover>` situations. During failover, replica sets may take
+10 seconds or more to elect a new primary. Because there is no primary,
+applications that can only read from primaries, with the
+:readmode:`primary` read preference mode, are unable to perform reads during this period.
+With read preference configured permit read from secondary
+members, as with the :readmode:`primaryPrefered` read preference mode, your
+application can continue read operations using the
 remaining secondary members.
 
 MongoDB :term:`drivers <driver>` allow client applications to
@@ -152,8 +154,8 @@ address read preference configuration and operations.
 
 .. note::
 
-   Read preference have no affect on write performance or write
-   operations. Read preferences only affect the members of the replica
+   Read preference only affect which members of the set the application chooses
+   to read from. Read preferences only affect the members of the replica
    set that the read operation uses, as well as the consistency of
    query results. Use appropriate :ref:`write concern
    <replica-set-write-concern>` policies to ensure proper data
@@ -180,7 +182,7 @@ All MongoDB drivers :doc:`drivers </applications/drivers>` support the
 following read preference modes. These semantics make it possible to
 specify read preference on a per-collection or per-operation
 basis. The member of the :term:`replica set` that the client read from
-can affect type of consistency of the result set. See the :ref:`read
+can affect the consistency of the result set. See the :ref:`read
 preference background <replica-set-read-preference-background>` and
 :ref:`read preference behavior <replica-set-read-preference-behavior>`
 for more information. Also see the :api:`documentation for your driver
@@ -225,9 +227,9 @@ provides access to read preferences, which have the following names.
 
 .. readmode:: secondary
 
-   With the :readmode:`secondary`  read preference mode, operations
-   will read from the :term:`secondary` member of the set in most
-   situations. However, if all secondaries are unavailable, then these
+   With the :readmode:`secondary` read preference mode, operations
+   will read from the :term:`secondary` member of the set if available.
+   However, if there are no secondaries available, then these
    operations will produce an error or exception.
 
    Most sets have at least one secondary, but there are situations
@@ -274,6 +276,13 @@ provides access to read preferences, which have the following names.
    the client will attempt to find a secondary members that match the
    specified tag set and directs reads to a random secondary from
    among the :ref:`nearest group <replica-set-read-preference-behavior-nearest>`.
+
+   .. note::
+
+      All operations read from the nearest member of the replica set
+      that matches the specified read preference mode.
+      :readmode:`nearest` prefers low latency reads over a
+      member's :term:`primary` or :term:`secondary` status.
 
    .. For I/O-bound users who want to distribute reads across all
       members evenly regardless of ping time, set
@@ -348,7 +357,7 @@ As a result, MongoDB drivers, and :program:`mongos` will:
   connection is *pinned* to this :program:`mongod`.
 
 - attempt to reconnect to a new member, obeying existing :ref:`read
-  preference mode <replica-set-read-preference-modes>` when it loose a
+  preference mode <replica-set-read-preference-modes>` when it lose a
   connection to its :program:`mongod`.
 
   These reconnections are transparent to the application itself. If
@@ -359,7 +368,9 @@ As a result, MongoDB drivers, and :program:`mongos` will:
   the state of your database at different moments.
 
 - return an error *only* after attempting to connect to three members
-  of the set. If there are fewer than three members of the set, the
+  of the set that match the :term:`read preference mode <replica-set-read-preference-modes>`
+  and :ref:`tag set <replica-set-read-preference-tag-sets>`.
+  If there are fewer than three members of the set, the
   client will error after connecting to all existing members of the
   set.
 
