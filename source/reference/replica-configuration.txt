@@ -249,8 +249,8 @@ replica set configuration document. Square brackets (e.g. ``[`` and
 
 .. _replica-set-reconfiguration-usage:
 
-Usage
------
+Use
+---
 
 Most modifications of replica set configuration use the
 :program:`mongo` shell. Consider the following example:
@@ -303,3 +303,91 @@ use the following form:
    disconnect. This is by design. While this typically takes 10-20
    seconds, attempt to make these changes during scheduled maintenance
    periods.
+
+.. index:: replica set; tag sets
+.. index:: read preference; tag sets
+.. index:: tag sets; configuration
+.. _replica-set-configuration-tag-sets:
+
+Tag Sets
+--------
+
+Tag sets provide custom and configurable :ref:`write concern
+<replica-set-write-concern>` and :ref:`read preferences
+<replica-set-read-preference>`. This section will outline the process
+for specifying tags for a replica set, for more information see the
+full documentation of the behavior of :ref:`tags sets write concern
+<replica-set-write-concern>` and :ref:`tag sets for read preference
+<replica-set-read-preference-tag-sets>`.
+
+Configure tag sets by adding fields and values to the document stored
+in the :data:`members[n].tags`. Consider the following example:
+
+.. example::
+
+   Given the following replica set configuration:
+
+   .. code-block:: javascript
+
+      {
+          "_id" : "rs0",
+          "version" : 1,
+          "members" : [
+                   {
+                           "_id" : 0,
+                           "host" : "mongodb0.example.net:27017",
+                   },
+                   {
+                           "_id" : 1,
+                           "host" : "mongodb1.example.net:27017"
+                   },
+                   {
+                           "_id" : 2,
+                           "host" : "mongodb2.example.net:27017",
+                   }
+           ]
+      }
+
+   And the following tag set:
+
+   .. code-block:: javascript
+
+      { "dc": "east", "use": "reporting" }
+
+   You could add the tag set, to the ``members[1]`` member of the
+   replica set, with the following command sequence in the
+   :program:`mongo` shell:
+
+   .. code-block:: javascript
+
+      conf = rs.conf()
+      conf.members[1].tags = { "dc": "east", "use": "reporting"  }
+      rs.reconfig(conf)
+
+    After this operation the output of :func:`rs.conf()`, would
+    resemble the following:
+
+    .. code-block:: javascript
+
+       {
+           "_id" : "rs0",
+           "version" : 2,
+           "members" : [
+                    {
+                            "_id" : 0,
+                            "host" : "mongodb0.example.net:27017",
+                    },
+                    {
+                            "_id" : 1,
+                            "host" : "mongodb1.example.net:27017"
+                            "tags" : {
+                                    "dc": "east",
+                                    "use": "reporting"
+                            }
+                    },
+                    {
+                            "_id" : 2,
+                            "host" : "mongodb2.example.net:27017",
+                    }
+            ]
+       }
