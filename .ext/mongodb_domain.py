@@ -108,7 +108,7 @@ class MongoDBObject(ObjectDescription):
 
     def get_index_text(self, objectname, name_obj):
         name, obj = name_obj
-        if self.objtype == 'command':
+        if self.objtype == 'dbcommand':
             return _('%s (database command)') % name
         elif self.objtype == 'operator':
             return _('%s (operator)') % name
@@ -124,6 +124,8 @@ class MongoDBObject(ObjectDescription):
             return _('%s (shell output)') % (name)
         elif self.objtype == 'function':
             return _('%s (shell method)') % (name)
+        elif self.objtype == 'collflag':
+            return _('%s (collection flag)') % (name)
         return ''
 
     def run(self):
@@ -200,6 +202,7 @@ class MongoDBDomain(Domain):
         'aggregator':   ObjType(l_('aggregator'),  'aggregator'),
         'group':        ObjType(l_('group'),       'group'),
         'expression':   ObjType(l_('expression'),  'expression'),
+        'collflag':     ObjType(l_('collflag'),    'collflag'),
     }
 
     directives = {
@@ -214,6 +217,7 @@ class MongoDBDomain(Domain):
         'aggregator':    MongoDBCallable,
         'group':         MongoDBCallable,
         'expression':    MongoDBCallable,
+        'collflag':      MongoDBCallable,
     }
     roles = {
         'dbcommand':   MongoDBXRefRole(),
@@ -227,6 +231,7 @@ class MongoDBDomain(Domain):
         'aggregator':  MongoDBXRefRole(),
         'group':       MongoDBXRefRole(),
         'expression':  MongoDBXRefRole(),
+        'collflag':    MongoDBXRefRole(),
     }
     initial_data = {
         'objects': {}, # fullname -> docname, objtype
