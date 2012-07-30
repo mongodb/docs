@@ -118,16 +118,16 @@ Elections
 When you initialize a replica set for the first time, and when any
 failover occurs, an election takes place to decide which member should
 become :term:`primary`. A primary is the only member in the replica
-set that can accept write commands such as :func:`insert`,
-:func:`update`, and :func:`delete`.
-.. TODO verify above function references.
+set that can accept write commands such as :func:`insert()
+<db.collection.insert()>`, :func:`update() <db.collection.update()>`,
+and :func:`remove() <db.collection.remove`.
 
 Elections are the process replica set members use to
-select the primary member in a cluster. Elections follow two events:
-a primary member that "steps down" or a :term:`secondary` member that
+select the primary in a cluster. Elections follow two events:
+a primary that "steps down" or a :term:`secondary` that
 loses contact with a :term:`primary` member. All members have one vote
 in an election, and every :program:`mongod` can veto an election. A
-single member's veto will invalidate the election.
+single veto will invalidate the election.
 
 An existing primary will step down in response to the
 :dbcommand:`replSetStepDown` command, or if it sees that one of
@@ -143,7 +143,7 @@ In an election, every member, including :ref:`hidden
 <replica-set-hidden-members>` members, :ref:`arbiters
 <replica-set-arbiters>`, and even recovering members get a single
 vote. Members will give votes to every eligible member that calls an
-election. A primary is elected when one member receives a majority of the votes in the set. 
+election.
 
 A member of the set will veto an election under the following
 conditions:
@@ -193,6 +193,24 @@ aware of the following conditions and possible situations:
   seconds of the latest oplog entry, then the set will *not* elect a
   :term:`primary` until the member with the highest priority catches up
   to the latest operation.
+
+Each member in a replica set has only one vote, by default. You may
+change the number of votes each member has to allow for larger replica
+sets. Each replica set is limited to 12 total members with 7 voting
+members.
+
+- The number of votes is modifiable in the :data:`replica set configuration <members[n].votes>`
+
+- The number of votes each member has can be any non-negative integer,
+  but it is highly recommended each member has 1 or 0 votes.
+
+- To select a member to be a "preferred primary", modify the member's
+  :ref:`priority value <replica-set-node-priority-configuration>`
+  instead of adjusting the number of votes the member has.
+
+.. TODO verify this. what should one do when >7 members are in a set?
+- When there are more than seven members in a replica set, adjust the
+  number of votes for each active member.
 
 Syncing
 -------
