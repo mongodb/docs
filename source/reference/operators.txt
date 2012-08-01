@@ -272,22 +272,22 @@ Geospatial
 
    Replace ``{ shape }`` with a document that describes a shape. The
    :operator:`$within` operator supports three basic shape types. These
-   shapes and the relevant expressions follow:
+   shapes are:
 
    .. operator:: $box
 
-      The :operator:`$box` operator specifies a box or rectangle shape
-      for the :operator:`$within` operator. To use the
-      :operator:`$box` operator, you must specify the bottom left and
-      top right corners of the rectangle in an array object. Consider the
-      following example:
+      The :operator:`$box` operator specifies a rectangular shape for
+      the :operator:`$within` operator. To use the :operator:`$box`
+      operator, you must specify the bottom left and top right corners
+      of the rectangle in an array object. Consider the following
+      example:
 
       .. code-block:: javascript
 
          db.collection.find( { loc: { $within: { $box: [ [0,0], [100,100] ] } } } )
 
       This will return all the documents that are within the box
-      having points: [0,0], [0,100], [100,0], and [100,100].
+      having points: ``[0,0]``, ``[0,100]``, ``[100,0]``, and ``[100,100]``.
 
    .. operator:: $center
 
@@ -306,25 +306,25 @@ Geospatial
          db.collection.find( { location: { $within: { $center: [ [0,0], 10 } } } );
 
       The above command returns all the documents that fall within a
-      10 unit radius of the point [0,0].
+      10 unit radius of the point ``[0,0]``.
 
    .. operator:: $polygon
 
-      The :operator:`$polygon` operator specifies a polygon shape for
-      the :operator:`$within` operator. To define the bounds of the
-      polygon, you must specify an array of coordinate points. The
-      last point is always implicitly connected to the first
-      point. You can specify an arbitrary number of points to create
-      an multipoint polygon. See the following example:
+      Use :operator:`$polygon` to specify a polgon for a bounded query
+      using the :operator:`$within` operator. To define the polygon,
+      you must specify an array of coordinate points, as in the
+      following:
+
+          [ [ x1,y1 ], [x2,y2], [x3,y3] ]
+
+      The last point specified is always implicitly connected to the
+      first. You can specify as many points, and therfore sides, as
+      you like. Consider the following bounded query for documents
+      with coordinates within a polygon:
 
       .. code-block:: javascript
 
          db.collection.find( { loc: { $within: { $polygon: [ [0,0], [3,6], [6,0]  ] } } } )
-
-      This will return all the documents that are within the polygon
-      [0,0], [3,6], [6,0]. This is useful for searching within
-      specific areas that correspond to irregularly shaped areas such
-      as a dense urban neighborhood.
 
    All shapes include the border of the shape as part of the shape,
    although this is subject to the imprecision of floating point
@@ -333,21 +333,25 @@ Geospatial
 .. operator:: $nearSphere
 
    The :operator:`$nearSphere` operator returns all documents near a
-   point using spherical representation system to calculate distances.
+   point calculating distances based on a :ref:`spherical
+   representation system <geospatial-query-spherical>`.
 
    .. code-block:: javascript
 
       db.collection.find( { loc: { $nearSphere: [0,0] } } )
 
-   This will return all documents near [0,0] using a spherical
-   representation system to calculate distances from [0,0].
-
 .. operator:: $centerSphere
 
-   The :operator:`$centerSphere` operator returns all the documents that
-   are within a certain radius from a point using spherical
-   representation. To define the bounds of the :operator:`$centerSphere` operator,
-   you must specify the center point and the radius.
+   .. TODO rework the opening. 
+
+   The :operator:`$centerSphere` operator specifies a 
+   within a certain radius from a point calculating distances based on
+   :ref:`spherical representation system
+   <geospatial-query-spherical>`.
+
+   To define the
+   bounds of the circle, you must specify the center point and the
+   radius.
 
    Considering the following example:
 
@@ -355,14 +359,9 @@ Geospatial
 
       db.collection.find( { loc: { $centerSphere: { [0,0], 10 / 3959 } } } )
 
-   This will return all documents with a coordinate pair that is
-   within a 10 mile radius of [0,0] using a spherical representation
-   system to calculate distances from [0,0].
-
-   .. note::
-
-      For spherical queries, you must convert distances to radians for
-      proper results.
+   This query returns all documents that have a coordinate pair in the
+   ``loc`` field that is within a 10 mile radius of ``[0,0]`` using a
+   spherical representation system to calculate distances.
 
 .. operator:: $uniqueDocs
 
@@ -370,15 +369,13 @@ Geospatial
    behavior when :ref:`multiple location documents
    <geospatial-query-multi-location>` are used.
 
-   .. TODO check this functionality again.
-
    When querying multiple location documents using the
    :operator:`$within` operator, MongoDB will return matching documents
    once, even if there are multiple matches in the location fields.
 
    By specifying ``$uniqueDocs: false`` in the :operator:`$within`
    operator, matching documents may be returned multiple times if
-   there are multiple matches.
+   there are multiple matches in the location field.
 
    .. code-block:: javascript
 
@@ -390,7 +387,8 @@ Geospatial
 
    If you specify ``uniqueDocs: true`` as an option to the
    :dbcommand:`geoNear` command, then MongoDB will only return a
-   single document, even if there are multiple matches.
+   single document, even if there are multiple matches in the location
+   field, as in the following operation:
 
    .. code-block:: javascript
 
@@ -399,10 +397,8 @@ Geospatial
    .. note::
 
       You cannot specify :operator:`$uniqueDocs` with
-      :operator:`$near` or haystack queries.
-
-
-
+      :operator:`$near` or :dbcommand:`geoSearch` for :ref:`haystack
+      indexes <geospatial-haystack-index>`.
 
 .. index:: query selectors; logical
 .. _query-selectors-logical:
