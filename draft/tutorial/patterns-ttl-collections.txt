@@ -1,0 +1,104 @@
+=================================
+Expire Old Data from a Collection
+=================================
+
+Pattern
+-------
+
+any large amount transient data where more recent data has greater value than older data, and the older the data, the more disposable it becomes. Examples: system log files, weather information, traffic information
+any data that is required to be deleted after certain period (SOX, HIPPA, UK Data Protection Act)
+
+Solution
+--------
+
+Use collection that has TTL enabled on date field!
+
+Describe TTL collections and what they do: a special collection that
+mongod checks the date field in every document every minute.
+
+(links to other resources)
+
+Implementation
+--------------
+
+Setting up collection (i.e. ensure date field is a BSON date type)
+
+Setting up index with ``expireAfterSeconds`` field
+
+.. code-block:: javascript
+
+   db.ttllog.ensureIndex( { "status" : 1 }, { expireAfterSeconds: 3600 } )
+
+To expire after no updates after a certain time (i.e. LRU style)  --> mostly logs.
+
+Set ``expireAfterSeconds`` to be the period to delete
+
+Insert data with current date
+
+Outcome: anything older than x-days of insert will be deleted
+
+=================================================
+Expire Least Recently Used Data from a Collection
+=================================================
+
+Pattern
+-------
+
+Only keep data that has been recently used, everything else, delete. data caching
+
+
+- client & server states (browser cookies, state information, etc.)
+- temporary data cache (Emails, SMS, )
+
+Solution
+--------
+
+Use TTL collections with new dates to items that have been recently used/accessed/etc.
+
+Implementation
+--------------
+
+Setting up collection (i.e. ensure date field is a BSON date type)
+
+Setting up index with ``expireAfterSeconds`` field
+
+.. code-block:: javascript
+
+   db.ttllog.ensureIndex( { "status" : 1 }, { expireAfterSeconds: 3600 } )
+
+With any new uses of the data, update the date field with current date (with update query)
+
+expected outcome: items deleted: anything that do not have updated dates
+
+
+==================================
+Expire Data After a Certain Period
+==================================
+
+Pattern
+-------
+
+Any data that is useless after a certain period
+
+Examples:
+- promotional campaigns
+- security codes
+- temporary login
+
+Solution
+--------
+
+Use TTL collection where the date is set for the future
+
+Implementation
+--------------
+
+Set up collection properly (i.e. ensure date field is a BSON date type)
+
+Set up index with ``expireAfterSeconds`` field
+
+.. code-block:: javascript
+
+   db.campaign.ensureIndex( { "status" : 1 }, { expireAfterSeconds: 3600 } )
+
+Set the date field to be a point in future which data should be deleted.
