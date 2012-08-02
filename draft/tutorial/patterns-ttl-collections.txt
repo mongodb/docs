@@ -1,104 +1,101 @@
-=================================
-Expire Old Data from a Collection
-=================================
-
-Pattern
--------
-
-any large amount transient data where more recent data has greater value than older data, and the older the data, the more disposable it becomes. Examples: system log files, weather information, traffic information
-any data that is required to be deleted after certain period (SOX, HIPPA, UK Data Protection Act)
-
-Solution
---------
-
-Use collection that has TTL enabled on date field!
-
-Describe TTL collections and what they do: a special collection that
-mongod checks the date field in every document every minute.
-
-(links to other resources)
-
-Implementation
---------------
-
-Setting up collection (i.e. ensure date field is a BSON date type)
-
-Setting up index with ``expireAfterSeconds`` field
-
-.. code-block:: javascript
-
-   db.ttllog.ensureIndex( { "status" : 1 }, { expireAfterSeconds: 3600 } )
-
-To expire after no updates after a certain time (i.e. LRU style)  --> mostly logs.
-
-Set ``expireAfterSeconds`` to be the period to delete
-
-Insert data with current date
-
-Outcome: anything older than x-days of insert will be deleted
-
 =================================================
 Expire Least Recently Used Data from a Collection
 =================================================
 
-Pattern
--------
+.. default-domain:: mongodb
 
-Only keep data that has been recently used, everything else, delete. data caching
+.. versionadded:: 2.2
 
+Use Case
+--------
 
-- client & server states (browser cookies, state information, etc.)
-- temporary data cache (Emails, SMS, )
+There are some cases to keep :term:`documents <document>` in a
+collection that has been recently updated or accessed, while all other
+older documents in the collection should be deleted, such as:
+
+- client & server states (i.e. web sessions, client state information)
+- document caches (i.e. Emails, SMS)
+- particular server logs (i.e. active servers)
 
 Solution
 --------
 
-Use TTL collections with new dates to items that have been recently used/accessed/etc.
+Create a special index on the collection using the
+``expireAfterSeconds`` property with the desired duration. Any updates
+to documents should update the date field of the collection to keep
+the document in the collection.
 
-Implementation
---------------
+Create Index
+~~~~~~~~~~~~
 
-Setting up collection (i.e. ensure date field is a BSON date type)
-
-Setting up index with ``expireAfterSeconds`` field
+To create an index on the date field of the collection with the
+``expireAfterSeconds`` property. The prototype form is:
 
 .. code-block:: javascript
 
-   db.ttllog.ensureIndex( { "status" : 1 }, { expireAfterSeconds: 3600 } )
+   db.collection.ensureIndex( { <date field> : 1 }, { expireAfterSeconds: <duration> } )
 
-With any new uses of the data, update the date field with current date (with update query)
+.. note::
 
-expected outcome: items deleted: anything that do not have updated dates
+    The date field indexed must be a :term:`BSON date type <BSON types>`.
 
+Any documents in the collection that have a date field older than the
+duration will be removed from the collection.
 
-==================================
-Expire Data After a Certain Period
-==================================
+Update Entry
+~~~~~~~~~~~~
+
+To update the date field with the current date and time, use the
+:func:`find() <db.collection.update()>` method with the
+:operator:`$set` operator. The prototype form is:
+
+.. code-block:: javascript
+
+   db.collection.update( { <field>: <key> }, { $set: { <date field>: new ISODate() } } )
+
+All items that have a date field within the duration will remain in
+the collection while all other documents will be removed.
 
 Pattern
 -------
 
-Any data that is useless after a certain period
+The access time for a ``token`` is recorded in the ``tokenLog``
+collection under the ``accessTime`` field. Any tokens that have not
+been accessed over 30 minutes should be removed from the collection.
 
-Examples:
-- promotional campaigns
-- security codes
-- temporary login
-
-Solution
---------
-
-Use TTL collection where the date is set for the future
-
-Implementation
---------------
-
-Set up collection properly (i.e. ensure date field is a BSON date type)
-
-Set up index with ``expireAfterSeconds`` field
+The ``tokenLog`` collection can be created using the following commands:
 
 .. code-block:: javascript
 
-   db.campaign.ensureIndex( { "status" : 1 }, { expireAfterSeconds: 3600 } )
+   > db.tokenLog.insert( { token: 100, accessTime: new ISODate() })
+   > db.tokenLog.insert( { token: 101, accessTime: new ISODate() })
+   > db.tokenLog.insert( { token: 102, accessTime: new ISODate() })
 
-Set the date field to be a point in future which data should be deleted.
+and the collection would be:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId("..."), "token" : 100, "accessTime" : ISODate("2012-08-02T17:47:15.275Z") }
+   { "_id" : ObjectId("..."), "token" : 101, "accessTime" : ISODate("2012-08-02T17:47:27.764Z") }
+   { "_id" : ObjectId("..."), "token" : 102, "accessTime" : ISODate("2012-08-02T17:47:34.788Z") }
+
+To keep the most recently accessed ``token`` in the last 30 minutes,
+create an index on this collection by using command:
+
+.. code-block:: javascript
+
+   db.tokenLog.ensureIndex( { accessTime: 1 }, { expireAfterSeconds: 30*60 } )
+
+Any ``token`` documents that are older than 30 minutes will be removed from the collection.
+
+For each ``token`` document that is accessed again, update only the
+``accessTime`` field with the new date. For example, if
+``token:101`` is accessed again, update the ``accessTime`` field of ``token:101`` by
+using the following command:
+
+.. code-block:: javascript
+
+   db.tokenLog.update( { "token": 101 }, { $set: { accessTime: new ISODate() } } )
+
+All other entries that have not been updated with a newer
+``accessTime`` will automatically be removed from the collection.
