@@ -9,61 +9,73 @@ Expire Least Recently Used Data from a Collection
 Use Case
 --------
 
-There are some cases to keep :term:`documents <document>` in a
-collection that has been recently updated or accessed, while all other
-older documents in the collection should be deleted, such as:
+There are some cases to keep recently accessed :term:`documents
+<document>` in a collection but to delete older unused documents. Some
+possible cases are:
 
 - client & server states (i.e. web sessions, client state information)
-- document caches (i.e. Emails, SMS)
-- particular server logs (i.e. active servers)
+- file caches (i.e. keep recently used files online, move unused files to archives)
+- particular server logs (i.e. keep active server logs, remove inactive server logs)
+
+In these cases, the most recently accessed documents are important
+while older unused documents should be removed from the collection.
 
 Solution
 --------
 
-Create a special index on the collection using the
-``expireAfterSeconds`` property with the desired duration. Any updates
-to documents should update the date field of the collection to keep
-the document in the collection.
+To maintain only the most recently accessed documents in your
+collection, create a special Time To Live (TTL) index. This is an
+expiring collection, which any document that is greater than the TTL
+value will be deleted from the collection.
 
-Create Index
-~~~~~~~~~~~~
+To keep documents in the TTL collection, set the document's date field
+with a value less than the TTL value. Any documents that is less than
+the TTL value will remain in the collection.
 
-To create an index on the date field of the collection with the
-``expireAfterSeconds`` property. The prototype form is:
+.. TODO are TTL values greater than and less than well understood??
+
+Create TTL Index
+~~~~~~~~~~~~~~~~
+
+To create an expiring collection, create an index on the date field of
+the collection with the ``expireAfterSeconds`` property. The prototype
+form is:
 
 .. code-block:: javascript
 
-   db.collection.ensureIndex( { <date field> : 1 }, { expireAfterSeconds: <duration> } )
+   db.collection.ensureIndex( { <date field> : 1 }, { expireAfterSeconds: <TTL value> } )
 
 .. note::
 
     The date field indexed must be a :term:`BSON date type <BSON types>`.
 
-Any documents in the collection that have a date field older than the
-duration will be removed from the collection.
+Any documents in the collection that have a date value greater than the
+TTL value will be removed from the collection.
 
 Update Entry
 ~~~~~~~~~~~~
 
-To update the date field with the current date and time, use the
-:func:`find() <db.collection.update()>` method with the
-:operator:`$set` operator. The prototype form is:
+Update any documents that should remain in the collection by setting
+the date field with the current date and time. Use the :func:`update()
+<db.collection.update()>` method with the :operator:`$set`
+operator. The prototype form is:
 
 .. code-block:: javascript
 
    db.collection.update( { <field>: <key> }, { $set: { <date field>: new ISODate() } } )
 
-All items that have a date field within the duration will remain in
-the collection while all other documents will be removed.
+All items that have a date value less than the TTL value will remain
+in the collection.
 
 Pattern
 -------
 
 The access time for a ``token`` is recorded in the ``tokenLog``
-collection under the ``accessTime`` field. Any tokens that have not
-been accessed over 30 minutes should be removed from the collection.
+collection in the ``accessTime`` field. Tokens that are accessed will
+be updated. Any tokens that have not been accessed over 30 minutes
+should be removed from the collection.
 
-The ``tokenLog`` collection can be created using the following commands:
+A ``tokenLog`` collection can be created using the following commands:
 
 .. code-block:: javascript
 
@@ -79,23 +91,25 @@ and the collection would be:
    { "_id" : ObjectId("..."), "token" : 101, "accessTime" : ISODate("2012-08-02T17:47:27.764Z") }
    { "_id" : ObjectId("..."), "token" : 102, "accessTime" : ISODate("2012-08-02T17:47:34.788Z") }
 
-To keep the most recently accessed ``token`` in the last 30 minutes,
-create an index on this collection by using command:
+To keep only the most recently accessed ``token`` in the last 30
+minutes, create a 30 minute TTL index on this collection by using command:
 
 .. code-block:: javascript
 
    db.tokenLog.ensureIndex( { accessTime: 1 }, { expireAfterSeconds: 30*60 } )
 
-Any ``token`` documents that are older than 30 minutes will be removed from the collection.
+Any ``token`` documents that are older than 30 minutes will be
+automatically removed from the collection.
 
-For each ``token`` document that is accessed again, update only the
-``accessTime`` field with the new date. For example, if
-``token:101`` is accessed again, update the ``accessTime`` field of ``token:101`` by
-using the following command:
+When a ``token`` is accessed, update only its ``accessTime`` field
+with the current time and date. For example, if ``token:101`` is
+accessed again, update the ``accessTime`` field of ``token:101`` by
+using the command:
 
 .. code-block:: javascript
 
    db.tokenLog.update( { "token": 101 }, { $set: { accessTime: new ISODate() } } )
 
-All other entries that have not been updated with a newer
-``accessTime`` will automatically be removed from the collection.
+As time moves forward, any document that has accessed will remain
+while unused documents will be automatically deleted from the
+collection.
