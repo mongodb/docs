@@ -126,6 +126,10 @@ class MongoDBObject(ObjectDescription):
             return _('%s (shell method)') % (name)
         elif self.objtype == 'collflag':
             return _('%s (collection flag)') % (name)
+        elif self.objtype == 'readmode':
+            return _('%s (read preference mode)') % (name)
+        elif self.objtype == 'error':
+            return _('%s (error code)') % (name)
         return ''
 
     def run(self):
@@ -155,7 +159,6 @@ class MongoDBObject(ObjectDescription):
         Field('returntype', label=l_('Return type'), has_arg=False,
               names=('rtype',)),
     ]
-
 
 class MongoDBCallable(MongoDBObject):
     """Description of a MongoDB function, method or constructor."""
@@ -203,6 +206,7 @@ class MongoDBDomain(Domain):
         'group':        ObjType(l_('group'),       'group'),
         'expression':   ObjType(l_('expression'),  'expression'),
         'collflag':     ObjType(l_('collflag'),    'collflag'),
+        'error':        ObjType(l_('error'),       'error'),
     }
 
     directives = {
@@ -218,6 +222,7 @@ class MongoDBDomain(Domain):
         'group':         MongoDBCallable,
         'expression':    MongoDBCallable,
         'collflag':      MongoDBCallable,
+        'error':         MongoDBCallable,
     }
     roles = {
         'dbcommand':   MongoDBXRefRole(),
