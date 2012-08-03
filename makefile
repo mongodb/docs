@@ -149,6 +149,7 @@ $(CURRENTBUILD)/single/genindex.html:$(BUILDDIR)/html/genindex.html
 $(CURRENTBUILD)/single/index.html:$(BUILDDIR)/singlehtml/contents.html
 	cp $< $@
 	@sed $(SED_ARGS_FILE) -e 's/href="contents.html/href="index.html/g' $@
+	@sed $(SED_ARGS_FILE) -e 's/name="robots" content="index"/name="robots" content="noindex"/g' $@
 	@echo "[SINGLE]: generating '$@'"
 
 # Deployment related work for the non-Sphinx aspects of the build.
