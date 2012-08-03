@@ -8,15 +8,15 @@ Overview
 --------
 
 MongoDB supports location-based queries and geospatial data with a
-special index for coordinate data. The index stores :ref:`geohashes
+special index for coordinate data. The geospatial index stores :ref:`geohashes
 <geospatial-geohash>`, and makes it possible to return documents
 based on proximity to a point or within a bounded region. Geospatial
-queries support coordinate systems on either flat and spherical planes.
+queries support coordinate systems on either flat and spherical surfaces.
 Additionally, geospatial haystack indexes provide additional
 support for certain classes of region-based queries.
 
 This document introduces the core concepts
-that underpin geospatial queries and indexes in MongoDB. For more
+that underpin geospatial queries and indexes in MongoDB. For more information,
 :doc:`/applications/geospatial-indexes` provide complete documentation
 of all location-based operations and queries.
 
@@ -31,7 +31,7 @@ Geospatial Indexes
    location data in MongoDB.
 
 To use geospatial functions in MongoDB, model
-location data in a 2D array and create an index using the
+location data in a 2D array, then create an index using the
 :func:`ensureIndex <db.collection.ensureIndex()>` method on this field
 using the ``2d`` option. Consider the following prototype operation:
 
@@ -39,16 +39,20 @@ using the ``2d`` option. Consider the following prototype operation:
 
    db.collection.ensureIndex( { <location field> : "2d" } )
 
-All queries using coordinates will use this geospatial index.
-The index uses a :term:`geohash` calculated from the coordinates.
-For more information on :term:`geohash`, please refer to the
-:ref:`geohash <geospatial-geohash>` section.
+After the ``2d`` index has been created, all queries using coordinates
+will use this geospatial index.  The index uses a :term:`geohash`
+calculated from the coordinates.  For more information on
+:term:`geohash`, please refer to the :ref:`geohash
+<geospatial-geohash>` section.
+
+To perform queries on your geospatial data, please see
+:doc:`/applications/geospatial-indexes`.
 
 .. note::
 
    MongoDB only supports *one* geospatial index per collection. As
    with any MongoDB index, any single query can only
-   use one index. Creating more than one geospatial index to a
+   use one index. Creating more than one geospatial index with a
    collection will produce unexpected results.
 
 .. _geospatial-indexes-range:
@@ -56,13 +60,13 @@ For more information on :term:`geohash`, please refer to the
 Range
 ~~~~~
 
-All geospatial indexes are bounded. MongoDB will return an error and
-reject documents with coordinate pairs outside of these
-boundaries. The default boundaries assume latitude and
-longitude data, and are
-between -180 inclusive and 180 non-inclusive.
+All geospatial indexes are bounded. MongoDB will
+return an error and reject documents with coordinate data outside of
+the specified range. The default range assumes latitude and longitude
+data, and are between -180 inclusive and 180
+non-inclusive (i.e. ``[-180, 180)``.)
 
-To configure the boundaries of a geospatial index, use the ``min`` and
+To configure the range of a geospatial index, use the ``min`` and
 ``max`` options with the :func:`ensureIndex() <db.collection.ensureIndex()>`
 operation, as in the following prototype.
 
@@ -72,7 +76,7 @@ operation, as in the following prototype.
                               { min: <lower bound> , max: <upper bound> } )
 
 The following operation will create an index on the  ``places``
-collection, for coordinates in the ``loc`` field, with boundaries
+collection, for coordinates in the ``loc`` field, with the range
 between ``-90`` and ``90``:
 
 .. code-block:: javascript
@@ -81,7 +85,7 @@ between ``-90`` and ``90``:
                            { min: 90 , max: 90 } )
 
 For more information see the :ref:`geospatial precision
-<geospatial-indexes-precision>` and :ref:`rehashes
+<geospatial-indexes-precision>` and :ref:`geohash
 <geospatial-geohash>` sections.
 
 .. _geospatial-indexes-precision:
@@ -89,8 +93,8 @@ For more information see the :ref:`geospatial precision
 Precision
 ~~~~~~~~~
 
-Geospatial indexes represent precision, or resolution in
-"bits". Higher bit values allow MongoDB to return more precise
+Geospatial indexes use "bits" to represent precision, or
+resolution. Higher bit values allow MongoDB to return more precise
 results, at the expense of speed. For more information on the
 relationship between bits and precision, see the :ref:`geohash
 <geospatial-geohash>` section.
@@ -98,7 +102,7 @@ relationship between bits and precision, see the :ref:`geohash
 By default, geospatial indexes in MongoDB have 26 bits of precision,
 although precision is configurable upon index creation and MongoDB
 supports up to 32 bits of precision. With 26 bits of precision, using
-the default range of -180 to 180, results can be precise to roughly 2
+the default range of -180 to 180, geospatial data can be precise to roughly 2
 feet or about 60 centimeters.
 
 You can set the precision of a geospatial index during creation by
@@ -133,7 +137,7 @@ These indexes support regular geospatial queries as well as queries where you mu
 location and by another field. For example, if you need to return a
 list of restaurants near a given point, but you want to optionally
 filter restaurants by type, such as "take-out," or
-"bar" stored in a ``type`` field.
+"bar" stored in the ``type`` field.
 
 .. note::
 
@@ -148,26 +152,21 @@ filter restaurants by type, such as "take-out," or
 Haystack Index
 ~~~~~~~~~~~~~~
 
-Geospatial haystack indexes make it possible to build a special
-``bucket`` for keys in the index to tune the distribution of data. Haystack
-indexes improve query performance for queries limited to a specific
-area. For more information, please refer to :doc:`Geospatial Indexes
-</core/geospatial-indexes>`.
-
-To improve query performance when filtering geospatial
-results along another dimension, consider
-using a :ref:`compound index <geospatial-compound-index>`.
+Geospatial haystack indexes make it possible to tune the
+distribution of your data and build a special bucket
+index. Haystack indexes improve query performance for queries limited
+to a specific area.
 
 .. note::
 
    Haystack indexes are not suited to returning the closest documents to
    a particular location, as the closest documents could be far away
-   compared to the bucket size.
+   compared to the ``bucketSize``.
 
 To build a :term:`geoHaystack` index, specify the ``geoHaystack`` for the
 location field and a ``bucketSize`` parameter . The ``bucketSize``
 parameter determines the granularity of the bucket index. A
-``bucketSize`` of 1 creates an index that stores keys within a single unit
+``bucketSize`` of ``1`` creates an index that stores keys within a single unit
 in the coordinate in the same bucket.
 
 .. code-block:: javascript
@@ -178,20 +177,12 @@ in the coordinate in the same bucket.
 By default, all queries that use a geospatial haystack index will return 50
 documents.
 
-In the following example, the :func:`ensureIndex()
-<db.command.ensureIndex()>` method creates an index that would support
-a query that: returned all locations (e.g. restaurants) in the
-``places`` collection within a maximum distance of 2 degrees longitude
-or latitude. Create this index using following command:
+To query geohaystack indexes, you *must* use the :dbcommand:`geoSearch`
+command, please see the :ref:`Querying Haystack Indexes
+<geospatial-haystack-queries>` section.
 
-.. code-block:: javascript
-
-   db.places.ensureIndex({ loc: "geoHaystack", type: 1} ,
-                         { bucketSize: 2 } )
-
-
-.. TODO clarify what the type argument does or if it's just always
-   required.
+:ref:`Spherical queries <geospatial-spherical-representation>` are not
+supported by haystack indexes.
 
 .. _geospatial-spherical-representation:
 
@@ -233,19 +224,21 @@ two bit representation of four quadrants would be:
    00  10
 
 These two bit values, ``00``, ``01``, ``10``, and ``11``, represent
-each of the quadrants, and points within that quadrant. For a geohash
-with two bits of resolution, a point in the top left quadrant would
-have the geohash of ``01``.
+each of the quadrants, and points within that quadrant. For a
+:term:`geohash` with two bits of resolution, a point in the bottom
+left quadrant would have a geohash of ``00``.  The top left quadrant
+would have the geohash of ``01``. The bottom right and top right would
+have a geohash of ``10`` and ``11``, respectively.
 
 To provide additional precision, continue dividing each quadrant into
 sub-quadrants. To identify quadrants within a sub-quadrant, take the
-containing quadrant (e.g. ``01``) and concatenate the identifier for
-the sub-quadrant. Therefore, for
-the upper-right quadrant, ``11``, the sub-quadrants would be:
+geohash for the containing quadrant (e.g. ``01``) and concatenate the geohash for
+the sub-quadrant. Therefore, the geohash for
+the upper-right quadrant is ``11``, the geohash for the sub-quadrants would be:
 ``1101``, ``1111``, ``1110``, and ``1100``.
 
-To calculate a more precise geohash, continue dividing the
-sub-quadrant concatenate the two-bit identifier for each division. The
+To calculate a more precise :term:`geohash`, continue dividing the
+sub-quadrant, concatenate the two-bit identifier for each division. The
 more "bits" in the hash identifier for a given point, the smaller
 possible area that the hash can describe, and the higher the
 resolution of the geospatial index.
