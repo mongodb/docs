@@ -40,6 +40,15 @@ the :term:`TTL` duration.
 #. Create TTL Index for the collection with ``expireAfterSeconds``.
 #. Update the date field of any document to stay in the collection.
 
+
+Key points about TTL collections with LRU
+- the application is responsible for maintaining ONLY the documents it
+  wants.
+- the 'clean up' aspect is responsible by the
+  :program:`mongod`. :program:`mongod` will remove any files older
+  than the TTL time.
+- 
+
 Pattern
 -------
 
@@ -149,3 +158,45 @@ On access from the user, update the users' access time:
 
    db.authenticationLog.update( { userID: 101 }, { $set: { accessTime: new ISODate() } } )
 
+
+
+Use case
+
+File caching (image server)
+
+check memory for file
+if file is not in memory, load from archive
+update file access time
+
+pseudo code
+
+loop start
+  receive file request
+  check memory for file
+  if file not in memory
+    retreive file from archive to memory
+  update file access time
+  serve file from memory
+  system delete unused files from cache
+end loop
+
+loop start
+  receive file request
+  query cacheServer record for file
+  if file not in cacheServer record
+    retreive file from archiveServer send to cacheServer
+  insert cacheServer record's file access time
+  send cacheServer url to requester
+  system deletes unused files from cacheServer after specified period
+end loop
+
+Problem: want to serve most accessed images from archive quickly, and
+keep around for future requests, but archive machine has slow
+access. build mongodb to be fast file caching
+
+Use MongoDB as a fast image server
+
+State saving
+
+Comment drafting
+You have: website with comment feature to allow people to comment
