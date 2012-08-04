@@ -33,13 +33,13 @@ return documents.
 
 .. note::
 
-   By default all MongoDB assumes that coordinate systems are on flat
-   planes and all distances calculated by the :dbcommand:`geoNear` use
-   the Pythagorean distance formula.
+   By default MongoDB assumes calculate distances using flat geometry
+   and all distances calculated by the :dbcommand:`geoNear` use the
+   Pythagorean distance formula.
 
-   MongoDB can also calculate and return accurate results for
-   locations in a :ref:`spherical <geospatial-spherical-representation>`
-   coordinate system, using :ref:`spherical query operations <geospatial-spherical-queries>`.
+   MongoDB can also calculate distances based on :ref:`spherical
+   geometry <geospatial-spherical-representation>`, using
+   :ref:`spherical query operations <geospatial-spherical-queries>`.
 
 .. index:: geospatial queries; exact
 
@@ -313,12 +313,10 @@ polygon connects at the above points using a geospatial index on the
 Spherical
 ~~~~~~~~~
 
-If the coordinates in your :term:`document` represent points on a
-spherical surface, :ref:`proximity <geospatial-query-proximity>` and
-some :ref:`bounded <geospatial-query-bounded>` queries will not return
-accurate results. To compensate, you can use the following spherical
-queries that adjust for these differences. The following table provides a
-list of spherical query operators and their flat surface equivalents:
+To calculate distances between points using spherical geometry instead
+of flat geometry use the following spherical query operators. The
+following table provides a list of spherical query operators and their
+flat geometry equivalents:
 
 ========================== ===================
  Spherical                  Flat
@@ -327,14 +325,14 @@ list of spherical query operators and their flat surface equivalents:
 :operator:`$centerSphere`  :operator:`$center`
 ========================== ===================
 
-The :dbcommand:`geoNear` command returns documents assuming a spherical surface if
-you specify the ``{ spherical: true }`` option.
+The :dbcommand:`geoNear` command using the ``{ spherical: true }``
+option will use spherical geometry to calculate distances.
 
 .. admonition:: Spherical Queries Use Radians for Distance
 
-   You must convert distances to radians when performing a spherical
-   query, and convert the distances returned from radians into the
-   units that your application uses.
+   You must convert distances to radians when using a spherical
+   operators, and convert from radians to distances units that your
+   application uses.
 
    To convert:
 
@@ -346,8 +344,8 @@ you specify the ``{ spherical: true }`` option.
      of the sphere (e.g. the Earth) in the units system that you want to
      convert the distance to.
 
-   The radius of the Earth is ``3963.192`` miles or ``6378.137``
-   kilometers.
+   The radius of the Earth is approximately ``3963.192`` miles or
+   ``6378.137`` kilometers.
 
 The following query would return documents from the ``places``
 collection, within the circle described by the center ``[ -74, 40.74 ]``
@@ -359,11 +357,11 @@ with a radius of ``100`` miles:
                                            100 / 3963.192 ] } } )
 
 Remember that you must convert the distance of the radius to
-radians. This conversion *must* happen in your client
-(i.e. application) code. You may also use the ``distanceMultiplier``
-option to the :dbcommand:`geoNear` to convert in the :program:`mongod`
-process, rather than in your application code. Please see the
-:ref:`distance multiplier <geospatial-distance-multiplier>` section.
+radians. This conversion *must* happen in your application code. You
+may also use the ``distanceMultiplier`` option to the
+:dbcommand:`geoNear` to convert in the :program:`mongod` process,
+rather than in your application code. Please see the :ref:`distance
+multiplier <geospatial-distance-multiplier>` section.
 
 The following spherical proximity query, returns all documents in the
 collection ``places`` within ``100`` miles from the point ``[ -74,
@@ -410,11 +408,15 @@ their distance from the ``[ -74, 40.74 ]`` point.
    Spherical queries that wrap around the poles or at the transition
    from ``-180`` to ``180`` longitude raise an error.
 
+.. TODO add note that this is a bug in MongoDB
+
 .. note::
 
    While the default Earth-like bounds for geospatial indexes are
    between ``-180`` inclusive, and ``180``, valid values for latitude
    are between ``-90`` and ``90``.
+
+.. TODO where did this come from?!
 
 .. _geospatial-distance-multiplier:
 
@@ -427,10 +429,9 @@ assigned value.
 
  Use ``distanceMultiplier`` with :ref:`spherical queries
 <geospatial-query-spherical>` to convert the contents of the
-``distance`` field returned in the extra output of the
-:dbcommand:`geoNear` command from radians to distances. For more
-information about the conversion, see the :ref:`spherical queries
-<geospatial-query-spherical>` section.
+``distance`` field returned in documents of the :dbcommand:`geoNear`
+command. For more information about the conversion, see the
+:ref:`spherical queries <geospatial-query-spherical>` section.
 
 .. note::
 
