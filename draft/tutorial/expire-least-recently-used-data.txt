@@ -115,14 +115,12 @@ system after a certain period, destroy authentication and force them
 to reauthenticate
 - web mail
 - bank login
-- 
 
 - upon successful authentication, insert information into collection
 - on every server access from user, check authentication info, update
   date entry on user
 - after no access from user, mongod will automatically delete
   information
-
 
 - insert user information after successful authentication
 - on next access, check if user is authenticated or not
@@ -199,4 +197,93 @@ Use MongoDB as a fast image server
 State saving
 
 Comment drafting
-You have: website with comment feature to allow people to comment
+You have: website with comment feature to allow people to comment. Any
+draft that is actively being worked on within a certain period should
+be saved. If a draft has not been touched for a long time, the user
+probably won't comment and their draft should be deleted.
+
+--> want to keep all comments within the same collection
+
+System set up:
+
+Application response
+- Insert: comment draft into index
+- On any new changes: update document with new comment & time
+- On submission: delete the ``draft-time`` field
+
+System response:
+- scan through comment index every 60 seconds
+- checks any items with ``draft-time`` field
+- if (current time - ``draft-time`` field > expireAfterSeconds) remove
+  document
+
+Result: draft and comments in same index but index only contains
+comments and drafts in progress
+
+State
+
+Pattern: want to have authentication list for logged in accounts so
+users do not have to go through lengthy logins each time system
+access, but want accounts that have had no access to be automagically
+deleted.
+
+system setup:
+- collection on system with an application identifier and a date field
+  storing current access times
+- set up index with ``expireAfterSeconds``
+
+application response:
+- on successful authentication: insert userID & current time
+- on each userID access: update userID's accessTime with current time
+- when logout specified: remove userID from collection
+
+System response:
+- scan through authentication list every minute.
+- checks accessTime, if (current system time - ``accessTime`` field > expireAfterSeconds) remove
+  document
+
+Overall result:
+- authentication list containing current logins
+- Any accounts that have had no activity for a certain period of time
+will be purged from the list.
+
+============
+State saving
+============
+
+
+Use Case
+--------
+
+You want to keep a list of logged in users that accessed the
+system recently, but any users that have not accessed the system
+for a long time will be removed from the list and need to login again.
+
+Solution
+--------
+
+Your application will ensure authentication and update only recently
+accessed accounts, MongoDB will maintain the list and delete any
+entries that have not been updated within a specified period.
+
+Elements required:
+- MongoDB collection to store list.
+- Application to authenticate users
+
+Steps required:
+- Setup MongodB TTL collection
+- Application access MongoDB collection and update on each access.
+
+System response:
+- 
+
+Pattern
+-------
+
+Set up MongoDB TTL collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Application response
+~~~~~~~~~~~~~~~~~~~~
+
