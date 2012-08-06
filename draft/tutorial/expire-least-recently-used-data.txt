@@ -255,35 +255,106 @@ State saving
 Use Case
 --------
 
-You want to keep a list of logged in users that accessed the
-system recently, but any users that have not accessed the system
-for a long time will be removed from the list and need to login again.
+You need to keep a list of updated items but anything not
+updated should be deleted automatically.
+
+For example, you want keep a list of users that are actively accessing
+the system so they do not have to repeatly authenticate. Any users that
+have not accessed the system for a long time will be removed from the
+list will have to reauthenticate on their next access.
 
 Solution
 --------
 
-Your application will ensure authentication and update only recently
-accessed accounts, MongoDB will maintain the list and delete any
+Use MongoDB's TTL collection to store the list of items. Your
+application will query the collection to verify items and update items as
+needed. Any items not updated for a specified period will be deleted
+by the :program:`mongod` process.
+
+For example, your application will ensure authentication and insert
+authenticated users into the list. The application will check the list
+when a user accesses the system, if the user is on the list, provide
+access and update their access time entry, otherwise, force the user
+to reauthenticate. MongoDB will maintain the list and delete any
 entries that have not been updated within a specified period.
 
 Elements required:
-- MongoDB collection to store list.
-- Application to authenticate users
+- MongoDB version 2.2 or greater.
+- Application to authenticate users, also able to access, insert, and
+  update entries in MongoDB collection.
 
 Steps required:
-- Setup MongodB TTL collection
-- Application access MongoDB collection and update on each access.
-
-System response:
-- 
+- Setup MongodB TTL collection.
+- Application to insert, access, and update MongoDB collection.
 
 Pattern
 -------
 
-Set up MongoDB TTL collection
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The ``eventLog`` collection could be:
 
+.. code-block:: javascript
+
+   { "_id" : ObjectId("..."), "userID" : 100, "accessTime" : ISODate("2012-08-02T17:47:15.275Z") }
+   { "_id" : ObjectId("..."), "userID" : 101, "accessTime" : ISODate("2012-08-02T17:47:27.764Z") }
+   { "_id" : ObjectId("..."), "userID" : 102, "accessTime" : ISODate("2012-08-02T17:47:34.788Z") }
+
+An ``eventLog`` collection like the above can be created by using the following commands:
+
+.. code-block:: javascript
+
+   > db.eventLog.insert( { userID: 100, accessTime: new ISODate() })
+   > db.eventLog.insert( { userID: 101, accessTime: new ISODate() })
+   > db.eventLog.insert( { userID: 102, accessTime: new ISODate() })
+
+Set up TTL collection
+~~~~~~~~~~~~~~~~~~~~~
+
+Setup MongoDB to delete any documents that have an ``accessTime``
+older than one hour by creating a TTL index using command:
+
+.. code-block:: javascript
+
+   db.eventLog.ensureIndex( { accessTime: 1 }, { expireAfterSeconds: 3600 } )
+
+Any items in the ``eventLog`` collection older than one hour will be
+removed by the :program:`mongod` instance.
 
 Application response
 ~~~~~~~~~~~~~~~~~~~~
 
+Upon successful user authentication, your application will insert the
+user's entry into the ``eventLog`` collection using the following command:
+
+.. code-block:: javascript
+
+   > db.eventLog.insert( { userID: 103, accessTime: new ISODate() })
+
+Your application can verify if a user is currently authenticated by
+using command:
+
+.. code-block:: javascript
+
+   > db.eventLog.find( { userID: 101 })
+
+If the result is similar to:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId("..."), "userID" : 101, "accessTime" : ISODate("2012-08-02T17:47:27.764Z") }
+
+The user is currently authenticated and may access the system. If
+there is no result, the user needs to reauthenticate.
+
+:program:`mongod` will remove any user entries that have an
+``accessTime`` greater than 1 hour (3600 seconds.)
+
+Overall result
+~~~~~~~~~~~~~~
+
+
+
+System response:
+- :program:`mongod` will scan TTL collection every minute
+- any items in the collection with a date field that is older than
+  specified will be removed immediately
+- any items updated by the application will remain in the collection
