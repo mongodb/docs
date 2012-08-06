@@ -1,5 +1,5 @@
 .. warning::
 
-   The pipeline cannot operate on collections with documents that contain
-   any of the following "special fields:" ``MinKey``, ``MaxKey``,
-   ``EOO``, ``Undefined``, ``DBRef``, ``Code``.
+   The pipeline cannot operate on values of the following types:
+   ``Binary``, ``Symbol``, ``MinKey``, ``MaxKey``, ``DBRef``,
+   ``Code``, and ``CodeWScope``.
