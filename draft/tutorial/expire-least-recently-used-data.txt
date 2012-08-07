@@ -6,291 +6,54 @@ Expire Least Recently Used Data from a Collection
 
 .. versionadded:: 2.2
 
-.. walk away from article so that it can be useful.
-.. read aloud to self
-.. few
-.. --> passive; more direct to outline that the system will delete things.
-
-.. specify that the 'application' is the one responsible for updating the field
-.. clear up examples - application 
-.. specify that the 'system' deletes the information - application's reponsibility to keep things alive
-
-Use Cases
----------
-
-.. good, but no syntatic - group (i.e.) into own sentences
-- client & server states (i.e. web sessions, client state information)
-- file caches (i.e. keep recently used files online, move unused files to archives)
-- particular server logs (i.e. keep active server logs, remove inactive server logs)
-
-.. --> passive; more direct to outline that the system will delete things.
-In these cases, the most recently accessed documents are important
-while older unused documents should be removed from the collection.
-
-Solution
---------
-
-MongoDB has a :term:`TTL` collection that :progam:`mongod` will
-automatically remove any documents from the collection that are older
-than specified period.  In a :term:`TTL` collection, to keep any document
-from being deleted, update the date field of the document within
-the :term:`TTL` duration.
-
-#. Create collection with proper date field.
-#. Create TTL Index for the collection with ``expireAfterSeconds``.
-#. Update the date field of any document to stay in the collection.
-
-
-Key points about TTL collections with LRU
-- the application is responsible for maintaining ONLY the documents it
-  wants.
-- the 'clean up' aspect is responsible by the
-  :program:`mongod`. :program:`mongod` will remove any files older
-  than the TTL time.
-- 
-
-Pattern
--------
-
-.. token too general --> switch up to 'events' (i.e. events log)
-.. token kinda sounds like a real thing
-
-cacheing web pages in memory
-- you have a web server that serves web pages
-- web pages are stored in memory and disk
-- want to have system to decide which pages to keep in memory (and
-  which pages to put to disk)
-
-The access time of a web page for a server are recorded in an
-``eventLog``. Web pages that are accessed will be
-maintained in memory, old web pages that have not been accessed over
-an hour will be removed from memory, for more pages to be ca
-
-The ``eventLog`` collection would be:
-
-.. code-block:: javascript
-
-   { "_id" : ObjectId("..."), "pageID" : 100, "accessTime" : ISODate("2012-08-02T17:47:15.275Z") }
-   { "_id" : ObjectId("..."), "pageID" : 101, "accessTime" : ISODate("2012-08-02T17:47:27.764Z") }
-   { "_id" : ObjectId("..."), "pageID" : 102, "accessTime" : ISODate("2012-08-02T17:47:34.788Z") }
-
-An ``eventLog`` collection that can be created by using the following commands:
-
-.. code-block:: javascript
-
-   > db.eventLog.insert( { pageID: 100, accessTime: new ISODate() })
-   > db.eventLog.insert( { pageID: 101, accessTime: new ISODate() })
-   > db.eventLog.insert( { pageID: 102, accessTime: new ISODate() })
-
-Create a 60 minute TTL index on this collection by using command:
-
-.. code-block:: javascript
-
-   db.tokenLog.ensureIndex( { accessTime: 1 }, { expireAfterSeconds: 3600 } )
-
-:program:`mongod` will now remove any pages in this collection that have not been accessed
-in over an hour.
-
-
-
-When a ``token`` is accessed, update only its ``accessTime`` field
-with the current time and date. For example, if ``token:101`` is
-accessed again, update the ``accessTime`` field of ``token:101`` by
-using the command:
-
-
-Update any pages that have been accessed in the ``eventLog`` by using command:
-
-.. code-block:: javascript
-
-   db.eventLog.update( { pageID: 101 }, { $set: { accessTime: new ISODate() } } )
-
-.. another set of example for the 
-.. naming 
-
-
-use case:
-keep authenticated user information in the system. if they don't access the
-system after a certain period, destroy authentication and force them
-to reauthenticate
-- web mail
-- bank login
-
-- upon successful authentication, insert information into collection
-- on every server access from user, check authentication info, update
-  date entry on user
-- after no access from user, mongod will automatically delete
-  information
-
-- insert user information after successful authentication
-- on next access, check if user is authenticated or not
-- update date field for user after server access
-- if user is not on authenticated list, force reauthentication
-
-
-The ``authenticationLog`` collection could be:
-
-.. code-block:: javascript
-
-   { "_id" : ObjectId("..."), ..., "userID" : 000, "accessTime" : ISODate("2012-08-02T17:47:15.275Z") }
-   { "_id" : ObjectId("..."), ..., "userID" : 001, "accessTime" : ISODate("2012-08-02T17:47:27.764Z") }
-   { "_id" : ObjectId("..."), ..., "userID" : 002, "accessTime" : ISODate("2012-08-02T17:47:34.788Z") }
-
-An ``authenticationLog`` collection that can be created by using the following commands:
-
-.. code-block:: javascript
-
-   > db.authenticationLog.insert( { userID: 100, accessTime: new ISODate() })
-   > db.authenticationLog.insert( { userID: 101, accessTime: new ISODate() })
-   > db.authenticationLog.insert( { userID: 102, accessTime: new ISODate() })
-
-Verify the user has been authenticated recently:
-
-.. code-block:: javascript
-
-   db.authenticationLog.find( { userID: 101 } )
-
-On access from the user, update the users' access time:
-
-.. code-block:: javascript
-
-   db.authenticationLog.update( { userID: 101 }, { $set: { accessTime: new ISODate() } } )
-
-
-
-Use case
-
-File caching (image server)
-
-check memory for file
-if file is not in memory, load from archive
-update file access time
-
-pseudo code
-
-loop start
-  receive file request
-  check memory for file
-  if file not in memory
-    retreive file from archive to memory
-  update file access time
-  serve file from memory
-  system delete unused files from cache
-end loop
-
-loop start
-  receive file request
-  query cacheServer record for file
-  if file not in cacheServer record
-    retreive file from archiveServer send to cacheServer
-  insert cacheServer record's file access time
-  send cacheServer url to requester
-  system deletes unused files from cacheServer after specified period
-end loop
-
-Problem: want to serve most accessed images from archive quickly, and
-keep around for future requests, but archive machine has slow
-access. build mongodb to be fast file caching
-
-Use MongoDB as a fast image server
-
-State saving
-
-Comment drafting
-You have: website with comment feature to allow people to comment. Any
-draft that is actively being worked on within a certain period should
-be saved. If a draft has not been touched for a long time, the user
-probably won't comment and their draft should be deleted.
-
---> want to keep all comments within the same collection
-
-System set up:
-
-Application response
-- Insert: comment draft into index
-- On any new changes: update document with new comment & time
-- On submission: delete the ``draft-time`` field
-
-System response:
-- scan through comment index every 60 seconds
-- checks any items with ``draft-time`` field
-- if (current time - ``draft-time`` field > expireAfterSeconds) remove
-  document
-
-Result: draft and comments in same index but index only contains
-comments and drafts in progress
-
-State
-
-Pattern: want to have authentication list for logged in accounts so
-users do not have to go through lengthy logins each time system
-access, but want accounts that have had no access to be automagically
-deleted.
-
-system setup:
-- collection on system with an application identifier and a date field
-  storing current access times
-- set up index with ``expireAfterSeconds``
-
-application response:
-- on successful authentication: insert userID & current time
-- on each userID access: update userID's accessTime with current time
-- when logout specified: remove userID from collection
-
-System response:
-- scan through authentication list every minute.
-- checks accessTime, if (current system time - ``accessTime`` field > expireAfterSeconds) remove
-  document
-
-Overall result:
-- authentication list containing current logins
-- Any accounts that have had no activity for a certain period of time
-will be purged from the list.
-
-============
-State saving
-============
-
+.. TODO add introduction
 
 Use Case
 --------
 
-You need to keep a list of updated items but anything not
-updated should be deleted automatically.
+You need to keep a list of updated items but anything not updated
+should be deleted automatically. This is useful for applications that
+require access control such as web-based E-mail, internet banking,
+personalized web services, user account verification, etc.
 
-For example, you want keep a list of users that are actively accessing
-the system so they do not have to repeatly authenticate. Any users that
-have not accessed the system for a long time will be removed from the
-list will have to reauthenticate on their next access.
+For example, you want keep a list of users that are actively using the
+system so they do not have to repeatedly authenticate. Any users who
+do not use the system for a long time will automatically be logged out
+and must reauthenticate.
 
 Solution
 --------
 
-Use MongoDB's TTL collection to store the list of items. Your
-application will query the collection to verify items and update items as
-needed. Any items not updated for a specified period will be deleted
-by the :program:`mongod` process.
+Use MongoDB's TTL collection to store this list. The application will
+only insert new entries, query the collection to verify items on the
+list, and update items as needed. Any items not updated for a
+specified period will be deleted by the :program:`mongod` process.
 
-For example, your application will ensure authentication and insert
-authenticated users into the list. The application will check the list
+For example, the application will ensure authentication and insert
+logged in users into the list. The application will check the list
 when a user accesses the system, if the user is on the list, provide
 access and update their access time entry, otherwise, force the user
 to reauthenticate. MongoDB will maintain the list and delete any
-entries that have not been updated within a specified period.
+entries, which have not been updated.
 
-Elements required:
-- MongoDB version 2.2 or greater.
-- Application to authenticate users, also able to access, insert, and
-  update entries in MongoDB collection.
+Requirements:
+
+- MongoDB version 2.2 or greater for storing list.
+- Application to authenticate users, and is able to access, insert,
+  and update entries in the MongoDB collection.
 
 Steps required:
-- Setup MongodB TTL collection.
-- Application to insert, access, and update MongoDB collection.
+
+#. Set up a MongodB TTL collection.
+#. Application to insert, access, and update MongoDB collection.
 
 Pattern
 -------
 
-The ``eventLog`` collection could be:
+For this example, the logged in user list will be named: ``authLog``
+to store, record, and update users who are authorized to use the system.
+
+The ``authLog`` collection could look like the following:
 
 .. code-block:: javascript
 
@@ -298,63 +61,83 @@ The ``eventLog`` collection could be:
    { "_id" : ObjectId("..."), "userID" : 101, "accessTime" : ISODate("2012-08-02T17:47:27.764Z") }
    { "_id" : ObjectId("..."), "userID" : 102, "accessTime" : ISODate("2012-08-02T17:47:34.788Z") }
 
-An ``eventLog`` collection like the above can be created by using the following commands:
+An ``authLog`` collection like the above can be created by using the following commands:
 
 .. code-block:: javascript
 
-   > db.eventLog.insert( { userID: 100, accessTime: new ISODate() })
-   > db.eventLog.insert( { userID: 101, accessTime: new ISODate() })
-   > db.eventLog.insert( { userID: 102, accessTime: new ISODate() })
+   > db.authLog.insert( { userID: 100, accessTime: new ISODate() })
+   > db.authLog.insert( { userID: 101, accessTime: new ISODate() })
+   > db.authLog.insert( { userID: 102, accessTime: new ISODate() })
 
-Set up TTL collection
-~~~~~~~~~~~~~~~~~~~~~
+The field used to record time, ``accessTime`` in the above example,
+must be an ISODate, otherwise, MongoDB's TTL functionality will not
+work properly.
 
-Setup MongoDB to delete any documents that have an ``accessTime``
-older than one hour by creating a TTL index using command:
+Set up a TTL collection
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Set up MongoDB to index the collection's ``accessTime`` field and delete any
+items that have ``accessTime`` entries older than 300 seconds or five minutes by:
 
 .. code-block:: javascript
 
-   db.eventLog.ensureIndex( { accessTime: 1 }, { expireAfterSeconds: 3600 } )
+   db.authLog.ensureIndex( { accessTime: 1 }, { expireAfterSeconds: 300 } )
 
-Any items in the ``eventLog`` collection older than one hour will be
-removed by the :program:`mongod` instance.
+Any items in the ``authLog`` collection older than 300 seconds will
+be automatically removed by the :program:`mongod` instance. The
+removal duration can be adjusted by specifying a different value for
+``expireAfterSeconds``.
 
 Application response
 ~~~~~~~~~~~~~~~~~~~~
 
-Upon successful user authentication, your application will insert the
-user's entry into the ``eventLog`` collection using the following command:
+Active application input for the ``authLog`` collection is required
+for new entries, verifying entries, and updating entries.
+
+For new entries, such as after successful user authentication, the
+application must insert into the ``authLog`` collection using the
+following command:
 
 .. code-block:: javascript
 
-   > db.eventLog.insert( { userID: 103, accessTime: new ISODate() })
+   > db.authLog.insert( { userID: 103, accessTime: new ISODate() })
 
-Your application can verify if a user is currently authenticated by
-using command:
+To verify user authentication, the application can accomplish this by
+using operation:
 
 .. code-block:: javascript
 
-   > db.eventLog.find( { userID: 101 })
+   > db.authLog.find( { userID: 101 } )
 
-If the result is similar to:
+If the operation result is similar to:
 
 .. code-block:: javascript
 
    { "_id" : ObjectId("..."), "userID" : 101, "accessTime" : ISODate("2012-08-02T17:47:27.764Z") }
 
-The user is currently authenticated and may access the system. If
-there is no result, the user needs to reauthenticate.
+The user is currently authenticated and may access the system. If the
+result is empty, the user is not authenticated and needs to
+reauthenticate.
 
-:program:`mongod` will remove any user entries that have an
-``accessTime`` greater than 1 hour (3600 seconds.)
+To update entries for authenticated users, update the ``accessTime``
+entries using the following command:
+
+.. code-block:: javascript
+
+   db.authenticationLog.update( { userID: 101 }, { $set: { accessTime: new ISODate() } } )
+
+This will set the ``accessTime`` field for ``userID`` 101 to the current
+time. MongoDB will not delete this entry because its ``accessTime``
+field is now newer than 300 seconds.
+
+With TTL enabled, the :program:`mongod` instance will scan the
+collection every minute and remove any user entries that have an
+``accessTime`` greater than five minutes or 300 seconds. Any items
+that have been updated within 300 seconds will remain in the collection.
 
 Overall result
 ~~~~~~~~~~~~~~
 
-
-
-System response:
-- :program:`mongod` will scan TTL collection every minute
-- any items in the collection with a date field that is older than
-  specified will be removed immediately
-- any items updated by the application will remain in the collection
+The application program only needs to insert new entries, verify and
+update time on existing entries. MongoDB will maintain a list of
+authenticated users on the list and delete any old entries.
