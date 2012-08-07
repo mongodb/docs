@@ -21,20 +21,18 @@ Write Concern
 
 When a :term:`client` sends a write operation to a database server,
 the operation will return without waiting for the operation to succeed
-or return. To verify that the operation is successful, use the
+or complete. To verify that the operation has completed, 
+and to check for an error, use the
 :dbcommand:`getLastError` command. You can configure
-:dbcommand:`getLastError` to return after journal flushes to disk or
-after the data itself flushes to disk. For replica sets, you can
+:dbcommand:`getLastError` to wait until the journal flushes to disk or the data itself flushes to disk. For replica sets, you can
 configure :dbcommand:`getLastError` to return only after the write
 operation has propagated to more than one member of the set or to a
 majority of the set's members.
 
-Many drivers have a "safe" or "write concern" mode that automatically
+Many drivers have a "safe" mode or "write concern" that automatically
 issues a :dbcommand:`getLastError` command following write
-operations to ensure that they succeed. "Safe mode,"
-provides confirmation of write operations to clients, which is often
-the expected method of operation, and is particularly useful when
-using standalone instances.
+operations to ensure that they complete. "Safe mode,"
+provides confirmation of write operations to the client.
 
 However, safe writes can take longer to return and are not required in
 all applications. Using the ``w: "majority"`` option for
@@ -47,17 +45,18 @@ of the replica set members:
 .. code-block:: javascript
 
    db.runCommand( { getLastError: 1, w: "majority" } )
-   db.getLastError("majority")
+   db.getLastErrorObj("majority")
 
 You may also specify ``w: 2`` so that the write operation replicates
 to a second member before the command returns.
 
 .. note::
 
-   :dbcommand:`getLastError` assumes the current host,
+   :dbcommand:`getLastError` assumes the primary replica node,
    therefore, ``w: 2`` waits until the :term:`primary` and one other
-   member of the replica set commits the write operation. The current
-   primary always counts as ``w: 1``.
+   member of the replica set acknowledges the write operation. The current
+   primary always counts as ``w: 1``. Using ``w: 0`` makes no sense and should
+   not be done.
 
 You can also configure a "default" :dbcommand:`getLastError` behavior on the
 replica set configuration. For instance:
@@ -65,19 +64,18 @@ replica set configuration. For instance:
 .. code-block:: javascript
 
    cfg = rs.conf()
-   cfg.settings.getLastErrorDefaults = {w: "majority", fsync: false, j: true}
+   cfg.settings.getLastErrorDefaults = {w: "majority", j: true}
    rs.reconfig(cfg)
 
 When the new configuration is active, the effect of the
 :dbcommand:`getLastError` operation will wait until the write
-operation has succeeded on a majority of the set members before writing. By
-specifying ``fsync: false`` and ``j: true`` a successful commit of
-the operation to the journal is all that :dbcommand:`getLastError`
-requires to return succesullly, rather than a full flush to disk. Use this the
-:data:`getLastErrorDefaults`" setting on the sever level to define the
-standards for a set-wide "safe mode." The default setting will only
-affect :dbcommand:`getLastError` commands with *no* other
-arguments.
+operation has completed on a majority of the set members before writing. By
+specifying ``j: true`` a complete commit of the operations to the 
+journal is all that :dbcommand:`getLastError` requires to return. Use the
+:data:`getLastErrorDefaults`" setting in the :ref:`replica set` configuration 
+to define the standards for a set-wide "safe mode." 
+The default setting will only affect :dbcommand:`getLastError` 
+commands with *no* other arguments.
 
 .. index:: read preference
 .. index:: slaveOk
