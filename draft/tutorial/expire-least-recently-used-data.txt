@@ -11,23 +11,31 @@ Expire Least Recently Used Data from a Collection
 Use Case
 --------
 
-You need to keep a list of updated items but anything not updated
-should be deleted automatically. This is useful for applications that
-require access control such as web-based E-mail, internet banking,
-personalized web services, user account verification, etc.
+You need to keep a current list of items, which anything not current
+is removed from the list. At any point in time, the list only contains
+current items.
+You need to keep a list of items but anything not
+updated should be deleted automatically. This is useful for
+applications that require access control such as web-based E-mail,
+internet banking, personalized web services, user account
+verification, etc.
 
+.. TODO rewrite - to be an authorization list
 For example, you want keep a list of users that are actively using the
 system so they do not have to repeatedly authenticate. Any users who
-do not use the system for a long time will automatically be logged out
+are not authorized  use the system for a long time will automatically be logged out
 and must reauthenticate.
 
 Solution
 --------
 
-Use MongoDB's TTL collection to store this list. The application will
-only insert new entries, query the collection to verify items on the
-list, and update items as needed. Any items not updated for a
-specified period will be deleted by the :program:`mongod` process.
+.. TODO be clearer that mongodb will only see the list as a
+.. document. it's upto the application to maintain the list.
+Use MongoDB's TTL collection to manage the 'garbage clean up' for this
+list. Your application will only insert new entries, query the
+collection to verify items on the list, and update items as
+needed. Any items not updated for a specified period will be deleted
+by the :program:`mongod` process.
 
 For example, the application will ensure authentication and insert
 logged in users into the list. The application will check the list
@@ -38,7 +46,7 @@ entries, which have not been updated.
 
 Requirements:
 
-- MongoDB version 2.2 or greater for storing list.
+- MongoDB version 2.2 or greater.
 - Application to authenticate users, and is able to access, insert,
   and update entries in the MongoDB collection.
 
@@ -53,7 +61,7 @@ Pattern
 For this example, the logged in user list will be named: ``authLog``
 to store, record, and update users who are authorized to use the system.
 
-The ``authLog`` collection could look like the following:
+An ``authLog`` collection could look like the following:
 
 .. code-block:: javascript
 
@@ -61,7 +69,7 @@ The ``authLog`` collection could look like the following:
    { "_id" : ObjectId("..."), "userID" : 101, "accessTime" : ISODate("2012-08-02T17:47:27.764Z") }
    { "_id" : ObjectId("..."), "userID" : 102, "accessTime" : ISODate("2012-08-02T17:47:34.788Z") }
 
-An ``authLog`` collection like the above can be created by using the following commands:
+The ``authLog`` collection above can be created by using the following commands:
 
 .. code-block:: javascript
 
@@ -76,16 +84,17 @@ work properly.
 Set up a TTL collection
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Set up MongoDB to index the collection's ``accessTime`` field and delete any
-items that have ``accessTime`` entries older than 300 seconds or five minutes by:
+Set up MongoDB to index the collection's ``accessTime`` field and
+delete any items that have ``accessTime`` entries older than 300
+seconds or five minutes by:
 
 .. code-block:: javascript
 
    db.authLog.ensureIndex( { accessTime: 1 }, { expireAfterSeconds: 300 } )
 
-Any items in the ``authLog`` collection older than 300 seconds will
-be automatically removed by the :program:`mongod` instance. The
-removal duration can be adjusted by specifying a different value for
+Any items in the ``authLog`` collection older than 300 seconds will be
+automatically removed by the :program:`mongod` instance. The removal
+duration can be adjusted by specifying a different value for
 ``expireAfterSeconds``.
 
 Application response
@@ -138,6 +147,7 @@ that have been updated within 300 seconds will remain in the collection.
 Overall result
 ~~~~~~~~~~~~~~
 
+.. TODO make better summary
 The application program only needs to insert new entries, verify and
 update time on existing entries. MongoDB will maintain a list of
 authenticated users on the list and delete any old entries.
