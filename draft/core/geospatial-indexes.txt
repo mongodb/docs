@@ -8,14 +8,12 @@ Overview
 --------
 
 MongoDB supports location-based queries and geospatial data with a
-special index for coordinate data. The geospatial index stores :ref:`geohashes
+special index. The geospatial index stores :ref:`geohashes
 <geospatial-geohash>`, and makes it possible to query documents
 based on proximity or within a bounded region. MongoDB can
-calculate distances using flat or spherical geometry.
+calculate distances using flat or spherical geometry models.
 Additionally, geospatial haystack indexes provide additional
-support for tuning indexes.
-
-.. TODO double check haystack benefits.
+support for specific data distribution.
 
 This document introduces the core concepts that underpin geospatial
 indexes in MongoDB. For more information,
@@ -29,11 +27,8 @@ of all location-based operations and queries.
 Geospatial Indexes
 ------------------
 
-.. see:: :ref:`geospatial-coordinates` for an overview on modeling
-   location data in MongoDB.
-
-To use geospatial operators in MongoDB, use the :func:`ensureIndex
-<db.collection.ensureIndex()>` method with the ``2d`` value on
+To create a geospatial index, use the :func:`ensureIndex
+<db.collection.ensureIndex()>` method with the value ``2d`` for the
 location field of your collection. Consider the following prototype
 operation:
 
@@ -44,11 +39,16 @@ operation:
 Almost all geospatial operators will query this index for location
 data.  The index comprises of :term:`geohashes <geohash>` calculated
 from location values and the index's geospatial :ref:`range
-<geospatial-indexes-range`.  For more information on :term:`geohash`,
+<geospatial-indexes-range>`.  For more information on :term:`geohash`,
 please refer to the :ref:`geohash <geospatial-geohash>` section.
 
 To perform queries on your geospatial data, please see
-:doc:`/applications/geospatial-indexes`.
+:ref:`geospatial-querying`.
+
+.. TODO fix this... weird duplicate reference? 
+
+.. see:: :ref:`<geospatial-coordinates>` for an overview on modeling
+   location data in MongoDB.
 
 .. note::
 
@@ -63,10 +63,9 @@ Range
 
 All geospatial indexes are bounded to a range as this range is used to
 compute :term:`geohash` values. MongoDB will return an error and
-reject documents with coordinate data outside of the specified range,
-because the :term:`geohash` value will be invalid. The default range
-assumes latitude and longitude data, and are between -180 inclusive
-and 180 non-inclusive (i.e. ``[-180, 180)``.)
+reject documents with coordinate data outside of the specified range.
+The default range assumes latitude and longitude data, and are between
+-180 inclusive and 180 non-inclusive (i.e. ``[-180, 180)``.)
 
 To configure the range of a geospatial index, use the ``min`` and
 ``max`` options with the :func:`ensureIndex() <db.collection.ensureIndex()>`
@@ -76,16 +75,6 @@ operation, as in the following prototype:
 
    db.collection.ensureIndex( { <location field>: "2d" } ,
                               { min: <lower bound> , max: <upper bound> } )
-
-.. TODO this might not be necessary...
-
-The following example command will create a geospatial index with a
-range between ``-90`` and ``90``:
-
-.. code-block:: javascript
-
-   db.places.ensureIndex( { loc: "2d" } ,
-                          { min: -90 , max: 90 } )
 
 For more information see the :ref:`geospatial precision
 <geospatial-indexes-precision>` and :ref:`geohash
@@ -112,10 +101,6 @@ to roughly 2 feet or about 60 centimeters using the default range of
 The precision of a geospatial index can be configured during creation by
 specifying the ``bits`` option to the :func:`ensureIndex()
 <db.command.ensureIndex()>` method, as in the following prototype:
-
-.. TODO question: would the index recalculate geohashes if we
-.. reconfigure the bits option after the index has been made? or do we
-.. need to drop the index?
 
 .. code-block:: javascript
 
@@ -161,7 +146,7 @@ such as "take-out," or "bar".
 Haystack Index
 ~~~~~~~~~~~~~~
 
-Geospatial haystack indexes make it possible to tune the index to the
+Geospatial haystack indexes make it possible to tune for the
 distribution of your data and build a special bucket index. Haystack
 indexes improve query performance for queries limited to a specific
 area.
@@ -197,18 +182,13 @@ documents.
 
 .. _geospatial-spherical-geometry:
 
-.. TODO think of better title: Distances in Flat and Spherical
-.. Geometry
-.. using flat or spherical geometry
-.. Spherical and Flat Geometry System
+Distance Calculation Modes
+--------------------------
 
-Spatial Representation Systems
-------------------------------
-
-MongoDB supports two geometry systems for calculating distances
-between points. The default calculation is based on flat geometry,
-which points lie on a flat surface. User spherical query operators to
-calculate distances between points that lie on a spherical surface
+MongoDB can calculate distances using two geometry systems: flat and
+spherical. The default flat geometry, which model points on a flat
+surface. To use spherical geometry to calculate distances, use
+spherical query operators, which model points on a spherical surface
 (i.e. coordinates on Earth.)
 
 .. note::
