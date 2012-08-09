@@ -260,6 +260,15 @@ process, or server instance itself. These are "processes" or
 structure that holds collections and refers to a group of files on
 disk.)
 
+Distributed System Terms
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Refer to partitioned systems as "shard clusters," over other
+  variants. (e.g. sharded clusters, or sharded systems.)
+
+- Refer configurations that run with replication as "replica sets" (or
+  "master/slave deployments") rather than "clusters" or other variants.
+
 Data Structures
 ~~~~~~~~~~~~~~~
 
