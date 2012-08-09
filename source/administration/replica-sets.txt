@@ -4,11 +4,12 @@ Replica Set Administration
 
 .. default-domain:: mongodb
 
-:term:`Replica sets <replica set>` automate the vast majority of the
-administrative tasks associated with database replication and
-management. However, administrators must perform some tasks manually.
-This document gives an overview of those tasks. This document also
-provides troubleshooting suggestions.
+:term:`Replica sets <replica set>` automate most
+administrative tasks associated with database replication.
+However, some tasks related to deployment and system management still
+require administrator intervention. This document provides an overview
+of those those tasks as well as a collection of troubleshooting
+suggestions for administers of replica sets.
 
 .. seealso::
 
@@ -39,10 +40,10 @@ the following to prepare the new member's :term:`data directory <dbpath>`:
 - Make sure the new member's data directory *does not* contain data. The
   new member will copy the data directory from an existing member.
 
-  If the new member is in ":term:`recovering`" status, it must exit
-  recovering status and become a :term:`secondary` member before MongoDB
-  can copy all data as part of the replication process. This process can
-  be time intensive but does not require administrator intervention.
+  If the new member is in a ":term:`recovering`" state, it must exit
+  become a :term:`secondary` before MongoDB
+  can copy all data as part of the replication process. This process
+  takes time but does not require administrator intervention.
 
 - Manually copy the data directory from an existing member. The new
   member becomes a secondary member and will catch up to the current
@@ -51,7 +52,7 @@ the following to prepare the new member's :term:`data directory <dbpath>`:
   current.
 
   Ensure that you can copy the data directory to the new member and
-  begin replication within the window allowed by the oplog. If the
+  begin replication within the :ref:`window allowed by the oplog <replica-set-oplog-sizing>`. If the
   difference in the amount of time between the most recent operation and
   the most recent operation to the database exceeds the length of the
   :term:`oplog` on the existing members, then the new instance will have
@@ -168,12 +169,12 @@ There are two processes for replacing a member of a :term:`replica set`:
 .. warning::
 
    Any replica set configuration change can trigger the current
-   :term:`primary` to step down, forcing an :term:`election`. This
-   causes the current shell session to produce an error even when the
-   operation succeeds. Also, clients connected to this replica set will
-   disconnect.
+   :term:`primary` to step down, which forces an :term:`election`. This
+   causes the current shell session, and clients connected to this replica set,
+   to produce an error even when the operation succeeds.
 
 .. _replica-set-node-priority-configuration:
+.. _replica-set-member-priority-configuration:
 
 Adjusting Priority
 ~~~~~~~~~~~~~~~~~~~~
@@ -205,8 +206,7 @@ elections. :ref:`Hidden members <replica-set-hidden-members>`,
 :ref:`arbiters <replica-set-arbiters>` all have :data:`members[n].priority`
 set to ``0``.
 
-Unless configured otherwise, all members have a :data:`members[n].priority`
-set to ``1``.
+All members have a :data:`members[n].priority` equal to ``1`` by default.
 
 The value of :data:`members[n].priority` can be any floating point
 (i.e. decimal) number between ``0`` and ``1000``. Priorities
@@ -243,31 +243,32 @@ cases the :ref:`default oplog size <replica-set-oplog-sizing>` is an
 acceptable size; however, in some situations you may need a larger or
 smaller oplog. To resize the oplog, follow these steps:
 
-1. Restart the current :term:`primary` instance in the :term:`replica set` in
+#. Restart the current :term:`primary` instance in the :term:`replica set` in
    "standalone" mode, running on a different port.
 
-2. Save the last entry from the old (current) oplog and create a
+#. Save the last entry from the old (current) oplog and create a
    backup of the oplog.
 
-3. Drop the old oplog and create a new oplog of a different size.
+#. Drop the existing oplog and create a new oplog of a different size.
 
-4. Insert the previously saved last entry from the old oplog into the
+#. Insert the previously saved last entry from the old oplog into the
    new oplog.
 
-5. Restart the server as a member of the replica set on its usual
+#. Restart the server as a member of the replica set on its usual
    port.
 
-6. Apply this procedure to any other member of the replica set that
+#. Apply this procedure to any other member of the replica set that
    *could become* primary.
 
 .. seealso:: The ":doc:`/tutorial/change-oplog-size`" tutorial.
 
 .. _replica-set-node-configurations:
+.. _replica-set-member-configurations:
 
 Member Configurations
 ---------------------
 
-All :term:`replica set's` have a single :term:`primary` and one or more
+All :term:`replica sets <replica set>` have a single :term:`primary` and one or more
 :term:`secondaries <secondary>`. Replica sets sets allow you to configure
 secondary members in a variety of ways. This section describes these
 configurations.
@@ -345,7 +346,7 @@ operations in the :program:`mongo` shell:
    rs.reconfig(cfg)
 
 After re-configuring the set, the member with the ``_id`` of ``0``
-has a priority of ``0`` so that it cannot become master. The
+has a priority of ``0`` so that it cannot become primary. The
 other members in the set will not advertise the hidden member in the
 :dbcommand:`isMaster` or :func:`db.isMaster()` output.
 
@@ -479,8 +480,7 @@ shared key file that serves as a shared password.
 
 .. versionadded:: 1.8 for replica sets (1.9.1 for sharded replica sets) added support for authentication.
 
-To enable authentication using a key file for the replica set,
-add the following option to your configuration file:
+To enable authentication add the following option to your configuration file:
 
 .. code-block:: cfg
 

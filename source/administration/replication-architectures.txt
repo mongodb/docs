@@ -4,27 +4,28 @@ Replication Architectures
 
 .. default-domain:: mongodb
 
-There is no single :term:`replica set` architecture that is ideal for
+There is no single ideal :term:`replica set` architecture for
 every deployment or environment. Indeed the flexibility of replica sets
 might be their greatest strength. This document describes the most
 commonly used deployment patterns for replica sets. The descriptions
-are necessarily not mutually exclusive and in some cases can be combined.
+are necessarily not mutually exclusive, and you can combine features
+of each architecture in your own deployment.
 
 .. seealso:: :doc:`/administration/replica-sets` and
-   :doc:`/reference/replica-configuration`
+   :doc:`/reference/replica-configuration`.
 
-Three-Member Sets
-------------------
+Three Member Sets
+-----------------
 
-The minimum *recommended* architecture for a replica set consists of
+The minimum *recommended* architecture for a replica set consists of:
 
-- One :term:`primary <primary>`
+- One :term:`primary <primary>` and
 
 - Two :term:`secondary <secondary>` members, either of which can become
   the primary at any time.
 
   This makes :ref:`failover <replica-set-failover>` possible and ensures
-  there exists two full, independent copies of the data set at all
+  there exists two full and independent copies of the data set at all
   times. If the primary fails, the replica set elects another member as
   primary and continues replication until the primary recovers.
 
@@ -58,8 +59,8 @@ conditions are true:
 - Members that cannot function as primaries in a :term:`failover`
   have their :data:`priority <members[n].priority>` values set to ``0``.
 
-  If a member cannot function as a primary, for example because of
-  resource constraints, a :data:`priority <members[n].priority>` value
+  If a member cannot function as a primary because of
+  resource or network latency constraints a :data:`priority <members[n].priority>` value
   of ``0`` prevents it from being a primary. Any member with a
   ``priority`` value greater than ``0`` is available to be a primary.
 
@@ -73,9 +74,7 @@ Geographically Distributed Sets
 -------------------------------
 
 A geographically distributed replica set provides data recovery should
-the primary data center fail.
-
-A geographically distributed set includes at least one member in a
+one data center fail. These sets include at least one member in a
 secondary data center. The member has its the :data:`priority
 <members[n].priority>` :ref:`set <replica-set-reconfiguration-usage>` to
 ``0`` to prevent the member from ever becoming primary.
@@ -89,10 +88,10 @@ In many circumstances, these deployments consist of the following:
   This member can become the primary member at any time.
 
 - One secondary member in a secondary data center. This member is
-  ineligible to become primary. Its :data:`members[n].priority` value is
-  set to ``0``.
+  ineligible to become primary. Set its :data:`members[n].priority` to
+  ``0``.
 
-If the primary member should fail, the replica set elects a new primary
+If the primary is unavailable, the replica set will elect a new primary
 from the primary data center.
 
 If the *connection* between the primary and secondary data centers fails,
@@ -104,8 +103,8 @@ from the secondary data center. With proper :term:`write concern` there
 will be no data loss and downtime can be minimal.
 
 When you add a secondary data center, make sure to keep an odd number of
-members overall to prevent ties during elections for primary. This can
-be done by deploying an :ref:`arbiter <replica-set-arbiters>` in your
+members overall to prevent ties during elections for primary by
+deploying an :ref:`arbiter <replica-set-arbiters>` in your
 primary data center. For example, if you have three members in the
 primary data center and add a member in a secondary center, you create
 an even number. To create an odd number and prevent ties, deploy an
@@ -175,17 +174,18 @@ Delayed Replication
 ~~~~~~~~~~~~~~~~~~~
 
 :term:`Delayed members <delayed member>` are special :program:`mongod`
-instances in a :term:`replica set` that function the same way as
-:term:`secondary` members with the following operational differences:
-they are not eligible for election to primary and do not receive
-secondary queries. Delayed members *do* vote in :term:`elections
-<election>` for primary.
-
-Delayed members apply operations from the :term:`oplog` on a delay to
+instances in a :term:`replica set` that
+apply operations from the :term:`oplog` on a delay to
 provide a running "historical" snapshot of the data set, or a rolling
 backup. Typically these members provide protection against human error,
 such as unintentionally deleted databases and collections or failed
 application upgrades or migrations.
+
+Otherwise, delayed member function identically to
+:term:`secondary` members, with the following operational differences:
+they are not eligible for election to primary and do not receive
+secondary queries. Delayed members *do* vote in :term:`elections
+<election>` for primary.
 
 See :ref:`Replica Set Delayed Nodes <replica-set-delayed-members>` for
 more information about configuring delayed replica set members.
@@ -237,8 +237,8 @@ primary *and* a quorum of voting members in the main facility.
 
 .. _replica-set-arbiter-nodes:
 
-Arbiter Nodes
--------------
+Arbiters
+--------
 
 Always deploy an :term:`arbiter` to ensure that a replica set will have
 a sufficient number of members to elect a :term:`primary`. While having
@@ -258,6 +258,6 @@ resource requirements and do not require dedicated hardware. Do not add
 an arbiter to a set if you have an odd number of voting members that hold
 data, to prevent tied :term:`elections <election>`.
 
-.. seealso:: :ref:`Arbiter Nodes <replica-set-arbiters>`,
+.. seealso:: :ref:`Arbiters <replica-set-arbiters>`,
    :setting:`replSet`, :option:`mongod --replSet`, and
    :func:`rs.addArb()`.
