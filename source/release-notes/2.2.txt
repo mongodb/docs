@@ -71,6 +71,8 @@ downtime, use the following procedure:
    upgrade by replacing the :program:`mongod` binary with the 2.2
    binary.
 
+.. _2.2-upgrade-shard-cluster:
+
 Upgrading a Shard Cluster
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -105,32 +107,50 @@ Major Features
 Aggregation Framework
 `````````````````````
 
-Documentation: :doc:`/applications/aggregation`
+The aggregation framework makes it possible to do aggregation
+operations without needing to use :term:`map-reduce`. The
+:dbcommand:`aggregate` exposes the aggregation framework, and the
+:func:`db.collection.aggregate()` helper in the :program:`mongo` shell
+provides an interface to these operations. Consider the following
+resources for background on the aggregation framework and its use:
 
-Reference: :doc:`/reference/aggregation`
+- Documentation: :doc:`/applications/aggregation`
 
-Examples: :doc:`/tutorial/aggregation-examples`
+- Reference: :doc:`/reference/aggregation`
+
+- Examples: :doc:`/tutorial/aggregation-examples`
 
 TTL Collections
 ```````````````
 
-Documentation: :doc:`/tutorial/expire-data`
+TTL collections remove stale data from a collection, using a special
+index and a background thread that deletes expired documents every
+minute. These collections are useful as an alternative to
+:term:`capped collections <capped collection>` in some cases, for data
+warehousing and caching cases including: machine generated event data,
+logs, and session information that only need to persist in a database
+for a limited period of time.
+
+For more information, see the :doc:`/tutorial/expire-data` tutorial.
 
 Concurrency Improvements
 ````````````````````````
 
-Issues:
+In 2.2 MongoDB increases the database's capability for concurrent
+operations using with two key improvements:
 
-- :issue:`DB Level Locking <SERVER-4328>`
-- :issue:`Improved Yielding on Page Faults <SERVER-3357>`
+#. :issue:`DB Level Locking <SERVER-4328>`
+#. :issue:`Improved Yielding on Page Faults <SERVER-3357>`
 
-.. TODO mention server stats reporting here. currentOp, serverStatus, profile.
+To reflect these changes, MognODB now provides changed and improved
+reporting for concurrency and use, see the :ref:`locks` and
+:ref:`server-status-record-stats` in :doc:`server status
+</reference/server-status>` and in the output of
+:func:`db.currentOp()` as well as :doc:`mongotop
+</reference/mongotop>` and :doc:`mongostat </reference/mongostat>` and
+in .
 
-Documentation: Updated reporting on :ref:`locks` in :doc:`server
-status </reference/server-status>` as well as :doc:`mongotop
-</reference/mongotop>` and :doc:`mongostat </reference/mongostat>`.
-
-.. TODO add links to current op when it happens.
+.. TODO add links to current op output documentation when it happens.
 
 Tag Aware Sharding
 ``````````````````
@@ -142,20 +162,44 @@ Tag Aware Sharding
 Fully Supported Read Preference Semantics
 `````````````````````````````````````````
 
-.. TODO write blurb mentioning mongos.
+All MongoDB clients and drivers now support full :ref:`read
+preferences <replica-set-read-preference>` including consistent
+support for a full range of :ref:`read preference modes
+<replica-set-read-preference-modes>` and :ref:`tag sets
+<replica-set-read-preference-tag-sets>`. This support extends to the
+:program:`mongos` and applies similarly to both single replica sets,
+and replica sets that provide components of a shard cluster.
 
-   mongos and all major drivers support full read preference as
-   specified:
-
-:ref:`replica-set-read-preference`
+Additional read preference support now exists in the :program:`mongo`
+shell using the :func:`reaPref() <cursor.readPref()>` cursor method.
 
 .. including tagging
 
 Compatibility Changes
 ~~~~~~~~~~~~~~~~~~~~~
 
-.. TODO add sections here to describe compatibility changes with
-   regards to authentication, drivers, and mongos'
+Authentication Changes
+``````````````````````
+
+In order to provide more reliable and robust support for
+authentication clients, including drivers and :program:`mongos`
+instances.
+
+If your :program:`mongod` instances or cluster is running with
+authentication:
+
+- In sharded environments, 2.0 version :program:`mongos` instances are
+  **not** compatible with 2.2 shard clusters running with
+  authentication. Use the :ref:`upgrade procedure for shard clusters
+  <2.2-upgrade-shard-cluster>` and upgrade all :program:`mongos`
+  instances to prevent operational difficulty.
+
+- For all drivers, use the latest release of your driver and check
+  its release notes.
+
+Drivers and :program:`mongos` instances that connect to
+:program:`mongod` instances that do *not* have authentication enabled
+are not affected by this issue.
 
 .. _2.2-findandmodify-returns-null:
 
@@ -316,9 +360,6 @@ Support for logging to Syslog
 
 :issue:`SERVER-2957`
 
-Improved Authentication Support
-```````````````````````````````
-
 ``touch`` Command
 `````````````````
 
@@ -408,16 +449,21 @@ code base.
 
 .. TODO help the verbs
 
-Additionally, added a flag to ``scons`` so that the build process can
-use system libraries, if desired. To build MongoDB with system
-libraries for all libraries, use the following arguments to ``scons``:
+If you want to build MongoDB binaries using system Boost libraries,
+you can pass ``scons`` the ``--use-system-boost`` flag, as follows:
+
+.. code-block:: sh
+
+   scons --use-system-boost
+
+There is also a flag in ``scons`` if you want to build MongoDB using
+all system libraries rather than the included versions of the
+libraries, if desired. To build MongoDB with system libraries for all
+libraries, use the following arguments to ``scons``:
 
 .. code-block:: sh
 
    scons --use-system-all
-
-You can use the ``--use-system-boost`` to only use the system Boost
-library.
 
 See the :issue:`SERVER-3829` and :issue:`SERVER-5172` issues for more
 information.
