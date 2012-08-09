@@ -42,7 +42,15 @@ Use Case
   The pages are assembled from fact database queries and the
   amalgamated pages are stored on the content database.
 
-- 
+- Draft comment 
+
+  Web site comments are saved on the server temporarily until the
+  visitor submits. If the visitor does not submit, then the comment
+  will be cleared from the server.
+
+  Comments are stored in a single collection and any items with a
+  draft time will be monitored for updates. If the draft comments are
+  not updated for a period, MongoDB deletes the draft from the collection.
 
 .. TODO eliminate 'lists' too many. focus on 'collection'
 You need to keep a current list of items, which anything not current
@@ -79,8 +87,7 @@ Solution
 Requirements:
 
 - MongoDB version 2.2 or greater.
-- Application to authenticate users, and is able to access, insert,
-  and update entries in the MongoDB collection.
+- Online store application that connects to MongoDB.
 
 Process:
 
@@ -90,100 +97,79 @@ Process:
 Pattern
 -------
 
-For this example, the logged in user list will be named: ``authLog``
-to store, record, and update users who are authorized to use the system.
+.. TODO find a better name for cartInfo
 
-An ``authLog`` collection could look like the following:
+For this example, the logged in user list will be named: ``cartInfo``
+to store, record, and update users who are authorized to use the
+system.
 
-.. code-block:: javascript
-
-   { "_id" : ObjectId("..."), "userID" : 100, "accessTime" : ISODate("2012-08-02T17:47:15.275Z") }
-   { "_id" : ObjectId("..."), "userID" : 101, "accessTime" : ISODate("2012-08-02T17:47:27.764Z") }
-   { "_id" : ObjectId("..."), "userID" : 102, "accessTime" : ISODate("2012-08-02T17:47:34.788Z") }
-
-The ``authLog`` collection above can be created by using the following commands:
+An ``storeCarts`` collection could look like the following:
 
 .. code-block:: javascript
 
-   > db.authLog.insert( { userID: 100, accessTime: new ISODate() })
-   > db.authLog.insert( { userID: 101, accessTime: new ISODate() })
-   > db.authLog.insert( { userID: 102, accessTime: new ISODate() })
+   { "_id" : ObjectId("..."), 
+     "cartID" : 100, 
+     "lastChange" : ISODate("2012-08-02T17:47:15.275Z"),
+     "cartItems": [ soap, sugar, milk ] }
 
-The field used to record time, ``accessTime`` in the above example,
-must be an ISODate, otherwise, MongoDB's TTL functionality will not
-work properly.
+   { "_id" : ObjectId("..."), 
+     "cartID" : 101,
+     "lastChange" : ISODate("2012-08-02T17:47:15.275Z"),
+     "cartItems": [ milk, bread, eggs ] }
 
-.. TODO kill functionality 
+   { "_id" : ObjectId("..."), 
+     "cartID" : 102,
+     "lastChange" : ISODate("2012-08-02T17:47:15.275Z"),
+     "cartItems": [ sugar, flour, eggs ] }
+
+The above can be created by using the following commands:
+
+.. code-block:: javascript
+
+   > db.store.insert( { cartID: 100, lastChange: new
+     ISODate(), "cartItems": [ soap, sugar, milk ] })
+
+   > db.store.insert( { cartID: 101, lastChange: new
+     ISODate(), "cartItems": [ milk, bread, eggs ] } ) 
+
+   > db.store.insert( { cartID: 102, lastChange: new
+     ISODate(), "cartItems": [ sugar, flour, eggs ] } })
 
 Set up a TTL collection
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Set up MongoDB to index the collection's ``accessTime`` field and
-delete any items that have ``accessTime`` entries older than 300
-seconds or five minutes by:
+Set up MongoDB with a TTL index to delete any carts that are older
+than 86,400 seconds or 24 hours:
  
 .. code-block:: javascript
 
-   db.authLog.ensureIndex( { accessTime: 1 }, { expireAfterSeconds: 300 } )
+   db.store.ensureIndex( { lastChange: 1 }, { expireAfterSeconds: 86400 } )
 
-Any items in the ``authLog`` collection older than 300 seconds will be
-automatically removed by the :program:`mongod` instance. The removal
-duration can be adjusted by specifying a different value for
-``expireAfterSeconds``.
+``lastChange`` is used to determine which items to be deleted. If this
+field contains an entry older than 86,400 seconds, :program:`mongod`
+will delete it from the collection.
 
 Application response
 ~~~~~~~~~~~~~~~~~~~~
 
-Active application input for the ``authLog`` collection is required
-for new entries, verifying entries, and updating entries.
-
-For new entries, such as after successful user authentication, the
-application must insert into the ``authLog`` collection using the
-following command:
+When the shopper adds or removes items from their cart, update the
+document using:
 
 .. code-block:: javascript
 
-   > db.authLog.insert( { userID: 103, accessTime: new ISODate() })
+   db.store.update( { cartID: 101 }, { $set: { lastChange: new
+   ISODate(), items: [ ... ] } } )
 
-To verify user authentication, the application can accomplish this by
-using operation:
-
-.. TODO rewrite without 'this'
-
-.. code-block:: javascript
-
-   > db.authLog.find( { userID: 101 } )
-
-If the operation result is similar to:
-
-.. code-block:: javascript
-
-   { "_id" : ObjectId("..."), "userID" : 101, "accessTime" : ISODate("2012-08-02T17:47:27.764Z") }
-
-The user is currently authenticated and may access the system. If the
-result is empty, the user is not authenticated and needs to
-reauthenticate.
-
-To update entries for authenticated users, update the ``accessTime``
-entries using the following command:
-
-.. code-block:: javascript
-
-   db.authenticationLog.update( { userID: 101 }, { $set: { accessTime: new ISODate() } } )
-
-This will set the ``accessTime`` field for ``userID`` 101 to the current
-time. MongoDB will not delete this entry because its ``accessTime``
-field is now newer than 300 seconds.
-
-With TTL enabled, the :program:`mongod` instance will scan the
-collection every minute and remove any user entries that have an
-``accessTime`` greater than five minutes or 300 seconds. Any items
-that have been updated within 300 seconds will remain in the collection.
+It is essential to not only update the ``items`` field, but to update
+``lastChange`` with the current time. This field is used by
+:program:`mongod` to keep track of the document's age.
 
 Overall result
 ~~~~~~~~~~~~~~
 
-.. TODO make better summary
-The application program only needs to insert new entries, verify and
-update time on existing entries. MongoDB will maintain a list of
-authenticated users on the list and delete any old entries.
+A sample Least Recently Used TTL pattern has been demonstrated. TTL
+collections have many application areas, when used with the proper
+application support, they can be applied to LRU
+situations. Fundamentally, setting up a LRU collection is no different
+than TTL, but proper application action are necessary to maintain
+expected results.
