@@ -30,13 +30,15 @@ levels are:
   operations, and modified the :program:`mongod` instances in-memory
   representation of the data.
 
-- with the ``journal`` option. Confirms that the server has committed
+- with the ``j`` or "journal" option. Confirms that the server has committed
   the data to the on-disk journal. This ensures that the data will be
   durable in the event that :program:`mongod` experiences an
   unexpected shut down.
 
 - with the ``fsync`` option. Confirms that the :program:`mongod` has
-  flushed the write operation to disk.
+  flushed the write operation to disk. Do not use this operation in
+  normal production situations: use ``j`` to ensure this level of
+  durability.
 
 - for replica sets, with the ``w`` option. Confirms that the write
   operation has replicated to the specified number of
@@ -70,7 +72,12 @@ returns.
    set, or the :term:`primary` and one other member of the replica set
    before confirming the write operation.
 
-   Using ``w: 0`` is valid but does not produce useful behavior.
+   If you specify a ``w`` value greater than the number running
+   members of the set, the operation will block until those numbers
+   join the set. Use the ``wtimeoute`` argument to specify a timeout
+   threshold for the :dbcommand:`getLastError` operation.
+
+   ``w: 0`` is valid but has no effect, and is equivelent to a no-op.
 
 You can also configure a "default" :dbcommand:`getLastError` behavior
 for the replica set configuration. Use the
