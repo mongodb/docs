@@ -25,6 +25,8 @@ documentation team to contribute to documentation.
 **2012-03-21**: Merged in content from the Jargon, and cleaned up
 style in light of recent experiences.
 
+**2012-08-10**: Bob proposed an addition to the *Referencing* section.
+
 Naming Conventions
 ------------------
 
@@ -145,6 +147,18 @@ Referencing
   database commands, settings) always reference only the first
   occurrence of the reference in a section. You should *always*
   reference objects, except in section headings.
+
+- Structure references with the *why* first; the link second.
+
+  For example, instead of this:
+
+  Use the :doc:`/tutorial/convert-replica-set-to-replicated-shard-cluster`
+  procedure if you have an existing replica set.
+
+  Type this:
+
+  To deploy a shard cluster for an existing replica set, see
+  :doc:`/tutorial/convert-replica-set-to-replicated-shard-cluster`.
 
 General Formulations
 ~~~~~~~~~~~~~~~~~~~~
