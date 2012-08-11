@@ -99,7 +99,7 @@ setup:
 deploy-one:source/about.txt $(BUILDDIR)/html
 deploy-two:$(CURRENTBUILD) $(CURRENTBUILD)/release.txt $(CURRENTBUILD)/MongoDB-Manual.pdf $(CURRENTBUILD)/MongoDB-Manual.epub
 deploy-three:$(CURRENTBUILD)/single $(CURRENTBUILD)/single/search.html $(CURRENTBUILD)/single/genindex.html $(CURRENTBUILD)/single/index.html
-deploy-four:$(publication-output)/index.html $(publication-output)/10gen-gpg-key.asc $(CURRENTBUILD)/tutorials
+deploy-four:$(publication-output)/index.html $(publication-output)/10gen-gpg-key.asc $(CURRENTBUILD)/tutorials $(publication-output)/index.html
 
 # Establish dependencies for building the manual. Also helpful in
 # ordering the build itself.
@@ -162,6 +162,8 @@ $(publication-output)/manual:manual
 	mv $< $@
 	-rm -f $(CURRENTBUILD)/manual
 $(publication-output)/index.html:themes/docs.mongodb.org/index.html
+	cp $< $@
+$(publication-output)/.htaccess:themes/docs.mongodb.org/.htaccess
 	cp $< $@
 $(publication-output)/10gen-gpg-key.asc:themes/docs.mongodb.org/10gen-gpg-key.asc
 	cp $< $@
