@@ -10,7 +10,7 @@ Synopsis
 This document describes how to deploy a :term:`shard cluster` for a
 standalone :program:`mongod` instance.
 
-To deploy a shard cluster for an existing replica set, see instead
+To deploy a shard cluster for an existing replica set, see
 :doc:`/tutorial/convert-replica-set-to-replicated-shard-cluster`.
 
 Requirements
@@ -26,7 +26,7 @@ Before deploying a shard cluster, see the requirements listed in
    :dbcommand:`addShard` or the value to the :option:`mongos --configdb`
    run time option, then you must use "localhost" or ``127.0.0.1``
    for *all* host settings. If you mix localhost addresses and remote
-   host address, MongoDB will produce errors.
+   host address, MongoDB will error.
 
 Procedure
 ---------
@@ -34,33 +34,33 @@ Procedure
 Initiate Config Database Instances
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Begin by configuring three config servers. These are very small
+Begin by configuring three config databases. These are very small
 :program:`mongod` instances that provide cluster metadata. You must
 have exactly *three* instances in production deployments. For
 redundancy these instances should run on different systems and
-servers. It's important to separate config server :program:`mongod`
+servers. You must separate config database :program:`mongod`
 instances to provide redundancy and to ensure that cluster
 metadata is secure and durable.
 
-Because the config server :program:`mongod` instances receive relatively
+Since config database :program:`mongod` instances receive relatively
 little traffic and demand only a small portion of system resources, you
 can run the instances on systems that run other services, such as on
-shards or on servers that run :program:`mongos`.
+shards or on servers that provide :program:`mongos`.
 
-To start a config server, type the following command at a system prompt:
+To start a config database, type the following command at a system prompt:
 
 .. code-block:: sh
 
    mongod --configsvr
 
-The :option:`--configsrv` stores a config database in the `configdb/`
-subdirectory of the :setting:`dbpath` directory. By default, the
-:setting:`dbpath` directory is ``/data/db/``. The config server instance
+The :option:`--configsrv <mongod --configsrv>` stores the data files in the `configdb/`
+sub-directory of the :setting:`dbpath` directory. By default, the
+:setting:`dbpath` directory is ``/data/db/``. The config :program:`mongod` instance
 is accessible via port ``27019``. In addition to :setting:`configsvr`,
 use other :doc:`mongod runtime options </reference/configuration-options>`
 as needed.
 
-Repeat this process for all three config servers.
+Repeat this process for all three config databases.
 
 Start ``mongos`` Instances
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -73,11 +73,12 @@ to the appropriate shards and interacts with the configdb instances.
 have multiple instances. Typically, you run one :program:`mongos`
 instance on each of your application servers.
 
-You must specify three config servers. Use resolvable host names for
+You must specify three config instances. Use resolvable host names for
 all hosts, using DNS or your system's hostfile to provide operational
 flexibility.
 
-The :program:`mongos` instance runs on the default MongoDB port of ``27017``.
+The :program:`mongos` instance runs on the TCP port ``27017``, which
+is the default MongoDB port.
 
 Use the following command at a system prompt to start a
 :program:`mongos` instance:
@@ -86,7 +87,7 @@ Use the following command at a system prompt to start a
 
    mongos --configdb config0.mongodb.example.net,config1.mongodb.example.net,config2.mongodb.example.net --port 27017
 
-The above example assumes that you have config servers running on the following hosts:
+The above example assumes that you have config instances running on the following hosts:
 
 - ``config0.mongodb.example.net``
 - ``config1.mongodb.example.net``
@@ -100,7 +101,8 @@ set`. You must deploy at least two replica sets for use as shards. For
 instructions on deploying replica sets, see
 :doc:`/tutorial/deploy-replica-set`.
 
-When you have two active and functioning replica sets, perform the procedure here:
+When you have two active and functioning replica sets, perform the
+following procedure:
 
 Using the :program:`mongo` shell, log into a :program:`mongos`. For example,
 if the :program:`mongos` is accessible at
@@ -112,10 +114,13 @@ if the :program:`mongos` is accessible at
 
 To add each shard to the cluster, Use :func:`sh.addShard()`. For
 example, to add two shards with the hostnames ``shard0.example.net`` and
-``shard1.example.net`` on port ``27017``, type:.
+``shard1.example.net`` on port ``27017``, call the following methods
+in the :program:`mongo` shell session:
 
-      sh.addShard( "shard0.example.net" )
-      sh.addShard( "shard1.example.net" )
+.. code-block:: javascript
+
+   sh.addShard( "shard0.example.net" )
+   sh.addShard( "shard1.example.net" )
 
    .. versionchanged:: 2.0.3
 
