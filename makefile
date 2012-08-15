@@ -47,6 +47,7 @@ $(PUBLISHDIR)/single/_static:$(PUBLISHDIR)/_static/
 $(PUBLISHDIR)/_static/:$(PUBLISHDIR)/
 $(BUILDDIR)/html/genindex.html:$(BUILDDIR)/html/
 $(BUILDDIR)/html/:html
+	rm -rf $@_sources/
 $(BUILDDIR)/singlehtml/:singlehtml
 	rm -rf $@_static/
 
