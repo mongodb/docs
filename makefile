@@ -3,6 +3,7 @@
 # You can set these variables from the command line.
 SPHINXOPTS    = -c ./
 SPHINXBUILD   = sphinx-build
+SITEMAPBUILD  = bin/sitemap_gen.py
 PAPER	      =
 
 # change this to reflect the location of the public repo
@@ -188,7 +189,7 @@ clean:
 #
 ######################################################################
 
-.PHONY: html dirhtml singlehtml epub
+.PHONY: html dirhtml singlehtml epub sitemap
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo "[HTML] build complete."
@@ -205,6 +206,12 @@ epub:
 	@echo $(epub-command)
 	@{ $(epub-command) 2>&1 1>&3 | $(epub-filter) 1>&2; } 3>&1
 	@echo "[EPUB] Build complete."
+
+#	--testing creates sitemap but does not notify Google of new
+#	  sitemap.xml
+sitemap:
+	$(SITEMAPBUILD) --testing --config=sitemap-config.xml
+
 
 ######################################################################
 #
