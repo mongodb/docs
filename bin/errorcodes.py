@@ -165,9 +165,6 @@ def genErrorOutput():
 #            out.write( f + "\n----\n" )
 #            prev = f
 
-        if f != prev:
-           out.write 
-
         url = "https://github.com/mongodb/mongo/blob/master/" + f + "#L" + str(l)
 
         out.write("\n.. error:: {}\n\n   Text: {}\n\n".format(num,getBestMessage( line , str(num))))
@@ -179,6 +176,32 @@ def genErrorOutput():
         
     out.write( "\n" )
     out.close()
+    
+def genErrorOutputCSV():
+	if os.path.exists("/tmp/errors.csv"):
+		i=open("/tmp/errors.csv","r");
+	
+	out = open("/tmp/errors.csv", 'wb')
+	out.write('"Error","Text","Module","Line"' + "\n")
+	
+	prev = ""
+	seen = {}
+	
+	codes.sort( key=lambda x: x[0]+"-"+x[3] )
+	for f,l,line,num in codes:
+		if num in seen:
+			continue
+		seen[num] = True
+		
+		if f.startswith( "./"):
+			f=f[2:]
+			fn = f.rpartition("/")[2]
+		
+		out.write('"{}","{}","{}","{}"'.format(num, getBestMessage(line , str(num)),f,l))
+		
+		out.write("\n")
+	
+	out.close()
 
 if __name__ == "__main__":
     ok = checkErrorCodes()
@@ -186,4 +209,5 @@ if __name__ == "__main__":
     print( "next: " + str( getNextCode() ) )
     if ok:
         genErrorOutput()
+        genErrorOutputCSV()
 
