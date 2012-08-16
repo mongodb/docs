@@ -139,13 +139,14 @@ def getBestMessage( err , start ):
     
 def genErrorOutput():
     
-    if os.path.exists( "docs/errors.md" ):
-        i = open( "docs/errors.md" , "r" )
+    if os.path.exists( "/tmp/errors.md" ):
+        i = open( "/tmp/errors.txt" , "r" )
         
         
-    out = open( "docs/errors.md" , 'wb' )
-    out.write( "MongoDB Error Codes\n==========\n\n\n" )
-
+    out = open( "/tmp/errors.txt" , 'wb' )
+    out.write( "===================\nMongoDB Error Codes\n===================\n")
+    out.write("\n\n.. default-domain:: mongodb\n\n");
+    
     prev = ""
     seen = {}
     
@@ -157,15 +158,24 @@ def genErrorOutput():
 
         if f.startswith( "./" ):
             f = f[2:]
+            fn = f.rpartition("/")[2]
+
+#        if f != prev:
+#            out.write( "\n\n" )
+#            out.write( f + "\n----\n" )
+#            prev = f
 
         if f != prev:
-            out.write( "\n\n" )
-            out.write( f + "\n----\n" )
-            prev = f
+           out.write 
 
-        url = "http://github.com/mongodb/mongo/blob/master/" + f + "#L" + str(l)
-        
-        out.write( "* " + str(num) + " [code](" + url + ") " + getBestMessage( line , str(num) ) + "\n" )
+        url = "https://github.com/mongodb/mongo/blob/master/" + f + "#L" + str(l)
+
+        out.write("\n.. error:: {}\n\n   Text: {}\n\n".format(num,getBestMessage( line , str(num))))
+#        out.write("   Module: {}\n\n".format(f))
+        out.write("   Module: `{}:{} <{}>`_\n".format(fn,l,url))
+#        out.write("   .. seealso:: `{}:{} <{}>`_\n".format(f,l, url))
+    
+#        out.write( "* " + str(num) + " [code](" + url + ") " + getBestMessage( line , str(num) ) + "\n" )
         
     out.write( "\n" )
     out.close()
