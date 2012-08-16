@@ -1,0 +1,124 @@
+=========================================
+Change All the Hostnames in a Replica Set
+=========================================
+
+.. default-domain:: mongodb
+
+Synopsis
+--------
+
+As an example, you would change all the hostnames in a :term:`replica set`
+if you have a set comprised of local members, all the members use ``localhost``
+as the hostname, and you want to add a non-local member to the set. Since
+you can use ``localhost`` only when all members are local, you would
+have to change the hostnames on all the existing members.
+
+To change the hostnames on all members, choose one of the following procedures:
+
+#. :ref:`replica-set-change-hostname-downtime`
+
+   Keeping the set running avoids downtime but is a longer procedure.
+
+#. :ref:`replica-set-change-hostname-downtime`
+
+   Shutting down the set is a faster procedure but, of course, takes the
+   set offline.
+
+This document describes how to change the hostnames or IP addresses for
+*all* the members of a replica set.
+
+.. seealso::
+
+   - :doc:`/reference/replica-configuration`
+   - :ref:`Replica Set Reconfiguration Process <replica-set-reconfiguration-usage>`
+   - :func:`rs.conf()` and :func:`rs.reconfig()`
+
+   And the following tutorials:
+
+   - :doc:`/tutorial/deploy-replica-set`
+   - :doc:`/tutorial/expand-replica-set`
+
+Procedure
+---------
+
+.. _replica-set-change-hostname-no-downtime:
+
+Changing Names for All Members of a Replica Set without Downtime
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#. Make one of the :term:`secondary <secondary>` members of the
+   :term:`replica set` accessible at the new location.
+
+.. QUESTION: I'm unclear on how to perform step 1, above -bg
+
+#. In a :program:`mongo` shell session, call :func:`rs.reconfigure()` to
+   reconfigure the set. Wait for the moved secondary to catch up.
+
+#. Make sure that the clients are able to access the set at the new
+   location.
+
+#. Repeat the above steps for each non-:term:`primary` member of the set.
+
+#. Use :dbcommand:`replSetStepDown` to step down the primary and run :func:`rs.reconfigure()`
+   for the last time.
+
+.. _replica-set-change-hostname-downtime:
+
+Changing Names for All Members of a Replica Set with Downtime
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. NOTE: I could not get this procedure to work correctly -bg
+
+.. NOTE: I used port 27017 because I think users are going to copy and paste,
+.. as I did myself in testing this, and I'd remember to change 37017 to 37018
+.. but forget to change it to 27018
+
+#. Stop all members in the :term:`replica set`.
+
+#. Restart each member *without* using the :option:`--replSet <mongod --replset>` option.
+
+   For example, to restart a member named ``rs0-0`` on port ``27017``:
+
+   .. code-block:: sh
+
+      mongod --dbpath /data/db/rs0-0 --port 27017
+
+#. To change each member's host name, do the following *for each member*:
+
+   #. Open a :program:`mongo` shell listening on the member's port number. For example:
+
+   .. code-block:: sh
+
+      mongo --port 27017
+
+.. QUESTION: is the above command correct?
+
+   #. Change the member's hostname by editing the ``system.replset``
+      object in the local database.
+
+      For example, for a member of replica set ``rs0``, use the
+      following series of commands to change the member's host name to ``newHostName0:27017``:
+
+      .. code-block:: javascript
+
+         use local
+         cfg = db.system.replset.findOne({_id:"rs0"})
+         cfg.members[0].host="newHostName0:27017"
+         db.system.replset.update({_id:"rs0"},cfg)
+
+   #. Stop the member.
+
+#. Restart each member using the :option:`--replSet <mongod --replset>` option.
+
+   For example, to restart member ``rs0-0`` on port ``27017`` in the ``rs0`` replica
+   set, issue the following command:
+
+   .. code-block:: sh
+
+      mongod --dbpath /data/db/rs0-0 --port 27017 --replSet rs0
+
+.. QUESTION: Is rs.initiate() needed?
+
+#. To ensure each member has the correct hostname, use the rs.status() helper.
+
+   :func:`rs.satus()`
