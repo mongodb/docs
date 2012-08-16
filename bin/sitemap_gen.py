@@ -1,5 +1,3 @@
-#!/usr/bin/python
-#
 # Copyright (c) 2004, 2005 Google Inc.
 # All rights reserved.
 #

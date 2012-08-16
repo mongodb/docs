@@ -3,7 +3,6 @@
 # You can set these variables from the command line.
 SPHINXOPTS    = -c ./
 SPHINXBUILD   = sphinx-build
-SITEMAPBUILD  = bin/sitemap_gen.py
 PAPER	      =
 
 # change this to reflect the location of the public repo
@@ -28,7 +27,15 @@ endif
 ifeq ($(UNAME), Darwin)
 SED_ARGS_FILE = -i "" -E
 SED_ARGS_REGEX = -E
+PYTHONBIN = python
 endif
+
+ifeq ($(shell test -f /etc/arch-release && echo arch || echo Linux),arch)
+PYTHONBIN = python2
+else 
+PYTHONBIN = python
+endif
+
 
 # Internal variables.
 PAPEROPT_a4 = -D latex_paper_size=a4
@@ -98,7 +105,7 @@ setup:
 	mkdir -p $(BUILDDIR)/{dirhtml,singlehtml,html,epub,latex} $(CURRENTBUILD)/single
 
 deploy-one:source/about.txt $(BUILDDIR)/html
-deploy-two:$(CURRENTBUILD) $(CURRENTBUILD)/release.txt $(CURRENTBUILD)/MongoDB-Manual.pdf $(CURRENTBUILD)/MongoDB-Manual.epub
+deploy-two:$(CURRENTBUILD) $(CURRENTBUILD)/release.txt $(CURRENTBUILD)/MongoDB-Manual.pdf $(CURRENTBUILD)/MongoDB-Manual.epub $(CURRENTBUILD)/sitemap.xml.gz
 deploy-three:$(CURRENTBUILD)/single $(CURRENTBUILD)/single/search.html $(CURRENTBUILD)/single/genindex.html $(CURRENTBUILD)/single/index.html
 deploy-four:$(publication-output)/index.html $(publication-output)/10gen-gpg-key.asc $(CURRENTBUILD)/tutorials $(CURRENTBUILD)/.htaccess
 
@@ -108,6 +115,7 @@ deploy-four:$(publication-output)/index.html $(publication-output)/10gen-gpg-key
 $(BUILDDIR)/epub/MongoDB.epub:epub
 $(BUILDDIR)/latex/MongoDB.tex:latex
 $(BUILDDIR)/latex/MongoDB.pdf:$(BUILDDIR)/latex/MongoDB.tex
+$(BUILDDIR)/sitemap.xml.gz:$(BUILDDIR)/dirhtml
 
 $(BUILDDIR)/singlehtml/contents.html:$(BUILDDIR)/singlehtml
 $(BUILDDIR)/dirhtml/search/index.html:$(BUILDDIR)/dirhtml
@@ -152,6 +160,8 @@ $(CURRENTBUILD)/single/index.html:$(BUILDDIR)/singlehtml/contents.html
 	@sed $(SED_ARGS_FILE) -e 's/href="contents.html/href="index.html/g' $@
 	@sed $(SED_ARGS_FILE) -e 's/name="robots" content="index"/name="robots" content="noindex"/g' $@
 	@echo "[SINGLE]: generating '$@'"
+$(CURRENTBUILD)/sitemap.xml.gz:$(BUILDDIR)/sitemap.xml.gz
+	cp $< $@
 
 # Deployment related work for the non-Sphinx aspects of the build.
 $(CURRENTBUILD)/release.txt:$(publication-output)/manual
@@ -207,10 +217,11 @@ epub:
 	@{ $(epub-command) 2>&1 1>&3 | $(epub-filter) 1>&2; } 3>&1
 	@echo "[EPUB] Build complete."
 
-#	--testing creates sitemap but does not notify Google of new
-#	  sitemap.xml
-sitemap:
-	$(SITEMAPBUILD) --testing --config=sitemap-config.xml
+SITEMAPBUILD  = $(PYTHONBIN) bin/sitemap_gen.py
+sitemap:$(BUILDDIR)/sitemap.xml.gz
+$(BUILDDIR)/sitemap.xml.gz:
+	$(SITEMAPBUILD) --testing --config=conf-sitemap.xml
+	@echo "[SITEMAP] sitemap built."
 
 
 ######################################################################
