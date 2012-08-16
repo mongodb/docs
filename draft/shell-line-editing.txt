@@ -1,0 +1,140 @@
+================================
+Interacting with the Mongo Shell
+================================
+
+
+Introduction
+------------
+
+The MongoDB shell is a interactive javascript shell interface to MongoDB. It is invoked by running `mongo` or `mongo.exe`.
+
+
+
+Keyboard Shortcuts
+------------------
+
+The MongoDB shell tries to follow familiar keyboard shortcuts as found in bash and emacs. 
+
+The following table illustrates the various keystrokes supported by the MongoDB shell:
+
+You will notice that we try to accommodate multiple keybinding styles and as a result some functions have multiple bindings that will work.
+
+===================  =====================================
+Keystroke            Function
+===================  =====================================
+Up-arrow             previous-history
+Down-arrow           next-history
+Home                 beginning-of-line
+End                  end-of-line
+Tab                  autocomplete
+Left-arrow           backward-character
+Right-arrow          forward-character
+Ctrl-left-arrow      backward-word
+Ctrl-right-arrow     forward-word
+Meta-left-arrow      backward-word
+Meta-right-arrow     forward-word
+Ctrl-A               beginning-of-line
+Ctrl-B               backward-char
+Ctrl-C               exit-shell
+Ctrl-D               delete-char (or exit shell)
+Ctrl-E               end-of-line
+Ctrl-F               forward-char
+Ctrl-G               abort
+Ctrl-J               accept-line
+Ctrl-K               kill-line
+Ctrl-L               clear-screen
+Ctrl-M               accept-line
+Ctrl-N               next-history
+Ctrl-P               previous-history
+Ctrl-R               reverse-search-history
+Ctrl-S               forward-search-history
+Ctrl-T               transpose-chars
+Ctrl-U               unix-line-discard
+Ctrl-W               unix-word-rubout
+Ctrl-Y               yank
+Ctrl-Z               Suspend (job control works in linux)
+Ctrl-H [Backspace]   backward-delete-char
+Ctrl-I [Tab]         complete
+Meta-B               backward-word
+Meta-C               capitalize-word
+Meta-D               kill-word
+Meta-F               forward-word
+Meta-L               downcase-word
+Meta-U               upcase-word
+Meta-Y               yank-pop
+Meta-Backspace       backward-kill-word
+Meta-<               beginning-of-history
+Meta->               end-of-history
+===================  =====================================
+
+Custom Prompt
+-------------
+
+The shell's prompt can be customized by creating variable 'prompt' in the shell. It can be any arbitrary javascript, including a function that returns a string. This flexibility allows for additional information to be displayed in the prompt.
+
+The following three examples should give you a good enough idea to get you started. 
+
+A prompt that contains the number of commands issued:
+
+.. code-block:: javascript
+
+    > cmdCount = 1;
+    > prompt = function() {
+    ... return (cmdCount++) + "> ";
+    ... }
+    1> command
+    2> anothercommand
+    3>
+
+To make the prompt look a bit more familiar, we can make it database@host$:
+
+.. code-block:: javascript
+
+    > host = db.serverStatus().host; \\ since host should not change
+    > prompt = function() {
+    ... return db+"@"+host+"$ ";
+    ... }
+    admin@mylaptop.local$ use monkeys
+    switched to db monkeys
+    monkeys@mylaptop.local$
+
+You could use the prompt to do a bit of database monitoring as well:
+
+.. code-block:: javascript
+
+    > prompt = function() {
+    ... return "Uptime:"+db.serverStatus().uptime+" Files:"+db.stats().objects+" > ";
+    ... }
+    Uptime:5897 Files:6 > db.monkeys.save({name : "James"});
+    Uptime:5948 Files:7 >
+
+
+Using a real editor
+-------------------
+
+MongoDB 2.1+ includes the ability to use an external editor. Just run ``edit nameOfVariableOrFunction`` and the MongoDB shell will open whatever editor you have defined in your $EDITOR environment variable. When you are finished editing simply save and exit (:wq in Vim). If you wish to discard your changes, you can either not save or make your editor exit with an error (:cq in Vim or (kill-emacs 1) in Emacs).
+
+.. code-block:: bash
+
+    $ EDITOR=vim mongo --nodb
+
+.. code-block:: javascript
+
+    MongoDB shell version: 2.1.0
+    > function f() {}
+    > edit f
+    > f
+    function f() {
+        print("this really works");
+    }
+    > f()
+    this really works
+    > o = {}
+    { }
+    > edit o
+    > o
+    { "soDoes" : "this" }
+    >
+
+.. note::
+    It is possible that the code in functions will be slightly modified by the JavaScript compiler when you try to edit it again. For example it may convert 1+1 in to 2 and strip out comments. The actual changes will vary based on the version of JavaScript used, but should not effect the semantics of the code, only its appearance.
