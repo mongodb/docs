@@ -139,10 +139,10 @@ def readErrorCodes( callback, replaceZero = False ):
 #           re.compile( "((DB|User|Msg|MsgAssertion)Exceptio(n))\(( *)(\d+)" ),
 #           re.compile( "((fassertFailed)()) *\(( *)(\d+)" )
 #           ]
-    ps = [ re.compile( "(([wum]asser(t|ted))) *\(( *)(\d+) *,? *(\S+) *,?" ) ,
-           re.compile( "((msgasser(t|ted))) *\(( *)(\d+) *,? *(\S+) *,?" ) ,
+    ps = [ re.compile( "(([wum]asser(t|ted))) *\(( *)(\d+) *,? *(\S+.+\S) *,?" ) ,
+           re.compile( "((msgasser(t|ted))) *\(( *)(\d+) *,? *(\S+.+\S) *,?" ) ,
            re.compile( "((fasser(t|ted))) *\(( *)(\d+)()" ) ,  
-           re.compile( "((DB|User|Msg|MsgAssertion)Exceptio(n))\(( *)(\d+) *,? *(\S+) *,?" ),
+           re.compile( "((DB|User|Msg|MsgAssertion)Exceptio(n))\(( *)(\d+) *,? *(\S+.+\S) *,?" ),
            re.compile( "((fassertFailed)()) *\(( *)(\d+)()" )
            ]
 
@@ -330,7 +330,7 @@ def genErrorOutputCSV():
 			f=f[2:]
 			fn = f.rpartition("/")[2]
 		
-		out.write('"{}","{}","{}","{}"'.format(num, getBestMessage(line , str(num)),f,l))
+		out.write('"{}","{}","{}","{}","{}","{}"'.format(num, getBestMessage(line , str(num)),f,l,message,severity))
 		
 		out.write("\n")
 	
@@ -339,7 +339,7 @@ def genErrorOutputCSV():
 if __name__ == "__main__":
     ok = checkErrorCodes()
     print( "ok:" + str( ok ) )
-    print( "next: " + str( getNextCode() ) )
+#    print( "next: " + str( getNextCode() ) )
     if ok:
         genErrorOutput()
         genErrorOutputCSV()
