@@ -63,51 +63,59 @@ Procedures
 Changing Hostnames while Maintaining the Replica Set's Availability
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. todo given a dummy config. 
+Given a :term:`replica set` with three members
+
+- ``database0.example.net:27017`` (the :term:`primary`)
+
+- ``database1.example.net:27018``
+
+- ``database2.example.net:27019``
+
+This procedure changes the hostnames to the following, while maintaining
+the set's availability:
+
+- ``mongodb0.example.net:27017`` (the primary)
+
+- ``mongodb1.example.net:27018``
+
+- ``mongodb2.example.net:27019``
 
 #. For each :term:`secondary` in the replica set, perform the
    following sequence of operations:
 
-   .. todo note about stopping things 
+   a. Stop the secondary.
 
-   a. For example, given a secondary with hostname
-      ``database0.example.net:27017`` that you want to change to
-      ``mongodb0.database.example.net:27017``, you could change the
-      hostname by starting this secondary on a different port for
-      maintenance, as shown here:
+   #. Restart the secondary on a different port, such as a maintenance
+      port. Use the secondary's usual :option:`--dbpath`, which in this
+      example is ``/data/db1``:
 
       .. code-block:: sh
 
-         mongod --dbpath /data/db/ --port 37017
-
-      .. make it clear that the db path is the same. 
+         mongod --dbpath /data/db1 --port 37018
 
    #. Open a :program:`mongo` shell connected to the replica set's
-      :term:`primary` and then call :func:`rs.reconfigure()` to
-      reconfigure the set. For example, for a primary running on port
-      ``37107``, you would issue the following command:
+      primary. In our example, the primary runs on port ``27017`` so you
+      would issue the following command:
 
       .. code-block:: sh
 
-         mongo --port 37017
+         mongo --port 27017
 
-      .. make clear that its the same host as in a.) 
-
-   #. Then run the following reconfiguration option, for the
-      :data:`members[n].host`  value where ``n`` is ``2``:
+   #. Run the following reconfigure option, for the
+      :data:`members[n].host` value where ``n`` is ``1``:
 
       .. code-block:: javascript
- 
+
          cfg = rs.conf()
 
-         cfg.members[2].host = mongodb2.databse.example.net:27017
+         cfg.members[1].host = mongodb1.example.net:27018
 
          rs.reconfigure(cfg)
 
       See :doc:`/reference/replica-configuration` for more
       information.
 
-   #. Make sure that your client applications are able to access the
+   #. Make sure your client applications are able to access the
       set at the new location and that the secondary has a chance to
       catch up with the other members of the set.
 
@@ -115,7 +123,7 @@ Changing Hostnames while Maintaining the Replica Set's Availability
 
 #. Open a :program:`mongo` shell connected to the primary and step
    down the primary using :dbcommand:`replSetStepDown`. In the
-   :program:`mongo` shell, use the the :func:`rs.stepDown()` wrapper,
+   :program:`mongo` shell, use the :func:`rs.stepDown()` wrapper,
    as follows:
 
    .. code-block:: javascript
@@ -132,7 +140,7 @@ Changing Hostnames while Maintaining the Replica Set's Availability
 
       cfg = rs.conf()
 
-      cfg.members[0].host = mongodb0.databse.example.net:27017
+      cfg.members[0].host = mongodb0.example.net:27017
 
       rs.reconfigure(cfg)
 
@@ -143,7 +151,61 @@ Changing Hostnames while Maintaining the Replica Set's Availability
 #. To confirm the new configuration, call :func:`rs.status()` in the
    :program:`mongo` shell.
 
-   .. output ofchanged rsconfig. 
+   Your output should look similar to this:
+
+   .. code-block:: javascript
+
+      {
+        "set" : "rs",
+        "date" : ISODate("2012-08-17T20:55:59Z"),
+        "myState" : 1,
+        "members" : [
+            {
+                "_id" : 0,
+                "name" : "mongodb0.example.net:27017",
+                "health" : 1,
+                "state" : 1,
+                "stateStr" : "PRIMARY",
+                "optime" : {
+                    "t" : 1345235703000,
+                    "i" : 1
+                },
+                "optimeDate" : ISODate("2012-08-17T20:35:03Z"),
+                "self" : true
+            },
+            {
+                "_id" : 1,
+                "name" : "mongodb1.example.net:27018",
+                "health" : 1,
+                "state" : 2,
+                "stateStr" : "SECONDARY",
+                "uptime" : 1260,
+                "optime" : {
+                    "t" : 1345235703000,
+                    "i" : 1
+                },
+                "optimeDate" : ISODate("2012-08-17T20:35:03Z"),
+                "lastHeartbeat" : ISODate("2012-08-17T20:55:58Z"),
+                "pingMs" : 0
+            },
+            {
+                "_id" : 2,
+                "name" : "mongodb2.example.net:27019",
+                "health" : 1,
+                "state" : 2,
+                "stateStr" : "SECONDARY",
+                "uptime" : 1256,
+                "optime" : {
+                    "t" : 1345235703000,
+                    "i" : 1
+                },
+                "optimeDate" : ISODate("2012-08-17T20:35:03Z"),
+                "lastHeartbeat" : ISODate("2012-08-17T20:55:58Z"),
+                "pingMs" : 0
+            }
+        ],
+        "ok" : 1
+    }
 
 .. _replica-set-change-hostname-downtime:
 
@@ -185,7 +247,7 @@ Changing All Hostnames in Replica Set at Once
 
          use local
 
-         cfg = db.system.replset.findOne( { "_id": "rs0" } )
+         cfg = db.system.replset.findOne( { "_id": "rs" } )
 
          cfg.members[0].host = "mdb0.example.net:27017"
 
@@ -193,7 +255,7 @@ Changing All Hostnames in Replica Set at Once
 
          cfg.members[2].host = "mdb2.example.net:27019"
 
-         db.system.replset.update( { "_id": "rs0" } , cfg )
+         db.system.replset.update( { "_id": "rs" } , cfg )
 
    #. Stop the :program:`mongod` process on the member.
 
@@ -204,7 +266,7 @@ Changing All Hostnames in Replica Set at Once
 
    .. code-block:: sh
 
-      mongod --dbpath /data/db/ --port 27017 --replSet rs0
+      mongod --dbpath /data/db/ --port 27017 --replSet rs
 
 #. Connect to one of the :program:`mongod` instances
    using the :program:`mongo` shell. For example:
@@ -213,9 +275,62 @@ Changing All Hostnames in Replica Set at Once
 
       mongo --port 27017
 
-#.  Run :func:`rs.stdatus()` to confirm that the set has reconfigured.
-    For example:
+#. To confirm that the set has reconfigured, call :func:`rs.status()` in the
+   :program:`mongo` shell.
 
-   .. code-block:: sh
+   Your output should look similar to this:
 
-      rs.status()
+   .. code-block:: javascript
+
+      {
+        "set" : "rs",
+        "date" : ISODate("2012-08-17T20:55:59Z"),
+        "myState" : 1,
+        "members" : [
+            {
+                "_id" : 0,
+                "name" : "mdb0.example.net:27017",
+                "health" : 1,
+                "state" : 1,
+                "stateStr" : "PRIMARY",
+                "optime" : {
+                    "t" : 1345235703000,
+                    "i" : 1
+                },
+                "optimeDate" : ISODate("2012-08-17T20:35:03Z"),
+                "self" : true
+            },
+            {
+                "_id" : 1,
+                "name" : "mdb1.example.net:27018",
+                "health" : 1,
+                "state" : 2,
+                "stateStr" : "SECONDARY",
+                "uptime" : 1260,
+                "optime" : {
+                    "t" : 1345235703000,
+                    "i" : 1
+                },
+                "optimeDate" : ISODate("2012-08-17T20:35:03Z"),
+                "lastHeartbeat" : ISODate("2012-08-17T20:55:58Z"),
+                "pingMs" : 0
+            },
+            {
+                "_id" : 2,
+                "name" : "mdb2.example.net:27019",
+                "health" : 1,
+                "state" : 2,
+                "stateStr" : "SECONDARY",
+                "uptime" : 1256,
+                "optime" : {
+                    "t" : 1345235703000,
+                    "i" : 1
+                },
+                "optimeDate" : ISODate("2012-08-17T20:35:03Z"),
+                "lastHeartbeat" : ISODate("2012-08-17T20:55:58Z"),
+                "pingMs" : 0
+            }
+        ],
+        "ok" : 1
+    }
+
