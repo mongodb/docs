@@ -13,7 +13,7 @@ change. However, in some cases you must migrate some or all host names
 in a replica set as organizational needs change. This
 document presents two possible procedures for changing the hostnames
 in the :data:`members[n].host` field. Depending on your environments
-availability requirements, you may: 
+availability requirements, you may:
 
 #. Make the configuration change without disrupting the availability
    of the replica set. While this ensures that your application will
@@ -21,13 +21,13 @@ availability requirements, you may:
    procedure can take a long time and may incur downtime at the
    application layer. [#application-changes]_
 
-   For this procedure, see :ref:`replica-set-change-hostname-no-downtime`. 
-   
+   For this procedure, see :ref:`replica-set-change-hostname-no-downtime`.
+
 #. Stop all members of the replica set at once running on the "old"
    hostnames or interfaces, make the configuration changes, and then
    start the members at the new hostnames or interfaces. While the set
    will be totally unavailable during the operation, the total
-   maintenance window is shorter.
+   maintenance window is often shorter.
 
    For this procedure, see :ref:`replica-set-change-hostname-downtime`.
 
@@ -51,7 +51,7 @@ availability requirements, you may:
    locations. This often requires a restart and reconfiguration at the
    application layer, which may affect the availability of your
    applications. This re-configuration is beyond the scope of this
-   document and makes the :ref:`second option <replica-set-change-hostname-downtime>`  
+   document and makes the :ref:`second option <replica-set-change-hostname-downtime>`
    preferable when you must change the hostnames of *all* members of
    the replica set at once.
 
@@ -60,104 +60,105 @@ Procedures
 
 .. _replica-set-change-hostname-no-downtime:
 
-.. I think these section names can be better still.
-
 Changing Hostnames while Maintaining the Replica Set's Availability
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#. Make one of the :term:`secondary <secondary>` members of the
-   :term:`replica set` accessible at the new location. 
-         
-   This change may be as straightforward as creating a new DNS record,
-   or may involve starting the :program:`mongo` instance on a new
-   :setting:`port`.
+#. For each :term:`secondary` in the replica set, perform the
+   following sequence of operations:
 
-   For example, given a secondary with hostname ``localhost:27018``,
-   you could change the hostname by starting the secondary on a new port,
-   as shown here:
+   a. For example, given a secondary with hostname
+      ``database0.example.net:27017`` that you want to change to
+      ``mongodb0.database.example.net:27017``, you could change the
+      hostname by starting this secondary on a different port for
+      maintenance, as shown here:
 
-   .. code-block:: sh
+      .. code-block:: sh
 
-      mongod --dbpath /data/db/ --port 37018 --replSet rs0
+         mongod --dbpath /data/db/ --port 37017 --replSet rs0
 
-#. Open a :program:`mongo` shell connected to the replica set's
-   :term:`primary` and then call :func:`rs.reconfigure()` to
-   reconfigure the set, and then wait for the moved secondary
-   to catch up. For example, for a primary running on port
-   ``27107``, you would issue the following commands:
+   #. Open a :program:`mongo` shell connected to the replica set's
+      :term:`primary` and then call :func:`rs.reconfigure()` to
+      reconfigure the set. For example, for a primary running on port
+      ``37107``, you would issue the following command:
 
-   .. code-block:: sh
+      .. code-block:: sh
 
-      mongo --port 27017
+         mongo --port 37017
 
-      rs.reconfigure()
+   #. Then run the following reconfiguration option, for the
+      :data:`members[n].host`  value where ``n`` is ``2``:
 
-#. Make sure that your client applications are able to access the set
-   at the new location.
+      .. code-block:: javascript
 
-#. Repeat the above steps for each non-primary member of the set.
+         cfg = rs.conf()
+
+         cfg.members[2].host = mongodb2.databse.example.net:27017
+
+         rs.reconfigure(cfg)
+
+      See :doc:`/reference/replica-configuration` for more
+      information.
+
+   #. Make sure that your client applications are able to access the
+      set at the new location and that the secondary has a chance to
+      catch up with the other members of the set.
+
+      Repeat the above steps for each non-primary member of the set.
 
 #. Open a :program:`mongo` shell connected to the primary and step
-   down the primary using :dbcommand:`replSetStepDown`. You can do
-   so by issuing the :func:`rs.stepDown()` command, as shown here:
+   down the primary using :dbcommand:`replSetStepDown`. In the
+   :program:`mongo` shell, use the the :func:`rs.stepDown()` wrapper,
+   as follows:
 
-   .. code-block:: sh
-
-      mongo --port 27017
+   .. code-block:: javascript
 
       rs.stepDown()
 
-#. Shut down the primary.
+#. When the step down succeeds, shut down the primary.
 
-#. Open a :program:`mongo` shell connected to the new primary and
-   call :func:`rs.reconfigure()` to reconfigure the set for the last
-   time. For example:
+#. To make the final configuration change, connect to the new primary in
+   the :program:`mongo` shell and reconfigure the :data:`members[n].host`
+   value where ``n`` is ``0``:
 
-   .. code-block:: sh
+   .. code-block:: javascript
 
-      mongo --port 37018
+      cfg = rs.conf()
 
-      rs.reconfigure()
+      cfg.members[0].host = mongodb0.databse.example.net:27017
 
-#. Restart the original primary.
+      rs.reconfigure(cfg)
+
+#. Start the original primary.
 
 #. Open a :program:`mongo` shell connected to the primary.
-   For example:
 
-   .. code-block:: sh
-
-      mongo --port 27017
-
-#.  Run :func:`rs.stdatus()` to confirm that the set has reconfigured.
-    For example:
-
-   .. code-block:: sh
-
-      rs.stdatus()
+#. To confirm the new configuration, call :func:`rs.status()` in the
+   :program:`mongo` shell.
 
 .. _replica-set-change-hostname-downtime:
 
-Changing Hostnames by Making the Replica Set Unavailable
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Changing All Hostnames in Replica Set at Once
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #. Stop all members in the :term:`replica set`.
 
 #. Restart each member *on a different port* and *without* using the
-   :option:`--replSet <mongod --replset>` run-time option. Running on
-   a different port prevents clients from connecting to this host while you perform
-   maintenance. Use a command that
+   :option:`--replSet <mongod --replset>` run-time option. Changing
+   the port number during maintenance prevents clients from connecting
+   to this host while you perform maintenance. Use a command that
    resembles the following:
 
    .. code-block:: sh
 
       mongod --dbpath /data/db/ --port 37017
 
-#. For each member in the replica set, perform the following sequence of operations:
+#. For each member of the replica set, perform the following sequence
+   of operations:
 
-   #. Open a :program:`mongo` shell connected to the member's
-      :program:`mongod` running on the new, temporary port. For example,
-      for a member running on a temporary port of ``37017``, you would issue
-      this command:
+   a. Open a :program:`mongo` shell connected to the :program:`mongod`
+      running on the new, temporary port. For example, for a member
+      running on a temporary port of ``37017``, you would issue this
+      command:
 
       .. code-block:: sh
 
@@ -173,7 +174,7 @@ Changing Hostnames by Making the Replica Set Unavailable
       .. code-block:: javascript
 
          use local
-         
+
          cfg = db.system.replset.findOne( { "_id": "rs0" } )
 
          cfg.members[0].host = "mdb0.example.net:27017"
@@ -207,5 +208,4 @@ Changing Hostnames by Making the Replica Set Unavailable
 
    .. code-block:: sh
 
-      rs.stdatus()
-
+      rs.status()
