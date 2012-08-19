@@ -92,7 +92,7 @@ extlinks = {
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
     'wiki': ('http://www.mongodb.org/display/DOCS/%s', ''),
     'api': ('http://api.mongodb.org/%s', ''),
-    'source': ('http://github.com/mongodb/mongo/blob/master/%s', ''),
+    'source': ('https://github.com/mongodb/mongo/blob/master/%s', ''),
     'docsgithub' : ( 'http://github.com/mongodb/docs/blob/' + current_git_branch + '/%s', ''),
     'hardlink' : ( 'http://docs.mongodb.org/' + current_git_branch + '/%s', '')
     }
