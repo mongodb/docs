@@ -404,11 +404,11 @@ stop the processes comprising the ``mongodb0`` shard.
 Chunk Management
 ----------------
 
-This section describes various operations on
-:term:`chunks <chunk>` in :term:`shard clusters <shard cluster>`. In
-most cases MongoDB automates these processes; however, in some cases,
-particularly when you're setting up a shard cluster, you may
-need to create and manipulate chunks directly.
+This section describes various operations on :term:`chunks <chunk>` in
+:term:`shard clusters <shard cluster>`. MongoDB automates these
+processes; however, in some cases, particularly when you're setting up
+a shard cluster, you may need to create and manipulate chunks
+directly.
 
 .. _sharding-procedure-create-split:
 
@@ -416,26 +416,52 @@ Splitting Chunks
 ~~~~~~~~~~~~~~~~
 
 Normally, MongoDB splits a :term:`chunk` when a chunk exceeds the
-:ref:`chunk size <sharding-chunk-size>` following inserts or updates.
-
+:ref:`chunk size <sharding-chunk-size>` following inserts or
+updates. Recently split chunks may be moved immediately to a new shard
+if :program:`mongos` predicts future insertions will benefit from the move.
 
 You may want to split chunks manually if:
 
 - you have a large amount of data in your cluster that is in a single :term:`chunk`,
-  as is the case after creating a shard cluster with existing data.
+  as is the case after creating a shard cluster from existing data.
 
 - you expect to add a large amount of data that would
   initially reside in a single chunk or shard.
 
 .. example::
 
-   You plan to insert a large amount of data as the result of an
-   import process with :term:`shard key` values between ``300`` and
-   ``400``, *but* all values of your shard key between ``250`` and
-   ``500`` are within a single chunk.
+   You plan to insert a large amount of data  with :term:`shard key` values between ``300`` and
+   ``400``, *but* all values of your shard keys between ``250`` and
+   ``500`` are in a single chunk.
 
-Use :func:`sh.status()` to determine the current chunks ranges across
+Use :func:`sh.status()` to determine the current chunk ranges across
 the cluster.
+
+----
+
+Split chunks in a collection using the :dbcommand:`split`
+command, the command prototype is:
+
+.. code-block::
+
+   db.runCommand( { split: <collection name>, middle: { <field>:<value> } } )
+
+:dbcommand:`split` will divide a chunk in the middle of the specified
+field and value.
+
+Data presplitting is useful to reduce system load when a high number
+of inserts are expected. The system will not have to perform splitting
+as the split can be made before-hand. The :dbcommand:`split` command
+can be used to perform data presplitting by running the
+:dbcommand:`split` command on a non-existent shard key value.
+
+.. code-block::
+
+   db.
+
+
+
+----
 
 To split chunks manually, use either the :func:`sh.splitAt()` or
 :func:`sh.splitFind()` helpers in the :program:`mongo` shell.
@@ -452,9 +478,9 @@ These helpers wrap the :dbcommand:`split` command.
 
 :func:`sh.splitFind()` will split the chunk that contains the *first* document returned
 that matches this query into two equal components. MongoDB will split
-the chunk so that documents that have half of the shard keys in will
-be in one chunk and the documents that have other half of the shard
-keys will be a second chunk. The query in :func:`sh.splitFind()` may
+the chunk so that documents with half of the shard keys will
+be in one chunk and the documents with the other half of the shard
+keys will be in the second chunk. The query in :func:`sh.splitFind()` may
 not be based on the shard key, though it almost always makes sense to
 query for the shard key in this case, and including the shard key will
 expedite the operation.
