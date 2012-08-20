@@ -1,0 +1,134 @@
+=========
+mapReduce
+=========
+
+.. default-domain:: mongodb
+
+.. dbcommand:: mapReduce
+
+   The :dbcommand:`mapReduce` command allows you to run
+   map-reduce-style aggregations over a collection.
+
+   :option map: A JavaScript function that performs the "map" step of
+                the map-reduce operation. This function references the
+                current input document and calls the
+                ``emit(key,value)`` method that supplies values to
+                the reduce function. Map functions may call
+                ``emit()``, once, more than once, or not at all
+                depending on the type of aggregation.
+
+   :option reduce: A JavaScript function that performs the "reduce"
+                   step of the MapReduce operation. The reduce
+                   function receives an array of emitted values from
+                   the map function, and returns a single
+                   value. Because it's possible to invoke the reduce
+                   function more than once for the same key, the
+                   structure of the object returned by function must
+                   be identical to the structure of the emitted
+                   function.
+
+   :option out: Specifies the location of the out of the reduce stage
+                of the operation. Specify a string to write the output
+                of the Map/Reduce job to a collection with that
+                name. The map-reduce operation will replace the
+                content of the specified collection in the current
+                database by default. See below for additional options.
+
+   :option query: Optional. A query object, like the query used by the
+                  :func:`db.collection.find()` method. Use this to
+                  filter to limit the number of documents
+                  enter the map phase of the aggregation.
+
+   :option sort: Optional. Sorts the input objects using this key. This
+                 option is useful for optimizing the
+                 job. Common uses include sorting by the emit
+                 key so that there are fewer reduces.
+
+   :option limit: Optional. Species a maximum number of objects to
+                  return from the collection.
+
+   :option finalize: Optional. Specifies an optional "finalize"
+                     function to run on a result, following
+                     the reduce stage, to modify or control
+                     the output of the :dbcommand:`mapReduce`
+                     operation.
+
+   :option scope: Optional. Place a :term:`document` as the contents of
+                  this field, to place fields into the global
+                  javascript scope.
+
+   :option Boolean jsMode: Optional. The ``jsMode`` option defaults to
+                           ``false``.
+
+   :option Boolean verbose: Optional. The ``verbose`` option provides
+                            statistics on job execution times.
+
+   :dbcommand:`mapReduce` only require ``map`` and ``reduce`` options,
+   all other fields are optional. You must write all ``map`` and
+   ``reduce`` functions in JavaScript.
+
+   The ``out`` field of the :dbcommand:`mapReduce`, provides a
+   number of additional configuration options that you may use to
+   control how MongoDB returns data from the map-reduce job. Consider
+   the following 4 output possibilities.
+
+   .. versionadded: 1.8
+
+   :param replace: Optional. Specify a collection name (e.g. ``{ out:
+                   { replace: collectionName } }``) where the output
+                   of the map-reduce overwrites the contents of the
+                   collection specified (i.e. ``collectionName``) if
+                   there is any data in that collection. This is the
+                   default behavior if you only specify a collection
+                   name in the ``out`` field.
+
+   :param merge: Optional. Specify a collection name (e.g. ``{ out: {
+                 merge: collectionName } }``) where the
+                 map-reduce operation writes output to an
+                 existing collection
+                 (i.e. ``collectionName``,) and only
+                 overwrites existing documents when a new
+                 document has the same key as an "old"
+                 document in this collection.
+
+   :param reduce: Optional. This operation behaves as the ``merge``
+                  option above, except that when an existing
+                  document has the same key as a new
+                  document, ``reduce`` function from the
+                  map reduce job will run on both values and
+                  MongoDB writes the result of this function
+                  to the new collection. The specification
+                  takes the form of ``{ out: { reduce:
+                  collectionName } }``, where
+                  ``collectionName`` is the name of the
+                  results collection.
+
+   :param inline: Optional. Indicate the inline option (i.e. ``{ out:
+                  { inline: 1 } }``) to perform the map
+                  reduce job in ram and return the results at
+                  the end of the function. This option is
+                  only possible when the entire result set
+                  will fit within the :ref:`maximum size of a
+                  BSON document <limit-bson-document-size>`.
+                  When performing map-reduce jobs on
+                  secondary members of replica sets, this is
+                  the only available option.
+
+   :param db: Optional. The name of the database that you want the
+              map-reduce operation to write its output. By default
+              this will be the same database as the input collection.
+
+   :param sharded: Optional. If ``true``, *and* the output mode writes to a
+                   collection, and the output database has sharding
+                   enabled, the map-reduce operation will shard the
+                   results collection according to the ``_id`` field.
+
+   .. seealso:: ":func:`mapReduce()`" and ":term:`map-reduce`."
+
+      Also, the ":wiki:`MapReduce` page, provides a greater overview
+      of MongoDB's map-reduce functionality. Consider the
+      ":wiki:`Simple application <Aggregation>`" support for basic
+      aggregation operations and ":doc:`/applications/aggregation`"
+      for a more flexible approach to data aggregation in MongoDB.
+
+   .. slave-ok

@@ -1,0 +1,57 @@
+=======
+compact
+=======
+
+.. default-domain:: mongodb
+
+.. dbcommand:: compact
+
+   The :dbcommand:`compact` command rewrites and defragments a single
+   collection. Additionally, the command forces all indexes on the collection
+   to be rebuilt. The command has the following syntax:
+
+   .. code-block:: javascript
+
+      { compact: "users" }
+
+   This command compacts the collection named ``users``. Note the
+   following command behaviors:
+
+   - During a :dbcommand:`compact`, the database blocks all other activity.
+
+   - In a :term:`replica set`, :dbcommand:`compact` will refuse to run on the
+     primary node unless you also specify ``{ force: true }``.
+     For example:
+
+     .. code-block:: javascript
+
+        { compact: "collection", force: true }
+
+   - If you have journaling enabled, your data will be safe even
+     if you kill the operation or restart the server before it has
+     finished. However, you may have to manually rebuild the indexes.
+     Without journaling enabled, the :dbcommand:`compact` command is much less safe,
+     and there are no guarantees made about the safety of your data in the
+     event of a shutdown or a kill.
+
+     .. warning::
+
+        Always have an up-to-date backup before performing server
+        maintenance such as the :dbcommand:`compact` operation.
+
+   - :dbcommand:`compact` requires a small amount of additional disk space while
+     running but unlike :dbcommand:`repairDatabase` it does *not* free
+     space equal to the total size of the collection.
+
+   - the :dbcommand:`compact` command blocks until the operation is
+     complete.
+
+   - :dbcommand:`compact` removes any :term:`padding factor` in the collection,
+     which may impact performance if documents grow regularly.
+
+   - :dbcommand:`compact` commands do not replicate. They must be run on slaves
+     and replica set members independently.
+
+   - It is not possible to compact :term:`capped collections <capped collection>`
+     because they don't have padding, and documents
+     cannot grow in these collections.
