@@ -58,12 +58,9 @@ availability requirements, you may:
 Procedures
 ----------
 
-.. _replica-set-change-hostname-no-downtime:
+.. _givens:
 
-Changing Hostnames while Maintaining the Replica Set's Availability
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Given a :term:`replica set` with three members
+Given a :term:`replica set` with three members:
 
 - ``database0.example.net:27017`` (the :term:`primary`)
 
@@ -71,14 +68,45 @@ Given a :term:`replica set` with three members
 
 - ``database2.example.net:27019``
 
-This procedure changes the hostnames to the following, while maintaining
-the set's availability:
+And with the following :func:`rs.config()` output:
+
+.. code-block:: javascript
+
+   {
+       "_id" : "rs",
+       "version" : 3,
+       "members" : [
+           {
+               "_id" : 0,
+               "host" : "database0.example.net:27017"
+           },
+           {
+               "_id" : 1,
+               "host" : "database1.example.net:27018"
+           },
+           {
+               "_id" : 2,
+               "host" : "database2.example.net:27019"
+           }
+       ]
+   }
+
+The following procedures change the members' hostnames as follows:
 
 - ``mongodb0.example.net:27017`` (the primary)
 
 - ``mongodb1.example.net:27018``
 
 - ``mongodb2.example.net:27019``
+
+Use the procedure appropriate to your situation.
+
+.. _replica-set-change-hostname-no-downtime:
+
+Changing Hostnames while Maintaining the Replica Set's Availability
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This procedure uses the above ":ref:`givens <givens>`".
 
 #. For each :term:`secondary` in the replica set, perform the
    following sequence of operations:
@@ -148,81 +176,50 @@ the set's availability:
 
 #. Open a :program:`mongo` shell connected to the primary.
 
-#. To confirm the new configuration, call :func:`rs.status()` in the
+#. To confirm the new configuration, call :func:`rs.config()` in the
    :program:`mongo` shell.
 
-   Your output should look similar to this:
+   Your output should resemble:
 
    .. code-block:: javascript
 
       {
-        "set" : "rs",
-        "date" : ISODate("2012-08-17T20:55:59Z"),
-        "myState" : 1,
-        "members" : [
-            {
-                "_id" : 0,
-                "name" : "mongodb0.example.net:27017",
-                "health" : 1,
-                "state" : 1,
-                "stateStr" : "PRIMARY",
-                "optime" : {
-                    "t" : 1345235703000,
-                    "i" : 1
-                },
-                "optimeDate" : ISODate("2012-08-17T20:35:03Z"),
-                "self" : true
-            },
-            {
-                "_id" : 1,
-                "name" : "mongodb1.example.net:27018",
-                "health" : 1,
-                "state" : 2,
-                "stateStr" : "SECONDARY",
-                "uptime" : 1260,
-                "optime" : {
-                    "t" : 1345235703000,
-                    "i" : 1
-                },
-                "optimeDate" : ISODate("2012-08-17T20:35:03Z"),
-                "lastHeartbeat" : ISODate("2012-08-17T20:55:58Z"),
-                "pingMs" : 0
-            },
-            {
-                "_id" : 2,
-                "name" : "mongodb2.example.net:27019",
-                "health" : 1,
-                "state" : 2,
-                "stateStr" : "SECONDARY",
-                "uptime" : 1256,
-                "optime" : {
-                    "t" : 1345235703000,
-                    "i" : 1
-                },
-                "optimeDate" : ISODate("2012-08-17T20:35:03Z"),
-                "lastHeartbeat" : ISODate("2012-08-17T20:55:58Z"),
-                "pingMs" : 0
-            }
-        ],
-        "ok" : 1
-    }
+          "_id" : "rs",
+          "version" : 4,
+          "members" : [
+              {
+                  "_id" : 0,
+                  "host" : "mongodb0.example.net:27017"
+              },
+              {
+                  "_id" : 1,
+                  "host" : "mongodb1.example.net:27018"
+              },
+              {
+                  "_id" : 2,
+                  "host" : "mongodb2.example.net:27019"
+              }
+          ]
+      }
 
 .. _replica-set-change-hostname-downtime:
 
 Changing All Hostnames in Replica Set at Once
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+This procedure uses the above ":ref:`givens <givens>`".
+
 #. Stop all members in the :term:`replica set`.
 
 #. Restart each member *on a different port* and *without* using the
    :option:`--replSet <mongod --replset>` run-time option. Changing
    the port number during maintenance prevents clients from connecting
-   to this host while you perform maintenance. Use a command that
-   resembles the following:
+   to this host while you perform maintenance. Use the member's usual :option:`--dbpath`, which in this
+   example is ``/data/db1``. Use a command that resembles the following:
 
    .. code-block:: sh
 
-      mongod --dbpath /data/db/ --port 37017
+      mongod --dbpath /data/db1/ --port 37017
 
 #. For each member of the replica set, perform the following sequence
    of operations:
@@ -249,11 +246,11 @@ Changing All Hostnames in Replica Set at Once
 
          cfg = db.system.replset.findOne( { "_id": "rs" } )
 
-         cfg.members[0].host = "mdb0.example.net:27017"
+         cfg.members[0].host = "mongodb0.example.net:27017"
 
-         cfg.members[1].host = "mdb1.example.net:27018"
+         cfg.members[1].host = "mongodb1.example.net:27018"
 
-         cfg.members[2].host = "mdb2.example.net:27019"
+         cfg.members[2].host = "mongodb2.example.net:27019"
 
          db.system.replset.update( { "_id": "rs" } , cfg )
 
@@ -266,7 +263,7 @@ Changing All Hostnames in Replica Set at Once
 
    .. code-block:: sh
 
-      mongod --dbpath /data/db/ --port 27017 --replSet rs
+      mongod --dbpath /data/db1/ --port 27017 --replSet rs
 
 #. Connect to one of the :program:`mongod` instances
    using the :program:`mongo` shell. For example:
@@ -275,62 +272,28 @@ Changing All Hostnames in Replica Set at Once
 
       mongo --port 27017
 
-#. To confirm that the set has reconfigured, call :func:`rs.status()` in the
+#. To confirm the new configuration, call :func:`rs.config()` in the
    :program:`mongo` shell.
 
-   Your output should look similar to this:
+   Your output should resemble:
 
    .. code-block:: javascript
 
       {
-        "set" : "rs",
-        "date" : ISODate("2012-08-17T20:55:59Z"),
-        "myState" : 1,
-        "members" : [
-            {
-                "_id" : 0,
-                "name" : "mdb0.example.net:27017",
-                "health" : 1,
-                "state" : 1,
-                "stateStr" : "PRIMARY",
-                "optime" : {
-                    "t" : 1345235703000,
-                    "i" : 1
-                },
-                "optimeDate" : ISODate("2012-08-17T20:35:03Z"),
-                "self" : true
-            },
-            {
-                "_id" : 1,
-                "name" : "mdb1.example.net:27018",
-                "health" : 1,
-                "state" : 2,
-                "stateStr" : "SECONDARY",
-                "uptime" : 1260,
-                "optime" : {
-                    "t" : 1345235703000,
-                    "i" : 1
-                },
-                "optimeDate" : ISODate("2012-08-17T20:35:03Z"),
-                "lastHeartbeat" : ISODate("2012-08-17T20:55:58Z"),
-                "pingMs" : 0
-            },
-            {
-                "_id" : 2,
-                "name" : "mdb2.example.net:27019",
-                "health" : 1,
-                "state" : 2,
-                "stateStr" : "SECONDARY",
-                "uptime" : 1256,
-                "optime" : {
-                    "t" : 1345235703000,
-                    "i" : 1
-                },
-                "optimeDate" : ISODate("2012-08-17T20:35:03Z"),
-                "lastHeartbeat" : ISODate("2012-08-17T20:55:58Z"),
-                "pingMs" : 0
-            }
-        ],
-        "ok" : 1
-    }
-
+          "_id" : "rs",
+          "version" : 4,
+          "members" : [
+              {
+                  "_id" : 0,
+                  "host" : "mongodb0.example.net:27017"
+              },
+              {
+                  "_id" : 1,
+                  "host" : "mongodb1.example.net:27018"
+              },
+              {
+                  "_id" : 2,
+                  "host" : "mongodb2.example.net:27019"
+              }
+          ]
+      }
