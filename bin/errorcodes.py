@@ -1,14 +1,30 @@
 #!/usr/bin/env python
-
 import os
 import sys
 import re
+import ConfigParser
+
+#sourceroot = "/Users/epc/Documents/github/epc/mongo"
+#errorsrst = "/Users/epc/Documents/github/epc/docs/draft/messages/errors.txt"
+#errorsCSV = "/Users/epc/Documents/github/epc/docs/draft/messages/errors.csv"
+#errorsTitle = "MongoDB Error and Message Codes"
+
+config = ConfigParser.SafeConfigParser()
+config.read('errorcodes.conf')
+
+sourceroot = config.get('errorcodes','source')
+resultsRoot = config.get('errorcodes', 'outputDir')
+generateCSV = config.get('errorcodes','generateCSV')
+errorsTitle = config.get('errorcodes', 'Title')
+errorsFormat = config.get('errorcodes', 'Format')
+
+default_domain = "\n\n.. default-domain:: mongodb\n\n"
+
+sys.path.append(sourceroot+"/buildscripts")
+
+# get mongodb/buildscripts/utils.py 
 import utils
 
-sourceroot = "/Users/epc/Documents/github/epc/mongo"
-errorsrst = "/Users/epc/Documents/github/epc/docs/draft/messages/errors.txt"
-errorsCSV = "/Users/epc/Documents/github/epc/docs/draft/messages/errors.csv"
-errorsTitle = "MongoDB Error and Message Codes"
 
 assertNames = [ "uassert" , "massert", "fassert", "fassertFailed" ]
 
@@ -58,99 +74,27 @@ def assignErrorCodes():
 
 codes = []
 
-def XreadErrorCodes( callback, replaceZero = False ):
-    
+def readErrorCodes():   
+    """Open each source file in sourceroot and scan for potential error messages."""
     quick = [ "assert" , "Exception"]
 
-    ps = [ re.compile( "(([umsgf]asser(t|ted))) *\(( *)(\d+)" ) ,
-           re.compile( "((User|Msg|MsgAssertion)Exceptio(n))\(( *)(\d+)" ),
-           re.compile( "streamNotGood"),
-           re.compile( "((fassertFailed)()) *\(( *)(\d+)" )
-           ]
-
-    bad = [ re.compile( "\sassert *\(" ) ]
-    arr=[]
-    for x in utils.getAllSourceFiles(arr,sourceroot):
-        
-        needReplace = [False]
-        lines = []
-        lastCodes = [0]
-        lineNum = 1
-        
-        for line in open( x ):
-
-            found = False
-            for zz in quick:
-                if line.find( zz ) >= 0:
-                    found = True
-                    break
-
-            if found:
-                
-                if x.find( "src/mongo/" ) >= 0:
-                    for b in bad:
-                        if len(b.findall( line )) > 0:
-                            print( x )
-                            print( line )
-                            raise Exception( "you can't use a bare assert" )
-
-                for p in ps:               
-
-                    def repl( m ):
-                        m = m.groups()
-
-                        start = m[0]
-                        spaces = m[3]
-                        code = m[4]
-                        if code == '0' and replaceZero :
-                            code = getNextCode( lastCodes )
-                            lastCodes.append( code )
-                            code = str( code )
-                            needReplace[0] = True
-
-                            print( "Adding code " + code + " to line " + x + ":" + str( lineNum ) )
-
-                        else :
-                            codes.append( ( x , lineNum , line , code ) )
-                            callback( x , lineNum , line , code )
-
-                        return start + "(" + spaces + code
-
-                    line = re.sub( p, repl, line )
-                    # end if ps loop
-            
-            if replaceZero : lines.append( line )
-            lineNum = lineNum + 1
-        
-        if replaceZero and needReplace[0] :
-            print( "Replacing file " + x )
-            of = open( x + ".tmp", 'w' )
-            of.write( "".join( lines ) )
-            of.close()
-            os.remove(x)
-            os.rename( x + ".tmp", x )
-
-
-def readErrorCodes( callback, replaceZero = False ):
-    
-    quick = [ "assert" , "Exception"]
-
-#    ps = [ re.compile( "(([umsgf]asser(t|ted))) *\(( *)(\d+)" ) ,
-#           re.compile( "((DB|User|Msg|MsgAssertion)Exceptio(n))\(( *)(\d+)" ),
-#           re.compile( "((fassertFailed)()) *\(( *)(\d+)" )
-#           ]
     ps = [ re.compile( "(([wum]asser(t|ted))) *\(( *)(\d+) *,\s*(\"\S[^\"]+\S\")\s*,?.*" ) ,
            re.compile( "(([wum]asser(t|ted))) *\(( *)(\d+) *,\s*([\S\s+<\(\)\"]+) *,?.*" ) ,
            re.compile( '((msgasser(t|ted))) *\(( *)(\d+) *, *(\"\S[^,^\"]+\S\") *,?' ) ,
+           re.compile( '((msgasser(t|ted)NoTrace)) *\(( *)(\d+) *, *(\"\S[^,^\"]+\S\") *,?' ) ,
            re.compile( "((fasser(t|ted))) *\(( *)(\d+)()" ) ,  
            re.compile( "((DB|User|Msg|MsgAssertion)Exceptio(n))\(( *)(\d+) *,? *(\S+.+\S) *,?" ),
-           re.compile( "((fassertFailed)()) *\(( *)(\d+)()" )
+           re.compile( "((fassertFailed)()) *\(( *)(\d+)()" ),
+           re.compile( "(([wum]asser(t|ted)))\s*\(([^\d]*)(\d+)\s*,?()"),
+           re.compile( "((msgasser(t|ted)))\s*\(([^\d]*)(\d+)\s*,?()"),
+           re.compile( "((msgasser(t|ted)NoTrace))\s*\(([^\d]*)(\d+)\s*,?()"),
+           
            ]
 
     bad = [ re.compile( "\sassert *\(" ) ]
     arr=[]
     for x in utils.getAllSourceFiles(arr,sourceroot):
-        
+        sys.stderr.write("Analyzing: {}\n".format(x))
         needReplace = [False]
         lines = []
         lastCodes = [0]
@@ -184,35 +128,13 @@ def readErrorCodes( callback, replaceZero = False ):
                         spaces = m[3]
                         code = m[4]
                         message = m[5]
-#                        if code == '0' and replaceZero :
-#                            code = getNextCode( lastCodes )
-#                            lastCodes.append( code )
-#                            code = str( code )
-#                            needReplace[0] = True
-#
-#                            print( "Adding code " + code + " to line " + x + ":" + str( lineNum ) )
-#
-#                        else :
                         codes.append( ( x , lineNum , line , code, message, severity ) )
-                        print("x(" + x + ") lineNum(" + str(lineNum) + ") line(" + line.strip(stripChars) + ") spaces(" + spaces + ") code(" + code + ")")
-                        callback( x , lineNum , line , code )
 
                         return start + "(" + spaces + code
 
                     line = re.sub( p, repl, line )
-                    print("line(" + line + ")")
-                    # end if ps loop
             
-#            if replaceZero : lines.append( line )
             lineNum = lineNum + 1
-#        
-#        if replaceZero and needReplace[0] :
-#            print( "Replacing file " + x )
-#            of = open( x + ".tmp", 'w' )
-#            of.write( "".join( lines ) )
-#            of.close()
-#            os.remove(x)
-#            os.rename( x + ".tmp", x )
 
         
 
@@ -252,17 +174,25 @@ def getBestMessage( err , start ):
     return err
     
 def genErrorOutput():
-    
-    if os.path.exists(errorsrst ):
-        i = open(errorsrst , "r" ) 
-    out = open( errorsrst , 'wb' )
-    titleLen = len(errorsTitle)
-    out.write(":orphan:\n")
-    out.write("=" * titleLen + "\n")
-    out.write(errorsTitle + "\n")
-    out.write("=" * titleLen + "\n")
-
-    out.write("\n\n.. default-domain:: mongodb\n\n");
+    """Sort and iterate through codes printing out error codes and messages in RST format."""
+    sys.stderr.write("Generating RST files\n");
+    separatefiles = False
+    if errorsFormat == 'single':
+        errorsrst = resultsRoot + "/errors.txt"
+        if os.path.exists(errorsrst ):
+            i = open(errorsrst , "r" ) 
+        out = open( errorsrst , 'wb' )
+        sys.stderr.write("Generating single file: {}\n".format(errorsrst))
+        titleLen = len(errorsTitle)
+        out.write(":orphan:\n")
+        out.write("=" * titleLen + "\n")
+        out.write(errorsTitle + "\n")
+        out.write("=" * titleLen + "\n")
+        out.write(default_domain);
+    elif errorsFormat == 'separate':
+        separatefiles = True
+    else:
+        raise Exception("Unknown output format: {}".format(errorsFormat))
     
     prev = ""
     seen = {}
@@ -271,28 +201,31 @@ def genErrorOutput():
     stripChars = " " + "\n"
     
 #    codes.sort( key=lambda x: x[0]+"-"+x[3] )
-    codes.sort( key=lambda x: x[3]+"-"+x[0] )
+    codes.sort( key=lambda x: int(x[3]) )
     for f,l,line,num,message,severity in codes:
         if num in seen:
             continue
         seen[num] = True
 
-#        if f.startswith( "./" ):
         if f.startswith(sourceroot):
             f = f[sourcerootOffset+1:]
-        
         fn = f.rpartition("/")[2]
-
         url = ":source:`" + f + "#L" + str(l) + "`"
-
-
-        out.write(".. line: {}\n\n".format(line.strip(stripChars)))
         
+        if separatefiles:
+           outputFile = "{}/{:d}.txt".format(resultsRoot,int(num))
+           out = open(outputFile, 'wb')
+           out.write(default_domain)
+           sys.stderr.write("Generating file: {}\n".format(outputFile))
+           
+        out.write(".. line: {}\n\n".format(line.strip(stripChars)))
         out.write(".. error:: {}\n\n".format(num))
-        if message:
+        if message != '':
            out.write("   :message: {}\n".format(message.strip(stripChars)))
         else:
-           out.write("   :message: {}\n".format(getBestMessage( line , str(num)).strip(stripChars)))
+           message = getBestMessage(line,str(num)).strip(stripChars)
+           if message != '':
+              out.write("   :message: {}\n".format(message))
         if severity:
            if severity in severityTexts:
               out.write("   :severity: {}\n".format(severityTexts[severity]))
@@ -301,18 +234,23 @@ def genErrorOutput():
            else:
               out.write("   :severity: {}\n".format(severity))
         
-        out.write("   :module: {}\n\n".format(url) )
-    
-        
-    out.write( "\n" )
-    out.close()
+        out.write("   :module: {}\n".format(url) )
+        if separatefiles:
+           out.write("\n")
+           out.close()
+
+    if separatefiles==False:    
+        out.write( "\n" )
+        out.close()
     
 def genErrorOutputCSV():
+	"""Parse through codes array and generate a csv file."""
+	sys.stderr.write("Writing to {}\n".format(errorsCSV))
 	if os.path.exists(errorsCSV):
 		i=open(errorsCSV,"r");
 	
 	out = open(errorsCSV, 'wb')
-	out.write('"Error","Text","Module","Line"' + "\n")
+	out.write('"Error","Text","Module","Line","Message","Severity"' + "\n")
 	
 	prev = ""
 	seen = {}
@@ -337,10 +275,8 @@ def genErrorOutputCSV():
 	out.close()
 
 if __name__ == "__main__":
-    ok = checkErrorCodes()
-    print( "ok:" + str( ok ) )
-#    print( "next: " + str( getNextCode() ) )
-    if ok:
-        genErrorOutput()
-        genErrorOutputCSV()
+	readErrorCodes()
+	genErrorOutput()
+	if (generateCSV == 'yes'):
+		genErrorOutputCSV()
 
