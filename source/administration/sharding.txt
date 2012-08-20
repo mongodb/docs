@@ -418,7 +418,13 @@ Splitting Chunks
 Normally, MongoDB splits a :term:`chunk` when a chunk exceeds the
 :ref:`chunk size <sharding-chunk-size>` following inserts or
 updates. Recently split chunks may be moved immediately to a new shard
-if :program:`mongos` predicts future insertions will benefit from the move.
+if :program:`mongos` predicts future insertions will benefit from the
+move. The :program:`balancer` treats all chunks the same, whether
+split manually or automatically by the system.
+
+.. warning::
+
+   You cannot merge or combine chunks once you have split them.
 
 You may want to split chunks manually if:
 
@@ -430,51 +436,40 @@ You may want to split chunks manually if:
 
 .. example::
 
-   You plan to insert a large amount of data  with :term:`shard key` values between ``300`` and
-   ``400``, *but* all values of your shard keys between ``250`` and
-   ``500`` are in a single chunk.
+   You plan to insert a large amount of data with :term:`shard key`
+   values between ``300`` and ``400``, *but* all values of your shard
+   keys are between ``250`` and ``500`` are in a single chunk.
 
-Use :func:`sh.status()` to determine the current chunk ranges across
-the cluster.
+To determine the current chunk ranges across the cluster, use
+:func:`sh.status()` or :dbcommand:`db.printShardingStatus()`.
 
-----
+Split chunks in a collection using the :dbcommand:`split` command with
+operators: ``middle`` and ``find``. The equivalent shell helpers are
+:func:`sh.splitAt()` or :func:`sh.splitFind()`.
 
-Split chunks in a collection using the :dbcommand:`split`
-command, the command prototype is:
+To divide the chunk in the middle of the specified field and value,
+operator is:
 
-.. code-block::
+.. code-block:: javascript
 
    db.runCommand( { split: <collection name>, middle: { <field>:<value> } } )
-
-:dbcommand:`split` will divide a chunk in the middle of the specified
-field and value.
-
-Data presplitting is useful to reduce system load when a high number
-of inserts are expected. The system will not have to perform splitting
-as the split can be made before-hand. The :dbcommand:`split` command
-can be used to perform data presplitting by running the
-:dbcommand:`split` command on a non-existent shard key value.
-
-.. code-block::
-
-   db.
-
-
-
-----
-
-To split chunks manually, use either the :func:`sh.splitAt()` or
-:func:`sh.splitFind()` helpers in the :program:`mongo` shell.
-These helpers wrap the :dbcommand:`split` command.
 
 .. example::
 
    The following command will split the chunk that contains
-   the value of ``63109`` for the ``zipcode`` field:
+   the value of ``10012`` for the ``zipcode`` field:
 
    .. code-block:: javascript
 
-      sh.splitFind( { "zipcode": 63109 } )
+      sh.splitFind( { "zipcode": 10012 } )
+
+Use :dbcommand:`split` with ``find`` operator or :func:`sh.splitAt()`
+to split a chunk in two using the queried document as the partition
+point:
+
+.. code-block:: javascript
+
+   sh.splitAt( { "zipcode": 63109 } )
 
 :func:`sh.splitFind()` will split the chunk that contains the *first* document returned
 that matches this query into two equal components. MongoDB will split
@@ -489,16 +484,41 @@ However, the location of the document that this query finds with
 respect to the other documents in the chunk does not affect how the
 chunk splits.
 
-Use :func:`sh.splitAt()` to split a chunk in two using the queried
-document as the partition point:
+Pre-splitting Chunks
+~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: javascript
+For large data migrations, pre-splitting chunks will dramatically
+improve import performance. By pre-splitting chunks, system overhead
+is reduced as new chunks are not created while new data is being inserted.
 
-   sh.splitAt( { "zipcode": 63109 } )
+#. Make many chunks by splitting empty chunks in your
+   collection. Chunks do not require data in order for them to be
+   split. 
 
-.. warning::
+   .. example::
 
-   You cannot merge or combine chunks once you have split them.
+      To pre-split chunks for 100 million user profiles sharded by
+      email address for 5 shards, run the following commands in the
+      mongo shell:
+
+        .. code-block:: javascript
+
+	    for ( var x=97; x<97+26; x++ ){
+              for( var y=97; y<97+26; y+=6 ) {
+                var prefix = String.fromCharCode(x) + String.fromCharCode(y);
+                db.runCommand( { split : <collection> , middle : { email : prefix } } );
+              }
+            }
+
+#. Move chunks to different shard by letting the balancer move the
+   chunks or performing the move manually.
+
+#. Insert data by :program:`mongoimport`.
+
+.. note::
+
+   Indexing the collection after :program:`mongoimport` will also
+   improve performance.
 
 .. _sharding-balancing-modify-chunk-size:
 
