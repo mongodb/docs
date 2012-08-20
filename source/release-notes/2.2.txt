@@ -134,10 +134,11 @@ Concurrency Improvements
 ````````````````````````
 
 In 2.2 MongoDB increases the server's capacity for concurrent
-operations with two key improvements:
+operations with the following improvements:
 
 #. :issue:`DB Level Locking <SERVER-4328>`
 #. :issue:`Improved Yielding on Page Faults <SERVER-3357>`
+#. :issue:`Improved Page Fault Detection on Windows <SERVER-4538>`
 
 To reflect these changes, MongoDB now provides changed and improved
 reporting for concurrency and use, see the :ref:`locks` and
@@ -150,7 +151,6 @@ reporting for concurrency and use, see the :ref:`locks` and
 
 Improved Data Center Awareness with Tag Aware Sharding
 ``````````````````````````````````````````````````````
-
 
 In 2.2, MongoDB adds additional support for geographic distribution or
 other custom partitioning in shard clusters.  By using this "tag
@@ -288,19 +288,15 @@ Service Support for ``mongos.exe``
 
 You may now run :program:`mongos.exe` instances as a Windows
 Service. See the :doc:`/reference/mongos.exe` reference and
-:ref:`tutorial-mongod-as-windows-service` for more information.
-
-:issue:`SERVER-1589`
+:ref:`tutorial-mongod-as-windows-service` and :issue:`SERVER-1589` for
+more information.
 
 Log Rotate Command Support
 ``````````````````````````
 
-:issue:`SERVER-2612`
-
-Page Fault Detection
-````````````````````
-
-:issue:`SERVER-4538`
+MongoDB for Windows now supports log rotation by way of the
+:dbcommand:`logRotate` database command. See :issue:`SERVER-2612` for
+more information.
 
 New Build Using SlimReadWrite Locks for Windows Concurrency
 ```````````````````````````````````````````````````````````
@@ -318,7 +314,12 @@ Tool Improvements
 ``mongodump`` Includes Index Definitions in Output with ``--collection`` Option
 ```````````````````````````````````````````````````````````````````````````````
 
-:issue:`SERVER-808`
+When you specify the :option:`--collection <mongodump --collection>`
+option to :program:`mongodump`,  :program:`mongodump` will now backup
+the definitions for all indexes that exist on the source
+database. When you attempt to restore this backup with the
+:program:`mongorestore`, the target :program:`mongod` will rebuild all
+indexes. See :issue:`SERVER-808` for more information. 
 
 ``mongooplog`` for Replaying Oplogs
 ```````````````````````````````````
@@ -333,19 +334,32 @@ documentation.
 Authentication Support for ``mongotop`` and ``mongostat``
 `````````````````````````````````````````````````````````
 
-:issue:`SERVER-3875`
+:program:`mongotop` and :program:`mongostat` now contain support for
+username/password authentication. See :issue:`SERVER-3875` and
+:issue:`SERVER-3871` for more information regarding this change and
+the documentation of the following options for additional information:
 
-:issue:`SERVER-3871`
+- :option:`mongotop --username`
+- :option:`mongotop --password`
+- :option:`mongostat --username`
+- :option:`mongostat --password`
 
 Write Concern Support for ``mongoimport``
 `````````````````````````````````````````
 
-:issue:`SERVER-3937`
+With the :option:`--stopOnError <mongoimport --stopOnError>`,
+:program:`mongoimport` provides support for :ref:`write concern
+<write-concern>`. Now if there is any kind of error (e.g. network,
+write error, etc)in the import process, :program:`mongoimport` will
+produce an error rather than silently continue importing data. See
+:issue:`SERVER-3937` for more information.
 
 ``mongodump`` Support for Reading from Secondaries
 ``````````````````````````````````````````````````
 
-:issue:`SERVER-3854`
+You can now run :program:`mongodump` when connected to a
+:term:`secondary` member of a :term:`replica set`. See
+:issue:`SERVER-3854` for more information.
 
 ``mongoimport`` Support for full 16MB Documents
 ```````````````````````````````````````````````
@@ -398,18 +412,15 @@ Helper to load Server-Side Functions
 
 The :func:`db.loadServerScripts()` loads the contents of the current
 database's ``system.js`` collection into the current :program:`mongo`
-shell session.
-
-See :issue:`SERVER-1651` for more information.
+shell session. See :issue:`SERVER-1651` for more information.
 
 Support for Bulk Inserts
 ````````````````````````
 
 If you pass an array of :term:`documents <document>` to the
 :func:`insert() <db.collection.insert()>` method, the :program:`mongo`
-shell will now perform a bulk insert operation.
-
-See :issue:`SERVER-3819` and :issue:`SERVER-2395` for more information
+shell will now perform a bulk insert operation. See
+:issue:`SERVER-3819` and :issue:`SERVER-2395` for more information.
 
 Operations
 ~~~~~~~~~~
@@ -425,9 +436,8 @@ and :option:`mongos --syslog` command line-options.
 `````````````````
 
 Added the :dbcommand:`touch` command to read the data and/or indexes
-from a collection into memory.
-
-See: :issue:`SERVER-2023` and :dbcommand:`touch` for more information.
+from a collection into memory. See: :issue:`SERVER-2023` and
+:dbcommand:`touch` for more information.
 
 ``indexCounters`` No Longer Report Sampled Data
 ```````````````````````````````````````````````
@@ -439,33 +449,10 @@ use and state. In previous versions, these data were sampled. See
 Padding Specifiable on ``compact`` Command
 ``````````````````````````````````````````
 
-:issue:`SERVER-4018`
+See the documentation of the :dbcommand:`compact` and the
+:issue:`SERVER-4018` issue for more information.
 
 .. TODO fix documentation and link
-
-Replication
-~~~~~~~~~~~
-
-Replica Set Members will not Sync from Members Without Indexes Unless ``buildIndexes: false``
-`````````````````````````````````````````````````````````````````````````````````````````````
-
-:issue:`SERVER-4160`
-
-Improved Logging for Replica Set Lag
-````````````````````````````````````
-
-:issue:`SERVER-3575`
-
-Replica Set Members can Sync from Specific Members
-``````````````````````````````````````````````````
-
-The new :dbcommand:`replSetSyncFrom` command, and
-:func:`rs.syncFrom()` helper in the :program:`mongo` shell make it
-possible for you to manually configure from which member of the set a
-replica will poll :term:`oplog` entries. Use these commands to
-override the default selection logic if needed. Always exercise
-caution with :dbcommand:`replSetSyncFrom` when overriding the default
-behavior.
 
 Added Build Flag to Use System Libraries
 ````````````````````````````````````````
@@ -492,18 +479,45 @@ libraries, use the following arguments to ``scons``:
 See the :issue:`SERVER-3829` and :issue:`SERVER-5172` issues for more
 information.
 
-Map Reduce
-~~~~~~~~~~
+Replication
+~~~~~~~~~~~
 
-Improved Support for Sharded MapReduce
-``````````````````````````````````````
-
-:issue:`SERVER-4521`
-
-Retry MapReduce Jobs on Config Error
+Improved Logging for Replica Set Lag
 ````````````````````````````````````
 
-:issue:`SERVER-4158`
+When :term:`secondary` members of a replica set fall behind in
+replication, :program:`mongod` now provides better reporting in the
+log. This makes it possible to track replication in general and
+identify what process may produce errors or halt replication. See
+:issue:`SERVER-3575` for more information.
+
+Replica Set Members can Sync from Specific Members
+``````````````````````````````````````````````````
+
+The new :dbcommand:`replSetSyncFrom` command, and
+:func:`rs.syncFrom()` helper in the :program:`mongo` shell make it
+possible for you to manually configure from which member of the set a
+replica will poll :term:`oplog` entries. Use these commands to
+override the default selection logic if needed. Always exercise
+caution with :dbcommand:`replSetSyncFrom` when overriding the default
+behavior.
+
+Replica Set Members will not Sync from Members Without Indexes Unless ``buildIndexes: false``
+`````````````````````````````````````````````````````````````````````````````````````````````
+
+To prevent inconsistency between members of replica sets, if the
+member of a replica set has :data:`members[n].buildIndexes` set to
+``true``, other members of the replica set will *not* sync from this
+member, unless they also have :data:`members[n].buildIndexes` set to
+true. See :issue:`SERVER-4160` for more information.
+
+Map Reduce Improvements
+~~~~~~~~~~~~~~~~~~~~~~~
+
+In 2.2 Map Reduce received the following improvements: 
+
+- :issue:`Improved support for sharded MapReduce <SERVER-4521>`, and 
+- :issue:`MapReduce will retry jobs following a config error <SERVER-4158>`. 
 
 Sharding Improvements
 ~~~~~~~~~~~~~~~~~~~~~
