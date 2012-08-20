@@ -1349,25 +1349,30 @@ Administration
 
    The :dbcommand:`fsync` command forces the :program:`mongod` process
    to flush all pending writes to the storage layer. :program:`mongod`
-   is always writing data to the storage layer within the
-   :setting:`syncdelay` interval, which is 60 seconds by default.
+   is always writing data to the storage layer as applications write
+   more data to the database. MongoDB guarantees that it will write
+   all data to disk within the :setting:`syncdelay` interval, which is
+   60 seconds by default.
 
    .. code-block:: javascript
 
       { fsync: 1 }
 
    The :dbcommand:`fsync` operation is synchronous by default, to run
-   :dbcommand:`fsync` asynchronously, the command is:
+   :dbcommand:`fsync` asynchronously, use the following form:
 
    .. code-block:: javascript
 
       { fsync: 1, async: true }
 
-   Database backups can be performed using :dbcommand:`fsync` with the
-   ``lock`` operator, know as fsync lock. This will flush all data to
-   the data storage layer and block all write operations until the
-   database is unlocked. To set fsync lock for a database, use the
-   following command:
+   The connection will return immediately. You can check the output of
+   :fun:`db.currentOp()` for the status of the :dbcommand:`fsync`
+   operation.
+
+   The primary use of :dbcommand:`fsync` is to lock the database
+   during backup operations. This will flush all data to the data
+   storage layer and block all write operations until you unlock the
+   database. Consider the following command form:
 
    .. code-block:: javascript
 
@@ -1375,16 +1380,14 @@ Administration
 
    .. note::
 
-      Read operations are allowed on a database that is fsync locked
-      until the next write operation, which will cause read operations
-      to be blocked. The database will then be locked until it is
-      unlocked.
+      You may continue to perform read operations on a database that
+      has a :dbcommand:`fsync` lock. However, following the first
+      write operation all subsequent read operations until wait until
+      you unlock the database.
 
    To check on the current state of the fsync lock, use
-   :func:`db.currentOp()`.
-
-   To unlock the database, make a request for an unlock using the
-   following command:
+   :func:`db.currentOp()`. To unlock the database, make a request for
+   an unlock using the following command:
 
    .. code-block:: javascript
 
@@ -1394,8 +1397,9 @@ Administration
       The :func:`db.fsyncLock()` and :func:`db.fsyncUnlock()`
       helpers in the shell.
 
-   In the shell, you may use the following shell helpers to simplify the
-   :dbcommand:`fsync` lock and unlock process:
+   In the :program:`mongo` shell, you may use the
+   :func:`db.fsyncLock()` and :func:`db.fsyncUnLock()` wrappers for
+   the :dbcommand:`fsync` lock and unlock process:
 
    .. code-block:: javascript
 
@@ -1406,17 +1410,14 @@ Administration
 
       :dbcommand:`fsync` lock is only possible on individual shards of
       a shard cluster, not on the entire shard cluster. To backup an
-      entire shard cluster, please read: :ref:`Shard cluster
-      considerations for backups
-      <backups-with-sharding-and-replication>`
+      entire shard cluster, please read :ref:`considerations for
+      backing up shard clusters <backups-with-sharding-and-replication>`.
 
-   .. note::
-
-      With :term:`journaling <journal>` enabled, there are :ref:`other
-      methods<backup-with-journaling>` to create a backup.
+      If your :program:`mongod` has :term:`journaling <journal>`
+      enabled, consider using :ref:`another method
+      <backup-with-journaling>` to back up your database.
 
    .. include:: /includes/note-disable-profiling-fsynclock.rst
-
 
 .. dbcommand:: dropDatabase
 
