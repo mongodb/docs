@@ -139,8 +139,9 @@ def readErrorCodes( callback, replaceZero = False ):
 #           re.compile( "((DB|User|Msg|MsgAssertion)Exceptio(n))\(( *)(\d+)" ),
 #           re.compile( "((fassertFailed)()) *\(( *)(\d+)" )
 #           ]
-    ps = [ re.compile( "(([wum]asser(t|ted))) *\(( *)(\d+) *,? *(\S+.+\S) *,?" ) ,
-           re.compile( "((msgasser(t|ted))) *\(( *)(\d+) *,? *(\S+.+\S) *,?" ) ,
+    ps = [ re.compile( "(([wum]asser(t|ted))) *\(( *)(\d+) *,\s*(\"\S[^\"]+\S\")\s*,?.*" ) ,
+           re.compile( "(([wum]asser(t|ted))) *\(( *)(\d+) *,\s*([\S\s+<\(\)\"]+) *,?.*" ) ,
+           re.compile( '((msgasser(t|ted))) *\(( *)(\d+) *, *(\"\S[^,^\"]+\S\") *,?' ) ,
            re.compile( "((fasser(t|ted))) *\(( *)(\d+)()" ) ,  
            re.compile( "((DB|User|Msg|MsgAssertion)Exceptio(n))\(( *)(\d+) *,? *(\S+.+\S) *,?" ),
            re.compile( "((fassertFailed)()) *\(( *)(\d+)()" )
@@ -154,6 +155,8 @@ def readErrorCodes( callback, replaceZero = False ):
         lines = []
         lastCodes = [0]
         lineNum = 1
+        
+        stripChars = " " + "\n"
         
         for line in open( x ):
 
@@ -191,7 +194,7 @@ def readErrorCodes( callback, replaceZero = False ):
 #
 #                        else :
                         codes.append( ( x , lineNum , line , code, message, severity ) )
-                        print("x(" + x + ") lineNum(" + str(lineNum) + ") line(" + line + ") spaces(" + spaces + ") code(" + code + ")")
+                        print("x(" + x + ") lineNum(" + str(lineNum) + ") line(" + line.strip(stripChars) + ") spaces(" + spaces + ") code(" + code + ")")
                         callback( x , lineNum , line , code )
 
                         return start + "(" + spaces + code
@@ -265,8 +268,10 @@ def genErrorOutput():
     seen = {}
     
     sourcerootOffset = len(sourceroot)
+    stripChars = " " + "\n"
     
-    codes.sort( key=lambda x: x[0]+"-"+x[3] )
+#    codes.sort( key=lambda x: x[0]+"-"+x[3] )
+    codes.sort( key=lambda x: x[3]+"-"+x[0] )
     for f,l,line,num,message,severity in codes:
         if num in seen:
             continue
@@ -278,24 +283,16 @@ def genErrorOutput():
         
         fn = f.rpartition("/")[2]
 
-#        if f != prev:
-#            out.write( "\n\n" )
-#            out.write( f + "\n----\n" )
-#            prev = f
-
         url = ":source:`" + f + "#L" + str(l) + "`"
-        
-#       out.write("\n.. error:: {}\n\n   Text: {}\n\n".format(num,getBestMessage( line , str(num))))
-#        out.write("   Module: {}\n\n".format(f))
-#        out.write("   :module: `{}:{} <{}>`_\n".format(fn,l,url))
-#        out.write("   .. seealso:: `{}:{} <{}>`_\n".format(f,l, url))
-#        out.write( "* " + str(num) + " [code](" + url + ") " + getBestMessage( line , str(num) ) + "\n" )
 
+
+        out.write(".. line: {}\n\n".format(line.strip(stripChars)))
+        
         out.write(".. error:: {}\n\n".format(num))
         if message:
-           out.write("   :message: {}\n".format(message))
+           out.write("   :message: {}\n".format(message.strip(stripChars)))
         else:
-           out.write("   :message: {}\n".format(getBestMessage( line , str(num))))
+           out.write("   :message: {}\n".format(getBestMessage( line , str(num)).strip(stripChars)))
         if severity:
            if severity in severityTexts:
               out.write("   :severity: {}\n".format(severityTexts[severity]))
@@ -320,6 +317,9 @@ def genErrorOutputCSV():
 	prev = ""
 	seen = {}
 	
+	stripChars = " " + "\n"
+
+	
 	codes.sort( key=lambda x: x[0]+"-"+x[3] )
 	for f,l,line,num,message,severity in codes:
 		if num in seen:
@@ -330,7 +330,7 @@ def genErrorOutputCSV():
 			f=f[2:]
 			fn = f.rpartition("/")[2]
 		
-		out.write('"{}","{}","{}","{}","{}","{}"'.format(num, getBestMessage(line , str(num)),f,l,message,severity))
+		out.write('"{}","{}","{}","{}","{}","{}"'.format(num, getBestMessage(line , str(num)).strip(stripChars),f,l,message,severity))
 		
 		out.write("\n")
 	
