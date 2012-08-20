@@ -17,6 +17,7 @@ resultsRoot = config.get('errorcodes', 'outputDir')
 generateCSV = config.get('errorcodes','generateCSV')
 errorsTitle = config.get('errorcodes', 'Title')
 errorsFormat = config.get('errorcodes', 'Format')
+generateJSON = config.get('errorcodes','generateJSON')
 
 default_domain = "\n\n.. default-domain:: mongodb\n\n"
 
@@ -73,6 +74,7 @@ def assignErrorCodes():
 
 
 codes = []
+messages = {}
 
 def readErrorCodes():   
     """Open each source file in sourceroot and scan for potential error messages."""
@@ -101,6 +103,8 @@ def readErrorCodes():
         lineNum = 1
         
         stripChars = " " + "\n"
+        sourcerootOffset = len(sourceroot)
+
         
         for line in open( x ):
 
@@ -129,6 +133,21 @@ def readErrorCodes():
                         code = m[4]
                         message = m[5]
                         codes.append( ( x , lineNum , line , code, message, severity ) )
+                        if x.startswith(sourceroot):
+							fn = x[sourcerootOffset+1:].rpartition("/2")[2]
+#        fn = f.rpartition("/")[2]
+
+                        msgDICT = {
+							'id': code, 
+							'text':message, 
+							'sev':severity, 
+							'user':'',
+							'sys':'', 
+							'ln':lineNum, 
+							'f':fn,
+							'src': line.strip(stripChars)
+							}
+                        messages[int(code)] = msgDICT
 
                         return start + "(" + spaces + code
 
@@ -279,4 +298,10 @@ if __name__ == "__main__":
 	genErrorOutput()
 	if (generateCSV == 'yes'):
 		genErrorOutputCSV()
-
+	if (generateJSON== 'yes'):
+		import json
+		outputFile = "{}/errorcodes.json".format(resultsRoot)
+		out = open(outputFile, 'wb')
+		sys.stderr.write("Generating JSON file: {}\n".format(outputFile))
+        out.write(json.dumps(messages))
+        out.close()
