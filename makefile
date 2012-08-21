@@ -99,7 +99,7 @@ endif
 # access these targets through the ``publish`` target.
 .PHONY: initial-dependencies static-components sphinx-components
 
-initial-dependencies:source/about.txt $(CURRENTBUILD)/MongoDB-Manual.epub
+initial-dependencies:source/about.txt $(CURRENTBUILD) $(CURRENTBUILD)/MongoDB-Manual.epub
 static-components:$(publication-output)/index.html $(publication-output)/10gen-gpg-key.asc $(CURRENTBUILD)/tutorials $(CURRENTBUILD)/.htaccess $(CURRENTBUILD)/release.txt
 sphinx-components:$(CURRENTBUILD)/MongoDB-Manual.pdf $(CURRENTBUILD)/sitemap.xml.gz $(CURRENTBUILD)/ $(CURRENTBUILD)/single $(CURRENTBUILD)/single/index.html
 
@@ -162,7 +162,9 @@ $(CURRENTBUILD)/sitemap.xml.gz:$(BUILDDIR)/sitemap.xml.gz
 $(CURRENTBUILD)/release.txt:$(publication-output)/manual
 	@echo "[build]: generating '$@' with current release hash."
 	@git rev-parse --verify HEAD >|$@
-$(publication-output):$(CURRENTBUILD)
+$(publication-output):
+	mkdir -p $@
+$(CURRENTBUILD):$(publication-output)
 	mkdir -p $@
 $(publication-output)/manual:manual
 	mv $< $@
