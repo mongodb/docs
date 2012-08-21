@@ -125,18 +125,14 @@ $(BUILDDIR)/latex/MongoDB-Manual.tex:$(BUILDDIR)/latex/MongoDB.tex
 	@bin/copy-if-needed $@ $<
 $(CURRENTBUILD)/MongoDB-Manual-$(current-branch).pdf:$(BUILDDIR)/latex/MongoDB-Manual.pdf
 	cp $< $@
-MongoDB-Manual.pdf:$(CURRENTBUILD)/MongoDB-Manual-$(current-branch).pdf
-	ln -s -f $(notdir $<) $@
-$(CURRENTBUILD)/MongoDB-Manual.pdf:./MongoDB-Manual.pdf
-	mv $< $@
+$(CURRENTBUILD)/MongoDB-Manual.pdf:$(CURRENTBUILD)/MongoDB-Manual-$(current-branch).pdf
+	@bin/create-link $(notdir $<) $(notdir $@) $@
 
 $(BUILDDIR)/epub/MongoDB.epub:epub
-MongoDB-Manual.epub:$(CURRENTBUILD)/MongoDB-Manual-$(current-branch).epub
-	ln -s -f $(notdir $<) $@
 $(CURRENTBUILD)/MongoDB-Manual-$(current-branch).epub:$(BUILDDIR)/epub/MongoDB.epub
 	cp $< $@
-$(CURRENTBUILD)/MongoDB-Manual.epub:./MongoDB-Manual.epub
-	mv $< $@
+$(CURRENTBUILD)/MongoDB-Manual.epub:$(CURRENTBUILD)/MongoDB-Manual-$(current-branch).epub
+	@bin/create-link $(notdir $<) $(notdir $@) $@
 
 # fixup the single html page:
 $(CURRENTBUILD)/single:$(BUILDDIR)/singlehtml
@@ -159,31 +155,26 @@ $(CURRENTBUILD)/sitemap.xml.gz:$(BUILDDIR)/sitemap.xml.gz
 $(CURRENTBUILD)/release.txt:$(publication-output)/manual
 	@echo "[build]: generating '$@' with current release hash."
 	@git rev-parse --verify HEAD >|$@
+$(publication-output)/manual:
+	@bin/create-link $(manual-branch) manual $@
 $(publication-output):
 	mkdir -p $@
 $(CURRENTBUILD):$(publication-output)
 	mkdir -p $@
-$(publication-output)/manual:manual
-	mv $< $@
-	-rm -f $(CURRENTBUILD)/manual
 $(publication-output)/index.html:themes/docs.mongodb.org/index.html
 	cp $< $@
 $(CURRENTBUILD)/.htaccess:themes/docs.mongodb.org/.htaccess
 	cp $< $@
 $(publication-output)/10gen-gpg-key.asc:themes/docs.mongodb.org/10gen-gpg-key.asc
 	cp $< $@
-manual:$(CURRENTBUILD)
-	ln -f -s $(manual-branch) $@
+
 source/about.txt:
 	@echo [build]: touching $@
 	@touch $@
 .PHONY:source/about.txt
 
-$(CURRENTBUILD)/tutorial:$(CURRENTBUILD)
-tutorials:$(CURRENTBUILD)/tutorial
-	ln -f -s tutorial $@
-$(CURRENTBUILD)/tutorials:tutorials
-	mv $< $@
+$(CURRENTBUILD)/tutorials:
+	@bin/create-link tutorial $(notdir $@) $@
 
 # Clean up/removal targets.
 clean:
