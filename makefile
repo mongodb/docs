@@ -101,14 +101,13 @@ endif
 
 initial-dependencies:source/about.txt $(CURRENTBUILD) $(CURRENTBUILD)/MongoDB-Manual.epub
 static-components:$(publication-output)/index.html $(publication-output)/10gen-gpg-key.asc $(CURRENTBUILD)/tutorials $(CURRENTBUILD)/.htaccess $(CURRENTBUILD)/release.txt
-sphinx-components:$(CURRENTBUILD)/MongoDB-Manual.pdf $(CURRENTBUILD)/sitemap.xml.gz $(CURRENTBUILD)/ $(CURRENTBUILD)/single $(CURRENTBUILD)/single/index.html
+sphinx-components:$(CURRENTBUILD)/MongoDB-Manual.pdf $(CURRENTBUILD)/ $(CURRENTBUILD)/sitemap.xml.gz $(CURRENTBUILD)/ $(CURRENTBUILD)/single $(CURRENTBUILD)/single/index.html
 
 # Build and migrate the HTML components of the build.
 $(BUILDDIR)/sitemap.xml.gz:$(BUILDDIR)/dirhtml
 $(BUILDDIR)/singlehtml/contents.html:$(BUILDDIR)/singlehtml
-$(BUILDDIR)/dirhtml/:$(BUILDDIR)/dirhtml
-$(CURRENTBUILD)/:$(BUILDDIR)/dirhtml/
-	cp -R $<* $@
+$(CURRENTBUILD)/:$(BUILDDIR)/dirhtml
+	cp -R $</* $@
 $(BUILDDIR)/dirhtml:dirhtml
 	@echo [build]: touching $@
 	@touch $@
@@ -118,8 +117,6 @@ $(BUILDDIR)/html:html
 $(BUILDDIR)/singlehtml:singlehtml
 	@echo [build]: touching $@
 	@touch $@
-
-test:$(BUILDDIR)/latex/MongoDB-Manual.tex
 
 # Build and migrate the epub and PDF.
 $(BUILDDIR)/latex/MongoDB.tex:latex
