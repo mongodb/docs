@@ -122,7 +122,7 @@ class MongoDBObject(ObjectDescription):
             return _('%s (statistic)') % (name)
         elif self.objtype == 'data':
             return _('%s (shell output)') % (name)
-        elif self.objtype == 'function':
+        elif self.objtype == 'method':
             return _('%s (shell method)') % (name)
         elif self.objtype == 'collflag':
             return _('%s (collection flag)') % (name)
@@ -138,7 +138,7 @@ class MongoDBObject(ObjectDescription):
     doc_field_types = [
         TypedField('arguments', label=l_('Arguments'),
                    names=('argument', 'arg', 'parameter', 'param'),
-                   typerolename='func', typenames=('paramtype', 'type')),
+                   typerolename='method', typenames=('paramtype', 'type')),
         TypedField('options', label=l_('Options'),
                    names=('options', 'opts', 'option', 'opt'),
                    typerolename=('dbcommand', 'setting', 'status', 'stats', 'aggregator'),
@@ -201,7 +201,7 @@ class MongoDBDomain(Domain):
         'status':       ObjType(l_('status'),      'status'),
         'stats':        ObjType(l_('stats'),       'stats'),
         'readmode':     ObjType(l_('readmode'),    'readmode'),
-        'function':     ObjType(l_('function'),    'func'),
+        'method':       ObjType(l_('method'),      'method'),
         'data':         ObjType(l_('data'),        'data'),
         'aggregator':   ObjType(l_('aggregator'),  'aggregator'),
         'group':        ObjType(l_('group'),       'group'),
@@ -218,7 +218,7 @@ class MongoDBDomain(Domain):
         'status':        MongoDBCallable,
         'stats':         MongoDBCallable,
         'readmode':      MongoDBCallable,
-        'function':      MongoDBCallableComplex,
+        'method':        MongoDBCallableComplex,
         'data':          MongoDBCallable,
         'aggregator':    MongoDBCallable,
         'group':         MongoDBCallable,
@@ -234,7 +234,7 @@ class MongoDBDomain(Domain):
         'status':      MongoDBXRefRole(),
         'stats':       MongoDBXRefRole(),
         'readmode':    MongoDBXRefRole(),
-        'func':        MongoDBXRefRole(),
+        'method':      MongoDBXRefRole(),
         'data':        MongoDBXRefRole(),
         'aggregator':  MongoDBXRefRole(),
         'group':       MongoDBXRefRole(),
