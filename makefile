@@ -102,7 +102,7 @@ endif
 
 initial-dependencies:source/about.txt $(CURRENTBUILD) $(CURRENTBUILD)/MongoDB-Manual.epub
 	@echo [build]: running the publication routine for the $(manual-branch) branch of the Manual.
-static-components:$(publication-output)/index.html $(publication-output)/10gen-gpg-key.asc $(CURRENTBUILD)/tutorials $(CURRENTBUILD)/.htaccess $(CURRENTBUILD)/release.txt
+static-components:$(publication-output)/index.html $(publication-output)/10gen-gpg-key.asc $(CURRENTBUILD)/tutorials $(CURRENTBUILD)/reference/methods $(CURRENTBUILD)/.htaccess $(CURRENTBUILD)/release.txt
 	@echo [build]: building and migrating all non-Sphinx components of the build.
 sphinx-components:$(CURRENTBUILD)/MongoDB-Manual.pdf $(CURRENTBUILD)/ $(CURRENTBUILD)/sitemap.xml.gz $(CURRENTBUILD)/ $(CURRENTBUILD)/single $(CURRENTBUILD)/single/index.html
 	@echo [build]: running the publication routine for all Sphinx Components of the Manual Build.
@@ -195,6 +195,8 @@ $(CURRENTBUILD)/sitemap.xml.gz:$(BUILDDIR)/sitemap.xml.gz
 
 $(CURRENTBUILD)/tutorials:
 	@bin/create-link tutorial $(notdir $@) $@
+$(CURRENTBUILD)/reference/methods:
+	@bin/create-link method $(notdir $@) $@
 
 # Clean up/removal targets.
 clean:
