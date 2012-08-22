@@ -1,0 +1,76 @@
+=============================
+db.collection.findAndModify()
+=============================
+
+.. default-domain:: mongodb
+
+.. method:: db.collection.findAndModify()
+
+   The :method:`db.collection.findAndModify()` method atomically modifies and
+   returns a single document. Always call :method:`db.collection.findAndModify()`
+   on a collection object, using the following form:
+
+   .. code-block:: javascript
+
+      db.collection.findAndModify();
+
+   Replace, ``collection`` with the name of the collection
+   containing the document that you want to modify, and specify
+   options, as a sub-document that specifies the following:
+
+   :field document query: A query object. This statement might
+                          resemble the :term:`document` passed to
+                          :method:`db.collection.find()`, and should return *one*
+                          document from the database.
+
+   :field sort: Optional. If the query selects multiple documents, the
+                first document given by this sort clause will be the
+                one modified.
+
+   :field remove: Optional. When ``true``, :dbcommand:`findAndModify`
+                  removes the selected document. The default is
+                  ``false``
+
+   :field update: An :ref:`update operator <update-operators>` to
+                  modify the selected document.
+
+   :field new: Optional. When ``true``, returns the modified document
+               rather than the original.  :dbcommand:`findAndModify`
+               ignores the ``new`` option for ``remove``
+               operations. The default is ``false``.
+
+   :field fields: Optional. A subset of fields to return. See
+                  ":ref:`projection operators <projection-operators>`"
+                  for more information.
+
+   :field upsert: Optional. When ``true``, :dbcommand:`findAndModify`
+                  creates a new document if the specified ``query``
+                  returns no documents. The default is ``false``.
+
+   For example:
+
+   .. code-block:: javascript
+
+      db.people.findAndModify( {
+          query: { name: "Tom", state: "active", rating: { $gt: 10 } },
+          sort: { rating: 1 },
+          update: { $inc: { score: 1 } }
+          } );
+
+   This operation finds a document in the ``people`` collection
+   where the ``name`` field has the value ``Tom``, the
+   ``active`` value in the ``state`` field and a value in the
+   ``rating`` field :operator:`greater than <$gt>` 10, and
+   :operator:`increments <$inc>` the value of the ``score`` field by
+   1. If there is more than one result for this query, MongoDB sorts
+   the results of the query in ascending order, and updates and
+   returns the first matching document found.
+
+   .. warning::
+
+      When using :dbcommand:`findAndModify` in a :term:`sharded
+      <sharding>` environment, the ``query`` must contain the
+      :term:`shard key` for all operations against the shard
+      cluster. :dbcommand:`findAndModify` operations issued against
+      :program:`mongos` instances for non-sharded collections function
+      normally.
