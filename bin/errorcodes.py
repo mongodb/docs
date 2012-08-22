@@ -264,6 +264,7 @@ def genErrorOutput():
     
 def genErrorOutputCSV():
 	"""Parse through codes array and generate a csv file."""
+	errorsCSV = "{}/errors.csv".format(resultsRoot)
 	sys.stderr.write("Writing to {}\n".format(errorsCSV))
 	if os.path.exists(errorsCSV):
 		i=open(errorsCSV,"r");
@@ -274,7 +275,7 @@ def genErrorOutputCSV():
 	prev = ""
 	seen = {}
 	
-	stripChars = " " + "\n"
+	stripChars = " " + "\n" + '"'
 
 	
 	codes.sort( key=lambda x: x[0]+"-"+x[3] )
@@ -287,7 +288,7 @@ def genErrorOutputCSV():
 			f=f[2:]
 			fn = f.rpartition("/")[2]
 		
-		out.write('"{}","{}","{}","{}","{}","{}"'.format(num, getBestMessage(line , str(num)).strip(stripChars),f,l,message,severity))
+		out.write('"{}","{}","{}","{}","{}","{}"'.format(num, getBestMessage(line , str(num)).strip(stripChars),f,l,message.strip(stripChars),severity))
 		
 		out.write("\n")
 	
@@ -303,5 +304,5 @@ if __name__ == "__main__":
 		outputFile = "{}/errorcodes.json".format(resultsRoot)
 		out = open(outputFile, 'wb')
 		sys.stderr.write("Generating JSON file: {}\n".format(outputFile))
-        out.write(json.dumps(messages))
-        out.close()
+		out.write(json.dumps(messages))
+		out.close()
