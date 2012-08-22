@@ -153,7 +153,7 @@ $(CURRENTBUILD)/MongoDB-Manual.epub:$(CURRENTBUILD)/MongoDB-Manual-$(current-bra
 
 $(CURRENTBUILD)/:$(BUILDDIR)/dirhtml
 	@cp -R $</* $@
-	@echo [build]: migrated $@
+	@echo [build]: migrated '$</*' to '$@'
 $(CURRENTBUILD)/single:$(BUILDDIR)/singlehtml
 	@mkdir -p $@
 	@cp -R $</* $@
