@@ -1,5 +1,7 @@
 # Makefile for MongoDB Sphinx documentation
-MAKEFLAGS += -j
+MAKEFLAGS += -j 
+MAKEFLAGS += -r 
+MAKEFLAGS += --no-print-directory
 
 # You can set these variables from the command line.
 SPHINXOPTS    = -c ./
@@ -68,14 +70,13 @@ help:
 #
 
 push:publish
-	@echo "[build]: copying the new build to the web servers."
+	@echo [build]: copying the new build to the web servers.
 	$(MAKE) MODE='push' push-dc1 push-dc2
-	@echo "[build]: a new build of the $(manual-branch) branch of the Manual is deployed to the web servers."
+	@echo [build]: a new build of the $(manual-branch) branch of the Manual is deployed to the web servers.
 
 publish:initial-dependencies
-	@echo "[build]: running the publication routine for the $(manual-branch) branch of the Manual."
-	$(MAKE) static-components sphinx-components
-	@echo "[build]: $(manual-branch) branch is succeessfully deployed to '$(publication-output)'."
+	$(MAKE) sphinx-components static-components
+	@echo [build]: $(manual-branch) branch is succeessfully deployed to '$(publication-output)'.
 
 #
 # Targets for pushing the new build to the web servers.
@@ -100,60 +101,77 @@ endif
 .PHONY: initial-dependencies static-components sphinx-components
 
 initial-dependencies:source/about.txt $(CURRENTBUILD) $(CURRENTBUILD)/MongoDB-Manual.epub
+	@echo [build]: running the publication routine for the $(manual-branch) branch of the Manual.
 static-components:$(publication-output)/index.html $(publication-output)/10gen-gpg-key.asc $(CURRENTBUILD)/tutorials $(CURRENTBUILD)/.htaccess $(CURRENTBUILD)/release.txt
+	@echo [build]: building and migrating all non-Sphinx components of the build.
 sphinx-components:$(CURRENTBUILD)/MongoDB-Manual.pdf $(CURRENTBUILD)/ $(CURRENTBUILD)/sitemap.xml.gz $(CURRENTBUILD)/ $(CURRENTBUILD)/single $(CURRENTBUILD)/single/index.html
+	@echo [build]: running the publication routine for all Sphinx Components of the Manual Build.
 
-# Build and migrate the HTML components of the build.
-$(BUILDDIR)/sitemap.xml.gz:$(BUILDDIR)/dirhtml
+#
+# Build the HTML components of the build.
+#
+
+.PHONY:source/about.txt
+
 $(BUILDDIR)/singlehtml/contents.html:$(BUILDDIR)/singlehtml
-$(CURRENTBUILD)/:$(BUILDDIR)/dirhtml
-	cp -R $</* $@
+source/about.txt:
+	@touch $@
+	@echo [build]: touched '$@' to ensure a fresh build.
 $(BUILDDIR)/dirhtml:dirhtml
-	@echo [build]: touching $@
 	@touch $@
+	@echo [build]: touched $@ to ensure proper migration.
 $(BUILDDIR)/html:html
-	@echo [build]: touching $@
 	@touch $@
+	@echo [build]: touched $@ to ensure proper migration.
 $(BUILDDIR)/singlehtml:singlehtml
-	@echo [build]: touching $@
 	@touch $@
+	@echo [build]: touched $@ to ensure proper migration.
 
-# Build and migrate the epub and PDF.
+#
+# Building and Linking the ePub and LaTeX Builds.
+#
 $(BUILDDIR)/latex/MongoDB.tex:latex
 $(BUILDDIR)/latex/MongoDB.pdf:$(BUILDDIR)/latex/MongoDB-Manual.tex
 $(BUILDDIR)/latex/MongoDB-Manual.tex:$(BUILDDIR)/latex/MongoDB.tex
 	@bin/copy-if-needed $@ $<
 $(CURRENTBUILD)/MongoDB-Manual-$(current-branch).pdf:$(BUILDDIR)/latex/MongoDB-Manual.pdf
-	cp $< $@
+	@cp $< $@
+	@echo [build]: migrated $@
 $(CURRENTBUILD)/MongoDB-Manual.pdf:$(CURRENTBUILD)/MongoDB-Manual-$(current-branch).pdf
 	@bin/create-link $(notdir $<) $(notdir $@) $@
 
 $(BUILDDIR)/epub/MongoDB.epub:epub
 $(CURRENTBUILD)/MongoDB-Manual-$(current-branch).epub:$(BUILDDIR)/epub/MongoDB.epub
-	cp $< $@
+	@cp $< $@
+	@echo [build]: migrated $@
 $(CURRENTBUILD)/MongoDB-Manual.epub:$(CURRENTBUILD)/MongoDB-Manual-$(current-branch).epub
 	@bin/create-link $(notdir $<) $(notdir $@) $@
 
-# fixup the single html page:
+#
+# Migrating and processing the dirhtml and singlehtml as needed.
+#
+
+$(CURRENTBUILD)/:$(BUILDDIR)/dirhtml
+	@cp -R $</* $@
+	@echo [build]: migrated $@
 $(CURRENTBUILD)/single:$(BUILDDIR)/singlehtml
-	mkdir -p $@
-	cp -R $</* $@
+	@mkdir -p $@
+	@cp -R $</* $@
 	@rm -f $@/contents.html
-	@echo [SINGLE]: single build migrated
+	@echo [SINGLE]: migrated singlehtml files '$@'
 $(CURRENTBUILD)/single/search.html:$(BUILDDIR)/dirhtml/search/index.html
-	cp $< $@
+	@cp $< $@
+	@echo [SINGLE]: migrated search page '$@'
 $(CURRENTBUILD)/single/index.html:$(BUILDDIR)/singlehtml/contents.html
-	cp $< $@
+	@cp $< $@
 	@sed $(SED_ARGS_FILE) -e 's/href="contents.html/href="index.html/g' \
                               -e 's/name="robots" content="index"/name="robots" content="noindex"/g' \
                               -e 's/(href=")genindex.html"/\1..\/genindex\/"/g' $@
-	@echo "[SINGLE]: generating '$@'"
-$(CURRENTBUILD)/sitemap.xml.gz:$(BUILDDIR)/sitemap.xml.gz
-	cp $< $@
+	@echo [SINGLE]: generating and processing '$@' page
 
 # Deployment related work for the non-Sphinx aspects of the build.
 $(CURRENTBUILD)/release.txt:$(publication-output)/manual
-	@echo "[build]: generating '$@' with current release hash."
+	@echo [build]: generating '$@' with current release hash.
 	@git rev-parse --verify HEAD >|$@
 $(publication-output)/manual:
 	@bin/create-link $(manual-branch) manual $@
@@ -161,17 +179,19 @@ $(publication-output):
 	mkdir -p $@
 $(CURRENTBUILD):$(publication-output)
 	mkdir -p $@
-$(publication-output)/index.html:themes/docs.mongodb.org/index.html
-	cp $< $@
-$(CURRENTBUILD)/.htaccess:themes/docs.mongodb.org/.htaccess
-	cp $< $@
-$(publication-output)/10gen-gpg-key.asc:themes/docs.mongodb.org/10gen-gpg-key.asc
-	cp $< $@
 
-source/about.txt:
-	@echo [build]: touching $@
-	@touch $@
-.PHONY:source/about.txt
+$(publication-output)/index.html:themes/docs.mongodb.org/index.html
+	@cp $< $@
+	@echo [build]: migrated $@
+$(CURRENTBUILD)/.htaccess:themes/docs.mongodb.org/.htaccess
+	@cp $< $@
+	@echo [build]: migrated $@
+$(publication-output)/10gen-gpg-key.asc:themes/docs.mongodb.org/10gen-gpg-key.asc
+	@cp $< $@
+	@echo [build]: migrated $@
+$(CURRENTBUILD)/sitemap.xml.gz:$(BUILDDIR)/sitemap.xml.gz
+	@cp $< $@
+	@echo [build]: migrated $@
 
 $(CURRENTBUILD)/tutorials:
 	@bin/create-link tutorial $(notdir $@) $@
@@ -188,25 +208,30 @@ clean:
 
 .PHONY: html dirhtml singlehtml epub sitemap
 html:
-	mkdir -p $(BUILDDIR)/html
+	@mkdir -p $(BUILDDIR)/html
+	@echo [build]: created $(BUILDDIR)/html
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
-	@echo "[HTML] build complete."
+	@echo [HTML]: build complete.
 dirhtml:
-	mkdir -p $(BUILDDIR)/dirhtml
+	@mkdir -p $(BUILDDIR)/dirhtml
+	@echo [build]: created $(BUILDDIR)/dirhtml
 	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(BUILDDIR)/dirhtml
-	@echo "[DIR-HTML] build complete."
+	@echo [DIR-HTML]: build complete.
 singlehtml:
-	mkdir -p $(BUILDDIR)/singlehtml
+	@mkdir -p $(BUILDDIR)/singlehtml
+	@echo [build]: created $(BUILDDIR)/singlehtml
 	$(SPHINXBUILD) -b singlehtml $(ALLSPHINXOPTS) $(BUILDDIR)/singlehtml
-	@echo "[SINGLE-HTML] build complete."
+	@echo [SINGLE-HTML]: build complete.
 
 epub-command = $(SPHINXBUILD) -b epub $(ALLSPHINXOPTS) $(BUILDDIR)/epub
 epub-filter = sed $(SED_ARGS_REGEX) -e '/^WARNING: unknown mimetype.*ignoring$$/d' -e '/^WARNING: search index.*incomplete.$$/d'
 epub:
-	mkdir -p $(BUILDDIR)/epub
+	@mkdir -p $(BUILDDIR)/epub
+	@echo [build]: created $(BUILDDIR)/epub
+	@echo [EPUB]: starting epub build.
 	@echo $(epub-command)
 	@{ $(epub-command) 2>&1 1>&3 | $(epub-filter) 1>&2; } 3>&1
-	@echo "[EPUB] Build complete."
+	@echo [EPUB]: Build complete.
 
 ######################################################################
 #
@@ -220,12 +245,15 @@ else
 PYTHONBIN = python
 endif
 
+$(BUILDDIR)/sitemap.xml.gz:$(BUILDDIR)/dirhtml
+
 SITEMAPBUILD  = $(PYTHONBIN) bin/sitemap_gen.py
 sitemap:$(BUILDDIR)/sitemap.xml.gz
 $(BUILDDIR)/sitemap.xml.gz:
-	@echo [SITEMAP] build time\: `date` >> $(BUILDDIR)/sitemap-build.log
+	@echo [SITEMAP]: starting sitemap build at `date`. 
+	@echo [SITEMAP]: build time\: `date` >> $(BUILDDIR)/sitemap-build.log
 	@$(SITEMAPBUILD) --testing --config=conf-sitemap.xml 2>&1 >> $(BUILDDIR)/sitemap-build.log
-	@echo "[SITEMAP] sitemap built."
+	@echo [SITEMAP]: sitemap built at `date`.
 
 
 ######################################################################
@@ -239,9 +267,10 @@ UNCOMPRESSED_MAN := $(wildcard $(BUILDDIR)/man/*.1)
 COMPRESSED_MAN := $(subst .1,.1.gz,$(UNCOMPRESSED_MAN))
 
 man:
-	mkdir -p $(BUILDDIR)/man
+	@mkdir -p $(BUILDDIR)/man
+	@echo [build]: created $(BUILDDIR)/man
 	$(SPHINXBUILD) -b man $(ALLSPHINXOPTS) $(BUILDDIR)/man
-	@echo "[MAN] build complete."
+	@echo [MAN]: build complete.
 
 # Targets to build compressed man pages.
 build-man: man $(COMPRESSED_MAN)
@@ -252,20 +281,22 @@ $(BUILDDIR)/man/%.1.gz: $(BUILDDIR)/man/%.1
 ######################################################################
 #
 # Build Targets for Draft Build.
-#
+
 ######################################################################
 
 .PHONY: aspirational aspiration draft draft-pdf draft-pdfs
 aspiration:draft
 aspirational:draft
 draft:
-	mkdir -p $(BUILDDIR)/draft
+	@mkdir -p $(BUILDDIR)/draft
+	@echo [build]: created $(BUILDDIR)/draft
 	$(SPHINXBUILD) -b html $(DRAFTSPHINXOPTS) $(BUILDDIR)/draft
-	@echo "[DRAFT] HTML build finished."
+	@echo [DRAFT]: HTML build finished.
 draft-latex:
-	mkdir -p $(BUILDDIR)/draft-latex
+	@mkdir -p $(BUILDDIR)/draft-latex
+	@echo [build]: created $(BUILDDIR)/draft-latex
 	$(SPHINXBUILD) -b latex $(DRAFTSPHINXOPTS) $(BUILDDIR)/draft-latex
-	@echo "[DRAFT] LaTeX build finished."
+	@echo [DRAFT]: LaTeX build finished.
 draft-pdf:$(subst .tex,.pdf,$(wildcard $(BUILDDIR)/draft-latex/*.tex))
 draft-pdfs:draft-latex draft-pdf
 
@@ -278,21 +309,25 @@ draft-pdfs:draft-latex draft-pdf
 
 .PHONY: changes linkcheck json doctest
 json:
-	mkdir -p $(BUILDDIR)/json
+	@mkdir -p $(BUILDDIR)/json
+	@echo [build]: created $(BUILDDIR)/json
 	$(SPHINXBUILD) -b json $(ALLSPHINXOPTS) $(BUILDDIR)/json
-	@echo "[JSON] build finished."
+	@echo [JSON]: build finished.
 changes:
-	mkdir -p $(BUILDDIR)/changes
+	@mkdir -p $(BUILDDIR)/changes
+	@echo [build]: created $(BUILDDIR)/changes
 	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) $(BUILDDIR)/changes
-	@echo "[CHANGES] build finished."
+	@echo [CHANGES]: build finished.
 linkcheck:
-	mkdir -p $(BUILDDIR)/linkcheck
+	@mkdir -p $(BUILDDIR)/linkcheck
+	@echo [build]: created $(BUILDDIR)/linkcheck
 	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) $(BUILDDIR)/linkcheck
-	@echo "[LINK] Link check complete. See $(BUILDDIR)/linkcheck/output.txt."
+	@echo [LINK]: Link check complete. See $(BUILDDIR)/linkcheck/output.txt.
 doctest:
-	mkdir -p $(BUILDDIR)/doctest
+	@mkdir -p $(BUILDDIR)/doctest
+	@echo [build]: created $(BUILDDIR)/doctest
 	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(BUILDDIR)/doctest
-	@echo "[TEST] doctest complete."
+	@echo [TEST]: doctest complete.
 
 ######################################################################
 #
@@ -303,18 +338,18 @@ doctest:
 .PHONY:pdfs latex latexpdf
 
 latex:
-	mkdir -p $(BUILDDIR)/latex
+	@mkdir -p $(BUILDDIR)/latex
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
-	@echo "[TeX] Build complete."
+	@echo [latex]: TeX file generated.
 latexpdf:latex
 	$(MAKE) -C $(BUILDDIR)/latex all-pdf
-	@echo "[PDF] build complete."
+	@echo [PDF]: build complete.
 
 LATEX_CORRECTION = "s/(index|bfcode)\{(.*!*)*--(.*)\}/\1\{\2-\{-\}\3\}/g"
 
 $(BUILDDIR)/latex/%.tex:
 	@sed $(SED_ARGS_FILE) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) $@
-	@echo "[build]: fixing '$@' TeX from the Sphinx output"
+	@echo [build]: fixing '$@' TeX from the Sphinx output
 
 pdfs:$(subst .tex,.pdf,$(wildcard $(BUILDDIR)/latex/*.tex))
 
@@ -322,15 +357,14 @@ PDFLATEXCOMMAND = TEXINPUTS=".:$(BUILDDIR)/latex/:" pdflatex --interaction batch
 
 %.pdf:%.tex
 	@$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<' >|$@.log
-	@echo "[PDF]: (1/4) pdflatex $<"
+	@echo [PDF]: \(1/4\) pdflatex $<
 	@-makeindex -s $(BUILDDIR)/latex/python.ist '$(basename $<).idx' >>$@.log 2>&1
-	@echo "[PDF]: (2/4) Indexing: $(basename $<).idx"
+	@echo [PDF]: \(2/4\) Indexing: $(basename $<).idx
 	@$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<' >>$@.log
-	@echo "[PDF]: (3/4) pdflatex $<"
+	@echo [PDF]: \(3/4\) pdflatex $<
 	@$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<' >>$@.log
-	@echo "[PDF]: (4/4) pdflatex $<"
-	@echo "[PDF]: see '$@.log' for a full report of the pdf build process."
-
+	@echo [PDF]: \(4/4\) pdflatex $<
+	@echo [PDF]: see '$@.log' for a full report of the pdf build process.
 
 ##########################################################################
 #
@@ -340,6 +374,6 @@ PDFLATEXCOMMAND = TEXINPUTS=".:$(BUILDDIR)/latex/:" pdflatex --interaction batch
 
 ARCHIVE_DATE := $(shell date +%s)
 archive:$(publication-output).$(ARCHIVE_DATE).tar.gz
-	@echo [archive]: $<
+	@echo [archive]: created $< archive.
 $(publication-output).$(ARCHIVE_DATE).tar.gz:$(publication-output)
 	tar -czvf $@ $<
