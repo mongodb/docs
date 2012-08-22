@@ -1,27 +1,73 @@
 #!/usr/bin/env python
+"""Scans MongoDB source tree for potential error codes and creates multiple outputs"""
+
+generateCSV = 'no'
+generateRST = 'no'
+generateJSON = 'no'
+debug = False
+save_to_mongo = False
+
 import os
 import sys
 import re
 import ConfigParser
 
-#sourceroot = "/Users/epc/Documents/github/epc/mongo"
-#errorsrst = "/Users/epc/Documents/github/epc/docs/draft/messages/errors.txt"
-#errorsCSV = "/Users/epc/Documents/github/epc/docs/draft/messages/errors.csv"
-#errorsTitle = "MongoDB Error and Message Codes"
+try: 
+	import pymongo
+	pymongo_flag = True
+except:
+	sys.stderr.write("pymongo unavailable, continuing\n")
+	pymongo_flag = False
+
+config_file = 'errorcodes.conf'
 
 config = ConfigParser.SafeConfigParser()
-config.read('errorcodes.conf')
+config_flag = False
+config_files = [ config_file, 'bin/{}'.format(config_file)]
+try:
+	config.read(config_files)
+	config_flag = True
+except:
+	sys.exit("Could not read config file, exiting\n")
 
-sourceroot = config.get('errorcodes','source')
-resultsRoot = config.get('errorcodes', 'outputDir')
-generateCSV = config.get('errorcodes','generateCSV')
-errorsTitle = config.get('errorcodes', 'Title')
-errorsFormat = config.get('errorcodes', 'Format')
-generateJSON = config.get('errorcodes','generateJSON')
+if config_flag == True:
+	sourceroot = config.get('errorcodes','source')
+	resultsRoot = config.get('errorcodes', 'outputDir')
+	errorsTitle = config.get('errorcodes', 'Title')
+	if (config.has_option('errorcodes','Format')):
+		errorsFormat = config.get('errorcodes', 'Format')
+	if (config.has_option('errorcodes','generateCSV')):
+		generateCSV = config.get('errorcodes','generateCSV')
+	if (config.has_option('errorcodes','generateJSON')):
+		generateJSON = config.get('errorcodes','generateJSON')
+	if (config.has_option('errorcodes','generateRST')):
+		generateRST = config.get('errorcodes', 'generateRST')
+	if (config.has_option('mongodb', 'persistence')):
+		if (config.get('mongodb','persistence') == 'insert'):
+			save_to_mongo = True
+		elif (config.get('mongodb','persistence') == 'update'):
+			sys.exit("Fatal, updating not supported")
+else:
+	sys.exit("No configuration data present, exiting\n")
+	
+if save_to_mongo == True:
+#	why candygram? because there's only so many times you can use mongo and
+#	database before going mad.  Alt: cf. Blazing Saddles
+	fields = ['database','collection','user','password','port']
+	for field in fields:
+		if config.has_option('mongodb',field):
+			candygram[field]  = config.get('mongodb',field)
+	if candygram['database'] == '':
+		sys.exit("Fatal: you told me to save to a database but did not configure one.");
+	if candygram['collection'] == '':
+		sys.exit("Fatal: you told me to save to a database but did not configure a collection.");
 
 default_domain = "\n\n.. default-domain:: mongodb\n\n"
 
 sys.path.append(sourceroot+"/buildscripts")
+
+# we only need to scan the mongo source tree not 3rd party
+product_source = sourceroot + '/src/mongo'
 
 # get mongodb/buildscripts/utils.py 
 import utils
@@ -51,6 +97,11 @@ exceptionTexts = dict({
 	'MSGException': 'MsgException',
 	'MsgAssertionException': 'MsgAssertionException',
 	})
+	
+# codes is legacy errocodes.py
+codes = []
+# messages is our real structure
+messages = {}
 
 def assignErrorCodes():
     cur = 10000
@@ -73,11 +124,9 @@ def assignErrorCodes():
                 out.close()
 
 
-codes = []
-messages = {}
-
 def readErrorCodes():   
     """Open each source file in sourceroot and scan for potential error messages."""
+    sys.stderr.write("Analyzing source tree: {}\n".format(sourceroot))
     quick = [ "assert" , "Exception"]
 
     ps = [ re.compile( "(([wum]asser(t|ted))) *\(( *)(\d+) *,\s*(\"\S[^\"]+\S\")\s*,?.*" ) ,
@@ -95,8 +144,9 @@ def readErrorCodes():
 
     bad = [ re.compile( "\sassert *\(" ) ]
     arr=[]
-    for x in utils.getAllSourceFiles(arr,sourceroot):
-        sys.stderr.write("Analyzing: {}\n".format(x))
+    for x in utils.getAllSourceFiles(arr,product_source):
+    	if (debug == True):
+			sys.stderr.write("Analyzing: {}\n".format(x))
         needReplace = [False]
         lines = []
         lastCodes = [0]
@@ -116,13 +166,6 @@ def readErrorCodes():
 
             if found:
                 
-                if x.find( "src/mongo/" ) >= 0:
-                    for b in bad:
-                        if len(b.findall( line )) > 0:
-                            print( x )
-                            print( line )
-                            raise Exception( "you can't use a bare assert" )
-
                 for p in ps:               
 
                     def repl( m ):
@@ -135,17 +178,19 @@ def readErrorCodes():
                         codes.append( ( x , lineNum , line , code, message, severity ) )
                         if x.startswith(sourceroot):
 							fn = x[sourcerootOffset+1:].rpartition("/2")[2]
-#        fn = f.rpartition("/")[2]
 
                         msgDICT = {
 							'id': code, 
-							'text':message, 
-							'sev':severity, 
-							'user':'',
-							'sys':'', 
-							'ln':lineNum, 
-							'f':fn,
-							'src': line.strip(stripChars)
+							'parsed':message, 
+							'message':message,
+							'assert':severity,
+							'severity': returnSeverityText(severity),
+							'uresp':'',
+							'sysresp':'', 
+							'linenum':lineNum, 
+							'file':fn,
+							'src': line.strip(stripChars),
+							'altered': 0
 							}
                         messages[int(code)] = msgDICT
 
@@ -155,7 +200,17 @@ def readErrorCodes():
             
             lineNum = lineNum + 1
 
-        
+def returnSeverityText(s):
+	if not s:
+		return ""
+	elif s in severityTexts:
+		result = severityTexts[s]
+	elif s in exceptionTexts:
+		result = exceptionTexts[s]
+	else:
+		result = s
+	return result
+
 
 def getNextCode( lastCodes = [0] ):
     highest = [max(lastCodes)]
@@ -278,7 +333,7 @@ def genErrorOutputCSV():
 	stripChars = " " + "\n" + '"'
 
 	
-	codes.sort( key=lambda x: x[0]+"-"+x[3] )
+	codes.sort( key=lambda x: int(x[3]) )
 	for f,l,line,num,message,severity in codes:
 		if num in seen:
 			continue
@@ -293,12 +348,38 @@ def genErrorOutputCSV():
 		out.write("\n")
 	
 	out.close()
+	
+def writeToMongo():
+	"""Pipe the messages array into mongodb"""
+	sys.stderr.write("Saving to db.messages.errors, will not check for duplicates!")
+	from  pymongo import Connection
+	connection = Connection()
+	db = connection['messages']
+	errorcodes = db['errors']
+#	errorcodes.insert(messages)
+	for errCode in messages.keys():
+		sys.stderr.write('Inserting code: {}\n'.format(errCode))
+		result = errorcodes.insert(messages[errCode])
+		sys.stderr.write('Result: {}\n'.format(result))
+#	for k in messages:
+#		print("{}\t{}".format(k,messages[k]))
+#		errorcodes.insert(k,messages[k])
+		
+	#for key in messages.keys()
+#		val= 'foo'
+#		print("key({})\tvalue({})\n".format(key,val))
+	
 
 if __name__ == "__main__":
 	readErrorCodes()
-	genErrorOutput()
+	if (generateRST == 'yes'):
+		genErrorOutput()
+	else:
+		sys.stderr.write("Not generating RST files\n");
 	if (generateCSV == 'yes'):
 		genErrorOutputCSV()
+	else:
+		sys.stderr.write("Not generating CSV file\n");
 	if (generateJSON== 'yes'):
 		import json
 		outputFile = "{}/errorcodes.json".format(resultsRoot)
@@ -306,3 +387,10 @@ if __name__ == "__main__":
 		sys.stderr.write("Generating JSON file: {}\n".format(outputFile))
 		out.write(json.dumps(messages))
 		out.close()
+	else:
+		sys.stderr.write("Not generating JSON file\n");
+
+	if save_to_mongo == True:
+		writeToMongo()
+	else:
+		sys.stderr.write("Not inserting/updating to Mongo\n");		
