@@ -102,9 +102,9 @@ endif
 
 initial-dependencies:source/about.txt $(CURRENTBUILD) $(CURRENTBUILD)/MongoDB-Manual.epub
 	@echo [build]: running the publication routine for the $(manual-branch) branch of the Manual.
-static-components:$(publication-output)/index.html $(publication-output)/10gen-gpg-key.asc $(CURRENTBUILD)/tutorials $(CURRENTBUILD)/reference/methods $(CURRENTBUILD)/.htaccess $(CURRENTBUILD)/release.txt
+static-components:$(publication-output)/index.html $(publication-output)/10gen-gpg-key.asc $(CURRENTBUILD)/tutorials $(CURRENTBUILD)/reference/methods $(CURRENTBUILD)/.htaccess $(CURRENTBUILD)/release.txt $(publication-output)/osd.xml
 	@echo [build]: building and migrating all non-Sphinx components of the build.
-sphinx-components:$(CURRENTBUILD)/MongoDB-Manual.pdf $(CURRENTBUILD)/ $(CURRENTBUILD)/sitemap.xml.gz $(CURRENTBUILD)/ $(CURRENTBUILD)/single $(CURRENTBUILD)/single/index.html
+sphinx-components:$(CURRENTBUILD)/ $(CURRENTBUILD)/sitemap.xml.gz $(CURRENTBUILD)/MongoDB-Manual.pdf $(CURRENTBUILD)/single $(CURRENTBUILD)/single/index.html
 	@echo [build]: running the publication routine for all Sphinx Components of the Manual Build.
 
 #
@@ -192,6 +192,10 @@ $(publication-output)/10gen-gpg-key.asc:themes/docs.mongodb.org/10gen-gpg-key.as
 $(CURRENTBUILD)/sitemap.xml.gz:$(BUILDDIR)/sitemap.xml.gz
 	@cp $< $@
 	@echo [build]: migrated $@
+$(publication-output)/osd.xml:themes/docs.mongodb.org/osd.xml
+	@cp $< $@
+	@echo [build]: migrated $@
+
 
 $(CURRENTBUILD)/tutorials:
 	@bin/create-link tutorial $(notdir $@) $@
