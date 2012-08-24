@@ -166,39 +166,43 @@ Read Preference Modes
 
 .. versionadded:: 2.2
 
-All MongoDB drivers :doc:`drivers </applications/drivers>` support the
-following read preference modes. These semantics make it possible to
-specify read preference on a per-collection or per-operation basis. The
-member of the :term:`replica set` that the client reads from can affect
-how current or stale the result set is. For more information, see
+MongoDB drivers :doc:`drivers </applications/drivers>` support the
+following read preference modes. You can 
+specify read preference on a per-collection or per-operation basis. 
+
+The syntax to specify read preference varies by driver depending on the idioms
+of the host language. 
+
+In a similar fashion, when a client application and driver works with a sharded 
+cluster via a :program:`mongos` connection, mongos honors the read preference modes in its 
+own connections to the replica set underlying each :term:`shard` in the :term:`shard cluster`.
+
+In the :program:`mongo` shell, the
+:method:`readPreference() <cursor.readPreference()>` cursor method
+provides access to read preferences.
+
+Note: All read preference modes except :readmode:`primary` may return stale data, as 
+secondaries may lag in their replication from the primary. Be sure your use case can tolerate 
+stale data when using those modes.
+
+For more information, see
 :ref:`read preference background <replica-set-read-preference-background>`
 and :ref:`read preference
-behavior <replica-set-read-preference-behavior>`. For preferences
-specific to your driver, see the :api:`documentation for your driver <>`.
-
-:program:`mongos` also supports the following read preference modes in its
-connections to the replica sets that provide each :term:`shard` in a
-:term:`shard cluster`.
-
-All MongoDB drivers provide five read preference modes, which are constants set in the drivers
-themselves. While the names are the same, the exact syntax depends the idioms
-of the host language. In the :program:`mongo` shell, the
-:method:`readPreference() <cursor.readPreference()>` cursor method
-provides access to read preferences, which have the following names.
+behavior <replica-set-read-preference-behavior>`. See also the :api:`documentation for your driver <>`.
 
 .. readmode:: primary
 
-   All read operations from the client use only the :term:`primary`.
-   This is the default read preference. If the primary is unavailable,
+   All read operations use only the current replica set :term:`primary`.
+   This is the default. If the primary is unavailable,
    read operations produce an error or throw an exception.
 
    :readmode:`primary` read preference modes are not compatible with
-   read preferences modes that use :ref:`tag sets
+   read preferences mode that use :ref:`tag sets
    <replica-set-read-preference-tag-sets>`. If you specify a tag set
    with :readmode:`primary`, the driver produces an error.
 
-   The :readmode:`primary` mode sacrifices availability for
-   consistency, in terms of the :term:`CAP Theorem`.
+   The :readmode:`primary` mode prioritizes data consistency over availability
+   (see :term:`CAP Theorem`).
 
 .. readmode:: primaryPreferred
 
@@ -213,8 +217,7 @@ provides access to read preferences, which have the following names.
    <secondary>` that match the specified tags. If no secondaries have
    matching tags, the read operation produces an error.
 
-   The :readmode:`primaryPreferred` mode sacrifices consistency for
-   greater availability, in terms of the :term:`CAP Theorem`.
+   As secondaries may be utilized, :readmode:`primaryPreferred` mode may return stale data in certain circumstances.
 
 .. readmode:: secondary
 
@@ -225,7 +228,7 @@ provides access to read preferences, which have the following names.
    Most sets have at least one secondary, but there are situations
    where there may be no available secondary. For example, a set
    with a primary, a secondary, and an :term:`arbiter` may not have
-   any secondaries if a member is in recovering mode.
+   any secondaries if a member is in recovering state or down.
 
    When the read preference includes a :ref:`tag set
    <replica-set-read-preference-tag-sets>`, the client attempts to find
@@ -234,14 +237,18 @@ provides access to read preferences, which have the following names.
    <replica-set-read-preference-behavior-nearest>`. If no secondaries
    have matching tags, the read operation produces an error.
 
-   The :readmode:`secondary` mode sacrifices consistency for
-   greater availability, in terms of the :term:`CAP Theorem`.
+   Note: if you have multiple secondaries, keep in mind capacity when planning 
+   for a secondary to be down.  For example if a set has a primary and two secondaries,
+   if one secondary goes down, all secondary mode queries will go to the one remaining 
+   secondary, doubling its load.
+
+   :readmode:`secondary` mode may return stale data.
 
 .. readmode:: secondaryPreferred
 
    In most situations, operations read from :term:`secondary` members,
    but in situations where the set has *only* a :term:`primary`
-   instance, the read operation uses the set's primary.
+   instance currently online, the read operation uses the set's primary.
 
    When the read preference includes a :ref:`tag set
    <replica-set-read-preference-tag-sets>`, the client attempts to find
@@ -250,8 +257,7 @@ provides access to read preferences, which have the following names.
    <replica-set-read-preference-behavior-nearest>`. If no secondaries
    have matching tags, the read operation produces an error.
 
-   The :readmode:`secondaryPreferred` mode sacrifices consistency for
-   greater availability, in terms of the :term:`CAP Theorem`.
+   :readmode:`secondaryPreferred` mode may return stale data.
 
 .. readmode:: nearest
 
@@ -269,6 +275,8 @@ provides access to read preferences, which have the following names.
    the client attempts to find a secondary member that matches the
    specified tag set and directs reads to a random secondary from
    among the :ref:`nearest group <replica-set-read-preference-behavior-nearest>`.
+
+   May return stale data.
 
    .. note::
 
