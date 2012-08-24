@@ -5,10 +5,10 @@ Application Development with Replica Sets
 .. default-domain:: mongodb
 
 From the perspective of a client application, whether a MongoDB
-instance is running as a single server (i.e. "standalone") or a
-replica set is largely irrelevant. However, replica sets do offer
-certain options not available for stand alone instances for read and
-write operations. This document describes those options and their implications.
+instance is running as a single server (i.e. "standalone") or a cluster 
+is largely transparent.  However, replica sets (and sharded clusters of 
+replica sets) offer some tunable options for write and read operations.  
+This document describes those options and their implications.
 
 .. the :ref:`write-concern` tag is here for the moment. At some point
    we'll break this into its own document.
@@ -22,28 +22,32 @@ Write Concern
 When a :term:`client` sends a write operation to a database server, the
 operation returns without waiting for the operation to succeed or
 complete by default. To check if write operations have succeeded, use the
-:dbcommand:`getLastError` command. Set the command's options as follows,
-according to your level of write concern:
+:dbcommand:`getLastError` command. getLastError supporst the following options 
+which allow you to tailor a level of "write concern" for the acknowledgement:
 
 - no options. Confirms that the server has received the write
-  operations and has modified the :program:`mongod` instances in the
-  in-memory representation of the data.
+  operations and has executed it successfully in the :program:`mongod` instances in the
+  in-memory representation of the data.  This simple and relatively low latency  form 
+  of getLastError/write concern detects things such as the server being 
+  down or say, a duplicate key error on the write.
 
-- "j" or "journal" option. Confirms that the server has
-  committed the data to the on-disk journal. This ensures that the data
-  is durable in the event of that :program:`mongod` experiences an
-  unexpected shut down.
+- "j" or "journal" option. Confirms that the write worked on the server and has
+  been written to the on-disk journal. This ensures that the data
+  is durable if :program:`mongod` or the server itself crashes or shuts down 
+  unexcectedly.
 
-- ``fsync`` option. Confirms that the :program:`mongod`
-  instance has flushed the write operation to disk. Do not use this
-  operation in normal production situations. Instead, use the ``j`` option
-  to ensure this level of durability.
+- ``fsync`` option. Deprecated; do not use.  Forces an fsync of all server data and returns ackowledgement 
+  only after completion. Use the ``j`` option instead.
 
 - ``w`` option, for replica sets. Confirms that the write
   operation has replicated to the specified number of replica set
   members. You may specify a specific number of servers *or* specify
   ``majority`` to ensure that the write propagates to a majority of set
-  members.
+  members. A write is cluster-wide committed after ackowledgement by a 
+  majority.  Default value is 1.
+
+You may combine multiple options into a single getLastError command invocation. For example 
+you can combine the ``j`` and ``w`` options.
 
 Many drivers have a "safe" mode or "write concern" that automatically
 issues :dbcommand:`getLastError` after write operations to ensure
@@ -59,25 +63,16 @@ following operations:
 
 These equivalent :dbcommand:`getLastError` operations ensure that write
 operations return only after a write operation has replicated to a
-majority of the members of the set. You can also specify ``w: 2`` so
-that write operation replicates to a second member before the command
-returns.
+majority of the members of the set.
 
 .. note::
 
-   :dbcommand:`getLastError` assumes the primary, which
-   is equivalent to ``w: 1``. ``w: 2`` waits until 2 members of the
-   set, i.e. the :term:`primary` and one other member, receive the write
-   before confirming the write operation.
+    If you specify a ``w`` value greater than the number of online, non-arbiter replica set
+    members, the operation blocks until those members come back online or join the set (i.e., 
+    potentially indefinitely). To specify a timeout threshold for the :dbcommand:`getLastError`
+    operation, use the ``wtimeout`` argument.
 
-    If you specify a ``w`` value greater than the number of running set
-    members, the operation blocks until those numbers join the set. To
-    specify a timeout threshold for the :dbcommand:`getLastError`
-    operation, use the ``wtimeoute`` argument.
-
-   ``w: 0`` is valid but has no effect and is equivalent to a no-op.
-
-You can also configure a "default" :dbcommand:`getLastError` behavior
+You can also configure your own "default" :dbcommand:`getLastError` behavior
 for the replica set. Use the :data:`settings.getLastErrorDefaults`
 setting in the :doc:`replica set configuration
 </reference/replica-configuration>`. For instance:
@@ -94,9 +89,7 @@ of the set members before returning. Specifying ``j: true`` makes
 :dbcommand:`getLastError` wait for a complete commit of the
 operations to the journal before returning.
 
-To define the standards for a set-wide "safe mode", use the
-:data:`getLastErrorDefaults` setting in the :term:`replica
-set` configuration. The default setting affects only :dbcommand:`getLastError`
+The :data:`getLastErrorDefaults` setting affects only :dbcommand:`getLastError`
 commands with *no* other arguments.
 
 .. index:: read preference
