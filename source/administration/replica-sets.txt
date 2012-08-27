@@ -540,6 +540,9 @@ Identify replication lag by checking the value of
 using the :method:`rs.status()` function in the :program:`mongo`
 shell.
 
+Also, you can monitor how fast replication occurs by watching the oplog
+time in the "replica" graph in MMS.
+
 Possible causes of replication lag include:
 
 - **Network Latency**
@@ -567,84 +570,47 @@ Possible causes of replication lag include:
 - **Concurrency**
 
   In some cases, long-running operations on the primary can block
-  replication on secondaries. You can use
-  :term:`write concern` to prevent write operations from returning
-  if replication cannot keep up with the write load.
+  replication on secondaries. You can use :term:`write concern` to
+  prevent write operations from returning if replication cannot keep up
+  with the write load.
 
   Use the :term:`database profiler` to see if there are slow queries
   or long-running operations that correspond to the incidences of lag.
 
 - **Oplog Size is Too Small for the Data Load**
 
-  If you perform a large number of writes for a large amount of data
+  If you do not set your oplog large enough, the oplog overwrites old
+  data before the secondaries can read it. The oplog is a circular
+  buffer, and when full it erases the oldest commands in order to write
+  new ones. If your oplog size is too small, the secondaries reach a
+  point where they no longer can access certain updates. The secondaries
+  become stale.
 
-  As commands are sent to the primary, they are recorded in the oplog.
-  Secondaries update themselves by reading the oplog and applying the
-  commands. The oplog is a circular buffer. When full, it erases the
-  oldest commands in order to write new ones. Under times of heavy load,
-  the contents of the secondaries will lag behind the contents of the
-  primary. If the replication lag exceeds the amount of time buffered in
-  the oplog, then the replication cannot continue. Put another way, if
-  the primary overwrites that command before the secondary has a chance
-  to apply it, then the replication has failed – there are commands that
-  have been applied on the primary that the secondary is not able to
-  apply.
-
-  See the documentation for :doc:`/tutorial/change-oplog-size` for more information.
-
-- **Read Starvation**
-
-  The secondaries cannot are not able to read the oplog fast enough, and the
-  oplog writes over old data before the secondaries can read it. This
-  can happen if you are reading a large amount of data but have not
-  set the oplog large enough. 10gen recommends an oplog time of 
-  primary was inundated with writes to the point where replication
-  (the secondaries running queries to get the changes from the oplog)
-  cannot keep up. This can lead to a lag on the secondaries that
-  ultimately becomes larger than the oplog on the primary.
+  To set oplog size, see :doc:`/tutorial/change-oplog-size`.
 
 - **Failure to Use Appropriate Write Concern in a High-Write Environment**
 
-  If you perform very large data loads on a regular basis but fail to
-  set the appropriate write concern, the large volume of write traffic
-  on the primary will always take precedence over read requests from
-  secondaries. This will significantly slow replication by severely
-  reducing the numbers of reads that the secondaries can make on the
-  oplog in order to update themselves.
+  If the primary is making a very high number of writes and if you have
+  not set the appropriate write concern, the secondaries will not be
+  able to read the oplog fast enough to keep up with changes. Write
+  requests take precedence over read requests, and a very large number
+  of writes will significantly reduce the numbers of reads the
+  secondaries can make on the oplog in order to update themselves.
 
-  The oplog is circular. When it is full, it begins overwriting the
-  oldest data with the newest. If the secondaries have not caught up in
-  their reads, they reach a point where they no longer can access
-  certain updates. The secondaries become stale.
+  The replication lag can grow to the point that the oplog overwrites
+  commands that the secondaries have not yet read. The oplog is a
+  circular buffer, and when full it erases the oldest commands in order
+  to write new ones. If the secondaries get too far behind in their
+  reads, they reach a point where they no longer can access certain
+  updates, and so the secondaries become stale.
 
-  To prevent this, use "Write Concern" to tell Mongo to always perform a
-  safe write after a designated number of inserts, such as after every
-  1,000 inserts. This provides a space for the secondaries to catch up with the
-  primary. Setting a write concern slightly slows down the data load, but it keeps your
-  secondaries from going stale.
+  To prevent this, use "write concern" to tell MongoDB to always perform
+  a safe write after a designated number of inserts, such as after every
+  1,000 inserts. This provides a space for the secondaries to catch up
+  with the primary. Setting a write concern does slightly slow down the
+  data load, but it keeps your secondaries from going stale.
 
   See :ref:`replica-set-write-concern` for more information.
-
-If you do this, and your driver supports it, I recommend that
-  you use a mode of 'majority'.
-
-  The exact way you use Safe Mode depends on what driver you're using
-  for your data load program. You can read more about Safe Mode here:
-
-  http://www.mongodb.org/display/DOCS/getLastError+Command
-  http://www.mongodb.org/display/DOCS/Verifying+Propagation+of+Writes+with+getLastError
-
-
-take precedence over requests from the secondaries to read the oplog and update themselves.
-  Write requests have priority over read requests. This will significantly
-
-the read requests from the secondaries from reading the replication data
-  from the oplog. Secondaries must be able to and significantly slow
-  down replication to the point that the oplog overwrites commands that
-  the secondaries have not yet read.
-
-  You can monitor how fast replication occurs by watching the oplog time
-  in the "replica" graph in MMS.
 
 Failover and Recovery
 ~~~~~~~~~~~~~~~~~~~~~
