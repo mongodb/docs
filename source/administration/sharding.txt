@@ -415,10 +415,10 @@ directly.
 Splitting Chunks
 ~~~~~~~~~~~~~~~~
 
-Normally, MongoDB splits a :term:`chunk` when a chunk exceeds the
-:ref:`chunk size <sharding-chunk-size>`.
-Recently split chunks may be moved immediately to a new shard
-if :program:`mongos` predicts future insertions will benefit from the
+Normally, MongoDB splits a :term:`chunk` following inserts when a
+chunk exceeds the :ref:`chunk size <sharding-chunk-size>`. Recently
+split chunks may be moved immediately to a new shard if
+:program:`mongos` predicts future insertions will benefit from the
 move.
 
 The MongoDB treats all chunks the same, whether split manually or
@@ -444,9 +444,9 @@ You may want to split chunks manually if:
    keys are between ``250`` and ``500`` are in a single chunk.
 
 To determine the current chunk ranges across the cluster, use
-:func:`sh.status()` or :func:`db.printShardingStatus()`.
+:func:`sh.status()` or :func:`db.printShardingStatus()`. 
 
-Split chunks in a collection using the :dbcommand:`split` command with
+To split chunks manually, use the :dbcommand:`split` command with
 operators: ``middle`` and ``find``. The equivalent shell helpers are
 :func:`sh.splitAt()` or :func:`sh.splitFind()`.
 
@@ -459,12 +459,11 @@ operators: ``middle`` and ``find``. The equivalent shell helpers are
 
       sh.splitFind( { "zipcode": 63109 } )
 
-:func:`sh.splitFind()` will split the chunk that contains the *first* document returned
-that matches this query into two equal sized chunks.
-The query in :func:`sh.splitFind()` may
-not be based on the shard key, though it almost always makes sense to
-query for the shard key in this case, and including the shard key will
-expedite the operation.
+:func:`sh.splitFind()` will split the chunk containing the queried
+document into two equal sized chunks, dividing the chunk using the
+balancer algorithm. The :func:`sh.splitFind()` query may not be based
+on the shard key, but it makes sense to use the shard key, and
+including the shard key will expedite the operation.
 
 Use :func:`sh.splitAt()` to split a chunk in two using the queried
 document as the partition point:
@@ -477,15 +476,40 @@ However, the location of the document that this query finds with
 respect to the other documents in the chunk does not affect how the
 chunk splits.
 
-Pre-splitting Chunks
-~~~~~~~~~~~~~~~~~~~~
+Pre-Split
+~~~~~~~~~
 
-For large imports, pre-splitting and pre-migrating many chunks
-will dramatically improve performance because the system does not need
-to split and migrate new chunks during import.
+Splitting chunks will improve shard cluster performance when importing
+data such as:
 
-#. Make many chunks by splitting empty chunks in your
-   collection.
+- migrating data from another system to a shard cluster
+
+- performing a full shard cluster restore from back up
+
+In such cases, data import to an empty MongoDB shard cluster can
+become slower than to a replica set. The reason for this is how
+MongoDB writes data and manage chunks in a shard cluster.
+
+MongoDB inserts data into a chunk unti it becomes large and splits on
+the same shard. If the balancer notices a chunk imbalance between
+shards, a migration process will begin to evenly distribute chunks.
+
+Migrating chunks between shards is extremely resource intensive as
+shard members must notify, copy, update, and delete chunks between
+each other and the configuration database. With a high volume import,
+this migration process can reduce system performance so that imports
+cannot occur because of migrations.
+
+To improve import performance, manually split and migrate chunks in an
+empty shard cluster beforehand. This allows the shard cluster to only
+write import data instead of trying to manage migrations and write
+data.
+
+To prepare your shard cluster for data import, split and migrate
+empty chunks.
+
+#. Split empty chunks in your collection by manually performing
+   :dbcommand:`split` command on chunks.
 
    .. example::
 
@@ -498,14 +522,34 @@ to split and migrate new chunks during import.
            for ( var x=97; x<97+26; x++ ){
              for( var y=97; y<97+26; y+=6 ) {
                var prefix = String.fromCharCode(x) + String.fromCharCode(y);
-               db.runCommand( { split : <collection> , middle : { email : prefix } } );
+               db.runCommand( { split : "myapp.users" , middle : { email : prefix } } );
              }
            }
 
-#. Move chunks to different shard by using the balancer or manually
-   moving chunks.
+#. Move chunks to different shard manually using the
+   :dbcommand:`moveChunk` command.
 
-#. Insert data into the shard cluster using a custom script for your data.
+   .. example::
+
+      To migrate all the chunks created for 100 million user profiles
+      evenly, putting each prefix chunk on the next shard from the
+      other , run the following commands in the mongo shell:
+
+        .. code-block:: javascript
+
+	   var shServer = [ "sh0.example.net", "sh1.example.net", "sh2.example.net", "sh3.example.net", "sh4.example.net" ];
+           for ( var x=97; x<97+26; x++ ){
+             for( var y=97; y<97+26; y+=6 ) {
+               var prefix = String.fromCharCode(x) + String.fromCharCode(y);
+               db.adminCommand({moveChunk : "myapp.users", find : {email : prefix}, to : shServer[(y-97)/6]})
+	     }
+	   }
+
+   Optionally, you can also let the balancer automatically
+   redistribute chunks in your shard cluster.
+
+When empty chunks are distributed, data import can occur with multiple
+:program:`mongos` instances, improving overall import performance.
 
 .. _sharding-balancing-modify-chunk-size:
 
