@@ -524,25 +524,29 @@ provide good places to start a troubleshooting investigation with
 
 .. _replica-set-replication-lag:
 
+
+
+
+
 Replication Lag
 ~~~~~~~~~~~~~~~
 
 Replication lag is a delay between an operation on the :term:`primary`
-and the application of that operation from :term:`oplog` to the
+and the application of that operation from the :term:`oplog` to the
 :term:`secondary`. Such lag can be a significant issue and can
 seriously affect MongoDB :term:`replica set` deployments. Excessive
 replication lag makes "lagged" members ineligible to quickly become
 primary and increases the possibility that distributed
 read operations will be inconsistent.
 
-Identify replication lag by checking the values of
+Identify replication lag by checking the value of
 :data:`members[n].optimeDate` for each member of the replica set
 using the :method:`rs.status()` function in the :program:`mongo`
 shell.
 
 Possible causes of replication lag include:
 
-- **Network Latency.**
+- **Network Latency**
 
   Check the network routes between the members of your set to ensure
   that there is no packet loss or network routing issue.
@@ -551,7 +555,7 @@ Possible causes of replication lag include:
   members and ``traceroute`` to expose the routing of packets
   network endpoints.
 
-- **Disk Throughput.**
+- **Disk Throughput**
 
   If the file system and disk device on the secondary is
   unable to flush data to disk as quickly as the primary, then
@@ -564,7 +568,7 @@ Possible causes of replication lag include:
   Use system-level tools to assess disk status, including
   ``iostat`` or ``vmstat``.
 
-- **Concurrency.**
+- **Concurrency**
 
   In some cases, long-running operations on the primary can block
   replication on secondaries. You can use
@@ -573,6 +577,40 @@ Possible causes of replication lag include:
 
   Use the :term:`database profiler` to see if there are slow queries
   or long-running operations that correspond to the incidences of lag.
+
+- **The Oplog Size is Too Small**
+
+  As commands are sent to the primary, they are recorded in the oplog.
+  Secondaries update themselves by reading the oplog and applying the
+  commands. The oplog is a circular buffer. When full, it erases the
+  oldest commands to write new ones. The secondaries keep track of the
+  last oplog command that they read. Under times of heavy load, the
+  contents of the secondaries will lag behind the contents of the
+  primary.
+
+  If the replication lag exceeds the amount of time buffered in the
+  oplog, then the replication cannot continue. Put another way, if the
+  primary overwrites that command before the secondary has a chance to
+  apply it, then the replication has failed – there are commands that
+  have been applied on the primary that the secondary is not able to
+  apply.
+
+
+
+
+See http://docs.mongodb.org/manual/tutorial/change-oplog-size/ for more information.
+
+
+
+
+- **Read Starvation**
+
+- **Write Starvation**
+
+- **Failure to Use Appropriate Write Concern in a High-Write Environment**
+
+
+
 
 Failover and Recovery
 ~~~~~~~~~~~~~~~~~~~~~
