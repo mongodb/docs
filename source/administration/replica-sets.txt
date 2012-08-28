@@ -541,7 +541,11 @@ using the :method:`rs.status()` function in the :program:`mongo`
 shell.
 
 Also, you can monitor how fast replication occurs by watching the oplog
-time in the "replica" graph in MMS.
+time in the "replica" graph in the `MongoDB Monitoring Service`_. Also
+see the `documentation for MMS`_.
+
+.. _`MongoDB Monitoring Service`: http://mms.10gen.com/
+.. _`documentation for MMS`: http://mms.10gen.com/help/
 
 Possible causes of replication lag include:
 
@@ -579,28 +583,27 @@ Possible causes of replication lag include:
 
 - **Appropriate Write Concern**
 
-  If you are performing a large data load that requires a very high
-  number of writes to the primary, and if you have not set the
-  appropriate write concern, the secondaries will not be able to read
-  the oplog fast enough to keep up with changes. Write requests take
-  precedence over read requests, and a very large number of writes will
-  significantly reduce the numbers of reads the secondaries can make
-  from the oplog in order to update themselves.
+  If you are performing a large data ingestion or bulk load operation
+  that requires a large number of writes to the primary, the
+  secondaries will not be able to read the :term:`oplog` fast enough to keep
+  up with changes. Setting some level :ref:`write concern <write-concern>`, can
+  slow the overall progress of the batch, but will prevent the
+  secondary from falling too far behind.
 
-  The replication lag can grow to the point that the oplog over-writes
-  commands that the secondaries have not yet read. The oplog is a capped
-  collection, and when full it erases the oldest commands in order to
-  write new ones. If the secondaries get too far behind in their reads,
-  they reach a point where they no longer have access to certain
-  updates, and they become stale.
+  To prevent this, use write concern so that MongoDB will perform
+  a safe write (i.e. call :dbcommand:`getLastError`) after every 100,
+  1,000, or other designated number of operations.
+  This provides an opportunity for secondaries to catch up with the primary. 
+  Using safe writes, even in batches, can impact write throughout;
+  however, calling :dbcommand:`getLastError` will prevents the
+  secondaries from falling too far behind the primary. 
 
-  To prevent this, use "write concern" to tell MongoDB to always perform
-  a safe write after a designated number of inserts, such as after every
-  1,000 inserts. This provides a space for the secondaries to perform
-  reads and catch up with the primary. Using safe writes slightly slows
-  down the data load but keeps your secondaries from going stale.
-
-  See :ref:`replica-set-write-concern` for more information.
+  For more information see: 
+  
+  - the :ref:`Replication Write Concern <replica-set-write-concern>` section,
+  - the :ref:`replica-set-oplog` documentation,
+  - the :ref:`Oplog Sizing <replica-set-oplog-sizing>` section, and
+  - the :doc:`/tutorial/change-oplog-size` tutorial.
 
 Failover and Recovery
 ~~~~~~~~~~~~~~~~~~~~~
