@@ -263,7 +263,7 @@ $(branch-output)/sitemap.xml.gz:$(branch-output)/dirhtml
 
 SITEMAPBUILD = $(PYTHONBIN) bin/sitemap_gen.py
 sitemap:$(branch-output)/sitemap.xml.gz
-$(branch-output)/sitemap.xml.gz:$(branch-output)/dirhtml
+$(branch-output)/sitemap.xml.gz:$(public-output)/manual
 	@echo [SITEMAP]: starting sitemap build at `date`.
 	@echo [SITEMAP]: build time\: `date` >> $(branch-output)/sitemap-build.log
 	@$(SITEMAPBUILD) --testing --config=conf-sitemap.xml 2>&1 >> $(branch-output)/sitemap-build.log
