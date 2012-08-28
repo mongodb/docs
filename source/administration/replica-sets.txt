@@ -577,38 +577,28 @@ Possible causes of replication lag include:
   Use the :term:`database profiler` to see if there are slow queries
   or long-running operations that correspond to the incidences of lag.
 
-- **Oplog Size is Too Small for the Data Load**
+- **Appropriate Write Concern**
 
-  If you do not set your oplog large enough, the oplog overwrites old
-  data before the secondaries can read it. The oplog is a circular
-  buffer, and when full it erases the oldest commands in order to write
-  new ones. If your oplog size is too small, the secondaries reach a
-  point where they no longer can access certain updates. The secondaries
-  become stale.
+  If you are performing a large data load that requires a very high
+  number of writes to the primary, and if you have not set the
+  appropriate write concern, the secondaries will not be able to read
+  the oplog fast enough to keep up with changes. Write requests take
+  precedence over read requests, and a very large number of writes will
+  significantly reduce the numbers of reads the secondaries can make
+  from the oplog in order to update themselves.
 
-  To set oplog size, see :doc:`/tutorial/change-oplog-size`.
-
-- **Failure to Use Appropriate Write Concern in a High-Write Environment**
-
-  If the primary is making a very high number of writes and if you have
-  not set the appropriate write concern, the secondaries will not be
-  able to read the oplog fast enough to keep up with changes. Write
-  requests take precedence over read requests, and a very large number
-  of writes will significantly reduce the numbers of reads the
-  secondaries can make on the oplog in order to update themselves.
-
-  The replication lag can grow to the point that the oplog overwrites
-  commands that the secondaries have not yet read. The oplog is a
-  circular buffer, and when full it erases the oldest commands in order
-  to write new ones. If the secondaries get too far behind in their
-  reads, they reach a point where they no longer can access certain
-  updates, and so the secondaries become stale.
+  The replication lag can grow to the point that the oplog over-writes
+  commands that the secondaries have not yet read. The oplog is a capped
+  collection, and when full it erases the oldest commands in order to
+  write new ones. If the secondaries get too far behind in their reads,
+  they reach a point where they no longer have access to certain
+  updates, and they become stale.
 
   To prevent this, use "write concern" to tell MongoDB to always perform
   a safe write after a designated number of inserts, such as after every
-  1,000 inserts. This provides a space for the secondaries to catch up
-  with the primary. Setting a write concern does slightly slow down the
-  data load, but it keeps your secondaries from going stale.
+  1,000 inserts. This provides a space for the secondaries to perform
+  reads and catch up with the primary. Using safe writes slightly slows
+  down the data load but keeps your secondaries from going stale.
 
   See :ref:`replica-set-write-concern` for more information.
 
