@@ -112,6 +112,8 @@ class MongoDBObject(ObjectDescription):
             return _('%s (database command)') % name
         elif self.objtype == 'operator':
             return _('%s (operator)') % name
+        elif self.objtype == 'projection':
+            return _('%s (projection operator)') % name
         elif self.objtype == 'program':
             return _('%s (program)') % name
         elif self.objtype == 'setting':
@@ -196,6 +198,7 @@ class MongoDBDomain(Domain):
     object_types = {
         'dbcommand':    ObjType(l_('dbcommand'),   'dbcommand'),
         'operator':     ObjType(l_('operator'),    'operator'),
+        'projection':   ObjType(l_('projection'),  'projection'),
         'binary':       ObjType(l_('binary'),      'program'),
         'setting':      ObjType(l_('setting'),     'setting'),
         'status':       ObjType(l_('status'),      'status'),
@@ -213,6 +216,7 @@ class MongoDBDomain(Domain):
     directives = {
         'dbcommand':     MongoDBCallable,
         'operator':      MongoDBCallable,
+        'projection':    MongoDBCallable,
         'binary':        MongoDBCallable,
         'setting':       MongoDBCallable,
         'status':        MongoDBCallable,
@@ -229,6 +233,7 @@ class MongoDBDomain(Domain):
     roles = {
         'dbcommand':   MongoDBXRefRole(),
         'operator':    MongoDBXRefRole(),
+        'projection':  MongoDBXRefRole(),
         'program':     MongoDBXRefRole(),
         'setting':     MongoDBXRefRole(),
         'status':      MongoDBXRefRole(),
