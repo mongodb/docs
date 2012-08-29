@@ -27,9 +27,10 @@ version.
 Read through all release notes before upgrading, and ensure that no
 changes will affect your deployment.
 
+If you are not running with
+authentication,
 2.2 processes can inter-operate with 2.0 and 1.8 tools and processes
-in replica sets and shard clusters, if you are not running with
-authentication. As a result, you can safely upgrade the
+in replica sets and shard clusters. As a result, you can safely upgrade the
 :program:`mongod` and :program:`mongos` components of your deployment
 in any order.
 
@@ -40,7 +41,7 @@ Upgrading a Standalone ``mongod``
 
 #. Download the v2.2 binaries from the `MongoDB Download Page`_.
 
-#. Shutdown your :program:`mongod` instance, replace the existing
+#. Shutdown your :program:`mongod` instance. Replace the existing
    binary with the 2.2 :program:`mongod` binary and restart MongoDB.
 
 .. _`MongoDB Download Page`: http://downloads.mongodb.org/
@@ -58,13 +59,13 @@ downtime, use the following procedure:
    the 2.2 binary.
 
 #. Use the :method:`rs.stepDown()` to step down the primary to allow
-   normal :ref:`failover <replica-set-failover>` procedure.
+   the normal :ref:`failover <replica-set-failover>` procedure.
 
    :method:`rs.stepDown()` and :dbcommand:`replSetStepDown` provide for
    shorter and more consistent failover procedures than simply
    shutting down the primary directly.
 
-   When the primary has stepped down, shut the instance down and
+   When the primary has stepped down, shut down its instance and
    upgrade by replacing the :program:`mongod` binary with the 2.2
    binary.
 
@@ -79,7 +80,7 @@ procedure:
 - Upgrade all :program:`mongos` instances *first*, in any order.
 
 - Upgrade all of the :program:`mongod` config server instances *one at
-  a time*. When you have *less* than *three* config servers active,
+  a time*. When you have *fewer* than *three* config servers active,
   the cluster metadata will be read-only which will prevent (and abort)
   all chunk migrations and chunk splits.
 
@@ -123,17 +124,17 @@ TTL Collections
 TTL collections remove expired data from a collection, using a special
 index and a background thread that deletes expired documents every
 minute. These collections are useful as an alternative to
-:term:`capped collections <capped collection>` in some cases, for data
-warehousing and caching cases including: machine generated event data,
-logs, and session information that only need to persist in a database
-for a limited period of time.
+:term:`capped collections <capped collection>` in some cases, such as for data
+warehousing and caching cases, including: machine generated event data,
+logs, and session information that needs to persist in a database
+for only a limited period of time.
 
 For more information, see the :doc:`/tutorial/expire-data` tutorial.
 
 Concurrency Improvements
 ````````````````````````
 
-In 2.2 MongoDB increases the server's capacity for concurrent
+MongoDB 2.2 increases the server's capacity for concurrent
 operations with the following improvements:
 
 #. :issue:`DB Level Locking <SERVER-4328>`
@@ -141,11 +142,11 @@ operations with the following improvements:
 #. :issue:`Improved Page Fault Detection on Windows <SERVER-4538>`
 
 To reflect these changes, MongoDB now provides changed and improved
-reporting for concurrency and use, see the :ref:`locks` and
+reporting for concurrency and use, see :ref:`locks` and
 :ref:`server-status-record-stats` in :doc:`server status
-</reference/server-status>` and in the :doc:`current operation output
-</reference/current-op>` (:method:`db.currentOp()`) as well as
-:doc:`mongotop </reference/mongotop>` and :doc:`mongostat
+</reference/server-status>` and see :doc:`current operation output
+</reference/current-op>`, :method:`db.currentOp()`,
+:doc:`mongotop </reference/mongotop>`, and :doc:`mongostat
 </reference/mongostat>`.
 
 .. TODO add links to current op output documentation when it happens.
@@ -153,20 +154,20 @@ reporting for concurrency and use, see the :ref:`locks` and
 Improved Data Center Awareness with Tag Aware Sharding
 ``````````````````````````````````````````````````````
 
-In 2.2, MongoDB adds additional support for geographic distribution or
+MongoDB 2.2 adds additional support for geographic distribution or
 other custom partitioning in shard clusters.  By using this "tag
 aware" sharding, you can automatically ensure that data in a
 sharded database system is always closest to the application servers
 that use that data most frequently.
 
 Shard tagging controls data location, and is complementary but
-separate from replica set tagging which controls data access.  For
+separate from replica set tagging, which controls data access.  For
 example, shard tagging can pin all "USA" data to one or more logical
 shards, while replica set tagging can control which :program:`mongod`
 instances (e.g. "``production``" or "``reporting``") the application
 uses to service requests.
 
-See the documentation of the following helpers in the :program:`mongo`
+See the documentation for the following helpers in the :program:`mongo`
 shell that support tagged sharding configuration:
 
 - :method:`sh.addShardTag()`
@@ -180,12 +181,12 @@ Fully Supported Read Preference Semantics
 `````````````````````````````````````````
 
 All MongoDB clients and drivers now support full :ref:`read
-preferences <replica-set-read-preference>` including consistent
+preferences <replica-set-read-preference>`, including consistent
 support for a full range of :ref:`read preference modes
 <replica-set-read-preference-modes>` and :ref:`tag sets
 <replica-set-read-preference-tag-sets>`. This support extends to the
-:program:`mongos` and applies identically to single replica sets, and
-the replica sets for each shard in a :term:`shard cluster`.
+:program:`mongos` and applies identically to single replica sets and
+to the replica sets for each shard in a :term:`shard cluster`.
 
 Additional read preference support now exists in the :program:`mongo`
 shell using the :method:`reaPref() <cursor.readPref()>` cursor method.
@@ -198,7 +199,7 @@ Compatibility Changes
 Authentication Changes
 ``````````````````````
 
-In order to provide more reliable and robust support for
+MongoDB 2.2 provides more reliable and robust support for
 authentication clients, including drivers and :program:`mongos`
 instances.
 
@@ -209,10 +210,10 @@ authentication:
   **not** compatible with 2.2 shard clusters running with
   authentication.
 
-  You **must** use the :ref:`upgrade procedure for shard clusters
+  To prevent rendering your cluster non-operational,
+  you **must** use the :ref:`upgrade procedure for shard clusters
   <2.2-upgrade-shard-cluster>` and upgrade all :program:`mongos`
-  instances *before* upgrading the shard to prevent rendering your
-  cluster non-operational.
+  instances *before* upgrading the shard.
 
 - For all drivers, use the latest release of your driver and check
   its release notes.
@@ -254,8 +255,8 @@ characters:
 
    /\. "*<>:|?
 
-The names of the data files include the database name.  If you attempt
-upgrade a database instance with one or more of these characters,
+The names of the data files include the database name. If you attempt
+to upgrade a database instance with one or more of these characters,
 :program:`mongod` will refuse to start.
 
 Change the name of these databases before upgrading. See
@@ -267,9 +268,9 @@ Change the name of these databases before upgrading. See
 ````````````````````````````````````````````````
 
 All :term:`capped collections <capped collection>` now have an ``_id``
-field by default *if* they exist outside of the ``local`` database,
-and indexes on the ``_id`` field. This change only affects capped
-collections created with 2.2 instances and does not impact existing
+field by default, *if* they exist outside of the ``local`` database,
+and now have indexes on the ``_id`` field. This change only affects capped
+collections created with 2.2 instances and does not affect existing
 capped collections.
 
 See: :issue:`SERVER-5516` for more information.
@@ -313,8 +314,8 @@ New Build Using SlimReadWrite Locks for Windows Concurrency
 ```````````````````````````````````````````````````````````
 
 Labeled "2008+" on the `Downloads Page`_, this build for 64-bit
-versions of Windows Server 2008 R2, Windows 7 or newer, offers
-increased performance for over the standard 64 bit Windows build of
+versions of Windows Server 2008 R2 and for Windows 7 or newer, offers
+increased performance over the standard 64-bit Windows build of
 MongoDB. See :issue:`SERVER-3844` for more information.
 
 .. _`Downloads Page`: http://www.mongodb.org/downloads
@@ -326,14 +327,14 @@ Index Definitions Handled by ``mongodump`` and ``mongorestore``
 ```````````````````````````````````````````````````````````````
 
 When you specify the :option:`--collection <mongodump --collection>`
-option to :program:`mongodump`,  :program:`mongodump` will now backup
+option to :program:`mongodump`, :program:`mongodump` will now backup
 the definitions for all indexes that exist on the source
-database. When you attempt to restore this backup with the
+database. When you attempt to restore this backup with
 :program:`mongorestore`, the target :program:`mongod` will rebuild all
 indexes. See :issue:`SERVER-808` for more information.
 
 :program:`mongorestore` now includes the :option:`--noIndexRestore
-<mongorestore --noIndexRestore>` option to provide the previous
+<mongorestore --noIndexRestore>` option to provide the preceding
 behavior. Use :option:`--noIndexRestore <mongorestore --noIndexRestore>`
 to prevent :program:`mongorestore` from building
 previous indexes.
@@ -353,8 +354,9 @@ Authentication Support for ``mongotop`` and ``mongostat``
 
 :program:`mongotop` and :program:`mongostat` now contain support for
 username/password authentication. See :issue:`SERVER-3875` and
-:issue:`SERVER-3871` for more information regarding this change and
-the documentation of the following options for additional information:
+:issue:`SERVER-3871` for more information regarding this change. Also
+consider the documentation of the following options for additional
+information:
 
 - :option:`mongotop --username`
 - :option:`mongotop --password`
@@ -366,8 +368,8 @@ Write Concern Support for ``mongoimport`` and ``mongorestore``
 
 With the :option:`--stopOnError <mongoimport --stopOnError>`,
 :program:`mongoimport` provides support for :ref:`write concern
-<write-concern>`. Now if there is any kind of error (e.g. network,
-write error, etc)in the import process, :program:`mongoimport` will
+<write-concern>`. Now if the import process encounters an error (e.g. network,
+write error, etc), :program:`mongoimport` will
 produce an error rather than silently continue importing data. See
 :issue:`SERVER-3937` for more information.
 
@@ -394,11 +396,11 @@ information.
 ````````````````````````````````````
 
 MongoDB extended JSON now includes a new ``Timestamp()`` type to
-represent the Timestamp type used as timestamps in the oplog and in
-other contexts.
+represent the Timestamp type that MongoDB uses for timestamps in the
+oplog among other contexts.
 
 This permits tools like :program:`mongooplog` and :program:`mongodump`
-to be able to query for specific timestamps. Consider the following
+to query for specific timestamps. Consider the following
 :program:`mongodump` operation:
 
 .. code-block:: sh
@@ -424,7 +426,7 @@ consistency of the user interface for the :program:`mongo` shell:
 - Multi-line command support in shell history.
   See :issue:`SERVER-3470` for more information.
 
-- Windows support for ``edit`` command. See :issue:`SERVER-3998` for
+- Windows support for the ``edit`` command. See :issue:`SERVER-3998` for
   more information.
 
 Helper to load Server-Side Functions
@@ -481,16 +483,15 @@ The Boost library, version 1.49, is now embeded in the MongoDB
 code base.
 
 If you want to build MongoDB binaries using system Boost libraries,
-you can pass ``scons`` the ``--use-system-boost`` flag, as follows:
+you can pass ``scons`` using the ``--use-system-boost`` flag, as follows:
 
 .. code-block:: sh
 
    scons --use-system-boost
 
-There is also a flag in ``scons`` if you want to build MongoDB using
-all system libraries rather than the included versions of the
-libraries, if desired. To build MongoDB with system libraries for all
-libraries, use the following arguments to ``scons``:
+When building MongoDB, you can also pass ``scons`` a flag to compile
+MongoDB using only system libraries rather than the included versions
+of the libraries. For example:
 
 .. code-block:: sh
 
@@ -524,7 +525,7 @@ identify what process may produce errors or halt replication. See
 Replica Set Members can Sync from Specific Members
 ``````````````````````````````````````````````````
 
-The new :dbcommand:`replSetSyncFrom` command, and
+The new :dbcommand:`replSetSyncFrom` command and new
 :method:`rs.syncFrom()` helper in the :program:`mongo` shell make it
 possible for you to manually configure from which member of the set a
 replica will poll :term:`oplog` entries. Use these commands to
@@ -539,7 +540,7 @@ To prevent inconsistency between members of replica sets, if the
 member of a replica set has :data:`members[n].buildIndexes` set to
 ``true``, other members of the replica set will *not* sync from this
 member, unless they also have :data:`members[n].buildIndexes` set to
-true. See :issue:`SERVER-4160` for more information.
+``true``. See :issue:`SERVER-4160` for more information.
 
 New Option To Configure Index Pre-Fetching during Replication
 `````````````````````````````````````````````````````````````
@@ -548,7 +549,7 @@ By default, when replicating options, :term:`secondaries <secondary>`
 will pre-fetch :ref:`indexes` associated with a query to improve replication
 throughput in most cases. The :setting:`replIndexPrefetch` setting and
 :option:`--replIndexPrefetch <mongod --replIndexPrefetch>` option allow administrators to disable
-this feature or allow the :program:`mongod` to only pre-fetch the
+this feature or allow the :program:`mongod` to pre-fetch only the
 index on the ``_id`` field. See :issue:`SERVER-6718` for more information.
 
 Map Reduce Improvements
@@ -565,7 +566,7 @@ Sharding Improvements
 Index on Shard Keys Can Now Be a Compound Index
 ```````````````````````````````````````````````
 
-If your shard key the prefix of an existing index, then you do not
+If your shard key uses the prefix of an existing index, then you do not
 need to maintain a separate index for your shard key in addition to
 your existing index. This index, however, cannot be a multi-key
 index. See the ":ref:`sharding-shard-key-indexes`" documentation and
@@ -576,7 +577,7 @@ Migration Thresholds Modified
 
 The :ref:`migration thresholds <sharding-migration-thresholds>` have
 changed in 2.2 to permit more even distribution of :term:`chunks
-<chunk>` in collections with smaller quantities of data. See the
+<chunk>` in collections that have smaller quantities of data. See the
 :ref:`sharding-migration-thresholds` documentation for more
 information.
 
