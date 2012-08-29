@@ -2,83 +2,112 @@
 Inserting Documents into a Sharded Collection
 =============================================
 
-Shard Keys
-----------
+Types of Distribution
+---------------------
 
-.. TODO 
+MongoDB distributes inserted data in one of three ways, depending on a
+combination of :term:`shard keys <shard key>`, the distribution of
+existing :term:`chunks <chunk>`, and the distribution and volume of the
+inserted data. MongoDB distributes data on one of the following ways:
 
-   outline the ways that insert operations work given shard keys of the following types
+- MongoDB distributes the data evenly around the cluster. For details
+  see :ref:`sharding-even-distribution`.
 
+- MongoDB directs writes unevenly or directs all writes to a single
+  chunk. For details see :ref:`sharding-uneven-distribution`.
 
+- MongoDB inserts the data into the last chunk in the cluster. For
+  details see :ref:`sharding-monotonically-increasing-keys`.
 
+.. _sharding-even-distribution:
 
 Even Distribution
 ~~~~~~~~~~~~~~~~~
 
-If the data's distribution of keys is evenly, MongoDB should be able to distribute writes
-evenly around a the cluster once the chunk key ranges are established. MongoDB will
-automatically split chunks when they grow to a certain size (~64 MB by default) and will
-balance the number of chunks across shards.
+MongoDB distributes writes evenly around the cluster in the following
+cases:
 
-When inserting data into a new collection, it may be important to pre-split the key ranges.
-See the section below on pre-splitting and manually moving chunks.
+- Data has been pre-split with evenly distributed :term:`shard keys <shard key>`,
+  which MongoDB then establishes and then uses to distribute writes
+  evenly. For details on pre-splitting data with evenly distributed
+  keys, see the :ref:`sharding-pre-splitting` section below.
+
+- The sharded collection contains existing documents balanced over
+  multiple chunks *and* the inserted data is either low volume or evenly
+  distributed.
+
+In even distributions, MongoDB automatically splits chunks when they
+grow to a certain size (~64 MB by default) and automatically balances
+chunks across shards, allowing no more than eight chunks on a shard.
+
+.. _sharding-uneven-distribution:
 
 Uneven Distribution
 ~~~~~~~~~~~~~~~~~~~
 
-If you need to insert data into a collection that isn't evenly distributed, or if the shard
-keys of the data being inserted aren't evenly distributed, you may need to pre-split your
-data before doing high volume inserts. As an example, consider a collection sharded by last
-name with the following key distribution:
+MongoDB writes data unevenly in the following cases. To avoid each of
+these cases, pre-split your data, as described the
+:ref:`sharding-pre-splitting` section below:
 
-(-∞, "Henri") 
-["Henri", "Peters") 
-["Peters",+∞) 
+- You insert a large volume of data that isn't evenly distributed. In
+  this case, even if the sharded cluster contains existing documents
+  balanced over multiple chunks, the inserts might include values that
+  are contained only on a small number of chunks.
 
-Although the chunk ranges may be split evenly, inserting lots of users with with a common
-last name such as "Smith" will potentially hammer a single shard. Making the chunk range
-more granular in this portion of the alphabet may improve write performance.
+- The collection is empty, and the data is not evenly distributed.
+  MongoDB fills one chunk before creating the next and maximizes the
+  number of chunks on a shard (8), before creating a new shard.
 
-(-∞, "Henri") 
-["Henri", "Peters")
-["Peters", "Smith"] 
-["Smith", "Tyler"]
-["Tyler",+∞)
+- Neither the collection nor the data are evenly distributed. MongoDB
+  might write to chunks unevenly.
+
+- The sharded collection contains existing documents balanced over
+  multiple chunks *and* the inserted data is either low volume or evenly
+  distributed.
+
+
+.. _sharding-monotonically-increasing-keys:
 
 Monotonically Increasing Values
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. what will happen if you try to do inserts.
 
-Documents with monotonically increasing shard keys, such as the BSON ObjectID, will always
-be inserted into the last chunk in a collection. To illustrate why, consider a sharded
-collection with two chunks, the second of which has an unbounded upper limit. 
+Documents with monotonically increasing shard keys, such as the BSON
+ObjectID, will always be inserted into the last chunk in a collection.
+To illustrate why, consider a sharded collection with two chunks, the
+second of which has an unbounded upper limit.
 
-(-∞, 100) 
-[100,+∞)
+(-∞, 100)
+[100, +∞)
 
-If the data being inserted has an increasing key, at any given time writes will always hit
-the shard containing the chunk with the unbounded upper limit, a problem that is not
-alleviated by splitting the "hot" chunk. High volume inserts, therefore, could hinder the
-cluster's performance by placing a significant load on a single shard.
+If the data being inserted has an increasing key, at any given time
+writes will always hit the shard containing the chunk with the unbounded
+upper limit, a problem that is not alleviated by splitting the "hot"
+chunk. High volume inserts, therefore, could hinder the cluster's
+performance by placing a significant load on a single shard.
 
-If, however, a single shard can handle the write volume, an increasing shard key may have
-some advantages. For example, if you need to do queries based on document insertion time,
-sharding on the ObjectID ensures that documents created around the same time exist on the
-same shard. Data locality helps to improve query performance.
+If, however, a single shard can handle the write volume, an increasing
+shard key may have some advantages. For example, if you need to do
+queries based on document insertion time, sharding on the ObjectID
+ensures that documents created around the same time exist on the same
+shard. Data locality helps to improve query performance.
 
-If you decide to use an monotonically increasing shard key and anticipate large inserts,
-one solution may be to store the hash of the shard key as a separate field. Hashing may
-prevent the need to balance chunks by distributing data equally around the cluster. You can
-create a hash client-side. In the future, MongoDB may support automatic hashing:
+If you decide to use an monotonically increasing shard key and
+anticipate large inserts, one solution may be to store the hash of the
+shard key as a separate field. Hashing may prevent the need to balance
+chunks by distributing data equally around the cluster. You can create a
+hash client-side. In the future, MongoDB may support automatic hashing:
 https://jira.mongodb.org/browse/SERVER-2001
 
 Operations
 ----------
 
-.. TODO 
+.. TODO
 
-   outline the procedures and rationale for each process.
+.. outline the procedures and rationale for each process.
+
+.. _sharding-pre-splitting:
 
 Pre-Splitting
 ~~~~~~~~~~~~~
@@ -86,42 +115,74 @@ Pre-Splitting
 .. when to do this
 .. procedure for this process
 
-Pre-splitting is the process of specifying shard key ranges for chunks prior to data
-insertion. This process may be important prior to large inserts into a sharded collection
-as a way of ensuring that the write operation is evenly spread around the cluster. You
-should consider pre-splitting before large inserts if the sharded collection is empty, if
-the collection's data or the data being inserted is not evenly distributed, or if the shard
-key is monotonically increasing.
+Pre-splitting is the process of specifying shard key ranges for chunks
+prior to data insertion. Pre-splitting ensures the write operation is
+evenly spread around the cluster. You should consider pre-splitting if:
 
-In the example below the pre-split command splits the chunk where the _id 99 would reside
-using that key as the split point. Note that a key need not exist for a chunk to use it in
-its range. The chunk may even be empty.
+- You are doing high volume inserts.
 
-The first step is to create a sharded collection to contain the data, which can be done in
-three steps:
+- The sharded collection is empty.
+
+- Either the collection's data or the data being inserted is not evenly distributed.
+
+- The shard key is monotonically increasing.
+
+As an example of pre-splitting, consider a collection sharded by last
+name with the following key distribution. The "(" and ")" symbols
+indicate a non-inclusive value. The "[" and "]" symbols indicate an
+inclusive value:
+
+["A", "Jones")
+["Jones", "Smith")
+["Smith", "zzz")
+
+Although the chunk ranges may be split evenly, inserting lots of users
+with with a common last name, such as "Jones" or "Smith", will
+potentially monopolize a single shard. Making the chunk range more
+granular in these portions of the alphabet may improve write
+performance.
+
+["A", "Jones")
+["Jones", "Peters")
+["Peters", "Smith")
+["Smith", "Tyler")
+["Tyler", "zzz"]
+
+Procedure
+---------
+
+In the example below the pre-split command splits the chunk where the
+_id 99 would reside using that key as the split point. Note that a key
+need not exist for a chunk to use it in its range. The chunk may even be
+empty.
+
+The first step is to create a sharded collection to contain the data,
+which can be done in three steps:
 
 > use admin
 > db.runCommand({ enableSharding : "foo" })
 
-Next, we add a unique index to the collection "foo.bar" which is required for the shard
-key.
+Next, we add a unique index to the collection "foo.bar" which is
+required for the shard key.
 
 > use foo
 > db.bar.ensureIndex({ _id : 1 }, { unique : true })
 
-Finally we shard the collection (which contains no data) using the _id value.
+Finally we shard the collection (which contains no data) using the _id
+value.
 
 > use admin
 switched to db admin
 > db.runCommand( { split : "test.foo" , middle : { _id : 99 } } )
 
-Once the key range is specified, chunks can be moved around the cluster using the moveChunk
-command.
+Once the key range is specified, chunks can be moved around the cluster
+using the moveChunk command.
 
 > db.runCommand( { moveChunk : "test.foo" , find : { _id : 99 } , to : "shard1" } )
 
-You can repeat these steps as many times as necessary to create or move chunks around the
-cluster. To get information about the two chunks created in this example:
+You can repeat these steps as many times as necessary to create or move
+chunks around the cluster. To get information about the two chunks
+created in this example:
 
 > db.printShardingStatus()
 --- Sharding Status ---
@@ -130,32 +191,41 @@ cluster. To get information about the two chunks created in this example:
       { "_id" : "shard0000", "host" : "localhost:30000" }
       { "_id" : "shard0001", "host" : "localhost:30001" }
   databases:
-	{ "_id" : "admin", "partitioned" : false, "primary" : "config" }
-	{ "_id" : "test", "partitioned" : true, "primary" : "shard0001" }
-		test.foo chunks:
-				shard0001	1
-				shard0000	1
-			{ "_id" : { "$MinKey" : true } } -->> { "_id" : "99" } on : shard0001 { "t" : 2000, "i" : 1 }
-			{ "_id" : "99" } -->> { "_id" : { "$MaxKey" : true } } on : shard0000 { "t" : 2000, "i" : 0 }
+    { "_id" : "admin", "partitioned" : false, "primary" : "config" }
+    { "_id" : "test", "partitioned" : true, "primary" : "shard0001" }
+        test.foo chunks:
+                shard0001    1
+                shard0000    1
+            { "_id" : { "$MinKey" : true } } -->> { "_id" : "99" } on : shard0001 { "t" : 2000, "i" : 1 }
+            { "_id" : "99" } -->> { "_id" : { "$MaxKey" : true } } on : shard0000 { "t" : 2000, "i" : 0 }
 
 Once the chunks and the key ranges are evenly distributed, you can proceed with a
 high volume insert.
 
-Changing Shard Key 
+.. _sharding-changing-shard-key:
+
+Changing Shard Key
 ~~~~~~~~~~~~~~~~~~
 
-There is no automatic support for changing the shard key for a collection. In addition,
-since a document's location within the cluster is determined by its shard key value,
-changing the shard key could force data to move from machine to machine, potentially a
-highly expensive operation.
+There is no automatic support for changing the shard key for a
+collection. In addition, since a document's location within the cluster
+is determined by its shard key value, changing the shard key could force
+data to move from machine to machine, potentially a highly expensive
+operation.
 
 Thus it is very important to choose the right shard key up front.
 
-If you do need to change a shard key, an export and import is likely the best solution.
-Create a new pre-sharded collection, and then import the exported data to it. If desired
-use a dedicated mongos for the export and the import.
+If you do need to change a shard key, an export and import is likely the
+best solution. Create a new pre-sharded collection, and then import the
+exported data to it. If desired use a dedicated mongos for the export
+and the import.
 
-https://jira.mongodb.org/browse/SERVER-4000
+.. :issue:`SERVER-4000`
+
+.. _sharding-pre-allocating-documents:
 
 Pre-allocating Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. http://docs.mongodb.org/manual/use-cases/pre-aggregated-reports/#pre-allocate
+
