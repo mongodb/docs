@@ -548,7 +548,17 @@ However, you may want to migrate chunks manually in a few cases:
 - If the balancer in an active cluster cannot distribute chunks within
   the balancing window, then you will have to migrate chunks manually.
 
-To migrate chunks, use the :dbcommand:`moveChunk` command.
+To migrate chunks, use the :dbcommand:`moveChunk` command. 
+
+.. note::
+
+   To return a list of shards, use the :dbcommand:`listshards`
+   command.
+
+   Specify shard names using the :dbcommand:`addShard` command
+   using the ``name`` argument. If you do not specify a name in the
+   :dbcommand:`addShard` command, MongoDB will assign a name
+   automatically.
 
 The following example assumes that the field ``username`` is the
 :term:`shard key` for a collection named ``users`` in the ``myapp``
@@ -572,15 +582,17 @@ block until the migration is complete.
    :term:`secondary` members have replicated operations before allowing
    new chunk migrations.
 
-.. note::
+.. warning::
 
-   To return a list of shards, use the :dbcommand:`listshards`
-   command.
+   The :dbcommand:`moveChunk` command may produce an error message:
 
-   Specify shard names using the :dbcommand:`addShard` command
-   using the ``name`` argument. If you do not specify a name in the
-   :dbcommand:`addShard` command, MongoDB will assign a name
-   automatically.
+   .. code-block:: none
+
+      The collection's metadata lock is already taken.
+
+   when there are open :term:`cursors <cursor>` accessing the chunk to
+   be moved. To fix this situation, either wait until the cursors
+   complete their operation or remove the cursors.
 
 .. index:: balancing; operations
 .. _sharding-balancing-operations:
