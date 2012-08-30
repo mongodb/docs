@@ -2,109 +2,131 @@
 Inserting Documents into a Sharded Collection
 =============================================
 
+Synopsis
+--------
+
+When inserting documents into a :term:`sharded <sharding>`
+:term:`collection`, you must consider how MongoDB will distribute the
+inserted data and how the distribution will affect performance. You must
+also consider whether you need first to :term:`pre-split
+<pre-splitting>` the data. This document describes types of distribution
+and how to pre-split data.
+
 Types of Distribution
 ---------------------
 
-MongoDB distributes inserted data in one of three ways, depending on a
-combination of :term:`shard keys <shard key>`, the distribution of
-existing :term:`chunks <chunk>`, and the distribution and volume of the
-inserted data. MongoDB distributes data on one of the following ways:
+MongoDB distributes inserted data in one of three ways, depending on
+the following factors: the distribution of the :term:`collection's <collection>`
+existing :term:`chunks <chunk>`, the existence of
+:term:`shard keys <shard key>` on the write operation (i.e., whether
+data is :term:`pre-split <pre-splitting>`), the distribution of the
+inserted data, and the volume of the inserted data.
+
+Depending on the above, MongoDB distributes inserted data in one of the
+following ways:
 
 - MongoDB distributes the data evenly around the cluster. For details
   see :ref:`sharding-even-distribution`.
 
-- MongoDB directs writes unevenly or directs all writes to a single
-  chunk. For details see :ref:`sharding-uneven-distribution`.
+- MongoDB distributes data unevenly around the cluster. For details see
+  :ref:`sharding-uneven-distribution`.
 
-- MongoDB inserts the data into the last chunk in the cluster. For
-  details see :ref:`sharding-monotonically-increasing-keys`.
+- MongoDB inserts all data into the last chunk in the cluster. For
+  details see :ref:`sharding-monotonic-distribution`.
 
 .. _sharding-even-distribution:
 
 Even Distribution
 ~~~~~~~~~~~~~~~~~
 
-MongoDB distributes writes evenly around the cluster in the following
-cases:
+In even distribution, MongoDB balances writes among all :term:`chunks <chunk>`
+and :term:`shards` in the cluster. Even distribution provides the best
+performance and occurs in the following cases:
 
-- Data has been pre-split with evenly distributed :term:`shard keys <shard key>`,
-  which MongoDB then establishes and then uses to distribute writes
-  evenly. For details on pre-splitting data with evenly distributed
-  keys, see the :ref:`sharding-pre-splitting` section below.
+- The insert data has been :term:`pre-split <pre-splitting>` by specifying
+  :term:`shard keys <shard key>` in the write operation. When you insert
+  the data, MongoDB uses the keys to distribute writes evenly. It does
+  not matter whether the existing :term:`collection` is evenly distributed. For
+  details on pre-splitting data, see the :ref:`sharding-pre-splitting`
+  section below.
 
-- The sharded collection contains existing documents balanced over
-  multiple chunks *and* the inserted data is either low volume or evenly
-  distributed.
-
-In even distributions, MongoDB automatically splits chunks when they
-grow to a certain size (~64 MB by default) and automatically balances
-chunks across shards, allowing no more than eight chunks on a shard.
+- The :term:`sharded <sharding>` collection contains existing documents
+  balanced over multiple chunks *and* the inserted data is either low
+  volume or already evenly distributed. If the data is large and
+  unevenly distributed, the write operation becomes imbalanced and
+  monopolizes certain chunks.
 
 .. _sharding-uneven-distribution:
 
 Uneven Distribution
 ~~~~~~~~~~~~~~~~~~~
 
-MongoDB writes data unevenly in the following cases. To avoid each of
-these cases, pre-split your data, as described the
-:ref:`sharding-pre-splitting` section below:
+In uneven distribution, MongoDB focuses write operations on a small
+number of :term:`chunk <chunks>` instead of balancing writes across
+chunks. This increases the likelihood that chunks will fill and that
+MongoDB must move chunks between :term:`shards`, an operation that slows
+performance.
 
-- You insert a large volume of data that isn't evenly distributed. In
-  this case, even if the sharded cluster contains existing documents
-  balanced over multiple chunks, the inserts might include values that
-  are contained only on a small number of chunks.
+To avoid uneven distribution, :term:`pre-split` your data, as described
+in the :ref:`sharding-pre-splitting` section below.
 
-- The collection is empty, and the data is not evenly distributed.
-  MongoDB fills one chunk before creating the next and maximizes the
-  number of chunks on a shard (8), before creating a new shard.
+Uneven distribution occurs in the following cases:
 
-- Neither the collection nor the data are evenly distributed. MongoDB
-  might write to chunks unevenly.
+- You insert a large volume of data that is not evenly distributed. Even
+  if the :term:`sharded cluster <shard cluster>` contains existing
+  documents balanced over multiple chunks, the inserted data might
+  include values that write disproportionately to a small number of
+  chunks.
 
-- The sharded collection contains existing documents balanced over
-  multiple chunks *and* the inserted data is either low volume or evenly
-  distributed.
+- The collection is empty, *and* the inserted data is not evenly
+  distributed. MongoDB fills one chunk before creating the next and
+  eventually must rebalance and move chunks between shards. Moving
+  chunks between shards affects performance.
 
+- Neither the collection nor the inserted data are evenly distributed.
+  MongoDB fills certain chunks too soon and eventually must rebalance
+  and move chunks between shards. Moving chunks between shards affects
+  performance.
 
-.. _sharding-monotonically-increasing-keys:
+.. _sharding-monotonic-distribution:
 
-Monotonically Increasing Values
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+All Inserts are to Last Chunk (Monotonic)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. what will happen if you try to do inserts.
+When you insert documents with monotonically increasing
+:term:`shard keys <shard key>`, such as the BSON ObjectID, MongoDB
+inserts all data into the last :term:`chunk` in the collection.
 
-Documents with monotonically increasing shard keys, such as the BSON
-ObjectID, will always be inserted into the last chunk in a collection.
-To illustrate why, consider a sharded collection with two chunks, the
-second of which has an unbounded upper limit.
+For an example, consider a :term:`sharded <sharding>` collection with
+two chunks, the second of which has an unbounded upper limit. The "("
+and ")" symbols indicate a non-inclusive value. The "[" and "]" symbols
+indicate an inclusive value:
 
-(-∞, 100)
-[100, +∞)
+(-infinity, 100)
+[100, +infinity)
 
-If the data being inserted has an increasing key, at any given time
-writes will always hit the shard containing the chunk with the unbounded
-upper limit, a problem that is not alleviated by splitting the "hot"
-chunk. High volume inserts, therefore, could hinder the cluster's
-performance by placing a significant load on a single shard.
+If the data being inserted has an increasing key, then writes always
+direct to the shard containing the chunk with the unbounded upper limit.
+
+Inserting to the last chunk can hinder the cluster's performance by placing a
+significant load on a single :term:`shard <shards>`.
 
 If, however, a single shard can handle the write volume, an increasing
 shard key may have some advantages. For example, if you need to do
-queries based on document insertion time, sharding on the ObjectID
+queries based on document-insertion time, sharding on the ObjectID
 ensures that documents created around the same time exist on the same
 shard. Data locality helps to improve query performance.
 
-If you decide to use an monotonically increasing shard key and
+If you decide to use a monotonically increasing shard key and
 anticipate large inserts, one solution may be to store the hash of the
 shard key as a separate field. Hashing may prevent the need to balance
 chunks by distributing data equally around the cluster. You can create a
-hash client-side. In the future, MongoDB may support automatic hashing:
-https://jira.mongodb.org/browse/SERVER-2001
+hash client-side.
 
 Operations
 ----------
 
 .. TODO
-
 .. outline the procedures and rationale for each process.
 
 .. _sharding-pre-splitting:
@@ -112,10 +134,10 @@ Operations
 Pre-Splitting
 ~~~~~~~~~~~~~
 
-.. when to do this
+.. TODO
 .. procedure for this process
 
-Pre-splitting is the process of specifying shard key ranges for chunks
+Pre-splitting is the process of specifying shard key ranges for :term:`chunks <chunk>`
 prior to data insertion. Pre-splitting ensures the write operation is
 evenly spread around the cluster. You should consider pre-splitting if:
 
