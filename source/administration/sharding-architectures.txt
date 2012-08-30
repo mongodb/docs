@@ -31,6 +31,8 @@ and development. Such a cluster will have the following components:
 
 - 1 :program:`mongos` instance.
 
+.. _sharding-production-deployment:
+
 Deploying a Production Cluster
 ------------------------------
 
@@ -38,41 +40,21 @@ When deploying a shard cluster to production, you must ensure that the data
 is redundant and that your individual nodes are highly available. To that end,
 a production-level shard cluster should have the following:
 
-- 3 :ref:`config servers <sharding-config-server>`, each residing on a separate node.
+- 3 :ref:`config servers <sharding-config-server>`, each residing on a separate system.
 
-- For each shard, a three member :term:`replica set <replica set>` consisting of:
-
-  - 3 :program:`mongod` replicas or
-
-    .. seealso:: ":doc:`/administration/replication-architectures`"
-       and ":doc:`/administration/replica-sets`."
-
-  - 2 :program:`mongod` replicas and a single
-    :program:`mongod` instance acting as a :term:`arbiter`.
-
-    .. optional::
-
-       All replica set configurations and options are available.
-
-       You may also choose to deploy a :ref:`hidden member
-       <replica-set-hidden-members>` for backups or a
-       :ref:`delayed member <replica-set-delayed-members>`.
-
-       You might also keep a member of each replica set in a
-       geographically distinct data center in case the primary data
-       center becomes unavailable.
-
-       See ":doc:`/replication`" for more information on replication
-       and :term:`replica sets <replica set>`.
-
-  .. seealso:: The ":ref:`sharding-procedure-add-shard`" and
-     ":ref:`sharding-procedure-remove-shard`" procedures for more
-     information.
+- 3 member :term:`replica set <replica set>` for each shard.
 
 - :program:`mongos` instances. Typically, you will deploy a single
   :program:`mongos` instance on every application server. Alternatively,
   you may deploy several `mongos` nodes and let your application connect
   to these via a load balancer.
+
+.. seealso:: ":doc:`/administration/replication-architectures`"
+   and ":doc:`/administration/replica-sets`."
+
+.. seealso:: The ":ref:`sharding-procedure-add-shard`" and
+   ":ref:`sharding-procedure-remove-shard`" procedures for more
+   information.
 
 Sharded and Non-Sharded Data
 ----------------------------
@@ -118,3 +100,55 @@ created subsequently, may reside on any shard in the cluster.
 .. [#overloaded-primary-term] The term "primary" in the context of
    databases and sharding, has nothing to do with the term
    :term:`primary` in the context of :term:`replica sets <replica set>`.
+
+Failover scenarios within MongoDB
+---------------------------------
+
+A properly deployed MongoDB shard cluster will not have a single point
+of failure. This section describes potential points of failure within
+a shard cluster and its recovery method.
+
+For reference, a properly deployed MongoDB shard cluster consists of:
+
+   - 3 :term:`config database`,
+
+   - 3 member :term:`replica set` for each shard and
+
+   - :program:`mongos` running on each application server.
+
+Scenarios:
+
+- A :term:`mongos` or the application server failing.
+
+  As each application server is running its own :program:`mongos`
+  instance, the database is still accessible for other application
+  servers. :program:`mongos` is stateless, so if it fails, no critical
+  information is lost. When :program:`mongos` restarts, it will retrieve a copy
+  of the configuration from the :term:`config database` and resume
+  working.
+
+  Suggested user intervention: restart application servers and/or
+  :program:`mongos`.
+
+- A single :term:`mongod` suffers a failure in a shard.
+
+  A single :term:`mongod` instance failing will be recovered by a
+  :term:`secondary` member of the shard replica set. As each shard
+  will have a single :term:`primary` and two :term:`secondary` members
+  with the exact same copy of the information, any member will be able
+  to replace the failed member.
+
+  Suggested course of action: investigate failure and replace member
+  as soon as possible. Additional loss of members on same shard will
+  reduce availablility.
+
+- All three replica set members of a shard fail. 
+
+  All data within that shard will be unavailable, but the shard
+  cluster will still be operational for applications. Data on other
+  shards will be accessible and new data can be written to other shard
+  members.
+
+- A :term:`config database` suffers a failure.
+
+  As the :term:`config database` is deployed in a 3 member 
