@@ -12,6 +12,14 @@ also consider whether you need first to :term:`pre-split
 <pre-splitting>` the data. This document describes types of distribution
 and how to pre-split data.
 
+.. seealso::
+
+   - :ref:`chunk-management`
+   - :doc:`/core/sharding-internals`
+   - :doc:`/core/sharding`
+
+.. _sharding-distribution-types:
+
 Types of Distribution
 ---------------------
 
@@ -80,30 +88,31 @@ Uneven distribution occurs in the following cases:
 
 - The collection is empty, *and* the inserted data is not evenly
   distributed. MongoDB fills one chunk before creating the next and
-  eventually must rebalance and move chunks between shards. Moving
-  chunks between shards affects performance.
+  eventually must rebalance and move chunks between shards, slowing
+  performance.
 
 - Neither the collection nor the inserted data are evenly distributed.
   MongoDB fills certain chunks too soon and eventually must rebalance
-  and move chunks between shards. Moving chunks between shards affects
-  performance.
+  and move chunks between shards, slowing performance.
 
 .. _sharding-monotonic-distribution:
 
-All Inserts are to Last Chunk (Monotonic)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+All Writes Go to Last Chunk (Monotonic)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When you insert documents with monotonically increasing
 :term:`shard keys <shard key>`, such as the BSON ObjectID, MongoDB
 inserts all data into the last :term:`chunk` in the collection.
 
-For an example, consider a :term:`sharded <sharding>` collection with
+For example, consider a :term:`sharded <sharding>` collection with
 two chunks, the second of which has an unbounded upper limit. The "("
 and ")" symbols indicate a non-inclusive value. The "[" and "]" symbols
 indicate an inclusive value:
 
-(-infinity, 100)
-[100, +infinity)
+.. code-block:: sh
+
+   (-infinity, 100)
+   [100, +infinity)
 
 If the data being inserted has an increasing key, then writes always
 direct to the shard containing the chunk with the unbounded upper limit.
@@ -123,103 +132,102 @@ shard key as a separate field. Hashing may prevent the need to balance
 chunks by distributing data equally around the cluster. You can create a
 hash client-side.
 
-Operations
-----------
-
-.. TODO
-.. outline the procedures and rationale for each process.
-
 .. _sharding-pre-splitting:
+
+Operation
+---------
 
 Pre-Splitting
 ~~~~~~~~~~~~~
 
-.. TODO
-.. procedure for this process
-
-Pre-splitting is the process of specifying shard key ranges for :term:`chunks <chunk>`
-prior to data insertion. Pre-splitting ensures the write operation is
-evenly spread around the cluster. You should consider pre-splitting if:
+Pre-splitting is the process of specifying :term:`shard key` ranges for
+:term:`chunks <chunk>` prior to data insertion in order to ensure
+MongoDB distributes the data evenly around the cluster. You should
+consider pre-splitting if:
 
 - You are doing high volume inserts.
 
-- The sharded collection is empty.
+- The :term:`sharded <sharding>` collection is empty.
 
 - Either the collection's data or the data being inserted is not evenly distributed.
 
 - The shard key is monotonically increasing.
 
-As an example of pre-splitting, consider a collection sharded by last
-name with the following key distribution. The "(" and ")" symbols
-indicate a non-inclusive value. The "[" and "]" symbols indicate an
-inclusive value:
+For more information on how MongoDB distributes inserted data, see
+:ref:`sharding-distribution-types`.
 
-["A", "Jones")
-["Jones", "Smith")
-["Smith", "zzz")
+As an example of when you might choose to pre-split, consider a
+collection sharded by last name with the following key distribution. The
+"(" and ")" symbols indicate a non-inclusive value. The "[" and "]"
+symbols indicate an inclusive value:
 
-Although the chunk ranges may be split evenly, inserting lots of users
-with with a common last name, such as "Jones" or "Smith", will
-potentially monopolize a single shard. Making the chunk range more
-granular in these portions of the alphabet may improve write
-performance.
+.. code-block:: sh
 
-["A", "Jones")
-["Jones", "Peters")
-["Peters", "Smith")
-["Smith", "Tyler")
-["Tyler", "zzz"]
+   ["A", "Jones")
+   ["Jones", "Smith")
+   ["Smith", "zzz")
 
-Procedure
----------
+Although the chunk ranges in the collection may be evenly split,
+inserting a large number of new users with a common last name, such as
+"Smith" or "Jones", will write disproportionately to a single shard,
+monopolizing writes and reads to that shard.
 
-In the example below the pre-split command splits the chunk where the
-_id 99 would reside using that key as the split point. Note that a key
-need not exist for a chunk to use it in its range. The chunk may even be
-empty.
+To avoid this situation, you would make the chunk range more granular:
 
-The first step is to create a sharded collection to contain the data,
-which can be done in three steps:
+.. code-block:: sh
 
-> use admin
-> db.runCommand({ enableSharding : "foo" })
+   ["A", "Jones")
+   ["Jones", "Parker")
+   ["Parker", "Smith")
+   ["Smith", "Tyler")
+   ["Tyler", "zzz"]
 
-Next, we add a unique index to the collection "foo.bar" which is
-required for the shard key.
+Procedures
+----------
 
-> use foo
-> db.bar.ensureIndex({ _id : 1 }, { unique : true })
+Pre-Splitting
+~~~~~~~~~~~~~
 
-Finally we shard the collection (which contains no data) using the _id
-value.
+This procedure assumes:
 
-> use admin
-switched to db admin
-> db.runCommand( { split : "test.foo" , middle : { _id : 99 } } )
+- You have a database "foo".
+
+- The "foo" database has a collection "bar".
+
+- The "bar" collection has a unique index.
+
+- The "bar" collection, which contains no data, is sharded on _id : 99.
+
+Note that a key need not exist for a chunk to use it in its range. The
+chunk may even be empty.
 
 Once the key range is specified, chunks can be moved around the cluster
 using the moveChunk command.
 
-> db.runCommand( { moveChunk : "test.foo" , find : { _id : 99 } , to : "shard1" } )
+.. code-block:: javascript
+
+   db.runCommand( { moveChunk : "test.foo" , find : { _id : 99 } , to : "shard1" } )
 
 You can repeat these steps as many times as necessary to create or move
 chunks around the cluster. To get information about the two chunks
 created in this example:
 
-> db.printShardingStatus()
---- Sharding Status ---
-  sharding version: { "_id" : 1, "version" : 3 }
-  shards:
-      { "_id" : "shard0000", "host" : "localhost:30000" }
-      { "_id" : "shard0001", "host" : "localhost:30001" }
-  databases:
-    { "_id" : "admin", "partitioned" : false, "primary" : "config" }
-    { "_id" : "test", "partitioned" : true, "primary" : "shard0001" }
-        test.foo chunks:
-                shard0001    1
-                shard0000    1
-            { "_id" : { "$MinKey" : true } } -->> { "_id" : "99" } on : shard0001 { "t" : 2000, "i" : 1 }
-            { "_id" : "99" } -->> { "_id" : { "$MaxKey" : true } } on : shard0000 { "t" : 2000, "i" : 0 }
+.. code-block:: javascript
+
+   db.printShardingStatus()
+   --- Sharding Status ---
+     sharding version: { "_id" : 1, "version" : 3 }
+     shards:
+         { "_id" : "shard0000", "host" : "localhost:30000" }
+         { "_id" : "shard0001", "host" : "localhost:30001" }
+     databases:
+       { "_id" : "admin", "partitioned" : false, "primary" : "config" }
+       { "_id" : "test", "partitioned" : true, "primary" : "shard0001" }
+           test.foo chunks:
+                   shard0001    1
+                   shard0000    1
+               { "_id" : { "$MinKey" : true } } -->> { "_id" : "99" } on : shard0001 { "t" : 2000, "i" : 1 }
+               { "_id" : "99" } -->> { "_id" : { "$MaxKey" : true } } on : shard0000 { "t" : 2000, "i" : 0 }
 
 Once the chunks and the key ranges are evenly distributed, you can proceed with a
 high volume insert.
@@ -239,8 +247,8 @@ Thus it is very important to choose the right shard key up front.
 
 If you do need to change a shard key, an export and import is likely the
 best solution. Create a new pre-sharded collection, and then import the
-exported data to it. If desired use a dedicated mongos for the export
-and the import.
+exported data to it. If desired use a dedicated :program:`mongos` for
+the export and the import.
 
 .. :issue:`SERVER-4000`
 
