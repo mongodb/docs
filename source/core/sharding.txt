@@ -77,7 +77,7 @@ MongoDB has the following features:
          users to increase the potential amount of data to mange
          with MongoDB and expand the :term:`working set`.
 
-A typical :term:`shard cluster` consists of config servers that
+A typical :term:`shard cluster` consists of config servers which
 store metadata that maps :term:`chunks <chunk>` to shards, the
 :program:`mongod` instances which hold data (i.e the :term:`shards
 <shard>`,) and lightweight routing processes, :doc:`mongos
@@ -89,7 +89,7 @@ Indications
 
 While sharding is a powerful and compelling feature, it comes with
 significant :ref:`infrastructure requirements <sharding-requirements>`
-and some limited complexity costs. As a result, its important to use
+and some limited complexity costs. As a result, it's important to use
 sharding only as necessary, and when indicated by actual operational
 requirements. Consider the following overview of indications it may be
 time to consider sharding.
@@ -108,8 +108,8 @@ You should consider deploying a :term:`shard cluster`, if:
 
 If these attributes are not present in your system, sharding will only
 add additional complexity to your system without providing much benefit.
-If you do plan to eventually partition your data, you should also
-give some thought to which collections you'll want to shard along with
+If you plan to eventually partition your data, you should 
+consider which collections you will want to shard along with
 the corresponding shard keys.
 
 .. _sharding-capacity-planning:
@@ -122,7 +122,7 @@ the corresponding shard keys.
    application.
 
    As a result, if you think you're going to need sharding eventually,
-   its crucial that you **do not** wait until your system is
+   it's critical that you **do not** wait until your system is
    overcapacity to enable sharding.
 
 .. index:: sharding; requirements
@@ -143,7 +143,7 @@ A :term:`shard cluster` has the following components:
   These special :program:`mongod` instances store the metadata for the
   cluster. The :program:`mongos` instances cache this data and use it
   to determine which :term:`shard` is responsible for which
-  :term:`chunk`.
+  :term:`chunk`.  
 
   For testing purposes you may deploy a shard cluster with a single
   configuration server, but this is not recommended for production.
@@ -158,8 +158,8 @@ A :term:`shard cluster` has the following components:
   These are "normal," :program:`mongod` instances that hold all of the
   actual data for the cluster.
 
-  Typically, a :term:`replica sets <replica set>`, consisting of
-  multiple :program:`mongod` instances, compose a shard. The members
+  Typically, one or more :term:`replica sets <replica set>`, consisting of
+  multiple :program:`mongod` instances, compose a shard cluster. The members
   of the replica set provide redundancy for the data and increase the
   overall reliability and robustness of the cluster.
 
@@ -182,7 +182,7 @@ A :term:`shard cluster` has the following components:
      resources, and you can run them on your application servers
      without impacting application performance. However, if you use
      the :term:`aggregation framework` some processing may occur on
-     the :program:`mongos` instances that causes them to require more
+     the :program:`mongos` instances which can cause them to require more
      system resources.
 
 Data
@@ -300,21 +300,30 @@ help produce one that is more ideal.
 Config Servers
 --------------
 
-The configuration servers store the shard metadata that tracks the
-relationship between the range that defines a :term:`chunk` and the
-:program:`mongod` instance (typically a :term:`replica set`) or
-:term:`shard` where that data resides. Without a config server, the
+Config servers maintain the shard metadata in a config
+database.  The :term:`config database <config database>` stores
+the relationship between :term:`chunks <chunk>` and where they reside
+within a :term:`shard cluster`. Without a config database, the
 :program:`mongos` instances would be unable to route queries or write
-operations within the cluster. This section describes their operation
-and use.
+operations within the cluster.
 
 Config servers *do not* run as replica sets. Instead, a :term:`shard
-cluster` operates with a group of *three* config servers that use a
+cluster` operates with a group of *three* config servers which use a
 two-phase commit process that ensures immediate consistency and
-reliability. Because the :program:`mongos` instances all maintain
-caches of the config server data, the actual load on the config
-servers is small. MongoDB will write data to the config server only
-when:
+reliability.
+
+For testing purposes you may deploy a shard cluster with a single
+config server, but this is not recommended for production.
+
+.. warning::
+
+     If you choose to run a single config server and it becomes
+     inoperable for any reason, the cluster will be unusable.
+
+The actual load on configuration servers is small because each 
+:program:`mongos` instances maintains a cached copy of the configuration 
+database. 
+MongoDB will write data to the config server only when:
 
 - Creating splits in existing chunks, which happens as data in
   existing chunks exceeds the maximum chunk size.
@@ -344,9 +353,16 @@ Because the configuration data is small relative to the amount of data
 stored in a cluster, the amount of activity is relatively low, and 100%
 up time is not required for a functioning shard cluster. As a result,
 backing up the config servers is not difficult. Backups of config
-servers are crucial as shard clusters become totally inoperable when
+servers are critical as shard clusters become totally inoperable when
 you lose all configuration instances and data. Precautions to ensure
 that the config servers remain available and intact are critical.
+
+  .. note::
+  
+     Configuration servers maintain metadata for only one shard cluster.
+     You must have a separate configuration server or servers for each
+     shard cluster you configure.
+
 
 .. index:: mongos
 .. _sharding-mongos:
@@ -458,7 +474,7 @@ have on the cluster, by:
   <sharding-migration-thresholds>`.
 
 Additionally, it's possible to disable the balancer on a temporary
-basis for maintenance and limit the window during which it runs to
+basis for maintenance and to limit the window during which it runs to
 prevent the balancing process from impacting production traffic.
 
 .. seealso:: The ":ref:`"Balancing Internals
