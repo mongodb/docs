@@ -42,7 +42,7 @@ Pipelines
 ~~~~~~~~~
 
 Conceptually, documents from a collection pass through an
-aggregation pipeline, which transforms these objects they pass through.
+aggregation pipeline, which transforms these objects as they pass through.
 For those familiar with UNIX-like shells (e.g. bash,) the concept is
 analogous to the pipe (i.e. ``|``) used to string text filters together.
 
@@ -66,7 +66,7 @@ through the pipeline.
 
 .. include:: /includes/warning-aggregation-types.rst
 
-.. seealso:: The ":doc:`/reference/aggregation`" reference includes
+.. seealso:: The ":doc:`/reference/aggregation`" includes
    documentation of the following pipeline operators:
 
    - :agg:pipeline:`$project`
@@ -83,13 +83,13 @@ Expressions
 ~~~~~~~~~~~
 
 :ref:`Expressions <aggregation-expression-operators>` produce output
-document based on calculations performed on input documents. The
+documents based on calculations performed on input documents. The
 aggregation framework defines expressions using a document format
 using prefixes.
 
 Expressions are stateless and are only evaluated when seen by the
 aggregation process. All aggregation expressions can only operate on
-the current document, in the pipeline,  and cannot integrate data from
+the current document in the pipeline,  and cannot integrate data from
 other documents.
 
 The :term:`accumulator` expressions used in the :agg:pipeline:`$group`
@@ -109,8 +109,8 @@ Invocation
 Invoke an :term:`aggregation` operation with the :method:`aggregate() <db.collection.aggregate()>`
 wrapper in the :program:`mongo` shell or the :dbcommand:`aggregate`
 :term:`database command`. Always call :method:`aggregate() <db.collection.aggregate()>` on a
-collection object that determines the input documents to the aggregation :term:`pipeline`. 
-The arguments to the :method:`aggregate() <db.collection.aggregate()>` function specifies a sequence of :ref:`pipeline
+collection object that determines the input documents of the aggregation :term:`pipeline`. 
+The arguments to the :method:`aggregate() <db.collection.aggregate()>` function specify a sequence of :ref:`pipeline
 operators <aggregation-pipeline-operator-reference>`, where each
 operator may have a number of operands.
 
@@ -152,10 +152,10 @@ command:
    );
 
 The aggregation pipeline begins with the :term:`collection`
-``article`` and selects the ``author`` and ``tags`` fields using the
-:agg:pipeline:`$project` aggregation operator, and runs the
-:agg:expression:`$unwind` operator to produce one output document per
-tag finally uses the :agg:expression:`$group` operator on these fields
+``articles`` and selects the ``author`` and ``tags`` fields using the
+:agg:pipeline:`$project` aggregation operator. The
+:agg:expression:`$unwind` operator is used to produce one output document per
+tag. Finally, the :agg:expression:`$group` operator is used on these fields
 to pivot the data.
 
 Result
@@ -169,8 +169,8 @@ The aggregation operation in the previous section returns a
 - ``ok`` which holds the value ``1``, indicating success, or another value
   if there was an error
 
-As a document, the result is subject to the current :ref:`BSON
-Document size <limit-bson-document-size>`, which is 16 megabytes.
+As a document, the result is subject to the :ref:`BSON
+Document size <limit-bson-document-size>` limit, which is currently 16 megabytes.
 
 Optimizing Performance
 ----------------------
@@ -184,7 +184,7 @@ the aggregation pipeline, you may want to optimize the operation
 by avoiding scanning the entire collection whenever possible.
 
 If your aggregation operation requires only a subset of the data in a
-collection, use the :agg:pipeline:`$match` to restrict which items go
+collection, use the :agg:pipeline:`$match` operator to restrict which items go
 in to the top of the pipeline, as in a query. When placed early in a
 pipeline, these :agg:pipeline:`$match` operations use suitable indexes
 to scan only the matching documents in a collection.
@@ -201,7 +201,7 @@ to scan only the matching documents in a collection.
 .. without affecting the result by moving the :agg:pipeline:`$match`
 .. operator in front of the :agg:pipeline:`$project`.
 
-In future versions there may be pipleine optimization phase in the
+In future versions there may be an optimization phase in the
 pipleine that reorders the operations to increase performance without
 affecting the result. However, at this time place
 :agg:pipeline:`$match` operators at the beginning of the pipeline when
@@ -220,7 +220,7 @@ must fit in memory.
 
 :agg:pipeline:`$group` has similar characteristics: Before any
 :agg:pipeline:`$group` passes its output along the pipeline, it must
-receive the entirety of its input. For the case of :agg:pipeline:`$group`
+receive the entirety of its input. In the case of :agg:pipeline:`$group`
 this frequently does not require as much memory as
 :agg:pipeline:`$sort`, because it only needs to retain one record for
 each unique key in the grouping specification.
@@ -237,28 +237,28 @@ Sharded Operation
 
    .. versionchanged:: 2.1
 
-   Some aggregation operations using the :dbcommand:`aggregate` will
+   Some aggregation operations using :dbcommand:`aggregate` will
    cause :program:`mongos` instances to require more CPU resources
    than in previous versions. This modified performance profile may
-   dictate alternate architecture decisions if you make use the
+   dictate alternate architectural decisions if you make use of the
    :term:`aggregation framework` extensively in a sharded environment.
 
 The aggregation framework is compatible with sharded collections.
 
 When operating on a sharded collection, the aggregation pipeline
-splits the pipeline into two parts. The aggregation framework pushes
+is split into two parts. The aggregation framework pushes
 all of the operators up to and including the first
 :agg:pipeline:`$group` or :agg:pipeline:`$sort` to each shard.
 [#match-sharding]_ Then, a second pipeline on the :program:`mongos`
 runs. This pipeline consists of the first :agg:pipeline:`$group` or
-:agg:pipeline:`$sort` and any remaining pipeline operators: this
-pipeline runs on the results received from the shards.
+:agg:pipeline:`$sort` and any remaining pipeline operators, and runs
+on the results received from the shards.
 
 The :program:`mongos` pipeline merges :agg:pipeline:`$sort` operations
-from the shards. The :agg:pipeline:`$group`, brings any “sub-totals”
+from the shards. The :agg:pipeline:`$group` operation brings in any “sub-totals”
 from the shards and combines them: in some cases these may be
 structures. For example, the :agg:expression:`$avg` expression maintains a
-total and count for each shard; the :program:`mongos` combines these
+total and count for each shard; :program:`mongos` combines these
 values and then divides.
 
 .. [#match-sharding] If an early :agg:pipeline:`$match` can exclude
@@ -277,7 +277,7 @@ the following limitations:
 
 - Output from the :term:`pipeline` can only contain 16 megabytes. If
   your result set exceeds this limit, the :dbcommand:`aggregate`
-  produces an error.
+  command produces an error.
 
 - If any single aggregation operation consumes more than 10 percent of
-  system RAM, the operation will produce an error.
+  system RAM the operation will produce an error.
