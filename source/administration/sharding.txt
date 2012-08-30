@@ -407,41 +407,51 @@ stop the processes comprising the ``mongodb0`` shard.
 Chunk Management
 ----------------
 
-This section describes various operations on
-:term:`chunks <chunk>` in :term:`shard clusters <shard cluster>`. In
-most cases MongoDB automates these processes; however, in some cases,
-particularly when you're setting up a shard cluster, you may
-need to create and manipulate chunks directly.
+This section describes various operations on :term:`chunks <chunk>` in
+:term:`shard clusters <shard cluster>`. MongoDB automates these
+processes; however, in some cases, particularly when you're setting up
+a shard cluster, you may need to create and manipulate chunks
+directly.
 
 .. _sharding-procedure-create-split:
 
 Splitting Chunks
 ~~~~~~~~~~~~~~~~
 
-Normally, MongoDB splits a :term:`chunk` following inserts or updates
-when a chunk exceeds the :ref:`chunk size <sharding-chunk-size>`.
+Normally, MongoDB splits a :term:`chunk` following inserts when a
+chunk exceeds the :ref:`chunk size <sharding-chunk-size>`. Recently
+split chunks may be moved immediately to a new shard if
+:program:`mongos` predicts future insertions will benefit from the
+move.
+
+The MongoDB treats all chunks the same, whether split manually or
+automatically by the system.
+
+.. warning::
+
+   You cannot merge or combine chunks once you have split them.
 
 You may want to split chunks manually if:
 
-- you have a large amount of data in your cluster that is *not* split,
-  as is the case after creating a shard cluster with existing data.
+- you have a large amount of data in your cluster and very few
+  :term:`chunks <chunk>`,
+  as is the case after creating a shard cluster from existing data.
 
 - you expect to add a large amount of data that would
   initially reside in a single chunk or shard.
 
 .. example::
 
-   You plan to insert a large amount of data as the result of an
-   import process with :term:`shard key` values between ``300`` and
-   ``400``, *but* all values of your shard key between ``250`` and
-   ``500`` are within a single chunk.
+   You plan to insert a large amount of data with :term:`shard key`
+   values between ``300`` and ``400``, *but* all values of your shard
+   keys are between ``250`` and ``500`` are in a single chunk.
 
 Use :method:`sh.status()` to determine the current chunks ranges across
 the cluster.
 
-To split chunks manually, use either the :method:`sh.splitAt()` or
-:method:`sh.splitFind()` helpers in the :program:`mongo` shell.
-These helpers wrap the :dbcommand:`split` command.
+To split chunks manually, use the :dbcommand:`split` command with
+operators: ``middle`` and ``find``. The equivalent shell helpers are
+:method:`sh.splitAt()` or :method:`sh.splitFind()`.
 
 .. example::
 
@@ -453,17 +463,10 @@ These helpers wrap the :dbcommand:`split` command.
       sh.splitFind( { "zipcode": 63109 } )
 
 :method:`sh.splitFind()` will split the chunk that contains the *first* document returned
-that matches this query into two equal components. MongoDB will split
-the chunk so that documents that have half of the shard keys in will
-be in one chunk and the documents that have other half of the shard
-keys will be a second chunk. The query in :method:`sh.splitFind()` need
+that matches this query into two equally sized chunks. The query in :method:`sh.splitFind()` need
 not contain the shard key, though it almost always makes sense to
 query for the shard key in this case, and including the shard key will
 expedite the operation.
-
-However, the location of the document that this query finds with
-respect to the other documents in the chunk does not affect how the
-chunk splits.
 
 Use :method:`sh.splitAt()` to split a chunk in two using the queried
 document as the partition point:
@@ -472,9 +475,84 @@ document as the partition point:
 
    sh.splitAt( { "zipcode": 63109 } )
 
-.. warning::
+However, the location of the document that this query finds with
+respect to the other documents in the chunk does not affect how the
+chunk splits.
 
-   You cannot merge or combine chunks once you have split them.
+.. _sharding-administration-pre-splitting:
+.. _sharding-administration-create-chunks:
+
+Create Chunks (Pre-Splitting)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In most situations a :term:`shard cluster` will create and distribute
+chunks automatically without user intervention. However, in a limited
+number of use profiles, MongoDB cannot create enough chunks or
+distribute data fast enough to support required throughput. Consider
+the following scenarios:
+
+- you must partition an existing data collection that resides on a
+  single shard.
+
+- you must ingest a large volume of data into a shard cluster that
+  isn't balanced, or where the ingestion of data will lead to an
+  imbalance of data.
+
+  This can arise in an initial data loading, or in a case where you
+  must insert a large volume of data into a single chunk, as is the
+  case when you must insert at the beginning or end of the chunk
+  range, as is the case for monotonically increasing or decreasing
+  shard keys.
+
+Preemptively splitting chunks increases cluster throughput for these
+operations, by reducing the overhead of migrating chunks that hold
+data during the write operation. MongoDB only creates splits after an
+insert operation, and can only migrate a single chunk at a time. Chunk
+migrations are resource intensive and further complicated by large
+write volume to the migrating chunk.
+
+To create and migrate chunks manually, use the following procedure:
+
+#. Split empty chunks in your collection by manually performing
+   :dbcommand:`split` command on chunks.
+
+   .. example::
+
+      To create chunks for documents in the ``myapp.users``
+      collection, using the ``email`` field as the :term:`shard key`,
+      use the following operation in the :program:`mongo` shell:
+
+        .. code-block:: javascript
+
+           for ( var x=97; x<97+26; x++ ){
+             for( var y=97; y<97+26; y+=6 ) {
+               var prefix = String.fromCharCode(x) + String.fromCharCode(y);
+               db.runCommand( { split : "myapp.users" , middle : { email : prefix } } );
+             }
+           }
+
+      This assumes a collection size of 100 million documents.
+
+#. Migrate chunks manually using the :dbcommand:`moveChunk` command:
+
+   .. example::
+
+      To migrate all of the manually created user profiles evenly,
+      putting each prefix chunk on the next shard from the other, run
+      the following commands in the mongo shell:
+
+        .. code-block:: javascript
+
+           var shServer = [ "sh0.example.net", "sh1.example.net", "sh2.example.net", "sh3.example.net", "sh4.example.net" ];
+           for ( var x=97; x<97+26; x++ ){
+             for( var y=97; y<97+26; y+=6 ) {
+               var prefix = String.fromCharCode(x) + String.fromCharCode(y);
+               db.adminCommand({moveChunk : "myapp.users", find : {email : prefix}, to : shServer[(y-97)/6]})
+             }
+           }
+
+   You can also let the balancer automatically distribute the new
+   chunks.
 
 .. _sharding-balancing-modify-chunk-size:
 
