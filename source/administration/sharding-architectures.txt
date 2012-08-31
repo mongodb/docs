@@ -31,53 +31,40 @@ and development. Such a cluster will have the following components:
 
 - 1 :program:`mongos` instance.
 
+.. _sharding-production-architecture:
+
 Deploying a Production Cluster
 ------------------------------
 
-When deploying a shard cluster to production, you must ensure that the data
-is redundant and that your individual nodes are highly available. To that end,
-a production-level shard cluster should have the following:
+When deploying a shard cluster to production, you must ensure that the
+data is redundant and that your systems are highly available. To that
+end, a production-level shard cluster must have the following
+components:
 
-- 3 :ref:`config servers <sharding-config-server>`, each residing on a separate node.
+- 3 :ref:`config servers <sharding-config-server>`, each residing on a
+  discrete system.
 
-.. note:: 
+  .. note::
 
-   :ref:`Config servers <sharding-config-server>` are tied to single shard
-   cluster and cannot be shared by multiple shard clusters.
+     A single :term:`shard cluster` must have exclusive use of its
+     :ref:`config servers <sharding-config-server>`. If you have
+     multiple shards, you will need to have a group of config servers
+     for each cluster.
 
-- For each shard, a three member :term:`replica set <replica set>` consisting of:
+- 2 or more :term:`replica sets <replica set>`, for the :term:`shards
+  <shard>`.
 
-  - 3 :program:`mongod` replicas or
-
-    .. seealso:: ":doc:`/administration/replication-architectures`"
-       and ":doc:`/administration/replica-sets`."
-
-  - 2 :program:`mongod` replicas and a single
-    :program:`mongod` instance acting as a :term:`arbiter`.
-
-    .. optional::
-
-       All replica set configurations and options are available.
-
-       You may also choose to deploy a :ref:`hidden member
-       <replica-set-hidden-members>` for backups or a
-       :ref:`delayed member <replica-set-delayed-members>`.
-
-       You might also keep a member of each replica set in a
-       geographically distinct data center in case the primary data
-       center becomes unavailable.
-
-       See ":doc:`/replication`" for more information on replication
-       and :term:`replica sets <replica set>`.
-
-  .. seealso:: The ":ref:`sharding-procedure-add-shard`" and
-     ":ref:`sharding-procedure-remove-shard`" procedures for more
-     information.
+  .. see:: ":doc:`/administration/replication-architectures`"
+     and ":doc:`/replication`" for more information on replica sets.
 
 - :program:`mongos` instances. Typically, you will deploy a single
   :program:`mongos` instance on each application server. Alternatively,
   you may deploy several `mongos` nodes and let your application connect
   to these via a load balancer.
+
+.. seealso:: The ":ref:`sharding-procedure-add-shard`" and
+   ":ref:`sharding-procedure-remove-shard`" procedures for more
+   information.
 
 Sharded and Non-Sharded Data
 ----------------------------
@@ -123,3 +110,57 @@ created subsequently, may reside on any shard in the cluster.
 .. [#overloaded-primary-term] The term "primary" in the context of
    databases and sharding, has nothing to do with the term
    :term:`primary` in the context of :term:`replica sets <replica set>`.
+
+High Availability and MongoDB
+-----------------------------
+
+A :ref:`production <sharding-production-architecture` :term:`shard
+cluster` has no single point of failure. This section introduces the
+availability concerns for MongoDB deployments, and highlights
+potential failure scenarios and available resolutions:
+
+- Application servers or :program:`mongos` instances become unavailable.
+
+  If each application server has its own :program:`mongos` instance,
+  other application servers can continue access the
+  database. Furthermore, :program:`mongos` instances do not maintain
+  persistent state, and they can restart and become unavailable
+  without loosing any state or data. When a :program:`mongos` instance
+  starts, it retrieves a copy of the :term:`config database` and can
+  begin routing queries.
+
+- A single :term:`mongod` becomes unavailable in a shard.
+
+  :doc:`Replica sets </replication>` provide high availability for
+  shards. If the unavailable :program:`mongod` is a :term:`primary`,
+  then the replica set will :ref:`elect <replica-set-elections>` a new
+  primary. If the unavailable :program:`mongod` is a
+  :term:`secondary`, and it connects within its :ref:`recovery window
+  <replica-set-oplog-sizing>`. In a three member replica set, even if
+  a single member of the set experiences catastrophic failure, two
+  other members have full copies of the data.
+
+  Always investigate availability interruptions and failures. If a
+  system is unrecoverable, replace it and create a new member of the
+  replica set as soon as possible to replace the lost redundancy.
+
+- All members of a replica set become unavailable.
+
+  If all members of a replica set within a shard are unavailable, all
+  data held in on that shard is unavailable. However, the data on all
+  other shards will remain available, and it's possible to read and
+  write data to the other shards. However, your application must be
+  able to deal with partial results, and you should investigate the
+  cause of the interruption and attempt to recover the shard as soon
+  as possible.
+
+- One or two :term:`config database` become unavailable.
+
+  Three distinct :program:`mongod` instances provide the :term:`config
+  database` using a special two-phase commits to maintain consistent
+  state between these :program:`mongod` instances. Shard cluster
+  operation will continue as normal but :ref:`chunk migration
+  <sharding-balancing>` and the cluster can create no new :ref:`chunk
+  splits <sharding-procedure-create-split>`. Replace the config server
+  as soon as possible. If all multiple config databases become
+  unavailable, the cluster can become inoperable.
