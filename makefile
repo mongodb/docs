@@ -180,9 +180,9 @@ $(public-branch-output)/release.txt:$(public-output)/manual
 $(public-output)/manual:
 	@bin/create-link $(manual-branch) manual $@
 $(public-output):
-	mkdir -p $@
+	-mkdir -p $@
 $(public-branch-output):$(public-output)
-	mkdir -p $@
+	-mkdir -p $@
 
 $(public-output)/index.html:themes/docs.mongodb.org/index.html
 	@cp $< $@
