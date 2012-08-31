@@ -1,0 +1,88 @@
+=============================
+Release Notes for MongoDB 2.0
+=============================
+
+.. default-domain:: mongodb
+
+.. contents::
+   :backlinks: none
+   :local:
+   :depth: 1
+
+.. _2.0-upgrade:
+
+Upgrading
+---------
+
+Although the major version number has changed, MongoDB 2.0 is a
+standard, incremental production release and works as a drop-in
+replacement for MongoDB 1.8. However, there are a few changes you must
+be aware of before attempting to upgrade:
+
+1. If you create new indexes in 2.0, then downgrading to 1.8
+   :wiki:`is possible <mongo+-+Index+Versions>` but reindexing the
+   new collections will be required.
+
+#. ``mongoimport`` and ``mongoexport`` now correctly adhere to the CSV spec for
+   handling CSV input/output. This may break existing import/export
+   workflows if they relied on the broken behavior. For more information
+   see the related `JIRA case <https://jira.mongodb.org/browse/SERVER-1097>`.
+
+#. `Journaling <http://api.mongodb.org/wiki/current/Journaling.html>` is
+
+   **enabled by default** in 2.0 for 64-bit builds. If you still prefer to
+   run without journaling, start :program:`mongod` with the ``--nojournal``
+   option. Otherwise, the journal files will be created on startup. The
+   first time you start :program:`mongod` with journaling, you will see a delay
+   while the new files are being created. In addition, you may see
+   reduced write throughput.
+
+#. 2.0 processes can talk to 1.8 processes and vice versa, so you can
+   upgrade various parts of a cluster in any order.
+
+#. To upgrade a standalone server. Shutdown the old :program:`mongod` and then
+   restart with the new :program:`mongod` binary. You can download the v2.0 binaries
+   from the `MongoDB Download Page <http://www.mongodb.org/downloads>`.
+
+#. To upgrade a replica set. Upgrade the secondaries first one at a
+   time, then `stepDown <http://www.mongodb.org/display/DOCS/Replica+Set+Commands>`
+   the primary and upgrade the primary. Using the stepDown command is
+   better than simply shutting it down since the failover will happen
+   quicker. To avoid losing the last few updates on failover you can
+   temporarily halt your application (failover should take less than 10
+   seconds) or change your application code to
+   `confirm that each update reaches multiple servers <http://api.mongodb.org/wiki/current/Verifying%20Propagation%20of%20Writes%20with%20getLastError.html>`.
+   Note, after upgrading to 2.0 you can use the :dbcommand:`shutdown`
+   command or the :method:`db.shutdownServer()` method to shutdown the
+   primary without losing any :ref:`safe <write-concern>` updates.
+
+#. To upgrade a sharded cluster. Upgrade config servers one at a time,
+   in any order. Since config servers use two phase commit, shard
+   configuration metadata updates will halt until all are up and
+   running. :program:`mongos` routers can be upgraded in any order.
+
+
+What's New
+----------
+
+Compact Command
+~~~~~~~~~~~~~~~
+
+Concurrency Improvements
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Default Stack Size
+~~~~~~~~~~~~~~~~~~
+
+Index Performance Enhancements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Sharding Authentication
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Replica Sets
+~~~~~~~~~~~~
+
+Priorities
+``````````
+
