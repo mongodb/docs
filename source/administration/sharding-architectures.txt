@@ -104,7 +104,7 @@ created subsequently, may reside on any shard in the cluster.
 Failover scenarios within MongoDB
 ---------------------------------
 
-A properly deployed MongoDB shard cluster will not have a single point
+A properly deployed MongoDB shard cluster will have no single point
 of failure. This section describes potential points of failure within
 a shard cluster and its recovery method.
 
@@ -116,42 +116,50 @@ For reference, a properly deployed MongoDB shard cluster consists of:
 
    - :program:`mongos` running on each application server.
 
-Scenarios:
+Potential failure scenarios:
 
 - A :term:`mongos` or the application server failing.
 
   As each application server is running its own :program:`mongos`
   instance, the database is still accessible for other application
-  servers. :program:`mongos` is stateless, so if it fails, no critical
-  information is lost. When :program:`mongos` restarts, it will retrieve a copy
-  of the configuration from the :term:`config database` and resume
-  working.
+  servers and the data is intact. :program:`mongos` is stateless, so
+  if it fails, no critical information is lost. When :program:`mongos`
+  restarts, it will retrieve a copy of the configuration from the
+  :term:`config database` and resume working.
 
   Suggested user intervention: restart application servers and/or
   :program:`mongos`.
 
 - A single :term:`mongod` suffers a failure in a shard.
 
-  A single :term:`mongod` instance failing will be recovered by a
-  :term:`secondary` member of the shard replica set. As each shard
-  will have a single :term:`primary` and two :term:`secondary` members
-  with the exact same copy of the information, any member will be able
-  to replace the failed member.
+  A single :term:`mongod` instance failing within a shard will be
+  recovered by a :term:`secondary` member of the :term:`replica
+  set`. As each shard will have two :term:`secondary` members with the
+  exact same copy of the information, :term:`secondary` members will
+  be able to replace the failed :term:`primary` member.
 
-  Suggested course of action: investigate failure and replace member
-  as soon as possible. Additional loss of members on same shard will
-  reduce availablility.
+  Suggested course of action: investigate failure and replace
+  :term:`primary` member as soon as possible. Additional loss of
+  members on same shard will reduce availablility and the shard
+  cluster's data set reliability.
 
 - All three replica set members of a shard fail. 
 
   All data within that shard will be unavailable, but the shard
-  cluster will still be operational for applications. Data on other
-  shards will be accessible and new data can be written to other shard
-  members.
+  cluster's other data will still be operational for applications and
+  new data can be written to other shard members.
 
-- A :term:`config database` suffers a failure.
+  Suggested course of action: investigate situation immediately.
+
+- A :term:`config database` server suffers a failure.
 
   As the :term:`config database` is deployed in a 3 member
   configuration with two-phase commits to maintain synchronization
-  between all members. Any single member failing will not result in a
-  loss of operation 
+  between all members. Shard cluster operation will continue as normal
+  but :ref:`chunk migration` will not occur.
+
+  Suggested course of action: replace :term:`config database` server
+  as soon as possible. Shards will become unbalanced without chunk
+  migration capability. Additional loss of :term:`config database`
+  servers will put the shard cluster metadata in jeopardy.
+
