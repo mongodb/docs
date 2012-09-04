@@ -104,9 +104,9 @@ endif
 # access these targets through the ``publish`` target.
 .PHONY: initial-dependencies static-components sphinx-components
 
-initial-dependencies:source/about.txt $(public-branch-output) $(public-branch-output)/MongoDB-Manual.epub
+initial-dependencies:source/about.txt $(public-branch-output)/MongoDB-Manual.epub
 	@echo [build]: running the publication routine for the $(manual-branch) branch of the Manual.
-static-components:$(public-branch-output) $(public-output)/index.html $(public-output)/10gen-gpg-key.asc $(public-branch-output)/tutorials $(public-branch-output)/reference/methods $(public-branch-output)/.htaccess $(public-branch-output)/release.txt $(public-output)/osd.xml
+static-components:$(public-output)/index.html $(public-output)/10gen-gpg-key.asc $(public-branch-output)/tutorials $(public-branch-output)/reference/methods $(public-branch-output)/.htaccess $(public-branch-output)/release.txt $(public-output)/osd.xml
 	@echo [build]: building and migrating all non-Sphinx components of the build.
 sphinx-components:$(public-branch-output)/ $(public-branch-output)/sitemap.xml.gz $(public-branch-output)/MongoDB-Manual.pdf $(public-branch-output)/single $(public-branch-output)/single/index.html
 	@echo [build]: running the publication routine for all Sphinx Components of the Manual Build.
@@ -115,10 +115,14 @@ sphinx-components:$(public-branch-output)/ $(public-branch-output)/sitemap.xml.g
 # Build the HTML components of the build.
 #
 
-.PHONY:source/about.txt
+.PHONY:source/about.txt setup
+
+setup:
+	@mkdir -p $(public-branch-output)
+	@echo [build]: created $(public-branch-output)
 
 $(branch-output)/singlehtml/contents.html:$(branch-output)/singlehtml
-source/about.txt:
+source/about.txt:setup
 	@touch $@
 	@echo [build]: touched '$@' to ensure a fresh build.
 $(branch-output)/dirhtml:dirhtml
@@ -179,12 +183,6 @@ $(public-branch-output)/release.txt:$(public-output)/manual
 	@git rev-parse --verify HEAD >|$@
 $(public-output)/manual:
 	@bin/create-link $(manual-branch) manual $@
-$(public-output):
-	@mkdir -p $@
-	@echo [build]: created $@
-$(public-branch-output):$(public-output)
-	@mkdir -p $@
-	@echo [build]: created $@
 
 $(public-output)/index.html:themes/docs.mongodb.org/index.html
 	@cp $< $@
