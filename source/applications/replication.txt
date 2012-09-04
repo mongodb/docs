@@ -327,7 +327,7 @@ behavior <replica-set-read-preference-behavior>`. See also the
       the host with the shortest ping time and all other members of
       the set that are within the "local threshold," or acceptable
       latency. See :ref:`replica-set-read-preference-behavior-nearest`
-      for more information.
+      for more information.h
 
    .. For I/O-bound users who want to distribute reads across all
       members evenly regardless of ping time, set
@@ -353,15 +353,43 @@ Tag Sets
 ~~~~~~~~
 
 Tag sets allow you to specify custom :ref:`read preferences
-<replica-set-read-preference>` so that your application can target read
-operations to specific members, based on custom parameters. Tag sets
-make it possible to ensure that read operations target members in a
-particular data center or target :program:`mongod` instances designated
-for a particular class of operations, such as reporting or analytics.
+<replica-set-read-preference>` so that your application can target
+read operations to specific members, based on custom parameters. A tag
+set for a read operation may resemble the following: 
+
+.. code-block:: javascript
+
+   { "dc": "east", "use": "reporting" }
+
+To fulfill the request, a member would need to have both of these tag
+sets. Therefore the following tag sets, would satisfy this
+requirement: 
+
+.. code-block:: javascript
+
+   { "dc": "east", "use": "reporting" }
+   { "dc": "east", "use": "reporting", "rack": 1 }
+   { "dc": "east", "use": "reporting", "rack": 4 }
+   { "dc": "east", "use": "reporting", "disk": "ssd"}
+
+However, the following tag sets would *not* be able to fulfill this query: 
+
+.. code-block:: javascript
+
+   { "dc": "east" }
+   { "use": "reporting" }
+   { "dc": "east", "use": "production" }
+   { "dc": "east", "use": "production", "rack": 3 }
+   { "dc": "west", "use": "reporting", "disk": "ssd" }
+
+
+Therefore, tag sets make it possible to ensure that read operations
+target specific members in a particular data center or
+:program:`mongod` instances designated for a particular class of
+operations, such as reporting or analytics.
 For information on configuring tag sets, see
 :ref:`replica-set-configuration-tag-sets` in the
 :doc:`/reference/replica-configuration` document.
-
 You can specify tag sets with the following read preference modes:
 
 - :readmode:`primaryPreferred`
@@ -379,7 +407,7 @@ Tags apply only when :ref:`selecting
 All interfaces use the same :ref:`member selection logic
 <replica-set-read-preference-behavior-member-selection>` to choose the
 member to which to direct read operations, basing the choice on read
-preference mode and tag sets.
+preference mode and tag sets. 
 
 For more information on how read preferences :ref:`modes
 <replica-set-read-preference-modes>` interact with tag sets, see the
