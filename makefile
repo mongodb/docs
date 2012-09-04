@@ -70,7 +70,7 @@ push:publish
 	@echo [build]: deployed a new build of the $(current-branch) branch of the Manual.
 push-all:publish
 	@echo [build]: copying the full docs site to the web servers.
-	$(MAKE) MODE='push' push-dc1 push-dc2
+	$(MAKE) MODE='push' push-all-dc1 push-all-dc2
 	@echo [build]: deployed a new build of the full Manual.
 
 publish:initial-dependencies
@@ -106,7 +106,7 @@ endif
 
 initial-dependencies:source/about.txt $(public-branch-output) $(public-branch-output)/MongoDB-Manual.epub
 	@echo [build]: running the publication routine for the $(manual-branch) branch of the Manual.
-static-components:$(public-output)/index.html $(public-output)/10gen-gpg-key.asc $(public-branch-output)/tutorials $(public-branch-output)/reference/methods $(public-branch-output)/.htaccess $(public-branch-output)/release.txt $(public-output)/osd.xml
+static-components:$(public-branch-output) $(public-output)/index.html $(public-output)/10gen-gpg-key.asc $(public-branch-output)/tutorials $(public-branch-output)/reference/methods $(public-branch-output)/.htaccess $(public-branch-output)/release.txt $(public-output)/osd.xml
 	@echo [build]: building and migrating all non-Sphinx components of the build.
 sphinx-components:$(public-branch-output)/ $(public-branch-output)/sitemap.xml.gz $(public-branch-output)/MongoDB-Manual.pdf $(public-branch-output)/single $(public-branch-output)/single/index.html
 	@echo [build]: running the publication routine for all Sphinx Components of the Manual Build.
@@ -180,9 +180,11 @@ $(public-branch-output)/release.txt:$(public-output)/manual
 $(public-output)/manual:
 	@bin/create-link $(manual-branch) manual $@
 $(public-output):
-	-mkdir -p $@
+	@mkdir -p $@
+	@echo [build]: created $@
 $(public-branch-output):$(public-output)
-	-mkdir -p $@
+	@mkdir -p $@
+	@echo [build]: created $@
 
 $(public-output)/index.html:themes/docs.mongodb.org/index.html
 	@cp $< $@
