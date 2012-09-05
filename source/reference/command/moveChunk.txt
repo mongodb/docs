@@ -6,22 +6,64 @@ moveChunk
 
 .. dbcommand:: moveChunk
 
-   :dbcommand:`moveChunk` is an internal command that supports the
-   sharding. Use the :method:`sh.moveChunk()` helper in the
-   :program:`mongo` shell for manual chunk migrations.
+   :dbcommand:`moveChunk` is an internal command that moves
+   :term:`chunks <chunk>` between :term:`shards <shard>`. The command
+   uses the following syntax:
+
+   .. code-block:: javascript
+
+      db.runCommand( { moveChunk : <namespace> ,
+                       find : <query> ,
+                       to : <destination>,
+                       <options> } )
+
+   :param moveChunk: the name of the :term:`collection` which the :term:`chunk`
+     exists. The collection's full namespace must be given, including
+     the database name, for example: ``"test.blog.posts"``
+
+   :param find: a query expression that specifies a document of the chunk
+     to be moved, for example: ``{ author: "eliot" }``
+
+   :param to: the shard ID where the chunk will be moved to, for
+     example: ``"shard1"``
+
 
    :option _secondaryThrottle: Set to ``false`` by default. Provides
-                               :ref:`write concern <write-concern>`
-                               support for chunk migrations.
+     :ref:`write concern <write-concern>` support for chunk
+     migrations.
 
-   If ``_secondaryThrottle`` is set to ``true``, during chunk
-   migrations when a :term:`shard` hosted by a :term:`replica set`,
-   the :program:`mongod` will wait until the :term:`secondary` members
-   replicate the migration operations continuing to migrate chunk
-   data. In the balancer configuration, the ``replThrottle``
-   configuration provides ``_secondaryThrottle`` behavior.
+     If ``_secondaryThrottle`` is set to ``true``, during chunk
+     migrations when a :term:`shard` hosted by a :term:`replica set`,
+     the :program:`mongod` will wait until the :term:`secondary`
+     members replicate the migration operations continuing to migrate
+     chunk data. In the balancer configuration, the ``replThrottle``
+     configuration provides ``_secondaryThrottle`` behavior.
 
-   For details on chunk migrations see the :ref:`Chunk Migration
-   <sharding-chunk-migration>` section.
+   Use the :method:`sh.moveChunk()` helper in the :program:`mongo`
+   shell for manual chunk migrations.
+
+   For details on how chunks move within MongoDB see the :ref:`chunk
+   migration <sharding-chunk-migration>` section.
+
+   :dbcommand:`moveChunk` will return the following ``errmsg`` if the
+   :term:`chunk` to be moved is in use by another :term:`cursor`:
+
+   .. code-block:: none
+
+      The collection's metadata lock is already taken.
+
+   These errors usually occur when there are too many open
+   :term:`cursors <cursor>` accessing the chunk you are migrating. You
+   can either wait until the cursors complete their operation or close
+   the cursors manually.
+
+   .. note::
+
+      This command should not be used except in special circumstances
+      such as preparing your :term:`shard cluster` for an initial
+      ingest of data.
+
+      .. seealso:: ":ref:`Create chunk <sharding-administration-create-chunks>`"
+
 
    .. admin-only
