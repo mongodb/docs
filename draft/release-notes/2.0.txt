@@ -27,16 +27,16 @@ If you create new indexes in 2.0, then downgrading to 1.8 is possible
 but you must reindex the new collections. For more information on 2.0
 indexes and on rollback, see :wiki:`Index Versions`.
 
-``mongoimport`` and ``mongoexport`` now correctly adhere to the CSV spec
+:program:`mongoimport` and :program:`mongoexport` now correctly adhere to the CSV spec
 for handling CSV input/output. This may break existing import/export
 workflows that relied on the previous behavior. For more information see
 :issue:`SERVER-1097`.
 
 :wiki:`Journaling` is **enabled by default** in 2.0 for 64-bit builds.
 If you still prefer to run without journaling, start :program:`mongod`
-with the ``--nojournal`` option. Otherwise, the journal files are
-created on startup. The first time you start :program:`mongod` with
-journaling, you will see a delay while the new files are created.
+with the :option:`--nojournal <mongod --nojournal>` run-time option.
+Otherwise, MongoDB creates journal files during startup. The first time you start :program:`mongod` with
+journaling, you will see a delay the :program:`mongod` creates new files.
 In addition, you may see reduced write throughput.
 
 2.0 processes can talk to 1.8 processes and vice versa, so you can
@@ -103,8 +103,8 @@ repair the entire database.
 Concurrency Improvements
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-When going to disk, the server will yield the write lock if the data
-being acted upon isn't likely to be in memory. The initial
+When going to disk, the server will yield the write lock when writing
+data that is not likely to be in memory. The initial
 implementation of this feature now exists:
 
 See :issue:`SERVER-2563` for more information.
@@ -120,11 +120,11 @@ The specific operations yield in 2.0 are:
 Default Stack Size
 ~~~~~~~~~~~~~~~~~~
 
-The default stack size has been reduced. This can reduce total memory
+MongoDB 2.0 reduces the default stack size. This change can reduce total memory
 usage when there are many (e.g., 1000+) client connections, as there is
 a thread per connection. While portions of a thread's stack can be
 swapped out if unused, some operating systems do this slowly enough that
-it might be an issue. The stack size will be set to the lesser of the
+it might be an issue. The default stack size is lesser of the
 system setting or 1MB.
 
 Index Performance Enhancements
@@ -145,7 +145,7 @@ re-index of any indexes created using 2.0.
 Sharding Authentication
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Authentication can now be used with :term:`shard clusters <shard cluster>`.
+Applications can now use authentication with :term:`shard clusters <shard cluster>`.
 
 Replica Sets
 ~~~~~~~~~~~~
@@ -168,10 +168,10 @@ For example, suppose you have a replica set with three members, ``A``, ``B``, an
 
 - ``C``'s priority is ``1``.
 
-During normal operation, ``B`` will always be chosen as primary. If ``B`` goes
-down, ``A`` will be elected primary.
+During normal operation, the set will always chose ``B`` as
+primary. If ``B`` becomes unavailable, the set will elect ``A`` as primary.
 
-For more information, see the :ref:`Node Priority` documentation.
+For more information, see the :ref:`Member Priority <replica-set-member-priority>` documentation.
 
 Data-Center Awareness
 ``````````````````````
@@ -181,8 +181,8 @@ location. You can use these tags to design custom :ref:`write rules <write-conce
 across data centers, racks, specific servers, or any other architecture
 choice.
 
-For example, a DBA could define rules such as "very important write" or
-"customerData" or "audit-trail" to be replicated to certain servers,
+For example, an administrator can define rules such as "very important write" or
+``customerData`` or "audit-trail" to replicate to certain servers,
 racks, data centers, etc. Then in the application code, the developer
 would say:
 
@@ -196,7 +196,7 @@ which would succeed if it fulfilled the conditions the DBA defined for
 For more information, see
 :wiki:`Tagging <Data+Center+Awareness#DataCenterAwareness-Tagging%28version2.0%29>`.
 
-Your driver may also support tag-aware reads. Instead of simply
+Drivers may also support tag-aware reads. Instead of
 specifying ``slaveOk``, you specify ``slaveOk`` with tags indicating
 which data-centers to read from. For details, see the
 :doc:`/applications/drivers` documentation.
@@ -204,10 +204,10 @@ which data-centers to read from. For details, see the
 ``w`` : ``majority``
 ````````````````````
 
-You can also set ``w`` to ``majority`` to ensure that a write has been
-propagated to a majority of nodes, effectively committing it. The value
-for "majority" will automatically be adjusted as you add or remove nodes
-from the set.
+You can also set ``w`` to ``majority`` to ensure that the write
+propagates to a majority of nodes, effectively committing it. The
+value for "majority" will automatically adjust as you add or
+remove nodes from the set.
 
 For more information, see :ref:`replica-set-write-concern`.
 
@@ -248,9 +248,9 @@ secondary available.
 Maintenance Mode
 ````````````````
 
-When :dbcommand:`repair` or :dbcommand:`compact` is run on a :term:`secondary`, the
+When :dbcommand:`repair` or :dbcommand:`compact` runs on a :term:`secondary`, the
 secondary will automatically drop into "recovering" mode until the
-operation is finished. This prevents clients from trying to read from it
+operation finishes. This prevents clients from trying to read from it
 while it's busy.
 
 Geospatial Features
@@ -261,7 +261,7 @@ Multi-Location Documents
 
 Indexing is now supported on documents which have multiple location
 objects, embedded either inline or in nested sub-documents. Additional
-command options are also supported, allowing results to be returned with
+command options are also supported, allowing results to return with
 not only distance but the location used to generate the distance.
 
 For more information, see :wiki:`Multi-location Documents <Geospatial+Indexing#GeospatialIndexing-MultilocationDocuments>`.
@@ -284,7 +284,7 @@ Journaling Enhancements
   specifying your own group commit interval. 100ms is the default (same as
   in 1.8).
 
-- A new :dbcommand:`{ getLastError: { j: true } }<getLastError>` option is
+- A new :dbcommand:`{ getLastError: { j: true } } <getLastError>` option is
   available to wait for the group commit. The group commit will happen
   sooner when a client is waiting on ``{j: true}``. If journaling is
   disabled, ``{j: true}`` is a no-op.
@@ -292,13 +292,13 @@ Journaling Enhancements
 New ``ContinueOnError`` Option for Bulk Insert
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When this flag is set (to set it, see your
-:doc:`/applications/drivers` documentation),
-bulk insert will continue to insert any remaining documents even if an
-insert fails (due, for example, to a duplicate key). The
-:dbcommand:`getLastError` command will report whether any doc inserts
-have failed (not just the last one). If multiple errors occur, only the
-most recent will be reported by :dbcommand:`getLastError`.
+Set the ``continueOnError`` option for bulk inserts, in the
+:doc:`driver </applications/drivers>`, so that bulk insert will
+continue to insert any remaining documents even if an insert fails, as
+is the case with  duplicate key exceptions or network interruptions. The :dbcommand:`getLastError`
+command will report whether any inserts have failed, not just the
+last one. If multiple errors occur, the client will only receive the
+most recent :dbcommand:`getLastError` results.
 
 See :wiki:`OP_INSERT <Mongo+Wire+Protocol#MongoWireProtocol-OPINSERT>`.
 
@@ -335,7 +335,7 @@ New Querying Features
 Additional regex options: ``s``
 ```````````````````````````````
 
-Allows the dot (.) to match all characters including new lines. This is
+Allows the dot (``.``) to match all characters including new lines. This is
 in addition to the currently supported ``i``, ``m`` and ``x``. See
 :wiki:`Regular Expressions <Advanced+Queries#AdvancedQueries-RegularExpressions>` and :operator:`$regex`.
 
