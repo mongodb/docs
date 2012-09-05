@@ -20,26 +20,24 @@ replacement for MongoDB 1.8.
 Preparation
 ~~~~~~~~~~~
 
-There are a few changes you must be aware of before attempting to
-upgrade. Read through all release notes before upgrading, and ensure
-that no changes will affect your deployment.
+Read through all release notes before upgrading, and ensure that no
+changes will affect your deployment.
 
-If you create new indexes in 2.0, then downgrading to 1.8
-:wiki:`is possible <mongo+-+Index+Versions>`
-but reindexing the new collections will be required.
+If you create new indexes in 2.0, then downgrading to 1.8 is possible
+but you must reindex the new collections. For more information on 2.0
+indexes and on rollback, see :wiki:`Index Versions`.
 
 ``mongoimport`` and ``mongoexport`` now correctly adhere to the CSV spec
 for handling CSV input/output. This may break existing import/export
-workflows if they relied on the broken behavior. For more information
-see the related `JIRA case <https://jira.mongodb.org/browse/SERVER-1097>`_.
+workflows that relied on the previous behavior. For more information see
+:issue:`SERVER-1097`.
 
-`Journaling <http://api.mongodb.org/wiki/current/Journaling.html>`_ is
-**enabled by default** in 2.0 for 64-bit builds. If you still prefer to
-run without journaling, start :program:`mongod` with the ``--nojournal``
-option. Otherwise, the journal files will be created on startup. The
-first time you start :program:`mongod` with journaling, you will see a
-delay while the new files are being created. In addition, you may see
-reduced write throughput.
+:wiki:`Journaling` is **enabled by default** in 2.0 for 64-bit builds.
+If you still prefer to run without journaling, start :program:`mongod`
+with the ``--nojournal`` option. Otherwise, the journal files are
+created on startup. The first time you start :program:`mongod` with
+journaling, you will see a delay while the new files are created.
+In addition, you may see reduced write throughput.
 
 2.0 processes can talk to 1.8 processes and vice versa, so you can
 upgrade various parts of a cluster in any order.
@@ -67,11 +65,11 @@ Upgrading a Replica Set
 
 #. To avoid losing the last few updates on failover you can
    temporarily halt your application (failover should take less than 10
-   seconds) or change your application code to
-   `confirm that each update reaches multiple servers <http://api.mongodb.org/wiki/current/Verifying%20Propagation%20of%20Writes%20with%20getLastError.html>`_.
+   seconds), or you can set :ref:`write concern <write-concern>` in your application
+   code to confirm that each update reaches multiple servers.
 
 #. Use the :method:`rs.stepDown()` to step down the primary to allow
-   the normal :ref:`failover <mongo+-+replica-set-failover>` procedure.
+   the normal :ref:`failover <replica-set-failover>` procedure.
 
    :method:`rs.stepDown()` and :dbcommand:`replSetStepDown` provide for
    shorter and more consistent failover procedures than simply
@@ -108,7 +106,8 @@ Concurrency Improvements
 When going to disk, the server will yield the write lock if the data
 being acted upon isn't likely to be in memory. The initial
 implementation of this feature now exists:
-`(SERVER-2563) <https://jira.mongodb.org/browse/SERVER-2563>`_
+
+See :issue:`SERVER-2563` for more information.
 
 The specific operations yield in 2.0 are:
 
@@ -131,7 +130,8 @@ system setting or 1MB.
 Index Performance Enhancements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-v2.0 includes `significant improvements to the index structures <http://api.mongodb.org/wiki/current/Index%20Versions.html>`_.
+v2.0 includes significant improvements to the
+:wiki:`index structures <Index Versions>`.
 Indexes are often 25% smaller and 25% faster (depends on the use case).
 When upgrading from previous versions, the benefits of the new index
 type are realized only if you create a new index or re-index an old one.
@@ -145,7 +145,7 @@ re-index of any indexes created using 2.0.
 Sharding Authentication
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Authentication can now be used with :term:`sharded clusters <shard cluster>`.
+Authentication can now be used with :term:`shard clusters <shard cluster>`.
 
 Replica Sets
 ~~~~~~~~~~~~
@@ -153,14 +153,14 @@ Replica Sets
 Priorities
 ``````````
 
-Each :term:`replica set` member can now have a priority value consisting of a
-floating-point from 0 to 1000, inclusive. Priorities let you control
-which member of the set you prefer to have as :term:`primary`: the member with
-the highest priority that can see a majority of the set will be elected
-primary.
+Each :term:`replica set` member can now have a priority value consisting
+of a floating-point from 0 to 1000, inclusive. Priorities let you
+control which member of the set you prefer to have as :term:`primary`:
+the member with the highest priority that can see a majority of the set
+will be elected primary.
 
-For example, suppose we have a replica set with three members, ``A``, ``B``, and
-``C``, and that their priorities are set as follows:
+For example, suppose you have a replica set with three members, ``A``, ``B``, and
+``C``, and suppose that their priorities are set as follows:
 
 - ``A``'s priority is ``2``.
 
@@ -171,15 +171,15 @@ For example, suppose we have a replica set with three members, ``A``, ``B``, and
 During normal operation, ``B`` will always be chosen as primary. If ``B`` goes
 down, ``A`` will be elected primary.
 
-See the :ref:`Node Priority` documentation for more information.
+For more information, see the :ref:`Node Priority` documentation.
 
-Data-center awareness
+Data-Center Awareness
 ``````````````````````
 
 You can now "tag" :term:`replica set` members to indicate their
-location. You can use these tags to design custom :term:`write rules <write concern>`
-across data centers, racks, specific servers, or any other
-architecture choice.
+location. You can use these tags to design custom :ref:`write rules <write-concern>`
+across data centers, racks, specific servers, or any other architecture
+choice.
 
 For example, a DBA could define rules such as "very important write" or
 "customerData" or "audit-trail" to be replicated to certain servers,
@@ -193,14 +193,13 @@ would say:
 which would succeed if it fulfilled the conditions the DBA defined for
 "very important write".
 
-For more information, see the
-`tagging documentation <http://api.mongodb.org/wiki/current/Data%20Center%20Awareness.html#DataCenterAwareness-Tagging%28version2.0%29>`_.
+For more information, see
+:wiki:`Tagging <Data+Center+Awareness#DataCenterAwareness-Tagging%28version2.0%29>`.
 
 Your driver may also support tag-aware reads. Instead of simply
-specifying ``slaveOk``, you specify ``slaveOk`` with tags indicating which
-data-centers you want to read from. See your
-`driver <http://docs.mongodb.org/manual/applications/drivers/>`_
-for details.
+specifying ``slaveOk``, you specify ``slaveOk`` with tags indicating
+which data-centers to read from. For details, see the
+:doc:`/applications/drivers` documentation.
 
 ``w`` : ``majority``
 ````````````````````
@@ -212,15 +211,15 @@ from the set.
 
 For more information, see :ref:`replica-set-write-concern`.
 
-Reconfiguration with a minority up
+Reconfiguration with a Minority Up
 ``````````````````````````````````
 
 If the majority of servers in a set has been permanently lost, you can
 now force a reconfiguration of the set to bring it back online.
 
-See more information on :ref:`Reconfiguring a replica set when members are down <mongo+-+http://www.mongodb.org/display/DOCS/Reconfiguring+a+replica+set+when+members+are+down>`.
+See more information see :wiki:`Reconfiguring a replica set when members are down <Reconfiguring+a+replica+set+when+members+are+down>`.
 
-Primary checks for a caught up secondary before stepping down
+Primary Checks for a Caught up Secondary before Stepping Down
 `````````````````````````````````````````````````````````````
 
 To minimize time without a :term:`primary`, the :method:`rs.stepDown()`
@@ -228,10 +227,9 @@ method will now fail if the primary does not see a :term:`secondary`
 within 10 seconds of its latest optime. You can force the primary to
 step down anyway, but by default it will return an error message.
 
-See also
-:ref:`Forcing a Member to be Primary <mongo+-+http://www.mongodb.org/display/DOCS/Forcing+a+Member+to+be+Primary>`.
+See also :wiki:`Forcing a Member to be Primary <Forcing+a+Member+to+be+Primary>`.
 
-Extended shutdown on the primary to minimize interruption
+Extended Shutdown on the Primary to Minimize Interruption
 `````````````````````````````````````````````````````````
 
 When you call the :dbcommand:`shutdown` command, the :term:`primary`
@@ -250,7 +248,7 @@ secondary available.
 Maintenance Mode
 ````````````````
 
-When ``repair`` or ``compact`` is run on a :term:`secondary`, the
+When :dbcommand:`repair` or :dbcommand:`compact` is run on a :term:`secondary`, the
 secondary will automatically drop into "recovering" mode until the
 operation is finished. This prevents clients from trying to read from it
 while it's busy.
@@ -258,7 +256,7 @@ while it's busy.
 Geospatial Features
 ~~~~~~~~~~~~~~~~~~~
 
-Multi-location documents
+Multi-Location Documents
 ````````````````````````
 
 Indexing is now supported on documents which have multiple location
@@ -266,15 +264,15 @@ objects, embedded either inline or in nested sub-documents. Additional
 command options are also supported, allowing results to be returned with
 not only distance but the location used to generate the distance.
 
-For more information, see the :ref:`Geospatial documentation <mongo+-+http://www.mongodb.org/display/DOCS/Geospatial+Indexing#GeospatialIndexing-MultilocationDocuments>`.
+For more information, see :wiki:`Multi-location Documents <Geospatial+Indexing#GeospatialIndexing-MultilocationDocuments>`.
 
 Polygon searches
 ````````````````
 
-Polygonal ``$within`` queries are also now supported for simple polygon
+Polygonal :operator:`$within` queries are also now supported for simple polygon
 shapes. For details, see the :operator:`$within` operator documentation.
 
-Journaling enhancements
+Journaling Enhancements
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 - Journaling is now enabled by default for 64-bit platforms. Use the
@@ -282,44 +280,43 @@ Journaling enhancements
 
 - The journal is now compressed for faster commits to disk.
 
-- A new :option:`--journalCommitInterval` command line option exists for
+- A new :option:`--journalCommitInterval <mongod --journalCommitInterval>` run-time option exists for
   specifying your own group commit interval. 100ms is the default (same as
   in 1.8).
 
-- A new :dbcommand:`getLastError{j: true} <getLastError>` option is
+- A new :dbcommand:`{ getLastError: { j: true } }<getLastError>` option is
   available to wait for the group commit. The group commit will happen
   sooner when a client is waiting on ``{j: true}``. If journaling is
   disabled, ``{j: true}`` is a no-op.
 
-New ``ContinueOnError`` option for bulk insert
+New ``ContinueOnError`` Option for Bulk Insert
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When this flag is set (see your
-`driver <http://docs.mongodb.org/manual/applications/drivers/>`_
-on how to set it), bulk insert will continue to insert any remaining
-documents even if an insert fails (due, for example, to a duplicate
-key). The :dbcommand:`getLastError` command will report whether any
-doc inserts have failed (not just last one). If multiple errors occur,
-only the most recent will be reported by :dbcommand:`getLastError`.
+When this flag is set (to set it, see your
+:doc:`/applications/drivers` documentation),
+bulk insert will continue to insert any remaining documents even if an
+insert fails (due, for example, to a duplicate key). The
+:dbcommand:`getLastError` command will report whether any doc inserts
+have failed (not just the last one). If multiple errors occur, only the
+most recent will be reported by :dbcommand:`getLastError`.
 
-See :ref:`OP_INSERT <mongo+-+http://www.mongodb.org/display/DOCS/Mongo+Wire+Protocol#MongoWireProtocol-OPINSERT>`.
+See :wiki:`OP_INSERT <Mongo+Wire+Protocol#MongoWireProtocol-OPINSERT>`.
 
 Map Reduce
 ~~~~~~~~~~
 
-Output to a sharded collection
+Output to a Sharded Collection
 ``````````````````````````````
 
-Using the new flag ``sharded`` it is possible to send the result of a
+Using the new ``sharded`` flag, it is possible to send the result of a
 map/reduce to a sharded collection. Combined with the ``reduce`` or
 ``merge`` flags, it is possible to keep adding data to very large
 collections from map/reduce jobs.
 
-For more information, see the
-:ref:`output options <mongo+-+http://www.mongodb.org/display/DOCS/MapReduce#MapReduce-Outputoptions>`.
-documentation.
+For more information, see :wiki:`MapReduce Output Options <MapReduce#MapReduce-Outputoptions>`
+and :doc:`/reference/command/mapReduce`.
 
-Performance improvements
+Performance Improvements
 ````````````````````````
 
 Map/reduce performance will benefit from the following:
@@ -330,7 +327,7 @@ Map/reduce performance will benefit from the following:
 - Larger javascript heap size, allowing for larger objects
   and less GC
 
-- Supports pure JS execution with the jsMode flag. See :doc:`mapReduce`.
+- Supports pure JavaScript execution with the ``jsMode`` flag. See :doc:`/reference/command/mapReduce`.
 
 New Querying Features
 ~~~~~~~~~~~~~~~~~~~~~
@@ -340,14 +337,14 @@ Additional regex options: ``s``
 
 Allows the dot (.) to match all characters including new lines. This is
 in addition to the currently supported ``i``, ``m`` and ``x``. See
-:ref:`Using regular expressions in queries <mongo+-+http://www.mongodb.org/display/DOCS/Advanced+Queries#AdvancedQueries-RegularExpressions>`.
+:wiki:`Regular Expressions <Advanced+Queries#AdvancedQueries-RegularExpressions>` and :operator:`$regex`.
 
 $and
 ````
 
 A special boolean :operator:`$and` query operator is now available.
 
-Command output changes
+Command Output Changes
 ~~~~~~~~~~~~~~~~~~~~~~
 
 The output of the :dbcommand:`validate` command and the documents in the
@@ -355,19 +352,18 @@ The output of the :dbcommand:`validate` command and the documents in the
 information as BSON objects with keys for each value rather than as
 free-form strings.
 
-Shell features
+Shell Features
 ~~~~~~~~~~~~~~
 
-Custom prompt
+Custom Prompt
 `````````````
 
 You can define a custom prompt for the :program:`mongo` shell. You can
 change the prompt at any time by setting the prompt variable to a string
-or a custom JavaScript function returning a string. For examples, see the
-documentation on
-:ref:`Custom Prompt <mongo+-+http://www.mongodb.org/display/DOCS/Overview+-+The+MongoDB+Interactive+Shell#Overview-TheMongoDBInteractiveShell-CustomPrompt>`.
+or a custom JavaScript function returning a string. For examples, see
+:wiki:`Custom Prompt <Overview+-+The+MongoDB+Interactive+Shell#Overview-TheMongoDBInteractiveShell-CustomPrompt>`.
 
-Default shell init script
+Default Shell Init Script
 `````````````````````````
 
 On startup, the shell will check for a ``.mongorc.js`` file in the
@@ -375,13 +371,13 @@ user's home directory. The shell will execute this file after connecting
 to the database and before displaying the prompt.
 
 If you would like the shell not to run the ``.mongorc.js`` file
-automatically, start the shell with ``--norc``.
+automatically, start the shell with :option:`--norc <mongod --norc>`.
 
-For more information, see :doc:`mongo`.
+For more information, see :doc:`/reference/mongo`.
 
 Resources
 ---------
 
 - `MongoDB Downloads <http://mongodb.org/downloads>`_
 - `All JIRA Issues resolved in 2.0 <https://jira.mongodb.org/secure/IssueNavigator.jspa?mode=hide&requestId=11002>`_
-- `All Backward Incompatible Changes <https://jira.mongodb.org/secure/IssueNavigator.jspa?requestId=11023>_`
+- `All Backward Incompatible Changes <https://jira.mongodb.org/secure/IssueNavigator.jspa?requestId=11023>`_
