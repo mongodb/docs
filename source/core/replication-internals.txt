@@ -18,9 +18,9 @@ troubleshooting and for further understanding MongoDB's behavior and approach.
 Oplog
 -----
 
-Under normal operation, MongoDB updates the :ref:`oplog
-<replica-set-oplog-sizing>` on a :term:`secondary` within one second of
-applying an operation to a :ref:`primary`. However, various exceptional
+Under normal operation, MongoDB updates the :ref:`oplog <replica-set-oplog-sizing>`
+on a :term:`secondary` within one second of
+applying an operation to a :term:`primary`. However, various exceptional
 situations may cause a secondary to lag further behind. See
 :ref:`Replication Lag <replica-set-replication-lag>` for details.
 
@@ -41,6 +41,7 @@ operations require idempotency:
 .. In 2.0, replicas would import entries from the member lowest
 .. "ping," This wasn't true in 1.8 and will likely change in 2.2.
 
+.. _replica-set-data-integrity:
 .. _replica-set-implementation:
 
 Data Integrity
@@ -57,10 +58,9 @@ per-connection basis in order to distribute read operations to the
 greater query throughput by distributing reads to secondary members. But
 keep in mind that replication is asynchronous; therefore, reads from
 secondaries may not always reflect the latest writes to the
-:term:`primary`. See the :ref:`consistency <replica-set-consistency>`
-section for more about :ref:`read preference
-<replica-set-read-preference>` and :ref:`write concern
-<replica-set-write-concern>`.
+:term:`primary`.
+
+.. seealso:: :ref:`replica-set-consistency`
 
 .. note::
 
@@ -69,29 +69,71 @@ section for more about :ref:`read preference
    output to asses the current state of replication and determine if
    there is any unintended replication delay.
 
+Write Concern and getLastError
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+A write is committed once it has replicated to a majority of members of
+the set. For important writes, the client should request acknowledgement
+of this with :dbcommand:`getLastError` set to ``w`` to get confirmation
+the commit has finished. For more information on
+:dbcommand:`getLastError`, see :doc:`/applications/replication`.
 
+.. TODO	Verify if the following info is needed. -BG
 
+   Queries in MongoDB and replica sets have "READ UNCOMMITTED"
+   semantics. Writes which are committed at the primary of the set may
+   be visible before the cluster-wide commit completes.
 
-Elections for Primary
-~~~~~~~~~~~~~~~~~~~~~
+   The read uncommitted semantics (an option on many databases) are more
+   relaxed and make theoretically achievable performance and
+   availability higher (for example we never have an object locked in
+   the server where the locking is dependent on network performance).
 
-In the default configuration, all members have an equal chance of
-becoming primary; however, it's possible to set :data:`priority <members[n].priority>` values that
-weight the election. In some architectures, there may be operational
-reasons for increasing the likelihood of a specific replica set member
-becoming primary. For instance, a member located in a remote data
-center should *not* become primary. See: :ref:`node
-priority <replica-set-node-priority>` for more background on this
-concept.
+Write Concern and Failover
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+On a failover, if there are writes which have not replicated from the
+:term:`primary`, the writes are rolled back. Therefore, to confirm replica-set-wide commits,
+use the :dbcommand:`getLastError` command.
 
+On a failover, data is backed up to files in the rollback directory. To
+recover this data use the :program:`mongorestore`.
 
+.. TODO Verify whether to include the following. -BG
 
-Configurations that Affect Membership Behavior
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   Merging back old operations later, after another member has accepted
+   writes, is a hard problem. One then has multi-master replication,
+   with potential for conflicting writes. Typically that is handled in
+   other products by manual version reconciliation code by developers.
+   We think that is too much work : we want MongoDB usage to be less
+   developer work, not more. Multi-master also can make atomic operation
+   semantics problematic.
 
-Replica sets can also include members with the following four special
+   It is possible (as mentioned above) to manually recover these events,
+   via manual DBA effort, but we believe in large system with many, many
+   members that such efforts become impractical.
+
+   Some drivers support 'safe' write modes for critical writes. For
+   example via setWriteConcern in the Java driver.
+
+   Additionally, defaults for { w : ... } parameter to getLastError can
+   be set in the replica set's configuration.
+
+..note:: 
+
+  Calling :dbcommand:`getLastError` causes the client to wait for a
+  response from the server. This can slow the client's throughput on
+  writes if large numbers are made because of the client/server network
+  turnaround times. Thus for "non-critical" writes it often makes sense
+  to make no :dbcommand:`getLastError` check at all, or only a single
+  check after many writes.
+
+.. _replica-set-member-configurations-internals:
+
+Member Configurations
+---------------------
+
+Replica sets can include members with the following four special
 configurations that affect membership behavior:
 
 - :ref:`Secondary-only <replica-set-secondary-only-members>` members have
@@ -117,6 +159,12 @@ unique set of administrative requirements and concerns. Choosing the
 right :doc:`system architecture </administration/replication-architectures>`
 for your data set is crucial.
 
+.. seealso:: The :ref:`replica-set-member-configurations` topic in the
+   :doc:`/administration/replica-sets` document.
+
+Security
+--------
+
 Administrators of replica sets also have unique :ref:`monitoring
 <replica-set-monitoring>` and :ref:`security <replica-set-security>`
 concerns. The :ref:`replica set functions <replica-set-functions>` in
@@ -125,11 +173,6 @@ administration. In particular use the :method:`rs.conf()` to return a
 :term:`document` that holds the :doc:`replica set configuration
 </reference/replica-configuration>` and use :method:`rs.reconfig()` to
 modify the configuration of an existing replica set.
-
-
-
-
-
 
 .. index:: replica set; elections
 .. index:: replica set; failover
@@ -148,26 +191,33 @@ The following events can trigger an election:
 
 - You initialize a replica set for the first time.
 
-- A primary steps down.
+- A primary steps down. A primary will step down in response to the
+  :dbcommand:`replSetStepDown` command or if it sees that one of the
+  current secondaries is eligible for election *and* has a higher
+  priority. A primary also will step down when it cannot contact a
+  majority of the members of the replica set. When the current primary
+  steps down, it closes all open client connections to prevent clients
+  from unknowingly writing data to a non-primary member.
 
-- A :term:`secondary` member loses contact with a primary.
+- A :term:`secondary` member loses contact with a primary. A secondary
+  will call for an election if it cannot establish a connection to a
+  primary.
 
-- A failover occurs.
-
-An existing primary will step down in response to the
-:dbcommand:`replSetStepDown` command or if it sees that one of
-the current secondaries is eligible for election *and* has a higher
-priority. A secondary will call for an election if it cannot
-establish a connection to a primary. A primary will also step
-down when it cannot contact a majority of the members of the replica
-set. When the current primary steps down, it closes all open client
-connections to prevent clients from unknowingly writing data to a
-non-primary member.
+- A :term:`failover` occurs.
 
 In an election, all members have one vote,
 including :ref:`hidden <replica-set-hidden-members>` members, :ref:`arbiters
 <replica-set-arbiters>`, and even recovering members.
 Any :program:`mongod` can veto an election.
+
+In the default configuration, all members have an equal chance of
+becoming primary; however, it's possible to set :data:`priority
+<members[n].priority>` values that weight the election. In some
+architectures, there may be operational reasons for increasing the
+likelihood of a specific replica set member becoming primary. For
+instance, a member located in a remote data center should *not* become
+primary. See: :ref:`replica-set-node-priority` for more
+information.
 
 Any member of a replica set can veto an election, even if the
 member is a :ref:`non-voting member <replica-set-non-voting-members>`.
@@ -218,7 +268,6 @@ aware of the following conditions and possible situations:
    :ref:`replica-set-node-priority-configuration`, and
    :data:`replica configuration <members[n].votes>`.
 
-
 Elections and Network Partitions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -228,7 +277,7 @@ a majority of the set is not up or reachable, no member will be elected
 primary.
 
 There is no way to tell (from the set's point of view) the difference
-between a network partition and nodes going down, so members left in a
+between a network partition and members going down, so members left in a
 minority will not attempt to become primary (to prevent a set from
 ending up with primaries on either side of a partition).
 
