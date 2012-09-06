@@ -26,6 +26,305 @@ suggestions for administers of replica sets.
    - :doc:`/tutorial/convert-replica-set-to-replicated-shard-cluster`
    - :doc:`/tutorial/deploy-geographically-distributed-replica-set`
 
+.. _replica-set-node-configurations:
+.. _replica-set-member-configurations:
+
+Member Configurations
+---------------------
+
+All :term:`replica sets <replica set>` have a single :term:`primary` and one or more
+:term:`secondaries <secondary>`. Replica sets allow you to configure
+secondary members in a variety of ways. This section describes these
+configurations.
+
+.. note::
+
+   A replica set can have up to 12 members, but only 7 members can have
+   votes. For configuration information regarding non-voting members, see
+   :ref:`replica-set-non-voting-members`.
+
+.. warning::
+
+   The :method:`rs.reconfig()` shell command can force the current
+   primary to step down, which causes an election. When the primary
+   steps down, the :program:`mongod` closes all client
+   connections. While, this typically takes 10-20 seconds, attempt to
+   make these changes during scheduled maintenance periods.
+
+.. index:: replica set members; secondary only
+.. _replica-set-secondary-only-members:
+.. _replica-set-secondary-only-configuration:
+
+Secondary-Only
+~~~~~~~~~~~~~~
+
+"Secondary-only" mode prevents a :term:`secondary` member in a
+:term:`replica set` from ever becoming a :term:`primary` in a
+:term:`failover`. You can set secondary-only mode for any secondary.
+
+For example, you may want to configure all members of a replica sets
+located outside of the main data centers as "secondary-only" to prevent
+these members from ever becoming primary.
+
+To configure a member as secondary-only, set its
+:data:`members[n].priority` value to ``0``. Any member with a
+:data:`members[n].priority` equal to ``0`` will never seek election and
+cannot become primary in any situation. For more information on priority
+levels, see :ref:`replica-set-node-priority`.
+
+As an example of modifying member priorities, assume a four-member
+replica set with member ``_id`` values of: ``0``, ``1``, ``2``, and
+``3``. Use the following sequence of operations in the :program:`mongo`
+shell to modify member priorities:
+
+.. code-block:: javascript
+
+   cfg = rs.conf()
+   cfg.members[0].priority = 0
+   cfg.members[1].priority = 0.5
+   cfg.members[2].priority = 1
+   cfg.members[3].priority = 2
+   rs.reconfig(cfg)
+
+This sets the following:
+
+- Member ``0`` to a priority of ``0`` so that it can never become :term:`primary`.
+
+- Member ``1`` to a priority of ``0.5``, which makes it less likely to
+  become primary than other members but doesn't prohibit the
+  possibility.
+
+- Member ``2`` to a priority of ``1``, which is the default value.
+  Member ``2`` becomes primary if no member with a *higher* priority is
+  eligible.
+
+- Member ``3`` to a priority of ``2``. Member ``3`` becomes primary, if
+  eligible, under most circumstances.
+
+.. note::
+
+   If your replica set has an even number of members, add an
+   :ref:`arbiter <replica-set-arbiters>` to ensure that
+   members can quickly obtain a majority of votes in an
+   :ref:`election <replica-set-elections>` for primary.
+
+.. seealso:: :data:`members[n].priority` and :ref:`Replica Set
+   Reconfiguration <replica-set-reconfiguration-usage>`.
+
+.. index:: replica set members; hidden
+.. _replica-set-hidden-members:
+.. _replica-set-hidden-configuration:
+
+Hidden
+~~~~~~
+
+Hidden members are part of a replica set but cannot become
+primary and are invisible to client applications. *However,*
+hidden members **do** vote in :ref:`elections <replica-set-elections>`.
+
+Hidden members are ideal for instances that will have significantly
+different usage patterns than the other members and require separation
+from normal traffic. Typically, hidden members provide reporting,
+dedicated backups, and dedicated read-only testing and integration
+support.
+
+Hidden members have :data:`members[n].priority` set
+``0`` and have :data:`members[n].hidden` set to ``true``.
+
+To configure a :term:`hidden member`, use the following sequence of
+operations in the :program:`mongo` shell:
+
+.. code-block:: javascript
+
+   cfg = rs.conf()
+   cfg.members[0].priority = 0
+   cfg.members[0].hidden = true
+   rs.reconfig(cfg)
+
+After re-configuring the set, the member with the ``_id`` of ``0``
+has a priority of ``0`` so that it cannot become primary. The
+other members in the set will not advertise the hidden member in the
+:dbcommand:`isMaster` or :method:`db.isMaster()` output.
+
+.. note::
+
+   You must send the :method:`rs.reconfig()` command to a set member
+   that *can* become :term:`primary`. In the above example, if you issue
+   the :method:`rs.reconfig()` operation to the member with the ``_id``
+   of ``0``, the operation fails.
+
+.. seealso:: :ref:`Replica Set Read Preference <replica-set-read-preference>`
+   and :ref:`Replica Set Reconfiguration <replica-set-reconfiguration-usage>`
+
+.. index:: replica set members; delayed
+.. _replica-set-delayed-members:
+.. _replica-set-delayed-configuration:
+
+Delayed
+~~~~~~~
+
+Delayed members copy and apply operations from the primary's :term:`oplog` with
+a specified delay. If a member has a slave delay of one hour, then it
+the latest entry in this member's oplog will not be more recent than
+one hour old, and the state of data for the member will reflect the state of the
+set an hour earlier.
+
+.. example:: If the current time is 09:52 and the secondary is a
+   delayed by an hour, no operation will be more recent than 08:52.
+
+Delayed members may help recover from various kinds of human error. Such
+errors may include inadvertently deleted databases or botched
+application upgrades. Consider the following factors when determining
+the amount of slave delay to apply:
+
+- Ensure that the length of the delay is equal to or greater than your
+  maintenance window.
+
+- The size of the oplog is sufficient to capture *more than* the
+  number of operations that typically occur in that period of
+  time. See the section on :ref:`oplog sizing
+  <replica-set-oplog-sizing>` for more information.
+
+Delayed members must have a :term:`priority` set to ``0`` to prevent
+them from becoming primary in their replica sets. Also these members
+should be :ref:`hidden <replica-set-hidden-members>` to prevent your
+application from seeing or querying this member.
+
+To configure a :term:`replica set` member with a one hour delay, use the
+following sequence of operations in the :program:`mongo` shell:
+
+.. code-block:: javascript
+
+   cfg = rs.conf()
+   cfg.members[0].priority = 0
+   cfg.members[0].slaveDelay = 3600
+   rs.reconfig(cfg)
+
+After the replica set reconfigures, the set member with the ``_id`` of
+``0`` has a priority of ``0`` and cannot become :term:`primary`. The :data:`slaveDelay <members[n].slaveDelay>` value
+delays both replication and the member's :term:`oplog` by 3600 seconds (1
+hour). Setting :data:`slaveDelay <members[n].slaveDelay>` to a
+non-zero value also sets :data:`hidden <members[n].hidden>` to
+``true`` for this replica set so that it does not receive application
+queries in normal operations.
+
+.. warning::
+
+   The length of the secondary :data:`slaveDelay
+   <members[n].slaveDelay>` must fit within the window of the
+   oplog. If the oplog is shorter than the :data:`slaveDelay
+   <members[n].slaveDelay>` window, the delayed member cannot
+   successfully replicate operations.
+
+.. related:: For more information about delayed members, see the
+   section on :ref:`Delayed Replication <replica-set-delayed-members>`.
+   Additionally consider the following resources:
+  :data:`members[n].slaveDelay`, :ref:`Replica Set Reconfiguration
+  <replica-set-reconfiguration-usage>`, :ref:`Oplog Sizing
+  <replica-set-oplog-sizing>`, and :doc:`/tutorial/change-oplog-size`.
+
+.. index:: replica set members; arbiters
+.. _replica-set-arbiters:
+.. _replica-set-arbiter-configuration:
+
+Arbiters
+~~~~~~~~
+
+Arbiters are special :program:`mongod` instances that do not hold a
+copy of the data and thus cannot become primary. Arbiters exist solely
+participate in :term:`elections <election>`.
+
+.. note::
+
+   Because of their minimal system requirements, you may safely deploy an
+   arbiter on a system with another workload such as an application
+   server or monitoring member.
+
+.. warning::
+
+   Do not run arbiter processes on a system that is an active
+   :term:`primary` or :term:`secondary` of its replica set.
+
+Arbiters never receive the contents of any collection but do have the
+following interactions with the rest of the replica set:
+
+- Credential exchanges, which are used to authenticate the arbiter with
+  the replica set. All MongoDB processes within a replica set use
+  keyfiles. These exchanges are encrypted.
+
+- Only the authentication step is encrypted. Replica set configuration
+  data and voting are not encrypted.
+
+If your MongoDB deployment uses SSL, then all communications between
+arbiters and the other members of the replica set are secure. See the
+documentation for :doc:`/administration/ssl` for more information. Run
+all arbiters on secure networks, as with all MongoDB components.
+
+To start an arbiter, use the following command:
+
+.. code-block:: sh
+
+   mongod --replSet [setname]
+
+Replace ``[setname]`` with the name of the :term:`replica set` that the
+arbiter will join. Then in the :program:`mongo` shell, while connected
+to the *current* :term:`primary`, issue the following command:
+
+.. code-block:: javascript
+
+   rs.addArb("[hostname]:[port]")
+
+Replace the ``[hostname]:[port]`` string with the arbiter's
+hostname and the port.
+
+.. seealso:: :setting:`replSet`, :option:`--replSet <mongod --replSet>`,
+   and :method:`rs.addArb()`.
+
+.. index:: replica set members; non-voting
+.. _replica-set-non-voting-members:
+.. _replica-set-non-voting-configuration:
+
+Non-Voting
+~~~~~~~~~~
+
+You may choose to change the number of votes that each member has in
+:term:`elections <election>` for :term:`primary`. In general, all
+members should have only 1 vote to prevent intermittent ties, deadlock,
+or the wrong members from becoming :term:`primary`. Use :ref:`replica
+set priorities <replica-set-node-priority>` to control which members
+are more likely to become primary.
+
+To disable a member's ability to vote in :ref:`elections
+<replica-set-elections>` use the following command sequence in the
+:program:`mongo` shell.
+
+.. code-block:: javascript
+
+   cfg = rs.conf()
+   cfg.members[3].votes = 0
+   cfg.members[4].votes = 0
+   cfg.members[5].votes = 0
+   rs.reconfig(cfg)
+
+This sequence gives ``0`` votes to set members with the ``_id``
+values of ``3``, ``4``, and ``5``. This setting allows the set to
+elect these members as :term:`primary` but does not allow them to
+vote in elections. If you have three non-voting members, you can add
+three additional voting members to your set. Place voting members so that
+your designated primary or primaries can reach a majority of votes in
+the event of a network partition.
+
+.. note::
+
+   In general and when possible, all members should have only 1 vote. This
+   prevents intermittent ties, deadlocks, or the wrong members from
+   becoming primary. Use :ref:`Replica Set Priorities
+   <replica-set-node-priority>` to control which members are more
+   likely to become primary.
+
+.. seealso:: :data:`members[n].votes` and :ref:`Replica Set
+   Reconfiguration <replica-set-reconfiguration-usage>`.
+
 Procedures
 ----------
 
@@ -40,7 +339,7 @@ the following to prepare the new member's :term:`data directory <dbpath>`:
 - Make sure the new member's data directory *does not* contain data. The
   new member will copy the data directory from an existing member.
 
-  If the new member is in a ":term:`recovering`" state, it must exit
+  If the new member is in a :term:`recovering` state, it must exit
   become a :term:`secondary` before MongoDB
   can copy all data as part of the replication process. This process
   takes time but does not require administrator intervention.
@@ -86,9 +385,9 @@ example:
    rs.add({_id: 1, host: "mongo2.example.net:27017", priority: 0, hidden: true})
 
 This configures a :term:`hidden member` that is accessible at
-``mongo2.example.net:27017``. See ":data:`host <members[n].host>`,"
-":data:`priority <members[n].priority>`," and ":data:`hidden
-<members[n].hidden>`" for more information about these settings. When
+``mongo2.example.net:27017``. See :data:`host <members[n].host>`,
+:data:`priority <members[n].priority>`, and :data:`hidden
+<members[n].hidden>` for more information about these settings. When
 you specify a full configuration object with :method:`rs.add()`, you must
 declare the ``_id`` field, which is not automatically populated in
 this case.
@@ -212,8 +511,8 @@ of the member with the highest :data:`members[n].priority` setting.
    Perform routine replica set reconfiguration during scheduled
    maintenance windows.
 
-.. seealso:: The ":ref:`Replica Reconfiguration Usage
-   <replica-set-reconfiguration-usage>`" example revolves around
+.. seealso:: The :ref:`Replica Reconfiguration Usage
+   <replica-set-reconfiguration-usage>` example revolves around
    changing the priorities of the :data:`members` of a replica set.
 
 .. _replica-set-procedure-change-oplog-size:
@@ -244,205 +543,7 @@ smaller oplog. To resize the oplog, follow these steps:
 #. Apply this procedure to any other member of the replica set that
    *could become* primary.
 
-.. seealso:: The ":doc:`/tutorial/change-oplog-size`" tutorial.
-
-.. _replica-set-node-configurations:
-.. _replica-set-member-configurations:
-
-Member Configurations
----------------------
-
-All :term:`replica sets <replica set>` have a single :term:`primary` and one or more
-:term:`secondaries <secondary>`. Replica sets sets allow you to configure
-secondary members in a variety of ways. This section describes these
-configurations.
-
-.. note::
-
-   A replica set can have up to 12 members, but only 7 members can have
-   votes. See ":ref:`non-voting members <replica-set-non-voting-members>`"
-   for configuration information regarding non-voting members.
-
-.. warning::
-
-   The :method:`rs.reconfig()` shell command can force the current
-   primary to step down, which causes an election. When the primary
-   steps down, the :program:`mongod` closes all client
-   connections. While, this typically takes 10-20 seconds, attempt to
-   make these changes during scheduled maintenance periods.
-
-.. _replica-set-secondary-only-configuration:
-
-Secondary-Only
-~~~~~~~~~~~~~~
-
-Given a four-member :term:`replica set`, with member ``_id`` values of:
-``0``, ``1``, ``2``, and ``3``, use the following sequence of
-operations in the :program:`mongo` shell to modify member priorities:
-
-.. code-block:: javascript
-
-   cfg = rs.conf()
-   cfg.members[0].priority = 0
-   cfg.members[1].priority = 0.5
-   cfg.members[2].priority = 1
-   cfg.members[3].priority = 2
-   rs.reconfig(cfg)
-
-This operation sets the following:
-
-- Member ``0`` to a priority of ``0`` so that it can never become :term:`primary`.
-
-- Member ``1`` to a priority of ``0.5``, which makes it less likely to
-  become primary than other members but doesn't prohibit the
-  possibility.
-
-- Member ``2`` to a priority of ``1``, which is the default value.
-  Member ``2`` becomes primary if no member with a *higher* priority is
-  eligible.
-
-- Member ``3`` to a priority of ``2``. Member ``3`` becomes primary, if
-  eligible, under most circumstances.
-
-.. note::
-
-   If your replica set has an even number of members, add an
-   :ref:`arbiter <replica-set-arbiters>` to ensure that
-   members can quickly obtain a majority of votes in an
-   :ref:`election <replica-set-elections>` for primary.
-
-.. seealso:: ":data:`members[n].priority`" and ":ref:`Replica Set
-   Reconfiguration <replica-set-reconfiguration-usage>`."
-
-.. _replica-set-hidden-configuration:
-
-Hidden
-~~~~~~
-
-To configure a :term:`hidden member`, use the following sequence of
-operations in the :program:`mongo` shell:
-
-.. code-block:: javascript
-
-   cfg = rs.conf()
-   cfg.members[0].priority = 0
-   cfg.members[0].hidden = true
-   rs.reconfig(cfg)
-
-After re-configuring the set, the member with the ``_id`` of ``0``
-has a priority of ``0`` so that it cannot become primary. The
-other members in the set will not advertise the hidden member in the
-:dbcommand:`isMaster` or :method:`db.isMaster()` output.
-
-.. note::
-
-   You must send the :method:`rs.reconfig()` command to a set member
-   that *can* become :term:`primary`. In the above example, if you issue
-   the :method:`rs.reconfig()` operation to the member with the ``_id``
-   of ``0``, the operation fails.
-
-.. seealso:: ":ref:`Replica Set Read Preference <replica-set-read-preference>`."
-   ":data:`members[n].hidden`," ":data:`members[n].priority`,"
-   and ":ref:`Replica Set Reconfiguration <replica-set-reconfiguration-usage>`."
-
-.. _replica-set-delayed-configuration:
-
-Delayed
-~~~~~~~
-
-To configure a :term:`replica set` member with a one hour delay, use the
-following sequence of operations in the :program:`mongo` shell:
-
-.. code-block:: javascript
-
-   cfg = rs.conf()
-   cfg.members[0].priority = 0
-   cfg.members[0].slaveDelay = 3600
-   rs.reconfig(cfg)
-
-After the replica set reconfigures, the set member with the ``_id`` of
-``0`` has a priority of ``0`` and cannot become :term:`primary`. The :data:`slaveDelay <members[n].slaveDelay>` value
-delays both replication and the member's :term:`oplog` by 3600 seconds (1
-hour). Setting :data:`slaveDelay <members[n].slaveDelay>` to a
-non-zero value also sets :data:`hidden <members[n].hidden>` to
-``true`` for this replica set so that it does not receive application
-queries in normal operations.
-
-.. warning::
-
-   The length of the secondary :data:`slaveDelay
-   <members[n].slaveDelay>` must fit within the window of the
-   oplog. If the oplog is shorter than the :data:`slaveDelay
-   <members[n].slaveDelay>` window, the delayed member cannot
-   successfully replicate operations.
-
-.. related:: For more information about delayed members, see the
-   section on ":ref:`Delayed Replication <replica-set-delayed-members>`."
-   Additionally consider the following resources:
-  ":data:`members[n].slaveDelay`," ":ref:`Replica Set Reconfiguration
-  <replica-set-reconfiguration-usage>`," ":ref:`Oplog Sizing
-  <replica-set-oplog-sizing>`," and ":doc:`/tutorial/change-oplog-size`."
-
-.. _replica-set-arbiter-configuration:
-
-Arbiters
-~~~~~~~~
-
-Use the following command to start an arbiter:
-
-.. code-block:: sh
-
-   mongod --replSet [setname]
-
-Replace ``[setname]`` with the name of the :term:`replica set` that the
-arbiter will join. Then in the :program:`mongo` shell, while connected
-to the *current* :term:`primary`, issue the following command:
-
-.. code-block:: javascript
-
-   rs.addArb("[hostname]:[port]")
-
-Replace the ``[hostname]:[port]`` string with the arbiter's
-hostname and the port.
-
-.. seealso:: ":setting:`replSet`," ":option:`--replSet <mongod --replSet>`,
-   and ":method:`rs.addArb()`."
-
-.. _replica-set-non-voting-configuration:
-
-Non-Voting
-~~~~~~~~~~
-
-To disable a member's ability to vote in :ref:`elections
-<replica-set-elections>` use the following command sequence in the
-:program:`mongo` shell.
-
-.. code-block:: javascript
-
-   cfg = rs.conf()
-   cfg.members[3].votes = 0
-   cfg.members[4].votes = 0
-   cfg.members[5].votes = 0
-   rs.reconfig(cfg)
-
-This sequence gives ``0`` votes to set members with the ``_id``
-values of ``3``, ``4``, and ``5``. This setting allows the set to
-elect these members as :term:`primary` but does not allow them to
-vote in elections. If you have three non-voting members, you can add
-three additional voting members to your set. Place voting members so that
-your designated primary or primaries can reach a majority of votes in
-the event of a network partition.
-
-.. note::
-
-   In general and when possible, all members should have only 1 vote. This
-   prevents intermittent ties, deadlocks, or the wrong members from
-   becoming primary. Use ":ref:`Replica Set Priorities
-   <replica-set-node-priority>`" to control which members are more
-   likely to become primary.
-
-.. seealso:: ":data:`members[n].votes`" and ":ref:`Replica Set
-   Reconfiguration <replica-set-reconfiguration-usage>`."
+.. seealso:: The :doc:`/tutorial/change-oplog-size` tutorial.
 
 .. _replica-set-security:
 
@@ -504,7 +605,7 @@ response strategies for any of these symptoms, the following sections
 provide good places to start a troubleshooting investigation with
 :term:`replica sets <replica set>`.
 
-.. seealso:: ":doc:`/administration/monitoring`."
+.. seealso:: :doc:`/administration/monitoring`.
 
 .. _replica-set-replication-lag:
 
@@ -589,8 +690,21 @@ Possible causes of replication lag include:
   - the :ref:`Oplog Sizing <replica-set-oplog-sizing>` section, and
   - the :doc:`/tutorial/change-oplog-size` tutorial.
 
+.. index:: pair: replica set; failover
+.. _replica-set-failover:
+.. _failover:
+
 Failover and Recovery
 ~~~~~~~~~~~~~~~~~~~~~
+
+Replica sets feature automated failover. If the :term:`primary`
+goes offline or becomes unresponsive and a majority of the original
+set members can still connect to each other, the set will elect a new
+primary.
+
+While :term:`failover` is automatic, :term:`replica set`
+administrators should still understand exactly how this process
+works. This section below describe failover in detail.
 
 In most cases, failover occurs without administrator intervention
 seconds after the :term:`primary` either steps down, becomes inaccessible,
@@ -625,4 +739,4 @@ data to a :term:`BSON` file that you can view using
 You can prevent rollbacks by ensuring safe writes by using
 the appropriate :term:`write concern`.
 
-.. seealso:: ":ref:`Replica Set Elections <replica-set-elections>`"
+.. seealso:: :ref:`Replica Set Elections <replica-set-elections>`
