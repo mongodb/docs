@@ -6,23 +6,113 @@ $uniqueDocs
 
 .. operator:: $uniqueDocs
 
-   When using the :dbcommand:`geoNear`, if document contains more than
-   one field with coordinate values, MongoDB will return the same
-   document multiple times. When using the :operator:`$within`,
-   however, MongoDB provides opposite behavior: if a document contains
-   more than one field with coordinate values, MongoDB will only
-   return the document once.
+   .. versionadded:: 2.0
 
-   The :operator:`$uniqueDocs` operator overrides these default
-   behaviors.
+   For :term:`geospatial` queries, MongoDB may reuturn a single
+   document more than once for a single query, because geospatial
+   indexes may include multiple coordinate pairs in a single
+   document, and therefore return the same document more than once.
 
-   By specifying ``$uniqueDocs: false`` in a :operator:`$within`
-   query, will cause the query to return a single document multiple
-   times if there is more than one match.
+   The :operator:`$uniqueDocs` operator inverts the default behavior
+   of these queres. By default, :dbcommand:`geoNear` will always
+   return multiple instances of the same document, while the
+   :operator:`$within` operator will *never* return the same document
+   more than once. Consider the following:
 
-   By contrast, if you specify ``uniqueDocs: true`` as an option to
-   the a :dbcommand:`geoNear` command, then :dbcommand:`geoNear` only
-   returns a single document even if there are multiple matches.
+   - For :dbcommand:`geoNear` queries, the default
+     :operator:`$uniqueDocs` setting is ``false``. If you specify a
+     value of ``true`` for :operator:`uniqueDocs`, MongoDB will
+     return multiple instances of a single document.
+
+   - For :operator:`$within` queries, the default
+     :operator:`$uniqueDocs` setting is ``true``. If you specify a
+     value of ``false`` for :operator:`uniqueDocs`, MongoDB will
+     return multiple instances of a single document.
+
+   .. example::
+
+      Given a document in the following form:
+
+      .. code-block:: javascript
+
+         { addresses: [ { name: "Home", loc:[55.5,42.3]}, {name:"Work",loc:[32.3,44.2]}]}
+
+      The following queries would return the same document multiple
+      times:
+
+      .. code-block:: javascript
+
+         > db.runCommand( { geoNear: "geo", near: [55,44], uniqueDocs: false })
+
+         > db.geoExample.find( {"addresses.loc":{"$within": {"$box": [ [0,0],[100,100] ], $uniqueDocs:false } }}).pretty()
+
+      The following queries would return each matching document, only
+      once:
+
+      .. code-block:: javascript
+
+         > db.runCommand( { geoNear: "geo", near: [55,44], uniqueDocs: true })
+
+         > db.geo.find( {"address.loc":{"$within": {"$box": [ [0,0],[100,100] ], $uniqueDocs:true } }}).pretty()
+
+.. 
+   The following example commands in the :program:`mongo` shell
+   illustrate this feature:
+
+   .. code-block:: javascript
+
+      > db.geoExample.insert( )
+      > db.geoExample.ensureIndex({"addresses.loc":"2d"})
+
+      /* this will return the entry once - default for $within */
+      > db.geoExample.find( {"addresses.loc":{"$within": {"$box": [ [0,0],[100,100] ] } }})
+      /* this will return the entry twice */
+      > db.geoExample.find( {"addresses.loc":{"$within": {"$box": [ [0,0],[100,100] ], $uniqueDocs:false } }}).pretty()
+
+
+   .. Above code output:
+
+         .. code-block:: javascript
+
+            > db.geoExample.find( {"addresses.loc":{"$within": {"$box": [ [0,0],[100,100] ], $uniqueDocs:false } }}).pretty()
+            {
+               "_id" : ObjectId("504900870826ac3f09e25db6"),
+               "addresses" : [
+                  {
+                     "name" : "Home",
+                     "loc" : [
+                        55.5,
+                        42.3
+                     ]
+                  },
+                  {
+                     "name" : "Work",
+                     "loc" : [
+                        32.3,
+                        44.2
+                     ]
+                  }
+               ]
+            }
+            {
+               "_id" : ObjectId("504900870826ac3f09e25db6"),
+               "addresses" : [
+                  {
+                     "name" : "Home",
+                     "loc" : [
+                        55.5,
+                        42.3
+                     ]
+                  },
+                  {
+                     "name" : "Work",
+                     "loc" : [
+                        32.3,
+                        44.2
+                     ]
+                  }
+               ]
+            }
 
    You cannot specify :operator:`$uniqueDocs` with :operator:`$near`
    or haystack queries.
