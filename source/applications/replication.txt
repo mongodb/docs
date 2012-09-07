@@ -10,42 +10,12 @@ is transparent. However, replica sets
 offer some configuration options for write and read operations. [#shard-clusters]_
 This document describes those options and their implications.
 
-.. the :ref:`write-concern` tag is here for the moment. At some point
-   we'll break this into its own document.
-
 .. [#shard-clusters] :term:`Shard clusters <shard cluster>` where the
    shards are also replica sets provide the same configuration options
    with regards to write and read operations.
 
-.. TODO Is any of the following missing from this document:
-
-.. Writes committed at the primary may be visible before the
-   cluster-wide commit completes. The read uncommitted semantics (an
-   option on many databases) are more relaxed and make theoretically
-   achievable performance and availability higher (for example we never
-   have an object locked in the server where the locking is dependent on
-   network performance).
-
-.. On a failover, if there are writes which have not replicated from the
-   primary, the writes are rolled back. To confirm replica-set-wide
-   commits, use the getLastError command. On a failover, data is backed
-   up to files in the rollback directory. To recover this data use the
-   mongorestore.
-
-.. Merging back old operations later, after another member has accepted
-   writes, is a hard problem. One then has multi-master replication,
-   with potential for conflicting writes. Typically that is handled in
-   other products by manual version reconciliation code by developers.
-   That is too much work. Multi-master also can make atomic operation
-   semantics problematic. It is possible (as mentioned above) to
-   manually recover these events, via manual DBA effort, but in large
-   system with many, many members that such efforts become impractical.
-
-.. Calling getLastError causes the client to wait for a response from
-   the server. This can slow the client's throughput on writes if large
-   numbers are made because of the client/server network turnaround
-   times. Thus for "non-critical" writes it often makes sense to make no
-   getLastError check at all, or only a single check after many writes.
+.. the :ref:`write-concern` tag is here for the moment. At some point
+   we'll break this into its own document.
 
 .. _write-concern:
 .. _replica-set-write-concern:
@@ -140,6 +110,13 @@ operations to the journal before returning.
 
 The :data:`getLastErrorDefaults` setting only affects :dbcommand:`getLastError`
 commands with *no* other arguments.
+
+.. note::
+
+   Use of inappropriate write concern can lead to :ref:`rollbacks
+   <replica-set-rollbacks>` in the case of :ref:`replica set failover
+   <replica-set-failover>`. Always ensure that your operations have
+   specified the required write concern for your application.
 
 .. index:: read preference
 .. index:: slaveOk
@@ -385,7 +362,7 @@ Tag Sets
 Tag sets allow you to specify custom :ref:`read preferences
 <replica-set-read-preference>` so that your application can target
 read operations to specific members, based on custom parameters. A tag
-set for a read operation may resemble the following: 
+set for a read operation may resemble the following:
 
 .. code-block:: javascript
 
@@ -393,7 +370,7 @@ set for a read operation may resemble the following:
 
 To fulfill the request, a member would need to have both of these tag
 sets. Therefore the following tag sets, would satisfy this
-requirement: 
+requirement:
 
 .. code-block:: javascript
 
@@ -402,7 +379,7 @@ requirement:
    { "disk": "ssd", "use": "reporting", "rack": 4 }
    { "disk": "ssd", "use": "reporting", "mem": "64"}
 
-However, the following tag sets would *not* be able to fulfill this query: 
+However, the following tag sets would *not* be able to fulfill this query:
 
 .. code-block:: javascript
 
@@ -429,8 +406,8 @@ You can specify tag sets with the following read preference modes:
 
 You cannot specify tag sets with the :readmode:`primary` read preference mode.
 
-Tags are not compatible with :readmode:`primary` and only apply when 
-:ref:`selecting <replica-set-read-preference-behavior-member-selection>` 
+Tags are not compatible with :readmode:`primary` and only apply when
+:ref:`selecting <replica-set-read-preference-behavior-member-selection>`
 a :term:`secondary` member of a set for a read operation. However, the
 :readmode:`nearest` read mode, when combined with a tag set will
 select the nearest member that matches the specified tag set, which
@@ -439,7 +416,7 @@ may be a primary or secondary.
 All interfaces use the same :ref:`member selection logic
 <replica-set-read-preference-behavior-member-selection>` to choose the
 member to which to direct read operations, basing the choice on read
-preference mode and tag sets. 
+preference mode and tag sets.
 
 For more information on how read preferences :ref:`modes
 <replica-set-read-preference-modes>` interact with tag sets, see the
