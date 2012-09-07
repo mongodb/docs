@@ -68,7 +68,7 @@ You can configure a member as any of the following:
   a specified delay. See :ref:`replica-set-delayed-members`.
 
 - **Arbiters**: These members do not hold data and exist solely to
-  participate in :term:`elections <election>`. See :ref:`replica-set-arbiters`.
+  participate in :ref:`elections <replica-set-elections>`. See :ref:`replica-set-arbiters`.
 
 - **Non-Voting**: These members cannot vote in elections. See
   :ref:`replica-set-non-voting-members`.
@@ -97,7 +97,7 @@ administrator intervention. The election allows replica sets to
 recover from failover situations very quickly and robustly.
 
 Whenever the primary becomes unreachable, the secondary members
-trigger an :ref:`election <replica-set-elections>`. The first member to
+trigger an election. The first member to
 receive votes from a majority of the set will become primary. The most
 important feature of replica set elections is that a majority of the
 original number of members in the replica set must be present for
@@ -114,7 +114,7 @@ remain a secondary.
    view of the :term:`replica set` and helps prevent :term:`rollbacks
    <rollback>`.
 
-.. seealso:: :ref:`Replica Set Election Internals <replica-set-election-internals>`
+.. seealso:: The :ref:`replica-set-election-internals` topic in the :doc:`/core/replication-internals` document.
 
 .. index:: replica set; priority
 .. _replica-set-node-priority:
@@ -127,7 +127,7 @@ In a replica set, every member has a "priority," that helps determine
 eligibility for :ref:`election <replica-set-elections>` to
 :term:`primary`. By default, all members have a priority of ``1``,
 unless you modify the :data:`members[n].priority` value. All members
-have a single vote in :ref:`elections <replica-set-elections>`.
+have a single vote in elections.
 
 .. warning::
 
@@ -267,12 +267,16 @@ Oplog
   64 bit = larger of 5% of disk or ~1 gigabyte
   64 bit OS X = ~183 megabytes
 
-The operation log (i.e. :term:`oplog`) is a :term:`capped collection`
-that stores all operations that modify the data stored in MongoDB. All
-members of the replica set have oplogs that allow them to maintain the
-current state of the database. Unless you modify the size of your
-oplog with the :setting:`oplogSize` option, the *default* size of the
-oplog will be as follows:
+The :term:`oplog` (operations log) is a special :term:`capped
+collection` that keeps a rolling record of all operations that modify
+that data stored in your databases. MongoDB applies database operations
+on the :term:`primary` and then records the operations on the primary's
+oplog. The :term:`secondary` members then replicate this log and apply
+the operations to themselves in an asynchronous process. All replica set
+members contain a copy of the oplog, allowing them to maintain the
+current state of the database.
+
+By default, the size of the oplog is as follows:
 
 - For 64-bit Linux, Solaris, and FreeBSD systems, MongoDB will
   allocate 5% of the available free disk space to the oplog.
@@ -286,11 +290,12 @@ oplog will be as follows:
 - For 32-bit systems, MongoDB allocates about 48 megabytes of space to
   the oplog.
 
-.. note::
+Before oplog creation, you can specify the size of your oplog with the
+:setting:`oplogSize` option. Once the oplog is created, you can only
+change the size of the oplog by using the :ref:`oplog resizing procedure
+<replica-set-procedure-change-oplog-size>`.
 
-   Once created, you cannot change the size of the oplog without using
-   the :ref:`oplog resizing procedure <replica-set-procedure-change-oplog-size>`
-   outlined in the :doc:`/tutorial/change-oplog-size` guide.
+.. QUESTION: SK, Can the next graph be rewritten? It's unclear to me. BG
 
 For example, if an oplog fits 24 hours of operations, then members can
 stop copying entries from the oplog for 24 hours before they require
@@ -323,6 +328,9 @@ that is larger than the default. Conversely, if the predominance of
 activity of your MongoDB-based application are reads and you are
 writing a small amount of data, you may find that you need a much
 smaller oplog.
+
+.. seealso:: The :ref:`replica-set-oplog` topic in
+   the :doc:`/core/replication-internals` document.
 
 Deployment
 ~~~~~~~~~~
