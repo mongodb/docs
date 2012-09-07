@@ -17,6 +17,36 @@ This document describes those options and their implications.
    shards are also replica sets provide the same configuration options
    with regards to write and read operations.
 
+.. TODO Is any of the following missing from this document:
+
+.. Writes committed at the primary may be visible before the
+   cluster-wide commit completes. The read uncommitted semantics (an
+   option on many databases) are more relaxed and make theoretically
+   achievable performance and availability higher (for example we never
+   have an object locked in the server where the locking is dependent on
+   network performance).
+
+.. On a failover, if there are writes which have not replicated from the
+   primary, the writes are rolled back. To confirm replica-set-wide
+   commits, use the getLastError command. On a failover, data is backed
+   up to files in the rollback directory. To recover this data use the
+   mongorestore.
+
+.. Merging back old operations later, after another member has accepted
+   writes, is a hard problem. One then has multi-master replication,
+   with potential for conflicting writes. Typically that is handled in
+   other products by manual version reconciliation code by developers.
+   That is too much work. Multi-master also can make atomic operation
+   semantics problematic. It is possible (as mentioned above) to
+   manually recover these events, via manual DBA effort, but in large
+   system with many, many members that such efforts become impractical.
+
+.. Calling getLastError causes the client to wait for a response from
+   the server. This can slow the client's throughput on writes if large
+   numbers are made because of the client/server network turnaround
+   times. Thus for "non-critical" writes it often makes sense to make no
+   getLastError check at all, or only a single check after many writes.
+
 .. _write-concern:
 .. _replica-set-write-concern:
 

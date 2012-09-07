@@ -18,10 +18,12 @@ troubleshooting and for further understanding MongoDB's behavior and approach.
 Oplog
 -----
 
-Under normal operation, MongoDB updates the :ref:`oplog <replica-set-oplog-sizing>`
-on a :term:`secondary` within one second of
-applying an operation to a :term:`primary`. However, various exceptional
-situations may cause a secondary to lag further behind. See
+For an explanation of the oplog, see the :ref:`oplog <replica-set-oplog-sizing>`
+topic in the :doc:`/core/replication` document.
+
+Under various exceptional
+situations, updates to a :term:`secondary's <secondary>` oplog might 
+lag behind the desired performance time. See
 :ref:`Replication Lag <replica-set-replication-lag>` for details.
 
 All members of a :term:`replica set` send heartbeats (pings) to all
@@ -68,65 +70,6 @@ secondaries may not always reflect the latest writes to the
    and the :doc:`replication status </reference/replication-info>`
    output to asses the current state of replication and determine if
    there is any unintended replication delay.
-
-Write Concern and getLastError
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-A write is committed once it has replicated to a majority of members of
-the set. For important writes, the client should request acknowledgement
-of this with :dbcommand:`getLastError` set to ``w`` to get confirmation
-the commit has finished. For more information on
-:dbcommand:`getLastError`, see :doc:`/applications/replication`.
-
-.. TODO	Verify if the following info is needed. -BG
-
-   Queries in MongoDB and replica sets have "READ UNCOMMITTED"
-   semantics. Writes which are committed at the primary of the set may
-   be visible before the cluster-wide commit completes.
-
-   The read uncommitted semantics (an option on many databases) are more
-   relaxed and make theoretically achievable performance and
-   availability higher (for example we never have an object locked in
-   the server where the locking is dependent on network performance).
-
-Write Concern and Failover
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-On a failover, if there are writes which have not replicated from the
-:term:`primary`, the writes are rolled back. Therefore, to confirm replica-set-wide commits,
-use the :dbcommand:`getLastError` command.
-
-On a failover, data is backed up to files in the rollback directory. To
-recover this data use the :program:`mongorestore`.
-
-.. TODO Verify whether to include the following. -BG
-
-   Merging back old operations later, after another member has accepted
-   writes, is a hard problem. One then has multi-master replication,
-   with potential for conflicting writes. Typically that is handled in
-   other products by manual version reconciliation code by developers.
-   We think that is too much work : we want MongoDB usage to be less
-   developer work, not more. Multi-master also can make atomic operation
-   semantics problematic.
-
-   It is possible (as mentioned above) to manually recover these events,
-   via manual DBA effort, but we believe in large system with many, many
-   members that such efforts become impractical.
-
-   Some drivers support 'safe' write modes for critical writes. For
-   example via setWriteConcern in the Java driver.
-
-   Additionally, defaults for { w : ... } parameter to getLastError can
-   be set in the replica set's configuration.
-
-..note:: 
-
-  Calling :dbcommand:`getLastError` causes the client to wait for a
-  response from the server. This can slow the client's throughput on
-  writes if large numbers are made because of the client/server network
-  turnaround times. Thus for "non-critical" writes it often makes sense
-  to make no :dbcommand:`getLastError` check at all, or only a single
-  check after many writes.
 
 .. _replica-set-member-configurations-internals:
 
@@ -271,21 +214,15 @@ aware of the following conditions and possible situations:
 Elections and Network Partitions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A replica set has at most one primary at a given time. If a majority of
-the set is up, the most up-to-date secondary will be elected primary. If
-a majority of the set is not up or reachable, no member will be elected
-primary.
+.. TODO The following two paragraphs needs review -BG
 
-There is no way to tell (from the set's point of view) the difference
-between a network partition and members going down, so members left in a
-minority will not attempt to become primary (to prevent a set from
-ending up with primaries on either side of a partition).
+Members on either side of a network partition cannot see each other when
+determining whether a majority is available to hold an election.
 
-This means that, if there is no majority on either side of a network
-partition, the set will be read only. Thus, we suggest an odd number of
-servers: e.g., two servers in one data center and one in another. The
-upshot of this strategy is that data is consistent: there are no
-multi-primary conflicts to resolve.
+That means that if a primary steps down and neither side of the
+partition has a majority on its own, the set will not elect a new
+primary and the set will become read only. The best practice is to have
+and a majority of servers in one data center and one server in another.
 
 Syncing
 -------
