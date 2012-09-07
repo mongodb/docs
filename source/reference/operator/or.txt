@@ -8,29 +8,38 @@ $or
 
    .. versionadded:: 1.6
 
-   The :operator:`$or` operator provides a Boolean ``OR`` expression in
-   queries. Use :operator:`$or` to match documents against two or more
-   expressions. For example:
-
-   .. code-block:: javascript
-
-      db.collection.find( { $or [ { key1: value1 }, { key2: value2} ] } );
-
-   returns all documents in ``collection`` that *either* have a
-   ``key1`` field with ``value1`` *or* a ``key2`` field with ``value2``.
-
-   You may specify a field and then use the :operator:`$or` operator to
-   further narrow results. Consider the following:
-
-   .. code-block:: javascript
-
-      db.collection.find( { age: "19", $or [ { key1: value1 }, { key2: value2} ] } );
-
-   This query returns all documents in ``collection`` with an ``age``
-   field that has the value ``19``, and *either* a ``key1`` field with
-   ``value1`` *or* a ``key2`` field with ``value2``.
-
-   .. versionadded:: 2.0
+   .. versionchanged:: 2.0
       You may nest :operator:`$or` operations; however, these
-      expressions are not as efficiently optimized as top-level
-      :operator:`$or` operations.
+      expressions are not as efficiently optimized as top-level.
+
+   *Syntax*: ``{ $or: [ { <expression1> }, { <expression2> }, ... , { <expressionN> } ] }``
+
+   :operator:`$or` performs a logical ``OR`` operation on the specified
+   array of ``<expressions>`` and selects the documents that satisfy
+   *at least* one of the ``<expressions>``.
+   
+   The :operator:`$or` requires at least two ``<expressions>``. In the above
+   syntax, ``N`` must be greater than or equal to 2.
+
+   **Examples**: Select all documents in ``inventory`` where:
+      - ``price`` equals ``1.99`` **and** 
+      - **(** ``qty`` is less than ``20`` **or** ``sale`` is `true` **)**.
+
+   .. code-block:: javascript
+        
+      db.inventory.find( { price:1.99, $or: [ { qty: { $lt: 20 } }, { sale: true } ] } )
+			
+      // or using the $and command
+			
+      db.inventory.find( { $and: [ {price:1.99}, { $or: [ { qty: { $lt: 20 } }, { sale: true } ] } ] } )
+
+   **Example**: Update a single document in ``inventory`` where 
+      - ``price`` equals ``1.99`` **or** 
+      - ``qty`` is less than ``20``.
+
+   .. code-block:: javascript
+ 
+      db.inventory.update( { $or: [ { price: 1.99 }, { qty: { $lt: 20 } } ] }, { $set: { qty: 15 } } )
+
+   See also :method:`find() <db.collection.find()>`, :method:`update()
+   <db.collection.update()>`, :operator:`$set`, :operator:`$and`.
