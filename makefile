@@ -11,8 +11,9 @@ public-branch-output = $(public-output)/$(current-branch)
 
 # change this to reflect the branch that "manual/" will point to
 manual-branch = master
-# intuit the current branch
+# intuit the current branch and commit
 current-branch := $(shell git symbolic-ref HEAD 2>/dev/null | cut -d "/" -f "3" )
+last-commit := $(shell git rev-parse --verify HEAD)
 
 ifeq ($(current-branch),$(manual-branch))
 current-if-not-manual = $(manual-branch)
@@ -64,14 +65,21 @@ help:
 # Meta targets that control the build and publication process.
 #
 
-push:publish
+.PHONY: push publish-if-up-to-date
+
+push:publish-if-up-to-date
 	@echo [build]: copying the new $(current-branch) build to the web servers.
 	$(MAKE) MODE='push' push-dc1 push-dc2
 	@echo [build]: deployed a new build of the $(current-branch) branch of the Manual.
+
 push-all:publish
 	@echo [build]: copying the full docs site to the web servers.
 	$(MAKE) MODE='push' push-all-dc1 push-all-dc2
 	@echo [build]: deployed a new build of the full Manual.
+
+publish-if-up-to-date:
+	@bin/published-build-check $(current-branch) $(last-commit)
+	$(MAKE) publish
 
 publish:initial-dependencies
 	$(MAKE) sphinx-components static-components
