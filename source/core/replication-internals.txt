@@ -18,17 +18,17 @@ troubleshooting and for further understanding MongoDB's behavior and approach.
 Oplog
 -----
 
-Replication itself works by way of a special :term:`capped collection`
-called the :term:`oplog`. This collection keeps a rolling record of
-all operations applied to the :term:`primary`. Secondary members then
-replicate this log by applying the operations to themselves in an
-asynchronous process.  Under normal operation, :term:`secondary` members
-reflect writes within one second of the primary. However, various
-exceptional situations may cause secondaries to lag behind further. See
+For an explanation of the oplog, see the :ref:`oplog <replica-set-oplog-sizing>`
+topic in the :doc:`/core/replication` document.
+
+Under various exceptional
+situations, updates to a :term:`secondary's <secondary>` oplog might 
+lag behind the desired performance time. See
 :ref:`Replication Lag <replica-set-replication-lag>` for details.
 
-All members send heartbeats (pings) to all other members in the set and can
-import operations to the local oplog from any other member in the set.
+All members of a :term:`replica set` send heartbeats (pings) to all
+other members in the set and can import operations to the local oplog
+from any other member in the set.
 
 Replica set oplog operations are :term:`idempotent`. The following
 operations require idempotency:
@@ -37,19 +37,20 @@ operations require idempotency:
 - post-rollback catch-up
 - sharding chunk migrations
 
-.. seealso:: The :ref:`replica-set-oplog-sizing` topic in
-   :doc:`/core/replication`.
-
 .. TODO Verify that "sharding chunk migrations" (above) requires
    idempotency. The wiki was unclear on the subject.
 
 .. In 2.0, replicas would import entries from the member lowest
 .. "ping," This wasn't true in 1.8 and will likely change in 2.2.
 
+.. _replica-set-data-integrity:
 .. _replica-set-implementation:
 
-Implementation
+Data Integrity
 --------------
+
+Read Preferences
+~~~~~~~~~~~~~~~~
 
 MongoDB uses :term:`single-master replication` to ensure that the
 database remains consistent. However, clients may modify the
@@ -59,10 +60,9 @@ per-connection basis in order to distribute read operations to the
 greater query throughput by distributing reads to secondary members. But
 keep in mind that replication is asynchronous; therefore, reads from
 secondaries may not always reflect the latest writes to the
-:term:`primary`. See the :ref:`consistency <replica-set-consistency>`
-section for more about :ref:`read preference
-<replica-set-read-preference>` and :ref:`write concern
-<replica-set-write-concern>`.
+:term:`primary`.
+
+.. seealso:: :ref:`replica-set-consistency`
 
 .. note::
 
@@ -71,16 +71,12 @@ section for more about :ref:`read preference
    output to asses the current state of replication and determine if
    there is any unintended replication delay.
 
-In the default configuration, all members have an equal chance of
-becoming primary; however, it's possible to set :data:`priority <members[n].priority>` values that
-weight the election. In some architectures, there may be operational
-reasons for increasing the likelihood of a specific replica set member
-becoming primary. For instance, a member located in a remote data
-center should *not* become primary. See: :ref:`node
-priority <replica-set-node-priority>` for more background on this
-concept.
+.. _replica-set-member-configurations-internals:
 
-Replica sets can also include members with the following four special
+Member Configurations
+---------------------
+
+Replica sets can include members with the following four special
 configurations that affect membership behavior:
 
 - :ref:`Secondary-only <replica-set-secondary-only-members>` members have
@@ -106,6 +102,12 @@ unique set of administrative requirements and concerns. Choosing the
 right :doc:`system architecture </administration/replication-architectures>`
 for your data set is crucial.
 
+.. seealso:: The :ref:`replica-set-member-configurations` topic in the
+   :doc:`/administration/replica-sets` document.
+
+Security
+--------
+
 Administrators of replica sets also have unique :ref:`monitoring
 <replica-set-monitoring>` and :ref:`security <replica-set-security>`
 concerns. The :ref:`replica set functions <replica-set-functions>` in
@@ -122,35 +124,46 @@ modify the configuration of an existing replica set.
 Elections
 ---------
 
-When you initialize a :term:`replica set` for the first time, or when any
-failover occurs, an election takes place to decide which member should
+Elections are the process :term:`replica set` members use to select which member should
 become :term:`primary`. A primary is the only member in the replica
 set that can accept write operations, including :method:`insert()
 <db.collection.insert()>`, :method:`update() <db.collection.update()>`,
 and :method:`remove() <db.collection.remove()>`.
 
-Elections are the process replica set members use to
-select the primary in a set. Two types of events can trigger an election:
-a primary steps down or a :term:`secondary` member
-loses contact with a primary. All members have one vote
-in an election, and any :program:`mongod` can veto an election. A
-single veto invalidates the election.
+The following events can trigger an election:
 
-An existing primary will step down in response to the
-:dbcommand:`replSetStepDown` command or if it sees that one of
-the current secondaries is eligible for election *and* has a higher
-priority. A secondary will call for an election if it cannot
-establish a connection to a primary. A primary will also step
-down when it cannot contact a majority of the members of the replica
-set. When the current primary steps down, it closes all open client
-connections to prevent clients from unknowingly writing data to a
-non-primary member.
+- You initialize a replica set for the first time.
 
-In an election, every member, including :ref:`hidden
-<replica-set-hidden-members>` members, :ref:`arbiters
-<replica-set-arbiters>`, and even recovering members, get a single
-vote. Members will give votes to every eligible member that calls an
-election.
+- A primary steps down. A primary will step down in response to the
+  :dbcommand:`replSetStepDown` command or if it sees that one of the
+  current secondaries is eligible for election *and* has a higher
+  priority. A primary also will step down when it cannot contact a
+  majority of the members of the replica set. When the current primary
+  steps down, it closes all open client connections to prevent clients
+  from unknowingly writing data to a non-primary member.
+
+- A :term:`secondary` member loses contact with a primary. A secondary
+  will call for an election if it cannot establish a connection to a
+  primary.
+
+- A :term:`failover` occurs.
+
+In an election, all members have one vote,
+including :ref:`hidden <replica-set-hidden-members>` members, :ref:`arbiters
+<replica-set-arbiters>`, and even recovering members.
+Any :program:`mongod` can veto an election.
+
+In the default configuration, all members have an equal chance of
+becoming primary; however, it's possible to set :data:`priority
+<members[n].priority>` values that weight the election. In some
+architectures, there may be operational reasons for increasing the
+likelihood of a specific replica set member becoming primary. For
+instance, a member located in a remote data center should *not* become
+primary. See: :ref:`replica-set-node-priority` for more
+information.
+
+Any member of a replica set can veto an election, even if the
+member is a :ref:`non-voting member <replica-set-non-voting-members>`.
 
 A member of the set will veto an election under the following
 conditions:
@@ -167,14 +180,9 @@ conditions:
   (i.e. a higher "optime") than the member seeking election, from the
   perspective of the voting member.
 
-- The current primary will also veto an election if it has the same or
+- The current primary will veto an election if it has the same or
   more recent operations (i.e. a "higher or equal optime") than the
   member seeking election.
-
-.. note::
-
-   Any member of a replica set *can* veto an election, even if the
-   member is a :ref:`non-voting member <replica-set-non-voting-members>`.
 
 The first member to receive votes from a majority of members in a set
 becomes the next primary until the next election. Be
@@ -186,15 +194,9 @@ aware of the following conditions and possible situations:
 
 - Replica set members compare priorities only with other members of
   the set. The absolute value of priorities does not have any impact on
-  the outcome of replica set elections.
-
-  .. note::
-
-     The only exception is that members with :data:`priority
-     <members[n].priority>` values of ``0``
-     cannot become primary and will not seek election. See
-     :ref:`replica-set-node-priority-configuration` for more
-     information.
+  the outcome of replica set elections, with the exception of the value ``0``,
+  which indicates the member cannot become primary and cannot seek election.
+  For details, see :ref:`replica-set-node-priority-configuration`.
 
 - A replica set member cannot become primary *unless* it has the
   highest "optime" of any visible member in the set.
@@ -204,11 +206,23 @@ aware of the following conditions and possible situations:
   primary until the member with the highest priority catches up
   to the latest operation.
 
-
 .. seealso:: :ref:`Non-voting members in a replica
    set <replica-set-non-voting-members>`,
    :ref:`replica-set-node-priority-configuration`, and
    :data:`replica configuration <members[n].votes>`.
+
+Elections and Network Partitions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. TODO The following two paragraphs needs review -BG
+
+Members on either side of a network partition cannot see each other when
+determining whether a majority is available to hold an election.
+
+That means that if a primary steps down and neither side of the
+partition has a majority on its own, the set will not elect a new
+primary and the set will become read only. The best practice is to have
+and a majority of servers in one data center and one server in another.
 
 Syncing
 -------
