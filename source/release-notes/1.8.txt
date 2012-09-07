@@ -1,0 +1,367 @@
+=============================
+Release Notes for MongoDB 1.8
+=============================
+
+.. default-domain:: mongodb
+
+.. contents:: See the :doc:`full index of this page <1.8-changes>` for
+              a complete list of changes included in 1.8.
+   :backlinks: none
+   :local:
+   :depth: 1
+
+Upgrading
+---------
+
+MongoDB 1.8 is a standard, incremental production release and works as
+a drop-in replacement for MongoDB 1.6, except:
+
+- :term:`Replica set <replica set>` members should be upgraded in a
+  particular order, as described in :ref:`1.8-upgrade-replica-set`.
+
+- The options to the :wiki:`MapReduce` operation have changed in 1.8,
+  causing incompatibility with previous releases. If you use MapReduce,
+  see the MapReduce
+  :wiki:`Output Options <MapReduce#MapReduce-Outputoptions>`
+  page. If you use MapReduce, this also likely means you need a recent
+  version of your client driver.
+
+Preparation
+~~~~~~~~~~~
+
+Read through all release notes before upgrading and ensure that no
+changes will affect your deployment.
+
+.. _1.8-upgrade-standalone:
+
+Upgrading a Standalone ``mongod``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. Download the v1.8.x binaries from the `MongoDB Download Page`_.
+
+#. Shutdown your :program:`mongod` instance.
+
+#. Replace the existing binary with the 1.8.x :program:`mongod` binary.
+
+#. Restart MongoDB.
+
+.. _`MongoDB Download Page`: http://downloads.mongodb.org/
+
+.. _1.8-upgrade-replica-set:
+
+Upgrading a Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~
+
+1.8.x :term:`secondaries <secondary>` **can** replicate from 1.6.x
+:term:`primaries <primary>`.
+
+1.6.x secondaries **cannot** replicate from 1.8.x primaries.
+
+Thus, the trick is to replace all of your secondaries, then the primary.
+
+For example, suppose you have a replica set with a primary, an
+:term:`arbiter` and several secondaries. To upgrade the set, do the
+following:
+
+1. For the :term:`arbiter`:
+
+   a. Shut down the arbiter.
+
+   #. Restart it with the 1.8.x binary.
+
+#. Change your config (optional) to prevent election of a new :term:`primary`.
+
+   It is possible that, when you start shutting down members of the set,
+   a new primary will be elected. To prevent this, you can give
+   all of the :term:`secondaries <secondary>` a priority of ``0`` before
+   upgrading, and then change them back afterwards. To do so:
+
+   a. Record your current config. Run :method:`rs.config()` and paste the
+      results into a text file.
+
+   #. Update your config so that all secondaries have
+      priority ``0``. For example:
+
+      .. code-block:: javascript
+
+         config = rs.conf()
+         {
+              "_id" : "foo",
+              "version" : 3,
+              "members" : [
+                      {
+                              "_id" : 0,
+                              "host" : "ubuntu:27017"
+                      },
+                      {
+                              "_id" : 1,
+                              "host" : "ubuntu:27018"
+                      },
+                      {
+                              "_id" : 2,
+                              "host" : "ubuntu:27019",
+                              "arbiterOnly" : true
+                      }
+                      {
+                              "_id" : 3,
+                              "host" : "ubuntu:27020"
+                      },
+                      {
+                              "_id" : 4,
+                              "host" : "ubuntu:27021"
+                      },
+              ]
+         }
+         config.version++
+         3
+         rs.isMaster()
+         {
+              "setName" : "foo",
+              "ismaster" : false,
+              "secondary" : true,
+              "hosts" : [
+                      "ubuntu:27017",
+                      "ubuntu:27018"
+              ],
+              "arbiters" : [
+                      "ubuntu:27019"
+              ],
+              "primary" : "ubuntu:27018",
+              "ok" : 1
+         }
+         // for each secondary
+         config.members[0].priority = 0
+         config.members[3].priority = 0
+         config.members[4].priority = 0
+         rs.reconfig(config)
+
+#. For each secondary:
+
+   a. Shut down the secondary.
+
+   #. Restart it with the 1.8.x binary.
+
+#. If you changed the config, change it back to its original state
+
+   .. code-block:: javascript
+
+      config = rs.conf()
+      config.version++
+      config.members[0].priority = 1
+      config.members[3].priority = 1
+      config.members[4].priority = 1
+      rs.reconfig(config)
+
+#. Shut down the primary (the final 1.6 server) and restart it with the
+   1.8.x binary.
+
+.. _1.8-upgrade-shard-cluster:
+
+Upgrading a Shard Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. Turn off the balancer:
+
+   .. code-block:: javascript
+
+      mongo <a_mongos_hostname>
+      use config
+      db.settings.update({_id:"balancer"},{$set : {stopped:true}}, true)
+
+#. For each shard:
+
+   - If the shard is a :term:`replica set`, follow the directions above for
+     :ref:`1.8-upgrade-replica-set`.
+
+   - If the shard is a single :program:`mongod` process, shut it down
+     and then restart it with the 1.8.x binary.
+
+#. For each :program:`mongos`:
+
+   a. Shut down the :program:`mongos` process.
+
+   #. Restart it with the 1.8.x binary.
+
+#. For each config server:
+
+   a. Shut down the config server process.
+
+   #. Restart it with the 1.8.x binary.
+
+#. Turn on the balancer:
+
+   .. code-block:: javascript
+
+      use config
+      db.settings.update({_id:"balancer"},{$set : {stopped:false}})
+
+Returning to 1.6
+~~~~~~~~~~~~~~~~
+
+If for any reason you must move back to 1.6, follow the steps above in
+reverse. Please be careful that you have not inserted any documents
+larger than 4MB while running on 1.8 (where the max size has increased
+to 16MB). If you have you will get errors when the server tries to read
+those documents.
+
+Journaling
+``````````
+
+Returning to 1.6 after using 1.8 journaling works fine, as journaling
+does not change anything about the data file format. Suppose you are
+running 1.8.x with journaling enabled and something isn't working for
+you, so you decide to switch back to 1.6. There are two scenarios:
+
+- If you shut down cleanly with 1.8.x, just restart with the 1.6 mongod
+  binary.
+
+- If 1.8.x shut down uncleanly, start 1.8.x up again and let the journal
+  files run to fix any damage (incomplete writes) that may have existed
+  at the crash. Then shut down 1.8.x cleanly and restart with the 1.6
+  mongod binary.
+
+Changes
+-------
+
+Journaling
+~~~~~~~~~~
+
+MongoDB now supports write-ahead journaling to facilitate fast crash
+recovery and durability in the storage engine. With journaling enabled,
+a :program:`mongod` can be quickly restarted following a crash without
+needing to repair the collections. The aggregation framework makes it
+possible to do aggregation
+
+See the :wiki:`Journaling` documentation.
+
+Sparse and Covered Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Sparse Indexes are indexes that only include documents that contain the
+fields specified in the index. Documents missing the field will not
+appear in the index at all. This can significantly reduce index size for
+attributes that are contained in a subset of documents within a
+collection.
+
+Covered Indexes enable queries to be answered entirely from the index
+when the query only requests fields that are contained in the index.
+
+See the :wiki:`Sparse Index <Indexes#Indexes-sparse%3Atrue>` and
+:wiki:`Covered Index <Retrieving+a+Subset+of+Fields#RetrievingaSubsetofFields-CoveredIndexes>`
+documentation.
+
+Incremental MapReduce Support
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MapReduce supports new output options that enable incrementally
+updating existing collections. Previously, a MapReduce job could output
+either to a temporary collection or to a named permanent collection,
+which it would overwrite with new data.
+
+You now have several options for the output of your MapReduce jobs:
+
+- You can merge MapReduce output into an existing collection. Output
+  from the Reduce phase will replace existing keys in the output
+  collection if it already exists. Other keys will remain in the
+  collection.
+
+- You can now re-reduce your output with the contents of an existing
+  collection. Each key output by the reduce phase will be reduced with
+  the existing document in the output collection.
+
+- You can replace the existing output collection with the new results of
+  the MapReduce job (equivalent to setting a permanent output
+  collection in previous releases)
+
+- You can compute MapReduce inline and return results to the caller
+  without persisting the results of the job. This is similar to the
+  temporary collections generated in previous releases, except results
+  are limited to 8MB.
+
+For more information on the MapReduce options,
+see :wiki:`Output Options<MapReduce#MapReduce-Outputoptions>`.
+
+Additional Changes and Enhancements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1.8.1
+`````
+
+- sharding migrate fix when moving larger chunks
+- durability fix with background indexing
+- fixed mongos concurrency issue with many incoming connections
+
+1.8.0
+`````
+
+- All changes from 1.7.x series.
+
+1.7.6
+`````
+
+- bug fixes
+
+1.7.5
+`````
+- journaling
+- extent allocation improvements
+- improved replica set connectivity for mongos
+- getLastError improvements for sharding
+
+1.7.4
+`````
+
+- mongos will route SLAVE_OK queries to secondaries in replica sets
+- new MapReduce output options
+- sparse indexes
+
+1.7.3
+`````
+
+- initial covered index support
+- distinct can use data from indexes when possible
+- MapReduce can merge or reduce results into an existing collection
+- mongod tracks and mongostat displays network usage
+- sharding stability improvements
+
+1.7.2
+`````
+
+- $rename operator to allow renaming of attributes in a document
+- option to db.eval not to block
+- geo queries with sharding
+- mongostat --discover option
+- chunk splitting enhancements
+- replica sets network enhancements for servers behind a nat
+
+1.7.1
+`````
+
+- Many sharding performance enhancements
+- better support for $elemMatch on primitives in embedded arrays
+- Query optimizer enhancements on range queries
+- Window service enhancements
+- Replica set setup improvements
+- $pull works on primitives in arrays
+
+1.7.0
+`````
+
+- sharding performance improvements for heavy insert loads
+- slave delay support for replica sets
+- getLastErrorDefaults for replica sets
+- auto completion in the shell
+- spherical distance for geo search
+- all fixes from 1.6.1 and 1.6.2
+
+Release Announcement Forum Pages
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- 1.8.1, 1.8.0
+- 1.7.6, 1.7.5, 1.7.4, 1.7.3, 1.7.2, 1.7.1, 1.7.0
+
+Resources
+---------
+
+- `MongoDB Downloads <http://mongodb.org/downloads>`_
+- `All JIRA Issues resolved in 1.8 <https://jira.mongodb.org/secure/IssueNavigator.jspa?mode=hide&requestId=10172>`_
