@@ -14,32 +14,80 @@ $or
 
    *Syntax*: ``{ $or: [ { <expression1> }, { <expression2> }, ... , { <expressionN> } ] }``
 
-   :operator:`$or` performs a logical ``OR`` operation on the specified
-   array of ``<expressions>`` and selects the documents that satisfy
+   The :operator:`$or` operator performs a logical ``OR`` operation on an array of
+   *two or more* ``<expressions>`` and selects the documents that satisfy
    *at least* one of the ``<expressions>``.
-   
-   The :operator:`$or` requires at least two ``<expressions>``. In the above
-   syntax, ``N`` must be greater than or equal to 2.
 
-   **Examples**: Select all documents in ``inventory`` where:
-      - ``price`` equals ``1.99`` **and** 
-      - **(** ``qty`` is less than ``20`` **or** ``sale`` is `true` **)**.
+   For example, the following query selects all documents in ``inventory`` where:
+   
+   - ``price`` equals ``1.99`` **and** 
+   - either ``qty`` is less than ``20`` *or* ``sale`` is ``true``.
 
    .. code-block:: javascript
         
       db.inventory.find( { price:1.99, $or: [ { qty: { $lt: 20 } }, { sale: true } ] } )
 			
-      // or using the $and command
+   You could also write the same query using the explicit :operator:`$and` operator as: 
+
+   .. code-block:: javascript
 			
       db.inventory.find( { $and: [ {price:1.99}, { $or: [ { qty: { $lt: 20 } }, { sale: true } ] } ] } )
 
-   **Example**: Update a single document in ``inventory`` where 
+   Additionally, you may use the :operator:`$or` operator to select
+   fields from embedded documents.
+   
+   For example, the following query updates a single document in
+   ``inventory`` where:
+   
       - ``price`` equals ``1.99`` **or** 
-      - ``qty`` is less than ``20``.
+      - ``carrier.state`` equals ``NY``.
 
    .. code-block:: javascript
  
-      db.inventory.update( { $or: [ { price: 1.99 }, { qty: { $lt: 20 } } ] }, { $set: { qty: 15 } } )
+      db.inventory.update( { $or: [ { price:10.99 }, { "carrier.state": "NY"} ] }, { $set: { sale: true } } )
+   
+   When using :operator:`$or` with ``<expressions>`` that are
+   equality checks for the **same** key, using :operator:`$in` is
+   preferred over :operator:`$or`.  
+   
+   For example, to select all documents in ``inventory`` where: 
+   
+   - either ``price`` equals ``1.99`` *or* ``sale`` is ``true``, **and**
+   - either ``qty`` equals ``20`` *or*  ``qty`` equals ``50``,
+   
+   the most effective query would be:
+   
+   .. code-block:: javascript
+  
+      db.inventory.find ( { $or: [ { price: 1.99 }, { sale: true } ], qty: { $in: [20, 50] } } )
 
-   See also :method:`find() <db.collection.find()>`, :method:`update()
-   <db.collection.update()>`, :operator:`$set`, :operator:`$and`.
+   Consider the following behaviors when using the :operator:`$or`
+   operator:
+   
+   - When using indexes with :operator:`$or` queries, remember that
+     each clause of an :operator:`$or` query will execute in parallel.
+     These clauses can each use their own index. This means that for
+     the query:
+
+      .. code-block:: javascript
+
+         db.inventory.find ( { $or: [ { price: 1.99 }, { sale: true } ] } )
+
+     you would create one index on ``price``
+     ( ``db.inventory.ensureIndex( { price: 1 } )`` ) and another index on
+     ``sale`` ( ``db.inventory.ensureIndex( { sale: 1 } )`` )
+     rather than a compound index. 
+
+   - Also, when using :operator:`$or` with :method:`sort()
+     <cursor.sort()>` in a query, the query will *not* use the indexes
+     on the :operator:`$or` fields. So, the above query:
+
+     .. code-block:: javascript
+
+        db.inventory.find ( { $or: [ { price: 1.99 }, { sale: true } ] } ).sort({item:1})
+
+     will not use the index on ``price`` nor the index on ``sale``.
+
+   .. seealso:: :method:`find() <db.collection.find()>`,
+      :method:`update() <db.collection.update()>`, :operator:`$set`,
+      :operator:`$and`, :method:`sort() <cursor.sort()>`.
