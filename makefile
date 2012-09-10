@@ -230,7 +230,7 @@ $(public-branch-output)/meta/410/index.html:$(branch-output)/dirhtml/meta/410/in
 	@echo [web]: processed error page '$@'
 
 
-LINKS = $(public-branch-output)/reference/reIndex $(public-branch-output)/tutorials $(public-branch-output)/reference/methods 
+LINKS = $(public-branch-output)/reference/reIndex $(public-branch-output)/tutorials $(public-branch-output)/reference/methods
 .PHONY: links $(LINKS)
 links: $(LINKS)
 
@@ -257,30 +257,34 @@ clean-all:
 
 .PHONY: html dirhtml singlehtml epub sitemap
 html:
+
+	@echo [html]: build starting at `date`.
 	@mkdir -p $(branch-output)/html
-	@echo [build]: created $(branch-output)/html
+	@echo [html]: created $(branch-output)/html
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(branch-output)/html
-	@echo [HTML]: build complete.
+	@echo [html]: build complete at `date`.
 dirhtml:
+	@echo [dirhtml]: build starting at `date`.
 	@mkdir -p $(branch-output)/dirhtml
-	@echo [build]: created $(branch-output)/dirhtml
+	@echo [dirhtml]: created $(branch-output)/dirhtml
 	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(branch-output)/dirhtml
-	@echo [DIR-HTML]: build complete.
+	@echo [dirhtml]: build complete at `date`.
 singlehtml:
+	@echo [singlehtml]: build started at `date`.
 	@mkdir -p $(branch-output)/singlehtml
-	@echo [build]: created $(branch-output)/singlehtml
+	@echo [singlehtml]: created $(branch-output)/singlehtml
 	$(SPHINXBUILD) -b singlehtml $(ALLSPHINXOPTS) $(branch-output)/singlehtml
-	@echo [SINGLE-HTML]: build complete.
+	@echo [singlehtml]: build complete at `date`.
 
 epub-command = $(SPHINXBUILD) -b epub $(ALLSPHINXOPTS) $(branch-output)/epub
 epub-filter = sed $(SED_ARGS_REGEX) -e '/^WARNING: unknown mimetype.*ignoring$$/d' -e '/^WARNING: search index.*incomplete.$$/d'
 epub:
+	@echo [epub]: starting epub build at `date`.
 	@mkdir -p $(branch-output)/epub
-	@echo [build]: created $(branch-output)/epub
-	@echo [EPUB]: starting epub build.
+	@echo [epub]: created $(branch-output)/epub
 	@echo $(epub-command)
 	@{ $(epub-command) 2>&1 1>&3 | $(epub-filter) 1>&2; } 3>&1
-	@echo [EPUB]: Build complete.
+	@echo [epub]: build complete at `date`.
 
 ######################################################################
 #
@@ -299,11 +303,11 @@ $(branch-output)/sitemap.xml.gz:$(branch-output)/dirhtml
 SITEMAPBUILD = $(PYTHONBIN) bin/sitemap_gen.py
 sitemap:$(branch-output)/sitemap.xml.gz
 $(branch-output)/sitemap.xml.gz:$(public-output)/manual
-	@echo [SITEMAP]: starting sitemap build at `date`.
-	@echo [SITEMAP]: build time\: `date` >> $(branch-output)/sitemap-build.log
+	@echo [sitemap]: starting sitemap build at `date`.
+	@echo [sitemap]: build time\: `date` >> $(branch-output)/sitemap-build.log
 	@$(SITEMAPBUILD) --testing --config=conf-sitemap.xml 2>&1 >> $(branch-output)/sitemap-build.log
 	@mv build/sitemap.xml.gz $@
-	@echo [SITEMAP]: sitemap built at `date`.
+	@echo [sitemap]: sitemap built at `date`.
 
 
 ######################################################################
@@ -317,10 +321,11 @@ UNCOMPRESSED_MAN := $(wildcard $(branch-output)/man/*.1)
 COMPRESSED_MAN := $(subst .1,.1.gz,$(UNCOMPRESSED_MAN))
 
 man:
+	@echo [man]: starting man build at `date`.
 	@mkdir -p $(branch-output)/man
 	@echo [build]: created $(branch-output)/man
 	$(SPHINXBUILD) -b man $(ALLSPHINXOPTS) $(branch-output)/man
-	@echo [MAN]: build complete.
+	@echo [man]: build complete at `date`.
 
 # Targets to build compressed man pages.
 build-man: man $(COMPRESSED_MAN)
@@ -338,15 +343,18 @@ $(branch-output)/man/%.1.gz: $(branch-output)/man/%.1
 aspiration:draft
 aspirational:draft
 draft:
+	@echo [draft]: draft-html started at `date`.
 	@mkdir -p $(branch-output)/draft
-	@echo [build]: created $(branch-output)/draft
+	@echo [draft]: created $(branch-output)/draft
 	$(SPHINXBUILD) -b html $(DRAFTSPHINXOPTS) $(branch-output)/draft
-	@echo [DRAFT]: HTML build finished.
+	@echo [draft]: draft-html build finished at `date`.
 draft-latex:
+	@echo [draft]: draft-latex build started at `date`.
 	@mkdir -p $(branch-output)/draft-latex
-	@echo [build]: created $(branch-output)/draft-latex
+	@echo [draft]: created $(branch-output)/draft-latex
 	$(SPHINXBUILD) -b latex $(DRAFTSPHINXOPTS) $(branch-output)/draft-latex
-	@echo [DRAFT]: LaTeX build finished.
+	@echo [draft]: draft-latex build finished at `date`.
+
 draft-pdf:$(subst .tex,.pdf,$(wildcard $(branch-output)/draft-latex/*.tex))
 draft-pdfs:draft-latex draft-pdf
 
@@ -359,25 +367,29 @@ draft-pdfs:draft-latex draft-pdf
 
 .PHONY: changes linkcheck json doctest
 json:
+	@echo [json]: build started at `date`.
 	@mkdir -p $(branch-output)/json
-	@echo [build]: created $(branch-output)/json
+	@echo [json]: created $(branch-output)/json
 	$(SPHINXBUILD) -b json $(ALLSPHINXOPTS) $(branch-output)/json
-	@echo [JSON]: build finished.
+	@echo [json]: build finished at `date`.
 changes:
+	@echo [changes]: build started at `date`.
 	@mkdir -p $(branch-output)/changes
-	@echo [build]: created $(branch-output)/changes
+	@echo [changes]: created $(branch-output)/changes
 	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) $(branch-output)/changes
-	@echo [CHANGES]: build finished.
+	@echo [changes]: build finished at `date`.
 linkcheck:
+	@echo [link]: build started at `date`.
 	@mkdir -p $(branch-output)/linkcheck
-	@echo [build]: created $(branch-output)/linkcheck
+	@echo [link]: created $(branch-output)/linkcheck
 	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) $(branch-output)/linkcheck
-	@echo [LINK]: Link check complete. See $(branch-output)/linkcheck/output.txt.
+	@echo [link]: Link check complete at `date`. See $(branch-output)/linkcheck/output.txt.
 doctest:
+	@echo [test]: build started at `date`.
 	@mkdir -p $(branch-output)/doctest
-	@echo [build]: created $(branch-output)/doctest
+	@echo [test]: created $(branch-output)/doctest
 	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(branch-output)/doctest
-	@echo [TEST]: doctest complete.
+	@echo [test]: doctest complete at `date`.
 
 ######################################################################
 #
@@ -388,33 +400,36 @@ doctest:
 .PHONY:pdfs latex latexpdf
 
 latex:
+	@echo [latex]: starting TeX file generation at `date`.
 	@mkdir -p $(branch-output)/latex
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(branch-output)/latex
-	@echo [latex]: TeX file generated.
+	@echo [latex]: TeX file generated at `date`.
 latexpdf:latex
 	$(MAKE) -C $(branch-output)/latex all-pdf
-	@echo [PDF]: build complete.
+	@echo [pdf]: build complete.
 
 LATEX_CORRECTION = "s/(index|bfcode)\{(.*!*)*--(.*)\}/\1\{\2-\{-\}\3\}/g"
 
 $(branch-output)/latex/%.tex:
 	@sed $(SED_ARGS_FILE) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) $@
-	@echo [build]: fixing '$@' TeX from the Sphinx output
+	@echo [latex]: fixing '$@' TeX from the Sphinx output
 
 pdfs:$(subst .tex,.pdf,$(wildcard $(branch-output)/latex/*.tex))
 
 PDFLATEXCOMMAND = TEXINPUTS=".:$(branch-output)/latex/:" pdflatex --interaction batchmode --output-directory $(branch-output)/latex/
 
 %.pdf:%.tex
+	@echo [pdf]: pdf compilation started at `date`.
 	@$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<' >|$@.log
-	@echo [PDF]: \(1/4\) pdflatex $<
+	@echo [pdf]: \(1/4\) pdflatex $<
 	@-makeindex -s $(branch-output)/latex/python.ist '$(basename $<).idx' >>$@.log 2>&1
-	@echo [PDF]: \(2/4\) Indexing: $(basename $<).idx
+	@echo [pdf]: \(2/4\) Indexing: $(basename $<).idx
 	@$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<' >>$@.log
-	@echo [PDF]: \(3/4\) pdflatex $<
+	@echo [pdf]: \(3/4\) pdflatex $<
 	@$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<' >>$@.log
-	@echo [PDF]: \(4/4\) pdflatex $<
-	@echo [PDF]: see '$@.log' for a full report of the pdf build process.
+	@echo [pdf]: \(4/4\) pdflatex $<
+	@echo [pdf]: see '$@.log' for a full report of the pdf build process.
+	@echo [pdf]: pdf compilation complete at `date`.
 
 ##########################################################################
 #
