@@ -79,10 +79,10 @@ push-all:publish
 
 publish-if-up-to-date:
 	@bin/published-build-check $(current-branch) $(last-commit)
-	$(MAKE) publish
+	$(MAKE) publish 
 
 publish:initial-dependencies
-	$(MAKE) sphinx-components static-components
+	$(MAKE) sphinx-components static-components links
 	@echo [build]: $(manual-branch) branch is succeessfully deployed to '$(public-output)'.
 
 #
@@ -110,14 +110,16 @@ endif
 
 # Deployment targets to kick off the rest of the build process. Only
 # access these targets through the ``publish`` target.
-.PHONY: initial-dependencies static-components sphinx-components
+.PHONY: initial-dependencies static-components sphinx-components links
 
 initial-dependencies:source/about.txt $(public-branch-output)/MongoDB-Manual.epub
 	@echo [build]: running the publication routine for the $(manual-branch) branch of the Manual.
-static-components:$(public-output)/index.html $(public-output)/10gen-gpg-key.asc $(public-branch-output)/tutorials $(public-branch-output)/reference/methods $(public-branch-output)/.htaccess $(public-branch-output)/release.txt $(public-output)/osd.xml
+static-components:$(public-output)/index.html $(public-output)/10gen-gpg-key.asc $(public-branch-output)/.htaccess $(public-branch-output)/release.txt $(public-output)/osd.xml 
 	@echo [build]: building and migrating all non-Sphinx components of the build.
 sphinx-components:$(public-branch-output)/ $(public-branch-output)/sitemap.xml.gz $(public-branch-output)/MongoDB-Manual.pdf $(public-branch-output)/single $(public-branch-output)/single/index.html
 	@echo [build]: running the publication routine for all Sphinx Components of the Manual Build.
+
+links: $(public-branch-output)/reference/reIndex $(public-branch-output)/tutorials $(public-branch-output)/reference/methods 
 
 #
 # Build the HTML components of the build.
@@ -212,6 +214,8 @@ $(public-branch-output)/tutorials:
 	@bin/create-link tutorial $(notdir $@) $@
 $(public-branch-output)/reference/methods:
 	@bin/create-link method $(notdir $@) $@
+$(public-branch-output)/reference/reIndex:
+	@bin/create-link db.collection.reIndex $(notdir $@) $@
 
 # Clean up/removal targets.
 clean:
