@@ -82,7 +82,8 @@ publish-if-up-to-date:
 	$(MAKE) publish 
 
 publish:initial-dependencies
-	$(MAKE) sphinx-components static-components links
+	$(MAKE) sphinx-components
+	$(MAKE) static-components post-processing
 	@echo [build]: $(manual-branch) branch is succeessfully deployed to '$(public-output)'.
 
 #
@@ -110,16 +111,16 @@ endif
 
 # Deployment targets to kick off the rest of the build process. Only
 # access these targets through the ``publish`` target.
-.PHONY: initial-dependencies static-components sphinx-components links
+.PHONY: initial-dependencies static-components sphinx-components post-processing
 
 initial-dependencies:source/about.txt $(public-branch-output)/MongoDB-Manual.epub
-	@echo [build]: running the publication routine for the $(manual-branch) branch of the Manual.
+	@echo [build]: completed the pre-publication routine for the $(manual-branch) branch of the Manual.
 static-components:$(public-output)/index.html $(public-output)/10gen-gpg-key.asc $(public-branch-output)/.htaccess $(public-branch-output)/release.txt $(public-output)/osd.xml 
-	@echo [build]: building and migrating all non-Sphinx components of the build.
+	@echo [build]: completed building and migrating all non-Sphinx components of the build.
+post-processing:error-pages links
+	@echo [build]: completed all post processing steps.
 sphinx-components:$(public-branch-output)/ $(public-branch-output)/sitemap.xml.gz $(public-branch-output)/MongoDB-Manual.pdf $(public-branch-output)/single $(public-branch-output)/single/index.html
-	@echo [build]: running the publication routine for all Sphinx Components of the Manual Build.
-
-links: $(public-branch-output)/reference/reIndex $(public-branch-output)/tutorials $(public-branch-output)/reference/methods 
+	@echo [build]: completed the publication routine for all Sphinx Components of the Manual Build.
 
 #
 # Build the HTML components of the build.
@@ -210,6 +211,29 @@ $(public-output)/osd.xml:themes/docs.mongodb.org/osd.xml
 	@cp $< $@
 	@echo [build]: migrated $@
 
+
+ERROR_PAGES = $(public-branch-output)/meta/401/index.html $(public-branch-output)/meta/403/index.html $(public-branch-output)/meta/404/index.html $(public-branch-output)/meta/410/index.html
+.PHONY: error-pages $(ERROR_PAGES)
+error-pages: $(ERROR_PAGES)
+
+$(public-branch-output)/meta/401/index.html:$(branch-output)/dirhtml/meta/401/index.html
+	@sed $(SED_ARGS_FILE) "s@\.\./\.\./@http://docs.mongodb.org/manual/@" $@
+	@echo [web]: processed error page '$@'
+$(public-branch-output)/meta/403/index.html:$(branch-output)/dirhtml/meta/403/index.html
+	@sed $(SED_ARGS_FILE) "s@\.\./\.\./@http://docs.mongodb.org/manual/@" $@
+	@echo [web]: processed error page '$@'
+$(public-branch-output)/meta/404/index.html:$(branch-output)/dirhtml/meta/404/index.html
+	@sed $(SED_ARGS_FILE) "s@\.\./\.\./@http://docs.mongodb.org/manual/@" $@
+	@echo [web]: processed error page '$@'
+$(public-branch-output)/meta/410/index.html:$(branch-output)/dirhtml/meta/410/index.html
+	@sed $(SED_ARGS_FILE) "s@\.\./\.\./@http://docs.mongodb.org/manual/@" $@
+	@echo [web]: processed error page '$@'
+
+
+LINKS = $(public-branch-output)/reference/reIndex $(public-branch-output)/tutorials $(public-branch-output)/reference/methods 
+.PHONY: links $(LINKS)
+links: $(LINKS)
+
 $(public-branch-output)/tutorials:
 	@bin/create-link tutorial $(notdir $@) $@
 $(public-branch-output)/reference/methods:
@@ -224,7 +248,6 @@ clean-public:
 	-rm -rf $(public-output)/*
 clean-all:
 	-rm -rf $(output)/*
-
 
 ######################################################################
 #
