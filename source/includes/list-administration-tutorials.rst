@@ -8,6 +8,7 @@
 - :doc:`tutorial/deploy-geographically-distributed-replica-set`
 - :doc:`tutorial/expand-replica-set`
 - :doc:`tutorial/change-hostnames-in-a-replica-set`
+- :doc:`tutorial/convert-secondary-into-arbiter`
 - :doc:`tutorial/recover-data-following-unexpected-shutdown`
 - :doc:`tutorial/deploy-shard-cluster`
 - :doc:`tutorial/convert-replica-set-to-replicated-shard-cluster`

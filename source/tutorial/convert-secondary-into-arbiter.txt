@@ -43,6 +43,12 @@ Procedures
 Convert a Secondary to an Arbiter and Reuse the Port Number
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+#. If your application is connecting directly to the secondary,
+   modify the application so that MongoDB queries don't reach
+   the secondary.
+
+#. Shut down the secondary.
+
 #. Remove the :term:`secondary` from the :term:`replica set` by calling
    the :method:`rs.remove()` method. Perform this operation while connected to the current
    :term:`primary` in the :program:`mongo` shell:
@@ -58,8 +64,6 @@ Convert a Secondary to an Arbiter and Reuse the Port Number
 
       rs.config()
 
-#. Shut down the secondary.
-
 #. Move the secondary's data directory to an archive folder. For example:
 
    .. code-block:: sh
@@ -67,9 +71,6 @@ Convert a Secondary to an Arbiter and Reuse the Port Number
       mv /data/db /data/db-old
 
    .. optional:: You may remove the data instead.
-
-#. Modify your application so that MongoDB queries don't reach
-   the secondary.
 
 #. Create a new, empty data directory to point to when restarting the
    :program:`mongod` instance. You can reuse the previous name. For
@@ -113,13 +114,19 @@ Convert a Secondary to an Arbiter and Reuse the Port Number
 Convert a Secondary to an Arbiter Running on a New Port Number
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#. Create a new, empty data directory. For example:
+#. If your application is connecting directly to the secondary
+   or has a connection string referencing the secondary,
+   modify the application so that MongoDB queries don't reach
+   the secondary.
+
+#. Create a new, empty data directory to be used with the new port
+   number. For example:
 
    .. code-block:: sh
 
       mkdir /data/db-temp
 
-#. Start a new :program:`mongod` instance on a different port,
+#. Start a new :program:`mongod` instance on the new port number,
    specifying the new data directory and the existing replica
    set. Issue a command similar to the following:
 
@@ -128,14 +135,14 @@ Convert a Secondary to an Arbiter Running on a New Port Number
       mongod --port 27021 --dbpath /data/db-temp --replSet rs
 
 #. In the :program:`mongo` shell connected to the current primary,
-   convert the secondary to an arbiter using the :method:`rs.addArb()`
+   convert the new :program:`mongod` instance to an arbiter using the :method:`rs.addArb()`
    method:
 
    .. code-block:: javascript
 
       rs.addArb("<hostname>:<port>")
 
-#. Verify the arbiter belongs to the replica set by calling the
+#. Verify the arbiter has been added to the replica set by calling the
    :method:`rs.config()` method in the :program:`mongo` shell.
 
    .. code-block:: javascript
@@ -150,9 +157,6 @@ Convert a Secondary to an Arbiter Running on a New Port Number
 
 #. Shut down the secondary.
 
-#. If you have an application connection string referencing the old
-   secondary, remove the reference.
-
 #. Remove the :term:`secondary` from the :term:`replica set` by calling
    the :method:`rs.remove()` method in the :program:`mongo` shell:
 
@@ -160,7 +164,7 @@ Convert a Secondary to an Arbiter Running on a New Port Number
 
       rs.remove("<hostname>:<port>")
 
-#. Verify that the replica set no longer includes the secondary by
+#. Verify that the replica set no longer includes the old secondary by
    calling the :method:`rs.config()` method in the :program:`mongo` shell:
 
    .. code-block:: javascript
