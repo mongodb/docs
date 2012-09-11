@@ -7,12 +7,14 @@ Add Members to a Replica Set
 Overview
 --------
 
-This is a tutorial explaining how to add an additional node to an
+This tutorial explains how to add an additional member to an
 existing replica set.
 
-Before adding new members, note the
-:doc:`/administration/replication-architectures` documentation for
-more background on replication deployment patterns.
+Before adding a new member, see the :ref:`replica-set-admin-procedure-add-member`
+topic in the :doc:`/administration/replica-sets` document.
+
+For background on replication deployment patterns, see the
+:doc:`/administration/replication-architectures` document.
 
 Requirements
 ------------
@@ -20,25 +22,28 @@ Requirements
 #. An active replica set.
 
 #. A new MongoDB system capable of supporting your dataset, accessible by
-   the active replica set through the network. 
+   the active replica set through the network.
 
 If neither of these conditions are satisfied, please use the MongoDB
 :ref:`installation tutorial <tutorials-installation>` and the
-":doc:`/tutorial/deploy-replica-set`" guide instead.
+:doc:`/tutorial/deploy-replica-set` guide instead.
 
-Procedure
----------
+Procedures
+----------
 
-For the following procedure, examples are provided using the following
+.. _procedure-assumption-add-member-rs:
+
+The examples in this procedure use the following
 configuration:
 
-- The active replica set: ``rs0``
+- The active replica set is ``rs0``.
 
-- The new MongoDB replica set to be added: ``mongodb3.example.net``.
+- The new member to be added is ``mongodb3.example.net``.
 
-- :program:`mongod` instance running on default port: ``27017``.
+- The :program:`mongod` instance default port is ``27017``.
 
-- The ``mongodb.conf`` on the new replica set system resembling the following:
+- The ``mongodb.conf`` configuration file exists in the ``/etc``
+  directory and contains the following replica set information:
 
 .. code-block:: cfg
 
@@ -54,53 +59,105 @@ configuration:
 
    replSet = rs0
 
-For more documentation of the configuration options used above refer to:
-:setting:`dbpath`, :setting:`port`, :setting:`replSet`,
-:setting:`bind_ip`, and :setting:`fork`. Consider any additional
-:doc:`configuration options </reference/configuration-options>` that
-your deployment may require.
+For more information on configuration options, see
+:doc:`/reference/configuration-options`.
 
-#. On the primary node, Start the :program:`mongod` process with the
-   following command:
+.. _replica-set-add-member:
+
+Add a Member to an Existing Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This procedure uses the above :ref:`example configuration <procedure-assumption-add-member-rs>`.
+
+1. Deploy a new :program:`mongod` instance, specifying the name of the
+   replica set. You can do this one of two ways:
+
+   - Using the ``mongodb.conf`` file. On the :term:`primary`, issue a
+     command that resembles the following:
+
+     .. code-block:: sh
+
+        mongod --config /etc/mongodb.conf
+
+   - Using command line arguments. On the :term:`primary`, issue command
+     that resembles the following:
+
+     .. code-block:: sh
+
+        mongod --replSet rs0
+
+   Take note of the host name and port information for the new
+   :program:`mongod` instance.
+
+#. Open a :program:`mongo` shell connected to the replica set's primary:
 
    .. code-block:: sh
 
-      mongod --config /etc/mongodb.conf
+      mongo
 
-   .. note:: 
+   .. note::
 
-      The primary node is the only node which can add or remove
-      members to the replica set. If you do not know the primary
-      node, log into any of the existing members of the current
-      replica set by issuing the following command:
-
-      .. code-block:: sh
-
-         mongo mongodb0.example.net
-  
-      If this instance is not currently the :term:`primary` node, use
-      the :method:`db.isMaster()` function to determine which node is in
-      the :data:`isMaster.primary` field. Issue the following command.
+      The primary is the only member that can add or remove members from
+      the replica set. If you do not know which member is the primary,
+      log into any member of the replica set using :program:`mongo` and
+      issue the :method:`db.isMaster()` command to determine which
+      member is in the :data:`isMaster.primary` field. For example:
 
       .. code-block:: javascript
 
+         mongo mongodb0.example.net
+
          db.isMaster()
 
-      Now disconnect from the current client and reconnect to the
-      primary node.
+      If you are not connected to the primary, disconnect from the
+      current client and reconnect to the primary.
 
-#. Now issue the following command to add the new member to the
+#. In the :program:`mongo` shell, issue the following command to add the new member to the
    replica set.
 
    .. code-block:: javascript
 
       rs.add("mongodb3.example.net")
 
-Congratulations! You have successfully expanded an existing replica
-set. You can use the :method:`rs.status()` function to provide an
-overview of :doc:`replica set status </reference/replica-status>`, or
-the :method:`rs.conf()` for the complete :doc:`replica set
-configuration </reference/replica-configuration>`.
+   .. note::
+
+      You can also include the port number, depending on your setup:
+
+      .. code-block:: javascript
+
+         rs.add("mongodb3.example.net:27017")
+
+#. Verify that the member is now part of the replica set by
+   calling the :method:`rs.config()` method,
+   which displays the :doc:`replica set configuration </reference/replica-configuration>`:
+
+   .. code-block:: javascript
+
+      rs.config()
+
+   You can use the :method:`rs.status()` function to provide an
+   overview of :doc:`replica set status </reference/replica-status>`.
+
+.. _replica-set-add-member-alternate-procedure:
+
+Add a Member to an Existing Replica Set (Alternate Procedure)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Alternately, you can add a member to a replica set by specifying an
+entire configuration document with some or all of the fields in a
+:data:`members <rs.conf.members>` document. For example:
+
+.. code-block:: javascript
+
+   rs.add({_id: 1, host: "mongodb3.example.net:27017", priority: 0, hidden: true})
+
+This configures a :term:`hidden member` that is accessible at
+``mongodb3.example.net:27017``. See :data:`host <members[n].host>`,
+:data:`priority <members[n].priority>`, and :data:`hidden
+<members[n].hidden>` for more information about these settings. When you
+specify a full configuration object with :method:`rs.add()`, you must
+declare the ``_id`` field, which is not automatically populated in this
+case.
 
 Production Notes
 ----------------
