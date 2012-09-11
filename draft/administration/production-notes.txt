@@ -1,0 +1,148 @@
+================
+Production Notes
+================
+
+.. default-domain:: mongodb
+
+Overview
+--------
+
+
+Hardware
+--------
+
+MongoDB tends to run well on virtually all hardware. In fact it was
+designed specifically with commodity hardware in mind (to facilitate
+cloud computing); that said it works well on very large servers
+too. That said if you are about to buy hardware here are a few
+suggestions:
+
+- Fast CPU clock speed is helpful.
+
+- Many cores helps but does not provide a high level of marginal
+  return, so don't spend money on them. (This is both a consequence of
+  the design of the program and also that memory bandwidth can be a
+  limiter; there isn't necessarily a lot of computation happening
+  inside a database).
+
+- NUMA is not very helpful as memory access is not very localized in a
+  database. Thus non-NUMA is recommended; or configure NUMA as
+  detailed elsewhere in this document.
+
+- More RAM is good.
+
+- SSD is good. We have had good results and have seen good
+  price/performance with SATA SSDs; the (typically) more upscale PCI
+  SSDs work fine too.
+
+- Commodity (SATA) spinning drives are often a good option as the
+  speed increase for random I/O for more expensive drives is not that
+  dramatic (only on the order of 2x) – spending that money on SSDs or
+  RAM may be more effective.
+
+Solid State Disks
+~~~~~~~~~~~~~~~~~
+
+Redundant Array of Independent Disks
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Typically we recommend using RAID-10.
+   .. TODO define (or link to appropriate article defining all RAID types.
+
+RAID-5 and RAID-6 can be slow, and are not suggested.
+
+RAID-0 will provide good write performance but provides limited
+availability, and reduced performance on reads (particularly on
+EBS). It is not suggested.
+
+See also the ec2 page for comments on EBS striping.
+
+Remote File Systems
+~~~~~~~~~~~~~~~~~~~
+
+We have found that some versions of NFS perform very poorly and do not
+recommend using NFS. See the NFS page for more information.
+   .. TODO link to NFS page
+
+Amazon elastic block store (EBS) seems to work well up to its
+intrinsic performance characteristics, when configured well.
+
+
+Operating System
+----------------
+
+Linux
+~~~~~
+
+- Linux Kernel Versions
+
+   - 2.6.36 is given a thumbs up by the community.
+        .. TODO reword.
+
+   - Some have reported skepticism on behavior of Linux 2.6.33-31 and
+     2.6.32 kernel, at least on Amazon EC2.
+
+   - For those running databases on ext4 filesystems, a 2.6.23 kernel
+     is required for efficient filesystem preallocation
+
+   - 2.6.25 is
+     required for XFS support of the same feature. High filesystem I/O
+     following the allocation of new database files is one symptom of
+     this problem.
+        .. TODO do we have any of the above terms?
+
+- Turn off ``atime`` for the storage volume with the :term:`database
+  files <dbpath>`.
+
+- Set file descriptor limit and user process limit to 20,000 (see
+  :ref:`etc/limits` and :term:`ulimit`).
+     .. TODO do we have these terms/sections in the manual?
+
+- Do not use large virtual memory pages.
+
+- Use ``dmesg`` to see if your system is behaving strangely
+
+- Try to disable NUMA in your BIOS. If that is not possible see NUMA.
+     .. TODO link to NUMA section when we have it.
+
+- Ensure that readahead settings for the block devices that store the
+  dbpath are acceptable. See the Readahead section
+     .. TODO link to readahead section
+
+- Use NTP to minimize clock skew between your hosts; linux distros
+  usually include this by default, but check and install the ntpd
+  package if it isn't already installed and configured.
+     .. TODO link to ntp?
+
+Backups
+-------
+
+To make backups, please refer to the :ref:`backups section <>`
+
+Port Numbers
+------------
+
+.. list-table:: Default ports used by MongoDB
+   :header-rows: 1
+
+   * - Description
+     - Process
+     - Port Number
+   * - Standalone MongoDB server
+     - mongod
+     - 27017
+   * - Shard router
+     - mongos
+     - 27017
+   * - Shard Server
+     - mongod --shardsvr
+     - 27018
+   * - Config Server
+     - mongod --configsvr
+     - 27019
+   * - mongod Web Stat
+     - mongod
+     - 28107
+
+For firewall rules, see security & authentication section.
+.. TODO link to appropriate section (or include inline?)
