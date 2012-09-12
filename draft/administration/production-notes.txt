@@ -194,8 +194,6 @@ To turn off NUMA for MongoDB, use the ``numactl`` command and start
 
       numactl --interleave=all /usr/bin/local/mongod
 
-      .. TODO is /usr/bin/local/mongod the default install location?
-
 Adjust the ``proc`` settings using the following command:
 
    .. code-block:: bash
@@ -203,8 +201,8 @@ Adjust the ``proc`` settings using the following command:
       echo 0 > /proc/sys/vm/zone_reclaim_mode
 
 You can change ``zone_reclaim_mode`` without restarting mongod. For
-more information on this setting see:
-`http://www.kernel.org/doc/Documentation/sysctl/vm.txt`_.
+more information, see documentation on `Proc/sys/vm
+<http://www.kernel.org/doc/Documentation/sysctl/vm.txt>`_.
 
 .. TODO the following is needed? or is just generally good reading material?
 
@@ -288,7 +286,7 @@ If readahead is too high OR too low it can cause excessive page
 faulting and increased disk utilization.
 
 The Best Readahead Value
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 What the right value of readahead is depends on your storage device,
 the size of your documents, and your access patterns.
@@ -399,9 +397,160 @@ suggestions:
   RAM may be more effective.
 
 Solid State Disks
-~~~~~~~~~~~~~~~~~
+-----------------
 
+Multiple MongoDB users have reported good success running MongoDB
+databases on solid state drives.
 
+Write Endurance
+~~~~~~~~~~~~~~~
+
+Write endurance with solid state drives vary. SLC drives have higher
+endurance but newer generation MLC (and eMLC) drives are getting
+better.
+
+As an example, the MLC Intel 320 drives specify endurance of 20GB/day
+of writes for five years. If you are doing small or medium size random
+reads and writes this is sufficient. The Intel 710 series is the
+enterprise-class models and have higher endurance.
+
+If you intend to write a full drive's worth of data writing per day
+(and every day for a long time), this level of endurance would be
+insufficient. For large sequential operations (for example very large
+map/reduces), one could write far more than 20GB/day. Traditional hard
+drives are quite good at sequential I/O and thus may be better for
+that use case.
+
+.. seealso:: `SSD lifespan <http://maxschireson.com/2011/04/21/debunking-ssd-lifespan-and-random-write-performance-concerns/>`_
+
+Reserve some unpartitioned space
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some users report good results when leaving 20% of their drives
+completely unpartitioned. In this situation the drive knows it can use
+that space as working space. Note formatted but empty space may or may
+not be available to the drive depending on TRIM support which is often
+lacking.
+
+smartctl
+~~~~~~~~
+
+On some devices, "smartctl -A" will show you the
+Media_Wearout_Indicator.
+
+.. code-block:: bash
+
+   $ sudo smartctl -A /dev/sda | grep Wearout
+   233 Media_Wearout_Indicator 0x0032   099   099   000    Old_age   Always       -       0
+
+Speed
+~~~~~
+
+A `paper <http://portal.acm.org/citation.cfm?id=1837922>`_ in ACM
+Transactions on Storage (Sep2010) listed the following results for
+measured 4KB peak random direct IO for some popular devices:
+
+.. list-table:: SSD Read and Write Performance
+   :header-rows: 1
+
+   * - Device
+     - Read IOPS
+     - Write IOPS
+   * - Intel X25-E
+     - 33,400
+     - 3,120
+   * - FusionIO ioDrive
+     - 98,800
+     - 75,100
+
+Intel's larger drives seem to have higher write IOPS than the smaller
+ones (up to 23,000 claimed for the 320 series). More info here.
+
+Real-world results should be lower, but the numbers are still impressive.
+
+Reliability
+~~~~~~~~~~~
+
+Some manufacturers specify relability stats indicating failure rates
+of approximately 0.6% per year. This is better than traditional drives
+(2% per year failure rate or higher), but still quite high and thus
+mirroring will be important. (And of course manufacture specs could be
+optimistic.)
+
+Random reads vs. random writes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Random access I/O is the sweet spot for SSD. Historically random reads
+on SSD drives have been much faster than random writes. That said,
+random writes are still an order of magnitude faster than spinning
+disks.
+
+Recently new drives have released that have much higher random write
+performance. For example the Intel 320 series, particular the larger
+capacity drives, has much higher random write performance than the
+older Intel X25 series drives.
+
+PCI vs. SATA
+~~~~~~~~~~~~
+
+SSD is available both as PCI cards and SATA drives. PCI is oriented
+towards the high end of products on the market.
+
+Some SATA SSD drives now support 6Gbps sata transfer rates, yet at the
+time of this writing many controllers shipped with servers are
+3Gbps. For random IO oriented applications this is likely sufficient,
+but worth considering regardless.
+
+RAM vs. SSD
+~~~~~~~~~~~
+
+Even though SSDs are fast, RAM is still faster. Thus for the highest
+performance possible, having enough RAM to contain the working set of
+data from the database is optimal. However, it is common to have a
+request rate that is easily met by the speed of random IO's with SSDs,
+and SSD cost per byte is lower than RAM (and persistent too).
+
+A system with less RAM and SSDs will likely outperform a system with
+more RAM and spinning disks. For example a system with SSD drives and
+64GB RAM will often outperform a system with 128GB RAM and spinning
+disks. (Results will vary by use case of course.)
+
+.. TODO this is basically a 'soft page fault'
+
+One helpful characteristic of SSDs is they can facilitate fast
+"preheat" of RAM on a hardware restart. On a restart a system's RAM
+file system cache must be repopulated. On a box with 64GB RAM or more,
+this can take a considerable amount of time – for example six minutes
+at 100MB/sec, and much longer when the requests are random IO to
+spinning disks.
+
+FlashCache
+~~~~~~~~~~
+
+FlashCache is a write back block cache for Linux. It was created by
+Facebook. Installation is a bit of work as you have to build and
+install a kernel module. Sep2011: If you use this please report
+results in the mongo forum as it's new and everyone will be curious
+how well it works.
+
+http://www.facebook.com/note.php?note_id=388112370932
+
+OS scheduler
+~~~~~~~~~~~~
+
+One user reports good results with the noop IO scheduler under certain
+configurations of their system. As always caution is recommended on
+nonstandard configurations as such configurations never get as much
+testing...
+
+Run mongoperf
+~~~~~~~~~~~~~
+
+mongoperf is a disk performance stress utility. It is not part of the
+mongo database, simply a disk exercising program. We recommend testing
+your SSD setup with mongoperf. Note that the random writes it are a
+worst case scenario, and in many cases MongoDB can do writes that are
+much larger.
 
 Redundant Array of Independent Disks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -420,9 +569,8 @@ See also the ec2 page for comments on EBS striping.
 Remote File Systems
 ~~~~~~~~~~~~~~~~~~~
 
-We have found that some versions of NFS perform very poorly and do not
-recommend using NFS. See the NFS page for more information.
-   .. TODO link to NFS page
-
 Amazon elastic block store (EBS) seems to work well up to its
 intrinsic performance characteristics, when configured well.
+
+We have found that some versions of NFS perform very poorly and do not
+recommend using NFS with MongoDB.
