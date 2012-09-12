@@ -219,6 +219,62 @@ incompatible with production databases.
 
 .. _production-readahead:
 
+Virtualization
+--------------
+
+Generally MongoDB works very well in virtualized environments, with
+the exception of OpenVZ.
+
+EC2
+~~~
+Compatible. No special configuration requirements.
+
+VMWare
+~~~~~~
+
+Some suggest not using overcommit as they may cause issues. Otherwise compatible.
+
+Cloning a VM is possible. For example you might use this to spin up a
+new virtual host that will be added as a member of a replica set. If
+Journaling is enabled, the clone snapshot will be consistent. If not
+using journaling, stop mongod, clone, and then restart.
+
+OpenVZ
+~~~~~~
+
+Issues have been reported here.
+
+iostat
+------
+
+On Linux, use the iostat command to check if disk I/O is a bottleneck
+for your database.
+
+We generally find the form:
+
+.. code-block:: bash
+
+   iostat -xm 2
+
+to work well. (Use a number of seconds with iostat, otherwise it will
+display stats since server boot, which is not very useful.)
+
+Use the mount command to see what device your :term:`data directory
+<dbpath` resides on.
+
+Key fields from ``iostat``:
+
+- %util: this is the most useful field for a quick check, it
+  indicates what percent of the time the device/drive is in use. If
+  the number if near 100%, your server may be physical disk I/O
+  bound. (There are some volume situations where this statistic
+  overstates, but most often it is correct.)
+
+- avgrq-sz: average request size. The smaller this number, the more
+  random your IO operations are. This is in sectors : typically
+  sectors are 512 bytes, so multiply by 0.5 to see average request
+  size in kilobytes.
+
 Hard Drive Readahead
 --------------------
 
