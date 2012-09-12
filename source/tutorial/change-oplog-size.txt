@@ -4,15 +4,19 @@ Change the Size of the Oplog
 
 .. default-domain:: mongodb
 
-The :term:`oplog`, which supports :term:`replication`, by creating an
-:term:`idempotent` operation log that :term:`secondary` members can
-use to reproduce all write operations is a :term:`capped
+The :term:`oplog` supports :term:`replication` by creating an
+:term:`idempotent` operation log that :term:`secondary` members
+use to reproduce all write operations. The oplog is a :term:`capped
 collection`. While the default sizing for the oplog is big enough to
-support most usage patterns there are cases that require a differently
+support most usage patterns, there are cases that require a differently
 sized oplog.
 
 This guide describes the process for changing the size if the default
 size is too big or too small for the needs of your deployment.
+
+Because the oplog is a :term:`capped collection` once you have
+created an oplog, you cannot modify its size except by using the
+procedure outlined in this document.
 
 Background
 ----------
@@ -20,21 +24,18 @@ Background
 Most :term:`replica set` deployments will never need to modify the
 oplog size. In most cases the :ref:`default oplog size
 <replica-set-oplog-sizing>` is an acceptable size. If an oplog of this
-size fills up in an hour, for instance, the disk will be full in less
+size fills up in an hour, for instance, the disk will fill up in less
 then a day (about 20 hours); if the oplog fills up in a day, the disk
-will be full in less than a month (about 20 days.)
+will fill up in less than a month (about 20 days.)
+
+.. TODO better info below on when to change oplog size
 
 Some usage patterns, however, indicate a different usage pattern. For
 instance, large numbers of multi-updates, a significant portion of
 delete operations, and in place updates can generate large numbers in
 short periods of time.
 
-Because the :term:`oplog` is a :term:`capped collection` once you have
-created an oplog, you cannot modify its size except by using the
-procedure outlined in this document.
-
-.. seealso:: ":ref:`Introduction to Oplog Sizing
-   <replica-set-oplog-sizing>`."
+.. seealso:: The :ref:`replica-set-oplog-sizing` topic in the :doc:`/core/replication` document.
 
 Overview
 --------
@@ -44,20 +45,21 @@ The procedure for changing the size of the oplog is as follows:
 1. Restart the current :term:`primary` instance in the replica set in
    "standalone" mode, running on a different port.
 
-2. Save the last entry from the old (current) oplog, and create a
-   backup of the old (current) oplog.
+#. Save the last entry from the old (current) oplog and then create a
+   backup of the old oplog.
 
-3. Drop the current oplog, and create a new oplog of a different size.
+#. Drop the old oplog.
 
-4. Insert the previously saved last entry from the old oplog into the
-   new (current) oplog.
+#. Create a new oplog of a different size.
 
-5. Restart the server as a member of the replica set on its usual
+#. Insert the previously saved last entry from the old oplog into the
+   new oplog.
+
+#. Restart the server as a member of the replica set on its usual
    port.
 
-6. Apply this procedure to any other member of the replica set that
+#. Apply this procedure to any other member of the replica set that
    *could become* :term:`primary`.
-
 
 Procedure
 ---------
