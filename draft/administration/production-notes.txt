@@ -7,6 +7,364 @@ Production Notes
 Overview
 --------
 
+This page details system configurations that affect MongoDB,
+especially in production.
+
+Backups
+-------
+
+To make backups of your MongoDB database, please refer to the
+:ref:`backups section <backup-overview>`.
+
+Port Numbers
+------------
+
+MongoDB uses only TCP ports for network connections. The following is
+a listing of MongoDB programs and default ports used.
+
+.. list-table:: Default ports used by MongoDB
+   :header-rows: 1
+
+   * - Description
+     - Process
+     - Port Number
+   * - Standalone MongoDB server
+     - :program:`mongod`
+     - 27017
+   * - Shard Router
+     - :program:`mongos`
+     - 27017
+   * - Shard Server
+     - :setting:`mongod --shardsvr <shardsvr>`
+     - 27018
+   * - Config Server
+     - :setting:`mongod --configsvr <configsvr>`
+     - 27019
+   * - mongod Web Stat
+     - :ref:`mongod --rest <rest-interface>`
+     - 28107
+
+Securing the Network
+--------------------
+
+MongoDB is not designed to be used on an open network and is highly
+recommended to be operated within a secure network. The following
+details system configuration to allow MongoDB to be operational in a
+secure network.
+
+.. TODO link to MongDB security section when available.
+
+.. _production-firewall:
+
+Firewall Rules
+~~~~~~~~~~~~~~
+
+.. list-table:: Firewall Rules Required for MongoDB
+   :header-rows: 1
+
+   * - Process
+     - Direction
+     - Ports
+     - Notes
+   * - :program:`mongod`
+     - Incoming
+     - 27017/*
+     - for client and application server connections
+   * - :program:`mongod`
+     - Outgoing
+     - */27017
+     - for :term:`replication <replica set>` from other members, shard migrations
+   * - :program:`mongos`
+     - Incoming
+     - 27017/*
+     - for client and application server connections
+   * - :program:`mongod`
+     - Outgoing
+     - */[27019, 27018]
+     - for connections to :term:`shards <shard>` and :term:`config servers`
+
+.. note - do we need to have the terms linked in the table when the
+   notes below would be more 'natural' to have such links?
+
+In a sharded environment:
+
+- All the mongo processes (mongos, mongod, :setting:`mongod
+  --configsvr <configsvr>`) in the cluster should be able to connect
+  to each other.
+
+- Clients must be able to connect to the mongos processes; however,
+  they can be blocked from the mongod's.
+
+In a non-sharded replica set environment:
+
+- All clients need to be able to connect to all non-hidden replica set
+  members.
+
+- All members of a replica set (the mongod processes that is) need to
+  be able to communicate with each other.
+
+IP Address Binding
+~~~~~~~~~~~~~~~~~~
+
+By default, a :program:`mongod` server will listen on all available IP
+addresses on a machine. You can restrict this to a single IP address
+with the :setting:`bind_ip` configuration option for mongod.
+
+For example this could be set to ``127.0.0.1``, the loopback
+interface, to make mongod only listen to requests from the same
+machine (``localhost``). Or, on a machine with two interfaces, we
+might want to listen only on the private network.
+
+To enable listening on all interfaces, remove the bind_ip option from
+your server configuration file.
+
+.. note::
+
+   To accept requests on external interfaces you may also have to
+   modify your computer's firewall configuration to allow access to
+   the ports used by mongo.
+
+   .. seealso:: :ref:`production-firewall`
+
+Linux Notes
+-----------
+
+Most versions of the Linux kernel will support MongoDB, but there are
+a few key issues to keep in mind:
+
+- The MongoDB user community has approved Linux kernel 2.6.36 as
+  a good candidate for running MongoDB in production.
+
+- Some have reported skepticism on behavior of Linux 2.6.33-31 and
+  2.6.32 kernel, at least on Amazon EC2.
+
+MongoDB preallocates its database files before using them, so file
+systems such as ext4 and XFS with kernel support is ideal:
+
+- If you are using ext4 file system, Linux kernel 2.6.23 or newer
+  is required for efficient filesystem preallocation.
+
+- If you are using XFS file system, Linux kernel 2.6.25 or newer is
+  required for efficient file preallocation.
+
+General system configuration recommendations:
+
+- Turn off ``atime`` for the storage volume with the :term:`database
+  files <dbpath>`.
+
+- Set file descriptor limit and user process limit to 20,000 (see
+  :ref:`etc/limits` and :term:`ulimit`). A low ulimit will affect
+  MongoDB when under heavy use and will produce weird errors.
+
+- Do not use large virtual memory pages, MongoDB performs better with
+  smaller virtual memory pages.
+
+- Disable NUMA in your BIOS. If that is not possible see :ref:`NUMA
+  <production-numa>`.
+
+- Ensure that readahead settings for the block devices that store the
+  database files are acceptable. See the :ref:`Readahead
+  <production-readahead>` section
+
+- Use NTP to synchronize time between your hosts. MongoDB uses
+  distributed locks that requires hosts to be synchronized, especially
+  :term:`config servers`.
+
+.. _production-numa:
+
+NUMA and MongoDB
+----------------
+
+NUMA, Non-Uniform Access Memory, and MongoDB do not work well
+together. If you are running MongoDB on NUMA hardware, we recommend
+disabling NUMA for MongoDB and running with an interleave memory
+policy. Operational problems in MongoDB will manifest in strange ways,
+such as slow performance for periods of time or high system processor
+usage.
+
+.. note::
+
+   On Linux, :program:`mongod` v2.0+ checks these settings on startup
+   and prints a warning if the system is NUMA based.
+
+To turn off NUMA for MongoDB, use the ``numactl`` command and start
+:program:`mongod` in the following manner:
+
+   .. code-block:: bash
+
+      numactl --interleave=all /usr/bin/local/mongod
+
+      .. TODO is /usr/bin/local/mongod the default install location?
+
+Adjust the ``proc`` settings using the following command:
+
+   .. code-block:: bash
+
+      echo 0 > /proc/sys/vm/zone_reclaim_mode
+
+You can change ``zone_reclaim_mode`` without restarting mongod. For
+more information on this setting see:
+`http://www.kernel.org/doc/Documentation/sysctl/vm.txt`_.
+
+.. TODO the following is needed? or is just generally good reading material?
+
+Further reading
+~~~~~~~~~~~~~~~
+
+`The MySQL “swap insanity” problem and the effects of the NUMA
+architecture
+<http://jcole.us/blog/archives/2010/09/28/mysql-swap-insanity-and-the-numa-architecture/>`_
+describes the effects of NUMA on databases. This blog post was aimed
+at problems NUMA created for MySQL, but the issues are similar. The
+post describes the NUMA architecture and its goals, and how these are
+incompatible with production databases.
+
+.. _production-readahead:
+
+Hard Drive Readahead
+--------------------
+
+Readahead is a setting on a block device (usually a storage device
+like a hard drive or network attached storage) that controls how much
+data is fetched whenever there is a read from that block device. This
+is done because disk seeks on spinning disks are very expensive, but
+accessing sequential blocks of data is relatively cheap after the
+initial seek. As many applications tend to access data sequentially,
+it makes sense that if you're going to pay the cost to do a disk seek
+to read in data, you should read some extra data after what was
+requested, since it's likely the next request will be subsequent disk
+block. For more information on what readahead is, check out `blockdev
+<http://www.snailinaturtleneck.com/blog/2012/04/05/thursday-4-blockdev/>`_.
+
+Readahead can improve performance of many applications, but in a
+system with high random access, like a database, having readahead set
+too high can cause some serious problems, specifically in terms of how
+memory is used and how much the disk is accessed.
+
+Readahead Configuration
+~~~~~~~~~~~~~~~~~~~~~~~
+
+In Linux, you can check the current settings for readahead by running
+``blockdev --report``. This will print out a table with one row for
+each disk device.
+
+.. code-block:: bash
+
+   RO    RA   SSZ   BSZ   StartSec            Size   Device
+   rw   256   512  4096          0     80026361856   /dev/sda
+   rw   256   512  4096       2048     80025223168   /dev/sda1
+
+The RA column contains the value for readahead. That value is the
+number of 512 byte blocks that are read on every disk access. In the
+above example, the readahead value is 128KB (256 blocks * 512
+bytes/block). You can set the readahead setting for a given disk
+device by running ``blockdev --setra <value> <device name>``.
+
+When using a software based RAID system make sure to set the readahead
+on each disk device as well as on the device that corresponds to the
+RAID controller.
+
+Once the readahead setting has been changed, the :program:`mongod`
+process must be restarted.
+
+Readahead Misconfiguration
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Figuring out the appropriate value for readahead is tricky. If
+readahead is set too high MongoDB won't be able to use all the RAM
+available on the machine effectively. This is because each disk read
+will be pulling a lot of extra data which will take up room in memory,
+but will never be accessed before being paged out to make room for
+another read operation. For more information on how to detect when
+readahead might be too high, read: `diagnosing high readahead
+<http://www.snailinaturtleneck.com/blog/2012/05/10/thursday-5-diagnosing-high-readahead/>`_.
+
+Setting readahead too low, however, can also cause problems because if
+you are accessing sequential data, you can wind up not paging in
+enough on each read, causing more :term:`page faults <page-fault>` and
+another disk access to read the data you need.
+
+If readahead is too high OR too low it can cause excessive page
+faulting and increased disk utilization.
+
+The Best Readahead Value
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+What the right value of readahead is depends on your storage device,
+the size of your documents, and your access patterns.
+
+Disk
+++++
+
+Readahead is most helpful on spinning disks where sequential access is
+comparatively fast. On :term:`SSDs <SSD>` (where random access is just
+as fast as sequential access) you don't gain much from a large
+readahead value, so you'll generally want a pretty small value for
+readahead if you are using SSDs.
+
+Document size
++++++++++++++
+
+You also want to make sure that readahead is high enough to pull in a
+full single document. Let's say your average document size was 4k -
+since blocks on disk are generally 512 bytes it would take 8 disk
+accesses to read in whole document with no readahead. If you had a
+readahead of 8 blocks or more, you would read in the whole document
+with only one trip to disk. Since index buckets are 8k, you will never
+want to set readahead below 16 or it will take 2 disk accesses to read
+in one index bucket (16 is a very low value for readahead, so it
+should be rare that you would want to do that anyway).
+
+Stripe size (RAID Only)
++++++++++++++++++++++++
+
+While disk block sizes are generally predictable, the stripe size of a
+RAID array is configurable (generally some multiple of 16kB). Since
+the stripe size represents the minimum amount of data you can read
+from the array you will want to set readahead to be a multiple of that
+stripe size. The stripe size also gives you a handy minimum for this
+particular type of configuration since it is likely to be
+significantly larger than the previous minimum values discussed.
+
+Access patterns
+~~~~~~~~~~~~~~~
+
+The last and arguably most important factor when determining a good
+value for readahead is access patterns. If you do a lot of range
+queries or sequential accessing of data, then readahead can be quite
+beneficial, allowing you to read in a large amount of data that you're
+going to need anyway with a single disk access. If you do mostly
+random access, however, you could wind up pulling in a lot of extra
+data that you will never use, wasting both RAM and disk time.
+
+Readahead on EC2
+~~~~~~~~~~~~~~~~
+
+Some of the Amazon Machine Images on EC2 have very high default values for disk
+readahead (sometimes as much as several thousand blocks), which can
+have a have a severe impact on your memory usage and disk
+utilization. For MongoDB instances running on EC2, ensure readahead
+settings are not too high and turn it down if
+necessary. Another problem with readahead on EC2 is that EBS does not
+guarantee that sequential blocks are actually sequential on the
+underlying physical storage. This means that even if your application
+does mostly sequential access, that might not actually be sequential
+access on the underlying hardware. This means that multiple disk seeks
+may be necessary in one disk access, eliminating most of the benefits
+of readahead and possibly causing unnecessarily high disk
+utilization. For this reason, we usually recommend a lower than usual
+readahead value when running on an EBS volume, something in the range
+of 16 to 64 blocks.
+
+RAID on EC2
+~~~~~~~~~~~
+
+If you are following our Amazon EC2 guidelines, and running with
+multiple EBS volumes in a RAID configuration, then the recommendation
+is to set the readahead to 0 on the volumes that make up the RAID
+while setting the readahead to a multiple of your RAID stripe size on
+the RAID volume itself (with the minimum being the same as the stripe
+size).
 
 Hardware
 --------
@@ -17,6 +375,8 @@ cloud computing); that said it works well on very large servers
 too. That said if you are about to buy hardware here are a few
 suggestions:
 
+- More RAM is good.
+
 - Fast CPU clock speed is helpful.
 
 - Many cores helps but does not provide a high level of marginal
@@ -25,11 +385,9 @@ suggestions:
   limiter; there isn't necessarily a lot of computation happening
   inside a database).
 
-- NUMA is not very helpful as memory access is not very localized in a
-  database. Thus non-NUMA is recommended; or configure NUMA as
-  detailed elsewhere in this document.
-
-- More RAM is good.
+- non-NUMA is recommended as NUMA is not very helpful as memory access
+  is not very localized in a database. If you must run MongoDB on a
+  NUMA system, see :ref:`NUMA and MongoDB <production-numa>`.
 
 - SSD is good. We have had good results and have seen good
   price/performance with SATA SSDs; the (typically) more upscale PCI
@@ -42,6 +400,8 @@ suggestions:
 
 Solid State Disks
 ~~~~~~~~~~~~~~~~~
+
+
 
 Redundant Array of Independent Disks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -66,87 +426,3 @@ recommend using NFS. See the NFS page for more information.
 
 Amazon elastic block store (EBS) seems to work well up to its
 intrinsic performance characteristics, when configured well.
-
-
-Operating System
-----------------
-
-Linux
-~~~~~
-
-- Linux Kernel Versions
-
-   - 2.6.36 is given a thumbs up by the community.
-        .. TODO reword.
-
-   - Some have reported skepticism on behavior of Linux 2.6.33-31 and
-     2.6.32 kernel, at least on Amazon EC2.
-
-   - For those running databases on ext4 filesystems, a 2.6.23 kernel
-     is required for efficient filesystem preallocation
-
-   - 2.6.25 is
-     required for XFS support of the same feature. High filesystem I/O
-     following the allocation of new database files is one symptom of
-     this problem.
-        .. TODO do we have any of the above terms?
-
-- Turn off ``atime`` for the storage volume with the :term:`database
-  files <dbpath>`.
-
-- Set file descriptor limit and user process limit to 20,000 (see
-  :ref:`etc/limits` and :term:`ulimit`).
-     .. TODO do we have these terms/sections in the manual?
-
-- Do not use large virtual memory pages.
-
-- Use ``dmesg`` to see if your system is behaving strangely
-
-- Try to disable NUMA in your BIOS. If that is not possible see NUMA.
-     .. TODO link to NUMA section when we have it.
-
-- Ensure that readahead settings for the block devices that store the
-  dbpath are acceptable. See the Readahead section
-     .. TODO link to readahead section
-
-- Use NTP to minimize clock skew between your hosts; linux distros
-  usually include this by default, but check and install the ntpd
-  package if it isn't already installed and configured.
-     .. TODO link to ntp?
-        reason: distributed locks. config servers MUST use NTP to
-        sync.
-     .. TODO link to distributed locks section when finished.
-
-
-Backups
--------
-
-To make backups, please refer to the :ref:`backups section <>`
-
-Port Numbers
-------------
-
-.. list-table:: Default ports used by MongoDB
-   :header-rows: 1
-
-   * - Description
-     - Process
-     - Port Number
-   * - Standalone MongoDB server
-     - mongod
-     - 27017
-   * - Shard router
-     - mongos
-     - 27017
-   * - Shard Server
-     - mongod --shardsvr
-     - 27018
-   * - Config Server
-     - mongod --configsvr
-     - 27019
-   * - mongod Web Stat
-     - mongod
-     - 28107
-
-For firewall rules, see security & authentication section.
-.. TODO link to appropriate section (or include inline?)
