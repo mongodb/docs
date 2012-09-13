@@ -174,19 +174,43 @@ Document size <limit-bson-document-size>` limit, which is currently 16 megabytes
 Optimizing Performance
 ----------------------
 
-Early Filtering
-~~~~~~~~~~~~~~~
-
 Because you will always call :method:`aggregate` on a
 :term:`collection` object, which logically inserts the *entire* collection into
 the aggregation pipeline, you may want to optimize the operation
 by avoiding scanning the entire collection whenever possible.
+
+Aggregation Operators and Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Depending on the order in which they appear in the pipeline,
+aggregation operators can take advantage of indexes.
+
+The following aggregation operators:
+
+- :agg:pipeline:`$match`
+- :agg:pipeline:`$sort`
+- :agg:pipeline:`$limit` 
+- :agg:pipeline:`$skip` 
+
+can take advantage of an index when placed at the **beginning** of the pipleline or
+placed **before** the following aggregation operators:
+
+- :agg:pipeline:`$project`
+- :agg:pipeline:`$unwind`
+- :agg:pipeline:`$group`.
+
+Early Filtering
+~~~~~~~~~~~~~~~
 
 If your aggregation operation requires only a subset of the data in a
 collection, use the :agg:pipeline:`$match` operator to restrict which items go
 in to the top of the pipeline, as in a query. When placed early in a
 pipeline, these :agg:pipeline:`$match` operations use suitable indexes
 to scan only the matching documents in a collection.
+
+Placing :agg:pipeline:`$match` then :agg:pipeline:`$sort` at the very
+start of the pipeline would be logically equivalent to a single query
+and a sort, and be able to use an index.
 
 .. OMMITED: this feature is pending SERVER-4506. Other optimizations
 .. are pending SERVER-4507 SERVER-4644 SERVER-4656 SERVER-4816
