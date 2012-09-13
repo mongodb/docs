@@ -31,7 +31,7 @@ compact
      activity.
      
      .. versionchanged:: 2.2 :dbcommand:`compact` blocks activities only
-         for its database.
+        for its database.
 
    - ``paddingFactor: <factor>``
       
@@ -55,8 +55,9 @@ compact
 
      .. versionadded:: v2.2
      
-   It is recommended that you always add at least 100 bytes of padding,
-   and at least 10% of the doc size.
+   In production deployments, collections should always have at least
+   100 bytes of padding, and generally have a padding factor that is
+   10% of the average document size.
    
    .. code-block:: javascript
    
@@ -67,7 +68,7 @@ compact
       Always have an up-to-date backup before performing server
       maintenance such as the :dbcommand:`compact` operation.  
 
-   Note the following command behaviors:
+   Note the following behaviors:
 
    - :dbcommand:`compact` blocks all other activity (in v2.2, blocks
      activities only for its database.) You may view the intermediate
@@ -75,11 +76,12 @@ compact
      by running the :method:`db.currentOp()` in another shell instance.
      
    - :dbcommand:`compact` removes any :term:`padding factor` in the
-     collection if the command is run without either the
+     collection when issued without either the
      ``paddingFactor`` option or the ``paddingByte`` option. This may
-     impact performance if the documents grow regularly. However, the
-     existing paddingFactor statistics is kept for the collection and
-     will be used for future inserts.
+     impact performance if the documents grow regularly. However,
+     :dbcommand:`compact` retains 
+     existing paddingFactor statistics for the collection that MongoDB
+     will use to calculate the padding factor for future inserts.
      
    - :dbcommand:`compact` generally uses less disk space than
      :dbcommand:`repairDatabase` and is faster. However,the
@@ -90,14 +92,14 @@ compact
    - If you kill the operation by running the :method:`db.killOp(opid) <db.killOP()>`  or
      restart the server before it has finished:
      
-     + If you have journaling enabled, your data will
+     - If you have journaling enabled, your data will
        be safe. However, you may have to manually rebuild the indexes.
      
-     + If you do not have journaling enabled, the :dbcommand:`compact`
+     - If you do not have journaling enabled, the :dbcommand:`compact`
        command is much less safe, and there are no guarantees made about
        the safety of your data in the event of a shutdown or a kill.
         
-     + In either case, much of the existing free space in the
+     - In either case, much of the existing free space in the
        collection may become un-reusable. In this scenario, you should
        rerun the compaction to completion to restore the use of this free
        space.
@@ -119,16 +121,16 @@ compact
    - :dbcommand:`compact` commands do not replicate. When running
      compact on a :term:`replica set`: 
      
-     + Compact each member separately. 
+     - Compact each member separately. 
       
-     + Ideally, compaction runs on a secondary. (See option
+     - Ideally, compaction runs on a secondary. (See option
        ``force:true`` above for information regarding compacting the
        primary.)
         
-     + If :dbcommand:`compact` runs on a secondary, the secondary will
-       go into "recovering" state automatically to prevent reads from
-       being routed to it during compation. Once the compaction is
-       finished, it will automatically return to secondary state.
+     - If :dbcommand:`compact` runs on a secondary, the secondary will
+       enter a "recovering" state to prevent clients from directing
+       treads to it during compaction. Once the compaction
+       finishes the secondary will automatically return to secondary state.
        
        You may refer to the "`partial script for automating step down
        and compaction
