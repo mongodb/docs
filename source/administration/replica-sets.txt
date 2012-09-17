@@ -652,6 +652,8 @@ Possible causes of replication lag include:
 Failover and Recovery
 ~~~~~~~~~~~~~~~~~~~~~
 
+.. TODO Revisit whether this belongs in troubleshooting. Perhaps this should be an H2 before troubleshooting.
+
 Replica sets feature automated failover. If the :term:`primary`
 goes offline or becomes unresponsive and a majority of the original
 set members can still connect to each other, the set will elect a new
@@ -695,3 +697,38 @@ You can prevent rollbacks by ensuring safe writes by using
 the appropriate :term:`write concern`.
 
 .. include:: /includes/seealso-elections.rst
+
+Oplog Entry Error
+~~~~~~~~~~~~~~~~~
+
+.. TODO link this topic to assertion 13290 once assertion guide exists.
+
+If you receive the following errors:
+
+.. code-block:: javascript
+
+   replSet error fatal couldn't query the local local.oplog.rs collection.  Terminating mongod after 30 seconds.
+   bad replSet oplog entry?
+
+Then the errors might indicate that the ``ts`` field in the last oplog
+entry is of the wrong data type.
+
+You can check this with the following command:
+
+.. code-block:: javascript
+
+   db.oplog.rs.find({ts:{$type:17}}).({$natural:-1}).limit(1)
+
+If the ts field is of the wrong type, you receive the same error.
+
+To verify there are no other issues, run the following command:
+
+   db.oplog.rs.find().({$natural:-1}).limit(1)
+
+If there are no other issues, this returns without error.
+
+To fix the ``ts`` data type, run the following:
+
+.. code-block:: javascript
+
+   db.oplog.rs.update({ts:{t:1234567891000,i:1234}}, {$set:{ts:new Timestamp(1234567891000, 1234)}})
