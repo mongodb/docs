@@ -1,18 +1,24 @@
-=========================================
-Deploy a Replica Set From a Single Server
-=========================================
+=====================================
+Convert a Standalone to a Replica Set
+=====================================
 
 .. default-domain:: mongodb
 
-This tutorial describes how to deploy a three-member :term:`replica set`
-from a standalone instance of MongoDB.
+While :term:`standalone` MongoDB instances are useful for testing,
+development and trivial deployments, for production use,
+:term:`replica sets <replica set>` provide required robustness and
+disaster recovery. This tutorial describes how to convert an existing
+standalone instance into a three-member replica set. If you're
+deploying a replica set "fresh," without any existing MongoDB data or
+instance, see :doc:`/tutorial/deploy-replica-set`.
 
-To deploy a replica set from multiple existing instances of MongoDB, see
-:doc:`/tutorial/deploy-replica-set`.
+For more information on on :doc:`replica sets, their use, and
+administration </replication>`, see:
 
-For background information on replica set deployments, see
-:doc:`/core/replication` and
-:doc:`/administration/replication-architectures`.
+- :doc:`/core/replication`,
+- :doc:`/administration/replication-architectures`,
+- :doc:`/administration/replica-sets`, and
+- :doc:`/applications/replication`.
 
 Procedure
 ---------
@@ -25,11 +31,6 @@ installed. If you have not already installed MongoDB, see the
    the :option:`--replSet <mongod --replset>` option and the name of the
    :term:`replica set`, which is ``rs0`` in the example below.
 
-   To minimize downtime, consider pre-allocating new local data files by
-   using the :setting:`oplogSize` option. If you choose not to use this
-   option, the server allocate the new data files before starting back
-   up. This example does not use the :setting:`oplogSize` option.
-
    Use a command similar to the following:
 
    .. code-block:: sh
@@ -38,16 +39,15 @@ installed. If you have not already installed MongoDB, see the
 
    This starts the instance as a member of a replica set named ``rs0``.
    For more information on configuration options, see
-   :doc:`/reference/configuration-options`.
+   :doc:`/reference/configuration-options` and the :doc:`/reference/mongod`.
 
 #. Open a :program:`mongo` shell and connect to the :program:`mongod`
-   instance. If you are running the command remotely, replace
-   "localhost" with the appropriate hostname. In a new shell session,
-   enter the following:
+   instance. In a new system shell session, use the following command
+   to start a :program:`mongo` shell:
 
    .. code-block:: sh
 
-      mongo localhost:27017
+      mongo
 
 #. Use :method:`rs.initiate()` to initiate the replica set:
 
@@ -55,10 +55,23 @@ installed. If you have not already installed MongoDB, see the
 
       rs.initiate()
 
-   The server is now operational as the :term:`primary` in a replica set
-   that consists of a single node. To display the replica configuration,
-   issue the :method:`rs.conf()` method. To check the status of the
-   replica set, issue :method:`rs.status()`.
+   The set is now operational. To return the replica set
+   configuration, call the :method:`rs.conf()` method. To check the
+   status of the replica set, use :method:`rs.status()`.
 
-#. The next step is to add members to the replica set. To do so, see
-   :doc:`/tutorial/expand-replica-set`.
+#. Now add additional replica set members. On two distinct systems,
+   start two new :program:`mongod` instances, as above. Then, in the
+   :program:`mongo` shell instance connected to the first
+   :program:`mongod` instance, issue a command in the following form:
+
+   .. code-block:: javascript
+
+      rs.add("<hostname>:<port>")
+
+   Replace ``<hostname>`` and ``<port>`` with the resolvable hostname
+   and port of the :program:`mongod` instance you want to add to the
+   set. Repeat this operation for each :program:`mongod` that you want
+   to add to the set.
+
+   For more information on adding hosts to a replica set, see the
+   :doc:`/tutorial/expand-replica-set` document.
