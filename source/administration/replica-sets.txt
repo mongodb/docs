@@ -698,36 +698,60 @@ the appropriate :term:`write concern`.
 
 .. include:: /includes/seealso-elections.rst
 
-Oplog Entry Error
-~~~~~~~~~~~~~~~~~
+Oplog Entry Timestamp Error
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. TODO link this topic to assertion 13290 once assertion guide exists.
 
-If you receive the following errors:
+If you receive the following error:
 
 .. code-block:: javascript
 
    replSet error fatal couldn't query the local local.oplog.rs collection.  Terminating mongod after 30 seconds.
    bad replSet oplog entry?
 
-Then the errors might indicate that the ``ts`` field in the last oplog
-entry is of the wrong data type.
+Then the value for the ``ts`` field in the last oplog entry might be of
+the wrong data type. The correct data type is Timestamp.
 
-You can check this with the following command:
+You can check the data type by running the following two queries. If the
+data type is correct, the queries return the same document; if
+incorrect, they return different documents.
+
+First run a query to return the last document in the oplog, no matter
+its data type:
 
 .. code-block:: javascript
 
-   db.oplog.rs.find({ts:{$type:17}}).({$natural:-1}).limit(1)
+   db.oplog.rs.find().sort({$natural:-1}).limit(1)
 
-If the ts field is of the wrong type, you receive the same error.
+Then run a query to return the last document in the oplog where the
+``ts`` value is a Timestamp. Use the :operator:`$type` operator to query
+for type ``17``, which is the Timestamp data type.
 
-To verify there are no other issues, run the following command:
+.. code-block:: javascript
 
-   db.oplog.rs.find().({$natural:-1}).limit(1)
+   db.oplog.rs.find({ts:{$type:17}}).sort({$natural:-1}).limit(1)
 
-If there are no other issues, this returns without error.
+.. example::
 
-To fix the ``ts`` data type, run the following:
+   As an example, if the first query returns this as the last oplog entry:
+
+   .. code-block:: javascript
+
+      { "h" : NumberLong("8191276672478122996"), "ns" : "", "o" : { "msg" : "Reconfig set", "version" : 4 }, "op" : "n", "ts" : true }
+
+   And the second query returns this as the last entry where ``ts`` is a Timestamp:
+
+   .. code-block:: javascript
+
+      { "ts" : Timestamp(1347982454000, 1), "h" : NumberLong("6188469075153256465"), "op" : "n", "ns" : "", "o" : { "msg" : "Reconfig set", "version" : 3 } }
+
+   Then the value for the ``ts`` field in the last oplog entry is of the
+   wrong data type.
+
+To fix the ``ts`` data type, you can run the following update. Note,
+however, that this update scans the whole oplog and can take a lot of
+time to pull the oplog into memory:
 
 .. code-block:: javascript
 
