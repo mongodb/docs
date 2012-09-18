@@ -8,50 +8,51 @@ Synopsis
 --------
 
 This document provides practical approaches and strategies for indexing
-in MongoDB. For the fundamentals of MongoDB indexing, see the
-:doc:`/core/indexes` document. For operational guidelines and
-procedures, see the :doc:`/administration/indexes` document.
-
-Indexes allow MongoDB to process and fulfill queries quickly
-by creating small and efficient representations of the documents in a
-collection.
+in MongoDB. For fundamentals of MongoDB indexing, see
+:doc:`/core/indexes`. For operational guidelines and procedures, see
+:doc:`/administration/indexes`.
 
 Strategies
 ----------
 
-The best indexes for your application are based on a number of important
-factors, including the kinds of queries you expect, the ratio of reads
-to writes, and the amount of free memory on your system. The best
-strategy for designing indexes is always to profile a variety of index
-configurations with data sets similar to the ones you'll be running in
-production and to see which configurations perform best. There's no substitute for good
-empirical analyses.
+The best indexes for your application are based on a number of factors,
+including the kinds of queries you expect, the ratio of reads to writes,
+and the amount of free memory on your system. The best overall strategy
+for designing indexes is to profile a variety of index configurations
+with data sets similar to the ones you'll be running in production and
+to see which configurations perform best.
 
 .. _indexes-create-to-match-queries:
 
-Create Indexes to Match Your Queries
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Create Indexes to Support Your Queries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you query on a single key, a single-key index will do. For
-example, assume you're searching for a blog post's slug:
-
-.. code-block:: javascript
-
-   db.posts.find({ slug : 'state-of-mongodb-2010' })
-
-In this case, a unique index on a single key is best:
+If you only ever query on a single key in a given collection, then you need
+create just one, single-key index for that collection. For example, you
+might create an index on ``category`` in the``product`` collection:
 
 .. code-block:: javascript
 
-   db.posts.ensureIndex({ slug: 1 }, {unique: true})
+   db.products.ensureIndex( { "category": 1 } )
 
-If you query on multiple keys, use a :ref:`compound index
-<index-type-compound>`. With the exception of queries that use the
-:operator:`$or` operator, a query cannot use multiple indexes. A query
-must use only one index. Therefore, to query on multiple keys, use a
-:ref:`compound index <index-type-compound>`.
+However, if you sometimes query on a key alone but and at other times
+query on that key combined with a second key, then creating a
+ref:`compound index <index-type-compound>` is more efficient. MongoDB
+will use the compound index for both queries. For example, you might
+create an index on both ``category`` and ``item``, allowing you to query
+only on ``category`` but also to query on ``category`` combined with
+``item``:
 
-If you query on multiple keys and sort the results, see :ref:`index-sort`.
+.. code-block:: javascript
+
+   db.products.ensureIndex( { "category": 1, "item": 1 } )
+
+.. note:: With the exception of queries that use the :operator:`$or` operator, a
+   query cannot use multiple indexes. A query must use only one index.
+   Therefore, to query on multiple keys, use a :ref:`compound index
+   <index-type-compound>`.
+
+To query on multiple keys and sort the results, see :ref:`index-sort`.
 
 .. _covered-queries:
 .. _indexes-covered-queries:
@@ -59,7 +60,7 @@ If you query on multiple keys and sort the results, see :ref:`index-sort`.
 Use Covered Queries
 ~~~~~~~~~~~~~~~~~~~
 
-In some cases, MongoDB will be able to fulfill a query using *only*
+In some cases, MongoDB can fulfill a query using *only*
 the index, without needing to scan actual documents from the
 database. To use a covered index you must:
 
