@@ -4,46 +4,196 @@ db.collection.update()
 
 .. default-domain:: mongodb
 
-.. method:: db.collection.update(query, update, [upsert,] [multi])
+.. method:: db.collection.update(query, update, [options])
 
-   The :method:`db.collection.update()` takes the following four arguments.
+   .. versionchanged:: 2.2
+   
+   The :method:`db.collection.update()` method provides the ability to
+   modify a document in a collection. 
+   
+   The default behavior of the :method:`db.collection.update()` method
+   is to update a single document. You can specify the ``multi`` option to
+   update multiple documents that meet the ``query`` criteria.
+   Additionally, you can specify the ``upsert`` option to have the
+   :method:`db.collection.update()` method insert a document into the
+   collection if no document meets the ``query`` criteria.
+ 
+   Starting in version 2.2, the :method:`db.collection.update()` method
+   can take an ``options`` :term:`document` as a parameter to specify
+   the ``multi`` and the ``upsert`` options. However, the
+   :method:`db.collection.update()` still supports the ``upsert`` and
+   ``multi`` parameters to specify the ``multi`` and the ``upsert``
+   options:
+   
+   .. code-block:: javascript
+   
+      db.collection.update(query, update, [upsert,] [multi])
+   
+   The :method:`db.collection.update()` method takes the following
+   parameters:
 
-   :param query: A query object that selects one or more records to
-                 update. Use the :ref:`query selectors
-                 <query-selectors>` as you would in a :method:`db.collection.find()`
-                 operation.
+   :param document query:
+    
+          A :term:`document` that specifies the selection criteria for
+          the update. The ``query`` parameter employs the same
+          :ref:`query selectors <query-selectors>` as used in the
+          :method:`db.collection.find()` method.
 
-   :param update: A :term:`document`. If the update document's fields
-                  include any :ref:`update operators <update-operators>`,
-                  then all the fields must be update operators, and
-                  applies those operators to values in the matching
-                  document. If none of the update document's the
-                  fields are update operators, then :method:`update()
-                  <db.collection.update()>` replaces all of the
-                  matching document's fields except the :term:`_id`
-                  with the fields in the update document.
+          Consider the following example:
 
-   :param boolean upsert: Optional. Defaults to ``false``. When
-                          ``true``, this operation will update a
-                          document if one matches the query portion
-                          and insert a new document if *no* documents
-                          match the query portion. The new document
-                          will consist of the union of fields and
-                          values from the query document and update
-                          document.
+          .. code-block:: javascript
 
-   :param boolean multi: Optional. Defaults to ``false``. When
-                         ``true``, all the operation updates all
-                         documents that match the query.  When
-                         ``false``, update only the first document
-                         that matches the query.
+             db.products.update( { item: "book", qty: { $gt: 5 } }, ... }
 
-   Provides the ability to update an existing document in the current
-   database and collection. The second argument to :method:`db.collection.update()`
-   takes the form of a :term:`document`. See ":ref:`update-operators`"
-   for a reference of all operators that affect updates.
+          This query excerpt will update the document(s) in the
+          ``products`` collection with the ``item`` field value equal
+          to ``book`` and the ``qty`` field value greater than ``5``.
 
-   .. note::
+   :param document update:
+    
+          A :term:`document` that specifies the modifications to apply.
 
-      An upsert operation only affects *one* document, and cannot
-      update multiple documents.
+          - If the ``update`` parameter contains any :ref:`update
+            operators <update-operators>` expressions such as the
+            :operator:`$set` operator expression, then:
+
+            - the ``update`` parameter must contain only :ref:`update
+              operators <update-operators>` expressions.
+
+            - the :method:`db.collection.update()` method updates only
+              the corresponding fields in the document.
+
+            Consider the following example:
+
+            .. code-block:: javascript
+
+               db.products.update( { item: "book", qty: { $gt: 5 } }, { $set: { x: 6 }, $inc: { y: 5} } )
+
+            This query will update in the ``products`` collection a
+            single document that matches the ``query`` criteria and set
+            the value of the field ``x`` to ``6`` and increment the
+            value of the field ``y`` by ``5``. All other fields of the
+            modified document will remain the same.
+
+          - If the ``update`` parameter consists only of ``field:
+            value`` expressions,
+
+            - the :method:`db.collection.update()` method updates the
+              document to contain only the :term:`_id` field and the
+              fields in the ``updates`` parameter.
+
+            - the :method:`db.collection.update()` method updates
+              cannot update multiple documents.
+
+            Consider the following example:
+
+            .. code-block:: javascript
+
+               db.products.update( { item: "book", qty: { $gt: 5 } }, { x: 6, y: 15 } )
+
+            This query will update in the ``products`` collection a
+            single document that matches the ``query`` criteria and set
+            the value of the field ``x`` to ``6`` and set the value of
+            the field ``y`` to ``15``. *All other fields* of the
+            modified document will be removed other than the
+            :term:`_id` field.
+
+   :param document options:
+
+          Optional. A :term:`document` that specifies whether to
+          perform an :term:`upsert` and/or a multiple update. You can
+          use the ``options`` parameter instead of the individual
+          ``upsert`` and ``multi`` parameters.
+
+          Consider the following example which specifies the ``multi`` option:
+
+          .. code-block:: javascript
+                 
+             db.products.update( { item: "book", qty: { $gt: 5 } }, { $set: { x: 6, y: 15 } }, { multi: true } )
+
+          This query will update **all** documents in the ``products``
+          collection that matches the ``query`` criteria, setting the
+          value of the field ``x`` to ``6`` and the value of the field
+          ``y`` to ``15``. All other fields in the updated documents
+          remain unchanged.
+
+          Consider the following example which specifies the ``upsert`` option:
+
+          .. code-block:: javascript
+                 
+             db.products.update( { item: "magazine", qty: { $gt: 5 } }, { $set: { x: 6, y: 15 } }, { upsert: true } )
+
+          This query will either:
+          
+          - update a single document in the ``products`` collection
+            that matches the ``query`` criteria, setting the value of
+            the field ``x`` to ``6`` and the value of the field ``y``
+            to ``15``, *or*
+          
+          - if no matching document exists, insert a document in the
+            ``products`` collection, with the field ``item`` set to
+            ``book``, the field ``x`` set to ``25``, and the field
+            ``y`` set to ``50``.
+
+   :param boolean upsert:
+
+          Optional. A boolean that specifies whether to perform
+          an :term:`upsert`.
+
+          When not specified, the default value is ``false``. When
+          ``true``, the :method:`db.collection.update()` method will
+          update an existing document that matches the ``query``
+          selection criteria **or** if no document matches the
+          criteria, insert a new document with the fields and values of
+          the ``query`` and ``update``.
+
+          Consider the following example:
+
+          .. code-block:: javascript
+
+             db.products.update( { item: "book", qty: { $gt: 100 } }, { $set: { x: 25, y: 50 } }, true )
+
+          This query will either:
+
+          - update an existing document that matches the ``query``
+            criteria, setting the field ``x`` to ``25`` and the field
+            ``y`` to ``50``, *or*
+
+          - if no matching document exists, insert into the
+            ``products`` collection a new document with the field
+            ``item`` set to ``book``, the field ``x`` set to ``25``,
+            and the field ``y`` set to ``50``.
+
+          Starting in version 2.2, you can use the ``options``
+          parameter instead of the ``upsert`` parameter.
+
+          .. note::
+
+             An upsert operation affects only *one* document, and
+             cannot update multiple documents.
+
+   :param boolean multi: 
+
+          Optional. A boolean that specifies whether to update multiple
+          documents that meet the ``query`` criteria.
+
+          When not specified, the default value is ``false`` and the
+          :method:`db.collection.update()` method updates a single
+          document that meet the ``query`` criteria.
+         
+          When ``true``, the :method:`db.collection.update()` method
+          updates all documents that meet the ``query`` criteria.
+         
+          Consider the following example:
+
+          .. code-block:: javascript
+
+             db.products.update( { item: "book", qty: { $gt: 100 } }, { $set: { x: 25, y: 50 } }, false, true )
+
+          This query will update **all** documents in the ``products``
+          collection that matches the ``query`` criteria, setting the
+          value of the field ``x`` to ``25`` and the value of the field
+          ``y`` to ``50``.
+
+          Starting in version 2.2, you can use the ``options``
+          parameter instead of the ``multi`` parameter.
