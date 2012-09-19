@@ -15,4 +15,4 @@
 - :doc:`tutorial/add-shards-to-shard-cluster`
 - :doc:`tutorial/remove-shards-from-cluster`
 - :doc:`tutorial/expire-data`
-- :doc:`tutorial/copy-database-between-instances`
+- :doc:`tutorial/copy-databases-between-instances`
