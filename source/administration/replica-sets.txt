@@ -707,46 +707,45 @@ Oplog Entry Timestamp Error
 
 .. TODO link this topic to assertion 13290 once assertion guide exists.
 
-If you receive the following error:
+Consider the following error in :program:`mongod` output and logs:
 
 .. code-block:: javascript
 
    replSet error fatal couldn't query the local local.oplog.rs collection.  Terminating mongod after 30 seconds.
    <timestamp> [rsStart] bad replSet oplog entry?
 
-Then the value for the ``ts`` field in the last oplog entry might be of
-the wrong data type. The correct data type is Timestamp.
+The most often cause of this error is wrongly typed value for the
+``ts`` field in the last :term:`oplog` entry might be of the wrong
+data type. The correct data type is Timestamp.
 
-You can check the data type by running the following two queries against the oplog. If the
-data type is correct, the queries return the same document; if
-incorrect, they return different documents.
-
-First run a query to return the last document in the oplog:
+You can check the data type by running the following two queries
+against the oplog. If the data is properly typed, the queries will
+return the same document, otherwise these queries will return
+different documents. These queries are: 
 
 .. code-block:: javascript
 
    db.oplog.rs.find().sort({$natural:-1}).limit(1)
-
-Then run a query to return the last document in the oplog where the
-``ts`` value is a Timestamp. Use the :operator:`$type` operator to query
-for type ``17``, which is the Timestamp data type.
-
-.. code-block:: javascript
-
    db.oplog.rs.find({ts:{$type:17}}).sort({$natural:-1}).limit(1)
+
+The first query returns the last document in the oplog, while the
+second returns the last document in the oplog where the ``ts`` value
+is a Timestamp. The :operator:`$type` operator allows you to select
+for type 17 ``BSON``, which is the Timestamp data type.
 
 If the queries don't return the same document, then the last document in
 the oplog has the wrong data type in the ``ts`` field.
 
 .. example::
 
-   As an example, if the first query returns this as the last oplog entry:
+   If the first query returns this as the last oplog entry:
 
    .. code-block:: javascript
 
       { "ts" : {t: 1347982456000, i: 1}, "h" : NumberLong("8191276672478122996"), "op" : "n", "ns" : "", "o" : { "msg" : "Reconfig set", "version" : 4 } }
 
-   And the second query returns this as the last entry where ``ts`` is a Timestamp:
+   And the second query returns this as the last entry where ``ts``
+   has the ``Timestamp`` type:
 
    .. code-block:: javascript
 
@@ -755,10 +754,13 @@ the oplog has the wrong data type in the ``ts`` field.
    Then the value for the ``ts`` field in the last oplog entry is of the
    wrong data type.
 
-To fix the ``ts`` data type, you can run the following update. Note,
-however, that this update scans the whole oplog and can take a lot of
-time to pull the oplog into memory:
+To set the proper type for this value and resolve this issue,
+use an update operation that resembles the following: 
 
 .. code-block:: javascript
 
    db.oplog.rs.update({ts:{t:1347982456000,i:1}}, {$set:{ts:new Timestamp(1347982456000, 1)}})
+
+Modify the timestamp values as needed based on your oplog entry. This
+operation may take some period to complete because the update must
+scan and pull the entire oplog into memory.
