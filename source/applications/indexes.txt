@@ -35,7 +35,7 @@ might create an index on ``category`` in the``product`` collection:
 
    db.products.ensureIndex( { "category": 1 } )
 
-However, if you sometimes query on a key alone but and at other times
+However, if you sometimes query on only one key but and at other times
 query on that key combined with a second key, then creating a
 ref:`compound index <index-type-compound>` is more efficient. MongoDB
 will use the compound index for both queries. For example, you might
@@ -60,30 +60,32 @@ To query on multiple keys and sort the results, see :ref:`index-sort`.
 Use Covered Queries
 ~~~~~~~~~~~~~~~~~~~
 
-In some cases, MongoDB can fulfill a query using *only*
-the index, without needing to scan actual documents from the
-database. To use a covered index you must:
+In a covered query, all the search keys are found in a given index.
+MongoDB can fulfill the query using *only* the index, without needing to
+scan documents from the database. Covered queries are much faster than
+other queries, for two reasons: indexes are typically stored in RAM *or*
+located sequentially on disk, and indexes are smaller than the documents
+they catalog.
 
-- ensure that the index includes all of the fields in the result.
+Mongod automatically uses a covered query when it can. But to ensure use
+of a covered query you must:
+
+- Ensure that the index includes all of the fields in the result.
 
   This means that the :term:`projection`, must explicitly exclude the
   ``_id`` field from the result set, unless the index includes
   ``_id``.
 
-- if any of the indexed fields in any of the documents in the
+- If any of the indexed fields in any of the documents in the
   collection includes an array, then the index becomes a
   :ref:`multi-key index <index-type-multikey>` index, and cannot
   support a covered query.
 
 Use the :method:`explain() <cursor.explain()>` to test the query. If
-MongoDB was able to use a covered index, then the value of the
+MongoDB was able to use a covered query, then the value of the
 ``indexOnly`` field will be ``true``. For more information on
 :method:`explain() <cursor.explain()>`, see
 :ref:`indexes-measuring-use`.
-
-Covered queries are much faster than other queries, for two reasons:
-indexes are typically stored in RAM *or* located sequentially on
-disk, and indexes are smaller than the documents they catalog.
 
 .. _index-sort:
 .. _sorting-with-indexes:
