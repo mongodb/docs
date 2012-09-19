@@ -656,6 +656,8 @@ Possible causes of replication lag include:
 Failover and Recovery
 ~~~~~~~~~~~~~~~~~~~~~
 
+.. TODO Revisit whether this belongs in troubleshooting. Perhaps this should be an H2 before troubleshooting.
+
 Replica sets feature automated failover. If the :term:`primary`
 goes offline or becomes unresponsive and a majority of the original
 set members can still connect to each other, the set will elect a new
@@ -699,3 +701,64 @@ You can prevent rollbacks by ensuring safe writes by using
 the appropriate :term:`write concern`.
 
 .. include:: /includes/seealso-elections.rst
+
+Oplog Entry Timestamp Error
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. TODO link this topic to assertion 13290 once assertion guide exists.
+
+If you receive the following error:
+
+.. code-block:: javascript
+
+   replSet error fatal couldn't query the local local.oplog.rs collection.  Terminating mongod after 30 seconds.
+   <timestamp> [rsStart] bad replSet oplog entry?
+
+Then the value for the ``ts`` field in the last oplog entry might be of
+the wrong data type. The correct data type is Timestamp.
+
+You can check the data type by running the following two queries against the oplog. If the
+data type is correct, the queries return the same document; if
+incorrect, they return different documents.
+
+First run a query to return the last document in the oplog:
+
+.. code-block:: javascript
+
+   db.oplog.rs.find().sort({$natural:-1}).limit(1)
+
+Then run a query to return the last document in the oplog where the
+``ts`` value is a Timestamp. Use the :operator:`$type` operator to query
+for type ``17``, which is the Timestamp data type.
+
+.. code-block:: javascript
+
+   db.oplog.rs.find({ts:{$type:17}}).sort({$natural:-1}).limit(1)
+
+If the queries don't return the same document, then the last document in
+the oplog has the wrong data type in the ``ts`` field.
+
+.. example::
+
+   As an example, if the first query returns this as the last oplog entry:
+
+   .. code-block:: javascript
+
+      { "ts" : {t: 1347982456000, i: 1}, "h" : NumberLong("8191276672478122996"), "op" : "n", "ns" : "", "o" : { "msg" : "Reconfig set", "version" : 4 } }
+
+   And the second query returns this as the last entry where ``ts`` is a Timestamp:
+
+   .. code-block:: javascript
+
+      { "ts" : Timestamp(1347982454000, 1), "h" : NumberLong("6188469075153256465"), "op" : "n", "ns" : "", "o" : { "msg" : "Reconfig set", "version" : 3 } }
+
+   Then the value for the ``ts`` field in the last oplog entry is of the
+   wrong data type.
+
+To fix the ``ts`` data type, you can run the following update. Note,
+however, that this update scans the whole oplog and can take a lot of
+time to pull the oplog into memory:
+
+.. code-block:: javascript
+
+   db.oplog.rs.update({ts:{t:1347982456000,i:1}}, {$set:{ts:new Timestamp(1347982456000, 1)}})
