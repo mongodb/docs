@@ -1,0 +1,301 @@
+.. default-domain:: mongodb
+
+SQL to Aggregation Framework
+----------------------------
+
+With the :doc:`/applications/aggregation`, MongoDB provides analogous
+functionality to common SQL aggregation functions.
+
+COUNT(*)
+~~~~~~~~
+
+MongoDB provides three ways to perform the SQL operation of ``count(*)``:
+
+- the :dbcommand:`count()` command
+- the :method:`count() <cursor.count()>` method
+- the :agg:pipeline:`$group` operator in conjunction with the
+  :agg:expression:`$sum` operator in the
+  :doc:`/applications/aggregation`.
+
+Consider the following SQL command which performs a count of the rows
+in the ``orders`` table:
+
+.. code-block:: sql
+
+   SELECT COUNT(*) AS count 
+   FROM orders
+
+In MongoDB,
+
+- the analogous query using the :dbcommand:`count()` command is:
+
+.. code-block:: javascript
+   :emphasize-lines: 1
+
+   db.orders.count()
+    
+- the analogous query using the :method:`count() <cursor.count()>`
+  method is:
+
+.. code-block:: javascript
+   :emphasize-lines: 1
+   
+   db.orders.find().count()
+
+- the analogous query using the :doc:`/applications/aggregation` is:
+
+.. code-block:: javascript
+   :emphasize-lines: 1
+   
+   db.orders.aggregate( [ { $group: { _id: null, count: { $sum: 1 } } } ] )
+
+The :doc:`/applications/aggregation` query performs a
+:agg:pipeline:`$group` operation that uses the :agg:expression:`$sum`
+operator to calculate the ``count`` with no grouping. Within the :agg:pipeline:`$group`
+operation, the :agg:expression:`$sum` operator calculates the ``count``
+by adding ``1`` for each document in the ``orders`` collection as grouped by ``null``.
+
+SUM(<column>)
+~~~~~~~~~~~~~
+
+MongoDB provides aggregation :agg:expression:`$sum` operator to perform the
+SQL operation of ``sum(<column>)``.
+
+Consider the following SQL command which sums the ``price`` column in
+the ``orders`` table:
+
+.. code-block:: sql
+
+   SELECT SUM(price) AS total 
+   FROM orders
+
+In MongoDB, the analogous query using the
+:doc:`/applications/aggregation` is:
+
+.. code-block:: javascript
+   :emphasize-lines: 1
+   
+   db.orders.aggregate( [ { $group: { _id: null, total: { $sum: "$price" } } } ] )
+
+The :doc:`/applications/aggregation` query performs a
+:agg:pipeline:`$group` operation that uses the :agg:expression:`$sum`
+operator to calculate the ``total`` on the ``price`` field grouped by
+``null`` (i.e. with no grouping.) 
+
+Note the ``$`` in front of the field ``price`` as it appears as an
+operand to the aggregation operators.
+
+GROUP BY(<column>...)
+~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB provides aggregation :agg:expression:`$group` operator to perform the
+SQL operation of ``GROUP BY ()``.
+
+*Grouping by single column*
+
+Consider the following SQL command which groups the ``price`` information by
+``cust_id``:
+
+.. code-block:: sql
+
+   SELECT cust_id, SUM(price) AS total
+   FROM orders 
+   GROUP BY cust_id
+
+In MongoDB, the analogous query using the
+:doc:`/applications/aggregation` is:
+
+.. code-block:: javascript
+   :emphasize-lines: 1
+   
+   db.orders.aggregate( [ { $group: { _id: "$cust_id" , total: { $sum: "$price" } } } ] )
+
+The :doc:`/applications/aggregation` query performs a
+:agg:pipeline:`$group` operation that uses the :agg:expression:`$sum`
+operator to calculate the ``total`` on the ``price`` field as grouped
+by the ``cust_id`` field. 
+
+Note the ``$`` in front of the fields ``cust_id`` and ``price`` as they
+appear as operands to the aggregation operators.
+
+*Grouping by multiple columns*
+
+Consider the following SQL command which groups the ``price``
+information by both ``cust_id`` and ``ord_date``:
+
+.. code-block:: sql
+   
+   SELECT cust_id, ord_date, SUM(price) AS total
+   FROM orders 
+   GROUP BY cust_id, ord_date
+
+In MongoDB, the analogous query using the
+:doc:`/applications/aggregation` is:
+
+.. code-block:: javascript
+   :emphasize-lines: 1
+   
+   db.orders.aggregate( [ { $group: { _id: { cust_id: "$cust_id", ord_date: "$ord_date" }, total: { $sum: "$price" } } } ] )
+
+The :doc:`/applications/aggregation` query performs the
+:agg:pipeline:`$group` operation that uses the :agg:expression:`$sum`
+operator to calculate the ``total`` on the ``price`` field as grouped
+by the ``cust_id`` and ``ord_date`` fields. 
+
+Note the ``$`` in front of the fields ``cust_id``, ``ord_date``, and
+``price`` as they appear as operands to the aggregation operators.
+
+GROUP BY ... HAVING ...
+~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB provides aggregation :agg:expression:`$group` and
+:agg:expression:`$match` operators to perform the SQL operation of
+``GROUP BY ... HAVING ...``.
+
+*Grouping by single column ... having*
+
+Consider the following SQL command which can be used to find the
+``cust_id`` 's with multiple rows:
+
+.. code-block:: sql
+   
+   SELECT cust_id, count(*)
+   FROM orders 
+   GROUP BY cust_id
+   HAVING count(*) > 1
+
+In MongoDB, the analogous query using the
+:doc:`/applications/aggregation` is:
+
+.. code-block:: javascript
+   :emphasize-lines: 2-3
+   
+   db.orders.aggregate( [ 
+                           { $group: { _id: "$cust_id", count: { $sum: 1 } } }, 
+                           { $match: { count: { $gt: 1 } } } 
+                        ] )
+
+The :doc:`/applications/aggregation` query first performs a
+:agg:pipeline:`$group` operation that uses the :agg:expression:`$sum`
+operator to calculate the ``count`` of the documents grouped by
+``cust_id``. Then the query pipes the results to the
+:agg:expression:`$match` operator that returns only those results that
+have ``count`` greater than ``1``. 
+
+Note the ``$`` in front of the fields ``cust_id`` as it appear as an
+operand to the aggregation operators.
+
+*Grouping by multiple columns ... having*
+
+Consider the following SQL command which can be used to find the
+calculated column ``total`` greater than ``250`` grouped by ``cust_id`` and
+``ord_date``:
+
+.. code-block:: sql
+
+   SELECT cust_id, ord_date, SUM(price) AS total
+   FROM orders 
+   GROUP BY cust_id, ord_date
+   HAVING total > 250
+
+In MongoDB, the analogous query using the
+:doc:`/applications/aggregation` is:
+
+.. code-block:: javascript
+   :emphasize-lines: 2-3
+   
+   db.orders.aggregate( [ 
+                           { $group: { _id: { cust_id: "$cust_id", ord_date: "$ord_date" }, total: { $sum: "$price" } } },
+                           { $match: { total: { $gt: 250 } } } 
+                        ] )
+
+The :doc:`/applications/aggregation` query first performs a
+:agg:pipeline:`$group` operation that uses the :agg:expression:`$sum`
+operator to calculate the ``total`` on the ``price`` field as grouped
+by the ``cust_id`` and ``ord_date`` fields. Then the query pipes the
+results to the :agg:expression:`$match` operator that returns only
+those results that have ``total`` greater than ``250``. 
+
+Note the ``$`` in front of the fields ``cust_id``, ``ord_date``, and
+``price`` as they appear as operands to the aggregation operators.
+
+WHERE ... GROUP BY
+~~~~~~~~~~~~~~~~~~
+MongoDB provides aggregation :agg:expression:`$group` and
+:agg:expression:`$match` operators to perform the SQL operation of
+``WHERE ... GROUP BY``.
+
+Consider the following SQL command which can be used to find the
+``cust_id`` and the calculated column ``total`` for orders with status
+``A`` grouped by ``cust_id``:
+
+.. code-block:: sql
+   
+   SELECT cust_id, SUM(price) as total
+   FROM orders 
+   WHERE status = 'A'
+   GROUP BY cust_id
+
+In MongoDB, the analogous query using the
+:doc:`/applications/aggregation` is:
+
+.. code-block:: javascript
+   :emphasize-lines: 2-3
+   
+   db.orders.aggregate( [ 
+                           { $match: { status: 'A' } },
+                           { $group: { _id: "$cust_id", total: { $sum: "$price" } } } 
+                        ] )
+
+The :doc:`/applications/aggregation` query first performs a
+:agg:expression:`$match` operation that returns only those documents
+that have ``status`` field equal to ``A``. Then the query pipes the
+results to the :agg:pipeline:`$group` operation that uses the
+:agg:expression:`$sum` operator to calculate the ``total`` on the
+``price`` field as grouped by the ``cust_id`` field.
+
+Note the ``$`` in front of the fields ``cust_id``, ``ord_date``, and
+``price`` as they appear as operands to the aggregation operators.
+
+WHERE ... GROUP BY ... HAVING ...
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB provides aggregation :agg:expression:`$group` and
+:agg:expression:`$match` operators to perform the SQL operation of
+``WHERE ... GROUP BY ... HAVIN``.
+
+Consider the following SQL command which can be used to find the
+``cust_id`` and the calculated column ``total`` for orders with status
+``A`` grouped by ``cust_id`` having ``total`` greater than ``250``:
+
+.. code-block:: sql
+   
+   SELECT cust_id, SUM(price) as total
+   FROM orders 
+   WHERE status = 'A'
+   GROUP BY cust_id
+   HAVING total > 250
+
+In MongoDB, the analogous query using the
+:doc:`/applications/aggregation` is:
+
+.. code-block:: javascript
+   :emphasize-lines: 2-4
+   
+   db.orders.aggregate( [ 
+                           { $match: { status: 'A' } },
+                           { $group: { _id: "$cust_id", total: { $sum: "$price" } } } ,
+                           { $match: { total: { $gt: 250 } } } 
+                        ] )
+
+The :doc:`/applications/aggregation` query first performs a
+:agg:expression:`$match` operation that returns only those documents
+that have ``status`` field equal to ``A``. Then the query pipes the
+results to the :agg:pipeline:`$group` operation that uses the
+:agg:expression:`$sum` operator to calculate the ``total`` on the
+``price`` field as grouped by the ``cust_id`` field. Finally the query
+pipes those results to the :agg:expression:`$match` operator that
+returns only those results that have ``total`` greater than ``250``.
+
+Note the ``$`` in front of the fields ``cust_id``, ``ord_date``, and
+``price`` as they appear as operands to the aggregation operators.
