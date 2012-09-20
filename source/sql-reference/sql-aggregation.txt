@@ -254,7 +254,7 @@ results to the :agg:pipeline:`$group` operation that uses the
 :agg:expression:`$sum` operator to calculate the ``total`` on the
 ``price`` field as grouped by the ``cust_id`` field.
 
-Note the ``$`` in front of the fields ``cust_id``, ``ord_date``, and
+Note the ``$`` in front of the fields ``cust_id`` and
 ``price`` as they appear as operands to the aggregation operators.
 
 WHERE ... GROUP BY ... HAVING ...
@@ -262,7 +262,7 @@ WHERE ... GROUP BY ... HAVING ...
 
 MongoDB provides aggregation :agg:expression:`$group` and
 :agg:expression:`$match` operators to perform the SQL operation of
-``WHERE ... GROUP BY ... HAVIN``.
+``WHERE ... GROUP BY ... HAVING``.
 
 Consider the following SQL command which can be used to find the
 ``cust_id`` and the calculated column ``total`` for orders with status
@@ -297,5 +297,55 @@ results to the :agg:pipeline:`$group` operation that uses the
 pipes those results to the :agg:expression:`$match` operator that
 returns only those results that have ``total`` greater than ``250``.
 
-Note the ``$`` in front of the fields ``cust_id``, ``ord_date``, and
+Note the ``$`` in front of the fields ``cust_id`` and
+``price`` as they appear as operands to the aggregation operators.
+
+WHERE ... GROUP BY ... HAVING ... ORDER BY
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB provides aggregation :agg:expression:`$group` and
+:agg:expression:`$match` operators to perform the SQL operation of
+``WHERE ... GROUP BY ... HAVING ... ORDER BY``.
+
+Consider the following SQL command which can be used to find the
+``cust_id`` and the calculated column ``total`` for orders with status
+``A`` grouped by ``cust_id`` having ``total`` greater than ``250``. The
+results will be sorted first by descending ``total`` and then by
+ascending ``cust_id``:
+
+.. code-block:: sql
+   
+   SELECT cust_id, SUM(price) as total
+   FROM orders 
+   WHERE status = 'A'
+   GROUP BY cust_id
+   HAVING total > 250
+   ORDER BY total DESC, cust_id ASC
+
+In MongoDB, the analogous query using the
+:doc:`/applications/aggregation` is:
+
+.. code-block:: javascript
+   :emphasize-lines: 2-5
+   
+   db.orders.aggregate( [ 
+                           { $match: { status: 'A' } },
+                           { $group: { _id: "$cust_id", total: { $sum: "$price" } } } ,
+                           { $match: { total: { $gt: 250 } } },
+                           { $sort: { total: -1, _id: 1 } } 
+                        ] )
+
+The :doc:`/applications/aggregation` query first performs a
+:agg:expression:`$match` operation that returns only those documents
+that have ``status`` field equal to ``A``. Next, the query pipes the
+results to the :agg:pipeline:`$group` operation that uses the
+:agg:expression:`$sum` operator to calculate the ``total`` on the
+``price`` field as grouped by the ``cust_id`` field. Then, the query
+pipes those results to the :agg:expression:`$match` operator that
+returns only those results that have ``total`` greater than ``250``.
+Finally, the query pipes those results to the :agg:expression:`$sort`
+operator that will first sort by ``total`` descending and then by
+``_id`` ascending.
+
+Note the ``$`` in front of the fields ``cust_id`` and
 ``price`` as they appear as operands to the aggregation operators.
