@@ -52,13 +52,14 @@ However, if you sometimes query on only one key but and at other times
 query on that key combined with a second key, then creating a
 :ref:`compound index <index-type-compound>` is more efficient. MongoDB
 will use the compound index for both queries. For example, you might
-create an index on both ``category`` and ``item``, allowing you both
-options: to query only on ``category`` and also to query on ``category``
-combined with ``item``:
+create an index on both ``category`` and ``item``.
 
 .. code-block:: javascript
 
    db.products.ensureIndex( { "category": 1, "item": 1 } )
+
+This allows you both options. You can query on just ``category``, and
+you also can query on ``category`` combined with ``item``.
 
 To query on multiple keys and sort the results, see :ref:`index-sort`.
 
@@ -67,6 +68,50 @@ query cannot use multiple indexes. A query must use only one index.
 
 .. _covered-queries:
 .. _indexes-covered-queries:
+
+
+Use Compound Indexes to Support Several Different Queries
+---------------------------------------------------------
+
+A single :ref:`compound index <index-type-compound>` on multiple fields
+can support all the queries that search a "prefix" subset of those fields.
+
+.. example::
+
+   The following index on a collection:
+
+   .. code-block:: javascript
+
+      { x: 1, y: 1, z: 1 }
+
+   Can support queries that the following indexes support:
+
+   .. code-block:: javascript
+
+      { x: 1 }
+      { x: 1, y: 1 }
+
+   There are some situations where the prefix indexes may offer better
+   query performance: for example if ``z`` is a large array.
+
+   The ``{ x: 1, y: 1, z: 1 }`` index can also support many of the same
+   queries as the following index:
+
+   .. code-block:: javascript
+
+      { x: 1, z: 1 }
+
+   Also, ``{ x: 1, z: 1 }`` has an additional use. Given the following
+   query:
+
+   .. code-block:: javascript
+
+      db.collection.find( { x: 5 } ).sort( { z: 1} )
+
+   The ``{ x: 1, z: 1 }`` index supports both the query and the sort
+   operation, while the ``{ x: 1, y: 1, z: 1 }`` index only supports
+   the query. For more information on sorting, see
+   :ref:`sorting-with-indexes`.
 
 Create Indexes that Support Covered Queries
 -------------------------------------------
@@ -183,27 +228,18 @@ available but also must have RAM available for the rest of the
 :term:`working set`. Also remember:
 
 - If you have and use multiple collections, you must consider the size
-  of all indexes on all collections.
+  of all indexes on all collections. The indexes and the working set must be able to
+  fit RAM at the same time.
 
-- There are some limited cases where indexes do not need to fit in RAM.
-  See :ref:`indexing-right-handed`.
+- All of your indexes use less space than all of the documents in the
+  collection. This may not be an issue if all your queries use
+  :ref:`covered queries <covered-queries>` or if indexes do not need to
+  fit into RAM. There are some limited cases where indexes do not need
+  to fit in RAM. See :ref:`indexing-right-handed`.
 
 .. seealso:: For additional :doc:`collection statistics
    </reference/collection-statistics>`, use :dbcommand:`collStats` or
    :method:`db.collection.stats()`.
-
-Indexes require space, both on disk and in RAM. Indexes require less
-space in RAM than the full documents in the collection. In theory, if
-your queries only match a subset of the documents and can use the index
-to locate those documents, MongoDB can maintain a much smaller
-:term:`working set`. Ensure that:
-
-- The indexes and the working set can fit RAM at the same time.
-
-- All of your indexes use less space than all of the documents in the
-  collection. This may not be an issue all of your queries use
-  :ref:`covered queries <covered-queries>` or indexes do not need to fit
-  into ram, as in the following situation:
 
 .. _indexing-right-handed:
 
@@ -218,17 +254,14 @@ RAM. This allows for efficient index use for read and write
 operations and minimize the amount of RAM required to support the
 index.
 
-.. To determine the size of the index, see DOCS-224
-
 .. _index-selectivity:
 
 Create Queries that Ensure Selectivity
 --------------------------------------
 
-Selectivity is the ability of a query to narrow results
-using the index. Effective indexes are more selective and allow
-MongoDB to use the index for a larger portion of the work associated
-with fulfilling the query.
+Selectivity is the ability of a query to narrow results using the index.
+Effective indexes are more selective and allow MongoDB to use the index
+for a larger portion of the work associated with fulfilling the query.
 
 To ensure selectivity:
 
@@ -322,70 +355,27 @@ Consider Insert Throughput
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. TODO insert link to /source/core/write-operations when that page is complete.
+   Do we want to link to write concern? -bg
 
-MongoDB must update all indexes associated with a collection after
-every insert, update, or delete operation.
+MongoDB must update all indexes associated with a collection after every
+insert, update, or delete operation. Therefore, every index on a
+collection adds some amount of overhead to these operations. In almost
+every case, the performance gains that indexes realize for read
+operations are worth the insertion penalty. However, in some cases:
 
-Every index on a collection adds some amount of overhead to these
-operations. In almost every case, the performance gains that indexes
-realize for read operations are worth the insertion penalty; however:
+- An index to support an infrequent query might incur more
+  insert-related costs than saved read-time.
 
-- In some cases, an index to support an infrequent query may incur
-  more insert-related costs than saved read-time.
+  .. TODO How do you determine if the above is the case?
 
-- In some situations, if you have many indexes on a collection with a
-  high insert throughput and a number of very similar indexes, you may
-  find better overall results by using a slightly less effective index
-  on some queries if it means consolidating the total number of
-  indexes.
+- If you have many indexes on a collection with a high insert throughput
+  and a number of very similar indexes, you may find better overall
+  results by using a slightly less effective index on some queries if it
+  means consolidating the total number of indexes.
 
-- If your indexes and queries are not very selective, the speed
-  improvements for query operations may not offset the costs of
-  maintaining an index. See the section on :ref:`index selectivity
-  <index-selectivity>` for more information.
+  .. TODO The above is unclear. -bg
 
-- In some cases a single compound on two or more fields index may
-  support all of the queries that index on a single field index, or a
-  smaller :ref:`compound index <index-type-compound>`. In general,
-  MongoDB can use compound index
-  to support the same queries as any of its prefixes. Consider the
-  following example:
-
-  .. example::
-
-     Given the following index on a collection:
-
-     .. code-block:: javascript
-
-        { x: 1, y: 1, z: 1 }
-
-     Can support a number of queries as well as most of the queries
-     that the following indexes support:
-
-     .. code-block:: javascript
-
-        { x: 1 }
-        { x: 1, y: 1 }
-
-     There are some situations where the prefix indexes may offer
-     better query performance as is the case if ``z`` is a large
-     array. Also, consider the following index on the same collection:
-
-     .. code-block:: javascript
-
-        { x: 1, z: 1 }
-
-     The ``{ x: 1, y: 1, z: 1 }`` index can support many of the same
-     queries as the above index; however, ``{ x: 1, z: 1 }`` has
-     additional use: Given the following query:
-
-     .. code-block:: javascript
-
-        db.collection.find( { x: 5 } ).sort( { z: 1} )
-
-     The ``{ x: 1, z: 1 }`` will support both the query and the sort
-     operation, while the ``{ x: 1, y: 1, z: 1 }`` index can only
-     support the query.
-
-     See the :ref:`sorting-with-indexes` section for more
-     information.
+- If your indexes and queries are not very :ref:`selective
+  <index-selectivity>`, the speed improvements for query operations
+  might not offset the costs of maintaining an index. For more
+  information see :ref:`index-selectivity`.
