@@ -9,12 +9,12 @@ Synopsis
 
 You can force a :term:`replica set` member to become :term:`primary` by
 giving it a higher :data:`members[n].priority` value than any other
-member in the set. Optionally, you also can force all :term:`secondary`
-members never to become primaries by setting their
-:data:`members[n].priority` values to ``0``, which means they can never
-seek :ref:`election <replica-set-elections>` as primary. Or, as
-different approach, you can instead set all secondary members to be
-secondary-only, as described in
+member in the set.
+
+Optionally, you also can force a member never to become primary by
+setting its :data:`members[n].priority` value to ``0``, which means the
+member can never seek :ref:`election <replica-set-elections>` as
+primary. For more information, see
 :ref:`replica-set-secondary-only-members`.
 
 Procedures
@@ -25,10 +25,17 @@ Procedures
 Force a Member to be Primary by Setting its Priority High
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For this procedure, assume your current :term:`primary` is
-``m1.example.net`` and you'd like to force ``m3.example.net`` to be
-primary. Also assume you have a three-member :term:`replica set` with the
-following configuration:
+.. versionchanged:: 2.0
+
+For more information on priorities, see :ref:`replica-set-node-priority`.
+
+This procedure assumes your current :term:`primary` is
+``m1.example.net`` and that you'd like to instead make ``m3.example.net`` primary.
+The procedure also assumes you have a three-member :term:`replica set` with the
+configuration below. For more information on configurations, see :ref:`Replica Set
+Configuration Use <replica-set-reconfiguration-usage>`.
+
+This procedure assumes this configuration:
 
 .. code-block:: javascript
 
@@ -72,18 +79,19 @@ following configuration:
      ``m1.example.net`` (typically within 10 seconds).
 
    - ``m1.example.net`` sees that it no longer has highest priority and,
-     in most cases, steps down. If ``m3.example.net`` is far behind
-     ``m1.example.net``, ``m1.example.net`` does not step down until
-     ``m3.example.net`` is within 10 seconds of it's :ref:`optime
-     <members.optime>`. This minimizes the amount of time with no
-     primary on failover.
+     in most cases, steps down. ``m1.example.net`` *does not* step down
+     if ``m3.example.net``'s sync is far behind. In that case,
+     ``m1.example.net`` waits until ``m3.example.net`` is within 10
+     seconds of its optime and then steps down. This minimizes the
+     amount of time with no primary on failover.
 
    - The step down forces on election in which ``m3.example.net``
      becomes primary based on its :data:`members[n].priority` value.
 
 #. Optionally, if ``m3.example.net`` is more than 10 seconds behind
    ``m1.example.net``'s optime, and if you don't need to have a primary
-   designated within 10 seconds, you can force ``m1.example.net`` to step down by running:
+   designated within 10 seconds, you can force ``m1.example.net`` to
+   step down by running:
 
    .. code-block:: javascript
 
@@ -94,9 +102,46 @@ following configuration:
    When ``m3.example.net`` catches up with ``m1.example.net`` it syncs
    and becomes primary.
 
-   If you change your mind and would like to make ``m1.example.net`` primary again while it waits for
-   ``m3.example.net`` to catch up, issue the following command to make ``m1.example.net`` seek election again:
+   If you change your mind and would like to make ``m1.example.net``
+   primary again while it waits for ``m3.example.net`` to catch up,
+   issue the following command to make ``m1.example.net`` seek election
+   again:
 
    .. code-block:: javascript
 
       db.adminCommand({replSetFreeze:0})
+
+.. _replica-set-force-member-to-be-primary-via-dbcommands:
+
+Force a Member to be Primary Using Database Commands
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 1.8
+
+For this procedure, assume you have a :term:`replica set` with members
+``A``, ``B``, and ``C``. ``A`` is current :term:`primary`, and you want
+``B`` to become primary. To do so you use :method:`rs.freeze()` and
+:method:`rs.stepDown()`, which are wrappers for the
+:dbcommand:`replSetFreeze` and :dbcommand:`replSetStepDown` commands.
+
+1. In a :program:`mongo` shell, run :method:`rs.status()` to ensure your replica
+   set is running as expected.
+
+#. In a :program:`mongo` shell connected to ``C``, freeze ``C`` so that it does
+   not attempt to become primary for 120 seconds.
+
+   .. code-block:: javascript
+
+      rs.freeze(120)
+
+#. In a :program:`mongo` shell connected to ``A``, step down ``A`` so that it is not
+   eligible to become primary for 120 seconds:
+
+   .. code-block:: javascript
+
+      rs.stepDown(120)
+
+   ``B`` becomes primary.
+
+   .. note:: During the transition, there is a short window when no member
+      is primary.
