@@ -6,32 +6,43 @@ renameCollection
 
 .. dbcommand:: renameCollection( source, to: target[, dropTarget=>true])
 
-   The :dbcommand:`renameCollection` command changes the name of an 
-   existing collection. Use the following form to rename the collection
-   named ``source`` to ``target``:
+   The :dbcommand:`renameCollection` command is an administrative command which
+   changes the name of an existing collection.
+   If the ``target`` specifies a collection in a different database, the
+   ``source`` collection will be copied to the new database and then dropped. 
+   You must issue the
+   :dbcommand:`renameCollection`
+   command against the :term:`admin database` in the form:
 
    .. code-block:: javascript
 
       { renameCollection: "source", to: "target" }
 
-   You must run this command against the admin database. and thus
-   requires you to specify the complete namespace (i.e., database name
-   and collection name.)
+   You must specify the complete :term:`namespace` (i.e., database name
+   and collection name):
+   
+   .. code-block:: javascript
+   
+      { renameCollection: "source-database.collection-name" to: "target-database.collection-name"}
 
    :var source:
    
-      Specifies the name of the collection to be renamed.
+      Specifies the complete namespace of the collection to be renamed.
       
    :param string to: 
    
-      Specifies the new name of the collection.
+      Specifies the new namespace of the collection.
       
    :param dropTarget: If ``true``, :program:`mongod` will drop the `target` of :dbcommand:`renameCollection` prior to renaming the collection.
    :type dropTarget: true or false
    
-   :raises 10027:
+   :exception 10026:
    
-      Exception 10027 is thrown if the ``target`` collection exists
+      Raised if the ``source`` namespace does not exist.
+      
+   :exception 10027:
+   
+      Raised if the ``target`` namespace exists
       and ``dropTarget`` is either ``false`` or unspecified.
 
    .. warning::
@@ -41,14 +52,18 @@ renameCollection
       and you do not specify ``dropTarget: true``.
 
    The shell helper :method:`renameCollection()` provides a
-   simpler interface for this functionality. The following is
-   equivalent to the previous example:
+   simpler interface to using this command within a database.
+   The following is equivalent to the previous example:
 
    .. code-block:: javascript
 
-      db.things.renameCollection( "events" )
+      db.source.renameCollection( "target" )
 
-   :dbcommand:`renameCollection` operates by changing the metadata
+   The shell helper :method:`renameCollection()` cannot be used to copy 
+   and rename a collection across databases.
+
+   :dbcommand:`renameCollection` operates within a collection
+   by changing the metadata
    associated with a given collection. The duration of the command is
    constant and not related to the size of the collection or the
    indexes; however, the operation will invalidate open cursors which
