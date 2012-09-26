@@ -1,20 +1,111 @@
-======================================
-Release Notes for MongoDB Version 2.2
-======================================
+=============================
+Release Notes for MongoDB 2.2
+=============================
 
 .. default-domain:: mongodb
 
-.. contents:: Release Notes
+.. contents:: See the :doc:`full index of this page <2.2-changes>` for
+              a complete list of changes included in 2.2.
    :backlinks: none
    :local:
+   :depth: 1
 
 Upgrading
 ---------
 
-.. TODO crib from 2.0, with caveat about mongos' before mongod with
-   auth.
-   
-also drivers need to upgrade to -next if using authentication.
+MongoDB 2.2 is a standard, incremental production release and works as
+a drop-in replacement for MongoDB 2.0.
+
+Preparation
+~~~~~~~~~~~
+
+If your MongoDB deployment uses authentication, you *must upgrade*
+:program:`mongod` instances *after* upgrading all drivers to 2.2
+compatible releases and :program:`mongos` instances to the 2.2
+version.
+
+Read through all release notes before upgrading, and ensure that no
+changes will affect your deployment.
+
+If you are not running with
+authentication,
+2.2 processes can inter-operate with 2.0 and 1.8 tools and processes
+in replica sets and shard clusters. As a result, you can safely upgrade the
+:program:`mongod` and :program:`mongos` components of your deployment
+in any order.
+
+.. _2.2-upgrade-standalone:
+
+Upgrading a Standalone ``mongod``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#. Download the v2.2 binaries from the `MongoDB Download Page`_.
+
+#. Shutdown your :program:`mongod` instance. Replace the existing
+   binary with the 2.2 :program:`mongod` binary and restart MongoDB.
+
+.. _`MongoDB Download Page`: http://downloads.mongodb.org/
+
+.. _2.2-upgrade-replica-set:
+
+Upgrading a Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~
+
+If your replica set runs with authentication (i.e. with
+:option:`--keyFile <mongod --keyFile>`,) you *must* upgrade all
+members of the set at once. When using authentication 2.2 members
+cannot interact with 2.0 members.
+
+If your replica set does *not* use authentication you may upgrade your
+replica set in any order, to minimize downtime, use the following
+procedure:
+
+#. Upgrade the :term:`secondary` members of the set one at a time by
+   shutting down the :program:`mongod` and replacing the 2.0 binary
+   with the 2.2 binary.
+
+#. Use the :method:`rs.stepDown()` to step down the primary to allow
+   the normal :ref:`failover <replica-set-failover>` procedure.
+
+   :method:`rs.stepDown()` and :dbcommand:`replSetStepDown` provide for
+   shorter and more consistent failover procedures than simply
+   shutting down the primary directly.
+
+   When the primary has stepped down, shut down its instance and
+   upgrade by replacing the :program:`mongod` binary with the 2.2
+   binary.
+
+.. _2.2-upgrade-shard-cluster:
+
+Upgrading a Shard Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We recommend the following upgrade procedure for a sharded cluster:
+
+- :ref:`Disable the balancer <sharding-balancing-disable-temporally>`.
+
+- Upgrade all :program:`mongos` instances *first*, in any order.
+
+- Upgrade all of the :program:`mongod` config server instances *one at
+  a time* using the :ref:`stand alone <2.2-upgrade-standalone>` procedure.  
+  When you have *fewer* than *three* config servers active, the cluster 
+  metadata will be read-only which will prevent (and abort)
+  all chunk migrations and chunk splits.
+
+- Upgrade all remaining cluster components, using the :ref:`upgrade
+  procedure for replica sets <2.2-upgrade-replica-set>` for each of
+  the shards.
+
+- re-enable the balancer.
+
+If your cluster uses authentication, you must upgrade the components in 
+the order above.  If your cluster does not use authentication, you can 
+upgrade the mongos instances, config servers, and shards in any order. 
+
+.. note::
+
+   Balancing does not currently work in *mixed* 2.0.x and 2.2.0
+   deployments. See :issue:`SERVER-6902` for more information.
 
 Changes
 -------
@@ -25,300 +116,523 @@ Major Features
 Aggregation Framework
 `````````````````````
 
-Documentation: :doc:`/applications/aggregation`
+The aggregation framework makes it possible to do aggregation
+operations without needing to use :term:`map-reduce`. The
+:dbcommand:`aggregate` command exposes the aggregation framework, and the
+:method:`db.collection.aggregate()` helper in the :program:`mongo` shell
+provides an interface to these operations. Consider the following
+resources for background on the aggregation framework and its use:
 
-Reference: :doc:`/reference/aggregation`
+- Documentation: :doc:`/applications/aggregation`
+
+- Reference: :doc:`/reference/aggregation`
+
+- Examples: :doc:`/tutorial/aggregation-examples`
 
 TTL Collections
 ```````````````
 
-Documentation: :doc:`/tutorial/expire-data`.
+TTL collections remove expired data from a collection, using a special
+index and a background thread that deletes expired documents every
+minute. These collections are useful as an alternative to
+:term:`capped collections <capped collection>` in some cases, such as for data
+warehousing and caching cases, including: machine generated event data,
+logs, and session information that needs to persist in a database
+for only a limited period of time.
+
+For more information, see the :doc:`/tutorial/expire-data` tutorial.
 
 Concurrency Improvements
 ````````````````````````
 
-Issues:
+MongoDB 2.2 increases the server's capacity for concurrent
+operations with the following improvements:
 
-- :issue:`DB Level Locking <SERVER-4328>`
-- :issue:`Improved Yielding on Page Faults <SERVER-3357>`
+#. :issue:`DB Level Locking <SERVER-4328>`
+#. :issue:`Improved Yielding on Page Faults <SERVER-3357>`
+#. :issue:`Improved Page Fault Detection on Windows <SERVER-4538>`
 
-.. TODO mention server stats reporting here. currentOp, serverStatus, profile.
+To reflect these changes, MongoDB now provides changed and improved
+reporting for concurrency and use, see :ref:`locks` and
+:ref:`server-status-record-stats` in :doc:`server status
+</reference/server-status>` and see :doc:`current operation output
+</reference/current-op>`, :method:`db.currentOp()`,
+:doc:`mongotop </reference/mongotop>`, and :doc:`mongostat
+</reference/mongostat>`.
 
-:ref:`locks`
+.. todo:: add links to current op output documentation when it happens.
 
+Improved Data Center Awareness with Tag Aware Sharding
+``````````````````````````````````````````````````````
 
+MongoDB 2.2 adds additional support for geographic distribution or
+other custom partitioning for sharded collections in :term:`shard
+clusters <shard cluster>`.  By using this "tag aware" sharding, you
+can automatically ensure that data in a sharded database system is
+always on specific shards. For example, with tag aware sharding, you
+can ensure that data is closest to the application servers that use
+that data most frequently.
 
-Query Optimizer Improvements
-````````````````````````````
+Shard tagging controls data location, and is complementary but
+separate from replica set tagging, which controls :ref:`read
+preference <replica-set-read-preference>` and :ref:`write concern
+<replica-set-write-concern>`. For example, shard tagging can pin all
+"USA" data to one or more logical shards, while replica set tagging
+can control which :program:`mongod` instances (e.g. "``production``"
+or "``reporting``") the application uses to service requests.
 
-:issue:`SERVER-4148`
-:issue:`SERVER-4149`
+See the documentation for the following helpers in the :program:`mongo`
+shell that support tagged sharding configuration:
 
-Tag Aware Sharding
-``````````````````
+- :method:`sh.addShardTag()`
+- :method:`sh.addTagRange()`
+- :method:`sh.removeShardTag()`
 
-:wiki:`Documentation <Tag+Aware+Sharding>`
+Also, see the :wiki:`wiki page for tag aware sharding
+<Tag+Aware+Sharding>`.
 
+Fully Supported Read Preference Semantics
+`````````````````````````````````````````
 
-``mongos`` Supports Read Preference Semantics
-`````````````````````````````````````````````
+All MongoDB clients and drivers now support full :ref:`read
+preferences <replica-set-read-preference>`, including consistent
+support for a full range of :ref:`read preference modes
+<replica-set-read-preference-modes>` and :ref:`tag sets
+<replica-set-read-preference-tag-sets>`. This support extends to the
+:program:`mongos` and applies identically to single replica sets and
+to the replica sets for each shard in a :term:`shard cluster`.
 
-:ref:`replica-set-read-preference`
+Additional read preference support now exists in the :program:`mongo`
+shell using the :method:`readPref() <cursor.readPref()>` cursor method.
 
 .. including tagging
 
+Compatibility Changes
+~~~~~~~~~~~~~~~~~~~~~
 
-Naming
-~~~~~~
+Authentication Changes
+``````````````````````
 
-Restrictions on Database Names
-``````````````````````````````
+MongoDB 2.2 provides more reliable and robust support for
+authentication clients, including drivers and :program:`mongos`
+instances.
 
-Database names can no longer contain the following characters:
+If your :program:`mongod` instances or cluster runs with
+authentication:
+
+- In sharded environments, 2.0 version :program:`mongos` instances are
+  **not** compatible with 2.2 shard clusters running with
+  authentication.
+
+  To prevent rendering your cluster non-operational,
+  you **must** use the :ref:`upgrade procedure for shard clusters
+  <2.2-upgrade-shard-cluster>` and upgrade all :program:`mongos`
+  instances *before* upgrading the shard.
+
+- For all drivers, use the latest release of your driver and check
+  its release notes.
+
+Drivers and :program:`mongos` instances that connect to
+:program:`mongod` instances that do *not* have authentication enabled
+are not affected by this issue.
+
+.. _2.2-findandmodify-returns-null:
+
+``findAndModify`` Returns Null Value for Upserts
+````````````````````````````````````````````````
+
+In version 2.2, for :term:`upsert` operations, :dbcommand:`findAndModify`
+commands will now return the following output:
+
+.. code-block:: javascript
+
+   {'ok': 1.0, 'value': null}
+
+In the :program:`mongo` shell, :dbcommand:`findAndModify` operations
+running as upserts will only output a ``null`` value.
+
+Previously, in version 2.0 these operations would return an empty
+document, e.g. ``{ }``.
+
+See: :issue:`SERVER-6226` for more information.
+
+``mongodump`` Output can only Restore to 2.2 MongoDB Instances
+``````````````````````````````````````````````````````````````
+
+If you use the :program:`mongodump` tool from the 2.2 distribution to
+create a dump of a database, you may only restore that dump to a 2.2
+database.
+
+See: :issue:`SERVER-6961` for more information.
+
+Behavioral Changes
+~~~~~~~~~~~~~~~~~~
+
+Restrictions on Database Names for Windows
+``````````````````````````````````````````
+
+Database names running on Windows can no longer contain the following
+characters:
 
 .. code-block:: none
 
    /\. "*<>:|?
 
-The names of the data files include the database name.
-If you attempt upgrade a database instance with one or more of these characters,
+The names of the data files include the database name. If you attempt
+to upgrade a database instance with one or more of these characters,
 :program:`mongod` will refuse to start.
 
-Change the name of these databases before upgrading.
+Change the name of these databases before upgrading. See
+:issue:`SERVER-4584` and :issue:`SERVER-6729` for more information.
 
-Collections Must Have Names
+.. _2.2-id-indexes-capped-collections:
+
+``_id`` Fields and Indexes on Capped Collections
+````````````````````````````````````````````````
+
+All :term:`capped collections <capped collection>` now have an ``_id``
+field by default, *if* they exist outside of the ``local`` database,
+and now have indexes on the ``_id`` field. This change only affects capped
+collections created with 2.2 instances and does not affect existing
+capped collections.
+
+See: :issue:`SERVER-5516` for more information.
+
+New ``$elemMatch`` Projection Operator
+``````````````````````````````````````
+
+The :projection:`$elemMatch` operator allows applications to narrow
+the data returned from queries so that the query operation will only
+return the first matching element in an array. See the
+:doc:`/reference/projection/elemMatch` documentation and the
+:issue:`SERVER-2238` and :issue:`SERVER-828` issues for more
+information.
+
+Windows Specific Changes
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Windows XP is Not Supported
 ```````````````````````````
 
-:issue:`SERVER-4442`
-
-Windows Specific Improvements
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+As of 2.2, MongoDB does not support Windows XP. Please upgrade to a
+more recent version of Windows to use the latest releases of
+MongoDB. See :issue:`SERVER-5648` for more information.
 
 Service Support for ``mongos.exe``
 ``````````````````````````````````
 
-:issue:`SERVER-1589`
+You may now run :program:`mongos.exe` instances as a Windows
+Service. See the :doc:`/reference/mongos.exe` reference and
+:ref:`tutorial-mongod-as-windows-service` and :issue:`SERVER-1589` for
+more information.
 
 Log Rotate Command Support
 ``````````````````````````
 
-:issue:`SERVER-2612`
-
-Page Fault Detection
-````````````````````
-
-:issue:`SERVER-4538`
+MongoDB for Windows now supports log rotation by way of the
+:dbcommand:`logRotate` database command. See :issue:`SERVER-2612` for
+more information.
 
 New Build Using SlimReadWrite Locks for Windows Concurrency
 ```````````````````````````````````````````````````````````
 
-:issue:`SERVER-3844`
+Labeled "2008+" on the `Downloads Page`_, this build for 64-bit
+versions of Windows Server 2008 R2 and for Windows 7 or newer, offers
+increased performance over the standard 64-bit Windows build of
+MongoDB. See :issue:`SERVER-3844` for more information.
+
+.. _`Downloads Page`: http://www.mongodb.org/downloads
 
 Tool Improvements
 ~~~~~~~~~~~~~~~~~
 
-``mongostat`` and ``mongotop`` Report Concurrency Statistics
-````````````````````````````````````````````````````````````
+Index Definitions Handled by ``mongodump`` and ``mongorestore``
+```````````````````````````````````````````````````````````````
 
-:ref:`mongostat`
+When you specify the :option:`--collection <mongodump --collection>`
+option to :program:`mongodump`, :program:`mongodump` will now backup
+the definitions for all indexes that exist on the source
+database. When you attempt to restore this backup with
+:program:`mongorestore`, the target :program:`mongod` will rebuild all
+indexes. See :issue:`SERVER-808` for more information.
 
-:ref:`mongotop`
-
-``mongodump`` Includes Indexes in Output with ``--collection`` Option
-`````````````````````````````````````````````````````````````````````
-
-:issue:`SERVER-808`
+:program:`mongorestore` now includes the :option:`--noIndexRestore
+<mongorestore --noIndexRestore>` option to provide the preceding
+behavior. Use :option:`--noIndexRestore <mongorestore --noIndexRestore>`
+to prevent :program:`mongorestore` from building
+previous indexes.
 
 ``mongooplog`` for Replaying Oplogs
 ```````````````````````````````````
 
-:issue:`SERVER-3873`
+The :program:`mongooplog` tool makes it possible to pull :term:`oplog`
+entries from :program:`mongod` instance and apply them to another
+:program:`mongod` instance. You can use :program:`mongooplog` to
+achieve point-in-time backup of a MongoDB data set. See the
+:issue:`SERVER-3873` case and the :doc:`/reference/mongooplog`
+documentation.
 
 Authentication Support for ``mongotop`` and ``mongostat``
 `````````````````````````````````````````````````````````
 
-:issue:`SERVER-3875`
+:program:`mongotop` and :program:`mongostat` now contain support for
+username/password authentication. See :issue:`SERVER-3875` and
+:issue:`SERVER-3871` for more information regarding this change. Also
+consider the documentation of the following options for additional
+information:
 
-:issue:`SERVER-3871`
+- :option:`mongotop --username`
+- :option:`mongotop --password`
+- :option:`mongostat --username`
+- :option:`mongostat --password`
 
-Write Concern Support for ``mongoimport``
-`````````````````````````````````````````
+Write Concern Support for ``mongoimport`` and ``mongorestore``
+``````````````````````````````````````````````````````````````
 
-:issue:`SERVER-3937`
+:program:`mongoimport` now provides an option to halt the import if
+the operation encounters an error, such as a network interruption, a
+duplicate key exception, or a write error.
+The :option:`--stopOnError <mongoimport --stopOnError>` option
+will
+produce an error rather than silently continue importing data. See
+:issue:`SERVER-3937` for more information.
+
+In :program:`mongorestore`, the :option:`--w <mongorestore --w>`
+option provides support for configurable write concern.
 
 ``mongodump`` Support for Reading from Secondaries
 ``````````````````````````````````````````````````
 
-:issue:`SERVER-3854`
+You can now run :program:`mongodump` when connected to a
+:term:`secondary` member of a :term:`replica set`. See
+:issue:`SERVER-3854` for more information.
 
 ``mongoimport`` Support for full 16MB Documents
 ```````````````````````````````````````````````
 
-:issue:`SERVER-4593`
+Previously, :program:`mongoimport` would only import documents that
+were less than 4 megabytes in size. This issue is now corrected, and
+you may use :program:`mongoimport` to import documents that are at
+least 16 megabytes ins size. See :issue:`SERVER-4593` for more
+information.
+
+``Timestamp()`` Extended JSON format
+````````````````````````````````````
+
+MongoDB extended JSON now includes a new ``Timestamp()`` type to
+represent the Timestamp type that MongoDB uses for timestamps in the
+:term:`oplog` among other contexts.
+
+This permits tools like :program:`mongooplog` and :program:`mongodump`
+to query for specific timestamps. Consider the following
+:program:`mongodump` operation:
+
+.. code-block:: sh
+
+   mongodump --db local --collection oplog.rs --query '{"ts":{"$gt":{"$timestamp" : {"t": 1344969612000, "i": 1 }}}}'  --out oplog-dump
+
+See :issue:`SERVER-3483` for more information.
 
 Shell Improvements
 ~~~~~~~~~~~~~~~~~~
 
-Unicode Support
-```````````````
+Improved Shell User Interface
+`````````````````````````````
 
-.. TODO add ticket
+2.2 includes a number of changes that improve the overall quality and
+consistency of the user interface for the :program:`mongo` shell:
 
-Bash-like Line Editing Features
-```````````````````````````````
+- Full Unicode support.
 
-:issue:`SERVER-4312`
+- Bash-like line editing features. See :issue:`SERVER-4312` for more
+  information.
 
-Multi-line Command Support in Shell History
-```````````````````````````````````````````
+- Multi-line command support in shell history.
+  See :issue:`SERVER-3470` for more information.
 
-:issue:`SERVER-3470`
+- Windows support for the ``edit`` command. See :issue:`SERVER-3998` for
+  more information.
 
-Windows Support for ``edit`` Command
+Helper to load Server-Side Functions
 ````````````````````````````````````
 
-:issue:`SERVER-3998`
-
-``cls`` Command to Clear Shell Screen
-`````````````````````````````````````
-
-:issue:`SERVER-4200`
-
-Helper to load Server-Side Functions in the Shell
-`````````````````````````````````````````````````
-
-:issue:`SERVER-1651`
+The :method:`db.loadServerScripts()` loads the contents of the current
+database's ``system.js`` collection into the current :program:`mongo`
+shell session. See :issue:`SERVER-1651` for more information.
 
 Support for Bulk Inserts
 ````````````````````````
 
-:issue:`SERVER-3819`
+If you pass an array of :term:`documents <document>` to the
+:method:`insert() <db.collection.insert()>` method, the :program:`mongo`
+shell will now perform a bulk insert operation. See
+:issue:`SERVER-3819` and :issue:`SERVER-2395` for more information.
 
-Start Up and Operations
-~~~~~~~~~~~~~~~~~~~~~~~
-
-Process ID ("PID") added to ``serverStatus`` Output
-```````````````````````````````````````````````````
-
-:issue:`SERVER-4735`
-
-Support for logging to Syslog
-`````````````````````````````
-
-:issue:`SERVER-2957`
-
-Reduce Config Server File Size Requirements
-```````````````````````````````````````````
-
-:issue:`SERVER-4297`
-
-Abort Start Process if there is Insufficient Space for Journal files
-````````````````````````````````````````````````````````````````````
-
-:issue:`SERVER-4139`
-
-Improved Authentication Support
-```````````````````````````````
-
-Better Concurrency with OpenSSL
-```````````````````````````````
-
-:issue:`SERVER-4749`
-
-Replication
-~~~~~~~~~~~
-
-Members Removed from Replica Sets Close Connections
-```````````````````````````````````````````````````
-
-:issue:`SERVER-4501`
-
-Replica Set Members will not Sync from Members Without Indexes Unless ``buildIndexes: false``
-`````````````````````````````````````````````````````````````````````````````````````````````
-
-:issue:`SERVER-4160`
-
-Better Visibility into Stuck Replication Condition
-``````````````````````````````````````````````````
-
-:issue:`SERVER-3575`
-
-Map Reduce
+Operations
 ~~~~~~~~~~
 
-Retry MapReduce Jobs on Config Error
-````````````````````````````````````
+Support for Logging to Syslog
+`````````````````````````````
 
-:issue:`SERVER-4158`
+See the :issue:`SERVER-2957` case and the documentation of
+the :setting:`syslog` run-time option or the :option:`mongod --syslog`
+and :option:`mongos --syslog` command line-options.
 
-MapReduce Improvements for Large Documents
-``````````````````````````````````````````
+``touch`` Command
+`````````````````
 
-:issue:`SERVER-4382`
+Added the :dbcommand:`touch` command to read the data and/or indexes
+from a collection into memory. See: :issue:`SERVER-2023` and
+:dbcommand:`touch` for more information.
 
-In Sharded Output of MapReduce Operation, Choose Initial Split Points
-`````````````````````````````````````````````````````````````````````
-
-:issue:`SERVER-4521`
-
-Sharding Improvements
-~~~~~~~~~~~~~~~~~~~~~
-
-Fixed Issue with some Queries against Recently Sharded Collections
-``````````````````````````````````````````````````````````````````
-
-:issue:`SERVER-4171`
-
-Index on Shard Keys Can Now Be a Compound Index
+``indexCounters`` No Longer Report Sampled Data
 ```````````````````````````````````````````````
 
-:issue:`SERVER-1506`
+:status:`indexCounters` now report actual counters that reflect index
+use and state. In previous versions, these data were sampled. See
+:issue:`SERVER-5784` and :status:`indexCounters` for more information.
 
-Documentation: :ref:`sharding-shard-key-indexes`
+Padding Specifiable on ``compact`` Command
+``````````````````````````````````````````
 
-Additional Improvements
-~~~~~~~~~~~~~~~~~~~~~~~
+See the documentation of the :dbcommand:`compact` and the
+:issue:`SERVER-4018` issue for more information.
 
-``_id`` Index not Required for Updates to Capped Collections
-````````````````````````````````````````````````````````````
-
-:issue:`SERVER-4546`
-
-``localTime`` Command
-`````````````````````
-
-:issue:`SERVER-4212`
-
-Tracking i/o Time and Lock Time in Profiler
-```````````````````````````````````````````
-
-:issue:`SERVER-3546`
-
-``$timestamp`` Extended JSON format
-```````````````````````````````````
-
-:issue:`SERVER-3483`
-
-Padding Specifiable on Compact Command
-``````````````````````````````````````
-
-:issue:`SERVER-4018`
+.. todo:: fix documentation and link
 
 Added Build Flag to Use System Libraries
 ````````````````````````````````````````
 
-Boost 1.49 Library embedded in codebase.
+The Boost library, version 1.49, is now embeded in the MongoDB
+code base.
 
-Additionally, added a flag to ``scons`` so that the build process can
-use system libraries.
+If you want to build MongoDB binaries using system Boost libraries,
+you can pass ``scons`` using the ``--use-system-boost`` flag, as follows:
 
-:issue:`SERVER-3829`
+.. code-block:: sh
 
-:issue:`SERVER-5172`
+   scons --use-system-boost
+
+When building MongoDB, you can also pass ``scons`` a flag to compile
+MongoDB using only system libraries rather than the included versions
+of the libraries. For example:
+
+.. code-block:: sh
+
+   scons --use-system-all
+
+See the :issue:`SERVER-3829` and :issue:`SERVER-5172` issues for more
+information.
+
+Memory Allocator Changed to TCMalloc
+````````````````````````````````````
+
+To improve performance, MongoDB 2.2 uses the TCMalloc memory
+allocator from Google Perftools. For more information about this
+change see the :issue:`SERVER-188` and :issue:`SERVER-4683`. For more
+information about TCMalloc, see the documentation of `TCMalloc`_ itself.
+
+.. _`TCMalloc`: http://goog-perftools.sourceforge.net/doc/tcmalloc.html
+
+Replication
+~~~~~~~~~~~
+
+Improved Logging for Replica Set Lag
+````````````````````````````````````
+
+When :term:`secondary` members of a replica set fall behind in
+replication, :program:`mongod` now provides better reporting in the
+log. This makes it possible to track replication in general and
+identify what process may produce errors or halt replication. See
+:issue:`SERVER-3575` for more information.
+
+Replica Set Members can Sync from Specific Members
+``````````````````````````````````````````````````
+
+The new :dbcommand:`replSetSyncFrom` command and new
+:method:`rs.syncFrom()` helper in the :program:`mongo` shell make it
+possible for you to manually configure from which member of the set a
+replica will poll :term:`oplog` entries. Use these commands to
+override the default selection logic if needed. Always exercise
+caution with :dbcommand:`replSetSyncFrom` when overriding the default
+behavior.
+
+Replica Set Members will not Sync from Members Without Indexes Unless ``buildIndexes: false``
+`````````````````````````````````````````````````````````````````````````````````````````````
+
+To prevent inconsistency between members of replica sets, if the
+member of a replica set has :data:`members[n].buildIndexes` set to
+``true``, other members of the replica set will *not* sync from this
+member, unless they also have :data:`members[n].buildIndexes` set to
+``true``. See :issue:`SERVER-4160` for more information.
+
+New Option To Configure Index Pre-Fetching during Replication
+`````````````````````````````````````````````````````````````
+
+By default, when replicating options, :term:`secondaries <secondary>`
+will pre-fetch :ref:`indexes` associated with a query to improve replication
+throughput in most cases. The :setting:`replIndexPrefetch` setting and
+:option:`--replIndexPrefetch <mongod --replIndexPrefetch>` option allow administrators to disable
+this feature or allow the :program:`mongod` to pre-fetch only the
+index on the ``_id`` field. See :issue:`SERVER-6718` for more information.
+
+Map Reduce Improvements
+~~~~~~~~~~~~~~~~~~~~~~~
+
+In 2.2 Map Reduce received the following improvements:
+
+- :issue:`Improved support for sharded MapReduce <SERVER-4521>`, and
+- :issue:`MapReduce will retry jobs following a config error <SERVER-4158>`.
+
+Sharding Improvements
+~~~~~~~~~~~~~~~~~~~~~
+
+Index on Shard Keys Can Now Be a Compound Index
+```````````````````````````````````````````````
+
+If your shard key uses the prefix of an existing index, then you do not
+need to maintain a separate index for your shard key in addition to
+your existing index. This index, however, cannot be a multi-key
+index. See the ":ref:`sharding-shard-key-indexes`" documentation and
+:issue:`SERVER-1506` for more information.
+
+Migration Thresholds Modified
+`````````````````````````````
+
+The :ref:`migration thresholds <sharding-migration-thresholds>` have
+changed in 2.2 to permit more even distribution of :term:`chunks
+<chunk>` in collections that have smaller quantities of data. See the
+:ref:`sharding-migration-thresholds` documentation for more
+information.
+
+.. Withholding from release notes. Internal feature.
+
+   Option to Disable ``splitVector`` for :program:`mongos` Instances
+   `````````````````````````````````````````````````````````````````
+
+   By default, all :program:`mongos` instances are responsible for
+   creating chunk splits. For deployments with large numbers of
+   :program:`mongos` instances, this may impact the performance of the
+   cluster.
+
+   To ameliorate the additional load generated by these operations,
+   the new :program:`mongos` option :option:`--noAutoSplit <mongos>`
+   and the configuration file :setting:`noAutoSplit` setting both
+   disable chunk splitting for individual :program:`mongos` instances.
+
+   See :issue:`SERVER-6305` for more information.
+
+Licensing Changes
+-----------------
+
+Added License notice for Google Perftools (TCMalloc Utility.) See the
+`License Notice <https://github.com/mongodb/mongo/blob/v2.2/distsrc/THIRD-PARTY-NOTICES#L231>`_
+and the :issue:`SERVER-4683` for more information.
 
 Resources
 ---------
 
 - `MongoDB Downloads <http://mongodb.org/downloads>`_
-- `All JIRA Issues resolved in 2.2 <https://jira.mongodb.org/secure/IssueNavigator.jspa?mode=hide&requestId=10907>`_
+- `All JIRA Issues resolved in 2.2 <https://jira.mongodb.org/secure/IssueNavigator.jspa?reset=true&jqlQuery=project+%3D+SERVER+AND+fixVersion+in+%28%222.1.0%22%2C+%222.1.1%22%2C+%222.1.2%22%2C+%222.2.0-rc0%22%2C+%222.2.0-rc1%22%2C+%222.2.0-rc2%22%29+ORDER+BY+component+ASC%2C+key+DESC>`_
 - `All Backward Incompatible Changes <https://jira.mongodb.org/secure/IssueNavigator.jspa?requestId=11225>`_
+- `All Third Party License Notices <https://github.com/mongodb/mongo/blob/v2.2/distsrc/THIRD-PARTY-NOTICES>`_

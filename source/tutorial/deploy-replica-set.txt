@@ -4,142 +4,143 @@ Deploy a Replica Set
 
 .. default-domain:: mongodb
 
-This tutorial describes the process for deploying a three member
-:term:`replica set` , with specific instructions for development and
-test as well as for production systems.
+This tutorial describes how to create a three member
+:term:`replica set` from three existing instances of MongoDB.
+The tutorial provides one procedure for development and test systems and
+a separate procedure for production systems.
 
-.. seealso:: ":doc:`/core/replication`" and
-   ":doc:`/administration/replication-architectures`" for appropriate
-   background.
+To deploy a replica set from a single standalone MongoDB instance, see
+:doc:`/tutorial/convert-standalone-to-replica-set`.
+
+For background information on replica set deployments, see
+:doc:`/core/replication` and
+:doc:`/administration/replication-architectures`.
 
 Overview
 --------
 
-Three member replica sets provide enough redundancy to survive most
+Three member :term:`replica sets <replica set>` provide enough redundancy to survive most
 network partitions and other system failures. Additionally, these sets
 have sufficient capacity for many distributed read operations. Most
-deployments require no additional nodes or configuration.
+deployments require no additional members or configuration.
 
 Requirements
 ------------
 
-Three distinct systems, so that each system can run its own instance
-of :program:`mongod`. For development systems you may run all three
+A replica set requires three distinct systems so that each system can run its own instance
+of :program:`mongod`. For development systems you can run all three
 instances of the :program:`mongod` process on a local system. (e.g. a
 laptop) or within a virtual instance. For production environments, you
-should endeavor to maintain as much separation between the nodes.  For
-example, when using VMs in Production, each node should live on
+should endeavor to maintain as much separation between the members as possible.  For
+example, when using VMs in Production, each member should live on
 separate host servers, served by redundant power circuits, and with
 redundant network paths.
 
 Procedure
 ---------
 
-This procedure assumes that you already have instances of MongoDB
-installed on all systems that you hope to have as members of your
-replica set. If you have not already installed MongoDB, see the
+These procedures assume you already have instances of MongoDB
+installed on the systems you will add as members of your
+:term:`replica set`. If you have not already installed MongoDB, see the
 :ref:`installation tutorials <tutorials-installation>`.
 
-Development and Test Replica Set
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Deploy a Development or Testing Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Begin by starting three instances of :program:`mongod`. For ephemeral
-tests and the purposes of this guide, you may run the :program:`mongod`
-instances in separate windows of GNU Screen. OS X and most Linux
-distributions come with screen installed by default [#screen]_
-systems.
+The examples in this procedure create a new replica set named ``rs0``.
 
-Issue the following command to create the necessary data directories:
+1. Start three instances of :program:`mongod` as members of a replica
+   set named ``rs0``, as described in this step. For ephemeral tests and
+   the purposes of this guide, you may run the :program:`mongod`
+   instances in separate windows of GNU Screen. OS X and most Linux
+   distributions come with screen installed by default [#screen]_
+   systems.
 
-.. code-block:: sh
+   a. Create the necessary data directories by issuing a command
+      similiar to the following:
 
-   mkdir -p /srv/mongodb/rs0-0 /srv/mongodb/rs0-1 /srv/mongodb/rs0-2
+      .. code-block:: sh
 
-Issue the following commands, each in a distinct screen window:
+         mkdir -p /srv/mongodb/rs0-0 /srv/mongodb/rs0-1 /srv/mongodb/rs0-2
 
-.. code-block:: sh
+   #. Issue the following commands, each in a distinct screen window:
 
-   mongod --port 27017 --dbpath /srv/mongodb/rs0-0 --replSet rs0
-   mongod --port 27018 --dbpath /srv/mongodb/rs0-1 --replSet rs0
-   mongod --port 27019 --dbpath /srv/mongodb/rs0-2 --replSet rs0
+      .. code-block:: sh
 
-These command start members of a replica set named ``rs0``, each
-running on a distinct port. Alternatively, if you are already using these
-ports, you can select different ports. See the documentation of the
-following options for more information: :option:`--port <mongod --port>`,
-:option:`--dbpath <mongod --dbpath>`, and :option:`--replSet <mongod --replSet>`.
+         mongod --port 27017 --dbpath /srv/mongodb/rs0-0 --replSet rs0
+         mongod --port 27018 --dbpath /srv/mongodb/rs0-1 --replSet rs0
+         mongod --port 27019 --dbpath /srv/mongodb/rs0-2 --replSet rs0
 
-.. note::
+      This starts each instance as a member of a replica set named
+      ``rs0``, each running on a distinct port. If you are already using
+      these ports, you can select different ports. See the documentation
+      of the following options for more information: :option:`--port
+      <mongod --port>`, :option:`--dbpath <mongod --dbpath>`, and
+      :option:`--replSet <mongod --replSet>`.
 
-   If you're running each :program:`mongod` instance on a distinct
-   system, you can omit the :option:`--port <mongod --port>`
-   option. You will also need to specify the :option:`--bind_ip
-   <mongod --bind_ip>` option.
+#. Open a :program:`mongo` shell and connect to the first
+   :program:`mongod` instance. If you're running this command remotely,
+   replace "localhost" with the appropriate hostname. In a new shell
+   session, enter the following:
 
-Connect to the :program:`mongod` instance with the :program:`mongo`
-shell to the first host. If you're running this command remotely,
-replace "localhost" with the appropriate hostname. In a new shell
-session, enter the following:
+   .. code-block:: sh
 
-.. code-block:: sh
+      mongo localhost:27017
 
-   mongo localhost:27017
+#. Use :method:`rs.initiate()` to initiate a replica set consisting of
+   the current member and using the default configuration:
 
-Issue the following shell function to initiate a replica set
-consisting of the current node, using the default configuration:
+   .. code-block:: javascript
 
-.. code-block:: javascript
+      rs.initiate()
 
-   rs.initiate()
+#. Display the current :doc:`replica configuration </reference/replica-configuration>`:
 
-Use the following shell function to display the current :doc:`replica
-configuration </reference/replica-configuration>`:
+   .. code-block:: javascript
 
-.. code-block:: javascript
+      rs.conf()
 
-   rs.conf()
+#. Add two members to the replica set by issuing a sequence of commands
+   similar to the following.
 
-Now, issue the following sequence of commands to add two nodes to the
-replica set.
+   .. code-block:: javascript
 
-.. code-block:: javascript
+      rs.add("localhost:27018")
+      rs.add("localhost:27019")
 
-   rs.add("localhost:27018")
-   rs.add("localhost:27019")
+   After these commands return you have a fully functional replica set.
+   New replica sets elect a :term:`primary` within a seconds.
 
-Congratulations, after these commands return you will have a fully
-functional replica set. The new replica set should successfully elect
-a :term:`primary` node within a few seconds.
+#. Check the status of your replica set at any time with the
+   :method:`rs.status()` operation.
 
-Check the status of your replica set at any time with the
-:func:`rs.status()` operation.
 
-See the documentation of the following shell functions for more
-information: :func:`rs.initiate()`, :func:`rs.conf()`,
-:func:`rs.reconfig()` and :func:`rs.add()`.
+.. seealso:: The documentation of the following shell functions for
+   more information:
 
-.. [#screen] `GNU Screen <http://www.gnu.org/screen/>`_ is packaged as
-   ``screen`` on Debian-based, Fedira/Red Hat-based, and Arch Linux.
+   - :method:`rs.initiate()`
+   - :method:`rs.conf()`
+   - :method:`rs.reconfig()`
+   - :method:`rs.add()`
 
-.. seealso:: You may also consider the "`simple setup script
-   <https://github.com/mongodb/mongo-snippets/blob/master/replication/simple-setup.Pu>`_"
+   You may also consider the `simple setup script
+   <https://github.com/mongodb/mongo-snippets/blob/master/replication/simple-setup.py>`_
    as an example of a basic automatically configured replica set.
 
-Production Replica Set
-~~~~~~~~~~~~~~~~~~~~~~
+.. [#screen] `GNU Screen <http://www.gnu.org/software/screen/>`_ is packaged as
+   ``screen`` on Debian-based, Fedora/Red Hat-based, and Arch Linux.
+
+Deploy a Production Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Production replica sets are very similar to the development or testing
 deployment described above, with the following differences:
 
-- Each member of the replica set will reside on it's own machine, and
-  the MongoDB processes will all bind to port ``27017``, which is the
+- Each member of the replica set resides on it's own machine, and
+  the MongoDB processes all bind to port ``27017``, which is the
   standard MongoDB port.
 
-- Specify all run-time configuration in :doc:`configuration files
-  </reference/configuration-options>` rather than as :doc:`command
-  line options </reference/mongod>`.
-
-- Each member of the replica set needs to be accessible by way of
+- Each member of the replica set must be accessible by way of
   resolvable DNS or hostnames in the following scheme:
 
   - ``mongodb0.example.net``
@@ -149,86 +150,92 @@ deployment described above, with the following differences:
   Configure DNS names appropriately, *or* set up your systems'
   ``/etc/host`` file to reflect this configuration.
 
-Use the following configuration for each MongoDB instance.
+- You specify run-time configuration on each system in a
+  :doc:`configuration file </reference/configuration-options>` stored in
+  ``/etc/mongodb.conf`` or in a related location. You *do not* specify
+  run-time configuration through command line options.
 
-.. code-block:: cfg
+  For each MongoDB instance, use the following configuration. Set
+  configuration values appropriate to your systems:
 
-   port = 27017
+  .. code-block:: cfg
 
-   bind_ip = 10.8.0.10
+     port = 27017
 
-   dbpath = /srv/mongodb/
+     bind_ip = 10.8.0.10
 
-   fork = true
+     dbpath = /srv/mongodb/
 
-   replSet = rs0
+     fork = true
 
-Modify the :setting:`bind_ip` to reflect a secure interface on
-your system that will be able to access all other members of the set
-*and* on which all other members of the replica set can access the
-current node. The DNS or host names need to point and resolve to this
-IP address. Configure network rules or a virtual private network
-(i.e. "VPN") to permit this access.
+     replSet = rs0
 
-For more documentation of the run time options used above, see:
-:setting:`dbpath`, :setting:`port`, :setting:`replSet`,
-:setting:`bind_ip`, and :setting:`fork`. Also consider any additional
-:doc:`configuration options </reference/configuration-options>` that
-your deployment may require.
+  You do not need to specify an interface with :setting:`bind_ip`.
+  However, if you do not specify an interface, MongoDB listens for
+  connections on all available IPv4 interfaces. Modify
+  :setting:`bind_ip` to reflect a secure interface on your system that
+  is able to access all other members of the set *and* on which all
+  other members of the replica set can access the current member. The
+  DNS or host names must point and resolve to this IP address.
+  Configure network rules or a virtual private network (i.e. "VPN") to
+  permit this access.
 
-Store the configuration file on each system, at ``/etc/mongodb.conf``
-or a related location on the file system.
+  For more documentation on run time options used above and on
+  additional configuration options, see
+  :doc:`/reference/configuration-options`.
 
-On each system issue the following command to start the
-:program:`mongod` process:
+To deploy a production replica set:
 
-.. code-block:: sh
+1. On each system start the :program:`mongod` process by issuing a
+   command similar to following:
 
-     mongod --config /etc/mongodb.conf
+   .. code-block:: sh
 
-.. note::
+      mongod --config /etc/mongodb.conf
 
-   In production deployments you likely want to use and configure a
-   :term:`control script` to manage this process based on this
-   command. Control scripts are beyond the scope of this document.
+   .. note::
 
-Log in with the :program:`mongo` shell to this host using the following
-command:
+      In production deployments you likely want to use and configure a
+      :term:`control script` to manage this process based on this
+      command. Control scripts are beyond the scope of this document.
 
-.. code-block:: sh
+#. Open a :program:`mongo` shell connected to this host:
 
-   mongo
+   .. code-block:: sh
 
-Issue the following shell function to initiate a replica set
-consisting of the current node, using the default configuration:
+      mongo
 
-.. code-block:: javascript
+#. Use :method:`rs.initiate()` to initiate a replica set consisting of
+   the current member and using the default configuration:
 
-   rs.initiate()
+   .. code-block:: javascript
 
-Use the following shell function to display the current :doc:`replica
-configuration </reference/replica-configuration>`:
+      rs.initiate()
 
-.. code-block:: javascript
+#. Display the current :doc:`replica configuration </reference/replica-configuration>`:
 
-   rs.config()
+   .. code-block:: javascript
 
-Now, issue the following sequence of commands to add two nodes to the
-replica set.
+      rs.conf()
 
-.. code-block:: javascript
+#. Add two members to the replica set by issuing a sequence of commands
+   similar to the following.
 
-   rs.add("mongodb1.example.net")
-   rs.add("mongodb2.example.net")
+   .. code-block:: javascript
 
-Congratulations, after these commands return you will have a fully
-functional replica set. New replica sets will elect a :term:`primary`
-within a few moments.
+      rs.add("mongodb1.example.net")
+      rs.add("mongodb2.example.net")
+
+   After these commands return you have a fully functional replica set.
+   New replica sets elect a :term:`primary` within a seconds.
+
+#. Check the status of your replica set at any time with the
+   :method:`rs.status()` operation.
 
 .. seealso:: The documentation of the following shell functions for
    more information:
 
-   - :func:`rs.initiate()`,
-   - :func:`rs.conf()`,
-   - :func:`rs.reconfig()`, and
-   - :func:`rs.add()`.
+   - :method:`rs.initiate()`
+   - :method:`rs.conf()`
+   - :method:`rs.reconfig()`
+   - :method:`rs.add()`

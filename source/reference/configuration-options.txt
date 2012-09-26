@@ -4,6 +4,15 @@ Configuration File Options
 
 .. default-domain:: mongodb
 
+.. When editing this file make sure that the man pages for the
+   binaries reflect all changes that you've made.
+
+   That is:
+
+        - /reference/mongod.txt
+        - /reference/mongos.txt
+
+
 Synopsis
 --------
 
@@ -279,7 +288,7 @@ Settings
    =========  ===================================
 
    You can use the :program:`mongosniff` tool to replay this output
-   for investigation. Given a typical daiglog file, located at
+   for investigation. Given a typical diaglog file, located at
    ``/data/db/diaglog.4f76a58c``, you might use a command in the
    following form to read these files:
 
@@ -316,7 +325,10 @@ Settings
    durability and data consistency.
 
    Set to false to prevent the overhead of journaling in situations
-   where durability is not required.
+   where durability is not required. To reduce the impact of the
+   journaling on disk usage, you can leave :setting:`journal`
+   enabled, and set :setting:`smallfiles` to true to reduce the size
+   of the data and journal files.
 
 .. setting:: journalCommitInterval
 
@@ -337,7 +349,7 @@ Settings
    :program:`mongod` using IPv6 networks. :program:`mongod` disables
    IPv6 support by default in :program:`mongod` and all utilities.
 
-.. setting:: jsonnp
+.. setting:: jsonp
 
    *Default:* false
 
@@ -464,8 +476,8 @@ Settings
 
    Use the :option:`mongod --repair` option to access this
    functionality.
-   
-   .. note:: 
+
+   .. note::
 
       Because :program:`mongod` rewrites all of the database files
       during the repair routine, if you do not run :setting:`repair`
@@ -501,20 +513,25 @@ Settings
    *Default:* false
 
    Set to ``true`` to modify MongoDB to use a smaller default data
-   file size. Specifically, :setting:`smallfiles` quarters the initial
-   file size for data files and limits the maximum file size to 512
-   megabytes. Use :setting:`smallfiles` if you have a large number of
-   databases that each holds a small quantity of data.
+   file size. Specifically, :setting:`smallfiles` reduces the initial
+   size for data files and limits them to 512
+   megabytes. The :setting:`smallfiles` setting also reduces the size of each
+   :term:`journal` files from 1 gigabyte to 128 megabytes.
+
+   Use the :setting:`smallfiles` setting if you have a large number of databases
+   that each hold a small quantity of data. The :setting:`smallfiles` setting can
+   lead :program:`mongod` to create many files,
+   which may affect performance for larger databases.
 
 .. setting:: syncdelay
 
    *Default:* 60
 
-   This setting controls the maximum number of seconds between disk
-   syncs. While :program:`mongod` is always writing data to disk, this
-   setting controls the maximum guaranteed interval between a
-   successful write operation and the next time the database flushes
-   data to disk.
+   This setting controls the maximum number of seconds between flushes
+   of pending writes to disk. While :program:`mongod` is always
+   writing data to disk, this setting controls the maximum guaranteed
+   interval between a successful write operation and the next time the
+   database flushes data to disk.
 
    In many cases, the actual interval between write operations and
    disk flushes is much shorter than the value
@@ -529,7 +546,7 @@ Settings
 
    *Default:* false
 
-   When set to ``true``, :program:`mognod` returns diagnostic system
+   When set to ``true``, :program:`mongod` returns diagnostic system
    information regarding the page size, the number of physical pages,
    and the number of available physical pages to standard output.
 
@@ -559,8 +576,39 @@ Settings
       `release notes <http://www.mongodb.org/downloads>`_ (on the
       download page) for more information about the upgrade process.
 
+.. setting:: traceExceptions
+
+   *Default:* false
+
+   For internal diagnostic use only.
+
 Replication Options
 ```````````````````
+
+.. setting:: replSet
+
+   *Default:* <none>
+
+   *Form:* <setname>
+
+   Use this setting to configure replication with replica
+   sets. Specify a replica set name as an argument to this set. All
+   hosts must have the same set name.
+
+   .. seealso:: ":doc:`/replication`,"
+      ":doc:`/administration/replica-sets`," and
+      ":doc:`/reference/replica-configuration`"
+
+.. setting:: oplogSize
+
+   Specifies a maximum size in megabytes for the replication operation
+   log (e.g. :term:`oplog`.) :program:`mongod` creates an oplog
+   based on the maximum amount of space available. For 64-bit systems,
+   the oplog is typically 5% of available disk space.
+
+   Once the :program:`mongod` has created the oplog for the first
+   time, changing :setting:`oplogSize` will not affect the size of the
+   oplog.
 
 .. setting:: fastsync
 
@@ -578,26 +626,23 @@ Replication Options
       secondary or slave will be permanently out of sync with the
       primary, which may cause significant consistency problems.
 
-.. setting:: oplogSize
+.. setting:: replIndexPrefetch
 
-   Specifies a maximum size in megabytes for the replication operation
-   log (e.g. :term:`oplog`.) By :program:`mongod` creates an
-   :term:`oplog` based on the maximum amount of space available. For
-   64-bit systems, the op log is typically 5% of available disk space.
+   .. versionadded:: 2.2
 
-.. setting:: replSet
+   *Default:* ``all``
 
-   *Default:* <none>
+   *Values:* ``all``, ``none``, and ``_id_only``
 
-   *Form:* <setname>
+   You must use :setting:`replIndexPrefetch` in conjunction with
+   :setting:`replSet`.
 
-   Use this setting to configure replication with replica
-   sets. Specify a replica set name as an argument to this set. All
-   hosts must have the same set name.
-
-   .. seealso:: ":doc:`/replication`,"
-      ":doc:`/administration/replica-sets`," and
-      ":doc:`/reference/replica-configuration`"
+   By default :term:`secondary` members of a :term:`replica set` will
+   load all indexes related to an operation into memory before
+   applying operations from the oplog. You can modify this behavior so
+   that the secondaries will only load the ``_id`` index. Specify
+   ``_id_only`` or ``none`` to prevent the :program:`mongod` from
+   loading *any* index into memory.
 
 Master/Slave Replication
 ````````````````````````
@@ -682,8 +727,14 @@ Sharding Cluster Options
 
    *Default:* false
 
-   Disables a "paranoid mode" for data writes for the
-   :dbcommand:`moveChunk` command when set to ``true``.
+   When set to ``true``, :setting:`noMoveParanoia` disables a
+   "paranoid mode" for data writes for chunk migration operation. See
+   the :ref:`chunk migration <sharding-chunk-migration>` and
+   :dbcommand:`moveChunk` command documentation for more information.
+
+   By default :program:`mongod` will save copies of migrated chunks on
+   the "from" server during migrations as "paranoid mode." Setting
+   this option disables this paranoia. 
 
 .. setting:: configdb
 
@@ -716,7 +767,7 @@ Sharding Cluster Options
    value is 64 megabytes. Larger chunks may lead to an uneven
    distribution of data, while smaller chunks may lead to frequent and
    unnecessary migrations. However, in some circumstances it may be
-   neccessary to set a different chunk size.
+   necessary to set a different chunk size.
 
    This setting only affects :program:`mongos` processes. Furthermore,
    :setting:`chunkSize` *only* sets the chunk size when initializing
@@ -724,3 +775,36 @@ Sharding Cluster Options
    later, the new value will have no effect. See the
    ":ref:`sharding-balancing-modify-chunk-size`" procedure if you
    need to change the chunk size on an existing shard cluster.
+
+.. setting:: localThreshold
+
+   .. versionadded:: 2.2
+
+   :setting:`localThreshold` affects the logic that program:`mongos`
+   uses when selecting :term:`replica set` members to pass reads
+   operations to from clients. Specify a value to
+   :setting:`localThreshold` in milliseconds. The default value is
+   ``15``, which corresponds to the default value in all of the client
+   :doc:`drivers </applications/drivers>`.
+
+   This setting only affects :program:`mongos` processes.
+
+   When :program:`mongos` receives a request that permits reads to
+   :term:`secondary` members, the :program:`mongos` will:
+
+    - find the nearest suitable member of the set, in terms of ping time.
+
+    - construct a list of replica set members that is within a ping
+      time of 15 milliseconds of the nearest suitable member of the
+      set.
+
+      If you specify a value for :setting:`localThreshold`,
+      :program:`mongos` will construct the list of replica members
+      that are within the latency allowed by this value.
+
+    - The :program:`mongos` will select a member to read from at
+      random from this list.
+
+   See the :ref:`replica-set-read-preference-behavior-member-selection`
+   section of the :ref:`read preference <replica-set-read-preference>`
+   documentation for more information.

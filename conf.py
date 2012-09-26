@@ -9,7 +9,7 @@
 # serve to show the default.
 
 import sys, os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), ".ext")))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "bin")))
 from mongodb_docs_meta import VersionMeta
 
 meta = VersionMeta()
@@ -20,7 +20,7 @@ needs_sphinx = '1.0'
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ["sphinx.ext.intersphinx", "sphinx.ext.extlinks", "mongodb_domain", "additional_directives", "aggregation_domain"]
+extensions = ["sphinx.ext.intersphinx", "sphinx.ext.extlinks", "sphinx.ext.todo", "mongodb_domain", "additional_directives", "aggregation_domain"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['.templates']
@@ -43,7 +43,7 @@ copyright = u'2011-2012, 10gen, Inc.'
 # built documents.
 #
 # The short X.Y version.
-version = '2.0.6'
+version = '2.2.0'
 release = version
 
 current_git_commit = meta.commit
@@ -92,7 +92,7 @@ extlinks = {
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
     'wiki': ('http://www.mongodb.org/display/DOCS/%s', ''),
     'api': ('http://api.mongodb.org/%s', ''),
-    'source': ('http://github.com/mongodb/mongo/blob/master/%s', ''),
+    'source': ('https://github.com/mongodb/mongo/blob/master/%s', ''),
     'docsgithub' : ( 'http://github.com/mongodb/docs/blob/' + current_git_branch + '/%s', ''),
     'hardlink' : ( 'http://docs.mongodb.org/' + current_git_branch + '/%s', '')
     }
@@ -210,6 +210,7 @@ man_pages = [
     ('reference/mongostat', 'mongostat', u'MongoDB', [u'MongoDB Documentation Project'], 1),
     ('reference/mongosniff', 'mongosniff', u'MongoDB', [u'MongoDB Documentation Project'], 1),
     ('reference/mongotop', 'mongotop', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/configuration-options', 'mongodb-config', u'MongoDB', [u'MongoDB Documentation Project'], 1),
     ('contents', 'mongodb', u'MongoDB Manual', [u'MongoDB Documentation Project'], 1),
 ]
 

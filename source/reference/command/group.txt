@@ -1,0 +1,89 @@
+=====
+group
+=====
+
+.. default-domain:: mongodb
+
+.. dbcommand:: group
+
+   The :dbcommand:`group` command returns an array of grouped items. :dbcommand:`group`
+   provides functionality analogous to the ``GROUP BY`` statement in
+   SQL. Consider the following example:
+
+   .. code-block:: javascript
+
+      db.users.runCommand( { group:
+                             { key: { school_id: true },
+                               cond: { active: 1 },
+                               reduce: function(obj, prev) { obj.total += 1; },
+                               initial: { total: 0 }
+                              } } );
+
+   More typically, in the :program:`mongo` shell, you will call the
+   :dbcommand:`group` command using the :method:`group()`
+   method. Consider the following form:
+
+   .. code-block:: javascript
+
+      db.users.group( { key: { school_id: true },
+                        cond: { active: 1 },
+                        reduce: function(obj, prev) { obj.total += 1; },
+                        initial: { total: 0 }
+                       } );
+
+   In these examples :dbcommand:`group` runs against the collection
+   ``users`` and counts the total number of active users from each
+   school. Fields allowed by the group command include:
+
+   :field document key: Specify one or more fields to group by. Use the
+                        form of a :term:`document`.
+
+   :field reduce: Specify a reduce function that operates over all the
+                  iterated objects. Typically these aggregator
+                  functions perform some sort of summing or
+                  counting. The reduce function takes two arguments:
+                  the current document and an aggregation counter
+                  object.
+
+   :field initial: The starting value of the aggregation counter
+                   object.
+
+   :field keyf: Optional. A function that returns a "key
+                object" for use as the grouping key. Use
+                ``keyf`` instead of ``key`` to specify a key
+                that is not a single/multiple existing
+                fields. For example, use ``keyf`` to group by
+                day or week in place of a fixed ``key``.
+
+   :field cond: Optional. A statement that must evaluate to true for
+                the :method:`db.collection.group()` to process this
+                document. Essentially this argument specifies
+                a query document (as for
+                :method:`db.collection.find()`). Unless specified,
+                :method:`db.collection.group()` runs the "reduce" function
+                against all documents in the collection.
+
+   :field finalize: Optional. A function that runs each item
+                    in the result set before
+                    :method:`db.collection.group()` returns the final
+                    value. This function can either modify
+                    the document by computing and adding an
+                    average field, or return compute and
+                    return a new document.
+
+   .. note::
+
+      The result set of the :method:`db.collection.group()` must fit
+      within the size :ref:`maximum BSON document
+      <limit-bson-document-size>`. Furthermore, you must ensure that
+      there are fewer then 10,000 unique keys. If you have more than
+      this, use :dbcommand:`mapReduce`.
+
+   .. warning::
+
+      :method:`group()` does not work in :term:`shard environments
+      <shard cluster>`. Use the :term:`aggregation framework` or
+      :term:`map-reduce` (i.e. :command:`mapReduce` in :term:`sharded
+      environments <sharding>`.
+
+   .. read-lock

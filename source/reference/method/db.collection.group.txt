@@ -1,0 +1,90 @@
+=====================
+db.collection.group()
+=====================
+
+.. default-domain:: mongodb
+
+.. method:: db.collection.group({key, reduce, initial, [keyf,] [cond,] finalize})
+
+   The :method:`db.collection.group()` accepts a single :term:`document` that
+   contains the following:
+
+   :field key: Specifies one or more fields to group by.
+
+   :field reduce: Specifies a reduce function that operates over all the
+                  iterated objects. Typically these aggregator
+                  functions perform some sort of summing or
+                  counting. The reduce function takes two arguments:
+                  the current document and an aggregation counter
+                  object.
+
+   :field initial: The starting value of the aggregation counter
+                   object.
+
+   :field keyf: Optional. An optional function that returns a "key
+                object" for use as the grouping key. Use
+                ``keyf`` instead of ``key`` to specify a key
+                that is not a single/multiple existing
+                fields. For example, use ``keyf`` to group by
+                day or week in place of a fixed ``key``.
+
+   :field cond: Optional. A statement that must evaluate to true for
+                the :method:`db.collection.group()` to process this
+                document. Simply, this argument specifies
+                a query document (as for
+                :method:`db.collection.find()`). Unless specified,
+                :method:`db.collection.group()` runs the "reduce" function
+                against all documents in the collection.
+
+   :field finalize: Optional. A function that runs each item
+                    in the result set before :method:`db.collection.group()`
+                    returns the final value. This function
+                    can either modify the document by
+                    computing and adding an average field, or
+                    return compute and return a new document.
+
+   .. warning::
+
+      :method:`db.collection.group()` does not work in :term:`shard environments
+      <shard cluster>`. Use the :term:`aggregation framework` or
+      :term:`map-reduce` in :term:`sharded environments <sharding>`.
+
+   .. note::
+
+      The result set of the :method:`db.collection.group()` must fit within a
+      single :term:`BSON` object.
+
+      Furthermore, you must ensure that there are fewer then 10,000
+      unique keys. If you have more than this, use
+      :dbcommand:`mapReduce`.
+
+   :method:`db.collection.group()` provides a simple aggregation capability similar
+   to the function of ``GROUP BY`` in SQL statements. Use
+   :method:`db.collection.group()` to return counts and averages from collections
+   of MongoDB documents. Consider the following example
+   :method:`db.collection.group()` command:
+
+   .. code-block:: javascript
+
+      db.collection.group(
+                    {key: { a:true, b:true },
+                     cond: { active: 1 },
+                     reduce: function(obj,prev) { prev.csum += obj.c; },
+                     initial: { csum: 0 }
+                    });
+
+   This command in the :program:`mongo` shell groups the documents in
+   the collection where the field ``active`` equals ``1`` into sets
+   for all combinations of combinations values of the ``a`` and ``b``
+   fields. Then, within each group, the reduce function adds up each document's
+   c field into the csum field in the aggregation counter document. This is
+   equivalent to the following SQL statement.
+
+   .. code-block:: sql
+
+      SELECT a,b,sum(c) csum FROM collection WHERE active=1 GROUP BY a,b
+
+   .. seealso:: The ":wiki:`Aggregation`" wiki page and
+      ":doc:`/applications/aggregation`."
+
+      .. STUB ":doc:`/applications/simple-aggregation`"

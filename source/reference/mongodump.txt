@@ -2,9 +2,9 @@
 
 .. default-domain:: mongodb
 
-===========================
-:program:`mongodump` Manual
-===========================
+====================
+:program:`mongodump`
+====================
 
 Synopsis
 --------
@@ -14,6 +14,8 @@ contents of a database. Consider using this utility as part an
 effective :doc:`backup strategy </administration/backups>`. Use in
 conjunction with :program:`mongorestore` to provide restore
 functionality.
+
+.. include:: /includes/note-mongodump-compatibility-2.2.rst
 
 .. seealso:: ":program:`mongorestore`" and ":doc:`/administration/backups`".
 
@@ -36,7 +38,7 @@ Options
 
 .. option:: --version
 
-   Returns the version of the :program:`mongodump` utility.
+   Returns the version of the :program:`mongodump` utility and exits.
 
 .. option:: --host <hostname><:port>
 
@@ -45,18 +47,18 @@ Options
    attempt to connect to a MongoDB process ruining on the localhost
    port number ``27017``.
 
-   Optionally, specify a port number to connect a MongboDB instance
+   Optionally, specify a port number to connect a MongoDB instance
    running on a port other than ``27017``.
 
    To connect to a replica set, use the :option:`--host <mongodump --host>`
    argument with a setname, followed by a slash and a comma
-   separated list of host and port names. The :program:`mongodump`
+   separated list of host names and port numbers. The :program:`mongodump`
    utility will, given the seed of at least one connected set member,
-   connect to primary member of that set. this option would resemble:
+   connect to the primary member of that set. This option would resemble:
 
    .. code-block:: javascript
 
-      mongodump --host repl0/mongo0.example.net,mongo0.example.net,27018,mongo1.example.net,mongo2.example.net
+      mongodump --host repl0/mongo0.example.net,mongo0.example.net:27018,mongo1.example.net,mongo2.example.net
 
    You can always connect directly to a single MongoDB instance by
    specifying the host and port number directly.
@@ -98,7 +100,7 @@ Options
    directly to local data files and copy the data without the
    :program:`mongod`. To run with :option:`--dbpath`,
    :program:`mongodump` needs to restrict access to the data
-   directory: as a result, no :program:`mongod` can be access the same
+   directory: as a result, no :program:`mongod` can access the same
    path while the process runs.
 
 .. option:: --directoryperdb
@@ -124,11 +126,11 @@ Options
    dump files. Use this option to backup or copy a smaller subset of
    your data.
 
-.. option:: --collection <collection>, -c <c>
+.. option:: --collection <collection>, -c <collection>
 
    Use the :option:`--collection` option to specify a collection for
    :program:`mongodump` to backup. If you do not specify a collection,
-   this options copies all collections in the specified database or
+   this option copies all collections in the specified database or
    instance to the dump files. Use this option to backup or copy a
    smaller subset of your data.
 
@@ -145,11 +147,16 @@ Options
 
 .. option:: --oplog
 
-   Use this option to ensure that the database backup you create is a
-   consistent point-in-time snapshot of the state of a
-   database. Without this option, changes made to the database during
-   the update process may cause the backup to reflect an inconsistent
-   status.
+   Use this option to ensure that :program:`mongodump` creates a dump
+   of the database that includes an :term:`oplog`, to create a
+   point-in-time snapshot of the state of a :program:`mongod` instance. To
+   restore to a specific point-in-time backup, use the output created
+   with this option in conjunction with :option:`mongorestore --oplogReplay`.
+
+   Without :option:`--oplog`, if there are write operations during the
+   dump operation, the dump will not reflect a single moment in
+   time. Changes made to the database during the update process can
+   affect the output of the backup.
 
    :option:`--oplog` has no effect when running :program:`mongodump`
    against a :program:`mongos` instance to dump the entire contents of
@@ -167,7 +174,7 @@ Options
 
    Use this option to run a repair option in addition to dumping the
    database. The repair option attempts to repair a database that may
-   be an inconsistent state as a result of an improper shutdown or
+   be in an inconsistent state as a result of an improper shutdown or
    :program:`mongod` crash.
 
 .. option:: --forceTableScan
@@ -182,15 +189,26 @@ Options
       in the ``_id`` index.
    2. Your database uses a custom ``_id`` field.
 
+   When you run with :option:`--forceTableScan`, :program:`mongodump`
+   does not use :operator:`$snapshot`. As a result, the dump produced
+   by :program:`mongodump` can reflect the state of the database at
+   many different points in time.
+
+   .. warning:: Use :option:`--forceTableScan` with extreme caution
+      and consideration.
+
+   operations
+
+
 .. _mongodump-behavior:
 
 Behavior
 --------
 
 When running :program:`mongodump` against a :program:`mongos` instance
-where :term:`shard cluster` consists of :term:`replica sets <replica
+where the :term:`shard cluster` consists of :term:`replica sets <replica
 set>`, the :term:`read preference` of the operation will prefer reads
-to :term:`secondary` members of the set.
+from :term:`secondary` members of the set.
 
 Usage
 -----
@@ -220,11 +238,11 @@ using the ``/srv/mongodb`` directory.
    mongodump --dbpath /srv/mongodb
 
 In the final example, :program:`mongodump` creates a database dump
-located at ``/opt/backup/mongodumpm-2011-10-24``, from a database
+located at ``/opt/backup/mongodump-2011-10-24``, from a database
 running on port ``37017`` on the host ``mongodb1.example.net`` and
 authenticating using the username ``user`` and the password
 ``pass``, as follows:
 
 .. code-block:: sh
 
-   mongodump --host mongodb1.example.net --port 37017 --username user --password pass /opt/backup/mongodumpm-2011-10-24
+   mongodump --host mongodb1.example.net --port 37017 --username user --password pass /opt/backup/mongodump-2011-10-24

@@ -59,7 +59,7 @@ If you remove a document, does MongoDB remove it from disk?
 
 Yes.
 
-When you use :func:`db.collection.remove()`, the object will no longer exist in
+When you use :method:`db.collection.remove()`, the object will no longer exist in
 MongoDB's on-disk data storage.
 
 When does MongoDB write updates to disk?
@@ -79,7 +79,7 @@ disk more frequently, so that the above values resents a theoretical
 maximum.
 
 However, by default, MongoDB uses a "lazy" strategy to write to
-disk. This is advantegous in situations where the database receives a
+disk. This is advantageous in situations where the database receives a
 thousand increments to an object within one second, MongoDB only needs
 to flush this data to disk once. In addition to the aforementioned
 configuration options, you can also use :dbcommand:`fsync` and
@@ -147,7 +147,7 @@ Why are MongoDB's data files so large?
 
 MongoDB aggressively preallocates data files to reserve space and
 avoid file system fragmentation. You can use the :setting:`smallfiles`
-flag to modify the file prealocation strategy.
+flag to modify the file preallocation strategy.
 
 .. seealso:: This wiki page that address :wiki:`MongoDB disk use <Excessive+Disk+Space>`.
 
@@ -183,7 +183,7 @@ All of the following MongoDB operations permit you to run arbitrary JavaScript
 expressions directly on the server:- :operator:`$where`:
 
 - :operator:`$where`
-- :func:`db.eval()`
+- :method:`db.eval()`
 - :dbcommand:`mapReduce`
 - :dbcommand:`group`
 
@@ -202,7 +202,7 @@ JavaScript code to the :operator:`$where` field.
   scope document,  you can avoid evaluating them on the database
   server.
 
-- If you need to use :func:`db.eval()` with user supplied values, you can
+- If you need to use :method:`db.eval()` with user supplied values, you can
   either use a ``CodeWScope`` or you can supply extra arguments to your
   function. For instance:
 
@@ -247,7 +247,7 @@ the same time, ``my_object`` might be ``{ $where : "things"
      MongoDB client drivers, if properly implemented, check for
      reserved characters in keys on inserts.
 
-- **Update**.  The :func:`db.collection.update()` operation permits ``$`` operators
+- **Update**.  The :method:`db.collection.update()` operation permits ``$`` operators
   in the update argument but does not support the
   :operator:`$where` operator. Still, some users
   may be able to inject operators that can manipulate a single
@@ -278,7 +278,7 @@ occur simultaneously.
 
 In standalone and :term:`replica sets <replica set>` the lock's scope
 applies to a single :program:`mongod` instance or :term:`primary`
-instance. In a sharded cluster, locks apply to each individual shard,
+instance. In a shard cluster, locks apply to each individual shard,
 not to the whole cluster.
 
 A more granular approach to locking will appear in MongoDB v2.2. For
@@ -292,7 +292,7 @@ of the lock. These include:
   a page fault, then the operation will yield to keep from blocking
   other clients for the duration of the page fault.
 
-What is the compare Order for BSON types?
+What is the compare order for BSON types?
 -----------------------------------------
 
 MongoDB permits documents within a single collection to
@@ -342,34 +342,17 @@ Consider the following :program:`mongo` example:
 
    Mixing types for the same field is not encouraged.
 
-MinKey and MaxKey
-~~~~~~~~~~~~~~~~~
+The :operator:`$type` operator provides access to :term:`BSON type
+<BSON types>` comparison in the MongoDB query syntax. See the
+documentation on :term:`BSON types` and the :operator:`$type` operator
+for additional information.
 
-MongoDB provides two special types, ``MinKey`` and ``MaxKey``, that
-compare less than and greater than all other possible :term:`BSON` element values,
-respectively.
-
-To continue the example from above:
-
-.. code-block:: javascript
-
-   db.test.insert( { x : MaxKey } )
-   db.test.insert( { x : MinKey } )
-   db.test.find().sort({x:1})
-   { "_id" : ObjectId("4b04094b7c65b846e2090112"), "x" : { $minKey : 1 } }
-   { "_id" : ObjectId("4b03155dce8de6586fb002c7"), "x" : 2.9 }
-   { "_id" : ObjectId("4b03154cce8de6586fb002c6"), "x" : 3 }
-   { "_id" : ObjectId("4b031566ce8de6586fb002c9"), "x" : true }
-   { "_id" : ObjectId("4b031563ce8de6586fb002c8"), "x" : "Tue Nov 17 2009 16:28:03 GMT-0500 (EST)" }
-   { "_id" : ObjectId("4b0409487c65b846e2090111"), "x" : { $maxKey : 1 } }
-
-.. note::
-
-   These types are mostly for internal use.
+.. include:: /includes/warning-mixing-types.rst
 
 .. seealso::
 
    - The :wiki:`Tailable Cursors <Tailable+Cursors>` wiki page for an
      example of a C++ use of ``MinKey``.
+
    - The :source:`jsobj.h <src/mongo/db/jsobj.h>` source file for the
      definition of ``MinKey`` and ``MaxKey``.

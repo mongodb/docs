@@ -60,6 +60,8 @@ more detail or use the following procedure as a quick starting point:
    file </reference/configuration-options>` options are available for config
    server instances.
 
+   .. include:: /includes/note-config-server-startup.rst
+
 #. Start a :program:`mongos` instance issuing the following command:
 
    .. code-block:: sh
@@ -90,6 +92,9 @@ more detail or use the following procedure as a quick starting point:
    .. code-block:: javascript
 
       sh.addShard( "mongodb0.example.net:27027" )
+
+   MongoDB will discover all other members of the replica set, if
+   ``mongodb0.example.net:27027`` is a member of a replica set.
 
    .. note:: In production deployments, all shards should be replica sets.
 
@@ -125,7 +130,7 @@ more detail or use the following procedure as a quick starting point:
          replicaSetName/<seed1>,<seed2>,<seed3>
 
       For example, if the name of the replica set is "``repl0``", then
-      your :func:`sh.addShard` command would be:
+      your :method:`sh.addShard` command would be:
 
       .. code-block:: javascript
 
@@ -136,7 +141,7 @@ more detail or use the following procedure as a quick starting point:
    MongoDB enables sharding on a per-database basis. This is only a
    meta-data change and will not redistribute your data. To enable
    sharding for a given database, use the :dbcommand:`enableSharding`
-   command or the :func:`sh.enableSharding()` shell function.
+   command or the :method:`sh.enableSharding()` shell function.
 
    .. code-block:: javascript
 
@@ -165,7 +170,7 @@ more detail or use the following procedure as a quick starting point:
    collections must belong to a database for which you have enabled
    sharding. When you shard a collection, you also choose the shard
    key. To shard a collection, run the :dbcommand:`shardCollection`
-   command or the :func:`sh.shardCollection()` shell helper.
+   command or the :method:`sh.shardCollection()` shell helper.
 
    .. code-block:: javascript
 
@@ -223,7 +228,7 @@ procedure:
 
 #. First, you need to tell the cluster where to find the individual
    shards. You can do this using the :dbcommand:`addShard` command or
-   the :func:`sh.addShard()` helper:
+   the :method:`sh.addShard()` helper:
 
    .. code-block:: javascript
 
@@ -266,7 +271,7 @@ procedure:
       following form: the replica set name, followed by a forward
       slash, followed by a comma-separated list of seeds for the
       replica set. For example, if the name of the replica set is
-      "myapp1", then your :func:`sh.addShard` command might resemble:
+      "myapp1", then your :method:`sh.addShard` command might resemble:
 
       .. code-block:: javascript
 
@@ -312,7 +317,7 @@ The procedure to remove a shard is as follows:
    shard name when you first ran the :dbcommand:`addShard` command. If not,
    you can find out the name of the shard by running the
    :dbcommand:`listshards` or :dbcommand:`printShardingStatus`
-   commands or the :func:`sh.status()` shell helper.
+   commands or the :method:`sh.status()` shell helper.
 
    The following examples will remove a shard named ``mongodb0`` from the cluster.
 
@@ -396,7 +401,7 @@ The procedure to remove a shard is as follows:
 
    .. code-block:: javascript
 
-      { msg: "remove shard completed succesfully" , stage: "completed", host: "mongodb0", ok : 1 }
+      { msg: "remove shard completed successfully" , stage: "completed", host: "mongodb0", ok : 1 }
 
 Once the value of the ``stage`` field is "completed," you may safely
 stop the processes comprising the ``mongodb0`` shard.
@@ -404,41 +409,51 @@ stop the processes comprising the ``mongodb0`` shard.
 Chunk Management
 ----------------
 
-This section describes various operations on
-:term:`chunks <chunk>` in :term:`shard clusters <shard cluster>`. In
-most cases MongoDB automates these processes; however, in some cases,
-particularly when you're setting up a shard cluster, you may
-need to create and manipulate chunks directly.
+This section describes various operations on :term:`chunks <chunk>` in
+:term:`shard clusters <shard cluster>`. MongoDB automates these
+processes; however, in some cases, particularly when you're setting up
+a shard cluster, you may need to create and manipulate chunks
+directly.
 
 .. _sharding-procedure-create-split:
 
 Splitting Chunks
 ~~~~~~~~~~~~~~~~
 
-Normally, MongoDB splits a :term:`chunk` following inserts or updates
-when a chunk exceeds the :ref:`chunk size <sharding-chunk-size>`.
+Normally, MongoDB splits a :term:`chunk` following inserts when a
+chunk exceeds the :ref:`chunk size <sharding-chunk-size>`. The
+:term:`balancer` may migrate recently split chunks to a new shard
+immediately if :program:`mongos` predicts future insertions will
+benefit from the move.
+
+The MongoDB treats all chunks the same, whether split manually or
+automatically by the system.
+
+.. warning::
+
+   You cannot merge or combine chunks once you have split them.
 
 You may want to split chunks manually if:
 
-- you have a large amount of data in your cluster that is *not* split,
-  as is the case after creating a shard cluster with existing data.
+- you have a large amount of data in your cluster and very few
+  :term:`chunks <chunk>`,
+  as is the case after creating a shard cluster from existing data.
 
 - you expect to add a large amount of data that would
   initially reside in a single chunk or shard.
 
 .. example::
 
-   You plan to insert a large amount of data as the result of an
-   import process with :term:`shard key` values between ``300`` and
-   ``400``, *but* all values of your shard key between ``250`` and
-   ``500`` are within a single chunk.
+   You plan to insert a large amount of data with :term:`shard key`
+   values between ``300`` and ``400``, *but* all values of your shard
+   keys are between ``250`` and ``500`` are in a single chunk.
 
-Use :func:`sh.status()` to determine the current chunks ranges across
+Use :method:`sh.status()` to determine the current chunks ranges across
 the cluster.
 
-To split chunks manually, use either the :func:`sh.splitAt()` or
-:func:`sh.splitFind()` helpers in the :program:`mongo` shell.
-These helpers wrap the :dbcommand:`split` command.
+To split chunks manually, use the :dbcommand:`split` command with
+operators: ``middle`` and ``find``. The equivalent shell helpers are
+:method:`sh.splitAt()` or :method:`sh.splitFind()`.
 
 .. example::
 
@@ -449,29 +464,97 @@ These helpers wrap the :dbcommand:`split` command.
 
       sh.splitFind( { "zipcode": 63109 } )
 
-:func:`sh.splitFind()` will split the chunk that contains the *first* document returned
-that matches this query into two equal components. MongoDB will split
-the chunk so that documents that have half of the shard keys in will
-be in one chunk and the documents that have other half of the shard
-keys will be a second chunk. The query in :func:`sh.splitFind()` need
+:method:`sh.splitFind()` will split the chunk that contains the *first* document returned
+that matches this query into two equally sized chunks. The query in :method:`sh.splitFind()` need
 not contain the shard key, though it almost always makes sense to
 query for the shard key in this case, and including the shard key will
 expedite the operation.
 
-However, the location of the document that this query finds with
-respect to the other documents in the chunk does not affect how the
-chunk splits.
-
-Use :func:`sh.splitAt()` to split a chunk in two using the queried
+Use :method:`sh.splitAt()` to split a chunk in two using the queried
 document as the partition point:
 
 .. code-block:: javascript
 
    sh.splitAt( { "zipcode": 63109 } )
 
-.. warning::
+However, the location of the document that this query finds with
+respect to the other documents in the chunk does not affect how the
+chunk splits.
 
-   You cannot merge or combine chunks once you have split them.
+.. _sharding-administration-pre-splitting:
+.. _sharding-administration-create-chunks:
+
+Create Chunks (Pre-Splitting)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In most situations a :term:`shard cluster` will create and distribute
+chunks automatically without user intervention. However, in a limited
+number of use profiles, MongoDB cannot create enough chunks or
+distribute data fast enough to support required throughput. Consider
+the following scenarios:
+
+- you must partition an existing data collection that resides on a
+  single shard.
+
+- you must ingest a large volume of data into a shard cluster that
+  isn't balanced, or where the ingestion of data will lead to an
+  imbalance of data.
+
+  This can arise in an initial data loading, or in a case where you
+  must insert a large volume of data into a single chunk, as is the
+  case when you must insert at the beginning or end of the chunk
+  range, as is the case for monotonically increasing or decreasing
+  shard keys.
+
+Preemptively splitting chunks increases cluster throughput for these
+operations, by reducing the overhead of migrating chunks that hold
+data during the write operation. MongoDB only creates splits after an
+insert operation, and can only migrate a single chunk at a time. Chunk
+migrations are resource intensive and further complicated by large
+write volume to the migrating chunk.
+
+To create and migrate chunks manually, use the following procedure:
+
+#. Split empty chunks in your collection by manually performing
+   :dbcommand:`split` command on chunks.
+
+   .. example::
+
+      To create chunks for documents in the ``myapp.users``
+      collection, using the ``email`` field as the :term:`shard key`,
+      use the following operation in the :program:`mongo` shell:
+
+        .. code-block:: javascript
+
+           for ( var x=97; x<97+26; x++ ){
+             for( var y=97; y<97+26; y+=6 ) {
+               var prefix = String.fromCharCode(x) + String.fromCharCode(y);
+               db.runCommand( { split : "myapp.users" , middle : { email : prefix } } );
+             }
+           }
+
+      This assumes a collection size of 100 million documents.
+
+#. Migrate chunks manually using the :dbcommand:`moveChunk` command:
+
+   .. example::
+
+      To migrate all of the manually created user profiles evenly,
+      putting each prefix chunk on the next shard from the other, run
+      the following commands in the mongo shell:
+
+        .. code-block:: javascript
+
+           var shServer = [ "sh0.example.net", "sh1.example.net", "sh2.example.net", "sh3.example.net", "sh4.example.net" ];
+           for ( var x=97; x<97+26; x++ ){
+             for( var y=97; y<97+26; y+=6 ) {
+               var prefix = String.fromCharCode(x) + String.fromCharCode(y);
+               db.adminCommand({moveChunk : "myapp.users", find : {email : prefix}, to : shServer[(y-97)/6]})
+             }
+           }
+
+   You can also let the balancer automatically distribute the new
+   chunks.
 
 .. _sharding-balancing-modify-chunk-size:
 
@@ -496,7 +579,7 @@ To modify the chunk size, use the following procedure:
 
       use config
 
-#. Issue the following :func:`save() <db.collection.save()>`
+#. Issue the following :method:`save() <db.collection.save()>`
    operation:
 
    .. code-block:: javascript
@@ -509,14 +592,14 @@ To modify the chunk size, use the following procedure:
 
 .. note::
 
-   The :setting:`chunkSize` and :option:`--chunkSize <mongos>`
+   The :setting:`chunkSize` and :option:`--chunkSize <mongos --chunkSize>`
    options, passed at runtime to the :program:`mongos` **do not**
    affect the chunk size after you have initialized the cluster.
 
    To eliminate confusion you should *always* set chunk size using the
    above procedure and never use the runtime options.
 
-Modifying the chunk size has serveral limitations:
+Modifying the chunk size has several limitations:
 
 - Automatic splitting only occurs when inserting :term:`documents
   <document>` or updating existing documents.
@@ -538,14 +621,29 @@ In most circumstances, you should let the automatic balancer
 migrate :term:`chunks <chunk>` between :term:`shards <shard>`.
 However, you may want to migrate chunks manually in a few cases:
 
-- If you create chunks by presplitting the data in your collection,
-  you will have to migrate chunks manually to distribute chunks
-  evenly across the shards.
+- If you create chunks by :term:`pre-splitting` the data in your
+  collection, you will have to migrate chunks manually to distribute
+  chunks evenly across the shards. Use pre-splitting in limited
+  situations, to support bulk data ingestion.
 
 - If the balancer in an active cluster cannot distribute chunks within
   the balancing window, then you will have to migrate chunks manually.
 
+See the :ref:`chunk migration <sharding-chunk-migration>` section to
+understand the internal process of how chunks move
+between shards.
+
 To migrate chunks, use the :dbcommand:`moveChunk` command.
+
+.. note::
+
+   To return a list of shards, use the :dbcommand:`listshards`
+   command.
+
+   Specify shard names using the :dbcommand:`addShard` command
+   using the ``name`` argument. If you do not specify a name in the
+   :dbcommand:`addShard` command, MongoDB will assign a name
+   automatically.
 
 The following example assumes that the field ``username`` is the
 :term:`shard key` for a collection named ``users`` in the ``myapp``
@@ -563,15 +661,30 @@ This command moves the chunk that includes the shard key value "smith" to the
 :term:`shard` named ``mongodb-shard3.example.net``. The command will
 block until the migration is complete.
 
-.. note::
+See :ref:`sharding-administration-create-chunks` for an introduction
+to pre-splitting. 
 
-   To return a list of shards, use the :dbcommand:`listshards`
-   command.
+.. versionadded:: 2.2
+   :dbcommand:`moveChunk` command has the: ``_secondaryThrottle``
+   paramenter. When set to ``true``, MongoDB ensures that
+   :term:`secondary` members have replicated operations before allowing
+   new chunk migrations.
 
-   Specify shard names using the :dbcommand:`addShard` command
-   using the ``name`` argument. If you do not specify a name in the
-   :dbcommand:`addShard` command, MongoDB will assign a name
-   automatically.
+.. warning::
+
+   The :dbcommand:`moveChunk` command may produce the following error
+   message:
+
+   .. code-block:: none
+
+      The collection's metadata lock is already taken.
+
+   These errors occur when clients have too many open :term:`cursors
+   <cursor>` that access the chunk you are migrating. You can either
+   wait until the cursors complete their operation or close the
+   cursors manually.
+
+   .. todo:: insert link to killing a cursor.
 
 .. index:: balancing; operations
 .. _sharding-balancing-operations:
@@ -607,32 +720,32 @@ cluster`, do the following:
 
    .. code-block:: javascript
 
-      db.locks.find( { _id : "balancer" } ).pretty;
+      db.locks.find( { _id : "balancer" } ).pretty()
 
    You can also use the following shell helper to return the same
    information:
 
    .. code-block:: javascript
 
-      sh.getBalancerState().pretty
+      sh.getBalancerState().pretty()
 
 When this command returns, you will see output like the following:
 
 .. code-block:: javascript
 
    {   "_id" : "balancer",
-   "process" : "guaruja:1292810611:1804289383",
+   "process" : "mongos0.example.net:1292810611:1804289383",
      "state" : 2,
         "ts" : ObjectId("4d0f872630c42d1978be8a2e"),
       "when" : "Mon Dec 20 2010 11:41:10 GMT-0500 (EST)",
-       "who" : "guaruja:1292810611:1804289383:Balancer:846930886",
+       "who" : "mongos0.example.net:1292810611:1804289383:Balancer:846930886",
        "why" : "doing balance round" }
 
 
 Here's what this tells you:
 
 - The balancer originates from the :program:`mongos` running on the
-  system with the hostname ``guaruja``.
+  system with the hostname ``mongos0.example.net``.
 
 - The value in the ``state`` field indicates that a :program:`mongos`
   has the lock. For version 2.0 and later, the value of an active lock
@@ -640,7 +753,7 @@ Here's what this tells you:
 
   .. note::
 
-     Use the :func:`sh.isBalancerRunning()` helper in the
+     Use the :method:`sh.isBalancerRunning()` helper in the
      :program:`mongo` shell to determine if the balancer is
      running, as follows:
 
@@ -668,7 +781,7 @@ be able to migrate chunks:
 
       use config
 
-#. Use an operation modeled on the folloiwng example :func:`update()
+#. Use an operation modeled on the following example :method:`update()
    <db.collection.update()>` operation to modify the balancer's
    window:
 
@@ -677,9 +790,12 @@ be able to migrate chunks:
       db.settings.update({ _id : "balancer" }, { $set : { activeWindow : { start : "<start-time>", stop : "<stop-time>" } } }, true )
 
    Replace ``<start-time>`` and ``<end-time>`` with time values using
-   two digit hour and minute values (e.g ``HH:MM``) that describe the beginning and end
-   boundaries of the balancing window. For instance, running the following
-   will force the balancer to run between 11PM and 6AM only:
+   two digit hour and minute values (e.g ``HH:MM``) that describe the
+   beginning and end boundaries of the balancing window.
+   These times will be evaluated relative to the time zone of each individual
+   :program:`mongos` instance in the shard cluster.
+   For instance, running the following
+   will force the balancer to run between 11PM and 6AM local time only:
 
    .. code-block:: javascript
 
@@ -693,6 +809,19 @@ be able to migrate chunks:
    As data insert rates can change based on activity and usage
    patterns, it is important to ensure that the balancing window you
    select will be sufficient to support the needs of your deployment.
+
+Remove a Balancing Window Schedule
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have :ref:`set the balancing window
+<sharding-schedule-balancing-window>` and wish to remove the schedule
+so that the balancer is always running, issue the following sequence
+of operations:
+
+.. code-block:: javascript
+
+   use config
+   db.settings.update({ _id : "balancer" }, { $unset : { activeWindow : true })
 
 .. _sharding-balancing-disable-temporally:
 
@@ -722,10 +851,10 @@ all migration, use the following procedure:
 
    If a balancing round is in progress, the system will complete the
    current round before the balancer is officially disabled.  After
-   disabling, you can use the :func:`sh.getBalancerState()` shell
+   disabling, you can use the :method:`sh.getBalancerState()` shell
    function to determine whether the balancer is in fact disabled.
 
-The above process and the :func:`sh.setBalancerState()` helper provide a
+The above process and the :method:`sh.setBalancerState()` helper provide a
 wrapper on the following process, which may be useful if you need to
 run this operation from a driver that does not have helper functions:
 
@@ -770,8 +899,10 @@ For redundancy, all production :term:`shard clusters <shard cluster>` should
 deploy three config servers processes on three different machines.
 
 Do not use only a single config server for production deployments.
-Consider deploying a single config server for testing.
-immediately. The following process shows how to upgrade from one to
+Only use a single config server deployments for testing.
+You should upgrade to three config servers immediately if you are
+shifting to production.
+The following process shows how to upgrade from one to
 three config servers.
 
 #. Shut down all existing MongoDB processes. This includes:
@@ -974,11 +1105,11 @@ sense. Sharding works by migrating chunks between the shards until
 each shard has roughly the same number of chunks.
 
 The default chunk size is 64 megabytes. MongoDB will not begin
-migrations until the shard with the most chunks has 8 more chunks than
-the shard with the fewest chunks. While the default chunk size is
-configurable with the :setting:`chunkSize` setting, these behaviors
-help prevent unnecessary chunk migrations, which can degrade the
-performance of your cluster as a whole.
+migrations until the imbalance of chunks in the cluster exceeds the
+:ref:`migration threshold <sharding-migration-thresholds>`. While the
+default chunk size is configurable with the :setting:`chunkSize`
+setting, these behaviors help prevent unnecessary chunk migrations,
+which can degrade the performance of your cluster as a whole.
 
 If you have just deployed a shard cluster, make sure that you have
 enough data to make sharding effective. If you do not have sufficient
@@ -1090,6 +1221,6 @@ operation:
   for the duration of the backup procedure.
 
 Confirm that the balancer is not active using the
-:func:`sh.getBalancerState()` method before starting a backup
+:method:`sh.getBalancerState()` method before starting a backup
 operation. When the backup procedure is complete you can reactivate
 the balancer process.

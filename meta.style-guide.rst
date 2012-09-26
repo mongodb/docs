@@ -25,6 +25,8 @@ documentation team to contribute to documentation.
 **2012-03-21**: Merged in content from the Jargon, and cleaned up
 style in light of recent experiences.
 
+**2012-08-10**: Bob proposed an addition to the *Referencing* section.
+
 Naming Conventions
 ------------------
 
@@ -146,6 +148,18 @@ Referencing
   occurrence of the reference in a section. You should *always*
   reference objects, except in section headings.
 
+- Structure references with the *why* first; the link second.
+
+  For example, instead of this:
+
+  Use the :doc:`/tutorial/convert-replica-set-to-replicated-shard-cluster`
+  procedure if you have an existing replica set.
+
+  Type this:
+
+  To deploy a shard cluster for an existing replica set, see
+  :doc:`/tutorial/convert-replica-set-to-replicated-shard-cluster`.
+
 General Formulations
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -259,6 +273,15 @@ process, or server instance itself. These are "processes" or
 "instances." Reserve "database" for referring to a database (i.e. the
 structure that holds collections and refers to a group of files on
 disk.)
+
+Distributed System Terms
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Refer to partitioned systems as "shard clusters," over other
+  variants. (e.g. sharded clusters, or sharded systems.)
+
+- Refer configurations that run with replication as "replica sets" (or
+  "master/slave deployments") rather than "clusters" or other variants.
 
 Data Structures
 ~~~~~~~~~~~~~~~

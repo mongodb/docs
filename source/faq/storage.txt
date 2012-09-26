@@ -18,13 +18,13 @@ the :doc:`complete list of FAQs </faq>` or post your question to the
 What are memory mapped files?
 -----------------------------
 
-
-A memory-mapped file is a file whose data has been mapped to a region of
-virtual memory via the ``mmap()`` system call. Memory-mapped files play a
-critical role in the MongoDB storage engine. By using memory mapped files
-MongoDB can treat the content of its data files as if they were in memory.
-This provides MongoDB with an extremely fast and simple method for accessing
-and manipulating data.
+A memory-mapped file is a file with data that the operating system
+places in memory by way of the ``mmap()`` system call. ``mmap()`` thus
+*maps* the file to a region of virtual memory. Memory-mapped files are
+the critical piece of the storage engine in MongoDB. By using memory
+mapped files MongoDB can treat the content of its data files as if
+they were in memory. This provides MongoDB with an extremely fast and
+simple method for accessing and manipulating data.
 
 How do memory mapped files work?
 --------------------------------
@@ -39,18 +39,28 @@ How does MongoDB work with memory mapped files?
 
 MongoDB uses memory mapped files for managing and interacting with all
 data. MongoDB memory maps data files to memory as it accesses
-documents. Data that isn't accessed is *not* mapped to memory. 
+documents. Data that isn't accessed is *not* mapped to memory.
+
+.. _faq-storage-page-faults:
 
 What are page faults?
 ---------------------
 
-Page faults will occur if you're attempting to access some part of a
-memory-mapped file that *isn't* in memory.  
+Page faults will occur if you're attempting to access part of a
+memory-mapped file that *isn't* in memory.
 
-This could potentially force the OS to find some not-recently-used
-page in physical RAM, get rid of it (maybe write it back to disk if
-it's changed since it loaded), go back to disk, read the page, and
-load it into RAM...an expensive task, overall.
+If there is free memory, then the operating system can find the page
+on disk and load it to memory directly. However, if there is no free
+memory, the operating system must:
+
+- find a page in memory that is stale or no longer needed, and write
+  the page to disk.
+
+- read the requested page from disk and load it into memory.
+
+This process, particularly on an active system can take a long time,
+particularly in comparison to reading a page that is already in
+memory.
 
 What is the difference between soft and hard page faults?
 ---------------------------------------------------------
@@ -59,15 +69,16 @@ What is the difference between soft and hard page faults?
 data that isn't currently in active memory. A "hard" page fault
 refers to situations when MongoDB must access a disk to access the
 data. A "soft" page fault, by contrast, merely moves memory pages from
-one list to another, and does not require as much time to complete.
+one list to another, such as from an operating system file
+cache. In production, MongoDB will rarely encounter soft page faults.
 
 What tools can I use to investigate storage use in MongoDB?
 -----------------------------------------------------------
 
-The :func:`db.stats()` function in the :program:`mongo` shell, will
-output the current state of the "active" database. The
+The :method:`db.stats()` method in the :program:`mongo` shell,
+returns the current state of the "active" database. The
 :doc:`/reference/database-statistics` document outlines the meaning of
-the fields output by :func:`db.stats()`.
+the fields in the :method:`db.stats()` output.
 
 What is the working set?
 ------------------------
@@ -77,12 +88,16 @@ uses in the course of normal operation. Often this is a subset of the
 total data size, but the specific size of the working set depends on
 actual moment-to-moment use of the database.
 
-If you run a query that requires MongoDB to scan every document in a collection, the working set will expand to include every document. Depending on physical memory size, this may cause working set documents in other collections to be ejected from physical memory. The next time such documents are accessed, a hard page fault may be incurred. 
+If you run a query that requires MongoDB to scan every document in a
+collection, the working set will expand to include every
+document. Depending on physical memory size, this may cause documents
+in the working set to "page out," or removed from physical memory by
+the operating system. The next time MongoDB needs to access these
+documents, MongoDB may incur a hard page fault.
 
 If you run a query that requires MongoDB to scan every
-:term:`document` in a collection, the working set includes every active
-document in memory.
+:term:`document` in a collection, the working set includes every
+active document in memory.
 
 For best performance, the majority of your *active* set should fit in
 RAM.
-

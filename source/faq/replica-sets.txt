@@ -8,7 +8,7 @@ This document answers common questions about database replication
 in MongoDB.
 
 If you don't find the answer you're looking for, check
-the :doc:`replication index </core/replication>` or post your question to the
+the :doc:`complete list of FAQs </faq>` or post your question to the
 `MongoDB User Mailing List <https://groups.google.com/forum/?fromgroups#!forum/mongodb-user>`_.
 
 .. contents:: Frequently Asked Questions:
@@ -34,7 +34,7 @@ inaccessible, the other members can autonomously :term:`elect
 <election>` one of the other members of the set to be the new "primary".
 
 By default, clients send all reads to the primary;
-however, ":term:`read preference`" is configurable at the
+however, :term:`read preference` is configurable at the
 client level on a per-connection basis, which makes it possible to
 send reads to secondary nodes instead.
 
@@ -78,7 +78,7 @@ For example, a deployment may maintain a :term:`primary` and :term:`secondary`
 in an East-coast data center along with a :term:`secondary` member for disaster
 recovery in a West-coast data center.
 
-.. seealso:: ":doc:`/tutorial/deploy-geographically-distributed-replica-set`"
+.. seealso:: :doc:`/tutorial/deploy-geographically-distributed-replica-set`
 
 Can MongoDB replicate over a "noisy" connection?
 ------------------------------------------------
@@ -159,7 +159,7 @@ for :term:`primary` but do not replicate the data like
 
 :term:`Replica sets <replica set>` require a majority of the
 original nodes present to elect a primary. Arbiters allow you
-to construct this majorty without the overhead of adding replicating
+to construct this majority without the overhead of adding replicating
 nodes to the system.
 
 There are many possible replica set :doc:`architectures
@@ -181,14 +181,45 @@ primary.
 
 .. seealso:: :doc:`/administration/replication-architectures`
 
+What information do arbiters exchange with the rest of the replica set?
+-----------------------------------------------------------------------
+
+Arbiters never receive the contents of a collection but do exchange the
+following data with the rest of the replica set:
+
+- Credentials used to authenticate the arbiter with the replica set. All
+  MongoDB processes within a replica set use keyfiles. These exchanges
+  are encrypted.
+
+- Replica set configuration data and voting data. This information is
+  not encrypted. Only credential exchanges are encrypted.
+
+If your MongoDB deployment uses SSL, then all communications between
+arbiters and the other members of the replica set are secure. See the
+documentation for :doc:`/administration/ssl` for more information. Run
+all arbiters on secure networks, as with all MongoDB components.
+
+.. see:: The overview of :ref:`Arbiter Members of Replica Sets
+   <replica-set-arbiters>`.
+
 Which members of a replica set vote in elections?
 -------------------------------------------------
 
 All members of a replica set, unless the value of :data:`votes
-<members[n].votes>` is equal to ``0`` vote in elections. This includes
+<members[n].votes>` is equal to ``0``, vote in elections. This includes
 all :ref:`delayed <replica-set-delayed-members>`, :ref:`hidden
-<replica-set-hidden-members>` and all :ref:`secondary-only
-<replica-set-secondary-only-members>` members as well as the
+<replica-set-hidden-members>` and :ref:`secondary-only
+<replica-set-secondary-only-members>` members, as well as the
 :ref:`arbiters <replica-set-arbiters>`.
+
+.. seealso:: :ref:`replica-set-elections`
+
+Do hidden members vote in replica set elections?
+------------------------------------------------
+
+:ref:`Hidden members <replica-set-hidden-members>` of term:`replica
+:sets` *do* vote in elections. To exclude a member from voting in an
+:election, change the value of the member's :data:`votes
+:<members[n].votes>` configuration to ``0``.
 
 .. seealso:: :ref:`replica-set-elections`

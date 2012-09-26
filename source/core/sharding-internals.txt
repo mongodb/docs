@@ -21,7 +21,7 @@ Shard Keys
 ----------
 
 Shard keys are the field in a collection that MongoDB uses to
-distribute :term:`documents <document>` within a sharded cluster. See the
+distribute :term:`documents <document>` within a shard cluster. See the
 :ref:`overview of shard keys <sharding-shard-key>` for an
 introduction to these topics.
 
@@ -48,7 +48,7 @@ stores address records:
   number of fixed chunks. This may have a number of effects:
 
   - If MongoDB cannot split a chunk because all of its documents
-    have the same shard key, migrations involving these un-splittable
+    have the same shard key, migrations involving these un-splitable
     chunks will take longer than other migrations, and it will be more
     difficult for your data to stay balanced.
 
@@ -60,7 +60,7 @@ stores address records:
   While this field has a large number of possible values, and thus has
   potentially higher cardinality, it's possible that a large number of users
   could have the same value for the shard key, which would make this
-  chunk of users un-splittable.
+  chunk of users un-splitable.
 
   In these cases, cardinality depends on the data. If your address book
   stores records for a geographically distributed contact list
@@ -102,9 +102,9 @@ key, all insert operations will be storing data into a single chunk, and
 therefore, a single shard. As a result, the write capacity of this shard
 will define the effective write capacity of the cluster.
 
-A shard key that increases monotonically will not hinder perforamnce
+A shard key that increases monotonically will not hinder performance
 if you have a very low insert rate, or if most of your write
-operations are :func:`update() <db.collection.update()>` operations
+operations are :method:`update() <db.collection.update()>` operations
 distributed through your entire data set. Generally, choose shard keys
 that have *both* high cardinality and will distribute write operations
 across the *entire cluster*.
@@ -161,15 +161,15 @@ To select a shard key for a collection:
 
 - find which of these operations are most performance dependent.
 
-.. TODO - link to document produced by DOCS-235
+.. todo:: - link to document produced by DOCS-235
 
 If this field has low cardinality (i.e not sufficiently
 selective) you should add a second field to the shard key making a
-compound shard key. The data may become more splittable with a
+compound shard key. The data may become more splitable with a
 compound shard key.
 
 .. see:: ":ref:`sharding-mongos`" for more information on query
-   operations in the context of sharded clusters.
+   operations in the context of shard clusters.
 
 .. [#shard-key-index] In many ways, you can think of the shard key a
    cluster-wide unique index. However, be aware that sharded systems
@@ -180,7 +180,7 @@ compound shard key.
 Sorting
 ```````
 
-If you use the :func:`sort() <cursor.sort()>` method on a query in a
+If you use the :method:`sort() <cursor.sort()>` method on a query in a
 sharded MongoDB environment *and* the sort is on a field that is *not*
 part of the shard key, :program:`mongos` must send the query to all
 :program:`mongod` instances in the cluster. :program:`mongos` must
@@ -202,7 +202,7 @@ are:
 - to ensure that :program:`mongos` can isolate most queries to a specific
   :program:`mongod`.
 
-Furethermore:
+Furthermore:
 
 - Each shard should be a :term:`replica set`, if a specific
   :program:`mongod` instance fails, the replica set members will elect
@@ -263,12 +263,12 @@ Shard Key Indexes
 
 All sharded collections **must** have an index that starts with the
 :term:`shard key`. If you shard a collection that does not yet contain
-documents and *without* such an index, the :dbcommand:`shardCollection` 
+documents and *without* such an index, the :dbcommand:`shardCollection`
 will create an index on the shard key. If the collection already
 contains documents, you must create an appropriate index before using
 :dbcommand:`shardCollection`.
 
-.. TODO replace the link 
+.. todo:: replace the link
 
 .. versionchanged:: 2.2
    The index on the shard key no longer needs to be identical to the
@@ -304,7 +304,7 @@ and you want to replace this with an index on the field ``{ zipcode:
 
    If you drop the last appropriate index for the shard key, recover
    by recreating a index on just the shard key.
-   
+
 .. index:: balancing; internals
 .. _sharding-balancing-internals:
 
@@ -333,15 +333,14 @@ chunks in a collection is unevenly distributed among the shards, the
 balancer begins migrating :term:`chunks <chunk>` from shards with more
 chunks to shards with a fewer number of chunks. The balancer will
 continue migrating chunks, one at a time, until the data is evenly
-distributed among the shards (i.e. the difference between any two
-shards is less than 2 chunks.)
+distributed among the shards.
 
 While these automatic chunk migrations are crucial for distributing
 data, they carry some overhead in terms of bandwidth and workload,
 both of which can impact database performance. As a result, MongoDB
 attempts to minimize the effect of balancing by only migrating chunks
-when the difference between the number of chunks on shards are greater
-than 8.
+when the distribution of chunks passes the :ref:`migration thresholds
+<sharding-migration-thresholds>`.
 
 .. index:: balancing; migration
 
@@ -353,13 +352,53 @@ sends all new writes, to the "receiving" server. Finally,
 :program:`mongos` updates the chunk record in the :term:`config
 database` to reflect the new location of the chunk.
 
+.. _sharding-migration-thresholds:
+
+Migration Thresholds
+~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 2.2
+   The following thresholds appear first in 2.2; prior to this
+   release, balancing would only commence if the shard with the most
+   chunks had 8 more chunks than the shard with the least number of
+   chunks.
+
+In order to minimize the impact of balancing on the cluster, the
+:term:`balancer` will not begin balancing until the distribution of
+chunks has reached certain thresholds. These thresholds apply to the
+difference in number of :term:`chunks <chunk>` between the shard with
+the greatest number of chunks and the shard with the least number of
+chunks. The balancer has the following thresholds:
+
+================  ===================
+Number of Chunks  Migration Threshold
+----------------  -------------------
+Less than 20       2
+21-80              4
+Greater than 80    8
+================  ===================
+
+Once a balancing round starts, the balancer will not stop until the
+difference between the number of chunks on any two shards is *less
+than two.*
+
+.. note::
+
+   You can restrict the balancer so that it only operates between specific
+   start and end times. See :ref:`Schedule the Balancing Window
+   <sharding-schedule-balancing-window>` for more information.
+
+   The specification of the balancing window is relative to the local
+   time zone of all individual :program:`mongos` instances in the
+   shard cluster.
+
 .. index:: sharding; chunk size
 .. _sharding-chunk-size:
 
 Chunk Size
 ~~~~~~~~~~
 
-.. TODO link this section to <glossary:chunk size>
+.. todo:: link this section to <glossary:chunk size>
 
 The default :term:`chunk` size in MongoDB is 64 megabytes.
 
@@ -410,3 +449,49 @@ to the shard when the value of :status:`mem.mapped` exceeds the
 ``maxSize`` setting.
 
 .. seealso:: ":doc:`/administration/monitoring`."
+
+.. _sharding-chunk-migration:
+
+Chunk Migration
+~~~~~~~~~~~~~~~
+
+MongoDB migrates chunks in a :term:`shard cluster` to distribute data
+evenly among shards. Migrations may be either:
+
+- Manual. In these migrations you must specify the chunk that you want
+  to migrate and the destination shard. Only migrate chunks manually
+  after initiating sharding, to distribute data during bulk inserts,
+  or if the cluster becomes uneven. See :ref:`Migrating Chunks
+  <sharding-balancing-manual-migration>` for more details.
+
+- Automatic. The balancer process handles most migrations when
+  distribution of chunks between shards becomes uneven. See
+  :ref:`Migration Thresholds <sharding-migration-thresholds>` for more
+  details.
+
+All chunk migrations use the following procedure:
+
+#. The balancer process sends the :dbCommand:`moveChunk` command to
+   the source shard for the chunk. In this operation the balancer
+   passes the name of the destination shard to the source shard.
+
+#. The source initaties the move with an internal
+   :dbcommand:`moveChunk` command with the destination shard.
+
+#. The destination shard begins requesting documents in the chunk, and
+   begins receiving these chunks.
+
+#. After receving the final document in the chunk, the destination
+   shard initiates a synchronization process to ensure that all
+   changes to the documents in the chunk on the source shard during
+   the migration process exist on the destination shard.
+
+   When fully synchronized, the destination shard connects to the
+   :term:`config database` and updates the chunk location in the
+   cluster metadata. After completing this operation, once there are
+   no open cursors on the chunk, the source shard starts deleting
+   its copy of documents from the migrated chunk.
+
+When the ``_secondaryThrottle`` is ``true`` for :dbcommand:`moveChunk`
+or the :term:`balancer`, MongoDB ensure that *one* :term:`secondary`
+member has replicated changes before allowing new chunk migrations.

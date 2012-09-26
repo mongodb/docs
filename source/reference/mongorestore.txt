@@ -2,16 +2,36 @@
 
 .. default-domain:: mongodb
 
-==============================
-:program:`mongorestore` Manual
-==============================
+=======================
+:program:`mongorestore`
+=======================
 
 Synopsis
 --------
 
-The :program:`mongorestore` utility provides the ability to import content
-from binary database dump into a specific database. This is the
-inverse functionality of :program:`mongodump`.
+The :program:`mongorestore` tool imports content from binary database
+dump into a specific database. :program:`mongorestore` can import
+content to an existing database or create a new one.
+
+Specifically, :program:`mongorestore` takes the output from
+:program:`mongodump` and restores it. :program:`mongorestore` creates
+indexes on a restore. :program:`mongorestore` performs only inserts. If
+existing data with the same ``_id`` already exists on the database,
+:program:`mongorestore` will not replace it.
+
+The behavior of :program:`mongorestore` has the following properties:
+
+- all operations are inserts, not updates.
+
+- all inserts are "fire and forget," :program:`mongorestore` does not
+  wait for a response from a :program:`mongod` to ensure that the
+  MongoDB process has received or recorded the operation.
+
+  The :program:`mongod` will record any errors to its log that occur
+  during a restore operation but :program:`mongorestore` will not
+  receive errors.
+
+.. include:: /includes/note-mongodump-compatibility-2.2.rst
 
 Options
 -------
@@ -32,7 +52,7 @@ Options
 
 .. option:: --version
 
-   Returns the version of the :program:`mongorestore` utility.
+   Returns the version of the :program:`mongorestore` tool.
 
 .. option:: --host <hostname><:port>
 
@@ -41,7 +61,7 @@ Options
    :program:`mongorestore` will attempt to connect to a MongoDB
    process running on the localhost port number ``27017``.
 
-   Optionally, specify a port number to connect a MongboDB instance
+   Optionally, specify a port number to connect a MongoDB instance
    running on a port other than ``27017``.
 
 .. option:: --port <port>
@@ -102,13 +122,19 @@ Options
 
 .. option:: --db <db>, -d <db>
 
-   Use the ``--db`` option to specify a database for
-   :program:`mongorestore` to restore data. If you do not specify a
-   ``<db>``, :program:`mongorestore` creates new databases that
-   correspond to the databases where data originated and data may be
+   Use the :option:`--db` option to specify a database for
+   :program:`mongorestore` to restore data *into*. If the database
+   doesn't exist, :program:`mongorestore` will create the specified
+   database.  If you do not specify a ``<db>``,
+   :program:`mongorestore` creates new databases that correspond to
+   the databases where data originated and data may be
    overwritten. Use this option to restore data into a MongoDB
-   instance that already has data, or to restore only some data in the
-   specified backup.
+   instance that already has data.
+
+   :option:`--db` does *not* control which :term:`BSON` files
+   :program:`mongorestore` restores. You must use the
+   :program:`mongorestore` :ref:`path option
+   <mongorestore-path-option>` to limit that restored data.
 
 .. option:: --collection <collection>, -c <collection>
 
@@ -139,14 +165,55 @@ Options
 
 .. option:: --oplogReplay
 
-   Replays the oplog after the data is restored to ensure that the current  
+   Replays the :term:`oplog` after restoring the dump to ensure that the current
    state of the database reflects the point-in-time backup captured with
    the ":option:`mongodump --oplog`" command.
 
 .. option:: --keepIndexVersion
 
    Prevents :program:`mongorestore` from upgrading the index to the latest
-   version durring the restoration process.
+   version during the restoration process.
+
+.. option:: --w <number of replicas per write>
+
+   .. versionadded:: 2.2
+
+   Specifies the :ref:`write concern <write-concern>` for each write
+   operation that :program:`mongorestore` writes to the target
+   database. By default, :program:`mongorestore` waits for the write
+   operation to return on 1 member of the set (i.e. the
+   :term:`primary`.)
+
+.. option:: --noOptionsRestore
+
+   .. versionadded:: 2.2
+
+   Prevents :program:`mongorestore` from setting the collection
+   options, such as those specified by the :dbcommand:`collMod`
+   :term:`database command`, on restored collections.
+
+.. option:: --noIndexRestore
+
+   .. versionadded:: 2.2
+
+   Prevents :program:`mongorestore` from restoring and building
+   indexes as specified in the corresponding :program:`mongodump`
+   output.
+
+.. option:: --oplogLimit <timestamp>
+
+   .. versionadded:: 2.2
+
+   Prevents :program:`mongorestore` from applying :term:`oplog` entries newer
+   than the ``<timestamp>``. Specify ``<timestamp>`` values in the
+   form of ``<time_t>:<ordinal>``, where ``<time_t>`` is the seconds
+   since the UNIX epoch, and ``<ordinal>`` represents a counter of
+   operations in the oplog that occurred in the specified second.
+
+   You must use :option:`--oplogLimit` in conjunction with the
+   :option:`--oplogReplay` option.
+
+.. _mongorestore-path-option:
 
 .. option::  <path>
 
@@ -167,7 +234,7 @@ Consider the following example:
 
 .. code-block:: sh
 
-   mongorestore --collection people --database accounts
+   mongorestore --collection people --db accounts dump/accounts/
 
 Here, :program:`mongorestore` reads the database dump in the ``dump/``
 sub-directory of the current directory, and restores *only* the
@@ -186,7 +253,7 @@ data directory.
    mongorestore --dbpath /srv/mongodb
 
 In the final example, :program:`mongorestore` restores a database
-dump located at ``/opt/backup/mongodumpm-2011-10-24``, from a database
+dump located at ``/opt/backup/mongodump-2011-10-24``, from a database
 running on port ``37017`` on the host
 ``mongodb1.example.net``. :program:`mongorestore`` authenticates to
 the this MongoDB instance using the username ``user`` and the
@@ -194,4 +261,4 @@ password ``pass``, as follows:
 
 .. code-block:: sh
 
-   mongorestore --host mongodb1.example.net --port 37017 --username user --password pass /opt/backup/mongodumpm-2011-10-24
+   mongorestore --host mongodb1.example.net --port 37017 --username user --password pass /opt/backup/mongodump-2011-10-24

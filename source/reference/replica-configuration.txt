@@ -10,7 +10,7 @@ Synopsis
 This reference provides an overview of all possible replica set
 configuration options and settings.
 
-Use :func:`rs.conf()` in the :program:`mongo` shell to retrieve this
+Use :method:`rs.conf()` in the :program:`mongo` shell to retrieve this
 configuration. Note that default values are not explicitly displayed.
 
 .. _replica-set-configuration-variables:
@@ -18,7 +18,7 @@ configuration. Note that default values are not explicitly displayed.
 Configuration Variables
 -----------------------
 
-.. data:: rs.conf._id:
+.. data:: rs.conf._id
 
    **Type**: string
 
@@ -32,7 +32,7 @@ Configuration Variables
 
    **Type**: array
 
-   Contains an array holding an embeded :term:`document` for each
+   Contains an array holding an embedded :term:`document` for each
    member of the replica set. The ``members`` document contains a
    number of fields that describe the configuration of each member of
    the replica set.
@@ -67,7 +67,7 @@ Configuration Variables
    **Default**: false
 
    Identifies an arbiter. For arbiters, this value is ``true``, and
-   is automatically configured by :func:`rs.addArb()`".
+   is automatically configured by :method:`rs.addArb()`".
 
 .. data:: members[n].buildIndexes
 
@@ -93,6 +93,10 @@ Configuration Variables
    - index creation and maintenance overburdens the host
      system.
 
+   If set to ``false``, secondaries configured with this option *do*
+   build indexes on the ``_id`` field, to facilitate operations
+   required for replication.
+
 .. data:: members[n].hidden
 
    *Optional*.
@@ -103,7 +107,7 @@ Configuration Variables
 
    When this value is ``true``, the replica set hides this instance,
    and does not include the member in the output of
-   :func:`db.isMaster()` or :dbcommand:`isMaster`. This
+   :method:`db.isMaster()` or :dbcommand:`isMaster`. This
    prevents read operations (i.e. queries) from ever reaching this
    host by way of secondary :term:`read preference`.
 
@@ -145,7 +149,7 @@ Configuration Variables
 
    Use in conjunction with :data:`settings.getLastErrorModes` and
    :data:`settings.getLastErrorDefaults` and
-   :func:`db.getLastError()`
+   :method:`db.getLastError()`
    (i.e. :dbcommand:`getLastError`.)
 
 .. data:: members[n].slaveDelay
@@ -174,10 +178,15 @@ Configuration Variables
    **Default**: 1
 
    Controls the number of votes a server has in a :ref:`replica set
-   election <replica-set-elections>`. If you need more than 7 nodes,
-   use, this setting to add additional non-voting nodes with a
-   :data:`members[n].votes` value of ``0``. In nearly all scenarios, this
-   value should be ``1``, the default.
+   election <replica-set-elections>`. The number of votes each member
+   has can be any non-negative integer, but it is highly recommended
+   each member has 1 or 0 votes.
+
+   If you need more than 7 members, use this setting to add additional
+   non-voting members with a :data:`members[n].votes` value of ``0``.
+
+   For most deployments and most members, use the default value,
+   ``1``, for :data:`members[n].votes`.
 
 .. data:: settings
 
@@ -216,10 +225,9 @@ Configuration Variables
 Example Document
 ----------------
 
-The following document is a prototypical representation a MongoDB
-replica set configuration document. Square brackets (e.g. ``[`` and
-``]``) enclose all optional fields.
-
+The following document provides a representation of a replica set
+configuration document. square brackets (e.g. ``[`` and ``]``) enclose
+all optional fields.
 
 .. code-block:: javascript
 
@@ -228,57 +236,113 @@ replica set configuration document. Square brackets (e.g. ``[`` and
      members: [
        {
          _id : <ordinal>,
-         host : <hostname[:port]>
-         [, arbiterOnly : true]
-         [, buildIndexes : <bool>]
-         [, hidden : true]
-         [, priority: <priority>]
-         [, tags: {loc1 : desc1, loc2 : desc2, ..., locN : descN}]
-         [, slaveDelay : <n>]
-         [, votes : <n>]
+         <host : <hostname<:port>>,>
+         <arbiterOnly : <boolean>,>
+         <buildIndexes : <bool>,>
+         <hidden : <boolean>,>
+         <priority: <priority>,>
+         <tags: { <document> },>
+         <slaveDelay : <number>,>
+         <votes : <number>>
        }
        , ...
      ],
-     [settings: {
-       [getLastErrorDefaults: <lasterrdefaults>]
-       [, getLastErrorModes : <modes>]
-     }]
+     <settings: {
+       <getLastEerrorDefaults : <lasterrdefaults>,>
+       <getLastErrorModes : <modes>>
+     }>
    }
 
 .. _replica-set-reconfiguration-usage:
 
-Usage
------
+Use
+---
 
-Most modifications of replica set configuration use the
-:program:`mongo` shell. Consider the following example:
+Most modifications of :term:`replica set` configuration use the
+:program:`mongo` shell. Consider the following reconfiguration
+operation:
 
-.. code-block:: javascript
+.. example::
 
-   cfg = rs.conf()
-   cfg.members[0].priority = 0.5
-   cfg.members[1].priority = 2
-   cfg.members[2].priority = 2
-   rs.reconfig(cfg)
+   Given the following replica set configuration:
 
-This operation begins by saving the current replica set configuration
-to the local variable ``cfg`` using the :func:`rs.conf()`
-method. Then it adds priority values to the :term:`document`
-where the :data:`members[n]._id` field has a value of ``0``, ``1``, or
-``2``. Finally, it calls the :func:`rs.reconfig()` method with the
-argument of ``cfg`` to initialize this new configuration.
+   .. code-block:: javascript
 
-Using this "dot notation," you can modify any existing setting or
-specify any of optional :ref:`replica set configuration variables
+      {
+          "_id" : "rs0",
+          "version" : 1,
+          "members" : [
+                   {
+                           "_id" : 0,
+                           "host" : "mongodb0.example.net:27017"
+                   },
+                   {
+                           "_id" : 1,
+                           "host" : "mongodb1.example.net:27017"
+                   },
+                   {
+                           "_id" : 2,
+                           "host" : "mongodb2.example.net:27017"
+                   }
+           ]
+      }
+
+   And the following reconfiguration operation:
+
+   .. code-block:: javascript
+
+      cfg = rs.conf()
+      cfg.members[0].priority = 0.5
+      cfg.members[1].priority = 2
+      cfg.members[2].priority = 2
+      rs.reconfig(cfg)
+
+   This operation begins by saving the current replica set
+   configuration to the local variable ``cfg`` using the
+   :method:`rs.conf()` method. Then it adds priority values to the
+   :term:`document` where the :data:`members[n]._id` field has a value
+   of ``0``, ``1``, or ``2``. Finally, it calls the
+   :method:`rs.reconfig()` method with the argument of ``cfg`` to
+   initialize this new configuration. The replica set configuration
+   after this operation will resemble the following:
+
+   .. code-block:: javascript
+
+      {
+          "_id" : "rs0",
+          "version" : 1,
+          "members" : [
+                   {
+                           "_id" : 0,
+                           "host" : "mongodb0.example.net:27017",
+                           "priority" : 0.5
+                   },
+                   {
+                           "_id" : 1,
+                           "host" : "mongodb1.example.net:27017",
+                           "priority" : 2
+                   },
+                   {
+                           "_id" : 2,
+                           "host" : "mongodb2.example.net:27017",
+                           "priority" : 1
+                   }
+           ]
+      }
+
+
+Using the "dot notation" demonstrated in the above example, you can
+modify any existing setting or specify any of optional :ref:`replica
+set configuration variables
 <replica-set-configuration-variables>`. Until you run
 ``rs.reconfig(cfg)`` at the shell, no changes will take effect. You
 can issue ``cfg = rs.conf()`` at any time before using
-:func:`rs.reconfig()` to undo your changes and start from the
-current configuration. If you issue ``cfg`` as an operation at any
-point, the :program:`mongo` shell at any point will output the complete
+:method:`rs.reconfig()` to undo your changes and start from the current
+configuration. If you issue ``cfg`` as an operation at any point, the
+:program:`mongo` shell at any point will output the complete
 :term:`document` with modifications for your review.
 
-The :func:`rs.reconfig()` operation has a "force" option, to make it
+The :method:`rs.reconfig()` operation has a "force" option, to make it
 possible to reconfigure a replica set if a majority of the replica set
 is not visible, and there is no :term:`primary` member of the set.
 use the following form:
@@ -289,15 +353,103 @@ use the following form:
 
 .. warning::
 
-   Forcing a :func:`rs.reconfig()` can lead to :term:`rollback`
+   Forcing a :method:`rs.reconfig()` can lead to :term:`rollback`
    situations and other difficult to recover from situations. Exercise
    caution when using this option.
 
 .. note::
 
-   The :func:`rs.reconfig()` shell command can force the current
+   The :method:`rs.reconfig()` shell command can force the current
    primary to step down and causes an election in some
    situations. When the primary node steps down, all clients will
    disconnect. This is by design. While this typically takes 10-20
    seconds, attempt to make these changes during scheduled maintenance
    periods.
+
+.. index:: replica set; tag sets
+.. index:: read preference; tag sets
+.. index:: tag sets; configuration
+.. _replica-set-configuration-tag-sets:
+
+Tag Sets
+--------
+
+Tag sets provide custom and configurable :ref:`write concern
+<replica-set-write-concern>` and :ref:`read preferences
+<replica-set-read-preference>`. This section will outline the process
+for specifying tags for a replica set, for more information see the
+full documentation of the behavior of :ref:`tags sets write concern
+<replica-set-write-concern>` and :ref:`tag sets for read preference
+<replica-set-read-preference-tag-sets>`.
+
+Configure tag sets by adding fields and values to the document stored
+in the :data:`members[n].tags`. Consider the following example:
+
+.. example::
+
+   Given the following replica set configuration:
+
+   .. code-block:: javascript
+
+      {
+          "_id" : "rs0",
+          "version" : 1,
+          "members" : [
+                   {
+                           "_id" : 0,
+                           "host" : "mongodb0.example.net:27017"
+                   },
+                   {
+                           "_id" : 1,
+                           "host" : "mongodb1.example.net:27017"
+                   },
+                   {
+                           "_id" : 2,
+                           "host" : "mongodb2.example.net:27017"
+                   }
+           ]
+      }
+
+   And the following tag set:
+
+   .. code-block:: javascript
+
+      { "dc": "east", "use": "reporting" }
+
+   You could add the tag set, to the ``members[1]`` member of the
+   replica set, with the following command sequence in the
+   :program:`mongo` shell:
+
+   .. code-block:: javascript
+
+      conf = rs.conf()
+      conf.members[1].tags = { "dc": "east", "use": "reporting"  }
+      rs.reconfig(conf)
+
+   After this operation the output of :method:`rs.conf()`, would
+   resemble the following:
+
+   .. code-block:: javascript
+
+       {
+           "_id" : "rs0",
+           "version" : 2,
+           "members" : [
+                    {
+                            "_id" : 0,
+                            "host" : "mongodb0.example.net:27017",
+                    },
+                    {
+                            "_id" : 1,
+                            "host" : "mongodb1.example.net:27017",
+                            "tags" : {
+                                    "dc": "east",
+                                    "use": "reporting"
+                            }
+                    },
+                    {
+                            "_id" : 2,
+                            "host" : "mongodb2.example.net:27017",
+                    }
+            ]
+       }
