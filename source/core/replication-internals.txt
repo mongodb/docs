@@ -12,8 +12,68 @@ operation of :term:`replica set` features. This material is not necessary for
 normal operation or application development but may be useful for
 troubleshooting and for further understanding MongoDB's behavior and approach.
 
-.. index:: replica set; oplog
+.. index:: replica set; local database
 .. _replica-set-oplog:
+
+The Local Database
+------------------
+
+The ``local`` database exists on every :program:`mongod` instance and
+stores replication data specific to that instance. The ``local``
+database is invisible to replication. The collections in the ``local``
+database are not replicated.
+
+When authentication is used, authenticating against the ``local`` database
+is equivalent to authenticating against the admin database. It gives you
+permissions across all databases, not just ``local``.
+
+In replication, the ``local`` database is used to store internal replication
+data for each member of a :term:`replica set`. The ``local`` database contains the
+following collections used for replication:
+
+.. data:: local.system.replset
+
+   This stores the replica set's configuration object. To view the
+   object's configuration information, issue :method:`rs.conf()` from
+   the :program:`mongo` shell. You can also query this collection
+   directly.
+
+.. data:: local.oplog.rs
+
+   This is the capped collection that is the :term:`oplog`. You set its
+   size at creation using the :setting:`oplogSize` setting. To change
+   its size once it has been created, see
+   :doc:`/tutorial/change-oplog-size`. For additional information, see
+   the :ref:`replica-set-internals-oplog` topic in this document and the
+   :ref:`replica-set-oplog-sizing` topic in the :doc:`/core/replication`
+   document.
+
+.. data:: local.replset.minvalid
+
+   This contains an object used internally by replica sets to track sync
+   status.
+
+In :term:`master`-:term:`slave` replication, the ``local`` database contains
+the following collections:
+
+- On the master:
+
+  .. data:: local.oplog.$main
+
+     This is the oplog for the master-slave configuration.
+
+  .. data:: local.slaves
+
+     This contains information about each slave.
+
+- On each slave:
+
+  .. data:: local.sources
+
+     This contains information about the slave's master server.
+
+.. index:: replica set; oplog
+.. _replica-set-internals-oplog:
 
 Oplog
 -----
@@ -49,6 +109,8 @@ operations require idempotency:
 Data Integrity
 --------------
 
+.. index:: replica set; read preferences
+
 Read Preferences
 ~~~~~~~~~~~~~~~~
 
@@ -71,6 +133,7 @@ secondaries may not always reflect the latest writes to the
    output to asses the current state of replication and determine if
    there is any unintended replication delay.
 
+.. index:: replica set; configurations
 .. _replica-set-member-configurations-internals:
 
 Member Configurations
@@ -104,6 +167,8 @@ for your data set is crucial.
 
 .. seealso:: The :ref:`replica-set-member-configurations` topic in the
    :doc:`/administration/replica-sets` document.
+
+.. index:: replica set; security
 
 Security
 --------
@@ -211,6 +276,8 @@ aware of the following conditions and possible situations:
    :ref:`replica-set-node-priority-configuration`, and
    :data:`replica configuration <members[n].votes>`.
 
+.. index:: replica set; network partitions
+.. index:: replica set; elections
 .. _replica-set-elections-and-network-partitions:
 
 Elections and Network Partitions
@@ -225,6 +292,9 @@ That means that if a primary steps down and neither side of the
 partition has a majority on its own, the set will not elect a new
 primary and the set will become read only. The best practice is to have
 and a majority of servers in one data center and one server in another.
+
+.. index:: replica set; sync
+
 
 Syncing
 -------
