@@ -4,25 +4,128 @@ Read Operations
 
 .. default-domain:: mongodb
 
-Queries
--------
+This document how MongoDB performs read operations.
 
-- :doc:`/reference/operators`
-- :method:`find <db.collection.find()>`
-- :dbcommand:`findOne`
+.. TODO intro and high-level read operations info
 
-Aggregation
------------
+.. index:: read operation; query
+.. index:: query; read operations
+.. _read-operations-query-operators:
 
-.. seealso:: :doc:`/applications/aggregation`
+Query Operations
+----------------
+
+.. _read-operations-query-syntax:
+
+Query Syntax
+~~~~~~~~~~~~
+
+Queries are objects in a JSON-like syntax expressed as MongoDB
+documents.
+
+For a list of query operators, see :doc:`/reference/operators`.
+
+.. TODO see the yet-to-be created query operations doc 
+
+.. _read-operations-query-optimization:
+
+Query Optimization
+~~~~~~~~~~~~~~~~~~
+
+When you run a query for which there is no cached query plan, the
+MongoDB query optimizer tries the query with multiple indexes simultaneously to determine
+which index provides the fastest results.
+
+MongoDB runs the query against the indexes in parallel and outputs the
+results to a common buffer.
+
+If one index returns a duplicate result -- i.e., a result already
+returned by another index -- MongoDB disregards the duplicate.
+
+Each run of the query against an index is called a query plan.
+
+When the MongoDB query optimizer either exhausts an index or reaches 101
+results, the optimizer terminates the other executions and determines a
+best index.
+
+Selective Indexes Return Fastest Results
+````````````````````````````````````````
+
+The most selective indexes return the fastest results. The most
+selective index possible for a given query is an index for which all the
+documents that match part of the query's criteria for that index also
+match the entire query.
+
+.. example::
+
+   Consider the following indexes, data, and query:
+
+   Indexes:
+
+   .. code-block:: javascript
+
+      { x:1 }, { y:1 }
+
+   Data:
+
+   .. code-block:: javascript
+
+      { x:1, y:2 }
+      { x:2, y:1 }
+      { x:3, y:0 }
+      { x:4, y:0 }
+
+   Query:
+
+   .. code-block:: javascript
+
+      { x:{ $gte:1 } , y:{ $gte:1} }
+
+   The ``{ y:1 }`` index is more selective because all the documents
+   that match the query's ``y`` key value also match the entire query.
+   Conversely, not all the documents that match the query's ``x`` key
+   value also match the entire query.
+
+.. _read-operations-projection:
+
+Projection
+~~~~~~~~~~
+
+quick. and short. 
+
+.. _read-operations-indexing:
 
 Indexing
---------
+~~~~~~~~
 
 .. seealso:: :doc:`/core/indexes`
 
+- :doc:`/reference/operators`
+- :method:`find <db.collection.find()>`
+- :method:`findOne`
+
+.. _read-operations-aggregation:
+
+Aggregation
+~~~~~~~~~~~
+
+Probably short, but there's no docs for old-style aggregation so.
+
+- basic aggregation (count, distinct)
+- legacy agg: group
+- big things: mapreduce, aggregation
+
+.. seealso:: :doc:`/applications/aggregation`
+
+.. index:: read operation; architecture
+.. _read-operations-architecture:
+
 Architecture
 ------------
+
+.. index:: read operation; connection pooling
+.. index:: connection pooling; read operations
+.. _read-operations-connection-pooling:
 
 Connection Pooling
 ~~~~~~~~~~~~~~~~~~
