@@ -4,24 +4,8 @@ Reconfigure a Replica Set when Members are Down
 
 .. default-domain:: mongodb
 
-If members are down and you want to reconfigure your replica set, use
-the procedures described here.
-
-
-Reconfigure When a Majority of Members are Running
---------------------------------------------------
-
-To reconfigure :term:`replica set` when a minority of members is down
-and a majority of members are still up, send the :method:`rs.reconfig()`
-command to the current :term:`primary`. For examples of using
-:method:`rs.reconfig()`, see
-:ref:`replica-set-reconfiguration-usage`.
-
-Reconfigure When a Majority of Members are Down
------------------------------------------------
-
-To reconfigure a replica set when the majority of members are down or
-unreachable, you must manually change the set configuration.
+To reconfigure a :term:`replica set` when a majority of the members are
+down or unreachable, you must manually change the set configuration.
 
 This includes situations where you have a network partition and where
 neither side of the partition has a majority. In such cases the two
@@ -33,52 +17,91 @@ use scripts to reconfigure but do so manually.
 This section gives several procedures for reconfiguring when a majority
 is down. Use the procedure appropriate to your version and situation.
 
-Reconfigure Using the Force : True Option
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. note:: To reconfigure a replica set when a majority of members are
+   running, run the :method:`rs.reconfig()` command on the current
+   :term:`primary`. For examples of using :method:`rs.reconfig()`, see
+   :ref:`replica-set-reconfiguration-usage`.
+
+Force a Reconfiguration when the Primary is Down
+------------------------------------------------
 
 .. versionchanged:: 2.0
 
-In v2.0+, the ``force : true`` option was added for reconfiguring the
-set when a majority is down. The ``force : true`` option manually
-reconfigures the set when there is a serious problem, such as a disaster
-recovery failover. Do not use ``force : true`` every time you
-reconfigure. Also, do not put ``force : true`` into a script that
-automatically runs, and do not use it when there is still a primary.
+This procedure lets you recover while a majority of :term:`replica set`
+members are down or unreachable. A member might be unreachable, for
+example, if it is on the wrong side of a network partition.
 
-If you use force and look at your replica set config, you will notice
-that your version number has jumped a lot (by tens or hundreds of
-thousands). This is normal and designed to prevent set version
-collisions if network partitioning ends.
+.. TODO Question: must the primary be down for you to use this procedure?
 
-Recover when a majority of nodes are down or on the wrong side of a
-network partition.
+You connect to any surviving member and use the the ``force : true``
+option to force a reconfiguration of the replica set.
 
-Connect to a surviving member (any one is fine) and "force" a
-reconfiguration of the set without the down hosts.
+The ``force : true`` option manually reconfigures the set. The option is
+intended only for serious problems, such as a disaster recovery
+failover. Do not use ``force : true`` every time you reconfigure. Also,
+do not put ``force : true`` into any automatic scripts and do not use
+``force : true`` when there is still a primary.
 
-#. Consider doing a backup on a surviving member, both for safety and to
-   bring up more new set members more easily.
+To force reconfiguration:
 
-#. Save the current config somewhere so that you can switch back to the
-   old configuration once the down/unreachable members are healed.
+1. Back up a surviving member, both for safety and to bring up more new
+   set members more easily.
 
-   .. code-block:: javascript
-
-      config = rs.config()
-      printjson(config) # store this somewhere
-
-#. Remove the down members from the config.members array.
-   Remove the unreachable members of the set. Consider the following
-   example:
+#. Connect to any surviving member and save the current configuration
+   so that you can switch back to the old configuration once the members
+   are restored. Consider the following example commands for saving the
+   configuration:
 
    .. code-block:: javascript
 
-      config.members = [config.members[1], config.members[3], config.members[4]]
+      cfg = rs.config()
 
-#. Reconfigure the set by issuing the using the :dbcommand:`compact`
-   command with the ``force: true`` parameter on the surviving member.
+      printjson(cfg)
+
+#. On the same member, remove the down and unreachable members of the
+   replica set from the :data:`members <rs.conf.members>` array by
+   setting the array equal to the surviving members alone. Consider the
+   following example, which uses the ``cfg`` variable created in the
+   previous step:
 
    .. code-block:: javascript
 
-      db.runCommand ( { compact: '<collection>', force: true } )
+      cfg.members = [cfg.members[0] , cfg.members[4] , cfg.members[7]]
 
+#. On the same member, reconfigure the set by using the
+   :method:`rs.reconfig()` command with the ``force : true`` option:
+
+   .. code-block:: javascript
+
+      rs.reconfig(cfg, {force : true})
+
+   The replica set elects a new primary, most likely the member you are
+   connected to.
+
+   .. note:: When you use ``force : true``, the version number in the
+   replica set configuration increases significantly, by tens or
+   hundreds of thousands. This is normal and designed to prevent set
+   version collisions if network partitioning ends.
+
+#. If the failure or partition was only temporary, then as members
+   recover they detect that they have been removed from the set and
+   enter a special state where they are up but refuse to answer
+   requests, as they are no longer syncing changes. You can now re-add
+   them to the configuration object:
+
+   Be sure that each member has the same _id it had before.
+
+   .. TODO why does each member have to have the same ID as before?
+   .. The wiki said they'd have to run rs.reconfig(). Why?
+
+   Consider the following example:
+
+   .. code-block:: javascript
+
+      rs.add("example.com:30003")
+
+   Once you add the removed members back into the set, they detect they
+   have been added and synchronize to the current state of the set.
+
+   Be aware that if the original primary was one of the removed members,
+   these members may need to rollback.
