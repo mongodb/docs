@@ -1,0 +1,84 @@
+===============================================
+Reconfigure a Replica Set when Members are Down
+===============================================
+
+.. default-domain:: mongodb
+
+If members are down and you want to reconfigure your replica set, use
+the procedures described here.
+
+
+Reconfigure When a Majority of Members are Running
+--------------------------------------------------
+
+To reconfigure :term:`replica set` when a minority of members is down
+and a majority of members are still up, send the :method:`rs.reconfig()`
+command to the current :term:`primary`. For examples of using
+:method:`rs.reconfig()`, see
+:ref:`replica-set-reconfiguration-usage`.
+
+Reconfigure When a Majority of Members are Down
+-----------------------------------------------
+
+To reconfigure a replica set when the majority of members are down or
+unreachable, you must manually change the set configuration.
+
+This includes situations where you have a network partition and where
+neither side of the partition has a majority. In such cases the two
+sides of the partition cannot see each other when determining whether a
+majority exists (see
+:ref:`replica-set-elections-and-network-partitions`). Therefore, do not
+use scripts to reconfigure but do so manually.
+
+This section gives several procedures for reconfiguring when a majority
+is down. Use the procedure appropriate to your version and situation.
+
+Reconfigure Using the Force : True Option
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 2.0
+
+In v2.0+, the ``force : true`` option was added for reconfiguring the
+set when a majority is down. The ``force : true`` option manually
+reconfigures the set when there is a serious problem, such as a disaster
+recovery failover. Do not use ``force : true`` every time you
+reconfigure. Also, do not put ``force : true`` into a script that
+automatically runs, and do not use it when there is still a primary.
+
+If you use force and look at your replica set config, you will notice
+that your version number has jumped a lot (by tens or hundreds of
+thousands). This is normal and designed to prevent set version
+collisions if network partitioning ends.
+
+Recover when a majority of nodes are down or on the wrong side of a
+network partition.
+
+Connect to a surviving member (any one is fine) and "force" a
+reconfiguration of the set without the down hosts.
+
+#. Consider doing a backup on a surviving member, both for safety and to
+   bring up more new set members more easily.
+
+#. Save the current config somewhere so that you can switch back to the
+   old configuration once the down/unreachable members are healed.
+
+   .. code-block:: javascript
+
+      config = rs.config()
+      printjson(config) # store this somewhere
+
+#. Remove the down members from the config.members array.
+   Remove the unreachable members of the set. Consider the following
+   example:
+
+   .. code-block:: javascript
+
+      config.members = [config.members[1], config.members[3], config.members[4]]
+
+#. Reconfigure the set by issuing the using the :dbcommand:`compact`
+   command with the ``force: true`` parameter on the surviving member.
+
+   .. code-block:: javascript
+
+      db.runCommand ( { compact: '<collection>', force: true } )
+
