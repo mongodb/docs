@@ -1,4 +1,4 @@
-.. seealso:: The :ref:`replica-set-elections` topic in the
+.. seealso:: The :ref:`replica-set-elections` section in the
    :doc:`/core/replication` document, and the
-   :ref:`replica-set-election-internals` topic in the
+   :ref:`replica-set-election-internals` section in the
    :doc:`/core/replication-internals` document.
