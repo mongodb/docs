@@ -57,29 +57,35 @@ Upgrading a Standalone ``mongod``
 Upgrading a Replica Set
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-If your replica set runs with authentication (i.e. with
-:option:`--keyFile <mongod --keyFile>`,) you *must* upgrade all
-members of the set at once. When using authentication 2.2 members
-cannot interact with 2.0 members.
+When using authentication authentication (i.e. with
+:option:`--keyFile <mongod --keyFile>`): upgrade the entire set from v2.0.x to v2.2.0 all at once, by 
+shutting it down for the upgrade.  That is, shut down all mongod's in the set 
+cleanly, upgrade their binaries, and restart them all. Note that v2.0.1 may 
+eliminate this cold upgrade upgrade restriction, see <SERVER-6897>.
 
-If your replica set does *not* use authentication you may upgrade your
-replica set in any order, to minimize downtime, use the following
+If not using authentication you can do a "rolling" upgrade of the set member by 
+member while the other members are up, to minimize downtime. Use the following
 procedure:
 
 #. Upgrade the :term:`secondary` members of the set one at a time by
    shutting down the :program:`mongod` and replacing the 2.0 binary
-   with the 2.2 binary.
+   with the 2.2 binary.  After upgrading a mongod, wait for it to resume 
+   SECONDARY state before doing the next one. 
+   (View this via rs.status() in the mongo shell.)
 
-#. Use the :method:`rs.stepDown()` to step down the primary to allow
-   the normal :ref:`failover <replica-set-failover>` procedure.
+#. Use the mongo shell method :method:`rs.stepDown()` to step down the primary to allow
+   the normal :ref:`failover <replica-set-failover>` procedure.  (stepDown provides for 
+   faster failover procedures than simply shutting down the primary directly.)
 
-   :method:`rs.stepDown()` and :dbcommand:`replSetStepDown` provide for
-   shorter and more consistent failover procedures than simply
-   shutting down the primary directly.
-
-   When the primary has stepped down, shut down its instance and
+   Once the primary has stepped down and another member has assumed PRIMARY state 
+   (check vis rs.status()), shut down the old primary, 
    upgrade by replacing the :program:`mongod` binary with the 2.2
-   binary.
+   binary, and restart it.
+
+   Note that a replica set failover is not instantaneous, but will cause an outage of 
+   reads and writes that were being sent to that member until a failover process 
+   completes.  Typically this takes tens of seconds, so you may wish to plan the 
+   upgrade during a non-critical time of day.
 
 .. _2.2-upgrade-shard-cluster:
 
