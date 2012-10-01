@@ -132,6 +132,8 @@ class MongoDBObject(ObjectDescription):
             return _('%s (read preference mode)') % (name)
         elif self.objtype == 'error':
             return _('%s (error code)') % (name)
+        elif self.objtype == 'macro':
+            return _('%s (JavaScript shell macro)') % (name)
         return ''
 
     def run(self):
@@ -211,6 +213,7 @@ class MongoDBDomain(Domain):
         'expression':   ObjType(l_('expression'),  'expression'),
         'collflag':     ObjType(l_('collflag'),    'collflag'),
         'error':        ObjType(l_('error'),       'error'),
+        'macor':        ObjType(l_('macor'),       'macor'),
     }
 
     directives = {
@@ -229,6 +232,7 @@ class MongoDBDomain(Domain):
         'expression':    MongoDBCallable,
         'collflag':      MongoDBCallable,
         'error':         MongoDBCallable,
+        'macro':         MongoDBCallable,
     }
     roles = {
         'dbcommand':   MongoDBXRefRole(),
@@ -245,6 +249,8 @@ class MongoDBDomain(Domain):
         'group':       MongoDBXRefRole(),
         'expression':  MongoDBXRefRole(),
         'collflag':    MongoDBXRefRole(),
+        'error':       MongoDBXRefRole(),
+        'macro':       MongoDBXRefRole(),
     }
     initial_data = {
         'objects': {}, # fullname -> docname, objtype
