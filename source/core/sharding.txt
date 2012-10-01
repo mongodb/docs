@@ -151,7 +151,7 @@ A :term:`shard cluster` has the following components:
   :term:`chunk`.
 
   For development and testing purposes you may deploy a shard cluster with a single
-  configuration server process, but always use multiple (specifically, three) config 
+  configuration server process, but always use exactly three config
   servers for redundancy and safety in production.
 
 - Two or more :program:`mongod` instances, to hold data.
@@ -159,24 +159,26 @@ A :term:`shard cluster` has the following components:
   These are "normal," :program:`mongod` instances that hold all of the
   actual data for the cluster.
 
-  Typically each shard is comprised of a :term:`replica sets <replica set>`. Each 
+  Typically each shard is a :term:`replica sets <replica set>`. Each
   replica set consists of multiple :program:`mongod` instances. The members
-  of the replica set provide redundancy and high available for the data in each shard. 
+  of the replica set provide redundancy and high available for the data in each shard.
 
   .. warning::
 
-     MongoDB enables data :term:`partitioning <partition>`
-     (i.e. sharding) on a *per collection* basis. You *must* access
-     all data in a shard cluster via the :program:`mongos`
-     instances (see below).  If you connect directly to a mongod in a shard cluster 
-     you will see its fraction of the collection's data (which will be a somewhat 
-     random slice thereof).
+     MongoDB enables data :term:`partitioning <partition>`, or
+     sharding, on a *per collection* basis. You *must* access all data
+     in a shard cluster via the :program:`mongos` instances as below.
+     If you connect directly to a :program:`mongod` in a shard cluster
+     you will see its fraction of cluster's data. The data on any
+     given shard may be somewhat random: MongoDB provides no grantee
+     that any two contiguous chunks will reside on a single shard.
 
 - One or more :program:`mongos` instances.
 
-  These nodes direct queries from the your client or application to the shards that hold
-  the data. The mongos process has no persistent state or data files; it caches metadata 
-  in RAM from the config servers.
+  These instance direct queries from the application layer to the
+  shards that hold the data. The :program:`mongos` instances have no
+  persistent state or data files and only cache metadata in RAM from
+  the config servers.
 
   .. note::
 
@@ -197,22 +199,22 @@ is 64 megabytes, [#chunk-size]_ and the :ref:`balancer
 of chunks in the cluster exceeds the :ref:`migration threshold
 <sharding-migration-thresholds>`.
 
-Practically, this means that unless your cluster has on the order of hundreds of megabytes of data, 
-data chunks will remain on the same shard. 
+Practically, this means that unless your cluster has many hundreds of
+megabytes of data, chunks will remain on a single shard.
 
 While there are some exceptional situations where you may need to
 shard a small collection of data, most of the time the additional
-complexity added by sharding the small collection is not worth the additional 
-complexity and overhead unless 
+complexity added by sharding the small collection is not worth the additional
+complexity and overhead unless
 you need additional concurrency or capacity for some reason. If you
 have a small data set, usually a properly configured
 single MongoDB instance or replica set will be more than sufficient
 for your persistence layer needs.
 
-.. [#chunk-size] :term:`chunk` 
-   size is :option:`user configurable <mongos --chunkSize>`. 
-   However it is strongly recommended to use the default value of 64MB.
-   See the ":ref:`sharding-chunk-size`" section in the
+.. [#chunk-size] :term:`chunk` size is :option:`user configurable
+   <mongos --chunkSize>`.  However, the default value is of 64
+   megabytes is ideal for most deployments. See the
+   ":ref:`sharding-chunk-size`" section in the
    :doc:`sharding-internals` document for more information.
 
 .. index:: sharding; localhost
@@ -310,10 +312,12 @@ config server, but this is not recommended for production.
 
 .. warning::
 
-   If you choose to run a single config server it will be a single 
-   point of failure.  If it is down the cluster will be offline.
-   If its data is lost the cluster's data is lost. Thus always use 
-   three config servers in production.
+   If your shard cluster has a single config server, this
+   :program:`mongod` is a single point of failure.  If the instance is
+   inaccessible the cluster is not accessible. If you cannot recover
+   the data on a config server, the cluster will be inoperable.
+
+   **Always** use three config servers for production deployments.
 
 The actual load on configuration servers is small because each
 :program:`mongos` instances maintains a cached copy of the configuration
@@ -326,7 +330,7 @@ database. MongoDB only writes data to the config server to:
 
 Additionally, all config servers must be available on initial setup
 of a shard cluster, each :program:`mongos` instance must be able
-to write to the ``config.version`` collection.  
+to write to the ``config.version`` collection.
 
 If one or two configuration instances become unavailable, the
 cluster's metadata becomes *read only*. It is still possible to read
