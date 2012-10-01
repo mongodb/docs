@@ -95,8 +95,8 @@ class MongoDBObject(ObjectDescription):
             #         line=self.lineno)
             objects[fullname] = self.env.docname, self.objtype
         # elif self.objtype == "binary":
-        #     signode['names'].append(fullname + "-bin")
-        #     signode['ids'].append(fullname.replace('$', '_S_') +"-bin")
+        #     signode['names'].append(fullname)
+        #     signode['ids'].append(fullname.replace('$', '_S_'))
         #     signode['first'] = not self.names
         #     self.state.document.note_explicit_target(signode)
 
@@ -168,13 +168,6 @@ class MongoDBCallable(MongoDBObject):
     """Description of a MongoDB function, method or constructor."""
     has_arguments = False
 
-class MongoDBCallableComplex(MongoDBObject):
-    """Description of a MongoDB function, method or constructor."""
-    has_arguments = True
-
-class MongoDBCallableProgram(MongoDBObject):
-    pass
-
 class MongoDBXRefRole(XRefRole):
     def process_link(self, env, refnode, has_explicit_title, title, target):
         # basically what sphinx.domains.python.PyXRefRole does
@@ -213,7 +206,7 @@ class MongoDBDomain(Domain):
         'expression':   ObjType(l_('expression'),  'expression'),
         'collflag':     ObjType(l_('collflag'),    'collflag'),
         'error':        ObjType(l_('error'),       'error'),
-        'macor':        ObjType(l_('macor'),       'macor'),
+        'macro':        ObjType(l_('macro'),       'macro'),
     }
 
     directives = {
@@ -225,7 +218,7 @@ class MongoDBDomain(Domain):
         'status':        MongoDBCallable,
         'stats':         MongoDBCallable,
         'readmode':      MongoDBCallable,
-        'method':        MongoDBCallableComplex,
+        'method':        MongoDBCallable,
         'data':          MongoDBCallable,
         'aggregator':    MongoDBCallable,
         'group':         MongoDBCallable,
