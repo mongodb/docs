@@ -11,7 +11,7 @@
 - :doc:`/tutorial/force-member-to-be-primary`
 - :doc:`/tutorial/change-hostnames-in-a-replica-set`
 - :doc:`/tutorial/convert-secondary-into-arbiter`
-- :doc:`/tutorial/reconfigure-replica-set-when-members-are-down`
+- :doc:`/tutorial/reconfigure-replica-set-with-unavailable-members`
 - :doc:`tutorial/recover-data-following-unexpected-shutdown`
 - :doc:`tutorial/deploy-shard-cluster`
 - :doc:`tutorial/convert-replica-set-to-replicated-shard-cluster`

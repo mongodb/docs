@@ -1,6 +1,6 @@
-===============================================
-Reconfigure a Replica Set when Members are Down
-===============================================
+==================================================
+Reconfigure a Replica Set with Unavailable Members
+==================================================
 
 .. default-domain:: mongodb
 
@@ -33,11 +33,10 @@ members are down or unreachable. You connect to any surviving member and
 use the ``force`` option to the :method:`rs.reconfig()`  method to force a
 reconfiguration of the replica set.
 
-The ``force`` option reconfigures the set. The option is intended only
-for serious problems, such as a disaster recovery failover. Do not use
-``force`` every time you reconfigure. Also, do not use ``force`` in any
-automatic scripts and do not use ``force`` when there is still a
-primary.
+The ``force`` option reconfigures the set. Only use this procure to
+recover from catastrophic interruptions. Do not use ``force`` every
+time you reconfigure. Also, do not use ``force`` in any automatic
+scripts and do not use ``force`` when there is still a primary.
 
 To force reconfiguration:
 
@@ -70,8 +69,9 @@ To force reconfiguration:
 
       rs.reconfig(cfg, {force : true})
 
-   The replica set elects a new primary, most likely the member you are
-   connected to.
+   This operation forces the replica set to elect a new primary. Often
+   this is the member with which your :program:`mongo` shell has a
+   connection.
 
    .. note:: When you use ``force : true``, the version number in the
       replica set configuration increases significantly, by tens or
@@ -84,9 +84,9 @@ To force reconfiguration:
 Reconfigure by Replacing the Replica Set
 ----------------------------------------
 
-The procedures here are intended mainly for MongoDB versions *prior to*
-version 2.0. For post-2.0 version, the above procedure,
-:ref:`replica-set-force-reconfiguration`, is recommended.
+Only use the following procedure for versions of MongoDB before
+version 2.0. If you're running MongoDB 2.0 or later, use the above
+procedure, :ref:`replica-set-force-reconfiguration`.
 
 These procedures are for situations where a *majority* of the
 :term:`replica set` members are down or unreachable. If a majority is
@@ -103,20 +103,29 @@ Reconfigure by Turning Off Replication
 
 This option replaces the :term:`replica set` with a :term:`standalone` server.
 
-1. Stop the surviving :program:`mongod` instances.
+1. Stop the surviving :program:`mongod` instances. Use existing
+   an :term:`control script`, or an invocation that resembles the
+   following to ensure a clean shutdown:
 
-#. Perform a backup.
+   .. code-block:: javascript
 
-#. Move each surviving member's data directory to an archive folder. For example:
+      mongod --dbpath /data/db/ --shutdown
+
+   Set :option:`--dbpath` to the data directory of your
+   :program:`mongod` instance.
+
+#. Move the data directory (i.e. :setting:`dbpath`) from each
+   surviving member to an archive folder. For example:
 
    .. code-block:: sh
 
       mv /data/db /data/db-old
 
-   .. optional:: You may remove the data instead.
+   .. optional:: If you have a backup of the database you may remove
+      this data.
 
 #. Restart one of the :program:`mongod` instances *without* the
-   ``--replSet`` parameter.
+   :option:`--replSet <mongo --replSet>` parameter.
 
    You are back online with a single server that is not a replica set
    member. Clients can use this server for both reads and writes.
@@ -125,22 +134,40 @@ Reconfigure by "Breaking the Mirror"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This option selects a surviving :term:`replica set` member to be the new
-:term:`primary` and to be the "seed" for a new replica set. All other
+:term:`primary` and to "seed" a new replica set. All other
 members must resync from this new primary.
 
-1. Stop the surviving :program:`mongod` instances.
+1. Stop the surviving :program:`mongod` instances. Use existing
+   an :term:`control script`, or an invocation that resembles the
+   following to ensure a clean shutdown:
 
-#. Perform a backup.
+   .. code-block:: javascript
 
-#. Move each surviving member's data directory to an archive folder. For example:
+      mongod --dbpath /data/db/ --shutdown
+
+   Set :option:`--dbpath` to the data directory of your
+   :program:`mongod` instance.
+
+#. Move the data directory (i.e. :setting:`dbpath`) from each
+   surviving member to an archive. For example:
 
    .. code-block:: sh
 
       mv /data/db /data/db-old
 
-   .. optional:: You may remove the data instead.
+   .. optional:: If you have a backup of the database you may remove
+      this data.
 
-#. Restart all :program:`mongod` instances with the new replica set name.
+#. Restart all :program:`mongod` instances with a new replica set
+   name. If the old set name was ``rs0``, the invoke :program:`mongod`
+   instances with the following command line arguments:
+
+   .. code-block:: sh
+
+      mongo --replSet rs1
+
+   See :setting:`replSet` and :option:`--replSet <mongo --replSet>`
+   for more information.
 
 #. On the new primary, add the other instances as members of the replica
    set. For more information, see :doc:`/tutorial/expand-replica-set`.
