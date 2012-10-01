@@ -13,32 +13,56 @@ Release Notes for MongoDB 2.2
 Upgrading
 ---------
 
-MongoDB 2.2.x is the production release series succeeding v2.0.x.
+The MongoDB 2.2 series is the production release series of MongoDB
+series that succeeds the 2.0 series.
 
-MongoDB 2.0 data files are compatible with the v2.2 release without any 
-special migration. However see below on proper order of upgrading of 
-components of a cluster.
+MongoDB 2.0 data files are compatible with 2.2-series binaries without any
+special migration process. However, always perform the upgrade process for replica
+sets and sharded clusters using the procedures that follow.
 
 Synopsis
 ~~~~~~~~
 
-- When upgrading a standalone mongod, v2.2 is a drop-in replacement.
+- When upgrading a standalone :program:`mongod`, 2.2 is a drop-in
+  replacement.
 
-- Members of a replica set can by upgraded from v2.0 to v2.2 one-by-one (while the 
-rest of the set is online) *except* when using authentication. With authentication 
-(--keyFile) is in use you must shut down and upgrade the set all at once. Note that 
-in v2.2.1 this upgrade restriction may be eliminated see <SERVER-6897>.
+- For all deployments using authentication, you *must* upgrade the
+  drivers (i.e. client libraries,) before upgrading the
+  :program:`mongod` instance or instances.
 
-- For clusters using authentication, you must upgrade drivers first, then mongos's, then mongod's.
+- You can upgrade the members of a replica set, one-by-one
+  [#secondaries-first]_ **except** when using authentication. In
+  deployments that use authentication, (i.e. where the
+  :program:`mongod` runs with :option:`--keyFile <mongod --keyfile>`,)
+  you must shut down the entire set and perform the upgrade at once.
 
-- Turn off the balancer during upgrades of sharded clusters.
+  The 2.2.1 release will remove this requirement, see
+  :issue:`SERVER-6897` for more information.
 
-Other than the above restrictions, 
-2.2 processes can inter-operate with 2.0 and 1.8 tools and processes. Thus, you can 
-safely upgrade a cluster's 
-:program:`mongod` and :program:`mongos` components (incluing config servers) one by one while the cluster is 
-otherwise operational.  Be sure to read the detailed upgrade procedures below before upgrading production 
+- For all upgrades of sharded clusters, turn off the balancer during
+  the upgrade process. See the
+  :ref:`sharding-balancing-disable-temporally` section for more
+  information.
+
+- For sharded clusters running with authentication, you must:
+
+  - First, disable the balancer and upgrade the client drivers.
+
+  - Second, upgrade all :program:`mongos` instances.
+
+  - Finally, upgrade all :program:`mongod` instances.
+
+Other than the above restrictions, 2.2 processes can interoperate with
+2.0 and 1.8 tools and processes. You can safely upgrade a the
+:program:`mongod` and :program:`mongos` components of a deployment,
+one by one while the deployment is otherwise operational.  Be sure to
+read the detailed upgrade procedures below before upgrading production
 systems.
+
+.. [#secondaries-first] To minimize the interruption caused by
+   :ref:`election process <replica-set-elections>`, always upgrade the
+   secondaries of the set first, then :dbcommand:`step down
+   <replSetStepDown>` the primary, and then upgrade the primary.
 
 .. _2.2-upgrade-standalone:
 
@@ -57,35 +81,43 @@ Upgrading a Standalone ``mongod``
 Upgrading a Replica Set
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-When using authentication authentication (i.e. with
-:option:`--keyFile <mongod --keyFile>`): upgrade the entire set from v2.0.x to v2.2.0 all at once, by 
-shutting it down for the upgrade.  That is, shut down all mongod's in the set 
-cleanly, upgrade their binaries, and restart them all. Note that v2.0.1 may 
-eliminate this cold upgrade upgrade restriction, see <SERVER-6897>.
+For replica sets running with authentication, (i.e. :option:`--keyFile
+<mongod --keyFile>`,) upgrade the entire set from a release of 2.0 to
+2.2.0 at once. Shut down all :program:`mongod` instances in the set
+cleanly, upgrade the binaries, and then restart all instances.
 
-If not using authentication you can do a "rolling" upgrade of the set member by 
-member while the other members are up, to minimize downtime. Use the following
+The 2.2.1 release, will remove this "hard" upgrade requirement, see
+:issue:`SERVER-6897`.
+
+If your set does not run with authentication may perform a "rolling"
+upgrade of the set by upgrading the members individually while the
+other members are available to minimize downtime. Use the following
 procedure:
 
 #. Upgrade the :term:`secondary` members of the set one at a time by
    shutting down the :program:`mongod` and replacing the 2.0 binary
-   with the 2.2 binary.  After upgrading a mongod, wait for it to resume 
-   SECONDARY state before doing the next one. 
-   (View this via rs.status() in the mongo shell.)
+   with the 2.2 binary.  After upgrading a :program:`mongod` instance,
+   wait for the member to recover to ``SECONDARY`` state by checking
+   the output of :method:`rs.status()` in the :program:`mongo` shell
+   before upgrading the next instance.
 
-#. Use the mongo shell method :method:`rs.stepDown()` to step down the primary to allow
-   the normal :ref:`failover <replica-set-failover>` procedure.  (stepDown provides for 
-   faster failover procedures than simply shutting down the primary directly.)
+#. Use the :program:`mongo` shell method :method:`rs.stepDown()` to
+   step down the :term:`primary` to allow the normal :ref:`failover
+   <replica-set-failover>` procedure.  :method:`rs.stepDown()`
+   expedites the failover procedure and is preferable to shutting down
+   the primary directly.
 
-   Once the primary has stepped down and another member has assumed PRIMARY state 
-   (check vis rs.status()), shut down the old primary, 
-   upgrade by replacing the :program:`mongod` binary with the 2.2
-   binary, and restart it.
+   Once the primary has stepped down and another member has assumed
+   ``PRIMARY`` state, as observed in the output of
+   :method:`rs.status()`, shut down the previous primary and replace
+   :program:`mongod` binary with the 2.2 binary and start the new
+   process.
 
-   Note that a replica set failover is not instantaneous, but will cause an outage of 
-   reads and writes that were being sent to that member until a failover process 
-   completes.  Typically this takes tens of seconds, so you may wish to plan the 
-   upgrade during a non-critical time of day.
+   .. note:: Replica set failover is not instantaneous, but will
+      render the set unavailable to read and writes sent to the set
+      util failover process completes.  Typically this takes tens of
+      seconds, so you may wish to plan the upgrade during a
+      non-critical time of day.
 
 .. _2.2-upgrade-shard-cluster:
 
@@ -98,9 +130,9 @@ Use the following procedure to upgrade a sharded cluster:
 
 - Upgrade all :program:`mongos` instances *first*, in any order.
 
-- Upgrade all of the :program:`mongod` config server instances 
+- Upgrade all of the :program:`mongod` config server instances
   using the :ref:`stand alone <2.2-upgrade-standalone>` procedure.
-  To keep the cluster online, be that at all times at least one config 
+  To keep the cluster online, be that at all times at least one config
   server is up.
 
 - Upgrade each shard's replica set, using the :ref:`upgrade
@@ -111,8 +143,8 @@ Use the following procedure to upgrade a sharded cluster:
 .. note::
 
    Balancing is not currently supported in *mixed* 2.0.x and 2.2.0
-   deployments. Thus you will want to reach a consistent version for all 
-   shards within a reasonable period of time, e.g., same-day.  
+   deployments. Thus you will want to reach a consistent version for all
+   shards within a reasonable period of time, e.g., same-day.
    See :issue:`SERVER-6902` for more information.
 
 Changes
@@ -230,7 +262,7 @@ If your cluster runs with authentication:
 - For all drivers, use the latest release of your driver and check
   its release notes.
 
-- In sharded environments, 
+- In sharded environments,
   to ensure that your cluster remains available during the upgrade
   process you **must** use the :ref:`upgrade procedure for shard clusters
   <2.2-upgrade-shard-cluster>`.
@@ -632,9 +664,15 @@ Resources
 ---------
 
 - `MongoDB Downloads <http://mongodb.org/downloads>`_
+
 - `All JIRA Issues resolved in 2.2 <https://jira.mongodb.org/secure/IssueNavigator.jspa?reset=true&jqlQuery=project+%3D+SERVER+AND+fixVersion+in+%28%222.1.0%22%2C+%222.1.1%22%2C+%222.1.2%22%2C+%222.2.0-rc0%22%2C+%222.2.0-rc1%22%2C+%222.2.0-rc2%22%29+ORDER+BY+component+ASC%2C+key+DESC>`_
-- `All Backward Incompatible Changes <https://jira.mongodb.org/secure/IssueNavigator.jspa?requestId=11225>`_
+
+- `All Backwards Incompatible Changes <https://jira.mongodb.org/secure/IssueNavigator.jspa?requestId=11225>`_
+
 - `All Third Party License Notices <https://github.com/mongodb/mongo/blob/v2.2/distsrc/THIRD-PARTY-NOTICES>`_
-- What's New in MongoDB 2.2 Online Conference 
--- `Video <http://www.justin.tv/mongodb/b/332846443>` (fast-forward to 2:30)
--- `Slides <http://www.slideshare.net/mongodb/mongodb-online-conference-introducing-mongodb-22>`
+
+- What's New in MongoDB 2.2 Online Conference:
+
+  - `Video <http://www.justin.tv/mongodb/b/332846443>` (fast-forward to 2:30)
+
+  -  `Slides <http://www.slideshare.net/mongodb/mongodb-online-conference-introducing-mongodb-22>`
