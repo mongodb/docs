@@ -4,67 +4,71 @@ renameCollection
 
 .. default-domain:: mongodb
 
-.. dbcommand:: renameCollection( source-namespace, to: target-namespace [, dropTarget=>true])
+.. dbcommand:: renameCollection
 
-   The :dbcommand:`renameCollection` command is an administrative command which
-   changes the name of an existing collection.
-   If the ``target-namespace`` specifies a collection in a different database, the
-   ``source-namespace`` collection will be copied to the new database and then dropped.
-   You must issue the
-   :dbcommand:`renameCollection`
+   The :dbcommand:`renameCollection` command is an administrative
+   command that changes the name of an existing collection. You
+   specify collections to :dbcommand:`renameCollection` in the form of
+   a complete :term:`namespace`, which includes the database name. To
+   rename a collection, issue the :dbcommand:`renameCollection`
    command against the :term:`admin database` in the form:
 
    .. code-block:: javascript
 
-      { renameCollection: <source-namespace>, to: <target-namespace> }
+      { renameCollection: <source-namespace>, to: <target-namespace>[, dropTarget: <boolean> ] }
 
-   You must specify the complete :term:`namespace` (i.e., database name
-   and collection name).
-   
-   :var source-namespace:
-   
-      Specifies the complete namespace of the collection to be renamed.
-      
-   :param string to: 
-   
-      Specifies the new namespace of the collection.
-      
-   :param boolean,optional dropTarget: If ``true``, :program:`mongod` will drop the `target` of :dbcommand:`renameCollection` prior to renaming the collection.
-      
+   The ``dropTarget`` argument is optional.
+
+   If you specify a collection to the ``to`` argument in a different database, the
+   :dbcommand:`renameCollection` will copy the collection to the new
+   database and then drop the source collection.
+
+   :param source-namespace:
+
+          Specifies the complete namespace of the collection to rename.
+
+   :param string to:
+
+          Specifies the new namespace of the collection.
+
+   :param boolean dropTarget:
+
+          Optional. If ``true``, :program:`mongod` will drop the
+          ``target`` of :dbcommand:`renameCollection` prior to renaming
+          the collection.
+
    :exception 10026:
-   
-      Raised if the ``source`` namespace does not exist.
-      
-   :exception 10027:
-   
-      Raised if the ``target`` namespace exists
-      and ``dropTarget`` is either ``false`` or unspecified.
-      
-   :exception 15967:
-   
-      Raised if the ``target`` namespace is an invalid collection name.   
 
-   You may safely use :dbcommand:`renameCollection` in production
-   environments.
+              Raised if the ``source`` namespace does not exist.
+
+   :exception 10027:
+
+              Raised if the ``target`` namespace exists
+              and ``dropTarget`` is either ``false`` or unspecified.
+
+   :exception 15967:
+
+              Raised if the ``target`` namespace is an invalid
+              collection name.
+
+   You can use :dbcommand:`renameCollection` in production
+   environments; however:
+
+   - :dbcommand:`renameCollection` will block all database activity
+     for the duration of the operation.
+
+   - :dbcommand:`renameCollection` is incompatible with sharded
+     collections.
 
    .. warning::
 
-      :dbcommand:`renameCollection` will fail if 
+      :dbcommand:`renameCollection` will fail if
       `target` is the name of an existing collection
       and you do not specify ``dropTarget: true``.
-   
-      You cannot use :dbcommand:`renameCollection` with
-      sharded collections.
-   
-      If :dbcommand:`renameCollection` is interrupted prior to completion,
-      the ``target`` collection and indexes will be left in an inconsistent
-      state requiring manual intervention to clean up.
-      
-      A copy of a database across collections will impact performance for
-      the duration of the copy.
-      
-      You should not initiate :dbcommand:`renameCollection` while the 
-      source database is being written to. 
+
+      If the :dbcommand:`renameCollection` operation does not complete
+      the ``target`` collection and indexes will not be usable and
+      will require manual intervention to clean up.
 
    The shell helper :method:`db.collection.renameCollection()` provides a
    simpler interface to using this command within a database.
@@ -73,6 +77,3 @@ renameCollection
    .. code-block:: javascript
 
       db.source-namespace.renameCollection( "target" )
-   
-   
-
