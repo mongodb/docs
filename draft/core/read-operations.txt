@@ -174,29 +174,97 @@ documents that match the query criteria also match the entire query.
 Projection
 ~~~~~~~~~~
 
-quick. and short.
+A projection specifies which field values a query should return for
+matching documents. If you run a query *without* a projection, the query
+returns all fields and values for matching documents, which can
+add unnecessary network and deserialization costs.
+
+MongoDB provides special projection operators that let you specify the
+fields to return. For documentation on each operator, click the operator name:
+
+- :projection:`$elemMatch`
+
+- :projection:`$slice`
 
 .. _read-operations-indexing:
 
 Indexing
 ~~~~~~~~
 
-.. seealso:: :doc:`/core/indexes`
+Indexes significantly reduce the amount of work needed for query read
+operations. Indexes record specified keys and key values and the disk
+locations of the documents containing those values.
 
-- :doc:`/reference/operators`
-- :method:`find <db.collection.find()>`
-- :method:`findOne`
+Without indexes, MongoDB must scan all documents to return query
+results.
+
+The order of index keys matters.
+
+In order to fulfill a multi-field query using an index, the query
+optimizer first searches the index for the first field in the query.
+When the first instance of that entry is found, the query then searches
+for the next field within the index entries for the first field.
+
+If you structure your index such that the first field ...
+
+As a general rule, a query where one term demands an exact match and
+another specifies a range requires a com- pound index where the range
+key comes second.
+
+When you create indexes, you must do so with your queries in mind. A
+query can use only one index and therefore you must create indexes that
+include all the fields in a given query.
+
+Because indexes take up space and because MongoDB writes to an index
+with every write to the database, you must also be careful with index
+creation. Do not create indexes that duplicate each other. For example,
+an index that queries on ``a`` and then ``b`` can be used for queries of
+``a`` then ``b`` as well as for queries of just ``a``. Do not have two
+indexes where one will do.
+
+You can also speed read operations by eliminating unnecessary indexes.
+
+Whenever you add a document to a collection, each index on that
+collection must be modified to include the new document. So if a
+particular collection has 10 indexes, then that makes 10 separate
+structures to modify on each insert. This holds for any write operation,
+whether you’re removing a document or updating a given document’s
+indexed keys.
+
+For read-intensive applications, the cost of indexes is almost always
+justified. Just realize that indexes do impose a cost and that they
+therefore must be chosen with care. This means ensuring that all of your
+indexes are used and that none of them are redundant. You can do this in
+part by profiling your application’s queries.
+
+Reading from RAM is faster than reading from disk, so you must make sure
+your indexes and working sets together fit into RAM. To check the size
+of an index use the :method:`db.collection.totalIndexSize()` helper.
+
+MongoDB represents indexes internally as B-trees.
+
+Use the different index types to keep your indexes to only the size
+needed. For example, for queries that always return a document only if a
+value exists for the search keys, use sparse indexes. Sparse indexes
+take up less space than default indexes.
+
+.. seealso::
+
+   - The :doc:`/core/indexes` documentation, in particular :doc:`/applications/indexes`
+   - :doc:`/reference/operators`
+   - :method:`find <db.collection.find()>`
+   - :method:`findOne`
 
 .. _read-operations-aggregation:
 
 Aggregation
 ~~~~~~~~~~~
 
-Probably short, but there's no docs for old-style aggregation so.
+.. Probably short, but there's no docs for old-style aggregation so.
 
-- basic aggregation (count, distinct)
-- legacy agg: group
-- big things: mapreduce, aggregation
+.. - basic aggregation (count, distinct)
+.. - legacy agg: group
+.. - big things: mapreduce, aggregation
 
 .. seealso:: :doc:`/applications/aggregation`
 
