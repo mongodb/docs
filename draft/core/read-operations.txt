@@ -4,10 +4,10 @@ Read Operations
 
 .. default-domain:: mongodb
 
-This document how MongoDB performs read operations.
+Read operations determine how MongoDB returns collection data when you issue a query.
 
-MongodDB uses read operations when you retrieve collection data by using
-a query.
+This document describes how MongoDB performs read operations and how
+different factors affect the efficiency of reads.
 
 .. TODO intro and high-level read operations info
 
@@ -20,6 +20,10 @@ a query.
 Query Operations
 ----------------
 
+Queries retrieve data from your database collections. How a query
+retrieves data is dependent on MongoDB read operations and on the
+indexes you have created.
+
 .. _read-operations-query-syntax:
 
 Query Syntax
@@ -29,111 +33,21 @@ For a list of query operators, see :doc:`/reference/operators`.
 
 .. TODO see the yet-to-be created query operations doc
 
-.. _read-operations-query-optimization:
+.. _read-operations-indexing:
 
-Query Optimization
-~~~~~~~~~~~~~~~~~~
+Indexes
+~~~~~~~
 
-The MongoDB query optimizer matches a query to the best index for
-performing that query. When the optimizer finds the best index, it
-creates a query plan so that the query will always use the specified
-index.
+Indexes significantly reduce the amount of work needed for query read
+operations. Indexes record specified keys and key values and the disk
+locations of the documents containing those values.
 
-The MongoDB query optimizer deletes a query plan when a collection has
-changed to a point that the the specified index might no longer provide
-the fastest results.
+Indexes are typically stored in RAM *or* located sequentially on disk,
+and indexes are smaller than the documents they catalog. When a query
+can use an index, the read operation is significantly faster than when
+the query must scan all documents in a collection.
 
-Query plans take advantage of MongoDB's indexing features. You should
-always write indexes that use the same fields and sort in the same order
-as do your queries.
-
-MongoDB creates a query plan as follows: When you run a query for which
-there is no query plan, either because the query is new or the old plan
-is obsolete, the query optimizer runs the query against several indexes
-at once in parallel. Though the optimizer queries the indexes in
-parallel, it records the results as though all coming from one index.
-The optimizer records all matches in a single common buffer.
-
-As each index yields a match, MongoDB records the match in the buffer.
-If an index returns a result already returned by another index, the
-optimizer recognizes the duplication and skips recording the match
-a second time.
-
-The optimizer determines a "winning" index and stops querying when either of
-the following occur:
-
-- The optimizer exhausts an index, which means that index has provided
-  the full result set the fastest.
-
-- The optimizer reaches 101 results. At that point, the optimizer
-  chooses the plan that has provided the most results *first* and
-  continues reading only from that plan. Note that another index might
-  have provided all those results as duplicates but because the "winning"
-  index provided the results faster, it is the most efficient index.
-
-The "winning" index now becomes the index specified in the query plan as
-the one to use the next time that query is run.
-
-To evaluate the optimizer's choice of query plan, run the query again
-with the :method:`explain() <cursor.explain()>` method and
-:method:`hint() <cursor.hint()>` methods appended. This returns
-statistics about how the query runs. (It returns the statistics in place
-of returning the query results.)
-
-.. code-block:: javascript
-
-   db.people.find( { name:"John"} ).explain().hint()
-
-.. For details on the output of the :method:`explain()
-   <cursor.explain()>` method, see ...
-
-If you run :method:`explain() <cursor.explain()>` without including
-:method:`hint() <cursor.hint()>`, the query optimizer will re-evaluate
-the query, running multiple query plans, before it returns the query
-statistics. Unless you want the optimizer to re-evaluate the query, do
-not leave off :method:`hint() <cursor.hint()>`.
-
-Because your collections will likely change over time, the query
-optimizer uses the query plan only to a certain point.
-
-.. Order of buffer results is different because coming from different
-   indexes. Not ordered on one index.
-
-.. Sorting >> all query plans are ordered vs none vs some.
-
-.. "Optimal" is determined from a past run of multiple plans. But that
-   cache gets cleared if there's been multiple writes.
-
-.. Speculative scan of multiple plans.
-
-.. Sparce indexes can change a result set.
-
-.. Interleaving of results sets from multiple indexes ocurrs only when
-   query plan is being determined. Once query plan is cached, then it's
-   going to use one index.
-
-.. What validates a cache: 1000 doc writes (not write operations but
-   actual doc writes). Also if reindex or restart mongod.
-
-.. Interweaving/leaving plans is done with cursor.
-
-.. Dupe on disk lock and not on ID.
-
-.. First time it runs the query (the first time it picks a query plan),
-   it runs union of all query plans deemed to be potentially useful to
-   return results set. Second time run the same query, it runs a single
-   query plan.
-
-.. Therefore, you can run the same query twice in a row and get the
-   same results ordered differently.
-
-.. And when you run explain, you also get different statistics.
-
-.. END OF MY NOTES ON THE TECH TALK, EXCEPT FOR THE NOTES ON SPECIFIC
-   OPTIMIZATION OPERATORS, such as $elemMatch
-
-Selective Indexes Return Fastest Results
-````````````````````````````````````````
+MongoDB represents indexes internally as B-trees.
 
 The most selective indexes return the fastest results. The most
 selective index possible for a given query is an index for which all the
@@ -169,91 +83,116 @@ documents that match the query criteria also match the entire query.
    Conversely, not all the documents that match the query's ``x`` key
    value also match the entire query.
 
-.. _read-operations-projection:
-
-Projection
-~~~~~~~~~~
-
-A projection specifies which field values a query should return for
-matching documents. If you run a query *without* a projection, the query
-returns all fields and values for matching documents, which can
-add unnecessary network and deserialization costs.
-
-MongoDB provides special projection operators that let you specify the
-fields to return. For documentation on each operator, click the operator name:
-
-- :projection:`$elemMatch`
-
-- :projection:`$slice`
-
-.. _read-operations-indexing:
-
-Indexing
-~~~~~~~~
-
-Indexes significantly reduce the amount of work needed for query read
-operations. Indexes record specified keys and key values and the disk
-locations of the documents containing those values.
-
-Without indexes, MongoDB must scan all documents to return query
-results.
-
-The order of index keys matters.
-
-In order to fulfill a multi-field query using an index, the query
-optimizer first searches the index for the first field in the query.
-When the first instance of that entry is found, the query then searches
-for the next field within the index entries for the first field.
-
-If you structure your index such that the first field ...
-
-As a general rule, a query where one term demands an exact match and
-another specifies a range requires a com- pound index where the range
-key comes second.
-
-When you create indexes, you must do so with your queries in mind. A
-query can use only one index and therefore you must create indexes that
-include all the fields in a given query.
-
-Because indexes take up space and because MongoDB writes to an index
-with every write to the database, you must also be careful with index
-creation. Do not create indexes that duplicate each other. For example,
-an index that queries on ``a`` and then ``b`` can be used for queries of
-``a`` then ``b`` as well as for queries of just ``a``. Do not have two
-indexes where one will do.
-
-You can also speed read operations by eliminating unnecessary indexes.
-
-Whenever you add a document to a collection, each index on that
-collection must be modified to include the new document. So if a
-particular collection has 10 indexes, then that makes 10 separate
-structures to modify on each insert. This holds for any write operation,
-whether you’re removing a document or updating a given document’s
-indexed keys.
-
-For read-intensive applications, the cost of indexes is almost always
-justified. Just realize that indexes do impose a cost and that they
-therefore must be chosen with care. This means ensuring that all of your
-indexes are used and that none of them are redundant. You can do this in
-part by profiling your application’s queries.
-
-Reading from RAM is faster than reading from disk, so you must make sure
-your indexes and working sets together fit into RAM. To check the size
-of an index use the :method:`db.collection.totalIndexSize()` helper.
-
-MongoDB represents indexes internally as B-trees.
-
-Use the different index types to keep your indexes to only the size
-needed. For example, for queries that always return a document only if a
-value exists for the search keys, use sparse indexes. Sparse indexes
-take up less space than default indexes.
-
 .. seealso::
 
    - The :doc:`/core/indexes` documentation, in particular :doc:`/applications/indexes`
    - :doc:`/reference/operators`
    - :method:`find <db.collection.find()>`
    - :method:`findOne`
+
+.. _read-operations-query-optimization:
+
+Query Optimization
+~~~~~~~~~~~~~~~~~~
+
+MongoDB provides a query optimizer that matches a query to the index
+that performs the fastest read operation for that query.
+
+When you issue a query for the first time, the query optimizer runs the
+query against several indexes to find the most efficient. The optimizer
+then creates a "query plan" that specifies the index for future runs of
+the query.
+
+The MongoDB query optimizer deletes a query plan when a collection has
+changed to a point that the the specified index might no longer provide
+the fastest results.
+
+Query plans take advantage of MongoDB's indexing features. You should
+always write indexes that use the same fields and that sort in the same
+order as do your queries. For more information, see :doc:`/applications/indexes`.
+
+MongoDB creates a query plan as follows: When you run a query for which
+there is no query plan, either because the query is new or the old plan
+is obsolete, the query optimizer runs the query against several indexes
+at once in parallel but records the results in a single common buffer,
+as though the results all come from the same index. As each index yields
+a match, MongoDB records the match in the buffer. If an index returns a
+result already returned by another index, the optimizer recognizes the
+duplication and skips the duplicate match.
+
+The optimizer determines a "winning" index when either of
+the following occur:
+
+- The optimizer exhausts an index, which means that the index has
+  provided the full result set. At this point, the optimizer stops
+  querying.
+
+- The optimizer reaches 101 results. At this point, the optimizer
+  chooses the plan that has provided the most results *first* and
+  continues reading only from that plan. Note that another index might
+  have provided all those results as duplicates but because the
+  "winning" index provided the full result set first, it is more
+  efficient.
+
+The "winning" index now becomes the index specified in the query plan as
+the one to use the next time the query is run.
+
+To evaluate the optimizer's choice of query plan, run the query again
+with the :method:`explain() <cursor.explain()>` method and
+:method:`hint() <cursor.hint()>` methods appended. Instead of returning
+query results, this returns statistics about how the query runs. For example:
+
+.. code-block:: javascript
+
+   db.people.find( { name:"John"} ).explain().hint()
+
+For details on the output, see :method:`explain() <cursor.explain()>`.
+
+.. note::
+
+   If you run :method:`explain() <cursor.explain()>` without including
+   :method:`hint() <cursor.hint()>`, the query optimizer will
+   re-evaluate the query and run against multiple indexes before
+   returning the query statistics. Unless you want the optimizer to
+   re-evaluate the query, do not leave off :method:`hint()
+   <cursor.hint()>`.
+
+Because your collections will likely change over time, the query
+optimizer deletes a query plan and re-evaluates the indexes when any
+of the following occur:
+
+- The number of writes to the collection reaches 1,000.
+
+- You run the :dbcommand:`reIndex` command on the index.
+
+- You restart :program:`mongod`.
+
+When you re-evaluate a query, the optimizer will display the same
+results (assuming no data has changed) but might display the results in
+a different order, and the :method:`explain() <cursor.explain()>` method
+and :method:`hint() <cursor.hint()>` methods might result in different
+statistics. This is because the optimizer retrieves the results from
+several indexes at once during re-evaluation and the order in which
+results appear depends on the order of the indexes within the parallel
+querying.
+
+.. _read-operations-projection:
+
+Projection
+~~~~~~~~~~
+
+A projection specifies which field values from an array a query should
+return for matching documents. If you run a query *without* a
+projection, the query returns all fields and values for matching
+documents, which can add unnecessary network and deserialization costs.
+
+To run the most efficient queries, use the following projection
+operators when possible when querying on array values. For documentation
+on each operator, click the operator name:
+
+- :projection:`$elemMatch`
+
+- :projection:`$slice`
 
 .. _read-operations-aggregation:
 
@@ -270,6 +209,23 @@ Aggregation
 
 .. index:: read operation; architecture
 .. _read-operations-architecture:
+
+Query Operators that Cannot Use Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some query operators cannot take advantage of indexes and require a
+collection scan. When using these operators you can narrow the documents
+scanned by combining the operator with another operator that does use an
+index.
+
+Operators that cannot use indexes include the following:
+
+- :operator:`$nin`
+
+- :operator:`$ne`
+
+.. TODO Regular expressions queries also do not use an index.
+.. TODO :method:`cursor.skip()` can cause paginating large numbers of docs
 
 Architecture
 ------------
