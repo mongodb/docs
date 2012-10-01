@@ -38,7 +38,7 @@ Indexes
 
 Indexes improve the efficiency of read operations by optimizing queries,
 pre-sorting query results, and making it possible to store fewer
-documents in memory. :
+documents in memory.
 
 The most selective indexes return the fastest results. The most
 selective index possible for a given query is an index for which all the
@@ -67,7 +67,7 @@ documents that match the query criteria also match the entire query.
 
    .. code-block:: javascript
 
-      { x : { $gte : 1 } , y : { $gte : 1} }
+      db.foo.find( { x : { $gte : 1 } , y : { $gte : 1} } )
 
    The ``{ y : 1 }`` index is more selective because all the documents
    that match the query's ``y`` key value also match the entire query.
@@ -87,52 +87,47 @@ documents that match the query criteria also match the entire query.
 Query Optimization
 ~~~~~~~~~~~~~~~~~~
 
-MongoDB provides a query optimizer that matches a query to the index
-that performs the fastest read operation for that query.
-
-When you issue a query for the first time, the query optimizer runs the
-query against several indexes to find the most efficient. The optimizer
-then creates a "query plan" that specifies the index for future runs of
-the query.
-
-The MongoDB query optimizer deletes a query plan when a collection has
-changed to a point that the the specified index might no longer provide
-the fastest results.
+The MongoDB query optimizer matches a query to the index that produces
+the fastest results. The optimizer then uses the query plan each time
+the query is run. If a collection changes significantly, the optimizer
+creates a new query plan.
 
 Query plans take advantage of MongoDB's indexing features. You should
 always write indexes that use the same fields and that sort in the same
-order as do your queries. For more information, see :doc:`/applications/indexes`.
+order as do your queries. For more information, see
+:doc:`/applications/indexes`.
 
-MongoDB creates a query plan as follows: When you run a query for which
-there is no query plan, either because the query is new or the old plan
-is obsolete, the query optimizer runs the query against several indexes
-at once in parallel but records the results in a single common buffer,
-as though the results all come from the same index. As each index yields
-a match, MongoDB records the match in the buffer. If an index returns a
-result already returned by another index, the optimizer recognizes the
-duplication and skips the duplicate match.
+MongoDB creates a query plan as follows:
 
-The optimizer determines a "winning" index when either of
-the following occur:
+1. The query optimizer runs the query against several indexes at once in
+   parallel.
 
-- The optimizer exhausts an index, which means that the index has
-  provided the full result set. At this point, the optimizer stops
-  querying.
+#. The optimizer records matches in a single common buffer, as though
+   the results all come from the same index.
 
-- The optimizer reaches 101 results. At this point, the optimizer
-  chooses the plan that has provided the most results *first* and
-  continues reading only from that plan. Note that another index might
-  have provided all those results as duplicates but because the
-  "winning" index provided the full result set first, it is more
-  efficient.
+#. If an index returns a result already returned by another index, the
+   optimizer recognizes the duplication and skips the duplicate match.
 
-The "winning" index now becomes the index specified in the query plan as
-the one to use the next time the query is run.
+#. The optimizer determines a "winning" index when either of
+   the following occur:
 
-To evaluate the optimizer's choice of query plan, run the query again
-with the :method:`explain() <cursor.explain()>` method and
-:method:`hint() <cursor.hint()>` methods appended. Instead of returning
-query results, this returns statistics about how the query runs. For example:
+   - The optimizer exhausts an index, which means that the index has
+     provided the full result set. At this point, the optimizer stops
+     querying.
+
+   - The optimizer reaches 101 results. At this point, the optimizer
+     chooses the plan that has provided the most results *first* and
+     continues reading only from that plan. Note that another index
+     might have provided all those results as duplicates but because the
+     "winning" index provided the full result set first, it is more
+     efficient.
+
+#. The "winning" index becomes the index specified in the query plan.
+
+To evaluate the optimizer's choice of query plan, run the query with the
+:method:`explain() <cursor.explain()>` method and :method:`hint()
+<cursor.hint()>` methods appended. Instead of returning query results,
+this returns statistics about how the query runs. For example:
 
 .. code-block:: javascript
 
@@ -143,11 +138,9 @@ For details on the output, see :method:`explain() <cursor.explain()>`.
 .. note::
 
    If you run :method:`explain() <cursor.explain()>` without including
-   :method:`hint() <cursor.hint()>`, the query optimizer will
-   re-evaluate the query and run against multiple indexes before
-   returning the query statistics. Unless you want the optimizer to
-   re-evaluate the query, do not leave off :method:`hint()
-   <cursor.hint()>`.
+   :method:`hint() <cursor.hint()>`, the query optimizer re-evaluates
+   the query and run against multiple indexes before returning the query
+   statistics.
 
 Because your collections will likely change over time, the query
 optimizer deletes a query plan and re-evaluates the indexes when any
@@ -159,28 +152,52 @@ of the following occur:
 
 - You restart :program:`mongod`.
 
-When you re-evaluate a query, the optimizer will display the same
-results (assuming no data has changed) but might display the results in
-a different order, and the :method:`explain() <cursor.explain()>` method
-and :method:`hint() <cursor.hint()>` methods might result in different
-statistics. This is because the optimizer retrieves the results from
-several indexes at once during re-evaluation and the order in which
-results appear depends on the order of the indexes within the parallel
-querying.
+When you re-evaluate a query, the optimizer displays the same results
+(assuming no data has changed) but might display the results in a
+different order. Similarly, the :method:`explain() <cursor.explain()>`
+method and :method:`hint() <cursor.hint()>` methods might display
+different statistics. This is because the optimizer retrieves the
+results from several indexes at once during re-evaluation, and the order
+in which results appear depends on the order of the indexes within the
+parallel query operation.
 
 .. _read-operations-projection:
 
 Projection
 ~~~~~~~~~~
 
-A projection specifies which field values from an array a query should
-return for matching documents. If you run a query *without* a
-projection, the query returns all fields and values for matching
-documents, which can add unnecessary network and deserialization costs.
+A projection specifies which field values to return for matching
+documents. If you run a query *without* a projection, the query returns
+all fields and values for matching documents. By narrowing the fields to
+display, projections can minimize network and deserialization costs.
 
-To run the most efficient queries, use the following projection
-operators when possible when querying on array values. For documentation
-on each operator, click the operator name:
+You specify a projection in the second document in a query.
+
+.. example::
+
+   Given the following small collection name ``foo``:
+
+   .. code-block:: javascript
+
+      { "_id" : 100 , x : 1 , y : 15 , z : 20 }
+      { "_id" : 101 , x : 2 , y : 16 , z : 21 }
+      { "_id" : 102 , x : 2 , y : 17 , z : 22 }
+      { "_id" : 103 , x : 3 , y : 18 , z : 23 }
+
+   You can search for all documents where ``x`` is ``2`` but, instead of
+   returning all fields, you could choose to return only the ``z`` field
+   (and the ``_id`` field, which is always returned by default). You
+   would issue this query:
+
+   .. code-block:: javascript
+
+      db.foo.find( { x : 2 } , { z : 1 } )
+
+   By specifying ``{ z : 1 }``, you tell MongoDB to return the ``z``
+   field.
+
+MongoDB also provides the following projection operators specific to
+arrays. For documentation on each operator, click the operator name:
 
 - :projection:`$elemMatch`
 
