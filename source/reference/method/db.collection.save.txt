@@ -6,11 +6,86 @@ db.collection.save()
 
 .. method:: db.collection.save(document)
 
-   :param document: Specify a document to save to the ``collection``.
+   The :method:`save() <db.collection.save()>` method updates an
+   existing document or inserts a document depending on the parameter.
 
-   If :term:`document` has an `_id` field, then perform an
-   :method:`db.collection.update()` with no :ref:`update-operators
-   <update-operators>` as an :term:`upsert`.  Otherwise, insert a new
+   The :method:`save() <db.collection.save()>` method takes the following
+   parameter:
 
-   document with fields from `document` and a newly generated
-   ObjectId() for the ``_id`` field.
+   :param document: 
+   
+      Specify a document to save to the collection.
+
+      **If** the document does not contain an :term:`_id` field,
+      then the :method:`save() <db.collection.save()>` method performs
+      an insert with the specified fields in the document as well
+      as an ``_id`` field with a unique :term:`objectid` value.
+
+      **If** the document contains an ``_id`` field, then the
+      :method:`save() <db.collection.save()>` method performs an
+      ``upsert`` querying the collection on the ``_id`` field:
+      
+      - If a document does not exist with the specified ``_id`` value,
+        the :method:`save() <db.collection.save()>` method performs an
+        insert with the specified fields in the document.
+       
+      - If a document exists with the specified ``_id`` value, the
+        :method:`save() <db.collection.save()>` method performs an
+        update, replacing all field in the existing record with the
+        fields from the document.
+
+   Consider the following examples of the :method:`save()
+   <db.collection.save()>` method:
+
+   - Pass to the :method:`save() <db.collection.save()>` method a
+     document without the ``_id`` field to insert the document into the
+     collection and have MongoDB generate the unique ``_id`` as in the
+     following:
+
+     .. code-block:: javascript
+
+        db.products.save( { item: "book", qty: 40 } )
+
+     The query will insert into the ``products`` collection a new
+     document with the field ``item`` set to ``book``, the field
+     ``qty`` set to ``40`` and the field ``_id`` set to a unique
+     ``objectid``:
+     
+     .. code-block:: javascript
+     
+        { "_id" : ObjectId("50691737d386d8fadbd6b01d"), "item" : "book", "qty" : 40 }
+
+   - Pass to the :method:`save() <db.collection.save()>` method a
+     document with the ``_id`` field whose value is not in the
+     collection to insert the document with the specified ``_id`` value
+     into the collection, as in the following:
+
+     .. code-block:: javascript
+
+        db.products.save( { _id: 100, item: "water", qty: 30 } )
+
+     The query will insert into the ``products`` collection a new
+     document with the field ``_id`` set to ``100``, the field ``item``
+     set to ``water``, and the field ``qty`` set to ``30`` :
+     
+     .. code-block:: javascript
+     
+        { "_id" : 100, "item" : "water", "qty" : 30 }
+  
+   - Pass to the :method:`save() <db.collection.save()>` method a
+     document with the ``_id`` field matching a value in the
+     ``collection`` to replace all fields and values of the matching
+     document with the new fields and values, as in the following:
+
+     .. code-block:: javascript
+
+        db.products.save( { _id:100, item:"juice" } )
+
+     The query will replace the existing document that has the ``_id``
+     value of ``100``. The updated document will only contain the
+     fields in the new document:
+     
+     .. code-block:: javascript
+     
+        { "_id" : 100, "item" : "juice" }
+ 
