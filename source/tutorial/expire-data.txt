@@ -18,8 +18,8 @@ Background
 ----------
 
 Collections expire by way of a special index that keeps track of
-insertion time in conjunction with a background :program:`mongod`
-process that regularly removes expired :term:`documents <document>`
+insertion time in conjunction with a background thread in :program:`mongod`
+that regularly removes expired :term:`documents <document>`
 from the collection. You can use this feature to expire data from
 :term:`replica sets <replica set>` and :term:`shard clusters
 <shard cluster>`.
@@ -40,22 +40,22 @@ Consider the following limitations:
 - the indexed field must be a date :term:`BSON type <BSON types>`. If
   the field does not have a date type, the data will not expire.
 
-- you *cannot* create this index on the ``_id`` field, or a field that
+- you cannot create this index on the ``_id`` field, or a field that
   already has an index.
 
-- the TTL index may not have multiple fields.
+- the TTL index may not be compound (may not have multiple fields).
 
 - if the field holds an array, and there are multiple date-typed
   data in the index, the document will expire when the *lowest*
   (i.e. earliest) matches the expiration threshold.
 
-- you *cannot* use a TTL index on a capped collection, because MongoDB
+- you cannot use a TTL index on a capped collection, because MongoDB
   cannot remove documents from a capped collection.
 
 .. include:: /includes/note-ttl-collection-background-timing.rst
 
-Create Collections with a TTL
------------------------------
+Enabling a TTL for a Collection
+-------------------------------
 
 To set a TTL on the collection "``log.events``" for one hour use the
 following command at the :program:`mongo` shell:
@@ -64,5 +64,13 @@ following command at the :program:`mongo` shell:
 
    db.log.events.ensureIndex( { "status": 1 }, { expireAfterSeconds: 3600 } )
 
-MongoDB will automatically delete documents from this collection after
-storing it for an hour, *if* ``status`` holds date-type information.
+In this example we assume ``status`` holds date/time information.  If in a document in 
+this collection
+the status field is set and is over an hour old, 
+MongoDB will automatically delete the document.
+
+Replication
+-----------
+
+The TTL background thread runs on replica set primaries.  Any deletions performed by the thread 
+will replicate to the other members of the set.
