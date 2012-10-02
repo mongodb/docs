@@ -95,8 +95,8 @@ class MongoDBObject(ObjectDescription):
             #         line=self.lineno)
             objects[fullname] = self.env.docname, self.objtype
         # elif self.objtype == "binary":
-        #     signode['names'].append(fullname + "-bin")
-        #     signode['ids'].append(fullname.replace('$', '_S_') +"-bin")
+        #     signode['names'].append(fullname)
+        #     signode['ids'].append(fullname.replace('$', '_S_'))
         #     signode['first'] = not self.names
         #     self.state.document.note_explicit_target(signode)
 
@@ -132,6 +132,8 @@ class MongoDBObject(ObjectDescription):
             return _('%s (read preference mode)') % (name)
         elif self.objtype == 'error':
             return _('%s (error code)') % (name)
+        elif self.objtype == 'macro':
+            return _('%s (JavaScript shell macro)') % (name)
         return ''
 
     def run(self):
@@ -156,6 +158,9 @@ class MongoDBObject(ObjectDescription):
         GroupedField('errors', label=l_('Throws'), rolename='err',
                      names=('throws', ),
                      can_collapse=True),
+        GroupedField('exception', label=l_('Exception'), rolename='err',
+                     names=('exception', ),
+                     can_collapse=True),
         Field('returnvalue', label=l_('Returns'), has_arg=False,
               names=('returns', 'return')),
         Field('returntype', label=l_('Return type'), has_arg=False,
@@ -165,13 +170,6 @@ class MongoDBObject(ObjectDescription):
 class MongoDBCallable(MongoDBObject):
     """Description of a MongoDB function, method or constructor."""
     has_arguments = False
-
-class MongoDBCallableComplex(MongoDBObject):
-    """Description of a MongoDB function, method or constructor."""
-    has_arguments = True
-
-class MongoDBCallableProgram(MongoDBObject):
-    pass
 
 class MongoDBXRefRole(XRefRole):
     def process_link(self, env, refnode, has_explicit_title, title, target):
@@ -211,6 +209,7 @@ class MongoDBDomain(Domain):
         'expression':   ObjType(l_('expression'),  'expression'),
         'collflag':     ObjType(l_('collflag'),    'collflag'),
         'error':        ObjType(l_('error'),       'error'),
+        'macro':        ObjType(l_('macro'),       'macro'),
     }
 
     directives = {
@@ -222,13 +221,14 @@ class MongoDBDomain(Domain):
         'status':        MongoDBCallable,
         'stats':         MongoDBCallable,
         'readmode':      MongoDBCallable,
-        'method':        MongoDBCallableComplex,
+        'method':        MongoDBCallable,
         'data':          MongoDBCallable,
         'aggregator':    MongoDBCallable,
         'group':         MongoDBCallable,
         'expression':    MongoDBCallable,
         'collflag':      MongoDBCallable,
         'error':         MongoDBCallable,
+        'macro':         MongoDBCallable,
     }
     roles = {
         'dbcommand':   MongoDBXRefRole(),
@@ -245,6 +245,8 @@ class MongoDBDomain(Domain):
         'group':       MongoDBXRefRole(),
         'expression':  MongoDBXRefRole(),
         'collflag':    MongoDBXRefRole(),
+        'error':       MongoDBXRefRole(),
+        'macro':       MongoDBXRefRole(),
     }
     initial_data = {
         'objects': {}, # fullname -> docname, objtype

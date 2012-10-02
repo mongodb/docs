@@ -63,18 +63,17 @@ All client operations against a shard cluster go through :program:`mongos`
 instances. The :program:`mongos` instance routes queries and operations
 to the appropriate shards and interacts with the config server instances.
 
-:program:`mongos` instances are lightweight, and a shard cluster typically 
+:program:`mongos` instances are lightweight, and a shard cluster typically
 has several instances. For example, you run one :program:`mongos`
-instance on each of your application servers, or you might run a mongos instance 
-on each of the servers running a mongod process.
+instance on each of your application servers, or you might run a :program:`mongos` instance
+on each of the servers running a :program:`mongod` process.
 
-You must specify the names (locations) of the config servers on the mongos command line.
-Use DNS names for the config servers rather than explicit IP addresses for operational 
-flexibility; in part this is a best practice as you cannot change the config server names 
-without a full cluster reboot (including mongod processes).
+You must the specify resolvable hostnames [#names]_ for the *3* config servers
+when starting the :program:`mongos` instance, either in the
+configuration file, or as command line parameters.
 
-The :program:`mongos` instance runs on the TCP port ``27017``.  MongoDB clients by default 
-connect to this port number.
+The :program:`mongos` instance runs on the default MongoDB TCP port:
+``27017``.
 
 Use the following command at a system prompt to start a
 :program:`mongos` instance:
@@ -89,35 +88,49 @@ The above example assumes that you have config instances running on the followin
 - ``config1.mongodb.example.net``
 - ``config2.mongodb.example.net``
 
+.. [#names] Use DNS names for the config servers rather than explicit
+   IP addresses for operational flexibility. You cannot change the
+   config server names, or IP address if you're not using resolvable
+   hostname, without a restarting *ever* :program:`mongos` and
+   :program:`mongod` instance.
+
+
 Add Shards to the Cluster
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In a production shard cluster, each shard is itself a :term:`replica
-set`. You must deploy at least one replica set, that is, at least one shard. 
-Note you can add additional shards later to a live system.  For
-instructions on deploying replica sets, see
-:doc:`/tutorial/deploy-replica-set`.
+set`. You must deploy at least one replica set or one shard to
+begin. You may add additional shards later to a running cluster.  For
+instructions on deploying replica sets, see :doc:`/tutorial/deploy-replica-set`.
 
-In the example below we will add two shards, shard zero and shard one, to the cluster. 
 When you have two active and initiated replica sets, perform the
-following procedure:
+following procedure, which describes the process for adding the first
+two shards to the cluster.
 
 Using the :program:`mongo` shell, connect to a :program:`mongos`. For example,
 if the :program:`mongos` is accessible at
-``mongos0.mongodb.example.net`` on port ``27017`` you would type:
+``mongos0.mongodb.example.net`` on port ``27017`` you would issue the
+following command:
 
 .. code-block:: sh
 
    mongo mongos0.mongodb.example.net
 
-To add each shard to the cluster, Use :method:`sh.addShard()` in the mongo shell. For
-example, here we add two shards.  For the first shard one of the hostnames in its replica set is 
-``sfo-foo30`` and for the second shard one of the hostnames is ``sfo-foo40``.
+For each shard that you want to add to the cluster, call the :method:`sh.addShard()`
+method in the :program:`mongo` shell, as in the following example:
 
 .. code-block:: javascript
 
-   sh.addShard( "s0/sfo-foo30.example.net" )
-   sh.addShard( "s1/sfo-foo40.example.net" )
+   sh.addShard( "s0/sfo30.example.net" )
+   sh.addShard( "s1/sfo40.example.net" )
+
+These operations add two shards, provided by:
+
+- the replica set named ``s0``, that includes the
+  ``sfo30.example.net`` host.
+
+- the replica set name and ``s1``, that includes the
+  ``sfo40.example.net`` host.
 
 .. admonition:: All shards should be replica sets.
 
@@ -125,7 +138,7 @@ example, here we add two shards.  For the first shard one of the hostnames in it
 
    After version 2.0.3, you may use the above form to add replica
    sets to a cluster. The cluster will automatically discover
-   the other members of the replica set and note their names 
+   the other members of the replica set and note their names
    accordingly.
 
    Before version 2.0.3, you must specify the shard in the
@@ -136,9 +149,9 @@ example, here we add two shards.  For the first shard one of the hostnames in it
 
    .. code-block:: javascript
 
-      sh.addShard( "sh0/sfo-foo30.example.net,sfo-foo31.example.net,sfo-foo32.example.net" )
+      sh.addShard( "sh0/sfo30.example.net,sfo31.example.net,sfo32.example.net" )
 
-The :method:`sh.addShard()` helper in the :program:`mongo` shell is a wrapper for 
+The :method:`sh.addShard()` helper in the :program:`mongo` shell is a wrapper for
 the :dbcommand:`addShard` :term:`database command`.
 
 Enable Sharding for Databases
@@ -146,8 +159,8 @@ Enable Sharding for Databases
 
 While sharding operates on a per-collection basis, you must enable
 sharding for each database that holds a database that you would like
-to shard.  Databases are logical constructs somewhat analogous to a "schema" in some 
-products. A single cluster can have many databases, with each database housing collections.
+to shard. A single cluster can have many databases, with each database
+housing collections.
 
 Use the following operation in a :program:`mongo` shell session
 connected to a :program:`mongos` instance in your cluster:
@@ -159,7 +172,7 @@ connected to a :program:`mongos` instance in your cluster:
 Where ``records`` is the name of the database that holds the collection
 you want to shard. :method:`sh.enableSharding()` is a wrapper
 around the :dbcommand:`enableSharding` :term:`database command`. You
-can enable sharding for multiple databases stored in the cluster.
+can enable sharding for multiple databases in the cluster.
 
 Enable Sharding for Collections
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -179,15 +192,13 @@ The helper provides a wrapper around the :dbcommand:`shardCollection`
 
 .. code-block:: javascript
 
-   sh.shardCollection("[database].[collection]", shard-key-pattern)
+   sh.shardCollection("<database>.<collection>", shard-key-pattern)
 
-Replace the ``[database].[collection]`` string with the full namespace
+Replace the ``<database>.<collection>`` string with the full namespace
 of your database, which consists of the name of your database, a dot
 (e.g. ``.``), and the full name of the collection. The ``shard-key-pattern``
 represents your shard key, which you specify in the same form as you
-would an :dbcommand:`index <ensureIndex>` key pattern. If you do not specify the
-``key`` argument, MongoDB will use the ``_id`` field as the shard
-key.
+would an :method:`index <db.collection.ensureIndex()>` key pattern.
 
 Consider the following example invocations of
 :method:`sh.shardCollection()`:
