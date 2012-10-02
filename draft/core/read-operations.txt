@@ -4,12 +4,9 @@ Read Operations
 
 .. default-domain:: mongodb
 
-Read operations determine how MongoDB returns collection data when you issue a query.
-
-This document describes how MongoDB performs read operations and how
-different factors affect the efficiency of reads.
-
-.. TODO for information about queries, see ???.
+Read operations determine how MongoDB returns collection data when you
+issue a query. This document describes how MongoDB performs read
+operations and how different factors affect the efficiency of reads.
 
 .. index:: read operation; query
 .. index:: query; read operations
@@ -18,9 +15,7 @@ different factors affect the efficiency of reads.
 Query Operations
 ----------------
 
-Queries retrieve data from your database collections. How a query
-retrieves data is dependent on MongoDB read operations and on the
-indexes you have created.
+Queries are the primary read operations in MongoDB.
 
 .. _read-operations-query-syntax:
 
@@ -29,7 +24,7 @@ Query Syntax
 
 For a list of query operators, see :doc:`/reference/operators`.
 
-.. TODO see the yet-to-be created query operations doc
+.. TODO link to the yet-to-be created query operations doc
 
 .. _read-operations-indexing:
 
@@ -78,8 +73,8 @@ documents that match the query criteria also match the entire query.
 
    - The :doc:`/indexes` documentation, in particular :doc:`/applications/indexes`
    - :doc:`/reference/operators`
-   - :method:`find <db.collection.find()>`
-   - :method:`findOne`
+   - :method:`find() <db.collection.find()>`
+   - :method:`findOne() <findOne>`
 
 .. index:: query optimizer
 .. _read-operations-query-optimization:
@@ -138,8 +133,8 @@ For details on the output, see :method:`explain() <cursor.explain()>`.
 .. note::
 
    If you run :method:`explain() <cursor.explain()>` without including
-   :method:`hint() <cursor.hint()>`, the query optimizer re-evaluates
-   the query and run against multiple indexes before returning the query
+   :method:`hint() <cursor.hint()>` the query optimizer re-evaluates
+   the query and runs against multiple indexes before returning the query
    statistics.
 
 Because your collections will likely change over time, the query
@@ -148,17 +143,15 @@ of the following occur:
 
 - The number of writes to the collection reaches 1,000.
 
-- You run the :dbcommand:`reIndex` command on the index.
+- You run the :dbcommand:`reIndex() <reIndex>` command on the index.
 
 - You restart :program:`mongod`.
 
-When you re-evaluate a query, the optimizer displays the same results
-(assuming no data has changed) but might display the results in a
-different order. Similarly, the :method:`explain() <cursor.explain()>`
-method and :method:`hint() <cursor.hint()>` methods might display
-different statistics. This is because the optimizer retrieves the
-results from several indexes at once during re-evaluation, and the order
-in which results appear depends on the order of the indexes within the
+When you re-evaluate a query, the optimizer displays the same results if
+no data has changed, but the the results might appear in a different
+order. This is because the optimizer retrieves the results from several
+indexes at once during re-evaluation, and the order in which results
+appear depends on the order in which indexes are arranged in the
 parallel query operation.
 
 .. _read-operations-projection:
@@ -171,7 +164,11 @@ documents. If you run a query *without* a projection, the query returns
 all fields and values for matching documents. By narrowing the fields to
 display, projections can minimize network and deserialization costs.
 
-You specify a projection in the second document in a query.
+You specify a projection in the second document in a query:
+
+.. code-block:: javascript
+
+   db.foo.find( { <search values> } , { <projection> } )
 
 .. example::
 
@@ -184,17 +181,33 @@ You specify a projection in the second document in a query.
       { "_id" : 102 , x : 2 , y : 17 , z : 22 }
       { "_id" : 103 , x : 3 , y : 18 , z : 23 }
 
-   You can search for all documents where ``x`` is ``2`` but, instead of
-   returning all fields, you could choose to return only the ``z`` field
-   (and the ``_id`` field, which is always returned by default). You
-   would issue this query:
+   To search for all documents where ``x`` is ``2`` but return only the
+   ``z`` field, issue this query:
 
    .. code-block:: javascript
 
       db.foo.find( { x : 2 } , { z : 1 } )
 
-   By specifying ``{ z : 1 }``, you tell MongoDB to return the ``z``
-   field.
+   The query returns this result set:
+
+   .. code-block:: javascript
+
+      { "_id" : 101, "z" : 21 }
+      { "_id" : 102, "z" : 22 }
+
+   By default, the results include the ``_id`` field. To return ``z``
+   *without* returning ``_id``, include ``_id : 0`` in the projection:
+
+   .. code-block:: javascript
+
+      db.foo.find( { x : 2 } , { z : 1 , _id : 0 } )
+
+   The query returns this result set:
+
+   .. code-block:: javascript
+
+      { "z" : 21 }
+      { "z" : 22 }
 
 MongoDB also provides the following projection operators specific to
 arrays. For documentation on each operator, click the operator name:
@@ -208,13 +221,30 @@ arrays. For documentation on each operator, click the operator name:
 Aggregation
 ~~~~~~~~~~~
 
-.. Probably short, but there's no docs for old-style aggregation so.
+When you run a query using aggregation, MongoDB performs summary,
+grouping, or other operations on data before returning results. When you
+run a query without aggregation, you retrieve data as it's stored in the
+database; when you run with aggregation, you retrieve reframed data.
 
-.. - basic aggregation (count, distinct)
-.. - legacy agg: group
-.. - big things: mapreduce, aggregation
+Beginning with MongoDB version 2.1, the primary way to perform
+aggregation is through the aggregation framework, which processes data
+through pipelines and returns data as a document stream specific to the
+aggregation process.
 
-.. seealso:: :doc:`/applications/aggregation`
+For more information on the aggregation framework, including
+descriptions of operators, see see :doc:`/applications/aggregation`.
+
+In addition to the operators used by the aggregation framework, you can
+use the following aggregation operators. For documentation on each
+operator, click the operator name:
+
+- :method:`count() <cursor.count()>`
+
+- :dbcommand:`distinct() <distinct>`
+
+- :method:`group()`
+
+- :dbcommand:`mapReduce() <mapreduce>` (See also :wiki:`MapReduce`.)
 
 .. index:: read operation; architecture
 .. _read-operations-architecture:
@@ -246,9 +276,31 @@ Architecture
 Connection Pooling
 ~~~~~~~~~~~~~~~~~~
 
+.. TODO
+
 Shard Clusters
 ~~~~~~~~~~~~~~
+
+.. TODO
 
 Replica Sets
 ~~~~~~~~~~~~
 
+:term:`Replica sets <replica set>` use :term:`read preferences <read
+preference>` to determine where and how to route read operations. By
+default, MongoDB always reads data from a repilca set's :term:`primary`.
+You can modify that behavior by changing the :ref:`read preference mode
+<replica-set-read-preference-modes>`.
+
+For example, you can set the :ref:`read preference mode
+<replica-set-read-preference-modes>` to allow reads from
+:term:`secondaries <secondary>` when backing up data, or to block reads
+entirely during a :ref:`failover <replica-set-failover>`.
+
+If your database traffic is comprised mostly of read operations, then
+using read preferences to distribute reads can improve read throughput.
+The trade-off is that some reads might return stale data, as
+secondaries always have some amount of lag.
+
+For more information on choosing read preference modes, see
+:ref:`replica-set-read-preference-modes`.
