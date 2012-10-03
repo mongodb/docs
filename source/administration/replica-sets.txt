@@ -385,7 +385,7 @@ Removing Members
 ~~~~~~~~~~~~~~~~
 
 You may remove a member of a replica at any time. Use the
-:method:`rs.remove()` function in the :program:`mongo` shell while
+:method:`rs.remove()` method in the :program:`mongo` shell while
 connected to the current :term:`primary`. Issue the
 :method:`db.isMaster()` command when connected to *any* member of the
 set to determine the current primary. Use a command in either
@@ -561,38 +561,65 @@ OpenSSL package to generate "random" content for use in a key file:
 
    Key file permissions are not checked on Windows systems.
 
-Troubleshooting
----------------
+Troubleshooting Replica Sets
+----------------------------
 
-This section defines reasonable troubleshooting processes for common
-operational challenges. While there is no single causes or guaranteed
-response strategies for any of these symptoms, the following sections
-provide good places to start a troubleshooting investigation with
+This section describes common strategies for troubleshooting
 :term:`replica sets <replica set>`.
 
 .. seealso:: :doc:`/administration/monitoring`.
 
+.. _replica-set-troubleshooting-check-replication-status:
+
+Check Replica Set Status
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To display the current state of the replica set and current state of
+each member, run the :method:`rs.status()` method in a :program:`mongo`
+shell connected to the replica set's :term:`primary`. For descriptions
+of the information displayed by :method:`rs.status()`, see
+:doc:`/reference/replica-status`.
+
+.. note:: The :method:`rs.status()` method is a wrapper that runs the
+   :dbcommand:`replSetGetStatus` database command.
+
 .. _replica-set-replication-lag:
 
-Replication Lag
-~~~~~~~~~~~~~~~
+Check the Replication Lag
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Replication lag is a delay between an operation on the :term:`primary`
 and the application of that operation from the :term:`oplog` to the
-:term:`secondary`. Such lag can be a significant issue and can
+:term:`secondary`. Replication lag can be a significant issue and can
 seriously affect MongoDB :term:`replica set` deployments. Excessive
 replication lag makes "lagged" members ineligible to quickly become
 primary and increases the possibility that distributed
 read operations will be inconsistent.
 
-Identify replication lag by checking the value of
-:data:`members[n].optimeDate` for each member of the replica set
-using the :method:`rs.status()` function in the :program:`mongo`
-shell.
+To check the current length of replication lag:
 
-Also, you can monitor how fast replication occurs by watching the oplog
-time in the "replica" graph in the `MongoDB Monitoring Service`_. Also
-see the `documentation for MMS`_.
+- In a :program:`mongo` shell connected to the primary, call the
+  :method:`db.printSlaveReplicationInfo()` method.
+
+  The outputted document displays the ``syncedTo`` value for each member,
+  which shows you when each member last read from the oplog, as shown in the following
+  example:
+
+  .. code-block:: javascript
+
+     source:   m1.example.net:30001
+         syncedTo: Tue Oct 02 2012 11:33:40 GMT-0400 (EDT)
+             = 7475 secs ago (2.08hrs)
+     source:   m2.example.net:30002
+         syncedTo: Tue Oct 02 2012 11:33:40 GMT-0400 (EDT)
+             = 7475 secs ago (2.08hrs)
+
+  .. note:: The :method:`rs.status()` method is a wrapper that runs the
+     :dbcommand:`replSetGetStatus` database command.
+
+- Monitor the rate of replication by watching the oplog time in the
+  "replica" graph in the `MongoDB Monitoring Service`_. For more
+  information see the `documentation for MMS`_.
 
 .. _`MongoDB Monitoring Service`: http://mms.10gen.com/
 .. _`documentation for MMS`: http://mms.10gen.com/help/
@@ -635,9 +662,9 @@ Possible causes of replication lag include:
 
   If you are performing a large data ingestion or bulk load operation
   that requires a large number of writes to the primary, the
-  secondaries will not be able to read the :term:`oplog` fast enough to keep
-  up with changes. Setting some level :ref:`write concern <write-concern>`, can
-  slow the overall progress of the batch, but will prevent the
+  secondaries will not be able to read the oplog fast enough to keep
+  up with changes. Setting some level of write concern can
+  slow the overall progress of the batch but will prevent the
   secondary from falling too far behind.
 
   To prevent this, use write concern so that MongoDB will perform
@@ -653,8 +680,94 @@ Possible causes of replication lag include:
   - :ref:`replica-set-write-concern`.
   - The :ref:`replica-set-oplog-sizing` topic in the :doc:`/core/replication` document.
   - The :ref:`replica-set-oplog` topic in the :doc:`/core/replication-internals` document.
-  - The :ref:`replica-set-procedure-change-oplog-size` topic this document.
+  - The :ref:`replica-set-procedure-change-oplog-size` topic in this document.
   - The :doc:`/tutorial/change-oplog-size` tutorial.
+
+.. _replica-set-troubleshooting-check-oplog-size:
+
+Check the Size of the Oplog
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :term:`oplog` size can be the difference between a :term:`secondary`
+staying up-to-date or becoming stale.
+
+To check the size of the oplog for a given :term:`replica set` member,
+connect to the member in a :program:`mongo` shell and run the
+:method:`db.printReplicationInfo()` method.
+
+The output displays the size of the oplog and the date ranges of the
+operations contained in the oplog. In the following example, the oplog
+is about 10MB and is able to fit about 26 hours (94400 seconds) of
+operations:
+
+.. code-block:: javascript
+
+   configured oplog size:   10.10546875MB
+   log length start to end: 94400 (26.22hrs)
+   oplog first event time:  Mon Mar 19 2012 13:50:38 GMT-0400 (EDT)
+   oplog last event time:   Wed Oct 03 2012 14:59:10 GMT-0400 (EDT)
+   now:                     Wed Oct 03 2012 15:00:21 GMT-0400 (EDT)
+
+The oplog should be long enough to hold all transactions for the longest
+downtime you expect on a secondary. In many cases, an oplog should fit
+at minimum 24 hours of operations. A size of 72 hours is often
+preferred. And it is not uncommon for an oplog to fit a week's worth of
+operations.
+
+For more information on how oplog size affects operations, see:
+
+- The :ref:`replica-set-oplog-sizing` topic in the :doc:`/core/replication` document.
+- The :ref:`replica-set-delayed-members` topic in this document.
+- The :ref:`replica-set-replication-lag` topic in this document.
+
+.. note:: You normally want the oplog to be the same size on all
+   members. If you resize the oplog, resize it on all members.
+
+To change oplog size, see :ref:`replica-set-procedure-change-oplog-size`
+in this document or see the :doc:`/tutorial/change-oplog-size` tutorial.
+
+.. _replica-set-troubleshooting-check-connection:
+
+Test the Connection Between Each Member
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There must be connectivity from every :term:`replica set` member to
+every other member in order for replication to work. Problems with
+network or firewall rules can prevent this connectivity and prevent
+replication from working. To test the connection from every member to
+every other member, in both directions, consider the following example:
+
+.. example:: Given a replica set with three members running on three separate
+   hosts:
+
+   - ``m1.example.net``
+   - ``m2.example.net``
+   - ``m3.example.net``
+
+   1. Test the connection from ``m1.example.net`` to the other hosts by running
+      the following operations from ``m1.example.net``:
+
+      .. code-block:: sh
+
+         mongo --host m2.example.net --port 27017"
+
+         mongo --host m3.example.net --port 27017"
+
+   #. Test the connection from ``m2.example.net`` to the other two
+      hosts by running similar appropriate operations from ``m2.example.net``.
+
+      This means you have now tested the connection between
+      ``m2.example.net`` and ``m1.example.net`` twice, but each time
+      from a different direction. This is important to verifying
+      connectivity. Network topologies and firewalls might allow a
+      connection in one direction but not the other. Therefore you must
+      make sure to verify that the connection works in both directions.
+
+   #. Test the connection from ``m3.example.net`` to the other two
+      hosts by running the operations from ``m3.example.net``.
+
+   If a connection in any direction fails, there's a networking or
+   firewall issue that needs to be diagnosed separately.
 
 .. index:: pair: replica set; failover
 .. _replica-set-failover-administration:
@@ -663,7 +776,8 @@ Possible causes of replication lag include:
 Failover and Recovery
 ~~~~~~~~~~~~~~~~~~~~~
 
-.. todo:: Revisit whether this belongs in troubleshooting. Perhaps this should be an H2 before troubleshooting.
+.. TODO Revisit whether this belongs in troubleshooting. Perhaps this
+   should be an H2 before troubleshooting.
 
 Replica sets feature automated failover. If the :term:`primary`
 goes offline or becomes unresponsive and a majority of the original
