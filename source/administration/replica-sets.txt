@@ -249,13 +249,13 @@ participate in :ref:`elections <replica-set-elections>`.
 .. note::
 
    Because of their minimal system requirements, you may safely deploy an
-   arbiter on a system with another workload such as an application
+   arbiter on a system with another workload, such as an application
    server or monitoring member.
 
 .. warning::
 
    Do not run arbiter processes on a system that is an active
-   :term:`primary` or :term:`secondary` of its replica set.
+   :term:`primary` or :term:`secondary` of its :term:`replica set`.
 
 Arbiters never receive the contents of any collection but do have the
 following interactions with the rest of the replica set:
@@ -264,34 +264,62 @@ following interactions with the rest of the replica set:
   the replica set. All MongoDB processes within a replica set use
   keyfiles. These exchanges are encrypted.
 
-- The *only* cryptographically secure exchange is
-  authentication. Replica set configuration data and voting are not
-  encrypted.
+  The *only* cryptographically secure exchange is authentication.
+
+- Exchanges of replica set configuration data and of votes. These are
+  not encrypted.
 
 If your MongoDB deployment uses SSL, then all communications between
 arbiters and the other members of the replica set are secure. See the
-documentation for :doc:`/administration/ssl` for more information. Run
-all arbiters on secure networks, as with all MongoDB components.
+documentation for :doc:`/administration/ssl` for more information.
+As with all MongoDB components, run arbiters on secure networks.
 
-To start an arbiter, use the following command:
+Because arbiters do not hold a copy of the data, they have minimal
+resource requirements and do not require dedicated hardware.
 
-.. code-block:: sh
+To prevent tied :term:`elections <election>`, do not add an arbiter to a
+set if the set already has an odd number of voting members.
 
-   mongod --replSet [setname]
+Add an Arbiter
+``````````````
 
-Replace ``[setname]`` with the name of the :term:`replica set` that the
-arbiter will join. Then in the :program:`mongo` shell, while connected
-to the *current* :term:`primary`, issue the following command:
+1. Create a data directory for the arbiter. The directory is used for
+   configuration information. It *will not* hold database collection data.
+   The following example creates the ``/data/arb`` data directory:
 
-.. code-block:: javascript
+   .. code-block:: sh
 
-   rs.addArb("[hostname]:[port]")
+      mkdir /data/arb
 
-Replace the ``[hostname]:[port]`` string with the arbiter's
-hostname and the port.
+#. Start the arbiter, making sure to specify the replica set and the
+   data directory. Consider the following example:
 
-.. seealso:: :setting:`replSet`, :option:`--replSet <mongod --replSet>`,
-   and :method:`rs.addArb()`.
+   .. code-block:: sh
+
+      mongod --port 30000 --dbpath /data/arb --replSet rs
+
+#. In a :program:`mongo` shell connected to the :term:`primary`, add the
+   arbiter to the replica set by issuing a command that uses the
+   following syntax:
+
+   .. code-block:: javascript
+
+      rs.addArb("<hostname>:<port>")
+
+   For example, if the arbiter runs on example.net:30000, you would
+   issue this command:
+
+   .. code-block:: javascript
+
+      rs.addArb("example.net:30000")
+
+.. seealso::
+
+   - :setting:`replSet`
+
+   - :option:`--replSet <mongod --replSet>`
+
+   - :method:`rs.addArb()`
 
 .. index:: replica set members; non-voting
 .. _replica-set-non-voting-members:
@@ -512,8 +540,8 @@ the oplog. For a detailed procedure, see
 
 .. _replica-set-security:
 
-Security
---------
+Replica Set Security
+--------------------
 
 In most cases, the most effective ways to control access and to secure
 the connection between members of a :term:`replica set` depend on
