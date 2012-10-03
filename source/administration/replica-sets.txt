@@ -581,7 +581,7 @@ of the information displayed by :method:`rs.status()`, see
 :doc:`/reference/replica-status`.
 
 .. note:: The :method:`rs.status()` method is a wrapper that runs the
-   :doc:`/reference/command/replSetGetStatus` database command.
+   :dbcommand:`replSetGetStatus` database command.
 
 .. _replica-set-replication-lag:
 
@@ -596,14 +596,13 @@ replication lag makes "lagged" members ineligible to quickly become
 primary and increases the possibility that distributed
 read operations will be inconsistent.
 
-To check the current duration of replication lag, do one of the following:
+To check the current length of replication lag:
 
-- Run the :doc:`db.printSlaveReplicationInfo()
-  </reference/method/db.printSlaveReplicationInfo>` method in a
-  :program:`mongo` shell connected to the replica set's primary.
+- In a :program:`mongo` shell connected to the primary, call the
+  :method:`db.printSlaveReplicationInfo()` method.
 
-  The output displays each member's ``syncedTo`` value, which is the
-  last time the member read from the oplog, as shown in the following
+  The outputted document displays the ``syncedTo`` value for each member,
+  which shows you when each member last read from the oplog, as shown in the following
   example:
 
   .. code-block:: javascript
@@ -616,21 +615,16 @@ To check the current duration of replication lag, do one of the following:
              = 7475 secs ago (2.08hrs)
 
   .. note:: The :method:`rs.status()` method is a wrapper that runs the
-     :doc:`/reference/command/replSetGetStatus` database command.
+     :dbcommand:`replSetGetStatus` database command.
 
-- Run the :method:`rs.status()` method in a :program:`mongo` shell
-  connected to the replica set's primary. The output displays each
-  member's `optimeDate` value, which is the last time the member read
-  from the oplog.
-
-- Monitor how fast replication occurs by watching the oplog time in the
+- Monitor the rate of replication by watching the oplog time in the
   "replica" graph in the `MongoDB Monitoring Service`_. For more
   information see the `documentation for MMS`_.
 
 .. _`MongoDB Monitoring Service`: http://mms.10gen.com/
 .. _`documentation for MMS`: http://mms.10gen.com/help/
 
-If replication lag is too large, check the following:
+Possible causes of replication lag include:
 
 - **Network Latency**
 
@@ -699,30 +693,35 @@ staying up-to-date or becoming stale.
 
 To check the size of the oplog for a given :term:`replica set` member,
 connect to the member in a :program:`mongo` shell and run the
-:doc:`db.printReplicationInfo()
-</reference/method/db.printReplicationInfo>` method.
+:method:`db.printReplicationInfo()` method.
 
-The method displays the size of the oplog and the date ranges of the
+The output displays the size of the oplog and the date ranges of the
 operations contained in the oplog. In the following example, the oplog
-is about 10MB and is able to fit only about 20 minutes (1200 seconds) of
+is about 10MB and is able to fit about 26 hours (94400 seconds) of
 operations:
 
 .. code-block:: javascript
 
    configured oplog size:   10.10546875MB
-   log length start to end: 1200secs (0.33hrs)
+   log length start to end: 94400 (26.22hrs)
    oplog first event time:  Mon Mar 19 2012 13:50:38 GMT-0400 (EDT)
-   oplog last event time:   Tue Oct 02 2012 16:31:38 GMT-0400 (EDT)
-   now:                     Tue Oct 02 2012 17:04:20 GMT-0400 (EDT)
+   oplog last event time:   Wed Oct 03 2012 14:59:10 GMT-0400 (EDT)
+   now:                     Wed Oct 03 2012 15:00:21 GMT-0400 (EDT)
 
+The oplog should be long enough to hold all transactions for the longest
+downtime you expect on a secondary. In many cases, an oplog should fit
+at minimum 24 hours of operations. A size of 72 hours is often
+preferred. And it is not uncommon for an oplog to fit a week's worth of
+operations.
 
-The above example is likely a case where you would want to increase the
-size of the oplog. For more information on how oplog size affects
-operations, see:
+For more information on how oplog size affects operations, see:
 
 - The :ref:`replica-set-oplog-sizing` topic in the :doc:`/core/replication` document.
 - The :ref:`replica-set-delayed-members` topic in this document.
 - The :ref:`replica-set-replication-lag` topic in this document.
+
+.. note:: You normally want the oplog to be the same size on all
+   members. If you resize the oplog, resize it on all members.
 
 To change oplog size, see :ref:`replica-set-procedure-change-oplog-size`
 in this document or see the :doc:`/tutorial/change-oplog-size` tutorial.
@@ -745,19 +744,30 @@ every other member, in both directions, consider the following example:
    - ``m2.example.net``
    - ``m3.example.net``
 
-   You can test the connection from ``m1.example.net`` to the other hosts by running
-   the following operations from ``m1.example.net``:
+   1. Test the connection from ``m1.example.net`` to the other hosts by running
+      the following operations from ``m1.example.net``:
 
-   .. code-block:: sh
+      .. code-block:: sh
 
-      mongo --host m2.example.net --port 27017"
+         mongo --host m2.example.net --port 27017"
 
-      mongo --host m3.example.net --port 27017"
+         mongo --host m3.example.net --port 27017"
 
-   Repeat the process on hosts ``m2.example.net`` and ``m3.example.net``.
+   #. Test the connection from ``m2.example.net`` to the other two
+      hosts by running similar appropriate operations from ``m2.example.net``.
 
-   If any of the connections fails, there's a networking or firewall
-   issue that needs to be diagnosed separately
+      This means you have now tested the connection between
+      ``m2.example.net`` and ``m1.example.net`` twice, but each time
+      from a different direction. This is important to verifying
+      connectivity. Network topologies and firewalls might allow a
+      connection in one direction but not the other. Therefore you must
+      make sure to verify that the connection works in both directions.
+
+   #. Test the connection from ``m3.example.net`` to the other two
+      hosts by running the operations from ``m3.example.net``.
+
+   If a connection in any direction fails, there's a networking or
+   firewall issue that needs to be diagnosed separately.
 
 .. index:: pair: replica set; failover
 .. _replica-set-failover-administration:
