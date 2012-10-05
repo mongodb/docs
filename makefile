@@ -35,6 +35,13 @@ endif
 # Sphinx variables.
 SPHINXOPTS = -c ./
 SPHINXBUILD = sphinx-build
+
+ifdef NITPICK
+timestamp := $(shell date +%Y%m%d%H%M)
+SPHINXOPTS += -n
+SPHINXOPTS += -w $(branch-output)/build.$(timestamp).log
+endif
+
 PAPER = letter
 PAPEROPT_a4 = -D latex_paper_size=a4
 PAPEROPT_letter = -D latex_paper_size=letter

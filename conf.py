@@ -97,7 +97,10 @@ extlinks = {
     'hardlink' : ( 'http://docs.mongodb.org/' + current_git_branch + '/%s', '')
     }
 
-intersphinx_mapping = {'pymongo': ('http://api.mongodb.org/python/current/', None)}
+intersphinx_mapping = {
+	'pymongo': ('http://api.mongodb.org/python/current/', None),
+	'python' : ('http://docs.python.org/', None)
+	}
 
 # -- Options for HTML output ---------------------------------------------------
 
