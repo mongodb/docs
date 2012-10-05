@@ -109,7 +109,10 @@ This procedure assumes this configuration:
 
    .. code-block:: javascript
 
-      db.adminCommand({replSetFreeze:0})
+      rs.freeze()
+
+   The :method:`rs.freeze()` provides a wrapper around the
+   :dbcommand:`replSetFreeze` database command. 
 
 .. _replica-set-force-member-to-be-primary-via-dbcommands:
 
@@ -118,30 +121,40 @@ Force a Member to be Primary Using Database Commands
 
 .. versionchanged:: 1.8
 
-For this procedure, assume you have a :term:`replica set` with members
-``A``, ``B``, and ``C`` where ``A`` is current :term:`primary`. To
-make ``B`` the primary, use the :method:`rs.freeze()` and
-:method:`rs.stepDown()` methods that wrap the
-:dbcommand:`replSetFreeze` and :dbcommand:`replSetStepDown` commands.
+Consider a :term:`replica set` with the following members:
+
+- ``mdb0.example.net`` - the  current :term:`primary`.
+- ``mdb1.example.net`` - a :term:`secondary`.
+- ``mdb2.example.net`` - a secondary . 
+
+To force a member to become primary use the following procedure: 
 
 1. In a :program:`mongo` shell, run :method:`rs.status()` to ensure your replica
    set is running as expected.
 
-#. In a :program:`mongo` shell connected to ``C``, freeze ``C`` so that it does
-   not attempt to become primary for 120 seconds.
+#. In a :program:`mongo` shell connected to the :program:`mongod`
+   instance running on ``mdb2.example.net``, freeze
+   ``mdb2.example.net`` so that it does not attempt to become primary
+   for 120 seconds.
 
    .. code-block:: javascript
 
       rs.freeze(120)
 
-#. In a :program:`mongo` shell connected to ``A``, step down ``A`` so that it is not
-   eligible to become primary for 120 seconds:
+#. In a :program:`mongo` shell connected the :program:`mongod` running
+   on ``mdb0.example.net``, step down this instance that the
+   :program:`mongod` is not eligible to become primary for 120
+   seconds:
 
    .. code-block:: javascript
 
       rs.stepDown(120)
 
-   ``B`` becomes primary.
+   ``mdb1.example.net`` becomes primary.
 
    .. note:: During the transition, there is a short window where
       the set does not have a primary.
+
+For more information, consider the :method:`rs.freeze()` and
+:method:`rs.stepDown()` methods that wrap the
+:dbcommand:`replSetFreeze` and :dbcommand:`replSetStepDown` commands.
