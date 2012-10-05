@@ -407,8 +407,8 @@ directly.
 Replacing a Member
 ~~~~~~~~~~~~~~~~~~
 
-Use this procedure to replace a member of a replica set when the host
-name has changed. This procedure preserves all existing configuration
+Use this procedure to replace a member of a replica set when the hostname
+has changed. This procedure preserves all existing configuration
 for a member, except its hostname/location.
 
 You may need to replace a replica set member if you want to replace an
@@ -937,3 +937,32 @@ use an update operation that resembles the following:
 Modify the timestamp values as needed based on your oplog entry. This
 operation may take some period to complete because the update must
 scan and pull the entire oplog into memory.
+
+Duplicate Key Error on local.slaves
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The *duplicate key on local.slaves* error, shown below, occurs when a
+:term:`secondary` or :term:`slave` changes its hostname and the
+:term:`primary` or :term:`master` tries to update its ``local.slaves``
+collection with the new name. The update fails because it contains the
+same `_id` value as the document containing the previous hostname.
+
+.. example::
+
+   .. code-block:: javascript
+
+      exception 11000 E11000 duplicate key error index: local.slaves.$_id_  dup key: { : ObjectId('<object ID>') } 0ms 
+
+This is a benign error and does not affect replication operations on
+the :term:`secondary` or :term:`slave`.
+
+To stop the error from appearing, drop the ``local.slaves`` collection
+from the :term:`primary` or :term:`master`, as shown here:
+
+.. code-block:: javascript
+
+   db.slaves.drop()
+
+The next time a :term:`secondary` or :term:`slave` polls the
+:term:`primary` or :term:`master`, the :term:`primary` or :term:`master`
+recreates the ``local.slaves`` collection.
