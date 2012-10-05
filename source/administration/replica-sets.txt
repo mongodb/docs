@@ -398,8 +398,8 @@ directly.
 Replacing a Member
 ~~~~~~~~~~~~~~~~~~
 
-Use this procedure to replace a member of a replica set when the host
-name has changed. This procedure preserves all existing configuration
+Use this procedure to replace a member of a replica set when the hostname
+has changed. This procedure preserves all existing configuration
 for a member, except its hostname/location.
 
 You may need to replace a replica set member if you want to replace an
@@ -928,3 +928,44 @@ use an update operation that resembles the following:
 Modify the timestamp values as needed based on your oplog entry. This
 operation may take some period to complete because the update must
 scan and pull the entire oplog into memory.
+
+Duplicate Key Error on local.slaves
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The duplicate key error on local.slaves, shown below, occurs when a
+connected host changes its hostname. This is a benign error and does not
+affect operations.
+
+.. example::
+
+   .. code-block:: javascript
+
+      exception 11000 E11000 duplicate key error index: local.slaves.$_id_  dup key: { : ObjectId('<object ID>') } 0ms 
+
+The error occurs when a host connected to the current host, either
+through :term:`replication` or through :term:`master`- :term:`slave`
+configuration, changes its hostname. The ``local.slaves`` collection
+creates a new document with the new hostname but also keeps the old
+document with the old hostname. The local.slaves`` collection now has
+two documents with the same ``_id`` field.
+
+.. example:: This example shows a ``local.slaves`` collection where the
+   hostname for ``abc.example.com`` changed to ``xyz.example.com``. Both
+   hostnames still exist in the collection, and both have the same ``_id``.
+
+   .. code-block:: javascript
+
+      PRIMARY> db.slaves.find()
+      { "_id" : "123", "host" : "abc.example.com", "ns" : "local.oplog.rs", "syncedTo" : Timestamp(1338775234001, 1) }
+      { "_id" : "456", "host" : "def.example.com", "ns" : "local.oplog.rs", "syncedTo" : Timestamp(1338775234002, 1) }
+      { "_id" : "123", "host" : "xyz.example.com", "ns" : "local.oplog.rs", "syncedTo" : Timestamp(1349290750000, 1) }
+
+To stop the error from appearing, drop the ``local.slaves`` collection, as
+shown here:
+
+.. code-block:: javascript
+
+   db.slaves.drop()
+
+At the next sync between the hosts, MongoDB re-creates the
+``local.slaves`` collection and records only the current hostnames.
