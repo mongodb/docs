@@ -151,7 +151,7 @@ $(branch-output)/singlehtml:singlehtml
 $(branch-output)/latex/MongoDB.tex:latex
 $(branch-output)/latex/MongoDB.pdf:$(branch-output)/latex/MongoDB-Manual.tex
 $(branch-output)/latex/MongoDB-Manual.tex:$(branch-output)/latex/MongoDB.tex
-	@python bin/copy-if-needed.py $@ $<
+	@python bin/copy-if-needed.py $< $@
 $(public-branch-output)/MongoDB-Manual-$(current-branch).pdf:$(branch-output)/latex/MongoDB-Manual.pdf
 	@cp $< $@
 	@echo [build]: migrated $@

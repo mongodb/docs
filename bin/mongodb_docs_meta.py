@@ -3,7 +3,6 @@
 This module defines a class.
 """
 
-import subprocess
 import re
 import datetime
 
