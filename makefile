@@ -31,6 +31,7 @@ SPHINXOPTS = -c ./
 SPHINXBUILD = sphinx-build
 
 ifdef NITPICK
+timestamp := $(shell date +%Y%m%d%H%M)
 SPHINXOPTS += -n -w $(branch-output)/build.$(timestamp).log
 endif
 
