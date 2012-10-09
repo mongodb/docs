@@ -3,6 +3,9 @@ MAKEFLAGS += -j
 MAKEFLAGS += -r
 MAKEFLAGS += --no-print-directory
 
+# includes
+include bin/makefile.compatibility 
+
 # Build directory tweaking.
 output = build
 public-output = $(output)/public
@@ -15,21 +18,12 @@ manual-branch = master
 current-branch := $(shell git symbolic-ref HEAD 2>/dev/null | cut -d "/" -f "3" )
 last-commit := $(shell git rev-parse --verify HEAD)
 
+timestamp := $(shell date +%Y%m%d%H%M)
+
 ifeq ($(current-branch),$(manual-branch))
 current-if-not-manual = $(manual-branch)
 else
 current-if-not-manual = $(current-branch)
-endif
-
-# Fixing `sed` for OS X
-UNAME := $(shell uname)
-ifeq ($(UNAME), Linux)
-SED_ARGS_FILE = -i -r
-SED_ARGS_REGEX = -r
-endif
-ifeq ($(UNAME), Darwin)
-SED_ARGS_FILE = -i "" -E
-SED_ARGS_REGEX = -E
 endif
 
 # Sphinx variables.
@@ -38,8 +32,7 @@ SPHINXBUILD = sphinx-build
 
 ifdef NITPICK
 timestamp := $(shell date +%Y%m%d%H%M)
-SPHINXOPTS += -n
-SPHINXOPTS += -w $(branch-output)/build.$(timestamp).log
+SPHINXOPTS += -n -w $(branch-output)/build.$(timestamp).log
 endif
 
 PAPER = letter
@@ -299,12 +292,6 @@ epub:
 #
 ######################################################################
 
-ifeq ($(shell test -f /etc/arch-release && echo arch || echo Linux),arch)
-PYTHONBIN = python2
-else
-PYTHONBIN = python
-endif
-
 $(branch-output)/sitemap.xml.gz:$(branch-output)/dirhtml
 
 SITEMAPBUILD = $(PYTHONBIN) bin/sitemap_gen.py
@@ -444,8 +431,7 @@ PDFLATEXCOMMAND = TEXINPUTS=".:$(branch-output)/latex/:" pdflatex --interaction 
 #
 ##########################################################################
 
-ARCHIVE_DATE := $(shell date +%s)
-archive:$(public-output).$(ARCHIVE_DATE).tar.gz
+archive:$(public-output).$(timestamp).tar.gz
 	@echo [archive]: created $< archive.
 $(public-output).$(ARCHIVE_DATE).tar.gz:$(public-output)
 	tar -czvf $@ $<

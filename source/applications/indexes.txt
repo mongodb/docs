@@ -114,8 +114,8 @@ can support all the queries that search a "prefix" subset of those fields.
 Create Indexes that Support Covered Queries
 -------------------------------------------
 
-A covered index query is a query in which all the search keys are found in a
-given index. A covered query is considered to be "covered" by the index.
+A covered index query is a query in which all the queried fields are
+part of an index. They are "covered queries" because an index "covers" the query.
 MongoDB can fulfill the query by using *only* the index. MongoDB need
 not scan documents from the database.
 
@@ -150,10 +150,11 @@ Use Indexes to Sort Query Results
 For the fastest performance when sorting query results by a given field,
 create a sorted index on that field.
 
-To sort query results on multiple fields, create a :ref:`compound index
-<index-type-compound>`. MongoDB sorts results based on the field order
-in the index. Ensure that any index constraints on index fields that are
-before the first sort field are equalities.
+To sort query results on multiple fields, create a :ref:`compound
+index <index-type-compound>`. MongoDB sorts results based on the field
+order in the index. For queries that include a sort that uses a
+compound index, ensure that all fields before the first sorted field
+are equality matches.
 
 .. example::
 
@@ -333,7 +334,7 @@ Consider Performance when Creating Indexes for Write-heavy Applications
 If your application is write-heavy, then be careful when creating new
 indexes, since each additional index with impose a
 write-performance penalty. In general, don't be careless about adding
-indexes. Indexes should be added to complement your queries. Always have
+indexes. Add indexes complement your queries. Always have
 a good reason for adding a new index, and make sure you've benchmarked
 alternative strategies.
 
@@ -344,26 +345,28 @@ Consider Insert Throughput
    Do we want to link to write concern? -bg
 
 MongoDB must update *all* indexes associated with a collection after every
-insert, update, or delete operation. (With updates, if the updated document
-does not move to a new location, then only the modified, indexed fields
-are updated in the index.) Therefore, every index on a
-collection adds some amount of overhead to these operations. In almost
+insert, update, or delete operation. For update operations, if the updated document
+does not move to a new location, then only the modified, MongoDB only needs
+to update  the updated fields in the index.
+Therefore, every index on a
+collection adds some amount of overhead to these write operations. In almost
 every case, the performance gains that indexes realize for read
 operations are worth the insertion penalty. However, in some cases:
 
 - An index to support an infrequent query might incur more
   insert-related costs than saved read-time.
 
-  .. todo:: How do you determine if the above is the case?
+  .. todo:: How do you determine if the above is the case? 
+     Empirically.
 
 - If you have many indexes on a collection with a high insert throughput
-  and a number of very similar indexes, you may find better overall
-  results by using a slightly less effective index on some queries if it
-  means consolidating the total number of indexes.
+  and a number of related indexes, you may find better overall
+  performance with a smaller number of indexes, even if some queries
+  are less optimally supported by an index.
 
   .. todo:: The above is unclear. -bg
 
-- If your indexes and queries are not very :ref:`selective
+- If your indexes and queries are not sufficiently :ref:`selective
   <index-selectivity>`, the speed improvements for query operations
   might not offset the costs of maintaining an index. For more
   information see :ref:`index-selectivity`.

@@ -4,50 +4,99 @@ db.collection.findAndModify()
 
 .. default-domain:: mongodb
 
-.. method:: db.collection.findAndModify()
+.. method:: db.collection.findAndModify
 
-   The :method:`db.collection.findAndModify()` method atomically modifies and
-   returns a single document. Always call :method:`db.collection.findAndModify()`
-   on a collection object, using the following form:
+   The :method:`db.collection.findAndModify()` method atomically
+   modifies and returns a single document. By default, the returned
+   document does not include the modifications made on the update. To
+   return the document with the modifications made on the update, use
+   the ``new`` option.
 
-   .. code-block:: javascript
+   The :method:`db.collection.findAndModify()` method takes a document
+   parameter with the following subdocument fields:
 
-      db.collection.findAndModify();
+   :field document query:
+   
+          Optional. Specifies the selection criteria for the
+          modification. The ``query`` field employs the same
+          :ref:`query selectors <query-selectors>` as used in the
+          :method:`db.collection.find()` method. Although the query may
+          match multiple documents, :method:`findAndModify() <db.collection.findAndModify()>` will
+          only select one document to modify.
+          
+          The ``query`` field has the following syntax:
+          
+          .. code-block:: javascript
+          
+             query: { <query expression> }
+          
+   :field document sort: 
 
-   Replace, ``collection`` with the name of the collection
-   containing the document that you want to modify, and specify
-   options, as a sub-document that specifies the following:
+          Optional. Determines which document the operation will
+          modify if the query selects multiple
+          documents. :dbcommand:`findAndModify() <db.collection.findAndModify()>` will modify the first
+          document in the sort order specified by this argument.
 
-   :field document query: A query object. This statement might
-                          resemble the :term:`document` passed to
-                          :method:`db.collection.find()`, and should return *one*
-                          document from the database.
+          The ``sort`` field has the following syntax:
+          
+          .. code-block:: javascript
+          
+             sort: { field1: value1, field2: value2, ... }
 
-   :field sort: Optional. If the query selects multiple documents, the
-                first document given by this sort clause will be the
-                one modified.
+   :field boolean remove:
 
-   :field remove: Optional. When ``true``, :dbcommand:`findAndModify`
-                  removes the selected document. The default is
-                  ``false``
+          Optional if ``update`` field exists. When ``true``, removes
+          the selected document. The default is ``false``.
+          
+          The ``remove`` field has the following syntax:
+          
+          .. code-block:: javascript
+          
+             remove: <boolean>
 
-   :field update: An :ref:`update operator <update-operators>` to
-                  modify the selected document.
+   :field document update:
 
-   :field new: Optional. When ``true``, returns the modified document
-               rather than the original.  :dbcommand:`findAndModify`
-               ignores the ``new`` option for ``remove``
-               operations. The default is ``false``.
+          Optional if ``remove`` field exists. Performs an update of
+          the selected document. The ``update`` field employs the same
+          :ref:`update operators <update-operators>` or ``field: value``
+          specifications to modify the selected document.
 
-   :field fields: Optional. A subset of fields to return. See
-                  ":ref:`projection operators <projection-operators>`"
-                  for more information.
+          .. code-block:: javascript
 
-   :field upsert: Optional. When ``true``, :dbcommand:`findAndModify`
-                  creates a new document if the specified ``query``
-                  returns no documents. The default is ``false``.
+             update: { <update expression> }
 
-   For example:
+   :field boolean new:
+
+          Optional. When ``true``, returns the modified document rather
+          than the original. The :dbcommand:`findAndModify` method
+          ignores the ``new`` option for ``remove`` operations. The
+          default is ``false``.
+
+          .. code-block:: javascript
+
+             new: <boolean>
+
+   :field document fields: 
+   
+          Optional. A subset of fields to return.
+          
+          .. code-block:: javascript
+
+             fields: { field1: <boolean>, field2: <boolean> ... }
+
+   :field boolean upsert: 
+   
+          Optional. Used in conjunction with the ``update`` field. When
+          ``true``, :dbcommand:`findAndModify` creates a new document
+          if the ``query`` returns no documents. The default is
+          ``false``. In version 2.2, the :dbcommand:`findAndModify`
+          command returns ``null`` when ``upsert`` is ``true``.
+
+          .. code-block:: javascript
+
+             upsert: <boolean>
+
+   Consider the following example:
 
    .. code-block:: javascript
 
@@ -57,14 +106,20 @@ db.collection.findAndModify()
           update: { $inc: { score: 1 } }
           } );
 
-   This operation finds a document in the ``people`` collection
-   where the ``name`` field has the value ``Tom``, the
-   ``active`` value in the ``state`` field and a value in the
-   ``rating`` field :operator:`greater than <$gt>` 10, and
-   :operator:`increments <$inc>` the value of the ``score`` field by
-   1. If there is more than one result for this query, MongoDB sorts
-   the results of the query in ascending order, and updates and
-   returns the first matching document found.
+   This command performs the following actions:
+
+   #. The ``query`` finds a document in the ``people`` collection where
+      the ``name`` field has the value ``Tom``, the ``state`` field has
+      the value ``active`` and the ``rating`` field has a value
+      : operator:`greater than <$gt>` 10.
+
+   #. The ``sort`` orders the results of the query in ascending order.
+
+   #. The update :operator:`increments <$inc>` the value of the
+      ``score`` field by 1.
+
+   #. The command returns the original unmodified document
+      selected for this update.
 
    .. warning::
 
