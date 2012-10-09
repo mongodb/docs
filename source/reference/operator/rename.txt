@@ -9,7 +9,7 @@ $rename
    *Syntax*: ``{$rename: { <old name1>: <new name1>, <old name2>: <new name2>, ... } }``
 
    The :operator:`$rename` operator updates the name of a field. The
-   new field name must differ from the existing field name.
+   new field name must differ from the old field name.
 
    Consider the following example:
 
@@ -17,13 +17,12 @@ $rename
 
       db.students.update( { _id: 1 }, { $rename: { 'nickname': 'alias', 'cell': 'mobile' } } )
 
-   This operation The query renames the field ``nickname`` to ``alias``, and the
+   This operation renames the field ``nickname`` to ``alias``, and the
    field ``cell`` to ``mobile``.
 
-   If the document already has a field with *new* field name,
-   :operator:`$rename` renames the field with the *old* field name to
-   the new field name, and removes the previous field with the "*new*"
-   field name.
+   If the document already has a field with the *new* field name, the
+   :operator:`$rename` operator removes that field and renames the
+   field with the *old* field name to the *new* field name.
    
    The :operator:`$rename` operator will expand arrays and
    sub-documents to find a match for field names. When renaming a field
@@ -48,7 +47,7 @@ $rename
      
         db.students.update( { _id: 1 }, { $rename: { "nmae": "name" } } )
      
-     The query renames the sub-document ``nmae`` to ``name``:
+     The operation renames the sub-document ``nmae`` to ``name``:
      
      .. code-block:: javascript
 
@@ -68,7 +67,7 @@ $rename
      
         db.students.update( { _id: 1 }, { $rename: { "name.first": "name.fname" } } )
      
-     The query renames the sub-document field ``first`` to ``fname``:
+     The operation renames the sub-document field ``first`` to ``fname``:
      
      .. code-block:: javascript
      
@@ -88,7 +87,7 @@ $rename
      
         db.students.update( { _id: 1 }, { $rename: { "name.last": "contact.lname" } } )
 
-     The query renames the sub-document field ``last`` to ``lname`` and
+     The operation renames the sub-document field ``last`` to ``lname`` and
      moves it to the sub-document ``contact``:
           
      .. code-block:: javascript
@@ -104,7 +103,8 @@ $rename
      field moves out of the subdocument and becomes a regular document
      field.
    
-   Consider the following behavior when the specified old field name does not exist:
+   Consider the following behavior when the specified old field name
+   does not exist:
    
    - When renaming a single field and the old field name refers to a
      non-existing field, the :operator:`$rename` operator does
@@ -114,38 +114,32 @@ $rename
 
         db.students.update( { _id: 1 }, { $rename: { 'wife': 'spouse' } } )
 
-     The above query performs no action since the field with the name
+     The operation performs no action since the field with the name
      ``wife`` does not exist.
 
-   - When renaming multiple fields and **all** of the old field names refer to
-     non-existing fields, the :operator:`$rename` operator does
-     nothing, as in the following:
+   - When renaming multiple fields and **all** of the old field names
+     refer to non-existing fields, the :operator:`$rename` operator
+     does nothing, as in the following:
 
      .. code-block:: javascript
 
-        db.students.update( { _id: 1 }, { $rename: { 'wife': 'spouse', 'vice': 'vp', 'office': 'term' } } )
+        db.students.update( { _id: 1 }, { $rename: { 'wife': 'spouse',
+                                                     'vice': 'vp',
+                                                     'office': 'term' } } )
 
-     The above query performs no action since fields with the name
+     The operation performs no action since fields with the names
      ``wife``, ``vice``, and ``office`` do not exist.
       
-   - When renaming multiple fields and **some** but not all ``old names``
-     refer to non-existing fields, the :operator:`$rename` operator
-     performs the following operations:
+   - When renaming multiple fields and **some** but not all old field
+     names refer to non-existing fields, the :operator:`$rename`
+     operator performs the following operations:
      
      .. versionchanged:: 2.2
 
      - Renames the fields that exist to the specified new field names.
      
-     - In version 2.2, :operator:`$rename` ignores the non-existing fields.
+     - Ignores the non-existing fields.
      
-     - Before 2.2: 
-     
-       - **if** no field exists with the new field name,
-         :operator:`$rename` does nothing to any field.
-
-       - **if** fields already exist with the new field names,
-         :operator:`$rename` drops these fields.
-       
      Consider the following query that renames both an existing field
      ``mobile`` and a non-existing field ``wife``. The field named
      ``wife`` does not exist and :operator:`$rename` sets the field to
@@ -153,30 +147,52 @@ $rename
      
      .. code-block:: javascript
 
-        db.students.update( { _id: 1 }, { $rename: { 'wife': 'alias', 'mobile': 'cell' } } )
+        db.students.update( { _id: 1 }, { $rename: { 'wife': 'alias', 
+                                                     'mobile': 'cell' } } )
 
-     In version 2.2, the operation renames the ``mobile`` field to
-     ``cell``. No other action occurs.
+     The operation renames the ``mobile`` field to ``cell``. No other
+     action occurs.
      
      .. code-block:: javascript
      
-        { "_id" : 1, 
-          "alias" : [ "The American Cincinnatus", "The American Fabius" ], 
-          "cell" : "555-555-5555", 
-          "name" : { "lname" : "washington" }, 
-          "places" : { "d" : "Mt Vernon", "b" : "Colonial Beach" } 
+        { "_id" : 1,
+          "alias" : [ "The American Cincinnatus", "The American Fabius" ],
+          "cell" : "555-555-5555",
+          "name" : { "lname" : "washington" },
+          "places" : { "d" : "Mt Vernon", "b" : "Colonial Beach" }
         }
      
-     Before 2.2, the operation would rename the field ``mobile`` to
-     ``cell``. The operation drops the ``alias`` field even though the
-     field ``wife`` does not exist:
      
-     .. code-block:: javascript
+     .. note:: 
      
-        { "_id" : 1, 
-          "cell" : "555-555-5555", 
-          "name" : { "lname" : "washington" }, 
-          "places" : { "d" : "Mt Vernon", "b" : "Colonial Beach" } 
-        }
+        Before version 2.2, when renaming multiple fields and some but
+        not all old field names refer to non-existing fields:
+     
+        - **if** no field exists with the new field name, the
+          :operator:`$rename` operator does nothing.
+
+        - **if** fields already exist with the new field names, the
+          :operator:`$rename` operator drops these fields.
+       
+        Consider the following query that renames both an existing
+        field ``mobile`` and a non-existing field ``wife``. The
+        non-existing field ``wife`` is to be set to ``alias``, a name
+        that already exists.
+     
+        .. code-block:: javascript
+
+           db.students.update( { _id: 1 }, { $rename: { 'wife': 'alias', 'mobile': 'cell' } } )
+
+        Before 2.2, the operation renames the field ``mobile`` to
+        ``cell`` *and* drops the ``alias`` field even though the field
+        ``wife`` does not exist:
+
+        .. code-block:: javascript
+
+           { "_id" : 1,
+             "cell" : "555-555-5555",
+             "name" : { "lname" : "washington" },
+             "places" : { "d" : "Mt Vernon", "b" : "Colonial Beach" }
+           }
    
    .. versionadded:: 1.7.2
