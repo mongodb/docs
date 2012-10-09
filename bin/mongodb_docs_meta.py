@@ -1,10 +1,11 @@
-#!/usr/bin/python
+#!/usr/bin/pythono
 """
 This module defines a class.
 """
 
 import subprocess
 import re
+import datetime
 
 MANUAL_BRANCH = "manual"
 
@@ -22,7 +23,8 @@ class VersionMeta():
     def __init__(self):
         self.branch = shell_value('git symbolic-ref HEAD').split('/')[2]
         self.commit = shell_value('git rev-parse --verify HEAD')
-        
+        self.current_year = str(datetime.date.today().year)
+
         if self.branch == MANUAL_BRANCH:
             self.manual_path = "manaul"
         else:
@@ -34,7 +36,8 @@ def main():
 
     print("MongoDB Manual:" + BREAK +
           "     Commit: " + meta.commit + BREAK +
-          "     Branch: " + meta.branch)
+          "     Branch: " + meta.branch + BREAK +
+          "     Current year: " + meta.current_year)
 
 if __name__ == "__main__":
     main()
