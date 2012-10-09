@@ -4,7 +4,7 @@ MAKEFLAGS += -r
 MAKEFLAGS += --no-print-directory
 
 # includes
-include bin/makefile.compatibility 
+include bin/makefile.compatibility
 
 # Build directory tweaking.
 output = build
@@ -78,7 +78,7 @@ push-all:publish
 
 publish-if-up-to-date:
 	@bin/published-build-check $(current-branch) $(last-commit)
-	$(MAKE) publish 
+	$(MAKE) publish
 
 publish:initial-dependencies
 	$(MAKE) sphinx-components
@@ -114,7 +114,7 @@ endif
 
 initial-dependencies:source/about.txt $(public-branch-output)/MongoDB-Manual.epub
 	@echo [build]: completed the pre-publication routine for the $(manual-branch) branch of the Manual.
-static-components:$(public-output)/index.html $(public-output)/10gen-gpg-key.asc $(public-branch-output)/.htaccess $(public-branch-output)/release.txt $(public-output)/osd.xml 
+static-components:$(public-output)/index.html $(public-output)/10gen-gpg-key.asc $(public-branch-output)/.htaccess $(public-branch-output)/release.txt $(public-output)/osd.xml
 	@echo [build]: completed building and migrating all non-Sphinx components of the build.
 post-processing:error-pages links
 	@echo [build]: completed all post processing steps.
