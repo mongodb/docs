@@ -2,12 +2,15 @@
 Linux ``ulimit`` Settings
 =========================
 
+.. default-domain:: mongodb
+
 The Linux kernel provides a system to limit and control the number of
 threads, connections, and open files on a per-process and per-user
-basis. These limits prevent renegade processes from using too many
-system resources. Sometimes, these limits, as configured by the
-distribution developers, are too low for MongoDB and can cause a
-number of issues in the course of normal MongoDB operation.
+basis. These limits prevent single users from using too many system
+resources. Sometimes, these limits, as configured by the distribution
+developers, are too low for MongoDB and can cause a number of issues
+in the course of normal MongoDB operation. Generally, MongoDB should
+be the only user process on a system, to prevent resource contention.
 
 Resource Utilization
 --------------------
@@ -18,23 +21,15 @@ section outlines the general resource utilization patterns for MongoDB.
 Use these figures in combination with the actual information about your
 deployment and its use to determine ideal ``ulimit`` settings.
 
+Generally, all :program:`mongod` and :program:`mongos` instances, like
+other processes:
+
+- tracks each incoming connection with a file descriptor *and* a thread.
+
+- tracks each internal thread or *pthread* as a system process. 
+
 ``mongod``
 ~~~~~~~~~~
-
-- 1 thread for each incoming connection from a client and for
-  each incoming connection from a :program:`mongod` instance in a
-  :term:`replica set <replica set>`.
-
-  In :term:`sharded clusters <shard cluster>`, :program:`mongod`
-  instances use 1 thread for each :program:`mongos`.
-
-- 1 thread for each outgoing connection to a :program:`mongod`
-  in a replica set.
-
-  In sharded clusters, :program:`mongod` instances use 1 file
-  descriptor for each :program:`mongos`.
-
-- 1 file descriptor for each incoming connection.
 
 - 1 file descriptor for each data file in use by the
   :program:`mongod` instance.
@@ -42,19 +37,21 @@ deployment and its use to determine ideal ``ulimit`` settings.
 - 1 file descriptor for each journal file used by the
   :program:`mongod` instance when :setting:`journal` is ``true``.
 
-:program:`mongod` uses threads for a number of internal processes,
-including :ref:`TTL collections <ttl-collections>` and replication,
-which may require a small number of additional resources.
+- In replica sets, each :program:`mongod` maintains a connection to
+  all other members of the set. 
+
+:program:`mongod` uses background threads for a number of internal
+processes, including :ref:`TTL collections <ttl-collections>` and
+replication, replica set health checks, which may require a small
+number of additional resources.
 
 ``mongos``
 ~~~~~~~~~~
 
-- 1 thread for each incoming connection from a client.
-
-- 1 file descriptor for each incoming connection.
-
-- 1 file descriptor for each connection to each member of each
-  shard.
+In addition to the threads and file descriptors for client
+connections, :program:`mongos` must maintain connects to all config
+servers, and all shards, which includes all members of all replica
+sets.
 
 For :program:`mongos`, consider the following behaviors:
 
@@ -62,12 +59,16 @@ For :program:`mongos`, consider the following behaviors:
   so that the :program:`mongos` can reuse connections and quickly
   fulfill requests without needing to create new connections.
 
-- The size of the connection pool is configurable with the
-  :setting:`maxConns` runtime options:
+- You can limit the number of incoming connections using
+  the :setting:`maxConns` run-time option:
 
-  ..code-block:: javascript
+  .. code-block:: javascript
 
-    :option:`--maxConns <mongos --maxConns>`
+     :option:`--maxConns <mongos --maxConns>`
+
+  By restricting the number of incoming connections you can prevent a
+  cascade effect where the :program:`mongos` creates too many
+  connections on the :program:`mongod` instances.
 
 Review and Set Resource Limits
 ------------------------------
@@ -100,10 +101,11 @@ system limits, as in the following example:
 
 ``ulimit`` refers to the per-*user* limitations for various
 resources. Therefore, if your :program:`mongod` instance executes as a
-user that is also running other processes, you might see some contention
-for these resources. Also, be aware that the ``processes`` value
-(i.e. ``-u``) refers to the combined number of distinct processes and
-sub-process threads.
+user that is also running multiple process, or multiple
+:program:`mongod` process, you might see contention for these
+resources. Also, be aware that the ``processes`` value (i.e. ``-u``)
+refers to the combined number of distinct processes and sub-process
+threads.
 
 You can change ``ulimit`` settings by issuing a command in the
 following form:
@@ -203,7 +205,7 @@ the following thresholds and settings are particularly important for
 - ``-f`` (file size): ``unlimited``
 - ``-t`` (cpu time): ``unlimited``
 - ``-v`` (virtual memory): ``unlimited``
-- ``-n`` (open files): ``21000``
+- ``-n`` (open files): ``64000``
 - ``-m`` (memory size): ``unlimited``
 - ``-u`` (processes/threads): ``32000``
 
