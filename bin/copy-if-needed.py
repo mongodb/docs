@@ -22,7 +22,9 @@ def send_output(message, verbosity):
         pass
 
 def copy_if_needed(input_file, output_file, builder, verbosity=True):
-    if os.path.isfile(output_file) is False:
+    if os.path.isfile(input_file) is False:
+        exit("[" + builder + "]: ERROR: Input file doesn't exist. Call this script later in the build process.")
+    elif os.path.isfile(output_file) is False:
         shutil.copyfile(input_file, output_file)
         send_output('[' + builder + ']: created "' + output_file + ';" rebuild needed.', verbosity)
     else:
