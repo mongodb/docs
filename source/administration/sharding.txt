@@ -9,11 +9,11 @@ Shard Cluster Administration
 
 This document describes common administrative tasks.
 For a full introduction to sharding in MongoDB see
-":doc:`/core/sharding`," and for a complete overview of all sharding
-documentation in the MongoDB Manual, see ":doc:`/sharding`." The
-":doc:`/administration/sharding-architectures`" document provides an
+:doc:`/core/sharding`, and for a complete overview of all sharding
+documentation in the MongoDB Manual, see :doc:`/sharding`. The
+:doc:`/administration/sharding-architectures` document provides an
 overview of deployment possibilities to help deploy a shard
-cluster. Finally, the ":doc:`/core/sharding-internals`" document
+cluster. Finally, the :doc:`/core/sharding-internals` document
 provides a more detailed introduction to sharding when troubleshooting
 issues or understanding your cluster's behavior.
 
@@ -43,52 +43,45 @@ single server. For production, use the configurations described in
    scratch, see the :doc:`/tutorial/deploy-shard-cluster` tutorial for
    more detail or use the following procedure as a quick starting point:
 
-1. Set up the required config servers, shards, and :program:`mongos`
-   instances described in :ref:`Sharding Infrastructure
-   <sharding-requirements-infrastructure>`.
+1. Create data directories for each of the three (3) config server instances.
 
-
-#. Start the three (3) config servers.
-
-#. On all three config server instances, issue the following
-   command to start the :program:`mongod` process:
+#. Start the three config server instances. For example, to start a
+   config server instance running on TCP port ``27018`` with the data
+   stored in ``/data/configdb``, type the following:
 
    .. code-block:: sh
 
-      mongod --configsvr
+      mongod --configsvr --dbpath /data/configdb --port 27018
 
-   This starts a :program:`mongod` instance running on TCP port
-   ``27018``, with the data stored in the ``/data/configdb`` path. All other
-   :doc:`command line </reference/mongod>` and :doc:`configuration
-   file </reference/configuration-options>` options are available for config
-   server instances.
+   For additional command options, see :doc:`/reference/mongod`
+   and :doc:`/reference/configuration-options`.
 
    .. include:: /includes/note-config-server-startup.rst
 
-#. Start a :program:`mongos` instance issuing the following command:
+#. Start the three :program:`mongos` instances. For example, to start a
+   :program:`mongos` instance running on the following hosts:
+
+   - ``mongos0.example.net``
+   - ``mongos1.example.net``
+   - ``mongos2.example.net``
+
+   You would issue the following command:
 
    .. code-block:: sh
 
-      mongos --configdb config0.mongodb.example.net,config1.mongodb.example.net,config2.mongodb.example.net --port 27017
+      mongos --configdb mongos0.example.net,mongos1.example.net,mongos2.example.net
 
-#. Connect to the :program:`mongos` instance using the :program:`mongo`
-   shell.
+#. Connect to one of the :program:`mongos` instances. For example, if
+   a :program:`mongos` is accessible at ``mongos0.example.net`` on
+   port ``27017``, issue the following command:
 
    .. code-block:: sh
 
-      mongo mongos.mongodb.example.net
+      mongo mongos0.example.net
 
-#. Add shards to the cluster.
-
-   Run the following commands while connected to a :program:`mongos` to
-   initialize the cluster.
-
-   First, you need to tell the cluster where to find the individual
-   shards. You can do this using the :dbcommand:`addShard` command.
-
-   .. code-block:: javascript
-
-      sh.addShard( "[hostname]:[port]" )
+#. Add shards to the cluster. From the :program:`mongo` shell connected
+   to the :program:`mongos` instance, call the :method:`sh.addShard()`
+   method for each shard to add to the cluster.
 
    For example:
 
@@ -96,8 +89,8 @@ single server. For production, use the configurations described in
 
       sh.addShard( "mongodb0.example.net:27027" )
 
-   MongoDB will discover all other members of the replica set, if
-   ``mongodb0.example.net:27027`` is a member of a replica set.
+   If ``mongodb0.example.net:27027`` is a member of a replica
+   set, MongoDB will discover all other members of the replica set.
 
    .. note:: In production deployments, all shards should be replica sets.
 
@@ -105,21 +98,8 @@ single server. For production, use the configurations described in
 
    .. optional::
 
-      You may specify a "name" as an argument to the
-      :dbcommand:`addShard`, as follows:
-
-      .. code-block:: javascript
-
-         db.runCommand( { addShard: mongodb0.example.net, name: "mongodb0" } )
-
-      Or:
-
-      .. code-block:: javascript
-
-         sh.addShard( mongodb0.example.net, name: "mongodb0" )
-
-      If you do not specify a shard name, then MongoDB will assign a
-      name upon creation.
+      You can specify a name for the shard and a maximum size. See 
+      :dbcommand:`addShard`.
 
    .. note::
 
@@ -139,25 +119,26 @@ single server. For production, use the configurations described in
 
          sh.addShard( "repl0/mongodb0.example.net:27027,mongodb1.example.net:27017,mongodb2.example.net:27017" )
 
-#. Enable sharding for any database that you want to shard.
+#. Enable sharding for each database you want to shard.
+   While sharding operates on a per-collection basis, you must enable
+   sharding for each database that holds collections you want to shard.
+   This step is a meta-data change and will not redistribute your data.
 
-   MongoDB enables sharding on a per-database basis. This is only a
-   meta-data change and will not redistribute your data. To enable
-   sharding for a given database, use the :dbcommand:`enableSharding`
-   command or the :method:`sh.enableSharding()` shell function.
+   To enable sharding for a given database, use the
+   :dbcommand:`enableSharding` command or the
+   :method:`sh.enableSharding()` shell function, as shown below. Replace
+   ``<database>`` with the name of the database on which to enable
+   sharding.
 
    .. code-block:: javascript
 
-      db.runCommand( { enableSharding: [database] } )
+      db.runCommand( { enableSharding: <database> } )
 
    Or:
 
    .. code-block:: javascript
 
-      sh.enableSharding([database])
-
-   Replace ``[database]`` with the name of the database you wish to
-   enable sharding on.
+      sh.enableSharding(<database>)
 
    .. note::
 
@@ -169,7 +150,7 @@ single server. For production, use the configurations described in
 
 #. Enable sharding on a per-collection basis.
 
-   Finally, you must explicitly specify collections to shard.  The
+   Finally, you must explicitly specify collections to shard. The
    collections must belong to a database for which you have enabled
    sharding. When you shard a collection, you also choose the shard
    key. To shard a collection, run the :dbcommand:`shardCollection`
@@ -177,13 +158,13 @@ single server. For production, use the configurations described in
 
    .. code-block:: javascript
 
-      db.runCommand( { shardCollection: "[database].[collection]", key: "[shard-key]" } )
+      db.runCommand( { shardCollection: "<database>.<collection>", key: "<shard-key>" } )
 
    Or:
 
    .. code-block:: javascript
 
-      sh.shardCollection("[database].[collection]", "key")
+      sh.shardCollection("<database>.<collection>", "key")
 
    For example:
 
@@ -218,6 +199,17 @@ This section describes common maintenance procedure, including: how to
 add and remove nodes, how to manually split chunks, and how to disable
 the balancer for backups.
 
+List the Set of Configured Shards
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To list the current set of configured shards and verify that all shards
+have been committed to the system, run the :dbcommand:`listShards`
+command:
+
+.. code-block:: javascript
+
+   db.runCommand( { listshards : 1 } )
+
 .. _sharding-procedure-add-shard:
 
 Adding a Shard to a Cluster
@@ -235,9 +227,9 @@ procedure:
 
    .. code-block:: javascript
 
-      sh.addShard( "[hostname]:[port]" )
+      sh.addShard( "<hostname>:<port>" )
 
-   Replace ``[hostname]`` and ``[port]`` with the hostname and TCP
+   Replace ``<hostname>`` and ``<port>`` with the hostname and TCP
    port number of where the shard is accessible.
 
    For example:
