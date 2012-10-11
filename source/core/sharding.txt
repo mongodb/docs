@@ -456,6 +456,35 @@ ensuring that your operations include the shard key.
    given collection, queries for documents in that collection are not
    broadcast to that shard.
 
+Sharded Query Response Process
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To route a query to a :term:`cluster <sharded cluster>`,
+:program:`mongos` uses the following process:
+
+#. Determine the list of :term:`shards` that must receive the query.
+
+   In some cases, when the :term:`shard key` is a part of the query,
+   the :program:`mongos` can route the query to a subset of the
+   shards. Otherwise, the :program:`mongos` must direct the query to
+   *all* shards.
+
+#. Establish a cursor on all targeted shards.
+
+   When the first batch of results return from the cursors:
+
+   a. For query with sorted results (i.e. using
+      :method:`cursor.sort()`) the :program:`mongos` performs a merge
+      sort of all queries.
+
+   b. For a query with unsorted results, the :program:`mongos` returns
+      a result cursor that "round robins" results from all cursors on
+      the shards.
+
+      .. versionchanged:: 2.0.5
+         Before 2.0.5, the :program:`mongos` exhausted each cursor,
+         one by one.
+
 .. index:: balancing
 .. _sharding-balancing:
 
