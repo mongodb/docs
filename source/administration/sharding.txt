@@ -7,17 +7,16 @@ Shard Cluster Administration
 
 .. default-domain:: mongodb
 
-This document provides a collection of basic operations and procedures
-for administering :term:`shard clusters <shard cluster>`.
-
+This document describes common administrative tasks.
 For a full introduction to sharding in MongoDB see
-":doc:`/core/sharding`," and for a complete overview of all sharding
-documentation in the MongoDB Manual, see ":doc:`/sharding`." The
-":doc:`/administration/sharding-architectures`" document provides an
+:doc:`/core/sharding`, and for a complete overview of all sharding
+documentation in the MongoDB Manual, see :doc:`/sharding`. The
+:doc:`/administration/sharding-architectures` document provides an
 overview of deployment possibilities to help deploy a shard
-cluster. Finally, the ":doc:`/core/sharding-internals`" document
+cluster. Finally, the :doc:`/core/sharding-internals` document
 provides a more detailed introduction to sharding when troubleshooting
 issues or understanding your cluster's behavior.
+
 
 .. contents:: Sharding Procedures:
    :backlinks: none
@@ -25,67 +24,64 @@ issues or understanding your cluster's behavior.
 
 .. _sharding-procedure-setup:
 
-Setup
------
+Set up a Shard Cluster
+----------------------
 
-If you have an existing replica set, you can use the
-":doc:`/tutorial/convert-replica-set-to-replicated-shard-cluster`"
-tutorial as a guide. If you're deploying a :term:`shard cluster` from
-scratch, see the ":doc:`/tutorial/deploy-shard-cluster`" tutorial for
-more detail or use the following procedure as a quick starting point:
+Before deploying a shard cluster, see the requirements listed in
+:ref:`Requirements for Shard Clusters <sharding-requirements>`.
 
-#. Provision the required hardware.
+For testing purposes, you can run all the required shard processes on a
+single server. For production, use the configurations described in
+:doc:`/administration/replication-architectures`.
 
-   The ":ref:`sharding-requirements`" section describes what you'll
-   need to get started.
+.. include:: /includes/warning-sharding-hostnames.rst
 
-   .. warning:: Sharding and "localhost" Addresses
+.. TODO Keep this or delete it:
+   If you have an existing replica set, you can use the
+   :doc:`/tutorial/convert-replica-set-to-replicated-shard-cluster`
+   tutorial as a guide. If you're deploying a :term:`shard cluster` from
+   scratch, see the :doc:`/tutorial/deploy-shard-cluster` tutorial for
+   more detail or use the following procedure as a quick starting point:
 
-      If you use either "localhost" or "``127.0.0.1``" as the host
-      identifier, then you must use "localhost" or "``127.0.0.1``" for
-      *all* host settings for any MongoDB instances in the cluster. If
-      you mix localhost addresses with remote host address, MongoDB will
-      produce errors.
+1. Create data directories for each of the three (3) config server instances.
 
-#. On all three (3) config server instances, issue the following
-   command to start the :program:`mongod` process:
+#. Start the three config server instances. For example, to start a
+   config server instance running on TCP port ``27018`` with the data
+   stored in ``/data/configdb``, type the following:
 
    .. code-block:: sh
 
-      mongod --configsvr
+      mongod --configsvr --dbpath /data/configdb --port 27018
 
-   This starts a :program:`mongod` instance running on TCP port
-   ``27018``, with the data stored in the ``/data/configdb`` path. All other
-   :doc:`command line </reference/mongod>` and :doc:`configuration
-   file </reference/configuration-options>` options are available for config
-   server instances.
+   For additional command options, see :doc:`/reference/mongod`
+   and :doc:`/reference/configuration-options`.
 
    .. include:: /includes/note-config-server-startup.rst
 
-#. Start a :program:`mongos` instance issuing the following command:
+#. Start the three :program:`mongos` instances. For example, to start a
+   :program:`mongos` instance running on the following hosts:
+
+   - ``mongos0.example.net``
+   - ``mongos1.example.net``
+   - ``mongos2.example.net``
+
+   You would issue the following command:
 
    .. code-block:: sh
 
-      mongos --configdb config0.mongodb.example.net,config1.mongodb.example.net,config2.mongodb.example.net --port 27017
+      mongos --configdb mongos0.example.net,mongos1.example.net,mongos2.example.net
 
-#. Connect to the :program:`mongos` instance using the :program:`mongo`
-   shell.
+#. Connect to one of the :program:`mongos` instances. For example, if
+   a :program:`mongos` is accessible at ``mongos0.example.net`` on
+   port ``27017``, issue the following command:
 
    .. code-block:: sh
 
-      mongo mongos.mongodb.example.net
+      mongo mongos0.example.net
 
-#. Add shards to the cluster.
-
-   Run the following commands while connected to a :program:`mongos` to
-   initialize the cluster.
-
-   First, you need to tell the cluster where to find the individual
-   shards. You can do this using the :dbcommand:`addShard` command.
-
-   .. code-block:: javascript
-
-      sh.addShard( "[hostname]:[port]" )
+#. Add shards to the cluster. From the :program:`mongo` shell connected
+   to the :program:`mongos` instance, call the :method:`sh.addShard()`
+   method for each shard to add to the cluster.
 
    For example:
 
@@ -93,8 +89,8 @@ more detail or use the following procedure as a quick starting point:
 
       sh.addShard( "mongodb0.example.net:27027" )
 
-   MongoDB will discover all other members of the replica set, if
-   ``mongodb0.example.net:27027`` is a member of a replica set.
+   If ``mongodb0.example.net:27027`` is a member of a replica
+   set, MongoDB will discover all other members of the replica set.
 
    .. note:: In production deployments, all shards should be replica sets.
 
@@ -102,21 +98,8 @@ more detail or use the following procedure as a quick starting point:
 
    .. optional::
 
-      You may specify a "name" as an argument to the
-      :dbcommand:`addShard`, as follows:
-
-      .. code-block:: javascript
-
-         db.runCommand( { addShard: mongodb0.example.net, name: "mongodb0" } )
-
-      Or:
-
-      .. code-block:: javascript
-
-         sh.addShard( mongodb0.example.net, name: "mongodb0" )
-
-      If you do not specify a shard name, then MongoDB will assign a
-      name upon creation.
+      You can specify a name for the shard and a maximum size. See 
+      :dbcommand:`addShard`.
 
    .. note::
 
@@ -129,32 +112,33 @@ more detail or use the following procedure as a quick starting point:
 
          replicaSetName/<seed1>,<seed2>,<seed3>
 
-      For example, if the name of the replica set is "``repl0``", then
-      your :method:`sh.addShard` command would be:
+      For example, if the name of the replica set is ``repl0``, then
+      your :method:`sh.addShard()` command would be:
 
       .. code-block:: javascript
 
          sh.addShard( "repl0/mongodb0.example.net:27027,mongodb1.example.net:27017,mongodb2.example.net:27017" )
 
-#. Enable sharding for any database that you want to shard.
+#. Enable sharding for each database you want to shard.
+   While sharding operates on a per-collection basis, you must enable
+   sharding for each database that holds collections you want to shard.
+   This step is a meta-data change and will not redistribute your data.
 
-   MongoDB enables sharding on a per-database basis. This is only a
-   meta-data change and will not redistribute your data. To enable
-   sharding for a given database, use the :dbcommand:`enableSharding`
-   command or the :method:`sh.enableSharding()` shell function.
+   To enable sharding for a given database, use the
+   :dbcommand:`enableSharding` command or the
+   :method:`sh.enableSharding()` shell function, as shown below. Replace
+   ``<database>`` with the name of the database on which to enable
+   sharding.
 
    .. code-block:: javascript
 
-      db.runCommand( { enableSharding: [database] } )
+      db.runCommand( { enableSharding: <database> } )
 
    Or:
 
    .. code-block:: javascript
 
-      sh.enableSharding([database])
-
-   Replace ``[database]`` with the name of the database you wish to
-   enable sharding on.
+      sh.enableSharding(<database>)
 
    .. note::
 
@@ -166,7 +150,7 @@ more detail or use the following procedure as a quick starting point:
 
 #. Enable sharding on a per-collection basis.
 
-   Finally, you must explicitly specify collections to shard.  The
+   Finally, you must explicitly specify collections to shard. The
    collections must belong to a database for which you have enabled
    sharding. When you shard a collection, you also choose the shard
    key. To shard a collection, run the :dbcommand:`shardCollection`
@@ -174,13 +158,13 @@ more detail or use the following procedure as a quick starting point:
 
    .. code-block:: javascript
 
-      db.runCommand( { shardCollection: "[database].[collection]", key: "[shard-key]" } )
+      db.runCommand( { shardCollection: "<database>.<collection>", key: "<shard-key>" } )
 
    Or:
 
    .. code-block:: javascript
 
-      sh.shardCollection("[database].[collection]", "key")
+      sh.shardCollection("<database>.<collection>", "key")
 
    For example:
 
@@ -199,9 +183,9 @@ more detail or use the following procedure as a quick starting point:
    the distribution of data. Furthermore, you cannot change a
    collection's shard key once it has been set.
 
-   See the ":ref:`Shard Key Overview <sharding-shard-key>`" and the
-   more in depth documentation of ":ref:`Shard Key Qualities
-   <sharding-internals-shard-keys>`" to help you select better shard
+   See the :ref:`Shard Key Overview <sharding-shard-key>` and the
+   more in depth documentation of :ref:`Shard Key Qualities
+   <sharding-internals-shard-keys>` to help you select better shard
    keys.
 
    If you do not specify a shard key, MongoDB will shard the
@@ -214,6 +198,17 @@ Once you have a running shard cluster, you will need to maintain it.
 This section describes common maintenance procedure, including: how to
 add and remove nodes, how to manually split chunks, and how to disable
 the balancer for backups.
+
+List the Set of Configured Shards
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To list the current set of configured shards and verify that all shards
+have been committed to the system, run the :dbcommand:`listShards`
+command:
+
+.. code-block:: javascript
+
+   db.runCommand( { listshards : 1 } )
 
 .. _sharding-procedure-add-shard:
 
@@ -232,9 +227,9 @@ procedure:
 
    .. code-block:: javascript
 
-      sh.addShard( "[hostname]:[port]" )
+      sh.addShard( "<hostname>:<port>" )
 
-   Replace ``[hostname]`` and ``[port]`` with the hostname and TCP
+   Replace ``<hostname>`` and ``<port>`` with the hostname and TCP
    port number of where the shard is accessible.
 
    For example:
@@ -271,7 +266,7 @@ procedure:
       following form: the replica set name, followed by a forward
       slash, followed by a comma-separated list of seeds for the
       replica set. For example, if the name of the replica set is
-      "myapp1", then your :method:`sh.addShard` command might resemble:
+      "myapp1", then your :method:`sh.addShard()` command might resemble:
 
       .. code-block:: javascript
 
@@ -282,9 +277,9 @@ procedure:
    It may take some time for :term:`chunks <chunk>` to migrate to the
    new shard.
 
-   See the ":ref:`Balancing and Distribution <sharding-balancing>`"
-   section for an overview of the balancing operation and the ":ref:`Balancing Internals
-   <sharding-balancing-internals>`" section for additional information.
+   See the :ref:`Balancing and Distribution <sharding-balancing>`
+   section for an overview of the balancing operation and the :ref:`Balancing Internals
+   <sharding-balancing-internals>` section for additional information.
 
 .. _sharding-procedure-remove-shard:
 
@@ -699,7 +694,7 @@ Balancer Operations
 This section provides an overview of common administrative procedures
 related to balancing and the balancing process.
 
-.. seealso:: ":ref:`sharding-balancing`" and the
+.. seealso:: :ref:`sharding-balancing` and the
    :dbcommand:`moveChunk` that provides manual :term:`chunk`
    migrations.
 
@@ -951,7 +946,7 @@ name.
 #. Shut down the config server that you're moving.
 
    This will render all config data for your cluster :ref:`read only
-   <sharding-config-server>`."
+   <sharding-config-server>`.
 
 #. Change the DNS entry that points to the system that provided the old
    config server, so that the *same* hostname points to the new
@@ -1076,7 +1071,7 @@ of the cluster metadata from the config database is straight forward:
 .. [#read-only] While one of the three config servers unavailable, no
    the cluster cannot split any chunks nor can it migrate chunks
    between shards. Your application will be able to write data to the
-   cluster. The ":ref:`sharding-config-server`" section of the
+   cluster. The :ref:`sharding-config-server` section of the
    documentation provides more information on this topic.
 
 .. index:: troubleshooting; sharding
