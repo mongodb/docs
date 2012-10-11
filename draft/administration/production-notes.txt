@@ -21,7 +21,7 @@ Networking
 
 Always run MongoDB in a *trusted environment*, with network rules that
 prevent access from *all* unknown machines, systems, or networks. As
-with any sensitive systems dependent on network access, your MongoDB
+with any sensitive system dependent on network access, your MongoDB
 deployment should only be accessible to specific systems that require
 access: application servers, monitoring services, and other MongoDB
 components.
@@ -31,129 +31,134 @@ relevant to production deployments of MongoDB.
 
 .. TODO link to MongDB security section when available.
 
-Port Numbers
-~~~~~~~~~~~~
- 
-MongoDB uses only TCP ports for network connections. The following is
-a listing of MongoDB programs and default ports used.
+Default Port Numbers used by MongoDB
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. list-table:: Default ports used by MongoDB
-   :header-rows: 1
+MongoDB uses only TCP ports for network connections. The following table
+lists the default ports that MongoDB components use.
 
-   * - Description
+.. The set of empty sub-bullets below is intentional, to provide spacing.
+
+.. list-table::
+   :header-rows: 2
+
+   * - 
+     - 
+     - 
+   * - MongoDB Component
      - Process
      - Port Number
-   * - Standalone MongoDB server
+   * - :term:`Standalone MongoDB server <standalone>`
      - :program:`mongod`
      - 27017
-   * - Shard Router
+   * - :ref:`Shard Router <_mongos>`
      - :program:`mongos`
      - 27017
-   * - Shard Server
-     - :setting:`mongod --shardsvr <shardsvr>`
+   * - :term:`Shard` server
+     - :option:`mongod --shardsvr`
      - 27018
-   * - Config Server
-     - :setting:`mongod --configsvr <configsvr>`
+   * - :ref:`Config Server <sharding-config-server>` (used in sharding)
+     - :option:`mongod --configsrv`
      - 27019
-   * - mongod Web Stat
-     - :ref:`mongod --rest <rest-interface>`
+   * - :ref:`HTTP REST interface <rest-interface>`
+     - :option:`mongod --rest`
      - 28107
-
 
 .. _production-firewall:
 
-Firewall Rules
-~~~~~~~~~~~~~~
+Firewall Rules Required for MongoDB
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. list-table:: Firewall Rules Required for MongoDB
-   :header-rows: 1
+.. The set of empty sub-bullets below is intentional, to provide spacing.
 
+MongoDB uses the firewall rules listed here.
+
+.. list-table::
+   :header-rows: 2
+
+   * - 
+     - 
+     - 
+     - 
    * - Process
      - Direction
      - Ports
-     - Notes
+     - For Connections To...
    * - :program:`mongod`
      - Incoming
      - 27017/*
-     - for client and application server connections
+     - Client and application servers
    * - :program:`mongod`
      - Outgoing
      - */27017
-     - for :term:`replication <replica set>` from other members, shard migrations
+     - Repilca set members, Shard routers (:program:`mongos` instances)
    * - :program:`mongos`
      - Incoming
      - 27017/*
-     - for client and application server connections
+     - Client and application servers
    * - :program:`mongod`
      - Outgoing
      - */[27019, 27018]
-     - for connections to :term:`shards <shard>` and :term:`config servers`
+     - Shard servers and config servers
 
-.. note - do we need to have the terms linked in the table when the
-   notes below would be more 'natural' to have such links?
+When setting up firewalls in a :term:`sharded <sharding>` environment,
+you must allow the following connectivity:
 
-In a sharded environment:
+- Each mongo process in the cluster (i.e., each :program:`mongos`,
+  :program:`mongod`, and :option:`mongod --configsvr`) must
+  be able to connect to every other mongo process in the cluster.
 
-- All the mongo processes (mongos, mongod, :setting:`mongod
-  --configsvr <configsvr>`) in the cluster should be able to connect
-  to each other.
+- Clients must be able to connect to the :program:`mongos` processes.
+  However, clients are *not* required to be able to connect to the
+  :program:`mongod` processes.
 
-- Clients must be able to connect to the mongos processes; however,
-  they can be blocked from the mongod's.
+When setting up firewalls in non-sharded :term:`replica set`
+environments, you must allow the following connectivity:
 
-In a non-sharded replica set environment:
+- Each member of the replica set must be able to connect to every other
+  member. To test connectivity, see
+  :ref:`replica-set-troubleshooting-check-connection`.
 
-- All clients need to be able to connect to all non-hidden replica set
-  members.
+- Clients must be able to connect to all non-hidden replica set members.
 
-- All members of a replica set (the mongod processes that is) need to
-  be able to communicate with each other.
+To accept requests on external interfaces, you may also have to modify
+your computer's firewall configuration to allow access to the ports used
+by :program:`mongo`.
+
+.. seealso:: :ref:`production-firewall`
 
 IP Address Binding
 ~~~~~~~~~~~~~~~~~~
 
 By default, a :program:`mongod` server will listen on all available IP
 addresses on a machine. You can restrict this to a single IP address
-with the :setting:`bind_ip` configuration option for mongod.
+with the :option:`mongod --bind_ip` option.
 
-For example this could be set to ``127.0.0.1``, the loopback
-interface, to make mongod only listen to requests from the same
-machine (``localhost``). Or, on a machine with two interfaces, we
-might want to listen only on the private network.
+For example, you could set :option:`mongod --bind_ip` to ``127.0.0.1``,
+the loopback interface, to make :program:`mongod` listen only to
+requests from the same machine (``localhost``). Or on a machine with two
+interfaces you might want to listen only on the private network.
 
-To enable listening on all interfaces, remove the bind_ip option from
-your server configuration file.
+To enable listening on all interfaces, remove the :setting:`bind_ip`
+option from the server :doc:`configuration file
+</reference/configuration-options>`.
 
-.. note::
+MongoDB on Linux
+----------------
 
-   To accept requests on external interfaces you may also have to
-   modify your computer's firewall configuration to allow access to
-   the ports used by mongo.
+If you use the Linux kernel, the MongoDB user community has recommended
+Linux kernel 2.6.36 or later for running MongoDB in production.
 
-   .. seealso:: :ref:`production-firewall`
+Because MongoDB preallocates its database files before using them, your should
+use the Ext4 and XFS file systems if using the Linux kernel.
 
-Linux Kernel
-------------
+If you use the Ext4 file system, you must use Linux kernel 2.6.23 or
+newer for efficient filesystem preallocation.
 
-Most versions of the Linux kernel will support MongoDB, but there are
-a few key issues to keep in mind:
+If you use the XFS file system, you must use Linux kernel 2.6.25 or
+newer for efficient file preallocation.
 
-- The MongoDB user community has approved Linux kernel 2.6.36 as
-  a good candidate for running MongoDB in production.
-
-- Some have reported skepticism on behavior of Linux 2.6.33-31 and
-  2.6.32 kernel, at least on Amazon EC2.
-
-MongoDB preallocates its database files before using them, so file
-systems such as ext4 and XFS with kernel support is ideal:
-
-- If you are using ext4 file system, Linux kernel 2.6.23 or newer
-  is required for efficient filesystem preallocation.
-
-- If you are using XFS file system, Linux kernel 2.6.25 or newer is
-  required for efficient file preallocation.
-
-General system configuration recommendations:
+For MongoDB on Linux use the following recommended configurations:
 
 - Turn off ``atime`` for the storage volume with the :term:`database
   files <dbpath>`.
@@ -176,22 +181,113 @@ General system configuration recommendations:
   distributed locks that requires hosts to be synchronized, especially
   :term:`config servers`.
 
+.. _production-readahead:
+
+MongoDB on Virtual Environments
+-------------------------------
+
+The section describes considerations when running MongoDB in some of the
+more common virtual environments.
+
+EC2
+~~~
+
+MongoDB is compatible with EC2 and requires no configuration changes
+specific to the environment.
+
+VMWare
+~~~~~~
+
+MongoDB is compatible with VMWare. Some in the MongoDB community have
+run into issues with the VMWare's memory overcommit feature and suggest
+disabling the feature.
+
+You can clone a virtual machine running MongoDB. You might use this to
+spin up a new virtual host that will be added as a member of a replica
+set. If Journaling is enabled, the clone snapshot will be consistent. If
+not using journaling, stop :program:`mongod`, clone, and then restart.
+
+OpenVZ
+~~~~~~
+
+The MongoDB community has encountered issues running MongoDB on OpenVZ.
+
+Disk and Storage Systems
+------------------------
+
+iostat
+~~~~~~
+
+On Linux, use the iostat command to check if disk I/O is a bottleneck
+for your database. Specify a number of seconds when running iostat to
+avoid displaying stats covering the time since server boot.
+
+For example:
+
+.. code-block:: bash
+
+   iostat -xm 2
+
+Use the mount command to see what device your :term:`data directory
+<dbpath` resides on.
+
+Key fields from ``iostat``:
+
+- %util: this is the most useful field for a quick check, it
+  indicates what percent of the time the device/drive is in use. If
+  the number if near 100%, your server may be physical disk I/O
+  bound. (There are some volume situations where this statistic
+  overstates, but most often it is correct.)
+
+- avgrq-sz: average request size. The smaller this number, the more
+  random your IO operations are. This is in sectors : typically
+  sectors are 512 bytes, so multiply by 0.5 to see average request
+  size in kilobytes.
+
+Hardware Requirements and Limitations
+-------------------------------------
+
+MongoDB is designed specifically with commodity hardware in mind (to
+facilitate cloud computing), and has few hardware requirements or
+limitations.
+
+When installing hardware for MongoDB, consider the following:
+
+- As with all software, more RAM and a faster CPU clock speed are
+  important to productivity.
+
+- Because databases do not perform high amounts of computation,
+  increasing the number cores helps but does not provide a high level of
+  marginal return.
+
+- MongoDB has good results and good price/performance with SATA SSD
+  (Solid State Disk) and with PCI (Peripheral Component Interconnect).
+
+- Commodity (SATA) spinning drives are often a good option as the
+  speed increase for random I/O for more expensive drives is not that
+  dramatic (only on the order of 2x) – spending that money on SSDs or
+  RAM may be more effective.
+
 .. _production-numa:
 
-NUMA and MongoDB
-----------------
+MongoDB on NUMA-Based Hardware
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-NUMA, Non-Uniform Access Memory, and MongoDB do not work well
-together. If you are running MongoDB on NUMA hardware, we recommend
-disabling NUMA for MongoDB and running with an interleave memory
-policy. Operational problems in MongoDB will manifest in strange ways,
-such as slow performance for periods of time or high system processor
-usage.
+MongoDB and NUMA, Non-Uniform Access Memory, do not work well together.
+
+non-NUMA is recommended as NUMA is not very helpful as memory access
+  is not very localized in a database. If you must run MongoDB on a
+  NUMA system, see :ref:`NUMA and MongoDB <production-numa>`.
+
+If you are running MongoDB on NUMA hardware, we recommend disabling NUMA
+for MongoDB and running with an interleave memory policy. Operational
+problems in MongoDB will manifest in strange ways, such as slow
+performance for periods of time or high system processor usage.
 
 .. note::
 
    On Linux, :program:`mongod` v2.0+ checks these settings on startup
-   and prints a warning if the system is NUMA based.
+   and prints a warning if the system is NUMA-based.
 
 To turn off NUMA for MongoDB, use the ``numactl`` command and start
 :program:`mongod` in the following manner:
@@ -210,11 +306,6 @@ You can change ``zone_reclaim_mode`` without restarting mongod. For
 more information, see documentation on `Proc/sys/vm
 <http://www.kernel.org/doc/Documentation/sysctl/vm.txt>`_.
 
-.. TODO the following is needed? or is just generally good reading material?
-
-Further reading
-~~~~~~~~~~~~~~~
-
 `The MySQL “swap insanity” problem and the effects of the NUMA
 architecture
 <http://jcole.us/blog/archives/2010/09/28/mysql-swap-insanity-and-the-numa-architecture/>`_
@@ -222,97 +313,3 @@ describes the effects of NUMA on databases. This blog post was aimed
 at problems NUMA created for MySQL, but the issues are similar. The
 post describes the NUMA architecture and its goals, and how these are
 incompatible with production databases.
-
-.. _production-readahead:
-
-Virtualization
---------------
-
-Generally MongoDB works very well in virtualized environments, with
-the exception of OpenVZ.
-
-EC2
-~~~
-Compatible. No special configuration requirements.
-
-VMWare
-~~~~~~
-
-Some suggest not using overcommit as they may cause issues. Otherwise compatible.
-
-Cloning a VM is possible. For example you might use this to spin up a
-new virtual host that will be added as a member of a replica set. If
-Journaling is enabled, the clone snapshot will be consistent. If not
-using journaling, stop mongod, clone, and then restart.
-
-OpenVZ
-~~~~~~
-
-Issues have been reported here.
-
-Disk and Storage Systems
-------------------------
-
-iostat
-~~~~~~
-
-On Linux, use the iostat command to check if disk I/O is a bottleneck
-for your database.
-
-We generally find the form:
-
-.. code-block:: bash
-
-   iostat -xm 2
-
-to work well. (Use a number of seconds with iostat, otherwise it will
-display stats since server boot, which is not very useful.)
-
-Use the mount command to see what device your :term:`data directory
-<dbpath` resides on.
-
-Key fields from ``iostat``:
-
-- %util: this is the most useful field for a quick check, it
-  indicates what percent of the time the device/drive is in use. If
-  the number if near 100%, your server may be physical disk I/O
-  bound. (There are some volume situations where this statistic
-  overstates, but most often it is correct.)
-
-- avgrq-sz: average request size. The smaller this number, the more
-  random your IO operations are. This is in sectors : typically
-  sectors are 512 bytes, so multiply by 0.5 to see average request
-  size in kilobytes.
-
-Hardware
---------
-
-MongoDB tends to run well on virtually all hardware. In fact it was
-designed specifically with commodity hardware in mind (to facilitate
-cloud computing); that said it works well on very large servers
-too. That said if you are about to buy hardware here are a few
-suggestions:
-
-- More RAM is good.
-
-- Fast CPU clock speed is helpful.
-
-- Many cores helps but does not provide a high level of marginal
-  return, so don't spend money on them. (This is both a consequence of
-  the design of the program and also that memory bandwidth can be a
-  limiter; there isn't necessarily a lot of computation happening
-  inside a database).
-
-- non-NUMA is recommended as NUMA is not very helpful as memory access
-  is not very localized in a database. If you must run MongoDB on a
-  NUMA system, see :ref:`NUMA and MongoDB <production-numa>`.
-
-- SSD is good. We have had good results and have seen good
-  price/performance with SATA SSDs; the (typically) more upscale PCI
-  SSDs work fine too.
-
-- Commodity (SATA) spinning drives are often a good option as the
-  speed increase for random I/O for more expensive drives is not that
-  dramatic (only on the order of 2x) – spending that money on SSDs or
-  RAM may be more effective.
-
