@@ -4,6 +4,7 @@ import sys
 import os.path 
 import shutil
 import hashlib
+import argparse 
 
 def md5_file(file, block_size=2**20):
     md5 = hashlib.md5()
@@ -15,37 +16,38 @@ def md5_file(file, block_size=2**20):
 
     return md5.hexdigest()
 
-def send_output(message, verbosity):
-    if verbosity is True:
-        print(message)
-    else:
+def send_output(message, quiet):
+    if quiet is True:
         pass
+    else:
+        print(message)
 
-def copy_if_needed(input_file, output_file, builder, verbosity=True):
+def copy_if_needed(input_file, output_file, builder='build', quiet=False):
     if os.path.isfile(input_file) is False:
         exit("[" + builder + "]: ERROR: Input file doesn't exist. Call this script later in the build process.")
     elif os.path.isfile(output_file) is False:
         shutil.copyfile(input_file, output_file)
-        send_output('[' + builder + ']: created "' + output_file + ';" rebuild needed.', verbosity)
+        send_output('[' + builder + ']: created "' + output_file + ';" rebuild needed.', quiet)
     else:
         if md5_file(input_file) == md5_file(output_file): 
-            send_output('[' + builder + ']: no changes; no rebuild required.', verbosity)
+            send_output('[' + builder + ']: no changes ' + input_file + '. no rebuild required.', quiet)
         else: 
             shutil.copyfile(input_file, output_file)
-            send_output('[' + builder + ']: changes require rebuild.', verbosity)
+            send_output('[' + builder + ']: changes to ' + input_file + ' require rebuild.', quiet)
+
+def user_input():
+    parser = argparse.ArgumentParser("File hashing and comparison to let make do awesome things.")
+    parser.add_argument('--input', '-i', help='Input filename.')
+    parser.add_argument('--output', '-o', help='Output filename.')
+    parser.add_argument('--quiet', '-q', help='Disable output.', default=False)
+    parser.add_argument('--builder', '-b', help='Buildername. Output only.', default='build')
+
+    return parser.parse_args()
 
 def main():
-    input_file = sys.argv[1]
-    output_file = sys.argv[2]
-        
-    builder = 'PDF'
+    interface = user_input()
 
-    if len(sys.argv) is 4:
-        verbosity = False
-    else:
-        verbosity = True
-
-    copy_if_needed(input_file, output_file, builder, verbosity)
+    copy_if_needed(interface.input, interface.output, interface.builder, interface.quiet)
 
 if __name__ == '__main__':
     main()

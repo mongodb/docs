@@ -26,8 +26,9 @@ else
 current-if-not-manual = $(current-branch)
 endif
 
+sphinx-conf = $(branch-output)/conf.py
 # Sphinx variables.
-SPHINXOPTS = -c ./
+SPHINXOPTS = -c $(branch-output)
 SPHINXBUILD = sphinx-build
 
 ifdef NITPICK
@@ -107,12 +108,12 @@ endif
 #
 ######################################################################
 
-
 # Deployment targets to kick off the rest of the build process. Only
 # access these targets through the ``publish`` target.
 .PHONY: initial-dependencies static-components sphinx-components post-processing
 
-initial-dependencies:source/about.txt $(public-branch-output)/MongoDB-Manual.epub
+initial-dependencies:source/includes/hash.rst source/about.txt
+	$(MAKE) $(public-branch-output)/MongoDB-Manual.epub
 	@echo [build]: completed the pre-publication routine for the $(manual-branch) branch of the Manual.
 static-components:$(public-output)/index.html $(public-output)/10gen-gpg-key.asc $(public-branch-output)/.htaccess $(public-branch-output)/release.txt $(public-output)/osd.xml
 	@echo [build]: completed building and migrating all non-Sphinx components of the build.
@@ -125,16 +126,19 @@ sphinx-components:$(public-branch-output)/ $(public-branch-output)/sitemap.xml.g
 # Build the HTML components of the build.
 #
 
-.PHONY:source/about.txt setup
+.PHONY:source/about.txt source/includes/hash.rst setup
+hash-output-file = source/includes/hash.rst
 
-setup:
+setup:$(hash-output-file)
 	@mkdir -p $(public-branch-output)
 	@echo [build]: created $(public-branch-output)
 
-$(branch-output)/singlehtml/contents.html:$(branch-output)/singlehtml
+source/includes/hash.rst:
+	@./bin/update_hash.py
+	@echo [build]: \(re\)generated $@.
 source/about.txt:setup
 	@touch $@
-	@echo [build]: touched '$@' to ensure a fresh build.
+	@echo [build]: touched $@ to ensure a clean build.
 $(branch-output)/dirhtml:dirhtml
 	@touch $@
 	@echo [build]: touched $@ to ensure proper migration.
@@ -144,6 +148,7 @@ $(branch-output)/html:html
 $(branch-output)/singlehtml:singlehtml
 	@touch $@
 	@echo [build]: touched $@ to ensure proper migration.
+$(branch-output)/singlehtml/contents.html:$(branch-output)/singlehtml
 
 #
 # Building and Linking the ePub and LaTeX Builds.
@@ -151,7 +156,7 @@ $(branch-output)/singlehtml:singlehtml
 $(branch-output)/latex/MongoDB.tex:latex
 $(branch-output)/latex/MongoDB.pdf:$(branch-output)/latex/MongoDB-Manual.tex
 $(branch-output)/latex/MongoDB-Manual.tex:$(branch-output)/latex/MongoDB.tex
-	@python bin/copy-if-needed.py $< $@
+	@python bin/copy-if-needed.py -i $< -o $@ -b pdf
 $(public-branch-output)/MongoDB-Manual-$(current-branch).pdf:$(branch-output)/latex/MongoDB-Manual.pdf
 	@cp $< $@
 	@echo [build]: migrated $@
@@ -248,6 +253,10 @@ clean-public:
 clean-all:
 	-rm -rf $(output)/*
 
+# Needed for all sphinx builds.
+$(sphinx-conf):conf.py
+	@python bin/copy-if-needed.py -i $< -o $@ -b sphinx
+
 ######################################################################
 #
 # Default HTML Sphinx build targets
@@ -255,20 +264,19 @@ clean-all:
 ######################################################################
 
 .PHONY: html dirhtml singlehtml epub sitemap
-html:
-
+html:$(sphinx-conf) $(hash-output-file)
 	@echo [html]: build starting at `date`.
 	@mkdir -p $(branch-output)/html
 	@echo [html]: created $(branch-output)/html
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(branch-output)/html
 	@echo [html]: build complete at `date`.
-dirhtml:
+dirhtml:$(sphinx-conf) $(hash-output-file)
 	@echo [dirhtml]: build starting at `date`.
 	@mkdir -p $(branch-output)/dirhtml
 	@echo [dirhtml]: created $(branch-output)/dirhtml
 	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(branch-output)/dirhtml
 	@echo [dirhtml]: build complete at `date`.
-singlehtml:
+singlehtml:$(sphinx-conf) $(hash-output-file)
 	@echo [singlehtml]: build started at `date`.
 	@mkdir -p $(branch-output)/singlehtml
 	@echo [singlehtml]: created $(branch-output)/singlehtml
@@ -277,7 +285,7 @@ singlehtml:
 
 epub-command = $(SPHINXBUILD) -b epub $(ALLSPHINXOPTS) $(branch-output)/epub
 epub-filter = sed $(SED_ARGS_REGEX) -e '/^WARNING: unknown mimetype.*ignoring$$/d' -e '/^WARNING: search index.*incomplete.$$/d'
-epub:
+epub:$(sphinx-conf) $(hash-output-file)
 	@echo [epub]: starting epub build at `date`.
 	@mkdir -p $(branch-output)/epub
 	@echo [epub]: created $(branch-output)/epub
@@ -313,7 +321,7 @@ $(branch-output)/sitemap.xml.gz:$(public-output)/manual
 UNCOMPRESSED_MAN := $(wildcard $(branch-output)/man/*.1)
 COMPRESSED_MAN := $(subst .1,.1.gz,$(UNCOMPRESSED_MAN))
 
-man:
+man:$(sphinx-conf) $(hash-output-file)
 	@echo [man]: starting man build at `date`.
 	@mkdir -p $(branch-output)/man
 	@echo [build]: created $(branch-output)/man
@@ -335,13 +343,13 @@ $(branch-output)/man/%.1.gz: $(branch-output)/man/%.1
 .PHONY: aspirational aspiration draft draft-pdf draft-pdfs
 aspiration:draft
 aspirational:draft
-draft:
+draft:$(sphinx-conf) $(hash-output-file)
 	@echo [draft]: draft-html started at `date`.
 	@mkdir -p $(branch-output)/draft
 	@echo [draft]: created $(branch-output)/draft
 	$(SPHINXBUILD) -b html $(DRAFTSPHINXOPTS) $(branch-output)/draft
 	@echo [draft]: draft-html build finished at `date`.
-draft-latex:
+draft-latex:$(sphinx-conf) $(hash-output-file)
 	@echo [draft]: draft-latex build started at `date`.
 	@mkdir -p $(branch-output)/draft-latex
 	@echo [draft]: created $(branch-output)/draft-latex
@@ -359,25 +367,25 @@ draft-pdfs:draft-latex draft-pdf
 ##########################################################################
 
 .PHONY: changes linkcheck json doctest
-json:
+json:$(sphinx-conf) $(hash-output-file)
 	@echo [json]: build started at `date`.
 	@mkdir -p $(branch-output)/json
 	@echo [json]: created $(branch-output)/json
 	$(SPHINXBUILD) -b json $(ALLSPHINXOPTS) $(branch-output)/json
 	@echo [json]: build finished at `date`.
-changes:
+changes:$(sphinx-conf) $(hash-output-file)
 	@echo [changes]: build started at `date`.
 	@mkdir -p $(branch-output)/changes
 	@echo [changes]: created $(branch-output)/changes
 	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) $(branch-output)/changes
 	@echo [changes]: build finished at `date`.
-linkcheck:
+linkcheck:$(sphinx-conf) $(hash-output-file)
 	@echo [link]: build started at `date`.
 	@mkdir -p $(branch-output)/linkcheck
 	@echo [link]: created $(branch-output)/linkcheck
 	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) $(branch-output)/linkcheck
 	@echo [link]: Link check complete at `date`. See $(branch-output)/linkcheck/output.txt.
-doctest:
+doctest:$(sphinx-conf) $(hash-output-file)
 	@echo [test]: build started at `date`.
 	@mkdir -p $(branch-output)/doctest
 	@echo [test]: created $(branch-output)/doctest
@@ -392,7 +400,7 @@ doctest:
 
 .PHONY:pdfs latex latexpdf
 
-latex:
+latex:$(sphinx-conf) $(hash-output-file)
 	@echo [latex]: starting TeX file generation at `date`.
 	@mkdir -p $(branch-output)/latex
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(branch-output)/latex

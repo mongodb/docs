@@ -9,7 +9,7 @@
 # serve to show the default.
 
 import sys, os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "bin")))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../bin")))
 from mongodb_docs_meta import VersionMeta
 
 meta = VersionMeta()
@@ -23,7 +23,7 @@ needs_sphinx = '1.0'
 extensions = ["sphinx.ext.intersphinx", "sphinx.ext.extlinks", "sphinx.ext.todo", "mongodb_domain", "additional_directives", "aggregation_domain"]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['.templates']
+templates_path = ['../../.templates']
 
 # The suffix of source filenames.
 source_suffix = '.txt'
@@ -46,11 +46,7 @@ copyright = u'2011-' + meta.current_year + ', 10gen, Inc.'
 version = '2.2.0'
 release = version
 
-current_git_commit = meta.commit
-current_git_branch = meta.branch
-
 rst_epilog = ".. |branch| replace:: ``" + meta.branch + "``" + """
-.. |commit| replace:: ``""" + meta.commit + "``" + """
 .. |copy| unicode:: U+000A9
 .. |hardlink| replace:: http://docs.mongodb.org/""" + meta.branch
 
@@ -100,8 +96,8 @@ extlinks = {
 intersphinx_mapping = {
         'pymongo': ('http://api.mongodb.org/python/current/', None),
         'python' : ('http://docs.python.org/', None),
-        'django': ('https://django.readthedocs.org/en/latest/',None),
-        'djangomongodbengine': ('http://django-mongodb.org/',None),
+        'django': ('https://django.readthedocs.org/en/latest/', None),
+        'djangomongodbengine': ('http://django-mongodb.org/', None),
         'djangotoolbox' : ('http://djangotoolbox.readthedocs.org/en/latest/', None),
         }
 
@@ -117,7 +113,7 @@ html_theme = 'mongodb'
 # html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = ['themes']
+html_theme_path = ['../../themes']
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -138,7 +134,7 @@ html_logo = "source/.static/logo-mongodb.png"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['source/.static']
+html_static_path = ['../../source/.static']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -156,7 +152,6 @@ html_show_copyright = True
 manual_edition_path = 'http://docs.mongodb.org/' + meta.branch + '/' + project + '-Manual-' + meta.branch
 
 html_theme_options = { 'branch': meta.branch,
-                       'commit': meta.commit,
                        'pdfpath':  manual_edition_path + '.pdf',
                        'epubpath':  manual_edition_path + '.epub',
                        'manual_path': meta.manual_path,
