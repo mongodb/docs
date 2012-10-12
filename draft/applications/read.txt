@@ -4,42 +4,147 @@ Read
 
 .. default-domain:: mongodb
 
-Read operation selects documents from a collection. MongoDB
-provides the :ref:`find() <find>` method to perform read operations.
-Additionally, the :ref:`Aggregation Framework <aggregation>` also
-provides read operations that involve various aggregation functions,
-such as ``SUM``.
+Read operation selects documents from a :term:`collection`. MongoDB
+provides the :ref:`find <crud-read-find>` method to perform read
+operations.
 
-.. _find:
+.. _crud-read-find:
 
-Find()
-------
+Find
+----
 
 The :method:`find() <db.collection.find()>` method is the primary
-method to select documents from a collection. The find() method returns
-a cursor to the selected documents. The :method:`find()
-<db.collection.find()>` method can accept a selection criteria on
-document fields, including array fields and subdocuments, to limit the
-selection.
+method to select documents from a collection. The :method:`find()
+<db.collection.find()>` method returns a cursor to the selected
+documents. Use the cursor handling methods of the language drivers to
+iterate through the cursor and access the documents.
 
-The :method:`find() <db.collection.find()>` method offers the
-flexibility to specify the fields to return through the include/exclude
-flags of the ``projection`` document. For instance, if selecting 11 out
-of 15 fields, with the :method:`find() <db.collection.find()>` method, you
-can choose to specify the 4 to exclude rather than the 11 to include.
+The :method:`find() <db.collection.find()>` method has the following
+syntax:
 
-.. TODO -- sort/limit/other options...
+.. code-block:: javascript
 
-.. _aggregation:
+   db.collection.find( <query>, <projection>)
 
-Aggregation Framework
----------------------
+The :method:`find() <db.collection.find()>` method is analogous to the
+``SQL SELECT`` with the ``query`` argument analogous to the ``WHERE``
+statement and the ``projection`` argument analogous to the selected
+fields to return.
 
-The Aggregation Framework provides a rich set of tools for performing
-various sequence of operations, not the least of which is the read operation.
+Consider the following examples that illustrate the usage of the
+:method:`find() <db.collection.find()>` method:
 
-Although the Aggregation Framework is discussed in detail in its own
-section, a brief introduction to the aggregation read operation is
-provided here for completeness.
+.. note::
 
-.. seealso:: :doc:`/applications/aggregation`
+   In the :program:`mongo` shell, you can format the output by adding
+   ``.pretty()`` to the :method:`find() <db.collection.find()>` method
+   call.
+
+- If there is no ``query`` argument, the :method:`find()
+  <db.collection.find()>` method selects all documents from a collection.
+
+  The following operation returns all documents (or more
+  specifically, a cursor to all documents) in the ``presidents``
+  collection:
+
+  .. code-block:: javascript
+
+     db.presidents.find()
+
+- If there is a ``query`` argument, the :method:`find()
+  <db.collection.find()>` method selects all documents from a
+  collection that meets the ``query``:
+
+  - The following operation returns all documents in the ``presidents``
+    collection where the field ``state`` equals ``Virginia``:
+
+    .. code-block:: javascript
+
+       db.presidents.find( { state: 'Virginia' } )
+
+  - The following operation returns all documents in the ``presidents``
+    collection where the array field ``title`` contains the element
+    ``Governor``:
+
+    .. code-block:: javascript
+
+       db.presidents.find( { title: 'Governor' } )
+
+  - The following operation returns all documents in the ``presidents``
+    collection where the subdocument ``name`` contains a field
+    ``first`` with value ``John`` and a field ``last`` with the value
+    ``Adams``:
+
+    .. code-block:: javascript
+
+       db.presidents.find( { 'name.first': 'John', 'name.last': 'Adams' } ) 
+
+    The operation finds documents with ``name : { first: 'John', last:
+    'Adams' }`` and ``name : { first: 'John', middle : 'Quincy', last :
+    'Adams'}``.
+     
+  - The following operation returns all documents in the ``presidents``
+    collection where the subdocument ``name`` is ``{ first:
+    'John', last: 'Adams' }``:
+
+    .. code-block:: javascript
+
+       db.presidents.find( { name: { first: 'John', last: 'Adams' } } )
+
+    The operation finds only the documents with ``name : { first:
+    'John', last: 'Adams' }``.
+
+  - The following operation returns all documents in the ``presidents``
+    collection where the subdocument ``name`` contains the field
+    ``first`` with the value of either ``John`` or ``James``:
+
+    .. code-block:: javascript
+
+       db.presidents.find( { 'name.first': { $in: ['John', 'James'] } } )
+
+  - The following operation returns all documents in the ``presidents``
+    collection where the field ``state`` equals ``Virginia`` **and**
+    the subdocument ``name`` contains the field ``first`` with the
+    value of either ``John`` or ``James``:
+
+    .. code-block:: javascript
+
+       db.presidents.find( { 
+            state: 'Virginia' , 
+            'name.first': { $in: ['John', 'James'] } 
+          } )
+
+  - The following operation returns all documents in the ``presidents``
+    collection where ``office`` array contains a subdocument element
+    that contains the ``term`` field equal to ``1`` and the ``from``
+    field less than ``1800``:
+
+    .. code-block:: javascript
+
+       db.presidents.find( { office: { $elemMatch: { 
+                                                     term: 1, 
+                                                     from: { $lt: 1800 } 
+                                                   } } } )
+
+- If there is a ``projection`` argument, the :method:`find()
+  <db.collection.find()>` method returns only those fields as specified
+  in the ``projection`` argument to include or exclude (the ``_id``
+  field is implicitly included in the ``projection`` argument):
+
+  - The following operation returns only the ``name`` field, the
+    ``state`` field, and the ``_id`` field from all documents in the
+    ``presidents`` collection:
+
+    .. code-block:: javascript
+
+       db.presidents.find( { }, { name: 1, state: 1 } )
+
+  - The following operation returns all fields *except* the ``_id``
+    field, the ``first`` field in the ``name`` subdocument, and the
+    ``office`` field from the documents in the
+    ``presidents`` collection where the ``state`` is ``Virginia``:
+
+    .. code-block:: javascript
+
+       db.presidents.find( { state: 'Virginia' },
+                           { _id: 0, 'name.first': 0, office: 0 } )

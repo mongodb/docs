@@ -5,63 +5,269 @@ Update
 .. default-domain:: mongodb
 
 Update operation modifies an existing :term:`document <document>` or
-documents in a :term:`collection`. MongoDB provides the :ref:`update()
-<update>` method to perform update operations.
-Additionally, the :ref:`save() <save>` method also provides the
-functionality to update documents.
+documents in a :term:`collection`. MongoDB provides the following
+methods to perform update operations:
 
-Note that the two methods also provide the option to insert a new
-document into a collection.
+- :ref:`update <crud-update-update>`
 
-.. TODO  ? findAndModify?
+- :ref:`save <crud-update-save>`
 
-.. _update:
+.. include:: /includes/note-write-concerns.rst
+
+.. _crud-update-update:
 
 Update
 ------
 
 The :method:`update() <db.collection.update()>` method is the primary
-method to update an existing document or documents in a collection. The
+method to update an existing document or documents in a collection. By
+default the :method:`update() <db.collection.update()>` method updates
+a single document, but by using the ``multi`` option, the method can
+update all documents that match the ``query`` criteria. The
 :method:`update() <db.collection.update()>` method can either replace
 the existing document with the new document or update specific fields
 in the existing document.
 
-By default the :method:`update() <db.collection.update()>` method
-updates a single document, but by using the ``multi`` option, the
-method can update all documents that match the update selection
-criteria.
+The :method:`update() <db.collection.update()>` method has the
+following syntax:
 
-Additionally, if no existing document match the update selection
-criteria, by using the ``upsert`` option, the method can insert
-a new document into the collection.
+.. code-block:: javascript
 
-Note also that the :method:`update() <db.collection.update()>` method
-can also modify the name of the ``field`` in a document using the
-:operator:`$rename` operator.
+   db.collection.update( <query>, <update>, <options> )
 
- .. _save:
+The :method:`update() <db.collection.update()>` method is analogous to
+the ``SQL UPDATE`` with the ``query`` argument analogous to the
+``WHERE`` statement and the ``update`` argument analogous to the ``SET
+...`` statement; however, the :method:`update()
+<db.collection.update()>` method provides additional flexibility and
+control in use.
+
+Consider the following examples that illustrate the usage of the
+:method:`update() <db.collection.update()>` method:
+
+- If the ``update`` argument contains only :ref:`update operators
+  <update-operators>` expressions such as the :operator:`$set` operator
+  expression, the :method:`update() <db.collection.update()>` method
+  updates only the corresponding fields in the document.
+
+  The following operation queries the ``presidents`` collection for the
+  first document that has an ``_id`` field equal to ``1`` and sets the
+  ``spouse`` field to ``Martha Dandridge Custis`` and adds a new
+  element to the ``email`` field:
+
+  .. code-block:: javascript
+
+     db.presidents.update( { _id: 1 }, 
+                           { $set: { spouse: 'Martha Dandridge Custis' },
+                             $push: { email: { type: 'personal', 
+                                               addr: 'i.m.number.1@example.net' } } 
+                           } )
+
+- If the ``update`` argument contains :operator:`$unset` operator, the
+  :method:`update() <db.collection.update()>` method removes the field
+  from the document.
+
+  The following operation queries the ``presidents`` collection for the
+  first document that has an ``_id`` field equal to ``3`` and removes
+  the ``spouse`` field from the document:
+
+ .. code-block:: javascript
+
+     db.presidents.update( { _id: 3 }, 
+                           { $unset: { spouse: 1 } } )
+
+- If the ``update`` argument contains fields not currently in the
+  document, the :method:`update() <db.collection.update()>` method
+  adds the new fields to the document.
+
+  The following operation queries the ``presidents`` collection for the
+  first document that has an ``_id`` field equal to ``1`` and adds to
+  the document a new ``vp`` field set to value ``John Adams``:
+
+  .. code-block:: javascript
+
+     db.presidents.update( { _id: 1 }, 
+                           { $set: { vp: 'John Adams' } } )
+
+- If the ``update`` argument contains only ``field:value`` pairs, the
+  :method:`update() <db.collection.update()>` method *replaces* the
+  existing document with the ``updates`` argument except for the
+  ``_id`` field.
+
+  The following operation queries the ``presidents`` collection for the
+  first document that has a ``name`` field equal to ``{ first: 'John',
+  last: 'Adams' }`` and replaces all but the ``_id`` field in the
+  document with the fields in the ``update`` argument:
+
+  .. code-block:: javascript
+
+     db.presidents.update( { name: { first: 'John', last: 'Adams' } },
+                           { name: { first: 'John', last: 'Adams' },
+                             email: [ { type: 'work', addr: 'prez.no2@example.net' },
+                                      { type: 'home', addr: 'adams.family@example.net' } ],
+                             spouse: 'Abigail Smith',
+                             office: [ { term: 1, from: 1797, to: 1801 } ]
+                            } )
+
+- If the update operation requires an update of an element in an array
+  field:
+  
+  - The :method:`update() <db.collection.update()>` method can perform
+    the update using the position of the element. Arrays in MongoDB are
+    zero-based.
+    
+    The following operation queries the ``presidents`` collection for
+    the document with ``_id`` field equal to ``6`` and updates the
+    second element in the ``title`` array:
+
+    .. code-block:: javascript    
+
+       db.presidents.update ( { _id: 6 } , 
+                              { $set: { 'title.1': "Secretary of State" } } )
+
+  - The :method:`update() <db.collection.update()>` method can perform
+    the update using the :operator:`$` positional operator if the
+    position is not known. The array field must appear in the ``query``
+    argument in order to determine which array element.
+    
+    The following operation queries the ``presidents`` collection for a
+    document with the ``_id`` field equal to ``6`` and the ``title``
+    array contains an element equal to ``Secretary of State``. If
+    found, the :method:`update() <db.collection.update()>` method
+    updates the matching element to ``Senator`` in the document:
+
+    .. code-block:: javascript    
+
+       db.presidents.update ( { _id: 6, 'title': "Secretary of State"  } , 
+                              { $set: { 'title.$': "Senator" } } )
+                              
+  - The :method:`update() <db.collection.update()>` method can perform
+    the update of an array that contains subdocuments by using the
+    :operator:`$` positional operator and the :wiki:`dot notation
+    <Dot+Notation+(Reaching+into+Objects)>`.
+    
+    The following operation queries the ``presidents`` collection for a
+    document with the ``_id`` field equal to ``6`` and the ``email``
+    array contains a subdocument element with the ``type`` field equal
+    to ``home``. If found, the :method:`update()
+    <db.collection.update()>` method updates the ``addr`` field in the
+    first matching subdocument:
+
+    .. code-block:: javascript    
+
+       db.presidents.update ( { _id: 6, 'email.type': "home"  } , 
+                              { $set: { 'email.$.addr': "jqa@example.net" } } )
+
+- If the ``options`` argument contains the ``multi`` option set to
+  ``true`` or ``1``, the :method:`update() <db.collection.update()>`
+  method updates all documents that match the query. 
+
+  The following operation queries the ``presidents`` collection for all
+  documents where the subdocument ``name`` contains a field ``first``
+  with value ``John`` and a field ``last`` with the value ``Adams`` and
+  sets the ``dynasty`` field to ``true`` in the documents:
+
+  .. code-block:: javascript
+
+     db.presidents.update( { 'name.first': 'John', 'name.last': 'Adams' }, 
+                           { $set: { dynasty: true } },
+                           { multi: true } )
+
+- If the ``options`` argument contains the ``upsert`` option set to
+  ``true`` or ``1`` and no existing document match the ``query``
+  argument, the :method:`update() <db.collection.update()>` method can
+  insert a new document into the collection:
+
+  The following operation queries the ``presidents`` collection for a
+  document with the ``_id`` field equal to ``6``. If a document is
+  found, the operation performs an update operation, replacing the
+  existing document with the fields and values in the ``update``
+  argument. If a document is not found, the operation performs an
+  insert operation of a new document with the fields and values in the
+  ``update`` argument.
+  
+  .. code-block::javascript
+
+     db.presidents.update( { _id: 11 },
+                           { _id: 11,
+                             name: { first: 'James', middle: 'Knox', last: 'Polk'},
+                             title: [ 'President', 'Speaker of the House', 'Governor' ],
+                             born: new Date('11/02/1795'),
+                             died: new Date('06/15/1849'),
+                             state: 'North Carolina',
+                             email: [ { type: 'work', addr: 'james.no11@example.net' },
+                                      { type: 'home', addr: 'coast.to.coast@example.net' } ],
+                             spouse: 'Sarah Childress',
+                             office: [ { term:1, from: 1845, to: 1849 } ] },
+                             { upsert: true } )
+
+  See also :ref:`Create <crud-create-update>`.
+
+ .. _crud-update-save:
 
 Save
 ----
 
 The :method:`save() <db.collection.save()>` method updates an existing
-document or inserts a document depending on the parameter. The
-:method:`save() <db.collection.save()>` method is like an ``upsert``
-operation that has the update selection criteria on the :term:`_id`
-field:
+document or inserts a document depending on the ``_id`` field of the
+document. The :method:`save() <db.collection.save()>` method is
+analogous to the :method:`update() <db.collection.update()>` method
+with the ``upsert`` option and a ``query`` argument on the ``_id``
+field.
 
-- If no ``_id`` field exists, the :method:`save()
-  <db.collection.save()>` method performs an insert. The insert will
-  add the ``_id`` field and assign a unique :term:`objectid` as its
-  value.
+The :method:`save() <db.collection.save()>` method has the
+following syntax:
 
-- If ``_id`` field exists but does not match any document in the
-  collection, the :method:`save() <db.collection.save()>` method
-  performs an insert. The insert will add the ``_id`` field and assign
-  a unique :term:`objectid` as its value.
-  
-- If ``_id`` field exists and matches an existing document in the
-  collection, the :method:`save() <db.collection.save()>` method
-  performs an update that replaces the existing document with the new
-  document. 
-  
+.. code-block:: javascript
+
+   db.collection.save( <document> )
+
+Consider the following examples of the :method:`save()
+<db.collection.save()>` method:
+
+- If the ``document`` argument contains the ``_id`` field that exists
+  in the collection, the :method:`save() <db.collection.save()>` method
+  performs an update that replaces the existing document with the
+  document argument.
+
+  The following operation queries the ``presidents`` collection for a
+  document where the ``_id`` equals
+  ``ObjectId("5076d6e28fada716c89d000f")`` and replaces the document
+  with the ``document`` argument:
+
+  .. code-block:: javascript
+
+     db.presidents.save( { _id: ObjectId("5076d6e28fada716c89d000f"),
+                           name: { first: 'Martin', last: 'Van Buren' },
+                           title: [ 'President', 'Governor'], 
+                           born: new Date('12/05/1782'),
+                           died: new Date('07/24/1862'),
+                           bplace: 'Kinderhook, New York', 
+                           email: [ { type: 'work', addr: 'martin.8@example.net' },
+                                    { type: 'home', addr: 'free.soil@example.net' } ],
+                           vp: 'Richard Johnson',
+                           office: [ { term:1, from: 1837, to: 1841 } ] } )
+
+- If no ``_id`` field exists or if the ``_id`` field exists but does
+  not match any document in the collection, the :method:`save()
+  <db.collection.save()>` method performs an insert. If no ``_id``
+  field exists, the insert will add the ``_id`` field and assign a
+  unique :term:`objectid` as its value.
+
+  The following operation adds the ``_id`` field to the document,
+  assigns to the field a unique ``ObjectId``, and inserts into the
+  ``presidents`` collection:
+
+  .. code-block:: javascript
+
+     db.presidents.save( { name: { first: 'Zachary', last: 'Taylor' },
+                           title: [ 'President', 'Governor'],
+                           born: new Date('11/24/1784'),
+                           died: new Date('07/09/1850'),
+                           state: 'Virginia', 
+                           email: [ { type: 'work', addr: 'zachary.12@example.net' },
+                                    { type: 'home', addr: 'old.rough.ready@example.net' } ],
+                           vp: 'Millard Fillmore',
+                           office: [ { term:1, from: 1849, to: 1850 } ] } )
+
+  See also :ref:`Create <crud-create-save>`.

@@ -5,82 +5,436 @@ Create
 .. default-domain:: mongodb
 
 Create operation adds new :term:`documents <document>` to a
-:term:`collection`. MongoDB provides the :ref:`insert() <insert>`
-method to perform create operations. Additionally, the :ref:`update()
-with upsert option <update_and_save>` method and the :ref:`save()
-<update_and_save>` method also provide functionality to create
-documents.
+:term:`collection`. MongoDB provides the following methods to perform
+create operations:
 
-All three methods exhibit the following behavior during the create
-operation:
+- :ref:`insert <crud-create-insert>`
+
+- :ref:`update with upsert <crud-create-update>`
+
+- :ref:`save <crud-create-save>`
+
+Additionally, the three methods exhibit the following behavior during
+the create operation:
 
 - If the new document does not specify an :term:`_id` field, these
-  methods will add the ``_id`` field to the document and assign as
-  its value a unique :term:`objectid`.
+  methods add the ``_id`` field to the document and assign as
+  its value a unique :term:`ObjectId <objectid>`.
 
-- If the document specifies a new field, these methods will add
-  the document with the new field **without** requiring a schema change
-  to the collection or any change to the existing documents.
+- If the new document specifies an ``_id`` field, the ``_id``
+  field must be unique within the collection.
 
-Keep in mind that MongoDB v2.2 has a limit on document size of 16
-megabytes (MB).
+- If the new document specifies a new field not found in existing
+  documents, these methods add the document **without** requiring a
+  schema change to the collection or any change to the existing
+  documents.
 
+MongoDB v2.2 has a 16 megabytes limit on document size.
 
-.. _insert:
+.. include:: /includes/note-write-concerns.rst
 
-Insert()
---------
+.. _crud-create-insert:
+
+Insert
+------
 
 The :method:`insert() <db.collection.insert()>` method is the primary
-method to insert a document or documents into a collection. The
-:method:`insert() <db.collection.insert()>` is analogous to the ``SQL
-INSERT`` except the :method:`insert() <db.collection.insert()>` method
-provides these additional functionalities:
+method to insert a document or documents into a collection. 
+
+The :method:`insert() <db.collection.insert()>` method has the
+following syntax:
+
+.. code-block:: javascript
+
+   db.collection.insert( <document> )
+
+The :method:`insert() <db.collection.insert()>` method is analogous to
+the ``SQL INSERT``.
+
+Consider the following examples that illustrate the usage of the
+:method:`insert() <db.collection.insert()>` method:
 
 - If the collection does not exist, then the :method:`insert()
-  <db.collection.insert()>` method will create the collection.
-
-- If the new document does not specify an ``_id`` field, then
-  :method:`insert() <db.collection.insert()>` will add the ``_id``
-  field to the document and assign a unique ``objectid`` as its
-  value.
+  <db.collection.insert()>` method creates the collection during the
+  first insert.
   
-- If passed an array of documents, the :method:`insert()
-  <db.collection.insert()>` method can perform bulk inserts into a
+  The following operation creates the collection ``presidents`` and
+  inserts the document:
+
+  .. code-block:: javascript
+
+     db.presidents.insert( {
+        _id: 1,
+        name: { first: 'George', last: 'Washington'},
+        title: [ 'President', 'General' ],
+        born: new Date('02/22/1732'),
+        died: new Date('12/14/1799'),
+        state: 'Virginia', 
+        email: [ { type: 'work', addr: 'george.no1@example.net' },
+                 { type: 'home', addr: 'geo.wash@example.net' } ],
+        spouse: 'Martha',
+        office: [ { term:1, from: 1789, to: 1793 },
+                  { term:2, from: 1793, to: 1797 } ]
+     } )
+
+  You can verify the results of this operation by querying the
+  ``presidents`` collection:
+
+  .. code-block:: javascript
+
+     > db.presidents.find()
+     
+     { "_id": 1,
+       "name": { "first": "George", "last": "Washington" },
+       "title": [ "President", "General" ],
+       "born": ISODate("1732-02-22T05:00:00Z"),
+       "died": ISODate("1799-12-14T05:00:00Z"),
+       "state": "Virginia",
+       "email": [ { "type": "work", "addr": "george.no1@example.net" },
+                  { "type": "home", "addr": "geo.wash@example.net" } ],
+       "spouse": "Martha",
+       "office": [ { "term": 1, "from": 1789, "to": 1793 },
+                   { "term": 2, "from": 1793, "to": 1797 } ]
+     }
+
+- If the new document does not contain an ``_id`` field, then the
+  :method:`insert() <db.collection.insert()>` method adds the ``_id``
+  field to the document and assigns a unique ``ObjectId`` as its value.
+  
+  The following operation adds the ``_id`` field to the document,
+  assigns to the field a unique ``ObjectId``, and inserts the document
+  into the ``presidents`` collection:
+
+  .. code-block:: javascript
+
+     db.presidents.insert( { 
+        name: { first: 'John', last: 'Adams'},
+        title: [ 'President', 'Vice President', 'Ambassador' ],
+        born: new Date('10/30/1735'),
+        died: new Date('07/04/1826'),
+        state: 'Massachusetts', 
+        email: [ { type: 'work', addr: 'john.no2@example.net' },
+                 { type: 'home', addr: 'adams.the.father@example.net' } ],
+        spouse: 'Abigail',
+        office: [ { term:1, from: 1797, to: 1801 } ]
+     } )
+
+  You can verify the addition of the ``_id`` field to the inserted
+  document by the querying the ``presidents`` collection:
+
+  .. code-block:: javascript
+
+     > db.presidents.find( { name: { first: 'John', last: 'Adams' } } )
+
+     { "_id": ObjectId("5076d64dbcf86cd7994f68e5"),
+       "name": { "first": "John", "last": "Adams" },
+       "title": [ "President", "Vice President", "Ambassador" ],
+       "born": ISODate("1735-10-30T04:00:00Z"),
+       "died": ISODate("1826-07-04T04:00:00Z"),
+       "state": "Massachusetts",
+       "email": [ { "type": "work", "addr": "john.no2@example.net" },
+                  { "type": "home", "addr": "adams.the.father@example.net" } ],
+       "spouse": "Abigail",
+       "office": [ { "term": 1, "from": 1797, "to": 1801 } ]
+     }
+
+- If the argument to the :method:`insert() <db.collection.insert()>`
+  method is an array of documents, then the :method:`insert()
+  <db.collection.insert()>` method performs a bulk insert into a
   collection.
 
-.. _update_and_save:
+  The following operation inserts three documents into the
+  ``presidents`` collection. The operation also illustrates the
+  *dynamic schema* characteristic of MongoDB. Although the document
+  with ``_id: 4`` contains a field ``works`` which does not appear in
+  the other documents, MongoDB does not require the other documents to
+  contain this field:
 
-Update() with Upsert Option and Save()
---------------------------------------
+  .. code-block:: javascript
 
-Both the :method:`update() <db.collection.update()>` method and the
-:method:`save() <db.collection.save()>` method will be discussed in
-fuller detail in the Update section. But a quick introduction to their
-insert capabilities is presented here for completeness.
+     db.presidents.insert( [
+        {
+           _id: 3,
+           name: { first: 'Thomas', last: 'Jefferson'},
+           title: [ 'President', 'Vice President', 'Ambassador' ],
+           born: new Date('04/13/1743'),
+           died: new Date('07/04/1826'),
+           state: 'Virginia', 
+           email: [ { type: 'work', addr: 'thomas.no3@example.net' },
+                    { type: 'home', addr: 'tommy.j@example.net' } ],
+           spouse: 'Martha',
+           office: [ { term:1, from: 1801, to: 1805 },
+                     { term:2, from: 1805, to: 1809 } ]
+        },
+        {
+           _id: 4,
+           name: { first: 'James', last: 'Madison'},
+           title: [ 'President', 'Secretary of State' ],
+           born: new Date('03/16/1751'),
+           died: new Date('06/28/1836'),
+           state: 'Virginia',
+           works: [ 'Bill of Rights'],
+           email: [ { type: 'work', addr: 'james.no4@example.net' },
+                    { type: 'home', addr: 'constitution.man@example.net' } ],
+           spouse: 'Dolley',
+           office: [ { term:1, from: 1809, to: 1813 },
+                     { term:2, from: 1813, to: 1817 } ]
+        },
+        {
+           _id: 5,
+           name: { first: 'James', last: 'Monroe'},
+           title: [ 'President', 'Secretary of War', 'Secretary of State' ],
+           born: new Date('04/28/1758'),
+           died: new Date('07/04/1831'),
+           state: 'Virginia',
+           email: [ { type: 'work', addr: 'james.no5@example.net' },
+                    { type: 'home', addr: 'jm2@example.net' } ],
+           spouse: 'Elizabeth',
+           office: [ { term:1, from: 1817, to: 1821 }, 
+                     { term:2, from: 1821, to: 1825 } ]
+        }
+     ] )
 
-Update() with Upsert Option
-````````````````````````````
+.. _crud-create-update:
 
-The :method:`update() with upsert option <db.collection.update()>` or
-an ``upsert`` will insert a single document into a collection if no
-document exists that matches the update query criteria. The inserted
-document will contain the fields and values of both the update query
-criteria and the update operation. If the ``_id`` is not specified in
-either the query criteria and the update operation documents, the
-``upsert`` will add the ``_id`` field to the document and assign a
-unique ``objectid`` as its value.
+Update with Upsert
+------------------
 
-The ``upsert`` removes the need to perform a separate query to
-check for the existence of a record before performing either an insert
-or an update.
+The ``upsert``, or more specifically the :method:`update()
+<db.collection.update()>` method with the ``upsert`` option, inserts a
+single document into a collection if no document exists that matches
+the ``query`` argument. The ``upsert`` eliminates the need to perform a
+separate database call to check for the existence of a record before
+performing either an insert or an update.
 
-Save()
-``````
+An ``upsert`` has the following syntax:
 
-The :method:`save() <db.collection.save()>` will insert a document into
-a :term:`collection` if the document does not contain the ``_id`` field
-or contains an ``_id`` field with a value not in the collection. If the
-``_id`` is not specified in the document parameter, :method:`save()
-<db.collection.save()>` will add the ``_id`` field to the document
-and assign a unique ``objectid`` as its value.
+.. code-block:: javascript
+
+   db.collection.update( <query>,
+                         <update>,
+                         { upsert: true } )
+
+Consider the following examples that illustrate the usage of the
+``upsert`` to perform create operations:
+
+- If the ``update`` argument contains only ``field:value`` pairs and no
+  document matches the ``query`` argument, the ``upsert`` operation
+  inserts a new document containing the fields and values in the
+  ``update`` argument and the ``_id`` field if not found in the
+  ``update`` argument.
+
+  The following operation inserts a new document into the
+  ``presidents`` collection since there is no document matching the
+  ``name`` field as specified in the ``query`` argument. Since the
+  ``update`` argument contains only ``field:value`` pairs, the new
+  document contains only these fields and values:
+
+  .. code-block:: javascript
+
+     db.presidents.update(
+        { name: { first: 'John', middle: 'Quincy', last: 'Adams'} },
+        {
+          _id: 6,
+          name: { first: 'John', middle: 'Quincy', last: 'Adams'},
+          title: [ 'President', 'U.S. Representative' ],
+          born: new Date('07/11/1767'),
+          died: new Date('02/23/1848'),
+          state: 'Massachusetts',
+          email: [ { type: 'work', addr: 'james.no6@example.net' },
+                   { type: 'home', addr: 'adams.the.son@example.net' } ],
+          spouse: 'Louisa',
+          office: [ { term:1, from: 1825, to: 1829 } ]
+        },
+        { upsert: true } 
+     )
+
+- If the ``update`` argument includes only :ref:`update operators
+  <update-operators>`, the ``upsert`` operation inserts a new document
+  containing the fields and values in the ``update`` argument and the
+  fields and values in the ``query`` argument.
+
+  The following operation inserts a new document into the
+  ``presidents`` collection since there is no document matching the
+  ``_id`` field and the ``name`` field as specified in the ``query``
+  argument. Since the ``update`` argument contains only :ref:`update
+  operators <update-operators>`, the inserted document contains fields
+  and values from both the ``query`` and the ``update`` arguments.
+
+  .. code-block:: javascript
+
+     db.presidents.update( 
+        { _id: 7, name: { first: 'Andrew', last: 'Jackson'} },
+        {
+          $set: {
+                  title: [ 'President', 'General', 'Old Hickory' ],
+                  born: new Date('03/15/1767'),
+                  died: new Date('06/08/1845'),
+                  state: 'Carolinas',
+                  email: [ { type: 'work', addr: 'andrew.7@example.net' },
+                           { type: 'home', addr: 'old.hickory@example.net' } ],
+                  spouse: 'Rachel',
+                  office: [ { term:1, from: 1829, to: 1833 },
+                            { term:2, from: 1833, to: 1837 } ]
+                }
+        },
+        { upsert: true }
+     )
+
+  You can verify that the inserted document contains the ``_id`` and
+  the ``name`` fields from the ``query`` argument as well as the fields
+  and values from the ``update`` argument by querying the
+  ``presidents`` collection:
+
+  .. code-block:: javascript
+
+     > db.presidents.find( { _id: 7 } )
+
+     { "_id": 7, 
+       "born": ISODate("1767-03-15T05:00:00Z"),
+       "died": ISODate("1845-06-08T04:00:00Z"),
+       "email": [ { "type": "work", "addr": "andrew.7@example.net" },
+                  { "type": "home", "addr": "old.hickory@example.net" } ],
+       "name": { "first": "Andrew", "last": "Jackson" },
+       "office": [ { "term": 1, "from": 1829, "to": 1833 },
+                   { "term": 2, "from": 1833, "to": 1837 } ],
+       "spouse": "Rachel",
+       "state": "Carolinas",
+       "title": [ "President", "General", "Old Hickory" ]
+     }
+
+- If the ``_id`` is not specified in either the ``query`` argument and
+  the ``update`` argument, the ``upsert`` operation adds the ``_id``
+  field to the document and assigns a unique ``ObjectId`` as its value.
+
+  The following operation inserts a new document into the
+  ``presidents`` collection since there is no document matching the
+  ``name`` field as specified in the ``query`` argument. Because the
+  ``update`` argument does not contain the ``_id`` field, the
+  ``upsert`` operation adds the ``_id`` field to the document and
+  assigns to the field a unique ``ObjectId``:
+
+  .. code-block:: javascript
+
+     db.presidents.update( 
+        { name: { first: 'Martin', last: 'Van Buren'} },
+        { 
+          name: { first: 'Martin', last: 'Van Buren' },
+          title: [ 'President', 'Vice President', 'Secretary of State' ], 
+          born: new Date('12/05/1782'),
+          died: new Date('07/24/1862'),
+          state: 'New York', 
+          email: [ { type: 'work', addr: 'martin.8@example.net' },
+                   { type: 'home', addr: 'free.soil@example.net' } ],
+          spouse: 'Hannah',
+          office: [ { term:1, from: 1837, to: 1841 } ]
+        },
+        { upsert: true } 
+     )
+
+  You can verify the addition of the ``_id`` field to the inserted
+  document by the querying the ``presidents`` collection:
+
+  .. code-block:: javascript
+
+     > db.presidents.find( { name: { first: 'Martin', last: 'Van Buren' } } )
+
+     { "_id": ObjectId("5076d6e28fada716c89d000f"),
+       "name": { "first": "Martin", "last": "Van Buren" },
+       "title": [ "President", "Vice President", "Secretary of State" ],
+       "born": ISODate("1782-12-05T05:00:00Z"),
+       "died": ISODate("1862-07-24T04:00:00Z"),
+       "state": "New York",
+       "email": [ { "type": "work", "addr": "martin.8@example.net" },
+                  { "type": "home", "addr": "free.soil@example.net" } ],
+       "spouse": "Hannah",
+       "office": [ { "term": 1, "from": 1837, "to": 1841 } ]
+     }
+
+.. _crud-create-save:
+
+Save
+----
+
+The :method:`save() <db.collection.save()>` method inserts a document
+into a collection if the document does not contain the ``_id`` field or
+contains an ``_id`` field with a value not in the collection. If the
+document does not contain the ``_id`` field, the :method:`save()
+<db.collection.save()>` method adds the ``_id`` field to the document
+and assigns a unique ``ObjectId`` as its value.
+
+The :method:`save() <db.collection.save()>` method has the
+following syntax:
+
+.. code-block:: javascript
+
+   db.collection.save( <document> )
+
+Consider the following examples that illustrate the usage of the
+:method:`insert() <db.collection.insert()>` method for create
+operations:
+
+- If the ``document`` does not contain the ``_id`` field, the
+  :method:`save() <db.collection.save()>` method adds the ``_id`` field
+  to the document and performs an insert.
+  
+  The following operation performs an insert into the ``presidents``
+  collection since the document does not contain the ``_id`` field:
+
+  .. code-block:: javascript
+
+     db.presidents.save( {
+        name: { first: 'William', middle: 'Henry',last: 'Harrison' },
+        title: [ 'President' ],
+        born: new Date('02/09/1773'),
+        died: new Date('04/04/1841'),
+        state: 'Virginia',
+        email: [ { type: 'work', addr: 'william.9@example.net' },
+                 { type: 'home', addr: 'tippecanoe@example.net' } ],
+        spouse: 'Anna',
+        office: [ { term:1, from: 1841, to: 1841 } ]
+     } )
+
+  You can verify the addition of the ``_id`` field during the operation
+  by querying the ``presidents`` collection:
+  
+  .. code-block:: javascript
+
+     > db.presidents.find ( { 'name.first': 'William', 'name.last': 'Harrison' } )
+
+     { "_id": ObjectId("5076d6febcf86cd7994f68e6"),
+       "name": { "first": "William", "middle": "Henry", "last": "Harrison" },
+       "title": [ "President" ],
+       "born": ISODate("1773-02-09T05:00:00Z"),
+       "died": ISODate("1841-04-04T05:00:00Z"),
+       "state": "Virginia",
+       "email": [ { "type": "work", "addr": "william.9@example.net" },
+                  { "type": "home", "addr": "tippecanoe@example.net" } ],
+       "spouse": "Anna",
+       "office": [ { "term": 1, "from": 1841, "to": 1841 } ] 
+     }
+
+- If the ``document`` contains an ``_id`` field but has a value not
+  found in the collection, the :method:`save() <db.collection.save()>`
+  method performs an insert.
+
+  The following operation performs an insert into the ``presidents``
+  collection since the document contains an ``_id`` field whose value
+  ``10`` is not found in the ``presidents`` collection:
+
+  .. code-block:: javascript
+
+     db.presidents.save( {
+        _id: 10,
+        name: { first: 'John', last: 'Tyler' },
+        title: [ 'President', 'Vice President' ],
+        born: new Date('03/29/1790'),
+        died: new Date('01/18/1862'),
+        state: 'Virginia',
+        email: [ { type: 'work', addr: 'john.10@example.net' },
+                 { type: 'home', addr: 'remember.me@example.net' } ],
+        spouse: [ 'Letitia', 'Julia' ],
+        office: [ { term:1, from: 1841, to: 1845 } ]
+     } )
+
+ 
