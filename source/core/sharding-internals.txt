@@ -21,7 +21,7 @@ Shard Keys
 ----------
 
 Shard keys are the field in a collection that MongoDB uses to
-distribute :term:`documents <document>` within a shard cluster. See the
+distribute :term:`documents <document>` within a sharding cluster. See the
 :ref:`overview of shard keys <sharding-shard-key>` for an
 introduction to these topics.
 
@@ -169,7 +169,7 @@ compound shard key. The data may become more splitable with a
 compound shard key.
 
 .. see:: ":ref:`sharding-mongos`" for more information on query
-   operations in the context of shard clusters.
+   operations in the context of sharding clusters.
 
 .. [#shard-key-index] In many ways, you can think of the shard key a
    cluster-wide unique index. However, be aware that sharded systems
@@ -402,7 +402,7 @@ than two.*
 
    The specification of the balancing window is relative to the local
    time zone of all individual :program:`mongos` instances in the
-   shard cluster.
+   sharding cluster.
 
 .. index:: sharding; chunk size
 .. _sharding-chunk-size:
@@ -511,30 +511,156 @@ member has replicated changes before allowing new chunk migrations.
 Config Database
 ---------------
 
-The ``config`` database contains sharding configuration information. To
-start the ``config`` database from the :program:`mongo` shell, issue the
-following command:
+The ``config`` database contains information about your sharding
+configuration and stores the information in a set of collections
+specific to sharding.
+
+.. important:: Back up the ``config`` database before performing
+   any maintenance on the config server.
+
+To start the ``config`` database, issue the following command from the
+:program:`mongo` shell:
 
 .. code-block:: javascript
 
    use config
 
-The config database includes the following collections used by sharding:
+The config database includes the following collections specific to sharding:
 
 .. data:: chunks
 
+   This collection lists the chunks in the sharding cluster. Each chunk
+   is listed as a separate document. The following is the document for a
+   chunk with the ``_id`` ``mydb.foo-animal_\"cat\"``. Among other
+   information, the document shows the chunk's minimum and maximum
+   values (in the ``min`` and ``max`` fields) and the name of the shard
+   to which the chunk belongs (in the ``shard`` field):
+
+   .. code-block:: javascript
+
+   {
+
+      "_id" : "mydb.foo-a_\"cat\"",
+
+      "lastmod" : Timestamp(1000, 3),
+
+      "lastmodEpoch" : ObjectId("5078407bd58b175c5c225fdc"),
+
+      "ns" : "mydb.foo",
+
+      "min" : {
+
+            "animal" : "cat"
+
+      },
+
+      "max" : {
+
+            "animal" : "dog"
+
+      },
+
+      "shard" : "shard0004"
+
+   }
+
+.. data:: collections
+
+   This lists the collections in the sharding cluster. Each collection is
+   listed as a separate document. The following is the document for the
+   ``foo`` collection in the ``mydb`` database:
+
+   .. code-block:: javascript
+
+   {
+
+      "_id" : "mydb.foo",
+
+      "lastmod" : ISODate("1970-01-16T15:00:58.107Z"),
+
+      "dropped" : false,
+
+      "key" : {
+
+            "a" : 1
+
+      },
+
+      "unique" : false,
+
+      "lastmodEpoch" : ObjectId("5078407bd58b175c5c225fdc")
+
+   }
+
 .. data:: databases
 
-.. data:: lockpings
+   This collection lists the databases in the sharding cluster and whether
+   or not each is partitioned. Each database is listed as a separate
+   document. If a database is partitioned, the ``primary`` key gives the
+   name of the :term:`primary shard`.
 
-.. data:: locks
+   .. code-block::
+
+      { "_id" : "admin", "partitioned" : false, "primary" : "config" }
+      { "_id" : "mydb", "partitioned" : true, "primary" : "shard0000" }
+
+.. TODO Is data:: lockpings a shard-specific collection?
+
+.. TODO Is data:: locks a shard-specific collection?
 
 .. data:: mongos
 
+   This collection lists all the :program:`mongos` sharding routers
+   affiliated with the sharding cluster. Each :program:`mongos` is
+   listed as a separate document. A :program:`mongos` pings the cluster
+   every 30 seconds to verify to the cluster the :program:`mongos` is
+   active. This collection is used for reporting.
+
+   The following document shows the status of the :program:`mongos`
+   running on ``example.com:30000``.
+
+   .. code-block:: javascript
+
+      { "_id" : "example.com:30000", "ping" : ISODate("2012-10-12T17:08:13.538Z"), "up" : 13699, "waiting" : true }
+
 .. data:: settings
+
+   This collection lists the following sharding configuration settings:
+
+   - Chunk size. To change chunk size, see :ref:`sharding-balancing-modify-chunk-size`.
+
+   - Balancer status. To change status, see :ref:`sharding-balancing-disable-temporally`.
+
+   The following is an example ``settings`` collection:
+
+   .. code-block:: javascript
+
+   { "_id" : "chunksize", "value" : 64 }
+
+   { "_id" : "balancer", "stopped" : false }
 
 .. data:: shards
 
-.. data:: system.indexes
+   This collection lists the shards you have created. Each shard is
+   listed as a separate document. If the shard is a replica set, the
+   ``host`` field displays the name of the replica set, then a slash, then
+   the hostname, as shown here:
+
+   code-block:: javascript
+
+      { "_id" : "shard0000", "host" : "shard1/localhost:30000" }
 
 .. data:: version
+
+   This collection contains the current metadata version number. This
+   collection contains only one document:
+
+   To access the ``version`` collection you must use the
+   :method:`db.getCollection()` method. For example, to display the
+   collection's document:
+
+   .. code-block:: javascript
+
+      mongos> db.getCollection("version").find()
+
+      { "_id" : 1, "version" : 3 }
