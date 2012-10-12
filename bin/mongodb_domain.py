@@ -134,6 +134,8 @@ class MongoDBObject(ObjectDescription):
             return _('%s (error code)') % (name)
         elif self.objtype == 'macro':
             return _('%s (JavaScript shell macro)') % (name)
+        elif self.objtype == 'limit':
+            return _('%s (MongoDB system limit)') % (name)
         return ''
 
     def run(self):
@@ -210,6 +212,7 @@ class MongoDBDomain(Domain):
         'collflag':     ObjType(l_('collflag'),    'collflag'),
         'error':        ObjType(l_('error'),       'error'),
         'macro':        ObjType(l_('macro'),       'macro'),
+        'limit':        ObjType(l_('limit'),       'limit'),
     }
 
     directives = {
@@ -229,6 +232,7 @@ class MongoDBDomain(Domain):
         'collflag':      MongoDBCallable,
         'error':         MongoDBCallable,
         'macro':         MongoDBCallable,
+        'limit':         MongoDBCallable,
     }
     roles = {
         'dbcommand':   MongoDBXRefRole(),
@@ -247,6 +251,7 @@ class MongoDBDomain(Domain):
         'collflag':    MongoDBXRefRole(),
         'error':       MongoDBXRefRole(),
         'macro':       MongoDBXRefRole(),
+        'limit':       MongoDBXRefRole(),
     }
     initial_data = {
         'objects': {}, # fullname -> docname, objtype
