@@ -487,13 +487,13 @@ All chunk migrations use the following procedure:
    the source shard for the chunk. In this operation the balancer
    passes the name of the destination shard to the source shard.
 
-#. The source initaties the move with an internal
+#. The source initiaties the move with an internal
    :dbcommand:`moveChunk` command with the destination shard.
 
 #. The destination shard begins requesting documents in the chunk, and
    begins receiving these chunks.
 
-#. After receving the final document in the chunk, the destination
+#. After receiving the final document in the chunk, the destination
    shard initiates a synchronization process to ensure that all
    changes to the documents in the chunk on the source shard during
    the migration process exist on the destination shard.
@@ -513,7 +513,7 @@ Config Database
 
 The ``config`` database contains information about your sharding
 configuration and stores the information in a set of collections
-specific to sharding.
+used by sharding.
 
 .. important:: Back up the ``config`` database before performing
    any maintenance on the config server.
@@ -525,13 +525,14 @@ To start the ``config`` database, issue the following command from the
 
    use config
 
-The config database includes the following collections specific to sharding:
+The ``config`` database holds the following collections that support
+sharded cluster operations:
 
-.. data:: chunks
+.. data:: chunks 
 
-   This collection lists the chunks in the sharded cluster. Each chunk
-   is listed as a separate document. The following is the document for a
-   chunk with the ``_id`` ``mydb.foo-animal_\"cat\"``. Among other
+   The :data:`chunks` collection represents each chunk in the sharded cluster
+   in a separate document. The following is a document for a
+   chunk with an ``_id`` value of ``mydb.foo-animal_\"cat\"``. Among other
    information, the document shows the chunk's minimum and maximum
    values (in the ``min`` and ``max`` fields) and the name of the shard
    to which the chunk belongs (in the ``shard`` field):
@@ -554,9 +555,10 @@ The config database includes the following collections specific to sharding:
 
 .. data:: collections
 
-   This lists the collections in the sharded cluster. Each collection is
-   listed as a separate document. The following is the document for the
-   ``foo`` collection in the ``mydb`` database:
+   The :data:`collections` collection represents each sharded collection
+   in the cluster in a separate document. Given a collection named ``foo``
+   in the ``mydb`` database, the document in the :data:`collections`
+   collection would resemble:
 
    .. code-block:: javascript
 
@@ -573,7 +575,7 @@ The config database includes the following collections specific to sharding:
 
 .. data:: databases
 
-   This collection lists the databases in the sharded cluster and whether
+   The :data:`databases` collection holds the databases in the sharded cluster and whether
    or not each is partitioned. Each database is listed as a separate
    document. If a database is partitioned, the ``primary`` key gives the
    name of the :term:`primary shard`.
@@ -583,17 +585,28 @@ The config database includes the following collections specific to sharding:
       { "_id" : "admin", "partitioned" : false, "primary" : "config" }
       { "_id" : "mydb", "partitioned" : true, "primary" : "shard0000" }
 
-.. TODO Is data:: lockpings a shard-specific collection?
+.. data:: lockpings
 
-.. TODO Is data:: locks a shard-specific collection?
+   The :data:`lockpings` collection keeps track of the active components
+   in the sharded cluster. Given a cluster with a :program:`mongos`
+   running on ``example.com:30000``, the document in the
+   :data:`lockpings` collection would resemble:
+
+   .. code-block:: javascript
+
+      { "_id" : "example.com:30000:1350047994:16807", "ping" : ISODate("2012-10-12T18:32:54.892Z") }
+
+.. data:: locks
+
+   The :data:`locks` collection is used for distributed locking between
+   :program:`mongos` instances and shards.
 
 .. data:: mongos
 
-   This collection lists all the :program:`mongos` sharding routers
-   affiliated with the sharded cluster. Each :program:`mongos` is
-   listed as a separate document. A :program:`mongos` pings the cluster
+   The :data:`mongos` collection represents each :program:`mongos`
+   affiliated with the sharded cluster. A :program:`mongos` sends pings to all members of the cluster
    every 30 seconds to verify to the cluster the :program:`mongos` is
-   active. This collection is used for reporting.
+   active. The ``ping`` field shows the time of the last ping. This collection is used for reporting.
 
    The following document shows the status of the :program:`mongos`
    running on ``example.com:30000``.
@@ -604,7 +617,7 @@ The config database includes the following collections specific to sharding:
 
 .. data:: settings
 
-   This collection lists the following sharding configuration settings:
+   The :data:`settings` collection holds the following sharding configuration settings:
 
    - Chunk size. To change chunk size, see :ref:`sharding-balancing-modify-chunk-size`.
 
@@ -619,8 +632,8 @@ The config database includes the following collections specific to sharding:
 
 .. data:: shards
 
-   This collection lists the shards you have created. Each shard is
-   listed as a separate document. If the shard is a replica set, the
+   The :data:`shards` collection represents each shard in the cluster
+   in a separate document. If the shard is a replica set, the
    ``host`` field displays the name of the replica set, then a slash, then
    the hostname, as shown here:
 
@@ -628,12 +641,17 @@ The config database includes the following collections specific to sharding:
 
       { "_id" : "shard0000", "host" : "shard1/localhost:30000" }
 
+.. data:: system.indexes
+
+   The :data:`system.indexes` collection contains all the indexes in the
+   shard. For more information on indexes, see :doc:`/indexes`.
+
 .. data:: version
 
-   This collection contains the current metadata version number. This
+   The :data:`version` collection holds the current metadata version number. This
    collection contains only one document:
 
-   To access the ``version`` collection you must use the
+   To access the :data:`version` collection you must use the
    :method:`db.getCollection()` method. For example, to display the
    collection's document:
 
