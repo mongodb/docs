@@ -1,4 +1,4 @@
 .. note::
 
    All config servers must be running and available when you first initiate
-   a :term:`shard cluster`.
+   a :term:`sharded cluster`.

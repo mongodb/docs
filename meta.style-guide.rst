@@ -157,7 +157,7 @@ Referencing
 
   Type this:
 
-  To deploy a shard cluster for an existing replica set, see
+  To deploy a sharded cluster for an existing replica set, see
   :doc:`/tutorial/convert-replica-set-to-replicated-shard-cluster`.
 
 General Formulations
@@ -277,7 +277,7 @@ disk.)
 Distributed System Terms
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Refer to partitioned systems as "shard clusters," over other
+- Refer to partitioned systems as "sharded clusters," over other
   variants. (e.g. sharded clusters, or sharded systems.)
 
 - Refer configurations that run with replication as "replica sets" (or
@@ -317,7 +317,7 @@ Notes on Specific Features
 Other Terms
 ~~~~~~~~~~~
 
-- Use "**shard cluster**," to refer to a collection of ``mongod``
+- Use "**sharded cluster**," to refer to a collection of ``mongod``
   instances that hold a sharded data set. Use the term "**replica
   set**," to refer to a collection of ``mongod`` instances that
   provide a replicated data set. Do not use the word "cluster" to
