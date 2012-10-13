@@ -1,16 +1,11 @@
 #!/usr/bin/python
 
-import os 
-import sys
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
-
-from conf import VersionMeta
+from mongodb_docs_meta import get_commit
 
 def main():
-    meta = VersionMeta()
 
-    content = '.. |commit| replace:: ``' + meta.commit + '``' + '\n'
+    content = '.. |commit| replace:: ``' + get_commit() + '``' + '\n'
 
     f = open('source/includes/hash.rst', 'w')
     f.write(content)
