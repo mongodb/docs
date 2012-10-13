@@ -1,9 +1,14 @@
 #!/usr/bin/python
 
-import mongodb_docs_meta
+import os 
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
+
+from conf import VersionMeta
 
 def main():
-    meta = mongodb_docs_meta.VersionMeta()
+    meta = VersionMeta()
 
     content = '.. |commit| replace:: ``' + meta.commit + '``' + '\n'
 

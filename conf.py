@@ -8,9 +8,34 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../bin")))
-from mongodb_docs_meta import VersionMeta
+import sys
+import os
+import datetime
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "bin")))
+
+MANUAL_BRANCH = 'manual'
+
+def shell_value( args ):
+    import re
+    import subprocess
+    if isinstance( args , str ):
+        r = re.compile( "\s+" )
+        args = r.split( args )
+    p = subprocess.Popen( args , stdout=subprocess.PIPE , stderr=subprocess.PIPE )
+    r = p.communicate()
+    value = r[0].decode().rstrip()
+    return value
+
+class VersionMeta():
+    def __init__(self):
+        self.branch = shell_value('git symbolic-ref HEAD').split('/')[2]
+        self.commit = shell_value('git rev-parse --verify HEAD')
+
+        if self.branch == MANUAL_BRANCH:
+            self.manual_path = MANUAL_BRANCH
+        else:
+            self.manual_path = self.branch
 
 meta = VersionMeta()
 
@@ -23,7 +48,7 @@ needs_sphinx = '1.0'
 extensions = ["sphinx.ext.intersphinx", "sphinx.ext.extlinks", "sphinx.ext.todo", "mongodb_domain", "additional_directives", "aggregation_domain"]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['../../.templates']
+templates_path = ['.templates']
 
 # The suffix of source filenames.
 source_suffix = '.txt'
@@ -36,7 +61,7 @@ master_doc = 'contents'
 
 # General information about the project.
 project = u'MongoDB'
-copyright = u'2011-' + meta.current_year + ', 10gen, Inc.'
+copyright = u'2011-' + str(datetime.date.today().year) + ', 10gen, Inc.'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -113,7 +138,7 @@ html_theme = 'mongodb'
 # html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = ['../../themes']
+html_theme_path = ['themes']
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -124,7 +149,7 @@ html_title = project + ' Manual'
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = "source/.static/logo-mongodb.png"
+html_logo = ".static/logo-mongodb.png"
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -134,7 +159,7 @@ html_logo = "source/.static/logo-mongodb.png"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['../../source/.static']
+html_static_path = ['source/.static']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -222,7 +247,7 @@ man_pages = [
 epub_title = u'MongoDB'
 epub_author = u'MongoDB Documentation Project'
 epub_publisher = u'MongoDB Documentation Project'
-epub_copyright = u'2011-' + meta.current_year + ', 10gen Inc.'
+epub_copyright = u'2011-' + str(datetime.date.today().year) + ', 10gen Inc.'
 epub_theme = 'epub_mongodb'
 epub_tocdup = True
 epub_tocdepth = 3
