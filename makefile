@@ -156,6 +156,7 @@ $(branch-output)/latex/MongoDB.tex:latex
 $(branch-output)/latex/MongoDB.pdf:$(branch-output)/latex/MongoDB-Manual.tex
 $(branch-output)/latex/MongoDB-Manual.tex:$(branch-output)/latex/MongoDB.tex
 	@$(PYTHONBIN) bin/copy-if-needed.py -i $< -o $@ -b pdf
+$(branch-output)/latex/MongoDB-Manual.pdf:$(branch-output)/latex/MongoDB-Manual.tex
 $(public-branch-output)/MongoDB-Manual-$(current-branch).pdf:$(branch-output)/latex/MongoDB-Manual.pdf
 	@cp $< $@
 	@echo [build]: migrated $@
