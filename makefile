@@ -134,6 +134,7 @@ setup:source/includes/hash.rst
 
 source/includes/hash.rst:
 	@$(PYTHONBIN) bin/update_hash.py
+	@git update-index --assume-unchanged source/includes/hash.rst
 	@echo [build]: \(re\)generated $@.
 source/about.txt:setup
 	@touch $@
@@ -263,19 +264,19 @@ clean-all:
 ######################################################################
 
 .PHONY: html dirhtml singlehtml epub sitemap
-html:setup
+html:
 	@echo [html]: build starting at `date`.
 	@mkdir -p $(branch-output)/html
 	@echo [html]: created $(branch-output)/html
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(branch-output)/html
 	@echo [html]: build complete at `date`.
-dirhtml:setup
+dirhtml:
 	@echo [dirhtml]: build starting at `date`.
 	@mkdir -p $(branch-output)/dirhtml
 	@echo [dirhtml]: created $(branch-output)/dirhtml
 	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(branch-output)/dirhtml
 	@echo [dirhtml]: build complete at `date`.
-singlehtml:setup
+singlehtml:
 	@echo [singlehtml]: build started at `date`.
 	@mkdir -p $(branch-output)/singlehtml
 	@echo [singlehtml]: created $(branch-output)/singlehtml
@@ -284,7 +285,7 @@ singlehtml:setup
 
 epub-command = $(SPHINXBUILD) -b epub $(ALLSPHINXOPTS) $(branch-output)/epub
 epub-filter = sed $(SED_ARGS_REGEX) -e '/^WARNING: unknown mimetype.*ignoring$$/d' -e '/^WARNING: search index.*incomplete.$$/d'
-epub: pre-build-dependencies
+epub:pre-build-dependencies
 	@echo [epub]: starting epub build at `date`.
 	@mkdir -p $(branch-output)/epub
 	@echo [epub]: created $(branch-output)/epub
@@ -320,7 +321,7 @@ $(branch-output)/sitemap.xml.gz:$(public-output)/manual
 UNCOMPRESSED_MAN := $(wildcard $(branch-output)/man/*.1)
 COMPRESSED_MAN := $(subst .1,.1.gz,$(UNCOMPRESSED_MAN))
 
-man:setup
+man:
 	@echo [man]: starting man build at `date`.
 	@mkdir -p $(branch-output)/man
 	@echo [build]: created $(branch-output)/man
@@ -342,13 +343,13 @@ $(branch-output)/man/%.1.gz: $(branch-output)/man/%.1
 .PHONY: aspirational aspiration draft draft-pdf draft-pdfs
 aspiration:draft
 aspirational:draft
-draft:setup
+draft:
 	@echo [draft]: draft-html started at `date`.
 	@mkdir -p $(branch-output)/draft
 	@echo [draft]: created $(branch-output)/draft
 	$(SPHINXBUILD) -b html $(DRAFTSPHINXOPTS) $(branch-output)/draft
 	@echo [draft]: draft-html build finished at `date`.
-draft-latex:setup
+draft-latex:
 	@echo [draft]: draft-latex build started at `date`.
 	@mkdir -p $(branch-output)/draft-latex
 	@echo [draft]: created $(branch-output)/draft-latex
@@ -366,25 +367,25 @@ draft-pdfs:draft-latex draft-pdf
 ##########################################################################
 
 .PHONY: changes linkcheck json doctest
-json:setup
+json:
 	@echo [json]: build started at `date`.
 	@mkdir -p $(branch-output)/json
 	@echo [json]: created $(branch-output)/json
 	$(SPHINXBUILD) -b json $(ALLSPHINXOPTS) $(branch-output)/json
 	@echo [json]: build finished at `date`.
-changes:setup
+changes:
 	@echo [changes]: build started at `date`.
 	@mkdir -p $(branch-output)/changes
 	@echo [changes]: created $(branch-output)/changes
 	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) $(branch-output)/changes
 	@echo [changes]: build finished at `date`.
-linkcheck:setup
+linkcheck:
 	@echo [link]: build started at `date`.
 	@mkdir -p $(branch-output)/linkcheck
 	@echo [link]: created $(branch-output)/linkcheck
 	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) $(branch-output)/linkcheck
 	@echo [link]: Link check complete at `date`. See $(branch-output)/linkcheck/output.txt.
-doctest:setup
+doctest:
 	@echo [test]: build started at `date`.
 	@mkdir -p $(branch-output)/doctest
 	@echo [test]: created $(branch-output)/doctest
@@ -399,9 +400,10 @@ doctest:setup
 
 .PHONY:pdfs latex latexpdf
 
-latex:setup
+latex:
 	@echo [latex]: starting TeX file generation at `date`.
 	@mkdir -p $(branch-output)/latex
+	@echo [test]: created $(branch-output)/latex
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(branch-output)/latex
 	@echo [latex]: TeX file generated at `date`.
 latexpdf:latex
