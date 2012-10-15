@@ -77,7 +77,7 @@ use the following procedure as a quick starting point:
 
       mongo mongos0.example.net
 
-#. Add shards to the cluster. 
+#. Add shards to the cluster.
 
    .. note:: In production deployments, all shards should be replica sets.
 
@@ -217,7 +217,6 @@ To list the databases for which sharding is enabled, query the
    .. code-block:: javascript
 
       use config
-
       db.databases.find()
 
    Given the following example output:
@@ -225,16 +224,11 @@ To list the databases for which sharding is enabled, query the
    .. code-block:: javascript
 
       { "_id" : "admin", "partitioned" : false, "primary" : "config" }
-
       { "_id" : "foo", "partitioned" : true, "primary" : "example1.com:30001" }
-
       { "_id" : "baz", "partitioned" : false, "primary" : "example2.com:27017" }
 
    Only the database `foo` has sharding enabled because only `foo` has
    the ``partitioned`` field set to ``true``.
-
-.. note:: If a database in a sharded environment does not have sharding
-   enabled, all its data is on the first shard of the cluster.
 
 List Shards
 ~~~~~~~~~~~
@@ -247,33 +241,58 @@ command:
 
    db.runCommand( { listshards : 1 } )
 
+View Cluster Details
+~~~~~~~~~~~~~~~~~~~~
+
+To view cluster details, issue :method:`db.printShardingStatus()` or
+:method:`sh.status()`. Both methods return the same output.
+
+.. example:: In the following example output from :method:`sh.status()`
+
+   - ``sharding version`` displays the version number of the shard
+     metadata.
+
+   - ``shards`` displays each :program:`mongod` instance that is used as
+     a shard.
+
+   - ``databases`` displays all databases living in the cluster,
+     including databases for which sharding is not enabled.
+
+   - The ``chunks`` information for the ``foo`` database displays how
+     many chunks are on each shard and displays the range of each chunk.
+
+   .. code-block:: javascript
+
+      --- Sharding Status ---
+        sharding version: { "_id" : 1, "version" : 3 }
+        shards:
+          {  "_id" : "shard0000",  "host" : "example1.com:40000" }
+          {  "_id" : "shard0001",  "host" : "example2.com:50000" }
+        databases:
+          {  "_id" : "admin",  "partitioned" : false,  "primary" : "config" }
+          {  "_id" : "foo",  "partitioned" : true,  "primary" : "shard0000" }
+              foo.big chunks:
+                      shard0001    1
+                      shard0000    6
+                  { "a" : { $minKey : 1 } } -->> { "a" : "elephant" } on : shard0001 Timestamp(2000, 1) jumbo
+                  { "a" : "elephant" } -->> { "a" : "giraffe" } on : shard0000 Timestamp(1000, 1) jumbo
+                  { "a" : "giraffe" } -->> { "a" : "hippopotamus" } on : shard0000 Timestamp(2000, 2) jumbo
+                  { "a" : "hippopotamus" } -->> { "a" : "lion" } on : shard0000 Timestamp(2000, 3) jumbo
+                  { "a" : "lion" } -->> { "a" : "rhinoceros" } on : shard0000 Timestamp(1000, 3) jumbo
+                  { "a" : "rhinoceros" } -->> { "a" : "springbok" } on : shard0000 Timestamp(1000, 4)
+                  { "a" : "springbok" } -->> { "a" : { $maxKey : 1 } } on : shard0000 Timestamp(1000, 5)
+              foo.large chunks:
+                      shard0001    1
+                      shard0000    5
+                  { "a" : { $minKey : 1 } } -->> { "a" : "hen" } on : shard0001 Timestamp(2000, 0)
+                  { "a" : "hen" } -->> { "a" : "horse" } on : shard0000 Timestamp(1000, 1) jumbo
+                  { "a" : "horse" } -->> { "a" : "owl" } on : shard0000 Timestamp(1000, 2) jumbo
+                  { "a" : "owl" } -->> { "a" : "rooster" } on : shard0000 Timestamp(1000, 3) jumbo
+                  { "a" : "rooster" } -->> { "a" : "sheep" } on : shard0000 Timestamp(1000, 4)
+                  { "a" : "sheep" } -->> { "a" : { $maxKey : 1 } } on : shard0000 Timestamp(1000, 5)
+          {  "_id" : "test",  "partitioned" : false,  "primary" : "shard0000" }
+
 .. _sharding-procedure-add-shard:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 Add a Shard to a Cluster
 ~~~~~~~~~~~~~~~~~~~~~~~~
