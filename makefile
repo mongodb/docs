@@ -256,25 +256,6 @@ clean-all:
 # Needed for all sphinx builds.
 .PHONY: $(branch-output)/themes $(branch-output)/bin $(branch-output)/.static $(branch-output)/.templates
 
-# $(sphinx-conf):
-# 	@$(PYTHONBIN) bin/copy-if-needed.py -i conf.py -o $@ -b sphinx
-# $(branch-output)/themes:themes
-# 	@mkdir -p $@
-# 	@rsync --recursive --delete $</  $@
-# 	@echo [build]: syncing '$<' directory
-# $(branch-output)/bin:bin
-# 	@mkdir -p $@
-# 	@rsync  --recursive --delete $</  $@
-# 	@echo [build]: syncing '$<' directory
-# $(branch-output)/.templates:.templates
-# 	@mkdir -p $@
-# 	@rsync --recursive --delete $</ $@
-# 	@echo [build]: syncing '$<' directory
-# $(branch-output)/.static:source/.static
-# 	@mkdir -p $@
-# 	@rsync --recursive --delete $</ $@
-# 	@echo [build]: syncing '$<' directory
-
 ######################################################################
 #
 # Default HTML Sphinx build targets
@@ -282,19 +263,19 @@ clean-all:
 ######################################################################
 
 .PHONY: html dirhtml singlehtml epub sitemap
-html:
+html:setup
 	@echo [html]: build starting at `date`.
 	@mkdir -p $(branch-output)/html
 	@echo [html]: created $(branch-output)/html
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(branch-output)/html
 	@echo [html]: build complete at `date`.
-dirhtml:
+dirhtml:setup
 	@echo [dirhtml]: build starting at `date`.
 	@mkdir -p $(branch-output)/dirhtml
 	@echo [dirhtml]: created $(branch-output)/dirhtml
 	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(branch-output)/dirhtml
 	@echo [dirhtml]: build complete at `date`.
-singlehtml:
+singlehtml:setup
 	@echo [singlehtml]: build started at `date`.
 	@mkdir -p $(branch-output)/singlehtml
 	@echo [singlehtml]: created $(branch-output)/singlehtml
@@ -339,7 +320,7 @@ $(branch-output)/sitemap.xml.gz:$(public-output)/manual
 UNCOMPRESSED_MAN := $(wildcard $(branch-output)/man/*.1)
 COMPRESSED_MAN := $(subst .1,.1.gz,$(UNCOMPRESSED_MAN))
 
-man:
+man:setup
 	@echo [man]: starting man build at `date`.
 	@mkdir -p $(branch-output)/man
 	@echo [build]: created $(branch-output)/man
@@ -361,13 +342,13 @@ $(branch-output)/man/%.1.gz: $(branch-output)/man/%.1
 .PHONY: aspirational aspiration draft draft-pdf draft-pdfs
 aspiration:draft
 aspirational:draft
-draft:
+draft:setup
 	@echo [draft]: draft-html started at `date`.
 	@mkdir -p $(branch-output)/draft
 	@echo [draft]: created $(branch-output)/draft
 	$(SPHINXBUILD) -b html $(DRAFTSPHINXOPTS) $(branch-output)/draft
 	@echo [draft]: draft-html build finished at `date`.
-draft-latex:
+draft-latex:setup
 	@echo [draft]: draft-latex build started at `date`.
 	@mkdir -p $(branch-output)/draft-latex
 	@echo [draft]: created $(branch-output)/draft-latex
@@ -385,25 +366,25 @@ draft-pdfs:draft-latex draft-pdf
 ##########################################################################
 
 .PHONY: changes linkcheck json doctest
-json:
+json:setup
 	@echo [json]: build started at `date`.
 	@mkdir -p $(branch-output)/json
 	@echo [json]: created $(branch-output)/json
 	$(SPHINXBUILD) -b json $(ALLSPHINXOPTS) $(branch-output)/json
 	@echo [json]: build finished at `date`.
-changes:
+changes:setup
 	@echo [changes]: build started at `date`.
 	@mkdir -p $(branch-output)/changes
 	@echo [changes]: created $(branch-output)/changes
 	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) $(branch-output)/changes
 	@echo [changes]: build finished at `date`.
-linkcheck:
+linkcheck:setup
 	@echo [link]: build started at `date`.
 	@mkdir -p $(branch-output)/linkcheck
 	@echo [link]: created $(branch-output)/linkcheck
 	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) $(branch-output)/linkcheck
 	@echo [link]: Link check complete at `date`. See $(branch-output)/linkcheck/output.txt.
-doctest:
+doctest:setup
 	@echo [test]: build started at `date`.
 	@mkdir -p $(branch-output)/doctest
 	@echo [test]: created $(branch-output)/doctest
@@ -418,7 +399,7 @@ doctest:
 
 .PHONY:pdfs latex latexpdf
 
-latex:
+latex:setup
 	@echo [latex]: starting TeX file generation at `date`.
 	@mkdir -p $(branch-output)/latex
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(branch-output)/latex
