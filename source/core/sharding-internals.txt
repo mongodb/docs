@@ -493,7 +493,7 @@ All chunk migrations use the following procedure:
 #. The destination shard begins requesting documents in the chunk, and
    begins receiving these chunks.
 
-#. After receving the final document in the chunk, the destination
+#. After receiving the final document in the chunk, the destination
    shard initiates a synchronization process to ensure that all
    changes to the documents in the chunk on the source shard during
    the migration process exist on the destination shard.
@@ -511,30 +511,151 @@ member has replicated changes before allowing new chunk migrations.
 Config Database
 ---------------
 
-The ``config`` database contains sharding configuration information. To
-start the ``config`` database from the :program:`mongo` shell, issue the
-following command:
+The ``config`` database contains information about your sharding
+configuration and stores the information in a set of collections
+used by sharding.
+
+.. important:: Back up the ``config`` database before performing
+   any maintenance on the config server.
+
+To start the ``config`` database, issue the following command from the
+:program:`mongo` shell:
 
 .. code-block:: javascript
 
    use config
 
-The config database includes the following collections used by sharding:
+The ``config`` database holds the following collections that support
+sharded cluster operations:
 
-.. data:: chunks
+.. data:: chunks 
+
+   The :data:`chunks` collection represents each chunk in the sharded cluster
+   in a separate document. The following is a document for a
+   chunk with an ``_id`` value of ``mydb.foo-animal_\"cat\"``. Among other
+   information, the document shows the chunk's minimum and maximum
+   values (in the ``min`` and ``max`` fields) and the name of the shard
+   to which the chunk belongs (in the ``shard`` field):
+
+   .. code-block:: javascript
+
+      {
+         "_id" : "mydb.foo-a_\"cat\"",
+         "lastmod" : Timestamp(1000, 3),
+         "lastmodEpoch" : ObjectId("5078407bd58b175c5c225fdc"),
+         "ns" : "mydb.foo",
+         "min" : {
+               "animal" : "cat"
+         },
+         "max" : {
+               "animal" : "dog"
+         },
+         "shard" : "shard0004"
+      }
+
+.. data:: collections
+
+   The :data:`collections` collection represents each sharded collection
+   in the cluster in a separate document. Given a collection named ``foo``
+   in the ``mydb`` database, the document in the :data:`collections`
+   collection would resemble:
+
+   .. code-block:: javascript
+
+      {
+         "_id" : "mydb.foo",
+         "lastmod" : ISODate("1970-01-16T15:00:58.107Z"),
+         "dropped" : false,
+         "key" : {
+               "a" : 1
+         },
+         "unique" : false,
+         "lastmodEpoch" : ObjectId("5078407bd58b175c5c225fdc")
+      }
 
 .. data:: databases
 
+   The :data:`databases` collection holds the databases in the sharded cluster and whether
+   or not each is partitioned. Each database is listed as a separate
+   document. If a database is partitioned, the ``primary`` key gives the
+   name of the :term:`primary shard`.
+
+   .. code-block:: javascript
+
+      { "_id" : "admin", "partitioned" : false, "primary" : "config" }
+      { "_id" : "mydb", "partitioned" : true, "primary" : "shard0000" }
+
 .. data:: lockpings
+
+   The :data:`lockpings` collection keeps track of the active components
+   in the sharded cluster. Given a cluster with a :program:`mongos`
+   running on ``example.com:30000``, the document in the
+   :data:`lockpings` collection would resemble:
+
+   .. code-block:: javascript
+
+      { "_id" : "example.com:30000:1350047994:16807", "ping" : ISODate("2012-10-12T18:32:54.892Z") }
 
 .. data:: locks
 
+   The :data:`locks` collection is used for distributed locking between
+   :program:`mongos` instances and shards.
+
 .. data:: mongos
+
+   The :data:`mongos` collection represents each :program:`mongos`
+   affiliated with the sharded cluster. A :program:`mongos` sends pings to all members of the cluster
+   every 30 seconds to verify to the cluster the :program:`mongos` is
+   active. The ``ping`` field shows the time of the last ping. This collection is used for reporting.
+
+   The following document shows the status of the :program:`mongos`
+   running on ``example.com:30000``.
+
+   .. code-block:: javascript
+
+      { "_id" : "example.com:30000", "ping" : ISODate("2012-10-12T17:08:13.538Z"), "up" : 13699, "waiting" : true }
 
 .. data:: settings
 
+   The :data:`settings` collection holds the following sharding configuration settings:
+
+   - Chunk size. To change chunk size, see :ref:`sharding-balancing-modify-chunk-size`.
+
+   - Balancer status. To change status, see :ref:`sharding-balancing-disable-temporally`.
+
+   The following is an example ``settings`` collection:
+
+   .. code-block:: javascript
+
+      { "_id" : "chunksize", "value" : 64 }
+      { "_id" : "balancer", "stopped" : false }
+
 .. data:: shards
+
+   The :data:`shards` collection represents each shard in the cluster
+   in a separate document. If the shard is a replica set, the
+   ``host`` field displays the name of the replica set, then a slash, then
+   the hostname, as shown here:
+
+   .. code-block:: javascript
+
+      { "_id" : "shard0000", "host" : "shard1/localhost:30000" }
 
 .. data:: system.indexes
 
+   The :data:`system.indexes` collection contains all the indexes in the
+   shard. For more information on indexes, see :doc:`/indexes`.
+
 .. data:: version
+
+   The :data:`version` collection holds the current metadata version number. This
+   collection contains only one document:
+
+   To access the :data:`version` collection you must use the
+   :method:`db.getCollection()` method. For example, to display the
+   collection's document:
+
+   .. code-block:: javascript
+
+      mongos> db.getCollection("version").find()
+      { "_id" : 1, "version" : 3 }
