@@ -8,11 +8,17 @@ MongoDB documentation.
 Requirements
 ------------
 
+For basic publication and testing:
+
 - GNU Make
 - Python
 - Git
-- Sphinx (documentation management)
+- Sphinx (documentation management toolchain)
 - Pygments (syntax highlighting)
+
+For full publication builds:
+
+- python-argparse 
 - LaTeX/PDF LaTeX (typically texlive; for building PDFs)
 - Common Utilities (rsync, tar, gzip, sed)
 
@@ -23,18 +29,41 @@ Clone the repository: ::
 
      git clone git://github.com/mongodb/docs.git
 
-Install dependencies. The TeX/LaTeX dependency is very large, but is
-only required if building the PDF edition, or building for production
-deployment (i.e. ``make push``).
+To build the full publication version of the manual, you will need to
+have a function LaTeX tool chain; however, for routine day-to-day
+rendering of the documentation you can install a much more minimal
+tool chain. 
 
-See above for list. On Arch Linux, use the following command to
-install the full dependencies: ::
+For Routine Builds
+~~~~~~~~~~~~~~~~~~
+
+Begin by installing dependencies. On Arch Linux, use the following
+command to install the full dependencies: ::
+
+     pacman -S python2-sphinx python2-pygments
+
+On Debian/Ubuntu systems issue the following command: ::
+
+     apt-get install python-sphinx
+
+To build the documentation issue the following command: ::
+
+     make html
+     
+You can find the build output in ``build/<branch>/html``, where
+``<branch>`` is the name of your current branch.      
+
+For Publication Builds
+~~~~~~~~~~~~~~~~~~~~~~
+
+Begin by installing additional dependencies. On Arch Linux, use the
+following command to install the full dependencies: ::
 
      pacman -S texlive-bin texlive-core texlive-latexextra python2-sphinx python2-pygments
 
 On Debian/Ubuntu systems use the following command: ::
 
-     apt-get install python-sphinx texlive-latex-recommended texlive-latex-recommended
+     apt-get install python-argparse python-sphinx texlive-latex-recommended texlive-latex-recommended
 
 **Note:** *The Debian/Ubuntu dependencies, have not been thoroughly
 tested. If you find an additional dependency, please submit a pull
@@ -91,14 +120,6 @@ servers. You must have the proper credentials to run these operations.*
 
 *Run* ``publish`` *procedure and thoroughly test the build before pushing
 it live.*
-
-To build a quick demo build for viewing the documentation locally and
-testing features of the documentation, use the following target: ::
-
-     make html
-
-This places a simple build of the HTML content of the manual in
-"``build/html/``".
 
 Troubleshooting
 ---------------
