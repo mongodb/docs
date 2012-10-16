@@ -84,7 +84,7 @@ Query Optimization
 
 The MongoDB query optimizer matches a query to the index that produces
 the fastest results. The optimizer then uses the query plan each time
-the query is run. If a collection changes significantly, the optimizer
+the query runs. If a collection changes significantly, the optimizer
 creates a new query plan.
 
 Query plans take advantage of MongoDB's indexing features. You should
@@ -151,7 +151,7 @@ When you re-evaluate a query, the optimizer displays the same results if
 no data has changed, but the the results might appear in a different
 order. This is because the optimizer retrieves the results from several
 indexes at once during re-evaluation, and the order in which results
-appear depends on the order in which indexes are arranged in the
+appear depends on the order of the indexes in the
 parallel query operation.
 
 .. _read-operations-projection:
@@ -281,7 +281,37 @@ Connection Pooling
 Shard Clusters
 ~~~~~~~~~~~~~~
 
-.. TODO
+Issue all read operations to a sharded cluster to one of the
+:program:`mongos` instances associated with the cluster. From the
+perspective of the application there is no difference between read
+operations to MongoDB sharded clusters and read operations to
+standalone instances and replica sets.
+
+For non-sharded collections, the :program:`mongos` locates the
+:term:`primary shard` for the database, and directs all operations to
+that :program:`mongod` instance. For sharded collections, the
+:program:`mongos` must determine which :term:`shard` may have
+documents that could match the query using the :term:`shard
+key`. Then, the :program:`mongos` can direct the query to the relevant
+members and merge all reseults.
+
+If the query operation includes either the shard key, *or* a prefix of
+the shard key, the :program:`mongos` may be able to target the query
+to a smaller subset of the shards. In other cases, the
+:program:`mongos` must query *all* shards in the cluster for
+results. For clusters with a small number of shards, non-targeted
+queries may perform acceptabily, but with more shards these
+non-targeted queries, are inefficient and not pratical for routine
+operations. When choosing a shard key, always pick a key that allows
+you to minimize or eleminate non-targeted queries.
+
+For more information on read operations in sharded systems, consider
+the following resources:
+
+- :ref:`An Introduction to Shard Keys <sharding-shard-key>`
+- :ref:`Shard Key Internals and Operations <sharding-internals-shard-keys>`
+- :ref:`Quering Sharded Clusters <sharding-internals-querying>`
+- :ref:`sharding-mongos`
 
 Replica Sets
 ~~~~~~~~~~~~
@@ -297,7 +327,7 @@ For example, you can set the :ref:`read preference mode
 :term:`secondaries <secondary>` when backing up data, or to block reads
 entirely during a :ref:`failover <replica-set-failover>`.
 
-If your database traffic is comprised mostly of read operations, then
+If the majority of database use are read operations, then
 using read preferences to distribute reads can improve read throughput.
 The trade-off is that some reads might return stale data, as
 secondaries always have some amount of lag.
