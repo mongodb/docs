@@ -8,14 +8,7 @@ Sharded Cluster Administration
 .. default-domain:: mongodb
 
 This document describes common administrative tasks for sharded
-clusters. For a full introduction to sharding in MongoDB see
-:doc:`/core/sharding`, and for a complete overview of all sharding
-documentation in the MongoDB Manual, see :doc:`/sharding`. The
-:doc:`/administration/sharding-architectures` document provides an
-overview of deployment possibilities to help deploy a sharded
-cluster. Finally, the :doc:`/core/sharding-internals` document
-provides a more detailed introduction to sharding when troubleshooting
-issues or understanding your cluster's behavior.
+clusters. For a list of all sharding documentation see :doc:`/sharding`.
 
 .. contents:: Sharding Procedures:
    :backlinks: none
@@ -26,8 +19,7 @@ issues or understanding your cluster's behavior.
 Set up a Sharded Cluster
 ------------------------
 
-Before deploying a cluster, see the requirements listed in
-:ref:`Requirements for Sharded Clusters <sharding-requirements>`.
+Before deploying a cluster, see :ref:`sharding-requirements`.
 
 For testing purposes, you can run all the required shard :program:`mongod` processes on a
 single server. For production, use the configurations described in
@@ -198,99 +190,8 @@ use the following procedure as a quick starting point:
 Cluster Management
 ------------------
 
-Once you have a running sharded cluster, you will need to maintain it.
-This section describes common maintenance procedure, including: how to
-add and remove shards, how to manually split chunks, and how to disable
-the balancer for backups.
-
-List Databases with Sharding Enabled
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To list the databases for which sharding is enabled, query the
-``databases`` collection in the :ref:`config database
-<config-database>`. The databases with the ``partitioned`` field set to
-``true`` have sharding enabled.
-
-.. example:: Run this sequence of commands to open the :ref:`config
-   database <config-database>` and query the ``databases`` collection.
-
-   .. code-block:: javascript
-
-      use config
-      db.databases.find()
-
-   Given the following example output:
-
-   .. code-block:: javascript
-
-      { "_id" : "admin", "partitioned" : false, "primary" : "config" }
-      { "_id" : "foo", "partitioned" : true, "primary" : "example1.com:30001" }
-      { "_id" : "baz", "partitioned" : false, "primary" : "example2.com:27017" }
-
-   Only the database `foo` has sharding enabled because only `foo` has
-   the ``partitioned`` field set to ``true``.
-
-List Shards
-~~~~~~~~~~~
-
-To list the current set of configured shards and verify that all shards
-have been committed to the system, run the :dbcommand:`listShards`
-command:
-
-.. code-block:: javascript
-
-   db.runCommand( { listshards : 1 } )
-
-View Cluster Details
-~~~~~~~~~~~~~~~~~~~~
-
-To view cluster details, issue :method:`db.printShardingStatus()` or
-:method:`sh.status()`. Both methods return the same output.
-
-.. example:: In the following example output from :method:`sh.status()`
-
-   - ``sharding version`` displays the version number of the shard
-     metadata.
-
-   - ``shards`` displays each :program:`mongod` instance that is used as
-     a shard.
-
-   - ``databases`` displays all databases living in the cluster,
-     including databases for which sharding is not enabled.
-
-   - The ``chunks`` information for the ``foo`` database displays how
-     many chunks are on each shard and displays the range of each chunk.
-
-   .. code-block:: javascript
-
-      --- Sharding Status ---
-        sharding version: { "_id" : 1, "version" : 3 }
-        shards:
-          {  "_id" : "shard0000",  "host" : "example1.com:40000" }
-          {  "_id" : "shard0001",  "host" : "example2.com:50000" }
-        databases:
-          {  "_id" : "admin",  "partitioned" : false,  "primary" : "config" }
-          {  "_id" : "foo",  "partitioned" : true,  "primary" : "shard0000" }
-              foo.big chunks:
-                      shard0001    1
-                      shard0000    6
-                  { "a" : { $minKey : 1 } } -->> { "a" : "elephant" } on : shard0001 Timestamp(2000, 1) jumbo
-                  { "a" : "elephant" } -->> { "a" : "giraffe" } on : shard0000 Timestamp(1000, 1) jumbo
-                  { "a" : "giraffe" } -->> { "a" : "hippopotamus" } on : shard0000 Timestamp(2000, 2) jumbo
-                  { "a" : "hippopotamus" } -->> { "a" : "lion" } on : shard0000 Timestamp(2000, 3) jumbo
-                  { "a" : "lion" } -->> { "a" : "rhinoceros" } on : shard0000 Timestamp(1000, 3) jumbo
-                  { "a" : "rhinoceros" } -->> { "a" : "springbok" } on : shard0000 Timestamp(1000, 4)
-                  { "a" : "springbok" } -->> { "a" : { $maxKey : 1 } } on : shard0000 Timestamp(1000, 5)
-              foo.large chunks:
-                      shard0001    1
-                      shard0000    5
-                  { "a" : { $minKey : 1 } } -->> { "a" : "hen" } on : shard0001 Timestamp(2000, 0)
-                  { "a" : "hen" } -->> { "a" : "horse" } on : shard0000 Timestamp(1000, 1) jumbo
-                  { "a" : "horse" } -->> { "a" : "owl" } on : shard0000 Timestamp(1000, 2) jumbo
-                  { "a" : "owl" } -->> { "a" : "rooster" } on : shard0000 Timestamp(1000, 3) jumbo
-                  { "a" : "rooster" } -->> { "a" : "sheep" } on : shard0000 Timestamp(1000, 4)
-                  { "a" : "sheep" } -->> { "a" : { $maxKey : 1 } } on : shard0000 Timestamp(1000, 5)
-          {  "_id" : "test",  "partitioned" : false,  "primary" : "shard0000" }
+This section describes how to add and remove shards and how to view
+information about your :term:`sharded cluster`.
 
 .. _sharding-procedure-add-shard:
 
@@ -359,9 +260,8 @@ procedure:
    It may take some time for :term:`chunks <chunk>` to migrate to the
    new shard.
 
-   See the :ref:`Balancing and Distribution <sharding-balancing>`
-   section for an overview of the balancing operation and the :ref:`Balancing Internals
-   <sharding-balancing-internals>` section for additional information.
+   For an introduction to balancing, see :ref:`sharding-balancing`. For
+   lower level information on balancing, see :ref:`sharding-balancing-internals`.
 
 .. _sharding-procedure-remove-shard:
 
@@ -482,6 +382,95 @@ The procedure to remove a shard is as follows:
 
 Once the value of the ``stage`` field is "completed," you may safely
 stop the processes comprising the ``mongodb0`` shard.
+
+List Databases with Sharding Enabled
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To list the databases for which sharding is enabled, query the
+``databases`` collection in the :ref:`config-database`.
+The databases with the ``partitioned`` field set to
+``true`` have sharding enabled.
+
+.. example:: Run this sequence of commands to open the :ref:`config
+   database <config-database>` and query the ``databases`` collection.
+
+   .. code-block:: javascript
+
+      use config
+      db.databases.find()
+
+   Given the following example output:
+
+   .. code-block:: javascript
+
+      { "_id" : "admin", "partitioned" : false, "primary" : "config" }
+      { "_id" : "foo", "partitioned" : true, "primary" : "example1.com:30001" }
+      { "_id" : "baz", "partitioned" : false, "primary" : "example2.com:27017" }
+
+   Only the database `foo` has sharding enabled because only `foo` has
+   the ``partitioned`` field set to ``true``.
+
+List Shards
+~~~~~~~~~~~
+
+To list the current set of configured shards and verify that all shards
+have been committed to the system, run the :dbcommand:`listShards`
+command:
+
+.. code-block:: javascript
+
+   db.runCommand( { listshards : 1 } )
+
+View Cluster Details
+~~~~~~~~~~~~~~~~~~~~
+
+To view cluster details, issue :method:`db.printShardingStatus()` or
+:method:`sh.status()`. Both methods return the same output.
+
+.. example:: In the following example output from :method:`sh.status()`
+
+   - ``sharding version`` displays the version number of the shard
+     metadata.
+
+   - ``shards`` displays each :program:`mongod` instance that is used as
+     a shard.
+
+   - ``databases`` displays all databases living in the cluster,
+     including databases for which sharding is not enabled.
+
+   - The ``chunks`` information for the ``foo`` database displays how
+     many chunks are on each shard and displays the range of each chunk.
+
+   .. code-block:: javascript
+
+      --- Sharding Status ---
+        sharding version: { "_id" : 1, "version" : 3 }
+        shards:
+          {  "_id" : "shard0000",  "host" : "example1.com:40000" }
+          {  "_id" : "shard0001",  "host" : "example2.com:50000" }
+        databases:
+          {  "_id" : "admin",  "partitioned" : false,  "primary" : "config" }
+          {  "_id" : "foo",  "partitioned" : true,  "primary" : "shard0000" }
+              foo.big chunks:
+                      shard0001    1
+                      shard0000    6
+                  { "a" : { $minKey : 1 } } -->> { "a" : "elephant" } on : shard0001 Timestamp(2000, 1) jumbo
+                  { "a" : "elephant" } -->> { "a" : "giraffe" } on : shard0000 Timestamp(1000, 1) jumbo
+                  { "a" : "giraffe" } -->> { "a" : "hippopotamus" } on : shard0000 Timestamp(2000, 2) jumbo
+                  { "a" : "hippopotamus" } -->> { "a" : "lion" } on : shard0000 Timestamp(2000, 3) jumbo
+                  { "a" : "lion" } -->> { "a" : "rhinoceros" } on : shard0000 Timestamp(1000, 3) jumbo
+                  { "a" : "rhinoceros" } -->> { "a" : "springbok" } on : shard0000 Timestamp(1000, 4)
+                  { "a" : "springbok" } -->> { "a" : { $maxKey : 1 } } on : shard0000 Timestamp(1000, 5)
+              foo.large chunks:
+                      shard0001    1
+                      shard0000    5
+                  { "a" : { $minKey : 1 } } -->> { "a" : "hen" } on : shard0001 Timestamp(2000, 0)
+                  { "a" : "hen" } -->> { "a" : "horse" } on : shard0000 Timestamp(1000, 1) jumbo
+                  { "a" : "horse" } -->> { "a" : "owl" } on : shard0000 Timestamp(1000, 2) jumbo
+                  { "a" : "owl" } -->> { "a" : "rooster" } on : shard0000 Timestamp(1000, 3) jumbo
+                  { "a" : "rooster" } -->> { "a" : "sheep" } on : shard0000 Timestamp(1000, 4)
+                  { "a" : "sheep" } -->> { "a" : { $maxKey : 1 } } on : shard0000 Timestamp(1000, 5)
+          {  "_id" : "test",  "partitioned" : false,  "primary" : "shard0000" }
 
 Chunk Management
 ----------------
@@ -635,7 +624,9 @@ To create and migrate chunks manually, use the following procedure:
            }
 
    You can also let the balancer automatically distribute the new
-   chunks.
+   chunks. For an introduction to balancing, see
+   :ref:`sharding-balancing`. For lower level information on balancing,
+   see :ref:`sharding-balancing-internals`.
 
 .. _sharding-balancing-modify-chunk-size:
 
@@ -654,7 +645,7 @@ To modify the chunk size, use the following procedure:
 #. Connect to any :program:`mongos` in the cluster using the
    :program:`mongo` shell.
 
-#. Issue the following command to switch to the config database:
+#. Issue the following command to switch to the :ref:`config-database`:
 
    .. code-block:: javascript
 
@@ -710,9 +701,9 @@ However, you may want to migrate chunks manually in a few cases:
 - If the balancer in an active cluster cannot distribute chunks within
   the balancing window, then you will have to migrate chunks manually.
 
-See the :ref:`chunk migration <sharding-chunk-migration>` section to
-understand the internal process of how chunks move
-between shards.
+For more information on how chunks move between shards, see
+:ref:`sharding-balancing-internals`, in particular the section
+:ref:`sharding-chunk-migration`.
 
 To migrate chunks, use the :dbcommand:`moveChunk` command.
 
@@ -773,12 +764,10 @@ to pre-splitting.
 Balancer Operations
 -------------------
 
-This section provides an overview of common administrative procedures
-related to balancing and the balancing process.
-
-.. seealso:: :ref:`sharding-balancing` and the
-   :dbcommand:`moveChunk` that provides manual :term:`chunk`
-   migrations.
+This section describes provides common administrative procedures related
+to balancing. For an introduction to balancing, see
+:ref:`sharding-balancing`. For lower level information on balancing, see
+:ref:`sharding-balancing-internals`.
 
 .. _sharding-balancing-check-lock:
 
@@ -791,7 +780,7 @@ To see if the balancer process is active in your :term:`cluster
 #. Connect to any :program:`mongos` in the cluster using the
    :program:`mongo` shell.
 
-#. Issue the following command to switch to the config database:
+#. Issue the following command to switch to the :ref:`config-database`:
 
    .. code-block:: javascript
 
@@ -856,7 +845,7 @@ be able to migrate chunks:
 #. Connect to any :program:`mongos` in the cluster using the
    :program:`mongo` shell.
 
-#. Issue the following command to switch to the config database:
+#. Issue the following command to switch to the :ref:`config-database`:
 
    .. code-block:: javascript
 
@@ -942,7 +931,7 @@ run this operation from a driver that does not have helper functions:
 #. Connect to any :program:`mongos` in the cluster using the
    :program:`mongo` shell.
 
-#. Issue the following command to switch to the config database:
+#. Issue the following command to switch to the :ref:`config-database`:
 
    .. code-block:: javascript
 
@@ -1000,7 +989,7 @@ three config servers.
 #. Copy the entire :setting:`dbpath` file system tree from the
    existing config server to the two machines that will provide the
    additional config servers. These commands, issued on the system
-   with the existing config database, ``mongo-config0.example.net`` may
+   with the existing :ref:`config-database`, ``mongo-config0.example.net`` may
    resemble the following:
 
    .. code-block:: sh
@@ -1062,7 +1051,7 @@ as needed.
 Migrate Config Servers with Different Hostnames
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Use this process when you need to migrate a config database to a new
+Use this process when you need to migrate a :ref:`config-database` to a new
 server and it *will not* be accessible via the same hostname. If
 possible, avoid changing the hostname so that you can use the
 :ref:`previous procedure <sharding-process-config-server-migrate-same-hostname>`.
@@ -1088,7 +1077,7 @@ possible, avoid changing the hostname so that you can use the
      that provide your shards.
 
    - the :program:`mongod` instances that provide your existing
-     config databases.
+     :ref:`config databases <config-database>`.
 
    - all :program:`mongos` instances in your cluster.
 
@@ -1139,7 +1128,7 @@ Backup Cluster Metadata
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 The cluster will remain operational [#read-only]_ without one
-of the config databases :program:`mongod` instances, creating a backup
+of the config database's :program:`mongod` instances, creating a backup
 of the cluster metadata from the config database is straight forward:
 
 #. Shut down one of the :term:`config databases <config database>`.

@@ -7,12 +7,12 @@ Sharding Internals
 
 .. default-domain:: mongodb
 
-This document introduces lower level sharding concepts for users who
-are familiar with :term:`sharding` generally and want to learn more
-about the internals of sharding in MongoDB. The ":doc:`/core/sharding`"
-document provides an overview of higher level sharding concepts while
-the ":doc:`/administration/sharding`" provides an overview of common
-administrative tasks.
+This document introduces lower level sharding concepts for users who are
+familiar with :term:`sharding` generally and want to learn more about
+the internals. This document provides a more detailed understanding of
+your cluster's behavior. For higher level sharding concepts, see
+:doc:`/core/sharding`. For a list of all sharding
+documentation see :doc:`/sharding`.
 
 .. index:: shard key; internals
 .. _sharding-internals-shard-keys:
@@ -129,8 +129,8 @@ succeeds in making all querying operational in sharded environments,
 the :term:`shard key` you select can have a profound affect on query
 performance.
 
-.. seealso:: The ":ref:`mongos and Sharding <sharding-mongos>`" and
-   ":ref:`config server <sharding-config-server>`" sections for a more
+.. seealso:: The :ref:`mongos and Sharding <sharding-mongos>` and
+   :ref:`config server <sharding-config-server>` sections for a more
    general overview of querying in sharded environments.
 
 .. index:: shard key; query isolation
@@ -168,13 +168,13 @@ selective) you should add a second field to the shard key making a
 compound shard key. The data may become more splitable with a
 compound shard key.
 
-.. see:: ":ref:`sharding-mongos`" for more information on query
+.. see:: :ref:`sharding-mongos` for more information on query
    operations in the context of sharded clusters.
 
 .. [#shard-key-index] In many ways, you can think of the shard key a
    cluster-wide unique index. However, be aware that sharded systems
    cannot enforce cluster-wide unique indexes *unless* the unique
-   field is in the shard key. Consider the ":wiki:`Indexes`" wiki page
+   field is in the shard key. Consider the :wiki:`Indexes` wiki page
    for more information on indexes and compound indexes.
 
 Sorting
@@ -311,13 +311,13 @@ and you want to replace this with an index on the field ``{ zipcode:
 Cluster Balancer
 ----------------
 
+This section contains complete documentation of the balancer process
+and operations. For a higher level introduction see
+the :ref:`sharding-balancing` section.
+
 The :ref:`balancer <sharding-balancing>` sub-process is responsible for
 redistributing chunks evenly among the shards and ensuring that each
 member of the cluster is responsible for the same volume of data.
-
-This section contains complete documentation of the balancer process
-and operations. For a higher level introduction see
-the :ref:`Balancing <sharding-balancing>` section.
 
 .. _sharding-internals-balancing:
 
@@ -325,10 +325,10 @@ Balancing Internals
 ~~~~~~~~~~~~~~~~~~~
 
 A balancing round originates from an arbitrary :program:`mongos`
-instance, because a cluster can have a number of
+instance from among the cluster's
 :program:`mongos` instances. When a balancer process is active, the
 responsible :program:`mongos` acquires a "lock" by modifying a
-document on the :term:`config database`.
+document in the ``lock`` collection in the :ref:`config-database`.
 
 By default, the balancer process is always running. When the number of
 chunks in a collection is unevenly distributed among the shards, the
@@ -460,7 +460,7 @@ command. This will prevent the :term:`balancer` from migrating chunks
 to the shard when the value of :status:`mem.mapped` exceeds the
 ``maxSize`` setting.
 
-.. seealso:: ":doc:`/administration/monitoring`."
+.. seealso:: :doc:`/administration/monitoring`.
 
 .. _sharding-chunk-migration:
 
@@ -508,7 +508,7 @@ When the ``_secondaryThrottle`` is ``true`` for :dbcommand:`moveChunk`
 or the :term:`balancer`, MongoDB ensure that *one* :term:`secondary`
 member has replicated changes before allowing new chunk migrations.
 
-.. _config-database: 
+.. _config-database:
 .. _sharding-internals-config-database:
 
 Config Database
@@ -531,11 +531,11 @@ To start the ``config`` database, issue the following command from the
 The ``config`` database holds the following collections that support
 sharded cluster operations:
 
-.. data:: chunks 
+.. data:: chunks
 
    The :data:`chunks` collection stores a document for each chunk in
    in the cluster.  Consider the following example of a document for a
-   chunk named ``records.pets-animal_\"cat\"``: 
+   chunk named ``records.pets-animal_\"cat\"``:
 
    .. code-block:: javascript
 
@@ -606,7 +606,26 @@ sharded cluster operations:
 
    The :data:`locks` collection stores a distributed lock. This
    ensures that only one :program:`mongos` instance can perform
-   administrative tasks on the culster at once. 
+   administrative tasks on the cluster at once. The :program:`mongos`
+   acting as :term:`balancer` takes a "lock" by inserting a document
+   resembling the following into the ``locks`` collection.
+
+   .. code-block:: javascript
+
+      {
+          "_id" : "balancer",
+          "process" : "example.net:40000:1350402818:16807",
+          "state" : 2,
+          "ts" : ObjectId("507daeedf40e1879df62e5f3"),
+          "when" : ISODate("2012-10-16T19:01:01.593Z"),
+          "who" : "example.net:40000:1350402818:16807:Balancer:282475249",
+          "why" : "doing balance round"
+      }
+
+   If a lock is taken, the ``state`` field has a value of ``2`` (or a
+   value of ``1`` in versions prior to 2.0). This means the balancer is
+   active. The ``when`` field indicates when the balancer began the
+   current operation.
 
 .. data:: mongos
 
@@ -645,7 +664,7 @@ sharded cluster operations:
    The :data:`shards` collection represents each shard in the cluster
    in a separate document. If the shard is a replica set, the
    ``host`` field displays the name of the replica set, then a slash, then
-   the hostname, as in the following example: 
+   the hostname, as in the following example:
 
    .. code-block:: javascript
 
