@@ -5,8 +5,11 @@ Read
 .. default-domain:: mongodb
 
 Read operation selects documents from a :term:`collection`. MongoDB
-provides the :ref:`find <crud-read-find>` method to perform read
-operations.
+provides the following methods to perform create operations:
+
+- :ref:`find <crud-read-find>`
+
+- :ref:`findOne <crud-read-findOne>`
 
 .. _crud-read-find:
 
@@ -24,7 +27,7 @@ syntax:
 
 .. code-block:: javascript
 
-   db.collection.find( <query>, <projection>)
+   db.collection.find( <query>, <projection> )
 
 The :method:`find() <db.collection.find()>` method is analogous to the
 ``SQL SELECT`` with the ``query`` argument analogous to the ``WHERE``
@@ -43,108 +46,216 @@ Consider the following examples that illustrate the usage of the
 - If there is no ``query`` argument, the :method:`find()
   <db.collection.find()>` method selects all documents from a collection.
 
-  The following operation returns all documents (or more
-  specifically, a cursor to all documents) in the ``presidents``
-  collection:
+  - The following operation returns all documents (or more
+    precisely, a cursor to all documents) in the ``csbios``
+    collection:
 
-  .. code-block:: javascript
+    .. code-block:: javascript
 
-     db.presidents.find()
+       db.csbios.find()
 
 - If there is a ``query`` argument, the :method:`find()
   <db.collection.find()>` method selects all documents from a
   collection that meets the ``query``:
 
-  - The following operation returns all documents in the ``presidents``
-    collection where the field ``state`` equals ``Virginia``:
+  - The following operation returns all documents in the ``csbios``
+    collection where the field ``_id`` equals ``5`` or
+    ``ObjectId("507c35dd8fada716c89d0013")``:
 
     .. code-block:: javascript
 
-       db.presidents.find( { state: 'Virginia' } )
+       db.csbios.find( { _id: { $in: [ 5,  ObjectId("507c35dd8fada716c89d0013") ] } } )
 
-  - The following operation returns all documents in the ``presidents``
-    collection where the array field ``title`` contains the element
-    ``Governor``:
+  - The following operation returns all documents in the ``csbios``
+    collection where the array field ``contribs`` contains the element
+    ``UNIX``:
 
     .. code-block:: javascript
 
-       db.presidents.find( { title: 'Governor' } )
+       db.csbios.find( { contribs: 'UNIX' } )
 
-  - The following operation returns all documents in the ``presidents``
+  - The following operation returns all documents in the ``csbios``
     collection where the subdocument ``name`` contains a field
-    ``first`` with value ``John`` and a field ``last`` with the value
-    ``Adams``:
+    ``first`` with the value ``Yukihiro`` and a field ``last`` with the
+    value ``Matsumoto``:
 
     .. code-block:: javascript
 
-       db.presidents.find( { 'name.first': 'John', 'name.last': 'Adams' } ) 
+       db.csbios.find( { 'name.first': 'Yukihiro', 'name.last': 'Matsumoto' } )
 
-    The operation finds documents with ``name : { first: 'John', last:
-    'Adams' }`` and ``name : { first: 'John', middle : 'Quincy', last :
-    'Adams'}``.
+    The query matches the document with ``name`` field equal to ``{
+    first: 'Yukihiro', aka: 'Matz', last: 'Matsumoto'}``.
      
-  - The following operation returns all documents in the ``presidents``
-    collection where the subdocument ``name`` is ``{ first:
-    'John', last: 'Adams' }``:
+  - The following operation returns all documents in the ``csbios``
+    collection where the subdocument ``name`` is *exactly* ``{ first:
+    'Yukihiro', last: 'Matsumoto' }``, including the order of the
+    fields:
 
     .. code-block:: javascript
 
-       db.presidents.find( { name: { first: 'John', last: 'Adams' } } )
+       db.csbios.find( { name: { first: 'Yukihiro', last: 'Matsumoto' } } )
 
-    The operation finds only the documents with ``name : { first:
-    'John', last: 'Adams' }``.
+    The query does *not* match the document with ``name`` field equal
+    to ``{ first: 'Yukihiro', aka: 'Matz', last: 'Matsumoto'}`` nor
+    does it match a document with the ``name`` field equal to ``{ last:
+    'Matsumoto' , first: 'Yukihiro' }``.
 
-  - The following operation returns all documents in the ``presidents``
-    collection where the subdocument ``name`` contains the field
-    ``first`` with the value of either ``John`` or ``James``:
-
-    .. code-block:: javascript
-
-       db.presidents.find( { 'name.first': { $in: ['John', 'James'] } } )
-
-  - The following operation returns all documents in the ``presidents``
-    collection where the field ``state`` equals ``Virginia`` **and**
-    the subdocument ``name`` contains the field ``first`` with the
-    value of either ``John`` or ``James``:
+  - The following operation returns all documents in the ``csbios``
+    collection where either the field ``first`` in the subdocument
+    ``name`` starts with the letter ``G`` **or** where the field
+    ``birth`` is less than ``new Date('01/01/1945')``:
 
     .. code-block:: javascript
 
-       db.presidents.find( { 
-            state: 'Virginia' , 
-            'name.first': { $in: ['John', 'James'] } 
-          } )
+       db.csbios.find( { $or: [ { 'name.first' : /^G/ }, 
+                                { birth: { $lt: new Date('01/01/1945') } }
+                              ]  } )
 
-  - The following operation returns all documents in the ``presidents``
-    collection where ``office`` array contains a subdocument element
-    that contains the ``term`` field equal to ``1`` and the ``from``
-    field less than ``1800``:
+
+  - The following operation returns all documents in the ``csbios``
+    collection where the field ``first`` in the subdocument ``name``
+    starts with the letter ``K`` **and** the array field ``contribs``
+    contains the element ``UNIX``:
 
     .. code-block:: javascript
 
-       db.presidents.find( { office: { $elemMatch: { 
-                                                     term: 1, 
-                                                     from: { $lt: 1800 } 
-                                                   } } } )
+       db.csbios.find( { 'name.first': /^K/, 
+                          contribs: 'UNIX' } )
+
+  - The following operation returns all documents in the ``csbios``
+    collection where ``awards`` array contains a subdocument element
+    that contains the ``award`` field equal to ``Turing Award`` and the
+    ``year`` field greater than ``1980``:
+
+    .. code-block:: javascript
+
+       db.csbios.find( { awards: { $elemMatch: { 
+                                                 award: 'Turing Award', 
+                                                 year: { $gt: '1980' } 
+                                               } } } )
 
 - If there is a ``projection`` argument, the :method:`find()
   <db.collection.find()>` method returns only those fields as specified
   in the ``projection`` argument to include or exclude (the ``_id``
   field is implicitly included in the ``projection`` argument):
 
-  - The following operation returns only the ``name`` field, the
-    ``state`` field, and the ``_id`` field from all documents in the
-    ``presidents`` collection:
+  - The following operation finds all documents in the ``csbios``
+    collection and returns only the ``name`` field, the ``contribs``
+    field, and the ``_id`` field:
 
     .. code-block:: javascript
 
-       db.presidents.find( { }, { name: 1, state: 1 } )
+       db.csbios.find( { }, { name: 1, contribs: 1 } )
 
-  - The following operation returns all fields *except* the ``_id``
-    field, the ``first`` field in the ``name`` subdocument, and the
-    ``office`` field from the documents in the
-    ``presidents`` collection where the ``state`` is ``Virginia``:
+  - The following operation finds the documents in the ``csbios``
+    collection where the ``contribs`` field contains the element
+    ``OOP`` and returns all fields *except* the ``_id`` field, the
+    ``first`` field in the ``name`` subdocument, and the ``birth``
+    field from the matching documents:
 
     .. code-block:: javascript
 
-       db.presidents.find( { state: 'Virginia' },
-                           { _id: 0, 'name.first': 0, office: 0 } )
+       db.csbios.find( { contribs: 'OOP' },
+                       { _id: 0, 'name.first': 0, birth: 0 } )
+
+In addition to the ``query`` and the ``projection`` arguments, MongoDB
+provides the cursor methods that work with the :method:`find()
+<db.collection.find()>` method:
+
+- The :method:`sort <cursor.sort()>` orders the resulting documents and
+  is analogous to ``SQL ORDER BY``.
+
+  The following operation returns all documents (or more precisely, a
+  cursor to all documents) in the ``csbios`` collection ordered by the
+  ``name`` field ascending:
+
+  .. code-block:: javascript
+
+     db.csbios.find().sort( { name: 1 } )
+       
+- The :method:`limit <cursor.limit()>` method limits the number of
+  documents returned and is analogous to ``SQL LIMIT``.
+
+  The following operation returns at most ``5`` documents (or more
+  precisely, a cursor to at most 5 documents) in the ``csbios``
+  collection:
+
+  .. code-block:: javascript
+
+     db.csbios.find().limit( 5 )
+
+
+.. _crud-read-findOne:
+
+FindOne
+-------
+
+The :method:`findOne() <db.collection.findOne()>` method selects a
+single document from a collection and returns the document rather than
+a cursor.
+
+The :method:`findOne() <db.collection.findOne()>` method has the following
+syntax:
+
+.. code-block:: javascript
+
+   db.collection.findOne( <query>, <projection> )
+
+The :method:`findOne() <db.collection.findOne()>` method is similar to
+the :method:`find() <db.collection.find()>` method except the
+:method:`findOne() <db.collection.findOne()>` method returns the
+single document rather than a cursor.
+
+Consider the following examples that illustrate the usage of the
+:method:`findOne() <db.collection.findOne()>` method:
+
+- If there is no ``query`` argument, the :method:`findOne()
+  <db.collection.findOne()>` method selects just one document from a
+  collection.
+
+  - The following operation returns a single document from the
+    ``csbios`` collection:
+
+    .. code-block:: javascript
+
+       db.csbios.findOne()
+
+- If there is a ``query`` argument, the :method:`findOne()
+  <db.collection.findOne()>` method selects the first document from a
+  collection that meets the ``query`` argument:
+  
+  - The following operation returns the first matching document from
+    the ``csbios`` collection where either the field ``first`` in the
+    subdocument ``name`` starts with the letter ``G`` **or** where the
+    field ``birth`` is less than ``new Date('01/01/1945')``:
+
+    .. code-block:: javascript
+
+       db.csbios.findOne( { $or: [ { 'name.first' : /^G/ }, 
+                                   { birth: { $lt: new Date('01/01/1945') } }
+                                 ] } )
+
+- If there is a ``projection`` argument, the :method:`findOne()
+  <db.collection.findOne()>` method returns only those fields as
+  specified in the ``projection`` argument to include or exclude (the
+  ``_id`` field is implicitly included in the ``projection`` argument):
+
+  - The following operation finds a document in the ``csbios``
+    collection and returns only the ``name`` field, the ``contribs``
+    field, and the ``_id`` field:
+
+    .. code-block:: javascript
+
+       db.csbios.findOne( { }, { name: 1, contribs: 1 } )
+
+  - The following operation finds a document in the ``csbios``
+    collection where the ``contribs`` field contains the element
+    ``OOP`` and returns all fields *except* the ``_id`` field, the
+    ``first`` field in the ``name`` subdocument, and the ``birth``
+    field from the matching documents:
+
+    .. code-block:: javascript
+
+       db.csbios.findOne( { contribs: 'OOP' },
+                          { _id: 0, 'name.first': 0, birth: 0 } )                      
+                              
