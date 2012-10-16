@@ -39,6 +39,7 @@ PAPER = letter
 PAPEROPT_a4 = -D latex_paper_size=a4
 PAPEROPT_letter = -D latex_paper_size=letter
 ALLSPHINXOPTS = -q -d $(branch-output)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
+POSPHINXOPTS = -q -d $(branch-output)/doctrees-gettext $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
 DRAFTSPHINXOPTS = -q -d $(branch-output)/draft-doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) draft
 
 .PHONY: publish help clean push-dc1 push-dc2
@@ -373,6 +374,12 @@ json:
 	@echo [json]: created $(branch-output)/json
 	$(SPHINXBUILD) -b json $(ALLSPHINXOPTS) $(branch-output)/json
 	@echo [json]: build finished at `date`.
+gettext:
+	@echo [gettext]: build started at `date`.
+	@mkdir -p $(branch-output)/gettext
+	@echo [gettext]: created $(branch-output)/gettext
+	$(SPHINXBUILD) -b gettext $(POSPHINXOPTS) $(branch-output)/gettext
+	@echo [gettext]: build finished at `date`.
 changes:
 	@echo [changes]: build started at `date`.
 	@mkdir -p $(branch-output)/changes
