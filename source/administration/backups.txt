@@ -5,57 +5,57 @@ Backup and Restoration Strategies
 .. default-domain:: mongodb
 
 This document provides an inventory of database backup strategies for
-use with MongoDB. Use the ":ref:`backup overview <backup-overview>`"
-and ":ref:`backup considerations <backup-considerations>`" sections as
-you develop the most appropriate strategy for backing up your MongoDB
-environment. Then, use the examples from the ":ref:`block level backup
-methods <block-level-backup>`" or the ":ref:`backups using mongodump
-<database-dumps>`" sections to implement the backup solution that is
-best suited to your deployment's needs.
+use with MongoDB.
 
-A robust backup strategy and a well-tested corresponding restoration
-process is crucial for every production-grade deployment. Take the
-specific features of your deployment, your use patterns, and
-architecture into consideration as you develop your own backup system.
+- The :ref:`backup-overview` and :ref:`backup-considerations` sections
+  describe the approaches for backing up your MongoDB environment.
 
-:term:`Replica sets <replica set>` and :term:`sharded clusters
-<sharded cluster>` require special considerations. See
-:ref:`backup considerations for sharded clusters and replica sets
-<backups-with-sharding-and-replication>`.
+- The :ref:`block-level-backup` or :ref:`database-dumps` sections
+  describe specific strategies.
+
+- The :ref:`backups-with-sharding-and-replication` section describes
+  considerations specific to :term:`replica sets <replica set>` and
+  :term:`sharded clusters <sharded cluster>`.
 
 .. _backup-overview:
 
-Overview
---------
+Backup Overview
+---------------
 
-If you are familiar with backups systems in the context of database
-systems please skip ahead to :ref:`backup considerations <backup-considerations>`.
+A robust backup strategy and well tested restoration process are crucial
+for production-grade deployments. The goal of a backup strategy is to
+produce a full and consistent copy of the data that you can use to bring
+up a new or replacement database instance.
 
 With MongoDB, there are two major approaches to backups:
-using system-level tools, like disk image snapshots, and using various
-capacities present in the :ref:`mongodump tool <database-dumps>`.
-The underlying goal of these strategies is to produce a full and consistent
-copy of the data that you can use to bring up a new or replacement
-database instance.
 
-The methods described in this document operate by copying the data
-file on the disk level. If your system does not provide functionality
-for this kind of backup, see the section on :ref:`using database dumps
-for backups <database-dumps>` for more information.
+- Using system-level tools, like disk image snapshots. See
+  :ref:`block-level-backup`.
 
-Ensuring that the state captured by the backup is consistent and
-usable is the primary challenge of producing backups of database
-systems. Backups that you cannot produce reliably, or restore from
-feasibly are worthless.
+- Using various capacities present in the :program:`mongodump` tool. See
+  :ref:`database-dumps`.
 
-Because every environment is unique it's important to regularly test
-the backups that you capture to ensure that your backup system is
+The methods described in this document operate by copying the data file
+on the disk level. If your system does not provide functionality for
+this kind of backup, see the section on :ref:`using database dumps for
+backups <database-dumps>` for more information.
+
+Ensuring that the state captured by the backup is consistent and usable
+is the primary challenge of producing backups of database systems.
+Backups that you cannot produce reliably, or restore from feasibly are
+worthless.
+
+As you develop your backup system, take into consideration the specific
+features of your deployment, your use patterns, and your architecture.
+
+Because every environment is unique it's important to regularly test the
+backups that you capture to ensure that your backup system is
 practically, and not just theoretically, functional.
 
 .. _backup-considerations:
 
-Production Considerations
--------------------------
+Production Considerations for Backup Strategies
+-----------------------------------------------
 
 When evaluating a backup strategy for your node consider the following
 factors:
@@ -97,10 +97,10 @@ for your database. Remember that all backup plans must be:
 
 .. _block-level-backup:
 
-Block Level Methods
--------------------
+Using Block Level Backup Methods
+--------------------------------
 
-This section will provides an overview of using disk/block level
+This section provides an overview of using disk/block level
 snapshots (i.e. :term:`LVM` or storage appliance) to backup a MongoDB
 instance. These tools make a quick block-level backup of the device
 that holds MongoDB's data files. These methods complete quickly, work
@@ -108,12 +108,12 @@ reliably, and typically provide the easiest backup systems method to
 implement.
 
 Snapshots work by creating pointers between the live data and a
-special snapshot volume: these pointers are theoretically equivalent
-to "hard links." Then, as the working data diverges from the snapshot,
+special snapshot volume. These pointers are theoretically equivalent
+to "hard links." As the working data diverges from the snapshot,
 the snapshot process uses a copy-on-write strategy. As a result the snapshot
 only stores modified data.
 
-After making the snapshot, you will mount the snapshot image on your
+After making the snapshot, you mount the snapshot image on your
 file system and copy data from the snapshot. The resulting backup
 contains a full copy of all data.
 
@@ -129,8 +129,8 @@ Snapshots have the following limitations:
   backup occurs, the data files will reflect an inconsistent
   state. With :term:`journaling <journal>` all data-file states
   resulting from in-progress writes are recoverable; without
-  journaling you must flush all pending writes and to disk before
-  running the backup operation and ensure that no writes occur during
+  journaling you must flush all pending writes to disk before
+  running the backup operation and must ensure that no writes occur during
   the entire backup procedure.
 
   If you do use journaling, the journal must reside on the same volume
@@ -153,7 +153,7 @@ With Journaling
 ~~~~~~~~~~~~~~~
 
 If your system has snapshot capability and your :program:`mongod` instance
-has journaling enabled then you can use any kind of file system or
+has journaling enabled, then you can use any kind of file system or
 volume/block level snapshot tool to create backups.
 
 .. warning::
@@ -182,7 +182,7 @@ LVM-based setups *within* a cloud/virtualized environment.
    If you use Amazon's EBS service in a software RAID 10 (e.g. 1+0)
    configuration, use :term:`LVM` to capture a consistent disk image.
 
-   Also consider, :ref:`backup-amazon-software-raid`
+   Also consider, :ref:`backup-amazon-software-raid`.
 
 The following sections provide an overview of a simple backup process
 using :term:`LVM` on a Linux system. While the tools, commands, and paths may
@@ -194,7 +194,7 @@ high level overview of the backup operation.
 Create Snapshot
 ```````````````
 
-To create a snapshot with :term:`LVM` issue a command, as root, in the
+To create a snapshot with :term:`LVM`, issue a command, as root, in the
 following format:
 
 .. code-block:: sh
@@ -239,7 +239,7 @@ Archive Snapshots
 `````````````````
 
 After creating a snapshot, mount the snapshot and move the data to
-separate storage. Your system may wish to compress the backup images as
+separate storage. Your system might try to compress the backup images as
 you move the offline. Consider the following procedure to fully
 archive the data from the snapshot:
 
@@ -248,19 +248,19 @@ archive the data from the snapshot:
    umount /dev/vg0/mdb-snap01
    dd if=/dev/vg0/mdb-snap01 | tar -czf mdb-snap01.tar.gz
 
-This command sequence:
+The above command sequence:
 
-1. Ensures that the ``/dev/vg0/mdb-snap01`` device is not mounted.
+- Ensures that the ``/dev/vg0/mdb-snap01`` device is not mounted.
 
-2. Does a block level copy of the entire snapshot image using the
-   ``dd`` command, and compresses the result in a gziped tar archive
-   in the current working directory.
+- Does a block level copy of the entire snapshot image using the ``dd``
+  command, and compresses the result in a gziped tar archive in the
+  current working directory.
 
-   .. warning::
+  .. warning::
 
-      This command will create a large ``tar.gz`` file in your current
-      working directory. Make sure that you run this command in a
-      file system that has enough free space.
+     This command will create a large ``tar.gz`` file in your current
+     working directory. Make sure that you run this command in a file
+     system that has enough free space.
 
 Restore Snapshot
 ````````````````
@@ -274,34 +274,33 @@ procedure:
    tar -xzf mdb-snap01.tar.gz | dd of=/dev/vg0/mdb-new
    mount /dev/vg0/mdb-new /srv/mongodb
 
-This sequence:
+The above sequence:
 
-1. Creates a new logical volume named ``mdb-new``, in the
-   ``/dev/vg0`` volume group. The path to the new device will be
-   ``/dev/vg0/mdb-new``.
+- Creates a new logical volume named ``mdb-new``, in the ``/dev/vg0``
+  volume group. The path to the new device will be ``/dev/vg0/mdb-new``.
 
-   .. warning::
+  .. warning::
 
-      This volume will have a maximum size of 1 gigabyte. The original
-      file system must have had a total size of 1 gigabyte or smaller,
-      or else the restoration will fail.
+     This volume will have a maximum size of 1 gigabyte. The original
+     file system must have had a total size of 1 gigabyte or smaller, or
+     else the restoration will fail.
 
-      Change ``1G`` to your desired volume size.
+     Change ``1G`` to your desired volume size.
 
-2. Uncompresses and unarchives the ``mdb-snap01.tar.gz`` into the
-   ``mdb-new`` disk image.
+- Uncompresses and unarchives the ``mdb-snap01.tar.gz`` into the
+  ``mdb-new`` disk image.
 
-3. Mounts the ``mdb-new`` disk image to the ``/srv/mongodb``
-   directory. Modify the mount point to correspond to your MongoDB
-   data file location, or other location as needed.
+- Mounts the ``mdb-new`` disk image to the ``/srv/mongodb`` directory.
+  Modify the mount point to correspond to your MongoDB data file
+  location, or other location as needed.
 
 .. _backup-restore-from-snapshot:
 
 Restore Directly from a Snapshot
 ````````````````````````````````
 
-To combine the above processes without writing to a compressed ``tar``
-archive, use the following sequence:
+To restore a backup without writing to a compressed ``tar`` archive, use
+the following sequence:
 
 .. code-block:: sh
 
@@ -395,11 +394,11 @@ tool. As a result you may:
 
 .. _database-dumps:
 
-Binary Dump/Restore Formats
-----------------------------
+Using Binary Database Dumps for Backups
+---------------------------------------
 
 This section describes the process for writing the entire contents of
-your MongoDB instance, to a file in a binary format. This command
+your MongoDB instance to a file in a binary format. This command
 provides the best option for full system database backups if
 disk-level snapshots are not available.
 
