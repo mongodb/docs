@@ -7,15 +7,15 @@ Backup and Restoration Strategies
 This document provides an inventory of database backup strategies for
 use with MongoDB.
 
-- The :ref:`backup-overview` and :ref:`backup-considerations` sections
-  describe the approaches for backing up your MongoDB environment.
+- :ref:`backup-overview` and :ref:`backup-considerations` describe the
+  approaches for backing up your MongoDB environment.
 
-- The :ref:`block-level-backup` or :ref:`database-dumps` sections
-  describe specific strategies.
+- :ref:`block-level-backup` and :ref:`database-dumps` describe specific
+  strategies.
 
-- The :ref:`backups-with-sharding-and-replication` section describes
-  considerations specific to :term:`replica sets <replica set>` and
-  :term:`sharded clusters <sharded cluster>`.
+- :ref:`backups-with-sharding-and-replication` describes considerations
+  specific to :term:`replica sets <replica set>` and :term:`sharded
+  clusters <sharded cluster>`.
 
 .. _backup-overview:
 
@@ -29,11 +29,13 @@ up a new or replacement database instance.
 
 With MongoDB, there are two major approaches to backups:
 
-- Using system-level tools, like disk image snapshots. See
-  :ref:`block-level-backup`.
+- Using system-level tools, like disk image snapshots.
 
-- Using various capacities present in the :program:`mongodump` tool. See
-  :ref:`database-dumps`.
+  See :ref:`block-level-backup`.
+
+- Using various capacities present in the :program:`mongodump` tool.
+
+  See :ref:`database-dumps`.
 
 The methods described in this document operate by copying the data file
 on the disk level. If your system does not provide functionality for
@@ -149,8 +151,8 @@ Snapshots have the following limitations:
 
 .. _backup-with-journaling:
 
-With Journaling
-~~~~~~~~~~~~~~~
+Backup With Journaling
+~~~~~~~~~~~~~~~~~~~~~~
 
 If your system has snapshot capability and your :program:`mongod` instance
 has journaling enabled, then you can use any kind of file system or
@@ -164,7 +166,7 @@ volume/block level snapshot tool to create backups.
    MongoDB.
 
    To enable journaling on all other builds, specify
-   ":setting:`journal` = ``true`` in the configuration or use the
+   :setting:`journal` = ``true`` in the configuration or use the
    :option:`--journal <mongod --journal>` run-time option for
    :program:`mongod`.
 
@@ -177,12 +179,11 @@ LVM-based setups *within* a cloud/virtualized environment.
 .. note::
 
    Running :term:`LVM` provides additional flexibility and enables the
-   possibility of using snapshots to backup MongoDB.
+   possibility of using snapshots to back up MongoDB.
 
-   If you use Amazon's EBS service in a software RAID 10 (e.g. 1+0)
-   configuration, use :term:`LVM` to capture a consistent disk image.
-
-   Also consider, :ref:`backup-amazon-software-raid`.
+If you use Amazon's EBS service in a software RAID 10 configuration, use
+:term:`LVM` to capture a consistent disk image. Also, see the special
+considerations described in :ref:`backup-amazon-software-raid`.
 
 The following sections provide an overview of a simple backup process
 using :term:`LVM` on a Linux system. While the tools, commands, and paths may
@@ -313,8 +314,12 @@ Remote Backup Storage
 `````````````````````
 
 You can implement off-system backups using the :ref:`combined process
-<backup-restore-from-snapshot>` and SSH. Consider the following
-procedure:
+<backup-restore-from-snapshot>` and SSH.
+
+This sequence is identical to procedures explained above, except that it
+archives and compresses the backup on a remote system using SSH.
+
+Consider the following procedure:
 
 .. code-block:: sh
 
@@ -324,51 +329,48 @@ procedure:
    ssh username@example.com tar -xzf /opt/backup/mdb-snap01.tar.gz | dd of=/dev/vg0/mdb-new
    mount /dev/vg0/mdb-new /srv/mongodb
 
-This sequence is identical to procedures explained above, except that
-it archives and compresses the backup on a remote system using SSH.
-
 .. _backup-without-journaling:
 
-Without Journaling
-~~~~~~~~~~~~~~~~~~
+Backup Without Journaling
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If your :program:`mongod` instance does not run with journaling
 enabled, or if your journal is on a separate volume, obtaining a
-functional backup of a consistent state is more complicated. Flush all
+functional backup of a consistent state is more complicated. As described in this section, you must flush all
 writes to disk and lock the database to prevent writes during the
-backup process. If you have a :term:`replica set` configuration, use a
+backup process. If you have a :term:`replica set` configuration, then for your backup, use a
 :term:`secondary` that is not receiving reads (i.e. :term:`hidden
-member`) for backup purposes.
+member`).
 
-You can flush writes to disk, and "lock" the database to prevent
-further writes with the :method:`db.fsyncLock()` command in the
-:program:`mongo` shell, as follows:
-
-.. code-block:: javascript
-
-   db.fsyncLock();
-
-Perform the :ref:`backup operation described above
-<lvm-backup-operation>` at this point. To unlock the database after
-the snapshot has completed, use the following command in the
-:program:`mongo` shell:
-
-.. code-block:: javascript
-
-   db.fsyncUnlock();
-
-.. note::
-
-   Version 1.9.0 added :method:`db.fsyncLock()` and
-   :method:`db.fsyncUnlock()` helpers to the :program:`mongo` shell.
-   Prior to this version, use the following commands:
+1. To flush writes to disk and to "lock" the database (to prevent
+   further writes), issue the :method:`db.fsyncLock()` method in the
+   :program:`mongo` shell:
 
    .. code-block:: javascript
 
-      db.runCommand( { fsync: 1, lock: true } );
-      db.runCommand( { fsync: 1, lock: false } );
+      db.fsyncLock();
 
-   .. include:: /includes/note-disable-profiling-fsynclock.rst
+#. Perform the backup operation described in :ref:`lvm-backup-operation`.
+
+#. To unlock the database after the snapshot has completed, use the
+   following command in the :program:`mongo` shell:
+
+   .. code-block:: javascript
+
+      db.fsyncUnlock();
+
+   .. note::
+
+      Version 1.9.0 added :method:`db.fsyncLock()` and
+      :method:`db.fsyncUnlock()` helpers to the :program:`mongo` shell.
+      Prior to this version, use the following commands:
+
+      .. code-block:: javascript
+
+         db.runCommand( { fsync: 1, lock: true } );
+         db.runCommand( { fsync: 1, lock: false } );
+
+      .. include:: /includes/note-disable-profiling-fsynclock.rst
 
 .. _backup-amazon-software-raid:
 
@@ -383,14 +385,13 @@ tool. As a result you may:
 - Flush all writes to disk and create a write lock to ensure
   consistent state during the backup process.
 
-  If you choose this option see the section on ":ref:`Backup without
-  Journaling <backup-without-journaling>`"
+  If you choose this option see :ref:`backup-without-journaling`.
 
 - Configure LVM to run and hold your MongoDB data files on top of the
   RAID within your system.
 
-  If you choose this option see the section that outlines the
-  ":ref:`LVM backup operation <lvm-backup-operation>`"
+  If you choose this option, perform the LVM backup operation described
+  in :ref:`lvm-backup-operation`.
 
 .. _database-dumps:
 
@@ -398,9 +399,9 @@ Using Binary Database Dumps for Backups
 ---------------------------------------
 
 This section describes the process for writing the entire contents of
-your MongoDB instance to a file in a binary format. This command
-provides the best option for full system database backups if
-disk-level snapshots are not available.
+your MongoDB instance to a file in a binary format. If
+disk-level snapshots are not available, this approach
+provides the best option for full system database backups.
 
 .. seealso::
 
@@ -415,15 +416,14 @@ disk-level snapshots are not available.
 Database Dump with :program:`mongodump`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :program:`mongodump` utility performs a live backup the data, or
+The :program:`mongodump` utility can perform a live backup of data or
 can work against an inactive set of database
 files. The :program:`mongodump` utility can create a dump for an entire
-server/database/collection (or part of a collection using of query,)
+server/database/collection (or part of a collection using of query),
 even when the database is running and active. If you run
-:program:`mongodump` without any arguments the command will connect to
+:program:`mongodump` without any arguments, the command will connect to
 the local database instance (e.g. ``127.0.0.1`` or ``localhost``) and
-create a database backup in in the current directory named
-``dump/``.
+create a database backup named ``dump/`` and place it in the current directory.
 
 .. include:: /includes/note-mongodump-compatibility-2.2.rst
 
@@ -438,11 +438,11 @@ database dump. For example:
 This command creates a dump in of the database in the ``dump/``
 directory of only the collection named ``collection`` in the
 database named ``test``. :program:`mongodump` provides the
-":option:`--oplog <mongodump --oplog>`" option that forces the dump
+:option:`--oplog <mongodump --oplog>` option that forces the dump
 operation to use the operation log to take a point-in-time snapshot of
 the database.
 
-With ":option:`--oplog <mongodump --oplog>`" , :program:`mongodump`
+With :option:`--oplog <mongodump --oplog>`, :program:`mongodump`
 copies all the data from the source database, as well as all of the
 :term:`oplog` entries from the beginning of the backup procedure to
 until the backup procedure completes. This backup procedure, in
@@ -451,7 +451,7 @@ restore a backup that reflects a consistent and specific moment in
 time.
 
 If your MongoDB instance is not running, you can use the
-":option:`--dbpath <mongodump --dbpath>`" option to specify the
+:option:`--dbpath <mongodump --dbpath>` option to specify the
 location to your MongoDB instance's database files. :program:`mongodump`
 reads from the data files directly with this operation. This
 locks the data directory to prevent conflicting writes. The
@@ -463,8 +463,8 @@ configuration. Consider the following example:
 
    mongodump --dbpath /srv/mongodb
 
-Additionally, the ":option:`--host <mongodump --host>`" and
-":option:`--port <mongodump --port>`" options allow you to specify a
+Additionally, the :option:`--host <mongodump --host>` and
+:option:`--port <mongodump --port>` options allow you to specify a
 non-local host to connect to capture the dump. Consider the following
 example:
 
@@ -490,7 +490,7 @@ the ``dump-2011-10-25`` directory to the :program:`mongod` instance
 running on the localhost interface. By default, :program:`mongorestore`
 will look for a database dump in the ``dump/`` directory and restore
 that. If you wish to restore to a non-default host, the
-":option:`--host <mongorestore --host>`" and ":option:`--port <mongorestore --port>`"
+:option:`--host <mongorestore --host>` and :option:`--port <mongorestore --port>`
 options allow you to specify a non-local host to connect to capture
 the dump. Consider the following example:
 
@@ -536,14 +536,14 @@ interacting with your shell environment.
 Here, :program:`mongorestore` restores the database dump located in
 ``dump/`` folder into the data files located at ``/srv/mongodb``, with
 the :option:`--dbpath <mongorestore --dbpath>` option. Additionally,
-the ":option:`--journal <mongorestore --journal>`" option ensures that
+the :option:`--journal <mongorestore --journal>` option ensures that
 :program:`mongorestore` records all operation in the durability
 :term:`journal`. The journal prevents data file corruption if anything
 (e.g. power failure, disk failure, etc.)  interrupts the restore
 operation.
 
-.. seealso:: ":doc:`/reference/mongodump`" and
-   ":doc:`/reference/mongorestore`."
+.. seealso:: :doc:`/reference/mongodump` and
+   :doc:`/reference/mongorestore`.
 
 .. _backups-with-sharding-and-replication:
 
@@ -653,8 +653,8 @@ following sequence:
    .. note::
 
       In this situation :program:`mongodump` will read from
-      :term:`secondary` nodes. See: ":ref:`mongodump feature
-      <mongodump-behavior>`" for more information.
+      :term:`secondary` nodes. See: :ref:`mongodump feature
+      <mongodump-behavior>` for more information.
 
 2. Record a backup of all shards
 
