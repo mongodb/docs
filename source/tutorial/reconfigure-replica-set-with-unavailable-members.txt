@@ -1,24 +1,29 @@
-==================================================
-Reconfigure a Replica Set with Unavailable Members
-==================================================
+===============================================
+Reconfigure a Replica Set when Members are Down
+===============================================
 
 .. default-domain:: mongodb
 
-To reconfigure a :term:`replica set` when a **majority** of members
-are accessible, use the :method:`rs.reconfig()` operation on
+To reconfigure a :term:`replica set` when a only a **minority** of
+members have become inaccessible, use the :method:`rs.reconfig()`
+operation on
 the current :term:`primary`, following the example in the
 :ref:`Replica Set Reconfiguration Procedure
 <replica-set-reconfiguration-usage>`.
 
-To reconfigure a replica set when a **minority** of members are
-accessible, the reconfiguration process is less straightforward. Use
-the procedure in this document, to reconfigure a replica set in this
-situation. For example, you will need to use this process to
-reconfigure a set split between multiple facilities where *no* local
-group of nodes can reach a majority. See
+To reconfigure a replica set when a **majority** of members have become
+inaccessible, use one of the procedures in this document. This situation
+might occur, for example, in a replica set is distributed across
+multiple facilities and *no* local group of members can reach a
+majority. See
 :ref:`replica-set-elections-and-network-partitions` for more
-information about these case. In these situations, *always* use the
-procedures described in this document.
+information on this situation.
+
+This document provides the following options for reconfiguring a replica
+set when a **majority** of members are accessible:
+
+- :ref:`replica-set-force-reconfiguration`
+- :ref:`replica-set-reconfigure-by-replacing`
 
 .. index:: replica set; reconfiguration
 .. _replica-set-force-reconfiguration:
@@ -30,13 +35,12 @@ Reconfigure by Forcing the Reconfiguration
 
 This procedure lets you recover while a majority of :term:`replica set`
 members are down or unreachable. You connect to any surviving member and
-use the ``force`` option to the :method:`rs.reconfig()`  method to force a
-reconfiguration of the replica set.
+use the ``force`` option to the :method:`rs.reconfig()`  method.
 
-The ``force`` option reconfigures the set. Only use this procure to
+The ``force`` option forces reconfiguration of the set. Use this procedure only to
 recover from catastrophic interruptions. Do not use ``force`` every
 time you reconfigure. Also, do not use ``force`` in any automatic
-scripts and do not use ``force`` when there is still a primary.
+scripts and do not use ``force`` when there is still a :term:`primary`.
 
 To force reconfiguration:
 
@@ -81,10 +85,12 @@ To force reconfiguration:
 #. If the failure or partition was only temporary, shut down or
    decommission the removed members as soon as possible.
 
+.. _replica-set-reconfigure-by-replacing:
+
 Reconfigure by Replacing the Replica Set
 ----------------------------------------
 
-Only use the following procedure for versions of MongoDB before
+Use the following procedure **only** for versions of MongoDB prior to
 version 2.0. If you're running MongoDB 2.0 or later, use the above
 procedure, :ref:`replica-set-force-reconfiguration`.
 
@@ -103,9 +109,9 @@ Reconfigure by Turning Off Replication
 
 This option replaces the :term:`replica set` with a :term:`standalone` server.
 
-1. Stop the surviving :program:`mongod` instances. Use existing
-   an :term:`control script`, or an invocation that resembles the
-   following to ensure a clean shutdown:
+1. Stop the surviving :program:`mongod` instances. To ensure a clean shutdown, use
+   an existing :term:`control script` or an invocation that resembles the
+   following:
 
    .. code-block:: javascript
 
@@ -117,7 +123,7 @@ This option replaces the :term:`replica set` with a :term:`standalone` server.
 #. Create a backup of the data directory (i.e. :setting:`dbpath`) of
    the surviving members of the set.
 
-   .. optional:: If you have a backup of the database you may remove
+   .. optional:: If you have a backup of the database you may instead remove
       this data.
 
 #. Restart one of the :program:`mongod` instances *without* the
@@ -137,9 +143,9 @@ This option selects a surviving :term:`replica set` member to be the new
 :term:`primary` and to "seed" a new replica set. All other
 members must resync from this new primary.
 
-1. Stop the surviving :program:`mongod` instances. Use existing
-   an :term:`control script`, or an invocation that resembles the
-   following to ensure a clean shutdown:
+1. Stop the surviving :program:`mongod` instances. To ensure a clean shutdown, use
+   an existing :term:`control script` or an invocation that resembles the
+   following:
 
    .. code-block:: javascript
 
@@ -155,16 +161,16 @@ members must resync from this new primary.
 
       mv /data/db /data/db-old
 
-   .. optional:: If you have a backup of the database you may remove
+   .. optional:: If you have a backup of the database you may instead remove
       this data.
 
 #. Restart all :program:`mongod` instances with a new replica set
-   name. If the old set name was ``rs0``, the invoke :program:`mongod`
-   instances with the following command line arguments:
+   name. For example, if the old set name was ``rs0``, you might invoke the :program:`mongod`
+   instances with the following command line argument:
 
    .. code-block:: sh
 
-      mongo --replSet rs1
+      --replSet rs1
 
    See :setting:`replSet` and :option:`--replSet <mongod --replSet>`
    for more information.
