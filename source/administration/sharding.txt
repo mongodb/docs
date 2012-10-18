@@ -8,7 +8,8 @@ Sharded Cluster Administration
 .. default-domain:: mongodb
 
 This document describes common administrative tasks for sharded
-clusters. For a list of all sharding documentation see :doc:`/sharding`.
+clusters. For complete documentation of sharded clusters see the
+:doc:`/sharding` section of this manual.
 
 .. contents:: Sharding Procedures:
    :backlinks: none
@@ -190,8 +191,8 @@ use the following procedure as a quick starting point:
 Cluster Management
 ------------------
 
-This section describes how to add and remove shards and how to view
-information about your :term:`sharded cluster`.
+This section outlines procedures for adding and remove shards, as well
+as general monitoring and maintenance of a :term:`sharded cluster`.
 
 .. _sharding-procedure-add-shard:
 
@@ -244,7 +245,6 @@ procedure:
       name upon creation.
 
    .. versionchanged:: 2.0.3
-
       Before version 2.0.3, you must specify the shard in the
       following form: the replica set name, followed by a forward
       slash, followed by a comma-separated list of seeds for the
@@ -386,40 +386,45 @@ stop the processes comprising the ``mongodb0`` shard.
 List Databases with Sharding Enabled
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To list the databases for which sharding is enabled, query the
+To list the databases that have sharding enabled, query the
 ``databases`` collection in the :ref:`config-database`.
-The databases with the ``partitioned`` field set to
-``true`` have sharding enabled.
+A database has sharding enabled if the value of the ``partitioned``
+field is ``true``. Connect to a :program:`mongos` instance with a
+:program:`mongo` shell, and run the following operation to get a full
+list of databases with sharding enabled:
 
-.. example:: Run this sequence of commands to open the :ref:`config
-   database <config-database>` and query the ``databases`` collection.
+.. code-block:: javascript
+
+   use config
+   db.databases.find( { "partitioned": true } )
+
+.. example:: You can use the following sequence of commands when to
+   return a list of all databases in the cluster:
 
    .. code-block:: javascript
 
       use config
       db.databases.find()
 
-   Given the following example output:
+   If this returns the following result set:
 
    .. code-block:: javascript
 
       { "_id" : "admin", "partitioned" : false, "primary" : "config" }
-      { "_id" : "foo", "partitioned" : true, "primary" : "example1.com:30001" }
-      { "_id" : "baz", "partitioned" : false, "primary" : "example2.com:27017" }
+      { "_id" : "animals", "partitioned" : true, "primary" : "m0.example.net:30001" }
+      { "_id" : "farms", "partitioned" : false, "primary" : "m1.example2.net:27017" }
 
-   Only the database `foo` has sharding enabled because only `foo` has
-   the ``partitioned`` field set to ``true``.
+   Then sharding is only enabled for the the ``animals`` database.
 
 List Shards
 ~~~~~~~~~~~
 
-To list the current set of configured shards and verify that all shards
-have been committed to the system, run the :dbcommand:`listShards`
-command:
+To list the current set of configured shards, use the :dbcommand:`listShards`
+command, as follows:
 
 .. code-block:: javascript
 
-   db.runCommand( { listshards : 1 } )
+   db.runCommand( { list shards : 1 } )
 
 View Cluster Details
 ~~~~~~~~~~~~~~~~~~~~
@@ -432,11 +437,11 @@ To view cluster details, issue :method:`db.printShardingStatus()` or
    - ``sharding version`` displays the version number of the shard
      metadata.
 
-   - ``shards`` displays each :program:`mongod` instance that is used as
-     a shard.
+   - ``shards`` displays a list of the :program:`mongod` instances
+     used as shards in the cluster.
 
-   - ``databases`` displays all databases living in the cluster,
-     including databases for which sharding is not enabled.
+   - ``databases`` displays all databases in the cluster,
+     including database that do not have sharding enabled.
 
    - The ``chunks`` information for the ``foo`` database displays how
      many chunks are on each shard and displays the range of each chunk.
@@ -446,11 +451,11 @@ To view cluster details, issue :method:`db.printShardingStatus()` or
       --- Sharding Status ---
         sharding version: { "_id" : 1, "version" : 3 }
         shards:
-          {  "_id" : "shard0000",  "host" : "example1.com:40000" }
-          {  "_id" : "shard0001",  "host" : "example2.com:50000" }
+          {  "_id" : "shard0000",  "host" : "m0.example.net:30001" }
+          {  "_id" : "shard0001",  "host" : "m3.example2.net:50000" }
         databases:
           {  "_id" : "admin",  "partitioned" : false,  "primary" : "config" }
-          {  "_id" : "foo",  "partitioned" : true,  "primary" : "shard0000" }
+          {  "_id" : "animals",  "partitioned" : true,  "primary" : "shard0000" }
               foo.big chunks:
                       shard0001    1
                       shard0000    6
@@ -476,10 +481,11 @@ Chunk Management
 ----------------
 
 This section describes various operations on :term:`chunks <chunk>` in
-:term:`sharded clusters <sharded cluster>`. MongoDB automates these
-processes; however, in some cases, particularly when you're setting up
-a sharded cluster, you may need to create and manipulate chunks
-directly.
+:term:`sharded clusters <sharded cluster>`. MongoDB automates most
+chunk management operations. However, these chunk management
+operations are accessible to administrators for use in some
+situations, typically surrounding initial setup, deployment, and data
+ingestion.
 
 .. _sharding-procedure-create-split:
 
