@@ -7,30 +7,19 @@ Sharding Fundamentals
 
 .. default-domain:: mongodb
 
-MongoDB's sharding system allows users to :term:`partition` the data of a
-:term:`collection` within a database to distribute documents
-across a number of :program:`mongod` instances or :term:`shards <shard>`.
+This document provides an overview of the fundamental concepts and
+operations of sharding with MongoDB. For a list of all sharding
+documentation see :doc:`/sharding`.
 
-Sharded clusters allow increases in write capacity, provide the ability to
-support larger working sets, and raise the limits of total data size beyond
+MongoDB's sharding system allows users to :term:`partition` a
+:term:`collection` within a database to distribute the collection's documents
+across a number of :program:`mongod` instances or :term:`shards <shard>`.
+Sharding increases write capacity, provides the ability to
+support larger working sets, and raises the limits of total data size beyond
 the physical resources of a single node.
 
-This document provides an overview of the fundamental concepts and
-operation of sharding with MongoDB.
-
-.. seealso:: The ":doc:`/sharding`" index for a list of all documents
-   in this manual that contain information related to the operation
-   and use of sharded clusters in MongoDB. This includes:
-
-   - :doc:`/core/sharding-internals`
-   - :doc:`/administration/sharding`
-   - :doc:`/administration/sharding-architectures`
-
-   If you are not yet familiar with sharding, see the :doc:`Sharding
-   FAQ </faq/sharding>` document.
-
-Overview
---------
+Sharding Overview
+-----------------
 
 Features
 ~~~~~~~~
@@ -89,11 +78,11 @@ A typical :term:`sharded cluster` consists of:
   </reference/mongos>` instances. The :program:`mongos` process routes
   operations to the correct shard based the cluster configuration.
 
-Indications
-~~~~~~~~~~~
+When to Use Sharding
+~~~~~~~~~~~~~~~~~~~~
 
 While sharding is a powerful and compelling feature, it comes with
-significant :ref:`infrastructure requirements <sharding-requirements>`
+significant :ref:`sharding-requirements-infrastructure`
 and some limited complexity costs. As a result, use
 sharding only as necessary, and when indicated by actual operational
 requirements. Consider the following overview of indications it may be
@@ -133,13 +122,13 @@ the corresponding shard keys.
 .. index:: sharding; requirements
 .. _sharding-requirements:
 
-Requirements
-------------
+Sharding Requirements
+---------------------
 
 .. _sharding-requirements-infrastructure:
 
-Infrastructure
-~~~~~~~~~~~~~~
+Infrastructure Requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A :term:`sharded cluster` has the following components:
 
@@ -190,8 +179,8 @@ A :term:`sharded cluster` has the following components:
      the :program:`mongos` instances, causing that :program:`mongos`
      to require more system resources.
 
-Data
-~~~~
+Data Requirements
+~~~~~~~~~~~~~~~~~
 
 Your cluster must manage a significant quantity of data for sharding
 to have an effect on your collection. The default :term:`chunk` size
@@ -215,7 +204,7 @@ for your persistence layer needs.
 .. [#chunk-size] :term:`chunk` size is :option:`user configurable
    <mongos --chunkSize>`.  However, the default value is of 64
    megabytes is ideal for most deployments. See the
-   ":ref:`sharding-chunk-size`" section in the
+   :ref:`sharding-chunk-size` section in the
    :doc:`sharding-internals` document for more information.
 
 .. index:: sharding; localhost
@@ -266,21 +255,21 @@ The ideal shard key:
 - is easily divisible which makes it easy for MongoDB to distribute
   content among the shards. Shard keys that have a limited number of
   possible values are not ideal as they can result in some chunks that
-  are "unsplitable." See the ":ref:`sharding-shard-key-cardinality`"
+  are "unsplitable." See the :ref:`sharding-shard-key-cardinality`
   section for more information.
 
 - will distribute write operations among the cluster, to prevent any
   single shard from becoming a bottleneck. Shard keys that have a high
   correlation with insert time are poor choices for this reason;
   however, shard keys that have higher "randomness" satisfy this
-  requirement better. See the   ":ref:`sharding-shard-key-write-scaling`"
+  requirement better. See the :ref:`sharding-shard-key-write-scaling`
   section for additional background.
 
 - will make it possible for the :program:`mongos` to return most query
   operations directly from a single *specific* :program:`mongod`
   instance. Your shard key should be the primary field used by your
   queries, and fields with a high degree of "randomness" are poor
-  choices for this reason. See the ":ref:`sharding-shard-key-query-isolation`"
+  choices for this reason. See the :ref:`sharding-shard-key-query-isolation`
   section for specific examples.
 
 The challenge when selecting a shard key is that there is not always
@@ -372,8 +361,8 @@ that the config servers remain available and intact are critical.
 :program:`mongos` and Querying
 ------------------------------
 
-.. seealso:: ":doc:`/reference/mongos`" and the :program:`mongos`\-only
-   settings: ":setting:`test`" and :setting:`chunkSize`.
+.. seealso:: :doc:`/reference/mongos` and the :program:`mongos`\-only
+   settings: :setting:`test` and :setting:`chunkSize`.
 
 Operations
 ~~~~~~~~~~
@@ -509,26 +498,28 @@ To route a query to a :term:`cluster <sharded cluster>`,
 Balancing and Distribution
 --------------------------
 
-Balancing refers to the process that MongoDB uses to redistribute data
-within a :term:`sharded cluster` when some :term:`shards <shard>` have a
-greater number of :term:`chunks <chunk>` than other shards. The
+Balancing is the process MongoDB uses to redistribute data within a
+:term:`sharded cluster`. When a :term:`shard` has a too many:
+term:`chunks <chunk>` when compared to other shards, MongoDB balances
+the shards.
+
+The
 balancing process attempts to minimize the impact that balancing can
 have on the cluster, by:
 
-- Only moving one chunk at a time.
+- Moving only one chunk at a time.
 
 - Only initiating a balancing round when the difference in number of
   chunks between the shard with the greatest and the shard with the
   least number of chunks exceeds the :ref:`migration threshold
   <sharding-migration-thresholds>`.
 
-Additionally, you may disable the balancer on a temporary basis for
+You may disable the balancer on a temporary basis for
 maintenance and limit the window during which it runs to prevent the
 balancing process from impacting production traffic.
 
-.. seealso:: The ":ref:`"Balancing Internals
-   <sharding-balancing-internals>`" and :ref:`Balancer Operations
-   <sharding-balancing-operations>` for more information on balancing.
+.. seealso:: :ref:`sharding-balancing-operations` and
+   :ref:`sharding-balancing-internals`.
 
 .. note::
 
