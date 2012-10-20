@@ -439,12 +439,12 @@ This command creates a dump in of the database in the ``dump/``
 directory of the collection named ``collection`` in the database named
 ``test``.
 
-To force the dump operation to use the operation log to take a
-point-in-time snapshot of the database, use the :program:`mongodump`
-:option:`--oplog <mongodump --oplog>` option. With :option:`--oplog
-<mongodump --oplog>`, :program:`mongodump` copies all the data from the
-source database as well as all of the :term:`oplog` entries from the
-beginning of the backup procedure to until the backup procedure
+Use :option:`--oplog <mongodump --oplog>` option with
+:program:`mongodump` to collect the :term:`oplog` entries to build a
+point-in-time snapshot of the database. With :option:`--oplog
+<mongodump --oplog>`, :program:`mongodump` copies all the data from
+the source database as well as all of the :term:`oplog` entries from
+the beginning of the backup procedure to until the backup procedure
 completes. This backup procedure, in conjunction with
 :option:`mongorestore --oplogReplay <mongorestore --oplogReplay>`,
 allows you to restore a backup that reflects a consistent and specific
@@ -558,16 +558,16 @@ perform restorations.
 Back Up Sharded Clusters
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Creating useful backups for :term:`sharded clusters <sharded cluster>` is complicated
-because it's crucial that a given backup capture a consistent state
-across all shards.
+Sharding complicates backup operations, because it is difficult to
+create a backup of a single moment in time from a distributed cluster
+of systems and processes. 
 
 Depending on the size of your data, you can back up the cluster as a
-whole or back up each database instances. Both procedures are described
-here.
+whole or back up each :program:`mongod` instance. The following
+section describes both procedures.
 
-Back Up the Cluster as a Whole Using :program:`mongodump`
-`````````````````````````````````````````````````````````
+Back Up the Cluster as a Whole Using ``mongodump``
+``````````````````````````````````````````````````
 
 If your :term:`sharded cluster` comprises a small collection of data,
 you can connect to a :program:`mongos` and issue the
@@ -714,10 +714,11 @@ Restore Sharded Clusters
 
 #. Restore the following:
 
-   - Data files for each server in each :term:`shard` For each shard
-     that is comprised of a :term:`replica set`, restore all the members
-     of the replica set or use the other standard approaches for
+   - Data files for each server in each :term:`shard`. Because replica
+     sets provide each production shard, restore all the members of
+     the replica set or use the other standard approaches for
      restoring a replica set from backup.
+
    - Data files for each :ref:`config server <sharding-config-server>`,
      if you have not already done so in the previous step.
 
@@ -726,18 +727,19 @@ Restore Sharded Clusters
 #. Restart all the :program:`mongod` instances.
 
 #. Connect to a :program:`mongos` instance from a :program:`mongo` shell
-   and run the following sequence of commands to make sure all shards
-   are running:
+   and run use the :method:`db.printShardingStatus()` method to ensure
+   that the cluster is operational, as follows:
 
    .. code-block:: javascript
 
-      printShardingStatus()
+      db.printShardingStatus()
       show collections
+
 
 Restore a Single Shard
 ~~~~~~~~~~~~~~~~~~~~~~
 
-:term:`Sharded clusters <sharded cluster>` are designed to be restored
+Always restore :term:`sharded clusters <sharded cluster>`
 as a whole. When you restore a single shard, keep in mind that the
 :term:`balancer` process might have moved :term:`chunks <chunk>` onto or
 off of this shard since the last backup. If that's the case, you must
@@ -745,12 +747,12 @@ manually move those chunks, as described in this procedure.
 
 1. Restore the shard.
 
-#. For chunks that were migrated away from this shard, you need not do
-   anything. Their documents do not need to be deleted from
-   the shard because the chunks are automatically filtered out from queries
-   by :program:`mongos`.
+#. For all chunks that migrated away from this shard, you need not do
+   anything. You do not need to delete these documents from the shard
+   because the chunks are automatically filtered out from queries by
+   :program:`mongos`.
 
-#. For chunks that were migrated to this shard since the last backup,
+#. For chunks that migrated to this shard since the last backup,
    you must manually recover the chunks. To determine what chunks have
    moved, view the ``changelog`` collection in the :ref:`config-database`.
 
