@@ -74,14 +74,15 @@ To force reconfiguration:
 
       rs.reconfig(cfg, {force : true})
 
-   This operation forces the replica set to elect a new primary. Often
-   this is the member with which your :program:`mongo` shell has a
-   connection.
+   This operation forces the secondary to use the new configuration. The
+   configuration is then propagated to all the surviving members listed
+   in the ``members`` array. The replica set then elects a new primary.
 
    .. note:: When you use ``force : true``, the version number in the
       replica set configuration increases significantly, by tens or
       hundreds of thousands. This is normal and designed to prevent set
-      version collisions if network partitioning ends.
+      version collisions if there are forced reconfigs on both sides of
+      a network partition and then the network partitioning ends.
 
 #. If the failure or partition was only temporary, shut down or
    decommission the removed members as soon as possible.
@@ -141,8 +142,9 @@ Reconfigure by "Breaking the Mirror"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This option selects a surviving :term:`replica set` member to be the new
-:term:`primary` and to "seed" a new replica set. All other
-members must resync from this new primary.
+:term:`primary` and to "seed" a new replica set. In this procedure, the
+member to be the new primary is referred to as ``A``. All other members
+will resync from this new primary.
 
 1. Stop the surviving :program:`mongod` instances. To ensure a clean shutdown, use
    an existing :term:`control script` or an invocation that resembles the
@@ -155,27 +157,32 @@ members must resync from this new primary.
    Set :option:`--dbpath <mongod --dbpath>` to the data directory of your
    :program:`mongod` instance.
 
-#. For all instances that will resync their data from the surviving
-   :program:`mongod`, move the data directory (i.e. :setting:`dbpath <mongod --dbpath>`)
-   from each surviving member to an archive. For example:
+#. Move the data directories (i.e. :setting:`dbpath <mongod --dbpath>`)
+   for all the members except ``A``, so that all the members except ``A``
+   have empty data directories. For example:
 
    .. code-block:: sh
 
       mv /data/db /data/db-old
 
-   .. optional:: If you have a backup of the database you may instead
-      remove this data.
-
-#. Restart all :program:`mongod` instances with a new replica set
-   name. For example, if the old set name was ``rs0``, you would invoke the :program:`mongod`
-   instance with the following command line argument:
+#. Move ``A``'s ``local.*`` files so that ``A`` has an empty ``local``
+   directory. For example
 
    .. code-block:: sh
 
-      mongod --replSet rs1
+      mkdir /data/local-old
+      mv /data/db/local* /data/local-old/
 
-   See :setting:`replSet` and :option:`--replSet <mongod --replSet>`
-   for more information.
+#. Restart the replica set members the usual way.
 
-#. On the new primary, add the other instances as members of the replica
-   set. For more information, see :doc:`/tutorial/expand-replica-set`.
+#. Connect to ``A`` in a :program:`mongo` shell and run :method:`rs.initiate()`
+   to initiate the replica set.
+
+#. Add the other set members using :method:`rs.add()`. For example, to add a member running
+   on ``example.net`` at port ``27017``, you would issue this command:
+
+   .. code-block:: javascript
+
+      rs.add("example.net:27017")
+
+   The added members will initial sync their data from ``A``.
