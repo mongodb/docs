@@ -81,7 +81,7 @@ To force reconfiguration:
    .. note:: When you use ``force : true``, the version number in the
       replica set configuration increases significantly, by tens or
       hundreds of thousands. This is normal and designed to prevent set
-      version collisions if there are forced reconfigs on both sides of
+      version collisions if you accidentally force reconfigs on both sides of
       a network partition and then the network partitioning ends.
 
 #. If the failure or partition was only temporary, shut down or
@@ -141,10 +141,10 @@ protect your deployment from operational interruption.
 Reconfigure by "Breaking the Mirror"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This option selects a surviving :term:`replica set` member to be the new
-:term:`primary` and to "seed" a new replica set. In this procedure, the
-member to be the new primary is referred to as ``A``. All other members
-will resync from this new primary.
+This option selects a surviving :term:`replica set` member to be the
+new :term:`primary` and to "seed" a new replica set. In the following
+procedure, the new primary is ``A``. All other members will resync
+from this member.
 
 1. Stop the surviving :program:`mongod` instances. To ensure a clean shutdown, use
    an existing :term:`control script` or an invocation that resembles the
@@ -165,24 +165,25 @@ will resync from this new primary.
 
       mv /data/db /data/db-old
 
-#. Move ``A``'s ``local.*`` files so that ``A`` has an empty ``local``
-   directory. For example
+#. Move the data files for ``local`` database (i.e. ``local.*``) so
+   that ``A`` has no local database. For example
 
    .. code-block:: sh
 
       mkdir /data/local-old
       mv /data/db/local* /data/local-old/
 
-#. Restart the replica set members the usual way.
+#. Start each member of the replica set normally.
 
 #. Connect to ``A`` in a :program:`mongo` shell and run :method:`rs.initiate()`
    to initiate the replica set.
 
-#. Add the other set members using :method:`rs.add()`. For example, to add a member running
-   on ``example.net`` at port ``27017``, you would issue this command:
+#. Add the other set members using :method:`rs.add()`. For example, to
+   add a member running on ``example.net`` at port ``27017``, issue
+   the following command:
 
    .. code-block:: javascript
 
       rs.add("example.net:27017")
 
-   The added members will initial sync their data from ``A``.
+   These members will resync and copy all data from ``A``.
