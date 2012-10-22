@@ -4,77 +4,281 @@ Read Operations
 
 .. default-domain:: mongodb
 
-Read operations determine how MongoDB returns collection data when you
-issue a query. This document describes how MongoDB performs read
-operations and how different factors affect the efficiency of reads.
+Read operations retrieve data from collections. The data returned is in
+the form of a :term:`document`.
+
+This section of the manual describes how MongoDB performs read
+operations and how different factors affect the efficiency of the read
+operations.
 
 .. index:: read operation; query
 .. index:: query; read operations
-.. _read-operations-query-operators:
 
-Query Operations
-----------------
+.. _read-operations-operation:
 
-Queries are the primary read operations in MongoDB.
+Read Operators
+--------------
 
-.. _read-operations-query-syntax:
+MongoDB provides the :method:`find() <db.collection.find()>` method and
+the :method:`findOne() <db.collection.findOne()>` method to perform
+read operations.
 
-Query Syntax
-~~~~~~~~~~~~
+The :method:`find() <db.collection.find()>` method is the primary
+method to select data from a collection. The method has the syntax:
 
-For a list of query operators, see :doc:`/reference/operators`.
+.. code-block:: javascript
 
-.. TODO link to the yet-to-be created query operations doc
+   db.collection.find( <query>, <projection> )
+
+- The ``query`` argument specifies the select criteria that limits the
+  documents returned.
+
+- The ``projection`` argument specifies the fields to return.
+
+Both the ``query`` argument and the ``projection``
+argument are in the form of a ``document`` structure.
+
+For example, the following operation selects from the ``products``
+collection where field ``type`` equals ``food`` and the field ``price``
+is less than ``9.95`` and returns the fields ``item`` and ``qty``:
+
+.. code-block:: javascript
+
+   db.inventory.find( { type: 'food', price: { $lt: 9.95 } },
+                      { item: 1, qty: 1 } )
+
+The :method:`findOne() <db.collection.findOne()>` method is similar to
+the :method:`find() <db.collection.find()>` method except the
+:method:`findOne() <db.collection.findOne()>` method returns a single
+document from a collection rather than a cursor. The method has the
+syntax:
+
+.. code-block:: javascript
+
+   db.collection.findOne( <query>, <projection> )
+
+For additional documentation and examples of the main MongoDB read
+operators, refer to the :doc:`/applications/read` page of the
+:doc:`/crud` section.
+
+.. _read-operations-query-argument:
+
+Query Argument
+~~~~~~~~~~~~~~
+
+The ``query`` argument determines which records to return. 
+
+Consider the ``query`` arguments in the following :method:`find()
+<db.collection.find()>` method calls:
+
+- No ``query`` argument or an empty ``query`` argument (``{}``) returns
+  all documents in a collection:
+
+  .. code-block:: javascript
+
+     db.inventory.find()
+     db.inventory.find( {} )
+
+- A ``query`` argument specifies the criteria where the field
+  ``type`` equals either ``food`` or ``snacks``:
+
+  .. code-block:: javascript
+
+     db.inventory.find( { type: { $in: [ 'food', 'snacks' ] } } )
+
+- Compound ``query`` argument specifies the criteria where the field
+  ``type`` equals ``food`` **and** the field ``price`` is less than
+  ``9.95``:
+
+  .. code-block:: javascript
+
+     db.inventory.find( { type: 'food', price: { $lt: 9.95 } } )
+
+- Compound ``query`` argument specifies the criteria where the field
+  ``qty`` is greater than ``100`` **or** the field ``price`` is less
+  than ``9.95``:
+
+  .. code-block:: javascript
+
+     db.inventory.find( { $or: [ { qty: { $gt: 100 } },
+                                 { price: { $lt: 9.95 } } ]
+                        } )
+
+- Compound ``query`` argument specifies the criteria where the field
+  ``type`` equals ``food`` the field **and** either the field ``qty``
+  is greater than ``100`` **or** the field ``price`` is less than
+  ``9.95``:
+
+  .. code-block:: javascript
+
+     db.inventory.find( { type: 'food', $or: [ { qty: { $gt: 100 } },
+                                               { price: { $lt: 9.95 } } ]
+                         } )
+
+- A ``query`` argument specifies the criteria where the array field
+  ``tags`` contains the element ``fruit``:
+
+  .. code-block:: javascript
+
+     db.inventory.find( { tags: "fruit" } )
+
+MongoDB provides numerous query selector operators such as the
+:operator:`$lt` operator and the :operator:`$or` operator. Refer to the
+:doc:`/reference/operators` for the complete list of the ``query``
+operators.
+
+.. _read-operations-projection:
+
+Projection Argument
+~~~~~~~~~~~~~~~~~~~
+
+The ``projection`` argument specifies the fields to return for the
+matching documents. By narrowing the fields to return, projections can
+minimize network and deserialization costs. In the ``projection``
+argument, you can either specify the fields to include (``field:1``) or
+specify the fields to exclude (``field:0``). The ``_id`` field is
+implicitly included in the ``projection`` argument.
+
+Consider the ``projection`` arguments in the following :method:`find()
+<db.collection.find()>` method calls:
+
+- No ``projection`` argument specifies that the :method:`find()
+  <db.collection.find()>` method return all fields in the documents
+  that have the ``type`` field equal to ``food``.
+
+  .. code-block:: javascript
+
+     db.inventory.find( { type: 'food' } )
+
+- The ``projection`` argument specifies that the :method:`find()
+  <db.collection.find()>` method return the ``item`` field, the ``qty``
+  field, and by default, the ``_id`` field in the documents that have
+  the ``type`` field equal to ``food``.
+
+  .. code-block:: javascript
+
+     db.inventory.find( { type: 'food' }, { item: 1, qty: 1 } )
+
+- The ``projection`` argument specifies that the :method:`find()
+  <db.collection.find()>` method return the ``item`` field and the
+  ``qty`` field only in the documents that have the ``type`` field
+  equal to ``food``.
+
+  .. code-block:: javascript
+
+     db.inventory.find( { type: 'food' }, { item: 1, qty: 1, _id:0 } )
+
+  .. note:: 
+
+     The ``projection`` argument cannot contain both include and
+     exclude specifications *except* for the exclusion of the ``_id``.
+
+- The ``projection`` argument specifies that the :method:`find()
+  <db.collection.find()>` method return all fields except the ``type``
+  field in the documents that have the ``type`` field equal to ``food``.
+
+  .. code-block:: javascript
+
+     db.inventory.find( { type: 'food' }, { type:0 } )
+
+MongoDB also provides the following projection operators specific to
+arrays. Refer to the operator documentation:
+
+- :projection:`$elemMatch`
+
+- :projection:`$slice`
 
 .. _read-operations-indexing:
 
 Indexes
-~~~~~~~
+-------
 
 Indexes improve the efficiency of read operations by optimizing queries,
 pre-sorting query results, and making it possible to store fewer
 documents in memory.
 
-The most selective indexes return the fastest results. The most
-selective index possible for a given query is an index for which all the
-documents that match the query criteria also match the entire query.
+The syntax to create an index on a collection is:
 
-.. example::
+.. code-block:: javascript
 
-   Given a collection with the following indexes, data, and query:
+   db.collection.ensureIndex( { field1: order1, field2: order2, ... } )
 
-   Indexes:
+- The ``field`` specifies the field to index.
 
-   .. code-block:: javascript
+- The ``order`` specifies ascending ( ``1`` ) or descending ( ``-1`` ).
 
-      { x : 1 } , { y : 1 }
+Refer to the :method:`ensureIndex() <db.collection.ensureIndex>` method
+documentation for additional options available for the method.
 
-   Data:
+Consider the performance of the following read operation that does not
+use an index:
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      { x : 1 , y : 2 }
-      { x : 2 , y : 1 }
-      { x : 3 , y : 0 }
-      { x : 4 , y : 0 }
+   db.inventory.find( { type: 'food' } ).explain()
 
-   Query:
+The results from the :method:`explain() <cursor.explain()>` method
+shows that the execution of the :method:`find() <db.collection.find()>`
+method would involve scanning ``4000006`` documents to return ``5``
+objects:
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      db.foo.find( { x : { $gte : 1 } , y : { $gte : 1} } )
+   {
+     "cursor" : "BasicCursor", 
+     "isMultiKey" : false,
+     "n" : 5,
+     "nscannedObjects" : 4000006,
+     "nscanned" : 4000006,
+     "nscannedObjectsAllPlans" : 4000006,
+     "nscannedAllPlans" : 4000006,
+     "scanAndOrder" : false,
+     "indexOnly" : false,
+     "nYields" : 2,
+     "nChunkSkips" : 0, 
+     "millis" : 1591, 
+     "indexBounds" : { }, 
+     "server" : "My-Machine.local:27017" 
+   }
 
-   The ``{ y : 1 }`` index is more selective because all the documents
-   that match the query's ``y`` key value also match the entire query.
-   Conversely, not all the documents that match the query's ``x`` key
-   value also match the entire query.
+To improve the performance of the query, create an index on the
+``type`` field:
 
-.. seealso::
+.. code-block:: javascript
 
-   - The :doc:`/indexes` documentation, in particular :doc:`/applications/indexes`
-   - :doc:`/reference/operators`
-   - :method:`find() <db.collection.find()>`
-   - :method:`findOne() <findOne>`
+   db.inventory.ensureIndex( { type: 1 } )
+
+Compare the performance of the previous read operation, but now
+executed with the newly created index:
+
+.. code-block:: javascript
+
+   db.inventory.find( { type: 'food' } ).explain()
+
+The results show a substantial improvement in the performance of the
+operation. The execution of the :method:`find() <db.collection.find()>`
+method would involve scanning ``5`` documents to return ``5`` objects:
+
+.. code-block:: javascript
+
+   {
+     "cursor" : "BtreeCursor type_1",
+     "isMultiKey" : false,
+     "n" : 5,
+     "nscannedObjects" : 5,
+     "nscanned" : 5,
+     "nscannedObjectsAllPlans" : 5,
+     "nscannedAllPlans" : 5,
+     "scanAndOrder" : false,
+     "indexOnly" : false,
+     "nYields" : 0,
+     "nChunkSkips" : 0,
+     "millis" : 0,
+     "indexBounds" : { "type" : [
+                                   [ "food",
+                                     "food" ]
+                                ] },
+     "server" : "My-Machine.local:27017" }
 
 .. index:: query optimizer
 .. _read-operations-query-optimization:
@@ -83,25 +287,20 @@ Query Optimization
 ~~~~~~~~~~~~~~~~~~
 
 The MongoDB query optimizer matches a query to the index that produces
-the fastest results. The optimizer then uses the query plan each time
+the fastest results. The optimizer then uses this query plan each time
 the query runs. If a collection changes significantly, the optimizer
 creates a new query plan.
 
-Query plans take advantage of MongoDB's indexing features. You should
-always write indexes that use the same fields and that sort in the same
-order as do your queries. For more information, see
-:doc:`/applications/indexes`.
-
 MongoDB creates a query plan as follows:
 
-1. The query optimizer runs the query against several indexes at once in
+1. The query optimizer runs the query against several indexes in
    parallel.
 
-#. The optimizer records matches in a single common buffer, as though
-   the results all come from the same index.
+#. The optimizer records the matches in a single common buffer, as
+   though the results all come from the same index.
 
 #. If an index returns a result already returned by another index, the
-   optimizer recognizes the duplication and skips the duplicate match.
+   optimizer skips the duplicate match.
 
 #. The optimizer determines a "winning" index when either of
    the following occur:
@@ -111,24 +310,23 @@ MongoDB creates a query plan as follows:
      querying.
 
    - The optimizer reaches 101 results. At this point, the optimizer
-     chooses the plan that has provided the most results *first* and
-     continues reading only from that plan. Note that another index
-     might have provided all those results as duplicates but because the
-     "winning" index provided the full result set first, it is more
-     efficient.
+     chooses the index that has provided the most results *first* and
+     continues reading only from that index. 
 
 #. The "winning" index becomes the index specified in the query plan.
 
-To evaluate the optimizer's choice of query plan, run the query with the
-:method:`explain() <cursor.explain()>` method and :method:`hint()
-<cursor.hint()>` methods appended. Instead of returning query results,
-this returns statistics about how the query runs. For example:
+To evaluate the optimizer's choice of query plan, run the query with
+the :method:`explain() <cursor.explain()>` method and the
+:method:`hint() <cursor.hint()>` method appended. Instead of returning
+query results, this returns statistics about how the query runs. For
+example:
 
 .. code-block:: javascript
 
-   db.people.find( { name:"John"} ).explain().hint()
+   db.inventory.find( { type: 'food' } ).explain().hint()
 
-For details on the output, see :method:`explain() <cursor.explain()>`.
+For details on the output, see the :method:`explain()
+<cursor.explain()>` method documentation.
 
 .. note::
 
@@ -137,9 +335,8 @@ For details on the output, see :method:`explain() <cursor.explain()>`.
    the query and runs against multiple indexes before returning the query
    statistics.
 
-Because your collections will likely change over time, the query
-optimizer deletes a query plan and re-evaluates the indexes when any
-of the following occur:
+As collections change over time, the query optimizer deletes a query
+plan and re-evaluates the indexes when any of the following occur:
 
 - The number of writes to the collection reaches 1,000.
 
@@ -154,67 +351,7 @@ indexes at once during re-evaluation, and the order in which results
 appear depends on the order of the indexes in the
 parallel query operation.
 
-.. _read-operations-projection:
-
-Projection
-~~~~~~~~~~
-
-A projection specifies which field values to return for matching
-documents. If you run a query *without* a projection, the query returns
-all fields and values for matching documents. By narrowing the fields to
-display, projections can minimize network and deserialization costs.
-
-You specify a projection in the second document in a query:
-
-.. code-block:: javascript
-
-   db.foo.find( { <search values> } , { <projection> } )
-
-.. example::
-
-   Given the following small collection name ``foo``:
-
-   .. code-block:: javascript
-
-      { "_id" : 100 , x : 1 , y : 15 , z : 20 }
-      { "_id" : 101 , x : 2 , y : 16 , z : 21 }
-      { "_id" : 102 , x : 2 , y : 17 , z : 22 }
-      { "_id" : 103 , x : 3 , y : 18 , z : 23 }
-
-   To search for all documents where ``x`` is ``2`` but return only the
-   ``z`` field, issue this query:
-
-   .. code-block:: javascript
-
-      db.foo.find( { x : 2 } , { z : 1 } )
-
-   The query returns this result set:
-
-   .. code-block:: javascript
-
-      { "_id" : 101, "z" : 21 }
-      { "_id" : 102, "z" : 22 }
-
-   By default, the results include the ``_id`` field. To return ``z``
-   *without* returning ``_id``, include ``_id : 0`` in the projection:
-
-   .. code-block:: javascript
-
-      db.foo.find( { x : 2 } , { z : 1 , _id : 0 } )
-
-   The query returns this result set:
-
-   .. code-block:: javascript
-
-      { "z" : 21 }
-      { "z" : 22 }
-
-MongoDB also provides the following projection operators specific to
-arrays. For documentation on each operator, click the operator name:
-
-- :projection:`$elemMatch`
-
-- :projection:`$slice`
+For more information, refer to :doc:`/applications/indexes`.
 
 .. _read-operations-aggregation:
 
@@ -263,7 +400,7 @@ Operators that cannot use indexes include the following:
 
 - :operator:`$ne`
 
-.. TODO Regular expressions queries also do not use an index.
+.. TODO Regular expressions queries also do not use an index except when used with anchors.
 .. TODO :method:`cursor.skip()` can cause paginating large numbers of docs
 
 Architecture
