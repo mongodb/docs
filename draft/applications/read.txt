@@ -5,7 +5,7 @@ Read
 .. default-domain:: mongodb
 
 Read operation selects documents from a :term:`collection`. MongoDB
-provides the following methods to perform create operations:
+provides the following methods to perform read operations:
 
 - :ref:`find <crud-read-find>`
 
@@ -30,12 +30,42 @@ syntax:
    db.collection.find( <query>, <projection> )
 
 The :method:`find() <db.collection.find()>` method is analogous to the
-``SQL SELECT`` with the ``query`` argument analogous to the ``WHERE``
-statement and the ``projection`` argument analogous to the selected
-fields to return.
+``SQL SELECT`` with:
 
-Consider the following examples that illustrate the usage of the
+- The ``query`` argument analogous to the ``WHERE`` statement.
+
+- The ``projection`` argument analogous to the selected fields to
+  return.
+
+Consider the following examples that illustrate the use of the
 :method:`find() <db.collection.find()>` method:
+
+The examples refer to a collection named ``csbios`` that contains
+documents with the following prototype:
+
+.. code-block:: javascript
+
+   {
+     "_id" : 1, 
+     "name" : { "first" : "John", "last" :"Backus" },
+     "birth" : ISODate("1924-12-03T05:00:00Z"),
+     "death" : ISODate("2007-03-17T04:00:00Z"),
+     "contribs" : [ "Fortran", "ALGOL", "Backus-Naur Form", "FP" ],
+     "awards" : [
+                  { "award" : "W.W. McDowellAward",
+                    "year" : "1967",
+                    "by" : "IEEE Computer Society" },
+                  { "award" : "National Medal of Science",
+                    "year" : "1975",
+                    "by" : "National Science Foundation" },
+                  { "award" : "Turing Award", 
+                    "year" : "1977",
+                    "by" : "ACM" },
+                  { "award" : "Draper Prize",
+                    "year" : "1993",
+                    "by" : "National Academy of Engineering" }
+                ]
+   }
 
 .. note::
 
@@ -83,9 +113,13 @@ Consider the following examples that illustrate the usage of the
 
        db.csbios.find( { 'name.first': 'Yukihiro', 'name.last': 'Matsumoto' } )
 
-    The query matches the document with ``name`` field equal to ``{
-    first: 'Yukihiro', aka: 'Matz', last: 'Matsumoto'}``.
-     
+    The query matches the document where the ``name`` field contains a
+    field ``first`` with the value ``Yukihiro`` and a field ``last``
+    with the value ``Matsumoto``.  For instance, the query would match both: 
+    
+    - ``name: { first: 'Yukihiro', aka: 'Matz', last: 'Matsumoto'}``
+    - ``name: { last: 'Matsumoto', first: 'Yukihiro'}``.
+
   - The following operation returns all documents in the ``csbios``
     collection where the subdocument ``name`` is *exactly* ``{ first:
     'Yukihiro', last: 'Matsumoto' }``, including the order of the
@@ -95,10 +129,12 @@ Consider the following examples that illustrate the usage of the
 
        db.csbios.find( { name: { first: 'Yukihiro', last: 'Matsumoto' } } )
 
-    The query does *not* match the document with ``name`` field equal
-    to ``{ first: 'Yukihiro', aka: 'Matz', last: 'Matsumoto'}`` nor
-    does it match a document with the ``name`` field equal to ``{ last:
-    'Matsumoto' , first: 'Yukihiro' }``.
+    The query *only* matches the document where the ``name`` field is
+    *exactly* ``{ first: 'Yukihiro', last: 'Matsumoto' }``. For
+    instance, the query would **not** match either:
+
+    - ``name: { first: 'Yukihiro', aka: 'Matz', last: 'Matsumoto'}`` 
+    - ``name: { last: 'Matsumoto' , first: 'Yukihiro' }``.
 
   - The following operation returns all documents in the ``csbios``
     collection where either the field ``first`` in the subdocument
@@ -110,7 +146,6 @@ Consider the following examples that illustrate the usage of the
        db.csbios.find( { $or: [ { 'name.first' : /^G/ }, 
                                 { birth: { $lt: new Date('01/01/1945') } }
                               ]  } )
-
 
   - The following operation returns all documents in the ``csbios``
     collection where the field ``first`` in the subdocument ``name``
@@ -147,6 +182,19 @@ Consider the following examples that illustrate the usage of the
 
        db.csbios.find( { }, { name: 1, contribs: 1 } )
 
+  - The following operation finds all documents in the ``csbios``
+    collection and returns only the ``name`` field and the ``contribs``
+    field:
+
+    .. code-block:: javascript
+
+       db.csbios.find( { }, { name: 1, contribs: 1, _id: 0 } )
+
+    .. note:: 
+
+       The ``projection`` argument cannot contain both include and
+       exclude specifications *except* for the exclusion of the ``_id``.
+     
   - The following operation finds the documents in the ``csbios``
     collection where the ``contribs`` field contains the element
     ``OOP`` and returns all fields *except* the ``_id`` field, the
@@ -184,7 +232,6 @@ provides the cursor methods that work with the :method:`find()
 
      db.csbios.find().limit( 5 )
 
-
 .. _crud-read-findOne:
 
 FindOne
@@ -206,7 +253,7 @@ the :method:`find() <db.collection.find()>` method except the
 :method:`findOne() <db.collection.findOne()>` method returns the
 single document rather than a cursor.
 
-Consider the following examples that illustrate the usage of the
+Consider the following examples that illustrate the use of the
 :method:`findOne() <db.collection.findOne()>` method:
 
 - If there is no ``query`` argument, the :method:`findOne()
