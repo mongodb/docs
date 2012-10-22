@@ -324,15 +324,14 @@ MongoDB creates a query plan as follows:
 
 To evaluate the optimizer's choice of query plan, run the query with
 the :method:`explain() <cursor.explain()>` method and the
-:method:`hint() <cursor.hint()>` method appended. Instead of returning
-query results, this returns statistics about how the query runs. For
-example:
+:method:`hint() <cursor.hint()>` method appended, as in the following:
 
 .. code-block:: javascript
 
    db.inventory.find( { type: 'food' } ).explain().hint()
 
-For details on the output, see the :method:`explain()
+This returns the statistics regarding the execution of the query. For a
+detailed explanation on the output, see the :method:`explain()
 <cursor.explain()>` method documentation.
 
 .. note::
@@ -360,27 +359,43 @@ parallel query operation.
 
 For more information, refer to :doc:`/applications/indexes`.
 
+Query Operators that Cannot Use Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some query operators cannot take advantage of indexes and require a
+collection scan. When using these operators, you can narrow the
+documents scanned by combining the operator with another operator that
+does use an index.
+
+Operators that cannot use indexes include the following:
+
+- :operator:`$nin`
+
+- :operator:`$ne`
+
+.. TODO Regular expressions queries also do not use an index except when used with anchors.
+.. TODO :method:`cursor.skip()` can cause paginating large numbers of docs
+
 .. _read-operations-aggregation:
 
 Aggregation
 ~~~~~~~~~~~
 
-When you run a query using aggregation, MongoDB performs summary,
-grouping, or other operations on data before returning results. When you
-run a query without aggregation, you retrieve data as it's stored in the
-database; when you run with aggregation, you retrieve reframed data.
+With aggregation, MongoDB performs summary, grouping, or other
+operations on data before returning the results.
 
 Beginning with MongoDB version 2.1, the primary way to perform
 aggregation is through the aggregation framework, which processes data
-through pipelines and returns data as a document stream specific to the
-aggregation process.
+through pipelines and returns the data as a document stream specific to
+the aggregation process.
 
-For more information on the aggregation framework, including
-descriptions of operators, see see :doc:`/applications/aggregation`.
+The order of aggregation operators can affect the performance of the
+query. For more information on the aggregation framework, including the
+descriptions of the operators and the optimization of performance, see
+:doc:`/applications/aggregation`.
 
-In addition to the operators used by the aggregation framework, you can
-use the following aggregation operators. For documentation on each
-operator, click the operator name:
+Additionally, MongoDB supplements the aggregation framework with the
+following methods and commands:
 
 - :method:`count() <cursor.count()>`
 
@@ -392,23 +407,6 @@ operator, click the operator name:
 
 .. index:: read operation; architecture
 .. _read-operations-architecture:
-
-Query Operators that Cannot Use Indexes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Some query operators cannot take advantage of indexes and require a
-collection scan. When using these operators you can narrow the documents
-scanned by combining the operator with another operator that does use an
-index.
-
-Operators that cannot use indexes include the following:
-
-- :operator:`$nin`
-
-- :operator:`$ne`
-
-.. TODO Regular expressions queries also do not use an index except when used with anchors.
-.. TODO :method:`cursor.skip()` can cause paginating large numbers of docs
 
 Architecture
 ------------
@@ -422,34 +420,35 @@ Connection Pooling
 
 .. TODO
 
-Shard Clusters
-~~~~~~~~~~~~~~
+Sharded Clusters
+~~~~~~~~~~~~~~~~
 
-Issue all read operations to a sharded cluster to one of the
-:program:`mongos` instances associated with the cluster. From the
-perspective of the application there is no difference between read
-operations to MongoDB sharded clusters and read operations to
-standalone instances and replica sets.
+Sharded clusters allows for the distribution of the collection data
+across multiple nodes. With a sharded cluster, you issue all read
+operations to one of the :program:`mongos` instances associated with
+the cluster. From the perspective of the application there is no
+difference between read operations to the MongoDB sharded cluster and
+read operations to standalone instances and replica sets.
 
 For non-sharded collections, the :program:`mongos` locates the
 :term:`primary shard` for the database, and directs all operations to
 that :program:`mongod` instance. For sharded collections, the
-:program:`mongos` must determine which :term:`shard` may have
-documents that could match the query using the :term:`shard
-key`. Then, the :program:`mongos` can direct the query to the relevant
-members and merge all reseults.
+:program:`mongos` uses the :term:`shard key` to determine which
+:term:`shard` or shards contains the documents that could match the
+query. Then, the :program:`mongos` directs the query to the relevant
+shards and merges the results.
 
-If the query operation includes either the shard key, *or* a prefix of
-the shard key, the :program:`mongos` may be able to target the query
-to a smaller subset of the shards. In other cases, the
-:program:`mongos` must query *all* shards in the cluster for
-results. For clusters with a small number of shards, non-targeted
-queries may perform acceptabily, but with more shards these
-non-targeted queries, are inefficient and not pratical for routine
-operations. When choosing a shard key, always pick a key that allows
-you to minimize or eleminate non-targeted queries.
+Choosing the appropriate shard key can improve the performance of the
+query. If the query operation includes either the shard key, *or* a
+prefix of the shard key, the :program:`mongos` may be able to target
+the query to a smaller subset of the shards. Otherwise, the
+:program:`mongos` performs non-targeted queries; i.e., :program:`mongos`
+must query *all* shards in the cluster for the results. For clusters
+with a small number of shards, the performance of non-targeted queries
+may be acceptable. But, with more shards, non-targeted queries become
+inefficient and impractical for routine operations.
 
-For more information on read operations in sharded systems, consider
+For more information on read operations in sharded clusters, consider
 the following resources:
 
 - :ref:`An Introduction to Shard Keys <sharding-shard-key>`
