@@ -1,0 +1,144 @@
+=================================================
+Configure Linux ``iptables`` Firewall for MongoDB
+=================================================
+
+The ``iptables`` program manages the firewall rules on Linux and
+typically comes built in with each Linux distribution. For this
+article we only need to worry about two ``iptables`` chains:
+
+Input: filters traffic destined for the firewall
+
+Output: filters traffic from the firewall
+
+By default, ``iptables`` allows all connections so it's a good idea
+to change the default chain policy to DROP:
+
+.. code-block:: sh
+
+   iptables -P INPUT DROP
+
+   iptables -P OUTPUT DROP
+
+This ensures that any traffic to/from the :program:`mongod` server has
+to be explicitly allowed.
+
+Traffic to/from a Standalone MongoDB Instance or Replica-Set
+MongoDB Instance (mongod)
+
+To explicitly allow :program:`mongod` traffic to the database server
+running :program:`mongod` from the app server (represented by
+``<ip-address>``):
+
+.. code-block:: sh
+
+   iptables -A INPUT -s <ip-address> -p tcp --destination-port 27017 -m state --state NEW,ESTABLISHED -j ACCEPT
+
+and back to the app server from the database server:
+
+.. code-block:: sh
+
+   iptables -A OUTPUT -d <ip-address> -p tcp --source-port 27017 -m state --state ESTABLISHED -j ACCEPT
+
+Note: If you have one app-server (e.g. 10.10.10.10), then host can
+be represented by
+
+.. code-block:: sh
+
+   10.10.10.10 or 10.10.10.10/32
+
+whereas for a  /24 network, it can be
+
+.. code-block:: sh
+
+   10.10.10.10/24
+
+or
+
+.. code-block:: sh
+
+   10.10.10.10/255.255.255.0
+
+Traffic to/from a MongoDB Query Router (mongos)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The above firewall rules will also typically apply to the
+:program:`mongos`
+server as it listens on TCP port 27017, by default, with
+<ip-address> still representing the app server.
+
+Traffic to/from a MongoDB Config Server (mongod --configsvr)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+On the config server, by default, the :program:`mongod` binary listens on
+port 27019 and, therefore, the iptables rules become:
+
+.. code-block:: sh
+
+   iptables -A INPUT -s <ip-address> -p tcp --destination-port 27019 -m state --state NEW,ESTABLISHED -j ACCEPT
+
+and back to the Config server from the :program:`mongos` server -
+
+.. code-block:: sh
+
+   iptables -A OUTPUT -d <ip-address> -p tcp --source-port 27019 -m state --state ESTABLISHED -j ACCEPT
+
+Traffic to/from a MongoDB Shard Server (:program:`mongod --shardsvr`)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+On a shard server, by default, the :program:`mongod` binary listens on port
+27018 and, therefore, the ``iptables`` rules become:
+
+.. code-block:: sh
+
+   iptables -A INPUT -s <ip-address> -p tcp --destination-port 27018 -m state --state NEW,ESTABLISHED -j ACCEPT
+
+and back to the config server from the :program:`mongos` server -
+
+.. code-block:: sh
+
+   iptables -A OUTPUT -d <ip-address> -p tcp --source-port 27018 -m state --state ESTABLISHED -j ACCEPT
+
+In a sharded infrastructure, the :program:`mongos` router needs
+to connect to :program:`mongod` shard servers and the shard servers
+need to connect and communicate amongst themselves.
+
+Back-Out & Flush iptables rules
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To remove the ``iptables`` firewall rules and revert to the default
+action of each chain, it is possible to flush all existing rules
+as follows:
+
+iptables –F
+
+This change is only temporary as it only affects the rulebase in
+memory. For example, a restart:
+
+.. code-block:: sh
+
+   iptables stop && iptables start
+
+will result in the original rules returning.
+Therefore, to make the flush permanent, you need to save the change:
+
+.. code-block:: sh
+
+   service iptables save
+
+View iptables rules
+
+To view the ``iptables`` firewall rules:
+
+.. code-block:: sh
+
+   iptables –L
+
+
+This is only a high-level, MongoDB specific introduction to
+`iptables` rules.
+
+There are a substantial amount of free resources on the Internet
+regarding ``iptables`` configurations. It is also possible to
+configure ``iptables`` through a GUI, however, this is not within
+scope for this tutorial.
+
