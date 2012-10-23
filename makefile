@@ -116,11 +116,11 @@ endif
 pre-build-dependencies:setup source/includes/hash.rst source/about.txt
 initial-dependencies:$(public-branch-output)/MongoDB-Manual.epub
 	@echo [build]: completed the pre-publication routine for the $(manual-branch) branch of the Manual.
-static-components:$(public-output)/index.html $(public-output)/10gen-gpg-key.asc $(public-branch-output)/.htaccess $(public-branch-output)/release.txt $(public-output)/osd.xml
+static-components:$(public-output)/index.html $(public-output)/10gen-gpg-key.asc $(public-output)/10gen-security-gpg-key.asc $(public-branch-output)/.htaccess $(public-branch-output)/release.txt $(public-output)/osd.xml
 	@echo [build]: completed building and migrating all non-Sphinx components of the build.
 post-processing:error-pages links
 	@echo [build]: completed all post processing steps.
-sphinx-components:$(public-branch-output)/MongoDB-Manual.pdf $(public-branch-output)/single $(public-branch-output)/single/index.html $(public-branch-output)/ $(public-branch-output)/sitemap.xml.gz 
+sphinx-components:$(public-branch-output)/MongoDB-Manual.pdf $(public-branch-output)/single $(public-branch-output)/single/index.html $(public-branch-output)/ $(public-branch-output)/sitemap.xml.gz
 	@echo [build]: completed the publication routine for all Sphinx Components of the Manual Build.
 
 #
@@ -208,6 +208,9 @@ $(public-branch-output)/.htaccess:themes/docs.mongodb.org/.htaccess
 	@cp $< $@
 	@echo [build]: migrated $@
 $(public-output)/10gen-gpg-key.asc:themes/docs.mongodb.org/10gen-gpg-key.asc
+	@cp $< $@
+	@echo [build]: migrated $@
+$(public-output)/10gen-security-gpg-key.asc:themes/docs.mongodb.org/10gen-security-gpg-key.asc
 	@cp $< $@
 	@echo [build]: migrated $@
 $(public-branch-output)/sitemap.xml.gz:$(branch-output)/sitemap.xml.gz
