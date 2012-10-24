@@ -34,162 +34,136 @@ When setting up authentication for the first time you must either:
    connection. [#sharded-localhost]_
 
 Begin by setting up the first administrative user for the
-:program:`mongod` instance. Administrative users are those users that
-have "normal" or read and write access to the ``admin``
-database. Connect to the :program:`mongod` on the ``localhost``
-interface using the :program:`mongo` shell. 
+:program:`mongod` instance. 
 
-If there are no admin users, one may access the database from the
-localhost interface without authenticating.  Therefore, on the
-localhost, run the :program:`mongo` shell and configure an admin user:
+Add an Administrative User
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: javascript
+.. admonition:: About administrative users
 
-   > use admin // we are using the admin database
-   > db.addUser("theadmin", "anadminpassword") 
+   Administrative users are those users that have "normal" or read and
+   write access to the ``admin`` database. 
 
-Now, let’s configure a “regular” user for another database (projectx):
-
-.. code-block:: javascript
-
-	> use projectx  // we are using the a projectx database
-	> db.addUser("joe", "passwordForJoe") 
-
-Let’s add a read-only user:
-
-.. code-block:: javascript
-	
-	> use projectx 
-	> db.addUser("guest", "passwordForGuest", true) 
-
-Logging in as Admin User
-
-Although admin user accounts can access any database, you must log
-into the admin database. For example, if user ``superAdmin`` has an
-admin account, this login will be successful:
+If this is the first administrative user, connect to the
+:program:`mongod` on the ``localhost`` interface using the
+:program:`mongo` shell. Then, issue the following command sequence to
+switch to the ``admin`` database context and add the administrative
+user:
 
 .. code-block:: javascript
 
-   $ mongo 
-   > use admin
-   > db.auth("superAdmin", "Password123")
+   use admin
+   db.addUser("<username>", "<password>") 
 
-but these commands below will fail:
+Replace ``<username>`` and ``<password>`` with the credentials for
+this administrative user.
 
-.. code-block:: javascript
+Add a Normal User to a Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   > use test
-   > db.auth("superAdmin", "Password123")
-   1
-
-In versions up to and including 2.2, be aware that once you have
-``admin`` access in the :program:`mongo` shell, you have admin access.
-If you try to authenticate to a read-only user, the authentication
-will succeed, however, you will still have ``admin``, i.e. write,
-permissions.
-
-For example, authenticate as an admin (notice the shell prompt changes):
+To add a user with read and write access to a specific database, in
+this example the ``records`` database, connect to the
+:program:`mongod` instance using the :program:`mongo` shell, and issue
+the following sequence of operations:
 
 .. code-block:: javascript
 
-   > use admin
-   switched to db admin
+   use records
+   db.addUser("<username>", "<password>") 
 
-   admin> db.auth("adminUser", "adminPassword")
-   1
+Replace ``<username>`` and ``<password>`` with the credentials for
+this user.
 
-   admin> use test
-   switched to db test
- 
-   test> db.system.users.find()
-   { "_id": ObjectId("5075362366b2b6e3603b65c9"), "user": "readOnly", "readOnly": true, "pwd": "76841722f39207db6b332e64bfacd4ba" }
-   Fetched 1 record(s) in 1ms -- Index[none] -- More[false]
+Add a Read Only User to a Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
-Now, authenticate as ``readOnly``, note that your id does not change
-and you will still have ``write`` access:
+To add a user with read and write access to a specific database, in
+this example the ``records`` database, connect to the
+:program:`mongod` instance using the :program:`mongo` shell, and issue
+the following sequence of operations:
 
 .. code-block:: javascript
 
-   test> db.auth("readOnly", "readOnly")
+   use records
+   db.addUser("<username>", "<password>", true) 
 
-   test> db.coll.insert({foo:'bar'})  // still actually adminUser
-   Inserted 1 record(s) in 1ms
+Replace ``<username>`` and ``<password>`` with the credentials for
+this user.
+
+Administrative Access in MongoDB
+--------------------------------
+
+Although administrative accounts have access to all databases, these
+users must authenticate against the ``admin`` database before changing
+contexts to a second database, as in the following example: 
+
+.. example:: 
+
+   Given the ``superAdmin`` user with the password ``Password123``,
+   and access to the ``admin``.
    
-   test > db.coll.find()
-   { "_id": ObjectId("50753692492db9d88b98f7dc"), "foo": "bar" }
-   Fetched 1 record(s) in 1ms -- Index[none] -- More[false]
+   The following operation in the :program:`mongo` shell will succeed: 
+
+   .. code-block:: javascript
+
+      use admin
+      db.auth("superAdmin", "Password123")
+
+   However, the following operation will fail: 
+
+   .. code-block:: javascript
+
+      use test
+      db.auth("superAdmin", "Password123")
 
 Authentication on Localhost
 ---------------------------
 
-.. versionadded:: 2.0
+The behavior of :program:`mongod` running with :setting:`auth`, when
+connecting from a client over the localhost interface (i.e. a client
+running on the same system as the :program:`mongod`,) varies slightly
+between versions 2.0 and before and 2.2 and after. Consider these
+behaviors:
 
-The trust model, in this version, dictates that that if the
-user has access to running the mongo shell on localhost
-(127.0.0.1) then the user has write access to add users
-regardless of what authentication is enforced in the :program:`mongod`
-configuration, i.e. authentication does not apply to users
-logging into `mongod` on localhost.
+- In version 2.0, and before, authentication is not enforced for any
+  user connecting over the localhost interface, regardless of the
+  configuration of the :program:`mongod` instance.
+  
+- In version 2.2, if :program:`mongod` is running with :setting:`auth`
+  then user connecting over the localhost interface must
+  authenticate.
 
+  *However,* if the :program:`mongod` does *not* have any users in the
+  ``admin`` database, the user may access the entire :program:`mongod`
+  instance without authenticating. 
 
-.. versionchanged:: 2.2
+  The following table outlines the behavior of :program:`mongod`
+  instances running with :setting:`auth` enabled. 
+
+  .. list-table::
+     :widths: 25 25 50
+     :header-rows: 1
    
-The trust model changed for MongoDB 2.2.  If :program:`mongod`
-is started with the :option:`--auth <mongod --auth>` option then
-authentication is applied to local users.
-
-For example, below the user connects as a read-only user to the
-test database and tries to insert a collection but cannot.
-
-.. code-block:: sh
-
-	$ mongo localhost/test -u readOnly -p test
-
-.. code-block:: javascript
-
-	MongoDB shell version: 2.2.0
-	connecting to: localhost/test
-
-	test > db.coll.insert({foo:'bar'})
-	unauthorized
-
-	test > db.system.users.find()
-	error: {
-	  "$err": "unauthorized db:test ns:test.system.users lock type:1 client:127.0.0.1",
-		 "code": 10057
-		 }
-
-However, when connecting to MongoDB over localhost with
-authentication enabled but without any admin users, the user may
-access the database from the localhost interface without
-authenticating.
-
-In summary, below is a table of the scenarios for accessing the
-database when running with authentication enabled:
-   
-.. list-table::
-   :widths: 25 25 50
-   :header-rows: 1
-   
-   * - Connection	
-     - Admin Users Exist
-     - Authentication Required on Accessing Database
-   * - Localhost
-     - Yes
-     - Yes
-   * - Localhost
-     - No
-     - No
-   * - Remote
-     - Yes
-     - Yes
-   * - Remote
-     - No
-     - Yes
+     * - Connection	
+       - Admin Users Exist
+       - Authentication Required on Accessing Database
+     * - Localhost
+       - Yes
+       - Yes
+     * - Localhost
+       - No
+       - No
+     * - Remote
+       - Yes
+       - Yes
+     * - Remote
+       - No
+       - Yes
 
 Password Hashing Insecurity
 ---------------------------
+
+.. versionchanged:: 2.2
 
 In version 2.2.* and earlier, it is possible that if an evil user
 “Eve” has admin access to the same  database (db1) as another user
@@ -211,106 +185,60 @@ both Eve and Bob have accounts with “admin” access:
 
 .. code-block:: sh
 
-   $ mongo 10.7.100.27/db1 -u eve -p test
+   mongo <host>/db1 -u eve -p test
 
 .. code-block:: javascript
 
-   MongoDB shell version: 2.2.0
-   connecting to: 10.7.100.27/db1
-   test> db.system.users.find()
+   db.system.users.find()
+
+.. code-block:: javascript
+
    { "_id": ObjectId("5074202e032a960d16f4394e"), "user": "bob", "readOnly": false, "pwd": "ac2061b4a08ef8f2d60a07dc18ab4a0a" }
    { "_id": ObjectId("507420ba032a960d16f43951"), "user": "eve", "readOnly": false, "pwd": "5dcc2819b97e68d5cfe51da6cae8a7f6" }
-   Fetched 2 record(s) in 1ms -- Index[none] -- More[false]
 
 Bob also has an account on the admin database and has used the same password:
 
 .. code-block:: javascript
  
-   test> use admin
-   switched to db admin
-   test> db.auth("bob", "test")
+   use admin
+   db.auth("bob", "test")
 
-   admin> db.system.users.find()
+   db.system.users.find()
+
+This operation would return the following document: 
+
+.. code-block:: javascript
+ 
    { "_id": ObjectId("50742045032a960d16f43950"), "user": "bob", "readOnly": false, "pwd": "ac2061b4a08ef8f2d60a07dc18ab4a0a" }
-   Fetched 1 record(s) in 1ms -- Index[none] -- More[false]
 
-Secure Mode on Shards and Replica Sets
---------------------------------------
+Configuration Considerations for Authentication
+-----------------------------------------------
 
-To secure a shard cluster using Secure Mode, you must enable
-secure mode on all components of the shard cluster. Use the
-:option:`--keyFile <mongos --keyFile>`
-option on all routers (:program:`mongos`), 
-configuration database servers (:program:`mongod --configsvr`), 
-and shard servers (:program:`mongod --shardsvr`).
+The following sections, outline practices for enabling and managing
+authentication with specific MongoDB deployments: 
 
-There are two classes of security credentials in a shard cluster:
-credentials for "admin" users (i.e. for the "admin" database) and
-credentials for all other databases.  These credentials reside in
-different locations within the shard cluster and have different
-roles:
+- :ref:`replica-set-security`
+- :ref:`sharding-security` 
 
-Admin database credentials reside on the config databases. To
-receive admin access to the cluster you must authenticate a
-session while connected to a mongos instance using the "admin"
-database.
+Generate a Key File
+-------------------
 
-Other database credentials reside on the primary shard for the
-database.
-
-This means that you can authenticate to these users and databases
-while connected directly to the primary shard for a database,
-however, for clarity and consistency all interactions between the
-client and the database should use a mongos instance.
-
-Individual shards can store administrative credentials to their
-instance, which only permit access to a single shard. These
-credentials are stored in the shard’s "admin" database and are
-completely distinct from the cluster-wide administrative
-credentials described in "1." above.
-
-
-To enable “secure mode” on shards or replica sets, the --auth
-option is not sufficient, you must use the `--keyFile` option.
-
-To enable secure mode, run the mongod process with the `--auth`
-option (or --keyFile for replica sets and sharding).  For example,
+Use the following command at the system shell to generate psudo-random
+content for a key file: 
 
 .. code-block:: sh
 
-   mongod  --auth 
+   openssl rand -base64 753
 
-   mongod --shardsvr  --keyFile MySecretKey
+.. note:: 
 
+   Be aware that MongoDB strips whitespace characters (e.g. ``x0d``,
+   ``x09``, and ``x20``,) for cross-platform convenience. As a result,
+   the following keys are identical:
 
-KeyFile
--------
+   .. code-block:: sh
 
-A key file must contain at least six Base64 characters and be no
-larger than 1KB (whitespace included). Whitespace characters (x0d,
-x09, x20) are stripped (mostly for cross-platform convenience), so
-to the database, the following keys are identical:
-
-.. code-block:: sh
-
-   $ echo -e "my secret key" > key1
-   $ echo -e "my secret key\n" > key2
-   $ echo -e "my    secret    key" > key3
-   $ echo -e "my\r\nsecret\r\nkey\r\n" > key4
-
-As the key is stored in a file, you won't have to type it in much,
-so it is a good idea to make it long and with a good degree of
-randomness within it – 32 characters long for example.  A possible
-solution is to generate it with `mkpasswd` plus extra-appended
-characters from the administrator setting up the cluster.
-
-.. warning:: 
-
-   If you run mongod with `-v`, the key will be printed in the log.
-
-The keyFile must be owned and readable by the account running the
-MongoDB instance.  The MongoDB instance will exit with an error if
-the keyFile is readable, writeable or executable by any other
-account on the system.
-
-Currently, permissions are not checked by :program:`mongod.exe` on Windows.	
+      $ echo -e "my secret key" > key1
+      $ echo -e "my secret key\n" > key2
+      $ echo -e "my    secret    key" > key3
+      $ echo -e "my\r\nsecret\r\nkey\r\n" > key4
