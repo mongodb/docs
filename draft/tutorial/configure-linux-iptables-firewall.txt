@@ -95,8 +95,8 @@ Traffic to and from ``mongos`` Instances
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 :program:`mongos` instances provide query routing for :term:`sharded
-clusters sharded`. Clients connect to :program:`mongos` instances,
-which behave from the client's perspective as :program:`mongod`
+clusters`. Clients connect to :program:`mongos` instances, which
+behave from the client's perspective as :program:`mongod`
 instances. In turn, the :program:`mongos` connects to all
 :program:`mongod` instances that are components of the sharded
 cluster.
@@ -110,7 +110,7 @@ Traffic to and from a MongoDB Config Server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Config servers, host the :term:`config database` that stores metadata
-for sharded clusters. Each production shard cluster has three config
+for sharded clusters. Each production cluster has three config
 servers, initiated using the :option:`mongod --configsvr`
 option. [#config-option]_ Config servers listen for connections on the
 ``27019``. As a result, add the following ``iptables`` rules to the
@@ -120,14 +120,14 @@ config server to allow incoming and outgoing connection on port
 .. code-block:: sh
 
    iptables -A INPUT -s <ip-address> -p tcp --destination-port 27019 -m state --state NEW,ESTABLISHED -j ACCEPT
-   iptabwles -A OUTPUT -d <ip-address> -p tcp --source-port 27019 -m state --state ESTABLISHED -j ACCEPT
+   iptables -A OUTPUT -d <ip-address> -p tcp --source-port 27019 -m state --state ESTABLISHED -j ACCEPT
 
 Replace ``<ip-address>`` with the address or address space of *all*
 the :program:`mongod` that provide config servers.
 
 Additionally, config servers need to allow incoming connections from
 all of the :program:`mongos` instances in the cluster *and* all
-:program:`mongod` instances in the shard cluster. Add rules that
+:program:`mongod` instances in the cluster. Add rules that
 resemble the following:
 
 .. code-block:: sh
@@ -185,6 +185,42 @@ Create a rule that resembles the following, and replace the
 .. [#migrations] All shards in a cluster need to be able to
    communicate with all other shards to facilitate :term:`chunk` and
    balancing operations.
+
+Provide Access For Monitoring Systems
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#. The :program:`mongostat` diagnostic tool, when running with the
+   :option:`--discover <mongostat --discover>` needs to be able to
+   reach all components of a cluster, including the config servers,
+   the shard servers, and the :program:`mongos` instances.
+
+#. If your monitoring system needs access the HTTP interface, insert
+   the following rule to the chain:
+
+   .. code-block:: sh
+
+      iptables -A INPUT -s <ip-address> -p tcp --destination-port 28017 -m state --state NEW,ESTABLISHED -j ACCEPT
+
+   Replace ``<ip-address>`` with the address of the instance that
+   needs access to the HTTP or REST interface. For *all* deployments,
+   you should restrict access to this port to *only* the monitoring
+   instance.
+
+   .. optional:: 
+
+      For shard server :program:`mongod` instances running with
+      :setting:`shardsvr`, the rule would resemble the following:
+
+      .. code-block:: sh
+
+         iptables -A INPUT -s <ip-address> -p tcp --destination-port 28018 -m state --state NEW,ESTABLISHED -j ACCEPT
+
+      For config server :program:`mongod` instances running with
+      :setting:`configsvr`, the rule would resemble the following:
+
+      .. code-block:: sh
+
+         iptables -A INPUT -s <ip-address> -p tcp --destination-port 28019 -m state --state NEW,ESTABLISHED -j ACCEPT
 
 .. _iptables-change-default-policy-to-drop: 
 
