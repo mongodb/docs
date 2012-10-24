@@ -171,53 +171,52 @@ behaviors:
 Password Hashing Insecurity
 ---------------------------
 
-.. versionchanged:: 2.2
+In version 2.2.* and earlier, consider the following scenario:
 
-In version 2.2.* and earlier, it is possible that if an evil user
-“Eve” has admin access to the same  database (db1) as another user
-“Bob” and Bob is an admin user on another database (db2) and has
-used the same password on db2 then Eve can take the hash of Bob’s
-password from the system.users collection on db1 to log in as Bob
-on db2.
+- A malicious user “Eve” and another user "Alice" both have read and write
+  access to the same database (``db1``).
 
-This authentication schema is working as designed and is
-consistent with the MongoDB trust model up to and including 2.2. 
-Subsequent versions of MongoDB will contain more secure and
-enterprise-type authentication models. For further information,
-please see :issue:`SERVER-3198` and :issue:`SERVER-7155`. 
+- Alice also has read and write access to a second database (``db2``).
 
-Below is a step-by-step walkthrough. 
+- Alice has used the same password on both databases.
 
-Eve connects to the “test” database and we see that
-both Eve and Bob have accounts with “admin” access:
+Given this scenario, Eve can take the hash of Alice’s password from the
+``system.users`` collection on ``db1`` and use it to log in as Alice on
+``db2``. Consider the following example:
 
-.. code-block:: sh
+.. example::
 
-   mongo <host>/db1 -u eve -p test
+   Eve connects to the ``db1`` database and views the ``system.users``
+   collection:
 
-.. code-block:: javascript
+   .. code-block:: sh
 
-   db.system.users.find()
+      mongo <host>/db1 -u eve -p test
 
-.. code-block:: javascript
+   .. code-block:: javascript
 
-   { "_id": ObjectId("5074202e032a960d16f4394e"), "user": "bob", "readOnly": false, "pwd": "ac2061b4a08ef8f2d60a07dc18ab4a0a" }
-   { "_id": ObjectId("507420ba032a960d16f43951"), "user": "eve", "readOnly": false, "pwd": "5dcc2819b97e68d5cfe51da6cae8a7f6" }
+      db.system.users.find()
 
-Bob also has an account on the admin database and has used the same password:
+   .. code-block:: javascript
 
-.. code-block:: javascript
- 
-   use admin
-   db.auth("bob", "test")
+      { "_id": ObjectId("5074202e032a960d16f4394e"), "user": "alice", "readOnly": false, "pwd": "ac2061b4a08ef8f2d60a07dc18ab4a0a" }
+      { "_id": ObjectId("507420ba032a960d16f43951"), "user": "eve", "readOnly": false, "pwd": "5dcc2819b97e68d5cfe51da6cae8a7f6" }
 
-   db.system.users.find()
+   Alice has read and write accounts on both ``db1`` and ``db2`` and
+   also has access on the ``admin`` database. Consider the following:
 
-This operation would return the following document: 
+   .. code-block:: javascript
 
-.. code-block:: javascript
- 
-   { "_id": ObjectId("50742045032a960d16f43950"), "user": "bob", "readOnly": false, "pwd": "ac2061b4a08ef8f2d60a07dc18ab4a0a" }
+      use admin
+      db.auth("alice", "pass")
+
+      db.system.users.find()
+
+   This operation returns the following document:
+
+   .. code-block:: javascript
+
+      { "_id": ObjectId("50742045032a960d16f43950"), "user": "alice", "readOnly": false, "pwd": "ac2061b4a08ef8f2d60a07dc18ab4a0a" }
 
 Configuration Considerations for Authentication
 -----------------------------------------------
