@@ -2,16 +2,199 @@
 Configure Linux ``iptables`` Firewall for MongoDB
 =================================================
 
-The ``iptables`` program manages the firewall rules on Linux and
-typically comes built in with each Linux distribution. For this
-article we only need to worry about two ``iptables`` chains:
+On contemporary Linux systems, the ``iptables`` program provides
+methods for managing the Linux Kernel's ``netfilter`` or network
+packet filtering capabilities. These firewall rules make it possible
+for administrators to control what hosts can connect to the system,
+and limit risk exposure by limiting the hosts that can connect to a
+system. 
 
-Input: filters traffic destined for the firewall
+This document outlines basic firewall configurations for ``iptables``
+firewalls on Linux. Use these approaches as a starting point for your
+larger networking organization. For a detailed over view of security
+practices and risk management for MongoDB, see :doc:`/core/security`.
 
-Output: filters traffic from the firewall
+Overview
+--------
 
-By default, ``iptables`` allows all connections so it's a good idea
-to change the default chain policy to DROP:
+Rules in ``iptables`` configurations fall into chains, which describe
+the process for filtering and processing specific streams of
+traffic. Chains have an order, and packets must pass through earlier
+rules in a chain to reach later rules. This document only the
+following two chains:
+
+``INPUT`` 
+   Controls all incoming traffic. 
+
+``OUTPUT``
+   Controls all outgoing traffic.
+
+Given the :ref:`default ports <security-port-numbers>` of all MongoDB
+processes, you must configure networking rules that permit *only*
+required communication between your application and the appropriate
+:program:`mongod` and :program:`mongos` instances.
+
+Be aware that, by default, the default policy of ``iptables`` is to
+allow all connections and traffic unless explicitly disabled. THe
+configuration changes outlined in this document will create rules that
+explicitly allow traffic from specific addresses and on specific ports
+ports, using a default policy that drops all traffic that is not
+explicitly allowed. When you have properly configured your
+``iptables`` rules to allow only the traffic that you want to permit,
+you can :ref:`iptables-change-default-policy-to-drop`.
+
+Patterns
+--------
+
+This section contains a number of patterns and examples for
+configuring ``iptables`` for use with MongoDB deployments. If you have
+configured different ports using the :setting:`port` configuration
+setting, you will need to modify the rules accordingly.
+
+.. _iptables-basic-rule-set:
+
+Traffic to and from ``mongod`` Instances
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This pattern is applicable to all :program:`mongod` instances running
+as standalone instances or as part of a :term:`replica set`. 
+
+The goal of this pattern is to explicitly allow traffic to the
+:program:`mongod` instance from the application server. In the
+following examples, replace ``<ip-address>`` with the IP address of
+the application server:
+
+.. code-block:: sh
+
+   iptables -A INPUT -s <ip-address> -p tcp --destination-port 27017 -m state --state NEW,ESTABLISHED -j ACCEPT
+   iptables -A OUTPUT -d <ip-address> -p tcp --source-port 27017 -m state --state ESTABLISHED -j ACCEPT
+
+The first rule allows all incoming traffic from ``<ip-address>`` on
+port ``27017``, which allows the application server to connect to the
+:program:`mongod` instance. The second rule, allows ougoing traffic
+from the :program:`mongod` to reach the application serer. 
+
+.. optional:: 
+
+   If you have only one application server, you can replace
+   ``<ip-address>`` with either the IP address itself, such as:
+   ``198.51.100.55``. You can also express this using CIDR notation as
+   ``198.51.100.55/32``. If you want to permit a larger block of
+   possible IP addresses you can allow traffic from a ``/24`` using
+   one of the following specifications for the ``<ip-address>``, as
+   follows: 
+   
+   .. code-block:: sh
+   
+      10.10.10.10/24
+      10.10.10.10/255.255.255.0
+
+Traffic to and from ``mongos`` Instances
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:program:`mongos` instances provide query routing for :term:`sharded
+clusters sharded`. Clients connect to :program:`mongos` instances,
+which behave from the client's perspective as :program:`mongod`
+instances. In turn, the :program:`mongos` connects to all
+:program:`mongod` instances that are components of the sharded
+cluster.
+
+Use the same ``iptables`` command to allow traffic to and from these
+instances as you would from the :program:`mongod` instances that are
+members of the replica set. Take the configuration outlined in the
+:ref:`iptables-basic-rule-set` section as an example.
+
+Traffic to and from a MongoDB Config Server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Config servers, host the :term:`config database` that stores metadata
+for sharded clusters. Each production shard cluster has three config
+servers, initiated using the :option:`mongod --configsvr`
+option. [#config-option]_ Config servers listen for connections on the
+``27019``. As a result, add the following ``iptables`` rules to the
+config server to allow incoming and outgoing connection on port
+``27019``, for connection to the other config servers. 
+
+.. code-block:: sh
+
+   iptables -A INPUT -s <ip-address> -p tcp --destination-port 27019 -m state --state NEW,ESTABLISHED -j ACCEPT
+   iptabwles -A OUTPUT -d <ip-address> -p tcp --source-port 27019 -m state --state ESTABLISHED -j ACCEPT
+
+Replace ``<ip-address>`` with the address or address space of *all*
+the :program:`mongod` that provide config servers.
+
+Additionally, config servers need to allow incoming connections from
+all of the :program:`mongos` instances in the cluster *and* all
+:program:`mongod` instances in the shard cluster. Add rules that
+resemble the following:
+
+.. code-block:: sh
+
+   iptables -A INPUT -s <ip-address> -p tcp --destination-port 27019 -m state --state NEW,ESTABLISHED -j ACCEPT
+
+Replace ``<ip-address>`` with the address address of the
+:program:`mongos` instances and the shard :program:`mongod`
+instances.
+
+.. [#config-option] You can also run a config server by setting the
+   :setting:`configsvr` option in a configuration file.
+
+Traffic to and from a MongoDB Shard Server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For shard servers, running as :option:`mongod --shardsvr`
+[#shard-option]_ Because the default port number when running with
+:setting:`shardsvr` is ``27018``,  you must configure the following
+``iptables`` rules to allow traffic to and from each shard:
+
+.. code-block:: sh
+
+   iptables -A INPUT -s <ip-address> -p tcp --destination-port 27018 -m state --state NEW,ESTABLISHED -j ACCEPT
+   iptables -A OUTPUT -d <ip-address> -p tcp --source-port 27018 -m state --state ESTABLISHED -j ACCEPT
+
+Replace the ``<ip-address>`` specification with the IP address of all
+:program:`mongod`. This allows you to permit incoming and outgoing
+traffic between all shards including constituent replica set members,
+to:
+
+- all :program:`mongod` instances in the shard's replica sets. 
+
+- all :program:`mongod` instances in other shards. [#migrations]_
+
+Furthermore, shards need to be able make outgoing connections to:
+
+- all :program:`mongos` instances.
+
+- all :program:`mongod` instances in the config servers.
+
+Create a rule that resembles the following, and replace the
+``<ip-address>`` with the address of the config servers and the
+:program:`mongos` instances: 
+
+.. code-block:: sh
+
+   iptables -A OUTPUT -d <ip-address> -p tcp --source-port 27018 -m state --state ESTABLISHED -j ACCEPT
+
+.. [#shard-option] You can also specify the shard server option using
+   the :setting:`shardsvr` setting in the configuration file. Shard
+   members are also often conventional replica sets using the default
+   port.
+
+.. [#migrations] All shards in a cluster need to be able to
+   communicate with all other shards to facilitate :term:`chunk` and
+   balancing operations.
+
+.. _iptables-change-default-policy-to-drop: 
+
+Change Default Policy to ``DROP``
+---------------------------------
+
+The default policy for ``iptables`` chains is to allow all
+traffic. After completing all ``iptables`` configuration changes, you
+*must* change the default policy to ``DROP`` so that all traffic that
+isn't explicitly allowed as above will not be able to reach components
+of the MongoDB deployment. Issue the following commands to change this
+policy: 
 
 .. code-block:: sh
 
@@ -19,126 +202,72 @@ to change the default chain policy to DROP:
 
    iptables -P OUTPUT DROP
 
-This ensures that any traffic to/from the :program:`mongod` server has
-to be explicitly allowed.
 
-Traffic to/from a Standalone MongoDB Instance or Replica-Set
-MongoDB Instance (mongod)
+Manage and Maintain ``iptables`` Configuration
+----------------------------------------------
 
-To explicitly allow :program:`mongod` traffic to the database server
-running :program:`mongod` from the app server (represented by
-``<ip-address>``):
+This section contains a number of basic operations for managing and
+using ``iptables``. There are various front end tools that automate
+some aspects of ``iptables`` configuration, but at the core all
+``iptables`` front ends provide the same basic functionality: 
 
-.. code-block:: sh
+.. _iptables-make-all-rules-persistent: 
 
-   iptables -A INPUT -s <ip-address> -p tcp --destination-port 27017 -m state --state NEW,ESTABLISHED -j ACCEPT
+Make all ``iptables`` Rules Persistent
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-and back to the app server from the database server:
+By default all ``iptables`` rules are are only stored in memory. When
+your system restarts, your firewall rules will revert to their
+defaults. When you have tested a rule set and have guaranteed that it
+effectively controls traffic you can use the following operations to
+you should make the rule set persistent. 
 
-.. code-block:: sh
-
-   iptables -A OUTPUT -d <ip-address> -p tcp --source-port 27017 -m state --state ESTABLISHED -j ACCEPT
-
-Note: If you have one app-server (e.g. 10.10.10.10), then host can
-be represented by
-
-.. code-block:: sh
-
-   10.10.10.10 or 10.10.10.10/32
-
-whereas for a  /24 network, it can be
-
-.. code-block:: sh
-
-   10.10.10.10/24
-
-or
-
-.. code-block:: sh
-
-   10.10.10.10/255.255.255.0
-
-Traffic to/from a MongoDB Query Router (mongos)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The above firewall rules will also typically apply to the
-:program:`mongos`
-server as it listens on TCP port 27017, by default, with
-<ip-address> still representing the app server.
-
-Traffic to/from a MongoDB Config Server (mongod --configsvr)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-On the config server, by default, the :program:`mongod` binary listens on
-port 27019 and, therefore, the iptables rules become:
-
-.. code-block:: sh
-
-   iptables -A INPUT -s <ip-address> -p tcp --destination-port 27019 -m state --state NEW,ESTABLISHED -j ACCEPT
-
-and back to the Config server from the :program:`mongos` server -
-
-.. code-block:: sh
-
-   iptables -A OUTPUT -d <ip-address> -p tcp --source-port 27019 -m state --state ESTABLISHED -j ACCEPT
-
-Traffic to/from a MongoDB Shard Server (:program:`mongod --shardsvr`)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-On a shard server, by default, the :program:`mongod` binary listens on port
-27018 and, therefore, the ``iptables`` rules become:
-
-.. code-block:: sh
-
-   iptables -A INPUT -s <ip-address> -p tcp --destination-port 27018 -m state --state NEW,ESTABLISHED -j ACCEPT
-
-and back to the config server from the :program:`mongos` server -
-
-.. code-block:: sh
-
-   iptables -A OUTPUT -d <ip-address> -p tcp --source-port 27018 -m state --state ESTABLISHED -j ACCEPT
-
-In a sharded infrastructure, the :program:`mongos` router needs
-to connect to :program:`mongod` shard servers and the shard servers
-need to connect and communicate amongst themselves.
-
-Back-Out & Flush iptables rules
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To remove the ``iptables`` firewall rules and revert to the default
-action of each chain, it is possible to flush all existing rules
-as follows:
-
-iptables –F
-
-This change is only temporary as it only affects the rulebase in
-memory. For example, a restart:
-
-.. code-block:: sh
-
-   iptables stop && iptables start
-
-will result in the original rules returning.
-Therefore, to make the flush permanent, you need to save the change:
+On Red Hat Enterprise Linux, Fedora Linux, and related distributions
+you can issue the following command:
 
 .. code-block:: sh
 
    service iptables save
-
-View iptables rules
-
-To view the ``iptables`` firewall rules:
+   
+On Debian, Ubuntu, and related distributions, you can use the
+following command to dump the ``iptables`` rules to the
+``/etc/iptables.conf`` file: 
 
 .. code-block:: sh
 
-   iptables –L
+   iptables-save > /etc/iptables.conf
+   
+Run the following operation to restore the network rules: 
+
+.. code-block:: sh
+
+   iptables-restore < /etc/iptables.conf
+
+Place this command in your ``rc.local`` file, or in the
+``/etc/network/if-up.d/iptables`` file with other similar operations.q
+
+List all ``iptables`` Rules
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To list all of currently applied ``iptables`` rules, use the following
+operation at the system shell. 
+
+.. code-block:: sh
+
+   iptables --L
 
 
-This is only a high-level, MongoDB specific introduction to
-`iptables` rules.
+Flush all ``iptables`` Rules
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-There are a substantial amount of free resources on the Internet
-regarding ``iptables`` configurations. It is also possible to
-configure ``iptables`` through a GUI, however, this is not within
-scope for this tutorial.
+If you make a configuration mistake when entering ``iptables`` rules
+or simply need to revert to the default rule set, you can use the
+following operation at the system shell to flush all rules:
 
+.. code-block:: sh
+
+   iptables --F
+
+If you've already made your ``iptables`` rules persistent, you will
+need to repeate the appropriate procedure in the
+:ref:`iptables-make-all-rules-persistent` section.
