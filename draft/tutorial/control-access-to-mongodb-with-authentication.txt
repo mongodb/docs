@@ -1,83 +1,43 @@
-===============================================
-Use Authentication to Control Access to MongoDB
-===============================================
+=======================================================
+Control Access to MongoDB Instances with Authentication
+=======================================================
 
 .. default-domain:: mongodb
 
-Basic authentication and access control is enabled with the 
-:option:`--auth <mongod --auth>`
-or 
-:option:`--keyFile <mongod --keyFile>`
-options in versions of MongoDB up to and including version 2.2.
+MongoDB provides a basic authentication system, that you can enable
+with the :setting:`auth` and :setting:`keyFile` configuration
+settings. [#cli-options]_ See the :ref:`authentication
+<security-authentication>` section of the :doc:`/authentication/security`
+document.
 
-Some important things to note about authentication:
+This document contains an overview of all operations related to
+authentication and managing a MongoDB deployment with authentication.
 
-* Authentication is off by default. 
-* Prior to version 2.0, it is not possible to enable authentication
-  in a sharded environment.
+.. see:: The :ref:`configuration-security` section of the
+   :doc:`/administration/configuration` document for more information
+   on configuring authentication.
 
-* Once authenticated, a normal user has full "read and write" access
-  to the database.  You can also create read-only users, who only
-  have read access.
-
-Each database contains a "system.users" collection, which contains
-all the user information. For example:
-
-.. code-block:: javascript
-
-   > db.system.users.find()
-   { "_id": ObjectId("5075362366b2b6e3603b65c9"), "user": "readOnly", "readOnly": true, "pwd": "76841722f39207db6b332e64bfacd4ba" }
-   Fetched 1 record(s) in 1ms -- Index[none] -- More[false]
-
-
-Role-based access control with MongoDB is simple
-with only two roles – "read" and "normal" (i.e. full read/write
-access).  There are several tickets related to improving the
-implementation of authorization within MongoDB:
-
-* :issue:`SERVER-3198`
-* :issue:`SERVER-7122`
-* :issue:`SERVER-7124`
-
-The admin database is special.  Several administrative commands
-can only run on the admin database (and so can only be run by an
-admin user).  You can use the `db.admin.command()` shell helper as
-one way of running administrative commands.  For example, to list
-all databases:
-
-.. code-block:: javascript
-   
-   db.adminCommand( { listDatabases : 1 } )
-
-Additionally, please be aware that users with access to the admin
-database have “read and write” access to all other databases on
-the server/cluster. 
+.. [#cli-options] Use the :option:`--auth <mongod --auth>`
+   :option:`--keyFile <mongod --keyFile>` options on the command
+   line.
 
 Adding Users
 ------------
 
-You must either:
+When setting up authentication for the first time you must either: 
 
-#. have added a user to the admin db before starting the server with 
-   :option:`--auth <mongod --auth>`,
+#. add at least one user to the ``admin`` database before starting
+   the :program:`mongod` instance with :setting:`auth`. 
 
-#. added the first user from a localhost connection (you cannot add
-   the first user from a connection that is not local with respect to
-   the :program:`mongod` process).
+#. add the first user to the ``admin`` database when connected to the
+   :program:`mongod` instance from a ``localhost``
+   connection. [#sharded-localhost]_
 
-.. note:: 
-
-	Option (2) to add a user via localhost does not work in
-	sharded clusters running v2.2+ due to :issue:`SERVER-6591`. If you are
-	running 2.2 with a sharded cluster and want to use secure mode you
-	must setup the cluster and add an admin user before restarting the
-	cluster to run with :option:`--keyFile <mongod --keyFile>`.
-
-Configuration
-~~~~~~~~~~~~~
-
-First create an administrator for the `mongod` instance.  This
-user is stored under the special `admin` database.
+Begin by setting up the first administrative user for the
+:program:`mongod` instance. Administrative users are those users that
+have "normal" or read and write access to the ``admin``
+database. Connect to the :program:`mongod` on the ``localhost``
+interface using the :program:`mongo` shell. 
 
 If there are no admin users, one may access the database from the
 localhost interface without authenticating.  Therefore, on the
