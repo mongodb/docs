@@ -4,17 +4,235 @@ Configure Windows ``netsh`` Firewall for MongoDB
 
 .. default-domain:: mongodb
 
-The Windows Firewall is configured on the cli, using ``netsh``. Here
-are some example firewall rules for MongoDB traffic -
+On Windows Server systems, the ``netsh`` program provides
+methods for managing the Windows Firewall. These firewall rules make it possible
+for administrators to control what hosts can connect to the system,
+and limit risk exposure by limiting the hosts that can connect to a
+system. 
+
+This document outlines basic Windows Firewall configurations.
+Use these approaches as a starting point for your
+larger networking organization. 
+For a detailed over view of security
+practices and risk management for MongoDB, see
+:doc:`/administration/security`.
+
+Overview
+--------
+
+Windows Firewall employs several types of rules which are evaluated in
+order:
+
+*  ``Windows Service Hardening``
+*  ``Connection security rules``
+*  ``Authenticated Bypass Rules``
+*  ``Block Rules``
+*  ``Allow Rules``
+*  ``Default Rules``
+
+By default the policy in Windows Firewall is to allow outbound connections
+and to block incoming connections.
+
+Given the :ref:`default ports <security-port-numbers>` of all MongoDB
+processes, you must configure networking rules that permit *only*
+required communication between your application and the appropriate
+:program:`mongod.exe` and :program:`mongos.exe` instances.
+
+The configuration changes outlined in this document will create rules
+which explicitly allow traffic from specific addresses and on specific ports
+ports, using a default policy that drops all traffic that is not
+explicitly allowed. 
+
+The Windows Firewall can be configured using the :program:`netsh` command line
+tool or through a windows application.  On Windows Server 2008 this
+application is ``Windows Firewall With Advanced Security`` in ``Administrative Tools``.
+On previous versions of Windows Server this application is titled
+``Windows Firewall`` in the ``System and Security`` control panel.
+
+This tutorial will refer to the :program:`netsh` command line tool.
+
+Patterns
+--------
+
+This section contains a number of patterns and examples for
+configuring :program:`Windows Firewall` for use with MongoDB deployments.
+If you have configured different ports using the :setting:`port` configuration
+setting, you will need to modify the rules accordingly.
+
+.. _wfirewall-basic-rule-set:
+
+Traffic to and from ``mongod`` Instances
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This pattern is applicable to all :program:`mongod.exe` instances running
+as standalone instances or as part of a :term:`replica set`. 
+
+The goal of this pattern is to explicitly allow traffic to the
+:program:`mongod.exe` instance from the application server. In the
+following examples, replace ``<ip-address>`` with the IP address of
+the application server:
+
 
 .. code-block:: netsh
 
    netsh advfirewall firewall add rule name="Open mongod port 27017" dir=in action=allow protocol=TCP localport=27017
 
+This rule allows all incoming traffic to port ``27017``, which 
+allows the application server to connect to the
+:program:`mongod.exe` instance.
+
+Alternatively, you can enable a program as opposed to opening a port:
+
+.. code-block:: netsh
+
+   netsh advfirewall firewall add rule name="Allowing mongod" dir=in action=allow program=" C:\mongodb\bin\mongod.exe"
+
+or for a MongoDB shard server:
+
+.. code-block:: netsh
+
+   netsh advfirewall firewall add rule name="Allowing mongos" dir=in action=allow program=" C:\mongodb\bin\mongos.exe"
+
+   
+Traffic to and from MongoDB Shard Server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:program:`mongos.exe` instances provide query routing for :term:`sharded
+clusters`. Clients connect to :program:`mongos.exe` instances, which
+behave from the client's perspective as :program:`mongod.exe`
+instances. In turn, the :program:`mongos.exe` connects to all
+:program:`mongod.exe` instances that are components of the sharded
+cluster.
+
+Use the same :program:`Windows Firewall<windows:netsh>` command to allow traffic to 
+and from these instances as you would from the :program:`mongod.exe` 
+instances that are
+members of the replica set. 
+
+.. code-block:: netsh
+
    netsh advfirewall firewall add rule name="Open mongod shard port 27018" dir=in action=allow protocol=TCP localport=27018
 
+Traffic to and from a MongoDB Config Server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To delete the firewall rule allowing :program:`mongod` traffic:
+Configuration servers, host the :term:`config database` that stores metadata
+for sharded clusters. Each production cluster has three configuration
+servers, initiated using the :option:`mongod --configsvr`
+option. [#config-option]_ Configuration servers listen for connections on port
+``27019``. As a result, add the following :program:`Windows Firewall` rules to the
+config server to allow incoming and outgoing connection on port
+``27019``, for connection to the other config servers. 
+
+.. code-block:: netsh
+
+   netsh advfirewall firewall add rule name="Open mongod config svr port 27019" dir=in action=allow protocol=TCP localport=27019
+
+Additionally, config servers need to allow incoming connections from
+all of the :program:`mongos.exe` instances in the cluster *and* all
+:program:`mongod.exe` instances in the cluster. Add rules that
+resemble the following:
+
+.. code-block:: netsh
+
+   netsh advfirewall firewall add rule name="Open mongod config svr inbound" dir=in action=allow protocol=TCP remoteip=<ip-address> localport=27019
+
+Replace ``<ip-address>`` with the addresses of the
+:program:`mongos.exe` instances and the shard :program:`mongod.exe`
+instances.  
+
+.. [#config-option] You can also run a config server by setting the
+   :setting:`configsvr` option in a configuration file.
+
+Traffic to and from a MongoDB Shard Server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For shard servers, running as :option:`mongod --shardsvr`
+[#shard-option]_ Because the default port number when running with
+:setting:`shardsvr` is ``27018``,  you must configure the following
+:program:`Windows Firewall` rules to allow traffic to and from each shard:
+
+.. code-block:: netsh
+  
+   netsh advfirewall firewall add rule name="Open mongod shardsvr inbound" dir=in action=allow protocol=TCP remoteip=<ip-address> localport=27018
+   netsh advfirewall firewall add rule name="Open mongod shardsvr outbound" dir=out action=allow protocol=TCP remoteip=<ip-address> localport=27018
+
+Replace the ``<ip-address>`` specification with the IP address of all
+:program:`mongod.exe` instances. This allows you to permit incoming 
+and outgoing traffic between all shards including constituent replica
+set members to:
+
+* all :program:`mongod.exe` instances in the shard's replica sets. 
+
+* all :program:`mongod.exe` instances in other shards. [#migrations]_
+
+Furthermore, shards need to be able make outgoing connections to:
+
+* all :program:`mongos.exe` instances.
+
+* all :program:`mongod.exe` instances in the config servers.
+
+Create a rule that resembles the following, and replace the
+``<ip-address>`` with the address of the config servers and the
+:program:`mongos.exe` instances: 
+
+.. code-block:: netsh
+
+   netsh advfirewall firewall add rule name="Open mongod config svr outbound" dir=out action=allow protocol=TCP remoteip=<ip-address> localport=27018
+
+.. [#shard-option] You can also specify the shard server option using
+   the :setting:`shardsvr` setting in the configuration file. Shard
+   members are also often conventional replica sets using the default
+   port.
+
+.. [#migrations] All shards in a cluster need to be able to
+   communicate with all other shards to facilitate :term:`chunk` and
+   balancing operations.
+
+Provide Access For Monitoring Systems
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#. The :program:`mongostat` diagnostic tool, when running with the
+   :option:`--discover <mongostat --discover>` needs to be able to
+   reach all components of a cluster, including the config servers,
+   the shard servers, and the :program:`mongos.exe` instances.
+
+#. If your monitoring system needs access the HTTP interface, insert
+   the following rule to the chain:
+
+   .. code-block:: netsh
+      
+      netsh advfirewall firewall add rule name="Open mongod HTTP monitoring inbound" dir=in action=allow protocol=TCP remoteip=<ip-address> localport=28017
+
+
+   Replace ``<ip-address>`` with the address of the instance that
+   needs access to the HTTP or REST interface. For *all* deployments,
+   you should restrict access to this port to *only* the monitoring
+   instance.
+
+   .. optional:: 
+
+      For shard server :program:`mongod.exe` instances running with
+      :setting:`shardsvr`, the rule would resemble the following:
+
+      .. code-block:: netsh
+
+         netsh advfirewall firewall add rule name="Open mongos HTTP monitoring inbound" dir=in action=allow protocol=TCP remoteip=<ip-address> localport=28018
+
+      For config server :program:`mongod.exe` instances running with
+      :setting:`configsvr`, the rule would resemble the following:
+
+      .. code-block:: netsh
+
+         netsh advfirewall firewall add rule name="Open mongod configsvr HTTP monitoring inbound" dir=in action=allow protocol=TCP remoteip=<ip-address> localport=28019
+
+Manage and Maintain Windows Firewall Configurations
+---------------------------------------------------
+
+Delete Rules
+~~~~~~~~~~~~
+
+To delete the firewall rule allowing :program:`mongod.exe` traffic:
 
 .. code-block:: netsh
 
@@ -22,38 +240,38 @@ To delete the firewall rule allowing :program:`mongod` traffic:
 
    netsh advfirewall firewall delete rule name="Open mongod shard port 27018" protocol=tcp localport=27018
 
-Alternatively, you can enable a program as opposed to opening a port:
-
-.. code-block:: sh
-
-   netsh advfirewall firewall add rule name="Allowing mongod" dir=in action=allow program=" C:\mongodb\bin\mongod.exe"
-
-or for a mongod shard server:
-
-.. code-block:: sh
-
-   netsh advfirewall firewall add rule name="Allowing mongos" dir=in action=allow program=" C:\mongodb\bin\mongos.exe"
+List Windows Firewall Rules
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To list/view the Windows Firewall rules:
 
-.. code-block:: sh
+.. code-block:: netsh
 
    netsh advfirewall firewall show rule name=all
 
+Reset Windows Firewall
+~~~~~~~~~~~~~~~~~~~~~~
+
 To reset the Windows Firewall rules:
 
-.. code-block:: sh
+.. code-block:: netsh
 
    netsh advfirewall reset
+
+Backup & Restore Windows Firewall Rules
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To save administration, you can export or import firewall (from
 different servers) rules very easily on Windows:
 
-.. code-block:: sh
+.. code-block:: netsh
 
    netsh advfirewall export "C:\temp\MongoDBfw.wfw"
 
    netsh advfirewall import "C:\temp\MongoDBfw.wfw"
 
+
 It is also possible to configure the Windows Firewall through a
 GUI, however, this is not within scope for this tutorial.
+
+.. see-also:: `Windows Firewall <http://technet.microsoft.com/en-us/network/bb545423.aspx>`_
