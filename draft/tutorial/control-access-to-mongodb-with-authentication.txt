@@ -36,6 +36,13 @@ When setting up authentication for the first time you must either:
 Begin by setting up the first administrative user for the
 :program:`mongod` instance. 
 
+.. [#sharded-localhost] Because of :issue:`SERVER-6591`, you cannot
+   add the first user to a sharded cluster using the ``localhost``
+   connection in 2.2. If you are running a 2.2 sharded cluster, and
+   want to enable authentication, you must deploy the cluster and add
+   the first user to the ``admin`` database before restarting the
+   cluster to run with :setting:`keyFile`.
+
 Add an Administrative User
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -44,7 +51,7 @@ Add an Administrative User
    Administrative users are those users that have "normal" or read and
    write access to the ``admin`` database. 
 
-If this is the first administrative user, connect to the
+If this is the first administrative user, [#auth-disabled-maintenance] connect to the
 :program:`mongod` on the ``localhost`` interface using the
 :program:`mongo` shell. Then, issue the following command sequence to
 switch to the ``admin`` database context and add the administrative
@@ -57,6 +64,10 @@ user:
 
 Replace ``<username>`` and ``<password>`` with the credentials for
 this administrative user.
+
+.. [#auth-disabled-maintenance] You can also use this procedure if
+   authentication is *not* enabled so that your databases has an
+   administrative user when you enable :setting:`auth`. 
 
 Add a Normal User to a Database
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -100,7 +111,7 @@ contexts to a second database, as in the following example:
 .. example:: 
 
    Given the ``superAdmin`` user with the password ``Password123``,
-   and access to the ``admin``.
+   and access to the ``admin`` database.
    
    The following operation in the :program:`mongo` shell will succeed: 
 
@@ -130,72 +141,50 @@ Authentication on Localhost
 The behavior of :program:`mongod` running with :setting:`auth`, when
 connecting from a client over the localhost interface (i.e. a client
 running on the same system as the :program:`mongod`,) varies slightly
-between versions 2.0 and before and 2.2 and after. Consider these
-behaviors:
+between before and after version 2.2.
 
-- In version 2.0, and before, authentication is not enforced for any
-  user connecting over the localhost interface, regardless of the
-  configuration of the :program:`mongod` instance.
-  
-- In version 2.2, if :program:`mongod` is running with :setting:`auth`
-  then user connecting over the localhost interface must
-  authenticate.
-
-  *However,* if the :program:`mongod` does *not* have any users in the
-  ``admin`` database, the user may access the entire :program:`mongod`
-  instance without authenticating. 
-
-  The following table outlines the behavior of :program:`mongod`
-  instances running with :setting:`auth` enabled. 
-
-  .. list-table::
-     :widths: 25 25 50
-     :header-rows: 1
-   
-     * - Connection	
-       - Admin Users Exist
-       - Authentication Required on Accessing Database
-     * - Localhost
-       - Yes
-       - Yes
-     * - Localhost
-       - No
-       - No
-     * - Remote
-       - Yes
-       - Yes
-     * - Remote
-       - No
-       - Yes
+In general if there are no users for the ``admin`` database, you may
+connect via the localhost interface. For sharded clusters running
+version 2.2, if :program:`mongod` is running with :setting:`auth` then
+all users connecting over the localhost interface must authenticate,
+even if there aren't any users in the ``admin`` database.
 
 Password Hashing Insecurity
 ---------------------------
 
-In version 2.2.* and earlier, consider the following scenario:
+In version 2.2 and earlier: 
 
-- A malicious user “Eve” and another user "Alice" both have read and write
-  access to the same database (``db1``).
+- the *normal* users of a database all have access to the
+  ``system.users`` collection, which contains the user names and a
+  hash of all user's passwords. [#read-and-write-system-users]
 
-- Alice also has read and write access to a second database (``db2``).
+- if a user has the same password in multiple databases, the hash will
+  be the same on all database. A malicious user could exploit this to
+  gain access on a second database use a different users' credentials.
 
-- Alice has used the same password on both databases.
+As a result, always use unique username and password combinations on
+for each database.
 
-Given this scenario, Eve can take the hash of Alice’s password from the
-``system.users`` collection on ``db1`` and use it to log in as Alice on
-``db2``. Consider the following example:
+.. [#read-and-write-system-users] Read only users do not have access
+   to the ``system.users`` database. 
 
-.. example::
+.. example: NOT INCLUDED IN OUTPUT. 
 
    Eve connects to the ``db1`` database and views the ``system.users``
-   collection:
+   collection, with the following invocation of :program:`mongo`:
 
    .. code-block:: sh
 
       mongo <host>/db1 -u eve -p test
 
+   Then, in the :program:`mongo` shell, issues the following
+   operation:
+
    .. code-block:: javascript
 
       db.system.users.find()
+
+   This operation returns the following documents:
 
    .. code-block:: javascript
 
