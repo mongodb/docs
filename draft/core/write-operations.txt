@@ -45,26 +45,23 @@ documentation for your client library.
 Write Concern
 -------------
 
-.. DONE The information on the replica-set page has now been split between
-   this page and the replica-set page.
-
 :term:`Write concern <write concern>` confirms the success of write
 operations to MongoDB databases by returning an object indicating
 operational success. Beginning with version 2.2.x, the :program:`mongo`
-shell enables write concern by default. In previous versions the shell
-disabled write concern by default.
+shell and MongoDB drivers enable write concern by default. Prior to
+2.2.x, the shell disables write concern by default, while the behavior
+for drivers varies. For your driver's behavior, see the
+:doc:`/applications/drivers` documentation.
 
-Many drivers also enable write concern by default. For information on
-your driver, see the :doc:`/applications/drivers` documentation.
 
 .. todo add note about all drivers after `date` will have w:1 write
    concern for all operations by default.
 
 Write concern issues the :dbcommand:`getLastError` command after write
-operations, and the command returns an object with success information.
-The returned object's ``err`` field contains either a value of ``null``
-to indicate no errors, in which case the write operations have completed
-successfully, or contains a description of the last error encountered.
+operations to return an object with success information. The returned
+object's ``err`` field contains either a value of ``null``, which
+indicates write operations have completed successfully, or contains a
+description of the last error encountered.
 
 A successful write operation means the :program:`mongod` instance
 received the write operation and has committed the operation to the
@@ -74,73 +71,85 @@ detect situations where the :program:`mongod` instance becomes
 inaccessible or detect insertion errors caused by :ref:`duplicate key errors
 <index-type-unique>`.
 
+Write concern provides confirmation of write operations but also adds to
+performance costs. In situations where confirmation is unnecessary, it
+can be advantageous to disable write concern.
+
 You can modify the level of write concern returned by issuing the
 :dbcommand:`getLastError` command with one or both of following options:
 
 - ``j`` or "journal" option
 
-  In addition to the default confirmation, this option confirms that the
-  :program:`mongod` instance has written the data to the on-disk
-  journal. This ensures the data is durable if :program:`mongod` or the
-  server itself crashes or shuts down unexpectedly.
+  This option confirms that the :program:`mongod` instance has written
+  the data to the on-disk journal and ensures data is not lost if the
+  :program:`mongod` instance shuts down unexpectedly. Set to ``true`` to
+  enable, as shown in the following example:
+
+  .. code-block:: javascript
+
+     db.runCommand( { getLastError: 1, j: "true" } )
 
 - ``w`` option
 
   This option is used either to configure write concern on members of
-  :term:`replica sets <replica set>` or to disable write concern. By
-  default, the ``w`` option is set to ``1``, which enables write
-  concern on a single :program:`mongod` instance.
+  :term:`replica sets <replica set>` *or* to disable write concern
+  entirely. By default, the ``w`` option is set to ``1``, which enables
+  write concern on a single :program:`mongod` instance or on the
+  :term:`primary` in a replica set.
 
-  In the case of replica sets, the value of ``1`` enables write concern
-  on the :term:`primary` only. To configure write concern to confirm
-  that writes have replicated to a specified number of replica set
-  members, see :ref:`Write Concern for Replica Sets
-  <replica-set-write-concern>`.
+  The ``w`` option takes the following values:
 
-  To disable write concern, set the ``w`` option to ``0``, as shown in
-  the following example:
+  - ``-1``
 
-  .. code-block:: javascript
+    Turns off reporting of network errors.
 
-     db.runCommand( { getLastError: 1, w: 0 } )
+  - ``0``
 
-  .. note:: Write concern provides confirmation of write operations but also adds
-     to performance costs. In situations where confirmation is
-     unnecessary, it can be advantageous to disable write concern.
+    Disables write concern.
+
+    .. note:: If you disable write concern but enable the journal
+       option, as shown here:
+
+       .. code-block:: javascript
+
+          { getLastError: 1, w: 0, j: "true" }
+
+       The setting with the ``j`` option prevails. Write concern is
+       enabled with journaling.
+
+  - ``1``
+
+    Enables write concern on a standalone :program:`mongod` or the
+    :term:`primary` in a replica set.
+
+  - *A number greater than 1*
+
+    Confirms that write operations have replicated to the specified
+    number of replica set members, including the primary. If you set
+    ``w`` to a number that is greater than the number of set members
+    that hold data, MongoDB waits for the non-existent members become
+    available, which means MongoDB blocks indefinitely.
+
+  - ``majority``
+
+    Confirms that write operations have replicated to the majority of
+    set members.
+
+For more information on write concern and replica sets, see :ref:`Write
+Concern for Replica Sets <replica-set-write-concern>`.
 
 .. _write-operations-bulk-insert:
 
 Bulk Inserts
 ------------
 
-Bulk inserts let you insert many documents in a single database call.
+Bulk inserts let you insert many documents at once in a single database
+call by letting you pass multiple documents to a single insert
+operation.
 
-Bulk inserts allow MongoDB to distribute the performance penalty when
-performing inserts to a large number of documents at once. Bulk inserts
-let you pass multiple events to the :method:`insert()` method at once.
-All write concern options apply to bulk inserts.
-
-You perform bulk inserts through your driver. See the
-:doc:`/applications/drivers` documentation for your driver for how to do
-bulk inserts.
-
-Beginning with version 2.2, you also can perform bulk inserts through
-the :program:`mongo` shell.
-
-Beginning with version 2.0, you can set the ``ContinueOnError`` flag for
-bulk inserts to signal inserts should continue even if one or more from
-the batch fails. In that case, if multiple errors occur, only the most
-recent is reported by the :dbcommand:`getLastError` command. For a
-:term:`sharded collection`, ``ContinueOnError`` is implied and cannot be
-disabled.
-
-If you insert data without write concern, the bulk insert gain might be
-insignificant. But if you insert data with write concern configured,
-bulk insert can bring significant performance gains by distributing the
-penalty over the group of inserts.
-
-MongoDB is quite fast at a series of singleton inserts. Thus one often
-does not need to use this specialized version of insert.
+Bulk insert can significantly increase performance by distributing
+:ref:`write concern <write-operations-write-concern>` costs. Beginning
+in version 2.2.x, write concern is enabled by default.
 
 Bulk inserts are often used with :term:`sharded collections <sharded
 collection>` and are more effective when the collection is already
@@ -148,7 +157,18 @@ populated and MongoDB has already determined the key distribution. For
 more information on bulk inserts into sharded collections, see
 :ref:`sharding-bulk-inserts`.
 
-If possible, consider using bulk inserts to insert event data.
+When performing bulk inserts through a driver, you can use the
+``ContinueOnError`` option in your driver's insert command to continue
+to insert remaining documents even if an insert fails. This option is
+available in MongoDB versions 2.0 and higher. If errors occur, only the
+most recent is reported. For a :term:`sharded collection`,
+``ContinueOnError`` is implied and cannot be disabled. For details on
+performing bulk inserts through your driver, see the
+:doc:`/applications/drivers` documentation for your driver.
+
+Beginning with version 2.2, you can perform bulk inserts through the
+:program:`mongo` shell by passing an array of documents to the
+:method:`insert() <db.collection.insert()>` method.
 
 For more information, see :ref:`write-operations-sharded-clusters`,
 :ref:`sharding-bulk-inserts`, and :doc:`/administration/import-export`.
