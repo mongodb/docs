@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-
 from mongodb_docs_meta import get_commit
 
 def main():

@@ -113,7 +113,7 @@ endif
 # access these targets through the ``publish`` target.
 .PHONY: initial-dependencies static-components sphinx-components post-processing
 
-pre-build-dependencies:setup source/includes/hash.rst source/about.txt
+pre-build-dependencies:setup source/tutorial/install-mongodb-on-linux.txt source/tutorial/install-mongodb-on-os-x.txt source/includes/hash.rst source/about.txt
 initial-dependencies:$(public-branch-output)/MongoDB-Manual.epub
 	@echo [build]: completed the pre-publication routine for the $(manual-branch) branch of the Manual.
 static-components:$(public-output)/index.html $(public-output)/10gen-gpg-key.asc $(public-output)/10gen-security-gpg-key.asc $(public-branch-output)/.htaccess $(public-branch-output)/release.txt $(public-output)/osd.xml
@@ -127,15 +127,35 @@ sphinx-components:$(public-branch-output)/MongoDB-Manual.pdf $(public-branch-out
 # Build the HTML components of the build.
 #
 
+.PHONY:instalation-guides source/tutorial/install-mongodb-on-linux.txt source/tutorial/install-mongodb-on-os-x.txt 
+.PHONY:source/includes/install-curl-release-linux-64.rst source/includes/install-curl-release-linux-32.rst source/includes/install-curl-release-osx-64.rst 
+instalation-guides:source/tutorial/install-mongodb-on-linux.txt source/tutorial/install-mongodb-on-os-x.txt
+source/tutorial/install-mongodb-on-linux.txt:source/includes/install-curl-release-linux-64.rst
+	@touch $@
+	@echo [build]: touched $@ to ensure a clean build.
+source/tutorial/install-mongodb-on-os-x.txt:source/includes/install-curl-release-osx-64.rst 
+	@echo [build]: touched $@ to ensure a clean build.
+source/includes/install-curl-release-linux-64.rst:source/includes/install-curl-release-linux-32.rst
+	@$(PYTHONBIN) bin/update_release.py linux-64 $@
+#	@git update-index --assume-unchanged $@
+	@echo [build]: \(re\)generated $@.
+source/includes/install-curl-release-linux-32.rst:
+	@$(PYTHONBIN) bin/update_release.py linux-32 $@
+#	@git update-index --assume-unchanged $@
+	@echo [build]: \(re\)generated $@.
+source/includes/install-curl-release-osx-64.rst:
+	@$(PYTHONBIN) bin/update_release.py osx $@
+#	@git update-index --assume-unchanged $@
+	@echo [build]: \(re\)generated $@.
+
 .PHONY:source/about.txt source/includes/hash.rst setup
 
 setup:source/includes/hash.rst
 	@mkdir -p $(public-branch-output)
 	@echo [build]: created $(public-branch-output)
-
 source/includes/hash.rst:
 	@$(PYTHONBIN) bin/update_hash.py
-	@git update-index --assume-unchanged source/includes/hash.rst
+	@git update-index --assume-unchanged $@
 	@echo [build]: \(re\)generated $@.
 source/about.txt:setup
 	@touch $@

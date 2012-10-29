@@ -48,9 +48,8 @@ copyright = u'2011-' + meta['date'] + ', 10gen, Inc.'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
-# built documents.
-#
-# The short X.Y version.
+# built documents. The value of ``version`` is used in the paths for the curl commands. 
+
 version = '2.2.0'
 release = version
 
