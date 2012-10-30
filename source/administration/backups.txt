@@ -364,7 +364,7 @@ member`).
         In 2.0 added :method:`db.fsyncLock()` and
         :method:`db.fsyncUnlock()` helpers to the :program:`mongo`
         shell.  Prior to this version, use the :dbcommand:`fsync`
-        command with the ``lock`` option, as follows: 
+        command with the ``lock`` option, as follows:
 
       .. code-block:: javascript
 
@@ -575,7 +575,7 @@ Back Up Sharded Clusters
 
 Sharding complicates backup operations, because it is difficult to
 create a backup of a single moment in time from a distributed cluster
-of systems and processes. 
+of systems and processes.
 
 Depending on the size of your data, you can back up the cluster as a
 whole or back up each :program:`mongod` instance. The following
@@ -624,9 +624,11 @@ In both cases:
 
 This procedure describes both approaches:
 
-1. Disable the :term:`balancer` process that equalizes the distribution
-   of data among the :term:`shards <shard>`. To disable the balancer, see
-   :ref:`sharding-balancing-disable-temporally`.
+1. Disable the :term:`balancer` process that equalizes the
+   distribution of data among the :term:`shards <shard>`. To disable
+   the balancer, use the :method:`sh.stopBalancer()` method in the
+   :program:`mongo` shell, and see the
+   :ref:`sharding-balancing-disable-temporally` procedure.
 
    .. warning::
 
@@ -639,6 +641,15 @@ This procedure describes both approaches:
    system at a single point in time. Lock all shards in as short of an
    interval as possible.
 
+   To lock or freeze a sharded cluster, you must:
+
+   - use the :method:`db.fsyncLock()` method in the :program:`mongo`
+     shell connected to each shard :program:`mongod` instance and
+     block write operations.
+
+   - Shut down one of the :term:`config servers <config server>`, to
+     prevent all metadata changes during the backup process.
+
    .. warning::
 
       If you do not lock all shards at the same time, the backup can
@@ -649,7 +660,7 @@ This procedure describes both approaches:
    only need to back up one config server, as they all have replicas of
    the same information.
 
-   Issue this command against the config server itself or the
+   Issue this command against one of the the config server itself or the
    :program:`mongos`:
 
    .. code-block:: sh
@@ -672,9 +683,12 @@ This procedure describes both approaches:
    - Create a binary dump of each shard using the operations described
      in :ref:`database-dumps`.
 
-#. Unlock all shards.
+#. Unlock all shards using the :method:`db.fsyncUnlock()` method in
+   the :program:`mongo` shell.
 
-#. Restore the balancer.
+#. Restore the balancer with the :method:`sh.startBalancer()` method
+   according to the :ref:`sharding-balancing-disable-temporally`
+   procedure.
 
    Use the following command sequence when connected to the
    :program:`mongos` with the :program:`mongo` shell:
@@ -682,7 +696,7 @@ This procedure describes both approaches:
    .. code-block:: javascript
 
       use config
-      db.settings.update( { _id: "balancer" }, { $set : { stopped: false } } , true );
+      sh.startBalancer()
 
 Schedule Automated Backups
 ``````````````````````````
