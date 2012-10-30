@@ -5,6 +5,7 @@ MAKEFLAGS += --no-print-directory
 
 # includes
 include bin/makefile.compatibility
+include bin/makefile.tables
 
 # Build directory tweaking.
 output = build
@@ -113,7 +114,7 @@ endif
 # access these targets through the ``publish`` target.
 .PHONY: initial-dependencies static-components sphinx-components post-processing
 
-pre-build-dependencies:setup source/tutorial/install-mongodb-on-linux.txt source/tutorial/install-mongodb-on-os-x.txt source/includes/hash.rst source/about.txt
+pre-build-dependencies:setup instalation-guides tables
 initial-dependencies:$(public-branch-output)/MongoDB-Manual.epub
 	@echo [build]: completed the pre-publication routine for the $(manual-branch) branch of the Manual.
 static-components:$(public-output)/index.html $(public-output)/10gen-gpg-key.asc $(public-output)/10gen-security-gpg-key.asc $(public-branch-output)/.htaccess $(public-branch-output)/release.txt $(public-output)/osd.xml
@@ -127,39 +128,45 @@ sphinx-components:$(public-branch-output)/MongoDB-Manual.pdf $(public-branch-out
 # Build the HTML components of the build.
 #
 
-.PHONY:instalation-guides source/tutorial/install-mongodb-on-linux.txt source/tutorial/install-mongodb-on-os-x.txt 
-.PHONY:source/includes/install-curl-release-linux-64.rst source/includes/install-curl-release-linux-32.rst source/includes/install-curl-release-osx-64.rst 
+## See 'bin/makefile.tables' for additional elements here.
+
+# Baking the current release into the installation pages. 
+
+.PHONY:instalation-guides source/tutorial/install-mongodb-on-linux.txt source/tutorial/install-mongodb-on-os-x.txt
+.PHONY:source/includes/install-curl-release-linux-64.rst source/includes/install-curl-release-linux-32.rst source/includes/install-curl-release-osx-64.rst
 instalation-guides:source/tutorial/install-mongodb-on-linux.txt source/tutorial/install-mongodb-on-os-x.txt
 source/tutorial/install-mongodb-on-linux.txt:source/includes/install-curl-release-linux-64.rst
 	@touch $@
 	@echo [build]: touched $@ to ensure a clean build.
-source/tutorial/install-mongodb-on-os-x.txt:source/includes/install-curl-release-osx-64.rst 
+source/tutorial/install-mongodb-on-os-x.txt:source/includes/install-curl-release-osx-64.rst
 	@echo [build]: touched $@ to ensure a clean build.
 source/includes/install-curl-release-linux-64.rst:source/includes/install-curl-release-linux-32.rst
 	@$(PYTHONBIN) bin/update_release.py linux-64 $@
-#	@git update-index --assume-unchanged $@
+	@git update-index --assume-unchanged $@
 	@echo [build]: \(re\)generated $@.
 source/includes/install-curl-release-linux-32.rst:
 	@$(PYTHONBIN) bin/update_release.py linux-32 $@
-#	@git update-index --assume-unchanged $@
+	@git update-index --assume-unchanged $@
 	@echo [build]: \(re\)generated $@.
 source/includes/install-curl-release-osx-64.rst:
 	@$(PYTHONBIN) bin/update_release.py osx $@
-#	@git update-index --assume-unchanged $@
+	@git update-index --assume-unchanged $@
 	@echo [build]: \(re\)generated $@.
 
+# Initial build steps, exporting the current commit to the build. 
 .PHONY:source/about.txt source/includes/hash.rst setup
-
 setup:source/includes/hash.rst
 	@mkdir -p $(public-branch-output)
 	@echo [build]: created $(public-branch-output)
-source/includes/hash.rst:
+source/includes/hash.rst:source/about.txt
 	@$(PYTHONBIN) bin/update_hash.py
 	@git update-index --assume-unchanged $@
 	@echo [build]: \(re\)generated $@.
-source/about.txt:setup
+source/about.txt:
 	@touch $@
 	@echo [build]: touched $@ to ensure a clean build.
+
+# Establish basic dependencies.
 $(branch-output)/dirhtml:dirhtml
 	@touch $@
 	@echo [build]: touched $@ to ensure proper migration.
@@ -240,6 +247,7 @@ $(public-output)/osd.xml:themes/docs.mongodb.org/osd.xml
 	@cp $< $@
 	@echo [build]: migrated $@
 
+# Build and process the custom error pages. 
 
 ERROR_PAGES = $(public-branch-output)/meta/401/index.html $(public-branch-output)/meta/403/index.html $(public-branch-output)/meta/404/index.html $(public-branch-output)/meta/410/index.html
 .PHONY: error-pages $(ERROR_PAGES)
@@ -259,10 +267,11 @@ $(public-branch-output)/meta/410/index.html:$(branch-output)/dirhtml/meta/410/in
 	@echo [web]: processed error page '$@'
 
 
+# Create symbolic links (other than $(public-output)/manual)
+
 LINKS = $(public-branch-output)/reference/reIndex $(public-branch-output)/tutorials $(public-branch-output)/reference/methods
 .PHONY: links $(LINKS)
 links: $(LINKS)
-
 $(public-branch-output)/tutorials:
 	@bin/create-link tutorial $(notdir $@) $@
 $(public-branch-output)/reference/methods:

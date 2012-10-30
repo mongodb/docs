@@ -2,8 +2,7 @@
 
 import sys
 import os 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
-import conf
+import sphinx_conf
 
 def cli():
     try: 
@@ -43,7 +42,7 @@ def generate_output(builder, platform, version):
 
 def main():
     interface = cli()
-    output = generate_output(interface['builder'], interface['platform'], conf.version) 
+    output = generate_output(interface['builder'], interface['platform'], sphinx_conf.version) 
 
     with open(interface['outputfile'], 'w') as f: 
         f.write(output)
