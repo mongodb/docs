@@ -151,6 +151,54 @@ flag to modify the file preallocation strategy.
 
 .. seealso:: This wiki page that address :wiki:`MongoDB disk use <Excessive+Disk+Space>`.
 
+How do I optimize storage for small documents
+---------------------------------------------
+
+Each MongoDB document contains a certain amount of overhead. This
+overhead is normally insignificant but becomes significant if your
+documents are just a few bytes, as might be the case for documents with
+just one or two fields. Below are some suggestions on how to optimize
+storage efficiently in such situations.
+
+- Use the ``_id`` field explicitly.
+
+  Mongo automatically adds an object ID to each document and sets it to
+  a unique value. Additionally this field in indexed. For tiny documents
+  this takes up significant space. To optimize, use the ``_id``
+  explicitly. Take a field that is unique for the collection and store
+  its values in ``_id``. By doing so, you have explicitly provided IDs.
+  This eliminates the creation of a separate ``_id`` field. If your
+  previously separate field was indexed, this eliminates an extra index,
+  too.
+
+- Use small field names. This is recommended only in certain situations.
+
+  Consider the following record:
+
+  .. code-block:: javascript
+
+     { last_name : "Smith", best_score: 3.9 }
+
+  The strings ``last_name`` and ``best_score`` are stored in each
+  object's BSON. Using shorter strings would save space:
+
+  .. code-block:: javascript
+
+     { lname : "Smith", score : 3.9 }
+
+  In this case, the shorter names would save 9 bytes per document. This
+  reduces expressiveness and is not recommended unless you have a
+  collection where this is of significant concern.
+
+  Shortening field names does not reduce index size. Field names are not
+  stored in indexes, as indexes have a predefined structure. In general
+  it is not necessary to use short field names.
+
+- Embed documents.
+
+  In some cases you may be able to embed documents in other documents and save
+  on the per document overhead.
+
 How does MongoDB address SQL or Query injection?
 ------------------------------------------------
 
