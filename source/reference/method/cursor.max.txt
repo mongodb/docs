@@ -1,0 +1,138 @@
+============
+cursor.max()
+============
+
+.. default-domain:: mongodb
+
+.. method:: cursor.max()
+
+   The :method:`max() <cursor.max()>` method specifies the *exclusive*
+   upper bound for a specific index in order to constrain the results
+   of the :method:`find() <db.collection.find()>` method. The
+   :method:`max() <cursor.max()>` method provides a straight-forward
+   way to specify an upper bound on multiple-key index.
+
+   The :method:`max() <cursor.max()>` method takes the following parameter:
+
+   :param document indexbounds:
+
+          Specifies the exclusive upper bound for the index keys. The
+          ``indexbounds`` parameter has the following prototype form:
+
+          .. code-block:: javascript
+
+             { field1: <max value>, field2: <max value2> ... fieldN:<max valueN>} 
+
+          The fields correspond to *all* the keys of a particular
+          index *in order*. :program:`mongod` determines the index
+          using the fields in the ``indexbounds``; however, you can
+          explicitly specify the particular index with the
+          :method:`hint() <cursor.hint()>` method.
+
+   .. note::
+
+      - The :method:`max() <cursor.max()>` method exist primarily to
+        support the :program:`mongos` (sharding) process.
+
+      - Because the :method:`max() <cursor.max()>` method requires a
+        corresponding index, it may be preferable to use the
+        :operator:`$lt` operator in the query instead.
+
+      - If you use :method:`max() <cursor.max()>` method with the
+        :method:`min() <cursor.min()>` method to specify a range, the
+        index bounds specified in :method:`min() <cursor.min()>` method
+        and the :method:`max() <cursor.max()>` method must both refer
+        to the keys of the same index.
+
+      - The :method:`max() <cursor.max()>` method is a shell wrapper
+        around the special operator :operator:`$max`.
+
+   Consider the following example of the :method:`max() <cursor.max()>`
+   method:
+
+   The examples assume a collection ``contacts`` with the following documents:
+
+   .. code-block:: javascript
+   
+      { "_id" : 1, "fname" : "ant", "lname" : "arctica" }
+      { "_id" : 2, "fname" : "bob", "lname" : "cat" }
+      { "_id" : 3, "fname" : "house", "lname" : "cat" }
+      { "_id" : 4, "fname" : "wild", "lname" : "cat" }
+      { "_id" : 7, "fname" : "big", "lname" : "dog" }
+      { "_id" : 5, "fname" : "ant", "lname" : "eater" }
+      { "_id" : 6, "fname" : "ant", "lname" : "elope" }
+
+   The collection has the following three indexes:
+
+   .. code-block:: javascript
+
+      { "v" : 1, "key" : { "_id" : 1 }, "ns" : "test.contacts", "name" : "_id_" }
+      { "v" : 1, "key" : { "lname" : 1, "fname" : 1 }, "ns" : "test.contacts", "name" : "lname_1_fname_1" }
+      { "v" : 1, "key" : { "lname" : 1 }, "ns" : "test.contacts", "name" : "lname_1" }
+
+   - Specify a lower, inclusive bounds for the index
+     ``lname_1_fname_1`` in the query execution. Using the ordering of
+     ``lname_1_fname_1``, the :method:`max() <cursor.max()>` method
+     limits the query to the documents that are below the bound of
+     ``lname`` equal to ``dog`` and ``fname`` equal to ``big``:
+
+     .. code-block:: javascript
+
+        db.contacts.find().max( { lname: 'dog', fname: 'big' } )
+
+     The query returns the following documents:
+
+     .. code-block:: javascript
+
+        { "_id" : 1, "fname" : "ant", "lname" : "arctica" }
+        { "_id" : 2, "fname" : "bob", "lname" : "cat" }
+        { "_id" : 3, "fname" : "house", "lname" : "cat" }
+        { "_id" : 4, "fname" : "wild", "lname" : "cat" }
+
+     The equivalent query with the :operator:`$lt` operator is:
+
+     .. code-block:: javascript
+
+        db.contacts.find( { lname: { $lt: 'dog' } } )
+
+     Note that the equivalent query with the :operator:`$lt` operator
+     is **not**:
+     
+     .. code-block:: javascript
+
+        db.contacts.find( { lname: { $lt: 'dog' } , fname: { $lt: 'big' } } )
+
+     The query with the :operator:`$lt` operator returns only the
+     documents with both ``lname`` value less than ``dog`` **and**
+     ``fname`` value less than ``big``:
+
+     .. code-block:: javascript
+
+        { "_id" : 1, "fname" : "ant", "lname" : "arctica" }
+
+   - Specify a range for the index ``lname_1`` in the query execution.
+     The :method:`min() <cursor.min()>` method limits the query to the
+     documents that are at or above the index key bound of ``lname``
+     equal to ``cat`` and the :method:`max() <cursor.max()>` method
+     limits the query to the documents that are below the index key
+     bound of ``lname`` equal to ``eater``:
+
+     .. code-block:: javascript
+
+        db.contacts.find().min( { lname: 'cat' } ).max( { lname: 'eater' } )
+
+     The query returns the following documents:
+
+     .. code-block:: javascript
+
+        { "_id" : 3, "fname" : "house", "lname" : "cat" }
+        { "_id" : 2, "fname" : "bob", "lname" : "cat" }
+        { "_id" : 4, "fname" : "wild", "lname" : "cat" }
+        { "_id" : 7, "fname" : "big", "lname" : "dog" }
+
+     The equivalent query with the :operator:`$gte` and the
+     :operator:`$lt` operators is:
+
+     .. code-block:: javascript
+
+        db.contacts.find( { lname: { $gte:'cat', $lt: 'eater' } } )
