@@ -151,6 +151,56 @@ flag to modify the file preallocation strategy.
 
 .. seealso:: This wiki page that address :wiki:`MongoDB disk use <Excessive+Disk+Space>`.
 
+How do I optimize storage for small documents
+---------------------------------------------
+
+Each MongoDB document contains a certain amount of overhead. This
+overhead is normally insignificant but becomes significant if your
+documents are just a few bytes, as might be the case for documents with
+just one or two fields. Below are some suggestions on how to optimize
+storage efficiently in such situations.
+
+- Use the ``_id`` field explicitly.
+
+  MongoDB clients automatically add an :term:`ObjectId` to each document and set it to
+  a unique value. Additionally this field in indexed. For tiny documents
+  this takes up significant space.
+
+  To optimize, users can provide a value for the ``_id`` field
+  explicitly. The goal is to leverage the ``_id`` field to store a value
+  that would have occupied space in another portion of the document. The
+  only requirement for the ``_id`` field value is that it must serve as
+  a primary key for documents in the collection by uniquely identifying
+  them. If the field's value is not unique, then it cannot serve as a
+  primary key as there would be collisions in the namespace.
+
+- Use shorter field names. This is recommended only in certain situations.
+
+  For example, the strings ``last_name`` and ``best_score`` in this
+  record:
+
+  .. code-block:: javascript
+
+     { last_name : "Smith", best_score: 3.9 }
+
+  could be shortened to ``lname`` and ``score``, which would save 9
+  bytes per document:
+
+  .. code-block:: javascript
+
+     { lname : "Smith", score : 3.9 }
+
+  Shortening field names reduces expressiveness and is not recommended
+  unless you have a collection where document overhead is of significant
+  concern. Also, shortening field names does not reduce index size, as
+  indexes have a predefined structure. In general it is not necessary to
+  use short field names.
+
+- Embed documents.
+
+  In some cases you may be able to embed documents in other documents and save
+  on the per document overhead.
+
 How does MongoDB address SQL or Query injection?
 ------------------------------------------------
 
