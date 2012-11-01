@@ -767,6 +767,68 @@ to pre-splitting.
 
    .. todo:: insert link to killing a cursor.
 
+.. index:: bulk insert
+.. _sharding-bulk-inserts:
+
+Bulk Insert Strategies
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. todo Consider moving to the administrative guide as it's of an applied nature,
+   or create an applications document for sharding
+
+.. todo link the words "bulk insert" to the bulk insert topic when it's
+   published
+
+When performing a bulk insert into a :term:`sharded collection`, consider
+the following:
+
+- If the collection is not yet populated, MongoDB must take time to
+  "learn" what the key distribution is and how to distribute the data.
+  To avoid this performance cost, you can pre-split the collection, as
+  described in :ref:`sharding-administration-pre-splitting`.
+
+- You can parallel import by sending inserts to multiple
+  :program:`mongos` instances. If the collection is empty, pre-split
+  first, as described in :ref:`sharding-administration-pre-splitting`.
+
+- If your shard key monotonically increases during an insert then all
+  the inserts will go to the last chunk in the collection, which is
+  undesirable if the insert volume is beyond the range that a single
+  shard can process at a given point in time.
+
+  If the insert volume exceeds that range, and if you can't avoid
+  picking a monotonically increasing shard key, then you can do either
+  of the following at generation time to more evenly distribute inserts:
+
+  - Reverse all the bits of your shard key, which preserves information
+    while avoiding the increasing sequence of values.
+  - Swap the first and last 16-bit words, to "shuffle" the inserts.
+
+  .. example:: The following example, in C++, swaps the leading and
+     trailing 16-bit word of :term:`BSON` :term:`ObjectIds <ObjectId>`
+     generated so that they are no longer monotonically increasing.
+
+     .. code-block:: cpp
+
+        using namespace mongo;
+        OID make_an_id() {
+          OID x = OID::gen();
+          const unsigned char *p = x.getData();
+          swap( (unsigned short&) p[0], (unsigned short&) p[10] );
+          return x;
+        }
+
+        void foo() {
+          // create an object
+          BSONObj o = BSON( "_id" << make_an_id() << "x" << 3 << "name" << "jane" );
+          // now we might insert o into a sharded collection...
+        }
+
+  For information on choosing a shard key, see :ref:`sharding-shard-key`
+  and see :ref:`Shard Key Internals <sharding-internals-shard-keys>` (in
+  particular, :ref:`sharding-internals-operations-and-reliability` and
+  :ref:`sharding-internals-choose-shard-key`).
+
 .. index:: balancing; operations
 .. _sharding-balancing-operations:
 
