@@ -7,7 +7,7 @@ MAKEFLAGS += --no-print-directory
 include bin/makefile.compatibility
 include bin/makefile.tables
 
-# Build directory tweaking.
+# Build directory tweaking.goq
 output = build
 public-output = $(output)/public
 branch-output = $(output)/$(current-branch)
@@ -269,7 +269,7 @@ $(public-branch-output)/meta/410/index.html:$(branch-output)/dirhtml/meta/410/in
 
 # Create symbolic links (other than $(public-output)/manual)
 
-LINKS = $(public-branch-output)/reference/reIndex $(public-branch-output)/tutorials $(public-branch-output)/reference/methods
+LINKS = $(public-branch-output)/reference/reIndex $(public-branch-output)/tutorials $(public-branch-output)/reference/methods $(public-branch-output)/install-mongodb-on-red-hat-centos-or-fedora-linux
 .PHONY: links $(LINKS)
 links: $(LINKS)
 $(public-branch-output)/tutorials:
@@ -278,6 +278,8 @@ $(public-branch-output)/reference/methods:
 	@bin/create-link method $(notdir $@) $@
 $(public-branch-output)/reference/reIndex:
 	@bin/create-link db.collection.reIndex $(notdir $@) $@
+$(public-branch-output)/install-mongodb-on-red-hat-centos-or-fedora-linux:
+	@bin/create-link install-mongodb-on-redhat-centos-or-fedora-linux $(notdir $@) $@
 
 # Clean up/removal targets.
 clean:
