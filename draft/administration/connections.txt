@@ -6,16 +6,15 @@ Connections
 
 .. default-domain:: mongodb
 
-This document describes the URI :ref:`format
-<connections-standard-connection-string-format>` and :ref:`options
-<connections-connection-options>` for creating a connection to a MongoDB
-database server.
+This document describes the URI format for defining connections between
+applications and MongoDB instances in the official MongoDB :doc:`drivers
+</applications/drivers>`.
 
-When you connect to a MongoDB database server, MongoDB creates a
+When you connect to a MongoDB database server, the MongoDB driver creates a
 connection object that is instantiated once and then reused for every
 operation during the lifetime of the connection. The connection object
-uses the connection options you specify when creating the connection.
-MongoDB's reuse of the connection object saves on the costs of setup and
+uses the options you specify when creating the connection.
+The driver's reuse of the connection object saves on the costs of setup and
 teardown on connections.
 
 You connect to a MongoDB database server by starting a :program:`mongod`
@@ -26,7 +25,7 @@ Upon connection to the server, :program:`mongod` displays logging
 information and then displays that it is waiting for a client
 connections, as shown in the following example.
 
-.. code-block:: sh
+.. code-block:: none
 
    Wed Nov 21 12:56:58 [websvr] admin web console waiting for connections on port 28017
    Wed Nov 21 12:56:58 [initandlisten] waiting for connections on port 27017
@@ -51,9 +50,16 @@ documentation, see :doc:`/applications/drivers`.
 
 The following is the standard URI connection scheme:
 
-.. code-block:: sh
+.. code-block:: none
 
    mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]
+
+.. example:: In the following example, a connection issued from a Java
+   driver logs into two databases in the ``test`` replica set:
+
+   .. code-block:: none
+
+      mongodb://db1.example.com,db2.example.com:2500/?replicaSet=test
 
 - ``mongodb:// `` is a required prefix to identify that this is a string
   in the standard connection format.
@@ -85,10 +91,6 @@ The following is the standard URI connection scheme:
   If the ``database`` string is absent you must still have a ``/``
   between the last ``hostN`` and the ``?`` introducing the options.
 
-  Options are name=value pairs. The pairs are separated by "&". For
-  backwards compatibility, ``;`` is accepted as a separator but should
-  be considered as deprecated.
-
 .. index:: connections; options
 .. _connections-connection-options:
 
@@ -97,7 +99,18 @@ Connection Options
 
 The connection options used in the
 :ref:`connections-standard-connection-string-format` are listed in this
-section. The options are not case-sensitive:
+section. The options are not case-sensitive.
+
+Connection options are name=value pairs. The pairs are separated by "&".
+For backwards compatibility, ``;`` is accepted as a separator. But ``;``
+is deprecated.
+
+.. example:: In the following example, a connection issued from a Java
+   driver uses the ``replicaSet`` and ``connectTimeoutMS`` options.
+
+   .. code-block:: none
+
+      mongodb://db1.example.com,db2.example.com:2500/?replicaSet=test&connectTimeoutMS=300000
 
 Replica Set Options
 ~~~~~~~~~~~~~~~~~~~
@@ -159,7 +172,7 @@ documentation.
 
 .. data:: waitQueueMultiple=<milliseconds>
 
-   This is a multiplier number that is multiplied with the
+   A multiplier number that is multiplied with the
    ``maxPoolSize`` setting to give the maximum number of threads allowed
    to wait for a connection to become available from the pool. For
    default values, see the :doc:`/applications/drivers` documentation.
@@ -176,18 +189,17 @@ Write Concern Options
 .. data:: fireAndForget=<true|false>
 
    ``false``: Sends a :dbcommand:`getLastError` command after
-   every update to ensure that the update succeeded (see also ``w`` and
-   ``wtimeoutMS``).
+   every update to ensure that the update succeeded.
 
    ``true``: Does not send a :dbcommand:`getLastError` command after
    every update.
 
    Default value depends on the connection class. For the new
-   MongoClient classes, the default is ``false``.
+   ``MongoClient`` classes, the default is ``false``.
 
 .. data:: w=<number or string>
 
-   This option is used by the :dbcommand:`getLastError` command either
+   Used by the :dbcommand:`getLastError` command either
    to configure write concern on members of :term:`replica sets <replica
    set>` *or* to disable write concern entirely.
 
@@ -209,3 +221,145 @@ Write Concern Options
    majority of set members.
 
    ``-1``: Turns off reporting of network errors.
+
+
+.. data:: wtimeoutMS=<milliseconds>
+
+   The time in milliseconds to wait for replication to succeed, as
+   specified in the ``w`` option, before timing out.
+
+.. data:: journal=<true|false>
+
+   ``true``: Sync to journal.
+
+   Confirm that the :program:`mongod` instance has written the data to
+   the on-disk journal. This is equivalent to specifying the
+   :dbcommand:`getLastError` command with the ``j`` option enabled.
+
+    ``false``: Does not confirm that data is written to the on-disk
+    journal.
+
+    The default value is ``false``.
+
+If you enable ``fireAndForget`` but also enable a write concern option,
+MongoDB issues an exception about the conflict.
+
+Read Preference Options
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. data:: slaveOk=<true|false>
+
+   Specifies whether a driver connected to a replica set sends reads
+   to secondaries. The default setting is ``false``.
+
+.. data:: readPreference=<string>:
+
+   Specifies the :term:`replica set` read preference for this
+   connection. This setting overrides any ``slaveOk`` value. The read
+   preference values are the following:
+
+   - :readmode:`primary`
+   - :readmode:`primaryPreferred`
+   - :readmode:`secondary`
+   - :readmode:`secondaryPreferred`
+   - :readmode:`nearest`
+
+   For descriptions of each value, see
+   :ref:`replica-set-read-preference-modes`.
+
+   The default value is :readmode:`primary`, which sends all read
+   operations to the replica set's :term:`primary`.
+
+.. data:: readPreferenceTags=<string>
+
+   Specifies a tag set as a comma-separated list of
+   colon-separated key-value pairs. For example:
+
+   .. code-block:: none
+
+      dc:ny,rack:1
+
+   To specify a *list* of tag sets, use multiple ``readPreferenceTags``.
+   The following specifies two tag sets and an empty tag set:
+
+   .. code-block:: none
+
+      readPreferenceTags=dc:ny,rack:1&readPreferenceTags=dc:ny&readPreferenceTags=
+
+   Order matters when using multiple ``readPreferenceTags``.
+
+Miscellaneous Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. data:: uuidRepresentation=<string>
+
+   ``standard``: The standard binary representation.
+
+   ``csharpLegacy``: The default representation for the C# driver.
+
+   ``javaLegacy``: The default representation for the Java driver.
+
+   ``pythonLegacy``: The default representation for the Python driver.
+
+   For the default, see the :doc:`drivers </applications/drivers>`
+   documentation for your driver.
+
+.. _connections-connection-examples:
+
+Examples
+--------
+
+Connect to a database server running locally on the default port:
+
+.. code-block:: none
+
+   mongodb://localhost
+
+Connect and log in to the admin database as user ``fred`` with password
+``foobar``:
+
+.. code-block:: none
+
+   mongodb://fred:foobar@localhost
+
+Connect and log in to the ``baz`` database as user ``fred`` with password
+``foobar``:
+
+.. code-block:: none
+
+   mongodb://fred:foobar@localhost/baz
+
+Connect to a UNIX domain socket:
+
+.. code-block:: none
+
+   mongodb:///tmp/mongodb-27017.sock
+
+Connect to a :term:`replica set` with two members, one on
+``example1.com`` and the other on ``example2.com``:
+
+.. code-block:: none
+
+   mongodb://example1.com:27017,example2.com:27017
+
+Connect to a replica set with three members running on ``localhost``, on
+ports 27017, 27018 and 27019:
+
+.. code-block:: none
+
+   mongodb://localhost,localhost:27018,localhost:27019
+
+Connect to a replica set with three members. Send all writes to the
+:term:`primary` and distribute reads to the :term:`secondaries <secondary>`:
+
+.. code-block:: none
+
+   mongodb://example1.com,example2.com,example3.com/?slaveOk=true
+
+Connect to a replica set with write concern configured to wait for
+replication to succeed on at least two members, with a two-second
+timeout.
+
+.. code-block:: none
+
+   mongodb://example1.com,example2.com,example3.com/?w=2&wtimeoutMS=2000
