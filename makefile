@@ -132,9 +132,12 @@ sphinx-components:$(public-branch-output)/MongoDB-Manual.pdf $(public-branch-out
 
 # Baking the current release into the installation pages. 
 
-.PHONY:instalation-guides source/tutorial/install-mongodb-on-linux.txt source/tutorial/install-mongodb-on-os-x.txt
-.PHONY:source/includes/install-curl-release-linux-64.rst source/includes/install-curl-release-linux-32.rst source/includes/install-curl-release-osx-64.rst
-instalation-guides:source/tutorial/install-mongodb-on-linux.txt source/tutorial/install-mongodb-on-os-x.txt
+instalation-sources = source/includes/install-curl-release-osx-64.rst source/includes/install-curl-release-linux-64.rst source/includes/install-curl-release-linux-32.rst
+.PHONY:instalation-guides $(instalation-sources) source/tutorial/install-mongodb-on-linux.txt source/tutorial/install-mongodb-on-os-x.txt
+instalation-guides:instalation-sources source/tutorial/install-mongodb-on-linux.txt source/tutorial/install-mongodb-on-os-x.txt 
+instalation-sources:$(instalation-sources)
+	@git update-index --assume-unchanged $(instalation-sources)
+	@echo [build]: clensing git index of 
 source/tutorial/install-mongodb-on-linux.txt:source/includes/install-curl-release-linux-64.rst
 	@touch $@
 	@echo [build]: touched $@ to ensure a clean build.
@@ -142,15 +145,12 @@ source/tutorial/install-mongodb-on-os-x.txt:source/includes/install-curl-release
 	@echo [build]: touched $@ to ensure a clean build.
 source/includes/install-curl-release-linux-64.rst:source/includes/install-curl-release-linux-32.rst
 	@$(PYTHONBIN) bin/update_release.py linux-64 $@
-	@git update-index --assume-unchanged $@
 	@echo [build]: \(re\)generated $@.
 source/includes/install-curl-release-linux-32.rst:
 	@$(PYTHONBIN) bin/update_release.py linux-32 $@
-	@git update-index --assume-unchanged $@
 	@echo [build]: \(re\)generated $@.
 source/includes/install-curl-release-osx-64.rst:
 	@$(PYTHONBIN) bin/update_release.py osx $@
-	@git update-index --assume-unchanged $@
 	@echo [build]: \(re\)generated $@.
 
 # Initial build steps, exporting the current commit to the build. 
