@@ -151,55 +151,68 @@ flag to modify the file preallocation strategy.
 
 .. seealso:: This wiki page that address :wiki:`MongoDB disk use <Excessive+Disk+Space>`.
 
-How do I optimize storage for small documents
----------------------------------------------
+How do I optimize storage for small documents?
+----------------------------------------------
 
 Each MongoDB document contains a certain amount of overhead. This
-overhead is normally insignificant but becomes significant if your
-documents are just a few bytes, as might be the case for documents with
-just one or two fields. Below are some suggestions on how to optimize
-storage efficiently in such situations.
+overhead is normally insignificant but becomes significant if all
+documents are just a few bytes, as might be the case if the documents
+in your collection only have one or two fields. 
+
+Consider the following suggestions and strategies for optimizing
+storage utilization for these collections:
 
 - Use the ``_id`` field explicitly.
 
-  MongoDB clients automatically add an :term:`ObjectId` to each document and set it to
-  a unique value. Additionally this field in indexed. For tiny documents
-  this takes up significant space.
+  MongoDB clients automatically add an ``_id`` field to each document
+  and generate a unique 12-byte :term:`ObjectId` for the ``_id``
+  field. Furthermore, MongoDB always indexes the ``_id`` field. For
+  smaller documents this may account for a significant amount of
+  space.
 
-  To optimize, users can provide a value for the ``_id`` field
-  explicitly. The goal is to leverage the ``_id`` field to store a value
-  that would have occupied space in another portion of the document. The
-  only requirement for the ``_id`` field value is that it must serve as
-  a primary key for documents in the collection by uniquely identifying
-  them. If the field's value is not unique, then it cannot serve as a
-  primary key as there would be collisions in the namespace.
+  To optimize storage use, users can specify a value for the ``_id`` field
+  explicitly when inserting documents into the collection. This
+  stratgy allows applications to store a value in the ``_id`` field
+  that would have occupied space in another portion of the document. 
+  
+  You can store any value in the ``_id`` field, but because this value
+  serves as a a primary key for documents in the collection, it must
+  uniquely identify them. If the field's value is not unique, then it
+  cannot serve as a primary key as there would be collisions in
+  collection.
 
-- Use shorter field names. This is recommended only in certain situations.
+- Use shorter field names.
 
-  For example, the strings ``last_name`` and ``best_score`` in this
-  record:
+  MongoDB stores all field names in every document. For most
+  documents, this represents a small fraction of the space used by a
+  document; however, for small documents the field names may represent
+  a proportionally large amount of space. Consider a collection of
+  documents that resemble the following: 
 
   .. code-block:: javascript
 
      { last_name : "Smith", best_score: 3.9 }
 
-  could be shortened to ``lname`` and ``score``, which would save 9
-  bytes per document:
+  If you shorten the filed named ``last_name`` to ``lname`` and the
+  field name ``best_score`` to ``score``, as follows, you could save 9
+  bytes per document.
 
   .. code-block:: javascript
 
      { lname : "Smith", score : 3.9 }
 
-  Shortening field names reduces expressiveness and is not recommended
-  unless you have a collection where document overhead is of significant
-  concern. Also, shortening field names does not reduce index size, as
-  indexes have a predefined structure. In general it is not necessary to
-  use short field names.
+  Shortening field names reduces expressiveness and does not provide
+  considerable benefit on for larger documents and where document
+  overhead is not significant concern. Shorter field names do not
+  reduce the size of indexes, because indexes have a predefined
+  structure. 
+
+  In general it is not necessary to use short field names.
 
 - Embed documents.
 
-  In some cases you may be able to embed documents in other documents and save
-  on the per document overhead.
+  In some cases you may want to embed documents in other documents
+  and save on the per-document overhead.
 
 How does MongoDB address SQL or Query injection?
 ------------------------------------------------
