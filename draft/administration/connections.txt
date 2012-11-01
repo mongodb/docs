@@ -17,6 +17,19 @@ uses the options you specify when creating the connection.
 The driver's reuse of the connection object saves on the costs of setup and
 teardown on connections.
 
+Beginning with version 2.2, MongoDB uses two new connection classes for
+the creation of connection objects:
+
+- ``MongoClient``: the standard connection class
+
+- ``MongoReplicaSetClient``: a connection class that some drivers use
+  separately for :term:`replica sets <replica set>`. Not all drivers use
+  a separate class for connections to replica sets. See the
+  :doc:`drivers </applications/drivers>` documentation for details.
+
+In MongoDB versions prior to 2.2 the connection classes vary from driver
+to driver.
+
 You connect to a MongoDB database server by starting a :program:`mongod`
 instance through a MongoDB :doc:`driver </applications/drivers>` or
 through the :program:`mongo` shell.
@@ -194,8 +207,14 @@ Write Concern Options
    ``true``: Does not send a :dbcommand:`getLastError` command after
    every update.
 
-   Default value depends on the connection class. For the new
-   ``MongoClient`` classes, the default is ``false``.
+   The default value depends on the connection class. For connection
+   classes prior to version 2.2 the default value is ``true``, which
+   disables write concern. For the new ``MongoClient`` and
+   ``MongoReplicaSetClient`` classes, the default is ``false``.
+
+   For the new ``MongoClient`` and ``MongoReplicaSetClient`` classes, if
+   you enable ``fireAndForget`` but also enable write concern through
+   the ``w`` option, MongoDB issues an exception about the conflict.
 
 .. data:: w=<number or string>
 
@@ -204,8 +223,8 @@ Write Concern Options
    set>` *or* to disable write concern entirely.
 
    ``0``: Disables write concern. If you disable write concern but
-   enable the :dbcommand:`getLastError` command's journal option, the
-   journal option prevails. Write concern is enabled with journaling.
+   enable the :dbcommand:`getLastError` command's ``journal`` option, the
+   journal option prevails and write concern with journaling is enabled.
 
    ``1``: Enables write concern on a standalone :program:`mongod` or the
     :term:`primary` in a replica set. *This is the default setting.*
@@ -222,6 +241,9 @@ Write Concern Options
 
    ``-1``: Turns off reporting of network errors.
 
+   For the new ``MongoClient`` and ``MongoReplicaSetClient`` classes, if
+   you enable write concern but also enable ``fireAndForget``, MongoDB
+   issues an exception about the conflict.
 
 .. data:: wtimeoutMS=<milliseconds>
 
@@ -241,8 +263,9 @@ Write Concern Options
 
     The default value is ``false``.
 
-If you enable ``fireAndForget`` but also enable a write concern option,
-MongoDB issues an exception about the conflict.
+    If you enable the ``journal``option but have not enabled write concern through
+    the ``w`` option, the journal option prevails and write concern with
+    journaling is enabled.
 
 Read Preference Options
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -315,19 +338,19 @@ Connect to a database server running locally on the default port:
 
    mongodb://localhost
 
-Connect and log in to the admin database as user ``fred`` with password
-``foobar``:
+Connect and log in to the ``admin`` database as user ``rachel`` with
+password ``moon``:
 
 .. code-block:: none
 
-   mongodb://fred:foobar@localhost
+   mongodb://rachel:moon@localhost
 
-Connect and log in to the ``baz`` database as user ``fred`` with password
-``foobar``:
+Connect and log in to the ``baz`` database as user ``rachel`` with
+password ``moon``:
 
 .. code-block:: none
 
-   mongodb://fred:foobar@localhost/baz
+   mongodb://rachel:moon@localhost/baz
 
 Connect to a UNIX domain socket:
 
