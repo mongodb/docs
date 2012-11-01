@@ -1,8 +1,8 @@
 .. warning:: 
 
    .. versionchanged:: 2.2 
-
-   Before version 2.2, mhen used in combination with :dbcommand:`fsync` or
-   :method:`db.fsyncLock()`, can :program:`mongod` may block some
-   reads, including those from :program:`mongodump`, if there is a
-   queued write operation waiting behind the :dbcommand:`fsync` lock.
+      When used in combination with :dbcommand:`fsync` or
+      :method:`db.fsyncLock()`, :program:`mongod` may block some
+      reads, including those from :program:`mongodump`, when
+      queued write operation waits behind the :dbcommand:`fsync`
+      lock.
