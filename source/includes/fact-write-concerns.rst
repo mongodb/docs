@@ -5,5 +5,10 @@ command to confirm the result of the write operation:
 
    { getLastError: 1 }
 
+.. todo When draft/core/write-operations.txt goes live, change this below:
+   write-concern
+   to
+   write-operations-write-concern
+
 Refer to the documentation on :ref:`write concern <write-concern>` and
 :doc:`/applications/write-operations` for more information.
