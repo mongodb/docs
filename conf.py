@@ -50,7 +50,7 @@ copyright = u'2011-' + meta['date'] + ', 10gen, Inc.'
 # |version| and |release|, also used in various other places throughout the
 # built documents. The value of ``version`` is used in the paths for the curl commands. 
 
-version = '2.2.0'
+version = '2.2.1'
 release = version
 
 rst_epilog = ".. |branch| replace:: ``" + meta['branch'] + "``" + """
