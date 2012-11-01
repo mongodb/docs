@@ -770,39 +770,48 @@ to pre-splitting.
 .. index:: bulk insert
 .. _sharding-bulk-inserts:
 
-Bulk Insert Strategies
-~~~~~~~~~~~~~~~~~~~~~~
+Strategies for Bulk Inserts in Sharded Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. todo Consider moving to the administrative guide as it's of an applied nature,
-   or create an applications document for sharding
+.. todo:: Consider moving to the administrative guide as it's of an
+   applied nature, or create an applications document for sharding
 
-.. todo link the words "bulk insert" to the bulk insert topic when it's
-   published
+.. todo:: link the words "bulk insert" to the bulk insert topic when
+   it's published
 
-When performing a bulk insert into a :term:`sharded collection`, consider
-the following:
 
-- If the collection is not yet populated, MongoDB must take time to
-  "learn" what the key distribution is and how to distribute the data.
-  To avoid this performance cost, you can pre-split the collection, as
-  described in :ref:`sharding-administration-pre-splitting`.
+Large bulk insert operations including initial data ingestion or
+routine data import, can have a significant impact on a :term:`sharded
+cluster`. Consider the following strategies and possibilities for
+bulk insert operations: 
 
-- You can parallel import by sending inserts to multiple
-  :program:`mongos` instances. If the collection is empty, pre-split
-  first, as described in :ref:`sharding-administration-pre-splitting`.
+- If the collection does not have data, then there is only one
+  :term:`chunk`, which must reside on a single shard. MongoDB must
+  receive data, create splits, and distribute chunks to the available
+  shards. To avoid this performance cost, you can pre-split the
+  collection, as described in :ref:`sharding-administration-pre-splitting`.
 
-- If your shard key monotonically increases during an insert then all
-  the inserts will go to the last chunk in the collection, which is
-  undesirable if the insert volume is beyond the range that a single
-  shard can process at a given point in time.
+- You can parallels import by sending insert operations to more than
+  one :program:`mongos` instance. If the collection is empty,
+  pre-split first, as described in
+  :ref:`sharding-administration-pre-splitting`.
 
-  If the insert volume exceeds that range, and if you can't avoid
-  picking a monotonically increasing shard key, then you can do either
-  of the following at generation time to more evenly distribute inserts:
+- If your shard key increases monotonically during an insert then all
+  the inserts will go to the last chunk in the collection, which will
+  always end up on a single shard. Therefore, the insert capacity of the
+  cluster will never exceed the insert capacity of a single shard. 
 
-  - Reverse all the bits of your shard key, which preserves information
-    while avoiding the increasing sequence of values.
-  - Swap the first and last 16-bit words, to "shuffle" the inserts.
+  If your insert volume is never larger than what a single shard can
+  process, then there is no problem; however, if the insert volume
+  exceeds that range, and you cannot avoid a monotonically
+  increasing shard key, then consider the following modifications to
+  your application: 
+
+  - Reverse all the bits of the shard key to preserves the information
+    while avoiding the correlation of insertion order and increasing
+    sequence of values.
+
+  - Swap the first and last 16-bit words to "shuffle" the inserts.
 
   .. example:: The following example, in C++, swaps the leading and
      trailing 16-bit word of :term:`BSON` :term:`ObjectIds <ObjectId>`
