@@ -22,11 +22,11 @@ iterates over the result set of matching :term:`documents` in a collection.
    full API documentation.
 
 .. index:: read operations; query
-.. index:: query; read operations
-.. _read-operations-query-operators:
+.. _read-operations-query-operations:
+.. _read-operations-queries:
 
-Read Operators
----------------
+Queries in MongoDB
+------------------
 
 In the :program:`mongo` shell the :method:`find()
 <db.collection.find()>` and :method:`findOne()
@@ -46,23 +46,25 @@ syntax:
   in the :program:`mongo` shell to list the current collections in the
   database.
 
-- The ``<query>`` argument specifies the selection criteria in the form
-  of JSON-like :doc:`core/documents` that use a set of
-  :doc:`/reference/operators` to specify the query conditions.
+- Queries in MongoDB have a JSON-like syntax, and take the form of a
+  :term:`document` using a collection of :doc:`/reference/operators`
+  query operators to describe query parameters.
 
-  The :method:`find() <db.collection.find()>` method without a query
-  argument will return all documents in the collection.
+  The ``<query>`` argument of the :method:`find()
+  <db.collection.find()>` method holds this query document. A query,
+  without a query document will return all documents in the
+  collection.
 
-- The ``<projection>`` argument describes the result set
-  in the form of a document. Projections specify or limit
+- The ``<projection>`` argument describes describes the result or
+  return set in the form of a document. Projections specify or limit
   the fields to return.
 
   Without a projection the operation will return all
-  fields of all documents. Specify a projection if your documents are
+  fields of all documents, specify a projection if your documents are
   larger, or when your application only needs a subset of available
   fields.
 
-For example, the following operation on the ``products`` collection,
+For example, the following operation on the ``inventory`` collection,
 selects all documents where the ``type`` field equals ``'food'`` and
 the ``price`` field has a value less than ``9.95``. The projection
 limits the response to the ``item`` and ``qty``, and ``_id`` field:
@@ -92,21 +94,59 @@ operators, refer to the :doc:`/applications/read` page of the
 Query Document
 ~~~~~~~~~~~~~~
 
-The ``query`` argument determines the documents to return in the
-query. Consider the following example query operations using the
-:method:`find() <db.collection.find()>` method calls on a notional
-``inventory`` collection:
+This section provides an overview of query document for MongoDB
+queries. See the preceding section for more information on
+:ref:`queries in MongoDB <read-operations-query-operations>`. 
 
-- No ``query`` argument or an empty ``query`` argument (``{}``)
-  returns all documents in the collection:
+The following examples demonstrate the key properties of the query
+document in MongoDB queries, using the :method:`find()
+<db.collection.find()>` method from the :program:`mongo` shell, and a
+collection of documents named ``inventory``:
+
+- An empty query document (``{}``) selects all documents in the
+  collection:
 
   .. code-block:: javascript
 
-     db.inventory.find()
      db.inventory.find( {} )
 
-- A ``query`` document that specifies all documents in the collection
-  where the value of the ``type`` field is ``'food'`` or ``'snacks'``:
+  Not specifying a query document to the :method:`find()
+  <db.collection.find()>` is equivalent to specifying an empty query
+  document. Therefore the following operation is equivelent to the
+  previous operation: 
+  
+  .. code-block:: javascript
+
+     db.inventory.find()
+
+- A single-clause query selects all documents in a collection where a
+  field has a certain value. These are simple "equality" queries.
+  
+  In the following example, the query selects all documents in the
+  collection where the ``type`` field has the value ``snacks``:
+  
+  .. code-block:: javascript
+
+     db.inventory.find( { type: "snacks" } )
+
+  When the field holds an array, these equality matches select
+  documents if only *one* of the elements in the array match the
+  specified value. In the following example, the query will match all
+  documents where the array in the ``tags`` field contains the element
+  ``fruit``:
+
+  .. code-block:: javascript
+
+     db.inventory.find( { tags: "fruit" } )
+
+- A single-clause query document can also select all documents in a
+  collection given a condition or set of conditions for one field
+  in the collection's documents. Specify conditions in a MongoDB
+  query, using the :ref:`query operators <query-operators>`.
+
+  In the following example, the query selects all documents in the
+  collection where the value of the ``type`` field is either
+  ``'food'`` or ``'snacks'``:
 
   .. code-block:: javascript
 
@@ -119,17 +159,33 @@ query. Consider the following example query operations using the
      :operator:`$or` operator when performing equality checks on the
      same field.
 
-- A compound ``query`` document that specifies all documents in the
-  collection were the ``type`` field is ``'food'`` **and** the
-  value of the ``price`` field is less than ``9.95``:
+- A compound query can specify conditions for more than one field in
+  the collection's documents. Implicitly, a logical ``AND``
+  conjunction connects the clauses of a compound query so that all
+  specified conditions for a query must be true for the query to
+  select a document.
+
+  In the following example, the query document specifies an equality
+  match on a single field, followed by a range of values for a second
+  field using a :ref:`comparison operator <query-selectors-comparison>`. 
 
   .. code-block:: javascript
 
      db.inventory.find( { type: 'food', price: { $lt: 9.95 } } )
 
-- A compound ``query`` document that specifies the all documents in the
-  collection where the field ``qty`` has a value greater than ``100``
-  **or** the value of the ``price`` field is less than ``9.95``:
+  This query selects all documents where the ``type`` field has the
+  value ``food`` **and** the value of the ``price`` field is less than
+  (i.e. :operator:`$lt`) ``9.95``.
+
+- Using the :operator:`$or` you can specify a compound query that
+  joins each clause with a logical ``OR`` conjunction so that the
+  query will select documents that match only one of the query's
+  clauses.
+
+  In the following example, the query document selects all documents
+  in the collection where the field ``qty`` has a value greater than
+  (i.e. :operator:`$gt`) ``100`` **or** the value of the ``price``
+  field is less than (i.e. :operator:`$lt`) ``9.95``:
 
   .. code-block:: javascript
 
@@ -137,10 +193,12 @@ query. Consider the following example query operations using the
                                  { price: { $lt: 9.95 } } ]
                         } )
 
-- A compound ``query`` document that specifies the all documents in
-  the collection where the value of the ``type`` field is ``'food'``
-  **and** *either* the ``qty`` has a value greater than ``100`` *or*
-  the value of the ``price`` field is less than ``9.95``:
+- With additional clauses, you can specify precise conditions for
+  matching documents. In the following example, the compound query
+  document selects all documents in the collection where the value of
+  the ``type`` field is ``'food'`` **and** *either* the ``qty`` has a
+  value greater than (i.e. :operator:`$gt`) ``100`` *or* the value of
+  the ``price`` field is less than (i.e. :operator:`$lt`) ``9.95``:
 
   .. code-block:: javascript
 
@@ -148,30 +206,26 @@ query. Consider the following example query operations using the
                                                { price: { $lt: 9.95 } } ]
                          } )
 
-- A ``query`` document that specifies all documents in the collection
-  where the array in the ``tags`` field contains the element
-  ``fruit``:
-
-  .. code-block:: javascript
-
-     db.inventory.find( { tags: "fruit" } )
-
-MongoDB provides a full range of query selection operators such
-as the :operator:`$lt` operator and the :operator:`$or`
-operator. Refer to the :doc:`/reference/operators` document for the
-complete list of query selection operators.
+Refer to the :doc:`/reference/operator` document for the complete
+list of query operators and :doc:`/reference/operators` for complete
+documentation of all query operators.
 
 .. _read-operations-projection:
+.. _projection:
 
-Projection Argument
-~~~~~~~~~~~~~~~~~~~
+Result Projections
+~~~~~~~~~~~~~~~~~~
 
-The :term:`projection` specification limits the fields to return for
-all matching documents. By narrowing the fields to return, projections
-can minimize network transit costs and the costs of deserializing
-document in the applications. In the ``<projection>`` argument, you can
-either specify the fields to include (``field:1``) or specify the
-fields to exclude (``field:0``). The ``_id`` field is implicitly
+The :term:`projection` specification, limits the fields to return for
+all matching documents. Constraining the result set by restricting the
+fields to return, can minimize network transit costs and the costs of
+deserializing documents in the application layer. 
+
+The second argument to the :method:`find() <db.collection.find()>`
+method is a projection, and it takes the form a :term:`document` with
+a list of fields for inclusion or exclusion from the result set. You
+can either specify the fields to include (e.g. ``{ field: 1 }``) or specify the
+fields to exclude (e.g. ``{ field: 0 }``). The ``_id`` field is implicitly
 included, unless explicitly excluded.
 
 .. note::
@@ -179,84 +233,115 @@ included, unless explicitly excluded.
    You cannot combine inclusion and exclusion semantics in a single
    projection with the *exception* of the ``_id`` field.
 
-Consider the following projection specifications, in the
-:method:`find() <db.collection.find()>` operations:
+Consider the following projection specifications, in :method:`find()
+<db.collection.find()>` operations:
 
 - If you specify no projection, the :method:`find()
-  <db.collection.find()>` method will return all fields in all the
-  documents that match the query specification.
+  <db.collection.find()>` method returns all fields of all documents
+  that match the query.
 
   .. code-block:: javascript
 
      db.inventory.find( { type: 'food' } )
 
-- A projection that specifies the result set such that :method:`find()
-  <db.collection.find()>` method will return only the ``item``,
-  ``qty``, and the ``_id`` fields in the documents that match the
-  query specification.
+  This operation will return all documents in the ``inventory``
+  collection where the value of the ``type`` field is ``food``.
+
+- A project can explicitly include several fields. In the following
+  operation, :method:`find() <db.collection.find()>` method returns
+  all documents that match the query as well as ``item`` and ``qty``
+  fields. The results also include the ``_id``, implicitly:
 
   .. code-block:: javascript
 
      db.inventory.find( { type: 'food' }, { item: 1, qty: 1 } )
 
-- A projection that specifies the result set such that the :method:`find()
-  <db.collection.find()>` method will return only the ``item`` and
-  ``qty`` fields that match the query specification.
+- You can remove the ``_id`` field by excluding it from the
+  projection, as in the following example:
 
   .. code-block:: javascript
 
      db.inventory.find( { type: 'food' }, { item: 1, qty: 1, _id:0 } )
 
-- A projection that specifies the result such that the :method:`find()
-  <db.collection.find()>` method will return all fields except the
-  ``type`` field in all documents that match the query specification.
+  This operation returns all documents that match the query, and
+  *only* includes the ``item`` and ``qty`` fields in the result set.
+
+- To exclude a single field or group of fields you can use a
+  projection in the following form: 
 
   .. code-block:: javascript
 
      db.inventory.find( { type: 'food' }, { type:0 } )
 
-MongoDB also provides the projection operators that allow richer
-projection specifications for fields that hold arrays. Refer to the
-operator documentation for the :projection:`$elemMatch` and
-:projection:`$slice` operators.
+  This operation returns all documents where the value of the ``type``
+  field is ``food``, but does not include the ``type`` field in the
+  output. 
+  
+  With the exception of the ``_id`` field you cannot combine inclusion
+  and exclusion statements in projection documents.
+
+MongoDB also provides the greater flexibility for projecting data from
+fields that hold arrays. Refer to the operator documentation for the
+:projection:`$elemMatch` and :projection:`$slice` operators for more
+information.
 
 .. _read-operations-indexing:
 
 Indexes
 -------
 
-Indexes improve the efficiency of read operations by reducing the work
-associated with fulfilling queries, by building a special structure and
-maintaining that structure during insert and update operations. These
-indexes support specific queries and sort operations, and allow for
-more efficient storage utilization.
+Indexes improve the efficiency of read operations by reducing the
+amount of data that query operations need to process and thereby
+simplifying the work associated with fulfilling queries within
+MongoDB. The indexes themselves are a special data structure that
+MongoDB maintains when inserting or modifying documents, and any given
+index can: support and optimize specific queries, sort operations, and
+allow for more efficient storage utilization. For more information
+about indexes in MongoDB see: :doc:`/indexes` and :doc:`/core/indexes`.
 
-Create indexes using the :method:`db.collection.ensureIndex{)` method
+You can create indexes using the :method:`db.collection.ensureIndex{)` method
 in the :program:`mongo` shell, as in the following prototype
 operation:
 
 .. code-block:: javascript
 
-   db.collection.ensureIndex( { field1: order1, field2: order2, ... } )
+   db.collection.ensureIndex( { <field1>: <order>, <field2>: <order>, ... } )
 
-- The ``field`` specifies the field to index.
+- The ``field`` specifies the field to index. 
+  
+  You can create an index on a single field or a :ref:`compound index
+  <index-type-compound>` that includes multiple fields in the index.
 
-- The ``order`` specifies ascending ( ``1`` ) or descending ( ``-1`` ).
+- The ``order`` option is specifies either ascending ( ``1`` ) or
+  descending ( ``-1`` ).
+
+  MongoDB can read the index in either direction. In most cases, you
+  only need to specify :ref:`indexing order
+  <index-ascending-and-descending>` to support sort operations in
+  compound queries.
 
 Measuring Index Use
 ~~~~~~~~~~~~~~~~~~~
 
-Consider the performance of the following read operation that does not
-use an index:
+The :method:`explain() <cursor.explain()>` cursor method allows you to
+introspect the operation of the query system, and is useful for
+analyzing the efficiency of queries, and for determining how the query
+uses the index. Call the :method:`explain() <cursor.explain()>` method
+on another method that returns a cursor, as in the following example: 
 
 .. code-block:: javascript
 
    db.inventory.find( { type: 'food' } ).explain()
 
-The results from the :method:`explain() <cursor.explain()>` method
-shows that the execution of the :method:`find() <db.collection.find()>`
-method would involve scanning ``4000006`` documents to return ``5``
-objects:
+.. note:: 
+   
+   Only use :method:`explain() <cursor.explain()>` to test the query
+   operation, and *not* the timing of query performance. Because
+   :method:`explain() <cursor.explain()>` attempts multiple query
+   plans, it does not reflect accurate query performance.
+
+If the above operation could not use an index, the output of
+:method:`explain() <cursor.explain()>`, would resemble the following:
 
 .. code-block:: javascript
 
@@ -277,23 +362,24 @@ objects:
      "server" : "mongodb0.example.net:27017"
    }
 
-To improve the performance of the query, create an index on the
-``type`` field:
+The ``BasicCursor`` value in the :data:`cursor` field confirms that
+this query does not use an index. The :data:`nscannedObjects` value shows that
+MongoDB must scan 4,000,006 documents to return only 5 documents. To
+increase the efficiency of the query, create an index on the ``type``
+field, as in the following example:
 
 .. code-block:: javascript
 
    db.inventory.ensureIndex( { type: 1 } )
 
-Compare the performance of the previous read operation now executed
-with the newly created index:
+Run the :method:`explain() <cursor.explain()>` operation, as follows,
+to test the use of the index:
 
 .. code-block:: javascript
 
    db.inventory.find( { type: 'food' } ).explain()
 
-The results show a substantial improvement in the performance of the
-operation. The execution of the :method:`find() <db.collection.find()>`
-method would involve scanning ``5`` documents to return ``5`` objects:
+Consider the results: 
 
 .. code-block:: javascript
 
@@ -316,30 +402,44 @@ method would involve scanning ``5`` documents to return ``5`` objects:
                                 ] },
      "server" : "mongodbo0.example.net:27017" }
 
+The ``BtreeCursor`` value of the :data:`cursor` field indicates that
+the query used an index. This query: 
+
+- returned 5 documents, as indicated by the :data:`n` field; 
+
+- scanned 5 documents from the index, as indicated by the
+  :data:`nscanned`` field;
+
+- then read 5 full documents from the collection, as indicated by
+  the :data:`nscannedObjects` field.
+
+  This indicates that the query was not "covered," or able to complete
+  only using the index, as reflected in the :data:`indexOnly` See
+  :ref:`indexes-covered-queries` for more information.
+
 .. index:: query optimizer
 .. _read-operations-query-optimization:
 
 Query Optimization
 ~~~~~~~~~~~~~~~~~~
 
-The MongoDB query optimizer matches a query to the index that produces
-the fastest results. The optimizer then uses this query plan each time
-the query runs. If a collection changes significantly, the optimizer
-creates a new query plan.
+The MongoDB query optimizer processes queries and chooses the most
+efficient query plan for a query given the available indexes. The
+query system then uses this query plan each time the query runs. The
+query optimizer occasionally reevaluates query plans as the content of
+the collection changes to ensure optimal query plans. 
 
-MongoDB creates a query plan as follows:
+To create a new query plan, the query optimizer:
 
-1. The query optimizer runs the query against several indexes in
-   parallel.
+1. runs the query against several indexes in parallel.
 
-#. The optimizer records the matches in a single common buffer, as
-   though the results all come from the same index.
+#. records the matches in a single common buffer, as though the
+   results all come from the same index.
 
-#. If an index returns a result already returned by another index, the
+   If an index returns a result already returned by another index, the
    optimizer skips the duplicate match.
 
-#. The optimizer determines a "winning" index when either of
-   the following occur:
+#. determines a "winning" index when either of the following occur:
 
    - The optimizer exhausts an index, which means that the index has
      provided the full result set. At this point, the optimizer stops
@@ -349,19 +449,30 @@ MongoDB creates a query plan as follows:
      chooses the index that has provided the most results *first* and
      continues reading only from that index.
 
-#. The "winning" index becomes the index specified in the query plan.
+The "winning" index becomes the index specified in the query plan:
+future iterations of this query will use this index.
 
-To evaluate the optimizer's choice of query plan, run the query with
-the :method:`explain() <cursor.explain()>` method and the
-:method:`hint() <cursor.hint()>` method appended, as in the following:
+To manually compare the performance of a query using more than one
+index, you can use the :method:`explain() <cursor.explain()>` method
+and the :method:`hint() <cursor.hint()>` method appended, as in the
+following prototype:
 
 .. code-block:: javascript
 
-   db.inventory.find( { type: 'food' } ).explain().hint()
+   db.colection.find().explain().hint()
 
-This returns the statistics regarding the execution of the query. For a
-detailed explanation on the output, see the :method:`explain()
-<cursor.explain()>` method documentation.
+The following operations each run the same query but will reflect the
+use of the different indexes: 
+
+.. code-block:: javascript
+
+   db.collection.find( { type: 'food' } ).explain().hint( { type: 1 } )
+   db.collection.find( { type: 'food' } ).explain().hint( { type: 1, name: 1 })
+
+This returns the statistics regarding the execution of the query. For
+more information on the output of :method:`explain()
+<cursor.explain()>` see the :ref:`method documentation
+<explain-output>`.
 
 .. note::
 
@@ -371,60 +482,72 @@ detailed explanation on the output, see the :method:`explain()
    statistics.
 
 As collections change over time, the query optimizer deletes a query
-plan and re-evaluates the indexes when any of the following occur:
+plan and re-evaluates the after any of the following events: 
 
-- The number of writes to the collection reaches 1,000.
+- the collection recieves 1,000 write operations.
 
-- You run the :dbcommand:`reIndex() <reIndex>` command on the index.
+- the :dbcommand:`reIndex` rebuilds the index.
 
-- You restart :program:`mongod`.
+- the :program:`mongod` process restarts.
 
-When you re-evaluate a query, the optimizer displays the same results if
-no data has changed, but the the results might appear in a different
-order. This is because the optimizer retrieves the results from several
-indexes at once during re-evaluation, and the order in which results
-appear depends on the order of the indexes in the
-parallel query operation.
+The order that MongoDB returns documents depend on the index used to
+support the query. If you issue a query successive times and the data
+hasn't changed, the query will return the same results in the same
+order. However, in some cases MongoDB may return results in a
+different order as the optimizer retrieves results using several
+indexes during re-evaluation.
 
-For more information, refer to :doc:`/applications/indexes`.
+For more information, see :doc:`/applications/indexes`.
 
-Query Operators that Cannot Use Indexes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Query Operations that Cannot Use Indexes Effectively
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Some query operators cannot take advantage of indexes and require a
-collection scan. When using these operators, you can narrow the
-documents scanned by combining the operator with another operator that
-does use an index.
+Some query operations cannot use indexes effectively, or cannot use
+indexes at all. Consider the following situations: 
 
-Operators that cannot use indexes include the following:
+- The inequality operators :operator:`$nin` and :operator:`$ne`, are
+  not very selective, as they often match a large portion of the
+  index.
+  
+  As a result, in most cases a :operator:`$nin` or :operator:`$ne`
+  query with an index may perform no better than a :operator:`$nin` or
+  :operator:`$ne` query that must scan all documents in a collection.
 
-- :operator:`$nin`
-
-- :operator:`$ne`
-
-.. TODO Regular expressions queries also do not use an index except when used with anchors.
-.. TODO :method:`cursor.skip()` can cause paginating large numbers of docs
+- Queries that use specify regular expressions, with inline JavaScript
+  regular expressions or :operator:`$regex` operations cannot use an
+  index *unless* the regular expression is anchored to the beginning
+  or end of a string.
 
 .. _read-operations-aggregation:
 
 Aggregation
 ~~~~~~~~~~~
 
-With aggregation, MongoDB performs summary, grouping, or other
-operations on data before returning the results.
+.. versionchanged:: 2.2
 
-Beginning with MongoDB version 2.1, the primary way to perform
-aggregation is through the aggregation framework, which processes data
-through pipelines and returns the data as a document stream specific to
-the aggregation process.
+MongoDB can perform some basic data aggregation operations on results
+before returning data to the application. Running aggregation
+operations on the database sides can be more efficient than running
+them in the application layer and can reduce the amount of data
+MongoDB needs to send to the application. These aggregation operations
+include basic grouping, counting, and even processing data using a map
+reduce framework. Additionally, in 2.2 MongoDB provides a complete
+aggregation framework for more rich aggregation operations.
 
-The order of aggregation operators can affect the performance of the
-query. For more information on the aggregation framework, including the
-descriptions of the operators and the optimization of performance, see
-:doc:`/applications/aggregation`.
+The aggregation framework provides users with a "pipeline" like
+framework: documents enter from a collection and then pass through a
+series of steps by a sequence of :ref:`pipeline operators
+<aggregation-pipeline-operator-reference>` that manipulate and
+transform the documents until they're output at the end. The
+aggregation framework is accessible via the :dbcommand:`aggregate`
+command or the :method:`db.collection.aggregate()` helper in the
+:program:`mongo` shell.
 
-Additionally, MongoDB supplements the aggregation framework with the
-following methods and commands:
+For more information on the aggregation framework see
+:doc:`/aggregation`. 
+
+Additionally, MongoDB provides a number of simple data aggregation
+operations for more basic data aggregation operations: 
 
 - :method:`count() <cursor.count()>`
 
@@ -432,7 +555,7 @@ following methods and commands:
 
 - :method:`group()`
 
-- :dbcommand:`mapReduce() <mapreduce>`
+- :dbcommand:`mapReduce() <mapreduce>` (See also :wiki:`MapReduce`.)
 
 .. index:: read operation; architecture
 .. _read-operations-architecture:
@@ -442,34 +565,47 @@ Architecture
 
 .. index:: read operation; connection pooling
 .. index:: connection pooling; read operations
+.. _read-operations-connection-pooling:
+
+Connection Pooling
+~~~~~~~~~~~~~~~~~~
+
+Most MongoDB client libraries (i.e. :doc:`drivers </drivers>`,)
+including :program:`mongos` implement connection between the
+application and the database as a connection pool. These connection
+pools make it possible for the application to reuse connections for
+multiple requests without needing to create new connections to the
+database for every operation. In most cases the connection pools are
+transparent to the user and the application.
 
 Sharded Clusters
 ~~~~~~~~~~~~~~~~
 
-Sharded clusters allows for the distribution of the collection data
-across multiple nodes. With a sharded cluster, you issue all read
-operations to one of the :program:`mongos` instances associated with
-the cluster. From the perspective of the application there is no
-difference between read operations to the MongoDB sharded cluster and
-read operations to standalone instances and replica sets.
+:term:`Sharded clusters <sharded cluster>` allow you to partition a
+data set among a cluster of program:`mongod` in a way that is nearly
+transparent to the application. See the :doc:`/sharding` section of
+this manual for additional information about these deployments.
 
-For non-sharded collections, the :program:`mongos` locates the
-:term:`primary shard` for the database, and directs all operations to
-that :program:`mongod` instance. For sharded collections, the
-:program:`mongos` uses the :term:`shard key` to determine which
-:term:`shard` or shards contains the documents that could match the
-query. Then, the :program:`mongos` directs the query to the relevant
-shards and merges the results.
+For a sharded clusters, issue all operations to one of the
+:program:`mongos` instances associated with the
+cluster. :program:`mongos` instances route operations to the
+:program:`mongod` in the cluster and behave like :program:`mongod`
+instances to the application. Read operations to a sharded collection
+in a sharded are largely the same as operations to a :term:`replica
+set` or :term:`standalone` instances. See the section on :ref:`Read
+Operations in Sharded Clusters <sharding-read-operations>` for more
+information.
 
-Choosing the appropriate shard key can improve the performance of the
-query. If the query operation includes either the shard key, *or* a
-prefix of the shard key, the :program:`mongos` may be able to target
-the query to a smaller subset of the shards. Otherwise, the
-:program:`mongos` performs non-targeted queries; i.e., :program:`mongos`
-must query *all* shards in the cluster for the results. For clusters
-with a small number of shards, the performance of non-targeted queries
-may be acceptable. But, with more shards, non-targeted queries become
-inefficient and impractical for routine operations.
+In sharded deployments, the :program:`mongos` instance routes routes
+the queries from the clients to the :program:`mongod` instnaces that
+hold the data, using the cluster metadata stored in the :ref:`config
+database <sharding-config-server>`.
+
+For sharded collections, if queries do not include the :ref:`shard key
+<sharding-shard-key>`, the :program:`mongos` must direct the query to
+all shards in a collection. These *scatter gather* queries can be
+inefficient, particularly on larger clusters, and are unfeasible for
+routine operations.
 
 For more information on read operations in sharded clusters, consider
 the following resources:
@@ -483,20 +619,27 @@ Replica Sets
 ~~~~~~~~~~~~
 
 :term:`Replica sets <replica set>` use :term:`read preferences <read
-preference>` to determine where and how to route read operations. By
-default, MongoDB always reads data from a replica set's :term:`primary`.
-You can modify that behavior by changing the :ref:`read preference mode
-<replica-set-read-preference-modes>`.
+preference>` to determine where and how to route read operations to
+members of the replica set. By default, MongoDB always reads data from
+a replica set's :term:`primary`. You can modify that behavior by
+changing the :ref:`read preference mode
+<replica-set-read-preference-modes>`. 
 
-For example, you can set the :ref:`read preference mode
-<replica-set-read-preference-modes>` to allow reads from
-:term:`secondaries <secondary>` when backing up data, or to block reads
-entirely during a :ref:`failover <replica-set-failover>`.
+You can configure the :ref:`read preference mode
+<replica-set-read-preference-modes>` on a per-connection or
+per-operation basis to allow reads from :term:`secondaries
+<secondary>` for backup operations, or to allow reads during
+:ref:`failover <replica-set-failover>` situations. If the majority of
+database use are read operations and, then using read preferences to
+distribute reads can improve read throughput.
 
-If the majority of database use are read operations, then
-using read preferences to distribute reads can improve read throughput.
-The trade-off is that some reads might return stale data, as
-secondaries always have some amount of lag.
+Read operations from secondary members of replica sets are not
+guaranteed to reflect the current state of the primary, and the state
+of secondaries will trail the primary by some amount of time. Often,
+applications don't rely on this kind of strict consistency, but
+application developers should always consider the needs of their
+application before setting read preference.
 
-For more information on choosing read preference modes, see
+For more information on :ref:`read preferences <read-preference>` or
+on the read preference modes, see :ref:`read-preference` and
 :ref:`replica-set-read-preference-modes`.
