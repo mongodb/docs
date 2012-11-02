@@ -4,10 +4,26 @@ Documents
 
 .. default-domain:: mongodb
 
-The document structure in MongoDB refer to the data structure of the
-records stored in :term:`collections <collection>`, the query criteria,
-the update actions, and other arguments to MongoDB methods and
-operators.
+The document structure in MongoDB refer to the data structure of:
+
+- the :ref:`records <documents-records>` stored in :term:`collections
+  <collection>`
+  
+- the :ref:`query selectors <documents-query-selectors>` that determine
+  which records to select for read, update, and delete operations
+
+- the :ref:`update actions <documents-update-actions>` that specifies
+  the particular field updates to perform during an update operation
+
+- the :ref:`index <documents-index>` on a collection
+
+- the various other arguments to MongoDB methods and operators, such as:
+
+  - :ref:`sort order <documents-sort-order>` for the :method:`sort()
+    <cursor.sort()>` method.
+
+Structure
+---------
 
 The document structure in MongoDB are :term:`BSON` objects with support
 for the full range of :term:`BSON types`; however, conceptually,
@@ -26,15 +42,24 @@ structure:
 
 Having support for the full range of :term:`BSON types`, MongoDB
 documents may contain ``field:value`` pairs where the value can be
-another document, an array, an array of documents as well as the basic
-types such as ``Double``, ``String``, or ``Date``.
+another document, an array, an array of documents as well
+as the basic types such as ``Double``, ``String``, or ``Date``.
 
-.. include:: /includes/warning-document-field-name-restrictions.rst
+.. _documents-records:
 
-Consider the following examples of MongoDB documents:
+Document as records
+-------------------
 
-- The following document specifies a record in a collection. Documents
-  in a collection contain a unique ``_id`` field:
+For documents that specify records to be stored in a collection, the
+following restrictions apply:
+
+- .. include:: /includes/fact-document-max-size.rst
+
+- .. include:: /includes/fact-document-field-name-restrictions.rst
+
+.. include:: /includes/note-insert-id-field.rst
+
+The following document specifies a record in a collection:
 
   .. code-block:: javascript
 
@@ -54,89 +79,164 @@ Consider the following examples of MongoDB documents:
                ]
      }
 
-  .. include:: /includes/note-insert-id-field.rst
+The document contains the following fields:
+
+- field ``_id`` whose value must be unique
+
+- field ``name`` whose value is another *Document* that contains the
+  fields ``first`` and ``last``
   
-- The following documents specify the query criteria:
+- fields ``birth`` and ``death`` whose value is a *Date*
 
-  - The following document specifies the query criteria where ``_id``
-    is equal to ``1``:
+- field ``contribs`` whose value is an *array of Strings*
 
-    .. code-block:: javascript
+- field ``awards`` whose value is an *array of Documents* 
 
-       { _id: 1 }
+.. _documents-query-selectors:
 
-  - The following document specifies the query criteria where ``_id``
-    is greater than ``3``:
+Document as query selectors
+---------------------------
 
-    .. code-block:: javascript
+Query selector documents may contain any or all of the following:
 
-       { _id: { $gt: 3 } }
+- Simple ``field:value`` pair(s) to specify the equality condition.
 
-  - The following document specifies the query criteria where ``_id``
-    is equal to ``1`` **and** the ``name`` field equals the document ``{
-    first: 'John', last: 'Backus' }``:
+- :doc:`Query operator </reference/operators>` expressions to specify
+  other conditions.
 
-    .. code-block:: javascript
+Consider the following examples of query selector documents:
 
-       { _id: 1, name: { first: 'John', last: 'Backus' } }
-
-  When passed as an argument to methods such as the :method:`find()
-  <db.collection.find()>` method or the :method:`update()
-  <db.collection.update()>` method, the query document determines which
-  records are returned or updated:
+- The following document specifies the query criteria where ``_id`` is
+  equal to ``1``:
 
   .. code-block:: javascript
 
-     db.csbios.find( { _id: 1 } )
-     db.csbios.find( { _id: { $gt: 3 } } )
-     db.csbios.update( { _id: 1, name: { first: 'John', last: 'Backus' } }, 
+     { _id: 1 }
+
+- The following document specifies the query criteria where ``_id`` is
+  greater than ``3``:
+
+  .. code-block:: javascript
+
+     { _id: { $gt: 3 } }
+
+- The following document specifies the compound query criteria where
+  ``_id`` is equal to ``1`` **and** the ``name`` field equals the
+  document ``{ first: 'John', last: 'Backus' }``:
+
+  .. code-block:: javascript
+
+     { _id: 1, name: { first: 'John', last: 'Backus' } }
+
+- The following document specifies the compound query criteria where
+  ``_id`` is equal to ``1`` **or** the ``name`` field equals the
+  document ``{ first: 'John', last: 'Backus' }``:
+
+  .. code-block:: javascript
+
+     { $or: [ { _id: 1 }, { name: { first: 'John', last: 'Backus' } } ] }
+
+When passed as an argument to methods such as the :method:`find()
+<db.collection.find()>` method, the :method:`remove()
+<db.collection.remove()>` method, or the :method:`update()
+<db.collection.update()>` method, the query selector document
+determines which records are returned, removed, or updated:
+
+.. code-block:: javascript
+
+   db.csbios.find( { _id: 1 } )
+   db.csbios.remove( { _id: { $gt: 3 } } )
+   db.csbios.update( { _id: 1, name: { first: 'John', last: 'Backus' } }, 
                        ... )
-     
-- The following document specifies the update actions:
 
-  .. code-block:: javascript
+.. _documents-update-actions:
 
-     { $set: { 'name.middle': 'Warner' },
-       $push: { awards: { award: 'IBM Fellow',
-                          year: '1963',
-                          by: 'IBM' }
+Document as update actions
+-------------------------- 
 
-  When passed as an argument to the :method:`update()
-  <db.collection.update()>` method, the document specifies the update
-  actions to perform on the document:
+The update actions documents contain :ref:`update operators
+<update-operators>` expressions.
 
-  .. code-block:: javascript
+Consider the following example of an update actions document:
 
-     db.csbios.update( { _id: 1 },
-                       { $set: { 'name.middle': 'Warner' },
-                         $push: { awards: { award: 'IBM Fellow',
-                                            year: '1963',
-                                            by: 'IBM' } } } 
-                     )
+.. code-block:: javascript
 
-- The following document specifies the sort order:
+   { $set: { 'name.middle': 'Warner' },
+     $push: { awards: { award: 'IBM Fellow',
+                        year: '1963',
+                        by: 'IBM' }
 
-  .. code-block:: javascript
+When passed as an argument to the :method:`update()
+<db.collection.update()>` method, the update actions document:
 
-     { 'name.last': 1, 'name.first':1  }
+- Modifies the field ``name`` whose value is another document.
+  Specifically, the :operator:`$set` operator updates the ``middle``
+  field in the ``name`` subdocument.
 
-  When passed as an argument to the :method:`sort() <cursor.sort()>`
-  method, the document specifies the sort order of the results:
+- Adds an element to the field ``awards`` whose value is an array.
+  Specifically, the :operator:`$push` operator adds another document as
+  element to the field ``awards``.
 
-  .. code-block:: javascript
+.. code-block:: javascript
 
-     db.csbios.find().sort( { 'name.last': 1, 'name.first': 1 } )
+   db.csbios.update( { _id: 1 },
+                     { $set: { 'name.middle': 'Warner' },
+                       $push: { awards: { award: 'IBM Fellow',
+                                          year: '1963',
+                                          by: 'IBM' } } } 
+                   )
 
-- The following document specifies the multi-key index to create:
+.. _documents-index:
 
-  .. code-block:: javascript
+Document as index
+----------------- 
 
-     { _id:1, 'name.last': 1 }
+The index documents contain ``field:value`` pairs where: 
 
-  When passed as an argument to the :method:`ensureIndex()
-  <db.collection.ensureIndex()>` method, the document specifies the
-  multi-key index to create on the fields ``_id`` and ``name.last``:
+- the ``field`` is the field to index on
 
-  .. code-block:: javascript
+- the ``value`` is either 1 for ascending or -1 for descending.
 
-     db.csbios.ensureIndex( { _id: 1, 'name.last': 1 } )
+The following document specifies the multi-key index on the ``_id``
+field and the ``last`` field contained in the subdocument ``name``
+field:
+
+.. code-block:: javascript
+
+   { _id:1, 'name.last': 1 }
+
+When passed as an argument to the :method:`ensureIndex()
+<db.collection.ensureIndex()>` method, the index documents specifies
+the index to create:
+
+.. code-block:: javascript
+
+   db.csbios.ensureIndex( { _id: 1, 'name.last': 1 } )
+
+.. _documents-sort-order:
+
+Document as sort order
+---------------------- 
+
+The sort order documents contain ``field:value`` pairs where: 
+
+- the ``field`` is the field to sort
+
+- the ``value`` is either 1 for ascending or -1 for descending.
+
+The following document specifies the sort order using the fields from a
+subdocument ``name``: first sort by the ``last`` field ascending, then
+by the ``first`` field also ascending:
+
+.. code-block:: javascript
+
+   { 'name.last': 1, 'name.first':1 }
+
+When passed as an argument to the :method:`sort() <cursor.sort()>`
+method, the sort order document sorts the results of the
+:method:`find() <db.collection.find()>` method:
+
+.. code-block:: javascript
+
+   db.csbios.find().sort( { 'name.last': 1, 'name.first': 1 } )
+
