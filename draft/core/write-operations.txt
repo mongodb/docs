@@ -4,12 +4,17 @@ Write Operations
 
 .. default-domain:: mongodb
 
-Write operations create, update, and delete data. MongoDB stores data
-as :term:`documents <document>` in :term:`collections <collection>`.
+All operations that create or modify data in the MongoDB instance are
+write operations. MongoDB represents data as :term:`BSON documents
+<document>` stored in a collection :term:`collections
+<collection>`. Write operations target a single collection and are
+atomic on the level of a single document: no single write operation
+can atomically affect more than one document or more than one
+collection.
 
-This section of the manual describes how MongoDB performs write
-operations and how different factors affect the efficiency of those
-operations.
+This document describes the syntax of all write operations in MongoDB,
+and describes their operation, and strategies increasing the
+efficiency of writes in applications.
 
 .. index:: write operators
 .. _write-operations-operators:
@@ -18,14 +23,14 @@ Write Operators
 ---------------
 
 For information on write operators and how to write data to a MongoDB
-database, see the following:
+database, see the following pages:
 
 - :doc:`/applications/create`
 - :doc:`/applications/update`
 - :doc:`/applications/delete`
 
-For information on specific :program:`mongo` shell methods used in write
-operations, see the following:
+For information on specific methods in the :program:`mongo` shell used
+for write operations, see the following:
 
 - :method:`db.collection.insert()`
 - :method:`db.collection.update()`
@@ -44,38 +49,88 @@ documentation for your client library.
 Write Concern
 -------------
 
-:term:`Write concern <write concern>` confirms the success of write
-operations to MongoDB databases by returning an object indicating
-operational success. Beginning with version 2.2.x, the :program:`mongo`
-shell and MongoDB drivers enable write concern by default. Prior to
-2.2.x, the shell disables write concern by default, while the behavior
-for drivers varies. For your driver's behavior, see the
-:doc:`/applications/drivers` documentation.
+.. _write-concern-considerations:
+
+Operational Considerations and Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Clients issue all write operations with some level of :term:`Write
+concern <write concern>`, which describes level of concern or the kind
+of guarantee the server will provide in its response to a write
+operation. Consider the following levels of conceptual write concern: 
+
+- *none*: Write operations are not acknowledged, and may be lost if
+  there is a connection error that the client is not yet aware of, or
+  if the :program:`mongod` produces an exception (e.g. a duplicate key
+  exception for :ref:`unique indexes <index-type-unique>`.) While this
+  operation is efficient because it does not require the database to
+  respond to every write operation, it also incurs a significant risk
+  about the persistence and durability of the data.
+
+  Before the releases outlined in :ref:`driver-write-concern-change`,
+  this was the default write concern.
+  
+- *receipt acknowledgment*: The :program:`mongod` will confirm
+  receipt of the write operation, allowing the client to catch
+  network, duplicate key, and other exceptions. After the releases
+  outlined in :ref:`driver-write-concern-change`, this is the default
+  write concern. [#default-write-concern]_
+  
+- *journal commit*: The :program:`mongod` will confirm the write
+  operation only after it has written operation to the
+  :term:`journal`. This confirms that the write operation can survive
+  a :program:`mongod` shutdown and ensures that the write operation is
+  durable. 
+
+  While receipt acknowledgment provides the fundamental basis
+  for write concern, without requiring a journal commit in the write
+  concern, there is an up-to 100 millisecond window between journal
+  commits where the write operation is not fully durable. Require
+  journal commit as part of the write concern to provide this
+  durability guarantee.
+
+:term:`Replica sets <replica set>` add an additional layer of
+consideration for write concern. Basic write concerns level affect the
+write operation on only one :program:`mongod` instance. The ``w``
+argument to :dbcommand:`getLastError` makes it possible to guarantee
+that the write operation has propagated to the members of a replica
+set. See the :ref:`Write Concern for Replica Sets
+<replica-set-write-concern>` for more information.
 
 
-.. todo add note about all drivers after `date` will have w:1 write
-   concern for all operations by default.
+.. [#default-write-concern] The default write concern is to call
+   :dbcommand:`getLastError` with no arguments. For replica sets with
+   :data:`getLastErrorDefaults <settings.getLastErrorDefaults>`  
+   settings, the default write concern will be whatever 
+   :data:`getLastErrorDefaults <settings.getLastErrorDefaults>`
+   defines. If :data:`getLastErrorDefaults <settings.getLastErrorDefaults>`
+   defines no default write concern, :dbcommand:`getLastError` will
+   provide basic receipt acknowledgment.
 
-Write concern issues the :dbcommand:`getLastError` command after write
-operations to return an object with success information. The returned
-object's ``err`` field contains either a value of ``null``, which
-indicates write operations have completed successfully, or contains a
-description of the last error encountered.
+.. _write-concern-operation:
+.. _write-concern-internals:
 
-A successful write operation means the :program:`mongod` instance
-received the write operation and has committed the operation to the
-in-memory representation of the database. This provides a simple and
-low-latency level of write concern and will allow your application to
-detect situations where the :program:`mongod` instance becomes
-inaccessible or detect insertion errors caused by :ref:`duplicate key errors
-<index-type-unique>`.
+Internal Operation of Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Write concern provides confirmation of write operations but also adds to
-performance costs. In situations where confirmation is unnecessary, it
-can be advantageous to disable write concern.
+To provide write concern, :doc:`drivers </applications/drivers>` issue
+the :dbcommand:`getLastError` command after a write opeation and
+receive a document with information about the last operation. The this
+document's ``err`` field contains either:
 
-You can modify the level of write concern returned by issuing the
-:dbcommand:`getLastError` command with one or both of following options:
+- ``null``, which indicates write operations have completed
+  successfully, or
+
+- a description of the last error encountered.
+
+The definition of a "successful write" depends on the arguments
+specified to :dbcommand:`getLastError` or in replica sets the
+configuration of :data:`getLastErrorDefaults <settings.getLastErrorDefaults>`.
+When deciding on what level of write concern your application needs,
+become familiar with the :ref:`write-concern-considerations`. 
+
+The :dbcommand:`getLastError` has the following options, that you can
+use to define write concern requirements.
 
 - ``j`` or "journal" option
 
@@ -90,120 +145,154 @@ You can modify the level of write concern returned by issuing the
 
 - ``w`` option
 
-  This option is used either to configure write concern on members of
-  :term:`replica sets <replica set>` *or* to disable write concern
-  entirely. By default, the ``w`` option is set to ``1``, which enables
-  write concern on a single :program:`mongod` instance or on the
-  :term:`primary` in a replica set.
+  This option provides write concern operations for :term:`replica
+  sets <replica set>` *and* is also used to disable write concern
+  entirely. By default, the ``w`` option is set to ``1``, which
+  provides basic receipt acknowledgment on a single :program:`mongod`
+  instance or on the :term:`primary` in a replica set.
 
   The ``w`` option takes the following values:
 
-  - ``-1``
+  - ``-1``: 
 
-    Turns off reporting of network errors.
+    Disables all acknowledgment of write operations, including
+    networking errors.
 
-  - ``0``
+  - ``0``:
 
-    Disables write concern.
+    Disables basic acknowledgment of write operations, but does
+    pass information about networking errors to the application.
 
-    .. note:: If you disable write concern but enable the journal
-       option, as shown here:
+    .. note:: If you disable basic operation acknowledgment write
+       concern but enable the journal commit write concern, as
+       in the following operation: 
 
        .. code-block:: javascript
 
-          { getLastError: 1, w: 0, j: "true" }
+          db.runCommand( { getLastError: 1, w: 0, j: "true" } )
 
-       The setting with the ``j`` option prevails. Write concern is
-       enabled with journaling.
+       The setting with the ``j`` (journal) prevails, which provides
+       acknowledgment of write operations from a single :program:`mongod`
+       instance as well as confirmation of the journal commit. 
 
-  - ``1``
+  - ``1``:
 
-    Enables write concern on a standalone :program:`mongod` or the
-    :term:`primary` in a replica set.
+    Provides acknowledgment of write operations on a standalone
+    :program:`mongod` or the :term:`primary` in a replica set.
 
-  - *A number greater than 1*
+  - *A number greater than 1*:
 
-    Confirms that write operations have replicated to the specified
-    number of replica set members, including the primary. If you set
-    ``w`` to a number that is greater than the number of set members
-    that hold data, MongoDB waits for the non-existent members become
-    available, which means MongoDB blocks indefinitely.
+    Guarantees that write write operations have propagated
+    successfully to the specified number of replica set members
+    including the primary. If you set ``w`` to a number that is
+    greater than the number of set members that hold data, MongoDB
+    waits for the non-existent members become available, which means
+    MongoDB blocks indefinitely.
 
-  - ``majority``
+  - ``majority``:
 
-    Confirms that write operations have replicated to the majority of
-    set members.
+    Confirms that write operations have propagated to the majority of
+    configured replica set nodes must acknowledge the write operation
+    before it succeeds. This ensures that write operation will *never*
+    be subject to a rollback in the course of normal operation, and
+    furthemore allows you to prevent hard coding assumptions about the
+    size of your replica set into your application.
+
+  - *A tag set*: 
+
+    By specifying a :ref:`tag set
+    <replica-set-configuration-tag-sets>` you can have much more fine
+    grained control over which members of the replica set must
+    acknowledge a write operation to satisfy the required level of
+    write concern.
 
 For more information on write concern and replica sets, see :ref:`Write
-Concern for Replica Sets <replica-set-write-concern>`.
+Concern for Replica Sets <replica-set-write-concern>` for more information..
+
+In sharded clusters, :program:`mongos` instances will pass write
+concern on to the shard :program:`mongod` instances.
 
 .. _write-operations-bulk-insert:
 
 Bulk Inserts
 ------------
 
-Bulk inserts let you insert many documents at once in a single database
-call by letting you pass multiple documents to a single insert
-operation.
+In some situations you may need to insert or ingest a large amount of
+data into a MongoDB database. These *bulk inserts*, have some
+special considerations that are different from other write
+operations.
 
+The :method:`insert() <db.collection.insert()>` method, when passed an
+array of documents will perform a "bulk insert," and insert each
+document separately. :doc:`Drivers </applications/drivers>` each
+provide their own interface for this kind of operation.
+
+.. versionadded:: 2.2
+   :method:`insert() <db.collection.insert()>` in the :program:`mongo`
+   shell gained support for bulk inserts in version 2.2.   
+   
 Bulk insert can significantly increase performance by distributing
-:ref:`write concern <write-operations-write-concern>` costs. Beginning
-in version 2.2.x, write concern is enabled by default.
+:ref:`write concern <write-operations-write-concern>` costs. In the
+drivers, you can configure write concern for batches rather than on a
+per-document level. 
 
-Bulk inserts are often used with :term:`sharded collections <sharded
-collection>` and are more effective when the collection is already
-populated and MongoDB has already determined the key distribution. For
-more information on bulk inserts into sharded collections, see
-:doc:`/source/administration/sharding`.
+Drivers also have a ``ContinueOnError`` option in their insert
+operation, so that the bulk operation will continue to insert
+remaining documents in a batch even if an insert fails.
 
-.. todo Chnange the above link from :doc:`/source/administration/sharding`
-   to :ref:`sharding-bulk-inserts` once the Write Operations document
-   goes live
+.. note:: 
+   
+   .. versionadded::  2.0 
+      Support for ``ContinueOnError`` depends on version 2.0 of the
+      core :program:`mongod` and :program:`mongos` components.
 
-When performing bulk inserts through a driver, you can use the
-``ContinueOnError`` option in your driver's insert command to continue
-to insert remaining documents even if an insert fails. This option is
-available in MongoDB versions 2.0 and higher. If errors occur, only the
-most recent is reported. For a :term:`sharded collection`,
-``ContinueOnError`` is implied and cannot be disabled. For details on
-performing bulk inserts through your driver, see the
-:doc:`/applications/drivers` documentation for your driver.
+If the bulk insert process generates more than one error in a batch
+job, the client will only receive the most recent error. All bulk
+operations to a :term:`sharded collection` run with
+``ContinueOnError``, which applications cannot disable. See
+:ref:`sharding-bulk-inserts` section for more information on
+consideration for bulk inserts in sharded clusters.
 
-Beginning with version 2.2, you can perform bulk inserts through the
-:program:`mongo` shell by passing an array of documents to the
-:method:`insert() <db.collection.insert()>` method.
-
-For more information, see :ref:`write-operations-sharded-clusters`,
-:ref:`sharding-bulk-inserts`, and :doc:`/administration/import-export`.
+For more information see your :doc:`driver documentation
+</applications/drivers>` for details on performing bulk inserts in
+your application. Also consider the following resources:
+:ref:`write-operations-sharded-clusters`,
+:ref:`sharding-bulk-inserts`, and
+:doc:`/administration/import-export`.
 
 .. _write-operations-indexing:
 
 Indexing
 --------
 
-After every insert, update, or delete operation, MongoDB updates not
-only the collection but also *every* index associated with the
-collection. Therefore, every index on a collection adds some amount of
-write-performance penalty.
+After every insert, update, or delete operation, MongoDB must update
+*every* index associated with the collection in addition to the data
+itself. Therefore, every index on a collection adds some amount of
+overhead for the performance of write operations.
 
 In general, the performance gains that indexes realize for *read
-operations* are worth the insertion penalty. But if your application is
-write-heavy, be careful when creating new indexes.
+operations* are worth the insertion penalty; however, when optimizing
+write performance be careful when creating new indexes and always
+evaluate the indexes on the collection and ensure that your quires are
+actually using these indexes.
 
-For more information, see :doc:`/source/applications/indexes`.
+For more information on indexes in MongoDB consider :doc:`/indexes`
+and :doc:`/applications/indexes`.
 
 .. _write-operations-isolation:
 
 Isolation
 ---------
 
-All operations inside of a MongoDB document are atomic. An update
-operation may modify more than one document at more than one level
-(nesting) in a single operation that will either succeed or fail and
-cannot leave the document in an in-between state.
+All operations inside of a *single* MongoDB document are atomic. An
+update operation may modify more than one sub-document within a single
+MongoDB document (or record) in a single operation that will either
+succeed or fail and cannot leave the document in an in-between state.
 
-For more information see :doc:`Isolated write operations
-</reference/operator/atomic>` and
+No other operations are atomic; however, you can attempt to isolate a
+sequence of write operations from other read and write operations to
+prevent undesirable interactions. For more information see
+:doc:`Isolated write operations </reference/operator/atomic>` and
 :doc:`/tutorial/perform-two-phase-commits`.
 
 Architecture
@@ -215,38 +304,42 @@ Replica Sets
 ~~~~~~~~~~~~
 
 In :term:`replica sets <replica set>`, all write operations go to the
-set's :term:`primary`. MongoDB applies the write operations to the
-primary and then records the operations on the primary's :term:`oplog`.
-The :term:`secondary` members then replicate the oplog and apply the
-operations to themselves in an asynchronous process.
+set's :term:`primary`, which applies the write operation then records
+the operations on the primary's operation log or :term:`oplog`. The
+oplog is a reproducible sequence of operations to the data
+set. :term:`Secondary` members of the set are always replicating the
+oplog and applying the operations to themselves in an asynchronous
+process.
 
-If you are performing a large data ingestion or bulk load operation that
-requires a large number of writes to the primary, the secondaries might
-not be able to read the oplog fast enough to keep up with changes. The
-oplog is a :term:`capped collection` and overwrites its oldest entries
-when it reaches a certain size. If the secondaries have not yet applied
-those entries because a large write operation has prevented them from
-reading the oplog, the secondaries will have fallen too far behind to
-catch up and will have become stale.
+Large volumes of write operations, particularly bulk operations may
+create situations where secondary members have a difficult time
+applying replicating operations from the primary fast enough, which
+can cause their state to fall behind that of the primary. Secondaries
+that are significantly behind the primary present problems for normal
+operation of the replica set, particularly :ref:`failover
+<replica-set-failover-administration>` in the form of :ref:`rollbacks
+<replica-set-rollback>` as well as general 
+:ref:`read consistency <replica-set-consistency>`.
 
-To prevent this, use :ref:`write concern
-<write-operations-write-concern>` to return write confirmation every
-100, 1,000, or other designated number of operations. This provides an
-opportunity for secondaries to catch up with the primary. Write concern
-can slow the overall progress of write operations but prevents the
-secondaries from falling too far behind.
+To help avoid this issue, you can customize :ref:`write concern
+<write-operations-write-concern>` to return confirm confirmation of
+the write operation to another member [#write-concern-throttling]_ of
+the replica set ``100`` or ``1,000``) operations. This provides an
+opportunity for secondaries to catch up with the primary. Write
+concern can slow the overall progress of write operations but ensure
+that the secondaries can maintain a largely current state with respect
+to the primary.
 
 For more information on replica sets and write operations, see
 :ref:`replica-set-write-concern`, :ref:`replica-set-oplog-sizing`,
-:ref:`replica-set-oplog`,
-:ref:`replica-set-procedure-change-oplog-size`, and
+:ref:`replica-set-oplog`, and :ref:`replica-set-procedure-change-oplog-size`. 
 
-.. todo add this :ref:`replica-set-resync-stale-member` WHEN
-   the "Resyncing a Member of a Replica Set" topic is added to
-   source/administration/replica-sets.txt.
-   (See pull request "DOCS-449 resync stale replica set member")
+.. [#write-concern-throttling] By calling :dbcommand:`getLastError`
+   intermittently with a ``w`` value of ``2`` or ``majority`` to
+   :dbcommand:`getLastError` will slow the throughput of the write
+   operation but will prevent bulk inserts.
 
-.. _write-operations-sharded-clustsers:
+.. _write-operations-sharded-clusters:
 
 Sharded Clusters
 ~~~~~~~~~~~~~~~~
