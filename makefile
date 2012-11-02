@@ -130,14 +130,14 @@ sphinx-components:$(public-branch-output)/MongoDB-Manual.pdf $(public-branch-out
 
 ## See 'bin/makefile.tables' for additional elements here.
 
-# Baking the current release into the installation pages. 
+# Baking the current release into the installation pages.
 
 instalation-sources = source/includes/install-curl-release-osx-64.rst source/includes/install-curl-release-linux-64.rst source/includes/install-curl-release-linux-32.rst
 .PHONY:instalation-guides $(instalation-sources) source/tutorial/install-mongodb-on-linux.txt source/tutorial/install-mongodb-on-os-x.txt
-instalation-guides:instalation-sources source/tutorial/install-mongodb-on-linux.txt source/tutorial/install-mongodb-on-os-x.txt 
+instalation-guides:instalation-sources source/tutorial/install-mongodb-on-linux.txt source/tutorial/install-mongodb-on-os-x.txt
 instalation-sources:$(instalation-sources)
 	@git update-index --assume-unchanged $(instalation-sources)
-	@echo [build]: clensing git index of 
+	@echo [build]: clensing git index of $(instalation-sources)
 source/tutorial/install-mongodb-on-linux.txt:source/includes/install-curl-release-linux-64.rst
 	@touch $@
 	@echo [build]: touched $@ to ensure a clean build.
@@ -153,7 +153,7 @@ source/includes/install-curl-release-osx-64.rst:
 	@$(PYTHONBIN) bin/update_release.py osx $@
 	@echo [build]: \(re\)generated $@.
 
-# Initial build steps, exporting the current commit to the build. 
+# Initial build steps, exporting the current commit to the build.
 .PHONY:source/about.txt source/includes/hash.rst setup
 setup:source/includes/hash.rst
 	@mkdir -p $(public-branch-output)
@@ -247,7 +247,7 @@ $(public-output)/osd.xml:themes/docs.mongodb.org/osd.xml
 	@cp $< $@
 	@echo [build]: migrated $@
 
-# Build and process the custom error pages. 
+# Build and process the custom error pages.
 
 ERROR_PAGES = $(public-branch-output)/meta/401/index.html $(public-branch-output)/meta/403/index.html $(public-branch-output)/meta/404/index.html $(public-branch-output)/meta/410/index.html
 .PHONY: error-pages $(ERROR_PAGES)
