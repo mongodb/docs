@@ -96,7 +96,7 @@ ifeq ($(MODE),push)
 push-dc1:
 	rsync -arz $(public-output)/$(current-branch)/ www@www-c1.10gen.cc:/data/sites/docs/$(current-branch)
 push-dc2:
-	rsync -arz $(public-output)/$(current-branch)/ www@www-c1.10gen.cc:/data/sites/docs/$(current-branch)
+	rsync -arz $(public-output)/$(current-branch)/ www@www-c2.10gen.cc:/data/sites/docs/$(current-branch)
 
 push-all-dc1:
 	rsync -arz $(public-output)/ www@www-c1.10gen.cc:/data/sites/docs
@@ -137,7 +137,7 @@ instalation-sources = source/includes/install-curl-release-osx-64.rst source/inc
 instalation-guides:instalation-sources source/tutorial/install-mongodb-on-linux.txt source/tutorial/install-mongodb-on-os-x.txt
 instalation-sources:$(instalation-sources)
 	@git update-index --assume-unchanged $(instalation-sources)
-	@echo [build]: clensing git index of $(instalation-sources)
+	@echo [build]: clensing git index of installation sources.
 source/tutorial/install-mongodb-on-linux.txt:source/includes/install-curl-release-linux-64.rst
 	@touch $@
 	@echo [build]: touched $@ to ensure a clean build.
