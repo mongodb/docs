@@ -1,1 +1,1 @@
-MongoDB v2.2 has a 16 megabytes limit on document size.
+Documents have a 16 megabytes size limit.
