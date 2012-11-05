@@ -1,24 +1,28 @@
 # table structure. all content symbolic.
 section: layout
-header: [ meta.header1, meta.header2 ]
+header: [ meta.header1, meta.header2, meta.header3 ]
 rows: 
-  - 1: [ content.sql1, content.mongo1 ]
-  - 2: [ content.sql2, content.mongo2 ]
-  - 3: [ content.sql3, content.mongo3 ]
-  - 4: [ content.sql4, content.mongo4 ]
-  - 5: [ content.sql5, content.mongo5 ]
-  - 6: [ content.sql6, content.mongo6 ]
-  - 7: [ content.sql7, content.mongo7 ]
-  - 8: [ content.sql8, content.mongo8 ]
-  - 9: [ content.sql9, content.mongo9 ]
+  - 1: [ content.desc1, content.sql1, content.mongo1 ]
+  - 2: [ content.desc2, content.sql2, content.mongo2 ]
+  - 3: [ content.desc3, content.sql3, content.mongo3 ]
+  - 4: [ content.desc4, content.sql4, content.mongo4 ]
+  - 5: [ content.desc5, content.sql5, content.mongo5 ]
+  - 6: [ content.desc6, content.sql6, content.mongo6 ]
+  - 7: [ content.desc7, content.sql7, content.mongo7 ]
+  - 8: [ content.desc8, content.sql8, content.mongo8 ]
+  - 9: [ content.desc9, content.sql9, content.mongo9 ]
 ---
 # table metadata, as meta.<key>
 section: meta
-header1: "SQL Example"
-header2: "MongoDB Example"
+header1: "Description"
+header2: "SQL Example"
+header3: "MongoDB Example"
 ---
 # table content, as content.<key>
 section: content
+desc1: | 
+        Count all records
+        from ``orders``
 sql1: |
       .. code-block:: sql
 
@@ -26,11 +30,15 @@ sql1: |
          FROM orders
 mongo1: |
         .. code-block:: javascript
-           :emphasize-lines: 2
+           :emphasize-lines: 2-3
 
            db.orders.aggregate( [
-              { $group: { _id: null, count: { $sum: 1 } } }
+              { $group: { _id: null, 
+                          count: { $sum: 1 } } }
            ] )
+desc2: |
+        Sum the ``price`` field
+        from ``orders``
 sql2: |
       .. code-block:: sql
 
@@ -38,39 +46,55 @@ sql2: |
          FROM orders
 mongo2: |
         .. code-block:: javascript
-           :emphasize-lines: 2
+           :emphasize-lines: 2-3
 
            db.orders.aggregate( [
-              { $group: { _id: null,  total: { $sum: "$price" } } }
+              { $group: { _id: null,  
+                          total: { $sum: "$price" } } }
            ] )
+desc3: |
+        For each unique ``cust_id``,
+        sum the ``price`` field.
 sql3: |
       .. code-block:: sql
 
-         SELECT cust_id, SUM(price) AS total
-         FROM orders 
+         SELECT cust_id, 
+                SUM(price) AS total
+         FROM orders
          GROUP BY cust_id
 mongo3: |
-
-        .. code-block:: javascript
-           :emphasize-lines: 2
-
-           db.orders.aggregate( [
-              { $group: { _id: "$cust_id", total: { $sum: "$price" } } } 
-           ] )
-sql4: |
-      .. code-block:: sql
-
-         SELECT cust_id, ord_date, SUM(price) AS total
-         FROM orders 
-         GROUP BY cust_id, ord_date
-mongo4: |
         .. code-block:: javascript
            :emphasize-lines: 2-3
 
            db.orders.aggregate( [
-              { $group: { _id: { cust_id: "$cust_id", ord_date: "$ord_date" },
+              { $group: { _id: "$cust_id",
                           total: { $sum: "$price" } } } 
            ] )
+desc4: |
+        For each unique 
+        ``cust_id``, ``ord_date`` grouping,
+        sum the ``price`` field. 
+sql4: |
+      .. code-block:: sql
+
+         SELECT cust_id, 
+                ord_date, 
+                SUM(price) AS total
+         FROM orders 
+         GROUP BY cust_id, ord_date
+mongo4: |
+        .. code-block:: javascript
+           :emphasize-lines: 2-4
+
+           db.orders.aggregate( [
+              { $group: { _id: { cust_id: "$cust_id", 
+                                 ord_date: "$ord_date" },
+                          total: { $sum: "$price" } } } 
+           ] )
+desc5: |
+        For ``cust_id`` with multiple records, 
+        return the ``cust_id`` and 
+        the corresponding record count. 
 sql5: |
       .. code-block:: sql
 
@@ -80,73 +104,105 @@ sql5: |
          HAVING count(*) > 1
 mongo5: |
         .. code-block:: javascript
-           :emphasize-lines: 2-3
-   
+           :emphasize-lines: 2-4
+
            db.orders.aggregate( [
-              { $group: { _id: "$cust_id", count: { $sum: 1 } } }, 
-              { $match: { count: { $gt: 1 } } } 
+              { $group: { _id: "$cust_id",
+                          count: { $sum: 1 } } },
+              { $match: { count: { $gt: 1 } } }
            ] )
+desc6: |
+        For each unique ``cust_id``, ``ord_date``
+        grouping, sum the ``price`` field
+        and return only where the
+        sum is greater than 250.
 sql6: |
       .. code-block:: sql
 
-         SELECT cust_id, ord_date, SUM(price) AS total
-         FROM orders 
+         SELECT cust_id,
+                ord_date,
+                SUM(price) AS total
+         FROM orders
          GROUP BY cust_id, ord_date
          HAVING total > 250
 mongo6: |
         .. code-block:: javascript
-           :emphasize-lines: 2-4
+           :emphasize-lines: 2-5
 
            db.orders.aggregate( [
-              { $group: { _id: { cust_id: "$cust_id", ord_date: "$ord_date" },
+              { $group: { _id: { cust_id: "$cust_id",
+                                 ord_date: "$ord_date" },
                           total: { $sum: "$price" } } },
               { $match: { total: { $gt: 250 } } } 
            ] )
+desc7: |
+        For each unique ``cust_id``
+        with status ``A``,
+        sum the ``price`` field.
 sql7: |
       .. code-block:: sql
 
-         SELECT cust_id, SUM(price) as total
-         FROM orders 
+         SELECT cust_id,
+                SUM(price) as total
+         FROM orders
          WHERE status = 'A'
          GROUP BY cust_id
 mongo7: |
         .. code-block:: javascript
-           :emphasize-lines: 2-3
-   
+           :emphasize-lines: 2-4
+
            db.orders.aggregate( [
               { $match: { status: 'A' } },
-              { $group: { _id: "$cust_id", total: { $sum: "$price" } } } 
+              { $group: { _id: "$cust_id",
+                          total: { $sum: "$price" } } }
            ] )
+desc8: |
+        For each unique ``cust_id``
+        with status ``A``,
+        sum the ``price`` field and return
+        only where the 
+        sum is greater than 250.
 sql8: |
       .. code-block:: sql
 
-         SELECT cust_id, SUM(price) as total
-         FROM orders 
+         SELECT cust_id,
+                SUM(price) as total
+         FROM orders
          WHERE status = 'A'
          GROUP BY cust_id
          HAVING total > 250
 mongo8: |
         .. code-block:: javascript
            :emphasize-lines: 2-5
-   
+
            db.orders.aggregate( [
               { $match: { status: 'A' } },
-              { $group: { _id: "$cust_id", total: { $sum: "$price" } } } ,
+              { $group: { _id: "$cust_id", 
+                          total: { $sum: "$price" } } },
               { $match: { total: { $gt: 250 } } } 
            ] )
+desc9: |
+        For each unique ``cust_id``,
+        sum the corresponding
+        line item ``qty`` fields
+        associated with the
+        orders.
 sql9: |
       .. code-block:: sql
 
-         SELECT cust_id,sum(li.qty) as qty
-         FROM orders o, order_lineitem li 
-         WHERE li.order_id=o.id
+         SELECT cust_id,
+                SUM(li.qty) as qty
+         FROM orders o,
+              order_lineitem li
+         WHERE li.order_id = o.id
          GROUP BY cust_id
 mongo9: |
         .. code-block:: javascript
            :emphasize-lines: 2-5
-   
+
            db.orders.aggregate( [
               { $unwind: "$items" },
-              { $group: { _id: "$cust_id", qty: { $sum: "$items.qty" } } } 
+              { $group: { _id: "$cust_id",
+                          qty: { $sum: "$items.qty" } } }
            ] )
 ...
