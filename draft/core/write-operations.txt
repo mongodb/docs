@@ -6,15 +6,14 @@ Write Operations
 
 All operations that create or modify data in the MongoDB instance are
 write operations. MongoDB represents data as :term:`BSON documents
-<document>` stored in a collection :term:`collections
-<collection>`. Write operations target a single collection and are
-atomic on the level of a single document: no single write operation
-can atomically affect more than one document or more than one
-collection.
+<document>` stored in :term:`collections <collection>`. Write
+operations target a single collection and are atomic on the level of a
+single document: no single write operation can atomically affect more
+than one document or more than one collection.
 
-This document describes the syntax of all write operations in MongoDB,
-and describes their operation, and strategies increasing the
-efficiency of writes in applications.
+This document introduces the write operators available in MongoDB as
+well as presents strategies to increase the efficiency of writes in
+applications.
 
 .. index:: write operators
 .. _write-operations-operators:
@@ -29,8 +28,8 @@ database, see the following pages:
 - :doc:`/applications/update`
 - :doc:`/applications/delete`
 
-For information on specific methods in the :program:`mongo` shell used
-for write operations, see the following:
+For information on specific methods used to perform write operations in the
+:program:`mongo` shell, see the following:
 
 - :method:`db.collection.insert()`
 - :method:`db.collection.update()`
@@ -54,10 +53,10 @@ Write Concern
 Operational Considerations and Write Concern
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Clients issue all write operations with some level of :term:`Write
-concern <write concern>`, which describes level of concern or the kind
-of guarantee the server will provide in its response to a write
-operation. Consider the following levels of conceptual write concern: 
+Clients issue write operations with some level of :term:`write
+concern`, which describes the level of concern or the kind of
+guarantee the server will provide in its response to a write operation.
+Consider the following levels of conceptual write concern:
 
 - *none*: Write operations are not acknowledged, and may be lost if
   there is a connection error that the client is not yet aware of, or
@@ -65,32 +64,31 @@ operation. Consider the following levels of conceptual write concern:
   exception for :ref:`unique indexes <index-type-unique>`.) While this
   operation is efficient because it does not require the database to
   respond to every write operation, it also incurs a significant risk
-  about the persistence and durability of the data.
+  in regards to the persistence and durability of the data.
 
   Before the releases outlined in :ref:`driver-write-concern-change`,
   this was the default write concern.
   
-- *receipt acknowledgment*: The :program:`mongod` will confirm
+- *receipt acknowledgment*: The :program:`mongod` will confirm the
   receipt of the write operation, allowing the client to catch
   network, duplicate key, and other exceptions. After the releases
   outlined in :ref:`driver-write-concern-change`, this is the default
   write concern. [#default-write-concern]_
   
 - *journal commit*: The :program:`mongod` will confirm the write
-  operation only after it has written operation to the
-  :term:`journal`. This confirms that the write operation can survive
-  a :program:`mongod` shutdown and ensures that the write operation is
-  durable. 
+  operation only after it has written the operation to the
+  :term:`journal`. This confirms that the write operation can survive a
+  :program:`mongod` shutdown and ensures that the write operation is
+  durable.
 
-  While receipt acknowledgment provides the fundamental basis
-  for write concern, without requiring a journal commit in the write
-  concern, there is an up-to 100 millisecond window between journal
-  commits where the write operation is not fully durable. Require
-  journal commit as part of the write concern to provide this
-  durability guarantee.
+  While *receipt acknowledgment* without *journal commit* provides the
+  fundamental basis for write concern, there is an up-to 100
+  millisecond window between journal commits where the write operation
+  is not fully durable. Require *journal commit* as part of the write
+  concern to provide this durability guarantee.
 
-:term:`Replica sets <replica set>` add an additional layer of
-consideration for write concern. Basic write concerns level affect the
+:term:`Replica sets <replica set>` present an additional layer of
+consideration for write concern. Basic write concern level affect the
 write operation on only one :program:`mongod` instance. The ``w``
 argument to :dbcommand:`getLastError` makes it possible to guarantee
 that the write operation has propagated to the members of a replica
@@ -99,13 +97,12 @@ set. See the :ref:`Write Concern for Replica Sets
 
 
 .. [#default-write-concern] The default write concern is to call
-   :dbcommand:`getLastError` with no arguments. For replica sets with
-   :data:`getLastErrorDefaults <settings.getLastErrorDefaults>`  
-   settings, the default write concern will be whatever 
-   :data:`getLastErrorDefaults <settings.getLastErrorDefaults>`
-   defines. If :data:`getLastErrorDefaults <settings.getLastErrorDefaults>`
-   defines no default write concern, :dbcommand:`getLastError` will
-   provide basic receipt acknowledgment.
+   :dbcommand:`getLastError` with no arguments. For replica sets, you
+   can define the default write concern settings in the
+   :data:`getLastErrorDefaults <settings.getLastErrorDefaults>`. If
+   :data:`getLastErrorDefaults <settings.getLastErrorDefaults>` does
+   not define a default write concern setting,
+   :dbcommand:`getLastError` defaults to basic receipt acknowledgment.
 
 .. _write-concern-operation:
 .. _write-concern-internals:
@@ -114,23 +111,24 @@ Internal Operation of Write Concern
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To provide write concern, :doc:`drivers </applications/drivers>` issue
-the :dbcommand:`getLastError` command after a write opeation and
-receive a document with information about the last operation. The this
+the :dbcommand:`getLastError` command after a write operation and
+receive a document with information about the last operation. This
 document's ``err`` field contains either:
 
-- ``null``, which indicates write operations have completed
+- ``null``, which indicates the write operations have completed
   successfully, or
 
 - a description of the last error encountered.
 
 The definition of a "successful write" depends on the arguments
-specified to :dbcommand:`getLastError` or in replica sets the
-configuration of :data:`getLastErrorDefaults <settings.getLastErrorDefaults>`.
-When deciding on what level of write concern your application needs,
-become familiar with the :ref:`write-concern-considerations`. 
+specified to :dbcommand:`getLastError`, or in replica sets, the
+configuration of :data:`getLastErrorDefaults
+<settings.getLastErrorDefaults>`. When deciding the level of write
+concern for your application, become familiar with the
+:ref:`write-concern-considerations`.
 
-The :dbcommand:`getLastError` has the following options, that you can
-use to define write concern requirements.
+The :dbcommand:`getLastError` has the following options to configure write
+concern requirements.
 
 - ``j`` or "journal" option
 
@@ -145,9 +143,9 @@ use to define write concern requirements.
 
 - ``w`` option
 
-  This option provides write concern operations for :term:`replica
-  sets <replica set>` *and* is also used to disable write concern
-  entirely. By default, the ``w`` option is set to ``1``, which
+  This option provides the ability to disable write concern entirely *as
+  well as* specifies the write concern operations for :term:`replica sets
+  <replica set>`. By default, the ``w`` option is set to ``1``, which
   provides basic receipt acknowledgment on a single :program:`mongod`
   instance or on the :term:`primary` in a replica set.
 
@@ -160,12 +158,13 @@ use to define write concern requirements.
 
   - ``0``:
 
-    Disables basic acknowledgment of write operations, but does
-    pass information about networking errors to the application.
+    Disables basic acknowledgment of write operations, but returns
+    information about networking errors to the application.
 
     .. note:: If you disable basic operation acknowledgment write
-       concern but enable the journal commit write concern, as
-       in the following operation: 
+       concern but enable the journal commit write concern, the journal
+       commit overrides the no write concern, as in the following
+       operation:
 
        .. code-block:: javascript
 
@@ -182,29 +181,27 @@ use to define write concern requirements.
 
   - *A number greater than 1*:
 
-    Guarantees that write write operations have propagated
-    successfully to the specified number of replica set members
-    including the primary. If you set ``w`` to a number that is
-    greater than the number of set members that hold data, MongoDB
-    waits for the non-existent members become available, which means
-    MongoDB blocks indefinitely.
+    Guarantees that write operations have propagated successfully to
+    the specified number of replica set members including the primary.
+    If you set ``w`` to a number that is greater than the number of set
+    members that hold data, MongoDB waits for the non-existent members
+    to become available, which means MongoDB blocks indefinitely.
 
   - ``majority``:
 
     Confirms that write operations have propagated to the majority of
-    configured replica set nodes must acknowledge the write operation
+    configured replica set; nodes must acknowledge the write operation
     before it succeeds. This ensures that write operation will *never*
     be subject to a rollback in the course of normal operation, and
-    furthemore allows you to prevent hard coding assumptions about the
+    furthermore allows you to prevent hard coding assumptions about the
     size of your replica set into your application.
 
   - *A tag set*: 
 
-    By specifying a :ref:`tag set
-    <replica-set-configuration-tag-sets>` you can have much more fine
-    grained control over which members of the replica set must
-    acknowledge a write operation to satisfy the required level of
-    write concern.
+    By specifying a :ref:`tag set <replica-set-configuration-tag-sets>`
+    you can have fine-grained control over which replica
+    set members must acknowledge a write operation to satisfy the required
+    level of write concern.
 
 For more information on write concern and replica sets, see :ref:`Write
 Concern for Replica Sets <replica-set-write-concern>` for more information..
@@ -218,13 +215,13 @@ Bulk Inserts
 ------------
 
 In some situations you may need to insert or ingest a large amount of
-data into a MongoDB database. These *bulk inserts*, have some
+data into a MongoDB database. These *bulk inserts* have some
 special considerations that are different from other write
 operations.
 
 The :method:`insert() <db.collection.insert()>` method, when passed an
-array of documents will perform a "bulk insert," and insert each
-document separately. :doc:`Drivers </applications/drivers>` each
+array of documents, will perform a bulk insert, and inserts each
+document atomically. :doc:`Drivers </applications/drivers>`
 provide their own interface for this kind of operation.
 
 .. versionadded:: 2.2
@@ -270,10 +267,10 @@ After every insert, update, or delete operation, MongoDB must update
 itself. Therefore, every index on a collection adds some amount of
 overhead for the performance of write operations.
 
-In general, the performance gains that indexes realize for *read
+In general, the performance gains that indexes provide for *read
 operations* are worth the insertion penalty; however, when optimizing
-write performance be careful when creating new indexes and always
-evaluate the indexes on the collection and ensure that your quires are
+write performance, be careful when creating new indexes and always
+evaluate the indexes on the collection and ensure that your queries are
 actually using these indexes.
 
 For more information on indexes in MongoDB consider :doc:`/indexes`
@@ -309,37 +306,35 @@ In :term:`replica sets <replica set>`, all write operations go to the
 set's :term:`primary`, which applies the write operation then records
 the operations on the primary's operation log or :term:`oplog`. The
 oplog is a reproducible sequence of operations to the data
-set. :term:`Secondary` members of the set are always replicating the
+set. :term:`Secondary` members of the set are continuously replicating the
 oplog and applying the operations to themselves in an asynchronous
 process.
 
-Large volumes of write operations, particularly bulk operations may
-create situations where secondary members have a difficult time
-applying replicating operations from the primary fast enough, which
+Large volumes of write operations, particularly bulk operations, may
+create situations where the secondary members have difficulty applying
+the replicating operations from the primary at a fast enough rate; this
 can cause their state to fall behind that of the primary. Secondaries
 that are significantly behind the primary present problems for normal
 operation of the replica set, particularly :ref:`failover
 <replica-set-failover-administration>` in the form of :ref:`rollbacks
-<replica-set-rollback>` as well as general 
-:ref:`read consistency <replica-set-consistency>`.
+<replica-set-rollback>` as well as general :ref:`read consistency
+<replica-set-consistency>`.
 
-To help avoid this issue, you can customize :ref:`write concern
-<write-operations-write-concern>` to return confirm confirmation of
-the write operation to another member [#write-concern-throttling]_ of
-the replica set ``100`` or ``1,000``) operations. This provides an
-opportunity for secondaries to catch up with the primary. Write
-concern can slow the overall progress of write operations but ensure
-that the secondaries can maintain a largely current state with respect
-to the primary.
+To help avoid this issue, you can customize the :ref:`write concern
+<write-operations-write-concern>` to return confirmation of the write
+operation to another member [#write-concern-throttling]_ of the replica
+set every 100 or 1,000 operations. This provides an opportunity for
+secondaries to catch up with the primary. Write concern can slow the
+overall progress of write operations but ensure that the secondaries
+can maintain a largely current state with respect to the primary.
 
 For more information on replica sets and write operations, see
 :ref:`replica-set-write-concern`, :ref:`replica-set-oplog-sizing`,
 :ref:`replica-set-oplog`, and :ref:`replica-set-procedure-change-oplog-size`. 
 
-.. [#write-concern-throttling] By calling :dbcommand:`getLastError`
-   intermittently with a ``w`` value of ``2`` or ``majority`` to
-   :dbcommand:`getLastError` will slow the throughput of the write
-   operation but will prevent bulk inserts.
+.. [#write-concern-throttling] Calling :dbcommand:`getLastError`
+   intermittently with a ``w`` value of ``2`` or ``majority`` will slow
+   the throughput of the write operation but will prevent bulk inserts.
 
 .. _write-operations-sharded-clusters:
 
