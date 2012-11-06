@@ -33,6 +33,7 @@ suggestions for administers of replica sets.
    - :doc:`/tutorial/change-hostnames-in-a-replica-set`
    - :doc:`/tutorial/convert-secondary-into-arbiter`
    - :doc:`/tutorial/reconfigure-replica-set-with-unavailable-members`
+   - :doc:`/tutorial/recover-data-following-unexpected-shutdown`
 
 .. _replica-set-node-configurations:
 .. _replica-set-member-configurations:
@@ -365,7 +366,8 @@ the following to prepare the new member's :term:`data directory <dbpath>`:
   difference in the amount of time between the most recent operation and
   the most recent operation to the database exceeds the length of the
   :term:`oplog` on the existing members, then the new instance will have
-  to completely re-synchronize.
+  to completely resynchronize, as described in
+  :ref:`replica-set-resync-stale-member`.
 
    Use :method:`db.printReplicationInfo()` to check the current state of
    replica set members with regards to the oplog.
@@ -557,6 +559,89 @@ the oplog. For a detailed procedure, see
 :doc:`/tutorial/change-oplog-size`.
 
 .. include:: /includes/procedure-change-oplog-size.rst
+
+.. _replica-set-resync-stale-member:
+
+Resyncing a Member of a Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When a member's data falls too far behind the :term:`oplog` to catch up,
+the member and it's data are considered "stale". A member's data is too
+far behind when the oplog on the :term:`primary` has overwritten its
+entries before the member has copied them. When that occurs, you must
+resync the member by removing its data and replacing it with up-to-date
+data.
+
+To do so, use one of the following approaches:
+
+- Restart the :program:`mongod` with an empty data directory and let MongoDB's
+  automatic syncing feature restore the data. This approach requires
+  fewer steps but can take longer to replace the data.
+
+  See :ref:`replica-set-auto-resync-stale-member`.
+
+- Restart the machine with a copy of a recent data directory from
+  another member in the :term:`replica set`. This procedure can replace
+  the data more quickly but requires more manual steps.
+
+  See :ref:`replica-set-resync-by-copying`.
+
+.. index:: replica set; resync
+.. _replica-set-auto-resync-stale-member:
+
+Automatically Resync a Stale Member
+```````````````````````````````````
+
+This procedure relies on MongoDB's automatic syncing feature to restore
+the data on the stale member. For an overview of how MongoDB syncs
+:term:`replica sets <replica set>`, see :ref:`replica-set-syncing`.
+
+To resync the stale member:
+
+1. Stop the member's :program:`mongod` instance using the
+   :option:`mongod --shutdown` option. Make sure to set
+   :option:`--dbpath <mongod --dbpath>` to the member's data directory.
+
+   .. code-block:: sh
+
+      mongod --dbpath /data/db/ --shutdown
+
+#. Delete all data and subdirectories from the member's data directory
+   such that the directory is empty.
+
+#. Restart the :program:`mongod` instance on the member. Consider the
+   following example:
+
+   .. code-block:: sh
+
+      mongod --dbpath /data/db/ --replSet rsProduction
+
+   MongoDB resyncs the member. Resyncing may take a long time, depending on
+   the size of the database and speed of the network. Also,
+   this puts a load on the member being synced from. That
+   member might not be able to keep a working set in memory.
+
+.. index:: replica set; resync
+.. _replica-set-resync-by-copying:
+
+Resync by Copying Data from Another Member
+``````````````````````````````````````````
+
+This approach uses the data directory of an existing member to "seed"
+the stale member. The data must be recent enough to allow the new member
+to catch up with the :term:`oplog`.
+
+To resync by copying data from another member, use one of the following
+approaches:
+
+- Create a snapshot of another member's data and then restore that
+  snapshot to the stale member. Use the snapshot procedures in
+  :doc:`/administration/backups`.
+
+- Lock another member's data with the :method:`db.fsyncLock()`
+  command, copy all of the data in the data directory, and then restore the data to the stale
+  member. Use the procedures for backup storage in
+  :doc:`/administration/backups`.
 
 .. _replica-set-security:
 
