@@ -5,13 +5,12 @@ Aggregation Framework Examples
 .. default-domain:: mongodb
 
 MongoDB provides flexible data aggregation functionality with the
-:dbcommand:`aggregate` command. 
+:dbcommand:`aggregate` command. For additional information about
+aggregation consider the following resources:
 
-See also
-
-* :doc:`/applications/aggregation` overview document
-* :doc:`/reference/aggregation`
-* http://www.mongodb.org/display/DOCS/SQL+to+Aggregation+Framework+Mapping+Chart
+- :doc:`/applications/aggregation`
+- :doc:`/reference/aggregation`
+- :wiki:`SQL+to+Aggregation+Framework+Mapping+Chart`
 
 This document provides a number of practical examples that display the
 capabilities of the aggregation framework. All examples use a publicly
@@ -21,18 +20,18 @@ States.
 Requirements
 ------------
 
-#. :program:`mongod` and :program:`mongo`, version 2.2 or later.
+:program:`mongod` and :program:`mongo`, version 2.2 or later.
 
-Example Set One : Zip Codes
-----------------------
+Aggregations using the Zip Code Data Set
+----------------------------------------
 
 To run you will need the zipcode data set. These data are available at:
-   `media.mongodb.org/zips.json <http://media.mongodb.org/zips.json>`_.
-   Use :program:`mongoimport` to load this data set into your
-   :program:`mongod` instance.
+`media.mongodb.org/zips.json <http://media.mongodb.org/zips.json>`_.
+Use :program:`mongoimport` to load this data set into your
+:program:`mongod` instance.
 
 Data Model
-~~~~~~~~~
+~~~~~~~~~~
 
 Each document in this collection has the following form:
 
@@ -69,7 +68,7 @@ documentation for your :doc:`driver </applications/drivers>` for a
 more idiomatic interface for data aggregation operations.
 
 States with Populations Over 10 Million
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To return all states with a population greater than 10 million, use
 the following aggregation operation:
@@ -182,7 +181,6 @@ The final output of this aggregation operation is:
    },
 
 .. Will uncomment this section when we get the SQL
-
    The equivalent :term:`SQL` for this operation is:
 
    .. code-block:: sql
@@ -304,81 +302,111 @@ The final output of this aggregation operation is:
 
    .. code-block:: sql
 
-Example Set Two : User Preferences
-----------------------------
+Aggregation with User Preference Data
+-------------------------------------
 
-Consider a hypothetical data set of user preferences for sports,
-similar to the following:
+Data Model
+~~~~~~~~~~
 
-{ _id : "joe", joined : ISODate("2012-07-02"), likes : ["tennis",
-"golf", "fishing"] }
-{ _id : "jane", joined : ISODate("2011-03-02", likes : ["golf"] }
-...
+Consider a hypothetical data set of user preferences that that contains
+sports information, with documents that resemble the following
 
 .. code-block:: javascript
 
-// fetch just the user names
-// this alone would be better done as a query with find(), but we will
-// build up from here. 
-db.users.find.aggregate( 
-  [
-    { $project : { _id:1 } }
-  ]
-)
+   {
+     _id : "joe",
+     joined : ISODate("2012-07-02"),
+     likes : ["tennis", "golf", "fishing"]
+   }
+   {
+     _id : "jane",
+     joined : ISODate("2011-03-02"),
+     likes : ["golf"]
+   }
+
+
+Return a Single Field
+~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: javascript
 
-// uppercase names with $toUpper operator to normalize their 
-// case.  Then show all names in sorted order. 
-db.users.aggregate( 
-  [
-    { $project : { name:{$toUpper:"$_id"} , _id:0 } },
-    { $sort : { name : 1 } }
-  ]
-)
+   // fetch just the user names
+   // this alone would be better done as a query with find(), but we will
+   // build up from here.
+   db.users.find.aggregate(
+      [
+       { $project : { _id:1 } }
+      ]
+   )
+
+Normalize and Sort Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: javascript
 
-// show the top 4 months that people tend to join the club
-db.users.aggregate( 
-  [
-    { $project : { month_joined : { $month : "$joined" } } }, 
-    { $sort : { month_joined : 1 } },
-    { $limit : 4 } 
-  ]
-)
+   // uppercase names with $toUpper operator to normalize their
+   // case.  Then show all names in sorted order.
+   db.users.aggregate(
+     [
+       { $project : { name:{$toUpper:"$_id"} , _id:0 } },
+       { $sort : { name : 1 } }
+     ]
+   )
+
+Determine Most Common Join Month in Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: javascript
 
-// show user names ordered by the month they joined.
-// rename the "_id" field to the mnore descriptive fieldname "name"
-// while we are at it.
-db.users.aggregate( 
-  [
-    { $project : { month_joined : { $month : "$joined" }, name : "$_id", _id : 0 } }, 
-    { $sort : { month_joined : 1 } }
-  ]
-)
+   // show the top 4 months that people tend to join the club
+   db.users.aggregate(
+     [
+       { $project : { month_joined : { $month : "$joined" } } },
+       { $sort : { month_joined : 1 } },
+       { $limit : 4 }
+     ]
+   )
+
+Return Usernames Ordered by Join Month
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: javascript
 
-// show for each month of the year, how many people joined in that month
-db.users.aggregate( 
-  [
-    { $project : { month_joined : { $month : "$joined" } } } , 
-    { $group : { _id : {month_joined:"$month_joined"} , n : { $sum : 1 } } },
-    { $sort : { "_id.month_joined" : 1 } }
-  ]
-)
+   // show user names ordered by the month they joined.
+   // rename the "_id" field to the mnore descriptive fieldname "name"
+   // while we are at it.
+   db.users.aggregate(
+     [
+       { $project : { month_joined : { $month : "$joined" }, name : "$_id", _id : 0 } },
+       { $sort : { month_joined : 1 } }
+     ]
+   )
+
+Return Total Number of Joins per Month
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: javascript
 
-// show the top five most liked activities, in ranked order
-db.users.aggregate( 
-  [
-    { $unwind : "$likes" },
-    { $group : { _id : "$likes" , n : { $sum : 1 } } },
-    { $sort : { n : -1 } },
-    { $limit : 5 } 
-  ]
-)
+   // show for each month of the year, how many people joined in that month
+   db.users.aggregate(
+     [
+       { $project : { month_joined : { $month : "$joined" } } } ,
+       { $group : { _id : {month_joined:"$month_joined"} , n : { $sum : 1 } } },
+       { $sort : { "_id.month_joined" : 1 } }
+     ]
+   )
+
+Return the Five Most Common "Likes"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   // show the top five most liked activities, in ranked order
+   db.users.aggregate(
+     [
+       { $unwind : "$likes" },
+       { $group : { _id : "$likes" , n : { $sum : 1 } } },
+       { $sort : { n : -1 } },
+       { $limit : 5 }
+     ]
+   )
