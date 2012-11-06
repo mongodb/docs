@@ -6,10 +6,10 @@ Create
 
 Of the four basic database operations (i.e. CRUD), *create* operations
 are those that add new records or :term:`documents <document>` to a
-:term:`collection` in MongoDB. For more information about document
-creation and other write operations see :ref:`/core/write-operations`,
-for documentation of other basic database operations see the
-:doc:`/crud` page.
+:term:`collection` in MongoDB. For general information related to
+document creation and other write operations, see
+:ref:`/core/write-operations`; for documentation of the other CRUD
+operations, see the :doc:`/crud` page.
 
 Overview
 --------
@@ -23,15 +23,15 @@ following basic operations.
 
 - :ref:`save <crud-create-save>`
 
-All insert operations in MongoDB the following properties:
+All insert operations in MongoDB exhibit the following properties:
 
-- If you attempt to insert a document without :term:`_id` field, the
-  client library *or* the :program:`mongod` instance will add an
-  ``_id`` an populate the field with a unique :term:`ObjectId
+- If you attempt to insert a document without the :term:`_id` field,
+  the client library *or* the :program:`mongod` instance will add an
+  ``_id`` field and populate the field with a unique :term:`ObjectId
   <objectid>`.
 
 - If you specify an ``_id`` field, the ``_id`` field must be unique
-  within the collection, otherwise the :program:`mongod` will return a
+  within the collection; otherwise the :program:`mongod` will return a
   duplicate key exception.
 
 - .. include:: /includes/fact-document-max-size.rst
@@ -55,17 +55,19 @@ the following syntax:
 
    db.collection.insert( <document> )
 
-The :method:`insert() <db.collection.insert()>` method is analogous to
-the ``INSERT`` statement in SQL. To illustrate the behavior of
-:method:`insert() <db.collection.insert()>`, consider the following
-examples:
+.. admonition:: Corresponding Operation in SQL
+
+   The :method:`insert() <db.collection.insert()>` method is analogous
+   to the ``INSERT`` statement.
+
+Consider the following examples that illustrate the behavior of
+:method:`insert() <db.collection.insert()>`:
 
 - If the collection does not exist, then the :method:`insert()
   <db.collection.insert()>` method creates the collection during the
-  first insert.
-
-  If the collection ``csbios`` does not exist, then following
-  operation will create this collection:
+  first insert. Specifically in the example, if the collection
+  ``csbios`` does not exist, then the insert operation will create this
+  collection:
 
   .. code-block:: javascript
 
@@ -129,10 +131,6 @@ examples:
   :method:`insert() <db.collection.insert()>` method  adds the ``_id``
   field to the document and generates a unique ``ObjectId`` for the value.
 
-  The following operation adds the ``_id`` field to the document,
-  assigns to the field a unique ``ObjectId``, and inserts the document
-  into the ``csbios`` collection:
-
   .. code-block:: javascript
 
      db.csbios.insert( {
@@ -186,7 +184,7 @@ examples:
      }
 
 - If you pass an array of documents to the :method:`insert()
-  <db.collection.insert()>` method the :method:`insert()
+  <db.collection.insert()>` method, the :method:`insert()
   <db.collection.insert()>` performs a bulk insert into a collection.
 
   The following operation inserts three documents into the
@@ -268,15 +266,20 @@ examples:
 Update with Upsert
 ------------------
 
-Typically update operations :doc:`update </applications/update>`
-existing documents, but in MongoDB, the :method:`update()
-<db.collection.update()>` operation has an ``upsert`` option. Upserts
-are a hybrid operation, that use the query argument to the update
-operation and:
+An update with upsert or an *upsert* eliminates the need to perform a
+separate database call to check for the existence of a record before
+performing either an update or an insert operation. Typically update
+operations :doc:`update </applications/update>` existing documents, but
+in MongoDB, the :method:`update() <db.collection.update()>` operation
+can accept an ``upsert`` option as an argument. Upserts are a hybrid
+operation that use the ``query`` argument to determine the write
+operation:
 
-- update the matching document if the query returns a result.
+- If the query returns a result, the upsert updates the matching
+  document.
 
-- inserts a single document if no document matches the query.
+- If the query matches no document in the collection, the upsert
+  inserts a single document.
 
 Consider the following syntax for an upsert operation:
 
@@ -286,7 +289,7 @@ Consider the following syntax for an upsert operation:
                          <update>,
                          { upsert: true } )
 
-Consider the following examples that illustrate the use of the
+The following examples illustrate the use of the
 upsert to perform create operations:
 
 - If the ``<update>`` argument contains only field and value
@@ -472,12 +475,16 @@ upsert to perform create operations:
 Save
 ----
 
-The :method:`save() <db.collection.save()>` method inserts a document
-into a collection if the document does not contain the ``_id`` field or
-contains an ``_id`` field with a value not in the collection. If the
-document does not contain the ``_id`` field, the :method:`save()
-<db.collection.save()>` method adds the ``_id`` field to the document
-and assigns a unique ``ObjectId`` as its value.
+The :method:`save() <db.collection.save()>` method is a specialized
+upsert that use the ``_id`` field in document argument to determine
+whether to perform an insert or an update:
+
+- If the document does not contain the ``_id`` field or contains an
+  ``_id`` field with a value not in the collection, the :method:`save()
+  <db.collection.save()>` method performs an insert of the document.
+  
+- Otherwise, the :method:`save() <db.collection.save()>` method
+  performs an update.
 
 The :method:`save() <db.collection.save()>` method has the
 following syntax:
@@ -487,12 +494,12 @@ following syntax:
    db.collection.save( <document> )
 
 Consider the following examples that illustrate the use of the
-:method:`insert() <db.collection.insert()>` method for create
-operations:
+:method:`save() <db.collection.save()>` method to perform inserts:
 
 - If the ``document`` does not contain the ``_id`` field, the
-  :method:`save() <db.collection.save()>` method adds the ``_id`` field
-  to the document and performs an insert.
+  :method:`save() <db.collection.save()>` method performs an insert.
+  Refer to the :ref:`insert <crud-create-insert>` section for details
+  of the insert operation of a document without an ``_id`` field.
 
   The following operation performs an insert into the ``csbios``
   collection since the document does not contain the ``_id`` field:
@@ -513,36 +520,10 @@ operations:
                 ]
      } )
 
-  You can verify the addition of the ``_id`` field during the operation
-  by querying the ``csbios`` collection:
-
-  .. code-block:: javascript
-
-     db.csbios.find( { name: { first: 'Guido', last: 'van Rossum'} } )
-
-  The returned document contains an ``_id`` field with the generated
-  ``ObjectId`` value:
-
-  .. code-block:: javascript
-
-     {
-       "_id" : ObjectId("507c387cbcf86cd7994f6c0b"),
-       "name" : { "first" : "Guido", "last" : "van Rossum" },
-       "birth" : ISODate("1956-01-31T05:00:00Z"),
-       "contribs" : [ "Python" ],
-       "awards" :[
-                   { "award" : "Award for the Advancement of Free Software",
-                     "year" : "2001",
-                     "by" : "Free Software Foundation" },
-                   { "award" : "NLUUG Award",
-                     "year" : "2003",
-                     "by" : "NLUUG" }
-                 ]
-     }
-
 - If the ``document`` contains an ``_id`` field but has a value not
   found in the collection, the :method:`save() <db.collection.save()>`
-  method performs an insert.
+  method performs an insert. Refer to the :ref:`insert
+  <crud-create-insert>` section for details of the insert operation.
 
   The following operation performs an insert into the ``csbios``
   collection since the document contains an ``_id`` field whose value
