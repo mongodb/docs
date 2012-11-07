@@ -419,7 +419,7 @@ possible. Operations have the following targeting characteristics:
   stores this data.
 
   For queries that include the shard key, :program:`mongos` can target
-  the query at a specific set of shards, if portion of the shard key
+  the query at a specific set of shards, if the portion of the shard key
   included in the query is a *prefix* of the shard key. For example,
   if the shard key is:
 
@@ -427,13 +427,18 @@ possible. Operations have the following targeting characteristics:
 
      { a: 1, b: 1, c: 1 }
 
-  The :program:`mongos` can route queries that include the full shard
-  key, or either of the following prefixes of the shard key:
+  The :program:`mongos` *can* target queries that include the full
+  shard key or either of the following shard key prefixes  at a
+  specific shard or set of shards:
 
   .. code-block:: javascript
 
      { a: 1 }
      { a: 1, b: 1 }
+
+  Depending on the distribution of data in the cluster and the
+  selectivity of the query, :program:`mongos` may still have to
+  contact multiple shards to fulfill these queries.
 
 - All :method:`insert() <db.collection.insert()>` operations target to
   one shard.
@@ -455,6 +460,18 @@ ensuring that your operations include the shard key.
 .. [#namespace-exception] If a shard does not store chunks from a
    given collection, queries for documents in that collection are not
    broadcast to that shard.
+
+.. [#a/c-as-a-case-of-a] In this example, a :program:`mongos` could
+   route a query that included ``{ a: 1, c: 1 }`` fields at a specific
+   subset of shards using the ``{ a: 1 }`` prefix. A :program:`mongos`
+   cannot route any of the following queries to specific shards
+   in the cluster:
+
+   .. code-block:: javascript
+
+      { b: 1 }
+      { c: 1 }
+      { b: 1, c: 1 }
 
 Sharded Query Response Process
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
