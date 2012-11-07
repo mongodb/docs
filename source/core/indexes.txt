@@ -35,7 +35,7 @@ MongoDB indexes have the following core features:
   It is important to think about the kinds of queries your application
   will need so that you can define relevant indexes.
 
-- All MongoDB indexes use the ``B-tree`` data structure. The MongoDB
+- All MongoDB indexes use the B-tree data structure. The MongoDB
   :term:`query optimizer` uses this structure to quickly return query
   results.
 
@@ -45,20 +45,21 @@ MongoDB indexes have the following core features:
   with the best response time for each query type. You can override
   the query optimizer using the :method:`cursor.hint()` method.
 
-- When an index "covers" a query, the database returns results more
-  quickly than for queries that have to scan many individual documents. An
-  index "covers" a query if the index keys store all the data
-  that the query must return. See :ref:`indexes-covered-queries` for
-  more information.
+- An index "covers" a query if the index keys store all the data that
+  the query must return. When an index "covers" a query, the database
+  returns results more quickly than for queries that have to scan many
+  individual documents. See :ref:`indexes-covered-queries` for more
+  information.
 
 - Using queries with good index coverage reduces the number of full
   documents that MongoDB needs to store in memory, thus maximizing database
   performance and throughput.
 
-- When you update a document, if the document fits in its previous
-  allocation area, only those indexes whose keys have changed are
-  updated. This improves performance. Note that if the document has
-  grown and must move, all index keys must then update.
+- If an update does not change the size of a document or cause the
+  document to outgrow its allocated area, then MongoDB updates a given
+  index only if the indexed fields have changed. This improves
+  performance. Note that if the document has grown and must move, all
+  index keys must then update.
 
 .. index:: index; secondary index
 .. index:: secondary index
@@ -70,9 +71,8 @@ Index Types
 -----------
 
 This section describes types of indexes available in MongoDB.
-
-For all collections, MongoDB creates default the :ref:`_id index
-<index-type-primary>`. This is the ``primary`` index. All other indexes
+For all collections, MongoDB creates the default :ref:`_id index
+<index-type-primary>`. This is the primary index. All other indexes
 in MongoDB are :term:`secondary indexes <secondary index>`. You can
 create secondary indexes on any field within any document or
 sub-document. You can also create secondary indexes multiple fields.
@@ -139,15 +139,15 @@ is a 12-byte unique identifiers suitable for use as the value of an
    See the :ref:`release notes <2.2-id-indexes-capped-collections>`
    for more information.
 
-.. todo fix the above when a full capped-collection page exists.
+.. todo:: fix the above when a full capped-collection page exists.
 
-.. index:: index; embedded documents
-.. _index-embedded-documents:
+.. index:: index; subdocuments
+.. _index-subdocuments:
 
-Indexes on Embedded Documents
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Indexes on Subdocuments
+~~~~~~~~~~~~~~~~~~~~~~~
 
-Indexed fields may be of any type, including embedded documents.
+Indexed fields may be of any type, including subdocuments.
 
 .. example::
 
@@ -171,13 +171,6 @@ Indexed fields may be of any type, including embedded documents.
    comparison is in ascending key order in the order the keys occur in
    the :term:`BSON` document.
 
-   The following query, however, would not match the document as the
-   order of the fields is significant:
-
-   .. code-block:: javascript
-
-      db.factories.find( { metro: { state: "NY" , city: "New York" } } )
-
 .. index:: index; embedded fields
 .. _index-embedded-fields:
 
@@ -185,26 +178,24 @@ Indexes on Embedded Fields
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can create indexes on fields that exist in sub-documents within your
-collection. This differs from :ref:`index-embedded-documents` in that it
+collection. This differs from :ref:`index-subdocuments` in that it
 doesn't index the document but instead "reaches in" and indexes a
 specific field. Introspecting sub-documents in this way is commonly
 called "dot notation."
 
-.. example::
+Consider the collection ``people`` that holds documents that resemble
+the following example document:
 
-   Consider the collection ``people`` that holds documents that resemble
-   the following example document:
+.. code-block:: javascript
 
-   .. code-block:: javascript
-
-      {"_id": ObjectId(...)
-       "name": "John Doe"
-       "address": {
-              "street": "Main"
-              "zipcode": 53511
-              "state": "WI"
-              }
-      }
+   {"_id": ObjectId(...)
+    "name": "John Doe"
+    "address": {
+           "street": "Main"
+           "zipcode": 53511
+           "state": "WI"
+           }
+   }
 
    You can create an index on the ``address.zipcode`` field, using the
    following specification:
@@ -310,11 +301,10 @@ the following command:
 Multikey Indexes
 ~~~~~~~~~~~~~~~~
 
-If you index a field that contains an array, MongoDB indexes each value
-in the field separately. This is called a "multikey" index. A multikey
-index records separate entries for every value in array field. A
-multikey index can index only one array field. MongoDB does not let you
-create an index that includes two or more array fields.
+If you index a field that contains an array, MongoDB indexes each
+value in the array separately, in a "multikey index." While you can
+create multikey :ref:`compound indexes <index-type-compound>`, you
+cannot include two array fields in a compound index.
 
 .. example::
 
@@ -405,7 +395,7 @@ The problem with indexing parallel arrays is that each value in the
 cartesian product of the compound keys would have to be indexed, which
 can get out of hand very quickly.
 
-.. todo add a sentence and link:
+.. todo:: add a sentence and link:
    For procedures for querying on values in an array, see LINK???.
 
 Querying on Multiple Values in a Given Array
@@ -439,12 +429,12 @@ multikey index records each array value separately, so querying on
 an exact array match will not use the multikey index but will instead
 query through every document in the collection.
 
-Using Multikeys to Simulate a Large Number of Indexes
-`````````````````````````````````````````````````````
+Using a Multikey Index for Attribute Lookups
+````````````````````````````````````````````
 
-One way to work with data that has a high degree of options for
-query-ability is to use the multikey indexing feature where the keys are
-objects. For example, the following document allows you to add an
+For simple attribute lookups, an effective indexing strategy can be to
+index a field that contains an array of documents. For example, the
+``attrib`` field in the following document allows you to add an
 unlimited number of attributes types:
 
 .. code-block:: javascript
@@ -458,16 +448,15 @@ unlimited number of attributes types:
               ]
    }
 
-You could, for example, perform the following disparate queries, both
-using the multikey index:
+The following queries would *both* use the multikey index:
 
 .. code-block:: javascript
 
    db.mycollection.find( { attribs: { color: "blue" } } )
    db.mycollection.find( { attribs: { avail: false } } )
 
-This approach is helpful for for simple attribute lookups. The approach
-is not necessary helpful for sorting or certain other query types.
+Use this kind of indexing strategy for simple attribute lookups rather
+than sorted query results or range queries.
 
 .. index:: index; unique
 .. _index-type-unique:
@@ -606,13 +595,13 @@ construction:
   larger than the available RAM, then the incremental process
   can take *much* longer than the foreground build.
 
-- In some cases, not having an index at all can impact performance
-  almost as much as building an index can. If this is the case, we
-  recommend your application code check for the index at startup using
-  the chosen :method:`getIndexes() <db.collection.getIndexes()>`
-  :api:`method for your driver <>` and terminate if the index cannot be
-  found. You can explicitly invoke a separate indexing script when safe
-  to do so.
+- In some cases, not having an index can impact performance in that the
+  index must be built when the application starts. If this is a concern,
+  we recommend your application code check for the index at startup
+  using the :method:`getIndexes() <db.collection.getIndexes()>` method
+  or the :api:`equivalent method for your driver <>` and terminate if
+  the index cannot be found. You can explicitly invoke a separate
+  indexing script when safe to do so.
 
 .. admonition:: Building Indexes on Secondaries
 
@@ -639,7 +628,7 @@ construction:
    Indexes on secondary members in "recovering" mode are always built in
    the foreground to allow them to catch up as soon as possible.
 
-  .. todo create tutorials for the replica set reindexing
+  .. todo:: create tutorials for the replica set reindexing
      http://www.mongodb.org/display/DOCS/Building+indexes+with+replica+sets
 
 .. note::
@@ -762,7 +751,7 @@ See the :operator:`$near`, and the database command
 :dbcommand:`geoNear` for more information on accessing geospatial
 data.
 
-.. todo insert link to special /core/geospatial.txt documentation
+.. todo:: insert link to special /core/geospatial.txt documentation
    on this topic. once that document exists.
 
 .. index:: index; geohaystack index
@@ -772,7 +761,7 @@ data.
 Geohaystack Indexes
 ~~~~~~~~~~~~~~~~~~~
 
-.. todo update links in the following session as needed:
+.. todo:: update links in the following session as needed:
 
 In addition to conventional :ref:`geospatial indexes
 <index-feature-geospatial>`, MongoDB also provides a bucket-based
