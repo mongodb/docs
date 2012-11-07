@@ -98,7 +98,7 @@ In the above example, the pipeline passes all documents in the
   :agg:expression:`$sum` operation to calculate the total value of all
   ``pop`` fields in the source documents.
 
-  After the :agg:pipeline:`$group` operation the document in the
+  After the :agg:pipeline:`$group` operation the documents in the
   pipeline resemble the following:
 
   .. code-block:: javascript
@@ -308,44 +308,67 @@ Aggregation with User Preference Data
 Data Model
 ~~~~~~~~~~
 
-Consider a hypothetical data set of user preferences that that contains
-sports information, with documents that resemble the following
+Consider a hypothetical sports club with a database that contains a
+``user`` collection that tracks sport preferences and stores the
+preferences in documents that resemble the following:
 
 .. code-block:: javascript
 
    {
      _id : "joe",
      joined : ISODate("2012-07-02"),
-     likes : ["tennis", "golf", "fishing"]
+     likes : ["tennis", "golf", "swimming"]
    }
    {
      _id : "jane",
      joined : ISODate("2011-03-02"),
-     likes : ["golf"]
+     likes : ["golf", "racquetball"]
    }
-
 
 Return a Single Field
 ~~~~~~~~~~~~~~~~~~~~~
 
+The following command uses :agg:pipeline:`$project` to return only the
+``_id`` field and to return it for all documents in the ``users``
+collection.
+
+Note that in an actual situation you would likely use :method:`find()
+<db.collection.find()>` to return such a list. This example uses
+:method:`aggregate() <db.collection.aggregate()>` for demonstration
+purposes.
+
 .. code-block:: javascript
 
-   // fetch just the user names
-   // this alone would be better done as a query with find(), but we will
-   // build up from here.
-   db.users.find.aggregate(
-      [
+   db.users.aggregate(
+     [
        { $project : { _id:1 } }
-      ]
+     ]
    )
+
+The command returns results that resemble the following:
+
+.. code-block:: javascript
+
+   {
+     "_id" : "joe"
+   },
+   {
+     "_id" : "jane"
+   }
+   {
+     "_id" : "jill"
+   }
 
 Normalize and Sort Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+The following command returns user names in upper case and in
+alphabetical order. The command returns user names for all documents in
+the ``users`` collection. You might do this to normalize user names for
+processing.
+
 .. code-block:: javascript
 
-   // uppercase names with $toUpper operator to normalize their
-   // case.  Then show all names in sorted order.
    db.users.aggregate(
      [
        { $project : { name:{$toUpper:"$_id"} , _id:0 } },
@@ -353,12 +376,48 @@ Normalize and Sort Documents
      ]
    )
 
-Determine Most Common Join Month in Collection
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The pipeline passes all documents in the ``users`` collection through
+the following operations:
+
+- The :agg:pipeline:`$project` operator:
+
+  - Creates a new field called ``name``.
+
+  - Specifies that the ``id`` field not be displayed. The
+    :method:`aggregate() <db.collection.aggregate()>` method displays
+    the ``_id`` field by default, unless you specify otherwise, as here.
+
+- The :agg:expression:`$toUpper` operator converts the values of the
+  ``_id`` field to upper case. Then the :agg:pipeline:`$project` operator
+  assigns the values to the ``name`` field.
+
+- The :agg:pipeline:`$sort` operator sorts the results by the ``name``
+  field.
+
+The command returns results that resemble the following:
 
 .. code-block:: javascript
 
-   // show the top 4 months that people tend to join the club
+   {
+     "name" : "JANE"
+   },
+   {
+     "name" : "JILL"
+   },
+   {
+     "name" : "JOE"
+   }
+
+Determine Most Common Join Month in Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. todo I think this example needs reworking. I don't think it
+   returns the top 4 months that people tend to join the club, just the first four in the
+   calendar year. For example, if people joined as follows: Jan 1 person, Feb 2, Mar 2, Apr 1, June 100,
+   the query would still return Jan, Feb, Mar, Apr.
+
+.. code-block:: javascript
+
    db.users.aggregate(
      [
        { $project : { month_joined : { $month : "$joined" } } },
@@ -367,14 +426,48 @@ Determine Most Common Join Month in Collection
      ]
    )
 
-Return Usernames Ordered by Join Month
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The pipeline passes all documents in the ``users`` collection through
+the following operations:
+
+- The :agg:pipeline:`$project` operator creates a new field called ``month_joined``.
+
+- The :agg:expression:`$month` operator converts the ``joined`` field to
+  integer representations of the month. Then the :agg:pipeline:`$project` operator
+  assigns the values to the ``month_joined`` field.
+
+- The :agg:pipeline:`$sort` operator sorts the results by the ``month_joined`` field.
+
+- The :agg:pipeline:`$limit` operator limits the results to the first 4 result documents.
+
+The command returns results that resemble the following:
 
 .. code-block:: javascript
 
-   // show user names ordered by the month they joined.
-   // rename the "_id" field to the mnore descriptive fieldname "name"
-   // while we are at it.
+   {
+     "_id" : "ruth",
+     "month_joined" : 1
+   },
+   {
+     "_id" : "harold",
+     "month_joined" : 1
+   },
+   {
+     "_id" : "kate",
+     "month_joined" : 1
+   },
+   {
+     "_id" : "jill",
+     "month_joined" : 2
+   }
+
+Return Usernames Ordered by Join Month
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following command returns user names sorted by the month they
+joined. You might use this for membership renewal notices.
+
+.. code-block:: javascript
+
    db.users.aggregate(
      [
        { $project : { month_joined : { $month : "$joined" }, name : "$_id", _id : 0 } },
@@ -382,31 +475,195 @@ Return Usernames Ordered by Join Month
      ]
    )
 
-Return Total Number of Joins per Month
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The pipeline passes all documents in the ``users`` collection through
+the following operations:
+
+- The :agg:pipeline:`$project` operator:
+
+  - Creates two new fields: ``month_joined`` and ``name``.
+
+  - Specifies that the ``id`` field not be displayed. The
+    :method:`aggregate() <db.collection.aggregate()>` method displays
+    the ``_id`` field by default, unless you specify otherwise, as here.
+
+- The :agg:expression:`$month` operator converts the values of the
+  ``joined`` field to integer representations of the month. Then the
+  :agg:pipeline:`$project` operator assigns those values to the ``month_joined`` field.
+
+- The :agg:pipeline:`$sort` operator sorts the results by the ``month_joined`` field.
+
+The command returns results that resemble the following:
 
 .. code-block:: javascript
 
-   // show for each month of the year, how many people joined in that month
+   {
+     "month_joined" : 1,
+     "name" : "ruth"
+   },
+   {
+     "month_joined" : 1,
+     "name" : "harold"
+   },
+   {
+     "month_joined" : 1,
+     "name" : "kate"
+   }
+   {
+     "month_joined" : 2,
+     "name" : "jill"
+   }
+
+Return Total Number of Joins per Month
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following command shows how many people joined each month of the
+year. You might use such information for recruiting and marketing
+strategies.
+
+.. code-block:: javascript
+
    db.users.aggregate(
      [
        { $project : { month_joined : { $month : "$joined" } } } ,
-       { $group : { _id : {month_joined:"$month_joined"} , n : { $sum : 1 } } },
+       { $group : { _id : {month_joined:"$month_joined"} , number : { $sum : 1 } } },
        { $sort : { "_id.month_joined" : 1 } }
      ]
    )
 
-Return the Five Most Common "Likes"
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The pipeline passes all documents in the ``users`` collection through
+the following operations:
+
+- The :agg:pipeline:`$project` operator creates a new field called
+  ``month_joined``.
+
+- The :agg:expression:`$month` operator converts the values of the
+  ``joined`` field to integer representations of the month. Then the
+  :agg:pipeline:`$project` operator assigns the values to the
+  ``month_joined`` field.
+
+- The :agg:pipeline:`$group` operator collects all documents with a
+  given ``month_joined`` value and counts how many documents there are
+  for that value. Specifically, for each unique value,
+  :agg:pipeline:`$group` creates a new "per-month" document with two
+  fields:
+
+  - ``_id``, which contains a nested document with the ``month_joined`` field and its value.
+
+  - ``number``, which is a generated field. The :agg:expression:`$sum`
+    operator increments this field by 1 for every document containing
+    the given ``month_joined`` value.
+
+- The :agg:pipeline:`$sort` operator sorts the documents created by :agg:pipeline:`$group`
+   according to their ``month_joined`` fields.
+
+The command returns results that resemble the following:
 
 .. code-block:: javascript
 
-   // show the top five most liked activities, in ranked order
+   {
+     "_id" : {
+       "month_joined" : 1
+     },
+     "number" : 3
+   },
+   {
+     "_id" : {
+       "month_joined" : 2
+     },
+     "number" : 9
+   },
+   {
+     "_id" : {
+       "month_joined" : 3
+     },
+     "number" : 5
+   }
+
+Return the Five Most Common "Likes"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following command shows the top five most liked activities in the
+sports club. This might be useful for future scheduling.
+
+.. code-block:: javascript
+
    db.users.aggregate(
      [
        { $unwind : "$likes" },
-       { $group : { _id : "$likes" , n : { $sum : 1 } } },
-       { $sort : { n : -1 } },
+       { $group : { _id : "$likes" , number : { $sum : 1 } } },
+       { $sort : { number : -1 } },
        { $limit : 5 }
      ]
    )
+
+The pipeline passes all documents in the ``users`` collection through
+the following operations:
+
+- The :agg:pipeline:`$unwind` operator separates out each value in the
+  ``likes`` array and wraps it with the rest of its containing document.
+  This creates multiple documents. For example, for the following document:
+
+  .. code-block:: javascript
+
+     {
+       _id : "jane",
+       joined : ISODate("2011-03-02"),
+       likes : ["golf", "racquetball"]
+     }
+
+  The :agg:pipeline:`$unwind` operator creates two separate documents:
+
+  .. code-block:: javascript
+
+     {
+       _id : "jane",
+       joined : ISODate("2011-03-02"),
+       likes : "golf"
+     }
+     {
+       _id : "jane",
+       joined : ISODate("2011-03-02"),
+       likes : "racquetball"
+     }
+
+- After :agg:pipeline:`$unwind` has created an expanded set of
+  documents, the :agg:pipeline:`$group` operator collects all the
+  documents with a given ``likes`` value and counts how many there are
+  for that value. Specifically, for each unique value,
+  :agg:pipeline:`$group` creates a new document with two fields:
+
+  - ``_id``, which contains the ``likes`` value.
+
+  - ``number``, which is a generated field. The :agg:expression:`$sum`
+    operator increments this field by 1 for every document containing
+    the given ``likes`` value.
+
+- The :agg:pipeline:`$sort` operator sorts the documents according to
+  their ``number`` field and in reverse order.
+
+- The :agg:pipeline:`$limit` operator limits the results to the first 5 result documents.
+
+The command returns results that resemble the following:
+
+.. code-block:: javascript
+
+   {
+     "_id" : "golf",
+     "number" : 33
+   },
+   {
+     "_id" : "racquetball",
+     "number" : 31
+   },
+   {
+     "_id" : "swimming",
+     "number" : 24
+   },
+   {
+     "_id" : "handball",
+     "number" : 19
+   },
+   {
+     "_id" : "tennis",
+     "number" : 18
+   }
