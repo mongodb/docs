@@ -1,0 +1,320 @@
+==============
+BSON Documents
+==============
+
+.. default-domain:: mongodb
+
+MongoDB is a document-based database system, and as a result, all
+records, or data, in MongoDB are documents. Documents are the default
+representation of most user accessible data structures in the
+database. Documents provide structure for data in the following
+MongoDB contexts:
+
+- the :ref:`records <documents-records>` stored in :term:`collections
+  <collection>`
+
+- the :ref:`query selectors <documents-query-selectors>` that determine
+  which records to select for read, update, and delete operations
+
+- the :ref:`update actions <documents-update-actions>` that specify
+  the particular field updates to perform during an update operation
+
+- the specification of :ref:`indexes <documents-index>` for
+  collection.
+
+- arguments to several MongoDB methods and operators, including:
+
+  - :ref:`sort order <documents-sort-order>` for the :method:`sort()
+    <cursor.sort()>` method.
+
+  - :ref:`index specification <documents-index>` for the
+    :method:`hint() <cursor.hint()>` method.
+
+- the output of a number  of MongoDB commands and operations, including:
+
+  - the :doc:`output </reference/collection-statistics>`
+    of :dbcommand:`collStats` command, and
+
+  - the :doc:`output </reference/server-status>` of the
+   :dbcommand:`serverStatus` command.
+
+Structure
+---------
+
+The document structure in MongoDB are :term:`BSON` objects with
+support for the full range of :term:`BSON types`; however, BSON
+documents are conceptually, similar to :term:`JSON` objects, and have
+the following structure:
+
+.. code-block:: javascript
+
+   {
+      field1: value1,
+      field2: value2,
+      field3: value3,
+      ...
+      fieldN: valueN
+   }
+
+Having support for the full range of :term:`BSON types`, MongoDB
+documents may contain field and value pairs where the value can be
+another document, an array, an array of documents as well
+as the basic types such as ``Double``, ``String``, or ``Date``.
+
+Consider the following document that contains values of varying
+types:
+
+.. code-block:: javascript
+
+   {
+      _id: ObjectId("5099803df3f4948bd2f98391"),
+      name: { first: "Alan", last: "Turing" },
+      birth: new Date('Jun 23, 1912'),
+      death: new Date('Jun 07, 1954'),
+      contribs: [ "Turing machine", "Turing test", "Turingery" ],
+      views : NumberLong(1250000),
+      update : Timestamp(1352237167000, 1)
+   }
+
+The document contains the following fields:
+
+- ``_id`` that holds an *ObjectId*.
+
+- ``name`` that holds a *sub-document* that contains the fields
+  ``first`` and ``last``.
+
+- ``birth`` and ``death``, which both have *Date* types.
+
+- ``contribs``, which holds an *array of strings*.
+
+- ``views`` that holds a value of *NumberLong* type.
+
+- ``update`` that holds a value of *Timestamp* type.
+
+Types
+-----
+
+.. _documents-records:
+
+Record Documents
+~~~~~~~~~~~~~~~~
+
+Most documents in MongoDB are records in :term:`collections` which
+store data from users' applications.
+
+These documents have the following limitations:
+
+- .. include:: /includes/fact-document-max-size.rst
+
+- .. include:: /includes/fact-document-field-name-restrictions.rst
+
+.. include:: /includes/note-insert-id-field.rst
+
+The following document specifies a record in a collection:
+
+  .. code-block:: javascript
+
+     {
+       _id: 1,
+       name: { first: 'John', last: 'Backus' },
+       birth: new Date('Dec 03, 1924'),
+       death: new Date('Mar 17, 2007'),
+       contribs: [ 'Fortran', 'ALGOL', 'Backus-Naur Form', 'FP' ],
+       awards: [
+                 { award: 'National Medal of Science',
+                   year: '1975',
+                   by: 'National Science Foundation' },
+                 { award: 'Turing Award',
+                   year: '1977',
+                   by: 'ACM' }
+               ]
+     }
+
+The document contains the following fields:
+
+- ``_id``, which must hold a unique value.
+
+- ``name`` that holds another *document*. This sub-document contains
+  the fields ``first`` and ``last``, which both hold *strings*.
+
+- ``birth`` and ``death`` that both have *date* types.
+
+- ``contribs`` that holds an *array of strings*.
+
+- ``awards`` that holds an *array of documents*.
+
+.. _documents-query-selectors:
+
+Query Specification Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Query selector documents specify the conditions that determine which
+records to select for read, update, and delete operations. You can use
+field and value expressions to specify the equality condition and
+:doc:`query operator </reference/operators>` expressions to specify
+additional conditions. Refer to :doc:`read </applications/read>`,
+:doc:`update </applications/update>`, and :doc:`delete
+</applications/delete>` pages for more examples.
+
+Consider the following examples of query selector documents:
+
+- The following document specifies the query criteria where ``_id`` is
+  equal to ``1``:
+
+  .. code-block:: javascript
+
+     { _id: 1 }
+
+- The following document specifies the query criteria where ``_id`` is
+  greater than ``3``:
+
+  .. code-block:: javascript
+
+     { _id: { $gt: 3 } }
+
+- The following document specifies the compound query criteria where
+  ``_id`` is equal to ``1`` **and** the ``name`` field equals the
+  document ``{ first: 'John', last: 'Backus' }``:
+
+  .. code-block:: javascript
+
+     { _id: 1, name: { first: 'John', last: 'Backus' } }
+
+- The following document specifies the compound query criteria where
+  ``_id`` is equal to ``1`` **or** the ``name`` field equals the
+  document ``{ first: 'John', last: 'Backus' }``:
+
+  .. code-block:: javascript
+
+     { $or: [ { _id: 1 }, { name: { first: 'John', last: 'Backus' } } ] }
+
+When passed as an argument to methods such as the :method:`find()
+<db.collection.find()>` method, the :method:`remove()
+<db.collection.remove()>` method, or the :method:`update()
+<db.collection.update()>` method, the query document selects documents
+for MongoDB to return, remove, or update, as in the following:
+
+.. code-block:: javascript
+
+   db.csbios.find( { _id: 1 } )
+   db.csbios.remove( { _id: { $gt: 3 } } )
+   db.csbios.update( { _id: 1, name: { first: 'John', last: 'Backus' } },
+                       ... )
+
+.. _documents-update-actions:
+
+Update Specification Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The update action documents specify the data modifications to perform
+during an :method:`update() <db.collection.update()>` operation to
+modify existing records in a collection. You can use :ref:`update
+operators <update-operators>` to specify the exact actions to perform
+on the document fields. See the :ref:`update operators
+<update-operators>` page for the available update operators and syntax.
+
+Consider the update specification document example:
+
+.. code-block:: javascript
+
+   { $set: { 'name.middle': 'Warner' },
+     $push: { awards: { award: 'IBM Fellow',
+                        year: '1963',
+                        by: 'IBM' }
+
+When passed as an argument to the :method:`update()
+<db.collection.update()>` method, the update actions document:
+
+- Modifies the field ``name`` whose value is another document.
+  Specifically, the :operator:`$set` operator updates the ``middle``
+  field in the ``name`` subdocument.
+
+- Adds an element to the field ``awards`` whose value is an array.
+  Specifically, the :operator:`$push` operator adds another document as
+  element to the field ``awards``.
+
+.. code-block:: javascript
+
+   db.csbios.update( { _id: 1 },
+                     { $set: { 'name.middle': 'Warner' },
+                       $push: { awards: { award: 'IBM Fellow',
+                                          year: '1963',
+                                          by: 'IBM' } } }
+                   )
+
+.. _documents-index:
+.. _document-index-specification:
+
+Index Specification Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Indexes optimize a number of key :doc:`read </core/read-operations>`
+and :doc:`write </core/write-operations>` operations. Index
+specification documents describe the fields to index on during the
+:ref:`index creation </reference/method/db.collection.ensureIndex>`. See :doc:`indexes
+</core/indexes>` for an overview of indexes.
+
+The index specification documents contain field and value pairs, in
+the following form:
+
+.. code-block:: javascript
+
+   { field: value }
+
+- ``field`` is the field in the documents to index.
+
+- ``value`` is either 1 for ascending or -1 for descending.
+
+The following document specifies the :ref:`multi-key index <index-type-multi-key>` on the ``_id``
+field and the ``last`` field contained in the subdocument ``name``
+field:
+
+.. code-block:: javascript
+
+   { _id: 1, 'name.last': 1 }
+
+When passed as an argument to the :method:`ensureIndex()
+<db.collection.ensureIndex()>` method, the index documents specifies
+the index to create:
+
+.. code-block:: javascript
+
+   db.csbios.ensureIndex( { _id: 1, 'name.last': 1 } )
+
+.. _documents-sort-order:
+
+Sort Order Specification Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The sort order documents specify the order of documents that a
+:method:`query() <db.collection.find()>` returns. Pass sort order
+specification documents as an argument to the :method:`sort()
+<cursor.sort()>` method. See the :method:`sort() <cursor.sort()>` page
+for more information on sorting.
+
+The sort order specifications contain field and value pairs, in the following
+form:
+
+.. code-block:: javascript
+
+   { field: value }
+
+- ``field`` is the field by which to sort documents.
+
+- ``value`` is either 1 for ascending or -1 for descending.
+
+The following document specifies the sort order using the fields from a
+sub-document ``name`` first sort by the ``last`` field ascending, then
+by the ``first`` field also ascending:
+
+.. code-block:: javascript
+
+   { 'name.last': 1, 'name.first': 1 }
+
+When passed as an argument to the :method:`sort() <cursor.sort()>`
+method, the sort order document sorts the results of the
+:method:`find() <db.collection.find()>` method:
+
+.. code-block:: javascript
+
+   db.csbios.find().sort( { 'name.last': 1, 'name.first': 1 } )
