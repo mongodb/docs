@@ -464,7 +464,7 @@ PDFLATEXCOMMAND = TEXINPUTS=".:$(branch-output)/latex/:" pdflatex --interaction 
 %.pdf:%.tex
 	@echo [pdf]: pdf compilation started at `date`.
 	@touch $(basename $@)-pdflatex.log
-	@$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<' >> $(basename $@)-pdflatex.log
+	@-$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<' >> $(basename $@)-pdflatex.log
 	@echo [pdf]: \(1/4\) pdflatex $<
 	@-makeindex -s $(branch-output)/latex/python.ist '$(basename $<).idx' >> $(basename $@)-pdflatex.log 2>&1
 	@echo [pdf]: \(2/4\) Indexing: $(basename $<).idx
