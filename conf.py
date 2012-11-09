@@ -182,10 +182,8 @@ htmlhelp_basename = 'MongoDBdoc'
 latex_documents = [
 #   (source start file, target name, title, author, documentclass [howto/manual]).
     ('contents', 'MongoDB.tex', u'MongoDB Documentation', u'MongoDB Documentation Project', 'manual'),
-    ('use-cases', 'MongoDB-use-cases.tex', u'MongoDB Use Cases', u'MongoDB Documentation Project', 'manual'),
+    ('meta/use-cases', 'MongoDB-use-cases.tex', u'MongoDB Use Cases', u'MongoDB Documentation Project', 'howto'),
     ('meta/reference', 'MongoDB-reference.tex', u'MongoDB Reference Manual', u'MongoDB Documentation Project', 'manual'),
-#    ('applications/use-cases/index', 'MongoDB-use-case-studies.tex', u'MongoDB Use Case Studies ', u'MongoDB Documentation Project', 'manual'),
-#    ('replication', 'MongoDB-replication.tex', u'MongoDB Replication ', u'MongoDB Documentation Project', 'manual'),
 ]
 
 latex_elements = { 'preamble': '\DeclareUnicodeCharacter{FF04}{\$} \DeclareUnicodeCharacter{FF0E}{.}',

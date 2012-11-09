@@ -183,7 +183,7 @@ $(branch-output)/singlehtml/contents.html:$(branch-output)/singlehtml
 # Building and Linking the LaTeX/PDF Output
 #
 .PHONY: manual-pdfs
-PDF_OUTPUT = $(public-branch-output)/MongoDB-Manual.pdf $(public-branch-output)/MongoDB-reference-manual.pdf 
+PDF_OUTPUT = $(public-branch-output)/MongoDB-Manual.pdf $(public-branch-output)/MongoDB-reference-manual.pdf $(public-branch-output)/MongoDB-use-cases-guide.pdf
 manual-pdfs:$(PDF_OUTPUT)
 
 $(branch-output)/latex/MongoDB.tex:latex
@@ -208,6 +208,17 @@ $(public-branch-output)/MongoDB-reference-manual-$(current-branch).pdf:$(branch-
 $(public-branch-output)/MongoDB-reference-manual.pdf:$(public-branch-output)/MongoDB-reference-manual-$(current-branch).pdf
 	@bin/create-link $(notdir $<) $(notdir $@) $@
 
+$(branch-output)/latex/MongoDB-use-cases.tex:latex
+	@sed $(SED_ARGS_FILE) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) -e $(LATEX_LINK_CORRECTION) $@
+	@echo [latex]: fixing '$@' TeX from the Sphinx output.
+$(branch-output)/latex/MongoDB-use-cases-guide.tex:$(branch-output)/latex/MongoDB-use-cases.tex
+	@$(PYTHONBIN) bin/copy-if-needed.py -i $< -o $@ -b pdf
+$(public-branch-output)/MongoDB-use-cases-guide-$(current-branch).pdf:$(branch-output)/latex/MongoDB-use-cases-guide.pdf
+	@cp $< $@
+	@echo [build]: migrated $@
+$(public-branch-output)/MongoDB-use-cases-guide.pdf:$(public-branch-output)/MongoDB-use-cases-guide-$(current-branch).pdf
+	@bin/create-link $(notdir $<) $(notdir $@) $@
+
 #
 # Building and Linking ePub Output
 #
@@ -224,7 +235,7 @@ $(public-branch-output)/MongoDB-Manual.epub:$(public-branch-output)/MongoDB-Manu
 
 $(public-branch-output):$(branch-output)/dirhtml
 	@cp -R $</* $@
-	@rm -rf $@/meta/reference
+	@rm -rf $@/meta/reference $@/meta/use-cases
 	@echo [build]: migrated '$</*' to '$@'
 $(public-branch-output)/single:$(branch-output)/singlehtml
 	@mkdir -p $@
@@ -481,7 +492,7 @@ pdfs:$(subst .tex,.pdf,$(wildcard $(branch-output)/latex/*.tex))
 PDFLATEXCOMMAND = TEXINPUTS=".:$(branch-output)/latex/:" pdflatex --interaction batchmode --output-directory $(branch-output)/latex/
 
 %.pdf:%.tex
-	@echo [pdf]: pdf compilation started at `date`.
+	@echo [pdf]: pdf compilation of $@, started at `date`.
 	@touch $(basename $@)-pdflatex.log
 	@-$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<' >> $(basename $@)-pdflatex.log
 	@echo [pdf]: \(1/4\) pdflatex $<
@@ -492,7 +503,7 @@ PDFLATEXCOMMAND = TEXINPUTS=".:$(branch-output)/latex/:" pdflatex --interaction 
 	@$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<' >> $(basename $@)-pdflatex.log
 	@echo [pdf]: \(4/4\) pdflatex $<
 	@echo [pdf]: see '$(basename $@)-pdflatex.log' for a full report of the pdf build process.
-	@echo [pdf]: pdf compilation complete at `date`.
+	@echo [pdf]: pdf compilation of $@, complete at `date`.
 
 ##########################################################################
 #
