@@ -319,7 +319,7 @@ clean-all:
 ######################################################################
 
 .PHONY: html dirhtml singlehtml epub sitemap
-html:
+html:pre-build-dependencies
 	@echo [html]: build starting at `date`.
 	@mkdir -p $(branch-output)/html
 	@echo [html]: created $(branch-output)/html
@@ -375,8 +375,7 @@ $(branch-output)/sitemap.xml.gz:$(public-output)/manual
 # helpers for compressing man pages
 UNCOMPRESSED_MAN := $(wildcard $(branch-output)/man/*.1)
 COMPRESSED_MAN := $(subst .1,.1.gz,$(UNCOMPRESSED_MAN))
-
-man:
+man:pre-build-dependencies
 	@echo [man]: starting man build at `date`.
 	@mkdir -p $(branch-output)/man
 	@echo [build]: created $(branch-output)/man
@@ -392,19 +391,19 @@ $(branch-output)/man/%.1.gz: $(branch-output)/man/%.1
 ######################################################################
 #
 # Build Targets for Draft Build.
-
+#
 ######################################################################
 
 .PHONY: aspirational aspiration draft draft-pdf draft-pdfs
 aspiration:draft
 aspirational:draft
-draft:
+draft:pre-build-dependencies
 	@echo [draft]: draft-html started at `date`.
 	@mkdir -p $(branch-output)/draft
 	@echo [draft]: created $(branch-output)/draft
 	$(SPHINXBUILD) -b html $(DRAFTSPHINXOPTS) $(branch-output)/draft
 	@echo [draft]: draft-html build finished at `date`.
-draft-latex:
+draft-latex:pre-build-dependencies
 	@echo [draft]: draft-latex build started at `date`.
 	@mkdir -p $(branch-output)/draft-latex
 	@echo [draft]: created $(branch-output)/draft-latex
@@ -414,7 +413,6 @@ draft-latex:
 draft-pdf:$(subst .tex,.pdf,$(wildcard $(branch-output)/draft-latex/*.tex))
 draft-pdfs:draft-latex draft-pdf
 
-
 ##########################################################################
 #
 # Default Sphinx targets that are totally unused, but around just in case.
@@ -422,31 +420,31 @@ draft-pdfs:draft-latex draft-pdf
 ##########################################################################
 
 .PHONY: changes linkcheck json doctest
-json:
+json:pre-build-dependencies
 	@echo [json]: build started at `date`.
 	@mkdir -p $(branch-output)/json
 	@echo [json]: created $(branch-output)/json
 	$(SPHINXBUILD) -b json $(ALLSPHINXOPTS) $(branch-output)/json
 	@echo [json]: build finished at `date`.
-gettext:
+gettext:pre-build-dependencies
 	@echo [gettext]: build started at `date`.
 	@mkdir -p $(branch-output)/gettext
 	@echo [gettext]: created $(branch-output)/gettext
 	$(SPHINXBUILD) -b gettext $(POSPHINXOPTS) $(branch-output)/gettext
 	@echo [gettext]: build finished at `date`.
-changes:
+changes:pre-build-dependencies
 	@echo [changes]: build started at `date`.
 	@mkdir -p $(branch-output)/changes
 	@echo [changes]: created $(branch-output)/changes
 	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) $(branch-output)/changes
 	@echo [changes]: build finished at `date`.
-linkcheck:
+linkcheck:pre-build-dependencies
 	@echo [link]: build started at `date`.
 	@mkdir -p $(branch-output)/linkcheck
 	@echo [link]: created $(branch-output)/linkcheck
 	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) $(branch-output)/linkcheck
 	@echo [link]: Link check complete at `date`. See $(branch-output)/linkcheck/output.txt.
-doctest:
+doctest:pre-build-dependencies
 	@echo [test]: build started at `date`.
 	@mkdir -p $(branch-output)/doctest
 	@echo [test]: created $(branch-output)/doctest
@@ -473,7 +471,6 @@ latex:
 latexpdf:latex
 	$(MAKE) -C $(branch-output)/latex all-pdf
 	@echo [pdf]: build complete.
-
 
 $(branch-output)/latex/%.tex:
 	@sed $(SED_ARGS_FILE) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) -e $(LATEX_LINK_CORRECTION) $@
