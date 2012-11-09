@@ -22,7 +22,7 @@ last-commit := $(shell git rev-parse --verify HEAD)
 timestamp := $(shell date +%Y%m%d%H%M)
 
 ifeq ($(current-branch),$(manual-branch))
-current-if-not-manual = $(manual-branch)
+current-if-not-manual = manual
 else
 current-if-not-manual = $(current-branch)
 endif
@@ -115,13 +115,14 @@ endif
 .PHONY: initial-dependencies static-components sphinx-components post-processing
 
 pre-build-dependencies:setup instalation-guides tables
+	@echo [build]: compleated all pre-build page generation operations
 initial-dependencies:$(public-branch-output)/MongoDB-Manual.epub
 	@echo [build]: completed the pre-publication routine for the $(manual-branch) branch of the Manual.
 static-components:$(public-output)/index.html $(public-output)/10gen-gpg-key.asc $(public-output)/10gen-security-gpg-key.asc $(public-branch-output)/.htaccess $(public-branch-output)/release.txt $(public-output)/osd.xml
 	@echo [build]: completed building and migrating all non-Sphinx components of the build.
 post-processing:error-pages links
 	@echo [build]: completed all post processing steps.
-sphinx-components:$(public-branch-output)/MongoDB-Manual.pdf $(public-branch-output)/single $(public-branch-output)/single/index.html $(public-branch-output)/ $(public-branch-output)/sitemap.xml.gz
+sphinx-components:manual-pdfs $(public-branch-output)/single $(public-branch-output)/single/index.html $(public-branch-output) $(public-branch-output)/sitemap.xml.gz
 	@echo [build]: completed the publication routine for all Sphinx Components of the Manual Build.
 
 #
@@ -179,19 +180,37 @@ $(branch-output)/singlehtml:singlehtml
 $(branch-output)/singlehtml/contents.html:$(branch-output)/singlehtml
 
 #
-# Building and Linking the ePub and LaTeX Builds.
+# Building and Linking the LaTeX/PDF Output
 #
+.PHONY: manual-pdfs
+PDF_OUTPUT = $(public-branch-output)/MongoDB-Manual.pdf $(public-branch-output)/MongoDB-reference-manual.pdf 
+manual-pdfs:$(PDF_OUTPUT)
+
 $(branch-output)/latex/MongoDB.tex:latex
-$(branch-output)/latex/MongoDB.pdf:$(branch-output)/latex/MongoDB.tex
+	@sed $(SED_ARGS_FILE) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) -e $(LATEX_LINK_CORRECTION) $@
+	@echo [latex]: fixing '$@' TeX from the Sphinx output.
 $(branch-output)/latex/MongoDB-Manual.tex:$(branch-output)/latex/MongoDB.tex
 	@$(PYTHONBIN) bin/copy-if-needed.py -i $< -o $@ -b pdf
-$(branch-output)/latex/MongoDB-Manual.pdf:$(branch-output)/latex/MongoDB-Manual.tex
 $(public-branch-output)/MongoDB-Manual-$(current-branch).pdf:$(branch-output)/latex/MongoDB-Manual.pdf
 	@cp $< $@
 	@echo [build]: migrated $@
 $(public-branch-output)/MongoDB-Manual.pdf:$(public-branch-output)/MongoDB-Manual-$(current-branch).pdf
 	@bin/create-link $(notdir $<) $(notdir $@) $@
 
+$(branch-output)/latex/MongoDB-reference.tex:latex
+	@sed $(SED_ARGS_FILE) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) -e $(LATEX_LINK_CORRECTION) $@
+	@echo [latex]: fixing '$@' TeX from the Sphinx output.
+$(branch-output)/latex/MongoDB-reference-manual.tex:$(branch-output)/latex/MongoDB-reference.tex
+	@$(PYTHONBIN) bin/copy-if-needed.py -i $< -o $@ -b pdf
+$(public-branch-output)/MongoDB-reference-manual-$(current-branch).pdf:$(branch-output)/latex/MongoDB-reference-manual.pdf
+	@cp $< $@
+	@echo [build]: migrated $@
+$(public-branch-output)/MongoDB-reference-manual.pdf:$(public-branch-output)/MongoDB-reference-manual-$(current-branch).pdf
+	@bin/create-link $(notdir $<) $(notdir $@) $@
+
+#
+# Building and Linking ePub Output
+#
 $(branch-output)/epub/MongoDB.epub:epub
 $(public-branch-output)/MongoDB-Manual-$(current-branch).epub:$(branch-output)/epub/MongoDB.epub
 	@cp $< $@
@@ -203,8 +222,9 @@ $(public-branch-output)/MongoDB-Manual.epub:$(public-branch-output)/MongoDB-Manu
 # Migrating and processing the dirhtml and singlehtml as needed.
 #
 
-$(public-branch-output)/:$(branch-output)/dirhtml
+$(public-branch-output):$(branch-output)/dirhtml
 	@cp -R $</* $@
+	@rm -rf $@/meta/reference
 	@echo [build]: migrated '$</*' to '$@'
 $(public-branch-output)/single:$(branch-output)/singlehtml
 	@mkdir -p $@
@@ -219,7 +239,7 @@ $(public-branch-output)/single/index.html:$(branch-output)/singlehtml/contents.h
 	@sed $(SED_ARGS_FILE) -e 's/href="contents.html/href="index.html/g' \
 			      -e 's/name="robots" content="index"/name="robots" content="noindex"/g' \
 			      -e 's/(href=")genindex.html"/\1..\/genindex\/"/g' $@
-	@echo [SINGLE]: generating and processing '$@' page
+	@echo [single]: generating and processing '$@' page
 
 # Deployment related work for the non-Sphinx aspects of the build.
 $(public-branch-output)/release.txt:$(public-output)/manual
@@ -439,6 +459,9 @@ doctest:
 #
 ######################################################################
 
+LATEX_CORRECTION = "s/(index|bfcode)\{(.*!*)*--(.*)\}/\1\{\2-\{-\}\3\}/g"
+LATEX_LINK_CORRECTION = "s%\\\code\{/%\\\code\{http://docs.mongodb.org/$(current-if-not-manual)/%g"
+
 .PHONY:pdfs latex latexpdf
 
 latex:
@@ -451,10 +474,9 @@ latexpdf:latex
 	$(MAKE) -C $(branch-output)/latex all-pdf
 	@echo [pdf]: build complete.
 
-LATEX_CORRECTION = "s/(index|bfcode)\{(.*!*)*--(.*)\}/\1\{\2-\{-\}\3\}/g"
 
 $(branch-output)/latex/%.tex:
-	@sed $(SED_ARGS_FILE) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) $@
+	@sed $(SED_ARGS_FILE) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) -e $(LATEX_LINK_CORRECTION) $@
 	@echo [latex]: fixing '$@' TeX from the Sphinx output
 
 pdfs:$(subst .tex,.pdf,$(wildcard $(branch-output)/latex/*.tex))
