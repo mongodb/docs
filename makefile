@@ -182,7 +182,7 @@ $(branch-output)/singlehtml/contents.html:$(branch-output)/singlehtml
 # Building and Linking the ePub and LaTeX Builds.
 #
 $(branch-output)/latex/MongoDB.tex:latex
-$(branch-output)/latex/MongoDB.pdf:$(branch-output)/latex/MongoDB-Manual.tex
+$(branch-output)/latex/MongoDB.pdf:$(branch-output)/latex/MongoDB.tex
 $(branch-output)/latex/MongoDB-Manual.tex:$(branch-output)/latex/MongoDB.tex
 	@$(PYTHONBIN) bin/copy-if-needed.py -i $< -o $@ -b pdf
 $(branch-output)/latex/MongoDB-Manual.pdf:$(branch-output)/latex/MongoDB-Manual.tex
@@ -210,10 +210,10 @@ $(public-branch-output)/single:$(branch-output)/singlehtml
 	@mkdir -p $@
 	@cp -R $</* $@
 	@rm -f $@/contents.html
-	@echo [SINGLE]: migrated singlehtml files '$@'
+	@echo [single]: migrated singlehtml files '$@'
 $(public-branch-output)/single/search.html:$(branch-output)/dirhtml/search/index.html
 	@cp $< $@
-	@echo [SINGLE]: migrated search page '$@'
+	@echo [single]: migrated search page '$@'
 $(public-branch-output)/single/index.html:$(branch-output)/singlehtml/contents.html
 	@cp $< $@
 	@sed $(SED_ARGS_FILE) -e 's/href="contents.html/href="index.html/g' \
@@ -444,7 +444,7 @@ doctest:
 latex:
 	@echo [latex]: starting TeX file generation at `date`.
 	@mkdir -p $(branch-output)/latex
-	@echo [test]: created $(branch-output)/latex
+	@echo [latex]: created $(branch-output)/latex
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(branch-output)/latex
 	@echo [latex]: TeX file generated at `date`.
 latexpdf:latex
@@ -463,15 +463,16 @@ PDFLATEXCOMMAND = TEXINPUTS=".:$(branch-output)/latex/:" pdflatex --interaction 
 
 %.pdf:%.tex
 	@echo [pdf]: pdf compilation started at `date`.
-	@$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<' >|$@.log
+	@touch $(basename $@)-pdflatex.log
+	@$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<' >> $(basename $@)-pdflatex.log
 	@echo [pdf]: \(1/4\) pdflatex $<
-	@-makeindex -s $(branch-output)/latex/python.ist '$(basename $<).idx' >>$@.log 2>&1
+	@-makeindex -s $(branch-output)/latex/python.ist '$(basename $<).idx' >> $(basename $@)-pdflatex.log 2>&1
 	@echo [pdf]: \(2/4\) Indexing: $(basename $<).idx
-	@$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<' >>$@.log
+	@$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<' >> $(basename $@)-pdflatex.log
 	@echo [pdf]: \(3/4\) pdflatex $<
-	@$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<' >>$@.log
+	@$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<' >> $(basename $@)-pdflatex.log
 	@echo [pdf]: \(4/4\) pdflatex $<
-	@echo [pdf]: see '$@.log' for a full report of the pdf build process.
+	@echo [pdf]: see '$(basename $@)-pdflatex.log' for a full report of the pdf build process.
 	@echo [pdf]: pdf compilation complete at `date`.
 
 ##########################################################################
