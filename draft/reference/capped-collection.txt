@@ -1,0 +1,205 @@
+=================
+Capped Collection
+=================
+
+.. default-domain:: mongodb
+
+:term:`Capped collections <capped collection>` are fixed-size
+collections. Once they reach their fixed size, capped collections
+automatically overwrite their oldest entries. The :term:`oplog.rs <oplog>`
+collection use in replication is an example of a capped collection.
+
+Capped collections have a high performance, automatic,
+first-in-first-out feature based on insertion order. Once the
+collection's allocated space is fully used, newly added documents
+replace the oldest documents in the collection.
+
+Capped collections automatically maintain insertion order for the
+documents in the collection. This is very powerful for certain use
+cases, such as logging.
+
+You cannot shard a capped collection.
+
+Examples of Capped Collections
+------------------------------
+
+The following are scenarios in which you might want to use a capped collection:
+
+- Logging
+
+  Capped collections provide a high-performance means for storing
+  logging documents in the database. Inserting documents in an unindexed
+  capped collection is close to the speed of logging to a
+  filesystem. Additionally, with the built-in FIFO mechanism, you are
+  not at risk of using excessive disk space for the logging.
+
+- Automatic Maintaining of Insertion Order
+
+  Capped collections keep documents in their insertion order
+  automatically, with no index being required for this property. The
+  logging example above is a good example of a case where keeping items
+  in order is important.
+
+- Caching
+
+  If you wish to cache a small number of documents in the database,
+  perhaps cached computations of information, the capped tables provide
+  a convenient mechanism for this. Note that for this application you
+  typically use an index on the capped table as there are be more reads
+  than writes.
+
+- Automatic Age Out
+
+  If you know you want data to automatically "roll out" over time as it
+  ages, a capped collection can be an easier way to support than writing
+  manual removal via cron scripts. Ejection from the capped collection
+  is also inexpensive compared to explicit remove operations.
+
+Recommendations and Restrictions
+--------------------------------
+
+You may insert new documents in the capped collection.
+
+You may update the existing documents in the collection. However, the
+documents must not grow in size. If they do, the update fails.
+
+Note that for versions prior to 2.2, if perform updates, you likely want
+to declare an appropriate index as pre-2.2 versions do not create an
+``_id`` index by default.
+
+You cannot delete documents from a capped collection. To remove all
+records from the collection, use the :method:`drop()
+<db.collection.drop()>` method. After the drop you must explicitly
+recreate the collection.
+
+Capped collection are not shard-able.
+
+.. versionchanged:: 2.2
+
+All :term:`capped collections <capped collection>` have an ``_id`` field
+by default and have indexes on the ``_id`` field, *with the exception*
+of the capped collections in the ``local`` :term:`database`. This change
+affects capped collections created with 2.2 instances and does not
+affect existing capped collections.
+
+.. warning::
+
+   Prior to 2.2, capped collections do not have a unique index on
+   ``_id``. However, replication refers to each document by its ``_id``,
+   so if you are lacking an index on ``_id``, replication can fall
+   behind or stall. Thus, if you are using a capped collections and
+   replication, you should create a unique index on ``_id``. Having
+   a duplicate ``_id`` in your capped collection also can confuse
+   replication, so it is important to ensure uniqueness by using the
+   default client-generated MongoDB ``_id`` or the ``autoIndexId``
+   field, as explained in :ref:`capped-collections-options`.
+
+When appropriate, do not create indexes on a capped collection. If the
+collection is written to much more than it is read from, it is
+better to have no indexes. Note that you may create indexes on a capped
+collection; however, you are then moving from "log speed" inserts to
+"database speed" inserts -- that is, it still is quite fast by
+database standards.
+
+Use natural ordering to retrieve the most recently inserted elements
+from the collection efficiently. This is (somewhat) analogous to tail on
+a log file.
+
+Create a Capped Collection
+--------------------------
+
+Unlike a standard collection, you must explicitly create a capped
+collection, specifying a collection size in bytes. The collection's data
+space is then preallocated. Note that the size specified includes
+database headers.
+
+.. code-block:: javascript
+
+   db.createCollection("mycoll", {capped:true, size:100000})
+
+.. seealso:: :method:`db.createCollection()`
+
+.. _capped-collections-options:
+
+Options
+```````
+
+When you create a capped collection, you can set the following options:
+
+- ``size``
+
+  The size, in bytes, of the capped collection. This must be specified.
+
+- ``max``
+
+  This caps the number of documents in the collection. This setting is optional.
+  Once the limit is reached, items roll out on a least recently inserted
+  basis.
+
+  When specifying a cap on the number of documents, make sure you set
+  the ``size`` parameter to leave room for your chosen number of
+  documents so that items don't roll out faster than expected. You can
+  use the :method:`validate() <db.collection.validate()>` method to see
+  how much space an existing collection uses and from that estimate your
+  size needs. Consider the following sequence of commands:
+
+  .. code-block:: javascript
+
+     db.createCollection("mycoll", {capped:true, size:100000, max:100});
+     db.mycoll.validate();
+
+- ``autoIndexId``
+
+  The autoIndexId field may be set to ``true`` or ``false`` to explicitly enable
+  or disable automatic creation of a unique key index on the ``_id``
+  field. Beginning with MongoDB version 2.2, ``autoIndexId`` is enabled by
+  default. Prior to 2.2 it is disabled by default.
+
+.. seealso:: :ref:`collection-commands`
+
+Query a Capped Collection
+-------------------------
+
+If you perform a :method:`find() <db.collection.find()>` on a capped
+collection with no ordering specified, the documents are returned in
+insertion order.
+
+To retrieve documents in reverse insertion order, issue :method:`find()
+<db.collection.find()>` along with the :method:`sort() <cursor.sort()>`
+method with the ``$natural`` parameter set to ``-1``, as shown in the
+following example:
+
+.. code-block:: javascript
+
+   db.cappedCollection.find().sort({$natural:-1})
+
+Check if a Collection is Capped
+-------------------------------
+
+You can check if a collection is capped by using the ``isCapped()`` method:
+
+.. code-block:: javascript
+
+   db.collection.isCapped()
+
+Convert a Collection to Capped
+------------------------------
+
+You can convert a non-capped collection to a capped collection with
+the :dbcommand:`convertToCapped` command:
+
+.. code-block:: javascript
+
+   db.runCommand({"convertToCapped": "mycoll", size: 100000});
+
+Note that the size is in bytes.
+
+No indexes are created when the new capped collection is. If you
+want the old indexes you must recreate them after it has been
+converted.
+
+Automatically Remove Data After a Specified Period of Time
+----------------------------------------------------------
+
+To automatically remove data, use MongoDB’s :term:`TTL` feature, as
+described in :ref:`/tutorial/expire-data`.
