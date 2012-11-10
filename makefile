@@ -81,7 +81,7 @@ push-all:publish
 
 publish-if-up-to-date:
 	@bin/published-build-check $(current-branch) $(last-commit)
-	$(MAKE) publish
+	@$(MAKE) publish
 
 publish:initial-dependencies pre-build-dependencies
 	$(MAKE) sphinx-components
@@ -343,7 +343,6 @@ $(branch-output)/sitemap.xml.gz:$(public-output)/manual
 	@$(SITEMAPBUILD) --testing --config=conf-sitemap.xml 2>&1 >> $(branch-output)/sitemap-build.log
 	@mv build/sitemap.xml.gz $@
 	@echo [sitemap]: sitemap built at `date`.
-
 
 ######################################################################
 #

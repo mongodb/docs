@@ -25,7 +25,7 @@ class MakefileBuilder(object):
     def job(self, job):
         self.makefile.append('\t' + job + '\n')
 
-    def print(self):
+    def print_content(self):
         for line in self.makefile:
             print(line)
 

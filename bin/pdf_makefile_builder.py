@@ -47,7 +47,7 @@ class MongoDBManualPdfMakefile(object):
             for item in makefile_builder(pdfs[0], pdfs[1]):
                 self.output.append(item)
 
-    def print(self):
+    def print_content(self):
         for line in self.output:
             print(line)
 
