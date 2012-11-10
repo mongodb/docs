@@ -30,29 +30,30 @@ def makefile_builder(name, tag):
     content.target('$(public-branch-output)/' + name_tagged + '.pdf:$(public-branch-output)/' + name_tagged + '-$(current-branch).pdf')
     content.job('@bin/create-link $(notdir $<) $(notdir $@) $@')
 
-    content.section_break('Variables, Interaction, and Integration')
+    content.comment('adding ' + name + '.pdf to the build dependency.')
     content.append_var('PDF_OUTPUT', '$(public-branch-output)/' + name_tagged + '.pdf')
 
     return content.makefile
 
 class MongoDBManualPdfMakefile(object):
-    def __init__(self):
-        self.output = []
+    def __init__(self, makefile=[]):
+        self.makefile = makefile
         for pdfs in pdfs_to_build:
             for item in makefile_builder(pdfs[0], pdfs[1]):
-                self.output.append(item)
+                self.makefile.append(item)
 
-        self.output.append('manual-pdfs:$(PDF_OUTPUT)')
+        self.makefile.append('\n')
+        self.makefile.append('manual-pdfs:$(PDF_OUTPUT)')
 
     def print_content(self):
-        for line in self.output:
-            print(line)
+        for line in self.makefile:
+            print(line.rstrip('\n'))
 
     def write(self, filename):
         with open(filename, 'w') as f:
-            for line in self.output:
+            for line in self.makefile:
                 f.write(line)
-
+            f.write('\n')
         print('[meta-build]: built "' + sys.argv[1] + '" to specify pdf builders.' )
 
 def main():

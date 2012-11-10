@@ -26,10 +26,10 @@ class MakefileBuilder(object):
         self.makefile.append(target + '\n')
 
     def var(self, variable, value):
-        self.makefile.append(variable + '=' + value + '\n')
+        self.makefile.append(variable + ' = ' + value + '\n')
 
     def append_var(self, variable, value):
-        self.makefile.append(variable + '+=' + value + '\n')
+        self.makefile.append(variable + ' += ' + value + '\n')
 
     def job(self, job):
         self.makefile.append('\t' + job + '\n')
