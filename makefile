@@ -7,7 +7,7 @@ MAKEFLAGS += --no-print-directory
 include bin/makefile.compatibility
 include bin/makefile.tables
 
-# Build directory tweaking.goq
+# Build directory tweaking.
 output = build
 public-output = $(output)/public
 branch-output = $(output)/$(current-branch)
@@ -42,6 +42,7 @@ PAPEROPT_letter = -D latex_paper_size=letter
 ALLSPHINXOPTS = -q -d $(branch-output)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
 POSPHINXOPTS = -q -d $(branch-output)/doctrees-gettext $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
 DRAFTSPHINXOPTS = -q -d $(branch-output)/draft-doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) draft
+
 
 .PHONY: publish help clean push-dc1 push-dc2
 
@@ -109,6 +110,7 @@ endif
 # Targets that should/need only be accessed in publication
 #
 ######################################################################
+
 
 # Deployment targets to kick off the rest of the build process. Only
 # access these targets through the ``publish`` target.
@@ -182,10 +184,11 @@ $(branch-output)/singlehtml/contents.html:$(branch-output)/singlehtml
 
 # Building and Linking the LaTeX/PDF Output
 #
+.PHONY: manual-pdfs
 
+-include build/makefile.pdfs
 $(output)/makefile.pdfs:bin/pdf_makefile_builder.py
 	@bin/pdf_makefile_builder.py $@
--include $(output)/makefile.pdfs
 
 #
 # Building and Linking ePub Output

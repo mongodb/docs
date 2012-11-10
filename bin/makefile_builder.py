@@ -16,11 +16,20 @@ class MakefileBuilder(object):
     def __init__(self):
         self.makefile = []
 
-    def target_break(self, name):
+    def section_break(self, name):
         self.makefile.append('\n\n########## ' + name + ' ##########\n\n')
+
+    def comment(self, comment):
+        self.makefile.append('\n# ' + comment + '\n')
 
     def target(self, target):
         self.makefile.append(target + '\n')
+
+    def var(self, variable, value):
+        self.makefile.append(variable + '=' + value + '\n')
+
+    def append_var(self, variable, value):
+        self.makefile.append(variable + '+=' + value + '\n')
 
     def job(self, job):
         self.makefile.append('\t' + job + '\n')
