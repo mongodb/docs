@@ -1,47 +1,68 @@
 #!/usr/bin/python
 
 import sys
-
-TARGET = '\n'
-JOB = '\n\t'
+from makefile_builder import MakefileBuilder
 
 pdfs_to_build = [
 #    (root-name, tag)
-    ('MongoDB', 'manual'),
+    ('MongoDB', 'Manual'),
     ('MongoDB-reference', 'manual'),
     ('MongoDB-use-cases', 'guide'),
 ]
 
-def makefile_target(name, tag):
+def makefile_builder(name, tag):
     name_tagged = name + '-' + tag
 
-    makefile_contents = (      
-        TARGET + '$(branch-output)/latex/' + name + '.tex:latex' + 
-        JOB + '@sed $(SED_ARGS_FILE) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) -e $(LATEX_LINK_CORRECTION) $@' +
-        JOB + '@echo [latex]: fixing $@ TeX from the Sphinx output.' +
-        TARGET + '$(branch-output)/latex/' + name_tagged + '.tex:$(branch-output)/latex/' + name + '.tex' +
-        JOB + '@$(PYTHONBIN) bin/copy-if-needed.py -i $< -o $@ -b pdf' +
-        TARGET + '$(public-branch-output)/' + name_tagged + '-$(current-branch).pdf:$(branch-output)/latex/' + name_tagged + '.pdf' +
-        JOB + '@cp $< $@' + 
-        JOB + '@echo [build]: migrated $@' +
-        TARGET + '$(public-branch-output)/' + name_tagged + '.pdf:$(public-branch-output)/' + name_tagged + '-$(current-branch).pdf' + 
-        JOB + '@bin/create-link $(notdir $<) $(notdir $@) $@'  
-        )
+    content = MakefileBuilder()
 
-    return makefile_contents
+    content.target_break(name)
+    content.target('$(branch-output)/latex/' + name + '.tex:latex')
+    content.job('@sed $(SED_ARGS_FILE) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) -e $(LATEX_LINK_CORRECTION) $@')
+    content.job('@echo [latex]: fixing $@ TeX from the Sphinx output.')
 
-def main(): 
+    content.target('$(branch-output)/latex/' + name_tagged + '.tex:$(branch-output)/latex/' + name + '.tex')
+    content.job('@$(PYTHONBIN) bin/copy-if-needed.py -i $< -o $@ -b pdf')
+
+    content.target('$(public-branch-output)/' + name_tagged + '-$(current-branch).pdf:$(branch-output)/latex/' + name_tagged + '.pdf')
+    content.job('@cp $< $@')
+    content.job('@echo [build]: migrated $@')
+
+    content.target('$(public-branch-output)/' + name_tagged + '.pdf:$(public-branch-output)/' + name_tagged + '-$(current-branch).pdf')
+    content.job('@bin/create-link $(notdir $<) $(notdir $@) $@')
+
+    return content.makefile
+
+def makefile_interactors(pdfs):
+    output = ['.PHONY: manual-pdfs', '\n', 'manual-pdfs:$(PDF_OUTPUT)']
+
+    for pdf in pdfs:
+        output.append('\nPDF_OUTPUT += $(public-branch-output)/' + pdf[0] + '-' + pdf[1] + '.pdf')
+
+    return output
+
+class MongoDBManualPdfMakefile(object):
+    def __init__(self):
+        self.output = makefile_interactors(pdfs_to_build)
+        for pdfs in pdfs_to_build:
+            for item in makefile_builder(pdfs[0], pdfs[1]):
+                self.output.append(item)
+
+    def print(self):
+        for line in self.output:
+            print(line)
+
+    def write(self, filename):
+        with open(filename, 'w') as f:
+            for line in self.output:
+                f.write(line)
+
+        print('[meta-build]: built "' + sys.argv[1] + '" to specify pdf builders.' )
+
+def main():
     output = []
 
-    for pdfs in pdfs_to_build: 
-        output.append(makefile_target(pdfs[0], pdfs[1]))
-        output.append('\n\n')
-
-    with open(sys.argv[1], 'w') as f: 
-        for line in output:
-            f.write(line)
-
-    print('[meta-build]: built "' + sys.argv[1] + '" to specify pdf builders.' )
+    makefile = MongoDBManualPdfMakefile()
+    makefile.write(sys.argv[1])
 
 if __name__ == '__main__':
     main()

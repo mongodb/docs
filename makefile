@@ -179,45 +179,13 @@ $(branch-output)/singlehtml:singlehtml
 	@echo [build]: touched $@ to ensure proper migration.
 $(branch-output)/singlehtml/contents.html:$(branch-output)/singlehtml
 
-#
+
 # Building and Linking the LaTeX/PDF Output
 #
-.PHONY: manual-pdfs
-PDF_OUTPUT = $(public-branch-output)/MongoDB-Manual.pdf $(public-branch-output)/MongoDB-reference-manual.pdf $(public-branch-output)/MongoDB-use-cases-guide.pdf
-manual-pdfs:$(PDF_OUTPUT)
 
-$(branch-output)/latex/MongoDB.tex:latex
-	@sed $(SED_ARGS_FILE) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) -e $(LATEX_LINK_CORRECTION) $@
-	@echo [latex]: fixing '$@' TeX from the Sphinx output.
-$(branch-output)/latex/MongoDB-Manual.tex:$(branch-output)/latex/MongoDB.tex
-	@$(PYTHONBIN) bin/copy-if-needed.py -i $< -o $@ -b pdf
-$(public-branch-output)/MongoDB-Manual-$(current-branch).pdf:$(branch-output)/latex/MongoDB-Manual.pdf
-	@cp $< $@
-	@echo [build]: migrated $@
-$(public-branch-output)/MongoDB-Manual.pdf:$(public-branch-output)/MongoDB-Manual-$(current-branch).pdf
-	@bin/create-link $(notdir $<) $(notdir $@) $@
-
-$(branch-output)/latex/MongoDB-reference.tex:latex
-	@sed $(SED_ARGS_FILE) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) -e $(LATEX_LINK_CORRECTION) $@
-	@echo [latex]: fixing '$@' TeX from the Sphinx output.
-$(branch-output)/latex/MongoDB-reference-manual.tex:$(branch-output)/latex/MongoDB-reference.tex
-	@$(PYTHONBIN) bin/copy-if-needed.py -i $< -o $@ -b pdf
-$(public-branch-output)/MongoDB-reference-manual-$(current-branch).pdf:$(branch-output)/latex/MongoDB-reference-manual.pdf
-	@cp $< $@
-	@echo [build]: migrated $@
-$(public-branch-output)/MongoDB-reference-manual.pdf:$(public-branch-output)/MongoDB-reference-manual-$(current-branch).pdf
-	@bin/create-link $(notdir $<) $(notdir $@) $@
-
-$(branch-output)/latex/MongoDB-use-cases.tex:latex
-	@sed $(SED_ARGS_FILE) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) -e $(LATEX_LINK_CORRECTION) $@
-	@echo [latex]: fixing '$@' TeX from the Sphinx output.
-$(branch-output)/latex/MongoDB-use-cases-guide.tex:$(branch-output)/latex/MongoDB-use-cases.tex
-	@$(PYTHONBIN) bin/copy-if-needed.py -i $< -o $@ -b pdf
-$(public-branch-output)/MongoDB-use-cases-guide-$(current-branch).pdf:$(branch-output)/latex/MongoDB-use-cases-guide.pdf
-	@cp $< $@
-	@echo [build]: migrated $@
-$(public-branch-output)/MongoDB-use-cases-guide.pdf:$(public-branch-output)/MongoDB-use-cases-guide-$(current-branch).pdf
-	@bin/create-link $(notdir $<) $(notdir $@) $@
+$(output)/makefile.pdfs:bin/pdf_makefile_builder.py
+	@bin/pdf_makefile_builder.py $@
+-include $(output)/makefile.pdfs
 
 #
 # Building and Linking ePub Output
