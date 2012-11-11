@@ -71,12 +71,12 @@ help:
 
 push:publish-if-up-to-date
 	@echo [build]: copying the new $(current-branch) build to the web servers.
-	$(MAKE) MODE='push' push-dc1 push-dc2
+	@$(MAKE) MODE='push' push-dc1 push-dc2
 	@echo [build]: deployed a new build of the $(current-branch) branch of the Manual.
 
 push-all:publish
 	@echo [build]: copying the full docs site to the web servers.
-	$(MAKE) MODE='push' push-all-dc1 push-all-dc2
+	@$(MAKE) MODE='push' push-all-dc1 push-all-dc2
 	@echo [build]: deployed a new build of the full Manual.
 
 publish-if-up-to-date:
@@ -84,8 +84,12 @@ publish-if-up-to-date:
 	@$(MAKE) publish
 
 publish:initial-dependencies pre-build-dependencies
-	$(MAKE) sphinx-components
-	$(MAKE) static-components post-processing
+	@echo [build]: starting build of sphinx components built at `date`
+	@$(MAKE) sphinx-components
+	@echo [build]: all sphinx components built at `date`
+	@echo [build]: starting build of all static components at `date`
+	@$(MAKE) static-components post-processing
+	@echo [build]: all static components built at `date`
 	@echo [build]: $(manual-branch) branch is succeessfully deployed to '$(public-output)'.
 
 #
@@ -116,15 +120,15 @@ endif
 .PHONY: initial-dependencies static-components sphinx-components post-processing
 
 pre-build-dependencies:setup instalation-guides tables
-	@echo [build]: compleated all pre-build page generation operations
+	@echo [build]: completed $@ buildstep.
 initial-dependencies:$(public-branch-output)/MongoDB-Manual.epub
-	@echo [build]: completed the pre-publication routine for the $(manual-branch) branch of the Manual.
+	@echo [build]: completed $@ buildstep.
 static-components:$(public-output)/index.html $(public-output)/10gen-gpg-key.asc $(public-output)/10gen-security-gpg-key.asc $(public-branch-output)/.htaccess $(public-branch-output)/release.txt $(public-output)/osd.xml
-	@echo [build]: completed building and migrating all non-Sphinx components of the build.
+	@echo [build]: completed $@ buildstep.
 post-processing:error-pages links
-	@echo [build]: completed all post processing steps.
+	@echo [build]: completed $@ buildstep.
 sphinx-components:manual-pdfs $(public-branch-output)/single $(public-branch-output)/single/index.html $(public-branch-output) $(public-branch-output)/sitemap.xml.gz
-	@echo [build]: completed the publication routine for all Sphinx Components of the Manual Build.
+	@echo [build]: completed $@ buildstep.
 
 #
 # Build the HTML components of the build.
@@ -156,7 +160,7 @@ source/includes/install-curl-release-osx-64.rst:
 	@echo [build]: \(re\)generated $@.
 
 # Initial build steps, exporting the current commit to the build.
-.PHONY:source/about.txt source/includes/hash.rst setup
+.PHONY:source/about.txt source/includes/hash.rst setup $(public-branch-output)/release.txt
 setup:source/includes/hash.rst
 	@mkdir -p $(public-branch-output)
 	@echo [build]: created $(public-branch-output)
@@ -167,6 +171,9 @@ source/includes/hash.rst:source/about.txt
 source/about.txt:
 	@touch $@
 	@echo [build]: touched $@ to ensure a clean build.
+$(public-branch-output)/release.txt:
+	@echo [build]: generating '$@' with current release hash.
+	@git rev-parse --verify HEAD >|$@
 
 # Establish basic dependencies.
 $(branch-output)/dirhtml:dirhtml
@@ -198,6 +205,7 @@ $(public-branch-output)/MongoDB-Manual-$(current-branch).epub:$(branch-output)/e
 	@echo [build]: migrated $@
 $(public-branch-output)/MongoDB-Manual.epub:$(public-branch-output)/MongoDB-Manual-$(current-branch).epub
 	@bin/create-link $(notdir $<) $(notdir $@) $@
+	@echo [symlink]: created a link at: $@
 
 #
 # Migrating and processing the dirhtml and singlehtml as needed.
@@ -223,16 +231,10 @@ $(public-branch-output)/single/index.html:$(branch-output)/singlehtml/contents.h
 	@echo [single]: generating and processing '$@' page
 
 # Deployment related work for the non-Sphinx aspects of the build.
-$(public-branch-output)/release.txt:$(public-output)/manual
-	@echo [build]: generating '$@' with current release hash.
-	@git rev-parse --verify HEAD >|$@
-$(public-output)/manual:
-	@bin/create-link $(manual-branch) manual $@
+
+# migrate simple static content.
 
 $(public-output)/index.html:themes/docs.mongodb.org/index.html
-	@cp $< $@
-	@echo [build]: migrated $@
-$(public-branch-output)/.htaccess:themes/docs.mongodb.org/.htaccess
 	@cp $< $@
 	@echo [build]: migrated $@
 $(public-output)/10gen-gpg-key.asc:themes/docs.mongodb.org/10gen-gpg-key.asc
@@ -241,10 +243,14 @@ $(public-output)/10gen-gpg-key.asc:themes/docs.mongodb.org/10gen-gpg-key.asc
 $(public-output)/10gen-security-gpg-key.asc:themes/docs.mongodb.org/10gen-security-gpg-key.asc
 	@cp $< $@
 	@echo [build]: migrated $@
+$(public-output)/osd.xml:themes/docs.mongodb.org/osd.xml
+	@cp $< $@
+	@echo [build]: migrated $@
+
 $(public-branch-output)/sitemap.xml.gz:$(branch-output)/sitemap.xml.gz
 	@cp $< $@
 	@echo [build]: migrated $@
-$(public-output)/osd.xml:themes/docs.mongodb.org/osd.xml
+$(public-branch-output)/.htaccess:themes/docs.mongodb.org/.htaccess
 	@cp $< $@
 	@echo [build]: migrated $@
 
@@ -256,37 +262,46 @@ error-pages: $(ERROR_PAGES)
 
 $(public-branch-output)/meta/401/index.html:$(branch-output)/dirhtml/meta/401/index.html
 	@sed $(SED_ARGS_FILE) "s@\.\./\.\./@http://docs.mongodb.org/manual/@" $@
-	@echo [web]: processed error page '$@'
+	@echo [web]: processed error page: $@
 $(public-branch-output)/meta/403/index.html:$(branch-output)/dirhtml/meta/403/index.html
 	@sed $(SED_ARGS_FILE) "s@\.\./\.\./@http://docs.mongodb.org/manual/@" $@
-	@echo [web]: processed error page '$@'
+	@echo [web]: processed error page: $@
 $(public-branch-output)/meta/404/index.html:$(branch-output)/dirhtml/meta/404/index.html
 	@sed $(SED_ARGS_FILE) "s@\.\./\.\./@http://docs.mongodb.org/manual/@" $@
-	@echo [web]: processed error page '$@'
+	@echo [web]: processed error page: $@
 $(public-branch-output)/meta/410/index.html:$(branch-output)/dirhtml/meta/410/index.html
 	@sed $(SED_ARGS_FILE) "s@\.\./\.\./@http://docs.mongodb.org/manual/@" $@
-	@echo [web]: processed error page '$@'
+	@echo [web]: processed error page: $@
 
+# Create symbolic links
 
-# Create symbolic links (other than $(public-output)/manual)
-
-LINKS = $(public-branch-output)/reference/reIndex $(public-branch-output)/tutorials $(public-branch-output)/reference/methods $(public-branch-output)/install-mongodb-on-red-hat-centos-or-fedora-linux
+LINKS = $(public-output)/manual $(public-branch-output)/reference/reIndex $(public-branch-output)/tutorials $(public-branch-output)/reference/methods $(public-branch-output)/install-mongodb-on-red-hat-centos-or-fedora-linux
 .PHONY: links $(LINKS)
 links: $(LINKS)
+
+$(public-output)/manual:
+	@bin/create-link $(manual-branch) manual $@
+	@echo [symlink]: created a link at: $@
 $(public-branch-output)/tutorials:
 	@bin/create-link tutorial $(notdir $@) $@
+	@echo [symlink]: created a link at: $@
 $(public-branch-output)/reference/methods:
 	@bin/create-link method $(notdir $@) $@
+	@echo [symlink]: created a link at: $@
 $(public-branch-output)/reference/reIndex:
 	@bin/create-link db.collection.reIndex $(notdir $@) $@
+	@echo [symlink]: created a link at: $@
 $(public-branch-output)/install-mongodb-on-red-hat-centos-or-fedora-linux:
 	@bin/create-link install-mongodb-on-redhat-centos-or-fedora-linux $(notdir $@) $@
+	@echo [symlink]: created a link at: $@
 
 # Clean up/removal targets.
 clean:
 	-rm -rf $(branch-output)/*
+	-rm -f build/makefile.pdfs
 clean-public:
 	-rm -rf $(public-output)/*
+	-rm -f build/makefile.pdfs
 clean-all:
 	-rm -rf $(output)/*
 
@@ -301,33 +316,36 @@ clean-all:
 
 .PHONY: html dirhtml singlehtml epub sitemap
 html:pre-build-dependencies
-	@echo [html]: build starting at `date`.
-	@mkdir -p $(branch-output)/html
-	@echo [html]: created $(branch-output)/html
-	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(branch-output)/html
-	@echo [html]: build complete at `date`.
+	@echo [$@]: build starting at `date`.
+	@mkdir -p $(branch-output)/$@
+	@echo [$@]: created $(branch-output)/$@
+	@echo [sphinx]: starting $@ build
+	@$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
+	@echo [$@]: build complete at `date`.
 dirhtml:
-	@echo [dirhtml]: build starting at `date`.
-	@mkdir -p $(branch-output)/dirhtml
-	@echo [dirhtml]: created $(branch-output)/dirhtml
-	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(branch-output)/dirhtml
-	@echo [dirhtml]: build complete at `date`.
+	@echo [$@]: build starting at `date`.
+	@mkdir -p $(branch-output)/$@
+	@echo [$@]: created $(branch-output)/$@
+	@echo [sphinx]: starting $@ build
+	@$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
+	@echo [$@]: build complete at `date`.
 singlehtml:
-	@echo [singlehtml]: build started at `date`.
-	@mkdir -p $(branch-output)/singlehtml
-	@echo [singlehtml]: created $(branch-output)/singlehtml
-	$(SPHINXBUILD) -b singlehtml $(ALLSPHINXOPTS) $(branch-output)/singlehtml
-	@echo [singlehtml]: build complete at `date`.
+	@echo [$@]: build started at `date`.
+	@mkdir -p $(branch-output)/$@
+	@echo [$@]: created $(branch-output)/$@
+	@echo [sphinx]: starting $@ build
+	@$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
+	@echo [$@]: build complete at `date`.
 
 epub-command = $(SPHINXBUILD) -b epub $(ALLSPHINXOPTS) $(branch-output)/epub
 epub-filter = sed $(SED_ARGS_REGEX) -e '/^WARNING: unknown mimetype.*ignoring$$/d' -e '/^WARNING: search index.*incomplete.$$/d'
 epub:pre-build-dependencies
-	@echo [epub]: starting epub build at `date`.
-	@mkdir -p $(branch-output)/epub
-	@echo [epub]: created $(branch-output)/epub
-	@echo $(epub-command)
+	@echo [$@]: starting build at `date`.
+	@mkdir -p $(branch-output)/$@
+	@echo [$@]: created $(branch-output)/$@
+	@echo [sphinx]: starting $@ build
 	@{ $(epub-command) 2>&1 1>&3 | $(epub-filter) 1>&2; } 3>&1
-	@echo [epub]: build complete at `date`.
+	@echo [$@]: build complete at `date`.
 
 ######################################################################
 #
@@ -356,11 +374,12 @@ $(branch-output)/sitemap.xml.gz:$(public-output)/manual
 UNCOMPRESSED_MAN := $(wildcard $(branch-output)/man/*.1)
 COMPRESSED_MAN := $(subst .1,.1.gz,$(UNCOMPRESSED_MAN))
 man:pre-build-dependencies
-	@echo [man]: starting man build at `date`.
-	@mkdir -p $(branch-output)/man
-	@echo [build]: created $(branch-output)/man
-	$(SPHINXBUILD) -b man $(ALLSPHINXOPTS) $(branch-output)/man
-	@echo [man]: build complete at `date`.
+	@echo [$@]: starting build at `date`.
+	@mkdir -p $(branch-output)/$@
+	@echo [$@]: created $(branch-output)/$@
+	@echo [sphinx]: starting $@ build
+	$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
+	@echo [$@]: build complete at `date`.
 
 # Targets to build compressed man pages.
 build-man: man $(COMPRESSED_MAN)
@@ -374,21 +393,24 @@ $(branch-output)/man/%.1.gz: $(branch-output)/man/%.1
 #
 ######################################################################
 
-.PHONY: aspirational aspiration draft draft-pdf draft-pdfs
-aspiration:draft
-aspirational:draft
-draft:pre-build-dependencies
-	@echo [draft]: draft-html started at `date`.
-	@mkdir -p $(branch-output)/draft
-	@echo [draft]: created $(branch-output)/draft
-	$(SPHINXBUILD) -b html $(DRAFTSPHINXOPTS) $(branch-output)/draft
-	@echo [draft]: draft-html build finished at `date`.
+.PHONY: aspirational aspiration draft draft-pdf draft-pdfs draft-html
+aspiration:draft-html
+aspirational:draft-html
+draft:draft-html
+draft-html:pre-build-dependencies
+	@echo [$@]: build started at `date`.
+	@mkdir -p $(branch-output)/$@
+	@echo [$@]: created $(branch-output)/$@
+	@echo [sphinx]: starting $@ build
+	@$(SPHINXBUILD) -b html $(DRAFTSPHINXOPTS) $(branch-output)/$@
+	@echo [$@]: build finished at `date`.
 draft-latex:pre-build-dependencies
-	@echo [draft]: draft-latex build started at `date`.
-	@mkdir -p $(branch-output)/draft-latex
-	@echo [draft]: created $(branch-output)/draft-latex
-	$(SPHINXBUILD) -b latex $(DRAFTSPHINXOPTS) $(branch-output)/draft-latex
-	@echo [draft]: draft-latex build finished at `date`.
+	@echo [$@]: build started at `date`.
+	@mkdir -p $(branch-output)/$@-latex
+	@echo [$@]: created $(branch-output)/$@
+	@echo [sphinx]: starting $@ build
+	@$(SPHINXBUILD) -b latex $(DRAFTSPHINXOPTS) $(branch-output)/$@
+	@echo [$@]: build finished at `date`.
 
 draft-pdf:$(subst .tex,.pdf,$(wildcard $(branch-output)/draft-latex/*.tex))
 draft-pdfs:draft-latex draft-pdf
@@ -401,35 +423,40 @@ draft-pdfs:draft-latex draft-pdf
 
 .PHONY: changes linkcheck json doctest
 json:pre-build-dependencies
-	@echo [json]: build started at `date`.
-	@mkdir -p $(branch-output)/json
-	@echo [json]: created $(branch-output)/json
-	$(SPHINXBUILD) -b json $(ALLSPHINXOPTS) $(branch-output)/json
-	@echo [json]: build finished at `date`.
+	@echo [$@]: build started at `date`.
+	@mkdir -p $(branch-output)/$@
+	@echo [$@]: created $(branch-output)/$@
+	@echo [sphinx]: starting $@ build
+	@$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
+	@echo [$@]: build finished at `date`.
 gettext:pre-build-dependencies
-	@echo [gettext]: build started at `date`.
-	@mkdir -p $(branch-output)/gettext
-	@echo [gettext]: created $(branch-output)/gettext
-	$(SPHINXBUILD) -b gettext $(POSPHINXOPTS) $(branch-output)/gettext
-	@echo [gettext]: build finished at `date`.
+	@echo [$@]: build started at `date`.
+	@mkdir -p $(branch-output)/$@
+	@echo [$@]: created $(branch-output)/$@
+	@echo [sphinx]: starting $@ build
+	@$(SPHINXBUILD) -b $@ $(POSPHINXOPTS) $(branch-output)/$@
+	@echo [$@]: build finished at `date`.
 changes:pre-build-dependencies
-	@echo [changes]: build started at `date`.
-	@mkdir -p $(branch-output)/changes
-	@echo [changes]: created $(branch-output)/changes
-	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) $(branch-output)/changes
-	@echo [changes]: build finished at `date`.
+	@echo [$@]: build started at `date`.
+	@mkdir -p $(branch-output)/$@
+	@echo [$@]: created $(branch-output)/$@
+	@echo [sphinx]: starting $@ build
+	@$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
+	@echo [$@]: build finished at `date`.
 linkcheck:pre-build-dependencies
-	@echo [link]: build started at `date`.
-	@mkdir -p $(branch-output)/linkcheck
-	@echo [link]: created $(branch-output)/linkcheck
-	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) $(branch-output)/linkcheck
-	@echo [link]: Link check complete at `date`. See $(branch-output)/linkcheck/output.txt.
+	@echo [$@]: build started at `date`.
+	@mkdir -p $(branch-output)/$@
+	@echo [$@]: created $(branch-output)/$@
+	@echo [sphinx]: starting $@ build
+	@$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
+	@echo [$@]: Link check complete at `date`. See $(branch-output)/linkcheck/output.txt.
 doctest:pre-build-dependencies
-	@echo [test]: build started at `date`.
-	@mkdir -p $(branch-output)/doctest
-	@echo [test]: created $(branch-output)/doctest
-	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(branch-output)/doctest
-	@echo [test]: doctest complete at `date`.
+	@echo [$@]: build started at `date`.
+	@mkdir -p $(branch-output)/$@
+	@echo [test]: created $(branch-output)/$@
+	@echo [sphinx]: starting $@ build
+	@$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
+	@echo [$@]: complete at `date`.
 
 ######################################################################
 #
@@ -443,18 +470,16 @@ LATEX_LINK_CORRECTION = "s%\\\code\{/%\\\code\{http://docs.mongodb.org/$(current
 .PHONY:pdfs latex latexpdf
 
 latex:
-	@echo [latex]: starting TeX file generation at `date`.
-	@mkdir -p $(branch-output)/latex
-	@echo [latex]: created $(branch-output)/latex
-	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(branch-output)/latex
-	@echo [latex]: TeX file generated at `date`.
-latexpdf:latex
-	$(MAKE) -C $(branch-output)/latex all-pdf
-	@echo [pdf]: build complete.
+	@echo [$@]: build started at `date`.
+	@mkdir -p $(branch-output)/$@
+	@echo [$@]: created $(branch-output)/$@
+	@echo [sphinx]: starting $@ build
+	@$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
+	@echo [$@]: generated all '.tex' file at `date`.
 
 $(branch-output)/latex/%.tex:
 	@sed $(SED_ARGS_FILE) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) -e $(LATEX_LINK_CORRECTION) $@
-	@echo [latex]: fixing '$@' TeX from the Sphinx output
+	@echo [latex]: fixing the Sphinx ouput of '$@'.
 
 pdfs:$(subst .tex,.pdf,$(wildcard $(branch-output)/latex/*.tex))
 
