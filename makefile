@@ -9,6 +9,7 @@ include bin/makefile.tables
 
 # Build directory tweaking.
 output = build
+build-tools = bin
 public-output = $(output)/public
 branch-output = $(output)/$(current-branch)
 public-branch-output = $(public-output)/$(current-branch)
@@ -43,24 +44,22 @@ ALLSPHINXOPTS = -q -d $(branch-output)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPT
 POSPHINXOPTS = -q -d $(branch-output)/doctrees-gettext $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
 DRAFTSPHINXOPTS = -q -d $(branch-output)/draft-doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) draft
 
-
 .PHONY: publish help clean push-dc1 push-dc2
-
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
-	@echo "	 html		to make standalone HTML files"
-	@echo "	 dirhtml	to make HTML files named index.html in directories"
-	@echo "	 singlehtml	to make a single large HTML file"
-	@echo "	 epub		to make an epub"
-	@echo "	 latex		to make LaTeX files, you can set PAPER=a4 or PAPER=letter"
-	@echo "	 man		to make manual pages"
-	@echo "	 changes	to make an overview of all changed/added/deprecated items"
+	@echo "  html		to make standalone HTML files"
+	@echo "  dirhtml	to make HTML files named index.html in directories"
+	@echo "  singlehtml	to make a single large HTML file"
+	@echo "  epub		to make an epub"
+	@echo "  latex		to make LaTeX files, you can set PAPER=a4 or PAPER=letter"
+	@echo "  man		to make manual pages"
+	@echo "  changes	to make an overview of all changed/added/deprecated items"
 	@echo
 	@echo "MongoDB Manual Specific Targets."
-	@echo "	 publish	runs publication process and then deploys the build to $(public-output)"
-	@echo "	 push		runs publication process and pushes to docs site to production."
-	@echo "	 draft		builds a 'draft' build for pre-publication testing ."
-	@echo "	 pdfs		generates pdfs more efficently than latexpdf."
+	@echo "  publish	runs publication process and then deploys the build to $(public-output)"
+	@echo "  push		runs publication process and pushes to docs site to production."
+	@echo "  draft		builds a 'draft' build for pre-publication testing ."
+	@echo "  pdfs		generates pdfs more efficently than latexpdf."
 	@echo
 	@echo "See 'meta.build.rst' for more information."
 
@@ -219,8 +218,8 @@ $(public-branch-output)/single/search.html:$(branch-output)/dirhtml/search/index
 $(public-branch-output)/single/index.html:$(branch-output)/singlehtml/contents.html
 	@cp $< $@
 	@sed $(SED_ARGS_FILE) -e 's/href="contents.html/href="index.html/g' \
-			      -e 's/name="robots" content="index"/name="robots" content="noindex"/g' \
-			      -e 's/(href=")genindex.html"/\1..\/genindex\/"/g' $@
+	                      -e 's/name="robots" content="index"/name="robots" content="noindex"/g' \
+	                      -e 's/(href=")genindex.html"/\1..\/genindex\/"/g' $@
 	@echo [single]: generating and processing '$@' page
 
 # Deployment related work for the non-Sphinx aspects of the build.

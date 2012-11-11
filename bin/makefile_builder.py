@@ -22,8 +22,8 @@ class MakefileBuilder(object):
     def comment(self, comment):
         self.makefile.append('\n# ' + comment + '\n')
 
-    def target(self, target):
-        self.makefile.append(target + '\n')
+    def target(self, target, dependency):
+        self.makefile.append(target + ':' + dependency + '\n')
 
     def var(self, variable, value):
         self.makefile.append(variable + ' = ' + value + '\n')
@@ -31,8 +31,16 @@ class MakefileBuilder(object):
     def append_var(self, variable, value):
         self.makefile.append(variable + ' += ' + value + '\n')
 
-    def job(self, job):
-        self.makefile.append('\t' + job + '\n')
+    def job(self, job, display=False):
+        if display is True:
+            o = '\t' + job + '\n'
+        else:
+            o = '\t@' + job + '\n'
+
+        self.makefile.append(o)
+
+    def message(self, message):
+        self.makefile.append('\t@echo ' + message + '\n')
 
     def print_content(self):
         for line in self.makefile:

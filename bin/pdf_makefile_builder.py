@@ -13,27 +13,31 @@ pdfs_to_build = [
 def makefile_builder(name, tag):
     name_tagged = name + '-' + tag
 
-    content = MakefileBuilder()
+    m = MakefileBuilder()
 
-    content.section_break(name)
-    content.target('$(branch-output)/latex/' + name + '.tex:latex')
-    content.job('@sed $(SED_ARGS_FILE) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) -e $(LATEX_LINK_CORRECTION) $@')
-    content.job('@echo [latex]: fixing $@ TeX from the Sphinx output.')
+    m.section_break(name)
+    m.target(target='$(branch-output)/latex/' + name + '.tex',
+             dependency='latex')
+    m.job('sed $(SED_ARGS_FILE) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) -e $(LATEX_LINK_CORRECTION) $@')
+    m.message('[latex]: fixing $@ TeX from the Sphinx output.')
 
-    content.target('$(branch-output)/latex/' + name_tagged + '.tex:$(branch-output)/latex/' + name + '.tex')
-    content.job('@$(PYTHONBIN) bin/copy-if-needed.py -i $< -o $@ -b pdf')
+    m.target(target='$(branch-output)/latex/' + name_tagged + '.tex',
+             dependency='$(branch-output)/latex/' + name + '.tex')
+    m.job('$(PYTHONBIN) $(build-tools)/copy-if-needed.py -i $< -o $@ -b pdf')
 
-    content.target('$(public-branch-output)/' + name_tagged + '-$(current-branch).pdf:$(branch-output)/latex/' + name_tagged + '.pdf')
-    content.job('@cp $< $@')
-    content.job('@echo [build]: migrated $@')
+    m.target(target='$(public-branch-output)/' + name_tagged + '-$(current-branch).pdf',
+             dependency='$(branch-output)/latex/' + name_tagged + '.pdf')
+    m.job('cp $< $@')
+    m.message('[build]: migrated $@')
 
-    content.target('$(public-branch-output)/' + name_tagged + '.pdf:$(public-branch-output)/' + name_tagged + '-$(current-branch).pdf')
-    content.job('@bin/create-link $(notdir $<) $(notdir $@) $@')
+    m.target(target='$(public-branch-output)/' + name_tagged + '.pdf',
+             dependency='$(public-branch-output)/' + name_tagged + '-$(current-branch).pdf')
+    m.job('$(build-tools)/create-link $(notdir $<) $(notdir $@) $@')
 
-    content.comment('adding ' + name + '.pdf to the build dependency.')
-    content.append_var('PDF_OUTPUT', '$(public-branch-output)/' + name_tagged + '.pdf')
+    m.comment('adding ' + name + '.pdf to the build dependency.')
+    m.append_var('PDF_OUTPUT', '$(public-branch-output)/' + name_tagged + '.pdf')
 
-    return content.makefile
+    return m.makefile
 
 class MongoDBManualPdfMakefile(object):
     def __init__(self, makefile=[]):
