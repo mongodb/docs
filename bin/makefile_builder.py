@@ -13,41 +13,79 @@
 # limitations under the License.
 
 class MakefileBuilder(object):
-    def __init__(self):
-        self.makefile = []
+    def __init__(self, makefile=None):
+        self.builder = { '_all' : [] }
 
-    def section_break(self, name):
-        self.makefile.append('\n\n########## ' + name + ' ##########\n\n')
+        if makefile is not None and type(makefile) is list:
+            self.makefile = makefile
+        else:
+            self.makefile = self.builder['_all'] = []
 
-    def comment(self, comment):
-        self.makefile.append('\n# ' + comment + '\n')
+    def add_to_builder(self, data, block):
+        if block is '_all':
+            pass
+        else:
+            self.makefile.append(data)
 
-    def target(self, target, dependency):
-        self.makefile.append(target + ':' + dependency + '\n')
+        if block in self.builder:
+            self.builder[block].append(data)
+        else:
+            self.builder[block] = [data]
 
-    def var(self, variable, value):
-        self.makefile.append(variable + ' = ' + value + '\n')
+    def block(self, block):
+        if block in self.builder:
+            pass
+        else:
+            self.builder[block] = []
+            self.section_break(block, block)
 
-    def append_var(self, variable, value):
-        self.makefile.append(variable + ' += ' + value + '\n')
+    def raw(self, lines, block='_all'):
+        self.add_to_builder(flatten_list(lines), block)
 
-    def job(self, job, display=False):
+    def section_break(self, name, block='_all'):
+        self.add_to_builder('\n\n########## ' + name + ' ##########\n\n', block)
+
+    def comment(self, comment, block='_all'):
+        self.add_to_builder('\n# ' + comment + '\n', block)
+
+    def newline(self, block='_all'):
+        self.add_to_builder('\n', block)
+
+    def target(self, target, dependency='', block='_all'):
+        self.add_to_builder(target + ':' + dependency + '\n', block)
+
+    def var(self, variable, value, block='_all'):
+        self.add_to_builder(variable + ' = ' + value + '\n', block)
+
+    def append_var(self, variable, value, block='_all'):
+        self.add_to_builder(variable + ' += ' + value + '\n', block)
+
+    def job(self, job, display=False, block='_all'):
         if display is True:
             o = '\t' + job + '\n'
         else:
             o = '\t@' + job + '\n'
 
-        self.makefile.append(o)
+        self.add_to_builder(o, block)
 
-    def message(self, message):
-        self.makefile.append('\t@echo ' + message + '\n')
+    def message(self, message, block='_all'):
+        self.add_to_builder('\t@echo ' + message + '\n', block)
 
-    def print_content(self):
-        for line in self.makefile:
-            print(line)
+    msg = message
 
-    def write(self, filename):
+    def print_content(self, block_order=['_all']):
+        o = []
+        for block in block_order:
+            o.append(self.builder[block])
+            o = [item for sublist in o for item in sublist]
+        for line in o:
+            print(line.rstrip('\n'))
+
+    def write(self, filename, block_order=['_all']):
+        o = []
+        for block in block_order:
+            o.append(self.builder[block])
+            o = [item for sublist in o for item in sublist]
         with open(filename, 'w') as f:
-            for line in self.makefile:
+            for line in o:
                 f.write(line)
-                f.write('\n')
