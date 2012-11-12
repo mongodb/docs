@@ -8,16 +8,98 @@ MongoDB Monitoring Service (MMS). The guide also provides
 
 .. index:: registration
 
-Registering for MMS
--------------------
+Installation - Server
+---------------------
 
-If you already have `jira account <http://jira.mongodb.org/>`_ you may
-sign in with your JIRA credentials. When you sign into MMS for the
-first time, the system prompts you to create a new "group" for your
-deployment.
+.. note::
 
-If you do not already have a JIRA account, register for an MMS account
-using the `MMS registration page <https://mms.10gen.com/user/register>`_.
+    Self-hosted MMS requires a 64-bit server. The minimum hardware is an EC2 Standard Extra Large (m1.xlarge - 15 GB) with a 200 GB provisioned 500 IOPS EBS volume for data storage (or equivalents). This setup has been shown to support up to 500 hosts; those with MongoDB installations in excess of 500 hosts will require SSDs for storage.
+
+1.) Configure Package Management System (YUM)
+(http://docs.mongodb.org/manual/tutorial/install-mongodb-on-redhat-centos-or-fedora-linux/)
+
+Create a /etc/yum.repos.d/10gen.repo file with the following information about the repository::
+
+    [10gen]
+    name=10gen Repository
+    baseurl=http://downloads-distro.mongodb.org/repo/redhat/os/x86_64
+    gpgcheck=0
+    enabled=1
+
+2.) Installing Packages::
+
+    $ sudo yum install mongo-10gen mongo-10gen-server
+
+3.) Attach EBS Volume
+
+Create volume on AWS console if necessary, and attach to the ec2 instance::
+
+    $ sudo mkdir /mnt/path-to-ebs
+    $ sudo mount /dev/sd[letter] /mnt/path-to-ebs
+    e.g., sudo mount /dev/sdf /mnt/path-to-ebs
+
+4.) Configure MongoDB
+
+Create data/log directories on EBS volume::
+
+    $ sudo mkdir -p /mnt/path-to-ebs/mongo/{data,logs}
+    $ sudo chown -R mongod:mongod /mnt/path-to-ebs/mongo
+
+Edit /etc/mongod.conf::
+
+    logpath=/mnt/path-to-ebs/mongo/logs/mongod.log
+    dbpath=/mnt/path-to-ebs/mongo/data
+
+Edit /etc/sysctl.conf in event of future server reboots::
+
+    net.core.netdev_max_backlog = 30000
+    net.core.wmem_max = 16777216
+    net.core.rmem_max = 16777216
+
+Apply kernel changes to running server::
+
+    $ sudo /sbin/sysctl -w net.core.netdev_max_backlog=30000
+    $ sudo /sbin/sysctl -w net.core.wmem_max=16777216
+    $ sudo /sbin/sysctl -w net.core.rmem_max=16777216
+
+5.) Startup MongoDB::
+
+    $ sudo /etc/init.d/mongod start
+
+6.) Obtain(?) and Install MMS server::
+
+    $ ??? [JM: Not sure how we're managing this yet]
+    $ sudo rpm -ivh 10gen-mms-[version].x86_64.rpm
+
+7.) Configure required MMS server properties::
+
+    $ sudo vi /opt/10gen/mms/conf/conf-mms.properties
+    e.g.,
+
+    mms.centralUrl=http://mms.acmewidgets.com:8080
+    mms.fromEmailAddr=MMS Alerts <mms-alerts@acmewidgets.com>
+    mms.replyToEmailAddr=mms-no-reply@acmewidgets.com
+    mms.adminFromEmailAddr=MMS Admin <mms-admin@acmewidgets.com>
+    mms.adminEmailAddr=mms-admin@acmewidgets.com
+    mms.bounceEmailAddr=bounce@acmewidgets.com
+
+(Optionally configure email properties just below for your provider / SMTP server.)
+
+
+8.) Start up MMS::
+
+    $ sudo /etc/init.d/10gen-mms start
+
+Startup information will be logged to /var/log/10gen/mms0.log.
+Visit the same URL specified on mms.centralUrl to continue configuration:
+E.g., http://mms.acmewidgets.com
+
+By constrast with the SaaS MMS `provided by 10gen <https://mms.10gen.com>`_, 
+user accounts are stored inside your local MongoDB server supporting MMS.
+When you sign into MMS for the
+first time, the system prompts you to register and create a new "group" for 
+your deployment.
+
 After completing the registration process, you will arrive at the "MMS
 Hosts," page.
 
@@ -30,8 +112,8 @@ installation at this point.
 .. index:: agent installation
    single: agent; installation
 
-Installation
-------------
+Installation - Agent
+--------------------
 
 .. index:: requirements; full
 .. _mms-requirements:
@@ -44,12 +126,12 @@ basic instructions for fulfilling them. If you are installing the MMS
 agent on a Windows host, skip to the :ref:`window instructions
 <windows-installation>` section.
 
-#. Your MongoDB instances (i.e. ``mongod`` and ``mongos``) must be
+1. Your MongoDB instances (i.e. ``mongod`` and ``mongos``) must be
    version 1.6 or newer.
 
 .. index:: requirements; Python
 
-#. You must have Python 2.4 or greater.
+2. You must have Python 2.4 or greater.
 
    .. note::
 
@@ -61,7 +143,7 @@ agent on a Windows host, skip to the :ref:`window instructions
 .. index:: requirements; setuptools
    single: setuptools
 
-#. You'll need Python's `setuptools <http://pypi.python.org/pypi/setuptools>`_.
+3. You'll need Python's `setuptools <http://pypi.python.org/pypi/setuptools>`_.
 
    Most operating systems (i.e. distributions) package setuptools. For
    example, Debian and Ubuntu users can use the following command to
@@ -69,7 +151,7 @@ agent on a Windows host, skip to the :ref:`window instructions
 
         sudo apt-get install python-setuptools
 
-   For Red Hat Enterprise Linux (RHEL,) CentOS, or Fedora users, the
+   For Red Hat Enterprise Linux (RHEL) CentOS, or Fedora users, the
    the following command will install the package: ::
 
         sudo yum install python-setuptools
@@ -77,7 +159,7 @@ agent on a Windows host, skip to the :ref:`window instructions
 .. index:: hmac
    single: requirements; Python 2.4 Installation
 
-#. If your system is running Python 2.4, you will need to install the
+4. If your system is running Python 2.4, you will need to install the
    following Python modules:
 
    - ``hmac``
@@ -94,7 +176,7 @@ agent on a Windows host, skip to the :ref:`window instructions
 
       The latest version of the agent includes no other Python module
       dependencies. If you're installing version 1.4 of the agent
-      (legacy,) you will also need to install the ``simplejson``
+      (legacy) you will also need to install the ``simplejson``
       module.
 
       For users of Python 2.4, you will need to install ``simplejson``
@@ -116,7 +198,7 @@ agent on a Windows host, skip to the :ref:`window instructions
 
 .. index:: requirements; PyMongo Installation
 
-#. All users must install `PyMongo  <http://pypi.python.org/pypi/pymongo/>`_,
+5. All users must install `PyMongo  <http://pypi.python.org/pypi/pymongo/>`_,
    the Python driver for MongoDB. While the C extensions are
    not required, they significantly improve performance. To install
    these extensions, make sure you have a C compiler (e.g. ``gcc``)
@@ -147,7 +229,7 @@ agent on a Windows host, skip to the :ref:`window instructions
 
 .. index:: troubleshooting; proxies
 
-#. If your datacenter requires that you proxy outbound connections
+6. If your datacenter requires that you proxy outbound connections
    through a gateway, you must use a version of Python greater than
    2.6.1. Additionally, you will need export the "``https_proxy``"
    environment variable (or "``HTTPS_PROXY``" on Windows.)
@@ -516,7 +598,7 @@ MongoDB added SSL support in version 2.0.
 
 To monitor a host with SSL enabled, you can either:
 
-#. Edit the ``settings.py`` file in your agent installation, so that
+1. Edit the ``settings.py`` file in your agent installation, so that
    the ``useSslForAllConnections`` value is ``True``, as follows: ::
 
         useSslForAllConnections = True
@@ -524,7 +606,7 @@ To monitor a host with SSL enabled, you can either:
    Then restart the agent. After restarting the agent you may observe
    a five minute delay before MMS receives data from the agent.
 
-#. Enable support on a per-host basis in the MMS console, by clicking
+2. Enable support on a per-host basis in the MMS console, by clicking
    on the edit (i.e. "Pencil") button on the right hand-side of the
    "Hosts" page. In the dialogue that pops up, click the check-box on
    the SSL tab.
