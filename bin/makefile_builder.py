@@ -48,8 +48,9 @@ class MakefileBuilder(object):
     def comment(self, comment, block='_all'):
         self.add_to_builder('\n# ' + comment + '\n', block)
 
-    def newline(self, block='_all'):
-        self.add_to_builder('\n', block)
+    def newline(self, n=1, block='_all'):
+        for i in range(n):
+            self.add_to_builder('\n', block)
 
     def target(self, target, dependency='', block='_all'):
         self.add_to_builder(target + ':' + dependency + '\n', block)
@@ -79,7 +80,7 @@ class MakefileBuilder(object):
             o.append(self.builder[block])
             o = [item for sublist in o for item in sublist]
         for line in o:
-            print(line.rstrip('\n'))
+            print(line.rstrip())
 
     def write(self, filename, block_order=['_all']):
         o = []

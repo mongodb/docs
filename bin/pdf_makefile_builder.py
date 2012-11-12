@@ -42,13 +42,14 @@ def build_all_pdfs(pdfs):
         pdf_makefile(pdf[0], pdf[1])
 
     m.newline()
+    m.target(target='.PHONY',
+             dependency='manual-pdfs')
     m.target(target='manual-pdfs',
              dependency='$(PDF_OUTPUT)')
 
 def main():
     build_all_pdfs(pdfs_to_build)
     m.write(sys.argv[1])
-    m.print_content()
     print('[meta-build]: built "' + sys.argv[1] + '" to specify pdf builders.')
 
 if __name__ == '__main__':

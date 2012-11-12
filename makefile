@@ -5,10 +5,10 @@ MAKEFLAGS += --no-print-directory
 
 # includes
 include bin/makefile.compatibility
-include bin/makefile.tables
 
 # Build directory tweaking.
 output = build
+rst-include = source/includes
 build-tools = bin
 public-output = $(output)/public
 branch-output = $(output)/$(current-branch)
@@ -190,11 +190,14 @@ $(branch-output)/singlehtml/contents.html:$(branch-output)/singlehtml
 
 # Building and Linking the LaTeX/PDF Output
 #
-.PHONY: manual-pdfs
 
--include build/makefile.pdfs
-$(output)/makefile.pdfs:bin/pdf_makefile_builder.py
+-include $(output)/makefile.pdfs
+-include $(output)/makefile.tables
+
+$(output)/makefile.pdfs:bin/pdf_makefile_builder.py bin/makefile_builder.py
 	@bin/pdf_makefile_builder.py $@
+$(output)/makefile.tables:bin/table_makefile_builder.py bin/makefile_builder.py
+	@bin/table_makefile_builder.py $@
 
 #
 # Building and Linking ePub Output
