@@ -5,59 +5,48 @@ Capped Collections
 .. default-domain:: mongodb
 
 :term:`Capped collections <capped collection>` are fixed-size
-collections that automatically overwrite their oldest entries when the
-fixed size is reached. Capped collections work in a way similar to
-circular buffers. The :term:`oplog.rs <oplog>`
-collection used in replication is an example of a capped collection.
+collections that automatically overwrite their oldest documents when new
+documents are inserted. Capped collections work in a way similar to
+circular buffers. Once a collection fills its allocated space, it makes
+room for new documents by deleting the oldest documents in the
+collection.
 
-Capped collections automatically store documents in their insertion
-order. Once the collection's allocated space is fully used, newly added
-documents replace the oldest documents in the collection. The automatic
-replacement based on insertion order makes capped collections fast and
-efficient.
+Capped collections are particularly fast and efficient for operations,
+such as logging, that retrieve and delete documents based on insertion
+order.
 
-You cannot increase the size of a document in a capped collection. You can update a
-document, but it must not grow in size.
+Capped collections have the following behaviors:
 
-You cannot shard a capped collection.
+- Capped collections automatically store documents in their insertion
+  order. Therefore, no index is required to query on insertion order,
+  and capped collections incur no indexing overhead for this property.
 
-Capped Collection Use Cases
----------------------------
+- Capped collections guarantee that insertion order is identical to the
+  order on disk (:term:`natural order`) and do so by prohibiting updates
+  that increase document size. Capped collections only allow updates
+  that fit the original document size, which ensures a document does not
+  change its location on disk.
 
-The following are scenarios in which you might want to use a capped collection:
+- Capped collections automatically remove the oldest documents in the
+  collection without requiring scripts or explicit remove operations.
 
-- Logging
+Capped collections provide a high-performance means for storing logging
+information. Inserting documents in an unindexed capped collection is
+close to the speed of logging to a filesystem. Additionally, the
+built-in FIFO mechanism ensures logging does not use excessive disk
+space.
 
-  Capped collections provide a high-performance means for storing
-  logging documents in the database. Inserting documents in an unindexed
-  capped collection is close to the speed of logging to a
-  filesystem. Additionally, with the built-in FIFO mechanism, you are
-  not at risk of using excessive disk space for the logging.
+Capped collections also provide a convenient way to cache known small
+numbers of documents, such as cached computations of information. This
+scenario would likely have more reads than writes and require an index.
 
-- Automatic Maintaining of Insertion Order
-
-  Capped collections keep documents in their insertion order
-  automatically, with no index being required for this property. The
-  logging example above is a good example of a case where keeping items
-  in order is important.
-
-- Caching
-
-  If you wish to cache a small number of documents in the database,
-  perhaps cached computations of information, the capped tables provide
-  a convenient mechanism for this. Note that for this application you
-  typically use an index on the capped table as there are be more reads
-  than writes.
-
-- Automatic Age Out
-
-  If you know you want data to automatically "roll out" over time as it
-  ages, a capped collection can be an easier way to support than writing
-  manual removal via cron scripts. Ejection from the capped collection
-  is also inexpensive compared to explicit remove operations.
+The :term:`oplog.rs <oplog>` collection used in replication is an
+example of a capped collection.
 
 Recommendations and Restrictions
 --------------------------------
+
+You cannot shard a capped collection.
 
 You may update the existing documents in the collection. However, the
 documents must not grow in size. If they do, the update fails.
