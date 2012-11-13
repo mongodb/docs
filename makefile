@@ -66,18 +66,20 @@ help:
 
 include bin/makefile.compatibility
 
-# Included, dynamically generated makefile sections, to build:
-# sphinx targets, LaTeX/PDFs, tables, and symbolic links.
-
-makefile-builder-system = bin/makefile_builder.py bin/builder_data.py
+# Included, dynamically generated makefile sections, to build: sphinx
+# targets, LaTeX/PDFs, tables, the installation guides, and symbolic
+# links.
 
 -include $(output)/makefile.pdfs
 -include $(output)/makefile.tables
 -include $(output)/makefile.links
 -include $(output)/makefile.sphinx
+-include $(output)/makefile.releases
+-include $(output)/makefile.errors
+-include $(output)/makefile.migrations
 
-$(output)/makefile.%:bin/makefile_builder_%.py $(makefile-builder-system)
-	@$(PYTHONBIN) bin/makefile_builder_$(subst .,,$(suffix $@)).py $@
+$(output)/makefile.%:bin/makefile-builder/%.py bin/makefile_builder.py bin/builder_data.py
+	@$(PYTHONBIN) bin/makefile-builder/$(subst .,,$(suffix $@)).py $@
 
 #
 # Meta targets that control the build and publication process.
@@ -149,41 +151,6 @@ sphinx-components:manual-pdfs $(public-branch-output)/single $(public-branch-out
 # Build the HTML components of the build.
 #
 
-## See 'bin/makefile.tables' for additional elements here.
-
-# Baking the current release into the installation pages.
-
-installation-sources:$(installation-sources)
-	@git update-index --assume-unchanged $(instalation-sources)
-	@echo [build]: clensing git index of installation sources.
-
-installation-guides += source/tutorial/install-mongodb-on-linux.txt
-source/tutorial/install-mongodb-on-linux.txt:source/includes/install-curl-release-linux-64.rst
-	@touch $@
-	@echo [build]: touched $@ to ensure a clean build.
-
-installation-guides += source/tutorial/install-mongodb-on-os-x.txt
-source/tutorial/install-mongodb-on-os-x.txt:source/includes/install-curl-release-osx-64.rst
-	@echo [build]: touched $@ to ensure a clean build.
-
-installation-sources += source/includes/install-curl-release-linux-64.rst
-source/includes/install-curl-release-linux-64.rst:source/includes/install-curl-release-linux-32.rst
-	@$(PYTHONBIN) bin/update_release.py linux-64 $@
-	@echo [build]: \(re\)generated $@.
-
-installation-sources += source/includes/install-curl-release-linux-32.rst
-source/includes/install-curl-release-linux-32.rst:
-	@$(PYTHONBIN) bin/update_release.py linux-32 $@
-	@echo [build]: \(re\)generated $@.
-
-installation-sources += source/includes/install-curl-release-osx-64.rst
-source/includes/install-curl-release-osx-64.rst:
-	@$(PYTHONBIN) bin/update_release.py osx $@
-	@echo [build]: \(re\)generated $@.
-
-.PHONY:installation-guides $(installation-sources) $(installation-guides) 
-installation-guides:installation-sources $(installation-guides)
-
 # Initial build steps, exporting the current commit to the build.
 .PHONY:source/about.txt source/includes/hash.rst setup $(public-branch-output)/release.txt
 setup:source/includes/hash.rst
@@ -211,17 +178,8 @@ $(branch-output)/singlehtml:singlehtml
 	@touch $@
 	@echo [build]: touched $@ to ensure proper migration.
 $(branch-output)/singlehtml/contents.html:$(branch-output)/singlehtml
-
-#
-# Building and Linking ePub Output
-#
 $(branch-output)/epub/MongoDB.epub:epub
-$(public-branch-output)/MongoDB-Manual-$(current-branch).epub:$(branch-output)/epub/MongoDB.epub
-	@cp $< $@
-	@echo [build]: migrated $@
 $(public-branch-output)/MongoDB-Manual.epub:$(public-branch-output)/MongoDB-Manual-$(current-branch).epub
-	@bin/create-link $(notdir $<) $(notdir $@) $@
-	@echo [symlink]: created a link at: $@
 
 #
 # Migrating and processing the dirhtml and singlehtml as needed.
@@ -236,58 +194,12 @@ $(public-branch-output)/single:$(branch-output)/singlehtml
 	@cp -R $</* $@
 	@rm -f $@/contents.html
 	@echo [single]: migrated singlehtml files '$@'
-$(public-branch-output)/single/search.html:$(branch-output)/dirhtml/search/index.html
-	@cp $< $@
-	@echo [single]: migrated search page '$@'
 $(public-branch-output)/single/index.html:$(branch-output)/singlehtml/contents.html
 	@cp $< $@
 	@sed $(SED_ARGS_FILE) -e 's/href="contents.html/href="index.html/g' \
 	                      -e 's/name="robots" content="index"/name="robots" content="noindex"/g' \
 	                      -e 's/(href=")genindex.html"/\1..\/genindex\/"/g' $@
 	@echo [single]: generating and processing '$@' page
-
-# Deployment related work for the non-Sphinx aspects of the build.
-
-# migrate simple static content.
-
-$(public-output)/index.html:themes/docs.mongodb.org/index.html
-	@cp $< $@
-	@echo [build]: migrated $@
-$(public-output)/10gen-gpg-key.asc:themes/docs.mongodb.org/10gen-gpg-key.asc
-	@cp $< $@
-	@echo [build]: migrated $@
-$(public-output)/10gen-security-gpg-key.asc:themes/docs.mongodb.org/10gen-security-gpg-key.asc
-	@cp $< $@
-	@echo [build]: migrated $@
-$(public-output)/osd.xml:themes/docs.mongodb.org/osd.xml
-	@cp $< $@
-	@echo [build]: migrated $@
-
-$(public-branch-output)/sitemap.xml.gz:$(branch-output)/sitemap.xml.gz
-	@cp $< $@
-	@echo [build]: migrated $@
-$(public-branch-output)/.htaccess:themes/docs.mongodb.org/.htaccess
-	@cp $< $@
-	@echo [build]: migrated $@
-
-# Build and process the custom error pages.
-
-ERROR_PAGES = $(public-branch-output)/meta/401/index.html $(public-branch-output)/meta/403/index.html $(public-branch-output)/meta/404/index.html $(public-branch-output)/meta/410/index.html
-.PHONY: error-pages $(ERROR_PAGES)
-error-pages: $(ERROR_PAGES)
-
-$(public-branch-output)/meta/401/index.html:$(branch-output)/dirhtml/meta/401/index.html
-	@sed $(SED_ARGS_FILE) "s@\.\./\.\./@http://docs.mongodb.org/manual/@" $@
-	@echo [web]: processed error page: $@
-$(public-branch-output)/meta/403/index.html:$(branch-output)/dirhtml/meta/403/index.html
-	@sed $(SED_ARGS_FILE) "s@\.\./\.\./@http://docs.mongodb.org/manual/@" $@
-	@echo [web]: processed error page: $@
-$(public-branch-output)/meta/404/index.html:$(branch-output)/dirhtml/meta/404/index.html
-	@sed $(SED_ARGS_FILE) "s@\.\./\.\./@http://docs.mongodb.org/manual/@" $@
-	@echo [web]: processed error page: $@
-$(public-branch-output)/meta/410/index.html:$(branch-output)/dirhtml/meta/410/index.html
-	@sed $(SED_ARGS_FILE) "s@\.\./\.\./@http://docs.mongodb.org/manual/@" $@
-	@echo [web]: processed error page: $@
 
 # Clean up/removal targets.
 clean:
@@ -329,8 +241,6 @@ $(branch-output)/sitemap.xml.gz:$(branch-output)/dirhtml
 # helpers for compressing man pages
 UNCOMPRESSED_MAN := $(wildcard $(branch-output)/man/*.1)
 COMPRESSED_MAN := $(subst .1,.1.gz,$(UNCOMPRESSED_MAN))
-
-# uses the 'man' target generated by sphinx.
 
 # Targets to build compressed man pages.
 build-man: man $(COMPRESSED_MAN)

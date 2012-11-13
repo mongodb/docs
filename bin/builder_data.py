@@ -10,14 +10,16 @@ where the following makefile instructions are responsible for
 
 .. code-block:: makefile
 
-   makefile-builder-system = bin/makefile_builder.py bin/builder_data.py
-
    -include $(output)/makefile.pdfs
    -include $(output)/makefile.tables
    -include $(output)/makefile.links
+   -include $(output)/makefile.sphinx
+   -include $(output)/makefile.releases
+   -include $(output)/makefile.errors
+   -include $(output)/makefile.migrations
 
-   $(output)/makefile.%:bin/makefile_builder_%.py $(makefile-builder-system)
-   	@$(PYTHONBIN) bin/makefile_builder_$(subst .,,$(suffix $@)).py $@
+   $(output)/makefile.%:bin/makefile-builder/%.py bin/makefile_builder.py bin/builder_data.py
+   	@$(PYTHONBIN) bin/makefile-builder/$(subst .,,$(suffix $@)).py $@
 
 These ``makefile_builder_<name>.py`` scripts use the
 ``MakefileBuilder`` class from the ``makefile_builder.py``script to
@@ -39,7 +41,8 @@ links = [
 #     1. ``link_target``: the name of the file the symlink should point
 #        at.
 #     2. ``makefile_block``: the block of the makefile that captures
-#        the kind/purpose of link.
+#        the kind/purpose of link. If the type of the build is
+#        "content," the link is not a PHONY make target.
 #
 #    (make_target, link_target, makefile_block),
      ('$(public-output)/manual', '$(manual-branch)', 'structural'),
@@ -47,6 +50,7 @@ links = [
      ('$(public-branch-output)/reference/methods', 'method', 'use'),
      ('$(public-branch-output)/reference/method/reIndex', 'db.collection.reIndex', 'redirect'),
      ('$(public-branch-output)/tutorials/install-mongodb-on-red-hat-centos-or-fedora-linux', 'install-mongodb-on-redhat-centos-or-fedora-linux', 'redirect'),
+     ('$(public-branch-output)/MongoDB-Manual.epub', 'MongoDB-Manual-$(current-branch).epub', 'content')
 ]
 
 pdfs = [
@@ -100,4 +104,42 @@ sphinx = [
     ('linkcheck', False),
     ('draft-html', False),
     ('draft-latex', False),
+]
+
+install_guides = [
+# The elements of the tuples in ``install_guides`` list are:
+#     0. The ``target`` to build. Includes both install guides and the
+#        source files with the curl commands.
+#     1. The ``dependency`` of the build. Is ``None`` if this is a
+#        source file.
+#
+#   (target, dep),
+    ('source/tutorial/install-mongodb-on-linux.txt', 'source/includes/install-curl-release-linux-64.rst source/includes/install-curl-release-linux-32.rst'),
+    ('source/tutorial/install-mongodb-on-os-x.txt', 'source/includes/install-curl-release-osx-64.rst'),
+    ('source/includes/install-curl-release-linux-64.rst', None),
+    ('source/includes/install-curl-release-linux-32.rst', None),
+    ('source/includes/install-curl-release-osx-64.rst', None),
+]
+
+# The elements of the ``error_pages`` list correspond to the file
+# names of each error page, and their HTTP error code.
+error_pages = [ '401', '403', '404', '410' ]
+
+migrations = [
+# The elements of the tuples in the ``migrations`` list are: 
+#     0. ``target``: the name of the target, to migrate a file to.
+#     1. ``source``: the name of the source file to migrate the file
+#        from.
+#     2. ``makefile_block``: the block of the makefile that captures
+#        the kind/purpose of the migration.
+#
+#   ('target', 'source', 'block'),
+    ('$(public-output)/index.html', 'themes/docs.mongodb.org/index.html', 'static'),
+    ('$(public-output)/10gen-gpg-key.asc', 'themes/docs.mongodb.org/10gen-gpg-key.asc', 'static'),
+    ('$(public-output)/10gen-security-gpg-key.asc', 'themes/docs.mongodb.org/10gen-security-gpg-key.asc', 'static'),
+    ('$(public-output)/osd.xml', 'themes/docs.mongodb.org/osd.xml', 'access'),
+    ('$(public-branch-output)/sitemap.xml.gz', '$(branch-output)/sitemap.xml.gz', 'access'),
+    ('$(public-branch-output)/.htaccess', 'themes/docs.mongodb.org/.htaccess', 'access'),
+    ('$(public-branch-output)/single/search.html', '$(branch-output)/dirhtml/search/index.html', 'content'),
+    ('$(public-branch-output)/MongoDB-Manual-$(current-branch).epub', '$(branch-output)/epub/MongoDB.epub', 'content'),
 ]

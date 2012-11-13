@@ -52,9 +52,12 @@ class MakefileBuilder(object):
         for i in range(n):
             self.add_to_builder('\n', block)
 
-    def target(self, target, dependency='', block='_all'):
-        self.add_to_builder(target + ':' + dependency + '\n', block)
-
+    def target(self, target, dependency=None, block='_all'):
+        if dependency is None: 
+            self.add_to_builder(target + ':' + '\n', block)
+        else: 
+            self.add_to_builder(target + ':' + dependency + '\n', block)
+            
     def var(self, variable, value, block='_all'):
         self.add_to_builder(variable + ' = ' + value + '\n', block)
 

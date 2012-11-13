@@ -25,7 +25,11 @@ def make_all_links(links):
     m.job('rm -rf $(LINKS)', True)
 
 def make_link(make_target, link_target, makefile_block):
-    m.append_var('LINKS', make_target, makefile_block)
+    if makefile_block == 'content':
+        pass
+    else:
+        m.append_var('LINKS', make_target, makefile_block)
+
     m.target(make_target, '', makefile_block)
     m.job('@bin/create-link ' + link_target + ' $(notdir $@) $@', makefile_block)
     m.msg('[symlink]: created a link at: $@', makefile_block)

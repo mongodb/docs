@@ -69,7 +69,7 @@ def main():
 
     m.write(sys.argv[1])
 
-    print('[meta-build]: built "' + sys.argv[1] + '" to specify symlink builders.')
+    print('[meta-build]: built "' + sys.argv[1] + '" to specify sphinx builders.')
 
 if __name__ == '__main__':
     main()
