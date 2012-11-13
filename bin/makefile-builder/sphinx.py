@@ -42,16 +42,16 @@ def sphinx_builder(target, production):
         m.target(target, 'pre-build-dependencies', block=b)
 
     if target.split('-')[0] == 'draft':
-        if target.split('-')[1] == 'html': 
+        if target.split('-')[1] == 'html':
             loc = 'draft'
         else: 
             loc = target
 
         build_kickoff(loc, block=b)
         m.job('$(SPHINXBUILD) -b' + target.split('-')[1] + ' $(DRAFTSPHINXOPTS) $(branch-output)/' + loc, block=b)
-    elif target == 'gettext'
+    elif target == 'gettext':
         build_kickoff('$@',block=b)
-        m.job('$(SPHINXBUILD) -b $@ $(POSPHINXOPTS) $(branch-output)/' + loc, block=b)
+        m.job('$(SPHINXBUILD) -b $@ $(POSPHINXOPTS) $(branch-output)/$@', block=b)
     elif target == 'epub': 
         build_kickoff('$@',block=b)
         m.job('{ $(epub-command) 2>&1 1>&3 | $(epub-filter) 1>&2; } 3>&1', block=b)        

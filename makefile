@@ -78,15 +78,19 @@ $(output)/makefile.%:bin/makefile-builder/%.py bin/makefile_builder.py bin/build
 	@$(PYTHONBIN) bin/makefile-builder/$(subst .,,$(suffix $@)).py $@
 
 # Meta targets that control the build and publication process.
-.PHONY: publish push publish-if-up-to-date push-all
+.PHONY: publish push publish-if-up-to-date push-with-delete push-all
 push:publish-if-up-to-date
 	@echo [build]: copying the new $(current-branch) build to the web servers.
 	@$(MAKE) MODE='push' push-dc1 push-dc2
 	@echo [build]: deployed a new build of the $(current-branch) branch of the Manual.
 push-all:publish
-	@echo [build]: copying the full docs site to the web servers.
+	@echo [build]: delploying the full docs site to the web servers.
 	@$(MAKE) MODE='push' push-all-dc1 push-all-dc2
 	@echo [build]: deployed a new build of the full Manual.
+push-with-delete:publish
+	@echo [build]: deploying the $(current-branch) to the web servers (with rsync --delete).
+	@$(MAKE) MODE='push' push-with-delete-dc1 push-with-delete-dc2
+	@echo [build]: deployed a new build of the $(current-branch) of Manual.
 publish-if-up-to-date:
 	@bin/published-build-check $(current-branch) $(last-commit)
 	@$(MAKE) publish
@@ -110,6 +114,10 @@ push-all-dc1:
 	rsync -arz $(public-output)/ www@www-c1.10gen.cc:/data/sites/docs
 push-all-dc2:
 	rsync -arz $(public-output)/ www@www-c2.10gen.cc:/data/sites/docs
+push-with-delete-dc1:
+	rsync -arz --delete $(public-output)/$(current-branch)/ www@www-c1.10gen.cc:/data/sites/docs/$(current-branch)
+push-with-delete-dc2:
+	rsync -arz --delete $(public-output)/$(current-branch)/ www@www-c2.10gen.cc:/data/sites/docs/$(current-branch)
 endif
 
 ######################################################################
