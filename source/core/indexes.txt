@@ -61,23 +61,18 @@ MongoDB indexes have the following core features:
   performance. Note that if the document has grown and must move, all
   index keys must then update.
 
-.. index:: index; secondary index
-.. index:: secondary index
 .. index:: index types
 .. _index-types:
-.. _index-types-secondary:
 
 Index Types
 -----------
 
 This section describes types of indexes available in MongoDB.
 For all collections, MongoDB creates the default :ref:`_id index
-<index-type-primary>`. This is the primary index. All other indexes
-in MongoDB are :term:`secondary indexes <secondary index>`. You can
-create secondary indexes on any field within any document or
-sub-document. You can also create secondary indexes multiple fields.
-This section describes both the :ref:`_id index <index-type-primary>`
-and the various secondary indexes.
+<index-type-id>`.
+You can
+create additional indexes on any field within any document or
+sub-document. You can also create indexes on multiple fields.
 
 In general, you should create indexes that support your primary, common,
 and user-facing queries. Doing so requires MongoDB to scan the fewest
@@ -91,8 +86,8 @@ resemble the following:
 .. code-block:: javascript
 
    { "field": 1 }
-   { "field0.field1": 1 }
-   { "field0": 1, "field1": 1 }
+   { "product.quantity": 1 }
+   { "product": 1, "quantity": 1 }
 
 For each field in the index you will specify either ``1`` for an
 ascending order or ``-1`` for a descending order, which represents the
@@ -104,7 +99,7 @@ important.
 .. index:: _id
 .. index:: index; _id
 .. index:: index types; primary key
-.. _index-type-primary:
+.. _index-type-id:
 
 _id Index
 ~~~~~~~~~
@@ -250,7 +245,7 @@ not support queries that select the following:
 When creating an index, the number associated with a key specifies the
 direction of the index. The options are ``1`` (ascending) and ``-1``
 (descending). Direction doesn't matter for single key indexes or for
-random access retrieval but is important if you are doing sorts or range
+random access retrieval but is important if you are doing sort
 queries on compound indexes.
 
 The order of fields in a compound index is very important. In the
@@ -283,7 +278,7 @@ following prototype:
 
 .. code-block:: javascript
 
-   db.products.ensureIndex( { "field0": 1, "field1": -1 } )
+   db.products.ensureIndex( { "fieldA": 1, "fieldB": -1 } )
 
 Consider a collection of event data that includes both usernames and a
 timestamp. If you want to return a list of events sorted by username
@@ -392,8 +387,8 @@ you "cannot index parallel arrays":
    {a: [1, 2], b: [1, 2]}
 
 The problem with indexing parallel arrays is that each value in the
-cartesian product of the compound keys would have to be indexed, which
-can get out of hand very quickly.
+cartesian product of the compound keys would have to be indexed,
+which could quickly result in very large indexes that cannot contain all matching documents.
 
 .. todo:: add a sentence and link:
    For procedures for querying on values in an array, see LINK???.
@@ -420,14 +415,6 @@ You can query for a match on multiple items in an array by using the
   .. code-block:: javascript
 
      db.weather.find( { tags: { $all: ["hot", "humid" ] } } )
-
-Exact Array Matching
-````````````````````
-
-You can *cannot* perform exact array matching with a multikey index. A
-multikey index records each array value separately, so querying on
-an exact array match will not use the multikey index but will instead
-query through every document in the collection.
 
 Using a Multikey Index for Attribute Lookups
 ````````````````````````````````````````````
@@ -709,8 +696,8 @@ These indexes have the following limitations:
 
 .. include:: /includes/note-ttl-collection-background-timing.rst
 
-In all other respects, TTL indexes are normal :ref:`secondary indexes
-<index-types-secondary>`, and if appropriate, MongoDB can use these
+In all other respects, TTL indexes are normal indexes,
+and if appropriate, MongoDB can use these
 indexes to fulfill arbitrary queries.
 
 .. see:: :doc:`/tutorial/expire-data`
