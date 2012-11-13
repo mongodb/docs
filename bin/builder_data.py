@@ -56,7 +56,7 @@ pdfs = [
 #     1. ``tag`` the tag on the file name, used in the PDF provided to
 #        users.
 #
-#   (root-name, tag)
+#   (root-name, tag),
     ('MongoDB', 'Manual'),
     ('MongoDB-reference', 'manual'),
     ('MongoDB-use-cases', 'guide'),
@@ -64,19 +64,40 @@ pdfs = [
 
 tables = [
 # The elements of the tuples in the ``pdfs`` list are:
-#     0. ``input_file``: the name of the source, .yaml file.
-#     1. ``output_file``: the name of the generated .rst file.
-#     2. ``makefile_block``: the name block of the makefile, which
+#     0. ``name``: the name of the source, without the .yaml extenison.
+#     1. ``makefile_block``: the name block of the makefile, which
 #        captures which group of charts this file contributes to.
 #
-#    (input_file, output_file, makefile_block)
-     ('$(rst-include)/table-sql-to-agg-terms.yaml', '$(rst-include)/table-sql-to-agg-terms.rst', 'agg'),
-     ('$(rst-include)/table-sql-to-agg-examples.yaml','$(rst-include)/table-sql-to-agg-examples.rst', 'agg'),
-     ('$(rst-include)/table-sql-to-mongo-executables.yaml', '$(rst-include)/table-sql-to-mongo-executables.rst', 'sql'),
-     ('$(rst-include)/table-sql-to-mongo-terms.yaml', '$(rst-include)/table-sql-to-mongo-terms.rst', 'sql'),
-     ('$(rst-include)/table-sql-to-mongo-schema-examples.yaml', '$(rst-include)/table-sql-to-mongo-schema-examples.rst', 'sql'),
-     ('$(rst-include)/table-sql-to-mongo-insert-examples.yaml', '$(rst-include)/table-sql-to-mongo-insert-examples.rst', 'sql'),
-     ('$(rst-include)/table-sql-to-mongo-select-examples.yaml', '$(rst-include)/table-sql-to-mongo-select-examples.rst', 'sql'),
-     ('$(rst-include)/table-sql-to-mongo-update-examples.yaml', '$(rst-include)/table-sql-to-mongo-update-examples.rst', 'sql'),
-     ('$(rst-include)/table-sql-to-mongo-delete-examples.yaml', '$(rst-include)/table-sql-to-mongo-delete-examples.rst', 'sql'),
+#    (name, makefile_block),
+     ('$(rst-include)/table-sql-to-agg-terms', 'agg'),
+     ('$(rst-include)/table-sql-to-agg-examples', 'agg'),
+     ('$(rst-include)/table-sql-to-mongo-executables', 'sql'),
+     ('$(rst-include)/table-sql-to-mongo-terms', 'sql'),
+     ('$(rst-include)/table-sql-to-mongo-schema-examples', 'sql'),
+     ('$(rst-include)/table-sql-to-mongo-insert-examples', 'sql'),
+     ('$(rst-include)/table-sql-to-mongo-select-examples', 'sql'),
+     ('$(rst-include)/table-sql-to-mongo-update-examples', 'sql'),
+     ('$(rst-include)/table-sql-to-mongo-delete-examples', 'sql'),
+]
+
+sphinx = [
+# The elements of the tuples in ``sphinx`` list are:
+#     0. ``target``: the name of the sphinx builder.
+#     1. ``production_build``: a boolean. True if used in the
+#        ``make publish`` production routine.
+#
+#    (target, production_build),
+    ('dirhtml', True),
+    ('singlehtml', True),
+    ('latex', True),
+    ('epub', True),
+    ('html', False),
+    ('gettext', False),
+    ('man', False),
+    ('json', False),
+    ('changes', False),
+    ('doctest', False),
+    ('linkcheck', False),
+    ('draft-html', False),
+    ('draft-latex', False),
 ]

@@ -13,7 +13,7 @@ def build_all_tables(tables):
     m.newline(block='header')
 
     for table in tables:
-        makefile_table(table[0], table[1], table[2])
+        makefile_table(table[0], table[1])
 
     m.comment('meta-targets for testing/integration with rest of the build. must apear at the end', block='footer')
     m.newline(block='footer')
@@ -26,9 +26,9 @@ def build_all_tables(tables):
     m.target('clean-tables', block='footer')
     m.job('rm -rf $(output-tables)', True)
 
-def makefile_table(input, output, block):
-    m.append_var('output-tables', output, block)
-    m.target(output, input, block)
+def makefile_table(name, block):
+    m.append_var('output-tables', name + '.rst', block)
+    m.target(name  + '.rst', name + '.yaml' , block)
     m.job('$(PYTHONBIN) bin/table_builder.py $< $@', block)
     m.msg('[table-builder]: \(re\)generate $@ table for inclusion in build', block)
     m.newline(block=block)

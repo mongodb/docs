@@ -3,9 +3,6 @@ MAKEFLAGS += -j
 MAKEFLAGS += -r
 MAKEFLAGS += --no-print-directory
 
-# includes
-include bin/makefile.compatibility
-
 # Build directory tweaking.
 output = build
 rst-include = source/includes
@@ -63,6 +60,25 @@ help:
 	@echo
 	@echo "See 'meta.build.rst' for more information."
 
+# 
+# makefile includes
+# 
+
+include bin/makefile.compatibility
+
+# Included, dynamically generated makefile sections, to build:
+# sphinx targets, LaTeX/PDFs, tables, and symbolic links.
+
+makefile-builder-system = bin/makefile_builder.py bin/builder_data.py
+
+-include $(output)/makefile.pdfs
+-include $(output)/makefile.tables
+-include $(output)/makefile.links
+-include $(output)/makefile.sphinx
+
+$(output)/makefile.%:bin/makefile_builder_%.py $(makefile-builder-system)
+	@$(PYTHONBIN) bin/makefile_builder_$(subst .,,$(suffix $@)).py $@
+
 #
 # Meta targets that control the build and publication process.
 #
@@ -113,7 +129,6 @@ endif
 # Targets that should/need only be accessed in publication
 #
 ######################################################################
-
 
 # Deployment targets to kick off the rest of the build process. Only
 # access these targets through the ``publish`` target.
@@ -197,19 +212,6 @@ $(branch-output)/singlehtml:singlehtml
 	@echo [build]: touched $@ to ensure proper migration.
 $(branch-output)/singlehtml/contents.html:$(branch-output)/singlehtml
 
-
-# Included, dynamically generated makefile sections, to build LaTeX/PDFs, tables, and symbolic links
-#
-
-makefile-builder-system = bin/makefile_builder.py bin/builder_data.py
-
--include $(output)/makefile.pdfs
--include $(output)/makefile.tables
--include $(output)/makefile.links
-
-$(output)/makefile.%:bin/makefile_builder_%.py $(makefile-builder-system)
-	@$(PYTHONBIN) bin/makefile_builder_$(subst .,,$(suffix $@)).py $@
-
 #
 # Building and Linking ePub Output
 #
@@ -290,60 +292,24 @@ $(public-branch-output)/meta/410/index.html:$(branch-output)/dirhtml/meta/410/in
 # Clean up/removal targets.
 clean:
 	-rm -rf $(branch-output)/*
-	-rm -f build/makefile.pdfs
+	-rm -f build/makefile.*
 clean-public:
 	-rm -rf $(public-output)/*
-	-rm -f build/makefile.pdfs
+	-rm -f build/makefile.*
 clean-all:
 	-rm -rf $(output)/*
+	-rm -f build/makefile.*
 
 # Needed for all sphinx builds.
 .PHONY: $(branch-output)/themes $(branch-output)/bin $(branch-output)/.static $(branch-output)/.templates
 
 ######################################################################
 #
-# Sphinx targets used in production builds. 
-#
-######################################################################
-
-.PHONY: dirhtml singlehtml latex epub sitemap
-dirhtml:
-	@echo [$@]: build starting at `date`.
-	@mkdir -p $(branch-output)/$@
-	@echo [$@]: created $(branch-output)/$@
-	@echo [sphinx]: starting $@ build
-	@$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
-	@echo [$@]: build complete at `date`.
-singlehtml:
-	@echo [$@]: build started at `date`.
-	@mkdir -p $(branch-output)/$@
-	@echo [$@]: created $(branch-output)/$@
-	@echo [sphinx]: starting $@ build
-	@$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
-	@echo [$@]: build complete at `date`.
-latex:
-	@echo [$@]: build started at `date`.
-	@mkdir -p $(branch-output)/$@
-	@echo [$@]: created $(branch-output)/$@
-	@echo [sphinx]: starting $@ build
-	@$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
-	@echo [$@]: generated all '.tex' file at `date`.
-
-epub-command = $(SPHINXBUILD) -b epub $(ALLSPHINXOPTS) $(branch-output)/epub
-epub-filter = sed $(SED_ARGS_REGEX) -e '/^WARNING: unknown mimetype.*ignoring$$/d' -e '/^WARNING: search index.*incomplete.$$/d'
-epub:pre-build-dependencies
-	@echo [$@]: starting build at `date`.
-	@mkdir -p $(branch-output)/$@
-	@echo [$@]: created $(branch-output)/$@
-	@echo [sphinx]: starting $@ build
-	@{ $(epub-command) 2>&1 1>&3 | $(epub-filter) 1>&2; } 3>&1
-	@echo [$@]: build complete at `date`.
-
-######################################################################
-#
 # Sitemap Builder
 #
 ######################################################################
+
+.PHONY: sitemap
 
 SITEMAPBUILD = $(PYTHONBIN) bin/sitemap_gen.py
 sitemap:$(branch-output)/sitemap.xml.gz
@@ -374,7 +340,7 @@ $(branch-output)/man/%.1.gz: $(branch-output)/man/%.1
 
 ######################################################################
 #
-# Build Targets for Draft Build.
+# Draft build shortcuts.
 #
 ######################################################################
 
@@ -382,80 +348,9 @@ $(branch-output)/man/%.1.gz: $(branch-output)/man/%.1
 aspiration:draft-html
 aspirational:draft-html
 draft:draft-html
-draft-html:pre-build-dependencies
-	@echo [$@]: build started at `date`.
-	@mkdir -p $(branch-output)/$@
-	@echo [$@]: created $(branch-output)/$@
-	@echo [sphinx]: starting $@ build
-	@$(SPHINXBUILD) -b html $(DRAFTSPHINXOPTS) $(branch-output)/$@
-	@echo [$@]: build finished at `date`.
-draft-latex:pre-build-dependencies
-	@echo [$@]: build started at `date`.
-	@mkdir -p $(branch-output)/$@-latex
-	@echo [$@]: created $(branch-output)/$@
-	@echo [sphinx]: starting $@ build
-	@$(SPHINXBUILD) -b latex $(DRAFTSPHINXOPTS) $(branch-output)/$@
-	@echo [$@]: build finished at `date`.
 
 draft-pdf:$(subst .tex,.pdf,$(wildcard $(branch-output)/draft-latex/*.tex))
 draft-pdfs:draft-latex draft-pdf
-
-##########################################################################
-#
-# Sphinx targets not used for production builds at this time.
-#
-##########################################################################
-
-.PHONY: html changes linkcheck json doctest man gettext
-html:pre-build-dependencies
-	@echo [$@]: build starting at `date`.
-	@mkdir -p $(branch-output)/$@
-	@echo [$@]: created $(branch-output)/$@
-	@echo [sphinx]: starting $@ build
-	@$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
-	@echo [$@]: build complete at `date`.
-gettext:pre-build-dependencies
-	@echo [$@]: build started at `date`.
-	@mkdir -p $(branch-output)/$@
-	@echo [$@]: created $(branch-output)/$@
-	@echo [sphinx]: starting $@ build
-	@$(SPHINXBUILD) -b $@ $(POSPHINXOPTS) $(branch-output)/$@
-	@echo [$@]: build finished at `date`.
-man:pre-build-dependencies
-	@echo [$@]: starting build at `date`.
-	@mkdir -p $(branch-output)/$@
-	@echo [$@]: created $(branch-output)/$@
-	@echo [sphinx]: starting $@ build
-	$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
-	@echo [$@]: build complete at `date`.
-json:pre-build-dependencies
-	@echo [$@]: build started at `date`.
-	@mkdir -p $(branch-output)/$@
-	@echo [$@]: created $(branch-output)/$@
-	@echo [sphinx]: starting $@ build
-	@$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
-	@echo [$@]: build finished at `date`.
-changes:pre-build-dependencies
-	@echo [$@]: build started at `date`.
-	@mkdir -p $(branch-output)/$@
-	@echo [$@]: created $(branch-output)/$@
-	@echo [sphinx]: starting $@ build
-	@$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
-	@echo [$@]: build finished at `date`.
-doctest:pre-build-dependencies
-	@echo [$@]: build started at `date`.
-	@mkdir -p $(branch-output)/$@
-	@echo [test]: created $(branch-output)/$@
-	@echo [sphinx]: starting $@ build
-	@$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
-	@echo [$@]: complete at `date`.
-linkcheck:pre-build-dependencies
-	@echo [$@]: build started at `date`.
-	@mkdir -p $(branch-output)/$@
-	@echo [$@]: created $(branch-output)/$@
-	@echo [sphinx]: starting $@ build
-	@$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
-	@echo [$@]: Link check complete at `date`. See $(branch-output)/linkcheck/output.txt.
 
 ######################################################################
 #
