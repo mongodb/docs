@@ -41,7 +41,7 @@ ALLSPHINXOPTS = -q -d $(branch-output)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPT
 POSPHINXOPTS = -q -d $(branch-output)/doctrees-gettext $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
 DRAFTSPHINXOPTS = -q -d $(branch-output)/draft-doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) draft
 
-.PHONY: publish help clean push-dc1 push-dc2
+.PHONY: help
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
 	@echo "  html		to make standalone HTML files"
@@ -81,26 +81,19 @@ include bin/makefile.compatibility
 $(output)/makefile.%:bin/makefile-builder/%.py bin/makefile_builder.py bin/builder_data.py
 	@$(PYTHONBIN) bin/makefile-builder/$(subst .,,$(suffix $@)).py $@
 
-#
 # Meta targets that control the build and publication process.
-#
-
-.PHONY: push publish-if-up-to-date
-
+.PHONY: publish push publish-if-up-to-date push-all
 push:publish-if-up-to-date
 	@echo [build]: copying the new $(current-branch) build to the web servers.
 	@$(MAKE) MODE='push' push-dc1 push-dc2
 	@echo [build]: deployed a new build of the $(current-branch) branch of the Manual.
-
 push-all:publish
 	@echo [build]: copying the full docs site to the web servers.
 	@$(MAKE) MODE='push' push-all-dc1 push-all-dc2
 	@echo [build]: deployed a new build of the full Manual.
-
 publish-if-up-to-date:
 	@bin/published-build-check $(current-branch) $(last-commit)
 	@$(MAKE) publish
-
 publish:initial-dependencies pre-build-dependencies
 	@echo [build]: starting build of sphinx components built at `date`
 	@$(MAKE) sphinx-components
@@ -110,16 +103,13 @@ publish:initial-dependencies pre-build-dependencies
 	@echo [build]: all static components built at `date`
 	@echo [build]: $(manual-branch) branch is succeessfully deployed to '$(public-output)'.
 
-#
 # Targets for pushing the new build to the web servers.
-#
-
 ifeq ($(MODE),push)
+.PHONY: push-dc1 push-dc2 push-dc1-all push-dc2-all
 push-dc1:
 	rsync -arz $(public-output)/$(current-branch)/ www@www-c1.10gen.cc:/data/sites/docs/$(current-branch)
 push-dc2:
 	rsync -arz $(public-output)/$(current-branch)/ www@www-c2.10gen.cc:/data/sites/docs/$(current-branch)
-
 push-all-dc1:
 	rsync -arz $(public-output)/ www@www-c1.10gen.cc:/data/sites/docs
 push-all-dc2:
@@ -146,10 +136,6 @@ post-processing:error-pages links
 	@echo [build]: completed $@ buildstep.
 sphinx-components:manual-pdfs $(public-branch-output)/single $(public-branch-output)/single/index.html $(public-branch-output) $(public-branch-output)/sitemap.xml.gz
 	@echo [build]: completed $@ buildstep.
-
-#
-# Build the HTML components of the build.
-#
 
 # Initial build steps, exporting the current commit to the build.
 .PHONY:source/about.txt source/includes/hash.rst setup $(public-branch-output)/release.txt
@@ -181,10 +167,7 @@ $(branch-output)/singlehtml/contents.html:$(branch-output)/singlehtml
 $(branch-output)/epub/MongoDB.epub:epub
 $(public-branch-output)/MongoDB-Manual.epub:$(public-branch-output)/MongoDB-Manual-$(current-branch).epub
 
-#
 # Migrating and processing the dirhtml and singlehtml as needed.
-#
-
 $(public-branch-output):$(branch-output)/dirhtml
 	@cp -R $</* $@
 	@rm -rf $@/meta/reference $@/meta/use-cases
@@ -222,13 +205,11 @@ clean-all:
 ######################################################################
 
 .PHONY: sitemap
-
-SITEMAPBUILD = $(PYTHONBIN) bin/sitemap_gen.py
 sitemap:$(branch-output)/sitemap.xml.gz
-$(branch-output)/sitemap.xml.gz:$(branch-output)/dirhtml
+$(branch-output)/sitemap.xml.gz:$(public-output)/manual $(branch-output)/dirhtml
 	@echo [sitemap]: starting sitemap build at `date`.
 	@echo [sitemap]: build time\: `date` >> $(branch-output)/sitemap-build.log
-	@$(SITEMAPBUILD) --testing --config=conf-sitemap.xml 2>&1 >> $(branch-output)/sitemap-build.log
+	@$(PYTHONBIN) bin/sitemap_gen.py --testing --config=conf-sitemap.xml 2>&1 >> $(branch-output)/sitemap-build.log
 	@mv build/sitemap.xml.gz $@
 	@echo [sitemap]: sitemap built at `date`.
 
@@ -242,9 +223,8 @@ $(branch-output)/sitemap.xml.gz:$(branch-output)/dirhtml
 UNCOMPRESSED_MAN := $(wildcard $(branch-output)/man/*.1)
 COMPRESSED_MAN := $(subst .1,.1.gz,$(UNCOMPRESSED_MAN))
 
-# Targets to build compressed man pages.
-build-man: man $(COMPRESSED_MAN)
-compress-man: $(COMPRESSED_MAN)
+build-man:man $(COMPRESSED_MAN)
+compress-man:$(COMPRESSED_MAN)
 $(branch-output)/man/%.1.gz: $(branch-output)/man/%.1
 	gzip $< -c > $@
 
@@ -258,7 +238,6 @@ $(branch-output)/man/%.1.gz: $(branch-output)/man/%.1
 aspiration:draft-html
 aspirational:draft-html
 draft:draft-html
-
 draft-pdf:$(subst .tex,.pdf,$(wildcard $(branch-output)/draft-latex/*.tex))
 draft-pdfs:draft-latex draft-pdf
 
@@ -270,18 +249,16 @@ draft-pdfs:draft-latex draft-pdf
 
 LATEX_CORRECTION = "s/(index|bfcode)\{(.*!*)*--(.*)\}/\1\{\2-\{-\}\3\}/g"
 LATEX_LINK_CORRECTION = "s%\\\code\{/%\\\code\{http://docs.mongodb.org/$(current-if-not-manual)/%g"
+PDFLATEXCOMMAND = TEXINPUTS=".:$(branch-output)/latex/:" pdflatex --interaction batchmode --output-directory $(branch-output)/latex/
+
+# Uses 'latex' target to generate latex files.
 
 .PHONY:pdfs
-
-# Uses 'latex' target in the production build section.
-
 $(branch-output)/latex/%.tex:
 	@sed $(SED_ARGS_FILE) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) -e $(LATEX_LINK_CORRECTION) $@
 	@echo [latex]: fixing the Sphinx ouput of '$@'.
 
 pdfs:$(subst .tex,.pdf,$(wildcard $(branch-output)/latex/*.tex))
-
-PDFLATEXCOMMAND = TEXINPUTS=".:$(branch-output)/latex/:" pdflatex --interaction batchmode --output-directory $(branch-output)/latex/
 
 %.pdf:%.tex
 	@echo [pdf]: pdf compilation of $@, started at `date`.
@@ -297,13 +274,13 @@ PDFLATEXCOMMAND = TEXINPUTS=".:$(branch-output)/latex/:" pdflatex --interaction 
 	@echo [pdf]: see '$(basename $@)-pdflatex.log' for a full report of the pdf build process.
 	@echo [pdf]: pdf compilation of $@, complete at `date`.
 
-##########################################################################
+###########################################################################
 #
-# Archiving $(public-output) for cleaner full rebuilds
+# Archiving $(public-output) for more sane testing, and risk free cleaning.
 #
-##########################################################################
+###########################################################################
 
 archive:$(public-output).$(timestamp).tar.gz
 	@echo [archive]: created $< archive.
-$(public-output).$(ARCHIVE_DATE).tar.gz:$(public-output)
+$(public-output).%.tar.gz:$(public-output)
 	tar -czvf $@ $<
