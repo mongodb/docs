@@ -33,12 +33,12 @@ methods to perform update operations:
 Update
 ------
 
-The :method:`update() <db.collection.update()>` method is method used
-to modify documents in a MongoDB collection. By default the
-:method:`update() <db.collection.update()>` method updates a single
-document, but by using the ``multi`` option, :method:`update()
-<db.collection.update()>` can update all documents that match the
-query criteria in the collection. The :method:`update()
+The :method:`update() <db.collection.update()>` method is the primary
+method used to modify documents in a MongoDB collection. By default,
+the :method:`update() <db.collection.update()>` method updates a
+**single** document, but by using the ``multi`` option,
+:method:`update() <db.collection.update()>` can update all documents
+that match the query criteria in the collection. The :method:`update()
 <db.collection.update()>` method can either replace the existing
 document with the new document or update specific fields in the
 existing document.
@@ -59,91 +59,103 @@ syntax:
      and
    
    - the ``<update>`` corresponds to the ``SET ...`` statement.
-
-   However, :method:`update() <db.collection.update()>` is more
-   flexible and offers more control than its SQL equivalents.
+   
+   The default behavior of the :method:`update()
+   <db.collection.update()>` method updates a **single** document and
+   would correspond to the SQL ``UPDATE`` statement with the ``LIMIT
+   1``. With the ``multi`` option, :method:`update()
+   <db.collection.update()>` method would correspond to the SQL
+   ``UPDATE`` statement without the ``LIMIT`` clause.
 
 Consider the following examples that illustrate the use of the
 :method:`update() <db.collection.update()>` method:
 
-- If the ``<update>`` argument contains only :ref:`update operators
+- If the ``<update>`` argument contains only :ref:`update operator
   <update-operators>` expressions such as the :operator:`$set` operator
   expression, the :method:`update() <db.collection.update()>` method
-  updates only the corresponding fields in the document.
+  updates the corresponding fields in the document.
 
-  The following operation queries the ``csbios`` collection for the
-  document that has an ``_id`` field equal to ``1`` and sets the
-  ``middle`` field in the ``name`` subdocument to ``Warner`` and adds a
-  new element to the ``awards`` field:
+  The following operation queries the ``bios`` collection for the first
+  document that has an ``_id`` field equal to ``1`` and sets the field
+  named ``middle`` to the value ``Warner`` in the ``name`` subdocument
+  and adds a new element to the ``awards`` field:
 
   .. code-block:: javascript
 
-     db.csbios.update( { _id: 1 },
-                       { $set: { 'name.middle': 'Warner' },
-                         $push: { awards: { award: 'IBM Fellow',
-                                            year: '1963',
-                                            by: 'IBM' } }
-                       } )
+     db.bios.update( 
+        { _id: 1 },
+        {
+          $set: { 'name.middle': 'Warner' },
+          $push: { awards: { award: 'IBM Fellow', year: 1963, by: 'IBM' } }
+        } 
+     )
 
 - If the ``<update>`` argument contains :operator:`$unset` operator, the
   :method:`update() <db.collection.update()>` method removes the field
   from the document.
 
-  The following operation queries the ``csbios`` collection for the
+  The following operation queries the ``bios`` collection for the
   first document that has an ``_id`` field equal to ``3`` and removes
   the ``birth`` field from the document:
 
  .. code-block:: javascript
 
-     db.csbios.update( { _id: 3 },
-                       { $unset: { birth: 1 } } )
+     db.bios.update( 
+        { _id: 3 },
+        { $unset: { birth: 1 } } 
+     )
 
 - If the ``<update>`` argument contains fields not currently in the
   document, the :method:`update() <db.collection.update()>` method
   adds the new fields to the document.
 
-  The following operation queries the ``csbios`` collection for the
+  The following operation queries the ``bios`` collection for the
   first document that has an ``_id`` field equal to ``3`` and adds to
   the document a new ``mbranch`` field and a new ``aka`` field in the
   subdocument ``name``:
 
   .. code-block:: javascript
 
-     db.csbios.update( { _id: 3 },
-                       { $set: { mbranch: 'Navy',
-                                 'name.aka': 'Amazing Grace'} } )
+     db.bios.update(
+        { _id: 3 },
+        { $set: {
+                  mbranch: 'Navy',
+                  'name.aka': 'Amazing Grace'
+                }
+        } 
+     )
 
 - If the ``<update>`` argument contains only field and value pairs, the
   :method:`update() <db.collection.update()>` method *replaces* the
   existing document with the document in the ``<update>`` argument,
   except for the ``_id`` field.
 
-  The following operation queries the ``csbios`` collection for the
+  The following operation queries the ``bios`` collection for the
   first document that has a ``name`` field equal to ``{ first: 'John',
   last: 'McCarthy' }`` and replaces all but the ``_id`` field in the
   document with the fields in the ``<update>`` argument:
 
   .. code-block:: javascript
 
-     db.csbios.update(
-                       { name: { first: 'John', last: 'McCarthy' } },
-                       {
-                         name: { first: 'Ken', last: 'Iverson' },
-                         born: new Date('Dec 17, 1941'),
-                         died: new Date('Oct 19, 2004'),
-                         contribs: [ 'APL', 'J' ],
-                         awards: [
-                                     { award: 'Turing Award',
-                                       year: '1979',
-                                       by: 'ACM' },
-                                     { award: 'Harry H. Goode Memorial Award',
-                                       year: '1975',
-                                       by: 'IEEE Computer Society' },
-                                     { award: 'IBM Fellow',
-                                       year: '1970',
-                                       by: 'IBM' }
-                                 ]
-                       } )
+     db.bios.update(
+        { name: { first: 'John', last: 'McCarthy' } },
+        { name: { first: 'Ken', last: 'Iverson' },
+          born: new Date('Dec 17, 1941'),
+          died: new Date('Oct 19, 2004'),
+          contribs: [ 'APL', 'J' ],
+          awards: [
+                    { award: 'Turing Award',
+                      year: 1979,
+                      by: 'ACM' },
+                    { award: 'Harry H. Goode Memorial Award',
+                      year: 1975,
+                      by: 'IEEE Computer Society' },
+                    { award: 'IBM Fellow',
+                      year: 1970,
+                      by: 'IBM' } 
+          ]
+        }
+     )
 
 - If the update operation requires an update of an element in an array
   field:
@@ -152,22 +164,24 @@ Consider the following examples that illustrate the use of the
     the update using the position of the element. Arrays in MongoDB are
     zero-based.
 
-    The following operation queries the ``csbios`` collection for
-    the document with ``_id`` field equal to ``1`` and updates the
+    The following operation queries the ``bios`` collection for
+    the first document with ``_id`` field equal to ``1`` and updates the
     second element in the ``contribs`` array:
 
     .. code-block:: javascript
 
-       db.csbios.update( { _id: 1 } ,
-                         { $set: { 'contribs.1': 'ALGOL 58' } } )
+       db.bios.update( 
+          { _id: 1 },
+          { $set: { 'contribs.1': 'ALGOL 58' } }
+       )
 
   - The :method:`update() <db.collection.update()>` method can perform
     the update using the :operator:`$` positional operator if the
     position is not known. The array field must appear in the ``query``
-    argument in order to determine which array element.
+    argument in order to determine which array element to update.
 
-    The following operation queries the ``csbios`` collection for a
-    document with the ``_id`` field equal to ``3`` and the ``contribs``
+    The following operation queries the ``bios`` collection for the first
+    document where the ``_id`` field equals ``3`` and the ``contribs``
     array contains an element equal to ``compiler``. If found, the
     :method:`update() <db.collection.update()>` method updates the
     first matching element in the array to ``A compiler`` in the
@@ -175,16 +189,18 @@ Consider the following examples that illustrate the use of the
 
     .. code-block:: javascript
 
-       db.csbios.update( { _id: 3, 'contribs': 'compiler' },
-                         { $set: { 'contribs.$': 'A compiler' } } )
+       db.bios.update( 
+          { _id: 3, 'contribs': 'compiler' },
+          { $set: { 'contribs.$': 'A compiler' } }
+       )
 
   - The :method:`update() <db.collection.update()>` method can perform
     the update of an array that contains subdocuments by using the
     :operator:`$` positional operator and the :wiki:`dot notation
     <Dot+Notation+(Reaching+into+Objects)>`.
 
-    The following operation queries the ``csbios`` collection for a
-    document with the ``_id`` field equal to ``6`` and the ``awards``
+    The following operation queries the ``bios`` collection for the first
+    document where the ``_id`` field equals ``6`` and the ``awards``
     array contains a subdocument element with the ``by`` field equal
     to ``ACM``. If found, the :method:`update()
     <db.collection.update()>` method updates the ``by`` field in the
@@ -192,42 +208,45 @@ Consider the following examples that illustrate the use of the
 
     .. code-block:: javascript
 
-       db.csbios.update( { _id: 6, 'awards.by': 'ACM'  } ,
-                         { $set: { 'awards.$.by': 'Association for Computing Machinery' } } )
+       db.bios.update( 
+          { _id: 6, 'awards.by': 'ACM'  } ,
+          { $set: { 'awards.$.by': 'Association for Computing Machinery' } } 
+       )
 
 - If the ``<options>`` argument contains the ``multi`` option set to
   ``true`` or ``1``, the :method:`update() <db.collection.update()>`
   method updates all documents that match the query.
 
-  The following operation queries the ``csbios`` collection for all
+  The following operation queries the ``bios`` collection for all
   documents where the ``awards`` field contains a subdocument element
   with the ``award`` field equal to ``Turing`` and sets the ``turing``
   field to ``true`` in the matching documents:
 
   .. code-block:: javascript
 
-     db.csbios.update( { 'awards.award': 'Turing' },
-                       { $set: { turing: true } },
-                       { multi: true } )
+     db.bios.update( 
+        { 'awards.award': 'Turing' },
+        { $set: { turing: true } },
+        { multi: true }
+     )
 
 - If you set the ``upsert`` option in the ``<options>`` argument to
   ``true`` or ``1`` and no existing document match the ``<query>``
   argument, the :method:`update() <db.collection.update()>` method can
-  insert a new document into the collection:
+  insert a new document into the collection.
 
-  The following operation queries the ``csbios`` collection for a
+  The following operation queries the ``bios`` collection for a
   document with the ``_id`` field equal to ``11`` and the ``name``
   field equal to ``{ first: 'James', last: 'Gosling'}``. If the query
   selects a document, the operation performs an update operation. If a
   document is not found, :method:`update() <db.collection.update()>`
-  performs an insert operation of a new document with the fields and
-  values in the ``<update>`` argument and the ``<query>`` argument
-  since the ``<update>`` argument contains only :ref:`update operators
-  <update-operators>` expressions.
+  inserts a new document containing the fields and values from
+  ``<query>`` argument with the operations from the ``<update>``
+  argument applied. [#upsert-update-operators]_
 
-  .. code-block::javascript
+  .. code-block:: javascript
 
-     db.csbios.update(
+     db.bios.update(
         { _id:11, name: { first: 'James', last: 'Gosling' } },
         {
           $set: {
@@ -235,10 +254,10 @@ Consider the following examples that illustrate the use of the
                    contribs: [ 'Java' ],
                    awards: [
                              { award: 'The Economist Innovation Award',
-                               year: '2002',
+                               year: 2002,
                                by: 'The Economist' },
                              { award: 'Officer of the Order of Canada',
-                               year: '2007',
+                               year: 2007,
                                by: 'Canada' }
                   ]
                }
@@ -246,10 +265,18 @@ Consider the following examples that illustrate the use of the
         { upsert: true }
      )
 
-  See also :ref:`Create <crud-create-update>`.
+  See also :ref:`Create with Upsert<crud-create-update>`.
 
  .. _crud-update-save:
 
+.. [#upsert-update-operators] If the ``<update>``
+  argument includes only field and value pairs, the new document
+  contains the fields and values specified in the ``<update>``
+  argument. If the ``<update>`` argument includes only :ref:`update
+  operators <update-operators>`, the new document contains the fields
+  and values from ``<query>`` argument with the operations from the
+  ``<update>`` argument applied.
+  
 Save
 ----
 
@@ -275,17 +302,20 @@ Consider the following examples of the :method:`save()
   performs an update that replaces the existing document with the
   ``<document>`` argument.
 
-  The following operation queries the ``csbios`` collection for a
+  The following operation queries the ``bios`` collection for a
   document where the ``_id`` equals
   ``ObjectId("507c4e138fada716c89d0014")`` and replaces the document
   with the ``<document>`` argument:
 
   .. code-block:: javascript
 
-     db.csbios.save( { _id: ObjectId("507c4e138fada716c89d0014"),
-                       name: { first: 'Martin', last: 'Odersky' },
-                       contribs: [ 'Scala' ]
-                      } )
+     db.bios.save( 
+        {
+          _id: ObjectId("507c4e138fada716c89d0014"),
+          name: { first: 'Martin', last: 'Odersky' },
+          contribs: [ 'Scala' ]
+        }
+     )
 
 - If no ``_id`` field exists or if the ``_id`` field exists but does
   not match any document in the collection, the :method:`save()
@@ -294,12 +324,16 @@ Consider the following examples of the :method:`save()
   and create an ``_id`` field for the new document.
 
   The following operation adds the ``_id`` field to the document,
-  assigns to the field a unique ``ObjectId``, and inserts into the
-  ``csbios`` collection:
+  assigns to the field a unique ``ObjectId``, and inserts the document
+  into the ``bios`` collection:
 
   .. code-block:: javascript
 
-     db.csbios.save( { name: { first: 'Larry', last: 'Wall' },
-                       contribs: [ 'Perl' ] } )
+     db.bios.save( 
+        {
+          name: { first: 'Larry', last: 'Wall' },
+          contribs: [ 'Perl' ] 
+        } 
+     )
 
-  Upserts are also :ref:`create <crud-create-save>` operations.
+  See also :ref:`Create with Save <crud-create-save>`.
