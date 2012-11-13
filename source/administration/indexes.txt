@@ -4,9 +4,6 @@ Indexing Operations
 
 .. default-domain:: mongodb
 
-Synopsis
---------
-
 This document provides operational guidelines and procedures for
 indexing data in MongoDB collections. For the fundamentals of MongoDB
 indexing, see the :doc:`/core/indexes` document. For strategies and
@@ -15,22 +12,57 @@ practical approaches, see the :doc:`/applications/indexes` document.
 Indexes allow MongoDB to process and fulfill queries quickly by creating
 small and efficient representations of the documents in a collection.
 
-Operations
-----------
+.. index:: index; create
+.. _index-create-index:
 
 Create an Index
-~~~~~~~~~~~~~~~
+---------------
 
 To create an index, use :method:`db.collection.ensureIndex()` or a similar
 :api:`method from your driver <>`. For example
-the following creates [#ensure]_ an index on the ``phone-number`` field
+the following creates an index on the ``phone-number`` field
 of the ``people`` collection:
 
 .. code-block:: javascript
 
    db.people.ensureIndex( { "phone-number": 1 } )
 
-To create a :ref:`compound index <index-type-compound>`, use an
+As the name suggests, :method:`ensureIndex()
+<db.collection.ensureIndex()>` only creates an index if an index of the
+same specification does not already exist.
+
+All indexes support and optimize the performance for queries that select
+on this field. For queries that cannot use an index, MongoDB must scan
+all documents in a collection for documents that match the query.
+
+.. example::
+
+   If you create an index on the ``x`` field in the ``things``
+   collection but not on the ``y`` field, then this query is fast:
+
+   .. code-block:: javascript
+
+      db.things.find( { x: 2 } )
+
+   while this query is slow:
+
+   .. code-block:: javascript
+
+      db.things.find( { y: 2 } )
+
+If your collection is large, build the index in the background, as
+described in :ref:`index-creation-background`. If you build in the
+background on a live replica set, see also
+:ref:`index-build-on-replica-sets`.
+
+.. index:: index; create
+.. index:: index; compound
+.. _index-create-compound-index:
+
+Create a Compound Index
+-----------------------
+
+To create a :ref:`compound index <index-type-compound>` use an
 operation that resembles the following prototype:
 
 .. code-block:: javascript
@@ -51,12 +83,16 @@ resulting index.
 
 .. include:: /includes/note-build-indexes-on-replica-sets.rst
 
-.. [#ensure] As the name suggests, :method:`ensureIndex() <db.collection.ensureIndex()>`
-   only creates an index if an index of the same specification does
-   not already exist.
+.. index:: index; options
+.. _index-special-creation-options:
+
+If your collection is large, build the index in the background, as
+described in :ref:`index-creation-background`. If you build in the
+background on a live replica set, see also
+:ref:`index-build-on-replica-sets`.
 
 Special Creation Options
-~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------
 
 .. note::
 
@@ -66,8 +102,11 @@ Special Creation Options
 .. todo::: insert link here to the geospatial index documents when
    they're published.
 
+.. index:: index; sparse
+.. _index-sparse-index:
+
 Sparse Indexes
-``````````````
+~~~~~~~~~~~~~~
 
 To create a :ref:`sparse index <index-type-sparse>` on a field, use an
 operation that resembles the following prototype:
@@ -92,8 +131,11 @@ without the ``twitter_name`` field.
    index. See the :ref:`sparse index <index-type-sparse>` section for
    more information.
 
+.. index:: index; unique
+.. _index-unique-index:
+
 Unique Indexes
-``````````````
+~~~~~~~~~~~~~~
 
 To create a :ref:`unique indexes <index-type-unique>`, consider the
 following prototype:
@@ -110,7 +152,7 @@ records for the same legal entity:
 
    db.accounts.ensureIndex( { "tax-id": 1 }, { unique: true } )
 
-The :ref:`_id index <index-type-primary>` is a unique index. In some
+The :ref:`_id index <index-type-id>` is a unique index. In some
 situations you may consider using ``_id`` field itself for this kind
 of data rather than using a unique index on another field.
 
@@ -136,8 +178,11 @@ You can also enforce a unique constraint on :ref:`compound indexes
 These indexes enforce uniqueness for the *combination* of index keys
 and *not* for either key individually.
 
-Background
-``````````
+.. index:: index; create in background
+.. _index-create-in-background:
+
+Create in Background
+~~~~~~~~~~~~~~~~~~~~
 
 To create an index in the background you can specify :ref:`background
 construction <index-creation-background>`. Consider the following
@@ -151,8 +196,12 @@ Consider the section on :ref:`background index construction
 <index-creation-background>` for more information about these indexes
 and their implications.
 
+.. index:: index; drop duplicates
+.. index:: index; duplicates
+.. _index-drop-duplicates:
+
 Drop Duplicates
-```````````````
+~~~~~~~~~~~~~~~
 
 To force the creation of a :ref:`unique index <index-type-unique>`
 index on a collection with duplicate values in the field you are
@@ -176,8 +225,11 @@ See the full documentation of :ref:`duplicate dropping
 Refer to the :method:`ensureIndex() <db.collection.ensureIndex()>`
 documentation for additional index creation options.
 
-List a Collection's Indexes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. index:: index; list indexes
+.. _index-list-indexes-for-collection:
+
+List all Indexes on a Collection
+--------------------------------
 
 To list a collection's indexes, use the
 :method:`db.collection.getIndexes()` method or a similar
@@ -189,8 +241,23 @@ For example, to view all indexes on the the ``people`` collection:
 
    db.people.getIndexes()
 
-Remove an Index
-~~~~~~~~~~~~~~~
+.. index:: index; list indexes
+.. _index-list-indexes-for-database:
+
+List all Indexes for a Database
+-------------------------------
+
+To see all indexes for a database, issue the following:
+
+.. code-block:: javascript
+
+   db.system.indexes.find()
+
+.. index:: index; remove
+.. _index-remove-index:
+
+Remove Indexes
+--------------
 
 To remove an index, use the :method:`db.collection.dropIndex()` method,
 as in the following example:
@@ -210,19 +277,22 @@ the operation:
 Where the value of ``nIndexesWas`` reflects the number of indexes
 *before* removing this index. You can also use the
 :method:`db.collection.dropIndexes()` to remove *all* indexes, except
-for the :ref:`_id index <index-type-primary>` from a collection.
+for the :ref:`_id index <index-type-id>` from a collection.
 
 These shell helpers provide wrappers around the
 :dbcommand:`dropIndexes` :term:`database command`. Your :doc:`client
 library </applications/drivers>` may have a different or additional
 interface for these operations.
 
-Rebuilding
-~~~~~~~~~~
+.. index:: index; rebuild
+.. _index-rebuild-index:
+
+Rebuild Indexes
+---------------
 
 If you need to rebuild indexes for a collection you can use the
 :method:`db.collection.reIndex()` method. This will drop all indexes,
-including the :ref:`_id index <index-type-primary>`, and then rebuild
+including the :ref:`_id index <index-type-id>`, and then rebuild
 all indexes. The operation takes the following form:
 
 .. code-block:: javascript
@@ -257,13 +327,13 @@ may have a different or additional interface for this operation.
 
 .. include:: /includes/note-build-indexes-on-replica-sets.rst
 
+.. index:: index; replica set
+.. index:: replica set; index
+.. _index-build-on-replica-sets:
 .. _index-building-replica-sets:
 
-Building Indexes on Replica Sets
---------------------------------
-
-Consideration
-~~~~~~~~~~~~~
+Build Indexes on Replica Sets
+-----------------------------
 
 :ref:`Background index creation operations
 <index-creation-background>` become *foreground* indexing operations
@@ -280,9 +350,6 @@ primary finishes building the index.
 
 To minimize the impact of building an index on your replica set, use
 the following procedure to build indexes on secondaries:
-
-Procedure
-~~~~~~~~~
 
 .. note::
 
@@ -307,7 +374,6 @@ Procedure
 #. Run :method:`rs.stepDown()` on the :term:`primary` member of the
    set, and then repeat this procedure on the former primary.
 
-
 .. warning::
 
    Ensure that your :term:`oplog` is large enough to permit the
@@ -327,10 +393,12 @@ Procedure
    clients will not contact the member while you are building the
    index.
 
+.. index:: index; measure use
+.. _index-measure-index-use:
 .. _indexes-measuring-use:
 
-Measuring Index Use
--------------------
+Measure Index Use
+-----------------
 
 Query performance is a good general indicator of index use;
 however, for more precise insight into index use, MongoDB provides the
@@ -370,10 +438,12 @@ following tools:
   :dbcommand:`serverStatus` for insight into database-wise index
   utilization.
 
+.. index:: index; monitor index building
+.. _index-monitor-index-building:
 .. _indexes-admin-stop-in-progress-build:
 
-Monitoring and Controlling Index Building
------------------------------------------
+Monitor and Control Index Building
+----------------------------------
 
 .. todo:: insert links to the values in the inprog array following the
    completion of DOCS-162
