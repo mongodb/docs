@@ -24,21 +24,6 @@ else
 current-if-not-manual = $(current-branch)
 endif
 
-# Sphinx variables.
-SPHINXOPTS = -c ./
-SPHINXBUILD = sphinx-build
-
-ifdef NITPICK
-SPHINXOPTS += -n -w $(branch-output)/build.$(timestamp).log
-endif
-
-PAPER = letter
-PAPEROPT_a4 = -D latex_paper_size=a4
-PAPEROPT_letter = -D latex_paper_size=letter
-ALLSPHINXOPTS = -q -d $(branch-output)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
-POSPHINXOPTS = -q -d $(branch-output)/doctrees-gettext $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
-DRAFTSPHINXOPTS = -q -d $(branch-output)/draft-doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) draft
-
 .PHONY: help
 help:
 	@echo "Please use \`make <target>' where <target> is a supported Sphinx target, including:"

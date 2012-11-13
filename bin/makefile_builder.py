@@ -40,10 +40,10 @@ class MakefileBuilder(object):
             self.section_break(block, block)
 
     def raw(self, lines, block='_all'):
-        self.add_to_builder(flatten_list(lines), block)
+        self.add_to_builder(lines, block)
 
     def section_break(self, name, block='_all'):
-        self.add_to_builder('\n\n########## ' + name + ' ##########\n\n', block)
+        self.add_to_builder('\n\n########## ' + name + ' ##########\n', block)
 
     def comment(self, comment, block='_all'):
         self.add_to_builder('\n# ' + comment + '\n', block)

@@ -9,16 +9,53 @@ from builder_data import sphinx as sphinx_targets
 m = MakefileBuilder()
 
 def make_all_sphinx(sphinx):
-    m.comment('each sphinx target invokes and controls the sphinx build.', block='header')
-    m.newline(block='header')
+    m.section_break('sphinx related variables', block='header')
+    m.var(variable='SPHINXOPTS',
+          value='-c ./',
+          block='vars')
+    m.var(variable='SPHINXBUILD',
+          value='sphinx-build',
+          block='vars')
+    
+    m.comment('defines a nitpick mode for sphinx\'s more verbose reporting', block='vars')
+    m.raw('ifdef NITPICK\n', block='vars')
+    m.append_var(variable='SPHINXOPTS',
+                 value='-n -w $(branch-output)/build.$(timestamp).log',
+                 block='vars')
+    m.raw('endif\n', block='vars')
+    
+    m.comment('variables related to paper sizing for the latex output', block='vars')
+    m.var(variable='PAPER',
+          value='letter',
+          block='vars')
+    m.var(variable='PAPEROPT_a4',
+          value='-D latex_paper_size=a4',
+          block='vars')
+    m.var(variable='PAPEROPT_letter',
+          value='-D latex_paper_size=letter',
+          block='vars')
+    m.comment('general sphinx variables', block='vars')
+    m.var(variable='ALLSPHINXOPTS',
+          value='-q -d $(branch-output)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source',
+          block='vars')
+    m.var(variable='POSPHINXOPTS',
+          value='-q -d $(branch-output)/doctrees-gettext $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source',
+          block='vars')
+    m.var(variable='DRAFTSPHINXOPTS',
+          value='-q -d $(branch-output)/draft-doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) draft',
+          block='vars')
 
+    m.comment('epub build modification and settings', block='vars')
     m.var(variable='epub-command', 
           value='$(SPHINXBUILD) -b epub $(ALLSPHINXOPTS) $(branch-output)/epub',
-          block='header')
+          block='vars')
     m.var(variable='epub-filter', 
           value="sed $(SED_ARGS_REGEX) -e '/^WARNING: unknown mimetype.*ignoring$$/d' -e '/^WARNING: search index.*incomplete.$$/d'",
-          block='header')
-    m.newline(n=2, block='header')
+          block='vars')
+
+    m.section_break('sphinx targets', block='sphinx')
+    m.comment('each sphinx target invokes and controls the sphinx build.', block='sphinx')
+    m.newline(block='sphinx')
 
     for builder in sphinx:
         sphinx_builder(builder[0], builder[1])
