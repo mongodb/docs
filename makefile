@@ -41,10 +41,7 @@ help:
 	@echo
 	@echo "See 'meta.build.rst' for more information."
 
-# 
-# makefile includes
-# 
-
+############# makefile includes #############
 include bin/makefile.compatibility
 
 # Included, dynamically generated makefile sections, to build: sphinx
@@ -62,7 +59,7 @@ include bin/makefile.compatibility
 $(output)/makefile.%:bin/makefile-builder/%.py bin/makefile_builder.py bin/builder_data.py
 	@$(PYTHONBIN) bin/makefile-builder/$(subst .,,$(suffix $@)).py $@
 
-# Meta targets that control the build and publication process.
+############# Meta targets that control the build and publication process. #############
 .PHONY: publish push publish-if-up-to-date push-with-delete push-all
 push:publish-if-up-to-date
 	@echo [build]: copying the new $(current-branch) build to the web servers.
@@ -105,14 +102,10 @@ push-with-delete-dc2:
 	rsync -arz --delete $(public-output)/$(current-branch)/ www@www-c2.10gen.cc:/data/sites/docs/$(current-branch)
 endif
 
-######################################################################
-#
-# Targets that should/need only be accessed in publication
-#
-######################################################################
+############# Targets for all special elements of the production build (i.e. 'make publish') #############
 
-# Deployment targets to kick off the rest of the build process. Only
-# access these targets through the ``publish`` target.
+# Deployment targets to kick off the rest of the build process.
+# Only  access these targets through the ``publish`` target.
 .PHONY: initial-dependencies static-components sphinx-components post-processing
 pre-build-dependencies:setup installation-guides tables
 	@echo [build]: completed $@ buildstep.
@@ -172,23 +165,7 @@ $(public-branch-output)/single/index.html:$(branch-output)/singlehtml/contents.h
 	                      -e 's/(href=")genindex.html"/\1..\/genindex\/"/g' $@
 	@echo [single]: generating and processing '$@' page
 
-# Clean up/removal targets.
-clean:
-	-rm -rf $(branch-output)/*
-	-rm -f build/makefile.*
-clean-public:
-	-rm -rf $(public-output)/*
-	-rm -f build/makefile.*
-clean-all:
-	-rm -rf $(output)/*
-	-rm -f build/makefile.*
-
-######################################################################
-#
-# Sitemap Builder
-#
-######################################################################
-
+# Sitemap builder
 .PHONY: sitemap
 sitemap:$(branch-output)/sitemap.xml.gz
 $(branch-output)/sitemap.xml.gz:$(public-output)/manual $(branch-output)/dirhtml
@@ -198,48 +175,18 @@ $(branch-output)/sitemap.xml.gz:$(public-output)/manual $(branch-output)/dirhtml
 	@mv build/sitemap.xml.gz $@
 	@echo [sitemap]: sitemap built at `date`.
 
-######################################################################
-#
-# Targets for manpages
-#
-######################################################################
-
-# helpers for compressing man pages
-UNCOMPRESSED_MAN := $(wildcard $(branch-output)/man/*.1)
-COMPRESSED_MAN := $(subst .1,.1.gz,$(UNCOMPRESSED_MAN))
-
-build-man:man $(COMPRESSED_MAN)
-compress-man:$(COMPRESSED_MAN)
-$(branch-output)/man/%.1.gz: $(branch-output)/man/%.1
-	gzip $< -c > $@
-
-######################################################################
-#
-# Draft build shortcuts.
-#
-######################################################################
-
-.PHONY: draft draft-pdfs draft-latex draft-html
-draft:draft-html
-draft-pdfs:draft-latex $(subst .tex,.pdf,$(wildcard $(branch-output)/draft-latex/*.tex))
-
-######################################################################
-#
-# PDF Build System.
-#
-######################################################################
+############# PDF generation infrastructure. #############
 
 LATEX_CORRECTION = "s/(index|bfcode)\{(.*!*)*--(.*)\}/\1\{\2-\{-\}\3\}/g"
 LATEX_LINK_CORRECTION = "s%\\\code\{/%\\\code\{http://docs.mongodb.org/$(current-if-not-manual)/%g"
 PDFLATEXCOMMAND = TEXINPUTS=".:$(branch-output)/latex/:" pdflatex --interaction batchmode --output-directory $(branch-output)/latex/
 
 # Uses 'latex' target to generate latex files.
+.PHONY:pdfs
+pdfs:$(subst .tex,.pdf,$(wildcard $(branch-output)/latex/*.tex))
 $(branch-output)/latex/%.tex:
 	@sed $(SED_ARGS_FILE) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) -e $(LATEX_LINK_CORRECTION) $@
 	@echo [latex]: fixing the Sphinx ouput of '$@'.
-
-.PHONY:pdfs
-pdfs:$(subst .tex,.pdf,$(wildcard $(branch-output)/latex/*.tex))
 %.pdf:%.tex
 	@echo [pdf]: pdf compilation of $@, started at `date`.
 	@touch $(basename $@)-pdflatex.log
@@ -254,13 +201,34 @@ pdfs:$(subst .tex,.pdf,$(wildcard $(branch-output)/latex/*.tex))
 	@echo [pdf]: see '$(basename $@)-pdflatex.log' for a full report of the pdf build process.
 	@echo [pdf]: pdf compilation of $@, complete at `date`.
 
-###########################################################################
-#
-# Archiving $(public-output) for more sane testing, and risk free cleaning.
-#
-###########################################################################
+############# General purpose targets. Not used (directly) in the production build #############
 
+# Clean up/removal targets.
+clean:
+	-rm -rf $(branch-output)/*
+	-rm -f build/makefile.*
+clean-public:
+	-rm -rf $(public-output)/*
+	-rm -f build/makefile.*
+clean-all:
+	-rm -rf $(output)/*
+	-rm -f build/makefile.*
+
+# Archiving $(public-output) for more sane testing, and risk free cleaning.
 archive:$(public-output).$(timestamp).tar.gz
 	@echo [archive]: created $< archive.
 $(public-output).%.tar.gz:$(public-output)
 	tar -czvf $@ $<
+
+# convience targets for draft builds
+.PHONY: draft draft-pdfs draft-latex draft-html
+draft:draft-html
+draft-pdfs:draft-latex $(subst .tex,.pdf,$(wildcard $(branch-output)/draft-latex/*.tex))
+
+# man page support, uses sphinx `man` builder output.
+UNCOMPRESSED_MAN := $(wildcard $(branch-output)/man/*.1)
+COMPRESSED_MAN := $(subst .1,.1.gz,$(UNCOMPRESSED_MAN))
+build-man:man $(COMPRESSED_MAN)
+compress-man:$(COMPRESSED_MAN)
+$(branch-output)/man/%.1.gz: $(branch-output)/man/%.1
+	gzip $< -c > $@
