@@ -5,20 +5,19 @@ MAKEFLAGS += --no-print-directory
 
 # Build directory tweaking.
 output = build
-rst-include = source/includes
 build-tools = bin
+rst-include = source/includes
 public-output = $(output)/public
 branch-output = $(output)/$(current-branch)
 public-branch-output = $(public-output)/$(current-branch)
 
-# change this to reflect the branch that "manual/" will point to
-manual-branch = master
 # intuit the current branch and commit
 current-branch := $(shell git symbolic-ref HEAD 2>/dev/null | cut -d "/" -f "3" )
 last-commit := $(shell git rev-parse --verify HEAD)
-
 timestamp := $(shell date +%Y%m%d%H%M)
 
+# change this to reflect the branch that "manual/" will point to
+manual-branch = master
 ifeq ($(current-branch),$(manual-branch))
 current-if-not-manual = manual
 else
@@ -26,7 +25,6 @@ current-if-not-manual = $(current-branch)
 endif
 
 # Sphinx variables.
-sphinx-conf = $(branch-output)/conf.py
 SPHINXOPTS = -c ./
 SPHINXBUILD = sphinx-build
 
@@ -43,14 +41,12 @@ DRAFTSPHINXOPTS = -q -d $(branch-output)/draft-doctrees $(PAPEROPT_$(PAPER)) $(S
 
 .PHONY: help
 help:
-	@echo "Please use \`make <target>' where <target> is one of"
+	@echo "Please use \`make <target>' where <target> is a supported Sphinx target, including:"
 	@echo "  html		to make standalone HTML files"
 	@echo "  dirhtml	to make HTML files named index.html in directories"
-	@echo "  singlehtml	to make a single large HTML file"
 	@echo "  epub		to make an epub"
 	@echo "  latex		to make LaTeX files, you can set PAPER=a4 or PAPER=letter"
 	@echo "  man		to make manual pages"
-	@echo "  changes	to make an overview of all changed/added/deprecated items"
 	@echo
 	@echo "MongoDB Manual Specific Targets."
 	@echo "  publish	runs publication process and then deploys the build to $(public-output)"
@@ -125,7 +121,6 @@ endif
 # Deployment targets to kick off the rest of the build process. Only
 # access these targets through the ``publish`` target.
 .PHONY: initial-dependencies static-components sphinx-components post-processing
-
 pre-build-dependencies:setup installation-guides tables
 	@echo [build]: completed $@ buildstep.
 initial-dependencies:$(public-branch-output)/MongoDB-Manual.epub
@@ -195,9 +190,6 @@ clean-all:
 	-rm -rf $(output)/*
 	-rm -f build/makefile.*
 
-# Needed for all sphinx builds.
-.PHONY: $(branch-output)/themes $(branch-output)/bin $(branch-output)/.static $(branch-output)/.templates
-
 ######################################################################
 #
 # Sitemap Builder
@@ -234,12 +226,9 @@ $(branch-output)/man/%.1.gz: $(branch-output)/man/%.1
 #
 ######################################################################
 
-.PHONY: aspirational aspiration draft draft-pdf draft-pdfs draft-html
-aspiration:draft-html
-aspirational:draft-html
+.PHONY: draft draft-pdfs draft-latex draft-html
 draft:draft-html
-draft-pdf:$(subst .tex,.pdf,$(wildcard $(branch-output)/draft-latex/*.tex))
-draft-pdfs:draft-latex draft-pdf
+draft-pdfs:draft-latex $(subst .tex,.pdf,$(wildcard $(branch-output)/draft-latex/*.tex))
 
 ######################################################################
 #
@@ -252,14 +241,12 @@ LATEX_LINK_CORRECTION = "s%\\\code\{/%\\\code\{http://docs.mongodb.org/$(current
 PDFLATEXCOMMAND = TEXINPUTS=".:$(branch-output)/latex/:" pdflatex --interaction batchmode --output-directory $(branch-output)/latex/
 
 # Uses 'latex' target to generate latex files.
-
-.PHONY:pdfs
 $(branch-output)/latex/%.tex:
 	@sed $(SED_ARGS_FILE) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) -e $(LATEX_LINK_CORRECTION) $@
 	@echo [latex]: fixing the Sphinx ouput of '$@'.
 
+.PHONY:pdfs
 pdfs:$(subst .tex,.pdf,$(wildcard $(branch-output)/latex/*.tex))
-
 %.pdf:%.tex
 	@echo [pdf]: pdf compilation of $@, started at `date`.
 	@touch $(basename $@)-pdflatex.log
