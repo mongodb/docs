@@ -227,7 +227,7 @@ ReStructured Text and Typesetting
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Use spaces between nesting parentheticals (and elements) in
-  JavScript examples. For example, prefer "``{ [ a, a, a ] }``" over
+  JavaScript examples. For example, prefer "``{ [ a, a, a ] }``" over
   "``{[a,a,a]}``".
 
 - For underlines associated with headers in RST, use:
