@@ -2,13 +2,9 @@
 
 import sys
 from makefile_builder import MakefileBuilder
+from builder_data import pdfs as pdfs_to_build
 
-pdfs_to_build = [
-#    (root-name, tag)
-    ('MongoDB', 'Manual'),
-    ('MongoDB-reference', 'manual'),
-    ('MongoDB-use-cases', 'guide'),
-]
+# to add a pdf to the build process, add a tuple to the ``pdfs`` list in the builder definition file. 
 
 m = MakefileBuilder()
 

@@ -2,21 +2,9 @@
 
 import sys
 from makefile_builder import MakefileBuilder
+from builder_data import tables as tables_to_build
 
-# to add a table to the build process, add a tuple to the ``tables_to_build`` list.
-
-tables_to_build = [
-#    (input_file, output_file, makefile_block)
-     ('$(rst-include)/table-sql-to-agg-terms.yaml', '$(rst-include)/table-sql-to-agg-terms.rst', 'agg'),
-     ('$(rst-include)/table-sql-to-agg-examples.yaml','$(rst-include)/table-sql-to-agg-examples.rst', 'agg'),
-     ('$(rst-include)/table-sql-to-mongo-executables.yaml', '$(rst-include)/table-sql-to-mongo-executables.rst', 'sql'),
-     ('$(rst-include)/table-sql-to-mongo-terms.yaml', '$(rst-include)/table-sql-to-mongo-terms.rst', 'sql'),
-     ('$(rst-include)/table-sql-to-mongo-schema-examples.yaml', '$(rst-include)/table-sql-to-mongo-schema-examples.rst', 'sql'),
-     ('$(rst-include)/table-sql-to-mongo-insert-examples.yaml', '$(rst-include)/table-sql-to-mongo-insert-examples.rst', 'sql'),
-     ('$(rst-include)/table-sql-to-mongo-select-examples.yaml', '$(rst-include)/table-sql-to-mongo-select-examples.rst', 'sql'),
-     ('$(rst-include)/table-sql-to-mongo-update-examples.yaml', '$(rst-include)/table-sql-to-mongo-update-examples.rst', 'sql'),
-     ('$(rst-include)/table-sql-to-mongo-delete-examples.yaml', '$(rst-include)/table-sql-to-mongo-delete-examples.rst', 'sql'),
-]
+# to add a table to the build process, add a tuple to the ``tables`` list in the builder definition file. 
 
 m = MakefileBuilder()
 

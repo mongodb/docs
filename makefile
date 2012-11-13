@@ -119,7 +119,7 @@ endif
 # access these targets through the ``publish`` target.
 .PHONY: initial-dependencies static-components sphinx-components post-processing
 
-pre-build-dependencies:setup instalation-guides tables
+pre-build-dependencies:setup installation-guides tables
 	@echo [build]: completed $@ buildstep.
 initial-dependencies:$(public-branch-output)/MongoDB-Manual.epub
 	@echo [build]: completed $@ buildstep.
@@ -138,26 +138,36 @@ sphinx-components:manual-pdfs $(public-branch-output)/single $(public-branch-out
 
 # Baking the current release into the installation pages.
 
-instalation-sources = source/includes/install-curl-release-osx-64.rst source/includes/install-curl-release-linux-64.rst source/includes/install-curl-release-linux-32.rst
-.PHONY:instalation-guides $(instalation-sources) source/tutorial/install-mongodb-on-linux.txt source/tutorial/install-mongodb-on-os-x.txt
-instalation-guides:instalation-sources source/tutorial/install-mongodb-on-linux.txt source/tutorial/install-mongodb-on-os-x.txt
-instalation-sources:$(instalation-sources)
+installation-sources:$(installation-sources)
 	@git update-index --assume-unchanged $(instalation-sources)
 	@echo [build]: clensing git index of installation sources.
+
+installation-guides += source/tutorial/install-mongodb-on-linux.txt
 source/tutorial/install-mongodb-on-linux.txt:source/includes/install-curl-release-linux-64.rst
 	@touch $@
 	@echo [build]: touched $@ to ensure a clean build.
+
+installation-guides += source/tutorial/install-mongodb-on-os-x.txt
 source/tutorial/install-mongodb-on-os-x.txt:source/includes/install-curl-release-osx-64.rst
 	@echo [build]: touched $@ to ensure a clean build.
+
+installation-sources += source/includes/install-curl-release-linux-64.rst
 source/includes/install-curl-release-linux-64.rst:source/includes/install-curl-release-linux-32.rst
 	@$(PYTHONBIN) bin/update_release.py linux-64 $@
 	@echo [build]: \(re\)generated $@.
+
+installation-sources += source/includes/install-curl-release-linux-32.rst
 source/includes/install-curl-release-linux-32.rst:
 	@$(PYTHONBIN) bin/update_release.py linux-32 $@
 	@echo [build]: \(re\)generated $@.
+
+installation-sources += source/includes/install-curl-release-osx-64.rst
 source/includes/install-curl-release-osx-64.rst:
 	@$(PYTHONBIN) bin/update_release.py osx $@
 	@echo [build]: \(re\)generated $@.
+
+.PHONY:installation-guides $(installation-sources) $(installation-guides) 
+installation-guides:installation-sources $(installation-guides)
 
 # Initial build steps, exporting the current commit to the build.
 .PHONY:source/about.txt source/includes/hash.rst setup $(public-branch-output)/release.txt
@@ -188,16 +198,17 @@ $(branch-output)/singlehtml:singlehtml
 $(branch-output)/singlehtml/contents.html:$(branch-output)/singlehtml
 
 
-# Building and Linking the LaTeX/PDF Output
+# Included, dynamically generated makefile sections, to build LaTeX/PDFs, tables, and symbolic links
 #
+
+makefile-builder-system = bin/makefile_builder.py bin/builder_data.py
 
 -include $(output)/makefile.pdfs
 -include $(output)/makefile.tables
+-include $(output)/makefile.links
 
-$(output)/makefile.pdfs:bin/pdf_makefile_builder.py bin/makefile_builder.py
-	@bin/pdf_makefile_builder.py $@
-$(output)/makefile.tables:bin/table_makefile_builder.py bin/makefile_builder.py
-	@bin/table_makefile_builder.py $@
+$(output)/makefile.%:bin/makefile_builder_%.py $(makefile-builder-system)
+	@$(PYTHONBIN) bin/makefile_builder_$(subst .,,$(suffix $@)).py $@
 
 #
 # Building and Linking ePub Output
@@ -276,28 +287,6 @@ $(public-branch-output)/meta/410/index.html:$(branch-output)/dirhtml/meta/410/in
 	@sed $(SED_ARGS_FILE) "s@\.\./\.\./@http://docs.mongodb.org/manual/@" $@
 	@echo [web]: processed error page: $@
 
-# Create symbolic links
-
-LINKS = $(public-output)/manual $(public-branch-output)/reference/reIndex $(public-branch-output)/tutorials $(public-branch-output)/reference/methods $(public-branch-output)/install-mongodb-on-red-hat-centos-or-fedora-linux
-.PHONY: links $(LINKS)
-links: $(LINKS)
-
-$(public-output)/manual:
-	@bin/create-link $(manual-branch) manual $@
-	@echo [symlink]: created a link at: $@
-$(public-branch-output)/tutorials:
-	@bin/create-link tutorial $(notdir $@) $@
-	@echo [symlink]: created a link at: $@
-$(public-branch-output)/reference/methods:
-	@bin/create-link method $(notdir $@) $@
-	@echo [symlink]: created a link at: $@
-$(public-branch-output)/reference/reIndex:
-	@bin/create-link db.collection.reIndex $(notdir $@) $@
-	@echo [symlink]: created a link at: $@
-$(public-branch-output)/install-mongodb-on-red-hat-centos-or-fedora-linux:
-	@bin/create-link install-mongodb-on-redhat-centos-or-fedora-linux $(notdir $@) $@
-	@echo [symlink]: created a link at: $@
-
 # Clean up/removal targets.
 clean:
 	-rm -rf $(branch-output)/*
@@ -313,18 +302,11 @@ clean-all:
 
 ######################################################################
 #
-# Default HTML Sphinx build targets
+# Sphinx targets used in production builds. 
 #
 ######################################################################
 
-.PHONY: html dirhtml singlehtml epub sitemap
-html:pre-build-dependencies
-	@echo [$@]: build starting at `date`.
-	@mkdir -p $(branch-output)/$@
-	@echo [$@]: created $(branch-output)/$@
-	@echo [sphinx]: starting $@ build
-	@$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
-	@echo [$@]: build complete at `date`.
+.PHONY: dirhtml singlehtml latex epub sitemap
 dirhtml:
 	@echo [$@]: build starting at `date`.
 	@mkdir -p $(branch-output)/$@
@@ -339,6 +321,13 @@ singlehtml:
 	@echo [sphinx]: starting $@ build
 	@$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
 	@echo [$@]: build complete at `date`.
+latex:
+	@echo [$@]: build started at `date`.
+	@mkdir -p $(branch-output)/$@
+	@echo [$@]: created $(branch-output)/$@
+	@echo [sphinx]: starting $@ build
+	@$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
+	@echo [$@]: generated all '.tex' file at `date`.
 
 epub-command = $(SPHINXBUILD) -b epub $(ALLSPHINXOPTS) $(branch-output)/epub
 epub-filter = sed $(SED_ARGS_REGEX) -e '/^WARNING: unknown mimetype.*ignoring$$/d' -e '/^WARNING: search index.*incomplete.$$/d'
@@ -356,11 +345,9 @@ epub:pre-build-dependencies
 #
 ######################################################################
 
-$(branch-output)/sitemap.xml.gz:$(branch-output)/dirhtml
-
 SITEMAPBUILD = $(PYTHONBIN) bin/sitemap_gen.py
 sitemap:$(branch-output)/sitemap.xml.gz
-$(branch-output)/sitemap.xml.gz:$(public-output)/manual
+$(branch-output)/sitemap.xml.gz:$(branch-output)/dirhtml
 	@echo [sitemap]: starting sitemap build at `date`.
 	@echo [sitemap]: build time\: `date` >> $(branch-output)/sitemap-build.log
 	@$(SITEMAPBUILD) --testing --config=conf-sitemap.xml 2>&1 >> $(branch-output)/sitemap-build.log
@@ -376,13 +363,8 @@ $(branch-output)/sitemap.xml.gz:$(public-output)/manual
 # helpers for compressing man pages
 UNCOMPRESSED_MAN := $(wildcard $(branch-output)/man/*.1)
 COMPRESSED_MAN := $(subst .1,.1.gz,$(UNCOMPRESSED_MAN))
-man:pre-build-dependencies
-	@echo [$@]: starting build at `date`.
-	@mkdir -p $(branch-output)/$@
-	@echo [$@]: created $(branch-output)/$@
-	@echo [sphinx]: starting $@ build
-	$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
-	@echo [$@]: build complete at `date`.
+
+# uses the 'man' target generated by sphinx.
 
 # Targets to build compressed man pages.
 build-man: man $(COMPRESSED_MAN)
@@ -420,24 +402,38 @@ draft-pdfs:draft-latex draft-pdf
 
 ##########################################################################
 #
-# Default Sphinx targets that are totally unused, but around just in case.
+# Sphinx targets not used for production builds at this time.
 #
 ##########################################################################
 
-.PHONY: changes linkcheck json doctest
-json:pre-build-dependencies
-	@echo [$@]: build started at `date`.
+.PHONY: html changes linkcheck json doctest man gettext
+html:pre-build-dependencies
+	@echo [$@]: build starting at `date`.
 	@mkdir -p $(branch-output)/$@
 	@echo [$@]: created $(branch-output)/$@
 	@echo [sphinx]: starting $@ build
 	@$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
-	@echo [$@]: build finished at `date`.
+	@echo [$@]: build complete at `date`.
 gettext:pre-build-dependencies
 	@echo [$@]: build started at `date`.
 	@mkdir -p $(branch-output)/$@
 	@echo [$@]: created $(branch-output)/$@
 	@echo [sphinx]: starting $@ build
 	@$(SPHINXBUILD) -b $@ $(POSPHINXOPTS) $(branch-output)/$@
+	@echo [$@]: build finished at `date`.
+man:pre-build-dependencies
+	@echo [$@]: starting build at `date`.
+	@mkdir -p $(branch-output)/$@
+	@echo [$@]: created $(branch-output)/$@
+	@echo [sphinx]: starting $@ build
+	$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
+	@echo [$@]: build complete at `date`.
+json:pre-build-dependencies
+	@echo [$@]: build started at `date`.
+	@mkdir -p $(branch-output)/$@
+	@echo [$@]: created $(branch-output)/$@
+	@echo [sphinx]: starting $@ build
+	@$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
 	@echo [$@]: build finished at `date`.
 changes:pre-build-dependencies
 	@echo [$@]: build started at `date`.
@@ -446,13 +442,6 @@ changes:pre-build-dependencies
 	@echo [sphinx]: starting $@ build
 	@$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
 	@echo [$@]: build finished at `date`.
-linkcheck:pre-build-dependencies
-	@echo [$@]: build started at `date`.
-	@mkdir -p $(branch-output)/$@
-	@echo [$@]: created $(branch-output)/$@
-	@echo [sphinx]: starting $@ build
-	@$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
-	@echo [$@]: Link check complete at `date`. See $(branch-output)/linkcheck/output.txt.
 doctest:pre-build-dependencies
 	@echo [$@]: build started at `date`.
 	@mkdir -p $(branch-output)/$@
@@ -460,6 +449,13 @@ doctest:pre-build-dependencies
 	@echo [sphinx]: starting $@ build
 	@$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
 	@echo [$@]: complete at `date`.
+linkcheck:pre-build-dependencies
+	@echo [$@]: build started at `date`.
+	@mkdir -p $(branch-output)/$@
+	@echo [$@]: created $(branch-output)/$@
+	@echo [sphinx]: starting $@ build
+	@$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
+	@echo [$@]: Link check complete at `date`. See $(branch-output)/linkcheck/output.txt.
 
 ######################################################################
 #
@@ -470,15 +466,9 @@ doctest:pre-build-dependencies
 LATEX_CORRECTION = "s/(index|bfcode)\{(.*!*)*--(.*)\}/\1\{\2-\{-\}\3\}/g"
 LATEX_LINK_CORRECTION = "s%\\\code\{/%\\\code\{http://docs.mongodb.org/$(current-if-not-manual)/%g"
 
-.PHONY:pdfs latex latexpdf
+.PHONY:pdfs
 
-latex:
-	@echo [$@]: build started at `date`.
-	@mkdir -p $(branch-output)/$@
-	@echo [$@]: created $(branch-output)/$@
-	@echo [sphinx]: starting $@ build
-	@$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@
-	@echo [$@]: generated all '.tex' file at `date`.
+# Uses 'latex' target in the production build section.
 
 $(branch-output)/latex/%.tex:
 	@sed $(SED_ARGS_FILE) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) -e $(LATEX_LINK_CORRECTION) $@
