@@ -4,8 +4,8 @@ Contributing to the MongoDB Documentation Project
 
 We welcome your contributions to the MongoDB documentation project.
 The primary site is http://docs.mongodb.org/ and translated versions
-of the site are available in `Japanese – 日本人 <http://jp.docs.mongodb.org/>`
-and `Chinese – 中文 <http://cn.docs.mongodb.org/>`.
+of the site are available in `Japanese – 日本人 <http://jp.docs.mongodb.org/>`_
+and `Chinese – 中文 <http://cn.docs.mongodb.org/>`_.
 
 MongoDB documentation is distributed under a `Creative Commons
 Attribution-NonCommercial-ShareAlike 3.0 Unported`_ license.  10gen,
