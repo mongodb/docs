@@ -126,3 +126,40 @@ See :ref:`index-selectivity`. If you need to use these,
 it is often best to make sure that an additional, more selective
 criterion is part of the query.
 
+Can a multi-key index be used for array matching?
+-------------------------------------------------
+
+A multi-key index can be used to look up an exact array match. It does
+so by looking up the first element within the array in the index.
+
+What is an effective index strategy for attribute lookups?
+----------------------------------------------------------
+
+For simple attribute lookups, an effective indexing strategy can be to
+create a field that contains an array of documents, each document
+containing a specific type of attribute an its value. You can then index
+that field.
+
+For example, the ``attrib`` field in the following document allows you
+to add an unlimited number of attributes types:
+
+.. code-block:: javascript
+
+   { _id : ObjectId(...),
+     attrib : [
+               { color: "red" },
+               { shape: "rectangle" },
+               { color: "blue" },
+               { avail: true }
+              ]
+   }
+
+The following queries would *both* use the same index:
+
+.. code-block:: javascript
+
+   db.mycollection.find( { attribs: { color: "blue" } } )
+   db.mycollection.find( { attribs: { avail: false } } )
+
+Use this kind of indexing strategy for simple attribute lookups rather
+than sorted query results or range queries.
