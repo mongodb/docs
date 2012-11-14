@@ -143,3 +143,16 @@ migrations = [
     ('$(public-branch-output)/single/search.html', '$(branch-output)/dirhtml/search/index.html', 'content'),
     ('$(public-branch-output)/MongoDB-Manual-$(current-branch).epub', '$(branch-output)/epub/MongoDB.epub', 'content'),
 ]
+
+sphinx_migrations = [
+# The elements of the tuples in the ``sphinx_migrations`` list are: 
+#     0. ``target``: the name of the target.
+#     1. ``dependency``: the name of the dependency. ``None`` is
+#        acceptable.
+#
+#   (target, dependency),
+    ('source/about.txt', None),
+    ('$(branch-output)/dirhtml', 'dirhtml'),
+    ('$(branch-output)/html', 'html'),
+    ('$(branch-output)/singlehtml', 'singlehtml')
+]

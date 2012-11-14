@@ -43,6 +43,7 @@ help:
 
 ############# makefile includes #############
 include bin/makefile.compatibility
+include bin/makefile.push
 
 # Included, dynamically generated makefile sections, to build: sphinx
 # targets, LaTeX/PDFs, tables, the installation guides, and symbolic
@@ -55,24 +56,12 @@ include bin/makefile.compatibility
 -include $(output)/makefile.releases
 -include $(output)/makefile.errors
 -include $(output)/makefile.migrations
+-include $(output)/makefile.sphinx-migration
 
 $(output)/makefile.%:bin/makefile-builder/%.py bin/makefile_builder.py bin/builder_data.py
 	@$(PYTHONBIN) bin/makefile-builder/$(subst .,,$(suffix $@)).py $@
 
 ############# Meta targets that control the build and publication process. #############
-.PHONY: publish push publish-if-up-to-date push-with-delete push-all
-push:publish-if-up-to-date
-	@echo [build]: copying the new $(current-branch) build to the web servers.
-	@$(MAKE) MODE='push' push-dc1 push-dc2
-	@echo [build]: deployed a new build of the $(current-branch) branch of the Manual.
-push-all:publish
-	@echo [build]: delploying the full docs site to the web servers.
-	@$(MAKE) MODE='push' push-all-dc1 push-all-dc2
-	@echo [build]: deployed a new build of the full Manual.
-push-with-delete:publish
-	@echo [build]: deploying the $(current-branch) to the web servers (with rsync --delete).
-	@$(MAKE) MODE='push' push-with-delete-dc1 push-with-delete-dc2
-	@echo [build]: deployed a new build of the $(current-branch) of Manual.
 publish-if-up-to-date:
 	@bin/published-build-check $(current-branch) $(last-commit)
 	@$(MAKE) publish
@@ -84,23 +73,6 @@ publish:initial-dependencies pre-build-dependencies
 	@$(MAKE) static-components post-processing
 	@echo [build]: all static components built at `date`
 	@echo [build]: $(manual-branch) branch is succeessfully deployed to '$(public-output)'.
-
-# Targets for pushing the new build to the web servers.
-ifeq ($(MODE),push)
-.PHONY: push-dc1 push-dc2 push-dc1-all push-dc2-all
-push-dc1:
-	rsync -arz $(public-output)/$(current-branch)/ www@www-c1.10gen.cc:/data/sites/docs/$(current-branch)
-push-dc2:
-	rsync -arz $(public-output)/$(current-branch)/ www@www-c2.10gen.cc:/data/sites/docs/$(current-branch)
-push-all-dc1:
-	rsync -arz $(public-output)/ www@www-c1.10gen.cc:/data/sites/docs
-push-all-dc2:
-	rsync -arz $(public-output)/ www@www-c2.10gen.cc:/data/sites/docs
-push-with-delete-dc1:
-	rsync -arz --delete $(public-output)/$(current-branch)/ www@www-c1.10gen.cc:/data/sites/docs/$(current-branch)
-push-with-delete-dc2:
-	rsync -arz --delete $(public-output)/$(current-branch)/ www@www-c2.10gen.cc:/data/sites/docs/$(current-branch)
-endif
 
 ############# Targets for all special elements of the production build (i.e. 'make publish') #############
 
@@ -127,23 +99,11 @@ source/includes/hash.rst:source/about.txt
 	@$(PYTHONBIN) bin/update_hash.py
 	@git update-index --assume-unchanged $@
 	@echo [build]: \(re\)generated $@.
-source/about.txt:
-	@touch $@
-	@echo [build]: touched $@ to ensure a clean build.
 $(public-branch-output)/release.txt:
 	@echo [build]: generating '$@' with current release hash.
 	@git rev-parse --verify HEAD >|$@
 
 # Establish basic dependencies.
-$(branch-output)/dirhtml:dirhtml
-	@touch $@
-	@echo [build]: touched $@ to ensure proper migration.
-$(branch-output)/html:html
-	@touch $@
-	@echo [build]: touched $@ to ensure proper migration.
-$(branch-output)/singlehtml:singlehtml
-	@touch $@
-	@echo [build]: touched $@ to ensure proper migration.
 $(branch-output)/singlehtml/contents.html:$(branch-output)/singlehtml
 $(branch-output)/epub/MongoDB.epub:epub
 $(public-branch-output)/MongoDB-Manual.epub:$(public-branch-output)/MongoDB-Manual-$(current-branch).epub
