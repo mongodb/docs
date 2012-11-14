@@ -36,7 +36,7 @@ MongoDB contexts:
     of :dbcommand:`collStats` command, and
 
   - the :doc:`output </reference/server-status>` of the
-   :dbcommand:`serverStatus` command.
+    :dbcommand:`serverStatus` command.
 
 Structure
 ---------
@@ -58,11 +58,11 @@ the following structure:
 
 Having support for the full range of :term:`BSON types`, MongoDB
 documents may contain field and value pairs where the value can be
-another document, an array, an array of documents as well
-as the basic types such as ``Double``, ``String``, or ``Date``.
+another document, an array, an array of documents as well as the basic
+types such as ``Double``, ``String``, and ``Date``. See also
+:ref:`document-bson-type-considerations`.
 
-Consider the following document that contains values of varying
-types:
+Consider the following document that contains values of varying types:
 
 .. code-block:: javascript
 
@@ -72,8 +72,7 @@ types:
       birth: new Date('Jun 23, 1912'),
       death: new Date('Jun 07, 1954'),
       contribs: [ "Turing machine", "Turing test", "Turingery" ],
-      views : NumberLong(1250000),
-      update : Timestamp(1352237167000, 1)
+      views : NumberLong(1250000)
    }
 
 The document contains the following fields:
@@ -89,10 +88,48 @@ The document contains the following fields:
 
 - ``views`` that holds a value of *NumberLong* type.
 
-- ``update`` that holds a value of *Timestamp* type.
+To determine the type of fields, the :program:`mongo` shell provides:
 
-Types
------
+- The ``instanceof`` operator to check if a field is a specific type.
+
+- The ``typeof`` operator to return the type of a field.
+
+Assume the following variable declaration/initialization:
+
+  .. code-block:: javascript
+
+     var mydoc = {
+                   _id: ObjectId("5099803df3f4948bd2f98391"),
+                   name: { first: "Alan", last: "Turing" },
+                   birth: new Date('Jun 23, 1912'),
+                   death: new Date('Jun 07, 1954'),
+                   contribs: [ "Turing machine", "Turing test", "Turingery" ],
+                   views : NumberLong(1250000),
+     }
+
+The following examples demonstrate the use of the ``instanceof`` and
+the ``typeof`` operators:
+
+- The following operation tests whether the ``_id`` field is of type
+  ``ObjectId``:
+
+  .. code-block:: javascript
+
+     mydoc._id instanceof ObjectId
+
+  The operation returns ``true``.
+  
+- The following operation returns the type of the ``_id`` field:
+
+  .. code-block:: javascript
+
+     typeof mydoc._id
+
+  Rather than the specific ``ObjectId`` type, the operation returns the
+  generic ``object`` type
+
+Document Types
+--------------
 
 .. _documents-records:
 
@@ -132,7 +169,7 @@ The following document specifies a record in a collection:
 
 The document contains the following fields:
 
-- ``_id``, which must hold a unique value.
+- ``_id``, which must hold a unique value and is *immutable*.
 
 - ``name`` that holds another *document*. This sub-document contains
   the fields ``first`` and ``last``, which both hold *strings*.
@@ -142,6 +179,35 @@ The document contains the following fields:
 - ``contribs`` that holds an *array of strings*.
 
 - ``awards`` that holds an *array of documents*.
+
+Take the following considerations for the ``_id`` field:
+
+- In record documents, the ``_id`` field is always indexed for regular
+  collections. As such, use ``_id`` values that are roughly in
+  ascending order.
+
+- The ``_id`` field may contain values of any BSON data type other than
+  an array.
+
+- Although it is common to assign ``ObjectId`` values to ``_id``
+  fields, if your objects have a natural unique identifier, consider
+  using that for the value of ``_id`` to save space and to avoid an
+  additional index.
+
+- To set the ``_id`` field to:
+
+  - ``ObjectId``, see the :doc:`ObjectId </core/object-id>`
+    documentation.
+
+  - A sequence number, refer to the
+    :doc:`/tutorial/create-auto-incrementing-field` tutorial.
+
+  - UUID, your application must generate the UUID itself. Most UUIDs do
+    not have a rough ascending order, and thus require additional
+    caching needs for their index. For efficiency, store the UUID as a
+    BSON BinData type to reduce the UUID values and their respective
+    keys in the _id index by half. If, however, you know space and
+    speed will not be an issue, you can store as a hex string.
 
 .. _documents-query-selectors:
 
@@ -196,9 +262,9 @@ for MongoDB to return, remove, or update, as in the following:
 
 .. code-block:: javascript
 
-   db.csbios.find( { _id: 1 } )
-   db.csbios.remove( { _id: { $gt: 3 } } )
-   db.csbios.update( { _id: 1, name: { first: 'John', last: 'Backus' } },
+   db.bios.find( { _id: 1 } )
+   db.bios.remove( { _id: { $gt: 3 } } )
+   db.bios.update( { _id: 1, name: { first: 'John', last: 'Backus' } },
                        ... )
 
 .. _documents-update-actions:
@@ -235,12 +301,17 @@ When passed as an argument to the :method:`update()
 
 .. code-block:: javascript
 
-   db.csbios.update( { _id: 1 },
-                     { $set: { 'name.middle': 'Warner' },
-                       $push: { awards: { award: 'IBM Fellow',
-                                          year: '1963',
-                                          by: 'IBM' } } }
-                   )
+   db.bios.update( 
+      { _id: 1 },
+      { $set: { 'name.middle': 'Warner' },
+        $push: { awards: { 
+                           award: 'IBM Fellow',
+                           year: '1963',
+                           by: 'IBM' 
+                         } 
+               } 
+      }
+   )
 
 .. _documents-index:
 .. _document-index-specification:
@@ -279,7 +350,7 @@ the index to create:
 
 .. code-block:: javascript
 
-   db.csbios.ensureIndex( { _id: 1, 'name.last': 1 } )
+   db.bios.ensureIndex( { _id: 1, 'name.last': 1 } )
 
 .. _documents-sort-order:
 
@@ -317,4 +388,181 @@ method, the sort order document sorts the results of the
 
 .. code-block:: javascript
 
-   db.csbios.find().sort( { 'name.last': 1, 'name.first': 1 } )
+   db.bios.find().sort( { 'name.last': 1, 'name.first': 1 } )
+
+.. _document-bson-type-considerations:
+
+MongoDB BSON Type Considerations
+--------------------------------
+
+The following BSON types require special consideration:
+
+.. _document-bson-type-object-id:
+
+ObjectId
+~~~~~~~~
+
+ObjectId is small, most likely unique, fast to generate, and ordered.
+It consists of 12-bytes where the first 4-bytes is the timestamp of the
+ObjectId's creation. Refer to the :doc:`ObjectId </core/object-id>`
+documentation for more information regarding the type and its benefits.
+
+.. _document-bson-type-string:
+
+String
+~~~~~~
+
+BSON strings are UTF-8. In general, drivers for each programming
+language convert from the language's string format to UTF-8 when
+serializing and deserializing BSON. In most cases, this means you can
+effectively store most international characters in MongoDB strings. In
+addition MongoDB :operator:`regex` queries support UTF-8 in the regex
+string.
+
+The :method:`sort() <cursor.sort()>` on a string uses ``strcmp``; as
+such, for internationalization, sort order will be reasonably but not
+fully correct.
+
+.. _document-bson-type-timestamp:
+
+Timestamp
+~~~~~~~~~
+
+BSON Timestamp is a special type for *internal* MongoDB use and is
+**not** associated with the regular Date type. BSON Timestamp is a 64 bit
+value where:
+
+- the first 32 bits are a ``time_t`` value (seconds since the UTC epoch)
+
+- the second 32 bits are an incrementing ``ordinal`` for operations
+  within a given second.
+      
+On a single :program:`mongod` instance, values of type BSON Timestamp
+are guaranteed unique.
+
+In replication, the oplog's ``ts`` field which holds the *OpTime*, or
+the operation timestamp, is of type BSON Timestamp.
+
+Consider the following examples of BSON Timestamp:
+
+.. note:: 
+
+   The BSON Timestamp is for *internal* MongoDB use. The following
+   examples are only for illustration purposes of the Timestamp
+   constructor and do **not** represent the typical use of the type.
+
+- If a BSON Timestamp is constructed using the empty constructor (i.e.
+  ``new Timestamp()``), the value of the Timestamp depends on the order
+  of the field in the document:
+
+  - If the BSON Timestamp field is the *first* field of the document or
+    if ``_id`` field is the first field and the BSON Timestamp field is
+    the *second* field, the field's Timestamp value will automatically
+    be populated to a unique value.
+
+    .. code-block:: javascript
+
+       db.bios.insert( { _id: 9, last_updated: new Timestamp() } )
+
+    The ``last_updated`` field has both its ``time_t`` value
+    automatically set to ``1352874017000`` and ``ordinal`` value set to
+    ``1``:
+
+    .. code-block:: javascript
+
+       { "_id" : 9, "last_updated" : Timestamp(1352874017000, 1) }
+
+  - If the BSON Timestamp field is not the *first* field of the
+    document nor the *second* field with the ``_id`` field as the
+    first field, the field's Timestamp value will be empty:
+
+    .. code-block:: javascript
+
+       db.bios.insert( { views: NumberLong(0), last_updated: new Timestamp() } )
+
+    The Timestamp value remains empty with both its ``time_t`` value
+    set to ``0`` and ``ordinal`` value set to ``0``:
+    
+    .. code-block:: javascript
+    
+       { 
+         "_id" : ObjectId("50a33daf88d113a4ae94a959"), 
+         "views" : NumberLong(0), 
+         "last_updated" : Timestamp(0, 0) 
+       }
+   
+.. versionchanged:: 2.1
+   :program:`mongo` shell displays the Timestamp value with the wrapper:
+   
+   .. code-block:: javascript
+   
+      Timestamp(<time_t>, <ordinal>)
+            
+   Earlier versions of the :program:`mongo` shell displays the
+   Timestamp value as a document:
+      
+   .. code-block:: javascript
+
+      { t : <time_t>, i : <ordinal> }
+
+.. _document-bson-type-date:
+
+Date
+~~~~
+
+BSON Date type is a 64-bit integer that represents the number of
+milliseconds since the Unix epoch (Jan 1, 1970). The `official BSON
+specification <http://bsonspec.org/#/specification>`_ refers to the
+BSON Date type as the *UTC datetime*.
+
+.. versionchanged:: 2.0 BSON Date type is signed. [#unsigned-date]_
+   Negative value represent dates before 1970.
+
+Consider the following examples of BSON Date:
+
+- Construct a Date using the ``new Date()`` constructor in the
+  :program:`mongo` shell:
+
+  .. code-block:: javascript
+
+     var mydate1 = new Date()
+
+- Construct a Date using the ISODate() constructor in the
+  :program:`mongo` shell:
+
+  .. code-block:: javascript
+
+     var mydate2 = ISODate()
+
+- Print the Date value as string:
+
+  .. code-block:: javascript
+
+     mydate1.toString()
+
+- Print the month portion of the Date value, the months start at zero for January :
+
+  .. code-block:: javascript
+  
+     mydate1.getMonth() + mydate1.getDate()
+
+For more Date functions, see
+https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Date
+     
+.. [#unsigned-date]
+   
+   In earlier versions, Date values were incorrectly interpreted as an
+   *unsigned* integer, adversely affecting sorts, range queries, and
+   indexes on Date fields. Because indexes are not recreated when
+   upgrading, please re-index if you created an index on Date values
+   with earlier versions, and dates before 1970 are relevant to your
+   application.
+
+.. note::
+
+   :program:`mongo` shell provides help for the ``ObjectId()``,
+   ``BinData()``, and ``HexData()`` shell classes:
+
+   .. code-block:: javascript
+
+      help misc
