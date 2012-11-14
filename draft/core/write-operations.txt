@@ -65,7 +65,7 @@ concern`, which describes the level of concern or
 guarantee the server will provide in its response to a write operation.
 Consider the following levels of conceptual write concern:
 
-- *ignore*: Write operations are not acknowledged by MongoDB, and may
+- *errors ignored*: Write operations are not acknowledged by MongoDB, and may
   not succeed in the case of connection errors that the client is not yet aware of, or
   if the :program:`mongod` produces an exception (e.g. a duplicate key
   exception for :ref:`unique indexes <index-type-unique>`.) While this
@@ -85,31 +85,39 @@ Consider the following levels of conceptual write concern:
   Before the releases outlined in :ref:`driver-write-concern-change`,
   this was the default write concern.
 
-- *receipt acknowledgment*: The :program:`mongod` will confirm the
+- receipt *acknowledged*: The :program:`mongod` will confirm the
   receipt of the write operation, allowing the client to catch
   network, duplicate key, and other exceptions. After the releases
   outlined in :ref:`driver-write-concern-change`, this is the default
   write concern. [#default-write-concern]_
 
-- *journal commit*: The :program:`mongod` will confirm the write
+- *journaled*: The :program:`mongod` will confirm the write
   operation only after it has written the operation to the
   :term:`journal`. This confirms that the write operation can survive a
   :program:`mongod` shutdown and ensures that the write operation is
   durable.
 
-  While *receipt acknowledgment* without *journal commit* provides the
+  While receipt *acknowledged* without *journaled* provides the
   fundamental basis for write concern, there is an up-to 100
   millisecond window between journal commits where the write operation
-  is not fully durable. Require *journal commit* as part of the write
+  is not fully durable. Require *journaled* as part of the write
   concern to provide this durability guarantee.
 
 :term:`Replica sets <replica set>` present an additional layer of
 consideration for write concern. Basic write concern level affect the
 write operation on only one :program:`mongod` instance. The ``w``
-argument to :dbcommand:`getLastError` makes it possible to guarantee
-that the write operation has propagated to the members of a replica
-set. See the :ref:`Write Concern for Replica Sets
+argument to :dbcommand:`getLastError` provides a *replica
+acknowledged* level of write concern. With *replica acknowledged* you
+can guarantee that the write operation has propagated to the members
+of a replica set. See the :ref:`Write Concern for Replica Sets
 <replica-set-write-concern>` for more information.
+
+.. note::
+
+   Requiring *journaled* write concern in a replica set, only requires
+   a journal commit the write operation to the :term:`primary` of the
+   set regardless of the level of *replica acknowledged* write
+   concern.
 
 .. [#default-write-concern] The default write concern is to call
    :dbcommand:`getLastError` with no arguments. For replica sets, you
