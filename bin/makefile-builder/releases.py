@@ -23,7 +23,7 @@ def build_all_install_guides(install_guides):
     m.newline(block='meta')
     m.target(target='installation-sources',
              dependency='$(installation-sources)', block='meta')
-    m.job('git update-index --assume-unchanged $(instalation-sources)', block='meta')
+    m.job('git update-index --assume-unchanged $(installation-sources)', block='meta')
     m.msg('[build]: clensing git index of installation sources.', block='meta')
 
     m.newline(block='meta')

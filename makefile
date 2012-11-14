@@ -24,22 +24,19 @@ else
 current-if-not-manual = $(current-branch)
 endif
 
-.PHONY: help
 help:
-	@echo "Please use \`make <target>' where <target> is a supported Sphinx target, including:"
+	@echo "Use 'make <target>', where <target> is a supported Sphinx target, including:"
 	@echo "  html		to make standalone HTML files"
 	@echo "  dirhtml	to make HTML files named index.html in directories"
 	@echo "  epub		to make an epub"
 	@echo "  latex		to make LaTeX files, you can set PAPER=a4 or PAPER=letter"
 	@echo "  man		to make manual pages"
 	@echo
-	@echo "MongoDB Manual Specific Targets."
+	@echo "See 'meta.build.rst' for more about this build. Use these MongoDB Manual targets."
 	@echo "  publish	runs publication process and then deploys the build to $(public-output)"
 	@echo "  push		runs publication process and pushes to docs site to production."
 	@echo "  draft		builds a 'draft' build for pre-publication testing ."
 	@echo "  pdfs		generates pdfs more efficently than latexpdf."
-	@echo
-	@echo "See 'meta.build.rst' for more information."
 
 ############# makefile includes #############
 include bin/makefile.compatibility
@@ -62,6 +59,7 @@ $(output)/makefile.%:bin/makefile-builder/%.py bin/makefile_builder.py bin/build
 	@$(PYTHONBIN) bin/makefile-builder/$(subst .,,$(suffix $@)).py $@
 
 ############# Meta targets that control the build and publication process. #############
+.PHONY: initial-dependencies static-components sphinx-components post-processing publish publish-if-up-to-date
 publish-if-up-to-date:
 	@bin/published-build-check $(current-branch) $(last-commit)
 	@$(MAKE) publish
@@ -74,11 +72,8 @@ publish:initial-dependencies pre-build-dependencies
 	@echo [build]: all static components built at `date`
 	@echo [build]: $(manual-branch) branch is succeessfully deployed to '$(public-output)'.
 
-############# Targets for all special elements of the production build (i.e. 'make publish') #############
-
 # Deployment targets to kick off the rest of the build process.
-# Only  access these targets through the ``publish`` target.
-.PHONY: initial-dependencies static-components sphinx-components post-processing
+# Only  access these targets through the ``publish`` or ``publish-if-up-to-date`` targets.
 pre-build-dependencies:setup installation-guides tables
 	@echo [build]: completed $@ buildstep.
 initial-dependencies:$(public-branch-output)/MongoDB-Manual.epub
@@ -90,8 +85,10 @@ post-processing:error-pages links
 sphinx-components:manual-pdfs $(public-branch-output)/single $(public-branch-output)/single/index.html $(public-branch-output) $(public-branch-output)/sitemap.xml.gz
 	@echo [build]: completed $@ buildstep.
 
-# Initial build steps, exporting the current commit to the build.
+############# Targets that define the production build process #############
 .PHONY:source/about.txt source/includes/hash.rst setup $(public-branch-output)/release.txt
+
+# Initial build steps, exporting the current commit to the build.
 setup:source/includes/hash.rst
 	@mkdir -p $(public-branch-output)
 	@echo [build]: created $(public-branch-output)
@@ -126,7 +123,6 @@ $(public-branch-output)/single/index.html:$(branch-output)/singlehtml/contents.h
 	@echo [single]: generating and processing '$@' page
 
 # Sitemap builder
-.PHONY: sitemap
 sitemap:$(branch-output)/sitemap.xml.gz
 $(branch-output)/sitemap.xml.gz:$(public-output)/manual $(branch-output)/dirhtml
 	@echo [sitemap]: starting sitemap build at `date`.
@@ -142,7 +138,6 @@ LATEX_LINK_CORRECTION = "s%\\\code\{/%\\\code\{http://docs.mongodb.org/$(current
 PDFLATEXCOMMAND = TEXINPUTS=".:$(branch-output)/latex/:" pdflatex --interaction batchmode --output-directory $(branch-output)/latex/
 
 # Uses 'latex' target to generate latex files.
-.PHONY:pdfs
 pdfs:$(subst .tex,.pdf,$(wildcard $(branch-output)/latex/*.tex))
 $(branch-output)/latex/%.tex:
 	@sed $(SED_ARGS_FILE) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) -e $(LATEX_LINK_CORRECTION) $@
@@ -181,7 +176,6 @@ $(public-output).%.tar.gz:$(public-output)
 	tar -czvf $@ $<
 
 # convience targets for draft builds
-.PHONY: draft draft-pdfs draft-latex draft-html
 draft:draft-html
 draft-pdfs:draft-latex $(subst .tex,.pdf,$(wildcard $(branch-output)/draft-latex/*.tex))
 
