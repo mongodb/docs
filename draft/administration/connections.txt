@@ -12,12 +12,16 @@ applications and MongoDB instances in the official MongoDB :doc:`drivers
 
 When you connect to a MongoDB database server, the MongoDB driver creates a
 connection object that is instantiated once and then reused for every
-operation during the lifetime of the connection. The connection object
+operation during the lifetime of the connection.
+A single connection object can represent multiple connections to
+multiple :program:`mongod` or :program:`mongos` instances.
+
+The connection object
 uses the options you specify when creating the connection.
-The driver's reuse of the connection object saves on the costs of setup and
+The reuse of the connection object saves on the costs of setup and
 teardown on connections.
 
-Beginning with the Fall 2012 driver release, MongoDB uses two new connection classes for
+Beginning with the Fall 2012 driver releases, MongoDB uses two new connection classes for
 the creation of connection objects:
 
 - ``MongoClient``: the standard connection class
@@ -27,24 +31,24 @@ the creation of connection objects:
   a separate class for connections to replica sets. See the
   :doc:`drivers </applications/drivers>` documentation for details.
 
-In MongoDB versions prior to the Fall 2012 driver release, the connection classes vary from driver
+In MongoDB versions prior to the Fall 2012 driver releases, the connection classes vary from driver
 to driver.
 
-You connect to a MongoDB database server by starting a :program:`mongod`
-instance through a MongoDB :doc:`driver </applications/drivers>` or
-through the :program:`mongo` shell.
-
-Upon connection to the server, :program:`mongod` displays logging
+When you start a :program:`mongod` or :program:`mongos` instance,
+the program displays logging
 information and then displays that it is waiting for a client
-connections, as shown in the following example.
+connection, as shown in the following example.
 
 .. code-block:: none
 
    Wed Nov 21 12:56:58 [websvr] admin web console waiting for connections on port 28017
    Wed Nov 21 12:56:58 [initandlisten] waiting for connections on port 27017
 
-By default, MongoDB waits for connections on port 27017. The
-:program:`mongod` program runs in either the foreground or background.
+By default, MongoDB waits for connections on port 27017.
+
+You make socket connections to running :program:`mongod` or :program:`mongos` instances
+through a MongoDB :doc:`driver </applications/drivers>` or
+through the :program:`mongo` shell.
 
 .. note:: You *cannot* create a connection through HTTP on port 27017.
    Specifically, you *cannot* connect to MongoDB by going to
@@ -67,8 +71,8 @@ The following is the standard URI connection scheme:
 
    mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]
 
-.. example:: In the following example, a connection issued from a Java
-   driver logs into two databases in the ``test`` replica set:
+.. example:: In the following example, a connection
+   logs into two members in the ``test`` replica set:
 
    .. code-block:: none
 
@@ -118,8 +122,8 @@ Connection options are name=value pairs. The pairs are separated by "&".
 For backwards compatibility, ``;`` is accepted as a separator. But ``;``
 is deprecated.
 
-.. example:: In the following example, a connection issued from a Java
-   driver uses the ``replicaSet`` and ``connectTimeoutMS`` options.
+.. example:: In the following example, a connection
+   uses the ``replicaSet`` and ``connectTimeoutMS`` options.
 
    .. code-block:: none
 
@@ -128,31 +132,40 @@ is deprecated.
 Replica Set Options
 ~~~~~~~~~~~~~~~~~~~
 
-.. data:: replicaSet=<name>
+.. data:: replicaSet
 
-   If the :program:`mongod` is a member of a :term:`replica set`, the
-   name of the replica set.
+   Specifies the name of the :term:`replica set`, if the
+   :program:`mongod` is a member of a replica set.
+
+   When connecting to a replica set it is important to give a seed list
+   of at least two :program:`mongod` instances.
 
 Connection Options
 ~~~~~~~~~~~~~~~~~~
 
-.. data:: ssl=<true,false,prefer>
+.. data:: ssl
 
    ``true``: Initiate the connection with SSL.
 
    ``false``: Initiate the connection without SSL.
 
-   ``prefer``: Initiate the connection with SSL, but if that fails initiate without SSL.
+   .. todo Determine whether ``prefer`` option exists. Check with server
+      team whether it's possible to do rolling restarts of a cluster to
+      turn on SSL. Here is the option
+      ``prefer``: Initiate the connection with SSL, but if that fails initiate without SSL.
 
    The default value is ``false``.
 
-.. data:: connectTimeoutMS=<milliseconds>
+   .. note:: The :data:`ssl` option is not supported by all drivers. For information on your
+      driver, see the :doc:`drivers </applications/drivers>` documentation.
+
+.. data:: connectTimeoutMS
 
    The time in milliseconds to attempt a connection before timing out.
    The default is never to timeout, though different drivers might vary.
    See the :doc:`/applications/drivers` documentation.
 
-.. data:: socketTimeoutMS=<milliseconds>
+.. data:: socketTimeoutMS
 
    The time in milliseconds to attempt a send or receive on a socket
    before the attempt times out. The default is never to timeout, though
@@ -168,29 +181,33 @@ Most drivers handle this for you behind the scenes. Some drivers do not
 support connection pools. See the :doc:`/applications/drivers`
 documentation.
 
-.. data:: maxPoolSize=<number>
+.. data:: maxPoolSize
 
    The maximum number of connections in the connection pool. The default
    value is ``100``.
 
-.. data:: minPoolSize=<number>
+.. data:: minPoolSize
 
-   The minimum number of connections in the connection pool The default
+   The minimum number of connections in the connection pool. The default
    value is ``0``.
 
-.. data:: maxIdleTimeMS=<milliseconds>
+   .. note:: The :data:`minPoolSize` option is not supported by all
+      drivers. For information on your driver, see the :doc:`drivers
+      </applications/drivers>` documentation.
+
+.. data:: maxIdleTimeMS
 
    The maximum number of milliseconds that a connection can remain idle
    in the pool before being removed and closed.
 
-.. data:: waitQueueMultiple=<milliseconds>
+.. data:: waitQueueMultiple
 
    A multiplier number that is multiplied with the
    ``maxPoolSize`` setting to give the maximum number of threads allowed
    to wait for a connection to become available from the pool. For
    default values, see the :doc:`/applications/drivers` documentation.
 
-.. data:: waitQueueTimeoutMS=<milliseconds>
+.. data:: waitQueueTimeoutMS
 
    The maximum time in milliseconds that a thread is allowed to wait for
    a connection to become available. For
@@ -199,28 +216,15 @@ documentation.
 Write Concern Options
 ~~~~~~~~~~~~~~~~~~~~~
 
-.. data:: fireAndForget=<true|false>
+For a full explanation of write concern, see
+:ref:`write-operations-write-concern`.
 
-   ``false``: Sends a :dbcommand:`getLastError` command after
-   every update to ensure that the update succeeded.
+.. data:: w
 
-   ``true``: Does not send a :dbcommand:`getLastError` command after
-   every update.
-
-   The default value depends on the connection class. Prior to the Fall
-   2012 driver release, the default value is ``true``, which disables
-   write concern. For the ``MongoClient`` and ``MongoReplicaSetClient``
-   classes new in the Fall 2012 driver release the default is ``false``.
-
-   For the new ``MongoClient`` and ``MongoReplicaSetClient`` classes, if
-   you enable ``fireAndForget`` but also enable write concern through
-   the ``w`` option, MongoDB issues an exception about the conflict.
-
-.. data:: w=<number or string>
-
-   Used by the :dbcommand:`getLastError` command either
-   to configure write concern on members of :term:`replica sets <replica
-   set>` *or* to disable write concern entirely.
+   Used by the :dbcommand:`getLastError` command either to configure
+   write concern on members of :term:`replica sets <replica set>` *or*
+   to disable write concern entirely. This option can take either a
+   number or a string as a value.
 
    ``0``: Disables write concern. If you disable write concern but
    enable the :dbcommand:`getLastError` command's ``journal`` option, the
@@ -233,24 +237,20 @@ Write Concern Options
    replicated to the specified number of replica set members, including
    the primary. If you set ``w`` to a number that is greater than the
    number of set members that hold data, MongoDB waits for the
-   non-existent members become available, which means MongoDB blocks
-   indefinitely.
+   non-existent members become available, which means the write
+   operation blocks indefinitely.
 
    ``majority``: Confirms that write operations have replicated to the
    majority of set members.
 
    ``-1``: Turns off reporting of network errors.
 
-   For the new ``MongoClient`` and ``MongoReplicaSetClient`` classes, if
-   you enable write concern but also enable ``fireAndForget``, MongoDB
-   issues an exception about the conflict.
-
-.. data:: wtimeoutMS=<milliseconds>
+.. data:: wtimeoutMS
 
    The time in milliseconds to wait for replication to succeed, as
    specified in the ``w`` option, before timing out.
 
-.. data:: journal=<true|false>
+.. data:: journal
 
    ``true``: Sync to journal.
 
@@ -270,12 +270,10 @@ Write Concern Options
 Read Preference Options
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. data:: slaveOk=<true|false>
+For a full explanation of read preferences, see
+:ref:`replica-set-read-preference`.
 
-   Specifies whether a driver connected to a replica set sends reads
-   to secondaries. The default setting is ``false``.
-
-.. data:: readPreference=<string>
+.. data:: readPreference
 
    Specifies the :term:`replica set` read preference for this
    connection. This setting overrides any ``slaveOk`` value. The read
@@ -293,7 +291,7 @@ Read Preference Options
    The default value is :readmode:`primary`, which sends all read
    operations to the replica set's :term:`primary`.
 
-.. data:: readPreferenceTags=<string>
+.. data:: readPreferenceTags
 
    Specifies a tag set as a comma-separated list of
    colon-separated key-value pairs. For example:
@@ -314,7 +312,7 @@ Read Preference Options
 Miscellaneous Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. data:: uuidRepresentation=<string>
+.. data:: uuidRepresentation
 
    ``standard``: The standard binary representation.
 
@@ -326,6 +324,10 @@ Miscellaneous Configuration
 
    For the default, see the :doc:`drivers </applications/drivers>`
    documentation for your driver.
+
+   .. note:: The :data:`uuidRepresentation` option is not supported by
+      all drivers. For information on your driver, see the :doc:`drivers
+      </applications/drivers>` documentation.
 
 .. _connections-connection-examples:
 
@@ -353,6 +355,10 @@ password ``moon``:
    mongodb://rachel:moon@localhost/baz
 
 Connect to a UNIX domain socket:
+
+.. note:: Not all drivers support UNIX domain sockets. For information
+   on your driver, see the :doc:`drivers </applications/drivers>`
+   documentation.
 
 .. code-block:: none
 
