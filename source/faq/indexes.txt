@@ -129,10 +129,10 @@ criterion is part of the query.
 Can I use a multi-key index to support a query for a whole array?
 -----------------------------------------------------------------
 
-You can use a multi-key index can to select an *exact* array
-match. The index supports these queries by first selecting the first
-element in the array, and then matching remaining documents in the
-array.
+Not entirely. The index can partially support these queries because
+it can speed the selection of the first element of the array;
+however, comparing all subsequent items in the array cannot use the
+index and must scan the documents individually.
 
 How can I effectively use indexes strategy for attribute lookups?
 -----------------------------------------------------------------
@@ -150,17 +150,17 @@ to add an unlimited number of attributes types:
 
    { _id : ObjectId(...),
      attrib : [
-               { color: "red" },
-               { shape: "rectangle" },
-               { color: "blue" },
-               { avail: true }
+               { k: "color", v: "red" },
+               { k: "shape": v: "rectangle" },
+               { k: "color": v: "blue" },
+               { k: "avail": v: true }
               ]
    }
 
-*Both* of the following queries could use the same ``{ attrib: 1 }``
-index:
+*Both* of the following queries could use the same ``{ attrib.k: 1,
+attrib.v: 1 }`` index:
 
 .. code-block:: javascript
 
-   db.mycollection.find( { attribs: { color: "blue" } } )
-   db.mycollection.find( { attribs: { avail: false } } )
+   db.mycollection.find( { attrib: { $elemMatch : { k: "color", v: "blue" } } } )
+   db.mycollection.find( { attrib: { $elemMatch : { k: "avail", v: true } } } )
