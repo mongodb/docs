@@ -1,0 +1,108 @@
+=========================
+Perform Atomic Operations
+=========================
+
+.. default-domain:: mongodb
+
+Background
+----------
+
+Write operations are atomic on the level of a single document: no
+single write operation can atomically affect more than one document or
+more than one collection.
+
+When a single write operation modifies multiple documents, the
+operation as a whole is not atomic, and other operations may
+interleave. The modification of a single document, or record, is always
+atomic, even if the write operation modifies multiple sub-document
+*within* the single record.
+
+No other operations are atomic; however, you can attempt to isolate a
+single write operation that affects multiple documents using the
+:doc:`isolation operator </reference/operator/atomic>`.
+
+Additionally, the following patterns can manage a sequence of
+operations:
+
+- :method:`findAndModify() <db.collection.findAndModify()>`
+
+- :ref:`tutorial-atomic-update-if-current`
+
+- :doc:`/tutorial/perform-two-phase-commits`
+
+- :method:`ensureIndex() <db.collection.ensureIndex()>` to create a
+  ``unique`` index on a field
+
+.. _tutorial-atomic-update-if-current:
+
+Update if Current
+-----------------
+
+The "Update if Current" pattern queries a document, locally modifies
+various fields of the document, and tries to update the fields of a
+document *if* the fields have not changed in the collection since the
+query.
+
+Consider the following example which attempts to update the ``qty``
+field of a document in the ``products`` collection:
+
+.. code-block:: javascript
+
+   var myCollection = db.products;
+   var myDocument = myCollection.findOne( { sku: 'abc123' } );
+
+   if (myDocument) {
+
+      var oldQty = myDocument.qty;
+
+      if (myDocument.qty < 10) {
+          myDocument.qty *= 4;
+      } else if ( myDocument.qty < 20 ) {
+          myDocument.qty *= 3;
+      } else {
+          myDocument.qty *= 2;
+      }
+
+      myCollection.update( 
+         { 
+           _id: myDocument._id,
+           qty: oldQty
+         },
+         { 
+           $set: { qty: myDocument.qty } 
+         }
+      )
+
+      var err = db.getLastErrorObj();
+      
+      if ( err && err.code ) {
+          print("unexpected error updating document: " + tojson( err ));
+      } else if ( err.n == 0 ) {
+          print("No update: no matching document for { _id: " + myDocument._id + ", qty: " + oldQty + " }")
+      }
+
+   }
+
+Consider the following modifications to the "Update if Current" strategy:
+
+- To generalize the strategy to guarantee that the whole document has
+  not changed rather than just certain fields, use the entire document in
+  the query expression.
+
+- Add a version variable that is incremented upon each update operation
+  to the documents. Use this version variable in the query expression.
+
+- Use :operator:`$set` in the update expression to modify only your
+  fields and prevent overriding other fields.
+
+.. Add link to :doc:`/tutorial/create-an-auto-increment-field` once that branch is merged since it's a special case
+
+.. Maybe incorporate the blurb: "MongoDB does not
+   support traditional locking and complex transactions for a number of
+   reasons: First, in sharded environments, distributed locks could be
+   expensive and slow. Mongo DB's goal is to be lightweight and fast. We
+   dislike the concept of deadlocks. We want the system to be simple and
+   predictable without these sort of surprises. We want Mongo DB to work
+   well for realtime problems. If an operation may execute which locks
+   large amounts of data, it might stop some small light queries for an
+   extended period of time."
