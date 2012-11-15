@@ -12,8 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import yaml
 import sys
+
+try:
+    import yaml
+except ImportError:
+    exit('[table-builder]: You must install PyYAML to build tables.')
 
 # global variables
 columnwidths=[]  # the column widths to use in get_rowline() and get_row() methods
