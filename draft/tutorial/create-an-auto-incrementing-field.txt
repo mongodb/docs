@@ -10,7 +10,11 @@ Synopsis
 In record documents, the field name ``_id`` is reserved for use as a
 primary key; its value must be unique in the collection. This document
 describes how to create an increasing sequence number to assign to the
-``_id`` field.
+``_id`` field using the following:
+
+- :ref:`auto-increment-counters-collection`
+
+- :ref:`auto-increment-optimistic-loop`
 
 .. warning::
 
@@ -19,12 +23,14 @@ describes how to create an increasing sequence number to assign to the
    well on large database clusters. Instead you would use an
    :term:`ObjectId <objectid>`.
 
-Pattern 1: A Counter Collection and Function
---------------------------------------------
+.. _auto-increment-counters-collection:
 
-This pattern maintains a separate ``counters`` collection that tracks
-the last number sequence. The ``_id`` field contains the sequence name
-and the ``seq`` contains the last value of the sequence.
+A Counters Collection
+~~~~~~~~~~~~~~~~~~~~~
+
+A separate ``counters`` collection tracks the last number sequence. The
+``_id`` field contains the sequence name and the ``seq`` contains the
+last value of the sequence.
 
 1. Insert into the ``counters`` collection, the initial value for the ``userid``:
 
@@ -76,7 +82,7 @@ and the ``seq`` contains the last value of the sequence.
          }
       )
 
-   Verify the results with :method:`find() <db.collection.find()>`:
+   You can verify the results with :method:`find() <db.collection.find()>`:
 
    .. code-block:: javascript
 
@@ -95,41 +101,26 @@ and the ``seq`` contains the last value of the sequence.
         name : "Bob D." 
       }
 
-Pattern 2: Optimistic Loop
---------------------------
+.. _auto-increment-optimistic-loop:
 
-This pattern uses optimistic concurrency *"insert if not present"*
-loop. 
+Optimistic Loop
+~~~~~~~~~~~~~~~
 
-Create a function ``insertDocument`` that performs the *"insert if not
-present"* loop. The function acts as a wrapper function around the
-``insert() <db.collection.insert()>`` method and takes a ``doc`` and a
-``targetCollection`` as its arguments.
+The Optimistic Loop calculates the incremented ``_id`` value and
+attempts to insert a document with the calculated ``_id`` value. If the
+insert is successful, end the loop. Otherwise, iterate through the loop
+recalculating the ``_id`` value until the insert is successful.
 
-Inside the loop:
-
-1. Query the ``targetCollection`` for the document with the maximum
-   ``_id`` value.
-
-#. Determine the next sequence value for ``_id``:
-
-   - Add ``1`` to the returned ``_id`` value if the returned cursor points to a document; else
-   
-   - Set to ``1`` if the returned cursor points to no document.
-
-#. For the ``doc`` to insert, set its ``_id`` field to the calculated sequence value ``seq``.
-
-#. Insert the ``doc`` into the ``targetCollection``.
-
-#. If the insert operation errors with duplicate key, loop
-   again.Otherwise, if the insert operation encounters some other error or
-   if the operation succeeds, break out of the loop.
+#. Create a function named ``insertDocument`` that performs the "insert
+   if not present" loop. The function wraps the ``insert()
+   <db.collection.insert()>`` method and takes a ``doc`` and a
+   ``targetCollection`` arguments.
 
    .. code-block:: javascript
 
       function insertDocument(doc, targetCollection) {
 
-          while( 1 ) {
+          while (1) {
 
               var cursor = targetCollection.find( {}, { _id: 1 } ).sort( { _id: -1 } ).limit(1);
 
@@ -152,6 +143,27 @@ Inside the loop:
           }
       }
 
+   The ``while (1)`` loop performs the following actions:
+
+   - Query the ``targetCollection`` for the document with the maximum
+     ``_id`` value.
+
+   - Determine the next sequence value for ``_id``:
+
+   - Add ``1`` to the returned ``_id`` value if the returned cursor
+     points to a document; else
+
+   - Set to ``1`` if the returned cursor points to no document.
+
+   - For the ``doc`` to insert, set its ``_id`` field to the calculated
+     sequence value ``seq``.
+
+   - Insert the ``doc`` into the ``targetCollection``.
+
+   - If the insert operation errors with duplicate key, loop again.
+     Otherwise, if the insert operation encounters some other error or
+     if the operation succeeds, break out of the loop.
+
 #. Use the ``insertDocument()`` function to perform an insert: 
 
    .. code-block:: javascript
@@ -172,7 +184,7 @@ Inside the loop:
          myCollection
       )
 
-   Verify the results with :method:`find() <db.collection.find()>`:
+   You can verify the results with :method:`find() <db.collection.find()>`:
 
    .. code-block:: javascript
 
@@ -191,5 +203,5 @@ Inside the loop:
         "name" : "Ted R."
       }
 
-In cases of extremely high concurrent insert rate on the collection,
-there could potentially be a lot of looping.
+Extremely high concurrent insert rate on the collection could result in 
+high iterations of the while-loop.

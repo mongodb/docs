@@ -200,7 +200,7 @@ Take the following considerations for the ``_id`` field:
     documentation.
 
   - A sequence number, refer to the
-    :doc:`/tutorial/create-auto-incrementing-field` tutorial.
+    :doc:`/tutorial/create-an-auto-incrementing-field` tutorial.
 
   - UUID, your application must generate the UUID itself. Most UUIDs do
     not have a rough ascending order, and thus require additional
@@ -390,12 +390,12 @@ method, the sort order document sorts the results of the
 
    db.bios.find().sort( { 'name.last': 1, 'name.first': 1 } )
 
-.. _document-bson-type-considerations:
+.. _document-mongodb-type-considerations:
 
-MongoDB BSON Type Considerations
---------------------------------
+MongoDB Type Considerations
+---------------------------
 
-The following BSON types require special consideration:
+The following MongoDB types require special consideration:
 
 .. _document-bson-type-object-id:
 
@@ -412,16 +412,17 @@ documentation for more information regarding the type and its benefits.
 String
 ~~~~~~
 
-BSON strings are UTF-8. In general, drivers for each programming
-language convert from the language's string format to UTF-8 when
-serializing and deserializing BSON. In most cases, this means you can
-effectively store most international characters in MongoDB strings. In
-addition MongoDB :operator:`regex` queries support UTF-8 in the regex
-string.
+BSON strings are UTF-8. In general, drivers for each programming language
+convert from the language's string format to UTF-8 when serializing and
+deserializing BSON. In most cases, this means you can effectively store
+most international characters in BSON strings.
+[#sort-string-internationalization]_ In addition, MongoDB
+:operator:`regex` queries support UTF-8 in the regex string.
 
-The :method:`sort() <cursor.sort()>` on a string uses ``strcmp``; as
-such, for internationalization, sort order will be reasonably but not
-fully correct.
+.. [#sort-string-internationalization] With internalization,
+   :method:`sort() <cursor.sort()>` on a string will be reasonably
+   correct; however, because internally :method:`sort() <cursor.sort()>`
+   uses the C++ ``strcmp`` api, the sort order will not be *fully* correct.
 
 .. _document-bson-type-timestamp:
 
@@ -429,36 +430,36 @@ Timestamp
 ~~~~~~~~~
 
 BSON Timestamp is a special type for *internal* MongoDB use and is
-**not** associated with the regular Date type. BSON Timestamp is a 64 bit
-value where:
+**not** associated with the regular :ref:`document-bson-type-date`
+type. BSON Timestamp value is a 64 bit value where:
 
-- the first 32 bits are a ``time_t`` value (seconds since the UTC epoch)
+- the first 32 bits are a ``time_t`` value (seconds since the Unix epoch)
 
 - the second 32 bits are an incrementing ``ordinal`` for operations
   within a given second.
       
-On a single :program:`mongod` instance, values of type BSON Timestamp
-are guaranteed unique.
+On a single :program:`mongod` instance, BSON Timestamp values are guaranteed to
+be unique.
 
 In replication, the oplog's ``ts`` field which holds the *OpTime*, or
 the operation timestamp, is of type BSON Timestamp.
 
-Consider the following examples of BSON Timestamp:
+Consider the following examples of creating BSON Timestamp values:
 
 .. note:: 
 
-   The BSON Timestamp is for *internal* MongoDB use. The following
+   The BSON Timestamp type is for *internal* MongoDB use. The following
    examples are only for illustration purposes of the Timestamp
    constructor and do **not** represent the typical use of the type.
 
-- If a BSON Timestamp is constructed using the empty constructor (i.e.
-  ``new Timestamp()``), the value of the Timestamp depends on the order
-  of the field in the document:
+- If a BSON Timestamp value is constructed using the empty constructor
+  (i.e. ``new Timestamp()``), the value depends on the order of the
+  field in the document:
 
-  - If the BSON Timestamp field is the *first* field of the document or
-    if ``_id`` field is the first field and the BSON Timestamp field is
-    the *second* field, the field's Timestamp value will automatically
-    be populated to a unique value.
+  - If the field with the BSON Timestamp value is the *first* field of
+    the document or the *second* field if the ``_id`` field is the
+    first, the Timestamp value will automatically be set to a unique
+    value.
 
     .. code-block:: javascript
 
@@ -472,16 +473,16 @@ Consider the following examples of BSON Timestamp:
 
        { "_id" : 9, "last_updated" : Timestamp(1352874017000, 1) }
 
-  - If the BSON Timestamp field is not the *first* field of the
-    document nor the *second* field with the ``_id`` field as the
-    first field, the field's Timestamp value will be empty:
+  - If the field with the BSON Timestamp value is not the *first* field
+    of the document nor the *second* field with the ``_id`` field as
+    the first field, the Timestamp value will be the empty Timestamp
+    value with ``time_t`` set to ``0`` and ``ordinal`` set to ``0``:
 
     .. code-block:: javascript
 
        db.bios.insert( { views: NumberLong(0), last_updated: new Timestamp() } )
 
-    The Timestamp value remains empty with both its ``time_t`` value
-    set to ``0`` and ``ordinal`` value set to ``0``:
+    The Timestamp value is the empty Timestamp value (i.e. ``Timestamp(0, 0)`` ):
     
     .. code-block:: javascript
     
@@ -498,8 +499,8 @@ Consider the following examples of BSON Timestamp:
    
       Timestamp(<time_t>, <ordinal>)
             
-   Earlier versions of the :program:`mongo` shell displays the
-   Timestamp value as a document:
+   Earlier versions of the :program:`mongo` shell display the Timestamp
+   value as a document:
       
    .. code-block:: javascript
 
@@ -510,13 +511,13 @@ Consider the following examples of BSON Timestamp:
 Date
 ~~~~
 
-BSON Date type is a 64-bit integer that represents the number of
+BSON Date is a 64-bit integer that represents the number of
 milliseconds since the Unix epoch (Jan 1, 1970). The `official BSON
 specification <http://bsonspec.org/#/specification>`_ refers to the
 BSON Date type as the *UTC datetime*.
 
 .. versionchanged:: 2.0 BSON Date type is signed. [#unsigned-date]_
-   Negative value represent dates before 1970.
+   Negative values represent dates before 1970.
 
 Consider the following examples of BSON Date:
 
@@ -540,21 +541,20 @@ Consider the following examples of BSON Date:
 
      mydate1.toString()
 
-- Print the month portion of the Date value, the months start at zero for January :
+- Print the month portion of the Date value; months start at zero for January :
 
   .. code-block:: javascript
   
-     mydate1.getMonth() + mydate1.getDate()
+     mydate1.getMonth()
 
-For more Date functions, see
-https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Date
+For more Date methods, see `JavaScript Date API
+<https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Date>`_ 
+documentation.
      
-.. [#unsigned-date]
-   
-   In earlier versions, Date values were incorrectly interpreted as an
-   *unsigned* integer, adversely affecting sorts, range queries, and
-   indexes on Date fields. Because indexes are not recreated when
-   upgrading, please re-index if you created an index on Date values
+.. [#unsigned-date] In earlier versions, Date values were incorrectly
+   interpreted as an *unsigned* integer, adversely affecting sorts, range
+   queries, and indexes on Date fields. Because indexes are not recreated
+   when upgrading, please re-index if you created an index on Date values
    with earlier versions, and dates before 1970 are relevant to your
    application.
 
