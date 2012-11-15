@@ -465,3 +465,42 @@ driver <>`.
    .. code-block:: javascript
 
       db.getCollection("_foo").find()
+
+.. _faq-developers-snapshot-queries:
+
+How do I perform a snapshot query in MongoDB?
+---------------------------------------------
+
+MongoDB does not support full point-in-time snapshot where the cursor
+returned from a query points to the records at the time of the
+query execution, regardless of additional write operations that may
+have occurred during the lifetime of the cursor. However, MongoDB does
+provides a :method:`snapshot() <cursor.snapshot()>` method to prevent
+the case where a cursor could return a document more than once because
+an intervening write operation results in a move of the document due to
+the growth in document size.
+
+When applied to the cursor returned from :method:`find()`,
+:method:`snapshot() <cursor.snapshot()>` assures that the cursor
+returns a document no more than once.
+
+.. note::
+
+   - Even with :method:`snapshot() <cursor.snapshot()>`, objects
+     inserted or deleted during the lifetime of the cursor may or may
+     not be returned.
+
+   - The :method:`snapshot() <cursor.snapshot()>` method traverses the
+     index on the ``_id``. As such, :method:`snapshot()
+     <cursor.snapshot()>` **cannot** be used with :method:`sort()
+     <cursor.sort()>` or :method:`hint() <cursor.hint()>`. No other
+     index can be used for the query.
+
+   - Alternatively, instead of :method:`snapshot()
+     <cursor.snapshot()>`, you can use a *unique* index on field(s)
+     that will not be modified and use :method:`hint() <cursor.hint()>`
+     to explicitly force that index during the query in order to
+     achieve the same :method:`snapshot() <cursor.snapshot()>` mode.
+     Additionally, to use a non-unique index on field(s) that will not
+     be modified, you can create a unique index by including the
+     ``_id`` field to the index fields.
