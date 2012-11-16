@@ -7,99 +7,112 @@ Geospatial Indexes
 Overview
 --------
 
-MongoDB supports location-based queries and geospatial data with a
-special index. The geospatial index stores :ref:`geohashes
-<geospatial-geohash>`, and makes it possible to query documents
-based on proximity or within a bounded region. MongoDB can
-calculate distances using flat or spherical geometry models.
-Additionally, geospatial haystack indexes provide additional
-support for specific data distribution.
+Geospatial indexes makes it possible to query documents based on
+geographic location. You can store two-dimensional location coordinates
+in your documents and then, by creating geospatial indexes, query based
+on that criteria. For example, you can query based on proximity to
+another location or based on inclusion in a specified region.
 
-This document introduces the core concepts that underpin geospatial
-indexes in MongoDB. For more information,
-:doc:`/applications/geospatial-indexes` provide complete documentation
-of all location-based operations and queries.
+You can query on both location and a second field. For example, you
+might write a query to find restaurants a specific distance from a hotel
+or to find museums found within a certain defined neighborhood.
 
-.. include:: /includes/geospatial-coordinates.rst
+This document describes how to include location data in your documents
+and how to create geospatial indexes. For information on querying
+geospatial indexes, see :doc:`/applications/geospatial-indexes`.
 
-.. _geospatial-indexes:
+.. _geospatial-indexes-coordinates:
 
-Geospatial Indexes
-------------------
+Store Location Data
+-------------------
+
+To use geospatial indexes, you must model location data on a
+pre-determined two-dimensional coordinate system, such as longitude and
+latitude. You store location data as two-dimensional coordinates in a
+field that holds either a two-dimensional array or an embedded document.
+Consider the following two examples:
+
+.. code-block:: javascript
+
+   loc : [ x, y ]
+
+   loc : { x: 1, y: 2 }
+
+All your documents must store their location values in the same order.
+If you use latitude and longitude as your coordinate system, always
+store longitude first. MongoDB's :ref:`geospatial-indexes-spherical` only
+recognize ``[ longitude, latitude ]`` ordering.
+
+.. _geospatial-indexes_create:
+
+Create a Geospatial Index
+-------------------------
 
 To create a geospatial index, use the :method:`ensureIndex
 <db.collection.ensureIndex()>` method with the value ``2d`` for the
-location field of your collection. Consider the following prototype
-operation:
+location field of your collection. Consider the following prototype:
 
 .. code-block:: javascript
 
    db.collection.ensureIndex( { <location field> : "2d" } )
 
-Almost all geospatial operators will query this index for location
-data.  The index comprises of :term:`geohashes <geohash>` calculated
-from location values and the index's geospatial :ref:`range
-<geospatial-indexes-range>`.  For more information on :term:`geohash`,
-please refer to the :ref:`geohash <geospatial-geohash>` section.
+MongoDB's special :ref:`geospatial operations
+<geospatial-query-operators>` use this index when querying for location
+data.
 
-To perform queries on your geospatial data, please see
-:ref:`geospatial-querying`.
+When you create the index, MongoDB converts location data to binary
+:term:`geohash` values, which are calculated based on both the location
+data and the index's location range, as described in
+:ref:`geospatial-indexes-range`. By default, the location range is is
+based on longitude and latitude and is bounded by -180 inclusive and 180
+non-inclusive. You can manipulate the geohashes for increased query
+precision, as described in :ref:`geospatial-indexes-precision`.
 
-.. TODO fix this... weird duplicate reference? 
+MongoDB only supports *one* geospatial index per collection.
 
-.. see:: :ref:`<geospatial-coordinates>` for an overview on modeling
-   location data in MongoDB.
-
-.. note::
-
-   MongoDB only supports *one* geospatial index per
-   collection. Creating more than one geospatial index with a
-   collection will produce unexpected results.
+When creating a geospatial index you can specify the options described
+in this section.
 
 .. _geospatial-indexes-range:
 
-Range
-~~~~~
+Location Range
+~~~~~~~~~~~~~~
 
-All geospatial indexes are bounded to a range as this range is used to
-compute :term:`geohash` values. MongoDB will return an error and
-reject documents with coordinate data outside of the specified range.
-The default range assumes latitude and longitude data, and are between
--180 inclusive and 180 non-inclusive (i.e. ``[-180, 180)``.)
+All geospatial indexes are bounded to a location range. By default,
+location range is based on longitude and latitude and is bounded by -180
+inclusive and 180 non-inclusive (i.e. ``[-180, 180)``). MongoDB returns
+an error and rejects documents with coordinate data outside of the
+specified range.
 
-To configure the range of a geospatial index, use the ``min`` and
-``max`` options with the :method:`ensureIndex() <db.collection.ensureIndex()>`
-operation, as in the following prototype:
+MongoDB uses the location range when computing :term:`geohash` values,
+as described in :ref:`geospatial-indexes-geohash`.
+
+To configure a location range other than the default, use the ``min``
+and ``max`` options with the :method:`ensureIndex()
+<db.collection.ensureIndex()>` operation, as in the following prototype:
 
 .. code-block:: javascript
 
    db.collection.ensureIndex( { <location field>: "2d" } ,
                               { min: <lower bound> , max: <upper bound> } )
 
-For more information see the :ref:`geospatial precision
-<geospatial-indexes-precision>` and :ref:`geohash
-<geospatial-geohash>` sections.
-
 .. _geospatial-indexes-precision:
 
-Precision
-~~~~~~~~~
+Location Precision
+~~~~~~~~~~~~~~~~~~
 
-Geospatial indexes consist of :term:`geohash` values and the number of
-bits determine the precision of the index. More bits create more
-precise :term:`geohash` values, which allow MongoDB to return more
-precise results. Fewer bits create a shorter :term:`geohash` value,
-which allow for faster processing. For more information on the
-relationship between bits and precision, see the :ref:`geohash
-<geospatial-geohash>` section.
+The precision of location data is determined by the number of bits in
+the :ref:`geospatial-indexes-geohash`. More bits create more precise location
+data, which allows MongoDB to return more precise results. Fewer bits
+create less precise location data but allows for faster processing.
 
-The precision of geospatial indexes can be configured upto 32 bits. By
-default, geospatial indexes use 26 bits of precision, which is precise
-to roughly 2 feet or about 60 centimeters using the default range of
--180 to 180.
+By default, geospatial indexes use 26 bits of precision, which is
+precise to roughly 2 feet or about 60 centimeters using the default
+range of -180 to 180. You can configure geospatial indexes up to 32
+bits.
 
-The precision of a geospatial index can be configured during creation by
-specifying the ``bits`` option to the :method:`ensureIndex()
+To configure a location precision other than the default, use the
+``bits`` option in the :method:`ensureIndex()
 <db.command.ensureIndex()>` method, as in the following prototype:
 
 .. code-block:: javascript
@@ -107,111 +120,202 @@ specifying the ``bits`` option to the :method:`ensureIndex()
    db.collection.ensureIndex( {<location field>: "2d"} ,
                               { bits: <bit precision> } )
 
-Only create an index with fewer than 26 bits *if* the data in your
-collection is less precise and/or you're willing to sacrifice
-precision for query speed.
+Only create an index with fewer than 26 bits if you are willing to
+sacrifice precision for query speed.
 
-Compound Indexes
+For more information on the relationship between bits and precision, see
+:ref:`geospatial-indexes-geohash`.
+
+Compound Geospatial Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A geospatial index can include a second field in addition to the
+location field, making the index a :ref:`index-type-compound`. This
+allows for queries on the second criterion based on location. For
+example, queries on carpet wholesalers in a mapped region.
+
+To create a geospatial index with two fields, specify the location field
+first, then the second field. For example, to create a compound index on
+the ``loc`` location field and on the ``product`` field (sorted in
+ascending order), you would issue the following:
+
+.. code-block:: javascript
+
+   db.storeInfo.ensureIndex( { loc: "2d", product: 1 } );
+
+This creates an index that supports queries on location alone, as well
+as queries on location and ``product``.
+
+.. _geospatial-indexes-haystack-index:
+
+Haystack Indexes
 ~~~~~~~~~~~~~~~~
 
-:ref:`Compound indexes <index-type-compound>` can be used with
-geospatial data to improve performance that query all these fields.
+Haystack indexes create "buckets" of documents from the same geographic
+area in order to improve performance for queries limited to that area.
 
-To create compound index with geospatial data and another field, the
-prototype form is:
+Each bucket in a haystack index contains all the documents within a
+specified proximity to a given longitude and latitude. You use the
+``bucketSize`` parameter to determine proximity. A ``bucketSize`` of
+``5`` creates an index that groups location values that are within 5
+units of the specified longitude and latitude.
 
-.. code-block:: javascript
+The ``bucketSize`` parameter also determines the granularity of the
+index. You can tune the parameter to the distribution of your data so
+that in general you search only very small regions of a two-dimensional
+space.
 
-   db.collection.ensureIndex( { <location field>: "2d", <field>: 1 } );
+The areas defined by buckets can overlap, meaning a document can exist
+in multiple buckets.
 
-This index will now support regular geospatial queries as well as
-queries where you must filter both by location and by another field.
+Haystack indexes define location by longitude and latitude. To use
+haystack indexes, your documents must also define location by longitude
+and latitude.
 
-For example, to create a compound index on the ``loc`` field and the
-``type`` field, the command is:
-
-.. code-block:: javascript
-
-   db.storeInfo.ensureIndex( { loc: "2d", type: 1 } );
-
-This will support geospatial queries as well as any query on the
-``type`` field. This index can return a list of restaurants near a
-given point, which can optionally filter restaurants by the ``type``,
-such as "take-out," or "bar".
-
-.. see also: ":ref:`<index-type-compound>`" and ":ref:`<geospatial-haystack-index>`"
-
-.. _geospatial-haystack-index:
-
-Haystack Index
-~~~~~~~~~~~~~~
-
-Geospatial haystack indexes make it possible to tune for the
-distribution of your data and build a special bucket index. Haystack
-indexes improve query performance for queries limited to a specific
-area.
-
-.. note::
-
-   Haystack indexes are tuned to the ``bucketSize`` and are not suited
-   to returning the closest documents to a particular location,
-   because the closest documents could be further away than to the
-   ``bucketSize``.
-
-The following command is the prototype to build a :term:`geoHaystack`
-index:
+To build a haystack index, use the ``bucketSize`` parameter in the
+:method:`ensureIndex() <db.command.ensureIndex()>` method, as in the
+following prototype:
 
 .. code-block:: javascript
 
    db.collection.ensureIndex({ <location field>: "geoHaystack", type: 1 },
                              { bucketSize: <bucket value> })
 
-The ``bucketSize`` parameter determines the granularity of the
-index. A bucket value of ``5`` creates an index that stores keys
-within 5 units of the coordinate in the same bucket.
+.. example::
 
-Geohaystack indexes are only queried by the :dbcommand:`geoSearch`
-command, please see the :ref:`Querying Haystack Indexes
-<geospatial-haystack-queries>` section for command details.
+   Consider a collection with documents that contain fields similar to
+   the following:
 
-:ref:`Spherical queries <geospatial-spherical-geometry>` are not
-supported by geohaystack indexes.
+   .. code-block:: javascript
 
-By default, all queries that use a geospatial haystack index will return 50
-documents.
+      { _id : 100, { long : 126.9, lat : 35.2 }, type : "restaurant"}
+      { _id : 200, { long : 127.5, lat : 36.1 }, type : "restaurant"}
+      { _id : 300, { long : 128.0, lat : 36.7 }, type : "national park"}
 
-.. _geospatial-spherical-geometry:
+   The following command creates an index in which keys within 1 unit of
+   longitude or latitude are stored in the same bucket.
 
-Distance Calculation Modes
---------------------------
+   db.mydb.ensureIndex( { pos : "geoHaystack", type : 1 }, { bucketSize : 1 } )
 
-MongoDB can calculate distances using two geometry systems: flat and
-spherical. The default flat geometry, which model points on a flat
-surface. To use spherical geometry to calculate distances, use
-spherical query operators, which model points on a spherical surface
-(i.e. coordinates on Earth.)
+   The index stores the document with ``_id: 200`` in two different
+   buckets: in a bucket that includes ``_id: 100`` and in a separate
+   bucket that includes the ``_id: 300`` bucket.
+
+To query using a haystack index you use the
+:dbcommand:`geoSearch` command. For command details, see
+:ref:`geospatial-indexes-haystack-queries`.
+
+Haystack indexes are tuned to the bucket size and are not necessarily
+suited to returning the closest documents to a particular location.
+
+:ref:`Spherical queries <geospatial-indexes-spherical>` are not
+supported by geospatial haystack indexes.
+
+By default, queries that use a haystack index return 50 documents.
+
+.. _geospatial-indexes-distance-calculation:
+
+Distance Calculation
+--------------------
+
+MongoDB performs distance calculations upon the issuing of queries. By
+default, MongoDB uses flat geometry to calculate distances between
+points. MongoDB also supports distance calculations using spherical
+geometry, to provide accurate distances for geospatial information based
+on a sphere or earth.
+
+.. admonition:: Spherical Queries Use Radians for Distance
+
+   For spherical operators to function properly, you must convert
+   distances to radians, and convert from radians to distances units
+   for your application.
+
+   To convert:
+
+   - *distance to radians*: divide the distance by the radius of the
+     sphere (e.g. the Earth) in the same units as the distance
+     measurement.
+
+   - *radians to distance*: multiply the rad ian measure by the radius
+     of the sphere (e.g. the Earth) in the units system that you want to
+     convert the distance to.
+
+   The radius of the Earth is approximately ``3963.192`` miles or
+   ``6378.137`` kilometers.
+
+The following query would return documents from the ``places``
+collection, within the circle described by the center ``[ -74, 40.74 ]``
+with a radius of ``100`` miles:
+
+.. code-block:: javascript
+
+   db.places.find( { loc: { $centerSphere: [ [ -74, 40.74 ] ,
+                                           100 / 3963.192 ] } } )
+
+You may also use the ``distanceMultiplier`` option to the
+:dbcommand:`geoNear` to convert radians in the :program:`mongod`
+process, rather than in your application code. Please see the
+:ref:`distance multiplier <geospatial-indexes-distance-multiplier>` section.
+
+The following spherical query, returns all documents in the collection
+``places`` within ``100`` miles from the point ``[ -74, 40.74 ]``.
+
+.. code-block:: javascript
+
+   db.runCommand( { geoNear: "places",
+                    near: [ -74, 40.74 ],
+                    spherical: true
+                  }  )
+
+The output of the above command would be:
+
+.. code-block:: javascript
+
+   {
+      // [ ... ]
+      "results" : [
+         {
+            "dis" : 0.01853688938212826,
+            "obj" : {
+               "_id" : ObjectId( ... )
+               "loc" : [
+                  -73,
+                  40
+               ]
+            }
+         }
+      ],
+      "stats" : {
+         // [ ... ]
+         "avgDistance" : 0.01853688938212826,
+         "maxDistance" : 0.01853714811400047
+      },
+      "ok" : 1
+   }
+
+.. warning::
+
+   Spherical queries that wrap around the poles or at the transition
+   from ``-180`` to ``180`` longitude raise an error.
 
 .. note::
 
-   There is no difference between flat and spherical *data* as stored
-   in MongoDB. Rather, the only difference is the distance
-   formulas to calculate in flat and spherical geometry.
+   While the default Earth-like bounds for geospatial indexes are
+   between ``-180`` inclusive, and ``180``, valid values for latitude
+   are between ``-90`` and ``90``.
 
-For more information on query operations for spherical geometry see the
-:ref:`spherical queries <geospatial-query-spherical>` section.
+.. _geospatial-indexes-geohash:
 
-.. _geospatial-geohash:
+Geohash Values
+--------------
 
-Geohash
--------
-
-To create a geospatial index, MongoDB computes the :term:`geohash`
-value for coordinate pairs within the specified :term:`range
+To create a geospatial index, MongoDB computes the :term:`geohash` value
+for coordinate pairs within the specified :ref:`range
 <geospatial-indexes-range>`.
 
 To calculate a geohash value, continuously divide a 2D map into
-quadrants. Then, assign each quadrant a two bit value. For example, a
-two bit representation of four quadrants would be:
+quadrants. Then, assign each quadrant a two-bit value. For example, a
+two-bit representation of four quadrants would be:
 
 .. code-block:: javascript
 
@@ -219,27 +323,107 @@ two bit representation of four quadrants would be:
 
    00  10
 
-These two bit values, ``00``, ``01``, ``10``, and ``11``, represent
-each of the quadrants, and all points within that quadrant. For a
-:term:`geohash` with two bits of resolution, all points in the bottom
-left quadrant would have a geohash of ``00``.  The top left quadrant
-would have the geohash of ``01``. The bottom right and top right would
-have a geohash of ``10`` and ``11``, respectively.
+These two bit values, ``00``, ``01``, ``10``, and ``11``, represent each
+of the quadrants and all points within each quadrant. For a geohash with
+two bits of resolution, all points in the bottom left quadrant would
+have a geohash of ``00``. The top left quadrant would have the geohash
+of ``01``. The bottom right and top right would have a geohash of ``10``
+and ``11``, respectively.
 
 To provide additional precision, continue dividing each quadrant into
 sub-quadrants. Each sub-quadrant would have the geohash value of the
-containing quadrant concatenated with the value of the
-sub-quadrant. The geohash for the upper-right quadrant is ``11``, and
-the geohash for the sub-quadrants would be: (clockwise from the top
-left) ``1101``, ``1111``, ``1110``, and ``1100``, respectfully.
+containing quadrant concatenated with the value of the sub-quadrant. The
+geohash for the upper-right quadrant is ``11``, and the geohash for the
+sub-quadrants would be (clockwise from the top left): ``1101``,
+``1111``, ``1110``, and ``1100``, respectively.
 
-To calculate a more precise :term:`geohash`, continue dividing the
-sub-quadrant, concatenate the two-bit identifier for each division. The
-more "bits" in the hash identifier for a given point, the smaller
-possible area that the hash can describe, and the higher the
-resolution of the geospatial index.
+To calculate a more precise geohash, continue dividing the sub-quadrant
+and concatenate the two-bit identifier for each division. The more
+"bits" in the hash identifier for a given point, the smaller possible
+area that the hash can describe and the higher the resolution of the
+geospatial index.
 
-.. the following is a section about the limitations of geospatial
-   indexes in sharding:
+Geospatial Indexes and Sharding
+-------------------------------
 
-.. include:: /includes/geospatial-sharding.rst
+You *cannot* use a geospatial index as a :term:`shard key` when sharding a
+collection. However, you *can* create and maintain a geospatial index
+on a sharded collection, as long as the shard key is another
+field. Your application may query for geospatial data using
+:dbcommand:`geoNear` and :operator:`$within`; however, queries using
+:operator:`$near` are not supported.
+
+.. _geospatial-indexes-multi-location:
+
+Multi-location Documents
+------------------------
+
+.. versionadded:: 2.0
+
+   Support for multiple locations in a document.
+
+In general, MongoDB cannot support more than one set of coordinates in
+a document; however, using :ref:`multi-key indexes <index-type-multi-key>`,
+you *can* index multiple coordinates in a single document. In the
+simplest example, you may have a field (e.g. ``locs``) that holds an
+array of geospatial coordinates, as in the following prototype data
+model:
+
+.. code-block:: javascript
+
+   {
+    "_id": ObjectId(...),
+    "locs": [
+              [ 55.5, 42.3 ],
+              [ -74, 44.74 ],
+              { "lat": 55.3, "long": 40.2 }
+            ]
+   }
+
+The values of the array may either be arrays holding coordinates, as
+in ``[ 55.5, 42.3 ]`` or embedded documents as in ``{ "lat": 55.3,
+"long": 40.2 }``.
+
+You could then create a geospatial index on the ``locs`` field, as in
+the following example:
+
+.. code-block:: javascript
+
+   db.places.ensureIndex( { "locs": "2d" } )
+
+You may also model the location data as a field inside of a
+sub-document. In this case, the document would contain field
+(e.g. ``addresses``) that held an array of documents where each
+document has a field (e.g. ``loc:``) that holds location
+coordinates. Consider the following prototype data model:
+
+.. code-block:: javascript
+
+   {
+    "_id": ObjectId(...),
+    "name": "...",
+    "addresses": [
+                   {
+                    "context": "home",
+                    "loc": [ 55.5, 42.3 ]
+                   },
+                   {
+                    "context": "home",
+                    "loc": [ -74, 44.74 ]
+                   }
+                 ]
+   }
+
+Then, create the geospatial index on the ``addresses.loc`` field as
+in the following example:
+
+.. code-block:: javascript
+
+   db.records.ensureIndex( { "addresses.loc": "2d" } )
+
+For documents with multiple locations, results may have the same
+document many times because of multiple matches. 
+
+To include the location field with the distance field in
+multi-location document queries, specify ``includeLocs: true``
+in the :dbcommand:`geoNear` command.
