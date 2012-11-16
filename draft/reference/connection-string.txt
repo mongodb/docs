@@ -27,57 +27,56 @@ The following is the standard URI connection scheme:
 
    mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]
 
-The options
+The components of this string are:
 
-- ``mongodb://``
+#. ``mongodb://``
 
-  A required prefix to identify that this is a string in the standard
-  connection format.
+    A required prefix to identify that this is a string in the standard
+    connection format.
 
-- ``username:password@``
+#. ``username:password@``
 
   Optional. If specified, the client will attempt to log in to the
   specific database using these credentials after connecting to the
   :program:`mongod` instance.
 
-- ``host1``
+#. ``host1``
 
-  This the only required part of the URI. It identifies a server
-  address to connect to. It identifies either a hostname, IP address, or
-  UNIX domain socket.
+   This the only required part of the URI. It identifies a server
+   address to connect to. It identifies either a hostname, IP address,
+   or UNIX domain socket.
 
-- ``:port1``
+#. ``:port1``
 
-  Optional. The default value is ``:27017`` if not specified.
+   Optional. The default value is ``:27017`` if not specified.
 
-- ``hostX``
+#. ``hostX``
 
-  Optional. You can specify as many hosts as necessary. You would
-  specify multiple hosts, for example, for connections to replica
-  sets.
+   Optional. You can specify as many hosts as necessary. You would
+   specify multiple hosts, for example, for connections to replica
+   sets.
 
-- ``:portX``
+#. ``:portX``
 
-  Optional. The default value is ``:27017`` if not specified.
+   Optional. The default value is ``:27017`` if not specified.
 
+#. ``/database``
 
-- ``/database``
+   Optional. The name of the database to authenticate if the
+   connection string includes authentication credentials in the form
+   of ``username:password@``. If ``/database`` is not specified and
+   the connection string includes credentials, the driver will
+   authenticate to the ``admin`` database.
 
-  Optional. The name of the database to authenticate if the connection
-  string includes authentication credentials in the form of
-  ``username:password@``. If ``/database`` is not specified and the
-  connection string includes credentials, the driver will authenticate
-  to the ``admin`` database.
+#. ``?options``
 
-- ``?options``
+   Connection specific options. See
+   :ref:`connections-connection-options` for a full description of
+   these options.
 
-  Additional connection options. See
-  :ref:`connections-connection-options` for a full description of
-  these options.
-
-  If the connection string does not specify a database/ you must
-  specify a slash (i.e.  ``/``) between the last ``hostN`` and the
-  question mark that begins the string of options.
+   If the connection string does not specify a database/ you must
+   specify a slash (i.e.  ``/``) between the last ``hostN`` and the
+   question mark that begins the string of options.
 
 .. example:: To describe a connection to a replica set named ``test``,
    with the following :program:`mongod` hosts:
@@ -90,7 +89,6 @@ The options
    .. code-block:: none
 
       mongodb://db1.example.net,db2.example.net:2500/?replicaSet=test
-
 
 .. index:: connections; options
 .. _connections-connection-options:
@@ -127,8 +125,11 @@ Replica Set Option
    Specifies the name of the :term:`replica set`, if the
    :program:`mongod` is a member of a replica set.
 
-   When connecting to a replica set it is important to give a seed list
-   of at least two :program:`mongod` instances.
+   When connecting to a replica set it is important to give a seed
+   list of at least two :program:`mongod` instances. If you only
+   provide the connection point of a single :program:`mongod`
+   instance, and omit the :data:`replicaSet`, the client will create a
+   :term:`standalone` connection.
 
 Connection Options
 ~~~~~~~~~~~~~~~~~~
@@ -192,6 +193,8 @@ connecting to the MongoDB deployment.
    The maximum number of milliseconds that a connection can remain
    idle in the pool before being removed and closed.
 
+   This option is not supported by all drivers.
+
 .. data:: waitQueueMultiple
 
    A number that the driver multiples the :data:`maxPoolSize` value
@@ -216,10 +219,9 @@ the: :doc:`/core/write-operations`:
 
 .. data:: w
 
-   Used by the :dbcommand:`getLastError` command either to configure
-   write concern on members of :term:`replica sets <replica set>` *or*
-   to disable write concern entirely. This option can take either a
-   number or a string as a value.
+   Defines the level and kind of write concern, that the driver uses
+   when calling :dbcommand:`getLastError`. This option can take either
+   a number or a string as a value.
 
    :option -1:
 
@@ -228,8 +230,9 @@ the: :doc:`/core/write-operations`:
 
    :option 0:
 
-      Disables acknowledgment of write operations. The driver will
-      return write operation
+      The driver will *not* acknowledge write operations, but will
+      pass or handle any network and socket errors that it receives to
+      the client.
 
       If you disable write concern but enable the
       :dbcommand:`getLastError` command's ``journal`` option,
@@ -246,7 +249,7 @@ the: :doc:`/core/write-operations`:
       </release-notes/drivers-write-concern>`, this is the default
       write concern setting.
 
-   :option majority:
+   :option string majority:
 
       For replica sets, if you specify the special ``majority`` value
       to :data:`w` option, write operations will only return
@@ -263,6 +266,15 @@ the: :doc:`/core/write-operations`:
       available set members, or members that hold data, MongoDB will
       wait, potentially indefinitely, for these members to become
       available.
+
+   :option string tags:
+
+      For replica sets, you can specify a :term:`tag set` to require
+      that all members of the set that have these tags configured
+      return confirmation of the write operation.
+
+      See :ref:`Replica Set Tag Set Configuration
+      <replica-set-configuration-tag-sets>` for more information.
 
 .. data:: wtimeoutMS
 
@@ -289,6 +301,12 @@ the: :doc:`/core/write-operations`:
 
     If you set :data:`journal` to ``true``, and specify a :data:`w`
     value less than 1, :data:`journal` prevails.
+
+    If you set :data:`journal` to true, and the :program:`mongod` does
+    not have journaling enabled, as with :setting:`nojournal`, then
+    :dbcommand:`getLastError` will provide basic receipt
+    acknowledgment (i.e. ``w:1``), and will include a ``jnote`` field
+    in its return document.
 
 Read Preference Options
 ~~~~~~~~~~~~~~~~~~~~~~~
