@@ -1,7 +1,5 @@
 # Makefile for MongoDB Sphinx documentation
-MAKEFLAGS += -j
-MAKEFLAGS += -r
-MAKEFLAGS += --no-print-directory
+MAKEFLAGS += -j -r --no-print-directory
 
 # Build directory tweaking.
 output = build
@@ -11,13 +9,11 @@ public-output = $(output)/public
 branch-output = $(output)/$(current-branch)
 public-branch-output = $(public-output)/$(current-branch)
 
-# intuit the current branch and commit
+# get current branch & commit; set the branch that  "manual/" points to; + a conditional
+manual-branch = master
 current-branch := $(shell git symbolic-ref HEAD 2>/dev/null | cut -d "/" -f "3" )
 last-commit := $(shell git rev-parse --verify HEAD)
 timestamp := $(shell date +%Y%m%d%H%M)
-
-# change this to reflect the branch that "manual/" will point to
-manual-branch = master
 ifeq ($(current-branch),$(manual-branch))
 current-if-not-manual = manual
 else
@@ -36,15 +32,14 @@ help:
 	@echo "  publish	runs publication process and then deploys the build to $(public-output)"
 	@echo "  push		runs publication process and pushes to docs site to production."
 	@echo "  draft		builds a 'draft' build for pre-publication testing ."
-	@echo "  pdfs		generates pdfs more efficently than latexpdf."
+	@echo "  pdfs		generates pdfs."
 
 ############# makefile includes #############
 include bin/makefile.compatibility
 include bin/makefile.push
 
 # Included, dynamically generated makefile sections, to build: sphinx
-# targets, LaTeX/PDFs, tables, the installation guides, and symbolic
-# links.
+# targets, LaTeX/PDFs, tables, the installation guides, and sym links.
 
 -include $(output)/makefile.pdfs
 -include $(output)/makefile.tables
@@ -63,7 +58,7 @@ $(output)/makefile.%:bin/makefile-builder/%.py bin/makefile_builder.py bin/build
 publish-if-up-to-date:
 	@bin/published-build-check $(current-branch) $(last-commit)
 	@$(MAKE) publish
-publish:initial-dependencies pre-build-dependencies
+publish:initial-dependencies
 	@echo [build]: starting build of sphinx components built at `date`
 	@$(MAKE) sphinx-components
 	@echo [build]: all sphinx components built at `date`
@@ -74,16 +69,19 @@ publish:initial-dependencies pre-build-dependencies
 
 # Deployment targets to kick off the rest of the build process.
 # Only  access these targets through the ``publish`` or ``publish-if-up-to-date`` targets.
-pre-build-dependencies:setup installation-guides tables
-	@echo [build]: completed $@ buildstep.
-initial-dependencies:$(public-branch-output)/MongoDB-Manual.epub
-	@echo [build]: completed $@ buildstep.
-static-components:$(public-output)/index.html $(public-output)/10gen-gpg-key.asc $(public-output)/10gen-security-gpg-key.asc $(public-branch-output)/.htaccess $(public-branch-output)/release.txt $(public-output)/osd.xml
-	@echo [build]: completed $@ buildstep.
+static-components:security-keys static-pages meta-static
+	@echo [build]: completed $1@ buildstep.
 post-processing:error-pages links
 	@echo [build]: completed $@ buildstep.
-sphinx-components:manual-pdfs $(public-branch-output)/single $(public-branch-output)/single/index.html $(public-branch-output) $(public-branch-output)/sitemap.xml.gz
+sphinx-components:manual-pdfs single-output public-output
 	@echo [build]: completed $@ buildstep.
+
+initial-dependencies:$(public-branch-output)/MongoDB-Manual.epub
+single-output:$(public-branch-output)/single $(public-branch-output)/single/index.html
+public-output:$(public-branch-output) $(public-branch-output)/sitemap.xml.gz
+security-keys:$(public-output)/10gen-gpg-key.asc $(public-output)/10gen-security-gpg-key.asc
+static-pages:$(public-output)/index.html $(public-branch-output)/release.txt
+meta-static:$(public-branch-output)/.htaccess $(public-output)/osd.xml
 
 ############# Targets that define the production build process #############
 .PHONY:source/about.txt source/includes/hash.rst setup $(public-branch-output)/release.txt
@@ -135,7 +133,7 @@ $(branch-output)/sitemap.xml.gz:$(public-output)/manual $(branch-output)/dirhtml
 
 LATEX_CORRECTION = "s/(index|bfcode)\{(.*!*)*--(.*)\}/\1\{\2-\{-\}\3\}/g"
 LATEX_LINK_CORRECTION = "s%\\\code\{/%\\\code\{http://docs.mongodb.org/$(current-if-not-manual)/%g"
-PDFLATEXCOMMAND = TEXINPUTS=".:$(branch-output)/latex/:" pdflatex --interaction batchmode --output-directory $(branch-output)/latex/
+pdflatex-command = TEXINPUTS=".:$(branch-output)/latex/:" pdflatex --interaction batchmode --output-directory $(branch-output)/latex/ $(LATEXOPTS) 
 
 # Uses 'latex' target to generate latex files.
 pdfs:$(subst .tex,.pdf,$(wildcard $(branch-output)/latex/*.tex))
@@ -145,13 +143,13 @@ $(branch-output)/latex/%.tex:
 %.pdf:%.tex
 	@echo [pdf]: pdf compilation of $@, started at `date`.
 	@touch $(basename $@)-pdflatex.log
-	@-$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<' >> $(basename $@)-pdflatex.log
+	@-$(pdflatex-command) '$<' >> $(basename $@)-pdflatex.log
 	@echo [pdf]: \(1/4\) pdflatex $<
 	@-makeindex -s $(branch-output)/latex/python.ist '$(basename $<).idx' >> $(basename $@)-pdflatex.log 2>&1
 	@echo [pdf]: \(2/4\) Indexing: $(basename $<).idx
-	@$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<' >> $(basename $@)-pdflatex.log
+	@$(pdflatex-command) '$<' >> $(basename $@)-pdflatex.log
 	@echo [pdf]: \(3/4\) pdflatex $<
-	@$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<' >> $(basename $@)-pdflatex.log
+	@$(pdflatex-command) '$<' >> $(basename $@)-pdflatex.log
 	@echo [pdf]: \(4/4\) pdflatex $<
 	@echo [pdf]: see '$(basename $@)-pdflatex.log' for a full report of the pdf build process.
 	@echo [pdf]: pdf compilation of $@, complete at `date`.
@@ -171,7 +169,7 @@ clean-all:
 
 # Archiving $(public-output) for more sane testing, and risk free cleaning.
 archive:$(public-output).$(timestamp).tar.gz
-	@echo [archive]: created $< archive.
+	@echo [$@]: created $< $@.
 $(public-output).%.tar.gz:$(public-output)
 	tar -czvf $@ $<
 
@@ -180,9 +178,12 @@ draft:draft-html
 draft-pdfs:draft-latex $(subst .tex,.pdf,$(wildcard $(branch-output)/draft-latex/*.tex))
 
 # man page support, uses sphinx `man` builder output.
-UNCOMPRESSED_MAN := $(wildcard $(branch-output)/man/*.1)
-COMPRESSED_MAN := $(subst .1,.1.gz,$(UNCOMPRESSED_MAN))
-build-man:man $(COMPRESSED_MAN)
-compress-man:$(COMPRESSED_MAN)
+.PHONY:$(manpages)
+manpages := $(wildcard $(branch-output)/man/*.1)
+compressed-manpages := $(subst .1,.1.gz,$(manpages))
+manpages:$(compressed-manpages)
+$(compressed-manpages):$(manpages)
+$(manpages):man
 $(branch-output)/man/%.1.gz: $(branch-output)/man/%.1
-	gzip $< -c > $@
+	@gzip $< -c > $@
+	@echo [man] compressing $< -- $@

@@ -21,7 +21,7 @@ def build_all_tables(tables):
     m.target('.PHONY', 'tables clean-tables', block='footer')
     m.target('tables', '$(output-tables)', block='footer')
     m.job('git update-index --assume-unchanged', block='footer')
-    m.msg('[build]: clensing git index of compiled tables', block='footer')
+    m.msg('[tables]: clensing git index of compiled tables', block='footer')
     m.newline(block='footer')
     m.target('clean-tables', block='footer')
     m.job('rm -rf $(output-tables)', True)

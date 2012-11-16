@@ -53,6 +53,10 @@ def make_all_sphinx(sphinx):
           value="sed $(SED_ARGS_REGEX) -e '/^WARNING: unknown mimetype.*ignoring$$/d' -e '/^WARNING: search index.*incomplete.$$/d'",
           block='vars')
 
+    m.section_break('sphinx prerequisites')
+    m.target('sphinx-prerequisites', 'setup installation-guides tables', block='prereq')
+    m.msg('[build]: completed $@ buildstep.', block='prereq')
+
     m.section_break('sphinx targets', block='sphinx')
     m.comment('each sphinx target invokes and controls the sphinx build.', block='sphinx')
     m.newline(block='sphinx')
@@ -76,7 +80,7 @@ def sphinx_builder(target, production):
         m.target(target, block=b)
     else:
         b = 'testing'
-        m.target(target, 'pre-build-dependencies', block=b)
+        m.target(target, 'sphinx-prerequisites', block=b)
 
     if target.split('-')[0] == 'draft':
         if target.split('-')[1] == 'html':
