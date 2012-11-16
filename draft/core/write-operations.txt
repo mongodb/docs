@@ -79,8 +79,8 @@ Consider the following levels of conceptual write concern:
 
 - *unacknowledged*: MongoDB does not acknowledge the receipt of write
   operation as with a write concern level of *ignore*; however, the
-  driver will receive and handle network errors, in the case of a
-  network disconnection or other kind of socket error.
+  driver will receive and handle network errors, as possible given
+  system networking configuration.
 
   Before the releases outlined in :ref:`driver-write-concern-change`,
   this was the default write concern.
@@ -151,7 +151,7 @@ concern for your application, become familiar with the
 :ref:`write-concern-considerations`.
 
 The :dbcommand:`getLastError` has the following options to configure write
-concern requirements.
+concern requirements:
 
 - ``j`` or "journal" option
 
@@ -162,14 +162,21 @@ concern requirements.
 
   .. code-block:: javascript
 
-     db.runCommand( { getLastError: 1, j: "true" } )
+     db.run Command( { getLastError: 1, j: "true" } )
+
+  If you set :data:`journal` to true, and the :program:`mongod` does
+  not have journaling enabled, as with :setting:`nojournal`, then
+  :dbcommand:`getLastError` will provide basic receipt acknowledgment,
+  and will include a ``jnote`` field in its return document.
 
 - ``w`` option
 
   This option provides the ability to disable write concern entirely *as
   well as* specifies the write concern operations for :term:`replica sets
-  <replica set>`. By default, the ``w`` option is set to ``1``, which
-  provides basic receipt acknowledgment on a single :program:`mongod`
+  <replica set>`. See :ref:`write-concern-considerations` for an
+  introduction to the fundamental concepts of write concern. By
+  default, the ``w`` option is set to ``1``, which provides basic
+  receipt acknowledgment on a single :program:`mongod`
   instance or on the :term:`primary` in a replica set.
 
   The ``w`` option takes the following values:
@@ -185,18 +192,12 @@ concern requirements.
     information about socket excepts and networking errors to the
     application.
 
-    .. note:: If you disable basic operation acknowledgment write
-       concern but enable the journal commit write concern, the journal
-       commit overrides the no write concern, as in the following
-       operation:
+    .. note::
 
-       .. code-block:: javascript
-
-          db.runCommand( { getLastError: 1, w: 0, j: "true" } )
-
-       The setting with the ``j`` (journal) prevails, which provides
-       acknowledgment of write operations from a single :program:`mongod`
-       instance as well as confirmation of the journal commit.
+       If you disable basic write operation acknowledgment but require
+       journal commit acknowledgment, the journal commit prevails, and
+       the driver will require that :program:`mongod`  will
+       acknowladge the replica set.
 
   - ``1``:
 
@@ -227,6 +228,12 @@ concern requirements.
     set members must acknowledge a write operation to satisfy the required
     level of write concern.
 
+:dbcommand:`getLastError` also supports a ``wtimeout`` setting which
+allows clients to specify a timeout for the write concern: if you
+don't specify ``wtimeout`` and the :program:`mongod` cannot fulfill
+the write concern the :dbcommand:`getLastError` will block,
+potentially forever.
+
 For more information on write concern and replica sets, see :ref:`Write
 Concern for Replica Sets <replica-set-write-concern>` for more information..
 
@@ -252,7 +259,7 @@ provide their own interface for this kind of operation.
    :method:`insert() <db.collection.insert()>` in the :program:`mongo`
    shell gained support for bulk inserts in version 2.2.
 
-Bulk insert can significantly increase performance by distributing
+Bulk insert can significantly increase performance by amortizing
 :ref:`write concern <write-operations-write-concern>` costs. In the
 drivers, you can configure write concern for batches rather than on a
 per-document level.
@@ -289,7 +296,7 @@ Indexing
 After every insert, update, or delete operation, MongoDB must update
 *every* index associated with the collection in addition to the data
 itself. Therefore, every index on a collection adds some amount of
-overhead for the performance of write operations.
+overhead for the performance of write operations. [#exceptions]_
 
 In general, the performance gains that indexes provide for *read
 operations* are worth the insertion penalty; however, when optimizing
@@ -299,6 +306,12 @@ actually using these indexes.
 
 For more information on indexes in MongoDB consider :doc:`/indexes`
 and :doc:`/applications/indexes`.
+
+.. [#exceptions] The overhead for :ref:`sparse indexes
+   <index-type-sparse-index>` inserts and updates to un-indexed fields
+   is less than for non-sparse indexes. Also for non-sparse indexes,
+   updates that don't change the record size have less indexing
+   overhead.
 
 .. _write-operations-isolation:
 
@@ -336,12 +349,12 @@ process.
 
 Large volumes of write operations, particularly bulk operations, may
 create situations where the secondary members have difficulty applying
-the replicating operations from the primary at a sufficiently rate: this
+the replicating operations from the primary at a sufficient rate: this
 can cause the secondary's state to fall behind that of the primary. Secondaries
 that are significantly behind the primary present problems for normal
 operation of the replica set, particularly :ref:`failover
 <replica-set-failover-administration>` in the form of :ref:`rollbacks
-<replica-set-rollback>` as well as general :ref:`read consistency
+<replica-set-rollback>` as well as general :ref:`re2ad consistency
 <replica-set-consistency>`.
 
 To help avoid this issue, you can customize the :ref:`write concern
@@ -357,8 +370,10 @@ For more information on replica sets and write operations, see
 :ref:`replica-set-oplog`, and :ref:`replica-set-procedure-change-oplog-size`.
 
 .. [#write-concern-throttling] Calling :dbcommand:`getLastError`
-   intermittently with a ``w`` value of ``2`` or ``majority`` will slow
-   the throughput of the write operation but will prevent bulk inserts.
+   intermittently with a ``w`` value of ``2`` or ``majority`` will
+   slow the throughput of the write operation; however, this practice
+   will allow the secondaries to remain current with the state of the
+   primary.
 
 .. _write-operations-sharded-clusters:
 
