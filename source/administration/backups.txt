@@ -22,12 +22,15 @@ use with MongoDB. This document contains the following sections:
 Backup Overview
 ---------------
 
-A robust backup strategy and well tested restoration process are crucial
-for production-grade deployments. The goal of a backup strategy is to
-produce a full and consistent copy of the data that you can use to bring
-up a new or replacement database instance.
+Production systems should always have some consideration and strategy
+for taking and restoring backups. The goal of a backup strategy is to
+produce a full and consistent copy of the data that you can use to
+bring up a new or replacement database instance. However, in some
+cases, taking backups is difficult or impossible, given large data
+volumes, distributed architectures, and data transmission speeds.
 
-With MongoDB, there are two major approaches to backups:
+Nevertheless, with MongoDB, there are two major approaches to backups:
+[#replication-as-backups]_
 
 - Using system-level tools, like disk image snapshots.
 
@@ -52,6 +55,10 @@ features of your deployment, your use patterns, and your architecture.
 Because every environment is unique it's important to regularly test the
 backups that you capture to ensure that your backup system is
 practically, and not just theoretically, functional.
+
+.. [#replication-as-backups] In many situations increasing the amount
+   of replication provides useful assurances with data sets that are
+   difficult to restore in a timely manner.
 
 .. _backup-considerations:
 
@@ -360,11 +367,11 @@ member`).
 
    .. note::
 
-      ..versionchanged:: 2.0
-        In 2.0 added :method:`db.fsyncLock()` and
-        :method:`db.fsyncUnlock()` helpers to the :program:`mongo`
-        shell.  Prior to this version, use the :dbcommand:`fsync`
-        command with the ``lock`` option, as follows:
+      .. versionchanged:: 2.0
+         In 2.0 added :method:`db.fsyncLock()` and
+         :method:`db.fsyncUnlock()` helpers to the :program:`mongo`
+         shell.  Prior to this version, use the :dbcommand:`fsync`
+         command with the ``lock`` option, as follows:
 
       .. code-block:: javascript
 
@@ -415,15 +422,6 @@ provides the best option for full system database backups.
 
    If your system has disk level snapshot capabilities, consider the
    backup methods described in :ref:`block-level-backup`.
-
-.. versionchanged:: 2.2
-   In previous versions, :program:`mongodump` would not store index
-   definitions, nor would :program:`mongorestore` rebuild indexes
-   after restoring the data. In 2.2 :program:`mongodump` will
-   store index definitions *unless* you use the :option:`--noIndexRestore
-   <mongodump --noIndexRestore>` option. The corresponding
-   :program:`mongorestore` program will rebuild indexes when present
-   in the dump.
 
 Database Dump with :program:`mongodump`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -573,7 +571,7 @@ perform restorations.
 Back Up Sharded Clusters
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Sharding complicates backup operations, because it is difficult to
+Sharding complicates backup operations, because it is impossible to
 create a backup of a single moment in time from a distributed cluster
 of systems and processes.
 
@@ -616,6 +614,8 @@ If your :term:`sharded cluster` is to large for the :program:`mongodump`
 command, then you must back up your data either by creating a snapshot of the cluster
 or by creating a binary dump of each database. This section describes both.
 
+.. TODO include note about fuzziness of this backup output
+
 In both cases:
 
 - The backups must capture the database in a consistent state.
@@ -637,9 +637,9 @@ This procedure describes both approaches:
       could have duplicate data or miss some data, as :term:`chunks
       <chunk>` migrate while recording backups.
 
-#. Lock all shards so that your backups reflect your entire database
-   system at a single point in time. Lock all shards in as short of an
-   interval as possible.
+#. Lock one member of each replica set in shard so that your backups reflect your
+   entire database system at a single point in time. Lock all shards
+   in as short of an interval as possible.
 
    To lock or freeze a sharded cluster, you must:
 
@@ -649,11 +649,6 @@ This procedure describes both approaches:
 
    - Shutdown one of the :ref:`config servers <sharding-config-server>`, to
      prevent all metadata changes during the backup process.
-
-   .. warning::
-
-      If you do not lock all shards at the same time, the backup can
-      reflect an inconsistent state that is impossible to restore from.
 
 #. Use :program:`mongodump` to backup one of the :ref:`config servers
    <sharding-config-server>`. This backs up the cluster's metadata. You
@@ -667,14 +662,9 @@ This procedure describes both approaches:
 
       mongodump --db config
 
-   .. note::
-
-      In this situation :program:`mongodump` will read from
-      :term:`secondary` nodes. See: :ref:`mongodump feature
-      <mongodump-behavior>` for more information.
-
-#. Back up each shard. You may back up shards one at a time or in
-   parallel. For each shard, do one of the following:
+#. Back up the replica set members of the shards that you locked. You may back up
+   shards one at a time or in parallel. For each shard, do one of the
+   following:
 
    - If your system has disk level snapshot capabilities, create a
      snapshot each shard. Use the procedures in
@@ -683,8 +673,8 @@ This procedure describes both approaches:
    - Create a binary dump of each shard using the operations described
      in :ref:`database-dumps`.
 
-#. Unlock all shards using the :method:`db.fsyncUnlock()` method in
-   the :program:`mongo` shell.
+#. Unlock all locked replica set members of each shard using the
+   :method:`db.fsyncUnlock()` method in the :program:`mongo` shell.
 
 #. Restore the balancer with the :method:`sh.startBalancer()` method
    according to the :ref:`sharding-balancing-disable-temporally`
