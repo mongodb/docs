@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+import os.path
+
 class MakefileBuilder(object):
     def __init__(self, makefile=None):
         self.builder = { '_all' : [] }
@@ -90,6 +93,12 @@ class MakefileBuilder(object):
         for block in block_order:
             o.append(self.builder[block])
             o = [item for sublist in o for item in sublist]
+
+        file_path = os.path.dirname(filename)
+
+        if not os.path.exists(file_path):
+            os.makedirs(file_path)
+
         with open(filename, 'w') as f:
             for line in o:
                 f.write(line)
