@@ -211,18 +211,19 @@ The following command will insert the ``event`` object into the
 
 .. code-block:: pycon
 
-   >>> db.events.insert(event, safe=False)
+   >>> db.events.insert(event, w=0)
 
-By setting ``safe=False``, you do not require that MongoDB
+By setting ``w=0``, you do not require that MongoDB
 acknowledges receipt of the insert.  Although very fast, this is risky
-because the application cannot detect network and server failures.
+because the application cannot detect network and server failures. See
+:ref:`write-concern` for more information. 
 
 If you want to ensure that MongoDB acknowledges inserts, you can pass
-``safe=True`` argument as follows:
+``w=1`` argument as follows:
 
 .. code-block:: pycon
 
-   >>> db.events.insert(event, safe=True)
+   >>> db.events.insert(event, w=1)
 
 MongoDB also supports a more stringent level of write concern, if you
 have a lower tolerance for data loss:
@@ -238,7 +239,7 @@ following :py:meth:`insert() <pymongo:pymongo.collection.Collection.insert>` ope
 
 .. note::
 
-   ``j=True`` implies ``safe=True``.
+   ``j=True`` implies ``w=1``.
 
 Finally, if you have *extremely low* tolerance for event data loss,
 you can require that MongoDB replicate the data to multiple
@@ -246,18 +247,19 @@ you can require that MongoDB replicate the data to multiple
 
 .. code-block:: pycon
 
-   >>> db.events.insert(event, w=2)
+   >>> db.events.insert(event, w=majority)
 
 This will force your application to acknowledge that the data has
-replicated to 2 members of the :term:`replica set`. You can combine
+replicated to a majority of configured members of the :term:`replica set`. You can combine
 options as well:
 
 .. code-block:: pycon
 
-   >>> db.events.insert(event, j=True, w=2)
+   >>> db.events.insert(event, j=True, w=majoirty)
 
 In this case, your application will wait for a successful journal
-commit *and* a replication acknowledgment. This is the safest option
+commit on the :term:`primary` *and* a replication acknowledgment from
+a majority of configured secondaries. This is the safest option
 presented in this section, but it is the slowest. There is always a
 trade-off between safety and speed.
 
