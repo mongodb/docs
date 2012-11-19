@@ -1,4 +1,4 @@
-:doc:`Documents </core/documents>` have the following restrictions on field
+:doc:`Documents </core/document>` have the following restrictions on field
 names:
 
 - The field name ``_id`` is reserved for use as a primary key; its
