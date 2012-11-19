@@ -14,103 +14,70 @@ This document describes those options and their implications.
    shards are also replica sets provide the same configuration options
    with regards to write and read operations.
 
-.. the :ref:`write-concern` tag is here for the moment. At some point
-   we'll break this into its own document.
-
-.. _write-concern:
 .. _replica-set-write-concern:
 
 Write Concern
 -------------
 
-When a :term:`client` sends a write operation to a database server, the
-operation returns without waiting for the operation to succeed or
-complete by default. To check if write operations have succeeded, use the
-:dbcommand:`getLastError` command. :dbcommand:`getLastError` supports the following options
-that allow you to tailor the level of "write concern" provided by the
-command's return or acknowledgment:
+MongoDB's built-in :term:`write concern` confirms the success of write
+operations to a :term:`replica set's <replica set>` :term:`primary`.
+Write concern issues the :dbcommand:`getLastError` command after write
+operations to return an object with error information or confirmation
+that there are no errors.
 
-- no options.
+The MongoDB Fall 2012 driver release enables write concern by default.
 
-  Confirms that the :program:`mongod` instance received the write
-  operations. When your application receives this response, the
-  :program:`mongod` instance has committed the write operation to the
-  in-memory representation of the database. This provides a simple and
-  low-latency level of write concern and will allow your application
-  to detect situations where the :program:`mongod` instance becomes
-  inaccessible or insertion errors caused by :ref:`duplicate key
-  errors <index-type-unique>`.
+When enabled by default, write concern confirms write operations only on the primary.
+You can configure write concern to confirm write operations to
+additional replica set members as well by issuing the
+:dbcommand:`getLastError` command with the ``w`` option.
 
-- ``j`` or "journal" option.
+The ``w`` option confirms that write operations have replicated to the
+specified number of replica set members, including the primary. You can
+either specify a number or specify ``majority``, which ensures the write
+propagates to a majority of set members. The following example ensures
+the operation has replicated to two members (the primary and one other
+member):
 
-  Confirms the above, and that the :program:`mongod` instance has
-  written the data to the on-disk journal. This ensures that the data
-  is durable if :program:`mongod` or the server itself crashes or
-  shuts down unexpectedly.
+.. code-block:: javascript
 
-- ``fsync`` option.
+   db.runCommand( { getLastError: 1, w: 2 } )
 
-  .. deprecated:: 1.8
-
-  Do not use the ``fsync`` option. Confirms that the :program:`mongod`
-  has flushed the in-memory representation of the data to the
-  disk. Instead, use the ``j`` option to ensure durability.
-
-- ``w`` option. Only use with replica sets.
-
-  Confirms that the write operation has replicated to the specified
-  number of replica set members. You may specify a specific number of
-  servers *or* specify ``majority`` to ensure that the write
-  propagates to a majority of set members. The default value of ``w``
-  is ``1``.
-
-You may combine multiple options, such as ``j`` and ``w``, into a
-single :dbcommand:`getLastError` operation.
-
-Many drivers have a "safe" mode or "write concern" that automatically
-issues :dbcommand:`getLastError` after write operations to ensure
-the operations complete. Safe mode provides confirmation of
-write operations, but safe writes can take longer
-to return and are not required in all applications. Consider the
-following operations:
+The following example ensures the write operation has replicated to a
+majority of the configured members of the set.
 
 .. code-block:: javascript
 
    db.runCommand( { getLastError: 1, w: "majority" } )
-   db.getLastErrorObj("majority")
 
-These equivalent :dbcommand:`getLastError` operations ensure that write
-operations return only after a write operation has replicated to a
-majority of the members of the set.
+If you specify a ``w`` value greater than the number of members that
+hold a copy of the data (i.e., greater than the number of
+non-:term:`arbiter` members), the operation blocks until those members
+become available. This can cause the operation to block forever. To
+specify a timeout threshold for the :dbcommand:`getLastError` operation,
+use the ``wtimeout`` argument. The following example sets the timeout to
+5000 milliseconds:
 
-.. note::
+.. code-block:: javascript
 
-   If you specify a ``w`` value greater than the number of available
-   non-:term:`arbiter` replica set members, the operation will block
-   until those members become available. This could cause the
-   operation to block forever. To specify a timeout threshold for the
-   :dbcommand:`getLastError` operation, use the ``wtimeout`` argument.
+   db.runCommand( { getlasterror: 1, w: 2, wtimeout:5000 } )
 
-You can also configure your own "default" :dbcommand:`getLastError` behavior
-for the replica set. Use the :data:`settings.getLastErrorDefaults`
-setting in the :doc:`replica set configuration
-</reference/replica-configuration>`. For instance:
+You can configure your own "default" :dbcommand:`getLastError` behavior
+for a replica set. Use the :data:`settings.getLastErrorDefaults` setting
+in the :doc:`replica set configuration
+</reference/replica-configuration>`. The following sequence of commands
+creates a configuration that waits for the write operation to complete
+on a majority of the set members before returning:
 
 .. code-block:: javascript
 
    cfg = rs.conf()
    cfg.settings = {}
-   cfg.settings.getLastErrorDefaults = {w: "majority", j: true}
+   cfg.settings.getLastErrorDefaults = {w: "majority"}
    rs.reconfig(cfg)
 
-When the new configuration is active, the :dbcommand:`getLastError`
-operation waits for the write operation to complete on a majority
-of the set members before returning. Specifying ``j: true`` makes
-:dbcommand:`getLastError` wait for a complete commit of the
-operations to the journal before returning.
-
-The :data:`getLastErrorDefaults` setting only affects :dbcommand:`getLastError`
-commands with *no* other arguments.
+The :data:`getLastErrorDefaults` setting affects only those
+:dbcommand:`getLastError` commands that have *no* other arguments.
 
 .. note::
 
@@ -173,8 +140,8 @@ configuration, see the appropriate :ref:`driver` API documentation.
    Read preferences affect how an application selects which member
    to use for read operations. As a result read
    preferences dictate if the application receives stale or
-   current data from MongoDB. Use appropriate :ref:`write concern
-   <replica-set-write-concern>` policies to ensure proper data
+   current data from MongoDB. Use appropriate :term:`write concern`
+   policies to ensure proper data
    replication and constancy.
 
    If read operations account for a large percentage of your
@@ -390,7 +357,6 @@ However, the following tag sets would *not* be able to fulfill this query:
    { "disk": "ssd", "use": "production" }
    { "disk": "ssd", "use": "production", "rack": 3 }
    { "disk": "spinning", "use": "reporting", "mem": "32" }
-
 
 Therefore, tag sets make it possible to ensure that read operations
 target specific members in a particular data center or

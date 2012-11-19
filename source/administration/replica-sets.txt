@@ -786,8 +786,9 @@ Possible causes of replication lag include:
 - **Concurrency**
 
   In some cases, long-running operations on the primary can block
-  replication on secondaries. You can use :term:`write concern` to
-  prevent write operations from returning if replication cannot keep up
+  replication on secondaries. For best results, configure :ref:`write concern <write-concern>`
+  to require confirmation of replication to secondaries, as described in :ref:`replica-set-write-concern`.
+  This prevents write operations from returning if replication cannot keep up
   with the write load.
 
   Use the :term:`database profiler` to see if there are slow queries
@@ -796,27 +797,20 @@ Possible causes of replication lag include:
 - **Appropriate Write Concern**
 
   If you are performing a large data ingestion or bulk load operation
-  that requires a large number of writes to the primary, the
+  that requires a large number of writes to the primary, particularly
+  with :ref:`unacknowledged write concern <write-concern-considerations>`, the
   secondaries will not be able to read the oplog fast enough to keep
-  up with changes. Setting some level of write concern can
-  slow the overall progress of the batch but will prevent the
-  secondary from falling too far behind.
+  up with changes.
 
-  To prevent this, use write concern so that MongoDB will perform
-  a safe write (i.e. call :dbcommand:`getLastError`) after every 100,
-  1,000, or other designated number of operations.
-  This provides an opportunity for secondaries to catch up with the primary.
-  Using safe writes, even in batches, can impact write throughout;
-  however, calling :dbcommand:`getLastError` will prevents the
-  secondaries from falling too far behind the primary.
+  To prevent this, require :ref:`write acknowledgment or journaled
+  write concern <write-concern-considerations>` after every 100,
+  1,000, or an another interval to provide an opportunity for
+  secondaries to catch up with the primary.
 
   For more information see:
 
-  - :ref:`replica-set-write-concern`.
-  - The :ref:`replica-set-oplog-sizing` topic in the :doc:`/core/replication` document.
-  - The :ref:`replica-set-oplog` topic in the :doc:`/core/replication-internals` document.
-  - The :ref:`replica-set-procedure-change-oplog-size` topic in this document.
-  - The :doc:`/tutorial/change-oplog-size` tutorial.
+  - :ref:`replica-set-write-concern`
+  - :ref:`replica-set-oplog-sizing`
 
 .. _replica-set-troubleshooting-check-connection:
 
@@ -957,7 +951,8 @@ operational errors:
 In many senses, :ref:`rollbacks <replica-set-rollbacks>` represent a
 graceful recovery from an impossible failover and recovery situation.
 
-Rollbacks occur when a primary accepts writes that other members of
+Rollbacks occur when 
+a primary accepts writes that other members of
 the set do not successfully replicate before the primary steps
 down. When the former primary begins replicating again it performs a
 "rollback." Rollbacks remove those operations from the instance that
@@ -966,8 +961,13 @@ consistent state. The :program:`mongod` program writes rolled back
 data to a :term:`BSON` file that you can view using
 :program:`bsondump`, applied manually using :program:`mongorestore`.
 
-You can prevent rollbacks by ensuring safe writes by using
-the appropriate :term:`write concern`.
+You can prevent rollbacks using a :ref:`replia acknowledged
+<write-concern-replica-acknowledged>` write concern. These write
+operations require not only the :term:`primary` to acknowledge the
+write operation, sometimes even the majority of the set to confirm the
+write operation before returning.
+
+ enabling :term:`write concern`.
 
 .. include:: /includes/seealso-elections.rst
 
