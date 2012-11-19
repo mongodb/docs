@@ -70,7 +70,7 @@ publish:initial-dependencies
 # Deployment targets to kick off the rest of the build process.
 # Only  access these targets through the ``publish`` or ``publish-if-up-to-date`` targets.
 static-components:security-keys static-pages meta-static
-	@echo [build]: completed $1@ buildstep.
+	@echo [build]: completed $@ buildstep.
 post-processing:error-pages links
 	@echo [build]: completed $@ buildstep.
 sphinx-components:manual-pdfs single-output public-output
