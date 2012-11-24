@@ -6,34 +6,63 @@ cursor.explain()
 
 .. method:: cursor.explain()
 
-   :returns: A document that describes the process used to return the
-             query.
+   The :method:`cursor.explain()` method provides information on the
+   query plan. 
 
-   This method may provide useful insight when attempting to optimize
-   a query. When you call the :method:`explain <cursor.explain()>` on
-   a query, the query system reevaluates the query plan. As a result,
-   these operations only provide a realistic account of *how* MongoDB
-   would perform the query, and *not* how long the query would take.
+   :param boolean verbose:
+
+          Specifies the level of detail to include in the output. If
+          ``true`` or ``1``, include the ``allPlans`` and ``oldPlan``
+          fields in the :ref:`output <explain-output>`.
+
+   :returns: A :ref:`document <explain-output>` that describes the
+            process used to return the query.
+
+   Retrieve the query plan by appending :method:`explain()
+   <cursor.explain()>` to a :method:`find()` query, as in the following
+   example:
+
+   .. code-block:: javascript
+
+      db.products.find().explain() 
+
+   :method:`explain <cursor.explain()>` runs the actual query to
+   determine the result. If the query is slow, the :method:`explain
+   <cursor.explain()>` will also be slow. Additionally, when you call
+   the :method:`explain <cursor.explain()>` on a query, the query
+   system reevaluates the query plan, which may cause some queries to
+   run slower. As a result, these operations provide an accurate
+   account of *how* MongoDB would perform the query, but not
+   necessarily *how long* the query would take.
+
+   To determine the performance of a particular index, you can use
+   :method:`hint() <cursor.hint()>`  and in conjunction with
+   :method:`explain() <cursor.explain()>`, as in the following example:
+
+   .. code-block:: javascript
+
+      db.products.find().hint( { type: 1 } ).explain()
+
+   When you run :method:`explain <cursor.explain()>` with
+   :method:`hint() <cursor.hint()>`, the query optimizer does not
+   reevaluate the query plan.
 
    .. _explain-output: 
 
-   The method's output includes these fields:
+   Consider the following sample output from :method:`explain()
+   <cursor.explain()>` with the ``verbose`` parameter set to ``true``
+   or ``1``:
+   
+   .. include:: /includes/fact-explain-output-fields.rst 
 
-   - ``cursor``: The value for cursor can be either ``BasicCursor`` or
-     ``BtreeCursor``. The second of these indicates that the given query
-     is using an index.
+   .. seealso:: 
+   
+      - :operator:`$explain`
+      
+      - :wiki:`Optimization` wiki page for information regarding
+        optimization strategies.
 
-   - ``nscanned``: The number of index entries scanned.
-
-   - ``n``: the number of documents returned by the query. You want the
-     value of ``n`` to be close to the value of ``nscanned``. You want to
-     avoid a "collection scan," which is a scan where every document in
-     the collection is accessed. This is the case when ``nscanned`` is
-     equal to the number of documents in the collection.
-
-   - ``millis``: the number of milliseconds require to complete the
-     query. This value is useful for comparing indexing strategies.
-
-   .. seealso:: :operator:`$explain` for related functionality and
-      the ":wiki:`Optimization`" wiki page for information regarding
-      optimization strategies.
+      - :wiki:`Database Profiler` wiki page for information regarding
+        optimization strategies.
+        
+      - :doc:`Current Operation Reporting </reference/current-op>`
