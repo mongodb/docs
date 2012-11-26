@@ -7,8 +7,8 @@ Create an Auto-Incrementing Sequence Field
 Synopsis
 --------
 
-In record documents, the field name ``_id`` is reserved for use as a
-primary key; its value must be unique in the collection. This document
+In documents, the field name ``_id`` is reserved for use as a primary
+key; its value must be unique in the collection. This document
 describes how to create an increasing sequence number to assign to the
 ``_id`` field using the following:
 
@@ -28,9 +28,9 @@ describes how to create an increasing sequence number to assign to the
 A Counters Collection
 ~~~~~~~~~~~~~~~~~~~~~
 
-A separate ``counters`` collection tracks the last number sequence. The
-``_id`` field contains the sequence name and the ``seq`` contains the
-last value of the sequence.
+A separate ``counters`` collection tracks the *last* number sequence
+used. The ``_id`` field contains the sequence name and the ``seq``
+contains the last value of the sequence.
 
 1. Insert into the ``counters`` collection, the initial value for the ``userid``:
 
@@ -43,41 +43,40 @@ last value of the sequence.
          }
       )
 
-#. Create a ``getSequence`` function that accepts a ``name`` of the
+#. Create a ``getNextSequence`` function that accepts a ``name`` of the
    sequence. The function uses the :method:`findAndModify()
    <db.collection.findAndModify()` method to atomically increment the
    ``seq`` value and return this new value:
 
    .. code-block:: javascript
 
-      function getSequence(name) {
+      function getNextSequence(name) {
          var ret = db.counters.findAndModify(
                 {
                   query: { _id: name }, 
                   update: { $inc: { seq: 1 } }, 
-                  new: true, 
-                  upsert:true 
+                  new: true
                 }
          );
          
          return ret.seq;
       }
 
-#. Use the ``getSequence()`` function during 
+#. Use the ``getNextSequence()`` function during 
    :method:`insert() <db.collection.insert()>`.
 
    .. code-block:: javascript
 
       db.users.insert(
          {
-           _id: getSequence("userid"), 
+           _id: getNextSequence("userid"), 
            name: "Sarah C." 
          }
       )
 
       db.users.insert(
          {
-           _id: getSequence("userid"), 
+           _id: getNextSequence("userid"), 
            name: "Bob D." 
          }
       )
@@ -203,5 +202,5 @@ recalculating the ``_id`` value until the insert is successful.
         "name" : "Ted R."
       }
 
-Extremely high concurrent insert rate on the collection could result in 
-high iterations of the while-loop.
+High concurrent insert rate on the collection could result in high
+iterations of the while-loop.

@@ -66,14 +66,14 @@ Consider the following document that contains values of varying types:
 
 .. code-block:: javascript
 
-   {
-      _id: ObjectId("5099803df3f4948bd2f98391"),
-      name: { first: "Alan", last: "Turing" },
-      birth: new Date('Jun 23, 1912'),
-      death: new Date('Jun 07, 1954'),
-      contribs: [ "Turing machine", "Turing test", "Turingery" ],
-      views : NumberLong(1250000)
-   }
+   var mydoc = {
+                  _id: ObjectId("5099803df3f4948bd2f98391"),
+                  name: { first: "Alan", last: "Turing" },
+                  birth: new Date('Jun 23, 1912'),
+                  death: new Date('Jun 07, 1954'),
+                  contribs: [ "Turing machine", "Turing test", "Turingery" ],
+                  views : NumberLong(1250000)
+               }
 
 The document contains the following fields:
 
@@ -94,21 +94,8 @@ To determine the type of fields, the :program:`mongo` shell provides:
 
 - The ``typeof`` operator to return the type of a field.
 
-Assume the following variable declaration/initialization:
-
-  .. code-block:: javascript
-
-     var mydoc = {
-                   _id: ObjectId("5099803df3f4948bd2f98391"),
-                   name: { first: "Alan", last: "Turing" },
-                   birth: new Date('Jun 23, 1912'),
-                   death: new Date('Jun 07, 1954'),
-                   contribs: [ "Turing machine", "Turing test", "Turingery" ],
-                   views : NumberLong(1250000),
-     }
-
-The following examples demonstrate the use of the ``instanceof`` and
-the ``typeof`` operators:
+Consider the following examples that demonstrate the use of the
+``instanceof`` and the ``typeof`` operators:
 
 - The following operation tests whether the ``_id`` field is of type
   ``ObjectId``:
@@ -126,7 +113,7 @@ the ``typeof`` operators:
      typeof mydoc._id
 
   Rather than the specific ``ObjectId`` type, the operation returns the
-  generic ``object`` type
+  generic ``object`` type.
 
 Document Types
 --------------
@@ -136,10 +123,10 @@ Document Types
 Record Documents
 ~~~~~~~~~~~~~~~~
 
-Most documents in MongoDB are records in :term:`collections <collection>` which
-store data from users' applications.
+Most documents in MongoDB in :term:`collections <collection>` store
+data from users' applications.
 
-These documents have the following limitations:
+These documents have the following attributes:
 
 - .. include:: /includes/fact-document-max-size.rst
 
@@ -198,7 +185,7 @@ Take the following considerations for the ``_id`` field:
   - ``ObjectId``, see the :doc:`ObjectId </core/object-id>`
     documentation.
 
-  - A sequence number, refer to the
+  - A sequence number, see the
     :doc:`/tutorial/create-an-auto-incrementing-field` tutorial.
 
   - UUID, your application must generate the UUID itself. For
@@ -206,12 +193,13 @@ Take the following considerations for the ``_id`` field:
     UUID values and their respective keys in the _id index by half. If,
     however, you know space and speed will not be an issue, you can
     store as a hex string.
-    
+
     .. note::
-    
+
        Different driver implementations of the UUID
-       serialization/deserialization logic are not compatible with each
-       other.
+       serialization/deserialization logic may not be fully compatible
+       with each other. See your specific :api:`driver documentations
+       <>` for details on the level of interoperability.
 
 .. _documents-query-selectors:
 
@@ -291,6 +279,8 @@ Consider the update specification document example:
      $push: { awards: { award: 'IBM Fellow',
                         year: '1963',
                         by: 'IBM' }
+            }
+   }
 
 When passed as an argument to the :method:`update()
 <db.collection.update()>` method, the update actions document:
@@ -305,15 +295,15 @@ When passed as an argument to the :method:`update()
 
 .. code-block:: javascript
 
-   db.bios.update( 
+   db.bios.update(
       { _id: 1 },
       { $set: { 'name.middle': 'Warner' },
-        $push: { awards: { 
+        $push: { awards: {
                            award: 'IBM Fellow',
                            year: '1963',
-                           by: 'IBM' 
-                         } 
-               } 
+                           by: 'IBM'
+                         }
+               }
       }
    )
 
@@ -441,7 +431,7 @@ type. BSON Timestamp value is a 64 bit value where:
 
 - the second 32 bits are an incrementing ``ordinal`` for operations
   within a given second.
-      
+
 On a single :program:`mongod` instance, BSON Timestamp values are guaranteed to
 be unique.
 
@@ -450,7 +440,7 @@ the operation timestamp, is of type BSON Timestamp.
 
 Consider the following examples of creating BSON Timestamp values:
 
-.. note:: 
+.. note::
 
    The BSON Timestamp type is for *internal* MongoDB use. The following
    examples are only for illustration purposes of the Timestamp
@@ -487,25 +477,25 @@ Consider the following examples of creating BSON Timestamp values:
        db.bios.insert( { views: NumberLong(0), last_updated: new Timestamp() } )
 
     The Timestamp value is the empty Timestamp value (i.e. ``Timestamp(0, 0)`` ):
-    
+
     .. code-block:: javascript
-    
+
        { 
          "_id" : ObjectId("50a33daf88d113a4ae94a959"), 
          "views" : NumberLong(0), 
          "last_updated" : Timestamp(0, 0) 
        }
-   
+
 .. versionchanged:: 2.1
    :program:`mongo` shell displays the Timestamp value with the wrapper:
-   
+
    .. code-block:: javascript
-   
+
       Timestamp(<time_t>, <ordinal>)
-            
-   Earlier versions of the :program:`mongo` shell display the Timestamp
-   value as a document:
-      
+
+   Prior to version 2.1, the :program:`mongo` shell display the
+   Timestamp value as a document:
+
    .. code-block:: javascript
 
       { t : <time_t>, i : <ordinal> }
@@ -548,19 +538,19 @@ Consider the following examples of BSON Date:
 - Print the month portion of the Date value; months start at zero for January :
 
   .. code-block:: javascript
-  
+
      mydate1.getMonth()
 
 For more Date methods, see `JavaScript Date API
-<https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Date>`_ 
+<https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Date>`_
 documentation.
      
-.. [#unsigned-date] In earlier versions, Date values were incorrectly
-   interpreted as an *unsigned* integer, adversely affecting sorts, range
-   queries, and indexes on Date fields. Because indexes are not recreated
-   when upgrading, please re-index if you created an index on Date values
-   with earlier versions, and dates before 1970 are relevant to your
-   application.
+.. [#unsigned-date] Prior to version 2.0, Date values were incorrectly
+   interpreted as *unsigned* integers, adversely affecting sorts, range
+   queries, and indexes on Date fields. Because indexes are not
+   recreated when upgrading, please re-index if you created an index on
+   Date values with earlier versions, and dates before 1970 are
+   relevant to your application.
 
 .. note::
 
