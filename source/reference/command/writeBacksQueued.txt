@@ -3,11 +3,59 @@ writeBacksQueued (internal)
 ===========================
 
 .. default-domain:: mongodb
-
+  
 .. dbcommand:: writeBacksQueued
 
-   :dbcommand:`writeBacksQueued` is an internal command that returns true if
-   there are operations in the write back queue for the given :program:`mongos`.
-   This command applies to :term:`sharded clusters <sharded cluster>` only.
+   :dbcommand:`writeBacksQueued` is an internal command that returns
+   a document reporting there are operations in the write back queue 
+   for the given :program:`mongos` and information about the queues.
 
-   .. slave-ok, admin-only
+   :field Boolean hasOpsQueued:
+
+      True if there are writeBack operations queued.
+
+   :field integer totalOpsQueued:
+
+      The number of operations queued.
+
+   :field document queues:
+
+      A document listing the queues, with fields detailing the size of
+      each queue and the time since the last call.
+
+   :field document queues.n:
+
+      The size of the queue.
+
+   :field document queues.minutesSinceLastCall:
+
+      The minutes since the last call.
+
+Examples
+--------
+
+.. code-block:: javascript
+
+      > db.runCommand({writeBacksQueued: 1})
+      {
+      	"hasOpsQueued" : true,
+      	"totalOpsQueued" : 7,
+      	"queues" : {
+      		"50a514204a0f431ff1944089" : { "n" : 0, "minutesSinceLastCall" : 1 },
+      		"50a854a2c302ba1c5aeaaf59" : { "n" : 0, "minutesSinceLastCall" : 0 },
+      		"50a854b65bbdacd51df98cb6" : { "n" : 0, "minutesSinceLastCall" : 0 },
+      		"50a854c6ff03535c6effb72e" : { "n" : 0, "minutesSinceLastCall" : 0 },
+      		"50a8553566232f70121071b3" : { "n" : 0, "minutesSinceLastCall" : 4 },
+      		"50aa4711bd3c78d62453017e" : { "n" : 0, "minutesSinceLastCall" : 0 },
+      		"50ac0df0293da708be675123" : { "n" : 0, "minutesSinceLastCall" : 1 }
+      	},
+      	"ok" : 1
+      }
+
+
+.. slave-ok, admin-only
+
+.. The queue ids are BSON objectids, they correspond to the
+   mongos that has talked to this shard. This is derived from the
+   "serverID" field of the setShardVersion command the mongos
+   sends to the shard
