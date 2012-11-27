@@ -190,8 +190,13 @@ Consider the following options for the value of an ``_id`` field:
   using that for the value of ``_id`` to save space and to avoid an
   additional index.
 
-- Generate a sequence number for the documents in your collection, see
-  the :doc:`/tutorial/create-an-auto-incrementing-field` tutorial.
+- Generate a sequence number for the documents in your collection in
+  your application and use this value for the ``_id`` value. 
+  
+  .. TODO add the following when the tutorial is live
+
+     see the :doc:`/tutorial/create-an-auto-incrementing-field`
+     tutorial for an implementation pattern.
 
 - Generate a UUID in your application code. For efficiency, store
   the UUID as a value of the BSON ``BinData`` type to reduce the
@@ -390,6 +395,7 @@ method, the sort order document sorts the results of the
    db.bios.find().sort( { 'name.last': 1, 'name.first': 1 } )
 
 .. _document-mongodb-type-considerations:
+.. _document-bson-type-considerations:
 
 BSON Types
 ----------
@@ -448,14 +454,14 @@ value.
 .. note::
 
    The BSON Timestamp type is for *internal* MongoDB use. For most
-   cases, in application development, you will want to use the
-   :ref:`date type <document-bson-type-date>`
+   cases, in application development, you will want to use the BSON
+   date type. See :ref:`document-bson-type-date` for more
+   information.
 
-If you create a BSON Timestamp using the empty constructor
-(e.g. ``new Timestamp()``), MongoDB will only generate a timestamp
-*if* you use the constructor in the first field of the document. 
-[#id-exception]_ Otherwise, MongoDB will generate an empty timestamp
-value (i.e. ``Timestamp(0, 0)``.)
+If you create a BSON Timestamp using the empty constructor (e.g. ``new Timestamp()``), 
+MongoDB will only generate a timestamp *if* you use the constructor in
+the first field of the document. [#id_exception]_ Otherwise, MongoDB
+will generate an empty timestamp value (i.e. ``Timestamp(0, 0)``.)
 
 .. versionchanged:: 2.1
    :program:`mongo` shell displays the Timestamp value with the wrapper:
@@ -471,13 +477,19 @@ value (i.e. ``Timestamp(0, 0)``.)
 
       { t : <time_t>, i : <ordinal> }
 
-.. [#id-exception] If the first field in the document is ``_id``, then
+.. [#id_exception] If the first field in the document is ``_id``, then
    you can generate a timestamp in the *second* field
-   of a document, as in the following example: 
+   of a document.
    
-   .. code-block:: javascript
+   .. only:: html or dirhtml or singlehtml or epub or gettext
 
-      db.bios.insert( { _id: 9, last_updated: new Timestamp() } )
+      In the following example, MongoDB will generate a Timestamp
+      value, even though the ``Timestamp()`` constructor is *not* in
+      the first field in the document:
+
+      .. code-block:: javascript
+
+         db.bios.insert( { _id: 9, last_updated: new Timestamp() } )
 
 .. _document-bson-type-date:
 
@@ -522,9 +534,9 @@ Consider the following examples of BSON Date:
 
      mydate1.getMonth()
 
-.. [#unsigned-date] Prior to version 2.0, ``Date`` values were incorrectly
-   interpreted as *unsigned* integers, which affected sorts, range
-   queries, and indexes on ``Date`` fields. Because indexes are not
-   recreated when upgrading, please re-index if you created an index on
-   Date values with earlier versions, and dates before 1970 are
-   relevant to your application.
+.. [#unsigned-date] Prior to version 2.0, ``Date`` values were
+   incorrectly interpreted as *unsigned* integers, which affected
+   sorts, range queries, and indexes on ``Date`` fields. Because
+   indexes are not recreated when upgrading, please re-index if you
+   created an index on ``Date`` values with an earlier version, and
+   dates before 1970 are relevant to your application.
