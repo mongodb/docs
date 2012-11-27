@@ -3,11 +3,9 @@ MongoDB Documentation
 =====================
 
 This repository contains the beginning of a major revision of the
-MongoDB documentation. As of December 22, 2011, this documentation is
-not published or finished and exists in a **very rough**
-state. However, you can download and build locally if you already have
-`Sphinx <http://sphinx.pocoo.org/>`_ installed, with the following
-command: ::
+MongoDB documentation. You can download and build locally if you
+already have `Sphinx <http://sphinx.pocoo.org/>`_ installed, with the
+following command: ::
 
      git clone git://github.com/mongodb/docs
      cd docs/
