@@ -2,10 +2,10 @@
 MongoDB Documentation
 =====================
 
-This repository contains the beginning of a major revision of the
-MongoDB documentation. You can download and build locally if you
-already have `Sphinx <http://sphinx.pocoo.org/>`_ installed, with the
-following command: ::
+This repository contains a major revision of the MongoDB
+documentation, currently accessible at <http://docs.mongodb.org/manual/>.
+You can download and build locally if you already have `Sphinx
+<http://sphinx.pocoo.org/>`_ installed, with the following command: ::
 
      git clone git://github.com/mongodb/docs
      cd docs/
