@@ -58,23 +58,22 @@ the following structure:
 
 Having support for the full range of :term:`BSON types`, MongoDB
 documents may contain field and value pairs where the value can be
-another document, an array, an array of documents as well
-as the basic types such as ``Double``, ``String``, or ``Date``.
+another document, an array, an array of documents as well as the basic
+types such as ``Double``, ``String``, and ``Date``. See also
+:ref:`document-bson-type-considerations`.
 
-Consider the following document that contains values of varying
-types:
+Consider the following document that contains values of varying types:
 
 .. code-block:: javascript
 
-   {
-      _id: ObjectId("5099803df3f4948bd2f98391"),
-      name: { first: "Alan", last: "Turing" },
-      birth: new Date('Jun 23, 1912'),
-      death: new Date('Jun 07, 1954'),
-      contribs: [ "Turing machine", "Turing test", "Turingery" ],
-      views : NumberLong(1250000),
-      update : Timestamp(1352237167000, 1)
-   }
+   var mydoc = {
+                  _id: ObjectId("5099803df3f4948bd2f98391"),
+                  name: { first: "Alan", last: "Turing" },
+                  birth: new Date('Jun 23, 1912'),
+                  death: new Date('Jun 07, 1954'),
+                  contribs: [ "Turing machine", "Turing test", "Turingery" ],
+                  views : NumberLong(1250000)
+               }
 
 The document contains the following fields:
 
@@ -85,24 +84,53 @@ The document contains the following fields:
 
 - ``birth`` and ``death``, which both have *Date* types.
 
-- ``contribs``, which holds an *array of strings*.
+- ``contribs`` that holds an *array of strings*.
 
 - ``views`` that holds a value of *NumberLong* type.
 
-- ``update`` that holds a value of *Timestamp* type.
+To determine the type of fields, the :program:`mongo` shell provides
+the following operators: 
 
-Types
------
+- `instanceof`` returns a boolean to test if a value has
+  a specific type.
+
+- ``typeof`` returns the type of a field.
+
+.. example:: 
+
+   Consider the following operations using ``instanceof`` and
+   ``typeof``:
+
+   - The following operation tests whether the ``_id`` field is of type
+     ``ObjectId``:
+
+     .. code-block:: javascript
+
+        mydoc._id instanceof ObjectId
+
+     The operation returns ``true``.
+  
+   - The following operation returns the type of the ``_id`` field:
+
+     .. code-block:: javascript
+
+        typeof mydoc._id
+
+     In this case ``typeof`` will return the more generic ``object``
+     type rather than ``ObjectId`` type.
+
+Document Types in MongoDB
+-------------------------
 
 .. _documents-records:
 
 Record Documents
 ~~~~~~~~~~~~~~~~
 
-Most documents in MongoDB are records in :term:`collections <collection>` which
-store data from users' applications.
+Most documents in MongoDB in :term:`collections <collection>` store
+data from users' applications.
 
-These documents have the following limitations:
+These documents have the following attributes:
 
 - .. include:: /includes/fact-document-max-size.rst
 
@@ -122,17 +150,17 @@ The following document specifies a record in a collection:
        contribs: [ 'Fortran', 'ALGOL', 'Backus-Naur Form', 'FP' ],
        awards: [
                  { award: 'National Medal of Science',
-                   year: '1975',
+                   year: 1975,
                    by: 'National Science Foundation' },
                  { award: 'Turing Award',
-                   year: '1977',
+                   year: 1977,
                    by: 'ACM' }
                ]
      }
 
 The document contains the following fields:
 
-- ``_id``, which must hold a unique value.
+- ``_id``, which must hold a unique value and is *immutable*.
 
 - ``name`` that holds another *document*. This sub-document contains
   the fields ``first`` and ``last``, which both hold *strings*.
@@ -143,20 +171,53 @@ The document contains the following fields:
 
 - ``awards`` that holds an *array of documents*.
 
+Consider the following behavior and constraints of the ``_id`` field in
+MongoDB documents:
+
+- In documents, the ``_id`` field is always indexed for regular
+  collections.
+
+- The ``_id`` field may contain values of any BSON data type other than
+  an array.
+
+Consider the following options for the value of an ``_id`` field: 
+
+- Use an ``ObjectId``. See the :doc:`ObjectId </core/object-id>`
+  documentation.
+
+  Although it is common to assign ``ObjectId`` values to ``_id``
+  fields, if your objects have a natural unique identifier, consider
+  using that for the value of ``_id`` to save space and to avoid an
+  additional index.
+
+- Generate a sequence number for the documents in your collection, see
+  the :doc:`/tutorial/create-an-auto-incrementing-field` tutorial.
+
+- Generate a UUID in your application code. For efficiency, store
+  the UUID as a value of the BSON ``BinData`` type to reduce the
+  size of UUID values as stored in the collection and in the ``_id``
+  index.
+
+- Use your driver's BSON UUID facility to generate UUIDs. Be aware
+  that driver implementations may implement UUID serialization and
+  deserialization logic differently, which may not be fully compatible
+  with other drivers. See your :api:`driver documentation <>` for
+  information concerning UUID interoperability.
+
 .. _documents-query-selectors:
 
 Query Specification Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Query selector documents specify the conditions that determine which
-records to select for read, update, and delete operations. You can use
-field and value expressions to specify the equality condition and
-:doc:`query operator </reference/operators>` expressions to specify
-additional conditions. Refer to :doc:`read </applications/read>`,
-:doc:`update </applications/update>`, and :doc:`delete
-</applications/delete>` pages for more examples.
+Query documents specify the conditions that determine which records to
+select for read, update, and delete operations. You can use field and
+value expressions to specify the equality condition and :doc:`query
+operator </reference/operators>` expressions to specify additional
+conditions. Refer to :doc:`read </applications/read>`, :doc:`update
+</applications/update>`, and :doc:`delete </applications/delete>` pages
+for more examples.
 
-Consider the following examples of query selector documents:
+Consider the following examples of query documents:
 
 - The following document specifies the query criteria where ``_id`` is
   equal to ``1``:
@@ -196,9 +257,9 @@ for MongoDB to return, remove, or update, as in the following:
 
 .. code-block:: javascript
 
-   db.csbios.find( { _id: 1 } )
-   db.csbios.remove( { _id: { $gt: 3 } } )
-   db.csbios.update( { _id: 1, name: { first: 'John', last: 'Backus' } },
+   db.bios.find( { _id: 1 } )
+   db.bios.remove( { _id: { $gt: 3 } } )
+   db.bios.update( { _id: 1, name: { first: 'John', last: 'Backus' } },
                        ... )
 
 .. _documents-update-actions:
@@ -206,14 +267,14 @@ for MongoDB to return, remove, or update, as in the following:
 Update Specification Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The update action documents specify the data modifications to perform
-during an :method:`update() <db.collection.update()>` operation to
-modify existing records in a collection. You can use :ref:`update
-operators <update-operators>` to specify the exact actions to perform
-on the document fields. See the :ref:`update operators
-<update-operators>` page for the available update operators and syntax.
+Update documents specify the data modifications to perform during
+an :method:`update() <db.collection.update()>` operation to modify
+existing records in a collection. You can use :ref:`update operators
+<update-operators>` to specify the exact actions to perform on the
+document fields. See the :ref:`update operators <update-operators>`
+page for the available update operators and syntax.
 
-Consider the update specification document example:
+Consider the update document example:
 
 .. code-block:: javascript
 
@@ -221,6 +282,8 @@ Consider the update specification document example:
      $push: { awards: { award: 'IBM Fellow',
                         year: '1963',
                         by: 'IBM' }
+            }
+   }
 
 When passed as an argument to the :method:`update()
 <db.collection.update()>` method, the update actions document:
@@ -235,12 +298,17 @@ When passed as an argument to the :method:`update()
 
 .. code-block:: javascript
 
-   db.csbios.update( { _id: 1 },
-                     { $set: { 'name.middle': 'Warner' },
-                       $push: { awards: { award: 'IBM Fellow',
-                                          year: '1963',
-                                          by: 'IBM' } } }
-                   )
+   db.bios.update(
+      { _id: 1 },
+      { $set: { 'name.middle': 'Warner' },
+        $push: { awards: {
+                           award: 'IBM Fellow',
+                           year: '1963',
+                           by: 'IBM'
+                         }
+               }
+      }
+   )
 
 .. _documents-index:
 .. _document-index-specification:
@@ -248,14 +316,11 @@ When passed as an argument to the :method:`update()
 Index Specification Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Indexes optimize a number of key :doc:`read </core/read-operations>`
-and :doc:`write </core/write-operations>` operations. Index
-specification documents describe the fields to index on during the
-:doc:`index creation </reference/method/db.collection.ensureIndex>`. See :doc:`indexes
-</core/indexes>` for an overview of indexes.
+Index specification documents describe the fields to index on during
+the :doc:`index creation </reference/method/db.collection.ensureIndex>`. See :doc:`indexes
+</core/indexes>` for an overview of indexes. [#index-def]_
 
-The index specification documents contain field and value pairs, in
-the following form:
+Index documents contain field and value pairs, in the following form:
 
 .. code-block:: javascript
 
@@ -279,20 +344,25 @@ the index to create:
 
 .. code-block:: javascript
 
-   db.csbios.ensureIndex( { _id: 1, 'name.last': 1 } )
+   db.bios.ensureIndex( { _id: 1, 'name.last': 1 } )
+
+.. [#index-def] Indexes optimize a number of key :doc:`read
+   </core/read-operations>` and :doc:`write </core/write-operations>`
+   operations.
+
 
 .. _documents-sort-order:
 
 Sort Order Specification Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The sort order documents specify the order of documents that a
+Sort order documents specify the order of documents that a
 :method:`query() <db.collection.find()>` returns. Pass sort order
 specification documents as an argument to the :method:`sort()
 <cursor.sort()>` method. See the :method:`sort() <cursor.sort()>` page
 for more information on sorting.
 
-The sort order specifications contain field and value pairs, in the following
+The sort order documents contain field and value pairs, in the following
 form:
 
 .. code-block:: javascript
@@ -317,4 +387,144 @@ method, the sort order document sorts the results of the
 
 .. code-block:: javascript
 
-   db.csbios.find().sort( { 'name.last': 1, 'name.first': 1 } )
+   db.bios.find().sort( { 'name.last': 1, 'name.first': 1 } )
+
+.. _document-mongodb-type-considerations:
+
+BSON Types
+----------
+
+The following BSON types require special consideration:
+
+.. _document-bson-type-object-id:
+
+ObjectId
+~~~~~~~~
+
+ObjectIds are: small, likely unique, fast to generate, and ordered.
+These values consists of 12-bytes, where the first 4-bytes is a
+timestamp that reflects the ObjectId's creation. Refer to the
+:doc:`ObjectId </core/object-id>` documentation for more information.
+
+.. _document-bson-type-string:
+
+String
+~~~~~~
+
+BSON strings are UTF-8. In general, drivers for each programming
+language convert from the language's string format to UTF-8 when
+serializing and deserializing BSON. This makes it possible to store
+most international characters in BSON strings with ease.
+[#sort-string-internationalization]_ In addition, MongoDB
+:operator:`$regex` queries support UTF-8 in the regex string.
+
+.. [#sort-string-internationalization] Given strings using UTF-8
+   character sets, using :method:`sort() <cursor.sort()>` on strings
+   will be reasonably correct; however, because internally
+   :method:`sort() <cursor.sort()>` uses the C++ ``strcmp`` api, the
+   sort order may handle some characters incorrectly.
+
+.. _document-bson-type-timestamp:
+
+Timestamps
+~~~~~~~~~~
+
+BSON has a special timestamp type for *internal* MongoDB use and is
+**not** associated with the regular :ref:`document-bson-type-date`
+type. Timestamp values are a 64 bit value where:
+
+- the first 32 bits are a ``time_t`` value (seconds since the Unix epoch)
+
+- the second 32 bits are an incrementing ``ordinal`` for operations
+  within a given second.
+
+Within a single :program:`mongod` instance, timestamp values are
+always unique. 
+
+In replication, the :term:`oplog` has a ``ts`` field. The values in
+this field reflect the operation time, which uses a BSON timestamp
+value.
+
+.. note::
+
+   The BSON Timestamp type is for *internal* MongoDB use. For most
+   cases, in application development, you will want to use the
+   :ref:`date type <document-bson-type-date>`
+
+If you create a BSON Timestamp using the empty constructor
+(e.g. ``new Timestamp()``), MongoDB will only generate a timestamp
+*if* you use the constructor in the first field of the document. 
+[#id-exception]_ Otherwise, MongoDB will generate an empty timestamp
+value (i.e. ``Timestamp(0, 0)``.)
+
+.. versionchanged:: 2.1
+   :program:`mongo` shell displays the Timestamp value with the wrapper:
+
+   .. code-block:: javascript
+
+      Timestamp(<time_t>, <ordinal>)
+
+   Prior to version 2.1, the :program:`mongo` shell display the
+   Timestamp value as a document:
+
+   .. code-block:: javascript
+
+      { t : <time_t>, i : <ordinal> }
+
+.. [#id-exception] If the first field in the document is ``_id``, then
+   you can generate a timestamp in the *second* field
+   of a document, as in the following example: 
+   
+   .. code-block:: javascript
+
+      db.bios.insert( { _id: 9, last_updated: new Timestamp() } )
+
+.. _document-bson-type-date:
+
+Date
+~~~~
+
+BSON Date is a 64-bit integer that represents the number of
+milliseconds since the Unix epoch (Jan 1, 1970). The `official BSON
+specification <http://bsonspec.org/#/specification>`_ refers to the
+BSON Date type as the *UTC datetime*.
+
+.. versionchanged:: 2.0 
+   BSON Date type is signed. [#unsigned-date]_ Negative values
+   represent dates before 1970.
+
+Consider the following examples of BSON Date:
+
+- Construct a Date using the ``new Date()`` constructor in the
+  :program:`mongo` shell:
+
+  .. code-block:: javascript
+
+     var mydate1 = new Date()
+
+- Construct a Date using the ``ISODate()`` constructor in the
+  :program:`mongo` shell:
+
+  .. code-block:: javascript
+
+     var mydate2 = ISODate()
+
+- Return the ``Date`` value as string:
+
+  .. code-block:: javascript
+
+     mydate1.toString()
+
+- Return the month portion of the Date value; months are zero-indexed,
+  so that January is month ``0``:
+
+  .. code-block:: javascript
+
+     mydate1.getMonth()
+
+.. [#unsigned-date] Prior to version 2.0, ``Date`` values were incorrectly
+   interpreted as *unsigned* integers, which affected sorts, range
+   queries, and indexes on ``Date`` fields. Because indexes are not
+   recreated when upgrading, please re-index if you created an index on
+   Date values with earlier versions, and dates before 1970 are
+   relevant to your application.
