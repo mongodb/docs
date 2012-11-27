@@ -87,10 +87,11 @@ To configure a member as secondary-only, set its
 situation. For more information on priority levels, see
 :ref:`replica-set-node-priority`.
 
+.. include:: /includes/note-rs-conf-array-index.rst
+
 As an example of modifying member priorities, assume a four-member
-replica set with member ``_id`` values of: ``0``, ``1``, ``2``, and
-``3``. Use the following sequence of operations in the :program:`mongo`
-shell to modify member priorities:
+replica set. Use the following sequence of operations in the
+:program:`mongo` shell to modify member priorities:
 
 .. code-block:: javascript
 
@@ -101,9 +102,9 @@ shell to modify member priorities:
    cfg.members[3].priority = 2
    rs.reconfig(cfg)
 
-This sets the following:
+This configures the set, with the following priority settings: 
 
-- Member ``0`` to a priority of ``0`` so that it can never become :term:`primary`.
+- The first (i.e. )Member ``0`` to a priority of ``0`` so that it can never become :term:`primary`.
 
 - Member ``1`` to a priority of ``0.5``, which makes it less likely to
   become primary than other members but doesn't prohibit the
@@ -156,17 +157,19 @@ operations in the :program:`mongo` shell:
    cfg.members[0].hidden = true
    rs.reconfig(cfg)
 
-After re-configuring the set, the member with the ``_id`` of ``0``
-has a priority of ``0`` so that it cannot become primary. The
-other members in the set will not advertise the hidden member in the
-:dbcommand:`isMaster` or :method:`db.isMaster()` output.
+After re-configuring the set, the first member of the set in the
+:data:`members <rs.conf.members>` array will have a priority of ``0``
+so that it cannot become primary. The other members in the set will
+not advertise the hidden member in the :dbcommand:`isMaster` or
+:method:`db.isMaster()` output.
 
 .. note::
 
    You must send the :method:`rs.reconfig()` command to a set member
-   that *can* become :term:`primary`. In the above example, if you issue
-   the :method:`rs.reconfig()` operation to the member with the ``_id``
-   of ``0``, the operation fails.
+   that *can* become :term:`primary`. In the above example, if you
+   issue the :method:`rs.reconfig()` operation to a member with a
+   :data:`priority <members.[n].priority>` of ``0`` the operation will
+   fail. 
 
 .. note::
 
@@ -224,8 +227,8 @@ following sequence of operations in the :program:`mongo` shell:
    cfg.members[0].slaveDelay = 3600
    rs.reconfig(cfg)
 
-After the replica set reconfigures, the set member with the ``_id`` of
-``0`` has a priority of ``0`` and cannot become :term:`primary`. The :data:`slaveDelay <members[n].slaveDelay>` value
+After the replica set reconfigures, the first member of the set in the
+:data:`members <rs.conf.members>` array will have a priority of ``0`` and cannot become :term:`primary`. The :data:`slaveDelay <members[n].slaveDelay>` value
 delays both replication and the member's :term:`oplog` by 3600 seconds (1
 hour). Setting :data:`slaveDelay <members[n].slaveDelay>` to a
 non-zero value also sets :data:`hidden <members[n].hidden>` to
@@ -313,13 +316,14 @@ command sequence in the :program:`mongo` shell.
    cfg.members[5].votes = 0
    rs.reconfig(cfg)
 
-This sequence gives ``0`` votes to set members with the ``_id``
-values of ``3``, ``4``, and ``5``. This setting allows the set to
-elect these members as :term:`primary` but does not allow them to
-vote in elections. If you have three non-voting members, you can add
-three additional voting members to your set. Place voting members so that
-your designated primary or primaries can reach a majority of votes in
-the event of a network partition.
+This sequence gives ``0`` votes to the fourth, fifth, and sixth
+members of the set according to the order of the :data:`members
+<rs.conf.members>` array in the output of :method:`rs.conf()`.  This
+setting allows the set to elect these members as :term:`primary` but
+does not allow them to vote in elections. If you have three non-voting
+members, you can add three additional voting members to your
+set. Place voting members so that your designated primary or primaries
+can reach a majority of votes in the event of a network partition.
 
 .. note::
 
@@ -466,10 +470,13 @@ the :program:`mongo` shell:
 The first operation uses :method:`rs.conf()` to set the local variable
 ``cfg`` to the contents of the current replica set configuration, which
 is a :term:`document`. The next three operations change the
-:data:`members[n].priority` value in the ``cfg`` document for
-:data:`members[n]._id` of ``0``, ``1``, or ``2``. The final operation
+:data:`members[n].priority` value in the ``cfg`` document for the
+first three members configured in the :data:`members
+<rs.conf.members>` array. The final operation
 calls :method:`rs.reconfig()` with the argument of ``cfg`` to initialize
 the new configuration.
+
+.. include:: /includes/note-rs-conf-array-index.rst
 
 If a member has :data:`members[n].priority` set to ``0``, it is
 ineligible to become :term:`primary` and will not seek
