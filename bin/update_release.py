@@ -16,7 +16,7 @@ def cli():
     elif builder == 'linux-64':
         builder = 'linux-x86_64'
         platform = 'linux'
-    elif builder == 'osx':
+    elif builder == 'osx-64':
         builder = 'osx-x86_64'
         platform = 'osx'
     else:

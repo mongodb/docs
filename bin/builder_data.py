@@ -116,9 +116,9 @@ install_guides = [
 #   (target, dep),
     ('source/tutorial/install-mongodb-on-linux.txt', 'source/includes/install-curl-release-linux-64.rst source/includes/install-curl-release-linux-32.rst'),
     ('source/tutorial/install-mongodb-on-os-x.txt', 'source/includes/install-curl-release-osx-64.rst'),
-    ('source/includes/install-curl-release-linux-64.rst', None),
-    ('source/includes/install-curl-release-linux-32.rst', None),
-    ('source/includes/install-curl-release-osx-64.rst', None),
+    ('linux-64', None),
+    ('linux-32', None),
+    ('osx-64', None),
 ]
 
 # The elements of the ``error_pages`` list correspond to the file

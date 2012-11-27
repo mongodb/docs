@@ -143,11 +143,13 @@ class MakefileBuilder(BuildFile):
     def append_var(self, variable, value, block='_all'):
         self._add_to_builder(variable + ' += ' + value, block)
 
-    def job(self, job, display=False, block='_all'):
-        if display is True:
-            o = '\t' + job
-        else:
-            o = '\t@' + job
+    def job(self, job, display=False, ignore=False, block='_all'):
+        o = '\t'
+        if display is False:
+            o += '@'
+        if ignore is True:
+            o += '-'
+        o += job
 
         self._add_to_builder(o, block)
 
