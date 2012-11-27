@@ -67,7 +67,7 @@ def make_all_sphinx(sphinx):
     m.target('.PHONY', '$(sphinx-targets)', block='footer')
 
 def build_kickoff(loc, block):
-    m.job('mkdir -p $(branch-output)/' + loc, block)
+    m.job('mkdir -p $(branch-output)/' + loc, block=block)
     m.msg('[$@]: created $(branch-output)/' + loc, block)
     m.msg('[sphinx]: starting $@ build', block)
     m.msg('[$@]: build started at `date`.', block)
