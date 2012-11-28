@@ -79,7 +79,7 @@ The document contains the following fields:
 
 - ``_id`` that holds an *ObjectId*.
 
-- ``name`` that holds a *sub-document* that contains the fields
+- ``name`` that holds a *subdocument* that contains the fields
   ``first`` and ``last``.
 
 - ``birth`` and ``death``, which both have *Date* types.
@@ -246,6 +246,9 @@ Consider the following examples of query documents:
 
      { _id: 1, name: { first: 'John', last: 'Backus' } }
 
+  The ``name`` field must match the document exactly, including the
+  order of the fields.
+
 - The following document specifies the compound query criteria where
   ``_id`` is equal to ``1`` **or** the ``name`` field equals the
   document ``{ first: 'John', last: 'Backus' }``:
@@ -254,6 +257,79 @@ Consider the following examples of query documents:
 
      { $or: [ { _id: 1 }, { name: { first: 'John', last: 'Backus' } } ] }
 
+  The ``name`` field must match the document exactly, including the
+  order of the fields.
+
+.. _document-query-arrays:
+
+*Query Documents for Arrays*
+
+You can specify query criteria for arrays at the array level and, with
+:term:`dot-notation`, at the element level:
+
+- The following document specifies the query criteria where
+  ``contribs`` matches exactly the array ``[ 'Fortran', 'ALGOL',
+  'Backus-Naur Form', 'FP' ]``, including the order of the elements:
+
+  .. code-block:: javascript
+  
+     { contribs: [ 'Fortran', 'ALGOL', 'Backus-Naur Form', 'FP' ] }
+
+- The following document specifies the query criteria where the value
+  of ``contribs`` is an array that contains as one of its element
+  ``'ALGOL'``:
+
+  .. code-block:: javascript
+
+    { contribs: 'ALGOL' }
+
+- The following document specifies the query criteria where
+  ``contribs`` contains an element ``'ALGOL'`` in the second position.
+  Array indexes are zero-based:
+
+  .. code-block:: javascript
+
+     { 'contribs.1': 'ALGOL' }
+
+See :ref:`read operations <read-operations-dot-notation-arrays>` for more
+examples with arrays.
+
+.. _document-query-subdocuments:
+
+*Query Documents for Subdocuments*
+
+You can specify query criteria for subdocuments at the subdocument
+level and, with :term:`dot-notation`, at the field level:
+
+- The following document specifies the query criteria where the value
+  of the field ``name`` is a subdocument that contains *only* the field
+  ``first`` equal to ``'John'`` and the field ``last`` equal to
+  ``'Backus'``, in that order.
+
+  .. code-block:: javascript
+
+     { name: { first: 'John', last: 'Backus' } }
+
+- The following document specifies the query criteria where the value
+  of the field ``name`` is a subdocument that contains the field
+  ``first`` equal to ``'John'`` and may contain other fields:
+
+  .. code-block:: javascript
+
+     { 'name.first': 'John' }
+
+- The following document specifies the query criteria where the value
+  of the field ``awards`` is an array that contains, as one of its
+  elements, a subdocument that contains the field ``award`` equal to
+  ``'National Medal of Science'`` and may contain other fields:
+
+  .. code-block:: javascript
+
+     { 'awards.award': 'National Medal of Science' }
+
+See :ref:`read operations <read-operations-dot-notation-subdocuments>` for
+more examples with subdocuments.
+                
 When passed as an argument to methods such as the :method:`find()
 <db.collection.find()>` method, the :method:`remove()
 <db.collection.remove()>` method, or the :method:`update()
@@ -295,7 +371,8 @@ When passed as an argument to the :method:`update()
 
 - Modifies the field ``name`` whose value is another document.
   Specifically, the :operator:`$set` operator updates the ``middle``
-  field in the ``name`` subdocument.
+  field in the ``name`` subdocument. The document uses
+  :term:`dot-notation` to access a field in a subdocument.
 
 - Adds an element to the field ``awards`` whose value is an array.
   Specifically, the :operator:`$push` operator adds another document as
@@ -314,6 +391,10 @@ When passed as an argument to the :method:`update()
                }
       }
    )
+
+For additional examples of updates that involve array elements,
+including where the elements are documents, see the :operator:`$`
+positional operator.
 
 .. _documents-index:
 .. _document-index-specification:
@@ -335,9 +416,10 @@ Index documents contain field and value pairs, in the following form:
 
 - ``value`` is either 1 for ascending or -1 for descending.
 
-The following document specifies the :ref:`multi-key index <index-type-multi-key>` on the ``_id``
-field and the ``last`` field contained in the subdocument ``name``
-field:
+The following document specifies the :ref:`multi-key index
+<index-type-multi-key>` on the ``_id`` field and the ``last`` field
+contained in the subdocument ``name`` field; the document uses
+:term:`dot-notation` to access a field in a subdocument:
 
 .. code-block:: javascript
 
@@ -354,7 +436,6 @@ the index to create:
 .. [#index-def] Indexes optimize a number of key :doc:`read
    </core/read-operations>` and :doc:`write </core/write-operations>`
    operations.
-
 
 .. _documents-sort-order:
 
