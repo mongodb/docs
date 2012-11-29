@@ -31,8 +31,8 @@
           - The ``emit(key,value)`` function associates the ``key``
             with a ``value``.
 
-            - Each "emit" is limited to half the MongoDB :limit:`BSON
-              document size`. 
+            - Each "emit" is limited to half the MongoDB :ref:`maximum
+              BSON document size <limit-bson-document-size>`.
 
             - There is no limit to the number of times you may call the
               ``emit`` function per document.
@@ -68,11 +68,32 @@
           - The ``<reduce>`` function should *not* affect the outside
             system.
 
+          - The ``<reduce>`` function is *idempotent*; i.e. the
+            following behavior holds: 
+
+            .. code-block:: javascript
+
+               reduce( key, [ reduce(key, valuesArray) ] ) == reduce ( key, valuesArray )
+
+            Additionally, the order of the elements in the
+            ``valuesArray`` does not affect the result:
+
+            .. code-block:: javascript
+
+               reduce ( key, [ A, B ] ) == reduce ( key, [ B, A ] )
+
           - Because it is possible to invoke the ``<reduce>`` function
             more than once for the same key, the *type* of the return
             object must be **identical** to the type of the ``value``
-            emitted by the ``<map>`` function.
+            emitted by the ``<map>`` function to ensure that:
+            
+            .. code-block:: javascript
+            
+               reduce(key, [ C, reduce(key, [ A, B ]) ] ) == reduce (key, [ C, A, B ] )
 
+          - The ``<reduce>`` function is **not** invoked for a key
+            that has only a single value.
+            
           - The ``<reduce>`` function can access the variables defined
             in the ``<scope>`` parameter if the ``<scope>`` parameter
             is defined for the map-reduce operation.
@@ -151,12 +172,15 @@
 
                 .. versionadded:: 2.1
 
-                Optional. Specify output operation as non-atomic. If
-                ``true``, the post processing step will not execute
-                inside of a database lock so that partial results will
-                be visible during processing . ``nonAtomic`` is valid
-                *only* for ``merge`` and ``reduce`` output operations
-                where post-processing may be a long-running operation.
+                Optional. Specify output operation as non-atomic and is
+                valid *only* for ``merge`` and ``reduce`` output modes.
+                Post-processing for ``merge`` and ``reduce`` output
+                modes may take a long time (e.g. minutes). During this
+                time, the entire database is locked for both reads and
+                writes. If ``nonAtomic`` is ``true``, the post
+                processing step will prevent the locking of the
+                database; however, partial results will be visible as
+                they are processed.
 
        - **Output inline**. Perform the map-reduce operation in memory
          and return the result. This option is the only available
@@ -246,8 +270,10 @@
        - Can only work for result sets with less than 500,000 distinct
          ``key`` arguments to the mapper's ``emit()`` function.
 
-       The ``<jsMode>`` defaults to true.
+       The ``<jsMode>`` defaults to false.
 
 :param Boolean verbose: 
 
-       Optional. Provides statistics on job execution times.
+       Optional. Specifies whether to include the ``timing``
+       information in the result information. The ``<verbose>``
+       defaults to ``true`` to include the ``timing`` information.

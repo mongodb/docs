@@ -29,6 +29,8 @@ Perform map-reduce operation on the ``orders`` collection to group by
 the ``cust_id``, and for each ``cust_id``, calculate the sum of the
 ``price`` for each ``cust_id``:
 
+   .. map-reduce-map-function-begin
+
 #. Define the ``<map>`` function to process each document in the
    map-reduce process:
 
@@ -43,6 +45,8 @@ the ``cust_id``, and for each ``cust_id``, calculate the sum of the
       var mapFunction1 = function() {
                              emit(this.cust_id, this.price);
                          };
+
+   .. map-reduce-map-function-end
 
 #. Define the corresponding ``<reduce>`` function with two arguments
    ``keyCustId`` and ``valuesPrices``:

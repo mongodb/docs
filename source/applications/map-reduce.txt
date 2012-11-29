@@ -4,37 +4,47 @@ Map-Reduce
 
 .. default-domain:: mongodb
 
-Map-reduce operations can handle complex aggregation
-tasks. [#simple-aggregation-use-framework]_ To perform map-reduce operations,
-MongoDB provides the :dbcommand:`mapReduce` command and, in the
-:program:`mongo` shell, the wrapper :method:`db.collection.mapReduce()`
-method.
+Map-reduce operations can handle complex aggregation tasks. To perform
+map-reduce operations, MongoDB provides the :dbcommand:`mapReduce`
+command and, in the :program:`mongo` shell, the
+:method:`db.collection.mapReduce()` wrapper method.
 
-This overview will cover:
+.. contents:: This overview will cover: 
+   :backlinks: none
+   :local:
+   :depth: 1
 
-- :ref:`map-reduce-method`
-
-- :ref:`map-reduce-examples`
-
-- :ref:`map-reduce-incremental`
-
-- :ref:`map-reduce-sharded-cluster`
-
-- :ref:`map-reduce-additional-references`
-
-.. _map-reduce-method:
-
-mapReduce()
------------
-
-.. include:: /reference/method/db.collection.mapReduce.txt
-   :start-after: mongodb
-   :end-before: mapReduce-syntax-end
+For many simple aggregation tasks, see the :doc:`aggregation framework
+</applications/aggregation>`.
 
 .. _map-reduce-examples:
 
 Map-Reduce Examples
 -------------------
+
+This section provides some map-reduce examples in the :program:`mongo`
+shell using the :method:`db.collection.mapReduce()` method:
+
+.. code-block:: javascript
+
+   db.collection.mapReduce(
+                            <map>,
+                            <reduce>,
+                            {
+                              <out>,
+                              <query>,
+                              <sort>,
+                              <limit>,
+                              <finalize>,
+                              <scope>,
+                              <jsMode>,
+                              <verbose>
+                            }
+                          )
+
+For more information on the parameters, see the
+:method:`db.collection.mapReduce()` reference page .
+
 .. include:: /includes/examples-map-reduce.rst
    :start-after: map-reduce-examples-begin
    :end-before: map-reduce-sum-price-wrapper-end
@@ -140,10 +150,10 @@ each day and can be simulated as follows:
 
       var finalizeFunction = function (key, reducedValue) {
 
-                                 if (reducedValue.count > 0)
-                                     reducedValue.avg_time = reducedValue.total_time / reducedValue.count;
+                                if (reducedValue.count > 0)
+                                    reducedValue.avg_time = reducedValue.total_time / reducedValue.count;
 
-                                 return reducedValue;
+                                return reducedValue;
                              };
 
 #. Perform map-reduce on the ``session`` collection using the
@@ -154,15 +164,13 @@ each day and can be simulated as follows:
 
    .. code-block:: javascript
 
-      db.runCommand(
-                     {
-                        mapreduce: "sessions",
-                        map: mapFunction,
-                        reduce:reduceFunction,
-                        out: { reduce: "session_stat" },
-                        finalize: finalizeFunction
-                     }
-                   );
+      db.sessions.mapReduce( mapFunction,
+                             reduceFunction,
+                             {
+                               out: { reduce: "session_stat" },
+                               finalize: finalizeFunction
+                             }
+                           )
 
 **Subsequent Incremental Map-Reduce**
 
@@ -170,10 +178,10 @@ Assume the next day, the ``sessions`` collection grows by the following document
 
    .. code-block:: javascript
 
-      db.session.save( { userid: "a", ts: ISODate('2011-11-05 14:17:00'), length: 100 } );
-      db.session.save( { userid: "b", ts: ISODate('2011-11-05 14:23:00'), length: 115 } );
-      db.session.save( { userid: "c", ts: ISODate('2011-11-05 15:02:00'), length: 125 } );
-      db.session.save( { userid: "d", ts: ISODate('2011-11-05 16:45:00'), length: 55 } );
+      db.sessions.save( { userid: "a", ts: ISODate('2011-11-05 14:17:00'), length: 100 } );
+      db.sessions.save( { userid: "b", ts: ISODate('2011-11-05 14:23:00'), length: 115 } );
+      db.sessions.save( { userid: "c", ts: ISODate('2011-11-05 15:02:00'), length: 125 } );
+      db.sessions.save( { userid: "d", ts: ISODate('2011-11-05 16:45:00'), length: 55 } );
 
 5. At the end of the day, perform incremental map-reduce on the
    ``sessions`` collection but use the ``query`` field to select only the
@@ -183,15 +191,14 @@ Assume the next day, the ``sessions`` collection grows by the following document
 
    .. code-block:: javascript
 
-      db.runCommand( { 
-                       mapreduce: "sessions", 
-                       map: mapFunction, 
-                       reduce:reduceFunction,
-                       query: { ts: { $gt: ISODate('2011-11-05 00:00:00') } },
-                       out: { reduce: "session_stat" }, 
-                       finalize:finalizeFunction 
-                     }
-                   );
+      db.sessions.mapReduce( mapFunction,
+                             reduceFunction,
+                             {
+                               query: { ts: { $gt: ISODate('2011-11-05 00:00:00') } },
+                               out: { reduce: "session_stat" },
+                               finalize: finalizeFunction
+                             }
+                           );
 
 .. _map-reduce-temporay-collection:
 
@@ -277,12 +284,9 @@ Additional References
 
 .. seealso::
 
+   - :doc:`/tutorial/troubleshoot-map-reduce`
+
    - :wiki:`Map-Reduce Concurrency
      <How+does+concurrency+work#Howdoesconcurrencywork-MapReduce>` 
 
    - `MapReduce, Geospatial Indexes, and Other Cool Features <http://www.slideshare.net/mongosf/mapreduce-geospatial-indexing-and-other-cool-features-kristina-chodorow>`_ - Kristina Chodorow at MongoSF (April 2010) 
-
-   - :wiki:`Troubleshooting MapReduce`
-
-.. [#simple-aggregation-use-framework] For many simple aggregation tasks, see the
-   :doc:`aggregation framework </applications/aggregation>`.
