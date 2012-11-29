@@ -22,17 +22,17 @@ endif
 
 help:
 	@echo "Use 'make <target>', where <target> is a supported Sphinx target, including:"
-	@echo "  html		to make standalone HTML files"
-	@echo "  dirhtml	to make HTML files named index.html in directories"
-	@echo "  epub		to make an epub"
-	@echo "  latex		to make LaTeX files, you can set PAPER=a4 or PAPER=letter"
-	@echo "  man		to make manual pages"
+	@echo "	 html		to make standalone HTML files"
+	@echo "	 dirhtml	to make HTML files named index.html in directories"
+	@echo "	 epub		to make an epub"
+	@echo "	 latex		to make LaTeX files, you can set PAPER=a4 or PAPER=letter"
+	@echo "	 man		to make manual pages"
 	@echo
 	@echo "See 'meta.build.rst' for more about this build. Use these MongoDB Manual targets."
-	@echo "  publish	runs publication process and then deploys the build to $(public-output)"
-	@echo "  push		runs publication process and pushes to docs site to production."
-	@echo "  draft		builds a 'draft' build for pre-publication testing ."
-	@echo "  pdfs		generates pdfs."
+	@echo "	 publish	runs publication process and then deploys the build to $(public-output)"
+	@echo "	 push		runs publication process and pushes to docs site to production."
+	@echo "	 draft		builds a 'draft' build for pre-publication testing ."
+	@echo "	 pdfs		generates pdfs."
 
 ############# makefile includes #############
 include bin/makefile.compatibility
@@ -68,7 +68,7 @@ publish:initial-dependencies
 	@echo [build]: $(manual-branch) branch is succeessfully deployed to '$(public-output)'.
 
 # Deployment targets to kick off the rest of the build process.
-# Only  access these targets through the ``publish`` or ``publish-if-up-to-date`` targets.
+# Only	access these targets through the ``publish`` or ``publish-if-up-to-date`` targets.
 static-components:security-keys static-pages meta-static
 	@echo [build]: completed $@ buildstep.
 post-processing:error-pages links
@@ -116,8 +116,8 @@ $(public-branch-output)/single:$(branch-output)/singlehtml
 $(public-branch-output)/single/index.html:$(branch-output)/singlehtml/contents.html
 	@cp $< $@
 	@sed $(SED_ARGS_FILE) -e 's/href="contents.html/href="index.html/g' \
-	                      -e 's/name="robots" content="index"/name="robots" content="noindex"/g' \
-	                      -e 's/(href=")genindex.html"/\1..\/genindex\/"/g' $@
+			      -e 's/name="robots" content="index"/name="robots" content="noindex"/g' \
+			      -e 's/(href=")genindex.html"/\1..\/genindex\/"/g' $@
 	@echo [single]: generating and processing '$@' page
 
 # Sitemap builder
@@ -133,7 +133,7 @@ $(branch-output)/sitemap.xml.gz:$(public-output)/manual $(branch-output)/dirhtml
 
 LATEX_CORRECTION = "s/(index|bfcode)\{(.*!*)*--(.*)\}/\1\{\2-\{-\}\3\}/g"
 LATEX_LINK_CORRECTION = "s%\\\code\{/%\\\code\{http://docs.mongodb.org/$(current-if-not-manual)/%g"
-pdflatex-command = TEXINPUTS=".:$(branch-output)/latex/:" pdflatex --interaction batchmode --output-directory $(branch-output)/latex/ $(LATEXOPTS) 
+pdflatex-command = TEXINPUTS=".:$(branch-output)/latex/:" pdflatex --interaction batchmode --output-directory $(branch-output)/latex/ $(LATEXOPTS)
 
 # Uses 'latex' target to generate latex files.
 pdfs:$(subst .tex,.pdf,$(wildcard $(branch-output)/latex/*.tex))

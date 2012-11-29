@@ -48,7 +48,7 @@ copyright = u'2011-' + meta['date'] + ', 10gen, Inc.'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
-# built documents. The value of ``version`` is used in the paths for the curl commands. 
+# built documents. The value of ``version`` is used in the paths for the curl commands.
 
 version = '2.2.2'
 release = version
@@ -184,6 +184,7 @@ latex_documents = [
     ('contents', 'MongoDB.tex', u'MongoDB Documentation', u'MongoDB Documentation Project', 'manual'),
     ('meta/use-cases', 'MongoDB-use-cases.tex', u'MongoDB Use Cases', u'MongoDB Documentation Project', 'howto'),
     ('meta/reference', 'MongoDB-reference.tex', u'MongoDB Reference Manual', u'MongoDB Documentation Project', 'manual'),
+    ('crud', 'MongoDB-crud.tex', u'MongoDB CRUD Operations Introduction', u'MongoDB Documentation Project', 'manual'),
 ]
 
 latex_elements = { 'preamble': '\DeclareUnicodeCharacter{FF04}{\$} \DeclareUnicodeCharacter{FF0E}{.}',

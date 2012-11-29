@@ -6,7 +6,7 @@ documentation.
 Scripts named ``makefile_builder_<name>.py`` actually generates the
 makefile, which is in turn, included in the project's main makefile,
 where the following makefile instructions are responsible for
-(re)generating and integrating these makefiles: 
+(re)generating and integrating these makefiles:
 
 .. code-block:: makefile
 
@@ -19,13 +19,13 @@ where the following makefile instructions are responsible for
    -include $(output)/makefile.migrations
 
    $(output)/makefile.%:bin/makefile-builder/%.py bin/makefile_builder.py bin/builder_data.py
-   	@$(PYTHONBIN) bin/makefile-builder/$(subst .,,$(suffix $@)).py $@
+        @$(PYTHONBIN) bin/makefile-builder/$(subst .,,$(suffix $@)).py $@
 
 These ``makefile_builder_<name>.py`` scripts use the
 ``MakefileBuilder`` class from the ``makefile_builder.py``script to
 simplify make syntax and make the build process more obvious. You can
 inspect these scripts directly view their output as needed to
-understand their operation. 
+understand their operation.
 
 If you need to add a new target to the build produced by one of the
 existing scripts, see the comments in this file. Typically, you only
@@ -36,7 +36,7 @@ makefile, although as of launch, no builders use this feature.
 """
 
 links = [
-# The elements of the tuples in the ``links`` list are: 
+# The elements of the tuples in the ``links`` list are:
 #     0. ``make_target``: the name of the target,
 #     1. ``link_target``: the name of the file the symlink should point
 #        at.
@@ -49,7 +49,7 @@ links = [
      ('$(public-branch-output)/tutorials', 'tutorial', 'use'),
      ('$(public-branch-output)/reference/methods', 'method', 'use'),
      ('$(public-branch-output)/reference/method/reIndex', 'db.collection.reIndex', 'redirect'),
-     ('$(public-branch-output)/tutorials/install-mongodb-on-red-hat-centos-or-fedora-linux', 'install-mongodb-on-redhat-centos-or-fedora-linux', 'redirect'),
+     ('$(public-branch-output)/tutorials/install-mongodb-on-redhat-centos-or-fedora-linux', 'install-mongodb-on-red-hat-centos-or-fedora-linux', 'redirect'),
      ('$(public-branch-output)/MongoDB-Manual.epub', 'MongoDB-Manual-$(current-branch).epub', 'content')
 ]
 
@@ -64,6 +64,7 @@ pdfs = [
     ('MongoDB', 'Manual'),
     ('MongoDB-reference', 'manual'),
     ('MongoDB-use-cases', 'guide'),
+    ('MongoDB-crud', 'guide'),
 ]
 
 tables = [
@@ -126,7 +127,7 @@ install_guides = [
 error_pages = [ '401', '403', '404', '410' ]
 
 migrations = [
-# The elements of the tuples in the ``migrations`` list are: 
+# The elements of the tuples in the ``migrations`` list are:
 #     0. ``target``: the name of the target, to migrate a file to.
 #     1. ``source``: the name of the source file to migrate the file
 #        from.
@@ -145,7 +146,7 @@ migrations = [
 ]
 
 sphinx_migrations = [
-# The elements of the tuples in the ``sphinx_migrations`` list are: 
+# The elements of the tuples in the ``sphinx_migrations`` list are:
 #     0. ``target``: the name of the target.
 #     1. ``dependency``: the name of the dependency. ``None`` is
 #        acceptable.
