@@ -1,7 +1,8 @@
 Map-Reduce Examples
 -------------------
 
-.. map-reduce-examples-begin
+.. map-reduce-document-examples-begin
+.. map-reduce-document-prototype-begin
 
 Consider the following map-reduce operations on a collection ``orders``
 that contains documents of the following prototype:
@@ -19,11 +20,11 @@ that contains documents of the following prototype:
    }
 
 .. map-reduce-document-prototype-end
-
+   
 Sum the Price Per Customer Id
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. map-reduce-sum-price
+.. map-reduce-sum-price-begin
 
 Perform map-reduce operation on the ``orders`` collection to group by
 the ``cust_id``, and for each ``cust_id``, calculate the sum of the
@@ -71,7 +72,6 @@ the ``cust_id``, and for each ``cust_id``, calculate the sum of the
    operation will replace the contents with the results of this
    map-reduce operation:
 
-   .. map-reduce-sum-price-wrapper-begin
    .. code-block:: javascript
 
       db.orders.mapReduce( 
@@ -80,24 +80,12 @@ the ``cust_id``, and for each ``cust_id``, calculate the sum of the
                            { out: "map_reduce_example" }   
                          )
 
-   .. map-reduce-sum-price-wrapper-end
-   .. map-reduce-sum-price-cmd-begin
-   .. code-block:: javascript
-
-      db.runCommand(
-                     {
-                       mapreduce: 'orders',
-                       map: mapFunction1,
-                       reduce: reduceFunction1,
-                       out: 'map_reduce_example'
-                     } 
-                   )
-   .. map-reduce-sum-price-cmd-end
+.. map-reduce-sum-price-end
 
 Calculate the Number of Orders, Total Quantity, and Average Quantity Per Item
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. map-reduce-item-counts
+.. map-reduce-counts-begin
 
 Perform map-reduce operation on the ``orders`` collection to group by
 the item sku, and for each sku, calculate the number of orders and the
@@ -178,8 +166,6 @@ greater than ``01/01/2012`` for the map-reduce:
    already exists, the operation will merge the existing contents with
    the results of this map-reduce operation:
 
-   .. map-reduce-item-counts-avg-end
-   .. map-reduce-item-counts-avg-wrapper-begin
    .. code-block:: javascript
 
       db.orders.mapReduce( mapFunction2,
@@ -191,21 +177,4 @@ greater than ``01/01/2012`` for the map-reduce:
                            }
                          )
 
-   .. map-reduce-item-counts-avg-wrapper-end
-   .. map-reduce-item-counts-avg-cmd-begin
-   .. code-block:: javascript
-
-      db.runCommand(
-                     {
-                       mapreduce: 'orders',
-                       map: mapFunction2,
-                       reduce: reduceFunction2,
-                       finalize: finalizeFunction2,
-                       out: { merge: "map_reduce_example" }, 
-                       query: { ord_date: { $gt: new Date('01/01/2012') } },
-                     }
-                   )
-
-   .. map-reduce-item-counts-avg-cmd-end
-
-.. map-reduce-examples-end
+.. map-reduce-counts-end
