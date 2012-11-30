@@ -4,176 +4,49 @@ db.collection.mapReduce()
 
 .. default-domain:: mongodb
 
-.. method:: db.collection.mapReduce(map,reduce,out,[query],[sort],[limit],[finalize],[scope],[jsMode],[verbose])
+.. method:: db.collection.mapReduce(map,reduce, {<out>,<query>,<sort>,<limit>,<finalize>,<scope>,<jsMode>,<verbose>})
 
-   The :method:`db.collection.mapReduce()` provides a wrapper around the
-   :dbcommand:`mapReduce` :term:`database command`. Always call the
-   :method:`db.collection.mapReduce()` method on a collection. The following
-   argument list specifies a :term:`document` with 3 required and
-   8 optional fields:
+   The :method:`db.collection.mapReduce()` method provides a wrapper
+   around the :dbcommand:`mapReduce` command.
 
-   :param map: A JavaScript function that performs the "map" step of
-               the MapReduce operation. This function references the
-               current input document and calls the
-               ``emit(key,value)`` method to supply the value
-               argument to the reduce function, grouped by the key
-               argument. Map functions may call ``emit()``, once, more
-               than once, or not at all depending on the type of
-               aggregation.
+   .. code-block:: javascript
 
-   :param reduce: A JavaScript function that performs the "reduce"
-                  step of the MapReduce operation. The reduce function
-                  receives a key value and an array of emitted values
-                  from the map function, and returns a single
-                  value. Because it's possible to invoke the reduce
-                  function more than once for the same key, the
-                  structure of the object returned by function must be
-                  identical to the structure of the emitted function.
+      db.collection.mapReduce(
+                               <map>,
+                               <reduce>,
+                               {
+                                 <out>,
+                                 <query>,
+                                 <sort>,
+                                 <limit>,
+                                 <finalize>,
+                                 <scope>,
+                                 <jsMode>,
+                                 <verbose>
+                               }
+                             )
+                             
+   :method:`db.collection.mapReduce()` takes the following parameters:
 
-   :param out: Specifies the location of the out of the reduce stage
-               of the operation. Specify a string to write the output
-               of the map-reduce job to a collection with that
-               name. The map-reduce operation will replace the content
-               of the specified collection in the current database by
-               default. See below for additional options.
+   .. include:: /includes/parameters-map-reduce.rst
 
-   :param document query: Optional. A query object, like the query used by the
-                          :method:`db.collection.find()` method. Use this to specify
-                          which documents should enter the map phase
-                          of the aggregation.
+   .. include:: /includes/examples-map-reduce.rst
+      :start-after: map-reduce-document-prototype-begin
+      :end-before: map-reduce-document-prototype-end
 
-   :param sort: Optional. Sorts the input objects using this key. This
-                option is useful for optimizing the job. Common uses
-                include sorting by the emit key so that there are
-                fewer reduces.
+   - .. include:: /includes/examples-map-reduce.rst
+        :start-after: map-reduce-sum-price-begin
+        :end-before: map-reduce-sum-price-end
 
-   :param limit: Optional. Specifies a maximum number of objects to
-                 return from the collection.
+   - .. include:: /includes/examples-map-reduce.rst
+        :start-after: map-reduce-counts-begin
+        :end-before: map-reduce-counts-end
 
-   :param finalize: Optional. Specifies an optional "finalize" function
-                    to run on a result, following the reduce
-                    stage, to modify or control the output of
-                    the :method:`db.collection.mapReduce()` operation.
+   For more information and examples, see the :doc:`Map-Reduce
+   </applications/map-reduce>` page.
+            
+   .. seealso:: 
 
-   :param scope: Optional. Place a :term:`document` as the contents of
-                 this field, to place fields into the global
-                 javascript scope for the execution of the
-                 map-reduce command.
+      - :term:`map-reduce` and :dbcommand:`mapReduce`
 
-
-   :param Boolean jsMode: Optional. Specifies whether to convert
-                          intermediate data into BSON format between
-                          the mapping and reducing steps.
-
-                          If false, map-reduce execution internally
-                          converts the values emitted during the map
-                          function from JavaScript objects into BSON
-                          objects, and so must convert those BSON
-                          objects into JavaScript objects when calling
-                          the reduce function.  When this argument is
-                          false, :method:`db.collection.mapReduce()`
-                          places the :term:`BSON` objects used for
-                          intermediate values in temporary, on-disk
-                          storage, allowing the map-reduce job to
-                          execute over arbitrarily large data sets.
-
-                          If true, map-reduce execution retains the
-                          values emitted by the map function and
-                          returned as JavaScript objects, and so does
-                          not need to do extra conversion work to call
-                          the reduce function.  When this argument is
-                          true, the map-reduce job can execute faster,
-                          but can only work for result sets with less
-                          than 500K distinct key arguments to the
-                          mapper's emit function.
-
-                          The ``jsMode`` option defaults to
-                          true.
-
-                          .. versionadded:: 2.0
-
-   :param Boolean verbose: Optional. The ``verbose`` option provides
-                           statistics on job execution times.
-
-   The ``out`` field of the :method:`db.collection.mapReduce()`, provides a
-   number of additional configuration options that you may use to
-   control how MongoDB returns data from the map-reduce job. Consider
-   the following 4 output possibilities.
-
-   .. versionadded:: 1.8
-
-   :param replace: Optional. Specify a collection name (e.g. ``{ out:
-                   { replace: collectionName } }``) where the output
-                   of the map-reduce overwrites the contents of the
-                   collection specified (i.e. ``collectionName``) if
-                   there is any data in that collection. This is the
-                   default behavior if you only specify a collection
-                   name in the ``out`` field.
-
-   :param merge: Optional. Specify a collection name (e.g. ``{ out: {
-                 merge: collectionName } }``) where the
-                 map-reduce operation writes output to an
-                 existing collection
-                 (i.e. ``collectionName``,) and only
-                 overwrites existing documents in the
-                 collection when a new document has the same
-                 key as a document that existed before the
-                 map-reduce operation began.
-
-   :param reduce: Optional. This operation behaves like the ``merge``
-                  option above, except that when an existing
-                  document has the same key as a new
-                  document, ``reduce`` function from the
-                  map reduce job will run on both values and
-                  MongoDB will write the result of this function
-                  to the new collection. The specification
-                  takes the form of ``{ out: { reduce:
-                  collectionName } }``, where
-                  ``collectionName`` is the name of the
-                  results collection.
-
-   :param inline: Optional. Indicate the inline option (i.e. ``{ out:
-                  { inline: 1 } }``) to perform the map
-                  reduce job in memory and return the results
-                  at the end of the function. This option is
-                  only possible when the entire result set
-                  will fit within the :ref:`maximum size of a
-                  BSON document <limit-bson-document-size>`.
-                  When performing map-reduce jobs on
-                  secondary members of replica sets, this is
-                  the only available ``out`` option.
-
-   :param db: Optional. The name of the database that you want the
-              map-reduce operation to write its output. By default
-              this will be the same database as the input collection.
-
-   :param sharded: Optional. If ``true``, *and* the output mode writes
-                   to a collection, and the output database has
-                   sharding enabled, the map-reduce operation will
-                   shard the results collection according to the
-                   ``_id`` field.
-
-   :param nonAtomic: 
-
-          .. versionadded:: 2.1
-
-          Optional. Specify output operation as non-atomic such that
-          the output behaves like a normal ``multi`` :method:`update()
-          <db.collection.update()>`. If ``true``, the post processing step
-          will not execute inside of a database lock so that partial
-          results will be visible during processing . ``nonAtomic`` is
-          valid only for ``merge`` and ``reduce`` output operations
-          where post-processing may be a long-running operation.
-
-   .. seealso:: :term:`map-reduce`, provides a greater overview
-      of MongoDB's map-reduce functionality.
-
-      Also consider ":doc:`/applications/aggregation`" for a more
-      flexible approach to data aggregation in MongoDB, and the
-      ":wiki:`Aggregation`" wiki page for an over view of aggregation
-      in MongoDB.
-
-      .. Consider
-      .. STUB ":doc:`/applications/simple-aggregation` for simple aggregation
-      .. operations and ":doc:`/applications/aggregation`" for a more flexible
-      .. approach to data aggregation in MongoDB.
+      - :doc:`/applications/aggregation`
