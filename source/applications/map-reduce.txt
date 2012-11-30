@@ -169,8 +169,9 @@ Run the first map-reduce operation as follows:
 Subsequent Incremental Map-Reduce
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Later when, the ``sessions`` collection grows, by adding the following
-documents, you can run additional map-reduce operations:
+Later as the ``sessions`` collection grows, you can run additional
+map-reduce operations. For example, add new documents to the
+``sessions`` collection:
 
 .. code-block:: javascript
 
@@ -207,6 +208,50 @@ collection. As a result, you  can perform a map-reduce operation
 periodically with the same target collection name without affecting
 the intermediate states. Use this mode when
 generating statistical output collections on a regular basis.
+
+.. _map-reduce-concurrency:
+
+Concurrency
+-----------
+
+The map-reduce operation is composed of many tasks, including:
+
+- reads from the input collection,
+
+- executions of the ``map`` function,
+
+- executions of the ``reduce`` function,
+
+- writes to the output collection.
+
+These various tasks take the following locks:
+
+- The reads from the input collection takes a read lock that is yielded
+  every 100 documents.
+
+- The JavaScript code (i.e. ``map``, ``reduce``, ``finalize``
+  functions) is executed in a single thread, taking a JavaScript lock;
+  however, most JavaScript tasks in map-reduce are very short and
+  yields the lock frequently.
+
+- The insert into the temporary collection takes a write lock for a
+  single write.
+
+  If the final collection does not exist, the creation of the final
+  collection the output actions takes a write lock. If the final
+  collection exists, then the output actions (i.e. ``merge``,
+  ``replace``, ``reduce``) take a write lock.
+
+Although single-threaded, the map-reduce tasks interleave and appear to
+run in parallel.
+
+.. note::
+
+   The final write lock during post-processing makes the results appear
+   atomically. However, output actions ``merge`` and ``reduce`` may
+   take minutes to process. For the ``merge`` and ``reduce``, the
+   ``nonAtomic`` flag is available. See the
+   :method:`db.collection.mapReduce()` reference for more information.
 
 .. _map-reduce-sharded-cluster:
 
@@ -271,10 +316,10 @@ In MongoDB 2.0:
 
 .. warning::
 
-   For best results only use the sharded output options for
+   For best results, only use the sharded output options for
    :dbcommand:`mapReduce` in version 2.2 or later.
 
-Troubleshooting Map Reduce Operations
+Troubleshooting Map-Reduce Operations
 -------------------------------------
 
 You can troubleshoot the ``map`` function and the ``reduce`` function

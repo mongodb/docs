@@ -182,12 +182,13 @@
            .. versionadded:: 2.1
 
            Optional. Specify output operation as non-atomic and is
-           valid *only* for ``merge`` and ``reduce`` output modes.
+           valid *only* for ``merge`` and ``reduce`` output modes which
+           may take minutes to execute.
 
            If ``nonAtomic`` is ``true``, the post-processing step will
            prevent MongoDB from locking the database; however, other
            clients will be able to read intermediate states of the
-           output database. Otherwise the map reduce operation must
+           output collection. Otherwise the map reduce operation must
            lock the database during post-processing.
 
        - **Output inline**. Perform the map-reduce operation in memory
