@@ -26,11 +26,11 @@ def make_all_links(links):
 
 def make_link(make_target, link_target, makefile_block):
     link_location = make_target.rsplit('/', 1)[0] + '/'
-    m.append_var('LINKS', make_target, makefile_block)
 
     if makefile_block == 'content':
         m.target(make_target, '', makefile_block)
     else:
+        m.append_var('LINKS', make_target, makefile_block)
         m.target(make_target, link_location, makefile_block)
 
     m.job('@bin/create-link ' + link_target + ' $(notdir $@) ' + link_location, makefile_block)
