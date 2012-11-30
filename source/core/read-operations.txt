@@ -134,15 +134,6 @@ collection of documents named ``inventory``:
 
      db.inventory.find( { type: "snacks" } )
 
-  When the field holds an array an equality match will select documents if at
-  least *one* element in the array match the specified value. In the
-  following example, the query will match all documents where the array
-  in the ``tags`` field contains the element ``fruit``:
-
-  .. code-block:: javascript
-
-     db.inventory.find( { tags: "fruit" } )
-
 - A single-clause query document can also select all documents in a
   collection given a condition or set of conditions for one field in
   the collection's documents. Use the :ref:`query operators
@@ -170,7 +161,7 @@ collection of documents named ``inventory``:
 
   In the following example, the query document specifies an equality
   match on a single field, followed by a range of values for a second
-  field using a :ref:`comparison operator <query-selectors-comparison>`.
+  field using a :ref:`comparison operator <query-selectors-comparison>`:
 
   .. code-block:: javascript
 
@@ -209,9 +200,148 @@ collection of documents named ``inventory``:
                                                { price: { $lt: 9.95 } } ]
                          } )
 
-Refer to the :doc:`/reference/operator` document for the complete
-list of query operators and :doc:`/reference/operators` for complete
-documentation of all query operators.
+.. _read-operations-subdocuments:
+
+Subdocuments
+````````````
+
+When the field holds an embedded document (i.e. subdocument), you can
+either specify the entire subdocument as the value of a field, or
+"reach into" the subdocument using :term:`dot notation`, to specify
+values for individual fields in the subdocument: 
+
+- Equality matches within subdocuments select documents if the
+  subdocument matches *exactly* the specified subdocument, including the
+  field order.
+
+  In the following example, the query matches all documents where
+  the value of the field ``producer`` is a subdocument that contains
+  *only* the field ``company`` with the value ``'ABC123'`` and the field
+  ``address`` with the value ``'123 Street'``, in the exact order:
+
+  .. code-block:: javascript
+
+     db.inventory.find( {
+                          producer: {
+                                      company: 'ABC123',
+                                      address: '123 Street'
+                                    }
+                        }
+                      )
+
+- Equality matches for specific fields within subdocuments select
+  documents when the field in the subdocument contains a field that
+  matches the specified value. 
+
+  In the following example, the query uses the :term:`dot notation` to
+  match all documents where the value of the field ``producer`` is a
+  subdocument that contains a field ``company`` with the value
+  ``'ABC123'`` and may contain other fields:
+
+  .. code-block:: javascript
+
+     db.inventory.find( { 'producer.company': 'ABC123' } )
+
+.. _read-operations-arrays:
+
+Arrays
+````````
+
+When the field holds an array, you can query for values in the array,
+and if the array holds subdocuments, you query for specific fields
+within the these subdocuments using :term:`dot notation`:
+
+- Equality matches can specify an entire array, to select an array
+  that matches exactly. In the following example, the query matches all
+  documents where the value of the field ``tags`` is an array and
+  holds three elements, ``'fruit'``, ``'food'``, and ``'citrus'``, in
+  this order:
+
+  .. code-block:: javascript
+
+     db.inventory.find( { tags: [ 'fruit', 'food', 'citrus' ] } )
+
+- Equality matches can specify a single element in the array. If the
+  array contains at least *one* element with the specified value, as
+  in the following example: the query matches all documents where
+  the value of the field ``tags`` is an array that contains, as one of
+  its elements, the element ``'fruit'``:
+
+  .. code-block:: javascript
+
+     db.inventory.find( { tags: 'fruit' } )
+
+  Equality matches can also select documents by values in an array
+  using the array index (i.e. position) of the element in the array,
+  as in the following example: the query uses the :term:`dot notation`
+  to match all documents where the value of the ``tags`` field is an
+  array whose first element equals ``'fruit'``:
+
+  .. code-block:: javascript
+
+     db.inventory.find( { 'tags.0' : 'fruit' } )
+
+In the following examples, consider an array that contains
+subdocuments:
+
+- If you know the array index of the subdocument, you can specify the
+  document using the subdocument's position.
+
+  The following example selects all documents where the ``memos``
+  contains an array whose first element (i.e. index is ``0``) is a
+  subdocument with the field ``by`` with the value ``'shipping'``:
+
+  .. code-block:: javascript
+
+     db.inventory.find( { 'memos.0.by': 'shipping' } )
+
+- If you do not know the index position of the subdocument,
+  concatenate the name of the field that contains the array, with a
+  dot (``.``) and the name of the field in the subdocument.
+
+  The following example selects all documents where the ``memos`` field
+  contains an array that contains at least one subdocument with the
+  field ``by`` with the value ``'shipping'``:
+
+  .. code-block:: javascript
+
+     db.inventory.find( { 'memos.by': 'shipping' } )
+
+- To match by multiple fields in the subdocument, you can use either
+  dot notation or the :operator:`$elemMatch` operator:
+
+  The following example uses dot notation to query for documents
+  where the value of the ``memos`` field is an array that has at least
+  one subdocument that contains the field ``memo`` equal to ``'on time'``
+  and the field ``by`` equal to ``'shipping'``:
+
+  .. code-block:: javascript
+
+     db.inventory.find(
+                        {
+                          'memos.memo': 'on time',
+                          'memos.by': 'shipping'
+                        }
+                      )
+
+  The following example uses :operator:`$elemMatch` to query for
+  documents where the value of the ``memos`` field is an array that
+  has at least one subdocument that contains the field ``memo`` equal
+  to ``'on time'`` and the field ``by`` equal to ``'shipping'``:
+
+  .. code-block:: javascript
+  
+     db.inventory.find( { memos: {
+                                   $elemMatch: {
+                                                 memo : 'on time',
+                                                 by: 'shipping'
+                                               }
+                                 }
+                        }
+                      )
+
+Refer to the :doc:`/reference/operator` document for the complete list
+of query operators.
 
 .. _read-operations-projection:
 .. _projection:
@@ -309,7 +439,9 @@ operation:
 
    db.collection.ensureIndex( { <field1>: <order>, <field2>: <order>, ... } )
 
-- The ``field`` specifies the field to index.
+- The ``field`` specifies the field to index. The field may be a field
+  from a subdocument, using :term:`dot notation` to specify subdocument
+  fields.
 
   You can create an index on a single field or a :ref:`compound index
   <index-type-compound>` that includes multiple fields in the index.

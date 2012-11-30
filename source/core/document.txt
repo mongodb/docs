@@ -56,10 +56,10 @@ the following structure:
       fieldN: valueN
    }
 
-Having support for the full range of :term:`BSON types`, MongoDB
-documents may contain field and value pairs where the value can be
-another document, an array, an array of documents as well as the basic
-types such as ``Double``, ``String``, and ``Date``. See also
+Having support for the full range of BSON types, MongoDB documents may
+contain field and value pairs where the value can be another document,
+an array, an array of documents as well as the basic types such as
+``Double``, ``String``, and ``Date``. See also
 :ref:`document-bson-type-considerations`.
 
 Consider the following document that contains values of varying types:
@@ -79,7 +79,7 @@ The document contains the following fields:
 
 - ``_id`` that holds an *ObjectId*.
 
-- ``name`` that holds a *sub-document* that contains the fields
+- ``name`` that holds a *subdocument* that contains the fields
   ``first`` and ``last``.
 
 - ``birth`` and ``death``, which both have *Date* types.
@@ -87,6 +87,11 @@ The document contains the following fields:
 - ``contribs`` that holds an *array of strings*.
 
 - ``views`` that holds a value of *NumberLong* type.
+
+.. _document-type-operators:
+
+Type Operators
+~~~~~~~~~~~~~~
 
 To determine the type of fields, the :program:`mongo` shell provides
 the following operators: 
@@ -118,6 +123,21 @@ the following operators:
 
      In this case ``typeof`` will return the more generic ``object``
      type rather than ``ObjectId`` type.
+
+.. _document-dot-notation:
+
+Dot Notation
+~~~~~~~~~~~~
+
+.. include:: /includes/fact-dot-notation.rst
+
+.. seealso::
+
+   - :ref:`read-operations-subdocuments` for dot notation examples
+     with subdocuments.
+
+   - :ref:`read-operations-arrays` for dot notation examples with
+     arrays.
 
 Document Types in MongoDB
 -------------------------
@@ -215,44 +235,10 @@ Query Specification Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Query documents specify the conditions that determine which records to
-select for read, update, and delete operations. You can use field and
-value expressions to specify the equality condition and :doc:`query
-operator </reference/operators>` expressions to specify additional
-conditions. Refer to :doc:`read </applications/read>`, :doc:`update
-</applications/update>`, and :doc:`delete </applications/delete>` pages
-for more examples.
-
-Consider the following examples of query documents:
-
-- The following document specifies the query criteria where ``_id`` is
-  equal to ``1``:
-
-  .. code-block:: javascript
-
-     { _id: 1 }
-
-- The following document specifies the query criteria where ``_id`` is
-  greater than ``3``:
-
-  .. code-block:: javascript
-
-     { _id: { $gt: 3 } }
-
-- The following document specifies the compound query criteria where
-  ``_id`` is equal to ``1`` **and** the ``name`` field equals the
-  document ``{ first: 'John', last: 'Backus' }``:
-
-  .. code-block:: javascript
-
-     { _id: 1, name: { first: 'John', last: 'Backus' } }
-
-- The following document specifies the compound query criteria where
-  ``_id`` is equal to ``1`` **or** the ``name`` field equals the
-  document ``{ first: 'John', last: 'Backus' }``:
-
-  .. code-block:: javascript
-
-     { $or: [ { _id: 1 }, { name: { first: 'John', last: 'Backus' } } ] }
+select for read, update, and delete operations. You can use
+``<field>:<value>`` expressions to specify the equality condition and
+:doc:`query operator </reference/operators>` expressions to specify
+additional conditions.
 
 When passed as an argument to methods such as the :method:`find()
 <db.collection.find()>` method, the :method:`remove()
@@ -265,7 +251,20 @@ for MongoDB to return, remove, or update, as in the following:
    db.bios.find( { _id: 1 } )
    db.bios.remove( { _id: { $gt: 3 } } )
    db.bios.update( { _id: 1, name: { first: 'John', last: 'Backus' } },
-                       ... )
+                   <update>,
+                   <options> )
+
+.. seealso::
+
+   - :ref:`read-operations-query-argument` and
+     :doc:`/applications/read` for more examples on selecting documents
+     for reads.
+
+   - :doc:`/applications/update` for more examples on
+     selecting documents for updates.
+
+   - :doc:`/applications/delete` for more examples on selecting
+     documents for deletes.
 
 .. _documents-update-actions:
 
@@ -276,14 +275,14 @@ Update documents specify the data modifications to perform during
 an :method:`update() <db.collection.update()>` operation to modify
 existing records in a collection. You can use :ref:`update operators
 <update-operators>` to specify the exact actions to perform on the
-document fields. See the :ref:`update operators <update-operators>`
-page for the available update operators and syntax.
+document fields.
 
 Consider the update document example:
 
 .. code-block:: javascript
 
-   { $set: { 'name.middle': 'Warner' },
+   {
+     $set: { 'name.middle': 'Warner' },
      $push: { awards: { award: 'IBM Fellow',
                         year: '1963',
                         by: 'IBM' }
@@ -295,7 +294,8 @@ When passed as an argument to the :method:`update()
 
 - Modifies the field ``name`` whose value is another document.
   Specifically, the :operator:`$set` operator updates the ``middle``
-  field in the ``name`` subdocument.
+  field in the ``name`` subdocument. The document uses :ref:`dot
+  notation <document-dot-notation>` to access a field in a subdocument.
 
 - Adds an element to the field ``awards`` whose value is an array.
   Specifically, the :operator:`$push` operator adds another document as
@@ -305,7 +305,8 @@ When passed as an argument to the :method:`update()
 
    db.bios.update(
       { _id: 1 },
-      { $set: { 'name.middle': 'Warner' },
+      {
+        $set: { 'name.middle': 'Warner' },
         $push: { awards: {
                            award: 'IBM Fellow',
                            year: '1963',
@@ -314,6 +315,18 @@ When passed as an argument to the :method:`update()
                }
       }
    )
+
+.. seealso::
+
+   - :ref:`update operators <update-operators>` page for the available
+     update operators and syntax.
+
+   - :doc:`update </applications/update>` for more examples on
+     update documents.
+
+For additional examples of updates that involve array elements,
+including where the elements are documents, see the :operator:`$`
+positional operator.
 
 .. _documents-index:
 .. _document-index-specification:
@@ -335,9 +348,11 @@ Index documents contain field and value pairs, in the following form:
 
 - ``value`` is either 1 for ascending or -1 for descending.
 
-The following document specifies the :ref:`multi-key index <index-type-multi-key>` on the ``_id``
-field and the ``last`` field contained in the subdocument ``name``
-field:
+The following document specifies the :ref:`multi-key index
+<index-type-multi-key>` on the ``_id`` field and the ``last`` field
+contained in the subdocument ``name`` field. The document uses
+:ref:`dot notation <document-dot-notation>` to access a field in a
+subdocument:
 
 .. code-block:: javascript
 
@@ -354,7 +369,6 @@ the index to create:
 .. [#index-def] Indexes optimize a number of key :doc:`read
    </core/read-operations>` and :doc:`write </core/write-operations>`
    operations.
-
 
 .. _documents-sort-order:
 
@@ -397,8 +411,8 @@ method, the sort order document sorts the results of the
 .. _document-mongodb-type-considerations:
 .. _document-bson-type-considerations:
 
-BSON Types
-----------
+BSON Type Considerations
+------------------------
 
 The following BSON types require special consideration:
 
