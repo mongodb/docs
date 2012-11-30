@@ -7,10 +7,13 @@ Create an Auto-Incrementing Sequence Field
 Synopsis
 --------
 
-In documents, the field name ``_id`` is reserved for use as a primary
-key; its value must be unique in the collection. This document
-describes how to create an increasing sequence number to assign to the
-``_id`` field using the following:
+MongoDB reserves the ``_id`` field in the top level of all documents
+as a primary key. ``_id`` must be unique, and always has an index with
+a :ref:`unique constraint <index-type-unique>`. However, except for
+the unique constraint you can use any value for the ``_id`` field in
+your collections. This tutorial describes two methods for creating an
+incrementing sequence number for the ``_id`` field using the
+following:
 
 - :ref:`auto-increment-counters-collection`
 
@@ -19,16 +22,17 @@ describes how to create an increasing sequence number to assign to the
 .. warning::
 
    Generally in MongoDB, you would not use an auto-increment pattern
-   for the ``_id`` field, or other fields, as this does not scale up
-   well on large database clusters. Instead you would use an
-   :term:`ObjectId <objectid>`.
+   for the ``_id`` field, or any field, because it does not scale for
+   databases with larger numbers of documents. Typically the default
+   value :term:`ObjectId <objectid>` is more ideal for the ``_id``.
+   
 
 .. _auto-increment-counters-collection:
 
 A Counters Collection
 ~~~~~~~~~~~~~~~~~~~~~
 
-A separate ``counters`` collection tracks the *last* number sequence
+Use a separate ``counters`` collection tracks the *last* number sequence
 used. The ``_id`` field contains the sequence name and the ``seq``
 contains the last value of the sequence.
 
@@ -62,7 +66,7 @@ contains the last value of the sequence.
          return ret.seq;
       }
 
-#. Use the ``getNextSequence()`` function during 
+#. Use this ``getNextSequence()`` function during 
    :method:`insert() <db.collection.insert()>`.
 
    .. code-block:: javascript
@@ -105,15 +109,16 @@ contains the last value of the sequence.
 Optimistic Loop
 ~~~~~~~~~~~~~~~
 
-The Optimistic Loop calculates the incremented ``_id`` value and
-attempts to insert a document with the calculated ``_id`` value. If the
-insert is successful, end the loop. Otherwise, iterate through the loop
-recalculating the ``_id`` value until the insert is successful.
+In this pattern, an *Optimistic Loop* calculates the incremented
+``_id`` value and attempts to insert a document with the calculated
+``_id`` value. If the insert is successful, the loop ends. Otherwise,
+the loop will iterate through possible ``_id`` values until the insert
+is successful.
 
-#. Create a function named ``insertDocument`` that performs the "insert
-   if not present" loop. The function wraps the ``insert()
-   <db.collection.insert()>`` method and takes a ``doc`` and a
-   ``targetCollection`` arguments.
+#. Create a function named ``insertDocument`` that performs the
+   "insert if not present" loop. The function wraps the
+   :method:`insert() <db.collection.insert()>` method and takes a
+   ``doc`` and a ``targetCollection`` arguments.
 
    .. code-block:: javascript
 
@@ -144,24 +149,25 @@ recalculating the ``_id`` value until the insert is successful.
 
    The ``while (1)`` loop performs the following actions:
 
-   - Query the ``targetCollection`` for the document with the maximum
-     ``_id`` value.
+   - Queries the ``targetCollection`` for the document with the
+     maximum ``_id`` value.
 
-   - Determine the next sequence value for ``_id``:
+   - Determines the next sequence value for ``_id`` by: 
+     
+     - adding ``1`` to the returned ``_id`` value if the returned
+       cursor points to a document.
 
-   - Add ``1`` to the returned ``_id`` value if the returned cursor
-     points to a document; else
+     - otherwise: it sets the next sequence value to ``1`` if the
+       returned cursor points to no document.
 
-   - Set to ``1`` if the returned cursor points to no document.
-
-   - For the ``doc`` to insert, set its ``_id`` field to the calculated
-     sequence value ``seq``.
+   - For the ``doc`` to insert, set its ``_id`` field to the
+     calculated sequence value ``seq``.
 
    - Insert the ``doc`` into the ``targetCollection``.
 
-   - If the insert operation errors with duplicate key, loop again.
-     Otherwise, if the insert operation encounters some other error or
-     if the operation succeeds, break out of the loop.
+   - If the insert operation errors with duplicate key, repeat the
+     loop.  Otherwise, if the insert operation encounters some
+     other error or if the operation succeeds, break out of the loop.
 
 #. Use the ``insertDocument()`` function to perform an insert: 
 
@@ -202,5 +208,5 @@ recalculating the ``_id`` value until the insert is successful.
         "name" : "Ted R."
       }
 
-High concurrent insert rate on the collection could result in high
-iterations of the while-loop.
+The ``while`` loop may iterate many times in collections with larger
+insert volumes.
