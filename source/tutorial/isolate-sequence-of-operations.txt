@@ -4,8 +4,8 @@ Isolate Sequence of Operations
 
 .. default-domain:: mongodb
 
-Background
-----------
+Overview
+--------
 
 Write operations are atomic on the level of a single document: no
 single write operation can atomically affect more than one document or
@@ -21,32 +21,38 @@ No other operations are atomic; however, you can *isolate* a
 single write operation that affects multiple documents using the
 :doc:`isolation operator </reference/operator/atomic>`.
 
-Additionally, the following patterns can manage a sequence of
-operations:
+This document describes one method of updating documents *only* if the
+local copy of the document reflects the current state of the document
+in the database. In addition the following methods provide a way to
+manage isolated sequences of operations: 
 
-- :method:`findAndModify() <db.collection.findAndModify()>`
-
-- :ref:`tutorial-atomic-update-if-current`
+- the :method:`findAndModify() <db.collection.findAndModify()>`
+  provides an isolated query and modify operation. 
 
 - :doc:`/tutorial/perform-two-phase-commits`
 
-- :method:`ensureIndex() <db.collection.ensureIndex()>` to create a
-  ``unique`` index on a field
+- Create a :ref:`unique index <index-type-unique>`, to ensure that a
+  key doesn't exist when you insert it.
 
 .. _tutorial-atomic-update-if-current:
 
 Update if Current
 -----------------
 
-The "Update if Current" pattern queries a document, locally modifies
-various fields of the document, and tries to update the fields of a
-document *if* the fields have not changed in the collection since the
-query.
+In this patter, you will: 
 
-Consider the following example which attempts to update the ``qty``
-field of a document in the ``products`` collection:
+- queries for a document, 
+
+- modifies the fields in that document
+
+- and updates the fields of a document *only if* the fields have not
+  changed in the collection since the query.
+
+Consider the following example in JavaScript which attempts to update
+the ``qty`` field of a document in the ``products`` collection:
 
 .. code-block:: javascript
+   :linenos: 
 
    var myCollection = db.products;
    var myDocument = myCollection.findOne( { sku: 'abc123' } );
@@ -83,19 +89,23 @@ field of a document in the ``products`` collection:
 
    }
 
-Consider the following modifications to the "Update if Current" strategy:
+Your application may require some modifications of this pattern, such
+as: 
 
-- To generalize the strategy to guarantee that the whole document has
-  not changed rather than just certain fields, use the entire document in
-  the query expression.
+- Use the entire document as the query in lines 18 and 19, to
+  generalize the operation and guarantee that the original document
+  was not modified, rather than ensuring that as single field was not
+  changed. 
 
-- Add a version variable that is incremented upon each update operation
-  to the documents. Use this version variable in the query expression.
+- Add a version variable to the document that applications increment
+  upon each update operation to the documents. Use this version
+  variable in the query expression. You must be able to ensure that
+  *all* clients that connect to your database obey this constraint.
 
 - Use :operator:`$set` in the update expression to modify only your
   fields and prevent overriding other fields.
 
-.. Add link to :doc:`/tutorial/create-an-auto-increment-field` once that branch is merged since it's a special case
+  .. Add link to :doc:`/tutorial/create-an-auto-increment-field` once that branch is merged since it's a special case
 
 .. Maybe incorporate the blurb: "MongoDB does not
    support traditional locking and complex transactions for a number of
