@@ -20,8 +20,8 @@ occur in a predetermined order.
 What type of locking does MongoDB use?
 --------------------------------------
 
-MongoDB uses a readers-writer lock, which allows concurrent reads
-access to a database but gives exclusive access to a write.
+MongoDB uses a readers-writer lock that allows concurrent reads access
+to a database but gives exclusive access to a single write operation.
 
 When a read holds the lock, other reads can share it. However, when
 a write holds the lock, the write holds the lock exclusively. No other
@@ -55,14 +55,14 @@ To terminate an operation, use :method:`killOp() <db.killOp()>`.
 Does a read or write ever yield the lock?
 -----------------------------------------
 
-Yes. A read or write operation will yield MongoDB attempts to read data
-that isn't yet in memory, these are called :term:`page faults
+Yes. A read or write operation will yield. MongoDB attempts to read data
+that isn't yet in memory; these are called :term:`page faults
 <page fault>`.
 
 .. versionchanged:: 2.2
-   MongoDB attempts to track the contents of memory and predictively
-   yields locks while reading data in memory before retaking the lock to
-   complete the operation
+   MongoDB attempts to track the contents of memory and predicatively
+   yields locks while reading data into memory from disk before retaking
+   the lock to complete the operation
 
 Which operations lock the database?
 -----------------------------------
@@ -100,6 +100,8 @@ The :method:`group() <db.collection.group()>` command takes a read lock
 and does not allow any other threads to execute JavaScript while it is
 running.
 
+.. todo The above sentence might no longer apply in version 2.4, which will use V8.
+
 The following administrative commands lock the database but are fast and
 do not block the system excessively:
 
@@ -125,39 +127,25 @@ MongoDB locks multiple databases in the following situations:
 
 - When :ref:`authenticating <security-authentication>` a user, MongoDB
   must lock the ``admin`` database as well as the database the user is
-  accessing. For more information, see
-  :ref:`faq-concurrency-lock-admin`.
-
-- When :ref:`authenticating <security-authentication>` a user, MongoDB
-  must lock the ``admin`` database as well as the database the user is
   accessing.
 
-.. _faq-concurrency-lock-admin:
-
-Does locking the admin database cause a dead-lock?
---------------------------------------------------
-
-.. todo Double-check this in
-   http://www.10gen.com/presentations/concurrency-internals-mongodb-2-2
-
-When :ref:`authenticating <security-authentication>` a user, MongoDB
-must lock the ``admin`` database as well as the database the user is
-accessing. MongoDB can do so without causing a dead-lock because the
-locks are always applied in the same order.
+- During writes to a collection on a replica set's :term:`primary`, MongoDB
+  locks both the collection's database and the primary's ``local`` database,
+  the latter in order to record the writes to the primary's :term:`oplog`.
 
 How does sharding affect concurrency?
 -------------------------------------
 
-:term:`Sharding <sharding>` improves concurrency by spreading a database
-over multiple :program:`mongod` instances. The shard cluster's
-:program:`mongos` processes (i.e., each shard servers) can each perform
-any number of operations concurrently to the various downstream
-:program:`mongod` instances.
+:term:`Sharding <sharding>` improves concurrency by distributing
+collections over multiple :program:`mongod` instances, allowing the
+shard servers (i.e. :program:`mongos` processes) to perform any number of
+operations concurrently to the various downstream :program:`mongod`
+instances.
 
 Each :program:`mongod` instance is independent of the others in the
-cluster. The operations on one :program:`mongod` instance do not block
-the operations on the others. Each :program:`mongod` instance uses the
-usual MongoDB readers-writer lock (see :ref:`faq-concurrency-locking`).
+shard cluster and uses the MongoDB :ref:`readers-writer lock
+<faq-concurrency-locking>`). The operations on one :program:`mongod`
+instance do not block the operations on the others.
 
 .. _faq-concurrency-replication:
 
@@ -168,7 +156,7 @@ In :term:`replication`, when MongoDB writes to a collection on the
 :term:`primary`, MongoDB also writes to the primary's :term:`oplog`.
 Therefore, MongoDB must lock both the collection's database and the
 oplog's database. The oplog is located in the ``local`` database. Both
-must be locked at same time to keep the operation atomic. It's an
+must be locked at same time to keep the operation atomic. It is an
 all-or-nothing operation.
 
 How does concurrency affect secondaries?
@@ -179,10 +167,10 @@ In :term:`replication`, MongoDB does not apply writes serially to
 batches and then apply those batches in parallel. Secondaries do not
 allow reads while applying the batch writes.
 
-A primary might receive multiple writes at once. As writes are
-happening, the order of writes is not yet established. When the primary
-finishes each write, it assigns each write to a place in the oplog,
-giving the writes a specific order.
+A primary might apply multiple writes to different databases
+simultaneously. While writes are occurring, their order is not yet
+established. When the primary finishes each write, it assigns each write
+to a place in the oplog, giving the writes a specific order.
 
 The secondaries apply the writes in the order in the oplog.
 
