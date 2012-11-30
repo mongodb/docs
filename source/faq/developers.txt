@@ -427,6 +427,72 @@ for additional information.
    - The :source:`jsobj.h <src/mongo/db/jsobj.h>` source file for the
      definition of ``MinKey`` and ``MaxKey``.
 
+.. _faq-developers-query-for-nulls:
+
+How do I query for nulls?
+-------------------------
+
+A document may contain a ``null`` value. 
+
+Consider a collection ``test`` that contains the following documents: 
+
+.. code-block:: javascript
+
+   { _id: 1, cancelDate: null }
+   { _id: 2 }
+
+Different query operators treat ``null`` values differently: 
+
+- The ``{ cancelDate : null }`` query matches documents that either
+  contains the ``cancelDate`` field whose value is ``null`` *or* that
+  do not contain the ``cancelDate`` field:
+
+  .. code-block:: javascript
+
+     db.test.find( { cancelDate: null } )
+
+  The query returns both documents:
+
+  .. code-block:: javascript
+
+     { "_id" : 1, "cancelDate" : null }
+     { "_id" : 2 }
+
+- The ``{ cancelDate : { $type: 10 } }`` query matches documents that
+  contains the ``cancelDate`` field whose value is ``null`` *only*;
+  i.e. the value of the ``cancelDate`` field is of BSON Type ``Null``
+  (i.e. ``10``) :
+
+  .. code-block:: javascript
+
+     db.test.find( { cancelDate : { $type: 10 } } )
+
+  The query returns only the document that contains the ``null`` value:
+
+  .. code-block:: javascript
+
+     { "_id" : 1, "cancelDate" : null }
+
+- The ``{ cancelDate : { $exists: false } }`` query matches documents
+  that do not contain the ``cancelDate`` field:
+
+  .. code-block:: javascript
+
+     db.test.find( { cancelDate : { $exists: false } } )
+
+  The query returns only the document that does *not* contain the
+  ``cancelDate`` field:
+
+  .. code-block:: javascript
+
+     { "_id" : 2 }
+
+.. seealso::
+
+   - :operator:`$type`
+
+   - :operator:`$exists`
+
 .. _faq-developers:
 
 .. _faq-restrictions-on-collection-names:
