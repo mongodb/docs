@@ -173,9 +173,8 @@ class MongoDBObject(ObjectDescription):
               names=('rtype',)),
     ]
 
-class MongoDBCallable(MongoDBObject):
-    """Description of a MongoDB function, method or constructor."""
-    has_arguments = False
+class MongoDBMethod(MongoDBObject):
+    has_arguments = True
 
 class MongoDBXRefRole(XRefRole):
     def process_link(self, env, refnode, has_explicit_title, title, target):
@@ -220,23 +219,23 @@ class MongoDBDomain(Domain):
     }
 
     directives = {
-        'dbcommand':     MongoDBCallable,
-        'operator':      MongoDBCallable,
-        'projection':    MongoDBCallable,
-        'binary':        MongoDBCallable,
-        'setting':       MongoDBCallable,
-        'status':        MongoDBCallable,
-        'stats':         MongoDBCallable,
-        'readmode':      MongoDBCallable,
-        'method':        MongoDBCallable,
-        'data':          MongoDBCallable,
-        'aggregator':    MongoDBCallable,
-        'group':         MongoDBCallable,
-        'expression':    MongoDBCallable,
-        'collflag':      MongoDBCallable,
-        'error':         MongoDBCallable,
-        'macro':         MongoDBCallable,
-        'limit':         MongoDBCallable,
+        'dbcommand':     MongoDBObject,
+        'operator':      MongoDBObject,
+        'projection':    MongoDBObject,
+        'binary':        MongoDBObject,
+        'setting':       MongoDBObject,
+        'status':        MongoDBObject,
+        'stats':         MongoDBObject,
+        'readmode':      MongoDBObject,
+        'method':        MongoDBMethod,
+        'data':          MongoDBObject,
+        'aggregator':    MongoDBObject,
+        'group':         MongoDBObject,
+        'expression':    MongoDBObject,
+        'collflag':      MongoDBObject,
+        'error':         MongoDBObject,
+        'macro':         MongoDBObject,
+        'limit':         MongoDBObject,
     }
     roles = {
         'dbcommand':   MongoDBXRefRole(),
