@@ -534,6 +534,37 @@ a document with a ``msg`` field that holds the string
 If the application is instead connected to a :program:`mongod`, the
 returned document does not include the ``isdbgrid`` string.
 
+Shard GridFS Documents
+----------------------
+
+One common way to shard :term:`GridFS` is to do so based on pre-existing
+indexes and to configure the shard as follows:
+
+- Do not shard the "files" collection. This means all the file-metadata
+  documents live on one shard. It is highly recommended that the shard
+  is a replica set with at least three members, for resiliency.
+
+- Shard the "chunks" collection using the index "files_id: 1". You must
+  create this separate index. Do not use the existing "files_id, n"
+  index created by the drivers.
+
+  The new "files_id" index ensures that all chunks of a given file live
+  on the same shard, which is safer and allows FileMD5 hashing.
+
+  To shard "chunks" by "files_id", issue commands similar to the following:
+
+  .. code-block:: javascript
+
+     db.fs.chunks.ensureIndex( { files_id : 1 } )
+
+     db.runCommand( { shardcollection : "test.fs.chunks" , key : { files_id : 1 } } )
+
+  The default ``files_id`` is an :term:`ObjectId`. The ``files_id`` is
+  ascending, and all GridFS chunks are sent to a single sharding chunk.
+  If your write load is too high for a single server to handle, you may
+  want to shard on a different key or use a different value for ``_id``
+  in the ``files`` collection.
+
 .. index:: config database
 .. index:: database, config
 .. _sharding-internals-config-database:
