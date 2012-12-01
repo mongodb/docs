@@ -5,9 +5,10 @@ Getting Started with the MongoDB JavaScript Shell
 .. default-domain:: mongodb
 
 This tutorial is an introduction to creating and retrieving database
-documents using the MongoDB JavaScript Shell.
+documents using the MongoDB JavaScript Shell, also referred to as the
+:program:`mongo` shell.
 
-The MongoDB JavaScript shell, also referred to as the :program:`mongo`
+The :program:`mongo`
 shell, is a full JavaScript shell that gives you access to all create,
 read, update, and delete operations in a MongoDB database. The shell
 also allows you to use all JavaScript functions and syntax. See the
@@ -24,8 +25,15 @@ installing MongoDB and starting the database server, see
    :local:
    :depth: 3
 
-Connect to the :program:`mongod`
---------------------------------
+Connect to a Database
+---------------------
+
+In this section you connect to the database server, referred to as the
+:program:`mongod` (pronounced "Mongo D"), and then you connect to a
+database. This section also tells you how to access help.
+
+Connect to a :program:`mongod`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 From the command line, start the MongoDB JavaScript shell by issuing the
 :program:`mongo` command:
@@ -35,7 +43,7 @@ From the command line, start the MongoDB JavaScript shell by issuing the
    mongo
 
 By default, :program:`mongo` looks for a database server listening on
-port ``27017``. To look for a server listening on a different port, use
+port ``27017``. To connect to a server on a different port, use
 the :option:`--port <mongod --port>` option.
 
 Select a Database
@@ -54,9 +62,8 @@ databases by issuing the following command:
 
       use mydb
 
-#. Confirm that the ``mydb`` database is the context for your session by
-   typing the following command, which returns the name of the database
-   you are on:
+#. Confirm that the ``mydb`` database is selected by
+   typing the following command, which returns the name of the current database:
 
    .. code-block:: javascript
 
@@ -70,7 +77,8 @@ databases by issuing the following command:
 Display :program:`mongod` Help
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To return a list of help pages for the :program:`mongo` shell, issue the
+As you go through this tutorial and work with the :program:`mongo`
+shell, you can access help from the shell at any time by issuing the
 following command:
 
 .. code-block:: javascript
@@ -107,25 +115,24 @@ Insert Individual Documents
 
       use mydb
 
-#. Create two documents, named ``j`` and ``t``, by issuing the following
+#. Create two documents, named ``j`` and ``k``, by issuing the following
    sequence of operations:
 
    .. code-block:: javascript
 
       j = { name : "mongo" }
-      t = { x : 3 }
+      k = { x : 3 }
 
-#. Insert the ``j`` and ``t`` documents as documents in the collection
+#. Insert the ``j`` and ``k`` documents into the collection
    ``things`` by entering the following sequence of operations:
 
    .. code-block:: javascript
 
-      db.things.insert(j)
-      db.things.insert(t)
+      db.things.insert( j )
+      db.things.insert( k )
 
-   Once you insert the first document (in this case, the ``j``
-   document), MongoDB creates both the ``mydb`` database and the ``things``
-   collection.
+   Once you insert the first document, MongoDB creates both the ``mydb``
+   database and the ``things`` collection.
 
 #. Confirm that the collection named ``things`` has been created by issuing
    the following command:
@@ -157,18 +164,15 @@ Insert Individual Documents
    field, so :program:`mongo` creates a unique :doc:`ObjectId
    </object-id>` value for the field.
 
-   Unlike the documents in the ``things`` collection, most MongoDB
-   collections store documents with the same structure.
-
 Insert Multiple Documents Using a For Loop
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1. From the :program:`mongo` shell, add more documents to the collection
-   named ``things`` by issuing the following ``for`` loop:
+1. From the :program:`mongo` shell, add more documents to the ``things``
+   collection by issuing the following ``for`` loop:
 
    .. code-block:: javascript
 
-      for (var i = 1; i <= 20; i++) db.things.insert({x : 4, j : i})
+      for (var i = 1; i <= 20; i++) db.things.insert( { x : 4 , j : i } )
 
 #. Query the collection by issuing the following command:
 
@@ -176,8 +180,9 @@ Insert Multiple Documents Using a For Loop
 
       db.things.find()
 
-   MongoDB returns the first 20 documents in the collection. Your
-   :doc:`ObjectId </object-id>` values will be different:
+   The :program:`mongo` shell displays the first 20 documents in the
+   collection. Your :doc:`ObjectId </object-id>` values will be
+   different:
 
    .. code-block:: javascript
 
@@ -201,9 +206,8 @@ Insert Multiple Documents Using a For Loop
       { "_id" : ObjectId("4c220a42f3924d31102bd865"), "x" : 4, "j" : 16 }
       { "_id" : ObjectId("4c220a42f3924d31102bd866"), "x" : 4, "j" : 17 }
       { "_id" : ObjectId("4c220a42f3924d31102bd867"), "x" : 4, "j" : 18 }
-      has more
 
-#. Type ``it`` (for iterate) to return the next batch of results.
+#. Type ``it`` to display more documents from the collection.
 
    MongoDB returns the following:
 
@@ -212,57 +216,39 @@ Insert Multiple Documents Using a For Loop
       { "_id" : ObjectId("4c220a42f3924d31102bd868"), "x" : 4, "j" : 19 }
       { "_id" : ObjectId("4c220a42f3924d31102bd869"), "x" : 4, "j" : 20 }
 
-   When you issue the :method:`find() <db.collection.find()>` method,
-   MongoDB creates a "cursor" object that contains all the documents
-   returned by the query. The shell iterates over the cursor and
-   returns the first 20 documents. To continue to iterate over
-   the cursor, you type ``it``.
-
-   The next procedure describes additional ways to work with the cursor
-   object.
-
 For more information on inserting new documents, see :ref:`crud-create-insert`.
 
-Retrieve Data from a Collection
--------------------------------
+Working with the Cursor
+-----------------------
 
-You have already returned documents from a collection by using the
-:method:`find() <db.collection.find()>` method in its simplest form.
+When you query a :term:`collection`, MongoDB returns a "cursor" object
+that contains the results of the query. The :program:`mongo` shell then
+iterates over the cursor to display the results. Instead of displaying
+all the results at once, which could number into the thousands or more,
+depending on your database, the shell iterates over the cursor 20 times
+to display the first 20 results.
 
-In these procedures you will determine what is returned and displayed by
-working with:
+As you saw in the previous procedure, you can display more results using
+the ``it`` command. The ``it`` command tells the shell to iterate 20
+more times over the cursor and display the next 20 results. In the
+previous procedure, the cursor contained only two more documents, and so
+only two more documents displayed.
 
-- The cursor object created by :method:`find() <db.collection.find()>`
+The procedures in this section show other ways to work with a cursor.
+For comprehensive documentation on cursors, see :ref:`crud-read-cursor`.
 
-- :ref:`Query documents <read-operations-query-document>`
+Iterate over the Cursor with a Loop
+```````````````````````````````````
 
-- The :method:`limit() <cursor.limit()>` method
-
-Working with the Cursor Object
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-When you query a :term:`collection`, MongoDB returns a "cursor" object that
-contains the results of the query. Cursor objects give you flexibility
-in how to work with results.
-
-The previous procedure showed how to display results by iterating over a
-cursor using the ``it`` command. This procedure shows other ways to work
-with a cursor.
-
-For documentation on the cursor object, see :ref:`crud-read-cursor`.
-
-Return More than 20 Documents
-`````````````````````````````
-
-1. In the MongoDB JavaScript shell, query the collection named ``things``
+1. In the MongoDB JavaScript shell, query the ``things`` collection
    and assign the resulting cursor object to the ``c`` variable:
 
    .. code-block:: javascript
 
       var c = db.things.find()
 
-#. To return the full result set without limiting the results to 20
-   documents, use a ``while`` loop to iterate over the ``c`` variable:
+#. Print the full result set by using a ``while`` loop to iterate over
+   the ``c`` variable:
 
    .. code-block:: javascript
 
@@ -303,16 +289,16 @@ Return More than 20 Documents
 Use Array Operations with the Cursor
 ````````````````````````````````````
 
-You can treat a cursor like an array. You also can convert a cursor to an array.
+You can treat a cursor like an array.
 
-1. In the MongoDB JavaScript shell, query the collection named ``things``
+1. In the MongoDB JavaScript shell, query the ``things`` collection
    and assign the resulting cursor object to the ``c`` variable:
 
    .. code-block:: javascript
 
       var c = db.things.find()
 
-#. To find the document at the fifth position (i.e. at subscript ``4``),
+#. To find the document at the fifth position (i.e. at array index ``4``),
    issue the following command:
 
    .. code-block:: javascript
@@ -325,36 +311,14 @@ You can treat a cursor like an array. You also can convert a cursor to an array.
 
       { "_id" : ObjectId("4c220a42f3924d31102bd858"), "x" : 4, "j" : 3 }
 
-   When you query based on a document's position in the cursor object,
-   :program:`mongo` loads into RAM all the documents prior to the
-   highest position queried. For example, if you query the document at
-   ``c[4]``, :program:`mongo` loads into RAM the documents at ``c[0]``,
-   ``c[1]``, ``c[2]`` and ``c[3]`` as well. For very large result sets,
-   you can run out of memory. For queries that return large result sets,
-   it is better to iterate over the cursor using any of the iteration
-   approaches already described.
+   When you access a document based on its indexed position in the cursor object,
+   :program:`mongo` also loads into RAM all documents with lower index values.
 
-#. To convert the cursor to an array, use ``toArray()``. Issue the
-   following operations to create an array ``a`` and to find the
-   document at the sixth position:
+   For example, if you access the document at ``c[4]``, :program:`mongo`
+   loads into RAM the documents at ``c[0]`` through ``c[3]`` as well.
+   For very large result sets, you can run out of memory.
 
-   .. code-block:: javascript
-
-      var a = db.things.find().toArray()
-      a [ 5 ]
-
-   MongoDB returns the following:
-
-   .. code-block:: javascript
-
-      { "_id" : ObjectId("4c220a42f3924d31102bd859"), "x" : 4, "j" : 4 }
-
-For more information on the cursor object, see :ref:`crud-read-cursor`.
-
-.. todo Add:
-   MongoDB cursors are not snapshots. Use explicit locking to perform
-   a snapshotted query.
-   And then link to kay's isolated operations document
+For more information on the cursor, see :ref:`crud-read-cursor`.
 
 Query for Specific Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -362,9 +326,8 @@ Query for Specific Documents
 In this procedure, you query for specific documents in the ``things``
 :term:`collection` by passing a "query document" as a parameter to the
 :method:`find() <db.collection.find()>` method. A query document
-specifies the field/value pair the query must match to return a
-document. For more information, see
-:ref:`read-operations-query-document`.
+specifies the criteria the query must match to return a document. For
+more information, see :ref:`read-operations-query-document`.
 
 To query for specific documents, do the following:
 
@@ -377,7 +340,7 @@ To query for specific documents, do the following:
 
       db.things.find( { name : "mongo" } )
 
-   MongoDB returns the one document that fits this criteria. Your
+   MongoDB displays the one document that fits this criteria. Your
    :doc:`ObjectId </object-id>` value will be different:
 
    .. code-block:: javascript
@@ -419,17 +382,17 @@ To query for specific documents, do the following:
       { "_id" : ObjectId("4c220a42f3924d31102bd869"), "x" : 4, "j" : 20 }
 
 #. Query for all documents where ``x`` has a value of ``4``, as in the
-   last step, but this time return only the value of ``j``. To do this,
-   you add the ``{ j : true }`` document as a second parameter to
-   :method:`find() <db.collection.find()>`. The document lists the
-   fields to be returned. Issue the following command:
+   last step, but this time return only the value of ``j`` (and the
+   ``_id`` field, which is returned by default). To do this, you add the
+   ``{ j : true }`` document as a second parameter to :method:`find()
+   <db.collection.find()>`. The document lists the fields to be
+   returned. Issue the following command:
 
    .. code-block:: javascript
 
       db.things.find( { x : 4 } , { j : true } )
 
-   MongoDB returns the following results, excluding the ``x`` field. The
-   ``_id`` field is included by default:
+   MongoDB returns the following results:
 
    .. code-block:: javascript
 
@@ -494,6 +457,8 @@ be different:
    { "_id" : ObjectId("4c2209f9f3924d31102bd84a"), "name" : "mongo" }
    { "_id" : ObjectId("4c2209fef3924d31102bd84b"), "x" : 3 }
    { "_id" : ObjectId("4c220a42f3924d31102bd856"), "x" : 4, "j" : 1 }
+
+.. todo Add sections on Update and Remove
 
 Continuing to Use MongoDB
 -------------------------
