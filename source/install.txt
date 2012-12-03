@@ -30,31 +30,31 @@ Create a /etc/yum.repos.d/10gen.repo file with the following information about t
 
     $ sudo yum install mongo-10gen mongo-10gen-server
 
-3.) Attach EBS Volume
+3.) Prepare MongoDB Storage (AWS users)
 
-Create volume on AWS console if necessary, and attach to the ec2 instance::
+If using an AWS EBS volume for MongoDB storage, proceed to create and attach the volume to your EC2 instance; once attached, continue with the following steps. If not using AWS then skip to step #4 below.::
 
-    $ sudo mkdir /mnt/path-to-ebs
-    $ sudo mount /dev/sd[letter] /mnt/path-to-ebs
-    e.g., sudo mount /dev/sdf /mnt/path-to-ebs
+    $ sudo fdisk -l # (NOTE: for finding device name of attached EBS volume. E.g., /dev/xvdf)
+    $ sudo mkfs -t ext4 /dev/xvdf # (NOTE: only required if first time using volume)
 
-4.) Configure MongoDB
+Create mount point directory and mount volume::
 
-Create data/log directories on EBS volume::
+    $ sudo mkdir /mnt/ebs-mount-dir
+    $ sudo mount /dev/xvd[letter] /mnt/ebs-mount-dir
+    e.g., sudo mount /dev/xvdf /mnt/ebs-mount-dir
 
-    $ sudo mkdir -p /mnt/path-to-ebs/mongo/{data,logs}
-    $ sudo chown -R mongod:mongod /mnt/path-to-ebs/mongo
+4.) Configure MongoDB and Kernel Parameters
 
-Edit /etc/mongod.conf::
+Create database and log directories at desired location on filesystem, ensuring proper ownership for user ``mongod``::
 
-    logpath=/mnt/path-to-ebs/mongo/logs/mongod.log
-    dbpath=/mnt/path-to-ebs/mongo/data
+    $ sudo mkdir -p /mnt/ebs-mount-dir/mongo/{data,logs}
+    $ sudo chown -R mongod:mongod /mnt/ebs-mount-dir/mongo
 
-Edit /etc/sysctl.conf in event of future server reboots::
+Edit /etc/mongod.conf and set the log and db paths::
 
-    net.core.netdev_max_backlog = 30000
-    net.core.wmem_max = 16777216
-    net.core.rmem_max = 16777216
+    logpath=/mnt/ebs-mount-dir/mongo/logs/mongod.log
+    ...
+    dbpath=/mnt/ebs-mount-dir/mongo/data
 
 Apply kernel changes to running server::
 
@@ -62,14 +62,31 @@ Apply kernel changes to running server::
     $ sudo /sbin/sysctl -w net.core.wmem_max=16777216
     $ sudo /sbin/sysctl -w net.core.rmem_max=16777216
 
+Edit /etc/sysctl.conf and append the lines below such that these kernel changes are automatically applied in event of server reboot::
+
+    net.core.netdev_max_backlog = 30000
+    net.core.wmem_max = 16777216
+    net.core.rmem_max = 16777216
+
 5.) Startup MongoDB::
 
     $ sudo /etc/init.d/mongod start
 
-6.) Obtain(?) and Install MMS server::
+.. note::
 
-    $ ??? [JM: Not sure how we're managing this yet]
+      If using EBS, starting MongoDB may take up to a couple minutes for the journal files to be initially pre-allocated.
+
+6.) Obtain and Install MMS server
+
+.. note::
+
+    Contact 10gen to obtain a download of the current stable MMS RPM.
+
+::
+
     $ sudo rpm -ivh 10gen-mms-[version].x86_64.rpm
+
+    (Base directory for the installation is /opt/10gen/mms/)
 
 7.) Configure required MMS server properties::
 
@@ -77,24 +94,69 @@ Apply kernel changes to running server::
     e.g.,
 
     mms.centralUrl=http://mms.acmewidgets.com:8080
+    ...
     mms.fromEmailAddr=MMS Alerts <mms-alerts@acmewidgets.com>
+    ...
     mms.replyToEmailAddr=mms-no-reply@acmewidgets.com
+    ...
     mms.adminFromEmailAddr=MMS Admin <mms-admin@acmewidgets.com>
+    ...
     mms.adminEmailAddr=mms-admin@acmewidgets.com
+    ...
     mms.bounceEmailAddr=bounce@acmewidgets.com
 
-(Optionally configure email properties just below for your provider / SMTP server.)
+While the above properties are initially blank and must be specified before the server can be started, the configuration options below are optional. These define the integrations for your email provider or SMTP server, plus other optional services.
 
+.. note::
 
-8.) Start up MMS::
+    Out of the box, email integration is configured for default local sendmail.
+
+**Email authentication options**::
+
+    mms.emailDaoClass=[com.xgen.svc.mms.dao.email.JavaEmailDao/com.xgen.svc.mms.dao.email.AwsEmailDao]
+
+    com.xgen.svc.mms.dao.email.AwsEmailDao - (for Simple Email Service, requires also setting AWS credentials below)
+    com.xgen.svc.mms.dao.email.JavaEmailDao - (for SMTP mail server such as sendmail, or 3rd party provider)
+
+If using ``com.xgen.svc.mms.dao.email.JavaEmailDao``, the options below must be set for your provider (sendmail, Gmail, Sendgrid, et al.)::
+
+    mms.mail.transport=[smtp/smtps] (defaults to smtp)
+    mms.mail.hostname=[mail.acmewidgets.com] (defaults to localhost)
+    mms.mail.port=[number] (defaults to 25)
+    mms.mail.username=(Optional, defaults to no authentication)
+    mms.mail.password=(Optional, defaults to no authentication)
+    mms.mail.tls=[true/false] (Defaults to false)
+
+**AWS credentials**
+
+If configuring email integration with Amazon's Simple Email Service (SES), in addition to specifying ``com.xgen.svc.mms.dao.email.AwsEmailDao`` as the mms.emailDaoClass above, you must also provide your AWS account credentials in the two properties below::
+
+    aws.accesskey=
+    aws.secretkey=
+
+**Twilio SMS Alert support:**
+
+To receive alert notifications via SMS, signup for a Twilio API account at http://www.twilio.com/docs/quickstart and enter your account ID, API token, and Twilio phone # for the properties below, respectively::
+
+    twilio.account.sid=
+    twilio.auth.token=
+    twilio.from.num=
+
+8.) Start up the MMS server::
 
     $ sudo /etc/init.d/10gen-mms start
 
-Startup information will be logged to /var/log/10gen/mms0.log.
-Visit the same URL specified on mms.centralUrl to continue configuration:
-E.g., http://mms.acmewidgets.com
+Startup information will be logged to /var/log/10gen/mms0.log.::
 
-By constrast with the SaaS MMS `provided by 10gen <https://mms.10gen.com>`_, 
+    $ sudo less /var/log/10gen/mms0.log
+
+    Successful server startup should end with a line similar to the following:
+    [main] INFO  com.xgen.svc.core.ServerMain [start:244] - Started mms in: 13381 (ms)
+
+Visit the same URL specified on mms.centralUrl to continue configuration:
+E.g., http://mms.acmewidgets.com:8080
+
+By contrast with the SaaS version of MMS `provided by 10gen <https://mms.10gen.com>`_,
 user accounts are stored inside your local MongoDB server supporting MMS.
 When you sign into MMS for the
 first time, the system prompts you to register and create a new "group" for 
@@ -106,8 +168,8 @@ Hosts," page.
 Because there are no MMS agents attached to your account, the first
 page you see in MMS will provide instructions for downloading the MMS
 agent. Click the "download agent" link to download an agent
-specifically configured for your account. You may proceed with the agent
-installation at this point.
+specifically configured for your account. From here you may proceed with the agent
+installation below.
 
 .. index:: agent installation
    single: agent; installation
