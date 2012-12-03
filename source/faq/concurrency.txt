@@ -25,7 +25,7 @@ to a database but gives exclusive access to a single write operation.
 
 When a read holds the lock, other reads can share it. However, when
 a write holds the lock, the write holds the lock exclusively. No other
-read or write can share the lock.
+read nor write can share the lock.
 
 Locks are "writer greedy," which means writes have preference over
 reads. When both a read and write are waiting for a lock, MongoDB
@@ -55,19 +55,21 @@ To terminate an operation, use :method:`killOp() <db.killOp()>`.
 Does a read or write ever yield the lock?
 -----------------------------------------
 
-Yes. A read or write operation will yield. MongoDB attempts to read data
-that isn't yet in memory; these are called :term:`page faults
-<page fault>`.
+A read or write operation will yield a lock when MongoDB attempts to read data
+that is not yet in memory. When MongoDB attempts to read data not in memory,
+a :term:`page fault` occurs.
 
 .. versionchanged:: 2.2
-   MongoDB attempts to track the contents of memory and predicatively
-   yields locks while reading data into memory from disk before retaking
-   the lock to complete the operation
+   MongoDB tracks the contents of memory and predicts whether data is
+   available before performing a read. If data is predicted to be
+   unavailable, a read operation yields its lock and requests that
+   MongoDB download the data to memory. Once data is available in
+   memory, the read retakes the lock and completes the operation.
 
 Which operations lock the database?
 -----------------------------------
 
-The following tables lists common database operations and the types of
+The following table lists common database operations and the types of
 locks they use.
 
 .. todo In the table below (in the include), the issue of blocked
@@ -80,7 +82,7 @@ Which administrative commands lock the database?
 
 Certain administrative commands can exclusively lock the database for
 extended periods of time. On very large databases, consider taking the
-the :program:`mongod` instance offline so that clients are not effected.
+the :program:`mongod` instance offline so that clients are not affected.
 For example, if a :program:`mongod` is part of a :term:`replica set`,
 take the :program:`mongod` offline and let other members of the set
 service load while maintenance is in progress.
@@ -106,7 +108,7 @@ running.
 .. todo The above sentence might no longer apply in version 2.4, which will use V8.
 
 The following administrative commands lock the database but are fast and
-do not block the system excessively:
+do not excessively block the system:
 
 - :method:`dropIndex() <db.collection.dropIndex()>`
 - :method:`getLastError() <db.collection.getLastError()>`
@@ -121,34 +123,33 @@ do not block the system excessively:
 Does a MongoDB operation ever lock more than one database?
 ----------------------------------------------------------
 
-MongoDB locks multiple databases in the following situations:
+The following MongoDB operations lock multiple databases:
 
 - :method:`db.copyDatabase()` performs a global lock.
 
 - Journaling, which is an internal operation, locks all databases for
   short intervals. The journal is shared by all databases.
 
-- When :ref:`authenticating <security-authentication>` a user, MongoDB
-  must lock the ``admin`` database as well as the database the user is
-  accessing.
+- :ref:`User authentication <security-authentication>` locks the
+  ``admin`` database as well as the database the user is accessing.
 
-- During writes to a collection on a replica set's :term:`primary`, MongoDB
-  locks both the collection's database and the primary's ``local`` database,
-  the latter in order to record the writes to the primary's :term:`oplog`.
+- Writes to a replica set's :term:`primary` lock both the database
+  receiving the writes and the ``local`` database, the latter in order
+  to record the writes to the primary's :term:`oplog`.
 
 How does sharding affect concurrency?
 -------------------------------------
 
 :term:`Sharding <sharding>` improves concurrency by distributing
-collections over multiple :program:`mongod` instances, allowing the
-shard servers (i.e. :program:`mongos` processes) to perform any number of
+collections over multiple :program:`mongod` instances, allowing shard
+servers (i.e. :program:`mongos` processes) to perform any number of
 operations concurrently to the various downstream :program:`mongod`
 instances.
 
 Each :program:`mongod` instance is independent of the others in the
 shard cluster and uses the MongoDB :ref:`readers-writer lock
 <faq-concurrency-locking>`). The operations on one :program:`mongod`
-instance do not block the operations on the others.
+instance do not block the operations on any others.
 
 .. _faq-concurrency-replication:
 
@@ -171,8 +172,7 @@ batches and then apply those batches in parallel. Secondaries do not
 allow reads while applying the batch writes.
 
 A primary might apply multiple writes to different databases
-simultaneously. While writes are occurring, their order is not yet
-established. When the primary finishes each write, it assigns each write
+simultaneously. When the primary finishes each write, it assigns each write
 to a place in the oplog, giving the writes a specific order.
 
 The secondaries apply the writes in the order in the oplog.
