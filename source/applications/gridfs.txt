@@ -16,8 +16,8 @@ default GridFS limits chunk size to 256k. GridFS uses two collections to
 store files. One collection stores the file chunks, and the other stores
 file metadata.
 
-When you query for a file stored through GridFS, GridFS sends the chunks
-as a data stream. You can perform range queries on files stored through GridFS.
+When you query for a file stored through GridFS, GridFS reassembles the chunks
+as needed. You can perform range queries on files stored through GridFS.
 You also can access information from random sections of files, for
 example skipping into the middle of a video.
 
@@ -46,10 +46,7 @@ To store and retrieve files using :term:`GridFS`, use either of the following:
 GridFS Collections
 ------------------
 
-:term:`GridFS` stores files in two collections but makes it appear you
-have created a single collection.
-
-Under the hood, GridFS uses two collections to store files:
+:term:`GridFS` stores files in two collections:
 
 - ``chunks`` stores the binary chunks. For details, see
   :ref:`gridfs-chunks-collection`.
@@ -64,22 +61,16 @@ bucket:
 - ``fs.files``
 - ``fs.chunks``
 
-You can rename the ``fs`` bucket, as well as create additional buckets.
+You can choose a different default bucket name than ``fs``, as well as
+create additional buckets.
 
-GridFS uses the bucket name to make it appear that you have created a
-single collection. When you access the files, you use the bucket name as
-though it were the name of the collection.
+To access files, you use the bucket name. For example, if you use GridFS
+to create a ``photos`` bucket, then to issue the :method:`findOne()
+<db.collection.findOne()>` command from the :program:`mongo` shell you would type:
 
-For example, if you use GridFS to create a ``photos`` collection, GridFS
-actually creates these two collections:
+.. code-block:: javascript
 
-- ``photos.files``
-- ``photos.chunks``
-
-If you save a new 20 MB photo into the ``photos`` collection, GridFS
-records metadata about the photo in ``photos.files`` and divides the
-photo's binary data into chunks for storage in the ``photos.chunks``
-collection.
+   db.photos.findOne()
 
 .. index:: GridFS; chunks collection
 .. _gridfs-chunks-collection:
@@ -113,7 +104,7 @@ A document from the ``chunks`` collection contains the following fields:
 
 .. data:: chunks.n
 
-   The sequential number of the chunk. Chunks are numbered in order,
+   The sequence number of the chunk. Chunks are numbered in order,
    starting with 0.
 
 .. data:: chunks.data
@@ -164,15 +155,17 @@ following fields. You can create additional fields:
 .. data:: files.chunkSize
 
    The size of each chunk. GridFS divides the document into chunks of
-   the size specified here. The default size is 256k.
+   the size specified here. The default size is 256 kilobytes.
 
 .. data:: files.uploadDate
 
-   The date the document was first stored by GridFS.
+   The date the document was first stored by GridFS. This value has the
+   ``Date`` data type.
 
 .. data:: files.md5
 
-   An MD5 hash returned from the filemd5 api.
+   An MD5 hash returned from the filemd5 API. This value has the ``String``
+   data type.
 
 .. data:: files.filename
 
