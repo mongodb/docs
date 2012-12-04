@@ -30,6 +30,7 @@ help:
 
 ############# makefile includes #############
 include bin/makefile.compatibility
+include bin/makefile.content
 include bin/makefile.push
 
 # Included, dynamically generated makefile sections, to build: sphinx
@@ -50,13 +51,6 @@ $(output)/makefile.%:bin/makefile-builder/%.py bin/makefile_builder.py bin/build
 ############# Meta targets that control the build and publication process. #############
 .PHONY: publish publish-if-up-to-date
 
-sphinx-content += $(public-branch-output)/MongoDB-Manual.epub manual-pdfs
-sphinx-content += $(public-branch-output)/single $(public-branch-output)/single/index.html
-sphinx-content += $(public-branch-output) $(public-branch-output)/sitemap.xml.gz
-static-content += $(public-output)/10gen-gpg-key.asc $(public-output)/10gen-security-gpg-key.asc
-static-content += $(public-output)/index.html $(public-branch-output)/release.txt
-static-content += $(public-branch-output)/.htaccess $(public-output)/osd.xml
-
 publish-if-up-to-date:
 	@bin/published-build-check $(current-branch) $(last-commit)
 	@$(MAKE) publish
@@ -66,7 +60,7 @@ publish:$(sphinx-content) $(static-content)
 ############# Targets that define the production build process #############
 .PHONY:source/about.txt source/includes/hash.rst setup $(public-branch-output)/release.txt
 
-# Initial build steps, exporting the current commit to the build.
+# Generating files with buildinfo.
 setup:source/includes/hash.rst
 	@mkdir -p $(public-branch-output)
 	@echo [build]: created $(public-branch-output)
@@ -83,8 +77,7 @@ $(branch-output)/singlehtml/contents.html:$(branch-output)/singlehtml
 $(branch-output)/epub/MongoDB.epub:epub
 $(public-branch-output)/MongoDB-Manual.epub:$(public-branch-output)/MongoDB-Manual-$(current-branch).epub
 
-# Migrating and processing the dirhtml and singlehtml as needed.
-
+# migrating and processing dirhtml and singlehtml content.
 $(public-branch-output)/ $(public-output)/:
 	@mkdir -p $@
 	@echo [build]: created $@
@@ -105,8 +98,7 @@ $(public-branch-output)/single/index.html:$(branch-output)/singlehtml/contents.h
 			      -e 's/(href=")genindex.html"/\1..\/genindex\/"/g' $@
 	@echo [single]: generating and processing '$@' page
 
-# Sitemap builder
-sitemap:$(output)/sitemap.xml.gz
+# sitemap builder, triggered in the `publish` routine
 $(output)/sitemap.xml.gz:$(public-branch-output) $(public-output)/manual
 	@echo [sitemap]: starting sitemap build at `date`.
 	@mkdir -p $(output)/
@@ -121,6 +113,7 @@ LATEX_LINK_CORRECTION = "s%\\\code\{/%\\\code\{http://docs.mongodb.org/$(current
 pdflatex-command = TEXINPUTS=".:$(branch-output)/latex/:" pdflatex --interaction batchmode --output-directory $(branch-output)/latex/ $(LATEXOPTS)
 
 # Uses 'latex' target to generate latex files.
+draft-pdfs:draft-latex $(subst .tex,.pdf,$(wildcard $(branch-output)/draft-latex/*.tex))
 pdfs:$(subst .tex,.pdf,$(wildcard $(branch-output)/latex/*.tex))
 	@echo [build]: ALL PDFLATEX BUILD ERRORS IGNORED.
 $(branch-output)/latex/%.tex:
@@ -146,29 +139,17 @@ $(branch-output)/latex/%.tex:
 
 ############# General purpose targets. Not used (directly) in the production build #############
 
-# Clean up/removal targets.
 clean:
-	-rm -rf $(output-tables)
-	-rm -rf $(branch-output)/*
-	-rm -f build/makefile.*
+	-rm -rf $(output-tables) $(branch-output)/* build/makefile.*
 clean-public:
-	-rm -rf $(output-tables)
-	-rm -rf $(public-output)/*
-	-rm -f build/makefile.*
+	-rm -rf $(output-tables) $(public-output)/* build/makefile.*
 clean-all:
-	-rm -rf $(output-tables)
-	-rm -rf $(output)/*
-	-rm -f build/makefile.*
-
-# Archiving $(public-output) for more sane testing, and risk free cleaning.
+	-rm -rf $(output-tables) $(output)/* build/makefile.*
+draft:draft-html
 archive:$(public-output).$(timestamp).tar.gz
 	@echo [$@]: created $< $@.
 $(public-output).%.tar.gz:$(public-output)
 	tar -czvf $@ $<
-
-# convience targets for draft builds
-draft:draft-html
-draft-pdfs:draft-latex $(subst .tex,.pdf,$(wildcard $(branch-output)/draft-latex/*.tex))
 
 # man page support, uses sphinx `man` builder output.
 .PHONY:$(manpages)
