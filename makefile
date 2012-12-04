@@ -91,6 +91,7 @@ $(public-branch-output)/ $(public-output)/:
 $(public-branch-output):$(branch-output)/dirhtml
 	@cp -R $</* $@
 	@rm -rf $@/meta/reference $@/meta/use-cases
+	@touch $@
 	@echo [build]: migrated '$</*' to '$@'
 $(public-branch-output)/single:$(branch-output)/singlehtml
 	@mkdir -p $@
@@ -106,7 +107,7 @@ $(public-branch-output)/single/index.html:$(branch-output)/singlehtml/contents.h
 
 # Sitemap builder
 sitemap:$(output)/sitemap.xml.gz
-$(output)/sitemap.xml.gz:$(branch-output)/dirhtml $(public-branch-output)
+$(output)/sitemap.xml.gz:$(public-branch-output) $(public-output)/manual
 	@echo [sitemap]: starting sitemap build at `date`.
 	@mkdir -p $(output)/
 	@echo [sitemap]: build time\: `date` >> $(branch-output)/sitemap-build.log
