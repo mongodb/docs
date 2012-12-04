@@ -1,0 +1,62 @@
+# These instructions *only* control the process for uploading the
+# manual to the web servers. Everything else is in one of the
+# generated makefiles or the primary makefile.
+
+.PHONY: push push-with-delete push-all
+
+push:publish
+	@echo [build]: copying the new mms docs build to the web servers.
+	@$(MAKE) MODE='push' push-dc1 push-dc2
+	@echo [build]: deployed a new build of the mms docs.
+push-with-delete:publish
+	@echo [build]: deploying the mms docs build to the web servers \(with rsync --delete\).
+	@$(MAKE) MODE='push' push-with-delete-dc1 push-with-delete-dc2
+	@echo [build]: deployed a new build of the mms-docs.
+
+push-saas:saas
+	@echo [build]: copying the new SaaS mms docs build to the web servers.
+	@$(MAKE) MODE='push' push-dc1-saas push-dc2-saas
+	@echo [build]: deployed a new build of the SaaS mms docs.
+push-with-delete-saas:saas
+	@echo [build]: deploying the SaaS mms docs build to the web servers \(with rsync --delete\).
+	@$(MAKE) MODE='push' push-with-delete-dc1-saas push-with-delete-dc2-saas
+	@echo [build]: deployed a new build of the SaaS mms-docs.
+
+push-hosted:hosted
+	@echo [build]: copying the new Hosted mms docs build to the web servers.
+	@$(MAKE) MODE='push' push-dc1-hosted push-dc2-hosted
+	@echo [build]: deployed a new build of the Hosted mms docs.
+push-with-delete-hosted:hosted
+	@echo [build]: deploying the Hosted mms docs build to the web servers \(with rsync --delete\).
+	@$(MAKE) MODE='push' push-with-delete-dc1-hosted push-with-delete-dc2-hosted
+	@echo [build]: deployed a new build of the Hosted mms-docs.
+
+
+# Targets for pushing the new build to the web servers.
+ifeq ($(MODE),push)
+.PHONY: push-dc1 push-dc2 push-dc1-saas push-dc2-saas push-dc1-hosted push-dc2-hosted
+.PHONY: push-with-delete-dc1 push-with-delete-dc2 push-with-delete-dc1-saas push-with-delete-dc2-saas push-with-delete-dc1-hosted push-with-delete-dc2-hosted
+
+push-dc1:push-dc1-saas push-dc1-hosted 
+push-dc2:push-dc2-saas push-dc2-hosted
+
+push-saas:push-dc1-saas push-dc1-saas
+push-dc1-saas:
+	rsync -arz $(output)/public/saas/ www@www-c1.10gen.cc:/data/sites/mms
+push-dc2-saas:
+	rsync -arz $(output)/public/saas/ www@www-c2.10gen.cc:/data/sites/mms
+push-with-delete-dc1-saas:
+	rsync -arz --delete $(output)/public/saas/ www@www-c1.10gen.cc:/data/sites/mms
+push-with-delete-dc2-saas:
+	rsync -arz --delete $(output)/public/saas/ www@www-c2.10gen.cc:/data/sites/mms
+
+push-hosted:push-dc1-hosted push-dc2-hosted
+push-dc1-hosted:
+	rsync -arz $(output)/public/hosted/ www@www-c1.10gen.cc:/data/sites/mms-hosted
+push-dc2-hosted:
+	rsync -arz $(output)/public/hosted/ www@www-c2.10gen.cc:/data/sites/mms-hosted
+push-with-delete-dc1-hosted:
+	rsync -arz --delete $(output)/public/hosted/ www@www-c1.10gen.cc:/data/sites/mms-hosted
+push-with-delete-dc2-hosted:
+	rsync -arz --delete $(output)/public/hosted/ www@www-c2.10gen.cc:/data/sites/mms-hosted
+endif

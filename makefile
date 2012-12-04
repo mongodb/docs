@@ -1,22 +1,43 @@
-# Makefile for Sphinx documentation
-#
+# Makefile for MMS Sphinx documentation
 
-# You can set these variables from the command line.
-SPHINXOPTS    = -c ./
-SPHINXBUILD   = sphinx-build
-PAPER	      =
-BUILDDIR      = build
-SRCDIR	      = source
-PUBLISHDIR    = build/publish
+######### makefile set up, includes, and generation ###########
+MAKEFLAGS += -r -j --no-print-directory
+output = build
 
-# Internal variables.
-PAPEROPT_a4	= -D latex_paper_size=a4
-PAPEROPT_letter = -D latex_paper_size=letter
-ALLSPHINXOPTS	= -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
+include bin/makefile.push
+include bin/makefile.compatibility
+-include $(output)/makefile.sphinx
 
-.PHONY: help clean html dirhtml pickle json htmlhelp qthelp latex changes linkcheck
+$(output)/makefile.%:bin/%.py bin/makefile_builder.py bin/builder_data.py
+	@$(PYTHONBIN) bin/$(subst .,,$(suffix $@)).py $@
 
+########## build system configuration and variables ##########
+
+primary-branch = master
+current-branch := $(shell git symbolic-ref HEAD 2>/dev/null | cut -d "/" -f "3" )
+last-commit := $(shell git rev-parse --verify HEAD)
+timestamp := $(shell date +%Y%m%d%H%M)
+
+ifeq ($(EDITION),hosted)
+build-type = hosted
+conf-path = conf_base.py
+branch-output = build/hosted/$(current-branch)
+publish-output = build/public/hosted/$(current-branch)
+public-output = build/public/hosted
+publish-dependency = $(public-output)/current
+build-meta += -t hosted
+else
+build-type = saas
+conf-path = conf_base.py
+branch-output = build/saas
+publish-output = build/public/saas
+build-meta += -t saas
+endif
+
+########## interaction and control ##########
+.PHONY: help hosted saas test publish
 help:
+	@echo "HELP TEXT OUT OF DATE"
 	@echo "Please use \`make <target>' where <target> is one of"
 	@echo "	 html	   to make standalone HTML files"
 	@echo "	 dirhtml   to make HTML files named index.html in directories"
@@ -24,101 +45,82 @@ help:
 	@echo "	 changes   to make an overview of all changed/added/deprecated items"
 	@echo "	 linkcheck to check all external links for integrity"
 
-build-prep:
-	-mkdir -p $(SRCDIR)/_static
-	-mkdir -p $(PUBLISHDIR)/single
-	@echo directories made
+publish:$(publish-output) $(publish-dependency)
+hosted:
+	@$(MAKE) EDITION=$@ html publish
+	@echo [build]: $@ edition complete
+saas:
+	@$(MAKE) EDITION=$@ html publish
+	@echo [build]: $@ edition complete
+all:hosted saas
 
-publish: build-prep $(PUBLISHDIR)
-$(PUBLISHDIR): $(PUBLISHDIR)/ $(PUBLISHDIR)/single/ $(PUBLISHDIR)/single/_static
+$(public-output)/current:$(public-output)
+	@ln -s $(primary-branch)
+	@mv $(primary-branch) $@
+	@echo [build]: created and migrated $@
 
-$(PUBLISHDIR)/:$(BUILDDIR)/html/ $(BUILDDIR)/singlehtml/
-	cp -R $</* $@
-$(PUBLISHDIR)/single/: $(PUBLISHDIR)/single/genindex.html
-	cp -R $(BUILDDIR)/singlehtml/* $@
-	sed -i -e 's/id="searchbox"/id="display-none"/g' -e 's/id="editions"/id="display-none"/g' $(PUBLISHDIR)/single/index.html
-$(PUBLISHDIR)/single/genindex.html:$(BUILDDIR)/html/genindex.html
-	cp $< $@
-	sed -i -r -e 's@(<dt><a href=").*html#@\1./index.html#@' -e 's@(class="toctree-l1"><a class="reference internal" href=")(.*).html@\1../\2.html@' -e 's/id="searchbox"/id="display-none"/g' -e 's/id="navigation"/id="display-none"/g' -e 's/id="editions"/id="display-none"/g' $@
-$(PUBLISHDIR)/single/_static:$(PUBLISHDIR)/_static/
-	ln -s ../_static _static
-	mv _static $@
+########## dependency lists ##########
 
-$(PUBLISHDIR)/_static/:$(PUBLISHDIR)/
-$(BUILDDIR)/html/genindex.html:$(BUILDDIR)/html/
-$(BUILDDIR)/html/:html
-	rm -rf $@_sources/
-$(BUILDDIR)/singlehtml/:singlehtml
+HTML_OUTPUT = $(publish-output)/ $(publish-output)/single/ $(publish-output)/single/_static
+PDF_OUTPUT = $(branch-output)/latex/mms-manual.pdf
+$(publish-output): $(HTML_OUTPUT) $(PDF_OUTPUT)
 
-######################################################################
-##
-## Push Documents to Production
-##
-######################################################################
+########## html migration ##########
 
-push:publish
-	@echo "Copying the new build to the web servers."
-	$(MAKE) -j2 MODE='push' push-dc1 push-dc2
+$(public-output):
+	@mkdir -p $@
+	@echo [build]: created $@
+$(publish-output)/single:$(branch-output)/singlehtml/
+	@mkdir -p $@
+	@echo [build]: created $@/.
+$(publish-output)/:$(branch-output)/html/
+	@mkdir -p $@
+	@echo [build]: created $@.
+	@cp -R $</* $@
+	@echo [build]: migrated $< into $@.
+$(publish-output)/single/: $(publish-output)/single/genindex.html
+	@cp -R $(branch-output)/singlehtml/* $@
+	@echo [build]: migrated $@
+	@sed $(SED_ARGS_FILE) -e 's/id="searchbox"/id="display-none"/g' -e 's/id="editions"/id="display-none"/g' $(publish-output)/single/index.html
+	@echo [build]: processed $@ content.
+$(publish-output)/single/genindex.html:$(branch-output)/html/genindex.html
+	@cp $< $@
+	@echo [build]: migrated $@
+	@sed $(SED_ARGS_FILE) -e 's@(<dt><a href=").*html#@\1./index.html#@' -e 's@(class="toctree-l1"><a class="reference internal" href=")(.*).html@\1../\2.html@' -e 's/id="searchbox"/id="display-none"/g' -e 's/id="navigation"/id="display-none"/g' -e 's/id="editions"/id="display-none"/g' $@
+	@echo [build]: processed $@ content.
+$(publish-output)/single/_static:$(publish-output)/_static/ $(publish-output)/single/
+	@ln -s ../_static _static
+	@mv _static $@
+	@echo [build]: created and migrated $@.
+$(publish-output)/_static/:$(publish-output)/
+$(branch-output)/html/genindex.html:$(branch-output)/html/ $(publish-output)/single
+$(branch-output)/html/:html 
+$(branch-output)/singlehtml/:singlehtml
 
-ifeq ($(MODE),push)
-push-dc1:
-	rsync -arz $(BUILDDIR)/publish/ www@www-c1.10gen.cc:/data/sites/docs/mms
-push-dc2:
-	rsync -arz $(BUILDDIR)/publish/ www@www-c2.10gen.cc:/data/sites/docs/mms
-endif
+########## pdf migration ##########
 
-######################################################################
-##
-## Default Sphinx Targets
-##
-######################################################################
+pdflatex-command = TEXINPUTS=".:$(branch-output)/latex/:" pdflatex --interaction batchmode --output-directory $(branch-output)/latex/ $(LATEXOPTS)
 
+$(branch-output)/latex/mms.tex:latex 
+$(branch-output)/latex/mms-manual.pdf:$(branch-output)/latex/mms-manual.tex
+$(branch-output)/latex/mms-manual.tex:$(branch-output)/latex/mms.tex
+	@$(PYTHONBIN) bin/copy-if-needed.py -i $< -o $@ -b pdf
+
+%.pdf:%.tex
+	@echo [pdf]: pdf compilation of $@, started at `date`.
+	@touch $(basename $@)-pdflatex.log
+	@-$(pdflatex-command) '$<' >> $(basename $@)-pdflatex.log
+	@echo [pdf]: \(1/4\) pdflatex $<
+	@-makeindex -s $(branch-output)/latex/python.ist '$(basename $<).idx' >> $(basename $@)-pdflatex.log 2>&1
+	@echo [pdf]: \(2/4\) Indexing: $(basename $<).idx
+	@$(pdflatex-command) '$<' >> $(basename $@)-pdflatex.log
+	@echo [pdf]: \(3/4\) pdflatex $<
+	@$(pdflatex-command) '$<' >> $(basename $@)-pdflatex.log
+	@echo [pdf]: \(4/4\) pdflatex $<
+	@echo [pdf]: see '$(basename $@)-pdflatex.log' for a full report of the pdf build process.
+	@echo [pdf]: pdf compilation of $@, complete at `date`.
+
+###################################
 
 clean:
-	-rm -rf $(BUILDDIR)/*
-
-html:
-	-mkdir -p $(SRCDIR)/_static
-	@echo directory made
-	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
-	@echo
-	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
-
-dirhtml:
-	-mkdir -p $(SRCDIR)/_static
-	@echo directory made
-	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(BUILDDIR)/dirhtml
-	@echo
-	@echo "Build finished. The HTML pages are in $(BUILDDIR)/dirhtml."
-
-singlehtml:
-	$(SPHINXBUILD) -b singlehtml $(ALLSPHINXOPTS) $(BUILDDIR)/singlehtml
-	@echo
-	@echo "Build finished. The HTML page is in $(BUILDDIR)/singlehtml."
-
-latex:
-	-mkdir -p $(SRCDIR)/_static
-	@echo directory made
-	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
-	@echo
-	@echo "Build finished; the LaTeX files are in $(BUILDDIR)/latex."
-	@echo "Run \`make all-pdf' or \`make all-ps' in that directory to" \
-	      "run these through (pdf)latex."
-
-epub:
-	-mkdir -p $(SRCDIR)/_static
-	@echo directory made
-	$(SPHINXBUILD) -b epub $(ALLSPHINXOPTS) $(BUILDDIR)/epub
-	@echo
-	@echo "Build finished. The epub file is in $(BUILDDIR)/epub."
-
-changes:
-	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) $(BUILDDIR)/changes
-	@echo
-	@echo "The overview file is in $(BUILDDIR)/changes."
-
-linkcheck:
-	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) $(BUILDDIR)/linkcheck
-	@echo
-	@echo "Link check complete; look for any errors in the above output " \
-	      "or in $(BUILDDIR)/linkcheck/output.txt."
+	-rm -rf $(output)/*

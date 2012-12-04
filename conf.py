@@ -83,80 +83,41 @@ exclude_trees = []
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
 
-# A list of ignored prefixes for module index sorting.
-#modindex_common_prefix = []
-
 
 # -- Options for HTML output ---------------------------------------------------
 
-# The theme to use for HTML and HTML Help pages.  Major themes that come with
-# Sphinx are currently 'default' and 'sphinxdoc'.
 html_theme = '10gen'
-
-# Theme options are theme-specific and customize the look and feel of a theme
-# further.  For a list of options available for each theme, see the
-# documentation.
-#html_theme_options = {}
-
-# Add any paths that contain custom themes here, relative to this directory.
 html_theme_path = ['themes']
-
-# The name for this set of Sphinx documents.  If None, it defaults to
-# "<project> v<release> documentation".
-html_title = 'MMS Manual'
-
-# A shorter title for the navigation bar.  Default is the same as html_title.
-html_short_title = 'MMS'
-
-# The name of an image file (relative to this directory) to place at the top
-# of the sidebar.
 html_logo = "source/.static/logo-10gen.png"
-
-# The name of an image file (within the static path) to use as favicon of the
-# docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
-# pixels large.
-#html_favicon = None
-
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['source/_static']
-
-# If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
-# using the given strftime format.
-#html_last_updated_fmt = '%b %d, %Y'
-
-# If true, SmartyPants will be used to convert quotes and dashes to
-# typographically correct entities.
 html_use_smartypants = True
-
-# Custom sidebar templates, maps document names to template names.
-#html_sidebars = {}
-
-# Additional templates that should be rendered to pages, maps page names to
-# template names.
-#html_additional_pages = {}
-
 html_use_index = True
 html_split_index = False
 html_use_modindex = False
-
-# If true, links to the reST sources are added to the pages.
 html_show_sourcelink = False
-
-# If true, an OpenSearch description file will be output, and all pages will
-# contain a <link> tag referring to it.  The value of this option must be the
-# base URL from which the finished HTML is served.
-#html_use_opensearch = ''
-
-# If nonempty, this is the file name suffix for HTML files (e.g. ".xhtml").
-#html_file_suffix = ''
-
-# Output file base name for HTML help builder.
 htmlhelp_basename = 'MongoDBdoc'
+
+if tags.has('hosted'): 
+    html_title = 'Hosted MMS Manual'
+    html_short_title = 'Hosted MMS'
+    html_theme_options = {'edition': 'hosted'}
+else:
+    html_title = 'MMS Manual'
+    html_short_title = 'MMS'
+    html_theme_options = {'edition': 'saas'}
+
 
 
 # -- Options for LaTeX output --------------------------------------------------
+
+if tags.has('hosted'): 
+    latex_documents = [
+        ('index', 'mms.tex', u'Hosted MongoDB Monitoring Service (MMS) Manual', u'10gen, Inc. Technical Writing Team', 'manual'),
+    ]
+else:
+    latex_documents = [
+        ('index', 'mms.tex', u'MongoDB Monitoring Service (MMS) Manual', u'10gen, Inc. Technical Writing Team', 'manual'),
+    ]
 
 # The paper size ('letter' or 'a4').
 #latex_paper_size = 'letter'
@@ -166,10 +127,7 @@ htmlhelp_basename = 'MongoDBdoc'
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
-latex_documents = [
-  ('index', 'mms-manual.tex', u'MongoDB Monitoring Service (MMS) Manual',
-   u'MongoDB Documentation Team', 'manual'),
-]
+
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
@@ -193,42 +151,3 @@ latex_documents = [
 
 intersphinx_mapping = {'http://docs.python.org/': None}
 intersphinx_cache_limit = 30
-
-# -- Options for Epub output ---------------------------------------------------
-
-# Bibliographic Dublin Core info.
-epub_title = u'MongoDB Monitoring Service (MMS)'
-epub_author = u'MongoDB Documentation Team'
-epub_publisher = u'MongoDB Documentation Team'
-epub_copyright = u'2011, MongoDB Documentation Team'
-
-# The language of the text. It defaults to the language option
-# or en if the language is not set.
-#epub_language = ''
-
-# The scheme of the identifier. Typical schemes are ISBN or URL.
-#epub_scheme = ''
-
-# The unique identifier of the text. This can be a ISBN number
-# or the project homepage.
-#epub_identifier = ''
-
-# A unique identification for the text.
-#epub_uid = ''
-
-# HTML files that should be inserted before the pages created by sphinx.
-# The format is a list of tuples containing the path and title.
-#epub_pre_files = []
-
-# HTML files shat should be inserted after the pages created by sphinx.
-# The format is a list of tuples containing the path and title.
-#epub_post_files = []
-
-# A list of files that should not be packed into the epub file.
-#epub_exclude_files = []
-
-# The depth of the table of contents in toc.ncx.
-#epub_tocdepth = 3
-
-# Allow duplicate toc entries.
-#epub_tocdup = True
