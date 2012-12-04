@@ -38,21 +38,22 @@ endif
 .PHONY: help hosted saas test publish
 help:
 	@echo "HELP TEXT OUT OF DATE"
-	@echo "Please use \`make <target>' where <target> is one of"
-	@echo "	 html	   to make standalone HTML files"
-	@echo "	 dirhtml   to make HTML files named index.html in directories"
-	@echo "	 latex	   to make LaTeX files, you can set PAPER=a4 or PAPER=letter"
-	@echo "	 changes   to make an overview of all changed/added/deprecated items"
-	@echo "	 linkcheck to check all external links for integrity"
+	@echo "Please use \`make <target>' where <target> is one of:"
+	@echo "	 all            to stage the all mms documents."
+	@echo "	 hosted         to stage the mms-hosted documents."
+	@echo "	 saas           to stage the mms saas version documents."
+	@echo "	 push           to stage and deploy all mmms documents."
+	@echo "	 push-hosted    to stage and deploy mms-hosted documents."
+	@echo "	 push-mms       to stage and deploy mmms-saas documents."
+	@echo "	 <sphinx>       all standard sphinx build targets are avlible for testing."
 
-publish:$(publish-output) $(publish-dependency)
+all:hosted saas
 hosted:
 	@$(MAKE) EDITION=$@ html publish
 	@echo [build]: $@ edition complete
 saas:
 	@$(MAKE) EDITION=$@ html publish
 	@echo [build]: $@ edition complete
-all:hosted saas
 
 $(public-output)/current:$(public-output)
 	@ln -s $(primary-branch)
@@ -64,6 +65,7 @@ $(public-output)/current:$(public-output)
 HTML_OUTPUT = $(publish-output)/ $(publish-output)/single/ $(publish-output)/single/_static
 PDF_OUTPUT = $(branch-output)/latex/mms-manual.pdf
 $(publish-output): $(HTML_OUTPUT) $(PDF_OUTPUT)
+publish:$(publish-output) $(publish-dependency)
 
 ########## html migration ##########
 
