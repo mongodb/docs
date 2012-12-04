@@ -56,13 +56,13 @@ if tags.has('hosted'):
     html_title = 'Hosted MMS Manual'
     html_short_title = 'Hosted MMS'
     html_theme_options['edition'] = 'hosted'
-    latex_documents.append(('index', 'mms.tex', u'Hosted MongoDB Monitoring Service (MMS) Manual', u'10gen, Inc.', 'manual'))
+    latex_documents.append(('index', 'mms.tex', u'Hosted MongoDB Monitoring Service (MMS) Manual', u'10gen, Inc.', 'howto'))
 else:
     project = u'MongoDB Monitoring Service (MMS)'
     html_title = 'MMS Manual'
     html_short_title = 'MMS'
     html_theme_options['edition'] = 'saas'
-    latex_documents.append(('index', 'mms.tex', u'MongoDB Monitoring Service (MMS) Manual', u'10gen, Inc.', 'manual'))
+    latex_documents.append(('index', 'mms.tex', u'MongoDB Monitoring Service (MMS) Manual', u'10gen, Inc.', 'howto'))
 
 # -- Options for LaTeX output --------------------------------------------------
 
