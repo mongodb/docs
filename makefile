@@ -62,7 +62,7 @@ $(public-output)/current:$(public-output)
 
 ########## dependency lists ##########
 
-HTML_OUTPUT = $(publish-output)/ $(publish-output)/single/ $(publish-output)/single/_static
+HTML_OUTPUT = $(publish-output)/ $(publish-output)/single/ $(publish-output)/single/genindex.html
 PDF_OUTPUT = $(branch-output)/latex/mms-manual.pdf
 $(publish-output): $(HTML_OUTPUT) $(PDF_OUTPUT)
 publish:$(publish-output) $(publish-dependency)
@@ -72,30 +72,24 @@ publish:$(publish-output) $(publish-dependency)
 $(public-output):
 	@mkdir -p $@
 	@echo [build]: created $@
-$(publish-output)/single:$(branch-output)/singlehtml/
-	@mkdir -p $@
-	@echo [build]: created $@/.
 $(publish-output)/:$(branch-output)/html/
 	@mkdir -p $@
 	@echo [build]: created $@.
-	@cp -R $</* $@
+	@cp -R $<* $@
 	@echo [build]: migrated $< into $@.
-$(publish-output)/single/: $(publish-output)/single/genindex.html
-	@cp -R $(branch-output)/singlehtml/* $@
+$(publish-output)/single/:$(branch-output)/singlehtml/
+	@mkdir -p $@
+	@echo [build]: created $@.
+	@cp -R $<* $@
 	@echo [build]: migrated $@
 	@sed $(SED_ARGS_FILE) -e 's/id="searchbox"/id="display-none"/g' -e 's/id="editions"/id="display-none"/g' $(publish-output)/single/index.html
 	@echo [build]: processed $@ content.
-$(publish-output)/single/genindex.html:$(branch-output)/html/genindex.html
-	@cp $< $@
+$(publish-output)/single/genindex.html:$(publish-output)/single/ $(branch-output)/html/
+	@cp $(branch-output)/html/genindex.html $@
 	@echo [build]: migrated $@
 	@sed $(SED_ARGS_FILE) -e 's@(<dt><a href=").*html#@\1./index.html#@' -e 's@(class="toctree-l1"><a class="reference internal" href=")(.*).html@\1../\2.html@' -e 's/id="searchbox"/id="display-none"/g' -e 's/id="navigation"/id="display-none"/g' -e 's/id="editions"/id="display-none"/g' $@
 	@echo [build]: processed $@ content.
-$(publish-output)/single/_static:$(publish-output)/_static/ $(publish-output)/single/
-	@ln -s ../_static _static
-	@mv _static $@
-	@echo [build]: created and migrated $@.
-$(publish-output)/_static/:$(publish-output)/
-$(branch-output)/html/genindex.html:$(branch-output)/html/ $(publish-output)/single
+$(branch-output)/html/genindex.html:$(branch-output)/html/
 $(branch-output)/html/:html 
 $(branch-output)/singlehtml/:singlehtml
 
