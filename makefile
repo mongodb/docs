@@ -105,12 +105,8 @@ $(public-branch-output)/single/index.html:$(branch-output)/singlehtml/contents.h
 	@echo [single]: generating and processing '$@' page
 
 # Sitemap builder
-sitemap:$(branch-output)/sitemap.xml.gz
-$(public-branch-output)/sitemap.xml.gz:$(output)/sitemap.xml.gz
-	@mkdir -p $(public-branch-output)/
-	@mv $< $@
-	@echo [build]: migrated $@
-$(output)/sitemap.xml.gz:$(branch-output)/dirhtml $(public-branch-output)/
+sitemap:$(output)/sitemap.xml.gz
+$(output)/sitemap.xml.gz:$(branch-output)/dirhtml $(public-branch-output)
 	@echo [sitemap]: starting sitemap build at `date`.
 	@mkdir -p $(output)/
 	@echo [sitemap]: build time\: `date` >> $(branch-output)/sitemap-build.log
