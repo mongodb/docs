@@ -11,14 +11,17 @@ def build_all_migrations(migrations):
     m.newline(block='header')
 
     for migration in migrations:
+        dependency = migration[0].rsplit('/', 1)[0]
         block=migration[2]
-
+        
         m.target(target=migration[0],
                  dependency=migration[1],
                  block=block)
+        m.job('mkdir -p ' + dependency, block=block)
         m.job('cp $< $@', block=block)
         m.msg('[build]: migrated $@', block=block)
         m.newline(block=block)
+                
 
 def main():
     build_all_migrations(migrations)

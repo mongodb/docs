@@ -36,10 +36,7 @@ def make_all_sphinx(sphinx):
           block='vars')
     m.comment('general sphinx variables', block='vars')
     m.var(variable='ALLSPHINXOPTS',
-          value='-q -d $(branch-output)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source',
-          block='vars')
-    m.var(variable='POSPHINXOPTS',
-          value='-q -d $(branch-output)/doctrees-gettext $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source',
+          value='-q -d $(branch-output)/doctrees-$@ $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source',
           block='vars')
     m.var(variable='DRAFTSPHINXOPTS',
           value='-q -d $(branch-output)/draft-doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) draft',
@@ -62,7 +59,7 @@ def make_all_sphinx(sphinx):
     m.newline(block='sphinx')
 
     for builder in sphinx:
-        sphinx_builder(builder[0], builder[1])
+        sphinx_builder(builder)
 
     m.target('.PHONY', '$(sphinx-targets)', block='footer')
 
@@ -72,27 +69,19 @@ def build_kickoff(loc, block):
     m.msg('[sphinx]: starting $@ build', block)
     m.msg('[$@]: build started at `date`.', block)
 
-def sphinx_builder(target, production):
-    m.append_var('sphinx-targets', target)
+def sphinx_builder(target):
+    b = 'production'
 
-    if production is True and target != 'epub': 
-        b = 'production'
-        m.target(target, block=b)
-    else:
-        b = 'testing'
-        m.target(target, 'sphinx-prerequisites', block=b)
+    m.append_var('sphinx-targets', target)
+    m.target(target, 'sphinx-prerequisites', block=b)
 
     if target.split('-')[0] == 'draft':
         if target.split('-')[1] == 'html':
             loc = 'draft'
         else: 
             loc = target
-
         build_kickoff(loc, block=b)
         m.job('$(SPHINXBUILD) -b' + target.split('-')[1] + ' $(DRAFTSPHINXOPTS) $(branch-output)/' + loc, block=b)
-    elif target == 'gettext':
-        build_kickoff('$@',block=b)
-        m.job('$(SPHINXBUILD) -b $@ $(POSPHINXOPTS) $(branch-output)/$@', block=b)
     elif target == 'epub': 
         build_kickoff('$@',block=b)
         m.job('{ $(epub-command) 2>&1 1>&3 | $(epub-filter) 1>&2; } 3>&1', block=b)        

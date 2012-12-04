@@ -21,14 +21,8 @@ current-if-not-manual = $(current-branch)
 endif
 
 help:
-	@echo "Use 'make <target>', where <target> is a supported Sphinx target, including:"
-	@echo "	 html		to make standalone HTML files"
-	@echo "	 dirhtml	to make HTML files named index.html in directories"
-	@echo "	 epub		to make an epub"
-	@echo "	 latex		to make LaTeX files, you can set PAPER=a4 or PAPER=letter"
-	@echo "	 man		to make manual pages"
-	@echo
-	@echo "See 'meta.build.rst' for more about this build. Use these MongoDB Manual targets."
+	@echo "Use 'make <target>', where <target> is a Sphinx target (e.g. 'html', 'latex')"
+	@echo "See 'meta.build.rst' for more on the build. Use the following MongoDB Manual targets:"
 	@echo "	 publish	runs publication process and then deploys the build to $(public-output)"
 	@echo "	 push		runs publication process and pushes to docs site to production."
 	@echo "	 draft		builds a 'draft' build for pre-publication testing ."
@@ -54,34 +48,20 @@ $(output)/makefile.%:bin/makefile-builder/%.py bin/makefile_builder.py bin/build
 	@$(PYTHONBIN) bin/makefile-builder/$(subst .,,$(suffix $@)).py $@
 
 ############# Meta targets that control the build and publication process. #############
-.PHONY: initial-dependencies static-components sphinx-components post-processing publish publish-if-up-to-date
+.PHONY: publish publish-if-up-to-date
+
+sphinx-content += $(public-branch-output)/MongoDB-Manual.epub manual-pdfs
+sphinx-content += $(public-branch-output)/single $(public-branch-output)/single/index.html
+sphinx-content += $(public-branch-output) $(public-branch-output)/sitemap.xml.gz
+static-content += $(public-output)/10gen-gpg-key.asc $(public-output)/10gen-security-gpg-key.asc
+static-content += $(public-output)/index.html $(public-branch-output)/release.txt
+static-content += $(public-branch-output)/.htaccess $(public-output)/osd.xml
+
 publish-if-up-to-date:
 	@bin/published-build-check $(current-branch) $(last-commit)
 	@$(MAKE) publish
-publish:initial-dependencies
-	@echo [build]: starting build of sphinx components built at `date`
-	@$(MAKE) sphinx-components
-	@echo [build]: all sphinx components built at `date`
-	@echo [build]: starting build of all static components at `date`
-	@$(MAKE) static-components post-processing
-	@echo [build]: all static components built at `date`
+publish:$(sphinx-content) $(static-content)
 	@echo [build]: $(manual-branch) branch is succeessfully deployed to '$(public-output)'.
-
-# Deployment targets to kick off the rest of the build process.
-# Only	access these targets through the ``publish`` or ``publish-if-up-to-date`` targets.
-static-components:security-keys static-pages meta-static
-	@echo [build]: completed $@ buildstep.
-post-processing:error-pages links
-	@echo [build]: completed $@ buildstep.
-sphinx-components:manual-pdfs single-output public-output
-	@echo [build]: completed $@ buildstep.
-
-initial-dependencies:$(public-branch-output)/MongoDB-Manual.epub
-single-output:$(public-branch-output)/single $(public-branch-output)/single/index.html
-public-output:$(public-branch-output) $(public-branch-output)/sitemap.xml.gz
-security-keys:$(public-output)/10gen-gpg-key.asc $(public-output)/10gen-security-gpg-key.asc
-static-pages:$(public-output)/index.html $(public-branch-output)/release.txt
-meta-static:$(public-branch-output)/.htaccess $(public-output)/osd.xml
 
 ############# Targets that define the production build process #############
 .PHONY:source/about.txt source/includes/hash.rst setup $(public-branch-output)/release.txt
@@ -92,9 +72,9 @@ setup:source/includes/hash.rst
 	@echo [build]: created $(public-branch-output)
 source/includes/hash.rst:source/about.txt
 	@$(PYTHONBIN) bin/update_hash.py
-	@git update-index --assume-unchanged $@
+	@-git update-index --assume-unchanged $@
 	@echo [build]: \(re\)generated $@.
-$(public-branch-output)/release.txt:
+$(public-branch-output)/release.txt:$(public-branch-output)/
 	@echo [build]: generating '$@' with current release hash.
 	@git rev-parse --verify HEAD >|$@
 
@@ -104,6 +84,10 @@ $(branch-output)/epub/MongoDB.epub:epub
 $(public-branch-output)/MongoDB-Manual.epub:$(public-branch-output)/MongoDB-Manual-$(current-branch).epub
 
 # Migrating and processing the dirhtml and singlehtml as needed.
+
+$(public-branch-output)/ $(public-output)/:
+	@mkdir -p $@
+	@echo [build]: created $@
 $(public-branch-output):$(branch-output)/dirhtml
 	@cp -R $</* $@
 	@rm -rf $@/meta/reference $@/meta/use-cases
@@ -122,11 +106,15 @@ $(public-branch-output)/single/index.html:$(branch-output)/singlehtml/contents.h
 
 # Sitemap builder
 sitemap:$(branch-output)/sitemap.xml.gz
-$(branch-output)/sitemap.xml.gz:$(public-output)/manual $(branch-output)/dirhtml
+$(public-branch-output)/sitemap.xml.gz:$(output)/sitemap.xml.gz
+	@mkdir -p $(public-branch-output)/
+	@mv $< $@
+	@echo [build]: migrated $@
+$(output)/sitemap.xml.gz:$(branch-output)/dirhtml $(public-branch-output)/
 	@echo [sitemap]: starting sitemap build at `date`.
+	@mkdir -p $(output)/
 	@echo [sitemap]: build time\: `date` >> $(branch-output)/sitemap-build.log
 	@$(PYTHONBIN) bin/sitemap_gen.py --testing --config=conf-sitemap.xml 2>&1 >> $(branch-output)/sitemap-build.log
-	@mv build/sitemap.xml.gz $@
 	@echo [sitemap]: sitemap built at `date`.
 
 ############# PDF generation infrastructure. #############
@@ -163,12 +151,15 @@ $(branch-output)/latex/%.tex:
 
 # Clean up/removal targets.
 clean:
+	-rm -rf $(output-tables)
 	-rm -rf $(branch-output)/*
 	-rm -f build/makefile.*
 clean-public:
+	-rm -rf $(output-tables)
 	-rm -rf $(public-output)/*
 	-rm -f build/makefile.*
 clean-all:
+	-rm -rf $(output-tables)
 	-rm -rf $(output)/*
 	-rm -f build/makefile.*
 

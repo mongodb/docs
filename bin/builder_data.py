@@ -49,7 +49,7 @@ links = [
      ('$(public-branch-output)/tutorials', 'tutorial', 'use'),
      ('$(public-branch-output)/reference/methods', 'method', 'use'),
      ('$(public-branch-output)/reference/method/reIndex', 'db.collection.reIndex', 'redirect'),
-     ('$(public-branch-output)/tutorials/install-mongodb-on-redhat-centos-or-fedora-linux', 'install-mongodb-on-red-hat-centos-or-fedora-linux', 'redirect'),
+     ('$(public-branch-output)/tutorial/install-mongodb-on-redhat-centos-or-fedora-linux', 'install-mongodb-on-red-hat-centos-or-fedora-linux', 'redirect'),
      ('$(public-branch-output)/MongoDB-Manual.epub', 'MongoDB-Manual-$(current-branch).epub', 'content')
 ]
 
@@ -86,25 +86,21 @@ tables = [
 ]
 
 sphinx = [
-# The elements of the tuples in ``sphinx`` list are:
-#     0. ``target``: the name of the sphinx builder.
-#     1. ``production_build``: a boolean. True if used in the
-#        ``make publish`` production routine.
+# The items in the ``sphinx`` list are the name of the sphinx builder.
 #
-#    (target, production_build),
-    ('dirhtml', True),
-    ('singlehtml', True),
-    ('latex', True),
-    ('epub', True),
-    ('html', False),
-    ('gettext', False),
-    ('man', False),
-    ('json', False),
-    ('changes', False),
-    ('doctest', False),
-    ('linkcheck', False),
-    ('draft-html', False),
-    ('draft-latex', False),
+    'dirhtml',
+    'singlehtml',
+    'latex',
+    'epub',
+    'html',
+    'gettext',
+    'man',
+    'json',
+    'changes',
+    'doctest',
+    'linkcheck',
+    'draft-html',
+    'draft-latex',
 ]
 
 install_guides = [

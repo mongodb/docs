@@ -17,6 +17,7 @@ def build_all_error_pages(error_pages):
         m.append_var(variable='ERROR_PAGES',
                      value=build,
                      block='page')
+        m.target(target=dep, dependency='$(branch-output)/dirhtml', block='page')
         m.target(target=build, dependency=dep, block='page')
         m.job('sed $(SED_ARGS_FILE) "s@\.\./\.\./@http://docs.mongodb.org/manual/@" $@', 
               block='page')
