@@ -33,7 +33,6 @@ version = '1.0'
 release = version
 pygments_style = 'sphinx'
 
-
 # -- Options for HTML output ---------------------------------------------------
 
 html_theme = '10gen'
@@ -47,54 +46,32 @@ html_use_modindex = False
 html_show_sourcelink = False
 htmlhelp_basename = 'MongoDBdoc'
 
+html_theme_options = {}
+latex_documents = []
+
+# -- Conditional Output --------------------------------------------------------
+
 if tags.has('hosted'): 
     project = u'Hosted MongoDB Monitoring Service (MMS)'
     html_title = 'Hosted MMS Manual'
     html_short_title = 'Hosted MMS'
-    html_theme_options = {'edition': 'hosted'}
+    html_theme_options['edition'] = 'hosted'
+    latex_documents.append(('index', 'mms.tex', u'Hosted MongoDB Monitoring Service (MMS) Manual', u'10gen, Inc.', 'manual'))
 else:
     project = u'MongoDB Monitoring Service (MMS)'
     html_title = 'MMS Manual'
     html_short_title = 'MMS'
-    html_theme_options = {'edition': 'saas'}
-
+    html_theme_options['edition'] = 'saas'
+    latex_documents.append(('index', 'mms.tex', u'MongoDB Monitoring Service (MMS) Manual', u'10gen, Inc.', 'manual'))
 
 # -- Options for LaTeX output --------------------------------------------------
 
-if tags.has('hosted'): 
-    latex_documents = [
-        ('index', 'mms.tex', u'Hosted MongoDB Monitoring Service (MMS) Manual', u'10gen, Inc. Technical Writing Team', 'manual'),
-    ]
-else:
-    latex_documents = [
-        ('index', 'mms.tex', u'MongoDB Monitoring Service (MMS) Manual', u'10gen, Inc. Technical Writing Team', 'manual'),
-    ]
-
-# The paper size ('letter' or 'a4').
-#latex_paper_size = 'letter'
-
-# The font size ('10pt', '11pt' or '12pt').
-#latex_font_size = '10pt'
-
-# Grouping the document tree into LaTeX files. List of tuples
-# (source start file, target name, title, author, documentclass [howto/manual]).
-
-# The name of an image file (relative to this directory) to place at the top of
-# the title page.
-#latex_logo = None
-
-# For "manual" documents, if this is true, then toplevel headings are parts,
-# not chapters.
-#latex_use_parts = False
-
-# Additional stuff for the LaTeX preamble.
-#latex_preamble = ''
-
-# Documents to append as an appendix to all manuals.
-#latex_appendices = []
-
-# If false, no module index is generated.
-#latex_use_modindex = True
+latex_paper_size = 'letter' # ('letter' or 'a4').
+latex_font_size = '10pt' # ('10pt', '11pt' or '12pt').
+latex_logo = None
+latex_preamble = ''
+latex_use_parts = False
+latex_use_modindex = False
 
 # Example configuration for intersphinx: refer to the Python standard library.
 

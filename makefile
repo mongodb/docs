@@ -1,7 +1,6 @@
-# Makefile for MMS Sphinx documentation
-
 ######### makefile set up, includes, and generation ###########
 MAKEFLAGS += -r -j --no-print-directory
+.DEFAULT_GOAL = all
 output = build
 
 include bin/makefile.push
@@ -38,7 +37,7 @@ endif
 .PHONY: help hosted saas test publish
 help:
 	@echo "Please use \`make <target>' where <target> is one of:"
-	@echo "	 all            to stage the all mms documents."
+	@echo "	 all            to stage the all mms documents. (default.)"
 	@echo "	 hosted         to stage the mms-hosted documents."
 	@echo "	 saas           to stage the mms saas version documents."
 	@echo "	 push           to stage and deploy all mmms documents."
@@ -54,11 +53,6 @@ saas:
 	@$(MAKE) EDITION=$@ html publish
 	@echo [build]: $@ edition complete
 
-$(public-output)/current:$(public-output)
-	@ln -s $(primary-branch)
-	@mv $(primary-branch) $@
-	@echo [build]: created and migrated $@
-
 ########## dependency lists ##########
 
 HTML_OUTPUT = $(publish-output)/ $(publish-output)/single/ $(publish-output)/single/genindex.html
@@ -71,6 +65,10 @@ publish:$(publish-output) $(publish-dependency)
 $(public-output):
 	@mkdir -p $@
 	@echo [build]: created $@
+$(public-output)/current:$(public-output)
+	@ln -s $(primary-branch)
+	@mv $(primary-branch) $@
+	@echo [build]: created and migrated $@
 $(publish-output)/:$(branch-output)/html/
 	@mkdir -p $@
 	@echo [build]: created $@.
@@ -95,7 +93,6 @@ $(branch-output)/singlehtml/:singlehtml
 ########## pdf migration ##########
 
 pdflatex-command = TEXINPUTS=".:$(branch-output)/latex/:" pdflatex --interaction batchmode --output-directory $(branch-output)/latex/ $(LATEXOPTS)
-
 $(branch-output)/latex/mms.tex:latex 
 $(branch-output)/latex/mms-manual.pdf:$(branch-output)/latex/mms-manual.tex
 $(branch-output)/latex/mms-manual.tex:$(branch-output)/latex/mms.tex
@@ -115,7 +112,6 @@ $(branch-output)/latex/mms-manual.tex:$(branch-output)/latex/mms.tex
 	@echo [pdf]: see '$(basename $@)-pdflatex.log' for a full report of the pdf build process.
 	@echo [pdf]: pdf compilation of $@, complete at `date`.
 
-###################################
-
+########## system #########################
 clean:
 	-rm -rf $(output)/*
