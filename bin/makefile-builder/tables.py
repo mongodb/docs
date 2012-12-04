@@ -24,7 +24,7 @@ def build_all_tables(tables):
     m.msg('[tables]: clensing git index of compiled tables', block='footer')
     m.newline(block='footer')
     m.target('clean-tables', block='footer')
-    m.job('rm -rf $(output-tables)', True)
+    m.job('rm -rf $(output-tables)', ignore=True, display=True)
 
 def makefile_table(name, block):
     m.append_var('output-tables', name + '.rst', block)
