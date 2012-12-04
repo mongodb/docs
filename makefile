@@ -7,7 +7,7 @@ include bin/makefile.push
 include bin/makefile.compatibility
 -include $(output)/makefile.sphinx
 
-$(output)/makefile.%:bin/%.py bin/makefile_builder.py bin/builder_data.py
+$(output)/makefile.%:bin/%.py bin/makefile_builder.py bin/builder_data.py $(output)
 	@$(PYTHONBIN) bin/$(subst .,,$(suffix $@)).py $@
 
 ########## build system configuration and variables ##########
@@ -62,7 +62,7 @@ publish:$(publish-output) $(publish-dependency)
 
 ########## html migration ##########
 
-$(public-output):
+$(public-output) $(output):
 	@mkdir -p $@
 	@echo [build]: created $@
 $(public-output)/current:$(public-output)
