@@ -37,7 +37,6 @@ endif
 ########## interaction and control ##########
 .PHONY: help hosted saas test publish
 help:
-	@echo "HELP TEXT OUT OF DATE"
 	@echo "Please use \`make <target>' where <target> is one of:"
 	@echo "	 all            to stage the all mms documents."
 	@echo "	 hosted         to stage the mms-hosted documents."
