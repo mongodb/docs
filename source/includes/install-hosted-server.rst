@@ -7,13 +7,15 @@ Requirements
 To run the Hosted MMS server, you must use a 64-bit server, with the
 following minimum requirements:
 
-- an AWS EC2 Standard Extra Large  (m1.xlarge - 15 GB), with
+- an AWS EC2 Standard Extra Large (i.e. m1.xlarge) or a server with 15
+  GB of RAM and 4 CPU cores, with
 
-- a 200 GB EBS Provisioned IOPS volume with 500 provisioned IOPS.
+- a 200 GB EBS Provisioned IOPS volume with 500 provisioned IOPS, or
+  equivalent. 
 
-This infrastructure can support up to 500 hosts: if your MongoDB
-deployment has more than 500 instances, for best results, your hosted
-MMS instance will require SAD-backed storage.
+This infrastructure can support up to 400 hosts: if your MongoDB
+deployment has more than 400 instances, for best results, your hosted
+MMS instance will require SSD-backed storage.
 
 These installation instructions assume you are deploying on an
 instance running Red Hat, CentOS, Fedora or Amazon Linux.
