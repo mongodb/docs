@@ -24,12 +24,12 @@ def build_all_tables(tables):
     m.msg('[tables]: clensing git index of compiled tables', block='footer')
     m.newline(block='footer')
     m.target('clean-tables', block='footer')
-    m.job('rm -rf $(output-tables)', ignore=True, display=True)
+    m.job('rm -rf $(output-tables)', display=False, ignore=True, block='footer')
 
 def makefile_table(name, block):
     m.append_var('output-tables', name + '.rst', block)
     m.target(name  + '.rst', name + '.yaml' , block)
-    m.job('$(PYTHONBIN) bin/table_builder.py $< $@', block)
+    m.job('$(PYTHONBIN) bin/table_builder.py $< $@', display=False, ignore=False, block=block)
     m.msg('[table-builder]: \(re\)generate $@ table for inclusion in build', block)
     m.newline(block=block)
 

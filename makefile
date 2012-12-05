@@ -161,6 +161,8 @@ $(manpages):man
 $(branch-output)/man/%.1.gz: $(branch-output)/man/%.1
 	@gzip $< -c > $@
 	@echo [man]: compressing $< -- $@
-$(branch-output)/manpages.tar.gz:$(manpages)
-	@tar -C $(branch-output)/ --transform=s/man/mongodb-manpages/ -czvf $@ $(subst $(branch-output)/,,$(manpages)) 
+$(branch-output)/manpages.tar.gz:man
+	@touch $@.log
+	@tar -C $(branch-output)/ --transform=s/man/mongodb-manpages/ \
+             -czvf $@ $(subst $(branch-output)/,,$(manpages)) >> $@.log
 	@echo [man]: created $@ archive of all manpages
