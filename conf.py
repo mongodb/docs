@@ -221,7 +221,6 @@ man_pages = [
     ('reference/mongosniff', 'mongosniff', u'MongoDB', [u'MongoDB Documentation Project'], 1),
     ('reference/mongotop', 'mongotop', u'MongoDB', [u'MongoDB Documentation Project'], 1),
     ('reference/configuration-options', 'mongodb-config', u'MongoDB', [u'MongoDB Documentation Project'], 1),
-    ('contents', 'mongodb', u'MongoDB Manual', [u'MongoDB Documentation Project'], 1),
 ]
 
 

@@ -155,9 +155,12 @@ $(public-output).%.tar.gz:$(public-output)
 .PHONY:$(manpages)
 manpages := $(wildcard $(branch-output)/man/*.1)
 compressed-manpages := $(subst .1,.1.gz,$(manpages))
-manpages:$(compressed-manpages)
+manpages:$(compressed-manpages) $(branch-output)/manpages.tar.gz
 $(compressed-manpages):$(manpages)
 $(manpages):man
 $(branch-output)/man/%.1.gz: $(branch-output)/man/%.1
 	@gzip $< -c > $@
-	@echo [man] compressing $< -- $@
+	@echo [man]: compressing $< -- $@
+$(branch-output)/manpages.tar.gz:$(manpages)
+	@tar -C $(branch-output)/ --transform=s/man/mongodb-manpages/ -czvf $@ $(subst $(branch-output)/,,$(manpages)) 
+	@echo [man]: created $@ archive of all manpages
