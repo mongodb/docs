@@ -11,10 +11,10 @@ following minimum requirements:
   GB of RAM and 4 CPU cores, with
 
 - a 200 GB EBS Provisioned IOPS volume with 500 provisioned IOPS, or
-  equivalent. 
+  equivalent.
 
-This infrastructure can support up to 400 hosts: if your MongoDB
-deployment has more than 400 instances, for best results, your hosted
+This infrastructure can support up to 400 hosts. If your MongoDB
+deployment has more than 400 instances, for the best results your hosted
 MMS instance will require SSD-backed storage.
 
 These installation instructions assume you are deploying on an

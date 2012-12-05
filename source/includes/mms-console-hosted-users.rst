@@ -7,7 +7,7 @@ console.
 .. note::
 
    With a self-hosted MMS installation, user accounts and groups are
-   independent from JIRA. This is by contrast to the `MMS SaaS
+   independent from JIRA. This is in contrast to the `MMS SaaS
    provided by 10gen <http://mms.10gen.com>`_, which shares account
    and group information with the `MongoDB JIRA
    <http://jira.mongodb.org/>`_ instance.

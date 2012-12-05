@@ -5,7 +5,7 @@ management systems. In the "Admins" section of the MMS console, click
 on the plus (``+``) icon next to your account name and enter the Jira
 username in the dialogue.
 
-If you're not sure if your user has a Jira account, or if you do not
+If you are not sure if your user has a Jira account, or if you do not
 know their username, you can enter their email address in the dialogue
 box. If the console finds a connected account, MMS will automatically
 add the user to your Jira group and the MMS console.
