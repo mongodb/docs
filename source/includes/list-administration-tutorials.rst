@@ -1,13 +1,3 @@
-Installation
-~~~~~~~~~~~~
-
-- :doc:`/tutorial/install-mongodb-on-linux`
-- :doc:`/tutorial/install-mongodb-on-red-hat-centos-or-fedora-linux`
-- :doc:`/tutorial/install-mongodb-on-debian`
-- :doc:`/tutorial/install-mongodb-on-ubuntu`
-- :doc:`/tutorial/install-mongodb-on-os-x`
-- :doc:`/tutorial/install-mongodb-on-windows`
-
 Replica Sets
 ~~~~~~~~~~~~
 
