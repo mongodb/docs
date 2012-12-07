@@ -65,8 +65,8 @@ practically, and not just theoretically, functional.
 Production Considerations for Backup Strategies
 -----------------------------------------------
 
-When evaluating a backup strategy for your node consider the following
-factors:
+When evaluating a backup strategy for your MongoDB deployment consider
+the following factors:
 
 - Geography. Ensure that you move some backups away from the your
   primary database infrastructure. It's important to be able to
@@ -81,7 +81,7 @@ factors:
   time of the backup schedule relative to peak usage and maintenance
   windows.
 
-- System capabilities. In order to use some of the block-level
+- System capabilities. Some of the block-level
   snapshot tools requires special support on the operating-system or
   infrastructure level.
 
@@ -149,11 +149,11 @@ Snapshots have the following limitations:
   files, journal (if applicable), and configuration on one logical
   disk that doesn't contain any other data.
 
-  Alternately, store all MongoDB data files on a dedicated device to
+  Alternately, store all MongoDB data files on a dedicated device
   so that you can make backups without duplicating extraneous data.
 
 - Ensure that you copy data from snapshots and onto other systems to
-  ensure that data is safe from site-failures.
+  ensure that data is safe from site failures.
 
 .. _backup-with-journaling:
 
@@ -168,7 +168,7 @@ volume/block level snapshot tool to create backups.
 
    .. versionchanged:: 1.9.2
 
-   Journaling is only enabled by default  on 64-bit builds of
+   Journaling is only enabled by default on 64-bit builds of
    MongoDB.
 
    To enable journaling on all other builds, specify
@@ -229,7 +229,7 @@ current state of ``/dev/vg0/mongodb`` and the creation of the snapshot
    data growth, particularly for the period of time that it takes to copy
    data out of the system or to a temporary image.
 
-   If you your snapshot runs out of space, the snapshot image
+   If your snapshot runs out of space, the snapshot image
    becomes unusable. Discard this logical volume and create another.
 
 The snapshot will exist when the command returns. You can restore
@@ -342,10 +342,12 @@ Backup Without Journaling
 
 If your :program:`mongod` instance does not run with journaling
 enabled, or if your journal is on a separate volume, obtaining a
-functional backup of a consistent state is more complicated. As described in this section, you must flush all
+functional backup of a consistent state is more complicated.
+As described in this section, you must flush all
 writes to disk and lock the database to prevent writes during the
-backup process. If you have a :term:`replica set` configuration, then for your backup, use a
-:term:`secondary` that is not receiving reads (i.e. :term:`hidden
+backup process. If you have a :term:`replica set` configuration,
+then for your backup use a
+:term:`secondary` which is not receiving reads (i.e. :term:`hidden
 member`).
 
 1. To flush writes to disk and to "lock" the database (to prevent
@@ -368,7 +370,7 @@ member`).
    .. note::
 
       .. versionchanged:: 2.0
-         In 2.0 added :method:`db.fsyncLock()` and
+         MongoDB 2.0 added :method:`db.fsyncLock()` and
          :method:`db.fsyncUnlock()` helpers to the :program:`mongo`
          shell.  Prior to this version, use the :dbcommand:`fsync`
          command with the ``lock`` option, as follows:
@@ -427,8 +429,8 @@ Database Dump with :program:`mongodump`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The :program:`mongodump` utility can perform a live backup of data or
-can work against an inactive set of database
-files. The :program:`mongodump` utility can create a dump for an entire
+can work against an inactive set of database files.
+The :program:`mongodump` utility can create a dump for an entire
 server/database/collection (or part of a collection using of query),
 even when the database is running and active. If you run
 :program:`mongodump` without any arguments, the command connects to
@@ -446,13 +448,13 @@ specify :option:`--database <mongodump --database>` and
 
    mongodump --collection collection --db test
 
-This command creates a dump of the database in the ``dump/``
-directory of the collection named ``collection`` in the database named
-``test``.
+This command creates a dump of the collection named ``collection``
+from the database ``test`` in a :file:`dump/` subdirectory of the current
+working directory.
 
-Use :option:`--oplog <mongodump --oplog>` option with
+Use the :option:`--oplog <mongodump --oplog>` option with
 :program:`mongodump` to collect the :term:`oplog` entries to build a
-point-in-time snapshot of the database. With :option:`--oplog
+point-in-time snapshot of a database within a replica set. With :option:`--oplog
 <mongodump --oplog>`, :program:`mongodump` copies all the data from
 the source database as well as all of the :term:`oplog` entries from
 the beginning of the backup procedure to until the backup procedure
@@ -497,9 +499,9 @@ The :program:`mongorestore` utility restores a binary backup created by
    mongorestore dump-2011-10-25/
 
 Here, :program:`mongorestore` imports the database backup located in
-the ``dump-2011-10-25`` directory to the :program:`mongod` instance
+the :file:`dump-2011-10-25` directory to the :program:`mongod` instance
 running on the localhost interface. By default, :program:`mongorestore`
-looks for a database dump in the ``dump/`` directory and restores
+looks for a database dump in the :file:`dump/` directory and restores
 that. If you wish to restore to a non-default host, the
 :option:`--host <mongorestore --host>` and :option:`--port <mongorestore --port>`
 options allow you to specify a non-local host to connect to capture
@@ -535,7 +537,7 @@ following example:
    mongorestore --filter '{"field": 1}'
 
 Here, :program:`mongorestore` only adds documents to the database from
-the dump located in the ``dump/`` folder *if* the documents have a
+the dump located in the :file:`dump/` folder *if* the documents have a
 field name ``field`` that holds a value of ``1``. Enclose the
 filter in single quotes (e.g. ``'``) to prevent the filter from
 interacting with your shell environment.
@@ -545,7 +547,8 @@ interacting with your shell environment.
    mongorestore --dbpath /srv/mongodb --journal
 
 Here, :program:`mongorestore` restores the database dump located in
-``dump/`` folder into the data files located at ``/srv/mongodb``. Additionally,
+:file:`dump/` folder into the data files located at :file:`/srv/mongodb`.
+Additionally,
 the :option:`--journal <mongorestore --journal>` option ensures that
 :program:`mongorestore` records all operation in the durability
 :term:`journal`. The journal prevents data file corruption if anything
@@ -624,8 +627,8 @@ In both cases:
 
 This procedure describes both approaches:
 
-1. Disable the :term:`balancer` process that equalizes the
-   distribution of data among the :term:`shards <shard>`. To disable
+1. Disable the :term:`balancer` process that balances
+   data among the :term:`shards <shard>`. To disable
    the balancer, use the :method:`sh.stopBalancer()` method in the
    :program:`mongo` shell, and see the
    :ref:`sharding-balancing-disable-temporally` procedure.
@@ -637,7 +640,7 @@ This procedure describes both approaches:
       could have duplicate data or miss some data, as :term:`chunks
       <chunk>` migrate while recording backups.
 
-#. Lock one member of each replica set in shard so that your backups reflect your
+#. Lock one member of each replica set in each shard so that your backups reflect your
    entire database system at a single point in time. Lock all shards
    in as short of an interval as possible.
 
