@@ -34,7 +34,7 @@ build-meta += -t saas
 endif
 
 ########## interaction and control ##########
-.PHONY: help hosted saas test publish
+.PHONY: help hosted saas publish all
 help:
 	@echo "Please use \`make <target>' where <target> is one of:"
 	@echo "	 all            to stage the all mms documents. (default.)"
@@ -79,12 +79,17 @@ $(publish-output)/single/:$(branch-output)/singlehtml/
 	@echo [build]: created $@.
 	@cp -R $<* $@
 	@echo [build]: migrated $@
-	@sed $(SED_ARGS_FILE) -e 's/id="searchbox"/id="display-none"/g' -e 's/id="editions"/id="display-none"/g' $(publish-output)/single/index.html
+	@sed $(SED_ARGS_FILE) -e 's/id="searchbox"/id="display-none"/g' \
+			      -e 's/id="editions"/id="display-none"/g' $(publish-output)/single/index.html
 	@echo [build]: processed $@ content.
 $(publish-output)/single/genindex.html:$(publish-output)/single/ $(branch-output)/html/
 	@cp $(branch-output)/html/genindex.html $@
 	@echo [build]: migrated $@
-	@sed $(SED_ARGS_FILE) -e 's@(<dt><a href=").*html#@\1./index.html#@' -e 's@(class="toctree-l1"><a class="reference internal" href=")(.*).html@\1../\2.html@' -e 's/id="searchbox"/id="display-none"/g' -e 's/id="navigation"/id="display-none"/g' -e 's/id="editions"/id="display-none"/g' $@
+	@sed $(SED_ARGS_FILE) -e 's@(<dt><a href=").*html#@\1./index.html#@' \
+			      -e 's@(class="toctree-l1"><a class="reference internal" href=")(.*).html@\1../\2.html@' \
+			      -e 's/id="searchbox"/id="display-none"/g' \
+			      -e 's/id="navigation"/id="display-none"/g' \
+			      -e 's/id="editions"/id="display-none"/g' $@
 	@echo [build]: processed $@ content.
 $(branch-output)/html/genindex.html:$(branch-output)/html/
 $(branch-output)/html/:html 
