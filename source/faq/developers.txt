@@ -533,31 +533,44 @@ driver <>`.
 How do I isolate cursors from intervening write operations?
 -----------------------------------------------------------
 
-During the lifetime of the cursor, an intervening write operation can
-result in a move of the document due to the growth in document size.
-This may cause the cursor to return the document more than once. To
-prevent this from happening, you can use the :method:`snapshot()
-<cursor.snapshot()>` method.
+MongoDB cursors can return the same document more than once in some
+situations. [#duplicate-document-in-result-set]_ You can use the
+:method:`snapshot() <cursor.snapshot()>` method on a cursor to isolate
+the operation for a very specific case.
 
-The :method:`snapshot() <cursor.snapshot()>` method traverses the index
-on the ``_id`` field. As such, :method:`snapshot() <cursor.snapshot()>`
-**cannot** be used with :method:`sort() <cursor.sort()>` or
-:method:`hint() <cursor.hint()>`. 
+:method:`snapshot() <cursor.snapshot()>` traverses the
+index on the ``_id`` field and guarantees that the query will return
+each document (with respect to the value of the ``_id`` field) no more
+than once. [#id-is-immutable]_ 
 
-The :method:`snapshot() <cursor.snapshot()>` does not guarantee
-isolation from insertion or deletions.
+The :method:`snapshot() <cursor.snapshot()>` does not guarantee that
+the data returned by the query will reflect a single moment in time
+*nor* does it provide isolation from insert or delete operations.. 
 
 .. warning::
 
-   You can only use :method:`snapshot() <cursor.snapshot()>` with
-   **unsharded** collections.
+   You **cannot** use :method:`snapshot() <cursor.snapshot()>` with
+   :term:`sharded collections <sharding>`.
 
-Alternatively, if there are field or fields that are never modified,
-you can use a *unique* index on this field or these fields to achieve
-the same effect as the :method:`snapshot() <cursor.snapshot()>`. Query
-with :method:`hint() <cursor.hint()>` to explicitly force the use of
-that index.
+   You **cannot** use :method:`snapshot() <cursor.snapshot()>` with
+   :method:`sort() <cursor.sort()>` or :method:`hint()
+   <cursor.hint()>` cursor methods.
 
-If you want to use a non-unique index on field(s) that will not be
-modified, you can create a unique index by including the ``_id`` field
-to the index fields.
+
+As an alternative, if your collection has a field or fields that are
+never modified, you can use a *unique* index on this field or these
+fields to achieve a similar result as the :method:`snapshot()
+<cursor.snapshot()>`. Query with :method:`hint() <cursor.hint()>` to
+explicitly force the query to use that index.
+
+.. [#duplicate-document-in-result-set] As a cursor returns documents other
+   operations may interleave with the query: if some of these
+   operations are :doc:`updates </applications/update>` that cause the
+   document to move (in the case of a table scan, caused by document
+   growth,) or that change the indexed field on the index used by the
+   query; then the cursor will return the same document more than
+   once.
+   
+.. [#id-is-immutable] MongoDB does permit changes to the value of the
+   ``_id`` field, it is not possible for a cursor that transverses
+   this index to pass the same document more than once.
