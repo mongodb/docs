@@ -11,44 +11,57 @@ This section describes techniques for optimizing database performance.
 Use Indexes
 -----------
 
-For a regularly issued query, create an index on the query's fields so
-that MongoDB searches the index, not the collection. Searching an index
-is much faster than searching a collection.
+For a regularly issued query, create an index based on the query's
+fields so that when you issue the query MongoDB can scan through the
+documents on the index instead of those in the collection. Searching an
+index is much faster than searching a collection. Documents on an index
+are smaller, easier to parse, and already ordered.
 
-For example, if you have a ``posts`` database containing blog posts, and if
-you regularly issue a query that sorts on the ``timestamp`` field:
+.. example:: If you have a ``posts`` collection containing blog posts,
+   and if you regularly issue a query that sorts on the ``author_name``
+   field, then you can optimize the query by creating an index on the
+   ``author_name`` field:
 
-.. code-block:: javascript
+   .. code-block:: javascript
 
-   db.posts.find().sort( { timestamp : -1 } )
+      db.posts.ensureIndex( { author_name : 1 } )
 
-Then your first optimization should be to create an index on the key
-used for the sorting:
+Indexes are pre-sorted, so also improve efficiency on queries that routinely
+sort on a given field.
 
-.. code-block:: javascript
+.. example:: If in your ``posts`` collection you regularly issue a query
+   that sorts on the ``timestamp`` field:
 
-   db.posts.ensureIndex( { timestamp : 1 } )
+   .. code-block:: javascript
 
-With the new index, MongoDB can sort based on index information, rather than by accessing
-each document in the collection directly.
+      db.posts.find().sort( { timestamp : -1 } )
+
+   Then you can optimize the query by creating an index on the
+   ``timestamp`` field:
+
+   .. code-block:: javascript
+
+      db.posts.ensureIndex( { timestamp : 1 } )
+
+A single query can use only one index. If you commonly query on a
+combination of fields, create a :ref:`compound index
+<index-type-compound>`.
 
 Indexes speed performance for any field that is part of the query
 specification, including fields used by :doc:`aggregation operators
 </reference/simple-aggregation>`.
-
-For more information on using indexes to improve performance, see
-:ref:`indexes-create-to-match-queries`.
 
 Limit Results
 -------------
 
 MongoDB :term:`cursors <cursor>` return results in groups of multiple
 documents. If you know the number of results you want, you can reduce
-the demand on network and database resources by issuing the
-:method:`cursor.limit()` method.
+the demand on network resources by issuing the :method:`cursor.limit()`
+method.
 
-For example, if you need only 10 results from your previous query to the
-``posts`` database, you would issue the following command:
+This is typically used in conjunction with sort operations. For example,
+if you need only 10 results from your query to the ``posts``
+database, you would issue the follOwing command:
 
 .. code-block:: javascript
 
@@ -59,12 +72,12 @@ For more information on limiting results, see :method:`cursor.limit()`
 Use Projections to Return Only Necessary Data
 ---------------------------------------------
 
-When you need only certain fields from documents, you can achieve better
+When you need only a subset of fiElds from documents, you can achieve better
 performance by returning only the fields you need:
 
-For example, if in your previous query to the ``posts`` database, you
-need only the ``timestamp``, ``title``, ``author``, and ``abstract``
-fields, you would issue the following command:
+For example, if in your query to the ``posts`` database, you need only
+the ``timestamp``, ``title``, ``author``, and ``abstract`` fields, you
+would issue the following command:
 
 .. code-block:: javascript
 
@@ -79,28 +92,31 @@ Use the Database Profiler to Evaluate Performance
 .. todo Add link below to Database Profiler when that doc is migrated.
    The link below to `database-profiling` is NOT the link to the DP doc.
 
-MongoDB includes a database profiler that shows performance
+MongoDB provides a :doc:`database profiler </tutorial/manage-the-database-profiler>` that shows performance
 characteristics of each operation against the database. Use the profiler
 to locate any queries or write operations that are running slow. You can
 used this information, for example, to determine what indexes to create.
 
-For more information, see :ref:`database-profiling`.
+For more information, see :doc:`/tutorial/manage-the-database-profiler`
+and :ref:`database-profiling`.
 
-Use :method:`db.currentOp()` to Evaluate Performance
-----------------------------------------------------
+Use db.currentOp() to Evaluate Performance
+------------------------------------------
 
 The :method:`db.currentOp()` method reports on current operations
 running on a :program:`mongod` instance. For more information, see
 :doc:`/reference/current-op`.
 
-Use :operator:`explain <$explain>` to Evaluate Performance
-----------------------------------------------------------
+Use $explain to Evaluate Performance
+------------------------------------
 
-Use :method:`explain <cursor.explain()>` to get more information on the
-performance of your queries.
+Use :method:`explain <cursor.explain()>` to to return statistics on the
+query, including what index MongoDB selected to fulfill the query.
 
-Use :operator:`hint <$hint>` to Select a Particular Index
----------------------------------------------------------
+.. todo Link to Kay's new explain doc
+
+Use $hint to Select a Particular Index
+--------------------------------------
 
 In most cases the :ref:`query optimizer
 <read-operations-query-optimization>` selects the best index. But
@@ -116,6 +132,12 @@ Use MongoDB's :operator:`$inc` operator to increment fields. The
 operator increments fields on the server side, which can be much faster
 than updating a document on the client side.
 
+Typically, these operations are also fast because they don't require:
+
+- Sending data between the clients.
+
+- Moving the record in the data store.
+
 Perform Server Side Code Execution
 ----------------------------------
 
@@ -128,8 +150,8 @@ Use Capped Collections
 
 :doc:`/core/capped-collections` are circular fixed-size collections that
 keep documents well-ordered, even without the use of an index. This
-means that capped collections can receive very high-speed reads and
-writes.
+means that capped collections can receive very high-speed writes and
+sequential reads.
 
 These collections are particularly useful for keeping log files but are
 not limited to that purpose. Use capped collections where appropriate.
@@ -140,4 +162,5 @@ Use Natural Order
 To return documents in the order they exist on disk, use the
 :operator:`$natural` operator. :term:`Natural order <natural order>`
 does not use indexes but can be fast for operations where the first or
-last items on disk are required.
+last items on disk are required, particularly to operations on capped
+collections.
