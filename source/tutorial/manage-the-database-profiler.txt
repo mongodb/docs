@@ -1,0 +1,253 @@
+==========================================
+Analyze Performance of Database Operations
+==========================================
+
+.. default-domain:: mongodb
+
+To analyze the performance of database operations use the database
+profiler, as described here.
+
+The database profiler logs information about database operations and
+stores the information in the ``system.profile`` collection, which is a
+:term:`capped collection`. The profiler stores information about read
+and write operations, cursor operations, and database commands.
+
+You can enable database profiling on a per-database basis. By default,
+profiling is disabled for a database. When you enable profiling you also
+set the level of operations logged. Profiling information is recorded in
+the ``system.profile`` collection.
+
+For related information, see:
+
+- :doc:`/reference/database-profiler`
+- :doc:`Profile Command </reference/command/profile>`
+- :doc:`/reference/current-op`
+
+.. _database-profiling-levels:
+
+Profiling Levels
+----------------
+
+The following profiling levels are available:
+
+- ``0`` - Off. Profiling is disabled.
+
+- ``1`` - Log operations slow operations. By default slow operations are
+  those slower than 100 milliseconds. You can modify this value.
+
+- ``2`` - Log all database operations.
+
+.. _database-profiling-enable-profiling:
+
+Enable Database Profiling and Set the Log Level
+-----------------------------------------------
+
+You can enable database profiling from the :program:`mongod` shell or
+through a driver using the :dbcommand:`profile` command. This section
+will describe how to do so from the :program:`mongod` shell. To do so
+from a driver, see the :doc:`driver documentation
+</applications/drivers>` for your driver.
+
+When you enable profiling, you also set the :ref:`log level
+<database-profiling-levels>`. Profiling information is recorded in the
+``system.profile`` collection, which MongoDB creates the first time you
+enable profiling in a database.
+
+To enable profiling and set the log level, issue the
+:method:`db.setProfilingLevel()` command, passing the log level as a
+parameter. For example, to enable profiling for all database operations,
+issue the following from the :program:`mongod` shell:
+
+.. code-block:: javascript
+
+   db.setProfilingLevel(2)
+
+The shell returns a document showing the *previous* level of profiling.
+The ``"ok" : 1`` key-value pair indicates the operation succeeded:
+
+.. code-block:: javascript
+
+   { "was" : 0, "slowms" : 100, "ok" : 1 }
+
+To verify the new setting, see :ref:`database-profiling-view-status`.
+
+Specify the Threshold for Slow Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you set the log level to ``1``, the database profiler logs only
+those operations that are slower than the default threshold of 100
+milliseconds. To change this default, issue two parameters the
+:method:`db.setProfilingLevel()` command: the first is the log level
+``1`` and the second is the time in milliseconds at which an operation
+is considered slow.
+
+For example, to log operations that are slower than 20 milliseconds
+issue the following from the :program:`mongod` shell:
+
+.. code-block:: javascript
+
+   db.setProfilingLevel(1,20)
+
+To verify the new setting, see :ref:`database-profiling-view-status`.
+
+.. _database-profiling-view-status:
+
+View Profiling Level
+~~~~~~~~~~~~~~~~~~~~
+
+To view the :ref:`profiling level <database-profiling-levels>`, issue
+the following from the :program:`mongod` shell.
+
+.. code-block:: javascript
+
+   db.getProfilingStatus()
+
+The shell returns a document similar to the following:
+
+.. code-block:: javascript
+
+   { "was" : 0, "slowms" : 100 }
+
+The ``was`` field indicates the current level of profiling.
+
+The ``slowms`` field indicates the length of time in milliseconds an
+operation must take before it is considered slow. Operations that take
+longer than this threshold are logged by the database profiler if the
+profiling level is ``1``, as shown in the ``was`` field. For an
+explanation of log levels, see :ref:`database-profiling-levels`.
+
+Disable Profiling
+~~~~~~~~~~~~~~~~~
+
+To disable profiling, issue the following from the :program:`mongod`
+shell.
+
+.. code-block:: javascript
+
+   db.setProfilingLevel(0)
+
+Enable Profiling for an Entire :program:`mongod` Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can also enable database profiling for an entire :program:`mongod` instance.
+The level will apply to all databases in the instance.
+
+To enable profiling for a :program:`mongod` instance, issue a command
+similar to the following from the command line or within the MongoDB
+:doc:`configuration file </reference/configuration-options>`:
+
+.. code-block:: sh
+
+   mongod --profile=1 --slowms=15
+
+Database Profiling and Sharding
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You *cannot* enable sharding on a :program:`mongos` instance. To enable
+profiling in a shard cluster, you must enable profiling for each
+:program:`mongod` instance in the cluster.
+
+View Profiler Data
+------------------
+
+The database profiler logs information about database operations in the
+``system.profile`` collection.
+
+To view log information, query the ``system.profile`` collection. To
+view example queries, see :ref:`database-profiling-example-queries`
+
+For an explanation of the output data, see
+:doc:`/reference/database-profiler`.
+
+Show the Five Most Recent Events
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``show profile`` helper displays the 5 most recent
+operations that took at least 1 millisecond to execute. 
+
+To display these operations, issue ``show profile`` from the :program:`mongo` shell:
+
+.. code-block:: javascript
+
+   show profile
+
+.. _database-profiling-example-queries:
+
+Example Profiler Data Queries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This section displays example queries to the ``system.profile`` collection.
+
+To view the most recent 10 log entries in the ``system.profile``
+collection, run a query similar to the following:
+
+.. code-block:: javascript
+
+   db.system.profile.find().limit(10).sort({ts:-1})
+
+To view all operations except command operations (:term:`$cmd`), run a query
+similar to the following:
+
+.. code-block:: javascript
+
+   db.system.profile.find( function() { return this.info.indexOf('$cmd')<0 } )
+
+
+To view operations for a particular collection, run a query similar to
+the following. This example views operations in the ``test`` collection:
+
+.. code-block:: javascript
+
+   db.system.profile.find( { info: /mydb.test/ } )
+
+
+To view view operations slower than ``5`` milliseconds, run a query
+similar to the following:
+
+.. code-block:: javascript
+
+   db.system.profile.find( { millis : { $gt : 5 } } )
+
+
+To view information from a certain time range, run a query similar to the following:
+
+.. code-block:: javascript
+
+   db.system.profile.find(
+   ... { ts : { $gt : new ISODate("2011-07-12T03:00:00Z") ,
+   ... $lt : new ISODate("2011-07-12T03:40:00Z") }
+   ... } )
+
+The following example looks at the time range, suppresses the ``user`` field
+from the output to make it easier to read, and sorts the results by how
+long each operation took to run:
+
+.. code-block:: javascript
+
+   db.system.profile.find(
+   ... { ts : { $gt : new ISODate("2011-07-12T03:00:00Z") ,
+   ... $lt : new ISODate("2011-07-12T03:40:00Z") }
+   ... } , { user : 0 } ).sort( { millis : -1 } )
+
+Profiler Overhead
+-----------------
+
+When enabled, profiling has a minor effect on performance. The
+``system.profile`` collection, which is a :term:`capped collection`, is
+set to a small size by default.
+
+You can change the size of the ``system.profile`` collection, you must
+disable profiling, drop the ``system.profile`` collection, create a new
+``system.profile`` collection, and re-enable profiling.
+
+Use a sequence of commands similar to the following:
+
+.. code-block:: javascript
+
+   db.setProfilingLevel(0)
+
+   db.system.profile.drop()
+
+   db.createCollection("system.profile", {capped:true, size:4000000})
+
+   db.setProfilingLevel(1)
