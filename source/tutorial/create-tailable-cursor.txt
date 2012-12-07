@@ -1,0 +1,254 @@
+======================
+Create Tailable Cursor
+======================
+
+.. default-domain:: mongodb
+
+Overview
+--------
+
+By default, MongoDB will automatically close a cursor if the cursor has
+been exhausted. However, with :doc:`capped collections
+</core/capped-collections>`, you can create a *Tailable Cursor* which
+remains open after the cursor has been exhausted. Similar to the Unix
+``tail -f`` command, the tailable cursor "tails" the end of a capped
+collection. After new documents are inserted into the capped
+collection, you can use the tailable cursor to continue retrieving
+documents.
+
+If you query on an indexed field, do not use tailable cursors, but
+instead, use a regular cursor. Keep track of the last value of the
+indexed field returned by the query. To retrieve the newly added
+documents, query the table again using the last value of the indexed
+field in the query criteria, as in the following example:
+
+.. code-block:: javascript
+
+   db.mycollection.find( { indexedField: { $gt: <lastvalue> } } )
+
+Use tailable cursors on capped collections with high number of write
+operations for which an index would be too expensive. For instance,
+MongoDB :doc:`replication </core/replication>` uses tailable cursors to
+tail the primary's :term:`oplog`.
+
+Consider the following behaviors related to tailable cursors:
+
+- Tailable cursors do not use indexes and return documents in
+  :term:`natural order`.
+
+- Because tailable cursors do not use indexes, the initial table scan
+  for the query may be expensive; however, subsequent retrievals of the
+  newly added documents are inexpensive.
+
+- Tailable cursors may become *dead* if either:
+
+  - the query returned no match.
+  
+  - the last returned object is at the end of the collection and is
+    deleted.
+
+  A *dead* cursor has an id of ``0``. 
+  
+See your :doc:`driver documentation </applications/drivers>` for
+driver-specific method to specify the tailable cursor as well as
+:wiki:`wire protocol <Mongo Wire Protocol>` for more information on
+wire protocols.
+
+JavaScript Example
+------------------
+
+The JavaScript example uses a tailable cursor to output the results
+from a query of a capped collection named ``myCappedCollection``:
+
+.. code-block:: javascript
+
+   var coll = db.myCappedCollection;
+
+   var startDoc = coll.find().sort( { '$natural': 1 } ).limit(1).next();
+   var lastValue = startDoc['insertDate'];
+   printjson(startDoc)
+
+   while (1) {
+
+       var cursor = coll.find( { 'insertDate' : { '$gt' : lastValue } } ).sort( { '$natural': 1 } );
+
+       cursor.addOption( 2 );
+
+       cursor.addOption( 32 );
+
+       while (1) {
+
+           if ( cursor.hasNext() ) {
+                var doc = cursor.next();
+                lastValue = doc['insertDate'];
+                printjson(doc);
+           }
+       }
+
+   }
+
+The example performs the following actions:
+
+- Query the capped collection to access the first document inserted.
+  The query specifies the ``$natural`` sort order to use the insertion
+  order for capped-collections.
+    
+- Initialize the ``lastValue`` variable to hold the last accessed value
+  of the unindexed field ``insertDate``. Newly added documents contain
+  increasing values for the ``insertDate`` field.
+
+- In an outer ``while (1)`` loop,
+
+  - Query the capped collection for documents with the field
+    ``insertDate`` greater than the ``lastValue``.
+
+  - Add the :wiki:`tailableCursor wire protocol <Mongo Wire Protocol>`
+    option to the cursor to specify that the return cursor should be a
+    tailable cursor. In the :program:`mongo` shell, protocol option is
+    ``2`` (i.e. bitwise shift of 1):
+
+    .. code-block:: javascript
+
+       cursor.addOption( 2 );
+
+    See your :doc:`driver documentation </applications/drivers>` for
+    driver-specific method to specify the tailable cursor wire protocol.
+
+  - Add the :wiki:`awaitData wire protocol <Mongo Wire Protocol>`
+    option to the cursor to specify that the cursor should block for a
+    few seconds to wait for data. In the :program:`mongo` shell, the
+    protocol is ``32`` (i.e. bitwise shift of 5):
+
+    .. code-block:: javascript
+
+       cursor.addOption( 32 );
+
+    See your :doc:`driver documentation </applications/drivers>` for
+    driver-specific method to specify the await data wire protocol.
+
+  - In an inner ``while (1)`` loop,
+
+    - If the cursor has documents,
+
+      - retrieve the document, 
+
+      - update the ``lastValue`` variable, 
+
+      - print the document,
+
+      - and loop the inner ``while (1)`` loop to recheck for more
+        documents.
+
+    - Else do nothing and repeat the inner ``while (1)`` loop to
+      recheck for more documents.
+
+C++ Example
+-----------
+
+The ``tail`` function uses a tailable cursor to output the results from
+a query of a capped collection. The function also handles the case of
+the dead cursor:
+
+.. code-block:: cpp
+
+   #include "client/dbclient.h"
+
+   using namespace mongo;
+
+   /* 
+    * Example of a tailable cursor.
+    * The function "tails" the capped collection (ns) and output elements as they are added.
+    * The function also handles the possibility of a dead cursor by tracking the field 'insertDate'.
+    * New documents are added with increasing values of 'insertDate'.
+    */
+
+   void tail(DBClientBase& conn, const char *ns) {
+
+       BSONElement lastValue = minKey.firstElement();
+
+       Query query = Query().sort("$natural"); 
+
+       while ( 1 ) {
+           auto_ptr<DBClientCursor> c =
+               conn.query(ns, query, 0, 0, 0,
+                          QueryOption_CursorTailable | QueryOption_AwaitData );
+
+           while ( 1 ) {
+               if ( !c->more() ) {
+
+                   if ( c->isDead() ) {
+                       break;
+                   }
+
+                   continue;
+               }
+
+               BSONObj o = c->next();
+               lastValue = o["insertDate"];
+               cout << o.toString() << endl;
+           }
+
+           query = QUERY( "insertDate" << GT << lastValue ).sort("$natural");
+       }
+   }
+
+The ``tail`` function performs the following actions:
+
+- Initialize the ``lastValue`` variable, which tracks the last accessed
+  value and will be used if the cursor becomes *dead* and we need to
+  requery.
+
+- Specify ``sort("$natural")`` to use the insertion order for
+  capped-collections.
+
+- In an outer ``while(1)`` loop,
+
+  - Query the capped collection and return a tailable cursor that
+    blocks for several seconds waiting for new documents
+
+    .. code-block:: cpp
+
+       auto_ptr<DBClientCursor> c = 
+            conn.query(ns, query, 0, 0, 0,
+                       QueryOption_CursorTailable | QueryOption_AwaitData );
+
+    - The capped collection is specified by ``ns`` and is an argument
+      to the function.
+
+    - The function sets the ``QueryOption_CursorTailable`` :wiki:`wire
+      protocol <Mongo Wire Protocol>` option to specify that the
+      returned cursor is a tailable cursor.
+
+    - The function sets the ``QueryOption_AwaitData`` :wiki:`wire
+      protocol <Mongo Wire Protocol>` option to specify that the
+      returned cursor should block for a few seconds to wait for data.
+
+  - In an inner ``while (1)`` loop, read the documents from the cursor:
+
+    - If the cursor has no more documents and is not dead, loop the
+      inner ``while`` loop to recheck for more documents.
+
+    - If the cursor has no more documents and is dead, break the inner
+      ``while`` loop.
+
+    - If the cursor has documents,
+      
+      - output the document,
+      
+      - update the ``lastValue`` value,
+      
+      - and loop the inner ``while (1)`` loop to recheck for more
+        documents.
+
+  - If the logic breaks out of the inner ``while (1)`` loop (i.e. the
+    cursor is dead):
+
+    - Use the ``lastValue`` value to create a new query condition that
+      matches documents added after the ``lastValue``:
+
+      .. code-block:: cpp
+
+         query = QUERY( "insertDate" << GT << lastValue ).sort("$natural");
+
+    - Loop the outer ``while (1)`` loop to re-query with the new query
+      condition and repeat.
