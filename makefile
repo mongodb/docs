@@ -56,7 +56,7 @@ saas:
 ########## dependency lists ##########
 
 HTML_OUTPUT = $(publish-output)/ $(publish-output)/single/ $(publish-output)/single/genindex.html
-PDF_OUTPUT = $(branch-output)/latex/mms-manual.pdf
+PDF_OUTPUT = $(publish-output)/mms-manual.pdf
 $(publish-output): $(HTML_OUTPUT) $(PDF_OUTPUT)
 publish:$(publish-output) $(publish-dependency)
 
@@ -95,13 +95,16 @@ $(branch-output)/html/genindex.html:$(branch-output)/html/
 $(branch-output)/html/:html 
 $(branch-output)/singlehtml/:singlehtml
 
-########## pdf migration ##########
+########## pdf generation ##########
 
 pdflatex-command = TEXINPUTS=".:$(branch-output)/latex/:" pdflatex --interaction batchmode --output-directory $(branch-output)/latex/ $(LATEXOPTS)
 $(branch-output)/latex/mms.tex:latex 
 $(branch-output)/latex/mms-manual.pdf:$(branch-output)/latex/mms-manual.tex
 $(branch-output)/latex/mms-manual.tex:$(branch-output)/latex/mms.tex
 	@$(PYTHONBIN) bin/copy-if-needed.py -i $< -o $@ -b pdf
+$(publish-output)/mms-manual.pdf:$(branch-output)/latex/mms-manual.pdf
+	@cp -R $< $@
+	@echo [build]: migrated $@
 
 %.pdf:%.tex
 	@echo [pdf]: pdf compilation of $@, started at `date`.
