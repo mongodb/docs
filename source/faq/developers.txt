@@ -527,3 +527,37 @@ driver <>`.
    .. code-block:: javascript
 
       db.getCollection("_foo").find()
+
+.. _faq-developers-isolate-cursors:
+
+How do I isolate cursors from intervening write operations?
+-----------------------------------------------------------
+
+During the lifetime of the cursor, an intervening write operation can
+result in a move of the document due to the growth in document size.
+This may cause the cursor to return the document more than once. To
+prevent this from happening, you can use the :method:`snapshot()
+<cursor.snapshot()>` method.
+
+The :method:`snapshot() <cursor.snapshot()>` method traverses the index
+on the ``_id`` field. As such, :method:`snapshot() <cursor.snapshot()>`
+**cannot** be used with :method:`sort() <cursor.sort()>` or
+:method:`hint() <cursor.hint()>`. 
+
+The :method:`snapshot() <cursor.snapshot()>` does not guarantee
+isolation from insertion or deletions.
+
+.. warning::
+
+   You can only use :method:`snapshot() <cursor.snapshot()>` with
+   **unsharded** collections.
+
+Alternatively, if there are field or fields that are never modified,
+you can use a *unique* index on this field or these fields to achieve
+the same effect as the :method:`snapshot() <cursor.snapshot()>`. Query
+with :method:`hint() <cursor.hint()>` to explicitly force the use of
+that index.
+
+If you want to use a non-unique index on field(s) that will not be
+modified, you can create a unique index by including the ``_id`` field
+to the index fields.
