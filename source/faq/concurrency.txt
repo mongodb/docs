@@ -8,22 +8,25 @@ FAQ: Concurrency
 
 MongoDB allows multiple clients to read and write a single corpus of
 data using a locking system to ensure that all clients receive a
-consistent view of the data *and* to prevent multiple applications from
-modifying the exact same pieces of data at the same time. Locks help
-guarantee that all writes to a single document occur occur either in
+consistent view of the data *and* to prevent multiple applications
+from modifying the exact same pieces of data at the same time. Locks
+help guarantee that all writes to a single document occur either in
 full or not at all.
 
 .. contents:: Frequently Asked Questions:
    :backlinks: none
    :local:
 
+.. seealso:: `Presentation on Concurrency and Internals in 2.2 <http://www.10gen.com/presentations/concurrency-internals-mongodb-2-2>`_
+
 .. _faq-concurrency-locking:
 
 What type of locking does MongoDB use?
 --------------------------------------
 
-MongoDB uses a readers-writer [#multi-reader-lock-names]_ lock that allows concurrent reads access
-to a database but gives exclusive access to a single write operation.
+MongoDB uses a readers-writer [#multi-reader-lock-names]_ lock that
+allows concurrent reads access to a database but gives exclusive
+access to a single write operation.
 
 When a read lock exists, many read operations may use this lock. However, when
 a write lock exists, a single write operation holds the lock
@@ -33,14 +36,25 @@ Locks are "writer greedy," which means writes have preference over
 reads. When both a read and write are waiting for a lock, MongoDB
 grants the lock to the write.
 
-.. versionchanged:: 2.2
-   Beginning with version 2.2, MongoDB implements locks on a
-   per-database basis. If you have six databases and one takes a write
-   lock, the other five are still available for read and write. Before
-   2.2, there is only one "global" lock per :program:`mongod` instance.
-
 .. [#multi-reader-lock-names] You may be familiar with a
-   "readers-writer" lock as "multi-reader" or "shared exclusive" lock.
+   "readers-writer" lock as "multi-reader" or "shared exclusive"
+   lock. See the Wikipedia page on `Readers-Writer Locks
+   <http://en.wikipedia.org/wiki/Readers%E2%80%93writer_lock>`_ for
+   more information.
+
+How granular are locks in MongoDB?
+----------------------------------
+
+.. versionchanged:: 2.2
+
+Beginning with version 2.2, MongoDB implements locks on a per-database
+basis for most read and write operations. Some global operations,
+typically short lived operations involving multiple databases, still
+require a global "instance" wide lock. Before 2.2, there is only one
+"global" lock per :program:`mongod` instance.
+
+For example, if you have six databases and one takes a write lock, the
+other five are still available for read and write.
 
 How do I see the status of locks on my :program:`mongod` instances?
 -------------------------------------------------------------------
@@ -62,24 +76,30 @@ contention in your :program:`mongod` instance.
 
 To terminate an operation, use :method:`db.killOp()`.
 
-Does a read or write ever yield the lock?
------------------------------------------
+Does a read or write operation ever yield the lock?
+---------------------------------------------------
+
+.. versionadded:: 2.0
 
 A read and write operations will yield their locks if the
 :program:`mongod` receives a :term:`page fault` *or* fetches data that
-is unlikely to be in memory. This yielding allows other operations
-that only need to access documents that are already in memory to
-complete while :program:`mongod` loads documents into memory.
+is unlikely to be in memory. Yielding allows other operations that
+only need to access documents that are already in memory to complete
+while :program:`mongod` loads documents into memory.
+
+Additionally, write operations that affect multiple documents
+(i.e. :method:`update() <db.collection.update()` with the ``multi``
+parameter,) will yield periodically to allow read operations during
+these log write operations.
 
 .. versionchanged:: 2.2
-   MongoDB tracks the contents of memory and predicts whether data is
-   available before performing a read. If MongoDB predicts that the
-   data is not in memory a read operation yields its lock while 
-   MongoDB loads the data to memory. Once data is available in
-   memory, the read will reacquire the lock to completes the
-   operation. 
-
-.. some limited yielding was present in 2.0.
+   The use of yielding expanded greatly in MongoDB 2.2. Including the
+   "yield for page fault." MongoDB tracks the contents of memory and
+   predicts whether data is available before performing a read. If
+   MongoDB predicts that the data is not in memory a read operation
+   yields its lock while MongoDB loads the data to memory. Once data
+   is available in memory, the read will reacquire the lock to
+   completes the operation.
 
 Which operations lock the database?
 -----------------------------------
@@ -145,7 +165,7 @@ The following MongoDB operations lock multiple databases:
 - :method:`db.copyDatabase()` must lock the entire :program:`mongod`
   instance at once.
 
-- :term:`Journaling <journal>`, which is an internal operation, locks
+- :term:`Journeying <journal>`, which is an internal operation, locks
   all databases for short intervals. All databases share a single
   journal.
 
@@ -203,3 +223,35 @@ secondaries, in a two phases:
 
 2. A thread pool using write locks applies all write operations in the
    batch as part of a coordinated write phase.
+
+What kind of concurrency does MongoDB provide for JavaScript operations?
+------------------------------------------------------------------------
+
+A single :program:`mongod` can only *single* JavaScript operation at
+once. Therefore, operations that rely on JavaScript cannot run
+concurrently; however, the :program:`mongod` can often run other
+database operations concurrently with the JavaScript execution. This
+limitation with JavaScript affects the following operations: 
+
+- :dbcommand:`mapReduce`
+  
+  The JavaScript operations within a :dbcommand:`mapReduce` job are
+  short lived and yield many times during the operation. Portions of
+  the map-reduce operation take database locks for reading, writing
+  data to a temporary collection and writing the final output of the
+  write operation.
+
+- :dbcommand:`group`
+
+  The :dbcommand:`group` takes a read lock in addition to blocking all
+  other JavaScript execution.
+
+- :method:`db.eval()`
+
+  Unless you specify the ``nolock`` option, :method:`db.eval()` takes
+  a write lock in addition to blocking all JavaScript operations.
+
+- :operator:`$where` 
+  
+  Only a single query that uses the :operator:`$where` operation can
+  run at a time.
