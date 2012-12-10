@@ -1,252 +1,276 @@
-============
-Master Slave
-============
+========================
+Master Slave Replication
+========================
 
 .. default-domain:: mongodb
 
-*Use only for versions prior to 1.6*
+.. deprecated:: 1.6
+   :doc:`Replica sets </core/replication>` replace
+   :term:`master`\-:term:`slave` replication. Use replica sets rather
+   than master-slave replication for all new production deployments.
 
-.. important:: Use :doc:`replica sets </replication>` rather than the
-   :term:`master`\ -:term:`slave` configuration. Replica sets are a
-   functional superset of master-slave and are more robust. Master-slave
-   configuration preceded replica sets, which were introduced in MongoDB
-   version 1.6. This documentation is intended for users of MongoDB
-   versions prior to MongoDB 1.6.
+Replica sets provide functional super-set of master-slave and are more
+robust for production use. Master-slave replication preceded replica
+and makes it possible have a large number of non-master (i.e. slave)
+and to *only* replicate operations for a single database; however,
+master-slave replication provides less redundancy, and does not
+automate failover. See :ref:`replica-set-equivalent` for a replica set
+configuration that is equivalent to master-slave replication.
 
-   To download a newer version of MongoDB, see `MongoDB Downloads <http://mongodb.org/downloads>`_.
+.. warning:: This documentation remains to support legacy deployments
+   and archival purposes, *only*.
 
-.. warning::
+Fundamental Operations
+----------------------
 
-   Master-slave configuration is a legacy configuration and should not
-   be used with MongoDB version 1.6 or higher. Instead use :doc:`replica
-   sets </replication>`, which provide automated failover and backups,
-   and which ensure high availability.
+Initial Deployment
+~~~~~~~~~~~~~~~~~~
 
-Master Slave vs. Replica Sets
------------------------------
+To configure a :term:`master`\-:term:`slave` deployment, start two
+:program:`mongod` instances: one in :setting:`master` mode, and the
+other in :setting:`slave` mode.
 
-In MongoDB 1.6+, :term:`replica sets <replica set>` replaced
-:term:`master`-:term:`slave` as the preferred configuration
-for :doc:`replication </replication>`.
-
-The following replica set configuration is equivalent to a two-node
-master-slave setup with hosts ``M`` (master) and ``S`` (slave):
-
-.. code-block:: javascript
-
-   cfg = {
-     _id : 'mysetname',
-     members : [
-       { _id : 0, host : 'M', priority : 1 },
-       { _id : 1, host : 'S', priority : 0, votes : 0 }
-     ]
-   };
-
-Configuration and Setup
------------------------
-
-*Use only for versions prior to 1.6*
-
-To configure an instance of :program:`mongod` to be a :term:`master`
-database in a master-:term:`slave` configuration, start two instances of
-the database, one in *master* mode, and the other in *slave* mode.
-
-.. note:: The following examples explicitly specify the location of
-   the data files on the command line. This is unnecessary if you are
-   running the master and slave on separate machines. But for readers
-   who are going try this setup on a single node, the examples specify
-   the data files in the interest of safety.
+To start a :program:`mongod` instance in :setting:`master` mode,
+invoke :program:`mongod` as follows:
 
 .. code-block:: javascript
 
-   bin/mongod --master [--dbpath /data/masterdb/]
+   mongod --master --dbpath /data/masterdb/
 
-As a result, the master server process will create a
-``local.oplog.$main`` collection. This is the "transaction log" that
-queues operations that will be applied at the slave.
+With the :option:`--master <mongod --master>` option, the
+:program:`mongod` will create a :data:`local.oplog.$main` collection,
+which the "operation log" that queues operations that the slaves will
+apply to replicate operations from the master. The
+:option:`--dbpath <mongod --dbpath>` is optional.
 
-To configure an instance of :program:`mongod` to be a slave database in a
-master-slave configuration:
-
-.. code-block:: javascript
-
-   bin/mongod --slave --source <masterhostname>[:<port>] [--dbpath /data/slavedb/]
-
-Details of the source server are then stored in the slave's
-``local.sources`` collection. Instead of specifying the ``--source``
-parameter, you can add an object to ``local.sources`` that specifies
-information about the master server:
+To start a :program:`mongod` instance in :setting:`slave` mode,
+invoke :program:`mongod` as follows:
 
 .. code-block:: javascript
 
-   bin/mongo <slavehostname>/local
-   db.sources.find(); // confirms the collection is empty. then:
-   db.sources.insert( { host: <masterhostname> } );
+   mongod --slave --source <masterhostname><:<port>> --dbpath /data/slavedb/
 
-- ``host: masterhostname`` is the IP address or FQDN of the master
-  database machine. Append ``:port`` to the server hostname if you want
-  to run on a nonstandard port number.
+Specify the hostname and port of the master instance to the
+:option:`--source <mongod --source>` argument. The
+:option:`--dbpath <mongod --dbpath>` is optional.
 
-- ``only: databasename`` (optional) if specified, indicates that only
-  the specified database should replicate.
+For :setting:`slave` instances, MongoDB stores data about the source
+server in the :data:`local.sources` collection.
 
-A slave may become out of sync with a master if:
+Configuration Options for Master-Slave Deployments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+As an alternative to specifying the :option:`--source <mongod --source>`
+run-time option, can add a document to :data:`local.sources`
+specifying the :setting:`master` instance, as in the following
+operation in the :program:`mongo` shell:
+
+.. code-block:: javascript
+   :linenos:
+
+   use local
+   db.sources.find()
+   db.sources.insert( { host: <masterhostname> <,only: databasename> } );
+
+In line 1, you switch context to the ``local`` database. In line 2,
+the :method:`~db.collection.find()` operation should return no
+documents, to ensure that there are no documents in the ``sources``
+collection. Finally, line 3 uses :method:`db.collection.insert()` to
+insert the source document into the :data:`local.sources`
+collection. The model of the :data:`local.sources` document is as
+follows:
+
+.. describe:: host
+
+   The host field specifies the :setting:`master`\ :program:`mongod`
+   instance, and holds a resolvable hostname, i.e. IP address, or
+   a name from a ``host`` file, or preferably a fully qualified domain
+   name.
+
+   You can append ``<:port>`` to the host name if the
+   :program:`mongod` is not running on the default ``27017`` port.
+
+.. describe:: only
+
+   Optional. Specify a name of a database. When specified, MongoDB
+   will only replicate the indicated database.
+
+Operational Considerations for Replication with Master Slave Deployments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Master instances store operations in an :term:`oplog` which is a
+:doc:`capped collection </core/capped-collections>`. As a result, if a
+slave falls too far behind the state of the master, it cannot
+"catchup" and must re-sync from scratch. Slave may become out of sync
+with a master if:
 
 - The slave falls far behind the data updates available from that
   master.
 
-- The slave is terminated and then restarted some time later when
-  relevant updates are no longer available from the master.
+- The slave stops (i.e. shuts down) and restarts later after the
+  master has overwritten the relevant operations from the master.
 
-If a slave becomes out of sync, replication terminates. Operator
-intervention is required if replication is to be restarted. An operator
-can restart replication using the ``{resync:1}`` command. Alternatively,
-the :option:`--autoresync` option causes a slave to restart replication
-automatically (after ten second pause) if the slave becomes out of sync.
-If :option:`--autoresync` is specified, the slave does not attempt an
-automatic resync more than once in a ten minute period.
+When slaves, are out of sync, replication stops. Administrators must
+intervene manually to restart replication. Use the :dbcommand:`resync`
+command. Alternatively, the :option:`--autoresync <mongod
+--autoresync>` allows a slave to restart replication automatically,
+after ten second pause, when the slave falls out of sync with the
+master. With :option:`--autoresync <mongod --autoresync>` specified,
+the slave will only attempt to re-sync once in a ten minute period.
 
-The :option:`--oplogSize` option can be specified (along with
-``--master``) to configure the amount of disk space in megabytes that will
-be allocated for storing updates to be made available to slave nodes. If
-:option:`--oplogSize` is not specified, the amount of disk space for
-storing updates will be 5% of available disk space, with a minimum of
-1GB) for 64bit machines and 50MB for 32bit machines.
+To prevent these situations you should specify the a larger oplog when
+you start the :setting:`master` instance, by adding the
+:option:`--oplogSize <mongod --oplog>` option when starting
+:program:`mongod`. If you do not specify
+:option:`--oplogSize <mongod --oplogSize>`, :program:`mongod` will
+allocate 5% of available disk space on start up to the oplog, with a
+minimum of 1GB for 64bit machines and 50MB for 32bit machines.
 
-Command-line Options
---------------------
+Run time Master-Slave Configuration
+-----------------------------------
 
-*Use the master-slave configuration only for versions prior to 1.6*
+MongoDB provides a number of run time configuration options for
+:program:`mongod` instances in :term:`master`\-:term:`slave`
+deployments. You can specify these options in :doc:`configuration
+files </administration/configuration>` or on the command-line. See
+documentation of the following:
 
-Master Command-line Options
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- For *master* nodes:
 
-- `--master`: The :term:`master` mode.
+  - :setting:`master`
 
-- :option:`--oplogSize`: This takes an argument and specifies the size
-  limit in MB for the oplog.
+  - :setting:`slave`
 
-Slave Command-line Options
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+- For *slave* nodes:
 
-- `--slave`: The :term:`slave` mode.
+  - :setting:`source`
 
-- `--source`: This takes an argument and specifies the master as
-  <server:port>.
+  - :setting:`only`
 
-- `--only`: This takes an argument and specifies a single database to
-  replicate.
+  - :setting:`slaveDelay`
 
-- :data:`--slaveDelay <members[n].slaveDelay>`: This takes an argument
-  and specifies the delay (in seconds) to be used when applying master
-  ops to slave.
-
-- :option:`--autoresync`: Automatically resync if slave data is stale.
-
---slavedelay
-~~~~~~~~~~~~
-
-Sometimes it is beneficial to have a :term:`slave` that is purposefully
-many hours behind, to prevent human error. In MongoDB 1.3.3+ you can
-specify this with the :data:`--slaveDelay <members[n].slaveDelay>`
-command line option. Specify the delay to be used (in seconds) when
-applying :term:`master` operations to the slave.
-
-Specify this option at the slave:
-
-.. code-block:: javascript
-
-   mongod --slave --source mymaster.foo.com --slavedelay 7200
+Also consider the :ref:`Master-Slave Replication Command Line Options
+<cli-mongod-master-slave>` for related options.
 
 Diagnostics
 ~~~~~~~~~~~
 
-To have MongoDB inspect the contents of local.oplog.$main on the
-:term:`master` and report status, issue the following command from the
-:program:`mongo` shell:
+On a :term:`master` instance, issue the following operation in the
+:program:`mongo` shell to return replication status from the
+perspective of the master:
 
 .. code-block:: javascript
 
    db.printReplicationInfo()
 
-To have MongoDB inspect the contents of ``local.sources`` on the
-:term:`slave` and report status, issue the following command from the
-:program:`mongo` shell:
+On a :term:`slave` instance, use the following operation in the
+:program:`mongo` shell to return the replication status from the
+perspective of the slave:
 
 .. code-block:: javascript
 
    db.printSlaveReplicationInfo()
 
-Alternately, in MongoDB 1.3.2+, you can issue the following command:
+Use the :dbcommand:`serverStatus` as in the following operation, to
+return status of the replication:
 
 .. code-block:: javascript
 
-   db._adminCommand( { serverStatus : 1 , repl : N } )
+   db.serverStatus()
 
-``N`` is the level of diagnostic information and can have the following
-values:
-
-- 0 - none
-- 1 - local (doesn't have to connect to other server)
-- 2 - remote (has to check with the master)
+See :ref:`server status repl fields <server-status-repl>` for
+documentation of the relevant section of output.
 
 Security
 --------
 
-*Use the master-slave configuration only for versions prior to 1.6*
+When running with :setting:`auth` enabled, in
+:term:`master`\-:term:`slave` deployments, you must create a user
+account for the local database on both :program:`mongod`
+instances. Log in, and authenticate to the ``admin`` database on the
+*slave* instance, and then create the ``repl`` user on the ``local``
+database, with the following operation:
 
-When security is enabled, you must configure a user account for the
-local database that exists on both servers.
+   use local
+   db.addUser('repl', <replpassword>)
 
-The :term:`slave`-side of a replication connection first looks for a
-user repl in ``local.system.users``. If present, that user is used to
-authenticate against the local database on the source side of the
-connection. If repl user does not exist, the first user object in
-``local.system.users`` is tried.
+Once created, repeat the operation on the *master* instance.
+
+The slave instance first looks for a user named ``repl`` in the
+:data:`local.system.users <<database>.system.users>` collection. If
+present, the slave uses this user account to authenticate to the
+``local`` database in the ``master`` instance. If the ``repl`` user
+does not exist, the slave instance attempts to authenticate using the
+first user document in the :data:`local.system.users
+<<database>.system.users>` collection.
 
 The ``local`` database works like the ``admin`` database: an account for
 local has access to the entire server.
 
-The following is an example security configuration when security is enabled:
+.. seealso:: :doc:`/security` for more information about security in mongodb
+
+Ongoing Administration and Operation of Master-Slave Deployments
+----------------------------------------------------------------
+
+.. _replica-set-equivalent:
+
+Deploy Master-Slave Equivalent using Replica Sets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you want a replication configuration that resembles
+:term:`master`\-:term:`slave` replication, using :term:`replica sets
+<replica set>` replica sets, consider the following replica
+configuration document. In this deployment hosts ``<master>`` and
+``<slave>`` [#host-are-hostnames]_ provide replication that is roughly
+equivalent to a two-instance master-slave deployment:
 
 .. code-block:: javascript
 
-   $ mongo <slavehostname>/admin -u <existingadminusername> -p<adminpassword>
-   > use local
-   > db.addUser('repl', <replpassword>);
-   ^c
-   $ mongo <masterhostname>/admin -u <existingadminusername> -p<adminpassword>
-   > use local
-   > db.addUser('repl', <replpassword>);
+   {
+     _id : 'setName',
+     members : [
+       { _id : 0, host : "<master>", priority : 1 },
+       { _id : 1, host : "<slave>", priority : 0, votes : 0 }
+     ]
+   }
 
-Administrative Tasks for Master-Slave Configurations
-----------------------------------------------------
+See :doc:`/reference/replica-configuration` for more information about
+replica set configurations.
 
-*Use the master-slave configuration only for versions prior to 1.6*
+.. [#host-are-hostnames] In replica set configurations, the
+   :data:`host <members[n].host>` field must hold a resolvable
+   hostname.
 
 Failing over to a Slave (Promotion)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To permanently fail over from a down :term:`master` (``A``) to a
-:term:`slave` (``B``):
+To permanently failover from a unavailable or damaged :term:`master`
+(``A`` in the following example) to a :term:`slave` (``B``):
 
 1. Shut down ``A``.
 
 2. Stop :program:`mongod` on ``B``.
 
-3. Back up or delete local.* datafiles on ``B``.
+3. Back up and move all data files that begin with ``local`` on ``B``
+   from the :setting:`dbpath`.
 
-4. Restart :program:`mongod` on ``B`` with the ``--master`` option.
+   .. warning::
 
-.. note:: This is a one time cutover. The "mirror" is broken. ``A``
-   cannot be brought back in sync with ``B`` without a full resync.
+      Removing ``local.*`` is irrevocable and cannot be
+      undone. Perform this step with extreme caution.
+
+4. Restart :program:`mongod` on ``B`` with the :option:`--master
+   <mongod --master>` option.
+
+.. note:: This is a one time operation, and is not reversible. ``A``
+   cannot become a slave of ``B`` until it completes a full resync.
 
 Inverting Master and Slave
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you have a :term:`master` (``A``) and a :term:`slave` (``B``) and you
-would like to reverse their roles, follow this recommended sequence. The
-sequence assumes ``A`` is healthy, up-to-date and up.
+If you have a :term:`master` (``A``) and a :term:`slave` (``B``) and
+you would like to reverse their roles, follow this procedure. The
+procedure assumes ``A`` is healthy, up-to-date and available.
 
 If ``A`` is not healthy but the hardware is okay (power outage, server
 crash, etc.), skip steps 1 and 2 and in step 8 replace all of ``A``'s
@@ -255,42 +279,55 @@ files with ``B``'s files in step 8.
 If ``A`` is not healthy and the hardware is not okay, replace ``A`` with
 a new machine. Also follow the instructions in the previous paragraph.
 
-To invert master and slave:
+To invert the master and slave in a deployment:
 
 1. Halt writes on ``A`` using the :term:`fsync` command.
 
-2. Make sure ``B`` is caught up.
+2. Make sure ``B`` is up to date with the state of ``A``.
 
 3. Shut down ``B``.
 
-4. Wipe local.* on ``B`` to remove old ``local.sources``.
+4. Back up and move all data files that begin with ``local`` on ``B``
+   from the :setting:`dbpath` to remove the existing
+   ``local.sources`` data.
 
-5. Start up ``B`` with the ``--master`` option.
+   .. warning::
+
+      Removing ``local.*`` is irrevocable and cannot be
+      undone. Perform this step with extreme caution.
+
+5. Start ``B`` with the :option:`--master <mongod --master>` option.
 
 6. Do a write on ``B``, which primes the :term:`oplog` to provide a new
    sync start point.
 
-7. Shut down ``B``. ``B`` will now have a new set of ``local.*`` files.
+7. Shut down ``B``. ``B`` will now have a new set of data files that
+   start with ``local``.
 
-8. Shut down ``A`` and replace ``A``'s ``local.*`` files with a copy of
-   ``B``'s new ``local.*`` files. Remember to compress the files before/while
-   copying them. They can be quite large.
+8. Shut down ``A`` and replace all files in the :setting:`dbpath` of
+   ``A`` that start with ``local`` with a copy of the files in the
+   :setting:`dbpath` of ``B`` that begin with ``local``.
 
-9. Start ``B`` with the ``--master`` option.
+   Considering compressing the ``local`` files from ``B`` while you
+   copy them, as they may be quite large.
 
-10. Start ``A`` with all the usual slave options plus --:setting:`fastsync`.
+9. Start ``B`` with the :option:`--master <mongod --master>` option.
+
+10. Start ``A`` with all the usual slave options, but include
+    :option:`fastsync <mongod --fastsync>`.
 
 Creating a Slave from an Existing Master's Disk Image
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you can stop write operations to the :term:`master` for an indefinite
 period, you can copy the data files from the master to the new
-:term:`slave` and then start the slave with --:setting:`fastsync`.
+:term:`slave` and then start the slave with :option:`--fastsync <mongod --fastsync>`.
 
 .. warning::
 
-   Be careful with :setting:`fastsync`. If the data is not perfectly in
-   sync, a discrepancy will exist forever.
+   Be careful with :option:`--fastsync <mongod --fastsync>`.  If the
+   data on both instances is identical, a discrepancy will exist
+   forever.
 
 :setting:`fastsync` is a way to start a slave by starting with an
 existing master disk image/backup. This option declares that the
@@ -303,84 +340,85 @@ Creating a Slave from an Existing Slave's Disk Image
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can just copy the other :term:`slave's <slave>` data file snapshot
-without any special options. Note data snapshots should only be taken
-when a :program:`mongod` process is down or in ``fsync-and-lock`` state.
+without any special options. Only take data snapshots when a
+:program:`mongod` process is down or locked using
+:method:`db.fsyncLock()`.
 
 Resyncing a Slave that is too Stale to Recover
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 :term:`Slaves <slave>` asynchronously apply write operations from the
-:term:`master`. These operations are stored in the master's
-:term:`oplog`. The oplog is finite in length. If a slave is too far
-behind, a full resync will be necessary.
-
-To resync the
-slave, open the :program:`mongo` shell and point it at the slave:
-
-.. code-block:: javascript
-
-   mongo <slave_host_and_port>
-
-Then run the :dbcommand:`resync` command:
+:term:`master` that the slaves poll from the master's
+:term:`oplog`. The oplog is finite in length, and if a slave is too
+far behind, a full resync will be necessary. To resync the slave,
+connect to a slave using the :program:`mongo` and issue the
+:dbcommand:`resync` command:
 
 .. code-block:: javascript
 
    use admin
-   db.runCommand({resync: 1})
+   db.runCommand( { resync: 1 } )
 
 This forces a full resync of all data (which will be very slow on a
-large database). The same effect can be achieved by stopping
-:program:`mongod` on the slave, delete all slave data files, and
-restarting it.
+large database). You can achieve the same effect by stopping
+:program:`mongod` on the slave, deleting the entire content of the
+:setting:`dbpath` on the slave, and restarting the :program:`mongod`.
 
 Slave Chaining
 ~~~~~~~~~~~~~~
 
 :term:`Slaves <slave>` cannot be "chained." They must all connect to the
-:term:`master` directly. If a slave is chained to another slave you may
-see the following in the logs:
+:term:`master` directly.
+
+If a slave attempts "slave from" another slave you will see the
+following line in the :program:`mongod` long of the shell:
 
 .. code-block:: none
 
-   assertion 13051 tailable cursor requested on non capped collection
-   ns:local.oplog.$main
+   assertion 13051 tailable cursor requested on non capped collection ns:local.oplog.$main
 
 Correcting a Slave's Source
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To change a :term:`slave's <slave>` source, manually modify the slave's
-``local.sources`` collection.
+To change a :term:`slave's <slave>` source, manually modify the
+slave's :data:`local.sources` collection.
 
 .. example::
 
-   For example, say you accidentally type the wrong host for the slave's
-   source:
+   Consider the following: If you accidentally set an incorrect hostname
+   for the slave's :setting:`source`, as in the following example:
 
    .. code-block:: javascript
 
       mongod --slave --source prod.mississippi
 
-   You can restart the slave without the --slave and --source arguments.
+   You can correct this, by restarting the slave without the
+   :option:`--slave <mongod --slave>` and
+   :option:`--source <mongod --source>` arguments:
 
    .. code-block:: javascript
 
       mongod
 
-   Now start the shell and update the ``local.sources`` collection.
+   Connect to this :program:`mongod` instance using the
+   :program:`mongo` shell and update the :data:`local.sources`
+   collection, with the following operation sequence:
 
    .. code-block:: javascript
 
       use local
 
-      db.sources.update( { host : "prod.mississippi" }, { $set : { host : "prod.mississippi" } } )
+      db.sources.update( { host : "prod.mississippi" }, { $set : { host : "prod.mississippi.example.net" } } )
 
    Restart the slave with the correct command line arguments or with no
-   ``--source`` argument. Once ``local.sources`` is set, no ``--source``
-   is necessary.
+   ``--source`` argument. After configuring :data:`local.sources` the
+   first time, the :option:`--source <mongod --source>` will have no
+   subsequent affect. Therefore, both of the following invocations are
+   correct:
 
    .. code-block:: javascript
 
-      mongod --slave --source prod.mississippi
+      mongod --slave --source prod.mississippi.example.net
 
    or
 
@@ -388,4 +426,4 @@ To change a :term:`slave's <slave>` source, manually modify the slave's
 
       mongod --slave
 
-   The slave now points to the correct :term:`master`.
+   The slave now polls data from the correct :term:`master`.
