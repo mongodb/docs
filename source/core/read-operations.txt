@@ -741,20 +741,6 @@ information on cursor methods.
 Iterator Index
 ~~~~~~~~~~~~~~
 
-Additionally, with some of the :doc:`drivers </applications/drivers>`,
-you can iterate with an index (i.e. ``cursor[index]``) and return the
-document at the index position, as in the following example:
-
-.. code-block:: javascript
-
-   var myCursor = db.inventory.find( { type: 'food' } );
-
-   myDoc = myCursor[3];
-
-Accessing the document with an index iterates the cursor and loads into
-RAM the documents up to the index and should not be used for queries
-which may return very large number of data that may exceed memory.
-
 In the :program:`mongo` shell, you can use the ``toArray()`` method to
 iterate the cursor and return the documents in an array, as in the
 following:
@@ -763,9 +749,28 @@ following:
 
    var myCursor = db.inventory.find( { type: 'food' } );
    var documentArray = myCursor.toArray();
+   var myDocument = documentArray[3];
 
 The ``toArray()`` method loads into RAM all documents returned by the
-cursor.
+cursor; the ``toArray()`` method exhausts the cursor.
+
+Additionally, some :doc:`drivers </applications/drivers>` provide
+access to the documents by using an index on the cursor (i.e.
+``cursor[index]``). This is a shortcut for first calling the
+``toArray()`` method and then using an index on the resulting array.
+
+Consider the following example:
+
+.. code-block:: javascript
+
+   var myCursor = db.inventory.find( { type: 'food' } );
+   var myDocument = myCursor[3];
+
+The ``myCursor[3]`` is equivalent to the following example:
+
+.. code-block:: javascript
+
+   myCursor.toArray() [3];
 
 .. TODO link to toArray() method once the page has been added
 
@@ -777,31 +782,29 @@ Consider the following behaviors related to cursors:
 - By default, the server will automatically close the cursor after 10
   minutes of inactivity or if the cursor has been exhausted. To
   override this behavior, you can specify the "noTimeout" :wiki:`wire
-  protocol option <Mongo Wire Protocol>` in your query; however, you
+  protocol flag <Mongo Wire Protocol>` in your query; however, you
   should either close the cursor manually or exhaust the cursor. In the
-  :program:`mongo` shell, you can set the "noTimeout" option. See your
+  :program:`mongo` shell, you can set the "noTimeout" flag. See your
   :doc:`driver </applications/drivers>` documentation for information
   on setting the "noTimeout" option.
 
-- Write operations may interleave during latent access to the cursor.
-  This may cause a document to be returned multiple times. To handle
-  this situation, see the information on :wiki:`snapshot mode <How to do
-  Snapshotted Queries in the Mongo Database>`.
-
-.. TODO  link instead to faq snapshot when that becomes available.
+- Because the cursor is not isolated during its lifetime, intervening
+  write operations may cause a document to be returned multiple times.
+  To handle this situation, see the information on :wiki:`snapshot mode
+  <How to do Snapshotted Queries in the Mongo Database>`.
 
 - The MongoDB server returns the query results in batches:
 
-  - For most queries, the default size of each batch is either 101
-    documents or enough documents to exceed 1 megabyte, whichever
-    condition is met first. To override the default size of each batch,
-    see :method:`cursor.batchSize()` and :method:`cursor.limit()`.
+  - For most queries, the *first* batch returns 101 documents or just
+    enough documents to exceed 1 megabyte. Subsequent batch size is 4
+    megabytes. To override the default size of the batch, see
+    :method:`cursor.batchSize()` and :method:`cursor.limit()`.
 
   - For queries that include a sort operation *without* an index, the
     server must load all the documents in memory to perform the sort
     and will return all documents in the first batch.
 
-  - Batch size cannot exceed the :ref:`maximum BSON document size
+  - Batch size will not exceed the :ref:`maximum BSON document size
     <limit-bson-document-size>`.
 
   - As you iterate through the cursor and reach the end of the returned
@@ -820,24 +823,26 @@ Consider the following behaviors related to cursors:
 
        myCursor.objsLeftInBatch();
 
-  - Batch results may provide performance benefits if you only need to
-    access a subset of the results, as in the following example which only
-    requires the first two documents:
+- You can use the command :dbcommand:`cursorInfo` to retrieve the
+  following information on cursors:
 
-    .. code-block:: javascript
+  - total number of open cursors
 
-       var myCursor = db.inventory.find();
+  - size of the client cursors in current use
 
-       var myFirstDocument = myCursor.hasNext() ? myCursor.next() : null;
-       var mySecondDocument = myCursor.hasNext() ? myCursor.next() : null;
+  - number of timed out cursors since the last server restart
 
-- You can retrieve cursor information, such as the number of open
-  cursors, using the command :dbcommand:`cursorInfo`, as in the
-  following example:
+  Consider the following example:
 
   .. code-block:: javascript
 
      db.runCommand( { cursorInfo: 1 } )
+
+  The result from the command returns the following documentation:
+
+  .. code-block:: javascript
+
+     { "totalOpen" : <number>, "clientCursors_size" : <number>, "timedOut" : <number>, "ok" : 1 }
 
 .. _read-operations-aggregation:
 
