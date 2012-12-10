@@ -13,44 +13,49 @@ The database profiler logs data in the ``system.profile`` collection,
 which is a :term:`capped collection`. To view the profiler's output,
 query this collection.
 
-If you view operations on a read-only database, you will still see write
+If you turn on profiling operations on a read-only database, you will still see write
 operations in the ``system.profile`` collection because the database
 profiler itself performs writes to ``system.profile``.
 
 Example Output
 --------------
 
-The following is an example of database profiler output for a query
+The following is an example of database profiler output for an update
 operation.
 
 .. code-block:: javascript
 
    {
-       "ts" : ISODate("2012-12-06T16:14:33.844Z"),
-       "op" : "query",
-       "ns" : "test.system.indexes",
+       "ts" : ISODate("2012-12-10T19:31:28.977Z"),
+       "op" : "update",
+       "ns" : "social.users",
        "query" : {
-           "expireAfterSeconds" : {
-               "$exists" : true
+           "name" : "jane"
+       },
+       "updateobj" : {
+           "$set" : {
+               "likes" : [
+                   "basketball",
+                   "trekking"
+               ]
            }
        },
-       "ntoreturn" : 0,
-       "ntoskip" : 0,
-       "nscanned" : 16,
+       "nscanned" : 8,
+       "moved" : true,
+       "nmoved" : 1,
+       "nupdated" : 1,
        "keyUpdates" : 0,
        "numYield" : 0,
        "lockStats" : {
            "timeLockedMicros" : {
-               "r" : NumberLong(34),
-               "w" : NumberLong(0)
+               "r" : NumberLong(0),
+               "w" : NumberLong(258)
            },
            "timeAcquiringMicros" : {
-               "r" : NumberLong(1),
-               "w" : NumberLong(2)
+               "r" : NumberLong(0),
+               "w" : NumberLong(7)
            }
        },
-       "nreturned" : 0,
-       "responseLength" : 20,
        "millis" : 0,
        "client" : "127.0.0.1",
        "user" : ""
@@ -93,7 +98,8 @@ reported for a given operation depends on the operation:
 
 .. stats:: updateobj
 
-   The updated document.
+   The :ref:`update document <documents-update-actions>` passed in
+   during an :doc:`update </applications/update>` operation.
 
 .. stats:: cursorid
 
@@ -102,14 +108,14 @@ reported for a given operation depends on the operation:
 .. stats:: ntoreturn
 
    The number of documents the operation specified to return. For
-   example, the :dbcommand:`profile` command returns one document, a
-   results document, and would have an ``ntoreturn`` value of ``1``. The
-   :method:`limit() <cursor.limit()>` method, if set to ``5``, would
-   have an ``ntoreturn`` value of ``5``.
+   example, the :dbcommand:`profile` command would return one document
+   (a results document) so the ``ntoreturn`` value would be ``1``. The
+   :method:`limit(5) <cursor.limit()>` command would return five
+   documents so the ``ntoreturn`` value would be ``5``.
 
-   An ``ntoreturn`` value of ``0`` indicates that the command did not
-   specify a number of documents to return, as would be the case with a
-   simple :method:`find() <db.collection.find()>` command with no limit
+   If the ``ntoreturn`` value is ``0``, the command did not specify a
+   number of documents to return, as would be the case with a simple
+   :method:`find() <db.collection.find()>` command with no limit
    specified.
 
 .. stats:: ntoskip
@@ -117,26 +123,24 @@ reported for a given operation depends on the operation:
    The number of documents the :method:`skip() <cursor.skip()>` method
    specified to skip.
 
-   .. is that above statement true ???
-
 .. stats:: nscanned
 
-   The number of documents that were scanned in the index in order to
-   carry out the operation. If ``nscanned`` is much higher than
-   ``nreturned``, the database is scanning many objects to find the
-   target objects. Consider creating an index to improve this.
+   The number of documents that were scanned in the :doc:`index </indexes>` in order to
+   carry out the operation.
+
+   In general, if ``nscanned`` is much higher than ``nreturned``, the
+   database is scanning many objects to find the target objects.
+   Consider creating an index to improve this.
 
 .. stats:: moved
 
    A value of ``true`` indicates that the update operation moved one or
    more documents to a new location on disk. This is slower than an
-   in-place update. Usually this occurs if a document grows in size.
+   in-place update. This should only happen if the document grows in size.
 
 .. stats:: nmoved
 
    The number of documents moved on disk by the operation.
-
-   .. is that above statement true ???
 
 .. stats:: nupdated
 
@@ -144,7 +148,7 @@ reported for a given operation depends on the operation:
 
 .. stats:: keyUpdates
 
-   The number of index keys the update changed. Changing an index key
+   The number of :doc:`index </indexes>` keys the update changed. Changing an index key
    carries a small performance cost. The database must remove the old
    key and insert a new key into the B-tree index.
 
@@ -154,7 +158,8 @@ reported for a given operation depends on the operation:
    to complete. Typically, operations yield when they need access to
    data that MongoDB has not yet fully read into memory. This allows
    other operations that have data in memory to complete while MongoDB
-   reads in data for the yielding operation.
+   reads in data for the yielding operation. For more information,
+   see :ref:`the FAQ on when operations yield <faq-concurrency-yielding>`.
 
 .. stats:: lockStats
 
@@ -182,13 +187,17 @@ reported for a given operation depends on the operation:
 .. stats:: responseLength
 
    The length in bytes of the operation's result document. A large
-   number of bytes returned (hundreds of kilobytes or more) causes slow
-   performance. To limit the size of a query result document, use a
-   :ref:`projection <read-operations-projection>`.
+   ``responseLength`` can affect performance. To limit the size of a the
+   result document for a query operation, you can use any of the
+   following:
+
+   - :ref:Projections <read-operations-projection>`
+   - :method:`The limit() method <cursor.limit()>`
+   _ :method:`The batchSize() method <cursor.batchSize()>`
 
 .. stats:: millis
 
-   The time in milliseconds to for the server to perform the operation.
+   The time in milliseconds for the server to perform the operation.
    This time does not include network time nor time to acquire the lock.
 
 .. stats:: client
@@ -201,8 +210,11 @@ reported for a given operation depends on the operation:
 
 .. stats:: user
 
-   The authenticated user who ran the operation. If the operation was
-   not run by an authenticated user, this field's value is an empty
-   string.
+   The authenticated user who ran the operation.
 
-   .. is that above statement true ???
+.. todo Test what values appear for authenticated users and add that info.
+   When we do, we can add back this: "If the operation was not run by an
+   authenticated user, this field's value is an empty string."
+
+.. todo Consider adding documentation to our manual on the
+   "internal user" used by replication
