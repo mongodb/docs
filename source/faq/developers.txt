@@ -34,7 +34,7 @@ For an example ``acme.users`` namespace, ``acme`` is the database
 name and ``users`` is the collection name. Period characters **can**
 occur in collection names, so that the ``acme.user.history`` is a
 valid namespace, with the ``acme`` database name, and the
-``user.history`` collection name. 
+``user.history`` collection name.
 
 While data models like this appear to support nested collections, the
 collection namespace is flat, and there is no difference from the
@@ -168,7 +168,7 @@ How do I optimize storage use for small documents?
 Each MongoDB document contains a certain amount of overhead. This
 overhead is normally insignificant but becomes significant if all
 documents are just a few bytes, as might be the case if the documents
-in your collection only have one or two fields. 
+in your collection only have one or two fields.
 
 Consider the following suggestions and strategies for optimizing
 storage utilization for these collections:
@@ -184,8 +184,8 @@ storage utilization for these collections:
   To optimize storage use, users can specify a value for the ``_id`` field
   explicitly when inserting documents into the collection. This
   strategy allows applications to store a value in the ``_id`` field
-  that would have occupied space in another portion of the document. 
-  
+  that would have occupied space in another portion of the document.
+
   You can store any value in the ``_id`` field, but because this value
   serves as a primary key for documents in the collection, it must
   uniquely identify them. If the field's value is not unique, then it
@@ -198,7 +198,7 @@ storage utilization for these collections:
   documents, this represents a small fraction of the space used by a
   document; however, for small documents the field names may represent
   a proportionally large amount of space. Consider a collection of
-  documents that resemble the following: 
+  documents that resemble the following:
 
   .. code-block:: javascript
 
@@ -216,7 +216,7 @@ storage utilization for these collections:
   considerable benefit on for larger documents and where document
   overhead is not significant concern. Shorter field names do not
   reduce the size of indexes, because indexes have a predefined
-  structure. 
+  structure.
 
   In general it is not necessary to use short field names.
 
@@ -224,6 +224,47 @@ storage utilization for these collections:
 
   In some cases you may want to embed documents in other documents
   and save on the per-document overhead.
+
+.. _faq-developers-when-to-use-gridfs:
+
+When should I use GridFS?
+-------------------------
+
+For documents in a MongoDB collection, you should always use
+:term:`GridFS` for storing files larger than 16 MB.
+
+In some situations, storing large files may be more efficient in a
+MongoDB database than on a system-level filesystem.
+
+- If your filesystem limits the number of files in a directory, you can
+  use GridFS to store as many files as needed.
+
+- When you want to keep your files and metadata automatically synced
+  and deployed across a number of systems and facilities.  When using
+  :ref:`geographically distributed replica sets
+  <replica-set-geographical-distribution>` MongoDB can distribute
+  files and their metadata automatically to a number of
+  :program:`mongod` instances and facilitates.
+
+- When you want to access information from portions of large
+  files without having to load whole files into memory, you can use
+  GridFS to recall sections of files without reading the entire file
+  into memory.
+
+Do not use GridFS if you need to update the content of the entire file
+atomically. As an alternative you can store multiple versions of each
+file and specify the current version of the file in the metadata. You
+can update the metadata field that indicates "latest" status in an
+atomic update after uploading the new version of the file, and later
+remove previous versions if needed.
+
+Furthermore, if your files are all smaller the 16 MB :limit:`BSON
+Document Size` limit, consider storing the file manually within a
+single document. You may use the BinData data type to store the binary
+data. See your :doc:`drivers </applications/drivers>` documentation
+for details on using BinData.
+
+For more information on GridFS, see :doc:`/applications/gridfs`.
 
 How does MongoDB address SQL or Query injection?
 ------------------------------------------------
@@ -435,7 +476,7 @@ collection, ``test``, with the following documents:
    { _id: 1, cancelDate: null }
    { _id: 2 }
 
-Different query operators treat ``null`` values differently: 
+Different query operators treat ``null`` values differently:
 
 - The ``{ cancelDate : null }`` query matches documents that either
   contains the ``cancelDate`` field whose value is ``null`` *or* that
@@ -541,11 +582,11 @@ the operation for a very specific case.
 :method:`snapshot() <cursor.snapshot()>` traverses the
 index on the ``_id`` field and guarantees that the query will return
 each document (with respect to the value of the ``_id`` field) no more
-than once. [#id-is-immutable]_ 
+than once. [#id-is-immutable]_
 
 The :method:`snapshot() <cursor.snapshot()>` does not guarantee that
 the data returned by the query will reflect a single moment in time
-*nor* does it provide isolation from insert or delete operations.. 
+*nor* does it provide isolation from insert or delete operations..
 
 .. warning::
 
@@ -570,7 +611,7 @@ explicitly force the query to use that index.
    growth,) or that change the indexed field on the index used by the
    query; then the cursor will return the same document more than
    once.
-   
+
 .. [#id-is-immutable] MongoDB does permit changes to the value of the
    ``_id`` field, it is not possible for a cursor that transverses
    this index to pass the same document more than once.
