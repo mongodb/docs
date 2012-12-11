@@ -8,34 +8,72 @@ $min
 
    Specify a :operator:`$min` value to specify the *inclusive* lower
    bound for a specific index in order to constrain the results of
-   :method:`find() <db.collection.find()>`. Consider the following
-   operations on a collection named ``collection`` that has an index
-   ``{ age: 1 }``:
+   :method:`find() <db.collection.find()>`. The :program:`mongo` shell
+   provides the :method:`cursor.min()` wrapper method:
 
    .. code-block:: javascript
 
-      db.collection.find()._addSpecial("$min" , { age : 20 } )
-      db.collection.find( { $query: {}, $min: { age: 20 } } )
+      db.collection.find( { <query> } ).min( { field1: <min value>, ... fieldN: <min valueN>} )
 
-   These are equivalent to the following :method:`cursor.min()` method that
-   may be more familiar to you:
+   You can also specify the option with either of the two forms:
+
+   .. code-block:: javascript
+
+      db.collection.find( { <query> } )._addSpecial( "$min", { field1: <min value1>, ... fieldN: <min valueN> } )
+      db.collection.find( { $query: { <query> }, $min: { field1: <min value1>, ... fieldN: <min valueN> } } )
+
+   The :operator:`$min` specifies the lower bound for *all* keys of a
+   specific index *in order*. 
+   
+   Consider the following operations on a collection named
+   ``collection`` that has an index ``{ age: 1 }``:
 
    .. code-block:: javascript
 
       db.collection.find().min( { age: 20 } )
-      
-   These operations limits the query to those documents where the field
-   ``age`` is at least ``20`` using the index ``{ age: 1 }``. You can
-   explicitly specify the particular index with :operator:`$hint`.
-   Otherwise, MongoDB selects the index using the fields in the
-   ``indexbounds``; however, if multiple indexes exist on same fields
-   with different sort orders, the selection of the index may be
-   ambiguous.
 
-   Use operation alone or in conjunction with :operator:`$max` to limit
-   results to a specific range for the same index.
+   These operations limit the query to those documents where the field
+   ``age`` is at least ``20`` using the index ``{ age: 1 }``.
+
+   You can explicitly specify the corresponding index with
+   :method:`cursor.hint()`. Otherwise, MongoDB selects the index using
+   the fields in the ``indexbounds``; however, if multiple indexes
+   exist on same fields with different sort orders, the selection of
+   the index may be ambiguous.
+
+   Consider a collection named ``collection`` that has the following
+   two indexes:
+
+   .. code-block:: javascript
+
+      { age: 1, type: -1 }
+      { age: 1, type: 1 }
+
+   Without explicitly using :method:`cursor.hint()`, it is unclear
+   which index the following operation will select:
+
+   .. code-block:: javascript
+
+      db.collection.find().min( { age: 20, type: 'C' } )
+
+   You can use :operator:`$min` in conjunction with :operator:`$max` to
+   limit results to a specific range for the *same* index, as in the
+   following example:
+   
+   .. code-block:: javascript
+
+      db.collection.find().min( { age: 20 } ).max( { age: 25 } )
 
    .. note::
 
-      In most cases, you should avoid this operator in favor of
-      :operator:`$gte`.
+      Because :method:`cursor.min()` requires an index on a field, and
+      forces the query to use this index, you may prefer the
+      :operator:`$gte` operator for the query if possible. Consider the
+      following example:
+
+      .. code-block:: javascript
+
+         db.collection.find( { _id: 7 } ).min( { age: 25 } )
+
+      The query will use the index on the ``age`` field, even if the
+      index on ``_id`` may be better.
