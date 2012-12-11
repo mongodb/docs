@@ -6,7 +6,7 @@ Recover MongoDB Data following Unexpected Shutdown
 
 If MongoDB does not shutdown cleanly [#clean-shutdown]_ the on-disk
 representation of the data files will likely reflect an inconsistent
-state which could lead to data corruption.
+state which could lead to data corruption. [#validation]_
 
 To prevent data inconsistency and corruption, always shut down the
 database cleanly and use the :ref:`durability journaling
@@ -23,7 +23,7 @@ the :program:`mongod` instance with an empty :setting:`dbpath` and
 allow MongoDB to resync the data.
 
 .. seealso:: The :doc:`/administration` documents, including
-   :ref:`replica-set-syncing`, and the
+   :ref:`Replica Set Syncing <replica-set-syncing>`, and the
    documentation on the :setting:`repair`, :setting:`repairpath`, and
    :setting:`journal` settings.
 
@@ -31,6 +31,13 @@ allow MongoDB to resync the data.
    :option:`mongod --shutdown` option, your control script,
    "Control-C" (when running :program:`mongod` in interactive mode,)
    or ``kill $(pidof mongod)`` or ``kill -2 $(pidof mongod)``.
+
+.. [#validation] You can also use the :method:`db.collection.validate()`
+   method to test the integrity of a single collection. However, this
+   process is time consuming, and without journaling you can safely
+   assume that the data is in an invalid state and you should either
+   run the repair operation or resync from an intact member of the
+   replica set.
 
 Process
 -------
@@ -72,7 +79,7 @@ Overview
 .. warning:: Recovering a member of a replica set.
 
    Do not use this procedure to recover a member of a :term:`replica set`.
-   Instead you should either restore from a :doc:`backup </administration/backups>` 
+   Instead you should either restore from a :doc:`backup </administration/backups>`
    or resync from an intact member of the set, as described in :ref:`replica-set-resync-stale-member`.
 
 There are two processes to repair data files that result from an
@@ -94,6 +101,12 @@ unexpected shutdown:
 
    You must remove the ``mongod.lock`` file before using this
    procedure.
+
+.. note::
+
+   :option:`--repair <mongod --repair>` functionality is also
+   available in the shell with the :method:`db.repairDatabase()`
+   helper for the :dbcommand:`repairDatabase` command.
 
 Procedures
 ~~~~~~~~~~
