@@ -247,6 +247,8 @@ ReStructured Text and Typesetting
   target name for ease of use. For instance a footnote tag may look
   like: "``[#note]_``" with the corresponding directive holding the
   body of the footnote that resembles the following: "``.. [#note]``".
+  
+  Do **not** include "``.. code-block:: [language]``" in footnotes.
 
 - As it makes sense, use the "``.. code-block:: [language]``" form to
   insert literal blocks into the text. While the double colon,
