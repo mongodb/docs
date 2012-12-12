@@ -12,6 +12,7 @@ rows:
   - 8: [ content.sql8, content.mongo8, content.desc8 ]
   - 9: [ content.sql9, content.mongo9, content.desc9 ]
   - 10: [ content.sql10, content.mongo10, content.desc10 ]
+  - 11: [ content.sql11, content.mongo11, content.desc11 ]
 ---
 # table metadata, as meta.<key>
 section: meta
@@ -210,21 +211,40 @@ desc10: |
         associated with the
         orders.
 sql10: |
-      .. code-block:: sql
+       .. code-block:: sql
 
-         SELECT cust_id,
-                SUM(li.qty) as qty
-         FROM orders o,
-              order_lineitem li
-         WHERE li.order_id = o.id
-         GROUP BY cust_id
+          SELECT cust_id,
+                 SUM(li.qty) as qty
+          FROM orders o,
+               order_lineitem li
+          WHERE li.order_id = o.id
+          GROUP BY cust_id
 mongo10: |
-        .. code-block:: javascript
-           :emphasize-lines: 2-5
+         .. code-block:: javascript
+            :emphasize-lines: 2-5
 
-           db.orders.aggregate( [
-              { $unwind: "$items" },
-              { $group: { _id: "$cust_id",
-                          qty: { $sum: "$items.qty" } } }
-           ] )
+            db.orders.aggregate( [
+               { $unwind: "$items" },
+               { $group: { _id: "$cust_id",
+                           qty: { $sum: "$items.qty" } } }
+            ] )
+desc11: |
+        Count the number of distinct 
+        ``cust_id``, ``ord_date`` groupings.
+sql11: |
+       .. code-block:: sql
+
+          SELECT COUNT(*)
+          FROM (SELECT cust_id, ord_date 
+                FROM orders 
+                GROUP BY cust_id, ord_date) as DerivedTable
+mongo11: |
+         .. code-block:: javascript
+            :emphasize-lines: 2-4
+
+            db.orders.aggregate( [
+               { $group: { _id: { cust_id: "$cust_id",
+                                  ord_date: "$ord_date" } } },
+               { $group: { _id: null, count: { $sum: 1 } } }
+            ] )
 ...
