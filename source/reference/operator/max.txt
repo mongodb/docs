@@ -6,24 +6,74 @@ $max
 
 .. operator:: $max
 
-   Specify a :operator:`$max` value to specify an upper boundary for
-   the value of a field. :program:`mongod` enforces this boundary with
-   an index of that field.
+   Specify a :operator:`$max` value to specify the *exclusive* upper
+   bound for a specific index in order to constrain the results of
+   :method:`find() <db.collection.find()>`. The :program:`mongo` shell
+   provides the :method:`cursor.max()` wrapper method:
 
    .. code-block:: javascript
 
-       db.collection.find()._addSpecial("$max" , { value : 100 })
+      db.collection.find( { <query> } ).max( { field1: <max value>, ... fieldN: <max valueN> } )
 
-   This operation above limits the documents returned to those that
-   match the query described by ``[QUERY]`` where the field
-   ``value`` is less than ``20``. :program:`mongod` infers the
-   index based on on the ``query`` unless specified by the
-   :method:`cursor.hint()` function.
+   You can also specify the option with either of the two forms:
 
-   Use operation alone or in conjunction with :operator:`$min`
-   to limit results to a specific range.
+   .. code-block:: javascript
+
+      db.collection.find( { <query> } )._addSpecial( "$max", { field1: <max value1>, ... fieldN: <max valueN> } )
+      db.collection.find( { $query: { <query> }, $max: { field1: <max value1>, ... fieldN: <max valueN> } } )
+
+   The :operator:`$max` specifies the upper bound for *all* keys of a
+   specific index *in order*.
+
+   Consider the following operations on a collection named
+   ``collection`` that has an index ``{ age: 1 }``:
+
+   .. code-block:: javascript
+
+      db.collection.find( { <query> } ).max( { age: 100 } )
+
+   This operation above limits the query to those documents where the
+   field ``age`` is less than ``100`` using the index ``{ age: 1 }``.
+   
+   You can explicitly specify the corresponding index with
+   :method:`cursor.hint()`. Otherwise, MongoDB selects the index using
+   the fields in the ``indexbounds``; however, if multiple indexes
+   exist on same fields with different sort orders, the selection of
+   the index may be ambiguous.
+
+   Consider a collection named ``collection`` that has the following
+   two indexes:
+
+   .. code-block:: javascript
+
+      { age: 1, type: -1 }
+      { age: 1, type: 1 }
+
+   Without explicitly using :method:`cursor.hint()`, it is unclear
+   which index the following operation will select:
+
+   .. code-block:: javascript
+
+      db.collection.find().max( { age: 50, type: 'B' } )
+
+   Use operation alone or in conjunction with :operator:`$min` to limit
+   results to a specific range for the *same* index, as in the
+   following example:
+
+   .. code-block:: javascript
+
+      db.collection.find().min( { age: 20 } ).max( { age: 25 } )
 
    .. note::
 
-      In most cases, you should avoid this operator in favor of
-      :operator:`$lt`.
+      Because :method:`cursor.max()` requires an index on a field, and
+      forces the query to use this index, you may prefer the
+      :operator:`$lt` operator for the query if possible. Consider the
+      following example:
+
+      .. code-block:: javascript
+
+         db.collection.find( { _id: 7 } ).max( { age: 25 } )
+
+      The query will use the index on the ``age`` field, even if the
+      index on ``_id`` may be better.

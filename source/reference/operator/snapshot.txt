@@ -6,29 +6,40 @@ $snapshot
 
 .. operator:: $snapshot
 
-   The :operator:`$snapshot` operator ensures that the results
-   returned by a query:
+   The :operator:`$snapshot` operator prevents the cursor from
+   returning a document more than once because an intervening write
+   operation results in a move of the document.
 
-   - contains no duplicates.
-   - misses no objects.
-   - returns all matching objects that were present at the beginning
-     and the end of the query.
+   Even in snapshot mode, objects inserted or deleted during the
+   lifetime of the cursor may or may not be returned.
 
-   Snapshot mode does not guarantee the inclusion (or omission) of an
-   object present at the beginning of the query but not at the end
-   (due to an update.) Use the following syntax:
+   The :program:`mongo` shell provides the :method:`cursor.snapshot()`
+   method:
 
    .. code-block:: javascript
 
-      db.foo.find()._addSpecial( "$snapshot", true )
+      db.collection.find().snapshot()
 
-   The JavaScript function :method:`cursor.snapshot()` provides equivalent
-   functionality in the :program:`mongo` shell. See the following
-   example, which is equivalent to the above:
+   You can also specify the option in either of the following forms:
 
    .. code-block:: javascript
 
-      db.foo.find().snapshot()
+      db.collection.find()._addSpecial( "$snapshot", true )
+      db.collection.find( { $query: {}, $snapshot: true } )
 
-   Do not use snapshot with :operator:`$hint`, or :operator:`$orderby`
-   (:method:`cursor.sort()`.)
+   The :operator:`$snapshot` operator traverses the index on the
+   ``_id`` field [#snapshot-alternative]_.
+
+   .. warning::
+
+      - You cannot use :operator:`$snapshot` with :term:`sharded
+        collections <sharding>`.
+
+      - Do **not** use :operator:`$snapshot` with :operator:`$hint` or
+        :operator:`$orderby` (or the corresponding
+        :method:`cursor.hint()` and :method:`cursor.sort()` methods.)
+
+   .. [#snapshot-alternative]
+
+      You can achieve the :operator:`$snapshot` isolation behavior
+      using any *unique* index on invariable fields.
