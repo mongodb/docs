@@ -37,6 +37,7 @@ include bin/makefile.push
 # targets, LaTeX/PDFs, tables, the installation guides, and sym links.
 
 -include $(output)/makefile.pdfs
+-include $(output)/makefile.texinfo
 -include $(output)/makefile.tables
 -include $(output)/makefile.links
 -include $(output)/makefile.sphinx
@@ -138,7 +139,9 @@ $(branch-output)/latex/%.tex:
 	@echo [pdf]: pdf compilation of $@, complete at `date`.
 
 ############# General purpose targets. Not used (directly) in the production build #############
-
+ttest:
+	@echo $(info-builder-mongodb-crud)
+	@ls $(branch-output)/texinfo/mongodb*
 clean:
 	-rm -rf $(output-tables) $(branch-output)/* build/makefile.*
 clean-public:

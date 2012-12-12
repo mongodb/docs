@@ -223,6 +223,11 @@ man_pages = [
     ('reference/configuration-options', 'mongodb-config', u'MongoDB', [u'MongoDB Documentation Project'], 1),
 ]
 
+texinfo_documents = [
+    ('contents', 'mongodb-manual', 'MongoDB Manual', '10gen, Inc.', 'mongodb', 'MongoDB Manual', 'Database', True),
+    ('meta/reference', 'mongodb-reference', 'MongoDB Reference Manual', '10gen, Inc.', 'mongodb', 'Reference Material for MongoDB', 'Database', False),
+    ('crud', 'mongodb-crud', 'MongoDB Crud Guide', '10gen, Inc.', 'mongodb', 'CRUD Operation Guide for MongoDB', 'Database', False),
+]
 
 # -- Options for Epub output ---------------------------------------------------
 
