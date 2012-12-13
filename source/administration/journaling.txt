@@ -1,0 +1,327 @@
+==========
+Journaling
+==========
+
+.. default-domain:: mongodb
+
+:term:`Journaling <journal>` ensures durability of data by storing
+:doc:`write operations </core/write-operations>` in an on-disk
+``journal`` prior to applying them to the database. The ``journal``
+ensures write operations can be re-applied in the event of a crash.
+
+Journaling also provides early :doc:`read access
+</core/read-operations>` to modified data by applying write operations
+to mapped data files in RAM. The data is available for reads even before
+MongoDB writes the data to the on-disk data files (i.e., databases).
+
+Beginning with MongoDB version 2.0, journaling is enabled by default for
+64-bit platforms.
+
+How Journaling Works
+--------------------
+
+When journaling is enabled, MongoDB stores and applies :doc:`write
+operations </core/write-operations>` to numerous locations before
+the changes are reflected in the your databases.
+
+This section explains this process in detail.
+
+.. _journaling-configuring-storage:
+
+Storage Locations used in Journaling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Journaling adds three storage locations to MongoDB.
+
+The ``shared view`` stores modified data for upload to the MongoDB
+databases. The ``shared view`` is the only location with direct access
+to the MongoDB data files. When you start a :program:`mongod` with
+journaling enabled, MongoDB asks the operating system to map your
+existing on-disk data files to the ``shared view`` memory location. The
+operating system maps the files but does not load them. MongoDB later
+loads data files to ``shared view`` as needed.
+
+The ``private view`` stores data for use in :doc:`read operations
+</core/read-operations>`. The ``private view`` is mapped to the ``shared view``
+and is the first place MongoDB applies new :doc:`write operations
+</core/write-operations>`, mean read operations get the most up-to-date
+data. Keep in mind that because the ``private view`` is a second mapping
+of data files, journaling often doubles the amount of virtual memory
+:program:`mongod` uses.
+
+The ``journal`` is an on-disk location that stores new write operations
+after they have been applied to the ``private cache`` but before they
+have been applied to the databases. The ``journal`` provides durability.
+If the :program:`mongod` instance were to crash without having applied
+the writes to the databases, the ``journal`` could replay the writes to
+the ``shared view`` for eventual upload to the databases.
+
+.. _journaling-record-write-operation:
+
+How Journaling Records Write Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+As users perform :doc:`write operations </core/write-operations>`,
+MongoDB writes the data to the ``private view`` in RAM, making it
+immediately available for :doc:`read operations
+</core/read-operations>`.
+
+MongoDB then copies the write operations in batches from the ``private
+view`` to the ``journal``, which stores the operations on disk to ensure
+durability. When writing to the ``journal``, MongoDB adds a write operation as
+an entry on the ``journal``'s forward pointer. Each entry on the pointer
+describes which bytes the write operation changed in the data files.
+(The ``journal`` also has a behind pointer, discussed later in this
+section.)
+
+MongoDB copies the write operations to the journal in batches
+called group commits. By default, MongoDB performs a group commit every
+100 milliseconds, which means a series of operations over 100
+milliseconds are committed as a single batch. This is done to achieve
+high performance.
+
+MongoDB next applies the ``journal``'s write operations to the ``shared
+view``. At this point, the ``shared view`` becomes inconsistent with the data files
+on disk (i.e., the MongoDB databases).
+
+At default intervals of 60 seconds, MongoDB asks the operating system to
+flush the ``shared view`` to disk. This brings the data files up-to-date
+with the latest write operations.
+
+When write operations are flushed to the databases, MongoDB removes the
+write operations from the ``journal``'s behind pointer. The behind pointer
+is always far back from advanced pointer.
+
+As part of journaling, MongoDB routinely asks the operating system to
+remap the ``shared view`` to the ``private view``, for consistency.
+
+.. note:: The interaction between the ``shared view`` and the on-disk
+   data files is not dissimilar to how MongoDB works *without*
+   journaling, which is that MongoDB asks the operating system to flush
+   in-memory changes back to the data files every 60 seconds.
+
+What Journaling Stores
+~~~~~~~~~~~~~~~~~~~~~~
+
+Journaling stores:
+
+- documents
+- indexes
+- meta data on collections and databases
+- journals, which are information about the information stored
+
+.. _journaling-journal-files:
+
+Journal Files
+~~~~~~~~~~~~~
+
+With journaling enabled, MongoDB creates a ``journal`` directory within
+your database directory. The ``journal`` directory holds journal files,
+which contain write-ahead redo logs. The directory also holds a
+last-sequence-number file. A clean shutdown removes all the files in the
+``journal`` directory.
+
+Journal files are append-only files and are named with the ``j._``
+prefix. When a journal file reaches 1 gigabyte, a new file is created.
+Files that no longer are needed are automatically deleted. Unless your
+write-bytes-per-second rate is extremely high, the directory should
+contain only two or three journal files.
+
+To limit the size of journal files to 128 megabytes per file, use the
+:option:`--smallfiles` command line option when starting
+:program:`mongod`.
+
+To speed the frequent sequential writes that occur to the current
+journal file, you can symbolically link the ``journal`` directory to a
+dedicated hard drive before starting :program:`mongod`.
+
+In some cases, you might experience a preallocation lag the first time
+you start a :program:`mongod` instance with journaling enabled. MongoDB
+may determine that it is faster to preallocate journal files than to
+create them as needed. This would be the case if it is faster on your
+file system to write to files of predefined sizes than to append files.
+If MongoDB preallocates the files, you might experience a several
+minutes delay on first startup of :program:`mongod`. You will not be
+able to connect to the database until the preallocation completes. This
+is a one-time preallocation and does not occur with future invocations.
+Check the logs to see if MongoDB is preallocating. The logs will display
+the standard "waiting for connections on port" message when complete.
+
+To avoid this lag, see :ref:`journaling-avoid-preallocation-lag`.
+
+Configuration and Setup
+-----------------------
+
+Enable Journaling
+~~~~~~~~~~~~~~~~~
+
+Beginning with version 2.0, journaling is enabled by default for 64-bit
+platforms.
+
+To enable journaling, start :program:`mongod` with the
+:option:`--journal` command line option.
+
+If :program:`mongod` decides to preallocate the files, it will not start
+listening on port 27017 until this process completes, which can take a
+few minutes. This means that your applications and the shell will not be
+able to connect to the database immediately on initial startup. Check
+the logs to see if MongoDB is busy preallocating.
+
+Disable Journaling
+~~~~~~~~~~~~~~~~~~
+
+To disable journaling, start :program:`mongod` with the
+:option:`--nojournal <mongod --nojournal>` command line option.
+
+It is OK to disable journaling after running with journaling. Simply
+shut down :program:`mongod` cleanly and restart with
+:option:`--nojournal <mongod --nojournal>`.
+
+Get Commit Acknowledgement
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can wait for group commit acknowledgement with the getLastError
+Command. In versions before 1.9.0 using getLastError + fsync would do
+this, in newer versions the "j" option has been specifically created for
+this purpose.
+
+In version 1.9.2+ the group commit delay is shortened when a commit
+acknowledgement (getLastError + j) is pending; this can be as little as
+1/3 of the normal group commit interval.
+
+.. _journaling-avoid-preallocation-lag:
+
+Avoid Preallocation Lag
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To avoid preallocation lag, you can preallocate files in the ``journal``
+directory by copying them from another instance of :program:`mongod`.
+(For details on preallocation lag, see :ref:`journaling-journal-files`.)
+
+.. example:: The following sequence of commands preallocates journal
+   files for an instance of :program:`mongod` running on port ``27017``
+   with a database path of ``/data/db``.
+
+   .. code-block:: sh
+
+      $ mkdir ~/tmpDbpath
+      $ mongod --port 10000 --dbpath ~/tmpDbpath --journal
+      # startup messages
+      # .
+      # .
+      # .
+      # wait for prealloc to finish
+      Thu Mar 17 10:02:52 [initandlisten] preallocating a journal file
+      ~/tmpDbpath/journal/prealloc.0
+      Thu Mar 17 10:03:03 [initandlisten] preallocating a journal file
+      ~/tmpDbpath/journal/prealloc.1
+      Thu Mar 17 10:03:14 [initandlisten] preallocating a journal file
+      ~/tmpDbpath/journal/prealloc.2
+      Thu Mar 17 10:03:25 [initandlisten] flushing directory
+      ~/tmpDbpath/journal
+      Thu Mar 17 10:03:25 [initandlisten] flushing directory
+      ~/tmpDbpath/journal
+      Thu Mar 17 10:03:25 [initandlisten] waiting for connections on port
+      10000
+      Thu Mar 17 10:03:25 [websvr] web admin interface listening on port 11000
+      # then Ctrl-C to kill this instance
+      ^C
+      $ mv ~/tmpDbpath/journal /data/db/
+      $ # restart mongod on port 27017 with --journal
+
+Preallocated files do not contain data. It is safe to remove them. But
+if you restart :program:`mongod` with journaling, :program:`mongod` will
+create them again.
+
+Change the Group Commit Interval
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Beginning with version 1.9.2, you can set the group commit interval
+using the :option:`--journalCommitInterval <mongod
+--journalCommitInterval>` command line option. The allowed range is ``2`` to
+``300`` milliseconds.
+
+Monitor journal Status
+~~~~~~~~~~~~~~~~~~~~~~
+
+serverStatus command
+
+The serverStatus command now includes some statistics regarding
+journaling.
+
+journalLatencyTest Command
+
+You can use the journalLatencyTest command to measure how long it takes
+on your volume to write to the disk (including fsyncing the data) in an
+append-only fashion.
+
+> use admin
+
+> db.runCommand("journalLatencyTest")
+
+You can run this command on an idle system to get a baseline sync time
+for journaling. In addition, it is safe to run this command on a busy
+system to see the sync time on a busy system (which may be higher if the
+journal directory is on the same volume as the data files).
+
+In version 1.9.2+ you can set the group commit interval, using
+--journalCommitInterval command-line option, to between 2 and 300
+milliseconds (default is 100ms). The actual interval are the maximum
+of this setting and your disk latency as measured above.
+
+journalLatencyTest is also a good way to check if your disk drive is
+buffering writes in its local cache. If the number is very low (e.g.,
+less than 2ms) and the drive is non-ssd, the drive is probably buffering
+writes. In that case, you will want to enable cache write-through for
+the device in your operating system. (Unless you have a disk controller
+card with battery backed ram, then this is a good thing.)
+
+Command-line Options
+--------------------
+
+- `--master`: The :term:`master` mode.
+
+- :option:`--oplogSize`: This takes an argument and specifies the size
+  limit in MB for the oplog.
+
+- `--slave`: The :term:`slave` mode.
+
+- `--source`: This takes an argument and specifies the master as
+  <server:port>.
+
+- `--only`: This takes an argument and specifies a single database to
+  replicate.
+
+Recovery
+--------
+
+On a restart after a crash, journal files in journal are replayed
+before the server goes online. This is indicated in the log output.
+You do not need to run a repair.
+
+With journaling if you want a dataset to reside entirely in RAM, you
+need twice as much RAM available as the dataset size to be able to store
+the ``shared view`` and ``private view``.
+
+Recommendations
+~~~~~~~~~~~~~~~
+
+Recommend to set (or at least check) for a low read ahead value
+for the data disks, say 40 blocks.
+
+– And 0 for non-spinning disks
+
+Recommend to use a separate disk for the journal entries, with a
+slightly higher read ahead, say 100 blocks
+
+– Writes are always at the end of the journal
+
+– Deletes are always at the beginning of the journal
+
+Include checking the read ahead values in onboarding interviews
+
+Set the read ahead values in the templates we distribute
+
+Be aware of the issue for sudden performance breakdown tickets
+
+– Beware of resident memory estimates when diagnosing RAM usage
