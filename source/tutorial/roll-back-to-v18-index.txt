@@ -1,0 +1,46 @@
+================================
+Roll Back to a Version 1.8 Index
+================================
+
+.. default-domain:: mongodb
+
+
+MongoDB version 2.0 and later supports the old index format. But old versions
+will not support the new format. If you need to roll back to an older
+version, the server will run, but queries and other operations involving
+the newer indexes will log and return an error. Thus, you will need to
+re-create any new index you would like to use on an old server.
+
+Versions prior to 1.8.2, inclusive, are not aware of the index version
+field. If you rollback a ``{v:1}`` index to 1.8.2 and re-index it, its
+version will still be marked ``{v: 1}``, although it actual is now version ``{v:0}``.
+If you upgrade again to 2.0, this index will not work, even though it is
+marked as ``{v: 1}`` in ``system.indexes``. If you must roll back to a
+version prior to 1.8.2, you must delete the index then create it again
+(instead of simply re-indexing).
+
+Building a {v:0} Index
+----------------------
+
+You can still create a ``{v:0}`` index with MongoDB version 2.0 or later. To do so, add the
+option ``{v:0}`` in the index creation command. For example in the :program:`mongo`
+shell:
+
+.. code-block:: javascript
+
+   // defaults to a v:1 index
+   db.foo.ensureIndex({name:1})
+   db.system.indexes.find()
+   { "v" : 1, "key" : { "_id" : 1 }, "ns" : "mydb.foo", "name" : "_id_" }
+   { "v" : 1, "key" : { "name" : 1 }, "ns" : "mydb.foo", "name" : "name_1" }
+   db.foo.dropIndex({name:1})
+   { "nIndexesWas" : 2, "ok" : 1 }
+
+   // create a v:0 index
+   db.foo.ensureIndex({name:1},{v:0})
+   db.system.indexes.find()
+   { "v" : 1, "key" : { "_id" : 1 }, "ns" : "mydb.foo", "name" : "_id_" }
+   
+   { "v" : 0, "key" : { "name" : 1 }, "ns" : "mydb.foo", "name" : "name_1" }
+
+.. seealso:: :ref:`2.0-new-index-format` and :ref:`2.0-convert-to-new-index-format`
