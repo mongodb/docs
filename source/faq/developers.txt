@@ -615,3 +615,48 @@ explicitly force the query to use that index.
 .. [#id-is-immutable] MongoDB does not permit changes to the value of the
    ``_id`` field; it is not possible for a cursor that transverses
    this index to pass the same document more than once.
+
+.. _faq-developers-isolate-cursors:
+
+When should I embed documents?
+------------------------------
+
+During :doc:`/core/data-modeling`, embedding is frequently the choice
+for:
+
+- "contains" relationships between entities. 
+
+- one-to-many relationships when the "many" objects *always* appear
+  with or are viewed in the context of their parents.
+
+You should also consider embedding for performance reasons if you have
+a collection with a huge amount of small documents. If small, separate
+documents represent the natural model for the data, then you should
+maintain that model. If, however, you can group these small documents
+by some logical relationship [#embed-caveat-grouping]_ and you
+frequently retrieve the documents by this
+grouping[#embed-caveat-subset]_, you might consider "rolling-up" the
+small documents into larger documents that contain an array of
+subdocuments.
+
+Embedding these small documents provides the following benefits:
+
+- Returning the group of the small documents involves sequential reads
+  and less random disk accesses.
+
+- If the data is too large to fit entirely in RAM, embedding provides
+  better RAM cache utilization. [#embed-caveat-ram-cache]_
+
+- If the small documents contained common index keys, the common keys
+  would be stored in fewer copies with fewer associated key entries in
+  the corresponding index.
+
+.. [#embed-caveat-grouping] If grouping the small documents would be
+   awkward, don't do it.
+
+.. [#embed-caveat-subset] If you often only need a subset of the items you would
+   group, this approach could be inefficient compared to alternatives.
+
+.. [#embed-caveat-ram-cache] If your small documents are approximately
+   the page cache unit size, there is no benefit for ram cache efficiency,
+    although embedding will provide some benefit regarding random disk i/o.
