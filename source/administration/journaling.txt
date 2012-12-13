@@ -6,23 +6,24 @@ Journaling
 
 :term:`Journaling <journal>` ensures durability of data by storing
 :doc:`write operations </core/write-operations>` in an on-disk
-``journal`` prior to applying them to the database. The ``journal``
+journal prior to applying them to the data files. The journal
 ensures write operations can be re-applied in the event of a crash.
 
-Journaling also provides early :doc:`read access
-</core/read-operations>` to modified data by applying write operations
-to mapped data files in RAM. The data is available for reads even before
-MongoDB writes the data to the on-disk data files (i.e., databases).
+Journaling ensures that :program:`mongodb` is crash resistent. Without a
+journal, if :program:`mongodb` exits unexpectedly, the operators must assume
+the data are in an inconsistent state and should resync from a clean
+secondary.
 
-Beginning with MongoDB version 2.0, journaling is enabled by default for
-64-bit platforms.
+.. versionchanged:: 2.0
+
+   Journaling is enabled by default for 64-bit platforms.
 
 How Journaling Works
 --------------------
 
-When journaling is enabled, MongoDB stores and applies :doc:`write
-operations </core/write-operations>` to numerous locations before
-the changes are reflected in the your databases.
+When running with journaling, MongoDB stores and applies :doc:`write
+operations </core/write-operations>` in memory and in the journal before
+the changes are in the data files.
 
 This section explains this process in detail.
 
@@ -34,9 +35,9 @@ Storage Locations used in Journaling
 Journaling adds three storage locations to MongoDB.
 
 The ``shared view`` stores modified data for upload to the MongoDB
-databases. The ``shared view`` is the only location with direct access
-to the MongoDB data files. When you start a :program:`mongod` with
-journaling enabled, MongoDB asks the operating system to map your
+data files. The ``shared view`` is the only location with direct access
+to the MongoDB data files. When running with journaling, :program:`mongod`
+asks the operating system to map your
 existing on-disk data files to the ``shared view`` memory location. The
 operating system maps the files but does not load them. MongoDB later
 loads data files to ``shared view`` as needed.
@@ -49,12 +50,12 @@ data. Keep in mind that because the ``private view`` is a second mapping
 of data files, journaling often doubles the amount of virtual memory
 :program:`mongod` uses.
 
-The ``journal`` is an on-disk location that stores new write operations
+The journal is an on-disk location that stores new write operations
 after they have been applied to the ``private cache`` but before they
-have been applied to the databases. The ``journal`` provides durability.
+have been applied to the data files. The journal provides durability.
 If the :program:`mongod` instance were to crash without having applied
-the writes to the databases, the ``journal`` could replay the writes to
-the ``shared view`` for eventual upload to the databases.
+the writes to the data files, the journal could replay the writes to
+the ``shared view`` for eventual upload to the data files.
 
 .. _journaling-record-write-operation:
 
@@ -67,11 +68,11 @@ immediately available for :doc:`read operations
 </core/read-operations>`.
 
 MongoDB then copies the write operations in batches from the ``private
-view`` to the ``journal``, which stores the operations on disk to ensure
-durability. When writing to the ``journal``, MongoDB adds a write operation as
-an entry on the ``journal``'s forward pointer. Each entry on the pointer
+view`` to the journal, which stores the operations on disk to ensure
+durability. When writing to the journal, MongoDB adds a write operation as
+an entry on the journal's forward pointer. Each entry on the pointer
 describes which bytes the write operation changed in the data files.
-(The ``journal`` also has a behind pointer, discussed later in this
+(The journal also has a behind pointer, discussed later in this
 section.)
 
 MongoDB copies the write operations to the journal in batches
@@ -80,16 +81,15 @@ called group commits. By default, MongoDB performs a group commit every
 milliseconds are committed as a single batch. This is done to achieve
 high performance.
 
-MongoDB next applies the ``journal``'s write operations to the ``shared
-view``. At this point, the ``shared view`` becomes inconsistent with the data files
-on disk (i.e., the MongoDB databases).
+MongoDB next applies the journal's write operations to the ``shared
+view``. At this point, the ``shared view`` becomes inconsistent with the data files.
 
 At default intervals of 60 seconds, MongoDB asks the operating system to
 flush the ``shared view`` to disk. This brings the data files up-to-date
 with the latest write operations.
 
-When write operations are flushed to the databases, MongoDB removes the
-write operations from the ``journal``'s behind pointer. The behind pointer
+When write operations are flushed to the data files, MongoDB removes the
+write operations from the journal's behind pointer. The behind pointer
 is always far back from advanced pointer.
 
 As part of journaling, MongoDB routinely asks the operating system to
@@ -115,11 +115,11 @@ Journaling stores:
 Journal Files
 ~~~~~~~~~~~~~
 
-With journaling enabled, MongoDB creates a ``journal`` directory within
-your database directory. The ``journal`` directory holds journal files,
+With journaling enabled, MongoDB creates a journal directory within
+your database directory. The journal directory holds journal files,
 which contain write-ahead redo logs. The directory also holds a
 last-sequence-number file. A clean shutdown removes all the files in the
-``journal`` directory.
+journal directory.
 
 Journal files are append-only files and are named with the ``j._``
 prefix. When a journal file reaches 1 gigabyte, a new file is created.
@@ -132,7 +132,7 @@ To limit the size of journal files to 128 megabytes per file, use the
 :program:`mongod`.
 
 To speed the frequent sequential writes that occur to the current
-journal file, you can symbolically link the ``journal`` directory to a
+journal file, you can symbolically link the journal directory to a
 dedicated hard drive before starting :program:`mongod`.
 
 In some cases, you might experience a preallocation lag the first time
@@ -194,7 +194,7 @@ acknowledgement (getLastError + j) is pending; this can be as little as
 Avoid Preallocation Lag
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-To avoid preallocation lag, you can preallocate files in the ``journal``
+To avoid preallocation lag, you can preallocate files in the journal
 directory by copying them from another instance of :program:`mongod`.
 (For details on preallocation lag, see :ref:`journaling-journal-files`.)
 
