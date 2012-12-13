@@ -136,6 +136,8 @@ class MongoDBObject(ObjectDescription):
             return _('%s (JavaScript shell macro)') % (name)
         elif self.objtype == 'limit':
             return _('%s (MongoDB system limit)') % (name)
+        elif self.objtype == 'bsontype':
+            return _('%s (BSON type)') % (name)            
         return ''
 
     def run(self):
@@ -213,6 +215,7 @@ class MongoDBDomain(Domain):
         'error':        ObjType(l_('error'),       'error'),
         'macro':        ObjType(l_('macro'),       'macro'),
         'limit':        ObjType(l_('limit'),       'limit'),
+        'bsontype':     ObjType(l_('bsontype'),    'bsontype'),
     }
 
     directives = {
@@ -230,6 +233,7 @@ class MongoDBDomain(Domain):
         'error':         MongoDBObject,
         'macro':         MongoDBObject,
         'limit':         MongoDBObject,
+        'bsontype':      MongoDBObject,
     }
     roles = {
         'dbcommand':   MongoDBXRefRole(),
@@ -246,6 +250,7 @@ class MongoDBDomain(Domain):
         'error':       MongoDBXRefRole(),
         'macro':       MongoDBXRefRole(),
         'limit':       MongoDBXRefRole(),
+        'bsontype':    MongoDBXRefRole(),
     }
     initial_data = {
         'objects': {}, # fullname -> docname, objtype
