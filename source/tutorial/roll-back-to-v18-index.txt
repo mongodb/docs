@@ -1,46 +1,53 @@
-================================
-Roll Back to a Version 1.8 Index
-================================
+=======================
+Build Old Style Indexes
+=======================
 
 .. default-domain:: mongodb
 
+.. important::
 
-MongoDB version 2.0 and later supports the old index format. But old versions
-will not support the new format. If you need to roll back to an older
-version, the server will run, but queries and other operations involving
-the newer indexes will log and return an error. Thus, you will need to
-re-create any new index you would like to use on an old server.
+   Use this procedure *only* if you must have indexes that are compatible
+   with a version of MongoDB earlier than 2.0.
 
-Versions prior to 1.8.2, inclusive, are not aware of the index version
-field. If you rollback a ``{v:1}`` index to 1.8.2 and re-index it, its
-version will still be marked ``{v: 1}``, although it actual is now version ``{v:0}``.
-If you upgrade again to 2.0, this index will not work, even though it is
-marked as ``{v: 1}`` in ``system.indexes``. If you must roll back to a
-version prior to 1.8.2, you must delete the index then create it again
-(instead of simply re-indexing).
+MongoDB version 2.0 introduced the ``{v:1}`` index format. MongoDB
+versions 2.0 and later support both the ``{v:1}`` format and the
+earlier ``{v:0}`` format.
 
-Building a {v:0} Index
-----------------------
+MongoDB versions prior to 1.8.2, however, support only the ``{v:0}``
+format. If you need to roll back MongoDB to a version prior to 2.0, you
+must *drop* and *re-create* your indexes.
 
-You can still create a ``{v:0}`` index with MongoDB version 2.0 or later. To do so, add the
-option ``{v:0}`` in the index creation command. For example in the :program:`mongo`
-shell:
+You do so using the :method:`dropIndexes()
+<db.collection.dropIndexes()>` and :method:`ensureIndex()
+<db.collection.ensureIndex()>` methods. You *cannot* simply reindex the
+collection. If you simply reindex, the ``v`` fields in your indexes
+would still hold values of ``1``, even though the indexes would now use
+the ``{v:0}`` format. If you were to upgrade again to version 2.0 or
+later, your indexes would not work.
 
-.. code-block:: javascript
+.. example::
 
-   // defaults to a v:1 index
-   db.foo.ensureIndex({name:1})
-   db.system.indexes.find()
-   { "v" : 1, "key" : { "_id" : 1 }, "ns" : "mydb.foo", "name" : "_id_" }
-   { "v" : 1, "key" : { "name" : 1 }, "ns" : "mydb.foo", "name" : "name_1" }
-   db.foo.dropIndex({name:1})
-   { "nIndexesWas" : 2, "ok" : 1 }
+   Suppose you rolled back from MongoDB 2.0 to MongoDB 1.8, and suppose
+   you had the following index on the ``items`` collection:
 
-   // create a v:0 index
-   db.foo.ensureIndex({name:1},{v:0})
-   db.system.indexes.find()
-   { "v" : 1, "key" : { "_id" : 1 }, "ns" : "mydb.foo", "name" : "_id_" }
-   
-   { "v" : 0, "key" : { "name" : 1 }, "ns" : "mydb.foo", "name" : "name_1" }
+   .. code-block:: javascript
 
-.. seealso:: :ref:`2.0-new-index-format` and :ref:`2.0-convert-to-new-index-format`
+      { "v" : 1, "key" : { "name" : 1 }, "ns" : "mydb.items", "name" : "name_1" }
+
+   The ``v`` field tells you the index is a ``{v:1}`` index, which
+   is incompatible with version 1.8.
+
+   To drop the index, issue the following command:
+
+   .. code-block:: javascript
+
+      db.items.dropIndex( { name : 1 } )
+
+   To recreate the index as a ``{v:0}`` index, issue the following
+   command:
+
+   .. code-block:: javascript
+
+      db.foo.ensureIndex( { name : 1 } , { v : 0 } )
+
+.. seealso:: :ref:`2.0-new-index-format`.
