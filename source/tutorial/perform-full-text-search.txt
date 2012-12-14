@@ -1,0 +1,95 @@
+========================
+Perform Full-Text Search
+========================
+
+.. default-domain:: mongodb
+
+Mongo uses :ref:`multi-key indexes <index-type-multi-key>` to provide
+for searches on text and tags. A multi-key index can index an array of
+values.
+
+Text Search
+-----------
+
+To implement a text search:
+
+1. Create an array of search words.
+
+2. Create a :ref:`multi-key index <index-type-multi-key>` on the array.
+
+.. example::
+
+   Create an array with all the keywords to search on. Here is a simple example:
+
+   .. code-block:: javascript
+
+      { title : "breakfast drinks" ,
+        keywords : [ "tea" , "coffee" , "juice", "Tang" ]
+      }
+
+   Create a multi-key index on the ``keywords`` array:
+
+   .. code-block:: javascript
+
+      db.menu.ensureIndex( { keywords: 1 } )
+
+Tagging
+-------
+
+To implement a tag search:
+
+1. Create an array of tags.
+
+2. Create a :ref:`multi-key index <index-type-multi-key>` on the array.
+
+.. example::
+
+   Suppose you have documents in the ``articles`` database and the
+   documents are tagged with category names, such as the following
+   document:
+
+   .. code-block:: javascript
+
+      {
+        name: "Apollo" ,
+        text: "The Apollo program was the first to land
+               people on the Moon." ,
+        tags: [ "moon", "apollo", "spaceflight" ]
+      }
+
+   Create a multi-key index on the ``tags`` array:
+
+   .. code-block:: javascript
+
+      db.articles.ensureIndex( { tags: 1 } )
+
+   The above command indexes all the strings in the ``tags`` array. For
+   the document shown in this example, the command creates index entries
+   for the tags ``moon``, ``apollo`` and ``spaceflight``. Users can query
+   on those tags. For example:
+
+   .. code-block:: javascript
+
+      print(db.articles.findOne( { tags : "apollo" } ).name)
+
+The database creates an index entry for each item in the array. An
+array with many elements (hundreds or thousands) might make inserts very
+expensive. Although, for the example above, alternate implementations
+are equally expensive.
+
+Comparison to Full-Text Search Engines
+--------------------------------------
+
+MongoDB makes certain search full-text searches easy, though differs from
+dedicated full-text search engines:
+
+Dedicated full-text engines provide the following:
+
+- Built-in text stemming
+
+- Ranking of queries matching various numbers of terms. This can be done with
+  MongoDB but requires user supplied code to do so.
+
+- Bulk index building. Bulk index building makes building indexes fast
+  but has the downside of not being in real time. MongoDB is particularly
+  well suited for problems where the search should be done in real time.
