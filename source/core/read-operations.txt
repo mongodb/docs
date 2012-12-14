@@ -661,6 +661,208 @@ indexes at all. Consider the following situations:
   cannot use an index. *However*, the regular expression with anchors
   to the beginning of a string *can* use an index.
 
+.. _read-operations-cursors:
+
+Cursors
+-------
+
+The :method:`find() <db.collection.find()>` method returns a
+:term:`cursor` to the results; however, in the :program:`mongo` shell,
+if the returned cursor is not assigned to a variable, then the cursor
+is automatically iterated up to 20 times [#setShellBatchSize]_ to print
+up to the first 20 documents that match the query, as in the following
+example:
+
+.. code-block:: javascript
+
+   db.inventory.find( { type: 'food' } );
+
+When you assign the :method:`find() <db.collection.find()>` to a
+variable:
+
+- you can type the name of the cursor variable to iterate up to 20
+  times [#setShellBatchSize]_ and print the matching documents, as in
+  the following example:
+
+  .. code-block:: javascript
+
+     var myCursor = db.inventory.find( { type: 'food' } );
+
+     myCursor
+
+- you can use the cursor method :method:`next() <cursor.next()>` to
+  access the documents, as in the following example:
+
+  .. code-block:: javascript
+
+     var myCursor = db.inventory.find( { type: 'food' } );
+
+     var myDocument = myCursor.hasNext() ? myCursor.next() : null;
+
+     if (myDocument) {
+
+         var myItem = myDocument.item;
+
+         print(tojson(myItem));
+     }
+
+  To print, you can also use the ``printjson()`` method instead of
+  ``print(tojson())``:
+
+  .. code-block:: javascript
+
+     if (myDocument) { 
+
+         var myItem = myDocument.item;
+
+         printjson(myItem);
+     }
+
+- you can use the cursor method :method:`forEach() <cursor.forEach()>`
+  to iterate the cursor and access the documents, as in the following
+  example:
+
+  .. code-block:: javascript
+
+     var myCursor =  db.inventory.find( { type: 'food' } );
+
+     myCursor.forEach(printjson);
+
+See :ref:`JavaScript cursor methods <js-query-cursor-methods>` and your
+:doc:`driver </applications/drivers>` documentation for more
+information on cursor methods.
+
+.. [#setShellBatchSize] You can use the ``DBQuery.shellBatchSize`` to
+   change the number of iteration from the default value ``20``, as in the
+   following example which sets the number to ``10``:
+
+   .. code-block:: javascript
+
+      DBQuery.shellBatchSize = 10
+
+Iterator Index
+~~~~~~~~~~~~~~
+
+In the :program:`mongo` shell, you can use the ``toArray()`` method to
+iterate the cursor and return the documents in an array, as in the
+following:
+
+.. code-block:: javascript
+
+   var myCursor = db.inventory.find( { type: 'food' } );
+   var documentArray = myCursor.toArray();
+   var myDocument = documentArray[3];
+
+The ``toArray()`` method loads into RAM all documents returned by the
+cursor; the ``toArray()`` method exhausts the cursor.
+
+Additionally, some :doc:`drivers </applications/drivers>` provide
+access to the documents by using an index on the cursor (i.e.
+``cursor[index]``). This is a shortcut for first calling the
+``toArray()`` method and then using an index on the resulting array.
+
+Consider the following example:
+
+.. code-block:: javascript
+
+   var myCursor = db.inventory.find( { type: 'food' } );
+   var myDocument = myCursor[3];
+
+The ``myCursor[3]`` is equivalent to the following example:
+
+.. code-block:: javascript
+
+   myCursor.toArray() [3];
+
+.. TODO link to toArray() method once the page has been added
+
+Cursor Considerations
+~~~~~~~~~~~~~~~~~~~~~
+
+Consider the following behaviors related to cursors:
+
+- By default, the server will automatically close the cursor after 10
+  minutes of inactivity or if the cursor has been exhausted. To
+  override this behavior, you can specify the ``noTimeout`` :wiki:`wire
+  protocol flag <Mongo Wire Protocol>` in your query; however, you
+  should either close the cursor manually or exhaust the cursor. In the
+  :program:`mongo` shell, you can set the ``noTimeout`` flag
+  [#queryOptions]_:
+  
+  .. code-block:: javascript 
+  
+     var myCursor = db.inventory.find().addOption(DBQuery.Option.noTimeout);
+  
+  See your :doc:`driver </applications/drivers>` documentation for
+  information on setting the ``noTimeout`` flag.
+
+- Because the cursor is not isolated during its lifetime, intervening
+  write operations may cause a document to be returned multiple times.
+  To handle this situation, see the information on :wiki:`snapshot mode
+  <How to do Snapshotted Queries in the Mongo Database>`.
+
+- The MongoDB server returns the query results in batches:
+
+  - For most queries, the *first* batch returns 101 documents or just
+    enough documents to exceed 1 megabyte. Subsequent batch size is 4
+    megabytes. To override the default size of the batch, see
+    :method:`cursor.batchSize()` and :method:`cursor.limit()`.
+
+  - For queries that include a sort operation *without* an index, the
+    server must load all the documents in memory to perform the sort
+    and will return all documents in the first batch.
+
+  - Batch size will not exceed the :ref:`maximum BSON document size
+    <limit-bson-document-size>`.
+
+  - As you iterate through the cursor and reach the end of the returned
+    batch, if there are more results, :method:`cursor.next()` will
+    perform a :data:`getmore operation <op>` to retrieve the next batch.
+
+    To see how many documents remain in the batch as you iterate the
+    cursor, you can use the :method:`cursor.objsLeftInBatch()` method,
+    as in the following example:
+
+    .. code-block:: javascript
+
+       var myCursor = db.inventory.find();
+
+       var myFirstDocument = myCursor.hasNext() ? myCursor.next() : null;
+
+       myCursor.objsLeftInBatch();
+
+- You can use the command :dbcommand:`cursorInfo` to retrieve the
+  following information on cursors:
+
+  - total number of open cursors
+
+  - size of the client cursors in current use
+
+  - number of timed out cursors since the last server restart
+
+  Consider the following example:
+
+  .. code-block:: javascript
+
+     db.runCommand( { cursorInfo: 1 } )
+
+  The result from the command returns the following documentation:
+
+  .. code-block:: javascript
+
+     { "totalOpen" : <number>, "clientCursors_size" : <number>, "timedOut" : <number>, "ok" : 1 }
+
+.. [#queryOptions] In the :program:`mongo` shell, the cursor flags
+   available are:
+
+   - ``DBQuery.Option.tailable``
+   - ``DBQuery.Option.slaveOk``
+   - ``DBQuery.Option.oplogReplay``
+   - ``DBQuery.Option.noTimeout``
+   - ``DBQuery.Option.awaitData``
+   - ``DBQuery.Option.exhaust``
+   - ``DBQuery.Option.partial``
+
 .. _read-operations-aggregation:
 
 Aggregation
