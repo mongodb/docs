@@ -25,6 +25,7 @@ Basic Operations
 - :doc:`/tutorial/recover-data-following-unexpected-shutdown`
 - :doc:`/tutorial/copy-databases-between-instances`
 - :doc:`/tutorial/expire-data`
+- :doc:`/tutorial/manage-the-database-profiler`
 
 Security
 ~~~~~~~~
