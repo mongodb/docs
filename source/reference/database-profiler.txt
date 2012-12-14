@@ -1,0 +1,237 @@
+========================
+Database Profiler Output
+========================
+
+.. default-domain:: mongodb
+
+The database profiler captures data information about read and write
+operations, cursor operations, and database commands. To configure the
+database profile and set the thresholds for capturing profile data,
+see the :doc:`/tutorial/manage-the-database-profiler` section.
+
+The database profiler writes data in the :data:`system.profile
+<<database>.system.profile>` collection,
+which is a :term:`capped collection`. To view the profiler's output,
+use normal MongoDB queries on the :data:`system.profile
+<<database>.system.profile>` collection.
+
+.. note::
+
+   Because the database profiler writes data to the
+   :data:`system.profile <<database>.system.profile>` collection in a
+   database, the profiler will profile some write activity, even for
+   databases that are otherwise read-only.
+
+Example ``system.profile`` Document
+-----------------------------------
+
+The documents in the :data:`system.profile
+<<database>.system.profile>` collection have the following form. This
+example document reflects an update operation:
+
+.. code-block:: javascript
+
+   {
+       "ts" : ISODate("2012-12-10T19:31:28.977Z"),
+       "op" : "update",
+       "ns" : "social.users",
+       "query" : {
+           "name" : "jane"
+       },
+       "updateobj" : {
+           "$set" : {
+               "likes" : [
+                   "basketball",
+                   "trekking"
+               ]
+           }
+       },
+       "nscanned" : 8,
+       "moved" : true,
+       "nmoved" : 1,
+       "nupdated" : 1,
+       "keyUpdates" : 0,
+       "numYield" : 0,
+       "lockStats" : {
+           "timeLockedMicros" : {
+               "r" : NumberLong(0),
+               "w" : NumberLong(258)
+           },
+           "timeAcquiringMicros" : {
+               "r" : NumberLong(0),
+               "w" : NumberLong(7)
+           }
+       },
+       "millis" : 0,
+       "client" : "127.0.0.1",
+       "user" : ""
+   }
+
+Output Reference
+----------------
+
+The database profiler reports the following values. The set of values
+reported for a given operation depends on the operation:
+
+.. stats:: ts
+
+   The timestamp of the operation.
+
+.. stats:: op
+
+   The type of operation. The possible values are:
+
+   - ``insert``
+   - ``query``
+   - ``update``
+   - ``remove``
+   - ``getmore``
+   - ``command``
+
+.. stats:: ns
+
+   The :term:`namespace` the operation targets. Namespaces in MongoDB
+   take the form of the :term:`database`, followed by a dot (``.``),
+   followed by the name of
+   the :term:`collection`.
+
+.. stats:: query
+
+   The query document used. See :ref:`documents-query-selectors` for
+   more information on these documents, and
+   :doc:`/reference/meta-query-operator` for more information.
+
+.. stats:: command
+
+   The command operation.
+
+.. stats:: updateobj
+
+   The :ref:`update document <documents-update-actions>` passed in
+   during an :doc:`update </applications/update>` operation.
+
+.. stats:: cursorid
+
+   The ID of the cursor accessed by a ``getmore`` operation.
+
+.. stats:: ntoreturn
+
+   The number of documents the operation specified to return. For
+   example, the :dbcommand:`profile` command would return one document
+   (a results document) so the :status:`ntoreturn` value would be ``1``. The
+   :method:`limit(5) <cursor.limit()>` command would return five
+   documents so the ``ntoreturn`` value would be ``5``.
+
+   If the :status:`ntoreturn` value is ``0``, the command did not specify a
+   number of documents to return, as would be the case with a simple
+   :method:`find() <db.collection.find()>` command with no limit
+   specified.
+
+.. stats:: ntoskip
+
+   The number of documents the :method:`skip() <cursor.skip()>` method
+   specified to skip.
+
+.. stats:: nscanned
+
+   The number of documents that MongoDB scans in the :doc:`index </indexes>` in order to
+   carry out the operation.
+
+   In general, if :stats:`nscanned` is much higher than :stats:`nreturned`, the
+   database is scanning many objects to find the target objects.
+   Consider creating an index to improve this.
+
+.. stats:: moved
+
+   If :stats:`moved` has a value of ``true`` indicates that the update operation moved one or
+   more documents to a new location on disk. These operations take
+   more time than
+   in-place updates, and typically occur when documents grow as a
+   result of document growth.
+
+   .. todo put a link to document growth in schema design/data
+      modeling docs.
+
+.. stats:: nmoved
+
+   The number of documents moved on disk by the operation.
+
+.. stats:: nupdated
+
+   The number of documents updated by the operation.
+
+.. stats:: keyUpdates
+
+   The number of :doc:`index </indexes>` keys the update changed in
+   the operation. Changing an index key
+   carries a small performance cost because the database must remove the old
+   key and inserts a new key into the B-tree index.
+
+.. stats:: numYield
+
+   The number of times the operation yielded to allow other operations
+   to complete. Typically, operations yield when they need access to
+   data that MongoDB has not yet fully read into memory. This allows
+   other operations that have data in memory to complete while MongoDB
+   reads in data for the yielding operation. For more information,
+   see :ref:`the FAQ on when operations yield <faq-concurrency-yielding>`.
+
+.. stats:: lockStats
+
+   The time in microseconds the operation spent acquiring and holding
+   locks. This field reports data for the following lock types:
+
+   - ``R`` - global read lock
+   - ``W`` - global write lock
+   - ``r`` - database-specific read lock
+   - ``w`` - database-specific write lock
+
+   .. stats:: lockStats.timeLockedMicros
+
+      The time in microseconds the operation held a specific lock.
+
+   .. stats:: lockStats.timeAcquiringMicros
+
+      The time in microseconds the operation spent waiting to acquire a
+      specific lock.
+
+.. stats:: nreturned
+
+   The number of documents returned by the operation.
+
+.. stats:: responseLength
+
+   The length in bytes of the operation's result document. A large
+   :stats:`responseLength` can affect performance. To limit the size of a the
+   result document for a query operation, you can use any of the
+   following:
+
+   - :ref:`Projections <read-operations-projection>`
+   - :method:`The limit() method <cursor.limit()>`
+   - :method:`The batchSize() method <cursor.batchSize()>`
+
+.. stats:: millis
+
+   The time in milliseconds for the server to perform the operation.
+   This time does not include network time nor time to acquire the lock.
+
+.. stats:: client
+
+   The IP address or hostname of the client connection where the
+   operation originates.
+
+   For some operations, such as :method:`db.eval()`, the client is
+   ``0.0.0.0:0`` instead of an actual client.
+
+.. stats:: user
+
+   The authenticated user who ran the operation.
+
+.. todo Test what values appear for authenticated users and add that info.
+   When we do, we can add back this: "If the operation was not run by an
+   authenticated user, this field's value is an empty string."
+
+.. todo Consider adding documentation to our manual on the
+   "internal user" used by replication
+
+.. todo add versionchanged stats for version 2.0 in all the fields.
