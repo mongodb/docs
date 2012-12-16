@@ -29,7 +29,7 @@ understanding of:
 
 The best overall strategy for designing indexes is to profile a variety
 of index configurations with data sets similar to the ones you'll be
-running in production and to see which configurations perform best.
+running in production to see which configurations perform best.
 
 MongoDB can only use *one* index to support any given
 operation. However, each clause of an :operator:`$or` query can use
@@ -41,14 +41,14 @@ Create Indexes to Support Your Queries
 --------------------------------------
 
 If you only ever query on a single key in a given collection, then you need
-create just one single-key index for that collection. For example, you
+to create just one single-key index for that collection. For example, you
 might create an index on ``category`` in the ``product`` collection:
 
 .. code-block:: javascript
 
    db.products.ensureIndex( { "category": 1 } )
 
-However, if you sometimes query on only one key but and at other times
+However, if you sometimes query on only one key and at other times
 query on that key combined with a second key, then creating a
 :ref:`compound index <index-type-compound>` is more efficient. MongoDB
 will use the compound index for both queries. For example, you might
@@ -122,9 +122,9 @@ part of an index. They are "covered queries" because an index "covers" the query
 MongoDB can fulfill the query by using *only* the index. MongoDB need
 not scan documents from the database.
 
-Querying *only* the index is much faster than querying documents.
-Indexes keys are typically smaller than the documents they catalog, and indexes are
-typically stored in RAM or located sequentially on disk.
+Querying *only* the index is much faster than querying documents. Index
+keys are typically smaller than the documents they catalog, and indexes
+are typically stored in RAM or located sequentially on disk.
 
 Mongod automatically uses a covered query when possible. To ensure use
 of a covered query, create an index that includes all the fields listed
@@ -135,7 +135,7 @@ explicitly exclude the ``_id`` field from the result set, unless the
 index includes ``_id``.
 
 MongoDB cannot use a covered query if any of the indexed fields in any
-of the documents in the collection include an array. If an indexed field
+of the documents in the collection includes an array. If an indexed field
 is an array, the index becomes a :ref:`multi-key index
 <index-type-multikey>` index and cannot support a covered query.
 
@@ -197,10 +197,10 @@ are equality matches.
 
 .. note::
 
-   When the :method:`sort() <cursor.sort()>` method performs an
-   in-memory sort operation without the use of an index, the operation
-   is significantly slower than for operations that use an index, and
-   the operation aborts when it consumes 32 megabytes of memory.
+   For in-memory sorts that do not use an index, the :method:`sort()
+   <cursor.sort()>` operation is significantly slower. The
+   :method:`~cursor.sort()` operation will abort when it uses 32
+   megabytes of memory.
 
 .. _indexes-ensure-indexes-fit-ram:
 
@@ -226,7 +226,7 @@ available but also must have RAM available for the rest of the
 
 If you have and use multiple collections, you must consider the size
 of all indexes on all collections. The indexes and the working set must be able to
-fit RAM at the same time.
+fit in RAM at the same time.
 
 There are some limited cases where indexes do not need
 to fit in RAM. See :ref:`indexing-right-handed`.
@@ -337,8 +337,8 @@ Consider Performance when Creating Indexes for Write-heavy Applications
 If your application is write-heavy, then be careful when creating new
 indexes, since each additional index with impose a
 write-performance penalty. In general, don't be careless about adding
-indexes. Add indexes complement your queries. Always have
-a good reason for adding a new index, and make sure you've benchmarked
+indexes. Add indexes to complement your queries. Always have
+a good reason for adding a new index, and be sure to benchmark
 alternative strategies.
 
 Consider Insert Throughput
@@ -347,17 +347,16 @@ Consider Insert Throughput
 .. todo:: insert link to /source/core/write-operations when that page is complete.
    Do we want to link to write concern? -bg
 
-MongoDB must update *all* indexes associated with a collection after every
-insert, update, or delete operation. For update operations, if the updated document
-does not move to a new location, then only the modified, MongoDB only needs
-to update  the updated fields in the index.
-Therefore, every index on a
-collection adds some amount of overhead to these write operations. In almost
-every case, the performance gains that indexes realize for read
+MongoDB must update *all* indexes associated with a collection after
+every insert, update, or delete operation. For update operations, if
+the updated document does not move to a new location, then MongoDB only
+modifies the updated fields in the index. Therefore, every index on a
+collection adds some amount of overhead to these write operations. In
+almost every case, the performance gains that indexes realize for read
 operations are worth the insertion penalty. However, in some cases:
 
 - An index to support an infrequent query might incur more
-  insert-related costs than saved read-time.
+  insert-related costs than savings in read-time.
 
   .. todo:: How do you determine if the above is the case? 
      Empirically.
@@ -371,5 +370,5 @@ operations are worth the insertion penalty. However, in some cases:
 
 - If your indexes and queries are not sufficiently :ref:`selective
   <index-selectivity>`, the speed improvements for query operations
-  might not offset the costs of maintaining an index. For more
+  may not offset the costs of maintaining an index. For more
   information see :ref:`index-selectivity`.

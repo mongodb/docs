@@ -4,10 +4,15 @@ cursor.explain()
 
 .. default-domain:: mongodb
 
+.. EDITS to cursor.explain.txt must be carried over to the operator
+   explain.txt and vice versa
+
 .. method:: cursor.explain()
 
    The :method:`cursor.explain()` method provides information on the
-   query plan. 
+   query plan. The query plan is the plan the server uses to find the
+   matches for a query. This information may be useful when optimizing
+   a query.
 
    :param boolean verbose:
 
@@ -17,7 +22,7 @@ cursor.explain()
           </reference/explain-output>`.
 
    :returns: A :doc:`document </reference/explain-output>` that
-             describes the process used to return the query.
+             describes the process used to return the query results.
 
    Retrieve the query plan by appending :method:`explain()
    <cursor.explain()>` to a :method:`find()` query, as in the following
@@ -27,14 +32,21 @@ cursor.explain()
 
       db.products.find().explain() 
 
+   For details on the output, see :doc:`/reference/explain-output`.
+
    :method:`explain <cursor.explain()>` runs the actual query to
-   determine the result. If the query is slow, the :method:`explain
-   <cursor.explain()>` will also be slow. Additionally, when you call
-   the :method:`explain <cursor.explain()>` on a query, the query
-   system reevaluates the query plan, which may cause some queries to
-   run slower. As a result, these operations provide an accurate
-   account of *how* MongoDB would perform the query, but not
-   necessarily *how long* the query would take.
+   determine the result. Although there are some differences between
+   running the query with :method:`explain <cursor.explain()>` and
+   running without, generally, the performance will be similar between
+   the two. So, if the query is slow, the :method:`explain
+   <cursor.explain()>` will also be slow.
+   
+   Additionally, when you call the :method:`explain <cursor.explain()>`
+   method on a query, the query system reevaluates a set of candidate
+   query plans, which may cause some queries to run slower. As a
+   result, these operations generally provide an accurate account of
+   *how* MongoDB would perform the query [#explain-cache-plan]_, but
+   not necessarily *how long* the query would take.
 
    To determine the performance of a particular index, you can use
    :method:`hint() <cursor.hint()>`  and in conjunction with
@@ -46,9 +58,19 @@ cursor.explain()
 
    When you run :method:`explain <cursor.explain()>` with
    :method:`hint() <cursor.hint()>`, the query optimizer does not
-   reevaluate the query plan.
+   reevaluate the query plans.
 
-   For details on the output, see :doc:`/reference/explain-output`.
+   .. [#explain-cache-plan] In some situations, the :method:`explain 
+      <cursor.explain()>` operation may differ from the actual query
+      plan used to perform the query. The :method:`explain
+      <cursor.explain()>` operation evaluates the set of query plans
+      and reports on the winning plan for the query. This plan is
+      cached to be used for the execution of the query and similar
+      queries at a later time. When you run similar queries, this
+      cached plan is selected even though the cached plan may not be
+      the best plan for similar queries. So, if you run
+      :method:`explain <cursor.explain()>` operation on similar
+      queries, the winning plan may be different.
 
    .. seealso:: 
    

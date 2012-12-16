@@ -5,7 +5,7 @@ Explain Output
 .. default-domain:: mongodb
 
 This document explains the output of the :operator:`$explain` operator
-and the :program:`mongo` shell wrapper :method:`explain()
+and the :program:`mongo` shell method :method:`explain()
 <cursor.explain()>`.
 
 Core Explain Output
@@ -46,6 +46,36 @@ this information is displayed for each accessed shard.
                  }
      "server" : "<host:port>",
    }
+
+$OR Queries
+-----------
+
+Queries with :operator:`$or` operator execute each clause of the
+:operator:`$or` expression in parallel and can use separate indexes on
+the individual clauses. If the indexes on the clauses are used, the
+explain output contains the :ref:`explain-output-fields-core` for each
+clause as well as the cumulative information for the query:
+
+.. code-block:: javascript
+
+   {
+      "clauses" : [
+                     {
+                        <core explain output>
+                     },
+                     {
+                        <core explain output>
+                     },
+                     ...
+                  ],
+      "n" : <num>,
+      "nscannedObjects" : <num>,
+      "nscanned" : <num>,
+      "nscannedObjectsAllPlans" : <num>,
+      "nscannedAllPlans" : <num>,
+      "millis" : <num>,
+      "server" : "<host:port>"
+   } 
 
 Sharded Collections
 -------------------
@@ -100,12 +130,14 @@ Core Explain Output
 
    Specifies the type of cursor used in the query operation:
 
-   - ``BasicCursor`` indicates use of full table scan.
+   - ``BasicCursor`` indicates use of full collection scan.
 
-   - ``BtreeCursor`` indicates use of an index. The cursor information
-     includes the index name. With the use of an index, the
+   - ``BtreeCursor`` indicates use of an B-tree index. The cursor
+     information includes the index name. With the use of an index, the
      :method:`explain() <cursor.explain()>` output will include the
      :data:`indexBounds` details.
+
+   - ``GeoSearchCursor`` indicates use of a geospatial index. 
 
 .. data:: isMultiKey
 
@@ -119,17 +151,18 @@ Core Explain Output
 
 .. data:: nscannedObjects
 
-   Specifies the total number of documents scanned during the query. If
-   the index is a covered index, the :data:`nscannedObjects` may be
-   lower than :data:`nscanned`.
+   Specifies the total number of documents scanned during the query.
+   The :data:`nscannedObjects` may be lower than :data:`nscanned`, such
+   as if the index is a covered index.
 
 .. data:: nscanned
 
    Specifies the total number of documents or index entries scanned
    during the database operation. You want :data:`n` and
-   :data:`nscanned` to be close in value as possible. If the index is a
-   covered index, :data:`nscanned` may be higher than
-   :data:`nscannedObjects`.
+   :data:`nscanned` to be close in value as possible. The
+   :data:`nscanned` value may be higher than the
+   :data:`nscannedObjects` value, such as if the index is a covered
+   index.
 
 .. data:: nscannedObjectsAllPlans
 
@@ -149,8 +182,12 @@ Core Explain Output
 
    .. versionadded:: 2.2
 
-   Specifies whether the index could not be used for sorting. If
-   ``true``, the index could *not* be used for sorting.
+   Specifies whether the index could not be used for sorting. 
+
+   If ``true``, the index could *not* be used for sorting. Instead, the
+   documents are sorted after being retrieved either from the index if
+   an index is used to return the documents, or from the full
+   collection if a collection scan is performed.
 
 .. data:: indexOnly
 
@@ -210,6 +247,18 @@ Core Explain Output
    .. versionadded:: 2.2
 
    Specifies the MongoDB server.
+
+.. _explain-output-field-or-clauses:
+
+$OR Query Output
+~~~~~~~~~~~~~~~~
+
+.. data:: clauses
+
+   Contains the :ref:`explain-output-fields-core` information for each
+   clause of the :operator:`$or` expression. Displays only if indexes
+   are used for the clauses in the :operator:`$or` expression.
+
 
 .. _explain-output-fields-sharded-collection:
 
