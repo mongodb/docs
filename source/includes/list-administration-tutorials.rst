@@ -18,7 +18,7 @@ Sharding
 - :doc:`/tutorial/convert-replica-set-to-replicated-shard-cluster`
 - :doc:`/tutorial/add-shards-to-shard-cluster`
 - :doc:`/tutorial/remove-shards-from-cluster`
-- :doc:`/tutorial/backup-small-sharded-clusters-with-mongodump`
+- :doc:`/tutorial/backup-small-sharded-cluster-with-mongodump`
 - :doc:`/tutorial/backup-sharded-cluster-with-filesystem-snapshots`
 - :doc:`/tutorial/backup-sharded-cluster-with-database-dumps`
 - :doc:`/tutorial/restore-single-shard`
