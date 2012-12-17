@@ -269,6 +269,8 @@ The above command sequence:
      working directory. Make sure that you run this command in a file
      system that has enough free space.
 
+.. _backup-restore-snapshot:
+
 Restore Snapshot
 ````````````````
 
@@ -423,8 +425,8 @@ provides the best option for full system database backups.
    If your system has disk level snapshot capabilities, consider the
    backup methods described in :ref:`block-level-backup`.
 
-Database Dump with :program:`mongodump`
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Database Dump with ``mongodump``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The :program:`mongodump` utility can perform a live backup of data or
 can work against an inactive set of database
@@ -486,8 +488,10 @@ example:
 On any :program:`mongodump` command you may, as above, specify username
 and password credentials to specify database authentication.
 
-Database Import with :program:`mongorestore`
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _backup-restore-dump:
+
+Restore Database from Binary Dump with ``mongorestore``
+```````````````````````````````````````````````````````
 
 The :program:`mongorestore` utility restores a binary backup created by
 :program:`mongodump`. Consider the following example command:
@@ -557,8 +561,8 @@ operation.
 
 .. _backups-with-sharding-and-replication:
 
-Sharded Cluster and Replica Set Considerations
-----------------------------------------------
+Sharded Cluster and Replica Set Backups
+---------------------------------------
 
 The underlying architecture of :term:`sharded clusters <sharded
 cluster>` and :term:`replica sets <replica set>` presents several
@@ -568,222 +572,44 @@ perform restorations.
 
 .. _sharded-cluster-backups:
 
-Backup Sharded Clusters
-~~~~~~~~~~~~~~~~~~~~~~~
+Sharded Cluster Backup Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Sharding complicates backup operations, because it is impossible to
-create a backup of a single moment in time from a distributed cluster
-of systems and processes.
+.. include:: /includes/note-shard-cluster-backup.rst
 
-Depending on the size of your data, you can back up the cluster as a
-whole or back up each :program:`mongod` instance. The following
-section describes both procedures.
+Sharded clusters complicate backup operations, as distributed
+systems. True point-in-time backups are only possible when stopping all write
+activity from the application. To create a precise moment-in-time
+snapshot of a cluster, stop all application write activity to the
+database, capture a backup, and only allow write operations to the
+database after the backup is complete.
 
-Backup the Cluster as a Whole Using ``mongodump``
-`````````````````````````````````````````````````
+However, you can capture a backup of a cluster that **approximates** a
+point-in-time backup by capturing a backup from a secondary member of
+the replica sets that provide the shards in the cluster at roughly the
+same moment. If you decide to use an approximate-point-in-time backup
+method, ensure that your application can operate using a copy of the
+data that does not reflect a single moment in time.
 
-If your :term:`sharded cluster` comprises a small collection of data,
-you can connect to a :program:`mongos` and issue the
-:program:`mongodump` command. You can use this approach if the following
-is true:
+The following documents describe all sharded cluster related backup
+procedures:
 
-- It's possible to store the entire backup on one system or on a single
-  storage device. Consider both backups of entire instances and
-  incremental dumps of data.
-
-- The state of the database at the beginning of the operation is
-  not significantly different than the state of the database at the
-  end of the backup. If the backup operation cannot capture a backup,
-  this is not a viable option.
-
-- The backup can run and complete without affecting the performance of
-  the cluster.
-
-.. note:: If you use :program:`mongodump` without specifying the a database or
-   collection, the output will contain both the collection data and the
-   sharding config metadata from the :ref:`config servers <sharding-config-server>`.
-
-   You cannot use the :option:`--oplog <mongodump --oplog>` option for
-   :program:`mongodump` when dumping from a :program:`mongos`. This option is only
-   available when running directly against a :term:`replica set` member.
-
-Backup from All Database Instances
-```````````````````````````````````
-
-If your :term:`sharded cluster` is to large for the :program:`mongodump`
-command, then you must back up your data either by creating a snapshot of the cluster
-or by creating a binary dump of each database. This section describes both.
-
-.. TODO include note about fuzziness of this backup output
-
-In both cases:
-
-- The backups must capture the database in a consistent state.
-
-- The sharded cluster must be consistent in itself.
-
-This procedure describes both approaches:
-
-1. Disable the :term:`balancer` process that equalizes the
-   distribution of data among the :term:`shards <shard>`. To disable
-   the balancer, use the :method:`sh.stopBalancer()` method in the
-   :program:`mongo` shell, and see the
-   :ref:`sharding-balancing-disable-temporally` procedure.
-
-   .. warning::
-
-      It is essential that you stop the balancer before creating
-      backups. If the balancer remains active, your resulting backups
-      could have duplicate data or miss some data, as :term:`chunks
-      <chunk>` migrate while recording backups.
-
-#. Lock one member of each replica set in each shard so that your backups reflect your
-   entire database system at a single point in time. Lock these
-   :program:`mongod` instances in as short of an interval as possible.
-
-   To lock or freeze a sharded cluster, you must:
-
-   - use the :method:`db.fsyncLock()` method in the :program:`mongo`
-     shell connected to each shard :program:`mongod` instance and
-     block write operations.
-
-   - Shutdown one of the :ref:`config servers <sharding-config-server>`, to
-     prevent all metadata changes during the backup process.
-
-#. Use :program:`mongodump` to backup one of the :ref:`config servers
-   <sharding-config-server>`. This backs up the cluster's metadata. You
-   only need to back up one config server, as they all have replicas of
-   the same information.
-
-   Issue this command against one of the config server itself or the
-   :program:`mongos`:
-
-   .. code-block:: sh
-
-      mongodump --db config
-
-#. Back up the replica set members of the shards that you locked. You may back up
-   shards one at a time or in parallel. For each shard, do one of the
-   following:
-
-   - If your system has disk level snapshot capabilities, create a
-     snapshot each shard. Use the procedures in
-     :ref:`block-level-backup`.
-
-   - Create a binary dump of each shard using the operations described
-     in :ref:`database-dumps`.
-
-#. Unlock all locked replica set members of each shard using the
-   :method:`db.fsyncUnlock()` method in the :program:`mongo` shell.
-
-#. Restore the balancer with the :method:`sh.startBalancer()` method
-   according to the :ref:`sharding-balancing-disable-temporally`
-   procedure.
-
-   Use the following command sequence when connected to the
-   :program:`mongos` with the :program:`mongo` shell:
-
-   .. code-block:: javascript
-
-      use config
-      sh.startBalancer()
-
-Schedule Automated Backups
-``````````````````````````
-
-If you have an automated backup schedule, you can disable all
-balancing operations for a period of time. For instance, consider the
-following command:
-
-.. code-block:: javascript
-
-   use config
-   db.settings.update( { _id : "balancer" }, { $set : { activeWindow : { start : "6:00", stop : "23:00" } } }, true )
-
-This operation configures the balancer to run between 6:00 am and
-11:00pm, server time. Schedule your backup operation to run *and
-complete* in this time. Ensure that the backup can complete during the
-window when the balancer is running *and* that the balancer can
-effectively balance the collection among the shards in the window
-allotted to each.
-
-Restore Sharded Clusters
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-1. Stop all :program:`mongod` and :program:`mongos` processes.
-
-#. If shard hostnames have changed, you must manually update the
-   ``shards`` collection in the :ref:`config-database` to use the new
-   hostnames. Do the following:
-
-   a. Start the three :ref:`config servers <sharding-config-server>` by
-      issuing commands similar to the following, using values appropriate
-      to your configuration:
-
-      .. code-block:: sh
-
-         mongod --configsvr --dbpath /data/configdb --port 27018
-
-   #. Restore the :ref:`config-database` on each config server.
-
-   #. Start one :program:`mongos` instance.
-
-   #. Update the :ref:`config-database` collection named ``shards`` to reflect the
-      new hostnames.
-
-#. Restore the following:
-
-   - Data files for each server in each :term:`shard`. Because replica
-     sets provide each production shard, restore all the members of
-     the replica set or use the other standard approaches for
-     restoring a replica set from backup.
-
-   - Data files for each :ref:`config server <sharding-config-server>`,
-     if you have not already done so in the previous step.
-
-#. Restart the all the :program:`mongos` instances.
-
-#. Restart all the :program:`mongod` instances.
-
-#. Connect to a :program:`mongos` instance from a :program:`mongo` shell
-   and run use the :method:`db.printShardingStatus()` method to ensure
-   that the cluster is operational, as follows:
-
-   .. code-block:: javascript
-
-      db.printShardingStatus()
-      show collections
-
-
-Restore a Single Shard
-~~~~~~~~~~~~~~~~~~~~~~
-
-Always restore :term:`sharded clusters <sharded cluster>`
-as a whole. When you restore a single shard, keep in mind that the
-:term:`balancer` process might have moved :term:`chunks <chunk>` onto or
-off of this shard since the last backup. If that's the case, you must
-manually move those chunks, as described in this procedure.
-
-1. Restore the shard.
-
-#. For all chunks that migrated away from this shard, you need not do
-   anything. You do not need to delete these documents from the shard
-   because the chunks are automatically filtered out from queries by
-   :program:`mongos`.
-
-#. For chunks that migrated to this shard since the last backup,
-   you must manually recover the chunks. To determine what chunks have
-   moved, view the ``changelog`` collection in the :ref:`config-database`.
+- :doc:`/tutorial/backup-small-sharded-clusters-with-mongodump`
+- :doc:`/tutorial/backup-sharded-cluster-with-filesystem-snapshots`
+- :doc:`/tutorial/backup-sharded-cluster-with-database-dumps`
+- :doc:`/tutorial/schedule-backup-window-for-sharded-clusters`
+- :doc:`/tutorial/restore-single-shard`
+- :doc:`/tutorial/restore-sharded-cluster`
 
 .. _replica-set-backups:
 
-Replica Sets
-~~~~~~~~~~~~
+Replica Set Backup Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In most cases, backing up data stored in a :term:`replica set` is
 similar to backing up data stored in a single instance. It's possible to
 lock a single :term:`secondary` or :term:`slave` database and then
-create a backup from that instance. When you unlock the database, the secondary or
+on create a backup from that instance. When you unlock the database, the secondary or
 slave  will catch up with the :term:`primary` or :term:`master`. You may also
 chose to deploy a dedicated :term:`hidden member` for backup purposes.
 
