@@ -7,10 +7,26 @@ Data Modeling
 Overview
 --------
 
-In MongoDB, the schema design takes into consideration both the data to
-be modeled *and* the use cases. Schema design determines the structure
-of the documents, the number and types of collections, indexing and
-sharding.
+Collections in MongoDB have flexible schema; they do not define nor
+enforce the fields of its documents. Each document can have only the
+fields that are relevant to that entity, although in practice, you
+would generally choose to store similar documents in each collection.
+With this flexible schema, you can model your data to reflect more
+closely the actual entity rather than enforce a rigid data structure.
+
+In MongoDB, data modeling takes into consideration not only how data
+relates to each other, but also how the data is used, how the data will
+grow and be maintained. These considerations involve decisions about
+whether to embed data within a single document or reference data among
+different documents, which fields to index, and whether to use special
+features.
+
+Choosing the correct data model can provide both performance and
+maintenance gains for your applications.
+
+This document provide some general guidelines for data modeling and
+possible options. These guidelines and options may not be appropriate
+for your situation.
 
 .. _data-modeling-decisions:
 
@@ -18,27 +34,28 @@ Data Modeling Decisions
 -----------------------
 
 Data modeling decisions involve determining how to structure the
-documents to effectively model the data. The primary decision is
-whether to :ref:`embed <data-modeling-embedding>` or to :ref:`link
-<data-modeling-linking>` related data.
+documents to model the data effectively. The primary decision is
+whether to :ref:`embed <data-modeling-embedding>` or to :ref:`use
+references <data-modeling-referencing>`.
 
 .. _data-modeling-embedding:
 
 Embedding
 ~~~~~~~~~
 
-Embedding, or de-normalization of data, is a bit like "prejoined" data.
+De-normalization of data involves embedding documents within other
+documents.
+
 Operations within a document are easy for the server to handle.
-Embedding allows for large sequential reads.
 
-Embedding is frequently the choice for:
+In general, choose the embedded data model when:
 
-- "contains" relationships between entities. See
+- you have "contains" relationships between entities. See
   :ref:`data-modeling-example-one-to-one`.
 
-- one-to-many relationships when the "many" objects always appear with
-  or are viewed in the context of their parents. See
-  :ref:`data-modeling-example-many-addresses`.
+- you have one-to-many relationships where the "many" objects always
+  appear with or are viewed in the context of their parents. See
+  :ref:`data-modeling-example-one-to-many`.
 
 Embedding provides the following benefits:
 
@@ -46,43 +63,49 @@ Embedding provides the following benefits:
 
 - Single roundtrip to database to retrieve the complete object
 
-However, embedding presents some considerations:
-
-- Writes can be slow if adding to objects frequently.
-
-- You cannot embed documents that will cause the containing document to
-  exceed the :limit:`maximum BSON document size <BSON Document Size>`.
-  For documents that exceed the maximum BSON document size, see
-  :doc:`/applications/gridfs`.
-  
-- You cannot have nested embedded levels more than the specified
-  :limit:`limit on embedded levels <Nested Depth for BSON Documents>`.
+However, with embedding, write operations can be slow if you are adding
+objects frequently. Additionally, you cannot embed documents that will
+cause the containing document to exceed the :limit:`maximum BSON
+document size <BSON Document Size>`. For documents that exceed the
+maximum BSON document size, see :doc:`/applications/gridfs`.
 
 For examples in accessing embedded documents, see
 :ref:`read-operations-subdocuments`.
 
-.. _data-modeling-linking:
+.. seealso::
 
-Linking
-~~~~~~~
+   - :term:`dot notation` for information on "reaching into" embedded
+     sub-documents.
 
-Linking, or normalization of data, joins separate documents using
-:doc:`references </applications/database-references>` or links. Links
-are processed client-side by the application; the application does this
-by issuing a follow-up query. Linking involves performing many seeks
-and random reads.
+   - :ref:`read-operations-arrays` for more examples on accessing arrays
 
-Linking is frequently the choice for:
+   - :ref:`read-operations-subdocuments` for more examples on accessing
+     subdocuments
 
-- embedding would result in duplication of data. 
+.. _data-modeling-referencing:
 
-- many-to-many relationships. 
+Referencing
+~~~~~~~~~~~
 
-See :ref:`data-modeling-publisher-and-books` for example of linking.
+Normalization of data requires storing :doc:`references
+</applications/database-references>` from one document to another.
 
-Linking provides more flexibility than embedding; however, linking
-requires client-side processing to resolve the link by issuing
-follow-up queries to retrieve the entire object.
+In general, choose the referenced data model when:
+
+- embedding would result in duplication of data.
+
+- you have many-to-many relationships.
+
+- you are modeling large hierarchical data. See
+  :ref:`data-modeling-trees`.
+
+Referencing provides more flexibility than embedding; however, to
+resolve the references, client-side applications must issue follow-up
+queries. Additionally, the referencing data model involves performing
+many seeks and random reads.
+
+See :ref:`data-modeling-publisher-and-books` for an example of
+referencing.
 
 .. _data-modeling-atomicity:
 
@@ -93,29 +116,34 @@ Atomicity influences the decision to embed or link. The modification of
 a single document is atomic, even if the write operation modifies
 multiple sub-documents *within* the single document.
 
-Embed fields relevant to the atomic operation in the same document.
+Embed fields that need to be modified together atomically in the same
+document. See :ref:`data-modeling-atomic-operation` for an example of
+atomic updates within a single document.
 
 Operational Considerations
 --------------------------
 
-Operational considerations involve the data lifecycle managements,
-determining the number of collections, 
+Operational considerations involve decisions related to data lifecycle
+management, number of collections, indexing, sharding, and managing
+document growth. These decisions can improve performance and facilitate
+maintenance efforts.
 
 Data Lifecycle Management
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Data lifecycle management determines the type of collection or
-collection feature to implement in your schema design.
+Data lifecycle management concerns contribute to the decision making
+process around data modeling.
 
-Some data may only need to persist in a database for a limited period
-of time. In these cases, you should consider using the :doc:`Time to
-Live or TTL feature</tutorial/expire-data/>` of collections.
+The :doc:`Time to Live or TTL feature </tutorial/expire-data>` of
+collections expires documents after a period of time. Consider using
+the TTL feature if your application requires some data to persist in
+the database for a limited period of time.
 
-Additionally, if you will be only concerned with the most recent
-documents, you should consider :doc:`/core/capped-collections`. Capped
-collections provide *first-in-first-out* management of inserted
-documents and support high-throughput operations that insert, read,
-and delete documents based on insertion order.
+Additionally, if your application is concerned only with the most
+recent documents, you might consider :doc:`/core/capped-collections`.
+Capped collections provide *first-in-first-out* (FIFO) management of
+inserted documents and support operations that insert, read, and delete
+documents based on insertion order.
 
 Large Number of Collections
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -132,7 +160,7 @@ documents of the following form:
    { log: "dev", ts: ..., info: ... }
    { log: "debug", ts: ..., info: ...}
      
-If the number of different logs is not too high, you may decide to have
+If the number of different logs is not high, you may decide to have
 separate log collections, such as ``logs.dev`` and ``logs.debug``. The
 ``logs.dev`` collection would contain only the log documents related to
 the dev environment.
@@ -142,142 +170,138 @@ performance penalty and results in very good performance. Independent
 collections are very important for high-throughput batch processing.
 
 When creating large numbers of collections, consider the following
-items:
+behaviors:
 
-- Each collection has a certain minimum overhead of a few kilobytes per
-  collection.
+- Each collection has a certain minimum overhead of a few kilobytes.
 
-- Each index requires at least 8KB of data space as the B-tree page
-  size is 8KB.
+- Each index requires at least 8KB of data space.
 
-- :limit:`Limits on the number of namespaces <Number of Namespaces>`
-  exist:
+Namespaces are stored per database in a ``<database>.ns`` file. All
+indexes and collections have their own entry in the namespace file, and
+each namespace entry is 628 bytes.
 
-  - Each index, as well as each collection, counts as a namespace.
-
-  - Each namespace is 628 bytes.
-
-  - Namespaces are stored per database in a ``<database>.ns`` file:
-
-    - The ``<database>.ns`` file defaults to 16 MB.
-
-    - To change the size of the ``<database>.ns`` file, use
-      :option:`--nssize \<new size MB\> <mongod --nssize>` on server
-      startup.
-
-      .. note:: 
-
-         - The maximum size of the ``<database>.ns`` file is 2047 MB.
-
-         - :option:`--nssize <mongod --nssize>` sets the size used for
-           *new* ``<database>.ns`` files. For existing databases, after
-           starting up the server with :option:`--nssize <mongod
-           --nssize>`, run the :dbcommand:`db.repairDatabase()` command
-           from the :program:`mongo` shell.
-
-You can check the namespaces by querying the ``system.namespaces``
-collection, as in the following example:
+Because of :limit:`limits on namespaces <Number of Namespaces>`, you
+may wish to know the current number of namespaces in order to determine
+how many additional namespaces the database can support, as in the
+following example:
 
 .. code-block:: javascript
 
    db.system.namespaces.count()
 
+The ``<database>.ns`` file defaults to 16 MB. To change
+the size of the ``<database>.ns`` file, pass a new size to
+:option:`--nssize option \<new size MB\> <mongod --nssize>` on server
+startup. 
+
+The :option:`--nssize <mongod --nssize>` sets the size for *new*
+``<database>.ns`` files. For existing databases, after starting up the
+server with :option:`--nssize <mongod --nssize>`, run the
+:dbcommand:`db.repairDatabase()` command from the :program:`mongo`
+shell.
+
 Indexes
 ~~~~~~~
 
 As a general rule, where you want an index in a relational database,
-you want an index in Mongo. Indexes in MongoDB are needed for efficient
-query processing, as such, you may want to think about the queries
-first and then build indexes based upon them. Generally, you would
-index the fields that you query by and the fields that you sort by.
+you want an index in MongoDB. Indexes in MongoDB are needed for
+efficient query processing, and as such, you may want to think about
+the queries first and then build indexes based upon them. Generally,
+you would index the fields that you query by and the fields that you
+sort by. The ``_id`` field is automatically indexed.
 
-As you create indexes, consider the following aspects of indexes:
+As you create indexes, consider the following behaviors of indexes:
 
-- Each index requires at least 8KB of data space as the B-tree page
-  size is 8KB.
+- Each index requires at least 8KB of data space.
 
-- The ``_id`` field is automatically indexed.
+- Adding an index has some negative performance impact for write
+  operations. For collections with high write-to-read ratio, indexes
+  are expensive as each insert must add keys to each index.
   
-- Adding an index slows write operations but not read operations:
-
-  - This allows for for collections with high read-to-write ratio to
-    have lots of indexes.
-
-  - For collections with high write-to-read ratio, indexes are
-    expensive as each insert must add keys to each index.
+- Read operations supported by the index perform better, and read
+  operations not supported by the index have no performance impact from
+  the index. This allows for for collections with high read-to-write
+  ratio to have many indexes.
 
 See :doc:`/applications/indexes` for more information on determining
 indexes. Additionally, MongoDB :wiki:`Database Profiler` provides
 information for determining if an index is needed.
 
+.. TODO link to new database profiler manual page once migrated
+
 Sharding
 ~~~~~~~~
 
-MongoDB's sharding system allows users to :term:`partition` a
+:term:`Sharding <sharding>` allows users to :term:`partition` a
 :term:`collection` within a database to distribute the collection's
 documents across a number of :program:`mongod` instances or
-:term:`shards <shard>`. A BSON document (which may have significant
-amounts of embedding) resides on one and only one shard.
-
-Sharding provides the following benefits:
-
-- increases write capacity,
-
-- provides the ability to support larger working sets, and
-
-- raises the limits of total data size beyond the physical resources of
-  a single node.
+:term:`shards <shard>`.
 
 When a collection is sharded, the shard key determines how the
-collection is partitioned among shards. Typically (but not always)
-queries on a sharded collection involve the shard key as part of the
-query expression.
+collection is partitioned among shards. Selecting the proper
+:ref:`shard key <shard-key>` can have a significant impact on
+performance.
 
-See :doc:`/core/sharding` for more information on sharding.
+See :doc:`/core/sharding` for more information on sharding and
+the selection of the :ref:`shard key <shard-key>`.
 
 Document Growth
 ~~~~~~~~~~~~~~~
 
-Document growth forces MongoDB to move the document on disk, which can
-be time and resource consuming relative to other operations.
+Certain updates to documents can increase the document size, such as
+pushing elements to an array and adding new fields. If the document
+size exceeds the allocated space for that document, MongoDB relocates
+the document on disk. This internal relocation can be both time and
+resource consuming.
 
-See :doc:`/use-cases/pre-aggregated-reports/` for some approaches to
-handling document growth.
+Although MongoDB automatically provides padding to minimize the
+occurrence of relocations, you may still need to manually handle
+document growth. Refer to :doc:`/use-cases/pre-aggregated-reports` for
+an example of the *Pre-allocation* approach to handle document growth.
+
+.. TODO add link to padding factor page once migrated
 
 Patterns and Examples
 ---------------------
 
 .. _data-modeling-example-one-to-one:
 
-One-to-one: Patron and Address
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+One-to-One: Embedding
+~~~~~~~~~~~~~~~~~~~~~
 
-Consider the following linking example that has two data objects, ``patron``
-and the corresponding ``address`` information, that have a one-to-one
-relationship.
+Consider the following example that maps patron and address
+relationships. The example illustrates the advantage of embedding over
+referencing if you need to view one data entity in context of the
+other. In this one-to-one relationship between ``patron`` and
+``address`` data, the ``address`` belongs to the ``patron``.
 
-.. code-block:: javascript
-
-   patron = {
-              _id: "joe",
-              name: "Joe Bookreader"
-            }
-
-   address = {
-               patron_id: "joe",
-               street: "123 Fake Street",
-               city: "Faketon",
-               state: "MA"
-               zip: 12345
-             }
-
-Because ``address`` is owned by the ``patron``, this one-to-one
-relationship may be better modeled by embedding the ``address``
-document in the ``patron`` document, as in the following document:
+In the normalized data model, the ``address`` contains a reference to
+the ``parent``.
 
 .. code-block:: javascript
 
-   patron = {
+   {
+      _id: "joe",
+      name: "Joe Bookreader"
+   }
+
+   {
+      patron_id: "joe",
+      street: "123 Fake Street",
+      city: "Faketon",
+      state: "MA"
+      zip: 12345
+   }
+
+If the ``address`` data is frequently retrieved with the ``name``
+information, then with referencing, your application needs to issue
+multiple queries to resolve the reference. The better data model would
+be to embed the ``address`` data in the ``patron`` data, as in the
+following document:
+
+.. code-block:: javascript
+
+   {
       _id: "joe",
       name: "Joe Bookreader",
       address: {
@@ -288,221 +312,260 @@ document in the ``patron`` document, as in the following document:
                }
    }
 
+With the embedded data model, your application can retrieve the
+complete patron information with one query.
+
 .. _data-modeling-example-one-to-many:
 
-One-to-Many
-~~~~~~~~~~~
+One-to-Many: Embedding
+~~~~~~~~~~~~~~~~~~~~~~
 
-.. _data-modeling-example-many-addresses:
+Consider the following example that maps patron and multiple address
+relationships. The example illustrates the advantage of embedding over
+referencing if you need to view many data entities in context of
+another. In this one-to-many relationship between ``patron`` and
+``address`` data, the ``patron`` has multiple ``address`` entities.
 
-Patron with Many Addresses
-``````````````````````````
-
-Consider the following embedding example that has three data objects,
-``patron`` and two separate ``address`` information, that have a
-one-to-many relationship:
-
-.. code-block:: javascript
-
-   patron = {
-              _id: "joe",
-              name: "Joe Bookreader"
-            }
-
-   address1 = {
-               patron_id = "joe",
-               street: "123 Fake Street",
-               city: "Faketon",
-               state: "MA",
-               zip: 12345
-             }
-
-   address2 = {
-               patron_id: "joe",
-               street: "1 Some Other Street",
-               city: "Boston",
-               state: "MA",
-               zip: 12345
-             }
-
-This one-to-many relationship may be modeled by embedding the
-``address`` documents in the ``patron`` document, as in the following
-document:
+In the normalized data model, the ``address`` contains a reference to
+the ``parent``.
 
 .. code-block:: javascript
 
-   patron = {
-               _id: "joe",
-               name: "Joe Bookreader",
-               addresses: [
-                            {
-                              street: "123 Fake Street",
-                              city: "Faketon",
-                              state: "MA",
-                              zip: 12345
-                            },
-                            {
-                              street: "1 Some Other Street",
-                              city: "Boston",
-                              state: "MA",
-                              zip: 12345
-                            }
-                          ]
-            }
+   {
+      _id: "joe",
+      name: "Joe Bookreader"
+   }
+
+   {
+      patron_id = "joe",
+      street: "123 Fake Street",
+      city: "Faketon",
+      state: "MA",
+      zip: 12345
+   }
+
+   {
+      patron_id: "joe",
+      street: "1 Some Other Street",
+      city: "Boston",
+      state: "MA",
+      zip: 12345
+   }
+
+If your application frequently retrieves the ``address`` data with the
+``name`` information, then your application needs to issue multiple
+queries to resolve the references. The better data model would be to
+embed the ``address`` data entities in the ``patron`` data, as in the
+following document:
+
+.. code-block:: javascript
+
+   {
+      _id: "joe",
+      name: "Joe Bookreader",
+      addresses: [
+                   {
+                     street: "123 Fake Street",
+                     city: "Faketon",
+                     state: "MA",
+                     zip: 12345
+                   },
+                   {
+                     street: "1 Some Other Street",
+                     city: "Boston",
+                     state: "MA",
+                     zip: 12345
+                   }
+                 ]
+    }
+
+With the embedded data model, your application can retrieve the
+complete patron information with one query.
 
 .. _data-modeling-publisher-and-books:
 
-Modeling Publishers and Books
-`````````````````````````````
+One-to-Many: Referencing
+````````````````````````
 
-Consider the following example that models the one-to-many
-relationship between publishers and books. 
-
-.. code-block:: javascript
-
-   publisher = {
-                 name: "O'Reilly Media",
-                 founded: 1980,
-                 location: "CA"
-               }
-
-   book1 = {
-             title: "MongoDB: The Definitive Guide",
-             author: [ "Kristina Chodorow", "Mike Dirolf" ],
-             published_date: ISODate("2010-09-24"),
-             pages: 216,
-             language: "English"
-           }
-
-   book2 = {
-             title: "50 Tips and Tricks for MongoDB Developer",
-             author: "Kristina Chodorow",
-             published_date: ISODate("2011-05-06"),
-             pages: 68,
-             language: "English"
-           }
+Consider the following example that maps publisher and book
+relationships. The example illustrates the advantage of referencing
+over embedding to prevent the repetition of the publisher information.
 
 Embedding the publisher document inside the book document would lead to
-**repetition** of the publisher data in the books published by the
-particular publisher, as the following documents show:
+**repetition** of the publisher data, as the following documents show:
 
 .. code-block:: javascript
    :emphasize-lines: 7-11,20-24
 
-   book1 = {
-             title: "MongoDB: The Definitive Guide",
-             author: [ "Kristina Chodorow", "Mike Dirolf" ],
-             published_date: ISODate("2010-09-24"),
-             pages: 216,
-             language: "English",
-             publisher: {
-                          name: "O'Reilly Media",
-                          founded: 1980,
-                          location: "CA"
-                        }
-           }
+   {
+      title: "MongoDB: The Definitive Guide",
+      author: [ "Kristina Chodorow", "Mike Dirolf" ],
+      published_date: ISODate("2010-09-24"),
+      pages: 216,
+      language: "English",
+      publisher: {
+                 name: "O'Reilly Media",
+                 founded: 1980,
+                 location: "CA"
+               }
+   }
 
-   book2 = {
-             title: "50 Tips and Tricks for MongoDB Developer",
-             author: "Kristina Chodorow",
-             published_date: ISODate("2011-05-06"),
-             pages: 68,
-             language: "English",
-             publisher: {
-                          name: "O'Reilly Media",
-                          founded: 1980,
-                          location: "CA"
-                        }
-           }
+   {
+      title: "50 Tips and Tricks for MongoDB Developer",
+      author: "Kristina Chodorow",
+      published_date: ISODate("2011-05-06"),
+      pages: 68,
+      language: "English",
+      publisher: {
+                 name: "O'Reilly Media",
+                 founded: 1980,
+                 location: "CA"
+               }
+   }
 
-To avoid repetition of the publisher data, use *linking* and keep the
-publisher information in a separate collection from the book
-collection. 
+To avoid repetition of the publisher data, use *references* and keep
+the publisher information in a separate collection from the book
+collection.
 
-When linking the one-to-many relationship, the size and growth of the
-relationships determine where to store the reference. If the number
-of books per publisher is small with limited growth, storing the book
-reference inside the publisher document may be useful; otherwise, if
-the number of books per publisher is unbounded, this data model would
-lead to mutable, growing arrays, as in the following example:
+When using references, the growth of the relationships determine where
+to store the reference. If the number of books per publisher is small
+with limited growth, storing the book reference inside the publisher
+document may sometimes be useful. Otherwise, if the number of books per
+publisher is unbounded, this data model would lead to mutable, growing
+arrays, as in the following example:
 
 .. code-block:: javascript
    :emphasize-lines: 5
-   
-   publisher = {
-                 name: "O'Reilly Media",
-                 founded: 1980,
-                 location: "CA",
-                 books: [12346789, 234567890, ...]
-               }
 
-   book1 = {
-             _id: 123456789,
-             title: "MongoDB: The Definitive Guide",
-             author: [ "Kristina Chodorow", "Mike Dirolf" ],
-             published_date: ISODate("2010-09-24"),
-             pages: 216,
-             language: "English"
-           }
+   {
+      name: "O'Reilly Media",
+      founded: 1980,
+      location: "CA",
+      books: [12346789, 234567890, ...]
+   }
 
-   book2 = {
-             _id: 234567890,
-             title: "50 Tips and Tricks for MongoDB Developer",
-             author: "Kristina Chodorow",
-             published_date: ISODate("2011-05-06"),
-             pages: 68,
-             language: "English"
-           }
+   {
+       _id: 123456789,
+       title: "MongoDB: The Definitive Guide",
+       author: [ "Kristina Chodorow", "Mike Dirolf" ],
+       published_date: ISODate("2010-09-24"),
+       pages: 216,
+       language: "English"
+   }
 
-Because the number of books per publisher may continue to grow,
-embedding the publisher reference inside the book document is preferred:
+   {
+      _id: 234567890,
+      title: "50 Tips and Tricks for MongoDB Developer",
+      author: "Kristina Chodorow",
+      published_date: ISODate("2011-05-06"),
+      pages: 68,
+      language: "English"
+   }
+
+To avoid mutable, growing arrays, store the publisher reference inside
+the book document:
 
 .. code-block:: javascript
    :emphasize-lines: 15, 25
-   
-   publisher = {
-                 _id: "oreilly",
-                 name: "O'Reilly Media",
-                 founded: 1980,
-                 location: "CA",
-               }
 
-   book1 = {
+   {
+      _id: "oreilly",
+      name: "O'Reilly Media",
+      founded: 1980,
+      location: "CA"
+   }
+
+   {
+      _id: 123456789,
+      title: "MongoDB: The Definitive Guide",
+      author: [ "Kristina Chodorow", "Mike Dirolf" ],
+      published_date: ISODate("2010-09-24"),
+      pages: 216,
+      language: "English",
+      publisher_id: "oreilly"
+   }
+
+   {
+      _id: 234567890,
+      title: "50 Tips and Tricks for MongoDB Developer",
+      author: "Kristina Chodorow",
+      published_date: ISODate("2011-05-06"),
+      pages: 68,
+      language: "English",
+      publisher_id: "oreilly"
+   }
+
+.. Reworked the Queue slide from the presentation to Atomic Operation
+.. TODO later, include a separate queue example for maybe checkout requests,
+   and possibly bucket example that is separate from the pre-allocation 
+   example link above in the Document Growth section
+
+.. _data-modeling-atomic-operation:
+
+Atomic Operation
+~~~~~~~~~~~~~~~~
+
+Consider the following example that keeps a library book and its
+checkout information. The example illustrates how embedding fields
+related to an atomic update within the same document ensures that the
+fields are in sync.
+
+Consider the following ``book`` document that stores the number of
+available copies for checkout and the current checkout information:
+
+.. code-block:: javascript
+   :emphasize-lines: 9
+
+   book = {
              _id: 123456789,
              title: "MongoDB: The Definitive Guide",
              author: [ "Kristina Chodorow", "Mike Dirolf" ],
              published_date: ISODate("2010-09-24"),
              pages: 216,
              language: "English",
-             publisher_id: "oreilly"
+             publisher_id: "oreilly",
+             available: 3,
+             checkout: [ { by: "joe", date: ISODate("2012-10-15") } ]
            }
 
-   book2 = {
-             _id: 234567890,
-             title: "50 Tips and Tricks for MongoDB Developer",
-             author: "Kristina Chodorow",
-             published_date: ISODate("2011-05-06"),
-             pages: 68,
-             language: "English",
-             publisher_id: "oreilly"
-           }
+You can use the :method:`db.collection.findAndModify()` method to
+atomically determine if a book is available for checkout and update
+with the new checkout information. Embedding the ``available`` field
+and the ``checkout`` field within the same document ensures that the
+updates to these fields are in sync:
+
+.. code-block:: javascript
+
+   db.books.findAndModify ( {
+      query: { 
+               _id: 123456789, 
+               available: { $gt: 0 } 
+             },
+      update: { 
+                $inc: { available: -1 },
+                $push: { checkout: { by: "abc", date: new Date() } } 
+              }
+   } )
 
 .. _data-modeling-trees:
 
 Trees
 ~~~~~
 
-MongoDB provides various patterns to store *Trees* or hierarchical data.
+To model hierarchical or nested data relationships, you can use
+references to implement tree-like structures. The following *Tree*
+pattern examples model book categories that have hierarchical
+relationships.
 
-Parent Links
-````````````
+Parent References
+`````````````````
 
-The *Parent Links* pattern stores each tree node in a document; in
+The *Parent References* pattern stores each tree node in a document; in
 addition to the tree node, the document stores the id of the node's
 parent.
 
 Consider the following example that models a tree of categories using
-*Parent Links*:
+*Parent References*:
 
 .. code-block:: javascript
 
@@ -537,15 +600,15 @@ Consider the following example that models a tree of categories using
 The *Parent Links* pattern provides a simple solution to tree storage,
 but requires successive queries to the database to retrieve subtrees.
 
-Child Links
-```````````
+Child References
+`````````````````
 
-The *Child Links* pattern stores each tree node in a document; in
+The *Child References* pattern stores each tree node in a document; in
 addition to the tree node, document stores in an array the id(s) of the
 node's children.
 
 Consider the following example that models a tree of categories using
-*Child Links*:
+*Child References*:
 
 .. code-block:: javascript
 
@@ -577,7 +640,7 @@ Consider the following example that models a tree of categories using
 
      db.categories.find( { children: "MongoDB" } )
      
-The *Child Links* pattern provides a suitable solution to tree storage
+The *Child References* pattern provides a suitable solution to tree storage
 as long as no operations on subtrees are necessary. This pattern may
 also provide a suitable solution for storing graphs where a node may
 have multiple parents.
@@ -696,66 +759,33 @@ Consider the following example that models a tree of categories using
 
 You can query to retrieve the descendants of a node:
 
-  .. code-block:: javascript
+.. code-block:: javascript
 
-     var databaseCategory = db.v.findOne( { _id: "Databases" } );
-     db.categories.find( { left: { $gt: databaseCategory.left }, right: { $lt: databaseCategory.right } } );
+   var databaseCategory = db.v.findOne( { _id: "Databases" } );
+   db.categories.find( { left: { $gt: databaseCategory.left }, right: { $lt: databaseCategory.right } } );
 
 The *Nested Sets* pattern provides a fast and efficient solution for
 finding subtrees but is inefficient for modifying the tree structure.
 As such, this pattern is best for static trees that do not change.
 
-.. seealso::
-
-   - `Ruby Example of Materialized Paths
-     <http://github.com/banker/newsmonger/blob/master/app/models/comment.rb>`_ 
-   
-   - `Sean Cribs Blog Post
-     <http://seancribbs.com/tech/2009/09/28/modeling-a-tree-in-a-document-database/>`_ 
-     which was the source for much of the :ref:`data-modeling-trees` content.
-
-Queues 
-~~~~~~
-
-Consider the following ``book`` document that stores the number of
-available copies:
-
-.. code-block:: javascript
-   :emphasize-lines: 9
-
-   book = {
-             _id: 123456789,
-             title: "MongoDB: The Definitive Guide",
-             author: [ "Kristina Chodorow", "Mike Dirolf" ],
-             published_date: ISODate("2010-09-24"),
-             pages: 216,
-             language: "English",
-             publisher_id: "oreilly",
-             available: 3
-           }
-
-Using the :method:`db.collection.findAndModify()` method, you can
-atomically find and decrement the ``available`` field as the book is
-checked out:
-
-.. code-block:: javascript
-
-   db.books.findAndModify ( {
-      query: { _id: 123456789 } ,
-      update: { $inc: { available: -1 } } 
-   } )
-
 Additional Resources
 --------------------
 
-.. seealso::
+For more information, consider the following external resources:
 
-   - `Schema Design by Example <http://www.10gen.com/presentations/mongodb-melbourne-2012/schema-design-example>`_
+- `Schema Design by Example <http://www.10gen.com/presentations/mongodb-melbourne-2012/schema-design-example>`_
 
-   - `Walkthrough MongoDB Data Modeling <http://blog.fiesta.cc/post/11319522700/walkthrough-mongodb-data-modeling>`_
-      
-   - `Document Design for MongoDB <http://oreilly.com/catalog/0636920018391/>`_
+- `Walkthrough MongoDB Data Modeling <http://blog.fiesta.cc/post/11319522700/walkthrough-mongodb-data-modeling>`_
 
-   - `Dynamic Schema Blog Post <http://dmerr.tumblr.com/post/6633338010/schemaless>`_
+- `Document Design for MongoDB <http://oreilly.com/catalog/0636920018391>`_
 
-   - :wiki:`MongoDB Data Modeling and Rails`
+- `Dynamic Schema Blog Post <http://dmerr.tumblr.com/post/6633338010/schemaless>`_
+
+- :wiki:`MongoDB Data Modeling and Rails`
+
+- `Ruby Example of Materialized Paths
+  <http://github.com/banker/newsmonger/blob/master/app/models/comment.rb>`_
+
+- `Sean Cribs Blog Post
+  <http://seancribbs.com/tech/2009/09/28/modeling-a-tree-in-a-document-database>`_
+  which was the source for much of the :ref:`data-modeling-trees` content.
