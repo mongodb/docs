@@ -1,95 +1,65 @@
-========================
-Perform Full-Text Search
-========================
+==================
+Search on Keywords
+==================
 
 .. default-domain:: mongodb
 
-Mongo uses :ref:`multi-key indexes <index-type-multi-key>` to provide
-for searches on text and tags. A multi-key index can index an array of
-values.
-
-Text Search
------------
-
-To implement a text search:
-
-1. Create an array of search words.
-
-2. Create a :ref:`multi-key index <index-type-multi-key>` on the array.
+To set up searches based on keywords, create an array field in
+your documents and add the keywords as strings in the array. You
+can then create a :ref:`multi-key index <index-type-multi-key>` on the
+array and create queries that search the array's values.
 
 .. example::
 
-   Create an array with all the keywords to search on. Here is a simple example:
+   Suppose you have a collection of library volumes that you want to
+   make searchable by topics. For each volume, you add the array
+   ``topics``, and you add as many keywords as needed for a given
+   volume.
+
+   For the ``Moby-Dick`` volume you might have the following document:
 
    .. code-block:: javascript
 
-      { title : "breakfast drinks" ,
-        keywords : [ "tea" , "coffee" , "juice", "Tang" ]
+      { title : "Moby-Dick" ,
+        author : "Herman Melville" ,
+        published : 1851 ,
+        ISBN : 0451526996 ,
+        topics : [ "whaling" , "allegory" , "revenge" , "American" ,
+          "novel" , "nautical" , "voyage" , "Cape Cod" ]
       }
 
-   Create a multi-key index on the ``keywords`` array:
+   You then create a multi-key index on the ``topics`` array:
 
    .. code-block:: javascript
 
-      db.menu.ensureIndex( { keywords: 1 } )
+      db.volumes.ensureIndex( { topics: 1 } )
 
-Tagging
--------
+   The multi-key index creates separate index entries for each keyword in
+   the ``topics`` array. For example the index contains one entry for
+   ``whaling`` and another for ``allegory``.
 
-To implement a tag search:
-
-1. Create an array of tags.
-
-2. Create a :ref:`multi-key index <index-type-multi-key>` on the array.
-
-.. example::
-
-   Suppose you have documents in the ``articles`` database and the
-   documents are tagged with category names, such as the following
-   document:
+   You then queries based on the keywords. For example:
 
    .. code-block:: javascript
 
-      {
-        name: "Apollo" ,
-        text: "The Apollo program was the first to land
-               people on the Moon." ,
-        tags: [ "moon", "apollo", "spaceflight" ]
-      }
+      print(db.volumes.findOne( { topics : "voyage" } ).title)
 
-   Create a multi-key index on the ``tags`` array:
+.. note:: An array with many elements (hundreds or thousands) will incur
+   greater insert costs.
 
-   .. code-block:: javascript
+Limitations of Keyword Indexing
+-------------------------------
 
-      db.articles.ensureIndex( { tags: 1 } )
+MongoDB makes keyword search easy, though differs from dedicated
+full-text search engines. Dedicated full-text engines provide the
+following:
 
-   The above command indexes all the strings in the ``tags`` array. For
-   the document shown in this example, the command creates index entries
-   for the tags ``moon``, ``apollo`` and ``spaceflight``. Users can query
-   on those tags. For example:
+- Built-in text stemming.
 
-   .. code-block:: javascript
-
-      print(db.articles.findOne( { tags : "apollo" } ).name)
-
-The database creates an index entry for each item in the array. An
-array with many elements (hundreds or thousands) might make inserts very
-expensive. Although, for the example above, alternate implementations
-are equally expensive.
-
-Comparison to Full-Text Search Engines
---------------------------------------
-
-MongoDB makes certain search full-text searches easy, though differs from
-dedicated full-text search engines:
-
-Dedicated full-text engines provide the following:
-
-- Built-in text stemming
-
-- Ranking of queries matching various numbers of terms. This can be done with
-  MongoDB but requires user supplied code to do so.
+- Ranking of queries matching various numbers of terms. This can be done
+  with MongoDB but requires user supplied code to do so.
 
 - Bulk index building. Bulk index building makes building indexes fast
-  but has the downside of not being in real time. MongoDB is particularly
-  well suited for problems where the search should be done in real time.
+  but has the downside of not being in real time. MongoDB is
+  particularly well suited for problems where the search should be done
+  in real time.
