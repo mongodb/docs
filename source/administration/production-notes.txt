@@ -26,122 +26,13 @@ deployment should only be accessible to specific systems that require
 access: application servers, monitoring services, and other MongoDB
 components.
 
-This section contains notes on specific network configurations
-relevant to production deployments of MongoDB.
+See documents in the :doc:`/security` section for additional
+information, specifically:
 
-.. TODO link to MongoDB security section when available.
-
-Default Port Numbers used by MongoDB
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-MongoDB uses only TCP ports for network connections. The following table
-lists the default ports that MongoDB components use.
-
-.. The set of empty sub-bullets below is intentional, to provide spacing.
-
-.. list-table::
-   :header-rows: 2
-
-   * - 
-     - 
-     - 
-   * - MongoDB Component
-     - Process
-     - Port Number
-   * - :term:`Standalone MongoDB server <standalone>`
-     - :program:`mongod`
-     - 27017
-   * - :ref:`Shard Router <_mongos>`
-     - :program:`mongos`
-     - 27017
-   * - :term:`Shard` server
-     - :option:`mongod --shardsvr`
-     - 27018
-   * - :ref:`Config Server <sharding-config-server>` (used in sharding)
-     - :option:`mongod --configsvr`
-     - 27019
-   * - :ref:`HTTP REST interface <rest-interface>`
-     - :option:`mongod --rest`
-     - 28107
-
-.. _production-firewall:
-
-Firewall Rules Required for MongoDB
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. The set of empty sub-bullets below is intentional, to provide spacing.
-
-MongoDB uses the firewall rules listed here.
-
-.. list-table::
-   :header-rows: 2
-
-   * - 
-     - 
-     - 
-     - 
-   * - Process
-     - Direction
-     - Ports
-     - For Connections To...
-   * - :program:`mongod`
-     - Incoming
-     - 27017/*
-     - Client and application servers
-   * - :program:`mongod`
-     - Outgoing
-     - */27017
-     - Replica set members, Shard routers (:program:`mongos` instances)
-   * - :program:`mongos`
-     - Incoming
-     - 27017/*
-     - Client and application servers
-   * - :program:`mongod`
-     - Outgoing
-     - */[27019, 27018]
-     - Shard servers and config servers
-
-When setting up firewalls in a :term:`sharded <sharding>` environment,
-you must allow the following connectivity:
-
-- Each mongo process in the cluster (i.e., each :program:`mongos`,
-  :program:`mongod`, and :option:`mongod --configsvr`) must
-  be able to connect to every other mongo process in the cluster.
-
-- Clients must be able to connect to the :program:`mongos` processes.
-  However, clients are *not* required to be able to connect to the
-  :program:`mongod` processes.
-
-When setting up firewalls in non-sharded :term:`replica set`
-environments, you must allow the following connectivity:
-
-- Each member of the replica set must be able to connect to every other
-  member. To test connectivity, see
-  :ref:`replica-set-troubleshooting-check-connection`.
-
-- Clients must be able to connect to all non-hidden replica set members.
-
-To accept requests on external interfaces, you may also have to modify
-your computer's firewall configuration to allow access to the ports used
-by :program:`mongo`.
-
-.. seealso:: :ref:`production-firewall`
-
-IP Address Binding
-~~~~~~~~~~~~~~~~~~
-
-By default, a :program:`mongod` server will listen on all available IP
-addresses on a machine. You can restrict this to a single IP address
-with the :option:`mongod --bind_ip` option.
-
-For example, you could set :option:`mongod --bind_ip` to ``127.0.0.1``,
-the loopback interface, to make :program:`mongod` listen only to
-requests from the same machine (``localhost``). Or on a machine with two
-interfaces you might want to listen only on the private network.
-
-To enable listening on all interfaces, remove the :setting:`bind_ip`
-option from the server :doc:`configuration file
-</reference/configuration-options>`.
+- :ref:`security-port-numbers`
+- :ref:`security-firewalls`
+- :doc:`/tutorial/configure-linux-iptables-firewall`
+- :doc:`/tutorial/configure-windows-netsh-firewall`
 
 MongoDB on Linux
 ----------------
@@ -273,11 +164,10 @@ When installing hardware for MongoDB, consider the following:
 MongoDB on NUMA-Based Hardware
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-MongoDB and NUMA, Non-Uniform Access Memory, do not work well together.
-
-non-NUMA is recommended as NUMA is not very helpful as memory access
-  is not very localized in a database. If you must run MongoDB on a
-  NUMA system, see :ref:`NUMA and MongoDB <production-numa>`.
+MongoDB and NUMA, Non-Uniform Access Memory, do not work well
+together. If possible, use non-NUMA architectures because NUMA does
+not offer MongoDB deployments advantages, since memory access is not
+localized in a database like MongoDB.
 
 If you are running MongoDB on NUMA hardware, we recommend disabling NUMA
 for MongoDB and running with an interleave memory policy. Operational
@@ -292,24 +182,24 @@ performance for periods of time or high system processor usage.
 To turn off NUMA for MongoDB, use the ``numactl`` command and start
 :program:`mongod` in the following manner:
 
-   .. code-block:: bash
+.. code-block:: sh
 
-      numactl --interleave=all /usr/bin/local/mongod
+   numactl --interleave=all /usr/bin/local/mongod
 
 Adjust the ``proc`` settings using the following command:
 
-   .. code-block:: bash
+.. code-block:: sh
 
-      echo 0 > /proc/sys/vm/zone_reclaim_mode
+   echo 0 > /proc/sys/vm/zone_reclaim_mode
 
 You can change ``zone_reclaim_mode`` without restarting mongod. For
 more information, see documentation on `Proc/sys/vm
 <http://www.kernel.org/doc/Documentation/sysctl/vm.txt>`_.
 
-`The MySQL “swap insanity” problem and the effects of the NUMA
-architecture
-<http://jcole.us/blog/archives/2010/09/28/mysql-swap-insanity-and-the-numa-architecture/>`_
-describes the effects of NUMA on databases. This blog post was aimed
-at problems NUMA created for MySQL, but the issues are similar. The
-post describes the NUMA architecture and its goals, and how these are
-incompatible with production databases.
+See the `The MySQL “swap insanity” problem and the effects of the NUMA
+architecture <http://jcole.us/blog/archives/2010/09/28/mysql-swap-insanity-and-the-numa-architecture/>`_
+post, which describes the effects of NUMA on databases. This blog post
+addresses the impact on NUMA for MySQL, but the issues for MongoDB
+users are similar. The post introduces the NUMA architecture and its
+goals, and illustrates how these goals are not compatible with
+production databases.
