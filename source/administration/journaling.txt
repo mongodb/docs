@@ -22,6 +22,10 @@ consistent state. By default, the greatest extent of lost writes, i.e.,
 those not made to the journal, is no more than the last 100
 milliseconds.
 
+With journaling, if you want a data set to reside entirely in RAM, you
+need twice as much RAM available as the dataset size. See
+:ref:`journaling-storage-views`.
+
 .. versionchanged:: 2.0
    Journaling is enabled by default for 64-bit platforms.
    For other platforms, see :setting:`journal`.
@@ -32,8 +36,8 @@ Configuration and Setup
 Enable Journaling
 ~~~~~~~~~~~~~~~~~
 
-Beginning with version 2.0, journaling is enabled by default for 64-bit
-platforms.
+.. versionchanged:: 2.0
+   Journaling is enabled by default for 64-bit platforms.
 
 To enable journaling, start :program:`mongod` with the
 :option:`--journal` command line option.
@@ -55,7 +59,7 @@ with :option:`--nojournal <mongod --nojournal>`.
 Get Commit Acknowledgement
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can wait for group commit acknowledgement with the
+You can get commit acknowledgement with the
 :dbcommand:`getLastError` command and the ``j`` option. For details, see
 :ref:`write-concern-operation`.
 
@@ -64,87 +68,109 @@ You can wait for group commit acknowledgement with the
 Avoid Preallocation Lag
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-To avoid preallocation lag, you can preallocate files in the journal
-directory by copying them from another instance of :program:`mongod`.
-(For details on preallocation lag, see :ref:`journaling-journal-files`.)
+To avoid :ref:`preallocation lag <journaling-journal-files>`, you can
+preallocate files in the journal directory by copying them from another
+instance of :program:`mongod`.
 
-.. example:: The following sequence of commands preallocates journal
-   files for an instance of :program:`mongod` running on port ``27017``
-   with a database path of ``/data/db``.
+Preallocated files do not contain data. It is safe to later remove them.
+But if you restart :program:`mongod` with journaling, :program:`mongod`
+will create them again.
 
-   .. code-block:: sh
+.. example:: The following sequence preallocates journal files for an
+   instance of :program:`mongod` running on port ``27017`` with a database
+   path of ``/data/db``.
 
-      $ mkdir ~/tmpDbpath
-      $ mongod --port 10000 --dbpath ~/tmpDbpath --journal
-      # startup messages
-      # .
-      # .
-      # .
-      # wait for prealloc to finish
-      Thu Mar 17 10:02:52 [initandlisten] preallocating a journal file
-      ~/tmpDbpath/journal/prealloc.0
-      Thu Mar 17 10:03:03 [initandlisten] preallocating a journal file
-      ~/tmpDbpath/journal/prealloc.1
-      Thu Mar 17 10:03:14 [initandlisten] preallocating a journal file
-      ~/tmpDbpath/journal/prealloc.2
-      Thu Mar 17 10:03:25 [initandlisten] flushing directory
-      ~/tmpDbpath/journal
-      Thu Mar 17 10:03:25 [initandlisten] flushing directory
-      ~/tmpDbpath/journal
-      Thu Mar 17 10:03:25 [initandlisten] waiting for connections on port
-      10000
-      Thu Mar 17 10:03:25 [websvr] web admin interface listening on port 11000
-      # then Ctrl-C to kill this instance
-      ^C
-      $ mv ~/tmpDbpath/journal /data/db/
-      $ # restart mongod on port 27017 with --journal
+   For demonstration purposes, the sequence starts by creating a set of
+   journal files in the usual way.
 
-Preallocated files do not contain data. It is safe to remove them. But
-if you restart :program:`mongod` with journaling, :program:`mongod` will
-create them again.
+   1. Create a temporary directory into which to create a set of journal
+      files:
+
+      .. code-block:: sh
+
+         mkdir ~/tmpDbpath
+
+   #. Create a set of journal files by staring a :program:`mongod`
+      instance that uses the temporary directory:
+
+      .. code-block:: sh
+
+         mongod --port 10000 --dbpath ~/tmpDbpath --journal
+
+   #. When you see the following log output, indicating :program:`mongod` has the files,
+      press CONTROL+C to stop the :program:`mongod` instance:
+
+      .. code-block:: sh
+
+         web admin interface listening on port 11000
+
+   #. Preallocate journal files for the new instance of
+      :program:`mongod` by moving the journal files from the data directory
+      of the existing instance to the data directory of the new instance:
+
+      .. code-block:: sh
+
+         mv ~/tmpDbpath/journal /data/db/
+
+   #. Start the new :program:`mongod` instance:
+
+      .. code-block:: sh
+
+         mongod --port 27017 --dbpath /data/db --journal
+
+Monitor Journal Status
+~~~~~~~~~~~~~~~~~~~~~~
+
+Use the following commands and methods to monitor journal status:
+
+- :dbcommand:`serverStatus`
+
+  The :dbcommand:`serverStatus` command returns database status
+  information that is useful for assessing performance.
+
+- :dbcommand:`journalLatencyTest`
+
+  Use :dbcommand:`journalLatencyTest` to measure how long it takes on
+  your volume to write to the disk in an append-only fashion. You can
+  run this command on an idle system to get a baseline sync time for
+  journaling. You can also run this command on a busy system to see the
+  sync time on a busy system, which may be higher if the journal
+  directory is on the same volume as the data files.
+
+  The :dbcommand:`journalLatencyTest` command also provides a way to
+  check if your disk drive is buffering writes in its local cache. If
+  the number is very low (i.e., less than 2 milliseconds) and the drive
+  is non-SSD, the drive is probably buffering writes. In that case,
+  enable cache write-through for the device in your operating system,
+  unless you have a disk controller card with battery backed RAM.
+
+.. _journaling-journal-commit-interval:
 
 Change the Group Commit Interval
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Beginning with version 1.9.2, you can set the group commit interval
-using the :option:`--journalCommitInterval <mongod
---journalCommitInterval>` command line option. The allowed range is ``2`` to
-``300`` milliseconds.
+.. versionchanged:: 1.9.2
 
-Monitor journal Status
-~~~~~~~~~~~~~~~~~~~~~~
+You can set the group commit interval using the
+:option:`--journalCommitInterval <mongod --journalCommitInterval>`
+command line option. The allowed range is ``2`` to ``300`` milliseconds.
 
-serverStatus command
+Lower values increase the durability of the journal at the expense of
+disk performance.
 
-The serverStatus command now includes some statistics regarding
-journaling.
+Recover Data After Unexpected Shutdown
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-journalLatencyTest Command
+On a restart after a crash, journal files in journal are replayed
+before the server goes online. This is indicated in the log output.
+You do not need to run a repair.
 
-You can use the journalLatencyTest command to measure how long it takes
-on your volume to write to the disk (including fsyncing the data) in an
-append-only fashion.
+Journaling Internals
+--------------------
 
-> use admin
-
-> db.runCommand("journalLatencyTest")
-
-You can run this command on an idle system to get a baseline sync time
-for journaling. In addition, it is safe to run this command on a busy
-system to see the sync time on a busy system (which may be higher if the
-journal directory is on the same volume as the data files).
-
-In version 1.9.2+ you can set the group commit interval, using
---journalCommitInterval command-line option, to between 2 and 300
-milliseconds (default is 100ms). The actual interval are the maximum
-of this setting and your disk latency as measured above.
-
-journalLatencyTest is also a good way to check if your disk drive is
-buffering writes in its local cache. If the number is very low (e.g.,
-less than 2ms) and the drive is non-ssd, the drive is probably buffering
-writes. In that case, you will want to enable cache write-through for
-the device in your operating system. (Unless you have a disk controller
-card with battery backed ram, then this is a good thing.)
+When running with journaling, MongoDB stores and applies :doc:`write
+operations </core/write-operations>` in memory and in the journal before
+the changes are in the data files.
 
 .. _journaling-journal-files:
 
@@ -180,66 +206,7 @@ invocations.
 To avoid preallocation lag, see
 :ref:`journaling-avoid-preallocation-lag`.
 
-Command-line Options
---------------------
-
-- `--master`: The :term:`master` mode.
-
-- :option:`--oplogSize`: This takes an argument and specifies the size
-  limit in MB for the oplog.
-
-- `--slave`: The :term:`slave` mode.
-
-- `--source`: This takes an argument and specifies the master as
-  <server:port>.
-
-- `--only`: This takes an argument and specifies a single database to
-  replicate.
-
-Recovery
---------
-
-On a restart after a crash, journal files in journal are replayed
-before the server goes online. This is indicated in the log output.
-You do not need to run a repair.
-
-With journaling if you want a dataset to reside entirely in RAM, you
-need twice as much RAM available as the dataset size to be able to store
-the ``shared view`` and ``private view``.
-
-Recommendations
-~~~~~~~~~~~~~~~
-
-Recommend to set (or at least check) for a low read ahead value
-for the data disks, say 40 blocks.
-
-– And 0 for non-spinning disks
-
-Recommend to use a separate disk for the journal entries, with a
-slightly higher read ahead, say 100 blocks
-
-– Writes are always at the end of the journal
-
-– Deletes are always at the beginning of the journal
-
-Include checking the read ahead values in onboarding interviews
-
-Set the read ahead values in the templates we distribute
-
-Be aware of the issue for sudden performance breakdown tickets
-
-– Beware of resident memory estimates when diagnosing RAM usage
-
-How Journaling Works
---------------------
-
-When running with journaling, MongoDB stores and applies :doc:`write
-operations </core/write-operations>` in memory and in the journal before
-the changes are in the data files.
-
-This section explains this process in detail.
-
-.. _journaling-configuring-storage:
+.. _journaling-storage-views:
 
 Storage Views used in Journaling
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
