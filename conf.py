@@ -39,7 +39,7 @@ exclude_patterns = []
 source_suffix = '.txt'
 
 master_doc = 'contents'
-project = u'MongoDB'
+project = u'MongoDB Manual'
 copyright = u'2011-' + meta['date'] + ', 10gen, Inc.'
 version = '2.2.2'
 release = version
@@ -73,7 +73,7 @@ intersphinx_mapping = {
 
 html_theme = 'mongodb'
 html_theme_path = ['themes']
-html_title = project + ' Manual'
+html_title = project
 htmlhelp_basename = 'MongoDBdoc'
 
 html_logo = ".static/logo-mongodb.png"
@@ -88,7 +88,7 @@ html_show_sourcelink = False
 html_show_sphinx = True
 html_show_copyright = True
 
-manual_edition_path = 'http://docs.mongodb.org/' + meta['branch'] + '/' + project + '-Manual-' + meta['branch']
+manual_edition_path = 'http://docs.mongodb.org/' + meta['branch'] + '/MongoDB-Manual-' + meta['branch']
 
 html_theme_options = {
     'branch': meta['branch'],
@@ -103,7 +103,7 @@ html_theme_options = {
 }
 
 html_sidebars = {
-    '**': ['localtoc.html', 'pagenav.html', 'wikisidebar.html'],
+    '**': ['pagenav.html', 'wikisidebar.html'],
 }
 
 # -- Options for LaTeX output --------------------------------------------------
