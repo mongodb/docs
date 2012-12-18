@@ -8,7 +8,8 @@ MongoDB runs as a standard program. You can start MongoDB from a command
 line by issuing the :program:`mongod` command and specifying options.
 Fora list of options, see :doc:`/reference/mongod`. MongoDB can also run
 as a Windows service. For details, see
-:ref:`tutorial-mongod-as-windows-service`.
+:ref:`tutorial-mongod-as-windows-service`. To install MongoDB, see
+:doc:`/installation`.
 
 The following examples assume the directory containing the
 :program:`mongod` process is included in your system paths. The
@@ -35,13 +36,13 @@ To start MongoDB in default mode, issue the following command:
 Specify a Data Directory
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-To specify the directory where MongoDB stores data files, you must
-create the directory and set its permissions appropriately. MongoDB does
-not create the directory if the directory does not exist.
+When you specify a data directory, the directory must already exist. If
+it does not, create it and set its permissions appropriately.
 
-You then use the ``--dbpath`` option when starting MongoDB. The
-following command starts :program:`mongod` and stores data in the
-``/var/lib/mongodb/`` directory:
+To specify a data directory when starting MongoDB, use the
+:option:`--dbpath <mongod --dbpath>` option. The following command
+starts :program:`mongod` and stores data in the ``/var/lib/mongodb/``
+directory:
 
 .. code-block:: sh
 
@@ -51,19 +52,17 @@ Specify a TCP Port
 ~~~~~~~~~~~~~~~~~~
 
 If you run several :program:`mongod` processes on a single machine, you
-must assign each a different port. Only one can listen on the default
-port of ``27017``.
+must assign each a different port to listen on for client connections.
+Only one can listen on the default port of ``27017``.
 
-To specify the port that MongoDB listens on for client connections, use
-the ``--port`` option. The following command starts :program:`mongod`
-listening on port ``12345``:
+To specify the port, use the ``--port`` option. The following command
+starts :program:`mongod` listening on port ``12345``:
 
 .. code-block:: sh
 
    mongod --port 12345
 
-It is highly recommended that you use the default port number whenever
-possible, to avoid any confusion.
+Use the default port number whenever possible, to avoid any confusion.
 
 If you use the :option:`--configsvr <mongod --configsvr>` or
 :option:`--shardsvr <mongod --shardsvr>` options, those options select an
@@ -73,114 +72,134 @@ Run ``mongod`` as a Daemon
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To fork the :program:`mongod` process *and* redirect its output to a log
-file, use the ``--fork`` and ``--logpath`` options. You must create the
-log path directory ahead of time; however not the log file. MongoDB will
-create the log file if it does not exist.
+file, use the :option:`--fork <mongod --fork>` and :option:`--logpath <mongod
+--logpath>` options. You must create the log directory ahead of time.
+However, you need not create the log file. MongoDB will create the log
+file if it does not exist.
 
 The following command runs :program:`mongod` as a daemon and records log
 output to ``/var/log/mongodb.log``. The command also uses the
-``--logappend`` option to ensure that :program:`mongod` appends new
-entries to the end of the log file rather than overwriting the content
-when the process restarts:
+:option:`--logappend <mongod --logappend>` option to ensure that
+:program:`mongod` appends new entries to the end of the log file rather
+than overwriting the content when the process restarts:
 
- --logappend
 .. code-block:: sh
 
    mongod --fork --logpath /var/log/mongodb.log --logappend
 
+Additional Configuration Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For an overview of common configurations and examples of best-practice
+configurations for common use cases, see
+:doc:`/administration/configuration`.
+
 Stop ``mongod``
 ---------------
 
-If :program:`mongod` is running in the foreground, then to stop :program:`mongod` press ``Control+C``.
-MongoDB does a clean exit when all ongoing operations are complete and flushes and closes all data files.
+To stop a :program:`mongod` instance that is running in the foreground,
+press ``Control+C``. MongoDB stops when all ongoing operations are
+complete and does a clean exit, flushing and closing all data files.
 
-Send shutdownServer() message from the mongo shell
+To stop a :program:`mongod` instance running in the background or foreground,
+issue the :method:`shutdownServer() <db.shutdownServer()>` method. Use the following sequence:
 
-The shell can request that the server terminate.
+1. To open the :program:`mongo` shell for a :program:`mongod` instance
+   running on the default port of ``27017``, issue the following command:
 
-$ ./mongo
-> use admin
-> db.shutdownServer()
+   .. code-block:: sh
 
-This command only works from localhost or if one is authenticated.
+      mongo
 
-From a driver (where the helper function may not exist), one can run the
-command
+#. To switch to the ``admin`` database and shutdown the :program:`mongod`
+   instance, issue the following commands:
 
-{ "shutdown" : 1 }
+   .. code-block:: javascript
 
-If this server is the primary in a replica set, it will go through the
-following process (version 1.9.1+):
+      use admin
+      db.shutdownServer()
 
-Check how up-to-date the secondaries are
-----------------------------------------
+This command works only from ``localhost`` or if the user is
+authenticated.
 
-If no secondary within 10 seconds of the primary, return that we won't
-shut down (optionally pass the timeoutSecs option to wait for a
-secondary to catch up.
+Alternately, you can shut down the :program:`mongod` instance:
 
-If there is a secondary within 10 seconds of the primary, the primary
-will step down and wait for the secondary to catch up.
+- using the :option:`--shutdown` option
 
-After 60 seconds or once the secondary has caught up, the primary will
-shut down.
+- from a driver using the :dbcommand:`shutdown`. For details, see the
+  :doc:`drivers documentation </applications/drivers>` for your driver.
+
+``mongod`` Shutdown and Replica Sets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the :program:`mongod` is the :term:`primary` in a :term:`replica
+set`, the :program:`mongod` will go through the following process:
+
+1. Check how up-to-date the :term:`secondaries <secondary>` are.
+
+#. If no secondary is within 10 seconds of the primary,
+   :program:`mongod` will return a message that it will not shut down.
+   You can pass the the :dbcommand:`shutdown` command a ``timeoutSecs``
+   argument to wait for a secondary to catch up.
+
+#. If there is a secondary within 10 seconds of the primary, the primary
+   will step down and wait for the secondary to catch up.
+
+#. After 60 seconds or once the secondary has caught up, the primary
+   will shut down.
 
 If there is no up-to-date secondary and you want the primary to shut
-down, you can use ``force : true``:
+down, issue the :dbcommand:`shutdown` command with the ``force``
+argument, as show in the following command:
 
 .. code-block:: javascript
 
    db.adminCommand({shutdown : 1, force : true})
 
-You can also specify timeoutSecs : N, which will keep checking the
-secondaries for N seconds if none are immediately up-to-date. If any of
-the secondaries catch up within N seconds, the primary will shut down.
-If no secondaries catch up, it will not shut down.
+To keep checking the secondaries for a specified number of seconds if
+none are immediately up-to-date, issue :dbcommand:`shutdown` with the
+``timeoutSecs`` argument. MongoDB will keep checking the secondaries for
+the specified number of seconds if none are immediately up-to-date. If
+any of the secondaries catch up within the allotted time, the primary
+will shut down. If no secondaries catch up, it will not shut down.
+
+The following command issues :dbcommand:`shutdown` with ``timeoutSecs``
+set to ``5``:
 
 .. code-block:: javascript
 
    db.adminCommand({shutdown : 1, timeoutSecs : 5})
 
-or
+Alternately you can use the ``timeoutSecs`` argument with the
+:method:`shutdownServer() <db.shutdownServer()>` method:
 
 .. code-block:: javascript
 
    db.shutdownServer({timeoutSecs : 5})
 
-This generates output similar to the following:
-
-.. code-block:: javascript
-
-   {
-        "closest" : NumberLong(1307651781),
-        "difference" : NumberLong(1307651808),
-        "errmsg" : "no secondaries within 10 seconds of my optime",
-        "ok" : 0
-   }
-
-Sending a Unix INT or TERM Signal
+Sending a UNIX INT or TERM Signal
 ---------------------------------
 
-You can cleanly stop :program:`mongod` using a SIGINT or SIGTERM signal on
-Unix-like systems. Either ^C, "kill -2 PID," or kill -15 PID will work.
+You can cleanly stop :program:`mongod` using a SIGINT or SIGTERM signal
+on UNIX-like systems. Either ``^C``, ``kill -2 PID``, or ``kill -15
+PID`` will work.
 
-Sending a KILL signal kill -9 will probably cause damage if :program:`mongod` is
-not running with Journaling. (Journaling is on by default for 64 bit
-:program:`mongod`.) See also: repairDatabase command.)
+Sending ``kill -9`` will probably cause damage if :program:`mongod` is
+not running with :term:`journaling <journal>`.
 
-After a hard crash, when not using --journal, MongoDB will say it was
-not shutdown cleanly, and ask you to do a repair of the database.
+To recover data if MongoDB does not shut down cleanly and if
+:term:`journaling <journal>` is disabled, see
+:doc:`/tutorial/recover-data-following-unexpected-shutdown`.
 
 Memory Usage
 ------------
 
-MongoDB uses memory mapped files to access data, which results in large
-numbers being displayed in tools like top for the :program:`mongod` process. This
-is not a concern, and is normal when using memory-mapped files.
-Basically, the size of mapped data is shown in the virtual size
-parameter, and resident bytes shows how much data is being cached in
-RAM.
+MongoDB uses memory-mapped files to access data, which results in large
+numbers being displayed in tools like ``top`` for the :program:`mongod`
+process. This is not a concern and is normal when using memory-mapped
+files. The size of mapped data is shown in the virtual size parameter.
+Resident bytes shows how much data is being cached in RAM.
 
 You can get a feel for the "inherent" memory footprint of MongoDB by
-starting it fresh, with no connections, with an empty /data/db directory
-and looking at the resident bytes.
+starting it fresh, with no connections, with an empty ``/data/db``
+directory and looking at the resident bytes.
