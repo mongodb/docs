@@ -116,11 +116,6 @@ intersphinx_mapping = {
 # a list of builtin themes...
 html_theme = 'mongodb'
 
-# Theme options are theme-specific and customize the look and feel of a theme
-# further.  For a list of options available for each theme, see the
-# documentation.
-# html_theme_options = {}
-
 # Add any paths that contain custom themes here, relative to this directory.
 html_theme_path = ['themes']
 
@@ -164,6 +159,9 @@ html_theme_options = { 'branch': meta['branch'],
                        'pdfpath':  manual_edition_path + '.pdf',
                        'epubpath':  manual_edition_path + '.epub',
                        'manual_path': meta['manual_path'],
+                       'repo_name': 'docs',
+                       'jira_project': 'DOCS',
+                       'google_analytics': 'UA-7301842-8',
                        }
 
 # If true, an OpenSearch description file will be output, and all pages will
