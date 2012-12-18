@@ -1,0 +1,186 @@
+======================
+Start and Stop MongoDB
+======================
+
+.. default-domain:: mongodb
+
+MongoDB runs as a standard program. You can start MongoDB from a command
+line by issuing the :program:`mongod` command and specifying options.
+Fora list of options, see :doc:`/reference/mongod`. MongoDB can also run
+as a Windows service. For details, see
+:ref:`tutorial-mongod-as-windows-service`.
+
+The following examples assume the directory containing the
+:program:`mongod` process is included in your system paths. The
+:program:`mongod` process is the primary database process that runs on
+an individual server. The sharding process is the :program:`mongos`
+process. The administrative shell is run by the :program:`mongo`
+process.
+
+This page discusses the :program:`mongod` process.
+
+Start ``mongod``
+----------------
+
+In default mode, MongoDB stores data in the ``/data/db`` directory. On
+Windows MongoDB stores data in ``C:\data\db``. On all platforms, MongoDB
+listens by default on port ``27017``.
+
+To start MongoDB in default mode, issue the following command:
+
+.. code-block:: sh
+
+   mongod
+
+Specify a Data Directory
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To specify the directory where MongoDB stores data files, you must
+create the directory and set its permissions appropriately. MongoDB does
+not create the directory if the directory does not exist.
+
+You then use the ``--dbpath`` option when starting MongoDB. The
+following command starts :program:`mongod` and stores data in the
+``/var/lib/mongodb/`` directory:
+
+.. code-block:: sh
+
+   mongod --dbpath /var/lib/mongodb/
+
+Specify a TCP Port
+~~~~~~~~~~~~~~~~~~
+
+If you run several :program:`mongod` processes on a single machine, you
+must assign each a different port. Only one can listen on the default
+port of ``27017``.
+
+To specify the port that MongoDB listens on for client connections, use
+the ``--port`` option. The following command starts :program:`mongod`
+listening on port ``12345``:
+
+.. code-block:: sh
+
+   mongod --port 12345
+
+It is highly recommended that you use the default port number whenever
+possible, to avoid any confusion.
+
+If you use the :option:`--configsvr <mongod --configsvr>` or
+:option:`--shardsvr <mongod --shardsvr>` options, those options select an
+appropriate port number automatically.
+
+Run ``mongod`` as a Daemon
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To fork the :program:`mongod` process *and* redirect its output to a log
+file, use the ``--fork`` and ``--logpath`` options. You must create the
+log path directory ahead of time; however not the log file. MongoDB will
+create the log file if it does not exist.
+
+The following command runs :program:`mongod` as a daemon and records log
+output to ``/var/log/mongodb.log``. The command also uses the
+``--logappend`` option to ensure that :program:`mongod` appends new
+entries to the end of the log file rather than overwriting the content
+when the process restarts:
+
+ --logappend
+.. code-block:: sh
+
+   mongod --fork --logpath /var/log/mongodb.log --logappend
+
+Stop ``mongod``
+---------------
+
+If :program:`mongod` is running in the foreground, then to stop :program:`mongod` press ``Control+C``.
+MongoDB does a clean exit when all ongoing operations are complete and flushes and closes all data files.
+
+Send shutdownServer() message from the mongo shell
+
+The shell can request that the server terminate.
+
+$ ./mongo
+> use admin
+> db.shutdownServer()
+
+This command only works from localhost or if one is authenticated.
+
+From a driver (where the helper function may not exist), one can run the
+command
+
+{ "shutdown" : 1 }
+
+If this server is the primary in a replica set, it will go through the
+following process (version 1.9.1+):
+
+Check how up-to-date the secondaries are
+----------------------------------------
+
+If no secondary within 10 seconds of the primary, return that we won't
+shut down (optionally pass the timeoutSecs option to wait for a
+secondary to catch up.
+
+If there is a secondary within 10 seconds of the primary, the primary
+will step down and wait for the secondary to catch up.
+
+After 60 seconds or once the secondary has caught up, the primary will
+shut down.
+
+If there is no up-to-date secondary and you want the primary to shut
+down, you can use ``force : true``:
+
+.. code-block:: javascript
+
+   db.adminCommand({shutdown : 1, force : true})
+
+You can also specify timeoutSecs : N, which will keep checking the
+secondaries for N seconds if none are immediately up-to-date. If any of
+the secondaries catch up within N seconds, the primary will shut down.
+If no secondaries catch up, it will not shut down.
+
+.. code-block:: javascript
+
+   db.adminCommand({shutdown : 1, timeoutSecs : 5})
+
+or
+
+.. code-block:: javascript
+
+   db.shutdownServer({timeoutSecs : 5})
+
+This generates output similar to the following:
+
+.. code-block:: javascript
+
+   {
+        "closest" : NumberLong(1307651781),
+        "difference" : NumberLong(1307651808),
+        "errmsg" : "no secondaries within 10 seconds of my optime",
+        "ok" : 0
+   }
+
+Sending a Unix INT or TERM Signal
+---------------------------------
+
+You can cleanly stop :program:`mongod` using a SIGINT or SIGTERM signal on
+Unix-like systems. Either ^C, "kill -2 PID," or kill -15 PID will work.
+
+Sending a KILL signal kill -9 will probably cause damage if :program:`mongod` is
+not running with Journaling. (Journaling is on by default for 64 bit
+:program:`mongod`.) See also: repairDatabase command.)
+
+After a hard crash, when not using --journal, MongoDB will say it was
+not shutdown cleanly, and ask you to do a repair of the database.
+
+Memory Usage
+------------
+
+MongoDB uses memory mapped files to access data, which results in large
+numbers being displayed in tools like top for the :program:`mongod` process. This
+is not a concern, and is normal when using memory-mapped files.
+Basically, the size of mapped data is shown in the virtual size
+parameter, and resident bytes shows how much data is being cached in
+RAM.
+
+You can get a feel for the "inherent" memory footprint of MongoDB by
+starting it fresh, with no connections, with an empty /data/db directory
+and looking at the resident bytes.
