@@ -162,6 +162,8 @@ html_theme_options = { 'branch': meta['branch'],
                        'repo_name': 'docs',
                        'jira_project': 'DOCS',
                        'google_analytics': 'UA-7301842-8',
+                       'is_manual': True,
+                       'project': 'manual',
                        }
 
 # If true, an OpenSearch description file will be output, and all pages will
