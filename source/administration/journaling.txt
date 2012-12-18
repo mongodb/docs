@@ -45,13 +45,22 @@ Enable Journaling
 To enable journaling, start :program:`mongod` with the
 :option:`--journal` command line option.
 
-If :program:`mongod` decides to preallocate the files, it will not start
-listening on port 27017 until this process completes, which can take a
-few minutes. Your applications and the shell will not be able to connect
-to the database until the process completes.
+If the :program:`mongod` process preallocates the files, the process
+delays listening on port 27017 until preallocation completes, which can
+take a few minutes. Your applications and the shell will not be able to
+connect to the database until the process completes.
 
 Disable Journaling
 ~~~~~~~~~~~~~~~~~~
+
+.. warning::
+
+   Do not disable journaling on production systems. If your MongoDB
+   system stops unexpectedly from a power failure or other condition,
+   and if you are not running with journaling, then you must recover
+   from an unaffected :term:`replica set` member or backup, as described
+   in :doc:`repair
+   </tutorial/recover-data-following-unexpected-shutdown>`.
 
 To disable journaling, start :program:`mongod` with the
 :option:`--nojournal <mongod --nojournal>` command line option.
@@ -152,7 +161,7 @@ Use the following commands and methods to monitor journal status:
 Change the Group Commit Interval
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. versionchanged:: 1.9.2
+.. versionchanged:: 2.0
 
 You can set the group commit interval using the
 :option:`--journalCommitInterval <mongod --journalCommitInterval>`
@@ -229,10 +238,7 @@ needed.
 The ``private view`` stores data for use in :doc:`read operations
 </core/read-operations>`. The ``private view`` is mapped to the ``shared view``
 and is the first place MongoDB applies new :doc:`write operations
-</core/write-operations>`, mean read operations get the most up-to-date
-data. Keep in mind that because the ``private view`` is a second mapping
-of data files, journaling often doubles the amount of virtual memory
-:program:`mongod` uses.
+</core/write-operations>`.
 
 The journal is an on-disk view that stores new write operations
 after they have been applied to the ``private cache`` but before they
@@ -246,11 +252,10 @@ the ``shared view`` for eventual upload to the data files.
 How Journaling Records Write Operations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-MongoDB copies the write operations to the journal in batches
-called group commits. By default, MongoDB performs a group commit every
-100 milliseconds, which means a series of operations over 100
-milliseconds are committed as a single batch. This is done to achieve
-high performance.
+MongoDB copies the write operations to the journal in batches called
+group commits. By default, MongoDB performs a group commit every 100
+milliseconds, which means a series of operations over 100 milliseconds
+are committed as a single batch. This is done to improve performance.
 
 Journaling stores raw operations that allow MongoDB to reconstruct the
 following:
@@ -259,16 +264,16 @@ following:
 - index modifications
 - changes to the namespace files
 
-As users perform :doc:`write operations </core/write-operations>`,
-MongoDB writes the data first to the ``private view`` in RAM. MongoDB
-then copies the write operations in batches from the ``private view`` to
-the journal, which stores the operations on disk to ensure durability.
-MongoDB adds write operations as entries on the journal's forward
-pointer. Each entry on the pointer describes which bytes the write
-operation changed in the data files.
+As :doc:`write operations </core/write-operations>` occur, MongoDB
+writes the data to the ``private view`` in RAM and then copies the write
+operations in batches to the journal. The journal stores the operations
+on disk to ensure durability. MongoDB adds the operations as entries on
+the journal's forward pointer. Each entry describes which bytes the
+write operation changed in the data files.
 
 MongoDB next applies the journal's write operations to the ``shared
-view``. At this point, the ``shared view`` becomes inconsistent with the data files.
+view``. At this point, the ``shared view`` becomes inconsistent with the
+data files.
 
 At default intervals of 60 seconds, MongoDB asks the operating system to
 flush the ``shared view`` to disk. This brings the data files up-to-date
