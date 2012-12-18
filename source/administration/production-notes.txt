@@ -37,17 +37,19 @@ information, specifically:
 MongoDB on Linux
 ----------------
 
-If you use the Linux kernel, the MongoDB user community has recommended
-Linux kernel 2.6.36 or later for running MongoDB in production.
+If you use the Linux kernel, the MongoDB user community has
+recommended Linux kernel 2.6.36 or later for running MongoDB in
+production.
 
-Because MongoDB preallocates its database files before using them, your should
-use the Ext4 and XFS file systems if using the Linux kernel.
+Because MongoDB preallocates its database files before using them and
+because MongoDB uses very large files on average, your should
+use the Ext4 and XFS file systems if using the Linux kernel: 
 
-If you use the Ext4 file system, you must use Linux kernel 2.6.23 or
-newer for efficient filesystem preallocation.
+- If you use the Ext4 file system, use at least version 2.6.23 of the
+  Linux Kernel.
 
-If you use the XFS file system, you must use Linux kernel 2.6.25 or
-newer for efficient file preallocation.
+- If you use the XFS file system, use at least version 2.6.25 of the
+  Linux Kernel.
 
 For MongoDB on Linux use the following recommended configurations:
 
@@ -58,8 +60,8 @@ For MongoDB on Linux use the following recommended configurations:
   :ref:`etc/limits` and :term:`ulimit`). A low ulimit will affect
   MongoDB when under heavy use and will produce weird errors.
 
-- Do not use large virtual memory pages, MongoDB performs better with
-  smaller virtual memory pages.
+- Do not use ``hugepages`` virtual memory pages, MongoDB performs
+  better with normal virtual memory pages.
 
 - Disable NUMA in your BIOS. If that is not possible see :ref:`NUMA
   <production-numa>`.
@@ -68,11 +70,16 @@ For MongoDB on Linux use the following recommended configurations:
   database files are acceptable. See the :ref:`Readahead
   <production-readahead>` section
 
-- Use NTP to synchronize time between your hosts. MongoDB uses
-  distributed locks that requires hosts to be synchronized, especially
-  :term:`config servers`.
+- Use NTP to synchronize time between your hosts. This is especially
+  important in sharded clusters.
 
 .. _production-readahead:
+
+Readahead 
+---------
+
+For random access use patterns set readahead values low, for example
+setting readahead to a small value such as 32 (16KB) often works well.
 
 MongoDB on Virtual Environments
 -------------------------------
@@ -106,6 +113,109 @@ The MongoDB community has encountered issues running MongoDB on OpenVZ.
 Disk and Storage Systems
 ------------------------
 
+Swap
+~~~~
+
+Configure swap space for your systems. Having swap can prevent issues
+with memory contention and can prevent the OOM Killer on Linux systems
+from killing :program:`mongod`. Because of the way :program:`mongod`
+maps memory files to memory, the operating system will never store
+MongoDB data in swap.
+
+RAID
+~~~~
+
+Most MongoDB deployments should use disks backed by RAID-10. 
+
+RAID-5 and RAID-6 do not typically provide sufficient performance to
+support a MongoDB deployment.
+
+RAID-0 provides good write performance but provides limited
+availability, and reduced performance on read operations, particularly
+using Amazon's EBS volumes: as a result, avoid RAID-0 with MongoDB
+deployments.
+
+Remote Filesystem
+~~~~~~~~~~~~~~~~~
+
+Some versions of NFS perform very poorly with MongoDB and are not
+recommended for use with MongoDB.
+
+Many MongoDB deployments work successfully with Amazon's *Elastic
+Block Store* (EBS) volumes. There are certain intrinsic performance
+characteristics, with EBS volumes that users should consider.
+
+Hardware Requirements and Limitations
+-------------------------------------
+
+MongoDB is designed specifically with commodity hardware in mind and
+has few hardware requirements or limitations. MongoDB core components
+runs on little-endian hardware primarily x86/x86_64 processors. Client
+libraries (i.e. drivers) can run on big or little endian systems.
+
+When installing hardware for MongoDB, consider the following:
+
+- As with all software, more RAM and a faster CPU clock speed are
+  important to productivity.
+
+- Because databases do not perform high amounts of computation,
+  increasing the number cores helps but does not provide a high level of
+  marginal return.
+
+- MongoDB has good results and good price/performance with SATA SSD
+  (Solid State Disk) and with PCI (Peripheral Component Interconnect).
+
+- Commodity (SATA) spinning drives are often a good option as the
+  speed increase for random I/O for more expensive drives is not that
+  dramatic (only on the order of 2x), spending that money on SSDs or
+  RAM may be more effective.
+
+.. _production-numa:
+
+MongoDB on NUMA Hardware
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB and NUMA, Non-Uniform Access Memory, do not work well
+together. When running MongoDB on NUMA hardware, disable NUMA for
+MongoDB and running with an interleave memory policy. NUMA can cause a
+number of operational problems with MongoDB, including slow
+performance for periods of time or high system processor usage.
+
+.. note::
+
+   On Linux, MongoDB version 2.0 and greater checks these
+   settings on start up and prints a warning if the system is
+   NUMA-based.
+
+To disable NUMA for MongoDB, use the ``numactl`` command and start
+:program:`mongod` in the following manner:
+
+.. code-block:: sh
+
+   numactl --interleave=all /usr/bin/local/mongod
+
+Adjust the ``proc`` settings using the following command:
+
+.. code-block:: sh
+
+   echo 0 > /proc/sys/vm/zone_reclaim_mode
+
+To fully disable NUMA you must perform both operations. However, can
+change ``zone_reclaim_mode`` without restarting mongod. For more
+information, see documentation on `Proc/sys/vm
+<http://www.kernel.org/doc/Documentation/sysctl/vm.txt>`_.
+
+See the `The MySQL “swap insanity” problem and the effects of NUMA
+<http://jcole.us/blog/archives/2010/09/28/mysql-swap-insanity-and-the-numa-architecture/>`_
+post, which describes the effects of NUMA on databases. This blog post
+addresses the impact of NUMA for MySQL; however, the issues for
+MongoDB are similar. The post introduces NUMA its goals, and
+illustrates how these goals are not compatible with production
+databases.
+
+Performance Monitoring
+----------------------
+
 iostat
 ~~~~~~
 
@@ -124,82 +234,8 @@ Use the mount command to see what device your :term:`data directory
 
 Key fields from ``iostat``:
 
-- %util: this is the most useful field for a quick check, it
-  indicates what percent of the time the device/drive is in use. If
-  the number if near 100%, your server may be physical disk I/O
-  bound. (There are some volume situations where this statistic
-  overstates, but most often it is correct.)
+- ``%util``: this is the most useful field for a quick check, it
+  indicates what percent of the time the device/drive is in use. 
 
-- avgrq-sz: average request size. The smaller this number, the more
-  random your IO operations are. This is in sectors : typically
-  sectors are 512 bytes, so multiply by 0.5 to see average request
-  size in kilobytes.
-
-Hardware Requirements and Limitations
--------------------------------------
-
-MongoDB is designed specifically with commodity hardware in mind (to
-facilitate cloud computing), and has few hardware requirements or
-limitations.
-
-When installing hardware for MongoDB, consider the following:
-
-- As with all software, more RAM and a faster CPU clock speed are
-  important to productivity.
-
-- Because databases do not perform high amounts of computation,
-  increasing the number cores helps but does not provide a high level of
-  marginal return.
-
-- MongoDB has good results and good price/performance with SATA SSD
-  (Solid State Disk) and with PCI (Peripheral Component Interconnect).
-
-- Commodity (SATA) spinning drives are often a good option as the
-  speed increase for random I/O for more expensive drives is not that
-  dramatic (only on the order of 2x) – spending that money on SSDs or
-  RAM may be more effective.
-
-.. _production-numa:
-
-MongoDB on NUMA-Based Hardware
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-MongoDB and NUMA, Non-Uniform Access Memory, do not work well
-together. If possible, use non-NUMA architectures because NUMA does
-not offer MongoDB deployments advantages, since memory access is not
-localized in a database like MongoDB.
-
-If you are running MongoDB on NUMA hardware, we recommend disabling NUMA
-for MongoDB and running with an interleave memory policy. Operational
-problems in MongoDB will manifest in strange ways, such as slow
-performance for periods of time or high system processor usage.
-
-.. note::
-
-   On Linux, :program:`mongod` v2.0+ checks these settings on startup
-   and prints a warning if the system is NUMA-based.
-
-To turn off NUMA for MongoDB, use the ``numactl`` command and start
-:program:`mongod` in the following manner:
-
-.. code-block:: sh
-
-   numactl --interleave=all /usr/bin/local/mongod
-
-Adjust the ``proc`` settings using the following command:
-
-.. code-block:: sh
-
-   echo 0 > /proc/sys/vm/zone_reclaim_mode
-
-You can change ``zone_reclaim_mode`` without restarting mongod. For
-more information, see documentation on `Proc/sys/vm
-<http://www.kernel.org/doc/Documentation/sysctl/vm.txt>`_.
-
-See the `The MySQL “swap insanity” problem and the effects of the NUMA
-architecture <http://jcole.us/blog/archives/2010/09/28/mysql-swap-insanity-and-the-numa-architecture/>`_
-post, which describes the effects of NUMA on databases. This blog post
-addresses the impact on NUMA for MySQL, but the issues for MongoDB
-users are similar. The post introduces the NUMA architecture and its
-goals, and illustrates how these goals are not compatible with
-production databases.
+- ``avgrq-sz``: average request size. Smaller number for this value
+  reflect more random IO operations.
