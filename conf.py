@@ -92,8 +92,8 @@ manual_edition_path = 'http://docs.mongodb.org/' + meta['branch'] + '/MongoDB-Ma
 
 html_theme_options = {
     'branch': meta['branch'],
-    'pdfpath':  manual_edition_path + '.pdf',
-    'epubpath':  manual_edition_path + '.epub',
+    'pdfpath': manual_edition_path + '.pdf',
+    'epubpath': manual_edition_path + '.epub',
     'manual_path': meta['manual_path'],
     'repo_name': 'docs',
     'jira_project': 'DOCS',
