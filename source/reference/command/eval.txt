@@ -2,58 +2,163 @@
 eval
 ====
 
+.. Edits to this page should be carried over to the method db.eval.txt
+   file.
+
 .. default-domain:: mongodb
 
 .. dbcommand:: eval
 
-   The :dbcommand:`eval` command evaluates JavaScript functions
-   on the database server. Consider the following (trivial) example:
+   The :dbcommand:`eval` command evaluates JavaScript functions on the
+   database server and has the following form:
+
+   .. code-block:: none
+
+      {
+        eval: <function>,
+        args: [ <arg1>, <arg2> ... ],
+        nolock: <boolean>
+      }
+
+   The command contains the following fields:
+
+   :field JavaScript function:
+          A JavaScript function to evaluate. The function may
+          accept no arguments, as in the following example:
+
+          .. code-block:: javascript
+
+             function () {
+
+                ...
+
+             }
+
+          The function can also accept arguments, as in the following example:
+
+          .. code-block:: javascript
+
+             function (arg1, arg2) {
+
+                ...
+             }
+
+          If you specify arguments, you must include the corresponding
+          ``args`` field in the command.
+
+   :field Array args: 
+          An array of corresponding arguments to the ``function``. Omit
+          ``args`` if the ``function`` does not take arguments.
+
+   :field Boolean nolock:
+          Optional. Specifies whether to disable the write lock. By
+          default, :dbcommand:`eval` takes a write lock. There are
+          circumstances where the :dbcommand:`eval` executes a strictly
+          read-only operation that does not need to block other
+          operations. If ``nolock`` is ``true``, the
+          :dbcommand:`eval` does not take a write lock.
+
+          .. warning::
+
+             Do not disable the write lock if the function may modify
+             the contents of the database in any way.
+
+   Consider the following example which uses :dbcommand:`eval` to
+   perform an increment and calculate the average on the server:
 
    .. code-block:: javascript
 
-      { eval: function() { return 3+3 } }
+      db.runCommand( {
+            eval: function(name, incAmount) {
+                     var doc = db.myCollection.findOne( { name : name } );
 
-   The shell also provides a helper method, so you can express the
-   above as follows:
+                     doc = doc || { name : name , num : 0 , total : 0 , avg : 0 };
+
+                     doc.num++;
+                     doc.total += incAmount;
+                     doc.avg = doc.total / doc.num;
+
+                     db.myCollection.save( doc );
+                     return doc;
+                  }, 
+            args: [ "eliot", 5 ]
+         }
+      );
+
+   The ``db`` in the function refers to the current database.
+
+   The shell also provides a helper method :method:`db.eval()`, so you
+   can express the above as follows:
 
    .. code-block:: javascript
 
-      db.eval( function() { return 3+3 } );
+      db.eval( function(name, incAmount) { 
+                  var doc = db.myCollection.findOne( { name : name } ); 
 
-   The shell's JavaScript interpreter evaluates functions entered
-   directly into the shell. If you want to use the server's
-   interpreter, you must run :dbcommand:`eval`.
+                  doc = doc || { name : name , num : 0 , total : 0 , avg : 0 }; 
 
-   Be aware of following behaviors and limitations:
+                  doc.num++;
+                  doc.total += incAmount;
+                  doc.avg = doc.total / doc.num;
+         
+                  db.myCollection.save( doc ); 
+                  return doc; 
+               },
+               "eliot", 5 );
 
-   - :dbcommand:`eval` does not work in :term:`sharded <sharding>`
-     environments.
+   You cannot pass the ``nolock`` flag to the :method:`db.eval()`
+   in the :program:`mongo` shell.
 
-   - The ``eval`` operation take a write lock by default. This means
-     that writes to database aren't permitted while it's running. You
-     can, however, disable the lock by setting the ``nolock`` flag to
-     ``true``. For example:
+   If you want to use the server's interpreter, you must run
+   :dbcommand:`eval`. Otherwise, the :program:`mongo` shell's
+   JavaScript interpreter evaluates functions entered directly into the
+   shell.
 
-     .. code-block:: javascript
+   If an error occurs, :dbcommand:`eval` throws an exception. Consider
+   the following invalid function that uses the variable ``x`` without
+   declaring it as an argument:
 
-        { eval: function() { return 3+3 }, nolock: true }
+   .. code-block:: javascript
 
-     Using :method:`db.runCommand()` helper, in the :program:`mongo`
-     shell, this command would resemble: 
+      db.runCommand(
+                     {
+                       eval: function() { return x + x; }, 
+                       args: [3] 
+                     } 
+                   )
 
-     .. code-block:: javascript
+   The statement will result in the following exception:
 
-        db.runCommand( { eval: function() { return 3+3 }, nolock: true } )
+   .. code-block:: javascript
 
-     .. warning::
+      {
+         "errno" : -3,
+         "errmsg" : "invoke failed: JS Error: ReferenceError: x is not defined nofile_b:1",
+         "ok" : 0
+      }
 
-        Do not disable the write lock if the operation may modify the
-        contents of the database in anyway.
+   .. warning::
 
-     You cannot pass the ``nolock`` option to :method:`db.eval()` in
-     the :program:`mongo` shell.
+      - The :dbcommand:`eval` operation takes a write lock by default.
+        This means that other read and write operations to the database
+        are blocked while :dbcommand:`eval` is running. You can,
+        however, disable the lock by setting the ``nolock`` flag to
+        ``true`` if the ``eval`` performs a strictly read-only
+        operation.
 
-     There are some circumstances where the :method:`db.eval()`
-     implements a strictly-read only operation that need not block
-     other operations when disabling the write lock may be useful. Use
-     this functionality with extreme caution.
+      - :dbcommand:`eval` also takes a JavaScript lock.
+
+      - Do not use :dbcommand:`eval` for long running operations as
+        :dbcommand:`eval` blocks all other operations. Consider using
+        :doc:`other server side code execution options
+        </applications/server-side-code-execution>`.
+
+      - You can not use :dbcommand:`eval` with :term:`sharded
+        <sharding>` data. In general, you should avoid using
+        :dbcommand:`eval` in :term:`sharded cluster`; nevertheless, it
+        is possible to use :dbcommand:`eval` with non-sharded
+        collections and databases stored in a :term:`sharded cluster`.
+
+   .. seealso:: 
+
+      :doc:`/applications/server-side-code-execution`
