@@ -10,23 +10,26 @@ Overview
 Collections in MongoDB have flexible schema; they do not define nor
 enforce the fields of its documents. Each document can have only the
 fields that are relevant to that entity, although in practice, you
-would generally choose to store similar documents in each collection.
-With this flexible schema, you can model your data to reflect more
-closely the actual entity rather than enforce a rigid data structure.
+would generally choose to maintain a consistent structure across
+documents in each collection. With this flexible schema, you can model
+your data to reflect more closely the actual application-level entity
+rather than enforce a rigid data structure.
 
-In MongoDB, data modeling takes into consideration not only how data
-relates to each other, but also how the data is used, how the data will
-grow and be maintained. These considerations involve decisions about
-whether to embed data within a single document or reference data among
-different documents, which fields to index, and whether to use special
-features.
+In MongoDB, data modeling takes into consideration not only the
+inherent properties of the data entities themselves and how they relate
+to each other, but also how the data is used, how the data will grow
+and possibly change over time, and how the data will be maintained.
+These considerations involve decisions about whether to embed data
+within a single document or to reference data in different documents,
+which fields to index, and whether to take advantage of rich document
+features, such as arrays.
 
-Choosing the correct data model can provide both performance and
-maintenance gains for your applications.
+Choosing the best data model for your application can have both huge
+performance and maintenance advantages for your applications.
 
-This document provide some general guidelines for data modeling and
-possible options. These guidelines and options may not be appropriate
-for your situation.
+This document provide some general guidelines and principles for schema
+design and highlight possible data modeling options. Not all guidelines
+and options may be appropriate for your specific situation.
 
 .. _data-modeling-decisions:
 
@@ -46,7 +49,8 @@ Embedding
 De-normalization of data involves embedding documents within other
 documents.
 
-Operations within a document are easy for the server to handle.
+Operations within a document are less expensive for the server than
+operations that involve multiple documents.
 
 In general, choose the embedded data model when:
 
@@ -54,8 +58,8 @@ In general, choose the embedded data model when:
   :ref:`data-modeling-example-one-to-one`.
 
 - you have one-to-many relationships where the "many" objects always
-  appear with or are viewed in the context of their parents. See
-  :ref:`data-modeling-example-one-to-many`.
+  appear with or are viewed in the context of their parent documents.
+  See :ref:`data-modeling-example-one-to-many`.
 
 Embedding provides the following benefits:
 
@@ -63,11 +67,11 @@ Embedding provides the following benefits:
 
 - Single roundtrip to database to retrieve the complete object
 
-However, with embedding, write operations can be slow if you are adding
-objects frequently. Additionally, you cannot embed documents that will
-cause the containing document to exceed the :limit:`maximum BSON
-document size <BSON Document Size>`. For documents that exceed the
-maximum BSON document size, see :doc:`/applications/gridfs`.
+Keep in mind that embedding documents that have unbound growth over
+time may slow write operations. Additionally, such documents may cause
+their containing documents to exceed the :limit:`maximum BSON document
+size <BSON Document Size>`. For documents that exceed the maximum BSON
+document size, see :doc:`/applications/gridfs`.
 
 For examples in accessing embedded documents, see
 :ref:`read-operations-subdocuments`.
@@ -92,8 +96,10 @@ Normalization of data requires storing :doc:`references
 
 In general, choose the referenced data model when:
 
-- embedding would result in duplication of data.
-
+- when embedding would result in duplication of data but would not
+  provide sufficient read performance advantages to outweigh the
+  implications of the duplication
+  
 - you have many-to-many relationships.
 
 - you are modeling large hierarchical data. See
@@ -101,8 +107,8 @@ In general, choose the referenced data model when:
 
 Referencing provides more flexibility than embedding; however, to
 resolve the references, client-side applications must issue follow-up
-queries. Additionally, the referencing data model involves performing
-many seeks and random reads.
+queries. In other words, using references requires more roundtrips to
+the server.
 
 See :ref:`data-modeling-publisher-and-books` for an example of
 referencing.
@@ -131,8 +137,8 @@ maintenance efforts.
 Data Lifecycle Management
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Data lifecycle management concerns contribute to the decision making
-process around data modeling.
+Data modeling decisions should also take data lifecycle management into
+consideration.
 
 The :doc:`Time to Live or TTL feature </tutorial/expire-data>` of
 collections expires documents after a period of time. Consider using
@@ -148,7 +154,7 @@ documents based on insertion order.
 Large Number of Collections
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In certain situation, you might choose to store information in several
+In certain situations, you might choose to store information in several
 collections instead of a single collection. 
 
 Consider a sample collection ``logs`` that stores log documents for
@@ -208,7 +214,7 @@ you want an index in MongoDB. Indexes in MongoDB are needed for
 efficient query processing, and as such, you may want to think about
 the queries first and then build indexes based upon them. Generally,
 you would index the fields that you query by and the fields that you
-sort by. The ``_id`` field is automatically indexed.
+sort by. A unique index is automatically created on the ``_id`` field.
 
 As you create indexes, consider the following behaviors of indexes:
 
@@ -217,11 +223,11 @@ As you create indexes, consider the following behaviors of indexes:
 - Adding an index has some negative performance impact for write
   operations. For collections with high write-to-read ratio, indexes
   are expensive as each insert must add keys to each index.
-  
-- Read operations supported by the index perform better, and read
-  operations not supported by the index have no performance impact from
-  the index. This allows for for collections with high read-to-write
-  ratio to have many indexes.
+
+- Collections with high read-to-write ratio benefit from having many
+  indexes. Read operations supported by the index have high
+  performance, and read operations not supported by the index are
+  unaffected by it.
 
 See :doc:`/applications/indexes` for more information on determining
 indexes. Additionally, MongoDB :wiki:`Database Profiler` provides
@@ -337,7 +343,7 @@ the ``parent``.
    }
 
    {
-      patron_id = "joe",
+      patron_id: "joe",
       street: "123 Fake Street",
       city: "Faketon",
       state: "MA",
@@ -354,7 +360,7 @@ the ``parent``.
 
 If your application frequently retrieves the ``address`` data with the
 ``name`` information, then your application needs to issue multiple
-queries to resolve the references. The better data model would be to
+queries to resolve the references. A more optimal schema would be to
 embed the ``address`` data entities in the ``patron`` data, as in the
 following document:
 
@@ -389,7 +395,7 @@ One-to-Many: Referencing
 
 Consider the following example that maps publisher and book
 relationships. The example illustrates the advantage of referencing
-over embedding to prevent the repetition of the publisher information.
+over embedding to avoid repetition of the publisher information.
 
 Embedding the publisher document inside the book document would lead to
 **repetition** of the publisher data, as the following documents show:
