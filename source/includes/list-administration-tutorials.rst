@@ -32,6 +32,7 @@ Basic Operations
 - :doc:`/tutorial/copy-databases-between-instances`
 - :doc:`/tutorial/expire-data`
 - :doc:`/tutorial/manage-the-database-profiler`
+- :doc:`/tutorial/rotate-log-files`
 
 Security
 ~~~~~~~~
