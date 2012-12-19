@@ -1,10 +1,10 @@
 #!/usr/bin/python
 
-import datetime 
+import datetime
 import re
 import subprocess
 
-MANUAL_BRANCH = 'manual'
+MANUAL_BRANCH = 'master'
 
 def shell_value( args ):
     if isinstance( args , str ):
@@ -17,6 +17,7 @@ def shell_value( args ):
 
 def get_manual_path():
     branch = shell_value('git symbolic-ref HEAD').split('/')[2]
+
     if branch == MANUAL_BRANCH:
         manual_path = MANUAL_BRANCH
     else:
@@ -35,7 +36,7 @@ def main():
 
     print("MongoDB Manual:" + BREAK +
           "     Commit: " + meta_commit() + BREAK +
-          "     Branch: " + meta_branch() + BREAK + 
+          "     Branch: " + meta_branch() + BREAK +
           "     Year: " + str(datetime.date.today().year))
 
 if __name__ == '__main__':
