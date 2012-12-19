@@ -163,6 +163,8 @@ files can simply be released from memory without going to swap or can be
 written back to the database files without needing to be swapped out to
 disk, as they are already backed by files.
 
+.. _faq-fundamentals-working-set:
+
 Must my working set size fit RAM?
 ---------------------------------
 
@@ -180,6 +182,8 @@ will occur at the right side of the b-tree and the working set size for
 index pages will be much smaller.
 
 It is fine if databases and thus virtual size are much larger than RAM.
+
+.. _faq-fundamentals-working-set-size:
 
 How can I measure working set size?
 -----------------------------------
@@ -204,10 +208,48 @@ too low. If disk I/O activity increases significantly, terminate
 eatmem.cpp to mitigate the problem for the moment until further steps
 can be taken.
 
-In :term:`replica sets <repica set>`, if one server is underpowered the
+In :term:`replica sets <replica set>`, if one server is underpowered the
 eatmem.cpp utility could help as an early warning mechanism for server
 capacity. Of course, the server must be receiving representative traffic
 to get an indication.
+
+How do I calculate how much RAM I need for my application?
+----------------------------------------------------------
+
+.. todo Improve this FAQ
+
+The amount of RAM you need depends on several factors, including but not
+limited to:
+
+- The relationship between :ref:`database storage </faq/storage>` and working set.
+
+- The operating system's cache strategy for LRU (Least Recently Used)
+
+- The impact of :doc:`journaling </administration/journaling>`
+
+- Using page faults and other MMS gauges to detect when you need more RAM
+
+MongoDB makes no choices regarding what data is loaded into memory from
+disk. It simply :ref:`memory maps <faq-storage-memory-mapped-files>` all
+its data files and relies on the operating system to cache data. The OS
+typically evicts the least-recently-used data from RAM when it runs low
+on memory. For example if indexes are accessed more frequently then
+documents then indexes will more likely stay in RAM, but it depends on
+your particular usage.
+
+To calculate how much RAM you need, you must calculate your working set
+size, i.e., the portion of your data that is frequently accessed. This
+depends on your access patterns, what indexes you have, and the size of
+your documents. To calculate working set size, see:
+
+- :ref:`faq-fundamentals-working-set`
+
+- :ref:`faq-fundamentals-working-set-size`
+
+If page faults are low (for example, below than 100 / sec), then your
+working set fits in RAM. If fault rates rise higher than that, you risk
+performance degradation. This is less critical with SSD drives than
+spinning disks.
 
 How do I read memory statistics in the UNIX ``top`` command
 -----------------------------------------------------------
@@ -230,19 +272,6 @@ MongoDB has no configurable cache. MongoDB uses all *free* memory on
 the system automatically by way of memory-mapped files. Operating
 systems use the same approach with their file system caches.
 
-Are writes written to disk immediately, or lazily?
---------------------------------------------------
-
-Writes are physically written to the journal within 100
-milliseconds. At that point, the write is "durable" in the sense that
-after a pull-plug-from-wall event, the data will still be recoverable after
-a hard restart.
-
-While the journal commit is nearly instant, MongoDB writes to the data
-files lazily. MongoDB may wait to write data to the data files for as
-much as one minute. This does not affect durability, as the journal
-has enough information to ensure crash recovery.
-
 .. _faq-database-and-caching:
 
 Does MongoDB require a separate caching layer for application-level caching?
@@ -262,21 +291,6 @@ data to application objects require joins, this process increases the
 overhead related to using the database which increases the importance
 of the caching layer.
 
-How do I calculate how much RAM I need for my application?
-----------------------------------------------------------
-
-The amount of RAM you need depends on several factors:
-
-- The relationship between database storage and working set
-
-- The operating system's cache strategy for LRU (Least Recently Used)
-
-- The impact of journaling
-
-- Using page faults and other MMS gauges to detect when you need more RAM
-
-.. todo This topic is a work in progress
-
 Does MongoDB handle caching?
 ----------------------------
 
@@ -286,6 +300,19 @@ in RAM, MongoDB serves all queries from memory.
 
 MongoDB does not implement a query cache: MongoDB serves all queries
 directly from the indexes and/or data files.
+
+Are writes written to disk immediately, or lazily?
+--------------------------------------------------
+
+Writes are physically written to the journal within 100
+milliseconds. At that point, the write is "durable" in the sense that
+after a pull-plug-from-wall event, the data will still be recoverable after
+a hard restart.
+
+While the journal commit is nearly instant, MongoDB writes to the data
+files lazily. MongoDB may wait to write data to the data files for as
+much as one minute. This does not affect durability, as the journal
+has enough information to ensure crash recovery.
 
 What language is MongoDB written in?
 ------------------------------------
