@@ -1,3 +1,5 @@
+.. _faq-developers:
+
 =======================================
 FAQ: MongoDB for Application Developers
 =======================================
@@ -15,22 +17,29 @@ the :doc:`complete list of FAQs </faq>` or post your question to the
    :backlinks: none
    :local:
 
-What is a "namespace?"
-----------------------
+.. _faq-dev-namespace:
+
+What is a namespace in MongoDB?
+-------------------------------
 
 A "namespace" is the concatenation of the :term:`database`
 name and the :term:`collection` names with a period character in
 between.
 
-Collections are containers for documents. that share one
-or more indexes. Databases are groups of collections stored on disk
-in a single collection of data files.
+Collections are containers for documents that share one or more
+indexes. Databases are groups of collections stored on disk using a
+single set of data files.
 
 For an example ``acme.users`` namespace, ``acme`` is the database
 name and ``users`` is the collection name. Period characters **can**
 occur in collection names, so that the ``acme.user.history`` is a
 valid namespace, with the ``acme`` database name, and the
 ``user.history`` collection name.
+
+While data models like this appear to support nested collections, the
+collection namespace is flat, and there is no difference from the
+perspective of MongoDB between ``acme``, ``acme.users``, and
+``acme.records``.
 
 How do you copy all objects from one collection to another?
 -----------------------------------------------------------
@@ -151,6 +160,112 @@ flag to modify the file preallocation strategy.
 
 .. seealso:: This wiki page that address :wiki:`MongoDB disk use <Excessive+Disk+Space>`.
 
+.. _faq-small-documents:
+
+How do I optimize storage use for small documents?
+--------------------------------------------------
+
+Each MongoDB document contains a certain amount of overhead. This
+overhead is normally insignificant but becomes significant if all
+documents are just a few bytes, as might be the case if the documents
+in your collection only have one or two fields.
+
+Consider the following suggestions and strategies for optimizing
+storage utilization for these collections:
+
+- Use the ``_id`` field explicitly.
+
+  MongoDB clients automatically add an ``_id`` field to each document
+  and generate a unique 12-byte :term:`ObjectId` for the ``_id``
+  field. Furthermore, MongoDB always indexes the ``_id`` field. For
+  smaller documents this may account for a significant amount of
+  space.
+
+  To optimize storage use, users can specify a value for the ``_id`` field
+  explicitly when inserting documents into the collection. This
+  strategy allows applications to store a value in the ``_id`` field
+  that would have occupied space in another portion of the document.
+
+  You can store any value in the ``_id`` field, but because this value
+  serves as a primary key for documents in the collection, it must
+  uniquely identify them. If the field's value is not unique, then it
+  cannot serve as a primary key as there would be collisions in
+  collection.
+
+- Use shorter field names.
+
+  MongoDB stores all field names in every document. For most
+  documents, this represents a small fraction of the space used by a
+  document; however, for small documents the field names may represent
+  a proportionally large amount of space. Consider a collection of
+  documents that resemble the following:
+
+  .. code-block:: javascript
+
+     { last_name : "Smith", best_score: 3.9 }
+
+  If you shorten the filed named ``last_name`` to ``lname`` and the
+  field name ``best_score`` to ``score``, as follows, you could save 9
+  bytes per document.
+
+  .. code-block:: javascript
+
+     { lname : "Smith", score : 3.9 }
+
+  Shortening field names reduces expressiveness and does not provide
+  considerable benefit on for larger documents and where document
+  overhead is not significant concern. Shorter field names do not
+  reduce the size of indexes, because indexes have a predefined
+  structure.
+
+  In general it is not necessary to use short field names.
+
+- Embed documents.
+
+  In some cases you may want to embed documents in other documents
+  and save on the per-document overhead.
+
+.. _faq-developers-when-to-use-gridfs:
+
+When should I use GridFS?
+-------------------------
+
+For documents in a MongoDB collection, you should always use
+:term:`GridFS` for storing files larger than 16 MB.
+
+In some situations, storing large files may be more efficient in a
+MongoDB database than on a system-level filesystem.
+
+- If your filesystem limits the number of files in a directory, you can
+  use GridFS to store as many files as needed.
+
+- When you want to keep your files and metadata automatically synced
+  and deployed across a number of systems and facilities.  When using
+  :ref:`geographically distributed replica sets
+  <replica-set-geographical-distribution>` MongoDB can distribute
+  files and their metadata automatically to a number of
+  :program:`mongod` instances and facilitates.
+
+- When you want to access information from portions of large
+  files without having to load whole files into memory, you can use
+  GridFS to recall sections of files without reading the entire file
+  into memory.
+
+Do not use GridFS if you need to update the content of the entire file
+atomically. As an alternative you can store multiple versions of each
+file and specify the current version of the file in the metadata. You
+can update the metadata field that indicates "latest" status in an
+atomic update after uploading the new version of the file, and later
+remove previous versions if needed.
+
+Furthermore, if your files are all smaller the 16 MB :limit:`BSON
+Document Size` limit, consider storing the file manually within a
+single document. You may use the BinData data type to store the binary
+data. See your :doc:`drivers </applications/drivers>` documentation
+for details on using BinData.
+
+For more information on GridFS, see :doc:`/applications/gridfs`.
+
 How does MongoDB address SQL or Query injection?
 ------------------------------------------------
 
@@ -214,6 +329,8 @@ JavaScript code to the :operator:`$where` field.
   This will ensure that your application sends ``user_value`` to the
   database server as data rather than code.
 
+.. _faq-dollar-sign-escaping:
+
 Dollar Sign Operator Escaping
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -268,29 +385,22 @@ See the "`PHP MongoDB Driver Security Notes
 <http://us.php.net/manual/en/mongo.security.php>`_" page in the PHP
 driver documentation for more information
 
+.. _faq-dev-concurrency:
+
 How does MongoDB provide concurrency?
 -------------------------------------
 
-MongoDB implements a server-wide reader-writer lock. This means that
+MongoDB implements a readers-writer lock. This means that
 at any one time, only one client may be writing or any number
 of clients may be reading, but that reading and writing cannot
 occur simultaneously.
 
 In standalone and :term:`replica sets <replica set>` the lock's scope
 applies to a single :program:`mongod` instance or :term:`primary`
-instance. In a shard cluster, locks apply to each individual shard,
+instance. In a sharded cluster, locks apply to each individual shard,
 not to the whole cluster.
 
-A more granular approach to locking will appear in MongoDB v2.2. For
-now, several yielding optimizations exist to mitigate the coarseness
-of the lock. These include:
-
-- Yielding on long operations. Queries and updates that operate on
-  multiple document may yield to writers
-
-- Yielding on page faults. If an update or query is likely to trigger
-  a page fault, then the operation will yield to keep from blocking
-  other clients for the duration of the page fault.
+For more information, see :doc:`/faq/concurrency`.
 
 What is the compare order for BSON types?
 -----------------------------------------
@@ -338,10 +448,6 @@ Consider the following :program:`mongo` example:
    { "_id" : ObjectId("4b031566ce8de6586fb002c9"), "x" : true }
    { "_id" : ObjectId("4b031563ce8de6586fb002c8"), "x" : "Tue Nov 17 2009 16:28:03 GMT-0500 (EST)" }
 
-.. warning::
-
-   Mixing types for the same field is not encouraged.
-
 The :operator:`$type` operator provides access to :term:`BSON type
 <BSON types>` comparison in the MongoDB query syntax. See the
 documentation on :term:`BSON types` and the :operator:`$type` operator
@@ -356,3 +462,156 @@ for additional information.
 
    - The :source:`jsobj.h <src/mongo/db/jsobj.h>` source file for the
      definition of ``MinKey`` and ``MaxKey``.
+
+.. _faq-developers-query-for-nulls:
+
+How do I query for fields that have null values?
+------------------------------------------------
+
+Fields in a document may store ``null`` values, as in a notional
+collection, ``test``, with the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, cancelDate: null }
+   { _id: 2 }
+
+Different query operators treat ``null`` values differently:
+
+- The ``{ cancelDate : null }`` query matches documents that either
+  contains the ``cancelDate`` field whose value is ``null`` *or* that
+  do not contain the ``cancelDate`` field:
+
+  .. code-block:: javascript
+
+     db.test.find( { cancelDate: null } )
+
+  The query returns both documents:
+
+  .. code-block:: javascript
+
+     { "_id" : 1, "cancelDate" : null }
+     { "_id" : 2 }
+
+- The ``{ cancelDate : { $type: 10 } }`` query matches documents that
+  contains the ``cancelDate`` field whose value is ``null`` *only*;
+  i.e. the value of the ``cancelDate`` field is of BSON Type ``Null``
+  (i.e. ``10``) :
+
+  .. code-block:: javascript
+
+     db.test.find( { cancelDate : { $type: 10 } } )
+
+  The query returns only the document that contains the ``null`` value:
+
+  .. code-block:: javascript
+
+     { "_id" : 1, "cancelDate" : null }
+
+- The ``{ cancelDate : { $exists: false } }`` query matches documents
+  that do not contain the ``cancelDate`` field:
+
+  .. code-block:: javascript
+
+     db.test.find( { cancelDate : { $exists: false } } )
+
+  The query returns only the document that does *not* contain the
+  ``cancelDate`` field:
+
+  .. code-block:: javascript
+
+     { "_id" : 2 }
+
+.. seealso:: The reference documentation for the :operator:`$type` and
+   :operator:`$exists` operators.
+
+.. _faq-restrictions-on-collection-names:
+
+Are there any restrictions on the names of Collections?
+-------------------------------------------------------
+
+Collection names can be any UTF-8 string with the following
+exceptions:
+
+- A collection name should begin with a letter or an underscore.
+
+- The empty string (``""``) is not a valid collection name.
+
+- Collection names cannot contain the ``$`` character. (version 2.2 only)
+
+- Collection names cannot contain the null character: ``\0``
+
+- Do not name a collection using the ``system.`` prefix. MongoDB
+  reserves ``system.``
+  for system collections, such as the
+  ``system.indexes`` collection.
+
+- The maximum size of a collection name is 128 characters, including
+  the name of the database. However, for maximum flexibility,
+  collections should have names less than 80 characters.
+
+If your collection name includes special characters, such as the
+underscore character, then to access the collection use the
+:method:`db.getCollection()` method or a :api:`similar method for your
+driver <>`.
+
+.. example:: To create a collection ``_foo`` and insert the
+   ``{ a : 1 }`` document, use the following operation:
+
+   .. code-block:: javascript
+
+      db.getCollection("_foo").insert( { a : 1 } )
+
+   To perform a query, use the :method:`find() <db.collection.find()>`
+   find method, in as the following:
+
+   .. code-block:: javascript
+
+      db.getCollection("_foo").find()
+
+.. _faq-developers-isolate-cursors:
+
+How do I isolate cursors from intervening write operations?
+-----------------------------------------------------------
+
+MongoDB cursors can return the same document more than once in some
+situations. [#duplicate-document-in-result-set]_ You can use the
+:method:`snapshot() <cursor.snapshot()>` method on a cursor to isolate
+the operation for a very specific case.
+
+:method:`snapshot() <cursor.snapshot()>` traverses the
+index on the ``_id`` field and guarantees that the query will return
+each document (with respect to the value of the ``_id`` field) no more
+than once. [#id-is-immutable]_
+
+The :method:`snapshot() <cursor.snapshot()>` does not guarantee that
+the data returned by the query will reflect a single moment in time
+*nor* does it provide isolation from insert or delete operations..
+
+.. warning::
+
+   - You **cannot** use :method:`snapshot() <cursor.snapshot()>` with
+     :term:`sharded collections <sharding>`.
+
+   - You **cannot** use :method:`snapshot() <cursor.snapshot()>` with
+     :method:`sort() <cursor.sort()>` or :method:`hint()
+     <cursor.hint()>` cursor methods.
+
+
+As an alternative, if your collection has a field or fields that are
+never modified, you can use a *unique* index on this field or these
+fields to achieve a similar result as the :method:`snapshot()
+<cursor.snapshot()>`. Query with :method:`hint() <cursor.hint()>` to
+explicitly force the query to use that index.
+
+.. [#duplicate-document-in-result-set] As a cursor returns documents other
+   operations may interleave with the query: if some of these
+   operations are :doc:`updates </applications/update>` that cause the
+   document to move (in the case of a table scan, caused by document
+   growth,) or that change the indexed field on the index used by the
+   query; then the cursor will return the same document more than
+   once.
+
+.. [#id-is-immutable] MongoDB does not permit changes to the value of the
+   ``_id`` field; it is not possible for a cursor that transverses
+   this index to pass the same document more than once.

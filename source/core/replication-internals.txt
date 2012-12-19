@@ -4,84 +4,27 @@ Replication Internals
 
 .. default-domain:: mongodb
 
-Synopsis
---------
-
 This document provides a more in-depth explanation of the internals and
 operation of :term:`replica set` features. This material is not necessary for
 normal operation or application development but may be useful for
 troubleshooting and for further understanding MongoDB's behavior and approach.
 
-.. index:: replica set; local database
-.. _replica-set-local-database:
+For additional information about the internals of replication replica
+sets see the following resources in the MongoDB Manual: 
 
-The ``local`` Database
-----------------------
-
-The ``local`` database exists on every :program:`mongod` instance and
-stores replication data specific to that instance. The ``local``
-database is invisible to replication. Collections in the ``local``
-database are not replicated.
-
-When :setting:`auth` is enabled, authenticating against the ``local``
-database is equivalent to authenticating against the ``admin``
-database. This authentication gives access to all databases.
-
-In replication, the ``local`` database store stores internal replication
-data for each member of a :term:`replica set`. The ``local`` database contains the
-following collections used for replication:
-
-.. data:: local.system.replset
-
-   :data:`local.system.replset` holds the replica set's configuration
-   object as its single document. To view the object's configuration
-   information, issue :method:`rs.conf()` from the :program:`mongo`
-   shell. You can also query this collection directly.
-
-.. data:: local.oplog.rs
-
-   :data:`local.oplog.rs` is the capped collection that holds the
-   :term:`oplog`. You set its size at creation using the
-   :setting:`oplogSize` setting. To resize the oplog after replica set
-   initiation, use the :doc:`/tutorial/change-oplog-size`
-   procedure. For additional information, see the
-   :ref:`replica-set-internals-oplog` topic in this document and the
-   :ref:`replica-set-oplog-sizing` topic in the
-   :doc:`/core/replication` document.
-
-.. data:: local.replset.minvalid
-
-   This contains an object used internally by replica sets to track sync
-   status.
-
-In :term:`master`-:term:`slave` replication, the ``local`` database contains
-the following collections:
-
-- On the master:
-
-  .. data:: local.oplog.$main
-
-     This is the oplog for the master-slave configuration.
-
-  .. data:: local.slaves
-
-     This contains information about each slave.
-
-- On each slave:
-
-  .. data:: local.sources
-
-     This contains information about the slave's master server.
+- :doc:`/reference/local-database`
+- :doc:`/reference/replica-commands`
+- :doc:`/reference/replication-info`
+- :doc:`/reference/replica-configuration`
 
 .. index:: replica set; oplog
 .. _replica-set-oplog:
 .. _replica-set-internals-oplog:
 
-Oplog
------
+Oplog Internals
+---------------
 
-For an explanation of the oplog, see the :ref:`replica-set-oplog-sizing`
-topic in the :doc:`/core/replication` document.
+For an explanation of the oplog, see :ref:`replica-set-oplog-sizing`.
 
 Under various exceptional
 situations, updates to a :term:`secondary's <secondary>` oplog might
@@ -113,8 +56,8 @@ Data Integrity
 
 .. index:: replica set; read preferences
 
-Read Preferences
-~~~~~~~~~~~~~~~~
+Read Preference Internals
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 MongoDB uses :term:`single-master replication` to ensure that the
 database remains consistent. However, clients may modify the
@@ -172,8 +115,8 @@ for your data set is crucial.
 
 .. index:: replica set; security
 
-Security
---------
+Security Internals
+------------------
 
 Administrators of replica sets also have unique :ref:`monitoring
 <replica-set-monitoring>` and :ref:`security <replica-set-security>`
@@ -188,8 +131,8 @@ modify the configuration of an existing replica set.
 .. index:: replica set; failover
 .. _replica-set-election-internals:
 
-Elections
----------
+Election Internals
+------------------
 
 Elections are the process :term:`replica set` members use to select which member should
 become :term:`primary`. A primary is the only member in the replica
@@ -243,6 +186,11 @@ conditions:
 - If the member seeking an election has a lower priority than another member
   in the set that is also eligible for election.
 
+- If a :ref:`secondary only member <replica-set-secondary-only-members>` [#imply-secondary-only]_ is the
+  most current member at the time of the election, another eligible
+  member of the set will catch up to the state of this secondary
+  member and then attempt to become primary.
+
 - If the current primary member has more recent operations
   (i.e. a higher "optime") than the member seeking election, from the
   perspective of the voting member.
@@ -278,6 +226,11 @@ aware of the following conditions and possible situations:
    :ref:`replica-set-node-priority-configuration`, and
    :data:`replica configuration <members[n].votes>`.
 
+.. [#imply-secondary-only] Remember that :ref:`hidden
+   <replica-set-hidden-members>` and :ref:`delayed
+   <replica-set-delayed-members>` imply :ref:`secondary-only
+   <replica-set-secondary-only-members>` configuration.
+
 .. index:: replica set; network partitions
 .. index:: replica set; elections
 .. _replica-set-elections-and-network-partitions:
@@ -296,6 +249,8 @@ primary and the set will become read only. The best practice is to have
 and a majority of servers in one data center and one server in another.
 
 .. index:: replica set; sync
+
+.. _replica-set-syncing:
 
 Syncing
 -------
@@ -327,3 +282,5 @@ For example:
    alternate facility, and if you add another secondary to the alternate
    facility, the new secondary will likely sync from the existing
    secondary because it is closer than the primary.
+
+.. seealso:: :ref:`replica-set-resync-stale-member`

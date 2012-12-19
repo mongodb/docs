@@ -134,6 +134,10 @@ class MongoDBObject(ObjectDescription):
             return _('%s (error code)') % (name)
         elif self.objtype == 'macro':
             return _('%s (JavaScript shell macro)') % (name)
+        elif self.objtype == 'limit':
+            return _('%s (MongoDB system limit)') % (name)
+        elif self.objtype == 'bsontype':
+            return _('%s (BSON type)') % (name)            
         return ''
 
     def run(self):
@@ -141,19 +145,23 @@ class MongoDBObject(ObjectDescription):
 
     doc_field_types = [
         TypedField('arguments', label=l_('Arguments'),
-                   names=('argument', 'arg', 'parameter', 'param'),
+                   names=('argument', 'arg'),
                    typerolename='method', typenames=('paramtype', 'type')),
         TypedField('options', label=l_('Options'),
                    names=('options', 'opts', 'option', 'opt'),
-                   typerolename=('dbcommand', 'setting', 'status', 'stats', 'aggregator'),
+                   typerolename=('dbcommand', 'setting', 'status', 'stats', 'aggregator', 'data'),
                    typenames=('optstype', 'type')),
+        TypedField('parameters', label=l_('Parameters'),
+                   names=('param', 'paramter', 'parameters'),
+                   typerolename=('dbcommand', 'setting', 'status', 'stats', 'aggregator', 'data'),
+                   typenames=('paramtype', 'type')),
         TypedField('fields', label=l_('Fields'),
                    names=('fields', 'fields', 'field', 'field'),
-                   typerolename=('dbcommand', 'setting', 'status', 'stats', 'aggregator'),
+                   typerolename=('dbcommand', 'setting', 'status', 'stats', 'aggregator', 'data'),
                    typenames=('fieldtype', 'type')),
         TypedField('flags', label=l_('Flags'),
                    names=('flags', 'flags', 'flag', 'flag'),
-                   typerolename=('dbcommand', 'setting', 'status', 'stats', 'aggregator'),
+                   typerolename=('dbcommand', 'setting', 'status', 'stats', 'aggregator', 'data'),
                    typenames=('flagtype', 'type')),
         GroupedField('errors', label=l_('Throws'), rolename='err',
                      names=('throws', ),
@@ -167,9 +175,8 @@ class MongoDBObject(ObjectDescription):
               names=('rtype',)),
     ]
 
-class MongoDBCallable(MongoDBObject):
-    """Description of a MongoDB function, method or constructor."""
-    has_arguments = False
+class MongoDBMethod(MongoDBObject):
+    has_arguments = True
 
 class MongoDBXRefRole(XRefRole):
     def process_link(self, env, refnode, has_explicit_title, title, target):
@@ -204,31 +211,29 @@ class MongoDBDomain(Domain):
         'readmode':     ObjType(l_('readmode'),    'readmode'),
         'method':       ObjType(l_('method'),      'method'),
         'data':         ObjType(l_('data'),        'data'),
-        'aggregator':   ObjType(l_('aggregator'),  'aggregator'),
-        'group':        ObjType(l_('group'),       'group'),
-        'expression':   ObjType(l_('expression'),  'expression'),
         'collflag':     ObjType(l_('collflag'),    'collflag'),
         'error':        ObjType(l_('error'),       'error'),
         'macro':        ObjType(l_('macro'),       'macro'),
+        'limit':        ObjType(l_('limit'),       'limit'),
+        'bsontype':     ObjType(l_('bsontype'),    'bsontype'),
     }
 
     directives = {
-        'dbcommand':     MongoDBCallable,
-        'operator':      MongoDBCallable,
-        'projection':    MongoDBCallable,
-        'binary':        MongoDBCallable,
-        'setting':       MongoDBCallable,
-        'status':        MongoDBCallable,
-        'stats':         MongoDBCallable,
-        'readmode':      MongoDBCallable,
-        'method':        MongoDBCallable,
-        'data':          MongoDBCallable,
-        'aggregator':    MongoDBCallable,
-        'group':         MongoDBCallable,
-        'expression':    MongoDBCallable,
-        'collflag':      MongoDBCallable,
-        'error':         MongoDBCallable,
-        'macro':         MongoDBCallable,
+        'dbcommand':     MongoDBObject,
+        'operator':      MongoDBObject,
+        'projection':    MongoDBObject,
+        'binary':        MongoDBObject,
+        'setting':       MongoDBObject,
+        'status':        MongoDBObject,
+        'stats':         MongoDBObject,
+        'readmode':      MongoDBObject,
+        'method':        MongoDBMethod,
+        'data':          MongoDBObject,
+        'collflag':      MongoDBObject,
+        'error':         MongoDBObject,
+        'macro':         MongoDBObject,
+        'limit':         MongoDBObject,
+        'bsontype':      MongoDBObject,
     }
     roles = {
         'dbcommand':   MongoDBXRefRole(),
@@ -241,12 +246,11 @@ class MongoDBDomain(Domain):
         'readmode':    MongoDBXRefRole(),
         'method':      MongoDBXRefRole(),
         'data':        MongoDBXRefRole(),
-        'aggregator':  MongoDBXRefRole(),
-        'group':       MongoDBXRefRole(),
-        'expression':  MongoDBXRefRole(),
         'collflag':    MongoDBXRefRole(),
         'error':       MongoDBXRefRole(),
         'macro':       MongoDBXRefRole(),
+        'limit':       MongoDBXRefRole(),
+        'bsontype':    MongoDBXRefRole(),
     }
     initial_data = {
         'objects': {}, # fullname -> docname, objtype

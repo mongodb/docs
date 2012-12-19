@@ -123,7 +123,7 @@ function operation.
            { '$set': { 'last_modified': now },
              '$push': {
                  'items': {'sku': sku, 'qty':qty, 'details': details } } },
-           safe=True)
+           w=1)
        if not result['updatedExisting']:
            raise CartInactive()
 
@@ -134,7 +134,7 @@ function operation.
             '$push': {
                 'carted': { 'qty': qty, 'cart_id':cart_id,
                             'timestamp': now } } },
-           safe=True)
+           w=1)
        if not result['updatedExisting']:
            # Roll back our cart update
            db.cart.update(
@@ -144,12 +144,12 @@ function operation.
 
 .. admonition:: The system does not trust that the available inventory can satisfy a request
 
-   First this operation checks to make sure that that the cart is
+   First this operation checks to make sure that the cart is
    "active" before adding a item. Then, it verifies that the available
    inventory to satisfy the request before decrementing inventory.
 
    If there is not adequate inventory, the system removes the cart
-   update: by specifying ``safe=True`` and checking the result allows
+   update: by specifying ``w=1`` and checking the result allows
    the application to report an error if the cart is inactive or
    available quantity is insufficient to satisfy the request.
 
@@ -179,7 +179,7 @@ the user's cart, that the inventory exists to cover the modification.
                 'last_modified': now,
                 'items.$.qty': new_qty },
            },
-           safe=True)
+           w=1)
        if not result['updatedExisting']:
            raise CartInactive()
 
@@ -190,7 +190,7 @@ the user's cart, that the inventory exists to cover the modification.
             'qty': {'$gte': delta_qty} },
            {'$inc': {'qty': -delta_qty },
             '$set': { 'carted.$.qty': new_qty, 'timestamp': now } },
-           safe=True)
+           w=1)
        if not result['updatedExisting']:
            # Roll back our cart update
            db.cart.update(
@@ -454,9 +454,9 @@ cart and inventory collections:
 
 .. code-block:: pycon
 
-   >>> db.command('shardcollection', 'inventory'
+   >>> db.command('shardCollection', 'inventory'
    ...            'key': { '_id': 1 } )
    { "collectionsharded" : "inventory", "ok" : 1 }
-   >>> db.command('shardcollection', 'cart')
+   >>> db.command('shardCollection', 'cart')
    ...            'key': { '_id': 1 } )
    { "collectionsharded" : "cart", "ok" : 1 }

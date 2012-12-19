@@ -2,27 +2,28 @@
 .. index:: architectures; sharding
 .. _sharding-architecture:
 
-===========================
-Shard Cluster Architectures
-===========================
+=============================
+Sharded Cluster Architectures
+=============================
 
 .. default-domain:: mongodb
 
-This document describes the organization and design of :term:`shard
-cluster` deployments.
+This document describes the organization and design of :term:`sharded
+cluster` deployments. For documentation of common administrative tasks
+related to sharded clusters, see :doc:`/administration/sharding`. For
+complete documentation of sharded clusters see the :doc:`/sharding`
+section of this manual.
 
-.. seealso:: The :doc:`/administration/sharding` document, the
-   ":ref:`Sharding Requirements <sharding-requirements>`" section,
-   and the ":ref:`Sharding Tutorials <sharding-tutorials>`" for more
-   information on deploying and maintaining a :term:`shard cluster`.
+.. seealso:: :ref:`sharding-requirements`.
 
 Deploying a Test Cluster
 ------------------------
 
 .. warning:: Use this architecture for testing and development only.
 
-You can deploy a very minimal :term:`shard cluster` for testing
-and development. Such a cluster will have the following components:
+You can deploy a very minimal cluster for testing and
+development. These *non-production* clusters have the following
+components:
 
 - 1 :ref:`config server <sharding-config-server>`.
 
@@ -36,9 +37,9 @@ and development. Such a cluster will have the following components:
 Deploying a Production Cluster
 ------------------------------
 
-When deploying a shard cluster to production, you must ensure that the
+When deploying a production cluster, you must ensure that the
 data is redundant and that your systems are highly available. To that
-end, a production-level shard cluster must have the following
+end, a production-level cluster must have the following
 components:
 
 - 3 :ref:`config servers <sharding-config-server>`, each residing on a
@@ -46,7 +47,7 @@ components:
 
   .. note::
 
-     A single :term:`shard cluster` must have exclusive use of its
+     A single :term:`sharded cluster` must have exclusive use of its
      :ref:`config servers <sharding-config-server>`. If you have
      multiple shards, you will need to have a group of config servers
      for each cluster.
@@ -54,17 +55,17 @@ components:
 - 2 or more :term:`replica sets <replica set>`, for the :term:`shards
   <shard>`.
 
-  .. see:: ":doc:`/administration/replication-architectures`"
-     and ":doc:`/replication`" for more information on replica sets.
+  .. see:: For more information on replica sets see
+     :doc:`/administration/replication-architectures` and
+     :doc:`/replication`.
 
 - :program:`mongos` instances. Typically, you will deploy a single
   :program:`mongos` instance on each application server. Alternatively,
   you may deploy several `mongos` nodes and let your application connect
   to these via a load balancer.
 
-.. seealso:: The ":ref:`sharding-procedure-add-shard`" and
-   ":ref:`sharding-procedure-remove-shard`" procedures for more
-   information.
+.. seealso:: :ref:`sharding-procedure-add-shard` and
+   :ref:`sharding-procedure-remove-shard`.
 
 Sharded and Non-Sharded Data
 ----------------------------
@@ -78,7 +79,7 @@ instance or replica set (i.e. a :term:`shard`.)
 
 .. note::
 
-   Regardless of the data architecture of your :term:`shard cluster`,
+   Regardless of the data architecture of your :term:`sharded cluster`,
    ensure that all queries and operations use the :term:`mongos`
    router to access the data cluster. Use the :program:`mongos` even
    for operations that do not impact the sharded data.
@@ -86,26 +87,26 @@ instance or replica set (i.e. a :term:`shard`.)
 Every database has a "primary" [#overloaded-primary-term]_ shard that
 holds all un-sharded collections in that database. All collections
 that *are not* sharded reside on the primary for their database. Use
-the :dbcommand:`moveprimary` command to change the primary shard for a
+the :dbcommand:`movePrimary` command to change the primary shard for a
 database. Use the :dbcommand:`printShardingStatus` command or the
 :method:`sh.status()` to see an overview of the cluster, which contains
-information about the chunk and database distribution within the
+information about the :term:`chunk` and database distribution within the
 cluster.
 
 .. warning::
 
-   The :dbcommand:`moveprimary` command can be expensive because
+   The :dbcommand:`movePrimary` command can be expensive because
    it copies all non-sharded data to the new shard, during which
    that data will be unavailable for other operations.
 
-When you deploy a new :term:`shard cluster`, the "first shard" becomes
+When you deploy a new :term:`sharded cluster`, the "first shard" becomes
 the primary for all databases before enabling sharding. Databases
 created subsequently, may reside on any shard in the cluster.
 
 .. [#sharding-databases] As you configure sharding, you will use the
-   :dbcommand:`enablesharding` command to enable sharding for a
+   :dbcommand:`enableSharding` command to enable sharding for a
    database. This simply makes it possible to use the
-   :dbcommand:`shardcollection` on a collection within that database.
+   :dbcommand:`shardCollection` command on a collection within that database.
 
 .. [#overloaded-primary-term] The term "primary" in the context of
    databases and sharding, has nothing to do with the term
@@ -116,8 +117,8 @@ created subsequently, may reside on any shard in the cluster.
 High Availability and MongoDB
 -----------------------------
 
-A :ref:`production <sharding-production-architecture>` :term:`shard
-cluster` has no single point of failure. This section introduces the
+A :ref:`production <sharding-production-architecture>`
+:term:`cluster` has no single point of failure. This section introduces the
 availability concerns for MongoDB deployments, and highlights
 potential failure scenarios and available resolutions:
 
@@ -160,7 +161,7 @@ potential failure scenarios and available resolutions:
 
   Three distinct :program:`mongod` instances provide the :term:`config
   database` using a special two-phase commits to maintain consistent
-  state between these :program:`mongod` instances. Shard cluster
+  state between these :program:`mongod` instances. Cluster
   operation will continue as normal but :ref:`chunk migration
   <sharding-balancing>` and the cluster can create no new :ref:`chunk
   splits <sharding-procedure-create-split>`. Replace the config server

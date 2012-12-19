@@ -25,7 +25,7 @@ index as data changes.
 While running :method:`ensureIndex() <db.collection.ensureIndex()>` is
 usually ok, if an index doesn't exist because of ongoing administrative
 work, a call to :method:`ensureIndex() <db.collection.ensureIndex()>`
-may disrupt database avalability. Runnning :method:`ensureIndex()
+may disrupt database availability. Running :method:`ensureIndex()
 <db.collection.ensureIndex()>` can render a replica set inaccessible as
 the index creation is happening. See :ref:`index-building-replica-sets`.
 
@@ -39,7 +39,7 @@ To list a collection's indexes, use the
 How do you determine the size of an index?
 ------------------------------------------
 
-To check index size, use :method:`db.collection.totalIndexSize()`.
+To check the sizes of the indexes on a collection, use :method:`db.collection.stats()`.
 
 .. todo:: FAQ How do I determine if an index fits into RAM?
 
@@ -74,7 +74,8 @@ documentation on choosing which fields to index, see
 :doc:`/applications/indexes`.
 
 .. todo:: FAQ How do I guarantee a query uses an index?
-   MongoDB's query optimizer always looks for the most advantageous
+   MongoDB's :ref:`query optimizer <read-operations-query-optimization>`
+   always looks for the most advantageous
    index to use. You cannot guarantee use of a particular index, but you
    can write indexes with your queries in mind. For detailed
    documentation on creating optimal indexes, see
@@ -83,11 +84,14 @@ documentation on choosing which fields to index, see
 How do write operations affect indexes?
 ---------------------------------------
 
-While a read operation does not affect an index, every write operation
-does involve a write to the index. If your application is write-heavy,
-creating too many indexes might affect performance.
+Any write operation that alters an indexed field requires an update to
+the index in addition to the document itself. If you update a document
+that causes the document to grow beyond the allotted record size, then
+MongoDB must update all indexes that include this document as part of
+the update operation.
 
-.. todo:: More is needed on that last FAQ.
+Therefore, if your application is write-heavy, creating too many
+indexes might affect performance.
 
 Will building a large index affect database performance?
 --------------------------------------------------------
@@ -103,8 +107,17 @@ so causes the database to stop responding,
 wait for the index to finish building.
 
 .. FUTURE When SERVER-3067 is fixed, this option also will be available:
-   Kill the current operation (see :method:`db.killOP()`). The partial
+   Kill the current operation (see :method:`db.killOp()`). The partial
    index will be deleted.
+
+.. _faq-index-min-max:
+
+Can I use index keys to constrain query matches?
+------------------------------------------------
+
+You can use the :method:`min() <cursor.min()>` and :method:`max()
+<cursor.max()>` methods to constrain the results of the cursor returned
+from :method:`find() <db.collection.find()>` by using index keys.
 
 Using ``$ne`` and ``$nin`` in a query is slow. Why?
 ---------------------------------------------------
@@ -113,3 +126,42 @@ The :operator:`$ne` and :operator:`$nin` operators are not selective.
 See :ref:`index-selectivity`. If you need to use these,
 it is often best to make sure that an additional, more selective
 criterion is part of the query.
+
+Can I use a multi-key index to support a query for a whole array?
+-----------------------------------------------------------------
+
+Not entirely. The index can partially support these queries because
+it can speed the selection of the first element of the array;
+however, comparing all subsequent items in the array cannot use the
+index and must scan the documents individually.
+
+How can I effectively use indexes strategy for attribute lookups?
+-----------------------------------------------------------------
+
+For simple attribute lookups that don't require sorted result sets or
+range queries, consider creating a field that contains an array of
+documents where each document has a field (e.g. ``attrib`` ) that
+holds a specific type of attribute. You can index this ``attrib``
+field.
+
+For example, the ``attrib`` field in the following document allows you
+to add an unlimited number of attributes types:
+
+.. code-block:: javascript
+
+   { _id : ObjectId(...),
+     attrib : [
+               { k: "color", v: "red" },
+               { k: "shape": v: "rectangle" },
+               { k: "color": v: "blue" },
+               { k: "avail": v: true }
+              ]
+   }
+
+*Both* of the following queries could use the same ``{ "attrib.k": 1,
+"attrib.v": 1 }`` index:
+
+.. code-block:: javascript
+
+   db.mycollection.find( { attrib: { $elemMatch : { k: "color", v: "blue" } } } )
+   db.mycollection.find( { attrib: { $elemMatch : { k: "avail", v: true } } } )

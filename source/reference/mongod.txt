@@ -54,7 +54,18 @@ Options
 .. option:: --quiet
 
    Runs the :program:`mongod` instance in a quiet mode that attempts to limit
-   the amount of output.
+   the amount of output. This option suppresses:
+
+   - output from :term:`database commands <database command>`,
+     including :dbcommand:`drop`, :dbcommand:`dropIndexes`,
+     :dbcommand:`diagLogging`, :dbcommand:`validate`, and
+     :dbcommand:`clean`.
+
+   - replication activity.
+
+   - connection accepted events.
+
+   - connection closed events.
 
 .. option:: --port <port>
 
@@ -82,11 +93,13 @@ Options
    it is higher than your operating system's configured maximum
    connection tracking threshold.
 
+   .. include:: /includes/note-max-conns-max.rst
+
 .. option:: --objcheck
 
    Forces the :program:`mongod` to validate all requests from clients
    upon receipt to ensure that invalid objects are never inserted into
-   the database. This option can produce a significant performance
+   the database. Enabling this option will produce some performance
    impact, and is not enabled by default.
 
 .. option:: --logpath <path>
@@ -112,7 +125,7 @@ Options
 
 .. option:: --syslog
 
-   .. versionadded: 2.1.0
+   .. versionadded:: 2.1.0
 
    Sends all logging output to the host's :term:`syslog` system rather
    than to standard output or a log file as with :option:`--logpath`.
@@ -189,10 +202,11 @@ Options
 
 .. option:: --diaglog <value>
 
-   Creates a very verbose, diagnostic log for troubleshooting and
-   recording various errors. MongoDB writes these log files in the
-   :setting:`dbpath` in a series of files that begin with the string
-   ``diaglog``.
+   Creates a very verbose, :term:`diagnostic log` for troubleshooting
+   and recording various errors. MongoDB writes these log files in the
+   :setting:`dbpath` directory in a series of files that begin with
+   the string ``diaglog`` and end with the initiation time of the
+   logging as a hex string.
 
    The specified value configures the level of verbosity. Possible
    values, and their impact are as follows.
@@ -219,6 +233,8 @@ Options
    :option:`--diaglog` is for internal use and not intended for most
    users.
 
+   .. include:: /includes/warning-diaglogging-off.rst
+
 .. option:: --directoryperdb
 
    Alters the storage pattern of the data directory to store each
@@ -233,7 +249,7 @@ Options
 .. option:: --journal
 
    Enables operation journaling to ensure write durability and data
-   consistency. :program:`mongodb` enables journaling by default on
+   consistency. :program:`mongod` enables journaling by default on
    64-bit builds of versions after 2.0.
 
 .. option:: --journalOptions <arguments>
@@ -248,6 +264,8 @@ Options
    while possible values range from 2 to 300 milliseconds. Lower
    values increase the durability of the journal, at the expense of
    disk performance.
+
+   .. include:: /includes/fact-journal-commit-interval-with-gle.rst
 
 .. option:: --ipv6
 
@@ -335,7 +353,7 @@ Options
 .. option:: --repair
 
    Runs a repair routine on all databases. This is equivalent
-   to shutting down and running :dbcommand:`repairDatabase` database
+   to shutting down and running the :dbcommand:`repairDatabase` database
    command on all databases.
 
    .. include:: /includes/warning-repair.rst
@@ -367,7 +385,7 @@ Options
    option. The database logs all slow queries to the log, even when
    the profiler is not turned on. When the database profiler is on,
    :program:`mongod` the profiler writes to the ``system.profile``
-   collection. See :dbcommand:`profile` for more information on the
+   collection. See the :dbcommand:`profile` command for more information on the
    database profiler.
 
 .. option:: --smallfiles
@@ -496,7 +514,9 @@ Replication Options
    ``_id_only`` or ``none`` to prevent the :program:`mongod` from
    loading *any* index into memory.
 
-Master/Slave Replication
+.. _cli-mongod-master-slave:
+
+Master-Slave Replication
 ````````````````````````
 
 These options provide access to conventional master-slave database
@@ -548,7 +568,9 @@ Sharding Cluster Options
 .. option:: --configsvr
 
    Declares that this :program:`mongod` instance serves as the
-   :term:`config database` of a shard cluster. The default port for
+   :term:`config database` of a sharded cluster. When running with
+   this option, clients will not be able to write data to any database
+   other than ``config`` and ``admin``. The default port for
    :program:`mongod` with this option is ``27019`` and
    :program:`mongod` writes all data files to the ``/configdb``
    sub-directory of the :option:`--dbpath` directory.
@@ -556,14 +578,16 @@ Sharding Cluster Options
 .. option:: --shardsvr
 
    Configures this :program:`mongod` instance as a shard in a
-   partitioned cluster. The default port for these instances is ``27018``.
+   partitioned cluster. The default port for these instances is
+   ``27018``.  The only effect of :option:`--shardsvr` is to change
+   the port number.
 
 .. option:: --noMoveParanoia
 
    Disables a "paranoid mode" for data writes for chunk migration
-   operation. See the :ref:`chunk migration
-   <sharding-chunk-migration>` and :dbcommand:`moveChunk` command
-   documentation for more information.
+   operation. See the
+   :ref:`chunk migration <sharding-chunk-migration>`
+   and :dbcommand:`moveChunk` command documentation for more information.
 
    By default :program:`mongod` will save copies of migrated chunks on
    the "from" server during migrations as "paranoid mode." Setting

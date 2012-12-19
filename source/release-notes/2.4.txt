@@ -1,0 +1,402 @@
+======================================================
+Release Notes for MongoDB 2.4 (2.3 Development Series)
+======================================================
+
+.. default-domain:: mongodb
+
+MongoDB 2.4 is currently in development, as part of the 2.3
+development release series. While 2.3-series releases are currently
+available, these versions of MongoDB are for **testing** *only*, and
+are *not for production use* under any circumstances.
+
+.. important:: *All* interfaces *and* functionality described in this
+   document are subject to change before the 2.4.0 release.
+
+This document will eventually contain the full release notes for
+MongoDB 2.4; during the development cycle this document will contain
+documentation of new features and functionality only available in the
+2.3 releases.
+
+.. contents:: See the :doc:`full index of this page <2.4-changes>` for
+              a complete list of changes included in 2.4.
+   :backlinks: none
+   :local:
+   :depth: 2
+
+Downloading
+-----------
+
+You can download the 2.3 release on the `downloads page`_ in the
+:guilabel:`Development Release (Unstable)` section. There are no
+distribution packages for development releases, but you can use the
+binaries provided for testing purposes. See
+:doc:`/tutorial/install-mongodb-on-linux`,
+:doc:`/tutorial/install-mongodb-on-windows`, or
+:doc:`/tutorial/install-mongodb-on-os-x` for the basic installation
+process.
+
+.. _`downloads page`: http://www.mongodb.org/downloads
+
+Changes
+-------
+
+Additional Authentication Features
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   These features are only present in the `MongoDB Subscriber Edition
+   <https://www.10gen.com/mongodb-subscriber-edition-download>`_. To
+   download 2.3 development releases of the Subscriber Edition, use
+   the following resources:
+
+   - `Amazon Linux 6.4 <http://s3.amazonaws.com/downloads.10gen.com/linux/mongodb-linux-x86_64-subscription-amzn64-2.3.1.tgz>`_
+   - `Red Hat Enterprise Linux 6.2 <http://s3.amazonaws.com/downloads.10gen.com/linux/mongodb-linux-x86_64-subscription-rhel62-2.3.1.tgz>`_
+   - `Ubuntu 11.04 <http://s3.amazonaws.com/downloads.10gen.com/linux/mongodb-linux-x86_64-subscription-ubuntu1104-2.3.1.tgz>`_
+   - `SUSE 11 <http://s3.amazonaws.com/downloads.10gen.com/linux/mongodb-linux-x86_64-subscription-suse11-2.3.1.tgz>`_
+
+An improved authentication system is a core focus of the entire 2.3
+cycle, as of 2.3.1, the following components of the new authentication
+system are available for use in MongoDB:
+
+- SASL Support in :program:`mongod`, the :program:`mongo` shell, and C++ client library
+  (driver.)
+
+- New :dbcommand:`acquirePrivilege`, :dbcommand:`saslBegin`, and :dbcommand:`saslContinue`
+  database commands.
+
+.. note::
+
+   As of 2.3.1 support for SASL/Kerberos in :program:`mongos` is
+   forthcoming. Test Kerberos with standalone :program:`mongod`
+   instances and :term:`replica sets <replica set>`.
+
+Initial SASL/Kerbros  Support
+`````````````````````````````
+
+Development work on this functionality is ongoing, and additional
+related functionality is forthcoming. To use Kerberos with MongoDB as
+of the current 2.3-series release, consider the following requirements:
+
+- add users to MongoDB as with the existing authentication
+  mechanism:
+
+  - Usernames *must* correspond to the Kerberos
+    principal (e.g. ``<username>@<REALM>`` as in
+    ``mongodbuser@EXAMPLE.COM``),
+
+  - You *must* have a user document in the :data:`system.users
+    <<database>.system.users>` collection with the Kerberos principal
+    for any database that you want to grant access.
+
+- every :program:`mongod` using Kerberos must have a fully resolvable
+  fully qualified domain name. This includes all members of replica
+  sets.
+
+- every :program:`mongod` using Kerberos must have a Kerberos service
+  principal, in the form of: ``mongodb/<fqdn>@<REALM>``.
+
+- each system running a :program:`mongod` with Kerberos must have a
+  key tab file that holds key data granting access to it's principal
+  that the :program:`mongod` can read.
+
+To start :program:`mongod` with support for Kerberos, use the
+following form:
+
+.. code-block:: sh
+
+   env KRB5_KTNAME=<path to keytab file> <mongod invocation>
+
+You must start :program:`mongod` with :setting:`auth` or
+:setting:`keyfile`, [#keyfile-auth]_ so that an actual command would
+resemble:
+
+.. code-block:: sh
+
+   env KRB5_KTNAME=/opt/etc/mongodb.keytab \
+       /opt/bin/mongod --auth --dbpath /opt/data/db --logpath /opt/log/mongod.log --fork
+
+Replace the paths as needed for your test deployment.
+
+To use Kerberos with the :program:`mongo` shell, begin by initializing
+a Kerberos session with ``kinit``. Then start a 2.3.1 or greater
+:program:`mongo` shell instance, and run the following operations to
+associate the current connection with the Kerberos session:
+
+.. code-block:: javascript
+
+   db.getMongo().saslAuthenticate( { mechanism: "GSSAPI", 
+                                     principal: "<username>@<REALM>" } )
+
+The value of the ``principal`` field *must* be the same principal that
+you initialized with ``kinit``. Continue to gain privileges using the
+:dbcommand:`acquirePrivilege` in an operation that resembles the
+following:
+
+.. code-block:: javascript
+
+   db.adminCommand( { acquirePrivilege: 1, 
+                      resource: <dbname>, 
+                      principal: <principalName>, 
+                      actions: [ <actionString> ] } )
+
+Replace the ``<dbname>`` with the name of the database you want
+privileges, replace ``<principalName>`` with the Kerberos principal
+you initialized with ``kinit``. The ``<actionString>`` list, contains
+the privileges you are acquiring, currently this value must be either:
+
+- ``oldRead``, or
+
+- ``oldWrite``.
+
+The ``oldRead`` action string corresponds to the "*read only*"
+privileges in the existing authentication system, while ``oldWrite``
+corresponds to the existing "*read/write*" privileges.
+
+.. see:: :doc:`/security`
+
+.. [#keyfile-auth] :setting:`keyfile` implies :setting:`auth`, and you
+   *must* use :setting:`keyfile` for replica sets.
+
+New Authentication Control Database Commands
+````````````````````````````````````````````
+
+In the 2.3 series, MongoDB adds the following database commands:
+
+.. leaving these undocumented at the moment, given changing use, and
+   the fact that the previous section satisfies current requirements.
+
+.. dbcommand:: acquirePrivilege
+
+.. dbcommand:: saslBegin
+
+.. dbcommand:: saslContinue
+
+
+Default Java Script Engine Switched to v8 from SpiderMonkey
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The default JavaScript engine used throughout MongoDB, for the
+:program:`mongo` shell, :dbcommand:`mapReduce`, :operator:`$where`,
+and :dbcommand:`eval` is now v8.
+
+.. data:: serverBuildInfo.interpreterVersion
+
+   The :data:`interpreterVersion` field of the document output by
+   :method:`db.serverBuildInfo()` in the :program:`mongo` shell
+   reports which JavaScript interpreter the :program:`mongod` instance
+   is running.
+
+.. method:: interpreterVersion()
+
+   The :method:`interpreterVersion()` in the :program:`mongo` shell
+   reports which JavaScript interpreter this :program:`mongo` shell
+   uses.
+
+.. DOCS-752
+
+New Geospatial Indexes with GeoJSON and Improved Spherical Geometry
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note:: 
+
+   In 2.3.2, the index type for Spherical Geospatial Indexes will
+   become ``2dsphere``
+
+The 2.3 series adds a new type of geospatial index that supports
+improved spherical queries and GeoJSON. Create the index by specifying
+``s2d`` as the value of the field in the index specification, as
+any of the following:
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( { geo: "s2d" } )
+   db.collection.ensureIndex( { type: 1, geo: "s2d" } )
+   db.collection.ensureIndex( { geo: "s2d", type: 1 } )
+
+In the first example you create a spherical geospatial index on the
+field named ``geo``, in the second example, you create a compound
+index where the first field is a normal index, and the index of the
+second field is a spherical geospatial index. Unlike ``2d`` indexes,
+fields indexed using the ``s2d`` type can do not have to be the first
+field in a compound index.
+
+You must store data in the fields indexed using the ``s2d`` index
+using the `GeoJSON`_ specification, at the moment. Support for storing
+points, in the form used by the existing ``2d`` (i.e. geospatial)
+indexes is forthcoming. Currently, ``s2d`` indexes only support
+the following GeoJSON shapes:
+
+- ``Point``, as in the following:
+
+  .. code-block:: javascript
+
+     { "type": "Point", "coordinates": [ 40, 5 ] }
+
+- ``LineString``, as in the following:
+
+  .. code-block:: javascript
+
+     { "type": "LineString", "coordinates": [ [ 40, 5 ], [ 41, 6 ] ] }
+
+- ``Polygon``, as in the following:
+
+   .. code-block:: javascript
+
+      {
+        "type": "Polygon", 
+        "coordinates": [ [ 40, 5 ], [ 40, 6 ], [ 41, 6 ], [ 41, 5 ], [ 40, 5 ] ] 
+      }
+
+To query ``s2d`` indexes, all current geospatial :ref:`query operators
+<query-selectors-geospatial>` with an additional
+:operator:`$intersect` operator. Currently, all queries using the
+``s2d`` index must pass the query selector (e.g. :operator:`$near`,
+:operator:`$intersect`) a GeoJSON document. With the exception of the
+GeoJSON requirement, the operation of :operator:`$near` is the same
+for ``s2d`` indexes as ``2d`` indexes.
+
+.. operator:: $intersect
+
+   The :operator:`$intersect` selects all indexed points that
+   intersect with provided geometry. (i.e. ``Point``, ``LineString``,
+   and ``Polygon``.) You must pass :operator:`$intersect` a document
+   in GeoJSON format.
+
+   .. code-block:: javascript
+
+      db.collection.find( { $intersect: { "type": "Point", "coordinates": [ 40, 5 ] } } )
+
+   This query will select all indexed objects that intersect with the
+   ``Point`` with the coordinates ``[ 40, 5 ]``. MongoDB will return
+   documents as intersecting if they have a shared edge.
+
+.. _`GeoJSON`: http://geojson.org/geojson-spec.html
+
+``mongod`` Automatically Continues in Progress Index Builds Following Restart
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your :program:`mongod` instance was building an index when it
+shutdown or terminated, :program:`mongod` will now continue building
+the index when the :program:`mongod` restarts. Previously, the index
+build *had* to finish building before :program:`mongod` shutdown.
+
+To disable this behavior the 2.3 series adds a new run time option,
+:setting:`noIndexBuildRetry` (or via,q ``--noIndexBuildRetry`` on the
+command line,) for :program:`mongod`. :setting:`noIndexBuildRetry`
+prevents :program:`mongod` from continuing rebuilding indexes that did
+were not finished building when the :program:`mongod` last shut down.
+
+.. setting:: noIndexBuildRetry
+
+   By default, :program:`mongod` will attempt to rebuild indexes upon
+   start-up *if* :program:`mongod` shuts down or stops in the middle
+   of an index build. When enabled, run time option prevents this
+   behavior.
+
+.. DOCS-739
+
+New Hashed Index and Sharding with a Hashed Shard Key
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To support an easy to configure and evenly distributed shard key, version 2.3 adds a
+new "``hashed``" index type that indexes based on hashed values. This
+section introduces and documents both the new index type and its use
+in sharding:
+
+Hashed Index
+````````````
+
+The new ``hashed`` index exists primarily to support automatically
+hashed shard keys. Consider the following properties of hashed
+indexes:
+
+- Hashed indexes must only have a single field, and cannot be compound
+  indexes.
+
+- Fields indexed with hashed indexes must *not* hold arrays. Hashed
+  indexes cannot be multikey indexes.
+
+- Hashed indexes cannot have a ``unique`` constraint.
+
+  You *may* create hashed indexes with the ``sparse`` property.
+
+- MongoDB can use the hashed index to support equality queries, but
+  cannot use these indexes for range queries.
+
+- Hashed indexes offer no performance advantage over normal indexes.
+  *However*, hashed indexes may be smaller than a normal index when
+  the values of the indexed field are larger than 64 bits. [#hash-size]_
+
+- it's possible to have a hashed and non-hased index on the same
+  field: MongoDB will use the non-hashed for range queries.
+
+.. _hashed-index-warning:
+
+.. warning::
+
+   Hashed indexes round floating point numbers to 64-bit integers
+   before hashing. For example, a hashed index would store the same
+   value for a field that held a value of ``2.3`` and ``2.2``. To
+   prevent collisions do not use a hashed index for floating point
+   numbers that cannot be consistently converted to 64-bit integers (and
+   then back to floating point.) Hashed indexes do not support
+   floating point values larger than 2\ :sup:`53`.
+
+Create a hashed index using an operation that resembles the
+following:
+
+.. code-block:: javascript
+
+   db.records.ensureIndex( { a: "hashed" } )
+
+This operation creates a hashed index for the ``records`` collection
+on the ``a`` field.
+
+.. [#hash-size] The hash stored in the hashed index is 64 bits long.
+
+Hashed Sharding
+```````````````
+
+To shard a collection using a hashed shard key, issue an operation in
+the :program:`mongo` shell that resembles the following:
+
+.. code-block:: javascript
+
+   sh.shardCollection( "records.active", { a: "hashed" } )
+
+This operation shards the ``active`` collection in the ``records``
+database, using a hash of the ``a`` field as the shard
+key. Consider the following properties when using a hashed shard key:
+
+- As with other kinds of shard key indexes, if your collection has
+  data, you must create the hashed index before sharding. If your
+  collection does not have data, sharding the collection will create
+  the appropriate index.
+
+- The :program:`mongos` will route all equality queries to a specific
+  shard or set of shards; however, the :program:`mongos` must route 
+  range queries to all shards.
+
+- When using a hashed shard key on a new collection, MongoDB
+  automatically pre-splits the range of 64-bit hash values into
+  chunks. By default, the initial number of chunks is equal to twice
+  the number of shards at creation time. You can change the number of
+  chunks created, using the ``numInitialChunks`` option, as in the
+  following invocation of :dbcommand:`shardCollection`:
+
+  .. code-block:: javascript
+
+     db.adminCommand( { shardCollection: "test.collection", 
+                        key: { a: "hashed"}, 
+                        numInitialChunks: 2001 } )
+  
+  MongoDB will only pre-split chunks in a collection when sharding
+  empty collections. MongoDB will not create chunk splits in a
+  collection sharding collections that have data.
+
+.. warning::
+
+   Avoid using hashed shard keys when the hashed field has non-integral floating
+   point values, see :ref:`hashed indexes <hashed-index-warning>` for
+   more information.

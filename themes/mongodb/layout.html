@@ -1,22 +1,10 @@
-{#
-    basic/layout.html
-    ~~~~~~~~~~~~~~~~~
-
-    Master layout template for Sphinx themes.
-
-    :copyright: Copyright 2007-2011 by the Sphinx team, see AUTHORS.
-    :license: BSD, see LICENSE for details.
-#}{%- block doctype -%}
+{%- block doctype -%}
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 {%- endblock %}
-{%- set reldelim1 = reldelim1 is not defined and ' &raquo;' or reldelim1 %}
-{%- set reldelim2 = reldelim2 is not defined and ' |' or reldelim2 %}
 {%- set render_sidebar = (not embedded) and (not theme_nosidebar|tobool) and
                          (sidebars != []) %}
 {%- set url_root = pathto('', 1) %}
-{# XXX necessary? #}
-{%- if url_root == '#' %}{% set url_root = '' %}{% endif %}
 {%- if not embedded and docstitle %}
   {%- set titlesuffix = " &mdash; "|safe + docstitle|e %}
 {%- else %}
@@ -24,7 +12,7 @@
 {%- endif %}
 
 {%- macro githublink() -%}
-<a href="https://github.com/mongodb/docs/blob/{{theme_branch}}/source/{{pagename}}.txt" target="_blank" title="Edit {{pagename}}.txt on github">Edit this Page</a>
+<a href="https://github.com/mongodb/{{theme_repo_name}}/blob/{{theme_branch}}/source/{{pagename}}.txt" target="_blank" title="Edit {{pagename}}.txt on github">Edit this Page</a>
 {%- endmacro -%}
 
 {%- macro jiralink() -%}
@@ -32,20 +20,13 @@ https://jira.mongodb.org/secure/CreateIssueDetails!init.jspa?pid=10380&issuetype
 {%- endmacro -%}
 
 {%- macro relbar(show_logo=True) %}
-
     <div class="related">
       <ul>
-        {#- for rellink in rellinks %}
-        <li class="right" {% if loop.first %}style="margin-right: 10px"{% endif %}> |
-          <a href="{{ pathto(rellink[0]) }}" title="{{ rellink[1]|striptags|e }}"
-             {{ accesskey(rellink[2]) }}>{{ rellink[3] }}</a>
-          {%- if not loop.first %}{{ reldelim2 }}{% endif %}</li>
-        {%- endfor #}
         <li class="right">| {{- githublink() -}} </li>
-        <li class="right">| <a href="http://github.com/mongodb/docs" title="Fork the documentation on GitHub to contribute.">GitHub</a></li>
-        <li class="right"><a href="http://jira.mongodb.org/browse/DOCS" title="Open a case in Jira to report a problem with the documentation.">Jira</a></li>
+        <li class="right">| <a href="http://github.com/mongodb/{{theme_repo_name}}" title="Fork the documentation on GitHub to contribute.">GitHub</a></li>
+        <li class="right"><a href="http://jira.mongodb.org/browse/{{ theme_jira_project }}" title="Open a case in Jira to report a problem with the documentation.">Jira</a></li>
         {%- if show_logo  %}
-        <li><p><a href="{{ pathto('index') }}"><img class="logo" src="{{ pathto('_static/' + logo, 1) }}" alt="Logo"/></p></li>
+        <li><p><a href="{{ pathto('index') }}"><img class="logo" src="http://media.mongodb.org/logo-mongodb.png" alt="Logo"/></p></li>
         {%- endif %}
 
         {%- block rootrellink %}
@@ -61,24 +42,9 @@ https://jira.mongodb.org/secure/CreateIssueDetails!init.jspa?pid=10380&issuetype
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
           {%- if sidebars != None %}
-            {#- new style sidebar: explicitly include/exclude templates #}
             {%- for sidebartemplate in sidebars %}
             {%- include sidebartemplate %}
             {%- endfor %}
-          {%- else %}
-            {#- old style sidebars: using blocks -- should be deprecated #}
-            {%- block sidebartoc %}
-            {%- include "localtoc.html" %}
-            {%- endblock %}
-            {%- block pagenav %}
-            {%- include "pagenav.html" %}
-            {%- endblock %}
-            {%- block wikisidebar %}
-            {%- include "wikisidebar.html" %}
-            {%- endblock %}
-            {%- if customsidebar %}
-            {%- include customsidebar %}
-            {%- endif %}
           {%- endif %}
         </div>
       </div>
@@ -148,7 +114,21 @@ https://jira.mongodb.org/secure/CreateIssueDetails!init.jspa?pid=10380&issuetype
         </div>
 </div>
 {%- endmacro %}
-
+{%- macro render_nextprev() %}
+<div id="btnv">
+<ul id="btnvl">
+{%- if prev %}
+<li id="btnvpr"><a href="{{ prev.link|e }}" title="Previous Section: {{ prev.title|striptags|e }}">&lt; &nbsp; {{ prev.title|striptags|e }}</a></li>
+{%- endif %}
+{%- if parents %}
+<li id="btnvup"><a href="{{ parents[0].link|e }}" title="Parent Section: {{ parents[0].title|striptags|e }}" >&#47;&#92;&nbsp; {{ parents[0].title|striptags|e }}</a></li>
+{%- endif %}
+{%- if next %}
+<li id="btnvnx"><a href="{{ next.link|e }}" title="Next Section: {{ next.title|striptags|e }}">{{ next.title|striptags|e }} &nbsp;&gt;</a></li>
+{%- endif %}
+</ul>
+</div>
+{% endmacro -%}
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     {%- block htmltitle %}
@@ -160,48 +140,31 @@ https://jira.mongodb.org/secure/CreateIssueDetails!init.jspa?pid=10380&issuetype
     <meta http-equiv="Content-Type" content="text/html; charset={{ encoding }}" />
 
     {%- if pagename == 'index' %}
-     <link rel="canonical" href="http://docs.mongodb.org/manual/" />
+    <link rel="canonical" href="http://docs.mongodb.org/{{theme_manaul_path}}/" />
     {%- else %}
-    <link rel="canonical" href="http://docs.mongodb.org/manual/{{pagename}}" />
+    <link rel="canonical" href="http://docs.mongodb.org/{{theme_manual_path}}/{{pagename}}" />
     {%- endif %}
 
     {{ metatags }}
     {{ css() }}
+
     {%- if not embedded %}
-    {{ script() }}
-{%- block googlecse_opensearch %}
-{#- can't use Sphinx builtin opensearch, but can point to our own #}
-<link rel="search" type="application/opensearchdescription+xml" href="http://docs.mongodb.org/osd.xml" title="MongoDB Help"/>
-{%- endblock -%}
-    {%- if favicon %}
-    <link rel="shortcut icon" href="{{ pathto('_static/' + favicon, 1) }}"/>
+      {{ script() }}
+
+      {%- block googlecse_opensearch %}
+      <link rel="search" type="application/opensearchdescription+xml" href="http://docs.mongodb.org/osd.xml" title="MongoDB Help"/>
+      {%- endblock -%}
+
+      {%- if favicon %}
+      <link rel="shortcut icon" href="{{ pathto('_static/' + favicon, 1) }}"/>
+      {%- endif %}
     {%- endif %}
-    {%- endif %}
+
 {%- block linktags %}
-    {%- if hasdoc('about') %}
-    <link rel="author" title="{{ _('About these documents') }}" href="{{ pathto('about') }}" />
-    {%- endif %}
-    {%- if hasdoc('genindex') %}
-    <link rel="index" title="{{ _('Index') }}" href="{{ pathto('genindex') }}" />
-    {%- endif %}
-    {%- if hasdoc('search') %}
-    <link rel="search" title="{{ _('Search') }}" href="{{ pathto('search') }}" />
-    {%- endif %}
-    {%- if hasdoc('copyright') %}
-    <link rel="copyright" title="{{ _('Copyright') }}" href="{{ pathto('copyright') }}" />
-    {%- endif %}
-    <link rel="top" title="{{ docstitle|e }}" href="{{ pathto('index') }}" />
-    {%- if parents %}
-    <link rel="up" title="{{ parents[-1].title|striptags|e }}" href="{{ parents[-1].link|e }}" />
-    {%- endif %}
-    {%- if next %}
-    <link rel="next" title="{{ next.title|striptags|e }}" href="{{ next.link|e }}" />
-    {%- endif %}
-    {%- if prev %}
-    <link rel="prev" title="{{ prev.title|striptags|e }}" href="{{ prev.link|e }}" />
-    {%- endif %}
+{%- include "linktags.html" %}
 {%- endblock %}
-{%- block extrahead %} {% endblock %}
+
+{%- block extrahead %}{% endblock %}
 {%- block sitesearch %}
 <!-- Put the following javascript before the closing </head> tag. -->
 <script>
@@ -216,6 +179,7 @@ https://jira.mongodb.org/secure/CreateIssueDetails!init.jspa?pid=10380&issuetype
 {%- endblock %}
   </head>
   <body>
+
 {%- block header %}
 <div id="top-right">
         <div class="user-right">
@@ -230,21 +194,22 @@ https://jira.mongodb.org/secure/CreateIssueDetails!init.jspa?pid=10380&issuetype
         </div>
 </div>
 <div id="header-db" class="spread">
-	<div class="split">
-		<div id="logo">
-			<div><a href="http://docs.mongodb.org/"><img src="{{ pathto('_static', 1) }}/logo-mongodb.png" width="190" height="55" alt="mongoDB" /></a></div>
-		</div>
-	</div>
+        <div class="split">
+                <div id="logo">
+                        <div><a href="{{ pathto('index') }}"><img src="{{ pathto('_static', 1) }}/logo-mongodb.png" width="190" height="55" alt="mongoDB" /></a></div>
+                </div>
+        </div>
 <div class="search-db"><gcse:searchbox></gcse:searchbox></div>
 <div id="etp">
 <ul>
 <li>{{ githublink() }}</li>
-<li><a href="http://github.com/mongodb/docs" target="_blank" title="Fork the documentation on GitHub and contribute.">GitHub</a></li>
+<li><a href="http://github.com/mongodb/{{ theme_repo_name }}" target="_blank" title="Fork the documentation on GitHub and contribute.">GitHub</a></li>
 <li><a href="{{ jiralink() }}" target="_blank" title="Report a problem with {{pagename|e}}.txt on Jira">Report a problem</a></li>
 </ul>
 </div>
 </div>
 {%- endblock %}
+
 {%- block content %}
   {%- block sidebar1 %} {# possible location for sidebar #} {% endblock %}
     <div class="document">
@@ -254,8 +219,9 @@ https://jira.mongodb.org/secure/CreateIssueDetails!init.jspa?pid=10380&issuetype
         <div class="bodywrapper">
       {%- endif %}
           <div class="body">
-<div id="cse-results"><gcse:searchresults></gcse:searchresults></div>
+            <div id="cse-results"><gcse:searchresults></gcse:searchresults></div>
             {% block body %} {% endblock %}
+            {{- render_nextprev() -}}
           </div>
       {%- if render_sidebar %}
         </div>
@@ -269,7 +235,7 @@ https://jira.mongodb.org/secure/CreateIssueDetails!init.jspa?pid=10380&issuetype
 {%- endblock %}
 
 {%- block footer %}
-    <div class="footer">
+  <div class="footer">
 
     {%- if show_copyright %}
       {%- if hasdoc('copyright') %}
@@ -280,39 +246,14 @@ https://jira.mongodb.org/secure/CreateIssueDetails!init.jspa?pid=10380&issuetype
     {%- endif %}
 
     <p>MongoDB&reg;, Mongo&reg;, and the leaf logo are registered trademarks of 10gen, Inc.</p>
+    <p>The MongoDB Documentation Project uses <a href="https://github.com/mongodb/{{ theme_repo_name }}">GitHub</a>. Fork the repository and submit pull requests to contribute.</p>
+    <p>If you find any issues with the documentation feel free to open a <a href="http://jira.mongodb.org/browse/{{ theme_jira_project }}">Jira Case</a> and we'll work to resolve it promptly.</p>
 
-
-    <p>The MongoDB Documentation Project uses <a href="https://github.com/mongodb/docs">GitHub</a>. Fork the repository and submit pull requests to contribute.</p>
-    <p>If you find any issues with the documentation feel free to open a <a href="http://jira.mongodb.org/browse/DOCS">Jira Case</a> and we'll work to resolve it promptly.</p>
-
-    </div>
+  </div>
 {%- endblock %}
 
 {%- block analytics %}
-<script type="text/javascript">
-var _gaq = _gaq || [];
-var pluginUrl = (('https:' == document.location.protocol) ? 'https://ssl.' : 'http://www.') + 'google-analytics.com/plugins/ga/inpage_linkid.js';
-_gaq.push(['_require', 'inpage_linkid', pluginUrl]);
-_gaq.push(['_setAccount', 'UA-7301842-8']);
-_gaq.push(['_setDomainName', 'docs.mongodb.org']);
-{%- if (pagename == "meta/401") or (pagename == "meta/403") or (pagename == "meta/404") or (pagename == "meta/410") %}
-_gaq.push(['_trackPageview', '/manual/{{pagename}}/?page=' + document.location.pathname + document.location.search + '&from=' + document.referrer]);
-{%- else %}
-_gaq.push(['_trackPageview']);
-{%- endif %}
-(function() {
-	var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-	ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-	var s = document.getElementsByTagName('script')[0];
-	s.parentNode.insertBefore(ga, s);
-	})();
-</script>
-{%- endblock %}
-{%- block marketo %}
-<script type="text/javascript">
-document.write(unescape("%3Cscript src='" + document.location.protocol + "//munchkin.marketo.net/munchkin.js' type='text/javascript'%3E%3C/script%3E"));
-</script>
-<script>try { mktoMunchkin("017-HGS-593"); } catch(e) {}</script>
+{%- include "analytics.html" %}
 {%- endblock %}
   </body>
 </html>

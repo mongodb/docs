@@ -1,128 +1,130 @@
-======================
-Deploy a Shard Cluster
-======================
+========================
+Deploy a Sharded Cluster
+========================
 
 .. default-domain:: mongodb
 
-Synopsis
---------
-
-This document describes how to deploy a :term:`shard cluster` for a
-standalone :program:`mongod` instance.
-
-To deploy a shard cluster for an existing replica set, see
+This document describes how to deploy a :term:`sharded cluster` for a
+standalone :program:`mongod` instance. To deploy a cluster for an
+existing replica set, see
 :doc:`/tutorial/convert-replica-set-to-replicated-shard-cluster`.
-
-Before deploying a shard cluster, see the requirements listed in
-:ref:`Requirements for Shard Clusters <sharding-requirements>`.
-
-.. warning:: Sharding and "localhost" Addresses
-
-   If you use either "localhost" or ``127.0.0.1`` as the hostname
-   portion of any host identifier, for example as the ``host`` argument to
-   :dbcommand:`addShard` or the value to the :option:`mongos --configdb`
-   run time option, then you must use "localhost" or ``127.0.0.1``
-   for *all* host settings. If you mix localhost addresses and remote
-   host address, MongoDB will error.
 
 Procedure
 ---------
 
-Start Config Server Database Instances
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Before deploying a sharded cluster, see the requirements listed in
+:ref:`Requirements for Sharded Clusters <sharding-requirements>`.
 
-Begin by configuring three config server database processes. These are small
+.. include:: /includes/warning-sharding-hostnames.rst
+
+Start the Config Server Database Instances
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The config server database processes are small
 :program:`mongod` instances that store the cluster's metadata. You must
-have exactly *three* instances in production deployments. Each has a complete copy
-of the cluster's metadata for redundancy. These instances should run on different servers
+have exactly *three* instances in production deployments. Each stores a complete copy
+of the cluster's metadata. These instances should run on different servers
 to assure good uptime and data safety.
 
 Since config database :program:`mongod` instances receive relatively
 little traffic and demand only a small portion of system resources, you
 can run the instances on systems that run other cluster components.
 
-To start a config database, type the following command at a system prompt:
-
-.. code-block:: sh
-
-   mongod --configsvr
-
-By default a :option:`--configsrv <mongod --configsrv>` process stores its data files
+By default a :program:`mongod` :option:`--configsvr <mongod --configsvr>` process stores its data files
 in the `/data/configdb` directory.  You can specify a different
-location using the :setting:`dbpath` run-time option  option. The config :program:`mongod` instance
+location using the :setting:`dbpath` run-time option. The config :program:`mongod` instance
 is accessible via port ``27019``. In addition to :setting:`configsvr`,
 use other :program:`mongod`
 :doc:`runtime options </reference/configuration-options>` as needed.
 
-Repeat this process for all three config server instances.
+To create a data directory for each config server, issue a command
+similar to the following for each:
 
-Start ``mongos`` Instances
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. code-block:: sh
 
-All client operations against a shard cluster go through :program:`mongos`
-instances. The :program:`mongos` instance routes queries and operations
+   mkdir /data/db/config
+
+To start each config server, issue a command similar to the following
+for each:
+
+.. code-block:: sh
+
+   mongod --configsvr --dbpath <path> --port <port>
+
+Start the ``mongos`` Instances
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :program:`mongos` instance routes queries and operations
 to the appropriate shards and interacts with the config server instances.
+All client operations targeting a cluster go through :program:`mongos`
+instances.
 
-:program:`mongos` instances are lightweight, and a shard cluster typically
-has several instances. For example, you run one :program:`mongos`
+:program:`mongos` instances are lightweight and do not require data directories.
+A cluster typically
+has several instances. For example, you might run one :program:`mongos`
 instance on each of your application servers, or you might run a :program:`mongos` instance
 on each of the servers running a :program:`mongod` process.
 
 You must the specify resolvable hostnames [#names]_ for the *3* config servers
-when starting the :program:`mongos` instance, either in the
-configuration file, or as command line parameters.
+when starting the :program:`mongos` instance. You specify the hostnames either in the
+configuration file or as command line parameters.
 
 The :program:`mongos` instance runs on the default MongoDB TCP port:
 ``27017``.
 
-Use the following command at a system prompt to start a
-:program:`mongos` instance:
+To start :program:`mongos` instance running on the
+``mongos0.example.net`` host, that connects to the config server
+instances running on the following hosts:
+
+- ``mongoc0.example.net``
+- ``mongoc1.example.net``
+- ``mongoc2.example.net``
+
+You would issue the following command:
 
 .. code-block:: sh
 
-   mongos --configdb config0.mongodb.example.net,config1.mongodb.example.net,config2.mongodb.example.net --port 27017
-
-The above example assumes that you have config instances running on the following hosts:
-
-- ``config0.mongodb.example.net``
-- ``config1.mongodb.example.net``
-- ``config2.mongodb.example.net``
+   mongos --configdb mongoc0.example.net,mongoc1.example.net,mongoc2.example.net
 
 .. [#names] Use DNS names for the config servers rather than explicit
-   IP addresses for operational flexibility. You cannot change the
-   config server names, or IP address if you're not using resolvable
-   hostname, without a restarting *ever* :program:`mongos` and
+   IP addresses for operational flexibility. If you're not using resolvable
+   hostname,
+   you cannot change the config server names or IP addresses
+   without a restarting *every* :program:`mongos` and
    :program:`mongod` instance.
-
 
 Add Shards to the Cluster
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In a production shard cluster, each shard is itself a :term:`replica
-set`. You must deploy at least one replica set or one shard to
-begin. You may add additional shards later to a running cluster.  For
-instructions on deploying replica sets, see :doc:`/tutorial/deploy-replica-set`.
+You must deploy at least one :term:`shard` or one :term:`replica set` to
+begin. In a production cluster, each shard is a replica set. You
+may add additional shards to a running cluster later. For instructions
+on deploying replica sets, see :doc:`/tutorial/deploy-replica-set`.
 
-When you have two active and initiated replica sets, perform the
-following procedure, which describes the process for adding the first
-two shards to the cluster.
+This procedure assumes you have two active and initiated replica sets
+and describes how to add the first two shards to the cluster.
 
-Using the :program:`mongo` shell, connect to a :program:`mongos`. For example,
-if the :program:`mongos` is accessible at
-``mongos0.mongodb.example.net`` on port ``27017`` you would issue the
-following command:
+First, connect to one of the :program:`mongos` instances. For example,
+if a :program:`mongos` is accessible at ``mongos0.example.net`` on
+port ``27017``, issue the following command:
 
 .. code-block:: sh
 
-   mongo mongos0.mongodb.example.net
+   mongo mongos0.example.net
 
-For each shard that you want to add to the cluster, call the :method:`sh.addShard()`
-method in the :program:`mongo` shell, as in the following example:
+Then, from a :program:`mongo` shell connected to the :program:`mongos`
+instance, call the :method:`sh.addShard()` method for each shard that
+you want to add to the cluster:
 
 .. code-block:: javascript
 
    sh.addShard( "s0/sfo30.example.net" )
    sh.addShard( "s1/sfo40.example.net" )
+
+If the host you are adding is a member of a replica set, you
+*must* specify the name of the replica set.  :program:`mongos`
+will discover the names of other members of the replica set based on
+the name and the hostname you provide.
 
 These operations add two shards, provided by:
 
@@ -132,7 +134,7 @@ These operations add two shards, provided by:
 - the replica set name and ``s1``, that includes the
   ``sfo40.example.net`` host.
 
-.. admonition:: All shards should be replica sets.
+.. admonition:: All shards should be replica sets
 
    .. versionchanged:: 2.0.3
 
@@ -158,9 +160,9 @@ Enable Sharding for Databases
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 While sharding operates on a per-collection basis, you must enable
-sharding for each database that holds a database that you would like
-to shard. A single cluster can have many databases, with each database
-housing collections.
+sharding for each database that holds collections you want to shard. A
+single cluster may have many databases, with each database housing
+collections.
 
 Use the following operation in a :program:`mongo` shell session
 connected to a :program:`mongos` instance in your cluster:
@@ -178,12 +180,10 @@ Enable Sharding for Collections
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can enable sharding on a per-collection basis. Because
-MongoDB uses "range based sharding," you must specify a :term:`shard
-key` MongoDB can use to distribute your documents among the
-shards. For more information, see the sections of this manual that give
-an :ref:`overview of shard keys <sharding-shard-key>` and that
-give an in-depth exploration of the
-:ref:`features of good shard keys <sharding-shard-key>`.
+MongoDB uses "range based sharding," you must specify the :term:`shard
+key` MongoDB uses to distribute your documents among the
+shards. For more information, see the
+:ref:`overview of shard keys <sharding-shard-key>`.
 
 To enable sharding for a collection, use the
 :method:`sh.shardCollection()` helper in the :program:`mongo` shell.

@@ -51,6 +51,13 @@ use a two-phase commit to ensure that data is consistent, and that in
 the case of an error, the state that preceded the transaction is
 :ref:`recoverable <2-phase-commits-rollback>`.
 
+.. note::
+
+   Because only single-document operations are atomic with MongoDB,
+   two-phase commits can only offer transaction-*like* semantics. It's
+   possible for applications to return intermediate data at
+   intermediate points during the two-phase commit or rollback.
+
 Pattern
 -------
 
@@ -203,7 +210,7 @@ Set Transaction State to Committed
 ``````````````````````````````````
 
 Use the following :method:`update() <db.collection.update()>` operation
-to set the the transaction's state to ``committed``:
+to set the transaction's state to ``committed``:
 
 .. code-block:: javascript
 
@@ -229,8 +236,8 @@ to set remove the pending transaction from the :term:`documents
 
 .. code-block:: javascript
 
-   db.accounts.update({name: t.source}, {$pull: {pendingTransactions: ObjectId("4d7bc7a8b8a04f5126961522")}})
-   db.accounts.update({name: t.destination}, {$pull: {pendingTransactions: ObjectId("4d7bc7a8b8a04f5126961522")}})
+   db.accounts.update({name: t.source}, {$pull: {pendingTransactions: t._id}})
+   db.accounts.update({name: t.destination}, {$pull: {pendingTransactions: t._id}})
    db.accounts.find()
 
 The :method:`find() <db.collection.find()>` operation will return the
@@ -368,7 +375,7 @@ following:
 Set Transaction State to Canceled
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Finally, use the following following :method:`update()
+Finally, use the following :method:`update()
 <db.collection.update()>` operation to set the transaction's state to
 ``canceled``:
 

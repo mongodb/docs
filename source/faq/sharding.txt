@@ -23,7 +23,7 @@ Sometimes.
 If your data set fits on a single servers, you should begin
 with an unsharded deployment.
 
-Converting an unsharded database to a :term:`shard cluster` is easy
+Converting an unsharded database to a :term:`sharded cluster` is easy
 and seamless, so there is *little advantage* in configuring sharding
 while your data set is small.
 
@@ -36,10 +36,42 @@ How does sharding work with replication?
 To use replication with sharding, deploy each :term:`shard` as a
 :term:`replica set`.
 
+.. _faq-change-shard-key:
+
+Can I change the shard key after sharding a collection?
+-------------------------------------------------------
+
+No.
+
+There is no automatic support in MongoDB for changing a shard key
+after :ref:`sharding a collection
+<sharding-administration-shard-collection>`. This reality underscores
+the important of choosing a good :ref:`shard key <shard-key>`. If you
+*must* change a shard key after sharding a collection, the best option
+is to:
+
+- dump all data from MongoDB into an external format.
+
+- drop the original sharded collection.
+
+- configure sharding using a more ideal shard key.
+
+- :ref:`pre-split <sharding-administration-pre-splitting>` the shard
+  key range to ensure initial even distribution.
+
+- restore the dumped data into MongoDB.
+
+See :dbcommand:`shardCollection`, :method:`sh.shardCollection()`,
+:doc:`/administration/sharding`, the :ref:`Shard Key
+<sharding-internals-shard-keys>` section in the
+:doc:`/core/sharding-internals` document,
+:doc:`/tutorial/deploy-shard-cluster`, and :issue:`SERVER-4000` for
+more information.
+
 What happens to unsharded collections in sharded databases?
 -----------------------------------------------------------
 
-In the current implementation, all databases in a :term:`shard
+In the current implementation, all databases in a :term:`sharded
 cluster` have a "primary :term:`shard`." All unsharded
 collection within that database will reside on the same shard.
 
@@ -58,7 +90,7 @@ What happens if a client updates a document in a chunk during a migration?
 The :program:`mongos` routes the operation to the "old" shard, where
 it will succeed immediately. Then the :term:`shard` :program:`mongod`
 instances will replicate the modification to the "new" shard before
-the :term:`shard cluster` updates that chunk's "ownership," which
+the :term:`sharded cluster` updates that chunk's "ownership," which
 effectively finalizes the migration process.
 
 What happens to queries if a shard is inaccessible or slow?
@@ -74,15 +106,14 @@ given shard is unavailable.
 If a shard is responding slowly, :program:`mongos` will merely wait
 for the shard to return results.
 
-
 How does MongoDB distribute queries among shards?
 -------------------------------------------------
 
 .. versionchanged:: 2.0
 
-The exact method for distributing queries among a :term:`shard
-cluster` depends on the nature of the query and the configuration of
-the shard cluster. Consider a sharded collection, using the
+The exact method for distributing queries to :term:`shards <shard>` in a
+:term:`cluster <sharded cluster>` depends on the nature of the query and the configuration of
+the sharded cluster. Consider a sharded collection, using the
 :term:`shard key` ``user_id``, that has ``last_login`` and
 ``email`` attributes:
 
@@ -154,7 +185,7 @@ Is it safe to remove old files in the ``moveChunk`` directory?
 Yes. :program:`mongod` creates these files as backups during normal
 :term:`shard` balancing operations.
 
-Once these migrations are complete, you may delete these files. 
+Once these migrations are complete, you may delete these files.
 
 You can set :setting:`noMoveParanoia` to ``true`` to disable this
 behavior.
@@ -162,10 +193,12 @@ behavior.
 How many connections does each ``mongos`` need?
 -----------------------------------------------
 
-Typically, :program:`mongos` uses one connection from each client, as
-well as one outgoing connection to each shard, or each member of the
-replica set that backs each shard. If you've enabled the ``slaveOk``
-bit, then the mongos may create two or more connections per replica set.
+Typically, each client maintains as connection to
+:program:`mongos`. :program:`mongos` maintains a connection pool to
+support a single outgoing connection to each shard for. For incoming
+connections that direct read operations to secondaries, the
+:program:`mongos` will also need to maintain connects to each member
+of the replica set that provides the shard.
 
 Why does ``mongos`` hold connections?
 -------------------------------------
@@ -191,9 +224,11 @@ run the following command:
 What does ``writebacklisten`` in the log mean?
 ----------------------------------------------
 
-The writeback listener is a process that opens a long poll to detect
-non-safe writes sent to a server and to send them back to the correct
-server if necessary.
+The writeback listener is a process that opens a long poll to relay
+writes back from a :program:`mongod` or :program:`mongos` after
+migrations to make sure they have not gone to the wrong server.  The
+writeback listener sends writes back to the correct server if
+necessary.
 
 These messages are a key part of the sharding infrastructure and should
 not cause concern.
@@ -204,9 +239,9 @@ How should administrators deal with failed migrations?
 Failed migrations require no administrative intervention. Chunk moves are
 consistent and deterministic.
 
-If a migration fails to complete for some reason, the :term:`shard
-cluster` will retry. When the migration completes successfully, the
-data will reside only on the new shard.
+If a migration fails to complete for some reason, the :term:`cluster`
+will retry the operation. When the migration completes successfully,
+the data will reside only on the new shard.
 
 What is the process for moving, renaming, or changing the number of config servers?
 -----------------------------------------------------------------------------------
@@ -217,7 +252,7 @@ When do the ``mongos`` servers detect config server changes?
 ------------------------------------------------------------
 
 :program:`mongos` instances maintain a cache of the :term:`config
-database` that holds the metadata for the :term:`shard cluster`. This
+database` that holds the metadata for the :term:`sharded cluster`. This
 metadata includes the mapping of :term:`chunks <chunk>` to
 :term:`shards <shard>`.
 
@@ -252,7 +287,7 @@ maximum number of connections that the client creates, or the maximum
 size of the connection pool. This setting prevents the
 :program:`mongos` from causing connection spikes on the individual
 :term:`shards <shard>`. Spikes like these may disrupt the operation
-and memory allocation of the :term:`shard cluster`.
+and memory allocation of the :term:`sharded cluster`.
 
 How do indexes impact queries in sharded systems?
 -------------------------------------------------
@@ -275,7 +310,7 @@ Can shard keys be randomly generated?
 :term:`Shard keys <shard key>` can be random. Random keys ensure
 optimal distribution of data across the cluster.
 
-:term:`Shard clusters <shard cluster>`, attempt to route queries to
+:term:`Sharded clusters <sharded cluster>`, attempt to route queries to
 *specific* shards when queries include the shard key as a parameter,
 because these directed queries are more efficient. In many cases,
 random keys can make it difficult to direct queries to specific
@@ -292,7 +327,7 @@ the shard key.
 However, documents that have the shard key *must* reside in the same
 *chunk* and therefore on the same server. If your sharded data set has
 too many documents with the exact same shard key you will not be able
-to distribute *those* documents across your shard cluster.
+to distribute *those* documents across your sharded cluster.
 
 .. STUB link to shard key granularity.
 
@@ -344,18 +379,18 @@ Consider the following error message:
 
    ERROR: moveChunk commit failed: version is at <n>|<nn> instead of <N>|<NN>" and "ERROR: TERMINATING"
 
-:program:`mongod` procudes this message if, during a :ref:`chunk
+:program:`mongod` issues this message if, during a :ref:`chunk
 migration <sharding-chunk-migration>`, the :term:`shard` could not
 connect to the :term:`config database` to update chunk information at
 the end of the migration process. If
 the shard cannot update the config database after
-:dbcommand:`moveChunk`, the shard cluster will have an inconsistent
+:dbcommand:`moveChunk`, the cluster will have an inconsistent
 view of all chunks. In these situations, the :term:`primary` member of
 the shard will terminate
 itself to prevent data inconsistency. If the :term:`secondary` member
 can access the config database, the shard's data will be
 accessible after an election. Administrators will need to resolve the
-chunk migration failure independently. 
+chunk migration failure independently.
 
 If you encounter this issue, contact the `MongoDB User Group
 <http://groups.google.com/group/mongodb-user>`_ or 10gen support to

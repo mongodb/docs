@@ -47,6 +47,8 @@ Configuration Variables
    Provides the zero-indexed identifier of every member in the replica
    set.
 
+   .. include:: /includes/note-rs-conf-array-index.rst
+
 .. data:: members[n].host
 
    **Type**: <hostname>:<port>
@@ -91,7 +93,7 @@ Configuration Variables
    - You are only using this instance to perform backups using
      :program:`mongodump`,
 
-   - this instance will receive no queries will, *and*
+   - this instance will receive no queries, *and*
 
    - index creation and maintenance overburdens the host
      system.
@@ -99,6 +101,16 @@ Configuration Variables
    If set to ``false``, secondaries configured with this option *do*
    build indexes on the ``_id`` field, to facilitate operations
    required for replication.
+
+   .. warning::
+
+      You may only set this value when adding a member to a replica
+      set. You may not reconfigure a replica set to change the value
+      of the :data:`members[n].buildIndexes` field after adding the
+      member to the set.
+
+      Furthermore, other secondaries cannot synchronize off of replica
+      set members where :data:`members[n].buildIndexes` is false.
 
 .. data:: members[n].hidden
 
@@ -120,20 +132,28 @@ Configuration Variables
 
    *Optional*.
 
-   **Type**: Number, between 0 and 1000 including decimals.
+   **Type**: Number, between 0 and 100.0 including decimals.
 
    **Default**: 1
 
-   Specify higher values to make a node *more* eligible to become
-   :term:`primary`, and lower values to make the node *less* eligible
+   .. todo:: add/remove note for 2.4
+
+      .. versionchanged:: 2.4
+         :data:`members[n].priority` now accepts values between 0
+         and 1000.
+
+   Specify higher values to make a member *more* eligible to become
+   :term:`primary`, and lower values to make the member *less* eligible
    to become primary. Priorities are only used in comparison to each
-   other, members of the set will veto elections from nodes when
-   another eligible node has a higher absolute priority value.
+   other, members of the set will veto elections from members when
+   another eligible member has a higher absolute priority
+   value. Changing the balance of priority in a replica set will cause
+   an election.
 
    A :data:`members[n].priority` of ``0`` makes it impossible for a
-   node to become primary.
+   member to become primary.
 
-   .. seealso:: ":ref:`Replica Set Node Priority
+   .. seealso:: ":ref:`Replica Set Member Priority
       <replica-set-node-priority>`" and ":ref:`Replica Set Elections
       <replica-set-elections>`."
 
@@ -145,9 +165,9 @@ Configuration Variables
 
    **Default**: none
 
-   Used to represent arbitrary values for describing or tagging nodes
-   for the purposes of extending :ref:`write concern
-   <replica-set-write-concern>` to allow configurable data center
+   Used to represent arbitrary values for describing or tagging members
+   for the purposes of extending :term:`write concern`
+   to allow configurable data center
    awareness.
 
    Use in conjunction with :data:`settings.getLastErrorModes` and
@@ -165,9 +185,9 @@ Configuration Variables
 
    Describes the number of seconds "behind" the master that this
    replica set member should "lag." Use this option to create
-   :ref:`delayed nodes <replica-set-delayed-members>`, that
+   :ref:`delayed members <replica-set-delayed-members>`, that
    maintain a copy of the data that reflects the state of the data set
-   some amount of time (specified in seconds.) Typically these nodes
+   some amount of time (specified in seconds.) Typically these members
    help protect against human error, and provide some measure
    of insurance against the unforeseen consequences of changes and
    updates.
@@ -229,19 +249,20 @@ Example Document
 ----------------
 
 The following document provides a representation of a replica set
-configuration document. square brackets (e.g. ``[`` and ``]``) enclose
+configuration document. Angle brackets (e.g. ``<`` and ``>``) enclose
 all optional fields.
 
 .. code-block:: javascript
 
    {
      _id : <setname>,
+     version: <int>,
      members: [
        {
          _id : <ordinal>,
-         <host : <hostname<:port>>,>
+         host : hostname<:port>,
          <arbiterOnly : <boolean>,>
-         <buildIndexes : <bool>,>
+         <buildIndexes : <boolean>,>
          <hidden : <boolean>,>
          <priority: <priority>,>
          <tags: { <document> },>
@@ -303,8 +324,8 @@ operation:
    This operation begins by saving the current replica set
    configuration to the local variable ``cfg`` using the
    :method:`rs.conf()` method. Then it adds priority values to the
-   :term:`document` where the :data:`members[n]._id` field has a value
-   of ``0``, ``1``, or ``2``. Finally, it calls the
+   ``cfg`` :term:`document` where for the first three sub-documents in
+   the :data:`members <rs.conf.members>` array. Finally, it calls the
    :method:`rs.reconfig()` method with the argument of ``cfg`` to
    initialize this new configuration. The replica set configuration
    after this operation will resemble the following:
@@ -362,9 +383,9 @@ use the following form:
 
 .. note::
 
-   The :method:`rs.reconfig()` shell command can force the current
+   The :method:`rs.reconfig()` shell method can force the current
    primary to step down and causes an election in some
-   situations. When the primary node steps down, all clients will
+   situations. When the primary steps down, all clients will
    disconnect. This is by design. While this typically takes 10-20
    seconds, attempt to make these changes during scheduled maintenance
    periods.
@@ -377,9 +398,9 @@ use the following form:
 Tag Sets
 --------
 
-Tag sets provide custom and configurable :ref:`write concern
-<replica-set-write-concern>` and :ref:`read preferences
-<replica-set-read-preference>`. This section will outline the process
+Tag sets provide custom and configurable :term:`write concern`
+and :term:`read preferences <read preference>`
+for a :term:`replica set`. This section will outline the process
 for specifying tags for a replica set, for more information see the
 full documentation of the behavior of :ref:`tags sets write concern
 <replica-set-write-concern>` and :ref:`tag sets for read preference
@@ -438,7 +459,7 @@ in the :data:`members[n].tags`. Consider the following example:
                             "host" : "mongodb0.example.net:27017",
                             "tags" : {
                                     "dc": "east",
-                                    "group": "production"
+                                    "use": "production"
                             }
                     },
                     {
@@ -446,14 +467,14 @@ in the :data:`members[n].tags`. Consider the following example:
                             "host" : "mongodb1.example.net:27017",
                             "tags" : {
                                     "dc": "east",
-                                    "group": "reporting"
+                                    "use": "reporting"
                             }
                     },
                     {
                             "_id" : 2,
                             "host" : "mongodb2.example.net:27017",
                             "tags" : {
-                                    "group": "production"
+                                    "use": "production"
                             }
                     }
             ]

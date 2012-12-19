@@ -14,7 +14,7 @@ waiting for a crisis or failure.
 This document provides an overview of the available tools and data
 provided by MongoDB as well as introduction to diagnostic strategies,
 and suggestions for monitoring instances in MongoDB's replica sets and
-shard clusters.
+sharded clusters.
 
 .. note::
 
@@ -49,8 +49,8 @@ statistics about instances' performance and activity quickly. These
 are typically most useful for diagnosing issues and assessing normal
 operation.
 
-:program:`mongotop`
-```````````````````
+``mongotop``
+````````````
 
 :program:`mongotop` tracks and reports the current read and write
 activity of a MongoDB instance. :program:`mongotop` provides
@@ -58,8 +58,8 @@ per-collection visibility into use. Use :program:`mongotop` to verify
 that activity and use match expectations. See the :doc:`mongotop
 manual </reference/mongotop>` for details.
 
-:program:`mongostat`
-````````````````````
+``mongostat``
+`````````````
 
 :program:`mongostat` captures and returns counters of database
 operations. :program:`mongostat` reports operations on a per-type
@@ -85,15 +85,15 @@ locally running mongod instance: http://localhost:28017
 Statistics
 ~~~~~~~~~~
 
-The :program:`mongo` shell provides a number of commands that return
+MongoDB provides a number of commands that return
 statistics about the state of the MongoDB instance. These data may
 provide finer granularity regarding the state of the MongoDB instance
 than the tools above. Consider using their output in scripts and
 programs to develop custom alerts, or modifying the behavior of your
 application in response to the activity of your instance.
 
-serverStatus
-````````````
+``serverStatus``
+````````````````
 
 Access :doc:`serverStatus data </reference/server-status/>` by way of
 the :dbcommand:`serverStatus` command. This :term:`document`
@@ -106,11 +106,11 @@ a MongoDB instance, in most cases you will not run this command
 directly. Nevertheless, all administrators should be familiar with the
 data provided by :dbcommand:`serverStatus`.
 
-.. seealso:: :method:`db.stats()` and :doc:`serverStatus data
+.. seealso:: :method:`db.serverStatus()` and :doc:`serverStatus data
    </reference/server-status/>`.
 
-replSetGetStatus
-````````````````
+``replSetGetStatus``
+````````````````````
 
 View the :doc:`replSetGetStatus data </reference/replica-status>` with
 the :dbcommand:`replSetGetStatus` command (:method:`rs.status()` from the
@@ -120,8 +120,8 @@ set. Use this data to ensure that replication is properly configured,
 and to check the connections between the current host and the members
 of the replica set.
 
-dbStats
-```````
+``dbStats``
+```````````
 
 The :doc:`dbStats data </reference/database-statistics>` is accessible
 by way of the :dbcommand:`dbStats` command (:method:`db.stats()` from
@@ -133,8 +133,8 @@ of a specific database. This output also allows you to compare
 utilization between databases and to determine average
 :term:`document` size in a database.
 
-collStats
-`````````
+``collStats``
+`````````````
 
 The :doc:`collStats data </reference/collection-statistics>` is
 accessible using the :dbcommand:`collStats` command (:method:`db.printCollectionStats()`
@@ -143,6 +143,19 @@ statistics that resemble :dbcommand:`dbStats` on the collection level:
 this includes a count of the objects in the collection, the size of
 the collection, the amount of disk space used by the collection, and
 information about the indexes.
+
+Introspection Tools
+-------------------
+
+In addition to status reporting, MongoDB provides a number of
+introspection tools that you can use to diagnose and analyze
+performance and operational conditions. Consider the following
+documentation:
+
+- :dbcommand:`diagLogging`
+- :doc:`/tutorial/manage-the-database-profiler`
+- :doc:`/reference/database-profiler`
+- :doc:`/reference/current-op`
 
 Third Party Tools
 ~~~~~~~~~~~~~~~~~
@@ -164,7 +177,7 @@ on your own servers, usually open source.
      - **Description**
    * - `Ganglia <http://sourceforge.net/apps/trac/ganglia/wiki>`_
      - `mongodb-ganglia <https://github.com/quiiver/mongodb-ganglia>`_
-     - Shell script to report operations per second, memory usage, btree statistics, master/slave status and current connections.
+     - Python script to report operations per second, memory usage, btree statistics, master/slave status and current connections.
    * - Ganglia
      - `gmond_python_modules <https://github.com/ganglia/gmond_python_modules>`_
      - Parses output from the :dbcommand:`serverStatus` and :dbcommand:`replSetGetStatus` commands.
@@ -185,7 +198,7 @@ on your own servers, usually open source.
      - Some additional munin plugins not in the main distribution.
    * - `Nagios <http://www.nagios.org/>`_
      - `nagios-plugin-mongodb <https://github.com/mzupan/nagios-plugin-mongodb>`_
-     - A simple Nagios check script.
+     - A simple Nagios check script, written in Python.
    * - `Zabbix <http://www.zabbix.com/>`_
      - `mikoomi-mongodb <https://code.google.com/p/mikoomi/wiki/03>`_
      - Monitors availability, resource utilization, health, performance and other important metrics.
@@ -242,7 +255,7 @@ there is a chance that a large number of requests are waiting for a
 lock. This indicates a possible concurrency issue that might effect
 performance.
 
-If :status:`globalLock.toalTime` is high in context of
+If :status:`globalLock.totalTime` is high in context of
 :status:`uptime` then the database has existed in a lock state for a
 significant amount of time. If :status:`globalLock.ratio` is also
 high, MongoDB has likely been processing a large number of long
@@ -297,7 +310,7 @@ this also improves overall throughput.
 
 If possible, increasing the amount of RAM accessible to MongoDB may
 help reduce the number of page faults. If this is not possible, you
-may want to consider deploying a :term:`shard cluster` and/or
+may want to consider deploying a :term:`sharded cluster` and/or
 adding one or more :term:`shards <shard>`  to your deployment to
 distribute load among :program:`mongod` instances.
 
@@ -335,7 +348,7 @@ deployment. For read-heavy applications increase the size of your
 :term:`replica set` and distribute read operations to
 :term:`secondary` members. For write heavy applications, deploy
 :term:`sharding` and add one or more :term:`shards <shard>` to a
-:term:`shard cluster` to distribute load among :program:`mongod`
+:term:`sharded cluster` to distribute load among :program:`mongod`
 instances.
 
 Spikes in the number of connections can also be the result of
@@ -370,7 +383,7 @@ inefficient queries and operations. Enable the profiler by setting the
 
    You may enable profiling on a per-:program:`mongod` basis. This
    setting will not propagate across a :term:`replica set` or
-   :term:`shard cluster`.
+   :term:`sharded cluster`.
 
 The following profiling levels are available:
 
@@ -405,11 +418,9 @@ This returns all operations that lasted longer than 100 milliseconds.
 Ensure that the value specified here (i.e. ``100``) is above the
 :setting:`slowms` threshold.
 
-.. seealso:: The :wiki:`Optimization` wiki page addresses strategies
+.. seealso:: :doc:`/applications/optimization` addresses strategies
    that may improve the performance of your database queries and
    operations.
-
-.. STUB :doc:`/applications/optimization`
 
 .. _replica-set-monitoring:
 
@@ -466,9 +477,9 @@ systems.
 Sharding and Monitoring
 -----------------------
 
-In most cases the components of :term:`shard clusters <shard cluster>`
+In most cases the components of :term:`sharded clusters <sharded cluster>`
 benefit from the same monitoring and analysis as all other MongoDB
-instances. Additionally, shard clusters require monitoring to ensure
+instances. Additionally, clusters require monitoring to ensure
 that data is effectively distributed among nodes and that sharding
 operations are functioning appropriately.
 
@@ -484,24 +495,24 @@ The :term:`config database` provides a map of documents to shards. The
 cluster updates this map as :term:`chunks <chunk>` move between
 shards. When a configuration server becomes inaccessible, some
 sharding operations like moving chunks and starting :program:`mongos`
-instances become unavailable. However, shard clusters remain
-accessible from already-running mongo instances.
+instances become unavailable. However, clusters remain
+accessible from already-running :program:`mongos` instances.
 
 Because inaccessible configuration servers can have a serious impact
-on the availability of a shard cluster, you should monitor the
-configuration servers to ensure that your shard cluster remains well
+on the availability of a sharded cluster, you should monitor the
+configuration servers to ensure that the cluster remains well
 balanced and that :program:`mongos` instances can restart.
 
 Balancing and Chunk Distribution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The most effective :term:`shard clusters <shard cluster>` require that
+The most effective :term:`sharded cluster` deployments require that
 :term:`chunks <chunk>` are evenly balanced between the shards. MongoDB
 has a background :term:`balancer` process that distributes data such that
 chunks are always optimally distributed among the :term:`shards <shard>`.
 Issue the :method:`db.printShardingStatus()` or :method:`sh.status()`
 command to the :program:`mongos` by way of the :program:`mongo`
-shell. This returns an overview of the shard cluster including the
+shell. This returns an overview of the entire cluster including the
 database name, and a list of the chunks.
 
 Stale Locks

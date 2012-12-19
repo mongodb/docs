@@ -1,10 +1,10 @@
 .. _mongos:
 
-.. default-domain:: mongodb
+==========
+``mongos``
+==========
 
-=================
-:program:`mongos`
-=================
+.. default-domain:: mongodb
 
 Synopsis
 --------
@@ -12,7 +12,7 @@ Synopsis
 :program:`mongos` for "MongoDB Shard," is a routing service for
 MongoDB shard configurations that processes queries from the
 application layer, and determines the location of this data in the
-:term:`shard cluster`, in order to complete these operations.
+:term:`sharded cluster`, in order to complete these operations.
 From the perspective of the application, a
 :program:`mongos` instance behaves identically to any other MongoDB
 instance.
@@ -107,12 +107,14 @@ Options
    prevent erroneous connection spikes from propagating to the members
    of a :term:`shard` cluster.
 
+   .. include:: /includes/note-max-conns-max.rst
+
 .. option:: --objcheck
 
    Forces the :program:`mongos` to validate all requests from clients
    upon receipt to ensure that invalid objects are never inserted into
-   the database. This option can produce a significant performance
-   impact, and is not enabled by default.
+   the database. This option has a performance impact, and is not
+   enabled by default.
 
 .. option:: --logpath <path>
 
@@ -130,6 +132,15 @@ Options
    data to the end of the logfile rather than overwriting the content
    of the log when the process restarts.
 
+.. option:: --syslog
+
+   .. versionadded:: 2.1.0
+
+   Sends all logging output to the host's :term:`syslog` system rather
+   than to standard output or a log file as with :option:`--logpath`.
+
+   .. warning:: You cannot use :option:`--syslog` with :option:`--logpath`.
+
 .. option:: --pidfilepath <path>
 
    Specify a file location to hold the ":term:`PID`" or process ID of the
@@ -142,7 +153,7 @@ Options
 
    Specify the path to a key file to store authentication
    information. This option is only useful for the connection between
-   :program:`mongos` instances and components of the :term:`shard cluster`.
+   :program:`mongos` instances and components of the :term:`sharded cluster`.
 
    .. seealso:: ":ref:`Replica Set Security <replica-set-security>`"
       and ":doc:`/administration/replica-sets`."
@@ -167,17 +178,26 @@ Options
 .. option:: --configdb <config1>,<config2><:port>,<config3>
 
    Set this option to specify a configuration database
-   (i.e. :term:`config database`) for the :term:`shard cluster`. You must
+   (i.e. :term:`config database`) for the :term:`sharded cluster`. You must
    specify either 1 configuration server or 3 configuration servers,
    in a comma separated list.
 
    .. note::
 
-      Each :program:`mongos` reads from the first :term:`config server
-      <config database>` in the list provided. If your configuration
-      databases reside in more that one data center, you should
-      specify the closest config servers as the first servers in the
-      list.
+      :program:`mongos` instances read from the first :term:`config
+      server <config database>` in the list provided. All
+      :program:`mongos` instances **must** specify the hosts to the
+      :option:`--configdb` setting in the same order.
+
+      If your configuration databases reside in more that one data
+      center, order the hosts in the :option:`--configdb` argument so
+      that the config database that is closest to the majority of your
+      :program:`mongos` instances is first servers in the list.
+
+   .. warning::
+
+      Never remove a config server from the :option:`--configdb` parameter, even if
+      the config server or servers are not available, or offline.
 
 .. option:: --test
 
@@ -192,7 +212,7 @@ Options
 .. option:: --chunkSize <value>
 
    The value of the :option:`--chunkSize` determines the size of each
-   :term:`chunk` of data distributed around thee :term:`shard
+   :term:`chunk` of data distributed around thee :term:`sharded
    cluster`. The default value is 64 megabytes, which is
    the ideal size for chunks in most deployments: larger chunk size
    can lead to uneven data distribution, smaller chunk size often
@@ -204,7 +224,7 @@ Options
    cluster for the first time. If you modify the run-time option
    later, the new value will have no effect. See the
    ":ref:`sharding-balancing-modify-chunk-size`" procedure if you
-   need to change the chunk size on an existing shard cluster.
+   need to change the chunk size on an existing sharded cluster.
 
 .. option:: --ipv6
 
@@ -242,7 +262,7 @@ Options
    When :program:`mongos` receives a request that permits reads to
    :term:`secondary` members, the :program:`mongos` will:
 
-    - find the nearest suitable member of the set, in terms of ping time.
+    - find the member of the set with the lowest ping time.
 
     - construct a list of replica set members that is within a ping
       time of 15 milliseconds of the nearest suitable member of the
@@ -254,6 +274,12 @@ Options
 
     - The :program:`mongos` will select a member to read from at
       random from this list.
+
+   The ping time used for a set member compared by the
+   :option:`--localThreshold` setting is a moving average of recent
+   ping times, calculated, at most, every 10 seconds. As a result, some queries
+   may reach members above the threshold until the :program:`mongos`
+   recalculates the average.
 
    See the :ref:`replica-set-read-preference-behavior-member-selection`
    section of the :ref:`read preference <replica-set-read-preference>`

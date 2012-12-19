@@ -10,16 +10,16 @@ collMod
 
    :dbcommand:`collMod` makes it possible to add flags to a collection
    to modify the behavior of MongoDB. In the current release the only
-   available flag is :collflag:`usePowerof2Sizes`. The command takes the
+   available flag is :collflag:`usePowerOf2Sizes`. The command takes the
    following prototype form:
 
    .. code-block:: javascript
 
-      db.runCommand( {"collMod" : [collection] , "[flag]" : [value]" } )
+      db.runCommand( {"collMod" : <collection> , "<flag>" : <value> } )
 
-   In this command substitute ``[collection]`` with the name of the
-   collection, and ``[flag]`` and ``[value]`` with the flag and value
-   you want to set.
+   In this command substitute ``<collection>`` with the name of a
+   collection in the current database, and ``<flag>`` and ``<value>``
+   with the flag and value you want to set.
 
    .. index:: document; space allocation
    .. index:: usePowerOf2Sizes
@@ -29,10 +29,46 @@ collMod
       The :collflag:`usePowerOf2Sizes` flag changes the method that
       MongoDB uses to allocate space on disk for documents in this
       collection. By setting :collflag:`usePowerOf2Sizes`, you ensure
-      that MongoDB will allocates space for documents in sizes that
-      are powers of 2 (e.g. 4, 8, 16, 32, 64, 128, 512...) With this
-      option MongoDB will be able to more effectively reuse space.
+      that MongoDB will allocate space for documents in sizes that
+      are powers of 2 (e.g. 4, 8, 16, 32, 64, 128, 256, 512...8388608).
+      With this option MongoDB will be able to more effectively reuse
+      space.
 
       :collflag:`usePowerOf2Sizes` is useful for collections where you
       will be inserting and deleting large numbers of documents to
       ensure that MongoDB will effectively use space on disk.
+
+      .. example::
+
+         To enable :collflag:`usePowerOf2Sizes` on the collection
+         named ``sensor_readings``, use the following operation:
+
+         .. code-block:: javascript
+
+            db.runCommand({collMod: "sensor_readings", usePowerOf2Sizes:true })
+
+         To disable :collflag:`usePowerOf2Sizes` on the collection
+         ``products``, use the following operation:
+
+         .. code-block:: javascript
+
+            db.runCommand( { collMod: "products", "usePowerOf2Sizes": false })
+
+
+      .. warning::
+         .. versionchanged:: 2.2.1 
+            :collflag:`usePowerOf2Sizes` now
+            supports documents larger than 8 megabytes. If you enable
+            :collflag:`usePowerOf2Sizes` you **must** use at least
+            version 2.2.1.
+
+         :collflag:`usePowerOf2Sizes` only affects subsequent
+         allocations cased by document insertion or record relocation
+         as a result of document growth, and *does not* affect
+         existing allocations.
+
+         .. Commenting out the following after DOCS-717, it does take
+            a lock but its to cover a very small metadata change.
+
+            This command obtains a write lock on the affected database
+            and will block other operations until it has completed.

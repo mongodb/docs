@@ -211,18 +211,19 @@ The following command will insert the ``event`` object into the
 
 .. code-block:: pycon
 
-   >>> db.events.insert(event, safe=False)
+   >>> db.events.insert(event, w=0)
 
-By setting ``safe=False``, you do not require that MongoDB
+By setting ``w=0``, you do not require that MongoDB
 acknowledges receipt of the insert.  Although very fast, this is risky
-because the application cannot detect network and server failures.
+because the application cannot detect network and server failures. See
+:ref:`write-concern` for more information.
 
 If you want to ensure that MongoDB acknowledges inserts, you can pass
-``safe=True`` argument as follows:
+``w=1`` argument as follows:
 
 .. code-block:: pycon
 
-   >>> db.events.insert(event, safe=True)
+   >>> db.events.insert(event, w=1)
 
 MongoDB also supports a more stringent level of write concern, if you
 have a lower tolerance for data loss:
@@ -238,7 +239,7 @@ following :py:meth:`insert() <pymongo:pymongo.collection.Collection.insert>` ope
 
 .. note::
 
-   ``j=True`` implies ``safe=True``.
+   ``j=True`` implies ``w=1``.
 
 Finally, if you have *extremely low* tolerance for event data loss,
 you can require that MongoDB replicate the data to multiple
@@ -246,18 +247,19 @@ you can require that MongoDB replicate the data to multiple
 
 .. code-block:: pycon
 
-   >>> db.events.insert(event, w=2)
+   >>> db.events.insert(event, w=majority)
 
 This will force your application to acknowledge that the data has
-replicated to 2 members of the :term:`replica set`. You can combine
+replicated to a majority of configured members of the :term:`replica set`. You can combine
 options as well:
 
 .. code-block:: pycon
 
-   >>> db.events.insert(event, j=True, w=2)
+   >>> db.events.insert(event, j=True, w=majority)
 
 In this case, your application will wait for a successful journal
-commit *and* a replication acknowledgment. This is the safest option
+commit on the :term:`primary` *and* a replication acknowledgment from
+a majority of configured secondaries. This is the safest option
 presented in this section, but it is the slowest. There is always a
 trade-off between safety and speed.
 
@@ -409,7 +411,8 @@ following command:
    >>> db.events.ensure_index([('time', 1), ('host', 1)])
 
 To analyze the performance for the above query using this index, issue
-the :py:meth:`q_events.explain() <pymongo:pymongo.collection.Collection.explain>`
+the
+:py:meth:`q_events.explain() <pymongo:pymongo.cursor.Cursor.explain>`
 method in a Python console. This will return something that resembles:
 
 .. code-block:: pycon
@@ -437,7 +440,8 @@ index using the following operation:
 
    >>> db.events.ensure_index([('host', 1), ('time', 1)])
 
-Use the :py:meth:`q_events.explain() <pymongo:pymongo.collection.Collection.explain>`
+Use the
+:py:meth:`q_events.explain() <pymongo:pymongo.cursor.Cursor.explain>`
 operation to test the performance:
 
 .. code-block:: pycon
@@ -489,10 +493,10 @@ Aggregation
 
 The :term:`aggregation framework` provides the capacity for queries
 that select, process, and aggregate results from large numbers of
-documents. The :method:`aggregate()` (and :dbcommand:`aggregate`
+documents. The :method:`aggregate() <db.collection.aggregate()>` (and :dbcommand:`aggregate`
 :term:`command <database command>`) offers greater flexibility,
-capacity with less complexity than the existing :dbcommand:`mapreduce`
-and :dbcommand:`group` aggregation.
+capacity with less complexity than the existing :dbcommand:`mapReduce`
+and :dbcommand:`group` aggregation commands.
 
 Consider the following aggregation :term:`pipeline`: [#sql-aggregation-equivalents]_
 
@@ -609,7 +613,7 @@ Sharding
 
 Eventually your system's events will exceed the capacity of a single
 event logging database instance. In these situations you will want to
-use a :term:`shard cluster`, which takes advantage of MongoDB's
+use a :term:`sharded cluster`, which takes advantage of MongoDB's
 :term:`sharding` functionality. This section introduces the unique
 sharding concerns for this event logging case.
 
@@ -654,7 +658,7 @@ field, [#objid]_ would distribute your data evenly among shards, these
 keys lead to two problems:
 
 #. All inserts always flow to the same shard, which means that your
-   :term:`shard cluster` will have the same write throughput as a
+   :term:`sharded cluster` will have the same write throughput as a
    standalone instance.
 
 #. Most reads will tend to cluster on the same shard, as analytics

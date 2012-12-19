@@ -1,0 +1,254 @@
+================
+Production Notes
+================
+
+.. default-domain:: mongodb
+
+Overview
+--------
+
+This page details system configurations that affect MongoDB,
+especially in production.
+
+Backups
+-------
+
+To make backups of your MongoDB database, please refer to the
+:ref:`backups section <backup-overview>`.
+
+Networking
+----------
+
+Always run MongoDB in a *trusted environment*, with network rules that
+prevent access from *all* unknown machines, systems, or networks. As
+with any sensitive system dependent on network access, your MongoDB
+deployment should only be accessible to specific systems that require
+access: application servers, monitoring services, and other MongoDB
+components.
+
+See documents in the :doc:`/security` section for additional
+information, specifically:
+
+- :ref:`security-port-numbers`
+- :ref:`security-firewalls`
+- :doc:`/tutorial/configure-linux-iptables-firewall`
+- :doc:`/tutorial/configure-windows-netsh-firewall`
+
+MongoDB on Linux
+----------------
+
+If you use the Linux kernel, the MongoDB user community has
+recommended Linux kernel 2.6.36 or later for running MongoDB in
+production.
+
+Because MongoDB preallocates its database files before using them and
+because MongoDB uses very large files on average, your should
+use the Ext4 and XFS file systems if using the Linux kernel:
+
+- If you use the Ext4 file system, use at least version 2.6.23 of the
+  Linux Kernel.
+
+- If you use the XFS file system, use at least version 2.6.25 of the
+  Linux Kernel.
+
+For MongoDB on Linux use the following recommended configurations:
+
+- Turn off ``atime`` for the storage volume with the :term:`database
+  files <dbpath>`.
+
+- Set file descriptor limit and user process limit to 20,000,
+  according to the suggestions in :doc:`/administration/ulimit`. A low
+  ulimit will affect MongoDB when under heavy use and will produce
+  weird errors.
+
+- Do not use ``hugepages`` virtual memory pages, MongoDB performs
+  better with normal virtual memory pages.
+
+- Disable NUMA in your BIOS. If that is not possible see :ref:`NUMA
+  <production-numa>`.
+
+- Ensure that readahead settings for the block devices that store the
+  database files are acceptable. See the :ref:`Readahead
+  <production-readahead>` section
+
+- Use NTP to synchronize time between your hosts. This is especially
+  important in sharded clusters.
+
+.. _production-readahead:
+
+Readahead
+---------
+
+For random access use patterns set readahead values low, for example
+setting readahead to a small value such as 32 (16KB) often works well.
+
+.. _production-virtualization:
+
+MongoDB on Virtual Environments
+-------------------------------
+
+The section describes considerations when running MongoDB in some of the
+more common virtual environments.
+
+EC2
+~~~
+
+MongoDB is compatible with EC2 and requires no configuration changes
+specific to the environment.
+
+VMWare
+~~~~~~
+
+MongoDB is compatible with VMWare. Some in the MongoDB community have
+run into issues with the VMWare's memory overcommit feature and suggest
+disabling the feature.
+
+You can clone a virtual machine running MongoDB. You might use this to
+spin up a new virtual host that will be added as a member of a replica
+set. If Journaling is enabled, the clone snapshot will be consistent. If
+not using journaling, stop :program:`mongod`, clone, and then restart.
+
+OpenVZ
+~~~~~~
+
+The MongoDB community has encountered issues running MongoDB on OpenVZ.
+
+Disk and Storage Systems
+------------------------
+
+Swap
+~~~~
+
+Configure swap space for your systems. Having swap can prevent issues
+with memory contention and can prevent the OOM Killer on Linux systems
+from killing :program:`mongod`. Because of the way :program:`mongod`
+maps memory files to memory, the operating system will never store
+MongoDB data in swap.
+
+RAID
+~~~~
+
+Most MongoDB deployments should use disks backed by RAID-10.
+
+RAID-5 and RAID-6 do not typically provide sufficient performance to
+support a MongoDB deployment.
+
+RAID-0 provides good write performance but provides limited
+availability, and reduced performance on read operations, particularly
+using Amazon's EBS volumes: as a result, avoid RAID-0 with MongoDB
+deployments.
+
+.. _production-nfs:
+
+Remote Filesystem
+~~~~~~~~~~~~~~~~~
+
+Some versions of NFS perform very poorly with MongoDB and NFS is not
+recommended for use with MongoDB.
+
+Many MongoDB deployments work successfully with Amazon's *Elastic
+Block Store* (EBS) volumes. There are certain intrinsic performance
+characteristics, with EBS volumes that users should consider.
+
+Hardware Requirements and Limitations
+-------------------------------------
+
+MongoDB is designed specifically with commodity hardware in mind and
+has few hardware requirements or limitations. MongoDB core components
+runs on little-endian hardware primarily x86/x86_64 processors. Client
+libraries (i.e. drivers) can run on big or little endian systems.
+
+When installing hardware for MongoDB, consider the following:
+
+- As with all software, more RAM and a faster CPU clock speed are
+  important to productivity.
+
+- Because databases do not perform high amounts of computation,
+  increasing the number cores helps but does not provide a high level of
+  marginal return.
+
+- MongoDB has good results and good price/performance with SATA SSD
+  (Solid State Disk) and with PCI (Peripheral Component Interconnect).
+
+- Commodity (SATA) spinning drives are often a good option as the
+  speed increase for random I/O for more expensive drives is not that
+  dramatic (only on the order of 2x), spending that money on SSDs or
+  RAM may be more effective.
+
+.. _production-numa:
+
+MongoDB on NUMA Hardware
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB and NUMA, Non-Uniform Access Memory, do not work well
+together. When running MongoDB on NUMA hardware, disable NUMA for
+MongoDB and running with an interleave memory policy. NUMA can cause a
+number of operational problems with MongoDB, including slow
+performance for periods of time or high system processor usage.
+
+.. note::
+
+   On Linux, MongoDB version 2.0 and greater checks these
+   settings on start up and prints a warning if the system is
+   NUMA-based.
+
+To disable NUMA for MongoDB, use the ``numactl`` command and start
+:program:`mongod` in the following manner:
+
+.. code-block:: sh
+
+   numactl --interleave=all /usr/bin/local/mongod
+
+Adjust the ``proc`` settings using the following command:
+
+.. code-block:: sh
+
+   echo 0 > /proc/sys/vm/zone_reclaim_mode
+
+To fully disable NUMA you must perform both operations. However, can
+change ``zone_reclaim_mode`` without restarting mongod. For more
+information, see documentation on `Proc/sys/vm
+<http://www.kernel.org/doc/Documentation/sysctl/vm.txt>`_.
+
+See the `The MySQL “swap insanity” problem and the effects of NUMA
+<http://jcole.us/blog/archives/2010/09/28/mysql-swap-insanity-and-the-numa-architecture/>`_
+post, which describes the effects of NUMA on databases. This blog post
+addresses the impact of NUMA for MySQL; however, the issues for
+MongoDB are similar. The post introduces NUMA its goals, and
+illustrates how these goals are not compatible with production
+databases.
+
+Performance Monitoring
+----------------------
+
+iostat
+~~~~~~
+
+On Linux, use the iostat command to check if disk I/O is a bottleneck
+for your database. Specify a number of seconds when running iostat to
+avoid displaying stats covering the time since server boot.
+
+For example:
+
+.. code-block:: bash
+
+   iostat -xm 2
+
+Use the mount command to see what device your :setting:`data directory
+<dbpath>` resides on.
+
+Key fields from ``iostat``:
+
+- ``%util``: this is the most useful field for a quick check, it
+  indicates what percent of the time the device/drive is in use.
+
+- ``avgrq-sz``: average request size. Smaller number for this value
+  reflect more random IO operations.
+
+bwm-ng
+~~~~~~
+
+`bwm-ng <http://www.gropp.org/?id=projects&sub=bwm-ng>`_ is a
+command-line tool for monitoring network use. If you suspect a
+network-based bottleneck, you may use ``bwm-ng`` to begin your
+diagnostic process.

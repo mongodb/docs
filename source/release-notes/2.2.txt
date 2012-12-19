@@ -20,40 +20,33 @@ MongoDB 2.0 data files are compatible with 2.2-series binaries without any
 special migration process. However, always perform the upgrade process for replica
 sets and sharded clusters using the procedures that follow.
 
+Always upgrade to the latest point release in the 2.2 point
+release. Currently the latest release of MongoDB is |release|.
+
 Synopsis
 ~~~~~~~~
 
-- When upgrading a standalone :program:`mongod`, 2.2 is a drop-in
-  replacement.
+- :program:`mongod`, 2.2 is a drop-in replacement for 2.0 and 1.8.
 
-- For all deployments using authentication, you *must* upgrade the
+- Check your :doc:`driver </applications/drivers>` documentation for
+  information regarding required compatibility upgrades, and always
+  run the recent release of your driver.
+
+  Typically, only users running with authentication, will need to
+  upgrade drivers before continuing with the upgrade to 2.2.
+
+- For all deployments using authentication, upgrade the
   drivers (i.e. client libraries), before upgrading the
   :program:`mongod` instance or instances.
 
-.. To keep with what people are used to, we really should move the comma
-   outside the parens.
+- For all upgrades of sharded clusters:
 
-- You can upgrade the members of a replica set one-by-one
-  [#secondaries-first]_ **except** when using authentication. In
-  deployments that use authentication (i.e. where the
-  :program:`mongod` runs with :option:`--keyFile <mongod --keyfile>`),
-  you must shut down the entire set and perform the upgrade at once.
+  - turn off the balancer during the upgrade process. See the
+    :ref:`sharding-balancing-disable-temporally` section for more
+    information.
 
-  The 2.2.1 release will remove this requirement. See
-  :issue:`SERVER-6897` for more information.
-
-- For all upgrades of sharded clusters, turn off the balancer during
-  the upgrade process. See the
-  :ref:`sharding-balancing-disable-temporally` section for more
-  information.
-
-- For sharded clusters running with authentication, you must:
-
-  - First, disable the balancer and upgrade the client drivers.
-
-  - Second, upgrade all :program:`mongos` instances.
-
-  - Last, upgrade all :program:`mongod` instances.
+  - upgrade all :program:`mongos` instances before upgrading any
+    :program:`mongod` instances.
 
 Other than the above restrictions, 2.2 processes can interoperate with
 2.0 and 1.8 tools and processes. You can safely upgrade the
@@ -72,7 +65,8 @@ systems.
 Upgrading a Standalone ``mongod``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#. Download the v2.2 binaries from the `MongoDB Download Page`_.
+#. Download binaries of the latest release in the 2.2 series from the
+   `MongoDB Download Page`_.
 
 #. Shutdown your :program:`mongod` instance. Replace the existing
    binary with the 2.2 :program:`mongod` binary and restart MongoDB.
@@ -84,15 +78,7 @@ Upgrading a Standalone ``mongod``
 Upgrading a Replica Set
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-For replica sets running with authentication, (i.e. :option:`--keyFile
-<mongod --keyFile>`), upgrade the entire set to
-2.2 at once. Shut down all :program:`mongod` instances in the set
-cleanly, upgrade the binaries, and then restart all instances.
-
-The 2.2.1 release, will remove this "hard" upgrade requirement, see
-:issue:`SERVER-6897`.
-
-If your set does not run with authentication, you perform a "rolling"
+You can upgrade to 2.2 by performing a "rolling"
 upgrade of the set by upgrading the members individually while the
 other members are available to minimize downtime. Use the following
 procedure:
@@ -124,9 +110,10 @@ procedure:
       a predefined maintenance window.
 
 .. _2.2-upgrade-shard-cluster:
+.. _2.2-upgrade-sharded-cluster:
 
-Upgrading a Shard Cluster
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Upgrading a Sharded Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Use the following procedure to upgrade a sharded cluster:
 
@@ -210,17 +197,22 @@ Improved Data Center Awareness with Tag Aware Sharding
 ``````````````````````````````````````````````````````
 
 MongoDB 2.2 adds additional support for geographic distribution or
-other custom partitioning for sharded collections in :term:`shard
-clusters <shard cluster>`.  By using this "tag aware" sharding, you
-can automatically ensure that data in a sharded database system is
-always on specific shards. For example, with tag aware sharding, you
-can ensure that data is closest to the application servers that use
-that data most frequently.
+other custom partitioning for sharded collections in :term:`clusters
+<sharded cluster>`. By using this "tag aware" sharding, you can
+automatically ensure that data in a sharded database system is always
+on specific shards. For example, with tag aware sharding, you can
+ensure that data is closest to the application servers that use that
+data most frequently.
+
+.. todo When draft/core/write-operations.txt goes live, change this below:
+   write-concern
+   to
+   write-operations-write-concern
 
 Shard tagging controls data location, and is complementary but
 separate from replica set tagging, which controls :ref:`read
 preference <replica-set-read-preference>` and :ref:`write concern
-<replica-set-write-concern>`. For example, shard tagging can pin all
+<write-concern>`. For example, shard tagging can pin all
 "USA" data to one or more logical shards, while replica set tagging
 can control which :program:`mongod` instances (e.g. "``production``"
 or "``reporting``") the application uses to service requests.
@@ -244,7 +236,7 @@ support for a full range of :ref:`read preference modes
 <replica-set-read-preference-modes>` and :ref:`tag sets
 <replica-set-read-preference-tag-sets>`. This support extends to the
 :program:`mongos` and applies identically to single replica sets and
-to the replica sets for each shard in a :term:`shard cluster`.
+to the replica sets for each shard in a :term:`sharded cluster`.
 
 Additional read preference support now exists in the :program:`mongo`
 shell using the :method:`readPref() <cursor.readPref()>` cursor method.
@@ -268,7 +260,7 @@ If your cluster runs with authentication:
 
 - In sharded environments,
   to ensure that your cluster remains available during the upgrade
-  process you **must** use the :ref:`upgrade procedure for shard clusters
+  process you **must** use the :ref:`upgrade procedure for sharded clusters
   <2.2-upgrade-shard-cluster>`.
 
 .. _2.2-findandmodify-returns-null:
@@ -300,8 +292,97 @@ database.
 
 See: :issue:`SERVER-6961` for more information.
 
+.. _2.2-ObjectId-toString-valueOf-methods:
+
+``ObjectId().toString()`` Returns String Literal ``ObjectId("...")``
+````````````````````````````````````````````````````````````````````
+
+In version 2.2, the :method:`ObjectId.toString()` method returns the
+string representation of the :ref:`ObjectId() <core-object-id-class>`
+object and has the format ``ObjectId("...")``.
+
+Consider the following example that calls the :method:`toString()
+<ObjectId.toString()>` method on the
+``ObjectId("507c7f79bcf86cd7994f6c0e")`` object:
+
+.. code-block:: javascript
+
+   ObjectId("507c7f79bcf86cd7994f6c0e").toString()
+
+The method now returns the *string*
+``ObjectId("507c7f79bcf86cd7994f6c0e")``.
+
+Previously, in version 2.0, the method would return the *hexadecimal
+string* ``507c7f79bcf86cd7994f6c0e``.
+
+If compatibility between versions 2.0 and 2.2 is required, use
+:ref:`ObjectId().str <core-object-id-class>`, which holds the
+hexadecimal string value in both versions.
+
+``ObjectId().valueOf()`` Returns hexadecimal string
+```````````````````````````````````````````````````
+
+In version 2.2, the :method:`ObjectId.valueOf()` method returns the
+value of the :ref:`ObjectId() <core-object-id-class>` object as a
+lowercase hexadecimal string.
+
+Consider the following example that calls the :method:`valueOf()
+<ObjectId.valueOf()>` method on the
+``ObjectId("507c7f79bcf86cd7994f6c0e")`` object:
+
+.. code-block:: javascript
+
+   ObjectId("507c7f79bcf86cd7994f6c0e").valueOf()
+
+The method now returns the *hexadecimal string*
+``507c7f79bcf86cd7994f6c0e``.
+
+Previously, in version 2.0, the method would return the *object*
+``ObjectId("507c7f79bcf86cd7994f6c0e")``.
+
+If compatibility between versions 2.0 and 2.2 is required, use
+:ref:`ObjectId().str <core-object-id-class>` attribute, which holds the
+hexadecimal string value in both versions.
+
 Behavioral Changes
 ~~~~~~~~~~~~~~~~~~
+
+.. _rn-2.2-collection-name-restriction:
+
+Restrictions on Collection Names
+````````````````````````````````
+
+In version 2.2, collection names cannot:
+
+- contain the ``$``.
+
+- be an empty string (e.g. ``""``).
+
+This change does not affect collections created with now illegal names
+in earlier versions of MongoDB.
+
+These new restrictions are in addition to the existing restrictions on
+collection names which are:
+
+- A collection name should begin with a letter or an underscore.
+
+- A collection name cannot contain the null character.
+
+- Begin with the ``system.`` prefix. MongoDB
+  reserves ``system.``
+  for system collections, such as the
+  ``system.indexes`` collection.
+
+- The maximum size of a collection name is 128 characters, including
+  the name of the database. However, for maximum flexibility,
+  collections should have names less than 80 characters.
+
+Collections names may have any other valid UTF-8 string.
+
+See the :issue:`SERVER-4442` and the
+:ref:`faq-restrictions-on-collection-names` FAQ item.
+
+.. _rn-2.2-database-name-restriction-windows:
 
 Restrictions on Database Names for Windows
 ``````````````````````````````````````````
@@ -538,7 +619,7 @@ See the documentation of the :dbcommand:`compact` and the
 Added Build Flag to Use System Libraries
 ````````````````````````````````````````
 
-The Boost library, version 1.49, is now embeded in the MongoDB
+The Boost library, version 1.49, is now embedded in the MongoDB
 code base.
 
 If you want to build MongoDB binaries using system Boost libraries,
@@ -660,7 +741,7 @@ information.
 Licensing Changes
 -----------------
 
-Added License notice for Google Perftools (TCMalloc Utility.) See the
+Added License notice for Google Perftools (TCMalloc Utility). See the
 `License Notice <https://github.com/mongodb/mongo/blob/v2.2/distsrc/THIRD-PARTY-NOTICES#L231>`_
 and the :issue:`SERVER-4683` for more information.
 
@@ -675,8 +756,17 @@ Resources
 
 - `All Third Party License Notices <https://github.com/mongodb/mongo/blob/v2.2/distsrc/THIRD-PARTY-NOTICES>`_
 
-- What's New in MongoDB 2.2 Online Conference:
+What's New in MongoDB 2.2 Online Conference
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  - `Video <http://www.justin.tv/mongodb/b/332846443>` (fast-forward to 2:30)
+- `Introduction and Welcome <http://www.10gen.com/presentations/webinar/whats-new-mongodb-2-dot-2-introduction>`_
 
-  -  `Slides <http://www.slideshare.net/mongodb/mongodb-online-conference-introducing-mongodb-22>`
+- `The Aggregation Framework <http://www.10gen.com/presentations/webinar/what's-new-mongodb-2-dot-2-aggregation>`_
+
+- `Concurrency <http://www.10gen.com/presentations/webinar/what's-new-mongodb-2-dot-2-concurrency>`_
+
+- `Data Center Awareness <http://www.10gen.com/presentations/webinar/what's-new-mongodb-2-dot-2-data>`_
+
+- `TTL Collections <http://www.10gen.com/presentations/webinar/what's-new-mongodb-2-dot-2-ttl>`_
+
+- `Closing Remarks and Q&A <http://www.10gen.com/presentations/webinar/what's-new-mongodb-2-dot-2-closing>`_

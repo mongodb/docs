@@ -7,109 +7,77 @@ Application Development with Replica Sets
 From the perspective of a client application, whether a MongoDB
 instance is running as a single server (i.e. "standalone") or a :term:`replica set`
 is transparent. However, replica sets
-offer some configuration options for write and read operations. [#shard-clusters]_
+offer some configuration options for write and read operations. [#sharded-clusters]_
 This document describes those options and their implications.
 
-.. [#shard-clusters] :term:`Shard clusters <shard cluster>` where the
+.. [#sharded-clusters] :term:`Sharded clusters <sharded cluster>` where the
    shards are also replica sets provide the same configuration options
    with regards to write and read operations.
 
-.. the :ref:`write-concern` tag is here for the moment. At some point
-   we'll break this into its own document.
-
-.. _write-concern:
 .. _replica-set-write-concern:
 
 Write Concern
 -------------
 
-When a :term:`client` sends a write operation to a database server, the
-operation returns without waiting for the operation to succeed or
-complete by default. To check if write operations have succeeded, use the
-:dbcommand:`getLastError` command. :dbcommand:`getLastError` supports the following options
-that allow you to tailor the level of "write concern" provided by the
-command's return or acknowledgment:
+MongoDB's built-in :term:`write concern` confirms the success of write
+operations to a :term:`replica set's <replica set>` :term:`primary`.
+Write concern issues the :dbcommand:`getLastError` command after write
+operations to return an object with error information or confirmation
+that there are no errors.
 
-- no options.
+The MongoDB Fall 2012 driver release enables write concern by default.
 
-  Confirms that the :program:`mongod` instance received the write
-  operations. When your application receives this response, the
-  :program:`mongod` instance has committed the write operation to the
-  in-memory representation of the database. This provides a simple and
-  low-latency level of write concern and will allow your application
-  to detect situations where the :program:`mongod` instance becomes
-  inaccessible or insertion errors caused by :ref:`duplicate key
-  errors <index-type-unique>`.
+When enabled by default, write concern confirms write operations only on the primary.
+You can configure write concern to confirm write operations to
+additional replica set members as well by issuing the
+:dbcommand:`getLastError` command with the ``w`` option.
 
-- ``j`` or "journal" option.
+The ``w`` option confirms that write operations have replicated to the
+specified number of replica set members, including the primary. You can
+either specify a number or specify ``majority``, which ensures the write
+propagates to a majority of set members. The following example ensures
+the operation has replicated to two members (the primary and one other
+member):
 
-  Confirms the above, and that the :program:`mongod` instance has
-  written the data to the on-disk journal. This ensures that the data
-  is durable if :program:`mongod` or the server itself crashes or
-  shuts down unexpectedly.
+.. code-block:: javascript
 
-- ``fsync`` option.
+   db.runCommand( { getLastError: 1, w: 2 } )
 
-  .. deprecated:: 1.8
-
-  Do not use the ``fsync`` option. Confirms that the :program:`mongod`
-  has flushed the in-memory representation of the data to the
-  disk. Instead, use the ``j`` option to ensure durability.
-
-- ``w`` option. Only use with replica sets.
-
-  Confirms that the write operation has replicated to the specified
-  number of replica set members. You may specify a specific number of
-  servers *or* specify ``majority`` to ensure that the write
-  propagates to a majority of set members. The default value of ``w``
-  is ``1``.
-
-You may combine multiple options, such as ``j`` and ``w``, into a
-single :dbcommand:`getLastError` operation.
-
-Many drivers have a "safe" mode or "write concern" that automatically
-issues :dbcommand:`getLastError` after write operations to ensure
-the operations complete. Safe mode provides confirmation of
-write operations, but safe writes can take longer
-to return and are not required in all applications. Consider the
-following operations:
+The following example ensures the write operation has replicated to a
+majority of the configured members of the set.
 
 .. code-block:: javascript
 
    db.runCommand( { getLastError: 1, w: "majority" } )
-   db.getLastErrorObj("majority")
 
-These equivalent :dbcommand:`getLastError` operations ensure that write
-operations return only after a write operation has replicated to a
-majority of the members of the set.
+If you specify a ``w`` value greater than the number of members that
+hold a copy of the data (i.e., greater than the number of
+non-:term:`arbiter` members), the operation blocks until those members
+become available. This can cause the operation to block forever. To
+specify a timeout threshold for the :dbcommand:`getLastError` operation,
+use the ``wtimeout`` argument. The following example sets the timeout to
+5000 milliseconds:
 
-.. note::
+.. code-block:: javascript
 
-   If you specify a ``w`` value greater than the number of available
-   non-:term:`arbiter` replica set members, the operation will block
-   until those members become available. This could cause the
-   operation to block forever. To specify a timeout threshold for the
-   :dbcommand:`getLastError` operation, use the ``wtimeout`` argument.
+   db.runCommand( { getlasterror: 1, w: 2, wtimeout:5000 } )
 
-You can also configure your own "default" :dbcommand:`getLastError` behavior
-for the replica set. Use the :data:`settings.getLastErrorDefaults`
-setting in the :doc:`replica set configuration
-</reference/replica-configuration>`. For instance:
+You can configure your own "default" :dbcommand:`getLastError` behavior
+for a replica set. Use the :data:`settings.getLastErrorDefaults` setting
+in the :doc:`replica set configuration
+</reference/replica-configuration>`. The following sequence of commands
+creates a configuration that waits for the write operation to complete
+on a majority of the set members beforBe returning:
 
 .. code-block:: javascript
 
    cfg = rs.conf()
-   cfg.settings.getLastErrorDefaults = {w: "majority", j: true}
+   cfg.settings = {}
+   cfg.settings.getLastErrorDefaults = {w: "majority"}
    rs.reconfig(cfg)
 
-When the new configuration is active, the :dbcommand:`getLastError`
-operation waits for the write operation to complete on a majority
-of the set members before returning. Specifying ``j: true`` makes
-:dbcommand:`getLastError` wait for a complete commit of the
-operations to the journal before returning.
-
-The :data:`getLastErrorDefaults` setting only affects :dbcommand:`getLastError`
-commands with *no* other arguments.
+The :data:`settings.getLastErrorDefaults` setting affects only those
+:dbcommand:`getLastError` commands that have *no* other arguments.
 
 .. note::
 
@@ -123,12 +91,13 @@ commands with *no* other arguments.
 
 .. _replica-set-read-preference:
 .. _slaveOk:
+.. _read-preference:
 
 Read Preference
 ---------------
 
 Read preference describes how MongoDB clients route read operations to
-:term:`secondary` members of a :term:`replica set`.
+members of a :term:`replica set`.
 
 .. index:: read preference; background
 .. _replica-set-read-preference-background:
@@ -140,8 +109,8 @@ By default, an application directs its read operations to the :term:`primary`
 member in a :term:`replica set`. Reading from the primary guarantees that
 read operations reflect the latest version of a document. However,
 for an application that does not require fully up-to-date data, you
-can improve read throughput by distributing some or all reads to
-secondary members of the replica set.
+can improve read throughput, or reduce latency, by distributing some or all
+reads to secondary members of the replica set.
 
 The following are use cases where you might use secondary reads:
 
@@ -162,7 +131,7 @@ The following are use cases where you might use secondary reads:
 MongoDB :term:`drivers <driver>` allow client applications to configure
 a :term:`read preference` on a per-connection, per-collection, or
 per-operation basis. For more information about secondary read
-operations in the :program:`mongo` shell, see the :method:`rs.slaveOk()`
+operations in the :program:`mongo` shell, see the :method:`readPref() <cursor.readPref()>`
 method. For more information about a driver's read preference
 configuration, see the appropriate :ref:`driver` API documentation.
 
@@ -171,15 +140,15 @@ configuration, see the appropriate :ref:`driver` API documentation.
    Read preferences affect how an application selects which member
    to use for read operations. As a result read
    preferences dictate if the application receives stale or
-   current data from MongoDB. Use appropriate :ref:`write concern
-   <replica-set-write-concern>` policies to ensure proper data
-   replication and constancy.
+   current data from MongoDB. Use appropriate :term:`write concern`
+   policies to ensure proper data
+   replication and consistency.
 
    If read operations account for a large percentage of your
    application's traffic, distributing reads to secondary members can
    improve read throughput. However, in most cases :doc:`sharding
    </core/sharding>` provides better support for larger scale
-   operations, as shard clusters can distribute read and write
+   operations, as clusters can distribute read and write
    operations across a group of machines.
 
 .. index:: read preference; semantics
@@ -192,7 +161,7 @@ Read Preference Modes
 
 .. versionadded:: 2.2
 
-MongoDB drivers :doc:`drivers </applications/drivers>` support five
+MongoDB :doc:`drivers </applications/drivers>` support five
 read preference modes:
 
 - :readmode:`primary`
@@ -201,13 +170,12 @@ read preference modes:
 - :readmode:`secondaryPreferred`
 - :readmode:`nearest`
 
-You can specify a read preference mode on a per-collection or
-per-operation basis. The syntax for specifying the read preference
-mode is :api:`specific to the driver and to the idioms of the host
-language <>`.
+You can specify a read preference mode on connection objects, database object,
+collection object, or per-operation. The syntax for specifying the read
+preference mode is :api:`specific to the driver and to the idioms of the host language <>`.
 
 Read preference modes are also available to clients connecting to a
-:term:`shard cluster` through a :program:`mongos`. The
+:term:`sharded cluster` through a :program:`mongos`. The
 :program:`mongos` instance obeys specified read preferences when
 connecting to the :term:`replica set` that provides each :term:`shard`
 in the cluster.
@@ -330,7 +298,7 @@ behavior <replica-set-read-preference-behavior>`. See also the
       member's :term:`primary` or :term:`secondary` status.
 
       For :readmode:`nearest`, the client assembles a list of
-      acceptble hosts based on tag set and then narrows that list to
+      acceptable hosts based on tag set and then narrows that list to
       the host with the shortest ping time and all other members of
       the set that are within the "local threshold," or acceptable
       latency. See :ref:`replica-set-read-preference-behavior-nearest`
@@ -368,8 +336,8 @@ set for a read operation may resemble the following:
 
    { "disk": "ssd", "use": "reporting" }
 
-To fulfill the request, a member would need to have both of these tag
-sets. Therefore the following tag sets, would satisfy this
+To fulfill the request, a member would need to have both of these tags.
+Therefore the following tag sets, would satisfy this
 requirement:
 
 .. code-block:: javascript
@@ -388,7 +356,6 @@ However, the following tag sets would *not* be able to fulfill this query:
    { "disk": "ssd", "use": "production" }
    { "disk": "ssd", "use": "production", "rack": 3 }
    { "disk": "spinning", "use": "reporting", "mem": "32" }
-
 
 Therefore, tag sets make it possible to ensure that read operations
 target specific members in a particular data center or
@@ -472,7 +439,7 @@ As a result, MongoDB drivers and :program:`mongos`:
 
   After this error, the driver selects a new member using the
   specified read preference mode. In the absence of a specified read
-  preference, the driver uses :readmode:`PRIMARY`.
+  preference, the driver uses :readmode:`primary`.
 
 - After detecting a failover situation, [#fn-failover]_ the driver
   attempts to refresh the state of the replica set as quickly as
@@ -528,9 +495,9 @@ lifetime.
 Member Selection
 ````````````````
 
-Both clients, by way of their drivers, and :program:`mongos` instances for
-shard clusters send periodic "ping," messages to all member of the
-replica set to determine latency from the application to each
+Clients, by way of their drivers, and :program:`mongos` instances for
+sharded clusters periodically update their view of the set's state: which
+members are up or down, which is primary, and the latency to each
 :program:`mongod` instance.
 
 For any operation that targets a member *other* than the
@@ -538,6 +505,8 @@ For any operation that targets a member *other* than the
 
 #. Assembles a list of suitable members, taking into account member type
    (i.e. secondary, primary, or all members.)
+
+#. Excludes members not matching the tag sets, if specified.
 
 #. Determines which suitable member is the closest to the
    client in absolute terms.
@@ -555,8 +524,9 @@ for more information.
 
 .. [#acceptable-secondary-latency] Applications can configure the
    threshold used in this stage. The default "acceptable latency" is
-   15 milliseconds. For :program:`mongos` you can use the
-   :option:`--localThreshold <mongos --localThreshold>` or
+   15 milliseconds, which you can override in the drivers with their own
+   ``secondaryAcceptableLatencyMS`` option.
+   For :program:`mongos` you can use the :option:`--localThreshold <mongos --localThreshold>` or
    :setting:`localThreshold` runtime options to set this value.
 
 .. index:: read preference; sharding
@@ -571,12 +541,12 @@ Sharding and ``mongos``
    Before version 2.2, :program:`mongos` did not support the
    :ref:`read preference mode semantics <replica-set-read-preference-modes>`.
 
-In most :term:`shard clusters <shard cluster>`, a :term:`replica set`
+In most :term:`sharded clusters <sharded cluster>`, a :term:`replica set`
 provides each shard where read preferences are also applicable. Read
-operations in a shard cluster, with regard to read preference, are
+operations in a sharded cluster, with regard to read preference, are
 identical to unsharded replica sets.
 
-Unlike simple replica sets, in shard clusters, all interactions with
+Unlike simple replica sets, in sharded clusters, all interactions with
 the shards pass from the clients to the :program:`mongos` instances
 that are actually connected to the set members. :program:`mongos` is
 responsible for the application of the read preferences, which is
@@ -626,6 +596,10 @@ for the following commands:
    otherwise these operations must run on the :term:`primary`
    members.
 
+:program:`mongos` currently does not route commands using read
+preferences; clients send all commands to shards' primaries. See
+:issue:`SERVER-7423`.
+
 Uses for non-Primary Read Preferences
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -639,12 +613,11 @@ using non-:readmode:`primary` read preference modes:
 - Reporting and analytics workloads.
 
   Having these queries target a :term:`secondary` helps distribute
-  load and prevent these operations from affecting the primary
-  workload of the primary.
+  load and prevent these operations from affecting the main workload
+  of the primary.
 
   Also consider using :readmode:`secondary` in conjunction with a
-  direct connection to a :ref:`hidden member
-  <replica-set-hidden-members>` of the set.
+  direct connection to a :ref:`hidden member <replica-set-hidden-members>` of the set.
 
 - Providing local reads for geographically distributed applications.
 
@@ -653,6 +626,25 @@ using non-:readmode:`primary` read preference modes:
   <replica-set-geographical-distribution>` and using a non primary
   read preference or the :readmode:`nearest` to avoid network
   latency.
+
+- Maintaining availability during a failover.
+
+  Use :readmode:`primaryPreferred` if you want your application to do
+  consistent reads from the primary under normal circumstances, but to
+  allow stale reads from secondaries in an emergency. This provides a
+  "read-only mode" for your application during a failover.
+
+.. warning::
+
+   In some situations using :readmode:`secondaryPreferred` to
+   distribute read load to replica sets may carry significant
+   operational risk: if all secondaries are unavailable and your set
+   has enough :term:`arbiters <arbiter>` to prevent the primary from
+   stepping down, then the primary will receive all traffic from
+   clients.
+
+   For this reason, use :readmode:`secondary` to distribute read load
+   to replica sets, not :readmode:`secondaryPreferred`.
 
 Using read modes other than :readmode:`primary` and
 :readmode:`primaryPreferred` to provide extra capacity is not in and

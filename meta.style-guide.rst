@@ -157,7 +157,7 @@ Referencing
 
   Type this:
 
-  To deploy a shard cluster for an existing replica set, see
+  To deploy a sharded cluster for an existing replica set, see
   :doc:`/tutorial/convert-replica-set-to-replicated-shard-cluster`.
 
 General Formulations
@@ -227,7 +227,7 @@ ReStructured Text and Typesetting
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Use spaces between nesting parentheticals (and elements) in
-  JavScript examples. For example, prefer "``{ [ a, a, a ] }``" over
+  JavaScript examples. For example, prefer "``{ [ a, a, a ] }``" over
   "``{[a,a,a]}``".
 
 - For underlines associated with headers in RST, use:
@@ -247,6 +247,8 @@ ReStructured Text and Typesetting
   target name for ease of use. For instance a footnote tag may look
   like: "``[#note]_``" with the corresponding directive holding the
   body of the footnote that resembles the following: "``.. [#note]``".
+  
+  Do **not** include "``.. code-block:: [language]``" in footnotes.
 
 - As it makes sense, use the "``.. code-block:: [language]``" form to
   insert literal blocks into the text. While the double colon,
@@ -277,7 +279,7 @@ disk.)
 Distributed System Terms
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Refer to partitioned systems as "shard clusters," over other
+- Refer to partitioned systems as "sharded clusters," over other
   variants. (e.g. sharded clusters, or sharded systems.)
 
 - Refer configurations that run with replication as "replica sets" (or
@@ -317,7 +319,7 @@ Notes on Specific Features
 Other Terms
 ~~~~~~~~~~~
 
-- Use "**shard cluster**," to refer to a collection of ``mongod``
+- Use "**sharded cluster**," to refer to a collection of ``mongod``
   instances that hold a sharded data set. Use the term "**replica
   set**," to refer to a collection of ``mongod`` instances that
   provide a replicated data set. Do not use the word "cluster" to

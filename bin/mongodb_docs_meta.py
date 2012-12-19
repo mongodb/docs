@@ -1,15 +1,12 @@
 #!/usr/bin/python
-"""
-This module defines a class.
-"""
 
-import subprocess
+import datetime 
 import re
+import subprocess
 
-MANUAL_BRANCH = "manual"
+MANUAL_BRANCH = 'manual'
 
 def shell_value( args ):
-    import subprocess
     if isinstance( args , str ):
         r = re.compile( "\s+" )
         args = r.split( args )
@@ -18,23 +15,28 @@ def shell_value( args ):
     value = r[0].decode().rstrip()
     return value
 
-class VersionMeta():
-    def __init__(self):
-        self.branch = shell_value('git symbolic-ref HEAD').split('/')[2]
-        self.commit = shell_value('git rev-parse --verify HEAD')
-        
-        if self.branch == MANUAL_BRANCH:
-            self.manual_path = "manaul"
-        else:
-            self.manual_path = self.branch
+def get_manual_path():
+    branch = shell_value('git symbolic-ref HEAD').split('/')[2]
+    if branch == MANUAL_BRANCH:
+        manual_path = MANUAL_BRANCH
+    else:
+        manual_path = branch
+
+    return manual_path
+
+def get_commit():
+    return shell_value('git rev-parse --verify HEAD')
+
+def get_branch():
+    return shell_value('git symbolic-ref HEAD').split('/')[2]
 
 def main():
-    meta = VersionMeta()
     BREAK = "\n"
 
     print("MongoDB Manual:" + BREAK +
-          "     Commit: " + meta.commit + BREAK +
-          "     Branch: " + meta.branch)
+          "     Commit: " + meta_commit() + BREAK +
+          "     Branch: " + meta_branch() + BREAK + 
+          "     Year: " + str(datetime.date.today().year))
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

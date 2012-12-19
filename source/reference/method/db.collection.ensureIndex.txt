@@ -20,6 +20,9 @@ db.collection.ensureIndex()
       characters. See the :method:`db.collection.getIndexes()` field
       ":data:`name`" for the names of existing indexes.
 
+   .. see:: The :doc:`/indexes` section of this manual for full
+      documentation of indexes and indexing in MongoDB.
+
    Creates an index on the field specified, if that index does not
    already exist. If the ``keys`` document specifies more than one
    field, than :method:`db.collection.ensureIndex()` creates a :term:`compound
@@ -47,18 +50,37 @@ db.collection.ensureIndex()
    The available options, possible values, and the default settings
    are as follows:
 
-   ==================== =================  =========
-    Option                Value             Default
-   ==================== =================  =========
-    background           true or false      false
-    unique               true or false      false
-    name                 string             none
-    cache                true or false      true
-    dropDups             true or false      false
-    sparse               true or false      false
-    expireAfterSeconds   integer            none
-    v                    index version.     1 [#]_
-   ==================== =================  =========
+   .. list-table::
+      :header-rows: 1
+
+      * - **Option**
+        - **Plugin**
+        - **Default**
+          
+      * - background
+        - ``true`` or ``false``
+        - ``false``
+      * - unique
+        - ``true`` or ``false``
+        - ``false``
+      * - name
+        - string
+        - none
+      * - cache
+        - ``true`` or ``false``
+        - ``true``
+      * - dropDups
+        - ``true`` or ``false``
+        - ``false``
+      * - sparse
+        - ``true`` or ``false``
+        - ``false``
+      * - expireAfterSeconds
+        - integer
+        - none
+      * - v
+        - index version
+        - 1
 
    :option Boolean background: Specify ``true`` to build the index
                                in the background so that building an
@@ -72,9 +94,9 @@ db.collection.ensureIndex()
                            index.
 
    :option string name: Specify the name of the index. If unspecified,
-                        MongoDB will generate an index name by concatenating 
+                        MongoDB will generate an index name by concatenating
                         the names of the indexed fields and the sort order.
-                        
+
    :option Boolean cache: Specify ``false`` to prevent caching of this
                           :method:`db.collection.ensureIndex()` call in
                           the index cache.
@@ -82,8 +104,10 @@ db.collection.ensureIndex()
    :option Boolean dropDups: Specify ``true`` when creating a unique
                              index, on a field that *may* have
                              duplicate to index only the first
-                             occurrence of a key, and ignore
-                             subsequent occurrences of that key.
+                             occurrence of a key, and **remove** all
+                             documents from the collection that
+                             contain subsequent occurrences of that
+                             key.
 
    :option Boolean sparse: If ``true``, the index only references
                            documents with the specified field. These
@@ -103,7 +127,32 @@ db.collection.ensureIndex()
               situations. The latest index version (version 1) provides a smaller
               and faster index format.
 
-   .. STUB .. seealso:: ":doc:`/core/indexing`."
+   Please be aware of the following behaviors of
+   :method:`ensureIndex() <db.collection.ensureIndex()>`:
+
+   - To add or change index options you must drop the index using the
+     :method:`db.collection.dropIndex()` and issue another
+     :method:`ensureIndex() <db.collection.ensureIndex()>` operation
+     with the new options.
+
+     If you create an index with one set of options, and then issue
+     :method:`ensureIndex() <db.collection.ensureIndex()>` method
+     command with the same index fields and different options without
+     first dropping the index, :method:`ensureIndex()
+     <db.collection.ensureIndex()>` will *not* rebuild the existing
+     index with the new options.
+
+   - If you call multiple :method:`ensureIndex() <db.collection.ensureIndex()>`
+     methods with the same index specification at the same time, only
+     the first operation will succeed, all other operations will have
+     no effect.
+
+   - Non-background indexing operations will block all other
+     operations on a database.
+
+   - You cannot stop a foreground index build once it's begun. See the
+     :ref:`indexes-admin-stop-in-progress-build` for more
+     information.
 
    .. [#] The default index version depends on the version of
       :program:`mongod` running when creating the index. Before version

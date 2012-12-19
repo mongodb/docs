@@ -8,7 +8,7 @@ Synopsis
 --------
 
 This document describes how to add a :term:`shard` to an
-existing :term:`shard cluster`. As your
+existing :term:`sharded cluster`. As your
 data set grows you must add additional shards to a cluster to provide
 additional capacity. For additional sharding
 procedures, see :doc:`/administration/sharding`.
@@ -48,14 +48,28 @@ Or you can use the :method:`sh.addShard()` helper in the
 Replace ``[hostname]`` and ``[port]`` with the hostname and TCP
 port number of where the shard is accessible.
 
+.. warning::
+
+   Do not use ``localhost`` for the hostname unless your
+   :term:`configuration server <config database>`
+   is also running on ``localhost``.
+
 For example:
 
 .. code-block:: javascript
 
    sh.addShard( "mongodb0.example.net:27027" )
 
-MongoDB will discover all other members of the replica set, if
-``mongodb0.example.net:27027`` is a member of a replica set.
+If ``mongodb0.example.net:27027`` is a member of a replica
+set, call the :method:`sh.addShard()` method with an argument that
+resembles the following:
+
+.. code-block:: javascript
+
+   sh.addShard( "<setName>/mongodb0.example.net:27027" )
+
+Replace, ``<setName>`` with the name of the replica set, and
+MongoDB will discover all other members of the replica set.
 
 .. note:: In production deployments, all shards should be replica sets.
 
@@ -80,15 +94,16 @@ Repeat this step for each shard in your cluster.
 .. optional::
 
    You may specify a "name" as an argument to the
-   :dbcommand:`addShard` and :method:`sh.addShard()`, as follows:
+   :dbcommand:`addShard`, follows:
 
    .. code-block:: javascript
 
       db.runCommand( { addShard: mongodb0.example.net, name: "mongodb0" } )
-      sh.addShard( mongodb0.example.net, name: "mongodb0" )
 
-   If you do not specify a shard name, then MongoDB assigns a
-   name upon creation.
+   You cannot specify a name for a shard using the
+   :method:`sh.addShard()` helper in the :program:`mongo` shell. If
+   you use the helper or do not specify a shard name, then MongoDB
+   will assign a name upon creation.
 
 .. note::
 
