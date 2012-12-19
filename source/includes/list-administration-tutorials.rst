@@ -33,6 +33,7 @@ Basic Operations
 - :doc:`/tutorial/expire-data`
 - :doc:`/tutorial/manage-the-database-profiler`
 - :doc:`/tutorial/rotate-log-files`
+- :doc:`/tutorial/roll-back-to-v1.8-index`
 
 Security
 ~~~~~~~~
