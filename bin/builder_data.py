@@ -87,6 +87,7 @@ tables = [
      ('$(rst-include)/table-sql-to-mongo-update-examples', 'sql'),
      ('$(rst-include)/table-sql-to-mongo-delete-examples', 'sql'),
      ('$(rst-include)/table-lock-behavior-per-operation', 'concurrency'),
+     ('$(rst-include)/table-mongodb-extended-json', 'json'),
 ]
 
 sphinx = [
