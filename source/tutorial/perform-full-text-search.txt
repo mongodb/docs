@@ -1,0 +1,65 @@
+==================
+Search on Keywords
+==================
+
+.. default-domain:: mongodb
+
+To set up searches based on keywords, create an array field in
+your documents and add the keywords as strings in the array. You
+can then create a :ref:`multi-key index <index-type-multi-key>` on the
+array and create queries that search the array's values.
+
+.. example::
+
+   Suppose you have a collection of library volumes that you want to
+   make searchable by topics. For each volume, you add the array
+   ``topics``, and you add as many keywords as needed for a given
+   volume.
+
+   For the ``Moby-Dick`` volume you might have the following document:
+
+   .. code-block:: javascript
+
+      { title : "Moby-Dick" ,
+        author : "Herman Melville" ,
+        published : 1851 ,
+        ISBN : 0451526996 ,
+        topics : [ "whaling" , "allegory" , "revenge" , "American" ,
+          "novel" , "nautical" , "voyage" , "Cape Cod" ]
+      }
+
+   You then create a multi-key index on the ``topics`` array:
+
+   .. code-block:: javascript
+
+      db.volumes.ensureIndex( { topics: 1 } )
+
+   The multi-key index creates separate index entries for each keyword in
+   the ``topics`` array. For example the index contains one entry for
+   ``whaling`` and another for ``allegory``.
+
+   You then query based on the keywords. For example:
+
+   .. code-block:: javascript
+
+      print(db.volumes.findOne( { topics : "voyage" } ).title)
+
+.. note:: An array with many elements (hundreds or thousands) will incur
+   greater insert costs.
+
+Limitations of Keyword Indexing
+-------------------------------
+
+MongoDB makes keyword search easy, though differs from dedicated
+full-text search engines. Dedicated full-text engines provide the
+following:
+
+- Built-in text stemming.
+
+- Ranking of queries matching various numbers of terms. This can be done
+  with MongoDB but requires user supplied code to do so.
+
+- Bulk index building. Bulk index building makes building indexes fast
+  but has the downside of not being in real time. MongoDB is
+  particularly well suited for problems where the search should be done
+  in real time.
