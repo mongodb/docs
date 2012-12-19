@@ -101,3 +101,148 @@ active document in memory.
 
 For best performance, the majority of your *active* set should fit in
 RAM.
+
+Why are the files in my data directory larger than the data in my database?
+---------------------------------------------------------------------------
+
+The data files in your data directory, which is the ``/data/db``
+directory in default configurations, might be larger than the data set
+inserted into the database. This is caused by pre-allocated files and by
+empty blocks, as explained here.
+
+- Preallocated data files
+
+  In the data directory, MongoDB preallocates data files to a particular
+  size, in part to prevent file system fragmentation. The first filename
+  for a data file is ``<databasename>.0``, the next
+  ``<databasename>.1``, etc. The first file is preallocated at 64
+  megabytes, the next 128 megabytes, and so on, up to 2 gigabytes, at
+  which point all subsequent files are 2 gigabytes. The data files,
+  therefore, contain files for which space is allocated but no data yet
+  exists. A file might preallocated 1 gigabyte but be 90% empty. For
+  databases of hundreds of gigabytes, unallocated space is small
+  compared to the database and is insignificant.
+
+  On UNIX, :program:`mongod` preallocates an additional data file
+  prefilled with zero bytes. Pre-filling in the background prevents
+  significant delays when a new database file is next allocated.
+
+  You can disable preallocation with the :option:`--nopreallo <mongod
+  --repair>` command line option. Do not use this option in production
+  environments. This option is intended for tests with small data sets
+  where you drop the database after each test.
+
+  On Linux systems you can use ``hdparam`` to get an idea of how costly
+  allocation might be:
+
+  .. code-block:: sh
+
+     time hdparm --fallocate $((1024*1024)) testfile
+
+- The :term:`oplog`
+
+  If replication is enabled, the data directory includes the
+  :term:`oplog.rs <oplog>` file, which is a preallocated :term:`capped
+  collection` in the ``local`` database. The default allocation is
+  approximately 5% of disk space on a 64-bit installations. In most
+  cases, you should not need to resize the oplog. However, if you do,
+  see :doc:`/tutorial/change-oplog-size`.
+
+- Empty blocks
+
+  MongoDB maintains lists of deleted blocks within the data files when
+  objects or collections are deleted. This space is reused by MongoDB
+  but never freed to the operating system.
+
+  To reclaim deleted blocks, you can use either of the following:
+
+  - :dbcommand:`compact`, which defragments deleted space. This requires
+    extra disk space to run and should not be used if you are critically
+    low on disk space.
+
+  - :dbcommand:`repairDatabase`, which rebuilds the database. Both
+    options require additional disk space to run. For details, see
+    :doc:`/tutorial/recover-data-following-unexpected-shutdown`.
+
+    .. warning::
+       :dbcommand:`repairDatabase` requires enough free disk space to hold
+       both the old and new database files while the repair is running. Be
+       aware that repairDatabase will block and will take a long time to
+       complete.
+
+Can I check the size of a collection?
+-------------------------------------
+
+To check the size of a collection and other data, use the
+:method:`validate() <db.collection.validate()>` method from the
+:program:`mongo` shell. The following example issues the command for the
+``orders`` collection:
+
+.. code-block:: javascript
+
+   db.orders.validate();
+
+Alternately, you can view specific measures of size using any of these methods:
+
+- :method:`dataSize() <db.collection.dataSize()>`: data size for the collection.
+- :method:`storageSize() <db.collection.storageSize()>`: allocation size, including unused space.
+- :method:`totalSize() <db.collection.totalSize()>`: the data size plus the index size.
+- :method:`totalIndexSize() <db.collection.totalIndexSize()>`: the index size.
+
+Can I check the size of indexes?
+--------------------------------
+
+To view the size of the data allocated for an index, :method:`validate()
+<db.collection.validate()>` method using the index namespace.
+
+.. example:: You look up an index namespace in the ``system.namespaces``
+   collection by issuing the following command:
+
+   .. code-block:: javascript
+
+      db.system.namespaces.find()
+
+   which returns
+
+   .. code-block:: javascript
+
+      {"name" : "test.orders"}
+      {"name" : "test.system.indexes"}
+      {"name" : "test.orders.$_id_"}
+
+   View the size of the data allocated for the ``orders.$_id_`` index by
+   issuing the following command:
+
+   .. code-block:: javascript
+
+      db.orders.$_id_.validate()
+
+How do I know when the server runs out of disk space?
+-----------------------------------------------------
+
+If your server runs out of disk space for data files, you will see
+something like this in the log:
+
+.. code-block:: sh
+
+   Thu Aug 11 13:06:09 [FileAllocator] allocating new data file dbms/test.13, filling with zeroes...
+   Thu Aug 11 13:06:09 [FileAllocator] error failed to allocate new file: dbms/test.13 size: 2146435072 errno:28 No space left on device
+   Thu Aug 11 13:06:09 [FileAllocator]     will try again in 10 seconds
+   Thu Aug 11 13:06:19 [FileAllocator] allocating new data file dbms/test.13, filling with zeroes...
+   Thu Aug 11 13:06:19 [FileAllocator] error failed to allocate new file: dbms/test.13 size: 2146435072 errno:28 No space left on device
+   Thu Aug 11 13:06:19 [FileAllocator]     will try again in 10 seconds
+
+The server remains in this state forever, blocking all writes including
+deletes. However, reads still work. To delete some data and compact,
+using the :dbcommand:`compact` command, you must first restart the server
+first.
+
+If your server runs out of disk space for journal files, the server
+process will exit. By default, journal files are created in the data
+directory in a subdirectory called ``journal``, but you may elect to put
+the journal files on another disk by using a symlink.
+
+.. todo What should we do with this info:
+   These one-line scripts will print the stats for each database and collection:
+   db._adminCommand("listDatabases").databases.forEach(function (d) {mdb = db.getSiblingDB(d.name); printjson(mdb.stats())})
+   db._adminCommand("listDatabases").databases.forEach(function (d) {mdb = db.getSiblingDB(d.name); mdb.getCollectionNames().forEach(function(c) {s = mdb[c].stats(); printjson(s)})})
