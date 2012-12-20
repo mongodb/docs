@@ -12,56 +12,59 @@ db.eval()
    The :method:`db.eval()` provides the ability to run JavaScript code
    on the MongoDB server. It is a :program:`mongo` shell wrapper around
    the :dbcommand:`eval` command.
-   
+
    The method accepts the following parameters:
 
-   :param JavaScript function: A JavaScript function. 
+   :param JavaScript function:
 
-          The function may accept no arguments, as in the following
-          example:
+      A JavaScript function.
 
-          .. code-block:: javascript
+      The function need not take any arguments, as in the first
+      example, or may optionally take arguments as in the second:
 
-             function () {
-                 ...
-             }
+      .. code-block:: javascript
 
-          The function can also accept arguments, as in the following example:
+         function () {
+           // ...
+         }
 
-          .. code-block:: javascript
+      .. code-block:: javascript
 
-             function (arg1, arg2) {
-                 ...
-             }
+         function (arg1, arg2) {
+            // ...
+         }
 
-   :param arguments: 
-          A list of arguments to pass to the JavaScript ``function`` if
-          the function accepts arguments. Omit if the ``function`` does
-          not take arguments.
+   :param arguments:
+
+      A list of arguments to pass to the JavaScript ``function`` if
+      the function accepts arguments. Omit if the ``function`` does
+      not take arguments.
 
    Consider the following example of the :method:`db.eval()` method:
-   
+
    .. code-block:: javascript
 
-      db.eval( function(name, incAmount) { 
-                  var doc = db.myCollection.findOne( { name : name } ); 
+      db.eval( function(name, incAmount) {
+                  var doc = db.myCollection.findOne( { name : name } );
 
-                  doc = doc || { name : name , num : 0 , total : 0 , avg : 0 }; 
+                  doc = doc || { name : name , num : 0 , total : 0 , avg : 0 };
 
                   doc.num++;
                   doc.total += incAmount;
                   doc.avg = doc.total / doc.num;
-         
-                  db.myCollection.save( doc ); 
-                  return doc; 
+
+                  db.myCollection.save( doc );
+                  return doc;
                },
-               "eliot", 5 );
-               
+               "<name>", 5 );
+
    - The ``db`` in the function refers to the current database.
-   
-   - ``"eliot"`` is an argument to the function and corresponds to the ``name`` field
-   
-   - ``5`` is an argument to the function and corresponds to the ``incAmount`` field
+
+   - ``"<name>"`` is the argument passed to the function, and
+     corresponds to the ``name`` argument.
+
+   - ``5`` is an argument to the function and corresponds to the
+     ``incAmount`` field.
 
    If you want to use the server's interpreter, you must run
    :method:`db.eval()`. Otherwise, the :program:`mongo` shell's
@@ -85,30 +88,32 @@ db.eval()
          "errmsg" : "invoke failed: JS Error: ReferenceError: x is not defined nofile_b:1",
          "ok" : 0
       }
-      
+
    .. warning::
 
-     - The :method:`db.eval()` operation takes a write lock by default.
-       This means that other read and write operations to the database
-       are blocked while :method:`db.eval()` is running. However, if
-       you are using the :dbcommand:`eval` command and not the method,
-       you can disable the lock by setting the ``nolock`` flag to
-       ``true`` if the :dbcommand:`eval` performs a strictly read-only
-       operation.
+      - The :method:`db.eval()` operation takes a write lock by
+        default.  This means that :method:`db.eval()` blocks all other
+        read and write operations to the database while
+        the :method:`db.eval()` operation runs. However, if you are using the
+        :dbcommand:`eval` command using :method:`db.runCommand()`
+        rather than the helper, you can disable the lock by setting
+        the ``nolock`` flag to ``true`` if the :dbcommand:`eval`
+        performs a strictly read-only operation.
 
-     - :method:`db.eval()` also takes a JavaScript lock.
+      - :method:`db.eval()` also takes a JavaScript lock which blocks
+        all
 
-     - Do not use :method:`db.eval()` for long running operations, as
-       :method:`db.eval()` blocks all other operations. Consider using
-       :doc:`other server side code execution options
-       </applications/server-side-code-execution>`.
+      - Do not use :method:`db.eval()` for long running operations, as
+        :method:`db.eval()` blocks all other operations. Consider using
+        :doc:`other server side code execution options
+        </applications/server-side-code-execution>`.
 
-     - You can not use :method:`db.eval()` with :term:`sharded
-       <sharding>` data. In general, you should avoid using
-       :method:`db.eval()` in :term:`sharded cluster`; nevertheless, it
-       is possible to use :method:`db.eval()` with non-sharded
-       collections and databases stored in :term:`sharded cluster`.
+      - You can not use :method:`db.eval()` with :term:`sharded
+        <sharding>` data. In general, you should avoid using
+        :method:`db.eval()` in :term:`sharded cluster`; nevertheless,
+        it is possible to use :method:`db.eval()` with non-sharded
+        collections and databases stored in :term:`sharded cluster`.
 
-   .. seealso:: 
+   .. seealso::
 
       :doc:`/applications/server-side-code-execution`
