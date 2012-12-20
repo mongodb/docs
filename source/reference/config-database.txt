@@ -32,6 +32,101 @@ Collections
 .. if we add a collection to the config database here, also update the
    list on the sharding-internals page.
 
+.. data:: changelog
+
+   The :data:`changelog` collection stores a document for each change to
+   the metadata of a sharded collection.
+
+   Each document contains the following fields:
+
+      .. data:: changeID
+
+         hostname-time-increment
+
+      .. data:: server
+
+         hostname
+
+      .. data:: clientAddr
+
+         hostname:port of client causing change
+
+      .. data:: time
+
+         time change occurred
+
+      .. data:: what
+
+         Type of change:
+
+            * dropCollection
+            * dropCollection.start
+            * dropDatabase
+            * dropDatabase.start
+            * moveChunk.start
+            * moveChunk.commit
+            * split
+            * multi-split
+
+      .. data:: ns
+
+         Namespace change affected.
+
+      .. data:: details
+
+         A BSON document of additional details, the contents vary
+         depending on the type of the change.
+
+
+.. example::
+
+   The following example displays a single record of a chunk split
+   from a ``config.changelog`` collection:
+
+   .. code-block:: javascript
+
+      {
+      "_id" : "d.local-2012-12-11T14:09:21-0",
+      "server" : "d.local",
+      "clientAddr" : "127.0.0.1:63381",
+      "time" : ISODate("2012-12-11T14:09:21.039Z"),
+      "what" : "split",
+      "ns" : "snps.elegans",
+      "details" : {
+         "before" : {
+            "min" : {
+               "snp" : { $minKey : 1 }
+            },
+            "max" : {
+               "snp" : { $maxKey : 1 }
+            },
+            "lastmod" : Timestamp(1000, 0),
+            "lastmodEpoch" : ObjectId("000000000000000000000000")
+         },
+         "left" : {
+            "min" : {
+               "snp" : { $minKey : 1 }
+            },
+            "max" : {
+               "snp" : "haw54524"
+            },
+            "lastmod" : Timestamp(1000, 1),
+            "lastmodEpoch" : ObjectId("50c73e0bca6554d8d3b19a83")
+         },
+         "right" : {
+            "min" : {
+               "snp" : "haw54524"
+            },
+            "max" : {
+               "snp" : { $maxKey : 1 }
+            },
+            "lastmod" : Timestamp(1000, 2),
+            "lastmodEpoch" : ObjectId("50c73e0bca6554d8d3b19a83")
+            }
+         }
+      }
+
+
 .. data:: chunks
 
    The :data:`chunks` collection stores a document for each chunk in
@@ -187,7 +282,7 @@ Collections
       mongos> db.getCollection("version").find()
       { "_id" : 1, "version" : 3 }
 
-.. note:: 
+.. note::
 
    Like all databases in MongoDB, the ``config`` database contains a
    :data:`system.indexes` collection contains metadata for all indexes
