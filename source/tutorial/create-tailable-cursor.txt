@@ -54,101 +54,20 @@ driver-specific method to specify the tailable cursor.
 [#tailable-cursor-wire-protocol]_
 
 .. [#tailable-cursor-wire-protocol] For more information on the details
-   of specifying a tailable cursor, see :wiki:`wire protocol <Mongo Wire
-   Protocol>`.
-
-JavaScript Example
-------------------
-
-The JavaScript example uses a tailable cursor to output the results
-from a query of a capped collection named ``myCappedCollection``. To
-periodically check for new data, the ``cursor->hasNext()`` statement is
-inside a loop:
-
-.. code-block:: javascript
-
-   var coll = db.myCappedCollection;
-
-   var startDoc = coll.find().sort( { '$natural': 1 } ).limit(1).next();
-   var lastValue = startDoc['insertDate'];
-   printjson(startDoc)
-
-   while (1) {
-
-       var cursor = coll.find( { 'insertDate' : { '$gt' : lastValue } } );
-
-       cursor.addOption( DBQuery.Option.tailable );
-
-       cursor.addOption( DBQuery.Option.awaitData );
-
-       while (1) {
-
-           if ( cursor.hasNext() ) {
-                var doc = cursor.next();
-                lastValue = doc['insertDate'];
-                printjson(doc);
-           }
-       }
-   }
-
-The example performs the following actions:
-
-- Query the capped collection to access the first document inserted.
-  The query specifies the ``$natural`` sort order to use the insertion
-  order for capped-collections.
-    
-- Initialize the ``lastValue`` variable to hold the last accessed value
-  of the unindexed field ``insertDate``. Newly added documents contain
-  increasing values for the ``insertDate`` field.
-
-- In an outer ``while (1)`` loop,
-
-  - Query the capped collection for documents with the field
-    ``insertDate`` greater than the ``lastValue``.
-
-  - Specify that the returned cursor should be a tailable cursor:
-
-    .. code-block:: javascript
-
-       cursor.addOption( DBQuery.Option.tailable );
-
-    See your :doc:`driver documentation </applications/drivers>` for
-    the driver-specific method to specify a tailable cursor.
-
-  - Specify that the cursor should block for a few seconds to wait for
-    data:
-
-    .. code-block:: javascript
-
-       cursor.addOption( DBQuery.Option.awaitData );
-
-    See your :doc:`driver documentation </applications/drivers>` for
-    the driver-specific method to specify that the cursor should wait
-    for data.
-
-  - In an inner ``while (1)`` loop,
-
-    - If the cursor has documents,
-
-      - retrieve the document, 
-
-      - update the ``lastValue`` variable, 
-
-      - print the document,
-
-      - and loop through the inner ``while (1)`` loop to recheck for
-        more documents.
-
-    - Else do nothing and repeat the inner ``while (1)`` loop to
-      recheck for more documents.
+   of specifying a tailable cursor, see :wiki:`Mongo wire protocol <Mongo Wire
+   Protocol>` documentation.
 
 C++ Example
 -----------
 
 The ``tail`` function uses a tailable cursor to output the results from
-a query to a capped collection. The function handles the case of the
-dead cursor by having the query be inside a loop. To periodically check
-for new data, the ``cursor->more()`` statement is also inside a loop:
+a query to a capped collection:
+
+- The function handles the case of the dead cursor by having the query
+  be inside a loop. 
+
+- To periodically check for new data, the ``cursor->more()`` statement
+  is also inside a loop.
 
 .. code-block:: cpp
 
@@ -167,7 +86,7 @@ for new data, the ``cursor->more()`` statement is also inside a loop:
 
        BSONElement lastValue = minKey.firstElement();
 
-       Query query = Query(); 
+       Query query = Query().hint( BSON( "$natural" << 1 ) ); 
 
        while ( 1 ) {
            auto_ptr<DBClientCursor> c =
@@ -189,7 +108,7 @@ for new data, the ``cursor->more()`` statement is also inside a loop:
                cout << o.toString() << endl;
            }
 
-           query = QUERY( "insertDate" << GT << lastValue );
+           query = QUERY( "insertDate" << GT << lastValue ).hint( BSON( "$natural" << 1 ) );
        }
    }
 
@@ -197,7 +116,7 @@ The ``tail`` function performs the following actions:
 
 - Initialize the ``lastValue`` variable, which tracks the last accessed
   value and will be used if the cursor becomes *dead* and we need to
-  requery.
+  requery. Use ``hint()`` to ensure that the ``$natural`` order is used.
 
 - In an outer ``while(1)`` loop,
 
@@ -241,11 +160,92 @@ The ``tail`` function performs the following actions:
     cursor is dead):
 
     - Use the ``lastValue`` value to create a new query condition that
-      matches documents added after the ``lastValue``:
+      matches documents added after the ``lastValue``. Explicitly
+      ensure ``$natural`` order with the ``hint()`` method:
 
       .. code-block:: cpp
 
-         query = QUERY( "insertDate" << GT << lastValue );
+         query = QUERY( "insertDate" << GT << lastValue ).hint( BSON( "$natural" << 1 ) );
 
     - Loop through the outer ``while (1)`` loop to re-query with the new query
       condition and repeat.
+
+JavaScript Example
+------------------
+
+The JavaScript example uses a tailable cursor to output the results
+from a query of a capped collection named ``myCappedCollection``. To
+periodically check for new data, the ``cursor->hasNext()`` statement is
+inside a loop:
+
+.. code-block:: javascript
+
+   var coll = db.myCappedCollection;
+
+   var startDoc = coll.find().hint( { '$natural': 1 } ).limit(1).next();
+   var lastValue = startDoc['insertDate'];
+   printjson(startDoc)
+
+   while (1) {
+
+       var cursor = coll.find( { 'insertDate' : { '$gt' : lastValue } } ).hint( { '$natural': 1 } );
+
+       cursor.addOption( DBQuery.Option.tailable );
+
+       cursor.addOption( DBQuery.Option.awaitData );
+
+       while ( cursor.hasNext() ) {
+          var doc = cursor.next();
+          lastValue = doc['insertDate'];
+          printjson(doc); 
+       }
+   }
+
+The example performs the following actions:
+
+- Query the capped collection to access the first document inserted.
+  The query uses the :method:`hint() <cursor.hint()>` method to ensure
+  the use of the insertion order.
+
+- Initialize the ``lastValue`` variable to hold the last accessed value
+  of the unindexed field ``insertDate``. Newly added documents contain
+  increasing values for the ``insertDate`` field.
+
+- In an outer ``while (1)`` loop,
+
+  - Query the capped collection for documents with the field
+    ``insertDate`` greater than the ``lastValue``. The query uses the
+    :method:`hint() <cursor.hint()>` method to ensure that the
+    insertion order is used.
+
+  - Specify that the returned cursor should be a tailable cursor:
+
+    .. code-block:: javascript
+
+       cursor.addOption( DBQuery.Option.tailable );
+
+    See your :doc:`driver documentation </applications/drivers>` for
+    the driver-specific method to specify a tailable cursor.
+
+  - Specify that the cursor should block for a few seconds to wait for
+    data:
+
+    .. code-block:: javascript
+
+       cursor.addOption( DBQuery.Option.awaitData );
+
+    See your :doc:`driver documentation </applications/drivers>` for
+    the driver-specific method to specify that the cursor should wait
+    for data.
+
+  - In an inner ``while (cursor.hasNext())`` loop,
+
+    - retrieve the document, 
+
+    - update the ``lastValue`` variable, 
+
+    - print the document,
+
+    - and loop to recheck for more documents.
+
+  - If there are no more documents, repeat the outer loop.
