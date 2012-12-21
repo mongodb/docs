@@ -1,0 +1,63 @@
+=============================================
+Model Tree Structures with Materialized Paths
+=============================================
+
+.. default-domain:: mongodb
+
+Overview
+--------
+
+Data in MongoDB has a *flexible schema*. :term:`Collections
+<collection>` do not enforce :term:`document` structure. Decisions
+that affect how you model data can affect application performance and
+database capacity. See :doc:`/core/data-modeling` for a full high
+level overview of data modeling in MongoDB.
+
+This document describes a data model that describes a tree-like
+structure in MongoDB documents by storing full relationship paths
+between documents.
+
+Pattern
+-------
+
+.. start-model-tree-structures-include-here
+
+The *Materialized Paths* pattern stores each tree node in a document;
+in addition to the tree node, document stores as a string the id(s) of
+the node's ancestors or path. Although the *Materialized Paths* pattern
+requires additional steps of working with strings and regular
+expressions, the pattern also provides more flexibility in working with
+the path, such as finding nodes by partial paths.
+
+Consider the following example that models a tree of categories using
+*Materialized Paths* ; the path string uses the comma ``,`` as a
+delimiter:
+
+.. code-block:: javascript
+
+   db.categories.insert( { _id: "Books", path: null } )
+   db.categories.insert( { _id: "Programming", path: "Books," } )
+   db.categories.insert( { _id: "Databases", path: "Books,Programming," } )
+   db.categories.insert( { _id: "Languages", path: "Books,Programming," } )
+   db.categories.insert( { _id: "MongoDB", path: "Books,Programming,Databases," } )
+   db.categories.insert( { _id: "Postgres", path: "Books,Programming,Databases," } )
+
+- You can query to retrieve the whole tree, sorting by the ``path``:
+
+  .. code-block:: javascript
+
+     db.categories.find().sort( { path: 1 } )
+
+- You can create an index on the field ``path`` to enable fast search
+  by the path:
+
+  .. code-block:: javascript
+
+     db.categories.ensureIndex( { path: 1 } )
+
+- You can use regular expressions on the ``path`` field to find the
+  descendants of ``Programming``:
+
+  .. code-block:: javascript
+
+     db.categories.find( { path: /,Programming,/ } )
