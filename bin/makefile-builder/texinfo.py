@@ -35,7 +35,7 @@ def build_texinfo_manual(info):
         dependency=build_loc + info + '.info',
         block='content')
     m.job('touch $@.log', block='content')
-    m.job('tar -C $(branch-output)/ --transform=s/texinfo/' + info + '-info/ ' + 
+    m.job('$(TARBIN) -C $(branch-output)/ --transform=s/texinfo/' + info + '-info/ ' + 
           '-czvf $@ $(subst $(branch-output)/,,$(wildcard $(branch-output)/texinfo/' + info + '.info*)) >> $@.log', 
           block='content')
     m.msg('[texinfo]: compressed "' + ofile + '"', block='content')
