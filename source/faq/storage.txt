@@ -107,8 +107,7 @@ Why are the files in my data directory larger than the data in my database?
 
 The data files in your data directory, which is the :file:`/data/db`
 directory in default configurations, might be larger than the data set
-inserted into the database. This is caused by preallocated files and by
-empty blocks, as explained here.
+inserted into the database. This is caused by the following:
 
 - Preallocated data files
 
@@ -124,7 +123,7 @@ empty blocks, as explained here.
   compared to the database and is insignificant.
 
   On UNIX, :program:`mongod` preallocates an additional data file
-  filled with zero bytes. Pre-filling in the background prevents
+  and initializes the disk space ``0``.  Pre-allocating data files in the background prevents
   significant delays when a new database file is next allocated.
 
   You can disable preallocation with the :option:`--noprealloc <mongod
@@ -148,6 +147,15 @@ empty blocks, as explained here.
   cases, you should not need to resize the oplog. However, if you do,
   see :doc:`/tutorial/change-oplog-size`.
 
+- The :term:`journal`
+
+  The data directory contains the journal, which provides durability by
+  storing write operations on disk prior to MongoDB applying the
+  operations to databases. The journal comprises one or more files of up
+  to 1 gigabyte each. As MongoDB applies write operations to databases,
+  it removes the operations from the journal files. By default, MongoDB
+  applies the write operations every 60 seconds.
+
 - Empty blocks
 
   MongoDB maintains lists of deleted blocks within the data files when
@@ -158,7 +166,7 @@ empty blocks, as explained here.
 
   - :dbcommand:`compact`, which defragments deleted space. This requires
     extra disk space to run and should not be used if you are critically
-    low on disk space.
+    low on disk space. This requires up to 2 gigabytes of extra disk space to run.
 
   - :dbcommand:`repairDatabase`, which rebuilds the database. Both
     options require additional disk space to run. For details, see
@@ -167,22 +175,23 @@ empty blocks, as explained here.
     .. warning::
        :dbcommand:`repairDatabase` requires enough free disk space to hold
        both the old and new database files while the repair is running. Be
-       aware that repairDatabase will block and will take a long time to
+       aware that repairDatabase will block and may take a long time to
        complete.
 
 Can I check the size of a collection?
 -------------------------------------
 
-To check the size of a collection and other data, use the
-:method:`validate() <db.collection.validate()>` method from the
-:program:`mongo` shell. The following example issues the command for the
-``orders`` collection:
+To view the size of a collection and other information, such as whether
+the collection is sharded, use the :method:`stats()
+<db.collection.stats()>` method from the :program:`mongo` shell. The
+following example issues :method:`stats() <db.collection.stats()>` for
+the ``orders`` collection:
 
 .. code-block:: javascript
 
-   db.orders.validate();
+   db.orders.stats();
 
-Alternately, you can view specific measures of size using any of these methods:
+To view specific measures of size, use these methods:
 
 - :method:`dataSize() <db.collection.dataSize()>`: data size for the collection.
 - :method:`storageSize() <db.collection.storageSize()>`: allocation size, including unused space.
@@ -192,17 +201,22 @@ Alternately, you can view specific measures of size using any of these methods:
 Can I check the size of indexes?
 --------------------------------
 
-To view the size of the data allocated for an index, issue the :method:`validate()
-<db.collection.validate()>` method using the index namespace.
+To view the size of the data allocated for an index, you can do either of the following:
 
-.. example:: You look up an index namespace in the ``system.namespaces``
-   collection by issuing the following command:
+- Issue the :method:`stats() <db.collection.stats()>` method using the
+  index namespace. To retrieve a list of namespaces, issue the following command:
+  ``db.system.namespaces.find()``
+
+- Issue the :stats:`stats().indexSizes <indexSizes>`
+  command.
+
+.. example:: Issue the following command to retrieve index namespaces:
 
    .. code-block:: javascript
 
       db.system.namespaces.find()
 
-   which returns
+   The command returns a list similar to the following:
 
    .. code-block:: javascript
 
@@ -215,7 +229,7 @@ To view the size of the data allocated for an index, issue the :method:`validate
 
    .. code-block:: javascript
 
-      db.orders.$_id_.validate()
+      db.orders.$_id_.stats()
 
 How do I know when the server runs out of disk space?
 -----------------------------------------------------
