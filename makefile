@@ -139,9 +139,6 @@ $(branch-output)/latex/%.tex:
 	@echo [pdf]: pdf compilation of $@, complete at `date`.
 
 ############# General purpose targets. Not used (directly) in the production build #############
-ttest:
-	@echo $(info-builder-mongodb-crud)
-	@ls $(branch-output)/texinfo/mongodb*
 clean:
 	-rm -rf $(output-tables) $(branch-output)/* build/makefile.*
 clean-public:
@@ -167,5 +164,5 @@ $(branch-output)/man/%.1.gz: $(branch-output)/man/%.1
 $(branch-output)/manpages.tar.gz:man
 	@touch $@.log
 	@tar -C $(branch-output)/ --transform=s/man/mongodb-manpages/ \
-             -czvf $@ $(subst $(branch-output)/,,$(manpages)) >> $@.log
+	     -czvf $@ $(subst $(branch-output)/,,$(manpages)) >> $@.log
 	@echo [man]: created $@ archive of all manpages
