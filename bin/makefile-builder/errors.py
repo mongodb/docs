@@ -21,6 +21,7 @@ def build_all_error_pages(error_pages):
         m.target(target=build, dependency=dep, block='page')
         m.job('sed $(SED_ARGS_FILE) "s@\.\./\.\./@http://docs.mongodb.org/manual/@" $<', 
               block='page')
+        m.job('mkdir -p $(dir $@)', block='page')
         m.job('cp $< $@', block='page')
         m.msg('[web]: processed error page: $@', block='page')
 
