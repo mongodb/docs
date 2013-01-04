@@ -228,44 +228,67 @@ operating systems are strongly recommended.
 .. todo Create a Troubleshooting page for these next two faqs on
    shutdowns and keepalive
 
-The ``mongod`` process has disappeared from the logs. Where can I find information?
------------------------------------------------------------------------------------
+.. _troubleshooting:
+
+Where can I find information about a ``mongod`` process that stopped running unexpectedly?
+------------------------------------------------------------------------------------------
 
 If :program:`mongod` shuts down unexpectedly on a UNIX or UNIX-based
 platform, and if :program:`mongod` fails to log a shutdown or error
 message, then check your system logs for messages pertaining to MongoDB.
-For example, if the logs are located in ``/var/log/messages``,
-run the following commands:
+For example, for logs located in in ``/var/log/messages``,
+use the the following commands:
 
 .. code-block:: sh
 
    sudo grep mongod /var/log/messages
    sudo grep score /var/log/messages
 
-Does TCP "keepalive" time affect sharded clusters and replica sets?
--------------------------------------------------------------------
+.. _faq-troubleshooting:
 
-If you are experiencing unexplainable socket errors between members of a
-sharded cluster or replica set, check the ``tcp_keepalive_time`` value.
-The default Linux ``tcp_keepalive_time`` value is ``7200`` seconds (2
-hours). For MongoDB, change this to ``300`` seconds (five minutes).
+Does TCP ``keepalive`` time affect sharded clusters and replica sets?
+---------------------------------------------------------------------
 
-To check your ``tcp_keepalive_time`` value, issue the following command:
+If you experience socket errors between members of a sharded cluster
+or replica set, that do not have other reasonable causes, check the
+TCP keep alive value, which Linux systems store as the
+``tcp_keepalive_time`` value. A common keep alive period is ``7200``
+seconds (2 hours); however, different distributions and OS X may have
+different settings. For MongoDB, you will have better expeirences with
+shorter keepalive periods, on the order of ``300`` seconds (five minutes).
+
+On Linux systems you can use the following operation to check the
+value of ``tcp_keepalive_time``:
 
 .. code-block:: sh
 
    cat /proc/sys/net/ipv4/tcp_keepalive_time
 
-To change the ``tcp_keepalive_time`` value, issue the following command:
+You can change the ``tcp_keepalive_time`` value with the following
+operation:
 
 .. code-block:: sh
 
    echo 300 > /proc/sys/net/ipv4/tcp_keepalive_time
 
-The new ``tcp_keepalive_time`` value takes effect without requiring you
-to restart the :program:`mongod` or
-:program:`mongos` servers.
+The new ``tcp_keepalive_time`` value takes effect without requiring
+you to restart the :program:`mongod` or :program:`mongos`
+servers. When you reboot or restart your system you will need to set
+the new ``tcp_keepalive_time`` value, or see your operating system's
+documentation for setting the TCP keepalive value persistently.
 
-You must alter the ``tcp_keepalive_time`` value on all machines hosting
-MongoDB processes. This includes all machines hosting :program:`mongos`
-or :program:`mongod` servers.
+For OS X systems, issue the following command to view the keep alive
+setting:
+
+.. code-block:: sh
+
+   sysctl net.inet.tcp.keepinit
+
+To set a shorter keep alive period use the following invocation:
+
+   sysctl -w net.inet.tcp.keepinit=300
+
+If your replica set or shard cluster experiences keepalive-related
+issues, you must must alter the ``tcp_keepalive_time`` value on all
+machines hosting MongoDB processes. This includes all machines hosting
+:program:`mongos` or :program:`mongod` servers.
