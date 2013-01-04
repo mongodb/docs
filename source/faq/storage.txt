@@ -123,7 +123,7 @@ inserted into the database. This is caused by the following:
   compared to the database and is insignificant.
 
   On UNIX, :program:`mongod` preallocates an additional data file
-  and initializes the disk space ``0``.  Pre-allocating data files in the background prevents
+  and initializes the disk space ``0``.  Preallocating data files in the background prevents
   significant delays when a new database file is next allocated.
 
   You can disable preallocation with the :option:`--noprealloc <mongod
@@ -149,12 +149,14 @@ inserted into the database. This is caused by the following:
 
 - The :term:`journal`
 
-  The data directory contains the journal, which provides durability by
-  storing write operations on disk prior to MongoDB applying the
-  operations to databases. The journal comprises one or more files of up
-  to 1 gigabyte each. As MongoDB applies write operations to databases,
-  it removes the operations from the journal files. By default, MongoDB
-  applies the write operations every 60 seconds.
+  The data directory contains the journal, which stores write operations
+  on disk prior to MongoDB applying them to databases. As MongoDB
+  applies write operations to databases, it removes the operations from
+  the journal. By default, MongoDB applies the write operations every 60
+  seconds. Journal files hold 1 gigabyte of data each. If a file fills
+  up, MongoDB creates a new one. Unless you write *many* bytes of data
+  per-second, the journal directory should contain only two or three
+  journal files.
 
 - Empty blocks
 
@@ -197,6 +199,17 @@ To view specific measures of size, use these methods:
 - :method:`storageSize() <db.collection.storageSize()>`: allocation size, including unused space.
 - :method:`totalSize() <db.collection.totalSize()>`: the data size plus the index size.
 - :method:`totalIndexSize() <db.collection.totalIndexSize()>`: the index size.
+
+Also, the following scripts will print the stats for each database and
+collection:
+
+.. code-block:: javascript
+
+   db._adminCommand("listDatabases").databases.forEach(function (d) {mdb = db.getSiblingDB(d.name); printjson(mdb.stats())})
+
+.. code-block:: javascript
+
+   db._adminCommand("listDatabases").databases.forEach(function (d) {mdb = db.getSiblingDB(d.name); mdb.getCollectionNames().forEach(function(c) {s = mdb[c].stats(); printjson(s)})})
 
 Can I check the size of indexes?
 --------------------------------
@@ -255,8 +268,3 @@ If your server runs out of disk space for journal files, the server
 process will exit. By default, journal files are created in the data
 directory in a subdirectory called ``journal``, but you may elect to put
 the journal files on another disk by using a symlink.
-
-.. todo What should we do with this info:
-   These one-line scripts will print the stats for each database and collection:
-   db._adminCommand("listDatabases").databases.forEach(function (d) {mdb = db.getSiblingDB(d.name); printjson(mdb.stats())})
-   db._adminCommand("listDatabases").databases.forEach(function (d) {mdb = db.getSiblingDB(d.name); mdb.getCollectionNames().forEach(function(c) {s = mdb[c].stats(); printjson(s)})})
