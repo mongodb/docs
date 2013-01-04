@@ -102,8 +102,188 @@ active document in memory.
 For best performance, the majority of your *active* set should fit in
 RAM.
 
-.. todo The following "journal FAQ" content is from the wiki and must be added
-   to the manual, perhaps on this page.
+.. _faq-disk-size:
+
+Why are the files in my data directory larger than the data in my database?
+---------------------------------------------------------------------------
+
+The data files in your data directory, which is the :file:`/data/db`
+directory in default configurations, might be larger than the data set
+inserted into the database. Consider the following possible causes:
+
+- Preallocated data files.
+
+  In the data directory, MongoDB preallocates data files to a
+  particular size, in part to prevent file system
+  fragmentation. MongoDB names first data file ``<databasename>.0``,
+  the next ``<databasename>.1``, etc. The first file :program:`mongod`
+  allocates is 64 megabytes, the next 128 megabytes, and so on, up to
+  2 gigabytes, at which point all subsequent files are 2
+  gigabytes. The data files include files with allocated space but
+  that hold no data. :program:`mongod` may allocate a 1 gigabyte data
+  file that may be 90% empty. For most larger databases, unused
+  allocated space is small compared to the database.
+
+  On Unix-like systems, :program:`mongod` preallocates an additional data file and
+  initializes the disk space to ``0``.  Preallocating data files in
+  the background prevents significant delays when a new database file
+  is next allocated.
+
+  You can disable preallocation with :setting:`noprealloc` run time
+  option. However :setting:`noprealloc` is **not** intended for use in
+  production environments: only use :setting:`noprealloc` for testing
+  and with small data sets where you frequently drop databases.
+
+  On Linux systems you can use ``hdparm`` to get an idea of how costly
+  allocation might be:
+
+  .. code-block:: sh
+
+     time hdparm --fallocate $((1024*1024)) testfile
+
+- The :term:`oplog`.
+
+  If this :program:`mongod` is a member of a replica set, the data
+  directory includes the :term:`oplog.rs <oplog>` file, which is a
+  preallocated :term:`capped collection` in the ``local``
+  database. The default allocation is approximately 5% of disk space
+  on a 64-bit installations, see :ref:`Oplog Sizing
+  <replica-set-oplog-sizing>` for more information. In most cases, you
+  should not need to resize the oplog. However, if you do, see
+  :doc:`/tutorial/change-oplog-size`.
+
+- The :term:`journal`.
+
+  The data directory contains the journal files, which store write
+  operations on disk prior to MongoDB applying them to databases. See
+  :doc:`/administration/journaling`.
+
+- Empty records.
+
+  MongoDB maintains lists of empty record blocks in data files when
+  deleting documents and collections. MongoDB can reuse this space,
+  but will never return this space to the operating system.
+
+  To reclaim deleted space, use either of the following:
+
+  - :dbcommand:`compact`, which defragments deleted
+    space. :dbcommand:`compact` requires up to 2 gigabytes of extra
+    disk space to run. Do not use :dbcommand:`compact` if you are
+    critically low on disk space.
+
+  - :dbcommand:`repairDatabase`, which rebuilds the database. Both
+    options require additional disk space to run. For details, see
+    :doc:`/tutorial/recover-data-following-unexpected-shutdown`.
+
+    .. warning::
+       :dbcommand:`repairDatabase` requires enough free disk space to
+       hold both the old and new database files while the repair is
+       running. Be aware that :dbcommand:`repairDatabase` will block
+       all other operations and may take a long time to complete.
+
+How can I check the size of a collection?
+-----------------------------------------
+
+To view the size of a collection and other information, use the
+:method:`stats() <db.collection.stats()>` method from the
+:program:`mongo` shell. The following example issues :method:`stats()
+<db.collection.stats()>` for the ``orders`` collection:
+
+.. code-block:: javascript
+
+   db.orders.stats();
+
+To view specific measures of size, use these methods:
+
+- :method:`dataSize() <db.collection.dataSize()>`: data size for the collection.
+- :method:`storageSize() <db.collection.storageSize()>`: allocation size, including unused space.
+- :method:`totalSize() <db.collection.totalSize()>`: the data size plus the index size.
+- :method:`totalIndexSize() <db.collection.totalIndexSize()>`: the index size.
+
+Also, the following scripts print the statistics for each database and
+collection:
+
+.. code-block:: javascript
+
+   db._adminCommand("listDatabases").databases.forEach(function (d) {mdb = db.getSiblingDB(d.name); printjson(mdb.stats())})
+
+.. code-block:: javascript
+
+   db._adminCommand("listDatabases").databases.forEach(function (d) {mdb = db.getSiblingDB(d.name); mdb.getCollectionNames().forEach(function(c) {s = mdb[c].stats(); printjson(s)})})
+
+How can I check the size of indexes?
+------------------------------------
+
+To view the size of the data allocated for an index, use one of the
+following procedures in the :program:`mongo` shell:
+
+- Use the :method:`stats() <db.collection.stats()>` method using the
+  index namespace. To retrieve a list of namespaces, issue the
+  following command:
+
+  .. code-block:: javascript
+
+     db.system.namespaces.find()
+
+- Check the value of :stats:`indexSizes` value in the output of
+:method:`db.collection.stats()` command.for the index "collection."
+
+.. example:: Issue the following command to retrieve index namespaces:
+
+   .. code-block:: javascript
+
+      db.system.namespaces.find()
+
+   The command returns a list similar to the following:
+
+   .. code-block:: javascript
+
+      {"name" : "test.orders"}
+      {"name" : "test.system.indexes"}
+      {"name" : "test.orders.$_id_"}
+
+   View the size of the data allocated for the ``orders.$_id_`` index
+   with the following sequence of operations:
+
+   .. code-block:: javascript
+
+      use test
+      db.orders.$_id_.stats().indexSizes
+
+How do I know when the server runs out of disk space?
+-----------------------------------------------------
+
+If your server runs out of disk space for data files, you will see
+something like this in the log:
+
+.. code-block:: none
+
+   Thu Aug 11 13:06:09 [FileAllocator] allocating new data file dbms/test.13, filling with zeroes...
+   Thu Aug 11 13:06:09 [FileAllocator] error failed to allocate new file: dbms/test.13 size: 2146435072 errno:28 No space left on device
+   Thu Aug 11 13:06:09 [FileAllocator]     will try again in 10 seconds
+   Thu Aug 11 13:06:19 [FileAllocator] allocating new data file dbms/test.13, filling with zeroes...
+   Thu Aug 11 13:06:19 [FileAllocator] error failed to allocate new file: dbms/test.13 size: 2146435072 errno:28 No space left on device
+   Thu Aug 11 13:06:19 [FileAllocator]     will try again in 10 seconds
+
+The server remains in this state forever, blocking all writes including
+deletes. However, reads still work. To delete some data and compact,
+using the :dbcommand:`compact` command, you must restart the server
+first.
+
+If your server runs out of disk space for journal files, the server
+process will exit. By default, :program:`mongod` creates journal files
+in a sub-directorty of :setting:`dbpath` named ``journal``. You may
+elect to put the journal files on another storage device using a
+filesystem mount or a symlink.
+
+.. note::
+
+   If you place the journal files on a separate storage device you
+   will not be able to use a file system snapshot tool to capture a
+   consistent snapshot of your data files and journal files.
+
+.. todo the following "journal FAQ" content is from the wiki. Must add
+   this content to the manual, perhaps on this page.
 
    If I am using replication, can some members use journaling and others not?
    --------------------------------------------------------------------------
