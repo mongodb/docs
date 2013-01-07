@@ -355,7 +355,7 @@ contiguous space to fit the larger document. Since the move will
 require an update of all the indexes for the document, if the
 collection has many indexes, the move will impact write performance.
 
-To minimize document movements, Mongo employs padding. Mongo adaptively
+To minimize document movements, MongoDB employs padding. MongoDB adaptively
 learns if documents in a collection tend to grow, and if they do, adds
 a :stats:`paddingFactor` so that the document has room to grow on
 subsequent writes. The :stats:`paddingFactor` indicates the padding for
@@ -363,8 +363,9 @@ new inserts and moves.
 
 .. versionadded:: 2.2
    You can use the :dbcommand:`collMod` command with the
-   ``usePowerOf2Sizes`` flag to ensure that MongoDB allocates space for
-   documents in sizes that are powers of 2.
+   ``usePowerOf2Sizes`` flag so that MongoDB allocates document space
+   in sizes that are powers of 2. As with all padding, using powers of
+   2 minimizes, but does not eliminate, document movements.
    
 To check the current :stats:`paddingFactor` on a collection, you can
 run the :dbcommand:`db.collection.stats()` command in the
@@ -382,33 +383,36 @@ padding size by subtracting 1 from the paddingFactor:
 
    padding size = (paddingFactor - 1) * <document size>. 
 
-For example, a ``paddingFactor`` of ``1.0`` specifies a padding size of ``0``
-whereas a paddingFactor of ``1.5`` specifies a padding size of ``0.5`` or ``50
-percent (50%)`` of the document size.
+For example, a ``paddingFactor`` of ``1.0`` specifies no padding
+whereas a paddingFactor of ``1.5`` specifies a padding size of ``0.5`` or 50
+percent (50%) of the document size.
 
 Because the :stats:`paddingFactor` is relative to the size of each
 document, you cannot calculate the exact amount of padding for a
 collection based on the average document size and padding factor.
 
 If an update operation causes the document to *decrease* in size, for
-instance if you perform an :operator:`$unset` or :operator:`$pop`
-updates, the document remains in place and effectively has more
-padding. If the document remains this size, the space is never
-reclaimed unless you perform a :dbcommand:`compact` or a
+instance if you perform an :operator:`$unset` or a :operator:`$pop`
+update, the document remains in place and effectively has more
+padding. If the document remains this size, the space is not reclaimed
+until you perform a :dbcommand:`compact` or a
 :dbcommand:`repairDatabase` operation.
 
 .. note::
 
    Padding is removed when you perform :dbcommand:`compact`,
    :dbcommand:`repairDatabase`, or initial replica sync operations.
-   Additionally, if you :program:`export <mongoexport>` from a
-   collection with padding and :program:`import <mongoimport>` into a
-   new collection, or into the same collection but first drop the
-   collection, the new collection is created without padding.
-   Therefore, after these operations, you may see slower update
-   performance, but the size required for storage will be lower. You
-   can, however, run the :dbcommand:`compact` command with a
-   ``paddingFactor`` or a ``paddingBytes`` parameter.
+   However, with the :dbcommand:`compact` command, you can run the
+   command with a ``paddingFactor`` or a ``paddingBytes`` parameter.
+
+   Padding is also removed if you :program:`export <mongoexport>` from
+   a collection. If you :program:`import <mongoimport>` into a new
+   collection, the new collection is created without padding. If you
+   :program:`import <mongoimport>` into an existing collection with
+   padding, the existing padding is maintained.
+
+   If padding is removed during these operations, updates may be slower
+   although the size requirements for storage are lower.
 
 .. COMMENT -- not sure if we really need this manual padding info or if
    it belongs here, but ...
