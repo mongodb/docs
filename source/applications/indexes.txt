@@ -134,10 +134,38 @@ the result set) must
 explicitly exclude the ``_id`` field from the result set, unless the
 index includes ``_id``.
 
-MongoDB cannot use a covered query if any of the indexed fields in any
-of the documents in the collection includes an array. If an indexed field
-is an array, the index becomes a :ref:`multi-key index
-<index-type-multikey>` index and cannot support a covered query.
+MongoDB **cannot** use a covered query if:
+
+- any of the indexed fields in any of the documents in the collection
+  includes an array. If an indexed field is an array, the index becomes
+  a :ref:`multi-key index <index-type-multikey>` index and cannot
+  support a covered query.
+
+- any of the indexed fields uses the :term:`dot notation`. For example,
+  consider a collection ``users`` with documents of the following form:
+
+  .. code-block:: javascript
+
+     { _id: 1, user: { login: "tester" } }
+
+  The collection has the following indexex:
+
+  .. code-block:: javascript
+
+     { user: 1 }
+     { "user.login": 1 }
+     
+  The following query is covered:
+
+  .. code-block:: javascript
+
+     db.users.find( { user: { login: "tester" } }, { user: 1, _id: 0 } )
+
+  However, the following query is **not** covered:
+
+  .. code-block:: javascript
+
+     db.users.find( { "user.login": "tester" }, { "user.login": 1, _id: 0 } )
 
 To test whether MongoDB used a covered query, use
 :method:`explain() <cursor.explain()>`. If the output displays ``true``
