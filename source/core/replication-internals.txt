@@ -261,17 +261,17 @@ set members sync, or copy, :term:`oplog` entries from other members.
 When a new member joins a set or an existing member restarts, the
 member waits to receive heartbeats from other members. By
 default, the member syncs from the *the closest* member of the
-set that is either the primary or another secondary with more recent
-oplog entries. This prevents two secondaries from syncing from each other.
+set that is either the primary or another :term:`secondary` with more recent
+oplog entries.
 
 In version 2.0, secondaries only change sync targets if the connection
-between secondaries drops or produces an error.
+to the sync target drops or produces an error.
 
 For example:
 
 #. If you have two secondary members in one data center and a primary in
    a second facility, and if you start all three instances at roughly
-   the same time (i.e. with no existing data sets or oplog,) both
+   the same time (i.e. with no existing data sets or oplog), both
    secondaries will likely sync from the primary, as neither secondary
    has more recent oplog entries.
 
@@ -283,4 +283,31 @@ For example:
    facility, the new secondary will likely sync from the existing
    secondary because it is closer than the primary.
 
-.. seealso:: :ref:`replica-set-resync-stale-member`
+In version 2.0, secondaries also use the following additional sync
+behaviors:
+
+- Secondaries will sync from :ref:`delayed members
+  <replica-set-delayed-members>` *only* if no other member is available.
+
+- Secondaries will *not* sync from :ref:`hidden members
+  <replica-set-hidden-members>`.
+
+- Secondaries will *not* start syncing from a member that has become
+  stale and is in recovering state. For more information on stale
+  members, see :ref:`replica-set-resync-stale-member`.
+
+- A secondary will not sync from a member that has no indexes, *unless*
+  the secondary's :data:`members[n].buildIndexes` field is set to
+  ``false``. For one member to sync from another, both must have the
+  same value, either ``true`` or ``false``, for
+  :data:`members[n].buildIndexes`.
+
+Indexes
+-------
+
+By default, secondaries will in most cases pre-fetch :ref:`indexes`
+associated with a query to improve replication throughput. If needed,
+you can disable this feature using the :setting:`replIndexPrefetch`
+setting or the :option:`--replIndexPrefetch <mongod
+--replIndexPrefetch>` option. Optionally you also can allow the
+:program:`mongod` to pre-fetch only the index on the ``_id`` field.
