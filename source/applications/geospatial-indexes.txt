@@ -47,16 +47,17 @@ following form:
 
    .. code-block:: javascript
 
-      db.places.find( { loc: {$near: [-70,40] } })
+      db.places.find( { loc: { $near: [ -70, 40 ] } } )
 
    returns output similar to the following:
 
    .. code-block:: javascript
 
-      { "_id" : ObjectId(" ... "), "loc" : [ -73, 40 ] }
+      { "_id" : ObjectId(" ... "), "loc" : [ -73, 39 ] }
 
 The :dbcommand:`geoNear` command returns more information than does the
-:operator:`$near` operator but does not sort results. The
+:operator:`$near` operator. The :dbcommand:`geoNear` command can only
+return a single 16-megabyte result set. The
 :dbcommand:`geoNear` command also offers additional operators, such as
 operators to query for :ref:`maximum <geospatial-indexes-distance>` or
 :ref:`spherical <geospatial-indexes-spherical>` distance. For a list of
@@ -84,7 +85,6 @@ following form:
 
       {
          "ns" : "test.places",
-         "near" : "0110000111111000000111111000000111111000000111111000",
          "results" : [
             {
                "dis" : 3,
@@ -92,7 +92,7 @@ following form:
                   "_id" : ObjectId(" ... "),
                   "loc" : [
                      -73,
-                     40
+                     39
                   ]
                }
             }
@@ -105,6 +105,7 @@ following form:
             "avgDistance" : 3,
             "maxDistance" : 3.0000188685220253
          },
+         "near" : "0110000111111000000111111000000111111000000111111000",
          "ok" : 1
       }
 
@@ -124,14 +125,14 @@ method, use :operator:`$maxDistance` operator. Use the following form:
 
 .. code-block:: javascript
 
-   db.collection.find( { <location field>: { $near: [ x, y ] } , $maxDistance : z } )
+   db.collection.find( { <location field> : { $near : [ x , y ] , $maxDistance : <distance> } } )
 
 To specify distance with the :dbcommand:`geoNear` command, use the
 ``maxDistance`` option. Use the following form:
 
 .. code-block:: javascript
 
-   db.runCommand( { geoNear: "collection", near: [ x, y ], maxDistance: z } )
+   db.runCommand( { geoNear: "collection", near: [ x, y ], maxDistance: <distance> } )
 
 .. _geospatial-indexes-limit:
 
@@ -140,9 +141,7 @@ Limit the Number of Results
 
 By default, geospatial queries using :method:`find()
 <db.collection.find()>` method return 100 documents, sorted by
-distance.
-
-To limit the result when using the :method:`find()
+distance. To limit the result when using the :method:`find()
 <db.collection.find()>` method, use the :method:`limit()
 <cursor.limit()>` method, as in the following prototype:
 
@@ -151,30 +150,14 @@ To limit the result when using the :method:`find()
    db.collection.find( { <location field>: { $near: [ x, y ] } } ).limit(<n>)
 
 To limit the result set when using the :dbcommand:`geoNear` command, use
-the ``num`` option. The following is a prototype of the command:
+the ``num`` option. Use the following form:
 
 .. code-block:: javascript
 
    db.runCommand( { geoNear: "collection", near: [ x, y ], num: z } )
 
-The :method:`limit() <cursor.limit()>` method and ``near`` parameter
-to :dbcommand:`geoNear` do not limit geospatial query results by
-distance, only the number of results. To limit geospatial search
-results by distance, please see the :ref:`geospatial-indexes-distance`
-section.
-
-.. note::
-
-   The :method:`limit() <cursor.limit()>` method and ``num`` option have
-   different performance characteristics. Geospatial queries using
-   :method:`limit() <cursor.limit()>` method are slower than using
-   :dbcommand:`geoNear`.
-
-   Geospatial queries with the :method:`find() <db.collection.find()>`
-   method will return 100 documents, sort them, and finally limit the
-   result set. Geospatial queries with the :dbcommand:`geoNear` and
-   ``num`` option will only return the specified number of unsorted
-   documents.
+To limit geospatial search results by distance, see
+:ref:`geospatial-indexes-distance`.
 
 .. _geospatial-indexes-within:
 .. _geospatial-indexes-bounded:
