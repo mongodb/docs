@@ -21,6 +21,8 @@ from sphinx.domains.python import _pseudo_parse_arglist
 from sphinx.util.nodes import make_refnode
 from sphinx.util.docfields import Field, GroupedField, TypedField
 
+composite_pages = ['commands', 'javascript', 'operators', 'aggregation', 'meta-query-operators', 'replica-commands']
+
 class MongoDBObject(ObjectDescription):
     """
     Description of a MongoDB object.
@@ -80,25 +82,40 @@ class MongoDBObject(ObjectDescription):
     def add_target_and_index(self, name_obj, sig, signode):
         objectname = self.options.get(
             'object', self.env.temp_data.get('mongodb:object'))
-        fullname = name_obj[0]
+
+        if self.objtype == 'binary': 
+            fullname = 'bin.' + name_obj[0]
+        else:
+            fullname = name_obj[0]
+
         if fullname not in self.state.document.ids:
             signode['names'].append(fullname)
             signode['ids'].append(fullname.replace('$', '_S_'))
             signode['first'] = not self.names
             self.state.document.note_explicit_target(signode)
             objects = self.env.domaindata['mongodb']['objects']
-            # if fullname in objects:
-            #     self.state_machine.reporter.warning(
-            #         'duplicate object description of %s, ' % fullname +
-            #         'other instance in ' +
-            #         self.env.doc2path(objects[fullname][0]),
-            #         line=self.lineno)
-            objects[fullname] = self.env.docname, self.objtype
-        # elif self.objtype == "binary":
-        #     signode['names'].append(fullname)
-        #     signode['ids'].append(fullname.replace('$', '_S_'))
-        #     signode['first'] = not self.names
-        #     self.state.document.note_explicit_target(signode)
+            if fullname in objects: 
+                path = self.env.doc2path(self.env.domaindata['mongodb']['objects'][fullname][0])
+                spath = path.split('/')[-1].rsplit('.', 1)[0]
+
+                if spath in composite_pages:
+                    pass
+                elif spath == fullname:
+                    pass
+                elif spath == fullname.lstrip('$'):
+                    pass
+                elif spath == fullname.lstrip('_'):
+                    pass
+                else: 
+                    self.state_machine.reporter.warning(
+                        'duplicate object description of %s, ' % fullname +
+                        'other instance in ' + path,
+                        line=self.lineno)
+
+            if self.env.docname.rsplit('/', 1)[1] in composite_pages:
+                pass
+            else:
+                objects[fullname] = self.env.docname, self.objtype
 
         indextext = self.get_index_text(objectname, name_obj)
         if indextext:
@@ -114,7 +131,7 @@ class MongoDBObject(ObjectDescription):
             return _('%s (operator)') % name
         elif self.objtype == 'projection':
             return _('%s (projection operator)') % name
-        elif self.objtype == 'program':
+        elif self.objtype == 'binary':
             return _('%s (program)') % name
         elif self.objtype == 'setting':
             return _('%s (setting)') % (name)
@@ -239,7 +256,7 @@ class MongoDBDomain(Domain):
         'dbcommand':   MongoDBXRefRole(),
         'operator':    MongoDBXRefRole(),
         'projection':  MongoDBXRefRole(),
-        'program':     MongoDBXRefRole(),
+        'program':      MongoDBXRefRole(),
         'setting':     MongoDBXRefRole(),
         'status':      MongoDBXRefRole(),
         'stats':       MongoDBXRefRole(),
@@ -261,6 +278,13 @@ class MongoDBDomain(Domain):
             name = name[:-2]
         objects = self.data['objects']
         newname = None
+
+        if typ == 'program':
+            name = 'bin.' + name 
+            newname = name
+
+        searchorder = 1
+
         if searchorder == 1:
             if obj and obj + '.' + name in objects:
                 newname = obj + '.' + name
@@ -271,6 +295,7 @@ class MongoDBDomain(Domain):
                 newname = name
             elif obj and obj + '.' + name in objects:
                 newname = obj + '.' + name
+
         return newname, objects.get(newname)
 
     def resolve_xref(self, env, fromdocname, builder, typ, target, node,
@@ -278,8 +303,13 @@ class MongoDBDomain(Domain):
         objectname = node.get('mongodb:object')
         searchorder = node.hasattr('refspecific') and 1 or 0
         name, obj = self.find_obj(env, objectname, target, typ, searchorder)
+
         if not obj:
             return None
+
+        if name.startswith('bin.'): 
+            name = name.split('.', 1)[1]
+
         return make_refnode(builder, fromdocname, obj[0],
                             name.replace('$', '_S_'), contnode, name)
 
