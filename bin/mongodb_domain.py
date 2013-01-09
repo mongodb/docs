@@ -21,7 +21,7 @@ from sphinx.domains.python import _pseudo_parse_arglist
 from sphinx.util.nodes import make_refnode
 from sphinx.util.docfields import Field, GroupedField, TypedField
 
-composite_pages = ['commands', 'javascript', 'operators', 'aggregation', 'meta-query-operators', 'replica-commands']
+from sphinx_conf import composite_pages
 
 class MongoDBObject(ObjectDescription):
     """
@@ -83,7 +83,7 @@ class MongoDBObject(ObjectDescription):
         objectname = self.options.get(
             'object', self.env.temp_data.get('mongodb:object'))
 
-        if self.objtype == 'binary': 
+        if self.objtype == 'binary':
             fullname = 'bin.' + name_obj[0]
         else:
             fullname = name_obj[0]
@@ -94,7 +94,7 @@ class MongoDBObject(ObjectDescription):
             signode['first'] = not self.names
             self.state.document.note_explicit_target(signode)
             objects = self.env.domaindata['mongodb']['objects']
-            if fullname in objects: 
+            if fullname in objects:
                 path = self.env.doc2path(self.env.domaindata['mongodb']['objects'][fullname][0])
                 spath = path.split('/')[-1].rsplit('.', 1)[0]
 
@@ -106,7 +106,7 @@ class MongoDBObject(ObjectDescription):
                     pass
                 elif spath == fullname.lstrip('_'):
                     pass
-                else: 
+                else:
                     self.state_machine.reporter.warning(
                         'duplicate object description of %s, ' % fullname +
                         'other instance in ' + path,
@@ -154,7 +154,7 @@ class MongoDBObject(ObjectDescription):
         elif self.objtype == 'limit':
             return _('%s (MongoDB system limit)') % (name)
         elif self.objtype == 'bsontype':
-            return _('%s (BSON type)') % (name)            
+            return _('%s (BSON type)') % (name)
         return ''
 
     def run(self):
@@ -280,7 +280,7 @@ class MongoDBDomain(Domain):
         newname = None
 
         if typ == 'program':
-            name = 'bin.' + name 
+            name = 'bin.' + name
             newname = name
 
         searchorder = 1
@@ -307,7 +307,7 @@ class MongoDBDomain(Domain):
         if not obj:
             return None
 
-        if name.startswith('bin.'): 
+        if name.startswith('bin.'):
             name = name.split('.', 1)[1]
 
         return make_refnode(builder, fromdocname, obj[0],

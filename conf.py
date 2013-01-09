@@ -61,6 +61,8 @@ extlinks = {
     'hardlink' : ( 'http://docs.mongodb.org/' + meta['branch'] + '/%s', '')
 }
 
+composite_pages = ['commands', 'javascript', 'operators', 'aggregation', 'meta-query-operators', 'replica-commands']
+
 intersphinx_mapping = {
         'pymongo': ('http://api.mongodb.org/python/current/', None),
         'python' : ('http://docs.python.org/', None),
