@@ -40,6 +40,238 @@ process.
 Changes
 -------
 
+Text Indexes
+~~~~~~~~~~~~
+
+.. note::
+
+   The ``text`` index type is currently an experimental feature and
+   you must enable it at run time. Interfaces and on-disk format may
+   change in future releases.
+
+Background
+``````````
+
+MongoDB 2.3.2 added a new ``text`` index type that creates a special
+index that allows rich arbitrary queries over the content of a string
+field in MongoDB. MongoDB updates ``text`` indexes in real time as
+clients update data in MongoDB. Queries that use the ``text`` index
+will always be able to find the latest data using the text index.
+
+However, ``text`` indexes have large storage requirements and incur
+**significant** performance costs:
+
+- Building ``text`` indexes takes time. For larger data sets, it may
+  take many minutes or hours to build a text index.
+
+- ``text`` indexes will impede insertion throughput for collection, as
+  MongoDB must update index entries for each word in the source
+  collection.
+
+Additionally, the current *experimental* implementation of ``text``
+indexes have the following limitations and behaviors:
+
+- MongoDB stores words stemmed during insertion in the index, using
+  simple suffix stemming, including support for a number of
+  languages. MongoDB automatically stems :dbcommand:`text` queries at
+  before beginning the query.
+
+- queries drop stop words (i.e. "the," "an," "a," "and," etc.)
+
+- the index does not store phrases or information about the proximity
+  of words in the documents.  As a result, **only** use phrase queries
+  when the entire collection fits in RAM.
+
+- queries that negate
+
+- you may only create a single text index on a collection at a time.
+
+.. important:: Do not enable or use ``text`` indexes on production
+   systems.
+
+For production-grade search requirements consider using a third-party
+search tool, and the `mongo-connector <https://github.com/10gen-labs/mongo-connector>`_
+or a similar integration strategy to provide more advanced search
+capabilities.
+
+Test ``text`` Indexes
+`````````````````````
+
+.. important:: The ``text`` index type is an experimental feature and
+   you must enable the feature before creating or accessing a text
+   index. To enable text indexes issue the following command at the
+   :program:`mongo` shell:
+
+   .. code-block:: javascript
+
+      db.adminComand( { setParameter: 1, textSearchEnabled: true } )
+
+   You can also start the :program:`mongod` with the following
+   invocation:
+
+   .. code-block:: sh
+
+      mongo --setParameter textSearchEnabled=true
+
+Create Text Indexes
+^^^^^^^^^^^^^^^^^^^
+
+To create a text index, use the following invocation of
+:method:`~db.collection.ensureIndex()`:
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( { content: "text" } )
+
+Your ``text`` index can include content from multiple fields, and from
+fields in sub-documents, as in the following:
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( { content: "text",
+                                users.comment: "text",
+                                users.profiles: "text" } )
+
+These indexes may run into the :limit:`Index Name Length` limit, to
+avoid creating an index with a too-long name, you can specify a name
+in the options category, as in the following:
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( { content: "text",
+                                users.profiles: "text" },
+                              { name: "TextIndex" } )
+
+When creating a ``text`` indexes you may also specify *weights* for
+specific, which help shape the result set. Consider the following:
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( { content: "text", users.profiles: "text" },
+                              { name: "TextIndex",
+                                weights: { content: 1,
+                                           users.profiles: 2 } } )
+
+This example creates a ``text`` index on the top-level field named
+``content`` and the ``profiles`` field in the ``users``
+sub-documents. Furthermore, ``content`` field has a weight of 1 and
+the ``users.profiles`` field has a weight of 2.
+
+You can add a conventional ascending or descending index field as a
+prefix of the index so that queries can limit the number of index
+entries the query must review to perform the query. Create this index
+with the following command:
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( { username: "1",
+                                users.profiles: "text" } )
+
+Alternately you can specify a conventional ascending or descending
+field as a suffix to a ``text`` index make it possible to use the
+``text`` index to return covered queries using a projection, as in the
+following index:
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( { users.profiles: "text"
+                                username: "1" } )
+
+Finally, you may use the special wild card field name specifier
+(i.e. ``$**``) to specify index weights and fields. Consider the
+following:
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( { "$**": "text"
+                                username: "1" },
+                              { name: "TextIndex" } )
+
+This creates an index named ``TextIndex``, that indexes all string
+data in every field of every document in a collection
+
+.. warning:: Create indexes using the wildcard operator with extreme
+   caution.
+
+You may also specify weights for a text index with compound fields, as
+in the following:
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( { content: "text",
+                                users.profiles: "text",
+                                comments: "text",
+                                keywords: "text"
+                                about: "text" },
+                              { name: "TextIndex",
+                                weight:
+                                { "$**": 5
+                                  content: 10,
+                                  user.profiles: 2,
+                                  comments: 1 } } )
+
+
+This index, named ``TextIndex``, includes a number of fields, that all
+have a weight of 5, except for the:
+
+- ``content`` field that has a weight of 5,
+- ``users.profiles`` that has a weight of 2, and
+- ``comments`` that has a weight of 1.
+
+This means that results that match words in the ``content`` field more
+than all other fields in the index, and that the ``user.profiles`` and
+``comments`` fields will be less likely to appear in responses than
+words from other fields.
+
+Text Queries
+^^^^^^^^^^^^
+
+MongoDB 2.3.2 introduces the :dbcommand:`text` command to provide
+query support for ``text`` indexes. Unlike normal MongoDB queries,
+:dbcommand:`text` returns a document rather than a cursor.
+
+.. dbcommand:: text
+
+   The :dbcommand:`text` provides an interface to search text context
+   stored in ta ``text`` index. Consider the following prototype:
+   :dbcommand:`text`:
+
+   .. code-block:: javascript
+
+      db.runCommand( text: { search: <search string>, filter: <query document> } )
+
+   The :dbcommand:`text` command has the following parameters:
+
+   :param string query:
+
+      A text string that MongoDB stems and uses to query the ``text``
+      index.
+
+   :param document filter:
+
+      Optional. A :ref:`query document <mongodb-query-document>` to
+      further limit the results of the query using another database
+      field. If the index as a compound ascending or descending index
+      field, this query will use that index field.
+
+      Unless your index includes an ordered field as a subset of the
+
+   :param document projection:
+
+      Optional. Allows you to limit the fields returned by the query
+      to only those specified.
+
+   :return:
+
+      :dbcommand:`text` returns results in the form of a
+      document. Results must fit within the :limit:`BSON Document
+      Size`. Use a projection setting to limit the size of the result
+      set.
+
+.. example::
+
+   Consider the following examples of :dbcommand:`text` queries:
+
 Additional Authentication Features
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -53,7 +285,7 @@ Additional Authentication Features
    - `Amazon Linux 6.4 <http://s3.amazonaws.com/downloads.10gen.com/linux/mongodb-linux-x86_64-subscription-amzn64-2.3.1.tgz>`_
    - `Red Hat Enterprise Linux 6.2 <http://s3.amazonaws.com/downloads.10gen.com/linux/mongodb-linux-x86_64-subscription-rhel62-2.3.1.tgz>`_
    - `Ubuntu 11.04 <http://s3.amazonaws.com/downloads.10gen.com/linux/mongodb-linux-x86_64-subscription-ubuntu1104-2.3.1.tgz>`_
-   - `SUSE 11 <http://s3.amazonaws.com/downloads.10gen.com/linux/mongodb-linux-x86_64-subscription-suse11-2.3.1.tgz>`_
+   - `SUSE 11 <http://s3.amazonaws.com/downloads.10gen.com/linux/mongodb-linux-x86_64-subscription-suse11-2.3.1tgz>`_
 
 An improved authentication system is a core focus of the entire 2.3
 cycle, as of 2.3.1, the following components of the new authentication
@@ -257,11 +489,6 @@ GeoJSON requirement, the operation of :operator:`$near` is the same
 for ``s2d`` indexes as ``2d`` indexes.
 
 .. operator:: $intersect
-
-.. note::
-
-   In 2.3.2, the :operator:`$intersect` operator will
-   become :operator:`$geoIntersects`
 
    The :operator:`$intersect` selects all indexed points that
    intersect with the provided geometry. (i.e. ``Point``, ``LineString``,
