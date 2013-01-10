@@ -13,8 +13,8 @@ are *not for production use* under any circumstances.
    document are subject to change before the 2.4.0 release.
 
 This document will eventually contain the full release notes for
-MongoDB 2.4; during the development cycle this document will containd
-ocumentation of new features and functionality only available in the
+MongoDB 2.4; during the development cycle this document will contain
+documentation of new features and functionality only available in the
 2.3 releases.
 
 .. contents:: See the :doc:`full index of this page <2.4-changes>` for
@@ -98,6 +98,8 @@ indexes have the following limitations and behaviors:
 - MongoDB does not stem phrases or negations in :dbcommand:`text`
   queries.
 
+- the index is case insensitive.
+
 - a collection may only have a single ``text`` index at a time.
 
 .. important:: Do not enable or use ``text`` indexes on production
@@ -115,7 +117,7 @@ Test ``text`` Indexes
 
 .. important:: The ``text`` index type is an experimental feature and
    you must enable the feature before creating or accessing a text
-   index. To enable text indexes issue the following command at the
+   index. To enable text indexes, issue the following command at the
    :program:`mongo` shell:
 
    .. code-block:: javascript
@@ -139,7 +141,7 @@ To create a ``text`` index, use the following invocation of
 
    db.collection.ensureIndex( { content: "text" } )
 
-``text`` indexes ignore all string data in the ``content`` field. Your
+``text`` indexes catalog all string data in the ``content`` field. Your
 ``text`` index can include content from multiple fields, or arrays,
 and from fields in sub-documents, as in the following:
 
@@ -148,6 +150,13 @@ and from fields in sub-documents, as in the following:
    db.collection.ensureIndex( { content: "text",
                                 "users.comments": "text",
                                 "users.profiles": "text" } )
+
+The default name for the index consists of the ``<field name>``
+concatenated with ``_text``, as in the following:
+
+.. code-block:: javascript
+
+   "content_text_users.comments_text_users.profiles_text"
 
 These indexes may run into the :limit:`Index Name Length` limit. To
 avoid creating an index with a too-long name, you can specify a name
@@ -159,8 +168,11 @@ in the options parameter, as in the following:
                                 "users.profiles": "text" },
                               { name: "TextIndex" } )
 
-When creating a ``text`` indexes you may also specify *weights* for
-specific, which help shape the result set. Consider the following:
+When creating ``text`` indexes you may specify *weights* for specific
+fields. *Weights* are factored into the relevant score for each
+document. The score for a given word in a document is the weighted sum
+of the frequency for each of the indexed fields in that document.
+Consider the following:
 
 .. code-block:: javascript
 
@@ -172,18 +184,14 @@ specific, which help shape the result set. Consider the following:
 
 This example creates a ``text`` index on the top-level field named
 ``content`` and the ``profiles`` field in the ``users``
-sub-documents. Furthermore, ``content`` field has a weight of 1 and
+sub-documents. Furthermore, the ``content`` field has a weight of 1 and
 the ``users.profiles`` field has a weight of 2.
 
-You can add a conventional ascending or descending index field as a
-prefix of the index so that queries can limit the number of index
-entries the query must review to perform the query. Create this index
-with the following command:
-
-.. code-block:: javascript
-
-   db.collection.ensureIndex( { username: 1,
-                                "users.profiles": "text" } )
+You can add a conventional ascending or descending index field(s) as a
+prefix or suffix of the index so that queries can limit the number of
+index entries the query must review to perform the query. You cannot
+include :ref:`multi-key <index-type-multi-key>` index field nor
+:ref:`geospatial <index-feature-geospatial>` index field.
 
 If you create an ascending or descending index as a prefix of a
 ``text`` index: 
@@ -194,19 +202,29 @@ If you create an ascending or descending index as a prefix of a
 - All :dbcommand:`text` queries using this index must specify the
   prefix field in the ``filter`` query.
 
-Alternately you can specify a conventional ascending or descending
-field as a suffix to a ``text`` index make it possible to use the
-``text`` index to return covered queries using a projection, as in the
-following index:
+Create this index with the following operation:
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( { username: 1,
+                                "users.profiles": "text" } )
+
+Alternatively you create an ascending or descending index as a suffix
+to a ``text`` index. Then the ``text`` index can support
+:ref:`covered queries <indexes-covered-queries>` if the
+:dbcommand:`text` command specifies a ``projection`` option.
+
+Create this index with the following operation:
 
 .. code-block:: javascript
 
    db.collection.ensureIndex( { "users.profiles": "text",
                                 username: 1 } )
 
-Finally, you may use the special wild card field name specifier
-(i.e. ``$**``) to specify index weights and fields. Consider the
-following:
+Finally, you may use the special wild card field specifier (i.e.
+``$**``) to specify index weights and fields. Consider the following
+example that indexes any string value in the data of every field of
+every document in a collection and names it ``TextIndex``:
 
 .. code-block:: javascript
 
@@ -214,14 +232,8 @@ following:
                                 username: 1 },
                               { name: "TextIndex" } )
 
-This creates an index named ``TextIndex``, that indexes all string
-data in every field of every document in a collection
-
-.. warning:: Create indexes using the wildcard operator with extreme
-   caution.
-
-You may also specify weights for a text index with compound fields, as
-in the following:
+By default, an index field has a weight of ``1``. You may specify
+weights for a ``text`` index with compound fields, as in the following:
 
 .. code-block:: javascript
 
@@ -236,7 +248,6 @@ in the following:
                                   "user.profiles": 2,
                                   keywords: 5,
                                   about: 5 } } )
-
 
 This index, named ``TextIndex``, includes a number of fields, with the
 following weights: 
@@ -268,25 +279,31 @@ cursor.
 
    .. code-block:: javascript
 
-      db.collection.runCommand( "text": { search: <search string>,
-                                          filter: <query document>,
-                                          projection: <projection document>,
-                                          limit: <number> } )
+      db.collection.runCommand( "text", { search: <string>,
+                                          filter: <document>,
+                                          projection: <document>,
+                                          limit: <number>,
+                                          language: <string> } )
 
    The :dbcommand:`text` command has the following parameters:
 
-   :param string query:
+   :param string search:
 
       A text string that MongoDB stems and uses to query the ``text``
       index. When specifying phrase matches, you must escape quote
-      characters (i.e. ``"``) with backslashes (i.e. ``\``).
+      characters as ``\"``.
 
    :param document filter:
 
       Optional. A :ref:`query document <mongodb-query-document>` to
       further limit the results of the query using another database
-      field. If the index is a compound ascending or descending index
-      field, this query will use that index field.
+      field. You can use any valid MongoDB query in the filter
+      document, except if the index includes an ascending or descending
+      index field as a prefix.
+      
+      If the index includes an ascending or descending index field, the
+      ``filter`` is required and the ``filter`` query must be an
+      equality match.
 
    :param document projection:
 
@@ -298,6 +315,11 @@ cursor.
       Optional. Specify the maximum number of documents to include in
       the response. 
 
+   :param string language:
+   
+      Optional. Specify the language that determines the tokenization,
+      stemming, and the stop words for the search.
+   
    :return:
 
       :dbcommand:`text` returns results in the form of a
@@ -305,15 +327,19 @@ cursor.
       Size`. Use a projection setting to limit the size of the result
       set.
 
-   Unlike other queries in MongoDB, :dbcommand:`text` takes all the
-   words in a query an selects matching documents from the index using
-   a logical ``OR`` operator. However, consider the following
-   behaviors of :dbcommand:`text` queries: 
-   
-   - MongoDB adds the words in phrase (i.e. queries enclosed in
-     quotation marks,) to the search and then adds the praise itself
-     to the query joined with a logical ``AND``.
-     
+   The implicit connector between the terms of a multi-term search is a
+   disjunction (``OR``). Search for ``"first second"`` searches
+   for ``"first"`` or ``"second"``. The scoring system will prefer
+   documents that contain all terms.
+
+   However, consider the following behaviors of :dbcommand:`text`
+   queries:
+
+   - With phrases (i.e. terms enclosed in escaped quotes), the search
+     performs an ``AND`` with any other terms in the search string;
+     e.g. search for ``"\"twinkle twinkle\" little star"`` searches for
+     ``"twinkle twinkle"`` and (``"little"`` or ``"star"``).
+
    - :dbcommand:`text` adds all negations to the query with the
      logical ``AND`` operator.
 
@@ -345,27 +371,17 @@ cursor.
       
          db.collection.runCommand( "text", { search: "create search fields" } )
          
-      This query returns documents that contain the either ``creat``
-      **or** ``search`` **or** ``field`` in the ``content`` field. The
-      :dbcommand:`text` command has stemmed the word ``create`` to
-      ``creat`` and the word ``fields`` to ``field`` for the search.
+      This query returns documents that contain the either ``create``
+      **or** ``search`` **or** ``field`` in the ``content`` field.
    
    #. Search for the exact phrase ``create search fields``:
    
       .. code-block:: javascript
       
-         db.collection.runCommand( "text", { search: "\"create search fields\""" } )
+         db.collection.runCommand( "text", { search: "\"create search fields\"" } )
          
       This query returns documents that contain the exact phrase
-      ``create search fields`` **and** (``creat`` **or** ``search``
-      **or** ``field``), all case-insensitive, in the ``content``
-      field.
-   
-      .. note:: 
-         
-         Exact phrase matches use the index for the initial selection
-         phase, but the query must scan the entire result document set
-         to fulfill the query.
+      ``create search fields``.
 
    #. Search for documents that contain the words ``create`` or ``search``,
       but **not** ``fields``:
@@ -385,9 +401,9 @@ cursor.
       
       - A ``<search string>`` that only contains negative words returns no match.
       
-      - A hyphenated word, such as ``case-insensitive``, is not a negated
-        word. The :dbcommand:`text` command ignores the hyphen and
-        searches for either ``case`` or the stem ``insensit``.
+      - A hyphenated word, such as ``case-insensitive``, is not a
+        negation. The :dbcommand:`text` command treats the hyphen and
+        as a delimiter.
 
    #. Search for a single word ``search`` with an additional ``filter`` on
       the ``about`` field, but **limit** the results to 2 documents with the
