@@ -68,6 +68,11 @@ However, ``text`` indexes have large storage requirements and incur
   MongoDB must update index entries for each word in the source
   collection.
 
+- some :dbcommand:`text` searches may affect performance on your
+  :program:`mongod`, particularly for negation queries and phrase
+  matches that cannot use the index as effectively as other kinds of
+  queries.
+
 Additionally, the current *experimental* implementation of ``text``
 indexes have the following limitations and behaviors:
 
@@ -76,15 +81,21 @@ indexes have the following limitations and behaviors:
   languages. MongoDB automatically stems :dbcommand:`text` queries at
   before beginning the query.
 
-- queries drop stop words (i.e. "the," "an," "a," "and," etc.)
+- indexes and queries drop stop words (i.e. "the," "an," "a," "and,"
+  etc.)
 
 - the index does not store phrases or information about the proximity
   of words in the documents.  As a result, **only** use phrase queries
   when the entire collection fits in RAM.
 
-- queries that negate
+- :dbcommand:`text` queries with negations must scan the content of
+  the document to guarantee the negation. As a result, **only** use
+  phrase queries when the entire collection fits in RAM.
 
-- you may only create a single text index on a collection at a time.
+- MongoDB does not stem phrases or negations in :dbcommand:`text`
+  queries.
+
+- a collection may only have a single ``text`` index at a time.
 
 .. important:: Do not enable or use ``text`` indexes on production
    systems.
@@ -104,42 +115,43 @@ Test ``text`` Indexes
 
    .. code-block:: javascript
 
-      db.adminComand( { setParameter: 1, textSearchEnabled: true } )
+      db.adminCommand( { setParameter: 1, textSearchEnabled: true } )
 
    You can also start the :program:`mongod` with the following
    invocation:
 
    .. code-block:: sh
 
-      mongo --setParameter textSearchEnabled=true
+      mongod --setParameter textSearchEnabled=true
 
 Create Text Indexes
 ^^^^^^^^^^^^^^^^^^^
 
-To create a text index, use the following invocation of
+To create a ``text`` index, use the following invocation of
 :method:`~db.collection.ensureIndex()`:
 
 .. code-block:: javascript
 
    db.collection.ensureIndex( { content: "text" } )
 
-Your ``text`` index can include content from multiple fields, and from
-fields in sub-documents, as in the following:
+``text`` indexes ignore all string data in the ``content`` field. Your
+``text`` index can include content from multiple fields, or arrays,
+and from fields in sub-documents, as in the following:
 
 .. code-block:: javascript
 
    db.collection.ensureIndex( { content: "text",
-                                users.comment: "text",
-                                users.profiles: "text" } )
+                                "users.comments": "text",
+                                "users.profiles": "text" } )
 
-These indexes may run into the :limit:`Index Name Length` limit, to
+These indexes may run into the :limit:`Index Name Length` limit. To
 avoid creating an index with a too-long name, you can specify a name
-in the options category, as in the following:
+in the options parameter, as in the following:
 
 .. code-block:: javascript
 
    db.collection.ensureIndex( { content: "text",
-                                users.profiles: "text" },
+                                "users.profiles": "text" },
                               { name: "TextIndex" } )
 
 When creating a ``text`` indexes you may also specify *weights* for
@@ -147,10 +159,11 @@ specific, which help shape the result set. Consider the following:
 
 .. code-block:: javascript
 
-   db.collection.ensureIndex( { content: "text", users.profiles: "text" },
+   db.collection.ensureIndex( { content: "text",
+                                "users.profiles": "text" },
                               { name: "TextIndex",
                                 weights: { content: 1,
-                                           users.profiles: 2 } } )
+                                           "users.profiles": 2 } } )
 
 This example creates a ``text`` index on the top-level field named
 ``content`` and the ``profiles`` field in the ``users``
@@ -165,7 +178,16 @@ with the following command:
 .. code-block:: javascript
 
    db.collection.ensureIndex( { username: "1",
-                                users.profiles: "text" } )
+                                "users.profiles": "text" } )
+
+If you create an ascending or descending index as a prefix of a
+``text`` index: 
+
+- MongoDB will only index documents that have the prefix field
+  (i.e. ``username``) and
+
+- All :dbcommand:`text` queries using this index must specify the
+  prefix field in the ``filter`` query.
 
 Alternately you can specify a conventional ascending or descending
 field as a suffix to a ``text`` index make it possible to use the
@@ -174,7 +196,7 @@ following index:
 
 .. code-block:: javascript
 
-   db.collection.ensureIndex( { users.profiles: "text"
+   db.collection.ensureIndex( { "users.profiles": "text",
                                 username: "1" } )
 
 Finally, you may use the special wild card field name specifier
@@ -183,7 +205,7 @@ following:
 
 .. code-block:: javascript
 
-   db.collection.ensureIndex( { "$**": "text"
+   db.collection.ensureIndex( { "$**": "text",
                                 username: "1" },
                               { name: "TextIndex" } )
 
@@ -199,46 +221,52 @@ in the following:
 .. code-block:: javascript
 
    db.collection.ensureIndex( { content: "text",
-                                users.profiles: "text",
+                                "users.profiles": "text",
                                 comments: "text",
-                                keywords: "text"
+                                keywords: "text",
                                 about: "text" },
                               { name: "TextIndex",
-                                weight:
-                                { "$**": 5
-                                  content: 10,
-                                  user.profiles: 2,
-                                  comments: 1 } } )
+                                weights:
+                                { content: 10,
+                                  "user.profiles": 2,
+                                  keywords: 5,
+                                  about: 5 } } )
 
 
-This index, named ``TextIndex``, includes a number of fields, that all
-have a weight of 5, except for the:
+This index, named ``TextIndex``, includes a number of fields, with the
+following weights: 
 
-- ``content`` field that has a weight of 5,
-- ``users.profiles`` that has a weight of 2, and
-- ``comments`` that has a weight of 1.
+- ``content`` field that has a weight of 10,
+- ``users.profiles`` that has a weight of 2,
+- ``comments`` that has a weight of 1,
+- ``keywords`` that has a weight of 5, and
+- ``about`` that has a weight of 5.
 
-This means that results that match words in the ``content`` field more
-than all other fields in the index, and that the ``user.profiles`` and
-``comments`` fields will be less likely to appear in responses than
-words from other fields.
+This means that documents that match words in the ``content`` field
+will appear in the result set more than all other fields in the index,
+and that the ``user.profiles`` and ``comments`` fields will be less
+likely to appear in responses than words from other fields.
 
 Text Queries
 ^^^^^^^^^^^^
 
 MongoDB 2.3.2 introduces the :dbcommand:`text` command to provide
 query support for ``text`` indexes. Unlike normal MongoDB queries,
-:dbcommand:`text` returns a document rather than a cursor.
+:dbcommand:`text` returns a document rather than a
+cursor. 
 
 .. dbcommand:: text
 
    The :dbcommand:`text` provides an interface to search text context
-   stored in ta ``text`` index. Consider the following prototype:
+   stored in the ``text`` index. Consider the following prototype:
    :dbcommand:`text`:
 
    .. code-block:: javascript
 
-      db.runCommand( text: { search: <search string>, filter: <query document> } )
+      db.collection.runCommand( text: { search: <search string>, 
+                                        filter: <query document>,
+                                        projection: <projection document>,
+                                        limit: <number> } )
 
    The :dbcommand:`text` command has the following parameters:
 
@@ -251,15 +279,18 @@ query support for ``text`` indexes. Unlike normal MongoDB queries,
 
       Optional. A :ref:`query document <mongodb-query-document>` to
       further limit the results of the query using another database
-      field. If the index as a compound ascending or descending index
+      field. If the index is a compound ascending or descending index
       field, this query will use that index field.
-
-      Unless your index includes an ordered field as a subset of the
 
    :param document projection:
 
       Optional. Allows you to limit the fields returned by the query
       to only those specified.
+
+   :param number limit:
+      
+      Optional. Specify the maximum number of documents to include in
+      the response. 
 
    :return:
 
@@ -268,10 +299,116 @@ query support for ``text`` indexes. Unlike normal MongoDB queries,
       Size`. Use a projection setting to limit the size of the result
       set.
 
+   Unlike other queries in MongoDB, :dbcommand:`text` takes all the
+   words in a query an selects matching documents from the index using
+   a logical ``OR`` operator. However, consider the following
+   behaviors of :dbcommand:`text` queries: 
+   
+   - MongoDB adds the words in phrase (i.e. queries enclosed in
+     quotation marks,) to the search and then adds the praise itself
+     to the query joined with a logical ``AND``.
+     
+   - :dbcommand:`text` adds all negations to the query with the
+     logical ``AND`` operator.
+
+
 .. example::
 
-   Consider the following examples of :dbcommand:`text` queries:
+   Consider the following examples of :dbcommand:`text` queries. All
+   examples assume that you have a ``text`` index on the field named
+   ``content`` in a collection named ``collection``.
 
+   #. Create a ``text`` index on the ``content`` field to enable text
+      search on the field:
+   
+      .. code-block:: javascript
+   
+         db.collection.ensureIndex( { content: "text" } )
+   
+   #. Search for a single word ``search``:
+   
+      .. code-block:: javascript
+      
+         db.collection.runCommand( "text", { search: "search" } )
+         
+      This query returns documents that contain the word
+      ``search``, case-insensitive, in the ``content`` field. 
+      
+   #. Search for multiple words, ``create`` or ``search`` or  ``fields``:
+   
+      .. code-block:: javascript
+      
+         db.collection.runCommand( "text", { search: "create search fields" } )
+         
+      This query returns documents that contain the either ``creat``
+      **or** ``search`` **or** ``field`` in the ``content`` field. The
+      :dbcommand:`text` command has stemmed the word ``create`` to
+      ``creat`` and the word ``fields`` to ``field`` for the search.
+   
+   #. Search for the exact phrase ``create search fields``:
+   
+      .. code-block:: javascript
+      
+         db.collection.runCommand( "text", { search: "\"create search fields\""" } )
+         
+      This query returns documents that contain the exact phrase
+      ``create search fields`` **and** (``creat`` **or** ``search``
+      **or** ``field``), all case-insensitive, in the ``content``
+      field.
+   
+      .. note:: 
+         
+         Exact phrase matches use the index for the initial selection
+         phase, but the query must scan the entire result document set
+         to fulfill the query.
+
+   #. Search for documents that contain the words ``create`` or ``search``,
+      but **not** ``fields``:
+   
+      .. code-block:: javascript
+   
+         db.collection.runCommand( "text", { search: "create search -fields" } )
+      
+      Use the ``-`` as a prefix to terms to specify negation in the
+      search string. The query returns documents that contain the
+      either ``creat`` **or** ``search``, but **not** ``field``, all
+      case-insensitive, in the ``content`` field. Prefixing a word
+      with a hyphen (``-``) negates a word:
+      
+      - The negated word filters out documents from the result set,
+        after selecting documents. 
+      
+      - A ``<search string>`` that only contains negative words returns no match.
+      
+      - A hyphenated word, such as ``case-insensitive``, is not a negated
+        word. The :dbcommand:`text` command ignores the hyphen and
+        searches for either ``case`` or the stem ``insensit``.
+
+   #. Search for a single word ``search`` with an additional ``filter`` on
+      the ``about`` field, but **limit** the results to 2 documents with the
+      highest score and return only the ``comments`` field in the matching
+      documents:
+   
+      .. code-block:: javascript
+      
+         db.collection.runCommand( "text", { 
+                                             search: "insensitive", 
+                                             filter: { about: /something/ }, 
+                                             limit: 2, 
+                                             projection: { comments: 1, _id: 0 } 
+                                           } 
+                                 )
+      
+      - The ``filter`` :ref:`query document <mongodb-query-document>`
+        is uses a :operator:`regular expression <$regex>`. See the
+        :ref:`query operators <operator>` page for available query
+        operators.
+        
+      - The ``projection`` must explicitly exclude (``0``) the ``_id``
+        field. Within the ``projection`` document, you cannot mix
+        inclusions (i.e. ``<fieldA>: 1``) and exclusions (i.e. ``<fieldB>:
+        0``), except for the ``_id`` field.
+     
 Additional Authentication Features
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -285,7 +422,7 @@ Additional Authentication Features
    - `Amazon Linux 6.4 <http://s3.amazonaws.com/downloads.10gen.com/linux/mongodb-linux-x86_64-subscription-amzn64-2.3.1.tgz>`_
    - `Red Hat Enterprise Linux 6.2 <http://s3.amazonaws.com/downloads.10gen.com/linux/mongodb-linux-x86_64-subscription-rhel62-2.3.1.tgz>`_
    - `Ubuntu 11.04 <http://s3.amazonaws.com/downloads.10gen.com/linux/mongodb-linux-x86_64-subscription-ubuntu1104-2.3.1.tgz>`_
-   - `SUSE 11 <http://s3.amazonaws.com/downloads.10gen.com/linux/mongodb-linux-x86_64-subscription-suse11-2.3.1tgz>`_
+   - `SUSE 11 <http://s3.amazonaws.com/downloads.10gen.com/linux/mongodb-linux-x86_64-subscription-suse11-2.3.1.tgz>`_
 
 An improved authentication system is a core focus of the entire 2.3
 cycle, as of 2.3.1, the following components of the new authentication
