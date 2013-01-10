@@ -1,0 +1,145 @@
+=========================================
+Upgrade a Sharded Cluster from 2.2 to 2.4
+=========================================
+
+.. default-domain:: mongodb
+
+Upgrading a :term:`sharded cluster` from MongoDB version 2.2 to 2.4 (or 2.3)
+requires that you run a 2.4 :ref:`config server
+<sharding-config-server>` with the :option:`--upgrade <mongos --upgrade>` option,
+as explained in detail in this procedure. The
+upgrade can be run without downtime.
+
+The upgrade to MongoDB 2.4 adds epochs to all of the collections and
+chunks in the existing cluster. MongoDB 2.2
+processes are capable of handling epochs, even though 2.2 did not
+require them.
+
+This procedure applies only to upgrades from version 2.2. Earlier
+versions of MongoDB do not correctly handle epochs.
+
+While the upgrade is in progress, you cannot make changes to the
+collection metadata. For example, you cannot add shards, drop databases,
+or drop collections, nor make other metadata changes.
+
+.. _upgrade-cluster-upgrade:
+
+Upgrade a Sharded Cluster from MongoDB 2.2 to MongoDB 2.4
+---------------------------------------------------------
+
+Do not perform metadata operations while performing this procedure.
+
+1. Turn off the :ref:`balancer <sharding-balancing-internals>` in the
+   :term:`sharded cluster`, as described in
+   :ref:`sharding-balancing-disable-temporally`.
+
+#. Ensure there are no version 2.0 MongoDB processes still active in the
+   sharded cluster. The automated upgrade process checks this, but
+   network availability might prevent a a thorough check. Wait 5 minutes
+   after stopping version 2.0 :program:`mongos` processes to confirm
+   that none are still active.
+
+#. Start a single versions 2.4 :program:`mongos` process with
+   :setting:`configdb` pointing to the sharded cluster's :ref:`config
+   servers <sharding-config-server>` and with the :option:`--upgrade
+   <mongos --upgrade>` option. You can use an existing version 2.4
+   :program:`mongos` that is able to reach the config servers, or,
+   alternatively, you can start a new :program:`mongos` to avoid
+   reconfiguring a production :program:`mongos`.
+
+   Issue the command in the following form:
+
+   .. code-block:: sh
+
+      mongos --configdb <config server> --upgrade
+
+   Without the :option:`--upgrade <mongos --upgrade>` option, any
+   version 2.4 :program:`mongos` processes in the sharded cluster will
+   fail to start.
+
+   The upgrade will prevent any chunk moves or splits from occurring
+   during the upgrade process. If there are very many sharded
+   collections, acquiring the locks for these collections may take
+   seconds or minutes. See the log for progress updates.
+
+#. If the :program:`mongos` process starts successfully, the upgrade has
+   completed. If the :program:`mongos` process fails to start, check the
+   log as to why.
+
+   If a network interruption occurred and prevented changes, see
+   :ref:`upgrade-cluster-resyn`.
+
+#. Restart the balancer. You can resume metadata operations.
+
+#. Restart the other version 2.4 :program:`mongos` processes in the
+   sharded cluster normally, without the :option:`--upgrade <mongos --upgrade>` option.
+
+Once you have upgraded, *do not* introduce version 2.0 MongoDB processes
+back into the sharded cluster. This can result in metadata problems. In
+future releases, this will be prevented by the upgrade mechanism itself.
+
+.. _upgrade-cluster-resyn:
+
+Resync after a Network Interruption
+-----------------------------------
+
+During the short critical section of the upgrade where changes are
+applied, it is unlikely but possible that a network interruption will
+prevent changes from being verified or applied to all three config
+servers. If this occurs, the :ref:`config servers
+<sharding-config-server>` must be re-synced, and there may be problems
+starting new :program:`mongos` processes. The :term:`sharded cluster` will remain active, but
+manual metadata operations should be avoided until the re-sync. The
+process for re-syncing is as follows:
+
+1. Turn off the :ref:`balancer <sharding-balancing-internals>` in the
+   sharded cluster and stop all metadata operations. This may already be
+   the case because of your having begun the upgrade procedure
+   (:ref:`upgrade-cluster-upgrade`).
+
+#. Shut down two of the three config servers, preferably the latter two listed
+   in the :setting:`configdb` string. For example, if your :setting:`configdb`
+   string is ``configA:27019,configB:27019,configC:27019``, shut down
+   ``configB`` and ``configC``. Shutting down the last two config servers
+   ensures that metadata reads will be largely uninterrupted.
+
+#. :program:`Mongodump <mongodump>` the data files of the active config server (``configA``).
+
+#. Move the data files of the downed config servers (``configB`` and ``configC``)
+   to a backup location.
+
+#. Clear out the :term:`data directory <dbpath>`.
+
+#. Restart the downed config servers with :option:`--dbpath <mongod --dbpath>`
+   pointing to the now-empty data directory and :option:`--port <mongod --port>`
+   pointing to a different port (for example, ``27020``).
+
+#. :program:`Mongorestore <mongorestore>` the data files from the active
+   config server (``configA``) to the restarted config servers on the new
+   port (``configB:27020,configC:27020``). These config servers are now
+   re-synced.
+
+#. Restart the restored config servers on the old port, resetting the
+   port back to the old settings (``configB:27019,configC:27019``).
+
+#. Connection pooling may cause spurious failures, as old connections
+   are discarded only when used. This problem is fixed in version 2.4, but to
+   avoid this problem in version 2.2, you can restart all :program:`mongos` instances (one-by-one,
+   to avoid downtime) and :method:`stepDown <rs.stepDown()>` and restart
+   the :term:`replica set` :term:`primaries <primary>`.
+
+#. The sharded cluster is now fully resynced, but to retry the upgrade
+   you must manually reset the upgrade state via a version 2.2
+   :program:`mongos`. To do so, connect to the 2.2 :program:`mongos`:
+
+   .. code-block:: sh
+
+      mongo <2.2 mongos port>
+
+   And then run:
+
+   .. code-block:: javascript
+
+      db.getMongo().getCollection("config.version").update({ _id : 1 }, { $unset : { upgradeState : 1 } })
+
+#. Retry the upgrade process, as described in :ref:`upgrade-cluster-upgrade`.
