@@ -4,23 +4,40 @@ Install the Hosted MMS Server
 Requirements
 ~~~~~~~~~~~~
 
-To run the Hosted MMS server, you must use a 64-bit server, with the
-following minimum requirements:
+Hardware
+++++++++
 
-- an AWS EC2 Standard Extra Large (i.e. m1.xlarge) or a server with 15
-  GB of RAM and 4 CPU cores, with
+To run the Hosted MMS server, you must use a 64-bit server, with requirements
+according to the following table:
 
-- a 200 GB EBS Provisioned IOPS volume with 500 provisioned IOPS, or
-  equivalent.
+==========================  =============  =======  ================  ===================
+Number of Monitored Hosts   CPU Cores      RAM      Storage Capacity  Storage IOPS/s
+==========================  =============  =======  ================  ===================
+Up to 400 monitored hosts   4+             15 GB    200 GB            500 IOPS/s
+Up to 2000 monitored hosts  8+             15 GB    500 GB            10000+ IOPS/s (SSD)
+More than 2000 hosts        Contact 10gen
+==========================  =============  =======  ================  ===================
 
-This infrastructure can support up to 400 hosts. If your MongoDB
-deployment has more than 400 instances, for the best results your hosted
-MMS instance will require SSD-backed storage.
+For reference, the 400-host configuration above was tested using an AWS EC2 Standard
+Extra Large (i.e. m1.xlarge) with a provisioned 500 IOP/s EBS volume. The 2000-host
+configuration was an AWS EC2 High I/O Quadruple Extra Large (hi1.4xlarge).
+For the best results your hosted MMS instance will require SSD-backed storage.
 
-These installation instructions assume you are deploying on an
-instance running Red Hat, CentOS, Fedora or Amazon Linux.
+Software
+++++++++
 
-Configure System
+**Required**
+
+* 64-bit Linux of either CentOS 5+, RHEL 5+, or Amazon Linux AMI (latest version only)
+* MongoDB 2.2.0+
+* Recommended: local SMTP server (sendmail, postfix, etc). On-Premise MMS can also be configured for other email providers like Gmail and Sendgrid.
+
+**Optional**
+
+* Twilio API account for SMS alerting integration.
+
+
+Prepare Server
 ~~~~~~~~~~~~~~~~
 
 #. For AWS users, prepare MongoDB Storage:
@@ -138,16 +155,28 @@ Obtain and Install Hosted MMS Server
 
 .. note::
 
-   Contact 10gen to obtain a download of the current stable MMS RPM.
+   Contact 10gen to obtain a download of the current stable MMS release. Available packages are RPM, tarball, and zip.
 
-Once you have a copy of the MMS Server on your instance, install it by
-issuing a command in the following form: ::
+RPM Install
+~~~~~~~~~~~
+
+Install the RPM by issuing command in the following form: ::
 
    sudo rpm -ivh 10gen-mms-<version>.x86_64.rpm
 
 Replace ``<version>`` with the version of the ``.rpm`` you
 obtained. When installed the base directory for the MMS software is
-``/opt/10gen/mms/``.
+``/opt/10gen/mms/``. The RPM will also create a new system user ``10gen-mms`` under which the server will run.
+
+Tarball/Zip Install
+~~~~~~~~~~~~~~~~~~~
+
+The tarball and zip packages can be used to install and run the MMS server without making any OS-level changes
+such as creating a new user. To install, simply extract the package. You may also optionally create a symlink
+from init.d to the included start/stop script for convenience. E.g., ::
+
+    $ tar -zxf 10gen-mms-<version>.x86_64.tar.gz
+    $ sudo ln -s mms/bin/10gen-mms /etc/init.d/
 
 Configure Hosted MMS Server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -163,10 +192,10 @@ Configure Required Properties
 .. note::
 
    By default, MMS configures integration for email using local
-   sendmail.
+   sendmail on port 25.
 
 Configure MMS properties, by editing the
-``/opt/10gen/mms/conf/conf-mms.properties`` file. Edit the following
+``<install_dir>/conf/conf-mms.properties`` file. Edit the following
 properties according to the needs of your deployment, as in the
 following example: ::
 
@@ -187,7 +216,7 @@ Configure authentication if you want to send mail using existing email
 infrastructure (i.e. SMTP,) or a service such as ``Gmail`` or ``Sendgrid`` .
 
 Set the following value in the
-``/opt/10gen/mms/conf/conf-mms.properties`` file:
+``<install_dir>/conf/conf-mms.properties`` file:
 
     mms.emailDaoClass=com.xgen.svc.mms.dao.email.JavaEmailDao
 
@@ -208,7 +237,7 @@ disabled authentication: ::
 Optional: AWS Simple Email Service Configuration
 ++++++++++++++++++++++++++++++++++++++++++++++++
 
-Set the following value in ``/opt/10gen/mms/conf/conf-mms.properties``
+Set the following value in ``<install_dir>/conf/conf-mms.properties``
 to configure integration with AWS's Simple Email Service (SES:) ::
 
     mms.emailDaoClass=com.xgen.svc.mms.dao.email.AwsEmailDao
@@ -246,14 +275,16 @@ Start the Hosted MMS Server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 After configuring your Hosted MMS deployment, you can start the MMS
-server with the following command: ::
+server with the following command. (If using the tarball or zip packages,
+a symlink will need to be created from ``/etc/init.d/10gen-mms`` to
+``<install_dir>/bin/10gen-mms``.) ::
 
     sudo /etc/init.d/10gen-mms start
 
-The MMS server logs its output to ``/var/log/10gen/mms0.log``. You can
-view this log information, with the following command: ::
+The MMS server logs its output to a ``logs`` directory inside the installation directory.
+You can view this log information with the following command: ::
 
-    sudo less /var/log/10gen/mms0.log
+    sudo less <install_dir>/logs/mms0.log
 
 If the server starts successfully, you will see content in this file
 that resembles the following: ::
