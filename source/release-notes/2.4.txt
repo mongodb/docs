@@ -52,21 +52,35 @@ Text Indexes
 Background
 ``````````
 
-MongoDB 2.3.2 added a new ``text`` index type that creates a special
-index that allows rich arbitrary queries over the content of a string
-field in MongoDB. MongoDB updates ``text`` indexes in real time as
-clients update data in MongoDB. Queries that use the ``text`` index
-will always be able to find the latest data using the text index.
+MongoDB2.3.2 includes a new ``text`` index type.  ``text`` indexes
+support boolean text search queries.  Any set of fields containing
+string data may be text indexed.  You may only maintain a single
+``text`` index per collection.  ``text`` indexes are fully consistent
+and updated in real-time as applications insert, update, or delete
+documents from the database. The ``text`` index and query system
+supports language specific stemming and stop-words. Additionally:
+
+- indexes and queries drop stop words (i.e. "the," "an," "a," "and,"
+  etc.)
+
+- MongoDB stores words stemmed during insertion in the index, using
+  simple suffix stemming, including support for a number of
+  languages. MongoDB automatically stems :dbcommand:`text` queries at
+  before beginning the query.
 
 However, ``text`` indexes have large storage requirements and incur
 **significant** performance costs:
 
-- Building ``text`` indexes takes time. For larger data sets, it may
-  take many minutes or hours to build a text index.
+- Text indexes can be large.  They contain one index entry for each
+  unique word indexed for each document inserted.
 
-- ``text`` indexes will impede insertion throughput for collection, as
-  MongoDB must update index entries for each word in the source
-  collection.
+- Building a ``text`` index is very similar to building a large
+  multi-key index, and therefore may take longer than building a
+  simple ordered (scalar)index.
+
+- ``text`` indexes will impede insertion throughput, because MongoDB
+  must add an index entry for each unique word in each indexed field
+  of each new source document.
 
 - some :dbcommand:`text` searches may affect performance on your
   :program:`mongod`, particularly for negation queries and phrase
@@ -76,21 +90,10 @@ However, ``text`` indexes have large storage requirements and incur
 Additionally, the current *experimental* implementation of ``text``
 indexes have the following limitations and behaviors:
 
-- MongoDB stores words stemmed during insertion in the index, using
-  simple suffix stemming, including support for a number of
-  languages. MongoDB automatically stems :dbcommand:`text` queries at
-  before beginning the query.
-
-- indexes and queries drop stop words (i.e. "the," "an," "a," "and,"
-  etc.)
-
-- the index does not store phrases or information about the proximity
-  of words in the documents.  As a result, **only** use phrase queries
-  when the entire collection fits in RAM.
-
-- :dbcommand:`text` queries with negations must scan the content of
-  the document to guarantee the negation. As a result, **only** use
-  phrase queries when the entire collection fits in RAM.
+- ``text`` indexes do not store phrases or information about the
+  proximity of words in the documents. As a result, phrase queries
+  will run much more effectively when the entire collection fits in
+  RAM.
 
 - MongoDB does not stem phrases or negations in :dbcommand:`text`
   queries.
@@ -100,10 +103,12 @@ indexes have the following limitations and behaviors:
 .. important:: Do not enable or use ``text`` indexes on production
    systems.
 
-For production-grade search requirements consider using a third-party
-search tool, and the `mongo-connector <https://github.com/10gen-labs/mongo-connector>`_
-or a similar integration strategy to provide more advanced search
-capabilities.
+.. May be worth including this: 
+
+   For production-grade search requirements consider using a
+   third-party search tool, and the `mongo-connector
+   <https://github.com/10gen-labs/mongo-connector>`_ or a similar
+   integration strategy to provide more advanced search capabilities.
 
 Test ``text`` Indexes
 `````````````````````
