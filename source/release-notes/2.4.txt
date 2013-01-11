@@ -50,28 +50,34 @@ Text Indexes
 
 .. note::
 
-   The ``text`` index type is currently an experimental feature and
-   you must enable it at run time. Interfaces and on-disk format may
-   change in future releases.
+   The ``text`` index type is currently an experimental feature.
+   Interfaces and on-disk format may change in future releases. To use
+   ``text`` index, you need to enable it at run time. Do **not** enable
+   or use ``text`` indexes on production systems.
 
 Background
 ``````````
 
-MongoDB2.3.2 includes a new ``text`` index type.  ``text`` indexes
-support boolean text search queries.  Any set of fields containing
-string data may be text indexed.  You may only maintain a single
-``text`` index per collection.  ``text`` indexes are fully consistent
-and updated in real-time as applications insert, update, or delete
-documents from the database. The ``text`` index and query system
-supports language specific stemming and stop-words. Additionally:
+MongoDB 2.3.2 includes a new ``text`` index type. ``text`` indexes
+support boolean text search queries:
 
-- indexes and queries drop stop words (i.e. "the," "an," "a," "and,"
-  etc.)
+- Any set of fields containing string data may be text indexed.
 
-- MongoDB stores words stemmed during insertion in the index, using
-  simple suffix stemming, including support for a number of
-  languages. MongoDB automatically stems :dbcommand:`text` queries at
-  before beginning the query.
+- You may only maintain a **single** ``text`` index per collection.
+
+- ``text`` indexes are fully consistent and updated in real-time as
+  applications insert, update, or delete documents from the database.
+  
+- The ``text`` index and query system supports language specific
+  stemming and stop words. Additionally:
+
+  - Indexes and queries drop stop words (i.e. "the," "an," "a," "and,"
+    etc.)
+
+  - MongoDB stores words stemmed during insertion in the index, using
+    simple suffix stemming, including support for a number of
+    languages. MongoDB automatically stems :dbcommand:`text` queries at
+    before beginning the query.
 
 However, ``text`` indexes have large storage requirements and incur
 **significant** performance costs:
@@ -81,11 +87,11 @@ However, ``text`` indexes have large storage requirements and incur
 
 - Building a ``text`` index is very similar to building a large
   multi-key index, and therefore may take longer than building a
-  simple ordered (scalar)index.
+  simple ordered (scalar) index.
 
 - ``text`` indexes will impede insertion throughput, because MongoDB
-  must add an index entry for each unique word in each indexed field
-  of each new source document.
+  must add an index entry for each unique word in each indexed field of
+  each new source document.
 
 - some :dbcommand:`text` searches may affect performance on your
   :program:`mongod`, particularly for negation queries and phrase
@@ -103,11 +109,11 @@ indexes have the following limitations and behaviors:
 - MongoDB does not stem phrases or negations in :dbcommand:`text`
   queries.
 
-- the index is case insensitive.
+- the index is case-insensitive.
 
 - a collection may only have a single ``text`` index at a time.
 
-.. important:: Do not enable or use ``text`` indexes on production
+.. important:: Do **not** enable or use ``text`` indexes on production
    systems.
 
 .. May be worth including this: 
@@ -120,21 +126,25 @@ indexes have the following limitations and behaviors:
 Test ``text`` Indexes
 `````````````````````
 
-.. important:: The ``text`` index type is an experimental feature and
-   you must enable the feature before creating or accessing a text
-   index. To enable text indexes, issue the following command at the
-   :program:`mongo` shell:
+The ``text`` index type is an experimental feature and you need to
+enable the feature before creating or accessing a text index.
+   
+To enable text indexes, issue the following command in the
+:program:`mongo` shell:
 
-   .. code-block:: javascript
+.. important:: Do **not** enable or use ``text`` indexes on production
+   systems. 
 
-      db.adminCommand( { setParameter: 1, textSearchEnabled: true } )
+.. code-block:: javascript
 
-   You can also start the :program:`mongod` with the following
-   invocation:
+   db.adminCommand( { setParameter: 1, textSearchEnabled: true } )
 
-   .. code-block:: sh
+You can also start the :program:`mongod` with the following
+invocation:
 
-      mongod --setParameter textSearchEnabled=true
+.. code-block:: sh
+
+   mongod --setParameter textSearchEnabled=true
 
 Create Text Indexes
 ^^^^^^^^^^^^^^^^^^^
@@ -157,7 +167,7 @@ and from fields in sub-documents, as in the following:
                                 "users.profiles": "text" } )
 
 The default name for the index consists of the ``<field name>``
-concatenated with ``_text``, as in the following:
+concatenated with ``_text`` for the indexed fields, as in the following:
 
 .. code-block:: javascript
 
@@ -193,10 +203,9 @@ sub-documents. Furthermore, the ``content`` field has a weight of 1 and
 the ``users.profiles`` field has a weight of 2.
 
 You can add a conventional ascending or descending index field(s) as a
-prefix or suffix of the index so that queries can limit the number of
-index entries the query must review to perform the query. You cannot
-include :ref:`multi-key <index-type-multi-key>` index field nor
-:ref:`geospatial <index-feature-geospatial>` index field.
+prefix or suffix of the index. You cannot include :ref:`multi-key
+<index-type-multi-key>` index field nor :ref:`geospatial
+<index-feature-geospatial>` index field.
 
 If you create an ascending or descending index as a prefix of a
 ``text`` index: 
@@ -204,8 +213,12 @@ If you create an ascending or descending index as a prefix of a
 - MongoDB will only index documents that have the prefix field
   (i.e. ``username``) and
 
-- All :dbcommand:`text` queries using this index must specify the
-  prefix field in the ``filter`` query.
+- The :dbcommand:`text` query can limit the number of index entries to
+  review in order to perform the query.
+  
+- All :dbcommand:`text` queries using this index must include the
+  ``filter`` option that specifies an equality condition for the prefix
+  field or fields.
 
 Create this index with the following operation:
 
@@ -295,8 +308,15 @@ cursor.
    :param string search:
 
       A text string that MongoDB stems and uses to query the ``text``
-      index. When specifying phrase matches, you must escape quote
-      characters as ``\"``.
+      index. In the :program:`mongo` shell, to specify a phrase to
+      match, you can either:
+      
+      - enclose the phrase in escaped double quote characters
+        (``\"<phrase>\"``) within the ``search`` string, as in
+        ``"\"coffee table\""``, or
+
+      - enclose the phrase in single quote characters, as in ``"'coffee
+        table'"``
 
    :param document filter:
 
@@ -318,19 +338,20 @@ cursor.
    :param number limit:
       
       Optional. Specify the maximum number of documents to include in
-      the response. 
+      the response. The default limit is 100.
 
    :param string language:
    
       Optional. Specify the language that determines the tokenization,
-      stemming, and the stop words for the search.
+      stemming, and the stop words for the search. The default language
+      is english.
    
    :return:
 
-      :dbcommand:`text` returns results in the form of a
-      document. Results must fit within the :limit:`BSON Document
-      Size`. Use a projection setting to limit the size of the result
-      set.
+      :dbcommand:`text` returns results in the form of a document.
+      Results must fit within the :limit:`BSON Document Size`. Use the
+      ``limit`` and the ``projection`` parameters to limit the size of
+      the result set.
 
    The implicit connector between the terms of a multi-term search is a
    disjunction (``OR``). Search for ``"first second"`` searches
@@ -367,20 +388,20 @@ cursor.
       
          db.collection.runCommand( "text", { search: "search" } )
          
-      This query returns documents that contain the word
-      ``search``, case-insensitive, in the ``content`` field. 
-      
+      This query returns documents that contain the word ``search``,
+      case-insensitive, in the ``content`` field.
+
    #. Search for multiple words, ``create`` or ``search`` or  ``fields``:
-   
+
       .. code-block:: javascript
-      
+
          db.collection.runCommand( "text", { search: "create search fields" } )
-         
+
       This query returns documents that contain the either ``create``
       **or** ``search`` **or** ``field`` in the ``content`` field.
-   
+
    #. Search for the exact phrase ``create search fields``:
-   
+
       .. code-block:: javascript
       
          db.collection.runCommand( "text", { search: "\"create search fields\"" } )
@@ -397,7 +418,7 @@ cursor.
       
       Use the ``-`` as a prefix to terms to specify negation in the
       search string. The query returns documents that contain the
-      either ``creat`` **or** ``search``, but **not** ``field``, all
+      either ``create`` **or** ``search``, but **not** ``field``, all
       case-insensitive, in the ``content`` field. Prefixing a word
       with a hyphen (``-``) negates a word:
       
@@ -407,8 +428,8 @@ cursor.
       - A ``<search string>`` that only contains negative words returns no match.
       
       - A hyphenated word, such as ``case-insensitive``, is not a
-        negation. The :dbcommand:`text` command treats the hyphen and
-        as a delimiter.
+        negation. The :dbcommand:`text` command treats the hyphen as a
+        delimiter.
 
    #. Search for a single word ``search`` with an additional ``filter`` on
       the ``about`` field, but **limit** the results to 2 documents with the
@@ -424,16 +445,17 @@ cursor.
                                              projection: { comments: 1, _id: 0 } 
                                            } 
                                  )
-      
+
       - The ``filter`` :ref:`query document <mongodb-query-document>`
-        is uses a :operator:`regular expression <$regex>`. See the
-        :ref:`query operators <operator>` page for available query
+        uses a :operator:`regular expression <$regex>`. See the
+        :doc:`query operators </reference/operator>` page for available query
         operators.
-        
-      - The ``projection`` must explicitly exclude (``0``) the ``_id``
-        field. Within the ``projection`` document, you cannot mix
-        inclusions (i.e. ``<fieldA>: 1``) and exclusions (i.e. ``<fieldB>:
-        0``), except for the ``_id`` field.
+
+      - Because the ``_id`` field is implicitly included, in order to
+        return **only** the ``comments`` field, you must explicitly
+        exclude (``0``) the ``_id`` field. Within the ``projection``
+        document, you cannot mix inclusions (i.e. ``<fieldA>: 1``) and
+        exclusions (i.e. ``<fieldB>: 0``), except for the ``_id`` field.
      
 Additional Authentication Features
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
