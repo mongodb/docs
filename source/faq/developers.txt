@@ -660,3 +660,49 @@ information on indexes.
 .. Commenting out.. If your small documents are approximately the page
    cache unit size, there is no benefit for ram cache efficiency, although
    embedding will provide some benefit regarding random disk i/o.
+
+.. _faq-developers-manual-padding:
+
+Can I manually pad documents to prevent moves during updates?
+-------------------------------------------------------------
+
+An update can cause a document to move on disk if the document grows in
+size. To *minimize* document movements, MongoDB uses
+:ref:`padding <write-operations-padding-factor>`.
+
+You should not have to pad manually because MongoDB adds
+:ref:`padding automatically <write-operations-padding-factor>` and can
+adaptive adjust the amount of padding added to documents to prevent
+document relocations following updates. 
+
+You can change the default :stats:`paddingFactor` calculation by using
+the the :dbcommand:`collMod` command with the
+:collflag:`usePowerOf2Sizes` flag. The :collflag:`usePowerOf2Sizes`
+flag ensures that MongoDB allocates document space in sizes that are
+powers of 2, which helps ensure that MongoDB can efficiently reuse
+free pace created by document deletion or relocation.
+
+However, in those exceptions where you must pad manually, you can use
+the strategy of first adding a temporary field to a document and then
+:operator:`$unsetting <$unset>` the field, as in the following example:
+
+.. code-block:: javascript
+
+   var myTempPadding = [ "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 
+                         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"];
+                         
+   db.myCollection.insert( { _id: 5, paddingField: myTempPadding } );
+
+   db.myCollection.update( { _id: 5 }, 
+                           { $unset: { paddingField: "" } } 
+                         )
+
+   db.myCollection.update( { _id: 5 },
+                           { $set: { realField: "Some text that I might have needed padding for" } } 
+                         )
+
+.. seealso::
+
+   :ref:`write-operations-padding-factor`

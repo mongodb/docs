@@ -341,6 +341,105 @@ write operation that affects multiple documents using the
 To isolate a sequence of write operations from other read and write
 operations, see :doc:`/tutorial/perform-two-phase-commits`.
 
+.. _write-operations-padding-factor:
+
+Padding Factor
+--------------
+
+
+If an update operation does not cause the document to increase in
+size, MongoDB can apply the update in-place in-place. Some updates
+change the size of the document, for example using the
+:operator:`$push` operator to append a sub-document to an array can
+cause the top level document to grow beyond its allocated space.
+
+When documents grow, MongoDB relocates the document on disk with
+enough contiguous space to hold the document. These relocations
+take longer than in-place updates, particularly if the collection has
+indexes that MongoDB must update all index entries. If
+collection has many indexes, the move will impact write throughput.
+
+To minimize document movements, MongoDB employs padding. MongoDB
+adaptively learns if documents in a collection tend to grow, and if
+they do, adds a :stats:`paddingFactor` so that the documents have room
+to grow on subsequent writes. The :stats:`paddingFactor` indicates the
+padding for new inserts and moves.
+
+.. versionadded:: 2.2 
+   You can use the :dbcommand:`collMod` command
+   with the :collflag:`usePowerOf2Sizes` flag so that MongoDB
+   allocates document space in sizes that are powers of 2. This helps
+   ensure that MongoDB can efficiently reuse the space freed as a
+   result of deletions or document relocations. As with all padding,
+   using document space allocations with power of 2 sizes minimizes,
+   but does not eliminate, document movements.
+   
+To check the current :stats:`paddingFactor` on a collection, you can
+run the :dbcommand:`db.collection.stats()` command in the
+:program:`mongo` shell, as in the following example:
+
+.. code-block:: javascript
+
+   db.myCollection.stats()
+
+Since MongoDB writes each document at a different point in time, the
+padding for each document will not be the same. You can calculate the
+padding size by subtracting 1 from the :stats:`paddingFactor`, for
+example:
+
+.. code-block:: none
+
+   padding size = (paddingFactor - 1) * <document size>. 
+
+For example, a ``paddingFactor`` of ``1.0`` specifies no padding
+whereas a paddingFactor of ``1.5`` specifies a padding size of ``0.5`` or 50
+percent (50%) of the document size.
+
+Because the :stats:`paddingFactor` is relative to the size of each
+document, you cannot calculate the exact amount of padding for a
+collection based on the average document size and padding factor.
+
+If an update operation causes the document to *decrease* in size, for
+instance if you perform an :operator:`$unset` or a :operator:`$pop`
+update, the document remains in place and effectively has more
+padding. If the document remains this size, the space is not reclaimed
+until you perform a :dbcommand:`compact` or a
+:dbcommand:`repairDatabase` operation.
+
+.. note::
+
+   The following operations remove padding: 
+   
+   - :dbcommand:`compact`,
+   - :dbcommand:`repairDatabase`, and 
+   - initial replica sync operations.
+
+   However, with the :dbcommand:`compact` command, you can run the
+   command with a ``paddingFactor`` or a ``paddingBytes`` parameter.
+
+   Padding is also removed if you use :program:`mongoexport` from a
+   collection. If you use :program:`mongoimport` into a new
+   collection, :program:`mongoimport` will not add padding.  If you
+   use :program:`mongoimport` with an existing collection with
+   padding, :program:`mongoimport` will not affect the existing
+   padding.
+
+   When a database operation removes padding, subsequent update that
+   require changes in record sizes will have reduced throughput until
+   the collection's padding factor grows. Padding does not affect
+   in-place, and after :dbcommand:`compact`,
+   :dbcommand:`repairDatabase`, and replica set initial sync
+   the collection will require less storage.
+
+.. COMMENT -- not sure if we really need this manual padding info or if
+   it belongs here, but ...
+
+.. seealso::
+
+   - :ref:`faq-developers-manual-padding`
+   
+   - `Fast Updates with MongoDB with in-place Updates <http://blog.mongodb.org/post/248614779/fast-updates-with-mongodb-update-in-place>`_ (blog post) 
+
 Architecture
 ------------
 
