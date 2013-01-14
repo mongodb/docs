@@ -117,60 +117,73 @@ can support all the queries that search a "prefix" subset of those fields.
 Create Indexes that Support Covered Queries
 -------------------------------------------
 
-A covered index query is a query in which all the queried fields are
-part of an index. They are "covered queries" because an index "covers" the query.
-MongoDB can fulfill the query by using *only* the index. MongoDB need
-not scan documents from the database.
+A covered query is a query in which all the queried fields and
+the returned fields are part of an index; i.e.
 
-Querying *only* the index is much faster than querying documents. Index
-keys are typically smaller than the documents they catalog, and indexes
-are typically stored in RAM or located sequentially on disk.
+- all the fields in the :ref:`query <read-operations-query-document>`
+  are part of that index, **and**
 
-Mongod automatically uses a covered query when possible. To ensure use
-of a covered query, create an index that includes all the fields listed
-in the query result. This means that the :term:`projection` document
-given to a query (to specify which fields MongoDB returns from
-the result set) must
-explicitly exclude the ``_id`` field from the result set, unless the
-index includes ``_id``.
+- all the fields returned in the results are in the same index.
 
-MongoDB **cannot** use a covered query if:
+Because the index "covers" the query, MongoDB can match the :ref:`query
+conditions <read-operations-query-document>` and return the results
+using only the index. MongoDB does not need to not look at documents
+outside of the index.
+
+Querying *only* the index can be much faster than querying documents
+outside of the index. Index keys are typically smaller than the
+documents they catalog, and indexes are typically available in RAM or
+located sequentially on disk.
+
+MongoDB automatically uses a covered query when possible. To ensure the
+use of a covered query, create an index that includes all the fields
+listed in the query result and the :ref:`query document
+<read-operations-query-document>`. This means that, if the index does
+**not** include the ``_id`` field, the :term:`projection` document
+given to a query (to specify which fields MongoDB returns from the
+result set) must explicitly exclude the ``_id`` field from the result
+set.
+
+An index **cannot** cover a query if:
 
 - any of the indexed fields in any of the documents in the collection
   includes an array. If an indexed field is an array, the index becomes
   a :ref:`multi-key index <index-type-multikey>` index and cannot
   support a covered query.
 
-- any of the indexed fields uses the :term:`dot notation`. For example,
-  consider a collection ``users`` with documents of the following form:
+- any of the indexed fields are fields in subdocuments. To index fields
+  in subdocuments, use :term:`dot notation`. For example, consider
+  a collection ``users`` with documents of the following form:
 
   .. code-block:: javascript
 
      { _id: 1, user: { login: "tester" } }
 
-  The collection has the following indexex:
+  The collection has the following indexes:
 
-  .. code-block:: javascript
+  .. code-block:: none
 
      { user: 1 }
-     { "user.login": 1 }
-     
-  The following query is covered:
 
-  .. code-block:: javascript
+     { "user.login": 1 }
+
+  The ``{ user: 1 }`` index covers the following query:
+
+  .. code-block:: none
 
      db.users.find( { user: { login: "tester" } }, { user: 1, _id: 0 } )
 
-  However, the following query is **not** covered:
+  However, the ``{ "user.login": 1 }`` index does **not** cover the
+  following query:
 
-  .. code-block:: javascript
+  .. code-block:: none
 
      db.users.find( { "user.login": "tester" }, { "user.login": 1, _id: 0 } )
 
-To test whether MongoDB used a covered query, use
-:method:`explain() <cursor.explain()>`. If the output displays ``true``
-for the ``indexOnly`` field, MongoDB used a covered query. For
-more information see :ref:`indexes-measuring-use`.
+To determine whether a query is covered, use :method:`explain()
+<cursor.explain()>`. If the output displays ``true`` for the
+``indexOnly`` field, the query is covered and MongoDB queried only the
+index. For more information see :ref:`indexes-measuring-use`.
 
 .. _index-sort:
 .. _sorting-with-indexes:

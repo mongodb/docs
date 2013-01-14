@@ -356,11 +356,7 @@ Result Projections
 The :term:`projection` specification limits the fields to return for
 all matching documents. Restricting the fields to return can minimize
 network transit costs and the costs of deserializing documents in the
-application layer. Additionally, if all the return fields are part of
-an :ref:`index <read-operations-indexing>` and the :ref:`query
-<read-operations-query-document>` uses that same index, MongoDB can
-fulfill the query using the :ref:`index only <indexes-covered-queries>`
-which is faster than querying whole documents.
+application layer. 
 
 The second argument to the :method:`find() <db.collection.find()>`
 method is a projection, and it takes the form of a :term:`document` with
@@ -462,6 +458,42 @@ operation:
   <index-ascending-and-descending>` to support sort operations in
   compound queries.
 
+.. _read-operations-covered-query:
+
+Covering a Query
+~~~~~~~~~~~~~~~~
+
+An index :ref:`covers <indexes-covered-queries>` a query when:
+
+- all the fields in the :ref:`query <read-operations-query-document>`
+  are part of that index, **and**
+
+- all the fields returned in the documents that match the query are in
+  the same index.
+
+Consider the following example where the collection ``inventory`` has
+an index on the fields ``type`` and ``item``.
+
+.. code-block:: sh
+
+   { type: 1, item: 1 }
+
+Then a query on the ``inventory`` collection that queries on the
+``type`` field and returns only the ``item`` field is covered by the
+index:
+
+.. code-block:: javascript
+
+   db.inventory.find( { type: "food" },
+                      { item: 1, _id: 0 } )
+
+Because the index "covers" the query, MongoDB can match the :ref:`query
+conditions <read-operations-query-document>` and return the results
+using only the index. MongoDB does not need to look at documents
+outside of the index. Querying the index can be faster than querying
+the documents outside of the index. See :ref:`indexes-covered-queries`
+for more information, including when indexes cannot cover a query.
+
 Measuring Index Use
 ~~~~~~~~~~~~~~~~~~~
 
@@ -556,9 +588,11 @@ the query used an index. This query:
 - then read 5 full documents from the collection, as indicated by
   the :data:`nscannedObjects` field.
 
-  This indicates that the query was not "covered," or able to complete
-  only using the index, as reflected in the :data:`indexOnly`. See
-  :ref:`indexes-covered-queries` for more information.
+  Although the query used an index, the ``indexOnly: false`` indicates
+  that the index did not :ref:`cover <read-operations-covered-query>`
+  the query; i.e. MongoDB could not match the :ref:`query conditions
+  <read-operations-query-document>` and return the results using only
+  that index. See :ref:`indexes-covered-queries` for more information.
 
 .. index:: query optimizer
 .. _read-operations-query-optimization:
