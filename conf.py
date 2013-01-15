@@ -121,7 +121,7 @@ latex_documents = [
 ]
 
 latex_elements = {
-    'preamble': '\DeclareUnicodeCharacter{FF04}{\$} \DeclareUnicodeCharacter{FF0E}{.}',
+    'preamble': '\DeclareUnicodeCharacter{FF04}{\$} \DeclareUnicodeCharacter{FF0E}{.} \PassOptionsToPackage{hyphens}{url}',
     'pointsize': '10pt',
     'papersize': 'letterpaper'
 }
