@@ -4,12 +4,25 @@ Backup Databases Using Block Level Backup Methods
 
 .. default-domain:: mongodb
 
-This section provides an overview of using disk/block level
-snapshots (i.e. :term:`LVM` or storage appliance) to backup a MongoDB
-instance. These tools make a quick block-level backup of the device
+This section describes how to backup and restore a MongoDB instance
+using system-level tools (such as :term:`LVM` or storage appliance) that
+create block-level snapshots of the device
 that holds MongoDB's data files. These methods complete quickly, work
 reliably, and typically provide the easiest backup systems method to
 implement.
+
+This page describes the following:
+
+- :ref:`snapshots-overview`
+
+- :ref:`lvm-backup-and-restore`
+
+- :ref:`backup-without-journaling`
+
+.. _snapshots-overview:
+
+Snapshots Overview
+------------------
 
 Snapshots work by creating pointers between the live data and a
 special snapshot volume. These pointers are theoretically equivalent
@@ -53,51 +66,58 @@ Snapshots have the following limitations:
 
 .. _backup-with-journaling:
 
-Backup With Journaling
-----------------------
+Snapshots With Journaling
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If your system has snapshot capability and your :program:`mongod` instance
-has journaling enabled, then you can use any kind of file system or
-volume/block level snapshot tool to create backups.
+If your :program:`mongod` instance has journaling enabled, then you can
+use any kind of file system or volume/block level snapshot tool to
+create backups.
 
-.. warning::
-
-   .. versionchanged:: 1.9.2
-
-   Journaling is only enabled by default on 64-bit builds of
-   MongoDB.
-
-   To enable journaling on all other builds, specify
-   :setting:`journal` = ``true`` in the configuration or use the
-   :option:`--journal <mongod --journal>` run-time option for
-   :program:`mongod`.
-
-Many service providers provide a block-level backup service based on
-disk image snapshots. If you manage your own infrastructure on a
-Linux-based system, configure your system with :term:`LVM` to provide
-your disk packages and provide snapshot capability. You can also use
-LVM-based setups *within* a cloud/virtualized environment.
+If you manage your own infrastructure on a Linux-based system, configure
+your system with :term:`LVM` to provide your disk packages and provide
+snapshot capability. You can also use LVM-based setups *within* a
+cloud/virtualized environment.
 
 .. note::
 
    Running :term:`LVM` provides additional flexibility and enables the
    possibility of using snapshots to back up MongoDB.
 
-If you use Amazon's EBS service in a software RAID 10 configuration, use
-:term:`LVM` to capture a consistent disk image. Also, see the special
-considerations described in :ref:`backup-amazon-software-raid`.
+Snapshots with Amazon EBS in a RAID 10 Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following sections provide an overview of a simple backup process
+If your deployment depends on Amazon’s Elastic Block Storage (EBS) with
+RAID configured within your instance, it is impossible to get a
+consistent state across all disks using the platform’s snapshot tool. As
+an alternative, you can do one of the following:
+
+- Flush all writes to disk and create a write lock to ensure
+  consistent state during the backup process.
+
+  If you choose this option see :ref:`backup-without-journaling`.
+
+- Configure :term:`LVM` to run and hold your MongoDB data files on top of the
+  RAID within your system.
+
+  If you choose this option, perform the LVM backup operation described
+  in :ref:`lvm-backup-operation`.
+
+.. _lvm-backup-and-restore:
+
+Backup and Restore Using LVM on a Linux System
+----------------------------------------------
+
+This section provides an overview of a simple backup process
 using :term:`LVM` on a Linux system. While the tools, commands, and paths may
 be (slightly) different on your system the following steps provide a
 high level overview of the backup operation.
 
 .. _lvm-backup-operation:
 
-Create Snapshot
-~~~~~~~~~~~~~~~
+Create a Snapshot
+~~~~~~~~~~~~~~~~~
 
-To create a snapshot with :term:`LVM`, issue a command, as root, in the
+To create a snapshot with :term:`LVM`, issue a command as root in the
 following format:
 
 .. code-block:: sh
@@ -138,25 +158,25 @@ data. Snapshots typically depend and reside on the same storage
 infrastructure as the original disk images. Therefore, it's crucial
 that you archive these snapshots and store them elsewhere.
 
-Archive Snapshots
-~~~~~~~~~~~~~~~~~
+Archive a Snapshot
+~~~~~~~~~~~~~~~~~~
 
 After creating a snapshot, mount the snapshot and move the data to
 separate storage. Your system might try to compress the backup images as
-you move the offline. Consider the following procedure to fully
-archive the data from the snapshot:
+you move the offline. The following procedure fully
+archives the data from the snapshot:
 
 .. code-block:: sh
 
    umount /dev/vg0/mdb-snap01
    dd if=/dev/vg0/mdb-snap01 | tar -czf mdb-snap01.tar.gz -
 
-The above command sequence:
+The above command sequence does the following:
 
 - Ensures that the ``/dev/vg0/mdb-snap01`` device is not mounted.
 
-- Does a block level copy of the entire snapshot image using the ``dd``
-  command, and compresses the result in a gzipped tar archive in the
+- Performs a block level copy of the entire snapshot image using the ``dd``
+  command and compresses the result in a gzipped tar archive in the
   current working directory.
 
   .. warning::
@@ -167,11 +187,11 @@ The above command sequence:
 
 .. _backup-restore-snapshot:
 
-Restore Snapshot
-~~~~~~~~~~~~~~~~
+Restore a Snapshot
+~~~~~~~~~~~~~~~~~~
 
-To restore a backup created with the above method, use the following
-procedure:
+To restore a snapshot created with the above method, issue the following
+sequence of commands:
 
 .. code-block:: sh
 
@@ -179,7 +199,7 @@ procedure:
    tar -xzf mdb-snap01.tar.gz | dd of=/dev/vg0/mdb-new
    mount /dev/vg0/mdb-new /srv/mongodb
 
-The above sequence:
+The above sequence does the following:
 
 - Creates a new logical volume named ``mdb-new``, in the ``/dev/vg0``
   volume group. The path to the new device will be ``/dev/vg0/mdb-new``.
@@ -205,7 +225,7 @@ Restore Directly from a Snapshot
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To restore a backup without writing to a compressed ``tar`` archive, use
-the following sequence:
+the following sequence of commands:
 
 .. code-block:: sh
 
@@ -235,8 +255,8 @@ Consider the following procedure:
 
 .. _backup-without-journaling:
 
-Backup Without Journaling
--------------------------
+Create Backups on Instances that do not Run Journaling
+------------------------------------------------------
 
 If your :program:`mongod` instance does not run with journaling
 enabled, or if your journal is on a separate volume, obtaining a
@@ -281,24 +301,3 @@ member`).
    .. include:: /includes/note-disable-profiling-fsynclock.rst
 
    .. include:: /includes/warning-fsync-lock-mongodump.rst
-
-.. _backup-amazon-software-raid:
-
-Amazon EBS in Software RAID 10 Configuration
---------------------------------------------
-
-If your deployment depends on Amazon's Elastic Block Storage (EBS)
-with RAID configured *within* your instance, it is impossible to get a
-consistent state across all disks using the platform's snapshot
-tool. As a result you may:
-
-- Flush all writes to disk and create a write lock to ensure
-  consistent state during the backup process.
-
-  If you choose this option see :ref:`backup-without-journaling`.
-
-- Configure LVM to run and hold your MongoDB data files on top of the
-  RAID within your system.
-
-  If you choose this option, perform the LVM backup operation described
-  in :ref:`lvm-backup-operation`.
