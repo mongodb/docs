@@ -34,6 +34,7 @@ Basic Operations
 - :doc:`/tutorial/manage-the-database-profiler`
 - :doc:`/tutorial/rotate-log-files`
 - :doc:`/tutorial/roll-back-to-v1.8-index`
+- :doc:`/tutorial/manage-mongodb-processes`
 
 Security
 ~~~~~~~~
