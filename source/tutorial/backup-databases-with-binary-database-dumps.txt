@@ -1,0 +1,160 @@
+============================================
+Backup Databases Using Binary Database Dumps
+============================================
+
+.. default-domain:: mongodb
+
+This section describes the process for writing the entire contents of
+your MongoDB instance to a file in a binary format. If disk-level
+snapshots are not available, this approach provides the best option for
+full system database backups. If your system has disk level snapshot
+capabilities, consider the backup methods described in
+:doc:`/tutorial/backup-databases-with-filesystem-snapshots`.
+
+This page describes the following:
+
+- :ref:`backup-mongodump`
+
+- :ref:`backup-restore-dump`
+
+.. seealso::
+
+   - :doc:`/reference/mongodump`
+   - :doc:`/reference/mongorestore`
+
+.. _backup-mongodump:
+
+Backup a Database with ``mongodump``
+-------------------------------------
+
+The :program:`mongodump` utility can perform a live backup of data or
+can work against an inactive set of database files.
+The :program:`mongodump` utility can create a dump for an entire
+server/database/collection (or part of a collection using of query),
+even when the database is running and active. If you run
+:program:`mongodump` without any arguments, the command connects to
+the local database instance (e.g. ``127.0.0.1`` or ``localhost``) and
+creates a database backup named ``dump/`` in the current directory.
+
+.. include:: /includes/note-mongodump-compatibility-2.2.rst
+
+To limit the amount of data included in the database dump, you can
+specify :option:`--database <mongodump --database>` and
+:option:`--collection <mongodump --collection>` as options to the
+:program:`mongodump` command. For example:
+
+.. code-block:: sh
+
+   mongodump --collection collection --db test
+
+This command creates a dump of the collection named ``collection``
+from the database ``test`` in a :file:`dump/` subdirectory of the current
+working directory.
+
+Use the :option:`--oplog <mongodump --oplog>` option with
+:program:`mongodump` to collect the :term:`oplog` entries to build a
+point-in-time snapshot of a database within a replica set. With :option:`--oplog
+<mongodump --oplog>`, :program:`mongodump` copies all the data from
+the source database as well as all of the :term:`oplog` entries from
+the beginning of the backup procedure to until the backup procedure
+completes. This backup procedure, in conjunction with
+:option:`mongorestore --oplogReplay <mongorestore --oplogReplay>`,
+allows you to restore a backup that reflects a consistent and specific
+moment in time.
+
+If your MongoDB instance is not running, you can use the
+:option:`--dbpath <mongodump --dbpath>` option to specify the
+location to your MongoDB instance's database files. :program:`mongodump`
+reads from the data files directly with this operation. This
+locks the data directory to prevent conflicting writes. The
+:program:`mongod` process must *not* be running or attached to these
+data files when you run :program:`mongodump` in this
+configuration. Consider the following example:
+
+.. code-block:: sh
+
+   mongodump --dbpath /srv/mongodb
+
+Additionally, the :option:`--host <mongodump --host>` and
+:option:`--port <mongodump --port>` options allow you to specify a
+non-local host to connect to capture the dump. Consider the following
+example:
+
+.. code-block:: sh
+
+   mongodump --host mongodb1.example.net --port 3017 --username user --password pass --out /opt/backup/mongodump-2011-10-24
+
+On any :program:`mongodump` command you may, as above, specify username
+and password credentials to specify database authentication.
+
+.. _backup-restore-dump:
+
+Restore a Database with ``mongorestore``
+----------------------------------------
+
+The :program:`mongorestore` utility restores a binary backup created by
+:program:`mongodump`. Consider the following example command:
+
+.. code-block:: sh
+
+   mongorestore dump-2011-10-25/
+
+Here, :program:`mongorestore` imports the database backup located in
+the :file:`dump-2011-10-25` directory to the :program:`mongod` instance
+running on the localhost interface. By default, :program:`mongorestore`
+looks for a database dump in the :file:`dump/` directory and restores
+that. If you wish to restore to a non-default host, the
+:option:`--host <mongorestore --host>` and :option:`--port <mongorestore --port>`
+options allow you to specify a non-local host to connect to capture
+the dump. Consider the following example:
+
+.. code-block:: sh
+
+   mongorestore --host mongodb1.example.net --port 3017 --username user --password pass /opt/backup/mongodump-2011-10-24
+
+On any :program:`mongorestore` command you may specify
+username and password credentials, as above.
+
+If you created your database dump using the :option:`--oplog
+<mongodump --oplog>` option to ensure a point-in-time snapshot, call
+:program:`mongorestore` with the
+:option:`--oplogReplay <mongorestore --oplogReplay>`
+option, as in the following example:
+
+.. code-block:: sh
+
+   mongorestore --oplogReplay
+
+You may also consider using the :option:`mongorestore --objcheck`
+option to check the integrity of objects while inserting them into the
+database, or you may consider the :option:`mongorestore --drop` option to drop each
+collection from the database before restoring from
+backups. :program:`mongorestore` also includes the ability to a filter
+to all input before inserting it into the new database. Consider the
+following example:
+
+.. code-block:: sh
+
+   mongorestore --filter '{"field": 1}'
+
+Here, :program:`mongorestore` only adds documents to the database from
+the dump located in the :file:`dump/` folder *if* the documents have a
+field name ``field`` that holds a value of ``1``. Enclose the
+filter in single quotes (e.g. ``'``) to prevent the filter from
+interacting with your shell environment.
+
+.. code-block:: sh
+
+   mongorestore --dbpath /srv/mongodb --journal
+
+Here, :program:`mongorestore` restores the database dump located in
+:file:`dump/` folder into the data files located at :file:`/srv/mongodb`.
+Additionally,
+the :option:`--journal <mongorestore --journal>` option ensures that
+:program:`mongorestore` records all operation in the durability
+:term:`journal`. The journal prevents data file corruption if anything
+(e.g. power failure, disk failure, etc.)  interrupts the restore
+operation.
+
+.. seealso:: :doc:`/reference/mongodump` and
+   :doc:`/reference/mongorestore`.
