@@ -1,126 +1,78 @@
-=================================
-Backup and Restoration Strategies
-=================================
+=================
+Backup Strategies
+=================
 
 .. default-domain:: mongodb
 
-This document describes database backup strategies for
-use with MongoDB. This document contains the following sections:
+You should have an automated backup system for your MongoDB environment.
+The backup system must capture data in a consistent and usable state and
+in a way that can be reliably reproduced. The backup system must be
+automated and run regularly. And the system must be regularly tested in
+practical situations to ensure that your backups are functional. If you
+cannot effectively restore your database from the backup, then your
+backups are useless. You also should automate tests of backup
+restoration.
 
-- :ref:`backup-overview` and :ref:`backup-considerations` describe the
-  approaches for backing up your MongoDB environment.
+Use one of the following tools for backing up your MongoDB
+environment:
 
-- :ref:`sharded-cluster-backups` describes considerations specific to
-  :term:`sharded clusters <sharded cluster>`.
-
-- :ref:`replica-set-backups` describes considerations
-  specific to :term:`replica sets <replica set>`.
-
-See also:
-
-- :doc:`/tutorial/backup-databases-with-filesystem-snapshots`
-
-- :doc:`/tutorial/backup-databases-with-binary-database-dumps`
-
-.. _backup-overview:
-
-Backup Strategies
------------------
-
-For MongoDB production systems, you should implement a strategy
-for taking and restoring backups. The goal of a backup strategy is to
-produce a full and consistent copy of the data to use to
-bring up a new or replacement database instance. In some
-cases, taking backups is difficult or impossible, given large data
-volumes, distributed architectures, and data transmission speeds.
-
-Nevertheless, with MongoDB, there are two major approaches to backups:
-[#replication-as-backups]_
-
-- Using system-level tools, like disk image snapshots.
+- Use system-level tools that perform block-level backups (also called
+  disk-image snapshots).
 
   See :doc:`/tutorial/backup-databases-with-filesystem-snapshots`.
 
-- Using various capacities present in the :program:`mongodump` tool.
+- Use the :program:`mongodump` tool.
 
   See :doc:`/tutorial/backup-databases-with-binary-database-dumps`.
 
-The methods described in this document operate by copying the data file
-on the disk level. If your system does not provide functionality for
-this kind of backup, see :doc:`/tutorial/backup-databases-with-binary-database-dumps`.
-
-Ensuring that the state captured by the backup is consistent and usable
-is the primary challenge of producing backups of database systems.
-Backups that you cannot produce reliably, or restore from feasibly are
-worthless.
-
-As you develop your backup system, take into consideration the specific
-features of your deployment, your use patterns, and your architecture.
-
-Because every environment is unique it's important to regularly test the
-backups that you capture to ensure that your backup system is
-practically, and not just theoretically, functional.
-
-.. [#replication-as-backups] In many situations increasing the amount
-   of replication provides useful assurances with data sets that are
-   difficult to restore in a timely manner.
+In some cases, taking backups is difficult or impossible because of
+large data volumes, distributed architectures, and data transmission
+speeds. In these situations, increase the amount of replication.
 
 .. _backup-considerations:
 
-Production Considerations for Backup Strategies
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Backup Considerations
+---------------------
 
-When evaluating a backup strategy for your MongoDB deployment consider
+As you develop a backup strategy for your MongoDB deployment consider
 the following factors:
 
 - Geography. Ensure that you move some backups away from the your
-  primary database infrastructure. It's important to be able to
-  restore your database if you lose access to a system or site.
+  primary database infrastructure.
 
 - System errors. Ensure that your backups can survive situations where
   hardware failures or disk errors impact the integrity or
   availability of your backups.
 
-- Production constraints. Backup operations themselves sometimes
-  require substantial system resources. It's important to consider the
-  time of the backup schedule relative to peak usage and maintenance
-  windows.
+- Production constraints. Backup operations themselves sometimes require
+  substantial system resources. It is important to consider the time of
+  the backup schedule relative to peak usage and maintenance windows.
 
-- System capabilities. Some of the block-level
-  snapshot tools requires special support on the operating-system or
-  infrastructure level.
+- System capabilities. Some of the block-level snapshot tools requires
+  special support on the operating-system or infrastructure level.
 
 - Database configuration. :term:`Replication` and :term:`sharding
-  <shard>` can affect the process, and impact of the backup implementation.
+  <shard>` can affect the process and impact of the backup
+  implementation. See :ref:`sharded-cluster-backups` and
+  :ref:`replica-set-backups`.
 
 - Actual requirements. You may be able to save time, effort, and space
   by including only crucial data in the most frequent backups and
   backing up less crucial data less frequently.
 
-With this information in hand you can begin to develop a backup plan
-for your database. Remember that all backup plans must be:
-
-- Tested. If you cannot effectively restore your database from the
-  backup, then your backups are useless. Test backup restoration
-  regularly in practical situations to ensure that your backup system
-  provides value.
-
-- Automated. Database backups need to run regularly and
-  automatically. Also automate tests of backup restoration.
-
 .. _sharded-cluster-backups:
 
 Sharded Cluster Backup Considerations
--------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/note-shard-cluster-backup.rst
 
-:term:`Sharded clusters <sharded cluster>` complicate backup operations, as distributed
-systems. True point-in-time backups are only possible when stopping all write
-activity from the application. To create a precise moment-in-time
-snapshot of a cluster, stop all application write activity to the
-database, capture a backup, and only allow write operations to the
-database after the backup is complete.
+:term:`Sharded clusters <sharded cluster>` complicate backup operations,
+as distributed systems. True point-in-time backups are only possible
+when stopping all write activity from the application. To create a
+precise moment-in-time snapshot of a cluster, stop all application write
+activity to the database, capture a backup, and allow only write
+operations to the database after the backup is complete.
 
 However, you can capture a backup of a cluster that **approximates** a
 point-in-time backup by capturing a backup from a secondary member of
@@ -129,7 +81,7 @@ same moment. If you decide to use an approximate-point-in-time backup
 method, ensure that your application can operate using a copy of the
 data that does not reflect a single moment in time.
 
-The following documents describe all sharded cluster related backup
+The following documents describe sharded cluster related backup
 procedures:
 
 - :doc:`/tutorial/backup-small-sharded-cluster-with-mongodump`
@@ -142,23 +94,24 @@ procedures:
 .. _replica-set-backups:
 
 Replica Set Backup Considerations
----------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In most cases, backing up data stored in a :term:`replica set` is
-similar to backing up data stored in a single instance. It's possible to
-lock a single :term:`secondary` or :term:`slave` database and then
-on create a backup from that instance. When you unlock the database, the secondary or
-slave  will catch up with the :term:`primary` or :term:`master`. You may also
-chose to deploy a dedicated :term:`hidden member` for backup purposes.
+similar to backing up data stored in a single instance. It is possible
+to lock a single :term:`secondary` database and then create a backup
+from that instance. When you unlock the database, the secondary will
+catch up with the :term:`primary`. You may also choose to deploy a
+dedicated :term:`hidden member` for backup purposes.
 
-If you have a :term:`sharded cluster` where each :term:`shard` is itself a replica
-set, you can use this method to create a backup of the entire cluster
-without disrupting the operation of the node. In these situations you
-should still turn off the balancer when you create backups.
+If you have a :term:`sharded cluster` where each :term:`shard` is itself
+a replica set, you can use this method to create a backup of the entire
+cluster without disrupting the operation of the node. In these
+situations you should still turn off the balancer when you create
+backups.
 
-For any cluster, using a non-primary/non-master node to create backups is
-particularly advantageous in that the backup operation does not
-affect the performance of the primary or master. Replication
-itself provides some measure of redundancy. Nevertheless, keeping
-point-in time backups of your cluster to provide for disaster recovery
-and as an additional layer of protection is crucial.
+For any cluster, using a non-primary node to create backups is
+particularly advantageous in that the backup operation does not affect
+the performance of the primary. Replication itself provides some measure
+of redundancy. Nevertheless, keeping point-in time backups of your
+cluster to provide for disaster recovery and as an additional layer of
+protection is crucial.
