@@ -47,7 +47,8 @@ include bin/makefile.push
 -include $(output)/makefile.migrations
 -include $(output)/makefile.sphinx-migration
 
-$(output)/makefile.%:bin/makefile-builder/%.py bin/makefile_builder.py bin/builder_data.py
+$(output)/makefile.%:bin/makefile-builder/%.py bin/makefile_builder.py bin/builder_data.py 
+	@mkdir -p $(output)
 	@$(PYTHONBIN) bin/makefile-builder/$(subst .,,$(suffix $@)).py $@
 
 ############# Meta targets that control the build and publication process. #############
@@ -56,7 +57,7 @@ $(output)/makefile.%:bin/makefile-builder/%.py bin/makefile_builder.py bin/build
 publish-if-up-to-date:
 	@bin/published-build-check $(current-branch) $(last-commit)
 	@$(MAKE) publish
-publish:$(sphinx-content) $(static-content) $(output)
+publish:$(sphinx-content) $(static-content) 
 	@echo [build]: $(manual-branch) branch is succeessfully deployed to '$(public-output)'.
 
 ############# Targets that define the production build process #############
