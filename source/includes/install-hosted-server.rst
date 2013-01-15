@@ -10,35 +10,64 @@ Hardware
 To run the Hosted MMS server, you must use a 64-bit server, with requirements
 according to the following table:
 
-==========================  =============  =======  ================  ===================
-Number of Monitored Hosts   CPU Cores      RAM      Storage Capacity  Storage IOPS/s
-==========================  =============  =======  ================  ===================
-Up to 400 monitored hosts   4+             15 GB    200 GB            500 IOPS/s
-Up to 2000 monitored hosts  8+             15 GB    500 GB            10000+ IOPS/s (SSD)
-More than 2000 hosts        Contact 10gen
-==========================  =============  =======  ================  ===================
+.. list-table::
+   :header-rows: 1
+   :widths: 20, 12, 8, 15, 15
 
-For reference, the 400-host configuration above was tested using an AWS EC2 Standard
-Extra Large (i.e. m1.xlarge) with a provisioned 500 IOP/s EBS volume. The 2000-host
-configuration was an AWS EC2 High I/O Quadruple Extra Large (hi1.4xlarge).
-For the best results your hosted MMS instance will require SSD-backed storage.
+   * - **Number of Monitored Hosts**
+     - **CPU Cores**
+     - **RAM**
+     - **Storage Capacity**
+     - **Storage IOPS/s**
+   * - Up to 400 monitored hosts
+     - 4+
+     - 15 GB
+     - 200 GB
+     - 500
+   * - Up to 2000 monitored hosts
+     - 8+
+     - 15 GB
+     - 500 GB
+     - 10000+ (SSD)
+   * - More than 2000 hosts
+     - Contact 10gen
+     -
+     -
+     -
+
+For reference: an AWS EC2 Standard Extra Large (i.e. m1.xlarge) with a
+provisioned 500 IOP/s EBS volume supported the 400-host configuration
+above. an AWS EC2 High I/O Quadruple Extra Large (hi1.4xlarge)
+supported the 2000 host configuration above.
+
+For the best results hosted MMS instances require SSD-backed storage.
 
 Software
 ++++++++
 
-**Required**
+Hosted MMS has the following *required* dependencies:
 
-* 64-bit Linux of either CentOS 5+, RHEL 5+, or Amazon Linux AMI (latest version only)
-* MongoDB 2.2.0+
-* Recommended: local SMTP server (sendmail, postfix, etc). On-Premise MMS can also be configured for other email providers like Gmail and Sendgrid.
+- 64-bit Linux. Hosted MMS servers must run any of the following
+  distributions:
 
-**Optional**
+  - CentOS 5 or later,
 
-* Twilio API account for SMS alerting integration.
+  - Red Hat Enterprise Linux 5, or later, or
 
+  - Amazon Linux AMI (latest version only,)
+
+- MongoDB 2.2.0 or later.
+
+Also the system that runs Hosted MMS have a local SMTP server
+(e.g. Postfix, Exim, Sendmail,) However, you may configure Hosted MMS
+to send mail via other providers including Gmail and Sendgrid.
+
+Hosted MMS has the following *optional* dependency.
+
+A Twilio API account for SMS alerting integration.
 
 Prepare Server
-~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
 
 #. For AWS users, prepare MongoDB Storage:
 
@@ -155,10 +184,11 @@ Obtain and Install Hosted MMS Server
 
 .. note::
 
-   Contact 10gen to obtain a download of the current stable MMS release. Available packages are RPM, tarball, and zip.
+   Contact 10gen to obtain a download of the current stable MMS
+   release. 10gen provides RPM, ``tar.gz``, and ``zip`` packages.
 
 RPM Install
-~~~~~~~~~~~
++++++++++++
 
 Install the RPM by issuing command in the following form: ::
 
@@ -168,15 +198,20 @@ Replace ``<version>`` with the version of the ``.rpm`` you
 obtained. When installed the base directory for the MMS software is
 ``/opt/10gen/mms/``. The RPM will also create a new system user ``10gen-mms`` under which the server will run.
 
-Tarball/Zip Install
-~~~~~~~~~~~~~~~~~~~
+``tar.gz`` and ``zip`` Install
+++++++++++++++++++++++++++++++
 
-The tarball and zip packages can be used to install and run the MMS server without making any OS-level changes
-such as creating a new user. To install, simply extract the package. You may also optionally create a symlink
-from init.d to the included start/stop script for convenience. E.g., ::
+You can install Hosted MMS from the provided ``tar.gz`` or ``zip``
+archive without making any changes to the underlying system
+(i.e. without creating users.)
+To install, simply extract the package, as in the following command: ::
 
-    $ tar -zxf 10gen-mms-<version>.x86_64.tar.gz
-    $ sudo ln -s mms/bin/10gen-mms /etc/init.d/
+    tar -zxf 10gen-mms-<version>.x86_64.tar.gz
+
+Optionally create a symlink in ``/etc/init.d`` to the included control
+script for convenience, as in the following: ::
+
+    sudo ln -s mms/bin/10gen-mms /etc/init.d/
 
 Configure Hosted MMS Server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -275,9 +310,7 @@ Start the Hosted MMS Server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 After configuring your Hosted MMS deployment, you can start the MMS
-server with the following command. (If using the tarball or zip packages,
-a symlink will need to be created from ``/etc/init.d/10gen-mms`` to
-``<install_dir>/bin/10gen-mms``.) ::
+server with the following command. [#archive-install-link]_ ::
 
     sudo /etc/init.d/10gen-mms start
 
@@ -309,3 +342,8 @@ page you see in MMS will provide instructions for downloading the MMS
 agent. Click the "download agent" link to download a pre-configured
 agent for your account. Continue reading this document for
 installation and configuration instructions for the MMS agent.
+
+.. [#archive-install-link] If you installed from a ``tar.gz`` or
+   ``zip`` archive, you must create a symlink located at the path
+   ``/etc/init.d/10gen-mms`` that points to the
+   ``<install_dir>/bin/10gen-mms``.
