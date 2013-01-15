@@ -29,6 +29,7 @@ help:
 	@echo "	 pdfs		generates pdfs."
 
 ############# makefile includes #############
+include bin/makefile.intersphinx
 include bin/makefile.compatibility
 include bin/makefile.content
 include bin/makefile.push
@@ -55,7 +56,7 @@ $(output)/makefile.%:bin/makefile-builder/%.py bin/makefile_builder.py bin/build
 publish-if-up-to-date:
 	@bin/published-build-check $(current-branch) $(last-commit)
 	@$(MAKE) publish
-publish:$(sphinx-content) $(static-content)
+publish:$(sphinx-content) $(static-content) $(output)
 	@echo [build]: $(manual-branch) branch is succeessfully deployed to '$(public-output)'.
 
 ############# Targets that define the production build process #############

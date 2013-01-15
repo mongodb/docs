@@ -64,11 +64,13 @@ extlinks = {
 composite_pages = ['commands', 'javascript', 'operators', 'aggregation', 'meta-query-operators', 'replica-commands']
 
 intersphinx_mapping = {
-        'pymongo': ('http://api.mongodb.org/python/current/', None),
-        'python' : ('http://docs.python.org/', None),
-        'django': ('https://django.readthedocs.org/en/latest/', None),
-        'djangomongodbengine': ('http://django-mongodb.org/', None),
-        'djangotoolbox' : ('http://djangotoolbox.readthedocs.org/en/latest/', None),
+        'pymongo': ('http://api.mongodb.org/python/current/', '../build/pymongo.inv'),
+        'python' : ('http://docs.python.org/2/', '../build/python2.inv'),
+        'python2' : ('http://docs.python.org/2/', '../build/python2.inv'),
+        'python3' : ('http://docs.python.org/3/', '../build/python3.inv'),
+        'django': ('https://django.readthedocs.org/en/latest/', '../build/django.inv'),
+#        'djangomongodbengine': ('http://django-mongodb.org/', '../build/djangomongodb.inv'), # website currently 404s
+        'djangotoolbox' : ('http://djangotoolbox.readthedocs.org/en/latest/', '../build/djangotoolbox.inv'),
 }
 
 # -- Options for HTML output ---------------------------------------------------
