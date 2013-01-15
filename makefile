@@ -29,7 +29,6 @@ help:
 	@echo "	 pdfs		generates pdfs."
 
 ############# makefile includes #############
-include bin/makefile.intersphinx
 include bin/makefile.compatibility
 include bin/makefile.content
 include bin/makefile.push
@@ -41,13 +40,14 @@ include bin/makefile.push
 -include $(output)/makefile.texinfo
 -include $(output)/makefile.tables
 -include $(output)/makefile.links
+-include $(output)/makefile.intersphinx
 -include $(output)/makefile.sphinx
 -include $(output)/makefile.releases
 -include $(output)/makefile.errors
 -include $(output)/makefile.migrations
 -include $(output)/makefile.sphinx-migration
 
-$(output)/makefile.%:bin/makefile-builder/%.py bin/makefile_builder.py bin/builder_data.py 
+$(output)/makefile.%:bin/makefile-builder/%.py bin/makefile_builder.py bin/builder_data.py conf.py
 	@mkdir -p $(output)
 	@$(PYTHONBIN) bin/makefile-builder/$(subst .,,$(suffix $@)).py $@
 
