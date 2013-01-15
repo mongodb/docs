@@ -47,9 +47,12 @@ include bin/makefile.push
 -include $(output)/makefile.migrations
 -include $(output)/makefile.sphinx-migration
 
-$(output)/makefile.%:bin/makefile-builder/%.py bin/makefile_builder.py bin/builder_data.py conf.py
+$(output)/makefile.%:bin/makefile-builder/%.py bin/makefile_builder.py bin/builder_data.py
 	@mkdir -p $(output)
-	@$(PYTHONBIN) bin/makefile-builder/$(subst .,,$(suffix $@)).py $@
+	@$(PYTHONBIN) $< $@
+$(output)/makefile.intersphinx:bin/makefile-builder/intersphinx.py bin/makefile_builder.py conf.py
+	@mkdir -p $(output)
+	@$(PYTHONBIN) $< $@
 
 ############# Meta targets that control the build and publication process. #############
 .PHONY: publish publish-if-up-to-date
