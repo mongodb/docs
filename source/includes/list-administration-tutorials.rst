@@ -35,6 +35,8 @@ Basic Operations
 - :doc:`/tutorial/rotate-log-files`
 - :doc:`/tutorial/roll-back-to-v1.8-index`
 - :doc:`/tutorial/manage-mongodb-processes`
+- :doc:`/tutorial/backup-databases-with-binary-database-dumps`
+- :doc:`/tutorial/backup-databases-with-filesystem-snapshots`
 
 Security
 ~~~~~~~~

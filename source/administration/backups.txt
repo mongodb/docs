@@ -1,23 +1,27 @@
-==================================
-Backing Up the MongoDB Environment
-==================================
+=====================================
+Backup Strategies for MongoDB Systems
+=====================================
 
 .. default-domain:: mongodb
 
-You should have an automated backup system for your MongoDB environment.
-The backup system must capture data in a consistent and usable state and
-in a way that can be reliably reproduced. The backup system must be
-automated and run regularly. And the system must be regularly tested in
-practical situations to ensure that your backups are functional. If you
-cannot effectively restore your database from the backup, then your
-backups are useless. You also should automate tests of backup
-restoration.
+Backups are an important part of any operational disaster recovery
+plan. A good backup plan must be able to reproducible capture data in
+a consistent and usable state, and operators must be able to automate
+both the backup and the recovery operations. Also test all components
+of the backup system to ensure that you can recover backed up data as
+needed. If you cannot effectively restore your database from the
+backup, then your backups are useless. This document addresses
+higher level backup strategies, for more information on specific
+backup procedures consider the following documents:
 
-This page describes the following:
-
-- :ref:`backup-considerations`
-
-- :ref:`backup-approaches`
+- :doc:`/tutorial/backup-databases-with-filesystem-snapshots`.
+- :doc:`/tutorial/backup-databases-with-binary-database-dumps`.
+- :doc:`/tutorial/backup-small-sharded-cluster-with-mongodump`
+- :doc:`/tutorial/backup-sharded-cluster-with-filesystem-snapshots`
+- :doc:`/tutorial/backup-sharded-cluster-with-database-dumps`
+- :doc:`/tutorial/schedule-backup-window-for-sharded-clusters`
+- :doc:`/tutorial/restore-single-shard`
+- :doc:`/tutorial/restore-sharded-cluster`
 
 .. _backup-considerations:
 
@@ -49,6 +53,45 @@ the following factors:
 - Actual requirements. You may be able to save time, effort, and space
   by including only crucial data in the most frequent backups and
   backing up less crucial data less frequently.
+
+.. _backup-approaches:
+
+Approaches to Backing Up MongoDB Systems
+----------------------------------------
+
+There are two main methodologies for backing up MongoDB
+instances. Creating binary "dumps" of the database using
+:program:`mongodump` or creating filesystem level snapshots. Both
+methodologies have advantages and disadvantages:
+
+- binary database dumps are comparatively small, because they don't
+  include index content pre-allocated free space, and :ref:`record
+  padding <write-concern-padding-factor>`. However, it's impossible to
+  capture a copy of a running system that reflects a single moment in
+  time using a binary dump.
+
+- filesystem snapshots, sometimes called block level backups, produce
+  larger backup sizes, but complete quickly and can reflect a single
+  moment in time on a running system. However, snapshot systems
+  require filesystem and operating system support and tools.
+
+The best option depends on the requirements of your deployment and
+disaster recovery needs. Typically, filesystem snapshots are because
+of their accuracy and simplicity; however, :program:`mongodump` is a
+viable option used often to generate backups of MongoDB systems.
+
+The following topics provide details and procedures on the two approaches:
+
+- :doc:`/tutorial/backup-databases-with-filesystem-snapshots`.
+- :doc:`/tutorial/backup-databases-with-binary-database-dumps`.
+
+In some cases, taking backups is difficult or impossible because of
+large data volumes, distributed architectures, and data transmission
+speeds. In these situations, increase the amount of replication.
+
+
+Backup Strategies for MongoDB Deployments
+-----------------------------------------
 
 .. _sharded-cluster-backups:
 
@@ -105,29 +148,3 @@ the performance of the primary. Replication itself provides some measure
 of redundancy. Nevertheless, keeping point-in time backups of your
 cluster to provide for disaster recovery and as an additional layer of
 protection is crucial.
-
-.. _backup-approaches:
-
-Approaches to Backing Up the MongoDB Environment
-------------------------------------------------
-
-The best option for backing up your MongoDB environment is to use
-block-level backups, which provide duplicate images of your device.
-Block-level backups, also called snapshots, complete quickly, work
-reliably, and typically provide the easiest backup systems to implement.
-
-If block-level backup tools are not available, MongoDB provides the
-:program:`mongodump` tool, which performs binary-level backups. The
-:program:`mongodump` tool writes the entire contents of your MongoDB
-instance to a file in a binary format. If snapshots are not available,
-this approach provides the best option for full system database backups.
-
-The following topics provide details and procedures on the two approaches:
-
-- :doc:`/tutorial/backup-databases-with-filesystem-snapshots`.
-
-- :doc:`/tutorial/backup-databases-with-binary-database-dumps`.
-
-In some cases, taking backups is difficult or impossible because of
-large data volumes, distributed architectures, and data transmission
-speeds. In these situations, increase the amount of replication.
