@@ -97,8 +97,11 @@ class MongoDBObject(ObjectDescription):
             if fullname in objects:
                 path = self.env.doc2path(self.env.domaindata['mongodb']['objects'][fullname][0])
                 spath = path.split('/')[-1].rsplit('.', 1)[0]
+                sspath = self.state_machine.reporter.source.split('/')[-1].rsplit('.', 1)[0]
 
                 if spath in composite_pages:
+                    pass
+                elif sspath in composite_pages:
                     pass
                 elif spath == fullname:
                     pass
@@ -106,9 +109,13 @@ class MongoDBObject(ObjectDescription):
                     pass
                 elif spath == fullname.lstrip('_'):
                     pass
+                elif path == self.state_machine.reporter.source:
+                    pass
+                elif fullname.startswith(spath):
+                    pass
                 else:
                     self.state_machine.reporter.warning(
-                        'duplicate object description of %s, ' % fullname +
+                        'duplicate object description of "%s", ' % fullname +
                         'other instance in ' + path,
                         line=self.lineno)
 
@@ -256,7 +263,7 @@ class MongoDBDomain(Domain):
         'dbcommand':   MongoDBXRefRole(),
         'operator':    MongoDBXRefRole(),
         'projection':  MongoDBXRefRole(),
-        'program':      MongoDBXRefRole(),
+        'program':     MongoDBXRefRole(),
         'setting':     MongoDBXRefRole(),
         'status':      MongoDBXRefRole(),
         'stats':       MongoDBXRefRole(),
