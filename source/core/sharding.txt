@@ -7,48 +7,19 @@ Sharding Overview
 
 .. default-domain:: mongodb
 
-Sharding is MongoDB’s approach to scaling out. Sharding partitions
-database collections and stores the different portions of a collection
-on different machines. When your collections become too large for
-existing storage, you need only add a new machine and MongoDB
-automatically distributes data to the new server.
+Sharding is MongoDB’s approach to scaling out. Sharding partitions a
+database collection and stores the different portions on different
+machines. When collections become too large for existing storage, you
+need only add a new machine and sharding automatically distributes
+collection data to the new server.
 
-Sharding automatically balances the data and load across machines. By
-splitting a collection across multiple machines, sharding increases
-write capacity, provides the ability to support larger working sets, and
-raises the limits of total data size beyond the physical resources of a
-single node.
+Sharding balances the data and load across machines. By splitting a
+collection across multiple machines, sharding increases write capacity
+and supports larger working sets. Specifically:
 
-How Sharding Works
-------------------
-
-Sharding is enabled on a per-database basis. Once a database is enabled
-for sharding, you then choose which collections to shard.
-
-MongoDB distributes documents among :term:`shards <shard>` based on the
-value of the :ref:`shard key <sharding-shard-key>`. Each :term:`chunk`
-represents a block of :term:`documents <document>` with values that fall
-within a specific range. When chunks grow beyond the :ref:`chunk size
-<sharding-chunk-size>`, MongoDB divides the chunks into smaller chunks
-(i.e. :term:`splitting <split>`) based on the shard key.
-
-The sharding system automatically balances data across the cluster
-without intervention from the application layer. Effective automatic
-sharding depends on a well chosen :ref:`shard key <sharding-shard-key>`,
-but requires no additional complexity, modifications, or intervention
-from developers.
-
-Sharding is completely transparent to the application layer, because all
-connections to a cluster go through :program:`mongos`. Sharding in
-MongoDB requires some :ref:`basic initial configuration
-<sharding-procedure-setup>`, but ongoing function is entirely
-transparent to the application.
-
-Sharding increases capacity in two ways:
-
-#. Effective partitioning of data can provide additional write
-   capacity by distributing the write load over a number of
-   :program:`mongod` instances.
+#. Partitioning of data provides additional write capacity by
+   distributing the write load over a number of :program:`mongod`
+   instances.
 
 #. Given a shard key with sufficient :ref:`cardinality
    <sharding-shard-key-cardinality>`, partitioning data allows users to
@@ -58,25 +29,41 @@ Sharding increases capacity in two ways:
 .. index:: shard key
    single: sharding; shard key
 
+How Sharding Works
+------------------
+
+To run sharding, you set up a sharded cluster. For a description of
+sharded clusters, see :doc:`/administration/sharded-clusters`.
+
+Within a sharded cluster, you enable sharding on a per-database basis.
+Once a database is enabled for sharding, you choose which collections to
+shard. For each sharded collection, you specify a :term:`shard key`.
+
+The shard key determines the distribution of the collection's
+:term:`documents <document>` among the cluster's :term:`shards <shard>`.
+The shard key is a :term:`field` that exists in every document in the
+collection. MongoDB distributes documents according to ranges of values
+in the shard key. A given shard holds documents for which the shard key
+falls within a specific range of values. Shard keys, like :term:`indexes
+<index>`, can be either a single field or multiple fields.
+
+Within a shard, MongoDB further partitions documents into :term:`chunks
+<chunk>`. Each chunk represents a smaller range of values within the
+shard's range. When a chunk grows beyond the :ref:`chunk size
+<sharding-chunk-size>`, MongoDB :term:`splits <split>` the chunk into
+smaller chunks, always based on ranges in the shard key.
+
+.. _sharding-shard-key-selection:
 .. _sharding-shard-key:
 .. _shard-key:
 
-Shard Keys
-----------
+Shard Key Selection
+-------------------
 
-MongoDB distributes documents among :term:`shards <shard>` based on
-:term:`shard keys <shard key>`. A shard key must be :term:`field` that
-exists in every :term:`document` in the collection. Shard keys, like
-:term:`indexes <index>`, can be either a single field, or may be a
-compound key, consisting of multiple fields.
-
-MongoDB's sharding is range-based. Each :term:`chunk` holds
-documents having specific range of values for the "shard key". Thus,
-choosing the correct shard key can have a great impact on the
+Choosing the correct shard key can have a great impact on the
 performance, capability, and functioning of your database and cluster.
-
-Appropriate shard key choice depends on the schema of your data and
-the way that your application queries and writes data to the database.
+Appropriate shard key choice depends on the schema of your data and the
+way that your application queries and writes data to the database.
 
 The ideal shard key:
 
@@ -109,16 +96,16 @@ help produce one that is more ideal.
 .. index:: balancing
 .. _sharding-balancing:
 
-Balancing and Distribution
---------------------------
+Shard Balancing
+---------------
 
 Balancing is the process MongoDB uses to redistribute data within a
 :term:`sharded cluster`. When a :term:`shard` has a too many:
-term:`chunks <chunk>` when compared to other shards, MongoDB balances
-the shards.
+term:`chunks <chunk>` when compared to other shards, MongoDB
+automatically balances the shards. MongoDB balances the shards without
+intervention from the application layer.
 
-The
-balancing process attempts to minimize the impact that balancing can
+The balancing process attempts to minimize the impact that balancing can
 have on the cluster, by:
 
 - Moving only one chunk at a time.
