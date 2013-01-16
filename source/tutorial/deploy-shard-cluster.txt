@@ -1,194 +1,226 @@
+.. _sharding-procedure-setup:
+
 ========================
-Deploy a Sharded Cluster
+Set Up a Sharded Cluster
 ========================
 
 .. default-domain:: mongodb
 
-This document describes how to deploy a :term:`sharded cluster` for a
-standalone :program:`mongod` instance. To deploy a cluster for an
-existing replica set, see
-:doc:`/tutorial/convert-replica-set-to-replicated-shard-cluster`.
+The topics on this page are an ordered sequence of the tasks you perform
+to set up a sharded cluster. To set up a sharded cluster, follow the
+ordered sequence of tasks:
 
-Procedure
----------
+- :ref:`sharding-setup-start-cfgsrvr`
 
-Before deploying a sharded cluster, see the requirements listed in
-:ref:`Requirements for Sharded Clusters <sharding-requirements>`.
+- :ref:`sharding-setup-start-mongos`
+
+- :ref:`sharding-setup-add-shards`
+
+- :ref:`sharding-setup-enable-sharding`
+
+- :ref:`sharding-setup-shard-collection`
+
+Before setting up a cluster, see the following:
+
+- :ref:`sharding-requirements`.
+
+- :doc:`/administration/replication-architectures`
 
 .. include:: /includes/warning-sharding-hostnames.rst
 
+.. _sharding-setup-start-cfgsrvr:
+
 Start the Config Server Database Instances
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------------------
 
-The config server database processes are small
-:program:`mongod` instances that store the cluster's metadata. You must
-have exactly *three* instances in production deployments. Each stores a complete copy
-of the cluster's metadata. These instances should run on different servers
-to assure good uptime and data safety.
+The config server processes are :program:`mongod` instances that store
+the cluster's metadata. You designate a :program:`mongod` as a config
+server using the :option:`--configsvr <mongod --configsvr>` option. Each
+config server stores a complete copy of the cluster's metadata.
 
-Since config database :program:`mongod` instances receive relatively
-little traffic and demand only a small portion of system resources, you
-can run the instances on systems that run other cluster components.
+In production deployments, you must deploy exactly three config server
+instances, each running on different servers to assure good uptime and
+data safety. In test environments, you can run all three instances on a
+single server.
 
-By default a :program:`mongod` :option:`--configsvr <mongod --configsvr>` process stores its data files
-in the `/data/configdb` directory.  You can specify a different
-location using the :setting:`dbpath` run-time option. The config :program:`mongod` instance
-is accessible via port ``27019``. In addition to :setting:`configsvr`,
-use other :program:`mongod`
-:doc:`runtime options </reference/configuration-options>` as needed.
+Config server instances receive relatively little traffic and demand
+only a small portion of system resources. Therefore, you can run an
+instance on a system that runs other cluster components.
 
-To create a data directory for each config server, issue a command
-similar to the following for each:
+1. Create data directories for each of the three config server
+   instances. By default, a config server stores its data files in the
+   `/data/configdb` directory. You can choose a different location. To
+   create a data directory, issue a command similar to the following:
 
-.. code-block:: sh
+   .. code-block:: sh
 
-   mkdir /data/db/config
+      mkdir /data/db/config
 
-To start each config server, issue a command similar to the following
-for each:
+#. Start the three config server instances. Start each by issuing a
+   command using the following syntax:
 
-.. code-block:: sh
+   .. code-block:: sh
 
-   mongod --configsvr --dbpath <path> --port <port>
+      mongod --configsvr --dbpath <path> --port <port>
+
+   The default port for config servers is ``27019``. You can specify a
+   different port. The following example starts a config server using
+   the default port and default data directory:
+
+   .. code-block:: sh
+
+      mongod --configsvr --dbpath /data/configdb --port 27019
+
+   For additional command options, see :doc:`/reference/mongod` or
+   :doc:`/reference/configuration-options`.
+
+   .. include:: /includes/note-config-server-startup.rst
+
+.. _sharding-setup-start-mongos:
 
 Start the ``mongos`` Instances
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------
 
-The :program:`mongos` instance routes queries and operations
-to the appropriate shards and interacts with the config server instances.
-All client operations targeting a cluster go through :program:`mongos`
-instances.
+The :program:`mongos` instances are lightweight and do not require data
+directories. You can run a :program:`mongos` instance on a system that
+runs other cluster components, such as on an application server or a
+server running a :program:`mongod` process. By default, a
+:program:`mongos` instance runs on port ``27017``.
 
-:program:`mongos` instances are lightweight and do not require data directories.
-A cluster typically
-has several instances. For example, you might run one :program:`mongos`
-instance on each of your application servers, or you might run a :program:`mongos` instance
-on each of the servers running a :program:`mongod` process.
+When you start the :program:`mongos` instance, specify the hostnames of
+the three config servers, either in the configuration file or as command
+line parameters. For operational flexibility, use DNS names for the
+config servers rather than explicit IP addresses. If you're not using
+resolvable hostname, you cannot change the config server names or IP
+addresses without a restarting *every* :program:`mongos` and
+:program:`mongod` instance.
 
-You must the specify resolvable hostnames [#names]_ for the *3* config servers
-when starting the :program:`mongos` instance. You specify the hostnames either in the
-configuration file or as command line parameters.
+To start a :program:`mongos` instance, issue a command using the following syntax:
 
-The :program:`mongos` instance runs on the default MongoDB TCP port:
-``27017``.
+.. code-block:: sh
 
-To start :program:`mongos` instance running on the
-``mongos0.example.net`` host, that connects to the config server
-instances running on the following hosts:
+   mongos --configdb <config server hostnames>
 
-- ``mongoc0.example.net``
-- ``mongoc1.example.net``
-- ``mongoc2.example.net``
+For example, to start a :program:`mongos` that connects to config server
+instance running on the following hosts and on the default ports:
+
+- ``cfg0.example.net``
+- ``cfg1.example.net``
+- ``cfg2.example.net``
 
 You would issue the following command:
 
 .. code-block:: sh
 
-   mongos --configdb mongoc0.example.net,mongoc1.example.net,mongoc2.example.net
+   mongos --configdb cfg0.example.net:27019,cfg1.example.net:27019,cfg2.example.net:27019
 
-.. [#names] Use DNS names for the config servers rather than explicit
-   IP addresses for operational flexibility. If you're not using resolvable
-   hostname,
-   you cannot change the config server names or IP addresses
-   without a restarting *every* :program:`mongos` and
-   :program:`mongod` instance.
+.. _sharding-setup-add-shards:
 
 Add Shards to the Cluster
-~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------
 
-You must deploy at least one :term:`shard` or one :term:`replica set` to
-begin. In a production cluster, each shard is a replica set. You
-may add additional shards to a running cluster later. For instructions
-on deploying replica sets, see :doc:`/tutorial/deploy-replica-set`.
+A :term:`shard` can be a standalone :program:`mongod` or or a
+:term:`replica set`. In a production environment, each shard
+should be a replica set.
 
-This procedure assumes you have two active and initiated replica sets
-and describes how to add the first two shards to the cluster.
+1. From a :program:`mongo` shell, connect to the :program:`mongos`
+   instance. Issue a command using the following syntax:
 
-First, connect to one of the :program:`mongos` instances. For example,
-if a :program:`mongos` is accessible at ``mongos0.example.net`` on
-port ``27017``, issue the following command:
+   .. code-block:: sh
 
-.. code-block:: sh
+      mongo --host <host> --port <port>
 
-   mongo mongos0.example.net
+   For example, if a :program:`mongos` is accessible at
+   ``mongos0.example.net`` on port ``27017``, issue the following
+   command:
 
-Then, from a :program:`mongo` shell connected to the :program:`mongos`
-instance, call the :method:`sh.addShard()` method for each shard that
-you want to add to the cluster:
+   .. code-block:: sh
 
-.. code-block:: javascript
+      mongo --host mongos0.example.net --port 27017
 
-   sh.addShard( "s0/sfo30.example.net" )
-   sh.addShard( "s1/sfo40.example.net" )
+#. Add shards to the cluster using the :method:`sh.addShard()` method
+   issued from the :program:`mongo` shell. Issue :method:`sh.addShard()`
+   separately for each shard in the cluster. If the shard is a replica
+   set, specify the name of the set and one member of the set.
+   :program:`mongos` will discover the names of other members of the
+   set. In production deployments, all shards should be replica sets.
 
-If the host you are adding is a member of a replica set, you
-*must* specify the name of the replica set.  :program:`mongos`
-will discover the names of other members of the replica set based on
-the name and the hostname you provide.
-
-These operations add two shards, provided by:
-
-- the replica set named ``s0``, that includes the
-  ``sfo30.example.net`` host.
-
-- the replica set name and ``s1``, that includes the
-  ``sfo40.example.net`` host.
-
-.. admonition:: All shards should be replica sets
-
-   .. versionchanged:: 2.0.3
-
-   After version 2.0.3, you may use the above form to add replica
-   sets to a cluster. The cluster will automatically discover
-   the other members of the replica set and note their names
-   accordingly.
-
-   Before version 2.0.3, you must specify the shard in the
-   following form: the replica set name, followed by a forward
-   slash, followed by a comma-separated list of seeds for the
-   replica set. For example, if the name of the replica set is
-   ``sh0``, and the replica set were to have three members, then your :method:`sh.addShard` command might resemble:
+   The following example adds a shard for a standalone :program:`mongod`.
+   To optionally specify a name for the shard or a maximum size, see
+   :dbcommand:`addShard`:
 
    .. code-block:: javascript
 
-      sh.addShard( "sh0/sfo30.example.net,sfo31.example.net,sfo32.example.net" )
+      sh.addShard( "mongodb0.example.net:27027" )
 
-The :method:`sh.addShard()` helper in the :program:`mongo` shell is a wrapper for
-the :dbcommand:`addShard` :term:`database command`.
+   The following example adds a shard for a replica set
+   named ``rs1``:
 
-Enable Sharding for Databases
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   .. code-block:: javascript
 
-While sharding operates on a per-collection basis, you must enable
-sharding for each database that holds collections you want to shard. A
-single cluster may have many databases, with each database housing
-collections.
+      sh.addShard( "rs1/mongodb0.example.net:27027" )
 
-Use the following operation in a :program:`mongo` shell session
-connected to a :program:`mongos` instance in your cluster:
+   .. note::
+
+      .. versionchanged:: 2.0.3
+
+      For MongoDB versions prior to 2.0.3, if you add a replica set as a
+      shard, you must specify all members of the replica set. For
+      example, if the name of the replica set is ``repl0``, then your
+      :method:`sh.addShard()` command would be:
+
+      .. code-block:: javascript
+
+         sh.addShard( "repl0/mongodb0.example.net:27027,mongodb1.example.net:27017,mongodb2.example.net:27017" )
+
+.. _sharding-setup-enable-sharding:
+
+Enable Sharding for a Database
+------------------------------
+
+Before you can shard a collection, you must enable sharding for the
+collection's database. Enabling sharding for a database does not
+redistribute data but make it possible to shard the collections in that
+database.
+
+Once you enable sharding for a database, MongoDB assigns a
+:term:`primary shard` for that database where MongoDB stores all data
+before sharding begins.
+
+1. From a :program:`mongo` shell, connect to the :program:`mongos`
+   instance. Issue a command using the following syntax:
+
+   .. code-block:: sh
+
+      mongo --host <host> --port <port>
+
+#. Issue the :method:`sh.enableSharding()` method, specifying the name
+   of the database for which to enable sharding. Use the following syntax:
+
+   .. code-block:: javascript
+
+      sh.enableSharding(<database>)
+
+Optionally, you can enable sharding for a database using the
+:dbcommand:`enableSharding` command, which uses the following syntax:
 
 .. code-block:: javascript
 
-   sh.enableSharding("records")
+   db.runCommand( { enableSharding: <database> } )
 
-Where ``records`` is the name of the database that holds the collection
-you want to shard. :method:`sh.enableSharding()` is a wrapper
-around the :dbcommand:`enableSharding` :term:`database command`. You
-can enable sharding for multiple databases in the cluster.
+.. _sharding-setup-shard-collection:
 
 Enable Sharding for Collections
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------
 
-You can enable sharding on a per-collection basis. Because
-MongoDB uses "range based sharding," you must specify the :term:`shard
-key` MongoDB uses to distribute your documents among the
-shards. For more information, see the
-:ref:`overview of shard keys <sharding-shard-key>`.
+You enable sharding on a per-collection basis. When you do, you
+specify the :term:`shard key` MongoDB uses to distribute your documents
+among the shards. For more information, see the
+:ref:`sharding-shard-key`.
 
 To enable sharding for a collection, use the
-:method:`sh.shardCollection()` helper in the :program:`mongo` shell.
-The helper provides a wrapper around the :dbcommand:`shardCollection`
-:term:`database command` and has the following prototype form:
+:method:`sh.shardCollection()` method in the :program:`mongo` shell.
+The command uses the following syntax:
 
 .. code-block:: javascript
 
@@ -200,49 +232,48 @@ of your database, which consists of the name of your database, a dot
 represents your shard key, which you specify in the same form as you
 would an :method:`index <db.collection.ensureIndex()>` key pattern.
 
-Consider the following example invocations of
-:method:`sh.shardCollection()`:
+.. example:: The following sequence of commands shards four collections:
 
-.. code-block:: javascript
+   .. code-block:: javascript
 
-   sh.shardCollection("records.people", { "zipcode": 1, "name": 1 } )
-   sh.shardCollection("people.addresses", { "state": 1, "_id": 1 } )
-   sh.shardCollection("assets.chairs", { "type": 1, "_id": 1 } )
-   sh.shardCollection("events.alerts", { "hashed_id": 1 } )
+      sh.shardCollection("records.people", { "zipcode": 1, "name": 1 } )
+      sh.shardCollection("people.addresses", { "state": 1, "_id": 1 } )
+      sh.shardCollection("assets.chairs", { "type": 1, "_id": 1 } )
+      sh.shardCollection("events.alerts", { "hashed_id": 1 } )
 
-In order, these operations shard:
+   In order, these operations shard:
 
-#. The ``people`` collection in the ``records`` database using the shard key
-   ``{ "zipcode": 1, "name": 1 }``.
+   #. The ``people`` collection in the ``records`` database using the
+      shard key ``{ "zipcode": 1, "name": 1 }``.
 
-   This shard key distributes documents by the value of the
-   ``zipcode`` field. If a number of documents have the same value for
-   this field, then that :term:`chunk` will be :ref:`splitable
-   <sharding-shard-key-cardinality>` by the values of the ``name``
-   field.
+      This shard key distributes documents by the value of the
+      ``zipcode`` field. If a number of documents have the same value
+      for this field, then that :term:`chunk` will be :ref:`splitable
+      <sharding-shard-key-cardinality>` by the values of the ``name``
+      field.
 
-#. The ``addresses`` collection in the ``people`` database using the shard key
-   ``{ "state": 1, "_id": 1 }``.
+   #. The ``addresses`` collection in the ``people`` database using the
+      shard key ``{ "state": 1, "_id": 1 }``.
 
-   This shard key distributes documents by the value of the ``state``
-   field. If a number of documents have the same value for this field,
-   then that :term:`chunk` will be :ref:`splitable
-   <sharding-shard-key-cardinality>` by the values of the ``_id``
-   field.
+      This shard key distributes documents by the value of the ``state``
+      field. If a number of documents have the same value for this
+      field, then that :term:`chunk` will be :ref:`splitable
+      <sharding-shard-key-cardinality>` by the values of the ``_id``
+      field.
 
-#. The ``chairs`` collection in the ``assets`` database using the shard key
-   ``{ "type": 1, "_id": 1 }``.
+   #. The ``chairs`` collection in the ``assets`` database using the shard key
+      ``{ "type": 1, "_id": 1 }``.
 
-   This shard key distributes documents by the value of the ``type``
-   field. If a number of documents have the same value for this field,
-   then that :term:`chunk` will be :ref:`splitable
-   <sharding-shard-key-cardinality>` by the values of the ``_id``
-   field.
+      This shard key distributes documents by the value of the ``type``
+      field. If a number of documents have the same value for this
+      field, then that :term:`chunk` will be :ref:`splitable
+      <sharding-shard-key-cardinality>` by the values of the ``_id``
+      field.
 
-#. The ``alerts`` collection in the ``events`` database using the shard key
-   ``{ "hashed_id": 1 }``.
+   #. The ``alerts`` collection in the ``events`` database using the shard key
+      ``{ "hashed_id": 1 }``.
 
-   This shard key distributes documents by the value of the
-   ``hashed_id`` field. Presumably this is a computed value that
-   holds the hash of some value in your documents and is able to
-   evenly distribute documents throughout your cluster.
+      This shard key distributes documents by the value of the
+      ``hashed_id`` field. Presumably this is a computed value that
+      holds the hash of some value in your documents and is able to
+      evenly distribute documents throughout your cluster.
