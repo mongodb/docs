@@ -144,12 +144,15 @@ $(branch-output)/latex/%.tex:
 	@echo [pdf]: pdf compilation of $@, complete at `date`.
 
 ############# General purpose targets. Not used (directly) in the production build #############
+build-ephemera = $(output-tables) $(output)/makefile.* $(output)/*.inv
 clean:
-	-rm -rf $(output-tables) $(branch-output)/* build/makefile.*
+	-rm -rf $(build-ephemera)
+clean-branch:
+	-rm -rf $(build-ephemera) $(branch-output)/*
 clean-public:
-	-rm -rf $(output-tables) $(public-output)/* build/makefile.*
+	-rm -rf $(build-ephemera) $(public-output)/* 
 clean-all:
-	-rm -rf $(output-tables) $(output)/* build/makefile.*
+	-rm -rf $(build-ephemera) $(output)/*
 draft:draft-html
 archive:$(public-output).$(timestamp).tar.gz
 	@echo [$@]: created $< $@.
