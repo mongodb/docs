@@ -23,6 +23,9 @@ from sphinx.util.docfields import Field, GroupedField, TypedField
 
 from sphinx_conf import composite_pages
 
+def basename(path):
+    return path.split('/')[-1].rsplit('.', 1)[0]
+
 class MongoDBObject(ObjectDescription):
     """
     Description of a MongoDB object.
@@ -96,8 +99,8 @@ class MongoDBObject(ObjectDescription):
             objects = self.env.domaindata['mongodb']['objects']
             if fullname in objects:
                 path = self.env.doc2path(self.env.domaindata['mongodb']['objects'][fullname][0])
-                spath = path.split('/')[-1].rsplit('.', 1)[0]
-                sspath = self.state_machine.reporter.source.split('/')[-1].rsplit('.', 1)[0]
+                spath = basename(path)
+                sspath = basename(self.state_machine.reporter.source)
 
                 if spath in composite_pages:
                     pass
