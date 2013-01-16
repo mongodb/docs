@@ -28,6 +28,7 @@ Sharding
 Basic Operations
 ~~~~~~~~~~~~~~~~
 
+- :doc:`/tutorial/use-database-commands`
 - :doc:`/tutorial/recover-data-following-unexpected-shutdown`
 - :doc:`/tutorial/copy-databases-between-instances`
 - :doc:`/tutorial/expire-data`
