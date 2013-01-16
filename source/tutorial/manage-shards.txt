@@ -1,0 +1,308 @@
+.. _sharding-manage-shards:
+
+=============
+Manage Shards
+=============
+
+.. default-domain:: mongodb
+
+This page includes the following:
+
+- :ref:`sharding-procedure-add-shard`
+
+- :ref:`sharding-procedure-remove-shard`
+
+- :ref:`sharding-procedure-list-databases`
+
+- :ref:`sharding-procedure-list-shards`
+
+- :ref:`sharding-procedure-view-clusters`
+
+.. _sharding-procedure-add-shard:
+
+Add a Shard to a Cluster
+------------------------
+
+To add a shard to an *existing* sharded cluster, use the following
+procedure:
+
+#. Connect to a :program:`mongos` in the cluster using the
+   :program:`mongo` shell.
+
+#. First, you need to tell the cluster where to find the individual
+   shards. You can do this using the :dbcommand:`addShard` command or
+   the :method:`sh.addShard()` helper:
+
+   .. code-block:: javascript
+
+      sh.addShard( "<hostname>:<port>" )
+
+   Replace ``<hostname>`` and ``<port>`` with the hostname and TCP
+   port number of where the shard is accessible.
+   Alternately specify a :term:`replica set` name and at least one
+   hostname which is a member of the replica set.
+
+   For example:
+
+   .. code-block:: javascript
+
+      sh.addShard( "mongodb0.example.net:27027" )
+
+   .. note:: In production deployments, all shards should be replica sets.
+
+   Repeat for each shard in your cluster.
+
+   .. optional::
+
+      You may specify a "name" as an argument to the
+      :dbcommand:`addShard` command, as follows:
+
+      .. code-block:: javascript
+
+         db.runCommand( { addShard: mongodb0.example.net, name: "mongodb0" } )
+
+      You cannot specify a name for a shard using the
+      :method:`sh.addShard()` helper in the :program:`mongo` shell. If
+      you use the helper or do not specify a shard name, then MongoDB
+      will assign a name upon creation.
+
+   .. versionchanged:: 2.0.3
+      Before version 2.0.3, you must specify the shard in the
+      following form: the replica set name, followed by a forward
+      slash, followed by a comma-separated list of seeds for the
+      replica set. For example, if the name of the replica set is
+      "myapp1", then your :method:`sh.addShard()` command might resemble:
+
+      .. code-block:: javascript
+
+         sh.addShard( "repl0/mongodb0.example.net:27027,mongodb1.example.net:27017,mongodb2.example.net:27017" )
+
+.. note::
+
+   It may take some time for :term:`chunks <chunk>` to migrate to the
+   new shard.
+
+   For an introduction to balancing, see :ref:`sharding-balancing`. For
+   lower level information on balancing, see :ref:`sharding-balancing-internals`.
+
+.. _sharding-procedure-remove-shard:
+
+Remove a Shard from a Cluster
+-----------------------------
+
+To remove a :term:`shard` from a :term:`sharded cluster`, you must:
+
+- Migrate :term:`chunks <chunk>` to another shard or database.
+
+- Ensure that this shard is not the :term:`primary shard` for any databases in
+  the cluster. If it is, move the "primary" status for these databases
+  to other shards.
+
+- Finally, remove the shard from the cluster's configuration.
+
+.. note::
+
+   To successfully migrate data from a shard, the :term:`balancer`
+   process **must** be active.
+
+The procedure to remove a shard is as follows:
+
+#. Connect to a :program:`mongos` in the cluster using the
+   :program:`mongo` shell.
+
+#. Determine the name of the shard you will be removing.
+
+   You must specify the name of the shard. You may have specified this
+   shard name when you first ran the :dbcommand:`addShard` command. If not,
+   you can find out the name of the shard by running the
+   :dbcommand:`listShards` or :dbcommand:`printShardingStatus`
+   commands or the :method:`sh.status()` shell helper.
+
+   The following examples will remove a shard named ``mongodb0`` from the cluster.
+
+#. Begin removing chunks from the shard.
+
+   Start by running the :dbcommand:`removeShard` command. This will
+   start "draining" or migrating chunks from the shard you're removing
+   to another shard in the cluster.
+
+   .. code-block:: javascript
+
+      db.runCommand( { removeShard: "mongodb0" } )
+
+   This operation will return the following response immediately:
+
+   .. code-block:: javascript
+
+      { msg : "draining started successfully" , state: "started" , shard :"mongodb0" , ok : 1 }
+
+   Depending on your network capacity and the amount of data in the
+   shard, this operation can take anywhere from a few minutes to several
+   days to complete.
+
+#. View progress of the migration.
+
+   You can run the :dbcommand:`removeShard` command again at any stage of the
+   process to view the progress of the migration, as follows:
+
+   .. code-block:: javascript
+
+      db.runCommand( { removeShard: "mongodb0" } )
+
+   The output should look something like this:
+
+   .. code-block:: javascript
+
+      { msg: "draining ongoing" , state: "ongoing" , remaining: { chunks: 42, dbs : 1 }, ok: 1 }
+
+   In the ``remaining`` sub-document ``{ chunks: xx, dbs: y }``, a
+   counter displays the remaining number of chunks that MongoDB must
+   migrate to other shards and the number of MongoDB databases that have
+   "primary" status on this shard.
+
+   Continue checking the status of the :dbcommand:`removeShard` command
+   until the remaining number of chunks to transfer is 0.
+
+#. Move any databases to other shards in the cluster as needed.
+
+   This is only necessary when removing a shard that is also the
+   :term:`primary shard` for one or more databases.
+
+   Issue the following command at the :program:`mongo` shell:
+
+   .. code-block:: javascript
+
+      db.runCommand( { movePrimary: "myapp", to: "mongodb1" })
+
+   This command will migrate all remaining non-sharded data in the
+   database named ``myapp`` to the shard named ``mongodb1``.
+
+   .. warning::
+
+      Do not run the :dbcommand:`movePrimary` command until you have *finished*
+      draining the shard.
+
+   The command will not return until MongoDB completes moving all
+   data. The response from this command will resemble the following:
+
+   .. code-block:: javascript
+
+      { "primary" : "mongodb1", "ok" : 1 }
+
+#. Run :dbcommand:`removeShard` again to clean up all metadata
+   information and finalize the shard removal, as follows:
+
+   .. code-block:: javascript
+
+      db.runCommand( { removeShard: "mongodb0" } )
+
+   When successful, this command will return a document like this:
+
+   .. code-block:: javascript
+
+      { msg: "remove shard completed successfully" , stage: "completed", host: "mongodb0", ok : 1 }
+
+Once the value of the ``stage`` field is "completed," you may safely
+stop the processes comprising the ``mongodb0`` shard.
+
+
+.. _sharding-procedure-list-databases:
+
+List Databases with Sharding Enabled
+------------------------------------
+
+To list the databases that have sharding enabled, query the
+``databases`` collection in the :ref:`config-database`.
+A database has sharding enabled if the value of the ``partitioned``
+field is ``true``. Connect to a :program:`mongos` instance with a
+:program:`mongo` shell, and run the following operation to get a full
+list of databases with sharding enabled:
+
+.. code-block:: javascript
+
+   use config
+   db.databases.find( { "partitioned": true } )
+
+.. example:: You can use the following sequence of commands when to
+   return a list of all databases in the cluster:
+
+   .. code-block:: javascript
+
+      use config
+      db.databases.find()
+
+   If this returns the following result set:
+
+   .. code-block:: javascript
+
+      { "_id" : "admin", "partitioned" : false, "primary" : "config" }
+      { "_id" : "animals", "partitioned" : true, "primary" : "m0.example.net:30001" }
+      { "_id" : "farms", "partitioned" : false, "primary" : "m1.example2.net:27017" }
+
+   Then sharding is only enabled for the ``animals`` database.
+
+.. _sharding-procedure-list-shards:
+
+List Shards
+-----------
+
+To list the current set of configured shards, use the :dbcommand:`listShards`
+command, as follows:
+
+.. code-block:: javascript
+
+   use admin
+   db.runCommand( { listShards : 1 } )
+
+.. _sharding-procedure-view-clusters:
+
+View Cluster Details
+--------------------
+
+To view cluster details, issue :method:`db.printShardingStatus()` or
+:method:`sh.status()`. Both methods return the same output.
+
+.. example:: In the following example output from :method:`sh.status()`
+
+   - ``sharding version`` displays the version number of the shard
+     metadata.
+
+   - ``shards`` displays a list of the :program:`mongod` instances
+     used as shards in the cluster.
+
+   - ``databases`` displays all databases in the cluster,
+     including database that do not have sharding enabled.
+
+   - The ``chunks`` information for the ``foo`` database displays how
+     many chunks are on each shard and displays the range of each chunk.
+
+   .. code-block:: javascript
+
+      --- Sharding Status ---
+        sharding version: { "_id" : 1, "version" : 3 }
+        shards:
+          {  "_id" : "shard0000",  "host" : "m0.example.net:30001" }
+          {  "_id" : "shard0001",  "host" : "m3.example2.net:50000" }
+        databases:
+          {  "_id" : "admin",  "partitioned" : false,  "primary" : "config" }
+          {  "_id" : "animals",  "partitioned" : true,  "primary" : "shard0000" }
+              foo.big chunks:
+                      shard0001    1
+                      shard0000    6
+                  { "a" : { $minKey : 1 } } -->> { "a" : "elephant" } on : shard0001 Timestamp(2000, 1) jumbo
+                  { "a" : "elephant" } -->> { "a" : "giraffe" } on : shard0000 Timestamp(1000, 1) jumbo
+                  { "a" : "giraffe" } -->> { "a" : "hippopotamus" } on : shard0000 Timestamp(2000, 2) jumbo
+                  { "a" : "hippopotamus" } -->> { "a" : "lion" } on : shard0000 Timestamp(2000, 3) jumbo
+                  { "a" : "lion" } -->> { "a" : "rhinoceros" } on : shard0000 Timestamp(1000, 3) jumbo
+                  { "a" : "rhinoceros" } -->> { "a" : "springbok" } on : shard0000 Timestamp(1000, 4)
+                  { "a" : "springbok" } -->> { "a" : { $maxKey : 1 } } on : shard0000 Timestamp(1000, 5)
+              foo.large chunks:
+                      shard0001    1
+                      shard0000    5
+                  { "a" : { $minKey : 1 } } -->> { "a" : "hen" } on : shard0001 Timestamp(2000, 0)
+                  { "a" : "hen" } -->> { "a" : "horse" } on : shard0000 Timestamp(1000, 1) jumbo
+                  { "a" : "horse" } -->> { "a" : "owl" } on : shard0000 Timestamp(1000, 2) jumbo
+                  { "a" : "owl" } -->> { "a" : "rooster" } on : shard0000 Timestamp(1000, 3) jumbo
+                  { "a" : "rooster" } -->> { "a" : "sheep" } on : shard0000 Timestamp(1000, 4)
+                  { "a" : "sheep" } -->> { "a" : { $maxKey : 1 } } on : shard0000 Timestamp(1000, 5)
+          {  "_id" : "test",  "partitioned" : false,  "primary" : "shard0000" }
