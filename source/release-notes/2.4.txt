@@ -151,8 +151,14 @@ invocation:
 Create Text Indexes
 ^^^^^^^^^^^^^^^^^^^
 
-To create a ``text`` index, use the following invocation of
+To create a ``text`` index, use the following syntax of
 :method:`~db.collection.ensureIndex()`:
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( { <field>: "text" } )
+
+Consider the following example:
 
 .. code-block:: javascript
 
@@ -341,9 +347,12 @@ cursor.
       to only those specified.
 
    :param number limit:
-      
+
       Optional. Specify the maximum number of documents to include in
-      the response. The default limit is 100.
+      the response. The :dbcommand:`text` sorts the results before
+      applying the ``limit``.
+      
+      The default limit is 100.
 
    :param string language:
    
@@ -353,10 +362,11 @@ cursor.
    
    :return:
 
-      :dbcommand:`text` returns results in the form of a document.
-      Results must fit within the :limit:`BSON Document Size`. Use the
-      ``limit`` and the ``projection`` parameters to limit the size of
-      the result set.
+      :dbcommand:`text` returns results, in descending order by score,
+      in the form of a document. Results must fit within the
+      :limit:`BSON Document Size`. Use the ``limit`` and the
+      ``projection`` parameters to limit the size of the result set.
+      
 
    The implicit connector between the terms of a multi-term search is a
    disjunction (``OR``). Search for ``"first second"`` searches
@@ -387,43 +397,43 @@ cursor.
    
          db.collection.ensureIndex( { content: "text" } )
    
-   #. Search for a single word ``search``:
+   #. Search for a single word ``coffee``:
    
       .. code-block:: javascript
       
-         db.collection.runCommand( "text", { search: "search" } )
+         db.collection.runCommand( "text", { search: "coffee" } )
          
-      This query returns documents that contain the word ``search``,
+      This query returns documents that contain the word ``coffee``,
       case-insensitive, in the ``content`` field.
 
-   #. Search for multiple words, ``create`` or ``search`` or  ``fields``:
+   #. Search for multiple words, ``bake`` or ``coffee`` or  ``cake``:
 
       .. code-block:: javascript
 
-         db.collection.runCommand( "text", { search: "create search fields" } )
+         db.collection.runCommand( "text", { search: "bake coffee cake" } )
 
-      This query returns documents that contain the either ``create``
-      **or** ``search`` **or** ``field`` in the ``content`` field.
+      This query returns documents that contain the either ``bake``
+      **or** ``coffee`` **or** ``cake`` in the ``content`` field.
 
-   #. Search for the exact phrase ``create search fields``:
+   #. Search for the exact phrase ``bake coffee cake``:
 
       .. code-block:: javascript
       
-         db.collection.runCommand( "text", { search: "\"create search fields\"" } )
+         db.collection.runCommand( "text", { search: "\"bake coffee cake\"" } )
          
       This query returns documents that contain the exact phrase
-      ``create search fields``.
+      ``bake coffee cake``.
 
-   #. Search for documents that contain the words ``create`` or ``search``,
-      but **not** ``fields``:
-   
+   #. Search for documents that contain the words ``bake`` or ``coffee``,
+      but **not** ``cake``:
+
       .. code-block:: javascript
-   
-         db.collection.runCommand( "text", { search: "create search -fields" } )
-      
+
+         db.collection.runCommand( "text", { search: "bake coffee -cake" } )
+
       Use the ``-`` as a prefix to terms to specify negation in the
       search string. The query returns documents that contain the
-      either ``create`` **or** ``search``, but **not** ``field``, all
+      either ``bake`` **or** ``coffee``, but **not** ``cake``, all
       case-insensitive, in the ``content`` field. Prefixing a word
       with a hyphen (``-``) negates a word:
       
@@ -436,7 +446,7 @@ cursor.
         negation. The :dbcommand:`text` command treats the hyphen as a
         delimiter.
 
-   #. Search for a single word ``search`` with an additional ``filter`` on
+   #. Search for a single word ``coffee`` with an additional ``filter`` on
       the ``about`` field, but **limit** the results to 2 documents with the
       highest score and return only the ``comments`` field in the matching
       documents:
@@ -444,17 +454,16 @@ cursor.
       .. code-block:: javascript
       
          db.collection.runCommand( "text", { 
-                                             search: "insensitive", 
-                                             filter: { about: /something/ }, 
+                                             search: "coffee", 
+                                             filter: { about: /desserts/ }, 
                                              limit: 2, 
                                              projection: { comments: 1, _id: 0 } 
                                            } 
                                  )
 
       - The ``filter`` :ref:`query document <mongodb-query-document>`
-        uses a :operator:`regular expression <$regex>`. See the
-        :doc:`query operators </reference/operator>` page for available query
-        operators.
+        may use any of the available :doc:`query operators
+        </reference/operator>`.
 
       - Because the ``_id`` field is implicitly included, in order to
         return **only** the ``comments`` field, you must explicitly
