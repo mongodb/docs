@@ -53,7 +53,7 @@ Text Indexes
    The ``text`` index type is currently an experimental feature.
    To use a ``text`` index, you need to enable it at run time or
    startup.
-   
+
 Background
 ``````````
 
@@ -66,7 +66,7 @@ support boolean text search queries:
 
 - ``text`` indexes are fully consistent and updated in real-time as
   applications insert, update, or delete documents from the database.
-  
+
 - The ``text`` index and query system supports language specific
   stemming and stop words. Additionally:
 
@@ -113,11 +113,11 @@ indexes have the following limitations and behaviors:
 
 - A collection may only have a single ``text`` index at a time.
 
-.. warning:: 
+.. warning::
 
    Do **not** enable or use ``text`` indexes on production systems.
 
-.. May be worth including this: 
+.. May be worth including this:
 
    For production-grade search requirements consider using a
    third-party search tool, and the `mongo-connector
@@ -133,9 +133,9 @@ enable the feature before creating or accessing a text index.
 To enable text indexes, issue the following command in the
 :program:`mongo` shell:
 
-.. warning:: 
+.. warning::
 
-   Do **not** enable or use ``text`` indexes on production systems. 
+   Do **not** enable or use ``text`` indexes on production systems.
 
 .. code-block:: javascript
 
@@ -219,14 +219,14 @@ prefix or suffix of the index. You cannot include :ref:`multi-key
 <index-feature-geospatial>` index field.
 
 If you create an ascending or descending index as a prefix of a
-``text`` index: 
+``text`` index:
 
 - MongoDB will only index documents that have the prefix field
   (i.e. ``username``) and
 
 - The :dbcommand:`text` query can limit the number of index entries to
   review in order to perform the query.
-  
+
 - All :dbcommand:`text` queries using this index must include the
   ``filter`` option that specifies an equality condition for the prefix
   field or fields.
@@ -279,7 +279,7 @@ weights for a ``text`` index with compound fields, as in the following:
                                   about: 5 } } )
 
 This index, named ``TextIndex``, includes a number of fields, with the
-following weights: 
+following weights:
 
 - ``content`` field that has a weight of 10,
 - ``users.profiles`` that has a weight of 2,
@@ -292,13 +292,20 @@ will appear in the result set more than all other fields in the index,
 and that the ``user.profiles`` and ``comments`` fields will be less
 likely to appear in responses than words from other fields.
 
+.. note::
+
+   You must drop a ``text`` index using the name specified when you
+   created the index. Alternatively, if you did not specify a name
+   when creating the index, you can find the name using
+   :method:`db.collection.getIndexes()`
+
 Text Queries
 ^^^^^^^^^^^^
 
 MongoDB 2.3.2 introduces the :dbcommand:`text` command to provide
 query support for ``text`` indexes. Unlike normal MongoDB queries,
 :dbcommand:`text` returns a document rather than a
-cursor. 
+cursor.
 
 .. dbcommand:: text
 
@@ -321,7 +328,7 @@ cursor.
       A text string that MongoDB stems and uses to query the ``text``
       index. In the :program:`mongo` shell, to specify a phrase to
       match, you can either:
-      
+
       - enclose the phrase in *escaped* double quotes and use double
         quotes to specify the ``search`` string, as in ``"\"coffee
         table\""``, or
@@ -336,8 +343,8 @@ cursor.
       field. You can use any valid MongoDB query in the filter
       document, except if the index includes an ascending or descending
       index field as a prefix.
-      
-      If the index includes an ascending or descending index field as a 
+
+      If the index includes an ascending or descending index field as a
       prefix, the ``filter`` is required and the ``filter`` query must be
       an equality match.
 
@@ -351,22 +358,22 @@ cursor.
       Optional. Specify the maximum number of documents to include in
       the response. The :dbcommand:`text` sorts the results before
       applying the ``limit``.
-      
+
       The default limit is 100.
 
    :param string language:
-   
+
       Optional. Specify the language that determines the tokenization,
       stemming, and the stop words for the search. The default language
       is ``english``.
-   
+
    :return:
 
       :dbcommand:`text` returns results, in descending order by score,
       in the form of a document. Results must fit within the
       :limit:`BSON Document Size`. Use the ``limit`` and the
       ``projection`` parameters to limit the size of the result set.
-      
+
 
    The implicit connector between the terms of a multi-term search is a
    disjunction (``OR``). Search for ``"first second"`` searches
@@ -392,17 +399,17 @@ cursor.
 
    #. Create a ``text`` index on the ``content`` field to enable text
       search on the field:
-   
+
       .. code-block:: javascript
-   
+
          db.collection.ensureIndex( { content: "text" } )
-   
+
    #. Search for a single word ``coffee``:
-   
+
       .. code-block:: javascript
-      
+
          db.collection.runCommand( "text", { search: "coffee" } )
-         
+
       This query returns documents that contain the word ``coffee``,
       case-insensitive, in the ``content`` field.
 
@@ -418,9 +425,9 @@ cursor.
    #. Search for the exact phrase ``bake coffee cake``:
 
       .. code-block:: javascript
-      
+
          db.collection.runCommand( "text", { search: "\"bake coffee cake\"" } )
-         
+
       This query returns documents that contain the exact phrase
       ``bake coffee cake``.
 
@@ -436,12 +443,12 @@ cursor.
       either ``bake`` **or** ``coffee``, but **not** ``cake``, all
       case-insensitive, in the ``content`` field. Prefixing a word
       with a hyphen (``-``) negates a word:
-      
+
       - The negated word filters out documents from the result set,
-        after selecting documents. 
-      
+        after selecting documents.
+
       - A ``<search string>`` that only contains negative words returns no match.
-      
+
       - A hyphenated word, such as ``case-insensitive``, is not a
         negation. The :dbcommand:`text` command treats the hyphen as a
         delimiter.
@@ -450,15 +457,15 @@ cursor.
       the ``about`` field, but **limit** the results to 2 documents with the
       highest score and return only the ``comments`` field in the matching
       documents:
-   
+
       .. code-block:: javascript
-      
-         db.collection.runCommand( "text", { 
-                                             search: "coffee", 
-                                             filter: { about: /desserts/ }, 
-                                             limit: 2, 
-                                             projection: { comments: 1, _id: 0 } 
-                                           } 
+
+         db.collection.runCommand( "text", {
+                                             search: "coffee",
+                                             filter: { about: /desserts/ },
+                                             limit: 2,
+                                             projection: { comments: 1, _id: 0 }
+                                           }
                                  )
 
       - The ``filter`` :ref:`query document <mongodb-query-document>`
@@ -470,7 +477,7 @@ cursor.
         exclude (``0``) the ``_id`` field. Within the ``projection``
         document, you cannot mix inclusions (i.e. ``<fieldA>: 1``) and
         exclusions (i.e. ``<fieldB>: 0``), except for the ``_id`` field.
-     
+
 Additional Authentication Features
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -561,7 +568,7 @@ current connection with the Kerberos session:
 
 The value of the ``principal`` field *must* be the same principal that
 you initialized with ``kinit``. This connection will acquire access in
-accordance with all privileges granted to this user for all databases. 
+accordance with all privileges granted to this user for all databases.
 
 .. see:: :doc:`/security`
 
