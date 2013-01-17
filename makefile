@@ -1,4 +1,5 @@
 # Makefile for MongoDB Sphinx documentation
+include bin/makefile.compatibility
 MAKEFLAGS += -j -r --no-print-directory
 
 # Build directory tweaking.
@@ -29,10 +30,6 @@ help:
 	@echo "	 pdfs		generates pdfs."
 
 ############# makefile includes #############
-include bin/makefile.compatibility
-include bin/makefile.content
-include bin/makefile.push
-
 # Included, dynamically generated makefile sections, to build: sphinx
 # targets, LaTeX/PDFs, tables, the installation guides, and sym links.
 
@@ -54,13 +51,17 @@ $(output)/makefile.intersphinx:bin/makefile-builder/intersphinx.py bin/makefile_
 	@mkdir -p $(output)
 	@$(PYTHONBIN) $< $@
 
+include bin/makefile.clean
+include bin/makefile.content
+include bin/makefile.push
+
 ############# Meta targets that control the build and publication process. #############
 .PHONY: publish publish-if-up-to-date
 
 publish-if-up-to-date:
 	@bin/published-build-check $(current-branch) $(last-commit)
 	@$(MAKE) publish
-publish:$(sphinx-content) $(static-content) 
+publish:$(sphinx-content) $(static-content)
 	@echo [build]: $(manual-branch) branch is succeessfully deployed to '$(public-output)'.
 
 ############# Targets that define the production build process #############
@@ -88,6 +89,7 @@ $(public-branch-output)/ $(public-output)/:
 	@mkdir -p $@
 	@echo [build]: created $@
 $(public-branch-output):$(branch-output)/dirhtml
+	@mkdir -p $@
 	@cp -R $</* $@
 	@rm -rf $@/meta/reference $@/meta/use-cases
 	@touch $@
@@ -96,7 +98,8 @@ $(public-branch-output)/single:$(branch-output)/singlehtml
 	@mkdir -p $@
 	@cp -R $</* $@
 	@rm -f $@/contents.html
-	@echo [single]: migrated singlehtml files '$@'
+	@touch $@
+	@echo [build]: migrated '$</*' to '$@'
 $(public-branch-output)/single/index.html:$(branch-output)/singlehtml/contents.html
 	@cp $< $@
 	@sed $(SED_ARGS_FILE) -e 's/href="contents.html/href="index.html/g' \
@@ -113,7 +116,6 @@ $(output)/sitemap.xml.gz:$(public-branch-output) $(public-output)/manual
 	@echo [sitemap]: sitemap built at `date`.
 
 ############# PDF generation infrastructure. #############
-
 LATEX_CORRECTION = "s/(index|bfcode)\{(.*!*)*--(.*)\}/\1\{\2-\{-\}\3\}/g"
 LATEX_LINK_CORRECTION = "s%\\\code\{/%\\\code\{http://docs.mongodb.org/$(current-if-not-manual)/%g"
 pdflatex-command = TEXINPUTS=".:$(branch-output)/latex/:" pdflatex --interaction batchmode --output-directory $(branch-output)/latex/ $(LATEXOPTS)
@@ -144,21 +146,7 @@ $(branch-output)/latex/%.tex:
 	@echo [pdf]: pdf compilation of $@, complete at `date`.
 
 ############# General purpose targets. Not used (directly) in the production build #############
-build-ephemera = $(output-tables) $(output)/makefile.* $(output)/*.inv
-clean:
-	-rm -rf $(build-ephemera)
-clean-branch:
-	-rm -rf $(build-ephemera) $(branch-output)/*
-clean-public:
-	-rm -rf $(build-ephemera) $(public-output)/* 
-clean-all:
-	-rm -rf $(build-ephemera) $(output)/*
 draft:draft-html
-archive:$(public-output).$(timestamp).tar.gz
-	@echo [$@]: created $< $@.
-$(public-output).%.tar.gz:$(public-output)
-	tar -czvf $@ $<
-
 # man page support, uses sphinx `man` builder output.
 .PHONY:$(manpages)
 manpages := $(wildcard $(branch-output)/man/*.1)
