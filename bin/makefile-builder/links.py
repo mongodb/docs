@@ -28,7 +28,7 @@ def make_link(make_target, link_target, makefile_block):
     link_location = make_target.rsplit('/', 1)[0] + '/'
 
     if makefile_block == 'use' or makefile_block == 'redirect':
-        m.target(link_location, '$(branch-output)/dirhtml', makefile_block)
+        m.target(link_location, '$(public-branch-output)', makefile_block)
 
     if makefile_block == 'content':
         m.target(make_target, '', makefile_block)
@@ -36,7 +36,13 @@ def make_link(make_target, link_target, makefile_block):
         m.append_var('LINKS', make_target, makefile_block)
         m.target(make_target, link_location, makefile_block)
 
-    m.job('@bin/create-link ' + link_target + ' $(notdir $@) ' + link_location, makefile_block)
+    
+    if makefile_block == 'redirect':
+        m.job('@rm -rf $@/')
+
+    m.job('@ln -s -f ' + link_target + ' $(notdir $@)', makefile_block)
+    m.job('@mv $(notdir $@) ' + link_location, makefile_block)
+
     m.msg('[symlink]: created a link at: $@', makefile_block)
     m.newline(block=makefile_block)
 

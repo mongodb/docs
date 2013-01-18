@@ -90,13 +90,13 @@ $(public-branch-output)/ $(public-output)/:
 	@echo [build]: created $@
 $(public-branch-output):$(branch-output)/dirhtml
 	@mkdir -p $@
-	@cp -R $</* $@
+	@cp -R $</* $@/
 	@rm -rf $@/meta/reference $@/meta/use-cases
 	@touch $@
 	@echo [build]: migrated '$</*' to '$@'
 $(public-branch-output)/single:$(branch-output)/singlehtml
 	@mkdir -p $@
-	@cp -R $</* $@
+	@cp -R $</* $@/
 	@rm -f $@/contents.html
 	@touch $@
 	@echo [build]: migrated '$</*' to '$@'
@@ -109,6 +109,8 @@ $(public-branch-output)/single/index.html:$(branch-output)/singlehtml/contents.h
 
 # sitemap builder, triggered in the `publish` routine
 $(output)/sitemap.xml.gz:$(public-branch-output) $(public-output)/manual
+	@cp -R $(branch-output)/dirhtml/* $(public-branch-output)
+	@echo [build]: migrated "$(branch-output)/dirhtml/*" to "$(public-branch-output)" again.
 	@echo [sitemap]: starting sitemap build at `date`.
 	@mkdir -p $(output)/
 	@echo [sitemap]: build time\: `date` >> $(branch-output)/sitemap-build.log
