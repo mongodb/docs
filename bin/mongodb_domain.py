@@ -145,12 +145,8 @@ class MongoDBObject(ObjectDescription):
             return _('%s (program)') % name
         elif self.objtype == 'setting':
             return _('%s (setting)') % (name)
-        elif self.objtype == 'status':
-            return _('%s (status)') % (name)
-        elif self.objtype == 'stats':
-            return _('%s (statistic)') % (name)
         elif self.objtype == 'data':
-            return _('%s (shell output)') % (name)
+            return _('%s (MongoDB reporting output)') % (name)
         elif self.objtype == 'method':
             return _('%s (shell method)') % (name)
         elif self.objtype == 'collflag':
@@ -233,8 +229,6 @@ class MongoDBDomain(Domain):
         'projection':   ObjType(l_('projection'),  'projection'),
         'binary':       ObjType(l_('binary'),      'program'),
         'setting':      ObjType(l_('setting'),     'setting'),
-        'status':       ObjType(l_('status'),      'status'),
-        'stats':        ObjType(l_('stats'),       'stats'),
         'readmode':     ObjType(l_('readmode'),    'readmode'),
         'method':       ObjType(l_('method'),      'method'),
         'data':         ObjType(l_('data'),        'data'),
@@ -251,8 +245,6 @@ class MongoDBDomain(Domain):
         'projection':    MongoDBObject,
         'binary':        MongoDBObject,
         'setting':       MongoDBObject,
-        'status':        MongoDBObject,
-        'stats':         MongoDBObject,
         'readmode':      MongoDBObject,
         'method':        MongoDBMethod,
         'data':          MongoDBObject,
@@ -268,8 +260,6 @@ class MongoDBDomain(Domain):
         'projection':  MongoDBXRefRole(),
         'program':     MongoDBXRefRole(),
         'setting':     MongoDBXRefRole(),
-        'status':      MongoDBXRefRole(),
-        'stats':       MongoDBXRefRole(),
         'readmode':    MongoDBXRefRole(),
         'method':      MongoDBXRefRole(),
         'data':        MongoDBXRefRole(),

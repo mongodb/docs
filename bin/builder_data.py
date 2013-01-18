@@ -50,6 +50,7 @@ links = [
      ('$(public-branch-output)/reference/methods', 'method', 'use'),
      ('$(public-branch-output)/reference/method/reIndex', 'db.collection.reIndex', 'redirect'),
      ('$(public-branch-output)/reference/operator/atomic', 'isolated', 'redirect'),
+     ('$(public-branch-output)/reference/mongo-shell-reference', 'mongo-shell', 'redirect'),
      ('$(public-branch-output)/reference/method/getShardDistribution', 'db.collection.getShardDistribution', 'redirect'),
      ('$(public-branch-output)/reference/command/printShardingStatus', '../method/db.printShardingStatus', 'redirect'),
      ('$(public-branch-output)/tutorial/install-mongodb-on-redhat-centos-or-fedora-linux', 'install-mongodb-on-red-hat-centos-or-fedora-linux', 'redirect'),
