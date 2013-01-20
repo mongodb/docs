@@ -23,6 +23,8 @@ meta = {
 
 needs_sphinx = '1.0'
 extensions = ["sphinx.ext.intersphinx", "sphinx.ext.extlinks", "mongodb_domain", "additional_directives", "aggregation_domain"]
+composite_pages = []
+
 templates_path = ['.templates']
 
 source_suffix = '.txt'
@@ -34,13 +36,11 @@ copyright = u'2011-2012, 10gen, Inc.'
 version = '2.2.2'
 release = version
 
-current_git_commit = meta['commit']
-current_git_branch = meta['branch']
-
-rst_epilog = ".. |branch| replace:: ``" + current_git_branch + "``" + """
-.. |commit| replace:: ``""" + current_git_commit + "``" + """
-.. |copy| unicode:: U+000A9
-.. |hardlink| replace:: http://docs.mongodb.org/""" + current_git_branch
+BREAK = '\n'
+rst_epilog = ('.. |branch| replace:: ``' + meta['branch'] + '``' + BREAK +
+              '.. |copy| unicode:: U+000A9' + BREAK +
+              '.. |year| replace:: ' + meta['date'] + BREAK +
+              '.. |hardlink| replace:: http://docs.mongodb.org/' + meta['branch'])
 
 exclude_patterns = []
 
@@ -51,8 +51,8 @@ extlinks = {
     'wiki': ('http://www.mongodb.org/display/DOCS/%s', ''),
     'api': ('http://api.mongodb.org/%s', ''),
     'source': ('http://github.com/mongodb/mongo/blob/master/%s', ''),
-    'docsgithub' : ( 'http://github.com/mongodb/docs/blob/' + current_git_branch + '/%s', ''),
-    'hardlink' : ( 'http://docs.mongodb.org/' + current_git_branch + '/%s', '')
+    'docsgithub' : ( 'http://github.com/mongodb/docs/blob/' + meta['commit'] + '/%s', ''),
+    'hardlink' : ( 'http://docs.mongodb.org/' + meta['branch'] + '/%s', '')
 }
 
 intersphinx_mapping = {
@@ -61,9 +61,6 @@ intersphinx_mapping = {
 }
 
 # -- Options for HTML output ---------------------------------------------------
-
-# The theme to use for HTML and HTML Help pages.  See the documentation for
-# a list of builtin themes...
 html_theme = 'mongodb'
 html_theme_path = ['themes']
 html_title = project
@@ -79,15 +76,16 @@ html_split_index = False
 html_show_sourcelink = False
 html_show_sphinx = True
 html_show_copyright = True
+htmlhelp_basename = 'MongoDBdoc'
 
 manual_edition_path = 'http://docs.mongodb.org/ecosystem/MongoDB-Ecosystem'
 
 html_theme_options = {
-    'branch': current_git_branch,
-    'pdfpath':  manual_edition_path + '.pdf',
-    'epubpath':  manual_edition_path + '.epub',
+    'branch': meta['branch'],
+    'pdfpath': manual_edition_path + '.pdf',
+    'epubpath': manual_edition_path + '.epub',
     'manual_path': meta['manual_path'],
-    'repo_name': 'docs-ecosystem',
+    'repo_name': 'docs',
     'jira_project': 'DOCS',
     'google_analytics': 'UA-7301842-8',
     'is_manual': False,
@@ -97,8 +95,6 @@ html_theme_options = {
 html_sidebars = {
     '**': ['pagenav.html'],
 }
-
-htmlhelp_basename = 'MongoDBdoc'
 
 # -- Options for LaTeX output --------------------------------------------------
 

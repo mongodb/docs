@@ -21,6 +21,11 @@ from sphinx.domains.python import _pseudo_parse_arglist
 from sphinx.util.nodes import make_refnode
 from sphinx.util.docfields import Field, GroupedField, TypedField
 
+from sphinx_conf import composite_pages
+
+def basename(path):
+    return path.split('/')[-1].rsplit('.', 1)[0]
+
 class MongoDBObject(ObjectDescription):
     """
     Description of a MongoDB object.
@@ -80,25 +85,47 @@ class MongoDBObject(ObjectDescription):
     def add_target_and_index(self, name_obj, sig, signode):
         objectname = self.options.get(
             'object', self.env.temp_data.get('mongodb:object'))
-        fullname = name_obj[0]
+
+        if self.objtype == 'binary':
+            fullname = 'bin.' + name_obj[0]
+        else:
+            fullname = name_obj[0]
+
         if fullname not in self.state.document.ids:
             signode['names'].append(fullname)
             signode['ids'].append(fullname.replace('$', '_S_'))
             signode['first'] = not self.names
             self.state.document.note_explicit_target(signode)
             objects = self.env.domaindata['mongodb']['objects']
-            # if fullname in objects:
-            #     self.state_machine.reporter.warning(
-            #         'duplicate object description of %s, ' % fullname +
-            #         'other instance in ' +
-            #         self.env.doc2path(objects[fullname][0]),
-            #         line=self.lineno)
-            objects[fullname] = self.env.docname, self.objtype
-        # elif self.objtype == "binary":
-        #     signode['names'].append(fullname + "-bin")
-        #     signode['ids'].append(fullname.replace('$', '_S_') +"-bin")
-        #     signode['first'] = not self.names
-        #     self.state.document.note_explicit_target(signode)
+            if fullname in objects:
+                path = self.env.doc2path(self.env.domaindata['mongodb']['objects'][fullname][0])
+                spath = basename(path)
+                sspath = basename(self.state_machine.reporter.source)
+
+                if spath in composite_pages:
+                    pass
+                elif sspath in composite_pages:
+                    pass
+                elif spath == fullname:
+                    pass
+                elif spath == fullname.lstrip('$'):
+                    pass
+                elif spath == fullname.lstrip('_'):
+                    pass
+                elif path == self.state_machine.reporter.source:
+                    pass
+                elif fullname.startswith(spath):
+                    pass
+                else:
+                    self.state_machine.reporter.warning(
+                        'duplicate object description of "%s", ' % fullname +
+                        'other instance in ' + path,
+                        line=self.lineno)
+
+            if self.env.docname.rsplit('/', 1)[1] in composite_pages:
+                pass
+            else:
+                objects[fullname] = self.env.docname, self.objtype
 
         indextext = self.get_index_text(objectname, name_obj)
         if indextext:
@@ -108,22 +135,32 @@ class MongoDBObject(ObjectDescription):
 
     def get_index_text(self, objectname, name_obj):
         name, obj = name_obj
-        if self.objtype == 'command':
+        if self.objtype == 'dbcommand':
             return _('%s (database command)') % name
         elif self.objtype == 'operator':
             return _('%s (operator)') % name
-        elif self.objtype == 'program':
+        elif self.objtype == 'projection':
+            return _('%s (projection operator)') % name
+        elif self.objtype == 'binary':
             return _('%s (program)') % name
         elif self.objtype == 'setting':
             return _('%s (setting)') % (name)
-        elif self.objtype == 'status':
-            return _('%s (status)') % (name)
-        elif self.objtype == 'stats':
-            return _('%s (statistic)') % (name)
         elif self.objtype == 'data':
-            return _('%s (shell output)') % (name)
-        elif self.objtype == 'function':
+            return _('%s (MongoDB reporting output)') % (name)
+        elif self.objtype == 'method':
             return _('%s (shell method)') % (name)
+        elif self.objtype == 'collflag':
+            return _('%s (collection flag)') % (name)
+        elif self.objtype == 'readmode':
+            return _('%s (read preference mode)') % (name)
+        elif self.objtype == 'error':
+            return _('%s (error code)') % (name)
+        elif self.objtype == 'macro':
+            return _('%s (JavaScript shell macro)') % (name)
+        elif self.objtype == 'limit':
+            return _('%s (MongoDB system limit)') % (name)
+        elif self.objtype == 'bsontype':
+            return _('%s (BSON type)') % (name)
         return ''
 
     def run(self):
@@ -131,18 +168,29 @@ class MongoDBObject(ObjectDescription):
 
     doc_field_types = [
         TypedField('arguments', label=l_('Arguments'),
-                   names=('argument', 'arg', 'parameter', 'param'),
-                   typerolename='func', typenames=('paramtype', 'type')),
+                   names=('argument', 'arg'),
+                   typerolename='method', typenames=('paramtype', 'type')),
         TypedField('options', label=l_('Options'),
                    names=('options', 'opts', 'option', 'opt'),
-                   typerolename=('dbcommand', 'setting', 'status', 'stats', 'aggregator'),
+                   typerolename=('dbcommand', 'setting', 'status', 'stats', 'aggregator', 'data'),
                    typenames=('optstype', 'type')),
+        TypedField('parameters', label=l_('Parameters'),
+                   names=('param', 'paramter', 'parameters'),
+                   typerolename=('dbcommand', 'setting', 'status', 'stats', 'aggregator', 'data'),
+                   typenames=('paramtype', 'type')),
         TypedField('fields', label=l_('Fields'),
                    names=('fields', 'fields', 'field', 'field'),
-                   typerolename=('dbcommand', 'setting', 'status', 'stats', 'aggregator'),
+                   typerolename=('dbcommand', 'setting', 'status', 'stats', 'aggregator', 'data'),
                    typenames=('fieldtype', 'type')),
+        TypedField('flags', label=l_('Flags'),
+                   names=('flags', 'flags', 'flag', 'flag'),
+                   typerolename=('dbcommand', 'setting', 'status', 'stats', 'aggregator', 'data'),
+                   typenames=('flagtype', 'type')),
         GroupedField('errors', label=l_('Throws'), rolename='err',
                      names=('throws', ),
+                     can_collapse=True),
+        GroupedField('exception', label=l_('Exception'), rolename='err',
+                     names=('exception', ),
                      can_collapse=True),
         Field('returnvalue', label=l_('Returns'), has_arg=False,
               names=('returns', 'return')),
@@ -150,17 +198,8 @@ class MongoDBObject(ObjectDescription):
               names=('rtype',)),
     ]
 
-
-class MongoDBCallable(MongoDBObject):
-    """Description of a MongoDB function, method or constructor."""
-    has_arguments = False
-
-class MongoDBCallableComplex(MongoDBObject):
-    """Description of a MongoDB function, method or constructor."""
+class MongoDBMethod(MongoDBObject):
     has_arguments = True
-
-class MongoDBCallableProgram(MongoDBObject):
-    pass
 
 class MongoDBXRefRole(XRefRole):
     def process_link(self, env, refnode, has_explicit_title, title, target):
@@ -187,42 +226,48 @@ class MongoDBDomain(Domain):
     object_types = {
         'dbcommand':    ObjType(l_('dbcommand'),   'dbcommand'),
         'operator':     ObjType(l_('operator'),    'operator'),
+        'projection':   ObjType(l_('projection'),  'projection'),
         'binary':       ObjType(l_('binary'),      'program'),
         'setting':      ObjType(l_('setting'),     'setting'),
-        'status':       ObjType(l_('status'),      'status'),
-        'stats':        ObjType(l_('stats'),       'stats'),
-        'function':     ObjType(l_('function'),    'func'),
+        'readmode':     ObjType(l_('readmode'),    'readmode'),
+        'method':       ObjType(l_('method'),      'method'),
         'data':         ObjType(l_('data'),        'data'),
-        'aggregator':   ObjType(l_('aggregator'),  'aggregator'),
-        'group':        ObjType(l_('group'),       'group'),
-        'expression':   ObjType(l_('expression'),  'expression'),
+        'collflag':     ObjType(l_('collflag'),    'collflag'),
+        'error':        ObjType(l_('error'),       'error'),
+        'macro':        ObjType(l_('macro'),       'macro'),
+        'limit':        ObjType(l_('limit'),       'limit'),
+        'bsontype':     ObjType(l_('bsontype'),    'bsontype'),
     }
 
     directives = {
-        'dbcommand':     MongoDBCallable,
-        'operator':      MongoDBCallable,
-        'binary':        MongoDBCallable,
-        'setting':       MongoDBCallable,
-        'status':        MongoDBCallable,
-        'stats':         MongoDBCallable,
-        'function':      MongoDBCallableComplex,
-        'data':          MongoDBCallable,
-        'aggregator':    MongoDBCallable,
-        'group':         MongoDBCallable,
-        'expression':    MongoDBCallable,
+        'dbcommand':     MongoDBObject,
+        'operator':      MongoDBObject,
+        'projection':    MongoDBObject,
+        'binary':        MongoDBObject,
+        'setting':       MongoDBObject,
+        'readmode':      MongoDBObject,
+        'method':        MongoDBMethod,
+        'data':          MongoDBObject,
+        'collflag':      MongoDBObject,
+        'error':         MongoDBObject,
+        'macro':         MongoDBObject,
+        'limit':         MongoDBObject,
+        'bsontype':      MongoDBObject,
     }
     roles = {
         'dbcommand':   MongoDBXRefRole(),
         'operator':    MongoDBXRefRole(),
+        'projection':  MongoDBXRefRole(),
         'program':     MongoDBXRefRole(),
         'setting':     MongoDBXRefRole(),
-        'status':      MongoDBXRefRole(),
-        'stats':       MongoDBXRefRole(),
-        'func':        MongoDBXRefRole(),
+        'readmode':    MongoDBXRefRole(),
+        'method':      MongoDBXRefRole(),
         'data':        MongoDBXRefRole(),
-        'aggregator':  MongoDBXRefRole(),
-        'group':       MongoDBXRefRole(),
-        'expression':  MongoDBXRefRole(),
+        'collflag':    MongoDBXRefRole(),
+        'error':       MongoDBXRefRole(),
+        'macro':       MongoDBXRefRole(),
+        'limit':       MongoDBXRefRole(),
+        'bsontype':    MongoDBXRefRole(),
     }
     initial_data = {
         'objects': {}, # fullname -> docname, objtype
@@ -233,6 +278,13 @@ class MongoDBDomain(Domain):
             name = name[:-2]
         objects = self.data['objects']
         newname = None
+
+        if typ == 'program':
+            name = 'bin.' + name
+            newname = name
+
+        searchorder = 1
+
         if searchorder == 1:
             if obj and obj + '.' + name in objects:
                 newname = obj + '.' + name
@@ -243,6 +295,7 @@ class MongoDBDomain(Domain):
                 newname = name
             elif obj and obj + '.' + name in objects:
                 newname = obj + '.' + name
+
         return newname, objects.get(newname)
 
     def resolve_xref(self, env, fromdocname, builder, typ, target, node,
@@ -250,14 +303,19 @@ class MongoDBDomain(Domain):
         objectname = node.get('mongodb:object')
         searchorder = node.hasattr('refspecific') and 1 or 0
         name, obj = self.find_obj(env, objectname, target, typ, searchorder)
+
         if not obj:
             return None
+
+        if name.startswith('bin.'):
+            name = name.split('.', 1)[1]
+
         return make_refnode(builder, fromdocname, obj[0],
                             name.replace('$', '_S_'), contnode, name)
 
     def get_objects(self):
         for refname, (docname, type) in self.data['objects'].items():
-            yield refname, refname, type, docname, refname, 1
+            yield refname, refname, type, docname, refname.replace('$', '_S_'), 1
 
 def setup(app):
     app.add_domain(MongoDBDomain)

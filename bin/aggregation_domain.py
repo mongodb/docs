@@ -12,7 +12,7 @@
     inc. (Sam Kleinman, et al.)
 """
 
-from mongodb_domain import MongoDBObject, MongoDBCallable, MongoDBXRefRole, MongoDBDomain
+from mongodb_domain import MongoDBObject, MongoDBMethod, MongoDBXRefRole, MongoDBDomain
 
 from sphinx.locale import l_, _
 from sphinx.domains import Domain, ObjType
@@ -28,7 +28,7 @@ class AggregationObject(MongoDBObject):
             return _('%s (aggregation framework group expression)') % (name)
         return ''
 
-class AggregationCallable(MongoDBCallable):
+class AggregationCallable(MongoDBMethod):
     pass
 
 class Aggregation(MongoDBXRefRole):
@@ -45,12 +45,12 @@ class AggregationDomain(MongoDBDomain):
         'expression':   ObjType(l_('expression'),  'expression'),
     }
     directives = {
-        'pipeline':    MongoDBCallable,
-        'group':         MongoDBCallable,
-        'expression':    MongoDBCallable,
+        'pipeline':      MongoDBObject,
+        'group':         MongoDBObject,
+        'expression':    MongoDBObject,
     }
     roles = {
-        'pipeline':  MongoDBXRefRole(),
+        'pipeline':    MongoDBXRefRole(),
         'group':       MongoDBXRefRole(),
         'expression':  MongoDBXRefRole(),
     }

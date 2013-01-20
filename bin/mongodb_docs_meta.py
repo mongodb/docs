@@ -17,6 +17,7 @@ def shell_value( args ):
 
 def get_manual_path():
     branch = shell_value('git symbolic-ref HEAD').split('/')[2]
+
     if branch == MANUAL_BRANCH:
         manual_path = MANUAL_BRANCH
     else:

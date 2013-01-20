@@ -124,6 +124,7 @@ $(PUBLISHDIR)/MongoDB-Manual.pdf:./MongoDB-Manual.pdf
 
 # Build and migrate the HTML components of the build.
 $(PUBLISHDIR):$(BUILDDIR)/dirhtml
+	mkdir -p $@
 	cp -R $</* $@/
 $(PUBLISHDIR)/single:$(BUILDDIR)/singlehtml
 	cp -R $</* $@
@@ -144,8 +145,6 @@ $(PUBLISHDIR)/single/index.html:$(BUILDDIR)/singlehtml/contents.html
 $(PUBLISHDIR)/release.txt:source/about.txt
 	@echo "[build]: generating '$@' with current release hash."
 	@git rev-parse --verify HEAD >|$@
-$(PUBLISHDIR):
-	mkdir -p $@
 source/about.txt:
 	touch source/about.txt
 
