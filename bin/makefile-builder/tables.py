@@ -30,7 +30,7 @@ def makefile_table(name, block):
     m.append_var('output-tables', name + '.rst', block)
     m.target(name  + '.rst', name + '.yaml' , block)
     m.job('$(PYTHONBIN) bin/table_builder.py $< $@', display=False, ignore=False, block=block)
-    m.msg('[table-builder]: \(re\)generate $@ table for inclusion in build', block)
+    m.msg('[table-builder]: generated $@ table for inclusionb', block)
     m.newline(block=block)
 
 def main():

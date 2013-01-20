@@ -3,7 +3,7 @@
 import sys
 
 from makefile_builder import MakefileBuilder
-from builder_data import texinfo as texinfo_manuals 
+from builder_data import texinfo as texinfo_manuals
 
 m = MakefileBuilder()
 
@@ -23,11 +23,11 @@ def build_texinfo_manual(info):
         dependency=build_loc + info + '.texi',
         block='content')
 
-    if info == 'mongodb-manual': 
+    if info == 'mongodb-manual':
         m.msg('[texinfo]: FORCING ' + info + '.info build: ERRORS IGNORED.', block='content')
         m.job('$(MAKEINFO) --no-warn --force -o $@ $<', ignore=True, block='content')
         m.msg('[texinfo]: creating ' +  info + '.info files', block='content')
-    else: 
+    else:
         m.job('$(MAKEINFO) -o $@ $<', block='content')
         m.msg('[texinfo]: creating ' +  info + '.info files', block='content')
 
@@ -35,18 +35,18 @@ def build_texinfo_manual(info):
         dependency=build_loc + info + '.info',
         block='content')
     m.job('touch $@.log', block='content')
-    m.job('$(TARBIN) -C $(branch-output)/ --transform=s/texinfo/' + info + '-info/ ' + 
-          '-czvf $@ $(subst $(branch-output)/,,$(wildcard $(branch-output)/texinfo/' + info + '.info*)) >> $@.log', 
+    m.job('$(TARBIN) -C $(branch-output)/ --transform=s/texinfo/' + info + '-info/ ' +
+          '-czvf $@ $(subst $(branch-output)/,,$(wildcard $(branch-output)/texinfo/' + info + '.info*)) >> $@.log',
           block='content')
     m.msg('[texinfo]: compressed "' + ofile + '"', block='content')
 
     m.target(target='$(public-branch-output)/' + ofile,
              dependency=build_loc + ofile)
-    m.job('cp $< $@')
+    m.job('rsync $< $@')
     m.msg('[build]: migrated $@')
 
     final_output = '$(public-branch-output)/' + info + '-info.tar.gz'
-    m.target(target=final_output, 
+    m.target(target=final_output,
              dependency='$(public-branch-output)/' + ofile)
     m.job('$(build-tools)/create-link $(notdir $<) $(notdir $@) $@')
     m.append_var('INFO_OUTPUT', final_output, block='content')
@@ -58,7 +58,7 @@ def main():
     for info in texinfo_manuals:
         build_texinfo_manual(info)
 
-    m.comment('targets for integration')    
+    m.comment('targets for integration')
     m.target(target='.PHONY',
              dependency='manual-info',
              block='footer')

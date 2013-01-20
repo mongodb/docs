@@ -23,7 +23,7 @@ def pdf_makefile(name, tag):
 
     m.target(target='$(public-branch-output)/' + name_tagged + '-$(current-branch).pdf',
              dependency='$(branch-output)/latex/' + name_tagged + '.pdf')
-    m.job('cp $< $@')
+    m.job('rsync $< $@')
     m.msg('[build]: migrated $@')
 
     m.target(target='$(public-branch-output)/' + name_tagged + '.pdf',

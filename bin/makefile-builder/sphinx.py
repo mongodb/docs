@@ -20,7 +20,7 @@ def make_all_sphinx(sphinx):
     m.comment('defines a nitpick mode for sphinx\'s more verbose reporting', block='vars')
     m.raw('ifdef NITPICK\n', block='vars')
     m.append_var(variable='SPHINXOPTS',
-                 value='-n -w $(branch-output)/build.$(timestamp).log',
+                 value='-n -w $(branch-output)/build.$(shell date +%Y%m%d%H%M).log',
                  block='vars')
     m.raw('endif\n', block='vars')
     

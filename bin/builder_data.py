@@ -58,7 +58,7 @@ links = [
      ('$(public-branch-output)/administration/sharding-architectures', 'sharded-cluster-architectures', 'redirect'),
      ('$(public-branch-output)/administration/replication-architectures', 'replica-set-architectures', 'redirect'),
      ('$(public-branch-output)/core/sharding', 'sharded-clusters', 'redirect'),
-     ('$(public-branch-output)/core/sharding-internals', 'sharded-cluster-interals', 'redirect'),
+     ('$(public-branch-output)/core/sharding-internals', 'sharded-cluster-internals', 'redirect'),
      ('$(public-branch-output)/tutorial/install-mongodb-on-redhat-centos-or-fedora-linux', 'install-mongodb-on-red-hat-centos-or-fedora-linux', 'redirect'),
 ]
 
