@@ -88,12 +88,11 @@ html_theme_options = {
     'repo_name': 'docs',
     'jira_project': 'DOCS',
     'google_analytics': 'UA-7301842-8',
-    'is_manual': False,
     'project': 'ecosystem',
 }
 
 html_sidebars = {
-    '**': ['pagenav.html'],
+    '**': ['pagenav.html', 'intrasites.html'],
 }
 
 # -- Options for LaTeX output --------------------------------------------------
