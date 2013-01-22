@@ -102,12 +102,11 @@ html_theme_options = {
     'repo_name': 'docs',
     'jira_project': 'DOCS',
     'google_analytics': 'UA-7301842-8',
-    'is_manual': True,
     'project': 'manual',
 }
 
 html_sidebars = {
-    '**': ['pagenav.html', 'wikisidebar.html'],
+    '**': ['pagenav.html', 'formats.html', 'translations.html', 'wikisidebar.html'],
 }
 
 # -- Options for LaTeX output --------------------------------------------------
