@@ -1,15 +1,32 @@
 .. _mongoperf:
 
-============
+=============
 ``mongoperf``
-============
+=============
+
+.. http://www.mongodb.org/display/DOCS/mongoperf
 
 .. default-domain:: mongodb
 
 Synopsis
 --------
 
+:program:`mongoperf` is a utility to check disk I/O performance independent of MongoDB.
+It times tests of random disk I/O and presents the results.
+:program:`mongoperf` can be used to check disk subsystem performance even when MongoDB 
+will not be used at all: the :samp:`mmf:false` mode is completely generic. 
+In that mode is it somewhat analogous to tools such as 
+`bonnie++ <http://sourceforge.net/projects/bonnie/>`_
+(albeit mongoperf is simpler).
+
+Specify options to :program:`mongoperf` using a JavaScript document.
+
 .. seealso::
+
+   * `bonnie <http://www.textuality.com/bonnie/>`_
+   * `bonnie++ <http://sourceforge.net/projects/bonnie/>`_
+   * `Output from an example run <https://gist.github.com/1694664>`_
+   * `Checking Disk Performance with the mongoperf Utility <http://blog.mongodb.org/post/40769806981/checking-disk-performance-with-the-mongoperf-utility>`_
 
 .. _mongoperf-options:
 
@@ -22,12 +39,129 @@ Options
 
 .. option:: --help
 
+      Displays the options to :program:`mongoperf`. 
+      Options are specified using a JavaScript document.
+
 .. _mongoperf-fields:
 
 Fields
 ------
 
+   :samp:`nThreads: {integer}`
+         
+      number of threads, defaults to 1. You will need several threads to
+      test a disk subsystem to saturation. For example, try
+      :samp:`nThreads:16`
+                                
+   :samp:`fileSizeMB: {integer}`
+   
+      test file size, default is 1Mb (1024^2 bytes)
+      
+   :samp:`sleepMicros: {integer}`
+   
+      pause for *sleepMicros* / *nThreads* between each operation
+      (default 0).
+                                
+   :samp:`mmf: {Boolean}`
+
+      Set to *true* to use memory mapped files (default: false)
+      
+   :samp:`r: {Boolean}`
+   
+      Set to *true* to perform reads (default: false)
+      
+   :samp:`w: {Boolean}`
+   
+      Set to *true* to perform writes (default: false)
+      
+   :samp:`recSizeKB: {integer}`
+   
+      Size of each write in KB
+      
+   :samp:`syncDelay: {integer}`
+   
+      Seconds between fsyncs, like 
+      :mongodb:option:`--syncdelay <mongod --syncdelay>` in mongod.
+      For use with :samp:`mmf:true` mode only. The :samp:`syncDelay:{secs}` 
+      option instructs :program:`mongoperf` to
+      perform an asynchronous fsync of the test mmap file at the
+      specified interval.
+      :program:`mongod` does something similar 
+      every 60 seconds, thus this can be useful to test basic system
+      behavior in a simpler setting. This option is applicable only
+      when using :samp:`mmf:true` mode.
+      Currently in :program:`mongoperf` this defaults to zero, which
+      means off.
+
 
 Use
 ---
 
+Building
+~~~~~~~~
+
+Run ``scons mongoperf`` or ``scons mongoperf.exe`` to build.  
+
+.. note::
+
+   .. version-added: 2.0.2
+   :program:`mongoperf` is new, so will need a recent version of the
+   MongoDB source code.
+
+Running
+~~~~~~~
+
+.. code-block:: javascript
+
+   mongoperf
+
+   usage:
+
+     mongoperf < myjsonconfigfile
+
+     {
+       nThreads:<n>,     // number of threads (default 1)
+       fileSizeMB:<n>,   // test file size (default 1MB)
+       sleepMicros:<n>,  // pause for sleepMicros/nThreads between each operation (default 0)
+       mmf:<bool>,       // if true do i/o's via memory mapped files (default false)
+       r:<bool>,         // do reads (default false)
+       w:<bool>,         // do writes (default false)
+       recSizeKB:<n>,    // size of each write (default 4KB)
+       syncDelay:<n>     // secs between fsyncs, like --syncdelay in mongod. (default 0/never)
+     }
+
+
+* non-mmf io is direct io (no caching). use a large file size to test 
+  making the heads move significantly and to avoid i/o coalescing
+* mmf io uses caching (the file system cache).
+
+
+.. code-block:: sh
+
+   # example invocation:
+   #  test physical (direct) random read io's, using 16 concurrent reader threads,
+   #  and a 1GB test file.
+   echo "{nThreads:16,fileSizeMB:1000,r:true}" | ./mongoperf | tee out
+
+   # we might do this while it runs:
+   iostat -xm 2
+
+
+mmf:false mode (direct i/o test)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In this default mode, mongoperf performs random 4KB +direct+ (physical) 
+disk i/o's (i.e., O_DIRECT is used on Linux). 
+Thus this is a physical disk i/o test.
+
+mmf:true mode
+~~~~~~~~~~~~~
+
+If :samp:`mmf:true` is specified as an option, tests are performed using 
+memory-mapped files.  
+These files are opened in a `normal` fashion and thus *caching is allowed*.
+This sometimes can be used to test file system cache behavior with
+memory mapped files.
+
+
+.. TODO:: previously had terse link to iostat 
