@@ -36,14 +36,14 @@ def make_link(make_target, link_target, makefile_block):
         m.append_var('LINKS', make_target, makefile_block)
         m.target(make_target, link_location, makefile_block)
 
-    
     if makefile_block == 'redirect':
-        m.job('@rm -rf $@/')
+        m.job('rm -rf %s' % make_target, block=makefile_block)
+        m.job('mkdir -p %s' % link_location)
 
-    m.job('@ln -s -f ' + link_target + ' $(notdir $@)', makefile_block)
-    m.job('@mv $(notdir $@) ' + link_location, makefile_block)
+    m.job('@ln -s -f %s  $(notdir $@)' % link_target, makefile_block)
+    m.job('@mv $(notdir $@) %s' % link_location, makefile_block)
 
-    m.msg('[symlink]: created a link at: $@', makefile_block)
+    m.msg('[symlink]: created a link at: %s' % make_target, makefile_block)
     m.newline(block=makefile_block)
 
 def main():
