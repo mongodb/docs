@@ -75,7 +75,7 @@ $(public-branch-output)/release.txt:$(public-branch-output)/
 
 # Establish basic dependencies.
 $(branch-output)/singlehtml/contents.html:$(branch-output)/singlehtml
-$(branch-output)/epub/MongoDBManual.epub:epub
+$(branch-output)/epub/mongodb-manual.epub:epub
 $(public-branch-output)/MongoDB-Manual.epub:$(public-branch-output)/MongoDB-Manual-$(current-branch).epub
 
 # migrating and processing dirhtml and singlehtml content.

@@ -155,7 +155,7 @@ migrations = [
     ('$(public-branch-output)/.htaccess', 'themes/docs.mongodb.org/.htaccess', 'access'),
     ('$(public-branch-output)/single/search.html', '$(branch-output)/dirhtml/search/index.html', 'content'),
     ('$(public-branch-output)/MongoDB-Manual-$(current-branch).epub', '$(branch-output)/epub/MongoDB.epub', 'content'),
-    ('$(branch-output)/epub/MongoDB.epub','$(branch-output)/epub/MongoDBManual.epub', 'content'),
+    ('$(branch-output)/epub/MongoDB.epub','$(branch-output)/epub/mongodb-manual.epub', 'content'),
 ]
 
 sphinx_migrations = [
