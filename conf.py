@@ -52,7 +52,11 @@ extlinks = {
     'api': ('http://api.mongodb.org/%s', ''),
     'source': ('http://github.com/mongodb/mongo/blob/master/%s', ''),
     'docsgithub' : ( 'http://github.com/mongodb/docs/blob/' + meta['commit'] + '/%s', ''),
-    'hardlink' : ( 'http://docs.mongodb.org/' + meta['branch'] + '/%s', '')
+    'hardlink' : ( 'http://docs.mongodb.org/' + meta['branch'] + '/%s', ''),
+    'manual': ('http://docs.mongodb.org/manual%s', ''),
+    'ecosystem': ('http://docs.mongodb.org/ecosystem%s', ''),
+    'meta-driver': ('http://docs.mongodb.org/meta-driver/latest%s', ''),
+    'about': ('http://www.mongodb.org/about%s', '')
 }
 
 intersphinx_mapping = {
@@ -103,7 +107,7 @@ latex_documents = [
 ]
 
 latex_elements = {
-    'preamble': '\DeclareUnicodeCharacter{FF04}{\$} \DeclareUnicodeCharacter{FF0E}{.}',
+    'preamble': '\DeclareUnicodeCharacter{FF04}{\$} \DeclareUnicodeCharacter{FF0E}{.} \PassOptionsToPackage{hyphens}{url}',
     'pointsize': '10pt',
     'papersize': 'letterpaper'
 }
