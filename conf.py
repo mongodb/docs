@@ -39,7 +39,7 @@ exclude_patterns = []
 source_suffix = '.txt'
 
 master_doc = 'contents'
-project = u'MongoDB Manual'
+project = u'mongodb-manual'
 copyright = u'2011-' + meta['date'] + ', 10gen, Inc.'
 version = '2.2.2'
 release = version
@@ -77,7 +77,7 @@ intersphinx_mapping = {
 
 html_theme = 'mongodb'
 html_theme_path = ['themes']
-html_title = project
+html_title = "MongoDB Manual"
 htmlhelp_basename = 'MongoDBdoc'
 
 html_logo = ".static/logo-mongodb.png"

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    MongoDB Domain for Sphinx
-    ~~~~~~~~~~~~~~~~~~~~~~~~~
+    Aggregation Framework  Domain for Sphinx
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Based on the default JavaScript domain distributed with Sphinx.
 
@@ -31,28 +31,28 @@ class AggregationObject(MongoDBObject):
 class AggregationCallable(MongoDBMethod):
     pass
 
-class Aggregation(MongoDBXRefRole):
+class AggregationXRefRole(MongoDBXRefRole):
     pass
 
 class AggregationDomain(MongoDBDomain):
     """Aggregation Framework Documentation domain."""
     name = 'agg'
     label = 'Aggregation Framework'
-    # if you add a new object type make sure to edit MongoDBObject.get_index_string
+    # if you add a new object type make sure to edit AggregationObject.get_index_string
     object_types = {
         'pipeline':     ObjType(l_('pipeline'),    'pipeline'),
         'group':        ObjType(l_('group'),       'group'),
         'expression':   ObjType(l_('expression'),  'expression'),
     }
     directives = {
-        'pipeline':      MongoDBObject,
-        'group':         MongoDBObject,
-        'expression':    MongoDBObject,
+        'pipeline':      AggregationObject,
+        'group':         AggregationObject,
+        'expression':    AggregationObject,
     }
     roles = {
-        'pipeline':    MongoDBXRefRole(),
-        'group':       MongoDBXRefRole(),
-        'expression':  MongoDBXRefRole(),
+        'pipeline':    AggregationXRefRole(),
+        'group':       AggregationXRefRole(),
+        'expression':  AggregationXRefRole(),
     }
 
 def setup(app):
