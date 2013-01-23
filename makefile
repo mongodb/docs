@@ -29,6 +29,7 @@ help:
 	@echo "	 pdfs		generates pdfs."
 
 ############# makefile includes #############
+
 include bin/makefile.dynamic
 include bin/makefile.clean
 include bin/makefile.content
@@ -54,11 +55,6 @@ source/includes/hash.rst:source/about.txt
 $(public-branch-output)/release.txt:$(public-branch-output)/
 	@git rev-parse --verify HEAD >|$@
 	@echo [build]: generated '$@' with current release hash.
-
-# Establish basic dependencies.
-$(branch-output)/singlehtml/contents.html:$(branch-output)/singlehtml
-$(branch-output)/epub/mongodb-manual.epub:epub
-$(public-branch-output)/MongoDB-Manual.epub:$(public-branch-output)/MongoDB-Manual-$(current-branch).epub
 
 # migrating and processing dirhtml and singlehtml content.
 $(public-output)/ $(output):
