@@ -34,7 +34,11 @@ def make_link(make_target, link_target, makefile_block):
         m.target(make_target, '', makefile_block)
     else:
         m.append_var('LINKS', make_target, makefile_block)
-        m.target(make_target, link_location, makefile_block)
+        if make_target == '$(public-branch-output)/core/sharding':
+            m.target(make_target, link_location + ' $(public-branch-output)/administration/sharding', makefile_block)
+        else:
+            m.target(make_target, link_location, makefile_block)
+
 
     m.job('@bin/create-link %s $(notdir $@) %s' % ( link_target, link_location), makefile_block)
     m.msg('[symlink]: created a link at: %s' % make_target, makefile_block)
