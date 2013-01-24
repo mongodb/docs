@@ -4,7 +4,7 @@ import sys
 from makefile_builder import MakefileBuilder
 from builder_data import pdfs as pdfs_to_build
 
-# to add a pdf to the build process, add a tuple to the ``pdfs`` list in the builder definition file. 
+# to add a pdf to the build process, add a tuple to the ``pdfs`` list in the builder definition file.
 
 m = MakefileBuilder()
 
@@ -23,7 +23,7 @@ def pdf_makefile(name, tag):
 
     m.target(target='$(public-branch-output)/' + name_tagged + '-$(current-branch).pdf',
              dependency='$(branch-output)/latex/' + name_tagged + '.pdf')
-    m.job('rsync $< $@')
+    m.job('cp $< $@')
     m.msg('[build]: migrated $@')
 
     m.target(target='$(public-branch-output)/' + name_tagged + '.pdf',

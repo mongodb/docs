@@ -42,7 +42,7 @@ def build_texinfo_manual(info):
 
     m.target(target='$(public-branch-output)/' + ofile,
              dependency=build_loc + ofile)
-    m.job('rsync $< $@')
+    m.job('cp $< $@')
     m.msg('[build]: migrated $@')
 
     final_output = '$(public-branch-output)/' + info + '-info.tar.gz'

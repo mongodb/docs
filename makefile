@@ -73,7 +73,7 @@ $(public-branch-output)/single:$(branch-output)/singlehtml
 	@touch $@
 	@echo [build]: migrated '$</*' to '$@'
 $(public-branch-output)/single/index.html:$(branch-output)/singlehtml/contents.html
-	@rsync $< $@
+	@cp $< $@
 	@sed $(SED_ARGS_FILE) -e 's/href="contents.html/href="index.html/g' \
 			      -e 's/name="robots" content="index"/name="robots" content="noindex"/g' \
 			      -e 's/(href=")genindex.html"/\1..\/genindex\/"/g' $@

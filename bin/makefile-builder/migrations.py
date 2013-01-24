@@ -18,7 +18,7 @@ def build_all_migrations(migrations):
                  dependency=migration[1],
                  block=block)
         m.job('mkdir -p ' + dependency, block=block)
-        m.job('rsync $< $@', block=block)
+        m.job('cp $< $@', block=block)
         m.msg('[build]: migrated $@', block=block)
         m.newline(block=block)
 
