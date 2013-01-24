@@ -16,15 +16,21 @@
 #
 # Author: Sam Kleinman (tychoish)
 
+import os.path
+import os
+
 def print_output(list):
     for line in list:
         print(line)
 
 def write_file(list, filename):
+    dirpath = filename.rsplit('/', 1)[0]
+    if os.path.isdir(dirpath) is False:
+        os.mkdir(dirpath)
+
     with open(filename, 'w') as f:
         for line in list:
             f.write(line + '\n')
-
 
 class BuildFileError(Exception):
     def __init__(self, msg=None):
@@ -56,10 +62,8 @@ class BuildFile(object):
     # the following method is used internally to constrcd uct and
     # maintain the internal representation of the buildfile.
 
-    def _add_to_builder(self, data, block):
-        if type(data) is not str:
-            raise BuildFileError('Added malformed data to BuildFile.')
-        else:
+    def _add_to_builder(self, data, block, raw=False):
+        def add(data, block):
             if block is '_all':
                 pass
             else:
@@ -70,6 +74,34 @@ class BuildFile(object):
             else:
                 self.builder[block] = [data]
 
+        if raw is True:
+            for line in data:
+                add(line, block)
+        elif type(data) is not str and raw is True:
+            raise BuildFileError('Added malformed data to BuildFile.')
+        else:
+            add(data, block)
+
+    def _add_to_builder(self, data, block, raw=False):
+        def add(data, block):
+            if block is '_all':
+                pass
+            else:
+                self.buildfile.append(data)
+
+            if block in self.builder:
+                self.builder[block].append(data)
+            else:
+                self.builder[block] = [data]
+
+        if raw is True:
+            for line in data:
+                add(line, block)
+        elif type(data) is not str:
+            raise BuildFileError('Added malformed data to BuildFile.')
+        else:
+            add(data, block)
+
     # The following methods produce output for public use.
 
     def get_block(self, block='_all'):
@@ -78,27 +110,42 @@ class BuildFile(object):
     def print_content(self, block_order=['_all']):
         output = []
 
-        for block in block_order:
-            output.append(self.builder[block])
+        if type(block_order) is not list:
+            raise BuildFileError('Cannot print blocks not specified as a list.')
+        else:
+            for block in block_order:
+                output.append(self.builder[block])
 
-        output = [item for sublist in output for item in sublist]
-        print_output(output)
+            output = [item for sublist in output for item in sublist]
+            print_output(output)
 
-    def print_block(self, block='all'):
-        print_output(self.builder[block])
+    def print_block(self, block='_all'):
+        if block not in self.builder:
+            raise BuildFileError('Error: ' + block + ' not specified in buildfile')
+        else:
+            print_output(self.builder[block])
 
     def write(self, filename, block_order=['_all']):
         output = []
 
-        for block in block_order:
-            output.append(self.builder[block])
+        if type(block_order) is not list:
+            raise BuildFileError('Cannot write blocks not specified as a list.')
+        else:
+            for block in block_order:
+                output.append(self.builder[block])
 
-        output = [item for sublist in output for item in sublist]
-        write_file(output, filename)
+            output = [item for sublist in output for item in sublist]
+            write_file(output, filename)
 
     def write_block(self, filename, block='_all'):
-        write_file(self.builder[block], filename)
+        if block not in self.builder:
+            raise BuildFileError('Error: ' + block + ' not specified in buildfile')
+        else:
+            write_file(self.builder[block], filename)
 
+
+class MakefileError(BuildFileError):
+    pass
 
 class MakefileBuilder(BuildFile):
     def __init__(self, makefile=None):
@@ -110,14 +157,22 @@ class MakefileBuilder(BuildFile):
 
     def block(self, block):
         if block in self.builder:
-            pass
+            raise MakefileError('Cannot add "' + block + '" to Makefile. ' + block + ' already exists.')
         else:
             self.builder[block] = []
             self.section_break(block, block)
 
     def raw(self, lines, block='_all'):
-        self._add_to_builder(lines, block)
-
+        if type(lines) is list:
+            o = []
+            for line in lines:
+                if type(line) is list:
+                    raise MakefileError('Cannot add nested lists to a Makefile with raw().')
+                else:
+                    o.append(line)
+            self._add_to_builder(data=o, block=block, raw=True)
+        else:
+            raise MakefileError('Cannot add non-list raw() content to Makefile.')
     # The following methods constitute the 'public' interface for
     # building makefile.
 
@@ -129,7 +184,7 @@ class MakefileBuilder(BuildFile):
 
     def newline(self, n=1, block='_all'):
         for i in range(n):
-            self._add_to_builder('\n', block)
+            self._add_to_builder('', block)
 
     def target(self, target, dependency=None, block='_all'):
         if dependency is None:

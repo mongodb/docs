@@ -16,14 +16,14 @@ def make_all_sphinx(sphinx):
     m.var(variable='SPHINXBUILD',
           value='sphinx-build',
           block='vars')
-    
+
     m.comment('defines a nitpick mode for sphinx\'s more verbose reporting', block='vars')
-    m.raw('ifdef NITPICK\n', block='vars')
+    m.raw(['ifdef NITPICK'], block='vars')
     m.append_var(variable='SPHINXOPTS',
                  value='-n -w $(branch-output)/build.$(shell date +%Y%m%d%H%M).log',
                  block='vars')
-    m.raw('endif\n', block='vars')
-    
+    m.raw(['endif'], block='vars')
+
     m.comment('variables related to paper sizing for the latex output', block='vars')
     m.var(variable='PAPER',
           value='letter',
@@ -43,10 +43,10 @@ def make_all_sphinx(sphinx):
           block='vars')
 
     m.comment('epub build modification and settings', block='vars')
-    m.var(variable='epub-command', 
+    m.var(variable='epub-command',
           value='$(SPHINXBUILD) -b epub $(ALLSPHINXOPTS) $(branch-output)/epub',
           block='vars')
-    m.var(variable='epub-filter', 
+    m.var(variable='epub-filter',
           value="sed $(SED_ARGS_REGEX) -e '/^WARNING: unknown mimetype.*ignoring$$/d' -e '/^WARNING: search index.*incomplete.$$/d'",
           block='vars')
 
@@ -78,18 +78,18 @@ def sphinx_builder(target):
     if target.split('-')[0] == 'draft':
         if target.split('-')[1] == 'html':
             loc = 'draft'
-        else: 
+        else:
             loc = target
         build_kickoff(loc, block=b)
         m.job('$(SPHINXBUILD) -b ' + target.split('-')[1] + ' $(DRAFTSPHINXOPTS) $(branch-output)/' + loc, block=b)
-    elif target == 'epub': 
+    elif target == 'epub':
         build_kickoff('$@',block=b)
-        m.job('{ $(epub-command) 2>&1 1>&3 | $(epub-filter) 1>&2; } 3>&1', block=b)        
+        m.job('{ $(epub-command) 2>&1 1>&3 | $(epub-filter) 1>&2; } 3>&1', block=b)
     else:
         build_kickoff('$@', block=b)
         m.job('$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@', block=b)
 
-    if target == 'linkcheck': 
+    if target == 'linkcheck':
         m.msg('[$@]: Link check complete at `date`. See "$(branch-output)/linkcheck/output.txt".', block=b)
     else:
         m.msg('[$@]: build finished at `date`.', block=b)

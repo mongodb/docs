@@ -100,7 +100,6 @@ class RstTable(object):
             currentmaxwidths = self.tempcolumnwidths.pop()
             self.tempcolumnwidths.append([ max(currentmaxwidths[i], thisrowwidths[i]) for i in range(len(currentmaxwidths))])
 
-
     ###################################
     #
     # Building the table representation
