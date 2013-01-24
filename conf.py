@@ -58,7 +58,11 @@ extlinks = {
     'api': ('http://api.mongodb.org/%s', ''),
     'source': ('https://github.com/mongodb/mongo/blob/master/%s', ''),
     'docsgithub' : ( 'http://github.com/mongodb/docs/blob/' + meta['branch'] + '/%s', ''),
-    'hardlink' : ( 'http://docs.mongodb.org/' + meta['branch'] + '/%s', '')
+    'hardlink' : ( 'http://docs.mongodb.org/' + meta['branch'] + '/%s', ''),
+    'manual': ('http://docs.mongodb.org/manual%s', ''),
+    'ecosystem': ('http://docs.mongodb.org/ecosystem%s', ''),
+    'meta-driver': ('http://docs.mongodb.org/meta-driver/latest%s', ''),
+    'about': ('http://www.mongodb.org/about%s', '')
 }
 
 composite_pages = ['commands', 'javascript', 'operators', 'aggregation', 'meta-query-operators', 'replica-commands', 'sharding-commands']
