@@ -3,7 +3,7 @@ MAKEFLAGS += -j -r --no-print-directory
 
 # Build directory tweaking.
 output = build
-public-output =  $(output)/publish
+public-output =  $(output)/public
 
 .PHONY: publish help clean push-dc1 push-dc2 setup
 help:
