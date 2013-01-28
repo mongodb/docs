@@ -53,6 +53,7 @@ links = [
      ('$(public-branch-output)/reference/operator/atomic', 'isolated', 'redirect'),
      ('$(public-branch-output)/reference/mongo-shell-reference', 'mongo-shell', 'redirect'),
      ('$(public-branch-output)/reference/method/getShardDistribution', 'db.collection.getShardDistribution', 'redirect'),
+     ('$(public-branch-output)/reference/method/getShardVersion', 'db.collection.getShardVersion', 'redirect'),
      ('$(public-branch-output)/reference/command/printShardingStatus', '../method/db.printShardingStatus', 'redirect'),
      ('$(public-branch-output)/administration/sharding-architectures', 'sharded-cluster-architectures', 'redirect'),
      ('$(public-branch-output)/administration/replication-architectures', 'replica-set-architectures', 'redirect'),
