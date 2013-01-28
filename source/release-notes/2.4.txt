@@ -478,8 +478,8 @@ cursor.
         document, you cannot mix inclusions (i.e. ``<fieldA>: 1``) and
         exclusions (i.e. ``<fieldB>: 0``), except for the ``_id`` field.
 
-Additional Authentication Features
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+New Modular Authentication System with Support for Kerberos
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note::
 
@@ -497,20 +497,17 @@ An improved authentication system is a core focus of the entire 2.3
 cycle, as of 2.3.1, the following components of the new authentication
 system are available for use in MongoDB:
 
-- SASL Support in :program:`mongod`, the :program:`mongo` shell, and C++ client library
-  (driver.)
+- :program:`mongod` instances can authenticate users via Kerberos. 
 
-- New :dbcommand:`saslStart` and :dbcommand:`saslContinue`
-  database commands.
+- the :program:`mongo` shell can authenticate to :program:`mongd`
+  instances using Kerberos.
+  
+- MongoDB Clients can authenticate using Kerberos with the C++ client
+  library (driver,) and development versions of the Java and C#
+  drivers.
 
-.. note::
-
-   As of 2.3.1 support for SASL/Kerberos in :program:`mongos` is
-   forthcoming. Test Kerberos with standalone :program:`mongod`
-   instances and :term:`replica sets <replica set>`.
-
-Initial SASL/Kerberos  Support
-``````````````````````````````
+Initial Support for Kerberos Authentication
+```````````````````````````````````````````
 
 Development work on this functionality is ongoing, and additional
 related functionality is forthcoming. To use Kerberos with MongoDB as
@@ -538,54 +535,87 @@ of the current 2.3-series release, consider the following requirements:
   key tab file that holds key data granting access to it's principal
   that the :program:`mongod` can read.
 
-To start :program:`mongod` with support for Kerberos, use the
-following form:
+Starting ``mongod`` with Kerberos
+`````````````````````````````````
+
+To start :program:`mongod` with Kerberos support (i.e. with the
+``GSSAPI`` authentication mechanism,) you *must* have a working
+Kerberos environment *and* a valid Kerberos keytab file.
+
+To start :program:`mongod`, use a command in the following form: 
 
 .. code-block:: sh
 
    env KRB5_KTNAME=<path to keytab file> <mongod invocation>
 
 You must start :program:`mongod` with :setting:`auth` or
-:setting:`keyFile`, [#keyfile-auth]_ so that an actual command would
-resemble:
+:setting:`keyFile` [#keyfile-auth]_ and configuring the list of in the
+``authenticationMechanisms`` :setting:`parameter <setParameter>`. An
+actual command would resemble:
 
 .. code-block:: sh
 
    env KRB5_KTNAME=/opt/etc/mongodb.keytab \
-       /opt/bin/mongod --auth --dbpath /opt/data/db --logpath /opt/log/mongod.log --fork
+       /opt/bin/mongod --dbpath /opt/data/db --logpath /opt/log/mongod.log --fork \ 
+                       --auth --setParameter authenticationMechanisms=GSSAPI
 
 Replace the paths as needed for your test deployment.
 
+If you want to enable both Kerberos *and* the legacy
+challenge-and-response authentication mechanism, append ``MONGO-CR``
+to the ``authenticationMechanisms`` parameter. Consider the following
+example: 
+
+.. code-block:: sh
+
+   env KRB5_KTNAME=/opt/etc/mongodb.keytab \
+       /opt/bin/mongod --dbpath /opt/data/db --logpath /opt/log/mongod.log --fork \ 
+                       --auth --setParameter authenticationMechanisms=GSSAPI,MONGO-CR
+
+.. note::
+
+   If you're having trouble getting :program:`mongod` to start with
+   Kerberos, there are a number of Kerberos-specific issues that can
+   prevent successful authentication. As you begin troubleshooting
+   your Kerberos deployment, ensure that:
+
+   - You have a valid keytab file specified in the
+     environment running the :program:`mongod`.
+
+   - The :program:`mongod` is from the MongoDB Subscriber Edition.
+
+   - DNS allows the :program:`mongod` to resolve the components of the
+     Kerberos infrastructure.
+
+   - The time systems of the systems running the :program:`mongod`
+     instances and the Kerberos infrastructure are synchronized. 
+
+   Until you can successfully authenticate a client using the Kerberos
+   you may want to enable ``MONGO-CR`` authentication mechanism to
+   provide access to the :program:`mongod` instance during
+   configuration.
+
+.. [#keyfile-auth] :setting:`keyFile` implies :setting:`auth`. You
+   *must* use :setting:`keyFile` for replica sets.
+
+Connecting and Authenticating MongoDB Clients Using Kerberos
+````````````````````````````````````````````````````````````
+
 To use Kerberos with the :program:`mongo` shell, begin by initializing
 a Kerberos session with ``kinit``. Then start a 2.3.2 :program:`mongo`
-shell instance, and run the following operations to associate the
-current connection with the Kerberos session:
+shell instance, and use the following sequence of operations to
+associate the current connection with the Kerberos session:
 
 .. code-block:: javascript
 
-   db.getMongo().saslAuthenticate( { mechanism: "GSSAPI",
-                                     user: "<username>@<REALM>" } )
+   use $external
+   db.auth( { mechanism: "GSSAPI", user: "<username>@<REALM>" }  )
 
-The value of the ``principal`` field *must* be the same principal that
+The value of the ``user`` field *must* be the same principal that
 you initialized with ``kinit``. This connection will acquire access in
 accordance with all privileges granted to this user for all databases.
 
-.. see:: :doc:`/security`
-
-.. [#keyfile-auth] :setting:`keyfile` implies :setting:`auth`, and you
-   *must* use :setting:`keyfile` for replica sets.
-
-New Authentication Control Database Commands
-````````````````````````````````````````````
-
-In the 2.3 series, MongoDB adds the following database commands:
-
-.. leaving these undocumented at the moment, given changing use, and
-   the fact that the previous section satisfies current requirements.
-
-.. dbcommand:: saslStart
-
-.. dbcommand:: saslContinue
+.. see:: :doc:`MongoDB Security Practices and Procedures </security>`. 
 
 Default JavaScript Engine Switched to v8 from SpiderMonkey
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
