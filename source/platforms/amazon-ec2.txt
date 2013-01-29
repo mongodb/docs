@@ -1,0 +1,265 @@
+.. http://www.mongodb.org/display/DOCS/Amazon+EC2
+
+.. _amazon-ec2:
+
+==========
+Amazon EC2
+==========
+
+.. default-domain:: mongodb
+
+MongoDB runs well on `Amazon EC2 <http://aws.amazon.com/ec2/>`_. This page
+includes some notes in this regard.
+
+Getting Started on EC2
+----------------------
+
+:ref:`This guide <amazon-ec2-quickstart>` provides
+instructions for using the MongoDB AMI to set up production instances of
+MongoDB across Amazon's Web Services (AWS) EC2 infrastructure.
+
+First, we'll step through deployment planning (instance specifications,
+deployment size, etc.) and then we'll set up a single production node.
+We'll use those setup steps to deploy a three node MongoDB replica set
+for production use. Finally, we'll briefly cover some advanced topics
+such as multi-region availability and data backups.
+
+See the :ref:`amazon-ec2-quickstart` guide for more information.
+
+Backup, Restore, Verify
+-----------------------
+
+Depending upon the configuration of your EC2 instances, there are a
+number of ways to conduct regular backups of your data. For specific
+instructions on backing up, restoring and verifying refer to
+:ref:`amazon-ec2-backup-and-restore`.
+
+Deployment Notes
+----------------
+
+MongoDB via AWS Marketplace
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you installed MongoDB via the AWS Marketplace refer to the
+:ref:`amazon-aws-marketplace`
+guide to get a development instance
+up and running. If you are interested in creating a production
+deployment, refer to the
+:ref:`amazon-ec2-quickstart`. Start with the section
+on :ref:`ec2-configure-storage`
+to set up a place for your data to be stored.
+After that refer to the
+:ref:`ec2-starting-mongodb`
+section to get your
+MongoDB instance running. If you're interested in scaling your
+deployment, check out the sections on
+:ref:`ec2-deploying-multinode-replica-set`
+and
+:ref:`ec2-deploying-a-sharded-configuration`.
+
+Automating Deployment with CloudFormation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+CloudFormation from Amazon Web Services provides an easy mechanism to
+create and manage a collection of AWS resources. To use CloudFormation
+you create and deploy a template which describes the resources in your
+stack via the AWS Management Console. We have created a series of
+reference templates that you can use as a starting point to build your
+own MongoDB deployments using CloudFormation. Check out
+:ref:`automating-deployment-with-cloudformation`
+for a walkthrough and the template files.
+
+Instance Types
+~~~~~~~~~~~~~~
+
+MongoDB works on most EC2 types including Linux and Windows.  We
+recommend you use a 64 bit instance as this is
+`required for all MongoDB databases of significant size <http://blog.mongodb.org/post/137788967/32-bit-limitations>`_.
+Additionally, we find that the larger instances tend to be on the
+freshest ec2 hardware.
+
+Installing MongoDB
+``````````````````
+
+One can download a binary or build from source.  Generally it is easier
+to download a binary.  We can download and run the binary without being
+root.  For example on 64 bit Linux:
+
+.. code-blocK:: sh
+
+   [~]$ curl -O http://downloads.mongodb.org/linux/mongodb-linux-x86_64-1.0.1.tgz
+   [~]$ tar -xzf mongodb-linux-x86_64-1.0.1.tgz
+   [~]$ cd mongodb-linux-x86_64-1.0.1/bin
+   [bin]$ ./mongod --version
+
+Before running the database one should decide where to put
+datafiles.  Run :program:`df -h` to see volumes.
+On some images :file:`/mnt`
+will be the many locally attached storage volume. Alternatively you may
+want to use `Elastic Block Store <http://aws.amazon.com/ebs/>`_ which will
+have a different mount point.
+
+If you mount the file-system, ensure that you mount with the
+:option:`noatime <mount -o noatime>` and
+:option:`nodiratime <mount -o nodiratime>` attributes, for example:
+
+.. code-block:: sh
+
+   /dev/mapper/my_vol /var/lib/mongodb xfs noatime,noexec,nodiratime 0 0
+
+Create the mongodb datafile directory in the desired location and then
+run the database:
+
+.. code-block:: sh
+
+   mkdir /mnt/db
+   ./mongod --fork --logpath ~/mongod.log --dbpath /mnt/db/
+
+
+Operating System
+````````````````
+
+Occasionally, due to the shared and virtualized nature of EC2, an
+instance can experience intermittent I/O problems and low responsiveness
+compared to other similar instances. Terminating the instance and
+bringing up a new one can in some cases result in better performance.
+
+Some people have reported problems with ubuntu 10.04 on ec2.
+
+Please read
+`Ubuntu issue 614853 <https://bugs.launchpad.net/ubuntu/+source/linux-ec2/+bug/614853>`_
+and
+`Linux Kernel issue 16991 <https://bugzilla.kernel.org/show_bug.cgi?id=16991>`_ for further
+information.
+
+Networking
+~~~~~~~~~~
+
+Port Management
+```````````````
+
+By default the database will now be listening on port 27017. The web
+administrative UI will be on port 28017.
+
+Keepalive
+`````````
+
+Change the default TCP keepalive time to 300 seconds. See our
+:ref:`troubleshooting <mongodb:/faq/diagnostics>` page for details.
+
+Storage Configuration
+~~~~~~~~~~~~~~~~~~~~~
+
+For production use, we recommend raid 10 across 4-8 ebs drives for best
+performance. Local ec2 drives may be faster but are generally not
+suitable as they are ephemeral. Multiple ebs drives increase the
+potential number of random IO's per second (iops), but not necessarily
+sequential read/write throughput much.  In most database applications
+random iops are important.
+
+For more information, refer to `EBS info at Amazon Web Services <http://aws.amazon.com/ebs/>`_.
+
+EBS Snapshots
+`````````````
+
+If your datafiles are on a single EBS volume, you can snapshot them for
+backups.
+
+If you are using :manual:`journaling </administration/journaling>`, simply take a
+:snapshot (including the :file:`journal/` directory).
+
+If not using journaling, you need to use the lock+fsync command (v1.3.1+).
+
+Use this command to lock the database to prevent writes. Then, snapshot
+the volume.  Then use the unlock command to allow writes to the
+database again. See the full :ref:`amazon-ec2-backup-and-restore` guide
+for more information.
+This method may also be used with slaves / secondaries.
+
+Securing instances
+~~~~~~~~~~~~~~~~~~
+
+Restrict access to your instances by using the Security Groups feature
+within AWS. A Security Group is a set of firewall rules for incoming
+packets that can apply to TCP, UDP or ICMP.
+
+A common approach is to create a MongoDB security group that contains
+the nodes of your cluster (replica set members or sharded cluster
+members), followed by the creation of a separate security group for your
+app servers or clients.
+
+Create a rule in your MongoDB security group with the "source" field set
+to the Security Group name containing your app servers and the port set
+to 27017 (or whatever port you use for your MongoDB). This will ensure
+that only your app servers have permission to connect to your MongoDB
+instances.
+
+Remember that Security Groups only control ingress traffic.
+
+Communication across regions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Every EC2 instance will have a private IP address that can be used to
+communicate within the EC2 network. It is also possible to assign a
+public "elastic" IP to communicate with the servers from another
+network. If using different EC2 regions, servers can only communicate
+via public IPs.
+
+To set up a cluster of servers that spans multiple regions, it is
+recommended to cname the server hostname to the "public dns name"
+provided by EC2. This will ensure that servers from a different network
+use the public IP, while the local servers use the private IP, thereby
+saving costs. This is required since EC2 security groups are local to a
+region.
+
+To control communications between instances in different regions (for
+example, if you have two members of a replica set in one region and a
+third member in another), it is possible to use a built-in firewall
+(such as IPtables on Linux) to restrict allowed traffic to certain
+(elastic) IP addresses or ports.
+
+For example one solution is following, on each server:
+
+* set the hostname of the server
+
+.. code-block:: sh
+
+   sudo hostname server1
+
+* install "bind", it will serve as local resolver
+* add a zone for your domain, say "myorg.com", and add the CNAMEs for all your servers
+
+.. code-block:: sh
+
+   server1          IN     CNAME   ec2-50-19-237-42.compute-1.amazonaws.com.
+   server2          IN     CNAME   ec2-50-18-157-87.us-west-1.compute.amazonaws.com.
+
+* restart bind and modify /etc/resolv.conf to use the local bind
+
+.. code-block:: sh
+
+   search myorg.conf
+   nameserver 127.0.0.1
+
+Then:
+
+   * verify that you can properly resolve server1, server2, ... using a
+     tool like dig.
+
+   * when running mongod, :method:`mongodb-manual:db.serverStatus()`
+     should show the correct hostname, e.g. "server1:27017".
+
+   * you can then set up replica sets or shards using the simple
+     hostname. For example connect to server1 and run :samp:`rs.initiate()`,
+     then :samp:`rs.add('server2:27017')`.
+
+Presentations
+-------------
+
+   * `MongoDB & AWS <http://www.10gen.com/presentations/webinar/mongodb-and-amazon-web-services-emea>`_
+     - Free Webinar from January 20, 2012.
+   * `Running MongoDB in the Cloud <http://www.10gen.com/presentation/mongosf-2011/running-mongodb-cloud>`_ - MongoSF (May 2011)
+   * `MongoDB on Amazon EC2 <http://www.10gen.com/webinars/ec2>`_ - Webinar (March 2011)
+
+.. broken link:   * Presentation from [MongoSV|http://www.10gen.com/events/mongosv-2011] (December 2011)
+.. broken link: {aws}
