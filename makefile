@@ -17,13 +17,14 @@ include bin/makefile.compatibility
 include bin/makefile.dynamic
 include bin/makefile.push
 
-publish:$(public-output) $(public-output)/release.txt $(public-output)/tutorials
+publish:setup $(public-output) $(public-output)/release.txt $(public-output)/tutorials
 	@echo "[build]: ecosystem branch is succeessfully deployed to '$(public-output)/'."
 
 # Targets to support migration procedure
 setup:
 	@mkdir -p $(output)
 	@echo "[build]: creating required directories."
+	@bin/images-setup
 
 ## Build and migrate the HTML components of the build.
 $(output)/dirhtml:dirhtml
