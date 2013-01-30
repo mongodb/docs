@@ -1,0 +1,187 @@
+.. http://www.mongodb.org/display/DOCS/MongoDB+on+Azure+VM+-+Windows+Installer
+
+.. _azure-windows:
+
+===================================
+Install MongoDB on Windows on Azure
+===================================
+
+.. default-domain:: mongodb
+
+The MongoDB Installer for Windows Azure is a tool that can be used to
+provision a MongoDB replica set cluster into Window Azure VM instances.
+
+Prerequisites
+-------------
+
+- Any 32-bit or 64-bit Windows 7 version
+
+- A `Windows Azure VM Preview <azure-sign-up>`_ account
+
+- Administrator access to run the setup program and installer
+
+Install and Deploy
+------------------
+
+The following are the steps to deploy a replica set using the MongoDB
+Installer for Windows Azure:
+
+1. :ref:`azure-windows-install-the-mongodb-installer`
+
+#. :ref:`azure-windows-download-settings-file`
+
+#. :ref:`azure-windows-run-mongodb-installer`
+
+.. _azure-windows-install-the-mongodb-installer:
+
+Install the MongoDB Installer for Windows Azure
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have not done so already,
+`download the MongoDB Installer for Windows Azure <http://downloads.mongodb.org/azure/MongoDBInstVM.msi>`_.
+
+Double click ``msi`` and accept the license agreement to complete the
+installation.
+
+.. TODO insert screenshot "azure-windows-installer.png" here
+
+.. _azure-windows-download-settings-file:
+
+Download Your Publish Settings File
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The publish settings file is an xml file containing information about
+your subscription. This information is used by the actual script to
+create the VM instances in your account. To download the publish
+settings file, use the downloader start menu item:
+
+``Start -> All Programs -> MongoDB Installer for Windows Azure -> DownloadPublicSettings``
+
+Sign in with your Windows Live ID credentials when prompted. Remember
+the path to where the file was downloaded.
+
+.. _azure-windows-run-mongodb-installer:
+
+Run the MongoDB Installer
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The MongDB Installer for Azure is a
+`PowerShell <http://technet.microsoft.com/en-us/library/bb978526.aspx>`_
+script. To install and configure your replica, launch the installer as
+an Administrator by right-clicking the following ``Start`` menu option
+and selecting ``Run as administrator``:
+
+``Start -> All Programs -> MongoDB Installer for Windows Azure -> MongoDB Installer for Windows Azure``
+
+In the PowerShell window, run the script to configure MongoDB on Azure:
+
+.. code-block::
+
+   .\deploy-mongo.ps1 <node-count> <dns-prefix> <image-name> <password> <location> <pub-settings-file-path> [replica-set-name]
+
+- **node-count**: The number of instances required in the replica set.
+  Setting this to ``1`` results in a stand-alone instance being deployed and
+  not a replica set
+
+- **dns-prefix**: The DNS prefix that used in the FQDN of an instance.
+  For example, if you specify a DNS prefix of ``myreplicaset``, the URL is
+  ``http://myreplicaset.cloudapp.net``.
+
+  - The MongoDB Installer for Windows Azure always deploys to the
+    production environment, so the URL never uses a GUID (as is used for
+    deployments to the staging environment).
+
+  - The DNS prefix is not case-sensitive.
+
+- **image-name**: The name of the VHD image in your Windows Azure
+  storage account that will be used to create the virtual machines for
+  the replica set. There are two possibilities:
+
+  - You can specify the name of an existing image, which must meet these
+    criteria:
+
+    - It is based on the Windows Server 2008 R2 operating system.
+
+    - It has WinRM enabled with HTTP listener.
+
+    - It is hosted in your storage account.
+
+  - You can specify the name of a new image that the tool will create
+    for you in your storage account. If the installer finds no existing
+    image with the name you specified, it assumes that you want to
+    create a new image and prompts you to confirm before proceeding. The
+    new image will meet the requirements listed earlier for an existing
+    image. Note that for this option, the name you provide cannot match
+    any of the names of existing Windows Azure platform images.
+
+- **password**: The password to the Administrator account on the
+  provisioned virtual machines. The same password is used for all
+  virtual machines (nodes) in the replica set. The password must
+  meet Windows password complexity requirements.
+
+  You use this password when you connect to the virtual machines via
+  Remote Desktop Protocol (RDP) to perform system management and
+  troubleshooting activities. RDP is enabled on all virtual machines
+  provisioned by the MongoDB Installer for Windows Azure.
+
+- **location**: The Windows Azure data center location where your
+  virtual machines will be provisioned. Data center locations are
+  case-sensitive.
+
+  For example, you might use ``North Central US`` as a location. If you
+  do not know which locations are available for your Windows Azure
+  subscription, you can use either of these methods to see a list of
+  available locations:
+
+  - Sign in to the management portal on `https://windows.azure.com <>`_,
+    click ``New Hosted Service``, and then click ``Choose a Region`` to
+    see a list of locations.
+
+  - You can use the ``azure vm location list`` command to display a list
+    of available locations. The installer installs the command-line
+    tools if they are missing. If you want to install them before you
+    run the installer, you can do so with the Windows PowerShell script
+    *setup-iasstool.ps1.
+
+- **pub-settings-file-path**: The path to the publish settings file you
+  downloaded earlier.
+
+- **replica-set-name**: Specifies the name of your replica set. The
+  default name is ``rs``. This parameter is ignored if node-count is set
+  to ``1``, as a single-node deployment is not a replica set.
+
+Troubleshooting
+---------------
+
+**Question**: Error with unauthorized during deployment as seen below
+
+.. code-block:: sh
+
+   error: The subscription is not authorized for this feature.
+   error: vm image create command failed
+
+**Answer**: This usually indicates you do not have access to the VM preview
+program. Can you verify in the new preview portal that "Preview
+Features" shows account is active for Virtual machines and Virtual
+networks. If you have multiple accounts/subscriptions make sure you
+download the right pubsettings file
+
+**Question**: I am seeing a timeout error from the installer
+
+.. code-block:: sh
+
+   Error: connect ETIMEDOUT code: 'ETIMEDOUT', errno: 'ETIMEDOUT', syscall: 'connect'
+   Error: connect ETIMEDOUT
+   at errnoException (net.js:670:11)
+   at Object.afterConnect as oncomplete (net.js:661:19)
+
+**Answer**: This occasionally occurs due to connectivity issues with the Azure
+service management server or your actual deployed instances. At this
+point the work around is to retry. Working on making this more robust
+
+**Question**: In spite of meeting the
+`strong password requirements <http://technet.microsoft.com/en-us/library/cc786468(v=ws.10).aspx>`_
+the installer fails in the password setting
+
+**Answer**: Ensure you do not have a $ in the password as powershell is parsing
+it out as a parameter

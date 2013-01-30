@@ -1,0 +1,206 @@
+.. http://www.mongodb.org/display/DOCS/Http+Interface
+
+.. _http-interface:
+
+==============
+HTTP Interface
+==============
+
+.. default-domain:: mongodb
+
+REST Interfaces
+---------------
+
+DrowsyDromedary (Ruby)
+~~~~~~~~~~~~~~~~~~~~~~
+
+`DrowsyDromedary <https://github.com/zuk/DrowsyDromedary>`_
+is a REST layer for MongoDB based on Ruby.
+
+MongoDB Rest (Node.js)
+~~~~~~~~~~~~~~~~~~~~~~
+
+`MongoDB Rest <https://github.com/tdegrunt/mongodb-rest>`_
+is an **alpha** REST interface to MongoDB that uses the
+`MongoDB Node Native driver <https://github.com/christkv/node-mongodb-native>`_.
+
+Mongodb Java REST server
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+`Mongodb Java REST server <https://sites.google.com/site/mongodbjavarestserver/home>`_
+based on `Jetty <http://www.eclipse.org/jetty/>`_.
+
+HTTP Interfaces
+---------------
+
+Sleepy Mongoose (Python)
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+`Sleepy Mongoose <http://www.kchodorow.com/blog/2010/02/22/sleepy-mongoose-a-mongodb-rest-interface/>`_
+is a full featured HTTP interface for MongoDB.
+
+HTTP Console
+------------
+
+MongoDB provides a simple http interface listing information of interest
+to administrators. This interface may be accessed at the port with
+numeric value 1000 more than the configured :program:`mongod` port. The default
+port for the http interface is ``28017``. To access the http interface an
+administrator may, for example, point a browser to
+``http://localhost:28017`` if :program:`mongod` is running with the default port on the
+local machine.
+
+.. TODO insert screenshot "http-interface_console.png" here
+
+Here is a description of the informational elements of the http
+interface:
+
+.. list-table::
+   :header-rows: 1
+
+   * - **element**
+     - **description**
+   * - db version
+     - database version information
+   * - git hash
+     - database version developer tag
+   * - sys info
+     - :program:`mongod` compilation environment
+   * - dblocked
+     - indicates whether the primary :program:`mongod` mutex is held
+   * - uptime
+     - time since this :program:`mongod` instance was started
+   * - assertions
+     - any software assertions that have been raised by this :program:`mongod` instance
+   * - replInfo
+     - information about replication configuration
+   * - currentOp
+     - most recent client request
+   * - # databases
+     - number of databases that have been accessed by this :program:`mongod` instance
+   * - curclient
+     - last database accessed by this :program:`mongod` instance
+   * - Cursors
+     - describes outstanding client cursors
+   * - master
+     - whether this :program:`mongod` instance has been designated a master
+   * - slave
+     - whether this :program:`mongod` instance has been designated a slave
+   * - initialSyncCompleted
+     - whether this slave or repl pair node has completed an initial
+       clone of the :program:`mongod` instance it is replicating
+   * - DBTOP
+     - Displays the total time the :program:`mongod` instance has devoted to each
+       listed collection, as well as the percentage of available time
+       devoted to each listed collection recently and the number of
+       reads, writes, and total calls made recently
+   * - dt
+     - Timing information about the primary :program:`mongod` mutex
+
+HTTP Console Security
+~~~~~~~~~~~~~~~~~~~~~
+
+If security is configured for a :program:`mongod` instance, authentication is
+required for a client to access the http interface from another machine.
+
+Simple REST Interface
+---------------------
+
+The :program:`mongod` process includes a simple REST interface, with no support for
+insert/update/remove operations, as a convenience – it is generally used
+for monitoring/alerting scripts or administrative tasks. For full REST
+capabilities we recommend using an external tool such as
+`Sleepy.Mongoose <http://www.kchodorow.com/blog/2010/02/22/sleepy-mongoose-a-mongodb-rest-interface/>`_.
+
+**v1.4+**: This interface is disabled by default. Use ``--rest`` on the
+command line to enable.
+
+To get the contents of a collection (note the trailing slash):
+
+.. code-block:: sh
+
+   http://127.0.0.1:28017/databaseName/collectionName/
+
+To add a limit:
+
+.. code-block:: sh
+
+   http://127.0.0.1:28017/databaseName/collectionName/?limit=-10
+
+To skip:
+
+.. code-block:: sh
+
+   http://127.0.0.1:28017/databaseName/collectionName/?skip=5
+
+To query for ``{a : 1}``:
+
+.. code-block:: sh
+
+   http://127.0.0.1:28017/databaseName/collectionName/?filter_a=1
+
+Separate conditions with an ``&``:
+
+.. code-block:: sh
+
+   http://127.0.0.1:28017/databaseName/collectionName/?filter_a=1&limit=-10
+
+Same as ``db.$cmd.findOne({listDatabase:1})`` on the ``admin`` database
+in the shell:
+
+.. code-block:: sh
+
+   http://localhost:28017/admin/$cmd/?filter_listDatabases=1&limit=1
+
+To count documents in a collection:
+
+.. code-block:: sh
+
+   http://host:port/db/$cmd/?filter_count=collection&limit=1
+
+JSON in the simple REST interface
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The simple ReST interface uses strict JSON (as opposed to the shell,
+which uses Dates, regular expressions, etc.). To display non-JSON types,
+the web interface wraps them in objects and uses the key for the type.
+For example:
+
+.. code-block:: sh
+
+   # ObjectIds just become strings
+   "_id" : "4a8acf6e7fbadc242de5b4f3"
+
+   # dates
+   "date" : { "$date" : 1250609897802 }
+
+   # regular expressions
+   "match" : { "$regex" : "foo", "$options" : "ig" }
+
+The code type has not been implemented yet and causes the DB to crash if
+you try to display it in the browser.
+
+See :manual:`Mongo Extended JSON </reference/mongodb-extended-json/>`
+for details.
+
+Replica Set Admin UI
+--------------------
+
+The :program:`mongod` process includes a simple administrative UI for checking the
+status of a replica set.
+
+To use, first enable ``--rest`` from the :program:`mongod` command line. The rest port
+is the db port plus 1000 (thus, the default is ``28017``). Be sure this port
+is secure before enabling this.
+
+Then you can navigate to ``http://<hostname>:28017/`` in your web
+browser. Once there, click Replica Set Status
+(`/_replSet <http://127.0.0.1:28017/_replSet>`_) to move to the Replica
+Set Status page.
+
+.. TODO insert screenshot "http-interface_rs.png" here
+
+See Also
+--------
+
+- :manual:`Monitoring Database Systems </administration/monitoring/>`
