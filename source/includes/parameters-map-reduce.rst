@@ -1,204 +1,31 @@
 :param map:
 
-   A JavaScript function that associates or "maps" a value with a key.
+   A JavaScript function that associates or "maps" a ``value`` with a
+   ``key`` and emits the ``key`` and value ``pair``.
 
-   The ``map`` function has the following prototype:
-
-   .. code-block:: javascript
-
-      function() {
-          ...
-          emit(key, value);
-       }
-
-   The ``map`` function process every input document for the
-   map-reduce operation. All the ``key`` and ``value`` pairs emitted
-   by the map function. In map-reduce operations, the operation groups
-   the output from the map phase by the ``key`` value and passes these
-   groupings to the ``reduce`` function.
-
-   .. note:
-
-      - In the ``map`` function, reference the current document as
-        ``this`` within the function.
-
-      - The ``map`` function should *not* access the database for
-        any reason.
-
-      - The ``map`` function should be pure, or have *no* impact
-        outside of the function (i.e. side effects.)
-
-      - The ``emit(key,value)`` function associates the ``key``
-        with a ``value``.
-
-        - A single emit can only hold half of MongoDB's :ref:`maximum
-          BSON document size <limit-bson-document-size>`.
-
-        - There is no limit to the number of times you may call the
-          ``emit`` function per document.
-
-      - The ``map`` function can access the variables defined in
-        the ``scope`` parameter.
+   The ``map`` function processes every input document for the map-reduce
+   operation. The map-reduce operation groups the emitted ``value``
+   objects by the ``key`` and passes these groupings to the ``reduce``
+   function.
 
 :param reduce:
 
    A JavaScript function that "reduces" to a single object all the
    ``values`` associated with a particular ``key``.
 
-   The ``reduce`` function has the following prototype:
-
-   .. code-block:: javascript
-
-      function(key, values) {
-         ...
-         return result;
-      }
-
-   The ``reduce`` function accepts ``key`` and ``values``
-   arguments. The elements of the ``values`` array are the
-   individual ``value`` objects emitted by the ``<map>`` function,
-   grouped by the ``key``.
-
-   Be aware of the following behaviors:
-
-   - The ``reduce`` function should *not* access the database,
-     even to perform read operations.
-
-   - The ``reduce`` function should *not* affect the outside
-     system.
-
-   - MongoDB will **not** call the ``reduce`` function for a key
-     that has only a single value.
-
-   - The ``reduce`` function can access the variables defined
-     in the ``scope`` parameter.
-
-   Because it is possible to invoke the ``reduce`` function
-   more than once for the same key, the following
-   properties need to be true:
-
-   - the *type* of the return object must be **identical**
-     to the type of the ``value`` emitted by the ``<map>``
-     function to ensure that the following operations is
-     true:
-
-     .. code-block:: javascript
-
-        reduce(key, [ C, reduce(key, [ A, B ]) ] ) == reduce (key, [ C, A, B ] )
-
-   - the ``reduce`` function must be *idempotent*. Ensure
-     that the following statement is true:
-
-     .. code-block:: javascript
-
-        reduce( key, [ reduce(key, valuesArray) ] ) == reduce ( key, valuesArray )
-
-   - the order of the elements in the
-     ``valuesArray`` should not affect the output of the
-     ``reduce`` function, so that the following statement is
-     true:
-
-     .. code-block:: javascript
-
-        reduce ( key, [ A, B ] ) == reduce ( key, [ B, A ] )
+   The ``reduce`` function accepts two arguments: ``key`` and
+   ``values``. The ``values`` argument is an array whose elements are
+   the ``value`` objects that are "mapped" to the ``key``.
 
 :param out:
 
    .. versionadded:: 1.8
 
-   Specifies the location of the result of the map-reduce
-   operation. You may output to a collection when performing map
-   reduce operations on the primary members of the set, on
-   :term:`secondary` members you may only use the ``inline``
-   output.
-
-   You can specify the following options for the ``out`` parameter:
-
-   - **Output to a collection**.
-
-     .. code-block:: javascript
-
-        { out: <collectionName> }
-
-   - **Output to a collection and specify one of the following
-     actions**. This option is only available when passing ``out``
-     a collection that already exists. This option is not
-     available on secondary members of replica sets.
-
-     .. code-block:: javascript
-
-        { out: { <action>: <collectionName>[, db: <dbName>][, sharded: <boolean> ][, nonAtomic: <boolean> ] } }
-
-     - ``<action>``: Specify one of the following actions:
-
-        - ``replace``
-
-          .. code-block:: javascript
-
-             { out: { replace: <collectionName> } }
-
-          Replace the contents of the ``<collectionName>`` if the
-          collection with the ``<collectionName>`` exists.
-
-        - ``merge``
-
-          .. code-block:: javascript
-
-             { out: { merge: <collectionName> } }
-
-          Merge the new result with the existing result if the
-          output collection already exists. If an existing document
-          has the same key as the new result, *overwrite* that
-          existing document.
-
-        - ``reduce``
-
-          .. code-block:: javascript
-
-             { out: { reduce: <collectionName> } }
-
-          Merge the new result with the existing result if the
-          output collection already exists. If an existing document
-          has the same key as the new result, apply the ``<reduce>``
-          function to both the new and the existing documents and
-          overwrite the existing document with the result.
-
-     - ``db``:
-
-       Optional.The name of the database that you want the
-       map-reduce operation to write its output. By default
-       this will be the same database as the input collection.
-
-     - ``sharded``:
-
-       Optional. If ``true`` *and* you have enabled sharding on
-       output database, the map-reduce operation will shard the
-       output collection using the ``_id`` field as the shard key.
-
-     - ``nonAtomic``:
-
-       .. versionadded:: 2.2
-
-       Optional. Specify output operation as non-atomic and is
-       valid *only* for ``merge`` and ``reduce`` output modes which
-       may take minutes to execute.
-
-       If ``nonAtomic`` is ``true``, the post-processing step will
-       prevent MongoDB from locking the database; however, other
-       clients will be able to read intermediate states of the
-       output collection. Otherwise the map reduce operation must
-       lock the database during post-processing.
-
-   - **Output inline**. Perform the map-reduce operation in memory
-     and return the result. This option is the only available
-     option for ``out`` on secondary members of replica sets.
-
-     .. code-block:: javascript
-
-        { out: { inline: 1 } }
-
-     The result must fit within the :ref:`maximum size of a BSON
-     document <limit-bson-document-size>`.
+   Specifies the location of the result of the map-reduce operation.
+   You can output to a collection, output to a collection with an
+   action, or output inline. You may output to a collection when
+   performing map reduce operations on the primary members of the set;
+   on :term:`secondary` members you may only use the ``inline`` output.
 
 :param query:
 
@@ -219,28 +46,12 @@
 
 :param finalize:
 
-   Optional. A JavaScript function that follows the ``<reduce>``
-   method and modifies the output and has the following prototype:
+   Optional. A JavaScript function that follows the ``reduce``
+   method and modifies the output.
 
-   .. code-block:: javascript
-
-      function(key, reducedValue) {
-         ...
-         return modifiedObject;
-      }
-
-   The ``<finalize>`` function receives as its arguments a ``key``
-   value and the ``reducedValue`` from the ``<reduce>`` function. Be
-   aware that:
-
-   - The ``finalize`` function should *not* access the database for
-     any reason.
-
-   - The ``finalize`` function should be pure, or have *no* impact
-     outside of the function (i.e. side effects.)
-
-   - The ``finalize`` function can access the variables defined in
-     the ``scope`` parameter.
+   The ``finalize`` function receives two arguments: ``key`` and
+   ``reducedValue``. The ``reducedValue`` is the value returned from
+   the ``reduce`` function for the ``key``.
 
 :param document scope:
 
@@ -285,3 +96,211 @@
    Optional. Specifies whether to include the ``timing`` information
    in the result information. The ``verbose`` defaults to ``true`` to
    include the ``timing`` information.
+   
+.. stop-parameters-here
+
+Requirements for the ``map`` Function
+-------------------------------------
+
+The ``map`` function has the following prototype:
+
+.. code-block:: javascript
+
+   function() {
+      ...
+      emit(key, value);
+   }
+
+The ``map`` function exhibits the following behaviors:
+
+- In the ``map`` function, reference the current document as ``this``
+  within the function.
+
+- The ``map`` function should *not* access the database for any reason.
+
+- The ``map`` function should be pure, or have *no* impact outside of
+  the function (i.e. side effects.)
+
+- The ``emit(key,value)`` function associates the ``key`` with a
+  ``value``.
+
+  - A single emit can only hold half of MongoDB's :ref:`maximum BSON
+    document size <limit-bson-document-size>`.
+
+  - There is no limit to the number of times you may call the ``emit``
+    function per document.
+
+- The ``map`` function can access the variables defined in the
+  ``scope`` parameter.
+
+Requirements for the ``reduce`` Function
+----------------------------------------
+
+The ``reduce`` function has the following prototype:
+
+.. code-block:: javascript
+
+   function(key, values) {
+      ...
+      return result;
+   }
+
+The ``map`` function exhibits the following behaviors:
+
+- The ``reduce`` function should *not* access the database,
+  even to perform read operations.
+
+- The ``reduce`` function should *not* affect the outside
+  system.
+
+- MongoDB will **not** call the ``reduce`` function for a key
+  that has only a single value.
+
+- The ``reduce`` function can access the variables defined
+  in the ``scope`` parameter.
+
+Because it is possible to invoke the ``reduce`` function
+more than once for the same key, the following
+properties need to be true:
+
+- the *type* of the return object must be **identical**
+  to the type of the ``value`` emitted by the ``map``
+  function to ensure that the following operations is
+  true:
+
+  .. code-block:: javascript
+
+     reduce(key, [ C, reduce(key, [ A, B ]) ] ) == reduce( key, [ C, A, B ] )
+
+- the ``reduce`` function must be *idempotent*. Ensure
+  that the following statement is true:
+
+  .. code-block:: javascript
+
+     reduce( key, [ reduce(key, valuesArray) ] ) == reduce( key, valuesArray )
+
+- the order of the elements in the
+  ``valuesArray`` should not affect the output of the
+  ``reduce`` function, so that the following statement is
+  true:
+
+  .. code-block:: javascript
+
+     reduce( key, [ A, B ] ) == reduce( key, [ B, A ] )
+
+
+``out`` Options
+---------------
+
+You can specify the following options for the ``out`` parameter:
+
+Output to a Collection
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   out: <collectionName>
+
+Output to a Collection with an Action
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This option is only available when passing ``out`` a collection that
+already exists. This option is not available on secondary members of
+replica sets.
+
+.. code-block:: javascript
+
+  out: { <action>: <collectionName>
+           [, db: <dbName>]
+           [, sharded: <boolean> ]
+           [, nonAtomic: <boolean> ] } 
+
+When you output to a collection with an action, the ``out`` has the
+following parameters:
+
+- ``<action>``: Specify one of the following actions:
+
+  - ``replace``
+
+    Replace the contents of the ``<collectionName>`` if the
+    collection with the ``<collectionName>`` exists.
+
+  - ``merge``
+
+    Merge the new result with the existing result if the
+    output collection already exists. If an existing document
+    has the same key as the new result, *overwrite* that
+    existing document.
+
+  - ``reduce``
+
+    Merge the new result with the existing result if the
+    output collection already exists. If an existing document
+    has the same key as the new result, apply the ``reduce``
+    function to both the new and the existing documents and
+    overwrite the existing document with the result.
+
+- ``db``:
+
+ Optional.The name of the database that you want the
+ map-reduce operation to write its output. By default
+ this will be the same database as the input collection.
+
+- ``sharded``:
+
+ Optional. If ``true`` *and* you have enabled sharding on
+ output database, the map-reduce operation will shard the
+ output collection using the ``_id`` field as the shard key.
+
+- ``nonAtomic``:
+
+  .. versionadded:: 2.2
+
+  Optional. Specify output operation as non-atomic and is valid *only*
+  for ``merge`` and ``reduce`` output modes which may take minutes to
+  execute.
+
+  If ``nonAtomic`` is ``true``, the post-processing step will prevent
+  MongoDB from locking the database; however, other clients will be
+  able to read intermediate states of the output collection. Otherwise
+  the map reduce operation must lock the database during
+  post-processing.
+
+Output Inline
+~~~~~~~~~~~~~~
+
+Perform the map-reduce operation in memory and return the result. This
+option is the only available option for ``out`` on secondary members of
+replica sets.
+
+.. code-block:: javascript
+
+   out: { inline: 1 }
+
+The result must fit within the :ref:`maximum size of a BSON document
+<limit-bson-document-size>`.
+
+Requirements for the ``finalize`` Function
+------------------------------------------
+
+The ``finalize`` function has the following prototype:
+
+   .. code-block:: javascript
+
+      function(key, reducedValue) {
+         ...
+         return modifiedObject;
+      }
+
+The ``finalize`` function receives as its arguments a ``key``
+value and the ``reducedValue`` from the ``reduce`` function. Be
+aware that:
+
+- The ``finalize`` function should *not* access the database for
+  any reason.
+
+- The ``finalize`` function should be pure, or have *no* impact
+  outside of the function (i.e. side effects.)
+
+- The ``finalize`` function can access the variables defined in
+  the ``scope`` parameter.
