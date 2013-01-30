@@ -92,18 +92,17 @@ pdflatex-command = TEXINPUTS=".:$(branch-output)/latex/:" pdflatex --interaction
 
 # Uses 'latex' target to generate latex files.
 pdfs:$(subst .tex,.pdf,$(wildcard $(branch-output)/latex/*.tex))
-	@echo [build]: ALL PDFLATEX BUILD ERRORS IGNORED.
 $(branch-output)/latex/%.tex:
 	@sed $(SED_ARGS_FILE) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) -e $(LATEX_LINK_CORRECTION) $@
 	@echo [latex]: fixing the Sphinx ouput of '$@'.
 %.pdf:%.tex
-	@$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<' >|$@.log
+	@$(pdflatex-command) $(LATEXOPTS) '$<' >|$@.log
 	@echo "[pdf]: (1/4) pdflatex $<"
 	@-makeindex -s $(output)/latex/python.ist '$(basename $<).idx' >>$@.log 2>&1
 	@echo "[pdf]: (2/4) Indexing: $(basename $<).idx"
-	@$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<' >>$@.log
+	@$(pdflatex-command) $(LATEXOPTS) '$<' >>$@.log
 	@echo "[pdf]: (3/4) pdflatex $<"
-	@$(PDFLATEXCOMMAND) $(LATEXOPTS) '$<' >>$@.log
+	@$(pdflatex-command) $(LATEXOPTS) '$<' >>$@.log
 	@echo "[pdf]: (4/4) pdflatex $<"
 	@echo "[pdf]: see '$@.log' for a full report of the pdf build process."
 

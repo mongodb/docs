@@ -28,7 +28,7 @@ def pdf_makefile(name, tag):
 
     m.target(target='$(public-branch-output)/' + name_tagged + '.pdf',
              dependency='$(public-branch-output)/' + name_tagged + '-$(current-branch).pdf')
-    m.job('$(build-tools)/create-link $(notdir $<) $(notdir $@) $@')
+    m.job('$(build-tools)/create-link $(notdir $<) $(notdir $@) $(dir $@)')
 
     m.comment('adding ' + name + '.pdf to the build dependency.')
     m.append_var('PDF_OUTPUT', '$(public-branch-output)/' + name_tagged + '.pdf')
