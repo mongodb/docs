@@ -1,0 +1,326 @@
+.. http://www.mongodb.org/display/DOCS/OpenShift+Quickstart
+
+.. _openshift-quickstart:
+
+====================
+OpenShift Quickstart
+====================
+
+OpenShift is a Platform as a Service (PaaS) offering from RedHat, which
+provides support for rapid deployment and automatic scalability support
+for web applications developed with Java EE, Node.js, Python, PHP, Perl
+and Ruby. OpenShift Express is a free shared-cloud solution for
+deploying your applications. With Express, you simply push your app
+using the command line tools to OpenShift and the platform takes care
+of the hosting infrastructure.
+
+In this guide, we'll take a simple Java web application and deploy it
+onto OpenShift Express. We'll walk through the steps required to setup
+and administer MongoDB as well as backing up your data.
+
+Cloning the App
+---------------
+
+We'll be deploying an existing Java web application onto OpenShift. The
+app is a simple REST-style checkin mechanism with a single endpoint.
+The app supports POST-ing new checkins (by supplying a comment and
+location) and GET-ing checkins near a given location (by supplying a
+pair of coordinates). The app was built using `Java SE 6
+<http://www.oracle.com/technetwork/java/javase/downloads/index-jsp-13836
+3.html>`_ and `Maven <http://maven.apache.org>`_. Make sure to have
+those components installed, along with `Git <http://git-scm.com/>`_ for
+your platform, before continuing.
+
+First, start by cloning the repository for the web application:
+
+.. code-block:: sh
+
+   git clone https://github.com/crcsmnky/openshift-checkins.git
+   cd openshift-checkins
+
+Next, make sure you can build the app as-is using Maven:
+
+.. code-block:: sh
+
+   mvn package
+    
+If that completes successfully, you're ready to move on. To prepare our
+app for deployment, we'll need to setup our OpenShift Express account.
+
+Deploying onto Express
+----------------------
+
+To deploy apps onto Express you'll need to create an OpenShift account
+from the `OpenShift sign up page
+<https://openshift.redhat.com/app/account/new>`_ and install the
+OpenShift command line tools.
+
+First, follow the steps from the `OpenShift Express getting started
+guide <https://openshift.redhat.com/app/getting_started>`_ in the
+**Install the client tools** section for your platform. Once the tools
+have been installed we'll create a domain name, app name and then push
+the sample app to OpenShift Express (the URL for the app will be
+something like *http://appname-domainname.rhcloud.com*).
+
+First, create the domain name:
+
+.. code-block:: sh
+
+   $ rhc domain create -n your-domain -l your-openshift-login
+    
+This command will prompt you for your account password then for an SSH
+passphrase (it generates a public/private keypair to use for connecting
+to the OpenShift service). Next, create an entry for the app that we'll
+be deploying. Here you'll need to supply the app name (example,
+``expresscheckin``) and ``jbossas-7.0`` as the app type:
+
+.. code-block:: sh
+
+   $ rhc app create -a expresscheckin -t jbossas-7
+   Password: 
+   Creating application: expresscheckin
+   Now your new domain name is being propagated worldwide (this might take a minute)...
+   Warning: Permanently added 'expresscheckin-your-domain.rhcloud.com,50.16.164.248' (RSA) to the           
+   list of known hosts.
+   Confirming application 'expresscheckin' is available:  Success!
+
+   expresscheckin published:  http://expresscheckin-your-domain.rhcloud.com/
+   git url:  ssh://429827960cbf4518b1785ed928db9be7@expresscheckin-your-      
+   domain.rhcloud.com/~/git/expresscheckin.git/
+   Successfully created application: expresscheckin
+    
+After the app is created the command will also clone the app's
+repository locally. Before continuing, we need to set up MongoDB on
+OpenShift and also update our app's MongoDB connection information:
+
+.. code-block:: sh
+
+   $ rhc app cartridge add -a expresscheckin -c mongodb-2.0
+
+   RESULT:
+
+   MongoDB 2.0 database added.  Please make note of these credentials:
+
+          Root User: admin
+      Root Password: 1wbLGYAmPgDM
+      Database Name: expresscheckin
+     Connection URL: mongodb://127.6.85.129:27017/
+
+   You can manage your new MongoDB by also embedding rockmongo-1.1
+
+Now that we've added support for MongoDB to our app (on OpenShift)
+we'll need to take the credentials returned and update our
+``openshift-checkins`` app configuration. Go back to the
+``openshift-checkins`` directory and edit ``CheckinServlet.java`` and
+add/update the following lines in the ``init`` function using the
+MongoDB details provided by OpenShift (don't forget to uncomment the
+``if`` statement with the authentication statement):
+
+.. code-block:: sh
+
+   $ cd openshift-checkins
+   $ nano src/main/java/CheckinServlet.java
+   ...
+   conn = new Mongo("127.6.85.129", 27017);
+   db = conn.getDB("expresscheckin");
+
+   if (db.authenticate("admin", "1wbLGYAmPgDM".toCharArray())) {
+     throw new MongoException("unable to authenticate");
+   }
+   ...
+    
+Then build the :file:`openshift-checkins` WAR file:
+
+.. code-block:: sh
+
+   $ mvn package
+    
+Now, return to the cloned repository, remove the sample code generated
+from the ``expresscheckin`` app repo that was cloned to our system and
+copy the :file:`checkins.war` file into the ``deployments`` as
+:file:`ROOT.war`:
+
+.. code-block:: sh
+
+   $ cd ../expresscheckin
+   $ rm -rf pom.xml src
+   $ cp ../openshift-checkins/target/checkins.war deployments/ROOT.war
+
+As part of the deployment process, we also need to flag our WAR file to
+be deployed (expanded and copied to the right places):
+
+.. code-block:: sh
+
+   $ touch deployments/ROOT.war.dodeploy
+    
+Now we can add it to the repository, commit and push:
+
+.. code-block:: sh
+
+   $ git add -A
+   $ git commit -m "initial deployment of expresscheckin app onto OpenShift Express"
+   $ git push origin
+    
+After pushing the app, it will take a few minutes for the app to become
+available at *http://expresscheckin-your-domain.rhcloud.com*. That's it, you've
+deployed a simple Java app that uses MongoDB to OpenShift Express.
+Refer to :ref:`testing-the-deployment` below for some notes on testing
+the app's functionality.
+
+.. _testing-the-deployment:
+
+Testing the Deployment
+----------------------
+
+Once you've deployed your app onto OpenShift Express, the URL for the
+app will be something of the form
+*http://expresscheckin-your-domain.rhcloud.com*. We'll now use that URL
+to conduct some tests on our deployed app.
+
+Since the app is a simple RESTish mechanism we can use ``curl`` to test
+it out. Let's start by posting a new comment and location to the URL
+(ex. `http://appurl.rhcloud.com/checkin
+<http://appurl.rhcloud.com/checkin>`_):
+
+.. code-block:: sh
+
+   $ curl -X POST -d "comment=hello&x=1&y=1" http://appurl.rhcloud.com/checkin
+    
+Now let's see if we can find the comment we just posted at that
+location (``x = 1``, ``y = 1``):
+
+.. code-block:: sh
+
+   $ curl "http://appurl.rhcloud.com/checkin?x=1&y=1"
+   { "_id" : { "$oid" : "4f0e068c3004bfd40822840b"} , "comment" : "hello" , "location" : [ 1.0 ,    
+   1.0]}
+    
+If these worked, then it looks like we've got a functional app deployed
+onto OpenShift.
+
+Advanced Functionality
+----------------------
+
+Once you've deployed your app, you'll probably need to connect to your
+server at some point so you can do things like reviewing app logs or
+query data in MongoDB. The following steps will cover how you can do
+that (and if available, set up some advanced functionality).
+
+App Administration
+------------------
+
+Using the command line tools, we can connect to the server our app is
+deployed on. Run the following command to get information about the
+current running apps:
+
+.. code-block:: sh
+
+   $ rhc domain show
+   Password: 
+
+   User Info
+   =========
+   Namespace: checkins
+     RHLogin: sandeep@clusterbeep.org
+
+
+   Application Info
+   ================
+   expresscheckin
+       Framework: jbossas-7
+        Creation: 2012-04-14T14:04:54-04:00
+            UUID: 485daa768043454d9cdcb9343018eb6e
+         Git URL: ssh://485daa768043454d9cdcb9343018eb6e@expresscheckin-   
+   checkins.rhcloud.com/~/git/expresscheckin.git/
+      Public URL: http://expresscheckin-checkins.rhcloud.com/
+
+    Embedded: 
+         mongodb-2.0 - Connection URL: mongodb://127.6.85.129:27017/
+
+The ``UDID`` above shows the user ID we can use to SSH into our server:
+
+.. code-block:: sh
+
+   $ ssh 429827960cbf4518b1785ed928db9be7@expresscheckin-your-domain.rhcloud.com
+
+   Welcome to OpenShift shell
+
+   This shell will assist you in managing openshift applications.
+
+   !!! IMPORTANT !!! IMPORTANT !!! IMPORTANT !!!
+   Shell access is quite powerful and it is possible for you to
+   accidentally damage your application.  Procede with care!
+   If worse comes to worse, destroy your application with rhc-ctl-app
+   and recreate it
+   !!! IMPORTANT !!! IMPORTANT !!! IMPORTANT !!!
+
+   type "help" for more info.
+    
+Now at the prompt type ``help`` to see the available commands (in
+addition to normal shell commands):
+
+.. code-block:: sh
+
+   [openshift]$ help
+   Help menu: The following commands are available to help control your openshift
+   application and environment.
+
+   ctl_app         control your application (start, stop, restart, etc)
+   ctl_all         control application and deps like mysql in one command
+   tail_all        tail all log files
+   export          list available environment variables
+   rm              remove files / directories
+   ls              list files / directories
+   ps              list running applications
+   kill            kill running applications
+   mongo           interactive MongoDB shell
+
+To connect to MongoDB, we'll need to use the credentials provided to us
+from OpenShift above when we set it up initially. Once you have those
+in hand, here's how you should connect to the database:
+
+.. code-block:: sh
+
+   [openshift]$ mongo expresscheckin -u admin -p 1wbLGYAmPgDM
+   MongoDB shell version: 2.0.2-rc1
+   connecting to: 127.1.13.1:27017/expresscheckin
+   >
+    
+From here you can query your data as needed for your application.
+Finally, to backup your app's data, follow the instructions found on
+the `MongoDB Backup docs
+<http://docs.mongodb.org/manual/administration/backups>`_.
+Specifically you'll need to use the `mongodump
+<http://docs.mongodb.org/manual/administration/import-export/#ImportExpo
+rtTools-mongodump>`_ command to do a live backup of your data.
+
+Backing up your app is a simple single step where we create a
+**snapshot** of the entirety of the application including data, which
+we can do locally on our development machine:
+
+.. code-block:: sh
+
+   $ rhc app snapshot save -a expresscheckin
+   Password: 
+   Pulling down a snapshot to expresscheckin.tar.gz
+
+   Running extra dump: mongodb_dump.sh
+   MongoDB already running
+   Stopping application...
+   Done
+   Creating and sending tar.gz
+   Running extra cleanup: mongodb_cleanup.sh
+   Starting application...
+   Done
+
+Additional Information
+----------------------
+
+For additional information, refer to the following:
+
+- `OpenShift Express User Guide
+  <http://docs.redhat.com/docs/en-US/OpenShift_Express/1.0/html/User_Guide/index.html>`_ or
+
+- `OpenShift Flex User Guide
+  <http://docs.redhat.com/docs/en-US/OpenShift_Flex/1.0/html/User_Guide/
+  index.html>`_
