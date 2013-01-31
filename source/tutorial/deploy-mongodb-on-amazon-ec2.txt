@@ -29,11 +29,8 @@ section to get your instance started and allow you to get started using
 MongoDB.
 
 If you're interested in scaling your deployment, check out the sections
-on:
-:ref:`ec2-deploying-multinode-replica-set`
-and
-:ref:`ec2-deploying-a-sharded-configuration`
-below.
+on: :ref:`ec2-deploy-multinode-replica-set` and
+:ref:`ec2-deploy-a-sharded-configuration` below.
 
 Prerequisites
 -------------
@@ -43,7 +40,7 @@ tools or the AWS Management Console. This guide will use the EC2 command
 line tools to manage security and storage and launch instances. Use the
 following steps to setup the EC2 tools on your system:
 
-   * Download the  `EC2 command line tools <http://aws.amazon.com/developertools/Amazon-EC2/351>`_
+   * Download the `EC2 command line tools <http://aws.amazon.com/developertools/Amazon-EC2/351>`_
    * Next, refer to *Prerequisites* and *Setting Up the Tools* from Amazon's `Getting Started with the Command Line Tools <http://docs.amazonwebservices.com/AWSEC2/latest/UserGuide/index.html?SettingUp_CommandLine.html>`_
 
 Planning Your Deployment
@@ -101,20 +98,19 @@ availability zones would like similar to the following. Availability
 zones within EC2 are similar to different server racks, therefore it is
 recommended that you deploy your replica set across multiple zones.
 
-.. image:: /images/replica-multizone.png
+.. image:: ../images/replica-multizone.png
 
 For even greater redundancy and failover, you could also deploy your
 replica set across multiple regions (and go further with multiple zones
 in each region):
 
-.. image:: /images/replica-multiregion.png
+.. image:: ../images/replica-multiregion.png
 
 Refer to the AWS documentation on `Using Regions and Availability Zones
 <http://docs.amazonwebservices.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html>`_
 for more information.
 
 .. _securing-your-deployment:
-
 
 Security
 ~~~~~~~~
@@ -128,7 +124,7 @@ a group for tools and maintenance tasks.
 
 An example setup with two security groups might look like this:
 
-.. image:: /images/replica-security.png
+.. image:: ../images/replica-security.png
 
 Before starting up instances we want to get the security groups created.
 As previously discussed, we recommend using multiple groups, one for
@@ -211,7 +207,6 @@ First, generate the key pair:
    ...
    -----END RSA PRIVATE KEY-----
 
-
 Save the contents of the key to a file (including the ``BEGIN`` and
 ``END`` lines) and make sure that file is only readable by you:
 
@@ -229,10 +224,10 @@ We're finished with the pre-deployment steps; we've covered the storage
 and security considerations that's necessary to setup and deploy our
 instances.
 
-.. _deploying-a-single-node:
+.. _deploy-a-single-node:
 
-Deploying a Single Node
------------------------
+Deploy a Single Node
+--------------------
 
 We'll start our deployment by setting up single node because later on
 we'll use the same steps to set up a larger cluster. The first step is
@@ -243,7 +238,7 @@ configuring and formatting the volumes where our data will be stored.
 .. note::
 
    If you created a MongoDB instance via the AWS Marketplace, skip ahead
-   to :ref:`configure-Storage` below.
+   to :ref:`ec2-configure-storage` below.
 
 Launch Instance
 ~~~~~~~~~~~~~~~
@@ -256,7 +251,6 @@ nodes (``1``), security group (``database``), authentication keypair
 (``cluster-keypair``), type of instance (``m1.large``) and availability
 zone (``us-east-1a``). Depending on the region you deploy into, a
 different AMI ID may be needed:
-
 
 .. code-block:: sh
 
@@ -286,7 +280,6 @@ AWS (includes EBS volumes as well):
    INSTANCE    i-a3323dc0  ami-e565ba8c    ec2-107-20-68-113.compute-1.amazonaws.com   ip-10-2-182-67.ec2.internal running cluster-keypair 0       m1.large    2011-12-06T23:18:18+0000    us-east-1c  aki-825ea7eb            monitoring-disabled 107.20.68.113   10.2.182.67         ebs                 paravirtual xen     sg-0814f660, sg-1e15f776    default
    BLOCKDEVICE /dev/sda1   vol-2348cf4e    2011-12-06T23:18:43.000Z
 
-
 .. _ec2-configure-storage:
 
 Configure Storage
@@ -307,9 +300,9 @@ read from for the next command. Here's the command we'll use:
    > ec2-create-volume -s 4 -z us-east-1a; \
    > done > vols.txt
 
-.. raw:: html
+.. TODO there was an issue with raw html here.
 
-   <script src="https://gist.github.com/1482182.js?file=create_volumes.sh"></script>
+.. <script src="https://gist.github.com/1482182.js?file=create_volumes.sh"></script>
 
 Here's the output of that command:
 
@@ -334,9 +327,9 @@ a prefix for each attached device (:file:`/dev/sdh`):
    >   ec2-attach-volume $vol -i i-11eee072 -d /dev/sdh${i}; \
    > done)
 
-.. raw:: html
+.. TODO there was an issue with raw html here.
 
-   <script src="https://gist.github.com/1482182.js?file=attach_volumes.sh"></script>
+.. <script src="https://gist.github.com/1482182.js?file=attach_volumes.sh"></script>
 
 Assuming the volumes attached successfully, you should see something like this:
 
@@ -542,9 +535,10 @@ database, test collection and save a document:
 Now that we've got a single node up and running with EBS backed RAID
 storage, let's move on and create a multi-node replica set.
 
-.. _ec2-deploying-multinode-replica-set:
+.. _ec2-deploy-multinode-replica-set:
 
-Deploying a Multi-node Replica Set
+Deploy a Multi-node Replica Set
+-------------------------------
 
 .. _ec2-replica-set-background:
 
@@ -554,9 +548,9 @@ Replica Set Background
 Replica sets are a form of asynchronous master/slave replication, adding
 automatic failover and automatic recovery of member nodes. A replica set
 consists of two or more nodes that are copies of each other (i.e.:
-replicas). Refer to the
-:ref:`replica-set-fundamental-concepts`
-documentation for more information.
+replicas). See
+`Replica Set Fundamentals <http://docs.mongodb.org/manual/core/replication/>`_
+for more information.
 
 .. _ec2-create-configure-instances:
 
@@ -564,10 +558,9 @@ Create and Configure Instances
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For this guide, we'll set up a three node replica set. To set up each
-node use the instructions from
-:ref:`deploying-a-single-node` above.
-Once that's completed, we'll update the configurations for each node and
-get the replica set started.
+node use the instructions from :ref:`deploy-a-single-node` above. Once
+that's completed, we'll update the configurations for each node and get
+the replica set started.
 
 First we'll need to edit the MongoDB configuration and update the
 :setting:`replSet` parameter:
@@ -655,11 +648,11 @@ configurations out there that may make more sense for your deployment,
 refer to the MongoDB documentation for more information. If you intend
 to use your replica set to help scale read capacity, you'll also need to
 update your application's code and add the appropriate
-:settting:`slaveOk`=true
+:setting:`slaveOk=true`
 where necessary so that read results can be returned from additional
 nodes more quickly.
 
-.. _ec2-deploying-a-sharded-configuration:
+.. _ec2-deploy-a-sharded-configuration:
 
 Deploy a Sharded Cluster
 ------------------------
@@ -686,24 +679,24 @@ to the correct shard. The recommended approach is to run this component
 on your application servers. The following image shows a recommended
 topology for use with sharding:
 
-.. image:: /images/sharding-simpleoverview.png
+.. image:: ../images/sharding-simpleoverview.png
 
-Use the instructions from :ref:`deploying-a-single-node` above to create the
-required nodes for each replica set (3 instances per set, for a total of
-9 instances). Now start
-:ref:`configuring the replica set <create-and-configure-instances>`
-but before saving :file:`/etc/mongod.conf`, add this parameter:
+Create three nodes for each replica set. Use the following instructions:
 
+- :ref:`deploy-a-single-node`
 
-.. code-block:: sh
+- :ref:`ec2-create-configure-instances`. Before saving
+  :file:`/etc/mongod.conf`, add this parameter:
 
-   shardsvr = true
+  .. code-block:: sh
 
-Save the configuration file and restart :program:`mongod`:
+     shardsvr = true
 
-.. code-block:: sh
+  Save the configuration file and restart :program:`mongod`:
 
-   $ sudo /etc/init.d/mongod restart
+  .. code-block:: sh
+
+     sudo /etc/init.d/mongod restart
 
 Once :file:`/etc/mongod.conf` has been updated, initiate the replica set
 and add the members as described in :ref:`configure-replica-set`. Once
@@ -750,7 +743,6 @@ their DNS aliases (ex: ``alias1.yourdomain.com``,
 ``alias2.yourdomain.com`` and ``alias3.yourdomain.com``) along with the
 config server port ```27019``:
 
-
 .. code-block:: sh
 
    $ mongos --configdb alias1.yourdomain.com:27019,alias2.yourdomain.com:27019,alias3.yourdomain.com:27019
@@ -788,12 +780,12 @@ regions (ex: one node from each replica located in ``us-west-1``) would
 also provide some degree of disaster recovery as well.
 
 In order to utilize this newly created configuration, you'll need to
-specify which databases and which collections are to be sharded. See
-:ref:`enabling-sharding-on-a-database` and :ref:`sharding-a-collection`
-for more information.
+specify which databases and which collections are to be sharded.
+
+.. TODO See :ref:`enabling-sharding-on-a-database` and :ref:`sharding-a-collection` for more information.
 
 Backup and Restore
 ~~~~~~~~~~~~~~~~~~
 
 There are several ways to backup your data when using AWS, refer to the
-:doc:`ec2-backup-and-restore` guide for more information.
+:ref:`ec2-backup-and-restore` guide for more information.
