@@ -1,0 +1,146 @@
+.. http://www.mongodb.org/display/DOCS/Using+The+Aggregation+Framework+with+The+Java+Driver WRITING-114
+
+.. _java-driver-and-aggregation-framework:
+
+=====================================
+Java Driver and Aggregation Framework
+=====================================
+
+.. default-domain:: mongodb
+
+Release 2.2.0 of MongoDB introduces the aggregation framework. Designed
+to be both performant and easy to use, the aggregation framework
+calculates aggregate values, (such as counts, totals and averages),
+without the need for complex map-reduce operations. The aggregation
+framework is both multithreaded and written in C++, thus it executes
+natively across nodes.
+
+Aggregation tasks are built around the concept of the aggregation
+pipeline. Just as UNIX-like shells use the pipe operator ``|`` to
+connect a series of command-line operations together, the aggregation
+framework passes documents through a pipeline of operations which
+transform these objects as they go. Version 2.9.0 of the Java driver
+provides a new helper method, ``DBCollection.aggregate()`` which can be
+used to create aggregation tasks.
+
+Let’s use a simple example to demonstrate how the aggregation helper
+works. Suppose I am using MongoDB to store my employee’s travel
+expenses. I’ve created a collection named ``expenses``, which store
+individual expenses by employee and by department. Here’s a sample
+document:
+
+.. code-block:: javascript
+
+   {  "_id" : ObjectId("503d5024ff9038cdbfcc9da4"),
+      "employee" : 61,
+      "department" : "Sales",
+      "amount" : 77,
+      "type" : "airfare"
+   }
+
+I am auditing three departments: Sales, Engineering and Human
+Resources. I want to calculate each department’s average spend on
+airfare. I’d like to use the Aggregation Framework for the audit, so I
+think of the operation in terms of a pipeline:
+
+.. TODO? put back image? Saved the original image from wiki in
+   images/java-driver-using-agg-framework-PipelineOperationsAbstract.png
+
+#. Operation: Match documents where ``type`` = ``"airfare"``; then pipe into
+
+#. Operation: Pass only the ``department`` and the ``amount`` fields
+   through the pipeline; then pipe into
+
+#. Operation: Average the expense ``amount``, grouped by ``department``.
+
+I will use the aggregation operators ``$match``, ``$project`` and
+``$group`` to perform each operation. Individual aggregation operations
+can be expressed as JSON objects, so I can think of my pipeline in JSON
+as:
+
+.. TODO? pug back image? Saved the original image from wiki in
+   images/java-driver-using-agg-framework-PipelineOperationsJSON.png
+
+#. First operation:
+
+   .. code-block:: javascript
+
+      $match: { type: "airfare"}
+
+#. Piped into:
+
+   .. code-block:: javascript
+
+      $project: { department: 1, amount: 1 } 
+
+#. Piped into:
+
+   .. code-block:: javascript
+
+      $group: { _id: "$department",
+                average: { $avg: "$amount" } }
+
+I use the Java Driver’s aggregation helper to build out this pipeline
+in my application. Let’s take a look at the ``aggregate()`` method
+signature.
+
+.. code-block:: java
+
+   public AggregationOutput aggregate( DBObject firstOp, DBObject ... additionalOps)
+
+The ``aggregate()`` method uses Java ``varargs`` and accepts arbitrary
+number of ``DBObjects`` as parameters. These ``DBObjects`` represent
+aggregation operations, which will be chained together by the helper
+method to form the aggregation pipeline. Callers of the ``aggregate()``
+method must pass at least one aggregation operation. Here’s the Java
+code we’ll use to perform the aggregation task:
+
+.. code-block:: java
+
+   // create our pipeline operations, first with the $match
+   DBObject match = new BasicDBObject("$match", new BasicDBObject("type", "airfare") );
+
+   // build the $projection operation
+   DBObject fields = new BasicDBObject("department", 1);
+   fields.put("amount", 1);
+   fields.put("_id", 0);
+   DBObject project = new BasicDBObject("$project", fields );
+
+   // Now the $group operation
+   DBObject groupFields = new BasicDBObject( "_id", "$department");
+   groupFields.put("average", new BasicDBObject( "$avg", "$amount"));
+   DBObject group = new BasicDBObject("$group", groupFields);
+
+   // run aggregation
+   AggregationOutput output = collection.aggregate( match, project, group );
+
+Aggregations are executed as database commands in MongoDB. These
+commands embed the results of the aggregation task in an object that
+also contains additional information about how the command was
+executed. The return value of ``aggregate()`` is an instance of the
+``AggregationOutput`` class, which provides assessors to this
+information.
+
+.. code-block:: java
+
+   public Iterable<DBObject> results()
+   public CommandResult getCommandResult
+   public DBObject getCommand()
+
+Let’s take a look at the results of my audit:
+
+.. code-block:: java
+
+   System.out.println(output.getCommandResult());
+
+.. code-block:: sh
+
+   { 
+      "serverUsed" : "/127.0.0.1:27017" , 
+      "result" : [
+         {"_id" : "Human Resources" , "average" : 74.91735537190083} , 
+         {"_id" : "Sales" , "average" : 72.30275229357798} ,
+         {"_id" : "Engineering" , "average" : 74.1}
+      ] ,
+      "ok" : 1.0
+   }

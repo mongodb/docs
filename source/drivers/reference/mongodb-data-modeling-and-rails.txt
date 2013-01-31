@@ -1,0 +1,311 @@
+.. http://www.mongodb.org/display/DOCS/MongoDB+Data+Modeling+and+Rails
+
+.. _mongodb-data-modeling-and-rails:
+
+===============================
+MongoDB Data Modeling and Rails
+===============================
+
+.. default-domain:: mongodb
+
+This tutorial discusses the development of a web application on Rails
+and MongoDB. MongoMapper will serve as our object mapper. The goal is
+to provide some insight into the design choices required for building
+on MongoDB. To that end, we'll be constructing a simple but non-trivial
+social news application. The `source code for newsmonger
+<http://github.com/banker/newsmonger>`_ is available on github for
+those wishing to dive right in.
+
+Assuming you've configured your application to work with MongoMapper,
+let's start thinking about the data model.
+
+Modeling Stories
+----------------
+
+A news application relies on stories at its core, so we'll start with a
+Story model:
+
+.. code-block:: ruby
+ 
+   class Story
+    include MongoMapper::Document
+
+    key :title,     String
+    key :url,       String
+    key :slug,      String
+    key :voters,    Array
+    key :votes,     Integer, :default => 0
+    key :relevance, Integer, :default => 0
+
+    # Cached values.
+    key :comment_count, Integer, :default => 0
+    key :username,      String
+
+    # Note this: ids are of class ObjectId.
+    key :user_id,   ObjectId
+    timestamps!
+
+    # Relationships.
+    belongs_to :user
+
+    # Validations.
+    validates_presence_of :title, :url, :user_id
+   end
+
+Obviously, a story needs a ``title``, ``url``, and ``user_id``, and should belong
+to a user. These are self-explanatory.
+
+Caching to Avoid N+1
+--------------------
+
+When we display our list of stories, we'll need to show the name of the
+user who posted the story. If we were using a relational database, we
+could perform a join on users and stores, and get all our objects in a
+single query. But MongoDB does not support joins and so, at times,
+requires bit of denormalization. Here, this means caching the
+``username`` attribute.
+
+A Note on Denormalization
+-------------------------
+
+Relational purists may be feeling uneasy already, as if we were
+violating some universal law. But let's bear in mind that MongoDB
+collections are not equivalent to relational tables; each serves a
+unique design objective. A normalized table provides an atomic,
+isolated chunk of data. A document, however, more closely represents an
+object as a whole. In the case of a social news site, it can be argued
+that a username is intrinsic to the story being posted.
+
+What about updates to the ``username``? It's true that such updates will be
+expensive; happily, in this case, they'll be rare. The read savings
+achieved in denormalizing will surely outweigh the costs of the
+occasional update. Alas, this is not hard and fast rule: ultimately,
+developers must evaluate their applications for the appropriate level
+of normalization.
+
+Fields as arrays
+----------------
+
+With a relational database, even trivial relationships are blown out
+into multiple tables. Consider the votes a story receives. We need a
+way of recording which users have voted on which stories. The standard
+way of handling this would involve creating a table, 'votes', with each
+row referencing ``user_id`` and ``story_id``.
+
+With a document database, it makes more sense to store those votes as
+an array of user ids, as we do here with the ``'voters'`` key.
+
+For fast lookups, we can create an index on this field. In the MongoDB shell:
+
+.. code-block:: sh
+   
+   db.stories.ensureIndex('voters');
+
+Or, using MongoMapper, we can specify the index in
+:file:`config/initializers/database.rb`:
+
+.. code-block:: ruby
+
+   Story.ensure_index(:voters)
+
+To find all the stories voted on by a given user:
+
+.. code-block:: ruby
+
+   Story.all(:conditions => {:voters => @user.id})
+
+Atomic Updates
+--------------
+
+Storing the ``voters`` array in the ``Story`` class also allows us to
+take advantage of atomic updates. What this means here is that, when a
+user votes on a story, we can
+
+1. ensure that the voter hasn't voted yet, and, if not,
+
+#. increment the number of votes and
+
+#. add the new voter to the array.
+
+MongoDB's query and update features allows us to perform all three
+actions in a single operation. Here's what that would look like from
+the shell:
+
+.. code-block:: sh
+
+   // Assume that story_id and user_id represent real story and user ids.
+   db.stories.update({_id: story_id, voters: {'$ne': user_id}}, 
+     {'$inc': {votes: 1}, '$push': {voters: user_id}});
+
+What this says is "get me a story with the given id whose ``voters``
+array does not contain the given user id and, if you find such a story,
+perform two atomic updates: first, increment ``votes`` by 1 and then
+push the user id onto the ``voters`` array."
+
+This operation highly efficient; it's also reliable. The one caveat is
+that, because update operations are "fire and forget," you won't get a
+response from the server. But in most cases, this should be a non-issue.
+
+A MongoMapper implementation of the same update would look like this:
+
+.. code-block:: ruby
+
+   def self.upvote(story_id, user_id)
+     collection.update({'_id' => story_id, 'voters' => {'$ne' => user_id}}, 
+       {'$inc' => {'votes' => 1}, '$push' => {'voters' => user_id}})
+   end
+
+Modeling Comments
+-----------------
+
+In a relational database, comments are usually given their own table,
+related by foreign key to some parent table. This approach is
+occasionally necessary in MongoDB; however, it's always best to try to
+embed first, as this will achieve greater query efficiency.
+
+Linear, Embedded Comments
+-------------------------
+
+Linear, non-threaded comments should be embedded. Here are the most
+basic MongoMapper classes to implement such a structure:
+
+.. code-block:: ruby
+
+   class Story
+     include MongoMapper::Document
+     many :comments
+   end
+
+.. code-block:: ruby
+
+   class Comment
+    include MongoMapper::EmbeddedDocument
+    key :body, String
+
+    belongs_to :story
+  end
+
+If we were using the Ruby driver alone, we could save our structure like so:
+
+.. code-block:: ruby
+
+   @stories  = @db.collection('stories')
+   @document = {:title => "MongoDB on Rails",
+                :comments => [{:body     => "Revelatory! Loved it!",
+                               :username => "Matz"
+                              }
+                             ]
+               }
+   @stories.save(@document)
+
+Essentially, comments are represented as an array of objects within a
+story document. This simple structure should be used for any
+one-to-many relationship where the many items are linear.
+
+Nested, Embedded Comments
+-------------------------
+
+But what if we're building threaded comments? An admittedly more
+complicated problem, two solutions will be presented here. The first is
+to represent the tree structure in the nesting of the comments
+themselves. This might be achieved using the Ruby driver as follows:
+
+.. code-block:: ruby
+
+   @stories  = @db.collection('stories')
+   @document = {:title => "MongoDB on Rails",
+                :comments => [{:body     => "Revelatory! Loved it!",
+                               :username => "Matz",
+                               :comments => [{:body     => "Agreed.",
+                                              :username => "rubydev29"
+                                             }
+                                            ]
+                              }
+                             ]
+               }
+   @stories.save(@document)
+
+Representing this structure using MongoMapper would be tricky,
+requiring a number of custom mods.
+
+But this structure has a number of benefits. The nesting is captured in
+the document itself (this is, in fact, `how Business Insider represents
+comments <http://www.businessinsider.com/how-we-use-mongodb-2009-11>`_.
+And this schema is highly performant, since we can get the story, and
+all of its comments, in a single query, with no application-side
+processing for constructing the tree.
+
+One drawback is that alternative views of the comment tree require some
+significant reorganizing.
+
+Comment collections
+-------------------
+
+We can also represent comments as their own collection. Relative to the
+other options, this incurs a small performance penalty while granting
+us the greatest flexibility. The tree structure can be represented by
+storing the unique path for each leaf (see `Mathias's original post
+<http://groups.google.com/group/mongodb-user/browse_thread/thread/3e10a4
+b409dd6cb4/ccc9de1fafafe37e?lnk=gst&q=trees#ccc9de1fafafe37e>`_ on the
+idea). Here are the relevant sections of this model:
+
+.. code-block:: ruby
+
+   class Comment
+     include MongoMapper::Document
+
+     key :body,       String
+     key :depth,      Integer, :default => 0
+     key :path,       String,  :default => ""
+
+     # Note: we're intentionally storing parent_id as a string
+     key :parent_id,  String
+     key :story_id,   ObjectId
+     timestamps!
+
+     # Relationships.
+     belongs_to :story
+
+     # Callbacks.
+     after_create :set_path
+
+     private
+
+     # Store the comment's path.
+     def set_path
+       unless self.parent_id.blank?
+         parent        = Comment.find(self.parent_id)
+         self.story_id = parent.story_id
+         self.depth    = parent.depth + 1
+         self.path     = parent.path + ":" + parent.id
+       end
+       save
+     end
+
+The path ends up being a string of object ids. This makes it easier to
+display our comments nested, with each level in order of karma or
+votes. If we specify an index on ``story_id``, ``path``, and ``votes``, the
+database can handle half the work of getting our comments in nested,
+sorted order.
+
+The rest of the work can be accomplished with a couple grouping
+methods, which can be found in `the newsmonger source code
+<http://github.com/banker/newsmonger/blob/master/app/models/comment.rb>`_.
+
+It goes without saying that modeling comments in their own collection
+also facilitates various site-wide aggregations, including displaying
+the latest, grouping by user, etc.
+
+Unfinished business
+-------------------
+
+Document-oriented data modeling is still young. The fact is, many more
+applications will need to be built on the document model before we can
+say anything definitive about best practices. So the foregoing should
+be taken as suggestions, only. As you discover new patterns, we
+encourage you to document them, and feel free to let us know about what
+works (and what doesn't).
+
+Developers working on object mappers and the like are encouraged to
+implement the best document patterns in their code, and to be wary of
+recreating relational database models in their apps.
