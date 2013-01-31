@@ -1,0 +1,411 @@
+.. http://www.mongodb.org/pages/viewpage.action?pageId=133415 CPP Tutorial
+
+.. _getting-started-with-cpp-driver:
+
+===================================
+Getting Started with the C++ Driver
+===================================
+
+.. default-domain:: mongodb
+
+This document is an introduction to usage of the MongoDB database from
+a C++ program.
+
+First, install MongoDB -- see the `Installation`_ page for details.
+
+Next, you may wish to take a look at the `MongoDB Manual`_ for a
+language independent look at how to use MongoDB. Also, we suggest some
+basic familiarity with the `mongo shell`_ -- the shell is the primary
+database administration tool and is useful for manually inspecting the
+contents of a database after your C++ program runs.
+
+.. _`Installation`: http://docs.mongodb.org/manual/installation/
+
+.. _`MongoDB Manual`: http://docs.mongodb.org/manual/ 
+
+.. _`mongo shell`: http://docs.mongodb.org/manual/mongo/
+
+
+Installing the Driver Library and Headers
+-----------------------------------------
+
+.. TODO need to use link to the migrated building page
+
+A good source for general information about setting up a MongoDB
+development environment on various operating systems is the :ref:`building`
+page.
+
+The normal database distribution used to include the C++ driver, but
+there were many problems with library version mismatches so now you
+have to build from source. You can either get the `full source code`_
+for the database and just build the C++ driver or `download the driver`_
+separately and build it.
+
+.. _`full source code`: https://github.com/mongodb/mongo
+
+.. _`download the driver`: http://dl.mongodb.org/dl/cxx-driver
+
+Unix
+----
+
+For Unix, the MongoDB driver library is :file:`libmongoclient.a`. Run ``scons
+--help`` to see all building options.
+
+Full Database Source Driver Build
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To install the libraries, run:
+
+.. code-block:: sh
+
+   scons --full install
+   
+
+``--full`` tells the install target to include the library and header
+files; by default library and header files are installed in ``/usr/local``.
+
+You can use ``--prefix`` to change the install path:
+
+.. code-block:: sh
+
+   scons --prefix /opt/mongo --full install.
+
+In version 2.0, you could also specify ``--sharedclient`` to build a
+shared library instead of a statically linked library. This feature is
+not yet working properly in version 2.2 and greater, see `SERVER-6514`_.
+
+.. _`SERVER-6514`: https://jira.mongodb.org/browse/SERVER-6514
+
+Driver Build
+~~~~~~~~~~~~
+
+If you download the `driver source code`_ separately, you can build it
+by running ``scons`` (no options).
+
+.. _`driver source code`: http://dl.mongodb.org/dl/cxx-driver
+
+Windows
+-------
+
+.. TODO need to use link to the migrated building for Windows page
+
+For more information see the :ref:`Building for Windows
+<build-for-windows>` page.
+
+Compiling
+---------
+
+The C++ driver utilizes several Boost libraries. Be sure they are in
+your include and lib paths. You can usually install them from your OS's
+package manager if you don't already have them. We recommend using
+Boost 1.49.
+
+Writing Client Code
+-------------------
+
+.. note::
+
+   For brevity, the examples below are simply inline code. In a real
+   application one will define classes for each database object,
+   typically.
+
+Connecting
+~~~~~~~~~~
+
+Let's make a :file:`tutorial.cpp` file that connects to the database (see
+:file:`client/examples/tutorial.cpp` for full text of the examples below):
+
+.. code-block:: cpp
+
+   #include <cstdlib>
+   #include <iostream>
+   #include "mongo/client/dbclient.h"
+
+   void run() {
+     mongo::DBClientConnection c;
+     c.connect("localhost");
+   }
+
+   int main() {
+     try {
+       run();
+       std::cout << "connected ok" << std::endl;
+     } catch( const mongo::DBException &e ) {
+       std::cout << "caught " << e.what() << std::endl;
+     }
+     return EXIT_SUCCESS;
+   }
+
+If you are using gcc on Linux or OS X, you would compile with something
+like this, depending on location of your include files and libraries:
+
+.. code-block:: sh
+
+   $ g++ tutorial.cpp -pthread -lmongoclient -lboost_thread-mt -lboost_filesystem -lboost_program_options -lboost_system -o tutorial
+   $ ./tutorial
+   connected ok
+
+.. warning::
+
+   - You may need to append ``-mt`` to ``boost_filesystem`` and
+     ``boost_program_options``. If using a recent boost, ``-mt`` is not
+     needed anymore.
+
+   - You may need to use ``-I`` and ``-L`` to specify the locations of your
+     mongo and boost headers and libraries.
+
+.. _getting-started-bson-examples:
+
+BSON
+~~~~
+
+The MongoDB database stores data in `BSON`_ format. BSON is a binary object
+format that is JSON-like in terms of the data which can be stored (some
+extensions exist, for example, a Date datatype).
+
+.. _`BSON`: http://docs.mongodb.org/meta-driver/latest/legacy/bson/
+
+To save data in the database we must create objects of class `BSONObj`_.
+The components of a BSONObj are represented as `BSONElement`_ objects. We
+use `BSONObjBuilder`_ to make BSON objects, and `BSONObjIterator`_ to
+enumerate BSON objects.
+
+.. _`BSONObj`: http://api.mongodb.org/cplusplus/current/classmongo_1_1_b_s_o_n_obj.html
+
+.. _`BSONElement`: http://api.mongodb.org/cplusplus/current/classmongo_1_1_b_s_o_n_element.html
+
+.. _`BSONObjBuilder`: http://api.mongodb.org/cplusplus/current/classmongo_1_1_b_s_o_n_obj_builder.html
+
+.. _`BSONObjIterator`: http://api.mongodb.org/cplusplus/current/classmongo_1_1_b_s_o_n_obj_iterator.html
+
+Let's now create a BSON "person" object which contains name and
+age. We might invoke:
+
+.. code-block:: cpp
+
+   BSONObjBuilder b;
+   b.append("name", "Joe");
+   b.append("age", 33);
+   BSONObj p = b.obj();
+
+Or more concisely:
+
+.. code-block:: cpp
+
+   BSONObj p = BSONObjBuilder().append("name", "Joe").append("age", 33).obj();
+
+We can also create objects with a stream-oriented syntax:
+
+.. code-block:: cpp
+
+   BSONObjBuilder b;
+   b << "name" << "Joe" << "age" << 33;
+   BSONObj p = b.obj();
+
+The macro ``BSON`` lets us be even more compact:
+
+.. code-block:: cpp
+
+   BSONObj p = BSON( "name" << "Joe" << "age" << 33 );
+
+Use the ``GENOID`` helper to add an object id to your object. The
+server will add an ``_id`` automatically if it is not included
+explicitly.
+
+.. code-block:: cpp
+
+   BSONObj p = BSON( GENOID << "name" << "Joe" << "age" << 33 );
+   // result is: { _id : ..., name : "Joe", age : 33 }
+
+``GENOID`` should be at the beginning of the generated object. We can
+do something similar with the non-stream builder syntax:
+
+.. code-block:: cpp
+
+   BSONObj p =
+     BSONObjBuilder().genOID().append("name","Joe").append("age",33).obj();
+
+Other helpers are listed :ref:`here <cpp-bson-helper-functions>`.
+
+Inserting
+---------
+
+We now save our person object in a ``persons`` collection in the database:
+
+.. code-block:: cpp
+
+   c.insert("tutorial.persons", p);
+
+The first parameter to insert is the namespace. ``tutorial`` is the
+database and ``persons`` is the collection name.
+
+Querying
+--------
+
+Let's now fetch all objects from the persons collection, and display
+them. We'll also show here how to use ``count()``.
+
+.. code-block:: cpp
+
+   cout << "count:" << c.count("tutorial.persons") << endl;
+
+   auto_ptr<DBClientCursor> cursor =
+    c.query("tutorial.persons", BSONObj());
+   while (cursor->more())
+      cout << cursor->next().toString() << endl;
+      
+``BSONObj()`` is an empty BSON object -- it represents ``{}`` which
+indicates an empty query pattern (an empty query is a query for all
+objects).
+
+We use ``BSONObj::toString()`` above to print out information about
+each object retrieved. ``BSONObj::toString`` is a diagnostic function which
+prints an abbreviated JSON string representation of the object. For
+full JSON output, use ``BSONObj::jsonString``.
+
+Let's now write a function which prints out the name (only) of all
+persons in the collection whose age is a given value:
+
+.. code-block:: cpp
+
+   void printIfAge(DBClientConnection& c, int age) {
+     auto_ptr<DBClientCursor> cursor =
+       c.query("tutorial.persons", QUERY("age" << age));
+     while (cursor->more()) {
+       BSONObj p = cursor->next();
+       cout << p.getStringField("name") << endl;
+     }
+   }
+   
+``getStringField()`` is a helper that assumes the ``name`` field is of
+type string. To manipulate an element in a more generic fashion we can
+retrieve the particular ``BSONElement`` from the enclosing object:
+
+.. code-block:: cpp
+
+   BSONElement name = p["name"];
+   // or:
+   //BSONElement name = p.getField("name");
+   
+See the api docs, and :file:`jsobj.h`, for more information.
+
+Our query above, written as JSON, is of the form
+
+.. code-block:: cpp
+
+   { age : <agevalue> }
+
+Queries are BSON objects of a particular format -- in fact, we could
+have used the ``BSON()`` macro above instead of ``QUERY()``. See class
+`Query`_ in :file:`dbclient.h` for more information on Query objects, and the
+Sorting section below.
+
+.. _`Query`: http://api.mongodb.org/cplusplus/current/classmongo_1_1_query.html
+
+In the :program:`mongo` shell (which uses javascript), we could invoke:
+
+.. code-block:: javascript
+
+   use tutorial;
+   db.persons.find({age : 33});
+
+Indexing
+--------
+
+Let's suppose we want to have an index on ``age`` so that our queries are
+fast. We would use:
+
+.. code-block:: cpp
+
+   c.ensureIndex("tutorial.persons", fromjson("{age:1}"));
+
+The ``ensureIndex`` method checks if the index exists; if it does not,
+it is created. ``ensureIndex`` is intelligent and does not repeat
+transmissions to the server; thus it is safe to call it many times in
+your code, for example, adjacent to every insert operation.
+
+In the above example we use a new function, `fromjson`_. ``fromjson``
+converts a JSON string to a BSONObj. This is sometimes a convenient way
+to specify BSON. Alternatively, we could have written:
+
+.. code-block:: cpp
+
+   c.ensureIndex("tutorial.persons", BSON( "age" << 1 ));
+
+.. _`fromjson`: http://api.mongodb.org/cplusplus/current/namespacemongo.html
+
+Sorting
+-------
+
+Let's now make the results from ``printIfAge`` sorted alphabetically by
+name. To do this, we change the query statement from:
+
+.. code-block:: cpp
+
+   auto_ptr<DBClientCursor> cursor = c.query("tutorial.persons", QUERY("age" << age));
+   
+to
+
+.. code-block:: cpp
+
+   auto_ptr<DBClientCursor> cursor = c.query("tutorial.persons", QUERY("age" << age ).sort("name"));
+
+Here we have used ``Query::sort()`` to add a modifier to our query
+expression for sorting.
+
+Updating
+--------
+
+Use the ``update()`` method to perform a `database update`_ . For
+example the following update in the `mongo shell`_:
+
+.. code-block:: javascript
+
+   > use tutorial
+   > db.persons.update( { name : 'Joe', age : 33 },
+   ...                  { $inc : { visits : 1 } } )
+   
+is equivalent to the following C++ code:
+
+.. code-block:: cpp
+
+   db.update("tutorial.persons",
+              BSON("name" << "Joe" << "age" << 33),
+              BSON("$inc" << BSON( "visits" << 1)));
+
+.. _`mongo shell`: http://docs.mongodb.org/manual/mongo/
+
+.. _`database update`: http://docs.mongodb.org/manual/applications/update/
+
+Example
+-------
+
+A simple example illustrating usage of BSON arrays and the ``$nin``
+operator is available `here <https://gist.github.com/1528272>`_.
+
+Further Reading
+---------------
+
+This overview just touches on the basics of using MongoDB from C++. There
+are many more capabilities. For further exploration:
+
+- See the language-independent `MongoDB Manual`_;
+
+- Experiment with the `mongo shell`_;
+
+- Review the `doxygen API docs`_;
+
+- See `connecting pooling`_ information in the API docs;
+
+- See `GridFS`_ file storage information in the API docs;
+
+- See the HOWTO pages under the :ref:`C++ Language Center <cpp-driver-library>`
+
+- Consider getting involved to make the product (either C++ driver,
+  tools, or the database itself) better!
+
+.. _`doxygen API docs`: http://api.mongodb.org/cplusplus/current/annotated.html
+
+.. _`connecting pooling`: http://api.mongodb.org/cplusplus/current/classmongo_1_1_d_b_connection_pool.html
+
+.. _`GridFS`: http://api.mongodb.org/cplusplus/current/classmongo_1_1_grid_f_s.html

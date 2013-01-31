@@ -1,0 +1,71 @@
+.. http://www.mongodb.org/display/DOCS/Java+Driver+Concurrency WRITING-108
+
+.. _java-driver-concurrency:
+
+=======================
+Java Driver Concurrency
+=======================
+
+.. default-domain:: mongodb
+
+The Java MongoDB driver is thread safe. If you are using in a web
+serving environment, for example, you should create a single ``Mongo``
+instance, and you can use it in every request. The ``Mongo`` object
+maintains an internal pool of connections to the database (default pool
+size of 10). For every request to the DB (``find``, ``insert``, etc) the Java
+thread will obtain a connection from the pool, execute the operation,
+and release the connection. This means the connection (socket) used may
+be different each time.
+
+Additionally in the case of a replica set with ``slaveOk`` option
+turned on, the read operations will be distributed evenly across all
+slaves. This means that within the same thread, a write followed by a
+read may be sent to different servers (master then slave). In turn the
+read operation may not see the data just written since replication is
+asynchronous. If you want to ensure complete consistency in a "session"
+(maybe an http request), you would want the driver to use the same
+socket, which you can achieve by using a "consistent request". Call
+``requestStart()`` before your operations and ``requestDone()`` to
+release the connection back to the pool:
+
+.. code-block:: java
+
+   DB db...;
+   db.requestStart();
+   try {
+      db.requestEnsureConnection();
+
+      code....
+   } finally {
+      db.requestDone();
+   }
+
+``DB`` and ``DBCollection`` are completely thread safe. In fact, they are
+cached so you get the same instance no matter what.
+
+WriteConcern Option for Single Write Operation
+----------------------------------------------
+
+Since by default a connection is given back to the pool after each
+request, you may wonder how calling ``getLastError()`` works after a
+write. You should actually use a write concern like
+``WriteConcern.SAFE`` instead of calling ``getLastError()`` manually.
+The driver will then call ``getLastError()`` before putting the
+connection back in the pool.
+
+.. code-block:: java
+
+   DBCollection coll...;
+   coll.insert(..., WriteConcern.SAFE);
+
+   // is equivalent to
+   
+   DB db...;
+   DBCollection coll...;
+   db.requestStart();
+   try {
+      coll.insert(...);
+      DBObject err = db.getLastError();
+   } finally {
+      db.requestDone();
+   }

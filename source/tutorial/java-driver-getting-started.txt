@@ -1,0 +1,464 @@
+.. http://www.mongodb.org/display/DOCS/Java+Tutorial WRITING-110
+
+.. _java-driver-getting-started:
+
+===========================
+Java Driver Getting Started
+===========================
+
+.. default-domain:: mongodb
+
+Introduction
+-------------
+
+This page is a brief overview of working with the MongoDB Java Driver.
+
+For more information about the Java API, please refer to the `online
+API Documentation for Java Driver`_.
+
+.. _`online API Documentation for Java Driver`: http://api.mongodb.org/java/current/index.html
+
+A Quick Tour
+------------
+
+Using the Java driver is very simple. First, be sure to include the
+driver jar :file:`mongo.jar` in your classpath. The following code
+snippets come from the :file:`examples/QuickTour.java` example code
+found in the driver.
+
+Making a Connection
+~~~~~~~~~~~~~~~~~~~
+
+To make a connection to a MongoDB, you need to have at the minimum, the
+name of a database to connect to. The database doesn't have to exist -
+if it doesn't, MongoDB will create it for you.
+
+Additionally, you can specify the server address and port when
+connecting. The following example shows three ways to connect to the
+database ``mydb`` on the local machine :
+
+.. code-block:: java
+
+   import com.mongodb.MongoClient;
+   import com.mongodb.MongoException;
+   import com.mongodb.WriteConcern;
+   import com.mongodb.DB;
+   import com.mongodb.DBCollection;
+   import com.mongodb.BasicDBObject;
+   import com.mongodb.DBObject;
+   import com.mongodb.DBCursor;
+   import com.mongodb.ServerAddress;
+
+   import java.util.Arrays;
+
+
+   MongoClient mongoClient = new MongoClient();
+   // or
+   MongoClient mongoClient = new MongoClient( "localhost" );
+   // or
+   MongoClient mongoClient = new MongoClient( "localhost" , 27017 );
+   // or, to connect to a replica set, supply a seed list of members
+   MongoClient mongoClient = new MongoClient(Arrays.asList(new ServerAddress("localhost", 27017),
+                                         new ServerAddress("localhost", 27018),
+                                         new ServerAddress("localhost", 27019)));
+
+   DB db = m.getDB( "mydb" );
+
+At this point, the ``db`` object will be a connection to a MongoDB server
+for the specified database. With it, you can do further operations. 
+
+.. note::
+   The ``MongoClient`` instance actually represents a pool of
+   connections to the database; you will only need one instance of
+   class ``MongoClient`` even with multiple threads. See the
+   :ref:`concurrency <java-driver-concurrency>` doc page for more
+   information.
+
+The ``MongoClient`` class is designed to be thread safe and shared
+among threads. Typically you create only 1 instance for a given
+database cluster and use it across your application. If for some reason
+you decide to create many ``MongoClient`` instances, note that:
+
+- all resource usage limits (max connections, etc) apply per
+  ``MongoClient`` instance
+
+- to dispose of an instance, make sure you call ``MongoClient.close()`` to
+  clean up resources
+
+.. versionadded:: 2.10.0
+   The `MongoClient`_ class is new in version 2.10.0. For releases
+   prior to that, please use the `Mongo`_ class instead.
+
+.. _`MongoClient`: http://api.mongodb.org/java/current/com/mongodb/MongoClient.html
+
+.. _`Mongo`: http://api.mongodb.org/java/current/com/mongodb/Mongo.html
+
+Authentication (Optional)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB can be run in a `secure mode`_ where access to databases is
+controlled through name and password authentication. When run in this
+mode, any client application must provide a name and password before
+doing any operations. In the Java driver, you simply do the following
+with a ``MongoClient`` instance:
+
+.. code-block:: java
+
+   MongoClient mongoClient = new MongoClient();
+   DB db = mongoClient.getDB("test");
+   boolean auth = db.authenticate(myUserName, myPassword);
+
+If the name and password are valid for the database, ``auth`` will be
+``true``. Otherwise, it will be ``false``. You should look at the
+MongoDB log for further information if available.
+
+Most users run MongoDB without authentication in a trusted environment.
+
+.. _`secure mode`: http://www.mongodb.org/display/DOCS/Security+and+Authentication
+
+Getting a List Of Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each database has zero or more collections. You can retrieve a list of
+them from the ``db`` (and print out any that are there) :
+
+.. code-block:: java
+
+   Set<String> colls = db.getCollectionNames();
+
+   for (String s : colls) {
+       System.out.println(s);
+   }
+
+and assuming that there are two collections, ``name`` and ``address``,
+in the database, you would see
+
+.. code-block:: none
+
+   name
+   address
+
+as the output.
+
+Getting a Collection
+~~~~~~~~~~~~~~~~~~~~
+
+To get a collection to use, just specify the name of the collection to
+the `getCollection(String collectionName)`_ method:
+
+.. code-block:: java
+
+   DBCollection coll = db.getCollection("testCollection");
+
+Once you have this collection object, you can now do things like insert
+data, query for data, etc
+
+.. _`getCollection(String collectionName)`: 
+   http://api.mongodb.org/java/current/com/mongodb/DB.html#getCollection%28java.lang.String%29
+
+Setting Write Concern
+~~~~~~~~~~~~~~~~~~~~~
+
+As of version 2.10.0, the default write concern is
+`WriteConcern.ACKNOWLEDGED`_, but it can be easily changed:
+
+.. code-block:: java
+
+   m.setWriteConcern(WriteConcern.JOURNALED);
+
+There are many options for write concern. Additionally, the default
+write concern can be overridden on the database, collection, and
+individual update operations. Please consult the `API Documentation`_ for
+details.
+
+.. versionchanged:: 2.10.0 
+   Prior to version 2.10.0, the default write concern is
+   `WriteConcern.NORMAL`_. Under normal circumstances, clients will
+   typically change this to ensure they are notified of problems
+   writing to the database.
+
+.. _`WriteConcern.NORMAL`: http://api.mongodb.org/java/current/com/mongodb/WriteConcern.html#NORMAL
+
+.. _`WriteConcern.ACKNOWLEDGED`: 
+   http://api.mongodb.org/java/current/com/mongodb/WriteConcern.html#ACKNOWLEDGED
+
+.. _`API Documentation`: http://api.mongodb.org/java/current/index.html
+
+Inserting a Document
+~~~~~~~~~~~~~~~~~~~~
+
+Once you have the collection object, you can insert documents into the
+collection. For example, lets make a little document that in JSON would
+be represented as
+
+.. code-block:: javascript
+
+   {
+      "name" : "MongoDB",
+      "type" : "database",
+      "count" : 1,
+      "info" : {
+                  x : 203,
+                  y : 102
+                }
+   }
+
+Notice that the above has an "inner" document embedded within it. To do
+this, we can use the `BasicDBObject`_ class to create the document
+(including the inner document), and then just simply insert it into the
+collection using the ``insert()`` method.
+
+.. code-block:: java
+
+   BasicDBObject doc = new BasicDBObject("name", "MongoDB").
+                                 append("type", "database").
+                                 append("count", 1)
+                                .append("info", new BasicDBObject("x", 203).append("y", 102));
+
+   coll.insert(doc);
+
+.. _`BasicDBObject`: http://api.mongodb.org/java/current/com/mongodb/BasicDBObject.html
+
+Finding the First Document in a Collection Using ``findOne()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To show that the document we inserted in the previous step is there, we
+can do a simple `findOne()`_ operation to get the first document in the
+collection. This method returns a single document (rather than the
+`DBCursor`_ that the `find()`_ operation returns), and it's useful for things
+where there only is one document, or you are only interested in the
+first. You don't have to deal with the cursor.
+
+.. code-block:: java
+
+   DBObject myDoc = coll.findOne();
+   System.out.println(myDoc);
+
+and you should see
+
+.. code-block:: sh
+
+   { "_id" : "49902cde5162504500b45c2c" , 
+     "name" : "MongoDB" , 
+     "type" : "database" , 
+     "count" : 1 , 
+     "info" : { "x" : 203 , "y" : 102}}
+
+.. note::
+   The ``_id`` element has been added automatically by MongoDB to your
+   document. Remember, MongoDB reserves element names that start with
+   "_"/"$" for internal use.
+
+.. _`findOne()`: 
+   http://api.mongodb.org/java/current/com/mongodb/DBCollection.html#findOne%28java.lang.Object%29
+
+.. _`DBCursor`: http://api.mongodb.org/java/current/com/mongodb/DBCursor.html
+
+.. _`find()`: http://api.mongodb.org/java/current/com/mongodb/DBCollection.html#find()'
+
+Adding Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In order to do more interesting things with queries, let's add multiple
+simple documents to the collection. These documents will just be
+
+.. code-block:: javascript
+
+   {
+      "i" : value
+   }
+   
+and we can do this fairly efficiently in a loop
+
+.. code-block:: java
+
+   for (int i=0; i < 100; i++) {
+       coll.insert(new BasicDBObject("i", i));
+   }
+
+Notice that we can insert documents of different "shapes" into the same
+collection. This aspect is what we mean when we say that MongoDB is
+"schema-free"
+
+Counting Documents in A Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Now that we've inserted 101 documents (the 100 we did in the loop, plus
+the first one), we can check to see if we have them all using the
+``getCount()`` method.
+
+.. code-block:: java
+
+   System.out.println(coll.getCount());
+
+and it should print ``101``.
+
+Using a Cursor to Get All the Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In order to get all the documents in the collection, we will use the
+``find()`` method. The ``find()`` method returns a ``DBCursor`` object which allows
+us to iterate over the set of documents that matched our query. So to
+query all of the documents and print them out :
+
+.. code-block:: java
+
+   DBCursor cursor = coll.find();
+   try {
+      while(cursor.hasNext()) {
+          System.out.println(cursor.next());
+      }
+   } finally {
+      cursor.close();
+   }
+
+and that should print all 101 documents in the collection.
+
+Getting A Single Document with A Query
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We can create a query to pass to the find() method to get a subset of
+the documents in our collection. For example, if we wanted to find the
+document for which the value of the "i" field is 71, we would do the
+following ;
+
+.. code-block:: java
+
+   BasicDBObject query = new BasicDBObject("i", 71);
+
+   cursor = coll.find(query);
+
+   try {
+      while(cursor.hasNext()) {
+          System.out.println(cursor.next());
+      }
+   } finally {
+      cursor.close();
+   }
+
+and it should just print just one document
+
+.. code-block:: sh
+
+   { "_id" : "49903677516250c1008d624e" , "i" : 71 }
+
+You may commonly see examples and documentation in MongoDB which use $
+Operators, such as this:
+
+.. code-block:: javascript
+
+   db.things.find({j: {$ne: 3}, k: {$gt: 10} });
+
+These are represented as regular ``String`` keys in the Java driver,
+using embedded ``DBObjects``:
+
+.. code-block:: java
+
+   BasicDBObject query = new BasicDBObject("j", new BasicDBObject("$ne", 3).
+                                         append("k", new BasicDBObject("$gt", 10));
+
+   cursor = coll.find(query);
+
+   try {
+      while(cursor.hasNext()) {
+          System.out.println(cursor.next());
+      }
+   } finally {
+      cursor.close();
+   }
+
+Getting A Set of Documents With a Query
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We can use the query to get a set of documents from our collection. 
+For example, if we wanted to get all documents where ``"i" > 50``, we could write :
+
+.. code-block:: java
+
+   query = new BasicDBObject("i", new BasicDBObject("$gt", 50));  // e.g. find all where i > 50
+
+   cursor = coll.find(query);
+
+   try {
+      while(cursor.hasNext()) {
+          System.out.println(cursor.next());
+      }
+   } finally {
+      cursor.close();
+   }
+
+which should print the documents where ``i > 50``. 
+
+We could also get a range, say ``20 < i <= 30``:
+
+.. code-block:: java
+
+   query = new BasicDBObject("i", new BasicDBObject("$gt", 20).
+                                                  append("$lte", 30));  // i.e.   20 < i <= 30
+   cursor = coll.find(query);
+
+   try {
+      while(cursor.hasNext()) {
+          System.out.println(cursor.next());
+      }
+   } finally {
+      cursor.close();
+   }
+
+Creating An Index
+~~~~~~~~~~~~~~~~~
+
+MongoDB supports indexes, and they are very easy to add on a
+collection. To create an index, you just specify the field that should
+be indexed, and specify if you want the index to be ascending (``1``)
+or descending (``-1``). The following creates an ascending index on the
+``i`` field :
+
+.. code-block:: java
+
+   coll.createIndex(new BasicDBObject("i", 1));  // create index on "i", ascending
+
+Getting a List of Indexes on a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can get a list of the indexes on a collection:
+
+.. code-block:: java
+
+   List<DBObject> list = coll.getIndexInfo();
+
+   for (DBObject o : list) {
+      System.out.println(o);
+   }
+   
+and you should see something like
+
+.. code-block:: sh
+
+   { "name" : "i_1" , "ns" : "mydb.testCollection" , "key" : { "i" : 1} }
+
+Quick Tour of the Administrative Functions
+------------------------------------------
+
+Getting A List of Databases
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can get a list of the available databases:
+
+.. code-block:: java
+
+   MongoClient mongoClient = new MongoClient();
+
+   for (String s : m.getDatabaseNames()) {
+      System.out.println(s);
+   }
+
+Dropping A Database
+~~~~~~~~~~~~~~~~~~~
+
+You can drop a database by name using a ``MongoClient`` instance:
+
+.. code-block:: java
+
+   MongoClient mongoClient = new MongoClient();
+   mongoClient.dropDatabase("myDatabase");
