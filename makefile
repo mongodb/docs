@@ -3,8 +3,8 @@ MAKEFLAGS += -j -r --no-print-directory
 
 # Build directory tweaking.
 output = build
-public-output =  $(output)/public
-
+public-output =	 $(output)/public
+rst-include = source/includes
 .PHONY: publish help clean push-dc1 push-dc2 setup
 help:
 	@echo "Please use \`make <target>' where <target> is a default sphinx target, or one of the following:"

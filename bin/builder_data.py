@@ -5,6 +5,8 @@ tables = [
 #        captures which group of charts this file contributes to.
 #
 #    (name, makefile_block),
+     ('$(rst-include)/table-driver-syntax', 'ref'),
+     ('$(rst-include)/table-sql-to-mongo-to-cpp-examples', 'ref'),
 ]
 
 sphinx = [
