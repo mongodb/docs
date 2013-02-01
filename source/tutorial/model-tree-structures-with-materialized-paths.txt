@@ -36,11 +36,11 @@ delimiter:
 .. code-block:: javascript
 
    db.categories.insert( { _id: "Books", path: null } )
-   db.categories.insert( { _id: "Programming", path: "Books," } )
-   db.categories.insert( { _id: "Databases", path: "Books,Programming," } )
-   db.categories.insert( { _id: "Languages", path: "Books,Programming," } )
-   db.categories.insert( { _id: "MongoDB", path: "Books,Programming,Databases," } )
-   db.categories.insert( { _id: "Postgres", path: "Books,Programming,Databases," } )
+   db.categories.insert( { _id: "Programming", path: ",Books," } )
+   db.categories.insert( { _id: "Databases", path: ",Books,Programming," } )
+   db.categories.insert( { _id: "Languages", path: ",Books,Programming," } )
+   db.categories.insert( { _id: "MongoDB", path: ",Books,Programming,Databases," } )
+   db.categories.insert( { _id: "Postgres", path: ",Books,Programming,Databases," } )
 
 - You can query to retrieve the whole tree, sorting by the ``path``:
 
@@ -48,16 +48,25 @@ delimiter:
 
      db.categories.find().sort( { path: 1 } )
 
-- You can create an index on the field ``path`` to enable fast search
-  by the path:
-
-  .. code-block:: javascript
-
-     db.categories.ensureIndex( { path: 1 } )
-
 - You can use regular expressions on the ``path`` field to find the
   descendants of ``Programming``:
 
   .. code-block:: javascript
 
      db.categories.find( { path: /,Programming,/ } )
+
+- You can also look for descendants of ``Books`` where Books must be at the topmost level 
+of the hierarchy as follows:
+
+  .. code-block:: javascript
+
+     db.categories.find( { path: /^,Books,/ } )
+
+- Creating an index on field ``path`` would be somewhat useful.  For the ^,Books, example
+it helps a lot.  For the other case, where the node to be found might be in the middle of the indexed 
+string, the entire index would be inspected; this might be somewhat helpful as the index might be 
+significantly smaller than the entire collection.
+
+  .. code-block:: javascript
+
+     db.categories.ensureIndex( { path: 1 } )
