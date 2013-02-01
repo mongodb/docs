@@ -280,35 +280,14 @@ Set Appropriate Write Concern for Write Operations
 
 See :ref:`write concern <write-concern>` for more information.
 
-.. MongoDB requires an explicit request for acknowledgement of the
-   results of a write. This is the getLastError command. If you don't call
-   it at all, that is likely bad -- unless you are doing so with intent.
-   The intent is to provide a way to do batch operations without
-   continuous client/server turnarounds on every write of a batch of say,
-   a million. The drivers support automatically calling this if you
-   indicate a "write concern" for your connection to the database.
-
-.. For example, if you try to insert a document above the BSON size limit
-   indicated in the above section, [getLastError|DOCS:getLastError
-   Command]/[writeconcern|http://docs.mongodb.org/manual/applications/repli
-   cation/#replica-set-write-concern] would return an error -- *if* you
-   ask for those.
-
-.. While this can be very useful when used appropriately, it is
-   acknowledged this can be confusing at first as this is an untraditional
-   pattern.
-
-.. See also the getLastError/WriteConcern parameters -- particularly 'j'
-   and 'w' parameters.
-
 Dynamic Schema
 ~~~~~~~~~~~~~~
 
-Data in MongoDB has a *flexible schema*. :term:`Collections
-<collection>` do not enforce :term:`document` structure. This makes
-iterative development and polymorphism much easier. However, it is not
-unusual for collections to have highly homogenous document structures
-within them. See :doc:`/core/data-modeling` for more information.
+Data in MongoDB has a *dynamic schema*. :term:`Collections
+<collection>` do not enforce :term:`document` structure. This
+facilitates iterative development and polymorphism. However,
+collections often hold documents with highly homogeneous
+structures. See :doc:`/core/data-modeling` for more information.
 
 Some operational considerations include:
 
@@ -329,7 +308,7 @@ Updates by Default Affect Only **one** Document
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Set the ``multi`` parameter to ``true`` to :method:`update
-<db.collection.update>` multiple documents that meet the query
+<db.collection.update()>` multiple documents that meet the query
 criteria. The :program:`mongo` shell syntax is:
 
 .. code-block:: javascript
@@ -337,7 +316,7 @@ criteria. The :program:`mongo` shell syntax is:
    db.my_collection_name.update(my_query, my_update_expression, bool_upsert, bool_multi)
 
 Set ``bool_multi`` to ``true`` when updating many documents. Otherwise
-only the first matched will update!
+only the first matched will update.
 
 Case Sensitive Strings
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -359,14 +338,14 @@ Type Sensitive Fields
 ~~~~~~~~~~~~~~~~~~~~~
 
 MongoDB data -- which is JSON-style, specifically, :meta-driver:`BSON
-</legacy/bson/>` format -- have several data types. 
+</legacy/bson/>` format -- have several data types.
 
 Consider the following document which has a field ``x`` with the
 *string* value ``"123"``:
 
 .. code-block:: javascript
 
-   { x : "123" } 
+   { x : "123" }
 
 Then the following query which looks for a *number* value ``123`` will
 **not** return that document:
@@ -424,20 +403,19 @@ here:
 Additionally, see information on :ref:`replica set rollbacks
 <replica-set-rollback>`.
 
-Additional Deployment Checklist
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Additional Deployment Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Pick your shard keys carefully! They cannot be changed except
   manually by making a new collection.
 
-- You cannot shard an existing collection over 256G. This will
-  eventually be removed but is a limit in the system today. You could
-  as a workaround create a new sharded collection and copy over the
-  data via some script -- albeit that will likely take a while at this
-  size.
+- You cannot shard an existing collection over 256 gigabytes. You
+  could as a workaround create a new sharded collection and copy over
+  the data via some script -- albeit that will likely take a while at
+  this size.
 
 - Unique indexes are not enforced across shards except for the shard
-  key itself.
+  key itself. See :doc:`/tutorial/enforce-unique-keys-for-sharded-collections`.
 
 - Consider :doc:`pre-splitting </administration/sharded-clusters>` a
   sharded collection before a massive bulk import. Usually this isn't
@@ -452,16 +430,15 @@ Additional Deployment Checklist
   and read the preceding link and consider the use case -- often there
   is a good fit.
 
-- Disable NUMA - we find that works better. This will be printed as an
-  informational warning at :program:`mongod` startup on a NUMA box
-  usually.
+- Disable NUMA for best results. If you have NUMA enabled,
+  :program:`mongod` will print a warning when it starts.
 
 - Avoid excessive prefetch/readahead on the filesystem. Check your
   prefetch settings. Note on linux the parameter is in *sectors*, not
-  bytes. 32KBytes (a setting of 64 sectors) is pretty reasonable. 
+  bytes. 32KBytes (a setting of 64 sectors) is pretty reasonable.
 
 - Check :doc:`ulimits </administration/ulimit/>` settings.
-  
+
 - Use SSD if available and economical. Spinning disks can work well but
   SSDs and MongoDB are a nice combo. See :ref:`production-nfs` for more
   info.
@@ -472,5 +449,3 @@ Additional Deployment Checklist
   much if to a single :program:`mongod` or :program:`mongos` (if to a
   cluster with many :program:`mongos`, might be ok). Try to maintain a
   reasonable number: 1K is fine; 100K is too much; 10K is ok.
-
-.. `rsmith`: http://rsmith.co/2012/11/05/mongodb-gotchas-and-how-to-avoid-them
