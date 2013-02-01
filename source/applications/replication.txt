@@ -341,9 +341,26 @@ Tag Sets
 ~~~~~~~~
 
 Tag sets allow you to specify custom :ref:`read preferences
-<replica-set-read-preference>` so that your application can target
-read operations to specific members, based on custom parameters. A tag
-set for a read operation may resemble the following:
+<replica-set-read-preference>` 
+and :ref:`write concerns <write-operations-write-concern>`
+so that your application can target
+operations to specific members, based on custom parameters. 
+
+.. important::
+
+   Custom read preferences and write concerns evaluate tags sets in 
+   different ways.
+   
+   Read preferences consider the value of a tag when selecting a member
+   to read from.
+   
+   Write concerns do not utilize the value of a tag to select a
+   member except to consider whether or not the value is unique.
+   
+Custom Read Preferences
+```````````````````````
+
+A tag set for a read operation may resemble the following:
 
 .. code-block:: javascript
 
@@ -401,6 +418,78 @@ preference mode and tag sets.
 For more information on how read preference :ref:`modes
 <replica-set-read-preference-modes>` interact with tag sets, see the
 documentation for each read preference mode.
+
+Custom Write Concerns
+`````````````````````
+
+Replica set tags can be used to create custom write concerns through
+a combination of the tags and the :ref:`~local.system.replset.settings.getLastErrorDefaults`
+replica set setting.
+
+You may be able to utilize the same tags you have created for read
+preferences, however you may also need to create additional tags to
+fully utilize custom write concerns.
+
+For example, previously you may have tagged a member with the tags 
+:samp:`disk` and :samp:`use`:
+
+.. code-block:: javascript
+
+   { "disk": "ssd", "use": "reporting" }
+
+In order to direct write operations to the member tagged with :samp:`disk:{ssd}`
+you must add an additional tag:
+
+.. code-block:: javascript
+
+   { "disk.ssd": "ssd"}
+   
+You would then use this tag to create a custom getLastErrorMode:
+
+.. code-block:: javascript
+
+   > var cfg = rs.conf()
+   > cfg.settings = { getLastErrorModes: { ssd: {"disk.ssd":1}} }
+   > rs.reconfig(cfg)
+   
+This creates a custom getLastError mode of :samp:`ssd`, requiring
+at least one member tagged :samp:`ssd` to confirm the write operation.
+
+If, however, you wanted multiple members tagged :samp:`ssd`
+to confirm the write operation, you need to tag each member with
+a different value for the :samp:`disk.ssd` tag.  
+For example:
+
+.. code-block:: javascript
+
+   > cfg.members[2].tags = {"disk.ssd": "APPLE SSD SM512E"}
+   > cfg.members[3].tags = {"disk.ssd": "APPLE SSD SM512E"}
+   > cfg.members[4].tags = {"disk.ssd": "INTEL SSD S3700"}
+   
+And your custom getLastErrorMode would be: 
+
+.. code-block:: javascript
+
+   > cfg.settings = { getLastErrorModes: { ssd: {"disk.ssd":2}} }
+
+This getLastErrorMode directs MongoDB to confirm writes to two replica
+members tagged with unique values for the :samp:`disk.ssd` tag.
+In this example either :samp:`member[{2}]` or :samp:`member[{3}]` would
+satisfy one requirement, and :samp:`member[{4}]` would satisfy
+the requirement for a second member.
+
+The custom write concern can be specified as you would specify a write
+concern or it may be added as a default write concern using the
+the :ref:`~local.system.replset.settings.getLastErrorDefaults`
+replica set setting:
+
+.. code-block:: javascript
+
+   > cf.settings.getLastErrorDefaults = {ssd:1}
+
+.. seealso:: :ref:`replica-set-configuration-tag-sets` for further
+   information about replica set reconfiguration and tag sets.
+
 
 .. index:: read preference; behavior
 .. _replica-set-read-preference-behavior:
