@@ -25,26 +25,130 @@ sharding in MongoDB deployments.
 Behavior and Operations
 -----------------------
 
-- tags are cluster metadata. (implications.) Shell helpers to set the
-  metadata. The balancer does the rest.
+Tags are a form of cluster metadata used to dictate :term:`balancer` behavior
+in a sharded system. Individual shards in a cluster may be associated with one
+or more tag strings. A tag may then be assigned to a range of :term:`shard key`
+values for a :term:`namespace` within the cluster. When migrating a chunk, the
+balancer will select a destination shard based on the configured tag ranges.
 
-- tags are arbitrary. tags are independent of replica-set member
-  tags.
+When the balancer is migrating a chunk, it will attempt to select a tag range
+with an upper bound greater than and nearest to the chunk's lower bound. If a
+matching range is found, the chunk will be directed to a shard with its tag.
+Note that the chunk may contain values that exceed the upper bound of the
+selected tag range.
 
-- tags only dictate balancing policy, and depending on chunk splits,
-  and current distribution of data it may take time for the cluster to
-  achieve desired distribution
+.. example::
 
-- (more?)
+   Two tag ranges have been configured for a collection. :term:`Shard key`
+   values between ``100`` and ``200`` should be stored on shards tagged ``NYC``,
+   while values between ``200`` and ``300`` should be stored on shards tagged
+   ``SFO``. A chunk with shard key values ranging between ``150`` and ``220`` is
+   being migrated by the balancer. This chunk will be directed to a shard tagged
+   ``NYC``, since ``150`` is nearer to ``200`` than ``300``.
+
+Depending on chunk splits and the current distribution of data, it may take time
+after tag ranges have been defined for the cluster to achieve the desired data
+distribution. After they are assigned, tag ranges will be respected during
+future :ref:`balancing rounds <sharding-internals-balancing>`.
+
+.. note::
+
+   Sharding tags are indepedent of :ref:`replica set member tags
+   <replica-set-read-preference-tag-sets>`.
 
 Administer Shard Tags
 ---------------------
 
+Tags may be associated with a particular shard using the
+:method:`sh.addShardTag()` method when connected to a :program:`mongos`
+instance. Multiple tags may be assigned to a single shard, and multiple shards
+may also be assigned the same tag.
+
+.. example::
+
+      The following example adds the tag ``NYC`` to two shards, and the tags
+      ``SFO`` and ``NRT`` to a third shard:
+
+      .. code-block:: javascript
+
+         sh.addShardTag("shard0000", "NYC")
+         sh.addShardTag("shard0001", "NYC")
+         sh.addShardTag("shard0002", "SFO")
+         sh.addShardTag("shard0002", "NRT")
+
+Tags may be unassociated from a particular shard using the
+:method:`sh.removeShardTag()` method when connected to a :program:`mongos`
+instance.
+
+.. example::
+
+      The following example removes the ``NRT`` tag from a shard:
+
+      .. code-block:: javascript
+
+         sh.removeShardTag("shard0002", "NRT")
+
 Tag a Shard Key Range
 ~~~~~~~~~~~~~~~~~~~~~
+
+A range of shard key values may be assigned to a tag using the
+:method:`sh.addTagRange()` method when connected to a :program:`mongos`
+instance. While the same tag may be assigned to multiple ranges, a range may
+only be assigned *one* tag string.
+
+.. example::
+
+      For the following example, the ``records.users`` collection is sharded by
+      the ``zipcode`` field. Two ranges of zip codes within Manhattan and
+      Brooklyn are assigned the ``NYC`` tag, and a range of zip codes within San
+      Francisco is assigned the ``SFO`` tag:
+
+      .. code-block:: javascript
+
+         sh.addTagRange("records.users", { zipcode: "10001" }, { zipcode: "10281" }, "NYC")
+         sh.addTagRange("records.users", { zipcode: "11201" }, { zipcode: "11240" }, "NYC")
+         sh.addTagRange("records.users", { zipcode: "94102" }, { zipcode: "94135" }, "SFO")
 
 Remove a Tag From a Shard Key Range
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+There is currently no shell helper for remove a tag range. You may delete a
+tag assignment to a shard key range by removing the corresponding document from
+the :data:`~config.tags` collection of the ``config`` database. Each document in
+the collection is identified by a combination of the  range is identified by a
+combination of :term:`namespace` and minimum shard key value.
+
+.. example::
+
+      The following example deletes the ``NYC`` tag assignment for the range of
+      zip codes within Manhattan:
+
+      .. code-block:: javascript
+
+         use config
+         db.tags.remove({ _id: { ns: "records.users", min: { zipcode: "10001" }}, tag: "NYC" })
+
 View Existing Shard Tags
 ~~~~~~~~~~~~~~~~~~~~~~~~
+
+The output from :method:`sh.status()` will list tags associated with a shard (if
+any) in its output for each shard. A shard's tags are stored in the shard's
+document within the :data:`~config.shards` collection of the ``config``
+database.
+
+Tag ranges for all :term:`namespaces <namespace>` are stored within the
+:data:`~config.tags` collection of the ``config`` database. These ranges are
+also displayed in the output of :method:`sh.status()` for each sharded
+collection.
+
+.. example::
+
+      In the the following example, the ``config`` database is queried for all
+      shards with the tag ``NYC``, followed by all tag ranges assigned to that
+      tag:
+
+      .. code-block:: javascript
+
+         use config
+         db.shards.find({ tags: "NYC" })
+         db.tags.find({ tag: "NYC" })
