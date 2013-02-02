@@ -89,7 +89,7 @@ html_theme_options = {
     'pdfpath': manual_edition_path + '.pdf',
     'epubpath': manual_edition_path + '.epub',
     'manual_path': meta['manual_path'],
-    'repo_name': 'docs',
+    'repo_name': 'docs-ecosystem',
     'jira_project': 'DOCS',
     'google_analytics': 'UA-7301842-8',
     'project': 'ecosystem',
