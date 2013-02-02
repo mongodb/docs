@@ -400,11 +400,22 @@ Tag Sets
 
 Tag sets provide custom and configurable :term:`write concern`
 and :term:`read preferences <read preference>`
-for a :term:`replica set`. This section will outline the process
+for a :term:`replica set`. This section outlines the process
 for specifying tags for a replica set, for more information see the
 full documentation of the behavior of :ref:`tags sets for write concern
 <replica-set-write-concern>` and :ref:`tag sets for read preference
 <replica-set-read-preference-tag-sets>`.
+
+.. important::
+
+   Custom read preferences and write concerns evaluate tags sets in 
+   different ways.
+   
+   Read preferences consider the value of a tag when selecting a member
+   to read from.
+   
+   Write concerns do not utilize the value of a tag to select a
+   member except to consider whether or not the value is unique.
 
 Configure tag sets by adding fields and values to the document stored
 in the :data:`~local.system.replset.members[n].tags`. Consider the following example:
@@ -479,3 +490,136 @@ in the :data:`~local.system.replset.members[n].tags`. Consider the following exa
                     }
             ]
        }
+
+
+.. example::
+
+   Create a custom write concern to require confirmation from two 
+   data centers using replica set tags.
+   
+   You have a five member replica set consisting of members in a data 
+   center in Vienna, VA which we will tag "dc.va" and members in a data
+   center in Toronto, Ontario which we will tag "dc.gto".
+   
+   First add tags to the replica set members reflecting their locations:
+   
+   .. code-block:: javascript
+   
+      conf = rs.conf()
+      
+      conf.members[0].tags = { "dc.va": "true"}
+      conf.members[1].tags = { "dc.va": "true"}
+      conf.members[2].tags = { "dc.gto": "true"}
+      conf.members[3].tags = { "dc.gto": "true"}
+      conf.members[4].tags = { "dc.va": "true"}
+      rs.reconfig(conf)
+    
+   Then you must create a custom getLastErrorMode:
+   
+   .. code-block:: javascript
+   
+      conf.settings = { getLastErrorModes: { MultipleDC : { "dc.va": 1, "dc.gto": 1}}
+      rs.reconfig(conf)
+      
+      
+.. example::
+
+   Create a custom write concern to require confirmation from two members in 
+   distinct racks in two data centers using replica set tags.  You have 
+   five members in two data centers as in the previous example.
+   
+   You may look at the previous example and expect to write:
+   
+   .. code-block::
+   
+      conf.settings = { getLastErrorModes: { MultipleDC : { "dc.va": 2, "dc.gto": 2}}
+      rs.reconfig(conf)
+
+   But you will receive:
+   
+   .. code-block:: javascript
+   
+      {
+         "errmsg" : "exception: mode { dc.va: 2.0, dc.gto: 2.0 } requires 2 tagged with dc.va, but only 1 with this tag were found",
+         "code" : 14831,
+         "ok" : 0
+      }      
+ 
+   You must use unique values for the tags if you require more than one 
+   tagged member to be selected by a custom write concern. 
+   This is an important difference from the use of replica set tags for
+   read preferences.
+   
+   You can still reuse the configuration from the previous example with
+   a minor change:
+   
+   .. code-block:: javascript
+   
+      conf = rs.conf()
+      
+      conf.members[0].tags = { "dc.va": "rack1"}
+      conf.members[1].tags = { "dc.va": "rack2"}
+      conf.members[2].tags = { "dc.gto": "rack1"}
+      conf.members[3].tags = { "dc.gto": "rack2"}
+      conf.members[4].tags = { "dc.va": "rack1"}
+      rs.reconfig(conf)
+    
+   Then you change the custom getLastErrorMode:
+   
+   .. code-block:: javascript
+     
+      conf.settings = { getLastErrorModes: { MultipleDC : { "dc.va": 2, "dc.gto": 2}}
+      rs.reconfig(conf) 
+      
+   MongoDB will now ensure that writes go to two of the three systems tagged :samp:`dc.va`
+   and both systems tagged :samp:`dc.gto`.
+   
+   
+.. example::
+
+   Create tags to confirm that reads are directed to members with solid 
+   state drives, and that writes are confirmed by members with SSD drives.
+   
+   You have a five member replica set with three members configured with
+   solid state drives.
+   
+   Since read preferences and write concerns utilize tags in different
+   ways you will need to create multiple tags:
+   
+   .. code-block:: javascript
+   
+      conf = rs.conf()
+      conf.members[0].tags = {"dc.va": "rack1", disk:"ssd", ssd:"true"}
+      conf.members[1].tags = {"dc.va": "rack2", disk:"raid"}
+      conf.members[2].tags = {"dc.gto": "rack1", disk:"ssd", ssd:"true"}
+      conf.members[3].tags = {"dc.gto": "rack2", disk:"raid"}
+      conf.members[4].tags = {"dc.va": "rack1", disk:"ssd", ssd:"true"}
+      rs.reconfig(conf)
+   
+   You would specify the :samp:`ssd` read preference:
+   
+   .. code-block:: javascript
+
+      { "disk": "ssd"}
+      
+   However you will need to create a custom getLastErrorMode to specify
+   :samp:`ssd` as a write preference:
+   
+   .. code-block:: javascript
+   
+      conf=rs.conf()
+      conf.settings = {
+                        "getLastErrorModes" : {
+                                "ssd" : {
+                             	        "ssd" : 1
+                                },
+                                "MultipleDC" : {
+                                        "dc.va" : 1,
+                                        "dc.gto" : 1
+                                }
+                        }
+                      }
+      rs.reconfig(conf)
+      
+   You would then specify :samp:`ssd` as your custom write concern.
+      
