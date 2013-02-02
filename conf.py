@@ -79,21 +79,21 @@ intersphinx_mapping = {
 
 languages = [
     ("ar", "Arabic"),
-    ("cn", "Chinese"), 
-    ("cs", "Czech"), 
+    ("cn", "Chinese"),
+    ("cs", "Czech"),
     ("de", "German"),
     ("es", "Spanish"),
-    ("fr", "French"), 
-    ("hu", "Hungarian"),  
-    ("id", "Indonesian"),  
-    ("it", "Italian"),  
-    ("jp", "Japanese"), 
-    ("ko", "Korean"),  
-    ("lt", "Lithuanian"), 
-    ("pl", "Polish"),  
-    ("pt", "Portuguese"), 
-    ("ro", "Romanian"),  
-    ("ru", "Russian"),  
+    ("fr", "French"),
+    ("hu", "Hungarian"),
+    ("id", "Indonesian"),
+    ("it", "Italian"),
+    ("jp", "Japanese"),
+    ("ko", "Korean"),
+    ("lt", "Lithuanian"),
+    ("pl", "Polish"),
+    ("pt", "Portuguese"),
+    ("ro", "Romanian"),
+    ("ru", "Russian"),
     ("tr", "Turkish"),
     ("uk", "Ukrainian")
 ]
@@ -134,6 +134,7 @@ html_theme_options = {
 html_sidebars = {
     '**': ['pagenav.html'],
 }
+html_sidebars['**'].append('intrasites.html')
 html_sidebars['**'].append('formats.html')
 # html_sidebars['**'].append('translations.html')
 html_sidebars['**'].append('wikisidebar.html')
