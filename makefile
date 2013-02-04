@@ -33,6 +33,7 @@ help:
 include bin/makefile.dynamic
 include bin/makefile.clean
 include bin/makefile.content
+include bin/makefile.tables
 include bin/makefile.push
 
 ############# Meta targets that control the build and publication process. #############
