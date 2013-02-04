@@ -10,7 +10,7 @@ this documentation locally if you already have `Sphinx
 <http://sphinx.pocoo.org/>`_ installed, with the following command: ::
 
      git clone git://github.com/mongodb/docs-ecosystem
-     cd docs/
+     cd docs-ecosystem/
      make html
 
 Visit ``docs/mongodb/build/html/index.html`` to view the current state
