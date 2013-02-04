@@ -31,7 +31,7 @@ source_suffix = '.txt'
 master_doc = 'contents'
 
 project = u'MongoDB Ecosystem'
-copyright = u'2011-2012, 10gen, Inc.'
+copyright = u'2011-2013, 10gen, Inc.'
 
 version = '2.2.2'
 release = version
