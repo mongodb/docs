@@ -33,6 +33,7 @@ help:
 include bin/makefile.dynamic
 include bin/makefile.clean
 include bin/makefile.content
+include bin/makefile.tables
 include bin/makefile.push
 
 ############# Meta targets that control the build and publication process. #############
@@ -92,27 +93,19 @@ pdflatex-command = TEXINPUTS=".:$(branch-output)/latex/:" pdflatex --interaction
 
 # Uses 'latex' target to generate latex files.
 pdfs:$(subst .tex,.pdf,$(wildcard $(branch-output)/latex/*.tex))
-	@echo [build]: ALL PDFLATEX BUILD ERRORS IGNORED.
 $(branch-output)/latex/%.tex:
 	@sed $(SED_ARGS_FILE) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) -e $(LATEX_LINK_CORRECTION) $@
 	@echo [latex]: fixing the Sphinx ouput of '$@'.
 %.pdf:%.tex
-	@echo [pdf]: pdf compilation of $@, started at `date`.
-	@touch $(basename $@)-pdflatex.log
-	@-$(pdflatex-command) '$<' >> $(basename $@)-pdflatex.log
-	@echo [pdf]: \(1/6\) pdflatex $<
-	@-$(pdflatex-command) '$<' >> $(basename $@)-pdflatex.log
-	@echo [pdf]: \(2/6\) pdflatex $<
-	@-$(pdflatex-command) '$<' >> $(basename $@)-pdflatex.log
-	@echo [pdf]: \(3/6\) pdflatex $<
-	@-makeindex -s $(branch-output)/latex/python.ist '$(basename $<).idx' >> $(basename $@)-pdflatex.log 2>&1
-	@echo [pdf]: \(4/6\) Indexing: $(basename $<).idx
-	@-$(pdflatex-command) '$<' >> $(basename $@)-pdflatex.log
-	@echo [pdf]: \(5/6\) pdflatex $<
-	@-$(pdflatex-command) '$<' >> $(basename $@)-pdflatex.log
-	@echo [pdf]: \(6/6\) pdflatex $<
-	@echo [pdf]: see '$(basename $@)-pdflatex.log' for a full report of the pdf build process.
-	@echo [pdf]: pdf compilation of $@, complete at `date`.
+	@$(pdflatex-command) $(LATEXOPTS) '$<' >|$@.log
+	@echo "[pdf]: (1/4) pdflatex $<"
+	@-makeindex -s $(output)/latex/python.ist '$(basename $<).idx' >>$@.log 2>&1
+	@echo "[pdf]: (2/4) Indexing: $(basename $<).idx"
+	@$(pdflatex-command) $(LATEXOPTS) '$<' >>$@.log
+	@echo "[pdf]: (3/4) pdflatex $<"
+	@$(pdflatex-command) $(LATEXOPTS) '$<' >>$@.log
+	@echo "[pdf]: (4/4) pdflatex $<"
+	@echo "[pdf]: see '$@.log' for a full report of the pdf build process."
 
 ############# General purpose targets. Not used (directly) in the production build #############
 draft:draft-html

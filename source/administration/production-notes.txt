@@ -252,3 +252,200 @@ bwm-ng
 command-line tool for monitoring network use. If you suspect a
 network-based bottleneck, you may use ``bwm-ng`` to begin your
 diagnostic process.
+
+.. _gotchas:
+
+Production Checklist
+--------------------
+
+64-bit Builds for Production
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Always use 64-bit Builds for Production. MongoDB uses memory mapped
+files. See the :ref:`32-bit limitations <faq-32-bit-limitations>` for
+more information.
+
+32-bit builds exist to support use on development machines and also for
+other miscellaneous things such as replica set arbiters.
+
+BSON Document Size Limit
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+There is a :limit:`BSON Document Size` -- at the time of this writing
+16MB per document. If you have large objects, use :doc:`GridFS
+</applications/gridfs/>` instead.
+
+Set Appropriate Write Concern for Write Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+See :ref:`write concern <write-concern>` for more information.
+
+Dynamic Schema
+~~~~~~~~~~~~~~
+
+Data in MongoDB has a *dynamic schema*. :term:`Collections
+<collection>` do not enforce :term:`document` structure. This
+facilitates iterative development and polymorphism. However,
+collections often hold documents with highly homogeneous
+structures. See :doc:`/core/data-modeling` for more information.
+
+Some operational considerations include:
+
+- the exact set of collections to be used
+
+- the indexes to be used, which are created explicitly except for the
+  ``_id`` index
+
+- shard key declarations, which are explicit and quite important as it
+  is hard to change shard keys later
+
+One very simple rule-of-thumb is to not verbatim import data from a
+relational database unmodified: you will generally want to "roll up"
+certain data into richer documents that use some embedding of nested
+documents and arrays (and/or arrays of subdocuments).
+
+Updates by Default Affect Only **one** Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Set the ``multi`` parameter to ``true`` to :method:`update
+<db.collection.update()>` multiple documents that meet the query
+criteria. The :program:`mongo` shell syntax is:
+
+.. code-block:: javascript
+
+   db.my_collection_name.update(my_query, my_update_expression, bool_upsert, bool_multi)
+
+Set ``bool_multi`` to ``true`` when updating many documents. Otherwise
+only the first matched will update.
+
+Case Sensitive Strings
+~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB strings are case sensitive. So a search for ``"joe"`` will not
+find ``"Joe"``.
+
+Consider:
+
+- storing data in a normalized case format, or
+
+- using regular expressions ending with ``/i``
+
+- and/or using :doc:`$toLower </reference/aggregation/toLower/>` or
+  :doc:`$toUpper </reference/aggregation/toUpper/>` in the
+  :doc:`aggregation framework </applications/aggregation/>`
+
+Type Sensitive Fields
+~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB data -- which is JSON-style, specifically, :meta-driver:`BSON
+</legacy/bson/>` format -- have several data types.
+
+Consider the following document which has a field ``x`` with the
+*string* value ``"123"``:
+
+.. code-block:: javascript
+
+   { x : "123" }
+
+Then the following query which looks for a *number* value ``123`` will
+**not** return that document:
+
+.. code-block:: javascript
+
+   db.mycollection.find( { x : 123 } )
+
+Locking
+~~~~~~~
+
+Older versions of MongoDB used a "global lock"; use MongoDB v2.2+ for
+better results. See the :doc:`Concurrency </faq/concurrency/>` page for
+more information.
+
+Packages
+~~~~~~~~
+
+Be sure you have the latest stable release if you are using a package
+manager. You can see what is current on the Downloads page, even if you
+then choose to install via a package manager.
+
+Use Odd Number of Replica Set Members
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:doc:`Replica sets </replication/>` perform consensus elections. Use
+either an odd number of members (e.g., three) or else use an arbiter to
+get up to an odd number of votes.
+
+Don't disable journaling
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+See :doc:`Journaling </administration/journaling/>` for more information.
+
+Keep Replica Set Members Up-to-Date
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This is important as MongoDB replica sets support automatic failover.
+Thus you want your secondaries to be up-to-date. You have a few options
+here:
+
+1. Monitoring and alerts for any lagging can be done via various means.
+   MMS shows a graph of replica set lag
+
+#. Using :ref:`getLastError <replica-set-write-concern>` with
+   ``w:'majority'``, you will get a timeout or no return if a majority of
+   the set is lagging. This is thus another way to guard against lag and
+   get some reporting back of its occurrence.
+
+#. Or, if you want to fail over manually, you can set your secondaries
+   to ``priority:0`` in their configuration. Then manual action would be
+   required for a failover. This is practical for a small cluster; for a
+   large cluster you will want automation.
+
+Additionally, see information on :ref:`replica set rollbacks
+<replica-set-rollback>`.
+
+Additional Deployment Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Pick your shard keys carefully! They cannot be changed except
+  manually by making a new collection.
+
+- You cannot shard an existing collection over 256 gigabytes. You
+  could as a workaround create a new sharded collection and copy over
+  the data via some script -- albeit that will likely take a while at
+  this size.
+
+- Unique indexes are not enforced across shards except for the shard
+  key itself. See :doc:`/tutorial/enforce-unique-keys-for-sharded-collections`.
+
+- Consider :doc:`pre-splitting </administration/sharded-clusters>` a
+  sharded collection before a massive bulk import. Usually this isn't
+  necessary but on a bulk import of size it is helpful.
+
+- Use :doc:`security/auth </administration/security/>` mode if you
+  need it. It is not on by default; rather a trusted environment is
+  assumed.
+
+- You do not have :doc:`fully generalized transactions
+  </tutorial/isolate-sequence-of-operations/>`. Create rich documents
+  and read the preceding link and consider the use case -- often there
+  is a good fit.
+
+- Disable NUMA for best results. If you have NUMA enabled,
+  :program:`mongod` will print a warning when it starts.
+
+- Avoid excessive prefetch/readahead on the filesystem. Check your
+  prefetch settings. Note on linux the parameter is in *sectors*, not
+  bytes. 32KBytes (a setting of 64 sectors) is pretty reasonable.
+
+- Check :doc:`ulimits </administration/ulimit/>` settings.
+
+- Use SSD if available and economical. Spinning disks can work well but
+  SSDs and MongoDB are a nice combo. See :ref:`production-nfs` for more
+  info.
+
+- Maintain a reasonable pool sizes on clients. If you have 100 client
+  machines and each has a pool size of 1000 connections, that would be
+  a worst case of 100,000 connections to MongoDB -- which would be too
+  much if to a single :program:`mongod` or :program:`mongos` (if to a
+  cluster with many :program:`mongos`, might be ok). Try to maintain a
+  reasonable number: 1K is fine; 100K is too much; 10K is ok.

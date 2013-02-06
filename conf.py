@@ -41,7 +41,7 @@ source_suffix = '.txt'
 master_doc = 'contents'
 project = u'mongodb-manual'
 copyright = u'2011-' + meta['date'] + ', 10gen, Inc.'
-version = '2.2.2'
+version = '2.2.3'
 release = version
 
 BREAK = '\n'
@@ -77,6 +77,27 @@ intersphinx_mapping = {
         'djangotoolbox' : ('http://djangotoolbox.readthedocs.org/en/latest/', '../build/djangotoolbox.inv'),
 }
 
+languages = [
+    ("ar", "Arabic"),
+    ("cn", "Chinese"),
+    ("cs", "Czech"),
+    ("de", "German"),
+    ("es", "Spanish"),
+    ("fr", "French"),
+    ("hu", "Hungarian"),
+    ("id", "Indonesian"),
+    ("it", "Italian"),
+    ("jp", "Japanese"),
+    ("ko", "Korean"),
+    ("lt", "Lithuanian"),
+    ("pl", "Polish"),
+    ("pt", "Portuguese"),
+    ("ro", "Romanian"),
+    ("ru", "Russian"),
+    ("tr", "Turkish"),
+    ("uk", "Ukrainian")
+]
+
 # -- Options for HTML output ---------------------------------------------------
 
 html_theme = 'mongodb'
@@ -103,6 +124,7 @@ html_theme_options = {
     'pdfpath': manual_edition_path + '.pdf',
     'epubpath': manual_edition_path + '.epub',
     'manual_path': meta['manual_path'],
+    'translations': languages,
     'repo_name': 'docs',
     'jira_project': 'DOCS',
     'google_analytics': 'UA-7301842-8',
@@ -110,8 +132,12 @@ html_theme_options = {
 }
 
 html_sidebars = {
-    '**': ['pagenav.html', 'formats.html', 'translations.html', 'wikisidebar.html'],
+    '**': ['pagenav.html'],
 }
+html_sidebars['**'].append('intrasites.html')
+html_sidebars['**'].append('formats.html')
+# html_sidebars['**'].append('translations.html')
+html_sidebars['**'].append('wikisidebar.html')
 
 # -- Options for LaTeX output --------------------------------------------------
 
