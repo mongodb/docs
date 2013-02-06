@@ -41,7 +41,7 @@ source_suffix = '.txt'
 master_doc = 'contents'
 project = u'mongodb-manual'
 copyright = u'2011-' + meta['date'] + ', 10gen, Inc.'
-version = '2.2.2'
+version = '2.2.3'
 release = version
 
 BREAK = '\n'
