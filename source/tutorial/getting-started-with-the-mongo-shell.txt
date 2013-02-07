@@ -155,6 +155,121 @@ In addition, you can use the following explicit print methods in the
 - ``printjson()`` to print with :term:`JSON` formatting and equivalent
   to ``print(tojson(<obj>))``
 
+Use a Custom Prompt
+-------------------
+
+You may modify the content of the prompt by creating the variable
+``prompt`` in the shell. The prompt variable can hold strings as well
+as any arbitrary JavaScript. If ``prompt`` holds a function that returns a
+string, :program:`mongo` can display dynamic information in each
+prompt. Consider the following examples:
+
+.. example::
+
+   Create a prompt with the number of commands issued in the current
+   session, define the following variables:
+
+   .. code-block:: javascript
+
+      cmdCount = 1;
+      prompt = function() {
+                   return (cmdCount++) + "> ";
+               }
+
+   The prompt would then resemble the following:
+
+   .. code-block:: javascript
+
+      1> db.collection.find()
+      2> show collections
+      3>
+
+.. example::
+
+   To create a :program:`mongo` shell prompt in the form of
+   ``<database>@<hostnane>$`` define the following variables:
+
+   .. code-block:: javascript
+
+       host = db.serverStatus().host;
+
+       prompt = function() {
+                    return db+"@"+host+"$ ";
+                }
+
+   The prompt would then resemble the following:
+
+   .. code-block:: javascript
+
+      <database>@<hostname>$ use records
+      switched to db records
+      records@<hostname>$
+
+.. example::
+
+   To create a :program:`mongo` shell prompt that contains the system
+   up time *and* the number of documents in the current database,
+   define the following prompt variable:
+
+   .. code-block:: javascript
+
+      prompt = function() {
+                   return "Uptime:"+db.serverStatus().uptime+" Documents:"+db.stats().objects+" > ";
+               }
+
+   The prompt would then resemble the following:
+
+   .. code-block:: javascript
+
+       Uptime:5897 Documents:6 > db.people.save({name : "James"});
+       Uptime:5948 Documents:7 >
+
+Use an External Editor in the ``mongo`` Shell
+---------------------------------------------
+
+.. versionadded:: 2.2
+
+In the :program:`mongo` shell you can use the ``edit`` operation to
+edit a function or variable in an external editor. The ``edit``
+operation uses the value of your environments ``EDITOR`` variable.
+
+At your system prompt you can define the ``EDITOR`` variable and start
+:program:`mongo` with the following two operations:
+
+.. code-block:: bash
+
+   export EDITOR=vim
+   mongo
+
+Then, consider the following example shell session:
+
+.. code-block:: javascript
+
+   MongoDB shell version: 2.2.0
+   > function f() {}
+   > edit f
+   > f
+   function f() {
+       print("this really works");
+   }
+   > f()
+   this really works
+   > o = {}
+   { }
+   > edit o
+   > o
+   { "soDoes" : "this" }
+   >
+
+.. note::
+
+   As :program:`mongo` shell interprets code edited in an external
+   editor, it may modify code in functions, depending on the
+   JavaScript compiler. For :program:`mongo` may convert ``1+1`` to
+   ``2`` or remove comments. The actual changes affect only the
+   appearance of the code and will vary based on the version of
+   JavaScript used but will not affect the semantics of the code.
+
 .. _mongo-shell-exit:
 
 Exit the Shell
