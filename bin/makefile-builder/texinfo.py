@@ -48,7 +48,7 @@ def build_texinfo_manual(info):
     final_output = '$(public-branch-output)/' + info + '-info.tar.gz'
     m.target(target=final_output,
              dependency='$(public-branch-output)/' + ofile)
-    m.job('$(build-tools)/create-link $(notdir $<) $(notdir $@) $@')
+    m.job('$(build-tools)/create-link $(notdir $<) $(notdir $@) $(dir $@)')
     m.append_var('INFO_OUTPUT', final_output, block='content')
 
 
