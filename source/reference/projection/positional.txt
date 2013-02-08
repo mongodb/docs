@@ -18,7 +18,7 @@
 
    The positional :projection:`$` operator limits the contents of the
    ``<array>`` field that is included in the query results to contain
-   only a **single** matching element.
+   the **first** matching element.
 
    Used with the :method:`~db.collection.find()` or
    :method:`~db.collection.findOne()` method in the :term:`projection`
@@ -26,16 +26,32 @@
 
    - The :projection:`$` projection operator limits the content of the
      ``<array>`` field to the **first** element that matches the
-     :ref:`query document <mongodb-query-document>`, and
+     :ref:`query document <read-operations-query-argument>`.
 
-   - The ``<array>`` field **must** appear in the ``query document``.
+   - The ``<array>`` field **must** appear in the :ref:`query document
+     <read-operations-query-argument>`
 
-   .. code-block:: javascript
+     .. code-block:: javascript
 
-      db.collection.find( { <array>: value ... },
-                          { "<array>.$": 1 } )
-      db.collection.find( { <array.field>: value ...},
-                          { "<array>.$": 1 } )
+        db.collection.find( { <array>: value ... },
+                            { "<array>.$": 1 } )
+        db.collection.find( { <array.field>: value ...},
+                            { "<array>.$": 1 } )
+
+     The ``<value>`` can be documents that contains :ref:`query operator
+     expressions <query-selectors-comparison>`.
+
+   - Only **one** positional :projection:`$` operator can appear in the
+     projection document.
+
+   - Only **one** array field can appear in the :ref:`query document
+     <read-operations-query-argument>`; i.e. the following query is
+     **incorrect**:
+
+     .. code-block:: javascript
+
+        db.collection.find( { <array>: value, someOtherArray: value },
+                            { "<array>.$": 1 } )
 
    Consider a collection ``students`` with the following documents:
 
@@ -121,6 +137,18 @@
 
       { "_id" : 8, "grades" : [ { "grade" : 92, "mean" : 88, "std" : 8 } ] }
       { "_id" : 7, "grades" : [ { "grade" : 80, "mean" : 75, "std" : 8 } ] }
+
+   .. note:: 
+
+      Since only **one** array field can appear in the ``query
+      document``, if the array contains documents, to specify criteria
+      on multiple fields of these documents, use the
+      :doc:`/reference/operator/elemMatch/` operator, e.g.:
+
+      .. code-block:: javascript
+
+         db.students.find( { grades: { $elemMatch: { mean: { $gt: 70 }, grade: { $gt:90 } } } },
+                           { "grades.$": 1 } )
 
 .. JEFF/BEN -- wanted to double check, currently we can't do a projection of { "grades.$.grade": 1 } to
    return just the grade field, yes? When I tried the command, it acted as though it were a projection of
