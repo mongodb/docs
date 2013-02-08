@@ -23,10 +23,10 @@ See the following documents within this repository that provide a more
 thorough overview of the documentation style, process, and overall
 organization:
 
-- `Style Guide <meta.style-guide.rst>`_ (meta.style-guide.rst)
-- `Documentation Practices <meta.practices.rst>`_ (meta.practices.rst)
-- `Documentation Organization <meta.organization.rst>`_ (meta.organization.rst)
-- `Build Instructions <meta.build.rst>`_ (meta.build.rst)
+- `Style Guide <http://docs.mongodb.org/manual/meta/style-guide>`_
+- `Documentation Practices <http://docs.mongodb.org/manual/meta/practices>`_
+- `Documentation Organization <http://docs.mongodb.org/manual/meta/organization>`_
+- `Build Instructions <http://docs.mongodb.org/manual/meta/build>`_
 
 All documentation is available under the terms of a `Creative Commons
 License <http://creativecommons.org/licenses/by-nc-sa/3.0/>`_.
