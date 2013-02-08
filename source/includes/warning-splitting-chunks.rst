@@ -1,9 +1,11 @@
 .. warning::
 
-   Be careful when splitting chunks. When you shard a collection that
-   has existing data, MongoDB automatically creates chunks to evenly
-   spread the collection. Performing additional splits requires
-   knowledge of the resulting chunk sizes by numbers of documents and by
-   size. You do not want splits that cause some chunks to be much larger
-   than others. This leads to balancing based on count of chunks, not on
-   their size, which may cause extreme load/data-distribution problems.
+   Be careful when splitting data in a sharded collection to create
+   new chunks. When you shard a collection that has existing data,
+   MongoDB automatically creates chunks to evenly distribute the
+   collection. To effectively split data in a sharded you must
+   consider the number of documents in a chunk and the average
+   document size to create a uniform chunk size. When chunks have
+   irregular sizes, shards may have an equal number of chunks but have
+   very different data sizes. Avoid creating splits that lead to a
+   collection with differently sized chunks.
