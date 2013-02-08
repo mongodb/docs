@@ -1,0 +1,130 @@
+.. http://www.mongodb.org/display/DOCS/Csharp+Tutorial WRITING-110
+
+.. _getting-started-with-csharp-driver:
+
+================================
+Getting Started with Csharp Driver
+================================
+
+.. default-domain:: mongodb
+
+Introduction
+------------
+
+This page is a brief overview of authenticating to a MongoDB cluster with the MongoDB C# Driver using version 1.8
+and above.
+
+The MongoClient class represents a logical connection to a MongoDB cluster.  Internally the MongoClient instance maintains a pool of sockets.  When you present credentials to a MongoClient, it is responsible for authentication of every socket
+against all the credentials presented.
+
+
+Normal Authentication
+---------------------
+
+To authenticate as the user "user1" with a password of "password1", defined in the "test" database:
+
+.. code-block:: csharp
+
+    using MongoDB.Driver; com.mongodb.MongoClient;
+
+    MongoCredential credential = MongoCredential.CreateMongoCRCredential("test", "user1", "password1");
+
+    MongoClientSettings settings = new MongoClientSettings
+    {
+    	Credentials = new[] { credential }
+    };
+
+    MongoClient mongoClient = new MongoClient(settings);
+
+Alternatively, when you only need a single user, it is possible to specify this in the connection string.
+
+.. code-block:: csharp
+
+    string connectionString = "mongodb://user1:password1@localhost";
+
+    MongoClient mongoClient = new MongoClient(connectionString);
+
+In some cases you may need to authenticate as multiple users in different databases. For example, imagine a map/reduce 
+job that reads from the database "first" and writes the results to the database "second".  You may need to authenticate
+one user defined in the "first" database and another in the "second":
+
+.. code-block:: csharp
+
+	MongoCredential credentialFirst = MongoCredential.CreateMongoCRCredential("first", "user1", "password1");
+    MongoCredential credentialSecond = MongoCredential.CreateMongoCRCredential("second", "user2", "password2");
+
+    MongoClientSettings settings = new MongoClientSettings
+    {
+    	Credentials = new[] { credentiaFirst, credentialSecond }
+    };
+
+    MongoClient mongoClient = new MongoClient(settings);
+
+Note that as of the 2.4 server release, this is no long necessary, since you are able to define a user in one database
+and delegate privileges for that user in another database.
+
+
+Kerberos Authentication On Windows
+-----------------------
+
+To authenticate to a MongoDB cluster using Kerberos, you must specify the GSSAPI mechanism and optionally a user name and password.  If you do not specify a user name and password, the driver will attempt to use the cached credentials under which the process is executing.
+
+Via connection string:
+
+.. code-block:: csharp
+
+    string connectionString = "mongodb://localhost/?authMechanism=GSSAPI";
+
+    MongoClient client = new MongoClient(connectionString);
+
+    // or...
+
+    string connectionString = "mongodb://user%40REALM.COM:password@localhost/?authMechanism=GSSAPI";
+
+    MongoClient client = new MongoClient(connectionString);
+
+Note that %40 is the url encoded representation of the '@' character.
+
+Via code:
+
+.. code-block:: csharp
+
+    MongoCredential credential = MongoCredential.CreateGssapiCredential();
+
+    MongoClientSettings settings = new MongoClientSettings
+    {
+    	Credentials = new[] { credential }
+    };
+
+    MongoClient mongoClient = new MongoClient(settings);
+
+    // or...
+
+    MongoCredential credential = MongoCredential.CreateGssapiCredential("user@REALM.COM", "password");
+
+    MongoClientSettings settings = new MongoClientSettings
+    {
+    	Credentials = new[] { credential }
+    };
+
+    MongoClient mongoClient = new MongoClient(settings);
+
+
+Kerberos Authentication On Linux
+-----------------------
+
+To authenticate to a MongoDB cluster using Kerberos, you must supply the Kerberos user name and specify the Kerberos
+authentication mechanism.  Prior to this functioning correctly, it is prerequisite that a ticket granting ticket has been acquired using kinit.
+
+.. code-block:: chsarp
+
+    MongoCredential credential = MongoCredential.CreateGssapiCredential("user@REALM.COM");
+
+    MongoClientSettings settings = new MongoClientSettings
+    {
+    	Credentials = new[] { credential }
+    };
+
+    MongoClient mongoClient = new MongoClient(settings);
+
+Note that neither the password nor the database name is required.  The user has previously been authenticated using kinit and all GSSAPI users target the "$external" database.
