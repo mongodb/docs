@@ -1,0 +1,130 @@
+===============
+\$ (projection)
+===============
+
+.. default-domain:: mongodb
+
+.. note::
+   This page documents the use of the ``positional $`` operator in the
+   :term:`projection` document of the :method:`~db.collection.find()`
+   and the :method:`~db.collection.findOne()` methods. For the use of
+   the positional ``$`` operator with the
+   :method:`~db.collection.update()` method, see the :doc:`positional $
+   operator for updates </reference/operator/positional>` .
+
+.. operator:: $
+
+   *Syntax*: ``{ "<array>.$" : 1 }``
+
+   The positional :projection:`$` operator limits the contents of the
+   ``<array>`` field that is included in the query results to contain
+   only a **single** matching element.
+
+   Used with the :method:`~db.collection.find()` or
+   :method:`~db.collection.findOne()` method in the :term:`projection`
+   document:
+
+   - The :projection:`$` projection operator limits the content of the
+     ``<array>`` field to the **first** element that matches the
+     :ref:`query document <mongodb-query-document>`, and
+
+   - The ``<array>`` field **must** appear in the ``query document``.
+
+   .. code-block:: javascript
+
+      db.collection.find( { <array>: value ... },
+                          { "<array>.$": 1 } )
+      db.collection.find( { <array.field>: value ...},
+                          { "<array>.$": 1 } )
+
+   Consider a collection ``students`` with the following documents:
+
+   .. code-block:: javascript
+
+      { "_id" : 1, "semester" : 1, "grades" : [ 70, 87, 90 ] }
+      { "_id" : 2, "semester" : 1, "grades" : [ 90, 88, 92 ] }
+      { "_id" : 3, "semester" : 1, "grades" : [ 85, 100, 90 ] }
+      { "_id" : 4, "semester" : 2, "grades" : [ 79, 85, 80 ] }
+      { "_id" : 5, "semester" : 2, "grades" : [ 88, 88, 92 ] }
+      { "_id" : 6, "semester" : 2, "grades" : [ 95, 90, 96 ] }
+
+   The following example queries for documents where the ``semester``
+   field equals ``1`` and the ``grades`` array contains an element
+   greater than or equal to ``85``. The example includes the
+   :projection:`$` projection operator to return only the element in
+   the ``grades`` array that matches the query criteria; the ``_id``
+   field is by default implicitly included in the results:
+
+   .. code-block:: javascript
+
+      db.students.find( { semester: 1, grades: { $gte: 85 } }, { "grades.$": 1 } )
+
+   The read operation returns the following matching documents:
+
+   .. code-block:: javascript
+
+      { "_id" : 1, "grades" : [ 87 ] }
+      { "_id" : 2, "grades" : [ 90 ] }
+      { "_id" : 3, "grades" : [ 85 ] }
+
+   Although the array field ``grades`` may contain multiple elements
+   that are greater than or equal to ``85``, the :projection:`$`
+   projection operator returns only the first matching element from the
+   array.
+
+   .. important::
+      When the :method:`~db.collection.find()` method includes a
+      :method:`~cursor.sort()`, the :method:`~db.collection.find()`
+      method applies the :method:`~cursor.sort()` to order the matching
+      documents **before** it applies the positional :projection:`$`
+      projection operator.
+
+   If an array field contains multiple documents with the same field
+   name and the :method:`~db.collection.find()` method includes a
+   :method:`~cursor.sort()` on that repeating field, the returned
+   documents may not reflect the sort order because the sort was
+   applied to the elements of the array before the :projection:`$`
+   projection operator.
+
+   Consider the following documents in the ``students`` collection
+   where the ``grades`` field is an array of documents; each document
+   contain the three field names ``grade``, ``mean``, and ``std``:
+
+   .. code-block:: javascript
+
+      { "_id" : 7, semester: 3, "grades" : [ { grade: 80, mean: 75, std: 8 },
+                                             { grade: 85, mean: 90, std: 5 },
+                                             { grade: 90, mean: 85, std: 3 } ] }
+
+      { "_id" : 8, semester: 3, "grades" : [ { grade: 92, mean: 88, std: 8 },
+                                             { grade: 78, mean: 90, std: 5 },
+                                             { grade: 88, mean: 85, std: 3 } ] }
+
+   The following example queries for documents with the array field
+   ``grades`` that contain an element with the ``mean`` greater than
+   ``70``. The query includes a projection to return the ``_id`` field
+   and only the matching array element in the ``grades`` array. The
+   query also includes a :method:`~cursor.sort()` to order by ascending
+   ``grades.grade`` field:
+
+   .. code-block:: javascript
+
+      db.students.find( { "grades.mean": { $gt: 70 } }, { "grades.$": 1 } ).sort( { "grades.grade": 1 } )
+
+   The :method:`~db.collection.find()` method applies the
+   :method:`~cursor.sort()` to the matching documents **before** it
+   applies the :projection:`$` projection operator on the ``grades``
+   array. Thus, the results with the projected array elements do not
+   reflect the ascending ``grades.grade`` sort order:
+
+   .. code-block:: javascript
+
+      { "_id" : 8, "grades" : [ { "grade" : 92, "mean" : 88, "std" : 8 } ] }
+      { "_id" : 7, "grades" : [ { "grade" : 80, "mean" : 75, "std" : 8 } ] }
+
+.. JEFF/BEN -- wanted to double check, currently we can't do a projection of { "grades.$.grade": 1 } to
+   return just the grade field, yes? When I tried the command, it acted as though it were a projection of
+   just { "grades.$": 1 }
+
+.. seealso::
+   :doc:`/reference/projection/elemMatch`
