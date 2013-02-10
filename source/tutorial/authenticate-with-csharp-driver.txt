@@ -11,33 +11,39 @@ Authenticate to MongoDB with the C# Driver
 This page is a brief overview of authenticating to a MongoDB cluster
 with the MongoDB C# Driver using version 1.8 and above.
 
-Normal Authentication
+Internal Authentication
 ---------------------
 
-To authenticate as the user "user1" with a password of "password1",
-defined in the "test" database:
+Internal authentication refers to accounts stored inside MongoDB. 
+Currently, the only way to authenticate against internal accounts
+is to use the Mongo Challenge Response mechanism, or MONGO-CR. 
+This is the default mechanism.  To authenticate as the user "user1" 
+with a password of "password1", defined in the "test" database:
 
 .. code-block:: csharp
 
-    using MongoDB.Driver; com.mongodb.MongoClient;
+    var credential = MongoCredential.CreateMongoCRCredential("test", "user1", "password1");
 
-    MongoCredential credential = MongoCredential.CreateMongoCRCredential("test", "user1", "password1");
-
-    MongoClientSettings settings = new MongoClientSettings
+    var settings = new MongoClientSettings
     {
         Credentials = new[] { credential }
     };
 
-    MongoClient mongoClient = new MongoClient(settings);
+    var mongoClient = new MongoClient(settings);
 
 Alternatively, when you only need a single user, it is possible to
 specify this in the connection string.
 
 .. code-block:: csharp
 
-    string connectionString = "mongodb://user1:password1@localhost";
+    var connectionString = "mongodb://user1:password1@localhost/test";
 
-    MongoClient mongoClient = new MongoClient(connectionString);
+    var mongoClient = new MongoClient(connectionString);
+
+.. note::
+
+   When the database is left off the connection string, the default database
+   is the "admin" database.
 
 In some cases you may need to authenticate as multiple users in
 different databases. For example, imagine a map/reduce job that reads
@@ -47,15 +53,15 @@ from the database "first" and writes the results to the database
 
 .. code-block:: csharp
 
-   MongoCredential credentialFirst = MongoCredential.CreateMongoCRCredential("first", "user1", "password1");
-   MongoCredential credentialSecond = MongoCredential.CreateMongoCRCredential("second", "user2", "password2");
+   var credentialFirst = MongoCredential.CreateMongoCRCredential("first", "user1", "password1");
+   var credentialSecond = MongoCredential.CreateMongoCRCredential("second", "user2", "password2");
 
-   MongoClientSettings settings = new MongoClientSettings
+   var settings = new MongoClientSettings
    {
-        Credentials = new[] { credentiaFirst, credentialSecond }
+        Credentials = new[] { credentialFirst, credentialSecond }
    };
 
-   MongoClient mongoClient = new MongoClient(settings);
+   var mongoClient = new MongoClient(settings);
 
 .. note::
 
@@ -63,27 +69,28 @@ from the database "first" and writes the results to the database
    are able to define a user in one database and delegate privileges
    for that user in another database.
 
-Kerberos Authentication
+External Authentication
 -----------------------
 
+External authentication refers to credentials validated outside of MongoDB.
+The external authentication provider currently used is Kerberos.
 To authenticate to a MongoDB cluster using Kerberos, you must specify
-the GSSAPI mechanism and a user name.  On windows, it is also possible
+the GSSAPI mechanism and a user name.  On Windows, it is also possible
 to provide the password.
 
 Fundamentally, the process for connecting with Kerberos is the same
 for Windows and Linux systems; however, Linux systems require the use 
-of ``kinit`` to initialize the security credentials whereas Windows
+of ``kinit`` to acquire the security credentials whereas Windows
 systems perform this action transparently using SSPI based on the account 
-running the current process (unless a password was provided in which a 
-new credentials are created on demand).
+running the current process when a password is not used.
 
 The below examples work on both Windows and Linux systems.
 
 .. code-block:: csharp
 
-   string connectionString = "mongodb://user%40REALM.COM@localhost/?authMechanism=GSSAPI";
+   var connectionString = "mongodb://user%40REALM.COM@localhost/?authMechanism=GSSAPI";
 
-   MongoClient client = new MongoClient(connectionString);
+   var client = new MongoClient(connectionString);
 
 .. note::
 
@@ -94,14 +101,14 @@ code, as in both of the following:
 
 .. code-block:: csharp
 
-    MongoCredential credential = MongoCredential.CreateGssapiCredential("user@REALM.COM");
+    var credential = MongoCredential.CreateGssapiCredential("user@REALM.COM");
 
-    MongoClientSettings settings = new MongoClientSettings
+    var settings = new MongoClientSettings
     {
         Credentials = new[] { credential }
     };
 
-    MongoClient mongoClient = new MongoClient(settings);
+    var mongoClient = new MongoClient(settings);
 
 Linux Systems
 ~~~~~~~~~~~~~
@@ -109,12 +116,13 @@ Linux Systems
 Unlike Windows, Kerberos authentication in linux is not built-in to the 
 operating system and requires the use of an external library.  Libgsasl
 is the native library used by both the mongodb server as well as the .NET
-driver.  
+driver to perform this action.
 
-Mono, the open source platform used to run the .NET driver on linux, 
+Mono, the open source platform used to run the .NET driver on Linux, 
 provides a way to map the hard-coded names of native libraries to their
-actual names, which are different based on your distribution.  The documentation
-for this feature is located here: http://www.mono-project.com/Config_DllMap.
+actual names, which can be different based on your distribution.  The 
+documentation for this feature is located here: 
+http://www.mono-project.com/Config_DllMap.
 
 Specifically for the .NET driver, the library that needs to be mapped is called
 ``libgsasl-7.dll``.  An example configuration for ubuntu looks like this:
@@ -127,3 +135,6 @@ Specifically for the .NET driver, the library that needs to be mapped is called
 
 This file should be called ``MongoDB.Driver.dll.config`` and placed beside the 
 ``MongoDB.Driver.dll`` assembly.
+
+Once this is done, ensure ``kinit`` is run before or in the startup of your
+application.
