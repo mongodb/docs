@@ -145,7 +145,7 @@ The ``reduce`` function has the following prototype:
       return result;
    }
 
-The ``map`` function exhibits the following behaviors:
+The ``reduce`` function exhibits the following behaviors:
 
 - The ``reduce`` function should *not* access the database,
   even to perform read operations.
