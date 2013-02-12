@@ -17,7 +17,7 @@ include bin/makefile.compatibility
 include bin/makefile.dynamic
 include bin/makefile.push
 
-publish:setup $(output)/sitemap.xml.gz $(public-output) $(public-output)/release.txt $(public-output)/tutorials
+publish:setup $(public-output)/sitemap.xml.gz $(public-output) $(public-output)/release.txt $(public-output)/tutorials
 	@echo "[build]: ecosystem branch is succeessfully deployed to '$(public-output)/'."
 
 # Targets to support migration procedure
@@ -35,7 +35,7 @@ $(public-output):$(output)/dirhtml
 	@rsync -a $</ $@/
 	@echo [build]: migrated '$<' to '$@'.
 
-$(output)/sitemap.xml.gz:$(public-output)
+$(public-output)/sitemap.xml.gz:$(public-output)
 	@echo -e "----------\n[sitemap]: build started\: `date`" >> $(output)/sitemap-build.log
 	@$(PYTHONBIN) bin/sitemap_gen.py --testing --config=conf-sitemap.xml 2>&1 >> $(output)/sitemap-build.log
 	@echo [sitemap]: sitemap build complete at `date`.
