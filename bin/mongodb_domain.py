@@ -161,6 +161,8 @@ class MongoDBObject(ObjectDescription):
             return _('%s (MongoDB system limit)') % (name)
         elif self.objtype == 'bsontype':
             return _('%s (BSON type)') % (name)
+        elif self.objtype == 'authrole':
+            return _('%s (User role)') % (name)
         return ''
 
     def run(self):
@@ -237,6 +239,7 @@ class MongoDBDomain(Domain):
         'macro':        ObjType(l_('macro'),       'macro'),
         'limit':        ObjType(l_('limit'),       'limit'),
         'bsontype':     ObjType(l_('bsontype'),    'bsontype'),
+        'authrole':     ObjType(l_('authrole'),    'authrole'),
     }
 
     directives = {
@@ -253,6 +256,7 @@ class MongoDBDomain(Domain):
         'macro':         MongoDBObject,
         'limit':         MongoDBObject,
         'bsontype':      MongoDBObject,
+        'authrole':      MongoDBObject,
     }
     roles = {
         'dbcommand':   MongoDBXRefRole(),
@@ -268,6 +272,7 @@ class MongoDBDomain(Domain):
         'macro':       MongoDBXRefRole(),
         'limit':       MongoDBXRefRole(),
         'bsontype':    MongoDBXRefRole(),
+        'authrole':    MongoDBXRefRole(),
     }
     initial_data = {
         'objects': {}, # fullname -> docname, objtype
