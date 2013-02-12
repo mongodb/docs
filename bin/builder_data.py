@@ -128,6 +128,7 @@ migrations = [
 #
 #   ('target', 'source', 'block'),
     ('$(public-output)/index.html', 'themes/docs.mongodb.org/index.html', 'static'),
+    ('$(public-output)/sitemap.xml', 'themes/docs.mongodb.org/sitemap.xml', 'static'),
     ('$(public-output)/10gen-gpg-key.asc', 'themes/docs.mongodb.org/10gen-gpg-key.asc', 'static'),
     ('$(public-output)/10gen-security-gpg-key.asc', 'themes/docs.mongodb.org/10gen-security-gpg-key.asc', 'static'),
     ('$(public-output)/osd.xml', 'themes/docs.mongodb.org/osd.xml', 'access'),
