@@ -58,16 +58,37 @@ On-Prem MMS has the following *required* dependencies:
 
 - MongoDB 2.2.0 or later.
 
-Also the system that runs On-Prem MMS have a local SMTP server
-(e.g. Postfix, Exim, Sendmail,) However, you may configure On-Prem MMS
-to send mail via other providers including Gmail and Sendgrid.
+- SMTP server or other email integration option.
 
-On-Prem MMS has the following *optional* dependency.
+While many Linux server-oriented distributions include a local SMTP
+server by default (e.g. Postfix, Exim, Sendmail,) you may also configure
+Hosted MMS to send mail via 3rd party providers including Gmail and Sendgrid.
 
-A Twilio API account for SMS alerting integration.
+MMS requires email for fundamental server functionality such as
+password reset and alerts.
+
+Hosted MMS has the following *optional* dependencies.
+
+- A Twilio API account for SMS alerting integration.
+- A Graphite hostname / port for charting the MMS server's internal health.
+
+Installation - Quick Start
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+At a high level, a basic installation will look like the following.
+Estimated setup time: <60 minutes
+
+#. Install a standalone local MongoDB server backed by a fast, large storage volume.
+#. Install an SMTP email server as appropriate for your environment.
+#. Install the MMS server RPM package.
+#. Configure the MMS server's URL and email addresses.
+#. Start up MMS server.
+
+Installation - Detailed
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Prepare Server
-~~~~~~~~~~~~~~
+++++++++++++++
 
 #. For AWS users, prepare MongoDB Storage:
 
@@ -81,8 +102,8 @@ Prepare Server
 
       sudo fdisk -l
 
-   Create a file system on this volume using the name you found in the
-   previous, command, using the following form:
+   Create a filesystem on this volume using the name you found in the
+   previous, command, using the following form: ::
 
       sudo mkfs -t ext4 /dev/xvd<letter>
 
@@ -91,7 +112,7 @@ Prepare Server
 
       sudo mkfs -t ext4 /dev/xvdf
 
-   You only need to create a file system the first time you initiate
+   You only need to create a filesystem the first time you initiate
    the drive.
 
    Create a directory to use as the mount point: ::
@@ -124,7 +145,7 @@ Prepare Server
       net.core.rmem_max = 16777216
 
 Install and Start MongoDB
-~~~~~~~~~~~~~~~~~~~~~~~~~
++++++++++++++++++++++++++
 
 This section assumes you're installing MongoDB on an instance running
 Red Hat, CentOS, Fedora, or Amazon Linux: Use the `Install Mongodb on
@@ -180,7 +201,7 @@ tutorial for more information.
       pre-allocate the journal files. This is normal behavior.
 
 Obtain and Install On-Prem MMS Server
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+++++++++++++++++++++++++++++++++++++
 
 .. note::
 
@@ -211,23 +232,21 @@ To install, simply extract the package, as in the following command: ::
 Optionally create a symlink in ``/etc/init.d`` to the included control
 script for convenience, as in the following: ::
 
-    sudo ln -s mms/bin/10gen-mms /etc/init.d/
+    sudo ln -s <install_dir>/bin/10gen-mms /etc/init.d/
 
 Configure On-Prem MMS Server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This section describes the configuration of the MMS server. The first
-section describes the only required configuration. All other
-configurations are optional and describe integration with email
-providers and other optional services.
+This section describes the essential configuration of the MMS server.
+More advanced configuration options are described later in
+Configuration - Advanced.
 
-Configure Required Properties
-+++++++++++++++++++++++++++++
+Required Configuration
+++++++++++++++++++++++
 
 .. note::
 
-   By default, MMS configures integration for email using local
-   sendmail on port 25.
+   By default, MMS is configured for a local SMTP server on port 25.
 
 Configure MMS properties, by editing the
 ``<install_dir>/conf/conf-mms.properties`` file. Edit the following
@@ -235,6 +254,7 @@ properties according to the needs of your deployment, as in the
 following example: ::
 
     mms.centralUrl=http://mms.example.com:8080
+
     mms.fromEmailAddr=MMS Alerts <mms-alerts@example.com>
     mms.replyToEmailAddr=mms-no-reply@example.com
     mms.adminFromEmailAddr=MMS Admin <mms-admin@example.com>
@@ -244,14 +264,14 @@ following example: ::
 These properties are blank initially, and you **must** define them
 before the MMS instance will start.
 
-Optional: Configure Email Authentication
-++++++++++++++++++++++++++++++++++++++++
+Configure Email Authentication
+++++++++++++++++++++++++++++++
 
-Configure authentication if you want to send mail using existing email
-infrastructure (i.e. SMTP,) or a service such as ``Gmail`` or ``Sendgrid`` .
+Please refer to your SMTP provider's documentation for the appropriate settings or for how to
+configure a local SMTP server as a relay. You may configure authentication if you want to
+send mail using existing email infrastructure (i.e. SMTP,) or a service such as ``Gmail`` or ``Sendgrid`` .
 
-Set the following value in the
-``<install_dir>/conf/conf-mms.properties`` file:
+Set the following value in the ``<install_dir>/conf/conf-mms.properties`` file: ::
 
     mms.emailDaoClass=com.xgen.svc.mms.dao.email.JavaEmailDao
 
@@ -261,16 +281,16 @@ provider. Defaults specified inline: ::
     mms.mail.transport=<smtp/smtps> # (defaults to smtp)
     mms.mail.hostname=<mail.example.com> # (defaults to localhost)
     mms.mail.port=<number> # (defaults to 25)
-    mms.mail.tls=<true/false> # (Defaults to false)
+    mms.mail.tls=<true/false> # (defaults to false)
 
-The following two values are optional, and unless set default to
-disabled authentication: ::
+The following two values are optional,
+and unless set default to disabled authentication: ::
 
     mms.mail.username=
     mms.mail.password=
 
-Optional: AWS Simple Email Service Configuration
-++++++++++++++++++++++++++++++++++++++++++++++++
+AWS Simple Email Service Configuration (Optional)
++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Set the following value in ``<install_dir>/conf/conf-mms.properties``
 to configure integration with AWS's Simple Email Service (SES:) ::
@@ -283,6 +303,7 @@ credentials in the following two properties: ::
     aws.accesskey=
     aws.secretkey=
 
+<<<<<<< HEAD
 Optional: Configure a Required reCaptcha for user Registration
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -306,8 +327,8 @@ token, and Twilio phone number into the following properties: ::
     twilio.auth.token=
     twilio.from.num=
 
-Start the On-Prem MMS Server
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Start and Stop the On-Prem MMS Server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 After configuring your On-Prem MMS deployment, you can start the MMS
 server with the following command. [#archive-install-link]_ ::
@@ -322,7 +343,14 @@ You can view this log information with the following command: ::
 If the server starts successfully, you will see content in this file
 that resembles the following: ::
 
-    [main] INFO  com.xgen.svc.core.ServerMain [start:244] - Started mms in: 13381 (ms)
+    [main] INFO  com.xgen.svc.core.ServerMain [start:202] - Starting mms...
+    [main] WARN  org.eclipse.jetty.server.AbstractConnector [setAcceptors:294] - Acceptors should be <=2*availableProcessors: SelectChannelConnector@0.0.0.0:0
+    [null] identityService=org.eclipse.jetty.security.DefaultIdentityService@561777b1
+    [main] INFO  com.xgen.svc.core.AppConfig [getInjector:46] - Starting app for env: hosted
+    [main] INFO  com.xgen.svc.mms.MmsAppConfig [initGuiceModules:67] - Not loading backup components
+    [main] INFO  com.xgen.svc.core.dao.graphite.GraphiteSvcImpl [<init>:67] - Graphite service not configured, events will be ignored.
+    [main] INFO  com.xgen.svc.core.dao.sms.twilio.TwilioSvcImpl [<init>:48] - Twilio service not configured, SMS events will be ignored.
+    [main] INFO  com.xgen.svc.core.ServerMain [start:266] - Started mms in: 23732 (ms)
 
 You can now use the MMS instance by visiting the URL specified in the
 ``mms.centralUrl`` parameter (e.g. http://mms.example.com:8080) to
@@ -330,7 +358,7 @@ continue configuration:
 
 Unlike the SaaS version of MMS `provided by 10gen
 <https://mms.10gen.com>`_, On-Prem MMS stores user accounts in the
-local MongoDB instance that supports the MMS instance.  When you sign
+local MongoDB instance. When you sign
 into the On-Prem MMS instance for the first time, the system will
 prompt you to register and create a new "group" for your deployment.
 
@@ -347,3 +375,99 @@ installation and configuration instructions for the MMS agent.
    ``zip`` archive, you must create a symlink located at the path
    ``/etc/init.d/10gen-mms`` that points to the
    ``<install_dir>/bin/10gen-mms``.
+
+Stopping the MMS server is as follows: ::
+
+    sudo /etc/init.d/10gen-mms stop
+
+Configuration - Advanced
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Change Port Number
+++++++++++++++++++
+
+#. Edit ``<install_dir>/conf/conf-mms.properties`` ::
+
+    mms.centralUrl=http://mms.acmewidgets.com:<newport>
+
+#. Edit ``<install_dir>/conf/mms.conf`` ::
+
+    BASE_PORT=<newport>
+
+#. Restart MMS server: ::
+
+    sudo <install_dir>/bin/10gen-mms restart
+
+
+Run as Different User
++++++++++++++++++++++
+
+#. Edit ``<install_dir>/conf/mms.conf``: ::
+
+    MMS_USER=foo_user
+
+#. Change Ownership of ``<install_dir>`` for new user: ::
+
+    sudo chown -R foo_user:foo_group <install_dir>
+
+#. Restart MMS server: ::
+
+    sudo <install_dir>/bin/10gen-mms restart
+
+
+MongoDB - Replication
++++++++++++++++++++++
+
+The backing MongoDB store is configured with connection string URIs defined in <install_dir>/conf/conf-mms.properties.
+Edit conf-mms.properties to define the replication hosts or partition MMS' databases
+onto separate machines. For example: ::
+
+    mongo.mmsdbpings.mongoUri=mongodb://host1:40000,host2:40000,host3:40000/?maxPoolSize=100
+    mongo.mmsdbpings.replicaSet=pingsreplset
+
+    mongo.mmsdbqueues.mongoUri=mongodb://host1:50000,host2:50000,host3:50000/?maxPoolSize=50
+    mongo.mmsdbqueues.replicaSet=mmsdbqueuesreplset
+
+.. note::
+
+    More information about `connection string URI format available here
+    <http://docs.mongodb.org/manual/reference/connection-string/>`_
+
+MongoDB - Auth
+++++++++++++++
+
+For standalone MongoDB nodes running with user authentication, simply add the
+username / password credentials to the MongoURI, and remember to specify
+the database as admin. For example: ::
+
+    mongo.mmsanalytics.mongoUri=mongodb://mongouser:mongopw@127.0.0.1:40000/admin?maxPoolSize=25
+    mongo.mmsanalytics.replicaSet=mmsanalyticsreplset
+
+Unfortunately, this does require the plaintext credentials be in the clear, however
+following standard practice you may reduce the permissions of the configuration file: ::
+
+    sudo chmod 600 <install_dir>/conf/conf-mms.properties
+
+
+Configure reCaptcha for user Registration (Optional)
+++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+To enable `reCaptcha anti-spam test
+<http://www.google.com/recaptcha/whyrecaptcha>`_ on new user
+registration, you may `sign up for a reCaptcha account
+<https://www.google.com/recaptcha/admin/create>`_ and provide your API
+credentials in the following two properties: ::
+
+    reCaptcha.public.key=
+    reCaptcha.private.key=
+
+Configure Twilio for SMS Alert Support (Optional)
++++++++++++++++++++++++++++++++++++++++++++++++++
+
+To receive alert notifications via SMS, signup for a Twilio account at
+<http://www.twilio.com/docs/quickstart> and enter your account ID, API
+token, and Twilio phone number into the following properties: ::
+
+    twilio.account.sid=
+    twilio.auth.token=
+    twilio.from.num=
