@@ -18,6 +18,94 @@ is necessary, this page describes settings that can be changed.
 For conceptual information about the balancer, see
 :ref:`sharding-balancing` and :ref:`sharding-balancing-internals`.
 
+.. _sharded-cluster-config-balancing-window:
+
+Schedule a Window of Time for Balancing to Occur
+------------------------------------------------
+
+You can schedule a window of time during which the balancer is allowed
+to migrate chunks, as described in the following procedures:
+
+- :ref:`sharding-schedule-balancing-window`
+
+- :ref:`sharding-balancing-remove-window`.
+
+The configured time is evaluated relative to the time zone of each
+individual :program:`mongos` instance in the sharded cluster.
+
+.. _sharded-cluster-config-default-chunk-size:
+
+Configure Default Chunk Size
+----------------------------
+
+The default chunk size for a sharded cluster is 64 megabytes. In most
+situations, the default size is appropriate for splitting and migrating
+chunks. For information on how chunk size affects deployments, see
+details, see :ref:`sharding-chunk-size`.
+
+Changing the default chunk size affects chunks that are processes during
+migrations and auto-splits but does not retroactively affect all chunks.
+
+To configure default chunk size, see :ref:`sharding-balancing-modify-chunk-size`.
+
+.. _sharded-cluster-config-max-shard-size:
+
+Change the Maximum Storage Size for a Given Shard
+-------------------------------------------------
+
+The ``maxSize`` field in the :data:`~config.shards` collection in the
+:ref:`config database <config-database>` sets the maximum size for a
+shard, allowing you to control whether the balancer will migrate chunks
+to a shard. If :data:`dataSize <~dbStats.dataSize>` is above a shard's
+``maxSize``, the balancer will not move chunks to the shard. Also, the
+balancer will not move chunks off an overloaded shard. This must happen
+manually. The ``maxSize`` value only affects the balancer's selection of
+destination shards.
+
+By default, ``maxSize`` is not specified, allowing shards to consume the
+total amount of available space on their machines if necessary.
+
+You can set ``maxSize`` both when adding a shard and once a shard is
+running.
+
+To set ``maxSize`` when adding a shard, set the :dbcommand:`addShard`
+command's ``maxSize`` parameter to the maximum size in megabytes. For
+example, the following command run in the :program:`mongo` shell adds a
+shard with a maximum size of 125 megabytes:
+
+.. code-block:: javascript
+
+   db.runCommand( { addshard : "example.net:34008", maxSize : 125 } )
+
+To set ``maxSize`` on an existing shard, insert or update the
+``maxSize`` field in the :data:`~config.shards` collection in the
+:ref:`config database <config-database>`. Set the ``maxSize`` in
+megabytes.
+
+.. example::
+
+   Assume you have the following shard without a ``maxSize`` field:
+
+   .. code-block:: javascript
+
+      { "_id" : "shard0000", "host" : "example.net:34001" }
+
+   Run the following sequence of commands in the :program:`mongo` shell
+   to insert a ``maxSize`` of 125 megabytes:
+
+   .. code-block:: javascript
+
+      use config
+      db.shards.update( { _id : "shard0000" }, { $set : { maxSize : 125 } } )
+
+   To later increase the ``maxSize`` setting to 250 megabytes, run the
+   following:
+
+   .. code-block:: javascript
+
+      use config
+      db.shards.update( { _id : "shard0000" }, { $set : { maxSize : 250 } } )
+
 .. index:: balancing; secondary throttle
 .. index:: secondary throttle
 .. _sharded-cluster-config-secondary-throttle:
@@ -57,95 +145,8 @@ You enable ``_secondaryThrottle`` directly in the
 .. code-block:: javascript
 
    use config
-   db.settings.update( { "_id" : "balancer" } , { $set : { "_secondaryThrottle" : true } } )
+   db.settings.update( { "_id" : "balancer" } , { $set : { "_secondaryThrottle" : true } , { upsert : true } } )
 
 You also can enable secondary throttle when issuing the
 :dbcommand:`moveChunk` command by setting ``_secondaryThrottle`` to
 ``true``. For more information, see :dbcommand:`moveChunk`.
-
-.. _sharded-cluster-config-balancing-window:
-
-Schedule a Window of Time for Balancing to Occur
-------------------------------------------------
-
-You can schedule a window of time during which the balancer is allowed
-to migrate chunks, as described in the following procedures:
-
-- :ref:`sharding-schedule-balancing-window`
-
-- :ref:`sharding-balancing-remove-window`.
-
-The configured time is evaluated relative to the time zone of each
-individual :program:`mongos` instance in the sharded cluster.
-
-.. _sharded-cluster-config-default-chunk-size:
-
-Configure Default Chunk Size
-----------------------------
-
-The default chunk size for a sharded cluster is 64 megabytes. In most
-situations, the default size is optimal for splitting and migrating
-chunks. For information on how chunk size affects deployments, see
-details, see :ref:`sharding-chunk-size`.
-
-Changing the default chunk size affects chunks that are processes during
-migrations and auto-splits but does not retroactively affect all chunks.
-
-To configure default chunk size, see :ref:`sharding-balancing-modify-chunk-size`.
-
-.. _sharded-cluster-config-max-shard-size:
-
-Change the Maximum Storage Size for a Given Shard
--------------------------------------------------
-
-The ``maxSize`` field in the :data:`~config.shards` collection in the
-:ref:`config database <config-database>` sets the maximum size for a
-shard, allowing you to control whether the balancer will migrate chunks
-to a shard. If :data:`dataSize <~dbStats.dataSize>` is above a shard's
-``maxSize``, the balancer will not move chunks to the shard. The
-balancer also will not move chunks off the shard. The ``maxSize`` value
-only affects the balancer's selection of destination shards.
-
-By default, ``maxSize`` is not specified, allowing shards to consume the
-total amount of available space on their machines if necessary.
-
-You can set ``maxSize`` both when adding a shard and once a shard is
-running.
-
-To set ``maxSize`` when adding a shard, set the :dbcommand:`addShard`
-command's ``maxSize`` parameter to the maximum size in megabytes. For
-example, the following command run in the :program:`mongo` shell adds a
-shard with a maximum size of 125 megabytes:
-
-.. code-block:: javascript
-
-   db.runCommand( { addshard : "example.net:34008", maxSize : 125 } )
-
-To set ``maxSize`` on an existing shard, insert or update the
-``maxSize`` field in the :data:`~config.shards` collection in the
-:ref:`config database <config-database>`. Set the ``maxSize`` in
-megabytes.
-
-.. example::
-
-   Assume you have the following shard without a ``maxSize`` field:
-
-   .. code-block:: javascript
-
-      { "_id" : "shard0000", "host" : "example.net:34001" }
-
-   Run the following sequence of commands in the :program:`mongo` shell
-   to insert a ``maxSize`` of 125 megabytes:
-
-   .. code-block:: javascript
-
-      use config
-      db.shards.update( { _id : "shard0000" }, { $set : { maxSize : 125 } }, { upsert: true } )
-
-   To later increase the ``maxSize`` setting to 250 megabytes, run the
-   following:
-
-   .. code-block:: javascript
-
-      use config
-      db.shards.update( { _id : "shard0000" }, { $set : { maxSize : 250 } } )
