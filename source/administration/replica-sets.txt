@@ -715,7 +715,6 @@ To do so, use one of the following approaches:
 
 Automatically Resync a Stale Member
 ```````````````````````````````````
-
 This procedure relies on MongoDB's regular process for initial
 sync. This will restore the data on the stale member to reflect the
 current state of the set. For an overview of MongoDB initial sync
@@ -723,8 +722,9 @@ process, see the :ref:`replica-set-syncing` section.
 
 To resync the stale member:
 
-1. Stop the member's :program:`mongod` instance using the
-   :option:`mongod --shutdown` option. Make sure to set
+1. Stop the stale member's :program:`mongod` instance/process. 
+   One way to do this is to run 
+   :option:`mongod --shutdown` on the stale member machine. Set
    :option:`--dbpath <mongod --dbpath>` to the member's data
    directory, as in the following:
 
@@ -732,11 +732,12 @@ To resync the stale member:
 
       mongod --dbpath /data/db/ --shutdown
 
-#. Delete all data and sub-directories from the member's data directory
-   such that the directory is empty.
+#. Delete all data and sub-directories from the member's data directory.
+   We do this so that we can then resync from a completely clean and empty 
+   data image for the stale member.
+   Consider making a backup first.
 
-#. Restart the :program:`mongod` instance on the member. Consider the
-   following example:
+#. Restart the :program:`mongod` instance on the member.  For example:
 
    .. code-block:: sh
 
@@ -746,29 +747,30 @@ To resync the stale member:
    take a long time, depending on the size of the database and speed
    of the network. Remember that this operation may have an impact on
    the working set and/or traffic to existing primary other members of
-   the set.
+   the set.  Note the initial sync can only occur if another member of the set is 
+   up and healthy (that member will be the source for syncing).
 
 .. index:: replica set; resync
 .. _replica-set-resync-by-copying:
 
-Resync by Copying Data from Another Member
+Resync by Copying All Datafiles from Another Member
 ``````````````````````````````````````````
 
-This approach uses the data directory of an existing member to "seed"
-the stale member. The data must be recent enough to allow the new member
-to catch up with the :term:`oplog`.
+This approach uses the datafiles of a healthy member of the replica set 
+(or a restored backup thereof)  
+to "seed" the stale member. Note the data image must be recent enough to allow the new member
+to catch up with the :term:`oplog`; an older backup would likely be too stale.
 
-To resync by copying data from another member, use one of the following
-approaches:
+Note that in general you cannot simply copy the datafiles from another replica 
+set member if it is running, as that mongod will likely be changing those datafiles 
+while our copy is underway; thus in our image will not automatically be consistent. 
+There are several approaches to get a consistent image from another server; these 
+approaches are analogous to making a backup of the datafiles on that server.  See the 
+:doc:`/administration/backups` page for details.
 
-- Create a snapshot of another member's data and then restore that
-  snapshot to the stale member. Use the snapshot procedures in
-  :doc:`/administration/backups`.
-
-- Lock another member's data with the :method:`db.fsyncLock()`
-  command, copy all of the data in the data directory, and then restore the data to the stale
-  member. Use the procedures for backup storage in
-  :doc:`/administration/backups`.
+Once you have copied all datafiles (including subdirectories) from the other set member, 
+restart the local mongod and it should come online after catching up on any write operations
+which have occurred in the cluster since the time of the restore image.
 
 .. _replica-set-security:
 
