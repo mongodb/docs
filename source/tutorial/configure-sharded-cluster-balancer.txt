@@ -1,0 +1,180 @@
+.. index:: balancing; configure
+.. _sharding-balancing-configure:
+
+==========================================================
+Configure Behavior of Balancer Process in Sharded Clusters
+==========================================================
+
+.. default-domain:: mongodb
+
+This section describes the settings you can configure on the balancer.
+For conceptual information about the balancer, see
+:ref:`sharding-balancing` and :ref:`sharding-balancing-internals`.
+
+You configure balancer settings through parameters in database commands
+or through fields in the :data:`~config.settings` collection in the
+:ref:`config database <config-database>`.
+
+.. index:: balancing; secondary throttle
+.. index:: secondary throttle
+.. _sharded-cluster-config-secondary-throttle:
+
+Require Replication before Chunk Migration (Secondary Throttle)
+---------------------------------------------------------------
+
+.. versionadded:: 2.2.1
+
+You can configure the balancer to wait for replication to secondaries
+before migrating chunks. You do so by enabling the balancer's
+``_secondaryThrottle`` parameter.
+
+Secondary throttle can speed performance in cases where you have
+migration-caused I/O peaks that do not cooperate with other workloads.
+
+.. above para is paraphrased from SERVER-7686
+
+When enabled, secondary throttle puts a ``{ w : 2 }`` write concern on
+deletes and on bulk clones, which means the balancer waits for those
+operations to replicate to at least one secondary before migrating
+chunks.
+
+.. BACKGROUND NOTES
+   Specifically, secondary throttle affects the first and fourth
+   phases (informal phases) of chunk migration. Migration can happen during
+   the second and third phases (the "steady state"):
+   1) bulk clone data from shardA to shardB in the chunk range
+   2) continue to copy over ongoing changes that occurred during the initial clone step
+      as well as current changes to that chunk range
+   3) Stop writes, allow shardB to get final changes, commit migration to config server
+   4) cleanup now-inactive data on shardA in chunk range (once all cursors are done)
+
+To enable secondary throttle, set ``_secondaryThrottle``
+to ``true`` by doing either of the following:
+
+- Issue the :dbcommand:`moveChunk` command with the
+  ``_secondaryThrottle`` parameter set to ``true``.
+
+- Enable the ``_secondaryThrottle`` setting directly in the
+  :data:`~config.settings` collection in the :ref:`config database
+  <config-database>`. To do so, run the following commands from the
+  :program:`mongo` shell:
+
+  .. code-block:: javascript
+
+     use config
+     db.settings.update( { "_id" : "balancer" } , { $set : { "_secondaryThrottle" : true } } )
+
+.. _sharded-cluster-config-no-auto-split:
+
+Prevent Auto-Splitting of Chunks
+--------------------------------
+
+.. versionadded:: 2.0.7
+
+By default, :program:`mongos` instances automatically split chunks
+during inserts or updates if the chunks exceed the default chunk size.
+When chunk distribution becomes uneven, the balancer automatically
+migrates chunks among shards. Automatic chunk migrations are crucial for
+distributing data, but for deployments with large numbers of
+:program:`mongos` instances, the automatic migration might affect the
+performance of the cluster.
+
+You can turn off the auto-splitting of chunks by enabling
+:setting:`noAutoSplit` for individual :program:`mongos` instances.
+
+.. note:: Turning off auto-splitting can lead to an imbalanced
+          distribution of data in the sharded cluster.
+
+To turn off auto-splitting, do one of the following:
+
+- When staring a :program:`mongos`, include the :option:`--noAutoSplit
+  <mongos>` command-line option.
+
+- In the configuration file for a given :program:`mongos`, include the
+  :setting:`noAutoSplit` setting.
+
+Because any :program:`mongos` in a cluster can create a split, to
+totally disable splitting in a cluster you must set
+:setting:`noAutoSplit` on all :program:`mongos`.
+
+.. warning::
+
+   With :setting:`noAutoSplit` enabled, the data in your sharded cluster
+   may become imbalanced over time. Enable with caution.
+
+.. _sharded-cluster-config-balancing-window:
+
+Schedule a Window of Time for Balancing to Occur
+------------------------------------------------
+
+You can schedule a window of time during which the balancer is allowed
+to migrate chunks. See :ref:`sharding-schedule-balancing-window` and
+:ref:`sharding-balancing-remove-window`.
+
+.. _sharded-cluster-config-default-chunk-size:
+
+Change the Default Chunk Size
+-----------------------------
+
+The default chunk size for a sharded cluster affects how often chunks
+are split and migrated. For details, see :ref:`sharding-chunk-size`.
+
+To modify the default chunk size for a sharded cluster, see
+:ref:`sharding-balancing-modify-chunk-size`.
+
+.. _sharded-cluster-config-max-shard-size:
+
+Change the Maximum Size for a Given Shard
+-----------------------------------------
+
+The ``maxSize`` field in the :data:`~config.shards` collection in the
+:ref:`config database <config-database>` sets the maximum size for a
+shard, allowing you to control disk use and affect whether the balancer
+will migrate chunks to a shard. By default, ``maxSize`` is not
+specified, allowing shards to consume the total amount of available
+space on their machines if necessary. You can set ``maxSize`` both when
+adding a shard and once a shard is running.
+
+.. seealso:: :ref:`sharding-shard-size`
+
+Set Maximum Size When Adding a Shard
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When adding a shard using the :dbcommand:`addShard` command, set the
+``maxSize`` parameter to the maximum size in megabytes. For example, the
+following command run in the :program:`mongo` shell adds a shard with a
+maximum size of 125 megabytes:
+
+.. code-block:: javascript
+
+   db.runCommand( { addshard : "example.net:34008", maxSize : 125 } )
+
+Set Maximum Size on a Running Shard
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To set ``maxSize`` on an existing shard, insert or update the
+``maxSize`` field in the :data:`~config.shards` collection in the
+:ref:`config database <config-database>`. Set the ``maxSize`` in
+megabytes.
+
+.. example:: Assume you have the following shard without a ``maxSize`` field:
+
+   .. code-block:: javascript
+
+      { "_id" : "shard0000", "host" : "example.net:34001" }
+
+   Run the following sequence of commands in the :program:`mongo` shell
+   to insert a ``maxSize`` of 125 megabytes::
+
+   .. code-block:: javascript
+
+      use config
+      db.shards.update( { _id : "shard0000" }, { $set : { maxSize : 125 } }, { upsert: true } )
+
+   To later increase the ``maxSize`` setting to 250 megabytes, run the
+   following:
+
+   .. code-block:: javascript
+
+      use config
+      db.shards.update( { _id : "shard0000" }, { $set : { maxSize : 250 } } )
