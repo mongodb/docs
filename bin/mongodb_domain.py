@@ -116,6 +116,11 @@ class MongoDBObject(ObjectDescription):
                     pass
                 elif fullname.startswith(spath):
                     pass
+                elif fullname == '$':
+                    pass
+                    # temporary: silencing the positional operator
+                    # warning, this is the namespace clash for
+                    # projection and query/update operators.
                 else:
                     self.state_machine.reporter.warning(
                         'duplicate object description of "%s", ' % fullname +
