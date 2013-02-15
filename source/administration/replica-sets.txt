@@ -715,6 +715,7 @@ To do so, use one of the following approaches:
 
 Automatically Resync a Stale Member
 ```````````````````````````````````
+
 This procedure relies on MongoDB's regular process for initial
 sync. This will restore the data on the stale member to reflect the
 current state of the set. For an overview of MongoDB initial sync
@@ -722,9 +723,8 @@ process, see the :ref:`replica-set-syncing` section.
 
 To resync the stale member:
 
-1. Stop the stale member's :program:`mongod` instance/process. 
-   One way to do this is to run 
-   :option:`mongod --shutdown` on the stale member machine. Set
+1. Stop the stale member's :program:`mongod` instance. On Linux
+   systems you can use :option:`mongod --shutdown` Set
    :option:`--dbpath <mongod --dbpath>` to the member's data
    directory, as in the following:
 
@@ -732,10 +732,9 @@ To resync the stale member:
 
       mongod --dbpath /data/db/ --shutdown
 
-#. Delete all data and sub-directories from the member's data directory.
-   We do this so that we can then resync from a completely clean and empty 
-   data image for the stale member.
-   Consider making a backup first.
+#. Delete all data and sub-directories from the member's data
+   directory.  By removing the data :setting:`dbpath`, MongoDB will
+   perform a complete resync. Consider making a backup first.
 
 #. Restart the :program:`mongod` instance on the member.  For example:
 
@@ -743,34 +742,40 @@ To resync the stale member:
 
       mongod --dbpath /data/db/ --replSet rsProduction
 
-   At this point, the :program:`mongod` will perform an initial sync. This process may
-   take a long time, depending on the size of the database and speed
-   of the network. Remember that this operation may have an impact on
-   the working set and/or traffic to existing primary other members of
-   the set.  Note the initial sync can only occur if another member of the set is 
-   up and healthy (that member will be the source for syncing).
+   At this point, the :program:`mongod` will perform an initial
+   sync. The length of the initial sync may process depends on the
+   size of the database and network connection between members of the
+   replica set. 
+
+   Initial sync operations can impact the other members of the set and
+   create additional traffic to the primary, and can only occur if
+   another member of the set is accessible and up to date. 
 
 .. index:: replica set; resync
 .. _replica-set-resync-by-copying:
 
 Resync by Copying All Datafiles from Another Member
-``````````````````````````````````````````
+```````````````````````````````````````````````````
 
-This approach uses the datafiles of a healthy member of the replica set 
-(or a restored backup thereof)  
-to "seed" the stale member. Note the data image must be recent enough to allow the new member
-to catch up with the :term:`oplog`; an older backup would likely be too stale.
+This approach uses a copy of the data files from an existing member of
+the replica set, or a back of the data files to "seed" the stale member. 
 
-Note that in general you cannot simply copy the datafiles from another replica 
-set member if it is running, as that mongod will likely be changing those datafiles 
-while our copy is underway; thus in our image will not automatically be consistent. 
-There are several approaches to get a consistent image from another server; these 
-approaches are analogous to making a backup of the datafiles on that server.  See the 
-:doc:`/administration/backups` page for details.
+The copy or backup of the data files **must** be sufficiently recent
+to allow the new member to catch up with the :term:`oplog`, otherwise
+the member would need to perform an initial sync.
 
-Once you have copied all datafiles (including subdirectories) from the other set member, 
-restart the local mongod and it should come online after catching up on any write operations
-which have occurred in the cluster since the time of the restore image.
+.. note:: 
+   
+   In most cases you cannot copy data files from a running
+   :program:`mongod` instance to another, because the data files will
+   change during the file copy operation. Consider the
+   :doc:`/administration/backups` documentation for several methods
+   that you can use to capture a consistent snapshot of a running
+   :program:`mongod` instance.
+
+After you have copied the data files from the "seed" source, start the
+:program:`mongod` instance and allow it to apply all operations from
+the oplog until it refelcts the current state of the replica set.
 
 .. _replica-set-security:
 
@@ -790,7 +795,12 @@ Additionally, MongoDB provides an authentication mechanism for
 replica sets. These instances enable authentication but specify a
 shared key file that serves as a shared password.
 
-.. versionadded:: 1.8 for replica sets (1.9.1 for sharded replica sets) added support for authentication.
+.. versionadded:: 1.8 
+   Added support authentication in replica set deployments.
+
+.. versionchanged:: 1.9.1
+   Added support authentication in sharded replica set deployments.
+                 
 
 To enable authentication add the following option to your configuration file:
 
@@ -1144,14 +1154,22 @@ the oplog has the wrong data type in the ``ts`` field.
 
    .. code-block:: javascript
 
-      { "ts" : {t: 1347982456000, i: 1}, "h" : NumberLong("8191276672478122996"), "op" : "n", "ns" : "", "o" : { "msg" : "Reconfig set", "version" : 4 } }
+      { "ts" : {t: 1347982456000, i: 1},
+        "h" : NumberLong("8191276672478122996"), 
+        "op" : "n", 
+        "ns" : "", 
+        "o" : { "msg" : "Reconfig set", "version" : 4 } }
 
    And the second query returns this as the last entry where ``ts``
    has the ``Timestamp`` type:
 
    .. code-block:: javascript
 
-      { "ts" : Timestamp(1347982454000, 1), "h" : NumberLong("6188469075153256465"), "op" : "n", "ns" : "", "o" : { "msg" : "Reconfig set", "version" : 3 } }
+      { "ts" : Timestamp(1347982454000, 1), 
+        "h" : NumberLong("6188469075153256465"), 
+        "op" : "n", 
+        "ns" : "", 
+        "o" : { "msg" : "Reconfig set", "version" : 3 } }
 
    Then the value for the ``ts`` field in the last oplog entry is of the
    wrong data type.
@@ -1161,7 +1179,8 @@ use an update operation that resembles the following:
 
 .. code-block:: javascript
 
-   db.oplog.rs.update({ts:{t:1347982456000,i:1}}, {$set:{ts:new Timestamp(1347982456000, 1)}})
+   db.oplog.rs.update( { ts: { t:1347982456000, i:1 } }, 
+                       { $set: { ts: new Timestamp(1347982456000, 1)}})
 
 Modify the timestamp values as needed based on your oplog entry. This
 operation may take some period to complete because the update must
