@@ -5,3 +5,8 @@
    operators *without* having a geospatial index; however, geospatial
    indexes will support much faster geospatial queries than the
    unindexed equivalents.
+
+.. note::
+
+   A geospatial index *must* exist on a field and the field must hold coordinates
+   before you can use any of the geolocation query operators.
