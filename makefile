@@ -17,7 +17,7 @@ include bin/makefile.compatibility
 include bin/makefile.dynamic
 include bin/makefile.push
 
-publish:setup $(public-output)/sitemap.xml.gz $(public-output) $(public-output)/release.txt $(public-output)/tutorials
+publish:setup $(public-output)/sitemap.xml.gz $(public-output) $(public-output)/release.txt $(public-output)/tutorials migrations
 	@echo "[build]: ecosystem branch is succeessfully deployed to '$(public-output)/'."
 
 # Targets to support migration procedure
@@ -51,6 +51,11 @@ tutorials:$(public-output)/tutorial
 	@ln -f -s tutorial $@
 $(public-output)/tutorials:tutorials
 	@mv $< $@
+$(public-output)/_images/%:source/images/% $(public-output)
+	@cp $< $@
+	@echo [build]: migrating '$<' to '$@'
+MIGRATIONS = $(public-output)/_images/MongoDB_SingleNode.template $(public-output)/_images/MongoDB_ReplicaSetStack.template $(public-output)/_images/MongoDB_ReplicaSetMember.template
+migrations:$(MIGRATIONS)
 
 # Archiving $(public-output) and other hygene targets.
 clean:
