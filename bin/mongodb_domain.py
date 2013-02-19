@@ -86,9 +86,6 @@ class MongoDBObject(ObjectDescription):
         objectname = self.options.get(
             'object', self.env.temp_data.get('mongodb:object'))
 
-        if self.objtype == 'dbcommand':
-            print("dbcommands in add_target_and_index -->" + str(name_obj))
-
         if self.objtype == 'binary':
             fullname = 'bin.' + name_obj[0]
         else:
@@ -134,6 +131,8 @@ class MongoDBObject(ObjectDescription):
                 pass
             else:
                 objects[fullname] = self.env.docname, self.objtype
+        else:
+            print('[sphinx]: object "' + fullname + '" not cross reference-able because of collision')
 
         indextext = self.get_index_text(objectname, name_obj)
         if indextext:
