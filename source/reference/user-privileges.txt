@@ -1,0 +1,277 @@
+===============================
+User Privilege Roles in MongoDB
+===============================
+
+.. default-domain:: mongodb
+
+.. versionadded:: 2.4
+
+In version 2.4, MongoDB adds support for the following user roles:
+
+.. _user-roles:
+
+Roles
+-----
+
+.. versionchanged:: 2.4
+
+Roles in MongoDB provide users with a set of specific privileges, on
+specific logical databases. Users may have multiple roles, and have
+different roles on different logical database. Roles only grant
+privileges and never limit access: :authrole:`read` permissions on
+the ``records`` database database and the
+:authrole:`readWriteAnyDatabase` permission, that user will be able to
+write data to the ``records`` database.
+
+.. note::
+
+   MongoDB 2.4 also supports the "old-style" access control roles
+   provided by MongoDB 2.2, unless explicitly disabled using the
+   ``supportCompatibilityFormPrivilegeDocuments`` option to
+   :setting:`setParameter`, as set in the following command-line
+   invocation of MongoDB:
+
+   .. code-block:: sh
+
+      mongod --setParameter supportCompatibilityFormPrivilegeDocuments=false
+
+   In general, you should set this option if your deployment does not
+   need to support legacy user documents. Typically legacy user
+   documents are only useful during the upgrade process and while you
+   migrate applications to the updated privilege document form.
+
+See :ref:`system-users-documents` and :ref:`delegated-credentials` for
+more information about permissions and authentication in MongoDB.
+
+Database User Roles
+~~~~~~~~~~~~~~~~~~~
+
+.. authrole:: read
+
+   Provides users with the ability to read data from any collection
+   within a specific logical database. This includes
+   :method:`~db.collection.find()` and the following :term:`database
+   commands`:
+
+   - :dbcommand:`aggregate`
+   - :dbcommand:`checkShardingIndex`
+   - :dbcommand:`cloneCollectionAsCapped`
+   - :dbcommand:`collStats`
+   - :dbcommand:`count`
+   - :dbcommand:`dataSize`
+   - :dbcommand:`dbHash`
+   - :dbcommand:`dbStats`
+   - :dbcommand:`distinct`
+   - :dbcommand:`filemd5`
+   - :dbcommand:`geoNear`
+   - :dbcommand:`geoSearch`
+   - :dbcommand:`geoWalk`
+   - :dbcommand:`group`
+   - :dbcommand:`mapReduce` (inline output only.)
+   - :dbcommand:`text` (experimental feature.)
+
+.. authrole:: readWrite
+
+   Provides users with the ability to read from or write to any
+   collection within a specific logical database. Users with
+   :authrole:`readWrite` have access to all of the operations
+   available to :authrole:`read` users, as well as the following basic
+   write operations: :method:`~db.collection.insert()`,
+   :method:`~db.collection.remove()`, and
+   :method:`~db.collection.update()`.
+
+   Additionally, users with the :authrole:`readWrite` have access to
+   the following :term:`database commands`:
+
+   - :dbcommand:`cloneCollection` (as the target database.)
+   - :dbcommand:`convertToCapped`
+   - :dbcommand:`createCollection`
+   - :dbcommand:`create`
+   - :method:`~db.collection.drop()`
+   - :dbcommand:`dropIndexes`
+   - :dbcommand:`dropIndexes`
+   - :dbcommand:`emptycapped`
+   - :method:`~db.collection.ensureIndex()`
+   - :dbcommand:`ensureIndex`
+   - :dbcommand:`findAndModify`
+   - :dbcommand:`mapReduce` (output to a collection.)
+   - :dbcommand:`renameCollection` (within the same database.)
+
+Database Administration Roles
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. authrole:: dbAdmin
+
+   Provides the ability to perform the following set of administrative
+   operations within the scope of this logical database.
+
+   - :dbcommand:`clean`
+   - :dbcommand:`collMod`
+   - :dbcommand:`collStats`
+   - :dbcommand:`compact`
+   - :dbcommand:`convertToCapped`
+   - :dbcommand:`createCollection`
+   - :dbcommand:`create`
+   - :dbcommand:`dbStats`
+   - :method:`~db.collection.drop()`
+   - :dbcommand:`dropIndexes`
+   - :dbcommand:`ensureIndex`
+   - :dbcommand:`profile`
+   - :dbcommand:`reIndex`
+   - :dbcommand:`renameCollection` (within a single database.)
+   - :dbcommand:`validate`
+
+   Furthermore only :authrole:`dbAdmin` has the ability to read the
+   :data:`system.profile <<database>.system.profile>` collection.
+
+   .. - :dbcommand:`indexStats` (experimental feature.)
+   .. - :dbcommand:`storageDetails` (experimental command.)
+
+      (not documented.)
+
+   .. TODO integrate into the documentation..
+
+      to perform renameCollection across databases.  To do so, you
+      need :authrole:`readWrite` on the target, and either
+      (:authrole:`readWrite` or (:authrole:`read` and
+      :authrole:`dbAdmin`)) on the source.
+
+.. authrole:: userAdmin
+
+   Allows users to read and write data to the :data:`system.users
+   <<database>.system.users>` collection. of any database. Users with
+   this role will be able to modify permissions for existing users,
+   and create new users. :authrole:`userAdmin` does not restrict the
+   permissions that a user can grant, and an :authrole:`userAdmin`
+   user can grant privileges to themselves or other users in excess of
+   the :authrole:`userAdmin` users' current privileges.
+
+   :authrole:`userAdmin` is effectively the *superuser* role for
+   a specific database. Users with :authrole:`userAdmin` can grant
+   themselves all privileges.
+
+Administrative Roles
+--------------------
+
+.. authrole:: clusterAdmin
+
+   :authrole:`clusterAdmin` grants access to several administration
+   options :term:`replica set` and :term:`sharded cluster`
+   administrative functions.
+
+   :authrole:`clusterAdmin` is only applicable on the ``admin``
+   database.
+
+   Specifically, users with the :authrole:`clusterAdmin` role have
+   access to the following operations:
+
+   - :dbcommand:`addShard`
+   - :dbcommand:`closeAllDatabases`
+   - :dbcommand:`connPoolStats`
+   - :dbcommand:`connPoolSync`
+   - :dbcommand:`_cpuProfilerStart`
+   - :dbcommand:`_cpuProfilerStop`
+   - :dbcommand:`cursorInfo`
+   - :dbcommand:`diagLogging`
+   - :dbcommand:`dropDatabase`
+   - :dbcommand:`enableSharding`
+   - :dbcommand:`flushRouterConfig`
+   - :dbcommand:`fsync`
+   - :dbcommand:`getCmdLineOpts`
+   - :dbcommand:`getLog`
+   - :dbcommand:`getParameter`
+   - :dbcommand:`getShardMap`
+   - :dbcommand:`getShardVersion`
+   - :dbcommand:`hostInfo`
+   - :dbcommand:`inprog`
+   - :dbcommand:`killCursors`
+   - :dbcommand:`killop`
+   - :dbcommand:`listDatabases`
+   - :dbcommand:`listShards`
+   - :dbcommand:`logRotate`
+   - :dbcommand:`moveChunk`
+   - :dbcommand:`movePrimary`
+   - :dbcommand:`netstat`
+   - :dbcommand:`removeShard`
+   - :dbcommand:`repairDatabase`
+   - :dbcommand:`replSetFreeze`
+   - :dbcommand:`replSetGetStatus`
+   - :dbcommand:`replSetInitiate`
+   - :dbcommand:`replSetMaintenance`
+   - :dbcommand:`replSetReconfig`
+   - :dbcommand:`replSetStepDown`
+   - :dbcommand:`replSetSyncFrom`
+   - :dbcommand:`resync`
+   - :dbcommand:`serverStatus`
+   - :dbcommand:`setParameter`
+   - :dbcommand:`setShardVersion`
+   - :dbcommand:`shardCollection`
+   - :dbcommand:`shardingState`
+   - :dbcommand:`shutdown`
+   - :dbcommand:`splitChunk`
+   - :dbcommand:`splitVector`
+   - :dbcommand:`split`
+   - :dbcommand:`top`
+   - :dbcommand:`touch`
+   - :dbcommand:`unlock`
+   - :dbcommand:`unsetSharding`
+
+Any Database Roles
+------------------
+
+.. note::
+
+   You must specify the following "any" database roles on the
+   ``admin`` databases. These roles apply to all databases in a
+   :program:`MongoDB` instance, and are roughly equivalent to their
+   single-database equivalents.
+
+.. authrole:: readAnyDatabase
+
+   :authrole:`readAnyDatabase` provides users with the same read-only
+   permissions as :authrole:`read`, except it applies to *all* logical
+   databases in the MongoDB environment.
+
+.. authrole:: readWriteAnyDatabase
+
+   :authrole:`readWriteAnyDatabase` provides users with the same read and
+   write permissions as :authrole:`readWrite`, except it applies to *all*
+   logical databases in the MongoDB environment.
+
+.. authrole:: userAdminAnyDatabase
+
+   :authrole:`userAdminAnyDatabase` provides users with the same
+   access to user administration operations as :authrole:`userAdmin`,
+   except it applies to *all* logical databases in the MongoDB
+   environment.
+
+   .. warning::
+
+      Because users with :authrole:`userAdminAnyDatabase` and
+      :authrole:`userAdmin` have the ability to create and modify
+      permissions in addition to their own level of access, this role
+      is effectively the MongoDB system superuser.
+
+.. authrole:: dbAdminAnyDatabase
+
+   :authrole:`dbAdminAnyDatabase` provides users with the same access
+   to database administration operations as :authrole:`dbAdmin`,
+   except it applies to *all* logical databases in the MongoDB
+   environment.
+
+Combined Access
+---------------
+
+Some operations are only available to users that have multiple
+roles. Consider the following:
+
+.. describe:: :method:`sh.status()`
+
+   Requires :authrole:`clusterAdmin` and :authrole:`read` access to
+   the :data:`config` database.
+
+.. describe:: :dbcommand:`applyOps`, :dbcommand:`eval`, and :method:`db.eval()`
+
+   Requires :authrole:`readAnyDatabase`, :authrole:`readWriteAnyDatabase`,
+   :authrole:`userAdminAnyDatabase`,:authrole:`dbAdminAnyDatabase` and
+   :authrole:`clusterAdmin` (on the ``admin`` database.)
