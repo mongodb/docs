@@ -322,8 +322,10 @@ class MongoDBDomain(Domain):
         name, obj = self.find_obj(env, objectname, target, typ, searchorder)
 
         if obj is None:
-            name, obj = self.find_obj(env, 'iddup' + name, target, typ, searchorder)
+            name, obj = self.find_obj(env, 'iddup.' + name, target, typ, searchorder)
             if obj is None:
+                # print names and info from the node object at this
+                # point to report on links that fail to resolve
                 return None
 
         if name.startswith('bin.'):
