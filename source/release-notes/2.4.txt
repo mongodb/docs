@@ -299,6 +299,59 @@ likely to appear in responses than words from other fields.
    when creating the index, you can find the name using
    :method:`db.collection.getIndexes()`
 
+.. _text-index-specify-language:
+
+Specify Languages for Text Index
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The default language associated with the indexed data determines the
+list of stop words and the rules for the stemmer and tokenizer. The
+default language for the indexed data is ``english``.
+
+Use the ``default_language`` option when creating the ``text`` index to
+specify a different language. See :ref:`text-search-languages`.
+
+The following example creates a ``text`` index on the
+``content`` field and sets the ``default_language`` to
+``spanish``:
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( { content : "text" },
+                              { default_language: "spanish" } )
+
+If a collection contains documents that are in different languages, the
+individual documents can specify the language to use.
+
+- By default, if the documents in the collection contain a field named
+  ``language``, the value of the ``language`` field overrides the
+  default language.
+
+  For example, the following document overrides the default language
+  ``spanish`` with ``portuguese``, the value in its ``language`` field.
+
+  .. code-block:: javascript
+
+     { content: "A sorte protege os audazes", language: "portuguese" }
+
+- To use a different field to override the default language, specify the
+  field with the ``language_override`` option when creating the index.
+
+  For example, if the documents contain the field named ``myLanguage``
+  instead of ``language``, create the ``text`` index with the
+  ``language_override`` option.
+
+  .. code-block:: javascript
+
+     db.collection.ensureIndex( { content : "text" },
+                                { language_override: "myLanguage" } )
+
+.. .. note::
+.. If you specify a ``default_language`` of ``"none"``, or the override
+   language is ``"none"``, the :dbcommand:`text` command will not stem
+   the words. The command will also consider all words, i.e., it will not
+   drop the stop words.
+
 Text Queries
 ^^^^^^^^^^^^
 
@@ -363,9 +416,11 @@ cursor.
 
    :param string language:
 
-      Optional. Specify the language that determines the tokenization,
-      stemming, and the stop words for the search. The default language
-      is ``english``.
+      Optional. Specify, for the search, the language that determines
+      the list of stop words and the rules for the stemmer and
+      tokenizer. The default language is the value of the
+      ``default_language`` field specified during the index creation.
+      See :ref:`text-search-languages` for the supported languages.
 
    :return:
 
@@ -476,6 +531,44 @@ cursor.
         exclude (``0``) the ``_id`` field. Within the ``project``
         document, you cannot mix inclusions (i.e. ``<fieldA>: 1``) and
         exclusions (i.e. ``<fieldB>: 0``), except for the ``_id`` field.
+
+.. _text-search-languages:
+
+Languages Supported in Text Search
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``text`` index and the :dbcommand:`text` command support the
+following languages:
+
+- ``danish``
+
+- ``dutch``
+
+- ``english``
+
+- ``finnish``
+
+- ``french``
+
+- ``german``
+
+- ``hungarian``
+
+- ``italian``
+
+- ``norwegian``
+
+- ``portuguese``
+
+- ``romanian``
+
+- ``russian``
+
+- ``spanish``
+
+- ``swedish``
+
+- ``turkish``
 
 .. _kerberos-authentication:
 
