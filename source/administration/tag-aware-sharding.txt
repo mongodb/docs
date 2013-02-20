@@ -24,7 +24,7 @@ sharding in MongoDB deployments.
 
 .. note::
 
-   Shard key tags are entirely distinct from :ref:`replica set member
+   Shard key rage tags are entirely distinct from :ref:`replica set member
    tags <replica-set-read-preference-tag-sets>`.
 
 Behavior and Operations
@@ -33,20 +33,19 @@ Behavior and Operations
 Tags in a sharded cluster are pieces of metadata that dictate the
 policy and behavior of the cluster balancer :term:`balancer`. Using
 tags, you may associate individual shards in a cluster with one or
-more strings, or tags. Then, you can assign this tag string to a range
+more tags. Then, you can assign this tag string to a range
 of :term:`shard key` values for a sharded collection. When migrating a
 chunk, the balancer will select a destination shard based on the
 configured tag ranges.
 
-To migrate chunks in a tagged environment, the balancer selects a
-target shard with a tag range that has an *upper* bound that *greater
-than* the migrating chunk's *lower* bound. If a shard with a matching
-tagged range exists, the balancer will migrate the chunk to that
-shard.
+The balancer migrates chunks in tagged ranges to shards with those
+tags, if tagged shards are not balanced. [#specific-tagged-migrations]_
 
-.. note:: The balancer may migrate chunks to tagged shards that
-   contain values that exceed the upper bound of the selected tag
-   range.
+.. note::
+
+   Because a single chunk may span different tagged shard key ranges,
+   the balancer may migrate chunks to tagged shards that contain
+   values that exceed the upper bound of the selected tag range.
 
 .. example::
 
@@ -63,11 +62,20 @@ shard.
    values ranging between ``150`` and ``220`` to a shard tagged
    ``NYC``, since ``150`` is closer to ``200`` than ``300``.
 
-After configuring shard tags, the cluster may take some time to
-reach the proper distribution of data, depending on the division of
-chunks (i.e. splits) and the current distribution of data in the
-cluster. Once configured, the balancer will respect tag ranges during
-future :ref:`balancing rounds <sharding-internals-balancing>`.
+After configuring tags on shards and ranges of the shard key, the
+cluster may take some time to reach the proper distribution of data,
+depending on the division of chunks (i.e. splits) and the current
+distribution of data in the cluster. Once configured, the balancer
+will respect tag ranges during future :ref:`balancing rounds
+<sharding-internals-balancing>`.
+
+.. [#specific-tagged-migrations] To migrate chunks in a tagged
+   environment, the balancer selects a target shard with a tag range
+   that has an *upper* bound that is *greater than* the migrating
+   chunk's *lower* bound. If a shard with a matching tagged range
+   exists, the balancer will migrate the chunk to that shard.
+
+
 
 Administer Shard Tags
 ---------------------
@@ -101,11 +109,11 @@ the ``NRT`` tag from a shard:
 Tag a Shard Key Range
 ~~~~~~~~~~~~~~~~~~~~~
 
-To assign a range of shard key values to a tag, use the
+To assign a tag to a range of shard keys use the
 :method:`sh.addTagRange()` method when connected to a
 :program:`mongos` instance. Any given shard key range may only have
-*one* assigned tag. However, you may assign the same tag to multiple
-shard key rage.
+*one* assigned tag. You cannot overlap defined ranges, or tag the same
+range more than once.
 
 .. example::
 
@@ -121,6 +129,11 @@ shard key rage.
       sh.addTagRange("records.users", { zipcode: "10001" }, { zipcode: "10281" }, "NYC")
       sh.addTagRange("records.users", { zipcode: "11201" }, { zipcode: "11240" }, "NYC")
       sh.addTagRange("records.users", { zipcode: "94102" }, { zipcode: "94135" }, "SFO")
+
+.. note::
+
+   Shard rages are always inclusive of the lower value and exclusive
+   of the upper boundary.
 
 Remove a Tag From a Shard Key Range
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
