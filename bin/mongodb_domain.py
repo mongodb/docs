@@ -86,53 +86,55 @@ class MongoDBObject(ObjectDescription):
         objectname = self.options.get(
             'object', self.env.temp_data.get('mongodb:object'))
 
-        if self.objtype == 'binary':
+        if self.objtype == 'dbcommand':
+            fullname = 'dbcmd.' + name_obj[0]
+        elif self.objtype == 'binary':
             fullname = 'bin.' + name_obj[0]
+        elif name_obj[0] in self.state.document.ids:
+            fullname = 'iddup.' + name_obj[0]
         else:
             fullname = name_obj[0]
 
-        if fullname not in self.state.document.ids:
-            signode['names'].append(fullname)
-            signode['ids'].append(fullname.replace('$', '_S_'))
-            signode['first'] = not self.names
-            self.state.document.note_explicit_target(signode)
-            objects = self.env.domaindata['mongodb']['objects']
-            if fullname in objects:
-                path = self.env.doc2path(self.env.domaindata['mongodb']['objects'][fullname][0])
-                spath = basename(path)
-                sspath = basename(self.state_machine.reporter.source)
+        signode['names'].append(fullname)
+        signode['ids'].append(fullname.replace('$', '_S_'))
+        signode['first'] = not self.names
+        self.state.document.note_explicit_target(signode)
+        objects = self.env.domaindata['mongodb']['objects']
+        if fullname in objects:
+            path = self.env.doc2path(self.env.domaindata['mongodb']['objects'][fullname][0])
+            spath = basename(path)
+            sspath = basename(self.state_machine.reporter.source)
 
-                if spath in composite_pages:
-                    pass
-                elif sspath in composite_pages:
-                    pass
-                elif spath == fullname:
-                    pass
-                elif spath == fullname.lstrip('$'):
-                    pass
-                elif spath == fullname.lstrip('_'):
-                    pass
-                elif path == self.state_machine.reporter.source:
-                    pass
-                elif fullname.startswith(spath):
-                    pass
-                elif fullname == '$':
-                    pass
-                    # temporary: silencing the positional operator
-                    # warning, this is the namespace clash for
-                    # projection and query/update operators.
-                else:
-                    self.state_machine.reporter.warning(
-                        'duplicate object description of "%s", ' % fullname +
-                        'other instance in ' + path,
-                        line=self.lineno)
-
-            if self.env.docname.rsplit('/', 1)[1] in composite_pages:
+            if spath in composite_pages:
                 pass
+            elif sspath in composite_pages:
+                pass
+            elif spath == fullname:
+                pass
+            elif spath == fullname.lstrip('$'):
+                pass
+            elif spath == fullname.lstrip('_'):
+                pass
+            elif path == self.state_machine.reporter.source:
+                pass
+            elif fullname.startswith(spath):
+                pass
+            elif fullname == '$':
+                pass
+                # temporary: silencing the positional operator
+                # warning, this is the namespace clash for
+                # projection and query/update operators.
             else:
-                objects[fullname] = self.env.docname, self.objtype
+                self.state_machine.reporter.warning(
+                    'duplicate object description of "%s", ' % fullname +
+                    'other instance in ' + path,
+                    line=self.lineno)
+
+        if self.env.docname.rsplit('/', 1)[1] in composite_pages:
+            pass
         else:
-            print('[sphinx]: object "' + fullname + '" not cross reference-able because of collision')
+            objects[fullname] = self.env.docname, self.objtype
+
 
         indextext = self.get_index_text(objectname, name_obj)
         if indextext:
@@ -294,6 +296,9 @@ class MongoDBDomain(Domain):
         if typ == 'program':
             name = 'bin.' + name
             newname = name
+        elif typ == 'dbcommand':
+            name = 'dbcmd.' + name
+            newname = name
 
         searchorder = 1
 
@@ -316,11 +321,18 @@ class MongoDBDomain(Domain):
         searchorder = node.hasattr('refspecific') and 1 or 0
         name, obj = self.find_obj(env, objectname, target, typ, searchorder)
 
-        if not obj:
-            return None
+        if obj is None:
+            name, obj = self.find_obj(env, 'iddup' + name, target, typ, searchorder)
+            if obj is None:
+                return None
 
         if name.startswith('bin.'):
             name = name.split('.', 1)[1]
+        elif name.startswith('dbcmd.'):
+            name = name.split('.', 1)[1]
+        elif name.startswith('iddup.'):
+            name = name.split('.', 1)[1]
+        
 
         return make_refnode(builder, fromdocname, obj[0],
                             name.replace('$', '_S_'), contnode, name)
