@@ -88,6 +88,10 @@ class MongoDBObject(ObjectDescription):
 
         if self.objtype == 'dbcommand':
             fullname = 'dbcmd.' + name_obj[0]
+        elif self.objtype == 'operator':
+            fullname = 'op.' + name_obj[0]
+        elif self.objtype == 'projection':
+            fullname = 'prj.' + name_obj[0]
         elif self.objtype == 'binary':
             fullname = 'bin.' + name_obj[0]
         elif name_obj[0] in self.state.document.ids:
@@ -299,6 +303,12 @@ class MongoDBDomain(Domain):
         elif typ == 'dbcommand':
             name = 'dbcmd.' + name
             newname = name
+        elif typ == 'operator':
+            name = 'op.' + name
+            newname = name
+        elif typ == 'projection':
+            name = 'prj.' + name
+            newname = name
 
         searchorder = 1
 
@@ -333,6 +343,10 @@ class MongoDBDomain(Domain):
         elif name.startswith('dbcmd.'):
             name = name.split('.', 1)[1]
         elif name.startswith('iddup.'):
+            name = name.split('.', 1)[1]
+        elif name.startswith('op.'):
+            name = name.split('.', 1)[1]
+        elif name.startswith('prj.'):
             name = name.split('.', 1)[1]
         
 
