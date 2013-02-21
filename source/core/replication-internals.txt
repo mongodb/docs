@@ -289,18 +289,20 @@ behaviors:
 Multithreaded Replication
 -------------------------
 
-MongoDB supports multithreaded replication by applying write operations
-on secondary nodes in batches. Each batch is divided among many threads.
-The multithreaded writes allow for concurrent CPU usage.
+MongoDB applies write operations in batches using a multithreaded
+approach. The replication process divides each batch among a group of
+threads which apply many operations with greater concurrency.
 
-Despite the multithreaded writes, reads on secondaries do not "see"
-operations applied out of order. While the threads are writing, MongoDB
-blocks read operations, even if the write operations yield.
+Even though threads may apply operations out of order, a client
+reading data from a secondary will never return documents that reflect
+an in-between state that never existed on the primary. To ensure this
+consistency, MongoDB blocks all read operations while applying the
+batch of operations
 
-Before writing a batch of oplog operations, MongoDB fetches all the
-memory pages that contain the data and indexes to be written. The
-prefetch stage minimizes the amount of time MongoDB must hold the write
-lock to apply operations.
+To help improve the performance of operation application, MongoDB
+fetches all the memory pages that hold data and indexes that the
+operations in the batch will affect. The prefetch stage minimizes the
+amount of time MongoDB must hold the write lock to apply operations.
 
 Pre-Fetching Indexes to Improve Replication Throughput
 ------------------------------------------------------
