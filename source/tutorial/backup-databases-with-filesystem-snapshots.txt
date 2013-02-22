@@ -14,7 +14,7 @@ files. These methods complete quickly and work reliably, but require
 more system configuration outside of MongoDB.
 
 .. seealso:: :doc:`/administration/backups` and
-   :doc:`/tutorial/backup-databases-with-filesystem-snapshots`.
+   :doc:`/tutorial/backup-databases-with-binary-database-dumps`.
 
 .. _snapshots-overview:
 
@@ -47,7 +47,7 @@ Snapshots have the following limitations:
   running the backup operation and must ensure that no writes occur during
   the entire backup procedure.
 
-  If you do use journaling, the journal must reside on the same volume
+  If you do use journaling, the journal **must** reside on the same volume
   as the data.
 
 - Snapshots create an image of an entire disk image. Unless you need
@@ -60,6 +60,10 @@ Snapshots have the following limitations:
 
 - Ensure that you copy data from snapshots and onto other systems to
   ensure that data is safe from site failures.
+
+- Although different snapshots methods provide different capability, the
+  LVM method outlined below does not provide any capacity for
+  capturing incremental backups.
 
 .. _backup-with-journaling:
 
@@ -108,6 +112,13 @@ This section provides an overview of a simple backup process
 using :term:`LVM` on a Linux system. While the tools, commands, and paths may
 be (slightly) different on your system the following steps provide a
 high level overview of the backup operation.
+
+.. note::
+
+   Only use the following procedure as a guideline for a backup system
+   and infrastructure. Production backup systems must consider a
+   number of application specific requirements and factors unique to
+   specific environments.
 
 .. _lvm-backup-operation:
 
@@ -166,19 +177,19 @@ archives the data from the snapshot:
 .. code-block:: sh
 
    umount /dev/vg0/mdb-snap01
-   dd if=/dev/vg0/mdb-snap01 | tar -czf mdb-snap01.tar.gz -
+   dd if=/dev/vg0/mdb-snap01 | gzip > mdb-snap01.tar.gz
 
 The above command sequence does the following:
 
 - Ensures that the ``/dev/vg0/mdb-snap01`` device is not mounted.
 
 - Performs a block level copy of the entire snapshot image using the ``dd``
-  command and compresses the result in a gzipped tar archive in the
+  command and compresses the result in a gzipped file in the
   current working directory.
 
   .. warning::
 
-     This command will create a large ``tar.gz`` file in your current
+     This command will create a large ``gz`` file in your current
      working directory. Make sure that you run this command in a file
      system that has enough free space.
 
@@ -193,7 +204,7 @@ sequence of commands:
 .. code-block:: sh
 
    lvcreate --size 1G --name mdb-new vg0
-   tar -xzf mdb-snap01.tar.gz | dd of=/dev/vg0/mdb-new
+   gzip -d -c mdb-snap01.tar.gz | dd of=/dev/vg0/mdb-new
    mount /dev/vg0/mdb-new /srv/mongodb
 
 The above sequence does the following:
@@ -209,19 +220,25 @@ The above sequence does the following:
 
      Change ``1G`` to your desired volume size.
 
-- Uncompresses and unarchives the ``mdb-snap01.tar.gz`` into the
+- Uncompresses and unarchives the ``mdb-snap01.gz`` into the
   ``mdb-new`` disk image.
 
 - Mounts the ``mdb-new`` disk image to the ``/srv/mongodb`` directory.
   Modify the mount point to correspond to your MongoDB data file
   location, or other location as needed.
 
+.. note::
+
+   The restored snapshot will have a stale ``mongod.lock`` file. If
+   you do not remove this file from the snapshot, MongoDB will assume
+   that the stale lock file indicates an unclean shutdown.
+
 .. _backup-restore-from-snapshot:
 
 Restore Directly from a Snapshot
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To restore a backup without writing to a compressed ``tar`` archive, use
+To restore a backup without writing to a compressed ``gz`` file, use
 the following sequence of commands:
 
 .. code-block:: sh
@@ -245,9 +262,9 @@ Consider the following procedure:
 .. code-block:: sh
 
    umount /dev/vg0/mdb-snap01
-   dd if=/dev/vg0/mdb-snap01 | ssh username@example.com tar -czf /opt/backup/mdb-snap01.tar.gz
+   dd if=/dev/vg0/mdb-snap01 | ssh username@example.com gzip > /opt/backup/mdb-snap01.tar.gz
    lvcreate --size 1G --name mdb-new vg0
-   ssh username@example.com tar -xzf /opt/backup/mdb-snap01.tar.gz | dd of=/dev/vg0/mdb-new
+   ssh username@example.com gzip -d -c /opt/backup/mdb-snap01.tar.gz | dd of=/dev/vg0/mdb-new
    mount /dev/vg0/mdb-new /srv/mongodb
 
 .. _backup-without-journaling:

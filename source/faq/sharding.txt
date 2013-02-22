@@ -399,3 +399,53 @@ chunk migration failure independently.
 If you encounter this issue, contact the `MongoDB User Group
 <http://groups.google.com/group/mongodb-user>`_ or 10gen support to
 address this issue.
+
+How does draining a shard affect the balancing of uneven chunk distribution?
+----------------------------------------------------------------------------
+
+The sharded cluster balancing process controls both migrating chunks
+from decommissioned shards (i.e. draining,) and normal cluster
+balancing activities. Consider the following behaviors for different
+versions of MongoDB in situations where you remove a shard in a
+cluster with an uneven chunk distribution:
+
+- After MongoDB 2.2, the balancer first removes the chunks from the
+  draining shard and then balances the remaining uneven chunk
+  distribution.
+
+- Before MongoDB 2.2, the balancer handles the uneven chunk
+  distribution and *then* removes the chunks from the draining shard.
+
+.. COMMENT: This is probably a knowledge base article, but doesn't belong in
+            the documentation here.
+
+   Although this balancer prioritization is **not** configurable, you can,
+   however, achieve the desired behavior with one of the following manual
+
+   - Option 1
+
+     #. Stop the balancer.
+
+     #. Use the :dbcommand:`moveChunk` command to move chunks off of the
+        draining shard.
+
+     #. Restart the balancer.
+
+   - Option 2
+
+   #. Set the ``maxSize`` on the new shards to some low value so that
+      they cannot accept more chunks. This should stop the balancing
+      operation and allow the draining to continue with chunks moved
+      to the full shards.
+
+   #. Restore the original ``maxSize`` on the new shards.
+
+      .. note::
+
+         When changing the ``maxSize`` in the :term:`config database`:
+
+         - in versions 2.0+, run the :dbcommand:`flushRouterConfig` command
+           to refresh the :program:`mongos`.
+
+         - in versions pre-2.0, you need to restart :program:`mongos`.
+           solutions:

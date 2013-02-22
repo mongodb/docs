@@ -1,0 +1,4 @@
+You can disable all server-side execution of JavaScript, by passing
+the :option:`--noscripting <mongod --noscripting>` option on the
+command line or setting :setting:`noscripting` in a configuration
+file.
