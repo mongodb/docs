@@ -644,23 +644,23 @@ The primary impacts of the switch to V8 are:
 
 - concurrency improvements,
 - modernized JavaScript implementation, and
-- removal of non-standard Spidermonkey features.
+- removal of non-standard SpiderMonkey features.
 
-Concurrency Improvements
-````````````````````````
+Improved Concurrency
+````````````````````
 
 Previously, MongoDB operations that required the JavaScript interpreter
 had to acquire a lock, and a single :program:`mongod` could only run a
 single JavaScript operation at a time. The switch to V8 improves
-concurrency by allowing each JavaScript operation to run on a separate
-core.
+concurrency by permiting multiple JavaScript operations to run at the
+same time.
 
 Modernized JavaScript Implementation (ES5)
 ``````````````````````````````````````````
 
 The 5th edition of `ECMAscript
 <http://www.ecma-international.org/publications/standards/Ecma-262.htm>`_,
-abbreviated as ES5, adds many new language features, such as:
+abbreviated as ES5, adds many new language features, including:
 
 - standardized `JSON
   <http://www.ecma-international.org/ecma-262/5.1/#sec-15.12.1>`_,
@@ -672,9 +672,9 @@ abbreviated as ES5, adds many new language features, such as:
   <http://www.ecma-international.org/ecma-262/5.1/#sec-15.3.4.5>`_,
 
 - `array extensions
-  <http://www.ecma-international.org/ecma-262/5.1/#sec-15.4.4.16>`_,
+  <http://www.ecma-international.org/ecma-262/5.1/#sec-15.4.4.16>`_, and
 
-- getters/setters and much more.
+- getters and setters.
 
 With V8, MongoDB supports the latest standardized version of JavaScript
 with the following exceptions. The following features do not work as expected
@@ -688,12 +688,13 @@ on documents returned from MongoDB queries:
 
 - enumerable properties.
 
-Removal of Non-standard Spidermonkey Features
-`````````````````````````````````````````````
+Removed Non-standard SpiderMonkey Features
+``````````````````````````````````````````
 
-V8 does **not** support the following *non-standard* `Spidermonkey
+V8 does **not** support the following *non-standard* `SpiderMonkey
 <https://developer.mozilla.org/en-US/docs/SpiderMonkey>`_ JavaScript
-extensions.
+extensions, previously supported by MongoDB's use of SpiderMonkey as
+its JavaScript engine.
 
 E4X Extensions
 ^^^^^^^^^^^^^^
@@ -754,7 +755,7 @@ V8 does not support ``InternalError()``. Use ``Error()`` instead.
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 V8 does not support the use of `for each...in
-<https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Statements/for_each...in>`_ 
+<https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Statements/for_each...in>`_
 construct. Use ``for (var x in y)`` construct
 instead.
 
@@ -793,8 +794,8 @@ instead.
         print(value);
       });
 
-Array comprehensions
-^^^^^^^^^^^^^^^^^^^^
+Array Comprehension
+^^^^^^^^^^^^^^^^^^^
 
 V8 does not support `Array comprehensions
 <https://developer.mozilla.org/en-US/docs/JavaScript/Guide/Predefined_Core_Objects#Array_comprehensions>`_.
@@ -802,7 +803,7 @@ V8 does not support `Array comprehensions
 Use other methods such as the ``Array`` instance methods ``map()``,
 ``filter()``, or ``forEach()``.
 
-.. example:: 
+.. example::
 
    With V8, the following array comprehension is **invalid**:
 
@@ -840,7 +841,7 @@ Multiple Catch Blocks
 V8 does not support multiple ``catch`` blocks and will throw a
 ``SyntaxError``.
 
-.. example:: 
+.. example::
 
    The following multiple catch blocks is **invalid** with V8 and will
    throw ``"SyntaxError: Unexpected token if"``:
@@ -855,17 +856,17 @@ V8 does not support multiple ``catch`` blocks and will throw a
         print('standard error')
       }
 
-Conditional Function Definitions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Conditional Function Definition
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-V8 will produce different outcomes than Spidermonkey with `conditional
+V8 will produce different outcomes than SpiderMonkey with `conditional
 function definitions
 <https://developer.mozilla.org/en-US/docs/JavaScript/Guide/Functions>`_.
 
 .. example::
 
    The following conditional function definition produces different
-   outcomes in Spidermonkey versus V8:
+   outcomes in SpiderMonkey versus V8:
 
    .. code-block:: javascript
 
@@ -876,12 +877,12 @@ function definitions
          print(typeof go)
       }
 
-   With Spidermonkey, the conditional function outputs ``undefined``,
+   With SpiderMonkey, the conditional function outputs ``undefined``,
    whereas with V8, the conditional function outputs ``function``.
 
    If your code defines functions this way, it is highly recommended
    that you refactor the code. The following example refactors the
-   conditional function definition to work in both Spidermonkey and V8.
+   conditional function definition to work in both SpiderMonkey and V8.
 
    .. code-block:: javascript
 
@@ -893,7 +894,7 @@ function definitions
         print(typeof go)
       }
 
-   The refactored code outputs ``undefined`` in both Spidermonkey and V8.
+   The refactored code outputs ``undefined`` in both SpiderMonkey and V8.
 
 .. note::
 
@@ -911,8 +912,8 @@ function definitions
         }
       }
 
-   The JavaScript code throws ``SyntaxError: In strict mode code,
-   functions can only be declared at top level or immediately within
+   The JavaScript code throws ``SyntaxError: In strict mode code, you
+   may only declare functions at top level or immediately within
    another function.``
 
 String Generic Methods
@@ -923,7 +924,7 @@ V8 does not support `String generics
 String generics are a set of methods on the ``String`` class that
 mirror instance methods.
 
-.. example:: 
+.. example::
 
    The following use of the generic method
    ``String.toLowerCase()`` is **invalid** with V8:
@@ -959,7 +960,7 @@ With V8, use the ``String`` *instance* methods instead of following
 
    * - ``String.concat()``
      - ``String.search()``
-     - ``String.toLowerCase()`` 
+     - ``String.toLowerCase()``
 
    * - ``String.endsWith()``
      - ``String.slice()``
@@ -983,10 +984,10 @@ With V8, use the ``String`` *instance* methods instead of following
 
 .. _array-generics:
 
-Array Generics
-^^^^^^^^^^^^^^
+Array Generic Methods
+^^^^^^^^^^^^^^^^^^^^^
 
-V8 does not support `Array generics
+V8 does not support `Array generic methods
 <https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array#Array_generic_methods>`_.
 Array generics are a set of methods on the ``Array`` class that mirror
 instance methods.
@@ -1014,7 +1015,7 @@ instance methods.
 
       var allEven = arr.every(isEven);
       print(allEven);
-      
+
 With V8, use the ``Array`` *instance* methods instead of the following
 *generic* methods:
 
@@ -1025,7 +1026,7 @@ With V8, use the ``Array`` *instance* methods instead of the following
      - ``Array.slice()``
 
    * - ``Array.every()``
-     - ``Array.map()`` 
+     - ``Array.map()``
      - ``Array.some()``
 
    * - ``Array.filter()``
@@ -1056,11 +1057,11 @@ Use the ``Array`` instance method ``toString()`` instead.
 
 V8 does not support the non-standard method ``uneval()``. Use the
 standardized `JSON.stringify()
-<https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/JSON/stringify>`_ 
+<https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/JSON/stringify>`_
 method instead.
 
-``Map-Reduce`` and ``$where`` 
-``````````````````````````````````````
+Additional Limitations for ``Map-Reduce`` and ``$where``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In MongoDB 2.4, :doc:`map-reduce operations
 </applications/map-reduce>`, the :command:`group` command, and
@@ -1084,14 +1085,14 @@ in MongoDB 2.4:
 
   * - Available Properties
     - Available Functions
-    - 
+    -
 
-  * - 
+  * -
       | ``args``
       | ``MaxKey``
       | ``MinKey``
 
-    - 
+    -
       | ``assert()``
       | ``BinData()``
       | ``DBPointer()``
@@ -1106,7 +1107,7 @@ in MongoDB 2.4:
       | ``ISODate()``
       | ``isString()``
 
-    - 
+    -
       | ``Map()``
       | ``MD5()``
       | ``NumberInt()``
