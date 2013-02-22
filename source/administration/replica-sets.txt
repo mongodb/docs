@@ -74,15 +74,15 @@ Secondary-Only Members
 The secondary-only configuration prevents a :term:`secondary` member in a
 :term:`replica set` from ever becoming a :term:`primary` in a
 :term:`failover`. You can set secondary-only mode for any member of
-the set.
+the set except the current primary.
 
 For example, you may want to configure all members of a replica sets
 located outside of the main data centers as secondary-only to prevent
 these members from ever becoming primary.
 
 To configure a member as secondary-only, set its
-:data:`~local.system.replset.settings.members[n].priority` value to ``0``. Any member with a
-:data:`~local.system.replset.settings.members[n].priority` equal to ``0`` will never seek
+:data:`~local.system.replset.members[n].priority` value to ``0``. Any member with a
+:data:`~local.system.replset.members[n].priority` equal to ``0`` will never seek
 :ref:`election <replica-set-elections>` and cannot become primary in any
 situation. For more information on priority levels, see
 :ref:`replica-set-node-priority`.
@@ -96,26 +96,28 @@ replica set. Use the following sequence of operations in the
 .. code-block:: javascript
 
    cfg = rs.conf()
-   cfg.members[0].priority = 0
-   cfg.members[1].priority = 0.5
-   cfg.members[2].priority = 1
-   cfg.members[3].priority = 2
+   cfg.members[0].priority = 2
+   cfg.members[1].priority = 1
+   cfg.members[2].priority = 0.5
+   cfg.members[3].priority = 0
    rs.reconfig(cfg)
 
-This configures the set, with the following priority settings:
+This reconfigures the set, with the following priority settings:
 
-- Member ``0`` to a priority of ``0`` so that it can never become :term:`primary`.
+- Member ``0`` to a priority of ``2`` so that it becomes primary, under
+  most circumstances.
 
-- Member ``1`` to a priority of ``0.5``, which makes it less likely to
+- Member ``1`` to a priority of ``1``, which is the default value.
+  Member ``1`` becomes primary if no member with a *higher* priority is
+  eligible.
+
+- Member ``2`` to a priority of ``0.5``, which makes it less likely to
   become primary than other members but doesn't prohibit the
   possibility.
 
-- Member ``2`` to a priority of ``1``, which is the default value.
-  Member ``2`` becomes primary if no member with a *higher* priority is
-  eligible.
-
-- Member ``3`` to a priority of ``2``. Member ``3`` becomes primary, if
-  eligible, under most circumstances.
+- Member ``3`` to a priority of ``0``.
+  Member ``3`` cannot become the :term:`primary` member under any
+  circumstances.
 
 .. note::
 
@@ -124,8 +126,17 @@ This configures the set, with the following priority settings:
    members can quickly obtain a majority of votes in an
    election for primary.
 
-.. seealso:: :data:`~local.system.replset.settings.members[n].priority` and :ref:`Replica Set
-   Reconfiguration <replica-set-reconfiguration-usage>`.
+.. note::
+
+   The current :term:`primary` cannot be assigned a
+   :data:`~local.system.replset.members[n].priority` of 0.
+   If you want to prevent the current primary from being elected
+   primary again, you must demote it using
+   :method:`rs.stepDown()` and then set the appropriate priority
+   with the :method:`rs.reconfig()` method.
+
+.. seealso:: :data:`~local.system.replset.members[n].priority` and
+   :ref:`Replica Set Reconfiguration <replica-set-reconfiguration-usage>`.
 
 .. index:: replica set members; hidden
 .. _replica-set-hidden-members:
@@ -144,8 +155,8 @@ from normal traffic. Typically, hidden members provide reporting,
 dedicated backups, and dedicated read-only testing and integration
 support.
 
-Hidden members have :data:`~local.system.replset.settings.members[n].priority` set
-``0`` and have :data:`~local.system.replset.settings.members[n].hidden` set to ``true``.
+Hidden members have :data:`~local.system.replset.members[n].priority` set
+``0`` and have :data:`~local.system.replset.members[n].hidden` set to ``true``.
 
 To configure a :term:`hidden member`, use the following sequence of
 operations in the :program:`mongo` shell:
@@ -158,7 +169,7 @@ operations in the :program:`mongo` shell:
    rs.reconfig(cfg)
 
 After re-configuring the set, the first member of the set in the
-:data:`~local.system.replset.settings.members` array will have a priority of ``0``
+:data:`~local.system.replset.members` array will have a priority of ``0``
 so that it cannot become primary. The other members in the set will
 not advertise the hidden member in the :dbcommand:`isMaster` or
 :method:`db.isMaster()` output.
@@ -168,7 +179,7 @@ not advertise the hidden member in the :dbcommand:`isMaster` or
    You must send the :method:`rs.reconfig()` command to a set member
    that *can* become :term:`primary`. In the above example, if you
    issue the :method:`rs.reconfig()` operation to a member with a
-   :data:`~local.system.replset.members.[n].priority` of ``0`` the operation will
+   :data:`~local.system.replset.members[n].priority` of ``0`` the operation will
    fail.
 
 .. note::
@@ -228,24 +239,24 @@ following sequence of operations in the :program:`mongo` shell:
    rs.reconfig(cfg)
 
 After the replica set reconfigures, the first member of the set in the
-:data:`~local.system.replset.settings.members` array will have a priority
+:data:`~local.system.replset.members` array will have a priority
 of ``0`` and cannot become :term:`primary`. The :data:`slaveDelay <members[n].slaveDelay>` value
 delays both replication and the member's :term:`oplog` by 3600 seconds (1
-hour). Setting :data:`~local.system.replset.settings.members[n].slaveDelay` to a
-non-zero value also sets :data:`~local.system.replset.settings.members[n].hidden` to
+hour). Setting :data:`~local.system.replset.members[n].slaveDelay` to a
+non-zero value also sets :data:`~local.system.replset.members[n].hidden` to
 ``true`` for this replica set so that it does not receive application
 queries in normal operations.
 
 .. warning::
 
    The length of the secondary
-   :data:`~local.system.replset.settings.members[n].slaveDelay` must
+   :data:`~local.system.replset.members[n].slaveDelay` must
    fit within the window of the oplog. If the oplog is shorter than
-   the :data:`~local.system.replset.settings.members[n].slaveDelay`
+   the :data:`~local.system.replset.members[n].slaveDelay`
    window, the delayed member cannot successfully replicate
    operations.
 
-.. seealso:: :data:`~local.system.replset.settings.members[n].slaveDelay`, :ref:`Replica Set Reconfiguration
+.. seealso:: :data:`~local.system.replset.members[n].slaveDelay`, :ref:`Replica Set Reconfiguration
    <replica-set-reconfiguration-usage>`, :ref:`replica-set-oplog-sizing`,
    :ref:`replica-set-procedure-change-oplog-size` in this document,
    and the :doc:`/tutorial/change-oplog-size` tutorial.
@@ -320,7 +331,7 @@ command sequence in the :program:`mongo` shell.
 
 This sequence gives ``0`` votes to the fourth, fifth, and sixth
 members of the set according to the order of the
-:data:`~local.system.replset.settings.members` array in the output of
+:data:`~local.system.replset.members` array in the output of
 :method:`rs.conf()`.  This setting allows the set to elect these
 members as :term:`primary` but does not allow them to vote in
 elections. If you have three non-voting members, you can add three
@@ -336,7 +347,7 @@ the event of a network partition.
    <replica-set-node-priority>` to control which members are more
    likely to become primary.
 
-.. seealso:: :data:`~local.system.replset.settings.members[n].votes` and :ref:`Replica Set
+.. seealso:: :data:`~local.system.replset.members[n].votes` and :ref:`Replica Set
    Reconfiguration <replica-set-reconfiguration-usage>`.
 
 .. _replica-set-chained-replication:
@@ -440,7 +451,7 @@ You can re-add a removed member to a replica set at any time using the
 :ref:`procedure for adding replica set members <replica-set-admin-procedure-add-member>`.
 Additionally, consider using the :ref:`replica set reconfiguration procedure
 <replica-set-reconfiguration-usage>` to change the
-:data:`~local.system.replset.settings.members[n].host` value to rename a member in a replica set
+:data:`~local.system.replset.members[n].host` value to rename a member in a replica set
 directly.
 
 .. _replica-set-admin-procedure-replace-member:
@@ -458,9 +469,9 @@ completely replace all configured options related to the previous
 member.
 
 Use :method:`rs.reconfig()` to change the value of the
-:data:`~local.system.replset.settings.members[n].host` field to reflect the new hostname or port
+:data:`~local.system.replset.members[n].host` field to reflect the new hostname or port
 number. :method:`rs.reconfig()` will not change the value of
-:data:`~local.system.replset.settings.members[n]._id`.
+:data:`~local.system.replset.members[n]._id`.
 
 .. code-block:: javascript
 
@@ -481,7 +492,7 @@ number. :method:`rs.reconfig()` will not change the value of
 Adjusting Priority
 ~~~~~~~~~~~~~~~~~~
 
-To change the value of the :data:`~local.system.replset.settings.members[n].priority` in the
+To change the value of the :data:`~local.system.replset.members[n].priority` in the
 replica set configuration, use the following sequence of commands in
 the :program:`mongo` shell:
 
@@ -496,7 +507,7 @@ the :program:`mongo` shell:
 The first operation uses :method:`rs.conf()` to set the local variable
 ``cfg`` to the contents of the current replica set configuration, which
 is a :term:`document`. The next three operations change the
-:data:`~local.system.replset.settings.members[n].priority` value in the ``cfg`` document for the
+:data:`~local.system.replset.members[n].priority` value in the ``cfg`` document for the
 first three members configured in the :data:`members
 <local.system.replset.members>` array. The final operation
 calls :method:`rs.reconfig()` with the argument of ``cfg`` to initialize
@@ -504,24 +515,24 @@ the new configuration.
 
 .. include:: /includes/note-rs-conf-array-index.rst
 
-If a member has :data:`~local.system.replset.settings.members[n].priority` set to ``0``, it is
+If a member has :data:`~local.system.replset.members[n].priority` set to ``0``, it is
 ineligible to become :term:`primary` and will not seek
 election. :ref:`Hidden members <replica-set-hidden-members>`,
 :ref:`delayed members <replica-set-delayed-members>`, and
-:ref:`arbiters <replica-set-arbiters>` all have :data:`~local.system.replset.settings.members[n].priority`
+:ref:`arbiters <replica-set-arbiters>` all have :data:`~local.system.replset.members[n].priority`
 set to ``0``.
 
-All members have a :data:`~local.system.replset.settings.members[n].priority` equal to ``1`` by default.
+All members have a :data:`~local.system.replset.members[n].priority` equal to ``1`` by default.
 
-The value of :data:`~local.system.replset.settings.members[n].priority` can be any floating point
+The value of :data:`~local.system.replset.members[n].priority` can be any floating point
 (i.e. decimal) number between ``0`` and ``1000``. Priorities
 are only used to determine the preference in election. The priority
 value is used only in relation to other members. With the exception of
 members with a priority of ``0``, the absolute value of the
-:data:`~local.system.replset.settings.members[n].priority` value is irrelevant.
+:data:`~local.system.replset.members[n].priority` value is irrelevant.
 
 Replica sets will preferentially elect and maintain the primary status
-of the member with the highest :data:`~local.system.replset.settings.members[n].priority` setting.
+of the member with the highest :data:`~local.system.replset.members[n].priority` setting.
 
 .. warning::
 
