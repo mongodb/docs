@@ -1137,24 +1137,23 @@ Consider the following error in :program:`mongod` output and logs:
    replSet error fatal couldn't query the local local.oplog.rs collection.  Terminating mongod after 30 seconds.
    <timestamp> [rsStart] bad replSet oplog entry?
 
-The most often cause of this error is wrongly typed value for the
-``ts`` field in the last :term:`oplog` entry might be of the wrong
-data type. The correct data type is Timestamp.
+Often, an incorrectly typed value in the ``ts`` field in the last
+:term:`oplog` entry causes this error. The correct data type is
+Timestamp.
 
-You can check the data type by running the following two queries
-against the oplog. If the data is properly typed, the queries will
-return the same document, otherwise these queries will return
-different documents. These queries are:
+Check the type of the ``ts`` value using the following two queries
+against the oplog collection:
 
 .. code-block:: javascript
 
+   db = db.getSiblingDB("local")
    db.oplog.rs.find().sort({$natural:-1}).limit(1)
    db.oplog.rs.find({ts:{$type:17}}).sort({$natural:-1}).limit(1)
 
 The first query returns the last document in the oplog, while the
 second returns the last document in the oplog where the ``ts`` value
 is a Timestamp. The :operator:`$type` operator allows you to select
-for type 17 ``BSON``, which is the Timestamp data type.
+:term:`BSON type` 17, is the Timestamp data type.
 
 If the queries don't return the same document, then the last document in
 the oplog has the wrong data type in the ``ts`` field.
