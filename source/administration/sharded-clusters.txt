@@ -286,59 +286,130 @@ To route a query to a :term:`cluster <sharded cluster>`,
 Sharded Cluster Security Considerations
 ---------------------------------------
 
-.. note::
+MongoDB controls access to :term:`sharded clusters <sharded cluster>`
+with key files that store authentication credentials. The components
+of sharded clusters use the secret stored in the key files when
+authenticating to each other. Create key files and then point your
+:program:`mongos` and :program:`mongod` instances to the files, as
+described later in this section.
 
-   You should always run all :program:`mongod` components in trusted
-   networking environments that control access to the cluster using
-   network rules and restrictions to ensure that only known traffic
-   reaches your :program:`mongod` and :program:`mongos` instances.
+Beyond the :setting:`auth` mechanisms described in this section,
+always run your sharded clusters in trusted networking environments
+that limit access to the cluster with network rules. Your networking
+environments should enforce restrictions that ensure only known
+traffic reaches your :program:`mongos` and :program:`mongod`
+instances.
 
-.. warning::  Limitations
+This section describes authentication specific to sharded
+clusters. For information on authentication across MongoDB, see
+:ref:`security-authentication`.
 
-   .. versionchanged:: 2.2
-      Read only authentication is fully supported in shard
-      clusters. Previously, in version 2.0, sharded clusters would not
-      enforce read-only limitations.
+Access Control Privileges in Sharded Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   .. versionchanged:: 2.0
-      Sharded clusters support authentication. Previously, in version
-      1.8, sharded clusters will not support authentication and access
-      control. You must run your sharded systems in trusted
-      environments.
+In sharded clusters, MongoDB provides separate administrative
+privileges for the sharded cluster and for each shard. Beyond these
+administration privileges, privileges for sharded cluster deployments
+are functionally the same as any other MongoDB deployment. See,
+:ref:`security-authentication` for more information.
 
-To control access to a sharded cluster, you must set the
-:setting:`keyFile` option on all components of the sharded cluster. Use
-the :option:`--keyFile <mongos --keyFile>` run-time option or the
-:setting:`keyFile` configuration option for all :program:`mongos`,
-configuration instances, and shard :program:`mongod` instances.
+For sharded clusters, MongoDB provides these separate administrative
+privileges:
 
-There are two classes of security credentials in a sharded cluster:
-credentials for "admin" users (i.e. for the :term:`admin database`) and
-credentials for all other databases. These credentials reside in
-different locations within the cluster and have different roles:
+- Administrative privileges for the sharded cluster. These privileges
+  provide read-and-write access to the config servers' ':term:`admin
+  <admin database>`. These users can run all administrative commands.
+  Administrative privileges also give the user read-and-write access
+  to all the cluster's databases.
 
-- Admin database credentials reside on the config servers, to receive
-  admin access to the cluster you *must* authenticate a session while
-  connected to a :program:`mongos` instance using the :term:`admin
-  database`.
+  The credentials for administrative privileges on the cluster reside on
+  the config servers. To receive admin access to the cluster, you must
+  authenticate a session while connected to a :program:`mongos` instance
+  using the admin database.
 
-- Each shard has its own :term:`admin database`, which stores
-  administrative credentials and access for that shard only.
+- Administrative privileges for the :program:`mongod` instance, or
+  :term:`replica set`, that provides each individual shard. Each shard
+  has its own admin database that stores administrative credentials
+  and access for that shard only. These credentials are *completely*
+  distinct from the cluster-wide administrative credentials.
 
-- Other database credentials reside on the *primary* shard for the
+  As with all :program:`mongod` instances, MongoDB provides two types
+  of administrative privileges for a shard:
+
+  - Normal administrative privileges, which provide read-and-write
+    access to the admin database and access to all administrative
+    commands, and which provide read-and-write accees to all other
+    databases on that shard.
+
+  - Read-only administrative privileges, which provide read-only access
+    to the admin database and to all other databases on that shard.
+
+Also, as with all :program:`mongod` instances, a MongoDB sharded cluster
+provides the following non-administrative user privileges:
+
+- Normal privileges, which provide read-and-write access to a specific
+  database. Users with normal privilege can add users to the database.
+
+- Read-only privileges, which provide read-only access to a specific
   database.
 
-This means that you *can* authenticate to these users and databases
-while connected directly to the *primary* shard for a database. You
-**cannot** authenticate to a database in a sharded cluster that is not
-the primary for that database. However, for clarity and consistency
-all interactions between the client and the database should use a
-:program:`mongos` instance.
+For more information on privileges, see :ref:`security-authentication`.
 
-.. note::
+Enable Authentication in a Sharded Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   Individual shards can store administrative credentials to their
-   instance, which only permit access to a single shard. MongoDB
-   stores these credentials in the shards' :term:`admin databases
-   <admin database>` and these credentials are *completely* distinct
-   from the cluster-wide administrative credentials.
+.. versionadded:: 2.0
+   Support for authentication with sharded clusters.
+
+To control access to a sharded cluster, create key files and then set
+the :setting:`keyFile` option on *all* components of the sharded
+cluster, including all :program:`mongos` instances, all config server
+:program:`mongod` instances, and all shard :program:`mongod`
+instances. The content of the key file is arbitrary but must be the
+same on all cluster members.
+
+To enable authentication, do the following:
+
+1. Generate a key file to store authentication information, as described
+   in the :ref:`generate-key-file` section.
+
+#. On each component in the sharded cluster, enable authentication by
+   doing one of the following:
+
+   - In the configuration file, set the :setting:`keyFile` option to the
+     key file's path and then start the component, as in the following
+     example:
+
+     .. code-block:: cfg
+
+        keyFile = /srv/mongodb/keyfile
+
+   - When starting the component, set :option:`--keyFile <mongos --keyFile>` option,
+     which is an option for both :program:`mongos` instances and
+     :program:`mongod` instances. Set the :option:`--keyFile <mongos --keyFile>`
+     to the key file's path.
+
+   .. note::
+
+      The :setting:`keyFile` setting implies :setting:`auth`, which
+      means in most cases you do not need to set :setting:`auth`
+      explicitly.
+
+#. Add the first administrative user and then add subsequent users. See
+   :ref:`control-access-add-users`.
+
+Access a Sharded Cluster with Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To access a sharded cluster as an authenticated admin user, see
+:ref:`control-access-admin-access`.
+
+To access a sharded cluster as an authenticated, non-admin user, see
+either of the following:
+
+- :dbcommand:`authenticate`
+
+- :method:`db.auth()`
+
+To terminate an authenticated session, see the :dbcommand:`logout`
+command.

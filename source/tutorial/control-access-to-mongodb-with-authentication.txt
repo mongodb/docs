@@ -20,20 +20,22 @@ authentication and managing a MongoDB deployment with authentication.
    :option:`--keyFile <mongod --keyFile>` options on the command
    line.
 
-Adding Users
-------------
+.. _control-access-add-users:
 
-When setting up authentication for the first time you must either: 
+Add Users
+---------
+
+When setting up authentication for the first time you must either:
 
 #. add at least one user to the ``admin`` database before starting
-   the :program:`mongod` instance with :setting:`auth`. 
+   the :program:`mongod` instance with :setting:`auth`.
 
 #. add the first user to the ``admin`` database when connected to the
    :program:`mongod` instance from a ``localhost``
    connection. [#sharded-localhost]_
 
 Begin by setting up the first administrative user for the
-:program:`mongod` instance. 
+:program:`mongod` instance.
 
 .. [#sharded-localhost] Because of :issue:`SERVER-6591`, you cannot
    add the first user to a sharded cluster using the ``localhost``
@@ -48,7 +50,7 @@ Add an Administrative User
 .. admonition:: About administrative users
 
    Administrative users are those users that have "normal" or read and
-   write access to the ``admin`` database. 
+   write access to the ``admin`` database.
 
 If this is the first administrative user,
 [#auth-disabled-maintenance]_ connect to the :program:`mongod` on the
@@ -59,14 +61,14 @@ context and add the administrative user:
 .. code-block:: javascript
 
    use admin
-   db.addUser("<username>", "<password>") 
+   db.addUser("<username>", "<password>")
 
 Replace ``<username>`` and ``<password>`` with the credentials for
 this administrative user.
 
 .. [#auth-disabled-maintenance] You can also use this procedure if
    authentication is *not* enabled so that your databases has an
-   administrative user when you enable :setting:`auth`. 
+   administrative user when you enable :setting:`auth`.
 
 Add a Normal User to a Database
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -79,7 +81,7 @@ the following sequence of operations:
 .. code-block:: javascript
 
    use records
-   db.addUser("<username>", "<password>") 
+   db.addUser("<username>", "<password>")
 
 Replace ``<username>`` and ``<password>`` with the credentials for
 this user.
@@ -95,31 +97,33 @@ the following sequence of operations:
 .. code-block:: javascript
 
    use records
-   db.addUser("<username>", "<password>", true) 
+   db.addUser("<username>", "<password>", true)
 
 Replace ``<username>`` and ``<password>`` with the credentials for
 this user.
+
+.. _control-access-admin-access:
 
 Administrative Access in MongoDB
 --------------------------------
 
 Although administrative accounts have access to all databases, these
 users must authenticate against the ``admin`` database before changing
-contexts to a second database, as in the following example: 
+contexts to a second database, as in the following example:
 
-.. example:: 
+.. example::
 
    Given the ``superAdmin`` user with the password ``Password123``,
    and access to the ``admin`` database.
-   
-   The following operation in the :program:`mongo` shell will succeed: 
+
+   The following operation in the :program:`mongo` shell will succeed:
 
    .. code-block:: javascript
 
       use admin
       db.auth("superAdmin", "Password123")
 
-   However, the following operation will fail: 
+   However, the following operation will fail:
 
    .. code-block:: javascript
 
@@ -151,7 +155,7 @@ even if there aren't any users in the ``admin`` database.
 Password Hashing Insecurity
 ---------------------------
 
-In version 2.2 and earlier: 
+In version 2.2 and earlier:
 
 - the *normal* users of a database all have access to the
   ``system.users`` collection, which contains the user names and a
@@ -165,9 +169,9 @@ As a result, always use unique username and password combinations on
 for each database.
 
 .. [#read-and-write-system-users] Read only users do not have access
-   to the ``system.users`` database. 
+   to the ``system.users`` database.
 
-.. example: NOT INCLUDED IN OUTPUT. 
+.. example: NOT INCLUDED IN OUTPUT.
 
    Eve connects to the ``db1`` database and views the ``system.users``
    collection, with the following invocation of :program:`mongo`:
@@ -218,22 +222,29 @@ Configuration Considerations for Authentication
 -----------------------------------------------
 
 The following sections, outline practices for enabling and managing
-authentication with specific MongoDB deployments: 
+authentication with specific MongoDB deployments:
 
 - :ref:`replica-set-security`
-- :ref:`sharding-security` 
+- :ref:`sharding-security`
+
+.. _generate-key-file:
 
 Generate a Key File
 -------------------
 
+The key file must be less than one kilobyte in size and may only
+contain characters in the base64 set. The key file must not have group
+or "world" permissions on UNIX systems. Key file permissions are not
+checked on Windows systems.
+
 Use the following command at the system shell to generate pseudo-random
-content for a key file: 
+content for a key file:
 
 .. code-block:: sh
 
    openssl rand -base64 753
 
-.. note:: 
+.. note::
 
    Be aware that MongoDB strips whitespace characters (e.g. ``x0d``,
    ``x09``, and ``x20``,) for cross-platform convenience. As a result,
