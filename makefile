@@ -108,6 +108,9 @@ $(branch-output)/latex/%.tex:
 	@echo "[pdf]: see '$@.log' for a full report of the pdf build process."
 
 ############# General purpose targets. Not used (directly) in the production build #############
+tags:
+	@etags -I --language=none --regex=@bin/etags.regexp `find source -name "*.txt"`
+	@echo "[dev]: etags generation complete."
 draft:draft-html
 draft-pdfs:draft-latex $(subst .tex,.pdf,$(wildcard $(branch-output)/draft-latex/*.tex))
 # man page support, uses sphinx `man` builder output.
