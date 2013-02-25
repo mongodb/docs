@@ -94,6 +94,8 @@ class MongoDBObject(ObjectDescription):
             fullname = 'prj.' + name_obj[0]
         elif self.objtype == 'binary':
             fullname = 'bin.' + name_obj[0]
+        elif self.objtype == 'parameter':
+            fullname = 'param.' + name_obj[0]
         elif name_obj[0] in self.state.document.ids:
             fullname = 'iddup.' + name_obj[0]
         else:
@@ -314,6 +316,9 @@ class MongoDBDomain(Domain):
         elif typ == 'projection':
             name = 'prj.' + name
             newname = name
+        elif typ == 'parameter':
+            name = 'param.' + name
+            newname = name
 
         searchorder = 1
 
@@ -353,7 +358,9 @@ class MongoDBDomain(Domain):
             name = name.split('.', 1)[1]
         elif name.startswith('prj.'):
             name = name.split('.', 1)[1]
-        
+        elif name.startswith('param.'):
+            name = name.split('.', 1)[1]
+
 
         return make_refnode(builder, fromdocname, obj[0],
                             name.replace('$', '_S_'), contnode, name)
