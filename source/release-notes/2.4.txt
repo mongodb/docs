@@ -577,9 +577,9 @@ New Modular Authentication System with Support for Kerberos
 
 .. note::
 
-   These features are only present in the `MongoDB Subscriber Edition
-   <https://www.10gen.com/mongodb-subscriber-edition-download>`_. To
-   download the 2.4.0 release candidate the Subscriber Edition, use
+   Kerberos authentication is only present in the `MongoDB Subscriber
+   Edition <https://www.10gen.com/mongodb-subscriber-edition-download>`_.
+   To download the 2.4.0 release candidate the Subscriber Edition, use
    the following resources:
 
    - `Amazon Linux 6.4 <http://s3.amazonaws.com/downloads.10gen.com/linux/mongodb-linux-x86_64-subscription-amzn64-2.4.0-rc0.tgz>`_
@@ -587,128 +587,37 @@ New Modular Authentication System with Support for Kerberos
    - `Ubuntu 11.04 <http://s3.amazonaws.com/downloads.10gen.com/linux/mongodb-linux-x86_64-subscription-ubuntu1104-2.4.0-rc0.tgz>`_
    - `SUSE 11 <http://s3.amazonaws.com/downloads.10gen.com/linux/mongodb-linux-x86_64-subscription-suse11-2.4.0-rc0.tgz>`_
 
-An improved authentication system is a core focus of the entire 2.3
-cycle, as of 2.3.2, the following components of the new authentication
-system are available for use in MongoDB:
+In 2.4 the MongoDB Subscriber edition now supports authentication via
+a Kerberos mechanism. See
+:doc:`/tutorial/control-access-to-mongodb-with-kerberos-authentication`
+for more information.
 
-- :program:`mongod` instances can authenticate users via Kerberos.
+Also consider the following documents that address authenticating to
+MongoDB using Kerberos:
 
-- the :program:`mongo` shell can authenticate to :program:`mongod`
-  instances using Kerberos.
+- :ecosystem:`Authenticate to MongoDB using Kerberos and the Java
+  Driver </ecosystem/tutorial/authenticate-with-java-driver/>`
 
-- MongoDB Clients can authenticate using Kerberos with the C++ client
-  library and development versions of the Java and C# drivers.
-
-Initial Support for Kerberos Authentication
-```````````````````````````````````````````
-
-Development work on this functionality is ongoing, and additional
-related functionality is forthcoming. To use Kerberos with MongoDB as
-of the 2.4.0 release candidate, consider the following requirements:
-
-- add users to MongoDB as with the existing authentication
-  mechanism:
-
-  - Usernames *must* correspond to the Kerberos
-    principal (e.g. ``<username>@<REALM>`` as in
-    ``mongodbuser@EXAMPLE.COM``,)
-
-  - You *must* have a user document in the :data:`system.users
-    <<database>.system.users>` collection with the Kerberos principal
-    for any database that you want to grant access.
-
-- every :program:`mongod` using Kerberos must have a fully resolvable
-  fully qualified domain name. This includes all members of replica
-  sets.
-
-- every :program:`mongod` using Kerberos must have a Kerberos service
-  principal, in the form of: ``mongodb/<fqdn>@<REALM>``.
-
-- each system running a :program:`mongod` with Kerberos must have a
-  key tab file that holds key data granting access to it's principal
-  that the :program:`mongod` can read.
-
-Starting ``mongod`` with Kerberos
-`````````````````````````````````
-
-To start :program:`mongod` with Kerberos support (i.e. with the
-``GSSAPI`` authentication mechanism,) you *must* have a working
-Kerberos environment *and* a valid Kerberos keytab file.
-
-To start :program:`mongod`, use a command in the following form:
-
-.. code-block:: sh
-
-   env KRB5_KTNAME=<path to keytab file> <mongod invocation>
-
-You must start :program:`mongod` with :setting:`auth` or
-:setting:`keyFile` [#keyfile-auth]_ and configuring the list of in the
-``authenticationMechanisms`` :setting:`parameter <setParameter>`. An
-actual command would resemble:
-
-.. code-block:: sh
-
-   env KRB5_KTNAME=/opt/etc/mongodb.keytab \
-       /opt/bin/mongod --dbpath /opt/data/db --logpath /opt/log/mongod.log --fork \
-                       --auth --setParameter authenticationMechanisms=GSSAPI
-
-Replace the paths as needed for your test deployment.
-
-If you want to enable both Kerberos *and* the legacy
-challenge-and-response authentication mechanism, append ``MONGO-CR``
-to the ``authenticationMechanisms`` parameter. Consider the following
-example:
-
-.. code-block:: sh
-
-   env KRB5_KTNAME=/opt/etc/mongodb.keytab \
-       /opt/bin/mongod --dbpath /opt/data/db --logpath /opt/log/mongod.log --fork \
-                       --auth --setParameter authenticationMechanisms=GSSAPI,MONGO-CR
-
-.. note::
-
-   If you're having trouble getting :program:`mongod` to start with
-   Kerberos, there are a number of Kerberos-specific issues that can
-   prevent successful authentication. As you begin troubleshooting
-   your Kerberos deployment, ensure that:
-
-   - You have a valid keytab file specified in the
-     environment running the :program:`mongod`.
-
-   - The :program:`mongod` is from the MongoDB Subscriber Edition.
-
-   - DNS allows the :program:`mongod` to resolve the components of the
-     Kerberos infrastructure.
-
-   - The time systems of the systems running the :program:`mongod`
-     instances and the Kerberos infrastructure are synchronized.
-
-   Until you can successfully authenticate a client using the Kerberos
-   you may want to enable ``MONGO-CR`` authentication mechanism to
-   provide access to the :program:`mongod` instance during
-   configuration.
-
-.. [#keyfile-auth] :setting:`keyFile` implies :setting:`auth`. You
-   *must* use :setting:`keyFile` for replica sets.
-
-Connecting and Authenticating MongoDB Clients Using Kerberos
-````````````````````````````````````````````````````````````
-
-To use Kerberos with the :program:`mongo` shell, begin by initializing
-a Kerberos session with ``kinit``. Then start a 2.3.2 :program:`mongo`
-shell instance, and use the following sequence of operations to
-associate the current connection with the Kerberos session:
-
-.. code-block:: javascript
-
-   use $external
-   db.auth( { mechanism: "GSSAPI", user: "<username>@<REALM>" }  )
-
-The value of the ``user`` field *must* be the same principal that
-you initialized with ``kinit``. This connection will acquire access in
-accordance with all privileges granted to this user for all databases.
+- :ecosystem:`Authenticate to MongoDB using Kerberos and the C# Driver
+  </ecosystem/tutorial/authenticate-with-csharp-driver/>`
 
 .. see:: :doc:`MongoDB Security Practices and Procedures </security>`.
+
+Role Based Access Control and New Privilege Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 2.4 introduces a role based access control system that
+provides more granular privileges to MongoDB users. See
+:doc:`/reference/user-privileges` for more information.
+
+To support the new access control system, 2.4 also introduces a new
+format for documents in a database's :data:`system.user
+<<database>.system.user>` collection. See
+:doc:`/reference/privilege-documents` for more information.
+
+Use :parameter:`supportCompatibilityFormPrivilegeDocuments` to disable
+the legacy privilege documents, which MongoDB continues to support in
+2.4.
 
 Default JavaScript Engine Switched to V8 from SpiderMonkey
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
