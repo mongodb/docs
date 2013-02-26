@@ -1,0 +1,211 @@
+====
+text
+====
+
+.. default-domain:: mongodb
+
+.. dbcommand:: text
+
+   .. versionadded:: 2.4
+
+   The :dbcommand:`text` command provides an interface to search text
+   context stored in the :ref:`text index <index-feature-text>`. By
+   default, the command limits the matches to the top 100 scoring
+   documents, in descending score order, but you can specify a
+   different limit. The :dbcommand:`text` command is
+   **case-insensitive**.
+
+   The :dbcommand:`text` has the following syntax:
+
+   .. code-block:: javascript
+
+      db.collection.runCommand( "text", { search: <string>,
+                                          filter: <document>,
+                                          project: <document>,
+                                          limit: <number>,
+                                          language: <string> } )
+
+   The :dbcommand:`text` command has the following parameters:
+
+   :param string search:
+
+          A string of terms that MongoDB parses and uses to query the
+          ``text`` index. The :dbcommand:`text` command returns all
+          documents that contain any of the terms; i.e. it performs a
+          logical ``OR`` search.
+
+          Enclose the string of terms in escaped double quotes to match
+          on the phrase.
+
+          Additionally, the :dbcommand:`text` command treats most
+          punctuation as delimiters, except when a hyphen '-' is used
+          to negate terms.
+
+          Prefixing a word with a minus sign (-) negates a word:
+
+          - The negated word excludes documents that contain the
+            negated word from the result set.
+
+          - A search string that only contains negative words returns
+            **no** match.
+
+          - A hyphenated word, such as ``pre-market``, is not a
+            negation. The text command treats the hyphen as a delimiter.
+
+   :param document filter:
+
+          Optional. A :ref:`query document <mongodb-query-document>` to
+          further limit the results of the query using another database
+          field. You can use any valid MongoDB query in the filter
+          document, except if the index includes an ascending or
+          descending index field as a prefix.
+
+          If the index includes an ascending or descending index field
+          as a prefix, the ``filter`` is required and the ``filter``
+          query must be an equality match.
+
+   :param document project:
+
+          Optional. Allows you to limit the fields returned by the
+          query to only those specified.
+
+          By default, the ``_id`` field returns as part of the result
+          set *unless* you explicitly exclude the field in the project
+          document.
+
+   :param number limit:
+
+          Optional. Specify the maximum number of documents to include
+          in the response. The :dbcommand:`text` sorts the results
+          before applying the ``limit``.
+
+          The default limit is 100.
+
+   :param string language:
+
+          Optional. Specify the language that determines for the search
+          the list of stop words and the rules for the stemmer and
+          tokenizer. If not specified, the search uses default language
+          of the index. See :ref:`text-search-languages` for the
+          supported languages. Specify the language in **lowercase**.
+
+   :return:
+
+            A document that contains a field ``results`` that contains
+            an array of the highest scoring documents, in descending
+            order by score. See :ref:`text-search-output` for details.
+
+            The returned document must fit within the :limit:`BSON
+            Document Size`. Use the ``limit`` and the ``project``
+            parameters to limit the size of the result set.
+
+   .. note::
+
+      - If the ``search`` string includes phrases, the search performs
+        an ``AND`` with any other terms in the search string; e.g.
+        search for ``"\"twinkle twinkle\" little star"`` searches for
+        ``"twinkle twinkle"`` **and** (``"little"`` **or** ``"star"``).
+
+      - :dbcommand:`text` adds all negations to the query with the
+        logical ``AND`` operator.
+
+      - The :dbcommand:`text` command ignores stop words for the search
+        language language, such as ``the`` and ``and`` in English.
+
+      - The :dbcommand:`text` command matches on the complete *stemmed*
+        words. So if a document field contains the word ``blueberry``,
+        a search on the term ``blue`` will not match. However,
+        ``blueberry`` or ``blueberries`` will match.
+
+   For the following examples, assume a collection ``articles`` has a text
+   index on the field ``subject``:
+
+   .. code-block:: javascript
+
+      db.articles.ensureIndex( { subject: "text" } )
+
+   .. example:: Search for a Single Word
+
+      .. code-block:: javascript
+
+         db.articles.runCommand( "text", { search: "coffee" } )
+
+      This query returns documents that contain the word ``coffee``,
+      case-insensitive, in the indexed ``subject`` field.
+
+   .. example:: Search for Multiple Words
+
+      The following command searches for ``bake`` or ``coffee`` or ``cake``:
+
+      .. code-block:: javascript
+
+         db.articles.runCommand( "text", { search: "bake coffee cake" } )
+
+      This query returns documents that contain either ``bake`` **or**
+      ``coffee`` **or** ``cake`` in the indexed ``subject`` field.
+
+   .. example:: Search for a Phrase 
+
+      .. code-block:: javascript
+
+         db.articles.runCommand( "text", { search: "\"bake coffee cake\"" } )
+
+      This query returns documents that contain the phrase ``bake
+      coffee cake``.
+
+   .. example:: Exclude a Term from the Result Set
+
+      Use the hyphen (``-``) as a prefix to exclude documents that
+      contain a term. Search for documents that contain the words
+      ``bake`` or ``coffee``, but does **not** contain ``cake``:
+
+      .. code-block:: javascript
+
+         db.articles.runCommand( "text", { search: "bake coffee -cake" } )
+
+   .. example:: Search with Additional Query Conditions
+
+      Use the ``filter`` option to include additional query conditions.
+
+      Search for a single word ``coffee`` with an additional filter on
+      the ``about`` field, but limit the results to 2 documents
+      with the highest score and return only the ``subject`` field in
+      the matching documents:
+
+      .. code-block:: javascript
+
+         db.articles.runCommand( "text", {
+                                           search: "coffee",
+                                           filter: { about: /desserts/ },
+                                           limit: 2,
+                                           project: { subject: 1, _id: 0 }
+                                         }
+                               )
+
+      - The ``filter`` :ref:`query document <mongodb-query-document>`
+        may use any of the available :doc:`query operators
+        </reference/operator>`.
+
+      - Because the ``_id`` field is implicitly included, in order to
+        return **only** the ``subject`` field, you must explicitly
+        exclude (``0``) the ``_id`` field. Within the ``project``
+        document, you cannot mix inclusions (i.e. ``<fieldA>: 1``) and
+        exclusions (i.e. ``<fieldB>: 0``), except for the ``_id`` field.
+
+   .. example:: Search a Different Language
+
+      Use the ``language`` option to specify Spanish as the language
+      that determines the list of stop words and the rules for the
+      stemmer and tokenizer:
+
+      .. code-block:: javascript
+
+         db.articles.runCommand( "text", {
+                                             search: "leche",
+                                             language: "spanish"
+                                         }
+                               )
+
+      See :ref:`text-search-languages` for the supported languages.
+      
+      .. important:: Specify the language in **lowercase**.

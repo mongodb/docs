@@ -1,0 +1,1 @@
+A collection can have at most only **one** ``text`` index.
