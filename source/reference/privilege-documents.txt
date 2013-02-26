@@ -10,10 +10,10 @@ Overview
 --------
 
 The documents in the :data:`<database>.system.users` collection store
-credentials used by the authentication system to provision access to
-users in the MongoDB system. See :doc:`/reference/user-privileges` for
-more information about access roles, and :doc:`/security` for an
-overview security in MongoDB.
+credentials and user privilege information used by the authentication
+system to provision access to users in the MongoDB system. See
+:doc:`/reference/user-privileges` for more information about access
+roles, and :doc:`/security` for an overview security in MongoDB.
 
 Data Model
 ----------
@@ -70,19 +70,19 @@ Data Model
    .. data:: <database>.system.users.user
 
       :data:`~<database>.system.users.user` is a string that
-      identifies each user. Users are specific to a single logical
-      database and do not impact access to another database, except by
-      way of the :data:`~admin.system.users.otherDBRoles` field on the
-      ``admin`` or the  :data:`~<database>.system.users.userSource` field.
+      identifies each user. Users exist in the context of a single
+      logical database; however, users from one database may obtain
+      access in another database by way of the
+      :data:`~admin.system.users.otherDBRoles` field on the ``admin``
+      database, the :data:`~<database>.system.users.userSource` field,
+      or the :ref:`auth-any-database-roles`.
 
    .. data:: <database>.system.users.pwd
 
       :data:`~<database>.system.users.pwd` holds a *hashed* shared
-      secret used to authenticate
-      :data:`~<database>.system.users.user` to the relevant
-      database. :data:`~<database>.system.users.pwd` field is mutually
-      exclusive with the :data:`~<database>.system.users.userSource`
-      field.
+      secret used to authenticate the :data:`~<database>.system.users.user`.
+      :data:`~<database>.system.users.pwd` field is mutually exclusive
+       with the :data:`~<database>.system.users.userSource` field.
 
    .. data:: <database>.system.users.roles
 
@@ -115,7 +115,7 @@ Data Model
          .. todo single source and normalize
 
          In the current release, the only external authentication
-         sources is Kerberos, which is only available in the
+         source is Kerberos, which is only available in the
          Subscriber Edition of MongoDB.
 
       Use :data:`~<database>.system.users.userSource` to ensure that a
@@ -124,9 +124,7 @@ Data Model
 
       A :data:`~<database>.system.users.userSource` and
       :data:`~<database>.system.users.user` pair identifies a unique
-      user in a MongoDB system. Without the
-      :data:`~<database>.system.users.userSource` field, the privilege
-      document only applies to the current logical database.
+      user in a MongoDB system.
 
    .. data:: admin.system.users.otherDBRoles
 
@@ -182,8 +180,8 @@ Consider the following document in a :data:`system.users
       roles: []
    }
 
-Then for every database where you want the ``application0`` user to
-have access, add documents that resemble to the following in the
+Then for *every* database that the ``application0`` requires access,
+add documents that resemble to the following in the
 :data:`system.users <<database>.system.users>` collection:
 
 .. code-block:: javascript
@@ -194,9 +192,8 @@ have access, add documents that resemble to the following in the
       userSource: "accounts"
    }
 
-To gain privileges to databases with access provisioned with delegated
-credentials the ``application0`` user must first authenticate to the
-``accounts`` database.
+To gain privileges to databases where the ``application0`` has access,
+you must first authenticate to the ``accounts`` database.
 
 Disable Legacy Privilege Documents
 ----------------------------------
@@ -213,4 +210,4 @@ following :setting:`setParameter` run-time option:
 
 .. code-block:: sh
 
-   mongod --setParaemter supportCompatibilityFormPrivilegeDocuments=false
+   mongod --setParameter supportCompatibilityFormPrivilegeDocuments=false
