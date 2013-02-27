@@ -58,8 +58,10 @@ To run MongoDB with Kerberos support, you must:
 Operations
 ----------
 
-Create Privilege Documents
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _kerberos-create-users:
+
+Create Users and Privilege Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For every user that you want to be able to authenticate using Kerberos,
 you must create corresponding privilege documents in the
@@ -81,13 +83,35 @@ database. The :data:`~<database>.system.users.userSource`
 external source (i.e. Kerberos) to authenticate this user.
 
 In the :program:`mongo` shell you can pass the :method:`db.addUser()`
-a user privilege document to provision access to users. To remove
-access to a user, use the :method:`~db.collection.remove()` method, as
-in the following example:
+a user privilege document to provision access to users, as in the
+following operation: 
+
+.. code-block:: javascript
+
+   db = db.getSiblingDB("records")
+   db.addUser( { 
+                 "user": "application/reporting@EXAMPLE.NET",
+                 "roles": [ "read" ], 
+                 "userSource": "$external"
+               } )
+
+These operations grants the Kerberos user
+``application/reporting@EXAMPLE.NET`` access to the ``records``
+database.
+
+To remove access to a user, use the :method:`~db.collection.remove()`
+method, as in the following example:
 
 .. code-block:: javascript
 
    db.system.users.remove( { user: "application/reporting@EXAMPLE.NET" } )
+
+To modify a user document, use :doc:`update </applications/update>`
+operations on documents in the :data:`system.users
+<<database>.system.users` collection.
+
+.. seealso:: :doc:`/reference/privilege-documents` and
+   :doc:`/reference/user-privileges`.
 
 Start ``mongod`` with Kerberos Support
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -159,7 +183,16 @@ invocation:
        --keyFile /opt/mongodb/mongos.keyfile
 
 If you encounter problems when trying to start :program:`mongod` or
-:program:`mongos`,
+:program:`mongos`, please see the :ref:`troubleshooting section
+<kerberos-troubleshooting>` for more information.
+
+.. important:: Before users can authenticate to MongoDB using Kerberos
+   you must :ref:`create users <kerberos-create-users>` and grant them
+   privileges within MongoDB. If you have not created users when you
+   start MongoDB with Kerberos you can use the :ref:`localhost
+   authentication exception <auth-localhost-exception>` to add
+   users. See the :ref:`kerberos-create-users` section and the
+   :doc:`/reference/user-privileges` document for more information.
 
 Authenticate ``mongo`` Shell with Kerberos
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -181,8 +214,9 @@ Alternately, you can authenticate using command line options to
 
 .. code-block:: sh
 
-   mongo --authenticationMechanism=GSSAPI --authenticationDatabase='$external' \
-   -u application/reporting@EXAMPLE.NET
+   mongo --authenticationMechanism=GSSAPI 
+         --authenticationDatabase='$external' \
+         --username application/reporting@EXAMPLE.NET
 
 These operations authenticates the Kerberos principal name
 ``application/reporting@EXAMPLE.NET`` to the connected
@@ -202,7 +236,6 @@ following tutorials for more information:
 .. uncomment wen links exist.
    - :ecosystem:`Python </tutorial/authenticate-with-python-driver/>`
    - :ecosystem:`C++ </tutorial/authenticate-with-cpp-driver/>`
-
 
 .. _kerberos-troubleshooting:
 
