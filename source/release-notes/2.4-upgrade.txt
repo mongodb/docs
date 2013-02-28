@@ -25,7 +25,7 @@ following procedures.
 
 2. Stop all processes in the cluster. Upgrade all processes to a
    2.4-series release of MongoDB, and start all processes at the same
-   2.time.
+   time.
 
 .. _upgrade-cluster-upgrade:
 
@@ -65,6 +65,11 @@ procedure.
 1. Turn off the :ref:`balancer <sharding-balancing-internals>` in the
    :term:`sharded cluster`, as described in
    :ref:`sharding-balancing-disable-temporally`.
+   
+   If you wish, *after* turning off the balancer you may make a backup
+   copy of the config database by using :program:`mongodump` or other
+   tools.  The upgrade process also creates its own backup collections
+   which may be removed after the upgrade is verified complete.
 
 #. Ensure there are no version 2.0 :program:`mongod` or
    :program:`mongos` processes still active in the sharded
@@ -94,22 +99,52 @@ procedure.
 
    The upgrade will prevent any chunk moves or splits from occurring
    during the upgrade process. If there are very many sharded
-   collections, acquiring the locks for all collections may take
+   collections or there are stale locks held by other failed processes,
+   acquiring the locks for all collections can take
    seconds or minutes. See the log for progress updates.
 
 #. When the :program:`mongos` process starts successfully, the upgrade is
    complete. If the :program:`mongos` process fails to start, check the
    log for more information.
 
-   If a network interruption occurred and prevented changes, see
-   :ref:`upgrade-cluster-resync`.
+   If a network problem occurred or the :program:`mongos` program is somehow
+   terminated during the upgrade, the upgrade process is generally retryable
+   if not in the short critical section.
+   
+   If on retry the upgrade process waits on the upgrade lock, this means a
+   previous upgrade process may still be active or has ended abnormally.  After
+   15 minutes of no remote activity the upgrade lock will be forced, but if
+   you can verify the upgrade process is no longer active you may force this lock
+   manually:
+   
+   .. code-block:: sh
+
+      mongo <2.2 mongos port>
+      
+   .. code-block:: javascript
+   
+      db.getMongo().getCollection("config.locks").findOne({ _id : "upgradeLock" })
+
+   If the host mentioned in the process field of this lock is known to be offline, 
+   you may then run:
+
+   .. code-block:: javascript
+
+      db.getMongo().getCollection("config.locks").update({ _id : "upgradeLock" }, { $set : { state : 0 } })
+    
+   It is safer to wait for the mongos to verify inactivity if you have any doubt
+   about whether another upgrade is occurring.
+    
+   If a network interruption occurred and prevented changes during the critical
+   section, you will get a message on retry to follow the instructions
+   here :ref:`upgrade-cluster-resync`.
 
 #. :ref:`Re-enable the balancer
    <sharding-balancing-disable-temporally>`. You can now perform
    operations that modify cluster metadata.
-
+   
 #. Upgrade and restart other :program:`mongos` processes in the
-   sharded cluster, without the :option:`--upgrade <mongos --upgrade>`
+   sharded cluster, *without* the :option:`--upgrade <mongos --upgrade>`
    option.
 
 Once you have upgraded, *do not* introduce version 2.0 MongoDB
@@ -138,7 +173,7 @@ To resync the config servers:
 1. Turn off the :ref:`balancer <sharding-balancing-internals>` in the
    sharded cluster and stop all metadata operations. If you are in the
    middle of an upgrade process (:ref:`upgrade-cluster-upgrade`), you
-   have already disabled the balancer.  .
+   have already disabled the balancer.
 
 #. Shut down two of the three config servers, preferably the last two listed
    in the :setting:`configdb` string. For example, if your :setting:`configdb`
