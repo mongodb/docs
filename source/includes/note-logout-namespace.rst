@@ -4,6 +4,10 @@
    has no effect.
 
    .. versionchanged:: 2.4
-      Because a user account in MongoDB may be delegated from one
-      database to another, you must call |operation-name| while
+      Because MongoDB now allows users defined in one database to have
+      privileges on another database, you must call |operation-name| while
       using the same database context that you authenticated to.
+
+   If you authenticated to a database such as ``users`` or
+   ``$external``, you must issue |operation-name| against this
+   database in order to successfully log out.
