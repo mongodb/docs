@@ -117,24 +117,23 @@ procedure.
    complete. If the :program:`mongos` process fails to start, check the
    log for more information.
 
-   If the :program:`mongos` terminates or looses its connection to the
-   config servers, during the upgrade, unless the upgrade halts in the
-   short "critical section," you can retry the upgrade operation
-   safely.
+   If the :program:`mongos` terminates or loses its connection to the
+   config servers during the upgrade, you may always safely retry the
+   upgrade.
 
-   If a network interruption occurred and prevented changes during the
-   critical section, when you attempt to retry the upgrade process,
-   the :program:`mongos` will return a log message, and you must
-   follow the :ref:`upgrade-cluster-resync` procedure.
+   However, if the upgrade failed in the short critical section,
+   the retry will end with a warning that manual intervention is required.
+   To continue upgrading, you must follow the :ref:`upgrade-cluster-resync`
+   procedure.
 
-   If you attempt to retry the upgrade procedure and the
-   :program:`mongos` waits on the upgrade lock, a previous upgrade
-   process may still be active or has ended abnormally. After 15
-   minutes of no remote activity the :program:`mongos` will force the
-   upgrade lock. If you can verify that there are no running upgrade
-   processes, you can start a connect to a 2.2 :program:`mongos` process
-   and force the lock manually, using a upgrade process is no longer
-   active you may force this lock manually:
+   .. optional::
+
+      If the :program:`mongos` logs show the upgrade waiting for the upgrade
+      lock, a previous upgrade process may still be active or may have ended
+      abnormally.  After 15 minutes of no remote activity :program:`mongos`
+      will force the upgrade lock. If you can verify that there are no running upgrade
+      processes, you may connect to a 2.2 :program:`mongos` process
+      and force the lock manually:
 
    .. code-block:: sh
 
@@ -144,17 +143,18 @@ procedure.
 
       db.getMongo().getCollection("config.locks").findOne({ _id : "upgradeLock" })
 
-   If the process specified in the ``process`` field of this document
-   is *verifiably* offline, run the following operation to force the
-   lock.
+      If the process specified in the ``process`` field of this document
+      is *verifiably* offline, run the following operation to force the
+      lock.
 
    .. code-block:: javascript
 
       db.getMongo().getCollection("config.locks").update({ _id : "upgradeLock" }, { $set : { state : 0 } })
 
-   It is always more safe to wait for the :program:`mongos` to verify
-   that the lock is inactive, if you have any doubts about the
-   activity of another upgrade operation.
+      It is always more safe to wait for the :program:`mongos` to verify
+      that the lock is inactive, if you have any doubts about the
+      activity of another upgrade operation.  Note also that mongos may also
+      have to wait for other collection locks, which should not be forced.
 
 #. :ref:`Re-enable the balancer
    <sharding-balancing-disable-temporally>`. You can now perform
