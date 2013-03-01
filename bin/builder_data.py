@@ -113,9 +113,18 @@ install_guides = [
 #   (target, dep),
     ('source/tutorial/install-mongodb-on-linux.txt', 'source/includes/install-curl-release-linux-64.rst source/includes/install-curl-release-linux-32.rst'),
     ('source/tutorial/install-mongodb-on-os-x.txt', 'source/includes/install-curl-release-osx-64.rst'),
+    ('source/tutorial/install-mongodb-subscriber-edition.txt', 'source/includes/install-curl-release-ent-amz.rst source/includes/install-curl-release-ent-rhel6.rst source/includes/install-curl-release-ent-ubuntu11.rst source/includes/install-curl-release-ent-ubuntu12.rst source/includes/install-curl-release-ent-suse.rst'),
     ('linux-64', None),
     ('linux-32', None),
     ('osx-64', None),
+]
+
+subscription_build = [
+    ('linux-64', 'amz'),
+    ('linux-64', 'rhel6'),
+    ('linux-64', 'ubuntu11'),
+    ('linux-64', 'ubuntu12'),
+    ('linux-64', 'suse')
 ]
 
 # The elements of the ``error_pages`` list correspond to the file
