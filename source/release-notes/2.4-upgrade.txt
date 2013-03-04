@@ -27,7 +27,7 @@ following procedures.
    2.4-series release of MongoDB, and start all processes at the same
    time.
 
-.. _upgrade-cluster-upgrade:
+.. _2.4-upgrade-cluster:
 
 Upgrade a Sharded Cluster from MongoDB 2.2 to MongoDB 2.4
 ---------------------------------------------------------
@@ -64,6 +64,8 @@ metadata in any other way.
    will be less for deployments that have run with 2.2 for a
    non-trivial period of time. See
    :ref:`faq-tools-for-measuring-storage-use` for more information.
+
+.. _2.4-upgrade-meta-data:
 
 Sharded Cluster Upgrade Procedure
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -156,13 +158,15 @@ procedure.
       activity of another upgrade operation.  Note also that mongos may also
       have to wait for other collection locks, which should not be forced.
 
-#. :ref:`Re-enable the balancer
-   <sharding-balancing-disable-temporally>`. You can now perform
-   operations that modify cluster metadata.
-
 #. Upgrade and restart other :program:`mongos` processes in the
    sharded cluster, *without* the :option:`--upgrade <mongos --upgrade>`
    option.
+
+   See :ref:`2.4 finalize-shard-cluster-upgrade` for more information.
+
+#. :ref:`Re-enable the balancer
+   <sharding-balancing-disable-temporally>`. You can now perform
+   operations that modify cluster metadata.
 
 Once you have upgraded, *do not* introduce version 2.0 MongoDB
 processes into the sharded cluster. This can reintroduce old metadata
@@ -173,7 +177,7 @@ incompatibilities in future versions of MongoDB.
 .. _upgrade-cluster-resync:
 
 Resync after a Network Interruption
------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 During the short critical section of the upgrade that applies changes
 to the metadata, it is unlikely but possible that a network
@@ -185,11 +189,19 @@ will remain accessible, but avoid all cluster metadata changes until
 you resync the config servers. Operations that change metadata include:
 adding shards, dropping databases, and dropping collections.
 
+.. note::
+
+   Only perform the following procedure *if* something (e.g. network,
+   power, etc.) interrupts the upgrade process during the short
+   critical section of the upgrade. Remember, you may always safely
+   attempt the :ref:`meta data upgrade procedure
+   <2.4-upgrade-meta-data>`.
+
 To resync the config servers:
 
 1. Turn off the :ref:`balancer <sharding-balancing-internals>` in the
    sharded cluster and stop all metadata operations. If you are in the
-   middle of an upgrade process (:ref:`upgrade-cluster-upgrade`), you
+   middle of an upgrade process (:ref:`2.4-upgrade-cluster`), you
    have already disabled the balancer.
 
 #. Shut down two of the three config servers, preferably the last two listed
@@ -245,4 +257,31 @@ To resync the config servers:
       db.getMongo().getCollection("config.version").update({ _id : 1 }, { $unset : { upgradeState : 1 } })
 
 #. Finally retry the upgrade process, as in
-   :ref:`upgrade-cluster-upgrade`.
+   :ref:`2.4-upgrade-cluster`.
+
+.. _2.4 finalize-shard-cluster-upgrade:
+
+Complete Sharded Cluster Upgrade
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After you have successfully completed the meta-data upgrade process
+described in :ref:`2.4-upgrade-meta-data`, and the 2.4
+:program:`mongos` instance starts, you can upgrade the other processes
+in your MongoDB deployment.
+
+While the balancer is still disabled, upgrade the components of your
+sharded cluster in the following order:
+
+- Upgrade all :program:`mongos` instances in the cluster, in any
+  order.
+
+- Upgrade all 3 :program:`mongod` config server instances, upgrading
+  the *first* system in the :option:`mongos --configdb` argument
+  *last*.
+
+- Upgrade each shard, one at a time, upgrading the :program:`mongod`
+  secondaries before running :dbcommand:`replSetStepDown` and
+  upgrading the primary of each shard.
+
+When this process is complete, you can now :ref:`re-enable the
+balancer <sharding-balancing-disable-temporally>`.
