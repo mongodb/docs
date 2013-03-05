@@ -48,6 +48,7 @@ BREAK = '\n'
 rst_epilog = ('.. |branch| replace:: ``' + meta['branch'] + '``' + BREAK +
               '.. |copy| unicode:: U+000A9' + BREAK +
               '.. |year| replace:: ' + meta['date'] + BREAK +
+              '.. |ent-build| replace:: the MongoDB Subscriber Edition' + BREAK + 
               '.. |hardlink| replace:: http://docs.mongodb.org/' + meta['branch'])
 
 pygments_style = 'sphinx'
@@ -179,7 +180,7 @@ man_pages = [
     ('reference/mongostat', 'mongostat', u'MongoDB', [u'MongoDB Documentation Project'], 1),
     ('reference/mongosniff', 'mongosniff', u'MongoDB', [u'MongoDB Documentation Project'], 1),
     ('reference/mongotop', 'mongotop', u'MongoDB', [u'MongoDB Documentation Project'], 1),
-    ('reference/configuration-options', 'mongodb-config', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/mongoperf', 'mongoperf', u'MongoDB', [u'MongoDB Documentation Project'], 1),
 ]
 
 texinfo_documents = [

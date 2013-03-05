@@ -8,12 +8,43 @@ $nearSphere
 
    .. versionadded:: 1.8
 
-   The :operator:`$nearSphere` operator is the spherical equivalent of
-   the :operator:`$near` operator. :operator:`$nearSphere` returns all
-   documents near a point, calculating distances using spherical geometry.
+   The :operator:`$nearSphere` operator specifies a point for which a
+   :term:`geospatial` query returns the 100 closest documents. The
+   operator queries for a point defined by :ref:`grid coordinates
+   <geospatial-indexes-store-grid-coordinates>` and calculates distances
+   using spherical geometry. The query sorts the documents from nearest
+   to farthest.
+
+   The :operator:`$nearSphere` operator requires a geospatial index. The
+   ``2dsphere`` and ``2d`` indexes both support the
+   :operator:`$nearSphere` operator. In a ``2dsphere`` index, a grid
+   coordinate is interpreted as a `GeoJSON
+   <http://geojson.org/geojson-spec.html>`_ point.
+
+   The optional :operator:`$maxDistance` operator limits a
+   :operator:`$nearSphere` query to return only those documents that fall
+   within a maximum distance of a point. Specify the maximum distance in
+   the units specified by the coordinate system.
+
+   The :operator:`$nearSphere` operator uses the following syntax:
 
    .. code-block:: javascript
 
-      db.collection.find( { loc: { $nearSphere: [0,0] } } )
+      db.collection.find( { <location field> :
+                                { $nearSphere: [ <x> , <y> ] ,
+                                  $maxDistance: <distance>
+                          } } )
+
+   .. important:: If you use longitude and latitude, specify **longitude first**.
+
+   The following example selects the 100 documents with coordinates
+   nearest to ``[ 40 , 5 ]`` as calculated by spherical geometry:
+
+   .. code-block:: javascript
+
+      db.places.find( { loc :
+                         { $nearSphere : [ 40 , 5 ]
+                           $maxDistance : 10
+                      } } )
 
    .. include:: /includes/note-geospatial-index-must-exist.rst

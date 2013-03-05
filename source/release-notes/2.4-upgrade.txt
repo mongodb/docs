@@ -59,10 +59,10 @@ metadata in any other way.
 .. note::
 
    The upgraded config database will require more storage space than
-   before, though this storage increase represents a fraction of the
-   current config database size. The additional storage requirement
-   will be less for deployments that have run with 2.2 for a
-   non-trivial period of time. See
+   before, to make backup and working copies of the
+   :data:`config.chunks` and :data:`config.collections` collections.
+   As always, if storage requirements increase, the :program:`mongod`
+   might need to pre-allocate additional data files. See
    :ref:`faq-tools-for-measuring-storage-use` for more information.
 
 .. _2.4-upgrade-meta-data:
@@ -93,7 +93,11 @@ procedure.
 #. Start a single 2.4 :program:`mongos` process with
    :setting:`configdb` pointing to the sharded cluster's :ref:`config
    servers <sharding-config-server>` and with the :option:`--upgrade
-   <mongos --upgrade>` option. You can upgrade an existing
+   <mongos --upgrade>` option.  The upgrade process happens before the
+   process becomes a daemon (i.e. before
+   :option:`--fork <mongos --fork>`.)
+
+   You can upgrade an existing
    :program:`mongos` instance to 2.4 or you can start a new `mongos`
    instance that can reach all config servers if you need to avoid
    reconfiguring a production :program:`mongos`.
@@ -123,40 +127,43 @@ procedure.
    config servers during the upgrade, you may always safely retry the
    upgrade.
 
-   However, if the upgrade failed in the short critical section,
-   the retry will end with a warning that manual intervention is required.
-   To continue upgrading, you must follow the :ref:`upgrade-cluster-resync`
-   procedure.
+   However, if the upgrade failed during the short critical section,
+   the :program:`mongos` will exit and report that the upgrade will
+   require manual intervention. To continue the upgrade process, you
+   must follow the :ref:`upgrade-cluster-resync` procedure.
 
    .. optional::
 
-      If the :program:`mongos` logs show the upgrade waiting for the upgrade
-      lock, a previous upgrade process may still be active or may have ended
-      abnormally.  After 15 minutes of no remote activity :program:`mongos`
-      will force the upgrade lock. If you can verify that there are no running upgrade
-      processes, you may connect to a 2.2 :program:`mongos` process
-      and force the lock manually:
+      If the :program:`mongos` logs show the upgrade waiting for the
+      upgrade lock, a previous upgrade process may still be active or
+      may have ended abnormally.  After 15 minutes of no remote
+      activity :program:`mongos` will force the upgrade lock. If you
+      can verify that there are no running upgrade processes, you may
+      connect to a 2.2 :program:`mongos` process and force the lock
+      manually:
 
-   .. code-block:: sh
+      .. code-block:: sh
 
-      mongo <mongos.example.net>
+         mongo <mongos.example.net>
 
-   .. code-block:: javascript
+      .. code-block:: javascript
 
-      db.getMongo().getCollection("config.locks").findOne({ _id : "upgradeLock" })
+         db.getMongo().getCollection("config.locks").findOne({ _id : "configUpgrade" })
 
       If the process specified in the ``process`` field of this document
       is *verifiably* offline, run the following operation to force the
       lock.
 
-   .. code-block:: javascript
+      .. code-block:: javascript
 
-      db.getMongo().getCollection("config.locks").update({ _id : "upgradeLock" }, { $set : { state : 0 } })
+         db.getMongo().getCollection("config.locks").update({ _id : "configUpgrade" }, { $set : { state : 0 } })
 
-      It is always more safe to wait for the :program:`mongos` to verify
-      that the lock is inactive, if you have any doubts about the
-      activity of another upgrade operation.  Note also that mongos may also
-      have to wait for other collection locks, which should not be forced.
+      It is always more safe to wait for the :program:`mongos` to
+      verify that the lock is inactive, if you have any doubts about
+      the activity of another upgrade operation.  In addition to the
+      ``configUpgrade``, the :program:`mongos` may need to wait for
+      specific collection locks. Do not force the specific collection
+      locks.
 
 #. Upgrade and restart other :program:`mongos` processes in the
    sharded cluster, *without* the :option:`--upgrade <mongos --upgrade>`
@@ -176,8 +183,8 @@ incompatibilities in future versions of MongoDB.
 
 .. _upgrade-cluster-resync:
 
-Resync after a Network Interruption
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Resync after an Interruption of the Critical Section
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 During the short critical section of the upgrade that applies changes
 to the metadata, it is unlikely but possible that a network

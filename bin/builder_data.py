@@ -53,6 +53,7 @@ links = [
      ('$(public-branch-output)/reference/mongo-shell-reference', 'mongo-shell', 'redirect'),
      ('$(public-branch-output)/reference/method/getShardDistribution', 'db.collection.getShardDistribution', 'redirect'),
      ('$(public-branch-output)/reference/method/getDB', 'Mongo.getDB', 'redirect'),
+     ('$(public-branch-output)/reference/operator/within', 'geoWithin', 'redirect'),
      ('$(public-branch-output)/reference/method/getShardVersion', 'db.collection.getShardVersion', 'redirect'),
      ('$(public-branch-output)/reference/command/whatsMyUri', 'whatsmyuri', 'redirect'),
      ('$(public-branch-output)/reference/command/writeBackListen', 'writebacklisten', 'redirect'),

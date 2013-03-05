@@ -51,7 +51,7 @@ def make_all_sphinx(sphinx):
           block='vars')
 
     m.section_break('sphinx prerequisites')
-    m.target('sphinx-prerequisites', 'setup installation-guides tables intersphinx', block='prereq')
+    m.target('sphinx-prerequisites', 'setup installation-guides tables intersphinx generate-manpages', block='prereq')
     m.msg('[build]: completed $@ buildstep.', block='prereq')
 
     m.section_break('sphinx targets', block='sphinx')

@@ -6,26 +6,81 @@ $near
 
 .. operator:: $near
 
-   The :operator:`$near` operator takes an argument, coordinates for a
-   point in the form of ``[x, y]``, and returns a list of objects
-   sorted by distance from nearest to farthest with respect to those
-   coordinates. See the following example:
+   .. versionchanged:: 2.4
+
+   The :operator:`$near` operator specifies a point for which a
+   :term:`geospatial` query returns the 100 closest documents. The query
+   sorts the documents from nearest to farthest.
+
+   The :operator:`$near` operator can query for a `GeoJSON
+   <http://geojson.org/geojson-spec.html>`_ point or for a point defined
+   by :ref:`grid coordinates
+   <geospatial-indexes-store-grid-coordinates>`.
+
+   The :operator:`$near` operator requires a geospatial index. For
+   GeoJSON points, :operator:`$near` uses a ``2dsphere`` index. For grid
+   coordinates, :operator:`$near` uses a ``2d`` index.
+
+   The optional :operator:`$maxDistance` operator limits a
+   :operator:`$near` query to return only those documents that fall
+   within a maximum distance of a point. Specify the maximum distance in
+   the units specified by the coordinate system. For a GeoJSON point,
+   specify the distance in meters, not radians.
+
+   If querying for GeoJSON data, use the following syntax:
 
    .. code-block:: javascript
 
-      db.collection.find( { location: { $near: [100,100] } } );
+      db.<collection>.find( { <location field> :
+                               { $near :
+                                  { $geometry :
+                                      { type : "Point" ,
+                                        coordinates : [ <longitude>, <latitude> ] } ,
+                                    $maxDistance : <distance in meters>
+                            } } } )
 
-   This query will return 100 ordered records with a ``location``
-   field in ``collection``. Specify a different limit using the
-   :method:`cursor.limit()`, or another :ref:`geolocation operator
-   <geolocation-operators>`, or a non-geospatial operator to limit the
-   results of the query.
+   .. important:: Specify coordinates in this order: **"longitude, latitude."**
+
+   The following example selects the 100 documents with coordinates
+   nearest to ``[ 40 , 5 ]`` and limits the maximum distance to 100
+   meters from the specified GeoJSON point:
+
+   .. code-block:: javascript
+
+      db.places.find( { loc : { $near :
+                                 { $geometry :
+                                     { type : "Point" ,
+                                       coordinates: [ 40 , 5 ] } } ,
+                                   $maxDistance : 100
+                      } } } )
+
+   If querying for grid coordinates, use the following syntax:
+
+   .. code-block:: javascript
+
+      db.<collection>.find( { <location field> :
+                               { $near : [ <x> , <y> ] ,
+                                 $maxDistance: <distance>
+                          } } )
+
+   .. important:: If you use longitude and latitude, specify **longitude first**.
+
+   The following example selects the 100 documents with coordinates
+   nearest to ``[ 40 , 5 ]``:
+
+   .. code-block:: javascript
+
+      db.places.find( { loc :
+                         { $near : [ 40 , 5 ] ,
+                           $maxDistance : 10
+                      } } )
 
    .. note::
+
+      You can further limit the number of results using
+      :method:`cursor.limit()`.
 
       Specifying a batch size (i.e. :method:`batchSize()
       <cursor.batchSize()>`) in conjunction with queries that use the
       :operator:`$near` is not defined. See :issue:`SERVER-5236` for
       more information.
-
-   .. include:: /includes/note-geospatial-index-must-exist.rst

@@ -50,11 +50,16 @@ compact
       *Maximum:* ``4.0``
 
       The ``paddingFactor`` describes the :term:`record size`
-      allocated for each document as a factor of the document size. If
-      your updates increase the size of the documents, padding will
-      increase the amount of space allocated to each document and
-      avoid expensive document relocation operations within the data
-      files.
+      allocated for each document as a factor of the document size,
+      for all records compacted during the :dbcommand:`compact`
+      operation. ``paddingFactor`` does not affect the padding of
+      subsequent record allocations after :dbcommand:`compact`
+      completes.
+
+      If your updates increase the size of the documents,
+      padding will increase the amount of space allocated to each
+      document and avoid expensive document relocation operations
+      within the data files.
 
       You can calculate the padding size by subtracting the document
       size from the record size or, in terms of the ``paddingFactor``,
@@ -78,12 +83,22 @@ compact
 
          db.runCommand ( { compact: '<collection>', paddingFactor: 1.1 } )
 
+      :dbcommand:`compact` compacts existing documents, but does not
+      reset ``paddingFactor`` statistics for the collection. After the
+      :dbcommand:`compact` MongoDB will use the existing
+      ``paddingFactor`` when allocating new records for documents in
+      this collection.
+
    :param paddingBytes:
 
       .. versionadded:: 2.2
 
-      The ``paddingBytes`` sets the padding as an absolute number
-      of bytes. Specifying ``paddingBytes`` can be useful if your
+      The ``paddingBytes`` sets the padding as an absolute number of
+      bytes, for all records compacted during the :dbcommand:`compact`
+      operation. After running :dbcommand:`compact`, ``paddingBytes``
+      does not affect the padding of subsequent record allocations.
+
+      Specifying ``paddingBytes`` can be useful if your
       documents start small but then increase in size
       significantly.  For example,if your documents are initially
       40 bytes long and you grow them by 1KB, using
@@ -113,13 +128,12 @@ compact
      :program:`mongod` log file, or by running the
      :method:`db.currentOp()` in another shell instance.
 
-   - :dbcommand:`compact` removes any :term:`padding factor` in the
-     collection when issued without either the
-     ``paddingFactor`` option or the ``paddingBytes`` option. This may
-     impact performance if the documents grow regularly. However,
-     :dbcommand:`compact` retains
-     existing paddingFactor statistics for the collection that MongoDB
-     will use to calculate the padding factor for future inserts.
+   - :dbcommand:`compact` compacts existing documents in the
+     collection. However, unlike :dbcommand:`repairDatabase`,
+     :dbcommand:`compact` does not reset ``paddingFactor`` statistics
+     for the collection.  MongoDB will use the existing
+     ``paddingFactor`` when allocating new records for documents in
+     this collection.
 
    - :dbcommand:`compact` generally uses less disk space than
      :dbcommand:`repairDatabase` and is faster. However,the
