@@ -1,0 +1,309 @@
+==========
+2d Indexes
+==========
+
+.. default-domain:: mongodb
+
+Use a 2d index for data stored as points on a two-dimensional plane. To
+use a 2d index, format location data as arrays or documents consisting
+of two grid coordinates. Do not use a 2d index for data stored as
+GeoJSON objects.
+
+A 2d index allows calculations using planar (flat) geometry.
+
+A compound 2d index can reference multiple fields. The first indexed
+field must be the location field, which means a 2d compound index
+constructs queries that select first on the location field and second on
+the additional criteria. If the location criteria selects a large number
+of documents, the additional criteria will only filter the result set
+and *not* result in a more targeted query.
+
+MongoDB allows one 2d index per collection.
+
+This index also supports the :operator:`$nearSphere` and
+:operator:`$centerSphere` operators when computing ranges on a spherical
+globe. Though for full spherical functionality, store data in GeoJSON
+and use the ``2dsphere`` index type.
+
+.. _geospatial-indexes-store-grid-coordinates:
+
+Store Points on a 2D Plane
+--------------------------
+
+To store location data as grid coordinates on a two-dimensional plane,
+use either an array (preferred):
+
+.. code-block:: javascript
+
+   loc : [ <long> , <lat> ]
+
+Or an embedded document:
+
+.. code-block:: javascript
+
+   loc : { long : <long> , lat : <lat> }
+
+Arrays are preferred as certain languages do not guarantee associative
+map ordering.
+
+If you use longitude and latitude, store coordinates in this order:
+**longitude, latitude**.
+
+.. _geospatial-create-2d-index:
+
+Create a 2d Index
+-----------------
+
+To build a geospatial 2d index, use the :method:`ensureIndex()
+<db.collection.ensureIndex()>` method and specify ``2d``. Use the
+following syntax:
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( { <location field> : "2d" , <additional field> : <value> } ,
+                              { <index-specification options> } )
+
+The ``2d`` index uses the following optional index-specification
+options, described in this document:
+
+.. code-block:: javascript
+
+   { min : <lower bound> , max : <upper bound> ,
+     bits : <bit precision> }
+
+To create a geospatial index for points on a two-dimensional plane, use
+the :method:`ensureIndex <db.collection.ensureIndex()>` method and set
+the value of the location field for your collection to ``2d``. Use the
+following syntax:
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( { <location field> : "2d" } )
+
+.. _geospatial-indexes-range:
+
+Define Location Range for a 2d Index
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, a 2d index assumes longitude and latitude and has boundaries
+of -180 inclusive and 180 non-inclusive (i.e. ``[-180, 180)``). If
+documents contain coordinate data outside of the specified range,
+MongoDB returns an error and rejects the documents.
+
+.. important:: The default boundaries allow applications to insert
+   documents with invalid latitudes greater than 90 or less than -90.
+   The behavior of geospatial queries with such invalid points is not
+   defined.
+
+On ``2d`` indexes you can change the location range.
+
+You can build a ``2d`` geospatial index with a location range other than
+the default. Use the ``min`` and ``max`` options when creating the
+index. Use the following syntax:
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( { <location field> : "2d" } ,
+                              { min : <lower bound> , max : <upper bound> } )
+
+.. _geospatial-indexes-precision:
+
+Define Location Precision for a 2d Index
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, geospatial index on grid coordinates uses 26 bits of
+precision, which is roughly equivalent to 2 feet or 60 centimeters of
+precision using the default range of -180 to 180. Precision is measured
+by the size in bits of the :term:`geohash` values used to store location
+data. You can configure geospatial indexes with up to 32 bits of
+precision.
+
+Index precision does not affect query accuracy. The actual grid coordinates
+are always used in the final query processing. Advantages to lower
+precision are a lower processing overhead for insert operations and use
+of less space. An advantage to higher precision is that queries scan
+smaller portions of the index to return results.
+
+To configure a location precision other than the default, use the
+``bits`` option when creating the index. Use following syntax:
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( {<location field> : "<index type>"} ,
+                              { bits : <bit precision> } )
+
+For information on the internals of geohash values, see
+:ref:`geospatial-indexes-geohash`.
+
+Query a 2d Index
+----------------
+
+The following sections describe queries supported by the 2d index.
+For an overview of recommended geospatial queries, see
+:doc:`/applications/geospatial-preferred-queries`.
+
+Points within a Shape Defined on a Flat Surface
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To select all grid coordinates found within a given shape on a flat
+surface, use the :operator:`$geoWithin` operator along with a shape
+operator. Use the following syntax:
+
+.. code-block:: javascript
+
+   db.<collection>.find( { <location field> :
+                            { $geoWithin :
+                               { $box|$polygon|$center : <coordinates>
+                         } } } )
+
+The following queries for documents within a rectangle defined by ``[ 0
+, 0 ]`` at the bottom left corner and by ``[ 100 , 100 ]`` at the top
+right corner.
+
+.. code-block:: javascript
+
+   db.places.find( { loc : { $geoWithin : { $box :
+                                             [ [ 0 , 0 ] ,
+                                               [ 100 , 100 ] ] } } } )
+
+The following queries for documents that within the circle centered on
+``[ -74 , 40.74 ]`` and with a radius of ``10``:
+
+.. code-block:: javascript
+
+   db.places.find( { loc: { $geoWithin :
+                             { $center : [ [-74, 40.74], 10 ] }
+                   } } )
+
+For syntax and examples for each shape, see the following:
+
+  - :operator:`$box`
+
+  - :operator:`$polygon`
+
+  - :operator:`$center` (defines a circle)
+
+Points within a Circle Defined on a Sphere
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To select all grid coordinates in a "spherical cap" on a sphere, use
+:operator:`$geoWithin` with the :operator:`$centerSphere` operator.
+Specify an array that contains:
+
+- The grid coordinates of the circle's center point
+
+- The circle's radius measured in radians. To calculate radians, see
+  :doc:`/tutorial/calculate-distances-using-spherical-geometry-with-2d-geospatial-indexes`.
+
+Use the following syntax:
+
+.. code-block:: javascript
+
+   db.<collection>.find( { <location field> :
+                            { $geoWithin :
+                               { $centerSphere : [ [ <x>, <y> ] , <radius> ] }
+                         } } )
+
+The following example queries grid coordinates and returns all
+documents within a 10 mile radius of longitude ``88 W`` and latitude
+``30 N``. MongoDB converts the distance, 10 miles, to radians by
+dividing by the approximate radius of the earth, 3959 miles:
+
+.. code-block:: javascript
+
+   db.collection.find( { loc : { $geoWithin :
+                                  { $centerSphere :
+                                     [ [ 88 , 30 ] , 10 / 3959 ]
+                       } } } )
+
+Proximity to a Point on a Flat Surface
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Proximity queries return the 100 points closest to the defined point and
+sorts the results by distance. Proximity queries for points on a
+two-dimensional plane require a 2d index.
+
+To query for proximity on data defined as grid coordinates on a flat
+surface, use either the :operator:`$near` operator or
+:dbcommand:`geoNear` command.
+
+The :operator:`$near` uses the following syntax:
+
+.. code-block:: javascript
+
+   db.<collection>.find( { <location field> :
+                            { $near : [ <x> , <y> ]
+                         } } )
+
+For examples, see :operator:`$near`.
+
+The :dbcommand:`geoNear` command returns more information than does
+:operator:`$near`.
+
+.. _geospatial-indexes-proximity-geonear:
+.. _geospatial-indexes-geonear:
+
+``geoNear`` Syntax and Results
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :dbcommand:`geoNear` command uses the following syntax:
+
+.. code-block:: javascript
+
+   db.runCommand( { geoNear: <collection>, near: [ <x> , <y> ] } )
+
+The :dbcommand:`geoNear` command offers more options than does the
+:operator:`$near` operator. For the options, see :dbcommand:`geoNear`.
+
+The :dbcommand:`geoNear` command returns more information than does
+:operator:`$near`. For a :operator:`$near` query that returns this:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId(" ... "), "loc" : [ -73, 39 ] }
+
+The equivalent :dbcommand:`geoNear` command returns the following:
+
+ .. code-block:: javascript
+
+   {
+      "ns" : "test.places",
+      "results" : [
+         {
+            "dis" : 3,
+            "obj" : {
+               "_id" : ObjectId(" ... "),
+               "loc" : [
+                  -73,
+                  39
+               ]
+            }
+         }
+      ],
+      "stats" : {
+         "time" : 2,
+         "btreelocs" : 0,
+         "nscanned" : 1,
+         "objectsLoaded" : 1,
+         "avgDistance" : 3,
+         "maxDistance" : 3.0000188685220253
+      },
+      "near" : "0110000111111000000111111000000111111000000111111000",
+      "ok" : 1
+   }
+
+.. index:: geospatial queries
+.. index:: geospatial queries; exact
+.. _geospatial-indexes-exact-match:
+
+Exact Matches on a Flat Surface
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the :method:`db.collection.find()` method to query for an
+exact match on a location. These queries have the following form:
+
+.. code-block:: javascript
+
+   db.collection.find( { <location field>: [ <x> , <y> ] } )
+
+This query will return any documents with the value of ``[ <x> , <y> ]``.

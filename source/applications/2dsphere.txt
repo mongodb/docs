@@ -1,0 +1,239 @@
+================
+2dsphere Indexes
+================
+
+.. default-domain:: mongodb
+
+.. versionadded:: 2.4
+
+MongoDB's 2dsphere indexes support data stored in the `GeoJSON
+<http://geojson.org/geojson-spec.html>`_-format.
+
+.. primary use case ???
+
+2dsphere indexes store points, lines, and shapes, and calculate geometry
+on a sphere.
+
+2dsphere indexes also support pre-MongoDB-2.4 data stored as points
+(grid coordinates in an array or document) by converting the data to the
+GeoJSON ``Point`` type.
+
+.. In what way are 2dsphere indexes compatible with 2.2 and earlier data
+   stored as points (grid coordinates) ???
+   If you are upgrading and want to use 2dsphere ... ???
+
+MongoDB allows one 2dsphere index per collection.
+
+A :ref:`compound <index-type-compound>` 2dsphere index can reference
+multiple location and non-location fields within a collection’s
+documents. You can arrange the fields in any order.
+
+.. _geospatial-indexes-store-geojson:
+
+Store GeoJSON Objects
+---------------------
+
+.. versionadded:: 2.4
+
+MongoDB supports the following `GeoJSON <http://geojson.org/geojson-spec.html>`_ objects:
+
+  - ``Point``
+
+  - ``LineString``
+
+  - ``Polygon``
+
+To store GeoJSON data, store coordinates in this order:
+**longitude, latitude.** Use the following syntax:
+
+.. code-block:: javascript
+
+   { <location field> : { type : "Point|LineString|Polygon" ,
+                          coordinates : <coordinates> }
+
+The following example stores a GeoJSON ``Point``:
+
+.. code-block:: javascript
+
+   { loc : { type : "Point" , coordinates : [ 40, 5 ] } }
+
+The following example stores a GeoJSON ``LineString``:
+
+.. code-block:: javascript
+
+   { loc : { type : "LineString" , coordinates : [ [ 40 , 5 ] , [ 41 , 6 ] ] } }
+
+The following example stores a GeoJSON ``Polygon`` with an exterior ring
+and no interior rings (or holes):
+
+.. code-block:: javascript
+
+   { loc :
+      { type : "Polygon" ,
+        coordinates : [ [ [ 0 , 0 ] , [ 3 , 6 ] , [ 6 , 1 ] , [ 0 , 0 ] ] ]
+   } }
+
+.. _geospatial-indexes-create-2dsphere:
+
+Create a 2dsphere Index
+-----------------------
+
+To create a geospatial index for GeoJSON-formatted data, use the
+:method:`ensureIndex <db.collection.ensureIndex()>` method and set the
+value of the location field for your collection to ``2dsphere``. A
+2dsphere index can be a :ref:`compound index <index-type-compound>`
+and does not require the location field to be the first field indexed.
+
+To create the index use the following syntax:
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( { <location field> : "2dsphere" } )
+
+The following are four example commands for creating a 2dsphere index:
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( { loc : "2dsphere" } )
+   db.collection.ensureIndex( { loc : "2dsphere", type : 1 } )
+   db.collection.ensureIndex( { type : 1, loc : "2dsphere" } )
+   db.collection.ensureIndex( { loc : "2dsphere", type : 1, rating : -1 } )
+
+The first example creates a simple geospatial index on the location
+field ``loc``. The second example creates a compound index where the
+second field contains non-location data. The third example creates an
+index where the location field is not the primary field: the location
+field does not have to be the first field in a 2dsphere index. The
+fourth example creates a compound index with three fields: you can
+include as many fields as you like in a 2dsphere index.
+
+Query a 2dsphere Index
+----------------------
+
+The following sections describe queries supported by the 2dsphere index.
+For an overview of recommended geospatial queries, see
+:doc:`/applications/geospatial-preferred-queries`.
+
+GeoJSON Objects Bounded by a Polygon
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To select all points and shapes found within a `GeoJSON
+<http://geojson.org/geojson-spec.html>`_ polygon, your data must be
+stored in GeoJSON format. Use the following syntax:
+
+.. code-block:: javascript
+
+   db.<collection>.find( { <location field> :
+                            { $geoWithin :
+                               { $geometry :
+                                  { type : "Polygon" ,
+                                    coordinates : [ <coordinates> ]
+                         } } } } )
+
+The following example selects all points and shapes that
+exist entirely within a GeoJSON polygon:
+
+.. code-block:: javascript
+
+   db.places.find( { loc :
+                     { $geoWithin :
+                       { $geometry :
+                         { type : "Polygon" ,
+                           coordinates : [ [ [ 0 , 0 ] , [ 3 , 6 ] , [ 6 , 1 ] , [ 0 , 0 ] ] ]
+                   } } } } )
+
+Intersections of GeoJSON Objects
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 2.4
+
+The :operator:`$geoIntersects` operator queries for location data that
+intersects a `GeoJSON <http://geojson.org/geojson-spec.html>`_ object.
+Use the following syntax:
+
+.. code-block:: javascript
+
+   db.<collection>.find( { <location field> :
+                            { $geoIntersects :
+                               { $geometry :
+                                  { type : "Point|LineString|Polygon" ,
+                                    coordinates : [ <coordinates> ]
+                         } } } } )
+
+The following example uses :operator:`$geoIntersects` to select all
+indexed points and shapes that intersect with the polygon defined by the
+``coordinates`` array.
+
+.. code-block:: javascript
+
+   db.places.find( { loc :
+                     { $geoIntersects :
+                       { $geometry :
+                         { type : "Polygon" ,
+                           coordinates: [ [ [ 0 , 0 ] , [ 3 , 6 ] , [ 6 , 1 ] , [ 0 , 0 ] ] ] }
+                   } } } } )
+
+The query returns true if the intersection between shapes is non-empty.
+This includes documents that have a shared edge.
+
+Proximity to a GeoJSON Point
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Proximity queries return the 100 points closest to the defined point and
+sorts the results by distance. A proximity query on GeoJSON data
+requires a 2dsphere index.
+
+To query for proximity to a `GeoJSON
+<http://geojson.org/geojson-spec.html>`_ point, use either the
+:operator:`$near` operator or :dbcommand:`geoNear` command. Distance is
+in meters.
+
+The :operator:`$near` uses the following syntax:
+
+.. code-block:: javascript
+
+   db.<collection>.find( { <location field> :
+                            { $near :
+                               { $geometry :
+                                  { type : "Point" ,
+                                    coordinates : [ <long>, <lat> ] } ,
+                                 $maxDistance : <distance in meters>
+                            } } } )
+
+For examples, see :operator:`$near`.
+
+The :dbcommand:`geoNear` command returns more information than does
+:operator:`$near`. See :ref:`geospatial-indexes-geonear`.
+
+Points within a Circle Defined on a Sphere
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To select all grid coordinates in a "spherical cap" on a sphere, use
+:operator:`$geoWithin` with the :operator:`$centerSphere` operator.
+Specify an array that contains:
+
+- The grid coordinates of the circle's center point
+
+- The circle's radius measured in radians. To calculate radians, see
+  :doc:`/tutorial/calculate-distances-using-spherical-geometry-with-2d-geospatial-indexes`.
+
+Use the following syntax:
+
+.. code-block:: javascript
+
+   db.<collection>.find( { <location field> :
+                            { $geoWithin :
+                               { $centerSphere : [ [ <x>, <y> ] , <radius> ] }
+                         } } )
+
+The following example queries grid coordinates and returns all
+documents within a 10 mile radius of longitude ``88 W`` and latitude
+``30 N``. The example converts the distance, 10 miles, to radians by
+dividing by the approximate radius of the earth, 3959 miles:
+
+.. code-block:: javascript
+
+   db.collection.find( { loc : { $geoWithin :
+                                  { $centerSphere :
+                                     [ [ 88 , 30 ] , 10 / 3959 ]
+                       } } } )
