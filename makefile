@@ -109,7 +109,7 @@ $(branch-output)/latex/%.tex:
 
 ############# General purpose targets. Not used (directly) in the production build #############
 tags:
-	@etags -I --language=none --regex=@bin/etags.regexp `find source -name "*.txt"`
+	@etags -I --language=none --regex=@bin/etags.regexp `find source -name "*.txt" | grep -v "\.#"`
 	@echo "[dev]: etags generation complete."
 draft:draft-html
 draft-pdfs:draft-latex $(subst .tex,.pdf,$(wildcard $(branch-output)/draft-latex/*.tex))
