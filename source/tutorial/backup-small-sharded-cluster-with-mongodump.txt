@@ -7,31 +7,17 @@ Backup a Small Sharded Cluster with ``mongodump``
 Overview
 --------
 
-If your :term:`sharded cluster` comprises a small collection of data,
+If your :term:`sharded cluster` comprises a realtively small amount of data,
 you can connect to a :program:`mongos` and issue the
-:program:`mongodump` command. You can use this approach if the following
-is true:
+:program:`mongodump` command. You can use this approach it's possible to 
+store the entire backup on one system or on a single storage device in 
+a reasonable period of time.
 
-- It's possible to store the entire backup on one system or on a single
-  storage device. Consider both backups of entire instances and
-  incremental dumps of data.
-
-- The state of the database at the beginning of the operation is
-  not significantly different than the state of the database at the
-  end of the backup. 
-
-  Your application must be able to operate given a copy of the data
-  that reflects many moments in time. If the data collected by the
-  backup operation is not sufficient to restore from, using
-  :program:`mongodump` for your back ups is not viable.
-
-- The backup can run and complete without affecting the performance of
-  the cluster.
-
-If these conditions are not all true, then this backup method will not
-support the needs of your deployment. Read
-:ref:`sharded-cluster-backups` for a high-level overview of important
+Read :ref:`sharded-cluster-backups` for a high-level overview of important
 considerations as well as a list of alternate backup tutorials.
+
+By default :program:`mongodump` will issue its queries to the non-primary 
+nodes.
 
 Procedure
 ---------
@@ -44,17 +30,19 @@ Procedure
    :program:`mongodump` when dumping from a :program:`mongos`. This option is only
    available when running directly against a :term:`replica set` member.
 
-To perform a backup of a shard cluster by connecting
-:program:`mongodump` by connecting directly, use the following
-operation a your system's prompt: 
+To perform a backup of a :term:`sharded cluster` by connecting
+:program:`mongodump` by connecting to a :program:`mongos`, use the following
+operation at your system's prompt: 
 
 .. code-block:: sh
 
-   mongodump --journal --host mongos3.example.net --port 27017
+   mongodump --host mongos3.example.net --port 27017
 
-This will create a database dump of the shard cluster accessible via
-the :program:`mongos` listening on port ``27017`` of the
-``mongos3.example.net`` mongos instance.
+This will create a database dump of the :term:`sharded cluster` accessible via
+the :program:`mongos` listening on port ``27017`` of the ``mongos3.example.net`` 
+mongos instance.
 
-The dump produced by this operation will effectively "unshard" your
-data: you must re-shard and re-balance the data when you restore.
+The dump produced by this operation does not reflect the chunks nor distribution of your 
+sharded data. It will be broken down by collection, in each database only. You can restore 
+to any type of instance but if you restore to a (new) :term:`sharded cluster` then 
+you must have a :term:`sharded cluster` setup already, before you restore.
