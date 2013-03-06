@@ -1,0 +1,91 @@
+=====
+$sort
+=====
+
+.. default-domain:: mongodb
+
+.. operator:: $sort
+
+   .. versionadded:: 2.4
+
+   The :operator:`$sort` modifier orders the elements of an array
+   during a :operator:`$push` operation. The elements of the array
+   **must** be documents [#future-arrary-elements]_.
+
+   To apply the :operator:`$sort` modifier, it must appear **with** the
+   :operator:`$each` and :operator:`$slice` modifiers, *and* the
+   :operator:`$each` modifier must be the first modifier for the
+   :operator:`$push` operation.
+
+   .. code-block:: javascript
+
+      db.collection.update( <query>,
+                            { $push: {
+                                       <field>: {
+                                                  $each: [ <document1>,
+                                                           <document2>,
+                                                           ... 
+                                                         ],
+                                                  $slice: <num>,
+                                                  $sort: <sort document>,
+                                                }
+                                     }
+                            }
+                          )
+
+   .. important::
+
+      The ``<sort document>`` only accesses the fields from the
+      elements in the array and does **not** refer to the array
+      ``<field>``.
+
+   Consider the following example where the collection ``students``
+   contain the following document:
+
+   .. code-block:: javascript
+
+      { "_id": 3, 
+        "name": "joe",
+        "quizzes": [
+                     { "id" : 1, "score" : 6 },
+                     { "id" : 2, "score" : 9 }
+                   ]
+      }
+
+   The following update appends additional documents to the ``quizzes``
+   array, sorts all the elements of the array by ascending ``score``
+   field, and slices the array to keep the last five elements:
+
+   .. code-block:: javascript
+
+      db.students.update( { name: "joe" },
+                          { $push: { quizzes: { $each: [ { id: 3, score: 8 },
+                                                         { id: 4, score: 7 },
+                                                         { id: 5, score: 6 } ],
+                                                $sort: { score: 1 },
+                                                $slice: -5
+                                              } 
+                                   }
+                          }
+                        )
+
+   After the update, the array elements are in order of ascending
+   ``score`` field.:
+
+   .. code-block:: javascript
+
+      {
+        "_id" : 3,
+        "name" : "joe",
+        "quizzes" : [
+                      { "id" : 1, "score" : 6 },
+                      { "id" : 5, "score" : 6 },
+                      { "id" : 4, "score" : 7 },
+                      { "id" : 3, "score" : 8 },
+                      { "id" : 2, "score" : 9 }
+                    ]
+      }
+
+   .. [#future-arrary-elements] In future releases, the
+      :operator:`$sort` modifier will be able to sort elements of
+      other types, not just documents.
