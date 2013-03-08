@@ -1,0 +1,196 @@
+=====================
+$concat (aggregation)
+=====================
+
+.. default-domain:: agg
+
+.. expression:: $concat
+
+   .. versionadded:: 2.4
+
+   Takes an array of strings, concatenates the strings, and returns the
+   concatenated string. :expression:`$concat` can only accept an array
+   of strings.
+   
+   Use :expression:`$concat` with the following syntax:
+
+   .. code-block:: javascript
+
+      { $concat: [ <string>, <string>, ... ] }
+
+   If array element has a value of ``null`` or refers to a field that
+   is missing, :expression:`$concat` will return ``null``.
+
+   .. begin-examples
+
+   .. example:: Project new concatenated values.
+
+      A collection ``menu`` contains the documents that stores
+      information on menu items separately in the ``section``, the
+      ``category`` and the ``type`` fields, as in the following:
+
+      .. code-block:: javascript
+
+         { _id: 1, item: { sec: "dessert", category: "pie", type: "apple" } }
+         { _id: 2, item: { sec: "dessert", category: "pie", type: "cherry" } }
+         { _id: 3, item: { sec: "main", category: "pie", type: "shepherd's" } }
+         { _id: 4, item: { sec: "main", category: "pie", type: "chicken pot" } }
+
+      The following operation uses :expression:`$concat` to concatenate
+      the ``type`` field from the sub-document ``item``, a space `` ``,
+      and the ``category`` field from the sub-document ``item`` to
+      project a new ``food`` field:
+
+      .. code-block:: javascript
+
+         db.menu.aggregate( { $project: { food:
+                                                { $concat: [ "$item.type",
+                                                             " ",
+                                                             "$item.category"
+                                                           ]
+                                                }
+                                         }
+                            }
+                          )
+
+      The operation returns the following result set where the ``food``
+      field contains the concatenated strings:
+
+      .. code-block:: javascript
+
+         {
+           "result" : [
+                        { "_id" : 1, "food" : "apple pie" },
+                        { "_id" : 2, "food" : "cherry pie" },
+                        { "_id" : 3, "food" : "shepherd's pie" },
+                        { "_id" : 4, "food" : "chicken pot pie" }
+                      ],
+           "ok" : 1
+         }
+
+   .. example:: Group by a concatenated string.
+
+      A collection ``menu`` contains the documents that stores
+      information on menu items separately in the ``section``, the
+      ``category`` and the ``type`` fields, as in the following:
+
+      .. code-block:: javascript
+
+         { _id: 1, item: { sec: "dessert", category: "pie", type: "apple" } }
+         { _id: 2, item: { sec: "dessert", category: "pie", type: "cherry" } }
+         { _id: 3, item: { sec: "main", category: "pie", type: "shepherd's" } }
+         { _id: 4, item: { sec: "main", category: "pie", type: "chicken pot" } }
+
+      The following aggregation uses :expression:`$concat` to
+      concatenate the ``sec`` field from the sub-document ``item``, the
+      string ``": "``, and the ``category`` field from the sub-document
+      ``item`` to group by the new concatenated string and perform a
+      count:
+
+      .. code-block:: javascript
+
+         db.menu.aggregate( { $group: { _id:
+                                             { $concat: [ "$item.sec",
+                                                          ": ",
+                                                          "$item.category"
+                                                        ]
+                                             },
+                                        count: { $sum: 1 }
+                                      }
+                            }
+                          )
+
+      The aggregation returns the following document:
+      
+      .. code-block:: javascript
+      
+         {
+           "result" : [
+                        { "_id" : "main: pie", "count" : 2 },
+                        { "_id" : "dessert: pie", "count" : 2 }
+                      ],
+           "ok" : 1 
+         }
+
+   .. example:: Concatenate ``null`` or missing values.
+
+      A collection ``menu`` contains the documents that stores
+      information on menu items separately in the ``section``, the
+      ``category`` and the ``type`` fields. Not all documents have the
+      all three fields. For example, the document with ``_id`` equal to
+      ``5`` is missing the ``category`` field:
+
+      .. code-block:: javascript
+
+         { _id: 1, item: { sec: "dessert", category: "pie", type: "apple" } }
+         { _id: 2, item: { sec: "dessert", category: "pie", type: "cherry" } }
+         { _id: 3, item: { sec: "main", category: "pie", type: "shepherd's" } }
+         { _id: 4, item: { sec: "main", category: "pie", type: "chicken pot" } }
+         { _id: 5, item: { sec: "beverage", type: "coffee" } }
+
+      The following aggregation uses the :expression:`$concat` to
+      concatenate the ``type`` field from the sub-document ``item``, a
+      space, and the ``category`` field from the sub-document ``item``:
+
+      .. code-block:: javascript
+
+         db.menu.aggregate( { $project: { food:
+                                                { $concat: [ "$item.type",
+                                                             " ",
+                                                             "$item.category"
+                                                           ]
+                                                }
+                                         }
+                            }
+                          )
+
+      Because the document with ``_id`` equal to ``5`` is missing the
+      ``type`` field in the ``item`` sub-document,
+      :expression:`$concat` returns the value ``null`` as the
+      concatenated value for the document:
+
+      .. code-block:: javascript
+
+         {
+           "result" : [
+                        { "_id" : 1, "food" : "apple pie" },
+                        { "_id" : 2, "food" : "cherry pie" },
+                        { "_id" : 3, "food" : "shepherd's pie" },
+                        { "_id" : 4, "food" : "chicken pot pie" },
+                        { "_id" : 5, "food" : null }
+                      ],
+           "ok" : 1
+         }
+
+      To handle possible missing fields, you can use
+      :expression:`$ifNull` with :expression:`$concat`, as in the
+      following example which substitutes ``<unknown type>`` if the
+      field ``type`` is ``null`` or missing, and ``<unknown category>``
+      if the field ``category`` is ``null`` or is missing:
+
+      .. code-block:: javascript
+
+         db.menu.aggregate( { $project: { food:
+                                                { $concat: [ { $ifNull: ["$item.type", "<unknown type>"] },
+                                                             " ",
+                                                             { $ifNull: ["$item.category", "<unknown category>"] }
+                                                           ]
+                                                }
+                                         }
+                            }
+                          )
+
+      The aggregation returns the following result set:
+
+      .. code-block:: javascript
+
+         {
+           "result" : [
+                        { "_id" : 1, "food" : "apple pie" },
+                        { "_id" : 2, "food" : "cherry pie" },
+                        { "_id" : 3, "food" : "shepherd's pie" },
+                        { "_id" : 4, "food" : "chicken pot pie" },
+                        { "_id" : 5, "food" : "coffee <unknown category>" }
+                      ],
+           "ok" : 1 
+         }
