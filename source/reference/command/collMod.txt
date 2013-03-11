@@ -23,6 +23,7 @@ collMod
 
    .. index:: document; space allocation
    .. index:: usePowerOf2Sizes
+   .. _usePowerOf2Sizes:
    .. collflag:: usePowerOf2Sizes
 
       The :collflag:`usePowerOf2Sizes` flag changes the method that
@@ -41,7 +42,7 @@ collMod
          with :collflag:`usePowerOf2Sizes` set, :program:`mongod`
          will allocate records in full megabytes by rounding up to
          the nearest megabyte.
-
+         
       :collflag:`usePowerOf2Sizes` is useful for collections where you
       will be inserting and deleting large numbers of documents to
       ensure that MongoDB will effectively use space on disk.
@@ -62,6 +63,7 @@ collMod
 
             db.runCommand( { collMod: "products", "usePowerOf2Sizes": false })
 
+
       .. warning::
          .. versionchanged:: 2.2.1
             :collflag:`usePowerOf2Sizes` now
@@ -74,10 +76,49 @@ collMod
          as a result of document growth, and *does not* affect
          existing allocations.
 
-      .. note::
+   .. index:: expireAfterSeconds
+   .. collflag:: index
 
-         :collflag:`usePowerOf2Sizes` has no effect on
-         :term:`capped collections <capped collection>`.
+      The :collflag:`index` flag changes the expiration time of a
+      :doc:`TTL Collection </tutorial/expire-data>`.
+
+      Specify the key and new expiration time with a document of the form:
+
+      .. code-block:: javascript
+
+         {keyPattern: <index_spec>, expireAfterSeconds: <seconds> }
+
+      where ``<index_spec>`` is an existing index in the collection and
+      ``seconds`` is the number of seconds to subtract from the current
+      time.
+
+      .. example::
+
+         To update the expiration value for a collection
+         named ``sessions`` indexed on a ``lastAccess`` field from 30
+         minutes to 60 minutes, use the following operation:
+
+         .. code-block:: javascript
+
+            db.runCommand({collMod: "sessions",
+                          index: {keyPattern: {lastAccess:1},
+                          expireAfterSeconds: 3600}})
+
+         Which will return the document:
+
+         .. code-block:: javascript
+
+            { "expireAfterSeconds_old" : 1800, "expireAfterSeconds_new" : 3600, "ok" : 1 }
+
+      On success a document with fields ``expireAfterSeconds_old``
+      and ``expireAfterSeconds_new`` set to the respective
+      values is returned.
+
+      On failure, a document is returned with
+      ``no expireAfterSeconds field to update``
+      if there is no existing ``expireAfterSeconds`` field or
+      ``cannot find index { **key**: 1.0 } for ns **namespace**``
+      if the specified ``keyPattern`` does not exist.
 
          .. Commenting out the following after DOCS-717, it does take
             a lock but its to cover a very small metadata change.
