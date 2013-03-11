@@ -129,26 +129,27 @@ procedure.
    config servers during the upgrade, you may always safely retry the
    upgrade.
 
-   However, if the upgrade failed in the short critical section,
-   the retry will end with a warning that manual intervention is required.
-   To continue upgrading, you must follow the :ref:`upgrade-cluster-resync`
-   procedure.
+   However, if the upgrade failed during the short critical section,
+   the :program:`mongos` will exit and report that the upgrade will
+   require manual intervention. To continue the upgrade process, you
+   must follow the :ref:`upgrade-cluster-resync` procedure.
 
    .. optional::
 
-      If the :program:`mongos` logs show the upgrade waiting for the upgrade
-      lock, a previous upgrade process may still be active or may have ended
-      abnormally.  After 15 minutes of no remote activity :program:`mongos`
-      will force the upgrade lock. If you can verify that there are no running upgrade
-      processes, you may connect to a 2.2 :program:`mongos` process
-      and force the lock manually:
+      If the :program:`mongos` logs show the upgrade waiting for the
+      upgrade lock, a previous upgrade process may still be active or
+      may have ended abnormally.  After 15 minutes of no remote
+      activity :program:`mongos` will force the upgrade lock. If you
+      can verify that there are no running upgrade processes, you may
+      connect to a 2.2 :program:`mongos` process and force the lock
+      manually:
 
       .. code-block:: sh
 
          mongo <mongos.example.net>
 
       .. code-block:: javascript
-   
+
          db.getMongo().getCollection("config.locks").findOne({ _id : "upgradeLock" })
 
       If the process specified in the ``process`` field of this document
@@ -159,10 +160,12 @@ procedure.
 
          db.getMongo().getCollection("config.locks").update({ _id : "upgradeLock" }, { $set : { state : 0 } })
 
-      It is always more safe to wait for the :program:`mongos` to verify
-      that the lock is inactive, if you have any doubts about the
-      activity of another upgrade operation.  Note also that mongos may also
-      have to wait for other collection locks, which should not be forced.
+      It is always more safe to wait for the :program:`mongos` to
+      verify that the lock is inactive, if you have any doubts about
+      the activity of another upgrade operation.  In addition to the
+      ``upgradeLock``, the :program:`mongos` may need to wait for
+      specific collection locks. Do not force the specific collection
+      locks.
 
 #. Upgrade and restart other :program:`mongos` processes in the
    sharded cluster, *without* the :option:`--upgrade <mongos --upgrade>`
