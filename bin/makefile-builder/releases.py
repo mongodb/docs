@@ -55,9 +55,9 @@ def makefile_restat(builder, dependency):
     m.append_var(variable='installation-guides', value=target, block='guide')
     m.target(target=target, dependency=dependency, block='guide')
 
-    if builder == 'source/tutorial/install-mongodb-subscriber-edition.txt': 
-	pass
-    else: 
+    if builder == 'source/tutorial/install-mongodb-subscriber-edition.txt':
+        pass
+    else:
         m.job('touch $@', block='guide')
 
     m.msg('[build]: touched $@ to ensure a clean build.', block='guide')
