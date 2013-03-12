@@ -45,6 +45,9 @@ See :doc:`/release-notes/2.4-upgrade` for full upgrade instructions.
 Changes
 -------
 
+Application Features
+++++++++++++++++++++
+
 Text Indexes
 ~~~~~~~~~~~~
 
@@ -541,34 +544,307 @@ The ``text`` index and the :dbcommand:`text` command support the
 following languages:
 
 - ``danish``
-
 - ``dutch``
-
 - ``english``
-
 - ``finnish``
-
 - ``french``
-
 - ``german``
-
 - ``hungarian``
-
 - ``italian``
-
 - ``norwegian``
-
 - ``portuguese``
-
 - ``romanian``
-
 - ``russian``
-
 - ``spanish``
-
 - ``swedish``
-
 - ``turkish``
+
+New Geospatial Indexes with GeoJSON and Improved Spherical Geometry
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   In 2.3.2, the index type for Spherical Geospatial Indexes
+   become ``2dsphere``.
+
+The 2.3 series adds a new type of geospatial index that supports
+improved spherical queries and GeoJSON. Create the index by specifying
+``2dsphere`` as the value of the field in the index specification, as
+any of the following:
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex( { geo: "2dsphere" } )
+   db.collection.ensureIndex( { type: 1, geo: "2dsphere" } )
+   db.collection.ensureIndex( { geo: "2dsphere", type: 1 } )
+
+In the first example you create a spherical geospatial index on the
+field named ``geo``, in the second example, you create a compound
+index where the first field is a normal index, and the index of the
+second field is a spherical geospatial index. Unlike ``2d`` indexes,
+fields indexed using the ``2dsphere`` type do not have to be the first
+field in a compound index.
+
+You must store data in the fields indexed using the ``2dsphere`` index
+using the `GeoJSON`_ specification, at the moment. Support for storing
+points, in the form used by the existing ``2d`` (i.e. geospatial)
+indexes is forthcoming. Currently, ``2dsphere`` indexes only support
+the following GeoJSON shapes:
+
+- ``Point``, as in the following:
+
+  .. code-block:: javascript
+
+     { "type": "Point", "coordinates": [ 40, 5 ] }
+
+- ``LineString``, as in the following:
+
+  .. code-block:: javascript
+
+     { "type": "LineString", "coordinates": [ [ 40, 5 ], [ 41, 6 ] ] }
+
+- ``Polygon``, as in the following:
+
+  .. code-block:: javascript
+
+     {
+       "type": "Polygon",
+       "coordinates": [ [ [ 40, 5 ], [ 40, 6 ], [ 41, 6 ], [ 41, 5 ], [ 40, 5 ] ] ]
+     }
+
+To query ``2dsphere`` indexes, all current geospatial :ref:`query operators
+<query-selectors-geospatial>` with an additional
+:operator:`$geoIntersects` operator. Currently, all queries using the
+``2dsphere`` index must pass the query selector (e.g. :operator:`$near`,
+:operator:`$geoIntersects`) a GeoJSON document. With the exception of the
+GeoJSON requirement, the operation of :operator:`$near` is the same
+for ``2dsphere`` indexes as ``2d`` indexes.
+
+.. operator:: $geoIntersects
+
+   The :operator:`$geoIntersects` selects all indexed points that
+   intersect with the provided geometry. (i.e. ``Point``, ``LineString``,
+   and ``Polygon``.) You must pass :operator:`$geoIntersects` a document
+   in GeoJSON format.
+
+   .. code-block:: javascript
+
+      db.collection.find( { loc: { $geoIntersects:
+                                   { $geometry: { "type": "Point",
+                                                  "coordinates": [ 40, 5 ]
+                                   } } } } )
+
+   This query will select all indexed objects that intersect with the
+   ``Point`` with the coordinates ``[ 40, 5 ]``. MongoDB will return
+   documents as intersecting if they have a shared edge.
+
+   The :operator:`$geometry` operator takes a single `GeoJSON
+   document`_.
+
+.. operator:: $geometry
+
+.. _`GeoJSON document`: http://www.geojson.org/geojson-spec.html#appendix-a-geometry-examples
+
+.. _`GeoJSON`: http://geojson.org/geojson-spec.html
+
+New Hashed Index and Sharding with a Hashed Shard Key
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To support an easy to configure and evenly distributed shard key, version 2.3 adds a
+new "``hashed``" index type that indexes based on hashed values. This
+section introduces and documents both the new index type and its use
+in sharding:
+
+Hashed Index
+````````````
+
+The new ``hashed`` index exists primarily to support automatically
+hashed shard keys. Consider the following properties of hashed
+indexes:
+
+- Hashed indexes must only have a single field, and cannot be compound
+  indexes.
+
+- Fields indexed with hashed indexes must *not* hold arrays. Hashed
+  indexes cannot be multikey indexes.
+
+- Hashed indexes cannot have a ``unique`` constraint.
+
+  You *may* create hashed indexes with the ``sparse`` property.
+
+- MongoDB can use the hashed index to support equality queries, but
+  cannot use these indexes for range queries.
+
+- Hashed indexes offer no performance advantage over normal indexes.
+  *However*, hashed indexes may be smaller than a normal index when
+  the values of the indexed field are larger than 64 bits. [#hash-size]_
+
+- it's possible to have a hashed and non-hashed index on the same
+  field: MongoDB will use the non-hashed for range queries.
+
+.. _hashed-index-warning:
+
+.. warning::
+
+   Hashed indexes round floating point numbers to 64-bit integers
+   before hashing. For example, a hashed index would store the same
+   value for a field that held a value of ``2.3`` and ``2.2``. To
+   prevent collisions do not use a hashed index for floating point
+   numbers that cannot be consistently converted to 64-bit integers (and
+   then back to floating point.) Hashed indexes do not support
+   floating point values larger than 2\ :sup:`53`.
+
+Create a hashed index using an operation that resembles the
+following:
+
+.. code-block:: javascript
+
+   db.active.ensureIndex( { a: "hashed" } )
+
+This operation creates a hashed index for the ``active`` collection on
+the ``a`` field.
+
+.. [#hash-size] The hash stored in the hashed index is 64 bits long.
+
+Hashed Sharding
+```````````````
+
+To shard a collection using a hashed shard key, issue an operation in
+the :program:`mongo` shell that resembles the following:
+
+.. code-block:: javascript
+
+   sh.shardCollection( "records.active", { a: "hashed" } )
+
+This operation shards the ``active`` collection in the ``records``
+database, using a hash of the ``a`` field as the shard
+key. Consider the following properties when using a hashed shard key:
+
+- As with other kinds of shard key indexes, if your collection has
+  data, you must create the hashed index before sharding. If your
+  collection does not have data, sharding the collection will create
+  the appropriate index.
+
+- The :program:`mongos` will route all equality queries to a specific
+  shard or set of shards; however, the :program:`mongos` must route
+  range queries to all shards.
+
+- When using a hashed shard key on a new collection, MongoDB
+  automatically pre-splits the range of 64-bit hash values into
+  chunks. By default, the initial number of chunks is equal to twice
+  the number of shards at creation time. You can change the number of
+  chunks created, using the ``numInitialChunks`` option, as in the
+  following invocation of :dbcommand:`shardCollection`:
+
+  .. code-block:: javascript
+
+     db.adminCommand( { shardCollection: "test.collection",
+                        key: { a: "hashed"},
+                        numInitialChunks: 2001 } )
+
+  MongoDB will only pre-split chunks in a collection when sharding
+  empty collections. MongoDB will not create chunk splits in a
+  collection sharding collections that have data.
+
+  .. note::
+
+     ``numInititalChanks`` allows you to create, at most ``8192``
+     chunks when sharding a collection.
+
+.. warning::
+
+   Avoid using hashed shard keys when the hashed field has non-integral floating
+   point values, see :ref:`hashed indexes <hashed-index-warning>` for
+   more information.
+
+Increased Chunk Migration Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, all insert and delete operations that occur as part of a
+:term:`chunk` migration in a :term:`sharded cluster` will have an
+increased write concern, to ensure that at least one secondary
+acknowledges each insert and deletion operation. This change slows the
+potential speed of a chunk migration, but increases reliability and
+ensures that a large number of chunk migrations *cannot* affect the
+availability of a sharded cluster.
+
+BSON Document Validation Enabled by Default for ``mongod`` and ``mongorestore``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in 2.4, MongoDB enables basic :term:`BSON` object validation
+for :program:`mongod` and :program:`mongorestore` when writing to
+MongoDB data files. This prevents any client from inserting invalid or
+malformed BSON into a MongoDB database. For objects with a high degree
+of sub-document nesting this validation may have a small performance
+impact. :setting:`objcheck`, which was previously disabled by default,
+provides this validation.
+1
+Additional Limitations for Map-Reduce and ``$where`` Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In MongoDB 2.4, :doc:`map-reduce operations
+</applications/map-reduce>`, the :command:`group` command, and
+:operator:`$where` operator expressions **cannot** access certain
+global functions or properties, such as ``db``, that are available in
+the :program:`mongo` shell.
+
+When upgrading to MongoDB 2.4, you will need to refactor your code if
+your :doc:`map-reduce operations </applications/map-reduce>`,
+:command:`group` commands, or :operator:`$where` operator expressions
+include any global shell functions or properties that are no longer
+available, such as ``db``.
+
+The following shell functions and properties **are available** to
+:doc:`map-reduce operations </applications/map-reduce>`, the
+:command:`group` command, and :operator:`$where` operator expressions
+in MongoDB 2.4:
+
+.. list-table::
+  :header-rows: 1
+
+  * - Available Properties
+    - Available Functions
+    -
+
+  * -
+      | ``args``
+      | ``MaxKey``
+      | ``MinKey``
+
+    -
+      | ``assert()``
+      | ``BinData()``
+      | ``DBPointer()``
+      | ``DBRef()``
+      | ``doassert()``
+      | ``emit()``
+      | ``gc()``
+      | ``HexData()``
+      | ``hex_md5()``
+      | ``isNumber()``
+      | ``isObject()``
+      | ``ISODate()``
+      | ``isString()``
+
+    -
+      | ``Map()``
+      | ``MD5()``
+      | ``NumberInt()``
+      | ``NumberLong()``
+      | ``ObjectId()``
+      | ``print()``
+      | ``sleep()``
+      | ``Timestamp()``
+      | ``tojson()``
+      | ``tojsononeline()``
+      | ``tojsonObject()``
+      | ``UUID()``
+      | ``version()``
+
+.. DOCS-752
+
+Administrative Changes
+++++++++++++++++++++++
 
 .. _kerberos-authentication:
 
@@ -618,6 +894,112 @@ format for documents in a database's :data:`system.user
 Use :parameter:`supportCompatibilityFormPrivilegeDocuments` to disable
 the legacy privilege documents, which MongoDB continues to support in
 2.4.
+
+``--setParameter`` Option Available on the ``mongos`` and ``mongod`` Command Line
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can now use :option:`--setParameter <mongod>` on the command line
+and :setting:`setParameter` in the configuration file. Currently
+:setting:`setParameter` provides the following options:
+
+.. include:: /includes/list-set-parameters.rst
+
+See :doc:`/reference/parameters` for full documentation of available
+parameters and their use.
+
+Changes to ``serverStatus`` Output Including Additional Metrics
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In 2.4 MongoDB adds a number of counters and system metrics to the
+output of the :dbcommand:`serverStatus` command, including:
+
+- a :ref:`working set estimator <server-status-workingset>`.
+
+- operation counters, in :data:`~serverStatus.metrics.document`
+  and :data:`~serverStatus.metrics.operation`.
+
+- record allocation, in :data:`~serverStatus.metrics.record`.
+
+- thorough metrics of the replication process,
+  in :data:`~serverStatus.metrics.repl`.
+
+- metrics on the :doc:`ttl index </tutorial/expire-data>`
+  documentation.
+
+Indexing Changes
+++++++++++++++++
+
+Support for Multiple Concurrent Index Builds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A single :program:`mongod` instance can build multiple indexes in the
+background at the same time. See :ref:`building indexes in the
+background <index-creation-background>` for more information on
+background index builds. Foreground index builds hold a database lock
+and must proceed one at a time.
+
+``db.killOp()`` Can Now Kill Foreground Index Builds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :method:`db.killOp()` method will now terminate a foreground index
+build, in addition to the other operations supported in previous
+versions.
+
+Interface Changes
++++++++++++++++++
+
+``$setOnInsert`` -- New Update Operator
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. Properly restructure this section after adding $push...
+
+To set fields *only* when an :method:`upsert <db.collection.update()>`
+performs an insert, use the :operator:`$setOnInsert` operator with the
+:method:`upsert <db.collection.update()>` .
+
+.. example::
+
+   A collection named ``coll`` has no documents with ``_id`` equal to
+   ``1``.
+
+   The following :method:`upsert <db.collection.update()>` operation
+   inserts a document and applies the :operator:`$setOnInsert` operator
+   to set the fields ``x`` and ``y``:
+
+   .. code-block:: javascript
+
+      db.coll.update( { _id: 1 },
+                      { $setOnInsert: { x: 25, y: 30 } },
+                      { upsert: true } )
+
+   The newly-inserted document has the field ``x`` set to ``25`` and
+   the field ``y`` set to 30:
+
+   .. code-block:: javascript
+
+      { "_id" : 1, "x" : 25, "y" : 30 }
+
+.. note::
+
+   The :operator:`$setOnInsert` operator performs no operation for
+   :method:`upserts <db.collection.update()>` that only perform an
+   update and for :method:`updates <db.collection.update()>` when the
+   ``upsert`` option is ``false``.
+
+``$each``, ``$slice``, and ``$sort`` Available for Use with ``$push``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can now use the :operator:`$push` operator with the following
+modifiers:
+
+- :operator:`$each` to append multiple values to the array field,
+
+- :operator:`$slice` to restrict the number of array elements and which
+  must be used with :operator:`$each`, and
+
+- :operator:`$sort` to order the elements of the array, which
+  must be used with :operator:`$slice` and can **only** sort
+  arrays that contain documents.
 
 Default JavaScript Engine Switched to V8 from SpiderMonkey
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1077,387 +1459,3 @@ V8 does not support the non-standard method ``uneval()``. Use the
 standardized `JSON.stringify()
 <https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/JSON/stringify>`_
 method instead.
-
-Added Limitations for ``Map-Reduce`` and ``$where`` Operations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-In MongoDB 2.4, :doc:`map-reduce operations
-</applications/map-reduce>`, the :command:`group` command, and
-:operator:`$where` operator expressions **cannot** access certain
-global functions or properties, such as ``db``, that are available in
-the :program:`mongo` shell.
-
-When upgrading to MongoDB 2.4, you will need to refactor your code if
-your :doc:`map-reduce operations </applications/map-reduce>`,
-:command:`group` commands, or :operator:`$where` operator expressions
-include any global shell functions or properties that are no longer
-available, such as ``db``.
-
-The following shell functions and properties **are available** to
-:doc:`map-reduce operations </applications/map-reduce>`, the
-:command:`group` command, and :operator:`$where` operator expressions
-in MongoDB 2.4:
-
-.. list-table::
-  :header-rows: 1
-
-  * - Available Properties
-    - Available Functions
-    -
-
-  * -
-      | ``args``
-      | ``MaxKey``
-      | ``MinKey``
-
-    -
-      | ``assert()``
-      | ``BinData()``
-      | ``DBPointer()``
-      | ``DBRef()``
-      | ``doassert()``
-      | ``emit()``
-      | ``gc()``
-      | ``HexData()``
-      | ``hex_md5()``
-      | ``isNumber()``
-      | ``isObject()``
-      | ``ISODate()``
-      | ``isString()``
-
-    -
-      | ``Map()``
-      | ``MD5()``
-      | ``NumberInt()``
-      | ``NumberLong()``
-      | ``ObjectId()``
-      | ``print()``
-      | ``sleep()``
-      | ``Timestamp()``
-      | ``tojson()``
-      | ``tojsononeline()``
-      | ``tojsonObject()``
-      | ``UUID()``
-      | ``version()``
-
-.. DOCS-752
-
-New Geospatial Indexes with GeoJSON and Improved Spherical Geometry
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. note::
-
-   In 2.3.2, the index type for Spherical Geospatial Indexes
-   become ``2dsphere``.
-
-The 2.3 series adds a new type of geospatial index that supports
-improved spherical queries and GeoJSON. Create the index by specifying
-``2dsphere`` as the value of the field in the index specification, as
-any of the following:
-
-.. code-block:: javascript
-
-   db.collection.ensureIndex( { geo: "2dsphere" } )
-   db.collection.ensureIndex( { type: 1, geo: "2dsphere" } )
-   db.collection.ensureIndex( { geo: "2dsphere", type: 1 } )
-
-In the first example you create a spherical geospatial index on the
-field named ``geo``, in the second example, you create a compound
-index where the first field is a normal index, and the index of the
-second field is a spherical geospatial index. Unlike ``2d`` indexes,
-fields indexed using the ``2dsphere`` type do not have to be the first
-field in a compound index.
-
-You must store data in the fields indexed using the ``2dsphere`` index
-using the `GeoJSON`_ specification, at the moment. Support for storing
-points, in the form used by the existing ``2d`` (i.e. geospatial)
-indexes is forthcoming. Currently, ``2dsphere`` indexes only support
-the following GeoJSON shapes:
-
-- ``Point``, as in the following:
-
-  .. code-block:: javascript
-
-     { "type": "Point", "coordinates": [ 40, 5 ] }
-
-- ``LineString``, as in the following:
-
-  .. code-block:: javascript
-
-     { "type": "LineString", "coordinates": [ [ 40, 5 ], [ 41, 6 ] ] }
-
-- ``Polygon``, as in the following:
-
-  .. code-block:: javascript
-
-     {
-       "type": "Polygon",
-       "coordinates": [ [ [ 40, 5 ], [ 40, 6 ], [ 41, 6 ], [ 41, 5 ], [ 40, 5 ] ] ]
-     }
-
-To query ``2dsphere`` indexes, all current geospatial :ref:`query operators
-<query-selectors-geospatial>` with an additional
-:operator:`$geoIntersects` operator. Currently, all queries using the
-``2dsphere`` index must pass the query selector (e.g. :operator:`$near`,
-:operator:`$geoIntersects`) a GeoJSON document. With the exception of the
-GeoJSON requirement, the operation of :operator:`$near` is the same
-for ``2dsphere`` indexes as ``2d`` indexes.
-
-.. operator:: $geoIntersects
-
-   The :operator:`$geoIntersects` selects all indexed points that
-   intersect with the provided geometry. (i.e. ``Point``, ``LineString``,
-   and ``Polygon``.) You must pass :operator:`$geoIntersects` a document
-   in GeoJSON format.
-
-   .. code-block:: javascript
-
-      db.collection.find( { loc: { $geoIntersects:
-                                   { $geometry: { "type": "Point",
-                                                  "coordinates": [ 40, 5 ]
-                                   } } } } )
-
-   This query will select all indexed objects that intersect with the
-   ``Point`` with the coordinates ``[ 40, 5 ]``. MongoDB will return
-   documents as intersecting if they have a shared edge.
-
-   The :operator:`$geometry` operator takes a single `GeoJSON
-   document`_.
-
-.. operator:: $geometry
-
-   .. _`GeoJSON document`: http://www.geojson.org/geojson-spec.html#appendix-a-geometry-examples
-
-.. _`GeoJSON`: http://geojson.org/geojson-spec.html
-
-New Hashed Index and Sharding with a Hashed Shard Key
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To support an easy to configure and evenly distributed shard key, version 2.3 adds a
-new "``hashed``" index type that indexes based on hashed values. This
-section introduces and documents both the new index type and its use
-in sharding:
-
-Hashed Index
-````````````
-
-The new ``hashed`` index exists primarily to support automatically
-hashed shard keys. Consider the following properties of hashed
-indexes:
-
-- Hashed indexes must only have a single field, and cannot be compound
-  indexes.
-
-- Fields indexed with hashed indexes must *not* hold arrays. Hashed
-  indexes cannot be multikey indexes.
-
-- Hashed indexes cannot have a ``unique`` constraint.
-
-  You *may* create hashed indexes with the ``sparse`` property.
-
-- MongoDB can use the hashed index to support equality queries, but
-  cannot use these indexes for range queries.
-
-- Hashed indexes offer no performance advantage over normal indexes.
-  *However*, hashed indexes may be smaller than a normal index when
-  the values of the indexed field are larger than 64 bits. [#hash-size]_
-
-- it's possible to have a hashed and non-hashed index on the same
-  field: MongoDB will use the non-hashed for range queries.
-
-.. _hashed-index-warning:
-
-.. warning::
-
-   Hashed indexes round floating point numbers to 64-bit integers
-   before hashing. For example, a hashed index would store the same
-   value for a field that held a value of ``2.3`` and ``2.2``. To
-   prevent collisions do not use a hashed index for floating point
-   numbers that cannot be consistently converted to 64-bit integers (and
-   then back to floating point.) Hashed indexes do not support
-   floating point values larger than 2\ :sup:`53`.
-
-Create a hashed index using an operation that resembles the
-following:
-
-.. code-block:: javascript
-
-   db.active.ensureIndex( { a: "hashed" } )
-
-This operation creates a hashed index for the ``active`` collection on
-the ``a`` field.
-
-.. [#hash-size] The hash stored in the hashed index is 64 bits long.
-
-Hashed Sharding
-```````````````
-
-To shard a collection using a hashed shard key, issue an operation in
-the :program:`mongo` shell that resembles the following:
-
-.. code-block:: javascript
-
-   sh.shardCollection( "records.active", { a: "hashed" } )
-
-This operation shards the ``active`` collection in the ``records``
-database, using a hash of the ``a`` field as the shard
-key. Consider the following properties when using a hashed shard key:
-
-- As with other kinds of shard key indexes, if your collection has
-  data, you must create the hashed index before sharding. If your
-  collection does not have data, sharding the collection will create
-  the appropriate index.
-
-- The :program:`mongos` will route all equality queries to a specific
-  shard or set of shards; however, the :program:`mongos` must route
-  range queries to all shards.
-
-- When using a hashed shard key on a new collection, MongoDB
-  automatically pre-splits the range of 64-bit hash values into
-  chunks. By default, the initial number of chunks is equal to twice
-  the number of shards at creation time. You can change the number of
-  chunks created, using the ``numInitialChunks`` option, as in the
-  following invocation of :dbcommand:`shardCollection`:
-
-  .. code-block:: javascript
-
-     db.adminCommand( { shardCollection: "test.collection",
-                        key: { a: "hashed"},
-                        numInitialChunks: 2001 } )
-
-  MongoDB will only pre-split chunks in a collection when sharding
-  empty collections. MongoDB will not create chunk splits in a
-  collection sharding collections that have data.
-
-  .. note::
-
-     ``numInititalChanks`` allows you to create, at most ``8192``
-     chunks when sharding a collection.
-
-.. warning::
-
-   Avoid using hashed shard keys when the hashed field has non-integral floating
-   point values, see :ref:`hashed indexes <hashed-index-warning>` for
-   more information.
-
-Increased Chunk Migration Write Concern
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-By default, all insert and delete operations that occur as part of a
-:term:`chunk` migration in a :term:`sharded cluster` will have an
-increased write concern, to ensure that at least one secondary
-acknowledges each insert and deletion operation. This change slows the
-potential speed of a chunk migration, but increases reliability and
-ensures that a large number of chunk migrations *cannot* affect the
-availability of a sharded cluster.
-
-BSON Document Validation Enabled by Default for ``mongod`` and ``mongorestore``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Starting in 2.4, MongoDB enables basic :term:`BSON` object validation
-for :program:`mongod` and :program:`mongorestore` when writing to
-MongoDB data files. This prevents any client from inserting invalid or
-malformed BSON into a MongoDB database. For objects with a high degree
-of sub-document nesting this validation may have a small performance
-impact. :setting:`objcheck`, which was previously disabled by default,
-provides this validation.
-
-``db.killOp()`` Can Now Kill Foreground Index Builds
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The :method:`db.killOp()` method will now terminate a foreground index
-build, in addition to the other operations supported in previous
-versions.
-
-``$setOnInsert`` -- New Update Operator
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. Properly restructure this section after adding $push...
-
-To set fields *only* when an :method:`upsert <db.collection.update()>`
-performs an insert, use the :operator:`$setOnInsert` operator with the
-:method:`upsert <db.collection.update()>` .
-
-.. example::
-
-   A collection named ``coll`` has no documents with ``_id`` equal to
-   ``1``.
-
-   The following :method:`upsert <db.collection.update()>` operation
-   inserts a document and applies the :operator:`$setOnInsert` operator
-   to set the fields ``x`` and ``y``:
-
-   .. code-block:: javascript
-
-      db.coll.update( { _id: 1 },
-                      { $setOnInsert: { x: 25, y: 30 } },
-                      { upsert: true } )
-
-   The newly-inserted document has the field ``x`` set to ``25`` and
-   the field ``y`` set to 30:
-
-   .. code-block:: javascript
-
-      { "_id" : 1, "x" : 25, "y" : 30 }
-
-.. note::
-
-   The :operator:`$setOnInsert` operator performs no operation for
-   :method:`upserts <db.collection.update()>` that only perform an
-   update and for :method:`updates <db.collection.update()>` when the
-   ``upsert`` option is ``false``.
-
-``$each``, ``$slice``, and ``$sort`` Available for Use with ``$push``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can now use the :operator:`$push` operator with the following
-modifiers:
-
-- :operator:`$each` to append multiple values to the array field,
-
-- :operator:`$slice` to restrict the number of array elements and which
-  must be used with :operator:`$each`, and
-
-- :operator:`$sort` to order the elements of the array, which
-  must be used with :operator:`$slice` and can **only** sort
-  arrays that contain documents.
-
-``--setParameter`` Option Available on the ``mongos`` and ``mongod`` Command Line
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can now use :option:`--setParameter <mongod>` on the command line
-and :setting:`setParameter` in the configuration file. Currently
-:setting:`setParameter` provides the following options:
-
-.. include:: /includes/list-set-parameters.rst
-
-See :doc:`/reference/parameters` for full documentation of available
-parameters and their use.
-
-Multiple Index Builds
-~~~~~~~~~~~~~~~~~~~~~
-
-A single :program:`mongod` instance can build multiple indexes in the
-background at the same time. See :ref:`building indexes in the
-background <index-creation-background>` for more information on
-background index builds. Foreground index builds hold a database lock
-and must proceed one at a time.
-
-Changes to ``serverStatus`` Output Including Additional Metrics
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-In 2.4 MongoDB adds a number of counters and system metrics to the
-output of the :dbcommand:`serverStatus` command, including:
-
-- a :ref:`working set estimator <server-status-workingset>`.
-
-- operation counters, in :data:`~serverStatus.metrics.document`
-  and :data:`~serverStatus.metrics.operation`.
-
-- record allocation, in :data:`~serverStatus.metrics.record`.
-
-- thorough metrics of the replication process,
-  in :data:`~serverStatus.metrics.repl`.
-
-- metrics on the :doc:`ttl index </tutorial/expire-data>`
-  documentation.
