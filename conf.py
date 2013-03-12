@@ -179,7 +179,7 @@ man_pages = [
     ('reference/mongostat', 'mongostat', u'MongoDB', [u'MongoDB Documentation Project'], 1),
     ('reference/mongosniff', 'mongosniff', u'MongoDB', [u'MongoDB Documentation Project'], 1),
     ('reference/mongotop', 'mongotop', u'MongoDB', [u'MongoDB Documentation Project'], 1),
-    ('reference/configuration-options', 'mongodb-config', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/mongoperf', 'mongoperf', u'MongoDB', [u'MongoDB Documentation Project'], 1),
 ]
 
 texinfo_documents = [
