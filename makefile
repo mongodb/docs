@@ -35,6 +35,7 @@ include bin/makefile.clean
 include bin/makefile.content
 include bin/makefile.tables
 include bin/makefile.push
+include bin/makefile.manpages
 
 ############# Meta targets that control the build and publication process. #############
 publish-if-up-to-date:
@@ -113,18 +114,3 @@ tags:
 	@echo "[dev]: etags generation complete."
 draft:draft-html
 draft-pdfs:draft-latex $(subst .tex,.pdf,$(wildcard $(branch-output)/draft-latex/*.tex))
-# man page support, uses sphinx `man` builder output.
-.PHONY:$(manpages)
-manpages := $(wildcard $(branch-output)/man/*.1)
-compressed-manpages := $(subst .1,.1.gz,$(manpages))
-manpages:$(compressed-manpages) $(branch-output)/manpages.tar.gz
-$(compressed-manpages):$(manpages)
-$(manpages):man
-$(branch-output)/man/%.1.gz: $(branch-output)/man/%.1
-	@gzip $< -c > $@
-	@echo [man]: compressing $< -- $@
-$(branch-output)/manpages.tar.gz:man
-	@touch $@.log
-	@$(TARBIN) -C $(branch-output)/ --transform=s/man/mongodb-manpages/ \
-		   -czvf $@ $(subst $(branch-output)/,,$(manpages)) >> $@.log
-	@echo [man]: created $@ archive of all manpages
