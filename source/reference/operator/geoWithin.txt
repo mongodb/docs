@@ -1,0 +1,97 @@
+==========
+$geoWithin
+==========
+
+.. default-domain:: mongodb
+
+.. operator:: $geoWithin
+
+   .. versionadded:: 2.4
+
+   The :operator:`$geoWithin` operator is a geospatial query operator
+   that queries for a defined point, line or shape that exists entirely
+   within another defined shape. When determining inclusion, MongoDB
+   considers the border of a shape to be part of the shape (subject to
+   the precision of floating point numbers).
+
+   The :operator:`$geoWithin` operator queries for inclusion in a
+   :term:`GeoJSON` polygon or a shape defined by legacy coordinate
+   pairs.
+
+   The :operator:`$geoWithin` operator does not return sorted results.
+   As a result MongoDB can return :operator:`$geoWithin` queries more
+   quickly than geospatial :operator:`$near` or :operator:`$nearSphere`
+   queries, which sort results.
+
+   The ``2dsphere`` and ``2d`` indexes both support the
+   :operator:`$geoWithin` operator.
+
+   If querying for inclusion in a GeoJSON polygon on a sphere, pass the
+   polygon to :operator:`$geoWithin` through the :operator:`$geometry`
+   operator. Coordinates of a polygon are an array of LinearRing
+   coordinate arrays. The first element in the array represents the
+   exterior ring. Any subsequent elements represent interior rings (or
+   holes).
+
+   For a polygon with only an exterior ring use following syntax:
+
+   .. code-block:: javascript
+
+      db.<collection>.find( { <location field> :
+                               { $geoWithin :
+                                  { $geometry :
+                                     { type : "Polygon" ,
+                                       coordinates : [ [ [ <long1>, <lat1> ] , [ <long2>, <lat2> ] ... ] ]
+                            } } } } )
+
+   .. important:: Specify coordinates in this order: **"longitude, latitude."**
+
+   For a polygon with an exterior and interior ring use following syntax:
+
+   .. code-block:: javascript
+
+      db.<collection>.find( { <location field> :
+                               { $geoWithin :
+                                  { $geometry :
+                                     { type : "Polygon" ,
+                                       coordinates : [ [ [ <long1>, <lat1> ] , [ <long2>, <lat2> ] ... ]
+                                                       [ [ <longa>, <lata> ] , [ <longb>, <latb> ] ... ] ]
+                            } } } } )
+
+   The following example selects all indexed points and shapes that
+   exist entirely within a GeoJSON polygon:
+
+   .. code-block:: javascript
+
+      db.places.find( { loc :
+                        { $geoWithin :
+                          { $geometry :
+                            { type : "Polygon" ,
+                              coordinates: [ [ [ 0 , 0 ] , [ 3 , 6 ] , [ 6 , 1 ] , [ 0 , 0 ] ] ]
+                      } } } } )
+
+   If querying for inclusion in a shape defined by legacy coordinate
+   pairs on a plane, use the following syntax:
+
+   .. code-block:: javascript
+
+      db.<collection>.find( { <location field> :
+                               { $geoWithin :
+                                  { <shape operator> : <coordinates>
+                            } } } )
+
+   For the syntax for a shape operator, see:
+
+     - :operator:`$box`
+
+     - :operator:`$polygon`
+
+     - :operator:`$center` (defines a circle)
+
+     - :operator:`$centerSphere` (defines a circle on a sphere)
+
+.. operator:: $within
+
+   .. deprecated:: 2.4
+      In 2.4, :operator:`$geoWithin` replaces :operator:`$within`.
+ 

@@ -11,14 +11,14 @@ candidate builds, are for *testing only and
 not for production use*.
 
 This document will eventually contain the full release notes for
-MongoDB 2.4; before its release this document covers the 2.3
-development series as a work-in-progress.
+MongoDB 2.4; before its release this document covers the 2.3.x 
+development branch as a work-in-progress.
 
 .. contents:: See the :doc:`full index of this page <2.4-changes>` for
               a complete list of changes included in 2.4.
    :backlinks: none
    :local:
-   :depth: 3
+   :depth: 2
 
 Downloading
 -----------
@@ -37,18 +37,10 @@ process.
 Upgrade Process
 ---------------
 
-.. toctree::
-   :hidden:
-
-   /release-notes/2.4-upgrade
-
 See :doc:`/release-notes/2.4-upgrade` for full upgrade instructions.
 
 Changes
 -------
-
-Major Features
-++++++++++++++
 
 Text Indexes
 ~~~~~~~~~~~~
@@ -546,108 +538,636 @@ The ``text`` index and the :dbcommand:`text` command support the
 following languages:
 
 - ``danish``
+
 - ``dutch``
+
 - ``english``
+
 - ``finnish``
+
 - ``french``
+
 - ``german``
+
 - ``hungarian``
+
 - ``italian``
+
 - ``norwegian``
+
 - ``portuguese``
+
 - ``romanian``
+
 - ``russian``
+
 - ``spanish``
+
 - ``swedish``
+
 - ``turkish``
+
+.. _kerberos-authentication:
+
+New Modular Authentication System with Support for Kerberos
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   Kerberos authentication is only present in the `MongoDB Subscriber
+   Edition <https://www.10gen.com/mongodb-subscriber-edition-download>`_.
+   To download the 2.4.0 release candidate the Subscriber Edition, use
+   the following resources:
+
+   - `Amazon Linux 6.4 <http://s3.amazonaws.com/downloads.10gen.com/linux/mongodb-linux-x86_64-subscription-amzn64-2.4.0-rc0.tgz>`_
+   - `Red Hat Enterprise Linux 6.2 <http://s3.amazonaws.com/downloads.10gen.com/linux/mongodb-linux-x86_64-subscription-rhel62-2.4.0-rc0.tgz>`_
+   - `Ubuntu 11.04 <http://s3.amazonaws.com/downloads.10gen.com/linux/mongodb-linux-x86_64-subscription-ubuntu1104-2.4.0-rc0.tgz>`_
+   - `SUSE 11 <http://s3.amazonaws.com/downloads.10gen.com/linux/mongodb-linux-x86_64-subscription-suse11-2.4.0-rc0.tgz>`_
+
+In 2.4 the MongoDB Subscriber edition now supports authentication via
+a Kerberos mechanism. See
+:doc:`/tutorial/control-access-to-mongodb-with-kerberos-authentication`
+for more information.
+
+Also consider the following documents that address authenticating to
+MongoDB using Kerberos:
+
+- :ecosystem:`Authenticate to MongoDB using Kerberos and the Java
+  Driver </tutorial/authenticate-with-java-driver/>`
+
+- :ecosystem:`Authenticate to MongoDB using Kerberos and the C# Driver
+  </tutorial/authenticate-with-csharp-driver/>`
+
+.. see:: :doc:`MongoDB Security Practices and Procedures </security>`.
+
+Role Based Access Control and New Privilege Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 2.4 introduces a role based access control system that
+provides more granular privileges to MongoDB users. See
+:doc:`/reference/user-privileges` for more information.
+
+To support the new access control system, 2.4 also introduces a new
+format for documents in a database's :data:`system.user
+<<database>.system.user>` collection. See
+:doc:`/reference/privilege-documents` for more information.
+
+Use :parameter:`supportCompatibilityFormPrivilegeDocuments` to disable
+the legacy privilege documents, which MongoDB continues to support in
+2.4.
+
+Default JavaScript Engine Switched to V8 from SpiderMonkey
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The default JavaScript engine used throughout MongoDB, for the
+:program:`mongo` shell, :dbcommand:`mapReduce`, :operator:`$where`,
+:dbcommand:`group`, and :dbcommand:`eval` is now `V8
+<https://developers.google.com/v8/>`_.
+
+.. data:: serverBuildInfo.interpreterVersion
+
+   The :data:`interpreterVersion` field of the document output by
+   :method:`db.serverBuildInfo()` in the :program:`mongo` shell
+   reports which JavaScript interpreter the :program:`mongod` instance
+   is running.
+
+.. method:: interpreterVersion()
+
+   The :method:`interpreterVersion()` in the :program:`mongo` shell
+   reports which JavaScript interpreter this :program:`mongo` shell
+   uses.
+
+.. DOCS-981
+
+The primary impacts of the switch to V8 are:
+
+- concurrency improvements,
+- modernized JavaScript implementation, and
+- removal of non-standard SpiderMonkey features.
+
+Improved Concurrency
+````````````````````
+
+Previously, MongoDB operations that required the JavaScript interpreter
+had to acquire a lock, and a single :program:`mongod` could only run a
+single JavaScript operation at a time. The switch to V8 improves
+concurrency by permiting multiple JavaScript operations to run at the
+same time.
+
+Modernized JavaScript Implementation (ES5)
+``````````````````````````````````````````
+
+The 5th edition of `ECMAscript
+<http://www.ecma-international.org/publications/standards/Ecma-262.htm>`_,
+abbreviated as ES5, adds many new language features, including:
+
+- standardized `JSON
+  <http://www.ecma-international.org/ecma-262/5.1/#sec-15.12.1>`_,
+
+- `strict mode
+  <http://www.ecma-international.org/ecma-262/5.1/#sec-4.2.2>`_,
+
+- `function.bind()
+  <http://www.ecma-international.org/ecma-262/5.1/#sec-15.3.4.5>`_,
+
+- `array extensions
+  <http://www.ecma-international.org/ecma-262/5.1/#sec-15.4.4.16>`_, and
+
+- getters and setters.
+
+With V8, MongoDB supports the ES5 implementation of Javascript with the
+following exceptions.
+
+.. note::
+
+   The following features do not work as expected on documents
+   **returned from MongoDB queries**:
+
+   - ``Object.seal()`` throws an exception on documents returned from
+     MongoDB queries.
+
+   - ``Object.freeze()`` throws an exception on documents returned from
+     MongoDB queries.
+
+   - ``Object.preventExtensions()`` incorrectly allows the addition of
+     new properties on documents returned from MongoDB queries.
+
+   - ``enumerable`` properties, when added to documents returned from
+     MongoDB queries, are not saved during write operations.
+
+   See :issue:`SERVER-8216`, :issue:`SERVER-8223`,
+   :issue:`SERVER-8215`, and :issue:`SERVER-8214` for more information.
+
+   For objects that have not been returned from MongoDB queries, the
+   features work as expected.
+
+Removed Non-Standard SpiderMonkey Features
+``````````````````````````````````````````
+
+V8 does **not** support the following *non-standard* `SpiderMonkey
+<https://developer.mozilla.org/en-US/docs/SpiderMonkey>`_ JavaScript
+extensions, previously supported by MongoDB's use of SpiderMonkey as
+its JavaScript engine.
+
+E4X Extensions
+^^^^^^^^^^^^^^
+
+V8 does not support the *non-standard* `E4X
+<https://developer.mozilla.org/en-US/docs/E4X>`_ extensions. E4X
+provides a native `XML
+<https://developer.mozilla.org/en-US/docs/E4X/Processing_XML_with_E4X>`_
+object to the JavaScript language and adds the syntax for embedding
+literal XML documents in JavaScript code.
+
+You need to use alternative XML processing if you used any of the
+following constructors/methods:
+
+- ``XML()``
+
+- ``Namespace()``
+
+- ``QName()``
+
+- ``XMLList()``
+
+- ``isXMLName()``
+
+Destructuring Assignment
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+V8 does not support the non-standard destructuring assignments.
+Destructuring assignment "extract[s] data from arrays or objects using
+a syntax that mirrors the construction of array and object literals." -
+`Mozilla docs
+<https://developer.mozilla.org/en-US/docs/JavaScript/New_in_JavaScript/1.7#Destructuring_assignment_(Merge_into_own_page.2Fsection)>`_
+
+.. example::
+
+   The following destructuring assignment is **invalid** with V8 and
+   throws a ``SyntaxError``:
+
+   .. code-block:: javascript
+
+      original = [4, 8, 15];
+      var [b, ,c] = a;  // <== destructuring assignment
+      print(b) // 4
+      print(c) // 15
+
+``Iterator()``, ``StopIteration()``, and Generators
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+V8 does not support `Iterator(), StopIteration(), and generators
+<https://developer.mozilla.org/en-US/docs/JavaScript/Guide/Iterators_and_Generators>`_.
+
+``InternalError()``
+^^^^^^^^^^^^^^^^^^^
+
+V8 does not support ``InternalError()``. Use ``Error()`` instead.
+
+``for each...in`` Construct
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+V8 does not support the use of `for each...in
+<https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Statements/for_each...in>`_
+construct. Use ``for (var x in y)`` construct
+instead.
+
+.. example::
+
+   The following ``for each (var x in y)`` construct is **invalid**
+   with V8:
+
+   .. code-block:: javascript
+
+      var o = { name: 'MongoDB', version: 2.4 };
+
+      for each (var value in o) {
+        print(value);
+      }
+
+   Instead, in version 2.4, you can use the ``for (var x in y)``
+   construct:
+
+   .. code-block:: javascript
+
+      var o = { name: 'MongoDB', version: 2.4 };
+
+      for (var prop in o) {
+        var value = o[prop];
+        print(value);
+      }
+
+   You can also use the array *instance* method ``forEach()`` with the
+   ES5 method ``Object.keys()``:
+
+   .. code-block:: javascript
+
+      Object.keys(o).forEach(function (key) {
+        var value = o[key];
+        print(value);
+      });
+
+Array Comprehension
+^^^^^^^^^^^^^^^^^^^
+
+V8 does not support `Array comprehensions
+<https://developer.mozilla.org/en-US/docs/JavaScript/Guide/Predefined_Core_Objects#Array_comprehensions>`_.
+
+Use other methods such as the ``Array`` instance methods ``map()``,
+``filter()``, or ``forEach()``.
+
+.. example::
+
+   With V8, the following array comprehension is **invalid**:
+
+   .. code-block:: javascript
+
+      var a = { w: 1, x: 2, y: 3, z: 4 }
+
+      var arr = [i * i for each (i in a) if (i > 2)]
+      printjson(arr)
+
+   Instead, you can implement using the ``Array`` *instance* method
+   ``forEach()`` and the ES5 method ``Object.keys()`` :
+
+   .. code-block:: javascript
+
+      var a = { w: 1, x: 2, y: 3, z: 4 }
+
+      var arr = [];
+      Object.keys(a).forEach(function (key) {
+        var val = a[key];
+        if (val > 2) arr.push(val * val);
+      })
+      printjson(arr)
+
+   .. note::
+
+      The new logic uses the ``Array`` *instance* method ``forEach()`` and
+      not the *generic* method ``Array.forEach()``; V8 does **not**
+      support ``Array`` *generic* methods. See :ref:`array-generics` for
+      more information.
+
+Multiple Catch Blocks
+^^^^^^^^^^^^^^^^^^^^^
+
+V8 does not support multiple ``catch`` blocks and will throw a
+``SyntaxError``.
+
+.. example::
+
+   The following multiple catch blocks is **invalid** with V8 and will
+   throw ``"SyntaxError: Unexpected token if"``:
+
+   .. code-block:: javascript
+
+      try {
+        something()
+      } catch (err if err instanceof SomeError) {
+        print('some error')
+      } catch (err) {
+        print('standard error')
+      }
+
+Conditional Function Definition
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+V8 will produce different outcomes than SpiderMonkey with `conditional
+function definitions
+<https://developer.mozilla.org/en-US/docs/JavaScript/Guide/Functions>`_.
+
+.. example::
+
+   The following conditional function definition produces different
+   outcomes in SpiderMonkey versus V8:
+
+   .. code-block:: javascript
+
+      function test () {
+         if (false) {
+            function go () {};
+         }
+         print(typeof go)
+      }
+
+   With SpiderMonkey, the conditional function outputs ``undefined``,
+   whereas with V8, the conditional function outputs ``function``.
+
+   If your code defines functions this way, it is highly recommended
+   that you refactor the code. The following example refactors the
+   conditional function definition to work in both SpiderMonkey and V8.
+
+   .. code-block:: javascript
+
+      function test () {
+        var go;
+        if (false) {
+          go = function () {}
+        }
+        print(typeof go)
+      }
+
+   The refactored code outputs ``undefined`` in both SpiderMonkey and V8.
+
+.. note::
+
+   ECMAscript prohibits conditional function definitions. To force V8
+   to throw an ``Error``, `enable strict mode
+   <http://www.nczonline.net/blog/2012/03/13/its-time-to-start-using-javascript-strict-mode/>`_.
+
+   .. code-block:: javascript
+
+      function test () {
+        'use strict';
+
+        if (false) {
+          function go () {}
+        }
+      }
+
+   The JavaScript code throws the following syntax error:
+
+   .. code-block:: none
+
+      SyntaxError: In strict mode code, functions can only be declared at top level or immediately within another function.
+
+String Generic Methods
+^^^^^^^^^^^^^^^^^^^^^^
+
+V8 does not support `String generics
+<https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/String#String_generic_methods>`_.
+String generics are a set of methods on the ``String`` class that
+mirror instance methods.
+
+.. example::
+
+   The following use of the generic method
+   ``String.toLowerCase()`` is **invalid** with V8:
+
+   .. code-block:: javascript
+
+      var name = 'MongoDB';
+
+      var lower = String.toLowerCase(name);
+
+   With V8, use the ``String`` instance method ``toLowerCase()`` available
+   through an *instance* of the ``String`` class instead:
+
+   .. code-block:: javascript
+
+      var name = 'MongoDB';
+
+      var lower = name.toLowerCase();
+      print(name + ' becomes ' + lower);
+
+With V8, use the ``String`` *instance* methods instead of following
+*generic* methods:
+
+.. list-table::
+
+   * - ``String.charAt()``
+     - ``String.quote()``
+     - ``String.toLocaleLowerCase()``
+
+   * - ``String.charCodeAt()``
+     - ``String.replace()``
+     - ``String.toLocaleUpperCase()``
+
+   * - ``String.concat()``
+     - ``String.search()``
+     - ``String.toLowerCase()``
+
+   * - ``String.endsWith()``
+     - ``String.slice()``
+     - ``String.toUpperCase()``
+
+   * - ``String.indexOf()``
+     - ``String.split()``
+     - ``String.trim()``
+
+   * - ``String.lastIndexOf()``
+     - ``String.startsWith()``
+     - ``String.trimLeft()``
+
+   * - ``String.localeCompare()``
+     - ``String.substr()``
+     - ``String.trimRight()``
+
+   * - ``String.match()``
+     - ``String.substring()``
+     -
+
+.. _array-generics:
+
+Array Generic Methods
+^^^^^^^^^^^^^^^^^^^^^
+
+V8 does not support `Array generic methods
+<https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array#Array_generic_methods>`_.
+Array generics are a set of methods on the ``Array`` class that mirror
+instance methods.
+
+.. example::
+
+   The following use of the generic method ``Array.every()`` is
+   **invalid** with V8:
+
+   .. code-block:: javascript
+
+      var arr = [4, 8, 15, 16, 23, 42];
+
+      function isEven (val) {
+         return 0 === val % 2;
+      }
+
+      var allEven = Array.every(arr, isEven);
+      print(allEven);
+
+   With V8, use the ``Array`` instance method ``every()`` available through
+   an *instance* of the ``Array`` class instead:
+
+   .. code-block:: javascript
+
+      var allEven = arr.every(isEven);
+      print(allEven);
+
+With V8, use the ``Array`` *instance* methods instead of the following
+*generic* methods:
+
+.. list-table::
+
+   * - ``Array.concat()``
+     - ``Array.lastIndexOf()``
+     - ``Array.slice()``
+
+   * - ``Array.every()``
+     - ``Array.map()``
+     - ``Array.some()``
+
+   * - ``Array.filter()``
+     - ``Array.pop()``
+     - ``Array.sort()``
+
+   * - ``Array.forEach()``
+     - ``Array.push()``
+     - ``Array.splice()``
+
+   * - ``Array.indexOf()``
+     - ``Array.reverse()``
+     - ``Array.unshift()``
+
+   * - ``Array.join()``
+     - ``Array.shift()``
+     -
+
+Array Instance Method ``toSource()``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+V8 does not support the ``Array`` instance method `toSource()
+<https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/toSource>`_.
+Use the ``Array`` instance method ``toString()`` instead.
+
+``uneval()``
+^^^^^^^^^^^^
+
+V8 does not support the non-standard method ``uneval()``. Use the
+standardized `JSON.stringify()
+<https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/JSON/stringify>`_
+method instead.
+
+Added Limitations for ``Map-Reduce`` and ``$where`` Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In MongoDB 2.4, :doc:`map-reduce operations
+</applications/map-reduce>`, the :command:`group` command, and
+:operator:`$where` operator expressions **cannot** access certain
+global functions or properties, such as ``db``, that are available in
+the :program:`mongo` shell.
+
+When upgrading to MongoDB 2.4, you will need to refactor your code if
+your :doc:`map-reduce operations </applications/map-reduce>`,
+:command:`group` commands, or :operator:`$where` operator expressions
+include any global shell functions or properties that are no longer
+available, such as ``db``.
+
+The following shell functions and properties **are available** to
+:doc:`map-reduce operations </applications/map-reduce>`, the
+:command:`group` command, and :operator:`$where` operator expressions
+in MongoDB 2.4:
+
+.. list-table::
+  :header-rows: 1
+
+  * - Available Properties
+    - Available Functions
+    -
+
+  * -
+      | ``args``
+      | ``MaxKey``
+      | ``MinKey``
+
+    -
+      | ``assert()``
+      | ``BinData()``
+      | ``DBPointer()``
+      | ``DBRef()``
+      | ``doassert()``
+      | ``emit()``
+      | ``gc()``
+      | ``HexData()``
+      | ``hex_md5()``
+      | ``isNumber()``
+      | ``isObject()``
+      | ``ISODate()``
+      | ``isString()``
+
+    -
+      | ``Map()``
+      | ``MD5()``
+      | ``NumberInt()``
+      | ``NumberLong()``
+      | ``ObjectId()``
+      | ``print()``
+      | ``sleep()``
+      | ``Timestamp()``
+      | ``tojson()``
+      | ``tojsononeline()``
+      | ``tojsonObject()``
+      | ``UUID()``
+      | ``version()``
+
+.. DOCS-752
 
 New Geospatial Indexes with GeoJSON and Improved Spherical Geometry
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. note::
+MongoDB adds the new ``2dsphere`` geospatial index in addition to the
+existing ``2d`` index. The ``2dsphere`` index supports improved
+spherical queries and supports the following `GeoJSON
+<http://geojson.org/geojson-spec.html>`_ objects:
 
-   In 2.3.2, the index type for Spherical Geospatial Indexes
-   become ``2dsphere``.
+- ``Point``
 
-The 2.3 series adds a new type of geospatial index that supports
-improved spherical queries and GeoJSON. Create the index by specifying
-``2dsphere`` as the value of the field in the index specification, as
-any of the following:
+- ``LineString``
 
-.. code-block:: javascript
+- ``Polygon``
 
-   db.collection.ensureIndex( { geo: "2dsphere" } )
-   db.collection.ensureIndex( { type: 1, geo: "2dsphere" } )
-   db.collection.ensureIndex( { geo: "2dsphere", type: 1 } )
+The ``2dsphere`` index supports all current geospatial :ref:`query
+operators <query-selectors-geospatial>` and introduces the following new
+query operator for queries on GeoJSON data:
 
-In the first example you create a spherical geospatial index on the
-field named ``geo``, in the second example, you create a compound
-index where the first field is a normal index, and the index of the
-second field is a spherical geospatial index. Unlike ``2d`` indexes,
-fields indexed using the ``2dsphere`` type do not have to be the first
-field in a compound index.
+- :operator:`$geoWithin` operator
 
-You must store data in the fields indexed using the ``2dsphere`` index
-using the `GeoJSON`_ specification, at the moment. Support for storing
-points, in the form used by the existing ``2d`` (i.e. geospatial)
-indexes is forthcoming. Currently, ``2dsphere`` indexes only support
-the following GeoJSON shapes:
+- :operator:`$geoIntersects` operator
 
-- ``Point``, as in the following:
+The operators use the new :operator:`$geometry` parameter.
 
-  .. code-block:: javascript
+For more information, see:
 
-     { "type": "Point", "coordinates": [ 40, 5 ] }
+- :doc:`/applications/geospatial-indexes`
 
-- ``LineString``, as in the following:
-
-  .. code-block:: javascript
-
-     { "type": "LineString", "coordinates": [ [ 40, 5 ], [ 41, 6 ] ] }
-
-- ``Polygon``, as in the following:
-
-  .. code-block:: javascript
-
-     {
-       "type": "Polygon",
-       "coordinates": [ [ [ 40, 5 ], [ 40, 6 ], [ 41, 6 ], [ 41, 5 ], [ 40, 5 ] ] ]
-     }
-
-To query ``2dsphere`` indexes, all current geospatial :ref:`query operators
-<query-selectors-geospatial>` with an additional
-:operator:`$geoIntersects` operator. Currently, all queries using the
-``2dsphere`` index must pass the query selector (e.g. :operator:`$near`,
-:operator:`$geoIntersects`) a GeoJSON document. With the exception of the
-GeoJSON requirement, the operation of :operator:`$near` is the same
-for ``2dsphere`` indexes as ``2d`` indexes.
-
-.. operator:: $geoIntersects
-
-   The :operator:`$geoIntersects` selects all indexed points that
-   intersect with the provided geometry. (i.e. ``Point``, ``LineString``,
-   and ``Polygon``.) You must pass :operator:`$geoIntersects` a document
-   in GeoJSON format.
-
-   .. code-block:: javascript
-
-      db.collection.find( { loc: { $geoIntersects:
-                                   { $geometry: { "type": "Point",
-                                                  "coordinates": [ 40, 5 ]
-                                   } } } } )
-
-   This query will select all indexed objects that intersect with the
-   ``Point`` with the coordinates ``[ 40, 5 ]``. MongoDB will return
-   documents as intersecting if they have a shared edge.
-
-   The :operator:`$geometry` operator takes a single `GeoJSON
-   document`_.
-
-.. operator:: $geometry
-
-.. _`GeoJSON document`: http://www.geojson.org/geojson-spec.html#appendix-a-geometry-examples
-
-.. _`GeoJSON`: http://geojson.org/geojson-spec.html
+- :doc:`/core/geospatial-indexes`
 
 New Hashed Index and Sharding with a Hashed Shard Key
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -759,92 +1279,6 @@ key. Consider the following properties when using a hashed shard key:
    point values, see :ref:`hashed indexes <hashed-index-warning>` for
    more information.
 
-Security Improvements
-+++++++++++++++++++++
-
-.. _kerberos-authentication:
-
-New Modular Authentication System with Support for Kerberos
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. note::
-
-   Kerberos authentication is only present in the `MongoDB Subscriber
-   Edition <https://www.10gen.com/mongodb-subscriber-edition-download>`_.
-   To download the 2.4.0 release candidate the Subscriber Edition, use
-   the following resources:
-
-   - `Amazon Linux 6.4 <http://s3.amazonaws.com/downloads.10gen.com/linux/mongodb-linux-x86_64-subscription-amzn64-2.4.0-rc0.tgz>`_
-   - `Red Hat Enterprise Linux 6.2 <http://s3.amazonaws.com/downloads.10gen.com/linux/mongodb-linux-x86_64-subscription-rhel62-2.4.0-rc0.tgz>`_
-   - `Ubuntu 11.04 <http://s3.amazonaws.com/downloads.10gen.com/linux/mongodb-linux-x86_64-subscription-ubuntu1104-2.4.0-rc0.tgz>`_
-   - `SUSE 11 <http://s3.amazonaws.com/downloads.10gen.com/linux/mongodb-linux-x86_64-subscription-suse11-2.4.0-rc0.tgz>`_
-
-In 2.4 the MongoDB Subscriber edition now supports authentication via
-a Kerberos mechanism. See
-:doc:`/tutorial/control-access-to-mongodb-with-kerberos-authentication`
-for more information.
-
-Also consider the following documents that address authenticating to
-MongoDB using Kerberos:
-
-- :ecosystem:`Authenticate to MongoDB using Kerberos and the Java
-  Driver </tutorial/authenticate-with-java-driver/>`
-
-- :ecosystem:`Authenticate to MongoDB using Kerberos and the C# Driver
-  </tutorial/authenticate-with-csharp-driver/>`
-
-.. see:: :doc:`MongoDB Security Practices and Procedures </security>`.
-
-Role Based Access Control and New Privilege Documents
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-MongoDB 2.4 introduces a role based access control system that
-provides more granular privileges to MongoDB users. See
-:doc:`/reference/user-privileges` for more information.
-
-To support the new access control system, 2.4 also introduces a new
-format for documents in a database's :data:`system.user
-<<database>.system.user>` collection. See
-:doc:`/reference/privilege-documents` for more information.
-
-Use :parameter:`supportCompatibilityFormPrivilegeDocuments` to disable
-the legacy privilege documents, which MongoDB continues to support in
-2.4.
-
-Administration Changes
-++++++++++++++++++++++
-
-``--setParameter`` Option Available on the ``mongos`` and ``mongod`` Command Line
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can now use :option:`--setParameter <mongod>` on the command line
-and :setting:`setParameter` in the configuration file. Currently
-:setting:`setParameter` provides the following options:
-
-.. include:: /includes/list-set-parameters.rst
-
-See :doc:`/reference/parameters` for full documentation of available
-parameters and their use.
-
-Changes to ``serverStatus`` Output Including Additional Metrics
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-In 2.4 MongoDB adds a number of counters and system metrics to the
-output of the :dbcommand:`serverStatus` command, including:
-
-- a :ref:`working set estimator <server-status-workingset>`.
-
-- operation counters, in :data:`~serverStatus.metrics.document`
-  and :data:`~serverStatus.metrics.operation`.
-
-- record allocation, in :data:`~serverStatus.metrics.record`.
-
-- thorough metrics of the replication process,
-  in :data:`~serverStatus.metrics.repl`.
-
-- metrics on the :doc:`ttl index </tutorial/expire-data>`
-  documentation.
-
 Increased Chunk Migration Write Concern
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -867,27 +1301,12 @@ of sub-document nesting this validation may have a small performance
 impact. :setting:`objcheck`, which was previously disabled by default,
 provides this validation.
 
-Indexing Changes
-++++++++++++++++
-
-Support for Multiple Concurrent Index Builds
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-A single :program:`mongod` instance can build multiple indexes in the
-background at the same time. See :ref:`building indexes in the
-background <index-creation-background>` for more information on
-background index builds. Foreground index builds hold a database lock
-and must proceed one at a time.
-
 ``db.killOp()`` Can Now Kill Foreground Index Builds
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The :method:`db.killOp()` method will now terminate a foreground index
 build, in addition to the other operations supported in previous
 versions.
-
-Interface Changes
-+++++++++++++++++
 
 ``$setOnInsert`` -- New Update Operator
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -942,99 +1361,42 @@ modifiers:
   must be used with :operator:`$slice` and can **only** sort
   arrays that contain documents.
 
-.. _rn-2.4-javascript-change:
+``--setParameter`` Option Available on the ``mongos`` and ``mongod`` Command Line
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-JavaScript Engine Changed to V8
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+You can now use :option:`--setParameter <mongod>` on the command line
+and :setting:`setParameter` in the configuration file. Currently
+:setting:`setParameter` provides the following options:
 
-.. toctree::
-   :hidden:
+.. include:: /includes/list-set-parameters.rst
 
-   /release-notes/2.4-javascript
+See :doc:`/reference/parameters` for full documentation of available
+parameters and their use.
 
+Multiple Index Builds
+~~~~~~~~~~~~~~~~~~~~~
 
-In 2.4 the default JavaScript engine in the :program:`mongo` shell
-:program:`mongod` is now V8. This change affects all JavaScript
-behavior including the :dbcommand:`mapReduce`, :dbcommand:`group`, and
-:dbcommand:`eval` commands, as well as the :operator:`$where` query
-operator.
+A single :program:`mongod` instance can build multiple indexes in the
+background at the same time. See :ref:`building indexes in the
+background <index-creation-background>` for more information on
+background index builds. Foreground index builds hold a database lock
+and must proceed one at a time.
 
-Use the new :method:`interpreterVersion()` method in the
-:program:`mongo` shell and the
-:data:`~serverBuildInfo.interpreterVersion` field in the output of
-:method:`db.serverBuildInfo()` to determine which JavaScript engine a
-MongoDB binary uses.
-
-The primary impacts of the change from the previous JavaScript engine,
-SpiderMonkey, to V8 are:
-
-- improved concurancy for JavaScript operations,
-- modernized JavaScript implementation, and
-- removed non-standard SpiderMonkey features.
-
-See :doc:`/release-notes/2.4-javascript` for more information about
-all changes .
-
-Additional Limitations for Map-Reduce and ``$where`` Operations
+Changes to ``serverStatus`` Output Including Additional Metrics
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In MongoDB 2.4, :doc:`map-reduce operations
-</applications/map-reduce>`, the :command:`group` command, and
-:operator:`$where` operator expressions **cannot** access certain
-global functions or properties, such as ``db``, that are available in
-the :program:`mongo` shell.
+In 2.4 MongoDB adds a number of counters and system metrics to the
+output of the :dbcommand:`serverStatus` command, including:
 
-When upgrading to MongoDB 2.4, you will need to refactor your code if
-your :doc:`map-reduce operations </applications/map-reduce>`,
-:command:`group` commands, or :operator:`$where` operator expressions
-include any global shell functions or properties that are no longer
-available, such as ``db``.
+- a :ref:`working set estimator <server-status-workingset>`.
 
-The following shell functions and properties **are available** to
-:doc:`map-reduce operations </applications/map-reduce>`, the
-:command:`group` command, and :operator:`$where` operator expressions
-in MongoDB 2.4:
+- operation counters, in :data:`~serverStatus.metrics.document`
+  and :data:`~serverStatus.metrics.operation`.
 
-.. list-table::
-  :header-rows: 1
+- record allocation, in :data:`~serverStatus.metrics.record`.
 
-  * - Available Properties
-    - Available Functions
-    -
+- thorough metrics of the replication process,
+  in :data:`~serverStatus.metrics.repl`.
 
-  * -
-      | ``args``
-      | ``MaxKey``
-      | ``MinKey``
-
-    -
-      | ``assert()``
-      | ``BinData()``
-      | ``DBPointer()``
-      | ``DBRef()``
-      | ``doassert()``
-      | ``emit()``
-      | ``gc()``
-      | ``HexData()``
-      | ``hex_md5()``
-      | ``isNumber()``
-      | ``isObject()``
-      | ``ISODate()``
-      | ``isString()``
-
-    -
-      | ``Map()``
-      | ``MD5()``
-      | ``NumberInt()``
-      | ``NumberLong()``
-      | ``ObjectId()``
-      | ``print()``
-      | ``sleep()``
-      | ``Timestamp()``
-      | ``tojson()``
-      | ``tojsononeline()``
-      | ``tojsonObject()``
-      | ``UUID()``
-      | ``version()``
-
-.. DOCS-752
+- metrics on the :doc:`ttl index </tutorial/expire-data>`
+  documentation.
