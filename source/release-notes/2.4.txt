@@ -564,90 +564,32 @@ following languages:
 New Geospatial Indexes with GeoJSON and Improved Spherical Geometry
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. note::
+MongoDB adds the new ``2dsphere`` geospatial index in addition to the
+existing ``2d`` index. The ``2dsphere`` index supports improved
+spherical queries and supports the following `GeoJSON
+<http://geojson.org/geojson-spec.html>`_ objects:
 
-   In 2.3.2, the index type for Spherical Geospatial Indexes
-   become ``2dsphere``.
+- ``Point``
 
-The 2.3 series adds a new type of geospatial index that supports
-improved spherical queries and GeoJSON. Create the index by specifying
-``2dsphere`` as the value of the field in the index specification, as
-any of the following:
+- ``LineString``
 
-.. code-block:: javascript
+- ``Polygon``
 
-   db.collection.ensureIndex( { geo: "2dsphere" } )
-   db.collection.ensureIndex( { type: 1, geo: "2dsphere" } )
-   db.collection.ensureIndex( { geo: "2dsphere", type: 1 } )
+The ``2dsphere`` index supports all current geospatial :ref:`query
+operators <query-selectors-geospatial>` and introduces the following new
+query operator for queries on GeoJSON data:
 
-In the first example you create a spherical geospatial index on the
-field named ``geo``, in the second example, you create a compound
-index where the first field is a normal index, and the index of the
-second field is a spherical geospatial index. Unlike ``2d`` indexes,
-fields indexed using the ``2dsphere`` type do not have to be the first
-field in a compound index.
+- :operator:`$geoWithin` operator
 
-You must store data in the fields indexed using the ``2dsphere`` index
-using the `GeoJSON`_ specification, at the moment. Support for storing
-points, in the form used by the existing ``2d`` (i.e. geospatial)
-indexes is forthcoming. Currently, ``2dsphere`` indexes only support
-the following GeoJSON shapes:
+- :operator:`$geoIntersects` operator
 
-- ``Point``, as in the following:
+The operators use the new :operator:`$geometry` parameter.
 
-  .. code-block:: javascript
+For more information, see:
 
-     { "type": "Point", "coordinates": [ 40, 5 ] }
+- :doc:`/applications/geospatial-indexes`
 
-- ``LineString``, as in the following:
-
-  .. code-block:: javascript
-
-     { "type": "LineString", "coordinates": [ [ 40, 5 ], [ 41, 6 ] ] }
-
-- ``Polygon``, as in the following:
-
-  .. code-block:: javascript
-
-     {
-       "type": "Polygon",
-       "coordinates": [ [ [ 40, 5 ], [ 40, 6 ], [ 41, 6 ], [ 41, 5 ], [ 40, 5 ] ] ]
-     }
-
-To query ``2dsphere`` indexes, all current geospatial :ref:`query operators
-<query-selectors-geospatial>` with an additional
-:operator:`$geoIntersects` operator. Currently, all queries using the
-``2dsphere`` index must pass the query selector (e.g. :operator:`$near`,
-:operator:`$geoIntersects`) a GeoJSON document. With the exception of the
-GeoJSON requirement, the operation of :operator:`$near` is the same
-for ``2dsphere`` indexes as ``2d`` indexes.
-
-.. operator:: $geoIntersects
-
-   The :operator:`$geoIntersects` selects all indexed points that
-   intersect with the provided geometry. (i.e. ``Point``, ``LineString``,
-   and ``Polygon``.) You must pass :operator:`$geoIntersects` a document
-   in GeoJSON format.
-
-   .. code-block:: javascript
-
-      db.collection.find( { loc: { $geoIntersects:
-                                   { $geometry: { "type": "Point",
-                                                  "coordinates": [ 40, 5 ]
-                                   } } } } )
-
-   This query will select all indexed objects that intersect with the
-   ``Point`` with the coordinates ``[ 40, 5 ]``. MongoDB will return
-   documents as intersecting if they have a shared edge.
-
-   The :operator:`$geometry` operator takes a single `GeoJSON
-   document`_.
-
-.. operator:: $geometry
-
-.. _`GeoJSON document`: http://www.geojson.org/geojson-spec.html#appendix-a-geometry-examples
-
-.. _`GeoJSON`: http://geojson.org/geojson-spec.html
+- :doc:`/core/geospatial-indexes`
 
 New Hashed Index and Sharding with a Hashed Shard Key
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

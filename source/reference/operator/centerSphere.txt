@@ -8,38 +8,47 @@ $centerSphere
 
    .. versionadded:: 1.8
 
-   The :operator:`$centerSphere` operator is the spherical equivalent
-   of the :operator:`$center` operator. :operator:`$centerSphere` uses
-   spherical geometry to define a circle for use by the
-   :operator:`$within` operator in :term:`geospatial` queries.
+   The :operator:`$centerSphere` operator defines a circle for a
+   :term:`geospatial` query that uses spherical geometry. The query
+   returns documents that are within the bounds of the circle, according to
+   their point-based location data. The :operator:`$centerSphere` operator
+   returns documents based on :ref:`grid coordinates
+   <geospatial-indexes-store-grid-coordinates>` and does *not* query for
+   GeoJSON shapes.
 
-   To define the bounds of a query using :operator:`$centerSphere`, you
-   must specify:
+   The ``2d`` and ``2dsphere`` geospatial indexes both support
+   :operator:`$centerSphere`. You can use the :operator:`$centerSphere`
+   operator on both `GeoJSON objects
+   <http://geojson.org/geojson-spec.html>`_ and grid coordinates.
 
-   - The center point
+   To use :operator:`$centerSphere`, specify an array that contains:
 
-   - The angular distance in radians (distance along the surface of the
-     earth).
+   - The grid coordinates of the circle's center point
 
-   Consider the following prototype:
+   - The circle's radius measured in radians. To calculate radians, see
+     :doc:`/tutorial/calculate-distances-using-spherical-geometry-with-2d-geospatial-indexes`.
 
-   .. code-block:: javascript
-
-      db.collection.find( { loc: { $within:
-                                   { $centerSphere:
-                                     [ [<long>,<lat>], <distance> / <radius> ]
-                                   } } } )
-
-   The following example returns all documents within a 10 mile radius
-   of longitude ``88 W`` and latitude ``30 N``. MongoDB converts the
-   distance, 10 miles, to radians by dividing by the approximate
-   radius of the earth, 3959 miles:
+   Use the following syntax:
 
    .. code-block:: javascript
 
-      db.collection.find( { loc: { $within:
-                                   { $centerSphere:
-                                      [ [88,30], 10 / 3959 ]
-                                   } } } )
+      db.<collection>.find( { <location field> :
+                               { $geoWithin :
+                                  { $centerSphere : [ [ <x>, <y> ] , <radius> ] }
+                            } } )
+
+   .. important:: If you use longitude and latitude, specify **longitude first**.
+
+   The following example queries grid coordinates and returns all
+   documents within a 10 mile radius of longitude ``88 W`` and latitude
+   ``30 N``. MongoDB converts the distance, 10 miles, to radians by
+   dividing by the approximate radius of the earth, 3959 miles:
+
+   .. code-block:: javascript
+
+      db.collection.find( { loc : { $geoWithin :
+                                     { $centerSphere :
+                                        [ [ 88 , 30 ] , 10 / 3959 ]
+                          } } } )
 
    .. include:: /includes/note-geospatial-index-must-exist.rst
