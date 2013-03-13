@@ -1,0 +1,126 @@
+=================================
+Create and Query Haystack Indexes
+=================================
+
+.. default-domain:: mongodb
+
+A haystack index is a special index that is optimized to return results
+over small areas. Haystack indexes improve performance on queries that
+use flat geometry.
+
+For queries that use spherical geometry,
+a **2dsphere index is a better option** than a haystack index. 2dsphere
+indexes allow field reordering; haystack indexes require the first field
+to be the location field. Also, haystack indexes are only usable via
+commands and so always return all results at once.
+
+Haystack indexes create "buckets" of documents from the same geographic
+area in order to improve performance for queries limited to that area.
+Each bucket in a haystack index contains all the documents within a
+specified proximity to a given longitude and latitude.
+
+This document describes how to:
+
+- :ref:`geospatial-indexes-haystack-index`
+
+- :ref:`geospatial-indexes-haystack-queries`
+
+.. _geospatial-indexes-haystack-index:
+
+Create a Haystack Index
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To build a haystack index, use the ``bucketSize`` option when creating
+the index. A ``bucketSize`` of ``5`` creates an index that groups
+location values that are within 5 units of the specified longitude and
+latitude. The ``bucketSize`` also determines the granularity of the
+index. You can tune the parameter to the distribution of your data so
+that in general you search only very small regions. The areas defined by
+buckets can overlap. A document can exist in multiple buckets.
+
+A haystack index can reference two fields: the location field and a
+second field. The second field is used for exact matches. Haystack
+indexes return documents based on location *and* an exact match on a
+*single* additional criteria. These indexes are not necessarily suited
+to returning the closest documents to a particular location.
+
+To build a haystack index, use following syntax:
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex({ <location field> : "geoHaystack" ,
+                               <additional field> : 1 ,
+                               bucketSize : <bucket value>)
+
+.. example::
+
+   If you have a collection with documents that contain fields similar to
+   the following:
+
+   .. code-block:: javascript
+
+      { _id : 100, pos: { long : 126.9, lat : 35.2 } , type : "restaurant"}
+      { _id : 200, pos: { long : 127.5, lat : 36.1 } , type : "restaurant"}
+      { _id : 300, pos: { long : 128.0, lat : 36.7 } , type : "national park"}
+
+   The following operations create a haystack index with buckets that
+   store keys within 1 unit of longitude or latitude.
+
+   .. code-block:: javascript
+
+      db.collection.ensureIndex( { pos : "geoHaystack", type : 1 }, { bucketSize : 1 } )
+
+   This index stores the document with an ``_id`` field that has the
+   value ``200`` in two different buckets:
+
+   - In a bucket that includes the document where the ``_id`` field has
+     a value of ``100``
+
+   - In a bucket that includes the document where the ``_id`` field has
+     a value of ``300``
+
+To query using a haystack index you use the :dbcommand:`geoSearch`
+command. See :ref:`geospatial-indexes-haystack-queries`.
+
+By default, queries that use a haystack index return 50 documents.
+
+.. _geospatial-indexes-haystack-queries:
+
+Query a Haystack Index
+----------------------
+
+A haystack index is a special ``2d`` geospatial index that is optimized
+to return results over small areas. To create a haystack index see
+:ref:`geospatial-indexes-haystack-index`.
+
+To query a haystack index, use the :dbcommand:`geoSearch`
+command. You must specify both the coordinate and other field to
+:dbcommand:`geoSearch`, which take the following form:
+
+.. code-block:: javascript
+
+   db.runCommand( { geoSearch: <collection>, search: { <field>: <value> } } )
+
+For example, to return all documents with the value ``restaurants`` in
+the ``type`` field near the example point, the command would resemble:
+
+.. code-block:: javascript
+
+   db.runCommand( { geoSearch: "places",
+                    search: { type: "restaurant" },
+                    near: [-74, 40.74] } )
+
+.. note::
+
+   Haystack indexes are not suited to returning a full list of the
+   closest documents to a particular location, as the closest
+   documents could be far away compared to the ``bucketSize``.
+
+.. note::
+
+   :doc:`Spherical query operations
+   </tutorial/calculate-distances-using-spherical-geometry-with-2d-geospatial-indexes>`
+   are not currently supported by haystack indexes.
+
+   The :method:`find() <db.collection.find()>` method and
+   :dbcommand:`geoNear` command cannot access the haystack index.
