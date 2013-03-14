@@ -1,12 +1,8 @@
-==========================
-Upgrade MongoDB 2.2 to 2.4
-==========================
+======================
+Upgrade MongoDB to 2.4
+======================
 
 .. default-domain:: mongodb
-
-Only upgrade sharded clusters to 2.4 if all members of the cluster are
-currently running instances of 2.2. The only supported upgrade path
-for sharded clusters running 2.0 is via 2.2.
 
 Rolling Upgrade Limitation for 2.2.0 Deployments Running with ``auth`` Enabled
 ------------------------------------------------------------------------------
@@ -31,6 +27,10 @@ following procedures.
 
 Upgrade a Sharded Cluster from MongoDB 2.2 to MongoDB 2.4
 ---------------------------------------------------------
+
+.. important:: Only upgrade sharded clusters to 2.4 if all members of
+   the cluster are currently running instances of 2.2. The only
+   supported upgrade path for sharded clusters running 2.0 is via 2.2.
 
 Upgrading a :term:`sharded cluster` from MongoDB version 2.2 to 2.4
 (or 2.3) requires that you run a 2.4 :program:`mongos`
@@ -292,3 +292,155 @@ sharded cluster in the following order:
 
 When this process is complete, you can now :ref:`re-enable the
 balancer <sharding-balancing-disable-temporally>`.
+
+Upgrade from 2.3 to 2.4
+-----------------------
+
+If you used a :program:`mongod` from the 2.3 or 2.4-rc (release
+candidate) series, you can safely transition these databases to 2.4.0
+or later; *however*, if you created ``2dsphere`` or ``text`` indexes
+using a :program:`mongod` before v2.4-rc2, you will need to rebuild
+these indexes. For example:
+
+.. code-block:: javascript
+
+   db.records.dropIndex( { loc: "2dsphere" } )
+   db.records.dropIndex( { records: "text" } )
+
+   db.records.ensureIndex( { loc: "2dsphere" } )
+   db.records.ensureIndex( { records: "text" } )
+
+.. _2.4-downgrade:
+
+Downgrade MongoDB from 2.4 to Previous Versions
+-----------------------------------------------
+
+For some cases the on-disk format of data files used by 2.4
+and 2.2 :program:`mongod` is compatible, and you can upgrade and
+downgrade if needed. However, several new features in 2.4 require
+additional attention. These features are:
+
+- ``2dsphere`` indexes on 2.2 and earlier :program:`mongod` instances.
+
+- ``text`` indexes on 2.2 and earlier :program:`mongod` instances.
+
+- using a ``hashed`` index as a shard key with 2.2 and earlier
+  :program:`mongos` instances
+
+- ``hashed`` indexes on 2.0 and earlier :program:`mongod` instances.
+
+.. note::
+
+   In sharded clusters, once you have completed the :ref:`meta-data upgrade
+   procedure <2.4-upgrade-cluster>`, you cannot use 2.0
+   :program:`mongod` or :program:`mongos` instances in the same
+   cluster.
+
+   If you complete the meta-data upgrade, you can have a mixed cluster
+   that has both 2.2 and 2.4 :program:`mongod` and :program:`mongos`
+   instances, if needed. However, **do not** create ``2dsphere`` or
+   ``text`` indexes in a cluster that has 2.2 components.
+
+Considerations and Compatibility
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you upgrade to MongoDB 2.4, and then need to run MongoDB 2.2 with
+the same data files, consider the following limitations.
+
+- ``2dsphere`` and ``text`` indexes do not exist in 2.2. If you
+  downgrade to 2.2, you cannot use these indexes in 2.2. and you will
+  need to rebuild these indexes if you later upgrade to 2.4.
+
+- If you use a ``hashed`` index as the shard key index, which is only
+  possible under ``2.4`` you will not be able to query data in this
+  sharded collection. Furthermore, a 2.2 :program:`mongos` cannot
+  properly route an insert operation for a collections sharded using a
+  ``hashed`` index for the shard key index: any data that you insert
+  using a 2.2 :program:`mongos`, will not arrive on the correct shard
+  and will not be reachable by future queries.
+
+- If you *never* create an ``2dsphere`` or ``text`` index, you can
+  move between a 2.4 and 2.2 :program:`mongod` for a given data set;
+  however, after you create the first ``2dsphere`` or ``text`` index
+  with a 2.4 :program:`mongod` you will need to run a 2.2
+  :program:`mongod` with the :option:`--upgrade <mongod --upgrade>`
+  option and drop any ``2dsphere`` or ``text`` index.
+
+Upgrade and Downgrade Procedures
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Basic Downgrade and Upgrade
+```````````````````````````
+
+**Except** as described below, moving between 2.2 and 2.4 is a drop-in
+replacement:
+
+- stop the existing :program:`mongod`, using the :option:`--shutdown
+  <mongod --shutdown>` option as follows:
+
+  .. code-block:: sh
+
+     mongod --dbpath /var/mongod/data --shutdown
+
+  Replace ``/var/mongod/data`` with your MongoDB :setting:`dbpath`.
+
+- start the new :program:`mongod` processes with the same
+  :setting:`dbpath` setting, for example:
+
+  .. code-block:: sh
+
+     mongod --dbpath /var/mongod/data
+
+  Replace ``/var/mongod/data`` with your MongoDB :setting:`dbpath`.
+
+.. _2.4-downgrade-pdfile:
+
+Downgrade to 2.2 After Creating a ``2dsphere`` or ``text`` Index
+````````````````````````````````````````````````````````````````
+
+If you have created ``2dsphere`` or ``text`` indexes while running a
+2.4 :program:`mongod` instance, you can downgrade at any time, by
+starting the ``2.2`` :program:`mongod` with the :option:`--upgrade
+<mongod --upgrade>` option as follows:
+
+.. code-block:: sh
+
+   mongod --dbpath /var/mongod/data/ --upgrade
+
+Then, you will need to drop any existing ``2dsphere`` or ``text``
+indexes using :method:`db.collection.dropIndex()`, for example:
+
+.. code-block:: javascript
+
+   db.records.dropIndex( { loc: "2dsphere" } )
+   db.records.dropIndex( { records: "text" } )
+
+.. warning::
+
+   :option:`--upgrade <mongo --upgrade>` will run
+   :dbcommand:`repairDatabase` on any database where you have created
+   a ``2dsphere`` or ``text`` index, which will rebuild *all*
+   indexes.
+
+Troubleshooting Upgrade/Downgrade Operations
+````````````````````````````````````````````
+
+If you do not use :option:`--upgrade <mongod --upgrade>`, when you
+attempt to start a 2.2 :program:`mongod` and you have created a
+``2dsphere`` or ``text`` index, :program:`mongod` will return the
+following message:
+
+.. code-block:: none
+
+   'need to upgrade database index_plugin_upgrade with pdfile version 4.6, new version: 4.5 Not upgrading, exiting'
+
+While running 2.4, to check the data file version of a MongoDB
+database, use the following operation in the shell:
+
+.. code-block:: javascript
+
+   db.getSiblingDB('<databasename>').stats().dataFileVersion
+
+The major data file version for both 2.2 and 2.4 is ``4``, the minor
+data file version for 2.2 is ``5`` and the minor data file version for
+2.4 is ``6`` if you have created a ``2dsphere`` or ``text``.
