@@ -37,9 +37,9 @@ MongoDB indexes have the following core features:
   requirements as you create indexes in your MongoDB environment.
 
 - All MongoDB indexes use a B-tree data structure. MongoDB can use
-  these representation of the data to optimize query responses.
+  this representation of the data to optimize query responses.
 
-- Every query, including update operations, use one and only one
+- Every query, including update operations, uses one and only one
   index. The :ref:`query optimizer <read-operations-query-optimization>`
   selects the index empirically by
   occasionally running alternate query plans and by selecting the plan
@@ -82,7 +82,7 @@ Index Types
 This section enumerates the types of indexes available in MongoDB.
 For all collections, MongoDB creates the default :ref:`_id index
 <index-type-id>`. You can create additional indexes with the
-:method:`ensureIndex() <db.collection.ensureIndex()>` method on any
+:method:`~db.collection.ensureIndex()` method on any
 single field or :ref:`sequence of fields <index-type-compound>` within
 any document or :ref:`sub-document <index-sub-document>`. MongoDB also
 supports indexes of arrays, called :ref:`multi-key indexes
@@ -274,6 +274,15 @@ index, however, would not support queries that select the following:
 - only the ``location`` and ``stock`` fields
 - only the ``item`` and ``stock`` fields
 
+
+.. note::
+
+   .. versionadded:: 2.4
+
+   Hashed indexes are incompatible with compound indexes.  You will receive
+   an error if you attempt to create a compound index including a hashed
+   index.
+
 When creating an index, the number associated with a key specifies the
 direction of the index. The options are ``1`` (ascending) and ``-1``
 (descending). Direction doesn't matter for single key indexes or for
@@ -359,6 +368,15 @@ value in the array separately, in a "multikey index."
 
    Queries could use the multikey index to return queries for any of
    the above values.
+
+.. note::
+
+   .. versionadded:: 2.4
+
+   If you create a hashed index on a field containing an array, or any
+   compound document, the values of the field are collapsed together and
+   the hash is computed on the resulting combined value, not on the
+   individual values of the array or document.
 
 You can use multikey indexes to index fields within objects embedded in
 arrays, as in the following example:
@@ -509,6 +527,62 @@ By default, ``sparse`` is ``false`` on MongoDB indexes.
    have the indexed field *are* indexed in a sparse index, even if
    that field stores a null value in some documents.
 
+.. index:: index; hashed
+.. _index-type-hashed:
+
+Hashed Index
+~~~~~~~~~~~~
+
+.. versionadded:: 2.4
+
+The new ``hashed`` index exists primarily to support automatically
+hashed shard keys. Consider the following properties of hashed
+indexes:
+
+- Hashed indexes must only have a single field, and cannot be compound
+  indexes.
+
+- Fields indexed with hashed indexes must *not* hold arrays. Hashed
+  indexes cannot be multikey indexes.
+
+- Hashed indexes cannot have a ``unique`` constraint.
+
+  You *may* create hashed indexes with the ``sparse`` property.
+
+- MongoDB can use the hashed index to support equality queries, but
+  cannot use these indexes for range queries.
+
+- Hashed indexes offer no performance advantage over normal indexes.
+  *However*, hashed indexes may be smaller than a normal index when
+  the values of the indexed field are larger than 64 bits. [#hash-size]_
+
+- It is possible to have a hashed and non-hashed index on the same
+  field: MongoDB will use the non-hashed for range queries.
+
+.. _hashed-index-warning:
+
+.. warning::
+
+   Hashed indexes round floating point numbers to 64-bit integers
+   before hashing. For example, a hashed index would store the same
+   value for a field that held a value of ``2.3`` and ``2.2``. To
+   prevent collisions do not use a hashed index for floating point
+   numbers that cannot be consistently converted to 64-bit integers (and
+   then back to floating point.) Hashed indexes do not support
+   floating point values larger than 2\ :sup:`53`.
+
+Create a hashed index using an operation that resembles the
+following:
+
+.. code-block:: javascript
+
+   db.active.ensureIndex( { a: "hashed" } )
+
+This operation creates a hashed index for the ``active`` collection on
+the ``a`` field.
+
+.. [#hash-size] The hash stored in the hashed index is 64 bits long.
+
 .. index:: index; options
 .. _index-creation-operations:
 .. _index-operations:
@@ -563,7 +637,7 @@ construction:
   .. versionchanged:: 2.4
      Before 2.4, a :program:`mongod` instance could only build one
      background index per database at a time.
-     
+
   .. versionchanged:: 2.2
      Before 2.2, a single :program:`mongod` instance could only build
      one index at a time.
