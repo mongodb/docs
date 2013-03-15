@@ -18,6 +18,8 @@ meta = {
     'commit': mongodb_docs_meta.get_commit(),
     'manual_path': mongodb_docs_meta.get_manual_path(),
     'date': str(datetime.date.today().year),
+    'version_selector': mongodb_docs_meta.get_versions(),
+    'stable': mongodb_docs_meta.STABLE_RELEASE
 }
 
 # -- General configuration ----------------------------------------------------
@@ -42,8 +44,7 @@ master_doc = 'contents'
 project = u'mongodb-manual'
 copyright = u'2011-' + meta['date'] + ', 10gen, Inc.'
 version = '2.4'
-release = '2.2.3'
-
+release = '2.4.0'
 
 BREAK = '\n'
 rst_epilog = ('.. |branch| replace:: ``' + meta['branch'] + '``' + BREAK +
@@ -132,9 +133,8 @@ html_theme_options = {
     'google_analytics': 'UA-7301842-8',
     'project': 'manual',
     'version': version, 
-    'versions': [{'v':"2.2", 't':"v2.2"},{'v':"2.4", 't':"v2.4"}],
-    'stable': '2.4',
-    'version_uri': '/v',
+    'version_selector': meta['version_selector'],
+    'stable': meta['stable'],
 }
 
 html_sidebars = {
