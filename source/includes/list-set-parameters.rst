@@ -9,4 +9,5 @@
 - :parameter:`replIndexPrefetch`
 - :parameter:`supportCompatibilityFormPrivilegeDocuments`
 - :parameter:`syncdelay`
+- :parameter:`textSearchEnabled`
 - :parameter:`traceExceptions`

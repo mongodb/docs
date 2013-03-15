@@ -1,0 +1,111 @@
+===========
+Text Search
+===========
+
+.. default-domain:: mongodb
+
+.. versionadded:: 2.4
+
+Overview
+--------
+
+Text search supports the search of string content in documents of a
+collection. Text search introduces a new :ref:`text
+<index-feature-text>` index type and a new :dbcommand:`text` command.
+
+The text search process:
+
+- tokenizes and stems the search term(s) during both the index creation
+  and the text command execution.
+
+- assigns a score to each document that contains the search term in the
+  indexed fields. The score determines the relevance of a document to a
+  given search query.
+
+By default, :dbcommand:`text` command returns at most the top 100
+matching documents as determined by the scores.
+
+.. _create-text-index:
+
+Create a ``text`` Index
+-----------------------
+
+To perform text search, create a ``text`` index on the field or fields
+whose value is a string or an array of string elements. To create a
+``text`` indexes, use the :method:`db.collection.ensureIndex()` method
+with a document that contains field and value pairs where the value is
+the string literal ``text``.
+
+.. important::
+
+   - Before you can :ref:`create a text index <create-text-index>` or
+     :ref:`run the text command <text-search-text-command>`, you need
+     to manually enable the text search. See
+     :doc:`/tutorial/enable-text-search` for information on how to
+     enable the text search feature.
+
+   - Text indexes have significant storage requirements and performance
+     costs. See :ref:`text index feature <index-feature-text>` for more
+     information.
+
+   - .. include:: /includes/fact-text-index-limit-one.rst
+
+The following example creates a ``text`` index on the fields
+``subject`` and ``content``:
+
+.. code-block:: javascript
+
+   db.collection.ensureIndex(
+                              {
+                                subject: "text",
+                                content: "text" 
+                              }
+                            )
+
+This ``text`` index catalogs all string data in the ``subject`` field
+and the ``content`` field, where the field value is either a string or
+an array of string elements.
+
+See :doc:`/core/text-index` for details on the options available when
+creating ``text`` indexes.
+
+Additionally, ``text`` indexes can also be combined with
+ascending/descending index fields. See:
+
+- :doc:`/tutorial/limit-number-of-items-scanned-for-text-search`
+
+- :doc:`/tutorial/return-text-queries-using-only-text-index`
+
+.. _text-search-text-command:
+
+``text`` Command
+----------------
+
+The :dbcommand:`text` command can search for words and phrases. The
+command matches on the complete stemmed words. For example, if a
+document field contains the word ``blueberry``, a search on the term
+``blue`` will not match the document. However, a search on either
+``blueberry`` or ``blueberries`` will match.
+
+By default, the :dbcommand:`text` returns the top 100 scoring documents
+in descending order, but you can specify a ``limit`` option to change
+the maximum number to return.
+
+Given a collection with a ``text`` index, use the
+:method:`~db.collection.runCommand()` method to execute the
+:dbcommand:`text` command, as in:
+
+.. code-block:: javascript
+
+   db.collection.runCommand( "text" , { search: <string> } )
+
+For information and examples on various text search patterns, see
+:doc:`/tutorial/search-for-text`.
+
+Text Search Output
+------------------
+
+The :dbcommand:`text` command returns a document that contains the
+result set.
+
+See :ref:`text-search-output` for information on the output.
