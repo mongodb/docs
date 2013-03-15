@@ -1,5 +1,5 @@
-Install the Hosted MMS Server
------------------------------
+Install the On-Prem Monitoring Server
+-------------------------------------
 
 Requirements
 ~~~~~~~~~~~~
@@ -7,7 +7,7 @@ Requirements
 Hardware
 ++++++++
 
-To run the Hosted MMS server, you must use a 64-bit server, with requirements
+To run the On-Prem MMS server, you must use a 64-bit server, with requirements
 according to the following table:
 
 .. list-table::
@@ -45,9 +45,9 @@ For the best results hosted MMS instances require SSD-backed storage.
 Software
 ++++++++
 
-Hosted MMS has the following *required* dependencies:
+On-Prem MMS has the following *required* dependencies:
 
-- 64-bit Linux. Hosted MMS servers must run any of the following
+- 64-bit Linux. On-Prem MMS servers must run any of the following
   distributions:
 
   - CentOS 5 or later,
@@ -58,11 +58,11 @@ Hosted MMS has the following *required* dependencies:
 
 - MongoDB 2.2.0 or later.
 
-Also the system that runs Hosted MMS have a local SMTP server
-(e.g. Postfix, Exim, Sendmail,) However, you may configure Hosted MMS
+Also the system that runs On-Prem MMS have a local SMTP server
+(e.g. Postfix, Exim, Sendmail,) However, you may configure On-Prem MMS
 to send mail via other providers including Gmail and Sendgrid.
 
-Hosted MMS has the following *optional* dependency.
+On-Prem MMS has the following *optional* dependency.
 
 A Twilio API account for SMS alerting integration.
 
@@ -179,8 +179,8 @@ tutorial for more information.
       If using EBS, starting MongoDB *may* take several minutes to
       pre-allocate the journal files. This is normal behavior.
 
-Obtain and Install Hosted MMS Server
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Obtain and Install On-Prem MMS Server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note::
 
@@ -201,7 +201,7 @@ obtained. When installed the base directory for the MMS software is
 ``tar.gz`` and ``zip`` Install
 ++++++++++++++++++++++++++++++
 
-You can install Hosted MMS from the provided ``tar.gz`` or ``zip``
+You can install On-Prem MMS from the provided ``tar.gz`` or ``zip``
 archive without making any changes to the underlying system
 (i.e. without creating users.)
 To install, simply extract the package, as in the following command: ::
@@ -213,8 +213,8 @@ script for convenience, as in the following: ::
 
     sudo ln -s mms/bin/10gen-mms /etc/init.d/
 
-Configure Hosted MMS Server
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Configure On-Prem MMS Server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This section describes the configuration of the MMS server. The first
 section describes the only required configuration. All other
@@ -306,10 +306,10 @@ token, and Twilio phone number into the following properties: ::
     twilio.auth.token=
     twilio.from.num=
 
-Start the Hosted MMS Server
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Start the On-Prem MMS Server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-After configuring your Hosted MMS deployment, you can start the MMS
+After configuring your On-Prem MMS deployment, you can start the MMS
 server with the following command. [#archive-install-link]_ ::
 
     sudo /etc/init.d/10gen-mms start
@@ -329,9 +329,9 @@ You can now use the MMS instance by visiting the URL specified in the
 continue configuration:
 
 Unlike the SaaS version of MMS `provided by 10gen
-<https://mms.10gen.com>`_, Hosted MMS stores user accounts in the
+<https://mms.10gen.com>`_, On-Prem MMS stores user accounts in the
 local MongoDB instance that supports the MMS instance.  When you sign
-into the Hosted MMS instance for the first time, the system will
+into the On-Prem MMS instance for the first time, the system will
 prompt you to register and create a new "group" for your deployment.
 
 After completing the registration process, you will arrive at the "MMS

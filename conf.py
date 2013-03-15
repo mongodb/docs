@@ -52,11 +52,11 @@ latex_documents = []
 # -- Conditional Output --------------------------------------------------------
 
 if tags.has('hosted'): 
-    project = u'Hosted MongoDB Monitoring Service (MMS)'
-    html_title = 'Hosted MMS Manual'
-    html_short_title = 'Hosted MMS'
+    project = u'On-Prem Monitoring (MMS)'
+    html_title = 'On-Prem Monitoring (MMS)'
+    html_short_title = 'On-Prem Monitoring (MMS)'
     html_theme_options['edition'] = 'hosted'
-    latex_documents.append(('index', 'mms.tex', u'Hosted MongoDB Monitoring Service (MMS) Manual', u'10gen, Inc.', 'howto'))
+    latex_documents.append(('index', 'mms.tex', u'On-Prem Monitoring (MMS)', u'10gen, Inc.', 'howto'))
 else:
     project = u'MongoDB Monitoring Service (MMS)'
     html_title = 'MMS Manual'
