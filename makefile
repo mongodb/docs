@@ -10,16 +10,6 @@ public-output = $(output)/public
 branch-output = $(output)/$(current-branch)
 public-branch-output = $(public-output)/$(current-branch)
 
-# get current branch & commit; set the branch that  "manual/" points to; + a conditional
-manual-branch = master
-current-branch := $(shell git symbolic-ref HEAD 2>/dev/null | cut -d "/" -f "3" )
-last-commit := $(shell git rev-parse --verify HEAD)
-ifeq ($(current-branch),$(manual-branch))
-current-if-not-manual = manual
-else
-current-if-not-manual = $(current-branch)
-endif
-
 help:
 	@echo "Use 'make <target>', where <target> is a Sphinx target (e.g. 'html', 'latex')"
 	@echo "See 'meta.build.rst' for more on the build. Use the following MongoDB Manual targets:"
@@ -36,6 +26,7 @@ include bin/makefile.content
 include bin/makefile.tables
 include bin/makefile.push
 include bin/makefile.manpages
+include bin/makefile.meta
 
 ############# Meta targets that control the build and publication process. #############
 publish-if-up-to-date:
