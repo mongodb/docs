@@ -10,7 +10,8 @@ moveChunk
    moves :term:`chunks <chunk>` between :term:`shards <shard>`.
    You must issue the
    :dbcommand:`moveChunk`
-   command against the :term:`admin database` in the form:
+   command against the :term:`admin database` of a
+   :program:`mongos` instance in the form:
 
    .. code-block:: javascript
 
@@ -19,7 +20,7 @@ moveChunk
                        to : <destination>,
                        <options> } )
 
-   :param namespace moveChunk:
+   :param string moveChunk:
 
       The name of the :term:`collection` where the :term:`chunk`
       exists. Specify the collection's full namespace, including the
@@ -27,12 +28,26 @@ moveChunk
 
    :param document find:
 
-      A document including the :term:`shard key`.
+      A document that specifies an equality match on the shard key
+      that will move the chunk that contains the specified shard-key
+      value. 
 
-   :param host to:
+      You may specify either ``bounds`` or ``find`` but not both.
 
-      The identifier of the shard, that you want to migrate the chunk
-      to.
+   :param array bounds:
+
+      Specify the bounds of a specific chunk to move.  The array must
+      consist of two documents specifying the lower and upper shard key
+      values of a chunk to move. 
+
+      You may specify either ``bounds`` or ``find`` but not both.
+
+      Use this option to move chunks in collections partitioned using
+      a hashed shard key.
+
+   :param string to:
+
+      The name of the destination shard for the chunk.
 
    :param boolean _secondaryThrottle:
 
@@ -42,29 +57,34 @@ moveChunk
       migrations. For details, see
       :ref:`sharded-cluster-config-secondary-throttle`.
 
-   Use the :method:`sh.moveChunk()` helper in the :program:`mongo`
-   shell to migrate chunks manually.
-
    The :ref:`chunk migration <sharding-chunk-migration>` section
    describes how chunks move between shards on MongoDB.
 
-   :dbcommand:`moveChunk` will return the following if another cursor
-   is using the chunk you are moving:
+   :dbcommand:`moveChunk` return the following if another
+   metadata operation is taking place on the chunk's collection:
 
    .. code-block:: none
 
       errmsg: "The collection's metadata lock is already taken."
 
-   These errors usually occur when there are too many open
-   :term:`cursors <cursor>` accessing the chunk you are migrating. You
-   can either wait until the cursors complete their operation or close
-   the cursors manually.
+   If another process, such as a balancer process, changes meta data while
+   ``moveChunk`` is running, you may see this error. You may retry the
+   ``moveChunk`` operation without side effects
 
    .. note::
 
       Only use the :dbcommand:`moveChunk` in special circumstances
       such as preparing your :term:`sharded cluster` for an initial
-      ingestion of data, or a large bulk import operation. See
+      ingestion of data, or a large bulk import operation.
+      In most cases allow the balancer to create and balance chunks
+      in sharded clusters.
+      See
       :ref:`sharding-administration-create-chunks` for more information.
 
    .. admin-only
+
+   .. seealso:: :dbcommand:`split`,
+                :method:`sh.moveChunk()`,
+                :method:`sh.splitAt()`,
+                :method:`sh.splitFind()`
+
