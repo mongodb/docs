@@ -50,8 +50,8 @@ Text Search
 MongoDB 2.4 adds support for boolean search of content in MongoDB
 databases as a beta feature. With the new :ref:`text index
 <index-feature-text>`, and supporting, :dbcommand:`text` command you
-can search text in data stored in MongoDB, using an index that is
-updated in real-time and consistent with the data set. See
+can search text in data stored in MongoDB, using an index that updates
+in real-time and is always consistent with the data set. See
 :doc:`/applications/text-search` for more information about text
 search in MongoDB.
 
@@ -81,9 +81,9 @@ query operator for queries on GeoJSON data:
 
 The operators use the new :operator:`$geometry` parameter.
 
-The :operator:`$within` operator no longer requires a geospatial index.
-Additionally, the :operator:`$within` has been deprecated. Use the new
-:operator:`$geoWithin` operator instead.
+The :operator:`$within` operator no longer requires a geospatial
+index.  Additionally, 2.4 deprecates the :operator:`$within`
+operator. Use :operator:`$geoWithin` operator instead.
 
 For more information on geospatial indexes in 2.4, see:
 
@@ -97,116 +97,12 @@ New Hashed Index and Sharding with a Hashed Shard Key
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To support an easy to configure and evenly distributed shard key,
-version 2.3 adds a new "``hashed``" index type that indexes based on
-hashed values. This section introduces and documents both the new
-index type and its use in sharding:
+version 2.4 adds a new "``hashed``" index type that indexes documents
+using hashes of field values. 
 
-Hashed Index
-````````````
-
-The new ``hashed`` index exists primarily to support automatically
-hashed shard keys. Consider the following properties of hashed
-indexes:
-
-- Hashed indexes must only have a single field, and cannot be compound
-  indexes.
-
-- Fields indexed with hashed indexes must *not* hold arrays. Hashed
-  indexes cannot be multikey indexes.
-
-- Hashed indexes cannot have a ``unique`` constraint.
-
-  You *may* create hashed indexes with the ``sparse`` property.
-
-- MongoDB can use the hashed index to support equality queries, but
-  cannot use these indexes for range queries.
-
-- Hashed indexes offer no performance advantage over normal indexes.
-  *However*, hashed indexes may be smaller than a normal index when
-  the values of the indexed field are larger than 64 bits. [#hash-size]_
-
-- it's possible to have a hashed and non-hashed index on the same
-  field: MongoDB will use the non-hashed for range queries.
-
-.. _hashed-index-warning:
-
-.. warning::
-
-   Hashed indexes round floating point numbers to 64-bit integers
-   before hashing. For example, a hashed index would store the same
-   value for a field that held a value of ``2.3`` and ``2.2``. To
-   prevent collisions do not use a hashed index for floating point
-   numbers that cannot be consistently converted to 64-bit integers (and
-   then back to floating point.) Hashed indexes do not support
-   floating point values larger than 2\ :sup:`53`.
-
-Create a hashed index using an operation that resembles the
-following:
-
-.. code-block:: javascript
-
-   db.active.ensureIndex( { a: "hashed" } )
-
-This operation creates a hashed index for the ``active`` collection on
-the ``a`` field.
-
-.. [#hash-size] The hash stored in the hashed index is 64 bits long.
-
-Hashed Sharding
-```````````````
-
-To shard a collection using a hashed shard key, issue an operation in
-the :program:`mongo` shell that resembles the following:
-
-.. code-block:: javascript
-
-   sh.shardCollection( "records.active", { a: "hashed" } )
-
-This operation shards the ``active`` collection in the ``records``
-database, using a hash of the ``a`` field as the shard
-key. Consider the following properties when using a hashed shard key:
-
-- As with other kinds of shard key indexes, if your collection has
-  data, you must create the hashed index before sharding. If your
-  collection does not have data, sharding the collection will create
-  the appropriate index.
-
-- The :program:`mongos` will route all equality queries to a specific
-  shard or set of shards; however, the :program:`mongos` must route
-  range queries to all shards.
-
-- Hashed shard keys are only understood by 2.4 and later versions of
-  :program:`mongos`.  All :program:`mongos` in a cluster must be at least
-  version 2.4 to correctly route queries on collections with hashed shard
-  keys.
-
-- When using a hashed shard key on a new collection, MongoDB
-  automatically pre-splits the range of 64-bit hash values into
-  chunks. By default, the initial number of chunks is equal to twice
-  the number of shards at creation time. You can change the number of
-  chunks created, using the ``numInitialChunks`` option, as in the
-  following invocation of :dbcommand:`shardCollection`:
-
-  .. code-block:: javascript
-
-     db.adminCommand( { shardCollection: "test.collection",
-                        key: { a: "hashed"},
-                        numInitialChunks: 2001 } )
-
-  MongoDB will only pre-split chunks in a collection when sharding
-  empty collections. MongoDB will not create chunk splits in a
-  collection sharding collections that have data.
-
-  .. note::
-
-     ``numInititalChunks`` allows you to create, at most ``8192``
-     chunks when sharding a collection.
-
-.. warning::
-
-   Avoid using hashed shard keys when the hashed field has non-integral floating
-   point values, see :ref:`hashed indexes <hashed-index-warning>` for
-   more information.
+See :ref:`index-type-hashed` for documentation of ``hashed`` indexes,
+and :ref:`sharding-hashed-sharding` for documentation of hash-based
+sharding.
 
 Security Improvements
 +++++++++++++++++++++
@@ -259,7 +155,7 @@ the legacy privilege documents, which MongoDB continues to support in
 Enhanced SSL Support
 ~~~~~~~~~~~~~~~~~~~~
 
-In 2.4, MongoDB instances can be set up to require clients to provide
+In 2.4, MongoDB instances can optionally require clients to provide
 SSL certificates signed by a Certificate Authority. You must use the
 MongoDB distribution that supports SSL, and your client driver must
 support SSL. See :doc:`/administration/ssl` for more information.
