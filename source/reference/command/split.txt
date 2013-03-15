@@ -15,31 +15,118 @@ split
    In most clusters, MongoDB will manage all chunk creation and
    distribution operations without manual intervention.
 
+   You must issue the :dbcommand:`split` command while connected
+   to the ``admin`` database of a :program:`mongos` instance.
+
+   .. code-block:: javascript
+
+      db.runCommand( { split: <database>.<collection>, find: <document> } )
+
+   Or:
+
+   .. code-block:: javascript
+
+      db.runCommand( { split: <database>.<collection>, middle: <document> } )
+
+   Or:
+
+   .. code-block:: javascript
+
+      db.runCommand( { split: <database>.<collection>, bounds: [ lower, upper ] } )
+
+
+   :param string split:
+
+      The name of the :term:`collection` where the :term:`chunk`
+      exists. Specify the collection's full namespace, including the
+      database name.
+
+   :param document find:
+
+      A document that specifies an equality match on the shard key
+      which will select the chunk containing the specified
+      value for the shard key. You must specify only one of: ``find``,
+      ``bounds``, or ``middle``.
+
+   :param array bounds:
+
+      .. versionadded:: 2.4
+
+      Specify the bounds of a specific chunk to split in half.  The
+      array must consist of two documents specifying the lower and upper
+      shard key values of a chunk to split.  The values must match the
+      minimum and maximum values of an existing chunk. You must specify
+      only one of: ``find``, ``bounds``, or ``middle``.
+
+      This option is used primarily to support chunks with
+      hashed shard keys.
+
+   :param document middle:
+
+      A document specifying an equality match on the shard key (or any
+      prefix of it) which will select the chunk containing the specified
+      value and use it as the split point for the chunk. You must
+      specify only one of: ``find``, ``bounds``, or ``middle``.
+
    .. include:: /includes/warning-splitting-chunks.rst
 
-   Consider the following example:
+   .. example::
 
-   .. code-block:: javascript
+      .. code-block:: javascript
 
-      db.runCommand( { split : "test.people" , find : { _id : 99 } } )
+         db.runCommand( { split : "test.people" , find : { _id : 99 } } )
 
-   This command inserts a new split in the collection named
-   ``people`` in the ``test`` database. This will split the chunk
-   that contains the document that matches the query ``{ _id : 99
-   }`` in half. If the document specified by the query does not (yet)
-   exist, the :dbcommand:`split` will divide the chunk where that
-   document *would* exist.
+      This command inserts a new split in the collection named
+      ``people`` in the ``test`` database. This will split the chunk
+      that contains the document that matches the query ``{ _id : 99
+      }`` in half. If the document specified by the query does not (yet)
+      exist, the :dbcommand:`split` will divide the chunk where that
+      document *would* exist.
 
-   The split divides the chunk in half, and does *not* split the chunk
-   using the identified document as the middle. To define an arbitrary split
-   point, use the following form:
+      The split divides the chunk in half, and does *not* split the chunk
+      using the identified document as the middle.
 
-   .. code-block:: javascript
+   .. example::
 
-      db.runCommand( { split : "test.people" , middle : { _id : 99 } } )
+      To define an arbitrary split point, use the following form:
 
-   This form is typically used when :term:`pre-splitting` data in a
-   collection.
+      .. code-block:: javascript
+
+         db.runCommand( { split : "test.people" , middle : { _id : 99 } } )
+
+      This form is typically used when :term:`pre-splitting` data in a
+      collection.
+
+   .. example::
+
+      To split a specific chunk using the minimum and maximum values of the
+      :term:`hashed shard key` of that chunk use the following:
+
+      .. code-block:: javascript
+
+         db.runCommand( { split: "test.people" ,
+                        bounds : [ NumberLong("-5838464104018346494"), NumberLong("-5557153028469814163")] } )
+
+   The :ref:`chunk migration <sharding-chunk-migration>` section
+   describes how chunks move between shards on MongoDB.
+
+   :dbcommand:`split` will return the following if another
+   metadata operation is taking place on the chunk's collection:
+
+   .. code-block:: none
+
+      errmsg: "The collection's metadata lock is already taken."
+
 
    :dbcommand:`split` is an administrative command that is only
    available for :program:`mongos` instances.
+
+   If another process, such as a balancer process, changes meta data while
+   ``split`` is running, you may see this error. You may retry the
+   ``split`` operation without side effects
+
+
+   .. seealso:: :dbcommand:`moveChunk`,
+                :method:`sh.moveChunk()`,
+                :method:`sh.splitAt()`,
+                :method:`sh.splitFind()`
