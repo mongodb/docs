@@ -42,7 +42,7 @@ help:
 	@echo "	 saas           to stage the mms saas version documents."
 	@echo "	 push           to stage and deploy all mmms documents."
 	@echo "	 push-hosted    to stage and deploy mms-hosted documents."
-	@echo "	 push-mms       to stage and deploy mmms-saas documents."
+	@echo "	 push-mms       to stage and deploy mms-saas documents."
 	@echo "	 <sphinx>       all standard sphinx build targets are avlible for testing."
 
 all:hosted saas
