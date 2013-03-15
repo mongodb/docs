@@ -29,7 +29,7 @@ master_doc = 'index'
 
 copyright = u'2011-2012, 10gen, Inc.'
 
-version = '1.0'
+version = '1.0.0'
 release = version
 pygments_style = 'sphinx'
 
