@@ -6,56 +6,90 @@ $match (aggregation)
 
 .. pipeline:: $match
 
-   Provides a query-like interface to filter documents out of the
-   aggregation :term:`pipeline`. The :pipeline:`$match` drops
-   documents that do not match the condition from the aggregation
-   pipeline, and it passes documents that match along the pipeline
-   unaltered.
+   :pipeline:`$match` pipes the documents that match its conditions to
+   the next operator in the pipeline.
 
-   The syntax passed to the :pipeline:`$match` is identical
-   to the :term:`query` syntax. Consider the following prototype form:
+   The :pipeline:`$match` query syntax is identical to the
+   :ref:`read operation query <read-operations-query-argument>` syntax.
 
-   .. code-block:: javascript
+   .. example::
 
-      db.article.aggregate(
-          { $match : <match-predicate> }
-      );
+      The following operation uses :pipeline:`$match` to perform a
+      simple equality match:
 
-   The following example performs a simple field equality test:
+      .. code-block:: javascript
 
-   .. code-block:: javascript
+         db.articles.aggregate(
+             { $match : { author : "dave" } }
+         );
 
-      db.article.aggregate(
-          { $match : { author : "dave" } }
-      );
+      The :pipeline:`$match` selects the documents where the ``author``
+      field equals ``dave``, and the aggregation returns the following:
 
-   This operation only returns documents where the ``author`` field
-   holds the value ``dave``. Consider the following example,
-   which performs a range test:
+      .. code-block:: javascript
 
-   .. code-block:: javascript
+         { "result" : [
+                        { 
+                          "_id" : ObjectId("512bc95fe835e68f199c8686"),
+                          "author": "dave",
+                          "score" : 80 
+                        }, 
+                        { "_id" : ObjectId("512bc962e835e68f199c8687"),
+                          "author" : "dave",
+                          "score" : 85 
+                        }
+                      ],
+           "ok" : 1 }
 
-      db.article.aggregate(
-          { $match : { score  : { $gt : 50, $lte : 90 } } }
-      );
+   .. example::
 
-   Here, all documents return when the ``score`` field holds a value
-   that is greater than 50 and less than or equal to 90.
+      The following example selects documents to process using the
+      :pipeline:`$match` pipeline operator and then pipes the results
+      to the :pipeline:`$group` pipeline operator to compute a count of
+      the documents:
+
+      .. code-block:: javascript
+
+        db.articles.aggregate( [
+                                { $match : { score : { $gt : 70, $lte : 90 } } },
+                                { $group: { _id: null, count: { $sum: 1 } } } 
+                               ] );
+
+      In the aggregation pipeline, :pipeline:`$match` selects the
+      documents where the ``score`` is greater than ``70`` and less
+      than or equal to ``90``. These documents are then piped to the
+      :pipeline:`$group` to perform a count. The aggregation returns
+      the following:
+
+      .. code-block:: javascript
+
+         {
+           "result" : [
+                        {
+                          "_id" : null,
+                          "count" : 3 
+                        }
+                      ],
+           "ok" : 1 }
 
    .. note::
 
-      Place the :pipeline:`$match` as early in the aggregation
-      :term:`pipeline` as possible. Because :pipeline:`$match`
-      limits the total number of documents in the aggregation
-      pipeline, earlier :pipeline:`$match` operations minimize the
-      amount of later processing. If you place a :pipeline:`$match`
-      at the very beginning of a pipeline, the query can take
-      advantage of :term:`indexes <index>` like any other
-      :mongodb:method:`db.collection.find()` or :mongodb:method:`db.collection.findOne()`.
+      - Place the :pipeline:`$match` as early in the aggregation
+        :term:`pipeline` as possible. Because :pipeline:`$match` limits
+        the total number of documents in the aggregation pipeline,
+        earlier :pipeline:`$match` operations minimize the amount of
+        processing down the pipe.
+
+      - If you place a :pipeline:`$match` at the very beginning of a
+        pipeline, the query can take advantage of :term:`indexes
+        <index>` like any other :mongodb:method:`db.collection.find()`
+        or :mongodb:method:`db.collection.findOne()`.
+
+   .. versionadded:: 2.4
+      :pipeline:`$match` queries can support the
+      geospatial :mongodb:operator:`$within` operations.
 
    .. warning::
 
-      You cannot use :mongodb:operator:`$where` or :ref:`geospatial
-      operations <geospatial-query-operators>` in :pipeline:`$match`
+      You cannot use :mongodb:operator:`$where` in :pipeline:`$match`
       queries as part of the aggregation pipeline.
-
