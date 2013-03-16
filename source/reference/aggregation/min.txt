@@ -6,6 +6,114 @@ $min (aggregation)
 
 .. group:: $min
 
-   Returns the lowest value among all values of the field in all
-   documents selected by this group.
+   The :group:`$min` operator returns the lowest non-null value of a
+   field in the documents for a :pipeline:`$group` operation.
 
+   .. versionchanged:: 2.4
+      If some, **but not all**, documents for the :group:`$min`
+      operation have either a ``null`` value for the field or are
+      missing the field, the :group:`$min` operator only considers the
+      non-null and the non-missing values for the field. If **all**
+      documents for the :group:`$min` operation have ``null`` value for
+      the field or are missing the field, the :group:`$min` operator
+      returns ``null`` for the minimum value.
+
+      Before 2.4, if any of the documents for the :group:`$min`
+      operation were missing the field, the :group:`$min` operator
+      would not return any value. If any of the documents for the
+      :group:`$min` had the value ``null``, the :group:`$min` operator
+      would return a ``null``.
+
+   .. example::
+
+      The ``users`` collection contains the following documents:
+
+      .. code-block:: javascript
+
+         { "_id" : "abc001", "age" : 25 }
+         { "_id" : "abe001", "age" : 35 }
+         { "_id" : "efg001", "age" : 20 }
+         { "_id" : "xyz001", "age" : 15 }
+
+      - To find the minimum value of the ``age`` field from all the
+        documents, use the :group:`$min` operator:
+
+        .. code-block:: javascript
+
+           db.users.aggregate( [ { $group: { _id:0, minAge: { $min: "$age"} } } ] )
+
+        The operation returns the value of the ``age`` field in the
+        ``minAge`` field:
+
+        .. code-block:: javascript
+
+           { "result" : [ { "_id" : 0, "minAge" : 15 } ], "ok" : 1 }
+
+      - To find the minimum value of the ``age`` field for only those
+        documents with ``_id`` starting with the letter ``a``, use the
+        :group:`$min` operator after a :pipeline:`$match` operation:
+
+        .. code-block:: javascript
+
+           db.users.aggregate( [ { $match: { _id: /^a/ } },
+                                 { $group: { _id: 0, minAge: { $min: "$age"} } } 
+                               ] )
+
+        The operation returns the minimum value of the ``age`` field
+        for the two documents with ``_id`` starting with the letter
+        ``a``:
+
+        .. code-block:: javascript
+
+           { "result" : [ { "_id" : 0, "minAge" : 25 } ], "ok" : 1 }
+
+   .. example::
+
+      The ``users`` collection contains the following documents where
+      some of the documents are either missing the ``age`` field or the
+      ``age`` field contains ``null``:
+
+      .. code-block:: javascript
+
+         { "_id" : "abc001", "age" : 25 }
+         { "_id" : "abe001", "age" : 35 }
+         { "_id" : "efg001", "age" : 20 }
+         { "_id" : "xyz001", "age" : 15 }
+         { "_id" : "xxx001" }
+         { "_id" : "zzz001", "age" : null }
+
+      - The following operation finds the minimum value of the ``age``
+        field in all the documents:
+
+        .. code-block:: javascript
+
+           db.users.aggregate( [ { $group: { _id:0, minAge: { $min: "$age"} } } ] )
+
+        Because only some documents for the :group:`$min` operation are
+        missing the ``age`` field or have ``age`` field equal to
+        ``null``, :group:`$min` only considers the non-null and the
+        non-missing values and the operation returns the following
+        document:
+
+        .. code-block:: javascript
+
+           { "result" : [ { "_id" : 0, "minAge" : 15 } ], "ok" : 1 }
+
+      - The following operation finds the minimum value of the ``age``
+        field for only those documents where the ``_id`` equals
+        ``"xxx001"`` or ``"zzz001"``:
+
+        .. code-block:: javascript
+
+           db.users.aggregate( [ { $match: { _id: {$in: [ "xxx001", "zzz001" ] } } },
+                                 { $group: { _id: 0, minAge: { $min: "$age"} } } 
+                               ] )
+
+        The :pipeline:`$min` operation returns ``null`` for the minimum
+        age since **all** documents for the :pipeline:`$min` operation
+        have ``null`` value for the field ``age`` or are missing the
+        field:
+
+        .. code-block:: javascript
+
+           { "result" : [ { "_id" : 0, "minAge" : null } ], "ok" : 1 }
