@@ -236,6 +236,83 @@ affecting the result. However, at this time place
 :agg:pipeline:`$match` operators at the beginning of the pipeline when
 possible.
 
+Pipeline Sequence Optimization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 2.4
+
+:term:`Aggregation` operations have an optimization phase which
+attempts to re-arrange the pipeline for improved performance. 
+
+``$sort`` + ``$skip`` + ``$limit`` Sequence Optimization
+````````````````````````````````````````````````````````
+
+When you have sequence of :agg:pipeline:`$sort` followed by a
+:agg:pipeline:`$skip` followed by a :agg:pipeline:`$limit`, an
+optimization occurs whereby the :agg:pipeline:`$limit` moves in front
+of the :agg:pipeline:`$skip`. For example, if the pipeline consists of
+the following stages:
+
+.. code-block:: javascript
+
+   { $sort: { age : -1 } },
+   { $skip: 10 },
+   { $limit: 5 }
+
+During the optimization phase, the optimizer transforms the sequence to
+the following:
+
+.. code-block:: javascript
+
+   { $sort: { age : -1 } },
+   { $limit: 15 }
+   { $skip: 10 }
+
+.. note::
+
+   The :agg:pipeline:`$limit` value has increased to the sum of the
+   initial value and the :agg:pipeline:`$skip` value.
+
+``$limit`` + ``$skip`` + ``$limit`` + ``$skip`` Sequence Optimization
+`````````````````````````````````````````````````````````````````````
+
+When you have continuous sequence of :agg:pipeline:`$limit` pipeline
+stage followed by a :agg:pipeline:`$skip` pipeline stage, the
+aggregation will attempt to re-arrange the pipeline stages to combine
+the limits together and the skips together. For example, if the
+pipeline consists of the following stages:
+
+.. code-block:: javascript
+
+   { $limit: 100 },
+   { $skip: 5 },
+   { $limit: 10},
+   { $skip: 2 }
+
+During the intermediate step, the optimizer reverses the position of
+the :agg:pipeline:`$skip` followed by a :agg:pipeline:`$limit` to
+:agg:pipeline:`$limit` followed by the :agg:pipeline:`$skip`.
+
+.. code-block:: javascript
+
+   { $limit: 100 },
+   { $limit: 15},
+   { $skip: 5 },
+   { $skip: 2 }
+
+The :agg:pipeline:`$limit` value has increased to the sum of the
+initial value and the :agg:pipeline:`$skip` value. Then, for the final
+:agg:pipeline:`$limit` value, the optimizer selects the minimum between
+the adjacent :agg:pipeline:`$limit` values. For the final
+:agg:pipeline:`$skip` value, the optimizer adds the adjacent
+:agg:pipeline:`$skip` values, to transform the sequence to the
+following:
+
+.. code-block:: javascript
+
+   { $limit: 15 },
+   { $skip: 7 }
+
 Memory for Cumulative Operators
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -246,6 +323,8 @@ operator before it can produce its first output document. The current
 implementation of :agg:pipeline:`$sort` does not go to disk in these
 cases: in order to sort the contents of the pipeline, the entire input
 must fit in memory.
+
+.. include:: /includes/fact-agg-sort-limit.rst
 
 :agg:pipeline:`$group` has similar characteristics: Before any
 :agg:pipeline:`$group` passes its output along the pipeline, it must
