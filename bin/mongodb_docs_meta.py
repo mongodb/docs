@@ -3,8 +3,12 @@
 import datetime
 import re
 import subprocess
+import argparse
 
 MANUAL_BRANCH = 'master'
+PUBLISHED_VERSIONS = [ '2.4', '2.2' ]
+STABLE_RELEASE = PUBLISHED_VERSIONS[0]
+UPCOMING_RELEASE = None
 
 def shell_value( args ):
     if isinstance( args , str ):
@@ -16,7 +20,7 @@ def shell_value( args ):
     return value
 
 def get_manual_path():
-    branch = shell_value('git symbolic-ref HEAD').split('/')[2]
+    branch = get_branch()
 
     if branch == MANUAL_BRANCH:
         manual_path = MANUAL_BRANCH
@@ -31,13 +35,52 @@ def get_commit():
 def get_branch():
     return shell_value('git symbolic-ref HEAD').split('/')[2]
 
-def main():
-    BREAK = "\n"
+def get_versions():
+    o = []
 
-    print("MongoDB Manual:" + BREAK +
-          "     Commit: " + meta_commit() + BREAK +
-          "     Branch: " + meta_branch() + BREAK +
-          "     Year: " + str(datetime.date.today().year))
+    for version in PUBLISHED_VERSIONS:
+        version_string = str(version)
+        path_name = 'v' + version_string
+
+        if version == STABLE_RELEASE:
+            version_string += ' (stable)'
+        elif version == UPCOMING_RELEASE:
+            version_string += ' (upcoming)'
+
+        version_dict = { 'v': path_name, 't': version_string }
+        o.append(version_dict)
+
+    return o
+
+
+def main():
+    action_list = ['branch', 'commit', 'versions', 'stable', 'all', 'manual']
+    parser = argparse.ArgumentParser('MongoDB Documentation Meta Data Provider')
+    parser.add_argument('action', choices=action_list, nargs='?', default='all')
+
+    action = parser.parse_args().action
+
+    if action == 'all':
+        BREAK = "\n"
+
+        print("MongoDB Manual:" + BREAK +
+              "     Commit: " + get_commit() + BREAK +
+              "     Branch: " + get_branch() + BREAK +
+              "     Manual: " + MANUAL_BRANCH + BREAK +
+              "     Versions: " + str(PUBLISHED_VERSIONS) + BREAK +
+              "     Stable: " + str(STABLE_RELEASE) + BREAK +
+              "     Year: " + str(datetime.date.today().year) + BREAK +
+              "     Version UI: " + str(get_versions()))
+    elif action == 'branch':
+        print(get_branch())
+    elif action == 'commit':
+        print(get_commit())
+    elif action == 'stable':
+        print(STABLE_RELEASE)
+    elif action == 'versions':
+        print(PUBLISHED_VERSIONS)
+    elif action == 'manual':
+        print(MANUAL_BRANCH)
 
 if __name__ == '__main__':
     main()
