@@ -277,9 +277,7 @@ index, however, would not support queries that select the following:
 
 .. note::
 
-   .. versionadded:: 2.4
-
-   Hashed indexes are incompatible with compound indexes.  You will receive
+   :ref:`Hashed indexes <index-hashed-index>` are incompatible with compound indexes.  You will receive
    an error if you attempt to create a compound index including a hashed
    index.
 
@@ -371,12 +369,11 @@ value in the array separately, in a "multikey index."
 
 .. note::
 
-   .. versionadded:: 2.4
+   MongoDB computes values for a hashed index on the entire content of a field,
+   including fields that hold arrays or sub-documents.
 
-   If you create a hashed index on a field containing an array, or any
-   compound document, the values of the field are collapsed together and
-   the hash is computed on the resulting combined value, not on the
-   individual values of the array or document.
+   For fields that hold arrays and sub-documents, you cannot use the index to
+   support any query that introspects the value of an array or sub-document.
 
 You can use multikey indexes to index fields within objects embedded in
 arrays, as in the following example:
@@ -535,41 +532,21 @@ Hashed Index
 
 .. versionadded:: 2.4
 
-The new ``hashed`` index exists primarily to support automatically
-hashed shard keys. Consider the following properties of hashed
-indexes:
+Hashed indexes contain entries consisting of a hash of the indexed field.
+Hashed indexes cannot be compound indexes.
+Hashed indexes can be created on only one field which may not contain
+an array as a value.
+Hashed indexes cannot have a ``unique`` constraint.
 
-- Hashed indexes must only have a single field, and cannot be compound
-  indexes.
+MongoDB can use the hashed index to support equality queries, but cannot
+use these indexes for range queries.
 
-- Fields indexed with hashed indexes must *not* hold arrays. Hashed
-  indexes cannot be multikey indexes.
-
-- Hashed indexes cannot have a ``unique`` constraint.
-
-  You *may* create hashed indexes with the ``sparse`` property.
-
-- MongoDB can use the hashed index to support equality queries, but
-  cannot use these indexes for range queries.
-
-- Hashed indexes offer no performance advantage over normal indexes.
-  *However*, hashed indexes may be smaller than a normal index when
-  the values of the indexed field are larger than 64 bits. [#hash-size]_
-
-- It is possible to have a hashed and non-hashed index on the same
-  field: MongoDB will use the non-hashed for range queries.
+It is possible to create a hashed and non-hashed index on the same field:
+MongoDB will use the scalar index for range queries.
 
 .. _hashed-index-warning:
 
-.. warning::
-
-   Hashed indexes round floating point numbers to 64-bit integers
-   before hashing. For example, a hashed index would store the same
-   value for a field that held a value of ``2.3`` and ``2.2``. To
-   prevent collisions do not use a hashed index for floating point
-   numbers that cannot be consistently converted to 64-bit integers (and
-   then back to floating point.) Hashed indexes do not support
-   floating point values larger than 2\ :sup:`53`.
+.. include:: /includes/warning-hashed-index-floating-point.rst
 
 Create a hashed index using an operation that resembles the
 following:
@@ -581,7 +558,7 @@ following:
 This operation creates a hashed index for the ``active`` collection on
 the ``a`` field.
 
-.. [#hash-size] The hash stored in the hashed index is 64 bits long.
+.. [#hash-size] The hash stored in the hashed index is 64 bits.
 
 .. index:: index; options
 .. _index-creation-operations:
