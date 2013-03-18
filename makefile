@@ -1,14 +1,11 @@
 # Makefile for MongoDB Sphinx documentation
-include bin/makefile.compatibility
 MAKEFLAGS += -j -r --no-print-directory
 
+############ path settings ##############
 # Build directory tweaking.
 output = build
 build-tools = bin
 rst-include = source/includes
-public-output = $(output)/public
-branch-output = $(output)/$(current-branch)
-public-branch-output = $(public-output)/$(current-branch)
 
 help:
 	@echo "Use 'make <target>', where <target> is a Sphinx target (e.g. 'html', 'latex')"
@@ -19,14 +16,14 @@ help:
 	@echo "	 pdfs		generates pdfs."
 
 ############# makefile includes #############
-
+include bin/makefile.meta
+include bin/makefile.compatibility
 include bin/makefile.dynamic
 include bin/makefile.clean
 include bin/makefile.content
 include bin/makefile.tables
 include bin/makefile.push
 include bin/makefile.manpages
-include bin/makefile.meta
 
 ############# Meta targets that control the build and publication process. #############
 publish:$(sphinx-content) $(static-content)
@@ -43,7 +40,7 @@ source/includes/hash.rst:source/about.txt
 	@-git update-index --assume-unchanged $@
 	@echo [build]: \(re\)generated $@.
 $(public-branch-output)/release.txt:$(public-branch-output)/
-	@git rev-parse --verify HEAD >|$@
+	@echo $(last-commit) >|$@
 	@echo [build]: generated '$@' with current release hash.
 
 # migrating and processing dirhtml and singlehtml content.
