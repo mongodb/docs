@@ -28,8 +28,8 @@ following procedures.
 Upgrade a Sharded Cluster from MongoDB 2.2 to MongoDB 2.4
 ---------------------------------------------------------
 
-.. important:: Only upgrade sharded clusters to 2.4 if all members of
-   the cluster are currently running instances of 2.2. The only
+.. important:: Only upgrade sharded clusters to 2.4 if **all** members
+   of the cluster are currently running instances of 2.2. The only
    supported upgrade path for sharded clusters running 2.0 is via 2.2.
 
 Upgrading a :term:`sharded cluster` from MongoDB version 2.2 to 2.4
@@ -44,17 +44,38 @@ are capable of handling epochs, even though 2.2 did not require them.
 This procedure applies only to upgrades from version 2.2. Earlier
 versions of MongoDB do not correctly handle epochs.
 
-While the upgrade is in progress, you cannot make changes to the
-collection metadata. For example, you cannot perform operations that
-add shards, drop databases, or drop collections, or modify the
-metadata in any other way.
-
 .. warning::
 
-   Once you upgrade to 2.4 and complete the upgrade procedure **do
-   not** use 2.0 :program:`mongod` and :program:`mongos` processes in
-   your cluster. 2.0 process may re-introduce old metadata formats
-   into cluster metadata.
+   - .. include:: /includes/fact-upgrade-sharded-cluster-prereq.rst
+
+   - While the upgrade is in progress, you cannot make changes to the
+     collection metadata. For example, during the upgrade, do **not**
+     perform:
+
+     - :method:`sh.enableSharding()`,
+
+     - :method:`sh.shardCollection()`,
+
+     - :method:`sh.addShard()`,
+
+     - :method:`db.createCollection()`,
+
+     - :method:`db.collection.drop()`,
+
+     - :method:`db.dropDatabase()`,
+
+     - any operation that creates a database, or
+
+     - any other operation that modifies the cluster metadata in any
+       way. See :doc:`/reference/sharding-commands` for a complete list
+       of sharding commands. Note, however, that not all commands on
+       the :doc:`/reference/sharding-commands` page modifies the
+       cluster metadata.
+
+   - Once you upgrade to 2.4 and complete the upgrade procedure **do
+     not** use 2.0 :program:`mongod` and :program:`mongos` processes in
+     your cluster. 2.0 process may re-introduce old metadata formats
+     into cluster metadata.
 
 .. note::
 
@@ -71,9 +92,12 @@ Sharded Cluster Upgrade Procedure
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Do not perform operations that modify metadata while performing this
-procedure.
+procedure. See :ref:`2.4-upgrade-cluster` for examples of prohibited
+operations.
 
-1. Turn off the :ref:`balancer <sharding-balancing-internals>` in the
+#. .. include:: /includes/fact-upgrade-sharded-cluster-prereq.rst
+
+#. Turn off the :ref:`balancer <sharding-balancing-internals>` in the
    :term:`sharded cluster`, as described in
    :ref:`sharding-balancing-disable-temporally`.
 
@@ -305,7 +329,7 @@ these indexes. For example:
 .. code-block:: javascript
 
    db.records.dropIndex( { loc: "2dsphere" } )
-   db.records.dropIndex( { records: "text" } )
+   db.records.dropIndex( { "records_text" } )
 
    db.records.ensureIndex( { loc: "2dsphere" } )
    db.records.ensureIndex( { records: "text" } )
@@ -315,19 +339,22 @@ these indexes. For example:
 Downgrade MongoDB from 2.4 to Previous Versions
 -----------------------------------------------
 
-For some cases the on-disk format of data files used by 2.4
-and 2.2 :program:`mongod` is compatible, and you can upgrade and
-downgrade if needed. However, several new features in 2.4 require
-additional attention. These features are:
+For some cases the on-disk format of data files used by 2.4 and 2.2
+:program:`mongod` is compatible, and you can upgrade and downgrade if
+needed. However, several new features in 2.4 are incompatible with
+previous versions:
 
-- ``2dsphere`` indexes on 2.2 and earlier :program:`mongod` instances.
+- ``2dsphere`` indexes are incompatible with 2.2 and earlier
+  :program:`mongod` instances.
 
-- ``text`` indexes on 2.2 and earlier :program:`mongod` instances.
+- ``text`` indexes are incompatible with 2.2 and earlier
+  :program:`mongod` instances.
 
-- using a ``hashed`` index as a shard key with 2.2 and earlier
-  :program:`mongos` instances
+- using a ``hashed`` index as a shard key are incompatible with 2.2 and
+  earlier :program:`mongos` instances
 
-- ``hashed`` indexes on 2.0 and earlier :program:`mongod` instances.
+- ``hashed`` indexes are incompatible with 2.0 and earlier
+  :program:`mongod` instances.
 
 .. note::
 
@@ -413,11 +440,11 @@ indexes using :method:`db.collection.dropIndex()`, for example:
 .. code-block:: javascript
 
    db.records.dropIndex( { loc: "2dsphere" } )
-   db.records.dropIndex( { records: "text" } )
+   db.records.dropIndex( { "records_text" } )
 
 .. warning::
 
-   :option:`--upgrade <mongo --upgrade>` will run
+   :option:`--upgrade <mongod --upgrade>` will run
    :dbcommand:`repairDatabase` on any database where you have created
    a ``2dsphere`` or ``text`` index, which will rebuild *all*
    indexes.
