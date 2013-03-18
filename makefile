@@ -37,9 +37,6 @@ include bin/makefile.tables
 include bin/makefile.push
 
 ############# Meta targets that control the build and publication process. #############
-publish-if-up-to-date:
-	@bin/published-build-check $(current-branch) $(last-commit)
-	@$(MAKE) publish
 publish:$(sphinx-content) $(static-content)
 	@echo [build]: $(manual-branch) branch is succeessfully deployed to '$(public-output)'.
 
