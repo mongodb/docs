@@ -18,6 +18,8 @@ meta = {
     'commit': mongodb_docs_meta.get_commit(),
     'manual_path': mongodb_docs_meta.get_manual_path(),
     'date': str(datetime.date.today().year),
+    'version_selector': mongodb_docs_meta.get_versions(),
+    'stable': mongodb_docs_meta.STABLE_RELEASE
 }
 
 # -- General configuration ----------------------------------------------------
@@ -41,14 +43,14 @@ source_suffix = '.txt'
 master_doc = 'contents'
 project = u'mongodb-manual'
 copyright = u'2011-' + meta['date'] + ', 10gen, Inc.'
-version = '2.2.3'
-release = version
+version = '2.4'
+release = '2.4.0'
 
 BREAK = '\n'
 rst_epilog = ('.. |branch| replace:: ``' + meta['branch'] + '``' + BREAK +
               '.. |copy| unicode:: U+000A9' + BREAK +
               '.. |year| replace:: ' + meta['date'] + BREAK +
-              '.. |ent-build| replace:: the MongoDB Subscriber Edition' + BREAK + 
+              '.. |ent-build| replace:: the MongoDB Subscriber Edition' + BREAK +
               '.. |hardlink| replace:: http://docs.mongodb.org/' + meta['branch'])
 
 pygments_style = 'sphinx'
@@ -130,6 +132,9 @@ html_theme_options = {
     'jira_project': 'DOCS',
     'google_analytics': 'UA-7301842-8',
     'project': 'manual',
+    'version': version, 
+    'version_selector': meta['version_selector'],
+    'stable': meta['stable'],
 }
 
 html_sidebars = {
