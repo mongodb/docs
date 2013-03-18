@@ -232,7 +232,7 @@ Choosing a Shard Key
 
 It is unlikely that any single, naturally occurring key in your
 collection will satisfy all requirements of a good shard key. There
-are three options:
+are four options:
 
 #. Compute a more ideal shard key in your application layer,
    and store this in all of your documents, potentially in the
@@ -248,6 +248,13 @@ are three options:
    - limited write volume,
    - expected data size, or
    - query patterns and demands.
+
+#. .. versionadded:: 2.4
+      Utilize a :term:`hashed shard key`.
+      With a hashed shard key you choose a field that has high variability
+      and create a hashed index on that field.
+      MongoDB then uses the values of this hashed index as the shard key
+      values, thus ensuring an even distribution across the shards.
 
 From a decision making stand point, begin by finding the field
 that will provide the required :ref:`query isolation
@@ -307,6 +314,36 @@ and you want to replace this with an index on the field ``{ zipcode:
 
    If you drop the last appropriate index for the shard key, recover
    by recreating a index on just the shard key.
+
+.. _sharding-hashed-shard-key-internals:
+
+Hashed Shard Keys
+~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 2.4
+
+   Hashed shard keys
+   use a special :ref:`hashed index type <index-type-hashed>` that stores
+   hashes of the shard key field to partition data in a cluster.
+
+   Use hashed shard keys when the desired shard key has high
+   cardinality but uneven distribution, or increases monotonically.
+
+.. example::
+
+   The :term:`ObjectId` value of the default ``_id`` field in MongoDB
+   documents has good cardinality but can lead to a hot shard as new
+   documents are always inserted on the last shard.
+
+   A hashed index on an :term:`ObjectId` will lead to an even distribution
+   of documents across all shards as the hash of two sequential documents
+   will be consistently different.
+
+Do not use tag aware sharding with hashed shard keys.
+Tags are applied to the hashed field value in the index, and not
+the underlying field value used to compute the hash.
+
+.. include:: /includes/warning-hashed-index-floating-point.rst
 
 .. index:: balancing; internals
 .. _sharding-balancing-internals:
