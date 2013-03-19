@@ -1155,8 +1155,10 @@ workingSet
 .. data:: serverStatus.workingSet
 
    :data:`~serverStatus.workingSet` is a document that contains values
-   useful for predicting the size of the working set, which is the
-   amount of data that MongoDB uses actively.
+   useful for estimating the size of the working set, which is the
+   amount of data that MongoDB uses
+   actively. :data:`~serverStatus.workingSet` uses an internal data
+   structure that tracks pages accessed by :program:`mongod`.
 
 .. data:: serverStatus.workingSet.note
 
@@ -1167,14 +1169,17 @@ workingSet
 .. data:: serverStatus.workingSet.pagesInMemory
 
    :data:`~serverStatus.workingSet.pagesInMemory` contains a count of
-   the total number of pages in the system's RAM. On Linux systems,
-   the default page size if 4 kilobytes.
+   the total number of pages accessed by :program:`mongod` over the
+   period displayed in
+   :data:`~serverStatus.workingSet.overSeconds`. The default page size
+   is 4 kilobytes: to convert this value to the amount of data in
+   memory multiply this value by 4 kilobytes.
 
-   If your total working set is less than the size of physical memory,
-   over time the value of
-   :data:`~serverStatus.workingSet.pagesInMemory` will equal your data
+   If your total working set is less than the size of physical
+   memory, over time the value of
+   :data:`~serverStatus.workingSet.pagesInMemory` will reflect your data
    size. Conversely, if your data set is greater than the size of the
-   physical RAM, this number will approach the total size of physical
+   physical RAM, this number will reflect the total size of physical
    RAM.
 
    Use :data:`~serverStatus.workingSet.pagesInMemory` in conjunction
@@ -1184,27 +1189,29 @@ workingSet
 .. data:: serverStatus.workingSet.computationTimeMicros
 
    :data:`~serverStatus.workingSet.computationTimeMicros` reports the
-   amount of time the :program:`mongod` used to compute the other
+   amount of time the :program:`mongod` instance used to compute the other
    fields in the :data:`~serverStatus.workingSet` section.
 
    Reporting on :data:`~serverStatus.workingSet` may impact the
    performance of other operations on the :program:`mongod` instance
    because MongoDB must collect some data within the context of a
-   lock.  Ensure that automated monitoring tools use this value when
-   determining the collection frequency for
+   lock. Ensure that automated monitoring tools consider this metric
+   when determining the frequency of collection for
    :data:`~serverStatus.workingSet`.
 
 .. data:: serverStatus.workingSet.overSeconds
 
    :data:`~serverStatus.workingSet.overSeconds` returns the amount of
-   time between the newest and oldest pages tracked in the
+   time elapsed between the newest and oldest pages tracked in the
    :data:`~serverStatus.workingSet.pagesInMemory` data point.
 
-   If :data:`~serverStatus.workingSet.pagesInMemory` equals physical
+   If :data:`~serverStatus.workingSet.overSeconds` is decreasing, or
+   if :data:`~serverStatus.workingSet.pagesInMemory` equals physical
    RAM *and* :data:`~serverStatus.workingSet.overSeconds` is very
-   small, the working set may be much larger than physical RAM. When
-   :data:`~serverStatus.workingSet.overSeconds` is large, MongoDB's
-   data set is equal to or smaller than physical RAM.
+   small, the working set may be much *larger* than physical RAM.
+
+   When :data:`~serverStatus.workingSet.overSeconds` is large,
+   MongoDB's data set is equal to or *smaller* than physical RAM.
 
 .. _server-status-metrics:
 
@@ -1314,7 +1321,7 @@ metrics
    perform the sort operation using an index.
 
 .. data:: serverStatus.metrics.queryExecutor
-          
+
    :data:`~serverStatus.metrics.queryExecutor` is a document that
    reports data from the query execution system.
 
