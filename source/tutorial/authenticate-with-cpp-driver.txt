@@ -1,0 +1,75 @@
+:orphan:
+
+=================================
+Authenticate to MongoDB using C++
+=================================
+
+This page is a brief overview of authenticating to a MongoDB cluster
+with the 2.4 release of MongoDB and the C++ driver.
+
+Normal Authentication
+---------------------
+
+To authenticate as the user "user1" with a password of "password1",
+defined in the "test" database, begin by creating a connection:
+
+.. code-block:: cpp
+
+   // Create connection
+   std::string errmsg;
+   ConnectionString cs = ConnectionString::parse("localhost:27017", errmsg);
+   if (!cs.isValid()) {
+       cout << "error parsing url: " << errmsg << endl;
+       return EXIT_FAILURE;
+   }
+   boost::scoped_ptr<DBClientBase> conn(cs.connect(errmsg));
+   if (!conn) {
+       cout << "couldn't connect: " << errmsg << endl;
+       return EXIT_FAILURE;
+   }
+
+
+In some cases you may need to authenticate as multiple users in
+different databases.  For example, imagine a map/reduce job that reads
+from the database "first" and writes the results to the database
+"second".  You may have to authenticate one user defined in the
+"first" database and another in the "second":
+
+.. code-block:: cpp
+
+   // Authenticate
+   conn->auth(BSON("user" << "user1" <<
+                   "userSource" << "first" <<
+                   "pwd" << "password1" <<
+                   "mechanism" << "MONGODB-CR"));
+   conn->auth(BSON("user" << "user2" <<
+                   "userSource" << "second" <<
+                   "pwd" << "password2" <<
+                   "mechanism" << "MONGODB-CR"));
+
+Kerberos Authentication
+-----------------------
+
+.. note::
+
+   These features are only present in `MongoDB Enterprise
+   <https://www.10gen.com/products/mongodb-enterprise>`_.
+
+   Additionally, to use Kerberos you must have ``libgsasl`` installed
+   on your system *and* compile the C++ driver with the
+   ``--use-sasl-client`` as in the following operation in the
+   top-level of the MongoDB source tree:
+
+   .. code-block:: sh
+
+      scons --use-sasl-client libmongoclient.a
+
+To authenticate to a MongoDB cluster using Kerberos, you must supply
+the Kerberos user name and specify the Kerberos authentication
+mechanism as inn the following:
+
+.. code-block:: cpp
+
+   conn->auth(BSON("user" << "user@REALM.COM" <<
+                   "userSource" << "$external" <<
+                   "mechanism" << "MONGODB-CR"));
