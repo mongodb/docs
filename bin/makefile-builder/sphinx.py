@@ -36,7 +36,7 @@ def make_all_sphinx(sphinx):
           block='vars')
     m.comment('general sphinx variables', block='vars')
     m.var(variable='ALLSPHINXOPTS',
-          value='-q -d $(branch-output)/doctrees-$@ $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source',
+          value='-q -d $(branch-output)/doctrees-$@ $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) $(branch-output)/source',
           block='vars')
     m.var(variable='DRAFTSPHINXOPTS',
           value='-q -d $(branch-output)/draft-doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) draft',
@@ -51,8 +51,16 @@ def make_all_sphinx(sphinx):
           block='vars')
 
     m.section_break('sphinx prerequisites')
-    m.target('sphinx-prerequisites', 'setup installation-guides tables intersphinx generate-manpages', block='prereq')
-    m.msg('[build]: completed $@ buildstep.', block='prereq')
+    m.target('sphinx-prerequisites', 'setup generate-source', block='prereq')
+    m.msg('[sphinx-prep]: completed $@ buildstep.', block='prereq')
+
+    m.target('generate-source', '$(branch-output)/source tables installation-guides intersphinx generate-manpages', block='prereq')
+    m.job('rsync --recursive --times --delete source/ $(branch-output)/source', block='prereq')
+    m.msg('[sphinx-prep]: updated source in $(branch-output)/source', block='prereq')
+
+    m.target('$(branch-output)/source', block='prereq')
+    m.job('mkdir -p $@', block='prereq')
+    m.msg('[sphinx-prep]: created $@', block='prereq')
 
     m.section_break('sphinx targets', block='sphinx')
     m.comment('each sphinx target invokes and controls the sphinx build.', block='sphinx')
