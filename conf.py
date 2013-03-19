@@ -50,7 +50,7 @@ BREAK = '\n'
 rst_epilog = ('.. |branch| replace:: ``' + meta['branch'] + '``' + BREAK +
               '.. |copy| unicode:: U+000A9' + BREAK +
               '.. |year| replace:: ' + meta['date'] + BREAK +
-              '.. |ent-build| replace:: the MongoDB Subscriber Edition' + BREAK +
+              '.. |ent-build| replace:: MongoDB Enterprise' + BREAK +
               '.. |hardlink| replace:: http://docs.mongodb.org/' + meta['branch'])
 
 pygments_style = 'sphinx'
@@ -132,7 +132,7 @@ html_theme_options = {
     'jira_project': 'DOCS',
     'google_analytics': 'UA-7301842-8',
     'project': 'manual',
-    'version': version, 
+    'version': version,
     'version_selector': meta['version_selector'],
     'stable': meta['stable'],
 }
