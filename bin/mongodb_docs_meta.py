@@ -43,7 +43,7 @@ def get_versions():
         path_name = 'v' + version_string
 
         if version == STABLE_RELEASE:
-            version_string += ' (stable)'
+            version_string += ' (current)'
         elif version == UPCOMING_RELEASE:
             version_string += ' (upcoming)'
 
