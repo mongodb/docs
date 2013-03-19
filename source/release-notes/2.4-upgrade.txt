@@ -4,24 +4,86 @@ Upgrade MongoDB to 2.4
 
 .. default-domain:: mongodb
 
-Rolling Upgrade Limitation for 2.2.0 Deployments Running with ``auth`` Enabled
-------------------------------------------------------------------------------
+In the general case, the upgrade from MongoDB 2.2 to 2.4 is a
+binary-compatible "drop-in" upgrade: shut down the :program:`mongod`
+instances and replace them with :program:`mongod` instances running
+2.4. **However**, before you attempt any upgrade please familiarize
+yourself with the content of this document, particularly the procedure
+for :ref:`upgrading sharded clusters <2.4-upgrade-cluster>` and the
+considerations for :ref:`reverting to 2.2 after running 2.4
+<2.4-downgrade>`.
 
-MongoDB *cannot* support deployments that mix 2.2.0 and 2.4.0, or
-greater, components. MongoDB version 2.2.1 and later processes *can*
-exist in mixed deployments with 2.4-series processes. Therefore you
-cannot perform a rolling upgrade from MongoDB 2.2.0 to MongoDB
-2.4.0. To upgrade a cluster with 2.2.0 components, use one of the
-following procedures.
+.. contents:: Content
+   :backlinks: none
+   :local:
+   :depth: 1
 
-1. Perform a rolling upgrade of all 2.2.0 processes to the latest
-   2.2-series release (e.g. 2.2.3) so that there are no processes in
-   the deployment that predate 2.2.1. When there are no 2.2.0
-   processes in the deployment, perform a rolling upgrade to 2.4.0.
+Upgrade Recommendations and Checklist
+-------------------------------------
 
-2. Stop all processes in the cluster. Upgrade all processes to a
-   2.4-series release of MongoDB, and start all processes at the same
-   time.
+When upgrading, consider the following:
+
+- For all deployments using authentication, upgrade the
+  drivers (i.e. client libraries), before upgrading the
+  :program:`mongod` instance or instances.
+
+- To upgrade to 2.4 sharded clusters *must* upgrade following the
+  :ref:`meta-data upgrade procedure <2.4-upgrade-cluster>`.
+
+- If you're using 2.2.0 and running with :setting:`auth` enabled, you
+  will need to upgrade first to 2.2.1 and then upgrade to 2.4. See
+  :ref:`2.4-upgrade-auth-limitation`.
+
+.. _2.4-upgrade-standalone:
+
+Upgrade Standalone ``mongod`` Instance to MongoDB 2.4
+-----------------------------------------------------
+
+#. Download binaries of the latest release in the 2.4 series from the
+   `MongoDB Download Page`_. See :doc:`/installation` for more
+   information. 
+
+#. Shutdown your :program:`mongod` instance. Replace the existing
+   binary with the 2.4 :program:`mongod` binary and restart :program:`mongod`.
+
+
+.. _`MongoDB Download Page`: http://www.mongodb.org/downloads
+
+.. _2.4-upgrade-replica-set:
+
+Upgrade a Replica Set from MongoDB 2.2 to MongoDB 2.4
+-----------------------------------------------------
+
+You can upgrade to 2.4 by performing a "rolling"
+upgrade of the set by upgrading the members individually while the
+other members are available to minimize downtime. Use the following
+procedure:
+
+#. Upgrade the :term:`secondary` members of the set one at a time by
+   shutting down the :program:`mongod` and replacing the 2.0 binary
+   with the 2.4 binary.  After upgrading a :program:`mongod` instance,
+   wait for the member to recover to ``SECONDARY`` state
+   before upgrading the next instance.
+   To check the member's state, issue :method:`rs.status()` in the
+   :program:`mongo` shell.
+
+#. Use the :program:`mongo` shell method :method:`rs.stepDown()` to
+   step down the :term:`primary` to allow the normal :ref:`failover
+   <replica-set-failover>` procedure.  :method:`rs.stepDown()`
+   expedites the failover procedure and is preferable to shutting down
+   the primary directly.
+
+   Once the primary has stepped down and another member has assumed
+   ``PRIMARY`` state, as observed in the output of
+   :method:`rs.status()`, shut down the previous primary and replace
+   :program:`mongod` binary with the 2.4 binary and start the new
+   process.
+
+   .. note:: Replica set failover is not instant but will
+      render the set unavailable to read or accept writes
+      until the failover process completes. Typically this takes
+      10 seconds or more. You may wish to plan the upgrade during
+      a predefined maintenance window.
 
 .. _2.4-upgrade-cluster:
 
@@ -37,7 +99,7 @@ Upgrading a :term:`sharded cluster` from MongoDB version 2.2 to 2.4
 with the :option:`--upgrade <mongos --upgrade>` option, described in
 this procedure. The upgrade process does not require downtime.
 
-The upgrade to MongoDB 2.4 adds epochs to the metadata for all
+The upgrade to MongoDB 2.4 adds epochs to the meta-data for all
 collections and chunks in the existing cluster. MongoDB 2.2 processes
 are capable of handling epochs, even though 2.2 did not require them.
 
@@ -49,7 +111,7 @@ versions of MongoDB do not correctly handle epochs.
    - .. include:: /includes/fact-upgrade-sharded-cluster-prereq.rst
 
    - While the upgrade is in progress, you cannot make changes to the
-     collection metadata. For example, during the upgrade, do **not**
+     collection meta-data. For example, during the upgrade, do **not**
      perform:
 
      - :method:`sh.enableSharding()`,
@@ -66,16 +128,16 @@ versions of MongoDB do not correctly handle epochs.
 
      - any operation that creates a database, or
 
-     - any other operation that modifies the cluster metadata in any
+     - any other operation that modifies the cluster meta-data in any
        way. See :doc:`/reference/sharding-commands` for a complete list
        of sharding commands. Note, however, that not all commands on
        the :doc:`/reference/sharding-commands` page modifies the
-       cluster metadata.
+       cluster meta-data.
 
    - Once you upgrade to 2.4 and complete the upgrade procedure **do
      not** use 2.0 :program:`mongod` and :program:`mongos` processes in
-     your cluster. 2.0 process may re-introduce old metadata formats
-     into cluster metadata.
+     your cluster. 2.0 process may re-introduce old meta-data formats
+     into cluster meta-data.
 
 .. note::
 
@@ -88,10 +150,14 @@ versions of MongoDB do not correctly handle epochs.
 
 .. _2.4-upgrade-meta-data:
 
-Sharded Cluster Upgrade Procedure
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Meta-Data Upgrade Procedure
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Do not perform operations that modify metadata while performing this
+Changes to the meta-data format for sharded clusters, stored in the
+:doc:`config database </reference/config-database>`, require a special
+meta-data upgrade procedure when moving to 2.4.
+
+Do not perform operations that modify meta-data while performing this
 procedure. See :ref:`2.4-upgrade-cluster` for examples of prohibited
 operations.
 
@@ -197,11 +263,11 @@ operations.
 
 #. :ref:`Re-enable the balancer
    <sharding-balancing-disable-temporally>`. You can now perform
-   operations that modify cluster metadata.
+   operations that modify cluster meta-data.
 
 Once you have upgraded, *do not* introduce version 2.0 MongoDB
-processes into the sharded cluster. This can reintroduce old metadata
-formats into the config servers. The metadata change made by this
+processes into the sharded cluster. This can reintroduce old meta-data
+formats into the config servers. The meta-data change made by this
 upgrade process will help prevent errors caused by cross-version
 incompatibilities in future versions of MongoDB.
 
@@ -211,13 +277,13 @@ Resync after an Interruption of the Critical Section
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 During the short critical section of the upgrade that applies changes
-to the metadata, it is unlikely but possible that a network
+to the meta-data, it is unlikely but possible that a network
 interruption can prevent all three config servers from verifying or
 modifying data. If this occurs, the :ref:`config servers
 <sharding-config-server>` must be re-synced, and there may be problems
 starting new :program:`mongos` processes. The :term:`sharded cluster`
-will remain accessible, but avoid all cluster metadata changes until
-you resync the config servers. Operations that change metadata include:
+will remain accessible, but avoid all cluster meta-data changes until
+you resync the config servers. Operations that change meta-data include:
 adding shards, dropping databases, and dropping collections.
 
 .. note::
@@ -231,7 +297,7 @@ adding shards, dropping databases, and dropping collections.
 To resync the config servers:
 
 1. Turn off the :ref:`balancer <sharding-balancing-internals>` in the
-   sharded cluster and stop all metadata operations. If you are in the
+   sharded cluster and stop all meta-data operations. If you are in the
    middle of an upgrade process (:ref:`2.4-upgrade-cluster`), you
    have already disabled the balancer.
 
@@ -240,7 +306,7 @@ To resync the config servers:
    string is ``configA:27019,configB:27019,configC:27019``, shut down
    ``configB`` and ``configC``. Shutting down the last two config servers
    ensures that most :program:`mongos` instances will have
-   uninterrupted access to cluster metadata.
+   uninterrupted access to cluster meta-data.
 
 #. :program:`mongodump` the data files of the active config server
    (``configA``).
@@ -316,6 +382,27 @@ sharded cluster in the following order:
 
 When this process is complete, you can now :ref:`re-enable the
 balancer <sharding-balancing-disable-temporally>`.
+
+.. _2.4-upgrade-auth-limitation:
+
+Rolling Upgrade Limitation for 2.2.0 Deployments Running with ``auth`` Enabled
+------------------------------------------------------------------------------
+
+MongoDB *cannot* support deployments that mix 2.2.0 and 2.4.0, or
+greater, components. MongoDB version 2.2.1 and later processes *can*
+exist in mixed deployments with 2.4-series processes. Therefore you
+cannot perform a rolling upgrade from MongoDB 2.2.0 to MongoDB
+2.4.0. To upgrade a cluster with 2.2.0 components, use one of the
+following procedures.
+
+1. Perform a rolling upgrade of all 2.2.0 processes to the latest
+   2.2-series release (e.g. 2.2.3) so that there are no processes in
+   the deployment that predate 2.2.1. When there are no 2.2.0
+   processes in the deployment, perform a rolling upgrade to 2.4.0.
+
+2. Stop all processes in the cluster. Upgrade all processes to a
+   2.4-series release of MongoDB, and start all processes at the same
+   time.
 
 Upgrade from 2.3 to 2.4
 -----------------------
