@@ -15,8 +15,6 @@ supports legacy coordinate pairs by converting the data to the GeoJSON
 The ``2dsphere`` index supports all MongoDB geospatial queries: queries
 for inclusion, intersection and proximity.
 
-MongoDB allows one ``2dsphere`` index per collection.
-
 A :ref:`compound <index-type-compound>` ``2dsphere`` index can reference
 multiple location and non-location fields within a collection’s
 documents. You can arrange the fields in any order.
@@ -106,17 +104,19 @@ The following are four example commands for creating a ``2dsphere`` index:
 .. code-block:: javascript
 
    db.collection.ensureIndex( { loc : "2dsphere" } )
-   db.collection.ensureIndex( { loc : "2dsphere", type : 1 } )
-   db.collection.ensureIndex( { type : 1, loc : "2dsphere" } )
-   db.collection.ensureIndex( { loc : "2dsphere", type : 1, rating : -1 } )
+   db.collection.ensureIndex( { loc : "2dsphere" , type : 1 } )
+   db.collection.ensureIndex( { rating : 1 , loc : "2dsphere" } )
+   db.collection.ensureIndex( { loc : "2dsphere" , rating : 1 , category : -1 } )
 
 The first example creates a simple geospatial index on the location
 field ``loc``. The second example creates a compound index where the
 second field contains non-location data. The third example creates an
 index where the location field is not the primary field: the location
 field does not have to be the first field in a ``2dsphere`` index. The
-fourth example creates a compound index with three fields: you can
+fourth example creates a compound index with three fields. You can
 include as many fields as you like in a ``2dsphere`` index.
+
+.. _geospatial-indexes-query-2dsphere:
 
 Query a ``2dsphere`` Index
 --------------------------
@@ -158,8 +158,12 @@ Intersections of GeoJSON Objects
 
 .. versionadded:: 2.4
 
-The :operator:`$geoIntersects` operator queries for location data that
-intersects a GeoJSON object. Use the following syntax:
+The :operator:`$geoIntersects` operator queries for locations that
+intersect a specified GeoJSON object. A location intersects the object
+if the intersection is non-empty. This includes documents that have a
+shared edge.
+
+The :operator:`$geoIntersects` operator uses the following syntax:
 
 .. code-block:: javascript
 
@@ -183,9 +187,6 @@ indexed points and shapes that intersect with the polygon defined by the
                            coordinates: [ [ [ 0 , 0 ] , [ 3 , 6 ] , [ 6 , 1 ] , [ 0 , 0 ] ] ]
                    } } } } )
 
-The query returns true if the intersection between shapes is non-empty.
-This includes documents that have a shared edge.
-
 Proximity to a GeoJSON Point
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -205,7 +206,7 @@ The :operator:`$near` uses the following syntax:
                             { $near :
                               { $geometry :
                                  { type : "Point" ,
-                                   coordinates : [ <long>, <lat> ] } ,
+                                   coordinates : [ <longitude> , <latitude> ] } ,
                                 $maxDistance : <distance in meters>
                          } } } )
 
