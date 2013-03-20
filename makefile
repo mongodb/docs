@@ -16,7 +16,6 @@ help:
 	@echo "	 pdfs		generates pdfs."
 
 ############# makefile includes #############
-include bin/makefile.meta
 include bin/makefile.compatibility
 include bin/makefile.dynamic
 include bin/makefile.clean
@@ -27,14 +26,16 @@ include bin/makefile.manpages
 
 ############# Meta targets that control the build and publication process. #############
 publish:$(sphinx-content) $(static-content)
-	@echo [build]: $(manual-branch) branch is succeessfully deployed to '$(public-output)'.
+	@echo [build]: $(current-branch) branch is succeessfully deployed to '$(public-output)'.
 
 ############# Targets that define the production build process #############
-
 # Generating files with build specific info.
-setup:source/includes/hash.rst
-	@mkdir -p $(public-branch-output) $(public-output)
+setup:source/includes/hash.rst meta.yaml bin/meta.yaml
+	@mkdir -p $(public-branch-output) $(public-output) $(branch-output)
 	@echo [build]: created $(public-branch-output)
+meta.yaml bin/meta.yaml $(branch-output)/meta.yaml:
+	@bin/mongodb_docs_meta.py yaml $@
+	@echo [meta]: regenerated $@
 source/includes/hash.rst:source/about.txt
 	@$(PYTHONBIN) bin/update_hash.py
 	@-git update-index --assume-unchanged $@
