@@ -8,10 +8,10 @@ CSharp Driver Tutorial
 
 .. default-domain:: mongodb
 
-C# Driver version v1.6.x
+C# Driver version v1.8.x
 ------------------------
 
-This tutorial is for v1.6.x of the C# Driver. Api documentation can be
+This tutorial is for v1.8.x of the C# Driver. Api documentation can be
 found here: `<http://api.mongodb.org/csharp/current>`_.
 
 Introduction
@@ -34,6 +34,10 @@ Downloading
 The C# Driver is available in source and binary form. While the BSON
 Library can be used independently of the C# Driver they are both stored
 in the same repository.
+
+The simplest way to get started is by using the nuget package.  The 
+`package page <http://www.nuget.org/packages/mongocsharpdriver/>`_ 
+will provide details on using nuget. 
 
 The source may be downloaded from `github.com
 <http://github.com/mongodb/mongo-csharp-driver>`_.
@@ -74,24 +78,21 @@ created, so it is important to get it right from the start.
   `<http://github.com/mongodb/mongo-csharp-driver>`_
 
 - You can download binaries (in both ``.msi`` and ``.zip`` formats)
-  from: `<http://github.com/mongodb/mongo-csharp-driver/downloads>`_
+  from: `<http://driver-downloads.mongodb.org/dotnet/index.html>`_
 
 Building
 --------
 
-We are currently building the C# Driver with Visual Studio 2010. The
+We are currently building the C# Driver with Visual Studio 2012. The
 name of the solution file is :file:`CSharpDriver-2010.sln`.
-
-Dependencies
-------------
-
-The unit tests depend on NUnit 2.5.9, which is included in the
-dependencies folder of the repository. You can build the C# Driver
-without installing NUnit, but you must install NUnit before running the
-unit tests (unless you use a different test runner).
 
 Running Unit Tests
 ------------------
+
+The unit tests depend on NUnit 2.6, which is included in the
+Tools folder of the repository. You can build the C# Driver
+without installing NUnit, but you must have a test runner
+capable of running NUnit tests in order to run the tests.
 
 There are three projects containing unit tests:
 
@@ -101,18 +102,26 @@ There are three projects containing unit tests:
 
 The ``BsonUnitTests`` do not connect to a MongoDB server. The
 ``DriverUnitTests`` and ``DriverUnitTestsVB`` connect to an instance of
-MongoDB running on the default port on localhost.
+MongoDB running on the default port (27017) on localhost.
 
-An easy way to run the unit tests is to set one of the unit test
-projects as the startup project and configure the project settings as
-follows (using ``BsonUnitTests`` as an example):
+If you are running Visual Studio 2012, you can use the NUnit Test Adapter
+extension to run the unit tests.  This is by far the easiest solution.
+
+.. note::
+
+   The NUnit Test Adapter for Visual Studio 2012 is an extension that must be
+   installed through the Visual Studio Extension Manager.
+
+An alternative is to use the NUnit Test Runner.  An easy way to use the NUnit
+Test Runner is to set one of the unit test projects as the startup project 
+and configure the project settings as follows (using ``BsonUnitTests`` 
+as an example):
 
 - On the **Debug** tab:
 
   - Set ``Start Action`` to: ``Start External Program``
 
-  - Set ``external program`` to: :file:`C:\Program Files (x86)\NUnit
-    2.5.9\bin\net-2.0\nunit.exe`
+  - Set ``external program`` to: :file:`.\Tools\NUnit\nunit.exe`
 
   - Set ``command line arguments`` to: ``BsonUnitTests.csproj /config:Debug /run``
 
@@ -122,9 +131,6 @@ follows (using ``BsonUnitTests`` as an example):
 Repeat the above steps for the ``Release`` configuration (using
 ``/config:Release`` instead) if you also want to run unit tests for
 ``Release`` builds.
-
-The exact location of the :file:`nunit.exe` program might vary slightly
-on your machine.
 
 To run the ``DriverUnitTests`` and ``DriverUnitTestsVB`` perform the
 same steps (modified as necessary).
@@ -159,6 +165,10 @@ To use the C# Driver you must add references to the following DLLs:
 #. :file:`MongoDB.Bson.dll`
 
 #. :file:`MongoDB.Driver.dll`
+
+.. note::
+   If you used nuget to pull down the assemblies, these references 
+   likely already exist.
 
 As a minimum add the following using statements to your source files:
 
@@ -740,6 +750,109 @@ the type of the elements is ``BsonValue``. For example:
    string name = array[0].AsString;
    int age = array[1].AsInt32;
 
+
+LazyBsonDocument and LazyBsonArray
+----------------------------------
+
+The lazy classes are special in that they defer the deserialiation of BSON until
+it is needed.  This is useful for when you only need a field or two out of a 
+complex document because it will not incur the cost of deserializing the entire
+document or array, but just the pieces that are necessary.  This deserialization 
+occurs a level at a time.  For example, in the following document, asking for field
+``FirstName`` will deserialize ``LastName`` and ``BirthDate`` as well, but it 
+will leave ``Addresses`` in its serialized form until they are accessed.
+
+.. code-block:: javascript
+
+   {
+     FirstName: "Jack",
+     LastName: "McJack",
+     BirthDate: new ISODate("..."),
+     Addresses: [
+        { Line1: "123 AnyStreet", City: "Anytown" }
+     ]
+   }
+
+It can be used as follows:
+
+.. code-block:: csharp
+
+   var db = server.GetDatabase("foo");
+   var col = db.GetCollection<LazyBsonDocument>("bar");
+
+   foreach (var doc in col.Find(Query.GT("age", 15)))
+   {
+       using (doc)
+       {
+           // the first access will incur the cost of deserializing
+           // FirstName, LastName, and BirthDate.  However, 
+           // Addresses will remain in its serialized form.
+           var firstName = doc["FirstName"];
+
+           // this was already deserialized and is a simple 
+           // dictionary lookup.
+           var lastName = doc["LastName"]; 
+
+           Console.WriteLine("{0} {1}", firstName, lastName);
+       }
+   }
+
+.. warn::
+
+   LazyBsonDocument and LazyBsonArray implement IDisposable.  It is very important
+   that these classes be disposed of to ensure high performance and lower memory
+   utilization.
+
+RawBsonDocument and RawBsonArray
+---------------
+
+The raw classes are special in that they defer the deserialiation of BSON until
+it is needed.  This is useful for when you only need a field or two out of a
+document and will not be accessing them repeatedly.  The Raw documents are
+best utilized when shuffling data from one database or collection to another
+one in MongoDB or to another, external storage location.
+
+.. note::
+
+   The behavior of a Raw classes differs from that of a Lazy classes in that
+   repeated access to the same field in the LazyXXX version will not incur
+   repeated deserialization overhead wherease the RawXXX version will 
+   continually deserialize the same field without caching.
+
+It can be used as follows:
+
+.. code-block:: csharp
+
+   var db = server.GetDatabase("foo");
+   var col = db.GetCollection<RawBsonDocument>("bar");
+
+   foreach (var doc in col.Find(Query.GT("age", 15)))
+   {
+       using (doc)
+       {
+           // this access incurs the cost of deserializing
+           // the FirstName element.
+           var firstName = doc["FirstName"];
+
+           // even though this was deserialized just above,
+           // it will need to get re-deserialized because
+           // we do not store the results of deserialization.
+           var firstNameAgain = doc["FirstName"];  
+           
+           Console.WriteLine("{0} {1}", doc["FirstName"], doc[])
+       }
+   }
+
+.. note::
+   The Raw classes are readonly and will throw exceptions if attempts are made 
+   to update them.
+
+.. warn::
+
+   RawBsonDocument and RawBsonArray implement IDisposable.  It is very important
+   that these classes be disposed of to ensure high performance and lower memory
+   utilization.
+
 The C# Driver
 -------------
 
@@ -787,11 +900,26 @@ string. The standard connection string format is:
    mongodb://[username:password@]hostname[:port][/[database][?options]]
 
 The ``username`` and ``password`` should only be present if you are
-using authentication on the MongoDB server. These credentials will be
-the default credentials for all databases. To authenticate against the
-admin database append ``(admin)`` to the ``username``. If you are using
-different credentials with different databases pass the appropriate
-credentials to the ``GetDatabase`` method.
+using authentication on the MongoDB server. The ``database`` segment 
+indicates which database the ``username`` is designated.  When not 
+specified, the default ``database`` is *admin*.
+
+.. note::
+
+   If you are using the ``database`` segment as the initial database 
+   to use, but the username and password specified are defined
+   in a different database, you can use the ``authSource`` option to 
+   specify the database in which the credential is defined. For example,
+   `mongodb://user:pass@hostname/db1?authSource=userDb` would authenticate
+   the credential against the `userDb` database instead of `db1`.
+
+.. warn::
+
+   Versions prior to 1.8 of the driver allowed the specification of 
+   an ``admin`` credential by appending `(admin)` to the username. 
+   This is not recognized as of version 1.8. Consult the official
+   `connection string documentation <http://docs.mongodb.org/manual/reference/connection-string/>`_ 
+   for more information.
 
 The port number is optional and defaults to ``27017``.
 
@@ -811,6 +939,15 @@ setup), the driver will go through a discovery phase of connecting to
 the servers to determine their type. This has a little overhead at
 connection time and can be avoided by specifying a connection mode in
 the connection string:
+
+.. warn::
+
+   It is required that each mongodb server have a name that is 
+   DNS resolvable by the client machine.  Each mongodb server reports its
+   hostname back through the isMaster command and the driver uses
+   this name to talk with the server.  This issue can occur when the
+   seed list contains an IP address and the mongodb server reports back
+   a hostname that the client machine is unable to resolve.
 
 .. code-block:: none
 
@@ -878,42 +1015,49 @@ environments where test servers don't have signed certs. To alleviate
 this issue, you can also add an ``sslverifycertificate=false`` as another
 connection string option to ignore any certificate errors.
 
+In addition to the above connection string settings, there are a number
+of settings that can be utilized through code.  The ``SslSettings`` class
+is the container of these settings.
+
+* CheckCertificateRevocation: defaults to false.
+* ClientCertificates: see `MSDN <http://msdn.microsoft.com/en-us/library/hh159283.aspx>`_.
+* ClientCertificateSelectionCallback: see `MSDN <http://msdn.microsoft.com/en-us/library/system.net.security.localcertificateselectioncallback.aspx>`_.  
+* EnabledSslProtocols: see `MSDN <http://msdn.microsoft.com/en-us/library/hh159283.aspx>`_
+* ServerCertificaeValidationCallback: see `MSDN <http://msdn.microsoft.com/en-us/library/system.net.security.remotecertificatevalidationcallback.aspx>`_
+
+To set these values, create a new instance of ``SslSettings``, assign it values, and then add it to an instance of ``MongoClientSettings``.
+
+.. code-block:: csharp
+   
+   var sslSettings = new SslSettings
+   {
+       CheckCertificateRevocation: true
+   };
+   var clientSettings = new MongoClientSettings
+   {
+       SslSettings = sslSettings
+   };
+
+
 Authentication
 ~~~~~~~~~~~~~~
 
-MongoDB supports a simple and straightforward authentication mechanism.
-You can read about it on the `security and authentication docs page
-<http://docs.mongodb.org/manual/administration/security>`_
+The .NET driver supports both 10gen's simple protocol as well as the more complex
+and robust Kerberos protocol.  This enables the driver to function with single-sign-on
+functionality against a Kerberose Key Distribution Center. One such KDC is 
+Active Directory.  See below for more details:
 
-The C# driver supports authentication in a couple of ways. As noted
-above in connection strings, you can specify default credentials on the
-connection string. The default credentials are always used as a
-fallback if no other credentials are supplied.
+:ref:`authenticate-with-csharp-driver`
 
-Supplying credentials can be done in two ways. First, they can be
-supplied to certain methods at runtime. These credentials will then be
-used to execute the desired functionality. The other, and more robust
-way, is to store credentials in a ``MongoCredentialsStore``.
-``MongoCredentials`` in the store are keyed by database, so if
-different databases require different users, then the credentials store
-is consulted first and, upon a miss, will fallback to the default
-credentials supplied on the connection string if they exist.
+.. warn::
 
-The example below uses the credential store to define admin credentials
-and credentials for the ``"foo"`` database. Access to databases other
-than ``"admin"`` or ``"foo"`` will use the connection string supplied
-default credentials ``"test"``.
+   Version 2.4 of the server supports 
+   `Delegated Authentication <http://docs.mongodb.org/manual/reference/privilege-documents/#delegated-credentials-for-mongodb-authentication>`_. 
+   Due to this change, the 1.8 release of the driver has some backwards breaking changes
+   in order to support this feature.  Most importantly, all the credentials supplied
+   in a `MongoClientSettings` instance will be authenticated when a new connection
+   is opened, regardless of the database you are currently using.
 
-.. code-block:: csharp
-
-   var url = new MongoUrl("mongodb://test:user@localhost:27017");
-   var settings = MongoClientSettings.FromUrl(url);
-   var adminCredentials = new MongoCredentials("admin", "user", true);
-   settings.CredentialsStore.Add("admin", adminCredentials);
-   var fooCredentials = new MongoCredentials("foo", "user", false);
-   settings.CredentialsStore.Add("foo", fooCredentials);
-
-   var client = new MongoClient(settings);
 
 ``GetServer`` Method
 ~~~~~~~~~~~~~~~~~~~~

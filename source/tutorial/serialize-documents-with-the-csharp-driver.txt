@@ -11,7 +11,7 @@ Serialize Documents with the CSharp Driver
 Introduction
 ------------
 
-This document refers to version 1.6 of the C# Driver.
+This document refers to version 1.8 of the C# Driver.
 
 This section of the C# Driver Tutorial discusses serialization (and
 deserialization) of instances of C# classes to and from BSON documents.
@@ -103,6 +103,96 @@ registered for a class:
       // register class map for MyClass
    }
 
+Creator Maps
+~~~~~~~~~~~~
+
+By default, classes must contain a zero-argument constructor that will be
+used to instantiate an instance to hydrate.  However, it is possible to 
+configure a constructor whose arguments are correlated with mapped properties
+or fields.  There are a couple of ways to do this.
+
+Using an expression, you can instruct the driver to use a creator map as follows:
+
+.. code-block:: csharp
+
+   public class Person
+   {
+     public string FirstName { get; private set; }
+     public string LastName { get; private set; }
+
+     public Person(string firstName, string lastName)
+     {
+       FirstName = firstName;
+       LastName = lastName;
+     }
+   }
+   
+   // snip...
+
+   BsonClassMap.RegisterClassMap<Person>(cm =>
+   {
+       cm.AutoMap();
+       cm.MapCreator(p => new Person(p.FirstName, p.LastName));
+   });
+
+Parsing the expression tree correlates the first constructor argument
+with the ``FirstName`` property and the second constructor argument with the 
+``LastName`` property.  There are other, more complicated ways of handling this
+which can be explored on your own should the need arise.
+
+Using attributes instead:
+
+.. code-block:: csharp
+
+   public class Person
+   {
+     public string FirstName { get; set; }
+     public string LastName { get; set; }
+
+     [BsonConstructor]
+     public Person(string firstName, string lastName)
+     {
+       FirstName = firstName;
+       LastName = lastName;
+     }
+   }
+
+By default, a convention runs on every CreatorMap with no mapped
+arguments and attempts to correlate the names of the constructor arguments
+with the names of mapped members.  If your names differ in more than just case, 
+there are overloads of BsonConstructor which can be used to explicity tell 
+the driver which members to use.
+
+When more than 1 constructor is found, we will use the most parameters fulfilled
+strategy to identify the best match.  For example:
+
+.. code-block:: csharp
+
+   public class Person
+   {
+     public string FirstName { get; set; }
+     public string LastName { get; set; }
+     public DateTime? BirthDate { get; set; }
+
+     [BsonConstructor]
+     public Person(string firstName, string lastName)
+     {
+       // snip...
+     }
+
+     [BsonConstructor]
+     public Person(string firstName, string lastName, DateTime birthDate)
+     {
+       // snip...
+     }
+   }
+
+If the document in the database has a BirthDate element, we
+will choose to use the constructor with 3 parameters because it is more specific.
+
+In addition to the above code and attribute forms, mapping a creator can be handled
+via conventions.
+
 Conventions
 -----------
 
@@ -131,38 +221,51 @@ likely one you will be using, but you can override individual
 conventions (and even write your own) as necessary.
 
 If you want to use your own conventions that differ from the defaults
-simply create an instance of ``ConventionProfile`` and set the values
-you want to override and then register that profile (in other words,
+simply create an instance of ``ConventionPack`` and add in the conventions
+you want to use and then register that pack (in other words,
 tell the default serializer when your special conventions should be
 used). For example:
 
 .. code-block:: csharp
 
-   var myConventions = new ConventionProfile();
-   // override any conventions you want to be different
-   BsonClassMap.RegisterConventions(
-       myConventions,
-       t => t.FullName.StartsWith("MyNamespace.")
-   );
+   var myConventions = new ConventionPack();
+   pack.Add(new CamelCaseElementNameConvention());
 
-The second parameter is a filter function that defines when this
-convention profile should be used. In this case we are saying that any
+   ConventionRegistry.Register(
+      "My Custom Conventions", 
+      pack, 
+      t => t.FullName.StartsWith("MyNamespace."));
+
+The third parameter is a filter function that defines when this
+convention pack should be used. In this case we are saying that any
 classes whose full names begin with ``"MyNamespace."`` should use
 ``myConventions``.
 
-``ConventionProfile`` provides the following methods to allow you to
-set individual conventions:
+In addition to pre-packaged conventions, it is possible to write your own.
+There are 4 classes of conventions which can be created and registered. These
+4 classes of conventions correspond with the 4 stages in which they will be run.
 
-- ``SetDefaultValueConvention``
-- ``SetElementNameConvention``
-- ``SetExtraElementsMemberConvention``
-- ``SetIdGeneratorConvention``
-- ``SetIdMemberConvention``
-- ``SetIgnoreExtraElementsConvention``
-- ``SetIgnoreIfDefaultConvention``
-- ``SetIgnoreIfNullConvention``
-- ``SetMemberFinderConvention``
-- ``SetSerializationOptionsConvention``
+1. ``Class Stage``: ``IClassMapConvention``
+  * Run against the class map.
+#. ``Member Stage``:  ``IMemberMapConvention``
+  * Run against each member map discovered during the IClassMapConvention stage.
+#. ``Creator Stage``: ``ICreatorMapConvention``
+  * Run against each CreatorMap discovered during the IClassMapConvnetion stage.
+#. ``Post Processing Stage``: ``IPostProcessingConvention``
+  * Run against the class map.
+
+Conventions get run in the order they were registered in each stage.  The default
+set of conventions is registered first.  This allows any user
+registered conventions to override the values applied by the default
+conventions.  Hence, it is possible that certain values may get
+applied and overwritten.  It is up to the user to ensure that the
+order is correct.
+
+.. note::
+   
+   If a custom implementation of an ``IPostProcessingConvention`` is registered before
+   a customer implementation of an ``IClassMapConvention``, the ``IClassMapConvention``
+   will be run first because the ``Class Stage`` is before the ``Post Processing Stage``.
 
 Field or Property Level Serialization Options
 ---------------------------------------------
@@ -170,12 +273,10 @@ Field or Property Level Serialization Options
 There are many ways you can control serialization. The previous section
 discussed conventions, which are a convenient way to control
 serialization decisions for many classes at once. You can also control
-serialization at the individual class or field or property level.
-
-Serialization can also be controlled either by decorating your classes
-and fields or properties with serialization related attributes or by
-writing code to initialize class maps appropriately. For each aspect of
-serialization you can control we will be showing both ways.
+serialization at the individual class or field or property level using
+code to configure the class and member maps or using attributes to decorate
+the class and members. For each aspect of serialization you can control, 
+we will be showing both ways.
 
 Opt-In
 ~~~~~~
@@ -206,6 +307,12 @@ following initialization code:
    BsonClassMap.RegisterClassMap<MyClass>(cm => {
        cm.MapProperty(c => c.SomeProperty);
    });
+
+.. note::
+
+   When a readonly property is serialized, it value is persisted to the
+   database, but never read back out.  This is useful for storing 
+   "computed" properties
 
 Element name
 ~~~~~~~~~~~~
@@ -291,6 +398,12 @@ identify it as the Id in one step as follows:
        cm.MapIdProperty(c => c.SomeProperty);
        // mappings for other fields and properties
    });
+
+.. note::
+   
+   The default conventions will discover a public property or field 
+   with the name "Id", "id", or "_id".  It is generally unnecessary 
+   to decorate this field with an attribute or map it explicitly.
 
 Selecting an IdGenerator to Use for an Id Field or Property
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -510,8 +623,7 @@ Identifying Required Fields
 Normally, the deserializer doesn't care if the document being
 deserialized doesn't have a matching element for every field or
 property of the class. The members that don't have a matching element
-simply get assigned their default value (or ``null`` if they don't have a
-default value).
+simply get assigned their default value.
 
 If you want to make an element in the document be required, you can
 mark an individual field or property like this:
@@ -532,6 +644,11 @@ Or using initialization code instead attributes:
        cm.AutoMap();
        cm.GetMemberMap(c => c.X).SetIsRequired(true);
    });
+
+.. warning::
+
+   This will throw an exception during deserialization.  The 
+   required state of a member map does not apply to serialization.
 
 Specifying the Serializer
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1011,36 +1128,6 @@ called before deserialization begins and after it is complete. It is
 useful for running operations before or after deserialization such as
 handling schema changes are pre-calculating some expensive operations.
 
-Make a Class Responsible for Its Own Serialization
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-One way you can customize how a class is serialized is to make it
-responsible for its own serialization. You do so by implementing the
-``IBsonSerializable`` interface:
-
-.. code-block:: csharp
-
-   public class MyClass : IBsonSerializable {
-       // implement Deserialize method
-       // implement Serialize method
-   }
-
-You also must implement the ``GetDocumentId`` and ``SetDocumentId``
-methods. If your class is never used as a root document these methods
-can just be stubs that throw a ``NotSupportedException``. Otherwise,
-return ``true`` from ``GetDocumentId`` if the value passed in has an
-``Id``, and set the ``Id`` value in ``SetDocumentId``.
-
-There is nothing else you have to do besides implementing this
-interface. The BSON Library automatically checks whether objects being
-serialized implement this interface and if so routes serialization
-calls directly to the classes.
-
-This can be a very efficient way to customize serialization, but it
-does have the drawback that it pollutes your domain classes with
-serialization details, so there is also the option of writing a custom
-serializer as described next.
-
 Supplementing the Default Serializer Provider
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1166,12 +1253,12 @@ Write a Custom Attribute
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 The auto mapping ability of BSON library utilizes attributes that
-implement ``IBsonClassMapModifier`` or ``IBsonMemberMapModifier`` for
-class level attributes or member level attributes respectively. Each of
-these interfaces have a single method called Apply that is passed a
-``BsonClassMap`` or a ``BsonMemberMap`` with which it can use any of
-the public methods and properties to modify the map instance. One
-example of this would be to create an attribute called
+implement ``IBsonClassMapAttribute``, ``IBsonMemberMapAttribute``,
+or ``IBsonCreatorMapAttribute`` for class level attributes, member level attributes,
+or creator level attributes respectively. Each of these interfaces has a single 
+method called Apply that is passed a ``BsonClassMap``, a ``BsonMemberMap``, or a 
+``BsonCreatorMap`` which it can modify using public properties and methods. 
+One example of this would be to create an attribute called
 ``BsonEncryptionAttribute`` that is used to encrypt a string before
 sending it to the database and decrypt it when reading it back out.
 
@@ -1223,42 +1310,30 @@ default conventions. You can either replace them with one of the
 provided alternatives or you can write your own convention. Writing
 your own convention varies slightly from convention to convention.
 
-As an example we will write a custom convention to find the Id member
-of a class (the default convention looks for a member named ``Id``). Our
-custom convention will instead consider any public property whose name
-ends in ``Id`` to be the Id for the class. We can implement this
-convention as follows:
+As an example, we will write a custom convention to name all the elements
+the corresponding lower-case version of the member name. We can implement 
+this convention as follows:
 
 .. code-block:: csharp
 
-   public class EndsWithIdConvention : IIdMemberConvention {
-       public string FindIdMember(Type type) {
-           foreach (var property in type.GetProperties()) {
-               if (property.Name.EndsWith("Id")) {
-                   return property.Name;
-               }
-           }
-           return null;
+   public class LowerCaseElementNameConvention : IMemberMapConvention {
+       public void Apply(BsonMemberMap memberMap) {
+           memberMap.SetElementName(memberMap.MemberName.ToLower());
        }
    }
 
-And we can configure this convention to be used with all of our own
-classes by writing:
+When you are doing one-off conventions like this, it might be easier to
+create them with a simple lambda expresion instead.  For example:
 
 .. code-block:: csharp
 
-   var myConventions = new ConventionProfile();
-   myConventions.SetIdMemberConvention(new EndsWithIdConvention());
-   BsonClassMap.RegisterConventions(
-       myConventions,
-       t => t.FullName.StartsWith("MyNamespace.")
-   );
+  var pack = new ConventionPack();
+  pack.AddMemberMapConvention(
+      "LowerCaseElementName", 
+      m => m.SetElementName(m.MemberName.ToLower()));
 
-.. warning::
-   Because ``GetProperties`` is not guaranteed to return properties in any
-   particular order this convention as written will behave
-   unpredictably for a class that contains more than one property whose
-   name ends in ``Id``.
+For the best examples of writing custom conventions, it is good to consult the source for 
+the pre-packaged conventions.
 
 Handling Schema Changes
 -----------------------

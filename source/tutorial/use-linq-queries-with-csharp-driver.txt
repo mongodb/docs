@@ -14,7 +14,7 @@ CSharp Driver LINQ Tutorial
 Introduction
 ------------
 
-This tutorial covers the support for LINQ queries added in the 1.4
+This tutorial covers the support for LINQ queries as of the 1.8
 release of the C# driver.
 
 You should already have read at least the
@@ -60,8 +60,7 @@ would be written using lambda syntax like this:
 
    var query =
        collection.AsQueryable<Employee>()
-       .Where(e => e.FirstName == "John")
-       .Select(e => e); // this trivial projection is optional when using lambda syntax
+       .Where(e => e.FirstName == "John");
 
 The C# compiler translates all queries written using query syntax into
 lambda syntax internally anyway, so there is no performance advantage
@@ -76,12 +75,6 @@ Only LINQ queries that can be translated to an equivalent MongoDB query
 are supported. If you write a LINQ query that can't be translated you
 will get a runtime exception and the error message will indicate which
 part of the query wasn't supported.
-
-.. note::
-   The 1.4 version of the C# driver requires that all *where* clauses
-   that compare a field or property against a value have the constant
-   on the right hand side. This restriction will be lifted in the next
-   release.
 
 Supported LINQ query operators
 ------------------------------
@@ -119,23 +112,6 @@ This section documents the supported LINQ query operators.
      var result =
          collection.AsQueryable<C>()
          .Any(c => c.X == 1);
-
-  Note that the predicate can be provided either by a *where* clause or
-  as an argument to ``Any``, so the following are equivalent to the
-  previous query.
-
-  .. code-block:: csharp
-
-     var result =
-         (from c in collection.AsQueryable<C>()
-         where c.X == 1
-         select c)
-         .Any();
-     // or
-     var result =
-         collection.AsQueryable<C>()
-         .Where(c => c.X == 1)
-         .Any();
 
   ``Any`` with a predicate is not supported after a projection (at least
   not yet). So the following is not valid:
@@ -531,6 +507,21 @@ This section documents the supported LINQ query operators.
          collection.AsQueryable<C>()
          .Min(c => c.X);
 
+- ``OfType``
+
+  The OfType operator will insert a discriminator into the query in order
+  to be more specific about choosing the correct documents.
+
+  .. code-block:: csharp
+
+     var result =
+         (from c in collection.AsQueryable<C>().OfType<D>()
+         select c)
+     // or
+     var result =
+         collection.AsQueryable<C>()
+         .OfType<D>();
+
 - ``OrderBy``
 
   ``OrderBy`` is used to specify an ascending sort order for the result
@@ -566,9 +557,14 @@ This section documents the supported LINQ query operators.
 - ``Select``
 
   ``Select`` is used to project a new result type from the matching
-  documents. In the 1.4 version of the C# driver a projection must
-  typically be the last operation (with a few exceptions like
-  ``Distinct``, ``Max`` and ``Min``).
+  documents. A projection must typically be the last operation 
+  (with a few exceptions like ``Distinct``, ``Max`` and ``Min``).
+
+  .. warn::
+
+     ``Select`` does not result in fewer fields being returned from the server. 
+     The entire document is pulled back and passed to the native ``Select`` method.
+     Therefore, the projection is performed client side.
 
   .. code-block:: csharp
 
@@ -852,6 +848,35 @@ operator.
 
      { A : { $ne : null, $not : { $size : 0 } } }
 
+- ``Any`` With Predicate
+
+  This method is used to test entries in an array.  It will
+  generate an $elemMatch condition.
+
+  .. code-block:: csharp
+
+     var query =
+         from c in collection.AsQueryable<C>()
+         where c.A.Any(a => a.B == 1)
+         select c;
+     // or
+     var query =
+         collection.AsQueryable<C>()
+         .Where(c => c.A.Any(a => a.B == 1));
+
+  This is translated to the following MongoDB query:
+
+  .. code-block:: javascript
+
+     { A : { $elemMatch : { B : 1 } } }
+
+  .. note::
+
+     This will only function when the elements of the 
+     enumerable are serialized as a document.  There is 
+     a server bug preventing this from working against
+     primitives.
+
 - **Boolean constant**
 
   This form is mostly for completeness. You will probably use it
@@ -902,28 +927,52 @@ operator.
 
 - ``Contains`` (Enumerable method)
 
-  This method is used to test whether an array (or array-like) field or
-  property contains a particular value:
+  There are 2 uses for this method depending on context.
 
-  .. code-block:: csharp
+  1. To test whether an array (or array-like) field or
+     property contains a particular value:
 
-     var query =
-         from c in collection.AsQueryable<C>()
-         where c.A.Contains(123)
-         select c;
-     // or
-     var query =
-         collection.AsQueryable<C>()
-         .Where(c => c.A.Contains(123));
+     .. code-block:: csharp
 
-  This is translated to the following MongoDB query:
+        var query =
+            from c in collection.AsQueryable<C>()
+            where c.A.Contains(123)
+            select c;
+        // or
+        var query =
+            collection.AsQueryable<C>()
+            .Where(c => c.A.Contains(123));
 
-  .. code-block:: javascript
+     This is translated to the following MongoDB query:
 
-     { A : 123 }
+     .. code-block:: javascript
 
-  This translation relies on the way array fields are treated by the
-  MongoDB query language.
+        { A : 123 }
+
+     This translation relies on the way array fields are treated by the
+     MongoDB query language.
+
+  #. To test whether a field or property is contained in an array 
+     (or array-like) field.
+
+     .. code-block:: csharp
+    
+     var local = new [] { 1, 2, 3 };
+
+      var query =
+          from c in collection.AsQueryable<C>()
+          where local.Contains(c.A)
+          select c;
+      // or
+      var query =
+          collection.AsQueryable<C>()
+          .Where(c => local.Contains(c.A));
+
+     This is translated to the following MongoDB query:
+
+     .. code-block:: javascript
+
+        { A : { $in : [1, 2, 3] } }
 
 - ``Contains`` (string method)
 
@@ -1093,6 +1142,29 @@ operator.
 
      { E : "A" }
 
+- ``GetType `` (Type method)
+
+  This is exactly like the OfType method.  It will generate a discriminator
+  "and"ed with the other predicates.
+
+  .. code-block:: csharp
+
+  var query =
+         from c in collection.AsQueryable<C>()
+         where c.GetType() == typeof(D)
+         select c;
+     // or
+     var query =
+         collection.AsQueryable<C>()
+         .Where(c => c.GetType() == typeof(D));
+
+  This is translated roughly to the following MongoDB query depending on how
+  your discriminators are created.
+
+  .. code-block:: javascript
+
+     { _t : "D" }
+
 - ``In`` (LINQ to MongoDB extension method)
 
   The ``In`` method is used to test whether a field or property is equal
@@ -1137,6 +1209,29 @@ operator.
   .. code-block:: javascript
 
      { X : { $gt : 0, $type : 18 } }
+
+- ``is`` C# keyword
+
+  This is exactly like the OfType method.  It will generate a discriminator
+  "and"ed with the other predicates.
+
+  .. code-block:: csharp
+
+     var query =
+         from c in collection.AsQueryable<C>()
+         where c is D && ((D)c).B == 1
+         select c;
+     // or
+     var query =
+         collection.AsQueryable<C>()
+         .Where(c => c is D && ((D)c).B == 1);
+
+  This is translated to the something similar to the following, depending
+  on how your discriminators are setup. 
+
+  .. code-block:: javascript
+
+     { _t : "D", B : 1 }
 
 - ``IsMatch`` (regular expression method)
 
@@ -1317,3 +1412,26 @@ operator.
   .. code-block:: javascript
 
      { S : /^abc/ }
+
+- ``ToLower``, ``ToLowerInvariant``, ``ToUpper``, ``ToUpperInvariant`` (string method)
+
+  These methods are used to test whether a string field or property of the
+  document matches a value in a case-insensitive manner.
+
+.. code-block:: csharp
+
+     var query =
+         from c in collection.AsQueryable<C>()
+         where c.S.ToLower() == "abc"
+         select c;
+     // or
+     var query =
+         collection.AsQueryable<C>()
+         .Where(c => c.S.ToLower() == "abc");
+
+  This is translated to the following MongoDB query (using regular
+  expressions):
+
+  .. code-block:: javascript
+
+     { S : /^abc$/i }

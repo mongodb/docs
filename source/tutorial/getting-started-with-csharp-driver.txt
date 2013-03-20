@@ -18,9 +18,13 @@ rest of the documentation for more information.
 Downloading the C# Driver
 -------------------------
 
+The simplest way to get started is by using the nuget package.  The 
+`package page <http://www.nuget.org/packages/mongocsharpdriver/>`_ 
+will provide details on using nuget. 
+
 You can download the C# driver here:
 
-`<http://github.com/mongodb/mongo-csharp-driver/downloads>`_
+`<http://driver-downloads.mongodb.org/dotnet/index.html>`_
 
 If you downloaded the ``.zip`` file, simply unzip it and place the
 contents anywhere you want.
@@ -101,7 +105,7 @@ this:
 
    var database = server.GetDatabase("test"); // "test" is the name of the database
 
-If you use more than one database call ``GetDatabase`` again for each
+If you use more than one database, call ``GetDatabase`` again for each
 database you want to use.
 
 ``BsonDocument`` Object Model vs. Your Own Domain Classes
@@ -132,14 +136,24 @@ XmlSerializer.
 In addition, if your domain class is going to be used as the root
 document it must contain an *Id* field or property (typically named
 ``Id`` although you can override that if necessary). Normally the *Id*
-will be of type ``ObjectId``.
+will be of type ``ObjectId``, but there are no constraints on the type
+of this member.
+
+Consider the following class definition:
+
+.. code-block:: csharp
+
+   public class Entity
+   {
+       public ObjectId Id { get; set; }
+
+       public string Name { get; set; }  
+   }  
 
 Get a Reference to a Collection Object
 --------------------------------------
 
-For purposes of illustration let's assume you are using a domain class
-called ``Entity``. You would get a reference to a collection containing
-``Entity`` documents like this:
+You would get a reference to a collection containing ``Entity`` documents like this:
 
 .. code-block:: csharp
 
@@ -149,7 +163,7 @@ called ``Entity``. You would get a reference to a collection containing
 Insert a Document
 -----------------
 
-Inserting a document is easy:
+To insert an ``Entity``:
 
 .. code-block:: csharp
 
@@ -165,14 +179,18 @@ In this example we will read back an ``Entity`` assuming we know the
 
 .. code-block:: csharp
 
-   var query = Query.EQ("_id", id);
+   var query = Query<Entity>(e => e.Id, id);
    var entity = collection.FindOne(query);
 
-``Query.EQ`` is using the ``Query`` builder class to help you build the
-query. ``_id`` is the name of the field as stored in the database
-(normally the name of the field in the database is exactly the same as
-the name of the field or property in your domain class, but *Id* is an
-exception and is mapped to ``_id`` in the database).
+``Query<Entity>.EQ`` uses the ``Query<T>`` builder class to build the
+query. The lambda expression ``e => e.Id`` is translated to *_id*.  This is 
+the name of the field as stored in the database.
+
+.. note:: 
+   
+   Normally the name of the field in the database is exactly the same
+   as the name of the field or property in your domain class, but *Id*
+   is an exception and is mapped to ``_id`` in the database.
 
 Other query operators include: ``GT``, ``GTE``, ``In``, ``LT``,
 ``LTE``, ``Near``, ``NE``, ``And``, ``Or`` (and a few other more
@@ -197,11 +215,11 @@ sends just the changes. For example:
 
 .. code-block:: csharp
 
-   var query = Query.EQ("_id", id);
-   var update = Update.Set("Name", "Harry"); // update modifiers
+   var query = Query<Entity>.EQ(e => e.Id, id);
+   var update = Update<Entity>.Set(e => e.Name, "Harry"); // update modifiers
    collection.Update(query, update);
 
-This example uses the ``Update`` builder to easily build the update
+This example uses the ``Update<T>`` builder to easily build the update
 modifiers.
 
 Remove an Existing Document
@@ -211,7 +229,7 @@ To remove an existing document from a collection you write:
 
 .. code-block:: csharp
 
-   var query = Query.EQ("_id", id);
+   var query = Query<Entity>.EQ(e => e.Id, id);
    collection.Remove(query);
 
 You Do NOT Need to Call Connect or Disconnect
@@ -259,13 +277,13 @@ Full Sample Program
                collection.Insert(entity);
                var id = entity.Id;
 
-               var query = Query.EQ("_id", id);
+               var query = Query<Entity>.EQ(e => e.Id, id);
                entity = collection.FindOne(query);
 
                entity.Name = "Dick";
                collection.Save(entity);
 
-               var update = Update.Set("Name", "Harry");
+               var update = Update<Entity>.Set(e => e.Name, "Harry");
                collection.Update(query, update);
 
                collection.Remove(query);
