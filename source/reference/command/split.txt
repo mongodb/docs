@@ -26,13 +26,13 @@ split
 
    .. code-block:: javascript
 
-      db.runCommand( { split: <database>.<collection>, middle: <document> } )
+      db.runCommand( { split: <database>.<collection>, middle: <document key> } )
 
    Or:
 
    .. code-block:: javascript
 
-      db.runCommand( { split: <database>.<collection>, bounds: [ lower, upper ] } )
+      db.runCommand( { split: <database>.<collection>, bounds: [ <lower>, <upper> ] } )
 
 
    :param string split:
@@ -43,10 +43,12 @@ split
 
    :param document find:
 
-      A document that specifies an equality match on the shard key
-      that will select the chunk containing the specified
-      document. You must specify only one of: ``find``,
-      ``bounds``, or ``middle``.
+      A document contained in the chunk that will be selected for splitting.
+
+      Do not use ``find`` on a collection with a :term:`hashed shard key`.
+
+      You must specify only one of: ``find``, ``bounds``, or ``middle``.
+
 
    :param array bounds:
 
@@ -63,12 +65,9 @@ split
 
    :param document middle:
 
-      A document specifying an equality match on the shard key
-      which will select the chunk containing the specified
-      document and use it as the split point for the chunk. You must
-      specify only one of: ``find``, ``bounds``, or ``middle``.
-      Do not use ``middle`` to split a chunk which uses a
-      :term:`hashed shard key`, use the ``bounds`` parameter instead.
+      The document key which will be used as a split point.
+      A document with this key does not need to exist.
+      You must specify only one of: ``find``, ``bounds``, or ``middle``.
 
    .. include:: /includes/warning-splitting-chunks.rst
 
@@ -78,15 +77,11 @@ split
 
          db.runCommand( { split : "test.people" , find : { _id : 99 } } )
 
-      This command inserts a new split in the collection named
+      This command splits a chunk of the collection
       ``people`` in the ``test`` database. This will split the chunk
       that contains the document that matches the query ``{ _id : 99
-      }`` in half. If the document specified by the query does not (yet)
-      exist, the :dbcommand:`split` will divide the chunk where that
-      document *would* exist.
-
-      The split divides the chunk in half, and does *not* split the chunk
-      using the identified document as the middle.
+      }`` approximately in half. If the document specified by the query does not
+      exist, the :dbcommand:`split` will divide the chunk in half.
 
    .. example::
 
@@ -101,7 +96,7 @@ split
 
    .. example::
 
-      To split a specific chunk using the minimum and maximum values of the
+      To split a specific chunk in half using the minimum and maximum values of the
       :term:`hashed shard key` of that chunk use the following:
 
       .. code-block:: javascript
