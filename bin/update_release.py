@@ -55,7 +55,7 @@ def generate_output(builder, platform, version, release):
 
 def main():
     interface = cli()
-    output = generate_output(interface['builder'], interface['platform'], sphinx_conf.version, interface['release'])
+    output = generate_output(interface['builder'], interface['platform'], sphinx_conf.release, interface['release'])
 
     with open(interface['outputfile'], 'w') as f:
         f.write(output)
