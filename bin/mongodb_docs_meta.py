@@ -23,7 +23,7 @@ def get_manual_path():
     branch = get_branch()
 
     if branch == MANUAL_BRANCH:
-        manual_path = MANUAL_BRANCH
+        manual_path = 'manual'
     else:
         manual_path = branch
 
@@ -52,9 +52,8 @@ def get_versions():
 
     return o
 
-
 def main():
-    action_list = ['branch', 'commit', 'versions', 'stable', 'all', 'manual']
+    action_list = ['branch', 'commit', 'versions', 'stable', 'all', 'manual', 'current-or-manual']
     parser = argparse.ArgumentParser('MongoDB Documentation Meta Data Provider')
     parser.add_argument('action', choices=action_list, nargs='?', default='all')
 
@@ -62,7 +61,6 @@ def main():
 
     if action == 'all':
         BREAK = "\n"
-
         print("MongoDB Manual:" + BREAK +
               "     Commit: " + get_commit() + BREAK +
               "     Branch: " + get_branch() + BREAK +
@@ -70,6 +68,7 @@ def main():
               "     Versions: " + str(PUBLISHED_VERSIONS) + BREAK +
               "     Stable: " + str(STABLE_RELEASE) + BREAK +
               "     Year: " + str(datetime.date.today().year) + BREAK +
+              "     Path: " + get_manual_path() + BREAK +
               "     Version UI: " + str(get_versions()))
     elif action == 'branch':
         print(get_branch())
@@ -81,6 +80,8 @@ def main():
         print(PUBLISHED_VERSIONS)
     elif action == 'manual':
         print(MANUAL_BRANCH)
+    elif action == 'current-or-manual':
+        print(get_manual_path())
 
 if __name__ == '__main__':
     main()
