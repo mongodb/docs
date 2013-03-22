@@ -18,8 +18,20 @@ intruder or un-trusted party to access the data stored in the MongoDB
 database. The easiest and most effective way to reduce the risk of
 exploitation is to run MongoDB in a trusted environment, limit access,
 follow a system of least privilege, and follow best development and
-deployment practices. See the :ref:`security-reduce-risk` section for
+deployment practices. See the :ref:`security-reduce-risk` section in this document for
 more information.
+
+For information on controlling user access through MongoDB user
+privileges, see the :ref:`security-authorization` section in this
+document. See also the following documents:
+
+- :doc:`/reference/user-privileges`
+
+- :doc:`/reference/privilege-documents`
+
+For information on Kerberos authentication, which is available in
+MongoDB Enterprise, see
+:doc:`/tutorial/control-access-to-mongodb-with-kerberos-authentication`.
 
 .. _security-reduce-risk:
 
@@ -80,10 +92,8 @@ Interfaces and Port Numbers
 
 The following list includes all default ports used by MongoDB:
 
-By default, listens for connections on the following ports:
-
 ``27017``
-   This is the default port :program:`mongod` and :program:`mongos`
+   This is the default port for :program:`mongod` and :program:`mongos`
    instances. You can change this port with :setting:`port` or
    :option:`--port <mongod --port>`.
 
@@ -122,10 +132,8 @@ You can limit the network exposure with the following configuration options:
   Authentication does not control or affect access to this interface.
 
   .. important:: Disable this option for production deployments. If
-     *do* you leave this interface enabled, you should only allow trusted
-     clients to access this port.
-
-  .. todo:: cross reference the above with the firewall rules below.
+     you *do* leave this interface enabled, you should only allow trusted
+     clients to access this port. See :ref:`security-firewalls`.
 
 - the :setting:`port` setting for :program:`mongod` and
   :program:`mongos` instances.
@@ -139,9 +147,7 @@ You can limit the network exposure with the following configuration options:
 
   Whatever port you attach :program:`mongod` and :program:`mongos`
   instances to, you should only allow trusted clients to connect to
-  this port.
-
-  .. todo:: cross reference the above with the firewall rules below.
+  this port. See :ref:`security-firewalls`.
 
 - the :setting:`rest` setting for :program:`mongod`.
 
@@ -253,69 +259,49 @@ Authentication
 --------------
 
 MongoDB provides basic support for authentication with the
-:setting:`auth` setting. For multi-instance deployments
-(i.e. :term:`replica sets <replica set>`, and :term:`sharded clusters
+:setting:`auth` and :setting:`keyFile` configuration settings.
+To require authentication on a single-instance deployment, start the
+:program:`mongod` instance with the :setting:`auth` setting.
+For multi-instance deployments
+(i.e. :term:`replica sets <replica set>` and :term:`sharded clusters
 <sharded cluster>`) use the :setting:`keyFile` setting, which implies
-:setting:`auth`, and allows intra-deployment authentication and
-operation. Be aware of the following behaviors of MongoDB's
-authentication system:
+:setting:`auth` and allows intra-deployment authentication and
+operation.
+
+For MongoDB Enterprise installations, MongoDB also supports
+authentication using a Kerberos service. See
+:doc:`/tutorial/control-access-to-mongodb-with-kerberos-authentication`.
+
+For basic authentication, be aware of the following behaviors:
 
 - Authentication is **disabled** by default.
 
-- MongoDB provisions access on a per-database level. Users either have
-  *read only* access to a database or *normal* access to a database that
-  permits full read and write access to the database. *Normal* access
-  conveys the ability to add additional users to the database.
-
 - The ``system.users`` collection in each database stores all
-  credentials. You can query the authorized users with the following
+  credentials. If you have the ``userAdmin`` role on a database, you can
+  query authenticated users in that database with the following
   operation:
 
   .. code-block:: javascript
 
      db.system.users.find()
 
-- The ``admin`` database is unique. Users with *normal* access to the
-  ``admin`` database have read and write access to all databases. Users
-  with *read only* access to the ``admin`` database have read only
-  access to all databases, with the exception of the ``system.users``
-  collection, which is protected to prevent privilege escalation
-  attacks.
-
-  Additionally the ``admin`` database exposes several commands and
-  functionality, such as :dbcommand:`listDatabases`.
-
-- Once authenticated a *normal* user has full read and write access to
-  a database.
-
-- If you have authenticated to a database as a normal, read and write,
-  user; authenticating as a read-only user on the same database will
-  invalidate the earlier authentication, leaving the current
-  connection with read only access.
-
-- If you have authenticated to the ``admin`` database as normal, read
-  and write, user; logging into a *different* database as a read only
-  user will *not* invalidate the authentication to the ``admin``
-  database. In this situation, this client will be able to read and
-  write data to this second database.
-
 - When setting up authentication for the first time you must either:
 
-  #. add at least one user to the ``admin`` database before starting
-     the :program:`mongod` instance with :setting:`auth`.
+  - add at least one user to the ``admin`` database before starting
+    the :program:`mongod` instance with :setting:`auth`.
 
-  #. add the first user to the ``admin`` database when connected to
-     the :program:`mongod` instance from a ``localhost`` connection. [#sharded-localhost]_
+  - add the first user to the ``admin`` database when connected to
+    the :program:`mongod` instance from a ``localhost`` connection. [#sharded-localhost]_
 
-.. versionadded:: 2.0
-   Support for authentication with sharded clusters. Before 2.0
-   sharded clusters *had* to run with trusted applications and a
-   trusted networking configuration.
+  To add and maintain users, see
+  :doc:`/tutorial/control-access-to-mongodb-with-authentication`.
 
-Consider the
-:doc:`/tutorial/control-access-to-mongodb-with-authentication`
-document which outlines procedures for configuring and maintaining
-users and access with MongoDB's authentication system.
+- Support for authentication with sharded clusters.
+
+  .. versionadded:: 2.0
+
+  Before 2.0 sharded clusters *had* to run with trusted applications and
+  a trusted networking configuration.
 
 .. [#sharded-localhost] Because of :issue:`SERVER-6591`, you cannot
    add the first user to a sharded cluster using the ``localhost``
@@ -323,6 +309,58 @@ users and access with MongoDB's authentication system.
    want to enable authentication, you must deploy the cluster and add
    the first user to the ``admin`` database before restarting the
    cluster to run with :setting:`keyFile`.
+
+.. _security-authorization:
+
+Authorization
+-------------
+
+.. versionchanged:: 2.4
+
+MongoDB provides role-based access to databases and database operations
+through each database's :data:`system.users <<database>.system.users>`
+collection.
+
+Be aware of the following behaviors:
+
+- MongoDB provisions access on a per-database level. Users exist in the
+  context of a single logical database.
+
+- Roles determine the user's access to the database. For a list of
+  available roles, see :ref:`user-roles`.
+
+- User documents in the :data:`system.users <<database>.system.users>`
+  collection in one database can grant access to users defined in
+  another database. See :ref:`user-roles`.
+
+- The ``admin`` database provides roles not available in other
+  databases. You can assign ``admin`` users roles that effectively make
+  them MongoDB system superusers. See :ref:`database-admin-roles` and
+  :ref:`admin-roles`.
+
+- The ``system.users`` collection in each database stores all users and
+  their roles. If you have the ``userAdmin`` role on a database, you can
+  query authorized users in that database with the following operation:
+
+  .. code-block:: javascript
+
+     db.system.users.find()
+
+- The ``system.users`` collection is protected to prevent privilege
+  escalation attacks by requiring you to have the ``userAdmin`` role.
+
+- You can be logged in as only one user for a given database, including
+  the ``admin`` database. If you authenticate to a database as one user
+  and later authenticate on the same database as a different user, the
+  second authentication invalidates the first. Logging into a
+  *different* database, however, does not invalidate authentication on
+  other databases.
+
+For more information on controlling user access, see the following:
+
+- :doc:`/reference/user-privileges`
+
+- :doc:`/reference/privilege-documents`
 
 Interfaces
 ----------
@@ -384,7 +422,7 @@ accessibility represents a vulnerability in a secure environment.
 
 If you must use the REST API, please control and limit access to the
 REST API. The REST API does not include any support for
-authentication, even if when running with :setting:`auth` enabled.
+authentication, even when running with :setting:`auth` (authorization) enabled.
 
 See the following documents for instructions on restricting access to
 the REST API interface:
