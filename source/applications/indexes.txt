@@ -136,33 +136,42 @@ located sequentially on disk.
 
 MongoDB automatically uses an index that covers a query when possible.
 To ensure that a query is covered, create an index that includes all
-the fields listed in the query result and the :ref:`query document
-<read-operations-query-document>`. This means that if the index does
-**not** include the ``_id`` field, the :term:`projection` document,
-which specifies the fields MongoDB returns, must explicitly exclude the
-``_id`` field from the result set.
+the fields listed in the :ref:`query document
+<read-operations-query-document>` and in the query result. By default,
+the ``_id`` field is included in the query result. So, if the index
+does **not** include the ``_id`` field, then for the index to be able
+to cover the query, specify the exclusion of the ``_id`` field (i.e.
+``_id: 0``) in the :ref:`projection <projection>` document.
 
-Consider the following example where the collection ``user`` has
-an index on the fields ``user`` and ``status``:
+.. example::
 
-.. code-block:: javascript
+   A collection ``users`` has the following index on the fields
+   ``user`` and ``status``:
 
-   { status: 1, user: 1 }
+   .. code-block:: javascript
 
-Then, the following query which queries on the ``status`` field and
-returns only the ``user`` field is covered:
+      { status: 1, user: 1 }
 
-.. code-block:: javascript
+   Then, the following query which queries on the ``status`` field and
+   returns only the ``user`` field is covered:
 
-   db.users.find( { status: "A" }, { user: 1, _id: 0 } )
+   .. code-block:: javascript
 
-However, the following query that uses the index to match documents is
-**not** covered by the index because it returns both the ``user`` field
-**and** the ``_id`` field:
+      db.users.find( { status: "A" }, { user: 1, _id: 0 } )
 
-.. code-block:: javascript
+   In the operation, the projection document explicitly specifies
+   ``_id: 0`` to exclude the ``_id`` field from the result since the
+   index is only on the ``status`` and the ``user`` fields.
 
-   db.users.find( { status: "A" }, { user: 1 } )
+   If the projection document does not specify the exclusion of the
+   ``_id`` field, the query returns the ``_id`` field. The following
+   query is **not** covered by the index on the ``status`` and the
+   ``user`` fields because with the projection document ``{ user: 1
+   }``, the query returns both the ``user`` field and the ``_id`` field:
+
+   .. code-block:: javascript
+
+      db.users.find( { status: "A" }, { user: 1 } )
 
 An index **cannot** cover a query if:
 
