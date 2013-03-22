@@ -9,5 +9,5 @@ temporary override of default behavior. If:
      The sync target falls more than 30 seconds behind another member of
      the replica set; 
 
-then, the :program:`mongod` instant will revert to the default sync
+then, the :program:`mongod` instance will revert to the default sync
 logic and target.
