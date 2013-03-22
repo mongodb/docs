@@ -4,11 +4,19 @@ import datetime
 import re
 import subprocess
 import argparse
+import yaml
 
 MANUAL_BRANCH = 'master'
+PUBLISHED_BRANCHES = [ 'v2.2', 'master' ]
 PUBLISHED_VERSIONS = [ '2.4', '2.2' ]
 STABLE_RELEASE = PUBLISHED_VERSIONS[0]
 UPCOMING_RELEASE = None
+
+def get_build_envs():
+    s = (['build/' + branch + '/branch-source/' for branch in PUBLISHED_BRANCHES ] +
+         ['build/' + branch + '/branch-source-current/' for branch in PUBLISHED_BRANCHES ])
+    s.append('build/' + branch + '/source/')
+    return s
 
 def shell_value( args ):
     if isinstance( args , str ):
@@ -52,14 +60,28 @@ def get_versions():
 
     return o
 
+def output_yaml(fn):
+    o = {
+            'branch': get_branch(),
+            'commit': get_commit(),
+            'manual_path': get_manual_path(),
+            'date': str(datetime.date.today().year),
+            'version_selector': get_versions(),
+            'stable': STABLE_RELEASE
+    }
+
+    with open(fn, 'w') as f:
+        f.write(yaml.dump(o, default_flow_style=False))
+
 def main():
-    action_list = ['branch', 'commit', 'versions', 'stable', 'all', 'manual', 'current-or-manual']
+    action_list = ['branch', 'commit', 'versions', 'stable', 'all', 'manual', 'yaml', 'current-or-manual']
     parser = argparse.ArgumentParser('MongoDB Documentation Meta Data Provider')
     parser.add_argument('action', choices=action_list, nargs='?', default='all')
+    parser.add_argument('filename', nargs='?', default='meta.yaml')
 
-    action = parser.parse_args().action
+    ui = parser.parse_args()
 
-    if action == 'all':
+    if ui.action == 'all':
         BREAK = "\n"
         print("MongoDB Manual:" + BREAK +
               "     Commit: " + get_commit() + BREAK +
@@ -70,18 +92,20 @@ def main():
               "     Year: " + str(datetime.date.today().year) + BREAK +
               "     Path: " + get_manual_path() + BREAK +
               "     Version UI: " + str(get_versions()))
-    elif action == 'branch':
+    elif ui.action == 'branch':
         print(get_branch())
-    elif action == 'commit':
+    elif ui.action == 'commit':
         print(get_commit())
-    elif action == 'stable':
+    elif ui.action == 'stable':
         print(STABLE_RELEASE)
-    elif action == 'versions':
+    elif ui.action == 'versions':
         print(PUBLISHED_VERSIONS)
-    elif action == 'manual':
+    elif ui.action == 'manual':
         print(MANUAL_BRANCH)
-    elif action == 'current-or-manual':
+    elif ui.action == 'current-or-manual':
         print(get_manual_path())
+    elif ui.action == 'yaml':
+        output_yaml(ui.filename)
 
 if __name__ == '__main__':
     main()

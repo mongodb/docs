@@ -1,10 +1,10 @@
 #!/usr/bin/python
-
 import sys
-import os
-from makefile_builder import MakefileBuilder
+import os.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.getcwd())))
 
+from makefile_builder import MakefileBuilder
 from conf import intersphinx_mapping
 
 m = MakefileBuilder()

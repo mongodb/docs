@@ -21,7 +21,10 @@ from sphinx.domains.python import _pseudo_parse_arglist
 from sphinx.util.nodes import make_refnode
 from sphinx.util.docfields import Field, GroupedField, TypedField
 
-from sphinx_conf import composite_pages
+import yaml
+
+with open('composite-pages.yaml', 'r') as f:
+    composite_pages = yaml.load_all(f).next()
 
 def basename(path):
     return path.split('/')[-1].rsplit('.', 1)[0]

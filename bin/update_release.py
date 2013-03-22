@@ -3,7 +3,8 @@
 import sys
 import os
 import argparse
-import sphinx_conf
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.getcwd())))
+from conf import release
 
 def cli():
     parser = argparse.ArgumentParser('Generate install files.')
@@ -55,7 +56,7 @@ def generate_output(builder, platform, version, release):
 
 def main():
     interface = cli()
-    output = generate_output(interface['builder'], interface['platform'], sphinx_conf.release, interface['release'])
+    output = generate_output(interface['builder'], interface['platform'], release, interface['release'])
 
     with open(interface['outputfile'], 'w') as f:
         f.write(output)
