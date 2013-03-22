@@ -4,7 +4,6 @@ import datetime
 import re
 import subprocess
 import argparse
-import yaml
 
 MANUAL_BRANCH = 'master'
 PUBLISHED_VERSIONS = [ '2.4', '2.2' ]
@@ -53,28 +52,14 @@ def get_versions():
 
     return o
 
-def output_yaml(fn):
-    o = {
-            'branch': get_branch(),
-            'commit': get_commit(),
-            'manual_path': get_manual_path(),
-            'date': str(datetime.date.today().year),
-            'version_selector': get_versions(),
-            'stable': STABLE_RELEASE
-    }
-
-    with open(fn, 'w') as f:
-        f.write(yaml.dump(o, default_flow_style=False))
-
 def main():
-    action_list = ['branch', 'commit', 'versions', 'stable', 'all', 'manual', 'yaml', 'current-or-manual']
+    action_list = ['branch', 'commit', 'versions', 'stable', 'all', 'manual', 'current-or-manual']
     parser = argparse.ArgumentParser('MongoDB Documentation Meta Data Provider')
     parser.add_argument('action', choices=action_list, nargs='?', default='all')
-    parser.add_argument('filename', nargs='?', default='meta.yaml')
 
-    ui = parser.parse_args()
+    action = parser.parse_args().action
 
-    if ui.action == 'all':
+    if action == 'all':
         BREAK = "\n"
         print("MongoDB Manual:" + BREAK +
               "     Commit: " + get_commit() + BREAK +
@@ -85,20 +70,18 @@ def main():
               "     Year: " + str(datetime.date.today().year) + BREAK +
               "     Path: " + get_manual_path() + BREAK +
               "     Version UI: " + str(get_versions()))
-    elif ui.action == 'branch':
+    elif action == 'branch':
         print(get_branch())
-    elif ui.action == 'commit':
+    elif action == 'commit':
         print(get_commit())
-    elif ui.action == 'stable':
+    elif action == 'stable':
         print(STABLE_RELEASE)
-    elif ui.action == 'versions':
+    elif action == 'versions':
         print(PUBLISHED_VERSIONS)
-    elif ui.action == 'manual':
+    elif action == 'manual':
         print(MANUAL_BRANCH)
-    elif ui.action == 'current-or-manual':
+    elif action == 'current-or-manual':
         print(get_manual_path())
-    elif ui.action == 'yaml':
-        output_yaml(ui.filename)
 
 if __name__ == '__main__':
     main()

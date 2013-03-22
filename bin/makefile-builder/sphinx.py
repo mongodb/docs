@@ -11,7 +11,7 @@ m = MakefileBuilder()
 def make_all_sphinx(sphinx):
     m.section_break('sphinx related variables', block='header')
     m.var(variable='SPHINXOPTS',
-          value='-c $(branch-output)/',
+          value='-c ./',
           block='vars')
     m.var(variable='SPHINXBUILD',
           value='sphinx-build',
@@ -36,7 +36,7 @@ def make_all_sphinx(sphinx):
           block='vars')
     m.comment('general sphinx variables', block='vars')
     m.var(variable='ALLSPHINXOPTS',
-          value='-q -d $(branch-output)/doctrees-$@ $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) $(branch-source)',
+          value='-q -d $(branch-output)/doctrees-$@ $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) $(branch-output)/source',
           block='vars')
     m.var(variable='DRAFTSPHINXOPTS',
           value='-q -d $(branch-output)/draft-doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) draft',
@@ -50,6 +50,18 @@ def make_all_sphinx(sphinx):
           value="sed $(SED_ARGS_REGEX) -e '/^WARNING: unknown mimetype.*ignoring$$/d' -e '/^WARNING: search index.*incomplete.$$/d'",
           block='vars')
 
+    m.section_break('sphinx prerequisites')
+    m.target('sphinx-prerequisites', 'setup generate-source', block='prereq')
+    m.msg('[sphinx-prep]: completed $@ buildstep.', block='prereq')
+
+    m.target('generate-source', '$(branch-output)/source tables installation-guides intersphinx generate-manpages', block='prereq')
+    m.job('rsync --recursive --times --delete source/ $(branch-output)/source', block='prereq')
+    m.msg('[sphinx-prep]: updated source in $(branch-output)/source', block='prereq')
+
+    m.target('$(branch-output)/source', block='prereq')
+    m.job('mkdir -p $@', block='prereq')
+    m.msg('[sphinx-prep]: created $@', block='prereq')
+
     m.section_break('sphinx targets', block='sphinx')
     m.comment('each sphinx target invokes and controls the sphinx build.', block='sphinx')
     m.newline(block='sphinx')
@@ -57,7 +69,7 @@ def make_all_sphinx(sphinx):
     for builder in sphinx:
         sphinx_builder(builder)
 
-    m.target('.PHONY', '$(sphinx-targets) $(branch-output)/source.tar $(branch-source) $(branch-output)/conf-tmp.py $(branch-output)/bin', block='footer')
+    m.target('.PHONY', '$(sphinx-targets)', block='footer')
 
 def build_kickoff(loc, block):
     m.job('mkdir -p $(branch-output)/' + loc, block=block)
