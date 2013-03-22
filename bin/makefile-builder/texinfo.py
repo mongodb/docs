@@ -4,10 +4,10 @@ import sys
 import os.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
-from makefile_builder import MakefileBuilder
+from makecloth import MakefileCloth
 from builder_data import texinfo as texinfo_manuals
 
-m = MakefileBuilder()
+m = MakefileCloth()
 
 def build_texinfo_manual(info):
     ofile = info + '-info-$(current-branch).tar.gz'

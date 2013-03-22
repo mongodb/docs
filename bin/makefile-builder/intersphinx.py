@@ -4,10 +4,10 @@ import os.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.getcwd())))
 
-from makefile_builder import MakefileBuilder
+from makecloth import MakefileCloth
 from conf import intersphinx_mapping
 
-m = MakefileBuilder()
+m = MakefileCloth()
 
 def intersphinx_builders():
     for i in intersphinx_mapping:

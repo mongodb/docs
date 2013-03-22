@@ -4,8 +4,8 @@ import os.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
 import mongodb_docs_meta as mongo_meta
-from makefile_builder import MakefileBuilder
-m = MakefileBuilder()
+from makecloth import MakefileCloth
+m = MakefileCloth()
 
 def generate_meta():
     m.section_break('branch/release meta', block='rel')

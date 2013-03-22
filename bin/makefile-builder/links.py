@@ -4,12 +4,12 @@ import sys
 import os.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
-from makefile_builder import MakefileBuilder
+from makecloth import MakefileCloth
 from builder_data import links as links_to_create
 
 # to add a symlink build process, add a tuple to the ``links`` in the builder definitions file.
 
-m = MakefileBuilder()
+m = MakefileCloth()
 
 def make_all_links(links):
     m.comment('each link is created in the root and then moved into place using the "create-link" script.', block='header')

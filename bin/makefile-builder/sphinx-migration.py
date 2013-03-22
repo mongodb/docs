@@ -4,10 +4,10 @@ import sys
 import os.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
-from makefile_builder import MakefileBuilder
+from makecloth import MakefileCloth
 from builder_data import sphinx_migrations as migrations
 
-m = MakefileBuilder()
+m = MakefileCloth()
 
 def build_all_sphinx_migrations(migrations):
     m.comment('Establish basic dependencies.', block='deps')
