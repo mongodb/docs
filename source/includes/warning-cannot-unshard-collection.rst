@@ -1,8 +1,7 @@
 .. warning::
 
-   There is no supported means to un-shard a collection after running
-   :dbcommand:`shardCollection`.
-   Additionally, once you have sharded a collection you cannot
-   change shard keys, or update the value of any field used in
-   your shard key index.
+   MongoDB provides no method to deactivate sharding, after calling
+   :dbcommand:`shardCollection`.  Additionally, after
+   :dbcommand:`shardCollection` you cannot change shard keys or modify
+   the value of any field used in your shard key index.
 

@@ -274,12 +274,12 @@ index, however, would not support queries that select the following:
 - only the ``location`` and ``stock`` fields
 - only the ``item`` and ``stock`` fields
 
+.. important:: You may not create compound indexes that have
+   ``hashed`` index fields.
 
-.. note::
-
-   :ref:`Hashed indexes <index-hashed-index>` are incompatible with compound indexes.  You will receive
-   an error if you attempt to create a compound index including a hashed
-   index.
+   :ref:`Hashed indexes <index-hashed-index>` do notare incompatible with
+   compound indexes.  You will receive an error if you attempt to
+   create a compound index including a hashed index.
 
 When creating an index, the number associated with a key specifies the
 direction of the index. The options are ``1`` (ascending) and ``-1``
@@ -369,11 +369,11 @@ value in the array separately, in a "multikey index."
 
 .. note::
 
-   MongoDB computes values for a hashed index on the entire content of a field,
-   including fields that hold sub-documents.
-
-   For fields that hold sub-documents, you cannot use the index to
-   support any query that introspects the value of a sub-document.
+   For ``hashed`` indexes, MongoDB collapses sub-documents and
+   computes the hash for the entire value, but does not support
+   multi-key (i.e. arrays) indexes. For fields that hold
+   sub-documents, you cannot use the index to support queries that
+   introspect the sub-document.
 
 You can use multikey indexes to index fields within objects embedded in
 arrays, as in the following example:
@@ -532,17 +532,19 @@ Hashed Index
 
 .. versionadded:: 2.4
 
-Hashed indexes contain entries consisting of a hash of the indexed field.
-Hashed indexes cannot be compound indexes.
-Hashed indexes can be created on only one field which may not contain
-an array as a value.
-Hashed indexes cannot have a ``unique`` constraint.
+Hashed indexes maintain entries with hashes of the values the indexed
+field. The hashing
+function collapses sub-documents and computes the hash for the entire
+value, but does not support multi-key (i.e. arrays) indexes.
 
-MongoDB can use the hashed index to support equality queries, but cannot
-use these indexes for range queries.
+MongoDB can use the hashed index to support equality queries, but
+``hashed`` indexes do not support range queries.
 
-It is possible to create a hashed and non-hashed index on the same field:
-MongoDB will use the scalar index for range queries.
+You may not create compound indexes that have ``hashed`` index fields,
+or specify a unique constraint on a hashed index; however, you can
+create both a hashed and an ascending/descending (i.e. non-hashed)
+index on the same field: MongoDB will use the scalar index for range
+queries.
 
 .. _hashed-index-warning:
 
@@ -559,7 +561,7 @@ This operation creates a hashed index for the ``active`` collection on
 the ``a`` field.
 
 .. [#hash-size] The hash stored in the hashed index is 64 bits of the 
-   128 bit md5 hash.
+   128 bit ``md5`` hash.
 
 .. index:: index; options
 .. _index-creation-operations:
