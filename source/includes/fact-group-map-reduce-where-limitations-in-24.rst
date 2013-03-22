@@ -51,8 +51,5 @@ in MongoDB 2.4:
       | ``print()``
       | ``sleep()``
       | ``Timestamp()``
-      | ``tojson()``
-      | ``tojsononeline()``
-      | ``tojsonObject()``
       | ``UUID()``
       | ``version()``
