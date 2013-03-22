@@ -4,10 +4,10 @@ import sys
 import os.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
-from makefile_builder import MakefileBuilder
+from makecloth import MakefileCloth
 from builder_data import migrations
 
-m = MakefileBuilder()
+m = MakefileCloth()
 
 def build_all_migrations(migrations):
     m.comment('targets to migrate all content to the production staging directory..', block='header')

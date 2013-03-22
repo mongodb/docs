@@ -4,10 +4,10 @@ import sys
 import os.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
-from makefile_builder import MakefileBuilder
+from makecloth import MakefileCloth
 from builder_data import error_pages
 
-m = MakefileBuilder()
+m = MakefileCloth()
 
 def build_all_error_pages(error_pages):
     m.comment('build targets for all error pages, which require some munging.', block='header')

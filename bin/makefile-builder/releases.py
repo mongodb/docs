@@ -4,10 +4,10 @@ import sys
 import os.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
-from makefile_builder import MakefileBuilder
+from makecloth import MakefileCloth
 from builder_data import install_guides, subscription_build
 
-m = MakefileBuilder()
+m = MakefileCloth()
 
 def build_all_install_guides(install_guides):
     m.comment('to render the install guides properly, we have to bake in the version number.', block='header')

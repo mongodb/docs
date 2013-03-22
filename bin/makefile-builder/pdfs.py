@@ -4,12 +4,12 @@ import sys
 import os.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
-from makefile_builder import MakefileBuilder
+from makecloth import MakefileCloth
 from builder_data import pdfs as pdfs_to_build
 
 # to add a pdf to the build process, add a tuple to the ``pdfs`` list in the builder definition file.
 
-m = MakefileBuilder()
+m = MakefileCloth()
 
 def pdf_makefile(name, tag):
     name_tagged = name + '-' + tag
