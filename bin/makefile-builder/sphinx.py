@@ -1,6 +1,9 @@
 #!/usr/bin/python
 
 import sys
+import os.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
+
 from makefile_builder import MakefileBuilder
 from builder_data import sphinx as sphinx_targets
 
@@ -51,7 +54,7 @@ def make_all_sphinx(sphinx):
           block='vars')
 
     m.section_break('sphinx prerequisites')
-    m.target('sphinx-prerequisites', 'setup generate-source', block='prereq')
+    m.target('sphinx-prerequisites', 'setup generate-source composite-pages.yaml', block='prereq')
     m.msg('[sphinx-prep]: completed $@ buildstep.', block='prereq')
 
     m.target('generate-source', '$(branch-output)/source tables installation-guides intersphinx generate-manpages', block='prereq')

@@ -6,21 +6,13 @@
 # This file is execfile()d with the current directory set to its containing dir.
 
 import sys
-import os
-import datetime
+import os.path
+import yaml
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "bin")))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'bin')))
 
-import mongodb_docs_meta
-
-meta = {
-    'branch': mongodb_docs_meta.get_branch(),
-    'commit': mongodb_docs_meta.get_commit(),
-    'manual_path': mongodb_docs_meta.get_manual_path(),
-    'date': str(datetime.date.today().year),
-    'version_selector': mongodb_docs_meta.get_versions(),
-    'stable': mongodb_docs_meta.STABLE_RELEASE
-}
+with open('meta.yaml', 'r') as f:
+    meta = yaml.load_all(f).next()
 
 # -- General configuration ----------------------------------------------------
 
@@ -68,9 +60,9 @@ extlinks = {
     'about': ('http://www.mongodb.org/about%s', '')
 }
 
-composite_pages = ['commands', 'javascript', 'operators', 'aggregation', 'meta-query-operators', 'replica-commands', 'sharding-commands']
-
 intersphinx_mapping = {
+        # see bin/makefile-builder/intersphinx.py and bin/intersphinx-download.py 
+        # for more information.
         'pymongo': ('http://api.mongodb.org/python/current/', '../../../build/pymongo.inv'),
         'python' : ('http://docs.python.org/2/', '../../../build/python2.inv'),
         'python2' : ('http://docs.python.org/2/', '../../../build/python2.inv'),

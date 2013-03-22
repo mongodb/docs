@@ -16,7 +16,6 @@ help:
 	@echo "	 pdfs		generates pdfs."
 
 ############# makefile includes #############
-include bin/makefile.meta
 include bin/makefile.compatibility
 include bin/makefile.dynamic
 include bin/makefile.clean
@@ -32,9 +31,15 @@ publish:$(sphinx-content) $(static-content)
 ############# Targets that define the production build process #############
 
 # Generating files with build specific info.
-setup:source/includes/hash.rst
+setup:source/includes/hash.rst composite-pages.yaml
 	@mkdir -p $(public-branch-output) $(public-output)
-	@echo [build]: created $(public-branch-output)
+	@echo [build]: created $(public-branch-output) and $(public-output)
+meta.yaml:
+	@bin/mongodb_docs_meta.py yaml $@
+	@echo [meta]: regenerated $@
+composite-pages.yaml:bin/composite-pages.yaml
+	@cp $< $@
+	@echo [meta]: compsite pages $@
 source/includes/hash.rst:source/about.txt
 	@$(PYTHONBIN) bin/update_hash.py
 	@-git update-index --assume-unchanged $@
