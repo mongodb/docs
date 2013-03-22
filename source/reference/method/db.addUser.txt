@@ -4,100 +4,72 @@ db.addUser()
 
 .. default-domain:: mongodb
 
+
 .. method:: db.addUser()
 
-   Use this method to create new database users by specifying a
-   username, password, and privileges.
+   Use :method:`db.addUser()` add privilege documents to the
+   :data:`system.users <<database>.system.users>` collection in a
+   database, which creates database credentials in MongoDB.
+
+   .. versionchanged:: 2.4
+      The schema of :data:`system.users <<database>.system.users>`
+      changed in 2.4 to accommodate a more :doc:`sophisticated
+      privilege model </reference/user-privileges>`. In 2.4
+      :method:`db.addUser()` supports both forms of privilege
+      documents.
 
    In MongoDB 2.4 you must pass :method:`db.addUser()` a document that
    contains the user parameters. You cannot pass the parameters
    directly. In MongoDB 2.2 and earlier you can pass the parameters
-   directly, or pass a document.
-
-   If you use MongoDB 2.4, the following parameters define users:
-
-   :param string user: Specifies a new username.
-
-   :param string pwd: Specifies the corresponding password.
-                      Specify either this parameter or the
-                      ``userSource`` parameter. The two fields are
-                      mutually exclusive. A single document cannot
-                      contain both.
-
-   :param array roles: This specifies one or more
-                       roles to the user. Each role provides the user
-                       with a set of privileges. For a list of roles,
-                       see :data:`system.users.roles <<database>.system.users.roles>`.
-
-   :param string userSource: This specifies
-                             the database that contains the user
-                             credentials. Specify either this parameter
-                             or the ``pwd`` parameter. The two fields
-                             are mutually exclusive. A single document
-                             cannot contain both.
-
-   :param document otherDBRoles: Optional. This
-                                 specifies the roles that an admin user
-                                 has on other databases. This field
-                                 applies only to a user added to the
-                                 ``admin`` database. For a list of
-                                 roles, see :data:`system.users.roles
-                                 <<database>.system.users.roles>`.
-
-   For MongoDB 2.4, use the syntax described here.
-
-   To specify the password:
-
-   .. code-block:: javascript
-
-      db.addUser( { user: "<user>", pwd: "<password>", roles: [<roles>] } )
-
-   To specify the database that contains the user credentials:
+   directly, or pass a well-formed :data:`system.users
+   <<database>.system.users>` document. See
+   doc:`/reference/privilege-documents` for more information about the
+   form of these documents. Consider the following prototype form for
+   a :method:`db.addUser()` operation: 
 
    .. code-block:: javascript
 
       db.addUser( { user: "<user>", userSource: "<database>", roles: [<roles>] } )
 
-   To give an admin user roles on other databases, include the following
-   field in the document passed to the :method:`db.addUser()` method:
+   .. example:: 
 
-   .. code-block:: javascript
-
-      otherDBRoles: { <database1>: [<roles>], <database2>: [<roles>] }
-
-   .. example:: On MongoDB 2.4, the following creates a user named
-      "author" with ``readWrite`` and ``readAnyDatabase`` privileges:
+      To create and add a 2.4-style privilege document to
+      :data:`system.users <<database>.system.users>` to grant
+      :authrole:`readWrite` privileges to a user named "author" with
+      privileges, use the following operation: 
 
       .. code-block:: javascript
 
-         db.addUser( { user: "author", pwd: "pass", roles: [ "readWrite", "readAnyDatabase" ] } )
+         db.addUser( { user: "author", pwd: "pass", roles: [ "readWrite" ] } )
 
-   .. seealso::
+   .. seealso:: :doc:`/reference/user-privileges`, and
+     :doc:`/reference/privilege-documents`. 
 
-      - :doc:`/reference/user-privileges`
+   To create legacy (2.2. and earlier) privilege documents,
+   :method:`db.addUser` provides accepts the following parameters:
 
-      - :doc:`/reference/privilege-documents`
-
-   If you use MongoDB 2.2 or earlier, the following parameters define
-   users:
-
-   :param string user: Specifies a new username.
+   :param string user: Specifies the username.
 
    :param string password: Specifies the corresponding password.
 
-   :param boolean readOnly: Optional. If you use MongoDB 2.2 or earlier,
-                            this restricts a user to
-                            read privileges. This defaults to false.
+   :param boolean readOnly: 
 
-   Use the following syntax. The
-   ``readOnly`` field is optional and defaults to ``false``:
+      Optional. Defaults to ``false``. Grants users a restricted
+      privilege set that only allows the user to read the this
+      database.
+
+   Consider the following syntax:
 
    .. code-block:: javascript
 
       db.addUser( "<username>", "<password>", { readOnly: <boolean> } )
 
-   .. example:: On MongoDB 2.2 and earlier, the following creates a user
-      named "guest" with ``readOnly`` privileges:
+   .. example:: 
+
+      To create and add a legacy (2.2. and earlier) privilege
+      document, to great a user named ``guest`` with the password
+      ``pass`` that has only ``readOnly`` privileges, use the
+      following operation:
 
       .. code-block:: javascript
 
@@ -108,5 +80,6 @@ db.addUser()
 
    .. deprecated:: 2.4
       The ``roles`` parameter replaces the ``readOnly`` parameter for
-      :method:`db.addUser()`. Version 2.4 also adds the ``otherDBRoles``
-      and ``userSource`` parameters to :method:`db.addUser()`.
+      :method:`db.addUser()`. 2.4 also adds the ``otherDBRoles``
+      and ``userSource`` fields to documents in the :data:`system.users
+      <<database>.system.users>` collection.
