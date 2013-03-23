@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import datetime
+import os
 import re
 import subprocess
 import argparse
@@ -18,14 +19,18 @@ def get_build_envs():
     s.append('build/' + branch + '/source/')
     return s
 
-def shell_value( args ):
-    if isinstance( args , str ):
-        r = re.compile( "\s+" )
-        args = r.split( args )
-    p = subprocess.Popen( args , stdout=subprocess.PIPE , stderr=subprocess.PIPE )
+def shell_value(args, path=None):
+    if path is None:
+        path = os.getcwd()
+
+    if isinstance(args , str):
+        r = re.compile("\s+")
+        args = r.split(args)
+
+    p = subprocess.Popen(args, cwd=path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     r = p.communicate()
-    value = r[0].decode().rstrip()
-    return value
+
+    return r[0].decode().rstrip()
 
 def get_manual_path():
     branch = get_branch()
@@ -37,11 +42,17 @@ def get_manual_path():
 
     return manual_path
 
-def get_commit():
-    return shell_value('git rev-parse --verify HEAD')
+def get_commit(path=None):
+    if path is None:
+        path = os.getcwd()
 
-def get_branch():
-    return shell_value('git symbolic-ref HEAD').split('/')[2]
+    return shell_value('git rev-parse --verify HEAD', path)
+
+def get_branch(path=None):
+    if path is None:
+        path = os.getcwd()
+
+    return shell_value('git symbolic-ref HEAD', path).split('/')[2]
 
 def get_versions():
     o = []

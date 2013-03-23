@@ -99,8 +99,6 @@ sphinx = [
     'doctest',
     'linkcheck',
     'texinfo',
-    'draft-html',
-    'draft-latex',
 ]
 
 install_guides = [
