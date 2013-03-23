@@ -15,7 +15,6 @@ def build_platform_notification(title, content):
         return 'growlnotify -n "mongodb-doc-build" -a "Terminal.app" -m %s -t %s' % (title, content)
     if sys.platform.startswith('linux'):
         return 'notify-send "%s" "%s"' % (title, content)
-    print sys.platform
 
 def generate_delegated_interface():
     branches = mongo_meta.PUBLISHED_BRANCHES
