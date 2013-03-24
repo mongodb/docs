@@ -59,7 +59,7 @@ def make_all_sphinx(sphinx):
     m.job('rsync --recursive --times --delete source/ $(branch-output)/source', block='prereq')
     m.msg('[sphinx-prep]: updated source in $(branch-output)/source', block='prereq')
     info_note = 'Build in progress past critical phase.'
-    m.job(build_platform_notification('Sphinx', info_note), block='prereq')
+    m.job(build_platform_notification('Sphinx', info_note), ignore=True, block='prereq')
     m.msg('[sphinx-prep]: INFO - ' + info_note, block='prereq')
 
     m.target('$(branch-output)/source', block='prereq')
