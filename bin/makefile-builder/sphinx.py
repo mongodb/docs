@@ -4,6 +4,7 @@ import sys
 import os.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
+from delegated import build_platform_notification
 from makecloth import MakefileCloth
 from builder_data import sphinx as sphinx_targets
 
@@ -41,9 +42,6 @@ def make_all_sphinx(sphinx):
     m.var(variable='ALLSPHINXOPTS',
           value='-q -d $(branch-output)/doctrees-$@ $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) $(branch-output)/source',
           block='vars')
-    m.var(variable='DRAFTSPHINXOPTS',
-          value='-q -d $(branch-output)/draft-doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) draft',
-          block='vars')
 
     m.comment('epub build modification and settings', block='vars')
     m.var(variable='epub-command',
@@ -60,6 +58,9 @@ def make_all_sphinx(sphinx):
     m.target('generate-source', '$(branch-output)/source tables installation-guides intersphinx', block='prereq')
     m.job('rsync --recursive --times --delete source/ $(branch-output)/source', block='prereq')
     m.msg('[sphinx-prep]: updated source in $(branch-output)/source', block='prereq')
+    info_note = 'Build in progress past critical phase.'
+    m.job(build_platform_notification('Sphinx', info_note), block='prereq')
+    m.msg('[sphinx-prep]: INFO - ' + info_note, block='prereq')
 
     m.target('$(branch-output)/source', block='prereq')
     m.job('mkdir -p $@', block='prereq')
@@ -86,14 +87,7 @@ def sphinx_builder(target):
     m.append_var('sphinx-targets', target)
     m.target(target, 'sphinx-prerequisites', block=b)
 
-    if target.split('-')[0] == 'draft':
-        if target.split('-')[1] == 'html':
-            loc = 'draft'
-        else:
-            loc = target
-        build_kickoff(loc, block=b)
-        m.job('$(SPHINXBUILD) -b ' + target.split('-')[1] + ' $(DRAFTSPHINXOPTS) $(branch-output)/' + loc, block=b)
-    elif target == 'epub':
+    if target == 'epub':
         build_kickoff('$@',block=b)
         m.job('{ $(epub-command) 2>&1 1>&3 | $(epub-filter) 1>&2; } 3>&1', block=b)
     else:
