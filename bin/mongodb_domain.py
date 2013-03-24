@@ -102,6 +102,12 @@ class MongoDBObject(ObjectDescription):
             fullname = 'bin.' + name_obj[0]
         elif self.objtype == 'parameter':
             fullname = 'param.' + name_obj[0]
+        elif self.objtype == 'pipeline':
+            fullname = 'stage.' + name_obj[0]
+        elif self.objtype == 'group':
+            fullname = 'grp.' + name_obj[0]
+        elif self.objtype == 'expression':
+            fullname = 'exp.' + name_obj[0]
         elif name_obj[0] in self.state.document.ids:
             fullname = 'iddup.' + name_obj[0]
         else:
@@ -186,6 +192,12 @@ class MongoDBObject(ObjectDescription):
             return _('%s (User role)') % (name)
         elif self.objtype == 'parameter':
             return _('%s (setParameter option)') % (name)
+        elif self.objtype == 'pipeline':
+            return _('%s (aggregation framework pipeline operator)') % (name)
+        elif self.objtype == 'expression':
+            return _('%s (aggregation framework transformation expression)') % (name)
+        elif self.objtype == 'group':
+            return _('%s (aggregation framework group expression)') % (name)
         return ''
 
     def run(self):
@@ -264,6 +276,9 @@ class MongoDBDomain(Domain):
         'bsontype':     ObjType(l_('bsontype'),    'bsontype'),
         'authrole':     ObjType(l_('authrole'),    'authrole'),
         'parameter':    ObjType(l_('parameter'),   'parameter'),
+        'pipeline':     ObjType(l_('pipeline'),    'pipeline'),
+        'group':        ObjType(l_('group'),       'group'),
+        'expression':   ObjType(l_('expression'),  'expression'),
     }
 
     directives = {
@@ -282,6 +297,9 @@ class MongoDBDomain(Domain):
         'bsontype':      MongoDBObject,
         'authrole':      MongoDBObject,
         'parameter':     MongoDBObject,
+        'pipeline':      MongoDBObject,
+        'group':         MongoDBObject,
+        'expression':    MongoDBObject,
     }
     roles = {
         'dbcommand':   MongoDBXRefRole(),
@@ -299,6 +317,9 @@ class MongoDBDomain(Domain):
         'bsontype':    MongoDBXRefRole(),
         'authrole':    MongoDBXRefRole(),
         'parameter':   MongoDBXRefRole(),
+        'pipeline':    MongoDBXRefRole(),
+        'group':       MongoDBXRefRole(),
+        'expression':  MongoDBXRefRole(),
     }
     initial_data = {
         'objects': {}, # fullname -> docname, objtype
@@ -324,6 +345,15 @@ class MongoDBDomain(Domain):
             newname = name
         elif typ == 'parameter':
             name = 'param.' + name
+            newname = name
+        elif typ == 'pipeline':
+            name = 'stage.' + name
+            newname = name
+        elif typ == 'group':
+            name = 'grp.' + name
+            newname = name
+        elif typ == 'expression':
+            name = 'exp.' + name
             newname = name
 
         searchorder = 1
@@ -366,7 +396,12 @@ class MongoDBDomain(Domain):
             name = name.split('.', 1)[1]
         elif name.startswith('param.'):
             name = name.split('.', 1)[1]
-
+        elif name.startswith('stage.'):
+            name = name.split('.', 1)[1]
+        elif name.startswith('grp.'):
+            name = name.split('.', 1)[1]
+        elif name.startswith('exp.'):
+            name = name.split('.', 1)[1]
 
         return make_refnode(builder, fromdocname, obj[0],
                             name.replace('$', '_S_'), contnode, name)

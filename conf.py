@@ -24,7 +24,6 @@ extensions = [
     'sphinx.ext.todo',
     'mongodb_domain',
     'additional_directives',
-    'aggregation_domain',
 ]
 
 templates_path = ['.templates']
@@ -61,7 +60,7 @@ extlinks = {
 }
 
 intersphinx_mapping = {
-        # see bin/makefile-builder/intersphinx.py and bin/intersphinx-download.py 
+        # see bin/makefile-builder/intersphinx.py and bin/intersphinx-download.py
         # for more information.
         'pymongo': ('http://api.mongodb.org/python/current/', '../../../build/pymongo.inv'),
         'python' : ('http://docs.python.org/2/', '../../../build/python2.inv'),

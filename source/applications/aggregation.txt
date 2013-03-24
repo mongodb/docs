@@ -69,13 +69,13 @@ through the pipeline.
 .. seealso:: The ":doc:`/reference/aggregation`" includes
    documentation of the following pipeline operators:
 
-   - :agg:pipeline:`$project`
-   - :agg:pipeline:`$match`
-   - :agg:pipeline:`$limit`
-   - :agg:pipeline:`$skip`
-   - :agg:pipeline:`$unwind`
-   - :agg:pipeline:`$group`
-   - :agg:pipeline:`$sort`
+   - :pipeline:`$project`
+   - :pipeline:`$match`
+   - :pipeline:`$limit`
+   - :pipeline:`$skip`
+   - :pipeline:`$unwind`
+   - :pipeline:`$group`
+   - :pipeline:`$sort`
 
 .. _aggregation-expressions:
 
@@ -92,7 +92,7 @@ aggregation process. All aggregation expressions can only operate on
 the current document in the pipeline, and cannot integrate data from
 other documents.
 
-The :term:`accumulator` expressions used in the :agg:pipeline:`$group`
+The :term:`accumulator` expressions used in the :pipeline:`$group`
 operator maintain that state (e.g.  totals, maximums, minimums, and
 related data) as documents progress through the :term:`pipeline`.
 
@@ -153,9 +153,9 @@ command:
 
 The aggregation pipeline begins with the :term:`collection`
 ``articles`` and selects the ``author`` and ``tags`` fields using the
-:agg:pipeline:`$project` aggregation operator. The
-:agg:expression:`$unwind` operator produces one output document per
-tag. Finally, the :agg:expression:`$group` operator pivots these fields.
+:pipeline:`$project` aggregation operator. The
+:expression:`$unwind` operator produces one output document per
+tag. Finally, the :expression:`$group` operator pivots these fields.
 
 Result
 ~~~~~~
@@ -192,29 +192,29 @@ aggregation operators can take advantage of indexes.
 The following pipeline operators take advantage of an index when they
 occur at the beginning of the pipeline:
 
-- :agg:pipeline:`$match`
-- :agg:pipeline:`$sort`
-- :agg:pipeline:`$limit`
-- :agg:pipeline:`$skip`.
+- :pipeline:`$match`
+- :pipeline:`$sort`
+- :pipeline:`$limit`
+- :pipeline:`$skip`.
 
 The above operators can also use an index when placed **before** the
 following aggregation operators:
 
-- :agg:pipeline:`$project`
-- :agg:pipeline:`$unwind`
-- :agg:pipeline:`$group`.
+- :pipeline:`$project`
+- :pipeline:`$unwind`
+- :pipeline:`$group`.
 
 Early Filtering
 ~~~~~~~~~~~~~~~
 
 If your aggregation operation requires only a subset of the data in a
-collection, use the :agg:pipeline:`$match` operator to restrict which items go
+collection, use the :pipeline:`$match` operator to restrict which items go
 in to the top of the pipeline, as in a query. When placed early in a
-pipeline, these :agg:pipeline:`$match` operations use suitable indexes
+pipeline, these :pipeline:`$match` operations use suitable indexes
 to scan only the matching documents in a collection.
 
-Placing a :agg:pipeline:`$match` pipeline stage followed by a
-:agg:pipeline:`$sort` stage at the
+Placing a :pipeline:`$match` pipeline stage followed by a
+:pipeline:`$sort` stage at the
 start of the pipeline is logically equivalent to a single query
 with a sort, and can use an index.
 
@@ -223,35 +223,34 @@ with a sort, and can use an index.
 ..
 .. :term:`Aggregation` operations have an optimization phase, before
 .. execution, which attempts to re-arrange the pipeline by moving
-.. :agg:pipeline:`$match` operators towards the beginning to the
+.. :pipeline:`$match` operators towards the beginning to the
 .. greatest extent possible. For example, if a :term:`pipeline` begins
-.. with a :agg:pipeline:`$project` that renames fields, followed by a
-.. :agg:pipeline:`$match`, the optimizer can improve performance
-.. without affecting the result by moving the :agg:pipeline:`$match`
-.. operator in front of the :agg:pipeline:`$project`.
+.. with a :pipeline:`$project` that renames fields, followed by a
+.. :pipeline:`$match`, the optimizer can improve performance
+.. without affecting the result by moving the :pipeline:`$match`
+.. operator in front of the :pipeline:`$project`.
 
 In future versions there may be an optimization phase in the
 pipeline that reorders the operations to increase performance without
 affecting the result. However, at this time place
-:agg:pipeline:`$match` operators at the beginning of the pipeline when
+:pipeline:`$match` operators at the beginning of the pipeline when
 possible.
 
 Memory for Cumulative Operators
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Certain pipeline operators require access to the entire input set
-before they can produce any output. For example, :agg:pipeline:`$sort`
+before they can produce any output. For example, :pipeline:`$sort`
 must receive all of the input from the preceding :term:`pipeline`
 operator before it can produce its first output document. The current
-implementation of :agg:pipeline:`$sort` does not go to disk in these
+implementation of :pipeline:`$sort` does not go to disk in these
 cases: in order to sort the contents of the pipeline, the entire input
 must fit in memory.
 
-:agg:pipeline:`$group` has similar characteristics: Before any
-:agg:pipeline:`$group` passes its output along the pipeline, it must
-receive the entirety of its input. For the :agg:pipeline:`$group`
+:pipeline:`$group` has similar characteristics: Before any
+:pipeline:`$group` passes its output along the pipeline, it must
 operator, this frequently does not require as much memory as
-:agg:pipeline:`$sort`, because it only needs to retain one record for
+:pipeline:`$sort`, because it only needs to retain one record for
 each unique key in the grouping specification.
 
 The current implementation of the aggregation framework logs a warning
@@ -275,21 +274,20 @@ Sharded Operation
 The aggregation framework is compatible with sharded collections.
 
 When operating on a sharded collection, the aggregation pipeline
-is split into two parts. The aggregation framework pushes
-all of the operators up to the first
-:agg:pipeline:`$group` or :agg:pipeline:`$sort` operation to each shard.
-[#match-sharding]_ Then, a second pipeline on the :program:`mongos`
-runs. This pipeline consists of the first :agg:pipeline:`$group` or
-:agg:pipeline:`$sort` and any remaining pipeline operators, and runs
-on the results received from the shards.
+splits into two parts. The aggregation framework pushes all of the
+operators up to the first :pipeline:`$group` or :pipeline:`$sort`
+operation to each shard.  [#match-sharding]_ Then, a second pipeline
+on the :program:`mongos` runs. This pipeline consists of the first
+:pipeline:`$group` or :pipeline:`$sort` and any remaining pipeline
+operators, and runs on the results received from the shards.
 
-The :agg:pipeline:`$group` operator brings in any "sub-totals" from
+The :pipeline:`$group` operator brings in any "sub-totals" from
 the shards and combines them: in some cases these may be
-structures. For example, the :agg:expression:`$avg` expression
+structures. For example, the :expression:`$avg` expression
 maintains a total and count for each shard; :program:`mongos` combines
 these values and then divides.
 
-.. [#match-sharding] If an early :agg:pipeline:`$match` can exclude
+.. [#match-sharding] If an early :pipeline:`$match` can exclude
    shards through the use of the shard key in the predicate, then
    these operators are only pushed to the relevant shards.
 
