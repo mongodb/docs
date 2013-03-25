@@ -120,6 +120,7 @@ html_theme_options = {
     'epubpath': manual_edition_path + '.epub',
     'manual_path': meta['manual_path'],
     'translations': languages,
+    'langauge': langauge,
     'repo_name': 'docs',
     'jira_project': 'DOCS',
     'google_analytics': 'UA-7301842-8',
@@ -196,7 +197,7 @@ epub_copyright = u'2011-' + meta['date'] + ', 10gen Inc.'
 epub_theme = 'epub_mongodb'
 epub_tocdup = True
 epub_tocdepth = 3
-epub_language = 'en'
+epub_language = langauge
 epub_scheme = 'url'
 epub_identifier = 'http://docs.mongodb.org/' + meta['branch']
 epub_exclude_files = []
