@@ -54,12 +54,26 @@ def update_repo(path, branch='master'):
         run_command(cmd, os.getcwd())
         print('[sub-repo] created staging repo.')
     else:
-        cmd = ['git', 'pull']
-        run_command(cmd, path)
+        fetch_cmd = ['git', 'fetch', 'origin']
+        reset_cmd = ['git', 'reset', '--hard', 'origin', branch]
+        run_command(fetch_cmd, path)
+        run_command(reset_cmd, path)
         print('[sub-repo] updated staging.')
 
-    if not os.path.join(path, 'build'):
-        os.symlink(source='../../build', link_name='build')
+    build_path = os.path.join(os.getcwd(), 'build/.docs-staging/build')
+
+    if os.path.exists(build_path):
+        if os.path.islink(build_path):
+            pass
+        elif os.path.isdir(build_path):
+            exit("[sub-repo] ERROR: the path '" + build_path + "' is a directory, you probably want to remove it and try again.")
+        else:
+            exit("[sub-repo]: ERROR: check '" + build_path + "' and try again.")
+    else:
+        old_path = os.getcwd()
+        os.chdir(os.path.join(old_path, 'build/.docs-staging'))
+        os.symlink('../../build', 'build')
+        os.chdir(old_path)
         print('[sub-repo] created "build/" symlink in staging.')
 
     branch_cleanup(path)
