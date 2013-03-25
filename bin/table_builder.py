@@ -40,7 +40,7 @@ def get_default_outputfile(inputfile):
 #
 # Generating parts of the table.
 
-class RstTable(object):
+class YamlTable(object):
     def __init__(self, inputfile):
         self.columnwidths = []
         self.tempcolumnwidths = []
@@ -79,6 +79,36 @@ class RstTable(object):
         # return header, rows
         self.header = header
         self.rows = rows
+
+
+###################################
+#
+# Reading and processing input, and rendering table.
+
+class dict2obj(object):
+    """
+    Converts a dict (from yaml, in this case) into a Python object.
+    """
+
+    def __init__(self, d):
+        self.__dict__['d'] = d
+
+    def __getattr__(self, key):
+        value = self.__dict__['d'][key]
+        if type(value) == type({}):
+            return dict2obj(value)
+
+        return value
+
+###################################
+#
+# Interaction
+
+class RstTable(YamlTable):
+    def __init__(self, inputfile):
+        self.inputfile = inputfile
+        super(RstTable, self).__init__(inputfile)
+        self.output = self.render_table()
 
     ###################################
     #
@@ -151,35 +181,6 @@ class RstTable(object):
         for cellwidth in self.tempcolumnwidths.pop():
             self.columnwidths.append(cellwidth)
 
-###################################
-#
-# Reading and processing input, and rendering table.
-
-class dict2obj(object):
-    """
-    Converts a dict (from yaml, in this case) into a Python object.
-    """
-
-    def __init__(self, d):
-        self.__dict__['d'] = d
-
-    def __getattr__(self, key):
-        value = self.__dict__['d'][key]
-        if type(value) == type({}):
-            return dict2obj(value)
-
-        return value
-
-###################################
-#
-# Interaction
-
-class YamlTableBuilder(RstTable):
-    def __init__(self, inputfile):
-        self.inputfile = inputfile
-        super(YamlTableBuilder, self).__init__(inputfile)
-        self.output = self.render_table()
-
     def render_table(self):
         o = []
         o.append(self.get_row_line())
@@ -193,6 +194,16 @@ class YamlTableBuilder(RstTable):
             o.append(self.get_row_line())
 
         return o
+
+class ListTable(YamlTable):
+    pass
+
+class HtmlTable(YamlTable):
+    pass
+
+class TableBuilder(object):
+    def __init__(self, table):
+        self.output = table.output
 
     def write(self, outputfile=None):
         if outputfile is None:
@@ -222,8 +233,10 @@ def main():
     except IndexError:
         outputfile = get_default_outputfile(inputfile)
 
-    table = YamlTableBuilder(inputfile)
-    table.write(outputfile)
+    table = RstTable(inputfile)
+    output = TableBuilder(table)
+
+    output.write(outputfile)
 
 if __name__ == '__main__':
     main()
