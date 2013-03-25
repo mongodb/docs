@@ -384,25 +384,6 @@ class MongoDBDomain(Domain):
                 # point to report on links that fail to resolve
                 return None
 
-        if name.startswith('bin.'):
-            name = name.split('.', 1)[1]
-        elif name.startswith('dbcmd.'):
-            name = name.split('.', 1)[1]
-        elif name.startswith('iddup.'):
-            name = name.split('.', 1)[1]
-        elif name.startswith('op.'):
-            name = name.split('.', 1)[1]
-        elif name.startswith('prj.'):
-            name = name.split('.', 1)[1]
-        elif name.startswith('param.'):
-            name = name.split('.', 1)[1]
-        elif name.startswith('stage.'):
-            name = name.split('.', 1)[1]
-        elif name.startswith('grp.'):
-            name = name.split('.', 1)[1]
-        elif name.startswith('exp.'):
-            name = name.split('.', 1)[1]
-
         return make_refnode(builder, fromdocname, obj[0],
                             name.replace('$', '_S_'), contnode, name)
 
