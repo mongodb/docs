@@ -158,7 +158,7 @@ class RstTable(OutputTable):
         return ''.join(rowlines)
 
     def process_table_content(self):
-        self.tabledata = []
+        self.table_data = []
 
         # Compare cell widths of the header  with the
         # max cell widths stored in the global var tempcolumnwidths
@@ -179,7 +179,7 @@ class RstTable(OutputTable):
             normalize_cell_height(parsed_row)
 
             # add the processed data to the table
-            self.tabledata.append(parsed_row)
+            self.table_data.append(parsed_row)
 
         # Set the global variable columnwidths to the flattened out
         # tempcolumnwidths
@@ -194,14 +194,76 @@ class RstTable(OutputTable):
             o.append(self._get_row(self.table.header))
             o.append(self._get_row_line('='))
 
-        for row in self.tabledata:
+        for row in self.table_data:
             o.append(self._get_row(row))
             o.append(self._get_row_line())
 
         return o
 
+
+###################################
+#
+# Outputs a list-table
+
 class ListTable(OutputTable):
-    pass
+    def __init__(self, imported_table):
+        self.spacing = '       '
+        self.new_row_marker = '   * - '
+        self.new_column_marker = '     - '
+
+        self.table = imported_table
+        self.process_table_content()
+        self.output = self.render_table()
+
+    def process_table_content(self):
+        self.table_data = []
+        prepend = ''
+
+        for index in range(len(self.table.rows)):
+            is_new_row = True
+
+            # Append each cell to the parsed_row list, breaking multi-line
+            # cell data as needed.
+            for cell in self.table.rows[index][index + 1]:
+                first_line = True
+
+                if is_new_row:
+                    prepend = self.new_row_marker
+                    is_new_row = False
+                else:
+                    prepend = self.new_column_marker
+
+                parsed_row= cell.split('\n')
+
+                for parsed in parsed_row:
+                    if first_line:
+                        self.table_data.append(prepend + parsed)
+                        first_line = False
+                    else:
+                        self.table_data.append(self.spacing + parsed)
+ 
+    def render_table(self):
+        o = ['.. list-table::']
+
+        if self.table.header is not None:
+            is_new_row = True
+
+            o.append('   :header-rows: 1')           
+            o.append('')
+
+            for heading in self.table.header:
+                if is_new_row:
+                    o.append(self.new_row_marker + heading[0])
+                    is_new_row = False
+                else:
+                    o.append(self.new_column_marker + heading[0])
+
+        o.append('')
+
+        for row in self.table_data:
+            o.append(row)
+
+        return o
 
 class HtmlTable(OutputTable):
     pass
