@@ -71,6 +71,8 @@ intersphinx_mapping = {
         'djangotoolbox' : ('http://djangotoolbox.readthedocs.org/en/latest/', '../../../build/djangotoolbox.inv'),
 }
 
+language = 'en'
+
 languages = [
     ("ar", "Arabic"),
     ("cn", "Chinese"),
