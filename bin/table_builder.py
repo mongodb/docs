@@ -200,8 +200,75 @@ class RstTable(OutputTable):
 
         return o
 
+
+###################################
+#
+# Outputs a list-table
+
 class ListTable(OutputTable):
-    pass
+
+    spacing = '       '
+    newrowmarker = '   * - '
+    newcolmarker = '     - '
+
+    def __init__(self, imported_table):
+
+        self.table = imported_table
+        self.process_table_content()
+        self.output = self.render_table()
+
+    def process_table_content(self):
+        self.tabledata = []
+        prepend = ''
+
+        for index in range(len(self.table.rows)):
+            isnewrow = True
+
+            # Append each cell to the parsed_row list, breaking multi-line
+            # cell data as needed.
+            for cell in self.table.rows[index][index + 1]:
+                firstline=True
+
+                if isnewrow:
+                    prepend = ListTable.newrowmarker
+                    isnewrow = False
+                else:
+                    prepend = ListTable.newcolmarker
+
+                parsed_row= cell.split('\n')
+
+                for parsed in parsed_row:
+                    if firstline:
+                        self.tabledata.append(prepend + parsed)
+                        firstline = False
+                    else:
+                        self.tabledata.append(ListTable.spacing + parsed)
+ 
+    def render_table(self):
+
+        o = []
+
+        o.append('.. list-table::')
+
+        if self.table.header is not None:
+            isnewrow = True
+
+            o.append('   :header-rows: 1')           
+            o.append('')
+
+            for heading in self.table.header:
+                if isnewrow:
+                    o.append(ListTable.newrowmarker + heading[0])
+                    isnewrow = False
+                else:
+                    o.append(ListTable.newcolmarker + heading[0])
+
+        o.append('')
+
+        for row in self.tabledata:
+            o.append(row)
+
+        return o
 
 class HtmlTable(OutputTable):
     pass
