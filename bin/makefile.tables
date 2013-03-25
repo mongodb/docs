@@ -1,12 +1,20 @@
-table-output = $(subst yaml,rst,$(shell find $(rst-include) -name "table-*.yaml"))
+table-output := $(subst yaml,rst,$(shell find $(rst-include) -name "table-*.yaml"))
+table-output-list := $(subst .yaml,-list.rst,$(shell find $(rst-include) -name "table-*.yaml"))
+
 
 $(rst-include)/table-%.rst:$(rst-include)/table-%.yaml
 	@$(PYTHONBIN) bin/table_builder.py $< $@
 	@echo [table-builder]: generated $@ table for inclusion
+$(rst-include)/table-%-list.rst:$(rst-include)/table-%.yaml
+	@$(PYTHONBIN) bin/table_builder.py $< $@ --type list
+	@echo [table-builder]: generated $@ table for inclusion
 
-.PHONY:tables clean-tables
+.PHONY:tables clean-tables list-tables
 tables:$(table-output)
 	@-git update-index --assume-unchanged
 	@echo [tables]: cleansing git index of compiled tables
 clean-tables:
-	@-rm -rf $(table-output)
+	@-rm -rf $(table-output) $(table-output-list)
+list-tables:$(table-output-list)
+	@-git update-index --assume-unchanged
+	@echo [tables]: cleansing git index of compiled tables
