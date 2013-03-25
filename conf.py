@@ -32,6 +32,7 @@ exclude_patterns = []
 source_suffix = '.txt'
 
 master_doc = 'contents'
+language = 'en'
 project = u'mongodb-manual'
 copyright = u'2011-' + meta['date'] + ', 10gen, Inc.'
 version = '2.2'
