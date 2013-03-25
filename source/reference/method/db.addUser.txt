@@ -4,7 +4,6 @@ db.addUser()
 
 .. default-domain:: mongodb
 
-
 .. method:: db.addUser()
 
    Use :method:`db.addUser()` to add privilege documents to the
@@ -19,40 +18,65 @@ db.addUser()
       documents.
 
    In MongoDB 2.4 you must pass :method:`db.addUser()` a document that
-   contains the user parameters. You cannot pass the parameters
-   directly. In MongoDB 2.2 and earlier you can pass the parameters
-   directly, or pass a well-formed :data:`system.users
-   <<database>.system.users>` document. See
-   :doc:`/reference/privilege-documents` for more information about the
-   form of these documents. Consider the following prototype form for
-   a :method:`db.addUser()` operation: 
+   contains a well-formed :data:`system.users
+   <<database>.system.users>` document. In MongoDB 2.2 pass arguments
+   to :method:`db.addUser()` that describe :ref:`user credentials
+   <v2.2-style-addUser>`.
+
+   See :doc:`/reference/privilege-documents` for more information
+   about the form of the 2.4 privilege documents.
+
+   Consider the following prototypes form for a :method:`db.addUser()`
+   operations:
+
+   .. code-block:: javascript
+
+      db.addUser( { user: "<user>", pwd: "<password>", roles: [<roles>] } )
+
+   This operation creates a :data:`system.users
+   <<database>.system.users>` document with a password using the
+   :data:`~<database>.system.users.pwd` field
+
+   In the following prototype, rather than specify a password
+   directly, you can delegated the credential to another database
+   using the :data:`~<database>.system.users.userSource` field:
 
    .. code-block:: javascript
 
       db.addUser( { user: "<user>", userSource: "<database>", roles: [<roles>] } )
 
-   .. example:: 
+   .. example::
 
       To create and add a 2.4-style privilege document to
       :data:`system.users <<database>.system.users>` to grant
       :authrole:`readWrite` privileges to a user named "author" with
-      privileges, use the following operation: 
+      privileges, use the following operation:
 
       .. code-block:: javascript
 
          db.addUser( { user: "author", pwd: "pass", roles: [ "readWrite" ] } )
 
+      If you want to store user credentials in a single ``users``
+      database, you can use :ref:`delegated credentials
+      <delegated-credentials>`, as in the following example:
+
+      .. code-block:: javascript
+
+         db.addUser( { user: "author", userSource: "users", roles: [ "readWrite" ] } )
+
    .. seealso:: :doc:`/reference/user-privileges`, and
-     :doc:`/reference/privilege-documents`. 
+     :doc:`/reference/privilege-documents`.
+
+   .. _v2.2-style-addUser:
 
    To create legacy (2.2. and earlier) privilege documents,
-   :method:`db.addUser` provides accepts the following parameters:
+   :method:`db.addUser()` provides accepts the following parameters:
 
    :param string user: Specifies the username.
 
    :param string password: Specifies the corresponding password.
 
-   :param boolean readOnly: 
+   :param boolean readOnly:
 
       Optional. Defaults to ``false``. Grants users a restricted
       privilege set that only allows the user to read the this
@@ -64,12 +88,12 @@ db.addUser()
 
       db.addUser( "<username>", "<password>", { readOnly: <boolean> } )
 
-   .. example:: 
+   .. example::
 
       To create and add a legacy (2.2. and earlier) privilege
-      document, to great a user named ``guest`` with the password
-      ``pass`` that has only ``readOnly`` privileges, use the
-      following operation:
+      document with a user named ``guest`` and the password ``pass``
+      that has only ``readOnly`` privileges, use the following
+      operation:
 
       .. code-block:: javascript
 
@@ -78,8 +102,8 @@ db.addUser()
    .. note:: The :program:`mongo` shell excludes all
      :method:`db.addUser()` operations from the saved history.
 
-   .. deprecated:: 2.4
-      The ``roles`` parameter replaces the ``readOnly`` parameter for
-      :method:`db.addUser()`. 2.4 also adds the ``otherDBRoles``
-      and ``userSource`` fields to documents in the :data:`system.users
-      <<database>.system.users>` collection.
+   .. deprecated:: 2.4 The ``roles`` parameter replaces the
+      ``readOnly`` parameter for :method:`db.addUser()`. 2.4 also adds
+      the :data:`~<database>.system.users.otherDBRoles` and
+      :data:`~<database>.system.users.userSource` fields to documents in the
+      :data:`system.users <<database>.system.users>` collection.
