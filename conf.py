@@ -126,6 +126,7 @@ html_theme_options = {
     'version': version,
     'version_selector': meta['version_selector'],
     'stable': meta['stable'],
+    'language':'en'
 }
 
 html_sidebars = {
