@@ -72,6 +72,8 @@ intersphinx_mapping = {
         'djangotoolbox' : ('http://djangotoolbox.readthedocs.org/en/latest/', '../../../build/djangotoolbox.inv'),
 }
 
+language = 'en'
+
 languages = [
     ("ar", "Arabic"),
     ("cn", "Chinese"),
@@ -128,6 +130,7 @@ html_theme_options = {
     'version': version,
     'version_selector': meta['version_selector'],
     'stable': meta['stable'],
+    'language':'en'
 }
 
 html_sidebars = {
