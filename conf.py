@@ -134,10 +134,10 @@ html_theme_options = {
 html_sidebars = {
     '**': ['pagenav.html'],
 }
-html_sidebars['**'].append('intrasites.html')
+html_sidebars['**'].append('wikisidebar.html')
+#html_sidebars['**'].append('intrasites.html')
 html_sidebars['**'].append('formats.html')
 # html_sidebars['**'].append('translations.html')
-html_sidebars['**'].append('wikisidebar.html')
 
 # -- Options for LaTeX output --------------------------------------------------
 
