@@ -30,13 +30,14 @@ def get_command_values(cmd, path):
 
 def log_command_output(cmd, path, logfile, wait=False):
     with open(logfile, 'a') as f:
+        f.write('[delegated-build]: --- logging ' + ' '.join(cmd) + '----')
         p = subprocess.Popen(cmd, cwd=path, stdout=f, stderr=f)
         if wait is True:
             p.wait()
 
 def change_branch(branch, path):
     run_command(['git', 'checkout', branch], path)
-    print('[sub-repo]: checked out branch: ' + branch + ' in staging.')
+    print('[delegated-build]: checked out branch: ' + branch + ' in staging.')
 
 def branch_cleanup(path):
     extant_branches = get_command_values(['ls', '.git/refs/heads'], path)
@@ -45,24 +46,24 @@ def branch_cleanup(path):
         if branch not in extant_branches:
             cmd = ['git', 'branch', branch, 'origin/' + branch ]
             run_command(cmd, path)
-            print('[sub-repo]: created ' + branch + ' branch in staging.')
+            print('[delegated-build]: created ' + branch + ' branch in staging.')
 
     for branch in extant_branches:
         if branch not in branches:
             run_command(['git', 'branch', '-D', branch], path)
-            print('[sub-repo]: cleaned up stale branch: ' + branch)
+            print('[delegated-build]: cleaned up stale branch: ' + branch)
 
 def update_repo(path, branch='master'):
     if not os.path.isdir(path):
         cmd = ['/usr/bin/git', 'clone', './', 'build/.docs-staging']
         run_command(cmd, os.getcwd())
-        print('[sub-repo] created staging repo.')
+        print('[delegated-build] created staging repo.')
     else:
         fetch_cmd = ['git', 'fetch', 'origin']
         reset_cmd = ['git', 'reset', '--hard', 'origin', branch]
         run_command(fetch_cmd, path)
         run_command(reset_cmd, path)
-        print('[sub-repo] updated staging.')
+        print('[delegated-build] updated staging.')
 
     build_path = os.path.join(os.getcwd(), 'build/.docs-staging/build')
 
@@ -70,15 +71,15 @@ def update_repo(path, branch='master'):
         if os.path.islink(build_path):
             pass
         elif os.path.isdir(build_path):
-            exit("[sub-repo] ERROR: the path '" + build_path + "' is a directory, you probably want to remove it and try again.")
+            exit("[delegated-build] ERROR: the path '" + build_path + "' is a directory, you probably want to remove it and try again.")
         else:
-            exit("[sub-repo]: ERROR: check '" + build_path + "' and try again.")
+            exit("[delegated-build]: ERROR: check '" + build_path + "' and try again.")
     else:
         old_path = os.getcwd()
         os.chdir(os.path.join(old_path, 'build/.docs-staging'))
         os.symlink('../../build', 'build')
         os.chdir(old_path)
-        print('[sub-repo] created "build/" symlink in staging.')
+        print('[delegated-build] created "build/" symlink in staging.')
 
     branch_cleanup(path)
     change_branch(branch, path)
@@ -89,12 +90,13 @@ def build_branch(branch, path, logfile, target='publish', wait=False):
 
     cmd = ['make', target]
 
-    print('[sub-repo]: building ' + branch + ' check log for details.')
+    print('[delegated-build]: building ' + branch + ' check "' + logifle + '" for details.')
     if wait is True:
-        print('[sub-repo]: building now, waiting for the build to finish.')
+        print('[delegated-build]: building now, waiting for the build to finish.')
 
     log_command_output(cmd, path, logfile, wait)
-    print('[sub-repo]: build complete.')
+    if wait is False:
+        print('[delegated-build]: build complete.')
 
 def ui():
     targets = sphinx
