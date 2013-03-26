@@ -42,12 +42,12 @@ def generate_delegated_interface():
 
                 m.target(target=build_target,  block=branch)
 
-                m.job(job=('bin/delegated-build --branch %s --target %s %s'
+                m.job(job=('$(PYTHONBIN) bin/delegated-build --branch %s --target %s %s'
                            % ( branch, target, sync[1])),
                       block=branch)
 
                 if sync[0] == 'background':
-                    m.job(job=build_platform_notification('build complete', ' '.join([branch, target])), 
+                    m.job(job=build_platform_notification('build complete', ' '.join([branch, target])),
                           ignore=True, block=branch)
 
             m.newline(block=branch)
