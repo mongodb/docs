@@ -142,7 +142,7 @@ migrations = [
     ('$(public-output)/10gen-gpg-key.asc', 'themes/docs.mongodb.org/10gen-gpg-key.asc', 'static'),
     ('$(public-output)/10gen-security-gpg-key.asc', 'themes/docs.mongodb.org/10gen-security-gpg-key.asc', 'static'),
     ('$(public-output)/osd.xml', 'themes/docs.mongodb.org/osd.xml', 'access'),
-    ('$(public-branch-output)/sitemap.xml.gz', '$(output)/sitemap.xml.gz', 'access'),
+    ('$(public-branch-output)/sitemap.xml.gz', '$(branch-output)/sitemap.xml.gz', 'access'),
     ('$(public-branch-output)/.htaccess', 'themes/docs.mongodb.org/.htaccess', 'access'),
     ('$(public-branch-output)/single/search.html', '$(branch-output)/dirhtml/search/index.html', 'content'),
     ('$(public-branch-output)/MongoDB-Manual-$(current-branch).epub', '$(branch-output)/epub/MongoDB.epub', 'content'),
