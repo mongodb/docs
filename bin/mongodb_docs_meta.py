@@ -7,6 +7,7 @@ import subprocess
 import argparse
 import yaml
 
+# branch and release information source
 MANUAL_BRANCH = 'master'
 PUBLISHED_BRANCHES = [ 'v2.2', 'master' ]
 PUBLISHED_VERSIONS = [ '2.4', '2.2' ]
@@ -30,7 +31,7 @@ def shell_value(args, path=None):
     p = subprocess.Popen(args, cwd=path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     r = p.communicate()
 
-    return r[0].decode().rstrip()
+    return str(r[0].decode().rstrip())
 
 def get_manual_path():
     branch = get_branch()
@@ -84,8 +85,29 @@ def output_yaml(fn):
     with open(fn, 'w') as f:
         f.write(yaml.dump(o, default_flow_style=False))
 
+def render_paths(fn):
+    paths = {
+        'output': 'build',
+        'includes': 'source/includes',
+        'tools': 'bin',
+    }
+    paths['public'] = paths['output'] + '/public'
+    paths['branch-output'] = paths['output'] + '/' + get_branch()
+    paths['branch-source'] = paths['branch-output'] + '/branch-source'
+    paths['branch-staging'] = paths['public'] + '/' + get_branch()
+
+    if str(fn).endswith('yaml'):
+        with open(fn, 'w') as f:
+            f.write(yaml.dump(paths, default_flow_style=False))
+    elif fn == 'print':
+        print(yaml.dump(paths, default_flow_style=False))
+    else:
+        return paths
+
 def main():
-    action_list = ['branch', 'commit', 'versions', 'stable', 'all', 'manual', 'yaml', 'current-or-manual']
+    action_list = [ 'branch', 'commit', 'versions', 'stable', 'all', 'manual',
+                    'yaml', 'current-or-manual', 'output', 'paths']
+
     parser = argparse.ArgumentParser('MongoDB Documentation Meta Data Provider')
     parser.add_argument('action', choices=action_list, nargs='?', default='all')
     parser.add_argument('filename', nargs='?', default='meta.yaml')
@@ -117,6 +139,8 @@ def main():
         print(get_manual_path())
     elif ui.action == 'yaml':
         output_yaml(ui.filename)
+    elif ui.action == 'paths':
+        render_paths('print')
 
 if __name__ == '__main__':
     main()

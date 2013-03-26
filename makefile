@@ -1,37 +1,16 @@
 # Makefile for MongoDB Sphinx documentation
 MAKEFLAGS += -j -r --no-print-directory
-
-############ path settings ##############
-# Build directory tweaking.
-output = build
-build-tools = bin
-rst-include = source/includes
-
-help:
-	@echo "Use 'make <target>', where <target> is a Sphinx target (e.g. 'html', 'latex')"
-	@echo "See 'meta.build.rst' for more on the build. Use the following MongoDB Manual targets:"
-	@echo "	 publish	runs publication process and then deploys the build to $(public-output)"
-	@echo "	 push		runs publication process and pushes to docs site to production."
-	@echo "	 draft		builds a 'draft' build for pre-publication testing ."
-	@echo "	 pdfs		generates pdfs."
-
-############# makefile includes #############
-include bin/makefile.compatibility
+include bin/makefile.bootstrap
 include bin/makefile.dynamic
-include bin/makefile.clean
-include bin/makefile.content
-include bin/makefile.tables
-include bin/makefile.push
-include bin/makefile.manpages
 
 ############# Meta targets that control the build and publication process. #############
 publish:$(sphinx-content) $(static-content)
 	@echo [build]: $(manual-branch) branch is succeessfully deployed to '$(public-output)'.
 
 ############# Targets that define the production build process #############
-
 # Generating files with build specific info.
-setup:source/includes/hash.rst composite-pages.yaml
+conf.py:meta.yaml
+setup:source/includes/hash.rst composite-pages.yaml meta.yaml
 	@mkdir -p $(public-branch-output) $(public-output)
 	@echo [build]: created $(public-branch-output) and $(public-output)
 meta.yaml:
@@ -70,8 +49,6 @@ $(public-branch-output)/single/index.html:$(branch-output)/singlehtml/contents.h
 			      -e 's/name="robots" content="index"/name="robots" content="noindex"/g' \
 			      -e 's/(href=")genindex.html"/\1..\/genindex\/"/g' $@
 	@echo [single]: generating and processing '$@' page
-
-
 $(branch-output)/sitemap.xml.gz:$(public-branch-output) $(public-output)/manual error-pages links
 	@echo -e "----------\n[sitemap]: build started\: `date`" >> $(branch-output)/sitemap-build.log
 	@$(PYTHONBIN) bin/sitemap_gen.py --testing --config=conf-sitemap.xml 2>&1 >> $(branch-output)/sitemap-build.log
@@ -103,5 +80,3 @@ $(branch-output)/latex/%.tex:
 tags:
 	@etags -I --language=none --regex=@bin/etags.regexp `find source -name "*.txt" | grep -v "\.#"`
 	@echo "[dev]: etags generation complete."
-draft:draft-html
-draft-pdfs:draft-latex $(subst .tex,.pdf,$(wildcard $(branch-output)/draft-latex/*.tex))
