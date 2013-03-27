@@ -27,7 +27,7 @@ push-with-delete:publish
 .PHONY: stage stage-with-delete stage-all
 stage:stage-if-up-to-date
 	@echo [stage]: copying the $(current-branch) build to stanging.
-	@$(MAKE) MODE='push' push-test
+	@$(MAKE) MODE='push' push-staging
 	@echo [stage]: deployed $(current-branch) to stanging.
 
 stage-all:publish
@@ -37,7 +37,7 @@ stage-all:publish
 
 stage-with-delete:publish
 	@echo [stage]: deploying $(current-branch) to  staging with rsync --delete.
-	@$(MAKE) MODE='push' push-with-delete-test
+	@$(MAKE) MODE='push' push-staging-with-delete
 	@echo [stage]: deployed a build of the $(current-branch) to stanging.
 
 # Targets for pushing the new build to the web servers.
@@ -65,4 +65,14 @@ push-with-delete-dc2:
 	rsync -arz --delete $(public-output)/$(current-branch)/ www@www-c2.10gen.cc:/data/sites/docs/$(current-branch)
 push-with-delete-test:
 	rsync -arz --delete $(public-output)/$(current-branch)/ public@test.docs.10gen.cc:/srv/public/test/$(current-branch)
+
+push-production:
+	fab --fabfile bin/deploy.py --parallel --pool-size=2 --linewise production:$(current-branch) deploy
+push-staging:
+	fab --fabfile bin/deploy.py production:$(current-branch) deploy
+
+push-production-with-delete:
+	fab --fabfile bin/deploy.py --parallel --pool-size=2 --linewise production:$(current-branch) deploy:delete
+push-staging-with-delete:
+	fab --fabfile bin/deploy.py production:$(current-branch) deploy:delete
 endif
