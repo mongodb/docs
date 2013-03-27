@@ -2,10 +2,10 @@
 
 import sys
 import os.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
+import utils
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 from makecloth import MakefileCloth
-from builder_data import sphinx_migrations as migrations
 
 m = MakefileCloth()
 
@@ -32,7 +32,8 @@ def build_all_sphinx_migrations(migrations):
         m.newline(block=block)
 
 def main():
-    build_all_sphinx_migrations(migrations)
+    conf_file = utils.get_conf_file(__file__)
+    build_all_sphinx_migrations(utils.ingest_yaml(conf_file))
 
     m.write(sys.argv[1])
 

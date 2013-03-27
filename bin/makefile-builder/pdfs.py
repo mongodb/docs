@@ -2,12 +2,10 @@
 
 import sys
 import os.path
+import utils
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
-
 from makecloth import MakefileCloth
-from builder_data import pdfs as pdfs_to_build
-
-# to add a pdf to the build process, add a tuple to the ``pdfs`` list in the builder definition file.
 
 m = MakefileCloth()
 
@@ -38,7 +36,7 @@ def pdf_makefile(name, tag):
 
 def build_all_pdfs(pdfs):
     for pdf in pdfs:
-        pdf_makefile(pdf[0], pdf[1])
+        pdf_makefile(pdf['name'], pdf['type'])
 
     m.newline()
     m.target(target='.PHONY',
@@ -47,7 +45,9 @@ def build_all_pdfs(pdfs):
              dependency='$(PDF_OUTPUT)')
 
 def main():
-    build_all_pdfs(pdfs_to_build)
+    conf_file = utils.get_conf_file(__file__)
+    build_all_pdfs(utils.ingest_yaml(conf_file))
+
     m.write(sys.argv[1])
     print('[meta-build]: built "' + sys.argv[1] + '" to specify pdf builders.')
 

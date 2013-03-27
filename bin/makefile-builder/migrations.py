@@ -2,10 +2,10 @@
 
 import sys
 import os.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
+import utils
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 from makecloth import MakefileCloth
-from builder_data import migrations
 
 m = MakefileCloth()
 
@@ -14,11 +14,11 @@ def build_all_migrations(migrations):
     m.newline(block='header')
 
     for migration in migrations:
-        dependency = migration[0].rsplit('/', 1)[0]
-        block=migration[2]
+        dependency = migration['source'].rsplit('/', 1)[0]
+        block=migration['type']
 
-        m.target(target=migration[0],
-                 dependency=migration[1],
+        m.target(target=migration['target'],
+                 dependency=migration['source'],
                  block=block)
         m.job('mkdir -p ' + dependency, block=block)
         m.job('cp $< $@', block=block)
@@ -27,7 +27,8 @@ def build_all_migrations(migrations):
 
 
 def main():
-    build_all_migrations(migrations)
+    conf_file = utils.get_conf_file(__file__)
+    build_all_migrations(utils.ingest_yaml(conf_file))
 
     m.write(sys.argv[1])
 
