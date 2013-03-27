@@ -44,9 +44,9 @@ def deploy(delete=None):
     if not env.hosts:
         abort('must specify a deployment mode: staging or production')
 
-    build_rsync_cmd(local_path=env.paths['branch-staging'] + '/', 
-                    remote_string=env.host_string + ':' + env.remote_rsync_location,
-                    delete=delete)
+    cmd = build_rsync_cmd(local_path=env.paths['branch-staging'] + '/',
+                          remote_string=env.host_string + ':' + env.remote_rsync_location,
+                          delete=delete)
 
     local(' '.join(cmd))
 
