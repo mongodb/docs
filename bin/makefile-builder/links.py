@@ -2,10 +2,11 @@
 
 import sys
 import os.path
+import utils
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
 from makecloth import MakefileCloth
-from builder_data import links as links_to_create
 
 # to add a symlink build process, add a tuple to the ``links`` in the builder definitions file.
 
@@ -16,7 +17,7 @@ def make_all_links(links):
     m.newline(block='header')
 
     for link in links:
-        make_link(link[0], link[1], link[2])
+        make_link(link['link-path'], link['referent'], link['type'])
 
     m.comment('meta-targets for testing/integration with rest of the build. must apear at the end', block='footer')
     m.newline(block='footer')
@@ -48,7 +49,8 @@ def make_link(make_target, link_target, makefile_block):
     m.newline(block=makefile_block)
 
 def main():
-    make_all_links(links_to_create)
+    conf_file = utils.get_conf_file(__file__)
+    make_all_links(utils.ingest_yaml(conf_file))
 
     m.write(sys.argv[1])
 

@@ -2,25 +2,22 @@
 
 import sys
 import os.path
+import utils
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
 from makecloth import MakefileCloth
-from builder_data import install_guides, subscription_build
 
 m = MakefileCloth()
 
-def build_all_install_guides(install_guides):
+def build_all_install_guides(releases):
     m.comment('to render the install guides properly, we have to bake in the version number.', block='header')
     m.newline(block='header')
 
-    for build in install_guides:
-        if build[1] is None:
-            makefile_core(build[0])
-        else:
-            makefile_restat(build[0], build[1])
+    for build in releases['source-files']:
+        makefile_core(build)
 
-    for build in subscription_build:
-        makefile_subscription(build[0], build[1])
+    for build in releases['install-guides']:
+        makefile_restat(build['target'], build['dependency'])
 
     m.comment('integration target for the installation guides:', block='meta')
 
@@ -74,7 +71,8 @@ def makefile_subscription(builder, release):
 
 
 def main():
-    build_all_install_guides(install_guides)
+    conf_file = utils.get_conf_file(__file__)
+    build_all_install_guides(utils.ingest_yaml(conf_file))
 
     m.write(sys.argv[1])
     print('[meta-build]: built "' + sys.argv[1] + '" to specify install guides.')

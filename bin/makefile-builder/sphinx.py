@@ -2,11 +2,10 @@
 
 import sys
 import os.path
+import utils
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
-from delegated import build_platform_notification
 from makecloth import MakefileCloth
-from builder_data import sphinx as sphinx_targets
 
 # to add a symlink build process, add a tuple to the ``links`` in the builder definitions file.
 
@@ -59,7 +58,7 @@ def make_all_sphinx(sphinx):
     m.job('rsync --recursive --times --delete source/ $(branch-output)/source', block='prereq')
     m.msg('[sphinx-prep]: updated source in $(branch-output)/source', block='prereq')
     info_note = 'Build in progress past critical phase.'
-    m.job(build_platform_notification('Sphinx', info_note), ignore=True, block='prereq')
+    m.job(utils.build_platform_notification('Sphinx', info_note), ignore=True, block='prereq')
     m.msg('[sphinx-prep]: INFO - ' + info_note, block='prereq')
 
     m.target('$(branch-output)/source', block='prereq')
@@ -102,7 +101,8 @@ def sphinx_builder(target):
     m.newline(block=b)
 
 def main():
-    make_all_sphinx(sphinx_targets)
+    conf_file = utils.get_conf_file(__file__)
+    make_all_sphinx(utils.ingest_yaml(conf_file))
 
     m.write(sys.argv[1])
 

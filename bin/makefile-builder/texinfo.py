@@ -2,10 +2,10 @@
 
 import sys
 import os.path
+import utils
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
 from makecloth import MakefileCloth
-from builder_data import texinfo as texinfo_manuals
 
 m = MakefileCloth()
 
@@ -57,7 +57,7 @@ def build_texinfo_manual(info):
 def main():
     m.section_break('texinfo manual builders for mongodb content', block='header')
 
-    for info in texinfo_manuals:
+    for info in utils.ingest_yaml(utils.get_conf_file(__file__)):
         build_texinfo_manual(info)
 
     m.comment('targets for integration')

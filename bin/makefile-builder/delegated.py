@@ -2,28 +2,22 @@
 
 import sys
 import os.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
+import utils 
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 import mongodb_docs_meta as mongo_meta
+
 from makecloth import MakefileCloth
-from builder_data import sphinx
 
 m = MakefileCloth()
 
-def build_platform_notification(title, content):
-    if sys.platform.startswith('darwin'):
-        return 'growlnotify -n "mongodb-doc-build" -a "Terminal.app" -m %s -t %s' % (title, content)
-    if sys.platform.startswith('linux'):
-        return 'notify-send "%s" "%s"' % (title, content)
-
-def generate_delegated_interface():
+def generate_delegated_interface(builders):
     branches = mongo_meta.PUBLISHED_BRANCHES
     current_branch = mongo_meta.get_branch()
 
     if current_branch not in branches:
         branches.append(current_branch)
 
-    builders = sphinx
     builders.append('publish')
     builders.append('push')
     builders.append('stage')
@@ -47,7 +41,7 @@ def generate_delegated_interface():
                       block=branch)
 
                 if sync[0] == 'background':
-                    m.job(job=build_platform_notification('build complete', ' '.join([branch, target])),
+                    m.job(job=utils.build_platform_notification('build complete', ' '.join([branch, target])),
                           ignore=True, block=branch)
 
             m.newline(block=branch)
@@ -57,7 +51,8 @@ def generate_delegated_interface():
     m.target('.PHONY', ' '.join(targets), block='meta')
 
 def main():
-    generate_delegated_interface()
+    conf_file = utils.get_conf_file(__file__)
+    generate_delegated_interface(utils.ingest_yaml(conf_file))
 
     m.write(sys.argv[1])
 

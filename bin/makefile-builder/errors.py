@@ -2,10 +2,10 @@
 
 import sys
 import os.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
+import utils
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 from makecloth import MakefileCloth
-from builder_data import error_pages
 
 m = MakefileCloth()
 
@@ -43,7 +43,8 @@ def build_all_error_pages(error_pages):
     m.job('rm -rf $(ERROR_PAGES)', True, block='meta')
 
 def main():
-    build_all_error_pages(error_pages)
+    conf_file = utils.get_conf_file(__file__)
+    build_all_error_pages(utils.ingest_yaml(conf_file))
 
     m.write(sys.argv[1])
 
