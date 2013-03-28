@@ -2,9 +2,10 @@
 
 import sys
 import os.path
-import utils
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
+import makecloth.utils as utils
 from makecloth import MakefileCloth
 
 # to add a symlink build process, add a tuple to the ``links`` in the builder definitions file.
@@ -100,9 +101,11 @@ def sphinx_builder(target):
 
     m.newline(block=b)
 
+def get_config():
+    return utils.ingest_yaml(utils.get_conf_file(__file__))
+
 def main():
-    conf_file = utils.get_conf_file(__file__)
-    make_all_sphinx(utils.ingest_yaml(conf_file))
+    make_all_sphinx(get_config())
 
     m.write(sys.argv[1])
 
