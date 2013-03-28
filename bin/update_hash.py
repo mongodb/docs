@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from mongodb_docs_meta import get_commit
+from docs_meta import get_commit
 
 def main():
     content = '.. |commit| replace:: ``' + get_commit() + '``' + '\n'

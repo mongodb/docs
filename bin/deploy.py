@@ -1,6 +1,6 @@
 from fabric.api import cd, local, task, abort, env
 from fabric.utils import _AttributeDict as ad
-from mongodb_docs_meta import PUBLISHED_BRANCHES, render_paths
+from docs_meta import PUBLISHED_BRANCHES, render_paths
 
 env.paths = render_paths('dict')
 

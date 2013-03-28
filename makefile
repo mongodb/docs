@@ -14,7 +14,7 @@ setup:source/includes/hash.rst composite-pages.yaml meta.yaml
 	@mkdir -p $(public-branch-output) $(public-output)
 	@echo [build]: created $(public-branch-output) and $(public-output)
 meta.yaml:
-	@bin/mongodb_docs_meta.py yaml $@
+	@bin/docs_meta.py yaml $@
 	@echo [meta]: regenerated $@
 composite-pages.yaml:bin/composite-pages.yaml
 	@cp $< $@
