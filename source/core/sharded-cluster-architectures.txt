@@ -8,8 +8,91 @@ Sharded Cluster Architectures
 
 .. default-domain:: mongodb
 
-This document describes the organization and design of :term:`sharded
-cluster` deployments.
+This document describes requirements, organization and design of
+:term:`sharded cluster` deployments.
+
+.. _sharding-requirements-infrastructure:
+
+Infrastructure Requirements for Sharded Clusters
+------------------------------------------------
+
+A :term:`sharded cluster` has the following components:
+
+- Three :term:`config servers <config database>`.
+
+  These special :program:`mongod` instances store the metadata for the
+  cluster. The :program:`mongos` instances cache this data and use it
+  to determine which :term:`shard` is responsible for which
+  :term:`chunk`.
+
+  For development and testing purposes you may deploy a cluster with a single
+  configuration server process, but always use exactly three config
+  servers for redundancy and safety in production.
+
+- Two or more shards. Each shard consists of one or more :program:`mongod`
+  instances that store the data for the shard.
+
+  These "normal" :program:`mongod` instances hold all of the
+  actual data for the cluster.
+
+  Typically each shard is a :term:`replica sets <replica set>`. Each
+  replica set consists of multiple :program:`mongod` instances. The members
+  of the replica set provide redundancy and high available for the data in each shard.
+
+  .. warning::
+
+     MongoDB enables data :term:`partitioning <partition>`, or
+     sharding, on a *per collection* basis. You *must* access all data
+     in a sharded cluster via the :program:`mongos` instances as below.
+     If you connect directly to a :program:`mongod` in a sharded cluster
+     you will see its fraction of the cluster's data. The data on any
+     given shard may be somewhat random: MongoDB provides no guarantee
+     that any two contiguous chunks will reside on a single shard.
+
+- One or more :program:`mongos` instances.
+
+  These instance direct queries from the application layer to the
+  shards that hold the data. The :program:`mongos` instances have no
+  persistent state or data files and only cache metadata in RAM from
+  the config servers.
+
+  .. note::
+
+     In most situations :program:`mongos` instances use minimal
+     resources, and you can run them on your application servers
+     without impacting application performance. However, if you use
+     the :term:`aggregation framework` some processing may occur on
+     the :program:`mongos` instances, causing that :program:`mongos`
+     to require more system resources.
+
+.. _sharding-requirements-data:
+
+Data Quantity Requirements for Sharded Clusters
+-----------------------------------------------
+
+Your cluster must manage a significant quantity of data for sharding
+to have an effect on your collection. The default :term:`chunk` size
+is 64 megabytes, and the :ref:`balancer
+<sharding-balancing>` will not begin moving data until the imbalance
+of chunks in the cluster exceeds the :ref:`migration threshold
+<sharding-migration-thresholds>`.
+
+Practically, this means that unless your cluster has many hundreds of
+megabytes of data, chunks will remain on a single shard.
+
+While there are some exceptional situations where you may need to
+shard a small collection of data, most of the time the additional
+complexity added by sharding the small collection is not worth the additional
+complexity and overhead unless
+you need additional concurrency or capacity for some reason. If you
+have a small data set, usually a properly configured
+single MongoDB instance or replica set will be more than sufficient
+for your persistence layer needs.
+
+:term:`Chunk <chunk>` size is :option:`user configurable <mongos --chunkSize>`.
+However, the default value is of 64 megabytes is ideal
+for most deployments. See the :ref:`sharding-chunk-size` section in the
+:doc:`/core/sharded-cluster-internals` document for more information.
 
 .. index:: sharding; localhost
 .. _sharding-localhost:
@@ -177,5 +260,3 @@ potential failure scenarios and available resolutions:
    while it still has current oplog entries, it can catch up to the
    latest state of the set using the normal :term:`replication process
    <sync>`, otherwise it must perform an :term:`initial sync`.
-
-
