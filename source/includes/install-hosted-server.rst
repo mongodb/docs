@@ -72,20 +72,25 @@ Hosted MMS has the following *optional* dependencies.
 - A Twilio API account for SMS alerting integration.
 - A Graphite hostname / port for charting the MMS server's internal health.
 
-Installation - Quick Start
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Installation Process
+~~~~~~~~~~~~~~~~~~~~
+
+Overview
+++++++++
 
 At a high level, a basic installation will look like the following.
-Estimated setup time: <60 minutes
+The estimated setup time is less than an hour.
 
 #. Install a standalone local MongoDB server backed by a fast, large storage volume.
+
 #. Install an SMTP email server as appropriate for your environment.
+
 #. Install the MMS server RPM package.
+
 #. Configure the MMS server's URL and email addresses.
+
 #. Start up MMS server.
 
-Installation - Detailed
-~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Prepare Server
 ++++++++++++++
@@ -225,7 +230,7 @@ obtained. When installed the base directory for the MMS software is
 You can install On-Prem MMS from the provided ``tar.gz`` or ``zip``
 archive without making any changes to the underlying system
 (i.e. without creating users.)
-To install, simply extract the package, as in the following command: ::
+To install, extract the package, as in the following command: ::
 
     tar -zxf 10gen-mms-<version>.x86_64.tar.gz
 
@@ -238,15 +243,15 @@ Configure On-Prem MMS Server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This section describes the essential configuration of the MMS server.
-More advanced configuration options are described later in
-Configuration - Advanced.
+See :ref:`advanced-configuration-on-prem` for more configuration
+information.
 
 Required Configuration
 ++++++++++++++++++++++
 
 .. note::
 
-   By default, MMS is configured for a local SMTP server on port 25.
+   By default, MMS will use a local SMTP server listening on port 25.
 
 Configure MMS properties, by editing the
 ``<install_dir>/conf/conf-mms.properties`` file. Edit the following
@@ -267,9 +272,11 @@ before the MMS instance will start.
 Configure Email Authentication
 ++++++++++++++++++++++++++++++
 
-Please refer to your SMTP provider's documentation for the appropriate settings or for how to
-configure a local SMTP server as a relay. You may configure authentication if you want to
-send mail using existing email infrastructure (i.e. SMTP,) or a service such as ``Gmail`` or ``Sendgrid`` .
+Please refer to your SMTP provider's documentation for the appropriate
+settings or for how to configure a local SMTP server as a relay. You
+may configure authentication if you want to send mail using existing
+email infrastructure (i.e. SMTP,) or a service such as ``Gmail`` or
+``Sendgrid`` .
 
 Set the following value in the ``<install_dir>/conf/conf-mms.properties`` file: ::
 
@@ -289,8 +296,8 @@ and unless set default to disabled authentication: ::
     mms.mail.username=
     mms.mail.password=
 
-AWS Simple Email Service Configuration (Optional)
-+++++++++++++++++++++++++++++++++++++++++++++++++
+Optional: AWS Simple Email Service Configuration
+++++++++++++++++++++++++++++++++++++++++++++++++
 
 Set the following value in ``<install_dir>/conf/conf-mms.properties``
 to configure integration with AWS's Simple Email Service (SES:) ::
@@ -303,7 +310,6 @@ credentials in the following two properties: ::
     aws.accesskey=
     aws.secretkey=
 
-<<<<<<< HEAD
 Optional: Configure a Required reCaptcha for user Registration
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -380,8 +386,10 @@ Stopping the MMS server is as follows: ::
 
     sudo /etc/init.d/10gen-mms stop
 
-Configuration - Advanced
-~~~~~~~~~~~~~~~~~~~~~~~~
+.. _advanced-configuration-on-prem:
+
+Advanced Configuration
+~~~~~~~~~~~~~~~~~~~~~~
 
 Change Port Number
 ++++++++++++++++++
@@ -397,7 +405,6 @@ Change Port Number
 #. Restart MMS server: ::
 
     sudo <install_dir>/bin/10gen-mms restart
-
 
 Run as Different User
 +++++++++++++++++++++
@@ -415,12 +422,14 @@ Run as Different User
     sudo <install_dir>/bin/10gen-mms restart
 
 
-MongoDB - Replication
-+++++++++++++++++++++
+Replication Configuration
++++++++++++++++++++++++++
 
-The backing MongoDB store is configured with connection string URIs defined in <install_dir>/conf/conf-mms.properties.
-Edit conf-mms.properties to define the replication hosts or partition MMS' databases
-onto separate machines. For example: ::
+The backing MongoDB store uses a connection string URI defined in the
+``<install_dir>/conf/conf-mms.properties`` directory.
+
+Edit conf-mms.properties to define the replication hosts or partition
+MMS' databases onto separate machines. For example: ::
 
     mongo.mmsdbpings.mongoUri=mongodb://host1:40000,host2:40000,host3:40000/?maxPoolSize=100
     mongo.mmsdbpings.replicaSet=pingsreplset
@@ -433,24 +442,24 @@ onto separate machines. For example: ::
     More information about `connection string URI format available here
     <http://docs.mongodb.org/manual/reference/connection-string/>`_
 
-MongoDB - Auth
-++++++++++++++
+Authentication Configuration
+++++++++++++++++++++++++++++
 
-For standalone MongoDB nodes running with user authentication, simply add the
-username / password credentials to the MongoURI, and remember to specify
-the database as admin. For example: ::
+For standalone MongoDB nodes running with user authentication, simply
+add the username and password credentials to the ``mongoUri``, and
+specify the database as admin. For example: ::
 
     mongo.mmsanalytics.mongoUri=mongodb://mongouser:mongopw@127.0.0.1:40000/admin?maxPoolSize=25
     mongo.mmsanalytics.replicaSet=mmsanalyticsreplset
 
-Unfortunately, this does require the plaintext credentials be in the clear, however
-following standard practice you may reduce the permissions of the configuration file: ::
+Unfortunately, this does require the plaintext credentials be in the
+clear, however following standard practice you may reduce the
+permissions of the configuration file: ::
 
     sudo chmod 600 <install_dir>/conf/conf-mms.properties
 
-
-Configure reCaptcha for user Registration (Optional)
-++++++++++++++++++++++++++++++++++++++++++++++++++++
+Optional: reCaptcha for user Registration
++++++++++++++++++++++++++++++++++++++++++
 
 To enable `reCaptcha anti-spam test
 <http://www.google.com/recaptcha/whyrecaptcha>`_ on new user
@@ -461,8 +470,8 @@ credentials in the following two properties: ::
     reCaptcha.public.key=
     reCaptcha.private.key=
 
-Configure Twilio for SMS Alert Support (Optional)
-+++++++++++++++++++++++++++++++++++++++++++++++++
+Optional: Configure Twilio for SMS Alert Support
+++++++++++++++++++++++++++++++++++++++++++++++++
 
 To receive alert notifications via SMS, signup for a Twilio account at
 <http://www.twilio.com/docs/quickstart> and enter your account ID, API
