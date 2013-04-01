@@ -1,22 +1,29 @@
-=======================================================
-Control Access to MongoDB Instances with Authentication
-=======================================================
+=========================
+Access Control in MongoDB
+=========================
 
 .. default-domain:: mongodb
 
-MongoDB provides a basic authentication system, that you can enable
+This document describes how to set up and manage basic authentication
+and authorization. For information on Kerberos authentication, which is
+available in MongoDB Enterprise, see
+:doc:`Kerberos Authentication
+</tutorial/control-access-to-mongodb-with-kerberos-authentication>`.
+
+MongoDB provides a basic access control system that you can enable
 with the :setting:`auth` and :setting:`keyFile` configuration
-settings. [#cli-options]_ See the :ref:`authentication
-<security-authentication>` section of the :doc:`/administration/security` document.
+settings [#cli-options]_. For an overview,
+see the :ref:`security-authentication` section of the
+:doc:`/administration/security` document. For additional configuration
+settings that affect security, see the :ref:`configuration-security`
+section of the :doc:`/administration/configuration` document.
 
-This document contains an overview of all operations related to
-authentication and managing a MongoDB deployment with authentication.
+MongoDB also provides role-based privileges through each database's
+:data:`system.users <<database>.system.users>` collection. For an
+overview, see the :ref:`security-authorization` section of the
+:doc:`/administration/security` document.
 
-.. see:: The :ref:`configuration-security` section of the
-   :doc:`/administration/configuration` document for more information
-   on configuring authentication.
-
-.. [#cli-options] Use the :option:`--auth <mongod --auth>`
+.. [#cli-options] Use the :option:`--auth <mongod --auth>` or
    :option:`--keyFile <mongod --keyFile>` options on the command
    line.
 
@@ -25,143 +32,158 @@ authentication and managing a MongoDB deployment with authentication.
 Add Users
 ---------
 
+.. versionchanged:: 2.4
+   The schema of :data:`system.users <<database>.system.users>`
+   changed in 2.4 to accommodate a more sophisticated :doc:`user
+   privilege model </reference/user-privileges>`.
+
 When setting up authentication for the first time you must either:
 
-#. add at least one user to the ``admin`` database before starting
-   the :program:`mongod` instance with :setting:`auth`.
+- add at least one user to the ``admin`` database before starting the
+  :program:`mongod` instance with :setting:`auth`.
 
-#. add the first user to the ``admin`` database when connected to the
-   :program:`mongod` instance from a ``localhost``
-   connection. [#sharded-localhost]_
+- add the first user to the ``admin`` database when connected to the
+  :program:`mongod` instance from a ``localhost`` connection.
+  [#sharded-localhost]_
 
-Begin by setting up the first administrative user for the
-:program:`mongod` instance.
+The first user to a MongoDB deployment should be a user with the
+``userAdminAnyDatabase`` role in the ``admin`` database.
 
-.. [#sharded-localhost] Because of :issue:`SERVER-6591`, you cannot
+.. [#sharded-localhost] Because of :issue:`SERVER-6591`, in version 2.2 you cannot
    add the first user to a sharded cluster using the ``localhost``
-   connection in 2.2. If you are running a 2.2 sharded cluster, and
+   connection. If you are running a 2.2 sharded cluster, and
    want to enable authentication, you must deploy the cluster and add
    the first user to the ``admin`` database before restarting the
    cluster to run with :setting:`keyFile`.
 
-Add an Administrative User
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Add a User with the ``userAdminAnyDatabase`` Role
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. admonition:: About administrative users
+The first user created for a MongoDB deployment should have the
+``userAdminAnyDatabase`` role, which allows the user to create other
+users with any roles. Use this user to create all other users in the
+system.
 
-   Administrative users are those users that have "normal" or read and
-   write access to the ``admin`` database.
+The user with the ``userAdminAnyDatabase`` role is effectively a
+super-user, as the user can grant itself any role. But as a best practice,
+this user should have *no other roles* and should be used only for user
+administration.
 
-If this is the first administrative user,
-[#auth-disabled-maintenance]_ connect to the :program:`mongod` on the
-``localhost`` interface using the :program:`mongo` shell. Then, issue
-the following command sequence to switch to the ``admin`` database
-context and add the administrative user:
+As this user can grant itself and any other user full access to
+anything, the credentials to log in as this user should be carefully
+controlled.
 
-.. code-block:: javascript
+1. Connect to the :program:`mongod` or :program:`mongos` on the ``localhost`` interface using
+   the :program:`mongo` shell.
 
-   use admin
-   db.addUser("<username>", "<password>")
+#. Switch to the ``admin`` database:
 
-Replace ``<username>`` and ``<password>`` with the credentials for
-this administrative user.
+   .. code-block:: javascript
+
+      use admin
+
+#. Add the user with the ``userAdminAnyDatabase`` role, and only that
+   role, by issuing a command similar to the following, where
+   ``<username>`` is the username and ``<password>`` is the password:
+
+   .. code-block:: javascript
+
+      db.addUser( { user: "<username>", pwd: "<password>", roles: [ "userAdminAnyDatabase" ] } )
+
+   For more information on creating a user, see
+   :ref:`control-access-add-user-to-database`.
 
 .. [#auth-disabled-maintenance] You can also use this procedure if
    authentication is *not* enabled so that your databases has an
    administrative user when you enable :setting:`auth`.
 
-Add a Normal User to a Database
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _control-access-add-user-to-database:
 
-To add a user with read and write access to a specific database, in
-this example the ``records`` database, connect to the
-:program:`mongod` instance using the :program:`mongo` shell, and issue
-the following sequence of operations:
+Add a User to a Database
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: javascript
+To add a user to a database you must be logged into that database as a
+user with the ``userAdmin`` role.
 
-   use records
-   db.addUser("<username>", "<password>")
+To add a user, pass the :method:`db.addUser()` method a
+well-formed :data:`system.users <<database>.system.users>` document that
+contains the user's credentials and privileges. The
+:method:`db.addUser()` method adds the document to the database's
+:data:`system.users <<database>.system.users>` collection.
 
-Replace ``<username>`` and ``<password>`` with the credentials for
-this user.
+For the structure of user privilege documents, see :data:`system.users
+<<database>.system.users>`. The following are example documents.
 
-Add a Read Only User to a Database
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. example:: The following creates a user named ``Alice`` in the
+   ``products`` database and gives her ``readWrite`` and
+   ``dbAdmin`` privileges.
 
-To add a user with read only access to a specific database, in
-this example the ``records`` database, connect to the
-:program:`mongod` instance using the :program:`mongo` shell, and issue
-the following sequence of operations:
+   .. code-block:: javascript
 
-.. code-block:: javascript
+      use products
+      db.addUser( { user: "Alice", pwd: "Moon1234", roles: [ "readWrite", "dbAdmin" ] } )
 
-   use records
-   db.addUser("<username>", "<password>", true)
-
-Replace ``<username>`` and ``<password>`` with the credentials for
-this user.
-
-.. _control-access-admin-access:
-
-Administrative Access in MongoDB
---------------------------------
-
-Although administrative accounts have access to all databases, these
-users must authenticate against the ``admin`` database before changing
-contexts to a second database, as in the following example:
-
-.. example::
-
-   Given the ``superAdmin`` user with the password ``Password123``,
-   and access to the ``admin`` database.
-
-   The following operation in the :program:`mongo` shell will succeed:
+.. example:: The following creates a user named ``Bob`` in the
+   ``admin`` database. The :data:`system.users
+   <<database>.system.users>` document uses Bob's credentials from
+   ``products`` database and assigns him ``userAdmin`` privileges.
 
    .. code-block:: javascript
 
       use admin
-      db.auth("superAdmin", "Password123")
+      db.addUser( { user: "Bob", userSource: "products", roles: [ "userAdmin" ] } )
 
-   However, the following operation will fail:
+.. example:: The following creates a user named ``Carlos`` in the
+   ``admin`` database and gives him ``readWrite`` access to the
+   ``config`` database, which lets him change certain settings for
+   sharded clusters, such as to disable the balancer.
 
    .. code-block:: javascript
 
-      use test
-      db.auth("superAdmin", "Password123")
+      use admin
+      db.addUser( { user: "Carlos", pwd: "Moon1234", roles: [ "clusterAdmin" ], otherDBRoles: { config: [ "readWrite" ] } } )
 
-.. note::
+   The :data:`~admin.system.users.otherDBRoles` field is supported only
+   on the ``admin`` database.
 
-   If you have authenticated to the ``admin`` database as normal, read
-   and write, user; logging into a *different* database as a read only
-   user will *not* invalidate the authentication to the ``admin``
-   database. In this situation, this client will be able to read and
-   write data to this second database.
+For more information about user roles, see the following:
+
+      - :doc:`/reference/user-privileges`
+
+      - :doc:`/reference/privilege-documents`
 
 .. _auth-localhost-exception:
 
 Authentication on Localhost
 ---------------------------
 
-The behavior of :program:`mongod` running with :setting:`auth`, when
-connecting from a client over the localhost interface (i.e. a client
-running on the same system as the :program:`mongod`,) varies slightly
-between before and after version 2.2.
+If there are no users for the ``admin`` database, you may connect via
+the localhost interface. That is, if running :program:`mongod` or
+:program:`mongos` with :setting:`auth` or :setting:`keyFile`, you can
+connect from a client running on the same system as the
+:program:`mongod` or :program:`mongos`.
 
-In general if there are no users for the ``admin`` database, you may
-connect via the localhost interface. For sharded clusters running
-version 2.2, if :program:`mongod` is running with :setting:`auth` then
-all users connecting over the localhost interface must authenticate,
-even if there aren't any users in the ``admin`` database.
+.. note:: There is an issue in MongoDB versions 2.2.0 through 2.2.3
+   that means that connections on localhost are not correctly granted
+   full access on sharded systems that
+   run those versions. For those versions, if :program:`mongos` is
+   running with :setting:`keyFile`, then all users connecting over the
+   localhost interface must authenticate, even if there aren't any users
+   in the ``admin`` database.
+
+   This issue is fixed as of version 2.2.4.
 
 Password Hashing Insecurity
 ---------------------------
 
 In version 2.2 and earlier:
 
-- the *normal* users of a database all have access to the
-  ``system.users`` collection, which contains the user names and
-  user password hashes. [#read-and-write-system-users]_
+- the read-write users of a database all have access to the
+  ``system.users`` collection, which contains the user names and user
+  password hashes. [#read-and-write-system-users]_
+
+  .. note:: In 2.4, only users with the ``userAdmin`` role have access
+     to the ``system.users`` collection.
 
 - if a user has the same password for multiple databases, the hash will
   be the same. A malicious user could exploit this to
@@ -170,8 +192,8 @@ In version 2.2 and earlier:
 As a result, always use unique username and password combinations
 for each database.
 
-.. [#read-and-write-system-users] Read only users do not have access
-   to the ``system.users`` database.
+.. [#read-and-write-system-users] Read-only users do not have access
+   to the ``system.users`` collection.
 
 .. example: NOT INCLUDED IN OUTPUT.
 
