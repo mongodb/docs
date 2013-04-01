@@ -49,11 +49,11 @@ When setting up authentication for the first time you must either:
 The first user to a MongoDB deployment should be a user with the
 ``userAdminAnyDatabase`` role in the ``admin`` database.
 
-.. [#sharded-localhost] Because of :issue:`SERVER-6591`, in version 2.2 you cannot
-   add the first user to a sharded cluster using the ``localhost``
-   connection. If you are running a 2.2 sharded cluster, and
-   want to enable authentication, you must deploy the cluster and add
-   the first user to the ``admin`` database before restarting the
+.. [#sharded-localhost] Because of :issue:`SERVER-6591`, in version
+   2.2 you cannot add the first user to a sharded cluster using the
+   ``localhost`` connection. If you are running a 2.2 sharded cluster,
+   and want to enable authentication, you must deploy the cluster and
+   add the first user to the ``admin`` database before restarting the
    cluster to run with :setting:`keyFile`.
 
 Add a User with the ``userAdminAnyDatabase`` Role
@@ -65,16 +65,16 @@ users with any roles. Use this user to create all other users in the
 system.
 
 The user with the ``userAdminAnyDatabase`` role is effectively a
-super-user, as the user can grant itself any role. But as a best practice,
-this user should have *no other roles* and should be used only for user
-administration.
+super-user, as the user can grant itself any role. In production
+deployments, this user should have *no other roles* and should only
+administer users and privileges.
 
 As this user can grant itself and any other user full access to
 anything, the credentials to log in as this user should be carefully
 controlled.
 
-1. Connect to the :program:`mongod` or :program:`mongos` on the ``localhost`` interface using
-   the :program:`mongo` shell.
+1. Connect to the :program:`mongod` or :program:`mongos` on the
+   ``localhost`` interface using the :program:`mongo` shell.
 
 #. Switch to the ``admin`` database:
 
@@ -102,7 +102,7 @@ controlled.
 Add a User to a Database
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-To add a user to a database you must be logged into that database as a
+To add a user to a database you must authenticate to that database as a
 user with the ``userAdmin`` role.
 
 To add a user, pass the :method:`db.addUser()` method a
@@ -143,14 +143,12 @@ For the structure of user privilege documents, see :data:`system.users
       use admin
       db.addUser( { user: "Carlos", pwd: "Moon1234", roles: [ "clusterAdmin" ], otherDBRoles: { config: [ "readWrite" ] } } )
 
-   The :data:`~admin.system.users.otherDBRoles` field is supported only
-   on the ``admin`` database.
+   Only the ``admin`` database supports the
+   :data:`~admin.system.users.otherDBRoles` field.
 
-For more information about user roles, see the following:
-
-      - :doc:`/reference/user-privileges`
-
-      - :doc:`/reference/privilege-documents`
+For more information about user roles, see
+:doc:`/reference/user-privileges` and
+:doc:`/reference/privilege-documents`. 
 
 .. _auth-localhost-exception:
 
@@ -163,15 +161,16 @@ the localhost interface. That is, if running :program:`mongod` or
 connect from a client running on the same system as the
 :program:`mongod` or :program:`mongos`.
 
-.. note:: There is an issue in MongoDB versions 2.2.0 through 2.2.3
-   that means that connections on localhost are not correctly granted
-   full access on sharded systems that
-   run those versions. For those versions, if :program:`mongos` is
-   running with :setting:`keyFile`, then all users connecting over the
-   localhost interface must authenticate, even if there aren't any users
-   in the ``admin`` database.
+.. note:: 
 
-   This issue is fixed as of version 2.2.4.
+   For version of MongoDB 2.2 before 2.2.4, connections on localhost
+   are not correctly granted full access on sharded systems that run
+   those versions. For those versions, if :program:`mongos` is running
+   with :setting:`keyFile`, then all users connecting over the
+   localhost interface must authenticate, even if there aren't any
+   users in the ``admin`` database.
+
+   MongoDB 2.2.4 resolves this issue.
 
 Password Hashing Insecurity
 ---------------------------
