@@ -502,85 +502,90 @@ MMS server release.
 
 #. Reconcile any changes in configuration files.
 
-    At this point the upgrade is complete, however you may need to reconcile
-    changes in your configuration. This is the case if you in the previous step
-    you observed output similar to following: ::
+   At this point the upgrade is complete. However you may need to reconcile
+   changes in your configuration with new configuration options
+   available in the latest release. 
 
-        warning: <install_dir>/conf/conf-mms.properties created as <install_dir>/conf/conf-mms.properties.rpmnew
+   During the ``rpm`` operation, if you saw the following output, you
+   have changes to reconcile: ::
 
-    Compare your current configuration to the updated version: ::
+       warning: <install_dir>/conf/conf-mms.properties created as <install_dir>/conf/conf-mms.properties.rpmnew
 
-        diff -u <install_dir>/conf/conf-mms.properties <install_dir>/conf/conf-mms.properties.rpmnew
-        diff -u <install_dir>/conf/mms.conf <install_dir>/conf/mms.conf.rpmnew
+   Compare your current configuration to the updated version, with the
+   following sequence of operations.: ::
 
-    Edit your configuration to resolve any conflicts between the old
-    and new versions, being sure to take any new changes from
-    conf-mms.properties.rpmnew as appropriate. The most common changes
-    required if any will be to the mms.centralUri, email addresses, or
-    mongodb configurations.
+       diff -u <install_dir>/conf/conf-mms.properties <install_dir>/conf/conf-mms.properties.rpmnew
+       diff -u <install_dir>/conf/mms.conf <install_dir>/conf/mms.conf.rpmnew
 
-    Repeat the above reconciliation for mms.conf if a conflict
-    was indicated during the upgrade.
+   Edit your configuration to resolve any conflicts between the old
+   and new versions, being sure to take any new changes from
+   ``conf-mms.properties.rpmnew`` as appropriate. Changes to
+   ``mms.centralUri``, email addresses, and MongoDB are the most
+   common configuration changes.
+
+   Repeat the above reconciliation for ``mms.conf`` if the upgrade
+   indicates a conflict.
 
    .. note::
 
-        From beta versions 1.0.1 to 1.0.2 some paths were updated to
-        make the MMS server completely self contained; starting in 1.0.2
-        all logs, configuration, and working files are below the
-        /opt/10gen/mms/ directory. Changed paths from 1.0.1 include:
+      The upgrade from beta versions 1.0.1 to 1.0.2 changed several
+      paths to make the MMS server completely self contained. In
+      1.0.2 all logs, configuration, and working files are in the
+      ``/opt/10gen/mms/`` hierarchy. This changes the following paths
+      from 1.0.1:
 
-        * New logs path:  <install_dir>/logs/
-        * New tmp path:  <install_dir>/tmp/
+      - New logs path:  <install_dir>/logs/
+      - New tmp path:  <install_dir>/tmp/
 
-        Finally, you may also need to re-symlink your startup script: ::
+      Finally, you may also need to re-symlink your startup script: ::
 
-            sudo ln -s /<install_dir>/bin/10gen-mms /etc/init.d/10gen-mms
+         sudo ln -s /<install_dir>/bin/10gen-mms /etc/init.d/10gen-mms
 
 #. Restart the MMS server. ::
 
-    sudo /etc/init.d/10gen-mms start
+      sudo /etc/init.d/10gen-mms start
 
-Upgrading a tgz/zip Installation
+Upgrading a ``tgz``/``zip`` Installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Upgrading a tarball distribution is effectively backing up any desired
-configuration or logs, followed by a re-installing the MMS server
-fresh. This is to ensure a clean update of all files and settings.
+To upgrade a tarball installation, backup configuration and/or logs,
+and then re-install the MMS server. 
 
-.. note::
+.. important:: It is crucial that you back up the existing
+   configuration because the upgrade process will delete existing
+   data.
 
-    **Backing up the configuration is especially important here
-    because the existing installation will later be deleted.**
+In more details: 
 
 #. Shutdown the MMS server and take a backup of your existing
    configuration and logs. ::
 
-    sudo /etc/init.d/10gen-mms stop
-    sudo cp -a <install_dir>/conf ~/mms_conf.backup
-    sudo cp -a <install_dir>/logs ~/mms_logs.backup
+      sudo /etc/init.d/10gen-mms stop
+      sudo cp -a <install_dir>/conf ~/mms_conf.backup
+      sudo cp -a <install_dir>/logs ~/mms_logs.backup
 
 #. Remove your existing MMS server installation entirely and extract
    latest release in its place: ::
 
-    cd <install_dir>/../
-    sudo rm -rf <install_dir>
-    sudo tar -zxf -C . /path/to/10gen-mms-<version>.x86_64.tar.gz
+      cd <install_dir>/../
+      sudo rm -rf <install_dir>
+      sudo tar -zxf -C . /path/to/10gen-mms-<version>.x86_64.tar.gz
 
 #. Similar to the RPM upgrade path above, compare and reconcile any
    changes in configuration between versions: ::
 
-    diff -u ~/mms_conf.backup/conf-mms.properties <install_dir>/conf/conf-mms.properties
-    diff -u ~/mms_conf.backup/mms.conf <install_dir>/conf/mms.conf
+      diff -u ~/mms_conf.backup/conf-mms.properties <install_dir>/conf/conf-mms.properties
+      diff -u ~/mms_conf.backup/mms.conf <install_dir>/conf/mms.conf
 
 #. Edit your configuration to resolve any conflicts between the old
    and new versions, being sure to take any new changes as
    appropriate.
 
-    .. note:: 
+   .. note:: 
 
-       The most common changes required if any will be to the
-       mms.centralUri, email addresses, or mongodb configurations.
+      Changes to ``mms.centralUri``, email addresses, and MongoDB are
+      the most common configuration changes.
 
 #. Restart the MMS server. ::
 
-    sudo /etc/init.d/10gen-mms start
+      sudo /etc/init.d/10gen-mms start
