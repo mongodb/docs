@@ -1,4 +1,4 @@
-You can grant users access to your group in the "Admins" section of
+You can grant users access to your group in the "Users" section of
 the MMS console. Click on the plus (``+``) icon next to your account
 name and enter their email in the dialogue.  If the console finds a
 connected account, MMS will automatically add the user to the MMS

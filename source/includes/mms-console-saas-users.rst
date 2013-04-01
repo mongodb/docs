@@ -1,7 +1,7 @@
 If you, or one of your users, already has an account in the `MongoDB
 Jira instance <http://mms.10gen.com/>`_, you can grant these users
 access to your MMS console because MMS and Jira have integrated user
-management systems. In the "Admins" section of the MMS console, click
+management systems. In the "Users" section of the MMS console, click
 on the plus (``+``) icon next to your account name and enter the Jira
 username in the dialogue.
 
