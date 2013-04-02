@@ -9,6 +9,14 @@ def process_redirect(redirect):
         for branch in PUBLISHED_BRANCHES:
             redirect['outputs'].append(branch)
 
+    for output in redirect['outputs']:
+        if output.startswith('after-'):
+            version = output.split('-', 1)[1]
+            idx = PUBLISHED_BRANCHES.index(version)
+
+            redirect['outputs'].remove(output)
+            redirect['outputs'].extend(PUBLISHED_BRANCHES[:idx])
+
     if redirect['code'] in [ 301, 302, 303 ]:
         redirect['code'] = str(redirect['code'])
     else:
@@ -28,12 +36,12 @@ def process_redirect(redirect):
 
 def generate_redirects(redir):
     if redir['match'] is True:
-        o = 'RedirectMatch {} /({}){} http://docs.mongodb.org/$1{}'.format(redir['code'], 
+        o = 'RedirectMatch {0} /({1}){2} http://docs.mongodb.org/$1{3}'.format(redir['code'], 
                                                                            redir['base'], 
-                                                                           redir['redirect-path'], 
+                                                                           redir['redirect-path'],
                                                                            redir['url-base'])
     else:
-        o = 'Redirect {} /{}{} http://docs.mongodb.org/{}{}'.format(redir['code'],
+        o = 'Redirect {0} /{1}{2} http://docs.mongodb.org/{3}{4}'.format(redir['code'],
                                                                     redir['base'],
                                                                     redir['redirect-path'],
                                                                     redir['base'],
