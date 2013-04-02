@@ -24,6 +24,7 @@ Sharding
 - :doc:`/tutorial/restore-single-shard`
 - :doc:`/tutorial/restore-sharded-cluster`
 - :doc:`/tutorial/schedule-backup-window-for-sharded-clusters`
+- :doc:`/tutorial/administer-shard-tags`
 
 Basic Operations
 ~~~~~~~~~~~~~~~~
