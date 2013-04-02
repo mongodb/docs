@@ -31,6 +31,8 @@ $(public-branch-output)/release.txt:$(public-branch-output)/
 $(public-output)/ $(output):
 	@mkdir -p $@
 	@echo [build]: created $@
+$(public-output)/.htaccess:bin/htaccess.yaml bin/htaccess.py $(public-output)/
+	@$(PYTHONBIN) bin/htaccess.py $@
 $(public-branch-output):$(branch-output)/dirhtml
 	@mkdir -p $@
 	@rsync -a $</ $@/

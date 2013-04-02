@@ -31,17 +31,14 @@ def make_all_links(links):
 def make_link(make_target, link_target, makefile_block):
     link_location = make_target.rsplit('/', 1)[0] + '/'
 
-    if makefile_block == 'use' or makefile_block == 'redirect':
+    if makefile_block == 'use':
         m.target(link_location, '$(public-branch-output)', makefile_block)
 
     if makefile_block == 'content':
         m.target(make_target, '', makefile_block)
     else:
         m.append_var('LINKS', make_target, makefile_block)
-        if make_target == '$(public-branch-output)/core/sharding':
-            m.target(make_target, link_location + ' $(public-branch-output)/administration/sharding', makefile_block)
-        else:
-            m.target(make_target, link_location, makefile_block)
+        m.target(make_target, link_location, makefile_block)
 
 
     m.job('@bin/create-link %s $(notdir $@) %s' % ( link_target, link_location), makefile_block)
