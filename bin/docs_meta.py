@@ -9,7 +9,7 @@ import yaml
 
 # branch and release information source
 MANUAL_BRANCH = 'master'
-PUBLISHED_BRANCHES = [ 'v2.2', 'master' ]
+PUBLISHED_BRANCHES = [ 'master', 'v2.2' ] # PUBLISHED_BRANCHES **must** be ordered from latest to oldest release.
 PUBLISHED_VERSIONS = [ '2.4', '2.2' ]
 STABLE_RELEASE = PUBLISHED_VERSIONS[0]
 UPCOMING_RELEASE = None
