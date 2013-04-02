@@ -13,52 +13,29 @@ stage-if-up-to-date:_build-check publish
 .PHONY: push push-with-delete push-all
 push:publish-if-up-to-date
 	@echo [push]: copying the new $(current-branch) build to the web servers.
-	@$(MAKE) MODE='push' push-production
+	@fab --fabfile bin/deploy.py --parallel --pool-size=2 --linewise production:$(current-branch) deploy
 	@echo [push]: deployed a new build of the $(current-branch) branch of the Manual.
 push-all:publish
 	@echo [push]: delploying the full docs site to the web servers.
-	@$(MAKE) MODE='push' push-all-dc1 push-all-dc2
+	@fab --fabfile bin/deploy.py --parallel --pool-size=2 --linewise production:override deploy_everything:override
 	@echo [push]: deployed a new build of the full Manual.
 push-with-delete:publish
 	@echo [push]: deploying the $(current-branch) to the web servers \(with rsync --delete\).
-	@$(MAKE) MODE='push' push-production-with-delete
+	@fab --fabfile bin/deploy.py --parallel --pool-size=2 --linewise production:$(current-branch) deploy:delete
 	@echo [push]: deployed a new build of the $(current-branch) of Manual.
 
 .PHONY: stage stage-with-delete stage-all
 stage:stage-if-up-to-date
 	@echo [stage]: copying the $(current-branch) build to stanging.
-	@$(MAKE) MODE='push' push-staging
+	@fab --fabfile bin/deploy.py staging:$(current-branch) deploy
 	@echo [stage]: deployed $(current-branch) to stanging.
 
 stage-all:publish
 	@echo [stage]: deploying the full docs site to the staging environment.
-	@$(MAKE) MODE='push' push-all-test
+	@fab --fabfile bin/deploy.py staging:override deploy_everything:override
 	@echo [stage]: deployed the full docs site to the staging environment.
 
 stage-with-delete:publish
 	@echo [stage]: deploying $(current-branch) to  staging with rsync --delete.
-	@$(MAKE) MODE='push' push-staging-with-delete
+	@fab --fabfile bin/deploy.py staging:$(current-branch) deploy:delete
 	@echo [stage]: deployed a build of the $(current-branch) to stanging.
-
-# Targets for pushing the new build to the web servers.
-ifeq ($(MODE),push)
-.PHONY: push-all-dc1 push-all-dc2
-.PHONY: push-test push-all-test push-with-delete-test
-
-push-all-dc1:
-	rsync -arz $(public-output)/ www@www-c1.10gen.cc:/data/sites/docs
-push-all-dc2:
-	rsync -arz $(public-output)/ www@www-c2.10gen.cc:/data/sites/docs
-push-all-test:
-	rsync -arz $(public-output)/ public@test.docs.10gen.cc:/srv/public/test
-
-push-production:
-	fab --fabfile bin/deploy.py --parallel --pool-size=2 --linewise production:$(current-branch) deploy
-push-staging:
-	fab --fabfile bin/deploy.py staging:$(current-branch) deploy
-
-push-production-with-delete:
-	fab --fabfile bin/deploy.py --parallel --pool-size=2 --linewise production:$(current-branch) deploy:delete
-push-staging-with-delete:
-	fab --fabfile bin/deploy.py production:$(current-branch) deploy:delete
-endif
