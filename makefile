@@ -7,8 +7,8 @@ include bin/makefile.push
 include bin/makefile.compatibility
 -include $(output)/makefile.sphinx
 
-$(output)/makefile.%:bin/%.py bin/makefile_builder.py bin/builder_data.py $(output)
-	@$(PYTHONBIN) bin/$(subst .,,$(suffix $@)).py $@
+$(output)/makefile.%:bin/makecloth/%.py bin/makecloth/%.yaml bin/makecloth/__init__.py $(output)
+	@$(PYTHONBIN) $< $@
 
 ########## build system configuration and variables ##########
 
@@ -37,20 +37,20 @@ endif
 .PHONY: help hosted saas publish all
 help:
 	@echo "Please use \`make <target>' where <target> is one of:"
-	@echo "	 all            to stage the all mms documents. (default.)"
-	@echo "	 hosted         to stage the mms-hosted documents."
-	@echo "	 saas           to stage the mms saas version documents."
-	@echo "	 push           to stage and deploy all mmms documents."
-	@echo "	 push-hosted    to stage and deploy mms-hosted documents."
-	@echo "	 push-mms       to stage and deploy mms-saas documents."
-	@echo "	 <sphinx>       all standard sphinx build targets are avlible for testing."
+	@echo "	 all		to stage the all mms documents. (default.)"
+	@echo "	 hosted		to stage the mms-hosted documents."
+	@echo "	 saas		to stage the mms saas version documents."
+	@echo "	 push		to stage and deploy all mmms documents."
+	@echo "	 push-hosted	to stage and deploy mms-hosted documents."
+	@echo "	 push-mms	to stage and deploy mms-saas documents."
+	@echo "	 <sphinx>	all standard sphinx build targets are avlible for testing."
 
 all:hosted saas
 hosted:
-	@$(MAKE) EDITION=$@ html publish
+	@$(MAKE) EDITION=$@ dirhtml publish build/public/hosted/.htaccess
 	@echo [build]: $@ edition complete
-saas:
-	@$(MAKE) EDITION=$@ html publish
+saas:setup
+	@$(MAKE) EDITION=$@ dirhtml publish build/public/saas/.htaccess
 	@echo [build]: $@ edition complete
 
 ########## dependency lists ##########
@@ -61,6 +61,13 @@ $(publish-output): $(HTML_OUTPUT) $(PDF_OUTPUT)
 publish:$(publish-output) $(publish-dependency)
 
 ########## html migration ##########
+setup:
+	@mkdir -p $(public-output) $(publish-output) $(branch-output) $(branch-output)/source 
+htaccess:build/public/saas/.htaccess build/public/hosted/.htaccess
+build/public/saas/.htaccess:bin/htaccess-saas.yaml bin/htaccess.py
+	@$(PYTHONBIN) bin/htaccess.py $@ --data $<
+build/public/hosted/.htaccess:bin/htaccess-hosted.yaml bin/htaccess.py 
+	@$(PYTHONBIN) bin/htaccess.py $@ --data $<
 
 $(public-output) $(output):
 	@mkdir -p $@
@@ -69,7 +76,7 @@ $(public-output)/current:$(public-output)
 	@ln -s $(primary-branch)
 	@mv $(primary-branch) $@
 	@echo [build]: created and migrated $@
-$(publish-output)/:$(branch-output)/html/
+$(publish-output)/:$(branch-output)/dirhtml/
 	@mkdir -p $@
 	@echo [build]: created $@.
 	@cp -R $<* $@
@@ -82,8 +89,8 @@ $(publish-output)/single/:$(branch-output)/singlehtml/
 	@sed $(SED_ARGS_FILE) -e 's/id="searchbox"/id="display-none"/g' \
 			      -e 's/id="editions"/id="display-none"/g' $(publish-output)/single/index.html
 	@echo [build]: processed $@ content.
-$(publish-output)/single/genindex.html:$(publish-output)/single/ $(branch-output)/html/
-	@cp $(branch-output)/html/genindex.html $@
+$(publish-output)/single/genindex.html:$(publish-output)/single/ $(branch-output)/dirhtml/
+	@cp $(branch-output)/dirhtml/genindex/index.html $@
 	@echo [build]: migrated $@
 	@sed $(SED_ARGS_FILE) -e 's@(<dt><a href=").*html#@\1./index.html#@' \
 			      -e 's@(class="toctree-l1"><a class="reference internal" href=")(.*).html@\1../\2.html@' \
@@ -91,14 +98,14 @@ $(publish-output)/single/genindex.html:$(publish-output)/single/ $(branch-output
 			      -e 's/id="navigation"/id="display-none"/g' \
 			      -e 's/id="editions"/id="display-none"/g' $@
 	@echo [build]: processed $@ content.
-$(branch-output)/html/genindex.html:$(branch-output)/html/
-$(branch-output)/html/:html 
+$(branch-output)/dirhtml/genindex/index.html:$(branch-output)/dirhtml/
+$(branch-output)/dirhtml/:dirhtml
 $(branch-output)/singlehtml/:singlehtml
 
 ########## pdf generation ##########
 
 pdflatex-command = TEXINPUTS=".:$(branch-output)/latex/:" pdflatex --interaction batchmode --output-directory $(branch-output)/latex/ $(LATEXOPTS)
-$(branch-output)/latex/mms.tex:latex 
+$(branch-output)/latex/mms.tex:latex
 $(branch-output)/latex/mms-manual.pdf:$(branch-output)/latex/mms-manual.tex
 $(branch-output)/latex/mms-manual.tex:$(branch-output)/latex/mms.tex
 	@$(PYTHONBIN) bin/copy-if-needed.py -i $< -o $@ -b pdf
