@@ -37,7 +37,7 @@ def generate_match_rule(redir, base):
 
 def generate_simple_rule(redir, base=None):
     if base is None:
-        base = redir['output'][0]
+        base = redir['outputs'][0]
 
     o = 'Redirect {0} /{1}{2} http://docs.mongodb.org/{3}{4}'
 
