@@ -72,25 +72,33 @@ def generate_redirects(redirect, match=False):
 
     return o
 
-def main():
+def ui():
     parser = argparse.ArgumentParser('.htaccess generator.')
-    parser.add_argument('filename', nargs='?', default='.htaccess')
-    parser.add_argument('--match', '-m', action='store_true', default=False)
-    ui = parser.parse_args()
+    parser.add_argument('filename', nargs='?', default='.htaccess',
+                        help='the name of the file to generate. Defaults to ".htaccess"')
+    parser.add_argument('--match', '-m', action='store_true', default=False,
+                        help='generate RedirectMatch if specified, rather than the default Redirect rules.')
+    parser.add_argument('--data', '-d', action='store', default=utils.get_conf_file(__file__),
+                        help='the .yaml file containing the redirect information.')
+    return parser.parse_args()
+
+def main():
+    ui = ui()
 
     lines = []
 
-    for doc in utils.ingest_yaml(utils.get_conf_file(__file__)):
+    for doc in utils.ingest_yaml(ui.data):
         if doc['type'] == 'redirect':
             lines.append(generate_redirects(process_redirect(doc), match=ui.match))
         if doc['type'] == 'redirect-draft':
             print(generate_redirects(process_redirect(doc), match=ui.match))
 
-    with open(sys.argv[1], 'w') as f:
-        for line in lines:
-            f.write(line)
+    if lines:
+        with open(ui.filename, 'w') as f:
+            for line in lines:
+                f.write(line)
 
-    print('[redirect]: regenerated ' + sys.argv[1] + ' file.' )
+        print('[redirect]: regenerated ' + ui.filename + ' file.' )
 
 
 if __name__ == '__main__':
