@@ -72,7 +72,7 @@ def generate_redirects(redirect, match=False):
 
     return o
 
-def ui():
+def user_input():
     parser = argparse.ArgumentParser('.htaccess generator.')
     parser.add_argument('filename', nargs='?', default='.htaccess',
                         help='the name of the file to generate. Defaults to ".htaccess"')
@@ -83,7 +83,7 @@ def ui():
     return parser.parse_args()
 
 def main():
-    ui = ui()
+    ui = user_input()
 
     lines = []
 
