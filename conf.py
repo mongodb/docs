@@ -36,7 +36,7 @@ language = 'en'
 project = u'mongodb-manual'
 copyright = u'2011-' + meta['date'] + ', 10gen, Inc.'
 version = '2.2'
-release = '2.2.3'
+release = '2.2.4'
 
 BREAK = '\n'
 rst_epilog = ('.. |branch| replace:: ``' + meta['branch'] + '``' + BREAK +
