@@ -25,6 +25,45 @@ The text search process:
 By default, :dbcommand:`text` command returns at most the top 100
 matching documents as determined by the scores.
 
+.. important::
+
+   Before you can create a text index or :ref:`run the text command
+   <text-search-text-command>`, you need to manually enable the text
+   search. See :doc:`/tutorial/enable-text-search` for information on
+   how to enable the text search feature.
+
+.. _text-search-storage-requirements:
+
+Storage Requirements and Performance Costs
+------------------------------------------
+
+``text`` indexes have the following storage requirements and
+performance costs:
+
+- ``text`` indexes change the space allocation method for all future
+  record allocations in a collection to :collflag:`usePowerOf2Sizes`.
+
+- ``text`` indexes can be large. They contain one index entry for each
+  unique post-stemmed word in each indexed field for each document
+  inserted.
+
+- Building a ``text`` index is very similar to building a large
+  multi-key index and will take longer than building a simple ordered
+  (scalar) index on the same data.
+
+- When building a large ``text`` index on an existing collection,
+  ensure that you have a sufficiently high limit on open file
+  descriptors. See the :ref:`recommended settings <oom-killer>`.
+
+- ``text`` indexes will impact insertion throughput because MongoDB
+  must add an index entry for each unique post-stemmed word in each
+  indexed field of each new source document.
+
+- Additionally, ``text`` indexes do not store phrases or information
+  about the proximity of words in the documents. As a result, phrase
+  queries will run much more effectively when the entire collection
+  fits in RAM.
+
 .. _create-text-index:
 
 Create a ``text`` Index
@@ -38,36 +77,24 @@ the string literal ``text``.
 
 .. important::
 
-   - Before you can :ref:`create a text index <create-text-index>` or
-     :ref:`run the text command <text-search-text-command>`, you need
-     to manually enable the text search. See
-     :doc:`/tutorial/enable-text-search` for information on how to
-     enable the text search feature.
-
    - Text indexes have significant storage requirements and performance
-     costs. See :ref:`text index feature <index-feature-text>` for more
+     costs. See :ref:`text-search-storage-requirements` for more
      information.
 
    - .. include:: /includes/fact-text-index-limit-one.rst
 
-The following example creates a ``text`` index on the fields
-``subject`` and ``content``:
+The following tutorials offer additional ``text`` index creation
+patterns:
 
-.. code-block:: javascript
+- :doc:`/tutorial/create-text-index-on-multiple-fields`
 
-   db.collection.ensureIndex(
-                              {
-                                subject: "text",
-                                content: "text"
-                              }
-                            )
+- :doc:`/tutorial/specify-language-for-text-index`
 
-This ``text`` index catalogs all string data in the ``subject`` field
-and the ``content`` field, where the field value is either a string or
-an array of string elements.
+- :doc:`/tutorial/avoid-text-index-name-limit`
 
-See :doc:`/core/text-indexes` for details on the options available when
-creating ``text`` indexes.
+- :doc:`/tutorial/create-text-index-on-multi-language-collection`
+
+- :doc:`/tutorial/control-results-of-text-search`
 
 Additionally, MongoDB permits :ref:`compound indexes
 <index-type-compound>` that include ``text`` index fields in
@@ -88,18 +115,6 @@ command matches on the complete stemmed words. For example, if a
 document field contains the word ``blueberry``, a search on the term
 ``blue`` will not match the document. However, a search on either
 ``blueberry`` or ``blueberries`` will match.
-
-By default, the :dbcommand:`text` command returns the top 100 scoring
-documents in descending order, but you can specify a ``limit`` option
-to change the maximum number to return.
-
-Given a collection with a ``text`` index, use the
-:method:`~db.runCommand()` method to execute the
-:dbcommand:`text` command, as in:
-
-.. code-block:: javascript
-
-   db.collection.runCommand( "text" , { search: <string> } )
 
 For information and examples on various text search patterns, see
 :doc:`/tutorial/search-for-text`.

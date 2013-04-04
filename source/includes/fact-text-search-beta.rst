@@ -1,4 +1,4 @@
-The :doc:`text search </applications/text-search>` is currently a
+The :doc:`text search </core/text-search>` is currently a
 *beta* feature. As a beta feature:
 
 - You need to explicitly enable the feature before :ref:`creating a text
