@@ -1,0 +1,54 @@
+=======================
+Shard GridFS Data Store
+=======================
+
+.. default-domain:: mongodb
+
+When sharding a :term:`GridFS` store, consider the following:
+
+``files`` Collection
+--------------------
+
+Most deployments will not need to shard the ``files``
+collection. The ``files`` collection is typically small, and only
+contains metadata. None of the required keys for GridFS lend
+themselves to an even distribution in a sharded situation. If you
+*must* shard the ``files`` collection, use the ``_id`` field
+possibly in combination with an application field
+
+Leaving ``files`` unsharded means that all the file metadata
+documents live on one shard. For production GridFS stores you *must*
+store the ``files`` collection on a replica set.
+
+``chunks`` Collection
+---------------------
+
+To shard the ``chunks`` collection by ``{ files_id : 1 , n : 1 }``,
+issue commands similar to the following:
+
+.. code-block:: javascript
+
+   db.fs.chunks.ensureIndex( { files_id : 1 , n : 1 } )
+
+   db.runCommand( { shardCollection : "test.fs.chunks" , key : { files_id : 1 , n : 1 } } )
+
+You may also want shard using just the ``file_id`` field, as in the
+following operation:
+
+.. code-block:: javascript
+
+   db.runCommand( { shardCollection : "test.fs.chunks" , key : {  files_id : 1 } } )
+
+.. note::
+
+   .. versionchanged:: 2.2
+
+   Before 2.2, you had to create an additional index on ``files_id``
+   to shard using *only* this field.
+
+The default ``files_id`` value is an :term:`ObjectId`, as a result
+the values of ``files_id`` are always ascending, and applications
+will insert all new GridFS data to a single chunk and shard.  If
+your write load is too high for a single server to handle, consider
+a different shard key or use a different value for different value
+for ``_id`` in the ``files`` collection.
