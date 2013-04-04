@@ -853,10 +853,12 @@ See :doc:`/core/text-search` for more information.
 .. index:: index; limitations
 .. _index-limitations:
 
-Index Behaviors and Limitations
--------------------------------
+Index Behaviors
+---------------
 
-Be aware of the following behaviors and limitations:
+Limitations
+~~~~~~~~~~~
+
 
 ..
   - MongoDB indexes are case-sensitive.
@@ -896,3 +898,42 @@ Be aware of the following behaviors and limitations:
 
 - ``2d`` :doc:`geospatial queries </core/geospatial-indexes>` do not
   support queries that use the :operator:`$or` operator.
+
+Consider Insert Throughput
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your application is write-heavy, then be careful when creating new
+indexes, since each additional index with impose a
+write-performance penalty. In general, don't be careless about adding
+indexes. Add indexes to complement your queries. Always have
+a good reason for adding a new index, and be sure to benchmark
+alternative strategies.
+
+.. todo:: insert link to /source/core/write-operations when that page is complete.
+   Do we want to link to write concern? -bg
+
+MongoDB must update *all* indexes associated with a collection after
+every insert, update, or delete operation. For update operations, if
+the updated document does not move to a new location, then MongoDB only
+modifies the updated fields in the index. Therefore, every index on a
+collection adds some amount of overhead to these write operations. In
+almost every case, the performance gains that indexes realize for read
+operations are worth the insertion penalty. However, in some cases:
+
+- An index to support an infrequent query might incur more
+  insert-related costs than savings in read-time.
+
+  .. todo:: How do you determine if the above is the case? 
+     Empirically.
+
+- If you have many indexes on a collection with a high insert throughput
+  and a number of related indexes, you may find better overall
+  performance with a smaller number of indexes, even if some queries
+  are less optimally supported by an index.
+
+  .. todo:: The above is unclear. -bg
+
+- If your indexes and queries are not sufficiently :ref:`selective
+  <index-selectivity>`, the speed improvements for query operations
+  may not offset the costs of maintaining an index. For more
+  information see :ref:`index-selectivity`.
