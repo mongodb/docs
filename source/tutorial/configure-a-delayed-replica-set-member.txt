@@ -1,0 +1,41 @@
+======================================
+Configure a Delayed Replica Set Member
+======================================
+
+.. default-domain:: mongodb
+
+To configure a :term:`replica set` member with a one hour delay, use the
+following sequence of operations in the :program:`mongo` shell:
+
+.. code-block:: javascript
+
+   cfg = rs.conf()
+   cfg.members[0].priority = 0
+   cfg.members[0].slaveDelay = 3600
+   rs.reconfig(cfg)
+
+.. include:: /includes/warning-rs-reconfig.rst
+
+After the replica set reconfigures, the first member of the set in the
+:data:`~local.system.replset.members` array will have a priority
+of ``0`` and cannot become :term:`primary`. The :data:`slaveDelay <members[n].slaveDelay>` value
+delays both replication and the member's :term:`oplog` by 3600 seconds (1
+hour). Setting :data:`~local.system.replset.members[n].slaveDelay` to a
+non-zero value also sets :data:`~local.system.replset.members[n].hidden` to
+``true`` for this replica set so that it does not receive application
+queries in normal operations.
+
+.. include:: /includes/seealso-elections.rst
+
+.. warning::
+
+   The length of the secondary
+   :data:`~local.system.replset.members[n].slaveDelay` must
+   fit within the window of the oplog. If the oplog is shorter than
+   the :data:`~local.system.replset.members[n].slaveDelay`
+   window, the delayed member cannot successfully replicate
+   operations.
+
+.. seealso:: :data:`~local.system.replset.members[n].slaveDelay`, :ref:`Replica Set Reconfiguration
+   <replica-set-reconfiguration-usage>`, :ref:`replica-set-oplog-sizing`,
+   and the :doc:`/tutorial/change-oplog-size` tutorial.

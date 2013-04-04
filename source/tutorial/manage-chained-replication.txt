@@ -4,11 +4,35 @@ Manage Chained Replication
 
 .. default-domain:: mongodb
 
-.. versionadded:: 2.4
+Starting in version 2.0, MongoDB supports chained replication. A
+chained replication occurs when a :term:`secondary` member replicates
+from another secondary member instead of from the :term:`primary`. This
+might be the case, for example, if a secondary selects its replication
+target based on ping time and if the closest member is another
+secondary.
 
-MongoDB enables :ref:`chained replication
-<replica-set-chained-replication>` by default. This procedure
+Chained replication can reduce load on the primary. But chained
+replication can also result in increased replication lag, depending on
+the topology of the network.
+
+.. versionadded:: 2.
+
+You can use the :data:`~local.system.replset.settings.chainingAllowed`
+setting in :doc:`/reference/replica-configuration` to disable chained
+replication for situations where chained replication is causing lag.
+
+MongoDB enables chained replication by default. This procedure
 describes how to disable it and how to re-enable it.
+
+.. note::
+
+   If chained replication is disabled, you still can use
+   :dbcommand:`replSetSyncFrom` to specify that a secondary replicates
+   from another secondary. But that configuration will last only until the
+   secondary recalculates which member to sync from.
+
+Disable Chained Replication
+---------------------------
 
 To disable chained replication, set the
 :data:`~local.system.replset.settings.chainingAllowed`
@@ -47,6 +71,9 @@ You can use the following sequence of commands to set
       cfg.settings.chainingAllowed = false
       rs.reconfig(cfg)
 
+Re-enable Chained Replication
+-----------------------------
+
 To re-enable chained replication, set
 :data:`~local.system.replset.settings.chainingAllowed` to ``true``.
 You can use the following sequence of commands:
@@ -56,10 +83,3 @@ You can use the following sequence of commands:
    cfg = rs.config()
    cfg.settings.chainingAllowed = true
    rs.reconfig(cfg)
-
-.. note::
-
-   If chained replication is disabled, you still can use
-   :dbcommand:`replSetSyncFrom` to specify that a secondary replicates
-   from another secondary. But that configuration will last only until the
-   secondary recalculates which member to sync from.

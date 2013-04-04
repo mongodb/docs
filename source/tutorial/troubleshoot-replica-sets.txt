@@ -93,10 +93,11 @@ Possible causes of replication lag include:
 - **Concurrency**
 
   In some cases, long-running operations on the primary can block
-  replication on secondaries. For best results, configure :ref:`write concern <write-concern>`
-  to require confirmation of replication to secondaries, as described in :ref:`replica-set-write-concern`.
-  This prevents write operations from returning if replication cannot keep up
-  with the write load.
+  replication on secondaries. For best results, configure 
+  :ref:`write concern <write-concern>` to require confirmation of
+  replication to secondaries, as described in
+  :ref:`replica-set-write-concern`. This prevents write operations from
+  returning if replication cannot keep up with the write load.
 
   Use the :term:`database profiler` to see if there are slow queries
   or long-running operations that correspond to the incidences of lag.
@@ -214,69 +215,9 @@ For more information on how oplog size affects operations, see:
 .. note:: You normally want the oplog to be the same size on all
    members. If you resize the oplog, resize it on all members.
 
-To change oplog size, see :ref:`replica-set-procedure-change-oplog-size`
-in this document or see the :doc:`/tutorial/change-oplog-size` tutorial.
+To change oplog size, see the :doc:`/tutorial/change-oplog-size`
+tutorial.
 
-
-.. index:: pair: replica set; failover
-.. _replica-set-failover-administration:
-.. _failover:
-
-Failover and Recovery
----------------------
-
-.. TODO Revisit whether this belongs in troubleshooting. Perhaps this
-   should be an H2 before troubleshooting.
-
-Replica sets feature automated failover. If the :term:`primary`
-goes offline or becomes unresponsive and a majority of the original
-set members can still connect to each other, the set will elect a new
-primary.
-
-While :term:`failover` is automatic, :term:`replica set`
-administrators should still understand exactly how this process
-works. This section below describe failover in detail.
-
-In most cases, failover occurs without administrator intervention
-seconds after the :term:`primary` either steps down, becomes inaccessible,
-or becomes otherwise ineligible to act as primary. If your MongoDB deployment
-does not failover according to expectations, consider the following
-operational errors:
-
-- No remaining member is able to form a majority. This can happen as a
-  result of network partitions that render some members
-  inaccessible. Design your deployment to ensure that a majority of
-  set members can elect a primary in the same facility as core
-  application systems.
-
-- No member is eligible to become primary. Members must have a
-  :data:`~local.system.replset.settings.gmembers[n].priority` setting greater than ``0``, have a state
-  that is less than ten seconds behind the last operation to the
-  :term:`replica set`, and generally be *more* up to date than the
-  voting members.
-
-In many senses, :ref:`rollbacks <replica-set-rollbacks>` represent a
-graceful recovery from an impossible failover and recovery situation.
-
-Rollbacks occur when
-a primary accepts writes that other members of
-the set do not successfully replicate before the primary steps
-down. When the former primary begins replicating again it performs a
-"rollback." Rollbacks remove those operations from the instance that
-were never replicated to the set so that the data set is in a
-consistent state. The :program:`mongod` program writes rolled back
-data to a :term:`BSON` file that you can view using
-:program:`bsondump`, applied manually using :program:`mongorestore`.
-
-You can prevent rollbacks using a :ref:`replica acknowledged
-<write-concern-replica-acknowledged>` write concern. These write
-operations require not only the :term:`primary` to acknowledge the
-write operation, sometimes even the majority of the set to confirm the
-write operation before returning.
-
- enabling :term:`write concern`.
-
-.. include:: /includes/seealso-elections.rst
 
 Oplog Entry Timestamp Error
 ---------------------------
