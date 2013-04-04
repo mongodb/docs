@@ -1,19 +1,17 @@
-In MongoDB 2.4, :doc:`map-reduce operations
-</applications/map-reduce>`, the :dbcommand:`group` command, and
-:operator:`$where` operator expressions **cannot** access certain
-global functions or properties, such as ``db``, that are available
-in the :program:`mongo` shell.
+In MongoDB 2.4, :dbcommand:`map-reduce operations <mapReduce>`, the
+:dbcommand:`group` command, and :operator:`$where` operator expressions
+**cannot** access certain global functions or properties, such as
+``db``, that are available in the :program:`mongo` shell.
 
 When upgrading to MongoDB 2.4, you will need to refactor your code if
-your :doc:`map-reduce operations </applications/map-reduce>`,
-:dbcommand:`group` commands, or :operator:`$where` operator expressions
-include any global shell functions or properties that are no longer
-available, such as ``db``.
+your :dbcommand:`map-reduce operations <mapReduce>`, :dbcommand:`group`
+commands, or :operator:`$where` operator expressions include any global
+shell functions or properties that are no longer available, such as
+``db``.
 
 The following shell functions and properties **are available** to
-:doc:`map-reduce operations </applications/map-reduce>`, the
-:dbcommand:`group` command, and :operator:`$where` operator expressions
-in MongoDB 2.4:
+:dbcommand:`map-reduce operations <mapReduce>`, the :dbcommand:`group`
+command, and :operator:`$where` operator expressions in MongoDB 2.4:
 
 .. list-table::
   :header-rows: 1
