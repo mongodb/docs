@@ -1,9 +1,9 @@
 .. index:: internals; sharding
 .. _sharding-internals:
 
-=======================================
-Sharded Cluster Internals and Behaviors
-=======================================
+=========================
+Sharded Cluster Internals
+=========================
 
 .. default-domain:: mongodb
 
@@ -574,12 +574,23 @@ a document with a ``msg`` field that holds the string
 If the application is instead connected to a :program:`mongod`, the
 returned document does not include the ``isdbgrid`` string.
 
+Sharded Cluster Metadata
+------------------------
+
+Sharded cluster metadata is contained in the
+:doc:`/reference/config-database` and comprises information about the
+:term:`sharded cluster's <sharded cluster>` partitioned data sets. The
+config database stores the relationship between :term:`chunks <chunk>`
+and where they reside within a :term:`sharded cluster`. Without a
+config database, the :program:`mongos` instances would be unable to
+route queries or write operations within the cluster.
+
 .. index:: config database
 .. index:: database, config
 .. _sharding-internals-config-database:
 
 Config Database
----------------
+~~~~~~~~~~~~~~~
 
 The ``config`` database contains information about your sharding
 configuration and stores the information in a set of collections
@@ -613,48 +624,78 @@ collections:
 See :doc:`/reference/config-database` for full documentation of these
 collections and their role in sharded clusters.
 
-Sharding GridFS Stores
-----------------------
+.. index:: sharding; config servers
+.. index:: config servers
+.. _sharding-config-server:
+.. _sharded-cluster-config-server:
 
-When sharding a :term:`GridFS` store, consider the following:
+Config Servers
+~~~~~~~~~~~~~~
 
-- Most deployments will not need to shard the ``files``
-  collection. The ``files`` collection is typically small, and only
-  contains metadata. None of the required keys for GridFS lend
-  themselves to an even distribution in a sharded situation. If you
-  *must* shard the ``files`` collection, use the ``_id`` field
-  possibly in combination with an application field
+Config servers are special :program:`mongod` instances that maintain the
+sharded cluster metadata in the config database. A sharded cluster
+operates with a group of *three* config servers that use a two-phase
+commit process that ensures immediate consistency and reliability.
+Config servers *do not* run as replica sets.
 
-  Leaving ``files`` unsharded means that all the file metadata
-  documents live on one shard. For production GridFS stores you *must*
-  store the ``files`` collection on a replica set.
+For testing purposes you may deploy a cluster with a single
+config server, but this is not recommended for production.
 
-- To shard the ``chunks`` collection by ``{ files_id : 1 , n : 1 }``,
-  issue commands similar to the following:
+All config servers must be available on initial setup
+of a sharded cluster. Each :program:`mongos` instance must be able
+to write to the ``config.version`` collection.
 
-  .. code-block:: javascript
+.. warning::
 
-     db.fs.chunks.ensureIndex( { files_id : 1 , n : 1 } )
+   If your cluster has a single config server, this
+   :program:`mongod` is a single point of failure.  If the instance is
+   inaccessible the cluster is not accessible. If you cannot recover
+   the data on a config server, the cluster will be inoperable.
 
-     db.runCommand( { shardCollection : "test.fs.chunks" , key : { files_id : 1 , n : 1 } } )
+   **Always** use three config servers for production deployments.
 
-  You may also want shard using just the ``file_id`` field, as in the
-  following operation:
+Read and Write Operations on Config Servers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  .. code-block:: javascript
+The load on configuration servers is small because each
+:program:`mongos` instance maintains a cached copy of the configuration
+database. MongoDB only writes data to the config server to:
 
-     db.runCommand( { shardCollection : "test.fs.chunks" , key : {  files_id : 1 } } )
+- create splits in existing chunks, which happens as data in
+  existing chunks exceeds the maximum chunk size.
 
-  .. note::
+- migrate a chunk between shards.
 
-     .. versionchanged:: 2.2
+If one or two configuration instances become unavailable, the
+cluster's metadata becomes *read only*. It is still possible to read
+and write data from the shards, but no chunk migrations or splits will
+occur until all three servers are accessible. At the same time, config
+server data is only read in the following situations:
 
-     Before 2.2, you had to create an additional index on ``files_id``
-     to shard using *only* this field.
+- A new :program:`mongos` starts for the first time, or an existing
+  :program:`mongos` restarts.
 
-  The default ``files_id`` value is an :term:`ObjectId`, as a result
-  the values of ``files_id`` are always ascending, and applications
-  will insert all new GridFS data to a single chunk and shard.  If
-  your write load is too high for a single server to handle, consider
-  a different shard key or use a different value for different value
-  for ``_id`` in the ``files`` collection.
+- After a chunk migration, the :program:`mongos` instances update
+  themselves with the new cluster metadata.
+
+If all three config servers are inaccessible, you can continue to use
+the cluster as long as you don't restart the :program:`mongos`
+instances until after config servers are accessible again. If you
+restart the :program:`mongos` instances and there are no accessible
+config servers, the :program:`mongos` would be unable to direct
+queries or write operations to the cluster.
+
+Because the configuration data is small relative to the amount of data
+stored in a cluster, the amount of activity is relatively low, and 100%
+up time is not required for a functioning sharded cluster. As a result,
+backing up the config servers is not difficult. Backups of config
+servers are critical as clusters become totally inoperable when
+you lose all configuration instances and data. Precautions to ensure
+that the config servers remain available and intact are critical.
+
+.. note::
+
+   Configuration servers store metadata for a single sharded cluster.
+   You must have a separate configuration server or servers for each
+   cluster you administer.
+

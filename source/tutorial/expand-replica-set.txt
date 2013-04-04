@@ -10,12 +10,37 @@ Overview
 This tutorial explains how to add an additional member to an
 existing replica set.
 
-Before adding a new member, see the
-:ref:`replica-set-admin-procedure-add-member`
-topic in the :doc:`/administration/replica-sets` document.
+Before adding a new member to an existing :term:`replica set`, do one of
+the following to prepare the new member's :term:`data directory <dbpath>`:
+
+- Make sure the new member's data directory *does not* contain data. The
+  new member will copy the data from an existing member.
+
+  If the new member is in a :term:`recovering` state, it must exit and
+  become a :term:`secondary` before MongoDB
+  can copy all data as part of the replication process. This process
+  takes time but does not require administrator intervention.
+
+- Manually copy the data directory from an existing member. The new
+  member becomes a secondary member and will catch up to the current
+  state of the replica set after a short interval. Copying the data over
+  manually shortens the amount of time for the new member to become
+  current.
+
+  Ensure that you can copy the data directory to the new member and
+  begin replication within the :ref:`window allowed by the oplog
+  <replica-set-oplog-sizing>`. If the difference in the amount of time
+  between the most recent operation and the most recent operation to
+  the database exceeds the length of the :term:`oplog` on the existing
+  members, then the new instance will have to perform an initial sync,
+  which completely resynchronizes the data, as described in
+  :doc:`resync-replica-set-member`.
+
+  Use :method:`db.printReplicationInfo()` to check the current state of
+  replica set members with regards to the oplog.
 
 For background on replication deployment patterns, see the
-:doc:`/administration/replica-set-architectures` document.
+:doc:`/core/replica-set-architectures` document.
 
 Requirements
 ------------
@@ -187,7 +212,7 @@ Production Notes
 
   - clean: the existing dataset must be from a consistent copy of the
     database from a member of the same replica set. See the
-    :doc:`/administration/backups` document for more information.
+    :doc:`/core/backups` document for more information.
 
   - recent: the copy must more recent than the oldest operation in the
     :term:`primary` member's :term:`oplog`. The new secondary must be

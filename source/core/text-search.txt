@@ -1,0 +1,128 @@
+===========
+Text Search
+===========
+
+.. default-domain:: mongodb
+
+.. versionadded:: 2.4
+
+Overview
+--------
+
+Text search supports the search of string content in documents of a
+collection. Text search introduces a new :ref:`text
+<index-feature-text>` index type and a new :dbcommand:`text` command.
+
+The text search process:
+
+- tokenizes and stems the search term(s) during both the index creation
+  and the text command execution.
+
+- assigns a score to each document that contains the search term in the
+  indexed fields. The score determines the relevance of a document to a
+  given search query.
+
+By default, :dbcommand:`text` command returns at most the top 100
+matching documents as determined by the scores.
+
+.. important::
+
+   Before you can create a text index or :ref:`run the text command
+   <text-search-text-command>`, you need to manually enable the text
+   search. See :doc:`/tutorial/enable-text-search` for information on
+   how to enable the text search feature.
+
+.. _text-search-storage-requirements:
+
+Storage Requirements and Performance Costs
+------------------------------------------
+
+``text`` indexes have the following storage requirements and
+performance costs:
+
+- ``text`` indexes change the space allocation method for all future
+  record allocations in a collection to :collflag:`usePowerOf2Sizes`.
+
+- ``text`` indexes can be large. They contain one index entry for each
+  unique post-stemmed word in each indexed field for each document
+  inserted.
+
+- Building a ``text`` index is very similar to building a large
+  multi-key index and will take longer than building a simple ordered
+  (scalar) index on the same data.
+
+- When building a large ``text`` index on an existing collection,
+  ensure that you have a sufficiently high limit on open file
+  descriptors. See the :ref:`recommended settings <oom-killer>`.
+
+- ``text`` indexes will impact insertion throughput because MongoDB
+  must add an index entry for each unique post-stemmed word in each
+  indexed field of each new source document.
+
+- Additionally, ``text`` indexes do not store phrases or information
+  about the proximity of words in the documents. As a result, phrase
+  queries will run much more effectively when the entire collection
+  fits in RAM.
+
+.. _create-text-index:
+
+Create a ``text`` Index
+-----------------------
+
+To perform text search, create a ``text`` index on the field or fields
+whose value is a string or an array of string elements. To create a
+``text`` index, use the :method:`db.collection.ensureIndex()` method
+with a document that contains field and value pairs where the value is
+the string literal ``text``.
+
+.. important::
+
+   - Text indexes have significant storage requirements and performance
+     costs. See :ref:`text-search-storage-requirements` for more
+     information.
+
+   - .. include:: /includes/fact-text-index-limit-one.rst
+
+The following tutorials offer additional ``text`` index creation
+patterns:
+
+- :doc:`/tutorial/create-text-index-on-multiple-fields`
+
+- :doc:`/tutorial/specify-language-for-text-index`
+
+- :doc:`/tutorial/avoid-text-index-name-limit`
+
+- :doc:`/tutorial/create-text-index-on-multi-language-collection`
+
+- :doc:`/tutorial/control-results-of-text-search`
+
+Additionally, MongoDB permits :ref:`compound indexes
+<index-type-compound>` that include ``text`` index fields in
+combination with ascending/descending index fields. For more
+information, see:
+
+- :doc:`/tutorial/limit-number-of-items-scanned-for-text-search`
+
+- :doc:`/tutorial/return-text-queries-using-only-text-index`
+
+.. _text-search-text-command:
+
+``text`` Command
+----------------
+
+The :dbcommand:`text` command can search for words and phrases. The
+command matches on the complete stemmed words. For example, if a
+document field contains the word ``blueberry``, a search on the term
+``blue`` will not match the document. However, a search on either
+``blueberry`` or ``blueberries`` will match.
+
+For information and examples on various text search patterns, see
+:doc:`/tutorial/search-for-text`.
+
+Text Search Output
+------------------
+
+The :dbcommand:`text` command returns a document that contains the
+result set.
+
+See :ref:`text-search-output` for information on the output.

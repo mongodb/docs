@@ -1,0 +1,48 @@
+========================================
+Configure a Replica Set Member as Hidden
+========================================
+
+.. default-domain:: mongodb
+
+Hidden members are part of a replica set but cannot become primary and
+are invisible to client applications. *However,* hidden members **do**
+vote in :ref:`elections <replica-set-elections>`. 
+
+Hidden members are ideal for instances that will have significantly
+different usage patterns than the other members and require separation
+from normal traffic. Typically, hidden members provide reporting,
+dedicated backups, and dedicated read-only testing and integration
+support.
+
+Hidden members have :data:`~local.system.replset.members[n].priority` set
+``0`` and have :data:`~local.system.replset.members[n].hidden` set to ``true``.
+
+To configure a :term:`hidden member`, on the :term:`primary`, use the
+following sequence of operations in the :program:`mongo` shell:
+
+.. code-block:: javascript
+
+   cfg = rs.conf()
+   cfg.members[0].priority = 0
+   cfg.members[0].hidden = true
+   rs.reconfig(cfg)
+
+.. include:: /includes/warning-rs-reconfig.rst
+
+After re-configuring the set, the first member of the set in the
+:data:`~local.system.replset.members` array will have a priority of ``0``
+so that it cannot become primary. The other members in the set will
+not advertise the hidden member in the :dbcommand:`isMaster` or
+:method:`db.isMaster()` output.
+
+.. include:: /includes/seealso-elections.rst
+
+.. versionchanged:: 2.0
+
+   For :term:`sharded clusters <sharded cluster>` running with replica
+   sets before 2.0, if you reconfigured a member as hidden, you *had*
+   to restart :program:`mongos` to prevent queries from reaching the
+   hidden member.
+
+.. seealso:: :ref:`Read Preference <replica-set-read-preference>`
+   and :ref:`Replica Set Reconfiguration <replica-set-reconfiguration-usage>`.

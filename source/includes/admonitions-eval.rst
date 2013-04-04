@@ -8,7 +8,7 @@
    - Do not use |object| for long running operations as
      |object| blocks all other operations. Consider using
      :doc:`other server side code execution options
-     </applications/server-side-javascript>`.
+     </core/server-side-javascript>`.
 
    - You can not use |object| with :term:`sharded
      <sharding>` data. In general, you should avoid using

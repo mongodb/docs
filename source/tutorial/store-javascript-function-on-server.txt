@@ -1,0 +1,69 @@
+=========================================
+Store a JavaScript Function on the Server
+=========================================
+
+.. default-domain:: mongodb
+
+.. note::
+
+   We do **not** recommend using server-side stored functions if
+   possible.
+
+There is a special system collection named ``system.js`` that can store
+JavaScript functions for reuse.
+
+To store a function, you can use the :method:`db.collection.save()`, as
+in the following example:
+
+.. code-block:: javascript
+
+   db.system.js.save(
+      {
+        _id : "myAddFunction" ,
+        value : function (x, y){ return x + y; }
+      }
+   );
+
+- The ``_id`` field holds the name of the function and is unique per
+  database.
+
+- The ``value`` field holds the function definition
+
+Once you save a function in the ``system.js`` collection, you can use
+the function from any JavaScript context (e.g. :dbcommand:`eval`
+command or the:program:`mongo` shell method :method:`db.eval()`,
+:operator:`$where` operator, :dbcommand:`mapReduce` or :program:`mongo`
+shell method :method:`db.collection.mapReduce()`).
+
+Consider the following example from the :program:`mongo` shell that
+first saves a function named ``echoFunction`` to the ``system.js``
+collection and calls the function using :method:`db.eval()`
+method:
+
+.. code-block:: javascript
+
+   db.system.js.save(
+                      { _id: "echoFunction",
+                        value : function(x) { return x; }
+                      }
+                    )
+
+   db.eval( "echoFunction( 'test' )" )
+
+See `<http://github.com/mongodb/mongo/tree/master/jstests/storefunc.js>`_ for a full example.
+
+.. versionadded:: 2.1
+   In the :program:`mongo` shell, you can use
+   :method:`db.loadServerScripts()` to load all the scripts saved in
+   the ``system.js`` collection for the current db. Once loaded, you
+   can invoke the functions directly in the shell, as in the following
+   example:
+
+.. code-block:: javascript
+
+   db.loadServerScripts();
+
+   echoFunction(3);
+
+   myAddFunction(3, 5);
+

@@ -1,0 +1,159 @@
+==========
+Map-Reduce
+==========
+
+.. default-domain:: mongodb
+
+Map-reduce operations can handle complex aggregation tasks. To perform
+map-reduce operations, MongoDB provides the :dbcommand:`mapReduce`
+command and, in the :program:`mongo` shell, the
+:method:`db.collection.mapReduce()` wrapper method.
+
+Examples
+--------
+
+For examples of map-reduce, see
+
+.. toctree::
+   :maxdepth: 1
+   
+   /tutorial/map-reduce-examples
+   /tutorial/perform-incremental-map-reduce
+
+For many simple aggregation tasks, see the :doc:`aggregation framework
+</core/aggregation>`.
+
+.. _map-reduce-temporary-collection:
+
+Temporary Collection
+--------------------
+
+The map-reduce operation uses a temporary collection during processing.
+At completion, the map-reduce operation renames the temporary
+collection. As a result, you  can perform a map-reduce operation
+periodically with the same target collection name without affecting
+the intermediate states. Use this mode when
+generating statistical output collections on a regular basis.
+
+.. _map-reduce-concurrency:
+
+Concurrency
+-----------
+
+The map-reduce operation is composed of many tasks, including:
+
+- reads from the input collection,
+
+- executions of the ``map`` function,
+
+- executions of the ``reduce`` function,
+
+- writes to the output collection.
+
+These various tasks take the following locks:
+
+- The read phase takes a read lock.  It yields every 100 documents.
+   
+- The insert into the temporary collection takes a write lock for a
+  single write.
+
+  If the output collection does not exist, the creation of the output
+  collection takes a write lock.
+
+  If the output collection exists, then the output actions (i.e.
+  ``merge``, ``replace``, ``reduce``) take a write lock.
+
+.. versionchanged:: 2.4
+   The V8 JavaScript engine, which became the default in 2.4, allows
+   multiple JavaScript operations to execute at the same time. Prior to
+   2.4, JavaScript code (i.e. ``map``, ``reduce``, ``finalize``
+   functions) executed in a single thread.
+
+.. note::
+
+   The final write lock during post-processing makes the results appear
+   atomically. However, output actions ``merge`` and ``reduce`` may
+   take minutes to process. For the ``merge`` and ``reduce``, the
+   ``nonAtomic`` flag is available. See the
+   :method:`db.collection.mapReduce()` reference for more information.
+
+.. _map-reduce-sharded-cluster:
+
+Sharded Cluster
+---------------
+
+Sharded Input
+~~~~~~~~~~~~~
+
+When using sharded collection as the input for a map-reduce operation,
+:program:`mongos` will automatically dispatch the map-reduce job to
+each shard in parallel. There is no special option
+required. :program:`mongos` will wait for jobs on all shards to
+finish.
+
+Sharded Output
+~~~~~~~~~~~~~~
+
+By default the output collection is not sharded. The process is:
+
+- :program:`mongos` dispatches a map-reduce finish job to the shard
+  that will store the target collection.
+
+- The target shard pulls results from all other shards, and runs a
+  final reduce/finalize operation, and write to the output.
+
+- If using the ``sharded`` option to the ``out`` parameter, MongoDB
+  shards the output using ``_id`` field as the shard key.
+
+  .. versionchanged:: 2.2
+
+- If the output collection does not exist, MongoDB creates and shards
+  the collection on the ``_id`` field. If the collection is empty,
+  MongoDB creates :term:`chunks <chunk>` using the result of the first
+  stage of the map-reduce operation.
+
+- :program:`mongos` dispatches, in parallel, a map-reduce finish job
+  to every shard that owns a chunk.
+
+- Each shard will pull the results it owns from all other shards, run a
+  final reduce/finalize, and write to the output collection.
+
+.. note::
+
+   - During later map-reduce jobs, MongoDB splits chunks as needed.
+
+   - Balancing of chunks for the output collection is automatically
+     prevented during post-processing to avoid concurrency issues.
+
+In MongoDB 2.0:
+
+- :program:`mongos` retrieves the results from each shard, and
+  performs merge sort to order the results, and performs a reduce/finalize as
+  needed. :program:`mongos` then writes the result to the output
+  collection in sharded mode.
+
+- This model requires only a small amount of memory, even for large datasets.
+
+- Shard chunks are not automatically split during insertion. This
+  requires manual intervention until the chunks are granular and
+  balanced.
+
+.. warning::
+
+   For best results, only use the sharded output options for
+   :dbcommand:`mapReduce` in version 2.2 or later.
+
+.. _map-reduce-troubleshooting:
+
+Troubleshooting Map-Reduce Operations
+-------------------------------------
+
+You can troubleshoot the ``map`` function and the ``reduce`` function
+in the :program:`mongo` shell. See the following tutorials for more
+information:
+
+.. toctree::
+   :maxdepth: 1
+
+   /tutorial/troubleshoot-map-function
+   /tutorial/troubleshoot-reduce-function
