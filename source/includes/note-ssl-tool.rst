@@ -6,7 +6,7 @@
 
    SSL support in |tool-binary| is not compiled into the default
    distribution of MongoDB. See
-   :doc:`/tutorial/setup-ssl-configuration` for more information on SSL
+   :doc:`/tutorial/configure-ssl` for more information on SSL
    and MongoDB.
 
    Additionally, |tool-binary| does not support connections to
