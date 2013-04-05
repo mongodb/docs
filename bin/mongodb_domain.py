@@ -385,7 +385,9 @@ class MongoDBDomain(Domain):
                 return None
 
         return make_refnode(builder, fromdocname, obj[0],
-                            name.replace('$', '_S_'), contnode, name)
+                            name.replace('$', '_S_'), contnode, target)
+
+    
 
     def get_objects(self):
         for refname, (docname, type) in self.data['objects'].items():
