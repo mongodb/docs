@@ -20,10 +20,10 @@ pull request.
 Please review the following documents for our style, conventions,
 processes and practices for the MongoDB Documentation:
 
-- `Style and Conventions <meta.style-guide.rst>`_
-- `Practices and Processes <meta.practices.rst>`_
-- `Organization <meta.organization.rst>`_
-- `Building and Deploying MongoDB Documentation <meta.build.rst>`_
+- `Style Guide <http://docs.mongodb.org/manual/meta/style-guide>`_
+- `Documentation Practices <http://docs.mongodb.org/manual/meta/practices>`_
+- `Documentation Organization <http://docs.mongodb.org/manual/meta/organization>`_
+- `Build Instructions <http://docs.mongodb.org/manual/meta/build>`_
 
 Do not hesitate to open a ticket in our `Jira`_ project
 or to contact the `documentation team`_
