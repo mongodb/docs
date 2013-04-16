@@ -15,7 +15,7 @@ m = MakefileCloth()
 def make_all_sphinx(sphinx):
     m.section_break('sphinx related variables', block='header')
     m.var(variable='SPHINXOPTS',
-          value='-c ./',
+          value='-c ./ $(build-meta)',
           block='vars')
     m.var(variable='SPHINXBUILD',
           value='sphinx-build',
@@ -54,14 +54,6 @@ def make_all_sphinx(sphinx):
     m.section_break('sphinx prerequisites')
     m.target('sphinx-prerequisites', 'setup generate-source', block='prereq')
     m.msg('[sphinx-prep]: completed $@ buildstep.', block='prereq')
-
-    m.target('intersphinx', block='prereq')
-    m.target('generate-source', 'intersphinx', block='prereq')
-    m.job('rsync --recursive --times --delete source/ $(branch-output)/source', block='prereq')
-    m.msg('[sphinx-prep]: updated source in $(branch-output)/source', block='prereq')
-    info_note = 'Build in progress past critical phase.'
-    m.job(utils.build_platform_notification('Sphinx', info_note), ignore=True, block='prereq')
-    m.msg('[sphinx-prep]: INFO - ' + info_note, block='prereq')
 
     m.target('$(branch-output)/source', block='prereq')
     m.job('mkdir -p $@', block='prereq')

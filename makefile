@@ -25,12 +25,26 @@ publish-output = build/public/hosted/$(current-branch)
 public-output = build/public/hosted
 publish-dependency = $(public-output)/current
 build-meta += -t hosted
+
+generate-source:
+	@rsync --recursive --times --delete source/ $(branch-output)/source --exclude source/backup/*
+	@sed $(SED_ARGS_FILE) 's%   Backup </backup>%%' $(branch-output)/source/index.txt 
+	@rm $(branch-output)/source/backup.txt 
+	@echo [sphinx-prep]: updated source in $(branch-output)/source
+	@-notify-send "Sphinx" "Build in progress past critical phase."
+	@echo [sphinx-prep]: INFO - Build in progress past critical phase.
 else
 build-type = saas
 conf-path = conf_base.py
 branch-output = build/saas
 publish-output = build/public/saas
 build-meta += -t saas
+
+generate-source:
+	@rsync --recursive --times --delete source/ $(branch-output)/source
+	@echo [sphinx-prep]: updated source in $(branch-output)/source
+	@-notify-send "Sphinx" "Build in progress past critical phase."
+	@echo [sphinx-prep]: INFO - Build in progress past critical phase.
 endif
 
 ########## interaction and control ##########

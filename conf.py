@@ -50,20 +50,24 @@ html_theme_options = {}
 latex_documents = []
 
 # -- Conditional Output --------------------------------------------------------
+BREAK = '\n'
 if tags.has('hosted'): 
     project = u'On-Prem Monitoring / MMS'
     html_title = 'On-Prem Monitoring / MMS'
     html_short_title = 'On-Prem Monitoring / MMS'
     html_theme_options['edition'] = 'hosted'
     latex_documents.append(('index', 'mms.tex', u'On-Prem Monitoring / MMS', u'10gen, Inc.', 'howto'))
-    rst_epilog = ".. |s| replace:: Service"    
+    rst_epilog = ".. |s| replace:: Suite" + BREAK
+    rst_epilog += ".. |index-page-title| replace:: On-Prem Monitoring" + BREAK
 else:
-    project = u'MongoDB Monitoring Service (MMS)'
+    project = u'MongoDB Management Service (MMS)'
     html_title = 'MMS Manual'
     html_short_title = 'MMS'
     html_theme_options['edition'] = 'saas'
     latex_documents.append(('index', 'mms.tex', u'MongoDB Monitoring Service (MMS) Manual', u'10gen, Inc.', 'howto'))
-    rst_epilog = ".. |s| replace:: Suite"    
+    rst_epilog = ".. |s| replace:: Service" + BREAK
+    rst_epilog += ".. |index-page-title| replace:: MongoDB Management Service" + BREAK
+    
 
 # -- Options for LaTeX output --------------------------------------------------
 
