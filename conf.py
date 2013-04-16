@@ -50,19 +50,20 @@ html_theme_options = {}
 latex_documents = []
 
 # -- Conditional Output --------------------------------------------------------
-
 if tags.has('hosted'): 
     project = u'On-Prem Monitoring / MMS'
     html_title = 'On-Prem Monitoring / MMS'
     html_short_title = 'On-Prem Monitoring / MMS'
     html_theme_options['edition'] = 'hosted'
     latex_documents.append(('index', 'mms.tex', u'On-Prem Monitoring / MMS', u'10gen, Inc.', 'howto'))
+    rst_epilog = ".. |s| replace:: Service"    
 else:
     project = u'MongoDB Monitoring Service (MMS)'
     html_title = 'MMS Manual'
     html_short_title = 'MMS'
     html_theme_options['edition'] = 'saas'
     latex_documents.append(('index', 'mms.tex', u'MongoDB Monitoring Service (MMS) Manual', u'10gen, Inc.', 'howto'))
+    rst_epilog = ".. |s| replace:: Suite"    
 
 # -- Options for LaTeX output --------------------------------------------------
 
