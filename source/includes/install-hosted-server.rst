@@ -206,7 +206,7 @@ tutorial for more information.
       pre-allocate the journal files. This is normal behavior.
 
 Obtain and Install On-Prem MMS Server
-++++++++++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++++
 
 .. note::
 
@@ -546,7 +546,7 @@ MMS server release.
       sudo /etc/init.d/10gen-mms start
 
 Upgrading a ``tgz``/``zip`` Installation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To upgrade a tarball installation, backup configuration and/or logs,
 and then re-install the MMS server. 
