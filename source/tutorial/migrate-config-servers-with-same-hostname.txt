@@ -1,0 +1,40 @@
+=============================================
+Migrate Config Servers with the Same Hostname
+=============================================
+
+.. default-domain:: mongodb
+
+This procedure migrates a :ref:`config server <sharding-config-server>`
+in a :doc:`sharded cluster </core/sharded-clusters>`
+to a new system that uses *the same* hostname.
+
+#. Shut down the config server that you are moving.
+
+   This will render all config data for your cluster :ref:`read only
+   <sharding-config-server>`.
+
+#. Change the DNS entry that points to the system that provided the old
+   config server, so that the *same* hostname points to the new
+   system.
+
+   How you do this depends on how you organize your DNS and
+   hostname resolution services.
+
+#. Move the entire :setting:`dbpath` file system tree from the old
+   config server to the new config server. This command, issued on the
+   old config server system, may resemble the following:
+
+   .. code-block:: sh
+
+      rsync -az /data/configdb mongo-config0.example.net:/data/configdb
+
+#. Start the config instance on the new system. The default invocation
+   is:
+
+   .. code-block:: sh
+
+      mongod --configsvr
+
+When you start the third config server, your cluster will become
+writable and it will be able to create new splits and migrate chunks
+as needed.
