@@ -47,7 +47,10 @@ html_show_sourcelink = False
 htmlhelp_basename = 'MongoDBdoc'
 
 html_theme_options = {}
-latex_documents = []
+latex_documents = [
+ #   (source start file, target name, title, author, documentclass [howto/manual]).
+
+    ]
 
 # -- Conditional Output --------------------------------------------------------
 BREAK = '\n'
@@ -56,19 +59,22 @@ if tags.has('hosted'):
     html_title = 'On-Prem Monitoring / MMS'
     html_short_title = 'On-Prem Monitoring / MMS'
     html_theme_options['edition'] = 'hosted'
-    latex_documents.append(('index', 'mms.tex', u'On-Prem Monitoring / MMS', u'10gen, Inc.', 'howto'))
+    latex_documents.append(('monitoring', 'mms.tex', u'On-Prem Monitoring / MMS', u'10gen, Inc.', 'howto'))
     rst_epilog = ".. |s| replace:: Suite" + BREAK
     rst_epilog += ".. |index-page-title| replace:: On-Prem Monitoring" + BREAK
+    rst_epilog += ".. |mms| replace:: On-Prem Monitoring" + BREAK
 else:
     project = u'MongoDB Management Service (MMS)'
     html_title = 'MMS Manual'
     html_short_title = 'MMS'
     html_theme_options['edition'] = 'saas'
-    latex_documents.append(('index', 'mms.tex', u'MongoDB Monitoring Service (MMS) Manual', u'10gen, Inc.', 'howto'))
+    latex_documents.append(('monitoring', 'mms.tex', u'MongoDB Monitoring Manual', u'10gen, Inc.', 'howto'))
+    latex_documents.append(('monitoring', 'mms-monitoring.tex', u'MMS Monitoring Manual', u'10gen Inc.', 'howto'))
+    latex_documents.append(('backup', 'mms-backup.tex', u'MMS Backup Manual', u'10gen Inc.', 'howto'))
     rst_epilog = ".. |s| replace:: Service" + BREAK
     rst_epilog += ".. |index-page-title| replace:: MongoDB Management Service" + BREAK
+    rst_epilog += ".. |mms| replace:: MongoDB Monitoring and Backup Service" + BREAK
     
-
 # -- Options for LaTeX output --------------------------------------------------
 
 latex_paper_size = 'letter' # ('letter' or 'a4').
