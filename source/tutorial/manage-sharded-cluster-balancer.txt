@@ -158,24 +158,26 @@ all migration, use the following procedure:
 
       sh.startBalancer()
 
-.. note::
+   .. note::
 
-   If a migration is in progress, the system will complete
-   the in-progress migration. After disabling, you can use the
-   following operation in the :program:`mongo` shell to determine if
-   there are no migrations in progress:
+      If a migration is in progress, the system will complete the
+      in-progress migration before stopping. After disabling, you can use the following
+      operation in the :program:`mongo` shell to determine if there are
+      no migrations in progress:
 
-   .. code-block:: javascript
+      .. code-block:: javascript
 
-      use config
-      while( db.locks.findOne({_id: "balancer"}).state ) {
-             print("waiting..."); sleep(1000);
-      }
+         use config
+         while( sh.isBalancerRunning() ) {
+                   print("waiting...");
+                   sleep(1000);
+         }
 
-The above process and the :method:`sh.setBalancerState()`,
-:method:`sh.startBalancer()`, and :method:`sh.stopBalancer()` helpers provide
-wrappers on the following process, which may be useful if you need to
-run this operation from a driver that does not have helper functions:
+   The above process and the :method:`sh.setBalancerState()`,
+   :method:`sh.startBalancer()`, and :method:`sh.stopBalancer()` helpers
+   provide wrappers on the following process, which may be useful if you
+   need to run this operation from a driver that does not have helper
+   functions:
 
 #. Connect to any :program:`mongos` in the cluster using the
    :program:`mongo` shell.
@@ -214,7 +216,42 @@ operation:
 - :ref:`manually disable the balancer <sharding-balancing-disable-temporally>`
   for the duration of the backup procedure.
 
-Confirm that the balancer is not active using the
-:method:`sh.getBalancerState()` method before starting a backup
-operation. When the backup procedure is complete you can reactivate
+If you turn the balancer off while it is in the middle of a balancing round,
+the shut down is not instantaneous. The balancer completes the chunk
+move in-progress and then ceases all further balancing rounds.
+
+Before starting a backup operation, confirm that the balancer is not
+active. You can use the following command to determine if the balancer
+is active:
+
+.. code-block:: javascript
+
+   !sh.getBalancerState() && !sh.isBalancerRunning()
+
+When the backup procedure is complete you can reactivate
 the balancer process.
+
+.. _sharding-balancing-re-enable:
+
+Re-enable the Balancer after Temporarily Disabling It
+-----------------------------------------------------
+
+Use this procedure if you have temporarily disabled the balancer and are
+ready to re-enable it:
+
+#. Connect to any :program:`mongos` in the cluster using the
+   :program:`mongo` shell.
+
+#. Issue one of the following operations to enable the balancer:
+
+   - From the :program:`mongo` shell, issue:
+
+     .. code-block:: javascript
+
+        sh.startBalancer()
+
+   - From a driver that does not have the :method:`sh.startBalancer()` helper:
+
+     .. code-block:: javascript
+
+        db.settings.update( { _id: "balancer" }, { $set : { stopped: false } } , true );
