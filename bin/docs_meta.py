@@ -79,7 +79,8 @@ def output_yaml(fn):
             'manual_path': get_manual_path(),
             'date': str(datetime.date.today().year),
             'version_selector': get_versions(),
-            'stable': STABLE_RELEASE
+            'stable': STABLE_RELEASE,
+            'published_branches': PUBLISHED_BRANCHES
     }
 
     with open(fn, 'w') as f:
