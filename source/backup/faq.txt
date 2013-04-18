@@ -1,0 +1,160 @@
+ ==========================================
+Frequently Asked Questions: Backup Service
+==========================================
+
+.. contents:: Frequently Asked Questions:
+   :backlinks: none
+   :local:
+
+Operations
+----------
+
+Where should I run the Backup agent?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Backup agent can run anywhere in your infrastructure that has
+access to your ``mongod`` instances. To avoid contention for network
+and CPU resources, do not run the Backup agent on the same hosts that
+provide your ``mongod`` instances.
+
+The primary resource requirement for the Backup agent is network. 
+
+Will the MongoDB Backup Service impact my production databases?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Backup agent and will have minimal impact on production
+deployments of MongoDB. For most users, adding an the Backup Service
+will be equivalent to adding an additional secondary member to your
+set or sets.
+
+By default the Backup agent will perform the initial sync, which is
+the most resource intensive operation for the Backup Service, against
+a secondary member of the replica set to limit the impact of the
+Backup Service. You may optionally configure the Backup agent to
+perform the initial sync against the primary, although this will
+increase the impact of the initial sync operation.
+
+Is my data safe?
+~~~~~~~~~~~~~~~~
+
+Yes. 
+
+10gen uses enterprise-grade hardware co-located in secure data centers
+to store all user Backup data. The Backup agent and service transmits
+all data using SSL. The Backup Service requires two-factor
+authentication to provide any data for restores.
+
+Is there a limit to Backup size?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+During the limited release, the Backup Service is limited to 500
+gigabytes per user group, which will increase in the future.
+
+How can 10gen provide point-in-time restores for any point in time?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Backup Service builds point-in-time snapshots by applying oplog
+entries to the most recent regular snapshot that precedes that
+specified point-in-time. These point-in-time snapshots take longer to
+construct and deliver than the regular snapshots. 
+
+During the limited release, the Backup Service will only provide
+point-in-time snapshots for a 24 hour window.
+
+Can I configure the interval of regular snapshots?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+During the initial limited release, the Backup Service creates
+regular snapshots every 6 hours. This schedule is not configurable
+at this time, but will be in a future release.
+
+.. _backup-faq-retention:
+
+Can I set my own snapshot retention policy?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Currently the snapshot retention policy is not configurable. The
+backup service currently retains regular snapshots with the following
+policy:
+
+- 6-hour interval snapshots for 2 days,
+- daily snapshots stored for 1 week,
+- weekly snapshots stored for 1 month, and
+- monthly snapshots stored for 1 year.
+
+How many copies of my data does the Backup Service  store?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Backup Service stores all user Backup data on at least 4 services
+in at least 2 geographic regions in the US.
+
+What factors affect the time required to restore a snapshot?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The time required to restore a snapshot depends on: 
+
+- transfer time between the Backup Service and your infrastructure,
+  
+- the size of the snapshot data, and
+
+- snapshot type. 
+  
+The Backup Service can construct regular snapshots much more quickly
+than point-in-time snapshots. The time required to construct a
+point-in-time backup depends on its proximity to the preceding regular
+snapshot, the size of the snapshot, and the volume of oplog
+entries.
+
+Does the Backup Service perform any data validation?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Backup Service constructs basic corruption checks, and provides
+alerts for the following issues if the service detects corruption in
+the current regular snapshot.
+
+Pricing
+-------
+
+How does the Backup Service calculate snapshot storage costs?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The snapshot storage cost depends on the *raw storage size*.
+
+Raw storage size is the sum of all allocated extents, which is
+typically smaller than file size.
+
+The snapshot storage price is $0.80 per gigabyte per-month.
+
+See :ref:`backup-faq-retention` for more information about snapshot
+retention, which affects snapshot storage cost.
+
+How do you calculate the cost of network data transfer cost?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The transfer cost for the Backup Service is $2 per gigabyte of
+uncompressed incoming oplog data. There is no cost for the transfer of
+intial sync data.
+
+What is the snapshot creation cost?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Creating a snapshot incurs a one-time charge to cover the cost of
+building a snapshot. The rate is $0.01 per gigabyte.
+
+What other costs does the Backup Service incur?
+-----------------------------------------------
+
+In addition to snapshot storage and creation costs and the network
+transfter cost, the Backup Service incurs a minimum cost of $0.10 per
+replica set per day.
+
+What is the billing frequency and schedule?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You will recieve a monthly bill for the backup service; however, the
+service calculates costs every day.
+
+What is the cost of a restoration?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The is no cost to create a restore.
