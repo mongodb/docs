@@ -13,7 +13,7 @@ capabilities, consider the backup methods described in
 
 .. seealso::
 
-   - :doc:`/administration/backups`
+   - :doc:`/core/backups`
    - :doc:`/reference/mongodump`
    - :doc:`/reference/mongorestore`
 
@@ -25,14 +25,28 @@ Backup a Database with ``mongodump``
 Basic ``mongodump`` Operations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :program:`mongodump` utility can perform a live backup of data or
-can work against an inactive set of database files.
-The :program:`mongodump` utility can create a dump for an entire
-server/database/collection (or part of a collection using of query),
-even when the database is running and active. If you run
-:program:`mongodump` without any arguments, the command connects to
-the local database instance (e.g. ``127.0.0.1`` or ``localhost``) and
-creates a database backup named ``dump/`` in the current directory.
+The :program:`mongodump` utility can back up data by either:
+
+- connecting to a running :program:`mongod` or
+  :program:`mongos` instance, or
+
+- accessing data files without an active instance.
+
+The utility can create a backup for an entire server, database or collection,
+or can use a query to backup just part of a collection.
+
+When you run :program:`mongodump` without any arguments, the command
+connects to the local database instance (e.g. ``127.0.0.1`` or
+``localhost``) on port ``27017`` and creates a database backup named
+``dump/`` in the current directory.
+
+To backup data from a :program:`mongod` or :program:`mongos` instance
+running on the same machine and on the default port of ``27017``
+use the following command:
+
+.. code-block:: sh
+
+   mongodump
 
 .. include:: /includes/note-mongodump-compatibility-2.2.rst
 
@@ -40,6 +54,18 @@ To limit the amount of data included in the database dump, you can
 specify :option:`--db <mongodump --db>` and
 :option:`--collection <mongodump --collection>` as options to the
 :program:`mongodump` command. For example:
+
+.. code-block:: sh
+
+   mongodump --dbpath /data/db/ --out /data/backup/
+
+.. code-block:: sh
+
+   mongodump --host mongodb.example.net --port 27017
+
+:program:`mongodump` will write :term:`BSON` files that hold a copy of
+data accessible via the :program:`mongod` listening on port ``27017`` of
+the ``mongodb.example.net`` host.
 
 .. code-block:: sh
 
@@ -84,12 +110,12 @@ Create Backups from Non-Local ``mongod`` Instances
 
 The :option:`--host <mongodump --host>` and
 :option:`--port <mongodump --port>` options for
-:program:`mongodump` allow you to specify a non-local host to connect
-to capture the dump. Consider the following example:
+:program:`mongodump` allow you to connect to and backup from a remote host.
+Consider the following example:
 
 .. code-block:: sh
 
-   mongodump --host mongodb1.example.net --port 3017 --username user --password pass --out /opt/backup/mongodump-2011-10-24
+   mongodump --host mongodb1.example.net --port 3017 --username user --password pass --out /opt/backup/mongodump-2012-10-24
 
 On any :program:`mongodump` command you may, as above, specify username
 and password credentials to specify database authentication.
@@ -100,27 +126,45 @@ Restore a Database with ``mongorestore``
 ----------------------------------------
 
 The :program:`mongorestore` utility restores a binary backup created by
-:program:`mongodump`. Consider the following example command:
+:program:`mongodump`. By default, :program:`mongorestore` looks for a
+database backup in the :file:`dump/` directory.
+
+The :program:`mongorestore` utility can restore data either by:
+
+- connecting to a running :program:`mongod` or
+  :program:`mongos` directly, or
+
+- writing to a local database path without use of a running :program:`mongod`.
+
+The :program:`mongorestore` utility can restore either an entire
+database backup or a subset of the backup.
+
+A :program:`mongorestore` command that connects to an active
+:program:`mongod` or :program:`mongos` has the following prototype form:
 
 .. code-block:: sh
 
-   mongorestore dump-2011-10-25/
+   mongorestore --port <port number> <path to the backup>
 
-Here, :program:`mongorestore` imports the database backup located in
-the :file:`dump-2011-10-25` directory to the :program:`mongod` instance
-running on the localhost interface. By default, :program:`mongorestore`
-looks for a database dump in the :file:`dump/` directory and restores
-that. If you wish to restore to a non-default host, the
-:option:`--host <mongorestore --host>` and :option:`--port <mongorestore --port>`
-options allow you to specify a non-local host to connect to capture
-the dump. Consider the following example:
+A :program:`mongorestore` command that writes to data files
+without using a running :program:`mongod` has the following prototype
+form:
 
 .. code-block:: sh
 
-   mongorestore --host mongodb1.example.net --port 3017 --username user --password pass /opt/backup/mongodump-2011-10-24
+   mongorestore --dbpath <local database path> <path to the backup>
 
-On any :program:`mongorestore` command you may specify
-username and password credentials, as above.
+Consider the following example:
+
+.. code-block:: sh
+
+   mongorestore dump-2012-10-25/
+
+Here, :program:`mongorestore` imports the database backup in
+the :file:`dump-2012-10-25` directory to the :program:`mongod` instance
+running on the localhost interface.
+
+.. _backup-restore-oplogreplay:
 
 Restore Point in Time Oplog Backup
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -141,6 +185,8 @@ database, or you may consider the :option:`mongorestore --drop` option to drop e
 collection from the database before restoring from
 backups.
 
+.. _backup-restore-filter:
+
 Restore a Subset of data from a Binary Database Dump
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -157,6 +203,8 @@ the dump located in the :file:`dump/` folder *if* the documents have a
 field name ``field`` that holds a value of ``1``. Enclose the
 filter in single quotes (e.g. ``'``) to prevent the filter from
 interacting with your shell environment.
+
+.. _backup-restore-dbpath:
 
 Restore without a Running ``mongod``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -178,3 +226,21 @@ operation.
 
 .. seealso:: :doc:`/reference/mongodump` and
    :doc:`/reference/mongorestore`.
+
+Restore Backups to Non-Local ``mongod`` Instances
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, :program:`mongorestore` connects to a MongoDB instance
+running on the localhost interface (e.g. ``127.0.0.1``) and on the
+default port (``27017``). If you want to restore to a different host or
+port, use the :option:`--host <mongorestore --host>` and :option:`--port
+<mongorestore --port>` options.
+
+Consider the following example:
+
+.. code-block:: sh
+
+   mongorestore --host mongodb1.example.net --port 3017 --username user --password pass /opt/backup/mongodump-2012-10-24
+
+As above, you may specify username and password connections if your
+:program:`mongod` requires authentication.

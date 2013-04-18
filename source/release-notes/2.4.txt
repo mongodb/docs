@@ -1,21 +1,8 @@
-======================================================
-Release Notes for MongoDB 2.4 (2.3 Development Series)
-======================================================
+=============================
+Release Notes for MongoDB 2.4
+=============================
 
 .. default-domain:: mongodb
-
-MongoDB 2.4 is currently in development, as part of the 2.3
-development release series. While 2.3-series releases are currently
-available, these versions of MongoDB are for **testing** *only*, and
-are *not for production use* under any circumstances.
-
-.. important:: *All* interfaces *and* functionality described in this
-   document are subject to change before the 2.4.0 release.
-
-This document will eventually contain the full release notes for
-MongoDB 2.4; during the development cycle this document will contain
-documentation of new features and functionality only available in the
-2.3 releases.
 
 .. contents:: See the :doc:`full index of this page <2.4-changes>` for
               a complete list of changes included in 2.4.
@@ -23,459 +10,102 @@ documentation of new features and functionality only available in the
    :local:
    :depth: 2
 
-Downloading
------------
+MongoDB 2.4 was released on March 19, 2013.
 
-You can download the 2.3 release on the `downloads page`_ in the
-:guilabel:`Development Release (Unstable)` section. There are no
-distribution packages for development releases, but you can use the
-binaries provided for testing purposes. See
-:doc:`/tutorial/install-mongodb-on-linux`,
-:doc:`/tutorial/install-mongodb-on-windows`, or
-:doc:`/tutorial/install-mongodb-on-os-x` for the basic installation
-process.
+.. toctree::
+   :hidden:
 
-.. _`downloads page`: http://www.mongodb.org/downloads
+   /release-notes/2.4-overview
+
+Platform Support
+----------------
+
+For OS X, MongoDB 2.4 only supports OS X versions 10.6 (Snow Leopard)
+and later. There are no other platform support changes in MongoDB
+2.4. See the `downloads page <http://www.mongodb.org/downloads/>`_ for
+more information on platform support.
 
 Upgrade Process
 ---------------
+
+.. toctree::
+   :hidden:
+
+   /release-notes/2.4-upgrade
+   /release-notes/2.4-index-types
 
 See :doc:`/release-notes/2.4-upgrade` for full upgrade instructions.
 
 Changes
 -------
 
-Text Indexes
-~~~~~~~~~~~~
+Major Features
+++++++++++++++
 
-.. note::
+.. _2.4-release-text-indexes:
 
-   The ``text`` index type is currently an experimental feature.
-   To use a ``text`` index, you need to enable it at run time or
-   startup.
+Text Search
+~~~~~~~~~~~
 
-Background
-``````````
+MongoDB 2.4 adds support for boolean search of content in MongoDB
+databases as a beta feature. With the new :ref:`text index
+<index-feature-text>`, and supporting, :dbcommand:`text` command you
+can search text in data stored in MongoDB, using an index that updates
+in real-time and is always consistent with the data set. See
+:doc:`/core/text-search` for more information about text
+search in MongoDB.
 
-MongoDB 2.3.2 includes a new ``text`` index type. ``text`` indexes
-support boolean text search queries:
+.. _2.4-release-geospatial:
 
-- Any set of fields containing string data may be text indexed.
+New Geospatial Indexes with GeoJSON and Improved Spherical Geometry
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- You may only maintain a **single** ``text`` index per collection.
+MongoDB adds the new ``2dsphere`` geospatial index in addition to the
+existing ``2d`` index. The ``2dsphere`` index supports improved
+spherical queries and supports the following `GeoJSON
+<http://geojson.org/geojson-spec.html>`_ objects:
 
-- ``text`` indexes are fully consistent and updated in real-time as
-  applications insert, update, or delete documents from the database.
+- ``Point``
 
-- The ``text`` index and query system supports language specific
-  stemming and stop words. Additionally:
+- ``LineString``
 
-  - Indexes and queries drop stop words (i.e. "the," "an," "a," "and,"
-    etc.)
+- ``Polygon``
 
-  - MongoDB stores words stemmed during insertion, using simple suffix
-    stemming, and includes support for a number of languages. MongoDB
-    automatically stems :dbcommand:`text` queries before beginning the
-    query.
+The ``2dsphere`` index supports all current geospatial :ref:`query
+operators <query-selectors-geospatial>` and introduces the following new
+query operator for queries on GeoJSON data:
 
-However, ``text`` indexes have large storage requirements and incur
-**significant** performance costs:
+- :operator:`$geoWithin` operator
 
-- Text indexes can be large. They contain one index entry for each
-  unique post-stemmed word in each indexed field for each document
-  inserted.
+- :operator:`$geoIntersects` operator
 
-- Building a ``text`` index is very similar to building a large
-  multi-key index, and therefore may take longer than building a
-  simple ordered (scalar) index.
+The operators use the new :operator:`$geometry` parameter.
 
-- ``text`` indexes will impede insertion throughput, because MongoDB
-  must add an index entry for each unique post-stemmed word in each
-  indexed field of each new source document.
+The :operator:`$within` operator no longer requires a geospatial
+index.  Additionally, 2.4 deprecates the :operator:`$within`
+operator. Use :operator:`$geoWithin` operator instead.
 
-- Some :dbcommand:`text` searches may affect performance on your
-  :program:`mongod`, particularly for negation queries and phrase
-  matches that cannot use the index as effectively as other kinds of
-  queries.
+For more information on geospatial indexes in 2.4, see:
 
-Additionally, the current *experimental* implementation of ``text``
-indexes have the following limitations and behaviors:
+- :doc:`/applications/geospatial-indexes`
 
-- ``text`` indexes do not store phrases or information about the
-  proximity of words in the documents. As a result, phrase queries
-  will run much more effectively when the entire collection fits in
-  RAM.
+- :doc:`/core/geospatial-indexes`
 
-- MongoDB does not stem phrases or negations in :dbcommand:`text`
-  queries.
+.. _2.4-release-hashed-indexes:
 
-- The index is case-insensitive.
+New Hashed Index and Sharding with a Hashed Shard Key
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- A collection may only have a single ``text`` index at a time.
+To support an easy to configure and evenly distributed shard key,
+version 2.4 adds a new "``hashed``" index type that indexes documents
+using hashes of field values. 
 
-.. warning::
+See :ref:`index-type-hashed` for documentation of ``hashed`` indexes,
+and :ref:`sharding-hashed-sharding` for documentation of hash-based
+sharding.
 
-   Do **not** enable or use ``text`` indexes on production systems.
-
-.. May be worth including this:
-
-   For production-grade search requirements consider using a
-   third-party search tool, and the `mongo-connector
-   <https://github.com/10gen-labs/mongo-connector>`_ or a similar
-   integration strategy to provide more advanced search capabilities.
-
-Test ``text`` Indexes
-`````````````````````
-
-The ``text`` index type is an experimental feature and you need to
-enable the feature before creating or accessing a text index.
-
-To enable text indexes, issue the following command in the
-:program:`mongo` shell:
-
-.. warning::
-
-   Do **not** enable or use ``text`` indexes on production systems.
-
-.. code-block:: javascript
-
-   db.adminCommand( { setParameter: 1, textSearchEnabled: true } )
-
-You can also start the :program:`mongod` with the following
-invocation:
-
-.. code-block:: sh
-
-   mongod --setParameter textSearchEnabled=true
-
-Create Text Indexes
-^^^^^^^^^^^^^^^^^^^
-
-To create a ``text`` index, use the following syntax of
-:method:`~db.collection.ensureIndex()`:
-
-.. code-block:: javascript
-
-   db.collection.ensureIndex( { <field>: "text" } )
-
-Consider the following example:
-
-.. code-block:: javascript
-
-   db.collection.ensureIndex( { content: "text" } )
-
-This ``text`` index catalogs all string data in the ``content`` field
-where the ``content`` field contains a string or an array of string
-elements. To index fields in sub-documents, you need to specify the
-individual fields from the sub-documents using the :term:`dot
-notation`. A ``text`` index can include multiple fields, as in the
-following:
-
-.. code-block:: javascript
-
-   db.collection.ensureIndex( { content: "text",
-                                "users.comments": "text",
-                                "users.profiles": "text" } )
-
-The default name for the index consists of the ``<field name>``
-concatenated with ``_text`` for the indexed fields, as in the following:
-
-.. code-block:: javascript
-
-   "content_text_users.comments_text_users.profiles_text"
-
-These indexes may run into the :limit:`Index Name Length` limit. To
-avoid creating an index with a too-long name, you can specify a name
-in the options parameter, as in the following:
-
-.. code-block:: javascript
-
-   db.collection.ensureIndex( { content: "text",
-                                "users.profiles": "text" },
-                              { name: "TextIndex" } )
-
-When creating ``text`` indexes you may specify *weights* for specific
-fields. *Weights* are factored into the relevant score for each
-document. The score for a given word in a document is the weighted sum
-of the frequency for each of the indexed fields in that document.
-Consider the following:
-
-.. code-block:: javascript
-
-   db.collection.ensureIndex( { content: "text",
-                                "users.profiles": "text" },
-                              { name: "TextIndex",
-                                weights: { content: 1,
-                                           "users.profiles": 2 } } )
-
-This example creates a ``text`` index on the top-level field named
-``content`` and the ``profiles`` field in the ``users``
-sub-documents. Furthermore, the ``content`` field has a weight of 1 and
-the ``users.profiles`` field has a weight of 2.
-
-You can add a conventional ascending or descending index field(s) as a
-prefix or suffix of the index. You cannot include :ref:`multi-key
-<index-type-multi-key>` index field nor :ref:`geospatial
-<index-feature-geospatial>` index field.
-
-If you create an ascending or descending index as a prefix of a
-``text`` index:
-
-- MongoDB will only index documents that have the prefix field
-  (i.e. ``username``) and
-
-- The :dbcommand:`text` query can limit the number of index entries to
-  review in order to perform the query.
-
-- All :dbcommand:`text` queries using this index must include the
-  ``filter`` option that specifies an equality condition for the prefix
-  field or fields.
-
-Create this index with the following operation:
-
-.. code-block:: javascript
-
-   db.collection.ensureIndex( { username: 1,
-                                "users.profiles": "text" } )
-
-Alternatively you create an ascending or descending index as a suffix
-to a ``text`` index. Then the ``text`` index can support
-:ref:`covered queries <indexes-covered-queries>` if the
-:dbcommand:`text` command specifies a ``project`` option.
-
-Create this index with the following operation:
-
-.. code-block:: javascript
-
-   db.collection.ensureIndex( { "users.profiles": "text",
-                                username: 1 } )
-
-Finally, you may use the special wild card field specifier (i.e.
-``$**``) to specify index weights and fields. Consider the following
-example that indexes any string value in the data of every field of
-every document in a collection and names it ``TextIndex``:
-
-.. code-block:: javascript
-
-   db.collection.ensureIndex( { "$**": "text",
-                                username: 1 },
-                              { name: "TextIndex" } )
-
-By default, an index field has a weight of ``1``. You may specify
-weights for a ``text`` index with compound fields, as in the following:
-
-.. code-block:: javascript
-
-   db.collection.ensureIndex( { content: "text",
-                                "users.profiles": "text",
-                                comments: "text",
-                                keywords: "text",
-                                about: "text" },
-                              { name: "TextIndex",
-                                weights:
-                                { content: 10,
-                                  "user.profiles": 2,
-                                  keywords: 5,
-                                  about: 5 } } )
-
-This index, named ``TextIndex``, includes a number of fields, with the
-following weights:
-
-- ``content`` field that has a weight of 10,
-- ``users.profiles`` that has a weight of 2,
-- ``comments`` that has a weight of 1,
-- ``keywords`` that has a weight of 5, and
-- ``about`` that has a weight of 5.
-
-This means that documents that match words in the ``content`` field
-will appear in the result set more than all other fields in the index,
-and that the ``user.profiles`` and ``comments`` fields will be less
-likely to appear in responses than words from other fields.
-
-.. note::
-
-   You must drop a ``text`` index using the name specified when you
-   created the index. Alternatively, if you did not specify a name
-   when creating the index, you can find the name using
-   :method:`db.collection.getIndexes()`
-
-Text Queries
-^^^^^^^^^^^^
-
-MongoDB 2.3.2 introduces the :dbcommand:`text` command to provide
-query support for ``text`` indexes. Unlike normal MongoDB queries,
-:dbcommand:`text` returns a document rather than a
-cursor.
-
-.. dbcommand:: text
-
-   The :dbcommand:`text` provides an interface to search text context
-   stored in the ``text`` index. Consider the following prototype:
-   :dbcommand:`text`:
-
-   .. code-block:: javascript
-
-      db.collection.runCommand( "text", { search: <string>,
-                                          filter: <document>,
-                                          project: <document>,
-                                          limit: <number>,
-                                          language: <string> } )
-
-   The :dbcommand:`text` command has the following parameters:
-
-   :param string search:
-
-      A text string that MongoDB stems and uses to query the ``text``
-      index. In the :program:`mongo` shell, to specify a phrase to
-      match, you can either:
-
-      - enclose the phrase in *escaped* double quotes and use double
-        quotes to specify the ``search`` string, as in ``"\"coffee
-        table\""``, or
-
-      - enclose the phrase in double quotes and use *single* quotes to
-        specify the ``search`` string, as in ``'"coffee table"'``
-
-   :param document filter:
-
-      Optional. A :ref:`query document <mongodb-query-document>` to
-      further limit the results of the query using another database
-      field. You can use any valid MongoDB query in the filter
-      document, except if the index includes an ascending or descending
-      index field as a prefix.
-
-      If the index includes an ascending or descending index field as a
-      prefix, the ``filter`` is required and the ``filter`` query must be
-      an equality match.
-
-   :param document project:
-
-      Optional. Allows you to limit the fields returned by the query
-      to only those specified.
-
-   :param number limit:
-
-      Optional. Specify the maximum number of documents to include in
-      the response. The :dbcommand:`text` sorts the results before
-      applying the ``limit``.
-
-      The default limit is 100.
-
-   :param string language:
-
-      Optional. Specify the language that determines the tokenization,
-      stemming, and the stop words for the search. The default language
-      is ``english``.
-
-   :return:
-
-      :dbcommand:`text` returns results, in descending order by score,
-      in the form of a document. Results must fit within the
-      :limit:`BSON Document Size`. Use the ``limit`` and the
-      ``project`` parameters to limit the size of the result set.
-
-   The implicit connector between the terms of a multi-term search is a
-   disjunction (``OR``). Search for ``"first second"`` searches
-   for ``"first"`` or ``"second"``. The scoring system will prefer
-   documents that contain all terms.
-
-   However, consider the following behaviors of :dbcommand:`text`
-   queries:
-
-   - With phrases (i.e. terms enclosed in escaped quotes), the search
-     performs an ``AND`` with any other terms in the search string;
-     e.g. search for ``"\"twinkle twinkle\" little star"`` searches for
-     ``"twinkle twinkle"`` and (``"little"`` or ``"star"``).
-
-   - :dbcommand:`text` adds all negations to the query with the
-     logical ``AND`` operator.
-
-.. example::
-
-   Consider the following examples of :dbcommand:`text` queries. All
-   examples assume that you have a ``text`` index on the field named
-   ``content`` in a collection named ``collection``.
-
-   #. Create a ``text`` index on the ``content`` field to enable text
-      search on the field:
-
-      .. code-block:: javascript
-
-         db.collection.ensureIndex( { content: "text" } )
-
-   #. Search for a single word ``coffee``:
-
-      .. code-block:: javascript
-
-         db.collection.runCommand( "text", { search: "coffee" } )
-
-      This query returns documents that contain the word ``coffee``,
-      case-insensitive, in the ``content`` field.
-
-   #. Search for multiple words, ``bake`` or ``coffee`` or  ``cake``:
-
-      .. code-block:: javascript
-
-         db.collection.runCommand( "text", { search: "bake coffee cake" } )
-
-      This query returns documents that contain the either ``bake``
-      **or** ``coffee`` **or** ``cake`` in the ``content`` field.
-
-   #. Search for the exact phrase ``bake coffee cake``:
-
-      .. code-block:: javascript
-
-         db.collection.runCommand( "text", { search: "\"bake coffee cake\"" } )
-
-      This query returns documents that contain the exact phrase
-      ``bake coffee cake``.
-
-   #. Search for documents that contain the words ``bake`` or ``coffee``,
-      but **not** ``cake``:
-
-      .. code-block:: javascript
-
-         db.collection.runCommand( "text", { search: "bake coffee -cake" } )
-
-      Use the ``-`` as a prefix to terms to specify negation in the
-      search string. The query returns documents that contain the
-      either ``bake`` **or** ``coffee``, but **not** ``cake``, all
-      case-insensitive, in the ``content`` field. Prefixing a word
-      with a hyphen (``-``) negates a word:
-
-      - The negated word filters out documents from the result set,
-        after selecting documents.
-
-      - A ``<search string>`` that only contains negative words returns no match.
-
-      - A hyphenated word, such as ``case-insensitive``, is not a
-        negation. The :dbcommand:`text` command treats the hyphen as a
-        delimiter.
-
-   #. Search for a single word ``coffee`` with an additional ``filter`` on
-      the ``about`` field, but **limit** the results to 2 documents with the
-      highest score and return only the ``comments`` field in the matching
-      documents:
-
-      .. code-block:: javascript
-
-         db.collection.runCommand( "text", {
-                                             search: "coffee",
-                                             filter: { about: /desserts/ },
-                                             limit: 2,
-                                             project: { comments: 1, _id: 0 }
-                                           }
-                                 )
-
-      - The ``filter`` :ref:`query document <mongodb-query-document>`
-        may use any of the available :doc:`query operators
-        </reference/operator>`.
-
-      - Because the ``_id`` field is implicitly included, in order to
-        return **only** the ``comments`` field, you must explicitly
-        exclude (``0``) the ``_id`` field. Within the ``project``
-        document, you cannot mix inclusions (i.e. ``<fieldA>: 1``) and
-        exclusions (i.e. ``<fieldB>: 0``), except for the ``_id`` field.
+Security Improvements
++++++++++++++++++++++
 
 .. _kerberos-authentication:
 
@@ -484,370 +114,297 @@ New Modular Authentication System with Support for Kerberos
 
 .. note::
 
-   These features are only present in the `MongoDB Subscriber Edition
-   <https://www.10gen.com/mongodb-subscriber-edition-download>`_. To
-   download the 2.4.0 release candidate the Subscriber Edition, use
-   the following resources:
+   Kerberos authentication is only present in `MongoDB Enterprise
+   Edition <http://www.10gen.com/products/mongodb-enterprise>`_.  To
+   download and install MongoDB Enterprise, see
+   :doc:`/tutorial/install-mongodb-enterprise`.
 
-   - `Amazon Linux 6.4 <http://s3.amazonaws.com/downloads.10gen.com/linux/mongodb-linux-x86_64-subscription-amzn64-2.4.0-rc0.tgz>`_
-   - `Red Hat Enterprise Linux 6.2 <http://s3.amazonaws.com/downloads.10gen.com/linux/mongodb-linux-x86_64-subscription-rhel62-2.4.0-rc0.tgz>`_
-   - `Ubuntu 11.04 <http://s3.amazonaws.com/downloads.10gen.com/linux/mongodb-linux-x86_64-subscription-ubuntu1104-2.4.0-rc0.tgz>`_
-   - `SUSE 11 <http://s3.amazonaws.com/downloads.10gen.com/linux/mongodb-linux-x86_64-subscription-suse11-2.4.0-rc0.tgz>`_
 
-An improved authentication system is a core focus of the entire 2.3
-cycle, as of 2.3.2, the following components of the new authentication
-system are available for use in MongoDB:
+In 2.4 the MongoDB Enterprise now supports authentication via a
+Kerberos mechanism. See
+:doc:`/tutorial/control-access-to-mongodb-with-kerberos-authentication`
+for more information.
 
-- :program:`mongod` instances can authenticate users via Kerberos.
+Also consider the following documents that address authenticating to
+MongoDB using Kerberos:
 
-- the :program:`mongo` shell can authenticate to :program:`mongod`
-  instances using Kerberos.
+- :ecosystem:`Authenticate to MongoDB using Kerberos and the Java
+  Driver </tutorial/authenticate-with-java-driver/>`
 
-- MongoDB Clients can authenticate using Kerberos with the C++ client
-  library and development versions of the Java and C# drivers.
-
-Initial Support for Kerberos Authentication
-```````````````````````````````````````````
-
-Development work on this functionality is ongoing, and additional
-related functionality is forthcoming. To use Kerberos with MongoDB as
-of the 2.4.0 release candidate, consider the following requirements:
-
-- add users to MongoDB as with the existing authentication
-  mechanism:
-
-  - Usernames *must* correspond to the Kerberos
-    principal (e.g. ``<username>@<REALM>`` as in
-    ``mongodbuser@EXAMPLE.COM``,)
-
-  - You *must* have a user document in the :data:`system.users
-    <<database>.system.users>` collection with the Kerberos principal
-    for any database that you want to grant access.
-
-- every :program:`mongod` using Kerberos must have a fully resolvable
-  fully qualified domain name. This includes all members of replica
-  sets.
-
-- every :program:`mongod` using Kerberos must have a Kerberos service
-  principal, in the form of: ``mongodb/<fqdn>@<REALM>``.
-
-- each system running a :program:`mongod` with Kerberos must have a
-  key tab file that holds key data granting access to it's principal
-  that the :program:`mongod` can read.
-
-Starting ``mongod`` with Kerberos
-`````````````````````````````````
-
-To start :program:`mongod` with Kerberos support (i.e. with the
-``GSSAPI`` authentication mechanism,) you *must* have a working
-Kerberos environment *and* a valid Kerberos keytab file.
-
-To start :program:`mongod`, use a command in the following form:
-
-.. code-block:: sh
-
-   env KRB5_KTNAME=<path to keytab file> <mongod invocation>
-
-You must start :program:`mongod` with :setting:`auth` or
-:setting:`keyFile` [#keyfile-auth]_ and configuring the list of in the
-``authenticationMechanisms`` :setting:`parameter <setParameter>`. An
-actual command would resemble:
-
-.. code-block:: sh
-
-   env KRB5_KTNAME=/opt/etc/mongodb.keytab \
-       /opt/bin/mongod --dbpath /opt/data/db --logpath /opt/log/mongod.log --fork \
-                       --auth --setParameter authenticationMechanisms=GSSAPI
-
-Replace the paths as needed for your test deployment.
-
-If you want to enable both Kerberos *and* the legacy
-challenge-and-response authentication mechanism, append ``MONGO-CR``
-to the ``authenticationMechanisms`` parameter. Consider the following
-example:
-
-.. code-block:: sh
-
-   env KRB5_KTNAME=/opt/etc/mongodb.keytab \
-       /opt/bin/mongod --dbpath /opt/data/db --logpath /opt/log/mongod.log --fork \
-                       --auth --setParameter authenticationMechanisms=GSSAPI,MONGO-CR
-
-.. note::
-
-   If you're having trouble getting :program:`mongod` to start with
-   Kerberos, there are a number of Kerberos-specific issues that can
-   prevent successful authentication. As you begin troubleshooting
-   your Kerberos deployment, ensure that:
-
-   - You have a valid keytab file specified in the
-     environment running the :program:`mongod`.
-
-   - The :program:`mongod` is from the MongoDB Subscriber Edition.
-
-   - DNS allows the :program:`mongod` to resolve the components of the
-     Kerberos infrastructure.
-
-   - The time systems of the systems running the :program:`mongod`
-     instances and the Kerberos infrastructure are synchronized.
-
-   Until you can successfully authenticate a client using the Kerberos
-   you may want to enable ``MONGO-CR`` authentication mechanism to
-   provide access to the :program:`mongod` instance during
-   configuration.
-
-.. [#keyfile-auth] :setting:`keyFile` implies :setting:`auth`. You
-   *must* use :setting:`keyFile` for replica sets.
-
-Connecting and Authenticating MongoDB Clients Using Kerberos
-````````````````````````````````````````````````````````````
-
-To use Kerberos with the :program:`mongo` shell, begin by initializing
-a Kerberos session with ``kinit``. Then start a 2.3.2 :program:`mongo`
-shell instance, and use the following sequence of operations to
-associate the current connection with the Kerberos session:
-
-.. code-block:: javascript
-
-   use $external
-   db.auth( { mechanism: "GSSAPI", user: "<username>@<REALM>" }  )
-
-The value of the ``user`` field *must* be the same principal that
-you initialized with ``kinit``. This connection will acquire access in
-accordance with all privileges granted to this user for all databases.
+- :ecosystem:`Authenticate to MongoDB using Kerberos and the C# Driver
+  </tutorial/authenticate-with-csharp-driver/>`
 
 .. see:: :doc:`MongoDB Security Practices and Procedures </security>`.
 
-Default JavaScript Engine Switched to v8 from SpiderMonkey
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Role Based Access Control and New Privilege Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The default JavaScript engine used throughout MongoDB, for the
-:program:`mongo` shell, :dbcommand:`mapReduce`, :operator:`$where`,
-and :dbcommand:`eval` is now v8.
+MongoDB 2.4 introduces a role based access control system that
+provides more granular privileges to MongoDB users. See
+:doc:`/reference/user-privileges` for more information.
 
-.. data:: serverBuildInfo.interpreterVersion
+To support the new access control system, 2.4 also introduces a new
+format for documents in a database's
+:data:`system.users <<database>.system.users>` collection. See
+:doc:`/reference/privilege-documents` for more information.
 
-   The :data:`interpreterVersion` field of the document output by
-   :method:`db.serverBuildInfo()` in the :program:`mongo` shell
-   reports which JavaScript interpreter the :program:`mongod` instance
-   is running.
+Use :parameter:`supportCompatibilityFormPrivilegeDocuments` to disable
+the legacy privilege documents, which MongoDB continues to support in
+2.4.
 
-.. method:: interpreterVersion()
+Enhanced SSL Support
+~~~~~~~~~~~~~~~~~~~~
 
-   The :method:`interpreterVersion()` in the :program:`mongo` shell
-   reports which JavaScript interpreter this :program:`mongo` shell
-   uses.
+In 2.4, MongoDB instances can optionally require clients to provide SSL
+certificates signed by a Certificate Authority. You must use the
+MongoDB distribution that supports SSL, and your client driver must
+support SSL. See :doc:`/tutorial/configure-ssl` for more
+information.
 
-.. DOCS-752
 
-New Geospatial Indexes with GeoJSON and Improved Spherical Geometry
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _2.4-unique-users: 
+
+Compatibility Change: User Uniqueness Enforced
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+2.4 now enforces uniqueness of the ``user`` field in user privilege
+documents (i.e. in the :data:`system.users <<database>.system.users>`
+collection.) Previous versions of MongoDB did not enforce this
+requirement, and existing databases may have duplicates. 
+
+Administration Changes
+++++++++++++++++++++++
+
+``--setParameter`` Option Available on the ``mongos`` and ``mongod`` Command Line
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can now use :option:`--setParameter <mongod --setParameter>` on the command line
+and :setting:`setParameter` in the configuration file. Currently
+:setting:`setParameter` provides the following options:
+
+.. include:: /includes/list-set-parameters.rst
+
+See :doc:`/reference/parameters` for full documentation of available
+parameters and their use.
+
+.. _2.4-release-server-status:
+
+Changes to ``serverStatus`` Output Including Additional Metrics
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In 2.4 MongoDB adds a number of counters and system metrics to the
+output of the :dbcommand:`serverStatus` command, including:
+
+- a :ref:`working set estimator <server-status-workingset>`.
+
+- operation counters, in :data:`~serverStatus.metrics.document`
+  and :data:`~serverStatus.metrics.operation`.
+
+- record allocation, in :data:`~serverStatus.metrics.record`.
+
+- thorough metrics of the replication process,
+  in :data:`~serverStatus.metrics.repl`.
+
+- metrics on the :doc:`ttl index </tutorial/expire-data>`
+  documentation.
+
+Additionally, in 2.4, the :dbcommand:`serverStatus` command can
+dynamically construct the :doc:`serverStatus </reference/server-status>` document by excluding
+any top-level sections included by default, or including any top-level
+section not included by default (e.g. :data:`~serverStatus.workingSet`.)
+
+See :method:`db.serverStatus()` and :dbcommand:`serverStatus` for more
+information.
+
+Increased Chunk Migration Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, all insert and delete operations that occur as part of a
+:term:`chunk` migration in a :term:`sharded cluster` will have an
+increased write concern, to ensure that at least one secondary
+acknowledges each insert and deletion operation. This change slows the
+potential speed of a chunk migration, but increases reliability and
+ensures that a large number of chunk migrations *cannot* affect the
+availability of a sharded cluster.
+
+BSON Document Validation Enabled by Default for ``mongod`` and ``mongorestore``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in 2.4, MongoDB enables basic :term:`BSON` object validation
+for :program:`mongod` and :program:`mongorestore` when writing to
+MongoDB data files. This prevents any client from inserting invalid or
+malformed BSON into a MongoDB database. For objects with a high degree
+of sub-document nesting this validation may have a small performance
+impact. :setting:`objcheck`, which was previously disabled by default,
+provides this validation.
+
+Indexing Changes
+++++++++++++++++
+
+Support for Multiple Concurrent Index Builds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A single :program:`mongod` instance can build multiple indexes in the
+background at the same time. See :ref:`building indexes in the
+background <index-creation-background>` for more information on
+background index builds. Foreground index builds hold a database lock
+and must proceed one at a time.
+
+``db.killOp()`` Can Now Kill Foreground Index Builds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :method:`db.killOp()` method will now terminate a foreground index
+build, in addition to the other operations supported in previous
+versions.
+
+Improved Validation of Index Types
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Before 2.4, :program:`mongod` would create an ascending scalar index
+(e.g. ``{ a : 1 }``) when users attempted to create an index of a type
+that did not exist. Creating an index of an invalid index type
+will generate an error in 2.4.
+
+See :doc:`/release-notes/2.4-index-types` for more information.
+
+Interface Changes
++++++++++++++++++
+
+``$setOnInsert`` -- New Update Operator
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. Properly restructure this section after adding $push...
+
+To set fields *only* when an :method:`upsert <db.collection.update()>`
+performs an insert, use the :operator:`$setOnInsert` operator with the
+:method:`upsert <db.collection.update()>` .
+
+.. example::
+
+   A collection named ``coll`` has no documents with ``_id`` equal to
+   ``1``.
+
+   The following :method:`upsert <db.collection.update()>` operation
+   inserts a document and applies the :operator:`$setOnInsert` operator
+   to set the fields ``x`` and ``y``:
+
+   .. code-block:: javascript
+
+      db.coll.update( { _id: 1 },
+                      { $setOnInsert: { x: 25, y: 30 } },
+                      { upsert: true } )
+
+   The newly-inserted document has the field ``x`` set to ``25`` and
+   the field ``y`` set to 30:
+
+   .. code-block:: javascript
+
+      { "_id" : 1, "x" : 25, "y" : 30 }
 
 .. note::
 
-   In 2.3.2, the index type for Spherical Geospatial Indexes
-   become ``2dsphere``.
+   The :operator:`$setOnInsert` operator performs no operation for
+   :method:`upserts <db.collection.update()>` that only perform an
+   update and for :method:`updates <db.collection.update()>` when the
+   ``upsert`` option is ``false``.
 
-The 2.3 series adds a new type of geospatial index that supports
-improved spherical queries and GeoJSON. Create the index by specifying
-``2dsphere`` as the value of the field in the index specification, as
-any of the following:
+.. _2.4-fixed-size-arrays:
 
-.. code-block:: javascript
+Limit Number of Elements in an Array
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   db.collection.ensureIndex( { geo: "2dsphere" } )
-   db.collection.ensureIndex( { type: 1, geo: "2dsphere" } )
-   db.collection.ensureIndex( { geo: "2dsphere", type: 1 } )
+In 2.4, by using the :operator:`$push` operator with the
+:operator:`$each`, the :operator:`$sort`, and the :operator:`$slice`
+modifiers, you can add multiple elements to an array, sort and limit
+the number of elements in the modified array to maintain an array with
+a fixed number of elements.
 
-In the first example you create a spherical geospatial index on the
-field named ``geo``, in the second example, you create a compound
-index where the first field is a normal index, and the index of the
-second field is a spherical geospatial index. Unlike ``2d`` indexes,
-fields indexed using the ``2dsphere`` type do not have to be the first
-field in a compound index.
+See :doc:`/tutorial/limit-number-of-elements-in-updated-array` for an
+example where an update maintains the top three scores for a student.
 
-You must store data in the fields indexed using the ``2dsphere`` index
-using the `GeoJSON`_ specification, at the moment. Support for storing
-points, in the form used by the existing ``2d`` (i.e. geospatial)
-indexes is forthcoming. Currently, ``2dsphere`` indexes only support
-the following GeoJSON shapes:
+.. seealso::
 
-- ``Point``, as in the following:
+   The following pages provide additional information and examples:
 
-  .. code-block:: javascript
+   - :operator:`$push` operator
 
-     { "type": "Point", "coordinates": [ 40, 5 ] }
+   - :operator:`$each` modifier
 
-- ``LineString``, as in the following:
+   - :operator:`$sort` modifier
 
-  .. code-block:: javascript
+   - :operator:`$slice` modifier
 
-     { "type": "LineString", "coordinates": [ [ 40, 5 ], [ 41, 6 ] ] }
+.. _2.4-release-javascript-change:
 
-- ``Polygon``, as in the following:
+JavaScript Engine Changed to V8
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   .. code-block:: javascript
+.. toctree::
+   :hidden:
 
-      {
-        "type": "Polygon",
-        "coordinates": [ [ [ 40, 5 ], [ 40, 6 ], [ 41, 6 ], [ 41, 5 ], [ 40, 5 ] ] ]
-      }
+   /release-notes/2.4-javascript
 
-To query ``2dsphere`` indexes, all current geospatial :ref:`query operators
-<query-selectors-geospatial>` with an additional
-:operator:`$geoIntersects` operator. Currently, all queries using the
-``2dsphere`` index must pass the query selector (e.g. :operator:`$near`,
-:operator:`$geoIntersects`) a GeoJSON document. With the exception of the
-GeoJSON requirement, the operation of :operator:`$near` is the same
-for ``2dsphere`` indexes as ``2d`` indexes.
+In 2.4 the default JavaScript engine in the :program:`mongo` shell
+:program:`mongod` is now V8. This change affects all JavaScript
+behavior including the :dbcommand:`mapReduce`, :dbcommand:`group`, and
+:dbcommand:`eval` commands, as well as the :operator:`$where` query
+operator.
 
-.. operator:: $geoIntersects
+Use the new :js:func:`interpreterVersion()` method in the
+:program:`mongo` shell and the
+:data:`~buildInfo.javascriptEngine` field in the output of
+:method:`db.serverBuildInfo()` to determine which JavaScript engine a
+MongoDB binary uses.
 
-   The :operator:`$geoIntersects` selects all indexed points that
-   intersect with the provided geometry. (i.e. ``Point``, ``LineString``,
-   and ``Polygon``.) You must pass :operator:`$geoIntersects` a document
-   in GeoJSON format.
+The primary impacts of the change from the previous JavaScript engine,
+SpiderMonkey, to V8 are:
 
-   .. code-block:: javascript
+- improved concurrency for JavaScript operations,
+- modernized JavaScript implementation, and
+- removed non-standard SpiderMonkey features.
 
-      db.collection.find( { $geoIntersects: { $geometry: { "type": "Point", "coordinates": [ 40, 5 ] } } } )
+See :doc:`/release-notes/2.4-javascript` for more information about
+all changes .
 
-   This query will select all indexed objects that intersect with the
-   ``Point`` with the coordinates ``[ 40, 5 ]``. MongoDB will return
-   documents as intersecting if they have a shared edge.
+Additional Limitations for Map-Reduce and ``$where`` Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   The :operator:`$geometry` operator takes a single `GeoJSON
-   document`_.
+.. include:: /includes/fact-group-map-reduce-where-limitations-in-24.rst
 
-.. operator:: $geometry
+.. DOCS-752
 
-   .. _`GeoJSON document`: http://www.geojson.org/geojson-spec.html#appendix-a-geometry-examples
+Improvements to the Aggregation Framework
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. _`GeoJSON`: http://geojson.org/geojson-spec.html
+MongoDB 2.4 introduces a number of additional functionality and
+improved performance for the :doc:`Aggregation Framework
+</core/aggregation>`. Consider the following additions in 2.4:
 
-``mongod`` Automatically Continues in Progress Index Builds Following Restart
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- :pipeline:`$match` queries now support the :operator:`$geoWithin`
+  operator for bounded geospatial queries.
 
-If your :program:`mongod` instance was building an index when it
-shutdown or terminated, :program:`mongod` will now continue building
-the index when the :program:`mongod` restarts. Previously, the index
-build *had* to finish building before :program:`mongod` shutdown.
+- The new :pipeline:`$geoNear` pipeline stage to support
+  geospatial queries.
 
-To disable this behavior the 2.3 series adds a new run time option,
-:setting:`noIndexBuildRetry` (or via,q ``--noIndexBuildRetry`` on the
-command line,) for :program:`mongod`. :setting:`noIndexBuildRetry`
-prevents :program:`mongod` from continuing rebuilding indexes that did
-were not finished building when the :program:`mongod` last shut down.
+- :group:`$min` operator only considers non-null and existing field
+  values. If all the values for a field are ``null`` or are missing,
+  the operator returns ``null`` for the minimum value.
 
-.. setting:: noIndexBuildRetry
+- For sort operations where the :pipeline:`$sort` stage
+  immediately precedes a :pipeline:`$limit` in the pipeline, the
+  MongoDB can perform a more efficient sort that does not require
+  keeping the entire result set in memory.
 
-   By default, :program:`mongod` will attempt to rebuild indexes upon
-   start-up *if* :program:`mongod` shuts down or stops in the middle
-   of an index build. When enabled, run time option prevents this
-   behavior.
+- The new :expression:`$millisecond` operator returns the millisecond
+  portion of a date.
 
-.. DOCS-739
+- The new :expression:`$concat` operator concatenates array of strings.
 
-New Hashed Index and Sharding with a Hashed Shard Key
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Additional Resources
+--------------------
 
-To support an easy to configure and evenly distributed shard key, version 2.3 adds a
-new "``hashed``" index type that indexes based on hashed values. This
-section introduces and documents both the new index type and its use
-in sharding:
-
-Hashed Index
-````````````
-
-The new ``hashed`` index exists primarily to support automatically
-hashed shard keys. Consider the following properties of hashed
-indexes:
-
-- Hashed indexes must only have a single field, and cannot be compound
-  indexes.
-
-- Fields indexed with hashed indexes must *not* hold arrays. Hashed
-  indexes cannot be multikey indexes.
-
-- Hashed indexes cannot have a ``unique`` constraint.
-
-  You *may* create hashed indexes with the ``sparse`` property.
-
-- MongoDB can use the hashed index to support equality queries, but
-  cannot use these indexes for range queries.
-
-- Hashed indexes offer no performance advantage over normal indexes.
-  *However*, hashed indexes may be smaller than a normal index when
-  the values of the indexed field are larger than 64 bits. [#hash-size]_
-
-- it's possible to have a hashed and non-hashed index on the same
-  field: MongoDB will use the non-hashed for range queries.
-
-.. _hashed-index-warning:
-
-.. warning::
-
-   Hashed indexes round floating point numbers to 64-bit integers
-   before hashing. For example, a hashed index would store the same
-   value for a field that held a value of ``2.3`` and ``2.2``. To
-   prevent collisions do not use a hashed index for floating point
-   numbers that cannot be consistently converted to 64-bit integers (and
-   then back to floating point.) Hashed indexes do not support
-   floating point values larger than 2\ :sup:`53`.
-
-Create a hashed index using an operation that resembles the
-following:
-
-.. code-block:: javascript
-
-   db.records.ensureIndex( { a: "hashed" } )
-
-This operation creates a hashed index for the ``records`` collection
-on the ``a`` field.
-
-.. [#hash-size] The hash stored in the hashed index is 64 bits long.
-
-Hashed Sharding
-```````````````
-
-To shard a collection using a hashed shard key, issue an operation in
-the :program:`mongo` shell that resembles the following:
-
-.. code-block:: javascript
-
-   sh.shardCollection( "records.active", { a: "hashed" } )
-
-This operation shards the ``active`` collection in the ``records``
-database, using a hash of the ``a`` field as the shard
-key. Consider the following properties when using a hashed shard key:
-
-- As with other kinds of shard key indexes, if your collection has
-  data, you must create the hashed index before sharding. If your
-  collection does not have data, sharding the collection will create
-  the appropriate index.
-
-- The :program:`mongos` will route all equality queries to a specific
-  shard or set of shards; however, the :program:`mongos` must route
-  range queries to all shards.
-
-- When using a hashed shard key on a new collection, MongoDB
-  automatically pre-splits the range of 64-bit hash values into
-  chunks. By default, the initial number of chunks is equal to twice
-  the number of shards at creation time. You can change the number of
-  chunks created, using the ``numInitialChunks`` option, as in the
-  following invocation of :dbcommand:`shardCollection`:
-
-  .. code-block:: javascript
-
-     db.adminCommand( { shardCollection: "test.collection",
-                        key: { a: "hashed"},
-                        numInitialChunks: 2001 } )
-
-  MongoDB will only pre-split chunks in a collection when sharding
-  empty collections. MongoDB will not create chunk splits in a
-  collection sharding collections that have data.
-
-.. warning::
-
-   Avoid using hashed shard keys when the hashed field has non-integral floating
-   point values, see :ref:`hashed indexes <hashed-index-warning>` for
-   more information.
+- `MongoDB Downloads <http://mongodb.org/downloads>`_.
+- :doc:`/release-notes/2.4-overview`.
+- `All JIRA issues resolved in 2.4 <https://jira.mongodb.org/secure/IssueNavigator.jspa?reset=true&jqlQuery=project+%3D+SERVER+AND+fixVersion+in+%28%222.3.2%22,+%222.3.1%22,+%222.3.0%22,+%222.4.0-rc0%22,+%222.4.0-rc1%22,+%222.4.0-rc2%22,+%222.4.0-rc3%22%29>`_.
+- `All Backwards incompatible changes <https://jira.mongodb.org/secure/IssueNavigator.jspa?reset=true&jqlQuery=project+%3D+SERVER+AND+fixVersion+in+%28%222.3.2%22%2C+%222.3.1%22%2C+%222.3.0%22%2C+%222.4.0-rc0%22%2C+%222.4.0-rc1%22%2C+%222.4.0-rc2%22%2C+%222.4.0-rc3%22%29+AND+%22Backward+Breaking%22+in+%28+Rarely+%2C+sometimes%2C+yes+%29+ORDER+BY+votes+DESC%2C+issuetype+DESC%2C+key+DESC>`_.
+- `All Third Party License Notices <https://github.com/mongodb/mongo/blob/v2.4/distsrc/THIRD-PARTY-NOTICES>`_.

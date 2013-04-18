@@ -1,17 +1,43 @@
 # Included, dynamically generated makefile sections, to build: sphinx
-# targets, LaTeX/PDFs, tables, the installation guides, and sym links.
+# targets, LaTeX/PDFs, tables, the installation guides, and sym
+# links.
+
+# These makefiles must regenerate every time you run make (becasue
+# they have to change every time the commit/branch changes.)
+
+.PHONY:$(output)/makefile.delegated
+.PHONY:$(output)/makefile.releases
+
+-include $(output)/makefile.delegated
+-include $(output)/makefile.releases
+
+$(output)/makefile.delegated:bin/makecloth/delegated.py
+	@$(PYTHONBIN) $< $@
+$(output)/makefile.releases:bin/makecloth/releases.py
+	@$(PYTHONBIN) $< $@
+
+
+# To download interpshinx inventories these's the dependencies are a
+# bit different becasue it uses Sphinx's config rather than it's own
+# config file.
+
+-include $(output)/makefile.intersphinx
+
+bin/makecloth/intersphinx.py:conf.py 
+$(output)/makefile.intersphinx:bin/makecloth/intersphinx.py bin/makecloth/__init__.py
+	@$(PYTHONBIN) $< $@
+
+
+# The remainder of the files are reasonably straight forward, and use
+# a generic build rule.
 
 -include $(output)/makefile.pdfs
 -include $(output)/makefile.texinfo
 -include $(output)/makefile.links
--include $(output)/makefile.intersphinx
 -include $(output)/makefile.sphinx
--include $(output)/makefile.releases
 -include $(output)/makefile.errors
 -include $(output)/makefile.migrations
 -include $(output)/makefile.sphinx-migration
 
-$(output)/makefile.%:bin/makefile-builder/%.py bin/makefile_builder.py $(output) bin/builder_data.py
-	@$(PYTHONBIN) $< $@
-$(output)/makefile.intersphinx:bin/makefile-builder/intersphinx.py bin/makefile_builder.py $(output) conf.py
+$(output)/makefile.%:bin/makecloth/%.py bin/makecloth/%.yaml bin/makecloth/__init__.py
 	@$(PYTHONBIN) $< $@

@@ -7,338 +7,49 @@ Sharded Cluster Administration
 
 .. default-domain:: mongodb
 
-Sharding occurs within a :term:`sharded cluster`. A sharded cluster
-consists of the following components:
-
-- :ref:`Shards <sharding-shards>`. Each shard is a separate
-  :program:`mongod` instance or :term:`replica set` that holds a portion
-  of the database collections.
-
-- :ref:`Config servers <sharding-config-server>`. Each config server is
-  a :program:`mongod` instance that holds metadata about the cluster.
-  The metadata maps :term:`chunks <chunk>` to shards.
-
-- :ref:`mongos instances <sharding-mongos>`. The :program:`mongos`
-  instances route the reads and writes to the shards.
-
-.. seealso::
-
-   - For specific configurations, see :ref:`sharding-architecture`.
-
-   - To set up sharded clusters, see :ref:`sharding-procedure-setup`.
-
-.. index:: sharding; shards
-.. index:: shards
-.. _sharding-shards:
-
-Shards
-------
-
-A shard is a container that holds a subset of a collection’s data. Each
-shard is either a single :program:`mongod` instance or a :term:`replica
-set`. In production, all shards should be replica sets.
-
-Applications do not access the shards directly. Instead, the
-:ref:`mongos instances <sharding-mongos>` routes reads and writes from
-applications to the shards.
-
-.. index:: sharding; config servers
-.. index:: config servers
-.. _sharding-config-server:
-
-Config Servers
---------------
-
-Config servers maintain the shard metadata in a config database. The
-:term:`config database` stores the relationship between :term:`chunks
-<chunk>` and where they reside within a :term:`sharded cluster`. Without
-a config database, the :program:`mongos` instances would be unable to
-route queries or write operations within the cluster.
-
-Config servers *do not* run as replica sets. Instead, a :term:`cluster
-<sharded cluster>` operates with a group of *three* config servers that use a
-two-phase commit process that ensures immediate consistency and
-reliability.
-
-For testing purposes you may deploy a cluster with a single
-config server, but this is not recommended for production.
-
-.. warning::
-
-   If your cluster has a single config server, this
-   :program:`mongod` is a single point of failure.  If the instance is
-   inaccessible the cluster is not accessible. If you cannot recover
-   the data on a config server, the cluster will be inoperable.
-
-   **Always** use three config servers for production deployments.
-
-The actual load on configuration servers is small because each
-:program:`mongos` instance maintains a cached copy of the configuration
-database. MongoDB only writes data to the config server to:
-
-- create splits in existing chunks, which happens as data in
-  existing chunks exceeds the maximum chunk size.
-
-- migrate a chunk between shards.
-
-Additionally, all config servers must be available on initial setup
-of a sharded cluster, each :program:`mongos` instance must be able
-to write to the ``config.version`` collection.
-
-If one or two configuration instances become unavailable, the
-cluster's metadata becomes *read only*. It is still possible to read
-and write data from the shards, but no chunk migrations or splits will
-occur until all three servers are accessible. At the same time, config
-server data is only read in the following situations:
-
-- A new :program:`mongos` starts for the first time, or an existing
-  :program:`mongos` restarts.
-
-- After a chunk migration, the :program:`mongos` instances update
-  themselves with the new cluster metadata.
-
-If all three config servers are inaccessible, you can continue to use
-the cluster as long as you don't restart the :program:`mongos`
-instances until after config servers are accessible again. If you
-restart the :program:`mongos` instances and there are no accessible
-config servers, the :program:`mongos` would be unable to direct
-queries or write operations to the cluster.
-
-Because the configuration data is small relative to the amount of data
-stored in a cluster, the amount of activity is relatively low, and 100%
-up time is not required for a functioning sharded cluster. As a result,
-backing up the config servers is not difficult. Backups of config
-servers are critical as clusters become totally inoperable when
-you lose all configuration instances and data. Precautions to ensure
-that the config servers remain available and intact are critical.
-
-.. note::
-
-   Configuration servers store metadata for a single sharded cluster.
-   You must have a separate configuration server or servers for each
-   cluster you administer.
-
-.. index:: mongos
-.. _sharding-mongos:
-.. _sharding-read-operations:
-
-Sharded Cluster Operations and ``mongos`` Instances
----------------------------------------------------
-
-The :program:`mongos` program provides a single unified interface to a sharded
-cluster for applications using MongoDB. Except for the selection of a
-:term:`shard key`, application developers and administrators need not
-consider any of the :ref:`internal details of sharding <sharding-internals>`.
-
-:program:`mongos` caches data from the :ref:`config server
-<sharding-config-server>`, and uses this to route operations from
-applications and clients to the :program:`mongod` instances.
-:program:`mongos` have no *persistent* state and consume
-minimal system resources.
-
-The most common practice is to run :program:`mongos` instances on the
-same systems as your application servers, but you can maintain
-:program:`mongos` instances on the shards or on other dedicated
-resources.
-
-.. note::
-
-   .. versionchanged:: 2.1
-
-   Some aggregation operations using the :dbcommand:`aggregate`
-   command (i.e. :method:`db.collection.aggregate()`,) will cause
-   :program:`mongos` instances to require more CPU resources than in
-   previous versions. This modified performance profile may dictate
-   alternate architecture decisions if you use the :term:`aggregation
-   framework` extensively in a sharded environment.
-
-.. _sharding-query-routing:
-
-Automatic Operation and Query Routing with ``mongos``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-:program:`mongos` uses information from :ref:`config servers
-<sharding-config-server>` to route operations to the cluster as
-efficiently as possible. In general, operations in a sharded
-environment are either:
-
-1. Targeted at a single shard or a limited group of shards based on
-   the shard key.
-
-2. Broadcast to all shards in the cluster that hold documents in a
-   collection.
-
-When possible you should design your operations to be as targeted as
-possible. Operations have the following targeting characteristics:
-
-- Query operations broadcast to all shards [#namespace-exception]_
-  **unless** the :program:`mongos` can determine which shard or shard
-  stores this data.
-
-  For queries that include the shard key, :program:`mongos` can target
-  the query at a specific shard or set of shards, if the portion
-  of the shard key included in the query is a *prefix* of the shard
-  key. For example, if the shard key is:
-
-  .. code-block:: javascript
-
-     { a: 1, b: 1, c: 1 }
-
-  The :program:`mongos` program *can* route queries that include the full
-  shard key or either of the following shard key prefixes at a
-  specific shard or set of shards:
-
-  .. code-block:: javascript
-
-     { a: 1 }
-     { a: 1, b: 1 }
-
-  Depending on the distribution of data in the cluster and the
-  selectivity of the query, :program:`mongos` may still have to
-  contact multiple shards [#possible-all]_ to fulfill these queries.
-
-- All :method:`insert() <db.collection.insert()>` operations target to
-  one shard.
-
-- All single :method:`update() <db.collection.update()>` operations
-  target to one shard. This includes :term:`upsert` operations.
-
-- The :program:`mongos` broadcasts multi-update operations to every
-  shard.
-
-- The :program:`mongos` broadcasts :method:`remove()
-  <db.collection.remove()>` operations to every shard unless the
-  operation specifies the shard key in full.
-
-While some operations must broadcast to all shards, you can improve
-performance by using as many targeted operations as possible by
-ensuring that your operations include the shard key.
-
-.. [#namespace-exception] If a shard does not store chunks from a
-   given collection, queries for documents in that collection are not
-   broadcast to that shard.
-
-.. [#a/c-as-a-case-of-a] In this example, a :program:`mongos` could
-   route a query that included ``{ a: 1, c: 1 }`` fields at a specific
-   subset of shards using the ``{ a: 1 }`` prefix. A :program:`mongos`
-   cannot route any of the following queries to specific shards
-   in the cluster:
-
-   .. code-block:: javascript
-
-      { b: 1 }
-      { c: 1 }
-      { b: 1, c: 1 }
-
-.. [#possible-all] :program:`mongos` will route some queries, even
-   some that include the shard key, to all shards, if needed.
-
-Sharded Query Response Process
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To route a query to a :term:`cluster <sharded cluster>`,
-:program:`mongos` uses the following process:
-
-#. Determine the list of :term:`shards <shard>` that must receive the query.
-
-   In some cases, when the :term:`shard key` or a prefix of the shard
-   key is a part of the query, the :program:`mongos` can route the
-   query to a subset of the shards. Otherwise, the :program:`mongos`
-   must direct the query to *all* shards that hold documents for that
-   collection.
-
-   .. example::
-
-      Given the following shard key:
-
-      .. code-block:: javascript
-
-         { zipcode: 1, u_id: 1, c_date: 1 }
-
-      Depending on the distribution of chunks in the cluster, the
-      :program:`mongos` may be able to target the query at a subset of
-      shards, if the query contains the following fields:
-
-      .. code-block:: javascript
-
-         { zipcode: 1 }
-         { zipcode: 1, u_id: 1 }
-         { zipcode: 1, u_id: 1, c_date: 1 }
-
-#. Establish a cursor on all targeted shards.
-
-   When the first batch of results returns from the cursors:
-
-   a. For query with sorted results (i.e. using
-      :method:`cursor.sort()`) the :program:`mongos` instance performs a merge
-      sort of all queries.
-
-   b. For a query with unsorted results, the :program:`mongos` instance returns
-      a result cursor that "round robins" results from all cursors on
-      the shards.
-
-      .. versionchanged:: 2.0.5
-         Before 2.0.5, the :program:`mongos` exhausted each cursor,
-         one by one.
-
-.. _sharding-security:
-
-Sharded Cluster Security Considerations
----------------------------------------
-
-.. note::
-
-   You should always run all :program:`mongod` components in trusted
-   networking environments that control access to the cluster using
-   network rules and restrictions to ensure that only known traffic
-   reaches your :program:`mongod` and :program:`mongos` instances.
-
-.. warning::  Limitations
-
-   .. versionchanged:: 2.2
-      Read only authentication is fully supported in shard
-      clusters. Previously, in version 2.0, sharded clusters would not
-      enforce read-only limitations.
-
-   .. versionchanged:: 2.0
-      Sharded clusters support authentication. Previously, in version
-      1.8, sharded clusters will not support authentication and access
-      control. You must run your sharded systems in trusted
-      environments.
-
-To control access to a sharded cluster, you must set the
-:setting:`keyFile` option on all components of the sharded cluster. Use
-the :option:`--keyFile <mongos --keyFile>` run-time option or the
-:setting:`keyFile` configuration option for all :program:`mongos`,
-configuration instances, and shard :program:`mongod` instances.
-
-There are two classes of security credentials in a sharded cluster:
-credentials for "admin" users (i.e. for the :term:`admin database`) and
-credentials for all other databases. These credentials reside in
-different locations within the cluster and have different roles:
-
-- Admin database credentials reside on the config servers, to receive
-  admin access to the cluster you *must* authenticate a session while
-  connected to a :program:`mongos` instance using the :term:`admin
-  database`.
-
-- Each shard has its own :term:`admin database`, which stores
-  administrative credentials and access for that shard only.
-
-- Other database credentials reside on the *primary* shard for the
-  database.
-
-This means that you *can* authenticate to these users and databases
-while connected directly to the *primary* shard for a database. You
-**cannot** authenticate to a database in a sharded cluster that is not
-the primary for that database. However, for clarity and consistency
-all interactions between the client and the database should use a
-:program:`mongos` instance.
-
-.. note::
-
-   Individual shards can store administrative credentials to their
-   instance, which only permit access to a single shard. MongoDB
-   stores these credentials in the shards' :term:`admin databases
-   <admin database>` and these credentials are *completely* distinct
-   from the cluster-wide administrative credentials.
+The following tutorials provide instructions for administering
+:term:`sharded clusters <sharded cluster>`. For conceptual topics, see
+:doc:`/sharding`.
+
+Deploy Sharded Clusters
+-----------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   /tutorial/deploy-shard-cluster
+   /tutorial/select-shard-key
+   /tutorial/shard-collection-with-a-hashed-shard-key
+   /tutorial/enable-authentication-in-sharded-cluster
+   /tutorial/view-sharded-cluster-configuration
+   /tutorial/add-shards-to-shard-cluster
+   /tutorial/convert-replica-set-to-replicated-shard-cluster
+
+Sharded Cluster Maintenance and Administration
+----------------------------------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   /tutorial/administer-shard-tags
+   /tutorial/deploy-config-servers
+   /tutorial/migrate-config-servers-with-same-hostname
+   /tutorial/migrate-config-servers-with-different-hostnames
+   /tutorial/replace-config-server
+   /tutorial/backup-sharded-cluster-metadata
+   /tutorial/manage-chunks-in-sharded-cluster
+   /tutorial/configure-sharded-cluster-balancer
+   /tutorial/manage-sharded-cluster-balancer
+   /tutorial/remove-shards-from-cluster
+
+.. seealso:: :ref:`backup-and-restore-sharded-clusters`.
+
+Manage Data in Sharded Clusters
+-------------------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   /core/tag-aware-sharding
+   /tutorial/enforce-unique-keys-for-sharded-collections
+   /tutorial/shard-gridfs-data

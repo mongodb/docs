@@ -51,17 +51,15 @@ operations require idempotency:
 .. _replica-set-data-integrity:
 .. _replica-set-implementation:
 
-Data Integrity
---------------
+Read Preference Internals
+-------------------------
 
 .. index:: replica set; read preferences
 
-Read Preference Internals
-~~~~~~~~~~~~~~~~~~~~~~~~~
 
 MongoDB uses :term:`single-master replication` to ensure that the
 database remains consistent. However, clients may modify the
-:ref:`read preferences <replica-set-read-preference>` on a
+:doc:`read preferences </core/read-preference>` on a
 per-connection basis in order to distribute read operations to the
 :term:`secondary` members of a :term:`replica set`. Read-heavy deployments may achieve
 greater query throughput by distributing reads to secondary members. But
@@ -88,7 +86,8 @@ Replica sets can include members with the following four special
 configurations that affect membership behavior:
 
 - :ref:`Secondary-only <replica-set-secondary-only-members>` members have
-  their :data:`priority <members[n].priority>` values set to ``0`` and thus
+  their :data:`priority <local.system.replset.members[n].priority>`
+  values set to ``0`` and thus
   are not eligible for election as primaries.
 
 - :ref:`Hidden <replica-set-hidden-members>` members do not appear in the
@@ -107,11 +106,10 @@ configurations that affect membership behavior:
 In almost every case, replica sets simplify the process of
 administering database replication. However, replica sets still have a
 unique set of administrative requirements and concerns. Choosing the
-right :doc:`system architecture </administration/replica-set-architectures>`
+right :doc:`system architecture </core/replica-set-architectures>`
 for your data set is crucial.
 
-.. seealso:: The :ref:`replica-set-member-configurations` topic in the
-   :doc:`/administration/replica-sets` document.
+.. seealso:: :ref:`replica-set-member-configuration`
 
 .. index:: replica set; security
 
@@ -165,7 +163,7 @@ Any :program:`mongod` can veto an election.
 
 In the default configuration, all members have an equal chance of
 becoming primary; however, it's possible to set :data:`priority
-<members[n].priority>` values that weight the election. In some
+<local.system.replset.members[n].priority>` values that weight the election. In some
 architectures, there may be operational reasons for increasing the
 likelihood of a specific replica set member becoming primary. For
 instance, a member located in a remote data center should *not* become
@@ -211,7 +209,8 @@ aware of the following conditions and possible situations:
   the set. The absolute value of priorities does not have any impact on
   the outcome of replica set elections, with the exception of the value ``0``,
   which indicates the member cannot become primary and cannot seek election.
-  For details, see :ref:`replica-set-node-priority-configuration`.
+  For details, see
+  :doc:`/tutorial/configure-a-non-voting-replica-set-member`.
 
 - A replica set member cannot become primary *unless* it has the
   highest "optime" of any visible member in the set.
@@ -223,29 +222,13 @@ aware of the following conditions and possible situations:
 
 .. seealso:: :ref:`Non-voting members in a replica
    set <replica-set-non-voting-members>`,
-   :ref:`replica-set-node-priority-configuration`, and
-   :data:`replica configuration <members[n].votes>`.
+   :doc:`/tutorial/configure-a-non-voting-replica-set-member`, and
+   :data:`replica configuration <local.system.replset.members[n].votes>`.
 
 .. [#imply-secondary-only] Remember that :ref:`hidden
    <replica-set-hidden-members>` and :ref:`delayed
    <replica-set-delayed-members>` imply :ref:`secondary-only
    <replica-set-secondary-only-members>` configuration.
-
-.. index:: replica set; network partitions
-.. index:: replica set; elections
-.. _replica-set-elections-and-network-partitions:
-
-Elections and Network Partitions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Members on either side of a network partition cannot see each other when
-determining whether a majority is available to hold an election.
-
-That means that if a primary steps down and neither side of the
-partition has a majority on its own, the set will not elect a new
-primary and the set will become read only. When possible, attempt to
-place a majority of instances in one data center with a minority of
-instances in a secondary facility.
 
 .. index:: replica set; sync
 
@@ -270,7 +253,7 @@ entries from other members. Members sync data at two different points:
   member updated with changes to the replica set's data.
 
 In MongoDB 2.0, secondaries only change sync targets if the connection
-to the sync target drops or produces an error.
+to the sync target drops [#connection-drop]_ or produces an error.
 
 For example:
 
@@ -302,7 +285,34 @@ behaviors:
 
 - For one member to sync from another, both members must have the same
   value, either ``true`` or ``false``, for the
-  :data:`members[n].buildIndexes` field.
+  :data:`~local.system.replset.members[n].buildIndexes` field.
+
+.. [#connection-drop] Secondaries will stop syncing from a member if
+   the connection used to poll oplog entries is unresponsive for 30
+   seconds. If a connection times out, the member may select a new
+   member to sync from.
+
+.. _replica-set-internals-multi-threaded-replication:
+
+Multithreaded Replication
+-------------------------
+
+MongoDB applies write operations in batches using a multithreaded
+approach. The replication process divides each batch among a group of
+threads which apply many operations with greater concurrency.
+
+Even though threads may apply operations out of order, a client
+reading data from a secondary will never return documents that reflect
+an in-between state that never existed on the primary. To ensure this
+consistency, MongoDB blocks all read operations while applying the
+batch of operations.
+
+To help improve the performance of operation application, MongoDB
+fetches all the memory pages that hold data and indexes that the
+operations in the batch will affect. The prefetch stage minimizes the
+amount of time MongoDB must hold the write lock to apply
+operations. See the :setting:`replIndexPrefetch` setting to modify the
+index fetching behavior.
 
 Pre-Fetching Indexes to Improve Replication Throughput
 ------------------------------------------------------

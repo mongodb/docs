@@ -21,98 +21,39 @@ eval
       }
 
    The command contains the following fields:
-
-   :param JavaScript function:
-
-      A JavaScript function.
-
-      The function may accept no arguments, as in the following
-      example:
-
-      .. code-block:: javascript
-
-         function () {
-           // ...
-         }
-
-      The function can also accept arguments, as in the following example:
-
-      .. code-block:: javascript
-
-         function (arg1, arg2) {
-            // ...
-         }
-
-   :param arguments:
-
-      A list of arguments to pass to the JavaScript ``function`` if
-      the function accepts arguments. Omit if the ``function`` does
-      not take arguments.
+   
+   :field function eval:
+      .. include:: /includes/parameters-eval.rst
+         :start-after: eval-param-function
+         :end-before: eval-param-argument
 
    :field array args:
 
-      An array of corresponding arguments to the ``function``. Omit
-      ``args`` if the ``function`` does not take arguments.
+      .. |list| replace:: An array
+      .. include:: /includes/parameters-eval.rst
+         :start-after: eval-param-argument
+         :end-before: eval-param-nolock
 
    :field boolean nolock:
 
-      Optional. Specifies whether to disable the write lock. By
-      default, :dbcommand:`eval` takes a write lock. There are
-      circumstances where the :dbcommand:`eval` executes a strictly
-      read-only operation that does not need to block other
-      operations. If ``nolock`` is ``true``, the
-      :dbcommand:`eval` does not take a write lock.
-
-      .. warning::
-
-         Do not disable the write lock if the function may modify
-         the contents of the database in any way.
+      .. include:: /includes/parameters-eval.rst
+         :start-after: eval-param-nolock
 
    Consider the following example which uses :dbcommand:`eval` to
    perform an increment and calculate the average on the server:
 
-   .. code-block:: javascript
-
-      db.runCommand( {
-            eval: function(name, incAmount) {
-                     var doc = db.myCollection.findOne( { name : name } );
-
-                     doc = doc || { name : name , num : 0 , total : 0 , avg : 0 };
-
-                     doc.num++;
-                     doc.total += incAmount;
-                     doc.avg = doc.total / doc.num;
-
-                     db.myCollection.save( doc );
-                     return doc;
-                  },
-            args: [ "eliot", 5 ]
-         }
-      );
+      .. include:: /includes/examples-eval.rst
+         :start-after: eval-command-example
+         :end-before: .. eval-method-example
 
    The ``db`` in the function refers to the current database.
 
-   The shell also provides a helper method :method:`db.eval()`, so you
-   can express the above as follows:
+   The :program:`mongo` shell provides a helper method
+   :method:`db.eval()` [#eval-shell-helper]_, so you can express the
+   above as follows:
 
-   .. code-block:: javascript
-
-      db.eval( function(name, incAmount) {
-                  var doc = db.myCollection.findOne( { name : name } );
-
-                  doc = doc || { name : name , num : 0 , total : 0 , avg : 0 };
-
-                  doc.num++;
-                  doc.total += incAmount;
-                  doc.avg = doc.total / doc.num;
-
-                  db.myCollection.save( doc );
-                  return doc;
-               },
-               "eliot", 5 );
-
-   You cannot pass the ``nolock`` flag to the :method:`db.eval()`
-   in the :program:`mongo` shell.
+   .. include:: /includes/examples-eval.rst
+      :start-after: .. eval-method-example
 
    If you want to use the server's interpreter, you must run
    :dbcommand:`eval`. Otherwise, the :program:`mongo` shell's
@@ -128,7 +69,7 @@ eval
       db.runCommand(
                      {
                        eval: function() { return x + x; },
-                       args: [3]
+                       args: [ 3 ]
                      }
                    )
 
@@ -137,31 +78,16 @@ eval
    .. code-block:: javascript
 
       {
-         "errno" : -3,
-         "errmsg" : "invoke failed: JS Error: ReferenceError: x is not defined nofile_b:1",
+         "errmsg" : "exception: JavaScript execution failed: ReferenceError: x is not defined near '{ return x + x; }' ",
+         "code" : 16722,
          "ok" : 0
       }
 
-   .. warning::
+   .. \|object| defined in included parameters-eval .. 
+   .. \|nolockobject| defined in included parameters-eval ..
+   .. include:: /includes/admonitions-eval.rst
 
-      - The :method:`db.eval()` operation takes a write lock by
-        default. This means that :dbcommand:`eval` blocks all other
-        read and write operations to the database while the
-        :dbcommand:`eval` operation runs. You can, however, disable
-        the lock by setting the ``nolock`` flag to ``true`` if the
-        :dbcommand:`eval` performs a strictly read-only operation.
+   .. seealso:: :doc:`/core/server-side-javascript`
 
-      - :dbcommand:`eval` also takes a JavaScript lock.
-
-      - Do not use :dbcommand:`eval` for long running operations as
-        :dbcommand:`eval` blocks all other operations. Consider using
-        :doc:`other server side code execution options
-        </applications/server-side-javascript>`.
-
-      - You can not use :dbcommand:`eval` with :term:`sharded
-        <sharding>` data. In general, you should avoid using
-        :dbcommand:`eval` in :term:`sharded cluster`; nevertheless, it
-        is possible to use :dbcommand:`eval` with non-sharded
-        collections and databases stored in a :term:`sharded cluster`.
-
-   .. seealso:: :doc:`/applications/server-side-javascript`
+   .. [#eval-shell-helper] 
+      .. include:: /includes/fact-eval-helper-method.rst

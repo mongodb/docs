@@ -1,0 +1,60 @@
+.. _index-sort:
+.. _sorting-with-indexes:
+
+=================================
+Use Indexes to Sort Query Results
+=================================
+
+.. default-domain:: mongodb
+
+For the fastest performance when sorting query results by a given field,
+create a sorted index on that field.
+
+To sort query results on multiple fields, create a :ref:`compound
+index <index-type-compound>`. MongoDB sorts results based on the field
+order in the index. For queries that include a sort that uses a
+compound index, ensure that all fields before the first sorted field
+are equality matches.
+
+.. example::
+
+   If you create the following index:
+
+   .. code-block:: javascript
+
+      { a: 1, b: 1, c: 1, d: 1 }
+
+   The following query and sort operations can use the index:
+
+   .. code-block:: javascript
+
+      db.collection.find().sort( { a:1 } )
+      db.collection.find().sort( { a:1, b:1 } )
+
+      db.collection.find( { a:4 } ).sort( { a:1, b:1 } )
+      db.collection.find( { b:5 } ).sort( { a:1, b:1 } )
+
+      db.collection.find( { a:5 } ).sort( { b:1, c:1 } )
+
+      db.collection.find( { a:5, c:4, b:3 } ).sort( { d:1 } )
+
+      db.collection.find( { a: { $gt:4 } } ).sort( { a:1, b:1 } )
+      db.collection.find( { a: { $gt:5 } } ).sort( { a:1, b:1 } )
+
+      db.collection.find( { a:5, b:3, d:{ $gt:4 } } ).sort( { c:1 } )
+      db.collection.find( { a:5, b:3, c:{ $lt:2 }, d:{ $gt:4 } } ).sort( { c:1 } )
+
+   However, the following queries cannot sort the results using the
+   index:
+
+   .. code-block:: javascript
+
+      db.collection.find().sort( { b:1 } )
+      db.collection.find( { b:5 } ).sort( { b:1 } )
+
+.. note::
+
+   For in-memory sorts that do not use an index, the :method:`sort()
+   <cursor.sort()>` operation is significantly slower. The
+   :method:`~cursor.sort()` operation will abort when it uses 32
+   megabytes of memory.

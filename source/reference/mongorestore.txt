@@ -5,32 +5,39 @@
 ================
 
 .. default-domain:: mongodb
+.. |tool-binary| replace:: mongorestore
 
 Synopsis
 --------
 
-The :program:`mongorestore` tool imports content from binary database
-dump, created by :program:`mongodump` into a specific
-database. :program:`mongorestore` can import content to an existing
-database or create a new one.
+The :program:`mongorestore` program writes data from a binary database
+dump created by :program:`mongodump` to a MongoDB
+instance. :program:`mongorestore` can create a new database or add
+data to an existing database.
 
-:program:`mongorestore` only performs inserts into the existing
-database, and does not perform updates or :term:`upserts <upsert>`. If
-existing data with the same ``_id`` already exists on the target
-database, :program:`mongorestore` will *not* replace it.
+:program:`mongorestore` can write data to either `mongod` or :program:`mongos`
+instances, in addition to writing directly to MongoDB data files
+without an active :program:`mongod`.
 
-:program:`mongorestore` will recreate indexes from the dump
+If you restore to an existing database, :program:`mongorestore` will
+only insert into the existing database, and does not perform updates
+of any kind. If existing documents have the same value ``_id`` field
+in the target database and collection,
+:program:`mongorestore` will *not* overwrite those documents.
 
-The behavior of :program:`mongorestore` has the following properties:
+Remember the following properties of :program:`mongorestore` behavior:
+
+- :program:`mongorestore` recreates indexes recorded by
+  :program:`mongodump`.
 
 - all operations are inserts, not updates.
 
-- all inserts are "fire and forget," :program:`mongorestore` does not
-  wait for a response from a :program:`mongod` to ensure that the
-  MongoDB process has received or recorded the operation.
+- :program:`mongorestore` does not wait for a response from a
+  :program:`mongod` to ensure that the MongoDB process has received or
+  recorded the operation.
 
   The :program:`mongod` will record any errors to its log that occur
-  during a restore operation but :program:`mongorestore` will not
+  during a restore operation, but :program:`mongorestore` will not
   receive errors.
 
 .. include:: /includes/note-mongodump-compatibility-2.2.rst
@@ -50,7 +57,7 @@ Options
 
    Increases the amount of internal reporting returned on the command
    line. Increase the verbosity with the ``-v`` form by including
-   the option multiple times, (e.g. ``-vvvvv``.)
+   the option multiple times (e.g. ``-vvvvv``).
 
 .. option:: --version
 
@@ -61,7 +68,8 @@ Options
    Specifies a resolvable hostname for the :program:`mongod` to which
    you want to restore the database. By default
    :program:`mongorestore` will attempt to connect to a MongoDB
-   process running on the localhost port number ``27017``.
+   process running on the localhost port number ``27017``. For an
+   example of :option:`--host`, see :ref:`backup-restore-dump`.
 
    Optionally, specify a port number to connect a MongoDB instance
    running on a port other than ``27017``.
@@ -71,8 +79,9 @@ Options
 .. option:: --port <port>
 
    Specifies the port number, if the MongoDB instance is not running
-   on the standard port. (i.e. ``27017``) You may also specify a port
-   number using the :option:`--host <mongorestore --host>` command.
+   on the standard port (i.e. ``27017``). You may also specify a port
+   number using the :option:`--host` command. For
+   an example of :option:`--port`, see :ref:`backup-restore-dump`.
 
 .. option:: --ipv6
 
@@ -81,22 +90,34 @@ Options
    and processes, including :program:`mongorestore`, disable IPv6
    support by default.
 
+.. option:: --ssl
+
+   .. include:: /includes/note-ssl-tool.rst
+
+   Allows :program:`mongorestore` to connect to :program:`mongod`
+   instance over an SSL connection.
+
 .. option:: --username <username>, -u <username>
 
    Specifies a username to authenticate to the MongoDB instance, if
    your database requires authentication. Use in conjunction with the
-   :option:`--password <mongorestore --password>` option to supply a
-   password.
+   :option:`--password` option to supply a
+   password. For an example of :option:`--username`, see
+   :ref:`backup-restore-dump`.
 
-.. option:: --password <password>
+.. option:: --password <password>, -p <password>
 
    Specifies a password to authenticate to the MongoDB instance. Use
-   in conjunction with the :option:`mongorestore --username` option to
-   supply a username.
+   in conjunction with the :option:`--username` option to
+   supply a username. For an example of :option:`--password`, see
+   :ref:`backup-restore-dump`.
 
-   If you specify a :option:`--username <mongorestore --username>`
+   If you specify a :option:`--username`
    without the :option:`--password` option, :program:`mongorestore`
    will prompt for a password interactively.
+
+.. |binary-name| replace:: :program:`mongorestore`
+.. include:: /includes/manpage-options-auth.rst
 
 .. option:: --dbpath <path>
 
@@ -106,7 +127,8 @@ Options
    :program:`mongod`. To run with :option:`--dbpath`,
    :program:`mongorestore` needs to lock access to the data directory:
    as a result, no :program:`mongod` can access the same path while the
-   process runs.
+   process runs. For an example of :option:`--dbpath`, see
+   :ref:`backup-restore-dbpath`.
 
 .. option:: --directoryperdb
 
@@ -122,7 +144,8 @@ Options
    Allows :program:`mongorestore` write to the durability
    :term:`journal` to ensure that the data files will remain in a
    consistent state during the write process. This option is only
-   relevant when specifying the :option:`--dbpath` option.
+   relevant when specifying the :option:`--dbpath` option. For an
+   example of :option:`--journal`, see :ref:`backup-restore-dbpath`.
 
 .. option:: --db <db>, -d <db>
 
@@ -151,18 +174,32 @@ Options
 
 .. option:: --objcheck
 
-   Verifies each object as a valid :term:`BSON` object before inserting
-   it into the target database. If the object is not a valid
-   :term:`BSON` object, :program:`mongorestore` will not insert the
-   object into the target database and stop processing remaining
-   documents for import. This option has some performance impact.
+   Forces the :program:`mongorestore` to validate all requests from
+   clients upon receipt to ensure that clients never insert invalid
+   documents into the database. For objects with a high degree of
+   sub-document nesting, :option:`--objcheck` can have a small impact
+   on performance. You can set :option:`--noobjcheck` to disable
+   object checking at run-time.
+
+   .. versionchanged:: 2.4
+      MongoDB enables :option:`--objcheck` by default, to prevent any
+      client from inserting malformed or invalid BSON into a MongoDB
+      database.
+
+.. option:: --noobjcheck
+
+   .. versionadded:: 2.4
+
+   Disables the default document validation that MongoDB performs on all
+   incoming BSON documents.
 
 .. option:: --filter '<JSON>'
 
    Limits the documents that :program:`mongorestore` imports to only
    those documents that match the JSON document specified as
    ``'<JSON>'``. Be sure to include the document in single quotes to
-   avoid interaction with your system's shell environment.
+   avoid interaction with your system's shell environment. For an
+   example of :option:`--filter`, see :ref:`backup-restore-filter`.
 
 .. option:: --drop
 
@@ -174,7 +211,8 @@ Options
 
    Replays the :term:`oplog` after restoring the dump to ensure that the current
    state of the database reflects the point-in-time backup captured with
-   the ":option:`mongodump --oplog`" command.
+   the ":option:`mongodump --oplog`" command. For an example of
+   :option:`--oplogReplay`, see :ref:`backup-restore-oplogreplay`.
 
 .. option:: --keepIndexVersion
 
@@ -240,7 +278,7 @@ Consider the following example:
 
 .. code-block:: sh
 
-   mongorestore --collection people --db accounts dump/accounts/
+   mongorestore --collection people --db accounts dump/accounts/people.bson
 
 Here, :program:`mongorestore` reads the database dump in the ``dump/``
 sub-directory of the current directory, and restores *only* the

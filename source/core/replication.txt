@@ -44,51 +44,183 @@ votes. For information regarding non-voting members, see
    need to use master/slave replication.
 
 .. index:: configuration; replica set members
+.. _replica-set-member-configuration:
 
-Member Configuration Properties
--------------------------------
+Member Configurations
+---------------------
 
 You can configure replica set members in a variety of ways, as listed
 here. In most cases, members of a replica set have the default
 proprieties.
 
-- **Secondary-Only**: These members have data but cannot become
-  primary under any circumstance. See
-  :ref:`replica-set-secondary-only-members`.
+.. index:: replica set members; secondary only
+.. _replica-set-secondary-only-configuration:
+.. _replica-set-secondary-only-members:
 
-- **Hidden**: These members are invisible to client
-  applications. See :ref:`replica-set-hidden-members`.
+Secondary-Only Members
+~~~~~~~~~~~~~~~~~~~~~~
 
-- **Delayed**: These members apply operations from the
-  primary's :term:`oplog` after a specified delay. You can think of a
-  delayed member as a form of "rolling backup."
-  See :ref:`replica-set-delayed-members`.
+These members have data but cannot become primary under any
+circumstance. To configure a member to be secondary-only, see
+:doc:`/tutorial/configure-secondary-only-replica-set-member`.
 
-- **Arbiters**: These members have no data and exist solely to
-  participate in :ref:`elections <replica-set-elections>`. See
-  :ref:`replica-set-arbiters`.
+.. index:: replica set members; hidden
+.. _replica-set-hidden-configuration:
+.. _replica-set-hidden-members:
 
-- **Non-Voting**: These members do not vote in elections. Non-voting
-  members are only used for larger sets with more than 12 members. See
-  :ref:`replica-set-non-voting-members`.
+Hidden Members
+~~~~~~~~~~~~~~
 
-For more information about each member configuration, see the
-:ref:`replica-set-member-configurations` section in the
-:doc:`/administration/replica-sets` document.
+These members cannot become primary and are invisible to client
+applications. *However,* hidden members **do** vote in :ref:`elections
+<replica-set-elections>`.
 
+Hidden members are ideal for instances that will have significantly
+different usage patterns than the other members and require separation
+from normal traffic. Typically, hidden members provide reporting,
+dedicated backups, and dedicated read-only testing and integration
+support.
+  
+To configure a member to be a hidden member, see
+:doc:`/tutorial/configure-a-hidden-replica-set-member`.
+
+.. index:: replica set members; delayed
+.. _replica-set-delayed-configuration:
+.. _replica-set-delayed-members:
+
+Delayed Members
+~~~~~~~~~~~~~~~
+
+Delayed members copy and apply operations from the primary's :term:`oplog` with
+a specified delay. If a member has a delay of one hour, then
+the latest entry in this member's oplog will not be more recent than
+one hour old, and the state of data for the member will reflect the state of the
+set an hour earlier.
+
+.. example:: If the current time is 09:52 and the secondary is a
+   delayed by an hour, no operation will be more recent than 08:52.
+
+Delayed members may help recover from various kinds of human error. Such
+errors may include inadvertently deleted databases or botched
+application upgrades. Consider the following factors when determining
+the amount of slave delay to apply:
+
+- Ensure that the length of the delay is equal to or greater than your
+  maintenance windows.
+
+- The size of the oplog is sufficient to capture *more than* the
+  number of operations that typically occur in that period of
+  time. For more information on oplog size, see the
+  :ref:`replica-set-oplog-sizing` topic in the :doc:`/core/replication` document.
+
+Delayed members must have a :term:`priority` set to ``0`` to prevent
+them from becoming primary in their replica sets. Also these members
+should be :ref:`hidden <replica-set-hidden-members>` to prevent your
+application from seeing or querying this member.
+
+To configure a member to be a delayed member, see
+:doc:`/tutorial/configure-a-delayed-replica-set-member`.
+
+.. index:: replica set members; arbiters
+.. _replica-set-arbiter-configuration:
+.. _replica-set-arbiters:
+
+Arbiters
+~~~~~~~~
+
+These members have no data and exist solely to participate in
+:ref:`elections <replica-set-elections>`. Arbiters have the following
+interactions with the rest of the replica set:
+
+- Credential exchanges that authenticate the arbiter with the replica
+  set. All MongoDB processes within a replica set use keyfiles. These
+  exchanges are encrypted.
+
+  MongoDB only transmits the authentication credentials in a
+  cryptographically secure exchange, and encrypts no other exchange.
+
+- Exchanges of replica set configuration data and of votes. These are
+  not encrypted.
+
+  If your MongoDB deployment uses SSL, then all communications between
+  arbiters and the other members of the replica set are secure. See the
+  documentation :doc:`/tutorial/configure-ssl` for more
+  information. As with all MongoDB components, run arbiters on secure
+  networks.
+  
+To add an arbiter to the replica set, see
+:doc:`/tutorial/add-replica-set-arbiter`.
+
+.. index:: replica set members; non-voting
+.. _replica-set-non-voting-configuration:
+.. _replica-set-non-voting-members:
+
+Non-Voting Members
+~~~~~~~~~~~~~~~~~~
+
+These members do not vote in elections. Non-voting members are only
+used for larger sets with more than 12 members. To configure a member
+as non-voting, see
+:doc:`/tutorial/configure-a-non-voting-replica-set-member`.
+
+.. index:: pair: replica set; failover
+.. _replica-set-failover-administration:
 .. _replica-set-failover:
+.. _failover:
 
-Failover
---------
+Failover and Recovery
+---------------------
 
 Replica sets feature automated failover. If the :term:`primary`
 goes offline or becomes unresponsive and a majority of the original
 set members can still connect to each other, the set will elect a new
 primary.
 
-For a detailed explanation of failover, see the
-:ref:`replica-set-failover-administration` section in the
-:doc:`/administration/replica-sets` document.
+While :term:`failover` is automatic, :term:`replica set`
+administrators should still understand exactly how this process
+works. This section below describe failover in detail.
+
+In most cases, failover occurs without administrator intervention
+seconds after the :term:`primary` either steps down, becomes inaccessible,
+or becomes otherwise ineligible to act as primary. If your MongoDB deployment
+does not failover according to expectations, consider the following
+operational errors:
+
+- No remaining member is able to form a majority. This can happen as a
+  result of network partitions that render some members
+  inaccessible. Design your deployment to ensure that a majority of
+  set members can elect a primary in the same facility as core
+  application systems.
+
+- No member is eligible to become primary. Members must have a
+  :data:`~local.system.replset.settings.gmembers[n].priority` setting greater than ``0``, have a state
+  that is less than ten seconds behind the last operation to the
+  :term:`replica set`, and generally be *more* up to date than the
+  voting members.
+
+In many senses, :ref:`rollbacks <replica-set-rollbacks>` represent a
+graceful recovery from an impossible failover and recovery situation.
+
+Rollbacks occur when a primary accepts writes that other members of
+the set do not successfully replicate before the primary steps
+down. When the former primary begins replicating again it performs a
+"rollback."  *If* the operations replicate to another member *and*
+that member remains available and accessible to a majority of the
+replica set, there will be no rollback.
+
+Rollbacks remove those operations from the instance that were never
+replicated to the set so that the data set is in a consistent state.
+The :program:`mongod` program writes rolled back data to a :term:`BSON`
+file that you can view using :program:`bsondump`, applied manually
+using :program:`mongorestore`.
+
+You can prevent rollbacks using a :ref:`replica acknowledged
+<write-concern-replica-acknowledged>` write concern. These write
+operations require not only the :term:`primary` to acknowledge the
+write operation, sometimes even the majority of the set to confirm the
+write operation before returning.
+
+.. include:: /includes/seealso-elections.rst
 
 .. index:: replica set; elections
 .. index:: failover; elections
@@ -117,19 +249,28 @@ remain a secondary.
 
 .. note::
 
-   When the current :term:`primary` steps down and triggers an
-   election, the :program:`mongod` instances will close all client
-   connections. This ensures that the clients maintain an accurate
-   view of the :term:`replica set` and helps prevent :term:`rollbacks
-   <rollback>`.
+   - When the current :term:`primary` steps down and triggers an
+     election, the :program:`mongod` instances will close all client
+     connections. This ensures that the clients maintain an accurate
+     view of the :term:`replica set` and helps prevent :term:`rollbacks
+     <rollback>`.
 
-For more information on elections and failover, see:
+   - Members on either side of a network partition cannot see each
+     other when determining whether a majority is available to hold an
+     election.
 
-- The :ref:`replica-set-failover-administration` section in the
-  :doc:`/administration/replica-sets` document.
+     That means that if a primary steps down and neither side of the
+     partition has a majority on its own, the set will not elect a new
+     primary and the set will become read only. To avoid this
+     situation, attempt to place a majority of instances in one data
+     center with a minority of instances in a secondary facility.
 
-- The :ref:`replica-set-election-internals` section in the
-  :doc:`/core/replication-internals` document
+For more information on elections and failover, see the
+:ref:`replica-set-failover-administration` section in the
+:doc:`/tutorial/troubleshoot-replica-sets` document.
+
+.. index:: replica set; network partitions
+.. index:: replica set; elections
 
 .. index:: replica set; priority
 .. _replica-set-node-priority:
@@ -141,19 +282,18 @@ Member Priority
 In a replica set, every member has a "priority," that helps determine
 eligibility for :ref:`election <replica-set-elections>` to
 :term:`primary`. By default, all members have a priority of ``1``,
-unless you modify the :data:`members[n].priority` value. All members
+unless you modify the :data:`~local.system.replset.members[n].priority` value. All members
 have a single vote in elections.
 
 .. warning::
 
-   Always configure the :data:`members[n].priority` value to control
+   Always configure the :data:`~local.system.replset.members[n].priority` value to control
    which members will become primary. Do not configure
-   :data:`members[n].votes` except to permit more than 7 secondary
+   :data:`~local.system.replset.members[n].votes` except to permit more than 7 secondary
    members.
 
 For more information on member priorities, see the
-:ref:`replica-set-node-priority-configuration` section in the
-:doc:`/administration/replica-sets` document.
+:doc:`/tutorial/adjust-replica-set-member-priority` document.
 
 .. index:: pair: replica set; consistency
 .. _replica-set-consistency:
@@ -287,7 +427,8 @@ working with replica sets:
 :term:`Read preference` and :term:`write concern` have particular
 :ref:`consistency <replica-set-consistency>` implications.
 
-For a more detailed discussion of application concerns, see :doc:`/applications/replication`.
+For a more detailed discussion of application concerns, see
+:doc:`/applications/replication`.
 
 Administration and Operations
 -----------------------------
@@ -298,9 +439,18 @@ administrators of :term:`replica set` deployments.
 For more information on replica set administration, operations, and
 architecture, see:
 
-- :doc:`/administration/replica-sets`
-
-- :doc:`/administration/replica-set-architectures`
+- :doc:`/tutorial/deploy-replica-set`
+- :doc:`/tutorial/expand-replica-set`
+- :doc:`/tutorial/remove-replica-set-member`
+- :doc:`/tutorial/replace-replica-set-member`
+- :doc:`/tutorial/adjust-replica-set-member-priority`
+- :doc:`/tutorial/resync-replica-set-member`
+- :doc:`/tutorial/configure-replica-set-secondary-sync-target`
+- :doc:`/tutorial/configure-a-delayed-replica-set-member`
+- :doc:`/tutorial/configure-a-hidden-replica-set-member`
+- :doc:`/tutorial/configure-a-non-voting-replica-set-member`
+- :doc:`/tutorial/configure-secondary-only-replica-set-member`
+- :doc:`/core/replica-set-architectures`
 
 .. index:: replica set; oplog
 .. _replica-set-oplog-sizing:
@@ -440,6 +590,8 @@ the existing members.
 
 .. index:: pair: replica set; security
 
+.. _replica-set-security:
+
 Security
 ~~~~~~~~
 
@@ -455,8 +607,55 @@ that:
   infrastructure, ensure that you configure a
   :setting:`keyFile` on all members to permit authentication.
 
-For more information, see the :ref:`replica-set-security` section in the
-:doc:`/administration/replica-sets` document.
+For most instances, the most effective ways to control access and to
+secure the connection between members of a :term:`replica set` depend
+on network-level access control. Use your environment's firewall and
+network routing to ensure that traffic *only* from clients and other
+replica set members can reach your :program:`mongod` instances. If
+needed, use virtual private networks (VPNs) to ensure secure
+connections over wide area networks (WANs.)
+
+Additionally, MongoDB provides an authentication mechanism for
+:program:`mongod` and :program:`mongos` instances connecting to
+replica sets. These instances enable authentication but specify a
+shared key file that serves as a shared password.
+
+.. versionadded:: 1.8
+   Added support authentication in replica set deployments.
+
+.. versionchanged:: 1.9.1
+   Added support authentication in sharded replica set deployments.
+
+To enable authentication add the following option to your configuration file:
+
+.. code-block:: cfg
+
+   keyFile = /srv/mongodb/keyfile
+
+.. note::
+
+   You may chose to set these run-time configuration options using the
+   :option:`--keyFile <mongod --keyFile>` (or :option:`mongos --keyFile`)
+   options on the command line.
+
+Setting :setting:`keyFile` enables authentication and specifies a key
+file for the replica set members to use when authenticating to each
+other. The content of the key file is arbitrary but must be the same
+on all members of the replica set and on all :program:`mongos`
+instances that connect to the set.
+
+The key file must be less one kilobyte in size and may only contain
+characters in the base64 set. The key file must not have group or "world"
+permissions on UNIX systems. Use the following command to use the
+OpenSSL package to generate "random" content for use in a key file:
+
+.. code-block:: bash
+
+   openssl rand -base64 753
+
+.. note::
+
+   Key file permissions are not checked on Windows systems.
 
 .. _replica-set-deployment-overview:
 .. _replica-set-architecture:
@@ -468,8 +667,9 @@ The architecture and design of the :term:`replica set` deployment can
 have a great impact on the set's capacity and capability. This section
 provides a general overview of the architectural possibilities for
 replica set deployments.  However, for most production deployments a
-conventional 3-member replica set with :data:`members[n].priority`
-values of ``1`` are sufficient.
+conventional 3-member replica set with
+:data:`~local.system.replset.members[n].priority` values of ``1`` are
+sufficient.
 
 While the additional flexibility discussed is below helpful for
 managing a variety of operational complexities, it always makes sense
@@ -506,4 +706,4 @@ your replica set:
   successfully.
 
 For more information regarding replica set configuration and
-deployments see :doc:`/administration/replica-set-architectures`.
+deployments see :doc:`/core/replica-set-architectures`.

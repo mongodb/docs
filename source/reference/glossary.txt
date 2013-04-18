@@ -102,17 +102,19 @@ Glossary
       .. seealso:: :doc:`/replication` and :doc:`/core/replication`.
 
    replication
-     A feature allowing multiple database servers to share the same
-     data, thereby ensuring redundancy and facilitating load balancing.
-     MongoDB supports two flavors of replication: master-slave replication
-     and replica sets.
+      A feature allowing multiple database servers to share the same
+      data, thereby ensuring redundancy and facilitating load balancing.
+      MongoDB supports two flavors of replication: master-slave replication
+      and replica sets.
 
       .. seealso:: :term:`replica set`, :term:`sharding`,
          :doc:`/replication`. and :doc:`/core/replication`.
 
    shard
-      A single replica set that stores some portion of a sharded cluster's
-      total data set. See :term:`sharding`.
+      A single :program:`mongod` instance or a :term:`replica set`
+      that stores some portion of a sharded cluster's
+      total data set. In production, all shards should be replica sets.
+      See :term:`sharding`.
 
       .. seealso:: The documents in the :doc:`/sharding` section of manual.
 
@@ -165,27 +167,6 @@ Glossary
       performance. See :term:`sharding` and :term:`replication` for
       more information on the two different approaches to clustering with
       MongoDB.
-
-   polygon
-      MongoDB's :term:`geospatial` indexes and querying system
-      allow you to build queries around multi-sided
-      polygons on two-dimensional coordinate systems. These queries use
-      the :operator:`$within` operator and a sequence of points that define
-      the corners of the polygon.
-
-   circle
-      MongoDB's :term:`geospatial` indexes and querying system
-      allow you to build queries around circles on two-dimensional
-      coordinate systems. These queries use the :operator:`$within` operator
-      and the :operator:`$center` operator to define a circle using the center
-      and the radius of the circle.
-
-   box
-      MongoDB's :term:`geospatial` indexes and querying system
-      allow you to build queries around rectangles on two-dimensional
-      coordinate systems. These queries use the :operator:`$box`
-      operator to define a shape using the lower-left
-      and the upper-right coordinates.
 
    capped collection
       A fixed-sized :term:`collection <collection>`. Once they reach
@@ -251,10 +232,7 @@ Glossary
       of the official MongoDB drivers support this convention, as
       does the ``mongofiles`` program.
 
-      .. todo When source/applications/gridfs.txt goes live,
-         add a link here.
-
-      .. seealso:: :doc:`/reference/mongofiles`.
+      .. seealso:: :doc:`/reference/mongofiles` and :doc:`/core/gridfs`.
 
    md5
       ``md5`` is a hashing algorithm used to efficiently provide
@@ -311,7 +289,7 @@ Glossary
 
       .. include:: /includes/fact-journal-commit-interval-with-gle.rst
 
-      .. seealso:: The :doc:`/administration/journaling/` page.
+      .. seealso:: The :doc:`/core/journaling/` page.
 
    pcap
       A packet capture format used by :program:`mongosniff` to record
@@ -369,21 +347,23 @@ Glossary
 
    balancer
       An internal MongoDB process that runs in the context of a
-      :term:`sharded cluster` and manages the splitting and
+      :term:`sharded cluster` and manages the
       migration of :term:`chunks <chunk>`. Administrators must disable
       the balancer for all maintenance operations on a sharded cluster.
 
    chunk
       In the context of a :term:`sharded cluster`, a chunk is a contiguous
-      range of :term:`shard key` values assigned to a particular :term:`shard`.
-      By default, chunks are 64 megabytes or less. When they grow beyond the
-      configured chunk size, a :program:`mongos` splits the chunk into
-      two chunks.
+      range of :term:`shard key` values assigned to a particular
+      :term:`shard`. Chunk ranges are inclusive of the lower boundary
+      and exclusive of the upper boundary. By default, chunks are 64
+      megabytes or less. When they grow beyond the configured chunk
+      size, a :program:`mongos` splits the chunk into two chunks.
 
    geospatial
       Data that relates to geographical location. In MongoDB, you may
       index or store geospatial data according to geographical
       parameters and reference specific coordinates in queries.
+      See :doc:`/applications/geospatial-indexes`.
 
    checksum
       A calculated value used to ensure data integrity.
@@ -392,20 +372,10 @@ Glossary
    haystack index
       In the context of :term:`geospatial` queries, haystack indexes
       enhance searches by creating "bucket" of objects grouped by a second
-      criterion. For example, you might want all geographical searches
-      to also include the type of location being searched for. In this case,
-      you can create a haystack index that includes a document's position
-      and type:
-
-      .. code-block:: javascript
-
-         db.places.ensureIndex( { position: "geoHaystack", type: 1 } )
-
-      You can then query on position and type:
-
-      .. code-block:: javascript
-
-         db.places.find( { position: [34.2, 33.3], type: "restaurant" } )
+      criterion. For example, you might want all geospatial searches
+      to first select along a non-geospatial dimension and then match
+      on location. See :doc:`/core/geohaystack` for more
+      information.
 
    oplog
       A :term:`capped collection` that stores an ordered history of
@@ -511,6 +481,12 @@ Glossary
       uses to  distribute documents among members of the
       :term:`sharded cluster`.
 
+   hashed shard key
+      A :ref:`hashed shard key <index-type-hashed>` is a special type
+      of :term:`shard key` that uses a hash of the value in the shard
+      key field is uses to distribute documents among members of the
+      :term:`sharded cluster`.
+
    query
       A read request. MongoDB queries use a :term:`JSON`-like query
       language that includes a variety of :term:`query operators <operator>`
@@ -606,8 +582,8 @@ Glossary
       specified number of members.
 
       .. seealso:: :ref:`Write Concern <write-concern>`,
-         :doc:`/core/write-operations`, and :ref:`Write Concern for
-         Replica Sets <replica-set-write-concern>`.
+         :doc:`/core/write-operations`, and :doc:`Write Concern for
+         Replica Sets </core/write-concern>`.
 
    priority
       In the context of :term:`replica sets <replica set>`, priority
@@ -634,7 +610,7 @@ Glossary
 
       .. seealso:: :ref:`Hidden Member <replica-set-hidden-members>`,
          :dbcommand:`isMaster`, :method:`db.isMaster`, and
-         :data:`members[n].hidden`.
+         :data:`local.system.replset.members[n].hidden`.
 
    delayed member
       A member of a :term:`replica set` that cannot become primary and
@@ -660,7 +636,7 @@ Glossary
       direct reads to secondaries for :term:`eventually consistent
       <eventual consistency>` reads.
 
-      .. seealso:: :ref:`Read Preference <replica-set-read-preference>`
+      .. seealso:: :doc:`Read Preference </core/read-preference>`
 
    replication lag
       The length of time between the last operation in the primary's
@@ -694,13 +670,8 @@ Glossary
       based upon their location.
 
       :term:`Replica sets <replica set>` implement data-center
-      awareness using :term:`tagging <tag>`.
-
-      .. seealso:: :data:`members[n].tags` and
-         :ref:`replica-set-configuration-tag-sets` for more
-         information about tagging and replica sets.
-
-      .. todo:: link to data center awareness
+      awareness using :term:`tagging <tag>`. See
+      :doc:`/data-center-awareness` for more information.
 
    tag
      One or more labels applied to a given replica set member that
@@ -723,9 +694,9 @@ Glossary
       transforms the data. In MongoDB, you can run arbitrary aggregations
       over data using map-reduce.
 
-      .. seealso:: The :doc:`/applications/map-reduce` page for
+      .. seealso:: The :doc:`/core/map-reduce` page for
          more information regarding MongoDB's map-reduce
-         implementation, and :doc:`/applications/aggregation` for
+         implementation, and :doc:`/core/aggregation` for
          another approach to data aggregation in MongoDB.
 
    RDBMS
@@ -754,24 +725,24 @@ Glossary
       The MongoDB aggregation framework provides a means to calculate
       aggregate values without having to use :term:`map-reduce`.
 
-      .. seealso:: :doc:`/applications/aggregation`.
+      .. seealso:: :doc:`/core/aggregation`.
 
    pipeline
       The series of operations in the :term:`aggregation` process.
 
-      .. seealso:: :doc:`/applications/aggregation`.
+      .. seealso:: :doc:`/core/aggregation`.
 
    expression
       In the context of the :term:`aggregation framework`, expressions
       are the stateless transformations that operate on the data that
       passes through the :term:`pipeline`.
 
-      .. seealso:: :doc:`/applications/aggregation`.
+      .. seealso:: :doc:`/core/aggregation`.
 
    accumulator
       An :term:`expression` in the :term:`aggregation framework` that
       maintains state between documents in the :term:`aggregation`
-      :term:`pipeline`. See: :agg:pipeline:`$group` for a list of
+      :term:`pipeline`. See: :pipeline:`$group` for a list of
       accumulator operations.
 
    CRUD
@@ -798,9 +769,9 @@ Glossary
       information.
 
    namespace
-      A canonical name for a collection or index in MongoDB.
-      Namespaces consist of a concatenation of the database and
-      collection or index name, like so:
+      The canonical name for a collection or index in MongoDB.
+      The namespace is a combination of the database name and
+      the name of the collection or index, like so:
       ``[database-name].[collection-or-index-name]``. All documents
       belong to a namespace.
 
@@ -834,7 +805,7 @@ Glossary
 
    ObjectId
       A special 12-byte :term:`BSON` type that has a high probability
-      an ObjectId represent the time of the ObjectID's
+      an ObjectId represent the time of the ObjectId's
       creation. MongoDB uses ObjectId values as the default values for
       :term:`_id` fields.
 
@@ -922,7 +893,7 @@ Glossary
       different points:
 
       - :term:`Initial sync` occurs when MongoDB creates new databases on a
-        new or restored :term:`replica set` member, populating the the
+        new or restored :term:`replica set` member, populating the
         member with the replica set's data.
 
       - "Replication" occurs continually after initial sync and keeps
@@ -931,3 +902,26 @@ Glossary
    initial sync
       The :term:`replica set` operation that replicates data from an
       existing replica set member to a new or restored replica set member.
+
+   GeoJSON
+
+      GeoJSON is a geospatial data interchange format based on
+      JavaScript Object Notation (JSON) and is used in geospatial queries.
+      For supported GeoJSON objects, see :ref:`geo-overview-location-data`.
+      For the GeoJSON format specification, see
+      `http://geojson.org/geojson-spec.html <http://geojson.org/geojson-spec.html>`_
+
+   legacy coordinate pairs
+      The format used for geospatial data prior to MongoDB version 2.4.
+      This format stores geospatial data as points on a planar
+      coordinate system.
+
+   datum
+      A datum is a set of values used to define measurements on the
+      earth. MongoDB uses the :term:`WGS84` datum.
+
+   WGS84
+      The default :term:`datum` MongoDB uses to calculate geometry over
+      an Earth-like sphere. MongoDB uses the WGS84 datum for geospatial
+      queries on :term:`GeoJSON` objects. See
+      `http://spatialreference.org/ref/epsg/4326/ <http://spatialreference.org/ref/epsg/4326/>`_.

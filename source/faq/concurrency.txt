@@ -68,7 +68,7 @@ following methods:
 - :doc:`mongostat </reference/mongostat>`, and/or
 - the `MongoDB Monitoring Service (MMS) <http://mms.10gen.com/>`_
 
-Specifically, the :data:`locks` document in the :doc:`output of
+Specifically, the :data:`~serverStatus.locks` document in the :doc:`output of
 serverStatus </reference/server-status>`, or the :data:`~currentOp.locks` field
 in the :doc:`current operation reporting </reference/current-op>`
 provides insight into the type of locks and amount of lock
@@ -92,7 +92,7 @@ while :program:`mongod` loads documents into memory.
 Additionally, write operations that affect multiple documents
 (i.e. :method:`~db.collection.update()` with the ``multi``
 parameter,) will yield periodically to allow read operations during
-these log write operations. Similarly, long running read locks will
+these long write operations. Similarly, long running read locks will
 yield periodically to ensure that write operations have the
 opportunity to complete.
 
@@ -103,7 +103,7 @@ opportunity to complete.
    MongoDB predicts that the data is not in memory a read operation
    yields its lock while MongoDB loads the data to memory. Once data
    is available in memory, the read will reacquire the lock to
-   completes the operation.
+   complete the operation.
 
 .. _faq-concurrency-operations-locks:
 
@@ -144,11 +144,6 @@ The following administrative operations require an exclusive
 - :method:`db.collection.validate()`, and
 - :method:`db.copyDatabase()`. This operation may lock all
   databases. See :ref:`faq-concurrency-lock-multiple-dbs`.
-
-The :method:`db.collection.group()` operation takes a read lock and does
-not allow any other threads to execute JavaScript while it is running.
-
-.. todo The above sentence might no longer apply in version 2.4, which will use V8.
 
 The following administrative commands lock the database but only hold
 the lock for a very short time:
@@ -233,31 +228,8 @@ secondaries, in a two phases:
 What kind of concurrency does MongoDB provide for JavaScript operations?
 ------------------------------------------------------------------------
 
-A single :program:`mongod` can only run a *single* JavaScript
-operation at once. Therefore, operations that rely on JavaScript cannot
-run concurrently; however, the :program:`mongod` can often run other
-database operations concurrently with the JavaScript execution. This
-limitation with JavaScript affects the following operations:
-
-- :dbcommand:`mapReduce`
-
-  The JavaScript operations within a :dbcommand:`mapReduce` job are
-  short lived and yield many times during the operation. Portions of
-  the map-reduce operation take database locks for reading, writing
-  data to a temporary collection and writing the final output of the
-  write operation.
-
-- :dbcommand:`group`
-
-  The :dbcommand:`group` takes a read lock in addition to blocking all
-  other JavaScript execution.
-
-- :method:`db.eval()`
-
-  Unless you specify the ``nolock`` option, :method:`db.eval()` takes
-  a write lock in addition to blocking all JavaScript operations.
-
-- :operator:`$where`
-
-  Only a single query that uses the :operator:`$where` operation can
-  run at a time.
+.. versionchanged:: 2.4
+   The V8 JavaScript engine added in 2.4 allows multiple JavaScript
+   operations to run at the same time. Prior to 2.4, a single
+   :program:`mongod` could only run a *single* JavaScript operation at
+   once.

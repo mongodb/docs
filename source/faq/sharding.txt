@@ -20,7 +20,7 @@ Is sharding appropriate for a new deployment?
 
 Sometimes.
 
-If your data set fits on a single servers, you should begin
+If your data set fits on a single server, you should begin
 with an unsharded deployment.
 
 Converting an unsharded database to a :term:`sharded cluster` is easy
@@ -61,8 +61,7 @@ is to:
 - restore the dumped data into MongoDB.
 
 See :dbcommand:`shardCollection`, :method:`sh.shardCollection()`,
-:doc:`/administration/sharded-clusters`, the :ref:`Shard Key
-<sharding-internals-shard-keys>` section in the
+the :ref:`Shard Key <sharding-internals-shard-keys>` section in the
 :doc:`/core/sharded-cluster-internals` document,
 :doc:`/tutorial/deploy-shard-cluster`, and :issue:`SERVER-4000` for
 more information.
@@ -156,7 +155,7 @@ field unique. It is problematic for collections to have duplicate
 
 If you're not sharding your collection by the ``_id`` field, then you
 should be sure to store a globally unique identifier in that
-field. The default :doc:`BSON ObjectID </core/object-id>` works well in
+field. The default :doc:`BSON ObjectID </reference/object-id>` works well in
 this case.
 
 I've enabled sharding and added a second shard, but all the data is still on one server. Why?
@@ -186,9 +185,6 @@ Yes. :program:`mongod` creates these files as backups during normal
 
 Once these migrations are complete, you may delete these files.
 
-You can set :setting:`noMoveParanoia` to ``true`` to disable this
-behavior.
-
 How does ``mongos`` use connections?
 ------------------------------------
 
@@ -202,7 +198,7 @@ pool.
 
 See the :ref:`System Resource Utilization
 <system-resource-utilization>` section of the
-:doc:`/administration/ulimit` document.
+:doc:`/reference/ulimit` document.
 
 Why does ``mongos`` hold connections open?
 ------------------------------------------
@@ -250,7 +246,8 @@ the data will reside only on the new shard.
 What is the process for moving, renaming, or changing the number of config servers?
 -----------------------------------------------------------------------------------
 
-.. see:: :ref:`sharding-procedure-config-server` which describes this process.
+See :doc:`/administration/sharded-clusters` for information on
+migrating and replacing config servers.
 
 When do the ``mongos`` servers detect config server changes?
 ------------------------------------------------------------
@@ -369,10 +366,14 @@ performance. However, if you have a high insert volume, a
 monotonically increasing shard key may be a limitation.
 
 To address this issue, you can use a field with a value that stores
-the hash of a key with an ascending value. While you can compute a
-hashed value in your application and include this value in your
-documents for use as a shard key, the :issue:`SERVER-2001` issue will
-implement this capability within MongoDB.
+the hash of a key with an ascending value.
+
+.. versionchanged:: 2.4
+
+   You can use a :ref:`hashed index <index-type-hashed>` and
+   :term:`hashed shard key`
+   or you can compute and maintain this hashed value in your
+   application.
 
 What do ``moveChunk commit failed`` errors mean?
 ------------------------------------------------
@@ -399,3 +400,53 @@ chunk migration failure independently.
 If you encounter this issue, contact the `MongoDB User Group
 <http://groups.google.com/group/mongodb-user>`_ or 10gen support to
 address this issue.
+
+How does draining a shard affect the balancing of uneven chunk distribution?
+----------------------------------------------------------------------------
+
+The sharded cluster balancing process controls both migrating chunks
+from decommissioned shards (i.e. draining,) and normal cluster
+balancing activities. Consider the following behaviors for different
+versions of MongoDB in situations where you remove a shard in a
+cluster with an uneven chunk distribution:
+
+- After MongoDB 2.2, the balancer first removes the chunks from the
+  draining shard and then balances the remaining uneven chunk
+  distribution.
+
+- Before MongoDB 2.2, the balancer handles the uneven chunk
+  distribution and *then* removes the chunks from the draining shard.
+
+.. COMMENT: This is probably a knowledge base article, but doesn't belong in
+            the documentation here.
+
+   Although this balancer prioritization is **not** configurable, you can,
+   however, achieve the desired behavior with one of the following manual
+
+   - Option 1
+
+     #. Stop the balancer.
+
+     #. Use the :dbcommand:`moveChunk` command to move chunks off of the
+        draining shard.
+
+     #. Restart the balancer.
+
+   - Option 2
+
+   #. Set the ``maxSize`` on the new shards to some low value so that
+      they cannot accept more chunks. This should stop the balancing
+      operation and allow the draining to continue with chunks moved
+      to the full shards.
+
+   #. Restore the original ``maxSize`` on the new shards.
+
+      .. note::
+
+         When changing the ``maxSize`` in the :term:`config database`:
+
+         - in versions 2.0+, run the :dbcommand:`flushRouterConfig` command
+           to refresh the :program:`mongos`.
+
+         - in versions pre-2.0, you need to restart :program:`mongos`.
+           solutions:

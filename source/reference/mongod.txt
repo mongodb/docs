@@ -74,17 +74,17 @@ Options
    port 27017.
 
    UNIX-like systems require root privileges to use ports with numbers
-   lower than 1000.
+   lower than 1024.
 
 .. option:: --bind_ip <ip address>
 
    The IP address that the :program:`mongod` process will bind to and
    listen for connections. By default :program:`mongod` listens for
-   connections on the localhost (i.e. ``127.0.0.1`` address.) You may
-   attach :program:`mongod` to any interface; however, if you attach
-   :program:`mongod` to a publicly accessible interface ensure that
-   you have implemented proper authentication and/or firewall
-   restrictions to protect the integrity of your database.
+   connections all interfaces. You may attach :program:`mongod` to any
+   interface; however, when attaching :program:`mongod` to a publicly
+   accessible interface ensure that you have implemented proper
+   authentication and/or firewall restrictions to protect the
+   integrity of your database.
 
 .. option:: --maxConns <number>
 
@@ -98,9 +98,23 @@ Options
 .. option:: --objcheck
 
    Forces the :program:`mongod` to validate all requests from clients
-   upon receipt to ensure that invalid objects are never inserted into
-   the database. Enabling this option will produce some performance
-   impact, and is not enabled by default.
+   upon receipt to ensure that clients never insert invalid documents
+   into the database. For objects with a high degree of sub-document
+   nesting, :option:`--objcheck` can have a small impact on
+   performance. You can set :option:`--noobjcheck` to disable object
+   checking at run-time.
+
+   .. versionchanged:: 2.4
+      MongoDB enables :option:`--objcheck` by default, to prevent any
+      client from inserting malformed or invalid BSON into a MongoDB
+      database.
+
+.. option:: --noobjcheck
+
+   .. versionadded:: 2.4
+
+   Disables the default document validation that MongoDB performs on all
+   incoming BSON documents.
 
 .. option:: --logpath <path>
 
@@ -172,12 +186,12 @@ Options
 .. option:: --auth
 
    Enables database authentication for users connecting from remote
-   hosts. configure users via the :doc:`mongo shell shell
+   hosts. Configure users via the :doc:`mongo shell
    </reference/mongo>`. If no users exist, the localhost interface
    will continue to have access to the database until the you create
    the first user.
 
-   See the :doc:`Security and Authentication </administration/security>`
+   See the :doc:`Security and Authentication </core/security>`
    page for more information regarding this functionality.
 
 .. option:: --cpu
@@ -374,11 +388,34 @@ Options
    :program:`mongod` cleanly and restart with the :option:`--repair`
    option.
 
+   .. note::
+
+      :option:`--repair` copies data from the source data files into
+      new data files in the :setting:`repairpath`, and then replaces
+      the original data files with the repaired data files. *If*
+      :setting:`repairpath` is on the same device as
+      :setting:`dbpath`, you *may* interrupt a :program:`mongod`
+      running :option:`--repair` without affecting the integrity of
+      the data set.
+
 .. option:: --repairpath <path>
 
    Specifies the root directory containing MongoDB data files, to use
-   for the :option:`--repair` operation. Defaults to the value
-   specified by :option:`--dbpath`.
+   for the :option:`--repair` operation. Defaults to a ``_tmp``
+   directory within the :setting:`dbpath`.
+
+.. option:: --setParameter <options>
+
+   .. versionadded:: 2.4
+
+   Specifies an option to configure on startup.  Specify multiple
+   options with multiple :option:`--setParameter` options.  See
+   :doc:`/reference/parameters` for full documentation of these
+   parameters. The :dbcommand:`setParameter` database command provides
+   access to many of these parameters. :option:`--setParameter` supports the
+   following options:
+
+   .. include:: /includes/list-set-parameters.rst
 
 .. option:: --slowms <value>
 
@@ -412,7 +449,7 @@ Options
    </reference/configuration-options>` and the :option:`--config`
    option.
 
-   :option:`--shutdown`` is only available on Linux systems.
+   :option:`--shutdown` is only available on Linux systems.
 
 .. option:: --syncdelay <value>
 
@@ -428,7 +465,7 @@ Options
    field.
 
    :setting:`syncdelay` has no effect on the :setting:`journal`
-   files or :doc:`journaling </administration/journaling>`.
+   files or :doc:`journaling </core/journaling>`.
 
    .. warning::
 
@@ -542,7 +579,7 @@ replica sets are the preferred configuration for database replication.
    Configures :program:`mongod` to run as a replication
    :term:`slave`.
 
-.. option:: --source <host>:<port>
+.. option:: --source <host><:port>
 
    For use with the :option:`--slave` option, the ``--source`` option
    designates the server that this instance will replicate.
@@ -560,16 +597,17 @@ replica sets are the preferred configuration for database replication.
 
 .. option:: --autoresync
 
-   For use with the :option:`--slave` option, the
+   For use with the :option:`--slave` option. When set,
    :option:`--autoresync` option allows this slave to automatically
-   resync if the local data is more than 10 seconds behind the
-   master. This option may be problematic if the :term:`oplog` is too
-   small (controlled by the :option:`--oplogSize` option.) If the
-   :term:`oplog` not large enough to store the difference in changes
-   between the master's current state and the state of the slave, this
-   node will forcibly resync itself unnecessarily. When you set the If
-   the :option:`--autoresync` option the slave will not attempt an
-   automatic resync more than once in a ten minute period.
+   resync if it is more than 10 seconds behind the master. This
+   setting may be problematic if the :option:`--oplogSize` specifies
+   a too small oplog.
+   If the :term:`oplog` is not large enough to store the difference in
+   changes between the master's current state and the state of the
+   slave, this instance will forcibly resync itself
+   unnecessarily. When you set the :setting:`autoresync` option to
+   ``false``, the slave will not attempt an automatic resync more than
+   once in a ten minute period.
 
 Sharding Cluster Options
 ````````````````````````
@@ -579,10 +617,20 @@ Sharding Cluster Options
    Declares that this :program:`mongod` instance serves as the
    :term:`config database` of a sharded cluster. When running with
    this option, clients will not be able to write data to any database
-   other than ``config`` and ``admin``. The default port for
-   :program:`mongod` with this option is ``27019`` and
-   :program:`mongod` writes all data files to the ``/configdb``
-   sub-directory of the :option:`--dbpath` directory.
+   other than ``config`` and ``admin``. The default port for a
+   :program:`mongod` with this option is ``27019`` and the default
+   :option:`--dbpath` directory is ``/data/configdb``, unless
+   specified.
+
+   .. versionchanged:: 2.2
+      :option:`--configsvr` also sets :option:`--smallfiles`.
+
+   .. versionchanged:: 2.4
+      :option:`--configsvr` creates a local :term:`oplog`.
+
+   Do not use :option:`--configsvr` with :option:`--replSet` or
+   :option:`--shardsvr`. Config servers cannot be a shard
+   server or part of a :term:`replica set`.
 
 .. option:: --shardsvr
 
@@ -591,16 +639,14 @@ Sharding Cluster Options
    ``27018``.  The only effect of :option:`--shardsvr` is to change
    the port number.
 
-.. option:: --noMoveParanoia
+SSL Options
+```````````
 
-   Disables a "paranoid mode" for data writes for chunk migration
-   operation. See the
-   :ref:`chunk migration <sharding-chunk-migration>`
-   and :dbcommand:`moveChunk` command documentation for more information.
+.. see:: :doc:`/tutorial/configure-ssl` for full
+   documentation of MongoDB's support.
 
-   By default :program:`mongod` will save copies of migrated chunks on
-   the "from" server during migrations as "paranoid mode." Setting
-   this option disables this paranoia.
+.. |binary-name| replace:: :program:`mongod`
+.. include:: /includes/manpage-options-ssl.rst
 
 Usage
 -----

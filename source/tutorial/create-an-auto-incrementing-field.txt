@@ -25,7 +25,7 @@ following:
    for the ``_id`` field, or any field, because it does not scale for
    databases with larger numbers of documents. Typically the default
    value :term:`ObjectId <objectid>` is more ideal for the ``_id``.
-   
+
 
 .. _auto-increment-counters-collection:
 
@@ -40,48 +40,48 @@ contains the last value of the sequence.
 
    .. code-block:: javascript
 
-      db.counters.insert( 
-         { 
+      db.counters.insert(
+         {
             _id: "userid",
             seq: 0
          }
       )
 
-#. Create a ``getNextSequence`` function that accepts a ``name`` of the
-   sequence. The function uses the :method:`findAndModify()
-   <db.collection.findAndModify()>` method to atomically increment the
-   ``seq`` value and return this new value:
+#. Create a ``getNextSequence`` function that accepts a ``name`` of
+   the sequence. The function uses the
+   :method:`~db.collection.findAndModify()` method to atomically
+   increment the ``seq`` value and return this new value:
 
    .. code-block:: javascript
 
       function getNextSequence(name) {
          var ret = db.counters.findAndModify(
                 {
-                  query: { _id: name }, 
-                  update: { $inc: { seq: 1 } }, 
+                  query: { _id: name },
+                  update: { $inc: { seq: 1 } },
                   new: true
                 }
          );
-         
+
          return ret.seq;
       }
 
-#. Use this ``getNextSequence()`` function during 
+#. Use this ``getNextSequence()`` function during
    :method:`insert() <db.collection.insert()>`.
 
    .. code-block:: javascript
 
       db.users.insert(
          {
-           _id: getNextSequence("userid"), 
-           name: "Sarah C." 
+           _id: getNextSequence("userid"),
+           name: "Sarah C."
          }
       )
 
       db.users.insert(
          {
-           _id: getNextSequence("userid"), 
-           name: "Bob D." 
+           _id: getNextSequence("userid"),
+           name: "Bob D."
          }
       )
 
@@ -96,13 +96,61 @@ contains the last value of the sequence.
    .. code-block:: javascript
 
       {
-        _id : 1, 
-        name : "Sarah C." 
+        _id : 1,
+        name : "Sarah C."
       }
-      { 
-        _id : 2, 
-        name : "Bob D." 
+      {
+        _id : 2,
+        name : "Bob D."
       }
+
+.. note::
+
+   When :method:`~db.collection.findAndModify()` includes the ``upsert:
+   true`` option **and** the query field(s) is not uniquely indexed, the
+   method could insert a document multiple times in certain
+   circumstances. For instance, if multiple clients each invoke the
+   method with the same query condition and these methods complete the
+   find phase before any of methods perform the modify phase, these
+   methods could insert the same document.
+
+   In the ``counters`` collection example, the query field is the
+   ``_id`` field, which always has a unique index. Consider that the
+   :method:`~db.collection.findAndModify()` includes the ``upsert:
+   true`` option, as in the following modified example:
+
+   .. code-block:: javascript
+      :emphasize-lines: 7
+
+      function getNextSequence(name) {
+         var ret = db.counters.findAndModify(
+                {
+                  query: { _id: name },
+                  update: { $inc: { seq: 1 } },
+                  new: true,
+                  upsert: true
+                }
+         );
+
+         return ret.seq;
+      }
+
+   If multiple clients were to invoke the ``getNextSequence()`` method
+   with the same ``name`` parameter, then the methods would observe one
+   of the following behaviors:
+
+   - Exactly one :method:`~db.collection.findAndModify()` would
+     successfully insert a new document.
+
+   - Zero or more :method:`~db.collection.findAndModify()` methods
+     would update the newly inserted document.
+
+   - Zero or more :method:`~db.collection.findAndModify()` methods
+     would fail when they attempted to insert a duplicate.
+
+   If the method fails due to a unique index constraint violation,
+   retry the method. Absent a delete of the document, the retry
+   should not fail.
 
 .. _auto-increment-optimistic-loop:
 
@@ -133,9 +181,9 @@ is successful.
               doc._id = seq;
 
               targetCollection.insert(doc);
-              
+
               var err = db.getLastErrorObj();
-              
+
               if( err && err.code ) {
                   if( err.code == 11000 /* dup key */ )
                       continue;
@@ -152,8 +200,8 @@ is successful.
    - Queries the ``targetCollection`` for the document with the
      maximum ``_id`` value.
 
-   - Determines the next sequence value for ``_id`` by: 
-     
+   - Determines the next sequence value for ``_id`` by:
+
      - adding ``1`` to the returned ``_id`` value if the returned
        cursor points to a document.
 
@@ -169,19 +217,19 @@ is successful.
      loop.  Otherwise, if the insert operation encounters some
      other error or if the operation succeeds, break out of the loop.
 
-#. Use the ``insertDocument()`` function to perform an insert: 
+#. Use the ``insertDocument()`` function to perform an insert:
 
    .. code-block:: javascript
 
       var myCollection = db.users2;
-      
+
       insertDocument(
          {
-           name: "Grace H." 
+           name: "Grace H."
          },
          myCollection
       );
-      
+
       insertDocument(
          {
            name: "Ted R."

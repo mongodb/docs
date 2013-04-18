@@ -21,7 +21,13 @@ from sphinx.domains.python import _pseudo_parse_arglist
 from sphinx.util.nodes import make_refnode
 from sphinx.util.docfields import Field, GroupedField, TypedField
 
-from sphinx_conf import composite_pages
+import yaml
+
+try:
+    with open('composite-pages.yaml', 'r') as f:
+        composite_pages = yaml.load_all(f).next()
+except IOError:
+    composite_pages = []
 
 def basename(path):
     return path.split('/')[-1].rsplit('.', 1)[0]
@@ -86,51 +92,67 @@ class MongoDBObject(ObjectDescription):
         objectname = self.options.get(
             'object', self.env.temp_data.get('mongodb:object'))
 
-        if self.objtype == 'binary':
+        if self.objtype == 'dbcommand':
+            fullname = 'dbcmd.' + name_obj[0]
+        elif self.objtype == 'operator':
+            fullname = 'op.' + name_obj[0]
+        elif self.objtype == 'projection':
+            fullname = 'prj.' + name_obj[0]
+        elif self.objtype == 'binary':
             fullname = 'bin.' + name_obj[0]
+        elif self.objtype == 'parameter':
+            fullname = 'param.' + name_obj[0]
+        elif self.objtype == 'pipeline':
+            fullname = 'stage.' + name_obj[0]
+        elif self.objtype == 'group':
+            fullname = 'grp.' + name_obj[0]
+        elif self.objtype == 'expression':
+            fullname = 'exp.' + name_obj[0]
+        elif name_obj[0] in self.state.document.ids:
+            fullname = 'iddup.' + name_obj[0]
         else:
             fullname = name_obj[0]
 
-        if fullname not in self.state.document.ids:
-            signode['names'].append(fullname)
-            signode['ids'].append(fullname.replace('$', '_S_'))
-            signode['first'] = not self.names
-            self.state.document.note_explicit_target(signode)
-            objects = self.env.domaindata['mongodb']['objects']
-            if fullname in objects:
-                path = self.env.doc2path(self.env.domaindata['mongodb']['objects'][fullname][0])
-                spath = basename(path)
-                sspath = basename(self.state_machine.reporter.source)
+        signode['names'].append(fullname)
+        signode['ids'].append(fullname.replace('$', '_S_'))
+        signode['first'] = not self.names
+        self.state.document.note_explicit_target(signode)
+        objects = self.env.domaindata['mongodb']['objects']
+        if fullname in objects:
+            path = self.env.doc2path(self.env.domaindata['mongodb']['objects'][fullname][0])
+            spath = basename(path)
+            sspath = basename(self.state_machine.reporter.source)
 
-                if spath in composite_pages:
-                    pass
-                elif sspath in composite_pages:
-                    pass
-                elif spath == fullname:
-                    pass
-                elif spath == fullname.lstrip('$'):
-                    pass
-                elif spath == fullname.lstrip('_'):
-                    pass
-                elif path == self.state_machine.reporter.source:
-                    pass
-                elif fullname.startswith(spath):
-                    pass
-                elif fullname == '$':
-                    pass
-                    # temporary: silencing the positional operator
-                    # warning, this is the namespace clash for
-                    # projection and query/update operators.
-                else:
-                    self.state_machine.reporter.warning(
-                        'duplicate object description of "%s", ' % fullname +
-                        'other instance in ' + path,
-                        line=self.lineno)
-
-            if self.env.docname.rsplit('/', 1)[1] in composite_pages:
+            if spath in composite_pages:
                 pass
+            elif sspath in composite_pages:
+                pass
+            elif spath == fullname:
+                pass
+            elif spath == fullname.lstrip('$'):
+                pass
+            elif spath == fullname.lstrip('_'):
+                pass
+            elif path == self.state_machine.reporter.source:
+                pass
+            elif fullname.startswith(spath):
+                pass
+            elif fullname == '$':
+                pass
+                # temporary: silencing the positional operator
+                # warning, this is the namespace clash for
+                # projection and query/update operators.
             else:
-                objects[fullname] = self.env.docname, self.objtype
+                self.state_machine.reporter.warning(
+                    'duplicate object description of "%s", ' % fullname +
+                    'other instance in ' + path,
+                    line=self.lineno)
+
+        if self.env.docname.rsplit('/', 1)[1] in composite_pages:
+            pass
+        else:
+            objects[fullname] = self.env.docname, self.objtype
+
 
         indextext = self.get_index_text(objectname, name_obj)
         if indextext:
@@ -168,6 +190,14 @@ class MongoDBObject(ObjectDescription):
             return _('%s (BSON type)') % (name)
         elif self.objtype == 'authrole':
             return _('%s (User role)') % (name)
+        elif self.objtype == 'parameter':
+            return _('%s (setParameter option)') % (name)
+        elif self.objtype == 'pipeline':
+            return _('%s (aggregation framework pipeline operator)') % (name)
+        elif self.objtype == 'expression':
+            return _('%s (aggregation framework transformation expression)') % (name)
+        elif self.objtype == 'group':
+            return _('%s (aggregation framework group expression)') % (name)
         return ''
 
     def run(self):
@@ -245,6 +275,10 @@ class MongoDBDomain(Domain):
         'limit':        ObjType(l_('limit'),       'limit'),
         'bsontype':     ObjType(l_('bsontype'),    'bsontype'),
         'authrole':     ObjType(l_('authrole'),    'authrole'),
+        'parameter':    ObjType(l_('parameter'),   'parameter'),
+        'pipeline':     ObjType(l_('pipeline'),    'pipeline'),
+        'group':        ObjType(l_('group'),       'group'),
+        'expression':   ObjType(l_('expression'),  'expression'),
     }
 
     directives = {
@@ -262,6 +296,10 @@ class MongoDBDomain(Domain):
         'limit':         MongoDBObject,
         'bsontype':      MongoDBObject,
         'authrole':      MongoDBObject,
+        'parameter':     MongoDBObject,
+        'pipeline':      MongoDBObject,
+        'group':         MongoDBObject,
+        'expression':    MongoDBObject,
     }
     roles = {
         'dbcommand':   MongoDBXRefRole(),
@@ -278,6 +316,10 @@ class MongoDBDomain(Domain):
         'limit':       MongoDBXRefRole(),
         'bsontype':    MongoDBXRefRole(),
         'authrole':    MongoDBXRefRole(),
+        'parameter':   MongoDBXRefRole(),
+        'pipeline':    MongoDBXRefRole(),
+        'group':       MongoDBXRefRole(),
+        'expression':  MongoDBXRefRole(),
     }
     initial_data = {
         'objects': {}, # fullname -> docname, objtype
@@ -291,6 +333,27 @@ class MongoDBDomain(Domain):
 
         if typ == 'program':
             name = 'bin.' + name
+            newname = name
+        elif typ == 'dbcommand':
+            name = 'dbcmd.' + name
+            newname = name
+        elif typ == 'operator':
+            name = 'op.' + name
+            newname = name
+        elif typ == 'projection':
+            name = 'prj.' + name
+            newname = name
+        elif typ == 'parameter':
+            name = 'param.' + name
+            newname = name
+        elif typ == 'pipeline':
+            name = 'stage.' + name
+            newname = name
+        elif typ == 'group':
+            name = 'grp.' + name
+            newname = name
+        elif typ == 'expression':
+            name = 'exp.' + name
             newname = name
 
         searchorder = 1
@@ -314,14 +377,17 @@ class MongoDBDomain(Domain):
         searchorder = node.hasattr('refspecific') and 1 or 0
         name, obj = self.find_obj(env, objectname, target, typ, searchorder)
 
-        if not obj:
-            return None
-
-        if name.startswith('bin.'):
-            name = name.split('.', 1)[1]
+        if obj is None:
+            name, obj = self.find_obj(env, 'iddup.' + name, target, typ, searchorder)
+            if obj is None:
+                # print names and info from the node object at this
+                # point to report on links that fail to resolve
+                return None
 
         return make_refnode(builder, fromdocname, obj[0],
-                            name.replace('$', '_S_'), contnode, name)
+                            name.replace('$', '_S_'), contnode, target)
+
+    
 
     def get_objects(self):
         for refname, (docname, type) in self.data['objects'].items():

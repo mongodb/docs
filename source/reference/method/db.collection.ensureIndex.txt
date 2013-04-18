@@ -6,140 +6,226 @@ db.collection.ensureIndex()
 
 .. method:: db.collection.ensureIndex(keys, options)
 
-   :param document keys: A :term:`document` that contains
-                         pairs with the name of the field or
-                         fields to index and order of the index. A
-                         ``1`` specifies ascending and a ``-1``
-                         specifies descending.
+   Creates an index on the field specified, if that index does not
+   already exist.
 
-   :param document options: A :term:`document` that controls the creation
-                            of the index. This argument is optional.
+   :param document keys: 
+
+      For ascending/descending indexes, a :ref:`document
+      <document-index-specification>` that contains pairs with the
+      name of the field or fields to index and order of the index. A
+      ``1`` specifies ascending and a ``-1`` specifies descending. 
+
+      MongoDB supports several different index types including
+      :ref:`text <index-feature-text>`, :doc:`geospatial
+      </applications/geospatial-indexes>`, and :ref:`hashed
+      <index-type-hashed>` indexes. 
+
+   :param document options: 
+
+      A :term:`document` that controls the creation of the index. This
+      argument is optional.
 
    .. warning:: Index names, including their full namespace
-      (i.e. ``database.collection``) can be no longer than 128
+      (i.e. ``database.collection``) cannot be longer than 128
       characters. See the :method:`db.collection.getIndexes()` field
-      ":data:`~system.indexes.name`" for the names of existing indexes.
+      :data:`~system.indexes.name` for the names of existing indexes.
 
-   .. see:: The :doc:`/indexes` section of this manual for full
-      documentation of indexes and indexing in MongoDB.
+   .. example:: Create an Ascending Index on a Single Field
 
-   Creates an index on the field specified, if that index does not
-   already exist. If the ``keys`` document specifies more than one
-   field, than :method:`db.collection.ensureIndex()` creates a :term:`compound
-   index`. For example:
+      The following example creates an ascending index on the field
+      ``orderDate``.
 
-   .. code-block:: javascript
+      .. code-block:: javascript
 
-      db.collection.ensureIndex({ [key]: 1})
+         db.collection.ensureIndex( { orderDate: 1 } )
 
-   This command creates an index, in ascending order, on the field
-   ``[key]``. To specify a compound index use the following form:
+   If the ``keys`` document specifies more than one field, then
+   :method:`db.collection.ensureIndex()` creates a :term:`compound
+   index`.
 
-   .. code-block:: javascript
+   .. example:: Create an Index on a Multiple Fields
 
-      db.collection.ensureIndex({ [key]: 1, [key1]: -1 })
+      The following example creates a compound index on the
+      ``orderDate`` field (in ascending order) and the ``zipcode``
+      field (in descending order.)
 
-   This command creates a compound index on the ``key`` field
-   (in ascending order) and ``key1`` field (in descending order.)
+      .. code-block:: javascript
+
+         db.collection.ensureIndex( { orderDate: 1, zipcode: -1 } )
+
+   A compound index cannot include a :ref:`hashed index <index-type-hashed>`
+   component.
 
    .. note::
 
-      Typically the order of an index is only important when doing
-      :method:`cursor.sort()` operations on the indexed fields.
+      The order of an index is important for supporting
+      :method:`cursor.sort()` operations using the index.
 
-   The available options, possible values, and the default settings
-   are as follows:
+   .. seealso::
+
+      - The :doc:`/indexes` section of this manual for full
+        documentation of indexes and indexing in MongoDB.
+
+      - The :ref:`create-text-index` section for more information and
+        examples on creating ``text`` indexes.
+
+   :method:`~db.collection.ensureIndex()` provides the following options:
 
    .. list-table::
       :header-rows: 1
 
       * - **Option**
-        - **Plugin**
+        - **Value**
         - **Default**
-          
-      * - background
+        - **Index Type**
+
+      * - :option:`background`
         - ``true`` or ``false``
         - ``false``
-      * - unique
+        - All
+
+      * - :option:`unique`
         - ``true`` or ``false``
         - ``false``
-      * - name
+        - Ascending/Descending
+
+      * - :option:`name`
         - string
         - none
-      * - cache
-        - ``true`` or ``false``
-        - ``true``
-      * - dropDups
-        - ``true`` or ``false``
-        - ``false``
-      * - sparse
+        - All
+
+      * - :option:`dropDups`
         - ``true`` or ``false``
         - ``false``
-      * - expireAfterSeconds
+        - Scalar
+
+      * - :option:`sparse`
+        - ``true`` or ``false``
+        - ``false``
+        - Ascending/Descending
+
+      * - :option:`expireAfterSeconds`
         - integer
         - none
-      * - v
+        - :term:`TTL`
+
+      * - :option:`v`
         - index version
         - 1
+        - All
 
-   :option Boolean background: Specify ``true`` to build the index
-                               in the background so that building an
-                               index will *not* block other database
-                               activities.
+      * - :option:`weights`
+        - document
+        - 1
+        - Text
 
-   :option Boolean unique: Specify ``true`` to create a unique index
-                           so that the collection will not accept
-                           insertion of documents where the index key
-                           or keys matches an existing value in the
-                           index.
+      * - :option:`default_language`
+        - string
+        - ``english``
+        - Text
 
-   :option string name: Specify the name of the index. If unspecified,
-                        MongoDB will generate an index name by concatenating
-                        the names of the indexed fields and the sort order.
+      * - :option:`language_override`
+        - string
+        - "language"
+        - Text
 
-   :option Boolean cache: Specify ``false`` to prevent caching of this
-                          :method:`db.collection.ensureIndex()` call in
-                          the index cache.
+   :option boolean background:
 
-   :option Boolean dropDups: Specify ``true`` when creating a unique
-                             index, on a field that *may* have
-                             duplicate to index only the first
-                             occurrence of a key, and **remove** all
-                             documents from the collection that
-                             contain subsequent occurrences of that
-                             key.
+                   Specify ``true`` to build the index in the
+                   background so that building an index will *not*
+                   block other database activities.
 
-   :option Boolean sparse: If ``true``, the index only references
-                           documents with the specified field. These
-                           indexes use less space, but behave
-                           differently in some situations
-                           (particularly sorts.)
+   :option boolean unique:
 
-   :option integer expireAfterSeconds: Specify a value, in seconds, as
-                                       a :term:`TTL` to control how
-                                       long MongoDB will retain
-                                       documents in this collection.
-                                       See ":doc:`/tutorial/expire-data`"
-                                       for more information on this
-                                       functionality.
+                   Specify ``true`` to create a unique index so that
+                   the collection will not accept insertion of
+                   documents where the index key or keys matches an
+                   existing value in the index.
 
-   :option v: Only specify a different index version in unusual
-              situations. The latest index version (version 1) provides a smaller
-              and faster index format.
+   :option string name:
+   
+                  Specify the name of the index. If unspecified,
+                  MongoDB will generate an index name by concatenating
+                  the names of the indexed fields and the sort order.
+
+   :option boolean dropDups:
+
+                   Specify ``true`` when creating a unique index, on a
+                   field that *may* have duplicate to index only the
+                   first occurrence of a key, and **remove** all
+                   documents from the collection that contain
+                   subsequent occurrences of that key.
+
+   :option boolean sparse:
+
+                   If ``true``, the index only references documents
+                   with the specified field. These indexes use less
+                   space, but behave differently in some situations
+                   (particularly sorts.)
+
+   :option integer expireAfterSeconds:
+
+                   Specify a value, in seconds, as a :term:`TTL` to
+                   control how long MongoDB will retain documents in
+                   this collection. See :doc:`/tutorial/expire-data`
+                   for more information on this functionality.
+
+   :option v:
+
+           Only specify a different index version in unusual
+           situations. The latest index version (version 1) provides a
+           smaller and faster index format.
+
+   :option document weights:
+
+                    For ``text`` index only. The document contains
+                    field and weight pairs. The weight is a number
+                    ranging from 1 to 99,999.
+
+                    The *weight* of the index field denote the
+                    significance of the field relative to the other
+                    indexed fields in terms of the score. You can
+                    specify weights for some or all the indexed fields.
+                    See :doc:`/tutorial/control-results-of-text-search`
+                    to adjust the scores.
+
+   :option string default_language:
+
+                  For ``text`` index only. Specify the language that
+                  determines the list of stop words and the rules for
+                  the stemmer and tokenizer. The default language for
+                  the indexed data is ``english``.
+
+                  See :ref:`text-search-languages` for the available
+                  languages and
+                  :doc:`/tutorial/specify-language-for-text-index` for
+                  more information and example.
+
+   :option string language_override:
+
+                  For ``text`` index only.
+
+                  Specify the name of the field in the document that
+                  contains, for that document, the language to override
+                  the default language.
+
+                  See
+                  :doc:`/tutorial/create-text-index-on-multi-language-collection`.
 
    Please be aware of the following behaviors of
-   :method:`ensureIndex() <db.collection.ensureIndex()>`:
+   :method:`~db.collection.ensureIndex()`:
 
    - To add or change index options you must drop the index using the
-     :method:`db.collection.dropIndex()` and issue another
-     :method:`ensureIndex() <db.collection.ensureIndex()>` operation
+     :method:`~db.collection.dropIndex()` method and issue another
+     :method:`~db.collection.ensureIndex()` operation
      with the new options.
 
      If you create an index with one set of options, and then issue
-     :method:`ensureIndex() <db.collection.ensureIndex()>` method
-     command with the same index fields and different options without
-     first dropping the index, :method:`ensureIndex()
-     <db.collection.ensureIndex()>` will *not* rebuild the existing
+     the :method:`~db.collection.ensureIndex()` method
+     with the same index fields and different options without
+     first dropping the index,
+     :method:`~db.collection.ensureIndex()` will *not* rebuild the existing
      index with the new options.
 
    - If you call multiple :method:`ensureIndex() <db.collection.ensureIndex()>`
@@ -150,10 +236,19 @@ db.collection.ensureIndex()
    - Non-background indexing operations will block all other
      operations on a database.
 
-   - You cannot stop a foreground index build once it's begun. See the
-     :ref:`indexes-admin-stop-in-progress-build` for more
-     information.
-
    .. [#] The default index version depends on the version of
       :program:`mongod` running when creating the index. Before version
       2.0, the this value was 0; versions 2.0 and later use version 1.
+
+   .. seealso::
+
+      In addition to the ascending/descending indexes, MongoDB provides
+      the following index types to provide additional functionalities:
+      
+      - :ref:`index-feature-ttl` to support expiration of data,
+
+      - :ref:`index-feature-geospatial` and
+        :ref:`index-geohaystack-index` to support geospatial queries,
+        and
+
+      - :ref:`index-feature-text` to support text searches.

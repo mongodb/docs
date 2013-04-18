@@ -1,0 +1,91 @@
+====================================================
+Limit Number of Elements in an Array after an Update
+====================================================
+
+.. default-domain:: mongodb
+
+.. versionadded:: 2.4
+
+Synopsis
+--------
+
+Consider an application where users may submit many scores (e.g. for a
+test), but the application only needs to track the top three test
+scores.
+
+This pattern uses the :operator:`$push` operator with the
+:operator:`$each`, :operator:`$sort`, and :operator:`$slice`
+modifiers to sort and maintain an array of fixed size.
+
+.. important:: The array elements must be documents in order to use the
+   :operator:`$sort` modifier.
+
+Pattern
+-------
+
+Consider the following document in the collection ``students``:
+
+.. code-block:: javascript
+
+   {
+     _id: 1,
+     scores: [
+               { attempt: 1, score: 10 },
+               { attempt: 2 , score:8 }
+             ]
+   }
+
+The following update uses the :operator:`$push` operator with:
+
+- the :operator:`$each` modifier to append to the array 2 new elements,
+
+- the :operator:`$sort` modifier to order the elements by ascending
+  (``1``) score, and
+
+- the :operator:`$slice` modifier to keep the last ``3`` elements of
+  the ordered array.
+
+.. code-block:: javascript
+
+   db.students.update(
+                       { _id: 1 },
+                       { $push: { scores: { $each : [
+                                                      { attempt: 3, score: 7 },
+                                                      { attempt: 4, score: 4 }
+                                                    ],
+                                            $sort: { score: 1 },
+                                            $slice: -3
+                                          }
+                                 }
+                       }
+                     )
+
+.. note::
+
+   When using the :operator:`$sort` modifier on the array element,
+   access the field in the subdocument element directly instead of
+   using the :term:`dot notation` on the array field.
+
+After the operation, the document contains the only the top 3 scores in
+the ``scores`` array:
+
+.. code-block:: javascript
+
+   {
+      "_id" : 1,
+      "scores" : [
+                   { "attempt" : 3, "score" : 7 },
+                   { "attempt" : 2, "score" : 8 },
+                   { "attempt" : 1, "score" : 10 }
+                 ]
+   }
+
+.. seealso::
+
+   - :operator:`$push` operator,
+
+   - :operator:`$each` modifier,
+
+   - :operator:`$sort` modifier, and
+
+   - :operator:`$slice` modifier.

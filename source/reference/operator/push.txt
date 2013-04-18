@@ -6,26 +6,87 @@ $push
 
 .. operator:: $push
 
-   The :operator:`$push` operator appends a specified value to an array. For
-   example:
+   The :operator:`$push` operator appends a specified value to an array.
 
    .. code-block:: javascript
 
-      db.collection.update( { field: value }, { $push: { field: value1 } } );
+      db.collection.update( <query>,
+                            { $push: { <field>: <value> } }
+                         )
 
-   Here, :operator:`$push` appends ``value1`` to the array identified by
-   ``value`` in ``field``. Be aware of the following behaviors:
+   The following example appends ``89`` to the ``scores`` array for the
+   first document where the ``name`` field equals ``joe``:
 
-   - If the field specified in the :operator:`$push` statement
-     (e.g. ``{ $push: { field: value1 } }``) does not exist in the
-     matched document, the operation adds a new array with the
-     specified field and value (e.g. ``value1``) to the matched
-     document.
+   .. code-block:: javascript
 
-   - The operation will fail if the field specified in the
-     :operator:`$push` statement is *not* an array. :operator:`$push`
-     does not fail when pushing a value to a non-existent field.
+      db.students.update(
+                          { name: "joe" },
+                          { $push: { scores: 89 } }
+                        )
 
-   - If ``value1`` is an array itself, :operator:`$push` appends the whole array as an
-     element in the identified array. To add multiple items to an
-     array, use :operator:`$pushAll`.
+   .. note::
+
+      - If the field is absent in the document to update,
+        :operator:`$push` adds the array field with the value as its
+        element.
+
+      - If the field is **not** an array, the operation will fail.
+
+      - If the value is an array, :operator:`$push` appends the whole
+        array as a *single* element. To add each element of the value
+        separately, use :operator:`$push` with the :operator:`$each`
+        modifier.
+
+        The following example appends each element of ``[ 90, 92, 85 ]`` to
+        the ``scores`` array for the document where the ``name`` field
+        equals ``joe``:
+
+        .. code-block:: javascript
+
+           db.students.update(
+                               { name: "joe" },
+                               { $push: { scores: { $each: [ 90, 92, 85 ] } } }
+                             )
+
+        .. versionchanged:: 2.4
+           MongoDB adds support for the :operator:`$each` modifier to
+           the :operator:`$push` operator. Before 2.4, use
+           :operator:`$pushAll` for similar functionality.
+
+   .. versionchanged:: 2.4
+      You can use the :operator:`$push` operator with the following
+      modifiers:
+
+      - :operator:`$each` appends multiple values to the array field,
+
+      - :operator:`$slice`, which is only available with
+        :operator:`$each`, limits the number of array elements, and
+
+      - :operator:`$sort`, which is only available with
+        :operator:`$each`, orders elements of the
+        array. :operator:`$sort` can only order array elements that
+        are documents.
+
+   The following example uses:
+
+   - the :operator:`$each` modifier to append documents to the
+     ``quizzes`` array,
+
+   - the :operator:`$sort` modifier to sort all the elements of the
+     modified ``quizzes`` array by the ascending ``score`` field, and
+
+   - the :operator:`$slice` modifier to keep only the **last** five
+     sorted elements of the ``quizzes`` array.
+
+   .. code-block:: javascript
+
+      db.students.update( { name: "joe" },
+                          { $push: { quizzes: { $each: [ { id: 3, score: 8 },
+                                                         { id: 4, score: 7 },
+                                                         { id: 5, score: 6 } ],
+                                                $sort: { score: 1 },
+                                                $slice: -5
+                                              }
+                                   }
+                          }
+                        )

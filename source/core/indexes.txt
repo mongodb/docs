@@ -37,9 +37,9 @@ MongoDB indexes have the following core features:
   requirements as you create indexes in your MongoDB environment.
 
 - All MongoDB indexes use a B-tree data structure. MongoDB can use
-  these representation of the data to optimize query responses.
+  this representation of the data to optimize query responses.
 
-- Every query, including update operations, use one and only one
+- Every query, including update operations, uses one and only one
   index. The :ref:`query optimizer <read-operations-query-optimization>`
   selects the index empirically by
   occasionally running alternate query plans and by selecting the plan
@@ -82,7 +82,7 @@ Index Types
 This section enumerates the types of indexes available in MongoDB.
 For all collections, MongoDB creates the default :ref:`_id index
 <index-type-id>`. You can create additional indexes with the
-:method:`ensureIndex() <db.collection.ensureIndex()>` method on any
+:method:`~db.collection.ensureIndex()` method on any
 single field or :ref:`sequence of fields <index-type-compound>` within
 any document or :ref:`sub-document <index-sub-document>`. MongoDB also
 supports indexes of arrays, called :ref:`multi-key indexes
@@ -104,8 +104,8 @@ You cannot delete the index on ``_id``.
 
 The ``_id`` field is the :term:`primary key` for the collection, and
 every document *must* have a unique ``_id`` field. You may store any
-unique value in the ``_id`` field. The default value of ``_id`` is
-:term:`ObjectID` on every insert() <db.collection.insert()` operation. An :term:`ObjectId`
+unique value in the ``_id`` field. The default value of ``_id`` is an
+:term:`ObjectID` on every :method:`~db.collection.insert()` operation. An :term:`ObjectId`
 is a 12-byte unique identifiers suitable for use as the value of an
 ``_id`` field.
 
@@ -274,6 +274,11 @@ index, however, would not support queries that select the following:
 - only the ``location`` and ``stock`` fields
 - only the ``item`` and ``stock`` fields
 
+.. important:: You may not create compound indexes that have
+   ``hashed`` index fields. You will receive an error if you attempt to
+   create a compound index that includes :ref:`a hashed index
+   <index-hashed-index>`.
+
 When creating an index, the number associated with a key specifies the
 direction of the index. The options are ``1`` (ascending) and ``-1``
 (descending). Direction doesn't matter for single key indexes or for
@@ -359,6 +364,14 @@ value in the array separately, in a "multikey index."
 
    Queries could use the multikey index to return queries for any of
    the above values.
+
+.. note::
+
+   For ``hashed`` indexes, MongoDB collapses sub-documents and
+   computes the hash for the entire value, but does not support
+   multi-key (i.e. arrays) indexes. For fields that hold
+   sub-documents, you cannot use the index to support queries that
+   introspect the sub-document.
 
 You can use multikey indexes to index fields within objects embedded in
 arrays, as in the following example:
@@ -463,6 +476,9 @@ because of this unique constraint. You can combine with the
 :ref:`sparse index <index-type-sparse>` to filter these null values
 from the unique index.
 
+You may not specify a unique constraint on a :ref:`hashed
+index <index-type-hashed>`.
+
 .. index:: index; sparse
 .. _index-type-sparse:
 
@@ -509,6 +525,45 @@ By default, ``sparse`` is ``false`` on MongoDB indexes.
    have the indexed field *are* indexed in a sparse index, even if
    that field stores a null value in some documents.
 
+.. index:: index; hashed
+.. _index-type-hashed:
+
+Hashed Index
+~~~~~~~~~~~~
+
+.. versionadded:: 2.4
+
+Hashed indexes maintain entries with hashes of the values of the
+indexed field. The hashing function collapses sub-documents and
+computes the hash for the entire value but does not support multi-key
+(i.e. arrays) indexes.
+
+MongoDB can use the ``hashed`` index to support equality queries, but
+``hashed`` indexes do not support range queries.
+
+You may not create compound indexes that have ``hashed`` index fields
+or specify a unique constraint on a ``hashed`` index; however, you can
+create both a ``hashed`` index and an ascending/descending (i.e.
+non-hashed) index on the same field: MongoDB will use the scalar index
+for range queries.
+
+.. _hashed-index-warning:
+
+.. include:: /includes/warning-hashed-index-floating-point.rst
+
+Create a ``hashed`` index using an operation that resembles the
+following:
+
+.. code-block:: javascript
+
+   db.active.ensureIndex( { a: "hashed" } )
+
+This operation creates a hashed index for the ``active`` collection on
+the ``a`` field.
+
+.. [#hash-size] The hash stored in the ``hashed`` index is 64 bits of the 
+   128 bit ``md5`` hash.
+
 .. index:: index; options
 .. _index-creation-operations:
 .. _index-operations:
@@ -520,7 +575,7 @@ You specify index creation options in the second argument in
 :method:`ensureIndex() <db.collection.ensureIndex()>`.
 
 The options :ref:`sparse <index-type-sparse>`, :ref:`unique
-<index-type-unique>`, and :ref:`TTL <index-feature-ttl>` affect the
+<index-type-unique>`,and :ref:`TTL <index-feature-ttl>` affect the
 kind of index that MongoDB creates. This section addresses,
 :ref:`background construction <index-creation-background>` and
 :ref:`duplicate dropping <index-creation-duplicate-dropping>`, which
@@ -557,8 +612,12 @@ following:
 Be aware of the following behaviors with background index
 construction:
 
-- A :program:`mongod` instance can only build one background index per
-  database, at a time.
+- A :program:`mongod` instance can build more than one index in the
+  background concurrently.
+
+  .. versionchanged:: 2.4
+     Before 2.4, a :program:`mongod` instance could only build one
+     background index per database at a time.
 
   .. versionchanged:: 2.2
      Before 2.2, a single :program:`mongod` instance could only build
@@ -770,13 +829,36 @@ indexes are not suited for finding the closest documents to a
 particular location, when the closest documents are far away compared
 to bucket size.
 
+.. index:: index; text
+.. index:: text index
+.. _index-feature-text:
+
+``text`` Indexes
+~~~~~~~~~~~~~~~~
+
+.. versionadded:: 2.4
+
+MongoDB provides ``text`` indexes to support the search of string
+content in documents of a collection. ``text`` indexes are
+case-insensitive and can include any field that contains string data.
+``text`` indexes drop language-specific stop words (e.g. in English,
+"the," "an," "a," "and," etc.) and uses simple language-specific suffix
+stemming. See :ref:`text-search-languages` for the supported languages.
+
+You can only access the ``text`` index with the :dbcommand:`text`
+command.
+
+See :doc:`/core/text-search` for more information.
+
 .. index:: index; limitations
 .. _index-limitations:
 
-Index Behaviors and Limitations
--------------------------------
+Index Behaviors
+---------------
 
-Be aware of the following behaviors and limitations:
+Limitations
+~~~~~~~~~~~
+
 
 ..
   - MongoDB indexes are case-sensitive.
@@ -816,3 +898,42 @@ Be aware of the following behaviors and limitations:
 
 - ``2d`` :doc:`geospatial queries </core/geospatial-indexes>` do not
   support queries that use the :operator:`$or` operator.
+
+Consider Insert Throughput
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your application is write-heavy, then be careful when creating new
+indexes, since each additional index with impose a
+write-performance penalty. In general, don't be careless about adding
+indexes. Add indexes to complement your queries. Always have
+a good reason for adding a new index, and be sure to benchmark
+alternative strategies.
+
+.. todo:: insert link to /source/core/write-operations when that page is complete.
+   Do we want to link to write concern? -bg
+
+MongoDB must update *all* indexes associated with a collection after
+every insert, update, or delete operation. For update operations, if
+the updated document does not move to a new location, then MongoDB only
+modifies the updated fields in the index. Therefore, every index on a
+collection adds some amount of overhead to these write operations. In
+almost every case, the performance gains that indexes realize for read
+operations are worth the insertion penalty. However, in some cases:
+
+- An index to support an infrequent query might incur more
+  insert-related costs than savings in read-time.
+
+  .. todo:: How do you determine if the above is the case? 
+     Empirically.
+
+- If you have many indexes on a collection with a high insert throughput
+  and a number of related indexes, you may find better overall
+  performance with a smaller number of indexes, even if some queries
+  are less optimally supported by an index.
+
+  .. todo:: The above is unclear. -bg
+
+- If your indexes and queries are not sufficiently :ref:`selective
+  <index-selectivity>`, the speed improvements for query operations
+  may not offset the costs of maintaining an index. For more
+  information see :ref:`index-selectivity`.

@@ -1,0 +1,168 @@
+======================
+$geoNear (aggregation)
+======================
+
+.. default-domain:: mongodb
+
+.. pipeline:: $geoNear
+
+   .. versionadded:: 2.4
+
+   :pipeline:`$geoNear` returns documents in order of nearest to
+   farthest from a specified point and pass the documents 
+   through the aggregation :term:`pipeline`.
+
+   .. important::
+
+      - You can only use :pipeline:`$geoNear` as the first stage of a
+        pipeline.
+
+      - You must include the ``distanceField`` option. The
+        ``distanceField`` option specifies the field that will contain
+        the calculated distance.
+
+      - The collection must have a :doc:`geospatial index
+        </core/geospatial-indexes>`.
+
+   The :pipeline:`$geoNear` accept the following options:
+
+   :field coordinates near:
+                      Specifies the coordinates (e.g. ``[ x, y ]``) to
+                      use as the center of a geospatial query.
+
+   :field string distanceField:
+                 Specifies the output field that will contain the calculated
+                 distance. You can use the :term:`dot notation` to
+                 specify a field within a subdocument.
+
+   :field number limit:
+                 Optional. Specifies the maximum number of documents to
+                 return. The default value is 100. See also the ``num``
+                 option.
+
+   :field number num:
+                 Optional. Synonym for the ``limit`` option. If both
+                 ``num`` and ``limit`` are included, the ``num`` value
+                 overrides the ``limit`` value.
+
+   :field number maxDistance: Optional.
+                 Limits the results to the documents within the
+                 specified distance from the center coordinates.
+
+   :field document query:
+                   Optional.
+                   Limits the results to the documents that match the
+                   query. The query syntax is identical to
+                   the :ref:`read operation query
+                   <read-operations-query-argument>` syntax.
+
+   :field boolean spherical:
+                  Optional. Default value is ``false``. When ``true``,
+                  MongoDB performs calculation using spherical geometry.
+
+   :field number distanceMultiplier:
+                 Optional. Specifies a factor to multiply all distances
+                 returned by :pipeline:`$geoNear`. For example, use
+                 ``distanceMultiplier`` to convert from spherical
+                 queries returned in radians to linear units (i.e.
+                 miles or kilometers) by multiplying by the radius of
+                 the Earth.
+
+   :field string includeLocs:
+                 Optional. Specifies the output field that identifies
+                 the location used to calculate the distance. This
+                 option is useful when a location field contains
+                 multiple locations. You can use the
+                 :term:`dot notation` to specify a field within
+                 a subdocument.
+
+   :field boolean uniqueDocs:
+                  Optional. Default value is ``false``. If a location
+                  field contains multiple locations, the default
+                  settings will return the document multiple times if
+                  more than one location meets the criteria.
+
+                  When ``true``, the document will only return once
+                  even if the document has multiple locations that meet
+                  the criteria.
+
+   .. example::
+
+      The following aggregation finds at most ``5`` *unique* documents
+      with a location at most .008 from the center ``[40.72, -73.99]``
+      and have ``type`` equal to ``public``:
+
+      .. code-block:: javascript
+
+         db.places.aggregate([
+                               {
+                                 $geoNear: {
+                                             near: [40.724, -73.997],
+                                             distanceField: "dist.calculated",
+                                             maxDistance: 0.008,
+                                             query: { type: "public" },
+                                             includeLocs: "dist.location",
+                                             uniqueDocs: true,
+                                             num: 5
+                                           }
+                               }
+                            ])
+
+      The aggregation returns the following:
+
+      .. code-block:: javascript
+
+         {
+           "result" : [
+                        { "_id" : 7,
+                          "name" : "Washington Square",
+                          "type" : "public",
+                          "location" : [
+                                         [ 40.731, -73.999 ],
+                                         [ 40.732, -73.998 ],
+                                         [ 40.730, -73.995 ],
+                                         [ 40.729, -73.996 ]
+                                       ],
+                          "dist" : {
+                                     "calculated" : 0.0050990195135962296,
+                                     "location" : [ 40.729, -73.996 ]
+                                   }
+                        },
+                        { "_id" : 8,
+                          "name" : "Sara D. Roosevelt Park",
+                          "type" : "public",
+                          "location" : [
+                                         [ 40.723, -73.991 ],
+                                         [ 40.723, -73.990 ],
+                                         [ 40.715, -73.994 ],
+                                         [ 40.715, -73.994 ]
+                                       ],
+                          "dist" : {
+                                     "calculated" : 0.006082762530298062,
+                                     "location" : [ 40.723, -73.991 ] 
+                                   } 
+                        }
+                      ], 
+           "ok" : 1
+         }
+
+   The matching documents in the ``result`` field contain two new fields:
+
+   - ``dist.calculated`` field that contains the calculated distance, and
+
+   - ``dist.location`` field that contains the location used in the
+     calculation.
+
+   .. note::
+
+      The options for :pipeline:`$geoNear` are similar to the
+      :dbcommand:`geoNear` command with the following
+      exceptions:
+
+      - ``distanceField`` is a mandatory field for the
+        :pipeline:`$geoNear` pipeline operator; the option does not
+        exist in the :dbcommand:`geoNear` command.
+
+      - ``includeLocs`` accepts a ``string`` in the
+        :pipeline:`$geoNear` pipeline operator and a ``boolean`` in the
+        :dbcommand:`geoNear` command.
