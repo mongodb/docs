@@ -60,6 +60,10 @@ extlinks = {
     'about': ('http://www.mongodb.org/about%s', '')
 }
 
+## add `extlinks` for each published version.
+for i in meta['published_branches']:
+    extlinks[i] = ('http://docs.mongodb.org/' + i + '%s', '')
+
 intersphinx_mapping = {
         # see bin/makefile-builder/intersphinx.py and bin/intersphinx-download.py
         # for more information.
