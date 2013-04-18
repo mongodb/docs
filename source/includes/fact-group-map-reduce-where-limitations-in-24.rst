@@ -47,7 +47,12 @@ command, and :operator:`$where` operator expressions in MongoDB 2.4:
       | ``NumberLong()``
       | ``ObjectId()``
       | ``print()``
+      | ``printjson()``
+      | ``printjsononeline()``
       | ``sleep()``
       | ``Timestamp()``
+      | ``tojson()``
+      | ``tojsononeline()``
+      | ``tojsonObject()``
       | ``UUID()``
       | ``version()``
