@@ -27,9 +27,10 @@ publish-dependency = $(public-output)/current
 build-meta += -t hosted
 
 generate-source:
-	@rsync --recursive --times --delete source/ $(branch-output)/source --exclude source/backup/*
+	@mkdir -p $(branch-output)/source
+	@rsync --recursive --times --delete source/ $(branch-output)/source/
 	@sed $(SED_ARGS_FILE) 's%   Backup </backup>%%' $(branch-output)/source/index.txt 
-	@rm $(branch-output)/source/backup.txt 
+	@rm -rf $(branch-output)/source/backup.txt $(branch-output)/source/backup/
 	@echo [sphinx-prep]: updated source in $(branch-output)/source
 	@-notify-send "Sphinx" "Build in progress past critical phase."
 	@echo [sphinx-prep]: INFO - Build in progress past critical phase.
@@ -41,6 +42,7 @@ publish-output = build/public/saas
 build-meta += -t saas
 
 generate-source:
+	@mkdir -p $(branch-output)/source/
 	@rsync --recursive --times --delete source/ $(branch-output)/source
 	@echo [sphinx-prep]: updated source in $(branch-output)/source
 	@-notify-send "Sphinx" "Build in progress past critical phase."
@@ -93,12 +95,12 @@ $(public-output)/current:$(public-output)
 $(publish-output)/:$(branch-output)/dirhtml/
 	@mkdir -p $@
 	@echo [build]: created $@.
-	@cp -R $<* $@
+	@rsync -a $</ $@/
 	@echo [build]: migrated $< into $@.
 $(publish-output)/single/:$(branch-output)/singlehtml/
 	@mkdir -p $@
 	@echo [build]: created $@.
-	@cp -R $<* $@
+	@rsync -a $</ $@/
 	@echo [build]: migrated $@
 	@sed $(SED_ARGS_FILE) -e 's/id="searchbox"/id="display-none"/g' \
 			      -e 's/id="editions"/id="display-none"/g' $(publish-output)/single/index.html
@@ -124,7 +126,7 @@ $(branch-output)/latex/mms-manual.pdf:$(branch-output)/latex/mms-manual.tex
 $(branch-output)/latex/mms-manual.tex:$(branch-output)/latex/mms.tex
 	@$(PYTHONBIN) bin/copy-if-needed.py -i $< -o $@ -b pdf
 $(publish-output)/mms-manual.pdf:$(branch-output)/latex/mms-manual.pdf
-	@cp -R $< $@
+	@cp $< $@
 	@echo [build]: migrated $@
 
 %.pdf:%.tex
