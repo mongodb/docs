@@ -4,27 +4,30 @@ isMaster
 
 .. default-domain:: mongodb
 
+Definition
+----------
+
 .. dbcommand:: isMaster
 
-   The :dbcommand:`isMaster` command returns a document describing the
-   role of the :program:`mongod` instance it is run against.  If the
-   instance is a member of a replica set, then :dbcommand:`isMaster`
-   returns a subset of the replica set configuration and status including
-   whether or not the instance is the :term:`primary` of the replica set.
+   :dbcommand:`isMaster` returns a document that describes the role of
+   the :program:`mongod` instance.  
 
-   If sent to a :program:`mongod` instance which is not a member of a
-   replica set, a subset of information is returned.
+   If the instance is a member of a
+   replica set, then :dbcommand:`isMaster` returns a subset of the
+   replica set configuration and status including whether or not the
+   instance is the :term:`primary` of the replica set.
 
-   MongoDB :term:`drivers <driver>` and
-   :term:`clients <client>` use this command to determine what kind of
-   member they're connected to and to discover additional members of a
-   :term:`replica set`.
+   When sent to a :program:`mongod` instance that is not a member of a
+   replica set, :dbcommand:`isMaster` returns a subset of this
+   information.
 
-   The :method:`db.isMaster()` method provides a wrapper around this
-   database command.
+   MongoDB :term:`drivers <driver>` and :term:`clients <client>` use
+   :dbcommand:`isMaster` to determine the state of the replica set
+   members and to discover additional members of a :term:`replica
+   set`.
 
-   The :dbcommand:`isMaster` command returns a :term:`document` whose
-   contents vary depending on the role of the :program:`mongod` instance.
+   The :method:`db.isMaster()` method in the :program:`mongo` shell
+   provides a wrapper around :dbcommand:`isMaster`.
 
    The command takes the following form:
 
@@ -32,133 +35,141 @@ isMaster
 
       { isMaster: 1 }
 
-   **Common Fields**
+.. seealso::
 
-   The following :dbcommand:`isMaster` fields are common across all roles:
+   :method:`db.isMaster()`
 
-   .. data:: isMaster.ismaster
+Output
+------
 
-      A boolean value that reports when this node is writable. If
-      ``true``, then this instance is a :term:`primary` in a
-      :term:`replica set`, or a :term:`master` in a master-slave
-      configuration, or a :program:`mongos` instance, or a standalone
-      :program:`mongod`.
+All Instances
+~~~~~~~~~~~~~
 
-      This field will be ``false`` if the instance is a
-      :term:`secondary` member of a replica set or if the member is an
-      :term:`arbiter` of a replica set.
+The following :dbcommand:`isMaster` fields are common across all
+roles:
 
-   .. data:: isMaster.maxBsonObjectSize
+.. data:: isMaster.ismaster
 
-      The maximum permitted size of a :term:`BSON` object in bytes for
-      this :program:`mongod` process. If not provided, clients should
-      assume a max size of "``4 * 1024 * 1024``".
+   A boolean value that reports when this node is writable. If
+   ``true``, then this instance is a :term:`primary` in a
+   :term:`replica set`, or a :term:`master` in a master-slave
+   configuration, or a :program:`mongos` instance, or a standalone
+   :program:`mongod`.
 
-   .. data:: isMaster.maxMessageSizeBytes
+   This field will be ``false`` if the instance is a
+   :term:`secondary` member of a replica set or if the member is an
+   :term:`arbiter` of a replica set.
 
-      .. versionadded:: 2.3.2
+.. data:: isMaster.maxBsonObjectSize
 
-      The maximum permitted size of a :term:`BSON` wire protocol message.
-      The default value is ``48000000`` bytes.
+   The maximum permitted size of a :term:`BSON` object in bytes for
+   this :program:`mongod` process. If not provided, clients should
+   assume a max size of "``4 * 1024 * 1024``".
 
-   .. data:: isMaster.localTime
+.. data:: isMaster.maxMessageSizeBytes
 
-      .. versionadded:: 2.1.1
+   .. versionadded:: 2.4
 
-      Returns the local server time in UTC. This value is an
-      :term:`ISOdate`.
+   The maximum permitted size of a :term:`BSON` wire protocol message.
+   The default value is ``48000000`` bytes.
 
-   **Shard Servers**
+.. data:: isMaster.localTime
 
-   :program:`mongos` instances add the following field to the
-   :dbcommand:`isMaster` response document:
+   .. versionadded:: 2.2
 
-   .. data:: isMaster.msg
+   Returns the local server time in UTC. This value is an
+   :term:`ISO date`.
 
-      Contains the value ``isdbgrid`` when :dbcommand:`isMaster`
-      is sent to a :program:`mongos` instance.
+Sharded Instances
+~~~~~~~~~~~~~~~~~
 
-   **Replica Sets**
+:program:`mongos` instances add the following field to the
+:dbcommand:`isMaster` response document:
 
-   The following :dbcommand:`isMaster` fields are added to the common
-   fields when the instance is a member of a replica set:
+.. data:: isMaster.msg
 
-   .. data:: isMaster.setName
+   Contains the value ``isdbgrid`` when :dbcommand:`isMaster`
+   returns from a :program:`mongos` instance.
 
-      The name of the current replica set.
+Replica Sets
+~~~~~~~~~~~~
 
-   .. data:: isMaster.secondary
+:dbcommand:`isMaster` contains these fields when returned by a member
+of a replica set:
 
-      A boolean value that, when ``true``, indicates that the
-      current member is a :term:`secondary` member of a :term:`replica
-      set`.
+.. data:: isMaster.setName
 
-   .. data:: isMaster.hosts
+   The name of the current :replica set.
 
-      An array of strings in the format of ``"[hostname]:[port]"``
-      listing all members of the :term:`replica set` that are neither
-      :term:`hidden <hidden member>`, :term:`passive <passive member>`,
-      nor :term:`arbiters <arbiter>`.
+.. data:: isMaster.secondary
 
-      Drivers use this array and the :data:`isMaster.passives` to determine
-      which members to read from.
+   A boolean value that, when ``true``, indicates if the
+   :program:`mongod` is a :term:`secondary` member of a :term:`replica
+   set`.
 
-   .. data:: isMaster.passives
+.. data:: isMaster.hosts
 
-      An array of strings in the format of ``"[hostname]:[port]"``
-      listing all members of the :term:`replica set` which have a
-      :ref:`priority <replica-set-node-priority>` of ``0``.
+   An array of strings in the format of ``"[hostname]:[port]"`` that
+   lists all members of the :term:`replica set` that are neither
+   :term:`hidden <hidden member>`, :term:`passive <passive member>`,
+   nor :term:`arbiters <arbiter>`.
 
-      This field only appears if there is at least one member with a
-      :ref:`priority <replica-set-node-priority>` of ``0``.
+   Drivers use this array and the :data:`isMaster.passives` to determine
+   which members to read from.
 
-      Drivers use this array and the :data:`isMaster.hosts` to determine
-      which members to read from.
+.. data:: isMaster.passives
 
-   .. data:: isMaster.arbiters
+   An array of strings in the format of ``"[hostname]:[port]"``
+   listing all members of the :term:`replica set` which have a
+   :ref:`priority <replica-set-node-priority>` of ``0``.
 
-      An array of strings  in the format of ``"[hostname]:[port]"``
-      listing all members of the :term:`replica set` that are
-      :term:`arbiters <arbiter>`.
+   This field only appears if there is at least one member with a
+   :ref:`priority <replica-set-node-priority>` of ``0``.
 
-      This field only appears if there is at least one arbiter in the
-      replica set.
+   Drivers use this array and the :data:`isMaster.hosts` to determine
+   which members to read from.
 
-   .. data:: isMaster.primary
+.. data:: isMaster.arbiters
 
-      A string in the format of ``"[hostname]:[port]"`` listing the
-      current :term:`primary` member of the replica set.
+   An array of strings  in the format of ``"[hostname]:[port]"``
+   listing all members of the :term:`replica set` that are
+   :term:`arbiters <arbiter>`.
 
-   .. data:: isMaster.arbiterOnly
+   This field only appears if there is at least one arbiter in the
+   replica set.
 
-      A boolean value that indicates that the current instance is an
-      :term:`arbiter`.
-      The :data:`~isMaster.arbiterOnly` field will only be present, with
-      a value of ``true``, if the instance is an arbiter.
+.. data:: isMaster.primary
 
-   .. data:: isMaster.passive
+   A string in the format of ``"[hostname]:[port]"`` listing the
+   current :term:`primary` member of the replica set.
 
-      A boolean value that indicates that the current instance is
-      :term:`hidden`.
-      The :data:`~isMaster.passive` field will only be present, with
-      a value of ``true``, if the instance is hidden.
+.. data:: isMaster.arbiterOnly
 
-   .. data:: isMaster.hidden
+   A boolean value that , when ``true``, indicates that the current
+   instance is an :term:`arbiter`.  The :data:`~isMaster.arbiterOnly`
+   field is only present, if the instance is an arbiter.
 
-      A boolean value that indicates that the current instance is
-      :term:`hidden`.
-      The :data:`~isMaster.hidden` field will only be present, with
-      a value of ``true``, if the instance is hidden.
+.. data:: isMaster.passive
 
-   .. data:: isMaster.tags
+   A boolean value that, when ``true``, indicates that the current
+   instance is :term:`hidden`.  The :data:`~isMaster.passive` field is
+   only present for :term:`hidden members <hidden member>`.
 
-      A document that lists any tags assigned to this member.
-      This field is only present if there are tags assigned to the member.
+.. data:: isMaster.hidden
 
-   .. data:: isMaster.me
+   A boolean value that, when ``true``, indicates that the current
+   instance is :term:`hidden`.  The :data:`~isMaster.hidden` field is
+   only present for :term:`hidden members <hidden member>`.
 
-      The ``[hostname]:[port]`` of the member responding to this command.
+.. data:: isMaster.tags
 
-   .. seealso::
+   A document that lists any tags assigned to this member. This field
+   is only present if there are tags assigned to the member. See
+   :doc:`/tutorial/configure-replica-set-tag-sets` for more
+   information.
 
-      :method:`db.isMaster()`
+.. data:: isMaster.me
+
+   The ``[hostname]:[port]`` of the member that returned
+   :dbcommand:`isMaster`.
+
