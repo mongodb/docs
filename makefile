@@ -83,3 +83,15 @@ $(branch-output)/latex/%.tex:
 tags:
 	@etags -I --language=none --regex=@bin/etags.regexp `find source -name "*.txt" | grep -v "\.#"`
 	@echo "[dev]: etags generation complete."
+test:
+	@echo "[dtf]: running test suite -- `date`"
+	@dtf --casedir dtf/cases/ --testdir dtf/
+	@echo "[dtf]: test suite complete -- `date`"
+dtf-verbose:
+	@echo "[dtf]: running test suite -- `date`"
+	@dtf --casedir dtf/cases/ --testdir dtf/ -v
+	@echo "[dtf]: test suite complete -- `date`"
+dtf-passing:
+	@echo "[dtf]: running test suite -- `date`"
+	@dtf --casedir dtf/cases/ --testdir dtf/ -v -p
+	@echo "[dtf]: test suite complete -- `date`"
