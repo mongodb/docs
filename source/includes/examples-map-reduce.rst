@@ -4,8 +4,8 @@ Map-Reduce Examples
 .. map-reduce-document-examples-begin
 .. map-reduce-document-prototype-begin
 
-Consider the following map-reduce operations on a collection ``orders``
-that contains documents of the following prototype:
+Consider the following map-reduce operations on a collection
+``orders`` that contains documents of the following prototype:
 
 .. code-block:: javascript
 
@@ -21,8 +21,8 @@ that contains documents of the following prototype:
 
 .. map-reduce-document-prototype-end
    
-Return the Total Price Per Customer Id
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Return the Total Price Per Customer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. map-reduce-sum-price-begin
 
@@ -82,17 +82,17 @@ the ``cust_id``, and for each ``cust_id``, calculate the sum of the
 
 .. map-reduce-sum-price-end
 
-Calculate the Number of Orders, Total Quantity, and Average Quantity Per Item
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Calculate Order and Total Quantity with Average Quantity Per Item
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. map-reduce-counts-begin
 
-In this example you will perform a map-reduce operation on the ``orders`` collection, for
-all documents that have an ``ord_date`` value 
-greater than ``01/01/2012``. The operation groups by
-the ``item.sku`` field, and for each ``sku`` calculates the number of orders and the
-total quantity ordered. The operation concludes by calculating the average quantity per
-order for each ``sku`` value: 
+In this example you will perform a map-reduce operation on the
+``orders`` collection, for all documents that have an ``ord_date``
+value greater than ``01/01/2012``. The operation groups by the
+``item.sku`` field, and for each ``sku`` calculates the number of
+orders and the total quantity ordered. The operation concludes by
+calculating the average quantity per order for each ``sku`` value:
 
 #. Define the map function to process each input document:
 
@@ -117,47 +117,48 @@ order for each ``sku`` value:
                           };
 
 #. Define the corresponding reduce function with two arguments
-   ``keySKU`` and ``valuesCountObjects``:
+   ``keySKU`` and ``countObjVals``:
 
-   - ``valuesCountObjects`` is an array whose elements are the objects
+   - ``countObjVals`` is an array whose elements are the objects
      mapped to the grouped ``keySKU`` values passed by map
      function to the reducer function.
      
-   - The function reduces the ``valuesCountObjects`` array to a single
-     object ``reducedValue`` that also contains the ``count`` and the
+   - The function reduces the ``countObjVals`` array to a single
+     object ``reducedValue`` that contains the ``count`` and the
      ``qty`` fields.
 
-   - In ``reducedValue``, the ``count`` field contains the sum of the
+   - In ``reducedVal``, the ``count`` field contains the sum of the
      ``count`` fields from the individual array elements, and the
      ``qty`` field contains the sum of the ``qty`` fields from the
      individual array elements.
 
    .. code-block:: javascript
 
-      var reduceFunction2 = function(keySKU, valuesCountObjects) {
-                                reducedValue = { count: 0, qty: 0 }; 
+      var reduceFunc2 = function(keySKU, countObjVals) {
+                           reducedVal = { count: 0, qty: 0 }; 
 
-                                for (var idx = 0; idx < valuesCountObjects.length; idx++) {
-                                    reducedValue.count += valuesCountObjects[idx].count;
-                                    reducedValue.qty += valuesCountObjects[idx].qty;
-                                }
+                           for (var idx = 0; idx < countObjVals.length; idx++) {
+                               reducedVal.count += countObjVals[idx].count;
+                               reducedVal.qty += countObjVals[idx].qty;
+                           }
 
-                                return reducedValue;
-                            };
+                           return reducedVal;
+                        };
 
 #. Define a finalize function with two arguments ``key`` and
-   ``reducedValue``. The function modifies the ``reducedValue`` object
-   to add a computed field named ``average`` and returns the modified
+   ``reducedVal``. The function modifies the ``reducedVal`` object
+   to add a computed field named ``avg`` and returns the modified
    object:
 
    .. code-block:: javascript
 
-      var finalizeFunction2 = function (key, reducedValue) {
+      var finalizeFunc2 = function (key, reducedVal) {
 
-                                  reducedValue.average = reducedValue.qty/reducedValue.count;
+                             reducedVal.avg = reducedVal.qty/reducedVal.count;
 
-                                  return reducedValue;
-                              };
+                             return reducedVal;
+
+                          };
 
 #. Perform the map-reduce operation on the ``orders`` collection using
    the ``mapFunction2``, ``reduceFunction2``, and
@@ -165,12 +166,14 @@ order for each ``sku`` value:
 
    .. code-block:: javascript
 
-      db.orders.mapReduce( mapFunction2,
-                           reduceFunction2,
+      db.orders.mapReduce( mapFunc2,
+                           reduceFunc2,
                            {
                              out: { merge: "map_reduce_example" }, 
-                             query: { ord_date: { $gt: new Date('01/01/2012') } }, 
-                             finalize: finalizeFunction2
+                             query: { ord_date: 
+                                        { $gt: new Date('01/01/2012') } 
+                                    }, 
+                             finalize: finalizeFunc2
                            }
                          )
 

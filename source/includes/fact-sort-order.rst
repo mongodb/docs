@@ -1,5 +1,5 @@
-When comparing values of different :term:`BSON` types, MongoDB uses the following
-comparison order, from lowest to highest:
+When comparing values of different :term:`BSON` types, MongoDB uses
+the following comparison order, from lowest to highest:
 
 #. MinKey (internal type)
 #. Null

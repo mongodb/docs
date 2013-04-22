@@ -16,7 +16,7 @@
 
 from dtf.cases import DtfCase
 from dtf.utils import expand_tree
-    
+   
 from line_length import DtfLineLength
 
 class DtfTreeLineLength(DtfLineLength):
@@ -30,10 +30,12 @@ class DtfTreeLineLength(DtfLineLength):
         return output
 
     def check_directory(self, p=None):
+        p = True
         for source_file in self.render_source_tree():
             result = self.check_file(source_file)
 
             if result[0] is False: 
+                p = False
                 failing = source_file
                 break
             else:
@@ -42,7 +44,7 @@ class DtfTreeLineLength(DtfLineLength):
 
         if p is False: 
             return False, failing, result[1]
-        else:
+        elif p is True:
             return True, None, None
 
 
