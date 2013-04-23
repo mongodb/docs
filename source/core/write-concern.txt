@@ -1,14 +1,122 @@
+.. index:: write concern
+.. _write-concern:
+
 =============
 Write Concern
 =============
 
 .. default-domain:: mongodb
 
-After the :doc:`driver write concern change
-</release-notes/drivers-write-concern>` all officially supported
-MongoDB drivers enable write concern by default.
+.. include:: /includes/introduction-write-concern.rst
 
-.. _replica-set-write-concern:
+.. seealso:: :doc:`/reference/write-concern` for a reference of
+   specific write concern configuration. Also consider
+   :doc:`/core/write-operations` for a general overview of write
+   operations with MongoDB.
+
+.. note:: After the :doc:`driver write concern change
+   </release-notes/drivers-write-concern>` all officially supported
+   MongoDB drivers enable write concern by default.
+
+Types of Write Concern
+----------------------
+
+Clients issue write operations with some level of :term:`write
+concern`, which describes the level of concern or guarantee the server
+will provide in its response to a write operation.  Consider the
+following levels of conceptual write concern, listed from weakest to
+strongest:
+
+.. _write-concern-errors-ignored:
+
+Errors Ignored
+~~~~~~~~~~~~~~
+
+With a *errors ignored* write concern, write operations are not
+acknowledged by MongoDB. Write operations may not succeed in the case
+of connection errors that the client is not yet aware of, or if the
+:program:`mongod` produces an exception (e.g. a duplicate key
+exception for :ref:`unique indexes <index-type-unique>`.) While this
+operation is efficient because it does not require the database to
+respond to every write operation, it also incurs a significant risk
+with regards to the persistence and durability of the data.
+
+.. warning::
+
+   Do not use this option in normal operation.
+
+.. _write-concern-unacknowledged:
+
+Unacknowledged
+~~~~~~~~~~~~~~
+
+With a *unacknowledged* write concern, MongoDB does not acknowledge
+the receipt of write operation as with a write concern level of
+*ignore*; however, the driver will receive and handle network errors,
+as possible given system networking configuration.
+
+Before the releases outlined in :ref:`driver-write-concern-change`,
+this was the default write concern.
+
+.. _write-concern-acknowledged:
+
+Acknowledged
+~~~~~~~~~~~~
+
+With a receipt *acknowledged* write concern, the :program:`mongod`
+confirms the receipt of the write operation. With this level of write
+concern, clients can catch network, duplicate key, and other
+exceptions. 
+
+This is the default write concern, after the releases outlined in
+:ref:`driver-write-concern-change`.
+
+Internally, the default write concern is to call
+:dbcommand:`getLastError` with no arguments. For replica sets, you can
+define the default write concern settings in the
+:data:`~local.system.replset.settings.getLastErrorDefaults` If
+:data:`~local.system.replset.settings.getLastErrorDefaults` does not
+define a default write concern setting, :dbcommand:`getLastError`
+defaults to basic receipt acknowledgment.
+
+.. _write-concern-replica-journaled:
+
+Journaled
+~~~~~~~~~
+
+With a *journaled* write concern, the :program:`mongod` will confirm
+the write operation only after it has written the operation to the
+:term:`journal`. This confirms that the write operation can survive a
+:program:`mongod` shutdown and ensures that the write operation is
+durable.
+
+While receipt *acknowledged* without *journaled* provides the
+fundamental basis for write concern, there is a window between
+journal commits where the write operation is not fully durable. See
+:setting:`journalCommitInterval` for more information on this
+window. Require *journaled* as part of the write concern to provide
+this durability guarantee.
+
+.. _write-concern-replica-acknowledged:
+
+Replica Acknowledged
+~~~~~~~~~~~~~~~~~~~~
+
+:term:`Replica sets <replica set>` present an additional layer of
+consideration for write concern. Basic write concern levels affect the
+write operation on only one :program:`mongod` instance. The ``w``
+argument to :dbcommand:`getLastError` provides a *replica
+acknowledged* level of write concern. With *replica acknowledged* you
+can guarantee that the write operation has propagated to the members
+of a replica set. See the :ref:`Write Concern for Replica Sets
+<replica-set-write-concern>` document for more information.
+
+.. note::
+
+   Requiring *journaled* write concern in a replica set only requires
+   a journal commit of the write operation to the :term:`primary` of the
+   set regardless of the level of *replica acknowledged* write
+   concern.
 
 Write Concern for Replica Sets
 ------------------------------
@@ -39,32 +147,17 @@ to additional replica set members as well by issuing the
 The ``w`` option confirms that write operations have replicated to the
 specified number of replica set members, including the primary. You can
 either specify a number or specify ``majority``, which ensures the write
-propagates to a majority of set members. The following example ensures
-the operation has replicated to two members (the primary and one other
-member):
-
-.. code-block:: javascript
-
-   db.runCommand( { getLastError: 1, w: 2 } )
-
-The following example ensures the write operation has replicated to a
-majority of the configured members of the set.
-
-.. code-block:: javascript
-
-   db.runCommand( { getLastError: 1, w: "majority" } )
+propagates to a majority of set members. 
 
 If you specify a ``w`` value greater than the number of members that
 hold a copy of the data (i.e., greater than the number of
 non-:term:`arbiter` members), the operation blocks until those members
 become available. This can cause the operation to block forever. To
 specify a timeout threshold for the :dbcommand:`getLastError` operation,
-use the ``wtimeout`` argument. The following example sets the timeout to
-5000 milliseconds:
+use the ``wtimeout`` argument.
 
-.. code-block:: javascript
-
-   db.runCommand( { getLastError: 1, w: 2, wtimeout:5000 } )
+See :ref:`getLastError Examples <gle-examples>` for example
+invocations.
 
 Modify Default Write Concern
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
