@@ -93,5 +93,5 @@ dtf-verbose:
 	@echo "[dtf]: test suite complete -- `date`"
 dtf-passing:
 	@echo "[dtf]: running test suite -- `date`"
-	@dtf --casedir dtf/cases/ --testdir dtf/ -v -p
+	@dtf --casedir dtf/cases/ --testdir dtf/ -p
 	@echo "[dtf]: test suite complete -- `date`"
