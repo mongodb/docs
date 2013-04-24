@@ -5,7 +5,6 @@ import textwrap
 import argparse 
 
 def fill(string, first=0, hanging=0):
-
     first_indent = ' ' * first
     hanging_indent = ' ' * hanging
 
