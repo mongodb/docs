@@ -37,28 +37,10 @@ def normalize_cell_height(rowdata):
 #
 # Generating parts of the table.
 
-class YamlTable(object):
-    def __init__(self, inputfile):
-        self.inputfile = inputfile
-        self.read_data(inputfile)
-        self.format = None
-
-    def read_data(self, datafile):
-        with open(datafile, "rt") as f:
-            parsed = yaml.load_all(f)
-            layout = dict2obj(parsed.next())
-            meta = dict2obj(parsed.next())
-            content = dict2obj(parsed.next())
-
-        if layout.section != 'layout':
-            exit('layout document in "' + datafile + '" is malformed.')
-        elif meta.section != 'meta':
-            exit('meta document in "' + datafile + '" is malformed.')
-        elif content.section != 'content':
-            exit('content document in "' + datafile + '" is malformed.')
-
+class TableData(object):
+    def parse_table(self, layout, meta, content):
         if hasattr(meta, 'format'):
-            format = meta.format
+            self.format = meta.format
 
         if layout.header:
             header = []
@@ -78,6 +60,29 @@ class YamlTable(object):
 
         self.rows = rows
 
+class YamlTable(TableData):
+    def __init__(self, inputfile):
+        self.inputfile = inputfile
+        self.format = None
+
+        layout, meta, content = self.read_data(inputfile)
+        self.parse_table(layout, meta, content)
+
+    def read_data(self, datafile):
+        with open(datafile, "rt") as f:
+            parsed = yaml.load_all(f)
+            layout = dict2obj(parsed.next())
+            meta = dict2obj(parsed.next())
+            content = dict2obj(parsed.next())
+
+        if layout.section != 'layout':
+            exit('layout document in "' + datafile + '" is malformed.')
+        elif meta.section != 'meta':
+            exit('meta document in "' + datafile + '" is malformed.')
+        elif content.section != 'content':
+            exit('content document in "' + datafile + '" is malformed.')
+
+        return layout, meta, content
 
 ###################################
 #
