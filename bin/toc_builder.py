@@ -36,7 +36,8 @@ class ReferenceToc(object):
 
     def _process_data(self):
         o = { 'contents': ['.. toctree::', fill(':titlesonly:', 3), ''],
-              'table': ['.. list-table::', fill(':header-rows: 1', 3), '', 
+              'table': ['.. list-table::', fill(':header-rows: 1', 3),
+                        fill(':widths: 20 80', 3), '',
                         fill('* - Name', 3), fill('- Description', 5), ''], }
 
         BREAK = '\n'
