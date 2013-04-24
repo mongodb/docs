@@ -1,0 +1,70 @@
+========================
+Replica Set Introduction
+========================
+
+.. default-domain:: mongodb
+
+A MongoDB :term:`replica set` is a cluster of :program:`mongod`
+instances that replicate amongst one another and provide automatic
+failover in the event of a network, power or hardware outage. Replica
+sets ensure that production databases are available on more than one
+machine.
+
+In addition, replication provides redundancy, durability, and data
+integrity; helps ensure high availability; and can increase read
+capacity. You can load balance database reads across machines in the
+replica set cluster. Most production deployments use replication.
+
+Replication
+-----------
+
+A replica set consists of at least three :program:`mongod` instances: a
+:term:`primary` and two or more :term:`secondaries <secondary>`. The
+primary can accept both reads and writes, but the secondaries are
+read-only. Clients direct all writes to the primary, while the
+secondaries replicate from the primary by asynchronously reading and
+applying the writes.
+
+Writes are recorded on each replica set member in the member's
+:term:`oplog` (operations log). The oplog keeps a rolling record of all
+write operations. MongoDB applies database operations on the primary and
+then records the operations on the primary's oplog. A secondary copies
+write operations from the primary's oplog to its own oplog and then
+applies the writes to itself. All replica set members contain a copy of
+the oplog, allowing them to maintain the current state of the database.
+
+Failover and Recovery
+---------------------
+
+If a primary goes down, MongoDB can automatically failover and promote
+one of the secondaries as the new primary. The secondaries elect the new
+primary from among themselves.
+
+The data on the new primary is assumed to be the most up-to-date in the
+replica set. Any newer operations applied on other members, including
+the former primary, are rolled back. To accomplish this, all members
+resync when connecting to the new primary. They look through their own
+oplogs for operations that have not been applied on the primary and
+query the new primary to get an up-to-date copy of documents affected by
+such operations.
+
+If the original primary comes back up, it does so as a secondary. It
+begins reading off of the new primary.
+
+Specialized Members
+-------------------
+
+Replica sets can include the following specialized members:
+
+- Arbiters. Arbiters have no data and exist solely to participate in
+  elections and break ties.
+
+- Non-voting members. Non-voting members are used only in sets
+  with more than 12 members. The maximum number of voting members in a set is 12.
+
+- Hidden members. Hidden members provide reporting, dedicated backups,
+  and dedicated read-only testing and integration support.
+
+- Delayed members. Delayed members copy and apply operations from the
+  primary's oplog but with a specified delay and can help recover data
+  loss from human error.
