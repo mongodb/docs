@@ -39,9 +39,16 @@ def generate_simple_rule(redir, base=None):
     if base is None:
         base = redir['outputs'][0]
 
+    if base == 'help':
+        source = 'mms'
+    elif base == 'help-hosted':
+        source = 'mms-hosted'
+    else:
+        source = base
+
     o = 'Redirect {0} /{1}{2} http://mms.10gen.com/{3}{4}'
 
-    return o.format(redir['code'], base, redir['redirect-path'],
+    return o.format(redir['code'], source, redir['redirect-path'],
                     base, redir['url-base'])
 
 def determine_is_multi(targets):
