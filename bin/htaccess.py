@@ -41,11 +41,12 @@ def generate_simple_rule(redir, base=None):
 
     if base == 'help':
         source = 'mms'
-    elif base == 'help-hosted':
-        source = 'mms-hosted'
+    elif base.startswith('hosted'):
+        source = 'mms-' + base
+        base = 'help-' + base
     else:
         source = base
-
+        
     o = 'Redirect {0} /{1}{2} http://mms.10gen.com/{3}{4}'
 
     return o.format(redir['code'], source, redir['redirect-path'],
