@@ -71,6 +71,7 @@ Hosted MMS has the following *optional* dependencies.
 
 - A Twilio API account for SMS alerting integration.
 - A Graphite hostname / port for charting the MMS server's internal health.
+- An SNMP trap receiver for periodic heartbeat traps about MMS server's internal health.
 
 Installation Process
 ~~~~~~~~~~~~~~~~~~~~
@@ -296,8 +297,8 @@ and unless set default to disabled authentication: ::
     mms.mail.username=
     mms.mail.password=
 
-Optional: AWS Simple Email Service Configuration
-++++++++++++++++++++++++++++++++++++++++++++++++
+AWS Simple Email Service Configuration (Optional)
++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Set the following value in ``<install_dir>/conf/conf-mms.properties``
 to configure integration with AWS's Simple Email Service (SES:) ::
@@ -309,29 +310,6 @@ credentials in the following two properties: ::
 
     aws.accesskey=
     aws.secretkey=
-
-Optional: Configure a Required reCaptcha for user Registration
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-To enable `reCaptcha anti-spam test
-<http://www.google.com/recaptcha/whyrecaptcha>`_ on new user
-registration, you may `sign up for a reCaptcha account
-<https://www.google.com/recaptcha/admin/create>`_ and provide your API
-credentials in the following two properties: ::
-
-    reCaptcha.public.key=
-    reCaptcha.private.key=
-
-Optional: Configure Twilio SMS Alert Support
-++++++++++++++++++++++++++++++++++++++++++++
-
-To receive alert notifications via SMS, signup for a Twilio account at
-<http://www.twilio.com/docs/quickstart> and enter your account ID, API
-token, and Twilio phone number into the following properties: ::
-
-    twilio.account.sid=
-    twilio.auth.token=
-    twilio.from.num=
 
 Start and Stop the On-Prem MMS Server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -349,14 +327,15 @@ You can view this log information with the following command: ::
 If the server starts successfully, you will see content in this file
 that resembles the following: ::
 
-    [main] INFO  com.xgen.svc.core.ServerMain [start:202] - Starting mms...
-    [main] WARN  org.eclipse.jetty.server.AbstractConnector [setAcceptors:294] - Acceptors should be <=2*availableProcessors: SelectChannelConnector@0.0.0.0:0
-    [null] identityService=org.eclipse.jetty.security.DefaultIdentityService@561777b1
-    [main] INFO  com.xgen.svc.core.AppConfig [getInjector:46] - Starting app for env: hosted
-    [main] INFO  com.xgen.svc.mms.MmsAppConfig [initGuiceModules:67] - Not loading backup components
-    [main] INFO  com.xgen.svc.core.dao.graphite.GraphiteSvcImpl [<init>:67] - Graphite service not configured, events will be ignored.
-    [main] INFO  com.xgen.svc.core.dao.sms.twilio.TwilioSvcImpl [<init>:48] - Twilio service not configured, SMS events will be ignored.
-    [main] INFO  com.xgen.svc.core.ServerMain [start:266] - Started mms in: 23732 (ms)
+    [main] INFO  ServerMain:202 - Starting mms...
+    [main] WARN  AbstractConnector:294 - Acceptors should be <=2*availableProcessors: SelectChannelConnector@0.0.0.0:0
+    [null] LoginService=HashLoginService identityService=org.eclipse.jetty.security.DefaultIdentityService@1eb3319f
+    [main] INFO  AppConfig:46 - Starting app for env: hosted
+    [main] INFO  MmsAppConfig:67 - Not loading backup components
+    [main] INFO  GraphiteSvcImpl:67 - Graphite service not configured, events will be ignored.
+    [main] INFO  TwilioSvcImpl:48 - Twilio service not configured, SMS events will be ignored.
+    [main] INFO  OpenDMKSnmpTrapAgentSvcImpl:91 - SNMP heartbeats hosts not configured, no heartbeat traps will be sent.
+    [main] INFO  ServerMain:266 - Started mms in: 24979 (ms)
 
 You can now use the MMS instance by visiting the URL specified in the
 ``mms.centralUrl`` parameter (e.g. http://mms.example.com:8080) to
@@ -458,8 +437,8 @@ permissions of the configuration file: ::
 
     sudo chmod 600 <install_dir>/conf/conf-mms.properties
 
-Optional: reCaptcha for user Registration
-+++++++++++++++++++++++++++++++++++++++++
+Optional: Configure a Required reCaptcha for user Registration
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 To enable `reCaptcha anti-spam test
 <http://www.google.com/recaptcha/whyrecaptcha>`_ on new user
@@ -470,16 +449,40 @@ credentials in the following two properties: ::
     reCaptcha.public.key=
     reCaptcha.private.key=
 
-Optional: Configure Twilio for SMS Alert Support
-++++++++++++++++++++++++++++++++++++++++++++++++
+Optional: Configure Twilio SMS Alert Support
+++++++++++++++++++++++++++++++++++++++++++++
 
 To receive alert notifications via SMS, signup for a Twilio account at
-<http://www.twilio.com/docs/quickstart> and enter your account ID, API
+`<http://www.twilio.com/docs/quickstart>`_ and enter your account ID, API
 token, and Twilio phone number into the following properties: ::
 
     twilio.account.sid=
     twilio.auth.token=
     twilio.from.num=
+
+Optional: Configure SNMP Heartbeat Support
+++++++++++++++++++++++++++++++++++++++++++
+
+*New in v1.1.0*
+
+The MIB file is available for download at:
+`<http://downloads.10gen.com/on-prem-monitoring/MMS-10GEN-MIB.txt>`_
+
+The MMS Server can be configured to send a periodic heartbeat trap notification
+(v2c) containing an internal health assessment of MMS itself. The trap is
+can be sent to one or more endpoints on the standard UDP port 162.
+
+There are three configuration options that define the heartbeat behavior: ::
+
+    # Listening UDP port for SNMP. (Note: Setting to less than 1024 will require running MMS server with root privileges.)
+    snmp.listen.port=11611 #default
+
+    # Period in seconds between heartbeat notifications
+    snmp.default.heartbeat.interval=300 #default
+
+    # Optional comma-separated list of hosts where 'heartbeat' traps will be sent on standard UDP port 162.
+    # Leaving blank (the default) disables the SNMP heartbeat functionality
+    snmp.default.hosts=
 
 Upgrading Hosted MMS Server
 ---------------------------
