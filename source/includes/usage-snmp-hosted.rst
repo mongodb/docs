@@ -1,10 +1,10 @@
 SNMP Integration
 ````````````````
 
-Example of using snmpwalk to query for SNMP health status::
+The following is an example of using snmpwalk to query for SNMP health status::
 
     $ snmpwalk -v 2c -c public mms.acmewidgets.com:11611 MMS-10GEN-MIB::mmsHeartbeatObject
-    MMS-10GEN-MIB::mmsHeartbeatHostnameId.0 = STRING: "ip-10-136-0-46-0"
+    MMS-10GEN-MIB::mmsHeartbeatHostnameId.0 = STRING: "[hostname]-[instance#]"
     MMS-10GEN-MIB::mmsHeartbeatInterval.0 = INTEGER: 300
     MMS-10GEN-MIB::mmsHeartbeatMessage.0 = STRING: "Healthy"
     MMS-10GEN-MIB::mmsHeartbeatMessage.0 = No more variables left in this MIB View (It is past the end of the MIB tree)
