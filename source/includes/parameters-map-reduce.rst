@@ -30,7 +30,7 @@
 :param query:
 
    Optional. Specifies the selection criteria using :doc:`query
-   operators </reference/operators>` for determining the documents
+   operators </reference/operator>` for determining the documents
    input to the ``map`` function.
 
 :param sort:
@@ -96,7 +96,7 @@
    Optional. Specifies whether to include the ``timing`` information
    in the result information. The ``verbose`` defaults to ``true`` to
    include the ``timing`` information.
-   
+
 .. stop-parameters-here
 
 Requirements for the ``map`` Function
@@ -213,7 +213,7 @@ replica sets.
   out: { <action>: <collectionName>
            [, db: <dbName>]
            [, sharded: <boolean> ]
-           [, nonAtomic: <boolean> ] } 
+           [, nonAtomic: <boolean> ] }
 
 When you output to a collection with an action, the ``out`` has the
 following parameters:
