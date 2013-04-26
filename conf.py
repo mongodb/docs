@@ -72,7 +72,7 @@ else:
     latex_documents.append(('monitoring', 'mms-monitoring.tex', u'MMS Monitoring Manual', u'10gen Inc.', 'howto'))
     latex_documents.append(('backup', 'mms-backup.tex', u'MMS Backup Manual', u'10gen Inc.', 'howto'))
     rst_epilog = ".. |s| replace:: Service" + BREAK
-    rst_epilog += ".. |index-page-title| replace:: MongoDB Management Service" + BREAK
+    rst_epilog += ".. |index-page-title| replace:: MongoDB Monitoring and Backup Service" + BREAK
     rst_epilog += ".. |mms| replace:: MongoDB Monitoring and Backup Service" + BREAK
     
 # -- Options for LaTeX output --------------------------------------------------
