@@ -4,31 +4,25 @@ Security Practices and Management
 
 .. default-domain:: mongodb
 
+This document describes risk mitigation in MongoDB deployments.
 As with all software running in a networked environment,
 administrators of MongoDB must consider security and risk
 exposures for a MongoDB deployment. There are no magic solutions for risk
 mitigation, and maintaining a secure MongoDB deployment is an ongoing
 process. This document takes a *Defense in Depth* approach to securing
-MongoDB deployments, and addresses a number of different methods for
-managing risk and reducing risk exposure
+MongoDB deployments and addresses a number of different methods for
+managing risk and reducing risk exposure.
 
-The intent of *Defense In Depth* approaches are to ensure there are no
+The intent of a *Defense In Depth* approach is to ensure there are no
 exploitable points of failure in your deployment that could allow an
 intruder or un-trusted party to access the data stored in the MongoDB
 database. The easiest and most effective way to reduce the risk of
 exploitation is to run MongoDB in a trusted environment, limit access,
 follow a system of least privilege, and follow best development and
-deployment practices. See the :ref:`security-reduce-risk` section for
-more information.
+deployment practices. See the :ref:`security-reduce-risk` section.
 
-For information on controlling user access through MongoDB user
-privileges, see the :ref:`security-authorization` section in this
-document. See :doc:`/reference/user-privileges` and
-:doc:`/reference/privilege-documents` for more information. 
-
-To use Kerberos authentication, which is available in `MongoDB
-Enterprise <http://www.10gen.com/products/mongodb-enterprise>`, see
-:doc:`/tutorial/control-access-to-mongodb-with-kerberos-authentication`.
+For an outline of all security, authentication, and authorization
+documentation, see :doc:`/security`.
 
 .. _security-reduce-risk:
 
@@ -52,11 +46,11 @@ strategies to control access:
 
 You may further reduce risk by:
 
-- requiring authentication for access to MongoDB instances.
+- requiring :doc:`authentication </core/access-control>` for
+  access to MongoDB instances.
 
 - requiring strong, complex, single purpose authentication credentials.
-  This should be part of your internal security policy but is not
-  currently configurable in MongoDB.
+  This should be part of your internal security policy.
 
 - deploying a model of least privilege, where all users have *only* the
   amount of access they need to accomplish required tasks, and no
@@ -78,6 +72,12 @@ seriously. If you discover a vulnerability in MongoDB or another
 10gen product, or would like to know more about our vulnerability
 reporting and response process, see the
 :doc:`/tutorial/create-a-vulnerability-report` document.
+
+Runtime Security Configuration
+------------------------------
+
+For configuration settings that affect security, see
+:ref:`configuration-security`.
 
 Networking Risk Exposure
 ------------------------
@@ -238,8 +238,7 @@ Always run the :program:`mongod` or :program:`mongos` process as a
 *unique* user with the minimum required permissions and access. Never
 run a MongoDB program as a ``root`` or administrative users. The
 system users that run the MongoDB processes should have robust
-authentication credentials that prevent unauthorized or casual
-access.
+authentication credentials that prevent unauthorized or casual access.
 
 To further limit the environment, you can run the :program:`mongod` or
 :program:`mongos` process in a ``chroot`` environment. Both user-based
@@ -248,120 +247,7 @@ conventions for administering all daemon processes on Unix-like
 systems.
 
 You can disable anonymous access to the database by enabling
-authentication using the :setting:`auth` as detailed in the
-:ref:`security-authentication` section.
-
-.. _security-authentication:
-
-Authentication
---------------
-
-MongoDB provides basic support for authentication with the
-:setting:`auth` and :setting:`keyFile` configuration settings.
-To require authentication on a single-instance deployment, start the
-:program:`mongod` instance with the :setting:`auth` setting.
-For multi-instance deployments
-(i.e. :term:`replica sets <replica set>` and :term:`sharded clusters
-<sharded cluster>`) use the :setting:`keyFile` setting, which implies
-:setting:`auth` and allows intra-deployment authentication and
-operation.
-
-For MongoDB Enterprise installations, MongoDB also supports
-authentication using a Kerberos service. See
-:doc:`/tutorial/control-access-to-mongodb-with-kerberos-authentication`.
-
-For basic authentication, be aware of the following behaviors:
-
-- Authentication is **disabled** by default.
-
-- The ``system.users`` collection in each database stores all
-  credentials. If you have the ``userAdmin`` role on a database, you can
-  query authenticated users in that database with the following
-  operation:
-
-  .. code-block:: javascript
-
-     db.system.users.find()
-
-- When setting up authentication for the first time you must either:
-
-  - add at least one user to the ``admin`` database before starting
-    the :program:`mongod` instance with :setting:`auth`.
-
-  - add the first user to the ``admin`` database when connected to the
-    :program:`mongod` instance from a ``localhost``
-    connection. [#sharded-localhost]_
-
-  To add and maintain users, see
-  :doc:`/tutorial/control-access-to-mongodb-with-authentication`.
-
-- Support for authentication with sharded clusters.
-
-  .. versionadded:: 2.0
-
-  Before 2.0 sharded clusters *had* to run with trusted applications and
-  a trusted networking configuration.
-
-.. [#sharded-localhost] Because of :issue:`SERVER-6591`, you cannot
-   add the first user to a sharded cluster using the ``localhost``
-   connection in 2.2. If you are running a 2.2 sharded cluster, and
-   want to enable authentication, you must deploy the cluster and add
-   the first user to the ``admin`` database before restarting the
-   cluster to run with :setting:`keyFile`.
-
-.. _security-authorization:
-
-Authorization
--------------
-
-.. versionchanged:: 2.4
-
-MongoDB provides role-based access to databases and database operations
-through each database's :data:`system.users <<database>.system.users>`
-collection.
-
-Be aware of the following behaviors:
-
-- MongoDB provisions access on a per-database level. Users exist in the
-  context of a single logical database.
-
-- Roles determine the user's access to the database. For a list of
-  available roles, see :ref:`user-roles`.
-
-- User documents in the :data:`system.users <<database>.system.users>`
-  collection in one database can grant access to users defined in
-  another database. See :doc:`/reference/privilege-documents` for more
-  information on delegated credentials and :data:`system.users
-  <<database>.system.users>` documents.
-
-- The ``admin`` database provides roles not available in other
-  databases. You can assign ``admin`` users roles that effectively make
-  them MongoDB system superusers. See :ref:`database-admin-roles` and
-  :ref:`admin-roles`.
-
-- The ``system.users`` collection in each database stores all users and
-  their roles. If you have the ``userAdmin`` role on a database, you can
-  query authorized users in that database with the following operation:
-
-  .. code-block:: javascript
-
-     db.system.users.find()
-
-- The ``system.users`` collection is protected to prevent privilege
-  escalation attacks by requiring you to have the ``userAdmin`` role.
-
-- You can be logged in as only one user for a given database, including
-  the ``admin`` database. If you authenticate to a database as one user
-  and later authenticate on the same database as a different user, the
-  second authentication invalidates the first. Logging into a
-  *different* database, however, does not invalidate authentication on
-  other databases.
-
-For more information on controlling user access, see the following:
-
-- :doc:`/reference/user-privileges`
-
-- :doc:`/reference/privilege-documents`
+MongoDB authentication. See :doc:`/core/access-control`.
 
 Interfaces
 ----------
@@ -423,7 +309,7 @@ accessibility represents a vulnerability in a secure environment.
 
 If you must use the REST API, please control and limit access to the
 REST API. The REST API does not include any support for
-authentication, even when running with :setting:`auth` (authorization)
+authentication, even when running with :setting:`auth`
 enabled.
 
 See the following documents for instructions on restricting access to
