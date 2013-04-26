@@ -64,7 +64,7 @@ if tags.has('hosted'):
     rst_epilog += ".. |index-page-title| replace:: On-Prem Monitoring" + BREAK
     rst_epilog += ".. |mms| replace:: On-Prem Monitoring" + BREAK
 else:
-    project = u'MongoDB Management Service (MMS)'
+    project = u'MongoDB Monitoring and Backup Service (MMS)'
     html_title = 'MMS Manual'
     html_short_title = 'MMS'
     html_theme_options['edition'] = 'saas'
