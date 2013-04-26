@@ -45,7 +45,7 @@ def make_all_sphinx(sphinx):
 
     m.comment('epub build modification and settings', block='vars')
     m.var(variable='epub-command',
-          value='$(SPHINXBUILD) -b epub $(ALLSPHINXOPTS) $(branch-output)/epub',
+          value='$(SPHINXBUILD) -b epub -t print $(ALLSPHINXOPTS) $(branch-output)/epub',
           block='vars')
     m.var(variable='epub-filter',
           value="sed $(SED_ARGS_REGEX) -e '/^WARNING: unknown mimetype.*ignoring$$/d' -e '/^WARNING: search index.*incomplete.$$/d'",
@@ -55,7 +55,7 @@ def make_all_sphinx(sphinx):
     m.target('sphinx-prerequisites', 'setup generate-source composite-pages.yaml', block='prereq')
     m.msg('[sphinx-prep]: completed $@ buildstep.', block='prereq')
 
-    m.target('generate-source', '$(branch-output)/source tables installation-guides intersphinx generate-manpages', block='prereq')
+    m.target('generate-source', '$(branch-output)/source tables installation-guides intersphinx generate-manpages ref-toc', block='prereq')
     m.job('rsync --recursive --times --delete source/ $(branch-output)/source', block='prereq')
     m.msg('[sphinx-prep]: updated source in $(branch-output)/source', block='prereq')
     info_note = 'Build in progress past critical phase.'
@@ -75,11 +75,11 @@ def make_all_sphinx(sphinx):
 
     m.target('.PHONY', '$(sphinx-targets)', block='footer')
 
-def build_kickoff(loc, block):
-    m.job('mkdir -p $(branch-output)/' + loc, block=block)
-    m.msg('[$@]: created $(branch-output)/' + loc, block)
-    m.msg('[sphinx]: starting $@ build', block)
-    m.msg('[$@]: build started at `date`.', block)
+def build_kickoff(target, block):
+    m.job('mkdir -p $(branch-output)/' + target, block=block)
+    m.msg('[' + target + ']: created $(branch-output)/' + target, block)
+    m.msg('[sphinx]: starting ' + target + ' build', block)
+    m.msg('[' + target + ']: build started at `date`.', block)
 
 def sphinx_builder(target):
     b = 'production'
@@ -88,11 +88,17 @@ def sphinx_builder(target):
     m.target(target, 'sphinx-prerequisites', block=b)
 
     if target == 'epub':
-        build_kickoff('$@',block=b)
+        build_kickoff(target, block=b)
         m.job('{ $(epub-command) 2>&1 1>&3 | $(epub-filter) 1>&2; } 3>&1', block=b)
     else:
-        build_kickoff('$@', block=b)
-        m.job('$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@', block=b)
+        build_kickoff(target, block=b)
+
+        if target in [ 'html', 'dirhtml' ]:
+            tag = 'website'
+        else:
+            tag = 'print'
+
+        m.job('$(SPHINXBUILD) -b ' + target + ' -t ' + tag + ' $(ALLSPHINXOPTS) $(branch-output)/' + target, block=b)
 
     if target == 'linkcheck':
         m.msg('[$@]: Link check complete at `date`. See "$(branch-output)/linkcheck/output.txt".', block=b)

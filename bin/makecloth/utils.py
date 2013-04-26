@@ -2,6 +2,18 @@ import yaml
 import sys
 import os.path
 
+def expand_tree(path, input_extension='yaml'):
+
+    file_list = []
+    for root, subFolders, files in os.walk(path):
+        for file in files:
+            f = os.path.join(root,file)
+            if f.rsplit('.', 1)[1] == input_extension:
+                file_list.append(f)
+
+    return file_list
+
+
 def ingest_yaml(filename):
     o = []
     with open(filename, 'r') as f:
