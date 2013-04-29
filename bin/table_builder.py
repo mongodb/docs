@@ -14,6 +14,7 @@
 
 import sys
 import argparse
+import string
 
 try:
     import yaml
@@ -270,8 +271,55 @@ class ListTable(OutputTable):
 
         return o
 
+###################################
+#
+# Outputs an HTML-table
+# Currently, does NO processing of the data
+# such as to handle links or to handle
+# code-block directives
+
 class HtmlTable(OutputTable):
-    pass
+    def __init__(self, imported_table):
+        self.tags = { 'tr': '<tr>',
+            'th': '<th>',
+            'td': '<td>',
+            'table': '<table>'
+            }
+        
+        self.table = imported_table
+        self.output = self.render_table()
+    
+    def render_table(self):
+        o = [self.tags['table']]
+        
+        if self.table.header is not None:
+            o.append(self._process_html_row(self.tags['tr'], self.tags['th'], self.table.header) )
+        
+        for row in self.table.rows:
+            o.append(self._process_html_row(self.tags['tr'], self.tags['td'], row.values()))
+        
+        o.append(self._get_ending_tag(self.tags['table']))
+        return o
+    
+    def _process_html_row(self, tag, tagchild, rowdata):
+        row=[]
+        row.append(tag)
+        row.append("\n")
+        
+        if tagchild is None:
+            row.append(rowdata)
+        else:
+            for data in rowdata:
+                for cell in data:
+                    row.append(self._process_html_row(tagchild, None, cell))
+                    row.append("\n")
+        row.append("\n")
+        row.append(self._get_ending_tag(tag))
+        
+        return ''.join(row)
+    
+    def _get_ending_tag(self, tag):
+        return string.join(tag.split('<', 1), '</')
 
 class TableBuilder(object):
     def __init__(self, table):
@@ -279,7 +327,7 @@ class TableBuilder(object):
 
     def write(self, outputfile=None):
         if outputfile is None:
-            outputfile = get_default_outputfile(self.inputfile)
+            outputfile = get_outputfile(self.inputfile)
 
         with open(outputfile, 'w') as f:
             for line in self.output:
