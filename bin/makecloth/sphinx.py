@@ -2,6 +2,9 @@
 
 import sys
 import os.path
+from multiprocessing import cpu_count
+import pkg_resources
+
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
@@ -14,8 +17,14 @@ m = MakefileCloth()
 
 def make_all_sphinx(sphinx):
     m.section_break('sphinx related variables', block='header')
+
+    sphinx_opts = '-c ./'
+
+    if pkg_resources.get_distribution("sphinx").version.startswith('1.2'): 
+        sphinx_opts += ' -j ' + str(cpu_count())
+
     m.var(variable='SPHINXOPTS',
-          value='-c ./',
+          value=sphinx_opts,
           block='vars')
     m.var(variable='SPHINXBUILD',
           value='sphinx-build',
@@ -39,6 +48,9 @@ def make_all_sphinx(sphinx):
           value='-D latex_paper_size=letter',
           block='vars')
     m.comment('general sphinx variables', block='vars')
+
+    
+
     m.var(variable='ALLSPHINXOPTS',
           value='-q -d $(branch-output)/doctrees-$@ $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) $(branch-output)/source',
           block='vars')
