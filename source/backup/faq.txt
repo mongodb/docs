@@ -12,105 +12,71 @@ Operations
 Where should I run the Backup agent?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The Backup agent can run anywhere in your infrastructure that has
-access to your ``mongod`` instances. To avoid contention for network
-and CPU resources, do not run the Backup agent on the same hosts that
-provide your ``mongod`` instances.
-
-The primary resource requirement for the Backup agent is network. 
+The agent should typically be run on its own host, though this is not required. At a minimum, we recommend that you not run it on the same host as a mongod instance to avoid resource contention. Performance is primarily network-bound; CPU and RAM requirements are low.
 
 Will the MongoDB Backup Service impact my production databases?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The Backup agent and will have minimal impact on production
-deployments of MongoDB. For most users, adding an the Backup Service
-will be equivalent to adding an additional secondary member to your
-set or sets.
-
-By default the Backup agent will perform the initial sync, which is
-the most resource intensive operation for the Backup Service, against
-a secondary member of the replica set to limit the impact of the
-Backup Service. You may optionally configure the Backup agent to
-perform the initial sync against the primary, although this will
-increase the impact of the initial sync operation.
+MongoDB Backup Service will typically have minimal impact on production MongoDB deployments. This impact will be similar to that of adding a new secondary to a replica set. The agent can perform the initial sync from a secondary replica. It can also perform the initial sync from a primary, but syncing from a secondary will avoid any impact on the performance of the primary. The Backup Service agent will consume additional network capacity, but for most environments this should have negligible impact.
 
 Is my data safe?
 ~~~~~~~~~~~~~~~~
 
-Yes. 
-
-10gen uses enterprise-grade hardware co-located in secure data centers
-to store all user Backup data. The Backup agent and service transmits
-all data using SSL. The Backup Service requires two-factor
-authentication to provide any data for restores.
+Yes, 10gen uses enterprise-grade hardware and multiple secure data centers for hosting your data. The Backup Service agent encrypts data using SSL and two-factor authentication is required for all restores.
 
 Is there a limit to Backup size?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-During the limited release, the Backup Service is limited to 500
-gigabytes per user group, which will increase in the future.
+Currently the Backup Service is limited to 500
+gigabytes per user group.
 
 How can 10gen provide point-in-time restores for any point in time?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The Backup Service builds point-in-time snapshots by applying oplog
-entries to the most recent regular snapshot that precedes that
-specified point-in-time. These point-in-time snapshots take longer to
-construct and deliver than the regular snapshots. 
+Although it is faster to provide a restore for the time at which a snapshot was actually stored, 10gen can build a restore to any point in time within a 24-hour period by replaying the oplog to the desired time.
 
-During the limited release, the Backup Service will only provide
-point-in-time snapshots for a 24 hour window.
-
-Can I configure the interval of regular snapshots?
+Can I take snapshots more or less often than every 6 hours?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-During the initial limited release, the Backup Service creates
-regular snapshots every 6 hours. This schedule is not configurable
-at this time, but will be in a future release.
+Currently users cannot configure the snapshot schedule.
 
 .. _backup-faq-retention:
 
 Can I set my own snapshot retention policy?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Currently the snapshot retention policy is not configurable. The
-backup service currently retains regular snapshots with the following
-policy:
+Currently users cannot set custom snapshot retention policies. The current snapshot retention policy is as follows:
 
 - 6-hour interval snapshots for 2 days,
-- daily snapshots stored for 1 week,
-- weekly snapshots stored for 1 month, and
-- monthly snapshots stored for 1 year.
+- Daily snapshots stored for 1 week,
+- Weekly snapshots stored for 1 month, and
+- Monthly snapshots stored for 1 year.
 
-How many copies of my data does the Backup Service  store?
+How many copies of my data does the Backup Service store?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The Backup Service stores all user Backup data on at least 4 services
-in at least 2 geographic regions in the US.
+Although we only charge you for only one copy of the data, we store at least 3 copies of it in at least 2 geographic locations to ensure redundancy.
 
-What factors affect the time required to restore a snapshot?
+How long does it take to create a restore?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The time required to restore a snapshot depends on: 
-
-- transfer time between the Backup Service and your infrastructure,
-  
-- the size of the snapshot data, and
-
-- snapshot type. 
-  
-The Backup Service can construct regular snapshots much more quickly
-than point-in-time snapshots. The time required to construct a
-point-in-time backup depends on its proximity to the preceding regular
-snapshot, the size of the snapshot, and the volume of oplog
-entries.
+Time to restore is typically 2 min per GB of snapshot data, plus transfer time. In addition, point-in-time restores will take more time. This will vary depending on a number of factors, including the volume of data and number of updates made to the database (i.e., oplog size) between the time of the utilized snapshot and the point in time chosen.
 
 Does the Backup Service perform any data validation?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The Backup Service constructs basic corruption checks, and provides
-alerts for the following issues if the service detects corruption in
-the current regular snapshot.
+MongoDB Backup Service conducts basic corruption checks and provides an alert if any component (e.g., the agent) is down or broken, but does not perform explicit data validation. We err on the side of caution and invalidate the current backup if corruption is detected; we also send an alert if this happens.
+
+How do I restore? What do I get when I restore?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+You can request a restore via MMS, where you can then choose which snapshot to restore and how it will be delivered. All restores require 2-factor authentication. We will send an authorization code via SMS code to your administrator, which must then be entered to begin the restore process.
+
+Restores are delivered as tar.gzs of data files.
+
+Restore delivery options are:
+- SCP to your host – this requires you to provide connection information
+- Download – we generate a custom, one-time-use URL from which you can download the restore.
+
 
 What is the SCP public key for the Backup System?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -130,28 +96,19 @@ Pricing
 How does the Backup Service calculate snapshot storage costs?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The snapshot storage cost depends on the *raw storage size*.
+- We calculate snapshot storage costs based on raw storage size (not file size) at a rate of $0.08 per GB per month. This is the sum of all allocated extents and is typically smaller than file size. We require a minimum charge of $0.10 per replica set per day.
+- Storage cost is calculated until the snapshot is purged (according to the policy described under "Can I set my own snapshot retention policy?").
 
-Raw storage size is the sum of all allocated extents, which is
-typically smaller than file size.
 
-The snapshot storage price is $0.08 per gigabyte per-month.
-
-See :ref:`backup-faq-retention` for more information about snapshot
-retention, which affects snapshot storage cost.
-
-How do you calculate the cost of network data transfer cost?
+How do you calculate the cost of network data transfer in?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The transfer cost for the Backup Service is $2 per gigabyte of
-uncompressed incoming oplog data. There is no cost for the transfer of
-intial sync data.
+The cost of data transfer in is based on uncompressed data size at a rate of $2 per GB. It applies only to oplog transfer, and not to initial syncs or resyncs.
 
 What is the snapshot creation cost?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Creating a snapshot incurs a one-time charge to cover the cost of
-building a snapshot. The rate is $0.01 per gigabyte.
+The snapshot creation cost is the cost to build a snapshot, which is charged on a one- time basis per snapshot and is calculated based on the size of the snapshot ($0.01 per GB).
 
 What other costs does the Backup Service incur?
 -----------------------------------------------
