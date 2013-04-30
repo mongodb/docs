@@ -18,26 +18,8 @@ m = MakefileCloth()
 def make_all_sphinx(sphinx):
     m.section_break('sphinx related variables', block='header')
 
-    sphinx_opts = '-c ./'
-
-    if pkg_resources.get_distribution("sphinx").version.startswith('1.2'): 
-        sphinx_opts += ' -j ' + str(cpu_count())
-
-    m.var(variable='SPHINXOPTS',
-          value=sphinx_opts,
-          block='vars')
-    m.var(variable='SPHINXBUILD',
-          value='sphinx-build',
-          block='vars')
-
-    m.comment('defines a nitpick mode for sphinx\'s more verbose reporting', block='vars')
-    m.raw(['ifdef NITPICK'], block='vars')
-    m.append_var(variable='SPHINXOPTS',
-                 value='-n -w $(branch-output)/build.$(shell date +%Y%m%d%H%M).log',
-                 block='vars')
-    m.raw(['endif'], block='vars')
-
     m.comment('variables related to paper sizing for the latex output', block='vars')
+    m.newline()
     m.var(variable='PAPER',
           value='letter',
           block='vars')
@@ -47,23 +29,11 @@ def make_all_sphinx(sphinx):
     m.var(variable='PAPEROPT_letter',
           value='-D latex_paper_size=letter',
           block='vars')
+    
     m.comment('general sphinx variables', block='vars')
 
-    
-
-    m.var(variable='ALLSPHINXOPTS',
-          value='-q -d $(branch-output)/doctrees-$@ $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) $(branch-output)/source',
-          block='vars')
-
-    m.comment('epub build modification and settings', block='vars')
-    m.var(variable='epub-command',
-          value='$(SPHINXBUILD) -b epub $(ALLSPHINXOPTS) $(branch-output)/epub',
-          block='vars')
-    m.var(variable='epub-filter',
-          value="sed $(SED_ARGS_REGEX) -e '/^WARNING: unknown mimetype.*ignoring$$/d' -e '/^WARNING: search index.*incomplete.$$/d'",
-          block='vars')
-
     m.section_break('sphinx prerequisites')
+    m.newline()
     m.target('sphinx-prerequisites', 'setup generate-source composite-pages.yaml', block='prereq')
     m.msg('[sphinx-prep]: completed $@ buildstep.', block='prereq')
 
@@ -79,34 +49,61 @@ def make_all_sphinx(sphinx):
     m.msg('[sphinx-prep]: created $@', block='prereq')
 
     m.section_break('sphinx targets', block='sphinx')
-    m.comment('each sphinx target invokes and controls the sphinx build.', block='sphinx')
     m.newline(block='sphinx')
 
     for builder in sphinx:
         sphinx_builder(builder)
 
+    m.section_break('nitpick sphinx builders')
+    m.newline(block='sphinx')
+
+    for builder in sphinx:
+        sphinx_builder(builder + '-nitpick')
+
     m.target('.PHONY', '$(sphinx-targets)', block='footer')
 
-def build_kickoff(loc, block):
-    m.job('mkdir -p $(branch-output)/' + loc, block=block)
-    m.msg('[$@]: created $(branch-output)/' + loc, block)
-    m.msg('[sphinx]: starting $@ build', block)
-    m.msg('[$@]: build started at `date`.', block)
+def build_kickoff(target, block):
+    m.job('mkdir -p $(branch-output)/' + target, block=block)
+    m.msg('[' + target + ']: created $(branch-output)/' + target, block)
+    m.msg('[sphinx]: starting ' + target + ' build', block)
+    m.msg('[' + target + ']: build started at `date`.', block)
 
 def sphinx_builder(target):
     b = 'production'
-
     m.append_var('sphinx-targets', target)
     m.target(target, 'sphinx-prerequisites', block=b)
 
-    if target == 'epub':
-        build_kickoff('$@',block=b)
-        m.job('{ $(epub-command) 2>&1 1>&3 | $(epub-filter) 1>&2; } 3>&1', block=b)
-    else:
-        build_kickoff('$@', block=b)
-        m.job('$(SPHINXBUILD) -b $@ $(ALLSPHINXOPTS) $(branch-output)/$@', block=b)
+    build_kickoff(target, block=b)
 
-    if target == 'linkcheck':
+    if target.startswith('html') or target.startswith('dirhtml'):
+        tag = 'website'
+    else:
+        tag = 'print'
+
+    sphinx_opts = '-q -d $(branch-output)/doctrees-$@ $(PAPEROPT_$(PAPER)) -c ./ '
+    if pkg_resources.get_distribution("sphinx").version.startswith('1.2'): 
+        sphinx_opts += '-j ' + str(cpu_count()) + ' '
+
+    if target.endswith('-nitpick'):
+        sphinx_opts += '-n -w $(branch-output)/build.$(shell date +%Y%m%d%H%M).log '
+        builder = target.split('-')[0]
+    else:
+        builder = target
+
+    sphinx_opts += '$(branch-output)/source'
+
+    if target.startswith('epub'):
+        epub_filter = ("sed $(SED_ARGS_REGEX) "
+                       "-e '/^WARNING: unknown mimetype.*ignoring$$/d' "
+                       "-e '/^WARNING: search index.*incomplete.$$/d' ")
+
+        epub_command = 'sphinx-build -b epub -t print {0} $(branch-output)/epub'.format(sphinx_opts)
+
+        m.job('{ %s 2>&1 1>&3 | %s 1>&2; } 3>&1' % (epub_command, epub_filter), block=b)
+    else:
+        m.job('sphinx-build -b {0} -t {1} {2} $(branch-output)/{3}'.format(builder, tag, sphinx_opts, builder), block=b)
+
+    if target.startswith('linkcheck'):
         m.msg('[$@]: Link check complete at `date`. See "$(branch-output)/linkcheck/output.txt".', block=b)
     else:
         m.msg('[$@]: build finished at `date`.', block=b)
