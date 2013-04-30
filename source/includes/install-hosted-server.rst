@@ -297,8 +297,8 @@ and unless set default to disabled authentication: ::
     mms.mail.username=
     mms.mail.password=
 
-AWS Simple Email Service Configuration (Optional)
-+++++++++++++++++++++++++++++++++++++++++++++++++
+Optional: AWS Simple Email Service Configuration
+++++++++++++++++++++++++++++++++++++++++++++++++
 
 Set the following value in ``<install_dir>/conf/conf-mms.properties``
 to configure integration with AWS's Simple Email Service (SES:) ::
@@ -468,11 +468,14 @@ Optional: Configure SNMP Heartbeat Support
 The MIB file is available for download at:
 `<http://downloads.10gen.com/on-prem-monitoring/MMS-10GEN-MIB.txt>`_
 
-The MMS Server can be configured to send a periodic heartbeat trap notification
-(v2c) containing an internal health assessment of MMS itself. The trap is
-can be sent to one or more endpoints on the standard UDP port 162.
+You can configure the MMS Server to send a periodic heartbeat trap notification
+(v2c) that contain an internal health assessment of the MMS
+Server. 
 
-There are three configuration options that define the heartbeat behavior: ::
+The MMS Server can send traps to one or more endpoints on the standard
+SNMP UDP port 162.
+
+There are three configuration options that affect the heartbeat behavior: ::
 
     # Listening UDP port for SNMP. (Note: Setting to less than 1024 will require running MMS server with root privileges.)
     snmp.listen.port=11611 #default

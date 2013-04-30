@@ -16,8 +16,8 @@ MIB File
 The MIB file is available for download at:
 `<http://downloads.10gen.com/on-prem-monitoring/MMS-10GEN-MIB.txt>`_
 
-Each of the main alert notification fields contain a brief description in the MIB file, which are
-reproduced here for reference.
+Each of the main alert notification fields contain a brief description
+in the MIB file. an example of which follows: 
 
 **Alert Trap**::
 
