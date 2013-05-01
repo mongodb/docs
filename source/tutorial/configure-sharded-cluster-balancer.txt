@@ -115,17 +115,18 @@ Require Replication before Chunk Migration (Secondary Throttle)
 
 .. versionadded:: 2.2.1
 
-You can configure the balancer to wait for replication to secondaries
-during migrations. You do so by enabling the balancer's
-``_secondaryThrottle`` parameter, which reduces throughput (i.e.,
-"throttles") in order to decrease the load on secondaries. You might do
-this, for example, if you have migration-caused I/O peaks that impact
-other workloads
+By default, the write operations required to migrate chunks between
+shards do not need to replicate to secondaries in order to
+succeed. However, you can configure the balancer to require migration
+related write operations to replicate to secondaries. This throttles
+or slows the migration process and in doing so reduces the potential
+impact of migrations on a sharded cluster.
 
-When enabled, secondary throttle puts a ``{ w : 2 }`` write concern on
-deletes and on copies, which means the balancer waits for those
-operations to replicate to at least one secondary before migrating
-chunks.
+You can throttle migrations by enabling the balancer's
+``_secondaryThrottle`` parameter. When enabled, secondary throttle
+requires a ``{ w : 2 }`` write concern on delete and insertion
+operations, so that every operation propagates to at least one
+secondary before the balancer issues the next operation.
 
 .. BACKGROUND NOTES
    Specifically, secondary throttle affects the first and fourth
