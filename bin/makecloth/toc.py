@@ -36,10 +36,11 @@ def make_toc():
         m.msg('[toc-builder]: built toctree file for %s' % base_name, block=base_name)
 
     m.section_break('meta')
-    m.target('.PHONY', ['clean-ref-toc', 'ref-toc'], block='meta')
-    m.target('ref-toc', '$(ref-toc-output)', block='meta')
-    m.target('clean-ref-toc', block='meta')
+    m.target('.PHONY', ['clean-ref-toc', 'ref-toc', 'reftoc', 'clean-reftoc'], block='meta')
+    m.target(['ref-toc', 'reftoc'], '$(ref-toc-output)', block='meta')
+    m.target(['clean-ref-toc', 'clean-reftoc'], block='meta')
     m.job('rm -f $(ref-toc-output)', ignore=True)
+    m.msg('[toc-builder]: cleaned all ref-toc build products.')
     
 def main():
     make_toc()
