@@ -4,8 +4,201 @@ sh.status()
 
 .. default-domain:: mongodb
 
+Definition
+----------
+
 .. method:: sh.status()
 
-   :returns: a formatted report of the status of the :term:`sharded
-             cluster`, including data regarding the distribution of
-             chunks.
+   Prints a formatted report of the sharding configuration and the
+   information regarding existing chunks in a :term:`sharded cluster`.
+   The default behavior suppresses the detailed chunk information if
+   the total number of chunks is greater than or equal to 20.
+   
+   .. include:: /includes/param-verbose-printShardingStatus.rst
+
+   See :doc:`/reference/sharding-status` for details of the output.
+
+   .. seealso:: :method:`db.printShardingStatus()`
+
+Example Output
+--------------
+
+The :ref:`sharding-status-version-fields` section displays information on the
+:term:`config database`:
+
+.. code-block:: javascript
+
+   --- Sharding Status ---
+     sharding version: {
+      "_id" : <num>,
+      "version" : <num>,
+      "minCompatibleVersion" : <num>,
+      "currentVersion" : <num>,
+      "clusterId" : <ObjectId>
+   }
+
+The :ref:`sharding-status-shards-fields` section lists information on
+the shard(s). For each shard, the section displays the name, host, and
+the associated tags, if any.
+
+.. code-block:: javascript
+
+     shards:
+      {  "_id" : <shard name1>,
+         "host" : <string>,
+         "tags" : [ <string> ... ]
+      }
+      {  "_id" : <shard name2>,
+         "host" : <string>,
+         "tags" : [ <string> ... ]
+      }
+      ...
+
+The :ref:`sharding-status-databases-fields` section lists information
+on the database(s). For each database, the section displays the name,
+whether the database has sharding enabled, and the :term:`primary
+shard` for the database.
+
+.. code-block:: javascript
+
+     databases:
+      {  "_id" : <dbname1>,
+         "partitioned" : <boolean>,
+         "primary" : <string>
+      }
+      {  "_id" : <dbname2>,
+         "partitioned" : <boolean>,
+         "primary" : <string>
+      }
+      ...
+
+The :ref:`sharding-status-collection-fields` section provides
+information on the sharding details for sharded collection(s). For each
+sharded collection, the section displays the shard key, the number of
+chunks per shard(s), the distribution of documents across chunks
+[#chunk-details]_, and the tag information, if any, for shard key
+range(s).
+
+.. code-block:: javascript
+
+   <dbname>.<collection>
+      shard key: { <shard key> : <1 or hashed> }
+      chunks:
+         <shard name1> <number of chunks>
+         <shard name2> <number of chunks>
+         ...
+      { <shard key>: <min range1> } -->> { <shard key> : <max range1> } on : <shard name> <last modified timestamp>
+      { <shard key>: <min range2> } -->> { <shard key> : <max range2> } on : <shard name> <last modified timestamp>
+      ...
+      tag: <tag1>  { <shard key> : <min range1> } -->> { <shard key> : <max range1> }
+      ...
+
+Output
+------
+
+.. _sharding-status-version-fields:
+
+Sharding Version
+~~~~~~~~~~~~~~~~
+
+.. data:: sh.status.sharding-version._id
+
+   The :data:`~sh.status.sharding-version._id` is an identifier
+   for the version details.
+
+.. data:: sh.status.sharding-version.version
+
+   The :data:`~sh.status.sharding-version.version` is the version
+   of the :term:`config server <config database>` for the sharded
+   cluster.
+
+.. data:: sh.status.sharding-version.minCompatibleVersion
+
+   The :data:`~sh.status.sharding-version.minCompatibleVersion` is
+   the minimum compatible version of the config server.
+
+.. data:: sh.status.sharding-version.currentVersion
+
+   The :data:`~sh.status.sharding-version.currentVersion` is
+   the current version of the config server.
+
+.. data:: sh.status.sharding-version.clusterId
+
+   The :data:`~sh.status.sharding-version.clusterId` is the
+   identification for the sharded cluster.
+
+.. _sharding-status-shards-fields:
+
+Shards
+~~~~~~
+
+.. data:: sh.status.shards._id
+
+   The :data:`~sh.status.shards._id` displays the name of the shard.
+
+.. data:: sh.status.shards.host
+
+   The :data:`~sh.status.shards.host` displays the host location
+   of the shard.
+
+.. data:: sh.status.shards.tags
+
+   The :data:`~sh.status.shards.tags` displays all the tags for
+   the shard. The field only displays if the shard has tags.
+
+.. _sharding-status-databases-fields:
+
+Databases
+~~~~~~~~~
+
+.. data:: sh.status.databases._id
+
+   The :data:`~sh.status.databases._id` displays the name of the database.
+
+.. data:: sh.status.databases.partitioned
+
+   The :data:`~sh.status.databases.partitioned` displays whether
+   the database has sharding enabled. If ``true``, the database has
+   sharding enabled.
+
+.. data:: sh.status.databases.primary
+
+   The :data:`~sh.status.databases.primary` displays the
+   :term:`primary shard` for the database.
+
+.. _sharding-status-collection-fields:
+
+Sharded Collection
+~~~~~~~~~~~~~~~~~~
+
+.. data:: sh.status.databases.shard-key
+
+   The :data:`~sh.status.databases.shard-key` displays the shard
+   key specification document.
+
+.. data:: sh.status.databases.chunks
+
+   The :data:`~sh.status.databases.chunks` lists all the shards
+   and the number of chunks that reside on each shard.
+
+.. data:: sh.status.databases.chunk-details
+
+   The :data:`~sh.status.databases.chunk-details` lists the details
+   of the chunks [#chunk-details]_:
+
+   - The range of shard key values that define the chunk,
+
+   - The shard where the chunk resides, and
+
+   - The last modified timestamp for the chunk.
+
+.. data:: sh.status.databases.tag
+
+   The :data:`~sh.status.databases.tag` lists the details of
+   the tags associated with a range of shard key values.
+            
+.. [#chunk-details] The sharded collection section, by default,
+   displays the chunk information if the total number of chunks is less
+   than 20. To display the information when you have 20 or more chunks,
+   call the the :method:`sh.status()` methods with the ``verbose``
+   parameter set to ``true``, i.e. ``sh.status(true)``.
