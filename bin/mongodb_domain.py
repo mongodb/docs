@@ -375,14 +375,22 @@ class MongoDBDomain(Domain):
                      contnode):
         objectname = node.get('mongodb:object')
         searchorder = node.hasattr('refspecific') and 1 or 0
+
         name, obj = self.find_obj(env, objectname, target, typ, searchorder)
+
+        if obj is not None:
+            if fromdocname == obj[0]:
+                return None
 
         if obj is None:
             name, obj = self.find_obj(env, 'iddup.' + name, target, typ, searchorder)
+
             if obj is None:
                 # print names and info from the node object at this
                 # point to report on links that fail to resolve
                 return None
+
+
 
         return make_refnode(builder, fromdocname, obj[0],
                             name.replace('$', '_S_'), contnode, name)

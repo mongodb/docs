@@ -104,9 +104,13 @@ def sphinx_builder(target):
         m.job('sphinx-build -b {0} -t {1} {2} $(branch-output)/{3}'.format(builder, tag, sphinx_opts, builder), block=b)
 
     if target.startswith('linkcheck'):
-        m.msg('[$@]: Link check complete at `date`. See "$(branch-output)/linkcheck/output.txt".', block=b)
+        m.msg('[' + target + ']: Link check complete at `date`. See "$(branch-output)/linkcheck/output.txt".', block=b)
     else:
-        m.msg('[$@]: build finished at `date`.', block=b)
+        m.msg('[' + target + ']: build finished at `date`.', block=b)
+
+    m.target('clean-' + target, block=b)
+    m.job('rm -rf $(branch-output)/doctrees-{0} $(branch-output)/{0}'.format(builder), block=b)
+    m.msg('[clean-{0}]: removed all files supporting the {1} build'.format(target, builder) )
 
     m.newline(block=b)
 
