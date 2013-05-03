@@ -44,12 +44,16 @@ class ReferenceToc(object):
         return r
 
     def _process_data(self):
-        self.toc_output = ['.. toctree::', fill(':titlesonly:', 3), fill(':hidden:', 3), '']
+
+        self.toc_output = [
+            '.. class:: hidden', '',
+            fill('.. toctree::', 3),
+            fill(':titlesonly:', 6), '']
         self.table_rows = []
 
         row = 1
         for ref in self.spec:
-            self.toc_output.append(fill(ref['file'], 3))
+            self.toc_output.append(fill(ref['file'], 6))
             self.table_rows.append( { row: [ ref['name'], fill(ref['description'], width=64) ] } )
             row += 1
 
