@@ -22,14 +22,11 @@ def generate_dependency_rules(rules):
     
         m.target(t, dependency, block='deps')
         m.job('touch {0}'.format(t), block='deps')
-        m.msg('[dependency]: refreshing {0} because its included files changed'.format(t), block='deps')
+        m.msg('[dependency]: restating {0} because its included files changed'.format(t), block='deps')
 
         m.append_var('composites', t, block='deps')
 
         m.newline(block='deps')
-
-    # for rule in rules:
-    #     composites.append(rule['target'])
 
     m.target('composites', '$(composites)', block='meta')
    
