@@ -17,8 +17,9 @@ def build_all_install_guides(releases):
     for build in releases['source-files']:
         makefile_core(build)
 
-    for build in releases['install-guides']:
-        makefile_restat(build['target'], build['dependency'])
+    # Disabled because the dependency.py builder does a better job of this.
+    # for build in releases['install-guides']:
+    #     makefile_restat(build['target'], build['dependency'])
 
     for build in releases['subscription-build']:
         makefile_subscription(build['type'], build['system'])
@@ -53,19 +54,21 @@ def makefile_core(builder):
     m.msg('[build]: \(re\)generated $@.', block='source')
     m.newline(block='source')
 
-def makefile_restat(builder, dependency):
-    # this is an installation guide.
-    target = builder
-    m.append_var(variable='installation-guides', value=target, block='guide')
-    m.target(target=target, dependency=dependency, block='guide')
+# Commented because the dependency.py build probably does this better. 
+# 
+# def makefile_restat(builder, dependency):
+#     # this is an installation guide.
+#     target = builder
+#     m.append_var(variable='installation-guides', value=target, block='guide')
+#     m.target(target=target, dependency=dependency, block='guide')
 
-    if builder == 'source/tutorial/install-mongodb-subscriber-edition.txt':
-        pass
-    else:
-        m.job('touch $@', block='guide')
+#     if builder == 'source/tutorial/install-mongodb-subscriber-edition.txt':
+#         pass
+#     else:
+#         m.job('touch $@', block='guide')
 
-    m.msg('[build]: touched $@ to ensure a clean build.', block='guide')
-    m.newline(block='guide')
+#     m.msg('[build]: touched $@ to ensure a clean build.', block='guide')
+#     m.newline(block='guide')
 
 def makefile_subscription(builder, release):
     target = 'source/includes/install-curl-release-ent-' + release + '.rst'

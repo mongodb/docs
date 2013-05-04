@@ -19,7 +19,7 @@ meta.yaml:
 composite-pages.yaml:bin/composite-pages.yaml
 	@cp $< $@
 	@echo [meta]: compsite pages $@
-source/includes/hash.rst:source/about.txt
+source/includes/hash.rst:
 	@$(PYTHONBIN) bin/update_hash.py
 	@-git update-index --assume-unchanged $@
 	@echo [build]: \(re\)generated $@.
