@@ -29,12 +29,12 @@ def make_all_sphinx(sphinx):
     m.var(variable='PAPEROPT_letter',
           value='-D latex_paper_size=letter',
           block='vars')
-    
+
     m.comment('general sphinx variables', block='vars')
 
     m.section_break('sphinx prerequisites')
     m.newline()
-    m.target('sphinx-prerequisites', 'setup generate-source composite-pages.yaml', block='prereq')
+    m.target('sphinx-prerequisites', 'setup composites generate-source composite-pages.yaml', block='prereq')
     m.msg('[sphinx-prep]: completed $@ buildstep.', block='prereq')
 
     m.target('generate-source', '$(branch-output)/source tables installation-guides intersphinx', block='prereq')
@@ -81,8 +81,8 @@ def sphinx_builder(target):
         tag = 'print'
 
     sphinx_opts = '-q -d $(branch-output)/doctrees-$@ $(PAPEROPT_$(PAPER)) -c ./ '
-    if pkg_resources.get_distribution("sphinx").version.startswith('1.2'): 
-        sphinx_opts += '-j ' + str(cpu_count()) + ' '
+    if pkg_resources.get_distribution("sphinx").version.startswith('1.2'):
+        sphinx_opts += '-j ' + str(cpu_count() + 1 ) + ' '
 
     if target.endswith('-nitpick'):
         sphinx_opts += '-n -w $(branch-output)/build.$(shell date +%Y%m%d%H%M).log '
