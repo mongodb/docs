@@ -1,4 +1,4 @@
-# Copyright 2012 10gen, Inc.
+# Copyright 2012-2013 10gen, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,15 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+# Authors: Sam Kleinman, Kay Kim
 
 import sys
 import argparse
 import string
+import textwrap
 
-try:
-    import yaml
-except ImportError:
-    exit('[table-builder]: You must install PyYAML to build tables.')
+import yaml
 
 def normalize_cell_height(rowdata):
     """
@@ -33,6 +33,17 @@ def normalize_cell_height(rowdata):
     for cell in rowdata:
         for x in range(maxlines - len(cell)):
             cell.append( ' '  )
+
+
+def fill(string, first=0, hanging=0):
+    first_indent = ' ' * first
+    hanging_indent = ' ' * hanging
+
+    return textwrap.fill(string,
+                         width=72,
+                         initial_indent=first_indent,
+                         subsequent_indent=hanging_indent)
+
 
 ###################################
 #
@@ -213,61 +224,25 @@ class RstTable(OutputTable):
 
 class ListTable(OutputTable):
     def __init__(self, imported_table):
-        self.spacing = '       '
-        self.new_row_marker = '   * - '
-        self.new_column_marker = '     - '
-
         self.table = imported_table
-        self.process_table_content()
         self.output = self.render_table()
 
-    def process_table_content(self):
-        self.table_data = []
-        prepend = ''
-
-        for index in range(len(self.table.rows)):
-            is_new_row = True
-
-            # Append each cell to the parsed_row list, breaking multi-line
-            # cell data as needed.
-            for cell in self.table.rows[index][index + 1]:
-                first_line = True
-
-                if is_new_row:
-                    prepend = self.new_row_marker
-                    is_new_row = False
-                else:
-                    prepend = self.new_column_marker
-
-                parsed_row= cell.split('\n')
-
-                for parsed in parsed_row:
-                    if first_line:
-                        self.table_data.append(prepend + parsed)
-                        first_line = False
-                    else:
-                        self.table_data.append(self.spacing + parsed)
- 
     def render_table(self):
         o = ['.. list-table::']
 
         if self.table.header is not None:
-            is_new_row = True
-
-            o.append('   :header-rows: 1')           
-            o.append('')
-
-            for heading in self.table.header:
-                if is_new_row:
-                    o.append(self.new_row_marker + heading[0])
-                    is_new_row = False
-                else:
-                    o.append(self.new_column_marker + heading[0])
+            o.append(fill(':header-rows: 1'), 3)
 
         o.append('')
 
-        for row in self.table_data:
-            o.append(row)
+        for row in self.table.rows:
+            r = row.popitem()[1]
+
+            o.append(fill('* - ' + r[0], 3))
+
+            for cell in r[1:]:
+                o.append(fill('- ' + cell, 5, 7))
+                o.append('')
 
         return o
 
@@ -285,27 +260,27 @@ class HtmlTable(OutputTable):
             'td': '<td>',
             'table': '<table>'
             }
-        
+
         self.table = imported_table
         self.output = self.render_table()
-    
+
     def render_table(self):
         o = [self.tags['table']]
-        
+
         if self.table.header is not None:
             o.append(self._process_html_row(self.tags['tr'], self.tags['th'], self.table.header) )
-        
+
         for row in self.table.rows:
             o.append(self._process_html_row(self.tags['tr'], self.tags['td'], row.values()))
-        
+
         o.append(self._get_ending_tag(self.tags['table']))
         return o
-    
+
     def _process_html_row(self, tag, tagchild, rowdata):
         row=[]
         row.append(tag)
         row.append("\n")
-        
+
         if tagchild is None:
             row.append(rowdata)
         else:
@@ -315,9 +290,9 @@ class HtmlTable(OutputTable):
                     row.append("\n")
         row.append("\n")
         row.append(self._get_ending_tag(tag))
-        
+
         return ''.join(row)
-    
+
     def _get_ending_tag(self, tag):
         return string.join(tag.split('<', 1), '</')
 
