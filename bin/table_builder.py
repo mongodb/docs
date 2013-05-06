@@ -231,7 +231,7 @@ class ListTable(OutputTable):
         o = ['.. list-table::']
 
         if self.table.header is not None:
-            o.append(fill(':header-rows: 1'), 3)
+            o.append(fill(':header-rows: 1', 3))
 
         o.append('')
 
