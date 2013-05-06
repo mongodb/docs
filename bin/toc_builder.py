@@ -34,7 +34,7 @@ class ReferenceToc(object):
             data = yaml.load_all(f)
 
             for datum in data:
-                if datum['description'] == None:
+                if datum['description'] is None:
                     datum['description'] = ''
 
                 r.append(datum)
