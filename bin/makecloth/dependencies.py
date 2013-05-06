@@ -4,6 +4,7 @@ import sys
 import os.path 
 from itertools import groupby
 from operator import itemgetter
+import re
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
@@ -19,7 +20,7 @@ def generate_dependency_rules(rules):
         dependency = []
         for i in d:
             dependency.append(i['dep'])
-    
+
         m.target(t, dependency, block='deps')
         m.job('touch {0}'.format(t), block='deps')
         m.msg('[dependency]: restating {0} because its included files changed'.format(t), block='deps')
@@ -29,11 +30,10 @@ def generate_dependency_rules(rules):
         m.newline(block='deps')
 
     m.target('composites', '$(composites)', block='meta')
-   
 
 def main():
-    conf_file = utils.get_conf_file(sys.argv[2])
-    generate_dependency_rules(utils.ingest_yaml(conf_file))
+    conf_file = sys.argv[2]
+    generate_dependency_rules(utils.ingest_json(conf_file))
 
     m.write(sys.argv[1])
 
