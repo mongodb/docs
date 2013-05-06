@@ -4,6 +4,9 @@ dbStats
 
 .. default-domain:: mongodb
 
+Definition
+----------
+
 .. dbcommand:: dbStats
 
    The :dbcommand:`dbStats` command returns storage statistics for a
@@ -13,19 +16,120 @@ dbStats
 
       { dbStats: 1, scale: 1 }
 
-   The value of the argument (e.g. ``1`` above) to ``dbStats`` does
-   not affect the output of the command. The ``scale`` option allows
-   you to specify how to scale byte values. For example, a ``scale``
-   value of ``1024`` will display the results in kilobytes rather
-   than in bytes.
+   The values of the options above do not affect the output of the
+   command. The ``scale`` option allows you to specify how to scale byte
+   values. For example, a ``scale`` value of ``1024`` will display the
+   results in kilobytes rather than in bytes:
 
-   The time required to run the command depends on the total size of the database.
-   Because the command has to touch all data files, the command may take several
-   seconds to run.
+   .. code-block:: javascript
 
-   In the :program:`mongo` shell, the :method:`db.stats()` function provides
-   a wrapper around this functionality. See the
-   ":doc:`/reference/database-statistics`" document for an overview of
-   this output.
- 
-   .. read-lock
+      { dbStats: 1, scale: 1024 }
+
+   .. note::
+
+      Because scaling rounds values to whole numbers, scaling may return
+      unlikely or unexpected results.
+
+   The time required to run the command depends on the total size of the
+   database. Because the command must touch all data files, the command
+   may take several seconds to run.
+
+   In the :program:`mongo` shell, the :method:`db.stats()` function
+   provides a wrapper around :dbcommand:`dbStats`.
+
+Output
+------
+
+.. data:: dbStats.db
+
+   Contains the name of the database.
+
+.. data:: dbStats.collections
+
+   Contains a count of the number of collections in that database.
+
+.. data:: dbStats.objects
+
+   Contains a count of the number of objects (i.e. :term:`documents <document>`) in
+   the database across all collections.
+
+.. data:: dbStats.avgObjSize
+
+   The average size of each document in bytes. This is the
+   :data:`~dbStats.dataSize` divided by the number of documents.
+
+.. data:: dbStats.dataSize
+
+   The total size of the data held in this database including the
+   :term:`padding factor`. The ``scale`` argument affects this
+   value. The :data:`~dbStats.dataSize` will not decrease when :term:`documents
+   <document>` shrink, but will decrease when you remove documents.
+
+   .. sum of all records not counting deleted records
+
+.. data:: dbStats.storageSize
+
+   The total amount of space allocated to collections in this database
+   for :term:`document` storage. The ``scale`` argument affects this
+   value. The :data:`~dbStats.storageSize` does not decrease as you remove or
+   shrink documents.
+
+   .. sum of all extents (no indexes or the $freelist)
+   .. include links to eventual documentation of storage management
+
+.. data:: dbStats.numExtents
+
+   Contains a count of the number of extents in the database across
+   all collections.
+
+.. data:: dbStats.indexes
+
+   Contains a count of the total number of indexes across all
+   collections in the database.
+
+.. data:: dbStats.indexSize
+
+   The total size of all indexes created on this database. The
+   ``scale`` arguments affects this value.
+
+   .. uses the dataSize member
+
+.. data:: dbStats.fileSize
+
+   The total size of the data files that hold the database. This value
+   includes preallocated space and the :term:`padding factor`. The
+   value of :data:`~dbStats.fileSize` only reflects the size of the data files
+   for the database and not the namespace file.
+
+   The ``scale`` argument affects this value.
+
+.. data:: dbStats.nsSizeMB
+
+   The total size of the :term:`namespace` files (i.e. that end with
+   ``.ns``) for this database. You cannot change the size of the
+   namespace file after creating a database, but you can change the
+   default size for all new namespace files with the
+   :setting:`nssize` runtime option.
+
+   .. seealso:: The :setting:`nssize` option, and :ref:`Maximum Namespace File Size <limit-size-of-namespace-file>`
+
+.. data:: dbStats.dataFileVersion
+
+   .. versionadded:: 2.4
+
+   Document that contains information about the on-disk format of the data
+   files for the database.
+
+.. data:: dbStats.dataFileVersion.major
+
+   .. versionadded:: 2.4
+
+   The major version number for the on-disk format of the data files for
+   the database.
+
+.. data:: dbStats.dataFileVersion.minor
+
+   .. versionadded:: 2.4
+
+   The minor version number for the on-disk format of the data files for
+   the database.
