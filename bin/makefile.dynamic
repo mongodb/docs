@@ -34,7 +34,7 @@ $(output)/makefile.intersphinx:bin/makecloth/intersphinx.py bin/makecloth/__init
 .PHONY:$(output)/makefile.dependencies
 -include $(output)/makefile.dependencies
 
-$(branch-output)/include-dependencies.yaml:bin/makefile.dynamic
+$(branch-output)/include-dependencies.json:bin/makefile.dynamic
 	@-rm -f $(output)/makefile.dependencies
 	@grep "\.\. include::" source/* -R | \
              sed $(SED_ARGS_REGEX) -e 's%(.txt:).*include:: %\1%' \
@@ -42,13 +42,11 @@ $(branch-output)/include-dependencies.yaml:bin/makefile.dynamic
 	                           -e 's%(.rst:).*include:: %\1%' \
                                    -e "s%(.txt:)%\1source/%"  | \
              grep "\:source/includes" | \
-             sed $(SED_ARGS_REGEX) -e 's%(.txt):(.*)$$%\1\ndep: \2\n---%' \
-                                   -e 's%^(source)%target: \1%' | \
-             head --lines=-1 >| $@
-	@echo "..." >> $@
+             sed $(SED_ARGS_REGEX) -e 's%(.txt):(.*)$$%\1", "dep": "\2" }%' \
+                                   -e 's%^(source)%{ "target": "\1%' >| $@
 	@echo [build]: $@ generated include dependencies 
-$(output)/makefile.dependencies:bin/makecloth/dependencies.py $(branch-output)/include-dependencies.yaml 
-	@$(PYTHONBIN) $< $@ $(branch-output)/include-dependencies.yaml
+$(output)/makefile.dependencies:bin/makecloth/dependencies.py $(branch-output)/include-dependencies.json 
+	@$(PYTHONBIN) $< $@ $(branch-output)/include-dependencies.json
 
 # The remainder of the files are reasonably straight forward, and use
 # a generic build rule.

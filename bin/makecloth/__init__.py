@@ -258,7 +258,7 @@ class BuildCloth(object):
         if raw is True:
             for line in data:
                 add(line, block)
-        elif type(data) is not str:
+        elif not isinstance(data, basestring):
             raise MalformedContent('Avoided adding malformed data to BuildCloth.')
         else:
             add(data, block)
@@ -426,7 +426,7 @@ class MakefileCloth(BuildCloth):
         if isinstance(target, list):
             target = ' '.join(target)
 
-        if not isinstance(target, str):
+        if not isinstance(target, basestring):
             err = 'Targets must be strings before inserting them to builder.'
             raise MalformedContent(err)
 
@@ -436,7 +436,7 @@ class MakefileCloth(BuildCloth):
             if isinstance(dependency, list):
                 dependency = ' '.join(dependency)
 
-            if not isinstance(dependency, str):
+            if not isinstance(dependency, basestring):
                 err = 'Dependencies must be strings before inserting them to builder.'
                 raise MalformedContent(err)
 
