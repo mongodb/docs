@@ -233,22 +233,27 @@ class ListTable(OutputTable):
 
     def _render_table(self):
         b = '_all'
+        
+        rows = []
         if self.table.header is not None:
             fields = [('header-rows', '1')]
 
-        self.r.directive('list-table', fields=fields, indent=self.indent, block=b)
+            rows.append({ 'header': [ i[0] for i in self.table.header ] })
 
-        # todo actually add header content here or by factoring out the follwoing logic
+        rows.extend(self.table.rows)
+
+        self.r.directive('list-table', fields=fields, indent=self.indent, block=b)
 
         self.r.newline(block=b)
 
-        for row in self.table.rows:
+        for row in rows:
             r = row.popitem()[1]
 
-            self.r.li(r[0], bullet='* -', indent=self.indent + 3, block=b)
+            self.r.li(r[0], bullet='* -', indent=self.indent + 3, wrap=False, block=b)
+            self.r.newline(block=b)
 
             for cell in r[1:]:
-                self.r.li(cell, bullet='  -',  indent=self.indent + 3, block=b)
+                self.r.li(cell, bullet='  -',  indent=self.indent + 3, wrap=False, block=b)
                 self.r.newline(block=b)
 
 ###################################
