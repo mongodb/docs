@@ -20,6 +20,7 @@ import string
 import textwrap
 
 import yaml
+from rstcloth import RstCloth
 
 def normalize_cell_height(rowdata):
     """
@@ -43,7 +44,6 @@ def fill(string, first=0, hanging=0):
                          width=72,
                          initial_indent=first_indent,
                          subsequent_indent=hanging_indent)
-
 
 ###################################
 #
@@ -223,28 +223,33 @@ class RstTable(OutputTable):
 # Outputs a list-table
 
 class ListTable(OutputTable):
-    def __init__(self, imported_table):
+    def __init__(self, imported_table, indent=0):
         self.table = imported_table
-        self.output = self.render_table()
+        self.indent = indent
 
-    def render_table(self):
-        o = ['.. list-table::']
+        self.r = RstCloth()
+        self._render_table()
+        self.output = self.r.docs._all
 
+    def _render_table(self):
+        b = '_all'
         if self.table.header is not None:
-            o.append(fill(':header-rows: 1', 3))
+            fields = [('header-rows', '1')]
 
-        o.append('')
+        self.r.directive('list-table', fields=fields, indent=self.indent, block=b)
+
+        # todo actually add header content here or by factoring out the follwoing logic
+
+        self.r.newline(block=b)
 
         for row in self.table.rows:
             r = row.popitem()[1]
 
-            o.append(fill('* - ' + r[0], 3))
+            self.r.li(r[0], bullet='* -', indent=self.indent + 3, block=b)
 
             for cell in r[1:]:
-                o.append(fill('- ' + cell, 5, 7))
-                o.append('')
-
-        return o
+                self.r.li(cell, bullet='  -',  indent=self.indent + 3, block=b)
+                self.r.newline(block=b)
 
 ###################################
 #
