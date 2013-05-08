@@ -1,6 +1,6 @@
 .. admonition:: JavaScript in MongoDB
 
-   Although |javascript-using-operation| uses JavaScript, most
-   interactions with MongoDB use an :doc:`idiomatic drivers
-   </applications/drivers>` to interact with MongoDB using the same
-   language as the application itself.
+   Although |javascript-using-operation| JavaScript, most interactions
+   with MongoDB do not use JavaScript but use an :doc:`idiomatic driver
+   </applications/drivers>` in the language of the interacting
+   application.
