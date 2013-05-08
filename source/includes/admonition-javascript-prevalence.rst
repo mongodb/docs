@@ -1,4 +1,4 @@
-.. admonition:: JavaScript in MongoDB
+.. admonition::
 
    Although |javascript-using-operation| JavaScript, most interactions
    with MongoDB do not use JavaScript but use an :doc:`idiomatic driver
