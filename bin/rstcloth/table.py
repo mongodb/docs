@@ -226,7 +226,11 @@ class ListTable(OutputTable):
     def __init__(self, imported_table, widths=None, indent=0):
         self.table = imported_table
         self.indent = indent
-        self.widths = [ str(i) for i in widths ]
+
+        if widths is not None:
+            self.widths = [ str(i) for i in widths ]
+        else:
+            self.widths = None
 
         self.r = RstCloth()
         self._render_table()
