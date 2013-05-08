@@ -223,9 +223,10 @@ class RstTable(OutputTable):
 # Outputs a list-table
 
 class ListTable(OutputTable):
-    def __init__(self, imported_table, indent=0):
+    def __init__(self, imported_table, widths=None, indent=0):
         self.table = imported_table
         self.indent = indent
+        self.widths = [ str(i) for i in widths ]
 
         self.r = RstCloth()
         self._render_table()
@@ -233,16 +234,20 @@ class ListTable(OutputTable):
 
     def _render_table(self):
         b = '_all'
-        
-        rows = []
-        if self.table.header is not None:
-            fields = [('header-rows', '1')]
 
-            rows.append({ 'header': [ i[0] for i in self.table.header ] })
+        rows = []
+        _fields = []
+        if self.table.header is not None:
+            _fields.append(('header-rows', '1'))
+
+        if self.widths is not None:
+            _fields.append(('widths', ' '.join(self.widths)))
+
+        rows.append({ 'header': [ i[0] for i in self.table.header ] })
 
         rows.extend(self.table.rows)
 
-        self.r.directive('list-table', fields=fields, indent=self.indent, block=b)
+        self.r.directive('list-table', fields=_fields, indent=self.indent, block=b)
 
         self.r.newline(block=b)
 

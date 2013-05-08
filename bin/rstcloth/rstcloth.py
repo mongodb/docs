@@ -162,8 +162,12 @@ class RstCloth(Cloth):
         hanging_indent_len = indent + len(bullet)
         hanging_indent = ' ' * hanging_indent_len
 
-        content = bullet + fill(content, 0, len(bullet), wrap)
-        self._add(fill(content, indent, indent, wrap), block)
+        if isinstance(content, list):
+            content = bullet + '\n'.join(content)
+            self._add(fill(content, indent, indent + hanging_indent_len, wrap), block)
+        else:
+            content = bullet + fill(content, 0, len(bullet), wrap)
+            self._add(fill(content, indent, indent, wrap), block)
 
     def replacement(self, name, value, indent=0, wrap=True, block='_all'):
         output = '.. |{0}| replace:: {1}'.format(name, value)

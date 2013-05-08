@@ -3,7 +3,7 @@
 import yaml
 import textwrap
 import argparse
-import table_builder as tb
+import rstcloth.table as tb
 
 def fill(string, first=0, hanging=0, width=72):
     first_indent = ' ' * first
