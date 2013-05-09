@@ -1,0 +1,70 @@
+.. index:: pair: replica set; security
+.. _replica-set-security:
+
+====================
+Replica Set Security
+====================
+
+.. default-domain:: mongodb
+
+In most cases, :term:`replica set` administrators do not have to keep
+additional considerations in mind beyond the normal security
+precautions that all MongoDB administrators must take. However, ensure
+that:
+
+- Your network configuration will allow every member of the replica
+  set to contact every other member of the replica set.
+
+- If you use MongoDB's authentication system to limit access to your
+  infrastructure, ensure that you configure a
+  :setting:`keyFile` on all members to permit authentication.
+
+For most instances, the most effective ways to control access and to
+secure the connection between members of a :term:`replica set` depend
+on network-level access control. Use your environment's firewall and
+network routing to ensure that traffic *only* from clients and other
+replica set members can reach your :program:`mongod` instances. If
+needed, use virtual private networks (VPNs) to ensure secure
+connections over wide area networks (WANs.)
+
+Additionally, MongoDB provides an authentication mechanism for
+:program:`mongod` and :program:`mongos` instances connecting to
+replica sets. These instances enable authentication but specify a
+shared key file that serves as a shared password.
+
+.. versionadded:: 1.8
+   Added support authentication in replica set deployments.
+
+.. versionchanged:: 1.9.1
+   Added support authentication in sharded replica set deployments.
+
+To enable authentication add the following option to your configuration file:
+
+.. code-block:: cfg
+
+   keyFile = /srv/mongodb/keyfile
+
+.. note::
+
+   You may chose to set these run-time configuration options using the
+   :option:`--keyFile <mongod --keyFile>` (or :option:`mongos --keyFile`)
+   options on the command line.
+
+Setting :setting:`keyFile` enables authentication and specifies a key
+file for the replica set members to use when authenticating to each
+other. The content of the key file is arbitrary but must be the same
+on all members of the replica set and on all :program:`mongos`
+instances that connect to the set.
+
+The key file must be less one kilobyte in size and may only contain
+characters in the base64 set. The key file must not have group or "world"
+permissions on UNIX systems. Use the following command to use the
+OpenSSL package to generate "random" content for use in a key file:
+
+.. code-block:: bash
+
+   openssl rand -base64 753
+
+.. note::
+
+   Key file permissions are not checked on Windows systems.

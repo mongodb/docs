@@ -1,0 +1,110 @@
+.. _replica-set-oplog-sizing:
+
+=================
+Replica Set Oplog
+=================
+
+.. default-domain:: mongodb
+
+..
+  Actual oplog sizing as of 2012-07-02:
+
+  32 bit systems = ~48 megabytes
+  64 bit = larger of 5% of disk or ~1 gigabyte
+  64 bit OS X = ~183 megabytes
+
+The :term:`oplog` (operations log) is a special :term:`capped
+collection` that keeps a rolling record of all operations that modify
+that data stored in your databases. MongoDB applies database operations
+on the :term:`primary` and then records the operations on the primary's
+oplog. The :term:`secondary` members then replicate this log and apply
+the operations to themselves in an asynchronous process. All replica set
+members contain a copy of the oplog, allowing them to maintain the
+current state of the database. Operations in the oplog are :term:`idempotent`.
+
+By default, the size of the oplog is as follows:
+
+- For 64-bit Linux, Solaris, FreeBSD, and Windows systems, MongoDB will
+  allocate 5% of the available free disk space to the oplog. If this
+  amount is smaller than a gigabyte, then MongoDB will allocate 1
+  gigabyte of space.
+
+- For 64-bit OS X systems, MongoDB allocates 183 megabytes of space to
+  the oplog.
+
+- For 32-bit systems, MongoDB allocates about 48 megabytes of space to
+  the oplog.
+
+Before oplog creation, you can specify the size of your oplog with the
+:setting:`oplogSize` option. After you start a replica set member for
+the first time, you can only change the size of the oplog by using the
+:doc:`/tutorial/change-oplog-size` tutorial.
+
+In most cases, the default oplog size is sufficient. For example, if an
+oplog that is 5% of free disk space fills up in 24 hours of operations, then
+secondaries can stop copying entries from the oplog for up to 24 hours
+without becoming stale. However, most replica sets have much
+lower operation volumes, and their oplogs can hold a much larger
+number of operations.
+
+The following factors affect how MongoDB uses space in the oplog:
+
+- Update operations that affect multiple documents at once.
+
+  The oplog must translate multi-updates into individual operations,
+  in order to maintain :term:`idempotency <idempotent>`. This can use
+  a great deal of oplog space without a corresponding increase
+  in disk utilization.
+
+- If you delete roughly the same amount of data as you insert.
+
+  In this situation the database will not grow significantly in disk
+  utilization, but the size of the operation log can be quite large.
+
+- If a significant portion of your workload entails in-place updates.
+
+  In-place updates create a large number of operations but do not
+  change the quantity data on disk.
+
+If you can predict your replica set's workload to resemble one
+of the above patterns, then you may want to consider creating an oplog
+that is larger than the default. Conversely, if the predominance of
+activity of your MongoDB-based application are reads and you are
+writing a small amount of data, you may find that you need a much
+smaller oplog.
+
+To view oplog status, including the size and the time range of
+operations, issue the :method:`db.printReplicationInfo()` method. For
+more information on oplog status, see
+:ref:`replica-set-troubleshooting-check-oplog-size`.
+
+Oplog Considerations
+--------------------
+
+Under various exceptional situations, updates to a :term:`secondary's
+<secondary>` oplog might lag behind the desired performance time. See
+:ref:`Replication Lag <replica-set-replication-lag>` for details.
+
+All members of a :term:`replica set` send heartbeats (pings) to all
+other members in the set and can import operations to the local oplog
+from any other member in the set.
+
+Replica set oplog operations are :term:`idempotent`. The following
+operations require idempotency:
+
+- initial sync
+- post-rollback catch-up
+- sharding chunk migrations
+
+.. note::
+
+   Use :method:`db.getReplicationInfo()` from a secondary member
+   and the :doc:`replication status </reference/replication-info>`
+   output to assess the current state of replication and determine if
+   there is any unintended replication delay.
+
+.. todo:: Verify that "sharding chunk migrations" (above) requires
+   idempotency. The wiki was unclear on the subject.
+
+.. In 2.0, replicas would import entries from the member lowest
+.. "ping," This wasn't true in 1.8 and will likely change in 2.2.

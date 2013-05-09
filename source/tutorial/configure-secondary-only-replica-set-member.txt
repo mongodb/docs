@@ -1,6 +1,7 @@
-================================================
-Prevent Replica Set Member from Becoming Primary
-================================================
+=======================================
+Prevent Secondary from Becoming Primary
+=======================================
+
 
 .. default-domain:: mongodb
 
@@ -13,14 +14,25 @@ For example, you may want to configure all members of a replica sets
 located outside of the main data centers as secondary-only to prevent
 these members from ever becoming primary.
 
-To configure a member as secondary-only, set its
-:data:`~local.system.replset.members[n].priority` value to ``0``. Any member with a
-:data:`~local.system.replset.members[n].priority` equal to ``0`` will never seek
-:ref:`election <replica-set-elections>` and cannot become primary in any
-situation. For more information on priority levels, see
-:ref:`replica-set-node-priority`.
+.. start-configuration
 
-.. include:: /includes/note-rs-conf-array-index.rst
+To configure a member as secondary-only, set its
+:data:`~local.system.replset.members[n].priority` value to ``0``. Any
+member with a :data:`~local.system.replset.members[n].priority` equal
+to ``0`` will never seek :ref:`election <replica-set-elections>` and
+cannot become primary in any situation.
+
+.. note::
+
+   - .. include:: /includes/fact-rs-conf-array-index.rst
+
+   - MongoDB does not permit the current :term:`primary` to have a
+     :data:`~local.system.replset.members[n].priority` of ``0``. If you
+     want to prevent the current primary from becoming primary, first
+     use :method:`rs.stepDown()` to step down the current primary, and
+     then :ref:`reconfigure the replica set
+     <replica-set-reconfiguration-usage>` with :method:`rs.conf()` and
+     :method:`rs.reconfig()`.
 
 As an example of modifying member priorities, assume a four-member
 replica set. Use the following sequence of operations in the
@@ -35,7 +47,7 @@ replica set. Use the following sequence of operations in the
    cfg.members[3].priority = 0
    rs.reconfig(cfg)
 
-This reconfigures the set, with the following priority settings:
+This reconfigures the set with the following priority settings:
 
 - Member ``0`` to a priority of ``2`` so that it becomes primary, under
   most circumstances.
@@ -54,20 +66,13 @@ This reconfigures the set, with the following priority settings:
 
 .. include:: /includes/warning-rs-reconfig.rst
 
-.. note::
 
-   - If your replica set has an even number of members, add an
-     :doc:`arbiter </tutorial/add-replica-set-arbiter>` to ensure that
-     members can quickly obtain a majority of votes in an election for
-     primary.
+.. seealso::
 
-   - MongoDB does not permit the current :term:`primary` to have a
-     :data:`~local.system.replset.members[n].priority` of ``0``. If you
-     want to prevent the current primary from becoming primary, first
-     use :method:`rs.stepDown()` to step down the current primary, and
-     then :ref:`reconfigure the replica set
-     <replica-set-reconfiguration-usage>` with :method:`rs.conf()` and
-     :method:`rs.reconfig()`.
+   - :data:`~local.system.replset.members[n].priority`
 
-.. seealso:: :data:`~local.system.replset.members[n].priority` and
-   :ref:`Replica Set Reconfiguration <replica-set-reconfiguration-usage>`.
+   - :doc:`/tutorial/adjust-replica-set-member-priority`
+   
+   - :ref:`Replica Set Reconfiguration <replica-set-reconfiguration-usage>`
+
+   - :doc:`/core/replica-set-elections`

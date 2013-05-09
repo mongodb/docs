@@ -1,21 +1,46 @@
-=========================================================================
-Replica Set Considerations and Behaviors for Applications and Development
-=========================================================================
+====================================
+Replica Set Read and Write Semantics
+====================================
 
 .. default-domain:: mongodb
 
 From the perspective of a client application, whether a MongoDB
 instance is running as a single server (i.e. "standalone") or a
-:term:`replica set` is transparent. However, replica sets offer some
-configuration options for write and read
-operations. [#sharded-clusters]_
+:term:`replica set` is transparent.
+
+By default, in MongoDB, read operations to a replica set return results
+from the :doc:`primary </core/replica-set-primary>` and are
+:term:`consistent <strict consistency>` with the last write operation.
+
+Users may configure :term:`read preference` on a per-connection basis
+to prefer that the read operations return on the :term:`secondary`
+members. If clients configure the :term:`read preference` to permit
+secondary reads, read operations cannot return from :term:`secondary`
+members that have not replicated more recent updates or operations. In
+these situations the query results may reflect a previous state.
+
+This behavior is sometimes characterized as :term:`eventual
+consistency` because the secondary member's state will *eventually*
+reflect the primary's state and MongoDB cannot guarantee :term:`strict
+consistency` for read operations from secondary members.
+
+To guarantee consistency for reads from secondary members, you can
+configure the :term:`client` and :term:`driver` to ensure that write
+operations succeed on all members before completing successfully.
+Additionally, such configuration can also help prevent
+:doc:`/core/replica-set-rollbacks` during a failover.
+
+.. note::
+
+   :term:`Sharded clusters <sharded cluster>` where the shards are also
+   replica sets provide the same read/write configuration options with
+   regards to write and read operations.
+
+For more information on configuring client/drivers for read and write
+operations to replica sets, see:
 
 .. toctree::
-   :maxdepth: 1
-
+   :titlesonly:
+   
    /core/write-concern
    /core/read-preference
-
-.. [#sharded-clusters] :term:`Sharded clusters <sharded cluster>`
-   where the shards are also replica sets provide the same
-   configuration options with regards to write and read operations.

@@ -1,0 +1,47 @@
+.. index:: replica set members; hidden
+.. _replica-set-hidden-configuration:
+.. _replica-set-hidden-members:
+
+==========================
+Hidden Replica Set Members
+==========================
+
+.. default-domain:: mongodb
+
+Hidden members contain copies of the primary's dataset. However, hidden
+members are **invisible** to client applications [#db-isMaster]_ and
+**cannot** become primary. [#secondary-only]_ Although unable to become
+a primary, hidden members **do** vote in :ref:`elections
+<replica-set-elections>`.
+
+Hidden members are ideal for instances that will have significantly
+different usage patterns than the other members and require separation
+from normal traffic. Since no secondary reads reach hidden members,
+hidden members receive no traffic beyond what replication requires.
+Typically, hidden members provide reporting, dedicated backups, and
+dedicated read-only testing and integration support.
+
+For dedicated backup, ensure that the hidden member is close, from a
+networking perspective, to the primary or likely primary. Ensure that
+the :term:`replication lag` is minimal or non-existent.
+
+If this member runs with journaling enabled, you can safely use
+standard :doc:`block level backup methods
+</tutorial/backup-databases-with-filesystem-snapshots>` to create a
+backup of this member. Otherwise, if your underlying system does not
+support snapshots, you can connect :program:`mongodump` to create a
+backup directly from the secondary member. In these cases, use the
+:option:`--oplog <mongodump --oplog>` option to ensure a consistent
+point-in-time dump of the database state. See also :doc:`/core/backups`.
+
+.. [#secondary-only] Hidden members are also
+   :ref:`secondary-only members <replica-set-secondary-only-members>`.
+
+Configuration
+-------------
+
+.. include:: /tutorial/configure-a-hidden-replica-set-member.txt
+   :start-after: start-configuration
+
+.. [#db-isMaster] :method:`db.isMaster()` will not display hidden
+   members.
