@@ -50,7 +50,10 @@ def generate_output(builder, platform, version, release):
     else:
         output = ('.. code-block:: sh' + '\n\n' +
                   '   curl http://downloads.10gen.com/linux/mongodb-' + builder + '-subscription-' +
-                  release + '-' + version + '.tgz > mongodb.tgz' + '\n')
+                  release + '-' + version + '.tgz > mongodb.tgz' + '\n' +
+                  '   tar -zxvf mongodb.tgz' + '\n' +
+                  '   cp -R -n mongodb-' + builder + '-subscription-' + release + '-' + version +
+                  '/ mongodb' + '\n')
 
     return output
 
