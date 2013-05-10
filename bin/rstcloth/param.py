@@ -10,16 +10,20 @@ import table as tb
 
 r = RstCloth()
 
-field_type_singlar = {
+field_type_singular = {
     'param' : 'Parameter',
     'field': 'Field',
     'arg': 'Argument',
+    'option': 'Option',
+    'flag': 'Flag',
 }
 
 field_type_plural = {
     'param' : 'Parameters',
     'field': 'Fields',
     'arg': 'Arguments',
+    'option': 'Options',
+    'flag': '',
 }
 
 class ParamTable(tb.TableData):
@@ -51,7 +55,7 @@ class ParamTable(tb.TableData):
             return False
 
 def generate_params(params):
-    params.sort(key=lambda p: p['position'])
+    params.sort(params, key=lambda p: p['position'])
 
     # Begin by generating the table for web output
     r.directive('only', '(html or singlehtml or dirhtml)', block='htm')
@@ -134,7 +138,7 @@ def process_type_cell(type_data, output):
 
 def render_header_row(param_zero, num_rows, type_column):
     if num_rows == 1:
-        name_column = field_type_singluar[param_zero['field']['type']]
+        name_column = field_type_singular[param_zero['field']['type']]
     else:
         name_column = field_type_plural[param_zero['field']['type']]
 
@@ -148,7 +152,7 @@ def render_header_row(param_zero, num_rows, type_column):
     return o
 
 def main():
-    input_data = utils.ingest_yaml(sys.argv[1])
+    input_data = utils.ingest_yaml_list(sys.argv[1])
     generate_params(input_data)
 
     r.write(sys.argv[2])

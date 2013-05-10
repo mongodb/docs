@@ -2,7 +2,7 @@ import yaml
 import sys
 import os.path
 import subprocess
-import json 
+import json
 
 def expand_tree(path, input_extension='yaml'):
     file_list = []
@@ -14,6 +14,14 @@ def expand_tree(path, input_extension='yaml'):
 
     return file_list
 
+
+def ingest_yaml_list(filename):
+    o = ingest_yaml(filename)
+
+    if isinstance(o, list):
+        return o
+    else:
+        return [o]
 
 def ingest_yaml(filename):
     o = []
@@ -38,6 +46,15 @@ def ingest_json(filename):
         o = o[0]
 
     return o
+
+def ingest_json_list(filename):
+    o = ingest_json(filename)
+
+    if isinstance(o, list):
+        return o
+    else:
+        return [o]
+
 
 def get_conf_file(file):
     return file.rsplit('.', 1)[0] + '.yaml'
