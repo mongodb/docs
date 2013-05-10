@@ -55,7 +55,7 @@ class ParamTable(tb.TableData):
             return False
 
 def generate_params(params):
-    params.sort(params, key=lambda p: p['position'])
+    params.sort(key=lambda p: p['position'])
 
     # Begin by generating the table for web output
     r.directive('only', '(html or singlehtml or dirhtml)', block='htm')
