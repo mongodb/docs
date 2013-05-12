@@ -100,11 +100,11 @@ Public Contributions
 (*Where public equals, anyone outside of the docs team, including
 10gen engineers, other staff, and the community.*)
 
-The "main" repository on github will have a master branch that tracks
+The "main" repository on GitHub will have a master branch that tracks
 the "hyperalpha" branch. This is rebuilt regularly and is easily
 accessible on the web but is excluded from ``robots.txt`` and has
 no-follow links to avoid defusing the search results. Contributions
-come in the form of edits directly on github, or pull requests.
+come in the form of edits directly on GitHub, or pull requests.
 
 Then, with editing and review, changes from hyperalpha are batched and
 reviewed and merged into the "current" branch. The next section covers
@@ -153,7 +153,7 @@ many cases) by pulling from git repositories and building from a
 specific git tag. The builds are then located (per driver) in
 versioned directories based on the tag name. A symbolic link named
 "current" points to the current version of the documentation. These
-builds are then checked into the apidocs repo, pushed to github, and
+builds are then checked into the apidocs repo, pushed to GitHub, and
 then a command is issued on the web servers to pull the apidocs repo,
 into the "public" directory for api.mongodb.org."
 
