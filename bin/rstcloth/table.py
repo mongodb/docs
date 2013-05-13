@@ -35,7 +35,6 @@ def normalize_cell_height(rowdata):
         for x in range(maxlines - len(cell)):
             cell.append( ' '  )
 
-
 def fill(string, first=0, hanging=0):
     first_indent = ' ' * first
     hanging_indent = ' ' * hanging
@@ -50,6 +49,61 @@ def fill(string, first=0, hanging=0):
 # Generating parts of the table.
 
 class TableData(object):
+    def __init__(self, num_columns=None):
+        self.num_columns = num_columns
+        self.num_rows = 0
+        self.header = None
+        self.rows = []
+        self.final = False
+
+    def _add(self, row, location='row'):
+        if self.final == True:
+            pass
+        else:
+            if location == 'header':
+                self.header.append(row)
+            elif location == 'row':
+                self.rows.append(row)
+            else:
+                raise Exception('tables can only have headers or rows.')
+
+    def _columns(self, num_columns):
+        if self.num_columns is None:
+            self.num_columns = num_columns
+        elif num_columns != self.num_columns:
+            raise Exception('rows must have the same number of columns as the table.')
+
+        return True
+
+    def add_row(self, row):
+        if self._columns(len(row)):
+            self.num_rows += 1
+            self._add({ self.num_rows: row }, location='row')
+
+    def add_header(self, row):
+        if self._columns(len(row)):
+            if self.header == None:
+                self.header = []
+
+            o = []
+
+            for i in row:
+                o.append(i)
+
+            self._add({0: o}, location='header')
+
+    def finalize(self):
+        self.final = True
+
+class YamlTable(TableData):
+    def __init__(self, inputfile, num_columns=None):
+        super(YamlTable, self).__init__(num_columns)
+        self.inputfile = inputfile
+        self.format = None
+
+        layout, meta, content = self.read_data(inputfile)
+        self.parse_table(layout, meta, content)
+
     def parse_table(self, layout, meta, content):
         if hasattr(meta, 'format'):
             self.format = meta.format
@@ -57,28 +111,17 @@ class TableData(object):
         if layout.header:
             header = []
             for cell in layout.header:
-                header.append([eval(cell)])
-        else:
-            header = None
+                header.append(eval(cell))
 
-        self.header = header
+            self.add_header(header)
 
-        rows = []
-        for rownum in layout.rows:
-            parsed_cells = []
-            for cell in rownum.items()[0][1]:
-                parsed_cells.append(eval(cell))
-            rows.append( dict(zip(rownum.keys(), [parsed_cells])) )
+        for row in layout.rows:
+            cells = []
+            for cell in row.values():
+                for c in cell:
+                    cells.append(eval(c))
 
-        self.rows = rows
-
-class YamlTable(TableData):
-    def __init__(self, inputfile):
-        self.inputfile = inputfile
-        self.format = None
-
-        layout, meta, content = self.read_data(inputfile)
-        self.parse_table(layout, meta, content)
+            self.add_row(cells)
 
     def read_data(self, datafile):
         with open(datafile, "rt") as f:
@@ -143,14 +186,29 @@ class RstTable(OutputTable):
         ``tempcolumnwidths``. ``tempcolumnwidths`` variable maintains
         the running max width of each column.
         """
+        for row in rowdata:
+            if self.tempcolumnwidths:
+                max_widths = self.tempcolumnwidths.pop()
+            else:
+                max_widths = None
 
-        thisrowwidths = [ max([len(line) for line in cell ]) for cell in rowdata]
+            current_widths = []
 
-        if len(self.tempcolumnwidths) == 0:
-            self.tempcolumnwidths.append(thisrowwidths)
-        else:
-            currentmaxwidths = self.tempcolumnwidths.pop()
-            self.tempcolumnwidths.append([ max(currentmaxwidths[i], thisrowwidths[i]) for i in range(len(currentmaxwidths))])
+            for line in row.values()[0]:
+                _width = []
+                for subline in line.split('\n'):
+                    _width.append(len(subline))
+                current_widths.append(max(_width))
+
+            if max_widths is None:
+                self.tempcolumnwidths.append(current_widths)
+            else:
+                o = []
+                for this, running in zip(current_widths, max_widths):
+                    o.append(max(running, this))
+                max_widths = o
+
+                self.tempcolumnwidths.append(max_widths)
 
     ###################################
     #
@@ -170,45 +228,58 @@ class RstTable(OutputTable):
         for line in zip(*rowdata):
             if len(rowlines) > 0:
                 rowlines.append('\n')
+
             rowlines.append( '| ' + ' | '.join([ line[idx].ljust(self.columnwidths[idx]) for idx in range(len(line)) ]) + ' |' )
 
         return ''.join(rowlines)
 
+    def _get_header_row(self, header):
+        o = '| '
+
+        cols = range(len(self.columnwidths))
+        for header, rowidths, idx in zip(header, self.columnwidths, cols):
+            o += header.ljust(self.columnwidths[idx]) + ' | '
+
+        return o
+
     def process_table_content(self):
         self.table_data = []
-
+        if not hasattr(self, 'num_columns'):
+            self.num_columns = None
         # Compare cell widths of the header  with the
         # max cell widths stored in the global var tempcolumnwidths
         # and swap out value(s) if necessary.
         if self.table.header is not None:
-            self._check_column_width(self.table.header)
+            self.table.header = self.table.header[0][0]
+            if self.num_columns is None:
+                self.num_columns = len(self.table.header)
 
-        for index in range(len(self.table.rows)):
+        for row, index in zip(self.table.rows, range(len(self.table.rows))):
             parsed_row = []
+            index = index + 1
 
-            # Append each cell to the parsed_row list, breaking multi-line
-            # cell data as needed.
-            for cell in self.table.rows[index][index + 1]:
-                parsed_row.append(cell.split('\n'))
+            for line in row[index]:
+                parsed_row.append(line.split('\n'))
 
             # process the data to ensure the table is big enough.
-            self._check_column_width(parsed_row)
+            if self.num_columns is None:
+                self.num_columns = len(self.table.rows)
+
+            self._check_column_width(self.table.rows)
+
             normalize_cell_height(parsed_row)
 
             # add the processed data to the table
             self.table_data.append(parsed_row)
 
-        # Set the global variable columnwidths to the flattened out
-        # tempcolumnwidths
-        for cellwidth in self.tempcolumnwidths.pop():
-            self.columnwidths.append(cellwidth)
+        self.columnwidths = self.tempcolumnwidths.pop()
 
     def render_table(self):
         o = []
         o.append(self._get_row_line())
 
         if self.table.header is not None:
-            o.append(self._get_row(self.table.header))
+            o.append(self._get_header_row(self.table.header))
             o.append(self._get_row_line('='))
 
         for row in self.table_data:
@@ -216,7 +287,6 @@ class RstTable(OutputTable):
             o.append(self._get_row_line())
 
         return o
-
 
 ###################################
 #
@@ -247,8 +317,7 @@ class ListTable(OutputTable):
         if self.widths is not None:
             _fields.append(('widths', ' '.join(self.widths)))
 
-        rows.append({ 'header': [ i[0] for i in self.table.header ] })
-
+        rows.append(self.table.header[0])
         rows.extend(self.table.rows)
 
         self.r.directive('list-table', fields=_fields, indent=self.indent, block=b)
