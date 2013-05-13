@@ -4,50 +4,16 @@ db.collection.find()
 
 .. default-domain:: mongodb
 
+Definition
+----------
+
 .. method:: db.collection.find(query,projection)
 
-   The :method:`find() <db.collection.find()>` method selects documents
+   Selects documents
    in a collection and returns a :term:`cursor` to the selected
    documents.
 
-   The :method:`find() <db.collection.find()>` method takes the
-   following parameters.
-
-   :param document query:
-
-         Optional. Specifies the selection criteria
-         using :doc:`query operators </reference/operator>`. Omit the
-         ``query`` parameter or pass an empty document (e.g. ``{}``)
-         to return all documents in the collection.
-
-   :param document projection:
-
-          Optional. Controls the fields to return, or the
-          :term:`projection`. The ``projection`` argument will
-          resemble the following prototype:
-
-          .. code-block:: javascript
-
-              { field1: boolean, field2: boolean ... }
-
-          The ``boolean`` can take the following include or exclude
-          values:
-
-          - ``1`` or ``true`` to include. The :method:`find()
-            <db.collection.find()>` method always includes the
-            :term:`_id` field even if the field is not explicitly
-            stated to return in the :term:`projection` parameter.
-
-          - ``0`` or ``false`` to exclude.
-
-          The ``projection`` cannot contain both include and exclude
-          specifications except for the exclusion of the ``_id`` field.
-
-          Omit the ``projection`` parameter to return **all** the fields in
-          the matching documents.
-
-          See :doc:`/reference/operator/projection` for a list of
-          special projection operators.
+   .. include:: /reference/method/db.collection.find-param.rst
 
    :returns:
 
@@ -57,87 +23,82 @@ db.collection.find()
       the ``_id`` field if you do not explicitly exclude the ``_id``
       field.
 
-   .. note::
+   In the :program:`mongo` shell, you can access the returned documents
+   directly without explicitly using the JavaScript cursor handling
+   method. Executing the query directly on the :program:`mongo` shell
+   prompt automatically iterates the cursor to display up to the first
+   20 documents. Type ``it`` to continue iteration.
 
-      In the :program:`mongo` shell, you can access the returned
-      documents directly without explicitly using the JavaScript cursor
-      handling method. Executing the query directly on the
-      :program:`mongo` shell prompt automatically iterates the cursor
-      to display up to the first 20 documents. Type ``it`` to continue
-      iteration.
+Examples
+--------
 
-   .. examples-begin
+The following are examples of the :method:`find()
+<db.collection.find()>` method:
 
-   Consider the following examples of the :method:`find()
-   <db.collection.find()>` method:
+- To select all documents in a collection, call the :method:`find()
+  <db.collection.find()>` method with no parameters:
 
-   - To select all documents in a collection, call the
-     :method:`find() <db.collection.find()>` method with no parameters:
+  .. code-block:: javascript
 
-     .. code-block:: javascript
+     db.products.find()
 
-        db.products.find()
+  This operation returns all the documents with all the fields from the
+  collection ``products``. By default, in the :program:`mongo` shell,
+  the cursor returns the first batch of 20 matching documents. In the
+  :program:`mongo` shell, iterate through the next batch by typing
+  ``it``. Use the appropriate cursor handling mechanism for your
+  specific language driver.
 
-     This operation returns all the documents with all the fields from
-     the collection ``products``. By default, in the :program:`mongo`
-     shell, the cursor returns the first batch of 20 matching
-     documents. In the :program:`mongo` shell, iterate through the next
-     batch by typing ``it``. Use the appropriate cursor
-     handling mechanism for your specific language driver.
+- To select the documents that match a selection criteria, call the
+  :method:`find() <db.collection.find()>` method with the ``query``
+  criteria:
 
-   - To select the documents that match a selection criteria, call the
-     :method:`find() <db.collection.find()>` method with the ``query``
-     criteria:
+  .. code-block:: javascript
 
-     .. code-block:: javascript
+     db.products.find( { qty: { $gt: 25 } } )
 
-        db.products.find( { qty: { $gt: 25 } } )
+  This operation returns all the documents from the collection
+  ``products`` where ``qty`` is greater than ``25``, including all
+  fields.
 
-     This operation returns all the documents from the collection
-     ``products`` where ``qty`` is greater than ``25``, including all fields.
+- To select the documents that match a selection criteria and return, or
+  *project* only certain fields into the result set, call the
+  :method:`find() <db.collection.find()>` method with the ``query``
+  criteria and the ``projection`` parameter, as in the following
+  example:
 
-   - To select the documents that match a selection criteria and
-     return, or *project* only certain fields into the result set,
-     call the :method:`find() <db.collection.find()>` method with the
-     ``query`` criteria and the ``projection`` parameter, as in the
-     following example:
+  .. code-block:: javascript
 
-     .. code-block:: javascript
+     db.products.find( { qty: { $gt: 25 } }, { item: 1, qty: 1 } )
 
-        db.products.find( { qty: { $gt: 25 } }, { item: 1, qty: 1 } )
+  This operation returns all the documents from the collection
+  ``products`` where ``qty`` is greater than ``25``. The documents in
+  the result set only include the ``_id``, ``item``, and ``qty`` fields
+  using "inclusion" projection. :method:`find() <db.collection.find()>`
+  always returns the ``_id`` field, even when not explicitly included:
 
-     This operation returns all the documents from the collection
-     ``products`` where ``qty`` is greater than ``25``. The documents
-     in the result set only include the ``_id``, ``item``, and ``qty``
-     fields using "inclusion" projection. :method:`find()
-     <db.collection.find()>` always returns the ``_id`` field, even
-     when not explicitly included:
+  .. code-block:: javascript
 
-     .. code-block:: javascript
+     { "_id" : 11, "item" : "pencil", "qty" : 50 }
+     { "_id" : ObjectId("50634d86be4617f17bb159cd"), "item" : "bottle", "qty" : 30 }
+     { "_id" : ObjectId("50634dbcbe4617f17bb159d0"), "item" : "paper", "qty" : 100 }
 
-        { "_id" : 11, "item" : "pencil", "qty" : 50 }
-        { "_id" : ObjectId("50634d86be4617f17bb159cd"), "item" : "bottle", "qty" : 30 }
-        { "_id" : ObjectId("50634dbcbe4617f17bb159d0"), "item" : "paper", "qty" : 100 }
+- To select the documents that match a query criteria and exclude a set
+  of fields from the resulting documents, call the :method:`find()
+  <db.collection.find()>` method with the ``query`` criteria and the
+  ``projection`` parameter using the ``exclude`` syntax:
 
-   - To select the documents that match a query criteria and exclude a
-     set of fields from the resulting documents, call the
-     :method:`find() <db.collection.find()>` method with the ``query``
-     criteria and the ``projection`` parameter using the ``exclude``
-     syntax:
+  .. code-block:: javascript
 
-     .. code-block:: javascript
+     db.products.find( { qty: { $gt: 25 } }, { _id: 0, qty: 0 } )
 
-        db.products.find( { qty: { $gt: 25 } }, { _id: 0, qty: 0 } )
+  The query will return all the documents from the collection
+  ``products`` where ``qty`` is greater than ``25``. The documents in
+  the result set will contain all fields *except* the ``_id`` and
+  ``qty`` fields, as in the following:
 
-     The query will return all the documents from the collection
-     ``products`` where ``qty`` is greater than ``25``. The documents
-     in the result set will contain all fields *except* the ``_id``
-     and ``qty`` fields, as in the following:
+  .. code-block:: javascript
 
-     .. code-block:: javascript
-
-        { "item" : "pencil", "type" : "no.2" }
-        { "item" : "bottle", "type" : "blue" }
-        { "item" : "paper" }
-
-   .. examples-end
+     { "item" : "pencil", "type" : "no.2" }
+     { "item" : "bottle", "type" : "blue" }
+     { "item" : "paper" }
