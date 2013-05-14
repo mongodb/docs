@@ -169,20 +169,20 @@ latex_appendices = []
 
 man_pages = [
   # (source start file, name, description, authors, manual section).
-    ('reference/bsondump', 'bsondump', u'MongoDB BSON utility', [u'MongoDB Documentation Project'], 1),
-    ('reference/mongo', 'mongo', u'MongoDB Shell', [u'MongoDB Documentation Project'], 1),
-    ('reference/mongod', 'mongod', u'MongoDB Server', [u'MongoDB Documentation Project'], 1),
-    ('reference/mongos', 'mongos', u'MongoDB Shard Utility', [u'MongoDB Documentation Project'], 1),
-    ('reference/mongodump', 'mongodump', u'MongoDB', [u'MongoDB Documentation Project'], 1),
-    ('reference/mongoexport', 'mongoexport', u'MongoDB', [u'MongoDB Documentation Project'], 1),
-    ('reference/mongofiles', 'mongofiles', u'MongoDB', [u'MongoDB Documentation Project'], 1),
-    ('reference/mongoimport', 'mongoimport', u'MongoDB', [u'MongoDB Documentation Project'], 1),
-    ('reference/mongooplog', 'mongooplog', u'MongoDB', [u'MongoDB Documentation Project'], 1),
-    ('reference/mongorestore', 'mongorestore', u'MongoDB', [u'MongoDB Documentation Project'], 1),
-    ('reference/mongostat', 'mongostat', u'MongoDB', [u'MongoDB Documentation Project'], 1),
-    ('reference/mongosniff', 'mongosniff', u'MongoDB', [u'MongoDB Documentation Project'], 1),
-    ('reference/mongotop', 'mongotop', u'MongoDB', [u'MongoDB Documentation Project'], 1),
-    ('reference/mongoperf', 'mongoperf', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/program/bsondump', 'bsondump', u'MongoDB BSON utility', [u'MongoDB Documentation Project'], 1),
+    ('reference/program/mongo', 'mongo', u'MongoDB Shell', [u'MongoDB Documentation Project'], 1),
+    ('reference/program/mongod', 'mongod', u'MongoDB Server', [u'MongoDB Documentation Project'], 1),
+    ('reference/program/mongos', 'mongos', u'MongoDB Shard Utility', [u'MongoDB Documentation Project'], 1),
+    ('reference/program/mongodump', 'mongodump', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/program/mongoexport', 'mongoexport', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/program/mongofiles', 'mongofiles', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/program/mongoimport', 'mongoimport', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/program/mongooplog', 'mongooplog', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/program/mongorestore', 'mongorestore', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/program/mongostat', 'mongostat', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/program/mongosniff', 'mongosniff', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/program/mongotop', 'mongotop', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/program/mongoperf', 'mongoperf', u'MongoDB', [u'MongoDB Documentation Project'], 1),
 ]
 
 texinfo_documents = [
