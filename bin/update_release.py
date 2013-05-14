@@ -6,6 +6,10 @@ import argparse
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.getcwd())))
 from conf import release
 
+from rstcloth import RstCloth
+
+r = RstCloth()
+
 def cli():
     parser = argparse.ArgumentParser('Generate install files.')
     parser.add_argument(choices=['linux-32', 'linux-64', 'osx-64'], dest='builder')
@@ -40,29 +44,24 @@ def cli():
     return  { 'outputfile': p.output, 'builder': builder, 'platform': platform, 'release': release }
 
 def generate_output(builder, platform, version, release):
-    BREAK = '\n\n'
-    INDENT = '   '
+    r.directive('code-block', 'sh', block='header')
+    r.newline(block='header')
 
     if release == 'core':
-        output = ('.. code-block:: sh' + '\n\n' +
-                  '   curl http://downloads.mongodb.org/' + platform + '/mongodb-' +
-                  builder + '-' + version + '.tgz > mongodb.tgz' + '\n')
+        r.content('curl http://downloads.mongodb.org/{0}/mongodb-{1}-{2}.tgz > mongodb.tgz'.format(platform, builder, version), 3, wrap=False, block='cmd')
     else:
-        output = ('.. code-block:: sh' + '\n\n' +
-                  '   curl http://downloads.10gen.com/linux/mongodb-' + builder + '-subscription-' +
-                  release + '-' + version + '.tgz > mongodb.tgz' + '\n' +
-                  '   tar -zxvf mongodb.tgz' + '\n' +
-                  '   cp -R -n mongodb-' + builder + '-subscription-' + release + '-' + version +
-                  '/ mongodb' + '\n')
+        r.content('curl http://downloads.10gen.com/linux/mongodb-{0}-subscription-{1}-{2}.tgz > mongodb.tgz'.format(builder, release, version), 3, wrap=False, block='cmd')
+        r.content('tar -zxvf mongodb.tgz', 3, wrap=False, block='cmd')
+        r.content('cp -R -n mongodb-{0}-subscription-{1}-{2}/ mongodb'.format(builder, release, version), 3, wrap=False, block='cmd')
 
-    return output
+    r.newline(block='footer')
 
 def main():
     interface = cli()
-    output = generate_output(interface['builder'], interface['platform'], release, interface['release'])
 
-    with open(interface['outputfile'], 'w') as f:
-        f.write(output)
+    generate_output(interface['builder'], interface['platform'], release, interface['release'])
+
+    r.write(interface['outputfile'])
 
 if __name__ == '__main__':
     main()

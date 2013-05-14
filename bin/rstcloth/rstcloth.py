@@ -77,7 +77,7 @@ class RstCloth(Cloth):
             if count == 1:
                 self._add('', block=block)
             else:
-                self._add('\n' * count - 1, block=block)
+                self._add('\n' * (count - 1), block=block)
         else:
             raise Exception("Count of newlines must be a positive int.")
 
@@ -198,7 +198,7 @@ class RstCloth(Cloth):
             for line in content:
                 self._add(_indent(line, indent), block)
         else:
-            lines = self._paragraph(content)
+            lines = self._paragraph(content, wrap)
 
             for line in lines:
                 self._add(_indent(line, indent), block)
