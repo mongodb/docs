@@ -3,9 +3,8 @@
 import yaml
 import textwrap
 import argparse
-import rstcloth.table as tb
-from rstcloth import RstCloth
-from rstcloth.rstcloth import fill
+import table as tb
+from rstcloth import RstCloth, fill
 
 class ReferenceToc(object):
     def __init__(self, filename):

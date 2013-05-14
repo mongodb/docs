@@ -23,16 +23,16 @@ def make_toc():
         table_target = 'source/includes/table-' + base_name + '.rst'
         m.append_var('ref-toc-output', table_target, block=base_name)
         m.target(target=table_target,
-                 dependency=[document, 'bin/toc_builder.py'], block=base_name)
-        m.job('$(PYTHONBIN) bin/toc_builder.py $< --table $@', block=base_name)
+                 dependency=[document, 'bin/rstcloth/toc.py'], block=base_name)
+        m.job('$(PYTHONBIN) bin/rstcloth/toc.py $< --table $@', block=base_name)
         m.msg('[toc-builder]: built table file for %s' % base_name, block=base_name)
 
         m.newline()
         toc_target = 'source/includes/toc-' + base_name + '.rst'
         m.append_var('ref-toc-output', toc_target, block=base_name)
         m.target(target=toc_target,
-                 dependency=[document, 'bin/toc_builder.py'], block=base_name)
-        m.job('$(PYTHONBIN) bin/toc_builder.py $< --contents $@', block=base_name)
+                 dependency=[document, 'bin/rstcloth/toc.py'], block=base_name)
+        m.job('$(PYTHONBIN) bin/rstcloth/toc.py $< --contents $@', block=base_name)
         m.msg('[toc-builder]: built toctree file for %s' % base_name, block=base_name)
 
     m.section_break('meta')

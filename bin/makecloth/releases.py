@@ -50,7 +50,7 @@ def makefile_core(builder):
                  value=target,
                  block='source')
     m.target(target=target, dependency=None, block='source')
-    m.job('$(PYTHONBIN) bin/update_release.py %s %s %s' % (builder, 'core', target), block='source')
+    m.job('$(PYTHONBIN) bin/rstcloth/releases.py %s %s %s' % (builder, 'core', target), block='source')
     m.msg('[build]: \(re\)generated $@.', block='source')
     m.newline(block='source')
 
@@ -77,7 +77,7 @@ def makefile_subscription(builder, release):
                  value=target,
                  block='ent')
     m.target(target=target, dependency=None, block='ent')
-    m.job('$(PYTHONBIN) bin/update_release.py %s %s $@' % (builder, release), block='ent')
+    m.job('$(PYTHONBIN) bin/rstcloth/releases.py %s %s $@' % (builder, release), block='ent')
     m.msg('[build]: \(re\)generated $@.', block='ent')
     m.newline(block='ent')
 
