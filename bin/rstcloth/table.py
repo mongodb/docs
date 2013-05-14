@@ -90,9 +90,6 @@ class TableData(object):
             for i in row:
                 o.append(i)
 
-            if self.num_rows == 0:
-                self.num_rows =+ 1
-
             self._add({0: o}, location='header')
 
     def finalize(self):

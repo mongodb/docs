@@ -70,7 +70,7 @@ def generate_params(params):
 
     for param in params:
         f = generate_param_fields(param)
-        r.field(name=f[0], value=f[1], indent=3, block='tex')
+        r.field(name=f[0], value=f[1], indent=3, wrap=False, block='tex')
         r.newline(block='tex')
 
 def generate_param_table(params):
@@ -107,15 +107,24 @@ def generate_param_fields(param):
 
     _name.append(param['name'])
 
-    return ' '.join(_name), param['description']
+    if isinstance( param['description'], list):
+        field_content = fill('\n'.join(param['description']), 0, 6, False)
+    else:
+        field_content = fill(param['description'], 0, 6, True)
+
+    return ' '.join(_name), field_content
 
 def process_description(content, optional=False):
-    if optional is True:
-        o = 'Optional. '
+    if isinstance(content, list):
+        if optional is True:
+            content[0] = 'Optional.\n' + content[0]
+        return content
     else:
-        o = ''
-
-    return fill(o + content).split('\n')
+        if optional is True:
+            o = 'Optional. '
+        else:
+            o = ''
+        return fill(o + content).split('\n')
 
 def process_type_cell(type_data, output):
     if isinstance(type_data, list):

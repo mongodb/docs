@@ -174,14 +174,21 @@ class RstCloth(Cloth):
         self.add(indent(output, indent, wrap=wrap), block)
 
     def field(self, name, value, indent=0, wrap=True, block='_all'):
-        if wrap is False or len(name) + len(value) < 60:
-            output = [ ':{0}: {1}'.format(name, value) ]
-        else:
-            output = [ ':{0}:'.format(name), '' ]
+        output = [ ':{0}:'.format(name)]
 
+        if len(name) + len(value) < 60:
+            output.append(' value')
+            final = True
+        else:
+            output.append('')
+            final = False
+
+        if wrap is True and final is not True:
             content = fill(value, wrap=wrap).split('\n')
             for line in content:
                 output.append(_indent(line, 3))
+        if wrap is False and final is not True:
+            output.append(_indent(value, 3))
 
         for line in output:
             self._add(_indent(line, indent))
