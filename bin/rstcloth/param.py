@@ -28,6 +28,7 @@ field_type_plural = {
 
 class ParamTable(tb.TableData):
     def __init__(self, header=[], rows=[]):
+        super(ParamTable, self).__init__()
         self.header = header
         self.rows = rows
         self.num_rows = 0
@@ -69,7 +70,6 @@ def generate_params(params):
 
     for param in params:
         f = generate_param_fields(param)
-
         r.field(name=f[0], value=f[1], indent=3, block='tex')
         r.newline(block='tex')
 
@@ -81,9 +81,11 @@ def generate_param_table(params):
 
     table_data.set_column_widths()
 
-    for param in params:
-        table_data.num_rows += 1
+    table_data.add_header(render_header_row(params[0],
+                                            table_data.num_rows,
+                                            table_data.type_column))
 
+    for param in params:
         row = [ r.pre(param['name']) ]
 
         if table_data.type_column is True:
@@ -91,11 +93,7 @@ def generate_param_table(params):
 
         row.append(process_description(param['description'], param['field']['optional']))
 
-        table_data.rows.append( { table_data.num_rows: row } )
-
-    table_data.header = render_header_row(params[0],
-                                          table_data.num_rows,
-                                          table_data.type_column)
+        table_data.add_row(row)
 
     table = tb.TableBuilder(tb.ListTable(table_data, widths=table_data.widths))
 
@@ -142,12 +140,12 @@ def render_header_row(param_zero, num_rows, type_column):
     else:
         name_column = field_type_plural[param_zero['field']['type']]
 
-    o = [ [name_column] ]
+    o = [ name_column ]
 
     if type_column is True:
-        o.append(['Type'])
+        o.append('Type')
 
-    o.append(['Description'])
+    o.append('Description')
 
     return o
 
