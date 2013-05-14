@@ -2,17 +2,9 @@
 
 import yaml
 import textwrap
-import argparse 
-
-def fill(string, first=0, hanging=0):
-
-    first_indent = ' ' * first
-    hanging_indent = ' ' * hanging
-
-    return textwrap.fill(string, 
-                         width=72, 
-                         initial_indent=first_indent, 
-                         subsequent_indent=hanging_indent)
+import argparse
+import table as tb
+from rstcloth import RstCloth, fill
 
 class ReferenceToc(object):
     def __init__(self, filename):
