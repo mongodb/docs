@@ -37,10 +37,10 @@ according to the following table:
 
 For reference: an AWS EC2 Standard Extra Large (i.e. m1.xlarge) with a
 provisioned 500 IOP/s EBS volume supported the 400-host configuration
-above. an AWS EC2 High I/O Quadruple Extra Large (hi1.4xlarge)
+above. An AWS EC2 High I/O Quadruple Extra Large (hi1.4xlarge)
 supported the 2000 host configuration above.
 
-For the best results hosted MMS instances require SSD-backed storage.
+For the best results, hosted MMS instances require SSD-backed storage.
 
 Software
 ++++++++
