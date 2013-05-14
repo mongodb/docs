@@ -250,6 +250,7 @@ class RstTable(OutputTable):
         # max cell widths stored in the global var tempcolumnwidths
         # and swap out value(s) if necessary.
         if self.table.header is not None:
+            self._check_column_width(self.table.header)
             self.table.header = self.table.header[0][0]
             if self.num_columns is None:
                 self.num_columns = len(self.table.header)
