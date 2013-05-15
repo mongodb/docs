@@ -10,20 +10,12 @@ import table as tb
 
 r = RstCloth()
 
-field_type_singular = {
+field_type = {
     'param' : 'Parameter',
     'field': 'Field',
     'arg': 'Argument',
     'option': 'Option',
     'flag': 'Flag',
-}
-
-field_type_plural = {
-    'param' : 'Parameters',
-    'field': 'Fields',
-    'arg': 'Arguments',
-    'option': 'Options',
-    'flag': '',
 }
 
 class ParamTable(tb.TableData):
@@ -144,12 +136,7 @@ def process_type_cell(type_data, output):
         return type_data
 
 def render_header_row(param_zero, num_rows, type_column):
-    if num_rows == 1:
-        name_column = field_type_singular[param_zero['field']['type']]
-    else:
-        name_column = field_type_plural[param_zero['field']['type']]
-
-    o = [ name_column ]
+    o = [ field_type[param_zero['field']['type']] ]
 
     if type_column is True:
         o.append('Type')
