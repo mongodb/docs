@@ -91,7 +91,7 @@ class RstCloth(Cloth):
 
         if fields is not None:
             for k, v in fields:
-                o.append(fill(':' + k + ': ' + v, 3, wrap=wrap))
+                o.append(_indent(':' + k + ': ' + v, 3))
 
         if content is not None:
             o.extend(content)

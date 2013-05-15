@@ -27,7 +27,11 @@ def generate_pages(conf):
         else:
             tag = '-' + output['tag'] + '.png'
 
-        r.directive('image', '/images/{0}{1}'.format(image, tag), fields=[('alt', alt), ('align', 'center')], indent=3, block=b)
+        r.directive(name='image',
+                    arg='/images/{0}{1}'.format(image, tag),
+                    fields=[('alt', alt), ('align', 'center')],
+                    indent=3,
+                    block=b)
         r.newline(block=b)
 
     r.write(image + '.rst')
