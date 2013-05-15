@@ -16,9 +16,9 @@ def generate_pages(conf):
 
     for output in conf['output']:
         if output['type'] == 'print':
-            r.directive('only', 'latex', block=b)
+            r.directive('only', 'latex', wrap=False, block=b)
         else:
-            r.directive('only', 'not latex', block=b)
+            r.directive('only', 'not latex', wrap=False, block=b)
 
         r.newline()
 
