@@ -13,27 +13,42 @@ r = RstCloth()
 def generate_pages(conf):
     image = '/'.join([conf['dir'], conf['name']])
     alt = conf['alt']
+    b = conf['name']
 
-    r.directive('only', 'latex', )
-    r.newline()
-    r.directive('image', '/images/{0}-print.png'.format(image), fields=[('alt', alt), ('align', 'center')], indent=3 )
-    r.newline(2)
-    r.directive('only', 'not latex', )
-    r.newline()
-    r.directive('image', '/images/{0}.png'.format(image), fields=[('alt', alt), ('align', 'center')], indent=3 )
+    for output in conf['output']:
+        if output['type'] == 'print':
+            r.directive('only', 'latex', block=b)
+        else:
+            r.directive('only', 'not latex', block=b)
+        
+        r.newline()
+
+        if output['tag'] == '':
+            tag = '.png'
+        else:
+            tag = '-' + output['tag'] + '.png'
+        
+        r.directive('image', '/images/{0}{1}'.format(image, tag), fields=[('alt', alt), ('align', 'center')], indent=3, block=b)
+        r.newline(block=b)
+
     r.write(image + '.rst')
-    print('[image]: building rst for images generated from %s.svg' % image)
+
+    if conf['quiet'] is False:
+        print('[image]: building rst for images generated from %s.svg' % image)
 
 def main():
     parser = argparse.ArgumentParser('image generator')    
     parser.add_argument('--jobs', '-j', action='store', type=int, default=2, help='number of files to write at once.')
-    parser.add_argument('--dir', '-d', action='store', default='source/images', help='path to images directory')
+    parser.add_argument('--dir', '-d', action='store', default='source/images', help='path to images directory.')
     parser.add_argument('--config', '-c', action='store', default='metadata.yaml', help='config file name.')
+    parser.add_argument('--quiet', '-q', action='store_true', default=False, help='suppress output to stdout.')
+
     ui = parser.parse_args()
 
     images = utils.ingest_yaml_list('/'.join([ui.dir, ui.config]))
     for image in images:
         image['dir'] = ui.dir
+        image['quiet'] = ui.quiet
 
     if ui.jobs == 1: 
         for image in images:
