@@ -1,7 +1,6 @@
 import sys
 import os.path
-import argparse
-from multiprocessing import Pool
+import json
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
@@ -34,36 +33,8 @@ def generate_pages(conf):
     r.write(image + '.rst')
 
 def main():
-    parser = argparse.ArgumentParser('image generator')
-    parser.add_argument('--jobs', '-j', action='store', type=int, default=2, help='number of files to write at once.')
-    parser.add_argument('--dir', '-d', action='store', default='source/images', help='path to images directory.')
-    parser.add_argument('--config', '-c', action='store', default='metadata.yaml', help='config file name.')
-    parser.add_argument('--quiet', '-q', action='store_true', default=False, help='suppress output to stdout.')
-
-    ui = parser.parse_args()
-
-    if ui.jobs > 1:
-        p = Pool(ui.jobs)
-
-    images = utils.ingest_yaml_list('/'.join([ui.dir, ui.config]))
-    for image in images:
-        image['dir'] = ui.dir
-        image['quiet'] = ui.quiet
-
-        if ui.jobs == 1:
-            generate_pages(image)
-        else:
-            p.apply_async(generate_pages, image)
-
-    if ui.jobs > 1:
-        p.close()
-        p.join()
-
-    if ui.quiet == False:
-        print('[image]: building rst for all images.')
-
-
-
+    image = json.loads(sys.argv[1])
+    generate_pages(image)
 
 if __name__ == '__main__':
     main()
