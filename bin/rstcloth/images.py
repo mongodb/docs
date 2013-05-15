@@ -20,24 +20,21 @@ def generate_pages(conf):
             r.directive('only', 'latex', block=b)
         else:
             r.directive('only', 'not latex', block=b)
-        
+
         r.newline()
 
         if output['tag'] == '':
             tag = '.png'
         else:
             tag = '-' + output['tag'] + '.png'
-        
+
         r.directive('image', '/images/{0}{1}'.format(image, tag), fields=[('alt', alt), ('align', 'center')], indent=3, block=b)
         r.newline(block=b)
 
     r.write(image + '.rst')
 
-    if conf['quiet'] is False:
-        print('[image]: building rst for images generated from %s.svg' % image)
-
 def main():
-    parser = argparse.ArgumentParser('image generator')    
+    parser = argparse.ArgumentParser('image generator')
     parser.add_argument('--jobs', '-j', action='store', type=int, default=2, help='number of files to write at once.')
     parser.add_argument('--dir', '-d', action='store', default='source/images', help='path to images directory.')
     parser.add_argument('--config', '-c', action='store', default='metadata.yaml', help='config file name.')
@@ -45,19 +42,28 @@ def main():
 
     ui = parser.parse_args()
 
+    if ui.jobs > 1:
+        p = Pool(ui.jobs)
+
     images = utils.ingest_yaml_list('/'.join([ui.dir, ui.config]))
     for image in images:
         image['dir'] = ui.dir
         image['quiet'] = ui.quiet
 
-    if ui.jobs == 1: 
-        for image in images:
+        if ui.jobs == 1:
             generate_pages(image)
-    else:
-        p = Pool(ui.jobs)
-        p.apply_async(generate_pages, images)
+        else:
+            p.apply_async(generate_pages, image)
+
+    if ui.jobs > 1:
         p.close()
         p.join()
+
+    if ui.quiet == False:
+        print('[image]: building rst for all images.')
+
+
+
 
 if __name__ == '__main__':
     main()
