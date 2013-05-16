@@ -24,7 +24,7 @@ def make_toc(sources):
 
         m.section_break(document)
 
-        if 'table' in output_format:
+        if output_format == 'table':
             table_target = 'source/includes/table-' + base_name + '.rst'
             m.append_var('toc-output', table_target, block=base_name)
             m.target(target=table_target,
@@ -33,7 +33,7 @@ def make_toc(sources):
             m.msg('[toc-builder]: built table file for %s' % base_name, block=base_name)
             m.newline()
 
-        if 'dfn' in output_format:
+        if output_format == 'dfn':
             table_target = 'source/includes/dfn-list-' + base_name + '.rst'
             m.append_var('toc-output', table_target, block=base_name)
             m.target(target=table_target,

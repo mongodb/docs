@@ -61,7 +61,7 @@ class CustomTocTree(object):
                 self.dfn.newline()
 
 def user_input():
-    parser = argparse.ArgumentParser('.htaccess generator.')
+    parser = argparse.ArgumentParser('table of contents generator.')
 
     parser.add_argument('filename', nargs='?',
                         help='the input data file.')
