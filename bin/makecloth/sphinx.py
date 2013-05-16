@@ -36,7 +36,7 @@ def make_all_sphinx(sphinx):
     m.target('sphinx-prerequisites', 'setup composites generate-source composite-pages.yaml', block='prereq')
     m.msg('[sphinx-prep]: completed $@ buildstep.', block='prereq')
 
-    m.target('generate-source', '$(branch-output)/source images tables installation-guides intersphinx generate-manpages api ref-toc', block='prereq')
+    m.target('generate-source', '$(branch-output)/source images tables installation-guides intersphinx generate-manpages api toc', block='prereq')
     m.job('rsync --recursive --times --delete source/ $(branch-output)/source', block='prereq')
     m.msg('[sphinx-prep]: updated source in $(branch-output)/source', block='prereq')
     info_note = 'Build in progress past critical phase.'

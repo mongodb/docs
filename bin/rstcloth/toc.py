@@ -6,13 +6,27 @@ import argparse
 import table as tb
 from rstcloth import RstCloth, fill
 
-class ReferenceToc(object):
+class CustomTocTree(object):
     def __init__(self, filename):
-        self.table = tb.TableData()
-        self.content = RstCloth()
-
         self.spec = self._process_spec(filename)
-        self._process_data()
+
+        self.table = None
+        self.contents = None
+        self.dfn = None
+
+    def build_table(self):
+        self.table = tb.TableData()
+        self.table.add_header(['Name', 'Description'])
+
+    def build_dfn(self):
+        self.dfn = RstCloth()
+
+    def build_contents(self):
+        self.contents = RstCloth()
+        self.contents.directive('class', 'hidden')
+        self.contents.newline()
+        self.contents.directive('toctree', fields=[('titlesonly', '')], indent=3)
+        self.contents.newline()
 
     def _process_spec(self, spec):
         o = []
@@ -30,41 +44,57 @@ class ReferenceToc(object):
 
         return o
 
-    def _process_data(self):
-        self.table.add_header(['Name', 'Description'])
-
-        self.content.directive('class', 'hidden', block='toc')
-        self.content.newline(block='toc')
-        self.content.directive('toctree', fields=[('titlesonly', '')], indent=3, block='toc')
-        self.content.newline(block='toc')
-
+    def finalize(self):
         for ref in self.spec:
-            self.content.content(ref['file'], 6, block='toc')
-            self.table.add_row([ ref['name'], ref['description'] ])
+            if self.table is not None:
+                self.table.add_row([ ref['name'], ref['description'] ])
+            if self.contents is not None:
+                self.contents.content(ref['file'], 6, block='toc')
+            if self.dfn is not None:
+                if 'name' in ref:
+                    text = ref['name']
+                else:
+                    text = None
+
+                link = self.dfn.role('doc', ref['file'], text)
+                self.dfn.definition(link, ref['description'], bold=False)
+                self.dfn.newline()
 
 def user_input():
     parser = argparse.ArgumentParser('.htaccess generator.')
 
     parser.add_argument('filename', nargs='?',
                         help='the input data file.')
-    parser.add_argument('--table', '-t', action='store', default=None,
+    parser.add_argument('--table', '-t', action='store', default=False,
                         help='output filename for table.')
-    parser.add_argument('--contents', '-c', action='store', default=None,
+    parser.add_argument('--contents', '-c', action='store', default=False,
                         help='output filename for toctree.')
+    parser.add_argument('--dfn', '-d', action='store', default=False,
+                        help='output filename for definition list.')
 
     return parser.parse_args()
 
 def main():
     ui = user_input()
 
-    toc = ReferenceToc(ui.filename)
+    toc = CustomTocTree(ui.filename)
 
+    if ui.dfn:
+        toc.build_dfn()
+    if ui.contents:
+        toc.build_contents()
+    if ui.table:
+        toc.build_table()
+
+    toc.finalize()
+
+    if ui.dfn:
+        toc.dfn.write(ui.dfn)
+    if ui.contents:
+        toc.contents.write(ui.contents)
     if ui.table:
         t = tb.TableBuilder(tb.RstTable(toc.table))
         t.write(ui.table)
-
-    if ui.contents:
-        toc.content.write(ui.contents)
 
 if __name__ == '__main__':
     main()

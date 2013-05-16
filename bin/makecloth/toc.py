@@ -10,44 +10,73 @@ from makecloth import MakefileCloth
 
 m = MakefileCloth()
 
-def make_toc():
-    inputs = [i for i in util.expand_tree('./source/includes') if i.startswith('./source/includes/ref-toc-') ]
+def make_toc(sources):
+    for target in sources:
+        document = target[0]
+        output_format = target[1]
 
-    for document in inputs:
+        if document.startswith('./source/includes/ref-toc-'):
+            base_name = document.rsplit('/', 1)[1].rsplit('.', 1)[0][8:]
+        if document.startswith('./source/includes/toc-'):
+            base_name = document.rsplit('/', 1)[1].rsplit('.', 1)[0][4:]
+
         document = document[2:]
 
-        base_name = document.rsplit('/', 1)[1].rsplit('.', 1)[0][8:]
-        
         m.section_break(document)
-        
-        table_target = 'source/includes/table-' + base_name + '.rst'
-        m.append_var('ref-toc-output', table_target, block=base_name)
-        m.target(target=table_target,
-                 dependency=[document, 'bin/rstcloth/toc.py'], block=base_name)
-        m.job('$(PYTHONBIN) bin/rstcloth/toc.py $< --table $@', block=base_name)
-        m.msg('[toc-builder]: built table file for %s' % base_name, block=base_name)
 
-        m.newline()
+        if 'table' in output_format:
+            table_target = 'source/includes/table-' + base_name + '.rst'
+            m.append_var('toc-output', table_target, block=base_name)
+            m.target(target=table_target,
+                     dependency=[document, 'bin/rstcloth/toc.py'], block=base_name)
+            m.job('$(PYTHONBIN) bin/rstcloth/toc.py $< --table $@', block=base_name)
+            m.msg('[toc-builder]: built table file for %s' % base_name, block=base_name)
+            m.newline()
+
+        if 'dfn' in output_format:
+            table_target = 'source/includes/dfn-list-' + base_name + '.rst'
+            m.append_var('toc-output', table_target, block=base_name)
+            m.target(target=table_target,
+                     dependency=[document, 'bin/rstcloth/toc.py'], block=base_name)
+            m.job('$(PYTHONBIN) bin/rstcloth/toc.py $< --dfn $@', block=base_name)
+            m.msg('[toc-builder]: built definition list file for %s' % base_name, block=base_name)
+            m.newline()
+
         toc_target = 'source/includes/toc-' + base_name + '.rst'
-        m.append_var('ref-toc-output', toc_target, block=base_name)
+        m.append_var('toc-output', toc_target, block=base_name)
         m.target(target=toc_target,
                  dependency=[document, 'bin/rstcloth/toc.py'], block=base_name)
         m.job('$(PYTHONBIN) bin/rstcloth/toc.py $< --contents $@', block=base_name)
         m.msg('[toc-builder]: built toctree file for %s' % base_name, block=base_name)
+        m.newline()
 
+def generate_footer():
     m.section_break('meta')
-    m.target('.PHONY', ['clean-ref-toc', 'ref-toc', 'reftoc', 'clean-reftoc'], block='meta')
-    m.target(['ref-toc', 'reftoc'], '$(ref-toc-output)', block='meta')
-    m.target(['clean-ref-toc', 'clean-reftoc'], block='meta')
-    m.job('rm -f $(ref-toc-output)', ignore=True)
-    m.msg('[toc-builder]: cleaned all ref-toc build products.')
-    
-def main():
-    make_toc()
+    m.target('.PHONY', ['clean-toc', 'toc'], block='meta')
+    m.target('toc', '$(toc-output)', block='meta')
+    m.target(['clean-toc', 'clean-reftoc'], block='meta')
+    m.job('rm -f $(toc-output)', ignore=True)
+    m.msg('[toc-builder]: cleaned all toc build products.')
 
+def collect_source_files():
+    output = []
+
+    for i in util.expand_tree('./source/includes', 'yaml'):
+        if i.startswith('./source/includes/ref-toc-'):
+            output.append((i, 'table'))
+        if i.startswith('./source/includes/toc-'):
+            output.append((i, 'dfn'))
+
+    return output
+
+def main():
+    sources = collect_source_files()
+    make_toc(sources)
+
+    generate_footer()
     m.write(sys.argv[1])
 
-    print('[meta-build]: built "' + sys.argv[1] + '" to specify reference toc data builders.')
+    print('[meta-build]: built "' + sys.argv[1] + '" to specify reference toc builders.')
 
 
 if __name__ == '__main__':
