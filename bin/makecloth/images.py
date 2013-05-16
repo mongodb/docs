@@ -19,8 +19,16 @@ def generate_targets(image):
     m.newline(block=b)
 
     rst_files = []
+    
+    tag_delim = ''
+    
     for output in image['output']:
-        target = source_base + output['tag'] + '.png'
+        if  output['tag'] == '':
+            tag_delim = ''
+        else:
+            tag_delim = '-'
+            
+        target = source_base + tag_delim + output['tag'] + '.png'
         inkscape_cmd = '$(INKSCAPEBIN) -z -d {0} -w {1} -y 0.0 -e >/dev/null'.format(output['dpi'], output['width'])
 
         m.target(target, source_file, block=b)

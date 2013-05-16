@@ -28,7 +28,7 @@ def generate_pages(conf):
             tag = '-' + output['tag'] + '.png'
 
         r.directive(name='image',
-                    arg='/images/{0}{1}'.format(image, tag),
+                    arg='/images/{0}{1}'.format(conf['name'], tag),
                     fields=[('alt', alt), ('align', 'center')],
                     indent=3,
                     block=b)
