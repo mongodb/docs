@@ -9,10 +9,10 @@ Replica Set Deployment Architectures
 
 The architecture and design of the :term:`replica set` deployment can
 have a great impact on the set's capacity and capability. This section
-provides a general overview of the architectural possibilities for
-replica set deployments.  However, for most production deployments a
+provides an overview of the architectural possibilities for
+replica set deployments. However, for most production deployments a
 conventional 3-member replica set with
-:data:`~local.system.replset.members[n].priority` values of ``1`` are
+:data:`~local.system.replset.members[n].priority` values of ``1`` is
 sufficient.
 
 While the additional flexibility discussed below is helpful for
@@ -20,55 +20,82 @@ managing a variety of operational complexities, it always makes sense
 to let those complex requirements dictate complex architectures, rather
 than add unnecessary complexity to your deployment.
 
-Consider the following factors when developing an architecture for
-your replica set:
+Plan a Deployment
+-----------------
 
-- Ensure that the members of the replica set will always be able to
-  elect a :term:`primary`. Run an odd number of members or run an
-  :term:`arbiter` on one of your application servers if you have an
-  even number of members.
+When developing an architecture for your replica set, consider the
+factors described here.
 
-- With geographically distributed members, know where the "quorum" of
-  members will be in the case of any network partitions.  Attempt to
-  ensure that the set can elect a primary among the members in the
-  primary data center.
+Run an Odd Number of Members to Ensure Successful Elections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Consider including a :ref:`hidden <replica-set-hidden-members>`
-  or :ref:`delayed member <replica-set-delayed-members>` in your replica
-  set to support dedicated functionality, like backups, reporting, and
-  testing.
+Ensure that the members of the replica set will always be able to elect
+a :term:`primary`. Run an odd number of members or run an
+:term:`arbiter` on one of your application servers if you have an even
+number of members.
 
-- Consider keeping one or two members of the set in an off-site data
-  center, but make sure to configure the member
-  :data:`local.system.replset.members[n].priority` to prevent it from
-  becoming primary.
+Distribute the Replica Set Geographically
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Create custom write concerns with :ref:`replica set tags
-  <replica-set-configuration-tag-sets>` to ensure that applications
-  can control the threshold for a successful write operation. Use
-  these write concerns to ensure that operations propagate to specific
-  data centers or to machines of different functions before returning
-  successfully.
+Consider keeping one or two members of the set in an off-site data
+center, but make sure to configure the member
+:data:`local.system.replset.members[n].priority` to prevent it from
+becoming primary.
 
-- For those deployments that rely heavily on distributing reads to
-  secondary instances, add additional members to the set as load
-  increases. As your deployment grows, consider adding or moving
-  replica set members to secondary data centers or to geographically
-  distinct locations for additional redundancy. While many
-  architectures are possible, always ensure that the quorum of members
-  required to elect a primary remains in your main facility.
+Ensure One Location in a Distributed System has a Quorum
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- The process of establishing a new replica set member can be resource
-  intensive on existing members. As a result, deploy new members to
-  existing replica sets significantly before the current demand
-  saturates the existing members.
+With geographically distributed members, know where the "quorum" of
+members will be in the case of any network partitions. Attempt to ensure
+that the set can elect a primary among the members in the primary data
+center.
 
-- Use journaling. Journaling is particularly useful for protection
-  against power failures, especially if your replica set resides in a
-  single data center or power circuit.
+Run Hidden and Delayed Members for Dedicated Functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  64-bit versions of MongoDB after version 2.0 have journaling enabled
-  by default.
+Consider including a :ref:`hidden <replica-set-hidden-members>` or
+:ref:`delayed member <replica-set-delayed-members>` in your replica set
+to support dedicated functionality, like backups, reporting, and
+testing.
+
+Use Tags to Ensure Write Operations Propagate Efficiently
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create custom write concerns with :ref:`replica set tags
+<replica-set-configuration-tag-sets>` to ensure that applications can
+control the threshold for a successful write operation. Use these write
+concerns to ensure that operations propagate to specific data centers or
+to machines of different functions before returning successfully.
+
+
+Add Additional Members to Load Balance on Read-Heavy Deployments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For those deployments that rely heavily on distributing reads to
+secondary instances, add additional members to the set as load
+increases. As your deployment grows, consider adding or moving replica
+set members to secondary data centers or to geographically distinct
+locations for additional redundancy. While many architectures are
+possible, always ensure that the quorum of members required to elect a
+primary remains in your main facility.
+
+Add New Members Ahead of Demand
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The process of establishing a new replica set member can be resource
+intensive on existing members. As a result, deploy new members to
+existing replica sets significantly before the current demand saturates
+the existing members.
+
+Use Journaling to Protect Against Power Failures
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Journaling is particularly useful for protection against power failures,
+especially if your replica set resides in a single data center or power
+circuit.
+
+64-bit versions of MongoDB after version 2.0 have journaling enabled by
+default.
 
 Architectures
 -------------
