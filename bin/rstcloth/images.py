@@ -22,14 +22,20 @@ def generate_pages(conf):
 
         r.newline()
 
-        if output['tag'] == '':
-            tag = '.png'
-        else:
+        if 'tag' in output:
             tag = '-' + output['tag'] + '.png'
+        else:
+            tag = '.png'
+
+
+        options = [('alt', alt), ('align', 'center')]
+
+        if 'scale' in output:
+            options.append(('scale', output['scale']))
 
         r.directive(name='image',
                     arg='/images/{0}{1}'.format(conf['name'], tag),
-                    fields=[('alt', alt), ('align', 'center')],
+                    fields=options,
                     indent=3,
                     block=b)
         r.newline(block=b)
