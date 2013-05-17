@@ -43,7 +43,7 @@ $(public-output)/sitemap.xml.gz:$(public-output)
 
 
 ## Deployment related work for the non-Sphinx aspects of the build.
-$(public-output)/release.txt:
+$(public-output)/release.txt:$(public-output)
 	@git rev-parse --verify HEAD >|$@
 	@echo "[build]: generated'$@' with current release hash."
 $(public-output)/tutorial:$(public-output)
