@@ -37,7 +37,8 @@
 
    Optional. Sorts the *input* documents. This option is useful for
    optimization. For example, specify the sort key to be the same as
-   the emit key so that there are fewer reduce operations.
+   the emit key so that there are fewer reduce operations. The sort 
+   key must be in an existing index for this collection.
 
 :param limit:
 
