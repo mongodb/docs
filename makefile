@@ -44,6 +44,8 @@ build-meta += -t saas
 generate-source:
 	@mkdir -p $(branch-output)/source/
 	@rsync --recursive --times --delete source/ $(branch-output)/source
+	@rm -f source/includes/on-prem-toctree.rst surce/monitoring/tutorial/install-monitoring-server.txt
+	@touch source/includes/on-prem-toctree.rst 
 	@echo [sphinx-prep]: updated source in $(branch-output)/source
 	@-notify-send "Sphinx" "Build in progress past critical phase."
 	@echo [sphinx-prep]: INFO - Build in progress past critical phase.
