@@ -7,8 +7,8 @@ import table as tb
 from rstcloth import RstCloth, fill
 
 class CustomTocTree(object):
-    def __init__(self, filename):
-        self.spec = self._process_spec(filename)
+    def __init__(self, filename, sort=False):
+        self.spec = self._process_spec(filename, sort)
 
         self.table = None
         self.contents = None
@@ -28,7 +28,7 @@ class CustomTocTree(object):
         self.contents.directive('toctree', fields=[('titlesonly', '')], indent=3)
         self.contents.newline()
 
-    def _process_spec(self, spec):
+    def _process_spec(self, spec, sort=False):
         o = []
 
         with open(spec, 'r') as f:
@@ -38,9 +38,15 @@ class CustomTocTree(object):
                 if datum['description'] is None:
                     datum['description'] = ''
 
+                if sort is False:
+                    pass
+                elif 'name' not in datum: 
+                    sort = False
+
                 o.append(datum)
 
-        o.sort(key=lambda o: o['name'])
+        if sort is True: 
+            o.sort(key=lambda o: o['name'])
 
         return o
 
@@ -71,6 +77,8 @@ def user_input():
                         help='output filename for toctree.')
     parser.add_argument('--dfn', '-d', action='store', default=False,
                         help='output filename for definition list.')
+    parser.add_argument('--sort', '-s', action='store_true', default=False,
+                        help='sort items in toc output filename for lists.')
 
     return parser.parse_args()
 

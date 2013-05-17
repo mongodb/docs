@@ -23,13 +23,15 @@ def make_toc(sources):
         document = document[2:]
 
         m.section_break(document)
+        contents_command = '$(PYTHONBIN) bin/rstcloth/toc.py $< --contents $@'
 
         if output_format == 'table':
             table_target = 'source/includes/table-' + base_name + '.rst'
+            contents_command += ' --sort'
             m.append_var('toc-output', table_target, block=base_name)
             m.target(target=table_target,
                      dependency=[document, 'bin/rstcloth/toc.py'], block=base_name)
-            m.job('$(PYTHONBIN) bin/rstcloth/toc.py $< --table $@', block=base_name)
+            m.job('$(PYTHONBIN) bin/rstcloth/toc.py $< --table $@ --sort', block=base_name)
             m.msg('[toc-builder]: built table file for %s' % base_name, block=base_name)
             m.newline()
 
@@ -46,7 +48,7 @@ def make_toc(sources):
         m.append_var('toc-output', toc_target, block=base_name)
         m.target(target=toc_target,
                  dependency=[document, 'bin/rstcloth/toc.py'], block=base_name)
-        m.job('$(PYTHONBIN) bin/rstcloth/toc.py $< --contents $@', block=base_name)
+        m.job(contents_command, block=base_name)
         m.msg('[toc-builder]: built toctree file for %s' % base_name, block=base_name)
         m.newline()
 
