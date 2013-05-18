@@ -4,36 +4,43 @@ import sys
 import os.path
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
-
+import docs_meta
 import makecloth.utils as utils
 from makecloth import MakefileCloth
 
 m = MakefileCloth()
 
+paths = docs_meta.render_paths('dict')
+
 def pdf_makefile(name, tag):
-    name_tagged = name + '-' + tag
+    name_tagged = '-'.join([name, tag])
+    
+    generated_latex = '{0}/latex/{1}.tex'.format(paths['branch-output'], name)
+    built_tex = '{0}/latex/{1}.tex'.format(paths['branch-output'], name_tagged)
+    built_pdf = '{0}/latex/{1}.pdf'.format(paths['branch-output'], name_tagged)
+    staged_pdf_branch = '{0}/{1}-{2}.pdf'.format(paths['branch-staging'], name_tagged, docs_meta.get_branch())
+    staged_pdf = '{0}/latex/{1}.pdf'.format(paths['branch-staging'], name_tagged)
 
     m.section_break(name)
-    m.target(target='$(branch-output)/latex/' + name + '.tex',
+    m.target(target=generated_latex,
              dependency='latex')
-    m.job('sed $(SED_ARGS_FILE) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) -e $(LATEX_LINK_CORRECTION) $@')
+    m.job('sed $(SED_ARGS_FILE) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) -e $(LATEX_LINK_CORRECTION) ' + generated_latex)
     m.msg('[latex]: fixing $@ TeX from the Sphinx output.')
 
-    m.target(target='$(branch-output)/latex/' + name_tagged + '.tex',
-             dependency='$(branch-output)/latex/' + name + '.tex')
-    m.job('$(PYTHONBIN) $(build-tools)/copy-if-needed.py -i $< -o $@ -b pdf')
+    m.target(target=built_tex, dependency=generated_latex)
+    m.job('$(PYTHONBIN) {0}/copy-if-needed.py -i {1} -o {2} -b pdf'.format(paths['branch-output'], generated_latex, built_tex))
+    m.msg('[pdf]: updated "' + built_tex + '" for pdf generation.')
 
-    m.target(target='$(public-branch-output)/' + name_tagged + '-$(current-branch).pdf',
-             dependency='$(branch-output)/latex/' + name_tagged + '.pdf')
-    m.job('cp $< $@')
-    m.msg('[build]: migrated $@')
+    m.target(target=staged_pdf_branch, dependency=built_pdf)
+    m.job('cp {0} {1}'.format(built_pdf, staged_pdf_branch))
+    m.msg('[pdf]: migrated ' + staged_pdf)
 
-    m.target(target='$(public-branch-output)/' + name_tagged + '.pdf',
-             dependency='$(public-branch-output)/' + name_tagged + '-$(current-branch).pdf')
-    m.job('$(build-tools)/create-link $(notdir $<) $(notdir $@) $(dir $@)')
+    m.target(target=staged_pdf, dependency=staged_pdf_branch)
+    m.job('{0}/create-link $(notdir {1}) $(notdir {2}) $(dir {2})'.format(paths['tools'], staged_pdf, staged_pdf_branch))
+    m.msg('[pdf]: created link for ' + staged_pdf)
 
     m.comment('adding ' + name + '.pdf to the build dependency.')
-    m.append_var('PDF_OUTPUT', '$(public-branch-output)/' + name_tagged + '.pdf')
+    m.append_var('PDF_OUTPUT', staged_pdf)
 
 def build_all_pdfs(pdfs):
     for pdf in pdfs:
