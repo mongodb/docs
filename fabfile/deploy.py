@@ -1,6 +1,4 @@
-import os.path
-
-from fabric.api import cd, local, task, abort, env
+from fabric.api import cd, local, task, abort, env, puts
 from fabric.utils import _AttributeDict as ad
 from docs_meta import PUBLISHED_BRANCHES, MANUAL_BRANCH, render_paths, get_branch
 
@@ -32,26 +30,26 @@ def build_rsync_cmd(local_path, remote_string, recursive=True, delete=None):
     return [
         'rsync',
         '-ltz' if delete != 'delete' else '-ltz --delete',
-        '-qcr' if recursive == True else  '-cq',
+        '-qcr' if recursive is True else '-cq',
         local_path,
         remote_string
     ]
 
 @task
-def deploy(delete=None):
+def push(delete=None):
     if not env.hosts:
         abort('must specify a deployment mode: staging or production')
 
     cmd = build_rsync_cmd(local_path=env.paths['branch-staging'] + '/',
-                          remote_string=env.host_string + ':' + env.remote_rsync_location,
-                          delete=delete)
+                                 remote_string=env.host_string + ':' + env.remote_rsync_location,
+                                 delete=delete)
 
     local(' '.join(cmd))
 
 @task
-def deploy_everything(override=None):
+def everything(override=None):
     if override != 'override':
-        abort('must specify override to deploy everyting')
+        abort('must specify override to deploy everything')
 
     cmd = build_rsync_cmd(local_path=env.paths['public'] + '/',
                           remote_string=env.host_string + ':' + env.remote_rsync_location.rsplit('/', 1)[0])
@@ -59,7 +57,7 @@ def deploy_everything(override=None):
     local(' '.join(cmd))
 
 @task
-def deploy_static():
+def static():
     if get_branch() == MANUAL_BRANCH:
 
         cmd = [ build_rsync_cmd(local_path=env.paths['public'] + '/*',
