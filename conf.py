@@ -152,6 +152,8 @@ latex_documents = [
     ('crud', 'MongoDB-crud.tex', u'MongoDB CRUD Operations Introduction', u'MongoDB Documentation Project', 'manual'),
 ]
 
+latex_paper_size = 'letter'
+
 latex_elements = {
     'preamble': '\DeclareUnicodeCharacter{FF04}{\$} \DeclareUnicodeCharacter{FF0E}{.} \PassOptionsToPackage{hyphens}{url}',
     'pointsize': '10pt',
