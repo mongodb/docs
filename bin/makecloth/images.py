@@ -10,68 +10,71 @@ from makecloth import MakefileCloth
 
 m = MakefileCloth()
 
-def generate_targets(image):
-    b = image['name']
-    source_base = '/'.join([image['dir'], image['name']])
-    source_file = source_base + '.svg'
+def generate_targets(images):
+    image_files = []
+    image_rst_files = []
 
-    m.section_break(image['name'], block=b)
-    m.newline(block=b)
+    for image in images:
+        b = image['name']
+        source_base = '/'.join([image['dir'], image['name']])
+        source_file = source_base + '.svg'
 
-    rst_files = []
-
-    for output in image['output']:
-        if 'tag' in output:
-            tag = '-' + output['tag']
-        else:
-            tag = ''
-
-        target = source_base + tag + '.png'
-        inkscape_cmd = '$(INKSCAPEBIN) -z -d {0} -w {1} -y 0.0 -e >/dev/null'.format(output['dpi'], output['width'])
-
-        m.target(target, source_file, block=b)
-        m.job('{0} {1} {2}'.format(inkscape_cmd, target, source_file), block=b)
-        m.msg('[image]: inkscape generated images for "%s."' % b, block=b)
-        m.append_var('image-output', target, block=b)
+        m.section_break(image['name'], block=b)
         m.newline(block=b)
 
-    rst_file = source_base + '.rst'
-    m.append_var('image-rst-files', rst_file, block=b)
-    m.target(rst_file, 'bin/rstcloth/images.py source/images/metadata.yaml', block=b)
-    m.job("$(PYTHONBIN) bin/rstcloth/images.py '%s'" % json.dumps(image), block=b)
-    m.msg('[image]: generating rst file for %s' % b, block=b)
+        for output in image['output']:
+            if 'tag' in output:
+                tag = '-' + output['tag']
+            else:
+                tag = ''
 
-def generate_make_footer():
+            target = source_base + tag + '.png'
+            image_files.append(target)
+            inkscape_cmd = '$(INKSCAPEBIN) -z -d {0} -w {1} -y 0.0 -e >/dev/null'.format(output['dpi'], output['width'])
+
+            m.target(target, source_file, block=b)
+            m.job('{0} {1} {2}'.format(inkscape_cmd, target, source_file), block=b)
+            m.msg('[image]: inkscape generated images for "%s."' % b, block=b)
+            m.newline(block=b)
+
+        rst_file = source_base + '.rst'
+        image_rst_files.append(rst_file)
+        m.target(rst_file, 'bin/rstcloth/images.py source/images/metadata.yaml', block=b)
+        m.job("$(PYTHONBIN) bin/rstcloth/images.py '%s'" % json.dumps(image), block=b)
+        m.msg('[image]: generating rst file for %s' % b, block=b)
+
     b = 'footer'
-
     m.section_break('meta targets', block=b)
     m.newline(block=b)
 
-    m.target('.PHONY', 'images clean-images', block=b)
+    m.target('.PHONY', 'images clean-images clean-images-rst', block=b)
     m.newline(block=b)
-    m.target('images', '$(image-output) images-rst', block=b)
-    m.target('images-rst', '$(image-rst-files)', block=b)
+    m.target('images', image_files, block=b)
+    m.newline(block=b)
+    m.target('images-rst', image_rst_files, block=b)
     m.newline(block=b)
     m.target('clean-images', block=b)
-    m.job('rm -f $(image-output) $(image-rst-files)', ignore=True, block=b)
-    m.msg('[clean-images] removed all generated image content.', block=b)
+    m.job('rm -f ' + ' '.join(image_files), ignore=True, block=b)
+    m.msg('[clean-images] removed all generated images.', block=b)
+    m.newline(block=b)
+    m.target('clean-images-rst', block=b)
+    m.job('rm -f ' + ' '.join(image_rst_files), ignore=True, block=b)
+    m.msg('[clean-images-rst] removed all generated rst files for images.', block=b)
 
 def main():
     parser = argparse.ArgumentParser('image generator')
     parser.add_argument('output', action='store', default='build/makefile.images', help='config file name.')
     parser.add_argument('dir', action='store', default='source/images', help='path to images directory.')
     parser.add_argument('config', action='store', default='metadata.yaml', help='config file name.')
-
     ui = parser.parse_args()
 
     conf = '/'.join([ui.dir, ui.config])
 
-    for image in utils.ingest_yaml_list(conf):
+    images = utils.ingest_yaml_list(conf)
+    for image in images:
         image['dir'] = ui.dir
 
-        generate_targets(image)
-
-    generate_make_footer()
+    generate_targets(images)
 
     m.write(ui.output)
 
