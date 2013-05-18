@@ -80,7 +80,8 @@ def output_yaml(fn):
             'date': str(datetime.date.today().year),
             'version_selector': get_versions(),
             'stable': STABLE_RELEASE,
-            'published_branches': PUBLISHED_BRANCHES
+            'published_branches': PUBLISHED_BRANCHES,
+            'pdfs': []
     }
 
     with open(fn, 'w') as f:

@@ -5,12 +5,14 @@ import os.path
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
-import makecloth.utils as util
+import utils
 from makecloth import MakefileCloth
 
 m = MakefileCloth()
 
 def make_toc(sources):
+    toc_targets = []
+
     for target in sources:
         document = target[0]
         output_format = target[1]
@@ -23,47 +25,53 @@ def make_toc(sources):
         document = document[2:]
 
         m.section_break(document)
-        contents_command = '$(PYTHONBIN) bin/rstcloth/toc.py $< --contents $@'
+        contents_command = '$(PYTHONBIN) bin/rstcloth/toc.py {0} --contents {1}'
+        generator = 'bin/rstcloth/toc.py'
 
         if output_format == 'table':
             table_target = 'source/includes/table-' + base_name + '.rst'
+            toc_targets.append(table_target)
             contents_command += ' --sort'
-            m.append_var('toc-output', table_target, block=base_name)
-            m.target(target=table_target,
-                     dependency=[document, 'bin/rstcloth/toc.py'], block=base_name)
-            m.job('$(PYTHONBIN) bin/rstcloth/toc.py $< --table $@ --sort', block=base_name)
-            m.msg('[toc-builder]: built table file for %s' % base_name, block=base_name)
+
+            m.target(target=table_target, dependency=[document, generator], block=base_name)
+            m.job(contents_command.format(document, table_target), block=base_name)
+            m.msg('[toc]: built table file for %s' % base_name, block=base_name)
             m.newline()
 
         if output_format == 'dfn':
-            table_target = 'source/includes/dfn-list-' + base_name + '.rst'
-            m.append_var('toc-output', table_target, block=base_name)
-            m.target(target=table_target,
-                     dependency=[document, 'bin/rstcloth/toc.py'], block=base_name)
-            m.job('$(PYTHONBIN) bin/rstcloth/toc.py $< --dfn $@', block=base_name)
-            m.msg('[toc-builder]: built definition list file for %s' % base_name, block=base_name)
+            dfn_target = 'source/includes/dfn-list-' + base_name + '.rst'
+            toc_targets.append(dfn_target)
+
+            m.target(target=dfn_target, dependency=[document, generator], block=base_name)
+            m.job(contents_command.format(document, dfn_target), block=base_name)
+            m.msg('[toc]: built definition list file for %s' % base_name, block=base_name)
             m.newline()
 
         toc_target = 'source/includes/toc-' + base_name + '.rst'
-        m.append_var('toc-output', toc_target, block=base_name)
-        m.target(target=toc_target,
-                 dependency=[document, 'bin/rstcloth/toc.py'], block=base_name)
-        m.job(contents_command, block=base_name)
-        m.msg('[toc-builder]: built toctree file for %s' % base_name, block=base_name)
+        toc_targets.append(toc_target)
+
+        m.target(target=toc_target, dependency=[document, generator], block=base_name)
+        m.job(contents_command.format(document, toc_target), block=base_name)
+        m.msg('[toc]: built toctree file for %s' % base_name, block=base_name)
         m.newline()
 
-def generate_footer():
+    generate_footer(toc_targets)
+
+
+def generate_footer(targets):
     m.section_break('meta')
     m.target('.PHONY', ['clean-toc', 'toc'], block='meta')
-    m.target('toc', '$(toc-output)', block='meta')
-    m.target(['clean-toc', 'clean-reftoc'], block='meta')
-    m.job('rm -f $(toc-output)', ignore=True)
-    m.msg('[toc-builder]: cleaned all toc build products.')
+    m.target('toc', targets, block='meta')
+    
+    m.newline()
+    m.target('clean-toc', block='meta')
+    m.job('rm -f ' + ' '.join(targets), ignore=True)
+    m.msg('[toc]: cleaned all toc build products.')
 
 def collect_source_files():
     output = []
 
-    for i in util.expand_tree('./source/includes', 'yaml'):
+    for i in utils.expand_tree('./source/includes', 'yaml'):
         if i.startswith('./source/includes/ref-toc-'):
             output.append((i, 'table'))
         if i.startswith('./source/includes/toc-'):
@@ -75,7 +83,6 @@ def main():
     sources = collect_source_files()
     make_toc(sources)
 
-    generate_footer()
     m.write(sys.argv[1])
 
     print('[meta-build]: built "' + sys.argv[1] + '" to specify reference toc builders.')

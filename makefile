@@ -9,7 +9,7 @@ publish:$(sphinx-content) $(static-content)
 
 ############# Targets that define the production build process #############
 # Generating files with build specific info.
-conf.py:meta.yaml
+conf.py:meta.yaml pdfs.yaml
 setup:source/includes/hash.rst composite-pages.yaml meta.yaml
 	@mkdir -p $(public-branch-output) $(public-output)
 	@echo [build]: created $(public-branch-output) and $(public-output)
@@ -18,7 +18,10 @@ meta.yaml:
 	@echo [meta]: regenerated $@
 composite-pages.yaml:bin/composite-pages.yaml
 	@cp $< $@
-	@echo [meta]: compsite pages $@
+	@echo [meta]: coppied compsite pages $@ file
+pdfs.yaml:bin/makecloth/pdfs.yaml
+	@cp $< $@
+	@echo [meta]: coppied pdf pages $@ file
 source/includes/hash.rst:
 	@$(PYTHONBIN) bin/update_hash.py
 	@-git update-index --assume-unchanged $@

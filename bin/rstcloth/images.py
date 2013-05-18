@@ -4,7 +4,7 @@ import json
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
-import makecloth.utils as utils
+import utils
 from rstcloth import RstCloth
 
 r = RstCloth()

@@ -3,7 +3,7 @@ import os.path
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
-import makecloth.utils as utils
+import utils as utils
 from rstcloth import RstCloth
 from rstcloth import fill
 import table as tb
