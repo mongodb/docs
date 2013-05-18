@@ -90,11 +90,12 @@ def render_paths(fn):
     paths = {
         'output': 'build',
         'includes': 'source/includes',
+        'images': 'source/images',
         'tools': 'bin',
     }
     paths['public'] = paths['output'] + '/public'
     paths['branch-output'] = paths['output'] + '/' + get_branch()
-    paths['branch-source'] = paths['branch-output'] + '/branch-source'
+    paths['branch-source'] = paths['branch-output'] + '/source'
     paths['branch-staging'] = paths['public'] + '/' + get_branch()
 
     if str(fn).endswith('yaml'):
