@@ -5,7 +5,7 @@ import os.path
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
-import makecloth.utils as utils
+import utils
 import docs_meta as mongo_meta
 
 from makecloth import MakefileCloth

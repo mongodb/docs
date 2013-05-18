@@ -10,9 +10,10 @@ import os.path
 import yaml
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'bin')))
+import utils
 
-with open('meta.yaml', 'r') as f:
-    meta = yaml.load_all(f).next()
+meta = utils.ingest_yaml('meta.yaml')
+pdfs = utils.ingest_yaml_list('pdfs.yaml')
 
 # -- General configuration ----------------------------------------------------
 
@@ -144,15 +145,10 @@ html_sidebars['**'].append('resources.html')
 
 # -- Options for LaTeX output --------------------------------------------------
 
-latex_documents = [
-#   (source start file, target name, title, author, documentclass [howto/manual]).
-    ('contents', 'MongoDB.tex', u'MongoDB Documentation', u'MongoDB Documentation Project', 'manual'),
-    ('meta/use-cases', 'MongoDB-use-cases.tex', u'MongoDB Use Cases', u'MongoDB Documentation Project', 'howto'),
-    ('meta/reference', 'MongoDB-reference.tex', u'MongoDB Reference Manual', u'MongoDB Documentation Project', 'manual'),
-    ('crud', 'MongoDB-crud.tex', u'MongoDB CRUD Operations Introduction', u'MongoDB Documentation Project', 'manual'),
-]
-
-latex_paper_size = 'letter'
+latex_documents = []
+for pdf in pdfs:
+    _latex_document = ( pdf['source'], pdf['output'], pdf['title'], pdf['author'], pdf['class'])
+    latex_documents.append( _latex_document )
 
 latex_elements = {
     'preamble': '\DeclareUnicodeCharacter{FF04}{\$} \DeclareUnicodeCharacter{FF0E}{.} \PassOptionsToPackage{hyphens}{url}',
@@ -160,6 +156,7 @@ latex_elements = {
     'papersize': 'letterpaper'
 }
 
+latex_paper_size = 'letter'
 latex_use_parts = True
 latex_show_pagerefs = True
 latex_show_urls = False

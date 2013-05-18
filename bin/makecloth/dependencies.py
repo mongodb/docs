@@ -8,7 +8,7 @@ import re
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
-import makecloth.utils as utils
+import utils
 from makecloth import MakefileCloth
 
 m = MakefileCloth()

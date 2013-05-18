@@ -5,7 +5,7 @@ import os.path
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 import docs_meta
-import makecloth.utils as utils
+import utils
 from makecloth import MakefileCloth
 
 m = MakefileCloth()
@@ -22,13 +22,12 @@ def pdf_makefile(name, tag):
     staged_pdf = '{0}/latex/{1}.pdf'.format(paths['branch-staging'], name_tagged)
 
     m.section_break(name)
-    m.target(target=generated_latex,
-             dependency='latex')
+    m.target(target=generated_latex, dependency='latex')
     m.job('sed $(SED_ARGS_FILE) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) -e $(LATEX_LINK_CORRECTION) ' + generated_latex)
     m.msg('[latex]: fixing $@ TeX from the Sphinx output.')
 
     m.target(target=built_tex, dependency=generated_latex)
-    m.job('$(PYTHONBIN) {0}/copy-if-needed.py -i {1} -o {2} -b pdf'.format(paths['branch-output'], generated_latex, built_tex))
+    m.job('$(PYTHONBIN) {0}/copy-if-needed.py -i {1} -o {2} -b pdf'.format(paths['tools'], generated_latex, built_tex))
     m.msg('[pdf]: updated "' + built_tex + '" for pdf generation.')
 
     m.target(target=staged_pdf_branch, dependency=built_pdf)
@@ -40,17 +39,20 @@ def pdf_makefile(name, tag):
     m.msg('[pdf]: created link for ' + staged_pdf)
 
     m.comment('adding ' + name + '.pdf to the build dependency.')
-    m.append_var('PDF_OUTPUT', staged_pdf)
+
+    return staged_pdf
 
 def build_all_pdfs(pdfs):
+    manual_pdfs = []
+
     for pdf in pdfs:
-        pdf_makefile(pdf['name'], pdf['type'])
+        name = pdf['output'].rsplit('.', 1)[0]
+        pdf = pdf_makefile(name, pdf['tag'])
+        manual_pdfs.append(pdf)
 
     m.newline()
-    m.target(target='.PHONY',
-             dependency='manual-pdfs')
-    m.target(target='manual-pdfs',
-             dependency='$(PDF_OUTPUT)')
+    m.target(target='.PHONY', dependency='manual-pdfs')
+    m.target(target='manual-pdfs', dependency=manual_pdfs)
 
 def main():
     conf_file = utils.get_conf_file(__file__)
