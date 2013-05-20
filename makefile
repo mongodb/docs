@@ -54,7 +54,7 @@ $(public-branch-output)/single/index.html:$(branch-output)/singlehtml/contents.h
 			      -e 's/name="robots" content="index"/name="robots" content="noindex"/g' \
 			      -e 's/(href=")genindex.html"/\1..\/genindex\/"/g' $@
 	@echo [single]: generating and processing '$@' page
-$(branch-output)/sitemap.xml.gz:$(public-branch-output) $(public-output)/manual error-pages links
+$(branch-output)/sitemap.xml.gz:$(public-branch-output) $(public-branch-output)/release.txt $(public-output)/manual error-pages links 
 	@echo -e "----------\n[sitemap]: build started\: `date`" >> $(branch-output)/sitemap-build.log
 	@$(PYTHONBIN) bin/sitemap_gen.py --testing --config=conf-sitemap.xml 2>&1 >> $(branch-output)/sitemap-build.log
 	@echo [sitemap]: sitemap build complete at `date`.

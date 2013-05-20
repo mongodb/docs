@@ -14,12 +14,15 @@ paths = docs_meta.render_paths('dict')
 
 def pdf_makefile(name, tag):
     name_tagged = '-'.join([name, tag])
+    name_tagged_pdf = name_tagged + '.pdf'
+    name_tagged_branch_pdf = '-'.join([name, tag,  docs_meta.get_branch()]) + '.pdf'
     
     generated_latex = '{0}/latex/{1}.tex'.format(paths['branch-output'], name)
     built_tex = '{0}/latex/{1}.tex'.format(paths['branch-output'], name_tagged)
-    built_pdf = '{0}/latex/{1}.pdf'.format(paths['branch-output'], name_tagged)
-    staged_pdf_branch = '{0}/{1}-{2}.pdf'.format(paths['branch-staging'], name_tagged, docs_meta.get_branch())
-    staged_pdf = '{0}/latex/{1}.pdf'.format(paths['branch-staging'], name_tagged)
+
+    built_pdf = '{0}/latex/{1}'.format(paths['branch-output'], name_tagged_pdf)
+    staged_pdf_branch = '{0}/{1}'.format(paths['branch-staging'], name_tagged_branch_pdf)
+    staged_pdf = '{0}/{1}'.format(paths['branch-staging'], name_tagged_pdf)
 
     m.section_break(name)
     m.target(target=generated_latex, dependency='latex')
@@ -35,7 +38,7 @@ def pdf_makefile(name, tag):
     m.msg('[pdf]: migrated ' + staged_pdf)
 
     m.target(target=staged_pdf, dependency=staged_pdf_branch)
-    m.job('{0}/create-link $(notdir {1}) $(notdir {2}) $(dir {2})'.format(paths['tools'], staged_pdf, staged_pdf_branch))
+    m.job('{0}/create-link {1} {2} {3}'.format(paths['tools'], name_tagged_branch_pdf, name_tagged_pdf, paths['branch-staging']))
     m.msg('[pdf]: created link for ' + staged_pdf)
 
     m.comment('adding ' + name + '.pdf to the build dependency.')
