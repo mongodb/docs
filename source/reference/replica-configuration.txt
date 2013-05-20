@@ -13,6 +13,41 @@ configuration options and settings.
 Use :method:`rs.conf()` in the :program:`mongo` shell to retrieve this
 configuration. Note that default values are not explicitly displayed.
 
+.. _replica-set-configuration-document:
+
+Example Configuration Document
+------------------------------
+
+The following document provides a representation of a replica set
+configuration document. Angle brackets (e.g. ``<`` and ``>``) enclose
+all optional fields.
+
+.. code-block:: javascript
+
+   {
+     _id : <setname>,
+     version: <int>,
+     members: [
+       {
+         _id : <ordinal>,
+         host : hostname<:port>,
+         <arbiterOnly : <boolean>,>
+         <buildIndexes : <boolean>,>
+         <hidden : <boolean>,>
+         <priority: <priority>,>
+         <tags: { <document> },>
+         <slaveDelay : <number>,>
+         <votes : <number>>
+       }
+       , ...
+     ],
+     <settings: {
+       <getLastErrorDefaults : <lasterrdefaults>,>
+       <chainingAllowed : <boolean>,>
+       <getLastErrorModes : <modes>>
+     }>
+   }
+
 .. _replica-set-configuration-variables:
 
 Configuration Variables
@@ -271,41 +306,6 @@ Configuration Variables
    :dbcommand:`getLastError` command to provide :term:`data-center
    awareness`.
 
-.. _replica-set-configuration-document:
-
-Example Document
-----------------
-
-The following document provides a representation of a replica set
-configuration document. Angle brackets (e.g. ``<`` and ``>``) enclose
-all optional fields.
-
-.. code-block:: javascript
-
-   {
-     _id : <setname>,
-     version: <int>,
-     members: [
-       {
-         _id : <ordinal>,
-         host : hostname<:port>,
-         <arbiterOnly : <boolean>,>
-         <buildIndexes : <boolean>,>
-         <hidden : <boolean>,>
-         <priority: <priority>,>
-         <tags: { <document> },>
-         <slaveDelay : <number>,>
-         <votes : <number>>
-       }
-       , ...
-     ],
-     <settings: {
-       <getLastErrorDefaults : <lasterrdefaults>,>
-       <chainingAllowed : <boolean>,>
-       <getLastErrorModes : <modes>>
-     }>
-   }
-
 .. _replica-set-reconfiguration-usage:
 
 Example Reconfiguration Operations
@@ -325,22 +325,24 @@ operation:
           "_id" : "rs0",
           "version" : 1,
           "members" : [
-                   {
+                        {
                            "_id" : 0,
                            "host" : "mongodb0.example.net:27017"
-                   },
-                   {
+                        },
+                        {
                            "_id" : 1,
                            "host" : "mongodb1.example.net:27017"
-                   },
-                   {
+                        },
+                        {
                            "_id" : 2,
                            "host" : "mongodb2.example.net:27017"
-                   }
+                        }
            ]
       }
 
-   And the following reconfiguration operation:
+   The following reconfiguration operation updates the
+   :data:`~local.system.replset.members[n].priority` of the replica set
+   members:
 
    .. code-block:: javascript
 
@@ -350,14 +352,16 @@ operation:
       cfg.members[2].priority = 2
       rs.reconfig(cfg)
 
-   This operation begins by saving the current replica set
-   configuration to the local variable ``cfg`` using the
-   :method:`rs.conf()` method. Then it adds priority values to the
-   ``cfg`` :term:`document` where for the first three sub-documents in
-   the :data:`~local.system.replset.members` array. Finally, it calls the
-   :method:`rs.reconfig()` method with the argument of ``cfg`` to
-   initialize this new configuration. The replica set configuration
-   after this operation will resemble the following:
+   First, this operation sets the local variable ``cfg`` to the current
+   replica set configuration using the :method:`rs.conf()` method. Then
+   it adds priority values to the ``cfg`` :term:`document` for the
+   three sub-documents in the :data:`~local.system.replset.members`
+   array, accessing each replica set member with the array index and
+   **not** the replica set member's
+   :data:`~local.system.replset.members[n]._id` field. Finally, it
+   calls the :method:`rs.reconfig()` method with the argument of
+   ``cfg`` to initialize this new configuration. The replica set
+   configuration after this operation will resemble the following:
 
    .. code-block:: javascript
 
@@ -365,21 +369,21 @@ operation:
           "_id" : "rs0",
           "version" : 1,
           "members" : [
-                   {
+                        {
                            "_id" : 0,
                            "host" : "mongodb0.example.net:27017",
                            "priority" : 0.5
-                   },
-                   {
+                        },
+                        {
                            "_id" : 1,
                            "host" : "mongodb1.example.net:27017",
                            "priority" : 2
-                   },
-                   {
+                        },
+                        {
                            "_id" : 2,
                            "host" : "mongodb2.example.net:27017",
                            "priority" : 1
-                   }
+                        }
            ]
       }
 
