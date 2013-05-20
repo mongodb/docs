@@ -1,7 +1,8 @@
 import sys
 import argparse
 import yaml
-import makecloth.utils as utils
+import utils
+
 from docs_meta import PUBLISHED_BRANCHES
 
 def process_redirect(redirect):
