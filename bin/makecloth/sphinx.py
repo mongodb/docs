@@ -35,7 +35,7 @@ def make_all_sphinx(config):
     info_note = 'Build in progress past critical phase.'
     m.job(utils.build_platform_notification('Sphinx', info_note), ignore=True, block=b)
     m.msg('[sphinx-prep]: INFO - ' + info_note, block=b)
-    
+
     m.target(build_source_dir, block=b)
     m.job('mkdir -p ' + build_source_dir, block=b)
     m.msg('[sphinx-prep]: created ' + build_source_dir, block=b)
@@ -67,11 +67,11 @@ def sphinx_builder(target):
 
     m.target(target, 'sphinx-prerequisites', block=b)
     m.job('fab sphinx.build:' + target, block=b)
-    m.msg('[{0}] completed {0} build.'.format(target))
+    m.msg('[{0}]: completed {0} build.'.format(target))
 
     m.target(target + '-nitpick', 'sphinx-prerequisites', block=b)
     m.job('fab sphinx.build:' + target + ',nitpick=True', block=b)
-    m.msg('[{0}] completed {0} build.'.format(target))
+    m.msg('[{0}]: completed {0} build.'.format(target))
 
     m.target('clean-' + target, block=b)
     m.job('rm -rf {0}/doctrees-{1} {0}/{1}'.format(paths['branch-output'], target), block=b)
