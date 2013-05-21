@@ -25,16 +25,18 @@ def make_toc(sources):
         document = document[2:]
 
         m.section_break(document)
-        contents_command = '$(PYTHONBIN) bin/rstcloth/toc.py {0} --contents {1}'
+        command = '$(PYTHONBIN) bin/rstcloth/toc.py {0} '
         generator = 'bin/rstcloth/toc.py'
 
         if output_format == 'table':
             table_target = 'source/includes/table-' + base_name + '.rst'
             toc_targets.append(table_target)
-            contents_command += ' --sort'
+
+            command += '--sort '
 
             m.target(target=table_target, dependency=[document, generator], block=base_name)
-            m.job(contents_command.format(document, table_target), block=base_name)
+            table_command = command + '--table {1}'
+            m.job(table_command.format(document, table_target), block=base_name)
             m.msg('[toc]: built table file for %s' % base_name, block=base_name)
             m.newline()
 
@@ -43,7 +45,8 @@ def make_toc(sources):
             toc_targets.append(dfn_target)
 
             m.target(target=dfn_target, dependency=[document, generator], block=base_name)
-            m.job(contents_command.format(document, dfn_target), block=base_name)
+            dfn_command = command + '--dfn {1}'
+            m.job(dfn_command.format(document, dfn_target), block=base_name)
             m.msg('[toc]: built definition list file for %s' % base_name, block=base_name)
             m.newline()
 
@@ -51,6 +54,8 @@ def make_toc(sources):
         toc_targets.append(toc_target)
 
         m.target(target=toc_target, dependency=[document, generator], block=base_name)
+        contents_command = command + '--contents {1}'
+
         m.job(contents_command.format(document, toc_target), block=base_name)
         m.msg('[toc]: built toctree file for %s' % base_name, block=base_name)
         m.newline()
