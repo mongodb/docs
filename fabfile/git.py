@@ -7,6 +7,8 @@ import re
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../bin/')))
 import docs_meta
 
+env.sign = False
+
 @task
 def sign():
     env.sign = True
