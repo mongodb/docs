@@ -53,7 +53,7 @@ def generate_delegated_interface(builders):
 
 def main():
     conf_file = utils.get_conf_file(__file__)
-    generate_delegated_interface(utils.ingest_yaml(conf_file))
+    generate_delegated_interface(utils.ingest_yaml(conf_file)['builders'])
 
     m.write(sys.argv[1])
 

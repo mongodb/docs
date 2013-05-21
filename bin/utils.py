@@ -14,7 +14,6 @@ def expand_tree(path, input_extension='yaml'):
 
     return file_list
 
-
 def ingest_yaml(filename):
     o = []
     with open(filename, 'r') as f:
@@ -27,6 +26,13 @@ def ingest_yaml(filename):
         o = o[0]
 
     return o
+def ingest_yaml_list(filename):
+    o = ingest_yaml(filename)
+
+    if isinstance(o, list):
+        return o
+    else:
+        return [o]
 
 def ingest_json(filename):
     o = []
