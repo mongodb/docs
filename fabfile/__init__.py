@@ -5,3 +5,4 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../bin'
 import deploy
 import sphinx
 import clean
+import git
