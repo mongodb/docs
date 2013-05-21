@@ -97,7 +97,12 @@ def generate_param_fields(param):
     if ParamTable.has_type(param):
         _name.append(process_type_cell(param['type'], 'field'))
 
-    _name.append(param['name'])
+
+    if param['name'] is not None:
+        _name.append(param['name'])
+
+    description = param['description'] 
+
 
     if isinstance( param['description'], list):
         field_content = fill('\n'.join(param['description']), 0, 6, False)
@@ -105,6 +110,7 @@ def generate_param_fields(param):
         field_content = fill(param['description'], 0, 6, True)
 
     return ' '.join(_name), field_content
+        
 
 def process_description(content, optional=False):
     if isinstance(content, list):

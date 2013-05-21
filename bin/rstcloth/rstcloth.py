@@ -177,7 +177,7 @@ class RstCloth(Cloth):
         output = [ ':{0}:'.format(name)]
 
         if len(name) + len(value) < 60:
-            output.append(' value')
+            output.append(value)
             final = True
         else:
             output.append('')
