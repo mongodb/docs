@@ -13,12 +13,20 @@ Rollbacks During Replica Set Failover
 
 In some :term:`failover` situations, a primary has accepted write
 operations that the :term:`secondaries <secondary>` did **not**
-successfully replicate before the primary stepped down. [#no-rollback]_
-This case is rare and typically occurs as a result of a network
-partition with replication lag. When the former primary rejoins the
+successfully replicate before the primary stepped down. *If* the
+write operations replicate to another member *and* that member remains
+available and accessible to a majority of the replica set, there will
+be no rollback.
+
+Rollbacks are rare and typically occurs as a result of a network
+partition where the secondaries could not keep up with the throughput
+of operations on the primary. When the former primary rejoins the
 :term:`replica set` and attempts to continue replication as a
 secondary, the former primary must revert or "roll back" these write
 operations to maintain database consistency across the replica set.
+
+Collect Rollback Data
+---------------------
 
 MongoDB writes the rollback data to :term:`BSON` files in the
 ``rollback/`` folder under the database's :setting:`dbpath` directory.
@@ -41,6 +49,9 @@ data, use :doc:`bsondump </reference/program/bsondump>` to read the contents of
 these rollback files and then apply the changes to the new primary
 using :program:`mongorestore`.
 
+Avoid Replica Set Rollbacks
+---------------------------
+
 The best strategy for avoiding all rollbacks is to use :ref:`replica
 acknowledged <write-concern-replica-acknowledged>` write concern to all
 or some of the members in the set. These write operations require not
@@ -49,27 +60,27 @@ sometimes even the majority of the set to confirm the write operation
 before returning. Using these kinds of policies prevents situations
 that might create rollbacks.
 
-.. warning::
+See :doc:`/core/write-concern` for more information on write concerns
+in MongoDB.
 
-   A :program:`mongod` instance will not rollback more than 300
-   megabytes of data. If your system needs to rollback more than 300
-   MB, you will need to manually intervene to recover this data. If
-   this is the case, you will find the following line in your
-   :program:`mongod` log:
+Rollback Limitations
+--------------------
 
-   .. code-block:: none
+A :program:`mongod` instance will not rollback more than 300
+megabytes of data. If your system needs to rollback more than 300
+MB, you will need to manually intervene to recover this data. If
+this is the case, you will find the following line in your
+:program:`mongod` log:
 
-      [replica set sync] replSet syncThread: 13410 replSet too much data to roll back
+.. code-block:: none
 
-   In these situations, you will need to manually intervene to either
-   save data or to force the member to perform an initial sync from a
-   "current" member of the set by deleting the content of the existing
-   :setting:`dbpath` directory.
+   [replica set sync] replSet syncThread: 13410 replSet too much data to roll back
 
-.. seealso::
-   
-   :doc:`/core/replica-set-failover`
+In these situations, you will need to manually intervene to either
+save data or to force the member to perform an initial sync from a
+"current" member of the set by deleting the content of the
+:setting:`dbpath` directory for the member that requires a larger
+rollback.
 
-.. [#no-rollback] *If* the write operations replicate to another member
-   *and* that member remains available and accessible to a majority of
-   the replica set, there will be no rollback.
+.. seealso:: :doc:`/core/replica-set-failover` and
+   :doc:`/core/replica-set-elections`.
