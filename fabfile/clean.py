@@ -1,11 +1,11 @@
-from fabric.api import cd, local, task
+from fabric.api import task
 import time
 import os
 import sys
 import shutil
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../bin/')))
 
-import utils 
+import utils
 import docs_meta
 
 def _rm_rf(path):
@@ -35,4 +35,3 @@ def builds(days=14):
             _rm_rf(build)
             _rm_rf(path + "public/" + branch)
             print('[clean]: removed stale build artifact: ' + build)
-

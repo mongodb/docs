@@ -8,6 +8,7 @@ import argparse
 import yaml
 
 # branch and release information source
+GIT_REMOTE = { 'upstream': 'mongodb/docs' }
 MANUAL_BRANCH = 'master'
 PUBLISHED_BRANCHES = [ 'master', 'v2.2' ] # PUBLISHED_BRANCHES **must** be ordered from latest to oldest release.
 PUBLISHED_VERSIONS = [ '2.4', '2.2' ]
