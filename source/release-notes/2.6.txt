@@ -1,0 +1,140 @@
+:orphan:
+
+========================================================
+Release Notes for MongoDB 2.6 (Development Series 2.5.x)
+========================================================
+
+.. default-domain:: mongodb
+
+MongoDB 2.6 is currently in development, as part of the 2.5
+development release series. While 2.5-series releases are currently
+available, these versions of MongoDB, including the 2.6 release 
+candidate builds, are for **testing only and
+not for production use**.
+
+This document will eventually contain the full release notes for
+MongoDB 2.6; before its release this document covers the 2.5
+development series as a work-in-progress.
+
+.. contents:: See the :doc:`full index of this page <2.6-changes>` for
+              a complete list of changes included in 2.6 (Development
+              Series 2.5.x).
+   :backlinks: none
+   :local:
+   :depth: 2
+
+Downloading
+-----------
+
+You can download the 2.6 release candidate on the `downloads page`_ in the
+:guilabel:`Development Release (Unstable)` section. There are no
+distribution packages for development releases, but you can use the
+binaries provided for testing purposes. See
+:doc:`/tutorial/install-mongodb-on-linux`,
+:doc:`/tutorial/install-mongodb-on-windows`, or
+:doc:`/tutorial/install-mongodb-on-os-x` for the basic installation
+process.
+
+.. _`downloads page`: http://www.mongodb.org/downloads
+
+Changes
+-------
+
+Major Features
+++++++++++++++
+
+SASL Library Change
+~~~~~~~~~~~~~~~~~~~
+
+MongoDB Enterprise uses Cyrus SASL instead of GNU SASL (``libgsasl``).
+This change has the following SASL2 and Cyrus SASL library and GSSAPI
+plugin dependencies:
+
+For Debian or Ubuntu, install the following: 
+
+.. code-block:: sh
+
+   sudo apt-get install cyrus-sasl2-dbg cyrus-sasl2-mit-dbg libsasl2-2 libsasl2-dev libsasl2-modules libsasl2-modules-gssapi-mit
+
+
+For CentOS, Red Hat Enterprise Linux, and Amazon AMI, install the
+following:
+
+.. code-block:: sh
+
+   sudo yum install cyrus-sasl cyrus-sasl-lib cyrus-sasl-devel cyrus-sasl-gssapi
+
+For SUSE, install the following: 
+
+.. code-block:: sh
+
+   sudo zypper install cyrus-sasl cyrus-sasl-devel cyrus-sasl-gssapi
+
+LDAP Support for Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB Enterprise provides support for proxy authentication of users.  This
+change allows administrators to configure a MongoDB cluster to authenticate
+users via Linux PAM or by proxying authentication requests to a specified LDAP
+service.
+
+.. warning::
+
+   Because this change uses ``SASL PLAIN`` mechanism to transmit the
+   user password to the MongoDB server, you should, in general, use
+   only on a trusted channel (VPN, SSL, trusted wired network).
+
+Configuration
+`````````````
+
+LDAP support for user authentication requires proper configuration of
+the ``saslauthd`` daemon process as well as introduces a new server
+parameter, ``saslauthdPath``. ``saslauthdPath`` is the path to the Unix
+Domain Socket of the ``saslauthd`` instance to use for proxy
+authentication.
+
+``saslauthd`` Configuration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To use with ActiveDirectory, start ``saslauthd`` with the following
+config file contents:
+
+.. code-block:: none
+
+   ldap_servers: <ldap uri, e.g. ldaps://ad.mydomain.com>
+   ldap_use_sasl: yes
+   ldap_mech: DIGEST-MD5
+   ldap_auth_method: fastbind
+
+MongoDB Server Configuration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Configure the MongoDB server with the ``saslauthdPath`` parameter:
+
+- If ``saslauthd`` has a socket path of ``/<some>/<path>/saslauthd``,
+  set the ``saslauthdPath`` parameter to
+  ``/<some>/<path>/saslauthd/mux``. 
+
+- Otherwise, set the ``saslauthdPath`` to the empty string to use the
+  library's default value.
+
+Authenticate in the ``mongo`` Shell
+```````````````````````````````````
+
+To use this authentication mechanism in the :program:`mongo` shell, you
+**must** pass ``digestPassword: false`` to :method:`db.auth()` when
+authenticating on the ``$external`` database, since the server must
+receive an undigested password to forward on to ``saslauthd``, as in
+the following example:
+
+.. code-block:: javascript
+
+   use $external
+   db.auth(
+            {
+              mechanism: "PLAIN", 
+              user: "application/reporting@EXAMPLE.NET",
+              password: "some1nterestingPwd",
+              digestPassword: false
+            } 
+          )
