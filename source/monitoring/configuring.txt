@@ -1,0 +1,134 @@
+=================
+Configuring  MMS
+=================
+
+This document discusses specific configuration options for the |mms|
+(MMS), including hardware monitoring with 
+Munin-Node and using SSL with MMS. 
+
+.. start-content
+
+.. index:: munin
+   single: hardware monitoring
+.. _mms-munin:
+
+Hardware Monitoring with Munin-Node
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MMS provides support for collecting and charting hardware statistics
+collected with `Munin <http://munin-monitoring.org/>`_. You must
+install the ``munin-node`` package on each the host system that you
+wish to monitor.
+
+.. note::
+
+   ``munin-node``, and hardware monitoring is only available for
+   MongoDB instances running on Linux hosts.
+
+On Debian and Ubuntu systems, use the "``sudo apt-get install
+munin-node``" command. Red Hat, CentOS and Fedora users should issue
+the "``sudo yum install munin-node``" command. Ensure that
+``munin-node``:
+
+- is running. Use the command, "``ps -ef | grep "munin"``" to confirm. If
+  the process is not running, issue the command
+  "``/etc/init.d/munin-node start``".
+
+- will start following the next system reboot. This is the default
+  behavior on most Debian-based systems. Red Hat and related
+  distributions should use the "``chkconfig``" command, to configure
+  this behavior (i.e. "``chkconfig munin-node on``")
+
+- is accessible from the system running the agent. ``munin-node`` uses
+  port 4949, which needs to be open on the monitored system, so the
+  agent can access this data source. Use the following procedure to
+  test access: ::
+
+       telnet [HOSTNAME] 4949
+       fetch iostat
+       fetch iostat_ios
+       fetch cpu
+
+  Replace ``[HOSTNAME]`` with the hostname of the monitored
+  system. Run these commands from the system where the MMS Agent is
+  running. If these "``fetch``" commands return data, then
+  ``munin-node`` is running and accessible by MMS agent.
+
+If ``munin-node`` is running but inaccessible, make sure that you have
+access granted for the system running the MMS agent and that no
+firewalls block the port between ``munin-node`` and the agent. You may
+find the ``munin-node`` configuration at
+"``/etc/munin-node/munin-node.conf``" or "``/etc/munin-node.conf``",
+depending on your distribution.
+
+Additional considerations:
+
+- If you have numbered disk devices (e.g. ``/dev/sda1`` and
+  ``/dev/sda2``) then you will need to configure support for numbered
+  disk in the munin iostat plugin. Find the configuration file at
+  ``/etc/munin/plugin-conf.d/munin-node`` or a similar path, and add
+  the following value: ::
+
+       [iostat]
+           env.SHOW_NUMBERED 1
+
+- If you have Munin enabled and do not have ``iostat ios`` data in
+  your Munin charts, your ``munin-node`` may not have write access to
+  required state files in its ``munin/plugin-state/`` directory. See
+  the ``munin-node`` plugin log (i.e. ``/var/log/munin/munin-node.log``
+  or similar depending on your distribution) for more information.
+
+  The full path of this state directory directory depends on the
+  system, but is typically ``/var/lib/munin/plugin-state/``. Run the
+  following command sequence to correct this issue: ::
+
+       touch /var/lib/munin/plugin-state/iostat-ios.state
+       chown -R [username]:[group] /var/lib/munin/plugin-state/
+       chmod -R 660 /var/lib/munin/plugin-state/
+
+  Replace ``[username]`` and ``[group]`` with the username and group
+  that the ``munin-node`` process runs with.
+
+If you encounter any other problems, check the log files for
+``munin-node`` to ensure that there are no errors with
+Munin. ``munin-node`` writes logs files in the ``/var/log/`` directory
+on the monitored system.
+
+.. _ssl:
+
+Using SSL with MMS
+~~~~~~~~~~~~~~~~~~
+
+MMS can monitor MongoDB instances running with SSL. To use SSL with
+``mongod`` and ``mongos``, you must enable it at compile time, or use
+one of the `subscriber builds <http://www.10gen.com/mongodb-subscriber-edition-download>`_.
+MongoDB added SSL support in version 2.0.
+
+To monitor a host with SSL enabled, you can either:
+
+1. Edit the ``settings.py`` file in your agent installation, so that
+   the ``useSslForAllConnections`` value is ``True``, as follows: ::
+
+        useSslForAllConnections = True
+
+   Then restart the agent. After restarting the agent you may observe
+   a five minute delay before MMS receives data from the agent.
+
+2. Enable support on a per-host basis in the MMS console, by clicking
+   on the edit (i.e. "Pencil") button on the right hand-side of the
+   "Hosts" page. In the dialogue that pops up, click the check-box on
+   the SSL tab.
+
+   If you enable SSL support globally you **will not** be able to
+   override this setting on a per-host basis.
+
+.. end-content
+
+Next Steps with MMS
+~~~~~~~~~~~~~~~~~~~
+
+Take this opportunity to explore the MMS interface. For a detailed
+explanation of the various pages that form the MMS, continue to the 
+:doc:`usage guide </monitoring/usage>`. You may
+also want to consult the :doc:`troubleshooting guide </monitoring/troubleshooting>`.
+

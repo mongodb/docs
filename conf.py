@@ -53,14 +53,15 @@ latex_documents = [
     ]
 
 # -- Conditional Output --------------------------------------------------------
-BREAK = '\n'
+BREAK = '\n\n'
 if tags.has('hosted'): 
     project = u'On-Prem Monitoring / MMS'
     html_title = 'On-Prem Monitoring / MMS'
     html_short_title = 'On-Prem Monitoring / MMS'
     html_theme_options['edition'] = 'hosted'
     latex_documents.append(('monitoring', 'mms.tex', u'On-Prem Monitoring / MMS', u'10gen, Inc.', 'howto'))
-    rst_epilog = ".. |s| replace:: Suite" + BREAK
+    rst_epilog = '\n'
+    rst_epilog += ".. |s| replace:: Suite" + BREAK
     rst_epilog += ".. |index-page-title| replace:: On-Prem Monitoring" + BREAK
     rst_epilog += ".. |mms| replace:: On-Prem Monitoring" + BREAK
 else:
@@ -71,7 +72,8 @@ else:
     latex_documents.append(('monitoring', 'mms.tex', u'MongoDB Monitoring Manual', u'10gen, Inc.', 'howto'))
     latex_documents.append(('monitoring', 'mms-monitoring.tex', u'MMS Monitoring Manual', u'10gen Inc.', 'howto'))
     latex_documents.append(('backup', 'mms-backup.tex', u'MMS Backup Manual', u'10gen Inc.', 'howto'))
-    rst_epilog = ".. |s| replace:: Service" + BREAK
+    rst_epilog = '\n'
+    rst_epilog += ".. |s| replace:: Service" + BREAK
     rst_epilog += ".. |index-page-title| replace:: MongoDB Monitoring and Backup Service" + BREAK
     rst_epilog += ".. |mms| replace:: MongoDB Monitoring and Backup Service" + BREAK
     

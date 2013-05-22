@@ -29,7 +29,9 @@ build-meta += -t hosted
 generate-source:
 	@mkdir -p $(branch-output)/source
 	@rsync --recursive --times --delete source/ $(branch-output)/source/
-	@sed $(SED_ARGS_FILE) 's%   Backup </backup>%%' $(branch-output)/source/index.txt 
+	@sed $(SED_ARGS_FILE) 's%   Backup </backup>%%' $(branch-output)/source/index.txt
+	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYINCLUDE%/monitoring/tutorial/install-monitoring-server%' $(branch-output)/source/monitoring/tutorial/set-up-mms.txt
+	@sed $(SED_ARGS_FILE) 's%HOSTEDINCLUDE%:: %' $(branch-output)/source/monitoring/tutorial.txt
 	@rm -rf $(branch-output)/source/backup.txt $(branch-output)/source/backup/
 	@echo [sphinx-prep]: updated source in $(branch-output)/source
 	@-notify-send "Sphinx" "Build in progress past critical phase."
@@ -44,8 +46,8 @@ build-meta += -t saas
 generate-source:
 	@mkdir -p $(branch-output)/source/
 	@rsync --recursive --times --delete source/ $(branch-output)/source
-	@rm -f $(branch-output)/source/includes/on-prem-toctree.rst $(branch-output)/surce/monitoring/tutorial/install-monitoring-server.txt
-	@touch $(branch-output)/source/includes/on-prem-toctree.rst 
+	@rm -f $(branch-output)/source/monitoring/tutorial/install-monitoring-server.txt
+	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYINCLUDE%%' $(branch-output)/source/monitoring/tutorial/set-up-mms.txt
 	@echo [sphinx-prep]: updated source in $(branch-output)/source
 	@-notify-send "Sphinx" "Build in progress past critical phase."
 	@echo [sphinx-prep]: INFO - Build in progress past critical phase.
