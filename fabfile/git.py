@@ -1,4 +1,4 @@
-from fabric.api import cd, local, task, abort, env
+from fabric.api import cd, local, task, abort, env, hide
 from fabric.utils import puts
 import os.path
 import sys
@@ -8,12 +8,13 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../bin/
 import docs_meta
 
 env.sign = False
+env.branch = None
 
-@task
+@task(alias='signoff')
 def sign():
     env.sign = True
 
-@task
+@task(alias='am')
 def apply(obj,repo=None):
     if repo is None:
         repo = docs_meta.GIT_REMOTE['upstream']
@@ -40,3 +41,25 @@ def apply(obj,repo=None):
 
         local(' '.join(cmd))
         puts('[git]: merged pull request #{0} for {1} into {2}'.format(obj, repo, docs_meta.get_branch()))
+
+@task()
+def branch(branch):
+    with hide('running'):
+        branches = local("git for-each-ref  refs/heads/ --format='%(refname:short)'", capture=True).split()
+
+        if branch not in branches:
+            abort('{0} is not a local git branch'.foramt(branch))
+        else:
+            env.branch = branch
+
+@task(aliases=['cp', 'cherry-pick'])
+def cherrypick(*obj):
+    with hide('running'):
+        if env.branch is not None:
+            local('git checkout {0}'.format(env.branch))
+
+        for commit in [ o for o in obj ]:
+            local('git cherry-pick {0}'.format(commit))
+
+        if env.branch is not None:
+            local('git checkout -')  
