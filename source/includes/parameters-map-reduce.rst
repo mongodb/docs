@@ -3,10 +3,12 @@
    A JavaScript function that associates or "maps" a ``value`` with a
    ``key`` and emits the ``key`` and value ``pair``.
 
-   The ``map`` function processes every input document for the map-reduce
-   operation. The map-reduce operation groups the emitted ``value``
-   objects by the ``key`` and passes these groupings to the ``reduce``
-   function.
+   The ``map`` function processes every input document for the
+   map-reduce operation. However, the ``map`` function can call emit
+   any number of times, including 0, for each input document. The
+   map-reduce operation groups the emitted ``value`` objects by the
+   ``key`` and passes these groupings to the ``reduce`` function.
+   See below for requirements for the ``map`` function.
 
 :param reduce:
 
@@ -16,6 +18,8 @@
    The ``reduce`` function accepts two arguments: ``key`` and
    ``values``. The ``values`` argument is an array whose elements are
    the ``value`` objects that are "mapped" to the ``key``.
+   See below for requirements for the ``reduce`` function.
+
 
 :param out:
 
@@ -128,8 +132,29 @@ The ``map`` function exhibits the following behaviors:
   - A single emit can only hold half of MongoDB's :ref:`maximum BSON
     document size <limit-bson-document-size>`.
 
-  - There is no limit to the number of times you may call the ``emit``
-    function per document.
+  - The ``map`` function can call ``emit(key,value)`` any number of
+    times, including 0, per each input document.
+
+    The following ``map`` function may call ``emit(key,value)`` either
+    0 or 1 times depending on the value of the input document's
+    ``status`` field:
+
+    .. code-block:: javascript
+
+       function() {
+           if (this.status == 'A')
+               emit(this.cust_id, 1);
+       }
+
+    The following ``map`` function may call ``emit(key,value)``
+    multiple times depending on the number of elements in the input
+    document's ``items`` field:
+
+    .. code-block:: javascript
+
+       function() {
+           this.items.forEach(function(item){ emit(item.sku, 1); });
+       }
 
 - The ``map`` function can access the variables defined in the
   ``scope`` parameter.
@@ -156,6 +181,11 @@ The ``reduce`` function exhibits the following behaviors:
 
 - MongoDB will **not** call the ``reduce`` function for a key
   that has only a single value.
+
+- MongoDB can invoke the ``reduce`` function more than once for the
+  same key. In this case, the previous output from the ``reduce``
+  function for that key will become one of the input values to the next
+  ``reduce`` function invocation for that key.
 
 - The ``reduce`` function can access the variables defined
   in the ``scope`` parameter.
