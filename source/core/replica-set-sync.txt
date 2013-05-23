@@ -7,61 +7,65 @@ Replica Set Data Synchronization
 In order to remain up-to-date with the current state of the
 :term:`replica set`, set members :term:`sync`, or copy, :term:`oplog`
 entries from other members. Members sync data at two different points:
+:ref:`initial sync <replica-set-initial-sync>` and :ref:`replication
+<replica-set-replication>`.
 
-- *Initial sync* occurs when MongoDB creates new databases on a new or
-  restored member, populating the member with the replica set's
-  data. When a new or restored member joins or rejoins a set, the member
-  waits to receive heartbeats from other members. By default, the member
-  syncs from the *closest* member of the set that is either the
-  primary or another secondary with more recent oplog entries than the
-  member itself. This prevents two secondaries from syncing from each other.
+.. _replica-set-initial-sync:
 
-- *Replication* occurs continually after initial sync and keeps the
-  member updated with changes to the replica set's data.
+Initial Sync
+------------
 
-Data Synchronization Targets in Replication
--------------------------------------------
+Initial sync occurs when MongoDB creates new databases on a new or
+restored member, populating the member with the replica set's data. When
+a new or restored member joins or rejoins a set, the member waits to
+receive heartbeats from other members. By default, the member syncs from
+the *closest* member of the set that is either the primary or another
+secondary with more recent oplog entries than the member itself. This
+prevents two secondaries from syncing from each other.
 
-In MongoDB 2.0, secondaries change sync targets only if the connection
-to the sync target drops [#connection-drop]_ or produces an error.
+.. _replica-set-replication:
 
-For example:
+Replication
+-----------
 
-#. If you have two secondary members in one data center and a primary in
+Replication occurs continually after initial sync and keeps the member
+updated with changes to the replica set's data. In most cases,
+secondaries synchronize from the primary. Secondaries will change sync
+targets in certain situations and base changes on ping time and
+freshness. This happens automatically.
+
+.. COMMENT: 2013-05-23 > Removed following internal mechanics information.
+
+   In MongoDB 2.0, secondaries will change sync targets only if the
+   connection the sync target drops or produces an error.
+   Secondaries will stop syncing from a member if
+   the connection used to poll oplog entries is unresponsive for 30
+   seconds. If a connection times out, the member may select a new
+   member to sync from.
+
+   If you have two secondary members in one data center and a primary in
    a second facility, and if you start all three instances at roughly
    the same time (i.e. with no existing data sets or oplog), both
    secondaries will likely sync from the primary, as neither secondary
    has more recent oplog entries.
-
    If you restart one of the secondaries, then when it rejoins the set
    it will likely begin syncing from the other secondary because of
    proximity.
 
-#. If you have a primary in one facility and a secondary in an
+   If you have a primary in one facility and a secondary in an
    alternate facility, and if you add another secondary to the alternate
    facility, the new secondary will likely sync from the existing
    secondary because it is closer than the primary.
 
-In MongoDB 2.2, secondaries also use the following additional sync
-behaviors:
+.. END-COMMENT
 
-- Secondaries will sync from :ref:`delayed members
-  <replica-set-delayed-members>` *only* if no other member is available.
+Beginning in version 2.2, secondaries prefer not to sync from
+:ref:`delayed members <replica-set-delayed-members>` or :ref:`hidden
+members <replica-set-hidden-members>`.
 
-- Secondaries will *prefer not* to sync from :ref:`hidden members
-  <replica-set-hidden-members>`.
-
-- Secondaries will *not* start syncing from a member in a
-  :term:`recovering` state.
-
-- For one member to sync from another, both members must have the same
-  value, either ``true`` or ``false``, for the
-  :data:`~local.system.replset.members[n].buildIndexes` field.
-
-.. [#connection-drop] Secondaries will stop syncing from a member if
-   the connection used to poll oplog entries is unresponsive for 30
-   seconds. If a connection times out, the member may select a new
-   member to sync from.
+For one member to sync from another, both members must have the same
+value, either ``true`` or ``false``, for the
+:data:`~local.system.replset.members[n].buildIndexes` field.
 
 Consistency and Durability in MongoDB Replication
 -------------------------------------------------
