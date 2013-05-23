@@ -7,51 +7,51 @@ Geographically Distributed Sets
 .. default-domain:: mongodb
 
 A geographically distributed replica set provides data recovery should
-one data center fail. These sets include at least one member in a
-secondary data center. The member has its
-:data:`~local.system.replset.members[n].priority`
-:ref:`set <replica-set-reconfiguration-usage>` to ``0`` to prevent the
-member from ever becoming primary.
+one data center fail. These sets include at least one member in a second
+data center. The member is a :doc:`priority 0
+</core/replica-set-priority-0-member>` member, to prevent it from ever
+becoming primary.
 
 In many circumstances, these deployments consist of the following:
 
-- One :term:`primary <primary>` in the first (i.e., primary) data
-  center.
+- One :term:`primary <primary>` in the main data center.
 
-- One :term:`secondary <secondary>` member in the primary data center.
-  This member can become the primary member at any time.
+- One :term:`secondary <secondary>` member in the main data center. This
+  member can become the primary member at any time.
 
-- One secondary member in a secondary data center. This member is
-  ineligible to become primary. Set its
-  :data:`local.system.replset.members[n].priority` to ``0``.
+- One :doc:`priority 0 </core/replica-set-priority-0-member>` member in
+  a second data center. This member is ineligible to become primary. A
+  priority 0 member is a secondary with its :data:`priority
+  <local.system.replset.members[n].priority>` set to 0.
 
-For example, in the following three member replica set, *the Data Center
-1* contains the primary and a secondary whereas the *Data Center 2*
-contains a :doc:`priority 0
-</core/replica-set-priority-0-member>` member that cannot become a
-primary.
+For example, in the following three-member replica set, Data Center 1
+contains the primary and a secondary, whereas Data Center 2 contains a
+:doc:`priority 0 </core/replica-set-priority-0-member>` secondary that
+cannot become a primary.
 
 .. include:: /images/replica-set-three-members-geographically-distributed.rst
 
 If the primary is unavailable, the replica set will elect a new primary
-from the primary data center.
+from Data Center 1.
 
-If the *connection* between the primary and secondary data centers fails,
-the member in the secondary center cannot independently become the
-primary.
+If the connection between the data centers fails, the member in Data
+Center 2 cannot independently become the primary.
 
-If the primary data center fails, you can manually recover the data
-set from the secondary data center. With appropriate :ref:`write concern
-<write-concern>` there will be no data loss and downtime can be
-minimal.
+If Data Center 1 fails, you can manually recover the data set from Data
+Center 2. With appropriate :ref:`write concern <write-concern>` there
+will be no data loss and downtime can be minimal.
 
-When you add a secondary data center, make sure to keep an odd number of
-members overall to prevent ties during elections for primary by
-deploying an :ref:`arbiter <replica-set-arbiters>` in your
-primary data center. For example, if you have three members in the
-primary data center and add a member in a secondary center, you create
-an even number. To create an odd number and prevent ties, deploy an
-:ref:`arbiter <replica-set-arbiters>` in your primary data center.
+When you add a second data center, make sure to keep an odd number of
+members overall, to prevent ties during elections, and to keep a
+majority of the set's members in the main data center. For details on
+factors that affect elections, :docs:`/core/replica-set-election`.
+
+If you do not have an odd number of members, deploy an :ref:`arbiter
+<replica-set-arbiters>` in your main data center. For example, if you
+have three members in the main data center and then add a member in a
+second center, you have created an even number of members. To create an
+odd number, deploy an :ref:`arbiter <replica-set-arbiters>` in your main
+data center.
 
 .. seealso::
    :doc:`/tutorial/deploy-geographically-distributed-replica-set`

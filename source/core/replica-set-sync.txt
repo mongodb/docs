@@ -13,8 +13,8 @@ entries from other members. Members sync data at two different points:
   data. When a new or restored member joins or rejoins a set, the member
   waits to receive heartbeats from other members. By default, the member
   syncs from the *closest* member of the set that is either the
-  primary or another secondary with more recent oplog entries. This
-  prevents two secondaries from syncing from each other.
+  primary or another secondary with more recent oplog entries than the
+  member itself. This prevents two secondaries from syncing from each other.
 
 - *Replication* occurs continually after initial sync and keeps the
   member updated with changes to the replica set's data.
@@ -22,7 +22,7 @@ entries from other members. Members sync data at two different points:
 Data Synchronization Targets in Replication
 -------------------------------------------
 
-In MongoDB 2.0, secondaries only change sync targets if the connection
+In MongoDB 2.0, secondaries change sync targets only if the connection
 to the sync target drops [#connection-drop]_ or produces an error.
 
 For example:
@@ -72,12 +72,9 @@ In a replica set, only the primary can accept write operations. Writing
 only to the primary provides :term:`strict consistency` among members.
 
 :term:`Journaling <journal>` provides single-instance write durability.
-Unless MongoDB runs with journaling, when a MongoDB instance terminates
-ungracefully, you should ssume that the database is in corrupt or
+Without journaling, if a MongoDB instance terminates
+ungracefully, you should assume that the database is in a corrupt or
 inconsistent state.
-
-Use journaling; however, do not forego proper replication because of
-journaling.
 
 .. _replica-set-internals-multi-threaded-replication:
 
@@ -85,8 +82,9 @@ Multithreaded Replication
 -------------------------
 
 MongoDB applies write operations in batches using a multithreaded
-approach. The replication process divides each batch among a group of
-threads which apply many operations with greater concurrency.
+approach. MongoDB applies batches in order to each namespace. The
+replication process divides each batch among a group of threads which
+apply many operations with greater concurrency.
 
 Even though threads may apply operations out of order, a client
 reading data from a secondary will never return documents that reflect
@@ -94,15 +92,15 @@ an in-between state that never existed on the primary. To ensure this
 consistency, MongoDB blocks all read operations while applying the
 batch of operations.
 
+Pre-Fetching Indexes to Improve Replication Throughput
+------------------------------------------------------
+
 To help improve the performance of operation application, MongoDB
 fetches all the memory pages that hold data and indexes that the
 operations in the batch will affect. The prefetch stage minimizes the
 amount of time MongoDB must hold the write lock to apply
 operations. See the :setting:`replIndexPrefetch` setting to modify the
 index fetching behavior.
-
-Pre-Fetching Indexes to Improve Replication Throughput
-------------------------------------------------------
 
 By default, secondaries will in most cases pre-fetch :ref:`indexes`
 associated with the affected document to improve replication throughput.
