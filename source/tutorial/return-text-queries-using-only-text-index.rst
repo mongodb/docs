@@ -1,3 +1,6 @@
+.. 2013-05-23 renamed to .rst to pull this page from the
+   documentation while this feature stabilizes.
+
 ===============================================
 Return Text Queries Using Only a ``text`` Index
 ===============================================
