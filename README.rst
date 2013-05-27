@@ -19,15 +19,16 @@ of the documentation. You may also wish to install `Pygments
 examples.
 
 To contribute to the documentation please fork this repository on
-github and issue a pull request. File issue reports or requests at the
+GitHub and issue a pull request. File issue reports or requests at the
 `Documentation Jira Project <https://jira.mongodb.org/browse/DOCS>`_.
 See the following documents within this repository that provide a more
 thorough overview of the documentation style, and process. These links
 point back to the MongoDB Manual materials:
 
-- `Style Guide <https://github.com/mongodb/docs/blob/master/meta.style-guide.rst>`_
-- `Documentation Practices <https://github.com/mongodb/docs/blob/master/meta.practices.rst>`_
-- `Build Instructions <https://github.com/mongodb/docs/blob/master/meta.build.rst>`_
+- `Style Guide <http://docs.mongodb.org/manual/meta/style-guide>`_
+- `Documentation Practices <http://docs.mongodb.org/manual/meta/practices>`_
+- `Documentation Organization <http://docs.mongodb.org/manual/meta/organization>`_
+- `Build Instructions <http://docs.mongodb.org/manual/meta/build>`_
 
 All documentation is available under the terms of a `Creative Commons
 License <http://creativecommons.org/licenses/by-nc-sa/3.0/>`_.
