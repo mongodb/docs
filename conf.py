@@ -10,6 +10,7 @@ import os.path
 import yaml
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'bin')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'bin/sphinxext')))
 import utils
 
 meta = utils.ingest_yaml('meta.yaml')
@@ -23,8 +24,8 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.extlinks',
     'sphinx.ext.todo',
-    'mongodb_domain',
-    'additional_directives',
+    'mongodb',
+    'directives',
 ]
 
 templates_path = ['.templates']

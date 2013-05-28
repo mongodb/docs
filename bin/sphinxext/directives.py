@@ -13,23 +13,8 @@ class MongoDBNode(Directive):
     optional_arguments = 1
     final_argument_whitespace = True
     option_spec = {}
-    is_seealso = False
-    is_related = False
 
-    def run(self):
-        if self.is_seealso:
-            ret = make_admonition(addnodes.seealso, self.name, [_('See')], self.options,
-                                  self.content, self.lineno, self.content_offset, self.block_text,
-                                  self.state, self.state_machine)
-        elif self.is_related:
-            ret = make_admonition(addnodes.seealso, self.name, [_('Related')], self.options,
-                                  self.content, self.lineno, self.content_offset, self.block_text,
-                                  self.state, self.state_machine)
-        else:
-            ret = make_admonition(optional_node, self.name, self.directive_name, self.options,
-                                  self.content, self.lineno, self.content_offset,
-                                  self.block_text, self.state, self.state_machine)
-
+    def return_node(self, ret):
         if self.arguments:
             argnodes, msgs = self.state.inline_text(self.arguments[0],
                                                     self.lineno)
@@ -37,7 +22,16 @@ class MongoDBNode(Directive):
             para += argnodes
             para += msgs
             ret[0].insert(1, para)
+        
         return ret
+
+    def run(self):
+        ret = make_admonition(optional_node, self.name, self.directive_name, self.options,
+                              self.content, self.lineno, self.content_offset,
+                              self.block_text, self.state, self.state_machine)
+
+        return self.return_node(ret)
+
 
 def visit_mongodb_node(self, node):
     self.visit_admonition(node)
@@ -59,6 +53,8 @@ class optional_node(nodes.Admonition, nodes.Element): pass
 
 class example_node(nodes.Admonition, nodes.Element): pass
 
+class see_node(nodes.Admonition, nodes.Element): pass
+
 class Optional(MongoDBNode):
     directive_name = ["Optional"]
 
@@ -66,12 +62,25 @@ class Example(MongoDBNode):
     directive_name = ["Example"]
 
 class See(MongoDBNode):
-    is_seealso = True
     directive_name = ["See"]
 
+    def run(self):
+        ret = make_admonition(see_node, self.name, [_('See')], self.options,
+                              self.content, self.lineno, self.content_offset, self.block_text,
+                              self.state, self.state_machine)
+        
+        return self.return_node(ret)
+
+
 class Related(MongoDBNode):
-    is_related = True
     directive_name = ["Related"]
+    
+    def run(self):
+        ret = make_admonition(related_node, self.name, [_('Related')], self.options,
+                              self.content, self.lineno, self.content_offset, self.block_text,
+                              self.state, self.state_machine)
+
+        return self.return_node(ret)
 
 def setup(app):
     app.add_directive('optional', Optional)
@@ -81,3 +90,4 @@ def setup(app):
 
     mongodb_add_node(app, optional_node)
     mongodb_add_node(app, example_node)
+    mongodb_add_node(app, see_node)
