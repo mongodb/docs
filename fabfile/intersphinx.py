@@ -1,4 +1,4 @@
-from fabric.api import task, local, env, puts
+from fabric.api import task, local, env, puts, hide
 from fabric.utils import _AttributeDict as ad
 import os
 import time
@@ -10,7 +10,8 @@ env.msgid = 'intersphinx'
 
 def download_file(file, url):
     cmd = ['curl', '-s', '--remote-time', url, '-o', file]
-    local(' '.join(cmd))
+    with hide('running'):
+        local(' '.join(cmd))
 
 def file_timestamp(path):
     return os.stat(path)[8]

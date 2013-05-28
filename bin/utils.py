@@ -8,9 +8,13 @@ def expand_tree(path, input_extension='yaml'):
     file_list = []
     for root, subFolders, files in os.walk(path):
         for file in files:
-            f = os.path.join(root,file)
-            if f.rsplit('.', 1)[1] == input_extension:
-                file_list.append(f)
+            f = os.path.join(root, file)
+
+            try:
+                if f.rsplit('.', 1)[1] == input_extension:
+                    file_list.append(f)
+            except IndexError:
+                continue
 
     return file_list
 

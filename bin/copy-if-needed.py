@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import sys
-import os.path 
+import os
 import shutil
 import hashlib
 import argparse 
@@ -26,14 +26,16 @@ def copy_if_needed(input_file, output_file, builder='build', quiet=False):
     if os.path.isfile(input_file) is False:
         exit("[" + builder + "]: ERROR: Input file doesn't exist. Call this script later in the build process.")
     elif os.path.isfile(output_file) is False:
+        if not os.path.exists(os.path.dirname(output_file)):
+            os.makedirs(os.path.dirname(output_file))
         shutil.copyfile(input_file, output_file)
-        send_output('[' + builder + ']: created "' + output_file + ';" rebuild needed.', quiet)
+        send_output('[' + builder + ']: created "' + output_file + '," which did not exist.', quiet)
     else:
         if md5_file(input_file) == md5_file(output_file): 
-            send_output('[' + builder + ']: no changes ' + input_file + '. no rebuild required.', quiet)
+            send_output('[' + builder + ']: "' + input_file + '" not changed.', quiet)
         else: 
             shutil.copyfile(input_file, output_file)
-            send_output('[' + builder + ']: changes to ' + input_file + ' require rebuild.', quiet)
+            send_output('[' + builder + ']: "' + input_file + '" changed.', quiet)
 
 def user_input():
     parser = argparse.ArgumentParser("File hashing and comparison to let make do awesome things.")
