@@ -15,18 +15,18 @@ def get_tags(target):
 
 def timestamp(form='filename'):
     if form == 'filename':
-        return datetime.datetime.now().strftime("%Y-%m-%d, %H:%M %p")
+        return datetime.datetime.now().strftime("%Y-%m-%d.%H-%M")
     else:
-        return datetime.datetime.now().strftime("%Y%m%d%H:%M%p")
+        return datetime.datetime.now().strftime("%Y-%m-%d, %H:%M %p")
 
 def get_sphinx_args(nitpick=None):
     o = ''
 
-    if pkg_resources.get_distribution("sphinx").version.startswith('1.2'):
-        o += '-j ' + str(cpu_count() + 1)
+    if pkg_resources.get_distribution("sphinx").version == '1.2b1-xgen-dev-20130529':
+         o += '-j ' + str(cpu_count() + 1) + ' '
 
     if nitpick is not None:
-        o += '-n -w $(branch-output)/build.{0}.log'.format(timestamp('filename'))
+        o += '-n -w {0}/build.{1}.log'.format(paths['branch-output'], timestamp('filename'))
 
     return o
 
