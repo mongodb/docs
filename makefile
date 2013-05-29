@@ -1,5 +1,5 @@
 # Makefile for MongoDB Sphinx documentation
-MAKEFLAGS += -j32 -r --no-print-directory
+MAKEFLAGS += -j -r --no-print-directory
 include bin/makefile.bootstrap
 include bin/makefile.dynamic
 

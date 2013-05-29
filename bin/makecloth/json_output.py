@@ -12,70 +12,75 @@ from makecloth import MakefileCloth
 paths = render_paths('dict')
 m = MakefileCloth()
 
-def generate_output_targets(souce_files):
-    pass
+def generate_list_file(outputs, path):
+    with open(path, 'w') as f:
+        branch = get_manual_path()
+
+        for fn in outputs:
+            url = [ 'http://docs.mongodb.org', branch ]
+            url.extend(fn.split('/', 3)[3:])
+            url = '/'.join(url)
+
+            f.write(url + '\n')
+    
+def generate_json_target(source, output_file):
+    m.target(source, 'json')
+    m.target(output_file, source)
+    m.job('fab process.input:{0} process.output:{1} process.json_output'.format(source, output_file))
+    m.msg('[json]: generated a processed json file: ' + output_file)
+    m.newline()
+
+def generate_meta(outputs, msg):
+    m.section_break('meta')
+
+    build_json_output = paths['branch-output'] + '/json'
+    public_json_output = paths['branch-staging'] + '/json'
+
+    m.target('json-output', outputs)
+    if len(outputs) > 0:
+        m.job('rsync --recursive --times --delete --exclude="*fjson" {0} {1}'.format(build_json_output, public_json_output))
+        m.msg('[json]: migrated all .json files to staging.')
+    m.msg(msg)
+
+    m.section_break('list file')
+
+    m.comment('the meta build system generates "' + paths['branch-json-list-file']  + '" when it generates this file')
+    m.target('json-file-list', paths['public-json-list-file'])
+    m.target(paths['branch-json-list-file'] , [paths['output'] + '/makefile.json', build_json_output])
+    m.target(paths['public-json-list-file'], paths['branch-json-list-file'] )
+    m.job('$(PYTHONBIN) {0}/copy-if-needed.py -i {1} -o {2} -b json'.format(paths['tools'], paths['branch-json-list-file'] , paths['public-json-list-file']))
+    m.msg('[json]: rebuilt inventory of json output.')
+
+    m.target(build_json_output, 'json')
+
+    m.target('.PHONY', ['clean-json-output', 'clean-json', public_json_output])
+    m.target('clean-json-output', 'clean-json')
+    m.job('rm -rf ' + ' '.join([paths['public-json-list-file'], paths['branch-json-list-file'], public_json_output]))
+    m.msg('[json]: removed all processed json.')
+
+
 def main():
     source_files = utils.expand_tree(paths['branch-output'] + '/json/', 'fjson')
     outputs = []
 
-    if len(source_files) == 0:
-        generation_worthwhile = False
-    else:
-        generation_worthwhile = True
+    paths['branch-json-list-file'] = '/'.join([paths['branch-output'], 'json-file-list'])
+    paths['public-json-list-file'] = paths['branch-staging'] + '/json/.file_list'
 
-    if generation_worthwhile:
+    if len(source_files) > 0:
         msg = '[json]: processed all json files.'
 
         for source in source_files:
             base_fn = source.split('/', 2)[2].rsplit('.', 1)[0]
             output_file = '/'.join([paths['branch-output'], base_fn]) + '.json' 
-            staged_file = '/'.join([paths['branch-staging'], base_fn]) + '.json'
-            outputs.append(staged_file)
+            outputs.append(output_file)
             
-            m.target(source, 'json')
-            m.target(output_file, source)
-            m.job('fab process.input:{0} process.output:{1} process.json_output'.format(source, output_file))
-            
-            m.target(staged_file, output_file)
-            m.job('mkdir -p ' + os.path.dirname(staged_file))
-            m.job('$(PYTHONBIN) {0}/copy-if-needed.py -i {1} -o {2} -b json'.format(paths['tools'], output_file, staged_file))
-            
-            m.newline()
+            generate_json_target(source, output_file)
+
+        generate_list_file(outputs, paths['branch-json-list-file'] )
     else:
         msg = '[json]: please build json output from sphinx using "make json" before processing the output.'
-
-
-    m.section_break('meta')
-    m.target('json-output', outputs)
-    m.msg(msg)
-
-    m.section_break('list file')
-    list_file = paths['branch-staging'] + '/json/.file_list'
-    tmp_list_file = '/'.join([paths['branch-output'], 'json-file-list'])
-
-    m.comment('the meta build system generates "' + tmp_list_file + '" when it generates this file')
-    m.target('json-file-list', list_file)
-    m.target(tmp_list_file, [paths['output'] + '/makefile.json', paths['branch-output'] + '/json'])
-    m.target(list_file, tmp_list_file)
-    m.job('$(PYTHONBIN) {0}/copy-if-needed.py -i {1} -o {2} -b json'.format(paths['tools'], tmp_list_file, list_file))
-    m.msg('[json]: rebuilt inventory of json output.')
-
-    m.target(paths['branch-output'] + '/json', 'json')
-
-    if generation_worthwhile:
-        with open(tmp_list_file, 'w') as f:
-            branch = get_manual_path()
-
-            for fn in outputs:
-                url = [ 'http://docs.mongodb.org', branch ]
-                url.extend(fn.split('/', 3)[3:])
-                url = '/'.join(url)
-
-                f.write(url + '\n')
-
-    m.target('clean-json-output', 'clean-json')
-    m.job('rm -rf ' + ' '.join([list_file, tmp_list_file, paths['branch-staging'] + '/json']))
-    m.msg('[json]: removed all processed json.')
+        
+    generate_meta(outputs, msg)
 
 if __name__ == '__main__':
     main()
