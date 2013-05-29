@@ -68,10 +68,12 @@ def sphinx_builder(target):
 
     m.target(target, 'sphinx-prerequisites', block=b)
     m.job('fab sphinx.build:' + target, block=b)
+    m.job(utils.build_platform_notification('Sphinx', 'completed {0} build.'.format(target)), ignore=True, block=b)
     m.msg('[{0}]: completed {0} build.'.format(target))
 
     m.target(target + '-nitpick', 'sphinx-prerequisites', block=b)
     m.job('fab sphinx.build:' + target + ',nitpick=True', block=b)
+    m.job(utils.build_platform_notification('Sphinx', 'completed {0} build.'.format(target)), ignore=True, block=b)
     m.msg('[{0}]: completed {0} build.'.format(target))
 
     m.target('clean-' + target, block=b)

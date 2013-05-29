@@ -25,9 +25,10 @@ import yaml
 
 try:
     with open('composite-pages.yaml', 'r') as f:
-        composite_pages = yaml.load_all(f).next()
+        composite_pages = yaml.safe_load_all(f).next()
 except IOError:
     composite_pages = []
+
 
 def basename(path):
     return path.split('/')[-1].rsplit('.', 1)[0]
