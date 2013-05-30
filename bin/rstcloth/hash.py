@@ -1,8 +1,9 @@
 import sys
 import os.path
-from rstcloth import RstCloth
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
+
+from rstcloth import RstCloth
 import utils
 
 r = RstCloth()
