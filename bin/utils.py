@@ -1,8 +1,34 @@
+import re
 import yaml
 import sys
-import os.path
+import os
 import subprocess
 import json 
+
+def shell_value(args, path=None):
+    if path is None:
+        path = os.getcwd()
+
+    if isinstance(args , str):
+        r = re.compile("\s+")
+        args = r.split(args)
+
+    p = subprocess.Popen(args, cwd=path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    r = p.communicate()
+
+    return str(r[0].decode().rstrip())
+
+def get_commit(path=None):
+    if path is None:
+        path = os.getcwd()
+
+    return shell_value('git rev-parse --verify HEAD', path)
+
+def get_branch(path=None):
+    if path is None:
+        path = os.getcwd()
+
+    return shell_value('git symbolic-ref HEAD', path).split('/')[2]
 
 def expand_tree(path, input_extension='yaml'):
     file_list = []

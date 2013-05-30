@@ -6,15 +6,15 @@ import os.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
 import utils
-import docs_meta as mongo_meta
+from docs_meta import PUBLISHED_BRANCHES
 
 from makecloth import MakefileCloth
 
 m = MakefileCloth()
 
 def generate_delegated_interface(builders):
-    branches = mongo_meta.PUBLISHED_BRANCHES
-    current_branch = mongo_meta.get_branch()
+    branches = PUBLISHED_BRANCHES
+    current_branch = utils.get_branch()
 
     if current_branch not in branches:
         branches.append(current_branch)

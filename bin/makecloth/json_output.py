@@ -6,7 +6,7 @@ import os.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
 import utils
-from docs_meta import get_manual_path, get_branch, render_paths
+from docs_meta import get_manual_path, render_paths
 from makecloth import MakefileCloth
 
 paths = render_paths('dict')
@@ -14,7 +14,7 @@ m = MakefileCloth()
 
 def generate_list_file(outputs, path):
     with open(path, 'w') as f:
-        branch = get_manual_path()
+        branch =get_manual_path()
 
         for fn in outputs:
             url = [ 'http://docs.mongodb.org', branch ]
