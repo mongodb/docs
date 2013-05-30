@@ -4,6 +4,16 @@ import sys
 import os
 import subprocess
 import json 
+import hashlib
+
+def md5_file(file, block_size=2**20):
+    md5 = hashlib.md5()
+
+    with open(file, 'rb') as f:
+        for chunk in iter(lambda: f.read(128*md5.block_size), b''):
+            md5.update(chunk)
+
+    return md5.hexdigest()
 
 def shell_value(args, path=None):
     if path is None:

@@ -30,7 +30,7 @@ def pdf_makefile(name, tag):
     m.msg('[latex]: fixing $@ TeX from the Sphinx output.')
 
     m.target(target=built_tex, dependency=generated_latex)
-    m.job('$(PYTHONBIN) {0}/copy-if-needed.py -i {1} -o {2} -b pdf'.format(paths['tools'], generated_latex, built_tex))
+    m.job('fab process.input:{0} process.output:{1} process.copy_if_needed:pdf'.format(generated_latex, built_tex))
     m.msg('[pdf]: updated "' + built_tex + '" for pdf generation.')
 
     m.target(target=staged_pdf_branch, dependency=built_pdf)
