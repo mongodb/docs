@@ -83,8 +83,13 @@ For MongoDB on Linux use the following recommended configurations:
 Readahead
 ---------
 
-For random access use patterns set readahead values low, for example
-setting readahead to a small value such as 32 (16KB) often works well.
+Guidelines for setting read aheads:
+
+- should never be less than 8kb as this is the size of a B-tree bucket
+- if you frequently do table scans or natural order traversal a of the collection (such as for a map reduce job), then set your read ahead to be some multiple of you document size so you read multiple documents with each IO. 
+- if you have a purely random access pattern, then set it to be slighly larger than your document size. If its smaller, it will take multiple IOs to load a doc. Think about whether you should size it for average document size or maximum doc size used by your app. 
+- read ahead on your journal should be set higher than your data files. The only time you read the journal is during startup / recovery. And when you read it you are going to read the whole thing at once. 
+- check the specs of your storage hardware before setting read aheads as that an influence proper selection. (For example, amazon piops has a max IO size of 16kb so whatever you set as read ahead will get broken into multiple 16kb IOs  for this reason it typically doesn't make sense to set read aheads on piops drives higher than 16kb. )
 
 .. _production-virtualization:
 
