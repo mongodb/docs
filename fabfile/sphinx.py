@@ -48,6 +48,6 @@ def build(builder='html', nitpick=None):
             local(cmd.format(builder, get_tags(builder), paths['branch-output'], get_sphinx_args(nitpick)))
 
             if builder.startswith('linkcheck'):
-                puts('[{0}] See {1}/{0}/output.txt for output.'.format(builder, paths['branch-output']))
+                puts('[{0}]: See {1}/{0}/output.txt for output.'.format(builder, paths['branch-output']))
 
             puts('[build]: completed {0} build at {1}'.format(builder, timestamp()))

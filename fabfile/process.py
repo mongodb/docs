@@ -48,3 +48,31 @@ def json_output():
     with open(env.output_file, 'w') as f:
         f.write(json.dumps(doc))
 
+@task
+def manpage_url():
+    if env.input_file is None:
+        abort('[man]: you must specify input and output files.')
+
+    project_source = 'source'
+
+    top_level_items = set()
+    for fs_obj in os.listdir(project_source):
+        if fs_obj.startswith('.static') or fs_obj == 'index.txt':
+            continue
+        if os.path.isdir(os.path.join(project_source, fs_obj)):
+            top_level_items.add(fs_obj)
+        if fs_obj.endswith('.txt'):
+            top_level_items.add(fs_obj[:-4])
+
+    top_level_items = '/' + '.*|/'.join(top_level_items)
+    re_string = '(\\\\fB({0}.*)\\\\fP)'.format(top_level_items)
+
+    with open(env.input_file, 'r') as f:
+        manpage = f.read()
+
+    manpage = re.sub(re_string, "http://docs.mongodb.org/manual\\2", manpage)
+
+    with open(env.input_file, 'w') as f:
+        f.write(manpage)
+
+    puts("[{0}]: fixed urls in {1}".format('man', env.input_file))
