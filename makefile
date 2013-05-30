@@ -23,8 +23,7 @@ pdfs.yaml:bin/makecloth/pdfs.yaml
 	@cp $< $@
 	@echo [meta]: coppied pdf pages $@ file
 source/includes/hash.rst:
-	@$(PYTHONBIN) bin/update_hash.py
-	@-git update-index --assume-unchanged $@
+	@$(PYTHONBIN) bin/rstcloth/hash.py $@
 	@echo [build]: \(re\)generated $@.
 $(public-branch-output)/release.txt:$(public-branch-output)/
 	@echo $(last-commit) >|$@
