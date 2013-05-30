@@ -1,7 +1,9 @@
 import json
 import re
 import os 
+import shutil
 
+from utils import md5_file
 from docs_meta import get_manual_path
 from fabric.api import task, env, abort, puts, local
 
@@ -76,3 +78,20 @@ def manpage_url():
         f.write(manpage)
 
     puts("[{0}]: fixed urls in {1}".format('man', env.input_file))
+
+
+@task
+def copy_if_needed(builder='build'):
+    if os.path.isfile(env.input_file) is False:
+        abort("[{0}]: Input file does not exist.".format(builder))
+    elif os.path.isfile(env.output_file) is False:
+        if not os.path.exists(os.path.dirname(env.output_file)):
+            os.makedirs(os.path.dirname(env.output_file))
+        shutil.copyfile(env.input_file, env.output_file)
+        puts('[{0}]: created "{1}" which did not exist.'.format(builder, env.input_file))
+    else:
+        if md5_file(env.input_file) == md5_file(env.output_file):
+            puts('[{0}]: "{1}" not changed.'.format(builder, env.input_file))
+        else: 
+            shutil.copyfile(env.input_file, env.output_file)
+            puts('[{0}]: "{1}" changed.'.format(builder, env.input_file))

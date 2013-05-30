@@ -48,7 +48,7 @@ def generate_meta(outputs, msg):
     m.target('json-file-list', paths['public-json-list-file'])
     m.target(paths['branch-json-list-file'] , [paths['output'] + '/makefile.json', build_json_output])
     m.target(paths['public-json-list-file'], paths['branch-json-list-file'] )
-    m.job('$(PYTHONBIN) {0}/copy-if-needed.py -i {1} -o {2} -b json'.format(paths['tools'], paths['branch-json-list-file'] , paths['public-json-list-file']))
+    m.job('fab process.input:{0} process.output:{1} process.copy_if_needed:json'.format(paths['branch-json-list-file'] , paths['public-json-list-file']))
     m.msg('[json]: rebuilt inventory of json output.')
 
     m.target(build_json_output, 'json')
