@@ -4,18 +4,18 @@ import sys
 import os.path
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
-import docs_meta
 import utils
 from makecloth import MakefileCloth
+from docs_meta import render_paths
 
 m = MakefileCloth()
 
-paths = docs_meta.render_paths('dict')
+paths = render_paths('dict')
 
 def pdf_makefile(name, tag):
     name_tagged = '-'.join([name, tag])
     name_tagged_pdf = name_tagged + '.pdf'
-    name_tagged_branch_pdf = '-'.join([name, tag,  docs_meta.get_branch()]) + '.pdf'
+    name_tagged_branch_pdf = '-'.join([name, tag,  utils.get_branch()]) + '.pdf'
     
     generated_latex = '{0}/latex/{1}.tex'.format(paths['branch-output'], name)
     built_tex = '{0}/latex/{1}.tex'.format(paths['branch-output'], name_tagged)

@@ -1,38 +1,19 @@
 #!/usr/bin/python
 
 import datetime
-import os
-import re
-import subprocess
 import argparse
 import yaml
+
+from utils import write_yaml, shell_value, get_commit, get_branch
 
 # branch and release information source
 GIT_REMOTE = { 'upstream': 'mongodb/docs' }
 MANUAL_BRANCH = 'master'
 PUBLISHED_BRANCHES = [ 'master', 'v2.2' ] # PUBLISHED_BRANCHES **must** be ordered from latest to oldest release.
 PUBLISHED_VERSIONS = [ '2.4', '2.2' ]
+
 STABLE_RELEASE = PUBLISHED_VERSIONS[0]
 UPCOMING_RELEASE = None
-
-def get_build_envs():
-    s = (['build/' + branch + '/branch-source/' for branch in PUBLISHED_BRANCHES ] +
-         ['build/' + branch + '/branch-source-current/' for branch in PUBLISHED_BRANCHES ])
-    s.append('build/' + branch + '/source/')
-    return s
-
-def shell_value(args, path=None):
-    if path is None:
-        path = os.getcwd()
-
-    if isinstance(args , str):
-        r = re.compile("\s+")
-        args = r.split(args)
-
-    p = subprocess.Popen(args, cwd=path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    r = p.communicate()
-
-    return str(r[0].decode().rstrip())
 
 def get_manual_path():
     branch = get_branch()
@@ -43,18 +24,6 @@ def get_manual_path():
         manual_path = branch
 
     return manual_path
-
-def get_commit(path=None):
-    if path is None:
-        path = os.getcwd()
-
-    return shell_value('git rev-parse --verify HEAD', path)
-
-def get_branch(path=None):
-    if path is None:
-        path = os.getcwd()
-
-    return shell_value('git symbolic-ref HEAD', path).split('/')[2]
 
 def get_versions():
     o = []
@@ -85,8 +54,7 @@ def output_yaml(fn):
             'pdfs': []
     }
 
-    with open(fn, 'w') as f:
-        f.write(yaml.dump(o, default_flow_style=False))
+    write_yaml(o, fn)
 
 def render_paths(fn):
     paths = {
@@ -101,8 +69,7 @@ def render_paths(fn):
     paths['branch-staging'] = paths['public'] + '/' + get_branch()
 
     if str(fn).endswith('yaml'):
-        with open(fn, 'w') as f:
-            f.write(yaml.dump(paths, default_flow_style=False))
+        utils.write_yaml(paths, fn)
     elif fn == 'print':
         print(yaml.dump(paths, default_flow_style=False))
     else:
