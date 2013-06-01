@@ -6,16 +6,18 @@ compact
 
 .. default-domain:: mongodb
 
+Definition
+----------
+
 .. dbcommand:: compact
 
    .. versionadded:: 2.0
 
-   The :dbcommand:`compact` command rewrites and defragments a single
-   collection. Additionally, the command drops all indexes at the
-   beginning of compaction and rebuilds the indexes at the end.
-   :dbcommand:`compact` is conceptually similar to
-   :dbcommand:`repairDatabase`, but works on a single collection rather
-   than an entire database.
+   Rewrites and defragments a single
+   collection. The command drops all indexes at the beginning of
+   compaction and rebuilds the indexes at the end. :dbcommand:`compact`
+   is conceptually similar to :dbcommand:`repairDatabase` but works on a
+   single collection rather than an entire database.
 
    The command has the following syntax:
 
@@ -23,194 +25,177 @@ compact
 
       { compact: <collection name> }
 
-   You may also specify the following options:
+   The command uses the following fields:
 
-   :param boolean force:
+   .. include:: /reference/command/compact-field.rst
 
-      .. versionchanged:: 2.2
-         :dbcommand:`compact` blocks activities only for the database
-         it is compacting.
+.. _compact-paddingFactor:
 
-      The ``force`` specifies whether the :dbcommand:`compact` command
-      can run on the primary node in a :term:`replica set`. Set to
-      ``true`` to run the :dbcommand:`compact` command on the primary
-      node in a :term:`replica set`. Otherwise, the
-      :dbcommand:`compact` command returns an error when invoked on a
-      :term:`replica set` primary because the command blocks all other
-      activity.
+paddingFactor
+~~~~~~~~~~~~~
 
-   :param number paddingFactor:
+.. versionadded:: 2.2
 
-      .. versionadded:: 2.2
+The ``paddingFactor`` field takes the following range of values:
 
-      *Default:* ``1.0``
+- Default: ``1.0``
 
-      *Minimum:* ``1.0`` (no padding.)
+- Minimum: ``1.0`` (no padding)
 
-      *Maximum:* ``4.0``
+- Maximum: ``4.0``
 
-      The ``paddingFactor`` describes the :term:`record size`
-      allocated for each document as a factor of the document size,
-      for all records compacted during the :dbcommand:`compact`
-      operation. ``paddingFactor`` does not affect the padding of
-      subsequent record allocations after :dbcommand:`compact`
-      completes.
+If your updates increase the size of the documents, padding will
+increase the amount of space allocated to each document and avoid
+expensive document relocation operations within the data files.
 
-      If your updates increase the size of the documents,
-      padding will increase the amount of space allocated to each
-      document and avoid expensive document relocation operations
-      within the data files.
+You can calculate the padding size by subtracting the document size from
+the record size or, in terms of the ``paddingFactor``, by subtracting
+``1`` from the ``paddingFactor``:
 
-      You can calculate the padding size by subtracting the document
-      size from the record size or, in terms of the ``paddingFactor``,
-      by subtracting ``1`` from the ``paddingFactor``:
+.. code-block:: none
 
-      .. code-block:: none
+   padding size = (paddingFactor - 1) * <document size>.
 
-         padding size = (paddingFactor - 1) * <document size>.
+For example, a ``paddingFactor`` of ``1.0`` specifies a padding size of
+``0`` whereas a ``paddingFactor`` of ``1.2`` specifies a padding size of
+``0.2`` or 20 percent (20%) of the document size.
 
-      For example, a ``paddingFactor`` of ``1.0`` specifies a padding
-      size of ``0`` whereas a ``paddingFactor`` of ``1.2`` specifies a
-      padding size of ``0.2`` or 20 percent (20%) of the document
-      size.
+With the following command, you can use the ``paddingFactor`` option of
+the :dbcommand:`compact` command to set the record size to ``1.1`` of
+the document size, or a padding factor of 10 percent (10%):
 
-      With the following command, you can use the ``paddingFactor``
-      option of the :dbcommand:`compact` command to set the record
-      size to ``1.1`` of the document size, or a padding factor of 10
-      percent (10%):
+.. code-block:: javascript
 
-      .. code-block:: javascript
+   db.runCommand ( { compact: '<collection>', paddingFactor: 1.1 } )
 
-         db.runCommand ( { compact: '<collection>', paddingFactor: 1.1 } )
+:dbcommand:`compact` compacts existing documents but does not reset
+``paddingFactor`` statistics for the collection. After the
+:dbcommand:`compact` MongoDB will use the existing ``paddingFactor``
+when allocating new records for documents in this collection.
 
-      :dbcommand:`compact` compacts existing documents, but does not
-      reset ``paddingFactor`` statistics for the collection. After the
-      :dbcommand:`compact` MongoDB will use the existing
-      ``paddingFactor`` when allocating new records for documents in
-      this collection.
+.. _compact-paddingBytes:
 
-   :param integer paddingBytes:
+paddingBytes
+~~~~~~~~~~~~
 
-      .. versionadded:: 2.2
+.. versionadded:: 2.2
 
-      The ``paddingBytes`` sets the padding as an absolute number of
-      bytes, for all records compacted during the :dbcommand:`compact`
-      operation. After running :dbcommand:`compact`, ``paddingBytes``
-      does not affect the padding of subsequent record allocations.
+Specifying ``paddingBytes`` can be useful if your documents start small
+but then increase in size significantly. For example, if your documents
+are initially 40 bytes long and you grow them by 1KB, using
+``paddingBytes: 1024`` might be reasonable since using ``paddingFactor:
+4.0`` would specify a record size of 160 bytes (``4.0`` times the
+initial document size), which would only provide a padding of 120 bytes
+(i.e. record size of 160 bytes minus the document size).
 
-      Specifying ``paddingBytes`` can be useful if your
-      documents start small but then increase in size
-      significantly. For example, if your documents are initially
-      40 bytes long and you grow them by 1KB, using
-      ``paddingBytes: 1024`` might be reasonable since using
-      ``paddingFactor: 4.0`` would specify a record size of 160
-      bytes (``4.0`` times the initial document size), which would
-      only provide a padding of 120 bytes (i.e.  record size of
-      160 bytes minus the document size).
+With the following command, you can use the ``paddingBytes`` option of
+the :dbcommand:`compact` command to set the padding size to ``100``
+bytes on the collection named by ``<collection>``:
 
-      With the following command, you can use the ``paddingBytes``
-      option of the :dbcommand:`compact` command to set the
-      padding size to ``100`` bytes on the collection named by
-      ``<collection>``:
+.. code-block:: javascript
 
-      .. code-block:: javascript
+   db.runCommand ( { compact: '<collection>', paddingBytes: 100 } )
 
-         db.runCommand ( { compact: '<collection>', paddingBytes: 100 } )
+.. warning:: Always have an up-to-date backup before performing server
+   maintenance such as the :dbcommand:`compact` operation.
 
-   .. warning:: Always have an up-to-date backup before performing
-      server maintenance such as the :dbcommand:`compact` operation.
+Behaviors
+---------
 
-   Note the following behaviors:
+The :dbcommand:`compact` has the behaviors described here.
 
-   - :dbcommand:`compact` blocks all other activity. In MongoDB 2.2,
-     :dbcommand:`compact` blocks activities only for its database. You
-     may view the intermediate progress either by viewing the
-     :program:`mongod` log file, or by running the
-     :method:`db.currentOp()` in another shell instance.
+Blocking
+~~~~~~~~
 
-   - :dbcommand:`compact` compacts existing documents in the
-     collection. However, unlike :dbcommand:`repairDatabase`,
-     :dbcommand:`compact` does not reset ``paddingFactor`` statistics
-     for the collection.  MongoDB will use the existing
-     ``paddingFactor`` when allocating new records for documents in
-     this collection.
+In MongoDB 2.2, :dbcommand:`compact` blocks activities only for its
+database. Prior to 2.2, the command blocked all activities.
 
-   - :dbcommand:`compact` generally uses less disk space than
-     :dbcommand:`repairDatabase` and is faster. However, the
-     :dbcommand:`compact` command is still slow and blocks other
-     database use. Only use :dbcommand:`compact` during scheduled
-     maintenance periods.
+You may view the intermediate progress either by viewing the
+:program:`mongod` log file or by running the :method:`db.currentOp()`
+in another shell instance.
 
-   - If you terminate the operation with the
-     :method:`db.killOp() <db.killOp()>` method or restart the
-     server before the :dbcommand:`compact` operation has finished:
+Operation Termination
+~~~~~~~~~~~~~~~~~~~~~
 
-     - If you have journaling enabled, the data remains consistent and
-       usable, regardless of the state of the :dbcommand:`compact`
-       operation. You may have to manually rebuild the indexes.
+If you terminate the operation with the :method:`db.killOp()
+<db.killOp()>` method or restart the server before the
+:dbcommand:`compact` operation has finished:
 
-     - If you do not have journaling enabled and the :program:`mongod`
-       or :dbcommand:`compact` terminates during the operation, it is
-       impossible to guarantee that the data is in a consistent
-       state.
+- If you have journaling enabled, the data remains consistent and
+  usable, regardless of the state of the :dbcommand:`compact` operation.
+  You may have to manually rebuild the indexes.
 
-     - In either case, much of the existing free space in the
-       collection may become un-reusable. In this scenario, you should
-       rerun the compaction to completion to restore the use of this free
-       space.
+- If you do not have journaling enabled and the :program:`mongod` or
+  :dbcommand:`compact` terminates during the operation, it is impossible
+  to guarantee that the data is in a consistent state.
 
-   - :dbcommand:`compact` may increase the total size and number of your
-     data files, especially when run for the first time. However, this
-     will not increase the total collection storage space since storage
-     size is the amount of data allocated within the database files,
-     and not the size/number of the files on the file system.
+- In either case, much of the existing free space in the collection may
+  become un-reusable. In this scenario, you should rerun the compaction
+  to completion to restore the use of this free space.
 
-   - :dbcommand:`compact` requires a small amount of additional disk
-     space while running but unlike :dbcommand:`repairDatabase` it does
-     *not* free space on the file system.
+Size and Number of Data Files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   - You may also wish to run the :dbcommand:`collStats` command before and
-     after compaction to see how the storage space changes for the
-     collection.
+:dbcommand:`compact` may increase the total size and number of your data
+files, especially when run for the first time. However, this will not
+increase the total collection storage space since storage size is the
+amount of data allocated within the database files, and not the
+size/number of the files on the file system.
 
-   - :dbcommand:`compact` commands do not replicate to secondaries in
-     a :term:`replica set`:
+Disk Space
+~~~~~~~~~~
 
-     - Compact each member separately.
+:dbcommand:`compact` generally uses less disk space than
+:dbcommand:`repairDatabase` and is faster. However, the
+:dbcommand:`compact` command is still slow and blocks other database
+use. Only use :dbcommand:`compact` during scheduled maintenance periods.
 
-     - Ideally run :dbcommand:`compact` on a secondary. See option
-       ``force:true`` above for information regarding compacting the
-       primary.
+:dbcommand:`compact` requires a small amount of additional disk space
+while running but unlike :dbcommand:`repairDatabase` it does *not* free
+space on the file system.
 
-     .. warning::
+To see how the storage space changes for the collection, run the
+:dbcommand:`collStats` command before and after compaction.
 
-        If you run :dbcommand:`compact` on a secondary, the secondary
-        will enter a ``RECOVERING`` state to prevent clients from
-        sending read operations during compaction. Once the operation
-        finishes the secondary will automatically return to
-        ``SECONDARY`` state.  See :data:`~replSetGetStatus.members.state`
-        for more information about replica set member states. Refer to the
-        "`partial script for automating step down and compaction`_"
-        for an example of this procedure.
+Replica Sets
+~~~~~~~~~~~~
 
-   - :dbcommand:`compact` is a command issued to a :program:`mongod`.
-     In a sharded environment, run :dbcommand:`compact` on each shard
-     separately as a maintenance operation.
+:dbcommand:`compact` commands do not replicate to secondaries in a
+:term:`replica set`:
 
-     .. important:: You cannot issue :dbcommand:`compact` against a
-        :program:`mongos` instance.
+- Compact each member separately.
 
-   - It is not possible to compact :term:`capped collections <capped
-     collection>` because they don't have padding, and documents cannot
-     grow in these collections. However, the documents of a
-     :term:`capped collection` are not subject to
-     fragmentation.
+- Ideally run :dbcommand:`compact` on a secondary. See option
+  ``force:true`` above for information regarding compacting the primary.
 
-   - :dbcommand:`compact` removes extra padding added to collections
-     that have the :collflag:`usePowerOf2Sizes` flag set. See
-     :issue:`SERVER-4018` for more information.
+.. warning::
 
-   .. seealso:: :dbcommand:`repairDatabase`
+   If you run :dbcommand:`compact` on a secondary, the secondary will
+   enter a ``RECOVERING`` state to prevent clients from sending read
+   operations during compaction. Once the operation finishes the
+   secondary will automatically return to ``SECONDARY`` state. See
+   :data:`~replSetGetStatus.members.state` for more information about
+   replica set member states. Refer to the "`partial script for
+   automating step down and compaction`_" for an example of this
+   procedure.
+
+Sharded Clusters
+~~~~~~~~~~~~~~~~
+
+:dbcommand:`compact` is a command issued to a :program:`mongod`. In a
+sharded environment, run :dbcommand:`compact` on each shard separately
+as a maintenance operation.
+
+.. important:: You cannot issue :dbcommand:`compact` against a
+   :program:`mongos` instance.
+
+Capped Collections
+~~~~~~~~~~~~~~~~~~
+
+It is not possible to compact :term:`capped collections <capped
+collection>` because they don't have padding, and documents cannot grow
+in these collections. However, the documents of a :term:`capped
+collection` are not subject to fragmentation.
 
 .. _`partial script for automating step down and compaction`:
    https://github.com/mongodb/mongo-snippets/blob/master/js/compact-example.js
