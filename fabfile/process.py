@@ -1,6 +1,6 @@
 import json
 import re
-import os 
+import os
 import shutil
 
 from utils import md5_file
@@ -27,7 +27,7 @@ def json_output():
         document = f.read()
 
     doc = json.loads(document)
-    
+
     if 'body' not in doc:
         pass
     else:
@@ -92,6 +92,19 @@ def copy_if_needed(builder='build'):
     else:
         if md5_file(env.input_file) == md5_file(env.output_file):
             puts('[{0}]: "{1}" not changed.'.format(builder, env.input_file))
-        else: 
+        else:
             shutil.copyfile(env.input_file, env.output_file)
             puts('[{0}]: "{1}" changed.'.format(builder, env.input_file))
+
+@task
+def create_link():
+    if os.path.exists(env.output_file):
+        if os.path.islink(env.output_file):
+            os.remove(env.output_file)
+        elif os.path.isdir(env.output_file):
+            abort('[{0}]: {1} exists and is a directory'.format('link', env.output_file))
+        else:
+            abort('[{0}]: could not create a symlink at {1}.'.format('link', env.output_file))
+    else:
+        os.symlink(env.input_file, env.output_file)
+        puts('[{0}] created symbolic link pointing to "{1}" named "{2}"'.format('symlink', env.output_file, env.input_file))

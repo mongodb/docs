@@ -8,6 +8,7 @@ import clean
 import git
 import intersphinx
 import process
+import delegated
 
 import fabric
 fabric.state.output.status = False
