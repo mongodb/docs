@@ -1,0 +1,76 @@
+==============================
+Chunk Splitting Within a Shard
+==============================
+
+.. default-domain:: mongodb
+
+The :ref:`balancer <sharding-balancing>` sub-process is responsible for
+ensuring that each member of the cluster is responsible for the same
+volume of data. When chunks grow beyond the :ref:`specified chunk size
+<sharding-chunk-size>` a :program:`mongos` instance will split the
+chunk in half.  This will eventually lead to migrations, when chunks
+become unevenly distributed among the cluster. The :program:`mongos`
+instances will initiate a round of migrations to redistribute data in
+the cluster.
+
+.. include:: /images/sharding-splitting.rst
+
+.. index:: sharding; chunk size
+.. _sharding-chunk-size:
+
+Chunk Size
+----------
+
+.. todo:: link this section to <glossary:chunk size>
+
+The default :term:`chunk` size in MongoDB is 64 megabytes.
+
+Chunk size is arbitrary and must account for the following:
+
+#. Small chunks lead to a more even distribution of data at the
+   expense of more frequent migrations, which creates expense at the
+   query routing (:program:`mongos`) layer.
+
+#. Large chunks lead to fewer migrations, which is more efficient both
+   from the networking perspective *and* in terms internal overhead at
+   the query routing layer. Large chunks produce these efficiencies at
+   the expense of a potentially more uneven distribution of data.
+
+For many deployments it makes sense to avoid frequent and potentially
+spurious migrations at the expense of a slightly less evenly
+distributed data set, but this value is :ref:`configurable
+<sharding-balancing-modify-chunk-size>`. Be aware of the following limitations
+when modifying chunk size:
+
+- Automatic splitting only occurs when inserting :term:`documents
+  <document>` or updating existing documents; if you lower the chunk
+  size it may take time for all chunks to split to the new size.
+
+- Splits cannot be "undone:" if you increase the chunk size, existing
+  chunks must grow through insertion or updates until they reach the
+  new size.
+
+.. note::
+
+   Chunk ranges are inclusive of the lower boundary and exclusive of
+   the upper boundary.
+
+.. _sharding-shard-size:
+
+Shard Size
+----------
+
+By default, MongoDB will attempt to fill all available disk space with
+data on every shard as the data set grows. Monitor disk utilization in
+addition to other performance metrics, to ensure that the cluster
+always has capacity to accommodate additional data.
+
+You can also configure a "maximum size" for any shard when you add the
+shard using the ``maxSize`` parameter of the :dbcommand:`addShard`
+command. This will prevent the :term:`balancer` from migrating chunks
+to the shard when the value of :data:`~serverStatus.mem.mapped`
+exceeds the ``maxSize`` setting.
+
+.. seealso:: :ref:`sharded-cluster-config-max-shard-size` and
+   :doc:`/administration/monitoring`.
+

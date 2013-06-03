@@ -1,0 +1,83 @@
+.. index:: balancing
+.. _sharding-balancing:
+
+===============
+Shard Balancing
+===============
+
+.. default-domain:: mongodb
+
+Balancing is the process MongoDB uses to redistribute data within a
+:term:`sharded cluster`. When a :term:`shard` has too many
+:term:`chunks <chunk>` when compared to other shards, MongoDB
+automatically balances the shards. MongoDB balances the shards without
+intervention from the application layer.
+
+The balancing process attempts to minimize the impact that balancing can
+have on the cluster, by:
+
+- Moving only one chunk at a time.
+
+- Initiating a balancing round **only** when the difference in the number of
+  chunks between the shard with the greatest number and the shard with the
+  lowest exceeds the :ref:`migration threshold
+  <sharding-migration-thresholds>`.
+
+You may disable the balancer on a temporary basis for
+maintenance and limit the window during which it runs to prevent the
+balancing process from impacting production traffic.
+
+To disable the balancer, see :ref:`sharding-balancing-disable-temporally`.
+
+.. seealso:: :doc:`/tutorial/manage-sharded-cluster-balancer`.
+
+.. note::
+
+   The balancing procedure for :term:`sharded clusters <sharded cluster>`
+   is entirely transparent to the user and application layer. This
+   documentation is only included for your edification and possible
+   troubleshooting purposes.
+
+.. index:: balancing; internals
+.. _sharding-balancing-internals:
+
+Cluster Balancer
+----------------
+
+The :ref:`balancer <sharding-balancing>` sub-process is responsible
+for redistributing chunks evenly among the shards and ensuring that
+each member of the cluster is responsible for the same volume of
+data. 
+
+.. _sharding-internals-balancing:
+
+Balancing Internals
+~~~~~~~~~~~~~~~~~~~
+
+A balancing round originates from an arbitrary :program:`mongos`
+instance from one of the cluster's
+:program:`mongos` instances. When a balancer process is active, the
+responsible :program:`mongos` acquires a "lock" by modifying a
+document in the ``lock`` collection in the :ref:`config-database`.
+
+By default, the balancer process is always running. When the number of
+chunks in a collection is unevenly distributed among the shards, the
+balancer begins migrating :term:`chunks <chunk>` from shards with more
+chunks to shards with a fewer number of chunks. The balancer will
+continue migrating chunks, one at a time, until the data is evenly
+distributed among the shards.
+
+While these automatic chunk migrations are crucial for distributing
+data, they carry some overhead in terms of bandwidth and workload,
+both of which can impact database performance. As a result, MongoDB
+attempts to minimize the effect of balancing by only migrating chunks
+when the distribution of chunks passes the :ref:`migration thresholds
+<sharding-migration-thresholds>`.
+
+.. class:: hidden
+
+   .. toctree::
+      :maxdepth: 1
+
+      /core/sharding-chunk-splitting
+      /core/sharding-chunk-migration

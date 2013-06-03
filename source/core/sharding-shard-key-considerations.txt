@@ -1,0 +1,184 @@
+========================================
+Considerations for Selecting Shard a Key
+========================================
+
+.. TODO the content is from 3 separate sources. Combine.
+
+.. _sharding-internals-operations-and-reliability:
+
+Operations and Reliability
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The most important consideration when choosing a :term:`shard key`
+are:
+
+- to ensure that MongoDB will be able to distribute data evenly among
+  shards, and
+
+- to scale writes across the cluster, and
+
+- to ensure that :program:`mongos` can isolate most queries to a specific
+  :program:`mongod`.
+
+Furthermore:
+
+- Each shard should be a :term:`replica set`, if a specific
+  :program:`mongod` instance fails, the replica set members will elect
+  another to be :term:`primary` and continue operation. However, if an
+  entire shard is unreachable or fails for some reason, that data will
+  be unavailable.
+
+- If the shard key allows the :program:`mongos` to isolate most
+  operations to a single shard, then the failure of a single shard
+  will only render *some* data unavailable.
+
+- If your shard key distributes data required for every operation
+  throughout the cluster, then the failure of the entire shard will
+  render the entire cluster unavailable.
+
+In essence, this concern for reliability simply underscores the
+importance of choosing a shard key that isolates query operations to a
+single shard.
+
+.. _sharding-internals-choose-shard-key:
+
+Choosing a Shard Key
+~~~~~~~~~~~~~~~~~~~~
+
+For many data sets, there may be no single, naturally occurring key in
+your collection that possesses all of the qualities of a good shard
+key. For these cases, you may select one of the following strategies:
+
+#. Compute a more ideal shard key in your application layer,
+   and store this in all of your documents, potentially in the
+   ``_id`` field.
+
+#. Use a compound shard key that uses two or three values from all
+   documents that provide the right mix of cardinality with scalable
+   write operations and query isolation.
+
+#. Determine that the impact of using a less than ideal shard key,
+   is insignificant in your use case given:
+
+   - limited write volume,
+   - expected data size, or
+   - query patterns and demands.
+
+#. .. versionadded:: 2.4
+      Use a :term:`hashed shard key`. With a hashed shard key, you can
+      choose a field that has high cardinality and create a
+      :ref:`hashed indexes <index-hashed-index>` index on that field.
+      MongoDB then uses the values of this hashed index as the shard
+      key values, thus ensuring an even distribution across the shards.
+
+From a decision making stand point, begin by finding the field
+that will provide the required :ref:`query isolation
+<sharding-shard-key-query-isolation>`, ensure that :ref:`writes will
+scale across the cluster <sharding-shard-key-query-isolation>`, and
+then add an additional field to provide additional :ref:`cardinality
+<sharding-shard-key-cardinality>` if your primary key does not have
+sufficient split-ability.
+
+.. _sharding-shard-key-selection:
+
+Considerations for Selecting Shard Key
+--------------------------------------
+
+Choosing the correct shard key can have a great impact on the
+performance, capability, and functioning of your database and cluster.
+Appropriate shard key choice depends on the schema of your data and the
+way that your application queries and writes data to the database.
+
+Create a Shard Key that is Easily Divisible
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An easily divisible shard key makes it easy for MongoDB to distribute
+content among the shards. Shard keys that have a limited number of
+possible values can result in chunks that are "unsplittable." See the
+:ref:`sharding-shard-key-cardinality` section for more information.
+
+Create a Shard Key that has High Randomness
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A shard key with high randomness prevents any single shard from becoming
+a bottleneck and will distribute write operations among the cluster.
+
+Conversely, a shard keys that has a high correlation with insert time is
+a poor choice. For more information, see the
+:ref:`sharding-shard-key-write-scaling`.
+
+Create a Shard Key that Targets a Single Shard
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A shard key that targets a single shard makes it possible for the
+:program:`mongos` program to return most query operations directly from
+a single *specific* :program:`mongod` instance. Your shard key should be
+the primary field used by your queries. Fields with a high degree of
+"randomness" are poor choices for this reason. For examples, see
+:ref:`sharding-shard-key-query-isolation`.
+
+Create a Special Purpose or Compound Key
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The challenge when selecting a shard key is that there is not always
+an obvious choice. Often, an existing field in your collection may not be
+the optimal key. In those situations, computing a special purpose
+shard key into an additional field or using a compound shard key may
+help produce one that is more ideal.
+
+.. index:: shard key; cardinality
+.. _sharding-shard-key-cardinality:
+
+
+Cardinality
+~~~~~~~~~~~
+
+Cardinality in the context of MongoDB, refers to the ability of the
+system to :term:`partition` data into :term:`chunks <chunk>`. For
+example, consider a collection of data such as an "address book" that
+stores address records:
+
+- Consider the use of a ``state`` field as a shard key:
+
+  The state key's value holds the US state for a given address document.
+  This field has a *low cardinality* as all documents that have the
+  same value in the ``state`` field *must* reside on the same shard,
+  even if a particular state's chunk exceeds the maximum chunk size.
+
+  Since there are a limited number of possible values for the ``state``
+  field, MongoDB may distribute data unevenly among a small
+  number of fixed chunks. This may have a number of effects:
+
+  - If MongoDB cannot split a chunk because all of its documents
+    have the same shard key, migrations involving these un-splittable
+    chunks will take longer than other migrations, and it will be more
+    difficult for your data to stay balanced.
+
+  - If you have a fixed maximum number of chunks, you will never be
+    able to use more than that number of shards for this collection.
+
+- Consider the use of a ``zipcode`` field as a shard key:
+
+  While this field has a large number of possible values, and thus has
+  potentially higher cardinality, it's possible that a large number of users
+  could have the same value for the shard key, which would make this
+  chunk of users un-splittable.
+
+  In these cases, cardinality depends on the data. If your address book
+  stores records for a geographically distributed contact list
+  (e.g. "Dry cleaning businesses in America,") then a value like
+  zipcode would be sufficient. However, if your address book is
+  more geographically concentrated (e.g "ice cream stores in Boston
+  Massachusetts,") then you may have a much lower cardinality.
+
+- Consider the use of a ``phone-number`` field as a shard key:
+
+  Phone number has a *high cardinality,* because users will generally
+  have a unique value for this field, MongoDB will be able to split as
+  many chunks as needed.
+
+While "high cardinality," is necessary for ensuring an even
+distribution of data, having a high cardinality does not guarantee
+sufficient :ref:`query isolation <sharding-shard-key-query-isolation>`
+or appropriate :ref:`write scaling <sharding-shard-key-write-scaling>`.
+
