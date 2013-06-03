@@ -166,6 +166,8 @@ class GitRepoManager(object):
 
     def reset(self, remote='origin'):
         with lcd(self.path):
+            local('git reset --hard')
+            local('git checkout {0}'.format(self.branch))
             local('git reset --hard {0}'.format('/'.join([remote, self.branch])))
 
     def reset_working_copy(self):
@@ -177,7 +179,7 @@ class GitRepoManager(object):
             if os.path.islink(self.delegated_build_path):
                 pass
             elif os.path.isdir(self.delegated_build_path):
-                abort("[{0}] ERROR: the path '{1}' is a directory, you probably want to remove it and try again.".format(self.b, self.delegated_build_path))
+                abort("[{0}]: ERROR: the path '{1}' is a directory, you probably want to remove it and try again.".format(self.b, self.delegated_build_path))
             else:
                 abort("[{0}]: ERROR: check '{1}' and try again.".format(self.b, self.delegated_build_path))
         else:

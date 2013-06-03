@@ -30,17 +30,16 @@ def generate_delegated_interface(builders):
         m.newline(block=branch)
         for target in builders:
 
-            for sync in [ ('foreground', '--wait'), ('background', '') ]:
+            for sync in [ ('foreground', 'delegated.wait'), ('background', '') ]:
 
                 build_target = 'delegated-%s-%s-%s' % ( branch, target, sync[0])
                 targets.append(build_target)
 
                 m.target(target=build_target,  block=branch)
-                m.job(job=('$(PYTHONBIN) bin/delegated-build --branch %s --target %s %s'
-                           % ( branch, target, sync[1])),
+                m.job(job=('fab delegated.branch:{0} {1} delegated.build:{2}'.format(branch, sync[1], target)),
                       block=branch)
 
-                if sync[0] == 'background':
+                if sync[0] == 'foreground':
                     m.job(job=utils.build_platform_notification('build complete', ' '.join([branch, target])),
                           ignore=True, block=branch)
 
