@@ -49,9 +49,8 @@ def build_texinfo_manual(info):
     m.msg('[build]: migrated $@')
 
     final_output = '$(public-branch-output)/' + info + '-info.tar.gz'
-    m.target(target=final_output,
-             dependency='$(public-branch-output)/' + ofile)
-    m.job('$(build-tools)/create-link $(notdir $<) $(notdir $@) $(dir $@)')
+    m.target(target=final_output, dependency='$(public-branch-output)/' + ofile)
+    m.job('fab process.input:{0} process.output:{1} process.create_link'.format(ofile, final_output))
     m.append_var('INFO_OUTPUT', final_output, block='content')
 
 

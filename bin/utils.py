@@ -15,6 +15,27 @@ def md5_file(file, block_size=2**20):
 
     return md5.hexdigest()
 
+def run_command(cmd, path, output=None):
+    if output is None:
+        try:
+            output = subprocess.DEVNULL
+        except AttributeError:
+             output = open(os.devnull, 'w')
+
+    p = subprocess.Popen(cmd, cwd=path, stdout=output, stderr=output)
+    p.wait()
+
+def get_command_values(cmd, path):
+    p = subprocess.Popen(cmd, cwd=path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    r = p.communicate()
+    return r[0].decode().split('\n')[:-1]
+
+def log_command_output(cmd, path, logfile, wait=False):
+    with open(logfile, 'a') as f:
+        p = subprocess.Popen(cmd, cwd=path, stdout=f, stderr=f)
+        if wait is True:
+            p.wait()
+
 def shell_value(args, path=None):
     if path is None:
         path = os.getcwd()

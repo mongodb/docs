@@ -7,10 +7,12 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
 import utils
 from makecloth import MakefileCloth
+from docs_meta import render_paths
 
 # to add a symlink build process, add a tuple to the ``links`` in the builder definitions file.
 
 m = MakefileCloth()
+paths = render_paths('dict')
 
 def make_all_links(links):
     m.comment('each link is created in the root and then moved into place using the "create-link" script.', block='header')
@@ -22,28 +24,20 @@ def make_all_links(links):
     m.comment('meta-targets for testing/integration with rest of the build. must apear at the end', block='footer')
     m.newline(block='footer')
 
-    m.target('.PHONY', 'links clean-links $(public-output)/manual', block='footer')
+    m.target('.PHONY', ['links', 'clean-links', '{0}/manual'.format(paths['public'])], block='footer')
     m.target('links', '$(LINKS)', block='footer')
     m.newline(block='footer')
     m.target('clean-links', block='footer')
     m.job('rm -rf $(LINKS)', True)
 
-def make_link(make_target, link_target, makefile_block):
-    link_location = make_target.rsplit('/', 1)[0] + '/'
+def make_link(link_path, referent, block):
+    if block == 'content':
+        m.append_var('LINKS', link_path)
 
-    if makefile_block == 'use':
-        m.target(link_location, '$(public-branch-output)', makefile_block)
+    m.target(link_path, block=block)
 
-    if makefile_block == 'content':
-        m.target(make_target, '', makefile_block)
-    else:
-        m.append_var('LINKS', make_target, makefile_block)
-        m.target(make_target, link_location, makefile_block)
-
-
-    m.job('@bin/create-link %s $(notdir $@) %s' % ( link_target, link_location), makefile_block)
-    m.msg('[symlink]: created a link at: %s' % make_target, makefile_block)
-    m.newline(block=makefile_block)
+    m.job(job='fab process.input:{0} process.output:{1} process.create_link'.format(referent, link_path), block=block)
+    m.newline(block=block)
 
 def main():
     conf_file = utils.get_conf_file(__file__)

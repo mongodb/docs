@@ -25,7 +25,7 @@ pdfs.yaml:bin/makecloth/pdfs.yaml
 source/includes/hash.rst:
 	@$(PYTHONBIN) bin/rstcloth/hash.py $@
 	@echo [build]: \(re\)generated $@.
-$(public-branch-output)/release.txt:$(public-branch-output)/
+$(public-branch-output)/release.txt:$(public-branch-output)
 	@echo $(last-commit) >|$@
 	@echo [build]: generated '$@' with current release hash.
 

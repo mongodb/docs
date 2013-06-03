@@ -16,7 +16,7 @@ def pdf_makefile(name, tag):
     name_tagged = '-'.join([name, tag])
     name_tagged_pdf = name_tagged + '.pdf'
     name_tagged_branch_pdf = '-'.join([name, tag,  utils.get_branch()]) + '.pdf'
-    
+
     generated_latex = '{0}/latex/{1}.tex'.format(paths['branch-output'], name)
     built_tex = '{0}/latex/{1}.tex'.format(paths['branch-output'], name_tagged)
 
@@ -38,7 +38,7 @@ def pdf_makefile(name, tag):
     m.msg('[pdf]: migrated ' + staged_pdf)
 
     m.target(target=staged_pdf, dependency=staged_pdf_branch)
-    m.job('{0}/create-link {1} {2} {3}'.format(paths['tools'], name_tagged_branch_pdf, name_tagged_pdf, paths['branch-staging']))
+    m.job('fab process.input:{0} process.output:{1} process.create_link'.format(name_tagged_branch_pdf, staged_pdf))
     m.msg('[pdf]: created link for ' + staged_pdf)
 
     m.comment('adding ' + name + '.pdf to the build dependency.')
