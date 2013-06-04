@@ -26,13 +26,9 @@ def build_texinfo_manual(info):
         dependency=build_loc + info + '.texi',
         block='content')
 
-    if info == 'mongodb-manual':
-        m.msg('[texinfo]: FORCING ' + info + '.info build: ERRORS IGNORED.', block='content')
-        m.job('$(MAKEINFO) --no-warn --force -o $@ $<', ignore=True, block='content')
-        m.msg('[texinfo]: creating ' +  info + '.info files', block='content')
-    else:
-        m.job('$(MAKEINFO) -o $@ $<', block='content')
-        m.msg('[texinfo]: creating ' +  info + '.info files', block='content')
+    m.msg('[texinfo]: FORCING ' + info + '.info build: ERRORS IGNORED.', block='content')
+    m.job('$(MAKEINFO) --no-warn --force -o $@ $<', ignore=True, block='content')
+    m.msg('[texinfo]: creating ' +  info + '.info files', block='content')
 
     m.target(target=build_output,
         dependency=build_loc + info + '.info',

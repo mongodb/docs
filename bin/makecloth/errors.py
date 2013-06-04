@@ -17,7 +17,7 @@ def build_all_error_pages(error_pages):
         build = '$(public-branch-output)/meta/' + page + '/index.html'
         dep = '$(branch-output)/dirhtml/meta/' + page + '/index.html'
 
-        m.append_var(variable='ERROR_PAGES',
+        m.append_var(variable='error-pages',
                      value=build,
                      block='page')
         m.target(target=dep, dependency='$(branch-output)/dirhtml', block='page')
@@ -33,11 +33,11 @@ def build_all_error_pages(error_pages):
     m.comment('integration target for the error page guides:', block='meta')
 
     m.target(target='.PHONY',
-             dependency='clean-error-pages error-pages $(ERROR_PAGES)',
+             dependency='clean-error-pages error-pages $(error-pages)',
              block='meta')
     m.newline(block='meta')
     m.target(target='error-pages',
-             dependency='$(ERROR_PAGES)', block='meta')
+             dependency='$(error-pages)', block='meta')
     m.newline(block='meta')
     m.target(target='clean-error-pages', dependency=None, block='meta')
     m.job('rm -rf $(ERROR_PAGES)', True, block='meta')
