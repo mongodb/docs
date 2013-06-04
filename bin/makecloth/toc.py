@@ -5,7 +5,7 @@ import os.path
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
-import makecloth.utils as util
+import utils as util
 from makecloth import MakefileCloth
 
 m = MakefileCloth()

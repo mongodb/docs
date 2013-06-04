@@ -4,7 +4,7 @@ import os.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
 import utils
-from docs_meta import get_manual_path, MANUAL_BRANCH, render_paths
+from docs_meta import get_manual_path, MANUAL_BRANCH, render_paths, dynamic_makefiles
 from makecloth import MakefileCloth
 m = MakefileCloth()
 
@@ -24,6 +24,26 @@ def generate_meta():
     m.var('rst-include', paths['includes'], block='paths')
     m.var('branch-source', paths['branch-source'], block='paths')
     m.var('public-branch-output', paths['branch-staging'], block='paths')
+
+    generated_makefiles = []
+
+    m.newline()
+    for target in dynamic_makefiles():
+        file ='/'.join([paths['output'], "makefile." + target])
+        cloth = '/'.join([paths['tools'], "makecloth", target + '.py'])
+        
+        generated_makefiles.append(file)
+        m.raw(['-include ' + paths['output'] + '/makefile.' + target])
+
+        m.target(target=file, dependency=cloth, block='makefiles')
+        m.job(' '.join(["$(PYTHONBIN)", cloth, file]))
+        m.newline()
+
+    m.newline()
+
+    m.target('.PHONY',  generated_makefiles)
+    
+
 
 def main():
     generate_meta()

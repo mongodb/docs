@@ -15,6 +15,8 @@ PUBLISHED_VERSIONS = [ '2.4', '2.2' ]
 STABLE_RELEASE = PUBLISHED_VERSIONS[0]
 UPCOMING_RELEASE = None
 
+GENERATED_MAKEFILES = [ 'delegated', 'json-output', 'pdfs', 'releases', 'sphinx', 'toc', 'errors', 'links', 'migrations', 'sphinx-migration', 'texinfo']
+
 def get_manual_path():
     branch = get_branch()
 
@@ -56,6 +58,9 @@ def output_yaml(fn):
 
     with open(fn, 'w') as f:
         f.write(yaml.dump(o, default_flow_style=False))
+
+def dynamic_makefiles():
+    return GENERATED_MAKEFILES
 
 def render_paths(fn):
     paths = {
