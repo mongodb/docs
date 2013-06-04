@@ -1,9 +1,9 @@
 .. index:: balancing
 .. _sharding-balancing:
 
-===============
-Shard Balancing
-===============
+============================
+Sharded Collection Balancing
+============================
 
 .. default-domain:: mongodb
 
@@ -46,13 +46,10 @@ Cluster Balancer
 
 The :ref:`balancer <sharding-balancing>` sub-process is responsible
 for redistributing chunks evenly among the shards and ensuring that
-each member of the cluster is responsible for the same volume of
-data. 
+the data of every sharded collection is evenly distributed among the
+cluster's shards.
 
 .. _sharding-internals-balancing:
-
-Balancing Internals
-~~~~~~~~~~~~~~~~~~~
 
 A balancing round originates from an arbitrary :program:`mongos`
 instance from one of the cluster's
@@ -64,8 +61,8 @@ By default, the balancer process is always running. When the number of
 chunks in a collection is unevenly distributed among the shards, the
 balancer begins migrating :term:`chunks <chunk>` from shards with more
 chunks to shards with a fewer number of chunks. The balancer will
-continue migrating chunks, one at a time, until the data is evenly
-distributed among the shards.
+continue migrating chunks, one at a time, until the collection's data
+is evenly distributed among the shards.
 
 While these automatic chunk migrations are crucial for distributing
 data, they carry some overhead in terms of bandwidth and workload,
@@ -74,10 +71,49 @@ attempts to minimize the effect of balancing by only migrating chunks
 when the distribution of chunks passes the :ref:`migration thresholds
 <sharding-migration-thresholds>`.
 
-.. class:: hidden
+.. _sharding-requirements-data:
 
-   .. toctree::
-      :maxdepth: 1
+Data Quantity Requirements for Sharded Clusters
+-----------------------------------------------
 
-      /core/sharding-chunk-splitting
-      /core/sharding-chunk-migration
+Your cluster must manage a significant quantity of data for sharding
+to have an effect on your collection. The default :term:`chunk` size
+is 64 megabytes, and the :ref:`balancer
+<sharding-balancing>` will not begin moving data until the imbalance
+of chunks in the cluster exceeds the :ref:`migration threshold
+<sharding-migration-thresholds>`.
+
+Practically, this means that unless your cluster has many hundreds of
+megabytes of data, chunks will remain on a single shard.
+
+While there are some exceptional situations where you may need to
+shard a small collection of data, most of the time the additional
+complexity added by sharding the small collection is not worth the
+additional complexity and overhead unless you need additional
+concurrency or capacity for some reason. If you have a small data set,
+usually a properly configured single MongoDB instance or replica set
+will be more than sufficient for your persistence layer needs.
+
+:term:`Chunk <chunk>` size is :option:`user configurable <mongos --chunkSize>`.
+However, the default value is of 64 megabytes is ideal
+for most deployments. See :ref:`sharding-chunk-size` for more information.
+
+
+.. _sharding-shard-size:
+
+Shard Size
+----------
+
+By default, MongoDB will attempt to fill all available disk space with
+data on every shard as the data set grows. Monitor disk utilization in
+addition to other performance metrics, to ensure that the cluster
+always has capacity to accommodate additional data.
+
+You can also configure a "maximum size" for any shard when you add the
+shard using the ``maxSize`` parameter of the :dbcommand:`addShard`
+command. This will prevent the :term:`balancer` from migrating chunks
+to the shard when the value of :data:`~serverStatus.mem.mapped`
+exceeds the ``maxSize`` setting.
+
+.. seealso:: :ref:`sharded-cluster-config-max-shard-size` and
+   :doc:`/administration/monitoring`.

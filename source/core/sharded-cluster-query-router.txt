@@ -2,9 +2,9 @@
 .. _sharded-cluster-query-routing:
 .. _sharding-read-operations:
 
-=================
-``mongos`` Router
-=================
+=============================
+Sharded Cluster Query Routing
+=============================
 
 .. default-domain:: mongodb
 
@@ -14,8 +14,8 @@ in a sharded cluster.
 .. _sharding-mongos:
 .. _sharding-query-routing:
 
-``mongos`` Operational Overview
--------------------------------
+``mongos`` Overview
+-------------------
 
 The :program:`mongos` program provides a single unified interface to a
 sharded cluster. An application does not access shards (i.e. the
@@ -28,7 +28,7 @@ caching that information as metadata on the :ref:`config servers
 <sharding-config-server>`. The :program:`mongos` uses the metadata to
 route operations from applications and clients to the :program:`mongod`
 instances. A :program:`mongos` has no *persistent* state and consume
-minimal system resources.
+minimal system resources. 
 
 The most common practice is to run :program:`mongos` instances on the
 same systems as your application servers, but you can maintain
@@ -46,75 +46,10 @@ resources.
    alternate architecture decisions if you use the :term:`aggregation
    framework` extensively in a sharded environment.
 
-Broadcast Operations vs Targeted Operations
--------------------------------------------
-
-In general, operations in a sharded environment are either:
-
-- Broadcast to all shards in the cluster that hold documents in a
-  collection
-
-- Targeted at a single shard or a limited group of shards, based on
-  the shard key
-
-For best performance, use targeted operations whenever possible. While
-some operations must broadcast to all shards, you can ensure MongoDB
-uses targeted operations whenever possible by always including the shard
-key.
-
-Broadcast Operations
-~~~~~~~~~~~~~~~~~~~~
-
-A query operation is broadcast to all shards [#namespace-exception]_
-**unless** the :program:`mongos` can determine which shard or shard
-stores this data.
-
-Multi-update operations are always broadcast operations.
-
-The :method:`remove() <db.collection.remove()>` operation is always a
-broadcast operation, unless the operation specifies the shard key in
-full.
-
-.. [#namespace-exception] If a shard does not store chunks from a
-   given collection, queries for documents in that collection are not
-   broadcast to that shard.
-
-Targeted Operations
-~~~~~~~~~~~~~~~~~~~
-
-All :method:`insert() <db.collection.insert()>` operations target to one
-shard.
-
-All single :method:`update() <db.collection.update()>` operations target
-to one shard. This includes :term:`upsert` operations.
-
-For queries that include the shard key, :program:`mongos` can target the
-query at a specific shard or set of shards. This is the case only if the
-portion of the shard key included in the query is a *prefix* of the
-shard key. For example, if the shard key is:
-
-.. code-block:: javascript
-
-   { a: 1, b: 1, c: 1 }
-
-The :program:`mongos` program *can* route queries that include the full
-shard key or either of the following shard key prefixes at a
-specific shard or set of shards:
-
-.. code-block:: javascript
-
-   { a: 1 }
-   { a: 1, b: 1 }
-
-Depending on the distribution of data in the cluster and the
-selectivity of the query, :program:`mongos` may still have to
-contact multiple shards [#possible-all]_ to fulfill these queries.
-
-.. [#possible-all] :program:`mongos` will route some queries, even
-   some that include the shard key, to all shards, if needed.
-
 ``mongos`` Query Routing
 ------------------------
+
+.. todo this section can be absorbed into the above overview
 
 A :program:`mongos` instance uses the following process to route a query
 to a :term:`cluster <sharded cluster>`. The :program:`mongos`:
@@ -191,4 +126,70 @@ a document with a ``msg`` field that holds the string
 If the application is instead connected to a :program:`mongod`, the
 returned document does not include the ``isdbgrid`` string.
 
- 
+Broadcast Operations and Targeted Operations
+--------------------------------------------
+
+In general, operations in a sharded environment are either:
+
+- Broadcast to all shards in the cluster that hold documents in a
+  collection
+
+- Targeted at a single shard or a limited group of shards, based on
+  the shard key
+
+For best performance, use targeted operations whenever possible. While
+some operations must broadcast to all shards, you can ensure MongoDB
+uses targeted operations whenever possible by always including the shard
+key.
+
+Broadcast Operations
+~~~~~~~~~~~~~~~~~~~~
+
+A query operation is broadcast to all shards [#namespace-exception]_
+**unless** the :program:`mongos` can determine which shard or shard
+stores this data.
+
+Multi-update operations are always broadcast operations.
+
+The :method:`remove() <db.collection.remove()>` operation is always a
+broadcast operation, unless the operation specifies the shard key in
+full.
+
+.. [#namespace-exception] If a shard does not store chunks from a
+   given collection, queries for documents in that collection are not
+   broadcast to that shard.
+
+Targeted Operations
+~~~~~~~~~~~~~~~~~~~
+
+All :method:`insert() <db.collection.insert()>` operations target to one
+shard.
+
+All single :method:`update() <db.collection.update()>` operations target
+to one shard. This includes :term:`upsert` operations.
+
+For queries that include the shard key, :program:`mongos` can target the
+query at a specific shard or set of shards. This is the case only if the
+portion of the shard key included in the query is a *prefix* of the
+shard key. For example, if the shard key is:
+
+.. code-block:: javascript
+
+   { a: 1, b: 1, c: 1 }
+
+The :program:`mongos` program *can* route queries that include the full
+shard key or either of the following shard key prefixes at a
+specific shard or set of shards:
+
+.. code-block:: javascript
+
+   { a: 1 }
+   { a: 1, b: 1 }
+
+Depending on the distribution of data in the cluster and the
+selectivity of the query, :program:`mongos` may still have to
+contact multiple shards [#possible-all]_ to fulfill these queries.
+
+.. [#possible-all] :program:`mongos` will route some queries, even
+   some that include the shard key, to all shards, if needed.
+

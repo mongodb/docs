@@ -4,10 +4,13 @@
 Sharded Cluster High Availability 
 =================================
 
-A :ref:`production <sharding-production-architecture>`
-:term:`cluster` has no single point of failure. This section introduces the
-availability concerns for MongoDB deployments and highlights
-potential failure scenarios and available resolutions:
+A :ref:`production <sharding-production-architecture>` :term:`cluster`
+has no single point of failure. This section introduces the
+availability concerns for MongoDB deployments and highlights potential
+failure scenarios and available resolutions.
+
+Availability Considerations
+---------------------------
 
 - Application servers or :program:`mongos` instances become unavailable.
 
@@ -61,3 +64,39 @@ potential failure scenarios and available resolutions:
    while it still has current oplog entries, it can catch up to the
    latest state of the set using the normal :term:`replication process
    <sync>`, otherwise it must perform an :term:`initial sync`.
+
+
+Shard Keys and Cluster Availability
+-----------------------------------
+
+The most important consideration when choosing a :term:`shard key`
+are:
+
+- to ensure that MongoDB will be able to distribute data evenly among
+  shards, and
+
+- to scale writes across the cluster, and
+
+- to ensure that :program:`mongos` can isolate most queries to a specific
+  :program:`mongod`.
+
+Furthermore:
+
+- Each shard should be a :term:`replica set`, if a specific
+  :program:`mongod` instance fails, the replica set members will elect
+  another to be :term:`primary` and continue operation. However, if an
+  entire shard is unreachable or fails for some reason, that data will
+  be unavailable.
+
+- If the shard key allows the :program:`mongos` to isolate most
+  operations to a single shard, then the failure of a single shard
+  will only render *some* data unavailable.
+
+- If your shard key distributes data required for every operation
+  throughout the cluster, then the failure of the entire shard will
+  render the entire cluster unavailable.
+
+In essence, this concern for reliability simply underscores the
+importance of choosing a shard key that isolates query operations to a
+single shard.
+

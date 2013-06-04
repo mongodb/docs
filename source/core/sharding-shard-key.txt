@@ -14,6 +14,9 @@ Shard Keys
 .. TODO rework the these paragraphs. Some of these sentences may be
    misleading or inaccurate.
 
+Overview
+--------
+
 The shard key determines the distribution of the collection's
 :term:`documents <document>` among the cluster's :term:`shards
 <shard>`. The shard key is a :term:`field` that exists in every
@@ -56,10 +59,117 @@ by manually creating chunks on the empty collection using the
 To shard a collection using a hashed shard key, see
 :doc:`/tutorial/shard-collection-with-a-hashed-shard-key`.
 
-.. class:: hidden
+Shard Keys and Operational Performance
+--------------------------------------
 
-   .. toctree::
-      :maxdepth: 1
+.. default-domain:: mongodb
 
-      /core/sharding-shard-key-indexes
-      /core/sharding-shard-key-considerations
+.. TODO Intro paragraph
+
+.. index:: shard key; write scaling
+.. _sharding-shard-key-write-scaling:
+
+Write Scaling
+~~~~~~~~~~~~~
+
+Some possible shard keys will allow your application to take advantage of
+the increased write capacity that the cluster can provide, while
+others do not. Consider the following example where you shard by the
+values of the default :term:`_id` field, which is :term:`ObjectID`.
+
+``ObjectID`` is computed upon document creation, that is a
+unique identifier for the object. However, the most significant bits of data
+in this value represent a time stamp, which means that they increment
+in a regular and predictable pattern. Even though this value has
+:ref:`high cardinality <sharding-shard-key-cardinality>`, when using
+this, *any date, or other monotonically increasing number* as the shard
+key, all insert operations will be storing data into a single chunk, and
+therefore, a single shard. As a result, the write capacity of this shard
+will define the effective write capacity of the cluster.
+
+A shard key that increases monotonically will not hinder performance
+if you have a very low insert rate, or if most of your write
+operations are :method:`update() <db.collection.update()>` operations
+distributed through your entire data set. Generally, choose shard keys
+that have *both* high cardinality and will distribute write operations
+across the *entire cluster*.
+
+Typically, a computed shard key that has some amount of "randomness,"
+such as ones that include a cryptographic hash (i.e. MD5 or SHA1) of
+other content in the document, will allow the cluster to scale write
+operations. However, random shard keys do not typically provide
+:ref:`query isolation <sharding-shard-key-query-isolation>`, which is
+another important characteristic of shard keys.
+
+.. _sharding-internals-querying:
+
+Querying
+~~~~~~~~
+
+The :program:`mongos` provides an interface for applications to
+interact with sharded clusters that hides the complexity of :term:`data
+partitioning <partition>`. A :program:`mongos` receives queries from
+applications, and uses metadata from the :ref:`config server
+<sharding-config-server>`, to route queries to the :program:`mongod`
+instances with the appropriate data. While the :program:`mongos`
+succeeds in making all querying operational in sharded environments,
+the :term:`shard key` you select can have a profound affect on query
+performance.
+
+.. seealso:: The :ref:`mongos and Sharding <sharding-mongos>` and
+   :ref:`config server <sharding-config-server>` sections for a more
+   general overview of querying in sharded environments.
+
+.. index:: shard key; query isolation
+.. _sharding-shard-key-query-isolation:
+
+Query Isolation
+```````````````
+
+The fastest queries in a sharded environment are those that
+:program:`mongos` will route to a single shard, using the
+:term:`shard key` and the cluster meta data from the :ref:`config server
+<sharding-config-server>`. For queries that don't include the shard
+key, :program:`mongos` must query all shards, wait for their response
+and then return the result to the application. These "scatter/gather"
+queries can be long running operations.
+
+If your query includes the first component of a compound shard
+key [#shard-key-index]_, the :program:`mongos` can route the
+query directly to a single shard, or a small number of shards, which
+provides better performance. Even if you query values of the shard
+key reside in different chunks, the :program:`mongos` will route
+queries directly to specific shards.
+
+To select a shard key for a collection:
+
+- determine the most commonly included fields in queries for a
+  given application
+
+- find which of these operations are most performance dependent.
+
+.. todo:: - link to document produced by DOCS-235
+
+If this field has low cardinality (i.e not sufficiently
+selective) you should add a second field to the shard key making a
+compound shard key. The data may become more splittable with a
+compound shard key.
+
+.. see:: :ref:`sharding-mongos` for more information on query
+   operations in the context of sharded clusters. Specifically the
+   :ref:`sharding-query-routing` sub-section outlines the procedure
+   that :program:`mongos` uses to route read operations to the shards.
+
+.. [#shard-key-index] In many ways, you can think of the shard key a
+   cluster-wide unique index. However, be aware that sharded systems
+   cannot enforce cluster-wide unique indexes *unless* the unique
+   field is in the shard key. Consider the :doc:`/core/indexes` page
+   for more information on indexes and compound indexes.
+
+Sorting
+```````
+
+In sharded systems, the :program:`mongos` performs a merge-sort of all
+sorted query results from the shards. See the :ref:`sharded query
+routing <sharding-query-routing>` and :ref:`index-sort` sections for
+more information.
