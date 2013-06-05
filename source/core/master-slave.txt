@@ -183,29 +183,36 @@ Security
 --------
 
 When running with :setting:`auth` enabled, in
-:term:`master`\-:term:`slave` deployments, you must create a user
-account for the local database on both :program:`mongod`
-instances. Log in, and authenticate to the ``admin`` database on the
-*slave* instance, and then create the ``repl`` user on the ``local``
-database, with the following operation:
+:term:`master`\-:term:`slave` deployments configure a
+:setting:`keyFile` so that slave :program:`mongod` instances can
+authenticate and communicate with the master :program:`mongod`
+instance.
 
-.. code-block:: javascript
+To enable authentication and configure the :setting:`keyFile` add the
+following option to your configuration file:
 
-   use local
-   db.addUser('repl', <replpassword>)
+.. code-block:: cfg
 
-Once created, repeat the operation on the *master* instance.
+   keyFile = /srv/mongodb/keyfile
 
-The slave instance first looks for a user named ``repl`` in the
-:data:`local.system.users <<database>.system.users>` collection. If
-present, the slave uses this user account to authenticate to the
-``local`` database in the ``master`` instance. If the ``repl`` user
-does not exist, the slave instance attempts to authenticate using the
-first user document in the :data:`local.system.users
-<<database>.system.users>` collection.
+.. note::
 
-The ``local`` database works like the ``admin`` database: an account for
-local has access to the entire server.
+   You may chose to set these run-time configuration options using the
+   :option:`--keyFile <mongod --keyFile>` option on the command line.
+
+Setting :setting:`keyFile` enables authentication and specifies a key
+file for the :program:`mongod` instances to use when authenticating to
+each other. The content of the key file is arbitrary but must be the
+same on all members of the deployment can connect to each other.
+
+The key file must be less one kilobyte in size and may only contain
+characters in the base64 set. The key file must not have group or "world"
+permissions on UNIX systems. Use the following command to use the
+OpenSSL package to generate "random" content for use in a key file:
+
+.. code-block:: bash
+
+   openssl rand -base64 753
 
 .. seealso:: :doc:`/security` for more information about security in MongoDB
 
