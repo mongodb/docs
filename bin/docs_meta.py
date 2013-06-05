@@ -3,19 +3,29 @@
 import datetime
 import argparse
 import yaml
+import os.path
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), './')))
+from utils import write_yaml, shell_value, get_commit, get_branch, get_conf_file, ingest_yaml
 
-from utils import write_yaml, shell_value, get_commit, get_branch
+### Configuration and Settings
 
-# branch and release information source
-GIT_REMOTE = { 'upstream': 'mongodb/docs' }
-MANUAL_BRANCH = 'master'
-PUBLISHED_BRANCHES = [ 'master', 'v2.2' ] # PUBLISHED_BRANCHES **must** be ordered from latest to oldest release.
-PUBLISHED_VERSIONS = [ '2.4', '2.2' ]
+conf = ingest_yaml(get_conf_file(__file__, os.path.split(os.path.abspath(__file__))[0]))
 
-STABLE_RELEASE = PUBLISHED_VERSIONS[0]
-UPCOMING_RELEASE = None
+# For backwards compatibility, populating global variables from yaml file. See
+# the docs_meta.yaml file for documentation of these values.
 
-GENERATED_MAKEFILES = [ 'delegated', 'json-output', 'pdfs', 'releases', 'sphinx', 'toc', 'errors', 'links', 'migrations', 'sphinx-migration', 'texinfo']
+GIT_REMOTE = conf['git']['remote']
+MANUAL_BRANCH = conf['git']['branches']['manual']
+PUBLISHED_BRANCHES = conf['git']['branches']['published']
+PUBLISHED_VERSIONS = conf['version']['published']
+
+STABLE_RELEASE = conf['version']['stable']
+UPCOMING_RELEASE = conf['version']['upcoming']
+GENERATED_MAKEFILES = conf['build']['system']['files']
+GENERATED_MAKEFILE_DATA_DIRECTORY = conf['build']['system']['data']
+
+### Functions
 
 def get_manual_path():
     branch = get_branch()
@@ -58,16 +68,8 @@ def output_yaml(fn):
 
     write_yaml(o, fn)
 
-def dynamic_makefiles():
-    return GENERATED_MAKEFILES
-
 def render_paths(fn):
-    paths = {
-        'output': 'build',
-        'includes': 'source/includes',
-        'images': 'source/images',
-        'tools': 'bin',
-    }
+    paths = conf['build']['paths']
     paths['public'] = paths['output'] + '/public'
     paths['branch-output'] = paths['output'] + '/' + get_branch()
     paths['branch-source'] = paths['branch-output'] + '/source'

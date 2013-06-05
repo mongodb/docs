@@ -4,7 +4,7 @@ import os.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
 import utils
-from docs_meta import get_manual_path, MANUAL_BRANCH, render_paths, dynamic_makefiles
+from docs_meta import get_manual_path, MANUAL_BRANCH, render_paths, GENERATED_MAKEFILES
 from makecloth import MakefileCloth
 m = MakefileCloth()
 
@@ -28,7 +28,7 @@ def generate_meta():
     generated_makefiles = []
 
     m.newline()
-    for target in dynamic_makefiles():
+    for target in GENERATED_MAKEFILES:
         file ='/'.join([paths['output'], "makefile." + target])
         cloth = '/'.join([paths['tools'], "makecloth", target + '.py'])
         
@@ -42,8 +42,6 @@ def generate_meta():
     m.newline()
 
     m.target('.PHONY',  generated_makefiles)
-    
-
 
 def main():
     generate_meta()
