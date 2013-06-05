@@ -60,6 +60,14 @@ def expand_tree(path, input_extension='yaml'):
 
     return file_list
 
+def ingest_yaml_list(filename):
+    o = ingest_yaml(filename)
+
+    if isinstance(o, list):
+        return o
+    else:
+        return [o]
+
 def ingest_yaml(filename):
     o = []
     with open(filename, 'r') as f:
@@ -91,8 +99,21 @@ def ingest_json(filename):
 
     return o
 
-def get_conf_file(file):
-    return file.rsplit('.', 1)[0] + '.yaml'
+def ingest_json_list(filename):
+    o = ingest_json(filename)
+
+    if isinstance(o, list):
+        return o
+    else:
+        return [o]
+
+def get_conf_file(file, directory=None):
+    if directory is None:
+        from docs_meta import GENERATED_MAKEFILE_DATA_DIRECTORY as directory
+
+    conf_file = os.path.split(file)[1].rsplit('.', 1)[0] + '.yaml'
+
+    return os.path.join(directory, conf_file)
 
 def build_platform_notification(title, content):
     if sys.platform.startswith('darwin'):
