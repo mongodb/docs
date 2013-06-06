@@ -6,11 +6,14 @@ import os.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 import utils
 from makecloth import MakefileCloth
-from docs_meta import render_paths
+from docs_meta import render_paths, get_manual_path
 
 m = MakefileCloth()
 
 paths = render_paths('dict')
+
+correction = "'s/(index|bfcode)\{(.*!*)*--(.*)\}/\1\{\2-\{-\}\3\}/g'"
+link_correction = "'s%\\\code\{/%\\\code\{http://docs.mongodb.org/" + get_manual_path() + "/%g'"
 
 def pdf_makefile(name, tag):
     name_tagged = '-'.join([name, tag])
@@ -26,7 +29,7 @@ def pdf_makefile(name, tag):
 
     m.section_break(name)
     m.target(target=generated_latex, dependency='latex')
-    m.job('sed $(SED_ARGS_FILE) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) -e $(LATEX_LINK_CORRECTION) ' + generated_latex)
+    m.job('sed $(SED_ARGS_FILE) -e {0} -e {0} -e {1} {2}'.format(correction, link_correction, generated_latex))
     m.msg('[latex]: fixing $@ TeX from the Sphinx output.')
 
     m.target(target=built_tex, dependency=generated_latex)
@@ -41,8 +44,6 @@ def pdf_makefile(name, tag):
     m.job('fab process.input:{0} process.output:{1} process.create_link'.format(name_tagged_branch_pdf, staged_pdf))
     m.msg('[pdf]: created link for ' + staged_pdf)
 
-    m.comment('adding ' + name + '.pdf to the build dependency.')
-
     return staged_pdf
 
 def build_all_pdfs(pdfs):
@@ -54,8 +55,38 @@ def build_all_pdfs(pdfs):
         manual_pdfs.append(pdf)
 
     m.newline()
+
+    m.section_break('pdf build system')
+    makefile_footer()
+
+    m.newline()
+
     m.target(target='.PHONY', dependency='manual-pdfs')
     m.target(target='manual-pdfs', dependency=manual_pdfs)
+    m.target(target='clean-pdfs')
+    m.job('rm -f ' + ' '.join(manual_pdfs), ignore=True)
+
+def makefile_footer():
+    b = 'meta'
+
+    m.var('pdf-latex-command', 'TEXINPUTS=".:{0}/latex/:" pdflatex --interaction batchmode --output-directory {0}/latex/ $(LATEXOPTS)'.format(paths['branch-output']), block=b)
+
+    m.target('pdfs', utils.expand_tree(os.path.join(paths['branch-output'], 'latex'), 'tex'), block=b)
+
+    m.newline()
+    m.target('$(branch-output)/latex/%.tex')
+    m.job('sed $(SED_ARGS_FILE) -e {0} -e {0} -e {1} $@'.format(correction, link_correction))
+
+    m.target('%.pdf', '%.tex', block=b)
+    m.job("$(pdflatex-command) $(LATEXOPTS) '$<' >|$@.log", block=b)
+    m.msg("[pdf]: (1/4) pdflatex $<", block=b)
+    m.job("-makeindex -s $(output)/latex/python.ist '$(basename $<).idx' >>$@.log 2>&1", block=b)
+    m.msg("[pdf]: (2/4) Indexing: $(basename $<).idx", block=b)
+    m.job("$(pdflatex-command) $(LATEXOPTS) '$<' >>$@.log", block=b)
+    m.msg("[pdf]: (3/4) pdflatex $<", block=b)
+    m.job("$(pdflatex-command) $(LATEXOPTS) '$<' >>$@.log", block=b)
+    m.msg("[pdf]: (4/4) pdflatex $<", block=b)
+    m.msg("[pdf]: see '$@.log' for a full report of the pdf build process.", block=b)
 
 def main():
     conf_file = utils.get_conf_file(__file__)

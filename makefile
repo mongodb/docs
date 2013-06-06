@@ -19,7 +19,7 @@ meta.yaml:
 composite-pages.yaml:bin/composite-pages.yaml
 	@cp $< $@
 	@echo [meta]: coppied compsite pages $@ file
-pdfs.yaml:bin/makecloth/pdfs.yaml
+pdfs.yaml:bin/makecloth/data/pdfs.yaml
 	@cp $< $@
 	@echo [meta]: coppied pdf pages $@ file
 source/includes/hash.rst:
@@ -61,27 +61,6 @@ $(branch-output)/sitemap.xml.gz:$(public-branch-output) $(public-branch-output)/
 	@$(PYTHONBIN) bin/sitemap_gen.py --testing --config=conf-sitemap.xml 2>&1 >> $(branch-output)/sitemap-build.log
 	@echo [sitemap]: sitemap build complete at `date`.
 	@echo "[sitemap]: build finished: `date`" >> $(branch-output)/sitemap-build.log
-
-############# PDF generation infrastructure. #############
-LATEX_CORRECTION = "s/(index|bfcode)\{(.*!*)*--(.*)\}/\1\{\2-\{-\}\3\}/g"
-LATEX_LINK_CORRECTION = "s%\\\code\{/%\\\code\{http://docs.mongodb.org/$(current-if-not-manual)/%g"
-pdflatex-command = TEXINPUTS=".:$(branch-output)/latex/:" pdflatex --interaction batchmode --output-directory $(branch-output)/latex/ $(LATEXOPTS)
-
-# Uses 'latex' target to generate latex files.
-pdfs:$(subst .tex,.pdf,$(wildcard $(branch-output)/latex/*.tex))
-$(branch-output)/latex/%.tex:
-	@sed $(SED_ARGS_FILE) -e $(LATEX_CORRECTION) -e $(LATEX_CORRECTION) -e $(LATEX_LINK_CORRECTION) $@
-	@echo [latex]: fixing the Sphinx ouput of '$@'.
-%.pdf:%.tex
-	@$(pdflatex-command) $(LATEXOPTS) '$<' >|$@.log
-	@echo "[pdf]: (1/4) pdflatex $<"
-	@-makeindex -s $(output)/latex/python.ist '$(basename $<).idx' >>$@.log 2>&1
-	@echo "[pdf]: (2/4) Indexing: $(basename $<).idx"
-	@$(pdflatex-command) $(LATEXOPTS) '$<' >>$@.log
-	@echo "[pdf]: (3/4) pdflatex $<"
-	@$(pdflatex-command) $(LATEXOPTS) '$<' >>$@.log
-	@echo "[pdf]: (4/4) pdflatex $<"
-	@echo "[pdf]: see '$@.log' for a full report of the pdf build process."
 
 ############# General purpose targets. Not used (directly) in the production build #############
 tags:
