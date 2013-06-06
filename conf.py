@@ -7,14 +7,13 @@
 
 import sys
 import os.path
-import yaml
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'bin')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'bin/sphinxext')))
-import utils
+from utils import ingest_yaml, ingest_yaml_list
 
-meta = utils.ingest_yaml('meta.yaml')
-pdfs = utils.ingest_yaml_list('pdfs.yaml')
+meta = ingest_yaml('meta.yaml')
+pdfs = ingest_yaml_list('pdfs.yaml')
 
 # -- General configuration ----------------------------------------------------
 
