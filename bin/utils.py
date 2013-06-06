@@ -3,7 +3,7 @@ import yaml
 import sys
 import os
 import subprocess
-import json 
+import json
 import hashlib
 
 class AttributeDict(dict):
@@ -138,13 +138,15 @@ def ingest_yaml(filename):
         o = o[0]
 
     return o
-def ingest_yaml_list(filename):
-    o = ingest_yaml(filename)
 
-    if isinstance(o, list):
-        return o
-    else:
-        return [o]
+def write_yaml(input, filename):
+    with open(filename, 'w') as f:
+        if isinstance(input, list):
+            f.write(yaml.safe_dump_all(input, default_flow_style=False))
+        elif isinstance(input, dict):
+            f.write(yaml.safe_dump(input, default_flow_style=False))
+        else:
+            raise Exception('cannot dump $s objects to yaml.' % str(type(input)))
 
 def ingest_json(filename):
     o = []
