@@ -37,7 +37,7 @@ class BuildConfiguration(AttributeDict):
     def __init__(self, filename):
         conf = ingest_yaml_doc(get_conf_file(filename, os.path.split(os.path.abspath(filename))[0]))
 
-        for key, value in conf.iteritems():
+        for key, value in conf.items():
             if isinstance(value, (list, tuple)):
                 for item in value:
                     if isinstance(item, dict):
@@ -115,16 +115,11 @@ def ingest_yaml_list(filename):
 
 def ingest_yaml_doc(filename):
     with open(filename, 'r') as f:
-        data = yaml.load_all(f)
-
-        o = data.next()
-
         try:
-            data.next()
-        except StopIteration:
-            return o
-        else:
-            raise Exception('{0} has more than one document.'.format(filename))
+            return yaml.load(f)
+        except yaml.composer.ComposerError:
+            raise Exception('"{0}" incorrectly has more than one document.'.format(filename))
+
 
 def ingest_yaml(filename):
     o = []
@@ -167,11 +162,14 @@ def ingest_json_list(filename):
     else:
         return [o]
 
-def get_conf_file(file, directory=None):
+def get_conf_file(filename, directory=None):
     if directory is None:
         from docs_meta import GENERATED_MAKEFILE_DATA_DIRECTORY as directory
 
-    conf_file = os.path.split(file)[1].rsplit('.', 1)[0] + '.yaml'
+    if filename.endswith('yaml'):
+        conf_file = os.path.split(filename)[1]
+    else:
+        conf_file = os.path.split(filename)[1].rsplit('.', 1)[0] + '.yaml'
 
     return os.path.join(directory, conf_file)
 
