@@ -8,8 +8,13 @@
 import sys
 import os.path
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'bin')))
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'bin/sphinxext')))
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+
+from bootstrap import buildsystem
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), buildsystem, 'sphinxext')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), buildsystem, 'bin')))
+
 from utils import ingest_yaml, ingest_yaml_list
 
 meta = ingest_yaml('meta.yaml')
@@ -101,7 +106,7 @@ languages = [
 # -- Options for HTML output ---------------------------------------------------
 
 html_theme = 'mongodb'
-html_theme_path = ['themes']
+html_theme_path = [ os.path.join(buildsystem, 'themes') ]
 html_title = "MongoDB Manual"
 htmlhelp_basename = 'MongoDBdoc'
 
