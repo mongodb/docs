@@ -79,7 +79,7 @@ def user_input():
                         help='the name of the file to generate. Defaults to ".htaccess"')
     parser.add_argument('--match', '-m', action='store_true', default=False,
                         help='generate RedirectMatch if specified, rather than the default Redirect rules.')
-    parser.add_argument('--data', '-d', action='store', default=utils.get_conf_file(__file__),
+    parser.add_argument('--data', '-d', action='store',
                         help='the .yaml file containing the redirect information.')
     return parser.parse_args()
 

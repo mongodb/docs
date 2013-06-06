@@ -34,7 +34,7 @@ $(public-output)/ $(output):
 	@mkdir -p $@
 	@echo [build]: created $@
 $(public-output)/.htaccess:bin/htaccess.yaml bin/htaccess.py $(public-output)/
-	@$(PYTHONBIN) bin/htaccess.py $@
+	@$(PYTHONBIN) bin/htaccess.py $@ --data $<
 $(public-branch-output):$(branch-output)/dirhtml
 	@mkdir -p $@
 	@rsync -a $</ $@/
