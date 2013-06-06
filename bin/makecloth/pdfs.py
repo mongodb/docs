@@ -12,8 +12,9 @@ m = MakefileCloth()
 
 paths = render_paths('dict')
 
-correction = "'s/(index|bfcode)\{(.*!*)*--(.*)\}/\1\{\2-\{-\}\3\}/g'"
-link_correction = "'s%\\\code\{/%\\\code\{http://docs.mongodb.org/" + get_manual_path() + "/%g'"
+correction = "'s/(index|bfcode)\{(.*!*)*--(.*)\}/\\1\{\\2-\{-\}\\3\}/g'"
+link_correction = "'s%\\\\\code\{/%\\\\\code\{http://docs.mongodb.org/" + get_manual_path() + "/%g'"
+pdf_latex_command = 'TEXINPUTS=".:{0}/latex/:" pdflatex --interaction batchmode --output-directory {0}/latex/ $(LATEXOPTS)'.format(paths['branch-output'])
 
 def pdf_makefile(name, tag):
     name_tagged = '-'.join([name, tag])
@@ -65,27 +66,23 @@ def build_all_pdfs(pdfs):
     m.target(target='manual-pdfs', dependency=manual_pdfs)
     m.target(target='clean-pdfs')
     m.job('rm -f ' + ' '.join(manual_pdfs), ignore=True)
+    m.msg('[pdf]: cleaned all compiled pdfs')
 
 def makefile_footer():
     b = 'meta'
 
-    m.var('pdf-latex-command', 'TEXINPUTS=".:{0}/latex/:" pdflatex --interaction batchmode --output-directory {0}/latex/ $(LATEXOPTS)'.format(paths['branch-output']), block=b)
-
     m.target('pdfs', utils.expand_tree(os.path.join(paths['branch-output'], 'latex'), 'tex'), block=b)
 
     m.newline()
-    m.target('$(branch-output)/latex/%.tex')
-    m.job('sed $(SED_ARGS_FILE) -e {0} -e {0} -e {1} $@'.format(correction, link_correction))
-
     m.target('%.pdf', '%.tex', block=b)
-    m.job("$(pdflatex-command) $(LATEXOPTS) '$<' >|$@.log", block=b)
-    m.msg("[pdf]: (1/4) pdflatex $<", block=b)
-    m.job("-makeindex -s $(output)/latex/python.ist '$(basename $<).idx' >>$@.log 2>&1", block=b)
-    m.msg("[pdf]: (2/4) Indexing: $(basename $<).idx", block=b)
-    m.job("$(pdflatex-command) $(LATEXOPTS) '$<' >>$@.log", block=b)
-    m.msg("[pdf]: (3/4) pdflatex $<", block=b)
-    m.job("$(pdflatex-command) $(LATEXOPTS) '$<' >>$@.log", block=b)
-    m.msg("[pdf]: (4/4) pdflatex $<", block=b)
+    m.job("{0} $(LATEXOPTS) '$<' >|$@.log".format(pdf_latex_command), block=b)
+    m.msg("[pdf]: \(1/4\) pdflatex $<", block=b)
+    m.job("makeindex -s $(output)/latex/python.ist '$(basename $<).idx' >>$@.log 2>&1", ignore=True, block=b)
+    m.msg("[pdf]: \(2/4\) Indexing: $(basename $<).idx", block=b)
+    m.job("{0} $(LATEXOPTS) '$<' >|$@.log".format(pdf_latex_command), block=b)
+    m.msg("[pdf]: \(3/4\) pdflatex $<", block=b)
+    m.job("{0} $(LATEXOPTS) '$<' >|$@.log".format(pdf_latex_command), block=b)
+    m.msg("[pdf]: \(4/4\) pdflatex $<", block=b)
     m.msg("[pdf]: see '$@.log' for a full report of the pdf build process.", block=b)
 
 def main():

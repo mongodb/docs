@@ -59,7 +59,7 @@ def output_yaml(fn):
             'date': str(datetime.date.today().year),
             'version_selector': get_versions(),
             'stable': conf.version.stable,
-            'published_branches': conf.version.published,
+            'published_branches': conf.git.branches.published,
             'pdfs': []
     }
 
