@@ -6,51 +6,48 @@ import yaml
 import os.path
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), './')))
-from utils import write_yaml, shell_value, get_commit, get_branch, get_conf_file, ingest_yaml
+from utils import write_yaml, shell_value, get_commit, get_branch, get_conf_file, ingest_yaml, BuildConfiguration
 
 ### Configuration and Settings
 
-conf = ingest_yaml(get_conf_file(__file__, os.path.split(os.path.abspath(__file__))[0]))
+conf = BuildConfiguration(__file__)
 
 # For backwards compatibility, populating global variables from yaml file. See
 # the docs_meta.yaml file for documentation of these values.
 
-GIT_REMOTE = conf['git']['remote']
-MANUAL_BRANCH = conf['git']['branches']['manual']
-PUBLISHED_BRANCHES = conf['git']['branches']['published']
-PUBLISHED_VERSIONS = conf['version']['published']
+GIT_REMOTE = conf.git.remote
+MANUAL_BRANCH = conf.git.branches.manual
+PUBLISHED_BRANCHES = conf.git.branches.published
+PUBLISHED_VERSIONS = conf.version.published
 
-STABLE_RELEASE = conf['version']['stable']
-UPCOMING_RELEASE = conf['version']['upcoming']
-GENERATED_MAKEFILES = conf['build']['system']['files']
-GENERATED_MAKEFILE_DATA_DIRECTORY = conf['build']['system']['data']
+STABLE_RELEASE = conf.version.stable
+UPCOMING_RELEASE = conf.version.upcoming
+GENERATED_MAKEFILES = conf.build.system.files
+GENERATED_MAKEFILE_DATA_DIRECTORY = conf.build.system.data
 
 ### Functions
 
 def get_manual_path():
     branch = get_branch()
 
-    if branch == MANUAL_BRANCH:
-        manual_path = 'manual'
+    if branch == conf.git.branches.manual:
+        return 'manual'
     else:
-        manual_path = branch
-
-    return manual_path
+        return branch
 
 def get_versions():
     o = []
 
-    for version in PUBLISHED_VERSIONS:
+    for version in conf.version.published:
         version_string = str(version)
         path_name = 'v' + version_string
 
-        if version == STABLE_RELEASE:
+        if version == conf.version.stable:
             version_string += ' (current)'
-        elif version == UPCOMING_RELEASE:
+        elif version == conf.version.upcoming:
             version_string += ' (upcoming)'
 
-        version_dict = { 'v': path_name, 't': version_string }
-        o.append(version_dict)
+        o.append( { 'v': path_name, 't': version_string } )
 
     return o
 
@@ -61,8 +58,8 @@ def output_yaml(fn):
             'manual_path': get_manual_path(),
             'date': str(datetime.date.today().year),
             'version_selector': get_versions(),
-            'stable': STABLE_RELEASE,
-            'published_branches': PUBLISHED_BRANCHES,
+            'stable': conf.version.stable,
+            'published_branches': conf.version.published,
             'pdfs': []
     }
 
@@ -97,9 +94,9 @@ def main():
         print("MongoDB Manual:" + BREAK +
               "     Commit: " + get_commit() + BREAK +
               "     Branch: " + get_branch() + BREAK +
-              "     Manual: " + MANUAL_BRANCH + BREAK +
-              "     Versions: " + str(PUBLISHED_VERSIONS) + BREAK +
-              "     Stable: " + str(STABLE_RELEASE) + BREAK +
+              "     Manual: " + conf.git.branches.manual + BREAK +
+              "     Versions: " + str(conf.version.published) + BREAK +
+              "     Stable: " + str(conf.version.stable) + BREAK +
               "     Year: " + str(datetime.date.today().year) + BREAK +
               "     Path: " + get_manual_path() + BREAK +
               "     Version UI: " + str(get_versions()))
@@ -108,11 +105,11 @@ def main():
     elif ui.action == 'commit':
         print(get_commit())
     elif ui.action == 'stable':
-        print(STABLE_RELEASE)
+        print(conf.version.stable)
     elif ui.action == 'versions':
-        print(PUBLISHED_VERSIONS)
+        print(conf.version.published)
     elif ui.action == 'manual':
-        print(MANUAL_BRANCH)
+        print(conf.git.branches.manual)
     elif ui.action == 'current-or-manual':
         print(get_manual_path())
     elif ui.action == 'yaml':
