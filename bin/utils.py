@@ -6,6 +6,51 @@ import subprocess
 import json 
 import hashlib
 
+class AttributeDict(dict):
+    def __init__(self, value=None):
+        if value is None:
+            pass
+        elif isinstance(value, dict):
+            for key in value:
+                self.__setitem__(key, value[key])
+        else:
+            raise TypeError, 'expected dict'
+
+    def __setitem__(self, key, value):
+        if isinstance(value, dict) and not isinstance(value, AttributeDict):
+            value = AttributeDict(value)
+        dict.__setitem__(self, key, value)
+
+    def __getitem__(self, key):
+        NotFound = object()
+        found = self.get(key, NotFound)
+        if found is NotFound:
+            err = 'key named "{0}" does not exist.'.format(key)
+            raise AttributeError(err)
+        else:
+            return found
+
+    __setattr__ = __setitem__
+    __getattr__ = __getitem__
+
+class BuildConfiguration(AttributeDict):
+    def __init__(self, filename):
+        conf = ingest_yaml_doc(get_conf_file(filename, os.path.split(os.path.abspath(filename))[0]))
+
+        for key, value in conf.iteritems():
+            if isinstance(value, (list, tuple)):
+                for item in value:
+                    if isinstance(item, dict):
+                        setattr(self, key, AttributeDict(item))
+                    else:
+                        setattr(self, key, value)
+            else:
+                if isinstance(value, dict):
+                    setattr(self, key, AttributeDict(value))
+                else:
+                    setattr(self, key, value)
+
+
 def md5_file(file, block_size=2**20):
     md5 = hashlib.md5()
 
@@ -67,6 +112,19 @@ def ingest_yaml_list(filename):
         return o
     else:
         return [o]
+
+def ingest_yaml_doc(filename):
+    with open(filename, 'r') as f:
+        data = yaml.load_all(f)
+
+        o = data.next()
+
+        try:
+            data.next()
+        except StopIteration:
+            return o
+        else:
+            raise Exception('{0} has more than one document.'.format(filename))
 
 def ingest_yaml(filename):
     o = []

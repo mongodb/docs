@@ -27,7 +27,7 @@ def build_branch(logfile, branch='master', target='publish', wait=False):
 
 env.logfile = 'build/docs-staging-delegated.log'
 env.builders = ['publish', 'push', 'stage', 'json-output']
-env.builders.extend(ingest_yaml(os.path.join(os.path.dirname(__file__), '../bin/makecloth/sphinx.yaml'))['builders'])
+env.builders.extend(ingest_yaml(os.path.join(os.path.dirname(__file__), '../bin/makecloth/data/sphinx.yaml'))['builders'])
 env.branch = get_branch()
 env.wait = False
 env.repo = GitRepoManager()
