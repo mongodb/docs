@@ -13,6 +13,13 @@ this documentation locally if you already have `Sphinx
      cd docs-ecosystem/
      make html
 
+To build on Windows (using Cygwin):
+
+- Ensure you have python installed
+- install Sphinx using ``easy_install -U Sphinx``
+- install pyyamml using ``pip install pyyaml``
+- Build the docs using ``sphinx-build  -b html -d build/doctrees-html -c ./ source build/html``
+
 Visit ``docs/mongodb/build/html/index.html`` to view the current state
 of the documentation. You may also wish to install `Pygments
 <http://pygments.org>`_ to provide syntax highlighting for code
