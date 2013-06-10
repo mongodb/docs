@@ -1,0 +1,120 @@
+==================
+Generate Test Data
+==================
+
+.. default-domain:: mongodb
+
+This tutorial describes how to quickly generate test data for use in
+learning or testing MongoDB.
+
+Insert Multiple Documents Using a For Loop
+------------------------------------------
+
+You can add documents to a new or existing collection by using a JavaScript
+``for`` loop run from the :program:`mongo` shell.
+
+1. From the :program:`mongo` shell, insert new documents into the
+   ``testData`` collection using the following ``for`` loop. If the
+   ``testData`` collection does not exist, MongoDB creates the
+   collection implicitly.
+
+   .. code-block:: javascript
+
+      for (var i = 1; i <= 25; i++) db.testData.insert( { x : i } )
+
+#. Use find() to query the collection:
+
+   .. code-block:: javascript
+
+      db.testData.find()
+
+   The :program:`mongo` shell displays the first 20 documents in the
+   collection. Your :doc:`ObjectId </reference/object-id>` values will be
+   different:
+
+   .. code-block:: javascript
+
+      { "_id" : ObjectId("51a7dc7b2cacf40b79990be6"), "x" : 1 }
+      { "_id" : ObjectId("51a7dc7b2cacf40b79990be7"), "x" : 2 }
+      { "_id" : ObjectId("51a7dc7b2cacf40b79990be8"), "x" : 3 }
+      { "_id" : ObjectId("51a7dc7b2cacf40b79990be9"), "x" : 4 }
+      { "_id" : ObjectId("51a7dc7b2cacf40b79990bea"), "x" : 5 }
+      { "_id" : ObjectId("51a7dc7b2cacf40b79990beb"), "x" : 6 }
+      { "_id" : ObjectId("51a7dc7b2cacf40b79990bec"), "x" : 7 }
+      { "_id" : ObjectId("51a7dc7b2cacf40b79990bed"), "x" : 8 }
+      { "_id" : ObjectId("51a7dc7b2cacf40b79990bee"), "x" : 9 }
+      { "_id" : ObjectId("51a7dc7b2cacf40b79990bef"), "x" : 10 }
+      { "_id" : ObjectId("51a7dc7b2cacf40b79990bf0"), "x" : 11 }
+      { "_id" : ObjectId("51a7dc7b2cacf40b79990bf1"), "x" : 12 }
+      { "_id" : ObjectId("51a7dc7b2cacf40b79990bf2"), "x" : 13 }
+      { "_id" : ObjectId("51a7dc7b2cacf40b79990bf3"), "x" : 14 }
+      { "_id" : ObjectId("51a7dc7b2cacf40b79990bf4"), "x" : 15 }
+      { "_id" : ObjectId("51a7dc7b2cacf40b79990bf5"), "x" : 16 }
+      { "_id" : ObjectId("51a7dc7b2cacf40b79990bf6"), "x" : 17 }
+      { "_id" : ObjectId("51a7dc7b2cacf40b79990bf7"), "x" : 18 }
+      { "_id" : ObjectId("51a7dc7b2cacf40b79990bf8"), "x" : 19 }
+      { "_id" : ObjectId("51a7dc7b2cacf40b79990bf9"), "x" : 20 }
+
+.. _getting-started-cursor-exhaustion:
+
+#. The :method:`~db.collection.find()` returns a cursor. To iterate
+   the cursor and return more documents use the ``it`` operation in
+   the :program:`mongo` shell. The :program:`mongo` shell will exhaust
+   the cursor, and return the following documents:
+
+   .. code-block:: javascript
+
+      { "_id" : ObjectId("51a7dce92cacf40b79990bfc"), "x" : 21 }
+      { "_id" : ObjectId("51a7dce92cacf40b79990bfd"), "x" : 22 }
+      { "_id" : ObjectId("51a7dce92cacf40b79990bfe"), "x" : 23 }
+      { "_id" : ObjectId("51a7dce92cacf40b79990bff"), "x" : 24 }
+      { "_id" : ObjectId("51a7dce92cacf40b79990c00"), "x" : 25 }
+
+Insert Multiple Documents with a Custom Shell Function
+------------------------------------------------------
+
+You can create a custom function to generate the above data. The custom
+``insertData()`` JavaScript function, shown here, creates new data for
+use in testing or training by either creating a new collection or
+appending data to an existing collection:
+
+.. code-block:: javascript
+
+   function insertData(dbName, colName, num) {
+
+     var db = db.getSiblingDB(dbName);
+     var col = db.getCollection(colName);
+
+     for (i = 0; i < num; i++) {
+       col.insert({x:i});
+     }
+
+     print(col.count());
+
+   }
+
+The ``insertData()`` function takes three parameters: a database, a new
+or existing collection, and the number of documents to create.
+The function creates documents with an ``x`` field that is set to an
+incremented integer, as in the following example documents:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId("51a4da9b292904caffcff6eb"), "x" : 0 }
+   { "_id" : ObjectId("51a4da9b292904caffcff6ec"), "x" : 1 }
+   { "_id" : ObjectId("51a4da9b292904caffcff6ed"), "x" : 2 }
+
+Store the function in your :ref:`.mongorc.js <mongo-mongorc-file>` file.
+The :program:`mongo` shell loads the function for you every time you
+start a session.
+
+.. example:: Specify database name, collection name, and the number of
+   documents to insert as arguments to ``insertData()``.
+
+   .. code-block:: javascript
+
+      insertData("test", "testData", 400)
+
+   This operation inserts 400 documents into the ``testData`` collection
+   in the ``test`` database. If the collection and database do not
+   exist, MongoDB creates them implicitly before inserting documents.
