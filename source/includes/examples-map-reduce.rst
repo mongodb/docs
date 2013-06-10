@@ -134,7 +134,7 @@ calculating the average quantity per order for each ``sku`` value:
 
    .. code-block:: javascript
 
-      var reduceFunc2 = function(keySKU, countObjVals) {
+      var reduceFunction2 = function(keySKU, countObjVals) {
                            reducedVal = { count: 0, qty: 0 }; 
 
                            for (var idx = 0; idx < countObjVals.length; idx++) {
@@ -152,7 +152,7 @@ calculating the average quantity per order for each ``sku`` value:
 
    .. code-block:: javascript
 
-      var finalizeFunc2 = function (key, reducedVal) {
+      var finalizeFunction2 = function (key, reducedVal) {
 
                              reducedVal.avg = reducedVal.qty/reducedVal.count;
 
@@ -166,14 +166,14 @@ calculating the average quantity per order for each ``sku`` value:
 
    .. code-block:: javascript
 
-      db.orders.mapReduce( mapFunc2,
-                           reduceFunc2,
+      db.orders.mapReduce( mapFunction2,
+                           reduceFunction2,
                            {
                              out: { merge: "map_reduce_example" }, 
                              query: { ord_date: 
                                         { $gt: new Date('01/01/2012') } 
                                     }, 
-                             finalize: finalizeFunc2
+                             finalize: finalizeFunction2
                            }
                          )
 
@@ -182,7 +182,6 @@ calculating the average quantity per order for each ``sku`` value:
    Date(01/01/2012)``. Then it output the results to a collection
    ``map_reduce_example``. If the ``map_reduce_example`` collection
    already exists, the operation will merge the existing contents with
-   the results of this map-reduce operation:
+   the results of this map-reduce operation.
 
 .. map-reduce-counts-end
-
