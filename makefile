@@ -10,6 +10,9 @@ include $(tools)/makefiles/makefile.compatibility
 build/makefile.meta:$(output)/docs-tools/makecloth/meta.py
 	@mkdir -p $(output)
 	@$(PYTHONBIN) $< $@
+meta.yaml:
+	@fab process.output:$@ process.meta
+	@echo [meta]: regenerated $@
 
 noop:
 $(output)/makefile.%:bin/makecloth/%.py bin/makecloth/%.yaml bin/makecloth/__init__.py $(output)
@@ -88,9 +91,9 @@ _publish:$(publish-output) $(publish-dependency)
 ########## html migration ##########
 htaccess:build/public/saas/.htaccess build/public/hosted/.htaccess
 build/public/saas/.htaccess:bin/htaccess-saas.yaml bin/htaccess.py
-	@$(PYTHONBIN) bin/htaccess.py $@ --data $<
+	@$(PYTHONBIN) $(tools)/bin/htaccess.py $@ --data $<
 build/public/hosted/.htaccess:bin/htaccess-hosted.yaml bin/htaccess.py 
-	@$(PYTHONBIN) bin/htaccess.py $@ --data $<
+	@$(PYTHONBIN) $(tools)/bin/htaccess.py $@ --data $<
 
 $(public-output) $(output):
 	@mkdir -p $@
@@ -124,31 +127,6 @@ $(publish-output)/single/genindex.html:$(publish-output)/single/ $(branch-output
 $(branch-output)/dirhtml/genindex/index.html:$(branch-output)/dirhtml/
 $(branch-output)/dirhtml/:dirhtml
 $(branch-output)/singlehtml/:singlehtml
-
-########## pdf generation ##########
-
-pdflatex-command = TEXINPUTS=".:$(branch-output)/latex/:" pdflatex --interaction batchmode --output-directory $(branch-output)/latex/ $(LATEXOPTS)
-$(branch-output)/latex/mms.tex:latex
-$(branch-output)/latex/mms-manual.pdf:$(branch-output)/latex/mms-manual.tex
-$(branch-output)/latex/mms-manual.tex:$(branch-output)/latex/mms.tex
-	@$(PYTHONBIN) bin/copy-if-needed.py -i $< -o $@ -b pdf
-$(publish-output)/mms-manual.pdf:$(branch-output)/latex/mms-manual.pdf
-	@cp $< $@
-	@echo [build]: migrated $@
-
-%.pdf:%.tex
-	@echo [pdf]: pdf compilation of $@, started at `date`.
-	@touch $(basename $@)-pdflatex.log
-	@-$(pdflatex-command) '$<' >> $(basename $@)-pdflatex.log
-	@echo [pdf]: \(1/4\) pdflatex $<
-	@-makeindex -s $(branch-output)/latex/python.ist '$(basename $<).idx' >> $(basename $@)-pdflatex.log 2>&1
-	@echo [pdf]: \(2/4\) Indexing: $(basename $<).idx
-	@$(pdflatex-command) '$<' >> $(basename $@)-pdflatex.log
-	@echo [pdf]: \(3/4\) pdflatex $<
-	@$(pdflatex-command) '$<' >> $(basename $@)-pdflatex.log
-	@echo [pdf]: \(4/4\) pdflatex $<
-	@echo [pdf]: see '$(basename $@)-pdflatex.log' for a full report of the pdf build process.
-	@echo [pdf]: pdf compilation of $@, complete at `date`.
 
 ########## system #########################
 clean:
