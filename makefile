@@ -2,11 +2,16 @@
 MAKEFLAGS += -r -j --no-print-directory
 .DEFAULT_GOAL = all
 output = build
+build-tools = bin
+tools = $(output)/docs-tools
 
-include bin/makefile.push
-include bin/makefile.compatibility
--include $(output)/makefile.sphinx
+include $(tools)/makefiles/makefile.compatibility
+-include $(output)/makefile.meta
+build/makefile.meta:$(output)/docs-tools/makecloth/meta.py
+	@mkdir -p $(output)
+	@$(PYTHONBIN) $< $@
 
+noop:
 $(output)/makefile.%:bin/makecloth/%.py bin/makecloth/%.yaml bin/makecloth/__init__.py $(output)
 	@$(PYTHONBIN) $< $@
 
@@ -25,7 +30,6 @@ publish-output = build/public/hosted/$(current-branch)
 public-output = build/public/hosted
 publish-dependency = $(public-output)/current
 build-meta += -t hosted
-
 generate-source:
 	@mkdir -p $(branch-output)/source
 	@rsync --recursive --times --delete source/ $(branch-output)/source/
@@ -42,7 +46,6 @@ conf-path = conf_base.py
 branch-output = build/saas
 publish-output = build/public/saas
 build-meta += -t saas
-
 generate-source:
 	@mkdir -p $(branch-output)/source/
 	@rsync --recursive --times --delete source/ $(branch-output)/source
@@ -65,24 +68,24 @@ help:
 	@echo "	 push-mms	to stage and deploy mms-saas documents."
 	@echo "	 <sphinx>	all standard sphinx build targets are avlible for testing."
 
-all:hosted saas
+publish all:hosted saas
 hosted:
-	@$(MAKE) EDITION=$@ dirhtml publish build/public/hosted/.htaccess
+	@$(MAKE) EDITION=$@ generate-source dirhtml _publish build/public/hosted/.htaccess
 	@echo [build]: $@ edition complete
 saas:setup
-	@$(MAKE) EDITION=$@ dirhtml publish build/public/saas/.htaccess
+	@$(MAKE) EDITION=$@ generate-source dirhtml _publish build/public/saas/.htaccess
 	@echo [build]: $@ edition complete
+setup:
+	@mkdir -p $(public-output) $(publish-output) $(branch-output) $(branch-output)/source 
 
 ########## dependency lists ##########
 
 HTML_OUTPUT = $(publish-output)/ $(publish-output)/single/ $(publish-output)/single/genindex.html
 PDF_OUTPUT = $(publish-output)/mms-manual.pdf
 $(publish-output): $(HTML_OUTPUT) $(PDF_OUTPUT)
-publish:$(publish-output) $(publish-dependency)
+_publish:$(publish-output) $(publish-dependency)
 
 ########## html migration ##########
-setup:
-	@mkdir -p $(public-output) $(publish-output) $(branch-output) $(branch-output)/source 
 htaccess:build/public/saas/.htaccess build/public/hosted/.htaccess
 build/public/saas/.htaccess:bin/htaccess-saas.yaml bin/htaccess.py
 	@$(PYTHONBIN) bin/htaccess.py $@ --data $<
