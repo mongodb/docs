@@ -3,7 +3,7 @@ MAKEFLAGS += -j -r --no-print-directory
 include bin/makefile.bootstrap
 
 ############# Meta targets that control the build and publication process. #############
-.PHONY: setup source/about.txt source/includes/hash.rst $(public-branch-output)/release.txt meta.yaml
+.PHONY: setup source/about.txt source/includes/hash.rst $(public-branch-output)/release.txt
 
 ############# Targets that define the production build process #############
 # Generating files with build specific info.
@@ -55,15 +55,3 @@ $(branch-output)/sitemap.xml.gz:$(public-branch-output) $(public-branch-output)/
 tags:
 	@etags -I --language=none --regex=@bin/etags.regexp `find source -name "*.txt" | grep -v "\.#"`
 	@echo "[dev]: etags generation complete."
-test:
-	@echo "[dtf]: running test suite -- `date`"
-	@dtf --casedir dtf/cases/ --testdir dtf/
-	@echo "[dtf]: test suite complete -- `date`"
-dtf-verbose:
-	@echo "[dtf]: running test suite -- `date`"
-	@dtf --casedir dtf/cases/ --testdir dtf/ -v
-	@echo "[dtf]: test suite complete -- `date`"
-dtf-passing:
-	@echo "[dtf]: running test suite -- `date`"
-	@dtf --casedir dtf/cases/ --testdir dtf/ -p
-	@echo "[dtf]: test suite complete -- `date`"
