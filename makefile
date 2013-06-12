@@ -1,35 +1,25 @@
 ######### makefile set up, includes, and generation ###########
 MAKEFLAGS += -r -j --no-print-directory
-.DEFAULT_GOAL = all
+.DEFAULT_GOAL = publish
 output = build
 build-tools = bin
 tools = $(output)/docs-tools
 
 include $(tools)/makefiles/makefile.compatibility
 -include $(output)/makefile.meta
+noop:
 build/makefile.meta:$(output)/docs-tools/makecloth/meta.py
 	@mkdir -p $(output)
 	@$(PYTHONBIN) $< $@
 
-noop:
-$(output)/makefile.%:bin/makecloth/%.py bin/makecloth/%.yaml bin/makecloth/__init__.py $(output)
-	@$(PYTHONBIN) $< $@
-
 ########## build system configuration and variables ##########
-
-primary-branch = master
-current-branch := $(shell git symbolic-ref HEAD 2>/dev/null | cut -d "/" -f "3" )
-last-commit := $(shell git rev-parse --verify HEAD)
 timestamp := $(shell date +%Y%m%d%H%M)
 
 ifeq ($(EDITION),hosted)
 build-type = hosted
-conf-path = conf_base.py
-branch-output = build/hosted/$(current-branch)
-publish-output = build/public/hosted/$(current-branch)
-public-output = build/public/hosted
+branch-output = build/$(build-type)/$(current-branch)
+publish-output = build/public/$(build-type)/$(current-branch)
 publish-dependency = $(public-output)/current
-build-meta += -t hosted
 generate-source:
 	@mkdir -p $(branch-output)/source
 	@rsync --recursive --times --delete source/ $(branch-output)/source/
@@ -42,10 +32,7 @@ generate-source:
 	@echo [sphinx-prep]: INFO - Build in progress past critical phase.
 else
 build-type = saas
-conf-path = conf_base.py
-branch-output = build/saas
-publish-output = build/public/saas
-build-meta += -t saas
+branch-output = build/$(build-type)
 generate-source:
 	@mkdir -p $(branch-output)/source/
 	@rsync --recursive --times --delete source/ $(branch-output)/source
@@ -56,16 +43,17 @@ generate-source:
 	@echo [sphinx-prep]: INFO - Build in progress past critical phase.
 endif
 
+public-output = build/public/$(build-type)
+build-meta += -t mms $(build-type)
+
 ########## interaction and control ##########
 .PHONY: help hosted saas publish all
 help:
 	@echo "Please use \`make <target>' where <target> is one of:"
-	@echo "	 all		to stage the all mms documents. (default.)"
+	@echo "	 publish        to stage the all mms documents. (default.)"
 	@echo "	 hosted		to stage the mms-hosted documents."
 	@echo "	 saas		to stage the mms saas version documents."
 	@echo "	 push		to stage and deploy all mmms documents."
-	@echo "	 push-hosted	to stage and deploy mms-hosted documents."
-	@echo "	 push-mms	to stage and deploy mms-saas documents."
 	@echo "	 <sphinx>	all standard sphinx build targets are avlible for testing."
 
 publish all:hosted saas
@@ -96,8 +84,8 @@ $(public-output) $(output):
 	@mkdir -p $@
 	@echo [build]: created $@
 $(public-output)/current:$(public-output)
-	@ln -s $(primary-branch)
-	@mv $(primary-branch) $@
+	@ln -s $(manual-branch)
+	@mv $(manual-branch) $@
 	@echo [build]: created and migrated $@
 $(publish-output)/:$(branch-output)/dirhtml/
 	@mkdir -p $@
