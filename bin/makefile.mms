@@ -13,7 +13,7 @@ public-output = build/public/$(build-type)
 branch-output = build/$(build-type)
 publish-output = $(public-output)/mms-manual.pdf $(public-output)/mms-monitoring-manual.pdf $(public-output)/mms-backup-manual.pdf 
 publish-output += $(public-output) $(public-output)/single
-generate-source:generated-source-saas
+generate-source:generate-source-saas
 endif
 
 generate-source-hosted:

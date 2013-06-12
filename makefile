@@ -5,7 +5,6 @@ output = build
 build-tools = bin
 tools = $(output)/docs-tools
 
-include $(tools)/makefiles/makefile.compatibility
 -include $(output)/makefile.meta
 noop:
 build/makefile.meta:$(output)/docs-tools/makecloth/meta.py
