@@ -3,7 +3,7 @@ MAKEFLAGS += -j -r --no-print-directory
 include bin/makefile.bootstrap
 
 ############# Meta targets that control the build and publication process. #############
-.PHONY: setup source/about.txt source/includes/hash.rst $(public-branch-output)/release.txt meta.yaml
+.PHONY: setup source/about.txt source/includes/hash.rst $(public-branch-output)/release.txt
 
 ############# Targets that define the production build process #############
 # Generating files with build specific info.
