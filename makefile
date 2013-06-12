@@ -21,18 +21,6 @@ $(public-branch-output)/release.txt:$(public-branch-output)
 $(public-output)/ $(output):
 	@mkdir -p $@
 	@echo [build]: created $@
-$(public-branch-output):$(branch-output)/dirhtml
-	@mkdir -p $@
-	@rsync -a $</ $@/
-	@rm -rf $(public-branch-output)/meta/reference $(public-branch-output)/meta/use-cases
-	@touch $@
-	@echo [build]: migrated '$</*' to '$@'
-$(public-branch-output)/single:$(branch-output)/singlehtml
-	@mkdir -p $@
-	@rsync -a $</ $@/
-	@rm -f $@/contents.html
-	@touch $@
-	@echo [build]: migrated '$</*' to '$@'
 $(public-branch-output)/single/index.html:$(branch-output)/singlehtml/contents.html
 	@cp $< $@
 	@sed $(SED_ARGS_FILE) -e 's/href="contents.html/href="index.html/g' \
