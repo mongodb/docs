@@ -3,20 +3,23 @@
 .. _sharding-config-server:
 .. _sharded-cluster-config-server:
 
-========================
-Sharded Cluster Metadata
-========================
+==============
+Config Servers
+==============
 
 .. default-domain:: mongodb
 
-Config servers are special :program:`mongod` instances that maintain the
-sharded cluster metadata in the config database. A sharded cluster
-operates with a group of *three* config servers that use a two-phase
-commit process that ensures immediate consistency and reliability.
-Config servers *do not* run as replica sets.
+Config servers are special :program:`mongod` instances that store the
+metadata for a sharded cluster. A production sharded cluster has exactly
+three config servers.
 
-For testing purposes you may deploy a cluster with a single
-config server, but this is not recommended for production.
+Config servers that use a two-phase commit process that ensures
+immediate consistency and reliability. Config servers *do not* run as
+replica sets.
+
+For testing purposes you may deploy a cluster with a single config
+server. But to ensure redundancy and safety in production, you should
+always use three.
 
 All config servers must be available on initial setup
 of a sharded cluster. Each :program:`mongos` instance must be able
@@ -36,15 +39,19 @@ to write to the ``config.version`` collection.
 .. _sharding-internals-config-database:
 
 Config Database
-~~~~~~~~~~~~~~~
+---------------
 
-Sharded cluster metadata is contained in the
-:doc:`/reference/config-database` and comprises information about the
-:term:`sharded cluster's <sharded cluster>` partitioned data sets. The
-config database stores the relationship between :term:`chunks <chunk>`
-and where they reside within a :term:`sharded cluster`. Without a
-config database, the :program:`mongos` instances would be unable to
-route queries or write operations within the cluster.
+Config servers store the cluster metadata in the
+:doc:`/reference/config-database`. The :program:`mongos` instances cache
+this data and use it to determine which :term:`shard` is responsible for
+which :term:`chunk`.
+
+Sharded cluster metadata comprises information about the :term:`sharded
+cluster's <sharded cluster>` partitioned data sets. The config database
+stores the relationship between :term:`chunks <chunk>` and where they
+reside within a :term:`sharded cluster`. Without a config database, the
+:program:`mongos` instances would be unable to route queries or write
+operations within the cluster.
 
 .. important:: Always back up the ``config`` database before
    performing any maintenance on the config server.
@@ -76,7 +83,7 @@ collections and their role in sharded clusters.
 
 
 Read and Write Operations on Config Servers
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------------
 
 The load on configuration servers is small because each
 :program:`mongos` instance maintains a cached copy of the configuration

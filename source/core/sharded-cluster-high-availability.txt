@@ -11,62 +11,60 @@ has no single point of failure. This section introduces the
 availability concerns for MongoDB deployments and highlights potential
 failure scenarios and available resolutions.
 
-Availability Considerations
----------------------------
+Application Servers or :program:`mongos` Instances Become Unavailable
+---------------------------------------------------------------------
 
-- Application servers or :program:`mongos` instances become unavailable.
+If each application server has its own :program:`mongos` instance, other
+application servers can continue access the database. Furthermore,
+:program:`mongos` instances do not maintain persistent state, and they
+can restart and become unavailable without loosing any state or data.
+When a :program:`mongos` instance starts, it retrieves a copy of the
+:term:`config database` and can begin routing queries.
 
-  If each application server has its own :program:`mongos` instance,
-  other application servers can continue access the
-  database. Furthermore, :program:`mongos` instances do not maintain
-  persistent state, and they can restart and become unavailable
-  without loosing any state or data. When a :program:`mongos` instance
-  starts, it retrieves a copy of the :term:`config database` and can
-  begin routing queries.
+A Single :program:`mongod` Becomes Unavailable in a Shard
+---------------------------------------------------------
 
-- A single :program:`mongod` becomes unavailable in a shard.
+:doc:`Replica sets </replication>` provide high availability for shards.
+If the unavailable :program:`mongod` is a :term:`primary`, then the
+replica set will :ref:`elect <replica-set-elections>` a new primary. If
+the unavailable :program:`mongod` is a :term:`secondary`, and it
+disconnects the primary and secondary will continue to hold all data. In
+a three member replica set, even if a single member of the set
+experiences catastrophic failure, two other members have full copies of
+the data. [#recovery-window]_
 
-  :doc:`Replica sets </replication>` provide high availability for
-  shards. If the unavailable :program:`mongod` is a :term:`primary`,
-  then the replica set will :ref:`elect <replica-set-elections>` a new
-  primary. If the unavailable :program:`mongod` is a
-  :term:`secondary`, and it disconnects the primary and secondary will
-  continue to hold all data. In a three member replica set, even if a
-  single member of the set experiences catastrophic failure, two other
-  members have full copies of the data. [#recovery-window]_
+Always investigate availability interruptions and failures. If a system
+is unrecoverable, replace it and create a new member of the replica set
+as soon as possible to replace the lost redundancy.
 
-  Always investigate availability interruptions and failures. If a
-  system is unrecoverable, replace it and create a new member of the
-  replica set as soon as possible to replace the lost redundancy.
+All Members of a Replica Set Become Unavailable
+-----------------------------------------------
 
-- All members of a replica set become unavailable.
+If all members of a replica set within a shard are unavailable, all data
+held in that shard is unavailable. However, the data on all other shards
+will remain available, and it's possible to read and write data to the
+other shards. However, your application must be able to deal with
+partial results, and you should investigate the cause of the
+interruption and attempt to recover the shard as soon as possible.
 
-  If all members of a replica set within a shard are unavailable, all
-  data held in that shard is unavailable. However, the data on all
-  other shards will remain available, and it's possible to read and
-  write data to the other shards. However, your application must be
-  able to deal with partial results, and you should investigate the
-  cause of the interruption and attempt to recover the shard as soon
-  as possible.
+One or Two Config Databases Become Unavailable
+----------------------------------------------
 
-- One or two :term:`config database` become unavailable.
+Three distinct :program:`mongod` instances provide the :term:`config
+database` using a special two-phase commits to maintain consistent state
+between these :program:`mongod` instances. Cluster operation will
+continue as normal but :ref:`chunk migration <sharding-balancing>` and
+the cluster can create no new :ref:`chunk splits
+<sharding-procedure-create-split>`. Replace the config server as soon as
+possible. If all multiple config databases become unavailable, the
+cluster can become inoperable.
 
-  Three distinct :program:`mongod` instances provide the :term:`config
-  database` using a special two-phase commits to maintain consistent
-  state between these :program:`mongod` instances. Cluster
-  operation will continue as normal but :ref:`chunk migration
-  <sharding-balancing>` and the cluster can create no new :ref:`chunk
-  splits <sharding-procedure-create-split>`. Replace the config server
-  as soon as possible. If all multiple config databases become
-  unavailable, the cluster can become inoperable.
-
-  .. include:: /includes/note-config-server-startup.rst
+.. include:: /includes/note-config-server-startup.rst
 
 .. [#recovery-window] If an unavailable secondary becomes available
    while it still has current oplog entries, it can catch up to the
    latest state of the set using the normal :term:`replication process
    <sync>`, otherwise it must perform an :term:`initial sync`.
-
 
 Shard Keys and Cluster Availability
 -----------------------------------
@@ -101,4 +99,3 @@ Furthermore:
 In essence, this concern for reliability simply underscores the
 importance of choosing a shard key that isolates query operations to a
 single shard.
-
