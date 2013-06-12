@@ -10,9 +10,6 @@ include $(tools)/makefiles/makefile.compatibility
 build/makefile.meta:$(output)/docs-tools/makecloth/meta.py
 	@mkdir -p $(output)
 	@$(PYTHONBIN) $< $@
-meta.yaml:
-	@fab process.output:$@ process.meta
-	@echo [meta]: regenerated $@
 
 noop:
 $(output)/makefile.%:bin/makecloth/%.py bin/makecloth/%.yaml bin/makecloth/__init__.py $(output)
