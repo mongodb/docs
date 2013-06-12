@@ -10,9 +10,6 @@ include bin/makefile.bootstrap
 setup:source/includes/hash.rst composite-pages.yaml meta.yaml
 	@mkdir -p $(public-branch-output) $(public-output)
 	@echo [build]: created $(public-branch-output) and $(public-output)
-meta.yaml:
-	@fab process.output:$@ process.meta
-	@echo [meta]: regenerated $@
 source/includes/hash.rst:
 	@$(PYTHONBIN) $(tools)/rstcloth/hash.py $@
 	@echo [build]: \(re\)generated $@.
