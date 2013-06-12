@@ -27,14 +27,10 @@ help:
 
 publish all:hosted saas
 hosted saas:setup
-	@$(MAKE) EDITION=$@ generate-source dirhtml-$@ _publish build/public/$@/.htaccess
+	@$(MAKE) EDITION=$@ generate-source dirhtml-$@ build/public/$@/.htaccess $(public-output) $(publish-output)
 	@echo [build]: $@ edition complete
 setup:
 	@mkdir -p $(public-output) $(branch-output) $(branch-output)/source
-
-########## dependency lists ##########
-
-_publish:$(public-output) $(publish-output)
 
 ########## html migration ##########
 htaccess:build/public/saas/.htaccess build/public/hosted/.htaccess
