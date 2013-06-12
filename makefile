@@ -9,7 +9,7 @@ tools = $(output)/docs-tools
 noop:
 build/makefile.meta:$(output)/docs-tools/makecloth/meta.py
 	@mkdir -p $(output)
-	@$(PYTHONBIN) $< $@
+	@python $< $@
 
 ########## build system configuration and variables ##########
 timestamp := $(shell date +%Y%m%d%H%M)
