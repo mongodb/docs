@@ -8,43 +8,18 @@ Sharded Cluster Query Routing
 
 .. default-domain:: mongodb
 
-MongoDB provides the :program:`mongos` program to handle query routing
-in a sharded cluster.
-
-:program:`mongos` routes queries in a sharded environment, and a
-sharded cluster has at least one :program:`mongos` instance, although
-typically clusters have many :program:`mongos` instances.
-
-These instance direct queries from the application layer to the
-shards that hold the data. The :program:`mongos` instances have no
-persistent state or data files and only cache metadata in RAM from
-the config servers.
-
-.. note::
-
-   In most situations :program:`mongos` instances use minimal
-   resources, and you can run them on your application servers
-   without impacting application performance. However, if you use
-   the :term:`aggregation framework` some processing may occur on
-   the :program:`mongos` instances, causing that :program:`mongos`
-   to require more system resources.
-
-.. _sharding-mongos:
-.. _sharding-query-routing:
-
-``mongos`` Overview
--------------------
-
-The :program:`mongos` program provides a single unified interface to a
-sharded cluster. An application does not access shards (i.e. the
-:program:`mongod` instances) directly but instead accesses the
-:program:`mongos`. The :program:`mongos` routes queries and returns
-results.
+MongoDB :program:`mongos` instances handle the query routing in a
+sharded cluster. The :program:`mongos` instances route the reads and
+writes from applications to the shards and return results. An
+application does not directly access a shard (i.e. a :program:`mongod`
+instance) but instead always accesses a :program:`mongos`. The
+:program:`mongos` provides a single unified interface to a sharded
+cluster.
 
 The :program:`mongos` keeps track of what data is on which shard by
-caching that metadata from the :ref:`config servers
-<sharding-config-server>`. The :program:`mongos` uses the metadata to
-route operations from applications and clients to the
+caching to RAM the metadata from the :ref:`config servers
+<sharded-cluster-config-server>`. The :program:`mongos` uses the
+metadata to route operations from applications and clients to the
 :program:`mongod` instances. A :program:`mongos` has no *persistent*
 state and consume minimal system resources.
 
@@ -53,34 +28,37 @@ same systems as your application servers, but you can maintain
 :program:`mongos` instances on the shards or on other dedicated
 resources.
 
+A production sharded cluster must have exactly three :program:`mongos`
+instances. A cluster used for testing purposes can have just one
+instance.
+
 .. note::
 
    .. versionchanged:: 2.1
 
    Some aggregation operations using the :dbcommand:`aggregate`
-   command (i.e. :method:`db.collection.aggregate()`,) will cause
+   command (i.e. :method:`db.collection.aggregate()`) will cause
    :program:`mongos` instances to require more CPU resources than in
    previous versions. This modified performance profile may dictate
    alternate architecture decisions if you use the :term:`aggregation
    framework` extensively in a sharded environment.
 
-``mongos`` Query Routing
-------------------------
+Routing Process
+---------------
 
-.. todo this section can be absorbed into the above overview
+A :program:`mongos` instance uses the following processes to route
+queries and return results.
 
-A :program:`mongos` instance uses the following process to route a query
-to a :term:`cluster <sharded cluster>`. The :program:`mongos`:
+How ``mongos`` Determines which Shards Receive a Query
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1. Determines the list of :term:`shards <shard>` that must receive the
+A :program:`mongos` instance routes a query to a :term:`cluster <sharded
+cluster>` by:
+
+1. Determining the list of :term:`shards <shard>` that must receive the
    query.
 
-#. Establishes a cursor on all targeted shards.
-
-Continue reading for additional information:
-
-``mongos`` Determines which Shards Receive a Query
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#. Establishing a cursor on all targeted shards.
 
 In some cases, when the :term:`shard key` or a prefix of the shard
 key is a part of the query, the :program:`mongos` can route the
@@ -106,27 +84,27 @@ collection.
       { zipcode: 1, u_id: 1 }
       { zipcode: 1, u_id: 1, c_date: 1 }
 
-``mongos`` Establishes a Cursor on Targeted Shards
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+How ``mongos`` Establishes a Cursor on Targeted Shards
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When the first batch of results returns from the cursors:
+When the first batch of results returns from the cursors, the
+:program:`mongos` instance does one of the following:
 
-For query with sorted results (i.e. using
-:method:`cursor.sort()`) the :program:`mongos` instance performs a merge
-sort of all queries.
+- For query with sorted results (i.e. using :method:`cursor.sort()`) the
+  :program:`mongos` instance performs a merge sort of all queries.
 
-For a query with unsorted results, the :program:`mongos` instance returns
-a result cursor that "round robins" results from all cursors on
-the shards.
+- For a query with unsorted results, the :program:`mongos` instance
+  returns a result cursor that "round robins" results from all cursors
+  on the shards.
 
 .. versionchanged:: 2.0.5
    Before 2.0.5, the :program:`mongos` exhausted each cursor,
    one by one.
 
 Detect Connections to :program:`mongos` Instances
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------------------
 
-If your application must detect if the MongoDB instance its connected
+To detect if the MongoDB instance that your client is connected
 to is :program:`mongos`, use the :dbcommand:`isMaster` command. When a
 client connects to a :program:`mongos`, :dbcommand:`isMaster` returns
 a document with a ``msg`` field that holds the string
