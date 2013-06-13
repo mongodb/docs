@@ -1,0 +1,230 @@
+=====================
+Sharding Introduction
+=====================
+
+.. default-domain:: mongodb
+
+Sharding is a method for storing data across multiple machines and is
+how MongoDB meets the demands of very large data sets and high
+throughput operations.
+
+Purpose of Sharding
+-------------------
+
+When running databases with large data sets and high throughput
+applications, the database layer can exceed the capacity of the
+underlying server. High query rates can exhaust the CPU capacity of the
+server; larger data exceed the storage capacity of a single machine;
+working set sizes surpass the size of RAM and put pressure on the I/O
+capacity of disk drives.
+
+There are two common approaches to handling this scaling problem:
+**vertical scaling** and **sharding**.
+
+**Vertical scaling** adds more processors and storage to the server to
+increase its capacity. However, this approach has numerous drawbacks:
+high performance systems with large numbers of CPUs and large amount of
+RAR are disproportionately *more expensive* than smaller systems;
+cloud-based providers only allow users to provision smaller instances;
+machines have a *practical maximum* capacity.
+
+**Sharding**, or *horizontal scaling*, by contrast, divides the data
+set and distributes the data over multiple servers, or **shards**. Each
+shard is an independent database, and collectively, the shards make up
+a single logical database.
+
+.. include:: /images/sharded-collection.rst
+
+Sharding addresses the challenge of scaling to support high throughout
+and large data sets:
+
+- Sharding reduces the number of operations each shard handles and
+  increases the overall throuput capacity. Each individual shard
+  processes smaller number of operations with the addition of new
+  shards.
+
+  For example, to insert a data record, the insert operation would only
+  need to access the shard that will hold the new record.
+
+- Sharding reduces the amount of data that each server needs to store.
+  Each individual shard stores smaller amount of data with the addition
+  of new shards.
+
+  For example, if a database has 1TB of total data, and there are 4
+  shards, then each shard might hold only 256GB of data. If there are
+  40 shards, then each shard might hold only 25GB of data.
+
+Sharding in MongoDB
+-------------------
+
+MongoDB supports sharding through the configuration of a :term:`sharded
+clusters <sharded cluster>`.
+
+.. include:: /images/sharded-cluster-production-architecture.rst
+
+Sharded cluster has the following components: :term:`shards <shard>`,
+:term:`routers <mongos>` and :term:`config servers <config database>`.
+
+**Shards** contain the distributed data. In order to provide high
+availability and data consistency, in a production sharded cluster,
+each shard is a :term:`replica set` [#dev-only-shard-deployment]_. For
+more information on replica sets, see :doc:`Replica Sets
+</core/replication>`.
+
+**Routers**, or the **mongos** processes, interface with client
+applications to direct the read and write operations to the appropriate
+shard or shards. The router examines the operation to determine which
+shard or shards to target and returns the results to the clients. A
+sharded cluster can contain more than one router to divide the client
+request load. A client send its request to just one of the routers if a
+sharded cluster contains multiple routers.
+
+**Config servers** store metadata about the cluster and the data
+distribution across shards. The router uses this metadata to determine
+which shard or shards to route the read and write operations. A
+production sharded cluster contains exactly 3 config servers.
+
+.. [#dev-only-shard-deployment] For development and testing purposes
+   only, each **shard** can be a single :program:`mongod` instead of a
+   replica set. This deployment is not recommended for
+   production.
+
+Data Partitioning Across Shards
+--------------------------------
+
+MongoDB shards at the collection level, partitioning the collection's
+data by the **shard key**.
+
+Shard Key
+~~~~~~~~~
+
+To shard a collection, you need to select a **shard key**. A
+:term:`shard key` is either an indexed field or an indexed compound
+field that exists in every document in the collection. MongoDB divides
+the shard key values into **chunks** and distributes the :term:`chunks
+<chunk>` evenly across the shards. To divide the shard key values into
+chunks, MongoDB uses either **range based partitioning** and **hash
+based partitioning**.
+
+Range Based Sharding
+~~~~~~~~~~~~~~~~~~~~
+
+With range based partitioning, MongoDB divides the data set into ranges
+determined by the values of the shard key. For example, consider the
+case where the shard key is numeric. Then if you visualize a number
+line that goes from negative infinity to positive infinity, each value
+of the shard key falls at some point on that line. MongoDB partitions
+this line into smaller, non-overlapping ranges called **chunks**, where
+a chunk is range of values from some minimum value to some maximum
+value.
+
+With range based partitioning, two documents with "close" shard key
+values are highly likely to fall into the same chunk, and therefore,
+are highly likely be on the same shard.
+
+.. include:: /images/sharding-range-based.rst
+
+Hash Based Sharding
+~~~~~~~~~~~~~~~~~~~
+
+With hash based partitioning, instead of using the value of the shard
+key directly to determine which chunk a document belongs to, MongoDB
+first hashes the value of the shard key and then uses this *hashed*
+value to determine the chunk for the document. Unlike range based
+partitioning where two documents with "close" values are likely to be
+on the same chunk, hashed based partitioning ensures a much more random
+distribution of the data.
+
+.. include:: /images/sharding-hash-based.rst
+
+Performance Distinctions between Range and Hash Based Partitioning
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Range based partitioning easily supports range queries. Given a range
+query on the shard key, the router can easily determine which chunks
+overlap that range and route the query to only those shards that
+contain these chunks.
+
+However, range based partitioning can result in a less than even
+distribution of data, which may limit the benefits of sharding. For
+example, if the shard key is a linearly increasing field, such as time,
+then all requests for a given time range will map to the same chunk,
+and thus the same shard. In this situation, a small set of shards may
+receive the majority of requests and the system would not scale very
+well.
+
+Hash based partitioning, by contrast, ensures an even distribution of
+data at the expense of efficient range queries. Hashed key values
+results in random distribution of data across chunks and therefore
+shards. But random distribution makes it more likely that a range query
+on the shard key will not be able to target a few shards but would more
+likely query every shard in order to return a result.
+
+
+Maintaining a Balanced Data Distribution
+----------------------------------------
+
+The addition of new data or the addition of new servers can result in
+data distribution imbalances within the cluster, such as a particular
+shard contains significantly more chunks than another shard or a size
+of a chunk is significantly greater than other chunk sizes.
+
+MongoDB actively ensures a balanced cluster through two automatic
+background processes: splitting and the balancer.
+
+Splitting
+~~~~~~~~~
+
+Splitting is a background process that keep each chunk roughly equal in
+size. When a chunk grows beyond a :ref:`specified chunk size
+<sharding-chunk-size>`, MongoDB splits the chunk in half. The split
+operation occurs during data inserts and updates. The splitting process
+is a very efficient process that consists purely of an update to the
+metadata and does not directly result in any data movement or disk I/O
+within the shard or between shards.
+
+.. include:: /images/sharding-splitting.rst
+
+Balancer
+~~~~~~~~
+
+The :ref:`balancer <sharding-balancing-internals>` is a background
+process that coordinates chunk migration among shards. The balancer
+runs in all of the routers in a cluster.
+
+.. TODO need to determine whether to clarify that the original shard
+   does not actually remove its documents until after the metadata has
+   been updated.
+
+When there is an imbalance of chunks across shards, e.g. Shard 1 has
+100 chunks and Shard 2 has 50 chunks, the balancer migrates chunks from
+the shard with more chunks to shards with fewer number of chunks. Chunk
+migration occurs directly between the shards as a background operation.
+First, the destination shard receives all the documents in the chunk
+from the origin shard. Then, because all requests for the documents in
+the chunk go to the original shard during the migration process, the
+destination shard initiates a synchronization process to ensure that
+these changes exist on the destination shard. Finally, the destination
+shard connect to the config server to update the metadata regarding the
+location of the chunk.
+
+If any error occurs during the migration process, the balancer aborts
+the migration and leaves the chunk on the origin shard.
+
+.. include:: /images/sharding-migrating.rst
+
+Adding and Removing Shards from the Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The addition of a new shard to the cluster creates an imbalance since
+the new shard contains zero chunks. The balancer begins migrating
+chunks from the existing shards to the new shard. As each chunk
+migration completes on the new shard, the new shard will start
+processing requests for that chunk. However, it may be some time before
+enough chunk migrations have completed for the new shard to handle an
+equal portion of the workload.
+
+When removing a shard, the balancer will migrate all the chunks from
+this shard to other shards. Once all the migration from this shard
+completes, including the update of the metadata, you may safely
+decomission it.
