@@ -44,22 +44,3 @@ conf.py:meta.yaml pdfs.yaml
 $(tools)/makecloth/intersphinx.py:conf.py
 $(output)/makefile.intersphinx:$(tools)/makecloth/intersphinx.py $(tools)/makecloth/__init__.py
 	@$(PYTHONBIN) $< $@
-
-# To ensure that composite files with included data are included files
-# are rebuilt appropriately, we have to build following special makefile:
-
-.PHONY:$(output)/include-dependencies.json
-.PHONY:$(output)/makefile.dependencies
-
-$(output)/include-dependencies.json:
-	@grep "\.\. include::" source/* -R | \
-             sed $(SED_ARGS_REGEX) -e 's%(.txt:).*include:: %\1%' \
-                                   -e "s%:/(includes)%:\1%" \
-	                           -e 's%(.rst:).*include:: %\1%' \
-                                   -e "s%(.txt:)%\1source/%"  | \
-             grep "\:source/includes" | \
-             sed $(SED_ARGS_REGEX) -e 's%(.txt):(.*)$$%\1", "dep": "\2" }%' \
-                                   -e 's%^(source)%{ "target": "\1%' >| $@
-	@echo [build]: $@ generated include dependencies
-$(output)/makefile.dependencies:$(tools)/makecloth/dependencies.py $(output)/include-dependencies.json
-	@$(PYTHONBIN) $< $@ $(output)/include-dependencies.json
