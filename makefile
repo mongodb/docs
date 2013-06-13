@@ -27,7 +27,7 @@ help:
 -include $(output)/makefile.images
 -include $(output)/makefile.intersphinx
 
-build/makefile.meta:$(output)/docs-tools/makecloth/meta.py
+build/makefile.meta:$(tools)/makecloth/meta.py
 	@mkdir -p $(output)
 	@python $< $@
 $(output)/makefile.intersphinx:$(tools)/makecloth/intersphinx.py $(tools)/makecloth/__init__.py
