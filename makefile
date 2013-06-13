@@ -1,12 +1,42 @@
-# Makefile for MongoDB Sphinx documentation
 MAKEFLAGS += -j -r --no-print-directory
-include bin/makefile.bootstrap
+
+############ path and build-meta configuration ##############
+# The paths generated in makefile.meta will override the follwoing
+# values, but we need to set the values once here to properly
+# bootstrap the build system.
+
+output = build
+build-tools = bin
+tools = $(output)/docs-tools
+
+noop:
+bootstrap fabfile build/docs-tools:
+	@python bootstrap.py
+	@echo "[bootstrap]: configured build environment."
+help:
+	@echo "Use 'make <target>', where <target> is a Sphinx target (e.g. 'html', 'latex')"
+	@echo "See 'http://docs.mongodb.org/manual/meta' for more information."
+
+############## generation steps for exceptional makefiles ##############
+
+# The build targets and generation of images and intersphinx targets
+# are irregular and derive from different data sources.
+
+.PHONY:$(output)/makefile.meta
+-include $(output)/makefile.meta
+-include $(output)/makefile.images
+-include $(output)/makefile.intersphinx
+
+build/makefile.meta:$(output)/docs-tools/makecloth/meta.py
+	@mkdir -p $(output)
+	@python $< $@
+$(output)/makefile.intersphinx:$(tools)/makecloth/intersphinx.py $(tools)/makecloth/__init__.py
+	@$(PYTHONBIN) $< $@
+$(output)/makefile.images:$(tools)/makecloth/images.py source/images/metadata.yaml
+	@$(PYTHONBIN) $< $@ source/images metadata.yaml
 
 ############# Meta targets that control the build and publication process. #############
 .PHONY: setup source/about.txt source/includes/hash.rst $(public-branch-output)/release.txt
-
-############# Targets that define the production build process #############
-# Generating files with build specific info.
 setup:source/includes/hash.rst composite-pages.yaml meta.yaml
 	@mkdir -p $(public-branch-output) $(public-output)
 	@echo [build]: created $(public-branch-output) and $(public-output)
@@ -22,11 +52,9 @@ $(public-output)/ $(output):
 	@mkdir -p $@
 	@echo [build]: created $@
 $(public-branch-output)/single/index.html:$(branch-output)/singlehtml/contents.html
-	@cp $< $@
-	@sed $(SED_ARGS_FILE) -e 's/href="contents.html/href="index.html/g' \
-			      -e 's/name="robots" content="index"/name="robots" content="noindex"/g' \
-			      -e 's/(href=")genindex.html"/\1..\/genindex\/"/g' $@
-	@echo [single]: generating and processing '$@' page
+	@fab process.input:$< process.output:$@ process.manual_single_html
+
+# website display and configuration
 htaccess:$(public-output)/.htaccess
 $(public-output)/.htaccess:bin/builddata/htaccess.yaml $(tools)/bin/htaccess.py $(public-output)/
 	@$(PYTHONBIN) $(tools)/bin/htaccess.py $@ --data $<

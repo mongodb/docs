@@ -1,56 +1,108 @@
-# These targets handle simple single file migrations of into the local
-# staging area in preparations for uploading documents to the
-# production environment.
-#
-# The fields in each document are:
-#     0. ``target``: the name of the target, to migrate a file to.
-#     1. ``source``: the name of the source file to migrate the file
-#        from.
-#     2. ``type``: the block of the makefile that captures
-#        the kind/purpose of the migration.
+# These targets use ``touch`` to bump the mtime of directories to
+# ensure that all the proper dependencies are built.
+# 
+# The build system generator will only use the first two items of the
+# document in any list.
 
-
+target: '$(branch-output)/dirhtml'
+dependency: 'dirhtml'
+action: 'touch'
+---
+target: '$(branch-output)/html'
+dependency: 'html'
+action: 'touch'
+---
+target: '$(branch-output)/singlehtml'
+dependency: 'singlehtml'
+action: 'touch'
+---
+target: 'conf.py'
+dependency: 
+  - 'meta.yaml'
+  - 'pdfs.yaml'
+action: 'dep'
+---
+target: '$(tools)/makecloth/intersphinx.py'
+dependency: 'conf.py'
+action: 'dep'
+---
+target: '$(branch-output)/singlehtml/contents.html'
+dependency: '$(branch-output)/singlehtml'
+action: 'dep'
+---
+target: '$(branch-output)/epub/mongodb-manual.epub'
+dependency: 'epub'
+action: 'dep'
+---
+target: '$(public-branch-output)/MongoDB-Manual.epub'
+dependency: '$(public-branch-output)/MongoDB-Manual-$(current-branch).epub'
+action: 'dep'
+---
+target: '$(public-branch-output)'
+dependency: '$(branch-output)/dirhtml'
+action: 'transfer'
+filter:
+  - '/meta/reference'
+  - '/meta/use-cases'
+---
+target: $(public-branch-output)/single
+dependency: $(branch-output)/singlehtml
+action: 'transfer'
+filter:
+  - '/contents.html'
+---
 target: '$(public-output)/sitemap.xml'
-source: 'source/.static/sitemap.xml'
+dependency: 'source/.static/sitemap.xml'
+action: 'cp'
 type: 'static'
 ---
 target: '$(public-output)/10gen-gpg-key.asc'
-source: 'source/.static/10gen-gpg-key.asc'
+dependency: 'source/.static/10gen-gpg-key.asc'
+action: 'cp'
 type: 'static'
 ---
 target: '$(public-output)/10gen-security-gpg-key.asc'
-source: 'source/.static/10gen-security-gpg-key.asc'
+dependency: 'source/.static/10gen-security-gpg-key.asc'
+action: 'cp'
 type: 'static'
 ---
 target: '$(public-output)/osd.xml'
-source: 'source/.static//osd.xml'
+dependency: 'source/.static//osd.xml'
+action: 'cp'
 type: 'access'
 ---
 target: '$(public-branch-output)/sitemap.xml.gz'
-source: '$(branch-output)/sitemap.xml.gz'
+dependency: '$(branch-output)/sitemap.xml.gz'
+action: 'cp'
 type: 'access'
 ---
 target: '$(public-branch-output)/.htaccess'
-source: 'themes/docs.mongodb.org/.htaccess $(public-branch-output)'
+dependency: 'themes/docs.mongodb.org/.htaccess $(public-branch-output)'
+action: 'cp'
 type: 'access'
 ---
 target: '$(public-branch-output)/single/search.html'
-source: '$(branch-output)/dirhtml/search/index.html'
+dependency: '$(branch-output)/dirhtml/search/index.html'
+action: 'cp'
 type: 'content'
 ---
 target: '$(public-branch-output)/MongoDB-Manual-$(current-branch).epub'
-source: '$(branch-output)/epub/MongoDB.epub'
+dependency: '$(branch-output)/epub/MongoDB.epub'
+action: 'cp'
 type: 'content'
 ---
 target: '$(branch-output)/epub/MongoDB.epub'
-source: '$(branch-output)/epub/mongodb-manual.epub'
+dependency: '$(branch-output)/epub/mongodb-manual.epub'
+action: 'cp'
 type: 'content'
 ---
 target: 'composite-pages.yaml'
-source: 'bin/composite-pages.yaml'
+dependency: 'bin/composite-pages.yaml'
+action: 'cp'
 type: 'build'
 ---
 target: 'pdfs.yaml'
-source: 'bin/builddata/pdfs.yaml'
+dependency: 'bin/builddata/pdfs.yaml'
+action: 'cp'
 type: 'build'
 ...
