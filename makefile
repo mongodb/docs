@@ -15,7 +15,7 @@ build/makefile.meta:$(output)/docs-tools/makecloth/meta.py
 timestamp := $(shell date +%Y%m%d%H%M)
 
 ########## interaction and control ##########
-.PHONY: help hosted saas publish all
+.PHONY: help hosted saas publish all $(output)/makefile.meta
 help:
 	@echo "please use \`make <target>' where <target> is one of:"
 	@echo "	 publish        to stage the all mms documents. (default.)"
@@ -26,7 +26,7 @@ help:
 
 publish all:hosted saas
 hosted saas:setup
-	@$(MAKE) EDITION=$@ generate-source dirhtml-$@ build/public/$@/.htaccess $(public-output) $(publish-output)
+	@$(MAKE) EDITION=$@ manual-pdfs generate-source dirhtml-$@ build/public/$@/.htaccess $(public-output) $(publish-output)
 	@echo [build]: $@ edition complete
 setup:
 	@mkdir -p $(public-output) $(branch-output) $(branch-output)/source
