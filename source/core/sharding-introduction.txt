@@ -89,14 +89,14 @@ production sharded cluster contains exactly 3 config servers.
    replica set. This deployment is not recommended for
    production.
 
-Data Partitioning Across Shards
---------------------------------
+Data Partitioning
+-----------------
 
 MongoDB shards at the collection level, partitioning the collection's
 data by the **shard key**.
 
-Shard Key
-~~~~~~~~~
+Shard Keys
+~~~~~~~~~~
 
 To shard a collection, you need to select a **shard key**. A
 :term:`shard key` is either an indexed field or an indexed compound
@@ -110,49 +110,48 @@ information.
 Range Based Sharding
 ~~~~~~~~~~~~~~~~~~~~
 
-With range based partitioning, MongoDB divides the data set into ranges
-determined by the values of the shard key. For example, consider the
-case where the shard key is numeric. Then if you visualize a number
-line that goes from negative infinity to positive infinity, each value
-of the shard key falls at some point on that line. MongoDB partitions
-this line into smaller, non-overlapping ranges called **chunks**, where
-a chunk is range of values from some minimum value to some maximum
-value.
+For *range-based sharding*, MongoDB divides the data set into ranges
+determined by the shard key values to provide **range based
+partitioning**. Consider a numeric shard key: If you visualize a
+number line that goes from negative infinity to positive infinity,
+each value of the shard key falls at some point on that line. MongoDB
+partitions this line into smaller, non-overlapping ranges called
+**chunks** where a chunk is range of values from some minimum value to
+some maximum value.
 
-With range based partitioning, two documents with "close" shard key
-values are highly likely to fall into the same chunk, and therefore,
-are highly likely be on the same shard.
+Given a range based partitioning system, documents with "close" shard
+key values are likely to be in the same chunk, and therefore on the
+same shard.
 
 .. include:: /images/sharding-range-based.rst
 
 Hash Based Sharding
 ~~~~~~~~~~~~~~~~~~~
 
-With hash based partitioning, instead of using the value of the shard
-key directly to determine which chunk a document belongs to, MongoDB
-first hashes the value of the shard key and then uses this *hashed*
-value to determine the chunk for the document. Unlike range based
-partitioning where two documents with "close" values are likely to be
-on the same chunk, hashed based partitioning ensures a much more random
-distribution of the data.
+For *hash based partitioning*, MongoDB computes a hash of a field's
+value, and then uses these hashes to create chunks.
+
+With hash based partitioning, two documents with "close" shard key
+values are *unlikely* to be part of the same chunk. This ensures a
+more random distribution of a collection in the cluster.
 
 .. include:: /images/sharding-hash-based.rst
 
 Performance Distinctions between Range and Hash Based Partitioning
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Range based partitioning easily supports range queries. Given a range
-query on the shard key, the router can easily determine which chunks
-overlap that range and route the query to only those shards that
-contain these chunks.
+Range based partitioning supports more efficient range queries. Given
+a range query on the shard key, the router can easily determine which
+chunks overlap that range and route the query to only those shards
+that contain these chunks.
 
-However, range based partitioning can result in a less than even
-distribution of data, which may limit the benefits of sharding. For
-example, if the shard key is a linearly increasing field, such as time,
-then all requests for a given time range will map to the same chunk,
-and thus the same shard. In this situation, a small set of shards may
-receive the majority of requests and the system would not scale very
-well.
+However, range based partitioning can result in an uneven distribution
+of data, which may negate some of the benefits of sharding. For
+example, if the shard key is a linearly increasing field, such as
+time, then all requests for a given time range will map to the same
+chunk, and thus the same shard. In this situation, a small set of
+shards may receive the majority of requests and the system would not
+scale very well.
 
 Hash based partitioning, by contrast, ensures an even distribution of
 data at the expense of efficient range queries. Hashed key values
@@ -160,7 +159,6 @@ results in random distribution of data across chunks and therefore
 shards. But random distribution makes it more likely that a range query
 on the shard key will not be able to target a few shards but would more
 likely query every shard in order to return a result.
-
 
 Maintaining a Balanced Data Distribution
 ----------------------------------------
@@ -186,31 +184,37 @@ within the shard or between shards.
 
 .. include:: /images/sharding-splitting.rst
 
-Balancer
-~~~~~~~~
+Balancing
+~~~~~~~~~
 
 The :ref:`balancer <sharding-balancing-internals>` is a background
 process that coordinates chunk migration among shards. The balancer
 runs in all of the routers in a cluster.
 
-.. TODO need to determine whether to clarify that the original shard
-   does not actually remove its documents until after the metadata has
-   been updated.
+When the distribution of a sharded collection in a cluster is uneven,
+the balancer process will migrate chunks from the shard that has the
+largest number of chunks to the shard with the least number of chunks
+until the collection achieves balance. For example: if collection
+``users`` has 100 chunks on *shard 1* and 50 chunks and *shard 2*, the
+balancer will migrate chunks from *shard 1* to *shard 2* until the
+collections achieves balance.
 
-When there is an imbalance of chunks across shards, e.g. Shard 1 has
-100 chunks and Shard 2 has 50 chunks, the balancer migrates chunks from
-the shard with more chunks to shards with fewer number of chunks. Chunk
-migration occurs directly between the shards as a background operation.
-First, the destination shard receives all the documents in the chunk
-from the origin shard. Then, because all requests for the documents in
-the chunk go to the original shard during the migration process, the
-destination shard initiates a synchronization process to ensure that
-these changes exist on the destination shard. Finally, the destination
-shard connect to the config server to update the metadata regarding the
-location of the chunk.
+The shards themselves manage *chunk migrations* as a background
+operation: during the migration process all operations on a chunk
+address the "origin" shard where the chunk originates.
+
+In a chunk migration, the *destination shard* receives all the
+documents in the chunk from the *origin shard*. Then, the destination
+shard initiates a synchronization process to ensure that the
+destination shard reflects any modifications occurred during the
+migration process. Finally, the destination shard connects to the
+*config server* to update the metadata regarding the location of the
+chunk.
 
 If any error occurs during the migration process, the balancer aborts
-the migration and leaves the chunk on the origin shard.
+the migration and leaves the chunk on the origin shard. When the
+migration completes successfully, the origin shard will removed the
+migrated chunk's data.
 
 .. include:: /images/sharding-migrating.rst
 
@@ -227,9 +231,8 @@ equal portion of the workload.
 
 When removing a shard, the balancer will migrate all the chunks from
 this shard to other shards. Once all the migration from this shard
-completes, including the update of the metadata, you may safely
-decomission it.
-
+completes, including the update of the metadata, you can safely
+decommission the shard.
 
 Additional Information
 ----------------------
