@@ -1,0 +1,94 @@
+========================
+Replication Introduction
+========================
+
+.. default-domain:: mongodb
+
+Replication is the process of maintaining synchronized copies of data
+across multiple database servers.
+
+Purpose of Replication
+----------------------
+
+Replication provides redundancy/backup and high availability of data.
+By maintaining synchronized copies of the data on multiple database
+servers, replication can protect against situations where a database
+server may become unavailable, such as from a disk or a network
+failure.
+
+Replication can also provide increased read capacity. With copies of
+data on different servers, different applications can send read
+operations to different servers. For geographically distributed data
+servers, replication improves data locality and availability for
+distributed applications. Additionally, you can use a particular copy
+for dedicated functionality, such as reporting.
+
+Replication in MongoDB
+----------------------
+
+:term:`Replica set <replica set>` is MongoDB's approach to replication.
+A replica set is a group of :program:`mongod` processes that maintain a
+synchronized data set through the automatic replication of write
+operations.
+
+In the standard configuration, replica sets have three or more
+:program:`mongod` members: one :term:`primary`, :term:`secondaries
+<secondary>` , and :doc:`arbiter </core/replica-set-arbiter>`.
+
+The **primary** is the member that accepts all write operations from
+client applications. The replica set can have only one primary. The
+primary applies the write operations to its data set and then logs the
+operations to its operations log or :doc:`oplog
+</core/replica-set-oplog>`. Limiting write operations to the single
+primary provides **strict consistency** among replica set members. For
+more information on primary, see :doc:`primary
+</core/replica-set-primary>`.
+
+.. include:: /images/replica-set-read-write-operations-primary.rst
+
+The **secondaries** replicate the primary's oplog and apply the
+operations to their data sets to synchronize with the primary's data
+set. If the primary becomes unavailable, the replica set will elect a
+secondary to become primary. By default, applications read from the
+primary, but applications can specify their :doc:`read preferences
+</core/read-preference>` to read from secondaries. For more inforamtion
+on secondaries, see :doc:`secondaries </core/replica-set-secondary>`.
+
+.. include:: /images/replica-set-primary-with-two-secondaries.rst
+
+The **arbiter** does not maintain a data set but vote in elections for
+a new primary. The replica set can have 0 or more arbiters. In general,
+a replica set only includes an arbiter to ensure an odd number of
+members. For more information on arbiter, see :doc:`arbiter
+</core/replica-set-arbiter>`.
+
+.. include:: /images/replica-set-primary-with-secondary-and-arbiter.rst
+
+Asynchronous Replication
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The replication of the oplog from the primary to the secondaries is
+asynchronous. Asynchronous replication allows normal operation to
+continue even if some members are not available. However, asynchronous
+replication means that secondaries may not always have applied the
+latest write operations to themselves, and read operations to the
+secondaries may not always reflect the most current data.
+
+Automatic Recovery from Loss of Primary
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When a primary becomes inaccessible to other members in the set, i.e.
+the primary has not returned a heartbeat(ping) for more than 10
+seconds, the replica set members automatically hold an election to
+select one of the secondaries to become the new primary. The first
+member to receive the majority of the votes becomes the primary.
+
+.. include:: /images/replica-set-trigger-election.rst
+
+You can weight the election in favor of a particular member or group of
+members by adjusting the
+:data:`~local.system.replset.members[n].priority` value of the members.
+For example, if you have a :doc:`geographically distributed replica set
+</core/replica-set-architecture-geographically-distributed>`, you can
+adjust the priority of the members so that only members in a specific
+data center can become primary.
