@@ -15,24 +15,21 @@ Select Destination for the Snapshot
      
      To grant access via SSH public key,
      
-     1. Go to the MMS "Settings" page, and select "Backup and
+     #. Go to the MMS "Settings" page, and select "Backup and
         Restore Public Key."
 
-     2. Input a passphrase, and click on "Generate a New Public Key". 
-        Your public key will be generated, and displayed onscreen.
+     #. Input a passphrase, and click on "Generate a New Public Key". 
+        The backup service will generate and display a public key.
 
-     3. Log in to your server using the same username you will supply
+     #. Log in to your server using the same username you will supply
         in your restore request.
 
-     4. Add your public key to the authorized hosts file for
+     #. Add your public key to the authorized hosts file for
         that user, generally found at ``/.ssh/authorized_keys``.
 
      .. note::
 
         For security reasons, you should remove this public key from
-        the user's authorized hosts file once the snapshot has been
-        transmitted.
-
 
 #. Click :guilabel:`Authenticate`.
 
