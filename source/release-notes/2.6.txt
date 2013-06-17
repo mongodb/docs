@@ -93,6 +93,20 @@ authentication.
 ``saslauthd`` Configuration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+On systems with ``/etc/sysconfig/saslauthd``, such as RedHat, Fedora,
+CentOS, AWS AMI, set the mechanism ``MECH`` to ``ldap``:
+
+.. code-block:: none
+
+   MECH=ldap
+
+On systems with ``/etc/default/saslauthd``, set the mechanisms
+option to ``ldap``:
+
+.. code-block:: none
+
+   MECHANISMS="ldap"
+
 To use with ActiveDirectory, start ``saslauthd`` with the following
 config file contents:
 
@@ -103,43 +117,69 @@ config file contents:
    ldap_mech: DIGEST-MD5
    ldap_auth_method: fastbind
 
+To connect to an openLDAP server, use a test ``saslauthd.conf`` file
+such as the following sample configuration:
+
+.. code-block:: none
+
+   ldap_servers: <ldap uri, e.g. ldaps://ad.mydomain.com>
+   ldap_search_base: ou=Users,dc=example,dc=com
+   ldap_filter: (uid=%u)
+
+To use this sample openLDAP configuration, create users with a ``uid``
+attribute (login name) and place under the ``Users`` organizational
+unit (``ou``).
+
+To test the ``saslauthd`` configuration, use ``testsaslauthd`` utility,
+as in the following example:
+
+.. code-block:: sh
+
+   testsaslauthd -u testuser -p testpassword -s mongod -f /var/run/saslauthd/mux
+
+For more information on ``saslauthd`` configuration, see
+`<http://www.openldap.org/doc/admin24/guide.html#Configuring saslauthd>`_.
+
 MongoDB Server Configuration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Configure the MongoDB server with the ``saslauthdPath`` parameter using
-either the command line option
-:option:`--setParameter <mongod --setParameter>` or the
+Configure the MongoDB server with the ``authenticationMechanisms``
+parameter and the ``saslauthdPath`` parameters using either the command
+line option :option:`--setParameter <mongod --setParameter>` or the
 :doc:`configuration file </reference/configuration-options>`:
 
 - If ``saslauthd`` has a socket path of ``/<some>/<path>/saslauthd``,
   set the ``saslauthdPath`` parameter to
-  ``/<some>/<path>/saslauthd/mux``, as in the following command line
-  example:
+  ``/<some>/<path>/saslauthd/mux`` and the ``authenticationMechanisms``
+  parameter to ``PLAIN``, as in the following command line example:
 
   .. code-block:: sh
 
-     mongod --setParameter saslauthdPath=/<some>/<path>/saslauthd/mux
+     mongod --setParameter saslauthdPath=/<some>/<path>/saslauthd/mux --setParameter authenticationMechanisms=PLAIN
 
   Or to set the configuration in the :doc:`configuration file
-  </reference/configuration-options>`, add the parameter:
+  </reference/configuration-options>`, add the parameters:
 
   .. code-block:: sh
 
      setParameter=saslauthdPath=/<some>/<path>/saslauthd/mux
+     setParameter=authenticationMechanisms=PLAIN
 
-- Otherwise, set the ``saslauthdPath`` to the empty string to use the
-  library's default value, as in the following command line example:
+- Otherwise, set the ``saslauthdPath`` to the empty string ``""`` to use
+  the library's default value and the ``authenticationMechanisms``
+  parameter to ``PLAIN``, as in the following command line example:
 
   .. code-block:: sh
 
-     mongod --setParameter saslauthdPath=""
+     mongod --setParameter saslauthdPath="" --setParameter authenticationMechanisms=PLAIN
 
   Or to set the configuration in the :doc:`configuration file
-  </reference/configuration-options>`, add the parameter:
+  </reference/configuration-options>`, add the parameters:
 
   .. code-block:: sh
 
      setParameter=saslauthdPath=""
+     setParameter=authenticationMechanisms=PLAIN
 
 Authenticate in the ``mongo`` Shell
 ```````````````````````````````````
