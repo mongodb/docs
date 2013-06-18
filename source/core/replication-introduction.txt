@@ -26,20 +26,20 @@ for dedicated functionality, such as reporting.
 Replication in MongoDB
 ----------------------
 
-:term:`Replica set <replica set>` is MongoDB's approach to replication.
 A replica set is a group of :program:`mongod` processes that maintain
 synchronized data sets through the automatic replication of write
 operations.
 
 In the standard configuration, replica sets consist of three or more
-:program:`mongod` members: one :term:`primary`, :term:`secondaries
-<secondary>` , and an :doc:`arbiter </core/replica-set-arbiter>`.
+:program:`mongod` members acting in one of three roles:
+:term:`primary`, :term:`secondary` , and :doc:`arbiter
+</core/replica-set-arbiter>`.
 
 The **primary** is the member that accepts all write operations from
 client applications. The replica set can have only one primary. The
 primary applies the write operations to its data set and then logs the
 operations to its operations log or :doc:`oplog
-</core/replica-set-oplog>`. Limiting write operations to the single
+</core/replica-set-oplog>`. Limiting write operations to a single
 primary provides **strict consistency** among replica set members. For
 more information on primary, see :doc:`primary
 </core/replica-set-primary>`.
@@ -59,10 +59,19 @@ on secondaries, see :doc:`secondaries </core/replica-set-secondary>`.
 The **arbiter** does not maintain a data set but vote in elections for
 a new primary. The replica set can have 0 or more arbiters. In general,
 a replica set only includes an arbiter to ensure an odd number of
-members. For more information on arbiter, see :doc:`arbiter
+members. Because the arbiter does not maintain a copy of the data set,
+arbiter has minimal resource requirements and does not require
+dedicated hardware. For more information on arbiter, see :doc:`arbiter
 </core/replica-set-arbiter>`.
 
 .. include:: /images/replica-set-primary-with-secondary-and-arbiter.rst
+
+.. note:: 
+
+   The role of an **arbiter** is immutable. Whereas, a **primary** may
+   step down and rejoin as a **secondary**, and a **secondary** may
+   become the new primary during the election, an **arbiter** always
+   remains in that role.
 
 Asynchronous Replication
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -91,14 +100,24 @@ member to receive the majority of the votes becomes the primary.
 
 .. include:: /images/replica-set-trigger-election.rst
 
-You can weight the election in favor of a particular member or group of
-members by adjusting the
-:data:`~local.system.replset.members[n].priority` value of the members.
-For example, if you have a :doc:`geographically distributed replica set
-</core/replica-set-architecture-geographically-distributed>`, you can
-adjust the priority of the members so that only members in a specific
-data center can become primary.
-
 For more information on recovery, see
 :doc:`/core/replica-set-elections` and
 :doc:`/core/replica-set-rollbacks`.
+
+Additional Features of Replica Sets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Replica set configuration can provide flexibility to support various
+application needs. For instance, you can weight elections in favor of a
+particular member or group of members by adjusting the
+:data:`~local.system.replset.members[n].priority` value of the members.
+For example, in a :doc:`geographically distributed replica set
+</core/replica-set-architecture-geographically-distributed>`, you can
+adjust the :data:`~local.system.replset.members[n].priority` values so
+that only members in a specific data center can become primary.
+
+For more information on different configurations and architectures, see
+:doc:`/core/replica-set-priority-0-member`,
+:doc:`/core/replica-set-hidden-member`,
+:doc:`/core/replica-set-delayed-member`, and
+:doc:`/core/replica-set-architectures`.
