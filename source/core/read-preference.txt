@@ -356,11 +356,16 @@ As a result, MongoDB drivers and :program:`mongos`:
 Request Association
 ~~~~~~~~~~~~~~~~~~~
 
+.. important:: *Request association* is configurable by the
+   application. See your :doc:`driver </applications/drivers>`
+   documentation about request association configuration and default
+   behavior.
+
 Reads from :term:`secondary` may reflect the state of the data set at
 different points in time because :term:`secondary` members of a
 :term:`replica set` may lag behind the current state of the primary by
 different amounts. To prevent subsequent reads from jumping around in
-time, the driver can associate application threads to a specific member
+time, the driver **can** associate application threads to a specific member
 of the set after the first read. The thread will continue to read from
 the same member until:
 
@@ -368,24 +373,15 @@ the same member until:
 
 - The thread terminates.
 
-- The client receives a socket exception, as is
-  the case when there's a network error or when
-  the :program:`mongod` closes connections during a :term:`failover`.
-  This triggers a :ref:`retry
+- The client receives a socket exception, as is the case when there's
+  a network error or when the :program:`mongod` closes connections
+  during a :term:`failover`.  This triggers a :ref:`retry
   <replica-set-read-preference-behavior-retry>`, which may be
   transparent to the application.
 
-If an application thread issues a query with the
-:readmode:`primaryPreferred` mode while the primary is inaccessible,
-the thread will carry the association with that secondary for the
-lifetime of the thread. The thread will associate with the primary, if
-available, only after issuing a query with a different read
-preference, even if a primary becomes available. By extension, if a
-thread issues a read with the :readmode:`secondaryPreferred` when all
-secondaries are down, it will carry an association with the
-primary. This application thread will continue to read from the
-primary even if a secondary becomes available later in the thread's
-lifetime.
+When using request association, if the client detects that the set has
+elected a new primary, the driver will discard all associations
+between threads and read preferences.
 
 .. index:: read preference; ping time
 .. index:: read preference; nearest
@@ -420,12 +416,12 @@ For any operation that targets a member *other* than the
 #. Selects a member from these hosts at random. The member receives
    the read operation.
 
-Once the application selects a member of the set to use for read
-operations, the driver continues to use this connection for read
-preference until the application specifies a new read preference or
-something interrupts the connection. See
-:ref:`replica-set-read-preference-behavior-requests` for more
-information.
+Drivers can then associate this thread or connection with this member.
+This ":ref:`request association
+<replica-set-read-preference-behavior-requests>`" is configurable by
+the application. See your :doc:`driver </applications/drivers>`
+documentation about request association configuration and default
+behavior.
 
 .. [#acceptable-secondary-latency] Applications can configure the
    threshold used in this stage. The default "acceptable latency" is
@@ -496,15 +492,15 @@ for the following commands:
 - :dbcommand:`geoSearch`
 - :dbcommand:`geoWalk`
 
+.. versionadded:: 2.4
+   :program:`mongos` adds support for routing commands to shards using
+   read preferences. Previously :program:`mongos` sent all commands to
+   shards' primaries.
+
 .. [#inline-map-reduce] Only "inline" :dbcommand:`mapReduce`
    operations that do not write data support read preference,
    otherwise these operations must run on the :term:`primary`
    members.
-
-.. versionadded:: 2.4
-   :program:`mongos` adds support for routing commands to shards using
-   read preferences. Previously :program:`mongos` sent all commands to
-   shards' primaries. 
 
 Uses for non-Primary Read Preferences
 -------------------------------------
@@ -518,13 +514,21 @@ using non-:readmode:`primary` read preference modes:
 
 - Reporting and analytics workloads.
 
-  Having these queries target a :term:`secondary` helps distribute
-  load and prevent these operations from affecting the main workload
-  of the primary.
+  Issuing reads to secondaries for some work profiles helps distribute
+  load and prevent operations from affecting the main workload of the
+  primary.
 
   Also consider using :readmode:`secondary` in conjunction with a
   direct connection to a :ref:`hidden member
   <replica-set-hidden-members>` of the set.
+
+  .. note:: 
+
+     Read preferences aren't relevant to direct connections to
+     a single :program:`mongod` instance. However, in order to perform
+     read operations on a direct connection to a secondary member of a
+     replica set, you must set a read preference, such as
+     :term:`secondary`.
 
 - Providing local reads for geographically distributed applications.
 
