@@ -16,5 +16,5 @@
 
 .. agg-sort-in-memory-limit
 
-:pipeline:`$sort` will produce an error if the operation consumes 10
+:pipeline:`$sort` produces an error if the operation consumes 10
 percent or more of RAM.
