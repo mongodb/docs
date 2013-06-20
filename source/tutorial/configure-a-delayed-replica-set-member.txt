@@ -6,44 +6,13 @@ Configure a Delayed Replica Set Member
 
 .. start-configuration
 
-To configure a delayed replica set member, you the member's
-:data:`~local.system.replset.members[n].priority` and :data:`slaveDelay
-<members[n].slaveDelay>` configuration options, as described in the
-example in this document. When you configure a delayed member, the delay
-applies both to replication and to the member's :term:`oplog`. For a
-details on delayed members and their purposes, see
-:doc:`/core/replica-set-delayed-member`.
+To configure a delayed secondary member, set its
+:data:`~local.system.replset.members[n].priority` value to ``0``, its
+:data:`~local.system.replset.members[n].hidden` value to ``true``, and
+its :data:`~local.system.replset.members[n].slaveDelay` value to the
+number of seconds to delay.
 
-Example
--------
-
-This example sets a 1-hour delay on the replica set member identified by
-the array index of ``0`` in the :data:`~local.system.replset.members`
-array. To set the delay, issue the following sequence of operations in
-the :program:`mongo` shell:
-
-.. code-block:: javascript
-
-   cfg = rs.conf()
-   cfg.members[0].priority = 0
-   cfg.members[0].slaveDelay = 3600
-   rs.reconfig(cfg)
-
-.. include:: /includes/fact-rs-conf-array-index.rst
-
-.. include:: /includes/warning-rs-reconfig.rst
-
-After the replica set reconfigures, the first member of the set in the
-:data:`~local.system.replset.members` array will have a priority of
-``0`` and cannot become :term:`primary`. The :data:`slaveDelay
-<members[n].slaveDelay>` value delays both replication and the member's
-:term:`oplog` by 3600 seconds (1 hour). Setting
-:data:`~local.system.replset.members[n].slaveDelay` to a non-zero value
-also sets :data:`~local.system.replset.members[n].hidden` to ``true``
-for this replica set so that it does not receive application queries in
-normal operations.
-
-.. warning::
+.. important::
 
    The length of the secondary
    :data:`~local.system.replset.members[n].slaveDelay` must
@@ -51,6 +20,37 @@ normal operations.
    the :data:`~local.system.replset.members[n].slaveDelay`
    window, the delayed member cannot successfully replicate
    operations.
+
+When you configure a delayed member, the delay
+applies both to replication and to the member's :term:`oplog`. For
+details on delayed members and their uses, see
+:doc:`/core/replica-set-delayed-member`.
+
+Example
+-------
+
+The following example sets a 1-hour delay on a secondary member
+currently at the index ``0`` in the
+:data:`~local.system.replset.members` array. To set the delay, issue
+the following sequence of operations in a :program:`mongo` shell
+connected to the primary:
+
+.. code-block:: javascript
+
+   cfg = rs.conf()
+   cfg.members[0].priority = 0
+   cfg.members[0].hidden = true
+   cfg.members[0].slaveDelay = 3600
+   rs.reconfig(cfg)
+
+After the replica set reconfigures, the delayed secondary member cannot
+become :term:`primary` and is hidden from applications. The
+:data:`~local.system.replset.members[n].slaveDelay` value delays both
+replication and the member's :term:`oplog` by 3600 seconds (1 hour).
+
+.. include:: /includes/fact-rs-conf-array-index.rst
+
+.. include:: /includes/warning-rs-reconfig.rst
 
 Related Documents
 -----------------
