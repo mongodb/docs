@@ -7,7 +7,7 @@ tools = $(output)/docs-tools
 
 -include $(output)/makefile.meta
 noop:
-build/makefile.meta:$(output)/docs-tools/makecloth/meta.py
+$(output)/makefile.meta:$(output)/docs-tools/makecloth/meta.py $(build-tools)/docs_meta.yaml
 	@mkdir -p $(output)
 	@python $< $@
 
