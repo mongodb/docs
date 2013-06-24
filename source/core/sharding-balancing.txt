@@ -7,69 +7,107 @@ Sharded Collection Balancing
 
 .. default-domain:: mongodb
 
-Balancing is the process MongoDB uses to redistribute data within a
-:term:`sharded cluster`. When a :term:`shard` has too many
-:term:`chunks <chunk>` when compared to other shards, MongoDB
-automatically balances the shards. MongoDB balances the shards without
-intervention from the application layer.
-
-The balancing process attempts to minimize the impact that balancing can
-have on the cluster, by:
-
-- Moving only one chunk at a time.
-
-- Initiating a balancing round **only** when the difference in the number of
-  chunks between the shard with the greatest number and the shard with the
-  lowest exceeds the :ref:`migration threshold
-  <sharding-migration-thresholds>`.
-
-You may disable the balancer on a temporary basis for
-maintenance and limit the window during which it runs to prevent the
-balancing process from impacting production traffic.
-
-To disable the balancer, see :ref:`sharding-balancing-disable-temporally`.
-
-.. seealso:: :doc:`/tutorial/manage-sharded-cluster-balancer`.
-
-.. note::
-
-   The balancing procedure for :term:`sharded clusters <sharded cluster>`
-   is entirely transparent to the user and application layer. This
-   documentation is only included for your edification and possible
-   troubleshooting purposes.
+Balancing is the process MongoDB uses to redistribute data of a sharded
+collection evenly across a :term:`sharded cluster`. When a
+:term:`shard` has too many of a sharded collection's :term:`chunks
+<chunk>` compared to other shards, MongoDB automatically balances the
+the number of chunks across each shard. The balancing procedure for
+:term:`sharded clusters <sharded cluster>` is entirely transparent to
+the user and application layer.
 
 .. index:: balancing; internals
 .. _sharding-balancing-internals:
+.. _sharding-internals-balancing:
 
 Cluster Balancer
 ----------------
 
-The :ref:`balancer <sharding-balancing>` sub-process is responsible
-for redistributing chunks evenly among the shards and ensuring that
-the data of every sharded collection is evenly distributed among the
-cluster's shards.
+The :term:`balancer` process is responsible for redistributing the
+chunks of a sharded collection evenly among the shards for every
+sharded collection. By default, the balancer process is always running.
 
-.. _sharding-internals-balancing:
+A balancing round can start from any routing instance, or
+:program:`mongos`, that belongs to the cluster. When a balancer process
+is active, the responsible :program:`mongos` acquires a "lock" by
+modifying a document in the ``lock`` collection in the
+:ref:`config-database`.
 
-A balancing round originates from an arbitrary :program:`mongos`
-instance from one of the cluster's
-:program:`mongos` instances. When a balancer process is active, the
-responsible :program:`mongos` acquires a "lock" by modifying a
-document in the ``lock`` collection in the :ref:`config-database`.
+.. note::
 
-By default, the balancer process is always running. When the number of
-chunks in a collection is unevenly distributed among the shards, the
-balancer begins migrating :term:`chunks <chunk>` from shards with more
-chunks to shards with a fewer number of chunks. The balancer will
-continue migrating chunks, one at a time, until the collection's data
-is evenly distributed among the shards.
+   .. versionchanged:: 2.0
+      Before MongoDB version 2.0, large differences in timekeeping
+      (i.e. clock skew) between :program:`mongos` instances could lead
+      to failed distributed locks. This carries the possibility of
+      data loss, particularly with skews larger than 5 minutes.
+      Always use the network time protocol (NTP) by running ``ntpd``
+      on your servers to minimize clock skew.
 
-While these automatic chunk migrations are crucial for distributing
-data, they carry some overhead in terms of bandwidth and workload,
-both of which can impact database performance. As a result, MongoDB
-attempts to minimize the effect of balancing by only migrating chunks
-when the distribution of chunks passes the :ref:`migration thresholds
-<sharding-migration-thresholds>`.
+To address uneven chunk distribution for a sharded collection, the
+balancer :doc:`migrates chunks </core/sharding-chunk-migration>` from
+shards with more chunks to shards with a fewer number of chunks. The
+balancer migrates the chunks, one at a time, until there is an even
+distribution of chunks for the collection across the shards.
+
+Chunk migrations carry some overhead in terms of bandwidth and
+workload, both of which can impact database performance. The
+:term:`balancer` attempts to minimize the impact by:
+
+- Moving only one chunk at a time.
+
+- Initiating a balancing round **only** when the difference in the
+  number of chunks between the shard with the greatest number of chunks
+  for a sharded collection and the shard with the lowest number of
+  chunks for that collection reaches the :ref:`migration threshold
+  <sharding-migration-thresholds>`.
+
+You may disable the balancer temporarily for maintenance as well as
+limit the window during which it runs to prevent the balancing process
+from impacting production traffic. See
+:ref:`sharding-balancing-disable-temporally` for details.
+
+You can also restrict the balancer so that it only operates between
+specific start and end times. See :ref:`Schedule the Balancing Window
+<sharding-schedule-balancing-window>` for details.
+
+.. note::
+
+   The specification of the balancing window is relative to the local
+   time zone of all individual :program:`mongos` instances in the
+   sharded cluster.
+
+.. seealso:: :doc:`/tutorial/manage-sharded-cluster-balancer`.
+
+.. _sharding-migration-thresholds:
+
+Migration Thresholds
+--------------------
+
+In order to minimize the impact of balancing on the cluster, the
+:term:`balancer` will not begin balancing until the distribution of
+chunks for a sharded collection has reached certain thresholds. The
+thresholds apply to the difference in number of :term:`chunks <chunk>`
+between the shard with the most chunks for the collection and the shard
+with the fewest chunks for that collection. The balancer has the
+following thresholds:
+
+.. versionchanged:: 2.2
+   The following thresholds appear first in 2.2. Prior to this
+   release, balancing would only commence if the shard with the most
+   chunks had 8 more chunks than the shard with the least number of
+   chunks.
+
+================  ===================
+Number of Chunks  Migration Threshold
+----------------  -------------------
+Less than 20       2
+21-80              4
+Greater than 80    8
+================  ===================
+
+Once a balancing round starts, the balancer will not stop until, for
+the collection, the difference between the number of chunks on any two
+shards for that collection is *less than two* or a chunk migration
+fails.
 
 .. _sharding-shard-size:
 
@@ -77,9 +115,9 @@ Shard Size
 ----------
 
 By default, MongoDB will attempt to fill all available disk space with
-data on every shard as the data set grows. Monitor disk utilization in
-addition to other performance metrics, to ensure that the cluster
-always has capacity to accommodate additional data.
+data on every shard as the data set grows. To ensure that the cluster
+always has capacity to accommodate additional data, monitor disk
+utilization in addition to other performance metrics.
 
 You can also configure a "maximum size" for any shard when you add the
 shard using the ``maxSize`` parameter of the :dbcommand:`addShard`
@@ -89,27 +127,3 @@ exceeds the ``maxSize`` setting.
 
 .. seealso:: :ref:`sharded-cluster-config-max-shard-size` and
    :doc:`/administration/monitoring`.
-
-Sharded and Non-Sharded Data
-----------------------------
-
-Sharding operates on the collection level. You can shard multiple
-collections within a database or have multiple databases with
-sharding enabled. [#sharding-databases]_ However, in production
-deployments, some databases and collections will use sharding, while
-other databases and collections will only reside on a single
-shard.
-
-.. include:: /images/sharded-cluster-primary-shard.rst
-
-Regardless of the data architecture of your :term:`sharded cluster`,
-ensure that all queries and operations use the :term:`mongos` router to
-access the data cluster. Use the :program:`mongos` even for operations
-that do not impact the sharded data.
-
-.. include:: /images/sharded-cluster-mixed.rst
-
-.. [#sharding-databases] As you configure sharding, you will use the
-   :dbcommand:`enableSharding` command to enable sharding for a
-   database. This simply makes it possible to use the
-   :dbcommand:`shardCollection` command on a collection within that database.

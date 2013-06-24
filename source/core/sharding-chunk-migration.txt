@@ -5,108 +5,63 @@ Chunk Migration Across Shards
 
 .. default-domain:: mongodb
 
-The migration process ensures consistency and maximizes availability
-of chunks during balancing: when MongoDB begins migrating a chunk, the
-database begins copying the data to the new server and tracks incoming
-write operations. After migrating chunks, the "from" :program:`mongod`
-sends all new writes to the "receiving" server. Finally,
-:program:`mongos` updates the chunk record in the :term:`config
-database` to reflect the new location of the chunk.
+Chunk migration moves the chunks of a sharded collection from one shard
+to another and is part of the :doc:`balancer
+</core/sharding-balancing>` process.
 
 .. include:: /images/sharding-migrating.rst
-
-.. note::
-
-   .. versionchanged:: 2.0
-      Before MongoDB version 2.0, large differences in timekeeping
-      (i.e. clock skew) between :program:`mongos` instances could lead
-      to failed distributed locks, which carries the possibility of
-      data loss, particularly with skews larger than 5 minutes.
-      Always use the network time protocol (NTP) by running ``ntpd``
-      on your servers to minimize clock skew.
-
-.. _sharding-migration-thresholds:
-
-Migration Thresholds
---------------------
-
-.. versionchanged:: 2.2
-   The following thresholds appear first in 2.2; prior to this
-   release, balancing would only commence if the shard with the most
-   chunks had 8 more chunks than the shard with the least number of
-   chunks.
-
-In order to minimize the impact of balancing on the cluster, the
-:term:`balancer` will not begin balancing until the distribution of
-chunks has reached certain thresholds. These thresholds apply to the
-difference in number of :term:`chunks <chunk>` between the shard with
-the greatest number of chunks and the shard with the least number of
-chunks. The balancer has the following thresholds:
-
-================  ===================
-Number of Chunks  Migration Threshold
-----------------  -------------------
-Less than 20       2
-21-80              4
-Greater than 80    8
-================  ===================
-
-Once a balancing round starts, the balancer will not stop until the
-difference between the number of chunks on any two shards is *less
-than two* or a chunk migration fails.
-
-.. note::
-
-   You can restrict the balancer so that it only operates between specific
-   start and end times. See :ref:`Schedule the Balancing Window
-   <sharding-schedule-balancing-window>` for more information.
-
-   The specification of the balancing window is relative to the local
-   time zone of all individual :program:`mongos` instances in the
-   sharded cluster.
 
 .. _sharding-chunk-migration:
 
 Chunk Migration
 ---------------
 
-MongoDB migrates chunks in a :term:`sharded cluster` to distribute data
-evenly among shards. Migrations may be either:
+MongoDB migrates chunks in a :term:`sharded cluster` to distribute the
+chunks of a sharded collection evenly among shards. Migrations may be
+either:
 
-- Manual. In these migrations you must specify the chunk that you want
-  to migrate and the destination shard. Only migrate chunks manually
-  after initiating sharding, to distribute data during bulk inserts,
-  or if the cluster becomes uneven. See :ref:`Migrating Chunks
-  <sharding-balancing-manual-migration>` for more details.
+- Manual. Only use manual migration in limited cases, such as
+  to distribute data during bulk inserts. See :ref:`Migrating Chunks
+  Manually <sharding-balancing-manual-migration>` for more details.
 
-- Automatic. The balancer process handles most migrations when
-  distribution of chunks between shards becomes uneven. See
+- Automatic. The :doc:`balancer </core/sharding-balancing>` process
+  automatically handles most migrations when there is an uneven
+  distribution of a sharded collection's chunks across shards. See
   :ref:`Migration Thresholds <sharding-migration-thresholds>` for more
   details.
 
 All chunk migrations use the following procedure:
 
 #. The balancer process sends the :dbcommand:`moveChunk` command to
-   the source shard for the chunk. In this operation the balancer
+   the source shard. In this operation, the balancer
    passes the name of the destination shard to the source shard.
 
-#. The source initiates the move with an internal
-   :dbcommand:`moveChunk` command with the destination shard.
+#. The source starts the move with an internal :dbcommand:`moveChunk`   
+   command and tracks incoming write operations. During the migration
+   process, operations to the chunk route to the source shard.
 
-#. The destination shard begins requesting documents in the chunk, and
-   begins receiving these chunks.
+#. The destination shard begins requesting documents in the chunk and
+   starts receiving copies of the data.
 
 #. After receiving the final document in the chunk, the destination
-   shard initiates a synchronization process to ensure that all
-   changes to the documents in the chunk on the source shard during
-   the migration process exist on the destination shard.
+   shard starts a synchronization process to ensure that it has the
+   changes to the migrated documents that occured during the migration.
 
-   When fully synchronized, the destination shard connects to the
+#. When fully synchronized, the destination shard connects to the
    :term:`config database` and updates the chunk location in the
-   cluster metadata. After completing this operation, once there are
-   no open cursors on the chunk, the source shard starts deleting
-   its copy of documents from the migrated chunk.
+   cluster metadata.
 
-If enabled, the ``_secondaryThrottle`` setting causes the balancer to
-wait for replication to secondaries. For more information, see
-:ref:`sharded-cluster-config-secondary-throttle`.
+#. After the destination shard completes the update of the metadata, and
+   once there are no open cursors on the chunk, the source shard starts
+   deleting its copy of documents.
+
+The migration process ensures consistency and maximizes availability of
+chunks during balancing.
+
+.. versionchanged:: 2.4
+
+   While copying and deleting data during migrations, the balancer
+   waits for replication to secondaries. See :v2.2:`Secondary Throttle
+   in the v2.2 Manual
+   </tutorial/configure-sharded-cluster-balancer/#sharded-cluster-config-secondary-throttle>`
+   for details.
