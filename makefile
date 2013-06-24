@@ -37,7 +37,7 @@ $(output)/makefile.images:$(tools)/makecloth/images.py source/images/metadata.ya
 
 ############# Meta targets that control the build and publication process. #############
 .PHONY: setup source/about.txt source/includes/hash.rst $(public-branch-output)/release.txt
-setup:source/includes/hash.rst composite-pages.yaml meta.yaml
+setup:source/includes/hash.rst meta.yaml
 	@mkdir -p $(public-branch-output) $(public-output)
 	@echo [build]: created $(public-branch-output) and $(public-output)
 source/includes/hash.rst:
