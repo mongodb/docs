@@ -1,0 +1,161 @@
+============
+Design Notes
+============
+
+.. default-domain:: mongodb
+
+This page details features of MongoDB that may be important to bear in
+mind when designing your applications.
+
+Schema Considerations
+---------------------
+
+Dynamic Schema
+~~~~~~~~~~~~~~
+
+Data in MongoDB has a *dynamic schema*. :term:`Collections
+<collection>` do not enforce :term:`document` structure. This
+facilitates iterative development and polymorphism. Nevertheless,
+collections often hold documents with highly homogeneous
+structures. See :doc:`/core/data-modeling` for more information.
+
+Some operational considerations include:
+
+- the exact set of collections to be used;
+
+- the indexes to be used: with the exception of the ``_id`` index, all
+  indexes must be created explicitly;
+
+- shard key declarations: choosing a good shard key is very important
+  as the shard key cannot be changed once set.
+
+Avoid importing unmodified data
+directly from a relational database. In general, you will want to "roll
+up" certain data into richer documents that take advantage of MongoDB's 
+support for sub-documents and nested arrays.
+
+Case Sensitive Strings
+~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB strings are case sensitive. So a search for ``"joe"`` will not
+find ``"Joe"``.
+
+Consider:
+
+- storing data in a normalized case format, or
+
+- using regular expressions ending with ``/i``, and/or
+
+- using :doc:`$toLower </reference/aggregation/toLower/>` or
+  :doc:`$toUpper </reference/aggregation/toUpper/>` in the
+  :doc:`aggregation framework </core/aggregation/>`.
+
+Type Sensitive Fields
+~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB data is stored in the :meta-driver:`BSON </legacy/bson/>`
+format, a bin­ary-en­coded seri­al­iz­a­tion of JSON-like doc­u­ments.
+BSON encodes additional type information. See 
+`bsonspec.org <http://bsonspec.org/#/specification>`_ for more information.
+
+Consider the following document which has a field ``x`` with the
+*string* value ``"123"``:
+
+.. code-block:: javascript
+
+   { x : "123" }
+
+Then the following query which looks for a *number* value ``123`` will
+**not** return that document:
+
+.. code-block:: javascript
+
+   db.mycollection.find( { x : 123 } )
+
+
+General Considerations
+----------------------
+
+By Default, Updates Affect **one** Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To update multiple documents that meet your query criteria, set the
+:method:`update` ``multi`` option to ``true`` or ``1``. 
+See: :ref:`Update Multiple Documents <update-multiple-documents>`.
+
+Prior to MongoDB 2.2, you would specify the ``upsert`` and ``multi``
+options in the :method:`update` method as positional boolean
+options. See: the :method:`update` method reference documentation.
+
+BSON Document Size Limit
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :limit:`BSON Document Size` limit is currently
+set at 16MB per document. If you require larger documents, use :doc:`GridFS
+</core/gridfs/>`.
+
+No Fully Generalized Transactions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB does not have :doc:`fully generalized transactions
+</tutorial/isolate-sequence-of-operations/>`. Creating rich documents
+that closely resemble and reflect your application-level objects to
+(words).
+
+Replica Set Considerations
+--------------------------
+
+Use an Odd Number of Replica Set Members
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:doc:`Replica sets </replication/>` perform consensus elections. To
+ensure that elections will proceed successfully, either use an odd
+number of members, typically three, or else use an :term:`arbiter` to ensure an
+odd number of votes.
+
+Keep Replica Set Members Up-to-Date
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB replica sets support :doc:`automatic failover
+</core/replica-set-high-availability>`. It is important for
+your secondaries to be up-to-date. There are various strategies for
+assessing consistency:
+
+1. Use monitoring tools to alert you to lag events. See
+   :doc:`</administration/monitoring>` for a detailed discussion of
+   MongoDB's monitoring options.
+
+#. Specify appropriate write concern.
+   
+#. If your application requires *manual* fail over,
+   you can configure your secondaries 
+   as :ref:`priority 0 <replica-set-secondary-only-members>`. 
+   Priority 0 secondaries require manual action for a failover. 
+   This may be practical for a small replica set, but large deployments
+   should fail over automatically.
+
+.. seealso:: :ref:`replica set rollbacks <replica-set-rollback>`.
+
+Sharding Considerations
+-----------------------
+
+- Pick your shard keys carefully. You cannot choose a new shard
+  key for a collection that is already sharded.
+
+- Shard key values are immutable.
+
+- When enabling sharding on an *existing collection*, MongoDB imposes
+  a maximum size on those collections to ensure that it is possible to
+  create chunks. For a detailed explanation of this limit, see: 
+  :limit:`<sharding-existing-collection-data-size>`.
+  
+  To shard
+  large amounts of data, create a new empty sharded collection, and
+  ingest the data from the source collection using an application
+  level import operation.
+
+- Unique indexes are not enforced across shards except for the shard
+  key itself. See :doc:`/tutorial/enforce-unique-keys-for-sharded-collections`.
+
+- Consider :doc:`pre-splitting </administration/sharded-clusters>` a
+  sharded collection before a massive bulk import. 
