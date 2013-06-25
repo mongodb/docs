@@ -4,35 +4,43 @@ Replica Set Data Synchronization
 
 .. default-domain:: mongodb
 
-In order to maintain up-to-date copies of their data, set members
-:term:`sync`, or copy, :term:`oplog` entries from other members.
-Members sync data at two different points: :ref:`initial sync
-<replica-set-initial-sync>` and :ref:`replication
-<replica-set-replication>`.
+In order to maintain up to date copies of the shared data set, members
+of a replica set :term:`sync` or replicate data from other
+members. MongoDB uses two forms of data synchronization: :ref:`initial
+sync <replica-set-initial-sync>` to populate new members with the full
+data set, and the replication to apply ongoing changes to the entire
+set.
 
 .. _replica-set-initial-sync:
 
 Initial Sync
 ------------
 
-Initial sync occurs when a new member or a restored member joins a set.
-Initial sync populates this member with the replica set's data. When a
-new or restored member joins or rejoins a set, the member waits to
-receive heartbeats from other members. By default, the member syncs
-from the *closest* member of the set that is either the primary or
-another secondary with more recent oplog entries than the member
-itself. This prevents two secondaries from syncing from each other.
+Replica set members use initial sync to import the set's data before
+beginning to replicate. Initial sync occurs when a new member joins a
+set. Members perform an initial sync when they cannot use the oplog
+replication to become current. For example, if a member is offline for
+a long period of time and rejoins the set, it may perform a new
+initial sync before resuming replication.
+
+.. commenting following sentence out because it doesn't make sense. --sk
+
+   By default, the member syncs from the *closest* member of the set that
+   is either the primary or another secondary with more recent oplog
+   entries than the member itself. As a result, two secondaries cannot
+   sync from each other.
 
 .. _replica-set-replication:
 
 Replication
 -----------
 
-Replication occurs continually after the initial sync and keeps the
-members updated with changes to the replica set's data. In most cases,
-secondaries synchronize from the primary. Secondaries will change sync
-targets in certain situations and base changes on ping time and
-freshness. This happens automatically.
+Replica set members replicate data continuously after the initial
+sync. This process keeps the members up to date with all changes to
+the replica set's data. In most cases, secondaries synchronize from
+the primary. Secondaries may automatically change their *sync targets*
+if needed based changes the ping time and state of other members'
+replication.
 
 .. COMMENT: 2013-05-23 > Removed following internal mechanics information.
 
@@ -60,11 +68,13 @@ freshness. This happens automatically.
 .. END-COMMENT
 
 For a member to sync from another, the
-:data:`~local.system.replset.members[n].buildIndexes` field for both
-members must have the same value, either ``true`` or ``false``.
+:data:`~local.system.replset.members[n].buildIndexes` setting for both
+members must have the same value/
+:data:`~local.system.replset.members[n].buildIndexes` must be either
+``true`` or ``false`` for both members.
 
-Beginning in version 2.2, secondaries prefer not to sync from
-:ref:`delayed members <replica-set-delayed-members>` or :ref:`hidden
+Beginning in version 2.2, secondaries will avoid syncing from
+:ref:`delayed members <replica-set-delayed-members>` and :ref:`hidden
 members <replica-set-hidden-members>`.
 
 Consistency and Durability
@@ -85,29 +95,24 @@ inconsistent state.
 Multithreaded Replication
 -------------------------
 
-MongoDB applies write operations in batches using a multithreaded
-approach to improve concurrency. MongoDB batches operations by
-namespace. You can have multiple batches for a namespace. The
-replication process divides the batches among a group of threads. The
-application of the write operations to a namespace is in order.
+MongoDB applies write operations in batches using multiple threads to
+improve concurrency. MongoDB groups batches by namespace and applies
+operations using a group of threads, but always applies the write
+operations to a namespace in order.
 
-While applying a batch of operations to a namespace, MongoDB block all
-reads. This ensures that reads to a secondary never return data that
-reflect an in-between state that never existed on the primary.
+While applying a batch, MongoDB blocks all reads. As a result,
+secondaries can never return data that reflects a state that never
+existed on the primary.
 
 Pre-Fetching Indexes to Improve Replication Throughput
 ------------------------------------------------------
 
-To help improve the performance of applying the write operations,
-MongoDB fetches all the memory pages that hold data and indexes that
-the operations in the batch will affect. The prefetch stage minimizes
-the amount of time MongoDB must hold the write lock to apply the
-operations. See the :setting:`replIndexPrefetch` setting to modify the
-index fetching behavior.
+To help improve the performance of applying oplog entries, MongoDB
+fetches memory pages that hold affected data and indexes. This
+*pre-fetch* stage minimizes the amount of time MongoDB holds the write
+lock while applying oplog entries. By default, secondaries will
+pre-fetch all :ref:`indexes`.
 
-By default, secondaries will in most cases pre-fetch :ref:`indexes`
-associated with the affected document to improve replication throughput.
-
-You can limit this feature to pre-fetch only the index on the ``_id``
-field, or you can disable this feature entirely. For more information,
-see :setting:`replIndexPrefetch`.
+Optionally, you can disable all pre-fetching or only pre-fetch
+the index on the ``_id`` field. See the :setting:`replIndexPrefetch`
+setting for more information.
