@@ -26,7 +26,7 @@ help:
 
 publish all:hosted saas
 hosted saas:setup
-	@$(MAKE) EDITION=$@ manual-pdfs generate-source dirhtml-$@ build/public/$@/.htaccess $(public-output) $(publish-output)
+	@$(MAKE) EDITION=$@ manual-pdfs generate-source dirhtml-$@ build/public/$@/.htaccess build/public/$@ $(public-output) $(publish-output)
 	@echo [build]: $@ edition complete
 setup:
 	@mkdir -p $(public-output) $(branch-output) $(branch-output)/source
