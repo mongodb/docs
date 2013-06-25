@@ -9,57 +9,58 @@ Replica Set Arbiter
 
 .. start-content
 
-An arbiter does **not** have a copy of the primary's data set and
-**cannot** become a primary. An arbiter exists solely to vote in
-:ref:`elections of new primary <replica-set-elections>`. An election of
-a new primary requires a majority. If your replica set has an even
-number of members, you can add an :doc:`arbiter
-</tutorial/add-replica-set-arbiter>` to obtain a majority. An arbiter
-allows you to construct this majority without the overhead of adding
-replicating nodes to the system.
+An arbiter does **not** have a copy of data set and **cannot** become
+a primary. Replica sets may have arbiters to add a vote in
+:ref:`elections of for primary <replica-set-elections>`.  Arbiters
+allow replica sets to have an uneven number of members, without the
+overhead of a member that replicates data.
 
-.. warning::
+.. important:: Do not run an arbiter on systems that also host the
+   primary or the secondary members of the replica set.
 
-   - Do not run the arbiter on a system that is an active primary
-     or secondary of its replica set.
+Only add an arbiter to sets with even numbers of members. If you add
+an arbiter to a set with an odd number of members, the set may suffer
+from tied :term:`elections <election>`. To add an arbiter, see
+:doc:`/tutorial/add-replica-set-arbiter`.
 
-   - To prevent tied :term:`elections <election>`, do not add an
-     arbiter to a set if the set already has an odd number of voting
-     members.
+.. end-content
 
-You can have a three-member replica set with a primary, secondary, and
-an arbiter.
-
-.. include:: /images/replica-set-primary-with-secondary-and-arbiter.rst
+Example
+-------
 
 .. start-content-even-votes-example
 
-For example, in the following replica set, adding an arbiter
-allows you to have an odd number of votes to obtain a majority in an
-election.
+For example, in the following replica set, an arbiter allows the set
+to have an odd number of votes for elections:
 
 .. include:: /images/replica-set-four-members-add-arbiter.rst
 
 .. end-content-even-votes-example
 
-Arbiters have the following interactions with the rest of the replica
-set:
+Security
+--------
 
-- Credential exchanges that authenticate the arbiter with the replica
-  set. All MongoDB processes within a replica set use keyfiles. These
-  exchanges **are** encrypted.
+Authentication
+~~~~~~~~~~~~~~
 
-  MongoDB only transmits the authentication credentials in a
-  cryptographically secure exchange and encrypts no other exchange.
+When running with :setting:`auth`, arbiters exchange credentials with
+other members of the set to authenticate. MongoDB encrypts the
+authentication process. The MongoDB authentication exchange is
+cryptographically secure.
 
-- Exchanges of replica set configuration data and of votes. These are
-  **not** encrypted.
+Arbiters, use :setting:`keyfiles <keyfile>` to authenticate to the
+replica set.
 
-  If your MongoDB deployment uses SSL, then all communications between
-  arbiters and the other members of the replica set are secure. See the
-  documentation :doc:`/tutorial/configure-ssl` for more information. As
-  with all MongoDB components, run arbiters on secure networks.
+Communication
+~~~~~~~~~~~~~
 
-See also :doc:`/tutorial/add-replica-set-arbiter`.
+The only communication between arbiters and other set members are:
+votes during elections, heartbeats, and configuration data. These
+exchanges are not encrypted.
 
-.. end-content
+**However**, if your MongoDB deployment uses SSL, MongoDB will encrypt
+*all* communication between replica set members. See
+:doc:`/tutorial/configure-ssl` for more information.
+
+As with all MongoDB components, run arbiters on in trusted network
+environments.
