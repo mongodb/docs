@@ -1,0 +1,130 @@
+==================================
+Deploy a Replica Set in Production
+==================================
+
+.. default-domain:: mongodb
+
+.. include:: /includes/introduction-deploy-replica-set.rst
+
+Requirements
+------------
+
+For production deployments, you should maintain as much separation between
+members as possible by hosting the :program:`mongod`
+instances on separate machines. When using virtual machines for
+production deployments, you should place each :program:`mongod`
+instance on a separate host server serviced by redundant power circuits
+and redundant network paths.
+
+Before you can deploy a replica set, you must install MongoDB on
+each system that will be part of your :term:`replica set`.
+If you have not already installed MongoDB, see the :ref:`installation tutorials <tutorial-installation>`.
+
+Before creating your replica set, you should verify that your network
+configuration allows all possible connections between each member. For
+a successful replica set deployment, every member must be able to
+connect to every other member. For instructions on how to check
+your connection, see :ref:`replica-set-troubleshooting-check-connection`.
+
+Procedure
+---------
+
+.. include:: /includes/fact-prod-rs-deployment-considerations.rst
+   :start-after: begin-nondist-dns
+   :end-before: end-nondist-dns
+   
+.. include:: /includes/fact-prod-rs-deployment-considerations.rst
+   :start-after: begin-nondist-routing
+   :end-before: end-nondist-routing
+
+To deploy a production replica set:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. begin-deployment-content
+
+1. Start a :program:`mongod` instance on each system that will be part
+   of your replica set by issuing a
+   command similar to following:
+
+   .. code-block:: sh
+
+      mongod --config /etc/mongodb.conf
+
+   Where ``mongodb.conf`` is the configuration file discussed above.
+
+   .. note::
+
+      You will likely want to use and configure a
+      :term:`control script` to manage this process in production 
+      deployments. Control scripts are beyond the scope of this document.
+
+#. Open a :program:`mongo` shell connected to one of the hosts by 
+   issuing the following command:
+
+   .. code-block:: sh
+
+      mongo
+
+#. Use :method:`rs.initiate()` to initiate a replica set consisting of
+   the current member and using the default configuration, as follows:
+
+   .. code-block:: javascript
+
+      rs.initiate()
+
+#. Display the current :doc:`replica configuration </reference/replica-configuration>`:
+
+   .. code-block:: javascript
+
+      rs.conf()
+
+   The replica set configuration object resembles the following
+
+   .. code-block:: javascript
+
+      {
+         "_id" : "rs0",
+         "version" : 4,
+         "members" : [
+            {
+               "_id" : 1,
+               "host" : "mongodb0.example.net:27017"
+            }
+         ]
+      }  
+
+.. end-4member
+
+#. In the :program:`mongo` shell connected to the :term:`primary`, add
+   the remaining members to the replica set using :method:`rs.add()` in
+   the :program:`mongo` shell on the current primary (in this example,
+   ``mongodb0.example.net``). The commands should resemble the
+   following:
+
+   .. code-block:: javascript
+
+      rs.add("mongodb1.example.net")
+      rs.add("mongodb2.example.net")
+
+   When complete, you should have a fully functional replica set.
+   The new replica set will elect a :term:`primary`.
+
+.. end-3member
+
+.. begin-conclusion-content
+
+Check the status of your replica set at any time with the
+:method:`rs.status()` operation.
+
+.. seealso:: The documentation of the following shell functions for
+   more information:
+
+   - :method:`rs.initiate()`
+   - :method:`rs.conf()`
+   - :method:`rs.reconfig()`
+   - :method:`rs.add()`
+
+   Refer to :doc:`Replica Set Read and Write Semantics </applications/replication>`
+   for a detailed explanation of read and write semantics in MongoDB.
+
+.. end-conclusion-content
