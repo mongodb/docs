@@ -7,58 +7,40 @@ Replica Set Deployment Architectures
 
 .. default-domain:: mongodb
 
-The architecture and design of the :term:`replica set` deployment can
-have a great impact on the set's capacity and capability. This section
-provides an overview of the architectural possibilities for
-replica set deployments. However, for most production deployments, a
-conventional 3-member replica set with
-:data:`~local.system.replset.members[n].priority` values of ``1`` is
-sufficient.
+The architecture of a :term:`replica set <replica set>` affects the
+set's operations. This section provides strategies for replica-set
+deployments and describes common architectures.
 
-It always makes sense to let the application requirements dictate the
-architecture of the MongoDB deployment. Avoid adding unnecessary
-complexity to your deployment.
+The standard deployment for a production system is a three-member
+replica set in which any member can become :term:`primary`. When
+deploying a replica set, let your application requirements dictate the
+architecture you choose. Avoid unnecessary complexity.
 
-Plan a Replica Set Deployment
------------------------------
+Determine the Number of Members
+-------------------------------
 
-When developing an architecture for your replica set, consider the
-following factors:
+Add members in a replica set according to these strategies.
 
 Run an Odd Number of Members to Ensure Successful Elections
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Ensure that the members of the replica set will always be able to elect
-a :term:`primary`. Run an odd number of members or run an
-:term:`arbiter` on one of your application servers if you have an even
-number of members.
-
-Distribute the Replica Set Geographically
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Consider keeping one or two members of the set in an off-site data
-center, but make sure to configure the member
-:data:`~local.system.replset.members[n].priority` to prevent it from
-becoming primary.
-
-Ensure One Location in a Geographically Distributed System has a Quorum
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-With geographically distributed members, know where the "quorum" of
-members will be in the case of any network partitions. Attempt to ensure
-that the set can elect a primary among the members in the primary data
-center.
+An odd number of members ensures that the replica set is always able to
+elect a primary. If you have an even number of members, you can create
+an odd number without increasing storage needs by running an
+:term:`arbiter` on an application server.
 
 .. _replica-set-architectures-consider-fault-tolerance:
 
-Consider Fault Tolerance
-~~~~~~~~~~~~~~~~~~~~~~~~
+Use Fault Tolerance to Help Decide How Many Members
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When determining how many members to deploy in a replica set, consider
-the relationship between the size of a replica set and fault
-tolerance, or the number of set members that can become unavailable
-without affecting the availability or the ability of the set to elect
-a :term:`primary`. The following table illustrates this relationship:
+The "fault tolerance" level is the number of members that can be offline
+without blocking the set's ability to elect a primary. Fault tolerance
+is a factor of replica-set size, as shown in the following table.
+
+Adding a member to the replica set does not *always* increase the fault
+tolerance. In such cases, however, having an additional member can
+provide support for dedicated functions, such as backups or reporting.
 
 .. list-table::
    :header-rows: 1
@@ -66,7 +48,7 @@ a :term:`primary`. The following table illustrates this relationship:
 
    * - Number of Members
 
-     - Majority Required to Elect New Primary
+     - Majority Required to Elect a New Primary
 
      - Fault Tolerance
 
@@ -94,54 +76,64 @@ a :term:`primary`. The following table illustrates this relationship:
 
      - 2
 
-Adding a member to the replica set does not *always* increase the level
-of tolerance for service interruptions. However, although the fault
-tolerance may not always increase, having additional members provide
-support for dedicated functionality, such as dedicated backups and
-reporting.
-
-Run Hidden and Delayed Members for Dedicated Functions
+Add Hidden and Delayed Members for Dedicated Functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Consider including a :ref:`hidden <replica-set-hidden-members>` or
-:ref:`delayed member <replica-set-delayed-members>` in your replica set
-to support dedicated functionality, like backups, reporting, and
-testing.
+Add :ref:`hidden <replica-set-hidden-members>` or :ref:`delayed
+<replica-set-delayed-members>` members to support dedicated functions,
+such as backup, reporting, or testing.
 
-Use Tags to Ensure Write Operations Propagate Efficiently
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Add Members to Load Balance on Read-Heavy Deployments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Create custom write concerns with :ref:`replica set tags
-<replica-set-configuration-tag-sets>` to ensure that applications can
-control the threshold for a successful write operation. Use these write
-concerns to ensure that operations propagate to specific data centers or
-to machines of different functions before returning successfully.
+In a deployment with high read traffic, you can improve read throughput
+by distributing reads to secondary members. As your deployment grows,
+add or move members to secondary data centers to improve redundancy and
+availability.
 
-Add Additional Members to Load Balance on Read-Heavy Deployments
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-For those deployments that rely heavily on distributing reads to
-secondary members, add additional members as the load increases. As
-your deployment grows, consider adding or moving replica set members to
-secondary data centers or to geographically distinct locations for
-additional redundancy and availability. While many architectures are
-possible, always ensure that the quorum of members required to elect a
-primary remains in your main facility.
+Always ensure that your main facility contains the quorum of members
+needed to elect a primary.
 
 Add New Members Ahead of Demand
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The process of establishing a new replica set member can be resource
-intensive on existing members. As a result, deploy new members to
-existing replica sets significantly before the current demand saturates
-the existing members.
+Add new members to existing replica sets well before the current demand
+saturates the existing members.
+
+Determine the Distribution of Members
+-------------------------------------
+
+Distribute members in a replica set according to these strategies.
+
+Geographically Distribute Members to Provide Data Recovery
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To provide data recovery if your data center fails, keep at least one
+member in an off-site data center. Set the member's
+:data:`~local.system.replset.members[n].priority` to 0 to prevent it
+from becoming primary.
+
+Keep a Majority of Members in One Location to Ensure Successful Elections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When a replica set is distributed over different locations, network
+partitions can prevent members in one center from seeing those in
+another. In an election, members must see each other to create a
+majority. To ensure that the replica set members can confirm a majority and
+elect a primary, keep a majority of the set’s members in one location.
+
+Use Tags to Ensure Write Operations Propagate Efficiently
+---------------------------------------------------------
+
+Use :ref:`replica set tags <replica-set-configuration-tag-sets>` to
+ensure that operations propagate to specific data centers or to machines
+with specific functions.
 
 Use Journaling to Protect Against Power Failures
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------------------------
 
-Journaling is particularly useful for protection against power failures,
-especially if your replica set resides in a single data center or power
-circuit.
+Enable journaling as protection against power failures, especially if
+your replica set resides in a single data center or power circuit.
 
 64-bit versions of MongoDB after version 2.0 have journaling enabled by
 default.
@@ -149,11 +141,9 @@ default.
 Architectures
 -------------
 
-There is no single ideal :term:`replica set` architecture for every
-deployment or environment. Indeed the flexibility of replica sets might
-be their greatest strength. The following deployment patterns are
-necessarily not mutually exclusive, and you can combine features of
-each architecture in your own deployment.
+The following are common deployment patterns for replica sets. These are
+neither exclusive nor exhaustive. You can combine features of each
+architecture in your own deployment.
 
 .. include:: /includes/dfn-list-replica-set-architectures.rst
 
