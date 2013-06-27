@@ -9,30 +9,53 @@ Delayed Replica Set Members
 
 .. default-domain:: mongodb
 
-Delayed members contain copies of the :term:`primary's <primary>` data
-set that reflect an earlier, or delayed, state of the set. For example,
-if the current time is 09:52 and a member has a delay of an hour, the
-delayed member has no operation more recent than 08:52.
+Delayed members contain copies of a :term:`replica set's <replica
+set>` data set. However, a delayed member's data set reflects an
+earlier, or delayed, state of the set. For example, if the current
+time is 09:52 and a member has a delay of an hour, the delayed member
+has no operation more recent than 08:52.
 
-.. note::
+Because delayed members are a "rolling backup" or a running
+"historical" snapshot of the data set, they may help you recover from
+various kinds of human error. For example, a delayed member can make
+it possible to recover from unsuccessful application upgrades and
+operator errors including dropped databases and collections.
 
-   - Delayed members **must be** :ref:`priority 0
-     <replica-set-secondary-only-members>` members to prevent a delayed
-     member from becoming a primary.
+Requirements
+------------
 
-   - Delayed members **should be** :ref:`hidden
-     <replica-set-hidden-members>` to prevent applications from seeing
-     or querying this member.
+Delayed members:
 
-   - Delayed members *do* vote in :term:`elections <election>` for
-     primary, even if delayed members **cannot** become a primary.
+- **Must be** :ref:`priority 0 <replica-set-secondary-only-members>`
+  members. Set the priority to 0 to prevent a delayed member from
+  becoming primary.
 
-For example, in the following 5-member replica set, all four secondary
-members have copies of the primary's data set, but one of secondary
-members is delayed by 3600 seconds or an hour, hidden, and is a
-priority 0 member.
+- **Should be** :ref:`hidden <replica-set-hidden-members>`
+  members. Always prevent applications from seeing and querying
+  delayed members.
+
+- *do* vote in :term:`elections <election>` for primary.
+
+Delayed members apply operations from the :term:`oplog` on a delay.
+When choosing the amount of delay, consider that the amount of delay:
+
+- must be is equal to or greater than your maintenance windows.
+
+- must be *smaller* than the capacity of the oplog. For more
+  information on oplog size, see :ref:`replica-set-oplog-sizing`.
+
+Example
+-------
+
+In the following 5-member replica set, the primary and all secondaries
+have copies of the data set. One member applies operations with a
+delay of 3600 seconds, or an hour. This delayed member is also
+*hidden* and is a *priority 0 member*.
 
 .. include:: /images/replica-set-delayed-member.rst
+
+Configuration
+-------------
 
 A delayed member has its
 :data:`~local.system.replset.members[n].priority` equal to ``0``,
@@ -49,23 +72,6 @@ number of seconds of delay:
       "slaveDelay" : <seconds>,
       "hidden" : true
    }
-
-Because delayed members provide a running "historical" snapshot of the
-data set or a rolling backup, they may help recover from various kinds
-of human error, such as unintentionally deleted databases and
-collections or unsuccessful application upgrades.
-
-Delayed members apply operations from the :term:`oplog` on a delay.
-When determining the amount of delay to apply, consider the following
-factors:
-
-- Ensure that the length of the delay is equal to or greater than your
-  maintenance windows.
-
-- The size of the oplog is sufficient to capture *more than* the
-  number of operations that typically occur in that period of
-  time. For more information on oplog size, see
-  :ref:`replica-set-oplog-sizing`.
 
 To configure a delayed member, see
 :doc:`/tutorial/configure-a-delayed-replica-set-member`.
