@@ -14,7 +14,7 @@ Consider the following map-reduce operations on a collection
         cust_id: "abc123",
         ord_date: new Date("Oct 04, 2012"),
         status: 'A',
-        price: 250,
+        price: 25,
         items: [ { sku: "mmm", qty: 5, price: 2.5 },
                  { sku: "nnn", qty: 5, price: 2.5 } ]
    }
