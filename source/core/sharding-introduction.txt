@@ -4,29 +4,29 @@ Sharding Introduction
 
 .. default-domain:: mongodb
 
-Sharding is a method for storing data across multiple machines and is
-how MongoDB meets the demands of very large data sets and high
-throughput operations.
+Sharding is a method for storing data across multiple
+machines. MongoDB uses sharding to support deployments with very large
+data sets and high throughput operations.
 
 Purpose of Sharding
 -------------------
 
-When running databases with large data sets and high throughput
-applications, the database layer can exceed the capacity of the
-underlying server. High query rates can exhaust the CPU capacity of the
-server; larger data exceed the storage capacity of a single machine;
-working set sizes surpass the size of RAM and put pressure on the I/O
-capacity of disk drives.
+Database systems with large data sets and high throughput applications
+can challenge the capacity of a single server. High query rates can
+exhaust the CPU capacity of the server. Larger data sets exceed the
+storage capacity of a single machine. Finally, working set sizes
+larger than the system's RAM stress the I/O capacity of disk drives.
 
-There are two common approaches to handling this scaling problem:
-**vertical scaling** and **sharding**.
+To address these issues of scales, database systems have two basic
+approaches: **vertical scaling** and **sharding**.
 
-**Vertical scaling** adds more processors and storage to the server to
-increase its capacity. However, this approach has numerous drawbacks:
-high performance systems with large numbers of CPUs and large amount of
-RAR are disproportionately *more expensive* than smaller systems;
-cloud-based providers only allow users to provision smaller instances;
-machines have a *practical maximum* capacity.
+**Vertical scaling** adds more CPU and storage resources to increase
+capacity. Scaling by adding capacity has limitations: high performance
+systems with large numbers of CPUs and large amount of RAR are
+disproportionately *more expensive* than smaller
+systems. Additionally, cloud-based providers may only allow users to
+provision smaller instances.  As a result there is a *practical
+maximum* capability for vertical scaling.
 
 **Sharding**, or *horizontal scaling*, by contrast, divides the data
 set and distributes the data over multiple servers, or **shards**. Each
@@ -38,21 +38,19 @@ a single logical database.
 Sharding addresses the challenge of scaling to support high throughout
 and large data sets:
 
-- Sharding reduces the number of operations each shard handles and
-  increases the overall throuput capacity. Each individual shard
-  processes smaller number of operations with the addition of new
-  shards.
+- Sharding reduces the number of operations each shard handles. Each
+  shard processes fewer operations as the cluster grows. As a result,
+  shared clusters can increase capacity and throughput *horizontally*.
 
-  For example, to insert a data record, the insert operation would only
-  need to access the shard that will hold the new record.
+  For example, to insert data, the application only needs to access the
+  shard responsible for that records. 
 
 - Sharding reduces the amount of data that each server needs to store.
-  Each individual shard stores smaller amount of data with the addition
-  of new shards.
+  Each shard stores less data as the cluster grows.
 
-  For example, if a database has 1TB of total data, and there are 4
-  shards, then each shard might hold only 256GB of data. If there are
-  40 shards, then each shard might hold only 25GB of data.
+  For example, if a database has a 1 terabyte data set, and there are
+  4 shards, then each shard might hold only 256GB of data. If there
+  are 40 shards, then each shard might hold only 25GB of data.
 
 Sharding in MongoDB
 -------------------
@@ -65,35 +63,34 @@ clusters <sharded cluster>`.
 Sharded cluster has the following components: :term:`shards <shard>`,
 :term:`routers <mongos>` and :term:`config servers <config database>`.
 
-**Shards** contain the distributed data. In order to provide high
-availability and data consistency, in a production sharded cluster,
-each shard is a :term:`replica set` [#dev-only-shard-deployment]_. For
-more information on replica sets, see :doc:`Replica Sets
+**Shards** store the data. To provide high availability and data
+consistency, in a production sharded cluster, each shard is a
+:term:`replica set` [#dev-only-shard-deployment]_. For more
+information on replica sets, see :doc:`Replica Sets
 </core/replication>`.
 
-**Routers**, or the **mongos** processes, interface with client
-applications to direct the read and write operations to the appropriate
-shard or shards. The router examines the operation to determine which
-shard or shards to target and returns the results to the clients. A
-sharded cluster can contain more than one router to divide the client
-request load. A client send its request to just one of the routers if a
-sharded cluster contains multiple routers.
+**Routers**, or :program:`mongos` instances, interface with client
+applications and direct operations to the appropriate shard or
+shards. The router processes and targets operations to shards and then
+returns results to the clients. A sharded cluster can contain more
+than one router to divide the client request load. A client sends
+requests to one routers. Most sharded cluster have many routers.
 
-**Config servers** store metadata about the cluster and the data
-distribution across shards. The router uses this metadata to determine
-which shard or shards to route the read and write operations. A
-production sharded cluster contains exactly 3 config servers.
+**Config servers** store the cluster's metadata. This data contains a
+mapping of the cluster's data set to the shards. The router uses this
+metadata to target operations to specific shards. Production sharded
+clusters have *exactly* 3 config servers.
 
 .. [#dev-only-shard-deployment] For development and testing purposes
    only, each **shard** can be a single :program:`mongod` instead of a
-   replica set. This deployment is not recommended for
-   production.
+   replica set. Do **not** deploy production clusters without 3 config
+   servers.
 
 Data Partitioning
 -----------------
 
-MongoDB shards at the collection level, partitioning the collection's
-data by the **shard key**.
+MongoDB distributes data, or shards, at the collection level. Sharding
+partitions a collection's data by the **shard key**.
 
 Shard Keys
 ~~~~~~~~~~
@@ -168,19 +165,18 @@ data distribution imbalances within the cluster, such as a particular
 shard contains significantly more chunks than another shard or a size
 of a chunk is significantly greater than other chunk sizes.
 
-MongoDB actively ensures a balanced cluster through two automatic
-background processes: splitting and the balancer.
+MongoDB ensures a balanced cluster using two background process:
+splitting and the balancer.
 
 Splitting
 ~~~~~~~~~
 
-Splitting is a background process that keep each chunk roughly equal in
-size. When a chunk grows beyond a :ref:`specified chunk size
-<sharding-chunk-size>`, MongoDB splits the chunk in half. The split
-operation occurs during data inserts and updates. The splitting process
-is a very efficient process that consists purely of an update to the
-metadata and does not directly result in any data movement or disk I/O
-within the shard or between shards.
+Splitting is a background process that keeps chunks from growing too
+large. When a chunk grows beyond a :ref:`specified chunk size
+<sharding-chunk-size>`, MongoDB splits the chunk in half. Inserts and
+updates triggers splits. Splits are a efficient meta-data change. To
+create splits, MongoDB does *not* migrate any data or affect the
+shards.
 
 .. include:: /images/sharding-splitting.rst
 
@@ -188,48 +184,40 @@ Balancing
 ~~~~~~~~~
 
 The :ref:`balancer <sharding-balancing-internals>` is a background
-process that coordinates chunk migration among shards. The balancer
-runs in all of the routers in a cluster.
+process that manages chunk migrations. The balancer runs in all of the
+routers in a cluster.
 
 When the distribution of a sharded collection in a cluster is uneven,
-the balancer process will migrate chunks from the shard that has the
+the balancer process migrates chunks from the shard that has the
 largest number of chunks to the shard with the least number of chunks
-until the collection achieves balance. For example: if collection
+until the collection is balanced. For example: if collection
 ``users`` has 100 chunks on *shard 1* and 50 chunks and *shard 2*, the
 balancer will migrate chunks from *shard 1* to *shard 2* until the
 collections achieves balance.
 
-The shards themselves manage *chunk migrations* as a background
-operation: during the migration process all operations on a chunk
-address the "origin" shard where the chunk originates.
+The shards manage *chunk migrations* as a background operation. During
+migration, all requests for a chunks data address the "origin" shard.
 
 In a chunk migration, the *destination shard* receives all the
 documents in the chunk from the *origin shard*. Then, the destination
-shard initiates a synchronization process to ensure that the
-destination shard reflects any modifications occurred during the
-migration process. Finally, the destination shard connects to the
-*config server* to update the metadata regarding the location of the
-chunk.
+shard captures and applies all changes made to the data during
+migration process. Finally, the destination shard updates the metadata
+regarding the location of the on *config server*.
 
-If any error occurs during the migration process, the balancer aborts
-the migration and leaves the chunk on the origin shard. When the
-migration completes successfully, the origin shard will removed the
-migrated chunk's data.
+If there's an error during the migration, the balancer aborts the
+process leaving the chunk on the origin shard. MongoDB removes the
+chunks data from the origin shard **after** the migration completes
+successfully.
 
 .. include:: /images/sharding-migrating.rst
 
 Adding and Removing Shards from the Cluster
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The addition of a new shard to the cluster creates an imbalance since
-the new shard contains zero chunks. The balancer begins migrating
-chunks from the existing shards to the new shard. As each chunk
-migration completes on the new shard, the new shard will start
-processing requests for that chunk. However, it may be some time before
-enough chunk migrations have completed for the new shard to handle an
-equal portion of the workload.
+Adding a shard to a cluster creates an imbalance  since the new
+shard has no chunks. While MongoDB begins migrating data to the new
+shard immediately, it can take some time before the cluster balances.
 
-When removing a shard, the balancer will migrate all the chunks from
-this shard to other shards. Once all the migration from this shard
-completes, including the update of the metadata, you can safely
-decommission the shard.
+When removing a shard, the balancer migrates all chunks from to other
+shards. After migrating all data and updating the meta data, you can
+safely remove the shard.
