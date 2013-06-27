@@ -4,53 +4,53 @@ Add an Arbiter to Replica Set
 
 .. default-domain:: mongodb
 
-Arbiters are special :program:`mongod` instances that do not hold a
-copy of the data and thus cannot become primary. Arbiters exist solely
-to participate in :ref:`elections <replica-set-elections>`. Because
-arbiters do not hold a copies of collection data, they have minimal
-resource requirements and do not require dedicated hardware; you may
-safely deploy an arbiter on a system with another workload, such as an
-application server or monitoring member.
+Arbiters are :program:`mongod` instances that exist solely to
+participate in :ref:`elections <replica-set-elections>`. Add an arbiter
+when a :term:`replica set` has an even number of voting members. The
+arbiter gives the set an odd number and prevents election ties.
+
+An arbiter cannot become primary and does not hold a copy of the data
+set. Arbiters have minimal resource requirements and do not require
+dedicated hardware. You can deploy an arbiter on a system with another
+workload, such as an application server or monitoring member. However,
+you cannot run an arbiter on an system with an active :term:`primary` or
+:term:`secondary` of the same replica set.
 
 .. warning::
 
-   Do not run arbiter processes on a system that is an active
-   :term:`primary` or :term:`secondary` of its :term:`replica set`.
+   Do not run an arbiter on an active primary or secondary of the same
+   replica set.
 
 Add an Arbiter
 --------------
 
-.. note::
-   To prevent tied :term:`elections <election>`, do not add an arbiter
-   to a set if the set already has an odd number of voting members.
-
 1. Create a data directory for the arbiter. The :program:`mongod` uses
-   this directory for configuration information. It *will not* hold
-   database collection data. The following example creates the
-   ``/data/arb`` data directory:
+   the directory for configuration information. The directory *will not*
+   hold the data set. The following example creates the ``/data/arb``
+   data directory:
 
    .. code-block:: sh
 
       mkdir /data/arb
 
-#. Start the arbiter, making sure to specify the replica set name and
-   the data directory. Consider the following example:
+#. Start the arbiter. Specify the data directory and the replica set
+   name. The following example specifies the ``/data/arb`` data
+   directory and the ``rs`` replica set:
 
    .. code-block:: sh
 
       mongod --port 30000 --dbpath /data/arb --replSet rs
 
-#. In a :program:`mongo` shell connected to the :term:`primary`, add the
-   arbiter to the replica set by issuing the :method:`rs.addArb()`
-   method, which uses the following syntax:
+#. Connect to the primary and add the arbiter to the replica set. Use
+   the :method:`rs.addArb()` method, which uses the following syntax:
 
    .. code-block:: javascript
 
       rs.addArb("<hostname><:port>")
 
-   For example, if the arbiter runs on ``m1.example.net:30000``, you
-   would issue this command:
+   .. example:: The following command add an arbiter that runs on
+      ``m1.example.net:30000``:
 
-   .. code-block:: javascript
+      .. code-block:: javascript
 
-      rs.addArb("m1.example.net:30000")
+         rs.addArb("m1.example.net:30000")
