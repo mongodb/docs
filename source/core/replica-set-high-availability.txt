@@ -9,36 +9,38 @@ Replica Set High Availability
 
 .. default-domain:: mongodb
 
-Replica sets provide automatic failover to support autonomous
-operation. If the :ref:`primary <replica-set-primary-member>` of a
-replica set either steps down, becomes inaccessible, or becomes
-otherwise ineligible to act as the primary, the replica set will
-automatically hold an :doc:`election </core/replica-set-elections>` to
-:doc:`elect </core/replica-set-elections>` one of the secondaries to
-become primary. In some situations, the failover process may also
-involve :doc:`rollbacks </core/replica-set-rollbacks>`.
+:term:`Replica sets <replica set>` provide high availability through
+automatic :term:`failover`. Automatic failover allows a
+:term:`secondary` member of the replica set to become the
+new :term:`primary` should the primary become inaccessible.
 
-In most cases, failover occurs without administrator intervention.
-However, if your MongoDB deployment does not failover accordingly,
-consider both ability of the remaining members to form a majority as
-well as the member eligibility to become primary. For instance,
-network partitions can render some members inaccessible, and the
-remaining members are unable to form a majority. Design your deployment
-to ensure that a majority of set members can elect a primary in the
-same facility as the core application systems. Additionally, to be
-eligible to become primary, members must have a
+Within a replica set, members hold the same information but are
+otherwise autonomous. If the primary becomes inaccessible for any
+reason, the replica set automatically holds an :doc:`election
+</core/replica-set-elections>` for a new primary. In some situations,
+the failover process may also involve :doc:`rollbacks
+</core/replica-set-rollbacks>`.
+
+You must configure your replica set correctly for failover to work.
+Locate a majority of the replica set's voting members in one data
+center. The center should hold all the members that are eligible to
+become primary. Choose the facility that contains your core application
+systems. Without these design patterns, network partitions might render
+some members inaccessible, and the remaining members will not be able to
+form a majority.
+
+To be eligible to become primary, a member must have a
 :data:`~local.system.replset.settings.members[n].priority` setting
-greater than ``0``, have a state that is less than ten seconds behind
-the last operation to the :term:`replica set`, and generally be *more*
-up-to-date than the voting members.
+greater than ``0`` and have a state that is fewer than ten seconds
+behind the last operation to the replica set. Also, the member usually
+must be *more* up-to-date than the voting members.
 
 Failover Processes
 ------------------
 
-To recover from the loss or inaccessiblity of the current primary, the
-replica set failover processes involve an :doc:`election
-</core/replica-set-elections>` to elect a new primary, and, in certain
-situations, :doc:`rollbacks </core/replica-set-rollbacks>`.
+To recover from the loss or inaccessibility of the current primary, the
+replica set holds an election. In rare situations, the replica set also
+"rolls back" write operations.
 
 .. include:: /includes/dfn-list-replica-set-high-availability.rst
 
