@@ -7,32 +7,24 @@ Replica Set Oplog
 The :term:`oplog` (operations log) is a special :term:`capped
 collection` that keeps a rolling record of all operations that modify
 the data stored in your databases. MongoDB applies database operations
-on the :term:`primary` and then records the operations on the primary's
-oplog. The :term:`secondary` members then replicate this log and apply
-the operations to themselves in an asynchronous process. All replica set
-members contain a copy of the oplog, allowing them to maintain the
-current state of the database.
+on the :term:`primary` and then records the operations on the
+primary's oplog. The :term:`secondary` members then copy and apply
+these operations in an asynchronous process. All replica set members
+contain a copy of the oplog, allowing them to maintain the current
+state of the database.
 
-To facilitate oplog replication, all replica set members send heartbeats
-(pings) to all other members. Any member can import operations to its
-local oplog from any other member.
+To facilitate replication, all replica set members send heartbeats
+(pings) to all other members. Any member can import oplog entries from
+any other member.
 
 Whether applied once or multiple times to the target dataset, each
-operation in the oplog produces the same results; i.e. each operation
-in the oplog is :term:`idempotent`.
-
-.. question:: For this list below, are we saying that all operations ARE idempotent
-   but only this list of operations ultimately has to be?
-
-The following operations require
-idempotency:
+operation in the oplog produces the same results, i.e. each operation
+in the oplog is :term:`idempotent`. For proper replication operations,
+entries in the oplog must be idempotent:
 
 - initial sync
 - post-rollback catch-up
 - sharding chunk migrations
-
-.. todo:: Verify that "sharding chunk migrations" (above) requires
-   idempotency. The wiki was unclear on the subject.
 
 .. _replica-set-oplog-sizing:
 
@@ -51,10 +43,9 @@ lower operation volumes, and their oplogs can hold much higher
 numbers of operations.
 
 Before :program:`mongod` creates an oplog, you can specify its size
-with the :setting:`oplogSize` option. However, after you have started a
-replica set member for the first time, you can only change the size of
-the oplog through the procedure described in the
-:doc:`/tutorial/change-oplog-size` tutorial.
+with the :setting:`oplogSize` option. However, after you have started
+a replica set member for the first time, you can only change the size
+of the oplog using the :doc:`/tutorial/change-oplog-size` procedure.
 
 ..  Actual oplog sizing as of 2012-07-02:
 ..  32 bit systems = ~48 megabytes
@@ -79,9 +70,9 @@ Workloads that Might Require a Larger Oplog Size
 
 If you can predict your replica set's workload to resemble one of the
 following patterns, then you might want to create an oplog that is
-larger than the default. Conversely, if
-your application predominantly performs reads and writes only a small
-amount of data, you might want to create a smaller oplog.
+larger than the default. Conversely, if your application predominantly
+performs reads and writes only a small amount of data, you will oplog
+may be sufficient.
 
 The following workloads might require a larger oplog size.
 
@@ -116,9 +107,11 @@ more information on oplog status, see
 :ref:`replica-set-troubleshooting-check-oplog-size`.
 
 Under various exceptional situations, updates to a :term:`secondary's
-<secondary>` oplog might lag behind the desired performance time.
-Use :method:`db.getReplicationInfo()` from a secondary member and the
+<secondary>` oplog might lag behind the desired performance time.  Use
+:method:`db.getReplicationInfo()` from a secondary member and the
 :doc:`replication status </reference/method/db.getReplicationInfo>`
-output to assess the current state of replication and determine if there
-is any unintended replication delay.
-See :ref:`Replication Lag <replica-set-replication-lag>` for further details.
+output to assess the current state of replication and determine if
+there is any unintended replication delay.
+
+See :ref:`Replication Lag <replica-set-replication-lag>` for more
+information.
