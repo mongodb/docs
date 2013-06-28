@@ -13,13 +13,18 @@ the operations to themselves in an asynchronous process. All replica set
 members contain a copy of the oplog, allowing them to maintain the
 current state of the database.
 
-To facilitate oplog replication, all replica-set members send heartbeats
+To facilitate oplog replication, all replica set members send heartbeats
 (pings) to all other members. Any member can import operations to its
 local oplog from any other member.
 
 Whether applied once or multiple times to the target dataset, each
 operation in the oplog produces the same results; i.e. each operation
-in the oplog is :term:`idempotent`. The following operations require
+in the oplog is :term:`idempotent`.
+
+.. question:: For this list below, are we saying that all operations ARE idempotent
+   but only this list of operations ultimately has to be?
+
+The following operations require
 idempotency:
 
 - initial sync
@@ -34,17 +39,21 @@ idempotency:
 Oplog Size
 ----------
 
+When you start a replica set member for the first time, MongoDB creates
+an oplog of a default size. The size depends on the architectural
+details of your operating system.
+
 In most cases, the default oplog size is sufficient. For example, if an
 oplog is 5% of free disk space and fills up in 24 hours of operations, then
 secondaries can stop copying entries from the oplog for up to 24 hours
 without becoming stale. However, most replica sets have much
-lower operation volumes, and their oplogs can hold a much larger
-number of operations.
+lower operation volumes, and their oplogs can hold much higher
+numbers of operations.
 
-Before :program:`mongod` creates an oplog, you can specify the size of
-your oplog with the :setting:`oplogSize` option. After you start a
+Before :program:`mongod` creates an oplog, you can specify its size
+with the :setting:`oplogSize` option. However, after you have started a
 replica set member for the first time, you can only change the size of
-the oplog by using the procedure described in the
+the oplog through the procedure described in the
 :doc:`/tutorial/change-oplog-size` tutorial.
 
 ..  Actual oplog sizing as of 2012-07-02:
@@ -54,9 +63,9 @@ the oplog by using the procedure described in the
 
 By default, the size of the oplog is as follows:
 
-- For 64-bit Linux, Solaris, FreeBSD, and Windows systems, MongoDB will
-  allocate 5% of the available free disk space to the oplog. If this
-  amount is smaller than a gigabyte, then MongoDB will allocate 1
+- For 64-bit Linux, Solaris, FreeBSD, and Windows systems, MongoDB
+  allocates 5% of the available free disk space to the oplog. If this
+  amount is smaller than a gigabyte, then MongoDB allocates 1
   gigabyte of space.
 
 - For 64-bit OS X systems, MongoDB allocates 183 megabytes of space to
@@ -70,9 +79,9 @@ Workloads that Might Require a Larger Oplog Size
 
 If you can predict your replica set's workload to resemble one of the
 following patterns, then you might want to create an oplog that is
-larger than the default. Conversely, if the predominance of activity of
-your MongoDB-based application are reads and you are writing a small
-amount of data, you may find that you need a much smaller oplog.
+larger than the default. Conversely, if
+your application predominantly performs reads and writes only a small
+amount of data, you might want to create a smaller oplog.
 
 The following workloads might require a larger oplog size.
 
@@ -82,20 +91,20 @@ Updates to Multiple Documents at Once
 The oplog must translate multi-updates into individual operations in
 order to maintain :term:`idempotency <idempotent>`. This can use a great
 deal of oplog space without a corresponding increase in data size or disk
-utilization.
+use.
 
 Deletions Equal the Same Amount of Data as Inserts
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you delete roughly the same amount of data as you insert, the
-database will not grow significantly in disk utilization, but the size
+database will not grow significantly in disk use, but the size
 of the operation log can be quite large.
 
 Significant Number of In-Place Updates
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A workload that entails a significant portion of in-place updates
-creates a large number of operations but does not change the quantity of
+If a significant portion of the workload is in-place updates, the database
+records a large number of operations but does not change the quantity of
 data on disk.
 
 Oplog Status
@@ -108,10 +117,8 @@ more information on oplog status, see
 
 Under various exceptional situations, updates to a :term:`secondary's
 <secondary>` oplog might lag behind the desired performance time.
-
 Use :method:`db.getReplicationInfo()` from a secondary member and the
 :doc:`replication status </reference/method/db.getReplicationInfo>`
 output to assess the current state of replication and determine if there
 is any unintended replication delay.
-
-See :ref:`Replication Lag <replica-set-replication-lag>` for details.
+See :ref:`Replication Lag <replica-set-replication-lag>` for further details.
