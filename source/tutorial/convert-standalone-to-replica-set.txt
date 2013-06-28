@@ -4,17 +4,24 @@ Convert a Standalone to a Replica Set
 
 .. default-domain:: mongodb
 
-This tutorial describes how to convert a :term:`standalone`
-:program:`mongod` instance into a three-member :term:`replica set`.
-A standalone instance can be used for testing and development, but for
-production, use replica sets. To install a standalone
-instance, see the :ref:`installation tutorials
+.. contents::
+   :backlinks: none
+   :local:
+
+This tutorial describes the process for converting a
+:term:`standalone` :program:`mongod` instance into a three-member
+:term:`replica set`.  Use standalone instances for testing and
+development, but always use replica sets in production. To install a
+standalone instance, see the :ref:`installation tutorials
 <tutorials-installation>`.
 
-.. note:: To deploy a replica set without using a pre-existing
-   :program:`mongod` instance, see :doc:`/tutorial/deploy-replica-set`.
+To deploy a replica set without using a pre-existing :program:`mongod`
+instance, see :doc:`/tutorial/deploy-replica-set`.
 
-1. Shut down the :term:`standalone` :program:`mongod` instance.
+Procedure
+---------
+
+#. Shut down the :term:`standalone` :program:`mongod` instance.
 
 #. Restart the instance. Use the :option:`--replSet <mongod --replSet>`
    option to specify the name of the new replica set.
@@ -44,42 +51,48 @@ instance, see the :ref:`installation tutorials
    To view the replica set configuration, use :method:`rs.conf()`. To
    check the status of the replica set, use :method:`rs.status()`.
 
-#. Add additional replica set members by doing the following:
+Expand the Replica Set
+~~~~~~~~~~~~~~~~~~~~~~
 
-   a. On two distinct systems, start two new standalone :program:`mongod`
-      instances. For information on starting a standalone instance, see
-      the :ref:`installation tutorial <tutorials-installation>` specific
-      to your environment.
+Add additional replica set members by doing the following:
 
-   #. On your connection to the original :program:`mongod` instance (the
-      former standalone instance), issue a command in the following form
-      for each new instance to add to the replica set:
+#. On two distinct systems, start two new standalone :program:`mongod`
+   instances. For information on starting a standalone instance, see
+   the :ref:`installation tutorial <tutorials-installation>` specific
+   to your environment.
 
-      .. code-block:: javascript
+#. On your connection to the original :program:`mongod` instance (the
+   former standalone instance), issue a command in the following form
+   for each new instance to add to the replica set:
 
-         rs.add("<hostname><:port>")
+   .. code-block:: javascript
 
-      Replace ``<hostname>`` and ``<port>`` with the resolvable hostname
-      and port of the :program:`mongod` instance to add to the set. For
-      more information on adding a host to a replica set, see
-      :doc:`/tutorial/expand-replica-set`.
+      rs.add("<hostname><:port>")
 
-#. If the new replica set is part of a :term:`sharded cluster`, change
-   the shard host information in the :term:`config database` by doing
-   the following:
+   Replace ``<hostname>`` and ``<port>`` with the resolvable hostname
+   and port of the :program:`mongod` instance to add to the set. For
+   more information on adding a host to a replica set, see
+   :doc:`/tutorial/expand-replica-set`.
 
-   a. Connect to one of the sharded cluster's :program:`mongos`
-      instances and issue a command in the following form:
+Sharding Considerations
+~~~~~~~~~~~~~~~~~~~~~~~
 
-      .. code-block:: javascript
+If the new replica set is part of a :term:`sharded cluster`, change
+the shard host information in the :term:`config database` by doing
+the following:
 
-         db.getSiblingDB("config").shards.save( {_id: "<name>", host: "<replica-set>/<member,><member,><...>" } )
+#. Connect to one of the sharded cluster's :program:`mongos`
+   instances and issue a command in the following form:
 
-      Replace ``<name>`` with the name of the shard. Replace
-      ``<replica-set>`` with the name of the replica set. Replace
-      ``<member,><member,><>`` with the list of the members of the
-      replica set.
+   .. code-block:: javascript
 
-   #. Restart all :program:`mongos` instances. If possible, restart all
-      components of the replica sets (i.e., all :program:`mongos` and
-      all shard :program:`mongod` instances).
+      db.getSiblingDB("config").shards.save( {_id: "<name>", host: "<replica-set>/<member,><member,><...>" } )
+
+   Replace ``<name>`` with the name of the shard. Replace
+   ``<replica-set>`` with the name of the replica set. Replace
+   ``<member,><member,><>`` with the list of the members of the
+   replica set.
+
+#. Restart all :program:`mongos` instances. If possible, restart all
+   components of the replica sets (i.e., all :program:`mongos` and
+   all shard :program:`mongod` instances).
