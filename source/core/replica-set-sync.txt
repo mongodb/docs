@@ -16,19 +16,24 @@ set.
 Initial Sync
 ------------
 
-Replica set members use initial sync to import the set's data before
-beginning to replicate. Initial sync occurs when a new member joins a
-set. Members perform an initial sync when they cannot use the oplog
-replication to become current. For example, if a member is offline for
-a long period of time and rejoins the set, it may perform a new
-initial sync before resuming replication.
+Replica set members use initial sync in two situations: when a member
+has no data and when the member has data but is missing a history of
+the sets replication. The :program:`mongod` instance uses the initial
+sync to copy all data from another member in the replica set. The
+procedure for an initial sync is:
 
-.. commenting following sentence out because it doesn't make sense. --sk
+#. Clone all databases. To clone, the :program:`mongod` queries every
+   collection in each source database, and inserts all data into its
+   own copies these collections.
 
-   By default, the member syncs from the *closest* member of the set that
-   is either the primary or another secondary with more recent oplog
-   entries than the member itself. As a result, two secondaries cannot
-   sync from each other.
+#. Applies all changes to the data set. Using the oplog from the
+   source, the :program:`mongod` updates its data set to reflect the
+   current state of the replica set.
+
+#. Builds all indexes on all collections.
+
+When the :program:`mongod` completes all index builds, member
+can transition to a normal state, such as :term:`secondary`.
 
 .. _replica-set-replication:
 
