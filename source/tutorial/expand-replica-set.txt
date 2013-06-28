@@ -15,8 +15,8 @@ Maximum Voting Members
 ~~~~~~~~~~~~~~~~~~~~~~
 
 A replica set can have a maximum of seven :ref:`voting members
-<replica-set-election-internals>`. To add a member to a replica set that
-already has seven votes, you must either add the member as a
+<replica-set-election-internals>`. To add a member to a replica set
+that already has seven votes, you must either add the member as a
 :ref:`non-voting member <replica-set-non-voting-members>` or remove a
 vote from an :data:`existing member
 <local.system.replset.members[n].votes>`.
@@ -24,31 +24,30 @@ vote from an :data:`existing member
 Control Scripts
 ~~~~~~~~~~~~~~~
 
-In production deployments you can configure a :term:`control script` to
-manage add member's to a replica set.
+In production deployments you can configure a :term:`control script`
+to manage member processes.
 
 Existing Members
 ~~~~~~~~~~~~~~~~
 
-The procedures here apply to entirely new members and also to a member
-that has been removed from a set and is ready to be re-added. If the
-removed member's data is still relatively fresh, it can recover and
-catch up from its old data set.
+You can use these procedures to add new members to an existing
+set. You can also use the same procedure to "re-add" a removed
+member. If the removed member's data is still relatively recent, it
+can recover and catch up easily.
 
 Data Files
 ~~~~~~~~~~
 
-If you have a backup or snapshot of an existing member, you can move the
-data files (those specified by the :setting:`dbpath` setting) to a new
-system and use them to quickly initiate a new member. The files must be:
+If you have a backup or snapshot of an existing member, you can move
+the data files (e.g.  the :setting:`dbpath` directory) to a new system
+and use them to quickly initiate a new member. The files must be:
 
-  - Clean. The files must be a consistent copy of the database from a
-    member of the same replica set. See the :doc:`/core/backups`
-    document for more information.
+- A consistent copy of the database from a member of the same replica
+  set. See the :doc:`/core/backups` document for more information.
 
-  - Recent. The copy must be more recent than the oldest operation in
-    the :term:`primary's <primary>` :term:`oplog`. The new member must
-    be able to become current using operations from the primary's oplog.
+- More recent than the oldest operation in the :term:`primary's
+  <primary>` :term:`oplog`. The new member must be able to become
+  current by applying operations from the primary's oplog.
 
 Requirements
 ------------
@@ -58,9 +57,9 @@ Requirements
 #. A new MongoDB system capable of supporting your data set, accessible by
    the active replica set through the network.
 
-If neither of these conditions are satisfied, please use the MongoDB
-:ref:`installation tutorial <tutorials-installation>` and the
-:doc:`/tutorial/deploy-replica-set` tutorial instead.
+Otherwise, use the MongoDB :ref:`installation tutorial
+<tutorials-installation>` and the :doc:`/tutorial/deploy-replica-set`
+tutorials.
 
 Procedures
 ----------
@@ -68,8 +67,9 @@ Procedures
 Prepare the Data Directory
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Before adding a new member to an existing :term:`replica set`, do one of
-the following to prepare the new member's :term:`data directory <dbpath>`:
+Before adding a new member to an existing :term:`replica set`, prepare
+the new member's :term:`data directory <dbpath>` using one of the
+following strategies:
 
 - Make sure the new member's data directory *does not* contain data. The
   new member will copy the data from an existing member.
@@ -81,21 +81,17 @@ the following to prepare the new member's :term:`data directory <dbpath>`:
 
 - Manually copy the data directory from an existing member. The new
   member becomes a secondary member and will catch up to the current
-  state of the replica set after a short interval. Copying the data over
-  manually shortens the amount of time for the new member to become
-  current.
+  state of the replica set. Copying the data over may shorten the
+  amount of time for the new member to become current.
 
   Ensure that you can copy the data directory to the new member and
   begin replication within the :ref:`window allowed by the oplog
-  <replica-set-oplog-sizing>`. If the difference in the amount of time
-  between the most recent operation and the most recent operation to
-  the database exceeds the length of the :term:`oplog` on the existing
-  members, then the new instance will have to perform an initial sync,
-  which completely resynchronizes the data, as described in
-  :doc:`resync-replica-set-member`.
+  <replica-set-oplog-sizing>`. Otherwise, the new instance will have
+  to perform an initial sync, which completely resynchronizes the
+  data, as described in :doc:`resync-replica-set-member`.
 
-  Use :method:`db.printReplicationInfo()` to check the current state of
-  replica set members with regards to the oplog.
+  Use :method:`db.printReplicationInfo()` to check the current state
+  of replica set members with regards to the oplog.
 
 For background on replication deployment patterns, see the
 :doc:`/core/replica-set-architectures` document.
@@ -119,12 +115,12 @@ Add a Member to an Existing Replica Set
    For more information on configuration options, see the
    :program:`mongod` manual page.
 
-   .. note::
+   .. optional::
 
-      Alternately, you can specify the data directory and replica set in
-      the ``mongo.conf`` :doc:`configuration file
-      </reference/configuration-options>`. You would then start the new
-      :program:`mongod` instance by specifying the ``mongo.conf`` file:
+      You can specify the data directory and replica set in the
+      ``mongo.conf`` :doc:`configuration file
+      </reference/configuration-options>`, and start the
+      :program:`mongod` with the following command:
 
       .. code-block:: sh
 
@@ -132,13 +128,9 @@ Add a Member to an Existing Replica Set
 
 #. Connect to the replica set's primary.
 
-   The primary is the only member that can add or remove members from
-   the replica set. If you do not know which member is the primary, log
-   into any member of the replica set and issue the
-   :method:`db.isMaster()` command. The primary is listed in the
-   :data:`isMaster.primary` field. If you are not connected to the
-   primary, disconnect from the current client and connect to the
-   primary.
+   You can only add members while connected to the primary. If you do
+   not know which member is the primary, log into any member of the
+   replica set and issue the :method:`db.isMaster()` command.
 
 #. Use :method:`rs.add()` to add the new member to the replica set. For
    example, to add a member at host ``mongodb3.example.net``, issue the
@@ -168,32 +160,34 @@ Add a Member to an Existing Replica Set
 
 .. _replica-set-add-member-alternate-procedure:
 
-Add a Member by Specifying a Configuration Document
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Configure and Add a Member
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can add a member to a replica set by passing to the
-:method:`rs.add()` method a document that defines the new member. The
-document must be in the form of a :data:`~local.system.replset.members`
-document. A :data:`~local.system.replset.members` document defines a
-replica set member and is embedded in a :ref:`replica set configuration
-document <replica-set-configuration-document>`.
+:method:`rs.add()` method a :data:`~local.system.replset.members`
+document. The document must be in the form of a
+:data:`local.system.replset.members` document. These documents define
+a replica set member in the same form as the :ref:`replica set
+configuration document <replica-set-configuration-document>`.
 
-The document you pass must declare a value for the ``_id`` field, which
-MongoDB does not automatically populate in this case, and it must
-declare the ``host`` value. The other fields are optional.
+.. important:: Specify a value for the ``_id`` field of the
+   :data:`~local.system.replset.members` document.  MongoDB does not
+   automatically populate the ``_id`` field in this case. Finally, the
+   :data:`~local.system.replset.members` document must declare the
+   ``host`` value. All other fields are optional.
 
 .. example::
 
-   To add a member with
+   To add a member with the following configuration:
 
-   - an ``_id`` of ``1``,
+   - an ``_id`` of ``1``.
 
    - a :data:`hostname and port number
      <local.system.replset.members[n].host>` of
-     ``mongodb3.example.net:27017``,
+     ``mongodb3.example.net:27017``.
 
    - a :data:`priority <local.system.replset.members[n].priority>` value
-     within the replica set of ``0``, and
+     within the replica set of ``0``.
 
    - a configuration as :data:`hidden
      <local.system.replset.members[n].hidden>`,
