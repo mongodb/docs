@@ -69,4 +69,5 @@ $(branch-output)/sitemap.xml.gz:$(public-branch-output) $(public-branch-output)/
 ############# General purpose targets. Not used (directly) in the production build #############
 tags:
 	@etags -I --language=none --regex=@bin/etags.regexp `find source -name "*.txt" | grep -v "\.#"`
+	@sed $(SED_ARGS_FILE) 's/\.\. (.*):: \$$*(.*)/\1.\2/' TAGS
 	@echo "[dev]: etags generation complete."
