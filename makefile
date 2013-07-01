@@ -15,7 +15,7 @@ $(output)/makefile.meta:$(output)/docs-tools/makecloth/meta.py $(build-tools)/do
 timestamp := $(shell date +%Y%m%d%H%M)
 
 ########## interaction and control ##########
-.PHONY: help hosted saas publish all $(output)/makefile.meta
+.PHONY: help hosted saas publish all $(output)/makefile.meta publish-saas publish-hosted generated-source-saas generated-source-hosted
 help:
 	@echo "please use \`make <target>' where <target> is one of:"
 	@echo "	 publish        to stage the all mms documents. (default.)"
@@ -24,24 +24,29 @@ help:
 	@echo "	 push		to stage and deploy all mmms documents."
 	@echo "	 <sphinx>	all standard sphinx build targets are avlible for testing."
 
+ifeq ($(current-branch),master)
 publish all:hosted saas
-hosted saas:setup
-	@$(MAKE) EDITION=$@ manual-pdfs generate-source dirhtml-$@ build/public/$@/.htaccess build/public/$@ $(public-output) $(publish-output)
-	@echo [build]: $@ edition complete
-setup:
-	@mkdir -p $(public-output) $(branch-output) $(branch-output)/source
-
-########## html migration ##########
 htaccess:build/public/saas/.htaccess build/public/hosted/.htaccess
+else
+publish all:hosted
+htaccess:build/public/saas/.htaccess
+endif
+
+hosted saas:setup
+	@$(MAKE) EDITION=$@ manual-pdfs generate-source-$@ publish-$@ build/public/$@/.htaccess
+	@echo [build]: $@ edition complete
+
+########## common components ##########
 build/public/saas/.htaccess:bin/htaccess-saas.yaml bin/htaccess.py
 	@$(PYTHONBIN) $(tools)/bin/htaccess.py $@ --data $<
 build/public/hosted/.htaccess:bin/htaccess-hosted.yaml bin/htaccess.py 
 	@$(PYTHONBIN) $(tools)/bin/htaccess.py $@ --data $<
-
+setup:
+	@mkdir -p $(public-output) $(branch-output) $(branch-output)/source
 $(output):
 	@mkdir -p $@
 	@echo [build]: created $@
 
-########## system #########################
+########## system ##########
 clean:
 	-rm -rf $(output)/*

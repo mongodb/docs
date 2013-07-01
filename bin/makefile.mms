@@ -2,9 +2,10 @@ ifeq ($(EDITION),hosted)
 build-type = hosted
 branch-output = build/$(build-type)/$(current-branch)
 public-output = build/public/$(build-type)/$(current-branch)
-publish-output = build/public/hosted/current $(public-output)/mms-manual.pdf 
+publish-output = build/public/$(build-type)/current $(public-output)/mms-manual.pdf 
 publish-output += $(public-output) $(public-output)/single
-generate-source:generate-source-hosted
+publish-dependency += $(branch-output)
+publish-hosted:$(publish-output) $(publish-dependency)
 endif 
 
 ifeq ($(EDITION),saas)
@@ -13,7 +14,8 @@ public-output = build/public/$(build-type)
 branch-output = build/$(build-type)
 publish-output = $(public-output)/mms-manual.pdf $(public-output)/mms-monitoring-manual.pdf $(public-output)/mms-backup-manual.pdf 
 publish-output += $(public-output) $(public-output)/single
-generate-source:generate-source-saas
+publish-dependency += $(branch-output)
+publish-saas:$(publish-output) $(publish-dependency)
 endif
 
 generate-source-hosted:
