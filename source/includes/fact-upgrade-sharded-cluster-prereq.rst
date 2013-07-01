@@ -7,5 +7,5 @@ currently used by the :doc:`config database
 Additionally, ensure that all indexes in the :doc:`config database
 </reference/config-database>` are ``{v:1}`` indexes. If a critical
 index is a ``{v:0}`` index, chunk splits can fail following the
-upgrade.
-
+upgrade. ``{v:0}`` indexes are present on clusters created with
+MongoDB 2.0 or earlier.
