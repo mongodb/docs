@@ -2,7 +2,7 @@ ifeq ($(EDITION),hosted)
 build-type = hosted
 branch-output = build/$(build-type)/$(current-branch)
 public-output = build/public/$(build-type)/$(current-branch)
-publish-output = build/public/$(build-type)/current $(public-output)/mms-manual.pdf 
+publish-output = build/public/$(build-type)/current build/public/$(build-type)/upcoming $(public-output)/mms-manual.pdf 
 publish-output += $(public-output) $(public-output)/single
 publish-dependency += $(branch-output)
 publish-hosted:$(publish-output) $(publish-dependency)

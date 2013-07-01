@@ -7,7 +7,7 @@ tools = $(output)/docs-tools
 
 -include $(output)/makefile.meta
 noop:
-$(output)/makefile.meta:$(output)/docs-tools/makecloth/meta.py $(build-tools)/docs_meta.yaml
+$(output)/makefile.meta:$(output)/docs-tools/makecloth/meta.py $(build-tools)/docs_meta.yaml meta.yaml
 	@mkdir -p $(output)
 	@python $< $@
 
@@ -41,7 +41,7 @@ build/public/saas/.htaccess:bin/htaccess-saas.yaml bin/htaccess.py
 	@$(PYTHONBIN) $(tools)/bin/htaccess.py $@ --data $<
 build/public/hosted/.htaccess:bin/htaccess-hosted.yaml bin/htaccess.py 
 	@$(PYTHONBIN) $(tools)/bin/htaccess.py $@ --data $<
-setup:
+setup:meta.yaml
 	@mkdir -p $(public-output) $(branch-output) $(branch-output)/source
 $(output):
 	@mkdir -p $@

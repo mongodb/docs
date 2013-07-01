@@ -14,7 +14,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), buildsys
 from utils import ingest_yaml, ingest_yaml_list
 
 pdfs = ingest_yaml_list('pdfs.yaml')
-
+meta = ingest_yaml('meta.yaml')
 
 # -- General configuration -----------------------------------------------------
 
@@ -27,8 +27,8 @@ master_doc = 'index'
 
 copyright = u'2011-2013, 10gen, Inc.'
 
-version = '1.0.0'
-release = version
+version = '1.2'
+release = 'Upcoming'
 pygments_style = 'sphinx'
 
 # -- Options for HTML output ---------------------------------------------------
@@ -44,7 +44,13 @@ html_use_modindex = False
 html_show_sourcelink = False
 htmlhelp_basename = 'MongoDBdoc'
 
-html_theme_options = {}
+html_theme_options = {
+    'project': 'mms',
+    'version': version,
+    'branch': meta['branch'],
+    'version_selector': meta['version_selector'],
+    'stable': meta['upcoming'],
+}
 
 hosted_latex_documents = []
 saas_latex_documents = []
