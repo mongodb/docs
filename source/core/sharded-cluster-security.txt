@@ -6,85 +6,65 @@ Sharded Cluster Security
 
 .. default-domain:: mongodb
 
-MongoDB controls access to :term:`sharded clusters <sharded cluster>`
-with key files that store authentication credentials. The components
-of sharded clusters use the secret stored in the key files when
-authenticating to each other. Create key files and then point your
-:program:`mongos` and :program:`mongod` instances to the files, as
-described later in this section.
+This section describes authentication specific to sharded clusters.
+MongoDB controls access to sharded clusters with key files. The
+components of the clusters use the secret stored in the key files to
+authenticate each other. To set up authentication for a sharded
+cluster, see :doc:`/tutorial/enable-authentication-in-sharded-cluster`.
 
-Beyond the :setting:`auth` mechanisms described in this section,
-always run your sharded clusters in trusted networking environments
-that limit access to the cluster with network rules. Your networking
-environments should enforce restrictions that ensure only known
-traffic reaches your :program:`mongos` and :program:`mongod`
-instances.
-
-This section describes authentication specific to sharded
-clusters. For information on authentication across MongoDB, see
-:doc:`/core/access-control`.
+Beyond the mechanisms described in this section, always run your
+sharded clusters in trusted networking environments. These environments
+should ensure that only trusted traffic reaches your :program:`mongos`
+and :program:`mongod` instances.
 
 Access Control Privileges in Sharded Clusters
 ---------------------------------------------
 
 In sharded clusters, MongoDB provides separate administrative
-privileges for the sharded cluster and for each shard. Beyond these
-administration privileges, privileges for sharded cluster deployments
-are functionally the same as any other MongoDB deployment. See,
-:doc:`/core/access-control` for more information.
-
-For sharded clusters, MongoDB provides these separate administrative
-privileges:
+privileges for the sharded cluster and for each shard.
 
 - Administrative privileges for the sharded cluster. These privileges
-  provide read-and-write access to the config servers' ':term:`admin
-  <admin database>`. These users can run all administrative commands.
-  Administrative privileges also give the user read-and-write access
-  to all the cluster's databases.
+  give read and write access to the config servers' :term:`admin
+  database`. Users with these privileges can run all administrative
+  commands. These privileges also give read and write access to all the
+  cluster's databases. The credentials for these privileges reside on
+  the config servers.
 
-  The credentials for administrative privileges on the cluster reside on
-  the config servers. To receive admin access to the cluster, you must
-  authenticate a session while connected to a :program:`mongos` instance
-  using the admin database.
+  To receive administrative privileges for the cluster, you must
+  authenticate while connected to a :program:`mongos` instance.
 
 - Administrative privileges for the :program:`mongod` instance, or
-  :term:`replica set`, that provides each individual shard. Each shard
-  has its own admin database that stores administrative credentials
-  and access for that shard only. These credentials are *completely*
-  distinct from the cluster-wide administrative credentials.
+  :term:`replica set`, that make up each individual shard. Each shard
+  has its own ``admin`` database that stores the administrative
+  credentials and access *for that shard only*. These credentials are
+  *completely* distinct from the cluster-wide credentials.
 
-For more information on privileges, see :doc:`/core/access-control`.
+Beyond these administration privileges, privileges for sharded clusters
+are functionally the same as any other MongoDB deployment. See
+:doc:`/core/access-control` for more information.
 
 Access a Sharded Cluster with Authentication
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------------------
 
-To access a sharded cluster as an authenticated user, use the
-appropriate authentication options in :program:`mongo`.
+To access a sharded cluster as an authenticated user, from the command
+line, use the authentication options when connecting to a
+:program:`mongos`. Or, you can connect first and then authenticate with
+the :dbcommand:`authenticate` command or the :method:`db.auth()` method.
 
-To access a sharded cluster as an authenticated, non-admin user, see
-either of the following:
-
-- :dbcommand:`authenticate`
-
-- :method:`db.auth()`
-
-To terminate an authenticated session, see the :dbcommand:`logout`
+To close an authenticated session, see the :dbcommand:`logout`
 command.
 
 .. index:: sharding; localhost
 .. _sharding-localhost:
 
-Restriction on the Use of the ``localhost`` Interface
-------------------------------------------------------
+Restriction on ``localhost`` Address
+------------------------------------
 
-Because all components of a :term:`sharded cluster` must communicate
-with each other over the network, there are special restrictions
-regarding the use of localhost addresses:
-
-If you use either "localhost" or "``127.0.0.1``" as the host
-identifier, then you must use "localhost" or "``127.0.0.1``" for *all*
-host settings for any MongoDB instances in the cluster.  This applies
-to both the ``host`` argument to :dbcommand:`addShard` and the value
-to the :option:`mongos --configdb` run time option. If you mix
-localhost addresses with remote host address, MongoDB will produce
-errors.
+There are some restrictions on the use of localhost addresses with
+sharded clusters. If you use either "localhost" or "``127.0.0.1``" as
+the host identifier, then you must use "localhost" or "``127.0.0.1``"
+for *all* host settings for all MongoDB instances in the cluster. This
+applies to the ``host`` argument to the :dbcommand:`addShard` command
+as well as to the :option:`--configdb` option for the
+:program:`mongos`. If you mix localhost addresses with remote host
+address, MongoDB will produce errors.
