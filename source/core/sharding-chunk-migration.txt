@@ -25,20 +25,19 @@ either:
   Manually <sharding-balancing-manual-migration>` for more details.
 
 - Automatic. The :doc:`balancer </core/sharding-balancing>` process
-  automatically handles most migrations when there is an uneven
-  distribution of a sharded collection's chunks across shards. See
-  :ref:`Migration Thresholds <sharding-migration-thresholds>` for more
-  details.
+  automatically migrates chunks when there is an uneven distribution of
+  a sharded collection's chunks across the shards. See :ref:`Migration
+  Thresholds <sharding-migration-thresholds>` for more details.
 
 All chunk migrations use the following procedure:
 
 #. The balancer process sends the :dbcommand:`moveChunk` command to
-   the source shard. In this operation, the balancer
-   passes the name of the destination shard to the source shard.
+   the source shard.
 
-#. The source starts the move with an internal :dbcommand:`moveChunk`   
-   command and tracks incoming write operations. During the migration
-   process, operations to the chunk route to the source shard.
+#. The source starts the move with an internal :dbcommand:`moveChunk`
+   command. During the migration process, operations to the chunk route
+   to the source shard. The source shard tracks the incoming write
+   operations for the chunk.
 
 #. The destination shard begins requesting documents in the chunk and
    starts receiving copies of the data.
@@ -48,14 +47,14 @@ All chunk migrations use the following procedure:
    changes to the migrated documents that occured during the migration.
 
 #. When fully synchronized, the destination shard connects to the
-   :term:`config database` and updates the chunk location in the
-   cluster metadata.
+   :term:`config database` and updates the cluster metadata with the new
+   location for the chunk.
 
-#. After the destination shard completes the update of the metadata, and
-   once there are no open cursors on the chunk, the source shard starts
-   deleting its copy of documents.
+#. After the destination shard completes the update of the metadata,
+   and once there are no open cursors on the chunk, the source shard
+   deletes its copy of the documents.
 
-The migration process ensures consistency and maximizes availability of
+The migration process ensures consistency and maximizes the availability of
 chunks during balancing.
 
 .. versionchanged:: 2.4
