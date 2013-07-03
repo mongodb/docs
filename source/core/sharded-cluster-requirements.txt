@@ -10,79 +10,58 @@ Sharded Cluster Requirements
 
 .. default-domain:: mongodb
 
-Sharding is MongoDB''s approach to horizontal scaling. Sharding
-partitions a collection into smaller "chunks" based on the range of a
-shard key, and stores the different portions of that range on
-different MongoDB instances.
-
-When a data set exceeds the existing capacity, sharding makes it
-possible to grow capacity by adding additional shards to the cluster:
-MongoDB's sharding infrastructure automatically distributes collection
-data to the new server. Sharding provides additional write capacity by
-distributing the write load over a number of :program:`mongod`
-instances and allows administrators to expand capacity without 
-
-Indications for Sharding
-------------------------
-
 While sharding is a powerful and compelling feature, it comes with
-significant infrastructure requirements
-and some limited complexity costs. As a result, use
-sharding only as necessary and when indicated by actual operational
-requirements.
+significant infrastructure requirements and adds some complexity. As a
+result, you should use sharding only when needed.
 
 Consider deploying a :term:`sharded cluster` if:
 
 - your data set approaches or exceeds the storage capacity of a single
-  node in your system.
+  MongoDB instance.
 
 - the size of your system's active :term:`working set` *will soon*
-  exceed the capacity of the *maximum* amount of RAM for your system.
+  exceed the capacity of your system's *maximum* RAM.
 
-- your system has a large amount of write activity, a single
-  MongoDB instance cannot write data fast enough to meet demand, and
-  all other approaches have not reduced contention.
+- a single MongoDB instance cannot meet the demands of your write
+  operations, and all other approaches have not reduced contention.
 
 If these attributes are not present in your system, sharding will only
-add additional complexity to your system without providing much
-benefit. When designing your data model, if you will eventually need a
-sharded cluster, consider which collections you will want to shard and
-the corresponding shard keys.
+add complexity to your system without adding much benefit. 
 
 .. _sharding-capacity-planning:
 
-.. important:: It takes time and resources to deploy sharding, and if
-   your system has *already* reached or exceeded its capacity, you
-   will have a difficult time deploying sharding without impacting
+.. important:: It takes time and resources to deploy sharding. If
+   your system has *already* reached or exceeded its capacity, it
+   will be difficult to deploy sharding without impacting
    your application.
 
    As a result, if you think you will need to partition your database
    in the future, **do not** wait until your system is overcapacity to
    enable sharding.
 
+When designing your data model, take into consideration your sharding
+needs.
+
 .. _sharding-requirements-data:
 
-Data Quantity Requirements for Sharded Clusters
------------------------------------------------
+Data Quantity Requirements
+--------------------------
 
-Your cluster must manage a significant quantity of data for sharding
-to have an effect on your collection. The default :term:`chunk` size
-is 64 megabytes, and the :ref:`balancer
-<sharding-balancing>` will not begin moving data until the imbalance
-of chunks in the cluster exceeds the :ref:`migration threshold
-<sharding-migration-thresholds>`.
+Your cluster should manage a large quantity of data if sharding is to
+have an effect. The default :term:`chunk` size is 64 megabytes. And the
+:ref:`balancer <sharding-balancing>` will not begin moving data across
+shards until the imbalance of chunks among the shards exceeds the
+:ref:`migration threshold <sharding-migration-thresholds>`. In
+practical terms, unless your cluster has many hundreds of megabytes of
+data, your data will remain on a single shard.
 
-Practically, this means that unless your cluster has many hundreds of
-megabytes of data, chunks will remain on a single shard.
+In some situations, you may need to shard a small collection of data.
+But most of the time, sharding a small collection is not worth the
+added complexity and overhead unless you need additional concurrency or
+capacity. If you have a small data set, a properly configured single
+MongoDB instance or a replica set will usually be enough for your
+persistence layer needs.
 
-While there are some exceptional situations where you may need to
-shard a small collection of data, most of the time the additional
-complexity added by sharding the small collection is not worth the
-additional complexity and overhead unless you need additional
-concurrency or capacity for some reason. If you have a small data set,
-usually a properly configured single MongoDB instance or replica set
-will be more than sufficient for your persistence layer needs.
-
-:term:`Chunk <chunk>` size is :option:`user configurable <mongos --chunkSize>`.
-However, the default value is of 64 megabytes is ideal
-for most deployments. See :ref:`sharding-chunk-size` for more information.
+:term:`Chunk <chunk>` size is :option:`user configurable <mongos
+--chunkSize>`. But, for most deployments, the default value is of 64
+megabytes is ideal. See :ref:`sharding-chunk-size` for more information.
