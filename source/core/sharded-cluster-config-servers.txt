@@ -10,62 +10,58 @@ Config Servers
 .. default-domain:: mongodb
 
 Config servers are special :program:`mongod` instances that store the
-metadata for a sharded cluster. A production sharded cluster has exactly
-three config servers.
+:doc:`metadata </core/sharded-cluster-metadata>` for a sharded cluster.
+Config servers use a two-phase commit to ensure immediate consistency
+and reliability. Config servers *do not* run as replica sets. All
+config servers must be available on initial setup of a sharded cluster.
 
-Config servers that use a two-phase commit process that ensures
-immediate consistency and reliability. Config servers *do not* run as
-replica sets.
-
-For testing purposes you may deploy a cluster with a single config
-server. But to ensure redundancy and safety in production, you should
-always use three.
-
-All config servers must be available on initial setup
-of a sharded cluster. Each :program:`mongos` instance must be able
-to write to the ``config.version`` collection.
+A production sharded cluster has *exactly three* config servers. For
+testing purposes you may deploy a cluster with a single config server.
+But to ensure redundancy and safety in production, you should always
+use three.
 
 .. warning::
 
-   If your cluster has a single config server, this
-   :program:`mongod` is a single point of failure.  If the instance is
-   inaccessible the cluster is not accessible. If you cannot recover
-   the data on a config server, the cluster will be inoperable.
+   If your cluster has a single config server, then the config server
+   is a single point of failure. If the config server is inaccessible,
+   the cluster is not accessible. If you cannot recover the data on a
+   config server, the cluster will be inoperable.
 
    **Always** use three config servers for production deployments.
 
-.. index:: config database
+Config servers store metadata for a single sharded cluster. Each
+cluster must have its own config servers.
+
+.. index:: config databases
 .. index:: database, config
 
 Config Database
 ---------------
 
-Config servers store the cluster metadata in the
-:doc:`/reference/config-database`. The :program:`mongos` instances cache
-this data and use it to determine which :term:`shard` is responsible for
-which :term:`chunk`.
-
-For more information, see :doc:`/core/sharded-cluster-metadata`.
+Config servers store the metadata in the :doc:`config database
+</reference/config-database>`. The :program:`mongos` instances cache
+this data and use it to route reads and writes to specific shard or
+shards. Each :program:`mongos` instance must be able to write to the
+``config.version`` collection in the ``config`` database.
 
 .. _config-server-read-write-ops:
 
 Read and Write Operations on Config Servers
 -------------------------------------------
 
-The load on configuration servers is small because each
-:program:`mongos` instance maintains a cached copy of the configuration
-database. MongoDB only writes data to the config server to:
+The load on the config servers is small because each :program:`mongos`
+instance caches the metadata.
 
-- create splits in existing chunks, which happens as data in
-  existing chunks exceeds the maximum chunk size.
+MongoDB only writes data to the config server in the following cases:
 
-- migrate a chunk between shards.
+- To create splits in existing chunks. For more information, see
+  :doc:`chunk splitting </core/sharding-chunk-splitting>`.
 
-If one or two configuration instances become unavailable, the
-cluster's metadata becomes *read only*. It is still possible to read
-and write data from the shards, but no chunk migrations or splits will
-occur until all three servers are accessible. At the same time, config
-server data is only read in the following situations:
+- To migrate a chunk between shards. For more information, see
+  :doc:`chunk migration </core/sharding-chunk-migration>`.
+
+MongoDB only reads data from the config server data in the following
+cases:
 
 - A new :program:`mongos` starts for the first time, or an existing
   :program:`mongos` restarts.
@@ -73,23 +69,22 @@ server data is only read in the following situations:
 - After a chunk migration, the :program:`mongos` instances update
   themselves with the new cluster metadata.
 
-If all three config servers are inaccessible, you can continue to use
-the cluster as long as you don't restart the :program:`mongos`
-instances until after config servers are accessible again. If you
-restart the :program:`mongos` instances and there are no accessible
-config servers, the :program:`mongos` would be unable to direct
-queries or write operations to the cluster.
+If one or two config servers become unavailable, the cluster's metadata
+becomes *read only*. You can still read and write data from the shards,
+but no chunk migrations or splits will occur until all three servers
+are accessible.
 
-Because the configuration data is small relative to the amount of data
-stored in a cluster, the amount of activity is relatively low, and 100%
-up time is not required for a functioning sharded cluster. As a result,
-backing up the config servers is not difficult. Backups of config
-servers are critical as clusters become totally inoperable when
-you lose all configuration instances and data. Precautions to ensure
-that the config servers remain available and intact are critical.
+If all three config servers are inaccessible, you can still use the
+cluster if you do not restart the :program:`mongos` instances until
+after the config servers are accessible again. If you restart the
+:program:`mongos` instances before the config servers are accessible,
+the :program:`mongos` will be unable to route reads and writes.
 
-.. note::
-
-   Configuration servers store metadata for a single sharded cluster.
-   You must have a separate configuration server or servers for each
-   cluster you administer.
+Clusters become inoperable when you lose all config servers and their
+data. It is critical to ensure that the config servers remain available
+and intact. As such, backups of config servers are critical. The data
+on the config server is small compared to the data stored in a cluster.
+This means the config server has a relatively low activity load, and
+the config server does not need 100% up time for a working sharded
+cluster. As a result, backing up the config servers pose no great
+difficulty.
