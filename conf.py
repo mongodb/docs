@@ -34,7 +34,7 @@ pygments_style = 'sphinx'
 # -- Options for HTML output ---------------------------------------------------
 
 html_theme = '10gen'
-html_theme_path = ['themes']
+html_theme_path = [ os.path.join(buildsystem, 'themes') ]
 html_logo = "source/.static/logo-10gen.png"
 html_static_path = ['source/_static']
 html_use_smartypants = True
@@ -64,7 +64,7 @@ for pdf in pdfs:
 
 # -- Conditional Output --------------------------------------------------------
 BREAK = '\n\n'
-if tags.has('hosted'): 
+if tags.has('hosted'):
     project = u'On-Prem Monitoring / MMS'
     html_title = 'On-Prem Monitoring / MMS'
     html_short_title = 'On-Prem Monitoring / MMS'
@@ -84,7 +84,7 @@ else:
     rst_epilog += ".. |s| replace:: Service" + BREAK
     rst_epilog += ".. |index-page-title| replace:: MongoDB Monitoring and Backup Service" + BREAK
     rst_epilog += ".. |mms| replace:: MongoDB Monitoring and Backup Service" + BREAK
-    
+
 # -- Options for LaTeX output --------------------------------------------------
 
 latex_paper_size = 'letter' # ('letter' or 'a4').
