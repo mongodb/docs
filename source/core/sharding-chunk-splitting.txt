@@ -4,14 +4,13 @@ Chunk Splitting Within a Shard
 
 .. default-domain:: mongodb
 
-The :ref:`balancer <sharding-balancing>` sub-process is responsible for
-ensuring that each member of the cluster is responsible for the same
-volume of data. When chunks grow beyond the :ref:`specified chunk size
-<sharding-chunk-size>` a :program:`mongos` instance will split the
-chunk in half.  This will eventually lead to migrations, when chunks
-become unevenly distributed among the cluster. The :program:`mongos`
-instances will initiate a round of migrations to redistribute data in
-the cluster.
+When a chunk grow beyond the :ref:`specified chunk size
+<sharding-chunk-size>`, a :program:`mongos` instance will split the
+chunk in half. Chunk splits can result in an uneven distribution of the
+chunks for a collection across the shards. In such cases, the
+:program:`mongos` instances will initiate a round of migrations to
+redistribute chunks across shards. See :doc:`/core/sharding-balancing`
+for more details on balancing chunks across shards.
 
 .. include:: /images/sharding-splitting.rst
 
@@ -23,32 +22,34 @@ Chunk Size
 
 .. todo:: link this section to <glossary:chunk size>
 
-The default :term:`chunk` size in MongoDB is 64 megabytes.
-
-Chunk size is arbitrary and must account for the following:
+The default :term:`chunk` size in MongoDB is 64 megabytes. You can
+:ref:`increase or reduce the chunk size
+<sharding-balancing-modify-chunk-size>`, mindful of its effect on the
+cluster's efficiency.
 
 #. Small chunks lead to a more even distribution of data at the
-   expense of more frequent migrations, which creates expense at the
+   expense of more frequent migrations. This creates expense at the
    query routing (:program:`mongos`) layer.
 
-#. Large chunks lead to fewer migrations, which is more efficient both
-   from the networking perspective *and* in terms internal overhead at
-   the query routing layer. Large chunks produce these efficiencies at
+#. Large chunks lead to fewer migrations. This is more efficient both
+   from the networking perspective *and* in terms of internal overhead at
+   the query routing layer. But, these efficiencies come at
    the expense of a potentially more uneven distribution of data.
 
-For many deployments it makes sense to avoid frequent and potentially
+For many deployments, it makes sense to avoid frequent and potentially
 spurious migrations at the expense of a slightly less evenly
-distributed data set, but this value is :ref:`configurable
-<sharding-balancing-modify-chunk-size>`. Be aware of the following limitations
-when modifying chunk size:
+distributed data set.
 
-- Automatic splitting only occurs when inserting :term:`documents
-  <document>` or updating existing documents; if you lower the chunk
-  size it may take time for all chunks to split to the new size.
+Changing the chunk size affects when chunks split but there are some
+limitations to its effects.
 
-- Splits cannot be "undone:" if you increase the chunk size, existing
-  chunks must grow through insertion or updates until they reach the
+- Automatic splitting only occurs during inserts or updates. If you
+  lower the chunk size, it may take time for all chunks to split to the
   new size.
+
+- Splits cannot be "undone". If you increase the chunk size, existing
+  chunks must grow through inserts or updates until they reach the new
+  size.
 
 .. note::
 
