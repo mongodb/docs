@@ -69,6 +69,7 @@ extlinks = {
 intersphinx_mapping = {
         # see bin/makefile-builder/intersphinx.py and bin/intersphinx-download.py
         # for more information.
+        'manual': ('http://docs.mongodb.org/manual/', '../../../build/manual.inv'),
         'pymongo': ('http://api.mongodb.org/python/current/', '../../../build/pymongo.inv'),
         'python' : ('http://docs.python.org/2/', '../../../build/python2.inv'),
         'python2' : ('http://docs.python.org/2/', '../../../build/python2.inv'),
