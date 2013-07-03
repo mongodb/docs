@@ -1,19 +1,30 @@
-If you, or one of your users, already has an account in the `MongoDB
-Jira instance <http://mms.10gen.com/>`_, you can grant these users
-access to your MMS console because MMS and Jira have integrated user
-management systems. In the "Users" section of the MMS console, click
-on the ``+ ADD USER`` button next to your account name and enter 
-the Jira
-username in the dialogue.
+The "Users" page has four important tabs:
 
-If you are not sure if your user has a Jira account, or if you do not
-know their username, you can enter their email address in the dialogue
-box. If the console finds a connected account, MMS will automatically
-add the user to your Jira group and the MMS console.
+Users
+~~~~~
 
-Users can create accounts at any time using the "`account registration
-page <https://mms.10gen.com/user/register/user>`_", or through Jira at
-`jira.mongodb.org <http://jira.mongodb.org/>`_.
+:guilabel:`Users` lists the users that have access to your MMS group,
+their date of last login, the number of times they have logged in,
+their time zone, and the date their account was created.
+
+Adding Users
+````````````
+
+You can add a user from any tab of the "Users" page: simply select
+``+Add/Invite User`` at the top of the screen next to the group name.
+This will open a modal window where you will input the new user's email
+address.
+
+If the console finds a connected Jira account, MMS will automatically
+add the user to your Jira group and the MMS console. 
+
+If the email address is not connected to an existing Jira account, MMS
+will send an invitation to join your group. Once accepted, the new user
+will be created and added to your group.
+
+Users can also create accounts at any time using the "`account
+registration page <https://mms.10gen.com/user/register/user>`_", or
+through Jira at `jira.mongodb.org <http://jira.mongodb.org/>`_.
 
 .. index:: users; propagation
 
@@ -24,3 +35,34 @@ page <https://mms.10gen.com/user/register/user>`_", or through Jira at
    change to propagate to MMS. During this window you cannot add a
    user to a group in MMS. Also, passwords changed in Jira are subject
    to the same propagation delay for MMS accounts.
+
+Removing Users
+``````````````
+
+You can remove users from groups from the :guilabel:`Users` tab by
+clicking on the ":guilabel:`garbage can`" icon in the last column.
+
+Requests
+~~~~~~~~
+
+:guilabel:`Requests` lists pending requests to join your group. Users
+can request access when they create their MMS account (e.g. from the
+registration page)
+
+Invitations
+~~~~~~~~~~~
+
+:guilabel:`Invitations` lists pending invitations to your group. When
+you invite a user (e.g. by clicking on ``+Add/Invite User`` at the top
+of the console and completing the form), an email will be sent to the
+prospective new user, and the invitation will be listed until
+it is accepted.
+
+User Host Actions
+~~~~~~~~~~~~~~~~~
+
+:guilabel:`User Host Actions` lists host-affecting user actions. The
+"Host" column provides the hostname, the "Action" column describes what
+action was taken (e.g. reactivate, add, delete, etc.), the "User
+Address" column records the user's IP address, and the "Date" column
+lists the date and time of the action.
