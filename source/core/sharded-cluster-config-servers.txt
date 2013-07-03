@@ -13,7 +13,8 @@ Config servers are special :program:`mongod` instances that store the
 :doc:`metadata </core/sharded-cluster-metadata>` for a sharded cluster.
 Config servers use a two-phase commit to ensure immediate consistency
 and reliability. Config servers *do not* run as replica sets. All
-config servers must be available on initial setup of a sharded cluster.
+config servers must be available to deploy a sharded cluster or to
+make any changes to cluster metadata.
 
 A production sharded cluster has *exactly three* config servers. For
 testing purposes you may deploy a cluster with a single config server.
@@ -40,9 +41,7 @@ Config Database
 
 Config servers store the metadata in the :doc:`config database
 </reference/config-database>`. The :program:`mongos` instances cache
-this data and use it to route reads and writes to specific shard or
-shards. Each :program:`mongos` instance must be able to write to the
-``config.version`` collection in the ``config`` database.
+this data and use it to route reads and writes to shards.
 
 .. _config-server-read-write-ops:
 
@@ -69,22 +68,24 @@ cases:
 - After a chunk migration, the :program:`mongos` instances update
   themselves with the new cluster metadata.
 
+Config Server Availability
+--------------------------
+
 If one or two config servers become unavailable, the cluster's metadata
 becomes *read only*. You can still read and write data from the shards,
 but no chunk migrations or splits will occur until all three servers
-are accessible.
+are available.
 
-If all three config servers are inaccessible, you can still use the
+If all three config servers are unavailable, you can still use the
 cluster if you do not restart the :program:`mongos` instances until
 after the config servers are accessible again. If you restart the
-:program:`mongos` instances before the config servers are accessible,
+:program:`mongos` instances before the config servers are available,
 the :program:`mongos` will be unable to route reads and writes.
 
-Clusters become inoperable when you lose all config servers and their
-data. It is critical to ensure that the config servers remain available
-and intact. As such, backups of config servers are critical. The data
-on the config server is small compared to the data stored in a cluster.
-This means the config server has a relatively low activity load, and
-the config server does not need 100% up time for a working sharded
-cluster. As a result, backing up the config servers pose no great
-difficulty.
+Clusters become inoperable without the cluster metadata. *Always,*
+ensure that the config servers remain available and intact. As such,
+backups of config servers are critical. The data on the config server
+is small compared to the data stored in a cluster. This means the
+config server has a relatively low activity load, and the config
+server does not need to be always available to support a sharded
+cluster. As a result, it is easy to back up the config servers.
