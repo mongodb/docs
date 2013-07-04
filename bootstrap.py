@@ -46,7 +46,7 @@ def main():
     ui = parser.parse_args()
 
     if ui.op == 'clean':
-        try: 
+        try:
             import bootstrap_helper
             bootstrap_helper.clean_buildsystem(buildsystem, conf['build']['paths']['output'])
         except ImportError:

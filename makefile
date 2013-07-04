@@ -22,14 +22,10 @@ help:
 # The build targets and generation of images and intersphinx targets
 # are irregular and derive from different data sources.
 
-.PHONY:$(output)/makefile.meta
 -include $(output)/makefile.meta
 -include $(output)/makefile.images
 -include $(output)/makefile.intersphinx
 
-build/makefile.meta:$(tools)/makecloth/meta.py
-	@mkdir -p $(output)
-	@python $< $@
 $(output)/makefile.intersphinx:$(tools)/makecloth/intersphinx.py $(tools)/makecloth/__init__.py
 	@$(PYTHONBIN) $< $@
 $(output)/makefile.images:$(tools)/makecloth/images.py source/images/metadata.yaml
