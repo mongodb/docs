@@ -22,14 +22,10 @@ help:
 # The build targets and generation of images and intersphinx targets
 # are irregular and derive from different data sources.
 
-.PHONY:$(output)/makefile.meta
 -include $(output)/makefile.meta
 -include $(output)/makefile.images
 -include $(output)/makefile.intersphinx
 
-build/makefile.meta:$(tools)/makecloth/meta.py
-	@mkdir -p $(output)
-	@python $< $@
 $(output)/makefile.intersphinx:$(tools)/makecloth/intersphinx.py $(tools)/makecloth/__init__.py
 	@$(PYTHONBIN) $< $@
 $(output)/makefile.images:$(tools)/makecloth/images.py source/images/metadata.yaml
@@ -59,7 +55,7 @@ htaccess:$(public-output)/.htaccess
 $(public-output)/.htaccess:bin/builddata/htaccess.yaml $(tools)/bin/htaccess.py $(public-output)/
 	@$(PYTHONBIN) $(tools)/bin/htaccess.py $@ --data $<
 sitemap:$(branch-output)/sitemap.xml.gz
-$(branch-output)/sitemap.xml.gz:$(public-branch-output) $(public-branch-output)/release.txt $(public-output)/manual $(error-pages) links 
+$(branch-output)/sitemap.xml.gz:$(public-branch-output) $(public-branch-output)/release.txt $(public-output)/manual $(error-pages) links
 	@echo [sitemap]: building sitemap
 	@echo -e "----------\n[sitemap]: build started\: `date`" >> $(branch-output)/sitemap-build.log
 	@$(PYTHONBIN) $(tools)/bin/sitemap_gen.py --testing --config=conf-sitemap.xml 2>&1 >> $(branch-output)/sitemap-build.log
