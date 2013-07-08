@@ -9,7 +9,7 @@ commands, or :operator:`$where` operator expressions include any global
 shell functions or properties that are no longer available, such as
 ``db``.
 
-The following shell functions and properties **are available** to
+The following JavaScript functions and properties **are available** to
 :dbcommand:`map-reduce operations <mapReduce>`, the :dbcommand:`group`
 command, and :operator:`$where` operator expressions in MongoDB 2.4:
 
