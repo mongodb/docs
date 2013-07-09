@@ -26,4 +26,4 @@
      
    * - ``show logs``
    
-     - ``db.adminCommand( { 'getLog' : '*' } )
+     - ``db.adminCommand( { 'getLog' : '*' } )``
