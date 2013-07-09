@@ -61,6 +61,11 @@ $(branch-output)/sitemap.xml.gz:$(public-branch-output) $(public-branch-output)/
 	@$(PYTHONBIN) $(tools)/bin/sitemap_gen.py --testing --config=conf-sitemap.xml 2>&1 >> $(branch-output)/sitemap-build.log
 	@echo [sitemap]: sitemap build complete at `date`.
 	@echo "[sitemap]: build finished: `date`" >> $(branch-output)/sitemap-build.log
+$(public-branch-output)/MongoDB-manual-$(current-branch).tar.gz:html
+	@echo $(last-commit) >| $(branch-output)/$</release.txt
+	@$(TARBIN) -C $(branch-output)/ --transform=s/html/MongoDB-manual-$(current-branch)/ \
+                   -czf $@ ./$< 
+	@echo "[html.tar.gz]: tarball of html build complete."
 
 ############# General purpose targets. Not used (directly) in the production build #############
 tags:

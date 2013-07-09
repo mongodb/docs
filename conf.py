@@ -122,7 +122,7 @@ html_show_sourcelink = False
 html_show_sphinx = True
 html_show_copyright = True
 
-manual_edition_path = 'http://docs.mongodb.org/' + meta['branch'] + '/MongoDB-Manual-' + meta['branch']
+manual_edition_path = 'http://docs.mongodb.org/{0}/MongoDB-manual'.format(meta['branch'])
 
 html_theme_options = {
     'branch': meta['branch'],
