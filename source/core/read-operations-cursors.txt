@@ -1,0 +1,256 @@
+.. _read-operations-cursors:
+
+Cursors
+-------
+
+The :method:`find() <db.collection.find()>` method returns a
+:term:`cursor` to the results; however, in the :program:`mongo` shell,
+if the returned cursor is not assigned to a variable, then the cursor
+is automatically iterated up to 20 times [#set-shell-batch-size]_ to print
+up to the first 20 documents that match the query, as in the following
+example:
+
+.. code-block:: javascript
+
+   db.inventory.find( { type: 'food' } );
+
+When you assign the :method:`find() <db.collection.find()>` to a
+variable:
+
+- you can call the cursor variable in the shell to iterate up to 20
+  times [#set-shell-batch-size]_ and print the matching documents, as in
+  the following example:
+
+  .. code-block:: javascript
+
+     var myCursor = db.inventory.find( { type: 'food' } );
+
+     myCursor
+
+- you can use the cursor method :method:`next() <cursor.next()>` to
+  access the documents, as in the following example:
+
+  .. code-block:: javascript
+
+     var myCursor = db.inventory.find( { type: 'food' } );
+     var myDocument = myCursor.hasNext() ? myCursor.next() : null;
+
+     if (myDocument) {
+         var myItem = myDocument.item;
+         print(tojson(myItem));
+     }
+
+  As an alternative print operation, consider the ``printjson()``
+  helper method to replace ``print(tojson())``:
+
+  .. code-block:: javascript
+
+     if (myDocument) {
+         var myItem = myDocument.item;
+         printjson(myItem);
+     }
+
+- you can use the cursor method :method:`forEach() <cursor.forEach()>`
+  to iterate the cursor and access the documents, as in the following
+  example:
+
+  .. code-block:: javascript
+
+     var myCursor =  db.inventory.find( { type: 'food' } );
+
+     myCursor.forEach(printjson);
+
+See :ref:`JavaScript cursor methods <js-query-cursor-methods>` and your
+:doc:`driver </applications/drivers>` documentation for more
+information on cursor methods.
+
+.. [#set-shell-batch-size] You can use the ``DBQuery.shellBatchSize`` to
+   change the number of iteration from the default value ``20``. See
+   :ref:`mongo-shell-executing-queries` for more information.
+
+Iterator Index
+~~~~~~~~~~~~~~
+
+In the :program:`mongo` shell, you can use the
+:method:`~cursor.toArray()` method to iterate the cursor and return
+the documents in an array, as in the following:
+
+.. code-block:: javascript
+
+   var myCursor = db.inventory.find( { type: 'food' } );
+   var documentArray = myCursor.toArray();
+   var myDocument = documentArray[3];
+
+The :method:`~cursor.toArray()` method loads into RAM all
+documents returned by the cursor; the :method:`~cursor.toArray()`
+method exhausts the cursor.
+
+Additionally, some :doc:`drivers </applications/drivers>` provide
+access to the documents by using an index on the cursor (i.e.
+``cursor[index]``). This is a shortcut for first calling the
+:method:`~cursor.toArray()` method and then using an index
+on the resulting array.
+
+Consider the following example:
+
+.. code-block:: javascript
+
+   var myCursor = db.inventory.find( { type: 'food' } );
+   var myDocument = myCursor[3];
+
+The ``myCursor[3]`` is equivalent to the following example:
+
+.. code-block:: javascript
+
+   myCursor.toArray() [3];
+
+.. _cursor-behaviors:
+
+Cursor Behaviors
+~~~~~~~~~~~~~~~~
+
+Consider the following behaviors related to cursors:
+
+- By default, the server will automatically close the cursor after 10
+  minutes of inactivity or if client has exhausted the cursor. To
+  override this behavior, you can specify the ``noTimeout``
+  :meta-driver:`wire protocol flag </legacy/mongodb-wire-protocol>` in
+  your query; however, you should either close the cursor manually or
+  exhaust the cursor. In the :program:`mongo` shell, you can set the
+  ``noTimeout`` flag:
+
+  .. code-block:: javascript
+
+     var myCursor = db.inventory.find().addOption(DBQuery.Option.noTimeout);
+
+  See your :doc:`driver </applications/drivers>` documentation for
+  information on setting the ``noTimeout`` flag. See
+  :ref:`cursor-flags` for a complete list of available cursor flags.
+
+- Because the cursor is not isolated during its lifetime, intervening
+  write operations may result in a cursor that returns a single
+  document [#single-document-def]_ more than once. To handle this
+  situation, see the information on :ref:`snapshot mode
+  <faq-developers-isolate-cursors>`.
+
+- The MongoDB server returns the query results in batches:
+
+  - For most queries, the *first* batch returns 101 documents or just
+    enough documents to exceed 1 megabyte. Subsequent batch size is 4
+    megabytes. To override the default size of the batch, see
+    :method:`~cursor.batchSize()` and :method:`~cursor.limit()`.
+
+  - For queries that include a sort operation *without* an index, the
+    server must load all the documents in memory to perform the sort
+    and will return all documents in the first batch.
+
+  - Batch size will not exceed the :ref:`maximum BSON document size
+    <limit-bson-document-size>`.
+
+  - As you iterate through the cursor and reach the end of the returned
+    batch, if there are more results, :method:`cursor.next()` will
+    perform a :data:`getmore operation <currentOp.op>` to retrieve the
+    next batch.
+
+    To see how many documents remain in the batch as you iterate the
+    cursor, you can use the :method:`~cursor.objsLeftInBatch()` method,
+    as in the following example:
+
+    .. code-block:: javascript
+
+       var myCursor = db.inventory.find();
+
+       var myFirstDocument = myCursor.hasNext() ? myCursor.next() : null;
+
+       myCursor.objsLeftInBatch();
+
+- You can use the command :dbcommand:`cursorInfo` to retrieve the
+  following information on cursors:
+
+  - total number of open cursors
+
+  - size of the client cursors in current use
+
+  - number of timed out cursors since the last server restart
+
+  Consider the following example:
+
+  .. code-block:: javascript
+
+     db.runCommand( { cursorInfo: 1 } )
+
+  The result from the command returns the following document:
+
+  .. code-block:: javascript
+
+     {
+       "totalOpen" : <number>,
+       "clientCursors_size" : <number>,
+       "timedOut" : <number>,
+       "ok" : 1
+     }
+
+.. [#single-document-def] A single document relative to value of the
+   ``_id`` field. A cursor cannot return the same document more than
+   once *if* the document has not changed.
+
+.. _cursor-flags:
+
+Cursor Flags
+~~~~~~~~~~~~
+
+The :program:`mongo` shell provides the following cursor flags:
+
+- ``DBQuery.Option.tailable``
+- ``DBQuery.Option.slaveOk``
+- ``DBQuery.Option.oplogReplay``
+- ``DBQuery.Option.noTimeout``
+- ``DBQuery.Option.awaitData``
+- ``DBQuery.Option.exhaust``
+- ``DBQuery.Option.partial``
+
+.. _read-operations-aggregation:
+
+Aggregation
+~~~~~~~~~~~
+
+.. versionchanged:: 2.2
+
+MongoDB can perform some basic data aggregation operations on results
+before returning data to the application. These operations are not
+queries; they use :term:`database commands <database command>` rather
+than queries, and they do not return a cursor. However, they still
+require MongoDB to read data.
+
+Running aggregation operations on the database side can be more
+efficient than running them in the application layer and can reduce
+the amount of data MongoDB needs to send to the application. These
+aggregation operations include basic grouping, counting, and even
+processing data using a map reduce framework. Additionally, in 2.2
+MongoDB provides a complete aggregation framework for more rich
+aggregation operations.
+
+The aggregation framework provides users with a "pipeline" like
+framework: documents enter from a collection and then pass through a
+series of steps by a sequence of :ref:`pipeline operators
+<aggregation-pipeline-operator-reference>` that manipulate and
+transform the documents until they're output at the end. The
+aggregation framework is accessible via the :dbcommand:`aggregate`
+command or the :method:`db.collection.aggregate()` helper in the
+:program:`mongo` shell.
+
+For more information on the aggregation framework see
+:doc:`/aggregation`.
+
+Additionally, MongoDB provides a number of simple data aggregation
+operations for more basic data aggregation operations:
+
+- :dbcommand:`count` (:method:`~cursor.count()`)
+
+- :dbcommand:`distinct` (:method:`db.collection.distinct()`)
+
+- :dbcommand:`group` (:method:`db.collection.group()`)
+
+- :dbcommand:`mapReduce`. (Also consider
+  :method:`~db.collection.mapReduce()` and
+  :doc:`/core/map-reduce`.)
