@@ -4,48 +4,55 @@
 
    * - **Number**
      - **Name**
-     - **State**
+     - **State Description**
 
    * - 0
-     - ``STARTUP``
-     - Start up, phase 1 (parsing configuration.) Not eligible to vote.
+     - :replstate:`STARTUP`
+
+     - Cannot vote. All members start up in this state. The
+       :program:`mongod` parses the :doc:`replica set configuration document </administration/replica-set-member-configuration>` while in :replstate:`STARTUP`.
 
    * - 1
-     - ``PRIMARY``
-     - Primary. Eligible to vote.
+     - :replstate:`PRIMARY`
+     - Can vote. The :doc:`primary </core/replica-set-primary>` is the only member to accept write operations.
 
    * - 2
-     - ``SECONDARY``
-     - Secondary. Eligible to vote.
+     - :replstate:`SECONDARY`
+     - Can vote. The :doc:`secondary </core/replica-set-secondary>` replicates the data store.
 
    * - 3
-     - ``RECOVERING``
-     - Member is recovering (initial sync, post-rollback, stale members.) Eligible to vote.
+     - :replstate:`RECOVERING`
+     - Can vote. Members either perform startup self-checks, or transition
+       from completing a :doc:`rollback </core/replica-set-rollbacks>` or :doc:`resync </tutorial/resync-replica-set-member>`.
 
    * - 4
-     - ``FATAL``
-     - Member has encountered an unrecoverable error. Not eligible to vote.
+     - :replstate:`FATAL`
+     - Cannot vote. Has encountered an unrecoverable error.
 
    * - 5
-     - ``STARTUP2``
-     - Start up, phase 2 (forking threads.) Not eligible to vote.
+     - :replstate:`STARTUP2`
+     - Cannot vote. Forks replication and election threads before
+       becoming a secondary.
 
    * - 6
-     - ``UNKNOWN``
-     - Unknown (the set has never connected to the member.) Not eligible to vote.
+     - :replstate:`UNKNOWN`
+     - Cannot vote. Has never connected to the replica set.
 
    * - 7
-     - ``ARBITER``
-     - Member is an :term:`arbiter`. Eligible to vote.
+     - :replstate:`ARBITER`
+     - Can vote. :ref:`Arbiters <replica-set-arbiters>` do not replicate
+       data and exist solely to participate in elections.
 
    * - 8
-     - ``DOWN``
-     - Member is not accessible to the set. Not eligible to vote.
+     - :replstate:`DOWN`
+     - Cannot vote. Is not accessible to the set.
 
    * - 9
-     - ``ROLLBACK``
-     - Member is rolling back data. See :term:`rollback`. Eligible to vote.
+     - :replstate:`ROLLBACK`
+     - Can vote. Performs a :doc:`rollback </core/replica-set-rollbacks>`.
 
    * - 10
-     - ``SHUNNED``
-     - Member has been removed from replica set. Not eligible to vote.
+     - :replstate:`SHUNNED`
+     - Cannot vote. Was once in the replica set but has now been removed.
+
+
