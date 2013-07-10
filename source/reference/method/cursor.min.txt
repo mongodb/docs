@@ -9,13 +9,12 @@ Definition
 
 .. method:: cursor.min()
 
-   Specifies the *inclusive*
-   lower bound for a specific index in order to constrain the results
-   of :method:`find() <db.collection.find()>`. :method:`min()
-   <cursor.min()>` provides a way to specify lower bounds on compound
-   key indexes.
+   Specifies the *inclusive* lower bound for a specific index in order
+   to constrain the results of
+   :method:`~db.collection.find()`. :method:`~cursor.min()` provides a
+   way to specify lower bounds on compound key indexes.
 
-   The :method:`min() <cursor.min()>` has the following parameter:
+   The :method:`~cursor.min()` has the following parameter:
 
    .. include:: /reference/method/cursor.min-param.rst
 
@@ -27,13 +26,39 @@ Definition
 
    The fields correspond to *all* the keys of a particular index
    *in order*. You can explicitly specify the particular index
-   with the :method:`hint() <cursor.hint()>` method. Otherwise,
+   with the :method:`~cursor.hint()` method. Otherwise,
    MongoDB selects the index using the fields in the
    ``indexBounds``; however, if multiple indexes exist on same
    fields with different sort orders, the selection of the index
    may be ambiguous.
 
-   .. seealso:: :method:`max() <cursor.max()>`.
+   .. seealso:: :method:`~cursor.max()`.
+
+.. note:: :method:`~cursor.min()` is a shell wrapper around the
+   special operator :operator:`$min`.
+
+Behaviors
+---------
+
+- Because :method:`~cursor.min()` requires an index on a
+  field, and forces the query to use this index, you may prefer
+  the :operator:`$gte` operator for the query if
+  possible. Consider the following example:
+
+  .. code-block:: javascript
+
+     db.products.find( { _id: 7 } ).min( { price: 1.39 } )
+
+  The query will use the index on the ``price`` field, even if
+  the index on ``_id`` may be better.
+
+- :method:`~cursor.min()` exists primarily to support the
+  :program:`mongos` process.
+
+- If you use :method:`~cursor.min()` with :method:`~cursor.max()` to
+  specify a range, the index bounds specified in
+  :method:`~cursor.min()` and :method:`!cursor.max()` must both refer
+  to the keys of the same index.
 
 Example
 -------
@@ -63,8 +88,8 @@ The collection has the following indexes:
    { "item" : 1, "type" : -1 }
    { "price" : 1 }
 
-- Using the ordering of ``{ item: 1, type: 1 }`` index,
-  :method:`min() <cursor.min()>` limits the query to the documents
+- Using the ordering of the ``{ item: 1, type: 1 }`` index,
+  :method:`~cursor.min()` limits the query to the documents
   that are at or above the index key bound of ``item`` equal to
   ``apple`` and ``type`` equal to ``jonagold``, as in the following:
 
@@ -86,8 +111,8 @@ The collection has the following indexes:
 
   If the query did not explicitly specify the index with the
   :method:`hint() <cursor.hint()>` method, it is ambiguous as to
-  whether :program:`mongod` would select the ``{ item: 1, type: 1
-  }`` index ordering or the ``{ item: 1, type: -1 }`` index ordering.
+  whether :program:`mongod` would select the ``{ item: 1, type: 1 }``
+  index ordering or the ``{ item: 1, type: -1 }`` index ordering.
 
 - Using the ordering of the index ``{ price: 1 }``, :method:`min()
   <cursor.min()>` limits the query to the documents that are at or
@@ -108,28 +133,3 @@ The collection has the following indexes:
      { "_id" : 5, "item" : "apple", "type" : "mcintosh", "price" : 1.29 }
      { "_id" : 3, "item" : "apple", "type" : "jonagold", "price" : 1.29 }
      { "_id" : 10, "item" : "orange", "type" : "navel", "price" : 1.39 }
-
-.. note::
-
-   - Because :method:`min() <cursor.min()>` requires an index on a
-     field, and forces the query to use this index, you may prefer
-     the :operator:`$gte` operator for the query if
-     possible. Consider the following example:
-
-     .. code-block:: javascript
-
-        db.products.find( { _id: 7 } ).min( { price: 1.39 } )
-
-     The query will use the index on the ``price`` field, even if
-     the index on ``_id`` may be better.
-
-   - :method:`min() <cursor.min()>` exists primarily to support the
-     :program:`mongos` (sharding) process.
-
-   - If you use :method:`min() <cursor.min()>` with :method:`max()
-     <cursor.max()>` to specify a range, the index bounds specified
-     in :method:`min() <cursor.min()>` and :method:`max()
-     <cursor.max()>` must both refer to the keys of the same index.
-
-   - :method:`min() <cursor.min()>` is a shell wrapper around the
-     special operator :operator:`$min`.
