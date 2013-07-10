@@ -9,13 +9,12 @@ Definition
 
 .. method:: cursor.max()
 
-   Specifies the *exclusive*
-   upper bound for a specific index in order to constrain the results
-   of :method:`find() <db.collection.find()>`. :method:`max()
-   <cursor.max()>` provides a way to specify an upper bound on compound
-   key indexes.
+   Specifies the *exclusive* upper bound for a specific index in order
+   to constrain the results of
+   :method:`~db.collection.find()`. :method:`~cursor.max()` provides a
+   way to specify an upper bound on compound key indexes.
 
-   The :method:`max() <cursor.max()>` method has the following parameter:
+   The :method:`~cursor.max()` method has the following parameter:
 
    .. include:: /reference/method/cursor.max-param.rst
 
@@ -25,15 +24,41 @@ Definition
 
       { field1: <max value>, field2: <max value2> ... fieldN:<max valueN>}
 
-   The fields correspond to *all* the keys of a particular index
-   *in order*. You can explicitly specify the particular index
-   with the :method:`hint() <cursor.hint()>` method. Otherwise,
-   :program:`mongod` selects the index using the fields in the
-   ``indexBounds``; however, if multiple indexes exist on same
-   fields with different sort orders, the selection of the index
-   may be ambiguous.
+   The fields correspond to *all* the keys of a particular index *in
+   order*. You can explicitly specify the particular index with the
+   :method:`~cursor.hint()` method. Otherwise, :program:`mongod`
+   selects the index using the fields in the ``indexBounds``; however,
+   if multiple indexes exist on same fields with different sort
+   orders, the selection of the index may be ambiguous.
 
-   .. seealso:: :method:`min() <cursor.min()>`.
+   .. seealso:: :method:`~cursor.min()`.
+
+.. note:: :method:`~cursor.max()` is a shell wrapper around the query
+   modifier :operator:`$max`.
+
+Behavior
+--------
+
+- Because :method:`max() <cursor.max()>` requires an index on a field,
+  and forces the query to use this index, you may prefer the
+  :operator:`$lt` operator for the query if possible. Consider the
+  following example:
+
+  .. code-block:: javascript
+
+     db.products.find( { _id: 7 } ).max( { price: 1.39 } )
+
+  The query will use the index on the ``price`` field, even if
+  the index on ``_id`` may be better.
+
+- :method:`~cursor.max()` exists primarily to support the
+  :program:`mongos` (sharding) process.
+
+- If you use :method:`~cursor.max()` with :method:`~cursor.min()` to
+  specify a range, the index bounds specified in
+  :method:`~cursor.min()` and :method:`~cursor.max()`
+  must both refer to the keys of the same index.
+
 
 Example
 -------
@@ -106,27 +131,3 @@ The collection has the following indexes:
      { "_id" : 3, "item" : "apple", "type" : "jonagold", "price" : 1.29 }
      { "_id" : 10, "item" : "orange", "type" : "navel", "price" : 1.39 }
 
-.. note::
-
-   - Because :method:`max() <cursor.max()>` requires an index on a
-     field, and forces the query to use this index, you may prefer
-     the :operator:`$lt` operator for the query if
-     possible. Consider the following example:
-
-     .. code-block:: javascript
-
-        db.products.find( { _id: 7 } ).max( { price: 1.39 } )
-
-     The query will use the index on the ``price`` field, even if
-     the index on ``_id`` may be better.
-
-   - :method:`max() <cursor.max()>` exists primarily to support the
-     :program:`mongos` (sharding) process.
-
-   - If you use :method:`max() <cursor.max()>` with :method:`min()
-     <cursor.min()>` to specify a range, the index bounds specified
-     in :method:`min() <cursor.min()>` and :method:`max()
-     <cursor.max()>` must both refer to the keys of the same index.
-
-   - :method:`max() <cursor.max()>` is a shell wrapper around the
-     special operator :operator:`$max`.
