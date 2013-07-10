@@ -1,0 +1,62 @@
+=================================================
+Architectural Considerations for Write Operations
+=================================================
+
+.. default-domain:: mongodb
+
+.. _write-operations-replica-sets:
+
+Replica Sets
+------------
+
+In :term:`replica sets <replica set>`, all write operations go to the
+set's :term:`primary`, which applies the write operation then records
+the operations on the primary's operation log or :term:`oplog`. The
+oplog is a reproducible sequence of operations to the data
+set. :term:`Secondary` members of the set are continuously replicating the
+oplog and applying the operations to themselves in an asynchronous
+process.
+
+Large volumes of write operations, particularly bulk operations, may
+create situations where the secondary members have difficulty applying
+the replicating operations from the primary at a sufficient rate: this
+can cause the secondary's state to fall behind that of the primary. Secondaries
+that are significantly behind the primary present problems for normal
+operation of the replica set, particularly :ref:`failover
+<replica-set-failover-administration>` in the form of :ref:`rollbacks
+<replica-set-rollback>` as well as general :doc:`read consistency
+</applications/replication>`.
+
+To help avoid this issue, you can customize the :ref:`write concern
+<write-operations-write-concern>` to return confirmation of the write
+operation to another member [#write-concern-throttling]_ of the replica
+set every 100 or 1,000 operations. This provides an opportunity for
+secondaries to catch up with the primary. Write concern can slow the
+overall progress of write operations but ensure that the secondaries
+can maintain a largely current state with respect to the primary.
+
+For more information on replica sets and write operations, see
+:ref:`replica-set-write-concern`, :ref:`replica-set-oplog-sizing`, and
+:doc:`/tutorial/change-oplog-size`.
+
+.. [#write-concern-throttling] Calling :dbcommand:`getLastError`
+   intermittently with a ``w`` value of ``2`` or ``majority`` will
+   slow the throughput of write traffic; however, this practice will
+   allow the secondaries to remain current with the state of the
+   primary.
+
+.. _write-operations-sharded-clusters:
+
+Sharded Clusters
+----------------
+
+In a :term:`sharded cluster`, MongoDB directs a given write operation to
+a :term:`shard` and then performs the write on a particular
+:term:`chunk` on that shard. Shards and chunks are range-based.
+:term:`Shard keys <shard key>` affect how MongoDB distributes documents
+among shards. Choosing the correct shard key can have a great impact on
+the performance, capability, and functioning of your database and
+cluster.
+
+For more information, see :doc:`/administration/sharded-clusters` and
+:ref:`write-operations-bulk-insert`.
