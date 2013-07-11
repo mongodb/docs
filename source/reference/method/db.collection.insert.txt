@@ -36,69 +36,322 @@ Definition
 Examples
 --------
 
-The following are examples of the :method:`~db.collection.insert()` method:
+The following are examples of the :method:`insert()
+<db.collection.insert()>` method.
 
-- To insert a single document and have MongoDB generate the unique
-  ``_id``, omit the ``_id`` field in the document and pass the document
-  to the :method:`~db.collection.insert()` method as in the
-  following:
+Insert a Document
+~~~~~~~~~~~~~~~~~
 
-  .. code-block:: javascript
+In the following examples, the document passed to the :method:`insert()
+<db.collection.insert()>` method omits the ``_id`` field, which lets
+MongoDB generate a unique ``ObjectId`` for ``_id``:
 
-     db.products.insert( { item: "card", qty: 15 } )
+The first example creates a document in the ``products`` collection:
 
-  This operation inserts a new document into the ``products`` collection
-  with the ``item`` field set to ``card``, the ``qty`` field set to
-  ``15``, and the ``_id`` field set to a unique ``ObjectId``:
+.. code-block:: javascript
 
-  .. code-block:: javascript
+   db.products.insert( { item: "card", qty: 15 } )
 
-     { "_id" : ObjectId("5063114bd386d8fadbd6b004"), "item" : "card", "qty" : 15 }
+This creates a new document with an ``_id`` field set to a unique
+``ObjectId``:
 
-  .. include:: /includes/note-insert-id-field.rst
+.. code-block:: javascript
 
-- To insert a single document, with a custom ``_id`` field, include the
-  ``_id`` field set to a unique identifier and pass the document to the
-  :method:`~db.collection.insert()` method as follows:
+   { "_id" : ObjectId("5063114bd386d8fadbd6b004"), "item" : "card", "qty" : 15 }
 
-  .. code-block:: javascript
+The second example inserts a document in the
+:doc:`/reference/bios-example-collection`. If the ``bios`` collection
+does not exist, the :method:`~db.collection.insert()` method creates the
+collection:
 
-     db.products.insert( { _id: 10, item: "box", qty: 20 } )
+.. code-block:: javascript
 
-  This operation inserts a new document in the ``products`` collection
-  with the ``_id`` field set to ``10``, the ``item`` field set to
-  ``box``, the ``qty`` field set to ``20``:
+   db.bios.insert(
+      {
+        name: { first: 'John', last: 'McCarthy' },
+        birth: new Date('Sep 04, 1927'),
+        death: new Date('Dec 24, 2011'),
+        contribs: [ 'Lisp', 'Artificial Intelligence', 'ALGOL' ],
+        awards: [
+                  {
+                    award: 'Turing Award',
+                    year: 1971,
+                    by: 'ACM'
+                  },
+                  {
+                    award: 'Kyoto Prize',
+                    year: 1988,
+                    by: 'Inamori Foundation'
+                  },
+                  {
+                    award: 'National Medal of Science',
+                    year: 1990,
+                    by: 'National Science Foundation'
+                  }
+                ]
+      }
+   )
 
-  .. code-block:: javascript
+To verify the inserted document, query the ``bios`` collection:
 
-     { "_id" : 10, "item" : "box", "qty" : 20 }
+.. code-block:: javascript
 
-  .. include:: /includes/note-insert-id-field.rst
+   db.bios.find( { name: { first: 'John', last: 'McCarthy' } } )
 
-- To insert multiple documents, pass an array of documents to the
-  :method:`~db.collection.insert()` method as in the
-  following:
+The returned document contains an ``_id`` field with the generated
+``ObjectId`` value:
 
-  .. code-block:: javascript
+.. code-block:: javascript
 
-     db.products.insert( [ { _id: 11, item: "pencil", qty: 50, type: "no.2" },
-                           {          item: "pen", qty: 20 },
-                           {          item: "eraser", qty: 25 } ] )
+   {
+     "_id" : ObjectId("50a1880488d113a4ae94a94a"),
+     "name" : { "first" : "John", "last" : "McCarthy" },
+     "birth" : ISODate("1927-09-04T04:00:00Z"),
+     "death" : ISODate("2011-12-24T05:00:00Z"),
+     "contribs" : [ "Lisp", "Artificial Intelligence", "ALGOL" ],
+     "awards" : [
+                  {
+                    "award" : "Turing Award",
+                    "year" : 1971,
+                    "by" : "ACM"
+                  },
+                  {
+                    "award" : "Kyoto Prize",
+                    "year" :1988,
+                    "by" : "Inamori Foundation"
+                  },
+                  {
+                    "award" : "National Medal of Science",
+                    "year" : 1990,
+                    "by" : "National Science Foundation"
+                  }
+                ]
+   }
 
-  The operation will insert three documents into the ``products``
-  collection:
+.. include:: /includes/note-insert-id-field.rst
 
-  - A document with the fields ``_id`` set to ``11``, ``item`` set to
-    ``pencil``, ``qty`` set to ``50``, and the ``type`` set to ``no.2``.
+Insert a Document with a Custom ID
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  - A document with the fields ``_id`` set to a unique ``objectid``,
-    ``item`` set to ``pen``, and ``qty`` set to ``20``.
+In the following examples, the document passed to the :method:`insert()
+<db.collection.insert()>` method includes a unique value for the ``_id``
+field. The value of ``_id`` must be unique within the collection.
 
-  - A document with the fields ``_id`` set to a unique ``objectid``,
-    ``item`` set to ``eraser``, and ``qty`` set to ``25``.
+The first example creates a document with an ``_id`` value of ``10``,
+which is unique value for ``_id`` within the ``products`` collection. If
+the value were not unique, the insert would fail:
 
-  .. code-block:: javascript
+.. code-block:: javascript
 
-     { "_id" : 11, "item" : "pencil", "qty" : 50, "type" : "no.2" }
-     { "_id" : ObjectId("50631bc0be4617f17bb159ca"), "item" : "pen", "qty" : 20 }
-     { "_id" : ObjectId("50631bc0be4617f17bb159cb"), "item" : "eraser", "qty" : 25 }
+   db.products.insert( { _id: 10, item: "box", qty: 20 } )
+
+The insert operation creates the following document:
+
+.. code-block:: javascript
+
+   { "_id" : 10, "item" : "box", "qty" : 20 }
+
+The second example inserts a document in the
+:doc:`/reference/bios-example-collection` and gives it an ``_id`` value
+of ``1``. If the ``bios`` collection does not exist, the
+:method:`~db.collection.insert()` method creates the collection
+[#show-collection]_:
+
+.. code-block:: javascript
+
+   db.bios.insert(
+      {
+        _id: 1,
+        name: { first: 'John', last: 'Backus' },
+        birth: new Date('Dec 03, 1924'),
+        death: new Date('Mar 17, 2007'),
+        contribs: [ 'Fortran', 'ALGOL', 'Backus-Naur Form', 'FP' ],
+        awards: [
+                  {
+                    award: 'W.W. McDowell Award',
+                    year: 1967,
+                    by: 'IEEE Computer Society'
+                  },
+                  {
+                    award: 'National Medal of Science',
+                    year: 1975,
+                    by: 'National Science Foundation'
+                  },
+                  {
+                    award: 'Turing Award',
+                    year: 1977,
+                    by: 'ACM'
+                  },
+                  {
+                    award: 'Draper Prize',
+                    year: 1993,
+                    by: 'National Academy of Engineering'
+                  }
+                ]
+      }
+   )
+
+To confirm the insert, :doc:`query </core/read>` the ``bios``
+collection:
+
+.. code-block:: javascript
+
+   db.bios.find()
+
+If the ``bios`` collection contains only the document you just inserted,
+the query returns only the one document:
+
+.. code-block:: javascript
+
+   {
+     "_id" : 1,
+     "name" : { "first" : "John", "last" : "Backus" },
+     "birth" : ISODate("1924-12-03T05:00:00Z"),
+     "death" : ISODate("2007-03-17T04:00:00Z"),
+     "contribs" : [ "Fortran", "ALGOL", "Backus-Naur Form", "FP" ],
+     "awards" : [
+                  {
+                    "award" : "W.W. McDowell Award",
+                    "year" : 1967,
+                    "by" : "IEEE Computer Society"
+                  },
+                  {
+                    "award" : "National Medal of Science",
+                    "year" : 1975,
+                    "by" : "National Science Foundation"
+                  },
+                  {
+                    "award" : "Turing Award",
+                    "year" : 1977,
+                    "by" : "ACM"
+                  },
+                  { "award" : "Draper Prize",
+                    "year" : 1993,
+                    "by" : "National Academy of Engineering"
+                  }
+                ]
+   }
+
+.. include:: /includes/note-insert-id-field.rst
+
+Insert Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following examples insert multiple documents by passing an array of
+documents to the :method:`insert() <db.collection.insert()>` method.
+Such inserts are called *bulk inserts*.
+
+The first example creates three documents in the ``products``
+collection, one with a custom ``_id``:
+
+.. code-block:: javascript
+
+   db.products.insert( [ { _id: 11, item: "pencil", qty: 50, type: "no.2" },
+                         {          item: "pen", qty: 20 },
+                         {          item: "eraser", qty: 25 }
+                       ] )
+
+The operation creates the following three documents. The ``ObjectId``
+values are specific to the machine and time when the operation is run:
+
+.. code-block:: javascript
+
+   { "_id" : 11, "item" : "pencil", "qty" : 50, "type" : "no.2" }
+   { "_id" : ObjectId("51e0373c6f35bd826f47e9a0"), "item" : "pen", "qty" : 20 }
+   { "_id" : ObjectId("51e0373c6f35bd826f47e9a1"), "item" : "eraser", "qty" : 25 }
+
+The second example creates three documents in the
+:doc:`/reference/bios-example-collection`. The example illustrates the
+*dynamic schema* characteristic of MongoDB. The document with ``_id: 3``
+contains a field named ``title`` that does not appear in the other
+documents. MongoDB does not require the other documents to contain this
+field:
+
+.. code-block:: javascript
+
+   db.bios.insert(
+      [
+        {
+          _id: 3,
+          name: { first: 'Grace', last: 'Hopper' },
+          title: 'Rear Admiral',
+          birth: new Date('Dec 09, 1906'),
+          death: new Date('Jan 01, 1992'),
+          contribs: [ 'UNIVAC', 'compiler', 'FLOW-MATIC', 'COBOL' ],
+          awards: [
+                    {
+                      award: 'Computer Sciences Man of the Year',
+                      year: 1969,
+                      by: 'Data Processing Management Association'
+                    },
+                    {
+                      award: 'Distinguished Fellow',
+                      year: 1973,
+                      by: ' British Computer Society'
+                    },
+                    {
+                      award: 'W. W. McDowell Award',
+                      year: 1976,
+                      by: 'IEEE Computer Society'
+                    },
+                    {
+                      award: 'National Medal of Technology',
+                      year: 1991,
+                      by: 'United States'
+                    }
+                  ]
+        },
+        {
+          _id: 4,
+          name: { first: 'Kristen', last: 'Nygaard' },
+          birth: new Date('Aug 27, 1926'),
+          death: new Date('Aug 10, 2002'),
+          contribs: [ 'OOP', 'Simula' ],
+          awards: [
+                    {
+                      award: 'Rosing Prize',
+                      year: 1999,
+                      by: 'Norwegian Data Association'
+                    },
+                    {
+                      award: 'Turing Award',
+                      year: 2001,
+                      by: 'ACM'
+                    },
+                    {
+                      award: 'IEEE John von Neumann Medal',
+                      year: 2001,
+                      by: 'IEEE'
+                    }
+                  ]
+        },
+        {
+          _id: 5,
+          name: { first: 'Ole-Johan', last: 'Dahl' },
+          birth: new Date('Oct 12, 1931'),
+          death: new Date('Jun 29, 2002'),
+          contribs: [ 'OOP', 'Simula' ],
+          awards: [
+                    {
+                      award: 'Rosing Prize',
+                      year: 1999,
+                      by: 'Norwegian Data Association'
+                    },
+                    {
+                      award: 'Turing Award',
+                      year: 2001,
+                      by: 'ACM'
+                    },
+                    {
+                      award: 'IEEE John von Neumann Medal',
+                      year: 2001,
+                      by: 'IEEE'
+                    }
+                  ]
+        }
+      ]
+   )
+
+.. [#show-collection] You can also view a list of the existing
+   collections in the database using the ``show collections``
+   operation in the :program:`mongo` shell.
