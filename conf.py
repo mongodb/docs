@@ -16,9 +16,9 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), buildsys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), buildsystem, 'bin')))
 
 from utils import ingest_yaml, ingest_yaml_list
-
 meta = ingest_yaml('meta.yaml')
 pdfs = ingest_yaml_list('pdfs.yaml')
+intersphinx_libs = ingest_yaml_list('intersphinx.yaml')
 
 # -- General configuration ----------------------------------------------------
 
@@ -70,17 +70,10 @@ extlinks = {
 for i in meta['published_branches']:
     extlinks[i] = ('http://docs.mongodb.org/' + i + '%s', '')
 
-intersphinx_mapping = {
-        # see bin/makefile-builder/intersphinx.py and bin/intersphinx-download.py
-        # for more information.
-        'pymongo': ('http://api.mongodb.org/python/current/', '../../../build/pymongo.inv'),
-        'python' : ('http://docs.python.org/2/', '../../../build/python2.inv'),
-        'python2' : ('http://docs.python.org/2/', '../../../build/python2.inv'),
-        'python3' : ('http://docs.python.org/3/', '../../../build/python3.inv'),
-        'django': ('https://django.readthedocs.org/en/latest/', '../../../build/django.inv'),
-#        'djangomongodbengine': ('http://django-mongodb.org/', '../../../build/djangomongodb.inv'), # website currently 404s
-        'djangotoolbox' : ('http://djangotoolbox.readthedocs.org/en/latest/', '../../../build/djangotoolbox.inv'),
-}
+intersphinx_mapping = {}
+for i in intersphinx_libs:
+    intersphinx_mapping[i['name']] = ( i['url'], os.path.join('..', '..', i['path']))
+
 
 languages = [
     ("ar", "Arabic"),
