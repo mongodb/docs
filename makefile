@@ -24,10 +24,7 @@ help:
 
 -include $(output)/makefile.meta
 -include $(output)/makefile.images
--include $(output)/makefile.intersphinx
 
-$(output)/makefile.intersphinx:$(tools)/makecloth/intersphinx.py $(tools)/makecloth/__init__.py
-	@$(PYTHONBIN) $< $@
 $(output)/makefile.images:$(tools)/makecloth/images.py source/images/metadata.yaml
 	@$(PYTHONBIN) $< $@ source/images metadata.yaml
 
