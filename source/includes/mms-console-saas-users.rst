@@ -5,7 +5,7 @@ Users
 
 :guilabel:`Users` lists the users that have access to your MMS group,
 their date of last login, the number of times they have logged in,
-their time zone, and the date their account was created.
+their time zone, and the creation date of the account.
 
 Adding Users
 ````````````
@@ -19,8 +19,8 @@ If the console finds a connected Jira account, MMS will automatically
 add the user to your Jira group and the MMS console. 
 
 If the email address is not connected to an existing Jira account, MMS
-will send an invitation to join your group. Once accepted, the new user
-will be created and added to your group.
+will send an invitation to join your group. Once accepted, MMS will
+create and add a new user to your group.
 
 Users can also create accounts at any time using the "`account
 registration page <https://mms.10gen.com/user/register/user>`_", or
@@ -46,23 +46,23 @@ Requests
 ~~~~~~~~
 
 :guilabel:`Requests` lists pending requests to join your group. Users
-can request access when they create their MMS account (e.g. from the
-registration page)
+can request access when they create their MMS account, as on the
+registration page.
 
 Invitations
 ~~~~~~~~~~~
 
 :guilabel:`Invitations` lists pending invitations to your group. When
-you invite a user (e.g. by clicking on ``+Add/Invite User`` at the top
-of the console and completing the form), an email will be sent to the
-prospective new user, and the invitation will be listed until
-it is accepted.
+you invite a user, as when you click on the :guilabel:`+Add/Invite
+User` button at the top of the console and complete the form. MMS then
+sends an email to the prospective new user and lists the invitation
+until the user accepts.
 
 User Host Actions
 ~~~~~~~~~~~~~~~~~
 
 :guilabel:`User Host Actions` lists host-affecting user actions. The
-"Host" column provides the hostname, the "Action" column describes what
-action was taken (e.g. reactivate, add, delete, etc.), the "User
-Address" column records the user's IP address, and the "Date" column
-lists the date and time of the action.
+"Host" column provides the hostname, the "Action" column describes the
+action (e.g. reactivate, add, delete, etc.), the "User Address" column
+records the user's IP address, and the "Date" column lists the date
+and time of the action.
