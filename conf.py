@@ -64,26 +64,29 @@ for pdf in pdfs:
 
 # -- Conditional Output --------------------------------------------------------
 BREAK = '\n\n'
-if tags.has('hosted'):
-    project = u'On-Prem Monitoring / MMS'
-    html_title = 'On-Prem Monitoring / MMS'
-    html_short_title = 'On-Prem Monitoring / MMS'
-    html_theme_options['edition'] = 'hosted'
-    latex_documents = hosted_latex_documents
-    rst_epilog = '\n'
-    rst_epilog += ".. |s| replace:: Suite" + BREAK
-    rst_epilog += ".. |index-page-title| replace:: On-Prem Monitoring" + BREAK
-    rst_epilog += ".. |mms| replace:: On-Prem Monitoring" + BREAK
-else:
-    project = u'MongoDB Monitoring and Backup Service (MMS)'
-    html_title = 'MMS Manual'
-    html_short_title = 'MMS'
-    html_theme_options['edition'] = 'saas'
-    latex_documents = saas_latex_documents
-    rst_epilog = '\n'
-    rst_epilog += ".. |s| replace:: Service" + BREAK
-    rst_epilog += ".. |index-page-title| replace:: MongoDB Monitoring and Backup Service" + BREAK
-    rst_epilog += ".. |mms| replace:: MongoDB Monitoring and Backup Service" + BREAK
+try: 
+    if tags.has('hosted'):
+        project = u'On-Prem Monitoring / MMS'
+        html_title = 'On-Prem Monitoring / MMS'
+        html_short_title = 'On-Prem Monitoring / MMS'
+        html_theme_options['edition'] = 'hosted'
+        latex_documents = hosted_latex_documents
+        rst_epilog = '\n'
+        rst_epilog += ".. |s| replace:: Suite" + BREAK
+        rst_epilog += ".. |index-page-title| replace:: On-Prem Monitoring" + BREAK
+        rst_epilog += ".. |mms| replace:: On-Prem Monitoring" + BREAK
+    else:
+        project = u'MongoDB Monitoring and Backup Service (MMS)'
+        html_title = 'MMS Manual'
+        html_short_title = 'MMS'
+        html_theme_options['edition'] = 'saas'
+        latex_documents = saas_latex_documents
+        rst_epilog = '\n'
+        rst_epilog += ".. |s| replace:: Service" + BREAK
+        rst_epilog += ".. |index-page-title| replace:: MongoDB Monitoring and Backup Service" + BREAK
+        rst_epilog += ".. |mms| replace:: MongoDB Monitoring and Backup Service" + BREAK
+except NameError:
+    pass
 
 # -- Options for LaTeX output --------------------------------------------------
 
