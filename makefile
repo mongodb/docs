@@ -16,19 +16,16 @@ help:
 
 .PHONY:$(output)/makefile.meta
 -include $(output)/makefile.meta
--include $(output)/makefile.intersphinx
+
 build/makefile.meta:$(tools)/makecloth/meta.py
 	@mkdir -p $(output)
 	@python $< $@
-$(output)/makefile.intersphinx:$(tools)/makecloth/intersphinx.py $(output) conf.py
-	@$(PYTHONBIN) $< $@
-conf.py:meta.yaml pdfs.yaml
 
 ########### docs-ecosystem specific buildsystem#####################
 include bin/makefile.push
 
 .PHONY: publish content setup migrations
-setup:$(build-public)
+setup:$(build-public) conf.py
 	@mkdir -p $(output)
 	@echo "[build]: creating required directories."
 	@-bin/images-setup
