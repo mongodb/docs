@@ -27,7 +27,7 @@ master_doc = 'index'
 
 copyright = u'2011-2013, 10gen, Inc.'
 
-version = '1.2'
+version = '1.3'
 release = 'Upcoming'
 pygments_style = 'sphinx'
 
