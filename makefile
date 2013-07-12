@@ -21,7 +21,7 @@ help:
 
 ############# Meta targets that control the build and publication process. #############
 .PHONY: setup source/about.txt source/includes/hash.rst $(public-branch-output)/release.txt
-setup:source/includes/hash.rst meta.yaml intersphinx.yamla pdfs.yaml
+setup:source/includes/hash.rst meta.yaml intersphinx.yaml pdfs.yaml
 	@mkdir -p $(public-branch-output) $(public-output)
 	@echo [build]: created $(public-branch-output) and $(public-output)
 source/includes/hash.rst:
