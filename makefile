@@ -10,23 +10,14 @@ build-tools = bin
 tools = $(output)/docs-tools
 
 noop:
-bootstrap fabfile build/docs-tools:
+bootstrap fabfile build/docs-tools $(output)/makefile.meta:
 	@python bootstrap.py
 	@echo "[bootstrap]: configured build environment."
 help:
 	@echo "Use 'make <target>', where <target> is a Sphinx target (e.g. 'html', 'latex')"
 	@echo "See 'http://docs.mongodb.org/manual/meta' for more information."
 
-############## generation steps for exceptional makefiles ##############
-
-# The build targets and generation of images and intersphinx targets
-# are irregular and derive from different data sources.
-
 -include $(output)/makefile.meta
--include $(output)/makefile.images
-
-$(output)/makefile.images:$(tools)/makecloth/images.py source/images/metadata.yaml
-	@$(PYTHONBIN) $< $@ source/images metadata.yaml
 
 ############# Meta targets that control the build and publication process. #############
 .PHONY: setup source/about.txt source/includes/hash.rst $(public-branch-output)/release.txt
