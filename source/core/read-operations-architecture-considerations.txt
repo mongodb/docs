@@ -1,0 +1,88 @@
+.. index:: read operation; architecture
+.. _read-operations-architecture:
+
+============
+Architecture
+============
+
+.. default-domain:: mongodb
+
+.. index:: read operation; connection pooling
+.. index:: connection pooling; read operations
+.. _read-operations-connection-pooling:
+
+.. might make sense to break this in half and move it to
+   replication/sharding and cross reference here?
+
+Read Operations from Sharded Clusters
+-------------------------------------
+
+:term:`Sharded clusters <sharded cluster>` allow you to partition a
+data set among a cluster of :program:`mongod` in a way that is nearly
+transparent to the application. See the :doc:`/sharding` section of
+this manual for additional information about these deployments.
+
+For a sharded cluster, you issue all operations to one of the
+:program:`mongos` instances associated with the
+cluster. :program:`mongos` instances route operations to the
+:program:`mongod` in the cluster and behave like :program:`mongod`
+instances to the application. Read operations to a sharded collection
+in a sharded cluster are largely the same as operations to a :term:`replica
+set` or :term:`standalone` instances. See the section on :ref:`Read
+Operations in Sharded Clusters <sharding-read-operations>` for more
+information.
+
+In sharded deployments, the :program:`mongos` instance routes
+the queries from the clients to the :program:`mongod` instances that
+hold the data, using the cluster metadata stored in the :ref:`config
+database <sharding-config-server>`.
+
+For sharded collections, if queries do not include the :ref:`shard key
+<sharding-shard-key>`, the :program:`mongos` must direct the query to
+all shards in a collection. These *scatter gather* queries can be
+inefficient, particularly on larger clusters, and are unfeasible for
+routine operations.
+
+For more information on read operations in sharded clusters, consider
+the following resources:
+
+- :ref:`An Introduction to Shard Keys <sharding-shard-key>`
+- :ref:`Shard Key Internals and Operations <sharding-internals-shard-keys>`
+- :ref:`Querying Sharded Clusters <sharding-internals-querying>`
+- :doc:`/core/sharded-cluster-query-router`
+
+Read Operations from Replica Sets
+---------------------------------
+
+:term:`Replica sets <replica set>` use :term:`read preferences <read
+preference>` to determine where and how to route read operations to
+members of the replica set. By default, MongoDB always reads data from
+a replica set's :term:`primary`. You can modify that behavior by
+changing the :ref:`read preference mode
+<replica-set-read-preference-modes>`.
+
+You can configure the :ref:`read preference mode
+<replica-set-read-preference-modes>` on a per-connection or
+per-operation basis to allow reads from :term:`secondaries
+<secondary>` to:
+
+- reduce latency in multi-data-center deployments,
+
+- improve read throughput by distributing high read-volumes (relative
+  to write volume),
+
+- for backup operations, and/or
+
+- to allow reads during :ref:`failover <replica-set-failover>`
+  situations.
+
+Read operations from secondary members of replica sets are not
+guaranteed to reflect the current state of the primary, and the state
+of secondaries will trail the primary by some amount of time. Often,
+applications don't rely on this kind of strict consistency, but
+application developers should always consider the needs of their
+application before setting read preference.
+
+For more information on read preference or on the read preference
+modes, see :doc:`/core/read-preference` and
+:ref:`replica-set-read-preference-modes`.

@@ -4,6 +4,9 @@ db.collection.save()
 
 .. default-domain:: mongodb
 
+Definition
+----------
+
 .. method:: db.collection.save(document)
 
    Updates an existing document or inserts a new document, depending
@@ -37,60 +40,130 @@ Examples
 
 The following are examples of the :method:`~db.collection.save()` method.
 
-.. TODO we should break these examples up using headings.
+.. _crud-create-insert-save:
 
-.. example:: Pass to the :method:`~db.collection.save()` method
-   a document without an ``_id`` field, so that to insert the document
-   into the collection and have MongoDB generate the unique ``_id`` as
-   in the following:
+Save a New Document with a Generated ID
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   .. code-block:: javascript
+The following examples each pass the :method:`~db.collection.save()`
+method a document without an ``_id`` field so that MongoDB *inserts* a
+new document and generates the ``_id``.
 
-      db.products.save( { item: "book", qty: 40 } )
+The first example inserts a document with the ``item`` field set to
+``book`` and ``qty`` field set to ``40``:
 
-   This operation inserts a new document into the ``products``
-   collection with the ``item`` field set to ``book``, the ``qty``
-   field set to ``40``, and the ``_id`` field set to a unique
-   ``ObjectId``:
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   db.products.save( { item: "book", qty: 40 } )
 
-      { "_id" : ObjectId("50691737d386d8fadbd6b01d"), "item" : "book", "qty" : 40 }
+The operation creates a document with an ``_id`` field set to a unique
+``ObjectId``:
 
-   .. include:: /includes/note-insert-id-field.rst
+.. code-block:: javascript
 
-.. example:: Pass to the :method:`~db.collection.save()` method a
-   document with an ``_id`` field that holds a value that does not
-   exist in the collection to insert the document with that value in
-   the ``_id`` value into the collection, as in the following:
+   { "_id" : ObjectId("50691737d386d8fadbd6b01d"), "item" : "book", "qty" : 40 }
 
-   .. code-block:: javascript
+The second example inserts a new document into the
+:doc:`/reference/bios-example-collection`:
 
-      db.products.save( { _id: 100, item: "water", qty: 30 } )
+.. code-block:: javascript
 
-   This operation inserts a new document into the ``products``
-   collection with the ``_id`` field set to ``100``, the ``item``
-   field set to ``water``, and the field ``qty`` set to ``30``:
+   db.bios.save(
+      {
+           name: { first: 'Guido', last: 'van Rossum'},
+           birth: new Date('Jan 31, 1956'),
+           contribs: [ 'Python' ],
+           awards: [
+                     {
+                       award: 'Award for the Advancement of Free Software',
+                       year: 2001,
+                       by: 'Free Software Foundation'
+                     },
+                     {
+                       award: 'NLUUG Award',
+                       year: 2003,
+                       by: 'NLUUG'
+                     }
+                   ]
+      }
+   )
 
-   .. code-block:: javascript
+This operation creates a new document with the above fields and with a
+unique ``ObjectId``.
 
-      { "_id" : 100, "item" : "water", "qty" : 30 }
+.. include:: /includes/note-insert-id-field.rst
 
-   .. include:: /includes/note-insert-id-field.rst
+.. _crud-create-save:
 
-.. example:: Pass to the :method:`~db.collection.save()` method a
-   document with the ``_id`` field set to a value in the
-   ``collection`` to replace all fields and values of the matching
-   document with the new fields and values, as in the following:
+Save a New Document with a Custom ID
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   .. code-block:: javascript
+The following examples each pass the :method:`~db.collection.save()`
+method a document *with* an ``_id`` field that holds a value that *does
+not* exist in the collection. The operations insert new documents. The
+results of these operations are identical to an :ref:`update operation
+with the upsert flag <crud-create-update>` set to ``true`` or ``1``.
 
-      db.products.save( { _id:100, item:"juice" } )
+The first example creates a new document with the ``_id`` field set to
+``100``, the ``item`` field set to ``water``, and the ``qty`` field set
+to ``30``:
 
-   This operation replaces the existing document with a value of
-   ``100`` in the ``_id`` field. The updated document will resemble
-   the following:
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   db.products.save( { _id: 100, item: "water", qty: 30 } )
 
-      { "_id" : 100, "item" : "juice" }
+The operation creates the following new document :
+
+.. code-block:: javascript
+
+   { "_id" : 100, "item" : "water", "qty" : 30 }
+
+The second example creates a new document in the
+:doc:`/reference/bios-example-collection`. The
+:method:`~db.collection.save()` method performs an ``upsert`` because
+the document to save contains an ``_id`` field with a unique value. No
+documents in the collection contain the value:
+
+.. code-block:: javascript
+
+   db.bios.save(
+      {
+        _id: 10,
+        name: { first: 'Yukihiro', aka: 'Matz', last: 'Matsumoto'},
+        birth: new Date('Apr 14, 1965'),
+        contribs: [ 'Ruby' ],
+        awards: [
+                  {
+                    award: 'Award for the Advancement of Free Software',
+                    year: '2011',
+                    by: 'Free Software Foundation'
+                  }
+                ]
+      }
+   )
+
+.. include:: /includes/note-insert-id-field.rst
+
+Replace an Existing Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example replaces the data found in the following existing document
+in the ``products`` collection:
+
+.. code-block:: javascript
+
+   { "_id" : 100, "item" : "water", "qty" : 30 }
+
+To replace the document's data, pass the :method:`~db.collection.save()`
+method a document with new data and with the ``_id`` field set to the
+``_id`` value of the existing document:
+
+.. code-block:: javascript
+
+   db.products.save( { _id : 100, item : "juice" } )
+
+The operation replaces the existing document with the following:
+
+.. code-block:: javascript
+
+   { "_id" : 100, "item" : "juice" }

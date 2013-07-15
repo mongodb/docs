@@ -1,0 +1,187 @@
+==========
+BSON Types
+==========
+
+.. default-domain:: mongodb
+
+.. contents::
+   :backlinks: none
+   :local:
+
+:term:`BSON` is a binary serialization format used to store documents
+and make remote procedure calls in MongoDB. The BSON specification is
+located at `bsonspec.org <http://bsonspec.org/>`_.
+
+BSON supports the following data types as values in documents. Each data
+type has a corresponding number that can be used with the
+:operator:`$type` operator to query documents by BSON type.
+
+=======================  ==========
+**Type**                 **Number**
+-----------------------  ----------
+Double                       1
+String                       2
+Object                       3
+Array                        4
+Binary data                  5
+Object id                    7
+Boolean                      8
+Date                         9
+Null                        10
+Regular Expression          11
+JavaScript                  13
+Symbol                      14
+JavaScript (with scope)     15
+32-bit integer              16
+Timestamp                   17
+64-bit integer              18
+Min key                    255
+Max key                    127
+=======================  ==========
+
+To determine a field's type, see :ref:`check-types-in-shell`.
+
+If you convert BSON to JSON, see
+:ref:`bson-json-type-conversion-fidelity` for more information.
+
+The next sections describe special considerations for particular BSON
+types.
+
+.. _document-bson-type-object-id:
+
+ObjectId
+--------
+
+ObjectIds are: small, likely unique, fast to generate, and ordered.
+These values consists of 12-bytes, where the first four bytes are a
+timestamp that reflect the ObjectId's creation. Refer to the
+:doc:`ObjectId </reference/object-id>` documentation for more
+information.
+
+.. _document-bson-type-string:
+
+String
+------
+
+BSON strings are UTF-8. In general, drivers for each programming
+language convert from the language's string format to UTF-8 when
+serializing and deserializing BSON. This makes it possible to store
+most international characters in BSON strings with ease.
+[#sort-string-internationalization]_ In addition, MongoDB
+:operator:`$regex` queries support UTF-8 in the regex string.
+
+.. [#sort-string-internationalization] Given strings using UTF-8
+   character sets, using :method:`sort() <cursor.sort()>` on strings
+   will be reasonably correct. However, because internally
+   :method:`sort() <cursor.sort()>` uses the C++ ``strcmp`` api, the
+   sort order may handle some characters incorrectly.
+
+.. _document-bson-type-timestamp:
+
+Timestamps
+----------
+
+BSON has a special timestamp type for *internal* MongoDB use and is
+**not** associated with the regular :ref:`document-bson-type-date`
+type. Timestamp values are a 64 bit value where:
+
+- the first 32 bits are a ``time_t`` value (seconds since the Unix epoch)
+
+- the second 32 bits are an incrementing ``ordinal`` for operations
+  within a given second.
+
+Within a single :program:`mongod` instance, timestamp values are
+always unique.
+
+In replication, the :term:`oplog` has a ``ts`` field. The values in
+this field reflect the operation time, which uses a BSON timestamp
+value.
+
+.. note::
+
+   The BSON Timestamp type is for *internal* MongoDB use. For most
+   cases, in application development, you will want to use the BSON
+   date type. See :ref:`document-bson-type-date` for more
+   information.
+
+If you create a BSON Timestamp using the empty constructor (e.g. ``new
+Timestamp()``), MongoDB will only generate a timestamp *if* you use
+the constructor in the first field of the document. [#id_exception]_
+Otherwise, MongoDB will generate an empty timestamp value
+(i.e. ``Timestamp(0, 0)``.)
+
+.. versionchanged:: 2.1
+   :program:`mongo` shell displays the Timestamp value with the wrapper:
+
+   .. code-block:: javascript
+
+      Timestamp(<time_t>, <ordinal>)
+
+   Prior to version 2.1, the :program:`mongo` shell display the
+   Timestamp value as a document:
+
+   .. code-block:: javascript
+
+      { t : <time_t>, i : <ordinal> }
+
+.. [#id_exception] If the first field in the document is ``_id``, then
+   you can generate a timestamp in the *second* field
+   of a document.
+
+   .. only:: html or dirhtml or singlehtml or epub or gettext
+
+      In the following example, MongoDB will generate a Timestamp
+      value, even though the ``Timestamp()`` constructor is *not* in
+      the first field in the document:
+
+      .. code-block:: javascript
+
+         db.bios.insert( { _id: 9, last_updated: new Timestamp() } )
+
+.. _document-bson-type-date:
+
+Date
+----
+
+BSON Date is a 64-bit integer that represents the number of
+milliseconds since the Unix epoch (Jan 1, 1970). The `official BSON
+specification <http://bsonspec.org/#/specification>`_ refers to the
+BSON Date type as the *UTC datetime*.
+
+.. versionchanged:: 2.0
+   BSON Date type is signed. [#unsigned-date]_ Negative values
+   represent dates before 1970.
+
+.. example:: Construct a Date using the ``new Date()`` constructor in the
+   :program:`mongo` shell:
+
+   .. code-block:: javascript
+
+      var mydate1 = new Date()
+
+.. example:: Construct a Date using the ``ISODate()`` constructor in the
+   :program:`mongo` shell:
+
+   .. code-block:: javascript
+
+      var mydate2 = ISODate()
+
+.. example:: Return the ``Date`` value as string:
+
+   .. code-block:: javascript
+
+      mydate1.toString()
+
+.. example:: Return the month portion of the Date value; months are zero-indexed,
+   so that January is month ``0``:
+
+   .. code-block:: javascript
+
+      mydate1.getMonth()
+
+.. [#unsigned-date] Prior to version 2.0, ``Date`` values were
+   incorrectly interpreted as *unsigned* integers, which affected
+   sorts, range queries, and indexes on ``Date`` fields. Because
+   indexes are not recreated when upgrading, please re-index if you
+   created an index on ``Date`` values with an earlier version, and
+   dates before 1970 are relevant to your application.
