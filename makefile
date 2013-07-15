@@ -30,8 +30,6 @@ setup:$(build-public) conf.py
 	@echo "[build]: creating required directories."
 	@-bin/images-setup
 	@echo "[build]: initialzed images if possible. (optional)"
-publish:setup content migrations json-file-list
-	@echo "[build]: ecosystem branch is succeessfully deployed to '$(public-output)/'."
 
 # targets to generate output included in the build
 $(build-public):
