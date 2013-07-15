@@ -7,42 +7,51 @@ db.collection.update()
 Definition
 ----------
 
-.. method:: db.collection.update(query, update, [options])
+.. method:: db.collection.update(query, update, options)
 
-   Modifies an existing document or documents in a collection. The
-   :method:`~db.collection.update()` method updates a single document by
-   default.
+   Modifies an existing document or documents in a collection. By
+   default, the :method:`~db.collection.update()` method updates a
+   **single** document. If the ``multi`` option is set to ``true``, the
+   method updates all documents that match the query criteria.
 
    .. versionchanged:: 2.2
       The :method:`~db.collection.update()` method has the following form:
 
    .. code-block:: javascript
 
-      db.collection.update( <query>, <update>, { <upsert>, <multi> } )
+      db.collection.update( {<query>}, {<update>}, { upsert: <boolean>, multi: <boolean>})
 
    Prior to version 2.2, the :method:`~db.collection.update()` method
    has the following form:
 
    .. code-block:: javascript
 
-      db.collection.update( <query>, <update>, <upsert>, <multi> )
+      db.collection.update( <query>, <update>, <bool>, <bool> )
 
    The :method:`~db.collection.update()` method takes the following
    parameters:
 
    .. include:: /reference/method/db.collection.update-param.rst
 
-   The :method:`~db.collection.update()` operation applies mostly to
-   updating the values of the fields but can also modify the name of a
-   ``field`` using the :operator:`$rename` operator.
+   The :method:`~db.collection.update()` method either updates specific
+   fields in the existing document or replaces the document. The method
+   updates specific fields if the ``<update>`` argument contains only
+   :ref:`update operator <update-operators>` expressions, such as a
+   :operator:`$set` operator expression. Otherwise the method replaces
+   the existing document.
+
+   To update fields in subdocuments, use :term:`dot notation`.
+
+   The :method:`~db.collection.update()` method can modify the
+   name of a ``field`` using the :operator:`$rename` operator.
 
 .. _update-parameter:
 
 Update Parameter
 ~~~~~~~~~~~~~~~~
 
-If the ``<update>`` parameter contains any :ref:`update operator
-<update-operators>` expressions, such as an expression using the
+If the ``<update>`` parameter contains :ref:`update operator
+<update-operators>` expressions, such those using the
 :operator:`$set` operator, then:
 
 - the ``<update>`` parameter must contain *only* update operator
@@ -70,9 +79,20 @@ expressions, then:
 Upsert Parameter
 ~~~~~~~~~~~~~~~~
 
+In MongoDB versions 2.2 and later, the ``upsert`` parameter has the
+following form:
+
+  .. code-block:: javascript
+
+     { upsert : true|false }
+
+In MongoDB versions prior to 2.2 the ``upsert`` parameter is a
+positional boolean. Specify ``true`` as the third parameter to
+:method:`~db.collection.update()`.
+
 If ``upsert`` is set to ``true`` and no document matches the criteria,
 :method:`~db.collection.update()` inserts a *single* document. The
-``upsert`` creates a new document with either:
+``upsert`` creates the new document with either:
 
 - The fields and values of the ``<update>`` parameter, or
 
@@ -102,17 +122,22 @@ Examples
 The following examples use the **MongoDB version 2.2 interface** to
 specify options in the document form.
 
-Update Specific Fields in a Document
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. contents::
+   :backlinks: none
+   :local:
 
-To update specific fields, call :method:`~db.collection.update()` with
-an ``<update>`` parameter that uses ``field: value`` pairs in combination
-with :ref:`update operators <update-operators>`. For example, given a
-``books`` collection with the following document:
+Update Specific Fields
+~~~~~~~~~~~~~~~~~~~~~~
+
+To update specific fields in a document, call
+:method:`~db.collection.update()` with an ``<update>`` parameter that
+uses ``field: value`` pairs in combination with :ref:`update operators
+<update-operators>`. For example, given a ``books`` collection with the
+following document:
 
 .. code-block:: javascript
 
-   { "_id" : 826, "item" : "Divine Comedy", "stock" : 2 }
+   { "_id" : 11, "item" : "Divine Comedy", "stock" : 2 }
 
 The following operation updates the document by adding a ``price`` and
 incrementing ``stock`` by ``5``.
@@ -125,24 +150,74 @@ The updated document is now the following:
 
 .. code-block:: javascript
 
-   { "_id" : 826, "item" : "Divine Comedy", "price" : 18, "stock" : 7 }
+   { "_id" : 11, "item" : "Divine Comedy", "price" : 18, "stock" : 7 }
 
-.. _example-update-replace-fields:
+Update Fields in Subdocuments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Replace All Fields in a Document
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The following examples replace *all* the fields in a document except for
-the ``_id`` field. When the ``<update>`` argument includes only field
-and value pairs, the update replaces all the fields in the existing
-document with the fields specified in the ``<update>`` argument. To
-replace all fields, do not use update operators.
-
-For example, given the following document in the ``books`` collection:
+Use :term:`dot notation` to update values in subdocuments. The following
+example, which uses the :doc:`bios collection
+</reference/bios-example-collection>`, queries for the document with
+``_id`` equal to ``1`` and updates the value of the field ``middle`` in
+the subdocument ``name``:
 
 .. code-block:: javascript
 
-   { "_id" : 444, "item" : "The Banquet", "author" : "Dante", "price" : 20, "stock" : 4 }
+   db.bios.update( { _id: 1 }, { $set: { "name.middle": "Warner" } } )
+
+Add New Fields
+~~~~~~~~~~~~~~
+
+If the ``<update>`` argument contains fields not currently in the
+document, the :method:`~db.collection.update()` method adds the new
+fields to the document. The following operation adds a new ``mbranch``
+field and a new ``aka`` field. The operation adds ``aka`` in the
+subdocument ``name``. The operation uses the
+:doc:`/reference/bios-example-collection`:
+
+.. code-block:: javascript
+
+   db.bios.update(
+      { _id: 3 },
+      { $set: {
+                mbranch: 'Navy',
+                'name.aka': 'Amazing Grace'
+              }
+      }
+   )
+
+Remove Fields
+~~~~~~~~~~~~~
+
+The :operator:`$unset` operator removes a field from a document. The
+following operation removes the ``birth`` field from the document:
+
+.. code-block:: javascript
+
+   db.bios.update( { _id: 3 }, { $unset: { birth: 1 } } )
+
+.. _example-update-replace-fields:
+
+Replace All Fields
+~~~~~~~~~~~~~~~~~~
+
+These examples replace an existing document with a new document. If the
+``<update>`` argument contains only field and value pairs, the
+:method:`~db.collection.update()` method *replaces* the existing
+document with the document in the ``<update>`` argument, except for the
+``_id`` field.
+
+Given the following document in the ``books`` collection:
+
+.. code-block:: javascript
+
+   {
+       "_id" : 22,
+       "item" : "The Banquet",
+       "author" : "Dante",
+       "price" : 20,
+       "stock" : 4
+   }
 
 The following operation passes an ``<update>`` parameter that replaces
 all the fields in the original document, except for the ``_id`` field.
@@ -151,27 +226,31 @@ contain the ``item`` field:
 
 .. code-block:: javascript
 
-   db.books.update( { item: "The Banquet" }, { item: "The Banquet", price: 22 , stock: 3 } )
+   db.books.update( { item: "The Banquet" },
+                    { item: "The Banquet", price: 19 , stock: 3 }
+                  )
 
 The operation updates the ``price`` and ``stock`` values and *removes*
 the ``auth`` field
 
 .. code-block:: javascript
 
-      { "_id" : 444, "item" : "The Banquet", "price" : 22, "stock" : 3 }
+   {
+       "_id" : 22,
+       "item" : "The Banquet",
+       "price" : 19,
+       "stock" : 3
+   }
 
-In the next example, the :method:`update()
-<db.collection.update()>` method includes the ``upsert`` option. The command issues the update
-to the :doc:`/reference/bios-example-collection`.
+The next example includes the ``upsert`` option, which creates a new
+document if none matches the query. If a document with ``name`` set to
+``{ first: 'Dennis', last: 'Ritchie'}`` exists, MongoDB replaces its
+fields and values with those in the ``<update>`` parameter.
 
-If a document with ``name`` set to ``{ first: 'Dennis', last:
-'Ritchie'}`` exists, MongoDB replaces all the matching document's data,
-except the ``_id`` field, with the fields and values in the ``<update>``
-parameter. If no document matches the ``<query>`` argument, MongoDB
-creates a new document with the fields and values specified in the
-``<update>`` argument. The query does not include an ``_id`` field, so
-the operation adds the ``_id`` field and generates a unique ``ObjectId``
-for its value.
+If the document *does not* exist, MongoDB creates a new document and
+generates a unique ``ObjectId`` for the ``_id`` field. This example uses
+the :doc:`/reference/bios-example-collection`.
+
 
 .. code-block:: javascript
 
@@ -203,72 +282,151 @@ for its value.
       { upsert: true }
    )
 
+The next example specifies different values from the original for the
+``name`` subdocument:
+
+.. code-block:: javascript
+
+   db.bios.update(
+      { name: { first: 'John', last: 'McCarthy' } },
+      {
+        name: { first: 'Ken', last: 'Iverson' },
+        birth: new Date('Dec 17, 1941'),
+        died: new Date('Oct 19, 2004'),
+        contribs: [ 'APL', 'J' ],
+        awards: [
+                  { award: 'Turing Award',
+                    year: 1979,
+                    by: 'ACM' },
+                  { award: 'Harry H. Goode Memorial Award',
+                    year: 1975,
+                    by: 'IEEE Computer Society' },
+                  { award: 'IBM Fellow',
+                    year: 1970,
+                    by: 'IBM' }
+                ]
+      }
+   )
+
 .. _example-update-multi:
 
 Update Multiple Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To update multiple documents, call the
-:method:`~db.collection.update()` method and specify the ``multi``
-option. For example, given a ``books`` collection with the following
-documents:
+To update multiple documents, set the ``multi`` option to ``true``. The
+following example queries the :doc:`bios collection
+</reference/bios-example-collection>` for all documents where
+``awards.award`` is set to ``Turing``. The update sets the ``turing``
+field to ``true`` [#previous-versions-multi]_:
 
 .. code-block:: javascript
 
-   { "_id" : 1, "author" : "Dante", "item" : "Divine Comedy", "price" : 18 }
-   { "_id" : 2, "author" : "Dante", "item" : "The Banquet", "price" : 22 }
-   { "_id" : 3, "author" : "Dante", "item" : "Monarchia", "price" : 14 }
+   db.bios.update(
+      { 'awards.award': 'Turing' },
+      { $set: { turing: true } },
+      { multi: true }
+   )
 
-The following operation uses the ``multi`` option and a ``query`` for
-``author: "Dante"`` to update all matching documents:
+.. [#previous-versions-multi]
+   .. include:: /includes/fact-upsert-multi-options.rst
 
-.. code-block:: javascript
-
-   db.books.update( { author: "Dante" }, { $set: { born: "Florence", died: "Ravenna" } }, { multi: true } )
-
-This operation does not affect any other fields in documents in the
-``books`` collection:
+The next example assumes a ``books`` collection that includes the
+following documents:
 
 .. code-block:: javascript
 
-   { "_id" : 1, "author" : "Dante", "born" : "Florence", "died" : "Ravenna", "item" : "Divine Comedy", "price" : 18 }
-   { "_id" : 2, "author" : "Dante", "born" : "Florence", "died" : "Ravenna", "item" : "The Banquet", "price" : 22 }
-   { "_id" : 3, "author" : "Dante", "born" : "Florence", "died" : "Ravenna", "item" : "Monarchia", "price" : 14 }
+   {
+       "_id" : 11,
+       "author" : "Dante",
+       "item" : "Divine Comedy",
+       "price" : 18 }
+   {
+       "_id" : 22,
+       "author" : "Dante",
+       "item" : "The Banquet",
+       "price" : 19 }
+   {
+       "_id" : 33,
+       "author" : "Dante",
+       "item" : "Monarchia",
+       "price" : 14
+   }
 
-Insert a New Document (Upsert)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To insert a new document if no document matches the query criteria, call
-the :method:`~db.collection.update()` and specify the ``upsert`` option.
-The following examples use the ``upsert`` option:
-
-For example, given the following document:
-
-.. code-block:: javascript
-
-   db.books.update( { "item": "The New Life" }, { $set: { author: "Dante", "price": 15 } }, { upsert: true } )
-
-If one or more documents with ``item: "The New Life"`` exists, this
-operation updates *one* of those documents with the values in the
-``author`` and ``price`` fields. If the fields do not exist, the
-operation adds them.
-
-If a document with ``item: "New Life"`` does not exist, this operation
-creates a new document with an ``_id`` field set to a unique
-``ObjectId``:
+The example uses the ``multi`` option and a ``query`` for ``author:
+"Dante"`` to update all matching documents:
 
 .. code-block:: javascript
 
-   { "_id" : ObjectId("51e0570a9c6ae665454e301c"), "author" : "Dante", "item" : "New Life", "price" : 15 }
+   db.books.update( { author: "Dante" },
+                    { $set: { born: "Florence", died: "Ravenna" } },
+                    { multi: true }
+                  )
 
-In the next example, no document matches the ``<query>`` argument,
-so the ``upsert`` performs an insert. The example inserts a new document
-into the :doc:`/reference/bios-example-collection`.
+The operation results in the following:
 
-The ``<update>`` argument includes only :ref:`update operators
-<update-operators>`, so the new document contains the fields and values
-from ``<query>`` argument with the operations from the ``<update>``
-argument applied.
+.. code-block:: javascript
+
+   {
+       "_id" : 11,
+       "author" : "Dante",
+       "born" : "Florence",
+       "died" : "Ravenna",
+       "item" : "Divine Comedy",
+       "price" : 18
+   }
+   {
+       "_id" : 22,
+       "author" : "Dante",
+       "born" : "Florence",
+       "died" : "Ravenna",
+       "item" : "The Banquet",
+       "price" : 19
+   }
+   {
+       "_id" : 33,
+       "author" : "Dante",
+       "born" : "Florence",
+       "died" : "Ravenna",
+       "item" : "Monarchia",
+       "price" : 14
+   }
+
+Insert a New Document if No Match Exists (Upsert)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To instruct MongoDB to insert a new document if no document matches the
+query, call the :method:`~db.collection.update()` and specify the
+``upsert`` option.
+
+Given the following document:
+
+.. code-block:: javascript
+
+   db.books.update( { "item": "The New Life" },
+                    { $set: { author: "Dante", "price": 15 } },
+                    { upsert: true }
+                  )
+
+If one or more documents with ``item: "The New Life"`` exists, the
+following operation updates *one* of those documents with the values in
+the ``author`` and ``price`` fields. But if no document exists with
+``item: "The New Life"``, the operation creates a new document. MongoDB
+generates a unique ``ObjectId`` for the document's ``_id`` field:
+
+.. code-block:: javascript
+
+   {
+       "_id" : ObjectId("51e0570a9c6ae665454e301c"),
+       "author" : "Dante",
+       "item" : "New Life",
+       "price" : 15
+   }
+
+The next example inserts a new document into the :doc:`bios collection
+</reference/bios-example-collection>`. The ``<update>`` argument
+includes only :ref:`update operators <update-operators>`, so the new
+document contains the fields and values from ``<query>`` argument with
+the operations from the ``<update>`` argument applied.
 
 .. code-block:: javascript
 
@@ -313,8 +471,138 @@ argument applied.
       { upsert: true }
    )
 
-Update with ``$set`` and ``$push`` Operators
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In the next example, the operation queries for a document with the
+``_id`` field equal to ``11`` and the ``name`` field equal to ``{ first:
+'James', last: 'Gosling'}``. If the query finds a matching document, the
+operation performs an update operation. Otherwise, the operation inserts
+a new document containing the fields and values from ``<query>``
+argument with the operations from the ``<update>`` argument
+applied.[#previous-versions-upsert]_ [#upsert-update-operators]_
+
+.. code-block:: javascript
+
+   db.bios.update(
+      { _id:11, name: { first: 'James', last: 'Gosling' } },
+      {
+        $set: {
+                birth: new Date('May 19, 1955'),
+                contribs: [ 'Java' ],
+                awards: [
+                          {
+                            award: 'The Economist Innovation Award',
+                            year: 2002,
+                            by: 'The Economist'
+                          },
+                          {
+                            award: 'Officer of the Order of Canada',
+                            year: 2007,
+                            by: 'Canada'
+                          }
+                        ]
+              }
+      },
+      { upsert: true }
+   )
+
+.. [#previous-versions-upsert]
+   .. include:: /includes/fact-upsert-multi-options.rst
+
+.. [#upsert-update-operators] If the ``<update>`` argument includes
+  only field and value pairs, the new document contains the fields and
+  values specified in the ``<update>`` argument. If the ``<update>``
+  argument includes only :ref:`update operators
+  <update-operators>`, the new document contains the fields and
+  values from ``<query>`` argument with the operations from the
+  ``<update>`` argument applied.
+
+Update Arrays
+~~~~~~~~~~~~~
+
+Update an Element by Specifying Its Position
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If the update operation requires an update of an element in an array
+field, the :method:`~db.collection.update()` method can
+perform the update using the position of the element and :term:`dot
+notation`. Arrays in MongoDB are zero-based.
+
+The following operation queries the :doc:`bios collection
+</reference/bios-example-collection>` for the first document with
+``_id`` field equal to ``1`` and updates the second element in the
+``contribs`` array:
+
+.. code-block:: javascript
+
+   db.bios.update(
+      { _id: 1 },
+      { $set: { 'contribs.1': 'ALGOL 58' } }
+   )
+
+Update an Element without Specifying Its Position
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If the position in the array is not known, the
+:method:`~db.collection.update()` method can perform the update using
+the :operator:`$` positional operator. The array field must appear in
+the ``query`` argument in order to determine which array element to
+update.
+
+The following operation queries the :doc:`bios collection
+</reference/bios-example-collection>` for the first document where the
+``_id`` field equals ``3`` and the ``contribs`` array contains an
+element equal to ``compiler``. If found, the
+:method:`~db.collection.update()` method updates the first matching
+element in the array to ``A compiler`` in the document:
+
+.. code-block:: javascript
+
+   db.bios.update(
+          { _id: 3, 'contribs': 'compiler' },
+          { $set: { 'contribs.$': 'A compiler' } }
+       )
+
+Update a Document Element without Specifying Its Position
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The :method:`~db.collection.update()` method can perform the
+update of an array that contains subdocuments by using the positional
+operator (i.e. :operator:`$`) and the :term:`dot notation`.
+
+The following operation queries the :doc:`bios collection
+</reference/bios-example-collection>` for the first document where the
+``_id`` field equals ``6`` and the ``awards`` array contains a
+subdocument element with the ``by`` field equal to ``ACM``. If found,
+the :method:`~db.collection.update()` method updates the ``by`` field in
+the first matching subdocument:
+
+.. code-block:: javascript
+
+   db.bios.update(
+      { _id: 6, 'awards.by': 'ACM'  } ,
+      { $set: { 'awards.$.by': 'Association for Computing Machinery' } }
+   )
+
+Add an Element to an Array
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The following operation queries the :doc:`bios collection
+</reference/bios-example-collection>` for the first document that has an
+``_id`` field equal to ``1`` and adds a new element to the ``awards``
+field:
+
+.. code-block:: javascript
+
+   db.bios.update(
+      { _id: 1 },
+      {
+        $push: { awards: { award: 'IBM Fellow', year: 1963, by: 'IBM' } }
+      }
+   )
+
+In the next example, the :operator:`$set` operator uses :ref:`dot
+notation <document-dot-notation>` to access the ``middle`` field in the
+``name`` subdocument. The :operator:`$push`
+operator adds another document as element to the field ``awards``.
 
 Consider the following operation:
 
