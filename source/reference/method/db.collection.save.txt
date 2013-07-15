@@ -9,61 +9,71 @@ Definition
 
 .. method:: db.collection.save(document)
 
-   Updates an existing document or inserts a new document, depending
-   on the specified document.
+   Updates an existing document or inserts a new document, depending on
+   its ``document`` parameter.
 
    The :method:`~db.collection.save()` method takes the following
    parameter:
 
    .. include:: /reference/method/db.collection.save-param.rst
 
-   **If** the document does not contain an :term:`_id` field,
-   then the :method:`~db.collection.save()` method performs
-   an insert with the specified fields in the document as well
-   as an ``_id`` field with a unique :term:`ObjectId` value.
-
-   **If** the document contains an ``_id`` field, then the
-   :method:`~db.collection.save()` method performs an
-   ``upsert`` querying the collection on the ``_id`` field:
-
-   - If a document does not exist with the specified ``_id`` value,
-     the :method:`~db.collection.save()` method performs an
-     insert with the specified fields in the document.
-
-   - If a document exists with the specified ``_id`` value, the
-     :method:`~db.collection.save()` method performs an
-     update, replacing all field in the existing record with the
-     fields from the document.
+   If the ``document`` does **not** contain an :term:`_id` field, then
+   the :method:`~db.collection.save()` method performs an insert.
+   During the operation, :program:`mongod` will add to the document the
+   ``_id`` field and assign it a unique :doc:`/reference/object-id`.
+   
+   If the ``document`` contains an :term:`_id` field, then the
+   :method:`~db.collection.save()` method performs an ``upsert``,
+   querying the collection on the ``_id`` field. If a document does not
+   exist with the specified ``_id`` value, the
+   :method:`~db.collection.save()` method performs an insert. If a
+   document exists with the specified ``_id`` value, the
+   :method:`~db.collection.save()` method performs an update that
+   replaces **all** fields in the existing document with the fields
+   from the ``document``.
 
 Examples
 --------
 
-The following are examples of the :method:`~db.collection.save()` method.
+The following are examples of the :method:`~db.collection.save()`
+method. The following examples show how to use the
+:method:`~db.collection.save()` method to insert or update a document
+into either the ``products`` collection or the ``bios`` collection.
 
 .. _crud-create-insert-save:
 
-Save a New Document with a Generated ID
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Save a New Document without Specifying an ``_id`` Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following examples each pass the :method:`~db.collection.save()`
-method a document without an ``_id`` field so that MongoDB *inserts* a
-new document and generates the ``_id``.
+In the following examples, the parameter to the
+:method:`~db.collection.save()` method is a document without an ``_id``
+field. This means the :method:`~db.collection.save()` method performs
+an insert. During the insert, :program:`mongod` will create the ``_id``
+field with a unique :doc:`/reference/object-id` value.
 
-The first example inserts a document with the ``item`` field set to
-``book`` and ``qty`` field set to ``40``:
+.. include:: /includes/fact-object-id-may-differ.rst
+
+``products`` Collection
+```````````````````````
+
+This example inserts into the ``products`` collection a document with
+the ``item`` field set to ``book`` and ``qty`` field set to ``40``:
 
 .. code-block:: javascript
 
    db.products.save( { item: "book", qty: 40 } )
 
-The operation creates a document with an ``_id`` field set to a unique
-``ObjectId``:
+The inserted document includes an ``_id`` field with the generated
+``ObjectId`` value:
 
 .. code-block:: javascript
 
    { "_id" : ObjectId("50691737d386d8fadbd6b01d"), "item" : "book", "qty" : 40 }
 
-The second example inserts a new document into the
+``bios`` Collection
+```````````````````
+
+This example inserts a new document into the
 :doc:`/reference/bios-example-collection`:
 
 .. code-block:: javascript
@@ -88,23 +98,27 @@ The second example inserts a new document into the
       }
    )
 
-This operation creates a new document with the above fields and with a
-unique ``ObjectId``.
+The inserted document includes an ``_id`` field with the generated
+``ObjectId`` value.
 
 .. include:: /includes/note-insert-id-field.rst
 
 .. _crud-create-save:
 
-Save a New Document with a Custom ID
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Save a New Document Specifying an ``_id`` Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following examples each pass the :method:`~db.collection.save()`
-method a document *with* an ``_id`` field that holds a value that *does
-not* exist in the collection. The operations insert new documents. The
-results of these operations are identical to an :ref:`update operation
-with the upsert flag <crud-create-update>` set to ``true`` or ``1``.
+The following examples pass the :method:`~db.collection.save()` method
+a document *with* an ``_id`` field. Because the ``_id`` field holds a
+value that *does not* exist in the collection, the operations insert
+new documents. The results of these operations are identical to an
+:ref:`update operation with the upsert flag <crud-create-update>` set
+to ``true`` or ``1``.
 
-The first example creates a new document with the ``_id`` field set to
+``products`` Collection
+```````````````````````
+
+This example creates a new document with the ``_id`` field set to
 ``100``, the ``item`` field set to ``water``, and the ``qty`` field set
 to ``30``:
 
@@ -112,17 +126,21 @@ to ``30``:
 
    db.products.save( { _id: 100, item: "water", qty: 30 } )
 
-The operation creates the following new document :
+The operation results in the following new document in the ``products``
+collection:
 
 .. code-block:: javascript
 
    { "_id" : 100, "item" : "water", "qty" : 30 }
 
-The second example creates a new document in the
+``bios`` Collection
+```````````````````
+
+This example creates a new document in the
 :doc:`/reference/bios-example-collection`. The
-:method:`~db.collection.save()` method performs an ``upsert`` because
-the document to save contains an ``_id`` field with a unique value. No
-documents in the collection contain the value:
+:method:`~db.collection.save()` method inserts the document because the
+``bios`` collection has **no** document with the ``_id`` field equal to
+``10``:
 
 .. code-block:: javascript
 
@@ -142,21 +160,27 @@ documents in the collection contain the value:
       }
    )
 
-.. include:: /includes/note-insert-id-field.rst
-
 Replace an Existing Document
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This example replaces the data found in the following existing document
-in the ``products`` collection:
+The following example passes the :method:`~db.collection.save()` method
+a document *with* an ``_id`` field. Because the ``_id`` field holds a
+value that *does* exist in the collection, the operation performs an
+update to replace the existing document.
+
+``products`` Collection
+```````````````````````
+
+This example replaces the fields and values of the following document
+that currently exists in the ``products`` collection:
 
 .. code-block:: javascript
 
    { "_id" : 100, "item" : "water", "qty" : 30 }
 
-To replace the document's data, pass the :method:`~db.collection.save()`
-method a document with new data and with the ``_id`` field set to the
-``_id`` value of the existing document:
+To replace the document's data, pass the
+:method:`~db.collection.save()` method a document that contains the
+``_id`` field set to ``100`` and the new fields and values:
 
 .. code-block:: javascript
 

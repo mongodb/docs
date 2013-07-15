@@ -6,10 +6,9 @@ Create
 
 *Create* operations add new :term:`documents <document>` to a
 :term:`collection`. A document is the equivalent of an :term:`RDBMS`
-record, and a collection is the equivalent of an RDBMS table. *Create*
-operations are one of the three categories of
-:doc:`/core/write-operations`, along with :doc:`/core/update` and
-:doc:`/core/delete` operations.
+record, and a collection is the equivalent of an RDBMS table. For more
+information on documents, including the structure, limits and
+constraints, see :doc:`documents </core/document>`.
 
 You can create documents in a MongoDB collection using either of the
 following *create* operations:
@@ -27,18 +26,14 @@ The create operations have the following behaviors:
   library or :program:`mongod` instance adds an ``_id`` field and
   populates the field with a unique :term:`ObjectId <objectid>`.
 
-- For operations with :ref:`write concern <write-concern>`, if you
-  specify an ``_id`` field, the field must be unique within the
-  collection. Otherwise :program:`mongod` returns a duplicate key
-  exception.
+- If you specify the ``_id`` field, the value must be unique within the
+  collection. For operations with :ref:`write concern <write-concern>`,
+  if you try to create a document with a duplicate ``_id`` value,
+  :program:`mongod` returns a duplicate key exception.
 
   .. note::
 
      .. include:: /includes/fact-write-concern.rst
-
-.. include:: /includes/fact-document-max-size.rst
-
-.. include:: /includes/fact-document-field-name-restrictions.rst
 
 .. _crud-create-insert:
 
@@ -46,24 +41,28 @@ Insert Operations
 -----------------
 
 The :method:`~db.collection.insert()` method is the primary method to
-insert documents into a MongoDB collection and has the following syntax:
+insert documents into a MongoDB collection and is analogous to the SQL
+``INSERT`` statement. The :method:`~db.collection.insert()` method has
+the following syntax:
 
 .. code-block:: javascript
 
    db.collection.insert( <document> )
 
-.. admonition:: Corresponding Operation in SQL
+Example
+~~~~~~~
 
-   The :method:`~db.collection.insert()` method is analogous
-   to the ``INSERT`` statement.
+The following statement inserts a document with three fields into the
+collection ``products``:
 
-.. example:: The following inserts a document with three fields:
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   db.products.insert( { _id: 10, item: "card", qty: 15 } )
 
-      db.products.insert( { _id: 10, item: "card", qty: 15 } )
+In the example, the document has a user-specified ``_id`` field value
+of ``10``. The value must be unique within the ``products`` collection.
 
-For further examples, see :method:`~db.collection.insert()` and
+For more examples, see :method:`~db.collection.insert()` and
 :ref:`crud-create-insert-save`.
 
 .. _crud-create-update:
@@ -83,34 +82,48 @@ criteria*. The operation has the following syntax
 If no document matches the ``<query>`` criteria, the ``upsert`` creates
 a new document with either:
 
-- the fields and values of the ``<update>`` parameter, or
+- the fields and values of the ``<update>`` parameter if the
+  ``<update>`` parameter contains only ``field`` and ``value`` pairs,
+  as in the following:
+
+  .. code-block:: javascript
+
+     db.collection.update( <query>, { x: 1, y: 1 }, { upsert: true } )
 
 - the fields and values of the both the ``<query>`` and ``<update>``
-  parameters.
+  parameters, if the ``<update>`` parameter only uses :ref:`update
+  operators <update-operators>`, as in the following:
 
-The ``upsert`` creates a document with data from both ``<query>`` and
-``<update>`` if the ``<update>`` parameter *only uses update operators*.
-See :ref:`update-operators`.
+  .. code-block:: javascript
 
-.. example:: The following ``upsert`` operation either updates a
-   document or creates a new one:
+     db.collection.update( <query>, { $set: { x: 1 }, $inc: { y: 5 } }, { upsert: 1 } )
+
+Example
+~~~~~~~
+
+The following ``upsert`` operation either creates a new document or
+updates an existing document:
 
    .. code-block:: javascript
 
        db.favorites.update( { author : "Dante" } , { $inc : { votes : 1 } } , { upsert : true } )
 
-   If no document contains ``{ author : "Dante" }``, the ``upsert``
-   creates a new document with an auto-generated ``_id``:
+   If no document in the ``favorites`` collection contains ``{ author :
+   "Dante" }``, the ``upsert`` creates a new document:
 
    .. code-block:: javascript
 
       { "_id" : ObjectId("51e01a2d9c6ae665454e301b"), "author" : "Dante", "votes" : 1 }
 
+   The new document has an auto-generated ``_id`` field and includes
+   the ``author`` field from the ``<query>`` criteria and the ``votes``
+   field from the ``<update>`` parameter.
+
    If one or more documents exist with ``{ author : "Dante" }``, the
    ``upsert`` does not create a new document but instead increments the
-   ``votes`` field in an existing document.
+   ``votes`` field in one of the existing documents.
 
-For further examples, see :method:`~db.collection.update()` and
+For more examples, see :method:`~db.collection.update()` and
 :ref:`crud-create-save`.
 
 .. [#previous-versions-upsert]

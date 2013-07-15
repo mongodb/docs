@@ -7,7 +7,7 @@ db.collection.insert()
 Definition
 ----------
 
-.. method:: db.collection.insert(document|array)
+.. method:: db.collection.insert(document)
 
    Inserts a document or an array of documents into a collection.
 
@@ -21,48 +21,64 @@ Definition
    The :method:`~db.collection.insert()` method has the
    following behaviors:
 
-   - If the collection does not exist, then the :method:`~db.collection.insert()` method will create the collection.
+   - If the collection does not exist, then the
+     :method:`~db.collection.insert()` method will create the
+     collection.
 
-   - If the document does not specify an :term:`_id` field, then MongoDB
-     will add the ``_id`` field and assign a unique :term:`ObjectId` for
-     the document before inserting. Most drivers create an ObjectId and
-     insert the ``_id`` field, but the :program:`mongod` will create and
-     populate the ``_id`` if the driver or application does not.
+   - If the document does not specify an :term:`_id` field, then
+     MongoDB will add the ``_id`` field and assign a unique
+     :doc:`/reference/object-id` for the document before inserting.
+     Most drivers create an ObjectId and insert the ``_id`` field, but
+     the :program:`mongod` will create and populate the ``_id`` if the
+     driver or application does not.
 
-   - If the document specifies a new field, then the :method:`~db.collection.insert()` method inserts the document with the new
-     field. This requires no changes to the data model for the
+   - If the document specifies a new field, then the
+     :method:`~db.collection.insert()` method inserts the document with
+     the new field. This requires no changes to the data model for the
      collection or the existing documents.
 
 Examples
 --------
 
-The following are examples of the :method:`insert()
-<db.collection.insert()>` method.
+The following examples show how to use the
+:method:`~db.collection.insert()` method to insert a document or an
+array of documents into either the ``products`` collection or the
+``bios`` collection. If the collections do not exist, the
+:method:`~db.collection.insert()` method creates the collections.
+[#show-collection]_
 
-Insert a Document
-~~~~~~~~~~~~~~~~~
+Insert a Document without Specifying an ``_id`` Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In the following examples, the document passed to the :method:`insert()
-<db.collection.insert()>` method omits the ``_id`` field, which lets
-MongoDB generate a unique ``ObjectId`` for ``_id``:
+In the following examples, the document passed to the
+:method:`~db.collection.insert()` method does not contain the ``_id``
+field. During the insert, :program:`mongod` will create the ``_id``
+field and assign it a unique :doc:`/reference/object-id` value.
 
-The first example creates a document in the ``products`` collection:
+.. include:: /includes/fact-object-id-may-differ.rst
+
+``products`` Collection
+```````````````````````
+
+The following example inserts a document into the ``products``
+collection:
 
 .. code-block:: javascript
 
    db.products.insert( { item: "card", qty: 15 } )
 
-This creates a new document with an ``_id`` field set to a unique
-``ObjectId``:
+The inserted document includes an ``_id`` field with the generated
+``ObjectId`` value:
 
 .. code-block:: javascript
 
    { "_id" : ObjectId("5063114bd386d8fadbd6b004"), "item" : "card", "qty" : 15 }
 
-The second example inserts a document in the
-:doc:`/reference/bios-example-collection`. If the ``bios`` collection
-does not exist, the :method:`~db.collection.insert()` method creates the
-collection:
+``bios`` Collection
+```````````````````
+
+The following example inserts a document into the
+:doc:`/reference/bios-example-collection`:
 
 .. code-block:: javascript
 
@@ -98,7 +114,7 @@ To verify the inserted document, query the ``bios`` collection:
 
    db.bios.find( { name: { first: 'John', last: 'McCarthy' } } )
 
-The returned document contains an ``_id`` field with the generated
+The returned document includes an ``_id`` field with the generated
 ``ObjectId`` value:
 
 .. code-block:: javascript
@@ -117,7 +133,7 @@ The returned document contains an ``_id`` field with the generated
                   },
                   {
                     "award" : "Kyoto Prize",
-                    "year" :1988,
+                    "year" :1988,s
                     "by" : "Inamori Foundation"
                   },
                   {
@@ -130,32 +146,40 @@ The returned document contains an ``_id`` field with the generated
 
 .. include:: /includes/note-insert-id-field.rst
 
-Insert a Document with a Custom ID
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Insert a Document Specifying an ``_id`` Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In the following examples, the document passed to the :method:`insert()
-<db.collection.insert()>` method includes a unique value for the ``_id``
-field. The value of ``_id`` must be unique within the collection.
+In the following examples, the documents passed to the
+:method:`~db.collection.insert()` method includes the ``_id`` field.
+The value of ``_id`` must be unique within the collection to avoid
+duplicate key error.
 
-The first example creates a document with an ``_id`` value of ``10``,
-which is unique value for ``_id`` within the ``products`` collection. If
-the value were not unique, the insert would fail:
+``products`` Collection
+```````````````````````
+
+This example inserts into the ``products`` collection a document that
+includes an ``_id`` field. The ``_id`` value of ``10`` must be a unique
+value for the ``_id`` field in the ``products`` collection. If the
+value were not unique, the insert would fail:
 
 .. code-block:: javascript
 
    db.products.insert( { _id: 10, item: "box", qty: 20 } )
 
-The insert operation creates the following document:
+The insert operation creates the following document in the ``products``
+collection:
 
 .. code-block:: javascript
 
    { "_id" : 10, "item" : "box", "qty" : 20 }
 
-The second example inserts a document in the
-:doc:`/reference/bios-example-collection` and gives it an ``_id`` value
-of ``1``. If the ``bios`` collection does not exist, the
-:method:`~db.collection.insert()` method creates the collection
-[#show-collection]_:
+``bios`` Collection
+```````````````````
+
+This example inserts into the ``bios`` collection a document that
+includes an ``_id`` field. The ``_id`` value of ``1`` must be a unique
+value for the ``_id`` field in the ``bios`` collection. Otherwise, if
+the value were not unique, the insert would fail:
 
 .. code-block:: javascript
 
@@ -196,10 +220,10 @@ collection:
 
 .. code-block:: javascript
 
-   db.bios.find()
+   db.bios.find( { _id: 1 } )
 
-If the ``bios`` collection contains only the document you just inserted,
-the query returns only the one document:
+The insert operation created the following document in the ``bios``
+collection:
 
 .. code-block:: javascript
 
@@ -232,17 +256,22 @@ the query returns only the one document:
                 ]
    }
 
-.. include:: /includes/note-insert-id-field.rst
-
 Insert Multiple Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following examples insert multiple documents by passing an array of
-documents to the :method:`insert() <db.collection.insert()>` method.
-Such inserts are called *bulk inserts*.
+The following examples perform a bulk insert of multiple documents by
+passing an array of documents to the :method:`~db.collection.insert()`
+method.
 
-The first example creates three documents in the ``products``
-collection, one with a custom ``_id``:
+``products`` Collection
+```````````````````````
+
+This example inserts three documents into the ``products`` collection.
+The documents in the array do not need to have the same fields. For
+instance, the first document in the array has an ``_id`` field and a
+``type`` field. Because the second and third documents do not contain
+an ``_id`` field, :program:`mongod` will create the ``_id`` field for
+the second and third documents during the insert:
 
 .. code-block:: javascript
 
@@ -251,21 +280,22 @@ collection, one with a custom ``_id``:
                          {          item: "eraser", qty: 25 }
                        ] )
 
-The operation creates the following three documents. The ``ObjectId``
-values are specific to the machine and time when the operation is run:
+The operation inserted the following three documents:
 
 .. code-block:: javascript
 
    { "_id" : 11, "item" : "pencil", "qty" : 50, "type" : "no.2" }
    { "_id" : ObjectId("51e0373c6f35bd826f47e9a0"), "item" : "pen", "qty" : 20 }
-   { "_id" : ObjectId("51e0373c6f35bd826f47e9a1"), "item" : "eraser", "qty" : 25 }
+   { "_id" : ObjectId("51e0373c6f35bd826f47e9a1"), "item" : "eraser", "qty" : 25 }.
 
-The second example creates three documents in the
-:doc:`/reference/bios-example-collection`. The example illustrates the
-*dynamic schema* characteristic of MongoDB. The document with ``_id: 3``
-contains a field named ``title`` that does not appear in the other
-documents. MongoDB does not require the other documents to contain this
-field:
+``bios`` Collection
+```````````````````
+
+This example inserts three documents in the ``bios`` collection. The
+documents in the array do not need to have the same fields. The
+document with ``_id: 3`` contains a field named ``title`` that does not
+appear in the other documents. MongoDB does not require the other
+documents to contain this field:
 
 .. code-block:: javascript
 
