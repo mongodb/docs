@@ -32,36 +32,286 @@ Definition
 Examples
 --------
 
-Select All Documents in a Collection
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. contents::
+   :backlinks: none
+   :local:
 
-Call the :method:`~db.collection.find()` method with no
-parameters:
+Find All Documents in a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :method:`~db.collection.find()` method with no parameters
+returns all documents from a collection. The query returns all fields
+for the documents. The following operation returns all documents in the
+:doc:`bios collection </reference/bios-example-collection>`:
 
 .. code-block:: javascript
 
-  db.products.find()
+   db.bios.find()
 
-This returns all the documents with all the fields from the collection
-``products``. In the :program:`mongo` shell, the cursor returns the
-first batch of 20 matching documents by default. Iterate through the
-next batch by typing ``it``. Use the appropriate cursor handling
-mechanism for your specific language driver.
+In the :program:`mongo` shell, the cursor returns the first batch of 20
+matching documents by default. Iterate through the next batch by typing
+``it``. Use the appropriate cursor handling mechanism for your specific
+language driver.
 
-Select Documents that Match a Selection Criteria
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Find Documents that Match Query Criteria
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Call the :method:`~db.collection.find()` method with a ``criteria``:
+To find documents that match a set of selection criteria, call
+:method:`~ db.collection.find()` with the ``<criteria>``
+parameter. The following operation returns all the documents from the
+collection ``products`` where ``qty`` is greater than ``25``:
 
 .. code-block:: javascript
 
    db.products.find( { qty: { $gt: 25 } } )
 
-This returns all the documents from the collection ``products`` where
-``qty`` is greater than ``25``, including all fields.
+The query returns all fields for the matching documents.
 
-Prototype Projection Document
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Equality Matches
+````````````````
+
+The following operation returns a :term:`cursor` to documents in the
+:doc:`bios collection </reference/bios-example-collection>` where the
+field ``_id`` equals ``5``:
+
+.. code-block:: javascript
+
+   db.bios.find(
+      {
+         _id: 5
+      }
+   )
+
+Query Using Operators
+`````````````````````
+
+The following operation returns a cursor to all documents in the
+:doc:`bios collection </reference/bios-example-collection>` where the
+field ``_id`` equals ``5`` or ``ObjectId("507c35dd8fada716c89d0013")``:
+
+.. code-block:: javascript
+
+   db.bios.find(
+      {
+         _id: { $in: [ 5,  ObjectId("507c35dd8fada716c89d0013") ] }
+      }
+   )
+
+Query for Ranges
+````````````````
+
+You may combine comparison operators to specify ranges:
+
+.. code-block:: javascript
+
+   db.collection.find( { field: { $gt: value1, $lt: value2 } } );
+
+This statement returns all documents with ``field`` between
+``value1`` and ``value2``.
+
+.. note::
+
+   If the field contains an array and the query has multiple
+   conditional operators, the field as a whole will match if either a
+   single array element meets the conditions or a combination of array
+   elements meet the conditions.
+
+.. example:: Query a field that contains an array.
+
+   A collection ``students`` contains the following documents where the
+   ``score`` field contains an array of values:
+
+   .. code-block:: javascript
+
+      { "_id" : 1, "score" : [ -1, 3 ] }
+      { "_id" : 2, "score" : [ 1, 5 ] }
+      { "_id" : 3, "score" : [ 5, 5 ] }
+
+   Then, the following query:
+
+   .. code-block:: javascript
+
+      db.students.find( { score: { $gt: 0, $lt: 2 } } )
+
+   Will match the following documents:
+
+   .. code-block:: javascript
+
+      { "_id" : 1, "score" : [ -1, 3 ] }
+      { "_id" : 2, "score" : [ 1, 5 ] }
+
+   - In the document with ``_id`` equal to ``1``, the ``score: [ -1, 3
+     ]`` as a whole meets the specified conditions since the element
+     ``-1`` meets the ``$lt: 2`` condition and the element ``3`` meets
+     the ``$gt: 0`` condition.
+
+   - In the document with ``_id`` equal to ``2``, the ``score: [ 1, 5
+     ]`` as a whole meets the specified conditions since the element
+     ``1`` meets both the ``$lt: 2`` condition and the ``$gt: 0``
+     condition.
+
+Query Arrays
+~~~~~~~~~~~~
+
+Query an Array Element
+``````````````````````
+
+The following operation returns a cursor to all documents in the
+:doc:`bios collection </reference/bios-example-collection>` where the
+array field ``contribs`` contains the element ``"UNIX"``:
+
+.. code-block:: javascript
+
+   db.bios.find(
+      {
+        contribs: "UNIX"
+      }
+   )
+
+Query an Array of Documents
+```````````````````````````
+
+The following operation returns a cursor to all documents in the
+:doc:`bios collection </reference/bios-example-collection>` where
+``awards`` array contains a subdocument element that contains the
+``award`` field equal to ``"Turing Award"`` and the ``year`` field
+greater than 1980:
+
+.. code-block:: javascript
+
+   db.bios.find(
+      {
+         awards: {
+                   $elemMatch: {
+                        award: "Turing Award",
+                        year: { $gt: 1980 }
+                   }
+         }
+      }
+   )
+
+Query Subdocuments
+~~~~~~~~~~~~~~~~~~
+
+Query Exact Matches on Subdocuments
+```````````````````````````````````
+
+The following operation returns a cursor to all documents in the
+:doc:`bios collection </reference/bios-example-collection>` where the
+subdocument ``name`` is *exactly* ``{ first: "Yukihiro", last:
+"Matsumoto" }``, including the order:
+
+.. code-block:: javascript
+
+   db.bios.find(
+       {
+         name: {
+                 first: "Yukihiro",
+                 last: "Matsumoto"
+               }
+       }
+   )
+
+The ``name`` field must match the sub-document exactly, including order.
+For instance, the query would **not** match documents with ``name``
+fields that held either of the following values:
+
+.. code-block:: javascript
+
+   {
+      first: "Yukihiro",
+      aka: "Matz",
+      last: "Matsumoto"
+   }
+
+   {
+      last: "Matsumoto",
+      first: "Yukihiro"
+   }
+
+Query Fields of a Subdocument
+`````````````````````````````
+
+The following operation returns a cursor to all documents in the
+:doc:`bios collection </reference/bios-example-collection>` where the
+subdocument ``name`` contains a field ``first`` with the value
+``"Yukihiro"`` and a field ``last`` with the value ``"Matsumoto"``; the
+query uses :term:`dot notation` to access fields in a subdocument:
+
+.. code-block:: javascript
+
+   db.bios.find(
+      {
+        "name.first": "Yukihiro",
+        "name.last": "Matsumoto"
+      }
+   )
+
+The query matches the document where the ``name`` field contains a
+subdocument with the field ``first`` with the value ``"Yukihiro"`` and a
+field ``last`` with the value ``"Matsumoto"``. For instance, the query
+would match documents with ``name`` fields that held either of the
+following values:
+
+.. code-block:: javascript
+
+   {
+     first: "Yukihiro",
+     aka: "Matz",
+     last: "Matsumoto"
+   }
+
+   {
+     last: "Matsumoto",
+     first: "Yukihiro"
+   }
+
+Logical Operators
+~~~~~~~~~~~~~~~~~
+
+The following are examples of the :operator:`$or` and :operator:`$and`
+operators.
+
+The following operation returns a cursor to all documents in the
+:doc:`bios collection </reference/bios-example-collection>` where either
+the field ``first`` in the sub-document ``name`` starts with the letter
+``G`` **or** where the field ``birth`` is less than ``new
+Date('01/01/1945')``:
+
+.. code-block:: javascript
+
+   db.bios.find(
+      { $or: [
+               { 'name.first' : /^G/ },
+               { birth: { $lt: new Date('01/01/1945') } }
+             ]
+      }
+   )
+
+The following operation returns a cursor to all documents in the
+:doc:`bios collection </reference/bios-example-collection>` where the
+field ``first`` in the subdocument ``name`` starts with the letter ``K``
+**and** the array field ``contribs`` contains the element ``UNIX``:
+
+.. code-block:: javascript
+
+   db.bios.find(
+      {
+         'name.first': /^K/,
+         contribs: 'UNIX'
+      }
+   )
+
+In this query, the parameters (i.e. the selections of both fields)
+combine using an implicit logical AND for criteria on different fields
+``contribs`` and ``name.first``. For multiple ``AND`` criteria on the
+same field, use the :operator:`$and` operator.
+
+Projections
+~~~~~~~~~~~
+
+To return only specified fields, include the ``<projection>`` parameter.
+The ``<projection>`` parameter takes a document of the following form:
 
 .. code-block:: javascript
 
@@ -75,24 +325,38 @@ The ``boolean`` can take the following include or exclude values:
 
 - ``0`` or ``false`` to exclude.
 
-The ``projection`` cannot contain both include and exclude
-specifications except for the exclusion of the ``_id`` field.
+The :method:`~db.collection.find()` method returns only the specified
+fields. The ``_id`` field is implicitly included. In projections that
+explicitly include fields, ``_id`` is the only field that you can
+explicitly exclude. Otherwise, you cannot mix include field and exclude
+field specifications. The ``projection`` cannot contain both include and
+exclude specifications except for the exclusion of the ``_id`` field.
 
-Project Certain Fields in the Result Set
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Specify the Fields to Return
+````````````````````````````
 
-The following example selects documents that match a selection criteria
-and returns, or *projects*, only certain fields into the result set:
+The following operation finds all documents in the :doc:`bios collection
+</reference/bios-example-collection>` and returns only the ``name``
+field, the ``contribs`` field, and the ``_id`` field:
+
+.. code-block:: javascript
+
+   db.bios.find(
+       { },
+       { name: 1, contribs: 1 }
+    )
+
+The following example returns all the documents from the collection
+``products`` where ``qty`` is greater than ``25``:
 
 .. code-block:: javascript
 
    db.products.find( { qty: { $gt: 25 } }, { item: 1, qty: 1 } )
 
-This returns all the documents from the collection ``products`` where
-``qty`` is greater than ``25``. The documents in the result set only
-include the ``_id``, ``item``, and ``qty`` fields using "inclusion"
-projection. :method:`~db.collection.find()` always returns the
-``_id`` field, even when not explicitly included:
+The documents in the result set only include the ``_id``, ``item``,
+and ``qty`` fields using "inclusion"
+projection. :method:`~db.collection.find()` always returns the ``_id``
+field, even when not explicitly included:
 
 .. code-block:: javascript
 
@@ -100,23 +364,253 @@ projection. :method:`~db.collection.find()` always returns the
    { "_id" : ObjectId("50634d86be4617f17bb159cd"), "item" : "bottle", "qty" : 30 }
    { "_id" : ObjectId("50634dbcbe4617f17bb159d0"), "item" : "paper", "qty" : 100 }
 
-Exclude Certain Fields from the Result Set
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Explicitly Exclude the ``_id`` Field
+````````````````````````````````````
 
-The following example selects documents that match a selection criteria
-and excludes a set of fields from the resulting documents:
+The following operation finds all documents in the :doc:`bios collection
+</reference/bios-example-collection>` and returns only the ``name``
+field and the ``contribs`` field:
+
+.. code-block:: javascript
+
+   db.bios.find(
+      { },
+      { name: 1, contribs: 1, _id: 0 }
+   )
+
+The following example returns all the documents from the collection
+``products`` where ``qty`` is greater than ``25`` and excludes the
+``_id`` and ``qty`` fields from the result set:
 
 .. code-block:: javascript
 
    db.products.find( { qty: { $gt: 25 } }, { _id: 0, qty: 0 } )
 
-The query returns all the documents from the collection ``products``
-where ``qty`` is greater than ``25``. The documents in the result set
-will contain all fields *except* the ``_id`` and ``qty`` fields, as in
-the following:
+The documents in the result set contain all fields *except* the ``_id``
+and ``qty`` fields, as in the following:
 
 .. code-block:: javascript
 
    { "item" : "pencil", "type" : "no.2" }
    { "item" : "bottle", "type" : "blue" }
    { "item" : "paper" }
+
+Return All but the Excluded Fields
+``````````````````````````````````
+
+The following operation finds the documents in the :doc:`bios collection
+</reference/bios-example-collection>`
+where the ``contribs`` field contains the element ``'OOP'`` and returns
+all fields *except* the ``_id`` field, the ``first`` field in the
+``name`` subdocument, and the ``birth`` field from the matching
+documents:
+
+.. code-block:: javascript
+
+   db.bios.find(
+      { contribs: 'OOP' },
+      { _id: 0, 'name.first': 0, birth: 0 }
+   )
+
+On Arrays and Subdocuments
+``````````````````````````
+
+The following operation finds all documents in the :doc:`bios collection
+</reference/bios-example-collection>`
+and returns the ``last`` field in the ``name`` subdocument and the
+first two elements in the ``contribs`` array:
+
+.. code-block:: javascript
+
+   db.bios.find(
+      { },
+      {
+        _id: 0,
+        'name.last': 1,
+        contribs: { $slice: 2 }
+      }
+   )
+
+.. seealso::
+
+   - :term:`dot notation` for information on "reaching into" embedded
+     sub-documents.
+
+   - :ref:`read-operations-arrays` for more examples on accessing arrays.
+
+   - :ref:`read-operations-subdocuments` for more examples on accessing
+     subdocuments.
+
+   - :method:`~op.$elemMatch` query operator for more information on
+     matching array elements.
+
+   - :projection:`$elemMatch` projection operator for additional
+     information on restricting array elements to return.
+
+.. _crud-read-cursor:
+
+Iterate the Returned Cursor
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :method:`~db.collection.find()` method returns a :term:`cursor` to
+the results; however, in the :program:`mongo` shell, if the returned
+cursor is not assigned to a variable, then the cursor is automatically
+iterated up to 20 times [#setShellBatchSize]_ to print up to the first
+20 documents that match the query, as in the following example:
+
+.. code-block:: javascript
+
+   db.bios.find( );
+
+With Variable Name
+``````````````````
+
+When you assign the :method:`~db.collection.find()` to a variable, you
+can type the name of the cursor variable to iterate up to 20 times
+[#setShellBatchSize]_ and print the matching documents, as in the
+following example:
+
+.. code-block:: javascript
+
+   var myCursor = db.bios.find( );
+
+   myCursor
+
+With ``next()`` Method
+``````````````````````
+
+You can use the cursor method :method:`~cursor.next()` to
+access the documents, as in the following example:
+
+.. code-block:: javascript
+
+   var myCursor = db.bios.find( );
+
+   var myDocument = myCursor.hasNext() ? myCursor.next() : null;
+
+   if (myDocument) {
+       var myName = myDocument.name;
+       print (tojson(myName));
+   }
+
+To print, you can also use the ``printjson()`` method instead of
+``print(tojson())``:
+
+.. code-block:: javascript
+
+   if (myDocument) {
+      var myName = myDocument.name;
+      printjson(myName);
+   }
+
+With ``forEach()`` Method
+`````````````````````````
+
+You can use the cursor method :method:`~cursor.forEach()` to iterate
+the cursor and access the documents, as in the following example:
+
+.. code-block:: javascript
+
+   var myCursor = db.bios.find( );
+
+   myCursor.forEach(printjson);
+
+For more information on cursor handling, see:
+
+- :method:`cursor.hasNext()`
+
+- :method:`cursor.next()`
+
+- :method:`cursor.forEach()`
+
+- :ref:`cursors <read-operations-cursors>`
+
+- :ref:`JavaScript cursor methods<js-query-cursor-methods>`
+
+.. [#setShellBatchSize] You can use the ``DBQuery.shellBatchSize`` to
+   change the number of iteration from the default value ``20``. See
+   :ref:`cursor-flags` and :ref:`cursor-behaviors` for more information.
+
+Modify the Cursor Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In addition to the ``<query>`` and the ``<projection>`` arguments, the
+:program:`mongo` shell and the :doc:`drivers </applications/drivers>`
+provide several cursor methods that you can call on the *cursor*
+returned by :method:`~db.collection.find()` method to modify
+its behavior, such as:
+
+Order Documents in the Result Set
+`````````````````````````````````
+
+The :method:`~cursor.sort()` method orders the documents in the
+result set.
+
+The following operation returns all documents (or more precisely, a
+cursor to all documents) in the :doc:`bios collection
+</reference/bios-example-collection>` ordered by the
+``name`` field ascending:
+
+.. code-block:: javascript
+
+   db.bios.find().sort( { name: 1 } )
+
+:method:`~cursor.sort()` corresponds to the ``ORDER BY``
+statement in SQL.
+
+Limit the Number of Documents to Return
+```````````````````````````````````````
+
+The :method:`~cursor.limit()` method limits the number of
+documents in the result set.
+
+The following operation returns at most ``5`` documents (or more
+precisely, a cursor to at most 5 documents) in the :doc:`bios collection
+</reference/bios-example-collection>`:
+
+.. code-block:: javascript
+
+   db.bios.find().limit( 5 )
+
+:method:`~cursor.limit()` corresponds to the ``LIMIT``
+statement in SQL.
+
+Set the Starting Point of the Result Set
+````````````````````````````````````````
+
+The :method:`~cursor.skip()` method controls the starting point
+of the results set.
+
+The following operation returns all documents, skipping the first ``5``
+documents in the :doc:`bios collection
+</reference/bios-example-collection>`:
+
+.. code-block:: javascript
+
+   db.bios.find().skip( 5 )
+
+Combine Cursor Methods
+``````````````````````
+
+You can chain these cursor methods, as in the following examples
+[#dbquery-server]_:
+
+.. code-block:: javascript
+
+   db.bios.find().sort( { name: 1 } ).limit( 5 )
+   db.bios.find().limit( 5 ).sort( { name: 1 } )
+
+See the :ref:`JavaScript cursor methods <js-query-cursor-methods>`
+reference and your :doc:`driver </applications/drivers>` documentation
+for additional references. See :ref:`read-operations-cursors` for
+more information regarding cursors.
+
+.. [#dbquery-server] Regardless of the order you chain the
+   :method:`~cursor.limit()` and the :method:`~cursor.sort()`, the
+   request to the server has the structure that treats the
+   query and the :method:`~cursor.sort()` modifier as a single object.
+   Therefore, the :method:`~cursor.limit()` operation method is always
+   applied after the :method:`~cursor.sort()` regardless of the
+   specified order of the operations in the chain. See the :doc:`meta
+   query operators </reference/operator/query-modifier>` for more
+   information.
