@@ -1,0 +1,157 @@
+=========================
+Read Preference Reference
+=========================
+
+.. default-domain:: mongodb
+
+Read preference describes how MongoDB clients route read operations to
+members of a :term:`replica set` (words)
+
+.. include:: /includes/read-preference-modes-table.rst
+
+.. index:: read preference; semantics
+.. _replica-set-read-preference-semantics:
+.. index:: read preference; modes
+.. _replica-set-read-preference-modes:
+
+Read Preference Modes
+---------------------
+
+.. readmode:: primary
+
+   All read operations use only the current replica set :term:`primary`.
+   This is the default. If the primary is unavailable,
+   read operations produce an error or throw an exception.
+
+   The :readmode:`primary` read preference mode is not compatible with
+   read preference modes that use :ref:`tag sets
+   <replica-set-read-preference-tag-sets>`. If you specify a tag set
+   with :readmode:`primary`, the driver will produce an error.
+
+.. readmode:: primaryPreferred
+
+   In most situations, operations read from the :term:`primary` member
+   of the set. However, if the primary is unavailable, as is the case
+   during :term:`failover` situations, operations read from secondary
+   members.
+
+   When the read preference includes a :ref:`tag set
+   <replica-set-read-preference-tag-sets>`, the client reads first from
+   the primary, if available, and then from :term:`secondaries
+   <secondary>` that match the specified tags. If no secondaries have
+   matching tags, the read operation produces an error.
+
+   Since the application may receive data from a secondary, read
+   operations using the :readmode:`primaryPreferred` mode may return
+   stale data in some situations.
+
+   .. warning::
+
+      .. versionchanged:: 2.2
+         :program:`mongos` added full support for read preferences.
+
+      When connecting to a :program:`mongos` instance older than 2.2,
+      using a client that supports read preference modes,
+      :readmode:`primaryPreferred` will send queries to secondaries.
+
+.. readmode:: secondary
+
+   Operations read *only* from the :term:`secondary` members of the set.
+   If no secondaries are available, then this read operation produces an
+   error or exception.
+
+   Most sets have at least one secondary, but there are situations
+   where there may be no available secondary. For example, a set with
+   a primary, a secondary, and an :term:`arbiter` may not have any
+   secondaries if a member is in recovering state or unavailable.
+
+   When the read preference includes a :ref:`tag set
+   <replica-set-read-preference-tag-sets>`, the client attempts to
+   find secondary members that match the specified tag set and directs
+   reads to a random secondary from among the :ref:`nearest group
+   <replica-set-read-preference-behavior-nearest>`. If no secondaries
+   have matching tags, the read operation produces an
+   error. [#capacity-planning]_
+
+   Read operations using the :readmode:`secondary` mode may return stale data.
+
+.. readmode:: secondaryPreferred
+
+   In most situations, operations read from :term:`secondary` members,
+   but in situations where the set consists of a single
+   :term:`primary` (and no other members,) the read operation will use
+   the set's primary.
+
+   When the read preference includes a :ref:`tag set
+   <replica-set-read-preference-tag-sets>`, the client attempts to find
+   a secondary member that matches the specified tag set and directs
+   reads to a random secondary from among the :ref:`nearest group
+   <replica-set-read-preference-behavior-nearest>`. If no secondaries
+   have matching tags, the read operation produces an error.
+
+   Read operations using the :readmode:`secondaryPreferred` mode may
+   return stale data.
+   
+.. warning::
+
+   In some situations using :readmode:`secondaryPreferred` to
+   distribute read load to replica sets may carry significant
+   operational risk: if all secondaries are unavailable and your set
+   has enough :term:`arbiters <arbiter>` to prevent the primary from
+   stepping down, then the primary will receive all traffic from
+   clients.
+
+   For this reason, use :readmode:`secondary` to distribute read load
+   to replica sets, not :readmode:`secondaryPreferred`.
+
+
+.. readmode:: nearest
+
+   The driver reads from the *nearest* member of the :term:`set <replica
+   set>` according to the :ref:`member selection
+   <replica-set-read-preference-behavior-nearest>` process. Reads in
+   the :readmode:`nearest` mode do not consider the member's
+   *type*. Reads in :readmode:`nearest` mode may read from both
+   primaries and secondaries.
+
+   Set this mode to minimize the effect of network latency
+   on read operations without preference for current or stale data.
+
+   If you specify a :ref:`tag set
+   <replica-set-read-preference-tag-sets>`, the client attempts to
+   find a replica set member that matches the specified tag set and
+   directs reads to an arbitrary member from among the :ref:`nearest
+   group <replica-set-read-preference-behavior-nearest>`.
+
+   Read operations using the :readmode:`nearest` mode may return stale
+   data.
+
+   .. note::
+
+      All operations read from a member of the nearest group of the
+      replica set that matches the specified read preference mode. The
+      :readmode:`nearest` mode prefers low latency reads over a
+      member's :term:`primary` or :term:`secondary` status.
+
+      For :readmode:`nearest`, the client assembles a list of
+      acceptable hosts based on tag set and then narrows that list to
+      the host with the shortest ping time and all other members of
+      the set that are within the "local threshold," or acceptable
+      latency. See :ref:`replica-set-read-preference-behavior-nearest`
+      for more information.
+
+   .. For I/O-bound users who want to distribute reads across all
+      members evenly regardless of ping time, set
+      secondaryAcceptableLatencyMS very high.
+
+.. The :method:`readPreference() <cursor.readPreference()>` reference
+   above will error until DOCS-364 is complete.
+
+.. [#capacity-planning] If your set has more than one secondary, and
+   you use the :readmode:`secondary` read preference mode, consider
+   the following effect. If you have a :ref:`three member replica set
+   <replica-set-three-members>` with a primary and two secondaries,
+   and if one secondary becomes unavailable, all :readmode:`secondary`
+   queries must target the remaining secondary. This will double the
+   load on this secondary. Plan and provide capacity to support this
+   as needed.

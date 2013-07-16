@@ -1,3 +1,9 @@
+.. index:: read preference
+.. index:: slaveOk
+.. index:: read preference; background
+.. _replica-set-read-preference:
+.. _replica-set-read-preference-background:
+
 ===============
 Read Preference
 ===============
@@ -7,14 +13,13 @@ Read Preference
 Read preference describes how MongoDB clients route read operations to
 members of a :term:`replica set`.
 
-.. index:: read preference
-.. index:: slaveOk
-.. index:: read preference; background
-.. _replica-set-read-preference:
-.. _replica-set-read-preference-background:
-
-Background
-~~~~~~~~~~
+MongoDB :term:`drivers <driver>` allow client applications to
+configure a :term:`read preference` on a per-connection,
+per-collection, or per-operation basis. For more information about
+secondary read operations in the :program:`mongo` shell, see the
+:method:`~readPref()` method. For more information about a driver's
+read preference configuration, see the appropriate :ref:`driver` API
+documentation.
 
 By default, an application directs its read operations to the :term:`primary`
 member in a :term:`replica set`. Reading from the primary guarantees that
@@ -23,34 +28,66 @@ for an application that does not require fully up-to-date data, you
 can improve read throughput, or reduce latency, by distributing some or all
 reads to secondary members of the replica set.
 
-The following are use cases where you might use secondary reads:
+You must exercise care when specifying read preferences: modes other
+than :readmode:`primary` can *and will* return stale data because the
+secondary queries will not include the most recent write operations to
+the replica set's :term:`primary`.
+
+The following are common use cases for using non-:readmode:`primary`
+read preference modes:
 
 - Running systems operations that do not affect the front-end
-  application, operations such as backups and reports.
+  application: reporting and analytics workloads, for example.
 
-- Providing low-latency queries for geographically distributed
-  deployments. If one secondary is closer to an application server
-  than the primary, you may see better
-  performance for that application if you use secondary reads.
+  Issuing reads to secondaries helps distribute
+  load and prevent operations from affecting the main workload of the
+  primary. For reporting and analytics workloads, this can
 
-- Providing graceful degradation in :ref:`failover
-  <replica-set-failover>` situations where a set has *no* primary for 10
-  seconds or more. In this use case, you should give the application the
-  :readmode:`primaryPreferred` read preference, which prevents the
-  application from performing reads if the set has no primary.
+  Also consider using :readmode:`secondary` in conjunction with a
+  direct connection to a :ref:`hidden member
+  <replica-set-hidden-members>` of the set.
 
-MongoDB :term:`drivers <driver>` allow client applications to
-configure a :term:`read preference` on a per-connection,
-per-collection, or per-operation basis. For more information about
-secondary read operations in the :program:`mongo` shell, see the
-:method:`~cursor.readPref()` method. For more information about a driver's
-read preference configuration, see the appropriate :ref:`driver` API
-documentation.
+  .. note::
+
+     Read preferences aren't relevant to direct connections to
+     a single :program:`mongod` instance. However, in order to perform
+     read operations on a direct connection to a secondary member of a
+     replica set, you must set a read preference, such as
+     :term:`secondary`.
+
+- Providing local reads for geographically distributed applications.
+
+  If you have application servers in multiple data centers, you may
+  consider having a :ref:`geographically distributed replica set
+  <replica-set-geographical-distribution>` and using a non primary read
+  preference or the :readmode:`nearest`. This reduces network latency by
+  having the application server to read from a nearby secondary, rather
+  than a distant primary.
+
+- Maintaining availability during a failover.
+
+  Use :readmode:`primaryPreferred` if you want your application to do
+  consistent reads from the primary under normal circumstances, but to
+  allow stale reads from secondaries in an emergency. This provides a
+  "read-only mode" for your application during a failover.
+
+.. note::
+
+   Using read modes other than :readmode:`primary` and
+   :readmode:`primaryPreferred` to provide extra capacity is not in and
+   of itself justification for non-:readmode:`primary` in many cases.
+   Furthermore, :doc:`sharding </sharding>` increases read and write
+   capacity by distributing read and write operations across a group of
+   machines.
+
+.. re: above note: What?
+
+.. re: below note: This probably belongs somewhere else
 
 .. note::
 
    Read preferences affect how an application selects which member
-   to use for read operations. As a result read
+   to use for read operations. As a result, read
    preferences dictate if the application receives stale or
    current data from MongoDB. Use appropriate :term:`write concern`
    policies to ensure proper data
@@ -63,11 +100,6 @@ documentation.
    operations, as clusters can distribute read and write
    operations across a group of machines.
 
-.. index:: read preference; semantics
-.. _replica-set-read-preference-semantics:
-.. index:: read preference; modes
-.. _replica-set-read-preference-modes:
-
 Read Preference Modes
 ---------------------
 
@@ -76,11 +108,7 @@ Read Preference Modes
 MongoDB :doc:`drivers </applications/drivers>` support five
 read preference modes:
 
-- :readmode:`primary`
-- :readmode:`primaryPreferred`
-- :readmode:`secondary`
-- :readmode:`secondaryPreferred`
-- :readmode:`nearest`
+.. include:: /includes/read-preference-modes-table.rst
 
 You can specify a read preference mode on connection objects, database
 object, collection object, or per-operation. The syntax for specifying
@@ -110,6 +138,7 @@ For more information, see :ref:`read preference background
 behavior <replica-set-read-preference-behavior>`. See also the
 :api:`documentation for your driver <>`.
 
+<<<<<<< HEAD
 .. readmode:: primary
 
    All read operations use only the current replica set :term:`primary`.
@@ -236,6 +265,8 @@ behavior <replica-set-read-preference-behavior>`. See also the
    load on this secondary. Plan and provide capacity to support this
    as needed.
 
+=======
+>>>>>>> crud-reorg: breakign out read pref ref and some reorganizing
 .. index:: tag sets
 .. index:: read preference; tag sets
 .. _replica-set-read-preference-tag-sets:
@@ -434,8 +465,8 @@ behavior.
 .. _replica-set-read-preference-behavior-sharding:
 .. _replica-set-read-preference-behavior-mongos:
 
-Sharding and ``mongos``
-~~~~~~~~~~~~~~~~~~~~~~~
+Read Preference in Sharded Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. versionchanged:: 2.2
    Before version 2.2, :program:`mongos` did not support the
@@ -473,7 +504,7 @@ result:
   through the :program:`mongos` before returning to the client.
 
 Database Commands
-~~~~~~~~~~~~~~~~~
+-----------------
 
 Because some :term:`database commands <database command>` read and
 return data from the database, all of the official drivers support
@@ -500,65 +531,3 @@ for the following commands:
    operations that do not write data support read preference,
    otherwise these operations must run on the :term:`primary`
    members.
-
-Uses for non-Primary Read Preferences
--------------------------------------
-
-You must exercise care when specifying read preferences: modes other
-than :readmode:`primary` can *and will* return stale data. These
-secondary queries will not
-include the most recent write operations to the replica set's
-:term:`primary`. Nevertheless, there are several common use cases for
-using non-:readmode:`primary` read preference modes:
-
-- Reporting and analytics workloads.
-
-  Issuing reads to secondaries for some work profiles helps distribute
-  load and prevent operations from affecting the main workload of the
-  primary.
-
-  Also consider using :readmode:`secondary` in conjunction with a
-  direct connection to a :ref:`hidden member
-  <replica-set-hidden-members>` of the set.
-
-  .. note::
-
-     Read preferences aren't relevant to direct connections to
-     a single :program:`mongod` instance. However, in order to perform
-     read operations on a direct connection to a secondary member of a
-     replica set, you must set a read preference, such as
-     :term:`secondary`.
-
-- Providing local reads for geographically distributed applications.
-
-  If you have application servers in multiple data centers, you may
-  consider having a :ref:`geographically distributed replica set
-  <replica-set-geographical-distribution>` and using a non primary
-  read preference or the :readmode:`nearest` to avoid network
-  latency.
-
-- Maintaining availability during a failover.
-
-  Use :readmode:`primaryPreferred` if you want your application to do
-  consistent reads from the primary under normal circumstances, but to
-  allow stale reads from secondaries in an emergency. This provides a
-  "read-only mode" for your application during a failover.
-
-.. warning::
-
-   In some situations using :readmode:`secondaryPreferred` to
-   distribute read load to replica sets may carry significant
-   operational risk: if all secondaries are unavailable and your set
-   has enough :term:`arbiters <arbiter>` to prevent the primary from
-   stepping down, then the primary will receive all traffic from
-   clients.
-
-   For this reason, use :readmode:`secondary` to distribute read load
-   to replica sets, not :readmode:`secondaryPreferred`.
-
-Using read modes other than :readmode:`primary` and
-:readmode:`primaryPreferred` to provide extra capacity is not in and
-of itself justification for non-:readmode:`primary` in many
-cases. Furthermore, :doc:`sharding </sharding>` increases read and
-write capacity by distributing read and write operations across a
-group of machines.
