@@ -50,3 +50,5 @@ $(output):
 ########## system ##########
 clean:
 	-rm -rf $(output)/*
+master:
+	@touch $@
