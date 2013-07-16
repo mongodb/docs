@@ -13,20 +13,12 @@ Read Preference
 Read preference describes how MongoDB clients route read operations to
 members of a :term:`replica set`.
 
-MongoDB :term:`drivers <driver>` allow client applications to
-configure a :term:`read preference` on a per-connection,
-per-collection, or per-operation basis. For more information about
-secondary read operations in the :program:`mongo` shell, see the
-:method:`~readPref()` method. For more information about a driver's
-read preference configuration, see the appropriate :ref:`driver` API
-documentation.
-
-By default, an application directs its read operations to the :term:`primary`
-member in a :term:`replica set`. Reading from the primary guarantees that
-read operations reflect the latest version of a document. However,
-for an application that does not require fully up-to-date data, you
-can improve read throughput, or reduce latency, by distributing some or all
-reads to secondary members of the replica set.
+By default, an application directs its read operations to the
+:term:`primary` member in a :term:`replica set`. Reading from the
+primary guarantees that read operations reflect the latest version of a
+document. However, by distributing some or all reads to secondary
+members of the replica set, you can improve read throughput or reduce
+latency for an application that does not require fully up-to-date data .
 
 You must exercise care when specifying read preferences: modes other
 than :readmode:`primary` can *and will* return stale data because the
@@ -37,15 +29,11 @@ The following are common use cases for using non-:readmode:`primary`
 read preference modes:
 
 - Running systems operations that do not affect the front-end
-  application: reporting and analytics workloads, for example.
+  application.
 
-  Issuing reads to secondaries helps distribute
-  load and prevent operations from affecting the main workload of the
-  primary. For reporting and analytics workloads, this can
-
-  Also consider using :readmode:`secondary` in conjunction with a
-  direct connection to a :ref:`hidden member
-  <replica-set-hidden-members>` of the set.
+  Issuing reads to secondaries helps distribute load and prevent
+  operations from affecting the main workload of the primary. This can
+  be a good choice for reporting and analytics workloads, for example.
 
   .. note::
 
@@ -84,22 +72,6 @@ read preference modes:
 
 .. re: below note: This probably belongs somewhere else
 
-.. note::
-
-   Read preferences affect how an application selects which member
-   to use for read operations. As a result, read
-   preferences dictate if the application receives stale or
-   current data from MongoDB. Use appropriate :term:`write concern`
-   policies to ensure proper data
-   replication and consistency.
-
-   If read operations account for a large percentage of your
-   application's traffic, distributing reads to secondary members can
-   improve read throughput. However, in most cases :doc:`sharding
-   </core/sharding>` provides better support for larger scale
-   operations, as clusters can distribute read and write
-   operations across a group of machines.
-
 Read Preference Modes
 ---------------------
 
@@ -108,10 +80,19 @@ Read Preference Modes
 MongoDB :doc:`drivers </applications/drivers>` support five
 read preference modes:
 
+.. warning::
+
+   All read preference modes except :readmode:`primary` may return
+   stale data as :term:`secondaries <secondary>` replicate operations
+   from the primary with some delay.
+
+   Ensure that your application can tolerate stale data if you choose
+   to use a non-:readmode:`primary` mode.
+
 .. include:: /includes/read-preference-modes-table.rst
 
 You can specify a read preference mode on connection objects, database
-object, collection object, or per-operation. The syntax for specifying
+objects, collection objects, or per-operation. The syntax for specifying
 the read preference mode is :api:`specific to the driver and to the
 idioms of the host language <>`.
 
@@ -124,149 +105,18 @@ in the cluster.
 In the :program:`mongo` shell, the :method:`~cursor.readPref()` cursor
 method provides access to read preferences.
 
-.. warning::
-
-   All read preference modes except :readmode:`primary` may return
-   stale data as :term:`secondaries <secondary>` replicate operations
-   from the primary with some delay.
-
-   Ensure that your application can tolerate stale data if you choose
-   to use a non-:readmode:`primary` mode.
+If read operations account for a large percentage of your
+application's traffic, distributing reads to secondary members can
+improve read throughput. However, in most cases :doc:`sharding
+</core/sharding>` provides better support for larger scale
+operations, as clusters can distribute read and write
+operations across a group of machines.
 
 For more information, see :ref:`read preference background
 <replica-set-read-preference-background>` and :ref:`read preference
 behavior <replica-set-read-preference-behavior>`. See also the
 :api:`documentation for your driver <>`.
 
-<<<<<<< HEAD
-.. readmode:: primary
-
-   All read operations use only the current replica set :term:`primary`.
-   This is the default. If the primary is unavailable,
-   read operations produce an error or throw an exception.
-
-   The :readmode:`primary` read preference mode is not compatible with
-   read preference modes that use :ref:`tag sets
-   <replica-set-read-preference-tag-sets>`. If you specify a tag set
-   with :readmode:`primary`, the driver will produce an error.
-
-.. readmode:: primaryPreferred
-
-   In most situations, operations read from the :term:`primary` member
-   of the set. However, if the primary is unavailable, as is the case
-   during :term:`failover` situations, operations read from secondary
-   members.
-
-   When the read preference includes a :ref:`tag set
-   <replica-set-read-preference-tag-sets>`, the client reads first from
-   the primary, if available, and then from :term:`secondaries
-   <secondary>` that match the specified tags. If no secondaries have
-   matching tags, the read operation produces an error.
-
-   Since the application may receive data from a secondary, read
-   operations using the :readmode:`primaryPreferred` mode may return
-   stale data in some situations.
-
-   .. warning::
-
-      .. versionchanged:: 2.2
-         :program:`mongos` added full support for read preferences.
-
-      When connecting to a :program:`mongos` instance older than 2.2,
-      using a client that supports read preference modes,
-      :readmode:`primaryPreferred` will send queries to secondaries.
-
-.. readmode:: secondary
-
-   Operations read *only* from the :term:`secondary` members of the set.
-   If no secondaries are available, then this read operation produces an
-   error or exception.
-
-   Most sets have at least one secondary, but there are situations
-   where there may be no available secondary. For example, a set with
-   a primary, a secondary, and an :term:`arbiter` may not have any
-   secondaries if a member is in recovering state or unavailable.
-
-   When the read preference includes a :ref:`tag set
-   <replica-set-read-preference-tag-sets>`, the client attempts to
-   find secondary members that match the specified tag set and directs
-   reads to a random secondary from among the :ref:`nearest group
-   <replica-set-read-preference-behavior-nearest>`. If no secondaries
-   have matching tags, the read operation produces an
-   error. [#capacity-planning]_
-
-   Read operations using the :readmode:`secondary` mode may return stale data.
-
-.. readmode:: secondaryPreferred
-
-   In most situations, operations read from :term:`secondary` members,
-   but in situations where the set consists of a single
-   :term:`primary` (and no other members,) the read operation will use
-   the set's primary.
-
-   When the read preference includes a :ref:`tag set
-   <replica-set-read-preference-tag-sets>`, the client attempts to find
-   a secondary member that matches the specified tag set and directs
-   reads to a random secondary from among the :ref:`nearest group
-   <replica-set-read-preference-behavior-nearest>`. If no secondaries
-   have matching tags, the read operation produces an error.
-
-   Read operations using the :readmode:`secondaryPreferred` mode may
-   return stale data.
-
-.. readmode:: nearest
-
-   The driver reads from the *nearest* member of the :term:`set <replica
-   set>` according to the :ref:`member selection
-   <replica-set-read-preference-behavior-nearest>` process. Reads in
-   the :readmode:`nearest` mode do not consider the member's
-   *type*. Reads in :readmode:`nearest` mode may read from both
-   primaries and secondaries.
-
-   Set this mode to minimize the effect of network latency
-   on read operations without preference for current or stale data.
-
-   If you specify a :ref:`tag set
-   <replica-set-read-preference-tag-sets>`, the client attempts to
-   find a replica set member that matches the specified tag set and
-   directs reads to an arbitrary member from among the :ref:`nearest
-   group <replica-set-read-preference-behavior-nearest>`.
-
-   Read operations using the :readmode:`nearest` mode may return stale
-   data.
-
-   .. note::
-
-      All operations read from a member of the nearest group of the
-      replica set that matches the specified read preference mode. The
-      :readmode:`nearest` mode prefers low latency reads over a
-      member's :term:`primary` or :term:`secondary` status.
-
-      For :readmode:`nearest`, the client assembles a list of
-      acceptable hosts based on tag set and then narrows that list to
-      the host with the shortest ping time and all other members of
-      the set that are within the "local threshold," or acceptable
-      latency. See :ref:`replica-set-read-preference-behavior-nearest`
-      for more information.
-
-   .. For I/O-bound users who want to distribute reads across all
-      members evenly regardless of ping time, set
-      secondaryAcceptableLatencyMS very high.
-
-.. The :method:`~cursor.readPref()` reference above will error until
-   DOCS-364 is complete.
-
-.. [#capacity-planning] If your set has more than one secondary, and
-   you use the :readmode:`secondary` read preference mode, consider
-   the following effect. If you have a :ref:`three member replica set
-   <replica-set-three-members>` with a primary and two secondaries,
-   and if one secondary becomes unavailable, all :readmode:`secondary`
-   queries must target the remaining secondary. This will double the
-   load on this secondary. Plan and provide capacity to support this
-   as needed.
-
-=======
->>>>>>> crud-reorg: breakign out read pref ref and some reorganizing
 .. index:: tag sets
 .. index:: read preference; tag sets
 .. _replica-set-read-preference-tag-sets:
@@ -280,18 +130,11 @@ and :ref:`write concerns <write-operations-write-concern>`
 so that your application can target
 operations to specific members, based on custom parameters.
 
-.. note::
-
-   Consider the following properties of read preferences:
-
-   - Custom read preferences and write concerns evaluate tags sets in
-     different ways.
-
-   - Read preferences consider the value of a tag when selecting a
-     member to read from.
-
-   - Write concerns ignore the value of a tag to when selecting a
-     member *except* to consider whether or not the value is unique.
+Custom read preferences and write concerns evaluate tags sets in
+different ways: read preferences consider the value of a tag when
+selecting a member to read from. while write concerns ignore the value
+of a tag to when selecting a member *except* to consider whether or not
+the value is unique.
 
 You can specify tag sets with the following read preference modes:
 
@@ -300,26 +143,24 @@ You can specify tag sets with the following read preference modes:
 - :readmode:`secondaryPreferred`
 - :readmode:`nearest`
 
-You cannot specify tag sets with the :readmode:`primary` read preference mode.
-
-Tags are not compatible with :readmode:`primary` and only apply when
-:ref:`selecting <replica-set-read-preference-behavior-member-selection>`
+Tags are not compatible with :readmode:`primary` and, in general, only
+apply when :ref:`selecting <replica-set-read-preference-behavior-member-selection>`
 a :term:`secondary` member of a set for a read operation. However, the
-:readmode:`nearest` read mode, when combined with a tag set will
-select the nearest member that matches the specified tag set, which
-may be a primary or secondary.
+:readmode:`nearest` read mode, when combined with a tag set will select
+the nearest member that matches the specified tag set, which may be a
+primary or secondary.
 
 All interfaces use the same :ref:`member selection logic
 <replica-set-read-preference-behavior-member-selection>` to choose the
 member to which to direct read operations, basing the choice on read
 preference mode and tag sets.
 
-For information on configuring tag sets, see
-:doc:`/tutorial/configure-replica-set-tag-sets`.
+For information on configuring tag sets, see the
+:doc:`/tutorial/configure-replica-set-tag-sets` tutorial.
 
 For more information on how read preference :ref:`modes
 <replica-set-read-preference-modes>` interact with tag sets, see the
-documentation for each read preference mode.
+:doc:`documentation for each read preference mode </reference/read-preference>`.
 
 .. index:: read preference; behavior
 .. _replica-set-read-preference-behavior:
@@ -329,12 +170,96 @@ Behavior
 
 .. versionchanged:: 2.2
 
+MongoDB drivers use the following procedures to direct operations to
+replica sets and sharded clusters. To determine how to route their
+operations, applications periodically
+update their view of the replica set's state, identifying which members
+are up or down, which member is :term:`primary`, and verifying the
+latency to each :program:`mongod` instance.
+
+.. index:: read preference; ping time
+.. index:: read preference; nearest
+.. index:: read preference; member selection
+.. _replica-set-read-preference-behavior-ping-time:
+.. _replica-set-read-preference-behavior-nearest:
+.. _replica-set-read-preference-behavior-member-selection:
+
+Member Selection
+~~~~~~~~~~~~~~~~
+
+Clients, by way of their drivers, and :program:`mongos` instances for
+sharded clusters periodically update their view of the replica set's state.
+
+When you select non-:readmode:`primary` read preference, the driver
+will determine which member to target using the following process:
+
+#. Assembles a list of suitable members, taking into account member type
+   (i.e. secondary, primary, or all members.)
+
+#. Excludes members not matching the tag sets, if specified.
+
+#. Determines which suitable member is the closest to the
+   client in absolute terms.
+
+#. Builds a list of members that are within a defined ping distance
+   (in milliseconds) of the "absolute nearest"
+   member. [#acceptable-secondary-latency]_
+
+#. Selects a member from these hosts at random. The member receives
+   the read operation.
+
+Drivers can then associate the thread or connection with the selected member.
+This ":ref:`request association
+<replica-set-read-preference-behavior-requests>`" is configurable by
+the application. See your :doc:`driver </applications/drivers>`
+documentation about request association configuration and default
+behavior.
+
+.. [#acceptable-secondary-latency] Applications can configure the
+   threshold used in this stage. The default "acceptable latency" is
+   15 milliseconds, which you can override in the drivers with their
+   own ``secondaryAcceptableLatencyMS`` option.  For :program:`mongos`
+   you can use the :option:`--localThreshold <mongos --localThreshold>`
+   or :setting:`localThreshold` runtime options to set this value.
+
+.. _replica-set-read-preference-behavior-requests:
+
+Request Association
+~~~~~~~~~~~~~~~~~~~
+
+.. important:: *Request association* is configurable by the
+   application. See your :doc:`driver </applications/drivers>`
+   documentation about request association configuration and default
+   behavior.
+
+Because :term:`secondary` members of a :term:`replica set` may lag
+behind the current :term:`primary` by different amounts, reads for
+:term:`secondary` members may reflect data at different points in time.
+To prevent sequential reads from jumping around in time, the driver
+**can** associate application threads to a specific member of the set
+after the first read, thereby preventing reads from other members.
+The thread will continue to read from the same member until:
+
+- The application performs a read with a different read preference,
+
+- The thread terminates, or
+
+- The client receives a socket exception, as is the case when there's
+  a network error or when the :program:`mongod` closes connections
+  during a :term:`failover`.  This triggers a :ref:`retry
+  <replica-set-read-preference-behavior-retry>`, which may be
+  transparent to the application.
+
+When using request association, if the client detects that the set has
+elected a new :term:`primary`, the driver will discard all associations
+between threads and members.
+
 .. _replica-set-read-preference-behavior-retry:
 
 Auto-Retry
 ~~~~~~~~~~
 
-Connection between MongoDB drivers and :program:`mongod` instances in
+Connections between MongoDB drivers and :program:`mongod` instances in
 a :term:`replica set` must balance two concerns:
 
 #. The client should attempt to prefer current results, and any
@@ -380,85 +305,6 @@ As a result, MongoDB drivers and :program:`mongos`:
 .. [#fn-failover] When a :term:`failover` occurs, all members of the set
    close all client connections that produce a socket error in the
    driver. This behavior prevents or minimizes :term:`rollback`.
-
-.. _replica-set-read-preference-behavior-requests:
-
-Request Association
-~~~~~~~~~~~~~~~~~~~
-
-.. important:: *Request association* is configurable by the
-   application. See your :doc:`driver </applications/drivers>`
-   documentation about request association configuration and default
-   behavior.
-
-Reads from :term:`secondary` may reflect the state of the data set at
-different points in time because :term:`secondary` members of a
-:term:`replica set` may lag behind the current state of the primary by
-different amounts. To prevent subsequent reads from jumping around in
-time, the driver **can** associate application threads to a specific member
-of the set after the first read. The thread will continue to read from
-the same member until:
-
-- The application performs a read with a different read preference.
-
-- The thread terminates.
-
-- The client receives a socket exception, as is the case when there's
-  a network error or when the :program:`mongod` closes connections
-  during a :term:`failover`.  This triggers a :ref:`retry
-  <replica-set-read-preference-behavior-retry>`, which may be
-  transparent to the application.
-
-When using request association, if the client detects that the set has
-elected a new primary, the driver will discard all associations
-between threads and read preferences.
-
-.. index:: read preference; ping time
-.. index:: read preference; nearest
-.. index:: read preference; member selection
-.. _replica-set-read-preference-behavior-ping-time:
-.. _replica-set-read-preference-behavior-nearest:
-.. _replica-set-read-preference-behavior-member-selection:
-
-Member Selection
-~~~~~~~~~~~~~~~~
-
-Clients, by way of their drivers, and :program:`mongos` instances for
-sharded clusters periodically update their view of the replica set's state:
-which members are up or down, which member is primary, and the latency to each
-:program:`mongod` instance.
-
-For any operation that targets a member *other* than the
-:term:`primary`, the driver:
-
-#. Assembles a list of suitable members, taking into account member type
-   (i.e. secondary, primary, or all members.)
-
-#. Excludes members not matching the tag sets, if specified.
-
-#. Determines which suitable member is the closest to the
-   client in absolute terms.
-
-#. Builds a list of members that are within a defined ping distance
-   (in milliseconds) of the "absolute nearest"
-   member. [#acceptable-secondary-latency]_
-
-#. Selects a member from these hosts at random. The member receives
-   the read operation.
-
-Drivers can then associate this thread or connection with this member.
-This ":ref:`request association
-<replica-set-read-preference-behavior-requests>`" is configurable by
-the application. See your :doc:`driver </applications/drivers>`
-documentation about request association configuration and default
-behavior.
-
-.. [#acceptable-secondary-latency] Applications can configure the
-   threshold used in this stage. The default "acceptable latency" is
-   15 milliseconds, which you can override in the drivers with their
-   own ``secondaryAcceptableLatencyMS`` option.  For :program:`mongos`
-   you can use the :option:`--localThreshold <mongos --localThreshold>`
-   or :setting:`localThreshold` runtime options to set this value.
 
 .. index:: read preference; sharding
 .. index:: read preference; mongos
