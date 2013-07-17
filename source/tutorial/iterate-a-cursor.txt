@@ -1,0 +1,105 @@
+=======================================
+Iterate a Cursor in the ``mongo`` Shell
+=======================================
+
+.. default-domain:: mongodb
+
+The :method:`db.collection.find()` method returns a cursor. To access
+the documents, you need to iterate the cursor. However, in the
+:program:`mongo` shell, if the returned cursor is not assigned to a
+variable, then the cursor is automatically iterated up to 20 times to
+print up to the first 20 documents in the results. The following
+describes ways to manually iterate the cursor to access the documents
+or to use the iterator index.
+
+Manually Iterate the Cursor
+---------------------------
+
+In the :program:`mongo` shell, when you assign the :method:`find()
+<db.collection.find()>` to a variable, the cursor does not
+automatically iterate.
+
+You can call the cursor variable in the shell to iterate up to 20 times
+[#set-shell-batch-size]_ and print the matching documents, as in the
+following example:
+
+.. code-block:: javascript
+
+   var myCursor = db.inventory.find( { type: 'food' } );
+
+   myCursor
+
+You can also use the cursor method :method:`next() <cursor.next()>` to
+access the documents, as in the following example:
+
+.. code-block:: javascript
+
+   var myCursor = db.inventory.find( { type: 'food' } );
+   var myDocument = myCursor.hasNext() ? myCursor.next() : null;
+
+   if (myDocument) {
+       var myItem = myDocument.item;
+       print(tojson(myItem));
+   }
+
+As an alternative print operation, consider the ``printjson()`` helper
+method to replace ``print(tojson())``:
+
+.. code-block:: javascript
+
+   if (myDocument) {
+       var myItem = myDocument.item;
+       printjson(myItem);
+   }
+
+You can use the cursor method :method:`forEach() <cursor.forEach()>` to
+iterate the cursor and access the documents, as in the following
+example:
+
+.. code-block:: javascript
+
+   var myCursor =  db.inventory.find( { type: 'food' } );
+
+   myCursor.forEach(printjson);
+
+See :ref:`JavaScript cursor methods <js-query-cursor-methods>` and your
+:doc:`driver </applications/drivers>` documentation for more
+information on cursor methods.
+
+.. include:: /includes/footnote-set-shell-batch-size.rst
+
+Iterator Index
+--------------
+
+In the :program:`mongo` shell, you can use the
+:method:`~cursor.toArray()` method to iterate the cursor and return
+the documents in an array, as in the following:
+
+.. code-block:: javascript
+
+   var myCursor = db.inventory.find( { type: 'food' } );
+   var documentArray = myCursor.toArray();
+   var myDocument = documentArray[3];
+
+The :method:`~cursor.toArray()` method loads into RAM all
+documents returned by the cursor; the :method:`~cursor.toArray()`
+method exhausts the cursor.
+
+Additionally, some :doc:`drivers </applications/drivers>` provide
+access to the documents by using an index on the cursor (i.e.
+``cursor[index]``). This is a shortcut for first calling the
+:method:`~cursor.toArray()` method and then using an index
+on the resulting array.
+
+Consider the following example:
+
+.. code-block:: javascript
+
+   var myCursor = db.inventory.find( { type: 'food' } );
+   var myDocument = myCursor[3];
+
+The ``myCursor[3]`` is equivalent to the following example:
+
+.. code-block:: javascript
+
+   myCursor.toArray() [3];
