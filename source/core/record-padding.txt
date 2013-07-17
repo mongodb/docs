@@ -24,8 +24,8 @@ For complete examples of update operations, see
 
 .. _write-operations-padding-factor:
 
-Padding Factor
---------------
+Padding and Document Growth
+---------------------------
 
 If an update operation does not cause the document to increase in
 size, MongoDB can apply the update in-place. Some updates
@@ -39,24 +39,33 @@ take longer than in-place updates, particularly if the collection has
 indexes that MongoDB must update all index entries. If
 collection has many indexes, the move will impact write throughput.
 
-To minimize document movements, MongoDB employs padding. MongoDB
-adaptively learns if documents in a collection tend to grow, and if
-they do, adds a :data:`~collStats.paddingFactor` so that the documents
-have room to grow on subsequent writes. The
-:data:`~collStats.paddingFactor` indicates the padding for new inserts
-and moves.
+Record Allocation Strategies
+----------------------------
 
 .. versionadded:: 2.2
-   You can use the :dbcommand:`collMod` command
-   with the :collflag:`usePowerOf2Sizes` flag so that MongoDB
-   allocates document space in sizes that are powers of 2. This helps
-   ensure that MongoDB can efficiently reuse the space freed as a
-   result of deletions or document relocations. As with all padding,
-   using document space allocations with power of 2 sizes minimizes,
-   but does not eliminate, document movements.
+   :dbcommand:`collMod`  and :collflag:`usePowerOf2Sizes`.
 
-To check the current :data:`~collStats.paddingFactor` on a collection, you can
-run the :method:`db.collection.stats()` operation in the
+.. TODO revise this paragraph:
+
+You can use the :dbcommand:`collMod` command with the
+:collflag:`usePowerOf2Sizes` flag so that MongoDB allocates document
+space in sizes that are powers of 2. This helps ensure that MongoDB
+can efficiently reuse the space freed as a result of deletions or
+document relocations. As with all padding, using document space
+allocations with power of 2 sizes minimizes, but does not eliminate,
+document movements.
+
+Padding Factor
+--------------
+
+To minimize document movements and their impact, MongoDB employs
+padding. MongoDB adaptively adjusts the size of record allocations in
+a collection by adding a :data:`~collStats.paddingFactor` so that the
+documents have room to grow. The :data:`~collStats.paddingFactor`
+indicates the padding for new inserts and moves.
+
+To check the current :data:`~collStats.paddingFactor` on a collection,
+you can run the :method:`db.collection.stats()` operation in the
 :program:`mongo` shell, as in the following example:
 
 .. code-block:: javascript
@@ -87,30 +96,31 @@ padding. If the document remains this size, the space is not reclaimed
 until you perform a :dbcommand:`compact` or a
 :dbcommand:`repairDatabase` operation.
 
-.. note::
+Operations that Remove Padding
+------------------------------
 
-   The following operations remove padding:
+The following operations remove padding:
 
-   - :dbcommand:`compact`,
-   - :dbcommand:`repairDatabase`, and
-   - initial replica sync operations.
+- :dbcommand:`compact`,
+- :dbcommand:`repairDatabase`, and
+- initial replica sync operations.
 
-   However, with the :dbcommand:`compact` command, you can run the
-   command with a ``paddingFactor`` or a ``paddingBytes`` parameter.
+However, with the :dbcommand:`compact` command, you can run the
+command with a ``paddingFactor`` or a ``paddingBytes`` parameter.
 
-   Padding is also removed if you use :program:`mongoexport` from a
-   collection. If you use :program:`mongoimport` into a new
-   collection, :program:`mongoimport` will not add padding.  If you
-   use :program:`mongoimport` with an existing collection with
-   padding, :program:`mongoimport` will not affect the existing
-   padding.
+Padding is also removed if you use :program:`mongoexport` from a
+collection. If you use :program:`mongoimport` into a new
+collection, :program:`mongoimport` will not add padding.  If you
+use :program:`mongoimport` with an existing collection with
+padding, :program:`mongoimport` will not affect the existing
+padding.
 
-   When a database operation removes padding, subsequent update that
-   require changes in record sizes will have reduced throughput until
-   the collection's padding factor grows. Padding does not affect
-   in-place, and after :dbcommand:`compact`,
-   :dbcommand:`repairDatabase`, and replica set initial sync
-   the collection will require less storage.
+When a database operation removes padding, subsequent update that
+require changes in record sizes will have reduced throughput until
+the collection's padding factor grows. Padding does not affect
+in-place, and after :dbcommand:`compact`,
+:dbcommand:`repairDatabase`, and replica set initial sync
+the collection will require less storage.
 
 .. COMMENT -- not sure if we really need this manual padding info or if
    it belongs here, but ...
