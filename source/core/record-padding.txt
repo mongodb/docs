@@ -4,56 +4,39 @@ Document Record Padding
 
 .. default-domain:: mongodb
 
-Each document in a MongoDB collection has allocated *record* space
-which includes the entire document *and* a small amount of
-padding. This padding makes it possible for update operations to
-increase the size of a document slightly without causing the document
-to outgrow the allocated record size.
+Update operations can increase the size of the document
+[#documentSizeLimit]_. If a document outgrows its current allocated
+:term:`record space <record size>`, MongoDB must allocate a new space
+and move the document to this new location.
 
-Documents in MongoDB can grow up to the full maximum :limit:`BSON
-document size <BSON Document Size>`. However, when documents outgrow
-their allocated record size MongoDB must allocate a new record and
-move the document to the new record. Update operations that do not
-cause a document to grow, (i.e. *in-place* updates,) are significantly
-more efficient than those updates that cause document growth. Use
-:doc:`data models </core/data-modeling>` that minimize the need for
-document growth when possible.
+To reduce the number of moves, MongoDB includes a small amout of extra
+space, or :term:`padding`, when allocating the record space. This
+padding reduces the likelihood that a slight increase in document size
+will cause the document to exceed its allocated record size.
 
-For complete examples of update operations, see
-:doc:`/core/update`.
+.. [#documentSizeLimit] Documents in MongoDB can grow up to the full
+   maximum :limit:`BSON document size <BSON Document Size>`.
+
+Document Growth Impact
+----------------------
+
+Some update operations, such as the :operator:`$inc` operation, do not
+cause an increase in document size. For these update operations,
+MongoDB can apply the updates in-place. Other update operations, such
+as the :operator:`$push` operation, change the size of the document.
+
+If a document size exceeds its current allocated :term:`record size`,
+MongoDB relocates the document on disk with enough contiguous space to
+hold the document. These relocations take longer than in-place updates,
+particularly if the collection has indexes. If a collection has
+indexes, MongoDB must update all index entries. Thus, for a collection
+with many indexes, the move will impact the write throughput.
+
+In-place-updates are significantly more efficient than updates that
+cause document growth. When possible, use :doc:`data models
+</core/data-modeling>` that minimize the need for document growth.
 
 .. _write-operations-padding-factor:
-
-Padding and Document Growth
----------------------------
-
-If an update operation does not cause the document to increase in
-size, MongoDB can apply the update in-place. Some updates
-change the size of the document, for example using the
-:operator:`$push` operator to append a sub-document to an array can
-cause the top level document to grow beyond its allocated space.
-
-When documents grow, MongoDB relocates the document on disk with
-enough contiguous space to hold the document. These relocations
-take longer than in-place updates, particularly if the collection has
-indexes that MongoDB must update all index entries. If
-collection has many indexes, the move will impact write throughput.
-
-Record Allocation Strategies
-----------------------------
-
-.. versionadded:: 2.2
-   :dbcommand:`collMod`  and :collflag:`usePowerOf2Sizes`.
-
-.. TODO revise this paragraph:
-
-You can use the :dbcommand:`collMod` command with the
-:collflag:`usePowerOf2Sizes` flag so that MongoDB allocates document
-space in sizes that are powers of 2. This helps ensure that MongoDB
-can efficiently reuse the space freed as a result of deletions or
-document relocations. As with all padding, using document space
-allocations with power of 2 sizes minimizes, but does not eliminate,
-document movements.
 
 Padding Factor
 --------------
@@ -96,37 +79,37 @@ padding. If the document remains this size, the space is not reclaimed
 until you perform a :dbcommand:`compact` or a
 :dbcommand:`repairDatabase` operation.
 
-Operations that Remove Padding
+Operations That Remove Padding
 ------------------------------
 
-The following operations remove padding:
+The following operations remove padding: :dbcommand:`compact`,
+:dbcommand:`repairDatabase`, and initial replica sync operations.
+However, with the :dbcommand:`compact` command, you can run the command
+with a ``paddingFactor`` or a ``paddingBytes`` parameter. See
+:dbcommand:`compact` command for details.
 
-- :dbcommand:`compact`,
-- :dbcommand:`repairDatabase`, and
-- initial replica sync operations.
+Padding is also removed if you use :program:`mongoexport` a collection.
+If you use :program:`mongoimport` into a new collection,
+:program:`mongoimport` will not add padding. If you use
+:program:`mongoimport` with an existing collection with padding,
+:program:`mongoimport` will not affect the existing padding.
 
-However, with the :dbcommand:`compact` command, you can run the
-command with a ``paddingFactor`` or a ``paddingBytes`` parameter.
+When a database operation removes padding from a collection, subsequent
+updates to the collection that increase the record size will have
+reduced throughput until the collection's padding factor grows.
+However, the collection will require less storage.
 
-Padding is also removed if you use :program:`mongoexport` from a
-collection. If you use :program:`mongoimport` into a new
-collection, :program:`mongoimport` will not add padding.  If you
-use :program:`mongoimport` with an existing collection with
-padding, :program:`mongoimport` will not affect the existing
-padding.
+Record Allocation Strategies
+----------------------------
 
-When a database operation removes padding, subsequent update that
-require changes in record sizes will have reduced throughput until
-the collection's padding factor grows. Padding does not affect
-in-place, and after :dbcommand:`compact`,
-:dbcommand:`repairDatabase`, and replica set initial sync
-the collection will require less storage.
+.. versionadded:: 2.2
+   :dbcommand:`collMod`  and :collflag:`usePowerOf2Sizes`.
 
-.. COMMENT -- not sure if we really need this manual padding info or if
-   it belongs here, but ...
+To more efficiently reuse the space freed as a result of deletions or
+document relocations, you can specify that MongoDB allocates record
+sizes in powers of 2. To do so, use the :dbcommand:`collMod` command
+with the :collflag:`usePowerOf2Sizes` flag. See :dbcommand:`collMod`
+command for more details. As with all padding, power of 2 size
+allocations minimizes, but does not eliminate, document movements.
 
-.. seealso::
-
-   - :ref:`faq-developers-manual-padding`
-
-   - The :operator:`$inc` for in-place updates.
+See also :ref:`faq-developers-manual-padding`
