@@ -1,0 +1,181 @@
+.. index:: fundamentals; sharding
+.. _sharding-fundamentals:
+
+========================
+Sharded Cluster Overview
+========================
+
+.. default-domain:: mongodb
+
+Sharding is MongoDB's approach to scaling out. Sharding partitions a
+collection and stores the different portions on different
+machines. When a database's collections become too large for existing
+storage, you need only add a new machine. Sharding automatically
+distributes collection data to the new server.
+
+Sharding automatically balances data and load across machines. Sharding
+provides additional write capacity by distributing the write load over a
+number of :program:`mongod` instances. Sharding allows users to increase
+the potential amount of data in the :term:`working set`.
+
+.. index:: sharding; shards
+.. index:: shards
+.. _sharding-shards:
+
+Sharding
+--------
+
+Sharding occurs within a :term:`sharded cluster`. A sharded cluster
+consists of the following components:
+
+- **Shards**. A shard is a container that holds a
+  subset of a collection's data. Each shard is either a single
+  :program:`mongod` instance or a :term:`replica set`. In production,
+  all shards should be replica sets.
+
+  Applications do not access shards directly but instead access
+  :ref:`mongos instances <sharding-mongos>`.
+
+- **Config servers**. Each :ref:`config server <sharding-config-server>`
+  is a :program:`mongod` instance that holds metadata about the cluster.
+  The metadata maps :term:`chunks <chunk>` to shards.
+
+- **mongos instances**. The :ref:`mongos instances <sharding-mongos>`
+  route the reads and writes from applications to the shards.
+  Applications do not access the shards directly.
+
+After enabling sharding for a database, you choose which collections to
+shard. For each sharded collection, you specify a :term:`shard key`.
+
+To set up a sharded cluster, see :ref:`sharding-procedure-setup`.
+
+.. _sharding-shard-key:
+.. _shard-key:
+
+Shard Keys
+----------
+
+The shard key determines the distribution of the collection's
+:term:`documents <document>` among the cluster's :term:`shards <shard>`.
+The shard key is a :term:`field` that exists in every document in the
+collection. MongoDB distributes documents according to ranges of values
+in the shard key. A given shard holds documents for which the shard key
+falls within a specific range of values. Shard keys, like :term:`indexes
+<index>`, can be either a single field or multiple fields.
+
+Within a shard, MongoDB further partitions documents into :term:`chunks
+<chunk>`. Each chunk represents a smaller range of values within the
+shard's range. When a chunk grows beyond the :ref:`chunk size
+<sharding-chunk-size>`, MongoDB :term:`splits <split>` the chunk into
+smaller chunks, always based on ranges in the shard key.
+
+To select a shard key, see :doc:`/tutorial/select-shard-key`.
+
+.. _sharding-hashed-sharding:
+
+Hashed Sharding
+---------------
+
+.. versionadded:: 2.4
+
+:ref:`Hashed shard keys <sharding-hashed-shard-key-internals>` use a
+:ref:`hashed index <index-hashed-index>` of a single field as the
+:term:`shard key` to partition data across your sharded cluster.
+
+The field you choose as your hashed shard key should have a good
+cardinality, or large number of different values. Hashed keys work
+well with fields that increase monotonically like :term:`ObjectId`
+values or timestamps.
+
+If you shard an empty collection using a hashed shard key, MongoDB
+will automatically create and migrate chunks so that each shard has
+two chunks.  You can control how many chunks MongoDB will create with
+the ``numInitialChunks`` parameter to :dbcommand:`shardCollection` or
+by manually creating chunks on the empty collection using the
+:dbcommand:`split` command.
+
+To shard a collection using a hashed shard key, see
+:doc:`/tutorial/shard-collection-with-a-hashed-shard-key`.
+
+.. index:: balancing
+.. _sharding-balancing:
+
+Shard Balancing
+---------------
+
+Balancing is the process MongoDB uses to redistribute data within a
+:term:`sharded cluster`. When a :term:`shard` has too many
+:term:`chunks <chunk>` when compared to other shards, MongoDB
+automatically balances the shards. MongoDB balances the shards without
+intervention from the application layer.
+
+The balancing process attempts to minimize the impact that balancing can
+have on the cluster, by:
+
+- Moving only one chunk at a time.
+
+- Initiating a balancing round **only** when the difference in the number of
+  chunks between the shard with the greatest number and the shard with the
+  lowest exceeds the :ref:`migration threshold
+  <sharding-migration-thresholds>`.
+
+You may disable the balancer on a temporary basis for
+maintenance and limit the window during which it runs to prevent the
+balancing process from impacting production traffic.
+
+To disable the balancer, see :ref:`sharding-balancing-disable-temporarily`.
+
+.. seealso:: :doc:`/tutorial/manage-sharded-cluster-balancer`.
+
+.. note::
+
+   The balancing procedure for :term:`sharded clusters <sharded cluster>`
+   is entirely transparent to the user and application layer. This
+   documentation is only included for your edification and possible
+   troubleshooting purposes.
+
+When to Use Sharding
+--------------------
+
+While sharding is a powerful and compelling feature, it comes with
+significant infrastructure requirements
+and some limited complexity costs. As a result, use
+sharding only as necessary and when indicated by actual operational
+requirements.
+
+You should consider deploying a :term:`sharded cluster` if:
+
+- your data set approaches or exceeds the storage capacity of a single
+  node in your system.
+
+- the size of your system's active :term:`working set` *will soon*
+  exceed the capacity of the *maximum* amount of RAM for your system.
+
+- your system has a large amount of write activity, a single
+  MongoDB instance cannot write data fast enough to meet demand, and
+  all other approaches have not reduced contention.
+
+If these attributes are not present in your system, sharding will only
+add additional complexity to your system without providing much
+benefit. When designing your data model, if you will eventually need a
+sharded cluster, consider which collections you will want to shard and
+the corresponding shard keys.
+
+.. _sharding-capacity-planning:
+
+.. warning::
+
+   It takes time and resources to deploy sharding, and if your system
+   has *already* reached or exceeded its capacity, you will have a
+   difficult time deploying sharding without impacting your
+   application.
+
+   As a result, if you think you will need to partition your database
+   in the future, **do not** wait until your system is overcapacity to
+   enable sharding.
+
+For information on requirements, see the following:
+
+- :ref:`sharding-requirements-infrastructure`
+
+- :ref:`sharding-requirements-data`
