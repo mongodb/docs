@@ -1,128 +1,61 @@
-======
-Update
-======
+================
+Modify Documents
+================
 
 .. default-domain:: mongodb
 
-*Update* operations are those that modify existing :term:`documents
-<document>` in a :term:`collection`. A document is the equivalent of an
-:term:`RDBMS` record, and a collection is the equivalent of an RDBMS
-table. *Update* operations are one of the three categories of
-:doc:`/core/write-operations`, along with :doc:`/core/create` and
-:doc:`/core/delete` operations.
+This tutorial offers various query examples to remove documents from a
+collection.
 
-You can update documents in a MongoDB collection using either of the
-following *update* operations:
+The examples in this tutorial use a collection ``inventory`` and use
+the :method:`db.collection.update()` method and the
+:method:`db.collection.save()` method in the :program:`mongo` shell.
 
-- :ref:`Updates <crud-update-update>`, which are MongoDB's core update
-  operation.
+Modify Multiple Documents with ``update()`` Method
+--------------------------------------------------
 
-- :ref:`Saves <crud-update-save>`, which updates a document if you
-  specify an existing ``_id``.
+By default, the :method:`~db.collection.update()` method updates a
+single document that matches its selection criteria. Call the method
+with the ``multi`` option set to ``true`` to update multiple documents.
+[#previous-version]_
 
-The update operations have following behaviors:
-
-- .. include:: /includes/fact-update-field-order.rst
-
-- .. include:: /includes/fact-write-concern.rst
-
-.. _crud-update-update:
-
-Updates
--------
-
-The :method:`~db.collection.update()` method is the primary method to
-update documents in a MongoDB collection. By default, the
-:method:`~db.collection.update()` method updates a **single** document,
-but by using the ``multi`` option, :method:`~db.collection.update()` can
-update all documents that match the query criteria in the collection.
-
-The :method:`~db.collection.update()` method either updates specific
-fields in the existing document or replaces the document. The method
-updates specific fields if the ``<update>`` argument contains only
-:ref:`update operator <update-operators>` expressions, such as a
-:operator:`$set` operator expression. Otherwise the method replaces the
-existing document.
-
-To update specific fields in subdocuments, MongoDB uses :term:`dot
-notation`.
-
-The :method:`~db.collection.update()` has the following syntax
-[#previous-version]_:
+The following example finds all documents with ``type`` equal to
+``"book"`` and modifies their ``qty`` field by ``-1``.
 
 .. code-block:: javascript
 
-   db.collection.update( {<query>}, {<update>}, { upsert: <boolean>, multi: <boolean>})
+   db.inventory.update( 
+                        { type : "book" },
+                        { $inc : { qty : -1 } },
+                        { multi: true } 
+                      )
 
-Prior to version 2.2, the :method:`~db.collection.update()` method has
-the following form:
-
-.. code-block:: javascript
-
-   db.collection.update( <query>, <update>, <bool>, <bool> )
-
-.. example:: The following operation updates a the ``votes`` by ``1``.
-   document or creates a new one. The operation leaves out the
-   ``upsert`` and ``multi`` parameters.
-
-   .. code-block:: javascript
-
-       db.favorites.update( { author : "Dante" } , { $inc : { votes : 1 } } )
-
-For further examples, see :method:`~db.collection.update()`.
-
-.. admonition:: Corresponding operation in SQL
-
-   The :method:`~db.collection.update()` method corresponds to the
-   ``UPDATE`` operation in SQL. The ``<query>`` argument corresponds to
-   the ``WHERE`` statement, and the ``<update>`` corresponds to the
-   ``SET ...`` statement.
-
-   The default behavior of :method:`~db.collection.update()` corresponds
-   to SQL ``UPDATE`` with ``LIMIT 1``. With the ``multi`` option,
-   :method:`~db.collection.update()` corresponds to SQL ``UPDATE``
-   without the ``LIMIT`` clause.
+For more examples, see :method:`~db.collection.update()`.
 
 .. [#previous-version] This shows the syntax for MongoDB 2.2 and later.
    For syntax for versions prior to 2.2, see :method:`~db.collection.update()`.
 
-.. include:: /includes/fact-upsert-multi-options.rst
-
 .. _crud-update-save:
 
-Save
-----
+Modify a Document with ``save()`` Method
+------------------------------------------------
 
-The :method:`~db.collection.save()` method performs an update *if an
-existing document has the same "_id" field*. Otherwise
-:method:`~db.collection.save()` creates a new document. The
-:method:`~db.collection.save()` method is equivalent to the
-:method:`~db.collection.update()` method with the ``upsert`` option and
-a ``<query>`` argument with an ``_id`` field.
+The :method:`~db.collection.save()` method can replace an existing
+document. To replace a document with the
+:method:`~db.collection.save()` method, pass the method a document with
+an ``_id`` field that matches an existin document.
 
-The :method:`~db.collection.save()` method has the following syntax:
+The following example completely replaces the document with the ``_id``
+equal to ``10`` in the ``inventory`` collection:
 
 .. code-block:: javascript
 
-   db.collection.save( <document> )
-
-If the ``<document>`` argument contains an ``_id`` field that exists in
-the collection, :method:`~db.collection.save()` performs an update that
-replaces the existing document with the ``<document>`` argument.
-
-.. example:: The following operation queries the :doc:`bios collection
-   </reference/bios-example-collection>` for a document where the
-   ``_id`` equals ``100`` and replaces the document with the
-   ``<document>`` argument:
-
-   .. code-block:: javascript
-
-      db.bios.save(
-         {
-           _id: 100,
-           name: { first: 'Martin', last: 'Odersky' },
-           contribs: [ 'Scala' ]
-         }
-      )
+   db.inventory.save(
+      {
+        _id: 10,
+        type: "misc",
+        item: "placard"
+      }
+   )
 
 For further examples, see :method:`~db.collection.save()`.
