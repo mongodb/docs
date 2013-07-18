@@ -7,13 +7,13 @@ Create
 This tutorial offers various query examples to remove documents from a
 collection.
 
-The examples in this tutorial use a collection ``products`` and use the
-:method:`db.collection.insert()` method,
+The examples in this tutorial use a collection ``inventory`` and use
+the :method:`db.collection.insert()` method,
 :method:`db.collection.update()` method, and the
 :method:`db.collection.insert()` method in the :program:`mongo` shell.
 
-Insert a Document with ``insert``
----------------------------------
+Insert a Document with ``insert()`` Method
+------------------------------------------
 
 The following statement inserts a document with three fields into the
 collection ``products``:
@@ -27,66 +27,59 @@ of ``10``. The value must be unique within the ``inventory`` collection.
 
 For more examples, see :method:`~db.collection.insert()`.
 
-.. _crud-create-update:
+Insert a Document with ``update()`` Method
+------------------------------------------
 
-Update Operations that Include the ``upsert`` Flag
---------------------------------------------------
+Call the :method:`~db.collection.update()` method with the ``upsert``
+flag to create a new document if no document matches the update's
+query criteria. [#previous-versions-upsert]_
 
-An :method:`~db.collection.update()` operation with the ``upsert`` flag
-creates a new document *if no document matches the update's query
-criteria*. The operation has the following syntax
-[#previous-versions-upsert]_:
+The following example creates a new document if no document in the
+``inventory`` collection contains ``{ type: "books", item : "journal"
+}``:
 
 .. code-block:: javascript
 
-   db.collection.update( <query> , <update> , { upsert : true } )
+   db.inventory.update(
+                        { type: "books", item : "journal" }, 
+                        { $set : { qty: 10 } }, 
+                        { upsert : true } 
+                      )
 
-If no document matches the ``<query>`` criteria, the ``upsert`` creates
-a new document with either:
+MongoDB adds the ``_id`` field and assigns as its value a unique
+ObjectId. The new document includes the ``item`` and ``type`` fields
+from the ``<query>`` criteria and the ``qty`` field from the
+``<update>`` parameter.
 
-- the fields and values of the ``<update>`` parameter if the
-  ``<update>`` parameter contains only ``field`` and ``value`` pairs,
-  as in the following:
+.. code-block:: javascript
 
-  .. code-block:: javascript
+   { "_id" : ObjectId("51e8636953dbe31d5f34a38a"), "item" : "journal", "qty" : 10, "type" : "books" }
 
-     db.collection.update( <query>, { x: 1, y: 1 }, { upsert: true } )
-
-- the fields and values of the both the ``<query>`` and ``<update>``
-  parameters, if the ``<update>`` parameter only uses :ref:`update
-  operators <update-operators>`, as in the following:
-
-  .. code-block:: javascript
-
-     db.collection.update( <query>, { $set: { x: 1 }, $inc: { y: 5 } }, { upsert: 1 } )
-
-Example
-~~~~~~~
-
-The following ``upsert`` operation either creates a new document or
-updates an existing document:
-
-   .. code-block:: javascript
-
-       db.favorites.update( { author : "Dante" } , { $inc : { votes : 1 } } , { upsert : true } )
-
-   If no document in the ``favorites`` collection contains ``{ author :
-   "Dante" }``, the ``upsert`` creates a new document:
-
-   .. code-block:: javascript
-
-      { "_id" : ObjectId("51e01a2d9c6ae665454e301b"), "author" : "Dante", "votes" : 1 }
-
-   The new document has an auto-generated ``_id`` field and includes
-   the ``author`` field from the ``<query>`` criteria and the ``votes``
-   field from the ``<update>`` parameter.
-
-   If one or more documents exist with ``{ author : "Dante" }``, the
-   ``upsert`` does not create a new document but instead increments the
-   ``votes`` field in one of the existing documents.
-
-For more examples, see :method:`~db.collection.update()` and
-:ref:`crud-create-save`.
+For more examples, see :method:`~db.collection.update()`.
 
 .. [#previous-versions-upsert]
    .. include:: /includes/fact-upsert-multi-options.rst
+
+Insert a Document with ``save()`` Method
+----------------------------------------
+
+To insert a document with the :method:`~db.collection.save()` method,
+pass the method a document that does not contain the ``_id`` field or a
+document that contains an ``_id`` field that does not exist in the
+collection.
+
+The following example creates a new document in the ``inventory``
+collection:
+
+.. code-block:: javascript
+
+   db.inventory.save( { type: "book", item: "notebook", qty: 40 } )
+
+MongoDB adds the ``_id`` field and assigns as its value a unique
+ObjectId.
+
+.. code-block:: javascript
+
+   { "_id" : ObjectId("51e866e48737f72b32ae4fbc"), "type" : "book", "item" : "notebook", "qty" : 40 }
+
+For more examples, see :method:`~db.collection.save()`.
