@@ -1,0 +1,303 @@
+==================
+Query a Collection
+==================
+
+.. default-domain:: mongodb
+
+This tutorial offers various query examples to retrieve documents from
+a collection.
+
+The examples in this tutorial use a collection ``inventory`` and use
+the :method:`db.collection.find()` method in the :program:`mongo`
+shell. The :method:`db.collection.find()` method returns a :doc:`cursor
+</core/cursors>` to the retrieved documents.
+
+Select All Documents in a Collection
+------------------------------------
+
+An empty query document (``{}``) selects all documents in the
+collection:
+
+.. code-block:: javascript
+
+   db.inventory.find( {} )
+
+Not specifying a query document to the :method:`~db.collection.find()`
+is equivalent to specifying an empty query document. Therefore the
+following operation is equivalent to the previous operation:
+
+.. code-block:: javascript
+
+   db.inventory.find()
+
+Specify Equality Condition
+--------------------------
+
+To specify equality condition, use the query document ``{ <field>:
+<value> }`` to select all documents that contain the ``<field>`` with
+the specified ``<value>``.
+
+The following example retrieves from the ``inventory`` collection all
+documents where the ``type`` field has the value ``snacks``:
+
+.. code-block:: javascript
+
+   db.inventory.find( { type: "snacks" } )
+
+Specify Conditions Using Query Operators
+----------------------------------------
+
+A query document can use the :ref:`query operators <query-selectors>`
+to specify conditions in a MongoDB query.
+
+The following example selects all documents in the ``inventory``
+collection where the value of the ``type`` field is either ``'food'``
+or ``'snacks'``:
+
+.. code-block:: javascript
+
+   db.inventory.find( { type: { $in: [ 'food', 'snacks' ] } } )
+
+Although you can express this query using the :operator:`$or` operator,
+use the :operator:`$in` operator rather than the :operator:`$or`
+operator when performing equality checks on the same field.
+
+Refer to the :doc:`/reference/operator` document for the complete list
+of query operators.
+
+Specify ``AND`` Conditions
+--------------------------
+
+A compound query can specify conditions for more than one field in the
+collection's documents. Implicitly, a logical ``AND`` conjunction
+connects the clauses of a compound query so that the query selects the
+documents in the collection that match all the conditions.
+
+In the following example, the query document specifies an equality
+match on the field ``food`` **and** a less than (:operator:`$lt`)
+comparison match on the field ``price``:
+
+.. code-block:: javascript
+
+   db.inventory.find( { type: 'food', price: { $lt: 9.95 } } )
+
+This query selects all documents where the ``type`` field has the value
+``'food'`` **and** the value of the ``price`` field is less than
+``9.95``. See :ref:`comparison operators <query-selectors-comparison>`
+for other comparison operators.
+
+Specify ``OR`` Conditions
+-------------------------
+
+Using the :operator:`$or` operator, you can specify a compound query
+that joins each clause with a logical ``OR`` conjunction so that the
+query selects the documents in the collection that match at least one
+condition.
+
+In the following example, the query document selects all documents in
+the collection where the field ``qty`` has a value greater than
+(:operator:`$gt`) ``100`` **or** the value of the ``price`` field is
+less than (:operator:`$lt`) ``9.95``:
+
+.. code-block:: javascript
+
+   db.inventory.find(
+                      { $or: [
+                               { qty: { $gt: 100 } },
+                               { price: { $lt: 9.95 } }
+                             ]
+                      } 
+                    )
+
+Specify ``AND`` as well as ``OR`` Conditions
+--------------------------------------------
+
+With additional clauses, you can specify precise conditions for
+matching documents. 
+
+In the following example, the compound query document selects all
+documents in the collection where the value of the ``type`` field is
+``'food'`` **and** *either* the ``qty`` has a value greater than
+(:operator:`$gt`) ``100`` *or* the value of the ``price`` field is less
+than (:operator:`$lt`) ``9.95``:
+
+.. code-block:: javascript
+
+   db.inventory.find( { type: 'food', $or: [ { qty: { $gt: 100 } },
+                                               { price: { $lt: 9.95 } } ]
+                      } )
+
+.. _read-operations-subdocuments:
+
+Subdocuments
+------------
+
+When the field holds an embedded document (i.e. subdocument), you can
+either specify the entire subdocument as the value of a field, or
+"reach into" the subdocument using :term:`dot notation`, to specify
+values for individual fields in the subdocument:
+
+Exact Match on Subdocument
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To specify an equality match on the whole subdocument, use the query
+document ``{ <field>: <value> }`` where ``<value>`` is the subdocument
+to match. Equality matches on a subdocument require that the
+subdocument field match *exactly* the specified ``<value>``, including
+the field order.
+
+In the following example, the query matches all documents where
+the value of the field ``producer`` is a subdocument that contains
+*only* the field ``company`` with the value ``'ABC123'`` and the field
+``address`` with the value ``'123 Street'``, in the exact order:
+
+.. code-block:: javascript
+
+   db.inventory.find(
+                      {
+                        producer: {
+                                    company: 'ABC123',
+                                    address: '123 Street'
+                                  }
+                      }
+                    )
+
+Equality Match on Fields within Subdocument
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Equality matches for specific fields within subdocuments select the
+documents in the collection when the field in the subdocument contains
+a field that matches the specified value.
+
+In the following example, the query uses the :term:`dot notation` to
+match all documents where the value of the field ``producer`` is a
+subdocument that contains a field ``company`` with the value
+``'ABC123'`` and may contain other fields:
+
+.. code-block:: javascript
+
+   db.inventory.find( { 'producer.company': 'ABC123' } )
+
+.. _read-operations-arrays:
+
+Arrays
+------
+
+When the field holds an array, you can query for an exact array match
+or for specific values in the array. If the array holds sub-documents,
+you can query for specific fields within the sub-documents using
+:term:`dot notation`:
+
+Exact Match on an Array
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To specify equality match on an array, use the query document ``{
+<field>: <value> }`` where ``<value>`` is the array to match. Equality
+matches on the array require that the array field match *exactly* the
+specified ``<value>``, including the element order.
+
+In the following example, the query matches all documents where the
+value of the field ``tags`` is an array that holds exactly three
+elements, ``'fruit'``, ``'food'``, and ``'citrus'``, in this order:
+
+.. code-block:: javascript
+
+   db.inventory.find( { tags: [ 'fruit', 'food', 'citrus' ] } )
+
+Match an Array Element
+~~~~~~~~~~~~~~~~~~~~~~
+
+Equality matches can specify a single element in the array to match.
+These specifications match if the array contains at least *one* element
+with the specified value.
+
+In the following example, the query matches all documents where the
+value of the field ``tags`` is an array that contains ``'fruit'`` as
+one of its elements:
+
+.. code-block:: javascript
+
+   db.inventory.find( { tags: 'fruit' } )
+
+Match a Specific Element of an Array
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Equality matches can specify equality matches for an element at a
+particular index or position of the array.
+
+In the following example, the query uses the :term:`dot notation` to
+match all documents where the value of the ``tags`` field is an array
+whose first element equals ``'fruit'``:
+
+.. code-block:: javascript
+
+   db.inventory.find( { 'tags.0' : 'fruit' } )
+
+Array of Subdocuments
+~~~~~~~~~~~~~~~~~~~~~
+
+Match a Field in the Subdocument Using the Array Index
+``````````````````````````````````````````````````````
+
+If you know the array index of the subdocument, you can specify the
+document using the subdocument's position.
+
+The following example selects all documents where the ``memos``
+contains an array whose first element (i.e. index is ``0``) is a
+subdocument with the field ``by`` with the value ``'shipping'``:
+
+.. code-block:: javascript
+
+   db.inventory.find( { 'memos.0.by': 'shipping' } )
+
+Match a Field Without Specifying Array Index
+````````````````````````````````````````````
+
+If you do not know the index position of the subdocument, concatenate
+the name of the field that contains the array, with a dot (``.``) and
+the name of the field in the subdocument.
+
+The following example selects all documents where the ``memos`` field
+contains an array that contains at least one subdocument with the field
+``by`` with the value ``'shipping'``:
+
+.. code-block:: javascript
+
+   db.inventory.find( { 'memos.by': 'shipping' } )
+
+Match Multiple Fields
+`````````````````````
+
+To match by multiple fields in the subdocument, you can use either dot
+notation or the :operator:`$elemMatch` operator:
+
+The following example uses dot notation to query for documents where
+the value of the ``memos`` field is an array that has at least one
+subdocument that contains the field ``memo`` equal to ``'on time'`` and
+the field ``by`` equal to ``'shipping'``:
+
+.. code-block:: javascript
+
+   db.inventory.find(
+                      {
+                        'memos.memo': 'on time',
+                        'memos.by': 'shipping'
+                      }
+                    )
+
+The following example uses :operator:`$elemMatch` to query for
+documents where the value of the ``memos`` field is an array that has
+at least one subdocument that contains the field ``memo`` equal to
+``'on time'`` and the field ``by`` equal to ``'shipping'``:
+
+.. code-block:: javascript
+
+   db.inventory.find( {
+                        memos: {
+                                   $elemMatch: {
+                                                 memo : 'on time',
+                                                 by: 'shipping'
+                                               }
+                               }
+                      }
+                    )
