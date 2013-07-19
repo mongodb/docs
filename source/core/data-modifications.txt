@@ -4,14 +4,98 @@ Data Modifications
 
 .. default-domain:: mongodb
 
-Three categories of data modifications are create, update, and delete
-operations. These operations insert, modify, and remove
-:term:`documents <document>` in a :term:`collection`. A document is the
-equivalent of an :term:`RDBMS` record, and a collection is the
-equivalent of an RDBMS table.
+There are three classes of operation in MongoDB that modify data in a
+:term:`collection`: insert, update, and remove. These operations correspond
+generally to ``CREATE``, ``UPDATE`` and ``DELETE`` methods in
+SQL. This document introduces the behavior of write operations in
+MongoDB systems and then introduces the specific methods that provide
+these operations.
+
+Behavior
+--------
+
+Document Insertion
+~~~~~~~~~~~~~~~~~~
+
+If you add a new document *without* the :term:`_id` field, the client
+library or :program:`mongod` instance adds an ``_id`` field and
+populates the field with a unique :term:`ObjectId <objectid>`.
+
+If you specify the ``_id`` field, the value must be unique within the
+collection. For operations with :ref:`write concern <write-concern>`,
+if you try to create a document with a duplicate ``_id`` value,
+:program:`mongod` returns a duplicate key exception.
+  
+Document Update and Modification
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, the :method:`db.collection.update()` method updates a
+**single** document. However, with the ``multi`` option,
+:method:`~db.collection.update()` can update all documents in a
+collection that match a query.
+
+:method:`db.collection.save()` method replaces a document, and can
+only update a single document. See :method:`db.collection.save()`
+and :doc:`/tutorial/insert-documents` for more information
+
+The :method:`db.collection.update()` method either updates specific
+fields in the existing document or replaces the document. See
+:method:`db.collection.update()` for details.
+
+.. include:: /includes/fact-update-field-order.rst
+
+.. _write-operations-isolation:
+
+Isolation of Write Operations
+-----------------------------
+
+The modification of a single document, is always atomic even if the
+write operation modifies multiple sub-documents *within* that
+document. For write operations that modify multiple documents, the
+operation as a whole is not atomic, and other operations may
+interleave.
+
+No other operations are atomic; however, you can attempt to isolate a
+write operation that affects multiple documents using the
+:doc:`isolation operator </reference/operator/isolated>`.
+
+To isolate a sequence of write operations from other read and write
+operations, see :doc:`/tutorial/perform-two-phase-commits`.
+
+.. _write-operations-indexing:
+
+Performance of Write Operations and Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After every insert, update, or delete operation, MongoDB must update
+*every* index associated with the collection in addition to the data
+itself. Therefore, every index on a collection adds some amount of
+overhead for the performance of write operations. [#exceptions]_
+
+In general, the performance gains that indexes provide for *read
+operations* are worth the insertion penalty; however, when optimizing
+write performance, be careful when creating new indexes and always
+evaluate the indexes on the collection and ensure that your queries are
+actually using these indexes.
+
+For more information on indexes in MongoDB, see :doc:`/indexes` and
+:doc:`/applications/indexes`.
+
+.. [#exceptions] The overhead for :ref:`sparse indexes <index-type-sparse>`
+   inserts and updates to un-indexed fields is less than for non-sparse
+   indexes. Also for non-sparse indexes, updates that don't change the
+   record size have less indexing overhead.
+
+Write Concern
+~~~~~~~~~~~~~
+
+.. include:: /includes/fact-write-concern.rst
+
+Operations
+----------
 
 Create Methods
---------------
+~~~~~~~~~~~~~~
 
 Create operations add new documents into a collection. In MongoDB, the
 :method:`db.collection.insert()` method adds new documents into a
@@ -27,7 +111,7 @@ document if the document to modify does not exist. See
 details on performing an upsert with these methods.
 
 Update Methods
---------------
+~~~~~~~~~~~~~~
 
 *Update* operations modify existing :term:`documents <document>` in a
 :term:`collection`. In MongoDB, :method:`db.collection.update()` and
@@ -37,50 +121,8 @@ for details on performing an update with these methods. Update
 operations in MongoDB is analogous to the SQL ``UPDATE`` statement.
 
 Delete Method
--------------
+~~~~~~~~~~~~~
 
 *Delete* operations remove documents from a collection. In MongoDB,
 :method:`~db.collection.remove()` performs delete operations. Delete
 operations in MongoDB is analogous to the SQL ``DELETE`` statement.
-
-Behaviors
----------
-
-- The modification of a single document, or record, is atomic.
-
-- When a single write operation modifies multiple documents, the
-  operation as a whole is not atomic.
-
-- .. include:: /includes/fact-write-concern.rst
-
-Create Behaviors
-~~~~~~~~~~~~~~~~
-
-- If you add a new document *without* the :term:`_id` field, the client
-  library or :program:`mongod` instance adds an ``_id`` field and
-  populates the field with a unique :term:`ObjectId <objectid>`.
-
-- If you specify the ``_id`` field, the value must be unique within the
-  collection. For operations with :ref:`write concern <write-concern>`,
-  if you try to create a document with a duplicate ``_id`` value,
-  :program:`mongod` returns a duplicate key exception.
-  
-Update Behaviors
-~~~~~~~~~~~~~~~~
-
-- By default, the :method:`db.collection.update()` method updates a
-  **single** document, but by using the ``multi`` option,
-  :method:`~db.collection.update()` can update all documents that match
-  the query criteria in the collection.
-
-- The :method:`db.collection.save()` method only updates a single
-  document.
-
-- The :method:`db.collection.update()` method either updates specific
-  fields in the existing document or replaces the document. See
-  :method:`db.collection.update()` for details.
-
-- The :method:`db.collection.save()` method replaces the document. See
-  :method:`db.collection.save()` for details.
-
-- .. include:: /includes/fact-update-field-order.rst
