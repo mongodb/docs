@@ -1,0 +1,330 @@
+===========
+Aggregation
+===========
+
+.. versionadded:: 2.1
+
+.. default-domain:: mongodb
+
+MongoDB provides the :dbcommand:`aggregate` command for common
+aggregation tasks. The command passes a collection's documents through a
+:ref:`pipeline <aggregation-pipeline>` that uses operators to calculate
+aggregated values and to reshape results. The pipeline can, for example,
+total or average field values, create new virtual sub-objects, or
+extract sub-fields into the top-level of results.
+
+If you are familiar with :term:`SQL`, the :dbcommand:`aggregate` command
+provides similar functionality to SQL ``GROUP BY`` and related SQL
+operators, as well as to simple forms of "self joins."
+
+The aggregation pipeline provides a means to calculate aggregated values
+without having to use :term:`map-reduce`, which, though powerful, is
+often not necessary for simple aggregation tasks.
+
+.. _aggregation-pipeline:
+
+Pipeline
+--------
+
+Conceptually, documents from a collection pass through an aggregation
+pipeline, which transforms these objects as they pass through. For those
+familiar with UNIX-like shells (e.g. bash,) the concept is analogous to
+the pipe (i.e. ``|``) used to string text filters together.
+
+In a shell environment the pipe redirects a stream of characters from
+the output of one process to the input of the next. The MongoDB
+aggregation pipeline streams MongoDB documents from one :ref:`pipeline
+operator <aggregation-pipeline-operator-reference>` to the next to
+process the documents. Pipeline operators can be repeated in the pipe.
+
+All pipeline operators process a stream of documents and the pipeline
+behaves as if the operation scans a collection and passes all matching
+documents into the "top" of the pipeline. Each operator in the pipeline
+transforms each document as it passes through the pipeline.
+
+.. note::
+
+   Pipeline operators need not produce one output document for every
+   input document: operators may also generate new documents or filter
+   out documents.
+
+.. include:: /includes/warning-aggregation-types.rst
+
+.. seealso:: The ":doc:`/reference/aggregation`" includes
+   documentation of the following pipeline operators:
+
+   - :pipeline:`$project`
+   - :pipeline:`$match`
+   - :pipeline:`$limit`
+   - :pipeline:`$skip`
+   - :pipeline:`$unwind`
+   - :pipeline:`$group`
+   - :pipeline:`$sort`
+   - :pipeline:`$geoNear`
+
+.. _aggregation-expressions:
+
+Expressions
+-----------
+
+Expressions produce output documents based on calculations performed on
+input documents. The aggregation pipeline defines expressions using a
+document format using prefixes.
+
+Expressions are stateless and are only evaluated when seen by the
+aggregation process. All aggregation expressions can only operate on
+the current document in the pipeline, and cannot integrate data from
+other documents.
+
+The :term:`accumulator` expressions used in the :pipeline:`$group`
+operator maintain that state (e.g. totals, maximums, minimums, and
+related data) as documents progress through the pipeline.
+
+For the expression operators, see
+:ref:`aggregation-expression-operators`.
+
+Invocation
+----------
+
+Invoke an :term:`aggregation` operation with the
+:method:`~db.collection.aggregate()` wrapper in the :program:`mongo`
+shell or the :dbcommand:`aggregate` :term:`database command`. Always
+call :method:`~db.collection.aggregate()` on a collection object that
+determines the input documents of the aggregation :ref:`pipeline
+<aggregation-pipeline>`. The arguments to the
+:method:`~db.collection.aggregate()` method specify a sequence of
+:ref:`pipeline operators <aggregation-pipeline-operator-reference>`,
+where each operator may have a number of operands.
+
+First, consider a collection of documents named ``articles`` using the
+following format:
+
+.. code-block:: javascript
+
+   {
+    title : "this is my title" ,
+    author : "bob" ,
+    posted : new Date () ,
+    pageViews : 5 ,
+    tags : [ "fun" , "good" , "fun" ] ,
+    comments : [
+                { author :"joe" , text : "this is cool" } ,
+                { author :"sam" , text : "this is bad" }
+    ],
+    other : { foo : 5 }
+   }
+
+The following example aggregation operation pivots data to
+create a set of author names grouped by tags applied to an
+article. Call the aggregation pipeline by issuing the following
+command:
+
+.. code-block:: javascript
+
+   db.articles.aggregate(
+     { $project : {
+        author : 1,
+        tags : 1,
+     } },
+     { $unwind : "$tags" },
+     { $group : {
+        _id : { tags : "$tags" },
+        authors : { $addToSet : "$author" }
+     } }
+   );
+
+The aggregation pipeline begins with the collection
+``articles`` and selects the ``author`` and ``tags`` fields using the
+:pipeline:`$project` aggregation operator. The
+:pipeline:`$unwind` operator produces one output document per
+tag. Finally, the :pipeline:`$group` operator pivots these fields.
+
+Results
+-------
+
+The aggregation operation in the previous section returns a
+document with two fields:
+
+- ``result`` which holds an array of documents returned by the
+  :ref:`pipeline <aggregation-pipeline>`
+
+- ``ok`` which holds the value ``1``, indicating success.
+
+.. include:: /includes/fact-agg-helper-exception.rst
+
+As a document, the result is subject to the :ref:`BSON Document size
+<limit-bson-document-size>` limit, which is currently 16 megabytes.
+
+.. _aggregation-optimize-performance:
+
+Optimize Performance
+--------------------
+
+Because you will always call :dbcommand:`aggregate` on a collection
+object, which logically inserts the *entire* collection into the
+aggregation pipeline, you may want to optimize the operation by avoiding
+scanning the entire collection whenever possible.
+
+.. _aggregation-pipeline-operators-and-performance:
+
+Pipeline Operators and Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Depending on the order in which they appear in the pipeline,
+aggregation operators can take advantage of indexes.
+
+The following pipeline operators take advantage of an index when they
+occur at the beginning of the pipeline:
+
+- :pipeline:`$match`
+- :pipeline:`$sort`
+- :pipeline:`$limit`
+- :pipeline:`$skip`.
+
+The above operators can also use an index when placed **before** the
+following aggregation operators:
+
+- :pipeline:`$project`
+- :pipeline:`$unwind`
+- :pipeline:`$group`.
+
+.. versionadded:: 2.4
+
+The :pipeline:`$geoNear` pipeline operator takes advantage of a
+geospatial index. When using :pipeline:`$geoNear`, the
+:pipeline:`$geoNear` pipeline operation must appear as the first
+stage in an aggregation pipeline.
+
+Early Filtering
+~~~~~~~~~~~~~~~
+
+If your aggregation operation requires only a subset of the data in a
+collection, use the :pipeline:`$match` operator to restrict which items go
+in to the top of the pipeline, as in a query. When placed early in a
+pipeline, these :pipeline:`$match` operations use suitable indexes
+to scan only the matching documents in a collection.
+
+Placing a :pipeline:`$match` pipeline stage followed by a
+:pipeline:`$sort` stage at the
+start of the pipeline is logically equivalent to a single query
+with a sort, and can use an index.
+
+.. OMMITED: this feature is pending SERVER-4506. Other optimizations
+.. are pending SERVER-4507 SERVER-4644 SERVER-4656 SERVER-4816
+..
+.. :term:`Aggregation` operations have an optimization phase, before
+.. execution, which attempts to re-arrange the pipeline by moving
+.. :pipeline:`$match` operators towards the beginning to the
+.. greatest extent possible. For example, if a pipeline begins
+.. with a :pipeline:`$project` that renames fields, followed by a
+.. :pipeline:`$match`, the optimizer can improve performance
+.. without affecting the result by moving the :pipeline:`$match`
+.. operator in front of the :pipeline:`$project`.
+
+In future versions there may be an optimization phase in the
+pipeline that reorders the operations to increase performance without
+affecting the result. However, at this time place
+:pipeline:`$match` operators at the beginning of the pipeline when
+possible.
+
+Pipeline Sequence Optimization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 2.4
+
+Aggregation operations have an optimization phase which attempts to
+re-arrange the pipeline for improved performance.
+
+``$sort`` + ``$skip`` + ``$limit`` Sequence Optimization
+````````````````````````````````````````````````````````
+
+When you have sequence of :pipeline:`$sort` followed by a
+:pipeline:`$skip` followed by a :pipeline:`$limit`, an
+optimization occurs whereby the :pipeline:`$limit` moves in front
+of the :pipeline:`$skip`. For example, if the pipeline consists of
+the following stages:
+
+.. code-block:: javascript
+
+   { $sort: { age : -1 } },
+   { $skip: 10 },
+   { $limit: 5 }
+
+During the optimization phase, the optimizer transforms the sequence to
+the following:
+
+.. code-block:: javascript
+
+   { $sort: { age : -1 } },
+   { $limit: 15 }
+   { $skip: 10 }
+
+.. note::
+
+   The :pipeline:`$limit` value has increased to the sum of the
+   initial value and the :pipeline:`$skip` value.
+
+``$limit`` + ``$skip`` + ``$limit`` + ``$skip`` Sequence Optimization
+`````````````````````````````````````````````````````````````````````
+
+When you have a continuous sequence of a :pipeline:`$limit` pipeline
+stage followed by a :pipeline:`$skip` pipeline stage, the
+aggregation will attempt to re-arrange the pipeline stages to combine
+the limits together and the skips together. For example, if the
+pipeline consists of the following stages:
+
+.. code-block:: javascript
+
+   { $limit: 100 },
+   { $skip: 5 },
+   { $limit: 10},
+   { $skip: 2 }
+
+During the intermediate step, the optimizer reverses the position of
+the :pipeline:`$skip` followed by a :pipeline:`$limit` to
+:pipeline:`$limit` followed by the :pipeline:`$skip`.
+
+.. code-block:: javascript
+
+   { $limit: 100 },
+   { $limit: 15},
+   { $skip: 5 },
+   { $skip: 2 }
+
+The :pipeline:`$limit` value has increased to the sum of the
+initial value and the :pipeline:`$skip` value. Then, for the final
+:pipeline:`$limit` value, the optimizer selects the minimum between
+the adjacent :pipeline:`$limit` values. For the final
+:pipeline:`$skip` value, the optimizer adds the adjacent
+:pipeline:`$skip` values, to transform the sequence to the
+following:
+
+.. code-block:: javascript
+
+   { $limit: 15 },
+   { $skip: 7 }
+
+Memory for Cumulative Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Certain pipeline operators require access to the entire input set before
+they can produce any output. For example, :pipeline:`$sort` must receive
+all of the input from the preceding :ref:`pipeline <aggregation-pipeline>`
+operator before it can produce its first output document. The current
+implementation of :pipeline:`$sort` does not go to disk in these cases:
+in order to sort the contents of the pipeline, the entire input must fit
+in memory.
+
+.. include:: /includes/fact-agg-sort-limit.rst
+
+:pipeline:`$group` has similar characteristics: Before any
+:pipeline:`$group` passes its output along the pipeline, it must
+receive the entirety of its input. For the :pipeline:`$group`
+operator, this frequently does not require as much memory as
+:pipeline:`$sort`, because it only needs to retain one record for
+each unique key in the grouping specification.
+
+The current implementation of the aggregation pipeline logs a warning
+if a cumulative operator consumes 5% or more of the physical memory on
+the host. Cumulative operators produce an error if they consume 10% or
+more of the physical memory on the host.
