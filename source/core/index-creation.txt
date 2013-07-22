@@ -1,0 +1,163 @@
+.. index:: index; options
+.. _index-creation-operations:
+.. _index-operations:
+
+Index Creation Options
+======================
+
+.. default-domain:: mongodb
+
+You specify index creation options in the second argument in
+:method:`ensureIndex() <db.collection.ensureIndex()>`.
+
+The options :ref:`sparse <index-type-sparse>`, :ref:`unique
+<index-type-unique>`, and :ref:`TTL <index-feature-ttl>` affect the
+kind of index that MongoDB creates. This section addresses,
+:ref:`background construction <index-creation-background>` and
+:ref:`duplicate dropping <index-creation-duplicate-dropping>`, which
+affect how MongoDB builds the indexes.
+
+.. index:: index; background creation
+.. _index-creation-background:
+
+Background Construction
+-----------------------
+
+By default, creating an index is a blocking operation. Building an
+index on a large collection of data can take a long
+time to complete. To resolve this issue, the background option can
+allow you to continue to use your :program:`mongod` instance during
+the index build.
+
+For example, to create an index in the background of the ``zipcode``
+field of the ``people`` collection you would issue the following:
+
+.. code-block:: javascript
+
+   db.people.ensureIndex( { zipcode: 1}, {background: true} )
+
+By default, ``background`` is ``false`` for building MongoDB indexes.
+
+You can combine the background option with other options, as in the
+following:
+
+.. code-block:: javascript
+
+   db.people.ensureIndex( { zipcode: 1}, {background: true, sparse: true } )
+
+Be aware of the following behaviors with background index
+construction:
+
+- A :program:`mongod` instance can build more than one index in the
+  background concurrently.
+
+  .. versionchanged:: 2.4
+     Before 2.4, a :program:`mongod` instance could only build one
+     background index per database at a time.
+
+  .. versionchanged:: 2.2
+     Before 2.2, a single :program:`mongod` instance could only build
+     one index at a time.
+
+- The indexing operation runs in the background so that other database
+  operations can run while creating the index. However, the
+  :program:`mongo` shell session or connection where you are creating
+  the index will block until the index build is complete. Open another
+  connection or :program:`mongo` instance to continue using commands
+  to the database.
+
+- The background index operation use an incremental approach that is
+  slower than the normal "foreground" index builds. If the index is
+  larger than the available RAM, then the incremental process
+  can take *much* longer than the foreground build.
+
+- If your application includes :method:`ensureIndex()
+  <db.collection.ensureIndex()>` operations, and an index *doesn't*
+  exist for other operational concerns, building the index can have a
+  severe impact on the performance of the database.
+
+  Make sure that your application checks for the indexes at start up
+  using the :method:`~db.collection.getIndexes()` method
+  or the :api:`equivalent method for your driver <>` and terminates if
+  the proper indexes do not exist. Always build indexes in production
+  instances using separate application code, during designated
+  maintenance windows.
+
+.. admonition:: Building Indexes on Secondaries
+
+   Background index operations on a :term:`replica set`
+   :term:`primary` become foreground indexing operations on secondary
+   members of the set. All indexing operations on secondaries block
+   replication.
+
+   To build large indexes on secondaries the best approach is to
+   restart one secondary at a time in :term:`standalone` mode and build the
+   index. After building the index, restart as a member of the
+   replica set, allow it to catch up with the other members of the
+   set, and then build the index on the next secondary. When all the
+   secondaries have the new index, step down the primary, restart it
+   as a standalone, and build the index on the former primary.
+
+   Remember, the amount of time required to build the index on a
+   secondary node must be within the window of the :term:`oplog`, so
+   that the secondary can catch up with the primary.
+
+   See :ref:`index-building-replica-sets` for more information on
+   this process.
+
+   Indexes on secondary members in "recovering" mode are always built in
+   the foreground to allow them to catch up as soon as possible.
+
+   See :ref:`index-building-replica-sets` for a complete procedure for
+   rebuilding indexes on secondaries.
+
+.. note::
+
+   If MongoDB is building an index in the background, you cannot
+   perform other administrative operations involving that collection,
+   including :dbcommand:`repairDatabase`, drop that collection
+   (i.e. :method:`db.collection.drop()`,) and
+   :dbcommand:`compact`. These operations will return an error during
+   background index builds.
+
+Queries will not use these indexes until the index build is complete.
+
+.. index:: index; duplicates
+.. index:: index; drop duplicates
+.. _index-creation-duplicate-dropping:
+
+Drop Duplicates
+---------------
+
+MongoDB cannot create a :ref:`unique index <index-type-unique>` on a
+field that has duplicate values. To force the creation of a unique
+index, you can specify the ``dropDups`` option, which will only index
+the first occurrence of a value for the key, and delete all subsequent
+values.
+
+.. warning::
+
+   As in all unique indexes, if a document does not have the indexed
+   field, MongoDB will include it in the index with a "null" value.
+
+   If subsequent fields *do not* have the indexed field, and you have
+   set ``{dropDups: true}``, MongoDB will remove these documents from
+   the collection when creating the index. If you combine ``dropDups``
+   with the :ref:`sparse <index-type-sparse>` option, this index will
+   only include documents in the index that have the value, and the
+   documents without the field will remain in the database.
+
+To create a unique index that drops duplicates on the ``username``
+field of the ``accounts`` collection, use a command in the following form:
+
+.. code-block:: javascript
+
+   db.accounts.ensureIndex( { username: 1 }, { unique: true, dropDups: true } )
+
+.. warning::
+
+   Specifying ``{ dropDups: true }`` will delete data from your
+   database. Use with extreme caution.
+
+By default, ``dropDups`` is ``false``.
+

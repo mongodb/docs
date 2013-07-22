@@ -1,0 +1,221 @@
+.. _index-features:
+.. _index-feature:
+
+Index Features
+==============
+
+.. default-domain:: mongodb
+
+(words)
+
+Special Indexes
+---------------
+
+(words)
+
+.. index:: index; TTL index
+.. index:: TTL index
+.. _index-feature-ttl:
+
+TTL Indexes
+~~~~~~~~~~~
+
+TTL indexes are special indexes that MongoDB can use to automatically
+remove documents from a collection after a certain amount of
+time. This is ideal for some types of information like machine
+generated event data, logs, and session information that only need to
+persist in a database for a limited amount of time.
+
+These indexes have the following limitations:
+
+- :ref:`Compound indexes <index-type-compound>` are *not* supported.
+
+- The indexed field **must** be a date :term:`type <bson types>`.
+
+- If the field holds an array, and there are multiple date-typed data
+  in the index, the document will expire when the *lowest*
+  (i.e. earliest) matches the expiration threshold.
+
+.. include:: /includes/note-ttl-collection-background-timing.rst
+
+In all other respects, TTL indexes are normal indexes,
+and if appropriate, MongoDB can use these
+indexes to fulfill arbitrary queries.
+
+.. see:: :doc:`/tutorial/expire-data`
+
+.. index:: index; geospatial
+.. index:: geospatial index
+.. _index-feature-geospatial:
+
+Geospatial Indexes
+~~~~~~~~~~~~~~~~~~
+
+MongoDB provides "geospatial indexes" to support location-based and
+other similar queries in a two dimensional coordinate systems. For
+example, use geospatial indexes when you need to take a collection of
+documents that have coordinates, and return a number of options that
+are "near" a given coordinate pair.
+
+To create a geospatial index, your :term:`documents <document>` must
+have a coordinate pair. For maximum compatibility, these coordinate
+pairs should be in the form of a two element array, such as ``[ x , y
+]``. Given the field of ``loc``, that held a coordinate pair, in the
+collection ``places``, you would create a geospatial index as follows:
+
+.. code-block:: javascript
+
+   db.places.ensureIndex( { loc : "2d" } )
+
+MongoDB will reject documents that have values in the ``loc`` field
+beyond the minimum and maximum values.
+
+.. note::
+
+   MongoDB permits only one geospatial index per collection. Although,
+   MongoDB will allow clients to create multiple geospatial indexes, a
+   single query can use only one index.
+
+See the :operator:`$near`, and the database command
+:dbcommand:`geoNear` for more information on accessing geospatial
+data.
+
+.. todo:: insert link to special /core/geospatial.txt documentation
+   on this subject. once that document exists.
+
+.. index:: index; geohaystack index
+.. index:: geohaystack index
+.. _index-geohaystack-index:
+
+Geohaystack Indexes
+~~~~~~~~~~~~~~~~~~~
+
+.. todo:: update links in the following session as needed:
+
+In addition to conventional :ref:`geospatial indexes
+<index-feature-geospatial>`, MongoDB also provides a bucket-based
+geospatial index, called "geospatial haystack indexes." These indexes
+support high performance queries for locations within a small area,
+when the query must filter along another dimension.
+
+.. example::
+
+   If you need to return all documents that have coordinates within 25
+   miles of a given point *and* have a type field value of "museum," a
+   haystack index would be provide the best support for these queries.
+
+Haystack indexes allow you to tune your bucket size to the
+distribution of your data, so that in general you search only very
+small regions of 2d space for a particular kind of document. These
+indexes are not suited for finding the closest documents to a
+particular location, when the closest documents are far away compared
+to bucket size.
+
+.. index:: index; text
+.. index:: text index
+.. _index-feature-text:
+
+``text`` Indexes
+~~~~~~~~~~~~~~~~
+
+.. versionadded:: 2.4
+
+MongoDB provides ``text`` indexes to support the search of string
+content in documents of a collection. ``text`` indexes are
+case-insensitive and can include any field that contains string data.
+``text`` indexes drop language-specific stop words (e.g. in English,
+"the," "an," "a," "and," etc.) and uses simple language-specific suffix
+stemming. See :ref:`text-search-languages` for the supported languages.
+
+You can only access the ``text`` index with the :dbcommand:`text`
+command.
+
+See :doc:`/core/text-search` for more information.
+
+.. index:: index; limitations
+.. _index-limitations:
+
+Index Behaviors
+---------------
+
+Limitations
+~~~~~~~~~~~
+
+..
+  - MongoDB indexes are case-sensitive.
+
+- A collection may have no more than :ref:`64 indexes
+  <limit-number-of-indexes-per-collection>`.
+
+- Index keys can be no larger than :ref:`1024 bytes
+  <limit-index-size>`.
+
+  ..
+
+    Documents with fields that have values greater than
+    this size cannot be indexed.
+
+    To query for documents that were too large to index, you can use a
+    command similar to the following:
+
+    .. code-block:: javascript
+
+       db.records.find({<key>: <value too large to index>}).hint({$natural: 1})
+
+- The name of an index, including the :term:`namespace` must be
+  shorter than :ref:`128 characters <limit-index-name-length>`.
+
+- Indexes have storage requirements, and impacts insert/update speed
+  to some degree.
+
+- Create indexes to support queries and other operations, but do not
+  maintain indexes that your MongoDB instance cannot or will not use.
+
+- For queries with the :operator:`$or` operator,
+  each clause of an :operator:`$or` query executes in parallel, and
+  can each use a different index.
+
+- For queries that use the :method:`~cursor.sort()` method and
+  use the :operator:`$or` operator, the query **cannot** use the
+  indexes on the :operator:`$or` fields.
+
+- ``2d`` :doc:`geospatial queries </core/geospatial-indexes>` do not
+  support queries that use the :operator:`$or` operator.
+
+Consider Insert Throughput
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your application is write-heavy, then be careful when creating new
+indexes, since each additional index with impose a
+write-performance penalty. In general, don't be careless about adding
+indexes. Add indexes to complement your queries. Always have
+a good reason for adding a new index, and be sure to benchmark
+alternative strategies.
+
+.. todo:: insert link to /source/core/write-operations when that page
+   is complete.  Do we want to link to write concern? -bg
+
+MongoDB must update *all* indexes associated with a collection after
+every insert, update, or delete operation. For update operations, if
+the updated document does not move to a new location, then MongoDB only
+modifies the updated fields in the index. Therefore, every index on a
+collection adds some amount of overhead to these write operations. In
+almost every case, the performance gains that indexes realize for read
+operations are worth the insertion penalty. However, in some cases:
+
+- An index to support an infrequent query might incur more
+  insert-related costs than savings in read-time.
+
+  .. todo:: How do you determine if the above is the case? 
+     Empirically.
+
+- If you have many related indexes on a collection that receives a
+  high volume of write operations, you may find better overall
+  performance with a smaller number of indexes, even if some queries
+  are less optimally supported by an index.
+
+- If your indexes and queries are not sufficiently :ref:`selective
+  <index-selectivity>`, the speed improvements for query operations
+  may not offset the costs of maintaining an index. For more
+  information see :ref:`index-selectivity`.
+
