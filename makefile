@@ -43,7 +43,7 @@ htaccess:$(public-output)/.htaccess
 $(public-output)/.htaccess:bin/builddata/htaccess.yaml $(tools)/bin/htaccess.py $(public-output)/
 	@$(PYTHONBIN) $(tools)/bin/htaccess.py $@ --data $<
 sitemap:$(branch-output)/sitemap.xml.gz
-$(branch-output)/sitemap.xml.gz:$(public-branch-output) $(public-branch-output)/release.txt $(public-output)/manual $(error-pages) links
+$(branch-output)/sitemap.xml.gz:$(public-branch-output) $(public-branch-output)/release.txt $(public-output)/manual links
 	@echo [sitemap]: building sitemap
 	@echo -e "----------\n[sitemap]: build started\: `date`" >> $(branch-output)/sitemap-build.log
 	@$(PYTHONBIN) $(tools)/bin/sitemap_gen.py --testing --config=conf-sitemap.xml 2>&1 >> $(branch-output)/sitemap-build.log
