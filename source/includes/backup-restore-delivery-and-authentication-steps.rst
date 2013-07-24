@@ -8,18 +8,19 @@ Select Destination for the Snapshot
 
      **or**
 
-   - Select ``Push via Secure Copy (SCP)`` to have the Service download
+   - Select ``Push via Secure Copy (SCP)`` to have |backup| download
      the snapshot. You can grant access by supplying 10gen with a
      username and password to your server, or you can provide a
      username and grant access via SSH public key.
      
      To grant access via SSH public key,
      
-     #. Go to the MMS "Settings" page, and select "Backup and
-        Restore Public Key."
-
-     #. Input a passphrase, and click on "Generate a New Public Key". 
-        The backup service will generate and display a public key.
+     #. Go to the MMS "Settings" page, and select :guilabel:`Public Key
+        for SCP Restores`.
+        
+     #. Input a passphrase, and click on :guilabel:`Generate a New
+        Public Key`. |backup| will generate and display a
+        public key.
 
      #. Log in to your server using the same username you will supply
         in your restore request.

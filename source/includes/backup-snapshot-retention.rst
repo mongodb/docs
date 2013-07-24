@@ -1,7 +1,7 @@
-- Snapshots taken every 6 hours are stored for two days.
+- Snapshots taken every 6 hours: stored for two days.
 
-- Daily snapshots are stored for one week.
+- Daily snapshots: stored for one week.
 
-- Weekly snapshots are stored for one month.
+- Weekly snapshots: stored for one month.
 
-- Monthly snapshots are stored for one year.
+- Monthly snapshots: stored for one year.

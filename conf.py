@@ -66,25 +66,29 @@ for pdf in pdfs:
 BREAK = '\n\n'
 try: 
     if tags.has('hosted'):
-        project = u'On-Prem Monitoring / MMS'
-        html_title = 'On-Prem Monitoring / MMS'
-        html_short_title = 'On-Prem Monitoring / MMS'
+        project = u'MongoDB Management Service On-Prem / MMS'
+        html_title = 'MMS On-Prem Manual / MMS'
+        html_short_title = 'MMS On-Prem Manual / MMS'
         html_theme_options['edition'] = 'hosted'
         latex_documents = hosted_latex_documents
         rst_epilog = '\n'
         rst_epilog += ".. |s| replace:: Suite" + BREAK
-        rst_epilog += ".. |index-page-title| replace:: On-Prem Monitoring" + BREAK
-        rst_epilog += ".. |mms| replace:: On-Prem Monitoring" + BREAK
+        rst_epilog += ".. |index-page-title| replace:: MongoDB Management Service On-Prem" + BREAK
+        rst_epilog += ".. |mms| replace:: MongoDB Management Service On-Prem" + BREAK
+        rst_epilog += ".. |backup| replace:: MMS Backup On-Prem" + BREAK
+        rst_epilog += ".. |monitoring| replace:: MMS Monitoring On-Prem" + BREAK
     else:
-        project = u'MongoDB Monitoring and Backup Service (MMS)'
+        project = u'MongoDB Management Service (MMS)'
         html_title = 'MMS Manual'
         html_short_title = 'MMS'
         html_theme_options['edition'] = 'saas'
         latex_documents = saas_latex_documents
         rst_epilog = '\n'
         rst_epilog += ".. |s| replace:: Service" + BREAK
-        rst_epilog += ".. |index-page-title| replace:: MongoDB Monitoring and Backup Service" + BREAK
-        rst_epilog += ".. |mms| replace:: MongoDB Monitoring and Backup Service" + BREAK
+        rst_epilog += ".. |index-page-title| replace:: MongoDB Management Service" + BREAK
+        rst_epilog += ".. |mms| replace:: MongoDB Management Service" + BREAK
+        rst_epilog += ".. |backup| replace:: MMS Backup" + BREAK
+        rst_epilog += ".. |monitoring| replace:: MMS Monitoring" + BREAK
 except NameError:
     pass
 
