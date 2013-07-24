@@ -8,62 +8,101 @@ Queries
 
 .. default-domain:: mongodb
 
-Read operations, or *queries*, retrieve :term:`documents <document>`
-from a :term:`collection` in MongoDB. A document is the equivalent of
-an :term:`RDBMS` record, and a collection is the equivalent of an RDBMS
-table. Read operations in MongoDB is analogous to the SQL ``SELECT``
-statement.
+Queries are the primary operation that applications use to retrieve
+data from a database. Given a collection of data, the query selects
+documents that match a set criteria and then returns a subset or a
+:term:`projection` of those results to the client. Databases also
+provide methods to modify the result set in some way. Possible query
+modifications include limiting the number of results or sorting the
+result set. 
 
-Query Methods
--------------
+Consider the following MongoDB query operations: 
 
-In MongoDB, the :method:`db.collection.find()` method, which returns a
-cursor, and the :method:`db.collection.findOne()` method, which returns
-a single document, perform read operations.
+.. include:: /images/crud-annotated-mongodb-find.rst
 
-The :method:`~db.collection.find()` method has the following syntax:
+This corresponds to the following statement in SQL: 
 
-.. code-block:: javascript
+.. include:: /images/crud-annotated-sql-find.rst
 
-   db.collection.find( <query>, <projection> )
+For additional examples see: :doc:`/tutorial/query-documents` and
+:doc:`/tutorial/project-fields-from-query-results`.
 
-The :method:`~db.collection.findOne()` method has the following
-syntax:
+Queries
+-------
 
-.. code-block:: javascript
-
-   db.collection.findOne( <query>, <projection>)
-
-The first argument to the methods defines the selection criteria. See
-:ref:`query-statement` for details.
-
-The second argument to the methods limits the fields to return. See
-:doc:`/core/projection` for details.
-
-.. _query-statement:
-
-Query Document
---------------
-
-The *first* argument to the :method:`~db.collection.find()` and
-:method:`~db.collection.findOne()` methods is the query document. The
-query documents are :term:`BSON` objects that use a set of :doc:`query
-operators </reference/operator>` to specify a condition, such as
-equality or less than. For example:
-
-.. code-block:: javascript
-
-   db.records.find( { "user_id": { $lt: 42} } )
-
-This query selects the documents in the ``records`` collection that
-match the condition ``user_id`` less than ``42``.
-
-For more examples of queries, see :doc:`/tutorial/query-documents`.
-
-Query Behavior
---------------
+MongoDB provides two main query operations: the
+:method:`db.collection.find()` method, which returns a cursor, and the
+:method:`db.collection.findOne()` method, which returns a single
+document. Remember the following properties of MongoDB queries:
 
 - All queries in MongoDB address a *single* collection.
 
 - The order of documents returned by a query is not defined and is not
   necessarily consistent unless you specify a :method:`~cursor.sort()`.
+
+Consider the following example: 
+
+.. example:: 
+   
+   .. code-block:: javascript
+
+      db.records.find( { "user_id": { $lt: 42} }, { "username": 1, } )
+
+   This query selects the documents in the ``records`` collection that
+   match the condition ``user_id`` less than ``42``, and returns the 
+
+Projections
+-----------
+
+By default, a query in MongoDB returns the complete content of all
+matching documents. If you only need to use a subset of the document's
+fields, you can limit the fields that MongoDB returns to your
+application. These :term:`projections <projection>` and minimize the
+amount of data that your application has to promise, and increase the
+overall efficiency of your application. 
+
+Define projections as the *second* argument to the
+:method:`~db.collection.find()` and :method:`~db.collection.findOne()`
+methods define a projection. For example:
+
+.. example:: 
+
+   .. code-block:: javascript
+
+      db.records.find( { "user_id": { $lt: 42} }, { "_id": 0, "name": 1 , "email": 1 })
+
+   This query selects a number of documents in the ``records``
+   collection, that match the query ``{ "user_id": { $lt: 42} }``, but
+   only returns the ``name`` and  ``email`` fields.
+
+Projection Statements
+~~~~~~~~~~~~~~~~~~~~~
+
+To include a field in a projection, specify the field name with the
+value ``1``. To exclude a field from a projection specify the field
+name and the value ``0``.
+
+.. important:: You *cannot* combine inclusion and exclusion semantics
+   in a single projection with the *exception* of the ``_id`` field.
+
+For more examples of queries with projection statements, sees
+:doc:`/tutorial/project-fields-from-query-results`.
+
+Projection Behavior
+~~~~~~~~~~~~~~~~~~~
+
+- In MongoDB, the ``_id`` field is always included in results unless
+  explicitly excluded.
+
+- Projections can either exclude a selection of fields , or include a
+  specific subset of fields from the result documents. Except for
+  excluding the ``_id`` field in inclusive projections, you cannot
+  mix exclusive and inclusive projections.
+
+- The :projection:`$elemMatch`, :projection:`$slice`, :projection:`$`
+  provide additional control over the projection of data from arrays
+  in result documents.
+
+- The :pipeline:`$project` stage in the :doc:`aggregation framework
+  </core/aggregation>` pipeline provides related functionality in the
+  context of data aggregation operations.
