@@ -68,6 +68,62 @@ modified document.
      ``new`` is ``false``, **and** a ``sort`` option, the method
      returns an empty document ``{}``.
 
+Behaviors
+---------
+
+Timing
+~~~~~~
+
+When :method:`~db.collection.findAndModify()` includes the ``upsert:
+true`` option **and** the query field(s) is not uniquely indexed, the
+method could insert a document multiple times in certain circumstances.
+For instance, if multiple clients each invoke the method with the same
+``query`` condition and these methods complete the ``find`` phase
+before any of methods perform the ``modify`` phase, these methods could
+insert the same document.
+
+In the following example, no document with the name ``Andy`` exists,
+and multiple clients issue the following command:
+
+.. code-block:: javascript
+
+   db.people.findAndModify( {
+       query: { name: "Andy" },
+       sort: { rating: 1 },
+       update: { $inc: { score: 1 } },
+       upsert: true
+   } )
+
+Then, if these clients' :method:`~db.collection.findAndModify()`
+methods finish the ``query`` phase before any command starts the
+``modify`` phase, **and** there is no unique index on the ``name``
+field, the commands may all perform an upsert. To prevent this
+condition, create a :ref:`unique index <index-type-unique>` on the
+``name`` field. With the unique index in place, the multiple methods
+would observe one of the following behaviors:
+
+- Exactly one :method:`~db.collection.findAndModify()` would
+  successfully insert a new document.
+
+- Zero or more :method:`~db.collection.findAndModify()` methods
+  would update the newly inserted document.
+
+- Zero or more :method:`~db.collection.findAndModify()` methods
+  would fail when they attempted to insert a duplicate. If the
+  method fails due to a unique index constraint violation, you can
+  retry the method. Absent a delete of the document, the retry
+  should not fail.
+
+Sharded Collections
+~~~~~~~~~~~~~~~~~~~
+
+When using :dbcommand:`findAndModify` in a :term:`sharded <sharding>`
+environment, the ``query`` **must** contain the :term:`shard key` for
+all operations against the shard cluster for the *sharded* collections.
+
+:dbcommand:`findAndModify` operations issued against :program:`mongos`
+instances for *non-sharded* collections function normally.
+
 Examples
 --------
 
@@ -155,8 +211,8 @@ If the method did **not** include a ``sort`` option, the method returns
 
    null
 
-Update, Insert and Return Document
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Update, Insert and Return New Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following method includes both the ``upsert: true`` option and
 the ``new:true`` option to return the newly inserted document if a
@@ -183,57 +239,3 @@ The method returns the newly inserted document:
       "score" : 1,
       "state" : "active"
    }
-
-   When :method:`~db.collection.findAndModify()` includes the ``upsert:
-   true`` option **and** the query field(s) is not uniquely indexed, the
-   method could insert a document multiple times in certain
-   circumstances. For instance, if multiple clients each invoke the
-   method with the same ``query`` condition and these methods complete
-   the ``find`` phase before any of methods perform the ``modify``
-   phase, these methods could insert the same document.
-
-No Matching Document
-~~~~~~~~~~~~~~~~~~~~
-
-The following is an example where no document with the name ``Andy`` exists
-and multiple clients issue the following command:
-
-.. code-block:: javascript
-
-   db.people.findAndModify( {
-       query: { name: "Andy" },
-       sort: { rating: 1 },
-       update: { $inc: { score: 1 } },
-       upsert: true
-   } )
-
-Limitation
-----------
-
-If all the methods finish the ``query`` phase before any command
-starts the ``modify`` phase, **and** there is no unique index on the
-``name`` field, the commands may all perform an upsert. To prevent
-this condition, create a :ref:`unique index <index-type-unique>` on
-the ``name`` field. With the unique index in place, the multiple
-methods would observe one of the following behaviors:
-
-- Exactly one :method:`~db.collection.findAndModify()` would
-  successfully insert a new document.
-
-- Zero or more :method:`~db.collection.findAndModify()` methods
-  would update the newly inserted document.
-
-- Zero or more :method:`~db.collection.findAndModify()` methods
-  would fail when they attempted to insert a duplicate. If the
-  method fails due to a unique index constraint violation, you can
-  retry the method. Absent a delete of the document, the retry
-  should not fail.
-
-.. warning::
-
-   - When using :dbcommand:`findAndModify` in a :term:`sharded
-     <sharding>` environment, the ``query`` must contain the
-     :term:`shard key` for all operations against the shard cluster.
-     :dbcommand:`findAndModify` operations issued against
-     :program:`mongos` instances for non-sharded collections
-     function normally.
