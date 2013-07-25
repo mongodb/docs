@@ -1,0 +1,118 @@
+.. index:: index; multikey
+.. _index-type-multi-key:
+.. _index-type-multikey:
+
+================
+Multikey Indexes
+================
+
+.. default-domain:: mongodb
+
+If you index a field that contains an array, MongoDB indexes each
+value in the array separately, in a "multikey index."
+
+.. example::
+
+   Given the following document:
+
+   .. code-block:: javascript
+
+      { "_id" : ObjectId("..."),
+        "name" : "Warm Weather",
+        "author" : "Steve",
+        "tags" : [ "weather", "hot", "record", "april" ] }
+
+   Then an index on the ``tags`` field would be a multikey index and
+   would include these separate entries:
+
+   .. code-block:: javascript
+
+      { tags: "weather" }
+      { tags: "hot" }
+      { tags: "record" }
+      { tags: "april" }
+
+   Queries could use the multikey index to return queries for any of
+   the above values.
+
+.. note::
+
+   For ``hashed`` indexes, MongoDB collapses sub-documents and
+   computes the hash for the entire value, but does not support
+   multi-key (i.e. arrays) indexes. For fields that hold
+   sub-documents, you cannot use the index to support queries that
+   introspect the sub-document.
+
+You can use multikey indexes to index fields within objects embedded in
+arrays, as in the following example:
+
+.. example::
+
+   Consider a ``feedback`` collection with documents in the following
+   form:
+
+   .. code-block:: javascript
+
+      {
+       "_id": ObjectId(...)
+       "title": "Grocery Quality"
+       "comments": [
+          { author_id: ObjectId(...)
+            date: Date(...)
+            text: "Please expand the cheddar selection." },
+          { author_id: ObjectId(...)
+            date: Date(...)
+            text: "Please expand the mustard selection." },
+          { author_id: ObjectId(...)
+            date: Date(...)
+            text: "Please expand the olive selection." }
+       ]
+      }
+
+   An index on the ``comments.text`` field would be a multikey index
+   and would add items to the index for all of the sub-documents in
+   the array.
+
+   With an index, such as ``{ comments.text: 1 }``, consider the
+   following query:
+
+   .. code-block:: javascript
+
+      db.feedback.find( { "comments.text": "Please expand the olive selection." } )
+
+   This would select the document, that contains the following
+   document in the ``comments.text`` array:
+
+   .. code-block:: javascript
+
+      { author_id: ObjectId(...)
+        date: Date(...)
+        text: "Please expand the olive selection." }
+
+.. admonition:: Compound Multikey Indexes May Only Include One Array Field
+
+   While you can create multikey :ref:`compound indexes
+   <index-type-compound>`, at most one field in a compound index may hold
+   an array. For example, given an index on ``{ a: 1, b: 1 }``, the
+   following documents are permissible:
+
+   .. code-block:: javascript
+
+      {a: [1, 2], b: 1}
+
+      {a: 1, b: [1, 2]}
+
+   However, the following document is impermissible, and MongoDB
+   cannot insert such a document into a collection with the ``{a: 1,
+   b: 1 }`` index:
+
+   .. code-block:: javascript
+
+      {a: [1, 2], b: [1, 2]}
+
+   If you attempt to insert a such a document, MongoDB will reject the
+   insertion, and produce an error that says ``cannot index parallel
+   arrays``. MongoDB does not index parallel arrays because they
+   require the index to include each value in the Cartesian product of
+   the compound keys, which could quickly result in incredibly large
+   and difficult to maintain indexes.

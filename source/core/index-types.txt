@@ -16,51 +16,6 @@ any document or :ref:`sub-document <index-sub-document>`. MongoDB also
 supports indexes of arrays, called :ref:`multi-key indexes
 <index-type-multi-key>`.
 
-.. index:: _id index
-.. index:: _id
-.. index:: index; _id
-.. index:: index types; primary key
-.. _index-type-id:
-
-_id Index
----------
-
-The ``_id`` index is a :ref:`unique index <index-type-unique>`
-[#unique-index-report]_ on the ``_id`` field, and MongoDB creates this
-index by default on all collections. [#capped-collections]_
-You cannot delete the index on ``_id``.
-
-The ``_id`` field is the :term:`primary key` for the collection, and
-every document *must* have a unique ``_id`` field. You may store any
-unique value in the ``_id`` field. The default value of ``_id`` is an
-:term:`ObjectID` on every :method:`-db.collection.insert()`
-operation. An :term:`ObjectId` is a 12-byte unique identifiers
-suitable for use as the value of an ``_id`` field.
-
-.. note::
-
-   In :term:`sharded clusters <sharded cluster>`, if you do *not* use
-   the ``_id`` field as the :term:`shard key`, then your application
-   **must** ensure the uniqueness of the values in the ``_id`` field
-   to prevent errors.  This is most-often done by using a standard
-   auto-generated :term:`ObjectId`.
-
-.. [#unique-index-report] Although the index on ``_id`` *is* unique,
-   the :method:`getIndexes() <db.collection.getIndexes()>` method will
-   *not* print ``unique: true`` in the :program:`mongo` shell.
-
-.. [#capped-collections] Before version 2.2 capped collections did not
-   have an ``_id`` field. In 2.2, all capped collections
-   have an ``_id`` field, except those in the ``local`` :term:`database`.
-   See the :ref:`release notes <2.2-id-indexes-capped-collections>`
-   for more information.
-
-.. todo:: fix the above when a full capped-collection page exists.
-   2012.11.08
-
-   note: The capped-collection page is now created and in
-   the draft folder.
-
 Secondary Indexes
 -----------------
 
@@ -75,464 +30,67 @@ and user-facing queries. Doing so requires MongoDB to scan the fewest
 number of documents possible.
 
 In the :program:`mongo` shell, you can create an index by calling the
-:method:`ensureIndex() <db.collection.ensureIndex()>` method.
-Arguments to :method:`ensureIndex() <db.collection.ensureIndex()>`
-resemble the following:
+:method:`ensureIndex() <db.collection.ensureIndex()>` method. For more
+detailed instructions about building indexes, see the :doc:`Indexing
+Tutorials </administration/indexes>` page.
 
-.. code-block:: javascript
+.. index:: _id index
+.. index:: _id
+.. index:: index; _id
+.. index:: index types; primary key
+.. _index-type-id:
 
-   { "field": 1 }
-   { "product.quantity": 1 }
-   { "product": 1, "quantity": 1 }
+_id Index
+~~~~~~~~~
 
-For each field in the index specify either ``1`` for an
-ascending order or ``-1`` for a descending order, which represents the
-order of the keys in the index. For indexes with more than one key (i.e.
-:ref:`compound indexes <index-type-compound>`) the sequence of fields is
-important.
+The ``_id`` index is a :ref:`unique index <index-type-unique>`
+[#unique-index-report]_ on the ``_id`` field. MongoDB creates this
+index by default on all collections. You cannot delete the index on
+``_id``.
 
-.. index:: index; subdocuments
-.. _index-subdocuments:
-.. _index-sub-documents:
-.. _index-subdocument:
-.. _index-sub-document:
-
-Indexes on Sub-documents
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can create indexes on fields that hold sub-documents as in the
-following example:
-
-.. example::
-
-   Given the following document in the ``factories`` collection:
-
-   .. code-block:: javascript
-
-      { "_id": ObjectId(...), metro: { city: "New York", state: "NY" } } )
-
-   You can create an index on the ``metro`` key. The following queries would
-   then use that index, and both would return the above document:
-
-   .. code-block:: javascript
-
-      db.factories.find( { metro: { city: "New York", state: "NY" } } );
-
-      db.factories.find( { metro: { $gte : { city: "New York" } } } );
-
-   The second query returns the document because ``{ city: "New York"
-   }`` is less than ``{ city: "New York", state: "NY" }`` The order of
-   comparison is in ascending key order in the order the keys occur in
-   the :term:`BSON` document.
-
-.. index:: index; embedded fields
-.. _index-embedded-fields:
-
-Indexes on Embedded Fields
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can create indexes on fields in sub-documents, just as you can
-index top-level fields in documents. [#sub-document-indexes]_ These
-indexes allow you to use a "dot notation," to introspect into
-sub-documents.
-
-Consider a collection named ``people`` that holds documents that resemble
-the following example document:
-
-.. code-block:: javascript
-
-   {"_id": ObjectId(...)
-    "name": "John Doe"
-    "address": {
-           "street": "Main"
-           "zipcode": 53511
-           "state": "WI"
-           }
-   }
-
-You can create an index on the ``address.zipcode`` field, using the
-following specification:
-
-.. code-block:: javascript
-
-   db.people.ensureIndex( { "address.zipcode": 1 } )
-
-.. [#sub-document-indexes] :ref:`index-sub-documents`, by contrast
-   allow you to index fields that hold documents, including the full
-   content, up to the maximum :limit:`Index Size` of the sub-document
-   in the index.
-
-.. index:: index; compound
-.. index:: compound index
-.. _index-type-compound:
-
-Compound Indexes
-~~~~~~~~~~~~~~~~
-
-MongoDB supports "compound indexes," where a single index structure
-holds references to multiple fields [#compound-index-field-limit]_
-within a collection's documents. Consider a collection named
-``products`` that holds documents that resemble the following
-document:
-
-.. code-block:: javascript
-
-   {
-    "_id": ObjectId(...)
-    "item": "Banana"
-    "category": ["food", "produce", "grocery"]
-    "location": "4th Street Store"
-    "stock": 4
-    "type": cases
-    "arrival": Date(...)
-   }
-
-If most applications queries include the ``item`` field and a
-significant number of queries will also check the ``stock`` field, you
-can specify a single compound index to support both of these queries:
-
-.. code-block:: javascript
-
-   db.products.ensureIndex( { "item": 1, "location": 1, "stock": 1 } )
-
-Compound indexes support queries on any prefix of the fields in the
-index. [#prefix]_ For example, MongoDB can use the above index to
-support queries that select the ``item`` field and to support queries
-that select the ``item`` field **and** the ``location`` field. The
-index, however, would not support queries that select the following:
-
-- only the ``location`` field
-- only the ``stock`` field
-- only the ``location`` and ``stock`` fields
-- only the ``item`` and ``stock`` fields
-
-.. important:: You may not create compound indexes that have
-   ``hashed`` index fields. You will receive an error if you attempt to
-   create a compound index that includes :ref:`a hashed index
-   <index-hashed-index>`.
-
-When creating an index, the number associated with a key specifies the
-direction of the index. The options are ``1`` (ascending) and ``-1``
-(descending). Direction doesn't matter for single key indexes or for
-random access retrieval but is important if you are doing sort
-queries on compound indexes.
-
-The order of fields in a compound index is very important. In the
-previous example, the index will contain references to documents
-sorted first by the values of the ``item`` field and, within each
-value of the ``item`` field, sorted by the values of ``location``, and
-then sorted by values of the ``stock`` field.
-
-.. [#prefix] Index prefixes are the beginning subset of fields. For
-   example, given the index ``{ a: 1, b: 1, c: 1 }`` both ``{ a: 1 }``
-   and ``{ a: 1, b: 1 }`` are prefixes of the index.
-
-.. [#compound-index-field-limit] MongoDB imposes a :limit:`limit of 31
-   fields for any compound index <Number of Indexed Fields in a Compound Index>`.
-
-
-.. index:: index; multikey
-.. _index-type-multi-key:
-.. _index-type-multikey:
-
-Multikey Indexes
-~~~~~~~~~~~~~~~~
-
-If you index a field that contains an array, MongoDB indexes each
-value in the array separately, in a "multikey index."
-
-.. example::
-
-   Given the following document:
-
-   .. code-block:: javascript
-
-      { "_id" : ObjectId("..."),
-        "name" : "Warm Weather",
-        "author" : "Steve",
-        "tags" : [ "weather", "hot", "record", "april" ] }
-
-   Then an index on the ``tags`` field would be a multikey index and
-   would include these separate entries:
-
-   .. code-block:: javascript
-
-      { tags: "weather" }
-      { tags: "hot" }
-      { tags: "record" }
-      { tags: "april" }
-
-   Queries could use the multikey index to return queries for any of
-   the above values.
+While the ``_id`` index is a :term:`<secondary index>`, you can think
+of the ``_id`` field as the :term:`primary key` for the collection.
+Every document *must* have a unique ``_id`` field. You may store any
+unique value in the ``_id`` field. The default value of ``_id`` is an
+:term:`ObjectID` on every :method:`-db.collection.insert()` operation.
+An :term:`ObjectId` is a 12-byte unique identifiers suitable for use as
+the value of an ``_id`` field.
 
 .. note::
 
-   For ``hashed`` indexes, MongoDB collapses sub-documents and
-   computes the hash for the entire value, but does not support
-   multi-key (i.e. arrays) indexes. For fields that hold
-   sub-documents, you cannot use the index to support queries that
-   introspect the sub-document.
+   In :term:`sharded clusters <sharded cluster>`, if you do *not* use
+   the ``_id`` field as the :term:`shard key`, then your application
+   **must** ensure the uniqueness of the values in the ``_id`` field
+   to prevent errors.  This is most-often done by using a standard
+   auto-generated :term:`ObjectId`.
 
-You can use multikey indexes to index fields within objects embedded in
-arrays, as in the following example:
+   Before version 2.2, :term:`capped collections <capped-collection>`
+   did not have an ``_id`` field. In version 2.2 and newer, capped
+   collection do have an ``_id`` field, except those in the ``local``
+   :term:`database`. See :ref:`Capped Collections Reccomendations
+   and Restrictions <capped-collections-reccomendations-and-restrictions>`
+   for more information.
 
-.. example::
+Other Secondary Indexes
+~~~~~~~~~~~~~~~~~~~~~~~
 
-   Consider a ``feedback`` collection with documents in the following
-   form:
+.. toctree::
+   :titlesonly:
 
-   .. code-block:: javascript
-
-      {
-       "_id": ObjectId(...)
-       "title": "Grocery Quality"
-       "comments": [
-          { author_id: ObjectId(...)
-            date: Date(...)
-            text: "Please expand the cheddar selection." },
-          { author_id: ObjectId(...)
-            date: Date(...)
-            text: "Please expand the mustard selection." },
-          { author_id: ObjectId(...)
-            date: Date(...)
-            text: "Please expand the olive selection." }
-       ]
-      }
-
-   An index on the ``comments.text`` field would be a multikey index
-   and would add items to the index for all of the sub-documents in
-   the array.
-
-   With an index, such as ``{ comments.text: 1 }``, consider the
-   following query:
-
-   .. code-block:: javascript
-
-      db.feedback.find( { "comments.text": "Please expand the olive selection." } )
-
-   This would select the document, that contains the following
-   document in the ``comments.text`` array:
-
-   .. code-block:: javascript
-
-      { author_id: ObjectId(...)
-        date: Date(...)
-        text: "Please expand the olive selection." }
-
-.. admonition:: Compound Multikey Indexes May Only Include One Array Field
-
-   While you can create multikey :ref:`compound indexes
-   <index-type-compound>`, at most one field in a compound index may hold
-   an array. For example, given an index on ``{ a: 1, b: 1 }``, the
-   following documents are permissible:
-
-   .. code-block:: javascript
-
-      {a: [1, 2], b: 1}
-
-      {a: 1, b: [1, 2]}
-
-   However, the following document is impermissible, and MongoDB
-   cannot insert such a document into a collection with the ``{a: 1,
-   b: 1 }`` index:
-
-   .. code-block:: javascript
-
-      {a: [1, 2], b: [1, 2]}
-
-   If you attempt to insert a such a document, MongoDB will reject the
-   insertion, and produce an error that says ``cannot index parallel
-   arrays``. MongoDB does not index parallel arrays because they
-   require the index to include each value in the Cartesian product of
-   the compound keys, which could quickly result in incredibly large
-   and difficult to maintain indexes.
+   /core/index-basic
+   /core/index-subdocument
+   /core/index-embedded-field
+   /core/index-multikey
+   /core/index-compound
 
 Index Configurations
 --------------------
 
-.. index:: index; sort order
-.. _index-ascending-and-descending:
+.. toctree::
+   :titlesonly:
 
-Indexes with Ascending and Descending Keys
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Indexes store references to fields in either ascending or descending
-order. For single-field indexes, the order of keys doesn't matter,
-because MongoDB can traverse the index in either direction. However,
-for :ref:`compound indexes <index-type-compound>`, if you need to
-order results against two fields, sometimes you need the index fields
-running in opposite order relative to each other.
-
-To specify an index with a descending order, use the following form:
-
-.. code-block:: javascript
-
-   db.products.ensureIndex( { "field": -1 } )
-
-More typically in the context of a :ref:`compound
-index<index-type-compound>`, the specification would resemble the
-following prototype:
-
-.. code-block:: javascript
-
-   db.products.ensureIndex( { "fieldA": 1, "fieldB": -1 } )
-
-Consider a collection of event data that includes both usernames and a
-timestamp. If you want to return a list of events sorted by username
-and then with the most recent events first. To create this index, use
-the following command:
-
-.. code-block:: javascript
-
-   db.events.ensureIndex( { "username" : 1, "timestamp" : -1 } )
-
-
-.. index:: index; unique
-.. _index-type-unique:
-
-Unique Indexes
-~~~~~~~~~~~~~~
-
-A unique index causes MongoDB to reject all documents that
-contain a duplicate value for the indexed field. To create a unique index
-on the ``user_id`` field of the ``members`` collection, use the
-following operation in the :program:`mongo` shell:
-
-.. code-block:: javascript
-
-   db.addresses.ensureIndex( { "user_id": 1 }, { unique: true } )
-
-By default, ``unique`` is ``false`` on MongoDB indexes.
-
-If you use the unique constraint on a :ref:`compound index
-<index-type-compound>` then MongoDB will enforce uniqueness on the
-*combination* of values, rather than the individual value for any or all
-values of the key.
-
-If a document does not have a value for the indexed field in a unique
-index, the index will store a null value for this document. MongoDB
-will only permit one document without a unique value in the collection
-because of this unique constraint. You can combine with the
-:ref:`sparse index <index-type-sparse>` to filter these null values
-from the unique index.
-
-You may not specify a unique constraint on a :ref:`hashed
-index <index-type-hashed>`.
-
-.. index:: index; sparse
-.. _index-type-sparse:
-
-Sparse Indexes
-~~~~~~~~~~~~~~
-
-Sparse indexes only contain entries for documents that have the
-indexed field. [#null-values-are-indexed-in-sparse-indexes]_ Any
-document that is missing the field is not indexed. The index is
-"sparse" because of the missing documents when values are missing.
-
-By contrast, non-sparse indexes contain all documents
-in a collection, and store null values for documents that do not
-contain the indexed field. Create a sparse index on the ``xmpp_id``
-field, of the ``members`` collection, using the following operation in
-the :program:`mongo` shell:
-
-.. code-block:: javascript
-
-   db.addresses.ensureIndex( { "xmpp_id": 1 }, { sparse: true } )
-
-By default, ``sparse`` is ``false`` on MongoDB indexes.
-
-.. warning::
-
-   Using these indexes will sometimes result in incomplete results
-   when filtering or sorting results, because sparse indexes are not
-   complete for all documents in a collection.
-
-.. note::
-
-   Do not confuse sparse indexes in MongoDB with `block-level`_
-   indexes in other databases. Think of them as dense indexes with a
-   specific filter.
-
-   You can combine the sparse index option with the :ref:`unique
-   indexes <index-type-unique>` option so that :program:`mongod` will
-   reject documents that have duplicate values for a field, but that
-   ignore documents that do not have the key.
-
-   .. _`block-level`: http://en.wikipedia.org/wiki/Database_index#Sparse_index
-
-.. [#null-values-are-indexed-in-sparse-indexes] All documents that
-   have the indexed field *are* indexed in a sparse index, even if
-   that field stores a null value in some documents.
-
-.. index:: index; hashed
-.. _index-type-hashed:
-
-Hashed Index
-~~~~~~~~~~~~
-
-.. versionadded:: 2.4
-
-Hashed indexes maintain entries with hashes of the values of the
-indexed field. The hashing function collapses sub-documents and
-computes the hash for the entire value but does not support multi-key
-(i.e. arrays) indexes.
-
-MongoDB can use the ``hashed`` index to support equality queries, but
-``hashed`` indexes do not support range queries.
-
-You may not create compound indexes that have ``hashed`` index fields
-or specify a unique constraint on a ``hashed`` index; however, you can
-create both a ``hashed`` index and an ascending/descending (i.e.
-non-hashed) index on the same field: MongoDB will use the scalar index
-for range queries.
-
-.. _hashed-index-warning:
-
-.. include:: /includes/warning-hashed-index-floating-point.rst
-
-Create a ``hashed`` index using an operation that resembles the
-following:
-
-.. code-block:: javascript
-
-   db.active.ensureIndex( { a: "hashed" } )
-
-This operation creates a hashed index for the ``active`` collection on
-the ``a`` field.
-
-.. [#hash-size] The hash stored in the ``hashed`` index is 64 bits of the 
-   128 bit ``md5`` hash.
-
-.. index:: index; name
-.. _index-names:
-
-Index Names
------------
-
-The default name for an index is the concatenation of the indexed keys
-and each key's direction in the index (1 or -1).
-
-.. example:: Issue the following command to create an index on ``item``
-   and ``quantity``:
-
-   .. code-block:: javascript
-
-      db.products.ensureIndex( { item: 1, quantity: -1 } )
-
-   The resulting index is named: ``item_1_quantity_-1``.
-
-Optionally, you can specify a name for an index instead of using the
-default name.
-
-.. example:: Issue the following command to create an index on ``item``
-   and ``quantity`` and specify ``inventory`` as the index name:
-
-   .. code-block:: javascript
-
-      db.products.ensureIndex( { item: 1, quantity: -1 } , {name: "inventory"} )
-
-   The resulting index is named: ``inventory``.
-
-To view the name of an index, use the :method:`getIndexes()
-<db.collection.getIndexes()>` method.
+   /core/index-ascdesc
+   /core/index-unique
+   /core/index-sparse
+   /core/index-hashed
+   /core/index-names

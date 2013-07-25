@@ -1,0 +1,69 @@
+.. index:: index; compound
+.. index:: compound index
+.. _index-type-compound:
+
+================
+Compound Indexes
+================
+
+.. default-domain:: mongodb
+
+MongoDB supports "compound indexes," where a single index structure
+holds references to multiple fields [#compound-index-field-limit]_
+within a collection's documents. Consider a collection named
+``products`` that holds documents that resemble the following
+document:
+
+.. code-block:: javascript
+
+   {
+    "_id": ObjectId(...)
+    "item": "Banana"
+    "category": ["food", "produce", "grocery"]
+    "location": "4th Street Store"
+    "stock": 4
+    "type": cases
+    "arrival": Date(...)
+   }
+
+If most applications queries include the ``item`` field and a
+significant number of queries will also check the ``stock`` field, you
+can specify a single compound index to support both of these queries:
+
+.. code-block:: javascript
+
+   db.products.ensureIndex( { "item": 1, "location": 1, "stock": 1 } )
+
+Compound indexes support queries on any prefix of the fields in the
+index. [#prefix]_ For example, MongoDB can use the above index to
+support queries that select the ``item`` field and to support queries
+that select the ``item`` field **and** the ``location`` field. The
+index, however, would not support queries that select the following:
+
+- only the ``location`` field
+- only the ``stock`` field
+- only the ``location`` and ``stock`` fields
+- only the ``item`` and ``stock`` fields
+
+.. important:: You may not create compound indexes that have
+   ``hashed`` index fields. You will receive an error if you attempt to
+   create a compound index that includes :ref:`a hashed index
+   <index-hashed-index>`.
+
+When creating an index, the number associated with a key specifies the
+direction of the index. The options are ``1`` (ascending) and ``-1``
+(descending). Direction doesn't matter for single key indexes or for
+random access retrieval but is important if you are doing sort
+queries on compound indexes.
+
+The order of fields in a compound index is very important. In the
+previous example, the index will contain references to documents
+sorted first by the values of the ``item`` field and, within each
+value of the ``item`` field, sorted by the values of ``location``, and
+then sorted by values of the ``stock`` field.
+
+.. [#prefix] Index prefixes are the beginning subset of fields. For
+   example, given the index ``{ a: 1, b: 1, c: 1 }`` both ``{ a: 1 }``
+   and ``{ a: 1, b: 1 }`` are prefixes of the index.
+
+.. [#compound-index-field-limit] MongoDB imposes a :limit:`limit of 31 fields for any compound index <Number of Indexed Fields in a Compound Index>`.
