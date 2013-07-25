@@ -5,11 +5,126 @@ Data Modifications
 .. default-domain:: mongodb
 
 There are three classes of operation in MongoDB that modify data in a
-:term:`collection`: insert, update, and remove. These operations correspond
-generally to ``CREATE``, ``UPDATE`` and ``DELETE`` methods in
-SQL. This document introduces the behavior of write operations in
-MongoDB systems and then introduces the specific methods that provide
-these operations.
+:term:`collection`: insert, update, and remove. In MongoDB, all write
+operations modify data of a single :term:`collection`. These operations
+can act on a single document or multiple documents. For the update and
+remove operations, you can specify criteria to select the documents to
+modify.
+
+Create
+------
+
+Create operations add new :term:`documents <document>` to a collection.
+In MongoDB, the :method:`db.collection.insert()` method perform create
+operations. The method can add one or multiple documents. See
+:doc:`/core/bulk-inserts` for adding multiple documents.
+
+.. example::
+
+   .. code-block:: javascript
+
+      db.users.insert( 
+         {
+            name: "sue",
+            age: 26,
+            status: "A"
+         }
+      )
+
+   This operation inserts a new documents into the ``users``
+   collection. The new document has four fields ``name``, ``age``, and
+   ``status``, and an ``_id`` field. MongoDB always adds the ``_id``
+   field to the new document if the field does not exist.
+
+The following diagram highlights the components of a MongoDB insert
+operation:
+
+.. include:: /images/crud-annotated-mongodb-insert.rst
+
+The following diagram shows the same query in SQL:
+
+.. include:: /images/crud-annotated-sql-insert.rst
+
+In addition to the :method:`db.collection.insert()` method, MongoDB
+provides two additional methods for the create operation. Both the
+:method:`db.collection.update()` method and the
+:method:`db.collection.save()` method can perform an ``upsert`` which
+can also insert new documents. 
+
+An ``upsert`` is an operation that performs either an update of an
+existing document or an insert of a new document if the document to
+modify does not exist. With an ``upsert``, applications do not need to
+make two separate calls to the database in order to decide between
+performing an update or an insert operation. See
+:method:`db.collection.update()` and :method:`db.collection.save()` for
+details on performing an upsert with these methods.
+
+Update
+------
+
+Update operations modify existing :term:`documents <document>` in a
+:term:`collection`. In MongoDB, :method:`db.collection.update()` and
+the :method:`db.collection.save()` methods perform update operations.
+The :method:`db.collection.update()` method can accept a query criteria
+to determine which documents to update as well as an option to update
+multiple rows.
+
+.. example::
+
+   .. code-block:: javascript
+
+      db.users.update( 
+         { age: { $gt: 18 } },
+         { $set: { status: "A" } },
+         { $multi: true }
+      )
+
+   This update operation on the ``users`` collection sets the
+   ``status`` field to ``A`` for the documents that match the criteria
+   of ``age`` greater than ``18``.
+
+The following diagram highlights the components of a MongoDB update
+operation:
+
+.. include:: /images/crud-annotated-mongodb-update.rst
+
+The following diagram shows the same query in SQL:
+
+.. include:: /images/crud-annotated-sql-update.rst
+
+See :method:`db.collection.update()` and :method:`db.collection.save()`
+for more information. 
+
+Delete
+------
+
+Delete operations remove documents from a collection. In MongoDB,
+:method:`db.collection.remove()` method performs delete operations. The
+:method:`db.collection.remove()` method can accept a query criteria to
+determine which documents to remove. In addition, the method can accept
+a flag to limit the delete operation to a single document.
+
+.. example::
+
+   .. code-block:: javascript
+
+      db.users.remove( 
+         { status: "D" }
+      )
+
+   This delete operation on the ``users`` collection removes all
+   documents that match the criteria of ``status`` equal to ``D``.
+
+The following diagram highlights the components of a MongoDB remove
+operation:
+
+.. include:: /images/crud-annotated-mongodb-remove.rst
+
+The following diagram shows the same query in SQL:
+
+.. include:: /images/crud-annotated-sql-delete.rst
+
+See :method:`db.collection.remove()` method for more information.
 
 Behavior
 --------
@@ -47,7 +162,7 @@ fields in the existing document or replaces the document. See
 .. _write-operations-isolation:
 
 Isolation of Write Operations
------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The modification of a single document, is always atomic even if the
 write operation modifies multiple sub-documents *within* that
@@ -90,39 +205,3 @@ Write Concern
 ~~~~~~~~~~~~~
 
 .. include:: /includes/fact-write-concern.rst
-
-Operations
-----------
-
-Create Methods
-~~~~~~~~~~~~~~
-
-Create operations add new documents into a collection. In MongoDB, the
-:method:`db.collection.insert()` method adds new documents into a
-collection. Create operations in MongoDB is analogous to the SQL
-``INSERT`` statement.
-
-In addition, both the :method:`db.collection.update()` method and the
-:method:`db.collection.save()` method can perform an ``upsert`` which
-can also insert new documents. An ``upsert`` is an operation that
-performs either an update of an existing document or an insert of a new
-document if the document to modify does not exist. See
-:method:`db.collection.update()` and :method:`db.collection.save()` for
-details on performing an upsert with these methods.
-
-Update Methods
-~~~~~~~~~~~~~~
-
-*Update* operations modify existing :term:`documents <document>` in a
-:term:`collection`. In MongoDB, :method:`db.collection.update()` and
-the :method:`db.collection.save()` method perform update operations.
-See :method:`db.collection.update()` and :method:`db.collection.save()`
-for details on performing an update with these methods. Update
-operations in MongoDB is analogous to the SQL ``UPDATE`` statement.
-
-Delete Method
-~~~~~~~~~~~~~
-
-*Delete* operations remove documents from a collection. In MongoDB,
-:method:`~db.collection.remove()` performs delete operations. Delete
-operations in MongoDB is analogous to the SQL ``DELETE`` statement.
