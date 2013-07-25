@@ -9,15 +9,14 @@ Queries
 .. default-domain:: mongodb
 
 Queries are the primary operation that applications use to retrieve
-data from a database. In MongoDB, all queries select documents from a
-single :term:`collection`. 
+data from a database. In MongoDB, queries select documents from a
+single :term:`collection`.
 
-All queries start with a collection of documents as the basis for their
-search. Queries can specify criteria, or conditions, that select
-documents from the collection. Finally queries may *project*, or
-specify fields from the matching documents to return to the client.
-Applications may also add modifiers to queries to limit the number of
-results or request a sorted result set.
+Queries can specify criteria, or conditions, that identify the
+documents that MongoDB returns to the clients. A query may also include
+a *projection* that specifies the fields from the matching documents to
+return. You can also add to the queries various modifiers, such as
+limit, sort and skip.
 
 Consider the following diagram of the query process that specifies a
 query criteria and a sort modifier:
@@ -46,11 +45,19 @@ For additional examples of queries and projections see,
 Queries
 -------
 
-MongoDB provides two main query operations: the
-:method:`db.collection.find()` method, which returns a :doc:`cursor
-</core/cursors>`, and the :method:`db.collection.findOne()` method,
-which returns a single document. Both query methods can accept query
-criteria, projections, and modifiers.
+For query operations, MongoDB provides the
+:method:`db.collection.find()` method which returns a :doc:`cursor
+</core/cursors>`. [#find-one]_ The method can accept query criteria,
+projections, and modifiers.
+
+The following diagram highlights the components of a MongoDB query
+operation:
+
+.. include:: /images/crud-annotated-mongodb-find.rst
+
+The following diagram shows the same query in SQL:
+
+.. include:: /images/crud-annotated-sql-select.rst
 
 .. example::
 
@@ -64,19 +71,17 @@ criteria, projections, and modifiers.
    cursor to those documents). The matching documents will return with
    only the ``name`` and the ``address`` fields.
 
-The following diagram highlights the components of a MongoDB query
-operation:
+.. [#find-one] MongoDB also provides the :method:`db.collection.findOne()` method
+   that returns a single document. Internally, the
+   :method:`db.collection.findOne()` method is the
+   :method:`db.collection.find()` method with the :method:`limit(1)
+   <cursor.limit()>` modifier attached.
 
-.. include:: /images/crud-annotated-mongodb-find.rst
-
-The following diagram shows the same query in SQL:
-
-.. include:: /images/crud-annotated-sql-select.rst
 
 Query Behavior
 ~~~~~~~~~~~~~~
 
-Remember the following properties of MongoDB queries:
+MongoDB queries exhibit the following behavior:
 
 - All queries in MongoDB address a *single* collection.
 
@@ -84,28 +89,29 @@ Remember the following properties of MongoDB queries:
   necessarily consistent unless you specify a :method:`~cursor.sort()`.
 
 - Operations that :doc:`modify existing documents
-  </tutorial/modify-documents>` (i.e. *updates*,) select documents to
-  update using the same syntax for query criteria as other queries.
+  </tutorial/modify-documents>` (i.e. *updates*) use the same query
+  syntax as queries to select documents to update.
 
-- The :pipeline:`$match` stage in the :doc:`aggregation framework
-  </core/aggregation>` pipeline provides access to MongoDB queries in
-  the context of data aggregation operations.
-
+- To specify query condition in the :doc:`aggregation framework
+  </core/aggregation>` pipeline, see :pipeline:`$match`.
+  
 .. _projections:
 
 Projections
 -----------
 
-By default, a query in MongoDB returns the complete content of all
-matching documents. If you only need to use a subset of the document's
-fields, you can limit the fields that MongoDB returns to your
-application. These :term:`projections <projection>` minimize the
-amount of data that your application has to process, and increase the
-overall efficiency of your application. 
+By default, a query in MongoDB returns all fields of the matching
+documents. To limit the fields that MongoDB returns to your
+application, include a :term:`projection` in your query. 
+
+To include a field in a projection, specify the field name with the
+value ``1``. To exclude a field from a projection specify the field
+name and the value ``0``. These projections minimize the amount of data
+that your application has to process and increase the overall
+efficiency of your application.
 
 Define projections as the *second* argument to the
-:method:`~db.collection.find()` and :method:`~db.collection.findOne()`
-methods.
+:method:`~db.collection.find()` method.
 
 .. example::
 
@@ -117,36 +123,25 @@ methods.
    collection that match the query ``{ "user_id": { $lt: 42} }``, but
    only returns the ``name`` and  ``email`` fields.
 
-Projection Statements
-~~~~~~~~~~~~~~~~~~~~~
-
-To include a field in a projection, specify the field name with the
-value ``1``. To exclude a field from a projection specify the field
-name and the value ``0``.
-
-.. important:: You *cannot* combine inclusion and exclusion semantics
-   in a single projection with the *exception* of the ``_id`` field.
-
-For more examples of queries with projection statements, sees
+For more examples of queries with projection statements, see
 :doc:`/tutorial/project-fields-from-query-results`.
 
 Projection Behavior
 ~~~~~~~~~~~~~~~~~~~
 
-Remember the following properties of MongoDB projections:
+MongoDB projections have the following properties:
 
 - In MongoDB, the ``_id`` field is always included in results unless
   explicitly excluded.
 
-- Projections can either exclude a selection of fields , or include a
-  specific subset of fields from the result documents. Except for
-  excluding the ``_id`` field in inclusive projections, you cannot
-  mix exclusive and inclusive projections.
+- Projections can either exclude a selection of fields or include a
+  selection of fields from the result documents. Except for excluding
+  the ``_id`` field in inclusive projections, you cannot mix exclusive
+  and inclusive projections.
 
-- The :projection:`$elemMatch`, :projection:`$slice`, :projection:`$`
-  provide additional control over the projection of data from arrays
-  in result documents.
+- For fields that contain arrays, MongoDB provides the following
+  projection operators: :projection:`$elemMatch`, :projection:`$slice`,
+  :projection:`$`.
 
-- The :pipeline:`$project` stage in the :doc:`aggregation framework
-  </core/aggregation>` pipeline provides related functionality in the
-  context of data aggregation operations.
+- For related projection functionality in the :doc:`aggregation
+  framework </core/aggregation>` pipeline, see :pipeline:`$project`.
