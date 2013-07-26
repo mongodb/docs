@@ -14,7 +14,7 @@ buildsystem = conf['build']['paths']['buildsystem']
 sys.path.append(os.path.join(buildsystem, 'bin'))
 
 def bootstrap():
-    repo = 'git@github.com:{0}.git'.format(conf['git']['remote']['tools'])
+    repo = 'git://github.com/{0}.git'.format(conf['git']['remote']['tools'])
 
     if os.path.exists(buildsystem):
         import bootstrap_helper
@@ -46,7 +46,7 @@ def main():
     ui = parser.parse_args()
 
     if ui.op == 'clean':
-        try: 
+        try:
             import bootstrap_helper
             bootstrap_helper.clean_buildsystem(buildsystem, conf['build']['paths']['output'])
         except ImportError:
