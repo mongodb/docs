@@ -5,11 +5,15 @@ Data Modifications
 .. default-domain:: mongodb
 
 There are three classes of operation in MongoDB that modify data in a
-:term:`collection`: insert, update, and remove. In MongoDB, all write
-operations modify data of a single :term:`collection`. For the update
-and remove operations, you can specify the criteria to select the
-documents to update or remove. These operations use the same query
-syntax to specify the criteria as :doc:`read operations </core/query>`.
+:term:`collection`: insert, update, and remove. Insert operations add
+new data to a collection. Update operations modify an existing
+document, and remove operations remove documents from a collection. In
+MongoDB, these operations modify data of a single :term:`collection`.
+
+For the update and remove operations, you can specify criteria, or
+conditions, that identify the documents to update or remove. These
+operations use the same query syntax to specify the criteria as
+:doc:`read operations </core/query>`.
 
 Consider the following diagram of a remove process that specifies a
 query condition:
@@ -66,6 +70,18 @@ performing an update or an insert operation. Both the
 :method:`db.collection.update()` and :method:`db.collection.save()` for
 details on performing an upsert with these methods.
 
+Insert Behavior
+~~~~~~~~~~~~~~~
+
+If you add a new document *without* the :term:`_id` field, the client
+library or the :program:`mongod` instance adds an ``_id`` field and
+populates the field with a unique :term:`ObjectId <objectid>`.
+
+If you specify the ``_id`` field, the value must be unique within the
+collection. For operations with :ref:`write concern <write-concern>`,
+if you try to create a document with a duplicate ``_id`` value,
+:program:`mongod` returns a duplicate key exception.
+
 Update
 ------
 
@@ -104,6 +120,24 @@ For more information, see :method:`db.collection.update()` and
 :method:`db.collection.save()`, and :doc:`/tutorial/modify-documents`
 for examples.
 
+Update Behavior
+~~~~~~~~~~~~~~~
+
+By default, the :method:`db.collection.update()` method updates a
+**single** document. However, with the ``multi`` option,
+:method:`~db.collection.update()` can update all documents in a
+collection that match a query.
+
+The :method:`db.collection.update()` method either updates specific
+fields in the existing document or replaces the document. See
+:method:`db.collection.update()` for details.
+
+.. include:: /includes/fact-update-field-order.rst
+
+The :method:`db.collection.save()` method replaces a document and can
+only update a single document. See :method:`db.collection.save()` and
+:doc:`/tutorial/insert-documents` for more information
+
 Delete
 ------
 
@@ -135,47 +169,17 @@ The following diagram shows the same query in SQL:
 For more information ,see :method:`db.collection.remove()` method and
 :doc:`/tutorial/remove-documents`.
 
-Behavior
---------
-
-Document Insertion
-~~~~~~~~~~~~~~~~~~
-
-If you add a new document *without* the :term:`_id` field, the client
-library or the :program:`mongod` instance adds an ``_id`` field and
-populates the field with a unique :term:`ObjectId <objectid>`.
-
-If you specify the ``_id`` field, the value must be unique within the
-collection. For operations with :ref:`write concern <write-concern>`,
-if you try to create a document with a duplicate ``_id`` value,
-:program:`mongod` returns a duplicate key exception.
-
-Document Update and Modification
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-By default, the :method:`db.collection.update()` method updates a
-**single** document. However, with the ``multi`` option,
-:method:`~db.collection.update()` can update all documents in a
-collection that match a query.
-
-The :method:`db.collection.save()` method replaces a document and can
-only update a single document. See :method:`db.collection.save()` and
-:doc:`/tutorial/insert-documents` for more information
-
-The :method:`db.collection.update()` method either updates specific
-fields in the existing document or replaces the document. See
-:method:`db.collection.update()` for details.
+Remove Behavior
+~~~~~~~~~~~~~~~
 
 By default, :method:`db.collection.remove()` method removes all
 documents that match its query. However, the method can accept a flag
 to limit the delete operation to a single document.
 
-.. include:: /includes/fact-update-field-order.rst
-
 .. _write-operations-isolation:
 
 Isolation of Write Operations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------
 
 The modification of a single document is always atomic even if the
 write operation modifies multiple sub-documents *within* that
@@ -193,7 +197,7 @@ operations, see :doc:`/tutorial/perform-two-phase-commits`.
 .. _write-operations-indexing:
 
 Performance of Write Operations and Indexes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------------
 
 After every insert, update, or delete operation, MongoDB must update
 *every* index associated with the collection in addition to the data
@@ -215,6 +219,9 @@ For more information on indexes in MongoDB, see :doc:`/indexes` and
    do not change the record size have less indexing overhead.
 
 Write Concern
-~~~~~~~~~~~~~
+-------------
+
+Write concern describes the kind of guarantee MongoDB provides when
+reporting back to the application on the success of a write operation.
 
 .. include:: /includes/fact-write-concern.rst
