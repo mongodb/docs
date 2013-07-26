@@ -6,12 +6,12 @@ Data Modifications
 
 There are three classes of operation in MongoDB that modify data in a
 :term:`collection`: insert, update, and remove. In MongoDB, all write
-operations modify data of a single :term:`collection`. These operations
-can act on a single document or multiple documents. For the update and
-remove operations, you can specify the criteria to select the documents to
-update or remove.
+operations modify data of a single :term:`collection`. For the update
+and remove operations, you can specify the criteria to select the
+documents to update or remove. These operations use the same query
+syntax to specify the criteria as :doc:`read operations </core/query>`.
 
-Consider the following diagram of an remove process that specifies a
+Consider the following diagram of a remove process that specifies a
 query condition:
 
 .. include:: /images/crud-remove-stages.rst
@@ -25,8 +25,7 @@ Create
 
 Create operations add new :term:`documents <document>` to a collection.
 In MongoDB, the :method:`db.collection.insert()` method perform create
-operations. The method can add one or multiple documents. See
-:doc:`/core/bulk-inserts` for adding multiple documents.
+operations.
 
 The following diagram highlights the components of a MongoDB insert
 operation:
@@ -36,20 +35,6 @@ operation:
 The following diagram shows the same query in SQL:
 
 .. include:: /images/crud-annotated-sql-insert.rst
-
-In addition to the :method:`db.collection.insert()` method, MongoDB
-provides two additional methods for the create operation. Both the
-:method:`db.collection.update()` method and the
-:method:`db.collection.save()` method can perform an ``upsert`` which
-can also insert new documents. 
-
-An ``upsert`` is an operation that performs either an update of an
-existing document or an insert of a new document if the document to
-modify does not exist. With an ``upsert``, applications do not need to
-make two separate calls to the database in order to decide between
-performing an update or an insert operation. See
-:method:`db.collection.update()` and :method:`db.collection.save()` for
-details on performing an upsert with these methods.
 
 .. example::
 
@@ -68,9 +53,18 @@ details on performing an upsert with these methods.
    ``status``, and an ``_id`` field. MongoDB always adds the ``_id``
    field to the new document if the field does not exist.
 
-For more information, see :method:`db.collection.insert()` ,
-:method:`db.collection.update()`, :method:`db.collection.save()`, and
+For more information, see :method:`db.collection.insert()` and
 :doc:`/tutorial/insert-documents`.
+
+An ``upsert`` is an operation that performs either an update of an
+existing document or an insert of a new document if the document to
+modify does not exist. With an ``upsert``, applications do not need to
+make two separate calls to the database in order to decide between
+performing an update or an insert operation. Both the
+:method:`db.collection.update()` method and the
+:method:`db.collection.save()` method can perform an ``upsert``. See
+:method:`db.collection.update()` and :method:`db.collection.save()` for
+details on performing an upsert with these methods.
 
 Update
 ------
@@ -80,7 +74,8 @@ Update operations modify existing :term:`documents <document>` in a
 the :method:`db.collection.save()` methods perform update operations.
 The :method:`db.collection.update()` method can accept a query criteria
 to determine which documents to update as well as an option to update
-multiple rows.
+multiple rows. The method can also accept options that affect its
+behavior such as the ``$multi`` option to update multiple documents.
 
 The following diagram highlights the components of a MongoDB update
 operation:
@@ -115,8 +110,7 @@ Delete
 Delete operations remove documents from a collection. In MongoDB,
 :method:`db.collection.remove()` method performs delete operations. The
 :method:`db.collection.remove()` method can accept a query criteria to
-determine which documents to remove. In addition, the method can accept
-a flag to limit the delete operation to a single document.
+determine which documents to remove.
 
 The following diagram highlights the components of a MongoDB remove
 operation:
@@ -148,7 +142,7 @@ Document Insertion
 ~~~~~~~~~~~~~~~~~~
 
 If you add a new document *without* the :term:`_id` field, the client
-library or :program:`mongod` instance adds an ``_id`` field and
+library or the :program:`mongod` instance adds an ``_id`` field and
 populates the field with a unique :term:`ObjectId <objectid>`.
 
 If you specify the ``_id`` field, the value must be unique within the
@@ -164,13 +158,17 @@ By default, the :method:`db.collection.update()` method updates a
 :method:`~db.collection.update()` can update all documents in a
 collection that match a query.
 
-:method:`db.collection.save()` method replaces a document, and can
-only update a single document. See :method:`db.collection.save()`
-and :doc:`/tutorial/insert-documents` for more information
+The :method:`db.collection.save()` method replaces a document and can
+only update a single document. See :method:`db.collection.save()` and
+:doc:`/tutorial/insert-documents` for more information
 
 The :method:`db.collection.update()` method either updates specific
 fields in the existing document or replaces the document. See
 :method:`db.collection.update()` for details.
+
+By default, :method:`db.collection.remove()` method removes all
+documents that match its query. However, the method can accept a flag
+to limit the delete operation to a single document.
 
 .. include:: /includes/fact-update-field-order.rst
 
@@ -179,13 +177,13 @@ fields in the existing document or replaces the document. See
 Isolation of Write Operations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The modification of a single document, is always atomic even if the
+The modification of a single document is always atomic even if the
 write operation modifies multiple sub-documents *within* that
 document. For write operations that modify multiple documents, the
 operation as a whole is not atomic, and other operations may
 interleave.
 
-No other operations are atomic; however, you can attempt to isolate a
+No other operations are atomic. You can, however, attempt to isolate a
 write operation that affects multiple documents using the
 :doc:`isolation operator </reference/operator/isolated>`.
 
@@ -203,18 +201,18 @@ itself. Therefore, every index on a collection adds some amount of
 overhead for the performance of write operations. [#exceptions]_
 
 In general, the performance gains that indexes provide for *read
-operations* are worth the insertion penalty; however, when optimizing
-write performance, be careful when creating new indexes and always
-evaluate the indexes on the collection and ensure that your queries are
-actually using these indexes.
+operations* are worth the insertion penalty. However, in order to
+optimize write performance when possible, be careful when creating new
+indexes and evaluate the existing indexes to ensure that your queries
+actually use these indexes.
 
 For more information on indexes in MongoDB, see :doc:`/indexes` and
 :doc:`/applications/indexes`.
 
-.. [#exceptions] The overhead for :ref:`sparse indexes <index-type-sparse>`
-   inserts and updates to un-indexed fields is less than for non-sparse
-   indexes. Also for non-sparse indexes, updates that don't change the
-   record size have less indexing overhead.
+.. [#exceptions] For inserts and updates to un-indexed fields, the
+   overhead for :ref:`sparse indexes <index-type-sparse>` is less than
+   for non-sparse indexes. Also for non-sparse indexes, updates that
+   do not change the record size have less indexing overhead.
 
 Write Concern
 ~~~~~~~~~~~~~
