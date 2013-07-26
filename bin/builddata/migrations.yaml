@@ -156,4 +156,41 @@ target: '$(public-branch-output)/MongoDB-manual.tar.gz'
 dependency: 'MongoDB-manual-$(current-branch).tar.gz'
 action: 'link'
 type: 'phony'
+---
+target: '$(public-output)/'
+action: 'mkdir'
+---
+target: '$(output)'
+action: 'mkdir'
+---
+target: $(branch-output)/sitemap.xml.gz
+dependency:
+  - $(public-branch-output)
+  - $(public-branch-output)/release.txt
+  - $(public-output)/manual
+  - links
+command: "fab generate.sitemap"
+message: "[sitemap]: sitemap build complete at `date`."
+action: cmd
+---
+target: sitemap
+dependency: $(branch-output)/sitemap.xml.gz
+action: dep
+---
+target: htaccess
+dependency: $(public-output)/.htaccess
+action: dep
+---
+target: $(public-output)/.htaccess
+dependency:
+  - bin/builddata/htaccess.yaml
+  - $(tools)/bin/htaccess.py
+  - $(public-output)/
+command: "$(PYTHONBIN) $(tools)/bin/htaccess.py $@ --data $<"
+action: cmd
+---
+target: "$(public-branch-output)/single/index.html"
+dependency: "$(branch-output)/singlehtml/contents.html"
+command: "fab process.input:$(branch-output)/singlehtml/contents.html process.output:$(public-branch-output)/single/index.html process.manual_single_html"
+action: cmd
 ...
