@@ -30,6 +30,7 @@ Hadoop are currently supported:
 
 - 0.20/0.20.x
 - 1.0/1.0.x
+- 1.1/1.1.x
 - 0.21/0.21.x
 - CDH3
 - CDH4
@@ -50,12 +51,12 @@ Building MongoDB Adapter
 ------------------------
 
 The MongoDB-Hadoop adapter source is available on github. First, clone
-the repository and get the ``release-1.0`` branch:
+the repository and get the ``r-1.1.0`` tag:
 
 .. code-block:: sh
 
    git clone https://github.com/mongodb/mongo-hadoop.git
-   git checkout release-1.0
+   git checkout r1.1.0
 
 Now, edit :file:`build.sbt` and update the build target in ``hadoopRelease`` in
 ``ThisBuild``. In this example, we're using the CDH3 Hadoop distribution
@@ -64,6 +65,12 @@ from Cloudera so I'll set it as follows:
 .. code-block:: sh
 
    hadoopRelease in ThisBuild := "cdh3"
+
+If you're using some other distribution of hadoop, you'll need to set this to
+the correct value for the distribution you're using. For a list of all
+the support distributions and what setting to use to build for each one, check the
+listing in the detailed documentation on mongo-hadoop versions 
+`here <https://github.com/mongodb/mongo-hadoop/blob/master/README.md#supported-distributions-of-hadoop>`_
 
 To build the adapter, use the self-bootstrapping version of ``sbt`` that
 ships with the MongoDB-Hadoop adapter:
@@ -92,100 +99,60 @@ Load Sample Data
 ~~~~~~~~~~~~~~~~
 
 The MongoDB-Hadoop adapter ships with a few examples of how to use the
-adapter in your own setup. In this guide, we'll focus on the UFO
-Sightings and Treasury Yield examples. To get started, first load the
-sample data for these examples:
+adapter in your own setup. In this guide, we'll focus on the Treasury Yield example.
+To get started, first load the sample data for these examples:
 
 .. code-block:: sh
 
-   ./sbt load-sample-data
+   mongoimport -d mongo_hadoop -c yield_historical.in examples/treasury_yield/src/main/resources/yield_historical_in.json
 
 To confirm that the sample data was loaded, start the :program:`manual:mongo`
 client and look for the ``mongo_hadoop`` database and be sure that it
-contains the ``ufo_sightings.in`` and ``yield_historical.in``
-collections:
+contains the ``yield_historical.in`` collection:
 
 .. code-block:: sh
 
    $ mongo
-   MongoDB shell version: 2.0.5
+   MongoDB shell version: 2.4.3
    connecting to: test
    > show dbs
-   mongo_hadoop    0.453125GB
+   mongo_hadoop    0.078GB
    > use mongo_hadoop
    switched to db mongo_hadoop
    > show collections
    system.indexes
-   ufo_sightings.in
    yield_historical.in
 
 Treasury Yield
 ~~~~~~~~~~~~~~
 
-To build the Treasury Yield example, we'll need to first edit one of
-the configuration files uses by the example code :
-
-.. code-block:: sh
-
-   emacs examples/treasury_yield/src/main/resources/mongo-treasury_yield.xml
-
-and set the MongoDB location for the input (``mongo.input.uri``) and
-output (``mongo.output.uri`` ) collections (in this example, Hadoop is
-running on a single node alongside MongoDB):
-
-.. code-block:: none
-
-   ...
-     <property>
-       <!-- If you are reading from mongo, the URI -->
-       <name>mongo.input.uri</name>
-       <value>mongodb://127.0.0.1/mongo_hadoop.yield_historical.in</value>
-     </property>
-     <property>
-       <!-- If you are writing to mongo, the URI -->
-       <name>mongo.output.uri</name>
-       <value>mongodb://127.0.0.1/mongo_hadoop.yield_historical.out</value>
-     </property>
-   ...
-
-Next, edit the main class that we'll use for our MapReduce job
-(:file:`TreasuryYieldXMLConfig.java`):
-
-.. code-block:: none
-
-   emacs examples/treasury_yield/src/main/java/com/mongodb/hadoop/examples/treasury/TreasuryYieldXMLConfig.java
-
-and update the class definition as follows:
-
-.. code-block:: java
-
-   ...
-   public class TreasuryYieldXMLConfig extends MongoTool {
-
-       static{
-           // Load the XML config defined in hadoop-local.xml
-           // Configuration.addDefaultResource( "hadoop-local.xml" );
-           Configuration.addDefaultResource( "mongo-defaults.xml" );
-           Configuration.addDefaultResource( "mongo-treasury_yield.xml" );
-       }
-
-       public static void main( final String[] pArgs ) throws Exception{
-           System.exit( ToolRunner.run( new TreasuryYieldXMLConfig(), pArgs ) );
-       }
-   }
-   ...
-
-Now let's build the Treasury Yield example:
+First let's build the Treasury Yield example:
 
 .. code-block:: sh
 
    ./sbt treasury-example/package
 
-Once the example is done building we can submit our MapReduce job:
+The treasury yield example comes with a bash script to simplify setting up and
+running the job, and will allow you to modify the job settings without needing to
+re-compile the package each time. To use it, you will need to tweak the settings 
+in the script to reflect your environment.
+Edit the script to set the input and output URIs for the job:
 
 .. code-block:: sh
 
-   hadoop jar examples/treasury_yield/target/treasury-example_cdh3u3-1.0.0.jar com.mongodb.hadoop.examples.treasury.TreasuryYieldXMLConfig
+   vim examples/treasury_yield/run_job.sh
+
+In the beginning of the script, you will need to set the following variables:
+
+- INPUT_URI, the mongodb URI where the input data is loaded from
+- OUTPUT_URI, the mongodb URI where the job output will be written to
+- HADOOP_HOME, the location of your hadoop directory, which must contain a bin/hadoop path.
+
+Once this is ready, you can run the script to submit the job:
+
+.. code-block:: sh
+
+   bash examples/treasury_yield/run_job.sh
 
 This job should only take a few moments as it's a relatively small
 amount of data. Now check the output collection data in MongoDB to
@@ -201,118 +168,16 @@ confirm that the MapReduce job was successful:
    > db.yield_historical.out.find()
    { "_id" : 1990, "value" : 8.552400000000002 }
    { "_id" : 1991, "value" : 7.8623600000000025 }
-   { "_id" : 1992, "value" : 7.008844621513946 }
-   { "_id" : 1993, "value" : 5.866279999999999 }
-   { "_id" : 1994, "value" : 7.085180722891565 }
-   { "_id" : 1995, "value" : 6.573920000000002 }
-   { "_id" : 1996, "value" : 6.443531746031742 }
-   { "_id" : 1997, "value" : 6.353959999999992 }
-   { "_id" : 1998, "value" : 5.262879999999994 }
-   { "_id" : 1999, "value" : 5.646135458167332 }
-   { "_id" : 2000, "value" : 6.030278884462145 }
-   { "_id" : 2001, "value" : 5.02068548387097 }
-   { "_id" : 2002, "value" : 4.61308 }
-   { "_id" : 2003, "value" : 4.013879999999999 }
-   { "_id" : 2004, "value" : 4.271320000000004 }
-   { "_id" : 2005, "value" : 4.288880000000001 }
-   { "_id" : 2006, "value" : 4.7949999999999955 }
-   { "_id" : 2007, "value" : 4.634661354581674 }
-   { "_id" : 2008, "value" : 3.6642629482071714 }
-   { "_id" : 2009, "value" : 3.2641200000000037 }
+   ...
    has more
    >
 
-UFO Sightings
-~~~~~~~~~~~~~
+Where to go from here
+~~~~~~~~~~~~~~~~~~~~~
 
-This will follow much of the same process as with the Treasury Yield
-example with one extra step; we'll need to add an entry into the build
-file to compile this example. First, open the file for editing:
+Read the full documentation on the mongo-hadoop adapter 
+`here <https://github.com/mongodb/mongo-hadoop/blob/master/README.md#supported-distributions-of-hadoop>`_.
+To modify configuration options, you can put additional lines in the run_job.sh script to set
+properties passed to hadoop at runtime. Read the full comments of the script to see details on
+using these options to read/write from BSON as well as mongoDB collections.
 
-.. code-block:: sh
-
-   emacs project/MongoHadoopBuild.scala
-
-Next, add the following lines starting at line 72 in the build file:
-
-.. code-block:: none
-
-   ...
-     lazy val ufoExample = Project( id = "ufo-sightings",
-                                   base = file("examples/ufo_sightings"),
-                                   settings = exampleSettings ) dependsOn ( core )
-   ...
-
-Now edit the UFO Sightings config file:
-
-.. code-block:: sh
-
-   emacs examples/ufo_sightings/src/main/resources/mongo-ufo_sightings.xml
-
-and update the ``mongo.input.uri`` and ``mongo.output.uri`` properties:
-
-.. code-block:: none
-
-   ...
-     <property>
-       <!-- If you are reading from mongo, the URI -->
-       <name>mongo.input.uri</name>
-       <value>mongodb://127.0.0.1/mongo_hadoop.ufo_sightings.in</value>
-     </property>
-     <property>
-       <!-- If you are writing to mongo, the URI -->
-       <name>mongo.output.uri</name>
-       <value>mongodb://127.0.0.1/mongo_hadoop.ufo_sightings.out</value>
-     </property>
-   ...
-
-Next edit the main class for the MapReduce job in
-:file:`UfoSightingsXMLConfig.java` to use the configuration file:
-
-.. code-block:: sh
-
-   emacs examples/ufo_sightings/src/main/java/com/mongodb/hadoop/examples/ufos/UfoSightingsXMLConfig.java
-
-.. code-block:: java
-
-   ...
-   public class UfoSightingsXMLConfig extends MongoTool {
-
-       static{
-           // Load the XML config defined in hadoop-local.xml
-           // Configuration.addDefaultResource( "hadoop-local.xml" );
-           Configuration.addDefaultResource( "mongo-defaults.xml" );
-           Configuration.addDefaultResource( "mongo-ufo_sightings.xml" );
-       }
-
-       public static void main( final String[] pArgs ) throws Exception{
-           System.exit( ToolRunner.run( new UfoSightingsXMLConfig(), pArgs ) );
-       }
-   }
-   ...
-
-Now build the UFO Sightings example:
-
-.. code-block:: sh
-
-   ./sbt ufo-sightings/package
-
-Once the example is built, execute the MapReduce job:
-
-.. code-block:: sh
-
-   hadoop jar examples/ufo_sightings/target/ufo-sightings_cdh3u3-1.0.0.jar com.mongodb.hadoop.examples.UfoSightingsXMLConfig
-
-This MapReduce job will take just a bit longer than the Treasury Yield
-example. Once it's complete, check the output collection in MongoDB to
-see that the job was successful:
-
-.. code-block:: none
-
-   $ mongo
-   MongoDB shell version: 2.0.5
-   connecting to: test
-   > use mongo_hadoop
-   switched to db mongo_hadoop
-   > db.ufo_sightings.out.find().count()
-   21850
