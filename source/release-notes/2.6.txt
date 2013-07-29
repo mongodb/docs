@@ -205,6 +205,236 @@ the following example:
             } 
           )
 
+x.509 Authentication
+~~~~~~~~~~~~~~~~~~~~
+
+MongoDB introduces x.509 certificate authentication for use with a
+secure :doc:`SSL connection </tutorial/configure-ssl>`.
+
+.. important:: To use SSL, you must either use MongoDB Enterprise or
+   build MongoDB locally using ``scons`` with the ``--ssl`` option.
+
+The x.509 authentication allows clients to authenticate to servers with
+certificates instead of with username and password. 
+
+The x.509 authentication also allows sharded cluster members and
+replica set members to use x.509 certificates to verify their
+membership to the cluster or the replica set instead of using key
+files. The membership authentication is an internal process.
+
+.. _`default distribution of MongoDB`: http://www.mongodb.org/downloads
+.. _`MongoDB Enterprise`: http://www.10gen.com/products/mongodb-enterprise
+
+x.509 Certificate
+`````````````````
+
+The x.509 certificate for client authentication and the x.509
+certificate for internal authentication have different properties.
+
+The client certificate must have the following
+properties:
+
+- A single Certificate Authority (CA) must issue the certificates
+  for both the client and the server.
+
+- Client certificates must contain the following fields:
+
+  .. code-block:: none
+
+     keyUsage = digitalSignature
+     extendedKeyUsage = clientAuth
+
+The member certificate, used for internal authentication to verify
+membership to the sharded cluster or a replica set, must have the
+following properties:
+
+- A single Certificate Authority (CA) must issue all the x.509
+  certificates for the members of a sharded cluster or a replica set.
+
+- The member certificate's ``subject``, which contains the
+  Distinguished Name (``DN``), must match the ``subject`` of the
+  certificate on the server, *starting from and including* the
+  Organizational Unit (``OU``) of the certificate on the server.
+
+New Protocol and Parameters
+```````````````````````````
+
+The change for x.509 authentication introduces a new ``MONGODB-X509``
+protocol. For internal authentication for membership, the change also
+introduces the ``--clusterAuthMode``, ``--sslClusterFile`` and the
+``--sslClusterPassword`` options.
+
+Use the ``--clusterAuthMode`` option to enable internal x.509
+authentication for membership. The ``--clusterAuthMode`` option can
+have one of the following values:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 40
+
+   * - Value
+
+     - Description
+
+   * - ``keyfile``
+
+     - Default value. Use keyfile for authentication.
+
+   * - ``sendKeyfile`` 
+
+     - For rolling upgrade purposes. Send the keyfile for
+       authentication but can accept either keyfile or x.509
+       certificate.
+
+   * - ``sendX509``
+
+     - For rolling upgrade purposes. Send the x.509 certificate for
+       authentication but can accept either keyfile or x.509
+       certificate.
+
+   * - ``x509``
+
+     - Recommended. Send the x.509 certificate for authentication and
+       accept **only** x.509 certificate.
+
+For the ``--sslClusterFile`` option, specify the full path to the x.509
+certificate and key PEM file for the cluster or set member. If the key
+is encrypted, specify the password with the ``--sslClusterPassword``
+option.
+
+Configure MongoDB Server to Use x.509
+`````````````````````````````````````
+
+Configure the MongoDB server from the command line, as in the following
+[#additionalOptions]_:
+
+.. code-block:: sh
+
+   mongod --sslOnNormalPorts --sslPEMKeyFile <path to sslCertificate and key PEM file> --sslCAFile <path to root CA PEM file>
+
+You may also specify these options in the :doc:`configuration file
+</reference/configuration-options>`:
+
+.. code-block:: none
+
+   sslOnNormalPorts = true
+   sslPEMKeyFile = <path to sslCertificate and key PEM file>
+   sslCAFile = <path to the root CA PEM file>
+
+To specify the x.509 certificate for internal cluster member
+authentication, append the additional SSL options ``--clusterAuthMode``
+and ``--sslClusterFile``, as in the following example for a member of a
+replica set [#additionalOptions]_:
+
+.. code-block:: sh
+
+   mongod --replSet <name> --sslOnNormalPorts --sslPEMKeyFile <path to sslCertificate and key PEM file>  --sslCAFile <path to root CA PEM file>  --clusterAuthMode x509 --sslClusterFile <path to membership certificate and key PEM file>
+
+.. [#additionalOptions] Include any additional options, SSL
+   or otherwise, that are required for your specific configuration.
+
+Authenticate with a x.509 Certificate
+`````````````````````````````````````
+
+To authenticate with a client certificate, you must first add a MongoDB
+user that corresponds to the client certificate. See
+:ref:`addX509SubjectUser`.
+
+To authenticate, use the :method:`db.auth()` method in the
+``$external`` database. For the ``mechanism`` field, specify
+``"MONGODB-X509"``, and for the ``user`` field, specify the user, or
+the ``subject``, that corresponds to the client certificate.
+
+For example, if using the :program:`mongo` shell,
+
+1. Connect :program:`mongo` shell to the :program:`mongod` set up for
+   SSL:
+
+   .. code-block:: sh
+
+      mongo --ssl --sslPEMKeyFile <path to CA signed client PEM file>
+
+#. To perform the authentication, use the :method:`db.auth()` method in the
+   ``$external`` database.
+
+   .. code-block:: javascript
+
+      db.getSiblingDB("$external").auth(
+                                         { 
+                                           mechanism: "MONGODB-X509",
+                                           user: "CN=myName,OU=myOrgUnit,O=myOrg,L=myLocality,ST=myState,C=myCountry"
+                                         } 
+                                       )
+
+.. _addX509SubjectUser:
+
+Add x.509 Certificate ``subject`` as a User
+```````````````````````````````````````````
+
+To authenticate with a client certificate, you must first add the value
+of the ``subject`` from the client certificate as a MongoDB user.
+
+1. You can retrieve the ``subject`` from the client certificate with
+   the following command:
+
+   .. code-block:: sh
+
+      openssl x509 -in <pathToClient PEM> -inform PEM -subject -nameopt RFC2253
+
+   The command returns the ``subject`` string as well as certificate:
+
+   .. code-block:: sh
+
+      subject= CN=myName,OU=myOrgUnit,O=myOrg,L=myLocality,ST=myState,C=myCountry
+      -----BEGIN CERTIFICATE-----
+      ...
+      -----END CERTIFICATE-----
+
+2. Add the value of the ``subject``, omitting the spaces, from the
+   certificate as a user. For example, in the :program:`mongo`
+   shell, to add the user to the ``test`` database:
+
+   .. code-block:: javascript
+
+      use test
+      db.addUser({
+                  user: "CN=myName,OU=myOrgUnit,O=myOrg,L=myLocality,ST=myState,C=myCountry", 
+                  userSource: '$external', 
+                  roles: ['readAnyDatabase', 'readWriteAnyDatabase']
+                })
+
+See :doc:`/tutorial/add-user-to-database` for details on adding a user
+with roles using :doc:`privilege documents
+</reference/privilege-documents>`.
+
+Upgrade Clusters to x.509 Authentication
+````````````````````````````````````````
+
+To upgrade clusters that are currently using keyfile authentication to
+x.509 authentication, use a rolling upgrade process:
+
+1. For each node of a cluster, set ``--clusterAuthMode`` to
+   ``sendKeyFile``. With this setting, each node continues to use its
+   keyfile to authenticate itself as a member. However, each node can now
+   accept either a keyfile or the x.509 certificate from other members to
+   authenticate those members. Upgrade all nodes of the cluster to this
+   setting.
+
+2. Then, for each node of a cluster, set ``--clusterAuthMode`` to
+   ``sendX509`` and set ``--sslClusterFile`` to the appropriate path of
+   the node's certificate. [#encryptedKey]_ With this setting, each
+   node uses its x.509 certificate to authenticate itself as a member.
+   However, each node continues to accept either a keyfile or the x.509
+   certificate from other members to authenticate those members.
+   Upgrade all nodes of the cluster to this setting.
+
+3. Optional but recommended. Finally, for each node of the cluster, set
+   ``--clusterAuthMode`` to ``x509`` to only use the x.509 certificate
+   for authentication.
+
+.. [#encryptedKey] If the key is encrypted, set the
+   ``--sslClusterPassword`` to the password to decrypt the key.
+
 Background Index Builds Replicate to Secondaries
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
