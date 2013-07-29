@@ -260,5 +260,48 @@ Parameters
       mongod --setParameter textSearchEnabled=true
 
    If the flag is not enabled, you cannot create *new* ``text``
-   indexes, and you cannot perform text searches. However, existing
-   ``text`` indexes will still be updated.
+   indexes, and you cannot perform text searches. However, MongoDB
+   will continue to maintain existing ``text`` indexes.
+
+.. parameter:: releaseConnectionsAfterResponse>
+
+   .. versionadded:: 2.2.4 and 2.4.2
+
+   Changes the behavior of connection pool that :program:`mongos` uses
+   to connect to the shards. As a result, each :program:`mongos`
+   should need to maintain fewer connections to each shard. When
+   enabled, the :program:`mongos` will release a connection into the
+   thread pool *after* each read operation or command.
+
+   .. warning:: For applications that do not use the :ref:`default
+      <write-concern-acknowledged>`, :ref:`journaled
+      <write-concern-replica-journaled>`, or :ref:`replica
+      acknowledged <write-concern-replica-acknowledged>` write concern
+      modes of the driver, :parameter:`releaseConnectionsAfterResponse`
+      will affect the meaning of :dbcommand:`getLastError`.
+
+      If an application allows read operations in between
+      write operations and :dbcommand:`getLastError` calls,
+      the resulting :dbcommand:`getLastError` will **not** report on
+      the success of the proceeding write operation.
+
+      Use with caution.
+
+   To enable, use the following command while connected to a
+   :program:`mongos`:
+
+   .. code-block:: javascript
+
+      use admin
+      db.runCommand( { setParameter: 1, releaseConnectionsAfterResponse: true } )
+
+   Alternately, you may start the :program:`mongos` instance with the
+   following run-time option:
+
+   .. code-block:: sh
+
+      mongos --setParameter releaseConnectionsAfterResponse=true
+
+   To change this policy for the entire cluster, you must set
+   :parameter:`releaseConnectionsAfterResponse` on each
+   :program:`mongos` instance in the cluster.
