@@ -4,7 +4,9 @@ import argparse
 import yaml
 import sys
 
-master_conf = os.path.abspath(os.path.join('bin', 'docs_meta.yaml'))
+project_root = os.path.abspath(os.path.dirname(__file__))
+
+master_conf = os.path.join(project_root, 'bin', 'docs_meta.yaml')
 
 with open(master_conf, 'r') as f:
     conf = yaml.safe_load(f)
