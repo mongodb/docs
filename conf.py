@@ -8,7 +8,9 @@
 import sys
 import os.path
 
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+project_root = os.path.join(os.path.abspath(os.path.dirname(__file__)))
+
+sys.path.append(project_root)
 
 from bootstrap import buildsystem
 
@@ -16,9 +18,9 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), buildsys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), buildsystem, 'bin')))
 
 from utils import ingest_yaml, ingest_yaml_list
-meta = ingest_yaml('meta.yaml')
-pdfs = ingest_yaml_list('pdfs.yaml')
-intersphinx_libs = ingest_yaml_list('intersphinx.yaml')
+meta = ingest_yaml(os.path.join(project_root, 'meta.yaml'))
+pdfs = ingest_yaml_list(os.path.join(project_root, 'pdfs.yaml'))
+intersphinx_libs = ingest_yaml_list(os.path.join(project_root, 'intersphinx.yaml'))
 
 # -- General configuration ----------------------------------------------------
 
