@@ -6,18 +6,15 @@ Aggregation Pipeline Optimization
 
 .. _aggregation-optimize-performance:
 
-Optimize Performance
---------------------
-
-Because you will always call :dbcommand:`aggregate` on a collection
-object, which logically inserts the *entire* collection into the
-aggregation pipeline, you may want to optimize the operation by avoiding
-scanning the entire collection whenever possible.
+In MongoDB, the :dbcommand:`aggregate` operate on a single collection,
+logically passing the *entire* collection into the aggregation
+pipeline. Whenever possible, avoid scanning the entire collection to
+optimize the operation.
 
 .. _aggregation-pipeline-operators-and-performance:
 
 Pipeline Operators and Indexes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------
 
 Depending on the order in which they appear in the pipeline,
 aggregation operators can take advantage of indexes.
@@ -45,7 +42,7 @@ geospatial index. When using :pipeline:`$geoNear`, the
 stage in an aggregation pipeline.
 
 Early Filtering
-~~~~~~~~~~~~~~~
+---------------
 
 If your aggregation operation requires only a subset of the data in a
 collection, use the :pipeline:`$match` operator to restrict which items go
@@ -54,9 +51,10 @@ pipeline, these :pipeline:`$match` operations use suitable indexes
 to scan only the matching documents in a collection.
 
 Placing a :pipeline:`$match` pipeline stage followed by a
-:pipeline:`$sort` stage at the
-start of the pipeline is logically equivalent to a single query
-with a sort, and can use an index.
+:pipeline:`$sort` stage at the start of the pipeline is logically
+equivalent to a single query with a sort and can use an index. When
+possible, place :pipeline:`$match` operators at the beginning of the
+pipeline.
 
 .. OMMITED: this feature is pending SERVER-4506. Other optimizations
 .. are pending SERVER-4507 SERVER-4644 SERVER-4656 SERVER-4816
@@ -70,22 +68,18 @@ with a sort, and can use an index.
 .. without affecting the result by moving the :pipeline:`$match`
 .. operator in front of the :pipeline:`$project`.
 
-In future versions there may be an optimization phase in the
-pipeline that reorders the operations to increase performance without
-affecting the result. However, at this time place
-:pipeline:`$match` operators at the beginning of the pipeline when
-possible.
+.. _aggregation-pipeline-sequence-optimization:
 
 Pipeline Sequence Optimization
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------
 
 .. versionchanged:: 2.4
 
-Aggregation operations have an optimization phase which attempts to
-re-arrange the pipeline for improved performance.
+Aggregation pipeline operations have an optimization phase which
+attempts to re-arrange the pipeline for improved performance.
 
 ``$sort`` + ``$skip`` + ``$limit`` Sequence Optimization
-````````````````````````````````````````````````````````
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When you have sequence of :pipeline:`$sort` followed by a
 :pipeline:`$skip` followed by a :pipeline:`$limit`, an
@@ -114,7 +108,7 @@ the following:
    initial value and the :pipeline:`$skip` value.
 
 ``$limit`` + ``$skip`` + ``$limit`` + ``$skip`` Sequence Optimization
-`````````````````````````````````````````````````````````````````````
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When you have a continuous sequence of a :pipeline:`$limit` pipeline
 stage followed by a :pipeline:`$skip` pipeline stage, the
@@ -152,28 +146,3 @@ following:
 
    { $limit: 15 },
    { $skip: 7 }
-
-Memory for Cumulative Operators
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Certain pipeline operators require access to the entire input set before
-they can produce any output. For example, :pipeline:`$sort` must receive
-all of the input from the preceding :ref:`pipeline <aggregation-pipeline>`
-operator before it can produce its first output document. The current
-implementation of :pipeline:`$sort` does not go to disk in these cases:
-in order to sort the contents of the pipeline, the entire input must fit
-in memory.
-
-.. include:: /includes/fact-agg-sort-limit.rst
-
-:pipeline:`$group` has similar characteristics: Before any
-:pipeline:`$group` passes its output along the pipeline, it must
-receive the entirety of its input. For the :pipeline:`$group`
-operator, this frequently does not require as much memory as
-:pipeline:`$sort`, because it only needs to retain one record for
-each unique key in the grouping specification.
-
-The current implementation of the aggregation pipeline logs a warning
-if a cumulative operator consumes 5% or more of the physical memory on
-the host. Cumulative operators produce an error if they consume 10% or
-more of the physical memory on the host.
