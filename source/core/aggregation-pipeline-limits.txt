@@ -1,0 +1,50 @@
+===========================
+Aggregation Pipeline Limits
+===========================
+
+.. default-domain:: mongodb
+
+Aggregation operations with the :dbcommand:`aggregate` command have
+the following limitations:
+
+- The :ref:`aggregation pipeline <aggregation-pipeline>`
+  cannot operate on values of the following types:
+  ``Symbol``, ``MinKey``, ``MaxKey``, ``DBRef``, ``Code``,
+  ``CodeWScope``.
+
+  .. versionchanged:: 2.4
+     Removed restriction on ``Binary`` type data. In 2.2, the pipeline
+     could not operate on ``Binary`` type data.
+
+- Output from the pipeline can only contain 16 megabytes. If
+  your result set exceeds this limit, the :dbcommand:`aggregate`
+  command produces an error.
+
+- If any single aggregation operation consumes more than 10 percent of
+  system RAM the operation will produce an error.
+  
+Memory for Cumulative Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Certain pipeline operators require access to the entire input set before
+they can produce any output. For example, :pipeline:`$sort` must receive
+all of the input from the preceding :ref:`pipeline <aggregation-pipeline>`
+operator before it can produce its first output document. The current
+implementation of :pipeline:`$sort` does not go to disk in these cases:
+in order to sort the contents of the pipeline, the entire input must fit
+in memory.
+
+.. include:: /includes/fact-agg-sort-limit.rst
+
+:pipeline:`$group` has similar characteristics: Before any
+:pipeline:`$group` passes its output along the pipeline, it must
+receive the entirety of its input. For the :pipeline:`$group`
+operator, this frequently does not require as much memory as
+:pipeline:`$sort`, because it only needs to retain one record for
+each unique key in the grouping specification.
+
+The current implementation of the aggregation pipeline logs a warning
+if a cumulative operator consumes 5% or more of the physical memory on
+the host. Cumulative operators produce an error if they consume 10% or
+more of the physical memory on the host.
+

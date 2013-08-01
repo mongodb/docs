@@ -1,0 +1,55 @@
+======================
+Map Reduce Concurrency
+======================
+
+.. default-domain:: mongodb
+
+The map-reduce operation is composed of many tasks, including:
+
+- reads from the input collection,
+
+- executions of the ``map`` function,
+
+- executions of the ``reduce`` function,
+
+- writes to the output collection.
+
+These various tasks take the following locks:
+
+- The read phase takes a read lock.  It yields every 100 documents.
+
+- The insert into the temporary collection takes a write lock for a
+  single write.
+
+  If the output collection does not exist, the creation of the output
+  collection takes a write lock.
+
+  If the output collection exists, then the output actions (i.e.
+  ``merge``, ``replace``, ``reduce``) take a write lock.
+
+.. versionchanged:: 2.4
+   The V8 JavaScript engine, which became the default in 2.4, allows
+   multiple JavaScript operations to execute at the same time. Prior to
+   2.4, JavaScript code (i.e. ``map``, ``reduce``, ``finalize``
+   functions) executed in a single thread.
+
+.. note::
+
+   The final write lock during post-processing makes the results appear
+   atomically. However, output actions ``merge`` and ``reduce`` may
+   take minutes to process. For the ``merge`` and ``reduce``, the
+   ``nonAtomic`` flag is available. See the
+   :method:`db.collection.mapReduce()` reference for more information.
+
+.. _map-reduce-temporary-collection:
+
+Temporary Collection
+--------------------
+
+The map-reduce operation uses a temporary collection during processing.
+At completion, the map-reduce operation renames the temporary
+collection. As a result, you  can perform a map-reduce operation
+periodically with the same target collection name without affecting
+the intermediate states. Use this mode when
+generating statistical output collections on a regular basis.
+

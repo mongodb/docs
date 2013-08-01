@@ -1,0 +1,72 @@
+==================================
+Map-Reduce and Sharded Collections
+==================================
+
+.. default-domain:: mongodb
+
+Map-reduce supports operations on sharded collections, both as an input
+and as an output. This section describes behaviors specific to the
+:doc:`map-reduce </core/map-reduce>` and sharded collections.
+
+.. _map-reduce-sharded-cluster:
+
+Sharded Collection as Input
+---------------------------
+
+When using sharded collection as the input for a map-reduce operation,
+:program:`mongos` will automatically dispatch the map-reduce job to
+each shard in parallel. There is no special option
+required. :program:`mongos` will wait for jobs on all shards to
+finish.
+
+Sharded Collection as Output
+----------------------------
+
+By default the output collection is not sharded. To 
+
+- :program:`mongos` dispatches a map-reduce finish job to the shard
+  that will store the target collection.
+
+- The target shard pulls results from all other shards, and runs a
+  final reduce/finalize operation, and write to the output.
+
+- If using the ``sharded`` option to the ``out`` parameter, MongoDB
+  shards the output using ``_id`` field as the shard key.
+
+  .. versionchanged:: 2.2
+
+- If the output collection does not exist, MongoDB creates and shards
+  the collection on the ``_id`` field. If the collection is empty,
+  MongoDB creates :term:`chunks <chunk>` using the result of the first
+  stage of the map-reduce operation.
+
+- :program:`mongos` dispatches, in parallel, a map-reduce finish job
+  to every shard that owns a chunk.
+
+- Each shard will pull the results it owns from all other shards, run a
+  final reduce/finalize, and write to the output collection.
+
+.. note::
+
+   - During later map-reduce jobs, MongoDB splits chunks as needed.
+
+   - Balancing of chunks for the output collection is automatically
+     prevented during post-processing to avoid concurrency issues.
+
+In MongoDB 2.0:
+
+- :program:`mongos` retrieves the results from each shard, and
+  performs merge sort to order the results, and performs a reduce/finalize as
+  needed. :program:`mongos` then writes the result to the output
+  collection in sharded mode.
+
+- This model requires only a small amount of memory, even for large data sets.
+
+- Shard chunks are not automatically split during insertion. This
+  requires manual intervention until the chunks are granular and
+  balanced.
+
+.. warning::
+
+   For best results, only use the sharded output options for
+   :dbcommand:`mapReduce` in version 2.2 or later.
