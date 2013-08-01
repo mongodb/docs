@@ -3,7 +3,12 @@
 # MongoDB documentation build configuration file, created by
 # sphinx-quickstart on Fri Sep 23 17:07:35 2011.
 
-import sys, os
+import sys
+import os
+
+project_root = os.path.join(os.path.abspath(os.path.dirname(__file__)))
+
+sys.path.append(project_root)
 
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 from bootstrap import buildsystem
@@ -13,8 +18,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), buildsys
 
 from utils import ingest_yaml, ingest_yaml_list
 
-pdfs = ingest_yaml_list('pdfs.yaml')
-meta = ingest_yaml('meta.yaml')
+meta = ingest_yaml(os.path.join(project_root, 'meta.yaml'))
+pdfs = ingest_yaml_list(os.path.join(project_root, 'pdfs.yaml'))
 
 # -- General configuration -----------------------------------------------------
 
@@ -64,7 +69,7 @@ for pdf in pdfs:
 
 # -- Conditional Output --------------------------------------------------------
 BREAK = '\n\n'
-try: 
+try:
     if tags.has('hosted'):
         project = u'MongoDB Management Service On-Prem / MMS'
         html_title = 'MMS On-Prem Manual / MMS'
@@ -77,6 +82,7 @@ try:
         rst_epilog += ".. |mms| replace:: MongoDB Management Service On-Prem" + BREAK
         rst_epilog += ".. |backup| replace:: MMS Backup On-Prem" + BREAK
         rst_epilog += ".. |monitoring| replace:: MMS Monitoring On-Prem" + BREAK
+        rst_epilog += ".. |release-string| replace:: -- {0} Release".format(release) + BREAK
     else:
         project = u'MongoDB Management Service (MMS)'
         html_title = 'MMS Manual'
@@ -89,6 +95,11 @@ try:
         rst_epilog += ".. |mms| replace:: MongoDB Management Service" + BREAK
         rst_epilog += ".. |backup| replace:: MMS Backup" + BREAK
         rst_epilog += ".. |monitoring| replace:: MMS Monitoring" + BREAK
+
+        if release == "Upcoming":
+            rst_epilog += ".. |release-string| replace:: \   "
+        else:
+            rst_epilog += ".. |release-string| replace:: -- {0} Release".format(release) + BREAK
 except NameError:
     pass
 
