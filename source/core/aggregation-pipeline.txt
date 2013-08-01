@@ -1,25 +1,20 @@
-===========
-Aggregation
-===========
+====================
+Aggregation Pipeline
+====================
 
 .. versionadded:: 2.1
 
 .. default-domain:: mongodb
 
-MongoDB provides the :dbcommand:`aggregate` command for common
-aggregation tasks. The command passes a collection's documents through a
-:ref:`pipeline <aggregation-pipeline>` that uses operators to calculate
-aggregated values and to reshape results. The pipeline can, for example,
-total or average field values, create new virtual sub-objects, or
-extract sub-fields into the top-level of results.
+The aggregation pipeline is a framework for performing aggregation
+tasks, modeled on the concept of data processing pipelines. Using this
+framework, MongoDB passes the documents of a single :term:`collection`
+through a :ref:`pipeline <aggregation-pipeline>`. The pipeline
+transforms the documents into aggregated results.
 
-If you are familiar with :term:`SQL`, the :dbcommand:`aggregate` command
-provides similar functionality to SQL ``GROUP BY`` and related SQL
-operators, as well as to simple forms of "self joins."
-
-The aggregation pipeline provides a means to calculate aggregated values
-without having to use :term:`map-reduce`, which, though powerful, is
-often not necessary for simple aggregation tasks.
+The aggregation pipeline provides an alternative to :term:`map-reduce`
+and may be the preferred solution for many aggregation tasks where the
+complexity of map-reduce may be unwarranted.
 
 .. _aggregation-pipeline:
 
@@ -27,130 +22,132 @@ Pipeline
 --------
 
 Conceptually, documents from a collection pass through an aggregation
-pipeline, which transforms these objects as they pass through. For those
-familiar with UNIX-like shells (e.g. bash,) the concept is analogous to
-the pipe (i.e. ``|``) used to string text filters together.
+pipeline, which transforms these objects as they pass through. For
+those familiar with UNIX-like shells (e.g. bash,) the concept is
+analogous to the pipe (i.e. ``|``). In a shell environment, the pipe
+redirects a stream of characters from the output of one process to the
+input of the next. 
 
-In a shell environment the pipe redirects a stream of characters from
-the output of one process to the input of the next. The MongoDB
-aggregation pipeline streams MongoDB documents from one :ref:`pipeline
-operator <aggregation-pipeline-operator-reference>` to the next to
-process the documents. Pipeline operators can be repeated in the pipe.
-
-All pipeline operators process a stream of documents and the pipeline
-behaves as if the operation scans a collection and passes all matching
-documents into the "top" of the pipeline. Each operator in the pipeline
-transforms each document as it passes through the pipeline.
-
-.. note::
-
-   Pipeline operators need not produce one output document for every
-   input document: operators may also generate new documents or filter
-   out documents.
+The MongoDB aggregation pipeline starts with the documents of a
+collection and streams the documents from one :ref:`pipeline operator
+<aggregation-pipeline-operator-reference>` to the next to process the
+documents. Each operator in the pipeline transforms each document as it
+passes through the pipeline. Pipeline operators do not need to produce
+one output document for every input document. Operators may generate
+new documents or filter out documents. Pipeline operators can be
+repeated in the pipe.
 
 .. include:: /includes/warning-aggregation-types.rst
 
-.. seealso:: The ":doc:`/reference/aggregation`" includes
-   documentation of the following pipeline operators:
-
-   - :pipeline:`$project`
-   - :pipeline:`$match`
-   - :pipeline:`$limit`
-   - :pipeline:`$skip`
-   - :pipeline:`$unwind`
-   - :pipeline:`$group`
-   - :pipeline:`$sort`
-   - :pipeline:`$geoNear`
+.. seealso:: :ref:`aggregation-pipeline-operator-reference`
 
 .. _aggregation-expressions:
 
-Expressions
------------
+Pipeline Expressions
+--------------------
 
-Expressions produce output documents based on calculations performed on
-input documents. The aggregation pipeline defines expressions using a
-document format using prefixes.
+Pipeline operator expressions provide the specifications for the
+transformation to the input documents. The aggregation pipeline defines
+expressions using a document structure. The expressions can contain
+fields, values, and :ref:`operators
+<aggregation-expression-operators>`. In an expression, to access the
+fields that existed in the input collection, prefix the field name with
+``$`` and enclose in quotes. To access new fields created in the
+pipeline, use the field name without modification.
 
-Expressions are stateless and are only evaluated when seen by the
-aggregation process. All aggregation expressions can only operate on
-the current document in the pipeline, and cannot integrate data from
-other documents.
+Pipeline expressions can only operate on the current document in the
+pipeline and cannot refer to data from other documents.
 
-The :term:`accumulator` expressions used in the :pipeline:`$group`
-operator maintain that state (e.g. totals, maximums, minimums, and
-related data) as documents progress through the pipeline.
+Generally, expressions are stateless and are only evaluated when seen
+by the aggregation process with one exception: :term:`accumulator`
+expressions. The accumulator expressions, used with the
+:pipeline:`$group` pipeline operator, maintain their state (e.g.
+totals, maximums, minimums, and related data) as documents progress
+through the pipeline.
 
 For the expression operators, see
 :ref:`aggregation-expression-operators`.
 
-Invocation
-----------
+``aggregate`` Command
+---------------------
 
-Invoke an :term:`aggregation` operation with the
-:method:`~db.collection.aggregate()` wrapper in the :program:`mongo`
-shell or the :dbcommand:`aggregate` :term:`database command`. Always
-call :method:`~db.collection.aggregate()` on a collection object that
-determines the input documents of the aggregation :ref:`pipeline
-<aggregation-pipeline>`. The arguments to the
-:method:`~db.collection.aggregate()` method specify a sequence of
-:ref:`pipeline operators <aggregation-pipeline-operator-reference>`,
-where each operator may have a number of operands.
+To use the aggregation pipeline, MongoDB interfaces provide the
+:dbcommand:`aggregate` command. In the :program:`mongo` shell, MongoDB
+provides the :method:`db.collection.aggregate()` wrapper.
 
-First, consider a collection of documents named ``articles`` using the
-following format:
-
-.. code-block:: javascript
-
-   {
-    title : "this is my title" ,
-    author : "bob" ,
-    posted : new Date () ,
-    pageViews : 5 ,
-    tags : [ "fun" , "good" , "fun" ] ,
-    comments : [
-                { author :"joe" , text : "this is cool" } ,
-                { author :"sam" , text : "this is bad" }
-    ],
-    other : { foo : 5 }
-   }
-
-The following example aggregation operation pivots data to
-create a set of author names grouped by tags applied to an
-article. Call the aggregation pipeline by issuing the following
-command:
-
-.. code-block:: javascript
-
-   db.articles.aggregate(
-     { $project : {
-        author : 1,
-        tags : 1,
-     } },
-     { $unwind : "$tags" },
-     { $group : {
-        _id : { tags : "$tags" },
-        authors : { $addToSet : "$author" }
-     } }
-   );
-
-The aggregation pipeline begins with the collection
-``articles`` and selects the ``author`` and ``tags`` fields using the
-:pipeline:`$project` aggregation operator. The
-:pipeline:`$unwind` operator produces one output document per
-tag. Finally, the :pipeline:`$group` operator pivots these fields.
-
-Results
--------
-
-The aggregation operation in the previous section returns a
-document with two fields:
-
-- ``result`` which holds an array of documents returned by the
-  :ref:`pipeline <aggregation-pipeline>`
-
-- ``ok`` which holds the value ``1``, indicating success.
-
-.. include:: /includes/fact-agg-helper-exception.rst
-
-As a document, the result is subject to the :ref:`BSON Document size
+The arguments to the :method:`~db.collection.aggregate()` method
+specify a sequence of :ref:`pipeline operations
+<aggregation-pipeline-operator-reference>`. The result of the method is
+a document and is subject to the :ref:`BSON Document size
 <limit-bson-document-size>` limit, which is currently 16 megabytes.
+
+.. example:: Consider a collection named ``articles`` that contains
+   documents of the following format: 
+
+   .. code-block:: javascript
+
+      {
+        title : "this is my title" ,
+        author : "bob" ,
+        posted : new Date () ,
+        pageViews : 5 ,
+        tags : [ "fun" , "good" , "sport" ] ,
+        comments : [
+                     { author :"joe" , text : "this is cool" } ,
+                     { author :"sam" , text : "this is bad" }
+        ],
+        other : { foo : 5 }
+      }
+
+   The following aggregation pivots the data to group authors by
+   individual tags:
+
+   .. code-block:: javascript
+
+      db.articles.aggregate(
+        { $project : {
+                       author : 1,
+                       tags : 1,
+                     }
+        },
+        { $unwind : "$tags" },
+        { $group : {
+                     _id : { tags : "$tags" },
+                     authors : { $addToSet : "$author" }
+                   } 
+        }
+      )
+
+   The aggregation pipeline begins with the collection ``articles`` and
+   selects the ``author`` and ``tags`` fields using the
+   :pipeline:`$project` pipeline operator. The :pipeline:`$unwind`
+   operator produces one output document per tag. Finally, the
+   :pipeline:`$group` pipeline operator groups authors by tags.
+
+   The operation returns the following document:
+   
+   .. code-block:: javascript
+   
+      {
+         "result" : [
+                      {
+                        "_id" : { "tags" : "good" },
+                        "authors" : [ "bob", "mike", ... ]
+                      },
+                      {
+                        "_id" : { "tags" : "fun" },
+                        "authors" : [ "bob", "al" ]
+                      },
+
+                      ...
+
+                    ],
+         "ok" : 1
+      }
+
+   The returned document contains two fields:
+
+   - ``result`` field, which holds an array of documents returned by
+     the :ref:`pipeline <aggregation-pipeline>`, and
+
+   - ``ok`` field, which holds the value ``1``, indicating success.
