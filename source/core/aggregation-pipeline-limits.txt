@@ -4,47 +4,38 @@ Aggregation Pipeline Limits
 
 .. default-domain:: mongodb
 
-Aggregation operations with the :dbcommand:`aggregate` command have
-the following limitations:
+Aggregation operations with the :dbcommand:`aggregate` command have the
+following limitations.
 
-- The :ref:`aggregation pipeline <aggregation-pipeline>`
-  cannot operate on values of the following types:
-  ``Symbol``, ``MinKey``, ``MaxKey``, ``DBRef``, ``Code``,
-  ``CodeWScope``.
+Type Restrictions
+-----------------
 
-  .. versionchanged:: 2.4
-     Removed restriction on ``Binary`` type data. In 2.2, the pipeline
-     could not operate on ``Binary`` type data.
+The :ref:`aggregation pipeline <aggregation-pipeline>` cannot operate
+on values of the following types: ``Symbol``, ``MinKey``, ``MaxKey``,
+``DBRef``, ``Code``, ``CodeWScope``.
 
-- Output from the pipeline can only contain 16 megabytes. If
-  your result set exceeds this limit, the :dbcommand:`aggregate`
-  command produces an error.
+.. versionchanged:: 2.4
+   Removed restriction on ``Binary`` type data. In MongoDB 2.2, the pipeline
+   could not operate on ``Binary`` type data.
 
-- If any single aggregation operation consumes more than 10 percent of
-  system RAM the operation will produce an error.
-  
-Memory for Cumulative Operators
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Result Size Restrictions
+------------------------
 
-Certain pipeline operators require access to the entire input set before
-they can produce any output. For example, :pipeline:`$sort` must receive
-all of the input from the preceding :ref:`pipeline <aggregation-pipeline>`
-operator before it can produce its first output document. The current
-implementation of :pipeline:`$sort` does not go to disk in these cases:
-in order to sort the contents of the pipeline, the entire input must fit
-in memory.
+Output from the pipeline can only contain 16 megabytes. If the result
+set exceeds this limit, the :dbcommand:`aggregate` command produces an
+error.
 
-.. include:: /includes/fact-agg-sort-limit.rst
+Memory Restrictions
+-------------------
 
-:pipeline:`$group` has similar characteristics: Before any
-:pipeline:`$group` passes its output along the pipeline, it must
-receive the entirety of its input. For the :pipeline:`$group`
-operator, this frequently does not require as much memory as
-:pipeline:`$sort`, because it only needs to retain one record for
-each unique key in the grouping specification.
+If any single aggregation operation consumes more than 10 percent or more of
+system RAM, the operation will produce an error.
 
-The current implementation of the aggregation pipeline logs a warning
-if a cumulative operator consumes 5% or more of the physical memory on
-the host. Cumulative operators produce an error if they consume 10% or
-more of the physical memory on the host.
-
+Cumulative operators, such as :pipeline:`$sort` and :pipeline:`$group`,
+require access to the entire input set before they can produce any
+output. These operators log a *warning* if the cumulative operator
+consumes 5% or more of the physical memory on the host. Like any
+aggregation operation, these operators produce an error if they consume
+10% or more of the physical memory on the host. See the
+:pipeline:`$sort` and :pipeline:`$group` reference pages for details on
+their specific memory requirements and use.
