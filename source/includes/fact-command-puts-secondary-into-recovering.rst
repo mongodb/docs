@@ -1,4 +1,4 @@
-.. |cmd-name| specified in the including file
+.. <cmd-name> specified in the including file
 
 .. important:: On secondaries, the |cmd-name| command forces
    the secondary to enter :replstate:`RECOVERING` state. This prevents
