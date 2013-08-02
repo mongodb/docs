@@ -73,95 +73,75 @@ For the expression operators, see
 
 To use the aggregation pipeline, MongoDB interfaces provide the
 :dbcommand:`aggregate` command. In the :program:`mongo` shell, MongoDB
-provides the :method:`db.collection.aggregate()` wrapper.
-
-The arguments to the :method:`~db.collection.aggregate()` method
-specify a sequence of :ref:`pipeline operations
-<aggregation-pipeline-operator-reference>`. The result of the method is
-a document and is subject to the :ref:`BSON Document size
+provides the :method:`db.collection.aggregate()` wrapper. The command
+and the corresponding :program:`mongo` shell wrapper accept as
+arguments a sequence of :ref:`pipeline operations
+<aggregation-pipeline-operator-reference>`. The result of the operation
+is a document and is subject to the :ref:`BSON Document size
 <limit-bson-document-size>` limit, which is currently 16 megabytes.
 
-.. example:: Consider a collection named ``articles`` that contains
-   documents of the following format: 
+For usage examples, see
+:doc:`/tutorial/aggregation-with-user-preference-data` and
+:doc:`tutorial/aggregation-zip-code-data-set` as well as the
+:dbcommand:`aggregate` command and the
+:method:`db.collection.aggregate()` method reference pages.
 
-   .. code-block:: javascript
-
-      {
-        title : "this is my title" ,
-        author : "bob" ,
-        posted : new Date () ,
-        pageViews : 5 ,
-        tags : [ "fun" , "good" , "sport" ] ,
-        comments : [
-                     { author :"joe" , text : "this is cool" } ,
-                     { author :"sam" , text : "this is bad" }
-        ],
-        other : { foo : 5 }
-      }
-
-   The following aggregation pivots the data to group authors by
-   individual tags:
-
-   .. code-block:: javascript
-
-      db.articles.aggregate(
-        { $project : {
-                       author : 1,
-                       tags : 1,
-                     }
-        },
-        { $unwind : "$tags" },
-        { $group : {
-                     _id : { tags : "$tags" },
-                     authors : { $addToSet : "$author" }
-                   } 
-        }
-      )
-
-   The aggregation pipeline begins with the collection ``articles`` and
-   selects the ``author`` and ``tags`` fields using the
-   :pipeline:`$project` pipeline operator. The :pipeline:`$unwind`
-   operator produces one output document per tag. Finally, the
-   :pipeline:`$group` pipeline operator groups authors by tags.
-
-   The operation returns the following document:
-   
-   .. code-block:: javascript
-   
-      {
-         "result" : [
-                      {
-                        "_id" : { "tags" : "good" },
-                        "authors" : [ "bob", "mike", ... ]
-                      },
-                      {
-                        "_id" : { "tags" : "fun" },
-                        "authors" : [ "bob", "al" ]
-                      },
-
-                      ...
-
-                    ],
-         "ok" : 1
-      }
-
-   The returned document contains two fields:
-
-   - ``result`` field, which holds an array of documents returned by
-     the :ref:`pipeline <aggregation-pipeline>`, and
-
-   - ``ok`` field, which holds the value ``1``, indicating success.
+.. _aggregation-optimize-performance:
 
 Aggregation Pipeline Behavior
 -----------------------------
 
-Depending on the order they appear in the pipeline, certain aggregation
-pipeline operators can take advantage of indexes. For instance, using
-the :pipeline:`$match` pipeline operator at the start of the pipeline
-can use an index as well as by reduce the number of documents that pass
-through the pipeline. For more information on which pipeline operators
-can use indexes, see
-:ref:`aggregation-pipeline-operators-and-performance`.
+In MongoDB, the :dbcommand:`aggregate` operate on a single collection,
+logically passing the *entire* collection into the aggregation
+pipeline. Whenever possible, avoid scanning the entire collection to
+optimize the operation.
+
+Early Filtering
+~~~~~~~~~~~~~~~
+
+If your aggregation operation requires only a subset of the data in a
+collection, use the :pipeline:`$match` operator to restrict which items go
+in to the top of the pipeline, as in a query. When placed early in a
+pipeline, these :pipeline:`$match` operations use suitable indexes
+to scan only the matching documents in a collection.
+
+Placing a :pipeline:`$match` pipeline stage followed by a
+:pipeline:`$sort` stage at the start of the pipeline is logically
+equivalent to a single query with a sort and can use an index. When
+possible, place :pipeline:`$match` operators at the beginning of the
+pipeline.
+
+.. _aggregation-pipeline-operators-and-performance:
+
+Pipeline Operators and Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Depending on the order in which they appear in the pipeline,
+aggregation operators can take advantage of indexes.
+
+The following pipeline operators take advantage of an index when they
+occur at the beginning of the pipeline:
+
+- :pipeline:`$match`
+- :pipeline:`$sort`
+- :pipeline:`$limit`
+- :pipeline:`$skip`.
+
+The above operators can also use an index when placed **before** the
+following aggregation operators:
+
+- :pipeline:`$project`
+- :pipeline:`$unwind`
+- :pipeline:`$group`.
+
+.. versionadded:: 2.4
+   The :pipeline:`$geoNear` pipeline operator takes advantage of a
+   geospatial index. When using :pipeline:`$geoNear`, the
+   :pipeline:`$geoNear` pipeline operation must appear as the first
+   stage in an aggregation pipeline.
+
+Additional Features
+~~~~~~~~~~~~~~~~~~~
 
 The aggregation pipeline has an internal optimization phase that
 provides improved performance for certain sequence of operators. For

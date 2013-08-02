@@ -22,30 +22,27 @@ finish.
 Sharded Collection as Output
 ----------------------------
 
-By default, the output collection is not sharded. To output to a
-sharded collection, the map-reduce operation exhibits the following
-behavior:
+.. versionchanged:: 2.2
 
-- :program:`mongos` dispatches a map-reduce finish job to the shard
-  that will store the target collection.
+If the ``out`` field for :dbcommand:`mapReduce` has the value
+``sharded``, MongoDB shards the output collection using ``_id`` field
+as the shard key.
 
-- The target shard pulls results from all other shards, and runs a
-  final reduce/finalize operation, and write to the output.
-
-- Starting in MongoDB 2.2, if the ``out`` field for
-  :dbcommand:`mapReduce` has the value ``sharded``, MongoDB shards the
-  output using ``_id`` field as the shard key.
+To output to a sharded collection:
 
 - If the output collection does not exist, MongoDB creates and shards
-  the collection on the ``_id`` field. If the collection is empty,
-  MongoDB creates :term:`chunks <chunk>` using the result of the first
-  stage of the map-reduce operation.
+  the collection on the ``_id`` field. 
+  
+- For a new or an empty sharded collection, MongoDB creates
+  :term:`chunks <chunk>` using the result of the first stage of the
+  map-reduce operation.
 
 - :program:`mongos` dispatches, in parallel, a map-reduce finish job
   to every shard that owns a chunk.
 
-- Each shard will pull the results it owns from all other shards, run a
-  final reduce/finalize, and write to the output collection.
+- Each shard that owns a chunk will pull the results from the other
+  shards that owns a chunk, run a final reduce/finalize, and write to
+  the output collection.
 
 .. note::
 

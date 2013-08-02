@@ -23,30 +23,83 @@ Definition
                the :term:`pipeline`
 
              - ``ok`` which holds the value ``1``, indicating success.
-   
-   :throws exception: 
+
+   :throws exception:
            .. include:: /includes/fact-agg-helper-exception.rst
 
 Example
 -------
 
-The following is an example from the :doc:`aggregation
-documentation </core/aggregation>`.
+Consider a collection named ``articles`` that contains documents of the
+following format:
 
 .. code-block:: javascript
 
-   db.article.aggregate(
+   {
+     title : "this is my title" ,
+     author : "bob" ,
+     posted : new Date () ,
+     pageViews : 5 ,
+     tags : [ "fun" , "good" , "sport" ] ,
+     comments : [
+                  { author :"joe" , text : "this is cool" } ,
+                  { author :"sam" , text : "this is bad" }
+     ],
+     other : { foo : 5 }
+   }
+
+The following aggregation pivots the data to group authors by
+individual tags:
+
+.. code-block:: javascript
+
+   db.articles.aggregate(
      { $project : {
-        author : 1,
-        tags : 1,
-     } },
+                    author : 1,
+                    tags : 1,
+                  }
+     },
      { $unwind : "$tags" },
      { $group : {
-        _id : { tags : 1 },
-        authors : { $addToSet : "$author" }
-     } }
-   );
+                  _id : { tags : "$tags" },
+                  authors : { $addToSet : "$author" }
+                }
+     }
+   )
 
-.. seealso:: ":dbcommand:`aggregate`,"
-   ":doc:`/core/aggregation`," and
-   ":doc:`/reference/aggregation`."
+The aggregation pipeline begins with the collection ``articles`` and
+selects the ``author`` and ``tags`` fields using the
+:pipeline:`$project` pipeline operator. The :pipeline:`$unwind`
+operator produces one output document per tag. Finally, the
+:pipeline:`$group` pipeline operator groups authors by tags.
+
+The operation returns the following document:
+
+.. code-block:: javascript
+
+   {
+      "result" : [
+                   {
+                     "_id" : { "tags" : "good" },
+                     "authors" : [ "bob", "mike", ... ]
+                   },
+                   {
+                     "_id" : { "tags" : "fun" },
+                     "authors" : [ "bob", "al" ]
+                   },
+
+                   ...
+
+                 ],
+      "ok" : 1
+   }
+
+The returned document contains two fields:
+
+- ``result`` field, which holds an array of documents returned by
+  the :ref:`pipeline <aggregation-pipeline>`, and
+
+- ``ok`` field, which holds the value ``1``, indicating success.
+
+For more information, see :doc:`/core/aggregation`,
+:doc:`/reference/aggregation`, and :dbcommand:`aggregate`.
