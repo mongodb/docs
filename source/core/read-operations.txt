@@ -5,7 +5,7 @@ Read Operations
 .. default-domain:: mongodb
 
 Read operations include all operations that return a cursor in
-response to application request data (i.e. *queries*,) and also
+response to application data requests (i.e. *queries*,) and also
 include a number of :doc:`aggregation </aggregation>` operations that
 do not return a cursor but have similar properties as queries. These
 commands include :dbcommand:`aggregate`, :dbcommand:`count`, and
@@ -49,7 +49,7 @@ syntax: [#formal-query-structure]_
   database.
 
 - Queries in MongoDB are :term:`BSON` objects that use a set of
-  :doc:`query operators </reference/operators>` to describe query
+  :doc:`query operators </reference/operator>` to describe query
   parameters.
 
   The ``<query>`` argument of the :method:`find()
@@ -90,7 +90,7 @@ syntax:
    db.collection.findOne( <query>, <projection> )
 
 For additional documentation and examples of the main MongoDB read
-operators, refer to the :doc:`/applications/read` page of the
+operators, refer to the :doc:`/core/read` page of the
 :doc:`/crud` section.
 
 .. [#formal-query-structure] :method:`db.collection.find()` is a
@@ -354,16 +354,18 @@ Result Projections
 ~~~~~~~~~~~~~~~~~~
 
 The :term:`projection` specification limits the fields to return for
-all matching documents. Constraining the result set by restricting the
-fields to return can minimize network transit costs and the costs of
-deserializing documents in the application layer.
+all matching documents. Restricting the fields to return can minimize
+network transit costs and the costs of deserializing documents in the
+application layer.
 
 The second argument to the :method:`find() <db.collection.find()>`
 method is a projection, and it takes the form of a :term:`document` with
 a list of fields for inclusion or exclusion from the result set. You
 can either specify the fields to include (e.g. ``{ field: 1 }``) or specify the
-fields to exclude (e.g. ``{ field: 0 }``). The ``_id`` field is implicitly
-included, unless explicitly excluded.
+fields to exclude (e.g. ``{ field: 0 }``). The ``_id`` field is, by
+default, included in the result set. To exclude the ``_id`` field from
+the result set, you need to specify in the projection document the
+exclusion of the ``_id`` field (i.e. ``{ _id: 0 }``).
 
 .. note::
 
@@ -393,8 +395,8 @@ Consider the following projection specifications in :method:`find()
 
      db.inventory.find( { type: 'food' }, { item: 1, qty: 1 } )
 
-- You can remove the ``_id`` field by excluding it from the
-  projection, as in the following example:
+- You can remove the ``_id`` field from the results by specifying its
+  exclusion in the projection, as in the following example:
 
   .. code-block:: javascript
 
@@ -458,6 +460,52 @@ operation:
   <index-ascending-and-descending>` to support sort operations in
   compound queries.
 
+.. _read-operations-covered-query:
+
+Covering a Query
+~~~~~~~~~~~~~~~~
+
+An index :ref:`covers <indexes-covered-queries>` a query, a *covered
+query*, when:
+
+- all the fields in the :ref:`query <read-operations-query-document>`
+  are part of that index, **and**
+
+- all the fields returned in the documents that match the query are in
+  the same index.
+
+For these queries, MongoDB does not need to inspect at documents
+outside of the index, which is often more efficient than inspecting
+entire documents.
+
+.. example::
+
+   Given a collection ``inventory`` with the following index on the
+   ``type`` and ``item`` fields:
+
+   .. code-block:: sh
+
+      { type: 1, item: 1 }
+
+   This index will cover the following query on the ``type`` and ``item``
+   fields, which returns only the ``item`` field:
+
+   .. code-block:: javascript
+
+      db.inventory.find( { type: "food", item:/^c/ },
+                         { item: 1, _id: 0 } )
+
+   However, this index will **not** cover the following query, which
+   returns the ``item`` field **and** the ``_id`` field:
+
+   .. code-block:: javascript
+
+      db.inventory.find( { type: "food", item:/^c/ },
+                         { item: 1 } )
+
+See :ref:`indexes-covered-queries` for more information on the
+behavior and use of covered queries.
+
 Measuring Index Use
 ~~~~~~~~~~~~~~~~~~~
 
@@ -501,11 +549,12 @@ If the above operation could not use an index, the output of
      "server" : "mongodb0.example.net:27017"
    }
 
-The ``BasicCursor`` value in the :data:`~explain.cursor` field confirms that
-this query does not use an index. The :data:`explain.nscannedObjects` value shows that
-MongoDB must scan 4,000,006 documents to return only 5 documents. To
-increase the efficiency of the query, create an index on the ``type``
-field, as in the following example:
+The ``BasicCursor`` value in the :data:`~explain.cursor` field
+confirms that this query does not use an index. The
+:data:`explain.nscannedObjects` value shows that MongoDB must scan
+4,000,006 documents to return only 5 documents. To increase the
+efficiency of the query, create an index on the ``type`` field, as in
+the following example:
 
 .. code-block:: javascript
 
@@ -552,9 +601,13 @@ the query used an index. This query:
 - then read 5 full documents from the collection, as indicated by
   the :data:`~explain.nscannedObjects` field.
 
-  This indicates that the query was not "covered," or able to complete
-  only using the index, as reflected in the :data:`~explain.indexOnly`. See
-  :ref:`indexes-covered-queries` for more information.
+  Although the query uses an index to find the matching documents, if
+  :data:`~explain.indexOnly` is false then an index could
+  not :ref:`cover <read-operations-covered-query>` the query:
+  MongoDB could not both match the :ref:`query conditions
+  <read-operations-query-document>` **and** return the results using
+  only this index. See :ref:`indexes-covered-queries` for more
+  information.
 
 .. index:: query optimizer
 .. _read-operations-query-optimization:
@@ -597,7 +650,8 @@ To create a new query plan, the query optimizer:
 
    - An :term:`ordered query plan` has returned all the matching results; *or*
 
-   - An :term:`ordered query plan` has returned a threshold number of matching results:
+   - An :term:`ordered query plan` has returned a threshold number of
+     matching results:
 
      - Version 2.0: Threshold is the query batch size. The default
        batch size is 101.
@@ -634,7 +688,7 @@ use of the different indexes:
 
 This returns the statistics regarding the execution of the query. For
 more information on the output of :method:`explain()
-<cursor.explain()>`, see the :doc:`/reference/explain`.
+<cursor.explain()>`, see :doc:`/reference/method/cursor.explain`.
 
 .. note::
 
@@ -759,7 +813,8 @@ the documents in an array, as in the following:
    var myDocument = documentArray[3];
 
 The :method:`~cursor.toArray()` method loads into RAM all
-documents returned by the cursor; the :method:`~cursor.toArray()` method exhausts the cursor.
+documents returned by the cursor; the :method:`~cursor.toArray()`
+method exhausts the cursor.
 
 Additionally, some :doc:`drivers </applications/drivers>` provide
 access to the documents by using an index on the cursor (i.e.
@@ -790,10 +845,10 @@ Consider the following behaviors related to cursors:
 - By default, the server will automatically close the cursor after 10
   minutes of inactivity or if client has exhausted the cursor. To
   override this behavior, you can specify the ``noTimeout``
-  :meta-driver:`wire protocol flag </legacy/mongodb-wire-protocol>` in your query;
-  however, you should either close the cursor manually or exhaust the
-  cursor. In the :program:`mongo` shell, you can set the ``noTimeout``
-  flag:
+  :meta-driver:`wire protocol flag </legacy/mongodb-wire-protocol>` in
+  your query; however, you should either close the cursor manually or
+  exhaust the cursor. In the :program:`mongo` shell, you can set the
+  ``noTimeout`` flag:
 
   .. code-block:: javascript
 
@@ -825,7 +880,8 @@ Consider the following behaviors related to cursors:
 
   - As you iterate through the cursor and reach the end of the returned
     batch, if there are more results, :method:`cursor.next()` will
-    perform a :data:`getmore operation <currentop.op>` to retrieve the next batch.
+    perform a :data:`getmore operation <currentOp.op>` to retrieve the
+    next batch.
 
     To see how many documents remain in the batch as you iterate the
     cursor, you can use the :method:`~cursor.objsLeftInBatch()` method,
@@ -854,11 +910,16 @@ Consider the following behaviors related to cursors:
 
      db.runCommand( { cursorInfo: 1 } )
 
-  The result from the command returns the following documentation:
+  The result from the command returns the following document:
 
   .. code-block:: javascript
 
-     { "totalOpen" : <number>, "clientCursors_size" : <number>, "timedOut" : <number>, "ok" : 1 }
+     {
+       "totalOpen" : <number>,
+       "clientCursors_size" : <number>,
+       "timedOut" : <number>,
+       "ok" : 1
+     }
 
 .. [#single-document-def] A single document relative to value of the
    ``_id`` field. A cursor cannot return the same document more than
@@ -888,8 +949,9 @@ Aggregation
 
 MongoDB can perform some basic data aggregation operations on results
 before returning data to the application. These operations are not
-queries; they use :term:`database commands <database command>` rather than queries, and
-they do not return a cursor. However, they still require MongoDB to read data.
+queries; they use :term:`database commands <database command>` rather
+than queries, and they do not return a cursor. However, they still
+require MongoDB to read data.
 
 Running aggregation operations on the database side can be more
 efficient than running them in the application layer and can reduce
@@ -916,13 +978,13 @@ operations for more basic data aggregation operations:
 
 - :dbcommand:`count` (:method:`~cursor.count()`)
 
-- :dbcommand:`distinct` (:method:`~cursor.distinct()`)
+- :dbcommand:`distinct` (:method:`db.collection.distinct()`)
 
 - :dbcommand:`group` (:method:`db.collection.group()`)
 
 - :dbcommand:`mapReduce`. (Also consider
   :method:`~db.collection.mapReduce()` and
-  :doc:`/applications/map-reduce`.)
+  :doc:`/core/map-reduce`.)
 
 .. index:: read operation; architecture
 .. _read-operations-architecture:
@@ -969,7 +1031,7 @@ the following resources:
 - :ref:`An Introduction to Shard Keys <sharding-shard-key>`
 - :ref:`Shard Key Internals and Operations <sharding-internals-shard-keys>`
 - :ref:`Querying Sharded Clusters <sharding-internals-querying>`
-- :ref:`sharding-mongos`
+- :doc:`/core/sharded-cluster-query-router`
 
 Read Operations from Replica Sets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1003,6 +1065,6 @@ applications don't rely on this kind of strict consistency, but
 application developers should always consider the needs of their
 application before setting read preference.
 
-For more information on :ref:`read preferences <read-preference>` or
-on the read preference modes, see :ref:`read-preference` and
+For more information on read preference or on the read preference
+modes, see :doc:`/core/read-preference` and
 :ref:`replica-set-read-preference-modes`.

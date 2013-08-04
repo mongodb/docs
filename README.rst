@@ -17,7 +17,7 @@ of the documentation. You may also wish to install `Pygments
 examples.
 
 To contribute to the documentation please fork this repository on
-github and issue a pull request. File issue reports or requests at the
+GitHub and issue a pull request. File issue reports or requests at the
 `Documentation Jira Project <https://jira.mongodb.org/browse/DOCS>`_.
 See the following documents within this repository that provide a more
 thorough overview of the documentation style, process, and overall

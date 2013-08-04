@@ -1,0 +1,101 @@
+.. _sharding-high-availability:
+
+=================================
+Sharded Cluster High Availability 
+=================================
+
+.. default-domain:: mongodb
+
+A :ref:`production <sharding-production-architecture>` :term:`cluster`
+has no single point of failure. This section introduces the
+availability concerns for MongoDB deployments in general and
+highlights potential failure scenarios and available resolutions.
+
+Application Servers or :program:`mongos` Instances Become Unavailable
+---------------------------------------------------------------------
+
+If each application server has its own :program:`mongos` instance, other
+application servers can continue access the database. Furthermore,
+:program:`mongos` instances do not maintain persistent state, and they
+can restart and become unavailable without loosing any state or data.
+When a :program:`mongos` instance starts, it retrieves a copy of the
+:term:`config database` and can begin routing queries.
+
+A Single :program:`mongod` Becomes Unavailable in a Shard
+---------------------------------------------------------
+
+:doc:`Replica sets </replication>` provide high availability for shards.
+If the unavailable :program:`mongod` is a :term:`primary`, then the
+replica set will :ref:`elect <replica-set-elections>` a new primary. If
+the unavailable :program:`mongod` is a :term:`secondary`, and it
+disconnects the primary and secondary will continue to hold all data. In
+a three member replica set, even if a single member of the set
+experiences catastrophic failure, two other members have full copies of
+the data. [#recovery-window]_
+
+Always investigate availability interruptions and failures. If a system
+is unrecoverable, replace it and create a new member of the replica set
+as soon as possible to replace the lost redundancy.
+
+All Members of a Replica Set Become Unavailable
+-----------------------------------------------
+
+If all members of a replica set within a shard are unavailable, all data
+held in that shard is unavailable. However, the data on all other shards
+will remain available, and it's possible to read and write data to the
+other shards. However, your application must be able to deal with
+partial results, and you should investigate the cause of the
+interruption and attempt to recover the shard as soon as possible.
+
+One or Two Config Databases Become Unavailable
+----------------------------------------------
+
+Three distinct :program:`mongod` instances provide the :term:`config
+database` using a special two-phase commits to maintain consistent state
+between these :program:`mongod` instances. Cluster operation will
+continue as normal but :ref:`chunk migration <sharding-balancing>` and
+the cluster can create no new :ref:`chunk splits
+<sharding-procedure-create-split>`. Replace the config server as soon as
+possible. If all multiple config databases become unavailable, the
+cluster can become inoperable.
+
+.. include:: /includes/note-config-server-startup.rst
+
+.. [#recovery-window] If an unavailable secondary becomes available
+   while it still has current oplog entries, it can catch up to the
+   latest state of the set using the normal :term:`replication process
+   <sync>`, otherwise it must perform an :term:`initial sync`.
+
+Shard Keys and Cluster Availability
+-----------------------------------
+
+The most important consideration when choosing a :term:`shard key`
+are:
+
+- to ensure that MongoDB will be able to distribute data evenly among
+  shards, and
+
+- to scale writes across the cluster, and
+
+- to ensure that :program:`mongos` can isolate most queries to a specific
+  :program:`mongod`.
+
+Furthermore:
+
+- Each shard should be a :term:`replica set`, if a specific
+  :program:`mongod` instance fails, the replica set members will elect
+  another to be :term:`primary` and continue operation. However, if an
+  entire shard is unreachable or fails for some reason, that data will
+  be unavailable.
+
+- If the shard key allows the :program:`mongos` to isolate most
+  operations to a single shard, then the failure of a single shard
+  will only render *some* data unavailable.
+
+- If your shard key distributes data required for every operation
+  throughout the cluster, then the failure of the entire shard will
+  render the entire cluster unavailable.
+
+In essence, this concern for reliability simply underscores the
+importance of choosing a shard key that isolates query operations to a
+single shard.

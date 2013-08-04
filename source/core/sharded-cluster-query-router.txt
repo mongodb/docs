@@ -1,0 +1,208 @@
+.. index:: mongos
+.. _sharded-cluster-query-routing:
+.. _sharding-read-operations:
+
+=============================
+Sharded Cluster Query Routing
+=============================
+
+.. default-domain:: mongodb
+
+MongoDB :program:`mongos` instances route queries and write operations
+to :term:`shards <shard>` in a sharded cluster. :program:`mongos` provide the
+only interface to a sharded cluster from the perspective of
+applications. Applications never connect or communicate directly with
+the shards.
+
+The :program:`mongos` tracks what data is on which shard by caching
+the metadata from the :ref:`config servers
+<sharded-cluster-config-server>`. The :program:`mongos` uses the
+metadata to route operations from applications and clients to the
+:program:`mongod` instances. A :program:`mongos` has no *persistent*
+state and consumes minimal system resources.
+
+The most common practice is to run :program:`mongos` instances on the
+same systems as your application servers, but you can maintain
+:program:`mongos` instances on the shards or on other dedicated
+resources.
+
+.. note::
+
+   .. versionchanged:: 2.1
+
+   Some aggregation operations using the :dbcommand:`aggregate`
+   command (i.e. :method:`db.collection.aggregate()`) will cause
+   :program:`mongos` instances to require more CPU resources than in
+   previous versions. This modified performance profile may dictate
+   alternate architecture decisions if you use the :term:`aggregation
+   framework` extensively in a sharded environment.
+
+Routing Process
+---------------
+
+A :program:`mongos` instance uses the following processes to route
+queries and return results.
+
+How ``mongos`` Determines which Shards Receive a Query
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A :program:`mongos` instance routes a query to a :term:`cluster <sharded
+cluster>` by:
+
+1. Determining the list of :term:`shards <shard>` that must receive the
+   query.
+
+#. Establishing a cursor on all targeted shards.
+
+In some cases, when the :term:`shard key` or a prefix of the shard
+key is a part of the query, the :program:`mongos` can route the
+query to a subset of the shards. Otherwise, the :program:`mongos`
+must direct the query to *all* shards that hold documents for that
+collection.
+
+.. example::
+
+   Given the following shard key:
+
+   .. code-block:: javascript
+
+      { zipcode: 1, u_id: 1, c_date: 1 }
+
+   Depending on the distribution of chunks in the cluster, the
+   :program:`mongos` may be able to target the query at a subset of
+   shards, if the query contains the following fields:
+
+   .. code-block:: javascript
+
+      { zipcode: 1 }
+      { zipcode: 1, u_id: 1 }
+      { zipcode: 1, u_id: 1, c_date: 1 }
+
+How ``mongos`` Establishes a Cursor on Targeted Shards
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When the first batch of results returns from the cursors, the
+:program:`mongos` instance does one of the following:
+
+- For query with sorted results (i.e. using :method:`cursor.sort()`) the
+  :program:`mongos` instance performs a merge sort of all queries.
+
+- For a query with unsorted results, the :program:`mongos` instance
+  returns a result cursor that "round robins" results from all cursors
+  on the shards.
+
+.. versionchanged:: 2.0.5
+   Before 2.0.5, the :program:`mongos` exhausted each cursor,
+   one by one.
+
+Detect Connections to :program:`mongos` Instances
+-------------------------------------------------
+
+To detect if the MongoDB instance that your client is connected
+to is :program:`mongos`, use the :dbcommand:`isMaster` command. When a
+client connects to a :program:`mongos`, :dbcommand:`isMaster` returns
+a document with a ``msg`` field that holds the string
+``isdbgrid``. For example:
+
+.. code-block:: javascript
+
+   {
+      "ismaster" : true,
+      "msg" : "isdbgrid",
+      "maxBsonObjectSize" : 16777216,
+      "ok" : 1
+   }
+
+If the application is instead connected to a :program:`mongod`, the
+returned document does not include the ``isdbgrid`` string.
+
+Broadcast Operations and Targeted Operations
+--------------------------------------------
+
+In general, operations in a sharded environment are either:
+
+- Broadcast to all shards in the cluster that hold documents in a
+  collection
+
+- Targeted at a single shard or a limited group of shards, based on
+  the shard key
+
+For best performance, use targeted operations whenever possible. While
+some operations must broadcast to all shards, you can ensure MongoDB
+uses targeted operations whenever possible by always including the shard
+key.
+
+Broadcast Operations
+~~~~~~~~~~~~~~~~~~~~
+
+:program:`mongos` instances broadcast queries to all shards
+[#namespace-exception]_ **unless** the :program:`mongos` can determine
+which shard or shard stores this data.
+
+Multi-update operations are always broadcast operations.
+
+The :method:`~db.collection.remove()` operation is always a
+broadcast operation, unless the operation specifies the shard key in
+full.
+
+.. [#namespace-exception] If a shard does not store chunks from a
+   given collection, queries for documents in that collection are not
+   broadcast to that shard.
+
+Targeted Operations
+~~~~~~~~~~~~~~~~~~~
+
+All :method:`~db.collection.insert()` operations target to one
+shard.
+
+All single :method:`~db.collection.update()` operations target
+to one shard. This includes :term:`upsert` operations.
+
+For queries that include the shard key, :program:`mongos` can target the
+query at a specific shard or set of shards. This is the case only if the
+portion of the shard key included in the query is a *prefix* of the
+shard key. For example, if the shard key is:
+
+.. code-block:: javascript
+
+   { a: 1, b: 1, c: 1 }
+
+The :program:`mongos` program *can* route queries that include the full
+shard key or either of the following shard key prefixes at a
+specific shard or set of shards:
+
+.. code-block:: javascript
+
+   { a: 1 }
+   { a: 1, b: 1 }
+
+Depending on the distribution of data in the cluster and the
+selectivity of the query, :program:`mongos` may still have to
+contact multiple shards [#possible-all]_ to fulfill these queries.
+
+.. [#possible-all] :program:`mongos` will route some queries, even
+   some that include the shard key, to all shards, if needed.
+
+Sharded and Non-Sharded Data
+----------------------------
+
+Sharding operates on the collection level. You can shard multiple
+collections within a database or have multiple databases with
+sharding enabled. [#sharding-databases]_ However, in production
+deployments, some databases and collections will use sharding, while
+other databases and collections will only reside on a single
+shard.
+
+.. include:: /images/sharded-cluster-primary-shard.rst
+
+Regardless of the data architecture of your :term:`sharded cluster`,
+ensure that all queries and operations use the :term:`mongos` router to
+access the data cluster. Use the :program:`mongos` even for operations
+that do not impact the sharded data.
+
+.. include:: /images/sharded-cluster-mixed.rst
+
+.. [#sharding-databases] As you configure sharding, you will use the
+   :dbcommand:`enableSharding` command to enable sharding for a
+   database. This simply makes it possible to use the
+   :dbcommand:`shardCollection` command on a collection within that database.

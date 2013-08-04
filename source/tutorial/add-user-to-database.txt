@@ -1,0 +1,74 @@
+========================
+Add a User to a Database
+========================
+
+.. default-domain:: mongodb
+
+To add a user to a database you must authenticate to that database as a
+user with the :authrole:`userAdmin` or :authrole:`userAdminAnyDatabase`
+role. If you have not first created a user with one of those roles, do
+so as described in :doc:`/tutorial/add-user-administrator`.
+
+When adding a user to multiple databases, you must define the user
+*for each database*. See :ref:`password-hashing-security` for
+important security information.
+
+To add a user, pass the :method:`db.addUser()` method a well formed
+:doc:`privilege document </reference/user-privileges>` that contains the
+user's credentials and privileges. The :method:`db.addUser()` method
+adds the document to the database's :data:`system.users
+<<database>.system.users>` collection.
+
+.. versionchanged:: 2.4
+
+   .. include:: /includes/fact-change-password.rst
+   
+   To change a user's password in version
+   2.4 or newer, see :doc:`Change a User's Password
+   </tutorial/change-user-password>`.
+
+For the structure of a privilege document, see :data:`system.users
+<<database>.system.users>`. For descriptions of user roles, see
+:doc:`/reference/user-privileges`.
+
+.. example:: The following creates a user named ``Alice`` in the
+   ``products`` database and gives her ``readWrite`` and
+   ``dbAdmin`` privileges.
+
+   .. code-block:: javascript
+
+      use products
+      db.addUser( { user: "Alice",
+                    pwd: "Moon1234",
+                    roles: [ "readWrite", "dbAdmin" ]
+                  } )
+
+.. example:: The following creates a user named ``Bob`` in the
+   ``admin`` database. The :data:`privilege document
+   <<database>.system.users>` uses Bob's credentials from the
+   ``products`` database and assigns him ``userAdmin`` privileges.
+
+   .. code-block:: javascript
+
+      use admin
+      db.addUser( { user: "Bob",
+                    userSource: "products",
+                    roles: [ "userAdmin" ]
+                  } )
+
+.. example:: The following creates a user named ``Carlos`` in the
+   ``admin`` database and gives him ``readWrite`` access to the
+   ``config`` database, which lets him change certain settings for
+   sharded clusters, such as to disable the balancer.
+
+   .. code-block:: javascript
+
+      db = db.getSiblingDB('admin')
+      db.addUser( { user: "Carlos",
+                    pwd: "Moon1234",
+                    roles: [ "clusterAdmin" ],
+                    otherDBRoles: { config: [ "readWrite" ]
+                  } } )
+
+   Only the ``admin`` database supports the
+   :data:`~admin.system.users.otherDBRoles` field.

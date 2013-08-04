@@ -1,0 +1,85 @@
+.. index:: rollbacks
+   single: replica set; rollbacks
+   single: consistency; rollbacks
+
+.. _replica-set-rollbacks:
+.. _replica-set-rollback:
+
+=====================================
+Rollbacks During Replica Set Failover
+=====================================
+
+.. default-domain:: mongodb
+
+A rollback reverts write operations on a former :term:`primary` when the
+member rejoins its :term:`replica set` after a :term:`failover`.
+A rollback is necessary only if the primary had accepted write
+operations that the :term:`secondaries <secondary>` had **not**
+successfully replicated before the primary stepped down. When the
+primary rejoins the set as a secondary, it reverts, or "rolls back," its
+write operations to maintain database consistency with the other
+members.
+
+MongoDB attempts to avoid rollbacks, which should be rare. When a
+rollback does occur, it is often the result of a network
+partition. Secondaries that can not keep up with the throughput of
+operations on the former primary, increase the size an impact of the
+rollback.
+
+A rollback does *not* occur if the write operations replicate to another
+member of the replica set before the primary steps down and if that
+member remains available and accessible to a majority of the replica
+set.
+
+Collect Rollback Data
+---------------------
+
+When a rollback does occur, administrators must decide whether to
+apply or ignore the rollback data. MongoDB writes the rollback data to
+:term:`BSON` files in the ``rollback/`` folder under the database's
+:setting:`dbpath` directory.  The names of rollback files have the
+following form:
+
+.. code-block:: none
+
+   <database>.<collection>.<timestamp>.bson
+
+For example:
+
+.. code-block:: none
+
+   records.accounts.2011-05-09T18-10-04.0.bson
+
+Administrators must apply rollback data manually after the member
+completes the rollback and returns to secondary status. Use
+:doc:`bsondump </reference/program/bsondump>` to read the contents of
+the rollback files. Then use :program:`mongorestore` to apply the
+changes to the new primary.
+
+Avoid Replica Set Rollbacks
+---------------------------
+
+To prevent rollbacks, use :ref:`replica acknowledged write concern
+<write-concern-replica-acknowledged>` to guarantee that the write
+operations propagate to the members of a replica set.
+
+Rollback Limitations
+--------------------
+
+A :program:`mongod` instance will not rollback more than 300
+megabytes of data. If your system must rollback more than 300
+megabytes, you must manually intervene to recover the data. If
+this is the case, the following line will appear in your
+:program:`mongod` log:
+
+.. code-block:: none
+
+   [replica set sync] replSet syncThread: 13410 replSet too much data to roll back
+
+In this situation, save the data directly or force the member to perform
+an initial sync. To force initial sync, sync from a "current" member of
+the set by deleting the content of the :setting:`dbpath` directory for
+the member that requires a larger rollback.
+
+.. seealso:: :doc:`/core/replica-set-high-availability` and
+   :doc:`/core/replica-set-elections`.

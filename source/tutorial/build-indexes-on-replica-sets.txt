@@ -1,0 +1,142 @@
+.. index:: index; replica set
+.. index:: replica set; index
+.. _index-build-on-replica-sets:
+.. _index-building-replica-sets:
+
+=============================
+Build Indexes on Replica Sets
+=============================
+
+.. default-domain:: mongodb
+
+:ref:`Background index creation operations
+<index-creation-background>` become *foreground* indexing operations
+on :term:`secondary` members of replica sets. The foreground index
+building process blocks all replication and read operations on the
+secondaries while they build the index.
+
+Secondaries will begin building indexes *after* the
+:term:`primary` finishes building the index. In :term:`sharded clusters
+<sharded cluster>`, the :program:`mongos` will send :method:`ensureIndex()
+<db.collection.ensureIndex()>` to the primary members of the replica
+set for each shard, which then replicate to the secondaries after the
+primary finishes building the index.
+
+To minimize the impact of building an index on your replica set, use
+the following procedure to build indexes on secondaries:
+
+.. see:: :doc:`/administration/indexes` and :doc:`/core/indexes` for
+   more information.
+
+Considerations
+--------------
+
+.. warning::
+
+   Ensure that your :term:`oplog` is large enough to permit the
+   indexing or re-indexing operation to complete without falling
+   too far behind to catch up. See the ":ref:`oplog sizing
+   <replica-set-oplog-sizing>`" documentation for additional
+   information.
+
+.. note::
+
+   This procedure *does* take one member out of the replica set at a
+   time. However, this procedure will only affect one member of the
+   set at a time rather than *all* secondaries at the same time.
+
+Procedure
+---------
+
+.. note::
+
+   If you need to build an index in a :term:`sharded cluster`, repeat
+   the following procedure for each replica set that provides each
+   :term:`shard`.
+
+.. _tutorial-index-on-replica-sets-stop-one-member:
+
+Stop One Secondary
+~~~~~~~~~~~~~~~~~~
+
+Stop the :program:`mongod` process on one secondary. Restart the
+:program:`mongod` process *without* the :option:`--replSet <mongod --replSet>`
+option and running on a different port. [#different-port]_ This
+instance is now in "standalone" mode.
+
+For example, if your :program:`mongod` *normally* runs with on the
+default port of ``27017`` with the :option:`--replSet 
+<mongod --replSet>` option you would use the following invocation:
+
+.. code-block:: sh
+
+   mongod --port 47017
+
+.. [#different-port] By running the :program:`mongod` on a different
+   port, you ensure that the other members of the replica set and all
+   clients will not contact the member while you are building the
+   index.
+
+.. _tutorial-index-on-replica-sets-build-index:
+
+Build the Index
+~~~~~~~~~~~~~~~
+
+Create the new index using the :method:`~db.collection.ensureIndex()`
+in the :program:`mongo` shell, or comparable method in your
+driver. This operation will create or rebuild the index on this
+:program:`mongod` instance
+
+For example, to create an ascending index on the ``username`` field of
+the ``records`` collection, use the following :program:`mongo` shell
+operation:
+
+.. code-block:: sh
+
+   db.records.ensureIndex( { username: 1 } ) 
+
+.. seealso:: :doc:`/tutorial/create-an-index` and
+   :doc:`/tutorial/create-a-compound-index` for more information.
+
+.. _tutorial-index-on-replica-sets-restart-mongod:
+
+Restart the Program ``mongod``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When the index build completes, start the :program:`mongod` instance
+with the :option:`--replSet <mongod --replSet>` option on its usual port:
+
+.. code-block:: sh
+
+   mongod --port 27017 --replSet rs0
+
+Modify the port number (e.g. ``27017``) or the replica set name
+(e.g. ``rs0``) as needed. 
+
+Allow replication to catch up on this member.
+
+Build Indexes on all Secondaries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For each secondary in the set, build an index according to the
+following steps: 
+
+#. :ref:`tutorial-index-on-replica-sets-stop-one-member`
+#. :ref:`tutorial-index-on-replica-sets-build-index`
+#. :ref:`tutorial-index-on-replica-sets-restart-mongod`
+
+Build the Index on the Primary
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Finally, to build the index on the :term:`primary`, begin by stepping
+down the primary. Use the :method:`rs.stepDown()` method in the
+:program:`mongo` shell to cause the current primary to become a
+secondary graceful and allow the set to elect another member as
+primary.
+
+Then repeat the index building procedure, listed below, to build the
+index on the primary: 
+
+#. :ref:`tutorial-index-on-replica-sets-stop-one-member`
+#. :ref:`tutorial-index-on-replica-sets-build-index`
+#. :ref:`tutorial-index-on-replica-sets-restart-mongod`

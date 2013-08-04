@@ -1,0 +1,310 @@
+.. index:: write concern
+.. _write-concern:
+
+=============
+Write Concern
+=============
+
+.. default-domain:: mongodb
+
+.. include:: /includes/introduction-write-concern.rst
+
+.. seealso:: :doc:`/reference/write-concern` for a reference of
+   specific write concern configuration. Also consider
+   :doc:`/core/write-operations` for a general overview of write
+   operations with MongoDB.
+
+.. note:: After the :doc:`driver write concern change
+   </release-notes/drivers-write-concern>` all officially supported
+   MongoDB drivers enable write concern by default.
+
+Types of Write Concern
+----------------------
+
+Clients issue write operations with some level of :term:`write
+concern`, which describes the level of concern or guarantee the server
+will provide in its response to a write operation.  Consider the
+following levels of conceptual write concern, listed from weakest to
+strongest:
+
+.. _write-concern-errors-ignored:
+
+Errors Ignored
+~~~~~~~~~~~~~~
+
+With a *errors ignored* write concern, write operations are not
+acknowledged by MongoDB. Write operations may not succeed in the case
+of connection errors that the client is not yet aware of, or if the
+:program:`mongod` produces an exception (e.g. a duplicate key
+exception for :ref:`unique indexes <index-type-unique>`.) While this
+operation is efficient because it does not require the database to
+respond to every write operation, it also incurs a significant risk
+with regards to the persistence and durability of the data.
+
+.. warning::
+
+   Do not use this option in normal operation.
+
+.. _write-concern-unacknowledged:
+
+Unacknowledged
+~~~~~~~~~~~~~~
+
+With a *unacknowledged* write concern, MongoDB does not acknowledge
+the receipt of write operation as with a write concern level of
+*ignore*; however, the driver will receive and handle network errors,
+as possible given system networking configuration.
+
+Before the releases outlined in :ref:`driver-write-concern-change`,
+this was the default write concern.
+
+.. _write-concern-acknowledged:
+
+Acknowledged
+~~~~~~~~~~~~
+
+With a receipt *acknowledged* write concern, the :program:`mongod`
+confirms the receipt of the write operation. With this level of write
+concern, clients can catch network, duplicate key, and other
+exceptions. 
+
+This is the default write concern, after the releases outlined in
+:ref:`driver-write-concern-change`.
+
+Internally, the default write concern is to call
+:dbcommand:`getLastError` with no arguments. For replica sets, you can
+define the default write concern settings in the
+:data:`~local.system.replset.settings.getLastErrorDefaults` If
+:data:`~local.system.replset.settings.getLastErrorDefaults` does not
+define a default write concern setting, :dbcommand:`getLastError`
+defaults to basic receipt acknowledgment.
+
+.. _write-concern-replica-journaled:
+
+Journaled
+~~~~~~~~~
+
+With a *journaled* write concern, the :program:`mongod` will confirm
+the write operation only after it has written the operation to the
+:term:`journal`. This confirms that the write operation can survive a
+:program:`mongod` shutdown and ensures that the write operation is
+durable.
+
+While receipt *acknowledged* without *journaled* provides the
+fundamental basis for write concern, there is a window between
+journal commits where the write operation is not fully durable. See
+:setting:`journalCommitInterval` for more information on this
+window. Require *journaled* as part of the write concern to provide
+this durability guarantee.
+
+.. _write-concern-replica-acknowledged:
+.. _replica-set-write-concern:
+
+Replica Acknowledged
+~~~~~~~~~~~~~~~~~~~~
+
+:term:`Replica sets <replica set>` present an additional layer of
+consideration for write concern. Basic write concern levels affect the
+write operation on only one :program:`mongod` instance. The ``w``
+argument to :dbcommand:`getLastError` provides a *replica
+acknowledged* level of write concern. With *replica acknowledged* you
+can guarantee that the write operation has propagated to the members
+of a replica set. See the :ref:`Write Concern for Replica Sets
+<replica-set-write-concern>` document for more information.
+
+.. note::
+
+   Requiring *journaled* write concern in a replica set only requires
+   a journal commit of the write operation to the :term:`primary` of the
+   set regardless of the level of *replica acknowledged* write
+   concern.
+
+Write Concern for Replica Sets
+------------------------------
+
+MongoDB's built-in :term:`write concern` confirms the success of write
+operations to a :term:`replica set's <replica set>` :term:`primary`.
+Write concern uses the :dbcommand:`getLastError` command after write
+operations to return an object with error information or confirmation
+that there are no errors.
+
+From the perspective of a client application, whether a MongoDB
+instance is running as a single server (i.e. "standalone") or a
+:term:`replica set` is transparent. However, replica sets offer some
+configuration options for write and read operations. [#sharded-clusters]_
+
+.. [#sharded-clusters] :term:`Sharded clusters <sharded cluster>` where the
+   shards are also replica sets provide the same configuration options
+   with regards to write and read operations.
+
+Verify Write Operations
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The default write concern confirms write operations only on the
+primary.  You can configure write concern to confirm write operations
+to additional replica set members as well by issuing the
+:dbcommand:`getLastError` command with the ``w`` option.
+
+The ``w`` option confirms that write operations have replicated to the
+specified number of replica set members, including the primary. You can
+either specify a number or specify ``majority``, which ensures the write
+propagates to a majority of set members. 
+
+If you specify a ``w`` value greater than the number of members that
+hold a copy of the data (i.e., greater than the number of
+non-:term:`arbiter` members), the operation blocks until those members
+become available. This can cause the operation to block forever. To
+specify a timeout threshold for the :dbcommand:`getLastError` operation,
+use the ``wtimeout`` argument.
+
+See :ref:`getLastError Examples <gle-examples>` for example
+invocations.
+
+Modify Default Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can configure your own "default" :dbcommand:`getLastError`
+behavior for a replica set. Use the
+:data:`~local.system.replset.settings.getLastErrorDefaults` setting in
+the :doc:`replica set configuration
+</reference/replica-configuration>`. The following sequence of
+commands creates a configuration that waits for the write operation to
+complete on a majority of the set members before returning:
+
+.. code-block:: javascript
+
+   cfg = rs.conf()
+   cfg.settings = {}
+   cfg.settings.getLastErrorDefaults = {w: "majority"}
+   rs.reconfig(cfg)
+
+The :data:`~local.system.replset.settings.getLastErrorDefaults`
+setting affects only those :dbcommand:`getLastError` commands that
+have *no* other arguments.
+
+.. note::
+
+   Use of insufficient write concern can lead to :ref:`rollbacks
+   <replica-set-rollbacks>` in the case of :ref:`replica set failover
+   <replica-set-failover>`. Always ensure that your operations have
+   specified the required write concern for your application.
+
+.. seealso:: :ref:`write-operations-write-concern` and
+   :ref:`connections-write-concern`
+
+Custom Write Concerns
+~~~~~~~~~~~~~~~~~~~~~
+
+You can use replica set tags to create custom write concerns using the
+:data:`~local.system.replset.settings.getLastErrorDefaults` and
+:data:`~local.system.replset.settings.getLastErrorModes` replica set
+settings.
+
+.. note::
+
+   Custom write concern modes specify the field name and a number of
+   *distinct* values for that field. By contrast, read preferences use
+   the value of fields in the tag document to direct read operations.
+
+   In some cases, you may be able to use the same tags for read
+   preferences and write concerns; however, you may need to create
+   additional tags for write concerns depending on the requirements of
+   your application.
+
+Single Tag Write Concerns
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider a five member replica set, where each member has one of the
+following tag sets:
+
+.. code-block:: javascript
+
+   { "use": "reporting" }
+   { "use": "backup" }
+   { "use": "application" }
+   { "use": "application" }
+   { "use": "application" }
+
+You could create a custom write concern mode that will ensure that
+applicable write operations will not return until members with two
+different values of the ``use`` tag have acknowledged the write
+operation. Create the mode with the following sequence of operations
+in the :program:`mongo` shell:
+
+.. code-block:: javascript
+
+   cfg = rs.conf()
+   cfg.settings = { getLastErrorModes: { use2: { "use": 2 } } }
+   rs.reconfig(cfg)
+
+.. these examples need to be better so that they avoid overwriting
+   getLastErrorModes upon repetition (i.e. they don't $push documents
+   to getLastErrorModes.)
+
+To use this mode pass the string ``multiUse`` to the ``w`` option of
+:dbcommand:`getLastError` as follows:
+
+.. code-block:: javascript
+
+   db.runCommand( { getLastError: 1, w: "use2" } )
+
+Specific Custom Write Concerns
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have a three member replica with the following tag sets:
+
+.. code-block:: javascript
+
+   { "disk": "ssd" }
+   { "disk": "san" }
+   { "disk": "spinning" }
+
+You cannot specify a custom
+:data:`~local.system.replset.settings.getLastErrorModes` value to
+ensure that the write propagates to the ``san`` before
+returning. However, you may implement this write concern policy by
+creating the following additional tags, so that the set resembles the
+following:
+
+.. code-block:: javascript
+
+   { "disk": "ssd" }
+   { "disk": "san", "disk.san": "san" }
+   { "disk": "spinning" }
+
+Then, create a custom
+:data:`~local.system.replset.settings.getLastErrorModes` value, as
+follows:
+
+.. code-block:: javascript
+
+   cfg = rs.conf()
+   cfg.settings = { getLastErrorModes: { san: { "disk.san": 1 } } }
+   rs.reconfig(cfg)
+
+.. these examples need to be better so that they avoid overwriting
+   getLastErrorModes upon repetition (i.e. they don't $push documents
+   to getLastErrorModes.)
+
+To use this mode pass the string ``san`` to the ``w`` option of
+:dbcommand:`getLastError` as follows:
+
+.. code-block:: javascript
+
+   db.runCommand( { getLastError: 1, w: "san" } )
+
+This operation will not return until a replica set member with the tag
+``disk.san`` returns.
+
+You may set a custom write concern mode as the default write concern
+mode using :data:`~local.system.replset.settings.getLastErrorDefaults`
+replica set as in the following setting:
+
+.. code-block:: javascript
+
+   cfg = rs.conf()
+   cfg.settings.getLastErrorDefaults = { ssd: 1 }
+   rs.reconfig(cfg)
+
+.. seealso:: :ref:`replica-set-configuration-tag-sets` for further
+   information about replica set reconfiguration and tag sets.

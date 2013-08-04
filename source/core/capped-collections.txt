@@ -11,6 +11,9 @@ collections work in a way similar to circular buffers: once a
 collection fills its allocated space, it makes room for new documents
 by overwriting the oldest documents in the collection.
 
+See :method:`db.createCollection()` or :dbcommand:`createCollection`
+for more information on creating capped collections.
+
 Capped collections have the following behaviors:
 
 - Capped collections guarantee preservation of the insertion order. As
@@ -47,6 +50,19 @@ collections:
 Recommendations and Restrictions
 --------------------------------
 
+- You *can* update documents in a collection after inserting
+  them. *However,* these updates **cannot** cause the documents to
+  grow. If the update operation causes the document to grow beyond
+  their original size, the update operation will fail.
+
+  If you plan to update documents in a capped collection, create an
+  index so that these update operations do not require a table scan.
+
+- You cannot delete documents from a capped collection. To remove all
+  records from a capped collection, use the 'emptycapped' command. To
+  remove the collection entirely, use the :method:`drop()
+  <db.collection.drop()>` method.
+
 - You cannot shard a capped collection.
 
 - Capped collections created after 2.2 have an ``_id`` field and an
@@ -55,30 +71,17 @@ Recommendations and Restrictions
   you are using capped collections with replication prior to 2.2, you
   should explicitly create an index on the ``_id`` field.
 
-- You *can* update documents in a collection after inserting them;
-  *however*, these updates *cannot* cause the documents to grow. If the
-  update operation causes the document to grow beyond their original
-  size, the update operation will fail.
+  .. warning::
 
-  If you plan to update documents in a capped
-  collection, remember to create an index to prevent update
-  operations that require a table scan.
-
-- You cannot delete documents from a capped collection. To remove all
-  records from a capped collection, use the 'emptycapped' command. To
-  remove the collection entirely, use the :method:`drop()
-  <db.collection.drop()>` method.
-
-.. warning::
-
-   If you have a capped collection in a :term:`replica set` outside of
-   the ``local`` database, before 2.2, you should create a unique
-   index on ``_id``.  Ensure uniqueness using the ``unique: true``
-   option to the :method:`ensureIndex() <db.collection.ensureIndex()>`
-   method or by using an :term:`ObjectId` for the ``_id``
-   field. Alternately, you can use the ``autoIndexId`` option to
-   :dbcommand:`create` when creating the capped collection,
-   as in the :ref:`capped-collections-options` procedure.
+     If you have a capped collection in a :term:`replica set` outside
+     of the ``local`` database, before 2.2, you should create a unique
+     index on ``_id``.  Ensure uniqueness using the ``unique: true``
+     option to the :method:`ensureIndex()
+     <db.collection.ensureIndex()>` method or by using an
+     :term:`ObjectId` for the ``_id`` field. Alternately, you can use
+     the ``autoIndexId`` option to :dbcommand:`create` when creating
+     the capped collection, as in the
+     :ref:`capped-collections-options` procedure.
 
 - Use natural ordering to retrieve the most recently inserted elements
   from the collection efficiently. This is (somewhat) analogous to
@@ -100,7 +103,19 @@ small amount of space for internal overhead.
 
 .. code-block:: javascript
 
-   db.createCollection("mycoll", {capped:true, size:100000})
+   db.createCollection( "log", { capped: true, size: 100000 } )
+
+Additionally, you may also specify a maximum number of documents for the
+collection using the ``max`` field as in the following document:
+
+.. code-block:: javascript
+
+   db.createCollection("log", { capped : true, size : 5242880, max : 5000 } )
+
+.. important:: The ``size`` argument is *always* required, even when
+   you specify ``max`` number of documents. MongoDB will remove older
+   documents if a collection reaches the maximum size limit before it
+   reaches the maximum document count.
 
 .. see:: :method:`db.createCollection()` and  :dbcommand:`create`.
 

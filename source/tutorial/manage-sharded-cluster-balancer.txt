@@ -1,5 +1,4 @@
 .. index:: balancing; operations
-.. _sharding-balancing-operations:
 
 ===============================
 Manage Sharded Cluster Balancer
@@ -12,15 +11,7 @@ to balancing. For an introduction to balancing, see
 :ref:`sharding-balancing`. For lower level information on balancing, see
 :ref:`sharding-balancing-internals`.
 
-This page includes the following:
-
-- :ref:`sharding-balancing-check-lock`
-
-- :ref:`sharding-schedule-balancing-window`
-
-- :ref:`sharding-balancing-remove-window`
-
-- :ref:`sharding-balancing-disable-temporally`
+.. seealso:: :doc:`/tutorial/configure-sharded-cluster-balancer`
 
 .. _sharding-balancing-check-lock:
 
@@ -108,6 +99,10 @@ be able to migrate chunks:
    beginning and end boundaries of the balancing window.
    These times will be evaluated relative to the time zone of each individual
    :program:`mongos` instance in the sharded cluster.
+   If your :program:`mongos` instances are physically located in different
+   time zones, use a common time zone (e.g. GMT) to ensure that the
+   balancer window is interpreted correctly.
+
    For instance, running the following
    will force the balancer to run between 11PM and 6AM local time only:
 
@@ -140,6 +135,7 @@ of operations:
    db.settings.update({ _id : "balancer" }, { $unset : { activeWindow : true } })
 
 .. _sharding-balancing-disable-temporally:
+.. _sharding-balancing-disable-temporarily:
 
 Disable the Balancer
 --------------------
@@ -151,36 +147,35 @@ all migration, use the following procedure:
 #. Connect to any :program:`mongos` in the cluster using the
    :program:`mongo` shell.
 
-#. Issue *one* of the following operations to disable the balancer:
+#. Issue the following operation to disable the balancer:
 
    .. code-block:: javascript
 
-      sh.stopBalancer()
+      sh.setBalancerState(false)
 
-#. Later, issue *one* the following operations to enable the balancer:
+   .. note::
 
-   .. code-block:: javascript
+      If a migration is in progress, the system will complete the
+      in-progress migration before stopping.
 
-      sh.startBalancer()
+#. To later re-enable the balancer, see :ref:`sharding-balancing-re-enable`.
 
-.. note::
+After disabling, you can use the following
+operation in the :program:`mongo` shell to determine if there are
+no migrations in progress:
 
-   If a migration is in progress, the system will complete
-   the in-progress migration. After disabling, you can use the
-   following operation in the :program:`mongo` shell to determine if
-   there are no migrations in progress:
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   use config
+   while( sh.isBalancerRunning() ) {
+             print("waiting...");
+             sleep(1000);
+   }
 
-      use config
-      while( db.locks.findOne({_id: "balancer"}).state ) {
-             print("waiting..."); sleep(1000);
-      }
-
-The above process and the :method:`sh.setBalancerState()`,
-:method:`sh.startBalancer()`, and :method:`sh.stopBalancer()` helpers provide
-wrappers on the following process, which may be useful if you need to
-run this operation from a driver that does not have helper functions:
+The :method:`sh.setBalancerState()` helper provides
+a wrapper on the following process, which may be useful if you
+need to run this operation from a driver that does not have helper
+functions:
 
 #. Connect to any :program:`mongos` in the cluster using the
    :program:`mongo` shell.
@@ -197,17 +192,40 @@ run this operation from a driver that does not have helper functions:
 
       db.settings.update( { _id: "balancer" }, { $set : { stopped: true } } , true );
 
-#. To enable the balancer again, alter the value of "stopped" as follows:
+#. To later re-enable the balancer, see :ref:`sharding-balancing-re-enable`.
 
-   .. code-block:: javascript
+.. _sharding-balancing-re-enable:
+.. _sharding-balancing-enable:
 
-      db.settings.update( { _id: "balancer" }, { $set : { stopped: false } } , true );
+Enable the Balancer
+-------------------
+
+Use this procedure if you have disabled the balancer and are ready to
+re-enable it:
+
+#. Connect to any :program:`mongos` in the cluster using the
+   :program:`mongo` shell.
+
+#. Issue one of the following operations to enable the balancer:
+
+   - From the :program:`mongo` shell, issue:
+
+     .. code-block:: javascript
+
+        sh.setBalancerState(false)
+
+   - From a driver that does not have the :method:`sh.startBalancer()` helper,
+     issue the following from the ``config`` database:
+
+     .. code-block:: javascript
+
+        db.settings.update( { _id: "balancer" }, { $set : { stopped: false } } , true )
 
 Disable Balancing During Backups
 --------------------------------
 
 If MongoDB migrates a :term:`chunk` during a :doc:`backup
-</administration/backups>`, you can end with an inconsistent snapshot
+</core/backups>`, you can end with an inconsistent snapshot
 of your :term:`sharded cluster`. Never run a backup while the balancer is
 active. To ensure that the balancer is inactive during your backup
 operation:
@@ -216,10 +234,20 @@ operation:
   so that the balancer is inactive during the backup. Ensure that the
   backup can complete while you have the balancer disabled.
 
-- :ref:`manually disable the balancer <sharding-balancing-disable-temporally>`
+- :ref:`manually disable the balancer <sharding-balancing-disable-temporarily>`
   for the duration of the backup procedure.
 
-Confirm that the balancer is not active using the
-:method:`sh.getBalancerState()` method before starting a backup
-operation. When the backup procedure is complete you can reactivate
+If you turn the balancer off while it is in the middle of a balancing round,
+the shut down is not instantaneous. The balancer completes the chunk
+move in-progress and then ceases all further balancing rounds.
+
+Before starting a backup operation, confirm that the balancer is not
+active. You can use the following command to determine if the balancer
+is active:
+
+.. code-block:: javascript
+
+   !sh.getBalancerState() && !sh.isBalancerRunning()
+
+When the backup procedure is complete you can reactivate
 the balancer process.

@@ -1,5 +1,3 @@
-.. _sharding-manage-chunks:
-
 ==================================
 Manage Chunks in a Sharded Cluster
 ==================================
@@ -12,18 +10,6 @@ chunk management operations. However, these chunk management
 operations are accessible to administrators for use in some
 situations, typically surrounding initial setup, deployment, and data
 ingestion.
-
-This page includes the following:
-
-- :ref:`sharding-administration-create-chunks`
-
-- :ref:`sharding-balancing-modify-chunk-size`
-
-- :ref:`sharding-balancing-manual-migration`
-
-- :ref:`sharding-bulk-inserts`
-
-- :ref:`sharding-procedure-create-split`
 
 .. _sharding-procedure-create-split:
 
@@ -188,19 +174,20 @@ To create and migrate chunks manually, use the following procedure:
 Modify Chunk Size
 -----------------
 
-When you initialize a sharded cluster, the default chunk size is 64
-megabytes. This default chunk size works well for most deployments. However, if you
-notice that automatic migrations are incurring a level of I/O that
-your hardware cannot handle, you may want to reduce the chunk
-size. For the automatic splits and migrations, a small chunk size
-leads to more rapid and frequent migrations.
+When you initialize a sharded cluster, [#mongos-initialization]_ the
+default chunk size is 64 megabytes. This default chunk size works well
+for most deployments; however, if you notice that automatic migrations
+are incurring a level of I/O that your hardware cannot handle, you may
+want to reduce the chunk size. For the automatic splits and
+migrations, a small chunk size leads to more rapid and frequent
+migrations.
 
-To modify the chunk size, use the following procedure:
+to modify the chunk size, use the following procedure:
 
-#. Connect to any :program:`mongos` in the cluster using the
+#. connect to any :program:`mongos` in the cluster using the
    :program:`mongo` shell.
 
-#. Issue the following command to switch to the :ref:`config-database`:
+#. issue the following command to switch to the :ref:`config-database`:
 
    .. code-block:: javascript
 
@@ -219,12 +206,14 @@ To modify the chunk size, use the following procedure:
 
 .. note::
 
-   The :setting:`chunkSize` and :option:`--chunkSize <mongos --chunkSize>`
-   options, passed at runtime to the :program:`mongos` **do not**
-   affect the chunk size after you have initialized the cluster.
+   The :setting:`chunkSize` and
+   :option:`--chunkSize <mongos --chunkSize>`
+   options, passed at runtime to the :program:`mongos`
+   **do not** affect the chunk size after you have initialized the
+   cluster. [#mongos-initialization]_
 
    To eliminate confusion you should *always* set chunk size using the
-   above procedure and never use the runtime options.
+   above procedure and never use the runtime options. 
 
 Modifying the chunk size has several limitations:
 
@@ -238,6 +227,10 @@ Modifying the chunk size has several limitations:
 
 If you increase the chunk size, existing chunks must grow through
 insertion or updates until they reach the new size.
+
+.. [#mongos-initialization] The first :program:`mongos` that connects
+   to a set of :term:`config servers <config database>` initializes
+   the sharded cluster.
 
 .. _sharding-balancing-manual-migration:
 
@@ -282,7 +275,9 @@ shell connected to any :program:`mongos` instance.
 
 .. code-block:: javascript
 
-   db.adminCommand({moveChunk : "myapp.users", find : {username : "smith"}, to : "mongodb-shard3.example.net"})
+   db.adminCommand( { moveChunk : "myapp.users",
+                      find : {username : "smith"},
+                      to : "mongodb-shard3.example.net" } )
 
 This command moves the chunk that includes the shard key value "smith" to the
 :term:`shard` named ``mongodb-shard3.example.net``. The command will
@@ -293,9 +288,14 @@ to pre-splitting.
 
 .. versionadded:: 2.2
    :dbcommand:`moveChunk` command has the: ``_secondaryThrottle``
-   parameter. When set to ``true``, MongoDB ensures that
-   :term:`secondary` members have replicated operations before allowing
-   new chunk migrations.
+   parameter. When set to ``true``, MongoDB ensures that changes to
+   shards as part of chunk migrations replicate to :term:`secondaries
+   <secondary>` throughout the migration operation. For more
+   information, see :ref:`sharded-cluster-config-secondary-throttle`.
+
+.. versionchanged:: 2.4
+   In 2.4, ``_secondaryThrottle`` is ``true`` by default.
+
 
 .. warning::
 
@@ -322,14 +322,12 @@ Strategies for Bulk Inserts in Sharded Clusters
 .. todo:: Consider moving to the administrative guide as it's of an
    applied nature, or create an applications document for sharding
 
-.. todo:: link the words "bulk insert" to the bulk insert topic when
+.. todo:: link the words "bulk insert" to the bulk insert document when
    it's published
 
-
-Large bulk insert operations including initial data ingestion or
+Large bulk insert operations, including initial data ingestion or
 routine data import, can have a significant impact on a :term:`sharded
-cluster`. Consider the following strategies and possibilities for
-bulk insert operations:
+cluster`. For bulk insert operations, consider the following strategies:
 
 - If the collection does not have data, then there is only one
   :term:`chunk`, which must reside on a single shard. MongoDB must

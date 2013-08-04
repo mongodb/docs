@@ -1,0 +1,73 @@
+.. _sharding-security:
+
+========================
+Sharded Cluster Security
+========================
+
+.. default-domain:: mongodb
+
+In most respects security for sharded clusters similar to other
+MongoDB deployments. Sharded clusters use the same use :doc:`keyfile
+</core/inter-process-authentication>` and :doc:`access control
+</core/access-control>` as all MongoDB deployments. However, there are
+additional considerations when using authentication with sharded
+clusters.
+
+.. important:: In addition to the mechanisms described in this
+   section, always run sharded clusters in a trusted networking
+   environment. Ensure that the network only permits trusted traffic
+   to reach :program:`mongos` and :program:`mongod` instances.
+
+.. seealso:: :doc:`/tutorial/enable-authentication-in-sharded-cluster`.
+
+Access Control Privileges in Sharded Clusters
+---------------------------------------------
+
+In sharded clusters, MongoDB provides separate administrative
+ privileges for the sharded cluster and for each shard.
+
+- Administrative privileges for the sharded cluster. These privileges
+  give read and write access to the config servers' :term:`admin
+  database`. Users with these privileges can run all administrative
+  commands. These privileges also give read and write access to all the
+  cluster's databases. The credentials for these privileges reside on
+  the config servers.
+
+  To receive administrative privileges for the cluster, you must
+  authenticate while connected to a :program:`mongos` instance.
+
+- Administrative privileges for the :program:`mongod` instance, or
+  :term:`replica set`, that make up each individual shard. Each shard
+  has its own ``admin`` database that stores the administrative
+  credentials and access *for that shard only*. These credentials are
+  *completely* distinct from the cluster-wide credentials.
+
+Beyond these administration privileges, privileges for sharded clusters
+are functionally the same as any other MongoDB deployment. See
+:doc:`/core/access-control` for more information.
+
+Access a Sharded Cluster with Authentication
+--------------------------------------------
+
+To access a sharded cluster as an authenticated user, from the command
+line, use the authentication options when connecting to a
+:program:`mongos`. Or, you can connect first and then authenticate with
+the :dbcommand:`authenticate` command or the :method:`db.auth()` method.
+
+To close an authenticated session, see the :dbcommand:`logout`
+command.
+
+.. index:: sharding; localhost
+.. _sharding-localhost:
+
+Restriction on ``localhost`` Interface
+--------------------------------------
+
+Sharded clusters have restrictions on the use of ``localhost``
+interface. If the host identifier for a MongoDB instance is either
+``localhost`` or "``127.0.0.1``", then you must use "localhost" or
+"``127.0.0.1``" to identify *all* MongoDB instances in a
+deployment.This applies to the ``host`` argument to the
+:dbcommand:`addShard` command as well as to the :option:`--configdb`
+option for the :program:`mongos`. If you mix localhost addresses with
+remote host address, sharded clusters will not function correctly.

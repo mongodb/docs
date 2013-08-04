@@ -1,0 +1,91 @@
+.. index:: sharding; config servers
+.. index:: config servers
+.. _sharding-config-server:
+.. _sharded-cluster-config-server:
+
+==============
+Config Servers
+==============
+
+.. default-domain:: mongodb
+
+Config servers are special :program:`mongod` instances that store the
+:doc:`metadata </core/sharded-cluster-metadata>` for a sharded cluster.
+Config servers use a two-phase commit to ensure immediate consistency
+and reliability. Config servers *do not* run as replica sets. All
+config servers must be available to deploy a sharded cluster or to
+make any changes to cluster metadata.
+
+A production sharded cluster has *exactly three* config servers. For
+testing purposes you may deploy a cluster with a single config server.
+But to ensure redundancy and safety in production, you should always
+use three.
+
+.. warning::
+
+   If your cluster has a single config server, then the config server
+   is a single point of failure. If the config server is inaccessible,
+   the cluster is not accessible. If you cannot recover the data on a
+   config server, the cluster will be inoperable.
+
+   **Always** use three config servers for production deployments.
+
+Config servers store metadata for a single sharded cluster. Each
+cluster must have its own config servers.
+
+.. index:: config databases
+.. index:: database, config
+
+Config Database
+---------------
+
+Config servers store the metadata in the :doc:`config database
+</reference/config-database>`. The :program:`mongos` instances cache
+this data and use it to route reads and writes to shards.
+
+.. _config-server-read-write-ops:
+
+Read and Write Operations on Config Servers
+-------------------------------------------
+
+The load on the config servers is small because each :program:`mongos`
+instance caches the metadata.
+
+MongoDB only writes data to the config server in the following cases:
+
+- To create splits in existing chunks. For more information, see
+  :doc:`chunk splitting </core/sharding-chunk-splitting>`.
+
+- To migrate a chunk between shards. For more information, see
+  :doc:`chunk migration </core/sharding-chunk-migration>`.
+
+MongoDB only reads data from the config server data in the following
+cases:
+
+- A new :program:`mongos` starts for the first time, or an existing
+  :program:`mongos` restarts.
+
+- After a chunk migration, the :program:`mongos` instances update
+  themselves with the new cluster metadata.
+
+Config Server Availability
+--------------------------
+
+If one or two config servers become unavailable, the cluster's metadata
+becomes *read only*. You can still read and write data from the shards,
+but no chunk migrations or splits will occur until all three servers
+are available.
+
+If all three config servers are unavailable, you can still use the
+cluster if you do not restart the :program:`mongos` instances until
+after the config servers are accessible again. If you restart the
+:program:`mongos` instances before the config servers are available,
+the :program:`mongos` will be unable to route reads and writes.
+
+Clusters become inoperable without the cluster metadata. *Always,*
+ensure that the config servers remain available and intact. As such,
+backups of config servers are critical. The data on the config server
+is small compared to the data stored in a cluster. This means the
+config server has a relatively low activity load, and the config
+server does not need to be always available to support a sharded
+cluster. As a result, it is easy to back up the config servers.

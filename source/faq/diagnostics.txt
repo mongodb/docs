@@ -6,6 +6,10 @@ FAQ: MongoDB Diagnostics
 
 .. default-domain:: mongodb
 
+.. contents:: Frequently Asked Questions:
+   :backlinks: none
+   :local:
+
 This document provides answers to common diagnostic questions and
 issues.
 
@@ -13,18 +17,14 @@ If you don't find the answer you're looking for, check
 the :doc:`complete list of FAQs </faq>` or post your question to the
 `MongoDB User Mailing List <https://groups.google.com/forum/?fromgroups#!forum/mongodb-user>`_.
 
-.. contents:: Frequently Asked Questions:
-   :backlinks: none
-   :local:
-
 Where can I find information about a ``mongod`` process that stopped running unexpectedly?
 ------------------------------------------------------------------------------------------
 
 If :program:`mongod` shuts down unexpectedly on a UNIX or UNIX-based
 platform, and if :program:`mongod` fails to log a shutdown or error
 message, then check your system logs for messages pertaining to MongoDB.
-For example, for logs located in in ``/var/log/messages``,
-use the the following commands:
+For example, for logs located in ``/var/log/messages``, use the
+following commands:
 
 .. code-block:: sh
 
@@ -73,12 +73,20 @@ setting:
 
 To set a shorter keep alive period use the following invocation:
 
+.. code-block:: sh
+
    sysctl -w net.inet.tcp.keepinit=300
 
 If your replica set or sharded cluster experiences keepalive-related
-issues, you must must alter the ``tcp_keepalive_time`` value on all
-machines hosting MongoDB processes. This includes all machines hosting
+issues, you must alter the ``tcp_keepalive_time`` value on all machines
+hosting MongoDB processes. This includes all machines hosting
 :program:`mongos` or :program:`mongod` servers.
+
+Windows users should consider the `Windows Server Technet Article on
+KeepAliveTime configuration
+<http://technet.microsoft.com/en-us/library/dd349797.aspx#BKMK_2>`_
+for more information on setting keep alive for MongoDB deployments on
+Windows systems.
 
 .. _faq-memory:
 
@@ -89,7 +97,7 @@ Do I need to configure swap space?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Always configure systems to have swap space. Without swap, your system
-may not be reliant in some situations with extreme memory constrains,
+may not be reliant in some situations with extreme memory constraints,
 memory leaks, or multiple programs using the same memory.  Think of
 the swap space as something like a steam release valve that allows the
 system to release extra pressure without affecting the overall
@@ -105,6 +113,20 @@ swap and MongoDB can write data to the data files without needing the swap
 system.
 
 .. _faq-fundamentals-working-set:
+
+What is "working set" and how can I estimate it's size?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The *working set* for a MongoDB database is the portion of your data
+that clients access most often. You can estimate size of the working
+set, using the :data:`~serverStatus.workingSet` document in the output
+of :dbcommand:`serverStatus`. To return :dbcommand:`serverStatus` with
+the :data:`~serverStatus.workingSet` document, issue a command in the
+following form:
+
+.. code-block:: javascript
+
+   db.runCommand( { serverStatus: 1, workingSet: 1 } )
 
 Must my working set size fit RAM?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -168,7 +190,7 @@ limited to:
 
 - The operating system's cache strategy for LRU (Least Recently Used)
 
-- The impact of :doc:`journaling </administration/journaling>`
+- The impact of :doc:`journaling </core/journaling>`
 
 - The number or rate of page faults and other MMS gauges to detect when
   you need more RAM
@@ -269,8 +291,8 @@ In the worst case, you may have to consider re-sharding your data
 and :ref:`choosing a different shard key <sharding-internals-choose-shard-key>`
 to correct this pattern.
 
-Why can prevent a sharded cluster from balancing?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+What can prevent a sharded cluster from balancing?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you have just deployed your sharded cluster, you may want to
 consider the :ref:`troubleshooting suggestions for a new cluster where

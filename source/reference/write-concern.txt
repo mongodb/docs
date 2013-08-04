@@ -1,0 +1,130 @@
+.. _write-concern-operation:
+.. _write-concern-internals:
+
+=======================
+Write Concern Reference
+=======================
+
+.. default-domain:: mongodb
+
+Overview
+--------
+
+.. include:: /includes/introduction-write-concern.rst
+
+.. seealso:: :doc:`/core/write-concern` for an introduction to write
+   concern in MongoDB.
+
+Available Write Concern
+-----------------------
+
+To provide write concern, :doc:`drivers </applications/drivers>` issue
+the :dbcommand:`getLastError` command after a write operation and
+receive a document with information about the last operation. This
+document's ``err`` field contains either:
+
+- ``null``, which indicates the write operations have completed
+  successfully, or
+
+- a description of the last error encountered.
+
+The definition of a "successful write" depends on the arguments
+specified to :dbcommand:`getLastError`, or in replica sets, the
+configuration of
+:data:`~local.system.replset.settings.getLastErrorDefaults`.
+When deciding the level of write
+concern for your application, see the introduction to 
+:doc:`/core/write-concern`.
+
+The :dbcommand:`getLastError` command has the following options to
+configure write concern requirements:
+
+- ``j`` or "journal" option
+
+  This option confirms that the :program:`mongod` instance has written
+  the data to the on-disk journal and ensures data is not lost if the
+  :program:`mongod` instance shuts down unexpectedly. Set to ``true`` to
+  enable, as shown in the following example:
+
+  .. code-block:: javascript
+
+     db.runCommand( { getLastError: 1, j: "true" } )
+
+  If you set :data:`journal` to true, and the :program:`mongod` does
+  not have journaling enabled, as with :setting:`nojournal`, then
+  :dbcommand:`getLastError` will provide basic receipt acknowledgment,
+  and will include a ``jnote`` field in its return document.
+
+- ``w`` option
+
+  This option provides the ability to disable write concern entirely
+  *as well as* specifies the write concern operations for
+  :term:`replica sets <replica set>`. See :doc:`Write Concern
+  Considerations </core/write-concern>` for an introduction to the
+  fundamental concepts of write concern. By default, the ``w`` option
+  is set to ``1``, which provides basic receipt acknowledgment on a
+  single :program:`mongod` instance or on the :term:`primary` in a
+  replica set.
+
+  The ``w`` option takes the following values:
+
+  - ``-1``:
+
+    Disables all acknowledgment of write operations, and suppresses
+    all errors, including network and socket errors.
+
+  - ``0``:
+
+    Disables basic acknowledgment of write operations, but returns
+    information about socket exceptions and networking errors to the
+    application.
+
+    .. note::
+
+       If you disable basic write operation acknowledgment but require
+       journal commit acknowledgment, the journal commit prevails, and
+       the driver will require that :program:`mongod` will
+       acknowledge the write operation.
+
+  - ``1``:
+
+    Provides acknowledgment of write operations on a standalone
+    :program:`mongod` or the :term:`primary` in a replica set.
+
+  - *A number greater than 1*:
+
+    Guarantees that write operations have propagated successfully to
+    the specified number of replica set members including the primary.
+    If you set ``w`` to a number that is greater than the number of set
+    members that hold data, MongoDB waits for the non-existent members
+    to become available, which means MongoDB blocks indefinitely.
+
+  - ``majority``:
+
+    Confirms that write operations have propagated to the majority of
+    configured replica set: a majority of the set's configured members
+    must acknowledge the write operation before it succeeds. This
+    ensures that write operation will *never* be subject to a rollback
+    in the course of normal operation, and furthermore allows you to
+    avoid hard coding assumptions about the size of your replica set
+    into your application.
+
+  - *A tag set*:
+
+    By specifying a :ref:`tag set <replica-set-configuration-tag-sets>`
+    you can have fine-grained control over which replica
+    set members must acknowledge a write operation to satisfy the required
+    level of write concern.
+
+:dbcommand:`getLastError` also supports a ``wtimeout`` setting which
+allows clients to specify a timeout for the write concern: if you
+don't specify ``wtimeout`` and the :program:`mongod` cannot fulfill
+the write concern the :dbcommand:`getLastError` will block,
+potentially forever.
+
+For more information on write concern and replica sets, see
+:ref:`Write Concern for Replica Sets <replica-set-write-concern>` for
+more information.
+
+In sharded clusters, :program:`mongos` instances will pass write
+concern on to the shard :program:`mongod` instances.

@@ -1,0 +1,123 @@
+================================
+Replica Set Data Synchronization
+================================
+
+.. default-domain:: mongodb
+
+In order to maintain up to date copies of the shared data set, members
+of a replica set :term:`sync` or replicate data from other
+members. MongoDB uses two forms of data synchronization: :ref:`initial
+sync <replica-set-initial-sync>` to populate new members with the full
+data set, and replication to apply ongoing changes to the entire
+data set.
+
+.. _replica-set-initial-sync:
+
+Initial Sync
+------------
+
+Replica set members use initial sync in two situations: when a member
+has no data and when the member has data but is missing a history of
+the replica set's replication. The :program:`mongod` instance uses the initial
+sync to copy all data from another member in the replica set. The
+procedure for an initial sync is:
+
+#. Clone all databases. To clone, the :program:`mongod` queries every
+   collection in each source database, and inserts all data into its
+   own copies of these collections.
+
+#. Applies all changes to the data set. Using the oplog from the
+   source, the :program:`mongod` updates its data set to reflect the
+   current state of the replica set.
+
+#. Builds all indexes on all collections.
+
+When the :program:`mongod` completes all index builds, the member
+can transition to a normal state, such as :term:`secondary`.
+
+.. _replica-set-replication:
+
+Replication
+-----------
+
+Replica set members replicate data continuously after the initial
+sync. This process keeps the members up to date with all changes to
+the replica set's data. In most cases, secondaries synchronize from
+the primary. Secondaries may automatically change their *sync targets*
+if needed based on changes in the ping time and state of other members'
+replication.
+
+.. COMMENT: 2013-05-23 > Removed following internal mechanics information.
+
+   In MongoDB 2.0, secondaries will change sync targets only if the
+   connection the sync target drops or produces an error.
+   Secondaries will stop syncing from a member if
+   the connection used to poll oplog entries is unresponsive for 30
+   seconds. If a connection times out, the member may select a new
+   member to sync from.
+
+   If you have two secondary members in one data center and a primary in
+   a second facility, and if you start all three instances at roughly
+   the same time (i.e. with no existing data sets or oplog), both
+   secondaries will likely sync from the primary, as neither secondary
+   has more recent oplog entries.
+   If you restart one of the secondaries, then when it rejoins the set
+   it will likely begin syncing from the other secondary because of
+   proximity.
+
+   If you have a primary in one facility and a secondary in an
+   alternate facility, and if you add another secondary to the alternate
+   facility, the new secondary will likely sync from the existing
+   secondary because it is closer than the primary.
+
+.. END-COMMENT
+
+For a member to sync from another, the
+:data:`~local.system.replset.members[n].buildIndexes` setting for both
+members must have the same value/
+:data:`~local.system.replset.members[n].buildIndexes` must be either
+``true`` or ``false`` for both members.
+
+Beginning in version 2.2, secondaries avoid syncing from
+:ref:`delayed members <replica-set-delayed-members>` and :ref:`hidden
+members <replica-set-hidden-members>`.
+
+Consistency and Durability
+--------------------------
+
+.. TODO continue
+
+In a replica set, only the primary can accept write operations. Writing
+only to the primary provides :term:`strict consistency` among members.
+
+:term:`Journaling <journal>` provides single-instance write durability.
+Without journaling, if a MongoDB instance terminates
+ungracefully, you should assume that the database is in a corrupt or
+inconsistent state.
+
+.. _replica-set-internals-multi-threaded-replication:
+
+Multithreaded Replication
+-------------------------
+
+MongoDB applies write operations in batches using multiple threads to
+improve concurrency. MongoDB groups batches by namespace and applies
+operations using a group of threads, but always applies the write
+operations to a namespace in order.
+
+While applying a batch, MongoDB blocks all reads. As a result,
+secondaries can never return data that reflects a state that never
+existed on the primary.
+
+Pre-Fetching Indexes to Improve Replication Throughput
+------------------------------------------------------
+
+To help improve the performance of applying oplog entries, MongoDB
+fetches memory pages that hold affected data and indexes. This
+*pre-fetch* stage minimizes the amount of time MongoDB holds the write
+lock while applying oplog entries. By default, secondaries will
+pre-fetch all :ref:`indexes`.
+
+Optionally, you can disable all pre-fetching or only pre-fetch
+the index on the ``_id`` field. See the :setting:`replIndexPrefetch`
+setting for more information.

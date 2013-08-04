@@ -1,0 +1,121 @@
+=========================
+Replica Set Member States
+=========================
+
+.. default-domain:: mongodb
+
+Members of replica sets have states that reflect the startup process, basic
+operations, and potential error states.
+
+.. include:: /includes/replica-states.rst
+
+States
+------
+
+Core States
+~~~~~~~~~~~
+.. replstate:: PRIMARY
+
+   Members in :replstate:`PRIMARY` state accept write operations. A replica set has only
+   one primary at a time. A :replstate:`SECONDARY` member becomes primary
+   after an :ref:`election <replica-set-elections>`. Members in the :replstate:`PRIMARY`
+   state are eligible to vote.
+
+.. replstate:: SECONDARY
+
+   Members in :replstate:`SECONDARY` state replicate the primary's data set
+   and can be configured to accept read operations. Secondaries are eligible to vote in
+   elections, and may be elected to the :replstate:`PRIMARY` state if the
+   primary becomes unavailable.
+
+.. replstate:: ARBITER
+
+   Members in :replstate:`ARBITER` state do not replicate data or accept write operations.
+   They are eligible to vote, and exist solely to break a tie during
+   elections. Replica sets should only have a member in the :replstate:`ARBITER` state
+   if the set would otherwise have an even number of members, and could suffer
+   from tied elections. Like primaries, there should only be at most one arbiter
+   in any replica set.
+
+See :doc:`/core/replica-set-members` for more information on core states.
+
+Initialization States
+~~~~~~~~~~~~~~~~~~~~~
+
+.. replstate:: STARTUP
+
+   Each member of a replica set starts up in :replstate:`STARTUP`
+   state. :program:`mongod` then loads that member's replica set configuration,
+   and transitions the member's state to :replstate:`STARTUP2`. Members in
+   :replstate:`STARTUP` are not eligible to vote.
+
+.. replstate:: STARTUP2
+
+   Each member of a replica set enters the :replstate:`STARTUP2` state as
+   soon as :program:`mongod` finishes loading that member's
+   configuration. While in the :replstate:`STARTUP2` state, the member
+   creates threads to handle internal replication operations. Members are in the
+   :replstate:`STARTUP2` state for a short period of time before entering the :replstate:`RECOVERING` state.
+   Members in the :replstate:`STARTUP2` state are not eligible to vote.
+
+.. replstate:: RECOVERING
+
+   A member of a replica set enters :replstate:`RECOVERING` state when
+   it is not ready to accept reads. The :replstate:`RECOVERING` state
+   can occur during normal operation, and doesn't necessarily reflect
+   an error condition.  Members in the :replstate:`RECOVERING` state
+   are eligible to vote in elections, but is not eligible to enter the
+   :replstate:`PRIMARY` state.
+
+   During startup, members transition through :replstate:`RECOVERING` after
+   :replstate:`STARTUP2` and before becoming :replstate:`SECONDARY`.
+
+   During normal operation, if a :term:`secondary` falls behind the
+   other members of the replica set, it may need to :doc:`resync
+   </tutorial/resync-replica-set-member>` with the
+   rest of the set. While resyncing, the member enters the
+   :replstate:`RECOVERING` state.
+
+   Whenever the replica set replaces a :term:`primary` in an
+   election, the old primary's data collection may contain documents
+   that did not have time to replicate to the :term:`secondary`
+   members. In this case the member rolls back those writes. During
+   :doc:`rollback </core/replica-set-rollbacks>`, the member will have
+   :replstate:`RECOVERING` state.
+
+   On secondaries, the :dbcommand:`compact` and
+   :dbcommand:`replSetMaintenance` commands force the secondary to enter
+   :replstate:`RECOVERING` state. This prevents clients from reading
+   during those operations.
+
+Error States
+~~~~~~~~~~~~
+
+Members in any error state can't vote.
+
+.. replstate:: FATAL
+
+   Members that encounter an unrecoverable error enter the :replstate:`FATAL`
+   state. Members in this state requires administrator intervention.
+
+.. replstate:: UNKNOWN
+
+   Members that have never communicated status information to the replica
+   set are in the :replstate:`UNKNOWN` state.
+
+.. replstate:: DOWN
+
+   Members that lose their connection to the replica set enter the
+   :replstate:`DOWN` state.
+
+.. replstate:: SHUNNED
+
+   Members that are removed from the replica set enter the :replstate:`SHUNNED`
+   state.
+
+.. replstate:: ROLLBACK
+
+   When a :replstate:`SECONDARY` rolls back a write operation after
+   transitioning from :replstate:`PRIMARY`, it enters the
+   :replstate:`ROLLBACK` state. See
+   :doc:`/core/replica-set-rollbacks`.

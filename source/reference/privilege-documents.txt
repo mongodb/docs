@@ -1,0 +1,214 @@
+====================================
+``system.users`` Privilege Documents
+====================================
+
+.. versionchanged:: 2.4
+
+.. default-domain:: mongodb
+
+Overview
+--------
+
+The documents in the :data:`<database>.system.users` collection store
+credentials and user privilege information used by the authentication
+system to provision access to users in the MongoDB system. See
+:doc:`/reference/user-privileges` for more information about access
+roles, and :doc:`/security` for an overview security in MongoDB.
+
+Data Model
+----------
+
+.. data:: <database>.system.users
+
+   .. versionchanged:: 2.4
+
+   Documents in the :data:`<database>.system.users` collection stores
+   credentials and :ref:`user roles <user-roles>` for users who have
+   access to the database. Consider the following prototypes of user
+   privilege documents:
+
+   .. code-block:: javascript
+
+      {
+         user: "<username>",
+         pwd: "<hash>",
+         roles: []
+      }
+
+   .. code-block:: javascript
+
+      {
+         user: "<username>",
+         userSource: "<database>",
+         roles: []
+      }
+
+   .. note::
+
+      The :data:`~<database>.system.users.pwd` and
+      :data:`~<database>.system.users.userSource` fields are mutually
+      exclusive. A single document cannot contain both.
+
+   The following privilege document with the
+   :data:`~admin.system.users.otherDBRoles` field is only
+   supported on the ``admin`` database:
+
+   .. code-block:: javascript
+
+      {
+         user: "<username>",
+         userSource: "<database>",
+         otherDBRoles: {
+            <database0> : [],
+            <database1> : []
+         },
+         roles: []
+      }
+
+   Consider the content of the following *fields* in the
+   :data:`system.users <<database>.system.users>` documents:
+
+   .. data:: <database>.system.users.user
+
+      :data:`~<database>.system.users.user` is a string that
+      identifies each user. Users exist in the context of a single
+      logical database; however, users from one database may obtain
+      access in another database by way of the
+      :data:`~admin.system.users.otherDBRoles` field on the ``admin``
+      database, the :data:`~<database>.system.users.userSource` field,
+      or the :ref:`auth-any-database-roles`.
+
+   .. data:: <database>.system.users.pwd
+
+      :data:`~<database>.system.users.pwd` holds a *hashed* shared
+      secret used to authenticate the :data:`~<database>.system.users.user`.
+      :data:`~<database>.system.users.pwd` field is mutually exclusive
+      with the :data:`~<database>.system.users.userSource` field.
+
+   .. data:: <database>.system.users.roles
+
+      :data:`~<database>.system.users.roles` holds an array of user
+      roles. The available roles are:
+
+      - :authrole:`read`
+      - :authrole:`readWrite`
+      - :authrole:`dbAdmin`
+      - :authrole:`userAdmin`
+      - :authrole:`clusterAdmin`
+      - :authrole:`readAnyDatabase`
+      - :authrole:`readWriteAnyDatabase`
+      - :authrole:`userAdminAnyDatabase`
+      - :authrole:`dbAdminAnyDatabase`
+
+      See :ref:`user-roles` for full documentation of all
+      available user roles.
+
+   .. data:: <database>.system.users.userSource
+
+      A string that holds the name of the database that contains the
+      credentials for the user. If
+      :data:`~<database>.system.users.userSource` is ``$external``,
+      then MongoDB will use an external resource, such as Kerberos, for
+      authentication credentials.
+
+      .. note::
+
+         .. todo single source and normalize
+
+         In the current release, the only external authentication
+         source is Kerberos, which is only available in MongoDB
+         Enterprise.
+
+      Use :data:`~<database>.system.users.userSource` to ensure that a
+      single user's authentication credentials are only stored in a
+      single location in a :program:`mongod` instance's data.
+
+      A :data:`~<database>.system.users.userSource` and
+      :data:`~<database>.system.users.user` pair identifies a unique
+      user in a MongoDB system.
+
+   .. data:: admin.system.users.otherDBRoles
+
+      A document that holds one or more fields with a name that is the
+      name of a database in the MongoDB instance with a value that
+      holds a list of roles this user has on other databases. Consider
+      the following example:
+
+      .. code-block:: javascript
+
+         {
+           user: "admin",
+           userSource: "$external",
+           roles: [ "clusterAdmin"],
+           otherDBRoles:
+           {
+             config: [ "read" ],
+             records: [ "dbadmin" ]
+           }
+         }
+
+      This user has the following privileges:
+
+      - :authrole:`clusterAdmin` on the ``admin`` database,
+      - :authrole:`read` on the :data:`config` database, and
+      - :authrole:`dbAdmin` on the ``records`` database.
+
+.. _delegated-credentials:
+
+Delegated Credentials for MongoDB Authentication
+------------------------------------------------
+
+.. versionadded:: 2.4
+
+With a new document format in the
+:data:`system.users <<database>.system.users>` collection, MongoDB now
+supports the ability to delegate authentication credentials to other
+sources and databases. The :data:`~<database>.system.users.userSource`
+field in these documents forces MongoDB to use another source for
+credentials.
+
+.. todo:: include use cases and tutorials for authentication
+
+Consider the following document in a :data:`system.users
+<<database>.system.users>` collection in a database named
+``accounts``:
+
+.. code-block:: javascript
+
+   {
+      user: "application0",
+      pwd: "YvuolxMtaycghk2GMrzmImkG4073jzAw2AliMRul",
+      roles: []
+   }
+
+Then for *every* database that the ``application0`` user requires
+access, add documents to the :data:`system.users
+<<database>.system.users>` collection that resemble the following:
+
+.. code-block:: javascript
+
+   {
+      user: "application0",
+      roles: ['readWrite'],
+      userSource: "accounts"
+   }
+
+To gain privileges to databases where the ``application0`` has access,
+you must first authenticate to the ``accounts`` database.
+
+Disable Legacy Privilege Documents
+----------------------------------
+
+By default MongoDB 2.4 includes support for both new, role-based
+privilege documents style as well 2.2 and earlier privilege
+documents. MongoDB assumes any privilege document without a
+:data:`~<database>.system.users.roles` field is a 2.2 or earlier
+document.
+
+To ensure that :program:`mongod` instances will only provide access to
+users defined with the new role-based privilege documents, use the
+following :setting:`setParameter` run-time option:
+
+.. code-block:: sh
+
+   mongod --setParameter supportCompatibilityFormPrivilegeDocuments=0

@@ -1,0 +1,164 @@
+.. _replica-set-deployment-overview:
+.. _replica-set-architecture:
+
+====================================
+Replica Set Deployment Architectures
+====================================
+
+.. default-domain:: mongodb
+
+The architecture of a :term:`replica set <replica set>` affects the
+set's capacity and capability. This document provides strategies for
+replica set deployments and describes common architectures.
+
+The standard replica set deployment for production system is a
+three-member replica set. These sets provide redundancy and fault
+tolerance. Avoid complexity when possible, but let your application
+requirements dictate the architecture.
+
+Strategies
+----------
+
+Determine the Number of Members
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Add members in a replica set according to these strategies.
+
+Deploy an Odd Number of Members
+```````````````````````````````
+
+An odd number of members ensures that the replica set is always able
+to elect a primary. If you have an even number of members, add an
+arbiter to get an odd number. :term:`Arbiters <arbiter>` do not store
+a copy of the data and require fewer resources. As a result, you may
+run an arbiter on an application server or other shared process.
+
+.. _replica-set-architectures-consider-fault-tolerance:
+
+Consider Fault Tolerance
+````````````````````````
+
+*Fault tolerance* for a replica set is the number of members that can
+become unavailable and still leave enough members in the set to
+elect a primary. In other words, it is the difference between the
+number of members in the set and the majority needed to elect a
+primary. Without a primary, a replica set cannot accept write
+operations. Fault tolerance is an effect of replica set size, but the
+relationship is not direct. See the following table:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 25 15
+
+   * - Number of Members.
+
+     - Majority Required to Elect a New Primary.
+
+     - Fault Tolerance.
+
+   * - 3
+
+     - 2
+
+     - 1
+
+   * - 4
+
+     - 3
+
+     - 1
+
+   * - 5
+
+     - 3
+
+     - 2
+
+   * - 6
+
+     - 4
+
+     - 2
+
+Adding a member to the replica set does not *always* increase the
+fault tolerance. However, in these cases, additional members can
+provide support for dedicated functions, such as backups or reporting.
+
+Use Hidden and Delayed Members for Dedicated Functions
+``````````````````````````````````````````````````````
+
+Add :ref:`hidden <replica-set-hidden-members>` or :ref:`delayed
+<replica-set-delayed-members>` members to support dedicated functions,
+such as backup or reporting.
+
+Load Balance on Read-Heavy Deployments
+``````````````````````````````````````
+
+In a deployment with *very* high read traffic, you can improve read
+throughput by distributing reads to secondary members. As your
+deployment grows, add or move members to alternate data centers to
+improve redundancy and availability.
+
+Always ensure that the main facility is able to elect a primary.
+
+Add Capacity Ahead of Demand
+````````````````````````````
+
+The existing members of a replica set must have spare capacity to
+support adding a new member. Always add new members before the
+current demand saturates the capacity of the set.
+
+Determine the Distribution of Members
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Distribute Members Geographically
+`````````````````````````````````
+
+To protect your data if your main data center fails, keep at least one
+member in an alternate data center. Set these members'
+:data:`~local.system.replset.members[n].priority` to 0 to prevent them
+from becoming primary.
+
+Keep a Majority of Members in One Location
+``````````````````````````````````````````
+
+When a replica set has members in multiple data centers, network
+partitions can prevent communication between data centers. To
+replicate data, members must be able to communicate to other members.
+
+In an election, members must see each other to create a
+majority. To ensure that the replica set members can confirm a
+majority and elect a primary, keep a majority of the set’s members in
+one location.
+
+Target Operations with Tags
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use :ref:`replica set tags <replica-set-configuration-tag-sets>` to
+ensure that operations replicate to specific data centers. Tags also
+support targeting read operations to specific machines.
+
+.. seealso:: :doc:`/data-center-awareness` and
+   :doc:`/core/operational-segregation`.
+
+Use Journaling to Protect Against Power Failures
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Enable journaling to protect data against service interruptions.
+Without journaling MongoDB cannot recover data after unexpected
+shutdowns, including power failures and unexpected reboots.
+
+All 64-bit versions of MongoDB after version 2.0 have journaling
+enabled by default.
+
+Deployment Patterns
+-------------------
+
+The following documents describe common replica set deployment
+patterns. Other patterns are possible and effective depending on the
+the application's requirements. If needed, combine features of each
+architecture in your own deployment:
+
+.. include:: /includes/dfn-list-replica-set-architectures.rst
+
+.. include:: /includes/toc-replica-set-architectures.rst

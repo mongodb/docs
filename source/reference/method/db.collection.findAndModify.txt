@@ -4,128 +4,238 @@ db.collection.findAndModify()
 
 .. default-domain:: mongodb
 
-.. method:: db.collection.findAndModify
+.. EDITS to db.collection.findAndModify.txt must be carried over
+   (possibly w modifications) to the command findAndModify.txt and vice
+   versa
 
-   The :method:`db.collection.findAndModify()` method atomically
+Definition
+----------
+
+.. method:: db.collection.findAndModify( <document> )
+
+   Atomically
    modifies and returns a single document. By default, the returned
    document does not include the modifications made on the update. To
    return the document with the modifications made on the update, use
-   the ``new`` option.
+   the ``new`` option. The :method:`~db.collection.findAndModify()` method is a shell
+   helper around the :dbcommand:`findAndModify` command.
+
+   The :method:`~db.collection.findAndModify()` method has the following
+   form:
+
+   .. code-block:: none
+
+      db.collection.findAndModify( {
+                                     query: <document>,
+                                     sort: <document>,
+                                     remove: <boolean>,
+                                     update: <document>,
+                                     new: <boolean>,
+                                     fields: <document>,
+                                     upsert: <boolean>
+                                 } );
 
    The :method:`db.collection.findAndModify()` method takes a document
    parameter with the following subdocument fields:
 
-   :field document query:
-   
-          Optional. Specifies the selection criteria for the
-          modification. The ``query`` field employs the same
-          :ref:`query selectors <query-selectors>` as used in the
-          :method:`db.collection.find()` method. Although the query may
-          match multiple documents, :method:`findAndModify() <db.collection.findAndModify()>` will
-          only select one document to modify.
-          
-          The ``query`` field has the following syntax:
-          
-          .. code-block:: javascript
-          
-             query: { <query expression> }
-          
-   :field document sort: 
+   .. include:: /reference/method/db.collection.findAndModify-param.rst
 
-          Optional. Determines which document the operation will
-          modify if the query selects multiple
-          documents. :dbcommand:`findAndModify() <db.collection.findAndModify()>` will modify the first
-          document in the sort order specified by this argument.
+Return Data
+-----------
 
-          The ``sort`` field has the following syntax:
-          
-          .. code-block:: javascript
-          
-             sort: { field1: value1, field2: value2, ... }
+The :method:`~db.collection.findAndModify()` method returns either:
+the pre-modification document or, if ``new: true`` is set, the
+modified document.
 
-   :field boolean remove:
+.. note::
 
-          Optional if ``update`` field exists. When ``true``, removes
-          the selected document. The default is ``false``.
-          
-          The ``remove`` field has the following syntax:
-          
-          .. code-block:: javascript
-          
-             remove: <boolean>
+   - If the query finds no document for ``update`` or ``remove``
+     operations, :method:`~db.collection.findAndModify()` returns
+     ``null``.
 
-   :field document update:
+   - If the query finds no document for an ``upsert``, operation,
+     :method:`~db.collection.findAndModify()` performs an insert. If
+     ``new`` is ``false``, **and** the ``sort`` option is **NOT**
+     specified, the method returns ``null``.
 
-          Optional if ``remove`` field exists. Performs an update of
-          the selected document. The ``update`` field employs the same
-          :ref:`update operators <update-operators>` or ``field: value``
-          specifications to modify the selected document.
+     .. versionchanged:: 2.2
+        Previously returned an empty document ``{}``. See :ref:`the
+        2.2 release notes <2.2-findandmodify-returns-null>` for more
+        information.
 
-          .. code-block:: javascript
+   - If the query finds no document for an ``upsert``,
+     :method:`~db.collection.findAndModify()` performs an insert. If
+     ``new`` is ``false``, **and** a ``sort`` option, the method
+     returns an empty document ``{}``.
 
-             update: { <update expression> }
+Behaviors
+---------
 
-   :field boolean new:
+Upsert and Unique Index
+~~~~~~~~~~~~~~~~~~~~~~~
 
-          Optional. When ``true``, returns the modified document rather
-          than the original. The :dbcommand:`findAndModify` method
-          ignores the ``new`` option for ``remove`` operations. The
-          default is ``false``.
+When :method:`~db.collection.findAndModify()` includes the ``upsert:
+true`` option **and** the query field(s) is not uniquely indexed, the
+method could insert a document multiple times in certain circumstances.
+For instance, if multiple clients each invoke the method with the same
+``query`` condition and these methods complete the ``find`` phase
+before any of methods perform the ``modify`` phase, these methods could
+insert the same document.
 
-          .. code-block:: javascript
+In the following example, no document with the name ``Andy`` exists,
+and multiple clients issue the following command:
 
-             new: <boolean>
+.. code-block:: javascript
 
-   :field document fields: 
-   
-          Optional. A subset of fields to return.
-          
-          .. code-block:: javascript
+   db.people.findAndModify( {
+       query: { name: "Andy" },
+       sort: { rating: 1 },
+       update: { $inc: { score: 1 } },
+       upsert: true
+   } )
 
-             fields: { field1: <boolean>, field2: <boolean> ... }
+Then, if these clients' :method:`~db.collection.findAndModify()`
+methods finish the ``query`` phase before any command starts the
+``modify`` phase, **and** there is no unique index on the ``name``
+field, the commands may all perform an upsert. To prevent this
+condition, create a :ref:`unique index <index-type-unique>` on the
+``name`` field. With the unique index in place, the multiple methods
+would observe one of the following behaviors:
 
-   :field boolean upsert: 
-   
-          Optional. Used in conjunction with the ``update`` field. When
-          ``true``, :dbcommand:`findAndModify` creates a new document
-          if the ``query`` returns no documents. The default is
-          ``false``. In version 2.2, the :dbcommand:`findAndModify`
-          command returns ``null`` when ``upsert`` is ``true``.
+- Exactly one :method:`~db.collection.findAndModify()` would
+  successfully insert a new document.
 
-          .. code-block:: javascript
+- Zero or more :method:`~db.collection.findAndModify()` methods
+  would update the newly inserted document.
 
-             upsert: <boolean>
+- Zero or more :method:`~db.collection.findAndModify()` methods
+  would fail when they attempted to insert a duplicate. If the
+  method fails due to a unique index constraint violation, you can
+  retry the method. Absent a delete of the document, the retry
+  should not fail.
 
-   Consider the following example:
+Sharded Collections
+~~~~~~~~~~~~~~~~~~~
+
+When using :dbcommand:`findAndModify` in a :term:`sharded <sharding>`
+environment, the ``query`` **must** contain the :term:`shard key` for
+all operations against the shard cluster for the *sharded* collections.
+
+:dbcommand:`findAndModify` operations issued against :program:`mongos`
+instances for *non-sharded* collections function normally.
+
+Examples
+--------
+
+Update
+~~~~~~
+
+The following method updates an existing document in the people
+collection where the document matches the query criteria:
+
+.. code-block:: javascript
+
+   db.people.findAndModify( {
+       query: { name: "Tom", state: "active", rating: { $gt: 10 } },
+       sort: { rating: 1 },
+       update: { $inc: { score: 1 } }
+   } )
+
+This method performs the following actions:
+
+#. The ``query`` finds a document in the ``people`` collection
+   where the ``name`` field has the value ``Tom``, the ``state``
+   field has the value ``active`` and the ``rating`` field has a
+   value :operator:`greater than <$gt>` 10.
+
+#. The ``sort`` orders the results of the query in ascending order.
+   If multiple documents meet the ``query`` condition, the method
+   will select for modification the first document as ordered by
+   this ``sort``.
+
+#. The update :operator:`increments <$inc>` the value of the
+   ``score`` field by 1.
+
+#. The method returns the original (i.e. pre-modification) document
+   selected for this update:
 
    .. code-block:: javascript
 
-      db.people.findAndModify( {
-          query: { name: "Tom", state: "active", rating: { $gt: 10 } },
-          sort: { rating: 1 },
-          update: { $inc: { score: 1 } }
-          } );
+      {
+        "_id" : ObjectId("50f1e2c99beb36a0f45c6453"),
+        "name" : "Tom",
+        "state" : "active",
+        "rating" : 100,
+        "score" : 5
+      }
 
-   This command performs the following actions:
+   To return the modified document, add the ``new:true`` option to
+   the method.
 
-   #. The ``query`` finds a document in the ``people`` collection where
-      the ``name`` field has the value ``Tom``, the ``state`` field has
-      the value ``active`` and the ``rating`` field has a value
-      :operator:`greater than <$gt>` 10.
+   If no document matched the ``query`` condition, the method
+   returns ``null``:
 
-   #. The ``sort`` orders the results of the query in ascending order.
+   .. code-block:: javascript
 
-   #. The update :operator:`increments <$inc>` the value of the
-      ``score`` field by 1.
+      null
 
-   #. The command returns the original unmodified document
-      selected for this update.
+Update and Insert
+~~~~~~~~~~~~~~~~~
 
-   .. warning::
+The following method includes the ``upsert: true`` option to
+insert a new document if no document matches the ``query``
+condition:
 
-      When using :dbcommand:`findAndModify` in a :term:`sharded
-      <sharding>` environment, the ``query`` must contain the
-      :term:`shard key` for all operations against the shard
-      cluster. :dbcommand:`findAndModify` operations issued against
-      :program:`mongos` instances for non-sharded collections function
-      normally.
+.. code-block:: javascript
+
+   db.people.findAndModify( {
+       query: { name: "Gus", state: "active", rating: 100 },
+       sort: { rating: 1 },
+       update: { $inc: { score: 1 } },
+       upsert: true
+     } )
+
+If the method does **not** find a matching document, the method
+performs an upsert. Because the method included the ``sort``
+option, it returns an empty document ``{ }`` as the original
+(pre-modification) document:
+
+.. code-block:: javascript
+
+   { }
+
+If the method did **not** include a ``sort`` option, the method returns
+``null``.
+
+.. code-block:: javascript
+
+   null
+
+Update, Insert and Return New Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following method includes both the ``upsert: true`` option and
+the ``new:true`` option to return the newly inserted document if a
+document matching the ``query`` is not found:
+
+.. code-block:: none
+
+   db.people.findAndModify( {
+       query: { name: "Pascal", state: "active", rating: 25 },
+       sort: { rating: 1 },
+       update: { $inc: { score: 1 } },
+       upsert: true,
+       new: true
+   } )
+
+The method returns the newly inserted document:
+
+.. code-block:: javascript
+
+   {
+      "_id" : ObjectId("50f49ad6444c11ac2448a5d6"),
+      "name" : "Pascal",
+      "rating" : 25,
+      "score" : 1,
+      "state" : "active"
+   }

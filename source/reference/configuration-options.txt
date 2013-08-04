@@ -17,7 +17,7 @@ Synopsis
 
 Administrators and users can control :program:`mongod` or
 :program:`mongos` instances at runtime either directly from
-:doc:`mongod's command line arguments </reference/mongod>` or using a
+:doc:`mongod's command line arguments </reference/program/mongod>` or using a
 configuration file.
 
 While both methods are functionally equivalent and all settings are
@@ -102,7 +102,7 @@ Settings
 
    Specifies a TCP port for the :program:`mongod` or :program:`mongos`
    instance to listen for client connections. UNIX-like systems
-   require root access for ports with numbers lower than 1000.
+   require root access for ports with numbers lower than 1024.
 
 .. setting:: bind_ip
 
@@ -142,12 +142,28 @@ Settings
 
 .. setting:: objcheck
 
+   *Default:* true
+
+   .. versionchanged:: 2.4
+      The default setting for :setting:`objcheck` became ``true`` in
+      2.4. In earlier versions :setting:`objcheck` was ``false`` by
+      default.
+
+   Forces the :program:`mongod` to validate all requests from clients
+   upon receipt to ensure that clients never insert invalid documents
+   into the database. For objects with a high degree of sub-document
+   nesting, :setting:`objcheck` can have a small impact on
+   performance. You can set :setting:`noobjcheck` to disable object
+   checking at run-time.
+
+.. setting:: noobjcheck
+
+   .. versionadded:: 2.4
+
    *Default:* false
 
-   Set to ``true`` to force :program:`mongod` to validate all requests
-   from clients upon receipt to ensure that invalid :term:`BSON`
-   objects are never inserted into the database. :program:`mongod`
-   does not enable this by default because of the required overhead.
+   Disables the default object validation that MongoDB performs on all
+   incoming BSON documents.
 
 .. setting:: logpath
 
@@ -213,23 +229,29 @@ Settings
    replica set members.
 
    .. seealso:: ":ref:`Replica Set Security <replica-set-security>`"
-      and ":doc:`/administration/replica-sets`."
 
 .. setting:: nounixsocket
 
    *Default:* false
 
-   Set to ``true`` to disable listening on the UNIX socket. Unless set
-   to false, :program:`mongod` and :program:`mongos` provide a
-   UNIX-socket.
+   Set to ``true`` to disable listening on the UNIX
+   socket.
+
+   MongoDB always creates and listens on the UNIX socket, unless
+   :setting:`nounixsocket` is set, or :setting:`bind_ip` is *not* set,
+   or :setting:`bind_ip` does *not* specify ``127.0.0.1``.
 
 .. setting:: unixSocketPrefix
 
    *Default:* ``/tmp``
 
    Specifies a path for the UNIX socket. Unless this option has a
-   value, :program:`mongod` and :program:`mongos`, create a socket
-   with the ``/tmp`` as a prefix.
+   value :program:`mongod` creates a socket with ``/tmp`` as a
+   prefix.
+
+   MongoDB will *always* create and listen on a UNIX socket, unless
+   :setting:`nounixsocket` is set, :setting:`bind_ip` is *not* set.
+   or :setting:`bind_ip` does *not* specify ``127.0.0.1``.
 
 .. setting:: fork
 
@@ -244,7 +266,7 @@ Settings
 
    Set to ``true`` to enable database authentication for users
    connecting from remote hosts. Configure users via the :doc:`mongo
-   shell </reference/mongo>`. If no users exist, the localhost
+   shell </reference/program/mongo>`. If no users exist, the localhost
    interface will continue to have access to the database until the
    you create the first user.
 
@@ -276,11 +298,11 @@ Settings
 
    *Default:* 0
 
-   Creates a very verbose, :term:`diagnostic log` for troubleshooting and
+   Creates a very verbose :term:`diagnostic log` for troubleshooting and
    recording various errors. MongoDB writes these log files in the
-   :setting:`dbpath` directory in a series of files that begin with the string
-   ``diaglog`` with the time logging was initiated appended as a hex
-   string.
+   :setting:`dbpath` directory and names them :file:`diaglog.<time in
+   hex>`, where ``<time-in-hex>`` is the initiation time of logging as a
+   hexadecimal string.
 
    The value of this setting configures the level of
    verbosity. Possible values, and their impact are as follows.
@@ -288,7 +310,7 @@ Settings
    =========  ===================================
    **Value**  **Setting**
    ---------  -----------------------------------
-      0       off. No logging.
+      0       Off. No logging.
       1       Log write operations.
       2       Log read operations.
       3       Log both read and write operations.
@@ -323,6 +345,11 @@ Settings
    distinct disk devices to increase write throughput or disk
    capacity.
 
+   .. warning::
+
+      .. |directoryperdb-option-name| replace:: :setting:`directoryperdb`
+      .. include:: /includes/fact-directory-per-db-requires-migration.rst
+
 .. _setting-journal:
 
 .. setting:: journal
@@ -340,14 +367,19 @@ Settings
    enabled, and set :setting:`smallfiles` to true to reduce the size
    of the data and journal files.
 
+   .. note:: You must use :setting:`nojournal` to disable journaling
+      on 64-bit systems.
+
 .. setting:: journalCommitInterval
 
-   *Default:* 100
+   *Default:* 100 or 30
 
    Set this value to specify the maximum amount of time for
-   :program:`mongod` to allow between journal operations. The default
-   value is 100 milliseconds. Lower values increase the durability of
-   the journal, at the possible expense of disk performance.
+   :program:`mongod` to allow between journal operations. Lower
+   values increase the durability of the journal, at the possible
+   expense of disk performance.
+
+   .. include:: /includes/fact-journal-commit-interval-length.rst
 
    This option accepts values between 2 and 300 milliseconds.
 
@@ -398,6 +430,9 @@ Settings
    Set ``nojournal = true`` to disable durability journaling. By
    default, :program:`mongod` enables journaling in 64-bit versions
    after v2.0.
+
+   .. note:: You must use :setting:`journal` to enable journaling
+      on 32-bit systems.
 
 .. setting:: noprealloc
 
@@ -498,12 +533,12 @@ Settings
 
 .. setting:: repairpath
 
-   *Default:* :setting:`dbpath`
+   *Default:* A ``_tmp`` directory in the :setting:`dbpath`.
 
    Specify the path to the directory containing MongoDB data files, to
    use in conjunction with the :setting:`repair` setting or
-   :option:`mongod --repair` operation. Defaults to the value
-   specified by :setting:`dbpath`.
+   :option:`mongod --repair` operation. Defaults to a ``_tmp``
+   directory within the :setting:`dbpath`.
 
 .. setting:: slowms
 
@@ -549,7 +584,7 @@ Settings
    thread's status via the :data:`~serverStatus.backgroundFlushing` field.
 
    :setting:`syncdelay` has no effect on the :setting:`journal`
-   files or :doc:`journaling </administration/journaling>`.
+   files or :doc:`journaling </core/journaling>`.
 
    .. warning::
 
@@ -605,7 +640,7 @@ Settings
    mode that attempts to limit the amount of output. This option suppresses:
 
    - output from :term:`database commands <database command>`,
-     including :dbcommand:`drop`, :dbcommand:`dropIndex`,
+     including :dbcommand:`drop`, :dbcommand:`dropIndexes`,
      :dbcommand:`diagLogging`, :dbcommand:`validate`, and
      :dbcommand:`clean`.
 
@@ -620,8 +655,34 @@ Settings
       For production systems this option is **not** recommended as it may make
       tracking problems during particular connections much more difficult.
 
+.. setting:: setParameter
+
+   .. versionadded:: 2.4
+
+   Specifies an option to configure on startup.  Specify multiple
+   options with multiple :setting:`setParameter` options.  See
+   :doc:`/reference/parameters` for full documentation of these
+   parameters. The :dbcommand:`setParameter` database command provides
+   access to many of these parameters.
+
+   Declare all :dbcommand:`setParameter` settings in this file using the following form:
+
+   .. code-block:: sh
+
+      setParameter = <parameter>=<value>
+
+   For :program:`mongod` the following options are available using
+   :setting:`setParameter`:
+
+   .. include:: /includes/list-set-parameters-mongod.rst
+
+   For :program:`mongos` the following options are available using
+   :setting:`setParameter`:
+
+   .. include:: /includes/list-set-parameters-mongos.rst
+
 Replication Options
-```````````````````
+~~~~~~~~~~~~~~~~~~~
 
 .. setting:: replSet
 
@@ -634,7 +695,7 @@ Replication Options
    hosts must have the same set name.
 
    .. seealso:: ":doc:`/replication`,"
-      ":doc:`/administration/replica-sets`," and
+      ":doc:`/administration/replica-set-deployment`," and
       ":doc:`/reference/replica-configuration`"
 
 .. setting:: oplogSize
@@ -683,7 +744,7 @@ Replication Options
    loading *any* index into memory.
 
 Master/Slave Replication
-````````````````````````
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. setting:: master
 
@@ -703,7 +764,7 @@ Master/Slave Replication
 
    *Default:* <>
 
-   *Form:* <host>:<port>
+   *Form:* <host><:port>
 
    Used with the :setting:`slave` setting to specify the
    :term:`master` instance from which this :term:`slave` instance will
@@ -713,14 +774,14 @@ Master/Slave Replication
 
    *Default:* <>
 
-   Used with the :setting:`slave` option, the ``only`` setting
+   Used with the :setting:`slave` option, :setting:`only`
    specifies only a single :term:`database` to replicate.
 
-.. setting:: slavedelay
+.. setting:: slaveDelay
 
    *Default:* 0
 
-   Used with the :setting:`slave` setting, the ``slavedelay`` setting
+   Used with the :setting:`slave` setting, :setting:`slaveDelay`
    configures a "delay" in seconds, for this slave to wait to apply
    operations from the :term:`master` instance.
 
@@ -728,20 +789,20 @@ Master/Slave Replication
 
    *Default:* false
 
-   Used with the :setting:`slave` setting, set ``autoresync`` to
-   ``true`` to force the :term:`slave` to automatically resync if the
+   Used with the :setting:`slave` setting, set :setting:`autoresync` to
+   ``true`` to force the :term:`slave` to automatically resync if it
    is more than 10 seconds behind the master. This setting may be
-   problematic if the :option:`--oplogSize <mongod --oplogSize>`
-   :term:`oplog` is too small (controlled by the :option:`--oplogSize
-   <mongod --oplogSize>` option.) If the :term:`oplog` not large
+   problematic if the :setting:`oplogSize` of the
+   :term:`oplog` is too small.
+   If the :term:`oplog` is not large
    enough to store the difference in changes between the master's
    current state and the state of the slave, this instance will forcibly
    resync itself unnecessarily. When you set the :setting:`autoresync`
-   option, the slave will not attempt an automatic resync more than
+   option to ``false``, the slave will not attempt an automatic resync more than
    once in a ten minute period.
 
-Sharding Cluster Options
-````````````````````````
+Sharded Cluster Options
+~~~~~~~~~~~~~~~~~~~~~~~
 
 .. setting:: configsvr
 
@@ -750,7 +811,21 @@ Sharding Cluster Options
    Set this value to ``true`` to configure this :program:`mongod`
    instance to operate as the :term:`config database` of a shard
    cluster. When running with this option, clients will not be able to
-   write data to any database other than ``config`` and ``admin. The
+   write data to any database other than ``config`` and ``admin``. The
+   default port for a :program:`mongod` with this option is ``27019``
+   and the default :setting:`dbpath` directory is ``/data/configdb``,
+   unless specified.
+
+   .. versionchanged:: 2.2
+      :setting:`configsvr` also sets :setting:`smallfiles`.
+
+   .. versionchanged:: 2.4
+      :setting:`configsvr` creates a local :term:`oplog`.
+
+   Do not use :setting:`configsvr` with :setting:`replSet` or
+   :setting:`shardsvr`. Config servers cannot be a shard
+   server or part of a :term:`replica set`.
+
    default port for :program:`mongod` with this option is ``27019``
    and :program:`mongod` writes all data files to the ``/configdb``
    sub-directory of the :setting:`dbpath` directory.
@@ -763,19 +838,6 @@ Sharding Cluster Options
    instance as a shard in a partitioned cluster. The default port for
    these instances is ``27018``. The only affect of
    :setting:`shardsvr` is to change the port number.
-
-.. setting:: noMoveParanoia
-
-   *Default:* false
-
-   When set to ``true``, :setting:`noMoveParanoia` disables a
-   "paranoid mode" for data writes for chunk migration operation. See
-   the :ref:`chunk migration <sharding-chunk-migration>` and
-   :dbcommand:`moveChunk` command documentation for more information.
-
-   By default :program:`mongod` will save copies of migrated chunks on
-   the "from" server during migrations as "paranoid mode." Setting
-   this option disables this paranoia.
 
 .. setting:: configdb
 
@@ -864,11 +926,39 @@ Sharding Cluster Options
       random from this list.
 
    The ping time used for a set member compared by the
-   :option:`--localThreshold <mongos --localThreshold>` setting is a moving average of recent
-   ping times, calculated, at most, every 10 seconds. As a result, some queries
-   may reach members above the threshold until the :program:`mongos`
-   recalculates the average.
+   :setting:`localThreshold` setting is a moving average of recent
+   ping times, calculated, at most, every 10 seconds. As a result,
+   some queries may reach members above the threshold until the
+   :program:`mongos` recalculates the average.
 
    See the :ref:`replica-set-read-preference-behavior-member-selection`
-   section of the :ref:`read preference <replica-set-read-preference>`
+   section of the :doc:`read preference </core/read-preference>`
    documentation for more information.
+
+.. setting:: noAutoSplit
+
+   :setting:`noAutoSplit` is for internal use and is only available on
+   :program:`mongos` instances.
+
+   .. versionadded:: 2.0.7
+
+   :setting:`noAutoSplit` prevents :program:`mongos` from
+   automatically inserting metadata splits in a :term:`sharded
+   collection <sharding>`. If set on all :program:`mongos`, this will prevent
+   MongoDB from creating new chunks as the data in a collection
+   grows.
+
+   Because any :program:`mongos` in a cluster can create a split,
+   to totally disable splitting in a cluster you must
+   set :setting:`noAutoSplit` on all :program:`mongos`.
+
+   .. warning::
+
+      With :setting:`noAutoSplit` enabled, the data in your sharded
+      cluster may become imbalanced over time. Enable with caution.
+
+SSL Options
+~~~~~~~~~~~
+
+.. |binary-name| replace:: :program:`mongod` or :program:`mongos`
+.. include:: /includes/manpage-options-ssl-settings.rst

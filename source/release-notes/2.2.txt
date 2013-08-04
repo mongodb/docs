@@ -42,7 +42,7 @@ Synopsis
 - For all upgrades of sharded clusters:
 
   - turn off the balancer during the upgrade process. See the
-    :ref:`sharding-balancing-disable-temporally` section for more
+    :ref:`sharding-balancing-disable-temporarily` section for more
     information.
 
   - upgrade all :program:`mongos` instances before upgrading any
@@ -117,13 +117,13 @@ Upgrading a Sharded Cluster
 
 Use the following procedure to upgrade a sharded cluster:
 
-- :ref:`Disable the balancer <sharding-balancing-disable-temporally>`.
+- :ref:`Disable the balancer <sharding-balancing-disable-temporarily>`.
 
 - Upgrade all :program:`mongos` instances *first*, in any order.
 
 - Upgrade all of the :program:`mongod` config server instances
   using the :ref:`stand alone <2.2-upgrade-standalone>` procedure.
-  To keep the cluster online, be that at all times at least one config
+  To keep the cluster online, be sure that at all times at least one config
   server is up.
 
 - Upgrade each shard's replica set, using the :ref:`upgrade
@@ -154,7 +154,7 @@ operations without needing to use :term:`map-reduce`. The
 provides an interface to these operations. Consider the following
 resources for background on the aggregation framework and its use:
 
-- Documentation: :doc:`/applications/aggregation`
+- Documentation: :doc:`/core/aggregation`
 
 - Reference: :doc:`/reference/aggregation`
 
@@ -186,10 +186,10 @@ operations with the following improvements:
 To reflect these changes, MongoDB now provides changed and improved
 reporting for concurrency and use, see :ref:`locks` and
 :ref:`server-status-record-stats` in :doc:`server status
-</reference/server-status>` and see :doc:`current operation output
-</reference/current-op>`, :method:`db.currentOp()`,
-:doc:`mongotop </reference/mongotop>`, and :doc:`mongostat
-</reference/mongostat>`.
+</reference/command/serverStatus>` and see
+:method:`db.currentOp()`,
+:doc:`mongotop </reference/program/mongotop>`, and :doc:`mongostat
+</reference/program/mongostat>`.
 
 .. todo:: add links to current op output documentation when it happens.
 
@@ -210,8 +210,8 @@ data most frequently.
    write-operations-write-concern
 
 Shard tagging controls data location, and is complementary but
-separate from replica set tagging, which controls :ref:`read
-preference <replica-set-read-preference>` and :ref:`write concern
+separate from replica set tagging, which controls :doc:`read
+preference </core/read-preference>` and :ref:`write concern
 <write-concern>`. For example, shard tagging can pin all
 "USA" data to one or more logical shards, while replica set tagging
 can control which :program:`mongod` instances (e.g. "``production``"
@@ -224,14 +224,14 @@ shell that support tagged sharding configuration:
 - :method:`sh.addTagRange()`
 - :method:`sh.removeShardTag()`
 
-Also, see the :wiki:`wiki page for tag aware sharding
-<Tag+Aware+Sharding>`.
+Also, see :doc:`/core/tag-aware-sharding` and
+:doc:`/tutorial/administer-shard-tags`.
 
 Fully Supported Read Preference Semantics
 `````````````````````````````````````````
 
-All MongoDB clients and drivers now support full :ref:`read
-preferences <replica-set-read-preference>`, including consistent
+All MongoDB clients and drivers now support full :doc:`read
+preferences </core/read-preference>`, including consistent
 support for a full range of :ref:`read preference modes
 <replica-set-read-preference-modes>` and :ref:`tag sets
 <replica-set-read-preference-tag-sets>`. This support extends to the
@@ -284,13 +284,13 @@ e.g. ``{ }``.
 
 See: :issue:`SERVER-6226` for more information.
 
-``mongodump`` Output can only Restore to 2.2 MongoDB Instances
-``````````````````````````````````````````````````````````````
+``mongodump`` 2.2 Output Incompatible with Pre-2.2 ``mongorestore``
+```````````````````````````````````````````````````````````````````
 
 If you use the :program:`mongodump` tool from the 2.2 distribution to
-create a dump of a database, you may only restore that dump to a 2.2
-database.
-
+create a dump of a database, you must use a 2.2 (or later) version of
+:program:`mongorestore` to restore that dump. 
+     
 See: :issue:`SERVER-6961` for more information.
 
 .. _2.2-ObjectId-toString-valueOf-methods:
@@ -302,8 +302,8 @@ In version 2.2, the :method:`ObjectId.toString()` method returns the
 string representation of the :ref:`ObjectId() <core-object-id-class>`
 object and has the format ``ObjectId("...")``.
 
-Consider the following example that calls the :method:`toString()
-<ObjectId.toString()>` method on the
+Consider the following example that calls the
+:method:`~ObjectId.toString()` method on the
 ``ObjectId("507c7f79bcf86cd7994f6c0e")`` object:
 
 .. code-block:: javascript
@@ -357,7 +357,7 @@ In version 2.2, collection names cannot:
 
 - contain the ``$``.
 
-- be an empty string (e.g. ``""``).
+- be an empty string (i.e. ``""``).
 
 This change does not affect collections created with now illegal names
 in earlier versions of MongoDB.
@@ -439,7 +439,7 @@ Service Support for ``mongos.exe``
 ``````````````````````````````````
 
 You may now run :program:`mongos.exe` instances as a Windows
-Service. See the :doc:`/reference/mongos.exe` reference and
+Service. See the :doc:`/reference/program/mongos.exe` reference and
 :ref:`tutorial-mongod-as-windows-service` and :issue:`SERVER-1589` for
 more information.
 
@@ -486,7 +486,7 @@ The :program:`mongooplog` tool makes it possible to pull :term:`oplog`
 entries from :program:`mongod` instance and apply them to another
 :program:`mongod` instance. You can use :program:`mongooplog` to
 achieve point-in-time backup of a MongoDB data set. See the
-:issue:`SERVER-3873` case and the :doc:`/reference/mongooplog`
+:issue:`SERVER-3873` case and the :doc:`/reference/program/mongooplog`
 documentation.
 
 Authentication Support for ``mongotop`` and ``mongostat``
@@ -585,6 +585,8 @@ If you pass an array of :term:`documents <document>` to the
 shell will now perform a bulk insert operation. See
 :issue:`SERVER-3819` and :issue:`SERVER-2395` for more information.
 
+.. include:: /includes/note-bulk-inserts-on-sharded-clusters.rst
+
 Operations
 ~~~~~~~~~~
 
@@ -682,9 +684,11 @@ Replica Set Members will not Sync from Members Without Indexes Unless ``buildInd
 .. the following has been copied to source/core/replication-internals.txt
 
 To prevent inconsistency between members of replica sets, if the
-member of a replica set has :data:`members[n].buildIndexes` set to
-``true``, other members of the replica set will *not* sync from this
-member, unless they also have :data:`members[n].buildIndexes` set to
+member of a replica set has
+:data:`~local.system.replset.members[n].buildIndexes` set to ``true``,
+other members of the replica set will *not* sync from this member,
+unless they also have
+:data:`~local.system.replset.members[n].buildIndexes` set to
 ``true``. See :issue:`SERVER-4160` for more information.
 
 New Option To Configure Index Pre-Fetching during Replication
@@ -755,12 +759,8 @@ and the :issue:`SERVER-4683` for more information.
 Resources
 ---------
 
-- `MongoDB Downloads <http://mongodb.org/downloads>`_
-
-- `All JIRA Issues resolved in 2.2 <https://jira.mongodb.org/secure/IssueNavigator.jspa?reset=true&jqlQuery=project+%3D+SERVER+AND+fixVersion+in+%28%222.1.0%22%2C+%222.1.1%22%2C+%222.1.2%22%2C+%222.2.0-rc0%22%2C+%222.2.0-rc1%22%2C+%222.2.0-rc2%22%29+ORDER+BY+component+ASC%2C+key+DESC>`_
-
-- `All Backwards Incompatible Changes <https://jira.mongodb.org/secure/IssueNavigator.jspa?requestId=11225>`_
-
-- `All Third Party License Notices <https://github.com/mongodb/mongo/blob/v2.2/distsrc/THIRD-PARTY-NOTICES>`_
-
-- `What's New in MongoDB 2.2 Online Conference <http://www.10gen.com/events/webinar/mongodb-online-conference-sept>`_
+- `MongoDB Downloads <http://mongodb.org/downloads>`_.
+- `All JIRA issues resolved in 2.2 <https://jira.mongodb.org/secure/IssueNavigator.jspa?reset=true&jqlQuery=project+%3D+SERVER+AND+fixVersion+in+%28%222.1.0%22%2C+%222.1.1%22%2C+%222.1.2%22%2C+%222.2.0-rc0%22%2C+%222.2.0-rc1%22%2C+%222.2.0-rc2%22%29+ORDER+BY+component+ASC%2C+key+DESC>`_.
+- `All backwards incompatible changes <https://jira.mongodb.org/secure/IssueNavigator.jspa?requestId=11225>`_.
+- `All third party license notices <https://github.com/mongodb/mongo/blob/v2.2/distsrc/THIRD-PARTY-NOTICES>`_.
+- `What's New in MongoDB 2.2 Online Conference <http://www.10gen.com/events/webinar/mongodb-online-conference-sept>`_.

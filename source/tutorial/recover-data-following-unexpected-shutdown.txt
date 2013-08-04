@@ -10,10 +10,10 @@ state which could lead to data corruption. [#validation]_
 
 To prevent data inconsistency and corruption, always shut down the
 database cleanly and use the :ref:`durability journaling
-<setting-journal>`. The journal writes data to disk every 100
-milliseconds by default and ensures that MongoDB can
-recover to a consistent state even in the case of an unclean shutdown due to
-power loss or other system failure.
+<setting-journal>`. MongoDB writes data to the journal, by default,
+every 100 milliseconds, such that MongoDB can always recover to a
+consistent state even in the case of an unclean shutdown due to power
+loss or other system failure.
 
 If you are *not* running as part of a :term:`replica set` **and** do
 *not* have journaling enabled, use the following procedure to recover
@@ -61,26 +61,30 @@ output:
 
    Unclean shutdown detected.
 
-This indicates that you need to remove the lockfile and run repair. If
-you run repair when the ``mongodb.lock`` file exists without the
-:option:`mongod --repairpath` option, you will see a message that
-contains the following line:
+This indicates that you need to run :program:`mongod` with the
+:option:`--repair <mongod --repair>` option. If you run repair when
+the ``mongodb.lock`` file exists in your :setting:`dbpath`, or the
+optional :option:`--repairpath <mongod --repairpath>`, you will see a
+message that contains the following line:
 
 .. code-block:: none
 
    old lock file: /data/db/mongod.lock. probably means unclean shutdown
 
-You must remove the lockfile **and** run the repair operation before
-starting the database normally using the following procedure:
+If you see this message, as a last resort you may remove the lockfile
+**and** run the repair operation before starting the database
+normally, as in the following procedure:
 
 Overview
 ~~~~~~~~
 
 .. warning:: Recovering a member of a replica set.
 
-   Do not use this procedure to recover a member of a :term:`replica set`.
-   Instead you should either restore from a :doc:`backup </administration/backups>`
-   or perform an initial sync using data from an intact member of the set, as described in :ref:`replica-set-resync-stale-member`.
+   Do not use this procedure to recover a member of a 
+   :term:`replica set`. Instead you should either restore from
+   a :doc:`backup </core/backups>` or perform an initial sync using
+   data from an intact member of the set, as described in
+   :doc:`/tutorial/resync-replica-set-member`.
 
 There are two processes to repair data files that result from an
 unexpected shutdown:
@@ -108,6 +112,8 @@ unexpected shutdown:
    available in the shell with the :method:`db.repairDatabase()`
    helper for the :dbcommand:`repairDatabase` command.
 
+.. _tutorial-repair-procedures:
+
 Procedures
 ~~~~~~~~~~
 
@@ -125,7 +131,7 @@ option to preserve the original data files unmodified:
    ``/data/db0`` directory.
 
 #. Start :program:`mongod` using the following invocation to point the
-   :setting:`dbpath` at ``/data/db2``:
+   :setting:`dbpath` at ``/data/db0``:
 
    .. code-block:: sh
 
@@ -174,7 +180,7 @@ the following procedure:
 ---------------
 
 In normal operation, you should **never** remove the ``mongod.lock``
-file and start :program:`mongod`. Instead use one of the above methods
+file and start :program:`mongod`. Instead consider the one of the above methods
 to recover the database and remove the lock files. In dire
 situations you can remove the lockfile, and start the database using the
 possibly corrupt files, and attempt to recover data from the database;
@@ -184,5 +190,6 @@ situations.
 If you are not running with journaling, and your database shuts down
 unexpectedly for *any* reason, you should always proceed *as if* your database
 is in an inconsistent and likely corrupt state. If at all possible restore
-from :doc:`backup </administration/backups>` or, if running as a :term:`replica
-set`, restore by performing an initial sync using data from an intact member of the set, as described in :ref:`replica-set-resync-stale-member`.
+from :doc:`backup </core/backups>` or, if running as a :term:`replica
+set`, restore by performing an initial sync using data from an intact
+member of the set, as described in :doc:`/tutorial/resync-replica-set-member`.

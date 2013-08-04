@@ -4,16 +4,16 @@ FAQ: Replica Sets and Replication in MongoDB
 
 .. default-domain:: mongodb
 
+.. contents:: Frequently Asked Questions:
+   :backlinks: none
+   :local:
+
 This document answers common questions about database replication
 in MongoDB.
 
 If you don't find the answer you're looking for, check
 the :doc:`complete list of FAQs </faq>` or post your question to the
 `MongoDB User Mailing List <https://groups.google.com/forum/?fromgroups#!forum/mongodb-user>`_.
-
-.. contents:: Frequently Asked Questions:
-   :backlinks: none
-   :local:
 
 What kinds of replication does MongoDB support?
 -----------------------------------------------
@@ -29,7 +29,7 @@ What do the terms "primary" and "master" mean?
 that can accept writes. MongoDB's replication is
 "single-master:" only one node can accept write operations at a time.
 
-In a replica set, if a the current "primary" node fails or becomes
+In a replica set, if the current "primary" node fails or becomes
 inaccessible, the other members can autonomously :term:`elect
 <election>` one of the other members of the set to be the new "primary".
 
@@ -88,11 +88,11 @@ Yes, but not without connection failures and the obvious latency.
 Members of the set will attempt to reconnect to the other members of
 the set in response to networking flaps. This does not require
 administrator intervention. However, if the network connections
-between the nodes in the replica set are very slow, it might not be
+among the nodes in the replica set are very slow, it might not be
 possible for the members of the node to keep up with the replication.
 
 If the TCP connection between the secondaries and the :term:`primary`
-instance breaks, a :term:`replica set` the set will automatically
+instance breaks, a :term:`replica set` will automatically
 elect one of the :term:`secondary` members of the set as primary.
 
 What is the preferred replication method: master/slave or replica sets?
@@ -158,12 +158,12 @@ for :term:`primary` but do not replicate the data like
 :term:`secondary` members.
 
 :term:`Replica sets <replica set>` require a majority of the
-original nodes present to elect a primary. Arbiters allow you
+remaining nodes present to elect a primary. Arbiters allow you
 to construct this majority without the overhead of adding replicating
 nodes to the system.
 
 There are many possible replica set :doc:`architectures
-</administration/replica-set-architectures>`.
+</core/replica-set-architectures>`.
 
 If you have a three node replica set, you don't need an arbiter.
 
@@ -179,7 +179,7 @@ facilities are possible. In these cases, the arbiter will break
 the tie between the two facilities and allow the set to elect a new
 primary.
 
-.. seealso:: :doc:`/administration/replica-set-architectures`
+.. seealso:: :doc:`/core/replica-set-architectures`
 
 What information do arbiters exchange with the rest of the replica set?
 -----------------------------------------------------------------------
@@ -196,8 +196,9 @@ following data with the rest of the replica set:
 
 If your MongoDB deployment uses SSL, then all communications between
 arbiters and the other members of the replica set are secure. See the
-documentation for :doc:`/administration/ssl` for more information. Run
-all arbiters on secure networks, as with all MongoDB components.
+documentation for :doc:`/tutorial/configure-ssl` for more
+information. Run all arbiters on secure networks, as with all MongoDB
+components.
 
 .. see:: The overview of :ref:`Arbiter Members of Replica Sets
    <replica-set-arbiters>`.
@@ -206,21 +207,36 @@ Which members of a replica set vote in elections?
 -------------------------------------------------
 
 All members of a replica set, unless the value of :data:`votes
-<members[n].votes>` is equal to ``0``, vote in elections. This includes
-all :ref:`delayed <replica-set-delayed-members>`, :ref:`hidden
+<local.system.replset.members[n].votes>` is equal to ``0``, vote in
+elections. This includes all :ref:`delayed
+<replica-set-delayed-members>`, :ref:`hidden
 <replica-set-hidden-members>` and :ref:`secondary-only
 <replica-set-secondary-only-members>` members, as well as the
 :ref:`arbiters <replica-set-arbiters>`.
+
+Additionally, the :data:`~replSetGetStatus.members.state` of the voting
+members also determine whether the member can vote. Only voting members
+in the following states are eligible to vote:
+
+- ``PRIMARY``
+
+- ``SECONDARY``
+
+- ``RECOVERING``
+
+- ``ARBITER``
+
+- ``ROLLBACK``
 
 .. seealso:: :ref:`replica-set-elections`
 
 Do hidden members vote in replica set elections?
 ------------------------------------------------
 
-:ref:`Hidden members <replica-set-hidden-members>` of term:`replica
-:sets` *do* vote in elections. To exclude a member from voting in an
-:election, change the value of the member's :data:`votes
-:<members[n].votes>` configuration to ``0``.
+:ref:`Hidden members <replica-set-hidden-members>` of :term:`replica
+sets <replica set>` *do* vote in elections. To exclude a member from voting in an
+:term:`election`, change the value of the member's
+:data:`~local.system.replset.members[n].votes` configuration to ``0``.
 
 .. seealso:: :ref:`replica-set-elections`
 

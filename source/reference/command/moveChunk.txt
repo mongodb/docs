@@ -4,66 +4,57 @@ moveChunk
 
 .. default-domain:: mongodb
 
+Definition
+----------
+
 .. dbcommand:: moveChunk
 
-   :dbcommand:`moveChunk` is an internal administrative command that
-   moves :term:`chunks <chunk>` between :term:`shards <shard>`. 
-   You must issue the
-   :dbcommand:`moveChunk`
-   command against the :term:`admin database` in the form:
+   Internal administrative command. Moves :term:`chunks <chunk>` between
+   :term:`shards <shard>`. Issue the :dbcommand:`moveChunk` command via
+   a :program:`mongos` instance while using the :term:`admin database`.
+   Use the following form:
 
    .. code-block:: javascript
-
+   
       db.runCommand( { moveChunk : <namespace> ,
-                       find : <query> ,
-                       to : <destination>,
-                       <options> } )
+                       find|bounds : <query|array> ,
+                       to : <string>,
+                       _secondaryThrottle : <Boolean> } )
 
-   :param moveChunk: The name of the :term:`collection` where
-                     the :term:`chunk` exists. Specify the 
-                     collection's full namespace, including
-                     the database name. 
 
-   :param find: A document including the :term:`shard key`.
+   The :dbcommand:`moveChunk` command has the following fields:
 
-   :param to: The identifier of the shard, that you want to migrate the
-              chunk to.
-
-   :param _secondaryThrottle: Optional. Set to ``false`` by
-                              default. Provides :ref:`write concern <write-concern>`
-                              support for chunk
-                              migrations.
-
-   If you set ``_secondaryThrottle`` to ``true``, during chunk
-   migrations when a :term:`shard` hosted by a :term:`replica set`,
-   the :program:`mongod` will wait until the :term:`secondary` members
-   replicate the migration operations continuing to migrate chunk
-   data. You may also configure ``_secondaryThrottle`` in the balancer
-   configuration.
-
-   Use the :method:`sh.moveChunk()` helper in the :program:`mongo`
-   shell to migrate chunks manually.
+   .. include:: /reference/command/moveChunk-field.rst
 
    The :ref:`chunk migration <sharding-chunk-migration>` section
    describes how chunks move between shards on MongoDB.
 
-   :dbcommand:`moveChunk` will return the following if another cursor
-   is using the chunk you are moving:
+.. seealso:: :dbcommand:`split`, :method:`sh.moveChunk()`,
+   :method:`sh.splitAt()`, and :method:`sh.splitFind()`.
 
-   .. code-block:: none
+Return Messages
+---------------
 
-      errmsg: "The collection's metadata lock is already taken."
+:dbcommand:`moveChunk` returns the following message if another
+metadata operation is in progress :data:`~config.chunks` collection:
 
-   These errors usually occur when there are too many open
-   :term:`cursors <cursor>` accessing the chunk you are migrating. You
-   can either wait until the cursors complete their operation or close
-   the cursors manually.
+.. code-block:: none
 
-   .. note::
+   errmsg: "The collection's metadata lock is already taken."
 
-      Only use the :dbcommand:`moveChunk` in special circumstances
-      such as preparing your :term:`sharded cluster` for an initial
-      ingestion of data, or a large bulk import operation. See
-      :ref:`sharding-administration-create-chunks` for more information.
+If another process, such as a balancer process, changes meta data
+while :dbcommand:`moveChunk` is running, you may see this
+error. You may retry the :dbcommand:`moveChunk` operation without
+side effects. 
 
-   .. admin-only
+.. note::
+
+   Only use the :dbcommand:`moveChunk` in special circumstances
+   such as preparing your :term:`sharded cluster` for an initial
+   ingestion of data, or a large bulk import operation.
+   In most cases allow the balancer to create and balance chunks
+   in sharded clusters.
+   See
+   :ref:`sharding-administration-create-chunks` for more information.
+
+.. admin-only

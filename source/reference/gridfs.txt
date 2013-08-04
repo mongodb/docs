@@ -1,0 +1,141 @@
+.. index:: GridFS
+
+================
+GridFS Reference
+================
+
+.. default-domain:: mongodb
+
+.. index:: GridFS; collections
+.. _gridfs-collections:
+
+:term:`GridFS` stores files in two collections:
+
+- ``chunks`` stores the binary chunks. For details, see
+  :ref:`gridfs-chunks-collection`.
+
+- ``files`` stores the file's metadata. For details, see
+  :ref:`gridfs-files-collection`.
+
+GridFS places the collections in a common bucket by prefixing each
+with the bucket name. By default, GridFS uses two collections with
+names prefixed by ``fs`` bucket:
+
+- ``fs.files``
+- ``fs.chunks``
+
+You can choose a different bucket name than ``fs``, and create
+multiple buckets in a single database.
+
+.. seealso:: :doc:`/core/gridfs` for more information about GridFS.
+
+.. index:: GridFS; chunks collection
+.. _gridfs-chunks-collection:
+
+The ``chunks`` Collection
+-------------------------
+
+Each document in the ``chunks`` collection represents a distinct chunk
+of a file as represented in the :term:`GridFS` store. The following is a
+prototype document from the ``chunks`` collection.:
+
+.. code-block:: javascript
+
+   {
+     "_id" : <string>,
+     "files_id" : <string>,
+     "n" : <num>,
+     "data" : <binary>
+   }
+
+A document from the ``chunks`` collection contains the following fields:
+
+.. data:: chunks._id
+
+   The unique :term:`ObjectID` of the chunk.
+
+.. data:: chunks.files_id
+
+   The ``_id`` of the "parent" document, as specified in the ``files``
+   collection.
+
+.. data:: chunks.n
+
+   The sequence number of the chunk. GridFS numbers all chunks,
+   starting with 0.
+
+.. data:: chunks.data
+
+   The chunk's payload as a :term:`BSON` binary type.
+
+The ``chunks`` collection uses a :term:`compound index` on
+``files_id`` and ``n``, as described in :ref:`gridfs-index`.
+
+.. index:: GridFS; files collection
+.. _gridfs-files-collection:
+
+The ``files`` Collection
+------------------------
+
+Each document in the ``files`` collection represents a file in the
+:term:`GridFS` store. Consider the following prototype of a document in
+the ``files`` collection:
+
+.. code-block:: javascript
+
+   {
+     "_id" : <ObjectID>,
+     "length" : <num>,
+     "chunkSize" : <num>
+     "uploadDate" : <timestamp>
+     "md5" : <hash>
+
+     "filename" : <string>,
+     "contentType" : <string>,
+     "aliases" : <string array>,
+     "metadata" : <dataObject>,
+   }
+
+Documents in the ``files`` collection contain some or all of the
+following fields. Applications may create additional arbitrary fields:
+
+.. data:: files._id
+
+   The unique ID for this document. The ``_id`` is of the data type you
+   chose for the original document. The default type for MongoDB
+   documents is :term:`BSON` :term:`ObjectID`.
+
+.. data:: files.length
+
+   The size of the document in bytes.
+
+.. data:: files.chunkSize
+
+   The size of each chunk. GridFS divides the document into chunks of
+   the size specified here. The default size is 256 kilobytes.
+
+.. data:: files.uploadDate
+
+   The date the document was first stored by GridFS. This value has the
+   ``Date`` type.
+
+.. data:: files.md5
+
+   An MD5 hash returned from the filemd5 API. This value has the ``String``
+   type.
+
+.. data:: files.filename
+
+   Optional. A human-readable name for the document.
+
+.. data:: files.contentType
+
+   Optional. A valid MIME type for the document.
+
+.. data:: files.aliases
+
+   Optional. An array of alias strings.
+
+.. data:: files.metadata
+
+   Optional. Any additional information you want to store.

@@ -12,7 +12,7 @@ a one for production systems.
 To instead deploy a replica set from a single standalone MongoDB
 instance, see :doc:`/tutorial/convert-standalone-to-replica-set`. For
 additional information regarding replica set deployments, see
-:doc:`/core/replication` and :doc:`/administration/replica-set-architectures`.
+:doc:`/replication` and :doc:`/core/replica-set-architectures`.
 
 Overview
 --------
@@ -25,7 +25,7 @@ deployments require no additional members or configuration.
 Requirements
 ------------
 
-Most replica sets consist of two or more :program:`mongod`
+Most replica sets consist of three or more :program:`mongod`
 instances. [#odd-numbered-set-sizes]_ This tutorial
 describes a three member set. Production environments should have at
 least three distinct systems so that each system can run its own
@@ -79,16 +79,22 @@ The examples in this procedure create a new replica set named ``rs0``.
 
       .. code-block:: sh
 
-         mongod --port 27017 --dbpath /srv/mongodb/rs0-0 --replSet rs0
-         mongod --port 27018 --dbpath /srv/mongodb/rs0-1 --replSet rs0
-         mongod --port 27019 --dbpath /srv/mongodb/rs0-2 --replSet rs0
+         mongod --port 27017 --dbpath /srv/mongodb/rs0-0 --replSet rs0 --smallfiles --oplogSize 128
+         mongod --port 27018 --dbpath /srv/mongodb/rs0-1 --replSet rs0 --smallfiles --oplogSize 128
+         mongod --port 27019 --dbpath /srv/mongodb/rs0-2 --replSet rs0 --smallfiles --oplogSize 128
 
       This starts each instance as a member of a replica set named
       ``rs0``, each running on a distinct port. If you are already using
-      these ports, you can select different ports. See the documentation
-      of the following options for more information: :option:`--port
-      <mongod --port>`, :option:`--dbpath <mongod --dbpath>`, and
-      :option:`--replSet <mongod --replSet>`.
+      these ports, select different ports.
+
+      The :option:`--smallfiles <mongod --smallfiles>` and
+      :setting:`--oplogSize <mongod --oplogSize>` reduce the disk
+      space that each :program:`mongod` uses for the purposes of
+      testing. For more information on these and other configuration
+      options, see :doc:`/reference/configuration-options`.
+
+      .. important:: Unless otherwise indicated, only use these
+         invocations for test deployments.
 
 #. Open a :program:`mongo` shell and connect to the first
    :program:`mongod` instance, with the following command:
@@ -97,12 +103,28 @@ The examples in this procedure create a new replica set named ``rs0``.
 
       mongo --port 27017
 
+#. Create a replica set configuration object in the :program:`mongo`
+   shell environment to use to initiate the replica set with the
+   following sequence of operations:
+
+   .. code-block:: javascript
+
+      rsconf = {
+                 _id: "rs0",
+                 members: [
+                            {
+                             _id: 0,
+                             host: "<hostname>:27017"
+                            }
+                          ]
+               }
+
 #. Use :method:`rs.initiate()` to initiate a replica set consisting of
    the current member and using the default configuration:
 
    .. code-block:: javascript
 
-      rs.initiate()
+      rs.initiate( rsconf )
 
 #. Display the current :doc:`replica configuration </reference/replica-configuration>`:
 
@@ -111,7 +133,7 @@ The examples in this procedure create a new replica set named ``rs0``.
       rs.conf()
 
 #. Add the second and third :program:`mongod` instances to the replica
-   set using the :method:`rs.add()` method. Replace <hostname> with
+   set using the :method:`rs.add()` method. Replace ``<hostname>`` with
    your system's hostname in the following examples:
 
    .. code-block:: javascript
@@ -120,7 +142,7 @@ The examples in this procedure create a new replica set named ``rs0``.
       rs.add("<hostname>:27019")
 
    After these commands return you have a fully functional replica set.
-   New replica sets elect a :term:`primary` within a seconds.
+   New replica sets elect a :term:`primary` within a few seconds.
 
 #. Check the status of your replica set at any time with the
    :method:`rs.status()` operation.
@@ -158,7 +180,7 @@ deployment described above, with the following differences:
   - ``mongodb2.example.net``
 
   Configure DNS names appropriately, *or* set up your systems'
-  ``/etc/host`` file to reflect this configuration.
+  ``/etc/hosts`` file to reflect this configuration.
 
 - You specify run-time configuration on each system in a
   :doc:`configuration file </reference/configuration-options>` stored in
@@ -235,7 +257,7 @@ To deploy a production replica set:
       rs.conf()
 
 #. Add two members to the replica set by issuing a sequence of commands
-   similar to the following.
+   similar to the following:
 
    .. code-block:: javascript
 
@@ -243,7 +265,7 @@ To deploy a production replica set:
       rs.add("mongodb2.example.net")
 
    After these commands return you have a fully functional replica set.
-   New replica sets elect a :term:`primary` within a seconds.
+   New replica sets elect a :term:`primary` within a few seconds.
 
 #. Check the status of your replica set at any time with the
    :method:`rs.status()` operation.

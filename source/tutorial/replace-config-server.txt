@@ -1,0 +1,59 @@
+=======================
+Replace a Config Server
+=======================
+
+.. default-domain:: mongodb
+
+This procedure replaces an inoperable
+:ref:`config server <sharding-config-server>` in a
+:doc:`sharded cluster </core/sharding>`. Use this procedure only
+to replace a config server that has become inoperable (e.g. hardware
+failure).
+
+This process assumes that the hostname of the instance will not change.
+If you must change the hostname of the instance, use the procedure to
+:doc:`migrate a config server and use a new hostname
+<migrate-config-servers-with-different-hostnames>`.
+
+#. Disable the cluster balancer process temporarily. See
+   :ref:`sharding-balancing-disable-temporarily` for more information.
+
+#. Provision a new system, with the same hostname as the previous
+   host.
+
+   You will have to ensure that the new system has the same IP address
+   and hostname as the system it's replacing *or* you will need to
+   modify the DNS records and wait for them to propagate.
+
+#. Shut down *one* (and only one) of the existing config servers. Copy
+   all of this host's :setting:`dbpath` file system tree from the current system
+   to the system that will provide the new config server. This
+   command, issued on the system with the data files, may resemble the
+   following:
+
+   .. code-block:: sh
+
+      rsync -az /data/configdb mongodb.config2.example.net:/data/configdb
+
+#. Restart the config server process that you used in the previous
+   step to copy the data files to the new config server instance.
+
+#. Start the new config server instance. The default invocation is:
+
+   .. code-block:: sh
+
+      mongod --configsvr
+
+#. Re-enable the balancer to allow the cluster to resume normal
+   balancing operations. See the
+   :ref:`sharding-balancing-disable-temporarily` section for more
+   information on managing the balancer process.
+
+.. note::
+
+   In the course of this procedure *never* remove a config server from
+   the :setting:`configdb` parameter on any of the :program:`mongos`
+   instances. If you need to change the name of a config server,
+   always make sure that all :program:`mongos` instances have three
+   config servers specified in the :setting:`configdb` setting at all
+   times.

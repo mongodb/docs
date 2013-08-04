@@ -1,0 +1,117 @@
+=================
+Replica Set Oplog
+=================
+
+.. default-domain:: mongodb
+
+The :term:`oplog` (operations log) is a special :term:`capped
+collection` that keeps a rolling record of all operations that modify
+the data stored in your databases. MongoDB applies database operations
+on the :term:`primary` and then records the operations on the
+primary's oplog. The :term:`secondary` members then copy and apply
+these operations in an asynchronous process. All replica set members
+contain a copy of the oplog, allowing them to maintain the current
+state of the database.
+
+To facilitate replication, all replica set members send heartbeats
+(pings) to all other members. Any member can import oplog entries from
+any other member.
+
+Whether applied once or multiple times to the target dataset, each
+operation in the oplog produces the same results, i.e. each operation
+in the oplog is :term:`idempotent`. For proper replication operations,
+entries in the oplog must be idempotent:
+
+- initial sync
+- post-rollback catch-up
+- sharding chunk migrations
+
+.. _replica-set-oplog-sizing:
+
+Oplog Size
+----------
+
+When you start a replica set member for the first time, MongoDB creates
+an oplog of a default size. The size depends on the architectural
+details of your operating system.
+
+In most cases, the default oplog size is sufficient. For example, if an
+oplog is 5% of free disk space and fills up in 24 hours of operations, then
+secondaries can stop copying entries from the oplog for up to 24 hours
+without becoming stale. However, most replica sets have much
+lower operation volumes, and their oplogs can hold much higher
+numbers of operations.
+
+Before :program:`mongod` creates an oplog, you can specify its size
+with the :setting:`oplogSize` option. However, after you have started
+a replica set member for the first time, you can only change the size
+of the oplog using the :doc:`/tutorial/change-oplog-size` procedure.
+
+..  Actual oplog sizing as of 2012-07-02:
+..  32 bit systems = ~48 megabytes
+..  64 bit = larger of 5% of disk or ~1 gigabyte
+..  64 bit OS X = ~183 megabytes
+
+By default, the size of the oplog is as follows:
+
+- For 64-bit Linux, Solaris, FreeBSD, and Windows systems, MongoDB
+  allocates 5% of the available free disk space to the oplog. If this
+  amount is smaller than a gigabyte, then MongoDB allocates 1
+  gigabyte of space.
+
+- For 64-bit OS X systems, MongoDB allocates 183 megabytes of space to
+  the oplog.
+
+- For 32-bit systems, MongoDB allocates about 48 megabytes of space to
+  the oplog.
+
+Workloads that Might Require a Larger Oplog Size
+------------------------------------------------
+
+If you can predict your replica set's workload to resemble one of the
+following patterns, then you might want to create an oplog that is
+larger than the default. Conversely, if your application predominantly
+performs reads and writes only a small amount of data, you will oplog
+may be sufficient.
+
+The following workloads might require a larger oplog size.
+
+Updates to Multiple Documents at Once
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The oplog must translate multi-updates into individual operations in
+order to maintain :term:`idempotency <idempotent>`. This can use a great
+deal of oplog space without a corresponding increase in data size or disk
+use.
+
+Deletions Equal the Same Amount of Data as Inserts
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you delete roughly the same amount of data as you insert, the
+database will not grow significantly in disk use, but the size
+of the operation log can be quite large.
+
+Significant Number of In-Place Updates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If a significant portion of the workload is in-place updates, the database
+records a large number of operations but does not change the quantity of
+data on disk.
+
+Oplog Status
+------------
+
+To view oplog status, including the size and the time range of
+operations, issue the :method:`db.printReplicationInfo()` method. For
+more information on oplog status, see
+:ref:`replica-set-troubleshooting-check-oplog-size`.
+
+Under various exceptional situations, updates to a :term:`secondary's
+<secondary>` oplog might lag behind the desired performance time.  Use
+:method:`db.getReplicationInfo()` from a secondary member and the
+:doc:`replication status </reference/method/db.getReplicationInfo>`
+output to assess the current state of replication and determine if
+there is any unintended replication delay.
+
+See :ref:`Replication Lag <replica-set-replication-lag>` for more
+information.

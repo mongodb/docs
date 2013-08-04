@@ -19,13 +19,95 @@ stores data used in the replication process, and other
 instance-specific data. The ``local`` database is invisible to
 replication: collections in the ``local`` database are not replicated.
 
-When running with authentication (i.e. :setting:`auth`), authenticating against the ``local``
-database is equivalent to authenticating against the ``admin``
-database. This authentication gives access to all databases.
-
 In replication, the ``local`` database store stores internal replication
-data for each member of a :term:`replica set`. The ``local`` database contains the
-following collections used for replication:
+data for each member of a :term:`replica set`. The ``local`` stores the
+following collections:
+
+.. versionchanged:: 2.4 
+   When running with authentication (i.e. :setting:`auth`),
+   authenticating to the ``local`` database is **not** equivalent to
+   authenticating to the ``admin`` database. In previous versions,
+   authenticating to the ``local`` database provided access to all databases.
+
+Collection on all ``mongod`` Instances
+--------------------------------------
+
+.. data:: local.startup_log
+
+   On startup, each :program:`mongod` instance inserts a document into
+   :data:`~local.startup_log` with diagnostic information about the
+   :program:`mongod` instance itself and host
+   information. :data:`~local.startup_log` is a capped
+   collection. This information is primarily useful for diagnostic
+   purposes.
+
+   .. example::
+
+      Consider the following prototype of a document from the
+      :data:`~local.startup_log` collection:
+
+      .. code-block:: javascript
+
+         {
+           "_id" : "<string>",
+           "hostname" : "<string>",
+           "startTime" : ISODate("<date>"),
+           "startTimeLocal" : "<string>",
+           "cmdLine" : {
+                 "dbpath" : "<path>",
+                 "<option>" : <value>
+           },
+           "pid" : <number>,
+           "buildinfo" : {
+                 "version" : "<string>",
+                 "gitVersion" : "<string>",
+                 "sysInfo" : "<string>",
+                 "loaderFlags" : "<string>",
+                 "compilerFlags" : "<string>",
+                 "allocator" : "<string>",
+                 "versionArray" : [ <num>, <num>, <...> ],
+                 "javascriptEngine" : "<string>",
+                 "bits" : <number>,
+                 "debug" : <boolean>,
+                 "maxBsonObjectSize" : <number>
+           }
+         }
+
+    Documents in the :data:`~local.startup_log` collection contain the
+    following fields:
+
+    .. data:: local.startup_log._id
+
+       Includes the system hostname and a millisecond epoch value.
+
+    .. data:: local.startup_log.hostname
+
+       The system's hostname.
+
+    .. data:: local.startup_log.startTime
+
+       A UTC :term:`ISODate` value that reflects when the server started.
+
+    .. data:: local.startup_log.startTimeLocal
+
+       A string that reports the :data:`~local.startup_log.startTime`
+       in the system's local time zone.
+
+    .. data:: local.startup_log.cmdLine
+
+       A sub-document that reports the :program:`mongod` runtime
+       options and their values.
+
+    .. data:: local.startup_log.pid
+
+       The process identifier for this process.
+
+    .. data:: local.startup_log.buildinfo
+
+       A sub-document that reports information about the build
+       environment and settings used to compile this
+       :program:`mongod`. This is the same output as
+       :dbcommand:`buildInfo`. See :data:`buildInfo`.
 
 Collections on Replica Set Members
 ----------------------------------
@@ -44,9 +126,7 @@ Collections on Replica Set Members
    :setting:`oplogSize` setting. To resize the oplog after replica set
    initiation, use the :doc:`/tutorial/change-oplog-size`
    procedure. For additional information, see the
-   :ref:`replica-set-internals-oplog` topic in this document and the
-   :ref:`replica-set-oplog-sizing` topic in the
-   :doc:`/core/replication` document.
+   :ref:`replica-set-oplog-sizing` section.
 
 .. data:: local.replset.minvalid
 
@@ -55,7 +135,15 @@ Collections on Replica Set Members
 
 .. data:: local.slaves
 
-   This contains information about each member of the set.
+   This contains information about each member of the set and the
+   latest point in time that this member has synced to. If this
+   collection becomes out of date, you can refresh it by dropping the
+   collection and allowing MongoDB to automatically refresh it during
+   normal replication:
+
+   .. code-block:: javascript
+
+      db.getSiblingDB("local").slaves.drop()
 
 Collections used in Master/Slave Replication
 --------------------------------------------

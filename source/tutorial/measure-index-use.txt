@@ -1,0 +1,80 @@
+.. index:: index; measure use
+.. _index-measure-index-use:
+.. _indexes-measuring-use:
+
+=================
+Measure Index Use
+=================
+
+.. default-domain:: mongodb
+
+Synopsis
+--------
+
+Query performance is a good general indicator of index use;
+however, for more precise insight into index use, MongoDB provides a
+number of tools that allow you to study query operations and observe
+index use for your database.
+
+.. seealso:: :doc:`/core/indexes`,
+   :doc:`/applications/indexes`, and
+   :doc:`/administration/indexes` for more information.
+
+Operations
+----------
+
+Return Query Plan with ``explain()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Append the :method:`explain() <cursor.explain()>` method to any cursor
+(e.g. query) to return a document with statistics about the query
+process, including the index used, the number of documents scanned,
+and the time the query takes to process in milliseconds.
+
+Control Index Use with ``hint()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Append the :method:`hint() <cursor.hint()>` to any cursor (e.g.
+query) with the index as the argument to *force* MongoDB
+to use a specific index to fulfill the query. Consider the following
+example:
+
+.. code-block:: javascript
+
+   db.people.find( { name: "John Doe", zipcode: { $gt: 63000 } } } ).hint( { zipcode: 1 } )
+
+You can use :method:`hint() <cursor.hint()>` and :method:`explain()
+<cursor.explain()>` in conjunction with each other to compare the
+effectiveness of a specific index. Specify the ``$natural`` operator
+to the :method:`hint() <cursor.hint()>` method to prevent MongoDB from
+using *any* index:
+
+.. code-block:: javascript
+
+   db.people.find( { name: "John Doe", zipcode: { $gt: 63000 } } } ).hint( { $natural: 1 } )
+
+Instance Index Use Reporting
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB provides a number of metrics of index use and operation that
+you may want to consider when analyzing index use for your database: 
+
+- In the output of :dbcommand:`serverStatus`: 
+   
+  - :data:`~serverStatus.indexCounters` 
+
+  - :data:`~serverStatus.metrics.queryExecutor.scanned`
+
+  - :data:`~serverStatus.metrics.operation.scanAndOrder`
+
+- In the output of :dbcommand:`collStats`: 
+  
+  - :data:`~collStats.totalIndexSize`
+
+  - :data:`~collStats.indexSizes`
+
+- In the output of :dbcommand:`dbStats`: 
+
+  - :data:`dbStats.indexes` 
+
+  - :data:`dbStats.indexSize`

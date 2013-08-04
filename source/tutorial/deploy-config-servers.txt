@@ -1,0 +1,46 @@
+======================================================
+Deploy Three Config Servers for Production Deployments
+======================================================
+
+.. default-domain:: mongodb
+
+This procedure converts a test deployment with only one
+:ref:`config server <sharding-config-server>` to a production deployment
+with three config servers.
+
+For redundancy, all production :doc:`sharded clusters
+</core/sharding-introduction>` should deploy three config servers on
+three different machines. Use a single config server only for testing
+deployments, never for production deployments. When you shift to
+production, upgrade immediately to three config servers.
+
+To convert a test deployment with one config server to a production
+deployment with three config servers:
+
+#. Shut down all existing MongoDB processes in the cluster. This
+   includes:
+
+   - all :program:`mongod` instances or :term:`replica sets <replica set>`
+     that provide your shards.
+
+   - all :program:`mongos` instances in your cluster.
+
+#. Copy the entire :setting:`dbpath` file system tree from the
+   existing config server to the two machines that will provide the
+   additional config servers. These commands, issued on the system
+   with the existing :ref:`config-database`, ``mongo-config0.example.net`` may
+   resemble the following:
+
+   .. code-block:: sh
+
+      rsync -az /data/configdb mongo-config1.example.net:/data/configdb
+      rsync -az /data/configdb mongo-config2.example.net:/data/configdb
+
+#. Start all three config servers, using the same invocation that you
+   used for the single config server.
+
+   .. code-block:: sh
+
+      mongod --configsvr
+
+#. Restart all shard :program:`mongod` and :program:`mongos` processes.

@@ -1,0 +1,107 @@
+========================
+Replication Introduction
+========================
+
+.. default-domain:: mongodb
+
+Replication is the process of synchronizing data across multiple
+servers.
+
+Purpose of Replication
+----------------------
+
+Replication provides redundancy and increases data availability. With
+multiple copies of data on different database servers, replication
+protects a database from the loss of a single server. Replication also
+allows you to recover from hardware failure and service
+interruptions. With additional copies of the data, you can dedicate
+one to disaster recovery, reporting, or backup.
+
+In some cases, you can use replication to increase read
+capacity. Clients have the ability to send read and write operations 
+to different servers. You can also maintain copies in different data 
+centers to increase the locality and availability of data for distributed
+applications.
+
+Replication in MongoDB
+----------------------
+
+A replica set is a group of :program:`mongod` instances that host the
+same data set. One :program:`mongod`, the primary, receives all write
+operations. All other instances, secondaries, apply operations from
+the primary so that they have the same data set.
+
+The **primary** accepts all write operations from clients. Replica set
+can have only one primary. Because only one member can accept write
+operations, replica sets provide **strict consistency**. To support
+replication, the primary logs all changes to its data sets in its
+:doc:`oplog </core/replica-set-oplog>`. See :doc:`primary
+</core/replica-set-primary>` for more information.
+
+.. include:: /images/replica-set-read-write-operations-primary.rst
+
+The **secondaries** replicate the primary's oplog and apply the
+operations to their data sets. Secondaries' data sets reflect the
+primary's data set. If the primary is unavailable, the replica set
+will elect a secondary to be primary. By default, clients read from
+the primary, however, clients can specify a :doc:`read preferences
+</core/read-preference>` to send read operations to secondaries. See
+:doc:`secondaries </core/replica-set-secondary>` for more information
+
+.. include:: /images/replica-set-primary-with-two-secondaries.rst
+
+You may add an extra :program:`mongod` instance a replica set as an
+**arbiter**. Arbiters do not maintain a data set. Arbiters only exist
+to vote in elections. If your replica set has an even number of
+members, add an arbiter to obtain a majority of votes in an election
+for primary. Arbiters do not require dedicated hardware. See
+:doc:`arbiter </core/replica-set-arbiter>` for more information.
+
+.. include:: /images/replica-set-primary-with-secondary-and-arbiter.rst
+
+.. note::
+
+   An **arbiter** will always be an arbiter. A **primary** may step
+   down and become a **secondary**. A **secondary** may become the
+   primary during an election.
+
+Asynchronous Replication
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Secondaries apply operations from the primary asynchronously. By
+applying operations after the primary, sets can continue to function
+without some members. However, as a result secondaries may not return
+the most current data to clients.
+
+See :doc:`/core/replica-set-oplog` and :doc:`/core/replica-set-sync`
+for more information. See :doc:`/core/read-preference` for more on
+read operations and secondaries.
+
+Automatic Failover
+~~~~~~~~~~~~~~~~~~
+
+When a primary does not communicate with the other members of the set
+for more than 10 seconds, the replica set will attempt to
+select another member to become the new primary. The first secondary
+that receives a majority of the votes becomes primary.
+
+.. include:: /images/replica-set-trigger-election.rst
+
+See :doc:`/core/replica-set-elections` and
+:doc:`/core/replica-set-rollbacks` for more information.
+
+Additional Features
+~~~~~~~~~~~~~~~~~~~
+
+Replica sets provide a number of options to support application
+needs. For example, you may deploy a replica set with :doc:`members in
+multiple data centers
+</core/replica-set-architecture-geographically-distributed>`, or
+control the outcome of elections by adjusting the
+:data:`~local.system.replset.members[n].priority` of some
+members. Replica sets also support dedicated members for reporting,
+disaster recovery, or backup functions.
+
+See :doc:`/core/replica-set-priority-0-member`,
+:doc:`/core/replica-set-hidden-member` and
+:doc:`/core/replica-set-delayed-member` for more information.

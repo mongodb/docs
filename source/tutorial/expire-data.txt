@@ -8,7 +8,7 @@ Expire Data from Collections by Setting TTL
 
 .. versionadded:: 2.2
 
-This document provides an introductions to MongoDB's "*time to live*"
+This document provides an introduction to MongoDB's "*time to live*"
 or ":term:`TTL`" collection feature. Implemented as a special index
 type, TTL collections make it possible to store data in MongoDB and
 have the :program:`mongod` automatically remove data after a specified
@@ -19,25 +19,30 @@ need to persist in a database for a limited period of time.
 Background
 ----------
 
-Collections expire by way of a special index that keeps track of
-insertion time in conjunction with a background thread in :program:`mongod`
-that regularly removes expired :term:`documents <document>`
-from the collection. You can use this feature to expire data from
+Collections expire by way of a special index of a field with date
+values in conjunction with a background thread in :program:`mongod`
+that regularly removes expired :term:`documents <document>` from the
+collection. You can use this feature to expire data from
 :term:`replica sets <replica set>` and :term:`sharded clusters
 <sharded cluster>`.
 
 Use the ``expireAfterSeconds`` option to the :method:`ensureIndex
 <db.collection.ensureIndex()>` method in conjunction with a TTL value
-in seconds to create an expiring collection. TTL collections set the
-:collflag:`usePowerOf2Sizes` collection flag, which means MongoDB must
-allocate more disk space relative to data size. This approach helps
-mitigate the possibility of storage fragmentation caused by frequent
-delete operations and leads to more predictable storage use patterns.
+in seconds to create an expiring collection. Collections with an index
+that expires data set the :collflag:`usePowerOf2Sizes` collection
+flag. As a result, MongoDB must allocate more disk space relative to
+data size. This approach helps mitigate the possibility of storage
+fragmentation caused by frequent delete operations and leads to more
+predictable storage use patterns.
+
+.. important:: All collections with an index using the
+   ``expireAfterSeconds`` option have :collflag:`usePowerOf2Sizes`
+   enabled. Users cannot modify this setting.
 
 .. note::
 
-   When the TTL thread is active, you will see a :doc:`delete
-   </applications/delete>` operation in the output of
+   When the TTL thread is active, you will see :doc:`delete
+   </core/delete>` operations in the output of
    :method:`db.currentOp()` or in the data collected by the
    :ref:`database profiler <database-profiler>`.
 
@@ -48,6 +53,8 @@ Consider the following limitations:
 
 - the indexed field must be a date :term:`BSON type <BSON types>`. If
   the field does not have a date type, the data will not expire.
+
+- documents that omit the indexed field will never expire.
 
 - you cannot create this index on the ``_id`` field, or a field that
   already has an index.

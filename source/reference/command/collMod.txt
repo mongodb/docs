@@ -9,9 +9,9 @@ collMod
    .. versionadded:: 2.2
 
    :dbcommand:`collMod` makes it possible to add flags to a collection
-   to modify the behavior of MongoDB. In the current release the only
-   available flag is :collflag:`usePowerOf2Sizes`. The command takes the
-   following prototype form:
+   to modify the behavior of MongoDB. Flags include
+   :collflag:`usePowerOf2Sizes` and :collflag:`index`. The command
+   takes the following prototype form:
 
    .. code-block:: javascript
 
@@ -20,6 +20,10 @@ collMod
    In this command substitute ``<collection>`` with the name of a
    collection in the current database, and ``<flag>`` and ``<value>``
    with the flag and value you want to set.
+
+   Use the :data:`~collStats.userFlags` field in the in
+   :method:`db.collection.stats()` output to check enabled collection
+   flags.
 
    .. index:: document; space allocation
    .. index:: usePowerOf2Sizes
@@ -31,8 +35,17 @@ collMod
       collection. By setting :collflag:`usePowerOf2Sizes`, you ensure
       that MongoDB will allocate space for documents in sizes that
       are powers of 2 (e.g. 4, 8, 16, 32, 64, 128, 256, 512...8388608).
-      With this option MongoDB will be able to more effectively reuse
-      space.
+      With :collflag:`usePowerOf2Sizes` MongoDB will be able to more
+      effectively reuse space.
+
+      .. note::
+
+         With :collflag:`usePowerOf2Sizes` MongoDB, allocates
+         records that have power of 2 sizes, until record sizes
+         equal 4 megabytes. For records larger than 4 megabytes
+         with :collflag:`usePowerOf2Sizes` set, :program:`mongod`
+         will allocate records in full megabytes by rounding up to
+         the nearest megabyte.
 
       :collflag:`usePowerOf2Sizes` is useful for collections where you
       will be inserting and deleting large numbers of documents to
@@ -52,11 +65,11 @@ collMod
 
          .. code-block:: javascript
 
-            db.runCommand( { collMod: "products", "usePowerOf2Sizes": false })
+            db.runCommand( { collMod: "products", usePowerOf2Sizes: false })
 
 
       .. warning::
-         .. versionchanged:: 2.2.1 
+         .. versionchanged:: 2.2.1
             :collflag:`usePowerOf2Sizes` now
             supports documents larger than 8 megabytes. If you enable
             :collflag:`usePowerOf2Sizes` you **must** use at least
@@ -66,6 +79,50 @@ collMod
          allocations caused by document insertion or record relocation
          as a result of document growth, and *does not* affect
          existing allocations.
+
+   .. index:: expireAfterSeconds
+   .. collflag:: index
+
+      The :collflag:`index` flag changes the expiration time of a
+      :doc:`TTL Collection </tutorial/expire-data>`.
+
+      Specify the key and new expiration time with a document of the form:
+
+      .. code-block:: javascript
+
+         {keyPattern: <index_spec>, expireAfterSeconds: <seconds> }
+
+      where ``<index_spec>`` is an existing index in the collection and
+      ``seconds`` is the number of seconds to subtract from the current
+      time.
+
+      .. example::
+
+         To update the expiration value for a collection
+         named ``sessions`` indexed on a ``lastAccess`` field from 30
+         minutes to 60 minutes, use the following operation:
+
+         .. code-block:: javascript
+
+            db.runCommand({collMod: "sessions",
+                          index: {keyPattern: {lastAccess:1},
+                          expireAfterSeconds: 3600}})
+
+         Which will return the document:
+
+         .. code-block:: javascript
+
+            { "expireAfterSeconds_old" : 1800, "expireAfterSeconds_new" : 3600, "ok" : 1 }
+
+      On success :dbcommand:`collMod` returns a document with fields
+      ``expireAfterSeconds_old`` and ``expireAfterSeconds_new`` set to
+      their respective values.
+
+      On failure, :dbcommand:`collMod` returns a document with ``no
+      expireAfterSeconds field to update`` if there is no existing
+      ``expireAfterSeconds`` field or ``cannot find index { **key**:
+      1.0 } for ns **namespace**`` if the specified ``keyPattern``
+      does not exist.
 
          .. Commenting out the following after DOCS-717, it does take
             a lock but its to cover a very small metadata change.

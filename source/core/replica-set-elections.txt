@@ -1,0 +1,252 @@
+.. index:: replica set; network partitions
+.. index:: replica set; elections
+.. index:: replica set; failover
+.. _replica-set-election-internals:
+.. _replica-set-elections:
+
+=====================
+Replica Set Elections
+=====================
+
+.. default-domain:: mongodb
+
+:term:`Replica sets <replica set>` use elections to determine which
+set member will become :term:`primary`. Elections happen after
+initiating a replica set and anytime the primary becomes
+unavailable. The primary is the only member in the set that can accept
+write operations. If a primary becomes unavailable, elections allow
+the set to recover normal operations without manual
+intervention. Elections are part of the :ref:`failover process
+<replica-set-failover-administration>`.
+
+.. important:: Elections are essential for independent operation of a
+   replica set; however, elections take time to complete. While an
+   election is in process, the replica set has no primary and cannot
+   accept writes. MongoDB avoids elections unless required.
+
+In the following three-member replica set, the primary is
+unavailable. The remaining secondaries hold an election to choose a new
+primary.
+
+.. include:: /images/replica-set-trigger-election.rst
+
+Factors and Conditions that Affect Elections
+--------------------------------------------
+
+Heartbeats
+~~~~~~~~~~
+
+Replica set members send heartbeats (pings) to each other every two
+seconds. If a heartbeat does not return within 10 seconds, the other
+members mark the delinquent member as inaccessible.
+
+Priority Comparisons
+~~~~~~~~~~~~~~~~~~~~
+
+The :data:`~local.system.replset.members[n].priority` setting affects
+elections. Members will prefer to vote for members with the highest
+priority value.
+
+Members with a priority value of ``0`` cannot become primary and do
+not seek election. For details, see
+:doc:`/core/replica-set-priority-0-member`.
+
+A replica set does *not* hold an election as long as the primary has the
+highest priority value and is within 10 seconds of the latest
+:term:`oplog` entry. If the member drops to beyond 10 seconds of the
+latest oplog entry, the set holds an election.
+
+Optime
+~~~~~~
+
+The :data:`optime <replSetGetStatus.members.optime>` is the timestamp of
+the last operation that a member applied from the oplog. A replica set
+member cannot become primary *unless* it has the highest (i.e. most
+recent) :data:`~replSetGetStatus.members.optime` of any visible member
+in the set.
+
+Connections
+~~~~~~~~~~~
+
+A replica set member cannot become primary *unless* it can connect to
+a majority of the members in the replica set. For the purposes of
+elections, a majority refers to the total number of *votes*, rather
+than the total number of members.
+
+If you have a three-member replica set, where every member has one
+vote, the set can elect a primary as long as two members can connect
+to each other. If two members are unavailable, the remaining
+member remains a :term:`secondary` because it cannot connect to a
+majority of the set's members.
+
+While there is no primary, clients cannot write to the replica set.
+
+Network Partitions
+~~~~~~~~~~~~~~~~~~
+
+Network partitions affect the formation of a majority for an
+election. If a primary steps down and neither portion of the replica
+set has a majority the set will **not** elect a new primary. The
+replica set becomes read-only.
+
+To avoid this situation, place a majority of instances in one data
+center and a minority of instances in any other data centers combined.
+
+Election Mechanics
+------------------
+
+Election Triggering Events
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Replica sets hold an election any time there is no
+primary. Specifically, following:
+
+- the initiation of a new replica set.
+
+- a secondary loses contact with a primary. Secondaries call for
+  elections when they cannot connect to a primary.
+
+- a primary steps down.
+
+.. note::
+
+   :doc:`Priority 0 members </core/replica-set-priority-0-member>`, do
+   not trigger elections, even when they cannot connect to the
+   primary.
+
+A primary will step down:
+
+- after receiving the :dbcommand:`replSetStepDown`
+  command.
+
+- if one of the current secondaries is eligible for election *and*
+  has a higher priority.
+
+- if primary cannot contact a majority of the members of the replica
+  set.
+
+.. important:: When a primary steps down, it closes all open client
+   connections, so that clients don't attempt to write data to a
+   secondary. This helps clients maintain an accurate view of the
+   replica set and helps prevent :term:`rollbacks <rollback>`.
+
+Participation in Elections
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Every replica set member has a *priority* that helps determine its
+eligibility to become a :term:`primary`. In an election, the replica
+set elects an eligible member with the highest
+:data:`~local.system.replset.members[n].priority` value as primary. By
+default, all members have a priority of ``1`` and have an equal chance
+of becoming primary. In the default, all members also can trigger an
+election.
+
+You can set the :data:`~local.system.replset.members[n].priority`
+value to weight the election in favor of a particular member or group
+of members. For example, if you have a :doc:`geographically
+distributed replica set
+</core/replica-set-architecture-geographically-distributed>`, you can
+adjust priorities so that only members in a specific data center can
+become primary.
+
+The first member to receive the majority of votes becomes primary. By
+default, all members have a single vote, unless you modify the
+:data:`~local.system.replset.members[n].votes`
+setting. :doc:`Non-voting members
+</tutorial/configure-a-non-voting-replica-set-member>` have
+:data:`~local.system.replset.members[n].votes` value of ``0``.
+
+The :data:`~replSetGetStatus.members.state` of a member also affects
+its eligibility to vote. Only members in the following states can
+vote: ``PRIMARY``, ``SECONDARY``, ``RECOVERING``, ``ARBITER``, and
+``ROLLBACK``.
+
+.. important:: Do not alter the number of votes in a replica set to
+   control the outcome of an election. Instead, modify the
+   :data:`~local.system.replset.members[n].priority` value.
+
+.. _replica-set-vetos:
+
+Vetoes in Elections
+~~~~~~~~~~~~~~~~~~~
+
+All members of a replica set can veto an election, including
+:ref:`non-voting members <replica-set-non-voting-members>`. A member
+will veto an election:
+
+- If the member seeking an election is not a member of the voter's set.
+
+- If the member seeking an election is not up-to-date with the most
+  recent operation accessible in the replica set.
+
+- If the member seeking an election has a lower priority than another member
+  in the set that is also eligible for election.
+
+- If a :ref:`priority 0 member
+  <replica-set-secondary-only-members>` [#imply-secondary-only]_ is
+  the most current member at the time of the election. In this case, another
+  eligible member of the set will catch up to the state of this
+  secondary member and then attempt to become primary.
+
+- If the current primary has more recent operations
+  (i.e. a higher :data:`optime <replSetGetStatus.members.optime>`) than
+  the member seeking election, from the perspective of the voting
+  member.
+
+- If the current primary has the same or more recent operations
+  (i.e. a higher or equal :data:`optime
+  <replSetGetStatus.members.optime>`) than the member seeking
+  election.
+
+.. [#imply-secondary-only] Remember that :ref:`hidden
+   <replica-set-hidden-members>` and :ref:`delayed
+   <replica-set-delayed-members>` imply :ref:`priority 0
+   <replica-set-secondary-only-members>` configuration.
+
+.. index:: replica set members; non-voting
+.. _replica-set-non-voting-configuration:
+.. _replica-set-non-voting-members:
+
+Non-Voting Members
+------------------
+
+.. default-domain:: mongodb
+
+Non-voting members hold copies of the replica set's data and can
+accept read operations from client applications. Non-voting members:
+do not vote in elections, but **can** :ref:`veto <replica-set-vetos>`
+an election and become primary.
+
+Because a replica set can have up to 12 members but only up to seven
+voting members, non-voting members permit a replica set to have more
+than seven members.
+
+For instance, the following nine-member replica set has seven voting
+members and two non-voting members.
+
+.. include:: /images/replica-set-only-seven-voting-members.rst
+
+A non-voting member has a
+:data:`~local.system.replset.members[n].votes` setting equal to ``0``
+in its member configuration:
+
+.. code-block:: javascript
+
+   {
+     "_id" : <num>
+     "host" : <hostname:port>,
+     "votes" : 0
+   }
+
+.. important:: Do **not** alter the number of votes to control which
+   members will become primary. Instead, modify the
+   :data:`~local.system.replset.members[n].priority` option. *Only*
+   alter the number of votes in exceptional cases. For example, to
+   permit more than seven secondaries.
+
+When possible, all members should have only one vote. Changing the
+number of votes can cause ties, deadlocks, and the wrong members from
+becoming primary.
+
+To configure a non-voting member, see
+:doc:`/tutorial/configure-a-non-voting-replica-set-member`.

@@ -4,82 +4,63 @@ addShard
 
 .. default-domain:: mongodb
 
+Definition
+----------
+
 .. dbcommand:: addShard
 
-   :param string hostname: a hostname or replica-set/hostname string.
+   Adds either a database instance or a :term:`replica set` to a
+   :term:`sharded cluster`. The optimal configuration is to deploy
+   shards across replica sets.
 
-   :param string name: Optional. Unless specified, a name will be
-                       automatically provided to uniquely identify
-                       the shard.
-
-   :param integer maxSize: Optional. Unless specified, shards will consume
-                           the total amount of available space on their
-                           machines if necessary. Use the ``maxSize`` value
-                           to limit the amount of space the database can
-                           use. Specify this value in megabytes.
-
-   Use the :dbcommand:`addShard` command to add a database instance
-   or replica set to a :term:`sharded cluster`.
-   You must run this command when connected a :program:`mongos` instance.
-
-   The command takes the following form:
+   Run :dbcommand:`addShard` when connected to a :program:`mongos`
+   instance. The command takes the following form when adding a single
+   database instance as a shard:
 
    .. code-block:: javascript
 
-      { addShard: "<hostname>:<port>" }
+      { addShard: "<hostname><:port>", maxSize: <size>, name: "<shard_name>" }
 
-   .. example::
-
-      .. code-block:: javascript
-
-         db.runCommand({addShard: "mongodb0.example.net:27027"})
-
-   Replace ``<hostname>:<port>`` with the hostname and port of the
-   database instance you want to add as a shard.
-
-   .. warning::
-
-      Do not use ``localhost`` for the hostname unless your
-      :term:`configuration server <config database>`
-      is also running on ``localhost``.
-
-   The optimal configuration is to deploy shards across
-   :term:`replica sets <replica set>`.
-   To add a shard on a replica set you must specify the name of the
-   replica set and the hostname of at least one member of the replica
-   set. You must specify at least one member of the set, but can
-   specify all members in the set or another subset if
-   desired. :dbcommand:`addShard` takes the following form:
+   When adding a replica set as a shard, use the following form:
 
    .. code-block:: javascript
 
-      { addShard: "replica-set/hostname:port" }
+      { addShard: "<replica_set>/<hostname><:port>", maxSize: <size>, name: "<shard_name>" }
 
-   .. example::
+   The command contains the following fields:
 
-      .. code-block:: javascript
+   .. include:: /reference/command/addShard-field.rst
 
-         db.runCommand( { addShard: "repl0/mongodb3.example.net:27327"} )
+   The :dbcommand:`addShard` command stores shard configuration
+   information in the :term:`config database`.
 
-   If you specify additional hostnames, all must be members of the same
-   replica set.
+   Specify a ``maxSize`` when you have machines with different disk
+   capacities, or if you want to limit the amount of data on some
+   shards. The ``maxSize`` constraint prevents the :term:`balancer` from
+   migrating chunks to the shard when the value of :data:`mem.mapped
+   <serverStatus.mem.mapped>` exceeds the value of ``maxSize``.
 
-   Send this command to only one :program:`mongos` instance, it will
-   store shard configuration information in the :term:`config database`.
+Examples
+--------
 
-   .. note::
+The following command adds the database instance running on
+port``27027`` on the host ``mongodb0.example.net`` as a shard:
 
-      Specify a ``maxSize`` when you have machines with different disk
-      capacities, or if you want to limit the amount of data on some
-      shards.
+.. code-block:: javascript
 
-      The ``maxSize`` constraint prevents the :term:`balancer` from
-      migrating chunks to the shard when the value of
-      :data:`mem.mapped` exceeds the value of ``maxSize``.
+   db.runCommand({addShard: "mongodb0.example.net:27027"})
 
-   .. seealso::
+.. warning::
 
-      - :method:`sh.addShard()`
-      - :doc:`/administration/sharded-clusters`
-      - :doc:`/tutorial/add-shards-to-shard-cluster`
-      - :doc:`/tutorial/remove-shards-from-cluster`
+   Do not use ``localhost`` for the hostname unless your
+   :term:`configuration server <config database>` is also running on
+   ``localhost``.
+
+The following command adds a replica set as a shard:
+
+.. code-block:: javascript
+
+   db.runCommand( { addShard: "repl0/mongodb3.example.net:27327"} )
+
+You may specify all members in the replica set. All additional
+hostnames must be members of the same replica set.

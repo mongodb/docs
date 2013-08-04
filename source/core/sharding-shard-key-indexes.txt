@@ -1,0 +1,52 @@
+.. index:: sharding; shard key indexes
+.. _sharding-internals-shard-key-indexes:
+.. _sharding-shard-key-indexes:
+
+=================
+Shard Key Indexes
+=================
+
+.. default-domain:: mongodb
+
+All sharded collections **must** have an index that starts with the
+:term:`shard key`. If you shard a collection without any documents and
+*without* such an index, the :dbcommand:`shardCollection` command will
+create the index on the shard key. If the collection already has
+documents, you must create the index before using
+:dbcommand:`shardCollection`.
+
+.. todo:: replace the link
+
+.. versionchanged:: 2.2
+   The index on the shard key no longer needs to be only on the
+   shard key. This index can be an index of the shard key itself,
+   or a :term:`compound index` where the
+   shard key is the prefix of the index.
+
+.. important:: The index on the shard key **cannot** be a
+   :ref:`multikey index <index-type-multikey>`.
+
+A sharded collection named ``people`` has for its shard key the field
+``zipcode``. It currently has the index ``{ zipcode: 1 }``. You can
+replace this index with a compound index ``{ zipcode: 1, username: 1
+}``, as follows:
+
+#. Create an index on ``{ zipcode: 1, username: 1 }``:
+
+   .. code-block:: javascript
+
+      db.people.ensureIndex( { zipcode: 1, username: 1 } );
+
+#. When MongoDB finishes building the index, you can safely drop the
+   existing index on ``{ zipcode: 1 }``:
+
+   .. code-block:: javascript
+
+      db.people.dropIndex( { zipcode: 1 } );
+
+Since the index on the shard key cannot be a multikey index, the index
+``{ zipcode: 1, username: 1 }`` can only replace the index ``{ zipcode:
+1 }`` if there are no array values for the ``username`` field.
+
+If you drop the last valid index for the shard key, recover by
+recreating an index on just the shard key.

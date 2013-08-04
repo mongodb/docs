@@ -1,0 +1,67 @@
+.. index:: balancing; migration
+
+=============================
+Chunk Migration Across Shards
+=============================
+
+.. default-domain:: mongodb
+
+Chunk migration moves the chunks of a sharded collection from one shard
+to another and is part of the :doc:`balancer
+</core/sharding-balancing>` process.
+
+.. include:: /images/sharding-migrating.rst
+
+.. _sharding-chunk-migration:
+
+Chunk Migration
+---------------
+
+MongoDB migrates chunks in a :term:`sharded cluster` to distribute the
+chunks of a sharded collection evenly among shards. Migrations may be
+either:
+
+- Manual. Only use manual migration in limited cases, such as
+  to distribute data during bulk inserts. See :ref:`Migrating Chunks
+  Manually <sharding-balancing-manual-migration>` for more details.
+
+- Automatic. The :doc:`balancer </core/sharding-balancing>` process
+  automatically migrates chunks when there is an uneven distribution of
+  a sharded collection's chunks across the shards. See :ref:`Migration
+  Thresholds <sharding-migration-thresholds>` for more details.
+
+All chunk migrations use the following procedure:
+
+#. The balancer process sends the :dbcommand:`moveChunk` command to
+   the source shard.
+
+#. The source starts the move with an internal :dbcommand:`moveChunk`
+   command. During the migration process, operations to the chunk
+   route to the source shard. The source shard is responsible for
+   incoming write operations for the chunk.
+
+#. The destination shard begins requesting documents in the chunk and
+   starts receiving copies of the data.
+
+#. After receiving the final document in the chunk, the destination
+   shard starts a synchronization process to ensure that it has the
+   changes to the migrated documents that occurred during the migration.
+
+#. When fully synchronized, the destination shard connects to the
+   :term:`config database` and updates the cluster metadata with the new
+   location for the chunk.
+
+#. After the destination shard completes the update of the metadata,
+   and once there are no open cursors on the chunk, the source shard
+   deletes its copy of the documents.
+
+The migration process ensures consistency and maximizes the availability of
+chunks during balancing.
+
+.. versionchanged:: 2.4
+
+   While copying and deleting data during migrations, the balancer
+   waits for replication to secondaries. See :v2.2:`Secondary Throttle
+   in the v2.2 Manual
+   </tutorial/configure-sharded-cluster-balancer/#sharded-cluster-config-secondary-throttle>`
+   for details.

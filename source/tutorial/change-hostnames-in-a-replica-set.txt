@@ -4,61 +4,52 @@ Change Hostnames in a Replica Set
 
 .. default-domain:: mongodb
 
-Synopsis
---------
+.. contents::
+   :backlinks: none
+   :local:
 
-For most :term:`replica sets <replica set>` the hostnames
-[#hostnames-ips-dns]_ in the :data:`members[n].host` field never
-change. However, in some cases you must migrate some or all host names
-in a replica set as organizational needs change. This
-document presents two possible procedures for changing the hostnames
-in the :data:`members[n].host` field. Depending on your environments
-availability requirements, you may:
+For most :term:`replica sets <replica set>`, the hostnames in the
+:data:`~local.system.replset.members[n].host` field never change.
+However, if organizational needs change, you might need to migrate some
+or all host names.
 
-#. Make the configuration change without disrupting the availability
-   of the replica set. While this ensures that your application will
-   always be able to read and write data to the replica set, this
-   procedure can take a long time and may incur downtime at the
-   application layer. [#application-changes]_
-
-   For this procedure, see :ref:`replica-set-change-hostname-no-downtime`.
-
-#. Stop all members of the replica set at once running on the "old"
-   hostnames or interfaces, make the configuration changes, and then
-   start the members at the new hostnames or interfaces. While the set
-   will be totally unavailable during the operation, the total
-   maintenance window is often shorter.
-
-   For this procedure, see :ref:`replica-set-change-hostname-downtime`.
-
-.. seealso::
-
-   - :doc:`/reference/replica-configuration`
-   - :ref:`Replica Set Reconfiguration Process <replica-set-reconfiguration-usage>`
-   - :method:`rs.conf()` and :method:`rs.reconfig()`
-
-   And the following tutorials:
-
-   - :doc:`/tutorial/deploy-replica-set`
-   - :doc:`/tutorial/expand-replica-set`
-
-.. [#hostnames-ips-dns] Always use resolvable hostnames
-   for the value of the :data:`members[n].host` field in the replica
+.. note:: Always use resolvable hostnames for the value of the
+   :data:`~local.system.replset.members[n].host` field in the replica
    set configuration to avoid confusion and complexity.
 
-.. [#application-changes] You will have to configure your applications
-   so that they can connect to the replica set at both the old and new
-   locations. This often requires a restart and reconfiguration at the
-   application layer, which may affect the availability of your
-   applications. This re-configuration is beyond the scope of this
-   document and makes the :ref:`second option <replica-set-change-hostname-downtime>`
-   preferable when you must change the hostnames of *all* members of
-   the replica set at once.
+Overview
+--------
 
-Procedures
-----------
+This document provides two separate procedures for changing the
+hostnames in the :data:`~local.system.replset.members[n].host`
+field. Use either of the following approaches:
+
+- :ref:`Change hostnames without disrupting availability
+  <replica-set-change-hostname-no-downtime>`. This approach ensures your
+  applications will always be able to read and write data to the replica
+  set, but the approach can take a long time and may incur downtime at
+  the application layer.
+
+  If you use the first procedure, you must configure your applications
+  to connect to the replica set at both the old and new locations, which
+  often requires a restart and reconfiguration at the application layer
+  and which may affect the availability of your applications.
+  Re-configuring applications is beyond the scope of this document.
+
+- :ref:`Stop all members running on the old hostnames at once
+  <replica-set-change-hostname-downtime>`. This approach has a shorter
+  maintenance window, but the replica set will be unavailable during
+  the operation.
+
+.. seealso:: :ref:`Replica Set Reconfiguration Process
+   <replica-set-reconfiguration-usage>`,
+   :doc:`/tutorial/deploy-replica-set`, and
+   :doc:`/tutorial/expand-replica-set`.
 
 .. _procedure-assumption-change-hostnames-replica-set:
+
+Assumptions
+-----------
 
 Given a :term:`replica set` with three members:
 
@@ -103,8 +94,8 @@ Use the most appropriate procedure for your deployment.
 
 .. _replica-set-change-hostname-no-downtime:
 
-Changing Hostnames while Maintaining the Replica Set's Availability
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Change Hostnames while Maintaining Replica Set Availability
+-----------------------------------------------------------
 
 This procedure uses the above :ref:`assumptions <procedure-assumption-change-hostnames-replica-set>`.
 
@@ -124,7 +115,7 @@ This procedure uses the above :ref:`assumptions <procedure-assumption-change-hos
          mongo --port 27017
 
    #. Run the following reconfigure option, for the
-      :data:`members[n].host` value where ``n`` is ``1``:
+      :data:`~local.system.replset.members[n].host` value where ``n`` is ``1``:
 
       .. code-block:: javascript
 
@@ -154,9 +145,10 @@ This procedure uses the above :ref:`assumptions <procedure-assumption-change-hos
 
 #. When the step down succeeds, shut down the primary.
 
-#. To make the final configuration change, connect to the new primary in
-   the :program:`mongo` shell and reconfigure the :data:`members[n].host`
-   value where ``n`` is ``0``:
+#. To make the final configuration change, connect to the new primary
+   in the :program:`mongo` shell and reconfigure the
+   :data:`~local.system.replset.members[n].host` value where ``n`` is
+   ``0``:
 
    .. code-block:: javascript
 
@@ -198,8 +190,8 @@ This procedure uses the above :ref:`assumptions <procedure-assumption-change-hos
 
 .. _replica-set-change-hostname-downtime:
 
-Changing All Hostnames in Replica Set at Once
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Change All Hostnames at the Same Time
+-------------------------------------
 
 This procedure uses the above :ref:`assumptions  <procedure-assumption-change-hostnames-replica-set>`.
 

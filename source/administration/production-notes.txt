@@ -4,9 +4,6 @@ Production Notes
 
 .. default-domain:: mongodb
 
-Overview
---------
-
 This page details system configurations that affect MongoDB,
 especially in production.
 
@@ -14,7 +11,7 @@ Backups
 -------
 
 To make backups of your MongoDB database, please refer to
-:doc:`/administration/backups`.
+:doc:`/core/backups`.
 
 Networking
 ----------
@@ -34,6 +31,10 @@ information, specifically:
 - :doc:`/tutorial/configure-linux-iptables-firewall`
 - :doc:`/tutorial/configure-windows-netsh-firewall`
 
+For Windows users, consider the `Windows Server Technet Article on TCP
+Configuration <http://technet.microsoft.com/en-us/library/dd349797.aspx>`_
+when deploying MongoDB on Windows.
+
 MongoDB on Linux
 ----------------
 
@@ -51,13 +52,16 @@ use the Ext4 and XFS file systems if using the Linux kernel:
 - If you use the XFS file system, use at least version 2.6.25 of the
   Linux Kernel.
 
+- If you are using a Red Hat 5.6, and wish to use ext4, use at least
+  version ``2.6.18-245.el5`` of the Linux Kernel.
+
 For MongoDB on Linux use the following recommended configurations:
 
 - Turn off ``atime`` for the storage volume with the :term:`database
   files <dbpath>`.
 
-- Set file descriptor limit and user process limit to 20,000,
-  according to the suggestions in :doc:`/administration/ulimit`. A low
+- Set the file descriptor limit and the user process limit above 20,000,
+  according to the suggestions in :doc:`/reference/ulimit`. A low
   ulimit will affect MongoDB when under heavy use and will produce
   weird errors.
 
@@ -140,11 +144,15 @@ deployments.
 
 .. _production-nfs:
 
-Remote Filesystem
-~~~~~~~~~~~~~~~~~
+Remote Filesystems
+~~~~~~~~~~~~~~~~~~
 
 Some versions of NFS perform very poorly with MongoDB and NFS is not
-recommended for use with MongoDB.
+recommended for use with MongoDB. Performance problems arise when both
+the data files and the journal files are both hosted on NFS: you may
+experience better performance if you place the journal on local or
+``iscsi`` volumes. If you must use NFS, add the following NFS options
+to your ``/etc/fstab`` file: ``bg``, ``nolock``, and ``noatime``.
 
 Many MongoDB deployments work successfully with Amazon's *Elastic
 Block Store* (EBS) volumes. There are certain intrinsic performance
@@ -179,6 +187,10 @@ When installing hardware for MongoDB, consider the following:
 
 MongoDB on NUMA Hardware
 ~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. important:: The discussion of NUMA in this section only applies to
+   Linux, and does not apply to deployments where :program:`mongod`
+   instances run other UNIX-like systems or on Windows.
 
 MongoDB and NUMA, Non-Uniform Access Memory, do not work well
 together. When running MongoDB on NUMA hardware, disable NUMA for
@@ -232,7 +244,7 @@ For example:
 
 .. code-block:: bash
 
-   iostat -xm 2
+   iostat -xmt 1
 
 Use the mount command to see what device your :setting:`data directory
 <dbpath>` resides on.
@@ -271,14 +283,14 @@ other miscellaneous things such as replica set arbiters.
 BSON Document Size Limit
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-There is a :limit:`BSON Document Size` -- at the time of this writing
+There is a :limit:`BSON Document Size` limit -- at the time of this writing
 16MB per document. If you have large objects, use :doc:`GridFS
-</applications/gridfs/>` instead.
+</core/gridfs/>` instead.
 
 Set Appropriate Write Concern for Write Operations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-See :ref:`write concern <write-concern>` for more information.
+See :doc:`/core/write-concern` for more information.
 
 Dynamic Schema
 ~~~~~~~~~~~~~~
@@ -307,13 +319,13 @@ documents and arrays (and/or arrays of subdocuments).
 Updates by Default Affect Only **one** Document
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Set the ``multi`` parameter to ``true`` to :method:`update
-<db.collection.update()>` multiple documents that meet the query
-criteria. The :program:`mongo` shell syntax is:
+Set the ``multi`` parameter to ``true`` to
+:method:`~db.collection.update()` multiple documents that meet the
+query criteria. The :program:`mongo` shell syntax is:
 
 .. code-block:: javascript
 
-   db.my_collection_name.update(my_query, my_update_expression, bool_upsert, bool_multi)
+   db.records.update(my_query, my_update_expression, bool_upsert, bool_multi)
 
 Set ``bool_multi`` to ``true`` when updating many documents. Otherwise
 only the first matched will update.
@@ -332,7 +344,7 @@ Consider:
 
 - and/or using :doc:`$toLower </reference/aggregation/toLower/>` or
   :doc:`$toUpper </reference/aggregation/toUpper/>` in the
-  :doc:`aggregation framework </applications/aggregation/>`
+  :doc:`aggregation framework </core/aggregation/>`
 
 Type Sensitive Fields
 ~~~~~~~~~~~~~~~~~~~~~
@@ -378,7 +390,7 @@ get up to an odd number of votes.
 Don't disable journaling
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-See :doc:`Journaling </administration/journaling/>` for more information.
+See :doc:`Journaling </core/journaling/>` for more information.
 
 Keep Replica Set Members Up-to-Date
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -387,16 +399,18 @@ This is important as MongoDB replica sets support automatic failover.
 Thus you want your secondaries to be up-to-date. You have a few options
 here:
 
-1. Monitoring and alerts for any lagging can be done via various means.
-   MMS shows a graph of replica set lag
+.. TODO: will update when DOCS-396, DOCS-1080, DOCS-1420, DOCS-1616 emerges from code review
 
-#. Using :ref:`getLastError <replica-set-write-concern>` with
+1. Monitoring and alerts for any lagging can be done via various means.
+   The MongoDB Management Service (MMS) shows a graph of replica set lag
+
+#. Using :doc:`getLastError </core/write-concern>` with
    ``w:'majority'``, you will get a timeout or no return if a majority of
    the set is lagging. This is thus another way to guard against lag and
    get some reporting back of its occurrence.
 
 #. Or, if you want to fail over manually, you can set your secondaries
-   to ``priority:0`` in their configuration. Then manual action would be
+   to ``priority:0`` in their configurations. Then manual action would be
    required for a failover. This is practical for a small cluster; for a
    large cluster you will want automation.
 
@@ -407,7 +421,7 @@ Additional Deployment Considerations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Pick your shard keys carefully! There is no way to modify a shard
-  key on a collection that is already sharded. 
+  key on a collection that is already sharded.
 
 - You cannot shard an existing collection over 256 gigabytes. To shard
   large amounts of data, create a new empty sharded collection, and
@@ -421,7 +435,7 @@ Additional Deployment Considerations
   sharded collection before a massive bulk import. Usually this isn't
   necessary but on a bulk import of size it is helpful.
 
-- Use :doc:`security/auth </administration/security/>` mode if you
+- Use :doc:`security/auth </core/security/>` mode if you
   need it. By default :setting:`auth` is not enabled and
   :program:`mongod` assumes a trusted environment.
 
@@ -437,10 +451,10 @@ Additional Deployment Considerations
   prefetch settings. Note on linux the parameter is in *sectors*, not
   bytes. 32KBytes (a setting of 64 sectors) is pretty reasonable.
 
-- Check :doc:`ulimits </administration/ulimit/>` settings.
+- Check :doc:`ulimit </reference/ulimit>` settings.
 
 - Use SSD if available and economical. Spinning disks can work well
-  but SSDs capcity for random I/O operations work well with the update
+  but SSDs' capacity for random I/O operations work well with the update
   model of :program:`mongod`. See :ref:`production-nfs` for more info.
 
 - Ensure that clients keep reasonable pool sizes to avoid overloading
