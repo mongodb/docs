@@ -1,0 +1,154 @@
+==========================
+Operational Considerations
+==========================
+
+.. default-domain:: mongodb
+
+In addition to normalization and normalization concerns, a number of
+other operational factors help shape data modeling decisions in
+MongoDB. These factors include:
+
+- data lifecycle management,
+- number of collections and
+- indexing requirements,
+- sharding, and
+- managing document growth.
+
+These factors implications for database and application performance
+as well as future maintenance and development costs.
+
+Data Lifecycle Management
+-------------------------
+
+Data modeling decisions should also take data lifecycle management into
+consideration.
+
+The :doc:`Time to Live or TTL feature </tutorial/expire-data>` of
+collections expires documents after a period of time. Consider using
+the TTL feature if your application requires some data to persist in
+the database for a limited period of time.
+
+Additionally, if your application only uses recently inserted
+documents consider :doc:`/core/capped-collections`.  Capped
+collections provide *first-in-first-out* (FIFO) management of inserted
+documents and optimized to support operations that insert and read
+documents based on insertion order.
+
+.. _data-model-large-number-of-collections:
+
+Large Number of Collections
+---------------------------
+
+In certain situations, you might choose to store information in several
+collections rather than in a single collection.
+
+Consider a sample collection ``logs`` that stores log documents for
+various environment and applications. The ``logs`` collection contains
+documents of the following form:
+
+.. code-block:: javascript
+
+   { log: "dev", ts: ..., info: ... }
+   { log: "debug", ts: ..., info: ...}
+
+If the total number of documents is low you may group documents into
+collection by type. For logs, consider maintaining distinct log
+collections, such as ``logs.dev`` and ``logs.debug``. The ``logs.dev``
+collection would contain only the documents related to the dev
+environment.
+
+Generally, having large number of collections has no significant
+performance penalty and results in very good performance. Distinct
+collections are very important for high-throughput batch processing.
+
+When using models that have a large number of collections, consider
+the following behaviors:
+
+- Each collection has a certain minimum overhead of a few kilobytes.
+
+- Each index, including the index on ``_id``, requires at least 8KB of
+  data space.
+
+A single ``<database>.ns`` file stores all meta-data for each
+:term:`database`. Each index and collection has its own entry in the
+namespace file, MongoDB places :limit:`limits on the size of namespace
+files <Size of Namespace File>`.
+
+Because of :limit:`limits on namespaces <Number of Namespaces>`, you
+may wish to know the current number of namespaces in order to determine
+how many additional namespaces the database can support, as in the
+following example:
+
+.. code-block:: javascript
+
+   db.system.namespaces.count()
+
+The ``<database>.ns`` file defaults to 16 MB. To change
+the size of the ``<database>.ns`` file, pass a new size to
+:option:`--nssize option \<new size MB\> <mongod --nssize>` on server
+start.
+
+.. todo make a tutorial called "how to change size of namespace file"
+
+The :option:`--nssize <mongod --nssize>` sets the size for *new*
+``<database>.ns`` files. For existing databases, after starting up the
+server with :option:`--nssize <mongod --nssize>`, run the
+:method:`db.repairDatabase()` command from the :program:`mongo`
+shell.
+
+Indexes
+-------
+
+Create indexes to support common queries. Generally, indexes and index
+use in MongoDB correspond to indexes and index use in relational
+database: build indexes on fields that appear often in queries and for
+all operations that return sorted results. MongoDB automatically
+creates a unique index on the ``_id`` field.
+
+As you create indexes, consider the following behaviors of indexes:
+
+- Each index requires at least 8KB of data space.
+
+- Adding an index has some negative performance impact for write
+  operations. For collections with high write-to-read ratio, indexes
+  are expensive as each insert must add keys to each index.
+
+- Collections with high proportion of read operations to write
+  operations often benefit from additional indexes. Indexes do not
+  affect un-indexed read operations.
+
+See :doc:`/applications/indexes` for more information on determining
+indexes. Additionally, the MongoDB :doc:`database profiler
+</tutorial/manage-the-database-profiler>` may help identify
+inefficient queries.
+
+Sharding
+--------
+
+:term:`Sharding` allows users to :term:`partition` a
+:term:`collection` within a database to distribute the collection's
+documents across a number of :program:`mongod` instances or
+:term:`shards <shard>`.
+
+The shard key determines how MongoDB distributes data among shards in
+a sharded collection. Selecting the proper :ref:`shard key
+<shard-key>` has significant implications for performance.
+
+See :doc:`/core/sharding-introduction` and
+:doc:`/core/sharding-shard-key` for more information.
+
+Document Growth
+---------------
+
+Certain updates to documents can increase the document size, such as
+pushing elements to an array and adding new fields. If the document
+size exceeds the allocated space for that document, MongoDB relocates
+the document on disk. This internal relocation can be both time and
+resource consuming.
+
+Although MongoDB automatically provides padding to minimize the
+occurrence of relocations, you may still need to manually handle
+document growth. Refer to :doc:`/use-cases/pre-aggregated-reports` for
+an example of the *Pre-allocation* approach to handle document growth.
+
+.. TODO add link to padding factor page once migrated
