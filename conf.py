@@ -159,8 +159,8 @@ latex_elements = {
 latex_paper_size = 'letter'
 latex_use_parts = True
 latex_show_pagerefs = True
-latex_show_urls = False
-latex_domain_indices = True
+latex_show_urls = 'footnote'
+latex_domain_indices = False
 latex_logo = None
 latex_appendices = []
 
@@ -182,13 +182,6 @@ man_pages = [
     ('reference/program/mongosniff', 'mongosniff', u'MongoDB', [u'MongoDB Documentation Project'], 1),
     ('reference/program/mongotop', 'mongotop', u'MongoDB', [u'MongoDB Documentation Project'], 1),
     ('reference/program/mongoperf', 'mongoperf', u'MongoDB', [u'MongoDB Documentation Project'], 1),
-]
-
-texinfo_documents = [
-  # (startdocname, targetname, title, author, dir_entry, description, category, toctree_only),
-    ('contents', 'mongodb-manual', 'MongoDB Manual', '10gen, Inc.', 'mongodb', 'MongoDB Manual', 'Database', True),
-    ('meta/reference', 'mongodb-reference', 'MongoDB Reference Manual', '10gen, Inc.', 'mongodb', 'Reference Material for MongoDB', 'Database', False),
-    ('crud', 'mongodb-crud', 'MongoDB Crud Guide', '10gen, Inc.', 'mongodb', 'CRUD Operation Guide for MongoDB', 'Database', False),
 ]
 
 # -- Options for Epub output ---------------------------------------------------
