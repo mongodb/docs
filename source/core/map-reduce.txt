@@ -4,17 +4,43 @@ Map-Reduce
 
 .. default-domain:: mongodb
 
-MongoDB provides map-reduce operations to handle large and complex
-aggregation tasks. Map-reduce provides greater flexibility and
-capabilities than the :doc:`aggregation pipeline
-</core/aggregation-pipeline>`. But the complexities of map-reduce make
-the aggregation pipeline the preferred solution for many aggregation
-tasks.
+Map-reduce is a data possessing paradigm for condensing large volumes
+of data into useful *aggregated* results. MongoDB exposes an
+aggregation facility that uses the map-reduce paradigm in the database
+command :dbcommand:`mapReduce`. Consider the following map-reduce
+operation:
 
-Like other aggregation tasks, map-reduce operations operate on the
-documents of a single :term:`collection` and can specify criteria to
-filter the input documents as well as sort and limit the *input*
-documents.
+::
+
+   +-----------------------+
+   |                       |
+   |                       |
+   |                       |
+   | I -> M -> R -> F -> 0 |
+   |                       |
+   |                       |
+   |                       |
+   +-----------------------+
+
+In this map reduce operation, MongoDB applies the map phase to each
+input document (i.e. an entire collection.) The map function emits
+documents to the reduce phase, which collects and condenses the
+aggregated data. Optionally, the output of the reduce function may
+pass through a finalize function to further condense or process the
+results of the aggregation.
+
+All functions in a map-reduce process are JavaScript and run within
+the :program:`mongod` process.  Map-reduce operations take the
+documents of a single :term:`collection` as the *input* and can
+perform any arbitrary sorting and limiting before beginning the map
+stage. :dbcommand:`mapReduce` can return the results of a map reduce
+operation as a document, or may optionally write the results to
+shareded collections.
+
+For most aggregation operations, the :doc:`/core/aggregation-pipeline`
+provides better performance and interface; however, map-reduce
+operations provide some flexibility that isn't presently available in
+the aggregation pipeline.
 
 Map-Reduce JavaScript Functions
 -------------------------------
@@ -22,7 +48,7 @@ Map-Reduce JavaScript Functions
 In MongoDB, map-reduce operations use custom JavaScript functions to
 *map*, or associate, values to a key. If a key has multiple values
 mapped to it, the operation *reduces* the values for the key to a
-single object. 
+single object.
 
 The use of custom JavaScript functions provide flexibility to
 map-reduce operations. For instance, when processing a document, the
@@ -31,28 +57,22 @@ mapping. Map-reduce operations can also use a custom JavaScript
 function to make final modifications to the results at the end of the
 map and reduce operation, such as perform additional calculations.
 
-``mapReduce`` Command
----------------------
-
-To perform map-reduce operations, MongoDB interfaces provides the
-:dbcommand:`mapReduce` command. In the :program:`mongo` shell, MongoDB
-provides :method:`db.collection.mapReduce()` wrapper method.
-
-For examples of map-reduce, see :doc:`/tutorial/map-reduce-examples`.
-
 Map-Reduce Behavior
 -------------------
 
-In MongoDB, the map-reduce operation can store the results to a table
-or return the results inline. With stored results, later map-reduce
-operations on the same input collection can replace, merge, or reduce
-the stored results with the new results. See :dbcommand:`mapReduce` and
-:doc:`/tutorial/perform-incremental-map-reduce` for details and
+In MongoDB, the map-reduce operation can store the results to a
+collection or return the results inline. If you write map-reduce
+output to a collection, you can perform subsequent map-reduce
+operations on the same input collection that merge replace, merge, or
+reduce new results with previous results. See :dbcommand:`mapReduce`
+and :doc:`/tutorial/perform-incremental-map-reduce` for details and
 examples.
 
-For inline result, the BSON document size limit applies. For additional
+When returning the results of a map reduce operation *inline*, the
+result documents must be within the :limit:`BSON Document Size`
+limit (i.e. ``16`` megabytes.) For additional
 information on limits and restrictions on map-reduce operations, see
-the :dbcommand:`mapReduce` reference page.
+the :doc:`/reference/command/mapReduce` reference page.
 
 MongoDB supports map-reduce operations on :doc:`sharded collections
 </core/sharding-introduction>`. Map-reduce operations can also output
