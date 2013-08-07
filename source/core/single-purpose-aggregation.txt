@@ -4,41 +4,141 @@ Single Purpose Aggregation Operations
 
 .. default-domain:: mongodb
 
-In addition to the :doc:`aggregation pipeline </core/aggregation>` and
-:doc:`map-reduce </core/map-reduce>`, MongoDB provides a collection of
-specific data aggregation operations to support a number of common data
-aggregation functions. These operations include returning counts of
-documents, distinct values of a field, or simple grouping operations.
+Aggregation refers to a broad class of data manipulation operations
+that compute a result based on an input *and* a specific
+procedure. MongoDB provides a number of aggregation operations that
+perform specific aggregation operations on a set of data. 
 
-Dedicated to a single functionality, these commands and methods provide
-less flexibility than the :doc:`aggregation pipeline
-</core/aggregation>` and :doc:`map-reduce </core/map-reduce>`.
-
-.. include:: /images/distinct.rst
+Although limited in scope, particularly compared to the
+:doc:`aggregation pipeline </core/aggregation>` and :doc:`map-reduce
+</core/map-reduce>`, these operations provide straightforward
+semantics for common data processing options. 
 
 Count
 -----
 
-To provide a count of documents of a collection that match a query
-criteria, MongoDB offers the following command and methods to provide
-``count`` functionality: the :doc:`/reference/command/count` command,
-and for the :program:`mongo` shell, the wrapper methods
-:doc:`/reference/method/db.collection.count` and
-:doc:`/reference/method/cursor.count`.
+MongoDB can return a count of the number of documents that match a
+query. :dbcommand:`count` command as well as the
+:method:`~db.collection.count()` and :method:`cursor.count()` methods
+provide access to counts.
+
+.. example:: 
+   
+   Given a collection named ``records`` with *only* the following
+   documents:
+
+   .. code-block:: javascript
+      
+      { a: 1, b: 0 }
+      { a: 1, b: 1 }
+      { a: 1, b: 4 }
+      { a: 2, b: 2 }
+      
+   The following operation would count all documents in the collection
+   and return the number ``4``:
+   
+   .. code-block:: javascript
+
+      db.records.count()
+      
+   The following operation will count only the documents where the
+   value of the field ``a`` is ``1`` and return ``3``: 
+   
+   .. code-block:: javascript
+
+      db.records.count( { a: 1 } )
 
 Distinct
 --------
 
-To return the distinct values of a field from documents that match a
-query criteria, MongoDB offers the following command and method:
-:doc:`/reference/command/distinct` command, and for the
-:program:`mongo` shell, the wrapper method
-:doc:`/reference/method/db.collection.distinct`.
+The *distinct* operation takes a number of documents that match a
+query, the name of a field in those documents, and returns all of the
+unique values for that field. :dbcommand:`distinct` and
+:method:`db.collection.distinct()` provide this operation. Consider the
+following examples of a distinct operation:
 
+.. include:: /images/distinct.rest
+
+.. example:: 
+   
+   Given a collection named ``records`` with *only* the following
+   documents:
+
+   .. code-block:: javascript
+      
+      { a: 1, b: 0 }
+      { a: 1, b: 1 }
+      { a: 1, b: 1 }
+      { a: 1, b: 4 }
+      { a: 2, b: 2 }
+      { a: 2, b: 2 }
+
+   Consider the following :method:`db.collection.distinct()`
+   operation: 
+
+   .. code-block:: javascript
+
+      db.records.distinct( "b")
+
+   The results of this operation would resemble: 
+
+   .. code-block:: javascript
+
+      [ 0, 1, 4, 2 ]
+      
 Group
 -----
 
-To return values grouped by a field or fields from documents that match
-a query criteria, MongoDB offers the following command and method:
-:doc:`/reference/command/group` command, and for the :program:`mongo`
-shell, the wrapper method :doc:`/reference/method/db.collection.group`.
+The *group* operation takes a number of documents that match a query,
+and then collect groups of documents based on the value of a field or
+fields and returns an array of documents with computed results for
+each group of documents. 
+
+Access the grouping functionality via the :dbcommand:`group` or the
+:method:`db.collection.group()` method in the :program:`mongo`
+shell. 
+
+.. important:: :dbcommand:`group` does not support data in sharded
+   collections. Furthermore, the results of the :dbcommand:`group`
+   operation must be no larger than 16 megabytes.
+
+Consider the following group operation:
+
+.. example:: 
+   
+   Given a collection named ``records`` with the following documents:
+   
+   .. code-block:: javascript
+
+      { a: 1, count: 4 }
+      { a: 1, count: 2 }
+      { a: 1, count: 4 }
+      { a: 2, count: 3 }
+      { a: 2, count: 1 }
+      { a: 1, count: 5 }
+      { a: 4, count: 4 }
+
+   Consider the following group operation: 
+   
+   .. code-block:: javascript
+
+      db.records.group( {
+         key: { a: 1 },
+         cond { a: { $lt: 3 } },
+         reduce: function(cur, result) { result.count += cur.count } },
+         initial: { count: 0 }
+      )
+
+   The results of this group would resemble the following: 
+
+   .. code-block:: javascript
+
+      [
+        { a: 1, count: 15 },
+        { a: 2, count: 4 }
+      ]
+
+.. seealso:: The :pipeline:`$group` for related functionality in the
+   :doc:`aggregation pipeline </core/aggregation-pipeline>`. 
+
+
