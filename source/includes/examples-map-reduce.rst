@@ -26,9 +26,9 @@ Return the Total Price Per Customer
 
 .. map-reduce-sum-price-begin
 
-Perform map-reduce operation on the ``orders`` collection to group by
-the ``cust_id``, and for each ``cust_id``, calculate the sum of the
-``price`` for each ``cust_id``:
+Perform the map-reduce operation on the ``orders`` collection to group
+by the ``cust_id``, and calculate the sum of the ``price`` for each
+``cust_id``:
 
    .. map-reduce-map-function-begin
 
@@ -87,11 +87,11 @@ Calculate Order and Total Quantity with Average Quantity Per Item
 
 .. map-reduce-counts-begin
 
-In this example you will perform a map-reduce operation on the
-``orders`` collection, for all documents that have an ``ord_date``
+In this example, you will perform a map-reduce operation on the
+``orders`` collection for all documents that have an ``ord_date``
 value greater than ``01/01/2012``. The operation groups by the
-``item.sku`` field, and for each ``sku`` calculates the number of
-orders and the total quantity ordered. The operation concludes by
+``item.sku`` field, and calculates the number of
+orders and the total quantity ordered for each ``sku``. The operation concludes by
 calculating the average quantity per order for each ``sku`` value:
 
 #. Define the map function to process each input document:
