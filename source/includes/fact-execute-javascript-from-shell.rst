@@ -5,7 +5,7 @@ using the :method:`load()` function, as in the following:
 
    load("myjstest.js")
 
-This function loads and executes the :filename:`myjstest.js` file.
+This function loads and executes the :file:`myjstest.js` file.
 
 The :method:`load()` method accepts relative and absolute paths.
 If the current working directory of the :program:`mongo` shell
