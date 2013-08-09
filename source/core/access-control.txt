@@ -4,81 +4,79 @@ Access Control
 
 .. default-domain:: mongodb
 
-MongoDB provides support for authentication and authorization by storing
-a user's credentials and privileges in a database's :data:`system.users
-<<database>.system.users>` collection. MongoDB provisions authentication
-and access on a per-database level. Users exist in the context of a
-single logical database.
+MongoDB provides support for authentication and authorization on a
+per-database level. Users exist in the context of a single logical
+database.
 
-For MongoDB Enterprise installations, MongoDB also provides support for
-authentication using a Kerberos service. See
-:doc:`/tutorial/control-access-to-mongodb-with-kerberos-authentication`.
+.. _authentication:
 
 Authentication
 --------------
 
-MongoDB provides support for basic authentication by:
+MongoDB provisions authentication, or verification of the user
+identity, on a per-database level. Authentication disables anonymous
+access to the database. For basic authentication, MongoDB stores the
+user credentials in a database's :data:`system.users
+<<database>.system.users>` collection.
 
-- storing user credentials in a database's :data:`system.users
-  <<database>.system.users>` collection, and
+Authentication is **disabled** by default. To enable authentication for
+a given :program:`mongod` or :program:`mongos` instance, use the
+:setting:`auth` and :setting:`keyFile` configuration settings. For
+details, see :doc:`/tutorial/enable-authentication`.
 
-- providing the :setting:`auth` and :setting:`keyFile` configuration
-  settings to enable authentication for a given :program:`mongod` or
-  :program:`mongos` instance.
-
-Authentication is **disabled** by default.
-
-.. versionadded 2.0: Before 2.0 sharded clusters *had* to run with
+.. versionadded 2.0: Before 2.0, sharded clusters *had* to run with
    trusted applications and a trusted networking configuration.
 
-To enable authentication, see the following:
+For MongoDB Enterprise installations, authentication using a Kerberos
+service is available. See
+:doc:`/tutorial/control-access-to-mongodb-with-kerberos-authentication`.
 
-- :doc:`/tutorial/enable-authentication`
+.. important::
+   You can authenticate as only one user for a given database. If you
+   authenticate to a database as one user and later authenticate on the
+   same database as a different user, the second authentication
+   invalidates the first. You can, however, log into a *different*
+   database as a different user and not invalidate your authentication
+   on other databases.
 
-- :doc:`/tutorial/control-access-to-mongodb-with-kerberos-authentication`
+.. _authorization:
 
 Authorization
 -------------
 
-MongoDB supports role-based access to databases and database operations
-by storing each user's roles in a :doc:`privilege document
-</reference/user-privileges>` in the :data:`system.users
-<<database>.system.users>` collection. For a description of privilege
-documents and of available roles, see :doc:`/reference/user-privileges`.
+MongoDB provisions authorization, or access to databases and
+operations, on a per-database level. MongoDB uses a role-based approach
+to authorization, storing each user's roles in a :doc:`privilege
+document </reference/user-privileges>` in a database's
+:data:`system.users <<database>.system.users>` collection. For more
+information on privilege documents and available user roles, see
+:doc:`/reference/privilege-documents` and
+:doc:`/reference/user-privileges`.
 
-.. versionchanged:: 2.4 The schema of :data:`system.users
-   <<database>.system.users>` changed to accommodate a more
-   sophisticated user privilege model, as defined in :doc:`privilege
-   documents </reference/user-privileges>`.
+.. important:: The ``admin`` database provides roles that are
+   *unavailable* in other databases, including a role that effectively
+   makes a user a MongoDB system superuser. See
+   :ref:`database-admin-roles` and :ref:`admin-roles`.
 
-The :data:`system.users <<database>.system.users>` collection is
-protected to prevent privilege escalation attacks. To access the
-collection, you must have the :authrole:`userAdmin` or
-:authrole:`userAdminAnyDatabase` role.
+To assign roles to users, you must be a user with administrative role
+in the database. As such, you must first create an administrative user.
+For details, see :doc:`/tutorial/add-user-administrator` and
+:doc:`/tutorial/add-user-to-database`.
 
-To assign user roles, you must first create an admin user in the
-database. Then you create additional users, assigning them appropriate
-user roles.
+``system.users`` Collection
+--------------------------------------
 
-To assign user roles, see the following:
+A database's :data:`system.users <<database>.system.users>` collection
+stores information for authentication and authorization to that
+database. Specifically, the collection stores user credentials for
+authentication and user privilege information for authorization.
+MongoDB requires authorization to access the :data:`system.users
+<<database>.system.users>` collection in order to prevent privilege
+escalation attacks. To access the collection, you must have either
+:authrole:`userAdmin` or :authrole:`userAdminAnyDatabase` role.
 
-- :doc:`/tutorial/add-user-administrator`
-
-- :doc:`/tutorial/add-user-to-database`
-
-User Roles in the admin Database
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The ``admin`` database provides roles not available in other databases,
-including a role that effectively makes a user a MongoDB system
-superuser. See :ref:`database-admin-roles` and :ref:`admin-roles`.
-
-Authentication to One Database at a Time
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can log in as only one user for a given database, including
-the ``admin`` database. If you authenticate to a database as one user
-and later authenticate on the same database as a different user, the
-second authentication invalidates the first. Logging into a *different*
-database, however, does not invalidate authentication on other
-databases.
+.. versionchanged:: 2.4 
+   The schema of :data:`system.users <<database>.system.users>` changed
+   to accommodate a more sophisticated authorization using user
+   privilege model, as defined in :doc:`privilege documents
+   </reference/user-privileges>`.

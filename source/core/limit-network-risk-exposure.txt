@@ -1,0 +1,138 @@
+===========================
+Limit Network Risk Exposure
+===========================
+
+.. default-domain:: mongodb
+
+By default, MongoDB programs (i.e. :program:`mongos` and
+:program:`mongod`) will bind to all available network interfaces (i.e.
+IP addresses) on a system.
+
+This page outlines various runtime options that allow you to limit
+access to MongoDB programs.
+
+.. _security-port-numbers:
+
+Configuration Options
+---------------------
+
+You can limit the network exposure with the following :program:`mongod`
+and and :program:`mongos` configuration options:
+:setting:`nohttpinterface`, :setting:`rest`, :setting:`bind_ip`, and
+:setting:`port`. You can use a :doc:`configuration file
+</reference/configuration-options>` to specify these settings.
+
+``nohttpinterface``
+~~~~~~~~~~~~~~~~~~~
+
+The :setting:`nohttpinterface` setting for :program:`mongod` and
+:program:`mongos` instances disables the "home" status page, which
+would run on port ``28017`` by default. The status interface is
+read-only by default. You may also specify this option on the command
+line as :option:`mongod --nohttpinterface` or :option:`mongos
+--nohttpinterface`. 
+
+Authentication does not control or affect access to this interface.
+
+.. important:: Disable this option for production deployments. If
+   you *do* leave this interface enabled, you should only allow trusted
+   clients to access this port. See :ref:`security-firewalls`.
+
+``rest``
+~~~~~~~~
+
+The :setting:`rest` setting for :program:`mongod` enables a fully
+interactive administrative :term:`REST` interface, which is *disabled
+by default.* The status interface, which *is* enabled by default, is
+read-only. This configuration makes that interface fully interactive.
+The REST interface does not support any authentication and you should
+always restrict access to this interface to only allow trusted clients
+to connect to this port.
+
+You may also enable this interface on the command line as
+:option:`mongod --rest`.
+
+.. important:: Disable this option for production deployments. If
+   *do* you leave this interface enabled, you should only allow trusted
+   clients to access this port.
+
+``bind_ip``
+~~~~~~~~~~~
+
+The :setting:`bind_ip` setting for :program:`mongod` and
+:program:`mongos` instances limits the network interfaces on which
+MongoDB programs will listen for incoming connections. You can also
+specify a number of interfaces by passing :setting:`bind_ip` a comma
+separated list of IP addresses. You can use the :option:`mongod
+--bind_ip` and :option:`mongos --bind_ip` option on the command line at
+run time to limit the network accessibility of a MongoDB program.
+
+.. important::
+
+   Make sure that your :program:`mongod` and :program:`mongos`
+   instances are only accessible on trusted networks. If your system
+   has more than one network interface, bind MongoDB programs to the
+   private or internal network interface.
+
+``port``
+~~~~~~~~
+
+The :setting:`port` setting for :program:`mongod` and :program:`mongos`
+instances changes the main port on which the :program:`mongod` or
+:program:`mongos` instance listens for connections. The default port is
+``27017``. Changing the port does not meaningfully reduce risk or limit
+exposure. You may also specify this option on the command line as
+:option:`mongod --port` or :option:`mongos --port`. Setting
+:setting:`port` also indirectly sets the port for the HTTP status
+interface, which is always available on the port numbered ``1000``
+greater than the primary :program:`mongod` port.
+
+Only allow trusted clients to connect to the port for the
+:program:`mongod` and :program:`mongos` instances. See
+:ref:`security-firewalls`.
+
+See also :ref:`configuration-security` and
+:doc:`/reference/default-mongodb-port`.
+
+.. _security-firewalls:
+
+Firewalls
+---------
+
+Firewalls allow administrators to filter and control access to a system
+by providing granular control over what network communications. For
+administrators of MongoDB, the following capabilities are important:
+limiting incoming traffic on a specific port to specific systems, and
+limiting incoming traffic from untrusted hosts.
+
+On Linux systems, the ``iptables`` interface provides access to the
+underlying ``netfilter`` firewall. On Windows systems, ``netsh``
+command line interface provides access to the underlying Windows
+Firewall. For additional information about firewall configuration, see
+:doc:`/tutorial/configure-linux-iptables-firewall` and
+:doc:`/tutorial/configure-windows-netsh-firewall`.
+
+For best results and to minimize overall exposure, ensure that *only*
+traffic from trusted sources can reach :program:`mongod` and
+:program:`mongos` instances and that the :program:`mongod` and
+:program:`mongos` instances can only connect to trusted outputs.
+
+.. seealso:: For MongoDB deployments on Amazon's web services, see the
+   :ecosystem:`Amazon EC2 </platforms/amazon-ec2>` page, which
+   addresses Amazon's Security Groups and other EC2-specific security
+   features.
+
+Virtual Private Networks
+------------------------
+
+Virtual private networks, or VPNs, make it possible to link two
+networks over an encrypted and limited-access trusted
+network. Typically MongoDB users who use VPNs use SSL rather than
+IPSEC VPNs for performance issues.
+
+Depending on configuration and implementation, VPNs provide for
+certificate validation and a choice of encryption protocols, which
+requires a rigorous level of authentication and identification of all
+clients. Furthermore, because VPNs provide a secure tunnel, by using a
+VPN connection to control access to your MongoDB instance, you can
+prevent tampering and "man-in-the-middle" attacks.
