@@ -41,11 +41,6 @@ build/public/saas/.htaccess:bin/htaccess-saas.yaml bin/htaccess.py
 	@$(PYTHONBIN) $(tools)/bin/htaccess.py $@ --data $<
 build/public/hosted/.htaccess:bin/htaccess-hosted.yaml bin/htaccess.py 
 	@$(PYTHONBIN) $(tools)/bin/htaccess.py $@ --data $<
-setup:meta.yaml
-	@mkdir -p $(public-output) $(branch-output) $(branch-output)/source
-$(output):
-	@mkdir -p $@
-	@echo [build]: created $@
 
 ########## system ##########
 clean:
