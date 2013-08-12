@@ -1,13 +1,13 @@
 :dbcommand:`replSetSyncFrom` and :method:`rs.syncFrom()` provide a
-temporary override of default behavior. If: 
+temporary override of default behavior. :program:`mongod` will revert
+to the default sync behavior in the following situations:
 
-- the :program:`mongod` instance restarts,
+- The :program:`mongod` instance restarts. 
 
-- the connection to the sync target closes, or 
+- The connection between the :program:`mongod` and the sync target
+  closes. 
 
-- .. versionchanged:: 2.4
-     The sync target falls more than 30 seconds behind another member of
-     the replica set; 
-
-then, the :program:`mongod` instance will revert to the default sync
-logic and target.
+.. versionchanged:: 2.4
+   The sync target falls more than 30 seconds behind another member of
+   the replica set; the :program:`mongod` will revert to the default
+   sync target.
