@@ -81,28 +81,27 @@ To terminate an operation, use :method:`db.killOp()`.
 Does a read or write operation ever yield the lock?
 ---------------------------------------------------
 
-In short, yes.
+In some situations, read and write operations can yield their locks.
 
-Long running read and write operations (like queries or multi-
-updates/deletes) will yield under many conditions. Initially yielding  
-was based on time (slices) and the number of operations waiting for
-the actively held lock. In later versions more adaptive and predictive 
-algorithms are used to predict page faulting (disk access).
+Long running read and write operations, such as queries, updates, and
+deletes, yield under many conditions. In MongoDB 2.0, operations
+yielded based on time slices and the number of operations waiting for
+the actively held lock. After 2.2, more adaptive algorithms allow
+operations to yield based on predicted disk access (i.e. page faults).
 
 .. versionadded:: 2.0
+   Read and write operations will yield their locks if the
+   :program:`mongod` receives a :term:`page fault` *or* fetches data that
+   is unlikely to be in memory. Yielding allows other operations that
+   only need to access documents that are already in memory to complete
+   while :program:`mongod` loads documents into memory.
 
-Read and write operations will yield their locks if the
-:program:`mongod` receives a :term:`page fault` *or* fetches data that
-is unlikely to be in memory. Yielding allows other operations that
-only need to access documents that are already in memory to complete
-while :program:`mongod` loads documents into memory.
-
-Additionally, write operations that affect multiple documents
-(i.e. :method:`~db.collection.update()` with the ``multi``
-parameter,) will yield periodically to allow read operations during
-these long write operations. Similarly, long running read locks will
-yield periodically to ensure that write operations have the
-opportunity to complete.
+   Additionally, write operations that affect multiple documents
+   (i.e. :method:`~db.collection.update()` with the ``multi``
+   parameter,) will yield periodically to allow read operations during
+   these long write operations. Similarly, long running read locks will
+   yield periodically to ensure that write operations have the
+   opportunity to complete.
 
 .. versionchanged:: 2.2
    The use of yielding expanded greatly in MongoDB 2.2. Including the
