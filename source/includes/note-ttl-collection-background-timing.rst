@@ -1,12 +1,15 @@
-.. note::
+.. warning::
 
-   TTL indexes expire data by removing documents in a background task
-   that runs *every 60 seconds*. As a result, the TTL index provides no
-   guarantees that expired documents will not exist in the
-   collection. Consider that:
+   The TTL index does not guarantee that expired data will be deleted
+   immediately. There may be a delay between the time a document expires
+   and the time it is deleted from the database.
 
-   - Documents may remain in a collection *after* they expire and before
-     the background process runs.
+   The background task that removes expired documents runs *every 60
+   seconds*. As a result, documents may remain in a collection *after*
+   they expire but *before* the background task runs.
 
-   - The duration of the removal operations depend on the workload of
-     your :program:`mongod` instance.
+   The duration of the removal operation depends on the workload of
+   your :program:`mongod` instance. Therefore, expired data may exist
+   for some time *beyond* the 60 second period between runs of the
+   background task.
+
