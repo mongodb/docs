@@ -25,7 +25,7 @@ setup:source/includes/hash.rst meta.yaml intersphinx.yaml pdfs.yaml
 	@mkdir -p $(public-branch-output) $(public-output)
 	@echo [build]: created $(public-branch-output) and $(public-output)
 source/includes/hash.rst:
-	@$(PYTHONBIN) $(tools)/rstcloth/hash.py $@
+	@fab generate.buildinfo_hash
 $(public-branch-output)/release.txt:$(public-branch-output)
 	@echo $(last-commit) >|$@
 	@echo [build]: generated '$@' with current release hash.
