@@ -13,5 +13,3 @@ ensure that the most important operations persist successfully to an
 entire MongoDB deployment. For other less critical operations, clients
 can adjust the write concern to ensure faster performance rather than
 ensure persistence to the entire deployment.
-
-.. include:: /images/crud-write-concern-w2.rst
