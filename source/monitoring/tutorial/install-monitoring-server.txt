@@ -443,11 +443,53 @@ specify the database as admin. For example: ::
     mongo.mmsanalytics.mongoUri=mongodb://mongouser:mongopw@127.0.0.1:40000/admin?maxPoolSize=25
     mongo.mmsanalytics.replicaSet=mmsanalyticsreplset
 
-Unfortunately, this does require that you store credentials in plain
+.. important:: You must modify *every* ``mongoURI`` connection string
+   in the ``conf-mms.properties`` file.
+
+This does require that you store credentials in plain
 text; however, following standard practice you may reduce the
 permissions of the configuration file: ::
 
-    sudo chmod 600 <install_dir>/conf/conf-mms.properties
+   sudo chmod 600 <install_dir>/conf/conf-mms.properties
+
+If you do not want to store your credentials in plain text,
+|monitoring| provides a tool to
+encrypt the credentials you provide to MMS. To encrypt your
+authentication credentials,
+
+1. Navigate to the Monitoring Agent's installation directory.
+
+#. Issue the following command to create your encrypted credential pair,
+   replacing ``<username>`` with your username:
+   
+   .. code-block:: sh
+   
+      bin/credentialstool --username <username> --password
+   
+   This will prompt you to enter your password and will output the
+   encrypted credential pair.
+
+#. Copy the encrypted credential pair into the ``MongoURI`` connection
+   strings of your ``conf/conf-mms.properties`` file where needed, and 
+   add the ``encryptedCredentials = true`` configuration option to 
+   indicate to MMS that the credentials are set as encrypted tokens.
+   
+   The added line(s) should resemble the following:
+   
+   .. code-block:: sh
+   
+      mongo.[database-name-here].encryptedCredentials=true
+   
+#. Add your encrypted credentials and set the ``encryptedCredentials``
+   configure option to the ``distributed.lock.mongoUri`` and 
+   ``app.mongoUri.systemRrd1`` properties.
+   
+   The added lines should resemble the following:
+   
+   .. code-block:: sh
+   
+      distributed.lock.encryptedCredentials=true
+      app.encryptedCredentials=true
 
 .. important:: You must modify *every* ``mongoURI`` connection string
    in the ``conf-mms.properties`` file.
