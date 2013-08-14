@@ -26,11 +26,11 @@ intersphinx_libs = ingest_yaml_list('intersphinx.yaml')
 needs_sphinx = '1.0'
 
 extensions = [
-    'sphinx.ext.intersphinx',
     'sphinx.ext.extlinks',
     'sphinx.ext.todo',
     'mongodb',
     'directives',
+    'intermanual'
 ]
 
 templates_path = ['.templates']
