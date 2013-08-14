@@ -40,8 +40,9 @@ write operations. With this level of write concern, the client cannot
 detect failed write operations. These errors include connection errors
 and :program:`mongod` exceptions such as duplicate key exceptions for
 :ref:`unique indexes <index-type-unique>`. Although the *errors
-ignored* write concern provides fast performance, at the cost of
-significant risks for data persistence and durability.
+ignored* write concern provides fast performance, this performance gain
+comes at the cost of significant risks for data persistence and
+durability.
 
 .. warning::
 
@@ -53,10 +54,10 @@ Unacknowledged
 ~~~~~~~~~~~~~~
 
 With an *unacknowledged* write concern, MongoDB does not acknowledge
-the receipt of write operation. *Unacknowledged* is similar *errors
+the receipt of write operation. *Unacknowledged* is similar to *errors
 ignored*; however, drivers attempt receive and handle network errors
-when possible. The driver's ability to detect network errors depends
-on the system's networking configuration.
+when possible. The driver's ability to detect network errors depends on
+the system's networking configuration.
 
 Before the releases outlined in :ref:`driver-write-concern-change`,
 this was the default write concern.
@@ -93,17 +94,18 @@ Journaled
 
 With a *journaled* write concern, the :program:`mongod` confirms the
 write operation only after committing to the :term:`journal`. A
-confirmed journal commit ensures *durability*; which is en guarantee
-that a write operation will survive a :program:`mongod` shutdown.
+confirmed journal commit ensures *durability*, which guarantees that a
+write operation will survive a :program:`mongod` shutdown. However,
+there is a window between journal commits when the write operation is
+not fully durable. See :setting:`journalCommitInterval` for more
+information on this window.
 
 .. include:: /images/crud-write-concern-journal.rst
 
-While receipt *acknowledged* without *journaled* provides the basis
-for write concern, there is a window between journal commits where the
-write operation is not fully durable. See
-:setting:`journalCommitInterval` for more information on this
-window. Require *journaled* as part of the write concern to provide
-this durability guarantee.
+Receipt *acknowledged* without *journaled* provides the basis for write
+concern. Require *journaled* as part of the write concern to provide
+this durability guarantee. The :program:`mongod` must have journaling
+enabled for the *journaled* write concern to have effect.
 
 .. _write-concern-replica-acknowledged:
 .. _replica-set-write-concern:
@@ -111,14 +113,15 @@ this durability guarantee.
 Replica Acknowledged
 ~~~~~~~~~~~~~~~~~~~~
 
-:term:`Replica sets <replica set>` add several considerations for
-write concern. Basic write concerns affect write operations on only
-one :program:`mongod` instance. The ``w`` argument to
+:term:`Replica sets <replica set>` add several considerations for write
+concern. Basic write concerns affect write operations on only one
+:program:`mongod` instance. The ``w`` argument to
 :dbcommand:`getLastError` provides *replica acknowledged* write
 concerns. With *replica acknowledged* you can guarantee that the write
-operation propagates to the members of a replica set. See the
-:doc:`Write Concern for Replica Sets <replica-set-write-concern>`
-document for more information.
+operation propagates to the members of a replica set. See
+:doc:`/reference/write-concern` document for the values for ``w`` and
+:doc:`Write Concern for Replica Sets <replica-set-write-concern>` for
+more information.
 
 .. include:: /images/crud-write-concern-w2.rst
 
