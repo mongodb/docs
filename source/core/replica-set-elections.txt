@@ -11,8 +11,8 @@ Replica Set Elections
 .. default-domain:: mongodb
 
 :term:`Replica sets <replica set>` use elections to determine which
-set member will become :term:`primary`. Elections happen after
-initiating a replica set and anytime the primary becomes
+set member will become :term:`primary`. Elections occur after
+initiating a replica set, and also any time the primary becomes
 unavailable. The primary is the only member in the set that can accept
 write operations. If a primary becomes unavailable, elections allow
 the set to recover normal operations without manual
@@ -22,7 +22,7 @@ intervention. Elections are part of the :ref:`failover process
 .. important:: Elections are essential for independent operation of a
    replica set; however, elections take time to complete. While an
    election is in process, the replica set has no primary and cannot
-   accept writes. MongoDB avoids elections unless required.
+   accept writes. MongoDB avoids elections unless necessary.
 
 In the following three-member replica set, the primary is
 unavailable. The remaining secondaries hold an election to choose a new
@@ -51,24 +51,25 @@ Members with a priority value of ``0`` cannot become primary and do
 not seek election. For details, see
 :doc:`/core/replica-set-priority-0-member`.
 
-A replica set does *not* hold an election as long as the primary has the
+A replica set does *not* hold an election as long as the current primary has the
 highest priority value and is within 10 seconds of the latest
-:term:`oplog` entry. If the member drops to beyond 10 seconds of the
-latest oplog entry, the set holds an election.
+:term:`oplog` entry in the set. If a higher-priority member catches up to within 10 seconds of the
+latest oplog entry of the current primary, the set holds an election in order to provide the
+higher-priority node a chance to become primary.
 
 Optime
 ~~~~~~
 
 The :data:`optime <replSetGetStatus.members.optime>` is the timestamp of
 the last operation that a member applied from the oplog. A replica set
-member cannot become primary *unless* it has the highest (i.e. most
+member cannot become primary unless it has the highest (i.e. most
 recent) :data:`~replSetGetStatus.members.optime` of any visible member
 in the set.
 
 Connections
 ~~~~~~~~~~~
 
-A replica set member cannot become primary *unless* it can connect to
+A replica set member cannot become primary unless it can connect to
 a majority of the members in the replica set. For the purposes of
 elections, a majority refers to the total number of *votes*, rather
 than the total number of members.
@@ -99,12 +100,12 @@ Election Triggering Events
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Replica sets hold an election any time there is no
-primary. Specifically, following:
+primary. Specifically, the following:
 
 - the initiation of a new replica set.
 
 - a secondary loses contact with a primary. Secondaries call for
-  elections when they cannot connect to a primary.
+  elections when they cannot see a primary.
 
 - a primary steps down.
 
@@ -213,12 +214,12 @@ Non-Voting Members
 .. default-domain:: mongodb
 
 Non-voting members hold copies of the replica set's data and can
-accept read operations from client applications. Non-voting members:
+accept read operations from client applications. Non-voting members
 do not vote in elections, but **can** :ref:`veto <replica-set-vetos>`
 an election and become primary.
 
 Because a replica set can have up to 12 members but only up to seven
-voting members, non-voting members permit a replica set to have more
+voting members, non-voting members allow a replica set to have more
 than seven members.
 
 For instance, the following nine-member replica set has seven voting
@@ -242,11 +243,11 @@ in its member configuration:
    members will become primary. Instead, modify the
    :data:`~local.system.replset.members[n].priority` option. *Only*
    alter the number of votes in exceptional cases. For example, to
-   permit more than seven secondaries.
+   permit more than seven members.
 
 When possible, all members should have only one vote. Changing the
-number of votes can cause ties, deadlocks, and the wrong members from
-becoming primary.
+number of votes can cause ties, deadlocks, and the wrong members to
+become primary.
 
 To configure a non-voting member, see
 :doc:`/tutorial/configure-a-non-voting-replica-set-member`.
