@@ -21,10 +21,16 @@ generate-source-hosted:
 	@mkdir -p build/hosted/$(current-branch)/source
 	@rsync --recursive --times --delete source/ build/hosted/$(current-branch)/source/
 	@sed $(SED_ARGS_FILE) 's%   MMS Backup </backup>%%' build/hosted/$(current-branch)/source/index.txt
+	@sed $(SED_ARGS_FILE) 's%   MMS Backup <backup.txt>%%' build/hosted/$(current-branch)/source/index.txt
 	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYINCLUDE%\/monitoring/tutorial/install-monitoring-server%' build/hosted/$(current-branch)/source/monitoring/tutorial/set-up-mms.txt
 	@sed $(SED_ARGS_FILE) 's%HOSTEDINCLUDE%:: %' build/hosted/$(current-branch)/source/monitoring/tutorial.txt
-	@sed $(SED_ARGS_FILE) 's%SAASONLY%%' build/saas/source/monitoring/settings.txt
-	@rm -rf build/hosted/$(current-branch)/source/backup.txt build/hosted/$(current-branch)/source/backup/ 
+	@sed $(SED_ARGS_FILE) 's%SAASONLY-settings%%' build/saas/source/management/settings.txt
+	@sed $(SED_ARGS_FILE) 's%SAASONLY-mmslanding%%' build/saas/source/index.txt
+	@sed $(SED_ARGS_FILE) 's%HOSTED-mmslanding%.. include:: /includes/hosted-landing-dfn-lists.rst%' build/hosted/$(current-branch)/source/index.txt
+	@sed $(SED_ARGS_FILE) 's%.. include:: /includes/table-mms-auth-roles-saas.rst%%' build/hosted/$(current-branch)/source/management/permissions.txt 
+	@rm -rf build/hosted/$(current-branch)/source/backup.txt build/hosted/$(current-branch)/source/backup/
+	@rm -rf build/hosted/$(current-branch)/source/includes/dfn-list-mms-landing-saas.rst build/hosted/$(current-branch)/source/includes/dfn-list-spec-mms-landing-saas.rst	
+	@rm -rf build/hosted/$(current-branch)/source/includes/toc-mms-landing-saas.* build/hosted/$(current-branch)/source/includes/toc-spec-mms-landing-saas.yaml
 	@echo [sphinx-prep]: updated source in build/hosted/$(current-branch)/source
 	@-notify-send "Sphinx" "Build in progress past critical phase."
 	@echo [sphinx-prep]: INFO - Build in progress past critical phase.
@@ -34,7 +40,10 @@ generate-source-saas:
 	@rsync --recursive --times --delete source/ build/saas/source
 	@rm -f build/saas/source/monitoring/tutorial/install-monitoring-server.txt
 	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYINCLUDE%%' build/saas/source/monitoring/tutorial/set-up-mms.txt
-	@sed $(SED_ARGS_FILE) 's%SAASONLY%   .. include:: /includes/settings-backup.rst%' build/saas/source/monitoring/settings.txt
+	@sed $(SED_ARGS_FILE) 's%SAASONLY-settings%   .. include:: /includes/settings-backup.rst%' build/saas/source/management/settings.txt
+	@sed $(SED_ARGS_FILE) 's%SAASONLY-mmslanding%.. include:: /includes/saas-landing-dfn-lists.rst%' build/saas/source/index.txt 
+	@sed $(SED_ARGS_FILE) 's%.. include:: /includes/table-mms-auth-roles-hosted.rst%%' build/saas/source/management/permissions.txt 
+	@sed $(SED_ARGS_FILE) 's%:ref:`on-prem-authentication-configuration`%%' build/saas/source/management/permissions.txt 
 	@echo [sphinx-prep]: updated source in build/saas/source
 	@-notify-send "Sphinx" "Build in progress past critical phase."
 	@echo [sphinx-prep]: INFO - Build in progress past critical phase.
