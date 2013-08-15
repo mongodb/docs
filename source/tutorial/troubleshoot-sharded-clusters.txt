@@ -1,0 +1,52 @@
+=============================
+Troubleshoot Sharded Clusters
+=============================
+
+.. default-domain:: mongodb
+
+This section provides solutions to issues encountered on
+:term:`sharded clusters <sharded cluster>`.
+
+.. _config-database-string-error:
+
+Config Database String Error
+----------------------------
+
+.. DOCS-1143
+
+Start all :program:`mongos` instances in a sharded cluster with an identical
+:setting:`configdb` string. If a :program:`mongos` instance tries to
+connect to the sharded cluster with a :setting:`configdb` string that
+does not *exactly* match the string used by the other :program:`mongos`
+instances, including the order of the hosts, the following errors occur:
+
+.. code-block:: none
+
+   could not initialize sharding on connection
+
+And:
+
+.. code-block:: none
+
+   mongos specified a different config database string
+
+To solve the issue, restart the :program:`mongos` with the correct
+string.
+
+Cursor Fails Because of Stale Config Data
+-----------------------------------------
+
+.. DOCS-425
+
+A query issues the following warning when one or more of the
+:program:`mongos` instances has not yet updated its cache of the
+cluster's metadata from the :term:`config database`:
+
+.. code-block:: none
+
+   could not initialize cursor across all shards because : stale config detected
+
+This warning *should* not propagate back to your application. The warning
+will repeat until all the :program:`mongos` instances refresh their
+caches. To force an instance to refresh its cache, run the
+:dbcommand:`flushRouterConfig` command.
