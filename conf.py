@@ -32,13 +32,13 @@ master_doc = 'index'
 
 copyright = u'2011-2013, 10gen, Inc.'
 
-version = '1.3'
+version = '1.4-pre'
 release = 'Upcoming'
 pygments_style = 'sphinx'
 
 # -- Options for HTML output ---------------------------------------------------
 
-html_theme = '10gen'
+html_theme = 'mongodb'
 html_theme_path = [ os.path.join(buildsystem, 'themes') ]
 html_logo = "source/.static/logo-10gen.png"
 html_static_path = ['source/_static']
@@ -47,14 +47,18 @@ html_use_index = True
 html_split_index = False
 html_use_modindex = False
 html_show_sourcelink = False
-htmlhelp_basename = 'MongoDBdoc'
+htmlhelp_basename = 'MongoDB doc'
 
 html_theme_options = {
     'project': 'mms',
     'version': version,
     'branch': meta['branch'],
+    'google_analytics': 'UA-7301842-7',
     'version_selector': meta['version_selector'],
     'stable': meta['upcoming'],
+}
+html_sidebars = {
+    '**': [],
 }
 
 hosted_latex_documents = []
@@ -71,10 +75,9 @@ for pdf in pdfs:
 BREAK = '\n\n'
 try:
     if tags.has('hosted'):
-        project = u'MongoDB Management Service On-Prem / MMS'
-        html_title = 'MMS On-Prem Manual / MMS'
-        html_short_title = 'MMS On-Prem Manual / MMS'
-        html_theme_options['edition'] = 'hosted'
+        project = u'MongoDB Management Service (MMS) On-Prem'
+        html_title = 'MMS On-Prem Manual'
+        html_short_title = 'MMS On-Prem Manual'
         latex_documents = hosted_latex_documents
         rst_epilog = '\n'
         rst_epilog += ".. |s| replace:: Suite" + BREAK
@@ -83,11 +86,11 @@ try:
         rst_epilog += ".. |backup| replace:: MMS Backup On-Prem" + BREAK
         rst_epilog += ".. |monitoring| replace:: MMS Monitoring On-Prem" + BREAK
         rst_epilog += ".. |release-string| replace:: -- {0} Release".format(release) + BREAK
+        html_sidebars['**'].append('sidebar-nav-mms-hosted.html')
     else:
         project = u'MongoDB Management Service (MMS)'
         html_title = 'MMS Manual'
-        html_short_title = 'MMS'
-        html_theme_options['edition'] = 'saas'
+        html_short_title = 'MMS Manual'
         latex_documents = saas_latex_documents
         rst_epilog = '\n'
         rst_epilog += ".. |s| replace:: Service" + BREAK
@@ -95,6 +98,7 @@ try:
         rst_epilog += ".. |mms| replace:: MongoDB Management Service" + BREAK
         rst_epilog += ".. |backup| replace:: MMS Backup" + BREAK
         rst_epilog += ".. |monitoring| replace:: MMS Monitoring" + BREAK
+        html_sidebars['**'].append('sidebar-nav.html')
 
         if release == "Upcoming":
             rst_epilog += ".. |release-string| replace:: \   "
@@ -102,6 +106,8 @@ try:
             rst_epilog += ".. |release-string| replace:: -- {0} Release".format(release) + BREAK
 except NameError:
     pass
+
+html_sidebars['**'].extend(['mms-resources.html', 'intrasite-manual.html'])
 
 # -- Options for LaTeX output --------------------------------------------------
 
