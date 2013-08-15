@@ -13,154 +13,167 @@ if your applications perform large numbers of multi-updates or
 deletes in short periods of time.
 
 This tutorial describes how to resize the oplog. For a detailed
-explanation of oplog sizing, see the :ref:`replica-set-oplog-sizing`
-topic in the :doc:`/replication` document. For details on the how
+explanation of oplog sizing, see :ref:`replica-set-oplog-sizing`.
+For details how
 oplog size affects :term:`delayed members <delayed member>` and affects
-:term:`replication lag`, see the :ref:`replica-set-delayed-members`
-topic and :ref:`replica-set-replication-lag`.
+:term:`replication lag`, see :ref:`replica-set-delayed-members`.
 
 Overview
 --------
 
-The following is an overview of the procedure for changing the size of
-the oplog:
+Resize the oplog on each member
+separately, starting with the :term:`secondaries
+<secondary>`. Resize the :term:`primary's <primary>` oplog last. Resizing for a given
+member involves:
 
-.. include:: /includes/procedure-change-oplog-size.rst
+- Restart the member in standalone mode. For the primary, which is
+  done last, step it down first.
+
+- Recreate the oplog with the new size and with an old oplog entry to
+  seed it.
+
+- Restart the member normally.
 
 Procedure
 ---------
 
-The examples in this procedure use the following configuration:
-
-- The active :term:`replica set` is ``rs0``.
-
-- The replica set is running on port ``27017``.
-
-- The replica set is running with a :setting:`data directory <dbpath>`
-  of ``/srv/mongodb``.
+Perform a rolling update of the oplog size by shutting down a member,
+changing its oplog size, and restarting the member. Start with the
+non-primary members and end with the primary. Starting with the primary
+would trigger a :ref:`failover <replica-set-failover>` situation.
+Another member would become primary. In most cases, it is least
+disruptive to limit the number of primary changes to just the one at the end.
 
 To change the size of the oplog for a replica set, use the following
 procedure for every member of the set that may become primary.
 
-1. Shut down the :program:`mongod` instance and restart it in
-   "standalone" mode running on a different port.
+Restart a Secondary in Standalone Mode on a Different Port
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   .. note::
+Shut down the :program:`mongod` instance for one of the non-primary
+members of your replica set. For example, to shut down, use the
+:method:`db.shutdownServer()` method:
 
-      Shutting down the :term:`primary` member of the set will trigger
-      a failover situation and another member in the replica set will
-      become primary. In most cases, it is least disruptive to modify
-      the oplogs of all the secondaries before modifying the primary.
+.. code-block:: sh
 
-   To shut down the current primary instance, use a command that
-   resembles the following:
+   db.shutdownServer()
 
-   .. code-block:: sh
+Restart this :program:`mongod` as a standalone instance
+running on a different port and *without*
+the :option:`--replSet <mongod --replSet>` parameter. Use a command
+similar to the following:
 
-      mongod --dbpath /srv/mongodb --shutdown
+.. code-block:: sh
 
-   To restart the instance on a different port and in "standalone"
-   mode (i.e. without :setting:`replSet` or
-   :option:`--replSet <mongod --replSet>`), use a command that
-   resembles the following:
+   mongod --port 37017 --dbpath /srv/mongodb
 
-   .. code-block:: sh
+Create a Backup of the Oplog (Optional)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      mongod --port 37017 --dbpath /srv/mongodb
+Optionally, backup the existing oplog on the standalone instance. For example:
 
-#. Backup the existing oplog on the standalone instance. Use the
-   following sequence of commands:
+.. code-block:: sh
 
-   .. code-block:: sh
+   mongodump --db local --collection 'oplog.rs' --port 37017
 
-      mongodump --db local --collection 'oplog.rs' --port 37017
 
-   .. note::
+Recreate the Oplog with a New Size and a Seed Entry
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      You can restore the backup using the :program:`mongorestore`
-      utility.
+Save the last entry from the oplog. For example, connect to the instance
+using the :program:`mongo` shell, and enter the following command to
+switch to the ``local`` database:
 
-   Connect to the instance using the :program:`mongo` shell:
+.. code-block:: javascript
 
-   .. code-block:: sh
+   use local
 
-      mongo --port 37017
+Use the :method:`db.collection.save()` operation and a sort on
+reverse :term:`natural order` to find the last entry and save it
+to a temporary collection:
 
-#. Save the last entry from the old (current) oplog.
+.. _last-oplog-entry:
 
-   a. In the :program:`mongo` shell, enter the following command to use the
-      ``local`` database to interact with the oplog:
+.. code-block:: javascript
 
-      .. code-block:: javascript
+   db.temp.save( db.oplog.rs.find( { }, { ts: 1, h: 1 } ).sort( {$natural : -1} ).limit(1).next() )
 
-         use local
+To see this oplog entry, issue the following command:
 
-   #. Use the :method:`db.collection.save()` operation to save the last
-      entry in the oplog to a temporary collection:
+.. code-block:: javascript
 
-      .. code-block:: javascript
+   db.temp.find()
 
-         db.temp.save( db.oplog.rs.find( { }, { ts: 1, h: 1 } ).sort( {$natural : -1} ).limit(1).next() )
+Drop the Oplog
+~~~~~~~~~~~~~~
 
-      You can see this oplog entry in the ``temp`` collection by issuing
-      the following command:
+Drop the old ``oplog.rs`` collection in the ``local`` database. Use
+the following command:
 
-      .. code-block:: javascript
+.. code-block:: javascript
 
-         db.temp.find()
+   db.oplog.rs.drop()
 
-#. Drop the old ``oplog.rs`` collection in the ``local`` database. Use
-   the following command:
+This returns ``true`` on the shell.
 
-   .. code-block:: javascript
+Create a New Oplog
+~~~~~~~~~~~~~~~~~~
 
-      db.oplog.rs.drop()
+Use the :dbcommand:`create` command to create a new oplog of a
+different size. Specify the ``size`` argument in bytes. A value of
+``2 * 1024 * 1024 * 1024`` will create a new oplog that's 2 gigabytes:
 
-   This will return ``true`` on the shell.
+.. code-block:: javascript
 
-#. Use the :dbcommand:`create` command to create a new oplog of a
-   different size. Specify the ``size`` argument in bytes. A value of
-   ``2 * 1024 * 1024 * 1024`` will create a new oplog that's 2 gigabytes:
+   db.runCommand( { create: "oplog.rs", capped: true, size: (2 * 1024 * 1024 * 1024) } )
 
-   .. code-block:: javascript
+Upon success, this command returns the following status:
 
-      db.runCommand( { create : "oplog.rs", capped : true, size : (2 * 1024 * 1024 * 1024) } )
+.. code-block:: javascript
 
-   Upon success, this command returns the following status:
+   { "ok" : 1 }
 
-   .. code-block:: javascript
+Insert the Last Entry of the Old Oplog into the New Oplog
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      { "ok" : 1 }
+Insert the previously saved last entry from the old oplog into the
+new oplog. For example:
 
-#. Insert the previously saved last entry from the old oplog into the
-   new oplog:
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   db.oplog.rs.save( db.temp.findOne() )
 
-      db.oplog.rs.save( db.temp.findOne() )
+To confirm the entry is in the new oplog, issue the following command:
 
-   To confirm the entry is in the new oplog, issue the following command:
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   db.oplog.rs.find()
 
-      db.oplog.rs.find()
+Restart the Member
+~~~~~~~~~~~~~~~~~~
 
-#. Restart the server as a member of the replica set on its usual
-   port:
+Restart the server as a member of the replica set on its usual
+port. For example:
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      mongod --dbpath /srv/mongodb --shutdown
-      mongod --replSet rs0 --dbpath /srv/mongodb
+   db.shutdownServer()
+   mongod --replSet rs0 --dbpath /srv/mongodb
 
-   The replica member will recover and "catch up" and then will be
-   eligible for election to :term:`primary`. To step down the
-   "temporary" primary that took over when you initially shut down the
-   server, use the :method:`rs.stepDown()` method. This will force an
-   election for primary. If the server's
-   :data:`~local.system.replset.members[n].priority` is higher than all
-   other members in the set *and* if it has successfully "caught up,"
-   then it will likely become primary.
+The replica member will recover and "catch up" and then will be
+eligible for election to primary.
 
-#. Repeat this procedure for all other members of the replica set that
-   are or could become primary.
+Repeat Process for all Members that may become Primary
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Repeat this procedure for all members for which to change the oplog
+size. We suggest you do this for all members that can become primary
+(i.e., members with a "non-zero" priority). Do not *yet* apply the
+procedure to the primary itself.
+
+Apply the Procedure to the Primary
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To finish the rolling upgrade, step down the primary with the
+:method:`rs.stepDown()` method and repeat the oplog resizing procedure
+above.
