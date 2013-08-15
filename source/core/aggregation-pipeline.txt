@@ -2,15 +2,14 @@
 Aggregation Pipeline
 ====================
 
-.. versionadded:: 2.1
+.. versionadded:: 2.2
 
 .. default-domain:: mongodb
 
-The aggregation pipeline is a framework for performing aggregation
-tasks, modeled on the concept of data processing pipelines. Using this
-framework, MongoDB passes the documents of a single :term:`collection`
-through a :ref:`pipeline <aggregation-pipeline>`. The pipeline
-transforms the documents into aggregated results.
+The aggregation pipeline is a framework for data aggregation modeled
+on the concept of data processing pipelines. Documents enter a
+multi-stage pipeline that transforms the documents into an aggregated
+results.
 
 The aggregation pipeline provides an alternative to :term:`map-reduce`
 and may be the preferred solution for many aggregation tasks where the
@@ -18,17 +17,24 @@ complexity of map-reduce may be unwarranted.
 
 .. include:: /images/aggregation-pipeline.rst
 
+.. seealso:: For example usage of the aggregation pipeline, consider
+   :doc:`/tutorial/aggregation-with-user-preference-data` and
+   :doc:`/tutorial/aggregation-zip-code-data-set`, as well as the
+   :dbcommand:`aggregate` command and the
+   :method:`db.collection.aggregate()` method reference pages.
+
+   See :doc:`/core/aggregation-pipeline-limits` for details on limits and
+   restrictions on the aggregation pipeline.
+
 .. _aggregation-pipeline:
 
 Pipeline
 --------
 
-Conceptually, documents from a collection travel through an aggregation
-pipeline, which transforms these objects as they pass through. For
-those familiar with UNIX-like shells (e.g. bash,) the concept is
-analogous to the pipe (i.e. ``|``). In a shell environment, the pipe
-redirects a stream of characters from the output of one process to the
-input of the next. 
+Conceptually, documents from a collection travel through an
+aggregation pipeline, which transforms these objects as they pass
+through. For those familiar with UNIX-like shells (e.g. bash,) the
+concept is analogous to the pipe (i.e. ``|``).
 
 The MongoDB aggregation pipeline starts with the documents of a
 collection and streams the documents from one :ref:`pipeline operator
@@ -37,7 +43,11 @@ documents. Each operator in the pipeline transforms the documents as they
 pass through the pipeline. Pipeline operators do not need to produce
 one output document for every input document. Operators may generate
 new documents or filter out documents. Pipeline operators can be
-repeated in the pipe.
+repeated in the pipeline.
+
+.. important:: The result of aggregation pipeline is a :term:`document` and
+   is subject to the :ref:`BSON Document size
+   <limit-bson-document-size>` limit, which is currently 16 megabytes.
 
 See :ref:`aggregation-pipeline-operator-reference` for the list of
 pipeline operators that define the stages.
@@ -56,7 +66,8 @@ contain fields, values, and :ref:`operators
 <aggregation-expression-operators>`.
 
 Pipeline expressions can only operate on the current document in the
-pipeline and cannot refer to data from other documents.
+pipeline and cannot refer to data from other documents: expression
+operations provide in-memory transformation of documents.
 
 Generally, expressions are stateless and are only evaluated when seen
 by the aggregation process with one exception: :term:`accumulator`
@@ -68,26 +79,6 @@ through the pipeline.
 For the expression operators, see
 :ref:`aggregation-expression-operators`.
 
-``aggregate`` Command
----------------------
-
-To use the aggregation pipeline, MongoDB interfaces provide the
-:dbcommand:`aggregate` command. In the :program:`mongo` shell, MongoDB
-provides the :method:`db.collection.aggregate()` wrapper. Both the command
-and the :program:`mongo` shell wrapper accept a sequence of :ref:`pipeline operations
-<aggregation-pipeline-operator-reference>` as arguments. The result of the operation
-is a document and is subject to the :ref:`BSON Document size
-<limit-bson-document-size>` limit, which is currently 16 megabytes.
-
-For usage examples, see
-:doc:`/tutorial/aggregation-with-user-preference-data` and
-:doc:`/tutorial/aggregation-zip-code-data-set`, as well as the
-:dbcommand:`aggregate` command and the
-:method:`db.collection.aggregate()` method reference pages.
-
-See :doc:`/core/aggregation-pipeline-limits` for details on limits and
-restrictions on the aggregation pipeline.
-
 .. _aggregation-optimize-performance:
 
 Aggregation Pipeline Behavior
@@ -97,21 +88,6 @@ In MongoDB, the :dbcommand:`aggregate` command operates on a single
 collection, logically passing the *entire* collection into the
 aggregation pipeline. To optimize the operation, wherever possible, use
 the following strategies to avoid scanning the entire collection.
-
-Early Filtering
-~~~~~~~~~~~~~~~
-
-If your aggregation operation requires only a subset of the data in a
-collection, use the :pipeline:`$match` operator to restrict which items go
-in to the top of the pipeline. When placed early in a
-pipeline, these :pipeline:`$match` operations use suitable indexes
-to scan only the matching documents in a collection.
-
-Placing a :pipeline:`$match` pipeline stage followed by a
-:pipeline:`$sort` stage at the start of the pipeline is logically
-equivalent to a single query with a sort and can use an index. When
-possible, place :pipeline:`$match` operators at the beginning of the
-pipeline.
 
 .. _aggregation-pipeline-operators-and-performance:
 
@@ -129,6 +105,22 @@ occur **before** the following aggregation operators:
    geospatial index. When using :pipeline:`$geoNear`, the
    :pipeline:`$geoNear` pipeline operation must appear as the first
    stage in an aggregation pipeline.
+
+Early Filtering
+~~~~~~~~~~~~~~~
+
+If your aggregation operation requires only a subset of the data in a
+collection, use the :pipeline:`$match`, :pipeline:`$limit`, and
+:pipeline:`$skip` stages to restrict the documents that enter at the
+beginning of the pipeline. When placed at the beginning of a pipeline,
+:pipeline:`$match` operations use suitable indexes to scan only
+the matching documents in a collection.
+
+Placing a :pipeline:`$match` pipeline stage followed by a
+:pipeline:`$sort` stage at the start of the pipeline is logically
+equivalent to a single query with a sort and can use an index. When
+possible, place :pipeline:`$match` operators at the beginning of the
+pipeline.
 
 Additional Features
 ~~~~~~~~~~~~~~~~~~~
