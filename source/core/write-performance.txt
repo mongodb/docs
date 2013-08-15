@@ -8,26 +8,6 @@ Write Operation Performance
    :backlinks: none
    :local:
 
-Document Growth
----------------
-
-If an update operation causes a document to exceeds the currently
-allocated :term:`record size`, MongoDB relocates the document on disk
-with enough contiguous space to hold the document. These relocations
-take longer than in-place updates, particularly if the collection has
-indexes. If a collection has indexes, MongoDB must update all index
-entries. Thus, for a collection with many indexes, the move will
-impact the write throughput.
-
-Some update operations, such as the :operator:`$inc` operation, do not
-cause an increase in document size. For these update operations,
-MongoDB can apply the updates in-place. Other update operations, such
-as the :operator:`$push` operation, change the size of the document.
-
-In-place-updates are significantly more efficient than updates that
-cause document growth. When possible, use :doc:`data models
-</core/data-modeling>` that minimize the need for document growth.
-
 Indexes
 -------
 
@@ -50,3 +30,54 @@ information on indexes, see :doc:`/indexes` and
    overhead for :ref:`sparse indexes <index-type-sparse>` is less than
    for non-sparse indexes. Also for non-sparse indexes, updates that
    do not change the record size have less indexing overhead.
+
+Document Growth
+---------------
+
+If an update operation causes a document to exceeds the currently
+allocated :term:`record size`, MongoDB relocates the document on disk
+with enough contiguous space to hold the document. These relocations
+take longer than in-place updates, particularly if the collection has
+indexes. If a collection has indexes, MongoDB must update all index
+entries. Thus, for a collection with many indexes, the move will
+impact the write throughput.
+
+Some update operations, such as the :operator:`$inc` operation, do not
+cause an increase in document size. For these update operations,
+MongoDB can apply the updates in-place. Other update operations, such
+as the :operator:`$push` operation, change the size of the document.
+
+In-place-updates are significantly more efficient than updates that
+cause document growth. When possible, use :doc:`data models
+</core/data-modeling>` that minimize the need for document growth.
+
+See :doc:`/core/record-padding` for more information.
+
+Journal
+-------
+
+MongoDB uses *write ahead logging* to an on-disk :term:`journal` to
+guarantee :doc:`write operation </core/write-operations>` durability
+and to provide crash resiliency. Before applying a change to the data
+files, MongoDB writes the change operation to the journal.
+
+When running with journaling, MongoDB stores and applies the write
+operation in memory and in the journal before the changes are in the
+data files. Frequent writes to journal, as determined by the
+``journalCommitInterval``, increase the durability of the journal at
+the expense of disk performance.
+
+For additional information on journaling, see
+:doc:`/core/journaling`.
+
+Hardware
+--------
+
+The hard drive itself affects the write performance. The data transfer
+rate and the random read and write speeds of the hard drive can impact
+write performance. In addition, before writing the data, the drive
+needs to first find a location on the drive.
+
+For hard disk drives, the disk data density also impacts the
+performance of writes. Higher hard disk density can provide better
+write performance.
