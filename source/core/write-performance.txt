@@ -53,31 +53,55 @@ cause document growth. When possible, use :doc:`data models
 
 See :doc:`/core/record-padding` for more information.
 
-Journal
--------
+Storage Performance
+-------------------
+
+Hardware
+~~~~~~~~
+
+The capability of the storage system creates some important physical
+limits for the performance of MongoDB's write operations. Many unique
+factors related to the storage system of the drive affect write
+performance, including randomness of access patterns, disk caches,
+disk readahead and RAID configurations.
+
+Solid state drives (SSDs) can outperform spinning hard disks (HDDs) by
+100 times or more for random workloads.
+
+.. see:: :doc:`/administration/production-notes` for recommendations
+   regarding additional hardware and configuration options.
+
+Journaling
+~~~~~~~~~~
 
 MongoDB uses *write ahead logging* to an on-disk :term:`journal` to
 guarantee :doc:`write operation </core/write-operations>` durability
 and to provide crash resiliency. Before applying a change to the data
 files, MongoDB writes the change operation to the journal.
 
-When running with journaling, MongoDB stores and applies the write
-operation in memory and in the journal before the changes are in the
-data files. Frequent writes to journal, as determined by the
-``journalCommitInterval``, increase the durability of the journal at
-the expense of disk performance.
+While the durability assurance provided by the journal typically
+outweigh the performance costs of the additional write operations,
+consider the following interactions between the journal and
+performance:
+
+- if the journal and the data file reside on the same block device,
+  the data files and the journal may have to contend for a finite
+  number of available write operations. While moving the journal to a
+  separate device may increase the capacity for write operations.
+
+- if applications specify :doc:`write concern </core/write-concern>`
+  that includes :ref:`journaled <write-concern-replica-journaled>`,
+  :program:`mongod` will decrease the duration between journal
+  commits, which can increases the overall write load.
+
+- the duration between journal commits is configurable using the
+  :setting:`journalCommitInterval` run-time option. Decreasing the
+  period between journal commits will increase the number of write
+  operations, which can limit MongoDB's capacity for write
+  operations. Increasing the amount of time between commits may
+  decrease the total number of write operation, but also increases the
+  chance that the journal will not record a write operation in the
+  event of a failure situation.
 
 For additional information on journaling, see
 :doc:`/core/journaling`.
-
-Hardware
---------
-
-The hard drive itself affects the write performance. The data transfer
-rate and the random read and write speeds of the hard drive can impact
-write performance. In addition, before writing the data, the drive
-needs to first find a location on the drive.
-
-For hard disk drives, the disk data density also impacts the
-performance of writes. Higher hard disk density can provide better
-write performance.
