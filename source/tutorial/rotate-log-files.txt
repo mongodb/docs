@@ -4,21 +4,33 @@ Rotate Log Files
 
 .. default-domain:: mongodb
 
+.. contents::
+   :backlinks: none
+   :local:
+
 Overview
 --------
 
-Log rotation archives the current log file and starts a new one.
-Specifically, log rotation renames the current log file by appending
-the filename with a timestamp, [#timestamp-format]_ opens a new log
-file, and finally closes the old log. MongoDB will only rotate logs,
-when you use the :dbcommand:`logRotate` command, or issue the process
-a ``SIGUSR1`` signal as described in this procedure.
+Log rotation using MongoDB's standard approach archives the current
+log file and starts a new one. To do this, the :program:`mongod` or
+:program:`mongos` instance renames the current log file by appending a
+UTC (GMT) timestamp to the filename, in :term:`ISODate` format. It then
+opens a new log file, closes the old log file, and sends all new log
+entries to the new log file.
+
+MongoDB's standard approach to log rotation only rotates logs
+in response to the :dbcommand:`logRotate` command, or when the
+:program:`mongod` or :program:`mongos` process receives a ``SIGUSR1``
+signal from the operating system.
+
+Alternatively, you can take advantage of one of the log rotation tools
+available for your particular ``syslog`` implementation.
 
 .. seealso:: For information on logging, see the
    :ref:`monitoring-standard-loggging` section.
 
-Procedure
----------
+Log Rotation With MongoDB
+-------------------------
 
 The following steps create and rotate a log file:
 
@@ -51,22 +63,28 @@ The following steps create and rotate a log file:
         use admin
         db.runCommand( { logRotate : 1 } )
 
-     This is the only available method to rotate log files on
-     Windows systems.
+     .. important:: This is the only available method to rotate log files on
+        Windows systems.
 
    - From the UNIX shell, rotate logs for a single process by issuing
      the following command:
 
      .. code-block:: javascript
 
-        kill -SIGUSR1 <mongod process id>
+        kill -SIGUSR1 <mongos process ID>
 
-   - From the UNIX shell, rotate logs for all :program:`mongod`
-     processes on a machine by issuing the following command:
+   - From the UNIX shell, rotate logs for all :program:`mongod` and
+     :program:`mongos` processes on a machine by issuing the following
+     command:
 
      .. code-block:: javascript
 
-        killall -SIGUSR1 mongod
+        killall -SIGUSR1 mongod mongos
+
+     .. important:: Sending incorrect process signals to running
+        :program:`mongod` or :program:`mongos` instances may terminate
+        the processes and leave data in an inconsistant state. Use
+        caution.
 
 #. List the matching files again:
 
@@ -100,5 +118,18 @@ The following steps create and rotate a log file:
    file, renamed. ``server1.log`` is a new, empty file that receives
    all new log output.
 
-.. [#timestamp-format] MongoDB renders this timestamp in UTC (GMT) and
-   formatted as :term:`ISODate`.
+Syslog Log Rotation
+-------------------
+
+.. versionadded:: 2.2
+
+To configure :program:`mongod` to send log data to syslog rather than
+writing log data to a file, use the following procedure.
+
+1. Start a :program:`mongod` or :program:`mongos` with the :option:`--syslog` option.
+
+#. MongoDB log output will now be sent to your local syslog. Manage log rotation
+   for syslog using a seperate log rotation tool.
+
+.. important:: You cannot use :setting:`syslog` with :setting:`logpath`.
+
