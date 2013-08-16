@@ -159,10 +159,34 @@ Options
    :program:`mongoexport` includes only the specified field(s). The
    specified field(s) can be a field within a sub-document.
 
-.. option:: --query <JSON>
+.. option:: --query <JSON>, -q <JSON>
 
    Provides a :term:`JSON document` as a query that optionally limits
    the documents returned in the export.
+
+   Given a database named ``test`` with the following documents:
+
+   .. code:: json
+
+      { "_id" : ObjectId("51f0188846a64a1ed98fde7c"), "a" : 1 }
+      { "_id" : ObjectId("520e61b0c6646578e3661b59"), "a" : 1, "b" : 2 }
+      { "_id" : ObjectId("520e642bb7fa4ea22d6b1871"), "a" : 2, "b" : 3, "c" : 5 }
+      { "_id" : ObjectId("520e6431b7fa4ea22d6b1872"), "a" : 3, "b" : 3, "c" : 6 }
+      { "_id" : ObjectId("520e6445b7fa4ea22d6b1873"), "a" : 5, "b" : 6, "c" : 8 }
+
+   And the following :program:`mongoimport`:
+
+   .. code:: bash
+
+      mongoexport -c test -q "{ \$or: [ { a:{ \$gte:3 } } , { b:{ \$lte:2 } } ] }"
+
+   The resulting collection includes the following documents:
+
+   .. code:: json
+
+      { "_id" : { "$oid" : "520e61b0c6646578e3661b59" }, "a" : 1, "b" : 2 }
+      { "_id" : { "$oid" : "520e6431b7fa4ea22d6b1872" }, "a" : 3, "b" : 3, "c" : 6 }
+      { "_id" : { "$oid" : "520e6445b7fa4ea22d6b1873" }, "a" : 5, "b" : 6, "c" : 8 }
 
 .. option:: --csv
 
