@@ -1,108 +1,4 @@
-:param map:
-
-   A JavaScript function that associates or "maps" a ``value`` with a
-   ``key`` and emits the ``key`` and value ``pair``.
-
-   The ``map`` function processes every input document for the
-   map-reduce operation. However, the ``map`` function can call emit
-   any number of times, including 0, for each input document. The
-   map-reduce operation groups the emitted ``value`` objects by the
-   ``key`` and passes these groupings to the ``reduce`` function.
-   See below for requirements for the ``map`` function.
-
-:param reduce:
-
-   A JavaScript function that "reduces" to a single object all the
-   ``values`` associated with a particular ``key``.
-
-   The ``reduce`` function accepts two arguments: ``key`` and
-   ``values``. The ``values`` argument is an array whose elements are
-   the ``value`` objects that are "mapped" to the ``key``.
-   See below for requirements for the ``reduce`` function.
-
-
-:param out:
-
-   .. versionadded:: 1.8
-
-   Specifies the location of the result of the map-reduce operation.
-   You can output to a collection, output to a collection with an
-   action, or output inline. You may output to a collection when
-   performing map reduce operations on the primary members of the set;
-   on :term:`secondary` members you may only use the ``inline`` output.
-
-:param query:
-
-   Optional. Specifies the selection criteria using :doc:`query
-   operators </reference/operator>` for determining the documents
-   input to the ``map`` function.
-
-:param sort:
-
-   Optional. Sorts the *input* documents. This option is useful for
-   optimization. For example, specify the sort key to be the same as
-   the emit key so that there are fewer reduce operations. The sort 
-   key must be in an existing index for this collection.
-
-:param limit:
-
-   Optional. Specifies a maximum number of documents to return from
-   the collection.
-
-:param finalize:
-
-   Optional. A JavaScript function that follows the ``reduce``
-   method and modifies the output.
-
-   The ``finalize`` function receives two arguments: ``key`` and
-   ``reducedValue``. The ``reducedValue`` is the value returned from
-   the ``reduce`` function for the ``key``.
-
-:param document scope:
-
-   Optional. Specifies global variables that are accessible in the
-   ``map`` , ``reduce`` and the ``finalize`` functions.
-
-:param Boolean jsMode:
-
-   .. versionadded:: 2.0
-
-   Optional. Specifies whether to convert intermediate data into BSON
-   format between the execution of the ``map`` and ``reduce``
-   functions.
-
-   If ``false``:
-
-   - Internally, MongoDB converts the JavaScript objects emitted
-     by the ``map``
-     function to BSON objects. These BSON
-     objects are then converted back to JavaScript objects when
-     calling the ``reduce`` function.
-
-   - The map-reduce operation places the intermediate BSON objects
-     in temporary, on-disk storage. This allows the map-reduce
-     operation to execute over arbitrarily large data sets.
-
-   If ``true``:
-
-   - Internally, the JavaScript objects emitted during ``map``
-     function remain as JavaScript objects. There is no need to
-     convert the objects for the ``reduce`` function, which
-     can result in faster execution.
-
-   - You can only use ``jsMode`` for result sets with fewer than
-     500,000 distinct ``key`` arguments to the mapper's ``emit()``
-     function.
-
-   The ``jsMode`` defaults to false.
-
-:param Boolean verbose:
-
-   Optional. Specifies whether to include the ``timing`` information
-   in the result information. The ``verbose`` defaults to ``true`` to
-   include the ``timing`` information.
-
-.. stop-parameters-here
+.. start-map
 
 Requirements for the ``map`` Function
 -------------------------------------
@@ -159,6 +55,10 @@ The ``map`` function exhibits the following behaviors:
 - The ``map`` function can access the variables defined in the
   ``scope`` parameter.
 
+.. end-map
+
+.. start-reduce
+
 Requirements for the ``reduce`` Function
 ----------------------------------------
 
@@ -180,7 +80,9 @@ The ``reduce`` function exhibits the following behaviors:
   system.
 
 - MongoDB will **not** call the ``reduce`` function for a key
-  that has only a single value.
+  that has only a single value. The ``values`` argument is an array
+  whose elements are the ``value`` objects that are "mapped" to the 
+  ``key``.
 
 - MongoDB can invoke the ``reduce`` function more than once for the
   same key. In this case, the previous output from the ``reduce``
@@ -219,6 +121,9 @@ properties need to be true:
 
      reduce( key, [ A, B ] ) == reduce( key, [ B, A ] )
 
+.. end-reduce
+
+.. start-out
 
 ``out`` Options
 ---------------
@@ -311,6 +216,10 @@ replica sets.
 The result must fit within the :ref:`maximum size of a BSON document
 <limit-bson-document-size>`.
 
+.. end-out
+
+.. start-finalize
+
 Requirements for the ``finalize`` Function
 ------------------------------------------
 
@@ -335,3 +244,5 @@ aware that:
 
 - The ``finalize`` function can access the variables defined in
   the ``scope`` parameter.
+
+.. end-finalize
