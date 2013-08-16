@@ -6,12 +6,26 @@ Manage Sharded Cluster Balancer
 
 .. default-domain:: mongodb
 
-This page describes provides common administrative procedures related
+This page describes common administrative procedures related
 to balancing. For an introduction to balancing, see
 :ref:`sharding-balancing`. For lower level information on balancing, see
 :ref:`sharding-balancing-internals`.
 
 .. seealso:: :doc:`/tutorial/configure-sharded-cluster-balancer`
+
+Check the Balancer State
+------------------------
+
+The following command checks if the balancer is enabled (i.e. that the
+balancer is allowed to run). The command does not check if the balancer
+is active (i.e. if it is actively balancing chunks).
+
+To see if the balancer is enabled in your :term:`cluster <sharded
+cluster>`, issue the following command, which returns a boolean:
+
+.. code-block:: javascript
+
+   sh.getBalancerState()
 
 .. _sharding-balancing-check-lock:
 
@@ -56,15 +70,6 @@ This output confirms that:
 - The value in the ``state`` field indicates that a :program:`mongos`
   has the lock. For version 2.0 and later, the value of an active lock
   is ``2``; for earlier versions the value is ``1``.
-
-.. optional::
-
-   You can also use the following shell helper, which returns a
-   boolean to report if the balancer is active:
-
-   .. code-block:: javascript
-
-      sh.getBalancerState()
 
 .. _sharding-schedule-balancing-window:
 
@@ -153,46 +158,36 @@ all migration, use the following procedure:
 
       sh.setBalancerState(false)
 
-   .. note::
+   If a migration is in progress, the system will complete the
+   in-progress migration before stopping.
 
-      If a migration is in progress, the system will complete the
-      in-progress migration before stopping.
+#. To verify that the balancer has stopped, issue the following command,
+   which returns ``false`` if the balancer is stopped:
 
-#. To later re-enable the balancer, see :ref:`sharding-balancing-re-enable`.
+   .. code-block:: javascript
 
-After disabling, you can use the following
-operation in the :program:`mongo` shell to determine if there are
-no migrations in progress:
+      sh.getBalancerState()
 
-.. code-block:: javascript
-
-   use config
-   while( sh.isBalancerRunning() ) {
-             print("waiting...");
-             sleep(1000);
-   }
-
-The :method:`sh.setBalancerState()` helper provides
-a wrapper on the following process, which may be useful if you
-need to run this operation from a driver that does not have helper
-functions:
-
-#. Connect to any :program:`mongos` in the cluster using the
-   :program:`mongo` shell.
-
-#. Issue the following command to switch to the :ref:`config-database`:
+   Optionally, to verify no migrations are in progress after disabling,
+   issue the following operation in the :program:`mongo` shell:
 
    .. code-block:: javascript
 
       use config
+      while( sh.isBalancerRunning() ) {
+                print("waiting...");
+                sleep(1000);
+      }
 
-#. Issue the following update to disable the balancer:
+.. note::
+
+   To disable the balancer from a driver that does not have the
+   :method:`sh.startBalancer()` helper, issue the following command from
+   the ``config`` database:
 
    .. code-block:: javascript
 
-      db.settings.update( { _id: "balancer" }, { $set : { stopped: true } } , true );
-
-#. To later re-enable the balancer, see :ref:`sharding-balancing-re-enable`.
+      db.settings.update( { _id: "balancer" }, { $set : { stopped: true } } , true )
 
 .. _sharding-balancing-re-enable:
 .. _sharding-balancing-enable:
@@ -208,18 +203,18 @@ re-enable it:
 
 #. Issue one of the following operations to enable the balancer:
 
-   - From the :program:`mongo` shell, issue:
+   From the :program:`mongo` shell, issue:
 
-     .. code-block:: javascript
+   .. code-block:: javascript
 
-        sh.setBalancerState(true)
+      sh.setBalancerState(true)
 
-   - From a driver that does not have the :method:`sh.startBalancer()` helper,
-     issue the following from the ``config`` database:
+   From a driver that does not have the :method:`sh.startBalancer()` helper,
+   issue the following from the ``config`` database:
 
-     .. code-block:: javascript
+   .. code-block:: javascript
 
-        db.settings.update( { _id: "balancer" }, { $set : { stopped: false } } , true )
+      db.settings.update( { _id: "balancer" }, { $set : { stopped: false } } , true )
 
 Disable Balancing During Backups
 --------------------------------
