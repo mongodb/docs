@@ -8,23 +8,40 @@ This procedure migrates a :ref:`config server <sharding-config-server>`
 in a :doc:`sharded cluster </core/sharding>`
 to a new server that uses a different hostname. Use this procedure only
 if the config server *will not* be accessible via the same hostname.
+
+Changing a :ref:`config server's <sharding-config-server>` hostname
+**requires downtime** and requires restarting every process in the
+sharded cluster.
 If possible, avoid changing the hostname so that you can instead use the
 procedure to :doc:`migrate a config server and use the same hostname
 <migrate-config-servers-with-same-hostname>`.
 
-#. Disable the cluster balancer process temporarily. See
+To migrate all the config servers in a cluster, perform this procedure
+for each config server separately and migrate the config servers in
+reverse order from how they are listed in the :program:`mongos`
+instances' :setting:`configdb` string. Start with the last config server
+listed in the :setting:`configdb` string.
+
+1. Disable the cluster balancer process temporarily. See
    :ref:`sharding-balancing-disable-temporarily` for more information.
 
-#. Shut down the :ref:`config server <sharding-config-server>` you are moving.
+#. Shut down the config server.
 
-   This will render all config data for your cluster "read only:"
+   This renders all config data for the sharded cluster "read only."
+
+#. Copy the contents of :setting:`dbpath` from the old config server to
+   the new config server.
+
+   For example, to copy the contents of :setting:`dbpath` to a machine
+   named ``mongodb.config2.example.net``, you might issue a command
+   similar to the following:
 
    .. code-block:: sh
 
       rsync -az /data/configdb mongodb.config2.example.net:/data/configdb
 
-#. Start the config instance on the new system. The default invocation
-   is:
+#. Start the config server instance on the new system. The default
+   invocation is:
 
    .. code-block:: sh
 
@@ -32,22 +49,21 @@ procedure to :doc:`migrate a config server and use the same hostname
 
 #. Shut down all existing MongoDB processes. This includes:
 
-   - all :program:`mongod` instances or :term:`replica sets <replica set>`
+   - the :program:`mongod` instances or :term:`replica sets <replica set>`
      that provide your shards.
 
    - the :program:`mongod` instances that provide your existing
      :ref:`config databases <config-database>`.
 
-   - all :program:`mongos` instances in your cluster.
+   - the :program:`mongos` instances.
 
 #. Restart all :program:`mongod` processes that provide the shard
    servers.
 
-#. Restart the config instances that have *not* changed hostnames.
+#. Update the :setting:`configdb` setting for each :program:`mongos`
+   instances.
 
-#. Update the :option:`--configdb <mongos --configdb>` parameter (or
-   :setting:`configdb`) for all :program:`mongos` instances and
-   restart all :program:`mongos` instances.
+#. Restart the :program:`mongos` instances.
 
 #. Re-enable the balancer to allow the cluster to resume normal
    balancing operations. See the
