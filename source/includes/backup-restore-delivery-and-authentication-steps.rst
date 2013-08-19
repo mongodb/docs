@@ -31,6 +31,8 @@ Select Destination for the Snapshot
      .. note::
 
         For security reasons, you should remove this public key from
+        the authorized hosts file once you have obtained your backup
+        file.
 
 #. Click :guilabel:`Authenticate`.
 
@@ -45,3 +47,13 @@ Authenticate
    :guilabel:`Auth code` field.
 
 #. Click on :guilabel:`Finalize Request`.
+
+Backup Delivery
+~~~~~~~~~~~~~~~
+
+For replica sets, you will receive one .tar.gz file containing your
+data; for sharded clusters, you will receive a series of .tar.gz
+files.
+
+.. todo: document what to do with the .tar.gz files once BRS-588 is complete.
+
