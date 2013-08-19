@@ -4,69 +4,122 @@ repairDatabase
 
 .. default-domain:: mongodb
 
+.. contents::
+   :backlinks: none
+   :local:
+
+Definition
+----------
+
 .. dbcommand:: repairDatabase
 
-   .. include:: /includes/warning-repair.rst
+   Checks and repairs errors and inconsistencies in data storage.
+   :dbcommand:`repairDatabase` is analogous to a ``fsck`` command for
+   file systems. Run the :dbcommand:`repairDatabase` command to ensure
+   data integrity after the system experiences an unexpected system
+   restart or crash, if:
 
-   .. include:: /includes/note-repair.rst
+   #. The :program:`mongod` instance is not running with
+      :term:`journaling <journal>` enabled.
 
-   The :dbcommand:`repairDatabase` command checks and repairs errors and
-   inconsistencies with the data storage. The command is analogous to
-   a ``fsck`` command for file systems.
+      .. include:: /includes/note-repair.rst
 
-   If your :program:`mongod` instance is not running with journaling
-   the system experiences an unexpected system restart or crash, and
-   you have *no* other intact replica set members with this data, you
-   should run the :dbcommand:`repairDatabase` command to ensure that
-   there are no errors in the data storage.
+   #. There are *no* other intact :term:`replica set` members with a complete
+      data set.
 
-   As a side effect, the :dbcommand:`repairDatabase` command will
-   compact the database, as the :dbcommand:`compact` command, and also
-   reduces the total size of the data files on disk. The
-   :dbcommand:`repairDatabase` command will also recreate all indexes
-   in the database. 
-   
-   Use the following syntax:
+      .. include:: /includes/warning-repair.rst
+
+   :dbcommand:`repairDatabase` has the following fields:
+
+   .. include:: /reference/command/repairDatabase-field.rst
+
+   :dbcommand:`repairDatabase` takes the following form:
 
    .. code-block:: javascript
 
-        { repairDatabase: 1 }
+      { repairDatabase: 1 }
 
-   Be aware that this command can take a long time to run if your
-   database is large. In addition, it requires a quantity of free disk
-   space equal to the size of your database. If you lack sufficient
-   free space on the same volume, you can mount a separate volume and
-   use that for the repair. In this case, you must run the command
-   line and use the :option:`--repairpath <mongod --repairpath>`
-   switch to specify the folder in which to store the temporary repair
-   files.
-   
+   You can explicitly set the options as follows:
+
+   .. code-block:: javascript
+
+      { repairDatabase: 1,
+        preserveClonedFilesOnFailure: <boolean>,
+        backupOriginalFiles: <boolean> }
+
    .. include:: /includes/warning-blocking-global.rst
 
-   This command is accessible via a number of different avenues. You
-   may:
+   .. note:: :dbcommand:`repairDatabase` requires free disk space equal to the size
+      of your current data set plus 2 gigabytes. If the volume that holds dbpath
+      lacks sufficent space, you can mount a separate volume
+      and use that for the repair. When mounting a separate volume for
+      :dbcommand:`repairDatabase` you must run :dbcommand:`repairDatabase`
+      from the command line and use the :option:`--repairpath <mongod --repairpath>`
+      switch to specify the folder in which to store
+      temporary repair files.
 
-   - Use the shell to run the above command, as above.
+   See :option:`mongod --repair` and :option:`mongodump --repair` for
+   information on these options.
 
-   - Use the :method:`db.repairDatabase()` in the :program:`mongo`
-     shell.
+Behavior
+--------
 
-   - Run :program:`mongod` directly from your system's shell. Make sure
-     that :program:`mongod` isn't already running, and that you issue
-     this command as a user that has access to MongoDB's data
-     files. Run as: ::
+The :dbcommand:`repairDatabase` command compacts all collections in the
+database. It is identical to running the :dbcommand:`compact` command on
+each collection individually.
 
-           $ mongod --repair
+:dbcommand:`repairDatabase` reduces the total size of the data files on
+disk. It also recreates all indexes in the database.
 
-     To add a repair path: ::
+The time requirement for :dbcommand:`repairDatabase` depends on the size of the
+data set.
 
-           $ mongod --repair --repairpath /opt/vol2/data
+You may invoke :dbcommand:`repairDatabase` from multiple contexts:
 
-     .. note::
+- Use the :program:`mongo` shell to run the command, as above.
 
-        This command will fail if your database is not a master or
-        primary. In most cases, you should recover a corrupt secondary
-        using the data from an existing intact node. If you must
-        repair a secondary or slave node, first restart the node as a
-        standalone mongod by omitting the :option:`--replSet <mongod --replSet>`
-        or :option:`--slave <mongod --slave>` options, as necessary.
+- Use the :method:`db.repairDatabase()` in the :program:`mongo`
+  shell.
+
+- Run :program:`mongod` directly from your system's shell. Make sure
+  that :program:`mongod` isn't already running, and that you invoke
+  :program:`mongod` as a user that has access to MongoDB's data files. Run
+  as:
+
+  .. code-block:: javascript
+
+     mongod --repair
+
+  To add a repair path:
+
+  .. code-block:: javascript
+
+     mongod --repair --repairpath /opt/vol2/data
+
+  .. note::
+
+     :program:`mongod --repair <mongod>` will fail if your database
+     is not a master or primary. In most cases, you should recover a
+     corrupt secondary using the data from an existing intact node. To
+     run repair on a secondary/slave restart the instance in standalone
+     mode without the :option:`--replSet <mongod --replSet>` or
+     :option:`--slave <mongod --slave>` options.
+
+Example
+-------
+
+.. code-block:: javascript
+
+   { repairDatabase: 1 }
+
+Using ``repairDatabase`` to Reclaim Disk Space
+----------------------------------------------
+
+You should not use :dbcommand:`repairDatabase` for data recovery
+unless you have no other option.
+
+However, if you trust that there is no corruption, and you have enough
+free space to perform a :dbcommand:`repairDatabase` command, then
+:dbcommand:`repairDatabase` is the appropriate (and the only) way to
+reclaim disk space.
+
