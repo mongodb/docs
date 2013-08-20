@@ -40,6 +40,483 @@ process.
 Changes
 -------
 
+.. important:: The MongoDB 2.5-series, which will become MongoDB 2.6,
+   is for testing and development **only**. All identifiers, names,
+   interfaces are subject to change. Do **not** use a MongoDB 2.5
+   release in production situations.
+
+SNMP Enterprise Identifier Changed
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. DOCS-1696
+
+In 2.5.1, the IANA enterprise identifier for MongoDB changed from
+37601 to 34601. Users of SNMP monitoring must modify their SNMP
+configuration (i.e. MIB) accordingly.
+
+Default ``bind_ip`` for RPM and DEB Packages
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the packages provided by 10gen for MongoDB in RPM (Red Hat, CentOS,
+Fedora Linux, and derivatives) and DEB (Debian, Ubuntu, and
+derivatives,) the default :setting:`bind_ip` value attaches MongoDB
+components to the localhost interface *only*. These packages set this
+default in the default configuration file
+(i.e. ``/etc/mongodb.conf``.)
+
+If you use one of these packages and have *not* modified the default
+``/etc/mongodb.conf`` file, you will need to set :setting:`bind_ip`
+before or during the upgrade.
+
+There is no default ``bind_ip`` setting in any other 10gen distributions
+of MongoDB.
+
+Aggregation Pipeline Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``$out`` Stage to Write Data to a Collection
+````````````````````````````````````````````
+
+.. pipeline:: $out
+
+   In an aggregation pipeline you may specify the name of a collection
+   to a :pipeline:`$out` stage, which will write all documents in the
+   aggregation pipeline to that collection.
+
+   .. important:: The input collection for the aggregation may be
+      sharded; however, you may not specify a sharded collection to
+      :pipeline:`$out`.
+
+   :pipeline:`$out` will create a new collection if one does not
+   already exist in the current database.
+
+   You may specify :pipeline:`$out` at any point in a pipeline, and a
+   single pipeline may contain multiple :pipeline:`$out` stages.
+
+.. example::
+
+   The following operation will insert all documents in ``records``
+   collection into a collection named ``users``. The inserted
+   documents will *only* have the ``_id``, ``uid``, and ``email``
+   fields from the source documents:
+
+   .. code-block:: javascript
+
+      db.records.aggregate( { $project: { uid: 1, email: 1 } },
+                            { $out: "users" } )
+
+With :pipeline:`$out`, the aggregation framework can return result
+sets of any size.
+
+Aggregation Operation May Return a Cursor
+`````````````````````````````````````````
+
+The :dbcommand:`aggregate` may now return a cursor rather than a
+result document. Specify the ``cursor`` operation and an initial batch
+size as options to the :dbcommand:`aggregate` command to return a
+cursor object. In 2.5.2, the *temporary* :program:`mongo` shell helper
+``db.collection.aggregateCursor()`` provides access to this
+capability.
+
+By returning a cursor, aggregation pipelines can return result sets of
+any size. In previous versions, the result of an aggregation operation
+could be no larger than 16 megabytes.
+
+The following command will return an aggregation cursor:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      { aggregate: "records",
+        pipeline: [
+           { $project: { name: { $toUpper: "$_id" }, _id: 0 } },
+           { $sort: { name: 1 } }
+        ],
+        cursor: {}
+      }
+   )
+
+For greater convince the ``aggregationCursor()`` method as in the
+following operation:
+
+.. code-block:: javascript
+
+   db.records.aggregateCursor(
+     [
+        { $project : { name: { $toUpper: "$_id" }, _id: 0 } },
+        { $sort : { name: 1 } }
+     ]
+   )
+
+
+Cursors returned from the aggregation command are equivalent to
+cursors returned from :method:`~db.collection.find()` queries in every
+way.
+
+You may specify an initial batch size using the following form:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      { aggregate: "records",
+        pipeline: [
+           { $project : { name: { $toUpper: "$_id" }, _id: 0 } },
+           { $sort : { name : 1 } }
+        ],
+        cursor: { batchSize: 10 }
+      }
+   )
+
+The ``{batchSize: 10 }`` document specifies the size of the *initial*
+batch size only. Specify subsequent batch sizes to *get more*
+operations as with other MongoDB cursors.
+
+Improved Sorting
+````````````````
+
+.. versionadded:: 2.5.2
+
+The :pipeline:`$sort` and :pipeline:`$group` stages now use a more
+efficient sorting system external to the :program:`mongod`
+process. This improves performance for sorting operations that cannot
+rely on an index.
+
+For large sort operations these "external sort" operations will write
+data to the ``_tmp`` directory in the :setting:`dbpath` directory,
+
+``$redact`` Stage to Provide Filtering for Field-Level Access Control
+`````````````````````````````````````````````````````````````````````
+
+.. pipeline:: $redact
+
+   .. versionadded:: 2.5.2
+
+   Provides a method to restrict the content of a returned document on
+   a per-field level.
+
+   .. example::
+
+      Given a collection with the following document in a ``test``
+      collection:
+
+      .. code-block:: javascript
+
+         { a: {
+             level: 1,
+             b: {
+                 level: 5,
+                 c: {
+                     level: 1,
+                     message: "Hello"
+                 }
+             },
+             d: "World."
+         }
+
+     Consider the following aggregation operation:
+
+     .. code-block:: javascript
+
+        db.test.aggregate(
+           { $match: {} },
+           { $redact: { $cond: [ { $lt: [ '$level', 3' ] },
+                                 "$$CONTINUE",
+                                 "$$PRUNE" ]
+                      }
+           }
+        )
+
+     This operation evaluates every field at every level for all
+     documents in the ``test`` collection, and uses the
+     :expression:`$cond` expression and the variables ``$$CONTINUE``
+     and ``$$PRUNE`` to specify the redaction of document parts in the
+     aggregation pipeline. 
+
+     .. important:: ``$$CONTINUE`` will become ``$$DESCEND`` in
+        2.5.3.
+
+     Specifically, if the field ``level`` is less than 3,
+     (i.e. ``{ $lt: [ '$level', 3' ] }``) :pipeline:`$redact`
+     continues (i.e. ``$$CONTINUE``) evaluating the fields and
+     sub-documents at this level of the input document. If the value
+     of ``level`` is greater than ``3``, then :pipeline:`$redact`
+     removes all data at this level of the document. 
+
+     The result of this aggregation operation is as follows:
+
+      .. code-block:: javascript
+
+         { a: {
+             level: 1,
+             d: "World."
+         }
+
+     You may also specify ``$$KEEP`` as a variable to
+     :expression:`$cond`, which returns the entire sub-document
+     without transversing, as ``$$CONTINUE``.
+
+     .. START-COMMENT
+
+        In 2.5.3, :expression:`$cond` will accept a document with
+        named parameters in addition to the current ordered array of
+        parameters.
+
+        In 2.5.3, ``$$CONTINUE`` will become ``$$DESCEND``.
+
+     .. END-COMMENT
+
+     .. see:: :expression:`$cond`.
+
+Set Expression Operations in ``$project``
+`````````````````````````````````````````
+
+In 2.5.2, the :pipeline:`$project` aggregation pipeline stage now
+supports the following set expressions:
+
+.. important:: Set operators take arrays as their arguments and treat
+   these arrays as sets. Except for :expression:`$setDifference`, the
+   set operators ignore duplicate entries in an input array and
+   produce arrays containing unique entries.
+
+.. expression:: $setIsSubset
+
+   Takes two arrays and returns ``true`` when the first array is a
+   subset of the second and ``false`` otherwise.
+
+.. expression:: $setEquals
+
+   Takes two arrays and returns ``true`` when they contain the same
+   elements, and ``false`` otherwise.
+
+.. expression:: $setDifference
+
+   Takes two arrays and returns an array containing the elements that
+   only exist in the first array. :expression:`$setDifference` may
+   produce arrays containing duplicate items in 2.5.2 if the input
+   array contains duplicate items.
+
+.. expression:: $setIntersection
+
+   Takes any number of arrays and returns an array that contains the
+   elements that appear in every input array.
+
+.. expression:: $setUnion
+
+   Takes any number of arrays and returns an array that containing the
+   elements that appear in any input array.
+
+.. expression:: $all
+
+   Takes a single array and returns ``true`` if all its values are
+   ``true`` and ``false`` otherwise.
+
+   :expression:`$all` will become ``$allElementsTrue`` in 2.5.3. 
+
+.. expression:: $any
+
+   Takes a single expression that returns an array and returns
+   ``true`` if any of its values are ``true`` and ``false`` otherwise.
+
+   :expression:`$any` will become ``$anyElementTrue`` in 2.5.3.
+
+``$map`` and ``$let`` Expressions in Aggregation Pipeline Stages
+````````````````````````````````````````````````````````````````
+
+.. tip:: For :expression:`$let` and :expression:`$map`, the
+   aggregation framework introduces variables. To specify a variable,
+   use the name of the variable prefixed by **2** dollar signs
+   (i.e. ``$$``) as in: ``$$<name>``.
+
+.. expression:: $let
+
+   :expression:`$let` binds variables for use in sub-expressions. For
+   example:
+
+   .. code-block:: javascript
+
+      { $project: { $let: { vars: { tally: 75, count: 50 } },
+                            in: { remaining: { $subtract: [ "$$tally", "$$count" ] } } } }
+
+   Would return a document with the following:
+
+   .. code-block:: javascript
+
+      { remaining: 25 }
+
+   :expression:`$let` is available the in :pipeline:`$project`,
+   :pipeline:`$group`, and :pipeline:`$redact` pipeline stages.
+
+.. expression:: $map
+
+   :expression:`$map` applies a sub-expression to each item in an
+   array and returns an array with the result of the sub-expression
+
+   :expression:`$map` is available the in :pipeline:`$project`,
+   :pipeline:`$group`, and :pipeline:`$redact` pipeline stages.
+
+   Given an input document that resembles the following:
+
+   .. code-block:: javascript
+
+      { skews: [ 1, 1, 2, 3, 5, 8 ] }
+
+   And the following :pipeline:`$project` statement:
+
+   .. code-block:: javascript
+
+      { $project: { adjustments: { $map: { input: $skews,
+                                           as: "adj",
+                                           in: { $add: [ "$$adj", 12 ] } } } } }
+
+   The :expression:`$map` would transform the input document into the
+   following output document:
+
+   .. code-block:: javascript
+
+      { adjustments: [ 13, 13, 14, 15, 17, 20 ] }
+
+Sharding Improvements
+~~~~~~~~~~~~~~~~~~~~~
+
+Support for Removing Orphan Data From Shards
+````````````````````````````````````````````
+
+.. versionadded:: 2.5.2
+
+The new :dbcommand:`cleanupOrphaned` is available to remove orphaned
+data from a sharded cluster. Orphaned data are those documents in a
+collection that exist on shards that belong to another shard in the
+cluster. Orphaned data are the result of failed migrations or incomplete
+migration cleanup due to abnormal shutdown.
+
+.. dbcommand:: cleanupOrphaned
+
+   :dbcommand:`cleanupOrphaned` removes documents from *one* orphaned
+   chunk range on shard and runs directly on the shard's
+   :program:`mongod` instance, and requires the
+   :authrole:`clusterAdmin` for systems running with :setting:`auth`.
+   You do **not** need to disable the :term:`balancer` to run
+   :dbcommand:`cleanupOrphaned`.
+
+   In the common case, :dbcommand:`cleanupOrphaned` takes the
+   following form:
+
+   .. code-block:: javascript
+
+      { cleanupOrphaned: <namespace>, startingFromKey: { } }
+
+   The ``startingFromField`` field specifies the lowest value of the
+   :term:`shard key` to begin searching for orphaned chunks. The empty
+   document (i.e. ``{ }``) is equivalent to the minimum value for the
+   shard key (i.e. ``$minValue``).
+
+   The :dbcommand:`cleanupOrphaned` command returns a document that
+   contains a field named ``stoppedAtKey`` that you can use to
+   construct a loop, as in the following example in the
+   :program:`mongo` shell:
+
+   .. code-block:: javascript
+
+      use admin
+
+      var nextKey = {};
+
+      while (
+         nextKey = db.runCommand( { cleanupOrphaned : "test.user", startingFromKey : nextKey } ).stoppedAtKey
+         ) { printjson(nextKey); }
+
+   This loop remove all orphaned data on the shard.
+
+Ability to Merge Co-located Contiguous Chunks
+`````````````````````````````````````````````
+
+.. versionadded:: 2.5.2
+
+The :dbcommand:`mergeChunks` provides the ability for users to combine
+contiguous chunks located on a single shard. This makes it possible to
+combine chunks in situations where document removal leaves a sharded
+collection with too many empty chunks.
+
+.. dbcommand:: mergeChunks
+
+   Combines two contiguous chunks located on the same shard. The
+   :dbcommand:`mergeChunks` takes the following form:
+
+   .. code-block:: javascript
+
+      { mergeChunks: <namespace>, bounds: [ <minKey>, <maxKey> ] }
+
+   The ``bounds`` option specified to :dbcommand:`mergeChunks` *must*
+   be the boundaries of existing chunks in the collections. See the
+   output of :method:`sh.status()` to see the current shard
+   boundaries.
+
+   .. important:: Both chunks **must** reside on the same shard.
+
+   .. tip:: In 2.5.2, :dbcommand:`mergeChunks` has the following
+      restrictions, which are subject to change in future releases:
+
+      - :dbcommand:`mergeChunks` will only merge two chunks.
+
+      - one chunk **must** not hold any documents (i.e. an "empty
+        chunk").
+
+MongoDB Collects Data to Support Auditing
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 2.5.2
+
+MongoDB adds features to audit server and client activity for a
+:program:`mongod` instance.
+
+.. important:: Auditing, like all new features in 2.5.2, is in ongoing
+   development. Specifically the interface, output format, audited
+   events and the structure of audited events will change
+   significantly in the in the 2.5 series before the release of 2.6.
+
+To enable auditing, start :program:`mongod` with the following
+invocation:
+
+.. code-block:: sh
+
+   mongod --setParameter auditLogPath=<option>
+
+The value of ``<option>`` is one of the following:
+
+- a path. This may be the same as the :setting:`logpath` for MongoDB's
+  process log. If you specify the same log file, then the path
+  specification must be *exactly* the same as the :setting:`logpath`
+  specification.
+
+- the string ``:console`` to output audit log messages to standard
+  output.
+
+- the string ``:syslog`` to output audit log messages to the system's
+  syslog facility.
+
+``isMaster`` Comand includes Wire Protocol Versions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 2.5.2
+
+In order to support changes to the wire protocol both now and in the
+future, the output of :dbcommand:`isMaster` now contains two new
+fields that report the earliest version of the wire protocol that this
+:program:`mongod` instance supports and the highest version of the
+wire protocol that this :program:`mongo` instance supports.
+
+.. data:: isMaster.maxWireVersion
+
+   The latest version of the wire protocol that this :program:`mongod`
+   or :program:`mongos` instance is capable of using to communicate
+   with clients.
+
+.. data:: isMaster.minWireVersion
+
+   The earliest version of the wire protocol that this
+   :program:`mongod` or :program:`mongos` instance is capable of using
+   to communicate with clients.
+
 SASL Library Change
 ~~~~~~~~~~~~~~~~~~~
 
@@ -433,6 +910,15 @@ x.509 authentication, use a rolling upgrade process:
 
 .. [#encryptedKey] If the key is encrypted, set the
    ``--sslClusterPassword`` to the password to decrypt the key.
+
+Limit for ``maxConns`` Removed
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 2.5.0, there is no longer any upward limit for the
+:setting:`maxConns`, or :program:`mongod --maxConns` and
+:program:`mongos --maxConns` options. Previous versions capped the
+maximum possible :setting:`maxConns` setting at ``20,000``
+connections.
 
 Background Index Builds Replicate to Secondaries
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
