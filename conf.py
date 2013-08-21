@@ -150,8 +150,13 @@ for pdf in pdfs:
     _latex_document = ( pdf['source'], pdf['output'], pdf['title'], pdf['author'], pdf['class'])
     latex_documents.append( _latex_document )
 
+latex_preamble_elements = [ r'\DeclareUnicodeCharacter{FF04}{\$}',
+                            r'\DeclareUnicodeCharacter{FF0E}{.}',
+                            r'\PassOptionsToPackage{hyphens}{url}',
+                            r'\pagestyle{plain}',
+                            r'\pagenumbering{arabic}' ]
 latex_elements = {
-    'preamble': '\DeclareUnicodeCharacter{FF04}{\$} \DeclareUnicodeCharacter{FF0E}{.} \PassOptionsToPackage{hyphens}{url}',
+    'preamble': '\n'.join(latex_preamble_elements),
     'pointsize': '10pt',
     'papersize': 'letterpaper'
 }
