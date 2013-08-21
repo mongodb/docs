@@ -43,14 +43,14 @@ master_doc = 'contents'
 language = 'en'
 project = u'mongodb-manual'
 copyright = u'2011-' + meta['date'] + ', 10gen, Inc.'
-version = '2.4'
-release = '2.4.6'
+version = '2.2'
+release = '2.2.6'
 
 BREAK = '\n'
 rst_epilog = ('.. |branch| replace:: ``' + meta['branch'] + '``' + BREAK +
               '.. |copy| unicode:: U+000A9' + BREAK +
               '.. |year| replace:: ' + meta['date'] + BREAK +
-              '.. |ent-build| replace:: MongoDB Enterprise' + BREAK +
+              '.. |ent-build| replace:: the MongoDB Subscriber Edition' + BREAK +
               '.. |hardlink| replace:: http://docs.mongodb.org/' + meta['branch'])
 
 pygments_style = 'sphinx'
@@ -150,8 +150,13 @@ for pdf in pdfs:
     _latex_document = ( pdf['source'], pdf['output'], pdf['title'], pdf['author'], pdf['class'])
     latex_documents.append( _latex_document )
 
+latex_preamble_elements = [ r'\DeclareUnicodeCharacter{FF04}{\$}',
+                            r'\DeclareUnicodeCharacter{FF0E}{.}',
+                            r'\PassOptionsToPackage{hyphens}{url}',
+                            r'\pagestyle{plain}',
+                            r'\pagenumbering{arabic}' ]
 latex_elements = {
-    'preamble': '\DeclareUnicodeCharacter{FF04}{\$} \DeclareUnicodeCharacter{FF0E}{.} \PassOptionsToPackage{hyphens}{url}',
+    'preamble': '\n'.join(latex_preamble_elements),
     'pointsize': '10pt',
     'papersize': 'letterpaper'
 }
@@ -168,20 +173,20 @@ latex_appendices = []
 
 man_pages = [
   # (source start file, name, description, authors, manual section).
-    ('reference/program/bsondump', 'bsondump', u'MongoDB BSON utility', [u'MongoDB Documentation Project'], 1),
-    ('reference/program/mongo', 'mongo', u'MongoDB Shell', [u'MongoDB Documentation Project'], 1),
-    ('reference/program/mongod', 'mongod', u'MongoDB Server', [u'MongoDB Documentation Project'], 1),
-    ('reference/program/mongos', 'mongos', u'MongoDB Shard Utility', [u'MongoDB Documentation Project'], 1),
-    ('reference/program/mongodump', 'mongodump', u'MongoDB', [u'MongoDB Documentation Project'], 1),
-    ('reference/program/mongoexport', 'mongoexport', u'MongoDB', [u'MongoDB Documentation Project'], 1),
-    ('reference/program/mongofiles', 'mongofiles', u'MongoDB', [u'MongoDB Documentation Project'], 1),
-    ('reference/program/mongoimport', 'mongoimport', u'MongoDB', [u'MongoDB Documentation Project'], 1),
-    ('reference/program/mongooplog', 'mongooplog', u'MongoDB', [u'MongoDB Documentation Project'], 1),
-    ('reference/program/mongorestore', 'mongorestore', u'MongoDB', [u'MongoDB Documentation Project'], 1),
-    ('reference/program/mongostat', 'mongostat', u'MongoDB', [u'MongoDB Documentation Project'], 1),
-    ('reference/program/mongosniff', 'mongosniff', u'MongoDB', [u'MongoDB Documentation Project'], 1),
-    ('reference/program/mongotop', 'mongotop', u'MongoDB', [u'MongoDB Documentation Project'], 1),
-    ('reference/program/mongoperf', 'mongoperf', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/bsondump', 'bsondump', u'MongoDB BSON utility', [u'MongoDB Documentation Project'], 1),
+    ('reference/mongo', 'mongo', u'MongoDB Shell', [u'MongoDB Documentation Project'], 1),
+    ('reference/mongod', 'mongod', u'MongoDB Server', [u'MongoDB Documentation Project'], 1),
+    ('reference/mongos', 'mongos', u'MongoDB Shard Utility', [u'MongoDB Documentation Project'], 1),
+    ('reference/mongodump', 'mongodump', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/mongoexport', 'mongoexport', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/mongofiles', 'mongofiles', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/mongoimport', 'mongoimport', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/mongooplog', 'mongooplog', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/mongorestore', 'mongorestore', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/mongostat', 'mongostat', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/mongosniff', 'mongosniff', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/mongotop', 'mongotop', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/mongoperf', 'mongoperf', u'MongoDB', [u'MongoDB Documentation Project'], 1),
 ]
 
 # -- Options for Epub output ---------------------------------------------------
