@@ -6,13 +6,7 @@ Operational Considerations
 
 In addition to normalization and normalization concerns, a number of
 other operational factors help shape data modeling decisions in
-MongoDB. These factors include:
-
-- data lifecycle management,
-- number of collections and
-- indexing requirements,
-- sharding, and
-- managing document growth.
+MongoDB. 
 
 These factors implications for database and application performance
 as well as future maintenance and development costs.
@@ -20,7 +14,7 @@ as well as future maintenance and development costs.
 Data Lifecycle Management
 -------------------------
 
-Data modeling decisions should also take data lifecycle management into
+Data modeling decisions should take data lifecycle management into
 consideration.
 
 The :doc:`Time to Live or TTL feature </tutorial/expire-data>` of
@@ -33,6 +27,55 @@ documents consider :doc:`/core/capped-collections`.  Capped
 collections provide *first-in-first-out* (FIFO) management of inserted
 documents and optimized to support operations that insert and read
 documents based on insertion order.
+
+.. _data-model-atomicity:
+
+Atomicity
+---------
+
+A heavily denormalized schema with extensive nesting of embedded
+documents can be more likely to facilitate atomic write operations:
+since all related data is stored together, updates are more likely to
+touch a single document. This comes at the cost of flexibility: since
+the schema is tailored specifically to a single application's needs,
+it can be difficult to modify the application, or to reuse the data
+for new purposes.
+
+By contrast, with a normalized schema, that stores related information
+in a number of documents, update operations can involve many
+individual writes. This means that (words). However, a normalized
+schema can be more flexible: since the data is not structured to suit
+a single application's needs, it can be easier to use in new ways or
+for new applications.
+
+.. _data-model-document-growth:
+
+Document Growth
+---------------
+
+Certain updates to documents can increase the document size, such as
+pushing elements to an array and adding new fields. If the document
+size exceeds the allocated space for that document, MongoDB relocates
+the document on disk. This internal relocation can be both time and
+resource consuming.
+
+It is therefore important to consider whether documents are likely to
+grow significantly in your collections: adding new fields or pushing
+elements to an array in a heavily denormalized collection may be more
+expensive than in a normalized collection, where you might be
+inserting new documents and adding references, rather than updating a
+large document as a whole.
+
+MongoDB automatically provides madding to minimize the occurrence of
+relocation, but you should still consider document growth when
+designing your schema, and may also need to manually handle document
+growth. Refer to :doc:`/use-cases/pre-aggregated-reports` for an
+example of the *pre-allocation* approach to handling document growth.
+
+.. TODO add link to padding factor page once migrated? Link to
+   Document Growth section of core/modeling-considerations?
+
+.. TODO add link to padding factor page once migrated
 
 .. _data-model-large-number-of-collections:
 
@@ -136,19 +179,3 @@ a sharded collection. Selecting the proper :ref:`shard key
 
 See :doc:`/core/sharding-introduction` and
 :doc:`/core/sharding-shard-key` for more information.
-
-Document Growth
----------------
-
-Certain updates to documents can increase the document size, such as
-pushing elements to an array and adding new fields. If the document
-size exceeds the allocated space for that document, MongoDB relocates
-the document on disk. This internal relocation can be both time and
-resource consuming.
-
-Although MongoDB automatically provides padding to minimize the
-occurrence of relocations, you may still need to manually handle
-document growth. Refer to :doc:`/use-cases/pre-aggregated-reports` for
-an example of the *Pre-allocation* approach to handle document growth.
-
-.. TODO add link to padding factor page once migrated
