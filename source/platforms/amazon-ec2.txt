@@ -8,21 +8,172 @@ Amazon EC2
 
 .. default-domain:: mongodb
 
-MongoDB runs well on `Amazon EC2 <http://aws.amazon.com/ec2/>`_. This page
-includes some notes in this regard.
+MongoDB runs well on `Amazon EC2 <http://aws.amazon.comec2/>`_. To deploy MongoDB on EC2 you can either set up a new instance manually (refer to :ref:`deploy-mongodb-ec2`) or deploy a pre-configured AMI from the `AWS Marketplace <http://aws.amazon.com/marketplace>`_ (refer to :ref:`deploy-from-aws-marketplace` for more information).
 
-Getting Started on EC2
+.. _storage-considerations:
+
+Storage Considerations
 ----------------------
 
-This guide provides instructions for using the MongoDB AMI to set up
-production instances of MongoDB across Amazon's Web Services (AWS) EC2
-infrastructure.
+EC2 instances can be configured either with ephemeral storage or persistent storage using the Elastic Block Store (EBS). Epehmeral storage is lost when instances are terminated so it is generally not recommended for use unless you're comfortable with the data-loss implications.
 
-First, we'll step through deployment planning (instance specifications,
-deployment size, etc.) and then we'll set up a single production node.
-We'll use those setup steps to deploy a three node MongoDB replica set
-for production use. Finally, we'll briefly cover some advanced topics
-such as multi-region availability and data backups.
+For almost all deployments EBS will be the better choice. For production systems we recommend using
+
+* EBS-optimized EC2 instances
+* Provisioned IOPS (PIOPS) EBS volumes
+
+Storage configurations can vary from one deployment to the next but for the best performance we recommend one volume for each of the following: data directory, journal, and log. Each of those has different write behaviors and we use one volume for each to reduce IO contention. Different RAID levels such as RAID0, RAID1, or RAID10 can also be used to provide volume level redundancy or capacity. Different storage configurations will have different cost implications especially when combined with PIOPS EBS volumes.
+
+.. _deploy-from-aws-marketplace:
+
+Deploy from the AWS Marketplace
+-------------------------------
+
+10gen maintains three MongoDB AMIs on the `AWS Marketplace <https://aws.amazon.com/marketplace/seller-profile/ref=dtl_pcp_sold_by?ie=UTF8&id=c9032c7b-70dd-459f-834f-c1e23cf3d092>`_. Each AMI comes pre-configured with individual PIOPS EBS volumes for data, journal, and the log.
+
+* `MongoDB 2.4 with 1000 IOPS <https://aws.amazon.com/marketplace/pp/B00CO7AVMY/ref=sp_mpg_product_title?ie=UTF8&sr=0-4>`_ - data: 200 GB @ 1000 IOPS, journal: 25 GB @ 250 IOPS, log: 10 GB @ 100 IOPS
+* `MongoDB 2.4 with 2000 IOPS <https://aws.amazon.com/marketplace/pp/B00CO7GSTY/ref=sp_mpg_product_title?ie=UTF8&sr=0-3>`_ - data: 200 GB @ 2000 IOPS, journal: 25 GB @ 250 IOPS, log: 15 GB @ 150 IOPS
+* `MongoDB 2.4 with 4000 IOPS <https://aws.amazon.com/marketplace/pp/B00COAAEH8/ref=sp_mpg_product_title?ie=UTF8&sr=0-2>`_ - data: 400 GB @ 4000 IOPS, journal: 25 GB @ 250 IOPS, log: 20 GB @ 200 IOPS
+
+
+For specific information about how each instance was configured, refer to :ref:`deploy-mongodb-ec2`.
+
+.. _deploy-mongodb-ec2:
+
+Deploy MongoDB on EC2
+---------------------
+
+The following steps can be used to deploy MongoDB on EC2. The instances will be configured with the following characteristics:
+
+* Amazon Linux
+* MongoDB 2.4.x installed via Yum
+* Individual PIOPS EBS volumes for data (1000 IOPS), journal (250 IOPS), and log (100 IOPS)
+* Updated read-ahead values for each block device
+* Update ulimit settings
+
+Before continuing be sure to have the following:
+
+* Install `EC2 command line tools <http://aws.amazon.com/developertools/351>`_
+* `Generate an EC2 key pair <http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/generating-a-keypair.html>`_ for connecting to the instance via SSH
+* `Create a security group <http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html#creating-security-group>`_ that allows SSH connections
+
+Create the instance using the key pair and security group previously created and also include the :setting:`--ebs-optimized` flag and specify individual PIOPS EBS volumes (:file:`/dev/sdf` for data, :file:`/dev/sdg` for journal, :file:`/dev/sdh` for log). Refer to the documentation for `ec2-run-instances <http://docs.aws.amazon.com/AWSEC2/latest/CommandLineReference/ApiReference-cmd-RunInstances.html>`_ for more information on devices and parameters.:
+
+.. code-block:: sh
+
+    $ ec2-run-instances ami-05355a6c -t m1.large -g [SECURITY-GROUP] -k [KEY-PAIR] -b "/dev/sdf=:200:false:io1:1000" -b "/dev/sdg=:25:false:io1:250" -b "/dev/sdh=:10:false:io1:100" --ebs-optimized true
+
+You can use the instance-id returned to ascertain the IP Address or DNS information for the instance:
+
+.. code-block:: sh
+
+    $ ec2-describe-instances [INSTANCE-ID]
+
+Now SSH into the instance:
+
+.. code-block:: sh
+
+    $ ssh -i /path/to/keypair.pem ec2-user@ec2-1-2-3-4.amazonaws.com
+
+After login, update installed packages, add the 10gen yum repo, and install MongoDB:
+
+.. code-block:: sh
+
+    $ sudo yum -y update
+
+    $ echo "[10gen]
+    name=10gen Repository
+    baseurl=http://downloads-distro.mongodb.org/repo/redhat/os/x86_64
+    gpgcheck=0
+    enabled=1" | sudo tee -a /etc/yum.repos.d/10gen.repo
+
+    $ sudo yum install -y mongo-10gen-server
+
+Next, create/configure the mount points, mount each volume, set ownership (MongoDB runs under the :setting:`mongod` user/group), and set the :file:`/journal` link:
+
+.. code-block:: sh
+
+    $ sudo mkdir /data /log /journal
+
+    $ sudo mkfs.ext4 /dev/sdf
+    $ sudo mkfs.ext4 /dev/sdg
+    $ sudo mkfs.ext4 /dev/sdh
+
+    $ echo '/dev/sdf /data ext4 defaults,auto,noatime,noexec 0 0
+    /dev/sdg /journal ext4 defaults,auto,noatime,noexec 0 0
+    /dev/sdh /log ext4 defaults,auto,noatime,noexec 0 0' | sudo tee -a /etc/fstab
+
+    $ sudo mount /data
+    $ sudo mount /journal
+    $ sudo mount /log
+
+    $ sudo chown mongod:mongod /data /journal /log
+
+    $ sudo ln -s /journal /data/journal
+
+Now configure the following MongoDB parameters by editing the configuration file :file:`/etc/mongod.conf`:
+
+.. code-block:: sh
+
+    dbpath = /data
+    logpath = /log/mongod.log
+
+Optionally, if you don't want MongoDB to start at boot you can issue the following command:
+
+.. code-block:: sh
+
+    $ sudo chkconfig mongod off
+
+By default Amazon Linux uses :program:`ulimit` settings that are not appropriate for MongoDB. To setup :program:`ulimit` to match the documented :manual:`ulimit settings </reference/ulimit>` use the following steps:
+
+.. code-block:: sh
+
+    $ sudo nano /etc/security/limits.conf
+    * soft nofile 64000
+    * hard nofile 64000
+    * soft nproc 32000
+    * hard nproc 32000
+
+    $ sudo nano /etc/security/limits.d/90-nproc.conf
+    * soft nproc 32000
+    * hard nproc 32000
+
+Additionally, default read ahead settings on EC2 are not optimized for MongoDB. As noted in the read-ahead settings from :manual:`Production Notes </administration/production-notes>`, the settings should be adjusted to read approximately 32 blocks (or 16 KB) of data. The following command will set the readahead appropriately (repeat for necessary volumes):
+
+.. code-block:: sh
+
+    $ sudo blockdev --setra 32 /dev/sdf
+
+To make this change persistent acorss system boot you can issue the following command:
+
+.. code-block:: sh
+
+    $ echo 'ACTION=="add", KERNEL=="xvdf", ATTR{bdi/read_ahead_kb}="16"' | sudo tee -a /etc/udev/rules.d/85-ebs.rules
+
+Once again, repeat the above command for all required volumes (note: the device we created was named :file:`/dev/sdf` but the name used by the system is :file:`/dev/xvdf`).
+
+To startup MongoDB, issue the following command:
+
+.. code-block:: sh
+
+    $ sudo service mongod start
+
+And now connect to the MongoDB instance using the :program:`mongo` shell:
+
+.. code-block:: sh
+
+    $ mongo
+    MongoDB shell version: 2.4.3
+    connecting to: test
+    >
+
+To have MongoDB startup automatically at boot issue the following command:
+
+.. code-block:: sh
+
+    $ sudo chkconfig mongod on
+
+For production deployments consider using :manual:`Replica Sets </replication/>` or :manual:`Sharding </sharding/>`.
 
 Backup, Restore, Verify
 -----------------------
@@ -35,32 +186,6 @@ instructions on backing up, restoring and verifying refer to
 Deployment Notes
 ----------------
 
-MongoDB via AWS Marketplace
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If you installed MongoDB via the AWS Marketplace refer to the
-:ref:`deploy-mongodb-from-aws-marketplace` guide to get a development
-instance up and running. If you are interested in creating a production
-deployment, refer to the :ref:`install-mongodb-on-amazon-ec2`. Start with the
-section on :ref:`install-mongodb-on-amazon-ec2` to set up a place for
-your data to be stored. After that refer to the
-:ref:`ec2-starting-mongodb` section to get your MongoDB instance
-running. If you're interested in scaling your deployment, check out the
-sections on :ref:`ec2-deploy-multinode-replica-set` and
-:ref:`ec2-deploy-a-sharded-configuration`.
-
-Automate Deployment with CloudFormation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-CloudFormation from Amazon Web Services provides an easy mechanism to
-create and manage a collection of AWS resources. To use CloudFormation
-you create and deploy a template which describes the resources in your
-stack via the AWS Management Console. We have created a series of
-reference templates that you can use as a starting point to build your
-own MongoDB deployments using CloudFormation. Check out
-:ref:`automate-deployment-with-cloudformation`
-for a walkthrough and the template files.
-
 Instance Types
 ~~~~~~~~~~~~~~
 
@@ -70,19 +195,8 @@ recommend you use a 64 bit instance as this is
 Additionally, we find that the larger instances tend to be on the
 freshest ec2 hardware.
 
-Install MongoDB
+Running MongoDB
 ```````````````
-
-One can download a binary or build from source.  Generally it is easier
-to download a binary.  We can download and run the binary without being
-root.  For example on 64 bit Linux:
-
-.. code-blocK:: sh
-
-   [~]$ curl -O http://downloads.mongodb.org/linux/mongodb-linux-x86_64-2.4.3.tgz
-   [~]$ tar -xzf mongodb-linux-x86_64-2.4.3.tgz
-   [~]$ cd mongodb-linux-x86_64-2.4.3.tgz/bin
-   [bin]$ ./mongod --version
 
 Before running the database one should decide where to put
 datafiles.  Run :program:`df -h` to see volumes.
@@ -99,7 +213,7 @@ If you mount the file-system, ensure that you mount with the
 
    /dev/mapper/my_vol /var/lib/mongodb xfs noatime,noexec,nodiratime 0 0
 
-Create the MongoDB datafile directory in the desired location and then
+Create the mongodb datafile directory in the desired location and then
 run the database:
 
 .. code-block:: sh
@@ -139,34 +253,6 @@ Keepalive
 Change the default TCP keepalive time to 300 seconds. See our
 :manual:`troubleshooting </faq/diagnostics>` page for details.
 
-Storage Configuration
-~~~~~~~~~~~~~~~~~~~~~
-
-For production use, we recommend raid 10 across 4-8 ebs drives for best
-performance. Local ec2 drives may be faster but are generally not
-suitable as they are ephemeral. Multiple ebs drives increase the
-potential number of random IO's per second (iops), but not necessarily
-sequential read/write throughput much.  In most database applications
-random iops are important.
-
-For more information, refer to `EBS info at Amazon Web Services <http://aws.amazon.com/ebs/>`_.
-
-EBS Snapshots
-`````````````
-
-If your datafiles are on a single EBS volume, you can snapshot them for
-backups.
-
-If you are using :manual:`journaling </administration/journaling>`, simply take a
-snapshot (including the :file:`journal/` directory).
-
-If not using journaling, you need to use the lock+fsync command (v1.3.1+).
-
-Use this command to lock the database to prevent writes. Then, snapshot
-the volume.  Then use the unlock command to allow writes to the
-database again. See the full :ref:`ec2-backup-and-restore` guide
-for more information.
-This method may also be used with slaves / secondaries.
 
 Secure Instances
 ~~~~~~~~~~~~~~~~~~
@@ -218,6 +304,7 @@ For example one solution is following, on each server:
 
    sudo hostname server1
 
+
 * install "bind", it will serve as local resolver
 * add a zone for your domain, say "myorg.com", and add the CNAMEs for all your servers
 
@@ -225,6 +312,7 @@ For example one solution is following, on each server:
 
    server1          IN     CNAME   ec2-50-19-237-42.compute-1.amazonaws.com.
    server2          IN     CNAME   ec2-50-18-157-87.us-west-1.compute.amazonaws.com.
+
 
 * restart bind and modify /etc/resolv.conf to use the local bind
 
@@ -235,18 +323,14 @@ For example one solution is following, on each server:
 
 Then:
 
-   * verify that you can properly resolve server1, server2, ... using a
-     tool like dig.
-
-   * when running mongod, :method:`mongodb-manual:db.serverStatus()`
-     should show the correct hostname, e.g. "server1:27017".
-
-   * you can then set up replica sets or shards using the simple
-     hostname. For example connect to server1 and run :samp:`rs.initiate()`,
-     then :samp:`rs.add('server2:27017')`.
+* verify that you can properly resolve server1, server2, ... using a tool like dig.
+* when running mongod, :method:`mongodb-manual:db.serverStatus()` should show the correct hostname, e.g. "server1:27017".
+* you can then set up replica sets or shards using the simple hostname. For example connect to server1 and run :samp:`rs.initiate()`, then :samp:`rs.add('server2:27017')`.
 
 Presentations
 -------------
 
-* `MongoDB & AWS <http://www.10gen.com/presentations/webinar/mongodb-and-amazon-web-services-emea>`_
-* `Best Practices for MongoDB on AWS <http://www.10gen.com/presentations/webinar-best-practices-mongodb-aws>`_
+   * `MongoDB & AWS <http://www.10gen.com/presentations/webinar/mongodb-and-amazon-web-services-emea>`_
+     - Free Webinar from January 20, 2012.
+   * `Running MongoDB in the Cloud <http://www.10gen.com/presentation/mongosf-2011/running-mongodb-cloud>`_ - MongoSF (May 2011)
+   * `MongoDB on Amazon EC2 <http://www.10gen.com/webinars/ec2>`_ - Webinar (March 2011)
