@@ -9,7 +9,7 @@ Select Destination for the Snapshot
      **or**
 
    - Select ``Push via Secure Copy (SCP)`` to have |backup| download
-     the snapshot. You can grant access by supplying 10gen with a
+     the snapshot. You can grant access by supplying MMS with a
      username and password to your server, or you can provide a
      username and grant access via SSH public key.
      

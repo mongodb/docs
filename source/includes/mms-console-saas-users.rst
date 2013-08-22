@@ -23,7 +23,7 @@ will send an invitation to join your group. Once accepted, MMS will
 create and add a new user to your group.
 
 Users can also create accounts at any time using the "`account
-registration page <https://mms.10gen.com/user/register/user>`_", or
+registration page <https://mms.mongodb.com/user/register/user>`_", or
 through Jira at `jira.mongodb.org <http://jira.mongodb.org/>`_.
 
 .. index:: users; propagation
