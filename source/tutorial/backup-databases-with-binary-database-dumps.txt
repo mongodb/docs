@@ -101,9 +101,23 @@ locks the data directory to prevent conflicting writes. The
 data files when you run :program:`mongodump` in this
 configuration. Consider the following example:
 
-.. code-block:: sh
+.. example:: Backup a MongoDB Instance Without a Running ``mongod``
 
-   mongodump --dbpath /srv/mongodb
+   Given a MongoDB instance that contains the ``customers``,
+   ``products``, and ``suppliers`` databases, the following
+   :program:`mongodump` operation backs up the databases using the
+   :option:`--dbpath <mongodump --dbpath>` option, which specifies the
+   location of the database files on the host:
+
+   .. code-block:: javascript
+
+      mongodump --dbpath /data -o dataout
+
+   The :option:`-o <mongoexport -o>` option specifies the directory to
+   which to save the backups. The :program:`mongodump` operation creates
+   a separate backup directory for each of the backed-up databases:
+   :file:`dataout/customers`, :file:`dataout/products`, and
+   :file:`dataout/suppliers`.
 
 Create Backups from Non-Local ``mongod`` Instances
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -207,23 +221,39 @@ interacting with your shell environment.
 
 .. _backup-restore-dbpath:
 
-Restore without a Running ``mongod``
+Restore Without a Running ``mongod``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 :program:`mongorestore` can write data to MongoDB data files without
 needing to connect to a :program:`mongod` directly.
 
-.. code-block:: sh
+.. example:: Restore a Database Without a Running ``mongod``
 
-   mongorestore --dbpath /srv/mongodb --journal
+   Given a set of backed up databases in the ``dataout`` directory:
 
-Here, :program:`mongorestore` restores the database dump located in
-:file:`dump/` folder into the data files located at :file:`/srv/mongodb`.
-Additionally, the :option:`--journal <mongorestore --journal>` option ensures that
-:program:`mongorestore` records all operation in the durability
-:term:`journal`. The journal prevents data file corruption if anything
-(e.g. power failure, disk failure, etc.)  interrupts the restore
-operation.
+   - :file:`dataout/customers`,
+   - :file:`dataout/products`, and
+   - :file:`dataout/suppliers`
+
+   The following :program:`mongorestore` command restores the
+   ``products`` database. The command uses the :option:`--dbpath
+   <mongorestore --dbpath>` option to specify which database to restore:
+
+   .. code-block:: javascript
+
+      mongorestore --host localhost --port 27107 --dbpath /dataout/products --journal
+
+   The :program:`mongorestore` imports the database backup in the
+   :file:`/dataout/products` directory to the :program:`mongod` instance
+   that runs on the localhost interface. The :program:`mongorestore`
+   operation imports the backup even if the :program:`mongod` is not
+   running.
+
+   The :option:`--journal <mongorestore --journal>` option ensures that
+   :program:`mongorestore` records all operation in the durability
+   :term:`journal`. The journal prevents data file corruption if
+   anything (e.g. power failure, disk failure, etc.) interrupts the
+   restore operation.
 
 .. seealso:: :doc:`/reference/program/mongodump` and
    :doc:`/reference/program/mongorestore`.
