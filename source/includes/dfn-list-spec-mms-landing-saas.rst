@@ -4,10 +4,6 @@
       High level concepts that apply to |mms| in general.
       
 
-      :doc:`/management/install`
-         Installation tutorials for the Monitoring Agent.
-         
-
       :doc:`/management/permissions`
          Details the permissions required to run MMS on MongoDB 2.4
          instances with authentication.
@@ -24,6 +20,10 @@
    :doc:`/monitoring`
       High level overview of issues related to |monitoring|.
       
+
+      :doc:`/monitoring/install`
+         Installation tutorials for the Monitoring Agent
+         
 
       :doc:`/monitoring/tutorial/monitor-hosts-with-mms`
          Describes how |monitoring| monitorings hosts and discusses
@@ -47,6 +47,10 @@
       :doc:`/monitoring/troubleshooting`
          Troubleshooting advice for common issues encountered with 
          |monitoring|.
+         
+
+      :doc:`/monitoring/faq`
+         |monitoring| frequently asked questions.
          
 
    :doc:`/backup`
@@ -76,6 +80,10 @@
       :doc:`/backup/tutorial/restore-from-point-in-time-snapshot`
          Restore a replica set from a custom snapshot from any point 
          within a 24-hour period of time.
+         
+
+      :doc:`/backup/faq`
+         Frequently asked questions about |backup|.
          
 
    :doc:`/monitoring/reference`

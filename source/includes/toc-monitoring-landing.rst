@@ -3,6 +3,7 @@
    .. toctree::
       :titlesonly: 
 
+      /monitoring/install
       /monitoring/tutorial/monitor-hosts-with-mms
       /monitoring/tutorial/update-mms
       /monitoring/configuring

@@ -4,10 +4,6 @@
       High level concepts that apply to |mms| in general.
       
 
-      :doc:`/management/install`
-         Installation tutorials for the Monitoring Agent.
-         
-
       :doc:`/management/permissions`
          Details the permissions required to run MMS on MongoDB 2.4
          instances with authentication.
@@ -24,6 +20,10 @@
    :doc:`/monitoring`
       High level overview of issues related to |monitoring|.
       
+
+      :doc:`/monitoring/install`
+         Installation tutorials for the Monitoring Agent
+         
 
       :doc:`/monitoring/tutorial/monitor-hosts-with-mms`
          Describes how |monitoring| monitorings hosts and discusses
@@ -48,6 +48,10 @@
          Troubleshooting advice for common issues encountered with 
          |monitoring|.
          
+
+   :doc:`/monitoring/faq`
+      |monitoring| frequently asked questions.
+      
 
    :doc:`/monitoring/reference`
       Reference for types of hosts, databases, and other states that may 

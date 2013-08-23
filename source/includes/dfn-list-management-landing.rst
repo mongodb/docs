@@ -1,9 +1,5 @@
 .. class:: toc
 
-   :doc:`/management/install`
-      Installation tutorials for the Monitoring Agent.
-      
-
    :doc:`/management/permissions`
       Details the permissions required to run MMS on MongoDB 2.4
       instances with authentication.

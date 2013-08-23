@@ -1,5 +1,9 @@
 .. class:: toc
 
+   :doc:`/monitoring/install`
+      Installation tutorials for the Monitoring Agent
+      
+
    :doc:`/monitoring/tutorial/monitor-hosts-with-mms`
       Describes how |monitoring| monitorings hosts and discusses
       monitoring architecture options.   
