@@ -4,17 +4,11 @@ MongoDB Limits and Thresholds
 
 .. default-domain:: mongodb
 
-Synopsis
---------
-
 This document provides a collection of hard and soft limitations of
 the MongoDB system.
 
-Limits
-------
-
 BSON Documents
-~~~~~~~~~~~~~~
+--------------
 
 .. _limit-bson-document-size:
 .. limit:: BSON Document Size
@@ -30,7 +24,7 @@ BSON Documents
    documents <document>`.
 
 Namespaces
-~~~~~~~~~~
+----------
 
 .. _limit-namespace-length:
 .. limit:: Namespace Length
@@ -58,10 +52,10 @@ Namespaces
    size using the :setting:`nssize` option.
 
 Indexes
-~~~~~~~
+-------
 
 .. _limit-index-size:
-.. limit:: Index Size
+.. limit:: Index Key
 
    The total size of an indexed value must be *less than* 1024
    bytes. MongoDB will not add that value to an index if it is longer
@@ -84,23 +78,14 @@ Indexes
    :method:`~db.collection.ensureIndex()` helper if the default index
    name is too long.
 
-.. _limit-sharding-unique-indexes:
-.. limit:: Unique Indexes in Sharded Collections
-
-   MongoDB does not support unique indexes across shards, except when
-   the unique index contains the full shard key as a prefix of the
-   index. In these situations MongoDB will enforce uniqueness across
-   the full key, not a single field.
-
-   .. see:: :doc:`/tutorial/enforce-unique-keys-for-sharded-collections`
-      for an alternate approach.
-
 .. limit:: Number of Indexed Fields in a Compound Index
 
    There can be no more than 31 fields in a compound index.
 
+.. seealso:: The unique indexes limit in :ref:`limits-sharding-operations`.
+
 Capped Collections
-~~~~~~~~~~~~~~~~~~
+------------------
 
 .. limit:: Maximum Number of Documents in a Capped Collection
 
@@ -114,7 +99,7 @@ Capped Collections
    documents.
 
 Replica Sets
-~~~~~~~~~~~~
+------------
 
 .. limit:: Number of Members of a Replica Set
 
@@ -128,9 +113,15 @@ Replica Sets
 .. _limits-sharding:
 
 Sharded Clusters
-~~~~~~~~~~~~~~~~
+----------------
 
-.. _limit-sharding-limitations:
+Sharded clusters have the restrictions and thresholds described here.
+
+.. _limits-sharding-operations:
+
+Sharding Operational Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. limit:: Operations Unavailable in Sharded Environments
 
    The :dbcommand:`group` does not work with sharding. Use
@@ -165,17 +156,78 @@ Sharded Clusters
 
    .. include:: /includes/fact-single-modification-in-sharded-collections.rst
 
-.. limit:: Shard Key Values are Immutable
+.. limit:: Unique Indexes in Sharded Collections
 
-   After inserting a document into a sharded collection, the *values*
-   of the shard key are immutable. It is not possible to use an
-   :method:`~db.collection.update()` operation to modify the value of
-   a shard key in an existing document.
+   MongoDB does not support unique indexes across shards, except when
+   the unique index contains the full shard key as a prefix of the
+   index. In these situations MongoDB will enforce uniqueness across
+   the full key, not a single field.
 
-.. seealso:: :limit:`Unique Indexes in Sharded Collections`
+   .. see:: :doc:`/tutorial/enforce-unique-keys-for-sharded-collections`
+      for an alternate approach.
+
+.. _limits-shard-keys:
+
+Shard Key Limitations
+~~~~~~~~~~~~~~~~~~~~~
+
+.. limit:: Shard Key Size
+
+   A shard key cannot exceed 512 bytes.
+
+.. limit:: Shard Key is Immutable
+
+   You cannot change a shard key once a collection has been sharded. If
+   you must change a shard key, the best option is the following:
+
+   - Dump all data from MongoDB into an external format.
+
+   - Drop the original sharded collection.
+
+   - Configure sharding using the new shard key.
+
+   - :ref:`Pre-split <sharding-administration-pre-splitting>` the shard
+     key range to ensure initial even distribution.
+
+   - Restore the dumped data into MongoDB.
+
+.. limit:: Shard Key Value in a Document is Immutable
+
+   After you insert a document into a sharded collection, you cannot
+   change the document's value for the field or fields that are used as
+   the shard key. The
+   :method:`~db.collection.update()` operation will not modify the value
+   of a shard key in an existing document.
+
+.. limit:: Monotonically Increasing Shard Keys Can Limit Insert Throughput
+
+   If you have a high insert volume, a monotonically increasing shard
+   key can limit insert throughput. If you use the ``_id`` field as the
+   shard key, be aware that the default value of the ``_id`` field,
+   :term:`ObjectID`, increments as timestamp and is therefore
+   monotonically increasing.
+
+   If you insert documents with monotonically increasing shard keys, all
+   inserts belong to the same :term:`chunk` on a single
+   :term:`shard`. Although the system will eventually divide the chunk
+   and migrate its contents to distribute data more evenly, at any
+   moment the cluster can direct insert operations only to a single
+   shard. This can limit insert throughput.
+
+   This should not affect performance if most of your operations are not
+   inserting new data.
+
+   To address this issue, use a field with a value that stores the hash
+   of a key with an ascending value.
+
+   .. versionchanged:: 2.4
+
+      :ref:`Hashed shard keys <sharding-hashed-sharding>` and
+      :ref:`hashed indexes <index-type-hashed>` store hashes of keys
+      with ascending values.
 
 Operations
-~~~~~~~~~~
+----------
 
 .. _limit-sort:
 .. limit:: Sorted Documents
@@ -206,7 +258,7 @@ Operations
    .. include:: /includes/fact-limits-multiple-in-expressions.rst
 
 Naming Restrictions
-~~~~~~~~~~~~~~~~~~~
+-------------------
 
 .. limit:: Restrictions on Database Names
 
