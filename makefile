@@ -27,13 +27,14 @@ help:
 ifeq ($(current-branch),master)
 publish all:hosted saas
 htaccess:build/public/saas/.htaccess build/public/hosted/.htaccess
+build/public/saas/.htaccess:build/public/saas
 else
 publish all:hosted
-htaccess:build/public/saas/.htaccess
+htaccess:build/public/hosted/.htaccess
 endif
 
 hosted saas:setup
-	@$(MAKE) EDITION=$@ manual-pdfs generate-source-$@ publish-$@ build/public/$@/.htaccess
+	@$(MAKE) EDITION=$@ manual-pdfs generate-source-$@ publish-$@ build/public/$@/.htaccess tables
 	@echo [build]: $@ edition complete
 
 ########## common components ##########
