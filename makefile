@@ -34,13 +34,13 @@ htaccess:build/public/hosted/.htaccess
 endif
 
 hosted saas:setup
-	@$(MAKE) EDITION=$@ manual-pdfs generate-source-$@ publish-$@ build/public/$@/.htaccess tables
+	@$(MAKE) EDITION=$@ generate-source-$@ publish-$@ latex-$@ json-$@ build/public/$@/.htaccess
 	@echo [build]: $@ edition complete
 
 ########## common components ##########
-build/public/saas/.htaccess:bin/htaccess-saas.yaml bin/htaccess.py
+build/public/saas/.htaccess:bin/htaccess-saas.yaml bin/htaccess.py build/public/saas/
 	@$(PYTHONBIN) $(tools)/bin/htaccess.py $@ --data $<
-build/public/hosted/.htaccess:bin/htaccess-hosted.yaml bin/htaccess.py 
+build/public/hosted/.htaccess:bin/htaccess-hosted.yaml bin/htaccess.py build/public/hosted/
 	@$(PYTHONBIN) $(tools)/bin/htaccess.py $@ --data $<
 
 ########## system ##########
