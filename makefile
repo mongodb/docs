@@ -38,9 +38,9 @@ hosted saas:setup
 	@echo [build]: $@ edition complete
 
 ########## common components ##########
-build/public/saas/.htaccess:bin/htaccess-saas.yaml bin/htaccess.py build/public/saas/
+build/public/saas/.htaccess:bin/htaccess-saas.yaml bin/htaccess.py build/public/saas
 	@$(PYTHONBIN) $(tools)/bin/htaccess.py $@ --data $<
-build/public/hosted/.htaccess:bin/htaccess-hosted.yaml bin/htaccess.py build/public/hosted/
+build/public/hosted/.htaccess:bin/htaccess-hosted.yaml bin/htaccess.py build/public/hosted
 	@$(PYTHONBIN) $(tools)/bin/htaccess.py $@ --data $<
 
 ########## system ##########
