@@ -30,7 +30,7 @@ templates_path = ['templates']
 source_suffix = '.txt'
 master_doc = 'index'
 
-copyright = u'2011-2013, 10gen, Inc.'
+copyright = u'2011-2013, MongoDB, Inc.'
 
 version = '1.4-pre'
 release = 'Upcoming'
