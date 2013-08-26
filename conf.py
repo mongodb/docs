@@ -94,7 +94,7 @@ try:
         latex_documents = saas_latex_documents
         rst_epilog = '\n'
         rst_epilog += ".. |s| replace:: Service" + BREAK
-        rst_epilog += ".. |index-page-title| replace:: MongoDB Management Service" + BREAK
+        rst_epilog += ".. |index-page-title| replace:: MongoDB Management Service (MMS)" + BREAK
         rst_epilog += ".. |mms| replace:: MongoDB Management Service" + BREAK
         rst_epilog += ".. |backup| replace:: MMS Backup" + BREAK
         rst_epilog += ".. |monitoring| replace:: MMS Monitoring" + BREAK
@@ -107,14 +107,22 @@ try:
 except NameError:
     pass
 
-html_sidebars['**'].extend(['mms-resources.html', 'intrasite-manual.html'])
+html_sidebars['**'].extend(['searchbox.html', 'mms-resources.html', 'intrasite-manual.html'])
 
 # -- Options for LaTeX output --------------------------------------------------
 
-latex_paper_size = 'letter' # ('letter' or 'a4').
-latex_font_size = '10pt' # ('10pt', '11pt' or '12pt').
+latex_preamble_elements = [ r'\DeclareUnicodeCharacter{FF04}{\$}',
+                            r'\DeclareUnicodeCharacter{FF0E}{.}',
+                            r'\PassOptionsToPackage{hyphens}{url}',
+                            r'\pagestyle{plain}',
+                            r'\pagenumbering{arabic}' ]
+latex_elements = {
+    'preamble': '\n'.join(latex_preamble_elements),
+    'pointsize': '10pt',
+    'papersize': 'letterpaper'
+}
+
 latex_logo = None
-latex_preamble = ''
 latex_use_parts = False
 latex_use_modindex = False
 
