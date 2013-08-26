@@ -41,7 +41,7 @@ source_suffix = '.txt'
 master_doc = 'contents'
 language = 'en'
 project = u'mongodb-ecosystem'
-copyright = u'2011-' + meta['date'] + ', 10gen, Inc.'
+copyright = u'2011-' + meta['date'] + ', MongoDB, Inc.'
 
 version = '2.2.2'
 release = version
@@ -163,7 +163,7 @@ latex_appendices = []
 epub_title = u'MongoDB'
 epub_author = u'MongoDB Documentation Project'
 epub_publisher = u'MongoDB Documentation Project'
-epub_copyright = u'2011-' + meta['date'] + ', 10gen Inc.'
+epub_copyright = u'2011-' + meta['date'] + ', MongoDB, Inc.'
 epub_theme = 'epub_mongodb'
 epub_tocdup = True
 epub_tocdepth = 3
