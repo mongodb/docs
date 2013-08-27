@@ -42,7 +42,7 @@ source_suffix = '.txt'
 master_doc = 'contents'
 language = 'en'
 project = u'mongodb-manual'
-copyright = u'2011-' + meta['date'] + ', 10gen, Inc.'
+copyright = u'2011-' + meta['date'] + ', MongoDB, Inc.'
 version = '2.4'
 release = '2.4.6'
 
