@@ -177,26 +177,27 @@ Consider the following example of a bidirectional test of networking:
    and firewall configuration and reconfigure your environment to
    allow these connections.
 
-Socket Exceptions when Rebooting Secondaries Simultaneously
------------------------------------------------------------
+Socket Exceptions when Rebooting More than One Secondary
+--------------------------------------------------------
 
-When you reboot members of a replica set, make sure the set keeps a
-majority of its votes available. When a set's active members can no
-longer form a majority, the set's :term:`primary` steps down and becomes
-a :term:`secondary`. The former primary closes all open connections to
-client applications. Clients attempting to write to the former primary
-receive socket exceptions and "Connection reset" errors.
+When you reboot members of a replica set, ensure that the set is able
+to elect a primary make sure the set is *always* able to elect a
+primary during the maintenance. This means ensuring that a majority of
+the set's ':data:`~local.system.replset.members[n].votes` are
+available.
 
-For example, if you have a three-member replica set where every member
-has one vote, the set can elect a primary only as long as two members
-can connect to each other. If two members become unavailable and the
-remaining member is a primary, the primary steps down and becomes a
-secondary.
+When a set's active members can no longer form a majority, the set's
+:term:`primary` steps down and becomes a :term:`secondary`. The former
+primary closes all open connections to client applications. Clients
+attempting to write to the former primary receive socket exceptions
+and *Connection reset* errors until the set can elect a primary.
 
-When a majority of votes is available, the set elects a primary
-and the errors cease.
-
-To avoid errors, reboot replica set member's one at a time.
+.. example:: Given a three-member replica set where every member has
+   one vote, the set can elect a primary only as long as two members
+   can connect to each other. If two you reboot the two secondaries
+   once, the primary steps down and becomes a secondary. Until the at
+   least one secondary becomes available, the set has no primary and
+   cannot elect a new primary.
 
 For more information on votes, see :doc:`/core/replica-set-elections`. For
 related information on connection errors, see :ref:`faq-keepalive`.
