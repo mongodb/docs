@@ -114,6 +114,7 @@ html_sidebars['**'].extend(['searchbox.html', 'mms-resources.html', 'intrasite-m
 latex_preamble_elements = [ r'\DeclareUnicodeCharacter{FF04}{\$}',
                             r'\DeclareUnicodeCharacter{FF0E}{.}',
                             r'\PassOptionsToPackage{hyphens}{url}',
+                            r'\usepackage{upquote}',
                             r'\pagestyle{plain}',
                             r'\pagenumbering{arabic}' ]
 latex_elements = {
