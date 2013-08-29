@@ -6,80 +6,85 @@ Tag Aware Sharding
 
 .. default-domain:: mongodb
 
-For sharded clusters, MongoDB makes it possible to associate specific
-ranges of a :term:`shard key` with a specific :term:`shard` or subset
-of shards. This association dictates the policy of the cluster
-balancer process as it balances the :term:`chunks <chunk>` around the
-cluster. This capability enables the following deployment patterns:
+MongoDB supports tagging a range of :term:`shard key` values to
+associate that range with a shard or group of shards. Those shards
+receive all inserts within the tagged range.
 
-- isolating a specific subset of data on specific set of shards.
+The balancer obeys tagged range associations, which enables the
+following deployment patterns:
 
-- controlling the balancing policy so that, in a geographically
-  distributed cluster, the most relevant portions of the data set
-  reside on the shards with the greatest proximity to the application
-  servers.
+- isolate a specific subset of data on a specific set of shards.
+
+- ensure that the most relevant data reside on shards that are
+  geographically closest to the application servers.
 
 This document describes the behavior, operation, and use of tag aware
 sharding in MongoDB deployments.
 
 .. note::
 
-   Shard key range tags are entirely distinct from :ref:`replica set member
-   tags <replica-set-read-preference-tag-sets>`.
+   :term:`Shard key` range tags are distinct from :ref:`replica set
+   member tags <replica-set-read-preference-tag-sets>`.
 
-:term:`Hash-based sharding <hashed shard key>` does not support
-tag-aware sharding.
+.. important::
+
+   :term:`Hash-based sharding <hashed shard key>` does not support
+   tag-aware sharding.
 
 .. _shards-tag-sets:
 
 Behavior and Operations
 -----------------------
 
-Tags in a sharded cluster are pieces of metadata that dictate the
-policy and behavior of the cluster :term:`balancer`. Using
-tags, you may associate individual shards in a cluster with one or
-more tags. Then, you can assign this tag string to a range
-of :term:`shard key` values for a sharded collection. When migrating a
-chunk, the balancer will select a destination shard based on the
-configured tag ranges.
-
-The balancer migrates chunks in tagged ranges to shards with those
-tags, if tagged shards are not balanced. [#specific-tagged-migrations]_
+The balancer migrates chunks to shards associated with a tag that has a
+:term:`shard key` range with an *upper* bound *greater* than the chunk's
+*lower* bound.
 
 .. note::
 
-   Because a single chunk may span different tagged shard key ranges,
-   the balancer may migrate chunks to tagged shards that contain
-   values that exceed the upper bound of the selected tag range.
+   If the chunks on a given shard are already balanced, then the
+   balancer does not rebalance them. If they are unbalanced, the
+   balancer migrates chunks in tagged ranges to shards associated with
+   those tags.
 
-.. example::
+After configuring tags with a :term:`shard key` range, and associating
+it with a shard or shards, the cluster may take some time to balance the
+data among the shards. This depends on the division of chunks and the
+current distribution of data in the cluster.
 
-   Given a sharded collection with two configured tag ranges, such
-   that:
-
-   - :term:`Shard key` values between ``100`` and ``200`` have tags to
-     direct corresponding chunks to shards tagged ``NYC``.
-
-   - Shard Key values between ``200`` and ``300`` have tags to direct
-     corresponding chunks to shards tagged ``SFO``.
-
-   In this cluster, the balancer will migrate a chunk with shard key
-   values ranging between ``150`` and ``220`` to a shard tagged
-   ``NYC``, since ``150`` is closer to ``200`` than ``300``.
-
-After configuring tags on the shards and ranges of the shard key, the
-cluster may take some time to reach the proper distribution of data,
-depending on the division of chunks (i.e. splits) and the current
-distribution of data in the cluster. Once configured, the balancer
-will respect tag ranges during future :ref:`balancing rounds
-<sharding-internals-balancing>`.
-
-.. [#specific-tagged-migrations] To migrate chunks in a tagged
-   environment, the balancer selects a target shard with a tag range
-   that has an *upper* bound that is *greater than* the migrating
-   chunk's *lower* bound. If a shard with a matching tagged range
-   exists, the balancer will migrate the chunk to that shard.
+Once configured, the balancer respects tag ranges during future
+:ref:`balancing rounds <sharding-internals-balancing>`.
 
 .. seealso:: 
 
    :doc:`/tutorial/administer-shard-tags`
+
+Chunks that Span Multiple Tag Ranges
+------------------------------------
+
+A single chunk may contain some data with a :term:`shard key` value
+that falls within range of one tag, and some data with a :term:`shard
+key` value that falls within range of another tag. Because of this the
+balancer may migrate chunks to shards that contain :term:`shard key`
+values that exceed the upper bound of the selected tag range.
+
+.. example::
+
+   Given a sharded collection with two configured tag ranges:
+
+   - :term:`Shard key` values between ``100`` and ``200`` have tags to
+     direct corresponding chunks to shards tagged ``NYC``.
+
+   - :term:`Shard key` values between ``200`` and ``300`` have tags to
+     direct corresponding chunks to shards tagged ``SFO``.
+
+   In this cluster, the balancer will migrate a chunk with :term:`shard
+   key` values ranging between ``150`` and ``220`` to a shard tagged
+   ``NYC``, since ``150`` is closer to ``200`` than ``300``.
+
+To ensure that your collection has no potentially ambiguous
+chunks, :doc:`create splits on your tag boundaries
+</tutorials/split-chunks-in-sharded-cluster>`. You can manually
+migrate chunks to the appropriate shards, or wait for the balancer to
+automatically migrate these chunks.
+
