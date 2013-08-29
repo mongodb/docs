@@ -7,6 +7,7 @@
 
 import sys
 import os.path
+import datetime
 
 project_root = os.path.join(os.path.abspath(os.path.dirname(__file__)))
 
@@ -18,9 +19,11 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), buildsys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), buildsystem, 'bin')))
 
 from utils import ingest_yaml, ingest_yaml_list
-meta = ingest_yaml(os.path.join(project_root, 'meta.yaml'))
-pdfs = ingest_yaml_list(os.path.join(project_root, 'pdfs.yaml'))
-intersphinx_libs = ingest_yaml_list(os.path.join(project_root, 'intersphinx.yaml'))
+from docs_meta import get_conf, get_versions, get_manual_path
+
+conf = get_conf()
+pdfs = ingest_yaml_list(os.path.join(conf.build.paths.builddata, 'pdfs.yaml'))
+intersphinx_libs = ingest_yaml_list(os.path.join(conf.build.paths.builddata, 'intersphinx.yaml'))
 
 # -- General configuration ----------------------------------------------------
 
@@ -42,16 +45,16 @@ source_suffix = '.txt'
 master_doc = 'contents'
 language = 'en'
 project = u'mongodb-manual'
-copyright = u'2011-' + meta['date'] + ', MongoDB, Inc.'
-version = '2.2'
-release = '2.2.6'
+copyright = u'2011-' + str(datetime.date.today().year) + ', MongoDB, Inc.'
+version = conf.version.branch
+release = conf.version.release
 
 BREAK = '\n'
-rst_epilog = ('.. |branch| replace:: ``' + meta['branch'] + '``' + BREAK +
+rst_epilog = ('.. |branch| replace:: ``' + conf.git.branches.current + '``' + BREAK +
               '.. |copy| unicode:: U+000A9' + BREAK +
-              '.. |year| replace:: ' + meta['date'] + BREAK +
-              '.. |ent-build| replace:: the MongoDB Subscriber Edition' + BREAK +
-              '.. |hardlink| replace:: http://docs.mongodb.org/' + meta['branch'])
+              '.. |year| replace:: ' + str(datetime.date.today().year) + BREAK +
+              '.. |ent-build| replace:: MongoDB Enterprise' + BREAK +
+              '.. |hardlink| replace:: http://docs.mongodb.org/' + conf.git.branches.current)
 
 pygments_style = 'sphinx'
 
@@ -60,8 +63,8 @@ extlinks = {
     'wiki': ('http://www.mongodb.org/display/DOCS/%s', ''),
     'api': ('http://api.mongodb.org/%s', ''),
     'source': ('https://github.com/mongodb/mongo/blob/master/%s', ''),
-    'docsgithub' : ( 'http://github.com/mongodb/docs/blob/' + meta['branch'] + '/%s', ''),
-    'hardlink' : ( 'http://docs.mongodb.org/' + meta['branch'] + '/%s', ''),
+    'docsgithub' : ( 'http://github.com/mongodb/docs/blob/' + conf.git.branches.current + '/%s', ''),
+    'hardlink' : ( 'http://docs.mongodb.org/' + conf.git.branches.current + '/%s', ''),
     'manual': ('http://docs.mongodb.org/manual%s', ''),
     'ecosystem': ('http://docs.mongodb.org/ecosystem%s', ''),
     'meta-driver': ('http://docs.mongodb.org/meta-driver/latest%s', ''),
@@ -69,13 +72,12 @@ extlinks = {
 }
 
 ## add `extlinks` for each published version.
-for i in meta['published_branches']:
+for i in conf.git.branches.published:
     extlinks[i] = ('http://docs.mongodb.org/' + i + '%s', '')
 
 intersphinx_mapping = {}
 for i in intersphinx_libs:
     intersphinx_mapping[i['name']] = ( i['url'], os.path.join('..', '..', i['path']))
-
 
 languages = [
     ("ar", "Arabic"),
@@ -117,13 +119,13 @@ html_show_sourcelink = False
 html_show_sphinx = True
 html_show_copyright = True
 
-manual_edition_path = 'http://docs.mongodb.org/{0}/MongoDB-manual'.format(meta['branch'])
+manual_edition_path = 'http://docs.mongodb.org/{0}/MongoDB-manual'.format(conf.git.branches.current)
 
 html_theme_options = {
-    'branch': meta['branch'],
+    'branch': conf.git.branches.current,
     'pdfpath': manual_edition_path + '.pdf',
     'epubpath': manual_edition_path + '.epub',
-    'manual_path': meta['manual_path'],
+    'manual_path': get_manual_path(conf),
     'translations': languages,
     'language': language,
     'repo_name': 'docs',
@@ -131,8 +133,8 @@ html_theme_options = {
     'google_analytics': 'UA-7301842-8',
     'project': 'manual',
     'version': version,
-    'version_selector': meta['version_selector'],
-    'stable': meta['stable'],
+    'version_selector': get_versions(conf),
+    'stable': conf.version.stable,
 }
 
 html_sidebars = {
@@ -193,16 +195,16 @@ man_pages = [
 # -- Options for Epub output ---------------------------------------------------
 
 # Bibliographic Dublin Core info.
-epub_title = u'MongoDB'
+epub_title = u'MongoDB Manual'
 epub_author = u'MongoDB Documentation Project'
-epub_publisher = u'MongoDB Documentation Project'
-epub_copyright = u'2011-' + meta['date'] + ', 10gen Inc.'
+epub_publisher = u'MongoDB, Inc.'
+epub_copyright = copyright
 epub_theme = 'epub_mongodb'
 epub_tocdup = True
 epub_tocdepth = 3
 epub_language = language
 epub_scheme = 'url'
-epub_identifier = 'http://docs.mongodb.org/' + meta['branch']
+epub_identifier = 'http://docs.mongodb.org/' + conf.git.branches.current
 epub_exclude_files = []
 
 epub_pre_files = []
