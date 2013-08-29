@@ -32,9 +32,10 @@ All documentation is available under the terms of a `Creative Commons
 License <http://creativecommons.org/licenses/by-nc-sa/3.0/>`_.
 
 The MongoDB Documentation Project is governed by the terms of the
-`MongoDB/10gen Contributor Agreement <http://www.10gen.com/contributor>`_.
+`MongoDB Contributor Agreement
+<http://www.mongodb.com/legal/contributor-agreement>`_.
 
-If you have any questions, please contact `docs@10gen.com
-<mailto:docs@10gen.com>`_.
+If you have any questions, please contact `docs@mongodb.com
+<mailto:docs@mongodb.com>`_.
 
--- The MongoDB/10gen Docs Team
+-- The MongoDB Documentation Team

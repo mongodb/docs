@@ -8,14 +8,13 @@ of the site are listed in `MongoDB Manual Translation
 <http://docs.mongodb.org/manual/meta/translation/>`_.
 
 MongoDB documentation is distributed under a `Creative Commons
-Attribution-NonCommercial-ShareAlike 3.0 Unported`_ license.  10gen,
+Attribution-NonCommercial-ShareAlike 3.0 Unported`_ license.  MongoDB,
 Inc. retains the copyright on MongoDB documentation and ask that you
-complete a `MongoDB/10gen Contributor
-Agreement`_ before we can accept your
+complete a `MongoDB Contributor Agreement`_ before we can accept your
 pull request.
 
 .. _`Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported`: http://creativecommons.org/licenses/by-nc-sa/3.0/
-.. _`MongoDB/10gen Contributor Agreement`: http://www.10gen.com/contributor
+.. _`MongoDB/10gen Contributor Agreement`: http://www.mongodb.com/legal/contributor-agreement
 
 Please review the following documents for our style, conventions,
 processes and practices for the MongoDB Documentation:
@@ -30,4 +29,4 @@ or to contact the `documentation team`_
 if you have any questions.
 
 .. _`Jira`: https://jira.mongodb.org/browse/DOCS
-.. _`documentation team`: docs@10gen.com
+.. _`documentation team`: docs@mongodb.com
