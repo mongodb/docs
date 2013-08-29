@@ -20,17 +20,6 @@ help:
 -include $(output)/makefile.meta
 
 ############# Meta targets that control the build and publication process. #############
-.PHONY: setup source/about.txt $(public-branch-output)/release.txt source/includes/hash.rst
-setup:source/includes/hash.rst meta.yaml intersphinx.yaml pdfs.yaml
-	@mkdir -p $(public-branch-output) $(public-output)
-	@echo [build]: created $(public-branch-output) and $(public-output)
-source/includes/hash.rst:
-	@fab generate.buildinfo_hash
-$(public-branch-output)/release.txt:$(public-branch-output)
-	@echo $(last-commit) >|$@
-	@echo [build]: generated '$@' with current release hash.
-
-# website display and configuration
 $(public-branch-output)/MongoDB-manual-$(current-branch).tar.gz:html
 	@echo $(last-commit) >| $(branch-output)/$</release.txt
 	@$(TARBIN) -C $(branch-output)/ --transform=s/html/MongoDB-manual-$(current-branch)/ \
