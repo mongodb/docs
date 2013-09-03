@@ -96,7 +96,7 @@ languages = [
 
 # -- Options for HTML output ---------------------------------------------------
 
-html_theme = 'mongodb'
+html_theme = 'ecosystem'
 html_theme_path = [ os.path.join(buildsystem, 'themes') ]
 html_title = "MongoDB Ecosystem"
 htmlhelp_basename = 'MongoDBdoc'
@@ -114,27 +114,19 @@ html_show_sourcelink = False
 html_show_sphinx = True
 html_show_copyright = True
 
-manual_edition_path = 'http://docs.mongodb.org/ecosystem/MongoDB-Ecosystem'
-
 html_theme_options = {
-    'branch': conf.git.branches.current,
-    'pdfpath': manual_edition_path + '.pdf',
-    'epubpath': manual_edition_path + '.epub',
-    'manual_path': get_manual_path(conf),
     'translations': languages,
     'language': language,
     'repo_name': 'docs-ecosystem',
     'jira_project': 'DOCS',
     'google_analytics': 'UA-7301842-8',
     'project': 'ecosystem',
-    'version': version,
-    'version_selector': get_versions(conf),
-    'stable': conf.version.stable,
 }
 
 html_sidebars = {
     '**': ['pagenav.html'],
 }
+
 html_sidebars['**'].append('intrasites.html')
 # html_sidebars['**'].append('translations.html')
 html_sidebars['**'].append('resources.html')
