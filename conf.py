@@ -49,12 +49,13 @@ copyright = u'2011-' + str(datetime.date.today().year) + ', MongoDB, Inc.'
 version = conf.version.branch
 release = conf.version.release
 
-BREAK = '\n'
-rst_epilog = ('.. |branch| replace:: ``' + conf.git.branches.current + '``' + BREAK +
-              '.. |copy| unicode:: U+000A9' + BREAK +
-              '.. |year| replace:: ' + str(datetime.date.today().year) + BREAK +
-              '.. |ent-build| replace:: MongoDB Enterprise' + BREAK +
-              '.. |hardlink| replace:: http://docs.mongodb.org/' + conf.git.branches.current)
+rst_epilog = '\n'.join([
+    '.. |branch| replace:: ``' + conf.git.branches.current + '``',
+    '.. |copy| unicode:: U+000A9',
+    '.. |year| replace:: ' + str(datetime.date.today().year),
+    '.. |ent-build| replace:: MongoDB Enterprise',
+    '.. |hardlink| replace:: http://docs.mongodb.org/' + conf.git.branches.current
+])
 
 pygments_style = 'sphinx'
 
