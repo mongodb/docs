@@ -78,22 +78,29 @@ collection.
       { zipcode: 1, u_id: 1 }
       { zipcode: 1, u_id: 1, c_date: 1 }
 
-How ``mongos`` Establishes a Cursor on Targeted Shards
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+How ``mongos`` Handles Query Flags
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When the first batch of results returns from the cursors, the
-:program:`mongos` instance does one of the following:
+If the result of the query is unsorted, the :program:`mongos` instance opens
+a result cursor that "round robins" results from all cursors on the
+shards. 
 
-- For query with sorted results (i.e. using :method:`cursor.sort()`) the
-  :program:`mongos` instance performs a merge sort of all queries.
+.. versionChanged::2.0.5
+In versions prior to 2.0.5, the :program:`mongos` exhausted each cursor, one by one.
 
-- For a query with unsorted results, the :program:`mongos` instance
-  returns a result cursor that "round robins" results from all cursors
-  on the shards.
+If the result is supposed to be sorted (i.e. the query used
+:method:`cursor.sort()`), the :program:`mongos` instance passes the `sort()` flag down to
+the targeted shards, and performs a merge sort of the results.
 
-.. versionchanged:: 2.0.5
-   Before 2.0.5, the :program:`mongos` exhausted each cursor,
-   one by one.
+If the query used :method:`cursor.limit()`, the :program:`mongos` instance passes that limit
+down to the shards and then re-applies it to the complete result.
+
+If the query used :method:`cursor.skip()`, the :program:`mongos` instance cannot pass it
+down to the shards since it cannot know in advance how much of the
+skip will be filled by each individual result. The :program:`mongos` instance
+therefore does *not* pass the `skip()` value down, but instead passes a
+`limit()` value of `(skip+limit)` down to the shards, and then performs
+the actual skip when assembling the complete result.
 
 Detect Connections to :program:`mongos` Instances
 -------------------------------------------------
