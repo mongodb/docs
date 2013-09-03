@@ -30,19 +30,22 @@ issue the following command to the ``admin`` database:
 
 .. code-block:: javascript
 
-   db.adminCommand({ split: <database>.<collection>, find: <document> })
+   db.adminCommand( { split: <database>.<collection>,
+                      find: <document> } )
 
 Or:
 
 .. code-block:: javascript
 
-   db.adminCommand({ split: <database>.<collection>, middle: <document> })
+   db.adminCommand( { split: <database>.<collection>,
+                      middle: <document> } )
 
 Or:
 
 .. code-block:: javascript
 
-   db.adminCommand({ split: <database>.<collection>, bounds: [ <lower>, <upper> ] })
+   db.adminCommand( { split: <database>.<collection>,
+                      bounds: [ <lower>, <upper> ] } )
 
 To create a split for a collection that uses a :term:`hashed shard key`,
 use the ``bounds`` parameter. Do *not* use the ``middle`` parameter for
@@ -51,7 +54,8 @@ this purpose.
 .. include:: /includes/warning-splitting-chunks.rst
 
 .. seealso:: :dbcommand:`moveChunk`, :method:`sh.moveChunk()`,
-   :method:`sh.splitAt()`, and :method:`sh.splitFind()`.
+   :method:`sh.splitAt()`, and :method:`sh.splitFind()`, which wrap the
+   functionality of :dbcommand:`split`.
 
 Examples
 --------
@@ -63,7 +67,7 @@ Split a Chunk in Half
 
 .. code-block:: javascript
 
-   db.runCommand( { split : "test.people" , find : { _id : 99 } } )
+   db.runCommand( { split : "test.people", find : { _id : 99 } } )
 
 The :dbcommand:`split` command identifies the chunk in the ``people``
 collection of the ``test`` database, that holds documents that match ``{
@@ -82,14 +86,14 @@ To define an arbitrary split point, use the following form:
 
 .. code-block:: javascript
 
-   db.runCommand( { split : "test.people" , middle : { _id : 99 } } )
+   db.runCommand( { split : "test.people", middle : { _id : 99 } } )
 
-The :dbcommand:`split` command identifies the chunk in the ``people`` collection of
-the ``test`` database, that would hold documents matching the query ``{
-_id : 99 }``. :dbcommand:`split` does not require that a match exist, in order
-to identify the appropriate chunk. Then the command splits it into two
-chunks, with the matching document as the lower bound of one of the
-split chunks.
+The :dbcommand:`split` command identifies the chunk in the ``people``
+collection of the ``test`` database, that would hold documents
+matching the query ``{ _id : 99 }``. :dbcommand:`split` does not
+require that a match exist, in order to identify the appropriate
+chunk. Then the command splits it into two chunks, with the matching
+document as the lower bound of one of the split chunks.
 
 This form is typically used when :term:`pre-splitting` data in a
 collection.
@@ -98,32 +102,32 @@ Split a Chunk Using Values of a Hashed Shard Key
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This example uses the :term:`hashed shard key` ``userid`` in a
-``people`` collection of a ``test`` database. The following command uses
-an array holding two single-field documents to represent the minimum and
-maximum values of the hashed shard key to split the chunk:
+``people`` collection of a ``test`` database. The following command
+uses an array holding two single-field documents to represent the
+minimum and maximum values of the hashed shard key to split the chunk:
 
 .. code-block:: javascript
 
-   db.runCommand( { split: "test.people" ,
-                  bounds : [ { userid: NumberLong("-5838464104018346494") },
-                             { userid: NumberLong("-5557153028469814163") }] } )
+   db.runCommand( { split: "test.people",
+                     bounds : [ { userid: NumberLong("-5838464104018346494") },
+                                { userid: NumberLong("-5557153028469814163") }
+                ] } )
 
-.. note::
+.. note:: MongoDB uses the 64-bit :ref:`NumberLong <shell-type-long>`
+   type to represent the hashed value.
 
-   MongoDB uses the 64-bit :ref:`NumberLong <shell-type-long>` type to hold hashed keys.
-
-Use :method:`sh.status` to see the existing bounds of the shard keys.
+Use :method:`sh.status()` to see the existing bounds of the shard keys.
 
 Metadata Lock Error
 -------------------
 
-If another process in the :program:`mongos`, such as a balancer process, changes metadata while
-:dbcommand:`split` is running, you may see a ``metadata lock error``.
+If another process in the :program:`mongos`, such as a balancer
+process, changes metadata while :dbcommand:`split` is running, you may
+see a ``metadata lock error``.
 
 .. code-block:: none
 
    errmsg: "The collection's metadata lock is already taken."
 
-This message indicates that the split has failed, but that no side
-effects occurred. Retry the :dbcommand:`split` command.
-
+This message indicates that the split has failed with no side
+effects. Retry the :dbcommand:`split` command.
