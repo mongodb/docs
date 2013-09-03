@@ -7,8 +7,10 @@
 
 import sys
 import os.path
+import datetime
 
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+project_root = os.path.join(os.path.abspath(os.path.dirname(__file__)))
+sys.path.append(project_root)
 
 from bootstrap import buildsystem
 
@@ -16,10 +18,11 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), buildsys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), buildsystem, 'bin')))
 
 from utils import ingest_yaml, ingest_yaml_list
+from docs_meta import get_conf, get_versions, get_manual_path
 
-meta = ingest_yaml('meta.yaml')
-pdfs = ingest_yaml_list('pdfs.yaml')
-intersphinx_libs = ingest_yaml_list('intersphinx.yaml')
+conf = get_conf()
+pdfs = ingest_yaml_list(os.path.join(conf.build.paths.builddata, 'pdfs.yaml'))
+intersphinx_libs = ingest_yaml_list(os.path.join(conf.build.paths.builddata, 'intersphinx.yaml'))
 
 # -- General configuration ----------------------------------------------------
 
@@ -41,25 +44,25 @@ source_suffix = '.txt'
 master_doc = 'contents'
 language = 'en'
 project = u'mongodb-ecosystem'
-copyright = u'2011-' + meta['date'] + ', MongoDB, Inc.'
+copyright = u'2011-' + str(datetime.date.today().year) + ', MongoDB, Inc.'
 
 version = '2.2.2'
 release = version
 
 BREAK = '\n'
-rst_epilog = ('.. |branch| replace:: ``' + meta['branch'] + '``' + BREAK +
+rst_epilog = ('.. |branch| replace:: ``' + conf.git.branches.current + '``' + BREAK +
               '.. |copy| unicode:: U+000A9' + BREAK +
-              '.. |year| replace:: ' + meta['date'] + BREAK +
+              '.. |year| replace:: ' + str(datetime.date.today().year) + BREAK +
               '.. |ent-build| replace:: MongoDB Enterprise' + BREAK +
-              '.. |hardlink| replace:: http://docs.mongodb.org/' + meta['branch'])
+              '.. |hardlink| replace:: http://docs.mongodb.org/' + conf.git.branches.current)
 
 extlinks = {
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
     'wiki': ('http://www.mongodb.org/display/DOCS/%s', ''),
     'api': ('http://api.mongodb.org/%s', ''),
     'source': ('https://github.com/mongodb/mongo/blob/master/%s', ''),
-    'docsgithub' : ( 'http://github.com/mongodb/docs/blob/' + meta['branch'] + '/%s', ''),
-    'hardlink' : ( 'http://docs.mongodb.org/' + meta['branch'] + '/%s', ''),
+    'docsgithub' : ( 'http://github.com/mongodb/docs/blob/' + conf.git.branches.current + '/%s', ''),
+    'hardlink' : ( 'http://docs.mongodb.org/' + conf.git.branches.current + '/%s', ''),
     'manual': ('http://docs.mongodb.org/manual%s', ''),
     'ecosystem': ('http://docs.mongodb.org/ecosystem%s', ''),
     'meta-driver': ('http://docs.mongodb.org/meta-driver/latest%s', ''),
@@ -114,10 +117,10 @@ html_show_copyright = True
 manual_edition_path = 'http://docs.mongodb.org/ecosystem/MongoDB-Ecosystem'
 
 html_theme_options = {
-    'branch': meta['branch'],
+    'branch': conf.git.branches.current,
     'pdfpath': manual_edition_path + '.pdf',
     'epubpath': manual_edition_path + '.epub',
-    'manual_path': meta['manual_path'],
+    'manual_path': get_manual_path(conf),
     'translations': languages,
     'language': language,
     'repo_name': 'docs-ecosystem',
@@ -125,8 +128,8 @@ html_theme_options = {
     'google_analytics': 'UA-7301842-8',
     'project': 'ecosystem',
     'version': version,
-    'version_selector': meta['version_selector'],
-    'stable': meta['stable'],
+    'version_selector': get_versions(conf),
+    'stable': conf.version.stable,
 }
 
 html_sidebars = {
@@ -163,7 +166,7 @@ latex_appendices = []
 epub_title = u'MongoDB'
 epub_author = u'MongoDB Documentation Project'
 epub_publisher = u'MongoDB Documentation Project'
-epub_copyright = u'2011-' + meta['date'] + ', MongoDB, Inc.'
+epub_copyright = copyright
 epub_theme = 'epub_mongodb'
 epub_tocdup = True
 epub_tocdepth = 3
