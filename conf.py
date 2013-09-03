@@ -80,6 +80,7 @@ intersphinx_mapping = {}
 for i in intersphinx_libs:
     intersphinx_mapping[i['name']] = ( i['url'], os.path.join(conf.build.paths.projectroot,
                                                               conf.build.paths.output,
+                                                              i['path']))
 
 languages = [
     ("ar", "Arabic"),
