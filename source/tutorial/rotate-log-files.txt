@@ -4,21 +4,33 @@ Rotate Log Files
 
 .. default-domain:: mongodb
 
+.. contents::
+   :backlinks: none
+   :local:
+
 Overview
 --------
 
-Log rotation archives the current log file and starts a new one.
-Specifically, log rotation renames the current log file by appending
-the filename with a timestamp, [#timestamp-format]_ opens a new log
-file, and finally closes the old log. MongoDB will only rotate logs,
-when you use the :dbcommand:`logRotate` command, or issue the process
-a ``SIGUSR1`` signal as described in this procedure.
+Log rotation using MongoDB's standard approach archives the current
+log file and starts a new one. To do this, the :program:`mongod` or
+:program:`mongos` instance renames the current log file by appending a
+UTC (GMT) timestamp to the filename, in :term:`ISODate` format. It then
+opens a new log file, closes the old log file, and sends all new log
+entries to the new log file.
+
+MongoDB's standard approach to log rotation only rotates logs
+in response to the :dbcommand:`logRotate` command, or when the
+:program:`mongod` or :program:`mongos` process receives a ``SIGUSR1``
+signal from the operating system.
+
+Alternatly, you may configure mongod to send log data to ``syslog``. In
+this case, you can take advantage of alternate logrotation tools.
 
 .. seealso:: For information on logging, see the
    :ref:`monitoring-standard-loggging` section.
 
-Procedure
----------
+Log Rotation With MongoDB
+-------------------------
 
 The following steps create and rotate a log file:
 
@@ -100,5 +112,18 @@ The following steps create and rotate a log file:
    file, renamed. ``server1.log`` is a new, empty file that receives
    all new log output.
 
-.. [#timestamp-format] MongoDB renders this timestamp in UTC (GMT) and
-   formatted as :term:`ISODate`.
+Syslog Log Rotation
+-------------------
+
+.. versionadded:: 2.2
+
+To configure mongod to send log data to syslog rather than writing log
+data to a file, use the following procedure.
+
+1. Start a :program:`mongod` with the :option:`--syslog` option.
+
+#. Store and rotate the log output using your system's defualt log
+   rotation mechanism.
+
+.. important:: You cannot use :setting:`--syslog` with :setting:`--logpath`.
+
