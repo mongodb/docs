@@ -165,7 +165,7 @@ latex_elements = {
 }
 
 latex_paper_size = 'letter'
-latex_use_parts = True
+latex_use_parts = False
 latex_show_pagerefs = True
 latex_show_urls = 'footnote'
 latex_domain_indices = False
