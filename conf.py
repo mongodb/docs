@@ -15,8 +15,8 @@ sys.path.append(project_root)
 
 from bootstrap import buildsystem
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), buildsystem, 'sphinxext')))
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), buildsystem, 'bin')))
+sys.path.append(os.path.join(project_root, buildsystem, 'sphinxext'))
+sys.path.append(os.path.join(project_root, buildsystem, 'bin'))
 
 from utils import ingest_yaml, ingest_yaml_list
 from docs_meta import get_conf, get_versions, get_manual_path
