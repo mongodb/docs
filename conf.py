@@ -15,8 +15,8 @@ sys.path.append(project_root)
 
 from bootstrap import buildsystem
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), buildsystem, 'sphinxext')))
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), buildsystem, 'bin')))
+sys.path.append(os.path.join(project_root, buildsystem, 'sphinxext'))
+sys.path.append(os.path.join(project_root, buildsystem, 'bin'))
 
 from utils import ingest_yaml, ingest_yaml_list
 from docs_meta import get_conf, get_versions, get_manual_path
@@ -54,7 +54,7 @@ rst_epilog = '\n'.join([
     '.. |copy| unicode:: U+000A9',
     '.. |year| replace:: ' + str(datetime.date.today().year),
     '.. |ent-build| replace:: MongoDB Enterprise',
-    '.. |hardlink| replace:: http://docs.mongodb.org/' + conf.git.branches.current
+    '.. |hardlink| replace:: ' + conf.project.url + '/' + conf.git.branches.current
 ])
 
 pygments_style = 'sphinx'
@@ -74,11 +74,12 @@ extlinks = {
 
 ## add `extlinks` for each published version.
 for i in conf.git.branches.published:
-    extlinks[i] = ('http://docs.mongodb.org/' + i + '%s', '')
+    extlinks[i] = ( conf.project.url + '/' + i + '%s', '')
 
 intersphinx_mapping = {}
 for i in intersphinx_libs:
-    intersphinx_mapping[i['name']] = ( i['url'], os.path.join('..', '..', i['path']))
+    intersphinx_mapping[i['name']] = ( i['url'], os.path.join(conf.build.paths.projectroot,
+                                                              conf.build.paths.output,
 
 languages = [
     ("ar", "Arabic"),
@@ -120,7 +121,7 @@ html_show_sourcelink = False
 html_show_sphinx = True
 html_show_copyright = True
 
-manual_edition_path = 'http://docs.mongodb.org/{0}/MongoDB-manual'.format(conf.git.branches.current)
+manual_edition_path = '{0}/{1}/MongoDB-manual'.format(conf.project.url, conf.git.branches.current)
 
 html_theme_options = {
     'branch': conf.git.branches.current,
@@ -206,7 +207,7 @@ epub_tocdup = True
 epub_tocdepth = 3
 epub_language = language
 epub_scheme = 'url'
-epub_identifier = 'http://docs.mongodb.org/' + conf.git.branches.current
+epub_identifier = conf.project.url + '/' + conf.git.branches.current
 epub_exclude_files = []
 
 epub_pre_files = []
