@@ -150,6 +150,29 @@ V8 JavaScript Engine
   See :doc:`/release-notes/2.4-javascript` for more information about
   all changes .
 
+Chunk Migration Queuing Improvements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The MongoDB :term:`balancer` increases performance for moving multiple
+chunks off an overloaded shard, decreasing the time it takes to reduce
+the shard's read and write load. A migration no longer waits for its
+cleanup phase before completing, which means a second chunk migration
+can begin while the first migration's cleanup is still in progress. The
+cleanup phase is the deletion phase, where the balancer deletes the
+documents in the original location once they are fully migrated to the
+new location.
+
+This change in queuing behavior helps when the cluster is heavily imbalanced,
+allowing shards to unload chunks more quickly. This is the case, for
+example, when doing initial data loads without pre-splitting and when
+adding new shards. The improvement also means that migration scripts
+that use the :dbcommand:`moveChunk` command will no longer wait
+for chunk cleanup and may proceed more quickly.
+
+The cleanup might persist longer in some cases. Also, data from multiple
+migrations can be orphaned during a crash of a replica-set primary if
+multiple cleanups are queued but not yet completed.
+
 BSON Document Validation Enabled by Default for ``mongod`` and ``mongorestore``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
