@@ -13,13 +13,15 @@ sys.path.append(project_root)
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 from bootstrap import buildsystem
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), buildsystem, 'sphinxext')))
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), buildsystem, 'bin')))
+sys.path.append(os.path.join(project_root, buildsystem, 'sphinxext'))
+sys.path.append(os.path.join(project_root, buildsystem, 'bin'))
 
 from utils import ingest_yaml, ingest_yaml_list
+from docs_meta import get_conf, get_versions, get_manual_path
 
-meta = ingest_yaml(os.path.join(project_root, 'meta.yaml'))
-pdfs = ingest_yaml_list(os.path.join(project_root, 'pdfs.yaml'))
+conf = get_conf()
+pdfs = ingest_yaml_list(os.path.join(conf.build.paths.builddata, 'pdfs.yaml'))
+intersphinx_libs = ingest_yaml_list(os.path.join(conf.build.paths.builddata, 'intersphinx.yaml'))
 
 # -- General configuration -----------------------------------------------------
 
@@ -38,7 +40,7 @@ pygments_style = 'sphinx'
 
 # -- Options for HTML output ---------------------------------------------------
 
-html_theme = 'mongodb'
+html_theme = 'mms'
 html_theme_path = [ os.path.join(buildsystem, 'themes') ]
 html_logo = "source/.static/logo-10gen.png"
 html_static_path = ['source/_static']
@@ -52,10 +54,11 @@ htmlhelp_basename = 'MongoDB doc'
 html_theme_options = {
     'project': 'mms',
     'version': version,
-    'branch': meta['branch'],
+    'branch': conf.git.branches.current,
+    'manual_path': get_manual_path(conf),
     'google_analytics': 'UA-7301842-7',
-    'version_selector': meta['version_selector'],
-    'stable': meta['upcoming'],
+    'version_selector': get_versions(conf),
+    'stable': conf.version.stable,
 }
 html_sidebars = {
     '**': [],
@@ -72,41 +75,41 @@ for pdf in pdfs:
         saas_latex_documents.append( _latex_document )
 
 # -- Conditional Output --------------------------------------------------------
-BREAK = '\n\n'
+rst_epilog = []
+
 try:
     if tags.has('hosted'):
         project = u'MongoDB Management Service (MMS) On-Prem'
         html_title = 'MMS On-Prem Manual'
         html_short_title = 'MMS On-Prem Manual'
         latex_documents = hosted_latex_documents
-        rst_epilog = '\n'
-        rst_epilog += ".. |s| replace:: Suite" + BREAK
-        rst_epilog += ".. |index-page-title| replace:: MongoDB Management Service On-Prem" + BREAK
-        rst_epilog += ".. |mms| replace:: MongoDB Management Service On-Prem" + BREAK
-        rst_epilog += ".. |backup| replace:: MMS Backup On-Prem" + BREAK
-        rst_epilog += ".. |monitoring| replace:: MMS Monitoring On-Prem" + BREAK
-        rst_epilog += ".. |release-string| replace:: -- {0} Release".format(release) + BREAK
+        rst_epilog.append(".. |s| replace:: Suite")
+        rst_epilog.append(".. |index-page-title| replace:: MongoDB Management Service On-Prem")
+        rst_epilog.append(".. |mms| replace:: MongoDB Management Service On-Prem")
+        rst_epilog.append(".. |backup| replace:: MMS Backup On-Prem")
+        rst_epilog.append(".. |monitoring| replace:: MMS Monitoring On-Prem")
+        rst_epilog.append(".. |release-string| replace:: -- {0} Release".format(release))
         html_sidebars['**'].append('sidebar-nav-mms-hosted.html')
     else:
         project = u'MongoDB Management Service (MMS)'
         html_title = 'MMS Manual'
         html_short_title = 'MMS Manual'
         latex_documents = saas_latex_documents
-        rst_epilog = '\n'
-        rst_epilog += ".. |s| replace:: Service" + BREAK
-        rst_epilog += ".. |index-page-title| replace:: MongoDB Management Service (MMS)" + BREAK
-        rst_epilog += ".. |mms| replace:: MongoDB Management Service" + BREAK
-        rst_epilog += ".. |backup| replace:: MMS Backup" + BREAK
-        rst_epilog += ".. |monitoring| replace:: MMS Monitoring" + BREAK
+        rst_epilog.append(".. |s| replace:: Service")
+        rst_epilog.append(".. |index-page-title| replace:: MongoDB Management Service (MMS)")
+        rst_epilog.append(".. |mms| replace:: MongoDB Management Service")
+        rst_epilog.append(".. |backup| replace:: MMS Backup")
+        rst_epilog.append(".. |monitoring| replace:: MMS Monitoring")
         html_sidebars['**'].append('sidebar-nav.html')
 
         if release == "Upcoming":
-            rst_epilog += ".. |release-string| replace:: \   "
+            rst_epilog.append(".. |release-string| replace:: \   ")
         else:
-            rst_epilog += ".. |release-string| replace:: -- {0} Release".format(release) + BREAK
+            rst_epilog.append(".. |release-string| replace:: -- {0} Release".format(release))
 except NameError:
     pass
 
+rst_epilog = '\n'.join(rst_epilog)
 html_sidebars['**'].extend(['searchbox.html', 'mms-resources.html', 'intrasite-manual.html'])
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -128,6 +131,8 @@ latex_use_parts = False
 latex_use_modindex = False
 
 # Example configuration for intersphinx: refer to the Python standard library.
-
-intersphinx_mapping = {'http://docs.python.org/': None}
-intersphinx_cache_limit = 30
+intersphinx_mapping = {}
+for i in intersphinx_libs:
+    intersphinx_mapping[i['name']] = ( i['url'], os.path.join(conf.build.paths.projectroot,
+                                                              conf.build.paths.output,
+                                                              i['path']))
