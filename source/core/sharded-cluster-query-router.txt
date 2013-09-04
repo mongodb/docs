@@ -78,29 +78,35 @@ collection.
       { zipcode: 1, u_id: 1 }
       { zipcode: 1, u_id: 1, c_date: 1 }
 
-How ``mongos`` Handles Query Flags
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+How ``mongos`` Handles Query Modifiers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If the result of the query is unsorted, the :program:`mongos` instance opens
-a result cursor that "round robins" results from all cursors on the
-shards. 
+If the result of the query is not sorted, the :program:`mongos`
+instance opens a result cursor that "round robins" results from all
+cursors on the shards.
 
-.. versionChanged::2.0.5
-In versions prior to 2.0.5, the :program:`mongos` exhausted each cursor, one by one.
+.. versionchanged:: 2.0.5
+   In versions prior to 2.0.5, the :program:`mongos` exhausted each
+   cursor, one by one.
 
-If the result is supposed to be sorted (i.e. the query used
-:method:`cursor.sort()`), the :program:`mongos` instance passes the `sort()` flag down to
-the targeted shards, and performs a merge sort of the results.
+If the queries specifies sorted results using the
+:method:`~cursor.sort()` cursor method, the :program:`mongos` instance
+passes the :operator:`$orderby` option to the shards. When the
+:program:`mongos` receives results it performs a *merge sort* of the
+results.
 
-If the query used :method:`cursor.limit()`, the :program:`mongos` instance passes that limit
-down to the shards and then re-applies it to the complete result.
+If the query limits the size of the result set using the
+:method:`~cursor.limit()` cursor method, the :program:`mongos`
+instance passes that limit to the shards and then re-applies the limit
+to the result before returning the result to the client.
 
-If the query used :method:`cursor.skip()`, the :program:`mongos` instance cannot pass it
-down to the shards since it cannot know in advance how much of the
-skip will be filled by each individual result. The :program:`mongos` instance
-therefore does *not* pass the `skip()` value down, but instead passes a
-`limit()` value of `(skip+limit)` down to the shards, and then performs
-the actual skip when assembling the complete result.
+If the query specifies a number of records to *skip* using the
+:method:`~cursor.skip()` cursor method, the :program:`mongos` *cannot*
+pass the skip to the shards, and trims the result set when assembling
+the complete result. However, when used in conjunction with a
+:method:`~cursor.limit()`, the :program:`mongos` will pass the *limit*
+plus the value of the :method:`~cursor.skip()` to the shards to
+improve the efficiency of these operations.
 
 Detect Connections to :program:`mongos` Instances
 -------------------------------------------------
