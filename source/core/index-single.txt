@@ -1,0 +1,159 @@
+====================
+Single Field Indexes
+====================
+
+.. default-domain:: mongodb
+
+MongoDB provides complete support for indexes on any field in a
+:term:`collection` of :term:`documents <document>`. By default, all collections
+have an index on the :ref:`_id field <index-type-id>`, and
+applications and users may add additional indexes to support important
+queries and operations.
+
+MongoDB supports indexes that contain either a single field *or*
+multiple fields depending on the operations that index supports. This
+document describes indexes that contain a single field. Consider the
+following illustration of a single field index.
+
+.. include:: /images/index-ascending.rst
+
+.. seealso:: :doc:`/core/index-compound` for information about indexes
+   that include multiple fields, and :doc:`/core/indexes-introduction`
+   for a higher level introduction to indexing in MongoDB.
+
+Example
+-------
+
+Given the following document in the ``friends`` collection:
+
+.. code-block:: javascript
+
+   { "_id" : ObjectID(...),
+     "name" : "Alice"
+     "age" : 27
+   }
+
+The following command creates an index on the ``name`` field:
+
+.. code-block:: sh
+
+   db.friends.ensureIndex( { "name" : 1 } )
+
+Cases
+-----
+
+.. index:: _id index
+.. index:: _id
+.. index:: index; _id
+.. index:: index types; primary key
+.. _index-type-id:
+
+``_id`` Field Index
+~~~~~~~~~~~~~~~~~~~
+
+For all collections, MongoDB creates the default ``_id`` index, which
+is a :ref:`unique index <index-type-unique>` on the ``_id`` field.
+MongoDB creates this index by default on all collections. You cannot
+delete the index on ``_id``.
+
+You can think
+of the ``_id`` field as the :term:`primary key` for the collection.
+Every document *must* have a unique ``_id`` field. You may store any
+unique value in the ``_id`` field. The default value of ``_id`` is an
+:term:`ObjectID` on every :method:`~db.collection.insert()` operation.
+An :term:`ObjectId` is a 12-byte unique identifiers suitable for use as
+the value of an ``_id`` field.
+
+.. note::
+
+   In :term:`sharded clusters <sharded cluster>`, if you do *not* use
+   the ``_id`` field as the :term:`shard key`, then your application
+   **must** ensure the uniqueness of the values in the ``_id`` field
+   to prevent errors.  This is most-often done by using a standard
+   auto-generated :term:`ObjectId`.
+
+   Before version 2.2, :term:`capped collections <capped collection>`
+   did not have an ``_id`` field. In version 2.2 and newer, capped
+   collection do have an ``_id`` field, except those in the ``local``
+   :term:`database`. See :ref:`Capped Collections Reccomendations
+   and Restrictions <capped-collections-reccomendations-and-restrictions>`
+   for more information.
+
+.. index:: index; embedded fields
+.. _index-embedded-fields:
+
+Indexes on Embedded Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. default-domain:: mongodb
+
+You can create indexes on fields embedded in sub-documents, just as you
+can index top-level fields in documents. Indexes on embedded fields
+differ from :ref:`indexes on sub-documents <index-sub-documents>`,
+which include the full content up to the maximum :limit:`Index Size` of
+the sub-document in the index. Instead, indexes on embedded fields
+allow you to use a "dot notation," to introspect into sub-documents.
+
+Consider a collection named ``people`` that holds documents that resemble
+the following example document:
+
+.. code-block:: javascript
+
+   {"_id": ObjectId(...)
+    "name": "John Doe"
+    "address": {
+           "street": "Main"
+           "zipcode": 53511
+           "state": "WI"
+           }
+   }
+
+You can create an index on the ``address.zipcode`` field, using the
+following specification:
+
+.. code-block:: javascript
+
+   db.people.ensureIndex( { "address.zipcode": 1 } )
+
+.. index:: index; subdocuments
+.. _index-subdocuments:
+.. _index-sub-documents:
+.. _index-subdocument:
+.. _index-sub-document:
+
+Indexes on Fields in Sub-documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. default-domain:: mongodb
+
+You can also create indexes on sub-documents.
+Given the following document in the ``factories`` collection:
+
+.. code-block:: javascript
+
+   { "_id": ObjectId(...),
+     metro: { city: "New York",
+              state: "NY" }
+            },
+     name: "Giant Factory"
+   )
+
+The ``metro`` field is a sub-document, containing the embedded fields
+``city`` and ``state``. An index on the ``metro`` field [words].
+
+The following queries would use the index on the ``metro`` field, and
+both would return the above document:
+
+.. code-block:: javascript
+
+   db.factories.find( { metro: { city: "New York", state: "NY" } } );
+
+   db.factories.find( { metro: { $gte : { city: "New York" } } } );
+
+The first query returns the document as one would expect: the query
+matches the subdocument perfectly.
+
+The second query returns the document because ``{ city: "New York",
+state: "NY" }`` is greater than ``{ city: "New York" }``. The order of
+comparison is in ascending key order in the order that the keys occur
+in the :term:`BSON` document.

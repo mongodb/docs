@@ -7,11 +7,11 @@ Index Types
 
 .. default-domain:: mongodb
 
-MongoDB supports multiple index types. You can create indexes on any
-field or embedded field within a document or sub-document. You can
-create compound indexes with multiple fields so that a single query can
-match multiple components using the index while scanning fewer whole
-documents.
+MongoDB provides a number of different index types. You can create
+indexes on any field or embedded field within a document or
+sub-document. You can create compound indexes with multiple fields so
+that a single query can match multiple components using the index
+while scanning fewer whole documents.
 
 In general, you should create indexes that support your primary, common,
 and user-facing queries. Doing so requires MongoDB to scan the fewest
@@ -26,186 +26,79 @@ supports indexes of arrays, called :ref:`multi-key indexes
 detailed instructions about building indexes, see the :doc:`Indexing
 Tutorials </administration/indexes>` page.
 
-.. index:: _id index
-.. index:: _id
-.. index:: index; _id
-.. index:: index types; primary key
-.. _index-type-id:
+Behavior of Index Types
+-----------------------
 
-_id Index
----------
+All indexes in MongoDB are :term:`B-tree` indexes, which can
+efficiently support equality matches and range queries. The index
+stores items internally in order sorted by the value of the index
+field. The ordering of index entries supports efficient range-based
+operations and allows MongoDB to return sorted results using the order
+of documents in the index.
 
-For all collections, MongoDB creates the default ``_id`` index, which
-is a :ref:`unique index <index-type-unique>` on the ``_id`` field.
-MongoDB creates this index by default on all collections. You cannot
-delete the index on ``_id``.
+Ordering of Indexes
+~~~~~~~~~~~~~~~~~~~
 
-You can think
-of the ``_id`` field as the :term:`primary key` for the collection.
-Every document *must* have a unique ``_id`` field. You may store any
-unique value in the ``_id`` field. The default value of ``_id`` is an
-:term:`ObjectID` on every :method:`~db.collection.insert()` operation.
-An :term:`ObjectId` is a 12-byte unique identifiers suitable for use as
-the value of an ``_id`` field.
+For the ordering of an index, MongoDB can use *either* ascending
+(e.g. ``1``) or descending (e.g. ``-1``) order. However, MongoDB may
+also transverse the index in both directions. As a result, for
+single-field indexes, ascending and descending indexes are
+interchangeable. For compound indexes the direction of the ordering
+for index can have a greater impact on the results.
 
-.. note::
+See :ref:`index-ascending-and-descending` for more information on the
+impact of index order on results in compound indexes.
 
-   In :term:`sharded clusters <sharded cluster>`, if you do *not* use
-   the ``_id`` field as the :term:`shard key`, then your application
-   **must** ensure the uniqueness of the values in the ``_id`` field
-   to prevent errors.  This is most-often done by using a standard
-   auto-generated :term:`ObjectId`.
+Prefixes
+~~~~~~~~
 
-   Before version 2.2, :term:`capped collections <capped collection>`
-   did not have an ``_id`` field. In version 2.2 and newer, capped
-   collection do have an ``_id`` field, except those in the ``local``
-   :term:`database`. See :ref:`Capped Collections Reccomendations
-   and Restrictions <capped-collections-reccomendations-and-restrictions>`
-   for more information.
+Compound indexes support queries on any prefix of the fields in the
+index. [#prefix]_
 
-Simple Index
-------------
+If you have a collection that has a compound index on ``{ a: 1, b: 1
+}`` and a single field index on ``{ a: 1 }``, assuming there neither
+index has a sparse or unique constraints on the index, the
+single-field index is *a prefix* of the compound index and may be
+redundant for most uses. MongoDB will be able to use the compound
+index in all of situations that it would have used the single field
+index.
 
-Given the following document in the ``friends`` collection:
+.. example::
 
-.. code-block:: javascript
+   Given the following index:
 
-   { "_id" : ObjectID(...),
-     "name" : "Alice"
-     "age" : 27
-   }
+   .. code-block:: javascript
 
-The following command creates an index on the ``name`` field:
+      { "item": 1, "location": 1, "stock": 1 }
 
-.. code-block:: sh
+   MongoDB **can** use this index to support queries that include:
 
-   db.friends.ensureIndex( { "name" : 1 } )
+   - the ``item`` field, and
+   - the ``item`` field *and* the ``location`` field.
 
-.. index:: index; embedded fields
-.. _index-embedded-fields:
+   MongoDB **cannot** use this index to support queries that include:
 
-Indexes on Embedded Fields
---------------------------
+   - only the ``location`` field,
+   - only the ``stock`` field,
+   - only the ``location`` *and* ``stock`` fields, and
+   - only the ``item`` *and* ``stock`` fields.
 
-.. default-domain:: mongodb
+.. [#prefix] Index prefixes are the beginning subset of fields. For
+   example, given the index ``{ a: 1, b: 1, c: 1 }`` both ``{ a: 1 }``
+   and ``{ a: 1, b: 1 }`` are prefixes of the index.
 
-You can create indexes on fields embedded in sub-documents, just as you
-can index top-level fields in documents. Indexes on embedded fields
-differ from :ref:`indexes on sub-documents <index-sub-documents>`,
-which include the full content up to the maximum :limit:`Index Size` of
-the sub-document in the index. Instead, indexes on embedded fields
-allow you to use a "dot notation," to introspect into sub-documents.
+Redundant Indexes
+~~~~~~~~~~~~~~~~~
 
-Consider a collection named ``people`` that holds documents that resemble
-the following example document:
+A single query can only use *one* index, except for queries that use
+the :operator:`$or` operator that can use a different index for each
+clause.
 
-.. code-block:: javascript
+.. seealso:: :ref:`Index Limitations <index-limitations>`.
 
-   {"_id": ObjectId(...)
-    "name": "John Doe"
-    "address": {
-           "street": "Main"
-           "zipcode": 53511
-           "state": "WI"
-           }
-   }
-
-You can create an index on the ``address.zipcode`` field, using the
-following specification:
-
-.. code-block:: javascript
-
-   db.people.ensureIndex( { "address.zipcode": 1 } )
-
-.. index:: index; subdocuments
-.. _index-subdocuments:
-.. _index-sub-documents:
-.. _index-subdocument:
-.. _index-sub-document:
-
-Indexes on Sub-documents
+Index Type Documentation
 ------------------------
-
-.. default-domain:: mongodb
-
-You can also create indexes on sub-documents.
-Given the following document in the ``factories`` collection:
-
-.. code-block:: javascript
-
-   { "_id": ObjectId(...), 
-     metro: { city: "New York", 
-              state: "NY" } 
-            },
-     name: "Giant Factory"
-   )
-
-The ``metro`` field is a sub-document, containing the embedded fields
-``city`` and ``state``. An index on the ``metro`` field [words].
-
-The following queries would use the index on the ``metro`` field, and
-both would return the above document:
-
-.. code-block:: javascript
-
-   db.factories.find( { metro: { city: "New York", state: "NY" } } );
-
-   db.factories.find( { metro: { $gte : { city: "New York" } } } );
-
-The first query returns the document as one would expect: the query
-matches the subdocument perfectly.
-
-The second query returns the document because ``{ city: "New York",
-state: "NY" }`` is greater than ``{ city: "New York" }``. The order of
-comparison is in ascending key order in the order that the keys occur
-in the :term:`BSON` document.
-
-.. index:: index; sort order
-.. _index-ascending-and-descending:
-
-Indexes with Ascending and Descending Keys
-------------------------------------------
-
-.. default-domain:: mongodb
-
-Indexes store references to fields in either ascending or descending
-order. For single-field indexes, the order of keys doesn't matter,
-because MongoDB can traverse the index in either direction. However,
-for :ref:`compound indexes <index-type-compound>`, if you need to
-order results against two fields, sometimes you need the index fields
-running in opposite order relative to each other.
-
-To specify an index with a descending order, use the following form:
-
-.. code-block:: javascript
-
-   db.products.ensureIndex( { "field": -1 } )
-
-More typically in the context of a :ref:`compound
-index<index-type-compound>`, the specification would resemble the
-following prototype:
-
-.. code-block:: javascript
-
-   db.products.ensureIndex( { "fieldA": 1, "fieldB": -1 } )
-
-Consider a collection of event data that includes both usernames and a
-timestamp. If you want to return a list of events sorted by username
-and then with the most recent events first. To create this index, use
-the following command:
-
-.. code-block:: javascript
-
-   db.events.ensureIndex( { "username" : 1, "timestamp" : -1 } )
-
-Other Index Types
------------------
 
 .. include:: /includes/dfn-list-indexes-concepts-types.rst
 
 .. include:: /includes/toc-indexes-concepts-types.rst
-
-Related Content
----------------
-
-.. include:: /includes/dfn-list-indexes-concepts-properties.rst

@@ -10,7 +10,18 @@ Compound Indexes
 
 MongoDB supports "compound indexes," where a single index structure
 holds references to multiple fields [#compound-index-field-limit]_
-within a collection's documents. Consider a collection named
+within a collection's documents. For an example of a MongoDB index,
+see the following diagram.
+
+.. include:: /images/index-compound-key.rst
+
+.. [#compound-index-field-limit] MongoDB imposes a :limit:`limit of 31
+   fields for any compound index <Number of Indexed Fields in a Compound Index>`.
+
+Example
+-------
+
+Consider a collection named
 ``products`` that holds documents that resemble the following
 document:
 
@@ -34,27 +45,10 @@ can specify a single compound index to support both of these queries:
 
    db.products.ensureIndex( { "item": 1, "location": 1, "stock": 1 } )
 
-Compound indexes support queries on any prefix of the fields in the
-index. [#prefix]_ For example, MongoDB can use the above index to
-support queries that select the ``item`` field and to support queries
-that select the ``item`` field **and** the ``location`` field. The
-index, however, would not support queries that select the following:
-
-- only the ``location`` field
-- only the ``stock`` field
-- only the ``location`` and ``stock`` fields
-- only the ``item`` and ``stock`` fields
-
 .. important:: You may not create compound indexes that have
    ``hashed`` index fields. You will receive an error if you attempt to
    create a compound index that includes :ref:`a hashed index
    <index-hashed-index>`.
-
-When creating an index, the number associated with a key specifies the
-direction of the index. The options are ``1`` (ascending) and ``-1``
-(descending). Direction doesn't matter for single key indexes or for
-random access retrieval but is important if you are doing sort
-queries on compound indexes.
 
 The order of fields in a compound index is very important. In the
 previous example, the index will contain references to documents
@@ -62,8 +56,38 @@ sorted first by the values of the ``item`` field and, within each
 value of the ``item`` field, sorted by the values of ``location``, and
 then sorted by values of the ``stock`` field.
 
-.. [#prefix] Index prefixes are the beginning subset of fields. For
-   example, given the index ``{ a: 1, b: 1, c: 1 }`` both ``{ a: 1 }``
-   and ``{ a: 1, b: 1 }`` are prefixes of the index.
+.. index:: index; sort order
+.. _index-ascending-and-descending:
 
-.. [#compound-index-field-limit] MongoDB imposes a :limit:`limit of 31 fields for any compound index <Number of Indexed Fields in a Compound Index>`.
+The Impact of Index Order on Index Use
+--------------------------------------
+
+Indexes store references to fields in either ascending or descending
+order. For single-field indexes, the order of keys doesn't matter,
+because MongoDB can traverse the index in either direction. However,
+for :ref:`compound indexes <index-type-compound>`, if you need to
+order results against two fields, sometimes you need the index fields
+running in opposite order relative to each other.
+
+To specify an index with a descending order, use the following form:
+
+.. code-block:: javascript
+
+   db.products.ensureIndex( { "field": -1 } )
+
+More typically in the context of a :ref:`compound
+index<index-type-compound>`, the specification would resemble the
+following prototype:
+
+.. code-block:: javascript
+
+   db.products.ensureIndex( { "fieldA": 1, "fieldB": -1 } )
+
+Consider a collection of event data that includes both usernames and a
+timestamp. If you want to return a list of events sorted by username
+and then with the most recent events first. To create this index, use
+the following command:
+
+.. code-block:: javascript
+
+   db.events.ensureIndex( { "username" : 1, "timestamp" : -1 } )
