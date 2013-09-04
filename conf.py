@@ -3,14 +3,11 @@
 # MongoDB documentation build configuration file, created by
 # sphinx-quickstart on Fri Sep 23 17:07:35 2011.
 
-import sys
-import os
+import sys, os
 
 project_root = os.path.join(os.path.abspath(os.path.dirname(__file__)))
-
 sys.path.append(project_root)
 
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 from bootstrap import buildsystem
 
 sys.path.append(os.path.join(project_root, buildsystem, 'sphinxext'))
@@ -52,7 +49,6 @@ html_show_sourcelink = False
 htmlhelp_basename = 'MongoDB doc'
 
 html_theme_options = {
-    'project': 'mms',
     'version': version,
     'branch': conf.git.branches.current,
     'manual_path': get_manual_path(conf),
@@ -60,13 +56,9 @@ html_theme_options = {
     'version_selector': get_versions(conf),
     'stable': conf.version.stable,
 }
-html_sidebars = {
-    '**': [],
-}
 
 hosted_latex_documents = []
 saas_latex_documents = []
-
 for pdf in pdfs:
     _latex_document = ( pdf['source'], pdf['output'], pdf['title'], pdf['author'], pdf['class'])
     if pdf['edition'] == 'hosted':
@@ -76,6 +68,7 @@ for pdf in pdfs:
 
 # -- Conditional Output --------------------------------------------------------
 rst_epilog = []
+html_sidebars = { '**': [] }
 
 try:
     if tags.has('hosted'):
@@ -90,6 +83,7 @@ try:
         rst_epilog.append(".. |monitoring| replace:: MMS Monitoring On-Prem")
         rst_epilog.append(".. |release-string| replace:: -- {0} Release".format(release))
         html_sidebars['**'].append('sidebar-nav-mms-hosted.html')
+        html_theme_template['edition'] = 'hosted'
     else:
         project = u'MongoDB Management Service (MMS)'
         html_title = 'MMS Manual'
@@ -101,6 +95,7 @@ try:
         rst_epilog.append(".. |backup| replace:: MMS Backup")
         rst_epilog.append(".. |monitoring| replace:: MMS Monitoring")
         html_sidebars['**'].append('sidebar-nav.html')
+        html_theme_template['edition'] = 'saas'
 
         if release == "Upcoming":
             rst_epilog.append(".. |release-string| replace:: \   ")
