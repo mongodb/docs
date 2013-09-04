@@ -11,43 +11,6 @@ MongoDB.
 These factors implications for database and application performance
 as well as future maintenance and development costs.
 
-Data Lifecycle Management
--------------------------
-
-Data modeling decisions should take data lifecycle management into
-consideration.
-
-The :doc:`Time to Live or TTL feature </tutorial/expire-data>` of
-collections expires documents after a period of time. Consider using
-the TTL feature if your application requires some data to persist in
-the database for a limited period of time.
-
-Additionally, if your application only uses recently inserted
-documents consider :doc:`/core/capped-collections`.  Capped
-collections provide *first-in-first-out* (FIFO) management of inserted
-documents and optimized to support operations that insert and read
-documents based on insertion order.
-
-.. _data-model-atomicity:
-
-Atomicity
----------
-
-A heavily denormalized schema with extensive nesting of embedded
-documents can be more likely to facilitate atomic write operations:
-since all related data is stored together, updates are more likely to
-touch a single document. This comes at the cost of flexibility: since
-the schema is tailored specifically to a single application's needs,
-it can be difficult to modify the application, or to reuse the data
-for new purposes.
-
-By contrast, with a normalized schema, that stores related information
-in a number of documents, update operations can involve many
-individual writes. This means that (words). However, a normalized
-schema can be more flexible: since the data is not structured to suit
-a single application's needs, it can be easier to use in new ways or
-for new applications.
-
 .. _data-model-document-growth:
 
 Document Growth
@@ -69,13 +32,75 @@ large document as a whole.
 MongoDB automatically provides madding to minimize the occurrence of
 relocation, but you should still consider document growth when
 designing your schema, and may also need to manually handle document
-growth. Refer to :doc:`/use-cases/pre-aggregated-reports` for an
-example of the *pre-allocation* approach to handling document growth.
+growth. Refer to :ecosystem:`Pre-Aggregated Reports Use Case
+</use-cases/pre-aggregated-reports>` for an example of the
+*pre-allocation* approach to handling document growth.
 
 .. TODO add link to padding factor page once migrated? Link to
    Document Growth section of core/modeling-considerations?
 
 .. TODO add link to padding factor page once migrated
+
+.. _data-model-atomicity:
+
+Atomicity
+---------
+
+A heavily denormalized schema with extensive nesting of embedded
+documents can be more likely to facilitate atomic write operations:
+since all related data is stored together, updates are more likely to
+touch a single document. This comes at the cost of flexibility: since
+the schema is tailored specifically to a single application's needs,
+it can be difficult to modify the application, or to reuse the data
+for new purposes.
+
+By contrast, with a normalized schema, that stores related information
+in a number of documents, update operations can involve many
+individual writes. This means that (words). However, a normalized
+schema can be more flexible: since the data is not structured to suit
+a single application's needs, it can be easier to use in new ways or
+for new applications.
+
+Sharding
+--------
+
+:term:`Sharding` allows users to :term:`partition` a
+:term:`collection` within a database to distribute the collection's
+documents across a number of :program:`mongod` instances or
+:term:`shards <shard>`.
+
+The shard key determines how MongoDB distributes data among shards in
+a sharded collection. Selecting the proper :ref:`shard key
+<shard-key>` has significant implications for performance.
+
+See :doc:`/core/sharding-introduction` and
+:doc:`/core/sharding-shard-key` for more information.
+
+Indexes
+-------
+
+Create indexes to support common queries. Generally, indexes and index
+use in MongoDB correspond to indexes and index use in relational
+database: build indexes on fields that appear often in queries and for
+all operations that return sorted results. MongoDB automatically
+creates a unique index on the ``_id`` field.
+
+As you create indexes, consider the following behaviors of indexes:
+
+- Each index requires at least 8KB of data space.
+
+- Adding an index has some negative performance impact for write
+  operations. For collections with high write-to-read ratio, indexes
+  are expensive as each insert must add keys to each index.
+
+- Collections with high proportion of read operations to write
+  operations often benefit from additional indexes. Indexes do not
+  affect un-indexed read operations.
+
+See :doc:`/applications/indexes` for more information on determining
+indexes. Additionally, the MongoDB :doc:`database profiler
+</tutorial/manage-the-database-profiler>` may help identify
+inefficient queries.
 
 .. _data-model-large-number-of-collections:
 
@@ -139,43 +164,19 @@ server with :option:`--nssize <mongod --nssize>`, run the
 :method:`db.repairDatabase()` command from the :program:`mongo`
 shell.
 
-Indexes
--------
+Data Lifecycle Management
+-------------------------
 
-Create indexes to support common queries. Generally, indexes and index
-use in MongoDB correspond to indexes and index use in relational
-database: build indexes on fields that appear often in queries and for
-all operations that return sorted results. MongoDB automatically
-creates a unique index on the ``_id`` field.
+Data modeling decisions should take data lifecycle management into
+consideration.
 
-As you create indexes, consider the following behaviors of indexes:
+The :doc:`Time to Live or TTL feature </tutorial/expire-data>` of
+collections expires documents after a period of time. Consider using
+the TTL feature if your application requires some data to persist in
+the database for a limited period of time.
 
-- Each index requires at least 8KB of data space.
-
-- Adding an index has some negative performance impact for write
-  operations. For collections with high write-to-read ratio, indexes
-  are expensive as each insert must add keys to each index.
-
-- Collections with high proportion of read operations to write
-  operations often benefit from additional indexes. Indexes do not
-  affect un-indexed read operations.
-
-See :doc:`/applications/indexes` for more information on determining
-indexes. Additionally, the MongoDB :doc:`database profiler
-</tutorial/manage-the-database-profiler>` may help identify
-inefficient queries.
-
-Sharding
---------
-
-:term:`Sharding` allows users to :term:`partition` a
-:term:`collection` within a database to distribute the collection's
-documents across a number of :program:`mongod` instances or
-:term:`shards <shard>`.
-
-The shard key determines how MongoDB distributes data among shards in
-a sharded collection. Selecting the proper :ref:`shard key
-<shard-key>` has significant implications for performance.
-
-See :doc:`/core/sharding-introduction` and
-:doc:`/core/sharding-shard-key` for more information.
+Additionally, if your application only uses recently inserted
+documents consider :doc:`/core/capped-collections`.  Capped
+collections provide *first-in-first-out* (FIFO) management of inserted
+documents and optimized to support operations that insert and read
+documents based on insertion order.
