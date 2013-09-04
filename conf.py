@@ -105,7 +105,7 @@ languages = [
 
 # -- Options for HTML output ---------------------------------------------------
 
-html_theme = 'mongodb'
+html_theme = 'manual'
 html_theme_path = [ os.path.join(buildsystem, 'themes') ]
 html_title = "MongoDB Manual"
 htmlhelp_basename = 'MongoDBdoc'
