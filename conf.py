@@ -24,7 +24,13 @@ intersphinx_libs = ingest_yaml_list(os.path.join(conf.build.paths.builddata, 'in
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.intersphinx', 'sphinx.ext.todo', 'sphinx.ext.ifconfig']
+extensions = [
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.todo',
+    'sphinx.ext.ifconfig',
+    'sphinx.ext.extlinks'
+]
+
 templates_path = ['templates']
 source_suffix = '.txt'
 master_doc = 'index'
@@ -57,6 +63,19 @@ html_theme_options = {
     'stable': conf.version.stable,
 }
 
+extlinks = {
+    'issue': ('https://jira.mongodb.org/browse/%s', '' ),
+    'wiki': ('http://www.mongodb.org/display/DOCS/%s', ''),
+    'api': ('http://api.mongodb.org/%s', ''),
+    'source': ('https://github.com/mongodb/mongo/blob/master/%s', ''),
+    'docsgithub' : ( 'http://github.com/mongodb/docs/blob/' + conf.git.branches.current + '/%s', ''),
+    'hardlink' : ( 'http://docs.mongodb.org/' + conf.git.branches.current + '/%s', ''),
+    'manual': ('http://docs.mongodb.org/manual%s', ''),
+    'ecosystem': ('http://docs.mongodb.org/ecosystem%s', ''),
+    'meta-driver': ('http://docs.mongodb.org/meta-driver/latest%s', ''),
+    'about': ('http://www.mongodb.org/about%s', '')
+}
+
 hosted_latex_documents = []
 saas_latex_documents = []
 for pdf in pdfs:
@@ -81,9 +100,17 @@ try:
         rst_epilog.append(".. |mms| replace:: MongoDB Management Service On-Prem")
         rst_epilog.append(".. |backup| replace:: MMS Backup On-Prem")
         rst_epilog.append(".. |monitoring| replace:: MMS Monitoring On-Prem")
-        rst_epilog.append(".. |release-string| replace:: -- {0} Release".format(release))
         html_sidebars['**'].append('sidebar-nav-mms-hosted.html')
         html_theme_template['edition'] = 'hosted'
+
+        if release == "Upcoming":
+            rst_epilog.append(".. |release-string| replace:: \   ")
+        else:
+            rst_epilog.append(".. |release-string| replace:: -- {0} Release".format(release))
+
+        ## add `extlinks` for each published version.
+        for i in conf.git.branches.published:
+            extlinks[i] = ( conf.project.url + '/' + i + '%s', '')
     else:
         project = u'MongoDB Management Service (MMS)'
         html_title = 'MMS Manual'
@@ -94,13 +121,10 @@ try:
         rst_epilog.append(".. |mms| replace:: MongoDB Management Service")
         rst_epilog.append(".. |backup| replace:: MMS Backup")
         rst_epilog.append(".. |monitoring| replace:: MMS Monitoring")
+        rst_epilog.append(".. |release-string| replace:: \   ")
         html_sidebars['**'].append('sidebar-nav.html')
         html_theme_template['edition'] = 'saas'
 
-        if release == "Upcoming":
-            rst_epilog.append(".. |release-string| replace:: \   ")
-        else:
-            rst_epilog.append(".. |release-string| replace:: -- {0} Release".format(release))
 except NameError:
     pass
 
