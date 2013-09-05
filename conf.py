@@ -121,12 +121,10 @@ try:
         rst_epilog.append(".. |mms| replace:: MongoDB Management Service")
         rst_epilog.append(".. |backup| replace:: MMS Backup")
         rst_epilog.append(".. |monitoring| replace:: MMS Monitoring")
-        rst_epilog.append(".. |release-string| replace:: \   ")
         html_sidebars['**'].append('sidebar-nav.html')
         html_theme_template['edition'] = 'saas'
-
 except NameError:
-    pass
+    rst_epilog.append(".. |release-string| replace:: \   ")
 
 rst_epilog = '\n'.join(rst_epilog)
 html_sidebars['**'].extend(['searchbox.html', 'mms-resources.html', 'intrasite-manual.html'])
