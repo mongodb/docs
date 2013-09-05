@@ -8,17 +8,13 @@ Index Creation
 
 .. default-domain:: mongodb
 
-.. TODO Do these paragraphs go here?
+Index creation options modify the way MongoDB builds indexes.
+Specify index creation options in the second argument to the
+:method:`ensureIndex() <db.collection.ensureIndex()>` method.
 
-.. You specify index creation options in the second argument in
-   :method:`ensureIndex() <db.collection.ensureIndex()>`.
-
-.. The options :ref:`sparse <index-type-sparse>`, :ref:`unique
-   <index-type-unique>`, and :ref:`TTL <index-feature-ttl>` affect the
-   kind of index that MongoDB creates. This section addresses,
-   :ref:`background construction <index-creation-background>` and
-   :ref:`duplicate dropping <index-creation-duplicate-dropping>`, which
-   affect how MongoDB builds the indexes.
+For a detailed description of MongoDB's index types, see:
+:doc:`/core/index-types`. For an overview of the index properties that
+MongoDB supports, see::doc:`/core/index-properties`.
 
 .. index:: index; name
 .. _index-names:
@@ -29,7 +25,7 @@ Index Names
 .. default-domain:: mongodb
 
 The default name for an index is the concatenation of the indexed keys
-and each key's direction in the index (1 or -1).
+and each key's direction in the index, 1 or -1.
 
 .. example:: Issue the following command to create an index on ``item``
    and ``quantity``:
@@ -86,11 +82,11 @@ following:
 
    db.people.ensureIndex( { zipcode: 1}, {background: true, sparse: true } )
 
-Be aware of the following behaviors with background index
-construction:
+Behavior
+~~~~~~~~
 
-- A :program:`mongod` instance can build more than one index in the
-  background concurrently.
+As of MongoDB version 2.4, a :program:`mongod` instance can build more than one index in the
+background concurrently.
 
   .. versionchanged:: 2.4
      Before 2.4, a :program:`mongod` instance could only build one
@@ -100,57 +96,15 @@ construction:
      Before 2.2, a single :program:`mongod` instance could only build
      one index at a time.
 
-- The indexing operation runs in the background so that other database
-  operations can run while creating the index. However, the
-  :program:`mongo` shell session or connection where you are creating
-  the index will block until the index build is complete. Open another
-  connection or :program:`mongo` instance to continue using commands
-  to the database.
+Background indexing operations run in the background so that other database
+operations can run while creating the index. However, the :program:`mongo`
+shell session or connection where you are creating
+the index *will* block until the index build is complete. To continue
+issuing commands to the database, open another
+connection or :program:`mongo` instance.
 
-- The background index operation use an incremental approach that is
-  slower than the normal "foreground" index builds. If the index is
-  larger than the available RAM, then the incremental process
-  can take *much* longer than the foreground build.
-
-- If your application includes :method:`ensureIndex()
-  <db.collection.ensureIndex()>` operations, and an index *doesn't*
-  exist for other operational concerns, building the index can have a
-  severe impact on the performance of the database.
-
-  Make sure that your application checks for the indexes at start up
-  using the :method:`~db.collection.getIndexes()` method
-  or the :api:`equivalent method for your driver <>` and terminates if
-  the proper indexes do not exist. Always build indexes in production
-  instances using separate application code, during designated
-  maintenance windows.
-
-.. admonition:: Building Indexes on Secondaries
-
-   Background index operations on a :term:`replica set`
-   :term:`primary` become foreground indexing operations on secondary
-   members of the set. All indexing operations on secondaries block
-   replication.
-
-   To build large indexes on secondaries the best approach is to
-   restart one secondary at a time in :term:`standalone` mode and build the
-   index. After building the index, restart as a member of the
-   replica set, allow it to catch up with the other members of the
-   set, and then build the index on the next secondary. When all the
-   secondaries have the new index, step down the primary, restart it
-   as a standalone, and build the index on the former primary.
-
-   Remember, the amount of time required to build the index on a
-   secondary must be within the window of the :term:`oplog`, so
-   that the secondary can catch up with the primary.
-
-   See :ref:`index-building-replica-sets` for more information on
-   this process.
-
-   Indexes on secondary members in "recovering" mode are always built in
-   the foreground to allow them to catch up as soon as possible.
-
-   See :ref:`index-building-replica-sets` for a complete procedure for
-   rebuilding indexes on secondaries.
+Queries will not use partially-built indexes: the index will only be
+usable once the index build is complete.
 
 .. note::
 
@@ -161,7 +115,52 @@ construction:
    :dbcommand:`compact`. These operations will return an error during
    background index builds.
 
-Queries will not use these indexes until the index build is complete.
+Performance
+~~~~~~~~~~~
+
+The background index operation uses an incremental approach that is
+slower than the normal "foreground" index builds. If the index is
+larger than the available RAM, then the incremental process can take
+*much* longer than the foreground build. 
+
+If your application
+includes :method:`ensureIndex() <db.collection.ensureIndex()>`
+operations, and an index *doesn't* exist for other operational
+concerns, building the index can have a severe impact on the
+performance of the database.
+
+To avoid performance issues, make sure that your application checks
+for the indexes at start up using the
+:method:`~db.collection.getIndexes()` method or the :api:`equivalent
+method for your driver <>` and terminates if the proper indexes do not
+exist. Always build indexes in production instances using separate
+application code, during designated maintenance windows.
+
+Building Indexes on Secondaries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Background index operations on a :term:`replica set`
+:term:`primary` become foreground indexing operations on
+:term:`secondary members <secondary>` of the set. All indexing
+operations on secondaries block replication.
+
+To build large indexes on secondaries the best approach is to
+restart one secondary at a time in :term:`standalone` mode and build the
+index. After building the index, restart as a member of the
+replica set, allow it to catch up with the other members of the
+set, and then build the index on the next secondary. When all the
+secondaries have the new index, step down the primary, restart it
+as a standalone, and build the index on the former primary.
+
+Remember, the amount of time required to build the index on a
+secondary must be within the window of the :term:`oplog`, so
+that the secondary can catch up with the primary.
+
+Indexes on secondary members in "recovering" mode are always built in
+the foreground to allow them to catch up as soon as possible.
+
+See :ref:`index-building-replica-sets` for a complete procedure for
+rebuilding indexes on secondaries.
 
 .. index:: index; duplicates
 .. index:: index; drop duplicates
@@ -176,7 +175,7 @@ index, you can specify the ``dropDups`` option, which will only index
 the first occurrence of a value for the key, and delete all subsequent
 values.
 
-.. warning::
+.. important::
 
    As in all unique indexes, if a document does not have the indexed
    field, MongoDB will include it in the index with a "null" value.
