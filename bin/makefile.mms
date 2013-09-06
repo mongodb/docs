@@ -28,6 +28,8 @@ generate-source-hosted:
 	@sed $(SED_ARGS_FILE) 's%SAASONLY-mmslanding%%' build/saas/source/index.txt
 	@sed $(SED_ARGS_FILE) 's%HOSTED-mmslanding%.. include:: /includes/hosted-landing-dfn-lists.rst%' build/hosted/$(current-branch)/source/index.txt
 	@sed $(SED_ARGS_FILE) 's%.. include:: /includes/table-mms-auth-roles-saas.rst%%' build/hosted/$(current-branch)/source/management/permissions.txt 
+	@sed $(SED_ARGS_FILE) 's%MANAGEMENT-toc-saas%%' build/saas/source/management.txt
+	@sed $(SED_ARGS_FILE) 's%MANAGEMENT-toc-hosted%.. include:: /includes/dfn-list-management-landing-hosted.rst%' build/hosted/$(current-branch)/source/management.txt
 	@rm -rf build/hosted/$(current-branch)/source/backup.txt build/hosted/$(current-branch)/source/backup/
 	@rm -rf build/hosted/$(current-branch)/source/includes/dfn-list-mms-landing-saas.rst build/hosted/$(current-branch)/source/includes/dfn-list-spec-mms-landing-saas.rst	
 	@rm -rf build/hosted/$(current-branch)/source/includes/toc-mms-landing-saas.* build/hosted/$(current-branch)/source/includes/toc-spec-mms-landing-saas.yaml
@@ -44,6 +46,8 @@ generate-source-saas:
 	@sed $(SED_ARGS_FILE) 's%SAASONLY-mmslanding%.. include:: /includes/saas-landing-dfn-lists.rst%' build/saas/source/index.txt 
 	@sed $(SED_ARGS_FILE) 's%.. include:: /includes/table-mms-auth-roles-hosted.rst%%' build/saas/source/management/permissions.txt 
 	@sed $(SED_ARGS_FILE) 's%:ref:`on-prem-authentication-configuration`%%' build/saas/source/management/permissions.txt 
+	@sed $(SED_ARGS_FILE) 's%MANAGEMENT-toc-hosted%%' build/saas/source/management.txt
+	@sed $(SED_ARGS_FILE) 's%MANAGEMENT-toc-saas%.. include:: /includes/dfn-list-management-landing-saas.rst%' build/saas/source/management.txt
 	@echo [sphinx-prep]: updated source in build/saas/source
 	@-notify-send "Sphinx" "Build in progress past critical phase."
 	@echo [sphinx-prep]: INFO - Build in progress past critical phase.
