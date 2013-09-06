@@ -43,14 +43,11 @@ of :term:`shard key` values for a sharded collection. When migrating a
 chunk, the balancer will select a destination shard based on the
 configured tag ranges.
 
-The balancer migrates chunks in tagged ranges to shards with those
-tags, if tagged shards are not balanced. [#specific-tagged-migrations]_
-
-.. note::
-
-   Because a single chunk may span different tagged shard key ranges,
-   the balancer may migrate chunks to tagged shards that contain
-   values that exceed the upper bound of the selected tag range.
+Since the interval between the lower bound and the upper bound of a chunk may
+span more than one tag range, the balancer only checks whether the *lower bound* 
+of the chunk falls within a given tag range, and ignores the upper bound of
+the chunk.  This ensures that there is always a single well-defined target shard
+for any chunk that is about to be migrated.
 
 .. example::
 
@@ -65,7 +62,7 @@ tags, if tagged shards are not balanced. [#specific-tagged-migrations]_
 
    In this cluster, the balancer will migrate a chunk with shard key
    values ranging between ``150`` and ``220`` to a shard tagged
-   ``NYC``, since ``150`` is closer to ``200`` than ``300``.
+   ``NYC``, since ``150`` falls within the range ``100..200``.
 
 After configuring tags on the shards and ranges of the shard key, the
 cluster may take some time to reach the proper distribution of data,
@@ -73,12 +70,6 @@ depending on the division of chunks (i.e. splits) and the current
 distribution of data in the cluster. Once configured, the balancer
 will respect tag ranges during future :ref:`balancing rounds
 <sharding-internals-balancing>`.
-
-.. [#specific-tagged-migrations] To migrate chunks in a tagged
-   environment, the balancer selects a target shard with a tag range
-   that has an *upper* bound that is *greater than* the migrating
-   chunk's *lower* bound. If a shard with a matching tagged range
-   exists, the balancer will migrate the chunk to that shard.
 
 .. seealso:: 
 
