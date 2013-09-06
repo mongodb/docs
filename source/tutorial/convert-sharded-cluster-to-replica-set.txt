@@ -10,8 +10,12 @@ Convert Sharded Cluster to Replica Set
    :backlinks: none
    :local:
 
-This tutorial outlines the process to convert a :term:`sharded cluster` to a
-non-sharded :term:`replica set`.
+This tutorial describes the process for converting a :term:`sharded
+cluster` to a non-sharded :term:`replica set`. To convert a replica
+set into a sharded cluster
+:doc:`/tutorial/convert-replica-set-to-sharded-cluster`. See the
+:doc:`/sharding` documentation for more information on sharded
+clusters.
 
 Convert a Cluster with a Single Shard into a Replica Set
 --------------------------------------------------------
@@ -24,15 +28,12 @@ cluster into a non-sharded :term:`replica set`:
    replica set hosting the single shard that system will be the new replica
    set.
 
-#. :program:`mongod` instances started with the :option:`--shardsrv
-   <mongod --shardsvr>` option may be restarted without this option,
-   although this is not necessary for successful operation.
+#. Optionally remove the :option:`--shardsrv <mongod --shardsvr>`
+   option, if your :program:`mongod` started with this option.
 
-   .. note::
-
-      Changing the :option:`--shardsrv` option will change the port
-      :program:`mongod` listens on. If you wish to continue using the
-      same port, leave this option as-is.
+   .. tip:: Changing the :option:`--shardsrv <mongod --shardsrv>`
+      option will change the port that :program:`mongod` listens for
+      incoming connections on.
 
 The single-shard cluster is now a non-sharded :term:`replica set` that
 will accept read and write operations on the data set.
@@ -49,17 +50,15 @@ with more than one shard to an entirely new :term:`replica set`.
    set <deploy-replica-set>` in addition to your sharded cluster. The
    replica set must have sufficient capacity to hold all of the data
    files from all of the current shards combined. Do not configure the
-   application to connect to the new replica set until all data has been
-   transferred.
+   application to connect to the new replica set until the data
+   transfer is complete.
 
-#. Stop all writes to the :term:`sharded cluster`. One way to make sure
-   of this is to stop all :program:`mongos` instances, although this
-   will also stop application reads. If you do this, start a temporary
-   :program:`mongos` instance on that applications cannot access,
-   specifically to do the dump/restore.
-
-   Another approach is to disable the balancer to prevent applications
-   from performing writes.
+#. Stop all writes to the :term:`sharded cluster`. You may reconfigure
+   your application or stop all :program:`mongos` instances. If you
+   stop all :program:`mongos` instances, the applications will not be
+   able to read from the database. If you stop all :program:`mongos`
+   instances, start a temporary :program:`mongos` instance on that
+   applications cannot access for the data migration procedure.
 
 #. Use :doc:`mongodump and mongorestore
    </tutorial/backup-databases-with-binary-database-dumps/>` to migrate
@@ -70,16 +69,9 @@ with more than one shard to an entirely new :term:`replica set`.
       sharded. Do not solely migrate the sharded collections. Ensure that
       all databases and all collections migrate correctly.
 
-   .. note:: The amount of time required for a restore is dependent on
-      the size of the data set. MongoDB 2.2 supports a faster restore, using
-      :program:`mongorestore` with :option:`--noIndexRestore`. In this case,
-      you can rebuild the indexes manually after the restore.
-
 #. Reconfigure the application to use the non-sharded :term:`replica
    set` instead of the :program:`mongos` instance.
 
-The application now uses the non-sharded :term:`replica set` for reads
-and writes. You may exit all :program:`mongos` and :program:`mongod`
-instances associated with the sharded cluster, and remove and reclaim
-the host servers.
-
+The application will now use the un-sharded :term:`replica set` for
+reads and writes. You may now decommission the remaining unused
+sharded cluster infrastructure. 
