@@ -177,8 +177,8 @@ Shard Key Limitations
 
 .. limit:: Shard Key is Immutable
 
-   You cannot change a shard key once a collection has been sharded. If
-   you must change a shard key, the best option is the following:
+   You cannot change a shard key after sharding the collection. If
+   you must change a shard key:
 
    - Dump all data from MongoDB into an external format.
 
@@ -194,34 +194,35 @@ Shard Key Limitations
 .. limit:: Shard Key Value in a Document is Immutable
 
    After you insert a document into a sharded collection, you cannot
-   change the document's value for the field or fields that are used as
-   the shard key. The
-   :method:`~db.collection.update()` operation will not modify the value
-   of a shard key in an existing document.
+   change the document's value for the field or fields that comprise
+   the shard key. The :method:`~db.collection.update()` operation will
+   not modify the value of a shard key in an existing document.
 
 .. limit:: Monotonically Increasing Shard Keys Can Limit Insert Throughput
 
-   If you have a high insert volume, a monotonically increasing shard
-   key can limit insert throughput. If you use the ``_id`` field as the
+   For clusters with high insert volumes, a shard keys with
+   monotonically increasing and decreasing keys can affect insert
+   throughput. If you use the ``_id`` field that holds default as the
    shard key, be aware that the default value of the ``_id`` field,
-   :term:`ObjectID`, increments as timestamp and is therefore
-   monotonically increasing.
+   :term:`ObjectID` values, this shard key will be monotonically
+   increasing because ObjectID values increment as time-stamps.
 
-   If you insert documents with monotonically increasing shard keys, all
+   When inserting documents with monotonically increasing shard keys, all
    inserts belong to the same :term:`chunk` on a single
-   :term:`shard`. Although the system will eventually divide the chunk
-   and migrate its contents to distribute data more evenly, at any
-   moment the cluster can direct insert operations only to a single
-   shard. This can limit insert throughput.
+   :term:`shard`. The system will eventually divide the
+   chunk range that receives all write operations
+   and migrate its contents to distribute data more evenly. However, at any
+   moment the cluster can only direct insert operations only to a single
+   shard, which creates an insert throughput bottleneck.
 
-   This should not affect performance if most of your operations are not
-   inserting new data.
+   If the operations on the cluster are predominately read operations
+   and updates, this limitation may not affect the cluster.
 
-   To address this issue, use a field with a value that stores the hash
-   of a key with an ascending value.
+   To avoid this constraint, use a :ref:`hashed shard key
+   <sharding-hashed-sharding>`  or select a field that does not
+   increase or decrease monotonically.
 
    .. versionchanged:: 2.4
-
       :ref:`Hashed shard keys <sharding-hashed-sharding>` and
       :ref:`hashed indexes <index-type-hashed>` store hashes of keys
       with ascending values.
