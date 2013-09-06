@@ -124,7 +124,10 @@ try:
         html_sidebars['**'].append('sidebar-nav.html')
         html_theme_template['edition'] = 'saas'
 except NameError:
-    rst_epilog.append(".. |release-string| replace:: \   ")
+    if release == "Upcoming":
+        rst_epilog.append(".. |release-string| replace:: \   ")
+    else:
+        rst_epilog.append(".. |release-string| replace:: -- {0} Release".format(release))
 
 rst_epilog = '\n'.join(rst_epilog)
 html_sidebars['**'].extend(['searchbox.html', 'mms-resources.html', 'intrasite-manual.html'])
