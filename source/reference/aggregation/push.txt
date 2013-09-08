@@ -10,3 +10,125 @@ $push (aggregation)
    among the documents in that group. *A value may appear more than
    once* in the result set if more than one field in the grouped
    documents has that value.
+
+Example
+-------
+
+A sample ``users`` collection contains the following documents:
+
+.. code-block:: javascript
+      
+   { "_id": 1, "user" : "Jan", "age" : 25, "score": 80 }
+   { "_id": 2, "user" : "Mel", "age" : 35, "score": 70 }
+   { "_id": 3, "user" : "Ty", "age" : 20, "score": 102 }
+   { "_id": 4, "user" : "Lee", "age" : 25, "score": 45 }
+
+Push Values of a Single Field Into the Returned Array Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To group by ``age`` and return all the ``user`` values for each age, use the
+:group:`$push` operator.
+
+.. code-block:: javascript
+
+   db.users.aggregate(
+                        {
+                          $group: {
+                                    _id: "$age",
+                                    users: { $push: "$user" } 
+                                  } 
+                        } 
+                     )
+
+For each ``age``, the operation returns the field ``users`` that
+contains an array of all the ``user`` values associated with that age:
+
+.. code-block:: javascript
+
+   {
+      "result" : [
+         {
+            "_id" : 20,
+            "users" : [
+               "Ty"
+            ]
+         },
+         {
+            "_id" : 35,
+            "users" : [
+               "Mel"
+            ]
+         },
+         {
+            "_id" : 25,
+            "users" : [
+               "Jan",
+               "Lee"
+            ]
+         }
+      ],
+      "ok" : 1
+   }
+
+Push Documents Into the Returned Array Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   
+The :group:`$push` operator can return an array of documents.
+
+To group by ``age`` and return all the ``user`` and associated ``score`` values for each age, use the
+:group:`$push` operator.
+
+.. code-block:: javascript
+
+   db.users.aggregate(
+                        {
+                          $group: {
+                                    _id: "$age",
+                                    users: { $push: { userid: "$user", score: "$score" } }
+                                  } 
+                        } 
+                     )
+
+For each ``age``, the operation returns the field ``users`` that
+contains an array of documents. These documents contain the fields
+``userid`` and ``score`` that hold respectively the ``user`` value and
+the ``score`` value associated with that age:
+
+.. code-block:: javascript
+
+   {
+      "result" : [
+         {
+            "_id" : 20,
+            "users" : [
+               {
+                  "userid" : "Ty",
+                  "score" : 102
+               }
+            ]
+         },
+         {
+            "_id" : 35,
+            "users" : [
+               {
+                  "userid" : "Mel",
+                  "score" : 70
+               }
+            ]
+         },
+         {
+            "_id" : 25,
+            "users" : [
+               {
+                  "userid" : "Jan",
+                  "score" : 80
+               },
+               {
+                  "userid" : "Lee",
+                  "score" : 45
+               }
+            ]
+         }
+      ],
+      "ok" : 1
+   }
