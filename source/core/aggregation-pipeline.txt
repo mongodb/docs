@@ -105,6 +105,30 @@ the following aggregation operators: :pipeline:`$project`,
    :pipeline:`$geoNear` pipeline operation must appear as the first
    stage in an aggregation pipeline.
 
+For unsharded collections, when the aggregation pipeline only needs to
+access the indexed fields to fulfill its operations, an index can
+:ref:`cover <read-operations-covered-query>` the pipeline.
+
+.. example::
+
+   Consider the following index on the ``orders`` collection:
+
+   .. code-block:: javascript
+
+      { status: 1, amount: 1, cust_id: 1 }
+
+   This index can cover the following aggregation pipeline operation
+   because MongoDB does not need to inspect the data outside of the
+   index to fulfill the operation:
+
+   .. code-block:: javascript
+
+      db.orders.aggregate([ 
+                            { $match: { status: "A" } }, 
+                            { $group: { _id: "$cust_id", total: { $sum: "$amount" } } },
+                            { $sort: { total: -1 } }
+                         ])
+
 Early Filtering
 ~~~~~~~~~~~~~~~
 
