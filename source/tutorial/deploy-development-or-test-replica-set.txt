@@ -1,0 +1,170 @@
+========================================
+Deploy a Development or Test Replica Set
+========================================
+
+.. default-domain:: mongodb
+
+.. note:: 
+   This tutorial provides instructions for deploying a replica set
+   in a development or test environment. For a production deployment,
+   refer to the :doc:`</tutorial/deploy-replica-set-in-production>`
+   tutorial
+
+.. include:: /includes/introduction-deploy-replica-set.rst
+
+Requirements
+------------
+
+For test and development systems, you can run your :program:`mongod`
+instances on a local system, or within a virtual instance.
+
+Before you can deploy a replica set, you must install MongoDB on
+each system that will be part of your :term:`replica set`.
+If you have not already installed MongoDB, see the :ref:`installation tutorials <tutorial-installation>`.
+
+Before creating your replica set, you should verify that your network
+configuration allows all possible connections between each member. For
+a successful replica set deployment, every member must be able to
+connect to every other member. For instructions on how to check
+your connection, see :ref:`replica-set-troubleshooting-check-connection`.
+
+Procedure
+---------
+
+.. important:: These instructions should only be used for test or
+   development deployments.
+
+The examples in this procedure create a new replica set named ``rs0``.
+
+You will begin by starting three :program:`mongod` instances as
+members of a replica set named ``rs0``.
+
+1. Create the necessary data directories for each member by issuing a
+   command similar to the following:
+
+   .. code-block:: sh
+
+      mkdir -p /srv/mongodb/rs0-0 /srv/mongodb/rs0-1 /srv/mongodb/rs0-2
+
+   This will create directories called "rs0-0", "rs0-1", and "rs0-2", which
+   will contain the instances' database files.
+
+#. Start your :program:`mongod` instances in their own shell windows by issuing the following
+   commands:
+
+   First member:
+   
+   .. code-block:: sh
+
+      mongod --port 27017 --dbpath /srv/mongodb/rs0-0 --replSet rs0 --smallfiles --oplogSize 128
+
+   Second member:
+   
+   .. code-block:: sh
+
+      mongod --port 27018 --dbpath /srv/mongodb/rs0-1 --replSet rs0 --smallfiles --oplogSize 128
+
+   Third member:
+   
+   .. code-block:: sh
+
+      mongod --port 27019 --dbpath /srv/mongodb/rs0-2 --replSet rs0 --smallfiles --oplogSize 128
+
+   This starts each instance as a member of a replica set named
+   ``rs0``, each running on a distinct port, and specifies the path to
+   your data directory with the :option:`--dbpath <dbpath>` setting.
+   If you are already using the suggested ports, select different ports.
+
+   The :option:`--smallfiles <smallfiles>` and
+   :option:`--oplogSize <oplogSize>` settings reduce the disk
+   space that each :program:`mongod` instance uses. This is ideal for testing and
+   development deployments as it prevents overloading your machine.
+   For more information on these and other configuration
+   options, see :doc:`/reference/configuration-options`.
+
+#. Connect to one of your :program:`mongod` instances through the
+   :program:`mongo` shell. You will need to indicate which instance by
+   specifying its port number. For the sake of simplicity and clarity,
+   you may want to choose the first one, as in the following command;
+
+   .. code-block:: sh
+
+      mongo --port 27017
+
+#. In the :program:`mongo` shell, use :method:`rs.initiate()` to
+   initiate the replica set. You can create a replica set
+   configuration object in the :program:`mongo` shell environment, as
+   in the following example:
+
+   .. code-block:: javascript
+
+      rsconf = {
+                 _id: "rs0",
+                 members: [
+                            {
+                             _id: 0,
+                             host: "<hostname>:27017"
+                            }
+                          ]
+               }
+
+   replacing ``<hostname>`` with your system's hostname,
+   and then pass the ``rsconf`` file to :method:`rs.initiate()` as
+   follows:
+   
+   .. code-block:: javascript
+
+      rs.initiate( rsconf )
+
+#. Display the current :doc:`replica configuration </reference/replica-configuration>`
+   by issuing the following command:
+
+   .. code-block:: javascript
+
+      rs.conf()
+
+   The replica set configuration object resembles the following
+
+   .. code-block:: javascript
+
+      {
+         "_id" : "rs0",
+         "version" : 4,
+         "members" : [
+            {
+               "_id" : 1,
+               "host" : "localhost:27017"
+            }
+         ]
+      }
+
+#. In the :program:`mongo` shell connected to the :term:`primary`, add
+   the second and third :program:`mongod` instances to the replica set
+   using the :method:`rs.add()` method. Replace ``<hostname>`` with
+   your system's hostname in the following examples:
+
+   .. code-block:: javascript
+
+      rs.add("<hostname>:27018")
+      rs.add("<hostname>:27019")
+
+   When complete, you should have a fully functional replica set.
+   The new replica set will elect a :term:`primary`.
+
+Check the status of your replica set at any time with the
+:method:`rs.status()` operation.
+
+.. seealso:: The documentation of the following shell functions for
+   more information:
+
+   - :method:`rs.initiate()`
+   - :method:`rs.conf()`
+   - :method:`rs.reconfig()`
+   - :method:`rs.add()`
+
+   You may also consider the `simple setup script
+   <https://github.com/mongodb/mongo-snippets/blob/master/replication/simple-setup.py>`_
+   as an example of a basic automatically-configured replica set.
+
+   Refer to :doc:`Replica Set Read and Write Semantics </applications/replication>`
+   for a detailed explanation of read and write semantics in MongoDB.
