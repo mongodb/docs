@@ -88,21 +88,25 @@ Aggregation Pipeline Changes
       :pipeline:`$out`.
 
    :pipeline:`$out` will create a new collection if one does not
-   already exist in the current database. This collection will not be
-   visible at that name until the aggregation completes. If the aggregation
-   fails part-way through, no collection will be created.
+   already exist in the current database. This collection is not
+   visible until the aggregation completes. If the aggregation
+   fails, no collection MongoDB will not create any collection.
    
-   If the output collection already exists, the behavior is the same
-   as MapReduce's replace mode. To be specific if the aggregation completes
-   successfully, the output collection will be atomically replaced by a newer
-   version. Any indexes that existed at the start of the aggregation on the
-   original output collection will also exist on the new collection.
-   Importantly, this means that the pipeline will error out if the output
-   documents would violate any unique indexes (including _id) that existed
-   on the original output collection.
-   
+   If the output collection already exists, when the aggregation
+   completes *successfully*, the :pipeline:`$out` atomically replaces
+   the output collection with the new results
+   collection. :pipeline:`$out` does not change any indexes that
+   existed on the previous collection.
+
+   .. important:: The pipeline will fail to complete if the documents
+      produced by the pipeline would violate any unique indexes,
+      including the index on the ``_id`` field, that existed on the
+      original output collection.
    
    You may *only* specify :pipeline:`$out` at the end of a pipeline.
+
+With :pipeline:`$out`, the aggregation framework can return result
+sets of any size.
 
 .. example::
 
@@ -116,8 +120,10 @@ Aggregation Pipeline Changes
       db.records.aggregate( { $project: { uid: 1, email: 1 } },
                             { $out: "users" } )
 
-With :pipeline:`$out`, the aggregation framework can return result
-sets of any size.
+.. [#same-as-replace] When the :pipeline:`$out` operation specifies
+   a collection that already exists in the current database,
+   :pipeline:`$out` behaves like the replace mode of
+   :dbcommand:`mapReduce`.
 
 Aggregation Operation May Return a Cursor
 `````````````````````````````````````````
