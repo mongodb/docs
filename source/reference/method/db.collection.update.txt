@@ -84,29 +84,75 @@ expressions, then:
 Upsert Parameter
 ~~~~~~~~~~~~~~~~
 
-In MongoDB versions 2.2 and later, the ``upsert`` parameter has the
+In MongoDB versions 2.2 and later, the *upsert* parameter has the
 following form:
 
   .. code-block:: javascript
 
      upsert : true|false
 
-Prior to version 2.2, the ``upsert`` parameter is a positional Boolean.
+Prior to version 2.2, the *upsert* parameter is a positional Boolean.
 To enable, specify ``true`` as the third parameter to
 :method:`~db.collection.update()`.
 
-If ``upsert`` is set to ``true`` and if no document matches the query
+Upsert Use
+``````````
+
+If *upsert* is set to ``true`` and if no document matches the query
 criteria, :method:`~db.collection.update()` inserts a *single* document.
-The ``upsert`` creates the new document with either:
+The *upsert* creates the new document with either:
 
 - The fields and values of the ``<update>`` parameter, or
 
 - The fields and values of the both the ``<query>`` and ``<update>``
-  parameters. The ``upsert`` creates a document with data from both
+  parameters. The *upsert* creates a document with data from both
   ``<query>`` and ``<update>`` if the ``<update>`` parameter contains
   *only* :ref:`update operator <update-operators>` expressions.
 
-For examples, see :ref:`example-update-upsert`.
+Use Unique Indexes
+``````````````````
+
+.. warning:: To avoid inserting the same document more than once,
+   only use ``upsert: true`` if the ``query`` field is uniquely
+   indexed.
+
+Given a collection named ``people`` where no documents have a
+``name`` field that holds the value ``Andy``. Consider when multiple
+clients issue the following *update* operation at the same time. The
+following operation becomes an ``insert`` because the ``upsert``
+flag is ``true``.:
+
+.. code-block:: javascript
+
+   db.people.update( { name: "Andy" },
+                     {
+                        name: "Andy",
+                        rating: 1,
+                        score: 1
+                     },
+                     { upsert: true }
+   )
+
+If all :method:`~db.collection.update()` operations complete the
+``query`` portion before any client successfully inserts data,
+**and** there is no unique index on the ``name`` field, then each update
+operation may perform an insert.
+
+To prevent MongoDB from inserting the same document more than once,
+create a :ref:`unique index <index-type-unique>` on the ``name``
+field. With a unique index, the multiple operations would have one
+of the following effects:
+
+- Exactly one :method:`~db.collection.update()` would
+  successfully insert a new document.
+
+- Zero or more :method:`~db.collection.update()` operations
+  would update the newly inserted document.
+
+- Zero or more :method:`~db.collection.update()` operations
+  would fail when they attempted to insert a duplicate. If the method
+  fails due to a unique index constraint violation, you can retry
+  the method. If the document exists, the retry will succeed.
 
 .. _multi-parameter:
 
@@ -291,7 +337,7 @@ includes the ``name`` field set to ``{ first: "Ken", last: "Iverson"
 Insert a New Document if No Match Exists (Upsert)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following command sets the ``upsert`` option to ``true``
+The following command sets the *upsert* option to ``true``
 [#previous-versions-upsert]_ so that :method:`~db.collection.update()`
 creates a new document in the ``books`` collection if no document
 matches the ``<query>`` parameter:
@@ -305,7 +351,7 @@ matches the ``<query>`` parameter:
                     { upsert: true }
                   )
 
-If no document matches the ``<query>`` parameter, the ``upsert`` inserts
+If no document matches the ``<query>`` parameter, the *upsert* inserts
 a document with the fields and values of the ``<update>`` parameter and
 a new unique ``ObjectId`` for the ``_id`` field:
 
@@ -320,7 +366,7 @@ a new unique ``ObjectId`` for the ``_id`` field:
 
 In the next example, the ``<update>`` parameter includes only
 :ref:`update operators <update-operators>`. If no document matches the
-``<query>`` parameter, the ``upsert`` inserts a document with the fields
+``<query>`` parameter, the *upsert* inserts a document with the fields
 and values of the both the ``<query>`` and ``<update>`` parameters:
 
 .. code-block:: javascript
@@ -416,7 +462,7 @@ Given a ``books`` collection that includes the following documents:
    }
 
 The following command uses the ``multi`` parameter to update all
-documents where ``author`` is ``"Dante"`` and uses the ``upsert``
+documents where ``author`` is ``"Dante"`` and uses the *upsert*
 parameter to create a new document if no such documents are found
 [#previous-versions-upsert-multi]_:
 
