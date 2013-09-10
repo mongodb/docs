@@ -7,4 +7,5 @@
    .. significant-storage-requirements
 
    - Text indexes have significant storage requirements and performance
-     costs. See :ref:`index-feature-text` for more information.
+     costs. See :ref:`text-index-storage-requirements` for more
+     information.
