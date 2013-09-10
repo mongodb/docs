@@ -144,7 +144,9 @@ To create and migrate chunks manually, use the following procedure:
              }
            }
 
-      This assumes a collection size of 100 million documents.
+      This uses two-character prefixes to define split points, iterating with a "step size" of
+      six in the second position.  So the first chunk would comprise e-mail addresses starting with
+      ``aa`` through ``af``, the second ``ag`` through ``am``, etc.
 
 #. Migrate chunks manually using the :dbcommand:`moveChunk` command:
 
@@ -156,11 +158,13 @@ To create and migrate chunks manually, use the following procedure:
 
         .. code-block:: javascript
 
-           var shServer = [ "sh0.example.net", "sh1.example.net", "sh2.example.net", "sh3.example.net", "sh4.example.net" ];
+           var shServer = [ "sh0.example.net", "sh1.example.net", "sh2.example.net" ];
+           var curServer = 0;
            for ( var x=97; x<97+26; x++ ){
              for( var y=97; y<97+26; y+=6 ) {
                var prefix = String.fromCharCode(x) + String.fromCharCode(y);
-               db.adminCommand({moveChunk : "myapp.users", find : {email : prefix}, to : shServer[(y-97)/6]})
+               db.adminCommand({moveChunk : "myapp.users", find : {email : prefix}, to : shServer[curServer]});
+               curServer = (curServer + 1) % shServer.length;
              }
            }
 
