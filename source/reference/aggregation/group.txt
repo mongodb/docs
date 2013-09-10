@@ -7,35 +7,44 @@ $group (aggregation)
 .. pipeline:: $group
 
    Groups documents together for the purpose of calculating aggregate
-   values based on a collection of documents. Practically, group often
-   supports tasks such as average page views for each page in a
-   website on a daily basis.
+   values based on a collection of documents. In practice,
+   :pipeline:`$group` often supports tasks such as average page views
+   for each page in a website on a daily basis.
 
-   The output of :pipeline:`$group` depends on how you define
-   groups. Begin by specifying an identifier (i.e. a ``_id`` field)
-   for the group you're creating with this pipeline. You can specify a
-   single field from the documents in the pipeline, a previously
-   computed value, or an aggregate key made up from several incoming
-   fields. Aggregate keys may resemble the following document:
+   .. important:: The output of :pipeline:`$group` is not ordered.
 
-   .. code-block:: javascript
+   The output of :pipeline:`$group` depends on how you define groups.
+   Begin by specifying an identifier (i.e. an ``_id`` field) for the
+   group you're creating with this pipeline. For this ``_id`` field,
+   you can specify various expressions, including a single field from
+   the documents in the pipeline, a computed value from a previous
+   stage, a document that consists of multiple fields, and other valid
+   expressions, such as constant or subdocument fields. You can use
+   :pipeline:`$project` operators in expressions for the ``_id`` field.
 
-      { _id : { author: '$author', pageViews: '$pageViews', posted: '$posted' } }
+   The following example of an ``_id`` field specifies a document that
+   consists of multiple fields:
+
+     .. code-block:: javascript
+
+        { _id : { author: '$author', pageViews: '$pageViews', posted: '$posted' } }
+
+   Every :pipeline:`$group` expression **must** specify an ``_id``
+   field. In addition to the ``_id`` field, :pipeline:`$group`
+   expression can include computed fields. These other fields must use
+   one of the following :term:`accumulators <accumulator>`:
+
+   - :group:`$addToSet`
+   - :group:`$first`
+   - :group:`$last`
+   - :group:`$max`
+   - :group:`$min`
+   - :group:`$avg`
+   - :group:`$push`
+   - :group:`$sum`
 
    With the exception of the ``_id`` field, :pipeline:`$group` cannot
    output nested documents.
-   
-   .. important:: The output of :pipeline:`$group` is not ordered.
-
-   Every group expression must specify an ``_id`` field.
-   You may specify the ``_id`` field as a dotted
-   field path reference, a document with multiple fields enclosed in
-   braces (i.e. ``{`` and ``}``), or a constant value.
-
-   .. note::
-
-      Use :pipeline:`$project` as needed to rename the grouped field
-      after an :pipeline:`$group` operation, if necessary.
 
    Consider the following example:
 
@@ -55,17 +64,10 @@ $group (aggregation)
    function. The ``viewsPerAuthor`` field is the sum of
    all of the ``pageViews`` fields in the documents for each group.
 
-   Each field defined for the :pipeline:`$group` must use one of the group
-   aggregation function listed below to generate its composite value:
+   .. tip::
 
-   - :group:`$addToSet`
-   - :group:`$first`
-   - :group:`$last`
-   - :group:`$max`
-   - :group:`$min`
-   - :group:`$avg`
-   - :group:`$push`
-   - :group:`$sum`
+      Use :pipeline:`$project` as needed to rename the grouped field
+      after a :pipeline:`$group` operation.
 
    .. warning::
 
