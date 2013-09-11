@@ -4,12 +4,9 @@ Operational Considerations for Data Modeling
 
 .. default-domain:: mongodb
 
-In addition to normalization and normalization concerns, a number of
-other operational factors help shape data modeling decisions in
-MongoDB.
-
-These factors implications for database and application performance
-as well as future maintenance and development costs.
+Operational factors help shape data modeling decisions in MongoDB.
+These factors have implications for database and application
+performance as well as future maintenance and development costs.
 
 .. _data-model-document-growth:
 
@@ -20,58 +17,66 @@ Certain updates to documents can increase the document size, such as
 pushing elements to an array and adding new fields. If the document
 size exceeds the allocated space for that document, MongoDB relocates
 the document on disk. This internal relocation can be both time and
-resource consuming.
+resource consuming. Although MongoDB automatically provides
+:doc:`record padding </core/record-padding>` to minimize the occurrence
+of relocation, document growth is an important consideration during
+data modeling decisions.
 
-It is therefore important to consider whether documents are likely to
-grow significantly in your collections: adding new fields or pushing
-elements to an array in a heavily denormalized collection may be more
-expensive than in a normalized collection, where you might be
-inserting new documents and adding references, rather than updating a
-large document as a whole.
+For instance, if your documents are likely to grow significantly,
+adding new fields or pushing elements to an array in a heavily
+denormalized collection may be more expensive than in a normalized
+collection. With a normalized collection, you might be inserting new
+documents and adding references whereas with a denormalized collection,
+you might be updating a large document as a whole.
 
-MongoDB automatically provides madding to minimize the occurrence of
-relocation, but you should still consider document growth when
-designing your schema, and may also need to manually handle document
-growth. Refer to :ecosystem:`Pre-Aggregated Reports Use Case
+Even though MongoDB adaptively adjusts the amount of padding to reduce
+occurrences of relocation, in some exceptional cases, you may also need
+to manually handle document growth such as with *pre-allocation*. Refer
+to :ecosystem:`Pre-Aggregated Reports Use Case
 </use-cases/pre-aggregated-reports>` for an example of the
 *pre-allocation* approach to handling document growth.
 
-.. TODO add link to padding factor page once migrated? Link to
-   Document Growth section of core/modeling-considerations?
-
-.. TODO add link to padding factor page once migrated
-
 .. _data-model-atomicity:
+.. _data-modeling-atomicity:
 
 Atomicity
 ---------
 
-A heavily denormalized schema with extensive nesting of embedded
-documents can be more likely to facilitate atomic write operations:
-since all related data is stored together, updates are more likely to
-touch a single document. This comes at the cost of flexibility: since
-the schema is tailored specifically to a single application's needs,
-it can be difficult to modify the application, or to reuse the data
-for new purposes.
+In MongoDB, operations are atomic at the :term:`document` level: no
+single write operation can atomically affect more than one document or
+more than one collection. [#record-atomicity]_ As such, fields that
+need to be modified together atomically should be in the same document
+whereas fields that can be modified non-atomically can be located in
+separate documents.
 
-By contrast, with a normalized schema, that stores related information
-in a number of documents, update operations can involve many
-individual writes. This means that (words). However, a normalized
-schema can be more flexible: since the data is not structured to suit
-a single application's needs, it can be easier to use in new ways or
-for new applications.
+A denormalized schema with nesting of embedded documents can facilitate
+atomic write operations since all related data is stored in a single
+document. By contrast, with a normalized schema that stores related
+information in a number of documents, update operations can involve
+many individual writes.
+
+See :ref:`data-modeling-atomic-operation` for an example of atomic
+updates within a single document.
+
+.. [#record-atomicity] Document-level atomic operations include all
+   operations within a single MongoDB document record: operations that
+   affect multiple sub-documents within that single record are still
+   atomic.
 
 Sharding
 --------
 
-:term:`Sharding` allows users to :term:`partition` a
-:term:`collection` within a database to distribute the collection's
-documents across a number of :program:`mongod` instances or
-:term:`shards <shard>`.
+MongoDB uses :term:`sharding`, or horizontal scaling, to support
+deployments with very large data sets and high throughput operations.
+Sharding allows users to :term:`partition` a :term:`collection` within
+a database to distribute the collection's documents across a number of
+:program:`mongod` instances or :term:`shards <shard>`.
 
-The shard key determines how MongoDB distributes data among shards in
-a sharded collection. Selecting the proper :ref:`shard key
-<shard-key>` has significant implications for performance.
+To distribute data among the shards for a sharded collection, MongoDB
+uses the :ref:`shard key <shard-key>`. Selecting the proper :ref:`shard
+key <shard-key>` has significant implications for performance, such as
+providing query isolation and increased write capacity. It is important
+to consider carefully the field, or fields, to use as the shard key.
 
 See :doc:`/core/sharding-introduction` and
 :doc:`/core/sharding-shard-key` for more information.
@@ -81,7 +86,7 @@ Indexes
 
 Create indexes to support common queries. Generally, indexes and index
 use in MongoDB correspond to indexes and index use in relational
-database: build indexes on fields that appear often in queries and for
+database. Build indexes on fields that appear often in queries and for
 all operations that return sorted results. MongoDB automatically
 creates a unique index on the ``_id`` field.
 
@@ -91,7 +96,7 @@ As you create indexes, consider the following behaviors of indexes:
 
 - Adding an index has some negative performance impact for write
   operations. For collections with high write-to-read ratio, indexes
-  are expensive as each insert must add keys to each index.
+  are expensive since each insert must add keys to each index.
 
 - Collections with high proportion of read operations to write
   operations often benefit from additional indexes. Indexes do not
@@ -107,8 +112,8 @@ inefficient queries.
 Large Number of Collections
 ---------------------------
 
-In certain situations, you might choose to store information in several
-collections rather than in a single collection.
+In certain situations, you might choose to store similar information in
+several collections rather than in a single collection.
 
 Consider a sample collection ``logs`` that stores log documents for
 various environment and applications. The ``logs`` collection contains
@@ -119,7 +124,7 @@ documents of the following form:
    { log: "dev", ts: ..., info: ... }
    { log: "debug", ts: ..., info: ...}
 
-If the total number of documents is low you may group documents into
+If the total number of documents is low, you may group documents into
 collection by type. For logs, consider maintaining distinct log
 collections, such as ``logs.dev`` and ``logs.debug``. The ``logs.dev``
 collection would contain only the documents related to the dev
@@ -176,7 +181,7 @@ the TTL feature if your application requires some data to persist in
 the database for a limited period of time.
 
 Additionally, if your application only uses recently inserted
-documents consider :doc:`/core/capped-collections`.  Capped
-collections provide *first-in-first-out* (FIFO) management of inserted
-documents and optimized to support operations that insert and read
-documents based on insertion order.
+documents, consider :doc:`/core/capped-collections`. Capped collections
+provide *first-in-first-out* (FIFO) management of inserted documents
+and efficiently support operations that insert and read documents based
+on insertion order.

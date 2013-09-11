@@ -4,125 +4,77 @@ Data Modeling Introduction
 
 .. default-domain:: mongodb
 
-Data in MongoDB has a *flexible schema*. Unlike SQL databases, where
-you must determine and declare a table's schema before inserting data,
-MongoDB's :term:`collections <collection>` do not enforce
-:term:`document` structure. The flexible schema enables documents to
-only contain the fields that are relevant to the entity or object
-represented by the document.  In practice, *most* documents in a
+Collections in MongoDB has a *flexible schema*. Unlike SQL databases
+that require you to determine and declare a table's schema before
+inserting data, MongoDB's :term:`collections <collection>` do not
+enforce :term:`document` structure. The flexible schema enables
+documents to only contain the fields that are relevant to the entity or
+object represented by the document. In practice, *most* documents in a
 collection share a similar structure, but they need not.
+
+Although a number of data models may be functionally equivalent for a
+given application, different data models will have different impacts on
+MongoDB and application performance. When possible, develop data models
+using real data and application code, and iterate to achieve the most
+effective model for your application and use cases.
 
 As in all data modeling, when designing schemas for MongoDB, you must
 consider the inherent properties and requirements of the application
-objects and the relationships between application objects. MongoDB
-data models should also reflect how data will grow and change over
-time, and the kinds of queries your application will perform.
+objects and the relationships between application objects. MongoDB data
+models should also reflect how data will grow and change over time as
+well as the kinds of queries your application will perform.
 
-Modeling Decisions
+Document Structure
 ------------------
 
-Flat or Embedded Structures?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+A key decision in designing data models in MongoDB is whether to
+normalize data or denormalize data. Normalized data models use
+:doc:`references </reference/database-references>` to describe
+relationships between documents. With normalized models, applications
+must issue follow-up queries to resolve the references.
 
-.. TODO: re-frame so that this is about modeling relations in
-   documents: do you store the structure of the data with the data, or
-   not? Frame as an application sorta thing.
+Denormalized data models takes advantage of MongoDB's support for
+embedded documents and keeps related data together. With denormalized
+data models, applications can request and retrieve related data in a
+single database operation.
 
-With MongoDB, you can choose to normalize your data, creating a flat
-structure, or to de-normalizing your data and create a nested data
-structure, taking advantage of MongoDB's support for embedded
-documents.
+:ref:`data-modeling-decisions` discusses the strengths and weaknesses
+of each approach in detail.
 
-Fully normalized data models describe relationships using
-:doc:`references </reference/database-references>` between
-documents. By contrast, de-normalized models embed documents within
-documents, keeping related data together, but potentially storing redundant
-information across related collections. :ref:`data-modeling-decisions`
-discusses the strengths and weaknesses of each approach in detail.
+Atomicity of Write Operations
+-----------------------------
 
-Atomicity or Flexibility?
-~~~~~~~~~~~~~~~~~~~~~~~~~
+In MongoDB, write operations are atomic at the :term:`document` level,
+and no single write operation can atomically affect more than one
+document or more than one collection. A denormalized data model with
+embedded data would facilitate atomic write operations since the write
+operation would generally update a single document.
 
-In MongoDB, write operations are atomic at the :term:`document` level:
-no single write operation can atomically affect more than one document
-or more than one collection. In consequence, a collection's data model
-has a signficiant influence on both atomicity and flexibility: schemas
-that facilitate atomic writes often come at the cost of limiting
-opportunities for using data in new ways, or for redesigning
-applications. The :ref:`Atomicity Considerations
-<data-model-atomicity>` documentation describes the
-challenge of designing a schema that balances flexibility and
-atomicity.
+However, schemas that facilitate atomic writes may limit ways that
+applications can use the data or ways to redesign applications. The
+:ref:`Atomicity Considerations <data-model-atomicity>` documentation
+describes the challenge of designing a schema that balances flexibility
+and atomicity.
 
 Document Growth
-~~~~~~~~~~~~~~~
+---------------
 
 Some updates, such as pushing elements to an array or adding new
 fields, increase a :term:`document's <document>` size. If the document
 size exceeds the allocated space for that document, MongoDB relocates
-the document on disk: this internal relocation can be both time and
-resource consuming. See :ref:`Document Growth Considerations
-<data-model-document-growth>` for more about planning for and
-managing document growth in MongoDB.
+the document on disk. The growth consideration can affect the decision
+to normalize or denormalize data. See :ref:`Document Growth
+Considerations <data-model-document-growth>` for more about planning
+for and managing document growth in MongoDB.
 
-Application and Business Requirements
--------------------------------------
+Data Use and Performance
+------------------------
 
-Queries, Requests, and Indexes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+When designing a schema, consider how applications will use your
+database. For instance, if your application only uses recently inserted
+documents, consider using :doc:`/core/capped-collections`. Or if your
+application needs are mainly read operations to a collection, adding
+indexes to support common queries can improve performance.
 
-.. TODO: cut down this subsection and move some into another section.
-
-When designing a schema, you should have a good sense of the types of
-queries you will run on your database. An appropriate schema for an
-application that regularly runs large volumes of queries will not be
-the same as a schema optimized for an application that runs one large
-query on pageload, for instance.  Schemas should take the
-application's query needs into account, and be tailored to support
-them.
-
-The way you request data is also an important factor: will you request
-small chunks of data, or a large document that will then be parsed
-into its components?
-
-Similarly, determining the best indexes for your application is
-essential to database performance. Data models should take indexing
-needs into account, and the data structure should facilitate index
-use. The :doc:`indexing strategy </applications/indexes>` document
-discusses the considerations to take into account when designing
-indexes.
-
-Sharding
-~~~~~~~~
-
-:term:`Sharding <sharding>` allows users to partition a collection
-within a database to distribute the collection's documents among a
-number of :program:`mongod` instances or :term:`shards <shard>`. Some
-use cases will never need to involve sharded clusters, but for those
-that anticipate a need for large-scale horizontal scalability,
-designing a schema that includes a suitable :ref:`shard key
-<shard-key>` candidate is advisable.  See the
-:doc:`/core/sharding-introduction` and :doc:`/core/sharding-shard-key`
-documentation for more information.
-
-Conclusion
-----------
-
-Although a number of data models may be functionally equivalent for a
-given application, different data models will have different impacts
-on MongoDB and application performance. The best data models are
-developed upon using real data and application code, and iterated upon
-until an ideal balance between normalization and denormalization,
-flatness and embeddedness, and app-specificity and flexibility, is
-reached.
-
-For a more detailed discussion of operational considerations for
-schema design in MongoDB, see :doc:`/core/data-model-operations`,
-which discusses document growth, indexing requirements, and sharding,
-as well as data lifecycle management and collection volumes.
-
-:doc:`/core/data-model-design` also provides more insight into the
-tradeoffs between normalization and denormalization, while the
-:ref:`data-modeling-examples` pages provide concrete examples of
-all the discussed patterns, and can provide guidance when designing
-your own data model.
+See :doc:`/core/data-model-operations` for more information on these
+and other operational considerations that affect data model designs.
