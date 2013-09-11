@@ -37,7 +37,7 @@ master_doc = 'index'
 
 copyright = u'2011-2013, MongoDB, Inc.'
 
-version = '1.4-pre'
+version = '1.3-pre'
 release = 'Upcoming'
 pygments_style = 'sphinx'
 
