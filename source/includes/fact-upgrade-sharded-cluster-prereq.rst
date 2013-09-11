@@ -9,3 +9,8 @@ Additionally, ensure that all indexes in the :doc:`config database
 index is a ``{v:0}`` index, chunk splits can fail due to known issues
 with the ``{v:0}`` format. ``{v:0}`` indexes are present on clusters created with
 MongoDB 2.0 or earlier.
+
+The duration of the metadata upgrade depends on the network latency
+between the node performing the upgrade and the three config servers.
+Ensure low latency between the upgrade process and the config servers.
+
