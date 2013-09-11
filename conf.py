@@ -194,6 +194,7 @@ man_pages = [
     ('reference/program/mongosniff', 'mongosniff', u'MongoDB', [u'MongoDB Documentation Project'], 1),
     ('reference/program/mongotop', 'mongotop', u'MongoDB', [u'MongoDB Documentation Project'], 1),
     ('reference/program/mongoperf', 'mongoperf', u'MongoDB', [u'MongoDB Documentation Project'], 1),
+    ('reference/parameters', 'mongodb-parameters', u'MongoDB Parameters', [u'MongoDB Documentation Project'], 5),
 ]
 
 # -- Options for Epub output ---------------------------------------------------
