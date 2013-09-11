@@ -114,19 +114,21 @@ This procedure uses the above :ref:`assumptions <procedure-assumption-change-hos
 
          mongo --port 27017
 
-   #. Run the following reconfigure option, for the
-      :data:`~local.system.replset.members[n].host` value where ``n`` is ``1``:
+   #. Use :method:`rs.reconfig()` to update the :doc:`replica set
+      configuration document </reference/replica-configuration>` with
+      the new hostname.
+
+      For example, the following sequence of commands updates the hostname
+      for the secondary at ``members[1]`` in the configuration document:
 
       .. code-block:: javascript
 
          cfg = rs.conf()
-
          cfg.members[1].host = "mongodb1.example.net:27017"
-
          rs.reconfig(cfg)
 
-      See :doc:`/reference/replica-configuration` for more
-      information.
+      For more information on updating the configuration document, see
+      :ref:`replica-set-reconfiguration-usage`.
 
    #. Make sure your client applications are able to access the
       set at the new location and that the secondary has a chance to
@@ -135,32 +137,34 @@ This procedure uses the above :ref:`assumptions <procedure-assumption-change-hos
       Repeat the above steps for each non-primary member of the set.
 
 #. Open a :program:`mongo` shell connected to the primary and step
-   down the primary using :dbcommand:`replSetStepDown`. In the
-   :program:`mongo` shell, use the :method:`rs.stepDown()` wrapper,
-   as follows:
+   down the primary using the :method:`rs.stepDown()` method:
 
    .. code-block:: javascript
 
       rs.stepDown()
 
-#. When the step down succeeds, shut down the primary.
+   The replica set elects another member to the be current primary.
 
-#. To make the final configuration change, connect to the new primary
-   in the :program:`mongo` shell and reconfigure the
-   :data:`~local.system.replset.members[n].host` value where ``n`` is
-   ``0``:
+#. When the step down succeeds, shut down the old primary.
+
+#. Start the :program:`mongod` instance that will become the new primary
+   in the new location.
+
+#. Connect to the current (recently elected) primary and update the
+   :doc:`replica set configuration document
+   </reference/replica-configuration>` with the hostname of the node
+   that is to become the new primary.
+
+   For example, if the old primary was at position ``0`` and the new
+   primary's hostname is ``mongodb0.example.net:27017``, you would run:
 
    .. code-block:: javascript
 
       cfg = rs.conf()
-
       cfg.members[0].host = "mongodb0.example.net:27017"
-
       rs.reconfig(cfg)
 
-#. Start the original primary.
-
-#. Open a :program:`mongo` shell connected to the primary.
+#. Open a :program:`mongo` shell connected to the new primary.
 
 #. To confirm the new configuration, call :method:`rs.conf()` in the
    :program:`mongo` shell.
