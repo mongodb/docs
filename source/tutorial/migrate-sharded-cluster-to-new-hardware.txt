@@ -1,0 +1,232 @@
+===============================================
+Migrate a Sharded Cluster to Different Hardware
+===============================================
+
+.. default-domain:: mongodb
+
+.. contents:: Migrate Sharded Cluster:
+   :backlinks: none
+   :local:
+
+This procedure moves the components of the :term:`sharded cluster` to a
+new hardware system without downtime for reads and writes.
+
+.. TODO Discuss whether a bullet list might be a better way to give
+   a skimmable picture of the macro procedure.
+
+.. To move to new hardware:
+
+.. - :ref:`migrate-to-new-hardware-disable-balancer`
+   - :ref:`migrate-to-new-hardware-config-servers`
+   - :ref:`migrate-to-new-hardware-restart-mongos`
+   - :ref:`migrate-to-new-hardware-shards`
+   - :ref:`migrate-to-new-hardware-enable-balancer`
+
+.. important:: While the migration is in progress, do not attempt to change to the
+   :doc:`cluster metadata </core/sharded-cluster-metadata>`. Do not use
+   any operation that modifies the cluster metadata *in any way*. For
+   example, do not create or drop databases, create or drop collections,
+   or use any sharding commands.
+
+If your cluster includes a shard that comprises a :term:`standalone`
+:program:`mongod` instance instead of a :term:`replica set`, consider
+:doc:`converting the standalone to a replica set
+</tutorial/convert-standalone-to-replica-set>` to simplify migration and
+to let you keep the cluster online during future maintenance. Migrating
+a shard as standalone is a multi-step process and may require downtime.
+
+To migrate a cluster to new hardware, perform the following tasks.
+
+.. _migrate-to-new-hardware-disable-balancer:
+
+Disable the Balancer
+--------------------
+
+Disable to the balancer to stop :doc:`chunk migration
+</core/sharding-chunk-migration>` and do not perform any metadata write
+operations until the process finishes. If a migration is in progress, the
+balancer will complete the in-progress migration before stopping.
+
+To disable the balancer, connect to one of the cluster's
+:program:`mongos` instances and issue the following method:
+
+.. code-block:: javascript
+
+   sh.stopBalancer()
+
+To check the balancer state, issue the :method:`sh.getBalancerState()`
+method.
+
+For more information, see :ref:`sharding-balancing-disable-temporarily`.
+
+.. _migrate-to-new-hardware-config-servers:
+
+Migrate Each Config Server Separately
+-------------------------------------
+
+Migrate each :ref:`config server <sharding-config-server>` by starting
+with the *last* config server listed in the :setting:`configdb` string.
+Proceed in reverse order of the :setting:`configdb` string. Migrate and
+restart a config server before proceeding to the next.
+Do not rename a config server during this process.
+
+.. note:: Renaming a config server requires extra steps and cluster
+   downtime. If you *must* rename a config server, use this procedure
+   instead:
+   :doc:`/tutorial/migrate-config-servers-with-different-hostnames`.
+
+.. important:: Start with the *last* config server listed in :setting:`configdb`.
+
+.. include:: /tutorial/migrate-config-servers-with-same-hostname.txt
+   :start-after: start-migrate-config-server-with-same-hostname
+   :end-before: end-migrate-config-server-with-same-hostname
+
+.. _migrate-to-new-hardware-restart-mongos:
+
+Restart the ``mongos`` Instances
+--------------------------------
+
+If the :setting:`configdb` string is changing, you must shut down *all*
+:program:`mongos` instances before changing the :setting:`configdb`
+string. This avoids errors in the sharded cluster over
+:setting:`configdb` string conflicts.
+
+If the :setting:`configdb` string will remain the same, you can migrate
+the :program:`mongos` instances sequentially or all at once.
+
+1. Shut down the :program:`mongos` instances using the
+   :dbcommand:`shutdown` command. If the :setting:`configdb` string is
+   changing, shut down *all* :program:`mongos` instances.
+
+#. If the hostname has changed for any of the config servers, update the
+   :setting:`configdb` string for each :program:`mongos` instance. The
+   :program:`mongos` instances must all use the same :setting:`configdb`
+   string. The strings must list identical host names in identical order.
+
+   .. include:: /includes/tip-hostnames.rst
+
+#. Restart the :program:`mongos` instances being sure to use the
+   updated :setting:`configdb` string if hostnames have changed.
+
+For more information, see :ref:`sharding-setup-start-mongos`.
+
+.. _migrate-to-new-hardware-shards:
+
+Migrate the Shards
+------------------
+
+Migrate the shards one at a time. For each shard, follow the appropriate
+procedure in this section.
+
+.. _migrate-replica-set-shard:
+
+Migrate a Replica Set Shard
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To migrate a sharded cluster, migrate each member separately. First
+migrate the non-primary members, and then migrate the :term:`primary`
+last.
+
+If the replica set has two voting members, first add an
+:doc:`arbiter </core/replica-set-arbiter>` to the replica set to ensure
+the set keeps a majority of its votes available as you migrate the
+members. You can remove the arbiter after you migrate the primary.
+
+.. _migrate-replica-set-shard-member:
+
+Migrate a Member of a Replica Set Shard
+````````````````````````````````````````
+
+1. Shut down the :program:`mongod` process. To ensure a
+   clean shutdown, use the :dbcommand:`shutdown` command.
+
+#. Move the data directory (i.e., the :setting:`dbpath`)
+   to the new machine.
+
+#. Restart the :program:`mongod` process at the new
+   location.
+
+#. Connect to the replica set's current primary. 
+
+#. If the hostname of the member has changed, use
+   :method:`rs.reconfig()` to update the :doc:`replica set configuration
+   document </reference/replica-configuration>` with the new hostname.
+
+   For example, the following sequence of commands updates the hostname
+   for the instance at position ``2`` in the ``members`` array:
+
+   .. code-block:: javascript
+
+      cfg = rs.conf()
+      cfg.members[2].host = "pocatello.example.net:27017"
+      rs.reconfig(cfg)
+
+   For more information on updating the configuration document, see
+   :ref:`replica-set-reconfiguration-usage`.
+
+#. To confirm the new configuration, issue :method:`rs.conf()`.
+
+#. Wait for the member to recover. To check the member's state, issue
+   :method:`rs.status()`.
+
+Migrate the Primary in a Replica Set Shard
+`````````````````````````````````````````````
+
+The procedure to migrate the primary includes the failover process,
+which renders the replica set unavailable to perform reads or accept
+writes until the process completes. Typically this takes 10 seconds or
+more. You may want to plan the migration during a maintenance window.
+
+1. Step down the primary to allow the normal :ref:`failover
+   <replica-set-failover>` process.
+   To step down the primary, connect to the primary and issue the either
+   the :dbcommand:`replSetStepDown` command or the
+   :method:`rs.stepDown()` method. The following example shows the
+   :method:`rs.stepDown()` method:
+
+   .. code-block:: javascript
+
+      rs.stepDown()
+
+#. Once the primary has stepped down and another member has assumed the
+   ``PRIMARY`` state, as observed in the output of
+   :method:`rs.status()`, migrate the stepped-down primary. Use the
+   procedure to :ref:`migrate-replica-set-shard-member`.
+
+Migrate a Standalone Shard
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The suggested best practice for migrating a standalone shard is to
+:doc:`convert the standalone to a replica set
+</tutorial/convert-standalone-to-replica-set>` and then use the
+procedure for :ref:`migrating a replica set shard
+<migrate-replica-set-shard>`. The best
+practice in a sharded cluster is to use replica sets for all shards,
+which provides continued availability during maintenance windows.
+
+Migrating a shard as standalone is a multi-step process and may require
+downtime. If the shard is the :term:`primary shard` for a database, the
+process includes the :dbcommand:`movePrimary` command, which can result
+in missing data if run on a live system where data is changing in the
+database. To migrate the standalone shard, use the procedure to
+:doc:`/tutorial/remove-shards-from-cluster`.
+
+.. _migrate-to-new-hardware-enable-balancer:
+
+Re-Enable the Balancer
+----------------------
+
+Re-enable the balancer to resume :doc:`chunk migrations
+</core/sharding-chunk-migration>`.
+
+Connect to one of the cluster's :program:`mongos` instances and pass
+``true`` to the :method:`sh.setBalancerState()` method:
+
+.. code-block:: javascript
+
+   sh.setBalancerState(true)
+
+To check the balancer state, issue the :method:`sh.getBalancerState()`
+method.
+
+For more information, see :ref:`sharding-balancing-enable`.

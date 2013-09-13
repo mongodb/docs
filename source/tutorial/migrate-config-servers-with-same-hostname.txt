@@ -8,32 +8,43 @@ This procedure migrates a :ref:`config server <sharding-config-server>`
 in a :doc:`sharded cluster </core/sharding>`
 to a new system that uses *the same* hostname.
 
-#. Shut down the config server that you are moving.
+To migrate all the config servers in a cluster, perform this procedure
+for each config server separately and migrate the config servers in
+reverse order from how they are listed in the :program:`mongos`
+instances' :setting:`configdb` string. Start with the last config server
+listed in the :setting:`configdb` string.
 
-   This will render all config data for your cluster :ref:`read only
-   <sharding-config-server>`.
+.. start-migrate-config-server-with-same-hostname
+
+#. Shut down the config server.
+
+   This renders all config data for the sharded cluster "read only."
 
 #. Change the DNS entry that points to the system that provided the old
    config server, so that the *same* hostname points to the new
    system.
-
    How you do this depends on how you organize your DNS and
    hostname resolution services.
 
-#. Move the entire :setting:`dbpath` file system tree from the old
-   config server to the new config server. This command, issued on the
-   old config server system, may resemble the following:
+#. Copy the contents of :setting:`dbpath` from the old config server to
+   the new config server.
+
+   For example, to copy the contents of :setting:`dbpath` to a machine
+   named ``mongodb.config2.example.net``, you might issue a command
+   similar to the following:
 
    .. code-block:: sh
 
-      rsync -az /data/configdb mongo-config0.example.net:/data/configdb
+      rsync -az /data/configdb mongodb.config2.example.net:/data/configdb
 
-#. Start the config instance on the new system. The default invocation
-   is:
+#. Start the config server instance on the new system. The default
+   invocation is:
 
    .. code-block:: sh
 
       mongod --configsvr
+
+.. end-migrate-config-server-with-same-hostname
 
 When you start the third config server, your cluster will become
 writable and it will be able to create new splits and migrate chunks
