@@ -25,20 +25,6 @@ build/makefile.meta:$(tools)/makecloth/meta.py
 include bin/makefile.push
 
 .PHONY: publish content setup migrations
-setup:$(build-public) conf.py
-	@mkdir -p $(output)
-	@echo "[build]: creating required directories."
+setup:
 	@-bin/images-setup
 	@echo "[build]: initialzed images if possible. (optional)"
-
-# targets to generate output included in the build
-$(build-public):
-	@mkdir -p $@
-$(public-output)/sitemap.xml.gz:$(public-output)
-	@echo -e "----------\n[sitemap]: build started\: `date`" >> $(output)/sitemap-build.log
-	@$(PYTHONBIN) bin/sitemap_gen.py --testing --config=conf-sitemap.xml 2>&1 >> $(output)/sitemap-build.log
-	@echo [sitemap]: sitemap build complete at `date`.
-	@echo "[sitemap]: build finished: `date`" >> $(output)/sitemap-build.log
-$(public-output)/release.txt:$(public-output)
-	@git rev-parse --verify HEAD >|$@
-	@echo "[build]: generated'$@' with current release hash."
