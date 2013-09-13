@@ -21,8 +21,8 @@ visibility into your MongoDB deployments, but who do not need access
 to edit group settings or modify your MMS configuration.
 group settings or modifying your MMS configuration.")
 
-Adding Users
-````````````
+Add Users
+`````````
 
 You can add a user from any tab of the "Users" page: simply select
 ``+ Add/Invite User`` at the top of the screen next to the group name.
@@ -50,8 +50,8 @@ through Jira at `jira.mongodb.org <http://jira.mongodb.org/>`_.
    user to a group in MMS. Also, passwords changed in Jira are subject
    to the same propagation delay for MMS accounts.
 
-Editing User Privileges
-```````````````````````
+Edit User Privileges
+````````````````````
 
 To edit a user's permissions, click on the ":guilabel:`pencil`" icon
 in the last column of the :guilabel:`Users` table. This will open a
@@ -63,8 +63,8 @@ modal window where you can select the user's role.
    levels. In addition, users cannot edit their own permissions
    (i.e. Group Admins cannot "demote" themselves to the Read Only role).
 
-Removing Users
-``````````````
+Remove Users
+````````````
 
 You can remove users from groups from the :guilabel:`Users` tab by
 clicking on the ":guilabel:`garbage can`" icon in the last column.
