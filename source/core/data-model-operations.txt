@@ -1,39 +1,48 @@
-============================================
-Operational Considerations for Data Modeling
-============================================
+===================================
+Operational Factors and Data Models
+===================================
 
 .. default-domain:: mongodb
 
-Operational factors help shape data modeling decisions in MongoDB.
-These factors have implications for database and application
-performance as well as future maintenance and development costs.
+Modeling application data for MongoDB depends on both the data itself,
+as well as the characteristics of MongoDB itself. For example,
+different data models may allow applications use more efficient
+queries, increase the throughput of insert and update operations, or
+distribute activity to a sharded cluster more effectively.
+
+These factors are *operational* or address requirements that arise
+outside of the application but impact the performance of MongoDB based
+applications. When developing a data model, analyze all of your
+application's :doc:`read operations </core/read-operations>` and
+:doc:`write operations </core/write-operations>` in conjunction with
+the following considerations:
 
 .. _data-model-document-growth:
 
 Document Growth
 ---------------
 
-Certain updates to documents can increase the document size, such as
-pushing elements to an array and adding new fields. If the document
-size exceeds the allocated space for that document, MongoDB relocates
-the document on disk. This internal relocation can be both time and
-resource consuming. Although MongoDB automatically provides
-:doc:`record padding </core/record-padding>` to minimize the occurrence
-of relocation, document growth is an important consideration during
-data modeling decisions.
+Some updates to documents can increase the size of documents
+size. These updates include, pushing elements to an array
+(i.e. :operator:`$push`) and adding new fields to a document. If the
+document size exceeds the allocated space for that document, MongoDB
+will relocate the document on disk. Relocating documents takes longer
+than other updates (i.e. *in place updates*,) and can lead to
+fragmented storage. Although MongoDB automatically :doc:`adds padding
+to document allocations </core/record-padding>` to minimize the
+likelihood of relocation, data models should avoid document growth
+when possible.
 
-For instance, if your documents are likely to grow significantly,
-adding new fields or pushing elements to an array in a heavily
-denormalized collection may be more expensive than in a normalized
-collection. With a normalized collection, you might be inserting new
-documents and adding references whereas with a denormalized collection,
-you might be updating a large document as a whole.
+For instance, if your applications requires updates that will cause
+document growth, you may want to refactor your data model to use
+references between data in distinct documents rather than a
+demoralized data model.
 
-Even though MongoDB adaptively adjusts the amount of padding to reduce
-occurrences of relocation, in some exceptional cases, you may also need
-to manually handle document growth such as with *pre-allocation*. Refer
-to :ecosystem:`Pre-Aggregated Reports Use Case
-</use-cases/pre-aggregated-reports>` for an example of the
+MongoDB adaptive adjusts the amount of automatic padding to reduce
+occurrences of relocation; however, if you cannot use references and
+must embed related data, you may use a *pre-allocation* strategy to
+avoid document growth. Refer to :ecosystem:`Pre-Aggregated Reports Use
+Case </use-cases/pre-aggregated-reports>` for an example of the
 *pre-allocation* approach to handling document growth.
 
 .. _data-model-atomicity:
@@ -43,20 +52,20 @@ Atomicity
 ---------
 
 In MongoDB, operations are atomic at the :term:`document` level: no
-single write operation can atomically affect more than one document or
-more than one collection. [#record-atomicity]_ As such, fields that
-need to be modified together atomically should be in the same document
-whereas fields that can be modified non-atomically can be located in
-separate documents.
+**single** write operation can change more than one document or more
+than one collection. [#record-atomicity]_ Ensure that your application
+stores all fields with atomic dependency requirements in the same
+document. If the application can tolerate non-atomic updates for two
+pieces of data, you can store these data in separate documents.
 
-A denormalized schema with nesting of embedded documents can facilitate
-atomic write operations since all related data is stored in a single
-document. By contrast, with a normalized schema that stores related
-information in a number of documents, update operations can involve
-many individual writes.
+A data model that embeds related data in a single document,
+facilitates these kinds of atomic operations. For data models that
+store references between related pieces of data, the application must
+issue separate read and write operations to retrieve and modify these
+related pieces of data.
 
-See :ref:`data-modeling-atomic-operation` for an example of atomic
-updates within a single document.
+See :ref:`data-modeling-atomic-operation` for an example data model
+that provides atomic updates for a single document.
 
 .. [#record-atomicity] Document-level atomic operations include all
    operations within a single MongoDB document record: operations that
@@ -66,17 +75,19 @@ updates within a single document.
 Sharding
 --------
 
-MongoDB uses :term:`sharding`, or horizontal scaling, to support
-deployments with very large data sets and high throughput operations.
-Sharding allows users to :term:`partition` a :term:`collection` within
-a database to distribute the collection's documents across a number of
-:program:`mongod` instances or :term:`shards <shard>`.
+MongoDB uses :term:`sharding` to provide horizontal scaling. These
+clusters support deployments with large data sets and high throughput
+operations. Sharding allows users to :term:`partition` a
+:term:`collection` within a database to distribute the collection's
+documents across a number of :program:`mongod` instances or
+:term:`shards <shard>`.
 
-To distribute data among the shards for a sharded collection, MongoDB
-uses the :ref:`shard key <shard-key>`. Selecting the proper :ref:`shard
-key <shard-key>` has significant implications for performance, such as
-providing query isolation and increased write capacity. It is important
-to consider carefully the field, or fields, to use as the shard key.
+To distribute data and application traffic in a sharded collection,
+MongoDB uses the :ref:`shard key <shard-key>`. Selecting the proper
+:ref:`shard key <shard-key>` has significant implications for
+performance, and can enable or prevent query isolation and increased
+write capacity. It is important to consider carefully the field, or
+fields, to use as the shard key.
 
 See :doc:`/core/sharding-introduction` and
 :doc:`/core/sharding-shard-key` for more information.
@@ -145,10 +156,10 @@ the following behaviors:
 - For each :term:`database`, a single namespace file (i.e.
   ``<database>.ns``) stores all meta-data for that database, and each
   index and collection has its own entry in the namespace file. MongoDB
-  places :limit:`limits on the size of namespace files 
+  places :limit:`limits on the size of namespace files
   <Size of Namespace File>`.
 
-- MongoDB has :limit:`limits on the number of namespaces 
+- MongoDB has :limit:`limits on the number of namespaces
   <Number of Namespaces>`. You may wish to know the current number of
   namespaces in order to determine how many additional namespaces the
   database can support. To get the current number of namespaces, run
@@ -161,8 +172,8 @@ the following behaviors:
   .. todo make a tutorial called "how to change size of namespace file"
 
   The limit on the number of namespaces depend on the ``<database>.ns``
-  size. The namespace file defaults to 16 MB. 
-  
+  size. The namespace file defaults to 16 MB.
+
   To change the size of the *new* namespace file, start the server with
   the option :option:`--nssize \<new size MB\> <--nssize>`. For
   existing databases, after starting up the server with
