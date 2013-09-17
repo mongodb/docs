@@ -55,5 +55,41 @@ For replica sets, you will receive one .tar.gz file containing your
 data; for sharded clusters, you will receive a series of .tar.gz
 files.
 
-.. todo: document what to do with the .tar.gz files once BRS-588 is complete.
+Start :program:`mongod` Instance With Snapshot Data
+---------------------------------------------------
 
+#. Untar the .tar.gz backup file:
+
+   .. code-block:: sh
+
+      tar -zxvf <tarball-name>.tar.gz
+
+#. Create a directory to hold MongoDB's datafiles:
+
+   .. code-block:: sh
+
+      mkdir /data/db
+
+   If you already have a data directory you wish to use, you can skip
+   this step. You can place the data directory wherever you wish to,
+   but ``/data/db`` is the default location.
+
+#. Link the backup file to your data directory:
+
+   .. code-block:: sh
+
+      ln -s <hash>-<rsname>-<time>/ /data/db
+
+   Replace ``<hash>-<rsname>-<time>`` with the name of your snapshot
+   file and ``/data/db`` with your data directory's address.
+
+#. Start a :program:`mongod`, using your new data directory as its
+   ``dbpath``:
+
+   .. code-block:: sh
+
+      mongod --dbpath /data/db
+
+Consider the MongoDB
+:manual:`/tutorial/restore-database-from-backup-file` tutorial for
+instructions about restoring a replica set from backed up data.
