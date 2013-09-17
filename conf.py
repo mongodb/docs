@@ -45,7 +45,7 @@ pygments_style = 'sphinx'
 
 html_theme = 'mms'
 html_theme_path = [ os.path.join(buildsystem, 'themes') ]
-html_logo = "source/.static/logo-10gen.png"
+html_logo = None
 html_static_path = ['source/_static']
 html_use_smartypants = True
 html_use_index = True
