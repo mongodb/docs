@@ -29,6 +29,8 @@ generate-source-hosted:
 	@sed $(SED_ARGS_FILE) 's%.. include:: /includes/table-mms-auth-roles-saas.rst%%' build/hosted/$(current-branch)/source/management/permissions.txt 
 	@sed $(SED_ARGS_FILE) 's%.. MANAGEMENT-dfn-list%.. include:: /includes/dfn-list-spec-management-landing-hosted.rst%' build/hosted/$(current-branch)/source/management.txt
 	@sed $(SED_ARGS_FILE) 's%.. MANAGEMENT-toc%.. include:: /includes/toc-management-landing-permissions-hosted.rst%' build/hosted/$(current-branch)/source/management.txt
+	@rm -rf build/hosted/$(current-branch)/source/includes/fact-auth-backup-requirements.rst
+	@touch build/hosted/$(current-branch)/source/includes/fact-auth-backup-requirements.rst
 	@rm -rf build/hosted/$(current-branch)/source/backup.txt build/hosted/$(current-branch)/source/backup/
 	@rm -rf build/hosted/$(current-branch)/source/includes/dfn-list-mms-landing-saas.rst build/hosted/$(current-branch)/source/includes/dfn-list-spec-mms-landing-saas.rst	
 	@rm -rf build/hosted/$(current-branch)/source/includes/toc-mms-landing-saas.* build/hosted/$(current-branch)/source/includes/toc-spec-mms-landing-saas.yaml
