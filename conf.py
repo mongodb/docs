@@ -43,7 +43,7 @@ source_suffix = '.txt'
 
 master_doc = 'contents'
 language = 'en'
-project = u'mongodb-ecosystem'
+project = u'ecosystem'
 copyright = u'2011-' + str(datetime.date.today().year) + ', MongoDB, Inc.'
 
 version = '2.2.2'
@@ -117,6 +117,7 @@ html_show_copyright = True
 html_theme_options = {
     'translations': languages,
     'language': language,
+    'manual_path': "ecosystem",
     'repo_name': 'docs-ecosystem',
     'jira_project': 'DOCS',
     'google_analytics': 'UA-7301842-8',
