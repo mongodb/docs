@@ -115,6 +115,7 @@ html_show_sphinx = True
 html_show_copyright = True
 
 html_theme_options = {
+    'branch': conf.git.branches.current,
     'translations': languages,
     'language': language,
     'manual_path': "ecosystem",
