@@ -13,18 +13,17 @@ sub-document. You can create compound indexes with multiple fields so
 that a single query can match multiple components using the index
 while scanning fewer whole documents.
 
-In general, you should create indexes that support your primary, common,
-and user-facing queries. Having these indexes will ensure that MongoDB
-only scans the smallest possible number of documents.
+In general, you should create indexes that support your common and
+user-facing queries. Having these indexes will ensure that MongoDB
+scans the smallest possible number of documents.
 
 In the :program:`mongo` shell, you can create an index by calling the
-:method:`ensureIndex() <db.collection.ensureIndex()>` method on any
-single field or :ref:`sequence of fields <index-type-compound>` within
-any document or :ref:`sub-document <index-sub-document>`. MongoDB also
-supports indexes of arrays, called :ref:`multi-key indexes
-<index-type-multi-key>`. For more
-detailed instructions about building indexes, see the :doc:`Indexing
-Tutorials </administration/indexes>` page.
+:method:`ensureIndex() <db.collection.ensureIndex()>` method with a
+single field or :ref:`sequence of fields <index-type-compound>`.
+MongoDB also supports indexes of arrays, called :ref:`multi-key indexes
+<index-type-multi-key>`. For more detailed instructions about building
+indexes, see the :doc:`Indexing Tutorials </administration/indexes>`
+page.
 
 Behavior of Index Types
 -----------------------
@@ -41,10 +40,10 @@ Ordering of Indexes
 
 MongoDB indexes may be ascending, (i.e. ``1``) or descending
 (i.e. ``-1``) in their ordering. Nevertheless, MongoDB may also
-transverse the index in either directions. As a result, for
+traverse the index in either directions. As a result, for
 single-field indexes, ascending and descending indexes are
 interchangeable. This is not the case for compound indexes: in
-compound indexes, the direction of the ordering can have a
+compound indexes, the direction of the sort order can have a
 greater impact on the results.
 
 See :ref:`index-ascending-and-descending` for more information on the
@@ -53,17 +52,18 @@ impact of index order on results in compound indexes.
 Prefixes
 ~~~~~~~~
 
-Indexes on multiple fields, or :ref:`Compound indexes <index-type-compound>`,
-support queries on any prefix of the fields in the
-index. [#prefix]_
+Indexes on multiple fields, or :ref:`compound indexes
+<index-type-compound>`, support queries on any prefix of the index
+fields. Index prefixes are the beginning subset of indexed fields. For
+example, given the index ``{ a: 1, b: 1, c: 1 }``, both ``{ a: 1 }``
+and ``{ a: 1, b: 1 }`` are prefixes of the index.
 
 If you have a collection that has a compound index on ``{ a: 1, b:
-1}`` and a single field index on ``{ a: 1 }``, assuming there neither
-index has a sparse or unique constraints on the index, the
-single-field index is *a prefix* of the compound index and may be
-redundant for most uses. MongoDB will be able to use the compound
-index in all of situations that it would have used the single field
-index.
+1}``, as well as an index that consists of the prefix of that index,
+i.e. ``{ a: 1 }``, assuming none of the index has a sparse or unique
+constraints, then you can drop the ``{ a: 1 }`` index. MongoDB will be
+able to use the compound index in all of situations that it would have
+used either the ``{ a: 1 }`` index.
 
 .. example::
 
@@ -76,7 +76,8 @@ index.
    MongoDB **can** use this index to support queries that include:
 
    - the ``item`` field, and
-   - the ``item`` field *and* the ``location`` field.
+   - the ``item`` field *and* the ``location`` field, and
+   - the ``item`` field *and* the ``location`` field *and* the ``stock`` field.
 
    MongoDB **cannot** use this index to support queries that include:
 
@@ -84,10 +85,6 @@ index.
    - only the ``stock`` field,
    - only the ``location`` *and* ``stock`` fields, and
    - only the ``item`` *and* ``stock`` fields.
-
-.. [#prefix] Index prefixes are the beginning subset of fields. For
-   example, given the index ``{ a: 1, b: 1, c: 1 }`` both ``{ a: 1 }``
-   and ``{ a: 1, b: 1 }`` are prefixes of the index.
 
 Redundant Indexes
 ~~~~~~~~~~~~~~~~~

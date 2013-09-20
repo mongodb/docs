@@ -30,6 +30,39 @@ By default, ``sparse`` is ``false`` on MongoDB indexes.
    when filtering or sorting results, because sparse indexes are not
    complete for all documents in a collection.
 
+.. example:: Sparse index on a collection can results in incomplete results.
+
+   Consider a collection ``score`` that contains the following documents:
+
+   .. code-block:: javascript
+
+      { "_id" : ObjectId("523b6e32fb408eea0eec2647"), "userid" : "newbie" }
+      { "_id" : ObjectId("523b6e61fb408eea0eec2648"), "userid" : "abby", "score" : 82 }
+      { "_id" : ObjectId("523b6e6ffb408eea0eec2649"), "userid" : "nina", "score" : 90 }
+
+   The collection has a sparse index on the field ``score``:
+
+   .. code-block:: javascript
+
+       db.scores.ensureIndex( { score: 1 } , { sparse: true } )
+
+   Then, the following query to return all documents in the ``scores``
+   collection sorted by the ``score`` field results in incomplete
+   results:
+
+   .. code-block:: javascript
+
+      db.scores.find().sort( { score: -1 } )
+
+   Because the document for the userid ``"newbie"`` does not contain
+   the ``score`` field, the query, which uses the sparse index, will
+   return incomplete results that omit that document:
+
+   .. code-block:: javascript
+
+      { "_id" : ObjectId("523b6e6ffb408eea0eec2649"), "userid" : "nina", "score" : 90 }
+      { "_id" : ObjectId("523b6e61fb408eea0eec2648"), "userid" : "abby", "score" : 82 }
+
 .. note::
 
    Do not confuse sparse indexes in MongoDB with `block-level`_
@@ -42,7 +75,3 @@ By default, ``sparse`` is ``false`` on MongoDB indexes.
    ignore documents that do not have the key.
 
    .. _`block-level`: http://en.wikipedia.org/wiki/Database_index#Sparse_index
-
-.. [#null-values-are-indexed-in-sparse-indexes] All documents that
-   have the indexed field *are* indexed in a sparse index, even if
-   that field stores a null value in some documents.

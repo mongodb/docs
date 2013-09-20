@@ -10,7 +10,7 @@ Compound Indexes
 
 MongoDB supports "compound indexes," where a single index structure
 holds references to multiple fields [#compound-index-field-limit]_
-within a collection's documents. For an example of a MongoDB index,
+within a collection's documents. For an example of a compound index,
 see the following diagram.
 
 .. include:: /images/index-compound-key.rst
@@ -37,57 +37,63 @@ document:
     "arrival": Date(...)
    }
 
-If most applications queries include the ``item`` field and a
-significant number of queries will also check the ``stock`` field, you
-can specify a single compound index to support both of these queries:
+If applications query on the ``item`` field as well as query on both
+the ``item`` field and the ``stock`` field, you can specify a single
+compound index to support both of these queries:
 
 .. code-block:: javascript
 
-   db.products.ensureIndex( { "item": 1, "location": 1, "stock": 1 } )
+   db.products.ensureIndex( { "item": 1, "stock": 1 } )
 
 .. important:: You may not create compound indexes that have
    ``hashed`` index fields. You will receive an error if you attempt to
    create a compound index that includes :ref:`a hashed index
    <index-hashed-index>`.
 
-The order of fields in a compound index is very important. In the
-previous example, the index will contain references to documents
-sorted first by the values of the ``item`` field and, within each
-value of the ``item`` field, sorted by the values of ``location``, and
-then sorted by values of the ``stock`` field.
+The order of the fields in a compound index is very important. In the
+previous example, the index will contain references to documents sorted
+first by the values of the ``item`` field and, within each value of the
+``item`` field, sorted by values of the ``stock`` field.
 
 .. index:: index; sort order
 .. _index-ascending-and-descending:
 
-The Impact of Index Order on Index Use
---------------------------------------
+Sort Order
+----------
 
-Indexes store references to fields in either ascending or descending
-order. For single-field indexes, the order of keys doesn't matter,
-because MongoDB can traverse the index in either direction. However,
-for :ref:`compound indexes <index-type-compound>`, if you need to
-order results against two fields, sometimes you need the index fields
-running in opposite order relative to each other.
+Indexes store references to fields in either ascending (``1``) or
+descending (``-1``) sort order. For single-field indexes, the sort
+order of keys doesn't matter because MongoDB can traverse the index in
+either direction. However, for :ref:`compound indexes
+<index-type-compound>`, sort order can matter in determining whether
+the index can support a sort operation.
 
-To specify an index with a descending order, use the following form:
-
-.. code-block:: javascript
-
-   db.products.ensureIndex( { "field": -1 } )
-
-More typically in the context of a :ref:`compound
-index<index-type-compound>`, the specification would resemble the
-following prototype:
+Consider a collection ``events`` that contains documents with the
+fields ``username`` and ``date``. Applications can issue queries that
+return results sorted first by ascending ``username`` values and then
+by descending (i.e. more recent to last) ``date`` values, such as:
 
 .. code-block:: javascript
 
-   db.products.ensureIndex( { "fieldA": 1, "fieldB": -1 } )
+   db.events.find().sort( { username: 1, date: -1 } )
 
-Consider a collection of event data that includes both usernames and a
-timestamp. If you want to return a list of events sorted by username
-and then with the most recent events first. To create this index, use
-the following command:
+or queries that return results sorted first by descending ``username``
+values and then by ascending ``date`` values, such as:
 
 .. code-block:: javascript
 
-   db.events.ensureIndex( { "username" : 1, "timestamp" : -1 } )
+   db.events.find().sort( { username: 1, date: -1 } )
+
+The following index can support both these sort operations:
+
+.. code-block:: javascript
+
+   db.events.ensureIndex( { "username" : 1, "date" : -1 } )
+
+However, the above index cannot support sorting by ascending
+``username`` values and then by ascending ``date`` values, such as the
+following:
+
+.. code-block:: javascript
+
+   db.events.find().sort( { username: 1, date: 1 } )
