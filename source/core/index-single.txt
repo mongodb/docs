@@ -121,39 +121,60 @@ following specification:
 .. _index-subdocument:
 .. _index-sub-document:
 
-Indexes on Fields in Sub-documents
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Indexes on Subdocuments
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. default-domain:: mongodb
 
-You can also create indexes on sub-documents.
-Given the following document in the ``factories`` collection:
+You can also create indexes on subdocuments.
+
+For example, the ``factories`` collection contains documents that
+contain a ``metro`` field, such as:
 
 .. code-block:: javascript
 
-   { "_id": ObjectId(...),
-     metro: { city: "New York",
-              state: "NY" }
-            },
+   { 
+     _id: ObjectId("523cba3c73a8049bcdbf6007"), 
+     metro: {
+              city: "New York",
+              state: "NY" 
+            }, 
      name: "Giant Factory"
-   )
+   }
 
-The ``metro`` field is a sub-document, containing the embedded fields
-``city`` and ``state``. An index on the ``metro`` field [words].
-
-The following queries would use the index on the ``metro`` field, and
-both would return the above document:
+The ``metro`` field is a subdocument, containing the embedded fields
+``city`` and ``state``. The following creates an index on the ``metro``
+field as a whole:
 
 .. code-block:: javascript
 
-   db.factories.find( { metro: { city: "New York", state: "NY" } } );
+   db.factories.ensureIndex( { metro: 1 } )
 
-   db.factories.find( { metro: { $gte : { city: "New York" } } } );
+The following query can use the index on the ``metro`` field:
 
-The first query returns the document as one would expect: the query
-matches the subdocument perfectly.
+.. code-block:: javascript
 
-The second query returns the document because ``{ city: "New York",
+   db.factories.find( { metro: { city: "New York", state: "NY" } } )
+
+This query returns the above document. When performing equality matches
+on subdocuments, field order matters and the subdocuments must match
+exactly. For example, the following query does not match the above
+document:
+
+.. code-block:: javascript
+
+   db.factories.find( { metro: { state: "NY", city: "New York" } } )
+
+See :ref:`query-subdocuments` for more information regarding querying
+on subdocuments.
+
+The index on the ``metro`` field can also support the following query:
+
+.. code-block:: javascript
+
+   db.factories.find( { metro: { $gte : { city: "New York" } } } )
+
+This query returns the above document because ``{ city: "New York",
 state: "NY" }`` is greater than ``{ city: "New York" }``. The order of
 comparison is in ascending key order in the order that the keys occur
 in the :term:`BSON` document.
