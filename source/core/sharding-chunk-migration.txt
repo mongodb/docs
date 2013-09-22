@@ -53,15 +53,61 @@ All chunk migrations use the following procedure:
 
 #. After the destination shard completes the update of the metadata,
    and once there are no open cursors on the chunk, the source shard
-   deletes its copy of the documents.
+   deletes its copy of the documents. 
+
+   .. versionchanged:: 2.4 
+
+      If the balancer needs to perform additional chunk migrations from
+      the source shard, the balancer can start the next chunk
+      migration without waiting for the current
+      migration process to finish this deletion step. See
+      :ref:`chunk-migration-queing`.
 
 The migration process ensures consistency and maximizes the availability of
 chunks during balancing.
 
+.. _chunk-migration-queing:
+
+Chunk Migration Queuing Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 2.4
+
+To migrate multiple chunks from a shard, the balancer migrates the
+chunks one at a time. However, the balancer does not wait for the
+current migration's delete phase, or chunk cleanup, to complete before
+starting the next chunk migration. See :ref:`sharding-chunk-migration`
+for the chunk migration process and the delete phase.
+
+This queuing behavior allows shards to unload chunks more quickly in
+cases of heavily imbalanced cluster, such as when performing initial
+data loads without pre-splitting and when adding new shards.
+
+This behavior also affect the :dbcommand:`moveChunk` command, and
+migration scripts that use the :dbcommand:`moveChunk` command may
+proceed more quickly.
+
+.. important:: 
+
+   - In some cases, the delete phases may persist longer. 
+
+   - If multiple cleanups are queued but not yet completed, a crash of
+     the replica set's primary can orphan data from multiple migrations.
+
+.. _chunk-migration-write-concern:
+
+Chunk Migration Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. versionchanged:: 2.4
 
    While copying and deleting data during migrations, the balancer
-   waits for replication to secondaries. See :v2.2:`Secondary Throttle
-   in the v2.2 Manual
-   </tutorial/configure-sharded-cluster-balancer/#sharded-cluster-config-secondary-throttle>`
-   for details.
+   waits for :ref:`replication to secondaries
+   <replica-set-write-concern>`. This slows the potential speed of a
+   chunk migration but increases reliability and ensures that a large
+   number of chunk migrations *cannot* affect the availability of a
+   sharded cluster.
+   
+   See also :v2.2:`Secondary Throttle in the v2.2 Manual
+   </tutorial/configure-sharded-cluster-balancer/#sharded-cluster-config-secondary-throttle>`.
+

@@ -4,18 +4,245 @@ Release Notes for MongoDB 2.4
 
 .. default-domain:: mongodb
 
-.. contents:: See the :doc:`full index of this page <2.4-changes>` for
-              a complete list of changes included in 2.4.
+.. contents::
    :backlinks: none
    :local:
    :depth: 2
 
 MongoDB 2.4 was released on March 19, 2013.
 
+*Point Releases*:
+
+- 2.4.2: Released Apr 17, 2013
+
+- 2.4.4: Released June 4, 2013
+
+- 2.4.6: Released Aug 20, 2013
+
 .. toctree::
    :hidden:
 
    /release-notes/2.4-overview
+
+MongoDB 
+-------
+
+The following changes in MongoDB affect both standard and Enterprise
+editions:
+
+Major Features and Enhancements
++++++++++++++++++++++++++++++++
+
+.. _2.4-release-text-indexes:
+
+Text Search
+~~~~~~~~~~~
+
+   Add support for text search of content in MongoDB databases as a
+   *beta* feature. See :doc:`/core/text-search` for more information.
+
+.. _2.4-release-geospatial:
+
+Geospatial Support Enhancements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Add new :doc:`2dsphere index </core/2dsphere>`. The new index
+  supports `GeoJSON <http://geojson.org/geojson-spec.html>`_ objects
+  ``Point``, ``LineString``, and ``Polygon``. For more information, see
+  :doc:`/core/2dsphere` and :doc:`/applications/geospatial-indexes`.
+
+- Introduce operators :operator:`$geometry`, :operator:`$geoWithin` and
+  :operator:`$geoIntersects` to work with the GeoJSON data.
+
+.. _2.4-release-hashed-indexes:
+
+Hashed Index
+~~~~~~~~~~~~
+
+   Add new :ref:`hashed index <index-type-hashed>` to index documents
+   using hashes of field values. When used to index a shard key, the
+   hashed index ensures an evenly distributed shard key. See also
+   :ref:`sharding-hashed-sharding`.
+
+.. DOCS-752
+
+Improvements to the Aggregation Framework
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Improve support for geospatial queries. See the
+  :operator:`$geoWithin` operator and the :pipeline:`$geoNear` pipeline
+  stage.
+
+- Improve sort efficiency when the :pipeline:`$sort` stage immediately
+  precedes a :pipeline:`$limit` in the pipeline. 
+
+- Add new operators :expression:`$millisecond` and
+  :expression:`$concat` and modify how :group:`$min` operator processes
+  ``null`` values.
+
+.. _2.4-fixed-size-arrays:
+
+Changes to Update Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Add new :operator:`$setOnInsert` operator for use with
+  :method:`upsert <db.collection.update()>` .
+
+- Enhance functionality of the :operator:`$push` operator, supporting
+  its use with the :operator:`$each`, the :operator:`$sort`, and the
+  :operator:`$slice` modifiers.
+
+Additional Limitations for Map-Reduce and ``$where`` Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   The :dbcommand:`mapReduce` command, :dbcommand:`group` command, and
+   the :operator:`$where` operator expressions cannot access certain
+   global functions or properties, such as ``db``, that are available
+   in the :program:`mongo` shell. See the individual command or
+   operator for details.
+
+.. _2.4-release-server-status:
+
+Improvements to ``serverStatus`` Command
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Provide additional metrics and customization for the
+   :dbcommand:`serverStatus` command. See :method:`db.serverStatus()`
+   and :dbcommand:`serverStatus` for more information.
+
+.. _2.4-privilege-documents:
+.. _2.4-unique-users:
+
+Security Enhancements
++++++++++++++++++++++
+
+- Introduce a role-based access control system
+  :doc:`/reference/user-privileges` using new
+  :doc:`/reference/privilege-documents`.
+
+- Enforce uniqueness of the user in user privilege documents per
+  database. Previous versions of MongoDB did not enforce this
+  requirement, and existing databases may have duplicates.
+
+For more information, see :doc:`MongoDB Security Practices and
+Procedures </security>`.
+
+Improved Performance and Operation
+++++++++++++++++++++++++++++++++++
+
+.. _2.4-release-javascript-change:
+
+V8 JavaScript Engine
+~~~~~~~~~~~~~~~~~~~~
+
+   .. toctree::
+      :hidden:
+
+      /release-notes/2.4-javascript
+
+  Change default JavaScript engine from SpiderMonkey to V8. The change
+  provides improved concurrency for JavaScript operations, modernized
+  JavaScript implementation, and the removal of non-standard
+  SpiderMonkey features, and affects all JavaScript behavior including
+  the commands :dbcommand:`mapReduce`, :dbcommand:`group`, and
+  :dbcommand:`eval` and the query operator :operator:`$where`.
+
+  See :doc:`/release-notes/2.4-javascript` for more information about
+  all changes .
+
+BSON Document Validation Enabled by Default for ``mongod`` and ``mongorestore``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Enable basic :term:`BSON` object validation for :program:`mongod`
+   and :program:`mongorestore` when writing to MongoDB data files. See
+   :setting:`objcheck` for details.
+
+Index Build Enhancements
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Add support for multiple concurrent index builds in the background by
+  a single :program:`mongod` instance. See :ref:`building indexes in
+  the background <index-creation-background>` for more information on
+  background index builds.
+  
+- Allow the :method:`db.killOp()` method to terminate a foreground
+  index build.
+
+- Improve index validation during index creation. See
+  :doc:`/release-notes/2.4-index-types` for more information.
+
+Set Parameters as Command Line Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Provide ``--setParameter`` as a command line option for
+   :program:`mongos` and :program:`mongod`. See :program:`mongod` and
+   :program:`mongos` for list of available options for
+   :setting:`setParameter`.
+
+Increased Chunk Migration Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   The default write concern for insert and delete operations that
+   occur as part of a :term:`chunk` migration in a :term:`sharded
+   cluster` now ensures that at least one secondary acknowledges each
+   insert and deletion operation. See
+   :ref:`chunk-migration-write-concern`.
+
+Improved Chunk Migration Queue Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Increase performance for moving multiple chunks off an overloaded
+   shard. The balancer no longer waits for the current migration's
+   delete phase to complete before starting the next chunk migration.
+   See :ref:`chunk-migration-queing` for details.
+
+.. _mongodb-enterprise:
+
+MongoDB Enterprise
+------------------
+
+The following changes are specific to MongoDB Enterprise Editions:
+
+Enhanced SSL Support
+++++++++++++++++++++
+
+   MongoDB supports support encrypted connections using SSL
+   certificates signed by a Certificate Authority. See
+   :doc:`/tutorial/configure-ssl`.
+
+.. _2.4.4-sasl-change:
+
+SASL Library Change
++++++++++++++++++++
+
+   In 2.4.4, MongoDB Enterprise uses Cyrus SASL. Earlier 2.4 Enterprise
+   versions use GNU SASL (``libgsasl``). To upgrade to 2.4.4 MongoDB
+   Enterprise or greater, you **must** install all package dependencies
+   related to this change, including the appropriate Cyrus SASL ``GSSAPI``
+   library. See :doc:`/tutorial/install-mongodb-enterprise` for details of
+   the dependencies.
+
+.. _kerberos-authentication:
+
+New Modular Authentication System with Support for Kerberos
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+   In 2.4, the MongoDB Enterprise now supports authentication via a
+   Kerberos mechanism. See
+   :doc:`/tutorial/control-access-to-mongodb-with-kerberos-authentication`
+   for more information.
+
+   Also consider the following documents that address authenticating to
+   MongoDB using Kerberos:
+
+   - :ecosystem:`Authenticate to MongoDB using Kerberos and the Java
+     Driver </tutorial/authenticate-with-java-driver/>`
+
+   - :ecosystem:`Authenticate to MongoDB using Kerberos and the C# Driver
+     </tutorial/authenticate-with-csharp-driver/>`
+
+   For more information, see :doc:`MongoDB Security Practices and
+   Procedures </security>`.
 
 Platform Support
 ----------------
@@ -35,391 +262,6 @@ Upgrade Process
    /release-notes/2.4-index-types
 
 See :doc:`/release-notes/2.4-upgrade` for full upgrade instructions.
-
-Changes
--------
-
-Major Features
-++++++++++++++
-
-.. _2.4-release-text-indexes:
-
-Text Search
-~~~~~~~~~~~
-
-MongoDB 2.4 adds text search of content
-in MongoDB databases as a beta feature. With the new :ref:`text index
-<index-feature-text>`, and supporting, :dbcommand:`text` command you
-can search for text using boolean queries in data stored in MongoDB, using an index that updates
-in real-time and is always consistent with the data set. See
-:doc:`/core/index-text` for more information about ``text`` index and
-text search in MongoDB.
-
-.. include:: /includes/note-special-indexes-and-text.rst
-
-.. _2.4-release-geospatial:
-
-New Geospatial Indexes with GeoJSON and Improved Spherical Geometry
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-MongoDB adds the new ``2dsphere`` geospatial index in addition to the
-existing ``2d`` index. The ``2dsphere`` index supports improved
-spherical queries and supports the following `GeoJSON
-<http://geojson.org/geojson-spec.html>`_ objects:
-
-- ``Point``
-
-- ``LineString``
-
-- ``Polygon``
-
-The ``2dsphere`` index supports all current geospatial :doc:`query
-operators </reference/operator/query-geospatial>` and introduces the following new
-query operator for queries on GeoJSON data:
-
-- :operator:`$geoWithin` operator
-
-- :operator:`$geoIntersects` operator
-
-The operators use the new :operator:`$geometry` parameter.
-
-The :operator:`$within` operator no longer requires a geospatial
-index.  Additionally, 2.4 deprecates the :operator:`$within`
-operator. Use :operator:`$geoWithin` operator instead.
-
-For more information on geospatial indexes in 2.4, see:
-
-- :doc:`/applications/geospatial-indexes`
-
-- :doc:`/core/geospatial-indexes`
-
-.. _2.4-release-hashed-indexes:
-
-New Hashed Index and Sharding with a Hashed Shard Key
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To support an easy to configure and evenly distributed shard key,
-version 2.4 adds a new "``hashed``" index type that indexes documents
-using hashes of field values.
-
-See :ref:`index-type-hashed` for documentation of ``hashed`` indexes,
-and :ref:`sharding-hashed-sharding` for documentation of hash-based
-sharding.
-
-Security Improvements
-+++++++++++++++++++++
-
-.. _kerberos-authentication:
-
-New Modular Authentication System with Support for Kerberos
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. note::
-
-   Kerberos authentication is only present in `MongoDB Enterprise
-   Edition <http://www.mongodb.com/products/mongodb-enterprise>`_.  To
-   download and install MongoDB Enterprise, see
-   :doc:`/tutorial/install-mongodb-enterprise`.
-
-
-In 2.4 the MongoDB Enterprise now supports authentication via a
-Kerberos mechanism. See
-:doc:`/tutorial/control-access-to-mongodb-with-kerberos-authentication`
-for more information.
-
-Also consider the following documents that address authenticating to
-MongoDB using Kerberos:
-
-- :ecosystem:`Authenticate to MongoDB using Kerberos and the Java
-  Driver </tutorial/authenticate-with-java-driver/>`
-
-- :ecosystem:`Authenticate to MongoDB using Kerberos and the C# Driver
-  </tutorial/authenticate-with-csharp-driver/>`
-
-.. see:: :doc:`MongoDB Security Practices and Procedures </security>`.
-
-.. _2.4.4-sasl-change:
-
-SASL Library Change
-~~~~~~~~~~~~~~~~~~~
-
-In 2.4.4, MongoDB Enterprise uses Cyrus SASL. Earlier 2.4 Enterprise
-versions use GNU SASL (``libgsasl``). To upgrade to 2.4.4 MongoDB
-Enterprise or greater, you **must** install all package dependencies
-related to this change, including the appropriate Cyrus SASL ``GSSAPI``
-library. See :doc:`/tutorial/install-mongodb-enterprise` for details of
-the dependencies.
-
-.. _2.4-privilege-documents:
-
-Role Based Access Control and New Privilege Documents
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-MongoDB 2.4 introduces a role based access control system that
-provides more granular privileges to MongoDB users. See
-:doc:`/reference/user-privileges` for more information.
-
-To support the new access control system, 2.4 also introduces a new
-format for documents in a database's
-:data:`system.users <<database>.system.users>` collection. See
-:doc:`/reference/privilege-documents` for more information.
-
-Use :parameter:`supportCompatibilityFormPrivilegeDocuments` to disable
-the legacy privilege documents, which MongoDB continues to support in
-2.4.
-
-Enhanced SSL Support
-~~~~~~~~~~~~~~~~~~~~
-
-In 2.4, MongoDB instances can optionally require clients to provide SSL
-certificates signed by a Certificate Authority. You must use the
-MongoDB distribution that supports SSL, and your client driver must
-support SSL. See :doc:`/tutorial/configure-ssl` for more
-information.
-
-.. _2.4-unique-users:
-
-Compatibility Change: User Uniqueness Enforced
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-2.4 now enforces uniqueness of the ``user`` field in user privilege
-documents (i.e. in the :data:`system.users <<database>.system.users>`
-collection.) Previous versions of MongoDB did not enforce this
-requirement, and existing databases may have duplicates.
-
-Administration Changes
-++++++++++++++++++++++
-
-``--setParameter`` Option Available on the ``mongos`` and ``mongod`` Command Line
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can now use :option:`--setParameter <mongod --setParameter>` on
-the command line and :setting:`setParameter` in the configuration
-file.  For :program:`mongod` the following options are available using
-:setting:`setParameter`:
-
-.. include:: /includes/list-set-parameters-mongod.rst
-
-For :program:`mongos` the following options are available using
-:setting:`setParameter`:
-
-.. include:: /includes/list-set-parameters-mongos.rst
-
-See :doc:`/reference/parameters` for full documentation of available
-parameters and their use.
-
-.. _2.4-release-server-status:
-
-Changes to ``serverStatus`` Output Including Additional Metrics
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-In 2.4 MongoDB adds a number of counters and system metrics to the
-output of the :dbcommand:`serverStatus` command, including:
-
-- a :ref:`working set estimator <server-status-workingset>`.
-
-- operation counters, in :data:`~serverStatus.metrics.document`
-  and :data:`~serverStatus.metrics.operation`.
-
-- record allocation, in :data:`~serverStatus.metrics.record`.
-
-- thorough metrics of the replication process,
-  in :data:`~serverStatus.metrics.repl`.
-
-- metrics on the :doc:`ttl index </tutorial/expire-data>`
-  documentation.
-
-Additionally, in 2.4, the :dbcommand:`serverStatus` command can
-dynamically construct the :doc:`serverStatus </reference/command/serverStatus>` document by excluding
-any top-level sections included by default, or including any top-level
-section not included by default (e.g. :data:`~serverStatus.workingSet`.)
-
-See :method:`db.serverStatus()` and :dbcommand:`serverStatus` for more
-information.
-
-Increased Chunk Migration Write Concern
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-By default, all insert and delete operations that occur as part of a
-:term:`chunk` migration in a :term:`sharded cluster` will have an
-increased write concern, to ensure that at least one secondary
-acknowledges each insert and deletion operation. This change slows the
-potential speed of a chunk migration, but increases reliability and
-ensures that a large number of chunk migrations *cannot* affect the
-availability of a sharded cluster.
-
-BSON Document Validation Enabled by Default for ``mongod`` and ``mongorestore``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Starting in 2.4, MongoDB enables basic :term:`BSON` object validation
-for :program:`mongod` and :program:`mongorestore` when writing to
-MongoDB data files. This prevents any client from inserting invalid or
-malformed BSON into a MongoDB database. For objects with a high degree
-of sub-document nesting this validation may have a small performance
-impact. :setting:`objcheck`, which was previously disabled by default,
-provides this validation.
-
-Indexing Changes
-++++++++++++++++
-
-Support for Multiple Concurrent Index Builds
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-A single :program:`mongod` instance can build multiple indexes in the
-background at the same time. See :ref:`building indexes in the
-background <index-creation-background>` for more information on
-background index builds. Foreground index builds hold a database lock
-and must proceed one at a time.
-
-``db.killOp()`` Can Now Kill Foreground Index Builds
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The :method:`db.killOp()` method will now terminate a foreground index
-build, in addition to the other operations supported in previous
-versions.
-
-Improved Validation of Index Types
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Before 2.4, :program:`mongod` would create an ascending scalar index
-(e.g. ``{ a : 1 }``) when users attempted to create an index of a type
-that did not exist. Creating an index of an invalid index type
-will generate an error in 2.4.
-
-See :doc:`/release-notes/2.4-index-types` for more information.
-
-Interface Changes
-+++++++++++++++++
-
-``$setOnInsert`` -- New Update Operator
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. Properly restructure this section after adding $push...
-
-To set fields *only* when an :method:`upsert <db.collection.update()>`
-performs an insert, use the :operator:`$setOnInsert` operator with the
-:method:`upsert <db.collection.update()>` .
-
-.. example::
-
-   A collection named ``coll`` has no documents with ``_id`` equal to
-   ``1``.
-
-   The following :method:`upsert <db.collection.update()>` operation
-   inserts a document and applies the :operator:`$setOnInsert` operator
-   to set the fields ``x`` and ``y``:
-
-   .. code-block:: javascript
-
-      db.coll.update( { _id: 1 },
-                      { $setOnInsert: { x: 25, y: 30 } },
-                      { upsert: true } )
-
-   The newly-inserted document has the field ``x`` set to ``25`` and
-   the field ``y`` set to 30:
-
-   .. code-block:: javascript
-
-      { "_id" : 1, "x" : 25, "y" : 30 }
-
-.. note::
-
-   The :operator:`$setOnInsert` operator performs no operation for
-   :method:`upserts <db.collection.update()>` that only perform an
-   update and for :method:`updates <db.collection.update()>` when the
-   ``upsert`` option is ``false``.
-
-.. _2.4-fixed-size-arrays:
-
-Limit Number of Elements in an Array
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-In 2.4, by using the :operator:`$push` operator with the
-:operator:`$each`, the :operator:`$sort`, and the :operator:`$slice`
-modifiers, you can add multiple elements to an array, sort and limit
-the number of elements in the modified array to maintain an array with
-a fixed number of elements.
-
-See :doc:`/tutorial/limit-number-of-elements-in-updated-array` for an
-example where an update maintains the top three scores for a student.
-
-.. seealso::
-
-   The following pages provide additional information and examples:
-
-   - :operator:`$push` operator
-
-   - :operator:`$each` modifier
-
-   - :operator:`$sort` modifier
-
-   - :operator:`$slice` modifier
-
-.. _2.4-release-javascript-change:
-
-JavaScript Engine Changed to V8
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. toctree::
-   :hidden:
-
-   /release-notes/2.4-javascript
-
-In 2.4 the default JavaScript engine in the :program:`mongo` shell
-:program:`mongod` is now V8. This change affects all JavaScript
-behavior including the :dbcommand:`mapReduce`, :dbcommand:`group`, and
-:dbcommand:`eval` commands, as well as the :operator:`$where` query
-operator.
-
-Use the new :js:func:`interpreterVersion()` method in the
-:program:`mongo` shell and the
-:data:`~buildInfo.javascriptEngine` field in the output of
-:method:`db.serverBuildInfo()` to determine which JavaScript engine a
-MongoDB binary uses.
-
-The primary impacts of the change from the previous JavaScript engine,
-SpiderMonkey, to V8 are:
-
-- improved concurrency for JavaScript operations,
-- modernized JavaScript implementation, and
-- removed non-standard SpiderMonkey features.
-
-See :doc:`/release-notes/2.4-javascript` for more information about
-all changes .
-
-Additional Limitations for Map-Reduce and ``$where`` Operations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/fact-group-map-reduce-where-limitations-in-24.rst
-
-.. DOCS-752
-
-Improvements to the Aggregation Framework
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-MongoDB 2.4 introduces a number of additional functionality and
-improved performance for the :doc:`Aggregation Framework
-</core/aggregation>`. Consider the following additions in 2.4:
-
-- :pipeline:`$match` queries now support the :operator:`$geoWithin`
-  operator for bounded geospatial queries.
-
-- The new :pipeline:`$geoNear` pipeline stage to support
-  geospatial queries.
-
-- :group:`$min` operator only considers non-null and existing field
-  values. If all the values for a field are ``null`` or are missing,
-  the operator returns ``null`` for the minimum value.
-
-- For sort operations where the :pipeline:`$sort` stage
-  immediately precedes a :pipeline:`$limit` in the pipeline, the
-  MongoDB can perform a more efficient sort that does not require
-  keeping the entire result set in memory.
-
-- The new :expression:`$millisecond` operator returns the millisecond
-  portion of a date.
-
-- The new :expression:`$concat` operator concatenates array of strings.
 
 Additional Resources
 --------------------
