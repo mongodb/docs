@@ -8,52 +8,59 @@ Compound Indexes
 
 .. default-domain:: mongodb
 
-MongoDB supports "compound indexes," where a single index structure
+MongoDB supports *compound indexes*, where a single index structure
 holds references to multiple fields [#compound-index-field-limit]_
-within a collection's documents. For an example of a compound index,
-see the following diagram.
+within a collection's documents. The following diagram illustrates an
+example of a compound index on two fields:
 
 .. include:: /images/index-compound-key.rst
 
-.. [#compound-index-field-limit] MongoDB imposes a :limit:`limit of 31
-   fields for any compound index <Number of Indexed Fields in a Compound Index>`.
+.. [#compound-index-field-limit] 
+   MongoDB imposes a :limit:`limit of 31 fields for any compound index
+   <Number of Indexed Fields in a Compound Index>`.
 
-Example
--------
+Compound indexes can support queries that match on multiple fields.
 
-Consider a collection named
-``products`` that holds documents that resemble the following
-document:
+.. example::
 
-.. code-block:: javascript
+   Consider a collection named
+   ``products`` that holds documents that resemble the following
+   document:
 
-   {
-    "_id": ObjectId(...)
-    "item": "Banana"
-    "category": ["food", "produce", "grocery"]
-    "location": "4th Street Store"
-    "stock": 4
-    "type": cases
-    "arrival": Date(...)
-   }
+   .. code-block:: javascript
 
-If applications query on the ``item`` field as well as query on both
-the ``item`` field and the ``stock`` field, you can specify a single
-compound index to support both of these queries:
+      {
+       "_id": ObjectId(...)
+       "item": "Banana"
+       "category": ["food", "produce", "grocery"]
+       "location": "4th Street Store"
+       "stock": 4
+       "type": cases
+       "arrival": Date(...)
+      }
 
-.. code-block:: javascript
+   If applications query on the ``item`` field as well as query on both
+   the ``item`` field and the ``stock`` field, you can specify a single
+   compound index to support both of these queries:
 
-   db.products.ensureIndex( { "item": 1, "stock": 1 } )
+   .. code-block:: javascript
+
+      db.products.ensureIndex( { "item": 1, "stock": 1 } )
 
 .. important:: You may not create compound indexes that have
    ``hashed`` index fields. You will receive an error if you attempt to
-   create a compound index that includes :ref:`a hashed index
-   <index-hashed-index>`.
+   create a compound index that includes :doc:`a hashed index
+   </core/index-hashed>`.
 
 The order of the fields in a compound index is very important. In the
 previous example, the index will contain references to documents sorted
 first by the values of the ``item`` field and, within each value of the
-``item`` field, sorted by values of the ``stock`` field.
+``item`` field, sorted by values of the ``stock`` field. See
+:ref:`index-ascending-and-descending` for more information.
+
+In addition to supporting queries that match on all the index fields,
+compound indexes can support queries that match on the prefix of the
+index fields. For details, see :ref:`compound-index-prefix`.
 
 .. index:: index; sort order
 .. _index-ascending-and-descending:
@@ -97,3 +104,41 @@ following:
 .. code-block:: javascript
 
    db.events.find().sort( { username: 1, date: 1 } )
+
+.. _compound-index-prefix:
+
+Prefixes
+--------
+
+Compound indexes support queries on any prefix of the index
+fields. Index prefixes are the beginning subset of indexed fields. For
+example, given the index ``{ a: 1, b: 1, c: 1 }``, both ``{ a: 1 }``
+and ``{ a: 1, b: 1 }`` are prefixes of the index.
+
+If you have a collection that has a compound index on ``{ a: 1, b:
+1 }``, as well as an index that consists of the prefix of that index,
+i.e. ``{ a: 1 }``, assuming none of the index has a sparse or unique
+constraints, then you can drop the ``{ a: 1 }`` index. MongoDB will be
+able to use the compound index in all of situations that it would have
+used the ``{ a: 1 }`` index.
+
+.. example::
+
+   Given the following index:
+
+   .. code-block:: javascript
+
+      { "item": 1, "location": 1, "stock": 1 }
+
+   MongoDB **can** use this index to support queries that include:
+
+   - the ``item`` field, and
+   - the ``item`` field *and* the ``location`` field, and
+   - the ``item`` field *and* the ``location`` field *and* the ``stock`` field.
+
+   MongoDB **cannot** use this index to support queries that include:
+
+   - only the ``location`` field,
+   - only the ``stock`` field,
+   - only the ``location`` *and* ``stock`` fields, and
+   - only the ``item`` *and* ``stock`` fields.
