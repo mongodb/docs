@@ -76,11 +76,11 @@ Before continuing be sure to have the following:
 * `Generate an EC2 key pair <http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/generating-a-keypair.html>`_ for connecting to the instance via SSH
 * `Create a security group <http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html#creating-security-group>`_ that allows SSH connections
 
-Create the instance using the key pair and security group previously created and also include the :setting:`--ebs-optimized` flag and specify individual PIOPS EBS volumes (:file:`/dev/sdf` for data, :file:`/dev/sdg` for journal, :file:`/dev/sdh` for log). Refer to the documentation for `ec2-run-instances <http://docs.aws.amazon.com/AWSEC2/latest/CommandLineReference/ApiReference-cmd-RunInstances.html>`_ for more information on devices and parameters.:
+Create the instance using the key pair and security group previously created and also include the :setting:`--ebs-optimized` flag and specify individual PIOPS EBS volumes (:file:`/dev/xdf` for data, :file:`/dev/xdg` for journal, :file:`/dev/xdh` for log). Refer to the documentation for `ec2-run-instances <http://docs.aws.amazon.com/AWSEC2/latest/CommandLineReference/ApiReference-cmd-RunInstances.html>`_ for more information on devices and parameters.:
 
 .. code-block:: sh
 
-    $ ec2-run-instances ami-05355a6c -t m1.large -g [SECURITY-GROUP] -k [KEY-PAIR] -b "/dev/sdf=:200:false:io1:1000" -b "/dev/sdg=:25:false:io1:250" -b "/dev/sdh=:10:false:io1:100" --ebs-optimized true
+    $ ec2-run-instances ami-05355a6c -t m1.large -g [SECURITY-GROUP] -k [KEY-PAIR] -b "/dev/xdf=:200:false:io1:1000" -b "/dev/xdg=:25:false:io1:250" -b "/dev/xdh=:10:false:io1:100" --ebs-optimized true
 
 You can use the instance-id returned to ascertain the IP Address or DNS information for the instance:
 
@@ -114,13 +114,13 @@ Next, create/configure the mount points, mount each volume, set ownership (Mongo
 
     $ sudo mkdir /data /log /journal
 
-    $ sudo mkfs.ext4 /dev/sdf
-    $ sudo mkfs.ext4 /dev/sdg
-    $ sudo mkfs.ext4 /dev/sdh
+    $ sudo mkfs.ext4 /dev/xdf
+    $ sudo mkfs.ext4 /dev/xdg
+    $ sudo mkfs.ext4 /dev/xdh
 
-    $ echo '/dev/sdf /data ext4 defaults,auto,noatime,noexec 0 0
-    /dev/sdg /journal ext4 defaults,auto,noatime,noexec 0 0
-    /dev/sdh /log ext4 defaults,auto,noatime,noexec 0 0' | sudo tee -a /etc/fstab
+    $ echo '/dev/xdf /data ext4 defaults,auto,noatime,noexec 0 0
+    /dev/xdg /journal ext4 defaults,auto,noatime,noexec 0 0
+    /dev/xdh /log ext4 defaults,auto,noatime,noexec 0 0' | sudo tee -a /etc/fstab
 
     $ sudo mount /data
     $ sudo mount /journal
@@ -161,7 +161,7 @@ Additionally, default read ahead settings on EC2 are not optimized for MongoDB. 
 
 .. code-block:: sh
 
-    $ sudo blockdev --setra 32 /dev/sdf
+    $ sudo blockdev --setra 32 /dev/xdf
 
 To make this change persistent acorss system boot you can issue the following command:
 
@@ -169,7 +169,7 @@ To make this change persistent acorss system boot you can issue the following co
 
     $ echo 'ACTION=="add", KERNEL=="xvdf", ATTR{bdi/read_ahead_kb}="16"' | sudo tee -a /etc/udev/rules.d/85-ebs.rules
 
-Once again, repeat the above command for all required volumes (note: the device we created was named :file:`/dev/sdf` but the name used by the system is :file:`/dev/xvdf`).
+Once again, repeat the above command for all required volumes (note: the device we created was named :file:`/dev/xdf` but the name used by the system is :file:`/dev/xvdf`).
 
 To startup MongoDB, issue the following command:
 
