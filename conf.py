@@ -69,6 +69,8 @@ extlinks = {
     'manual': ('http://docs.mongodb.org/manual%s', ''),
     'ecosystem': ('http://docs.mongodb.org/ecosystem%s', ''),
     'meta-driver': ('http://docs.mongodb.org/meta-driver/latest%s', ''),
+    'mms': ('http://mms.mongodb.org/help%s', ''),
+    'mms-hosted': ('http://mms.mongodb.org/help-hosted%s', ''),
     'about': ('http://www.mongodb.org/about%s', '')
 }
 
