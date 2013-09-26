@@ -14,58 +14,55 @@ $addToSet (aggregation)
 Example
 -------
 
-   In the :program:`mongo` shell, create a set of documents with product
-   information:
+In the :program:`mongo` shell, insert documents into a collection
+named ``products`` using the following operation:
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      db.products.insert( [
-         { "type" : "phone", "price" : 389.99, "stocked" : 270000 },
-         { "type" : "phone", "price" : 376.99 , "stocked" : 97000},
-         { "type" : "antikythera device", "price" : 59.99, "stocked" : 108 }
-      ] )
+   db.products.insert( [
+      { "type" : "phone", "price" : 389.99, "stocked" : 270000 },
+      { "type" : "phone", "price" : 376.99 , "stocked" : 97000},
+      { "type" : "phone", "price" : 389.99 , "stocked" : 97000},
+      { "type" : "chair", "price" : 59.99, "stocked" : 108 }
+   ] )
 
-   In the shell, give the following :dbcommand:`aggregate` command using ``$addToSet``:
+Use the following :method:`db.collection.aggregate()` operation in the
+:program:`mongo` shell with the :group:`$addToSet` operator:
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      db.products.aggregate( {
-           $group : {
-                     _id : "$type",
-                     price: { $addToSet: "$price" },
-                     stocked: { $addToSet: "$stocked" },
-         } }
-      )
+   db.products.aggregate( {
+        $group : {
+                  _id : "$type",
+                  price: { $addToSet: "$price" },
+                  stocked: { $addToSet: "$stocked" },
+      } }
+   )
 
-   The output includes an array containing each unique value of
-   ``type``, with arrays of the unique values of ``price``, and
-   ``stocked``.
+This aggregation pipeline returns documents grouped on the value of
+the ``type`` field, with *sets* constructed from the unique values of
+the ``price`` and ``stocked`` fields in the input documents. Consider
+the following aggregation results:
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      {
-        "result" : [
-                {
-                        "_id" : "antikythera device",
-                        "price" : [
-                                59.99
-                        ],
-                        "stocked" : [
-                                108
-                        ]
-                },
-                {
-                        "_id" : "phone",
-                        "price" : [
-                                376.99,
-                                389.99
-                        ],
-                        "stocked" : [
-                                97000,
-                                270000
-                        ]
-                }
-        ],
-        "ok" : 1
-      }
-
+   {
+           "_id" : "chair",
+           "price" : [
+                   59.99
+           ],
+           "stocked" : [
+                   108
+           ]
+   },
+   {
+           "_id" : "phone",
+           "price" : [
+                   376.99,
+                   389.99
+           ],
+           "stocked" : [
+                   97000,
+                   270000,
+           ]
+   }
