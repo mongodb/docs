@@ -10,3 +10,62 @@ $addToSet (aggregation)
    among the documents in that group. *Every unique value only
    appears once* in the result set. There is no ordering guarantee
    for the output documents.
+
+Example
+-------
+
+   In the :program:`mongo` shell, create a set of documents with product
+   information:
+
+   .. code-block:: javascript
+
+      db.products.insert( [
+         { "type" : "phone", "price" : 389.99, "stocked" : 270000 },
+         { "type" : "phone", "price" : 376.99 , "stocked" : 97000},
+         { "type" : "antikythera device", "price" : 59.99, "stocked" : 108 }
+      ] )
+
+   In the shell, give the following :dbcommand:`aggregate` command using ``$addToSet``:
+
+   .. code-block:: javascript
+
+      db.products.aggregate( {
+           $group : {
+                     _id : "$type",
+                     price: { $addToSet: "$price" },
+                     stocked: { $addToSet: "$stocked" },
+         } }
+      )
+
+   The output includes an array containing each unique value of
+   ``type``, with arrays of the unique values of ``price``, and
+   ``stocked``.
+
+   .. code-block:: javascript
+
+      {
+        "result" : [
+                {
+                        "_id" : "antikythera device",
+                        "price" : [
+                                59.99
+                        ],
+                        "stocked" : [
+                                108
+                        ]
+                },
+                {
+                        "_id" : "phone",
+                        "price" : [
+                                376.99,
+                                389.99
+                        ],
+                        "stocked" : [
+                                97000,
+                                270000
+                        ]
+                }
+        ],
+        "ok" : 1
+      }
+
