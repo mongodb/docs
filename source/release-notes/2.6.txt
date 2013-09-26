@@ -125,60 +125,45 @@ sets of any size.
    :pipeline:`$out` behaves like the replace mode of
    :dbcommand:`mapReduce`.
 
-Aggregation Operation May Return a Cursor
+Aggregation Operation Can Return a Cursor
 `````````````````````````````````````````
 
+.. re the above title change - We often use "may" for "can". I think that's fine in the text but
+   it's easy to misread in a title, which I actually did.
+   May means permission to.
+   Can means ability to.
+   In general, "can" is the stronger word. "May" has a softness, and I think we want to be bold
+   in describing what we can do.
+
+.. There's a few other edits in the content below to make our statements stronger.
+
+.. DOCS-1835
+
 The :dbcommand:`aggregate` may now return a cursor rather than a
-result document. Specify the ``cursor`` operation and an initial batch
-size as options to the :dbcommand:`aggregate` command to return a
-cursor object. In 2.5.2, the *temporary* :program:`mongo` shell helper
+result document. To return a cursor object, specify the ``cursor``
+operation and an initial batch size as options to the
+:dbcommand:`aggregate` command.
+In 2.5.2, the *temporary* :program:`mongo` shell helper
 ``db.collection.aggregateCursor()`` provides access to this
 capability.
 
 By returning a cursor, aggregation pipelines can return result sets of
 any size. In previous versions, the result of an aggregation operation
 could be no larger than 16 megabytes.
-
-The following command will return an aggregation cursor:
-
-.. code-block:: javascript
-
-   db.runCommand(
-      { aggregate: "records",
-        pipeline: [
-           { $project: { name: { $toUpper: "$_id" }, _id: 0 } },
-           { $sort: { name: 1 } }
-        ],
-        cursor: {}
-      }
-   )
-
-In the :program:`mongo` shell, you may use the ``aggregateCursor()``
-method:
-
-.. code-block:: javascript
-
-   db.records.aggregateCursor(
-     [
-        { $project : { name: { $toUpper: "$_id" }, _id: 0 } },
-        { $sort : { name: 1 } }
-     ]
-   )
-
-
 Cursors returned from the aggregation command are equivalent to
 cursors returned from :method:`~db.collection.find()` queries in every
 way.
 
-You may specify an initial batch size using the following form:
+The following command returns a document that can be used to instantiate
+an object. The command sets the ``batchSize`` to ``10`` documents:
 
 .. code-block:: javascript
 
    db.runCommand(
       { aggregate: "records",
         pipeline: [
-           { $project : { name: { $toUpper: "$_id" }, _id: 0 } },
-           { $sort : { name : 1 } }
+           { $project: { name: 1, email: 1, _id: 0 } },
+           { $sort: { name: 1 } }
         ],
         cursor: { batchSize: 10 }
       }
@@ -187,6 +172,35 @@ You may specify an initial batch size using the following form:
 The ``{batchSize: 10 }`` document specifies the size of the *initial*
 batch size only. Specify subsequent batch sizes to :ref:`OP_GET_MORE
 <wire-op-get-more>` operations as with other MongoDB cursors.
+
+The :program:`mongo` shell provides the helper method
+``aggregateCursor()``:
+
+.. code-block:: javascript
+
+   db.records.aggregateCursor(
+     [
+        { $project : { name: 1, email: 1, _id: 0 } },
+        { $sort : { name: 1 } }
+     ]
+   )
+
+A ``batchSize`` of ``0`` means an empty first batch and is useful if you
+want to quickly get back a cursor or failure message, without doing
+significant server-side work. To specify a ``batchSize`` of ``0``, use
+an empty document:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      { aggregate: "records",
+        pipeline: [
+           { $project : { name: 1, email: 1, _id: 0 } },
+           { $sort : { name : 1 } }
+        ],
+        cursor: {}
+      }
+   )
 
 Improved Sorting
 ````````````````
@@ -219,7 +233,7 @@ You can run this pipeline operation, using the following command:
    db.runCommand(
       { aggregate: "records",
         pipeline: [
-           { $project : { name: { $toUpper: "$_id" }, _id: 0 } },
+           { $project : { name: 1, email: 1, _id: 0 } },
            { $sort : { name : 1 } }
         ],
         cursor: { batchSize: 10 },
