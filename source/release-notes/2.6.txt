@@ -36,8 +36,8 @@ process.
 
 .. _`downloads page`: http://www.mongodb.org/downloads
 
-Changes
--------
+Compatibility Changes
+---------------------
 
 .. important:: The MongoDB 2.5-series, which will become MongoDB 2.6,
    is for testing and development **only**. All identifiers, names,
@@ -70,6 +70,48 @@ before or during the upgrade.
 There is no default ``bind_ip`` setting in any other 10gen distributions
 of MongoDB.
 
+``isMaster`` Comand includes Wire Protocol Versions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 2.5.2
+
+In order to support changes to the wire protocol both now and in the
+future, the output of :dbcommand:`isMaster` now contains two new
+fields that report the earliest version of the wire protocol that this
+:program:`mongod` instance supports and the highest version of the
+wire protocol that this :program:`mongo` instance supports.
+
+.. data:: isMaster.maxWireVersion
+
+   The latest version of the wire protocol that this :program:`mongod`
+   or :program:`mongos` instance is capable of using to communicate
+   with clients.
+
+.. data:: isMaster.minWireVersion
+
+   The earliest version of the wire protocol that this
+   :program:`mongod` or :program:`mongos` instance is capable of using
+   to communicate with clients.
+
+Replica Set Vote Configuration Validation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded: 2.5.3
+
+MongoDB now deprecates giving any :term:`replica set` member more than
+a single vote. During configuration,
+:data:`local.system.replset.members[n].votes` should only have a value
+of 1 for voting members and 0 for non-voting members. MongoDB treats
+values other than 1 or 0 as a value of 1 and produces a warning message.
+
+Changes
+-------
+
+.. important:: The MongoDB 2.5-series, which will become MongoDB 2.6,
+   is for testing and development **only**. All identifiers, names,
+   interfaces are subject to change. Do **not** use a MongoDB 2.5
+   release in production situations.
+
 Aggregation Pipeline Changes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -90,7 +132,7 @@ Aggregation Pipeline Changes
    already exist in the current database. This collection is not
    visible until the aggregation completes. If the aggregation fails,
    MongoDB will not create any collection.
-   
+
    If the output collection already exists, when the aggregation
    completes *successfully*, the :pipeline:`$out` atomically replaces
    the output collection with the new results
@@ -101,7 +143,7 @@ Aggregation Pipeline Changes
       produced by the pipeline would violate any unique indexes,
       including the index on the ``_id`` field, that existed on the
       original output collection.
-   
+
    You may *only* specify :pipeline:`$out` at the end of a pipeline.
 
 With :pipeline:`$out`, the aggregation framework can return result
@@ -480,7 +522,7 @@ To use ``explain``, set the ``explain`` field to ``true`` as shown here:
    .. code-block:: javascript
 
       db.runCommand( {
-                       aggregate: "records", 
+                       aggregate: "records",
                        explain: true,
                        pipeline: [ { $sort: { name : -1 } },
                                    { $skip: 10 },
@@ -683,29 +725,6 @@ The value of ``<option>`` is one of the following:
 .. tip:: As of 2.5.2, auditing does not support filtering of audit
    events.
 
-``isMaster`` Comand includes Wire Protocol Versions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionadded:: 2.5.2
-
-In order to support changes to the wire protocol both now and in the
-future, the output of :dbcommand:`isMaster` now contains two new
-fields that report the earliest version of the wire protocol that this
-:program:`mongod` instance supports and the highest version of the
-wire protocol that this :program:`mongo` instance supports.
-
-.. data:: isMaster.maxWireVersion
-
-   The latest version of the wire protocol that this :program:`mongod`
-   or :program:`mongos` instance is capable of using to communicate
-   with clients.
-
-.. data:: isMaster.minWireVersion
-
-   The earliest version of the wire protocol that this
-   :program:`mongod` or :program:`mongos` instance is capable of using
-   to communicate with clients.
-
 MongoDB Enterprise for Windows
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -878,8 +897,22 @@ the following example:
             }
           )
 
+SSL Improvements
+~~~~~~~~~~~~~~~~
+
+MongoDB Allows Only Strong SSL Ciphers
+``````````````````````````````````````
+
+.. DOCS-1921
+
+MongoDB's SSL encryption only allows use of strong SSL ciphers, with a minimum
+of 128-bit key length for all connections.
+
+The strong-cipher requirement prevents an old or malicious client from forcing
+use of a weak cipher.
+
 x.509 Authentication
-~~~~~~~~~~~~~~~~~~~~
+````````````````````
 
 MongoDB introduces x.509 certificate authentication for use with a
 secure :doc:`SSL connection </tutorial/configure-ssl>`.
@@ -899,7 +932,7 @@ files. The membership authentication is an internal process.
 .. _`MongoDB Enterprise`: http://www.mongodb.com/products/mongodb-enterprise
 
 x.509 Certificate
-`````````````````
+^^^^^^^^^^^^^^^^^
 
 The x.509 certificate for client authentication and the x.509
 certificate for internal authentication have different properties.
@@ -930,7 +963,7 @@ following properties:
   Organizational Unit (``OU``) of the certificate on the server.
 
 New Protocol and Parameters
-```````````````````````````
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The change for x.509 authentication introduces a new ``MONGODB-X509``
 protocol. For internal authentication for membership, the change also
@@ -976,7 +1009,7 @@ is encrypted, specify the password with the ``--sslClusterPassword``
 option.
 
 Configure MongoDB Server to Use x.509
-`````````````````````````````````````
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Configure the MongoDB server from the command line, as in the following
 [#additionalOptions]_:
@@ -1007,7 +1040,7 @@ replica set [#additionalOptions]_:
    or otherwise, that are required for your specific configuration.
 
 Authenticate with a x.509 Certificate
-`````````````````````````````````````
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To authenticate with a client certificate, you must first add a MongoDB
 user that corresponds to the client certificate. See
@@ -1042,7 +1075,7 @@ For example, if using the :program:`mongo` shell,
 .. _addX509SubjectUser:
 
 Add x.509 Certificate ``subject`` as a User
-```````````````````````````````````````````
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To authenticate with a client certificate, you must first add the value
 of the ``subject`` from the client certificate as a MongoDB user.
@@ -1081,7 +1114,7 @@ with roles using :doc:`privilege documents
 </reference/privilege-documents>`.
 
 Upgrade Clusters to x.509 Authentication
-````````````````````````````````````````
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To upgrade clusters that are currently using keyfile authentication to
 x.509 authentication, use a rolling upgrade process:
@@ -1107,20 +1140,6 @@ x.509 authentication, use a rolling upgrade process:
 
 .. [#encryptedKey] If the key is encrypted, set the
    ``--sslClusterPassword`` to the password to decrypt the key.
-
-SSL Improvements
-~~~~~~~~~~~~~~~~
-
-MongoDB Allows Only Strong SSL Ciphers
-``````````````````````````````````````
-
-.. DOCS-1921
-
-MongoDB's SSL encryption only allows use of strong SSL ciphers, with a minimum
-of 128-bit key length for all connections.
-
-The strong-cipher requirement prevents an old or malicious client from forcing
-use of a weak cipher.
 
 Limit for ``maxConns`` Removed
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1170,14 +1189,14 @@ Global ``mongorc.js`` File
 If the file :file:`mongorc.js` exists in the :file:`/etc` directory (or
 :file:`%ProgramData%\\MongoDB` directory on Windows), the
 :program:`mongo` shell evaluates the contents of this file on start-up.
-Then, the :program:`mongo` shell evaluates the user's 
+Then, the :program:`mongo` shell evaluates the user's
 :file:`.mongorc.js` file if the file exists in the user's :envvar:`HOME
-directory`. 
+directory`.
 
 The :option:`--norc` option for :program:`mongo` suppresses only the
 user's :file:`.mongorc.js` file.
 
-.. important:: 
+.. important::
    The :file:`mongorc.js` in :file:`/etc` directory must have read
    permission for the user running the shell.
 
@@ -1197,17 +1216,6 @@ MongoDB added support for the following `GeoJSON
 - `MultiPolygon <http://geojson.org/geojson-spec.html#id7>`_
 
 - `GeometryCollection <http://geojson.org/geojson-spec.html#geometrycollection>`_
-
-Replica Set Vote Configuration Validation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionadded: 2.5.3
-
-MongoDB now deprecates giving any :term:`replica set` member more than
-a single vote. During configuration,
-:data:`local.system.replset.members[n].votes` should only have a value
-of 1 for voting members and 0 for non-voting members. MongoDB treats
-values other than 1 or 0 as a value of 1 and produces a warning message.
 
 C++ Driver Enhancement
 ~~~~~~~~~~~~~~~~~~~~~~
