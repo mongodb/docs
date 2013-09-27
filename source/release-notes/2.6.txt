@@ -657,7 +657,7 @@ migration cleanup due to abnormal shutdown.
    This loop removes all orphaned data on the shard.
 
 Ability to Merge Co-located Contiguous Chunks
-`````````````````````````````````````````````
+``````````````````````````````````````````````
 
 .. versionadded:: 2.5.2
 
@@ -690,7 +690,134 @@ collection with too many empty chunks.
       - one chunk **must** not hold any documents (i.e. an "empty
         chunk").
 
+User-Defined Roles
+~~~~~~~~~~~~~~~~~~
 
+.. This is a placeholder draft, awaiting technical review and feature completion
+
+Users Can Define Roles and Grant Privileges
+````````````````````````````````````````````
+
+In addition to the 9 built-in :ref:`user roles <user-roles>` in MongoDB,
+you can now define custom user roles and assign privileges to those
+roles. You also can assign roles to roles.
+
+To edit privilege, you no longer directly access a database's
+:doc:`system.users </reference/privilege-documents>` collection but
+instead make changes using new user-role management commands. Role and
+user information for all databases will now be stored in system
+collections in the ``admin`` database and manipulated exclusively via
+commands.
+
+New Schema for User and Role Data
+````````````````````````````````````
+
+.. DOCS-1934 - Upgrade/downgrade support for new schema for user and role data
+.. DOCS-1935 - Enumerate and define grantable actions in MongoDB
+
+Role and user information for all databases is now stored in system
+collections in the ``admin`` database and manipulated exclusively via
+commands. The :doc:`system.users </reference/privilege-documents>`
+collection is now deprecated, with data migrated from them to the new
+collection schema as part of the 2.4->2.6 upgrade process.
+
+MongoDB provides a procedure for upgrading access control for 2.6.
+
+.. Do we want to publish the procedure here ??? The procedure is on this page:
+   https://wiki.mongodb.com/display/10GEN/Access+Control+Upgrade+Path+for+2.6
+
+Create and Edit Roles
+`````````````````````
+
+.. DOCS-1980 - User Defined Roles, SERVER-9515
+
+MongoDB will provide the following commands for creating and editing roles:
+
+.. dbcommand:: createRole
+
+.. dbcommand:: deleteRole
+
+.. dbcommand:: grantRolesToRole
+
+.. dbcommand:: grantPrivilegesToRole
+
+.. dbcommand:: rolesInfo
+
+Manage Users and User Roles
+````````````````````````````
+
+.. DOCS-1936 - Manipulate user objects exclusively via commands
+
+.. I've yet to add this info:
+   https://wiki.mongodb.com/display/10GEN/User+and+Role+Management+Commands+in+2.6
+
+MongoDB provides the following new commands for assigning and changing
+user roles. You no longer manipulate user roles through direct access of
+a database's :doc:`system.users </reference/privilege-documents>`
+collection.
+
+.. dbcommand:: createUser
+
+   .. code-block:: javascript
+
+      db.runCommand( {
+          createUser: 1,
+          user: "Carlos",
+          password: "clear password",      // Unless "db" is "$external"
+          extraData: <optional opaque Object>
+          roles: [ { name: "roleName", db: "roleDB", canDelegate: <Boolean> }, ... ]
+      } )
+
+.. dbcommand:: updateUser
+
+   .. code-block:: javascript
+
+      db.runCommand( {
+          updateUser: 1,
+          user: "Carlos",
+          password: "new password clear",  // Optional
+          extraData: <Object>,             // Optional
+      } )
+
+.. dbcommand:: grantRolesToUser
+
+   .. code-block:: javascript
+
+      db.runCommand( {
+          grantRolesToUser: 1,
+          user: "Carol",
+          db: "somedb",
+          roles: [ { name: "roleName", db: "roleDB", canDelegate: <Boolean> }, ...]
+      } )
+
+.. dbcommand:: revokeRolesForUser
+
+   .. code-block:: javascript
+
+      db.runCommand( {
+          revokeRolesForUser: 1,
+          user: "Carol",
+          db: "somedb",
+          roles: [ { name: "roleName", db: "roleDB", canDelegate: <Boolean> }, ...]
+      } )
+
+.. dbcommand:: usersInfo
+
+   .. code-block:: javascript
+
+      db.runCommand( {
+          usersInfo: 1,
+          [userName: "Carlos"]
+      } )
+
+.. dbcommand:: deleteUser
+
+   .. code-block:: javascript
+
+      db.runCommand( {
+          deleteUser: 1,
+          user: "Carlos"
+      } )
 
 SSL Improvements
 ~~~~~~~~~~~~~~~~
@@ -942,8 +1069,8 @@ of the ``subject`` from the client certificate as a MongoDB user.
       -----END CERTIFICATE-----
 
 #. Add the value of the ``subject``, omitting the spaces, from the
-   certificate as a user. 
-   
+   certificate as a user.
+
    For example, in the :program:`mongo` shell, to add the user with
    both the ``readWrite`` role in the ``test`` database and the
    ``userAdminAnyDatabase`` role which is defined only in the ``admin``
@@ -968,7 +1095,7 @@ of the ``subject`` from the client certificate as a MongoDB user.
    role for the user, the above example specified ``'admin'`` in the
    ``source`` field.
 
-   .. note:: 
+   .. note::
       The following roles are defined only in the ``admin`` database:
       ``clusterAdmin``, ``readAnyDatabase``, ``readWriteAnyDatabase``,
       ``dbAdminAnyDatabase``, and ``userAdminAnyDatabase``. To add the
@@ -1230,7 +1357,6 @@ For SUSE, install the following:
 .. code-block:: sh
 
    sudo zypper install cyrus-sasl cyrus-sasl-devel cyrus-sasl-gssapi
-
 
 LDAP Support for Authentication
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
