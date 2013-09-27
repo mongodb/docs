@@ -458,13 +458,12 @@ This projects documents with a field named ``costsOneDollar`` that
 holds a boolean value if the value of the field is the string
 ``$1.00``.
 
-``explain`` Field for the Aggregation Pipeline
-``````````````````````````````````````````````
+``explain`` Option for the Aggregation Pipeline
+```````````````````````````````````````````````
 
-The new ``explain`` argument on the :dbcommand:`aggregate` command
-provides information on how the command put the pipeline together. The
-``explain`` argument returns a document with information on each stage
-of the pipeline.
+The new ``explain`` option to the :dbcommand:`aggregate` command
+provides information about how the command processes the pipeline. The
+returned document contains information on each stage of the pipeline.
 
 To use ``explain``, set the ``explain`` field to ``true`` as shown here:
 
@@ -476,21 +475,34 @@ To use ``explain``, set the ``explain`` field to ``true`` as shown here:
 
 .. example::
 
-   Given the following pipeline operations:
+   Given the following aggregation command with ``explain`` field set to ``true``:
 
    .. code-block:: javascript
 
-      pipeline: [ { $sort: { age : -1 } },
-                  { $skip: 10 },
-                  { $limit: 5 } ]
+      db.runCommand( {
+                       aggregate: "records", 
+                       explain: true,
+                       pipeline: [ { $sort: { name : -1 } },
+                                   { $skip: 10 },
+                                   { $limit: 5 } ]
+                     }
 
-   You can use the ``explain`` argument's output document to determine
-   how :dbcommand:`aggregate` processed the pipeline. In this case, the
-   output document would show that :dbcommand:`aggregate` moved the
-   ``$limit`` operation before the ``$skip`` operation, among other
-   information.
+   The returned document provides information on how
+   :dbcommand:`aggregate` processed the pipeline. In this example, the
+   returned document would show, among other details, that:
 
-The format of the ``explain`` field's output document is not final for
+   - a :ref:`sequence optimization
+     <aggregation-pipeline-sequence-optimization>` occurs where the
+     :pipeline:`$limit` moves before the :pipeline:`$skip` and the
+     :pipeline:`$limit` amount has increased to the sum of its initial
+     value and the :pipeline:`$skip` value, and
+
+   - with the :pipeline:`$sort` now immediately preceding a
+     :pipeline:`$limit`, :pipeline:`$sort` operation would only
+     maintain the top 15 results (i.e. the new limit amount) as it
+     progresses.
+
+The format of the ``explain`` output document is not final for
 version 2.6.
 
 Update Improvements
