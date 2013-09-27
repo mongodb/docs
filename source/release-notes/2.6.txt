@@ -689,213 +689,7 @@ collection with too many empty chunks.
       - one chunk **must** not hold any documents (i.e. an "empty
         chunk").
 
-Support for Auditing
-~~~~~~~~~~~~~~~~~~~~
 
-.. versionadded:: 2.5.2
-
-MongoDB Enterprise adds features to audit server and client activity
-for :program:`mongod` and :program:`mongos` instances.
-
-.. important:: Auditing, like all new features in 2.5.2, is in ongoing
-   development. Specifically the interface, output format, audited
-   events and the structure of audited events will change
-   significantly in the in the 2.5 series before the release of 2.6.
-
-To enable auditing, start :program:`mongod` or :program:`mongos` with
-the following argument:
-
-.. code-block:: sh
-
-   --setParameter auditLogPath=<option>
-
-The value of ``<option>`` is one of the following:
-
-- a path. This may be the same as the :setting:`logpath` for MongoDB's
-  process log. If you specify the same log file, then the path
-  specification must be *exactly* the same as the :setting:`logpath`
-  specification.
-
-- the string ``:console`` to output audit log messages to standard
-  output.
-
-- the string ``:syslog`` to output audit log messages to the system's
-  syslog facility.
-
-.. tip:: As of 2.5.2, auditing does not support filtering of audit
-   events.
-
-MongoDB Enterprise for Windows
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionadded:: 2.5.3
-
-MongoDB Enterprise for Windows is now available. It includes advanced
-Kerberos security, SSL, and SNMP support.
-
-SASL Library Change
-~~~~~~~~~~~~~~~~~~~
-
-MongoDB Enterprise uses Cyrus SASL instead of GNU SASL (``libgsasl``).
-This change has the following SASL2 and Cyrus SASL library and GSSAPI
-plugin dependencies:
-
-For Debian or Ubuntu, install the following:
-
-.. code-block:: sh
-
-   sudo apt-get install cyrus-sasl2-dbg cyrus-sasl2-mit-dbg libsasl2-2 libsasl2-dev libsasl2-modules libsasl2-modules-gssapi-mit
-
-For CentOS, Red Hat Enterprise Linux, and Amazon AMI, install the
-following:
-
-.. code-block:: sh
-
-   sudo yum install cyrus-sasl cyrus-sasl-lib cyrus-sasl-devel cyrus-sasl-gssapi
-
-For SUSE, install the following:
-
-.. code-block:: sh
-
-   sudo zypper install cyrus-sasl cyrus-sasl-devel cyrus-sasl-gssapi
-
-LDAP Support for Authentication
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-MongoDB Enterprise provides support for proxy authentication of users.  This
-change allows administrators to configure a MongoDB cluster to authenticate
-users via Linux PAM or by proxying authentication requests to a specified LDAP
-service.
-
-.. warning::
-
-   Because this change uses ``SASL PLAIN`` mechanism to transmit the
-   user password to the MongoDB server, you should, in general, use
-   only on a trusted channel (VPN, SSL, trusted wired network).
-
-Configuration
-`````````````
-
-LDAP support for user authentication requires proper configuration of
-the ``saslauthd`` daemon process as well as introduces a new server
-parameter, ``saslauthdPath``. ``saslauthdPath`` is the path to the Unix
-Domain Socket of the ``saslauthd`` instance to use for proxy
-authentication.
-
-``saslauthd`` Configuration
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-On systems that configure ``saslauthd`` with a
-``/etc/sysconfig/saslauthd`` file, such as Red Hat Enterprise Linux,
-Fedora, CentOS, Amazon Linux AMI, set the mechanism ``MECH`` to
-``ldap``:
-
-.. code-block:: none
-
-   MECH=ldap
-
-On systems that configure ``saslauthd`` with a
-``/etc/default/saslauthd`` file, set the mechanisms option to
-``ldap``:
-
-.. code-block:: none
-
-   MECHANISMS="ldap"
-
-To use with *ActiveDirectory*, start ``saslauthd`` with the following
-configuration options:
-
-.. code-block:: none
-
-   ldap_servers: <ldap uri, e.g. ldaps://ad.example.net>
-   ldap_use_sasl: yes
-   ldap_mech: DIGEST-MD5
-   ldap_auth_method: fastbind
-
-To connect to an OpenLDAP server, use a test ``saslauthd.conf`` with
-the following content:
-
-.. code-block:: none
-
-   ldap_servers: <ldap uri, e.g. ldaps://ad.example.net>
-   ldap_search_base: ou=Users,dc=example,dc=com
-   ldap_filter: (uid=%u)
-
-To use this sample OpenLDAP configuration, create users with a ``uid``
-attribute (login name) and place under the ``Users`` organizational
-unit (``ou``).
-
-To test the ``saslauthd`` configuration, use ``testsaslauthd`` utility,
-as in the following example:
-
-.. code-block:: sh
-
-   testsaslauthd -u testuser -p testpassword -s mongod -f /var/run/saslauthd/mux
-
-For more information on ``saslauthd`` configuration, see
-`<http://www.openldap.org/doc/admin24/guide.html#Configuring saslauthd>`_.
-
-MongoDB Server Configuration
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Configure the MongoDB server with the ``authenticationMechanisms``
-parameter and the ``saslauthdPath`` parameters using either the command
-line option :option:`--setParameter <mongod --setParameter>` or the
-:doc:`configuration file </reference/configuration-options>`:
-
-- If ``saslauthd`` has a socket path of ``/<some>/<path>/saslauthd``,
-  set the ``saslauthdPath`` parameter to
-  ``/<some>/<path>/saslauthd/mux`` and the ``authenticationMechanisms``
-  parameter to ``PLAIN``, as in the following command line example:
-
-  .. code-block:: sh
-
-     mongod --setParameter saslauthdPath=/<some>/<path>/saslauthd/mux --setParameter authenticationMechanisms=PLAIN
-
-  Or to set the configuration in the :doc:`configuration file
-  </reference/configuration-options>`, add the parameters:
-
-  .. code-block:: sh
-
-     setParameter=saslauthdPath=/<some>/<path>/saslauthd/mux
-     setParameter=authenticationMechanisms=PLAIN
-
-- Otherwise, set the ``saslauthdPath`` to the empty string ``""`` to use
-  the library's default value and the ``authenticationMechanisms``
-  parameter to ``PLAIN``, as in the following command line example:
-
-  .. code-block:: sh
-
-     mongod --setParameter saslauthdPath="" --setParameter authenticationMechanisms=PLAIN
-
-  Or to set the configuration in the :doc:`configuration file
-  </reference/configuration-options>`, add the parameters:
-
-  .. code-block:: sh
-
-     setParameter=saslauthdPath=""
-     setParameter=authenticationMechanisms=PLAIN
-
-Authenticate in the ``mongo`` Shell
-```````````````````````````````````
-
-To use this authentication mechanism in the :program:`mongo` shell, you
-**must** pass ``digestPassword: false`` to :method:`db.auth()` when
-authenticating on the ``$external`` database, since the server must
-receive an undigested password to forward on to ``saslauthd``, as in
-the following example:
-
-.. code-block:: javascript
-
-   use $external
-   db.auth(
-            {
-              mechanism: "PLAIN",
-              user: "application/reporting@EXAMPLE.NET",
-              pwd: "some1nterestingPwd",
-              digestPassword: false
-            }
-          )
 
 SSL Improvements
 ~~~~~~~~~~~~~~~~
@@ -1191,18 +985,11 @@ x.509 authentication, use a rolling upgrade process:
 .. [#encryptedKey] If the key is encrypted, set the
    ``--sslClusterPassword`` to the password to decrypt the key.
 
-
-Limit for ``maxConns`` Removed
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Starting in MongoDB 2.5.0, there is no longer any upward limit for the
-:setting:`maxConns`, or :program:`mongod --maxConns` and
-:program:`mongos --maxConns` options. Previous versions capped the
-maximum possible :setting:`maxConns` setting at ``20,000``
-connections.
+Index Building Improvements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Background Index Builds Replicate to Secondaries
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+````````````````````````````````````````````````
 
 Starting in MongoDB 2.5.0, if you initiate a :ref:`background index
 build <index-creation-background>` on a :term:`primary`, the
@@ -1214,7 +1001,7 @@ For all index builds, secondaries will not begin building indexes
 until the primary has successfully completed the index build.
 
 ``mongod`` Automatically Continues in Progress Index Builds Following Restart
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+`````````````````````````````````````````````````````````````````````````````
 
 If your :program:`mongod` instance was building an index when it
 shutdown or terminated, :program:`mongod` will now continue building
@@ -1233,6 +1020,15 @@ not finished building when the :program:`mongod` last shut down.
    start-up *if* :program:`mongod` shuts down or stops in the middle
    of an index build. When enabled, this option prevents this
    behavior.
+
+Limit for ``maxConns`` Removed
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 2.5.0, there is no longer any upward limit for the
+:setting:`maxConns`, or :program:`mongod --maxConns` and
+:program:`mongos --maxConns` options. Previous versions capped the
+maximum possible :setting:`maxConns` setting at ``20,000``
+connections.
 
 Global ``mongorc.js`` File
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1323,8 +1119,6 @@ recommended method for MongoDB installation under Windows.
 New Replica Set Status Methods
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. versionadded:: 2.5.3
-
 MongoDB provides two additional methods to provide information
 regarding the status of a :term:`replica set`:
 :method:`rs.printReplicationInfo()` and
@@ -1339,3 +1133,215 @@ The :method:`rs.printSlaveReplicationInfo()` method provides a
 formatted report of the status of a :term:`replica set` from the
 perspective of a secondary set member. The output is identical to that
 of the :method:`db.printSlaveReplicationInfo()` method.
+
+MongoDB Enterprise Features
+---------------------------
+
+Support for Auditing
+~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 2.5.2
+
+MongoDB Enterprise adds features to audit server and client activity
+for :program:`mongod` and :program:`mongos` instances.
+
+.. important:: Auditing, like all new features in 2.5.2, is in ongoing
+   development. Specifically the interface, output format, audited
+   events and the structure of audited events will change
+   significantly in the in the 2.5 series before the release of 2.6.
+
+To enable auditing, start :program:`mongod` or :program:`mongos` with
+the following argument:
+
+.. code-block:: sh
+
+   --setParameter auditLogPath=<option>
+
+The value of ``<option>`` is one of the following:
+
+- a path. This may be the same as the :setting:`logpath` for MongoDB's
+  process log. If you specify the same log file, then the path
+  specification must be *exactly* the same as the :setting:`logpath`
+  specification.
+
+- the string ``:console`` to output audit log messages to standard
+  output.
+
+- the string ``:syslog`` to output audit log messages to the system's
+  syslog facility.
+
+.. tip:: As of 2.5.2, auditing does not support filtering of audit
+   events.
+
+MongoDB Enterprise for Windows
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 2.5.3
+
+MongoDB Enterprise for Windows is now available. It includes advanced
+Kerberos security, SSL, and SNMP support.
+
+SASL Library Change
+~~~~~~~~~~~~~~~~~~~
+
+MongoDB Enterprise uses Cyrus SASL instead of GNU SASL (``libgsasl``).
+This change has the following SASL2 and Cyrus SASL library and GSSAPI
+plugin dependencies:
+
+For Debian or Ubuntu, install the following:
+
+.. code-block:: sh
+
+   sudo apt-get install cyrus-sasl2-dbg cyrus-sasl2-mit-dbg libsasl2-2 libsasl2-dev libsasl2-modules libsasl2-modules-gssapi-mit
+
+For CentOS, Red Hat Enterprise Linux, and Amazon AMI, install the
+following:
+
+.. code-block:: sh
+
+   sudo yum install cyrus-sasl cyrus-sasl-lib cyrus-sasl-devel cyrus-sasl-gssapi
+
+For SUSE, install the following:
+
+.. code-block:: sh
+
+   sudo zypper install cyrus-sasl cyrus-sasl-devel cyrus-sasl-gssapi
+
+
+LDAP Support for Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB Enterprise provides support for proxy authentication of users.  This
+change allows administrators to configure a MongoDB cluster to authenticate
+users via Linux PAM or by proxying authentication requests to a specified LDAP
+service.
+
+.. warning::
+
+   Because this change uses ``SASL PLAIN`` mechanism to transmit the
+   user password to the MongoDB server, you should, in general, use
+   only on a trusted channel (VPN, SSL, trusted wired network).
+
+Configuration
+`````````````
+
+LDAP support for user authentication requires proper configuration of
+the ``saslauthd`` daemon process as well as introduces a new server
+parameter, ``saslauthdPath``. ``saslauthdPath`` is the path to the Unix
+Domain Socket of the ``saslauthd`` instance to use for proxy
+authentication.
+
+``saslauthd`` Configuration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+On systems that configure ``saslauthd`` with a
+``/etc/sysconfig/saslauthd`` file, such as Red Hat Enterprise Linux,
+Fedora, CentOS, Amazon Linux AMI, set the mechanism ``MECH`` to
+``ldap``:
+
+.. code-block:: none
+
+   MECH=ldap
+
+On systems that configure ``saslauthd`` with a
+``/etc/default/saslauthd`` file, set the mechanisms option to
+``ldap``:
+
+.. code-block:: none
+
+   MECHANISMS="ldap"
+
+To use with *ActiveDirectory*, start ``saslauthd`` with the following
+configuration options:
+
+.. code-block:: none
+
+   ldap_servers: <ldap uri, e.g. ldaps://ad.example.net>
+   ldap_use_sasl: yes
+   ldap_mech: DIGEST-MD5
+   ldap_auth_method: fastbind
+
+To connect to an OpenLDAP server, use a test ``saslauthd.conf`` with
+the following content:
+
+.. code-block:: none
+
+   ldap_servers: <ldap uri, e.g. ldaps://ad.example.net>
+   ldap_search_base: ou=Users,dc=example,dc=com
+   ldap_filter: (uid=%u)
+
+To use this sample OpenLDAP configuration, create users with a ``uid``
+attribute (login name) and place under the ``Users`` organizational
+unit (``ou``).
+
+To test the ``saslauthd`` configuration, use ``testsaslauthd`` utility,
+as in the following example:
+
+.. code-block:: sh
+
+   testsaslauthd -u testuser -p testpassword -s mongod -f /var/run/saslauthd/mux
+
+For more information on ``saslauthd`` configuration, see
+`<http://www.openldap.org/doc/admin24/guide.html#Configuring saslauthd>`_.
+
+MongoDB Server Configuration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Configure the MongoDB server with the ``authenticationMechanisms``
+parameter and the ``saslauthdPath`` parameters using either the command
+line option :option:`--setParameter <mongod --setParameter>` or the
+:doc:`configuration file </reference/configuration-options>`:
+
+- If ``saslauthd`` has a socket path of ``/<some>/<path>/saslauthd``,
+  set the ``saslauthdPath`` parameter to
+  ``/<some>/<path>/saslauthd/mux`` and the ``authenticationMechanisms``
+  parameter to ``PLAIN``, as in the following command line example:
+
+  .. code-block:: sh
+
+     mongod --setParameter saslauthdPath=/<some>/<path>/saslauthd/mux --setParameter authenticationMechanisms=PLAIN
+
+  Or to set the configuration in the :doc:`configuration file
+  </reference/configuration-options>`, add the parameters:
+
+  .. code-block:: sh
+
+     setParameter=saslauthdPath=/<some>/<path>/saslauthd/mux
+     setParameter=authenticationMechanisms=PLAIN
+
+- Otherwise, set the ``saslauthdPath`` to the empty string ``""`` to use
+  the library's default value and the ``authenticationMechanisms``
+  parameter to ``PLAIN``, as in the following command line example:
+
+  .. code-block:: sh
+
+     mongod --setParameter saslauthdPath="" --setParameter authenticationMechanisms=PLAIN
+
+  Or to set the configuration in the :doc:`configuration file
+  </reference/configuration-options>`, add the parameters:
+
+  .. code-block:: sh
+
+     setParameter=saslauthdPath=""
+     setParameter=authenticationMechanisms=PLAIN
+
+Authenticate in the ``mongo`` Shell
+```````````````````````````````````
+
+To use this authentication mechanism in the :program:`mongo` shell, you
+**must** pass ``digestPassword: false`` to :method:`db.auth()` when
+authenticating on the ``$external`` database, since the server must
+receive an undigested password to forward on to ``saslauthd``, as in
+the following example:
+
+.. code-block:: javascript
+
+   use $external
+   db.auth(
+            {
+              mechanism: "PLAIN",
+              user: "application/reporting@EXAMPLE.NET",
+              pwd: "some1nterestingPwd",
+              digestPassword: false
+            }
+          )
