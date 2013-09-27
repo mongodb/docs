@@ -911,6 +911,56 @@ of 128-bit key length for all connections.
 The strong-cipher requirement prevents an old or malicious client from forcing
 use of a weak cipher.
 
+Support for SSL and non-SSL Connections on the Same Port
+````````````````````````````````````````````````````````
+
+.. merge this under the new ~~~ header created by DOCS-1921
+
+.. DOCS-1941
+
+.. draft, waiting for feature complete before sending to technical review
+
+MongoDB supports mixed SSL and non-SSL connections on the same port to
+allow rolling upgrades to SSL without forcing downtime. MongoDB provides
+a new command-line option and server command that configure a server
+port to allow unencrypted internal connections while maintaining
+encrypted external connections.
+
+To use such mixed SSL modes on a port, you must retrict access at the
+network level. You cannot at this time restrict encryption based on
+MongoDB user or role. Outgoing connections from the MongoDB server
+cannot choose encryption based on connection target.
+
+To upgrade with both SSL and non-SSL connections on a port, first
+perform a rolling restart of all servers in a cluster and second switch
+clients to use SSL. Once all internal connections and clients use SSL,
+configure the servers to accept only SSL connections.
+
+MongoDB provides the following new server command-line option to handle
+mixed SSL modes:
+
+.. code-block:: sh
+
+   --sslMode < option >
+
+The value of ``<option>`` is one of the following:
+
+- ``noSSL``. The server does not use SSL.
+
+- ``onlySSL``. The server only uses SSL.
+
+- ``acceptSSL``. Outgoing connections do not use SSL. For incoming
+  connections, the server accepts both SSL and non-SSL.
+
+- ``sendAcceptSSL``. Outgoing connections use SSL. For incoming
+  connections, the server accepts both SSL and non-SSL.
+
+MongoDB also provides the new server command ``setSSLMode``. The command
+takes the above options.
+
+You can only increase security level on a server. Changing a server's
+listening behavior does not require a restart of the server.
+
 x.509 Authentication
 ````````````````````
 
@@ -1140,6 +1190,7 @@ x.509 authentication, use a rolling upgrade process:
 
 .. [#encryptedKey] If the key is encrypted, set the
    ``--sslClusterPassword`` to the password to decrypt the key.
+
 
 Limit for ``maxConns`` Removed
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
