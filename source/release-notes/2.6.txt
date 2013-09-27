@@ -604,7 +604,7 @@ the update language:
          { _id: 3, a: 1, b: 0 }
 
 ``xor`` operation for ``$bit`` Operator
-```````````````````````````````````````
+````````````````````````````````````````
 
 The :operator:`$bit` now supports bitwise updates using a logical
 ``xor`` operation. See the documentation of :operator:`$bit` for more
@@ -700,7 +700,448 @@ collection with too many empty chunks.
       - one chunk **must** not hold any documents (i.e. an "empty
         chunk").
 
+User-Defined Roles
+~~~~~~~~~~~~~~~~~~
 
+MongoDB provides new commands for managing users and roles and
+additionally lets you create custom roles. MongoDB also provides new
+privileges for flexibility in role assignments.
+
+New Schema for User and Role Data
+````````````````````````````````````
+
+.. DOCS-1934, DOCS-1935
+
+To manage a user's roles, you no longer perform updates on the
+:doc:`system.users </reference/privilege-documents>` collection but
+instead make changes using MongoDB's new user-role management commands.
+Role and user information for all databases is now be stored in system
+collections in the ``admin`` database and manipulated exclusively via
+the new commands.
+
+The :doc:`system.users </reference/privilege-documents>` collection is
+deprecated. You migrate data from the 2.4 schema to the 2.6 schema
+during the MongoDB upgrade process.
+
+.. Where will we publish how to do this ???
+   The procedure is on this page in the wiki:
+   https://wiki.mongodb.com/display/10GEN/Access+Control+Upgrade+Path+for+2.6
+
+Users Can Define Roles and Grant Privileges
+````````````````````````````````````````````
+
+You can now define custom :ref:`user roles <user-roles>` in addition to
+the nine MongoDB built-in roles. You can assign privileges and other
+roles to the new roles.
+
+To create a role scoped to a given database you must have the new
+:authrole:`createRole` privilege on that database. The creator of a role
+has ``canDelegate`` privilege on that role. If you can delegate a role,
+you can also grant other users the ability to delegate that role.
+
+When granting privileges to a role, you can grant any privilege on any
+resource contained in any role for which you have ``canDelegate``
+privilege. This allows a global ``admin`` to control what privileges a
+database-level ``admin`` can grant.
+
+If you have ``canDelegate`` privilege on a parent role but not on a
+child role of that parent, you cannot grant the child role.
+
+Role Management Commands
+````````````````````````
+
+.. DOCS-1980, SERVER-9515
+
+MongoDB provides the following new commands for creating and managing
+roles:
+
+.. dbcommand:: createRole
+
+   Creates a new role in the database on which you run the command. The
+   :dbcommand:`createRole` command assigns privileges to the role. The
+   user who runs the command must be authorized to grant the privileges.
+   The user who runs the command is automatically given the
+   ``canDelegate`` privilege on the new role. The command takes the
+   following form:
+
+   .. code-block:: javascript
+
+      { createRole: "<new role>", privileges: [ <privilege document1>,  <privilege document2> ...] }
+
+   The ``privileges`` array can contain only existing privileges. A
+   given privileges document specifies a resource and the privileges on
+   that resource. If you do not include the ``privileges`` array, the
+   role starts with no privileges.
+
+   The following is an example :dbcommand:`createRole` command:
+
+   .. code-block:: javascript
+
+      { createRole: "myClusterwideAdmin",
+        privileges:
+           [ {resource: {cluster: true}, actions : ["addShard"]},
+             {resource: {db: "test", collection: "" }, actions : ["shardCollection", "moveChunk"]},
+             {resource: {db:"users", collection:"usersCollection"}, actions: ["update", "insert", "remove"]},
+             {resource: {db:"", collection:""}, actions : ["find"]}
+           ],
+        roles: [{name: "profile", source: "admin"}]
+      }
+
+.. dbcommand:: removeRole
+
+   Removes a role from the database on which you run the command. The
+   :dbcommand:`removeRole` command takes the following form:
+
+   .. code-block:: javascript
+
+      { removeRole: "myReadOnlyRole"}
+
+.. dbcommand:: grantPrivilegesToRole
+
+   Grants privileges to a role on the database on which you run the
+   :dbcommand:`grantPrivilegesToRole` command.
+
+   .. This is from the spec and still to be added to this doc. This
+      applies both to granting and revoking: Resource is either the
+      object {cluster: true} for cluster-wide operations, or an object
+      with a "db" and "collection" component. Either or both of "db" and
+      "collection" can be the empty string "" as a wildcard, though that
+      is the only kind of wildcarding allowed. There is no restriction
+      based on the role’s scope db as to what the resource can be.
+      Privileges revoked from a role must be an exact match for a
+      privilege the role contains. For example, if the role "myRole" has
+      the "find" action on every collection in the database "A" (i.e.
+      the collection field is ""), and you try to revoke find on A.foo,
+      this returns an error. This is because even though the role does
+      have the privilege being revoked (as a subset of the wildcard on
+      "collection"), there's no way to express what the resulting
+      privileges should be.
+
+   .. code-block:: javascript
+
+      { grantPrivilegesToRole: "myRole",
+        privileges: [
+         {resource: {db: "A"}, actions:["find"]},
+         {resource: {db: "*", collection: "system.indexes"}, actions: ["find"] } ]
+      }
+
+.. dbcommand:: revokePrivilegesFromRole
+
+   Removes privileges from a role on the database on which you run the
+   :dbcommand:`revokePrivilegesFromRole` command.
+
+   .. code-block:: javascript
+
+      { revokePrivilegesFromRole: "myRole",
+        privileges: [
+         {resource: {db: "A"}, actions:["find"]},
+         {resource: {db: "*", collection: "system.indexes"}, actions: ["find"] } ]
+      }
+
+.. dbcommand:: grantRolesToRole
+
+   .. code-block:: javascript
+
+      { grantRolesToRole: "AreaderWriter",
+        grantedRoles: [ { name: "Areader", source: "test"} ]
+      }
+
+.. dbcommand:: revokeRolesFromRole
+
+   .. code-block:: javascript
+
+      { revokeRolesFromRole: "AreaderWriter",
+        revokedRoles: [ { name: "Areader", source: "test"} ]
+      }
+
+.. dbcommand:: rolesInfo
+
+   Lists the privileges and other roles that a role contains. You can
+   specify a string, in which case the command returns an exact match,
+   or a regular expression. The :dbcommand:`rolesInfo` command applies
+   to the current database. The command takes the following form:
+
+   .. code-block:: javascript
+
+      { rolesInfo: <role> }
+
+   To match the role on all databases, run :dbcommand:`rolesInfo` on the
+   ``admin`` database and set the optional ``anyDB`` argument to
+   ``true``. The ``anyDB`` argument is available only on ``admin``. To
+   return all roles on all databases, issue the following from the
+   ``admin`` database:
+
+   .. code-block:: javascript
+
+      { rolesInfo: /.*/, anyDB: true}
+
+   The command returns a document similar to the following:
+
+   .. code-block:: javascript
+
+      { ok:1,
+        roles:
+         [ { name: "superUser", source: "admin", privileges:
+              [ { resource: {db: "", collection: ""}, actions: ["read", "write", "clusterAdmin", ...]} ] },
+           { name: "ABadmin", source: "admin", privileges:
+              [ { resource: {db: "A", collection: ""}, actions: ["read", "write", "dbAdmin", ...] },
+                { resource: {db: "B", collection: ""}, actions: ["read", "write", "dbAdmin", ...] } ] }
+      ]}
+
+User Management Commands
+````````````````````````
+
+.. DOCS-1936
+
+MongoDB provides the following new commands for managing users and user
+roles. You no longer manipulate users and roles directly through the
+:doc:`system.users </reference/privilege-documents>` collection but
+instead with the following commands.
+
+All changes apply to the database on which you run the command. All
+commands include the ``writeConcern`` field:
+
+.. code-block:: javascript
+
+   writeConcern: { w: "majority" , wtimeout: 5000 }
+
+The following are the user-management commands:
+
+.. dbcommand:: createUser
+
+   Creates a new user. The :dbcommand:`createUser` command returns a
+   duplicate user error if a user with the username and database scope
+   already exists. The following is an example of the
+   :dbcommand:`createUser` command:
+
+   .. code-block:: javascript
+
+      { createUser: "Carlos",
+        pwd: "displayed password",
+        customData: {employeeId:12345},
+        roles: [ {name : "clusterAdmin", source: "admin", hasRole: true, canDelegate: false},
+                 {name : "ABreader", source: "admin", hasRole: true, canDelegate: false},
+                 "readWrite"
+               ],
+        writeConcern: { w: "majority" , wtimeout: 5000 }
+      }
+
+   The ``pwd`` field value is displayed. The ``pwd`` field is required,
+   *unless* you run :dbcommand:`createUser` on ``$external``. The field
+   value is not displayed on ``$external``.
+
+   The ``customData`` field is optional and contains any arbitrary
+   information.
+
+   The ``roles`` array can contain only existing roles. If you do not
+   provide the ``roles`` array, the user starts with no roles.
+
+   The ``roles`` array can contain role documents and role strings. A
+   role document has a ``name`` field for the name of the role, a
+   ``source`` field specifying the database that the role is scoped to,
+   a ``hasRole`` Boolean, and a ``canDelegate`` Boolean. If ``hasRole``
+   is ``false`` but ``canDelegate`` is true, the user has delegation
+   privilege on the role without actually having the role's privileges
+   directly. At least one of ``canDelegate`` and ``hasRole`` must be
+   true for every role.
+
+   A role string applies to the database on which you run the command.
+   ``hasRole`` is automatically ``true``, and ``canDelegate`` is
+   automatically ``false``.
+
+.. dbcommand:: updateUser
+
+   Updates the user's information on the database on which the command
+   is run. All fields are optional, but at least one must be provided.
+   The :dbcommand:`updateUser` command can update ``pwd``, ``roles``,
+   and ``customData``. The following is an example
+   :dbcommand:`updateUser` command:
+
+   .. code-block:: javascript
+
+      { updateUser: "Carlos",
+        pwd: "displayed password"
+        customData: { employeeId:54321 },
+        roles: [ {name:"Areader", source: "A", hasRole: true, canDelegate: true} ],
+        writeConcern: { w: "majority" , wtimeout: 5000 }
+      }
+
+.. dbcommand:: removeUser
+
+   Removes the user from the database on which you run the command. The
+   command takes the following form:
+
+   .. code-block:: javascript
+
+      { removeUser: "Carlos" }
+
+.. dbcommand:: removeUsersFromDatabase
+
+   Removes *all* users from the database on which you run the command.
+   The command returns the number of users removed. The command takes
+   the following form:
+
+   .. code-block:: javascript
+
+      { removeUsersFromDatabase: 1 }
+
+   Returns:
+
+   .. code-block:: javascript
+
+       { ok: 1, numUsersRemoved: 5 }
+
+.. dbcommand:: grantRolesToUser
+
+   Grants roles to a user. Specify roles as documents or strings. For a
+   document, the ``name`` field specifies the role; the ``source`` field
+   specifies the database. For a string, the role applies to the
+   database on which you run the command. The command takes the
+   following form:
+
+   .. code-block:: javascript
+
+      { grantRolesToUser: <username>, roles: <array of role/source pairs> }
+
+   For example:
+
+   .. code-block:: javascript
+
+      { grantRolesToUser: "Erin",
+        roles: [ {name: "Areader", source: "A"}, "Breader" ] }
+
+.. dbcommand:: revokeRolesFromUser
+
+   Revokes roles from a user. Specify roles as documents or strings. For
+   a document, the ``name`` field specifies the role; the ``source``
+   field specifies the database. For a string, the role applies to the
+   database on which you run the command. The command takes the
+   following form:
+
+   .. code-block:: javascript
+
+      { grantRolesToUser: <username>, roles: <array of role/source pairs> }
+
+   For example:
+
+   .. code-block:: javascript
+
+      { grantRolesToUser: "Dan",
+        roles: [ {name: "Areader", source: "A"}, "Breader" ] }
+
+.. dbcommand:: grantDelegateRolesToUser
+
+   Gives a user permission to delegate the specified roles to other
+   users. Specify roles as documents or strings. For a document, the
+   ``name`` field specifies the role; the ``source`` field specifies the
+   database. For a string, the role applies to the database on which you
+   run the command. The command takes the following form:
+
+   .. code-block:: javascript
+
+      { grantDelegateRolesToUser: <username>, roles: <array of role/source pairs> }
+
+   For example:
+
+   .. code-block:: javascript
+
+      { grantDelegateRolesToUser: "Alice",
+        roles: [ {name: "Areader", source: "A"}, "Breader" ] }
+
+.. dbcommand:: revokeDelegateRolesFromUser
+
+   Removes the user's permission to delegate the specified roles to
+   other users. Specify roles as documents or strings. For a document,
+   the ``name`` field specifies the role; the ``source`` field specifies
+   the database. For a string, the role applies to the database on which
+   you run the command. The command takes the following form:
+
+   .. code-block:: javascript
+
+      { revokeDelegateRolesFromUser: <username>, roles: <array of role/source pairs> }
+
+   For example:
+
+   .. code-block:: javascript
+
+      { revokeDelegateRolesFromUser: "Bob",
+        roles: [ {name: "Areader", source: "A"}, "Breader" ] }
+
+.. dbcommand:: usersInfo
+
+   Returns role information about the specified users. You can specify a
+   string, in which case the command returns an exact match, or a
+   regular expression. The command takes the following form:
+
+   .. code-block:: javascript
+
+      { usersInfo: <username> }
+
+   The command applies to the database on which it is run. To match
+   users on all databases, run :dbcommand:`usersInfo` on the ``admin``
+   database and set the optional ``anyDB`` argument to ``true``. The
+   ``anyDB`` argument is available only on ``admin``. To return all
+   users on all databases, issue the following:
+
+   .. code-block:: javascript
+
+      { usersInfo: /.*/, anyDB: true } // run on admin DB
+
+   The command returns a document similar to the following:
+
+   .. code-block:: javascript
+
+      { ok:1,
+        users:
+         [ { name: "administrator", source: "admin", pwd: "<password hash>", customData: {},
+             roles: [ { name: "superUser", source: "admin", hasRole: true, canDelegate: true } ]},
+           { name: "Carlos", source: "A", pwd: "<password hash>", customData: {},
+             roles: [ { name: "Areader", source: "A", hasRole: true, canDelegate:false } ]},
+           { name: "Alice", source: "admin", pwd: "<password hash>", customData: {},
+             roles: [ { name: "ABreader", source: "admin", hasRole: true, canDelegate: false } ]}
+      ]}
+
+New User Privileges
+````````````````````
+
+MongoDB adds the following privileges:
+
+.. authrole:: changeOwnPassword
+
+   User can change own password.
+
+.. authrole:: changeAnyPassword
+
+   User can change the password of any user in the database.
+
+.. authrole:: changeOwnCustomData
+
+   User can change own ``customData`` field.
+
+.. authrole:: changeAnyCustomData
+
+   User can change the ``customData`` field of any user in the database.
+
+.. authrole:: createUser
+
+   User can create new users in the database.
+
+.. authrole:: createRole
+
+   User can create new roles in the database.
+
+.. authrole:: grantAnyRole
+
+   User can grant roles to other users within the database.
+
+.. authrole:: revokeAnyRole
+
+   User can revoke roles from other users within the database.
+
+.. authrole:: directlyModifyUsers
+
+   User can direct write operations to the new ``admin.system.users``
+   and ``admin.system.roles`` collections.
 
 SSL Improvements
 ~~~~~~~~~~~~~~~~
