@@ -614,7 +614,7 @@ Update Improvements
 ~~~~~~~~~~~~~~~~~~~
 
 MongoDB 2.5.2 includes a new subsystem which provides more reliable
-and extensible update operations. 2.5.2 introduces two new changes to
+and extensible update operations. 2.5.2 introduces new changes to
 the update language:
 
 ``$mul`` Update Operator
@@ -665,6 +665,185 @@ information on bitwise updates. Consider the following operation:
 .. code-block:: javascript
 
    db.collection.update( { field: NumberInt(1) }, { $bit: { field: { xor: NumberInt(5) } } } );
+
+``$min`` Update Operator
+````````````````````````
+
+.. operator:: $min
+
+   The :operator:`$min` updates the value of the field to a specified
+   value *if* the specified value is **less than** the current value of
+   the field. If the field does not exists, the :operator:`$min`
+   operator sets the field to the specified value. The :operator:`$min`
+   operator can compare values of different types, using the :ref:`BSON
+   comparison order <faq-dev-compare-order-for-BSON-types>`.
+
+   .. example::
+
+      Consider the following document in the collection ``scores``:
+
+      .. code-block:: javascript
+
+         { _id: 1, highScore: 800, lowScore: 200 }
+
+      The ``lowScore`` for the document currently has the value
+      ``200``. The following operation uses :operator:`$min` to compare
+      ``200`` to the specified value ``150`` and updates the value of
+      ``lowScore`` to ``150`` since ``150`` is less than ``200``:
+
+      .. code-block:: javascript
+
+         db.scores.update( { _id: 1 }, { $min: { lowScore: 150 } } )
+
+      The ``scores`` collection now contains the following modified document:
+
+      .. code-block:: javascript
+
+         { _id: 1, highScore: 800, lowScore: 150 }
+
+      The next operation has no effect since the current value of the
+      field ``lowScore``, i.e ``150``, is less than ``200``:
+
+      .. code-block:: javascript
+
+         db.scores.update( { _id: 1 }, { $min: { lowScore: 250 } } )
+
+      The document remains unchanged in the ``scores`` collection:
+
+      .. code-block:: javascript
+
+         { _id: 1, highScore: 800, lowScore: 150 }
+
+   .. example::
+
+      Consider the following document in the collection ``tags``:
+
+      .. code-block:: javascript
+
+         { 
+           _id: 1,
+           desc: "crafts",
+           dateEntered: ISODate("2013-10-01T05:00:00Z"),
+           dateExpired: ISODate("2013-10-01T16:38:16.163Z")
+         }
+
+      The following operation compares the current value of the
+      ``dateEntered`` field, i.e. ``ISODate("2013-10-01T05:00:00Z")``,
+      with the specified date ``new Date("9-25-2013")`` to determine
+      whether to update the field:
+
+      .. code-block:: javascript
+
+         db.tags.update( { _id: 1 },
+                         {
+                           $min: { 
+                                   dateEntered: new Date("9-25-2013")
+                                 }
+                          } 
+                       )
+
+      The operation updates the ``dateEntered`` field:
+
+      .. code-block:: javascript
+         :emphasize-lines: 4
+
+         {
+           _id: 1,
+           desc: "crafts",
+           dateEntered: ISODate("2013-09-25T04:00:00Z"),
+           dateExpired: ISODate("2013-10-01T16:38:16.163Z")
+         }
+
+``$max`` Update Operator
+````````````````````````
+
+.. operator:: $max
+
+   The :operator:`$max` operator updates the value of the field to a
+   specified value *if* the specified value is **greater than** the
+   current value of the field. If the field does not exists, the
+   :operator:`$max` operator sets the field to the specified value. The
+   :operator:`$max` operator can compare values of different types,
+   using the :ref:`BSON comparison order
+   <faq-dev-compare-order-for-BSON-types>`.
+
+   .. example::
+
+      Consider the following document in the collection ``scores``:
+
+      .. code-block:: javascript
+
+         { _id: 1, highScore: 800, lowScore: 200 }
+
+      The ``highScore`` for the document currently has the value
+      ``800``. The following operation uses :operator:`$min` to compare
+      the ``800`` and the specified value ``950`` and updates the value
+      of ``highScore`` to ``950`` since ``950`` is greater than ``800``:
+
+      .. code-block:: javascript
+
+         db.scores.update( { _id: 1 }, { $max: { highScore: 950 } } )
+
+      The ``scores`` collection now contains the following modified document:
+
+      .. code-block:: javascript
+
+         { _id: 1, highScore: 950, lowScore: 200 }
+
+      The next operation has no effect since the current value of the
+      field ``highScore``, i.e. ``950``, is greater than ``870``:
+
+      .. code-block:: javascript
+
+         db.scores.update( { _id: 1 }, { $max: { highScore: 870 } } )
+
+      The document remains unchanged in the ``scores`` collection:
+
+      .. code-block:: javascript
+
+         { _id: 1, highScore: 950, lowScore: 200 }
+
+   .. example::
+
+      Consider the following document in the collection ``tags``:
+
+      .. code-block:: javascript
+
+         { 
+           _id: 1,
+           desc: "crafts",
+           dateEntered: ISODate("2013-10-01T05:00:00Z"),
+           dateExpired: ISODate("2013-10-01T16:38:16.163Z")
+         }
+
+
+      The following operation compares the current value of the
+      ``dateExpired`` field, i.e.
+      ``ISODate("2013-10-01T16:38:16.163Z")``, with the specified date
+      ``new Date("2013-09-30")`` to determine whether to update the
+      field:
+
+      .. code-block:: javascript
+
+         db.tags.update( { _id: 1 },
+                         {
+                           $max: {
+                                   dateExpired: new Date("2013-09-30"),
+                                 }
+                          } 
+                       )
+
+      The operation does *not* updates the ``dateExpired`` field:
+
+      .. code-block:: javascript
+         :emphasize-lines: 5
+
+         {
+            _id: 1,
+            desc: "decorative arts",
+            dateEntered: ISODate("2013-10-01T05:00:00Z"),
+            dateExpired: ISODate("2013-10-01T16:38:16.163Z")
+         }
 
 Sharding Improvements
 ~~~~~~~~~~~~~~~~~~~~~
@@ -781,7 +960,7 @@ For the :setting:`sslPEMKeyFile` option, specify the encrypted SSL
 private key/certificate ``.pem`` file with :setting:`sslPEMKeyFile` but
 do not specify an :setting:`sslPEMKeyPassword`.
 
-For the :setting:`sslClusterFile`:setting: option, specify an x.509 certificate-and-key
+For the :setting:`sslClusterFile` option, specify an x.509 certificate-and-key
 ``.pem`` file with :setting:`sslClusterFile` but do not specify an
 :setting:`sslClusterPassword`.
 
