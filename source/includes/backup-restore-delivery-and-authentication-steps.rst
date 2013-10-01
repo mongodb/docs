@@ -92,6 +92,6 @@ Start :program:`mongod` Instance With Snapshot Data
    Replace ``/data/db`` with the path to data directory that holds the
    data files from the |backup| snapshot.
 
-.. related:: Consider the MongoDB
-   :manual:`/tutorial/restore-replica-set-from-backup` tutorial for
-   instructions about restoring a replica set from backed up data.
+For more information, consider the MongoDB :manual:`Restore Replica
+Set from Backup </tutorial/restore-replica-set-from-backup>` tutorial
+for instructions about restoring a replica set from backed up data.
