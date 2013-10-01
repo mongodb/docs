@@ -12,12 +12,12 @@ Select Destination for the Snapshot
      the snapshot. You can grant access by supplying MMS with a
      username and password to your server, or you can provide a
      username and grant access via SSH public key.
-     
+
      To grant access via SSH public key,
-     
+
      #. Go to the MMS "Settings" page, and select :guilabel:`Public Key
         for SCP Restores`.
-        
+
      #. Input a passphrase, and click on :guilabel:`Generate a New
         Public Key`. |backup| will generate and display a
         public key.
@@ -58,30 +58,29 @@ files.
 Start :program:`mongod` Instance With Snapshot Data
 ---------------------------------------------------
 
-#. Untar the .tar.gz backup file:
+#. Extract the files from the ``.tar.gz`` archive created by the
+   backup service:
 
    .. code-block:: sh
 
       tar -zxvf <tarball-name>.tar.gz
 
-#. Create a directory to hold MongoDB's datafiles:
+#. Create a :mongodb:setting:`dbpath` for MongoDB's data files. You
+   may either create a symbolic link pointing to the database files,
+   *or* create the database path and migrate the data files.
 
-   .. code-block:: sh
+   .. example::
 
-      mkdir /data/db
+      Use a command in the following form to create a symbolic link at
+      ``/data/db`` pointing to the backup files.
 
-   If you already have a data directory you wish to use, you can skip
-   this step. You can place the data directory wherever you wish to,
-   but ``/data/db`` is the default location.
+      .. code-block:: sh
 
-#. Link the backup file to your data directory:
+         ln -s <hash>-<rsname>-<time>/ /data/db
 
-   .. code-block:: sh
-
-      ln -s <hash>-<rsname>-<time>/ /data/db
-
-   Replace ``<hash>-<rsname>-<time>`` with the name of your snapshot
-   file and ``/data/db`` with your data directory's address.
+      Replace ``<hash>-<rsname>-<time>`` with the name of your
+      snapshot file and ``/data/db`` with your data directory's
+      address.
 
 #. Start a :program:`mongod`, using your new data directory as its
    ``dbpath``:
@@ -90,6 +89,9 @@ Start :program:`mongod` Instance With Snapshot Data
 
       mongod --dbpath /data/db
 
-Consider the MongoDB
-:manual:`/tutorial/restore-database-from-backup-file` tutorial for
-instructions about restoring a replica set from backed up data.
+   Replace ``/data/db`` with the path to data directory created from
+   the restored files.
+
+.. related:: Consider the MongoDB
+   :manual:`/tutorial/restore-replica-set-from-backup` tutorial for
+   instructions about restoring a replica set from backed up data.
