@@ -1,0 +1,112 @@
+==========================================
+Restore a Replica Set from MongoDB Backups
+==========================================
+
+.. default-domain:: mongodb
+
+This procedure outlines the process for taking MongoDB data and
+restoring that data into a new :term:`replica set`. 
+
+.. tip:: You *cannot* simply restore a single data set to three new
+   :program:`mongod` instances and *then* create a replica set. In
+   this situation MongoDB will force the secondaries to perform an
+   initial sync. The procedures in this document describe correct and
+   efficient ways to deploy a replica set. 
+
+Restore Database into a Single Node Replica Set
+-----------------------------------------------
+
+#. Obtain backup MongoDB Database files. These files may come from
+   a :doc:`file system snapshot
+   </tutorial/backup-databases-with-filesystem-snapshots>`.  The MMS
+   Backup Service produces MongoDB database files for :mms:`stored
+   snapshots </backup/tutorial/restore-snapshot>` and :mms:`point and
+   time snapshots </backup/tutorial/restore-from-point-in-time-snapshot>`.
+
+   You can also use :program:`mongorestore` to restore database files
+   using data created with :program:`mongodump`. See
+   :doc:`/tutorial/backup-databases-with-binary-database-dumps` for
+   more information.
+
+#. Start a :program:`mongod` using your new data directory as its
+   ``dbpath``:
+
+   .. code-block:: sh
+
+      mongod --dbpath /data/db
+
+   .. optional::
+
+      You may specify an alternate :setting:`dbpath`.
+
+#. Convert your standalone :program:`mongod` process to a single node
+   replica set by shutting down the :program:`mongod` instance, and
+   restarting it with the :option:`--replSet <mongod --replSet>`
+   option, as in the following example:
+
+   .. code-block:: sh
+
+      mongod --dbpath /data/db --replSet <replName>
+
+   .. optional::
+
+      Consider explicitly setting a :setting:`oplogSize` to control
+      the size of the :term:`oplog` created for this replica set
+      member.
+
+#. Connect to the :program:`mongod` instance.
+
+#. Use :method:`rs.initiate()` to initiate the new replica set.
+
+Add Members to the Replica Set
+------------------------------
+
+MongoDB provides two options for restoring secondary members of a
+replica set:
+
+1. Manually copy the database files to each data directory.
+
+2. Allow :ref:`initial sync <replica-set-initial-sync>` to distribute
+   data automatically.
+
+The following sections outlines both approaches.
+
+.. note::
+
+   If your database is large, initial sync can take a long time to
+   complete. For large databases, it might be preferable to copy the
+   database files onto each host.
+
+Copy Database Files and Restart :program:`mongod` Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the following sequence of operations to "seed" additional members
+of the replica set with the restored data by copying MongoDB data
+files directly.
+
+#. Shut down the :program:`mongod` instance that you restored.
+   Using :option:`--shutdown <mongod --shutdown>` or
+   :method:`db.shutdownServer()` to ensure a clean shut down.
+
+#. Copy the :term:`primary's <primary>` data directory into the
+   :setting:`dbpath` of the other members of the replica set. The
+   :setting:`dbpath` is ``/data/db`` by default.
+
+#. In a :program:`mongo` shell connected to the :term:`primary`, add
+   the :term:`secondaries <secondary>` to the replica set using
+   :method:`rs.add()`. See :doc:`/tutorial/deploy-replica-set` for
+   more information about deploying a replica set.
+
+Update Secondaries using Initial Sync
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the following sequence of operations to "seed" additional members
+of the replica set with the restored data using the default *initial
+sync* operation.
+
+#. Ensure that the data directories on the prospective replica set
+   members are empty.
+
+#. Add each prospective member to the replica set. :ref:`Initial Sync
+   <replica-set-initial-sync>` will copy the data from the
+   :term:`primary` to the other members of the replica set.
