@@ -563,6 +563,50 @@ To use ``explain``, set the ``explain`` field to ``true`` as shown here:
 The format of the ``explain`` output document is not final for
 version 2.6.
 
+``$cond`` Accepts Objects as Arguments
+``````````````````````````````````````
+
+The ternary :expression:`$cond` expression can now take either an object
+or an array. Previously :expression:`$cond` always took an array.
+
+When :expression:`$cond` takes an object, the object contains the
+fields ``if``, ``then``, and ``else`` and uses the following syntax:
+
+   .. code-block:: javascript
+
+      { $cond: { if: <boolean-expression>, then: <true-case>, else: <false-case> } }
+
+The ``if`` field takes an expression that evaluates to a Boolean value.
+If the expression evaluates to ``true``, then :expression:`$cond`
+evaluates and returns the value of the ``then`` field. Otherwise,
+:expression:`$cond` evaluates and returns the value of the ``else``
+field.
+
+The expressions in the ``if``, ``then``, and ``else`` fields can be
+valid MongoDB :doc:`aggregation expressions
+</reference/aggregation/operators>` or document fields. You cannot use
+JavaScript in the expressions.
+
+.. example::
+
+   The following aggregation returns a ``weightedCount`` for each
+   ``item_id``. The :group:`$sum` operator uses the :expression:`$cond`
+   expression to add ``2`` if the value stored in the ``level`` field is
+   ``E`` and ``1`` otherwise.
+
+   .. code-block:: javascript
+
+      db.survey.aggregate(
+         [
+            {
+               $group: {
+                  _id: "$item_id",
+                  weightedCount: { $sum: { $cond: { if: { $eq: [ "$level", "E" ] } , then: 2, else: 1 } } } 
+               }
+            }
+         ]
+      )
+
 Update Improvements
 ~~~~~~~~~~~~~~~~~~~
 
