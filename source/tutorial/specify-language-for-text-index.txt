@@ -10,14 +10,13 @@ and also how to :ref:`create text indexes for collections that contain
 documents in different languages
 <select-from-multiple-languages-for-text-index>`.
 
-
 .. _specify-default-language-text-index:
 
 Specify the Default Language for a ``text`` Index
 -------------------------------------------------
 
 The default language associated with the indexed data determines the
-list of stop words and the rules for the stemmer and tokenizer. The
+rules to parse word stems and other linguistic characteristics. The
 default language for the indexed data is ``english``.
 
 To specify a different language, use the ``default_language`` option
@@ -44,49 +43,81 @@ Specify the Index Language within the Document
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If a collection contains documents that are in different languages,
-include a field in the documents that contain the language to use:
+include a field in the documents, or subdocuments, that contain the
+language to use:
 
-- If you include a field named ``language`` in the document, by
-  default, the :method:`~db.collection.ensureIndex()` method will use
-  the value of this field to override the default language.
+- If you include a field named ``language`` in the outer document, the
+  :method:`~db.collection.ensureIndex()` method uses the value of
+  this field to override the default language.
 
-- To use a field with a name other than ``language``, you must specify
-  the name of this field to the
-  :method:`~db.collection.ensureIndex()` method with the
-  ``language_override`` option.
+- .. versionchanged:: 2.5.3
+     If you include a ``language`` field in a subdocument,
+     :method:`~db.collection.ensureIndex()` uses that value to override
+     the default language as well as the language specified in the outer
+     document.
 
 See :ref:`text-search-languages` for a list of supported languages.
 
-Include the ``language`` Field
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. example::
 
-Include a field ``language`` that specifies the language to use for the
-individual documents.
+   The documents of this multi-language collection contain the
+   ``language`` field:
 
-For example, the documents of a multi-language collection ``quotes``
-contain the field ``language``:
+   .. code-block:: javascript
 
-.. code-block:: javascript
+      {
+         _id: 1,
+         language: "portuguese"
+         original: "A sorte protege os audazes."
+         translation: [
+                          {
+                             language: "english",
+                             quote: "Fortune favors the bold."
+                          },
+                          {
+                             language: "spanish",
+                             quote: "Suerte protege a los audaces."
+                          }
+                      ]
+      }
+      {
+         _id: 2,
+         language: "spanish",
+         original: "Nada hay más surreal que la realidad.",
+         translation: [
+                          {
+                             language: "english",
+                             quote: "There is nothing more surreal than reality."
+                          },
+                          {
+                             language: "french",
+                             quote: "Il n'ya rien de plus surréaliste que la réalité."
+                          }
+                      ]
+      }
+      {
+         _id: 3,
+         original: "is this a dagger which I see before me."
+         translation: {
+                         language: "spanish",
+                         quote: "Es este un puñal que veo delante de mí."
+                      }
+      }
 
-   { _id: 1, language: "portuguese", quote: "A sorte protege os audazes" }
-   { _id: 2, language: "spanish", quote: "Nada hay más surreal que la realidad." }
-   { _id: 3, language: "english", quote: "is this a dagger which I see before me" }
-
-Create a ``text`` index on the field ``quote``:
+Given a ``text`` index on the ``quote`` field:
 
 .. code-block:: javascript
 
    db.quotes.ensureIndex( { quote: "text" } )
 
-- For the documents that contain the ``language`` field, the ``text``
-  index uses that language to determine the stop words and the rules
-  for the stemmer and the tokenizer.
+- For the documents and subdocuments that contain the ``language`` field, the ``text``
+  index uses that language to parse word stems and other linguistic
+  characteristics.
 
 - For documents that do not contain the ``language`` field, the index
-  uses the default language, which is English, to determine the stop
-  words and rules for the stemmer and the tokenizer.
+  uses the default language, which is English.
 
-For example, the Spanish word ``que`` is a stop word. So the
+For example, the Spanish word ``que`` is known as a 'stop word'. So the
 following :dbcommand:`text` command would not match any document:
 
 .. code-block:: javascript
@@ -96,12 +127,19 @@ following :dbcommand:`text` command would not match any document:
 Use any Field to Specify the Language for a Document
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Include a field that specifies the language to use for the individual
-documents. To use a field with a name other than ``language``, include
+To use a field with a name other than ``language``, include
 the ``language_override`` option when creating the index.
 
-For example, the documents of a multi-language collection ``quotes``
-contain the field ``idioma``:
+For example, give the following command to use ``idioma`` as the field
+name instead of ``language``:
+
+.. code-block:: javascript
+
+   db.quotes.ensureIndex( { quote : "text" },
+                          { language_override: "idioma" } )
+
+Any document of a multi-language collection may specify a language with
+the ``idioma`` field:
 
 .. code-block:: javascript
 
@@ -109,25 +147,3 @@ contain the field ``idioma``:
    { _id: 2, idioma: "spanish", quote: "Nada hay más surreal que la realidad." }
    { _id: 3, idioma: "english", quote: "is this a dagger which I see before me" }
 
-Create a ``text`` index on the field ``quote`` with the
-``language_override`` option:
-
-.. code-block:: javascript
-
-   db.quotes.ensureIndex( { quote : "text" },
-                          { language_override: "idioma" } )
-
-- For the documents that contain the ``idioma`` field, the ``text``
-  index uses that language to determine the stop words and the rules
-  for the stemmer and the tokenizer.
-
-- For documents that do not contain the ``idioma`` field, the index
-  uses the default language, which is English, to determine the stop
-  words and rules for the stemmer and the tokenizer.
-
-For example, the Spanish word ``que`` is a stop word. So the
-following :dbcommand:`text` command would not match any document:
-
-.. code-block:: javascript
-
-   db.quotes.runCommand( "text", { search: "que", language: "spanish" } )
