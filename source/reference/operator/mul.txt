@@ -1,0 +1,115 @@
+====
+$mul
+====
+
+.. default-domain:: mongodb
+
+.. operator:: $mul
+
+   .. versionadded:: 2.6
+
+   Multiply the value of a field by a number. To specify a
+   :operator:`$mul` expression, use the following prototype:
+
+   .. code-block:: javascript
+
+      { field: { $mul: <number> } }
+
+   The field to update must contain a numeric value. If the field does
+   not exist in a document, :operator:`$mul` creates the field and sets
+   the value to zero of the same numeric type as the multiplier.
+   
+   Multiplication with values of mixed numeric types (32-bit integer,
+   64-bit integer, float) may result in conversion of numeric type. See
+   :ref:`Multiplication Type Conversion Rules
+   <faq-developers-multiplication-type-conversion>` for details.
+
+Examples
+--------
+
+Multiply the Value of a Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider a collection ``products`` with the following document:
+
+.. code-block:: javascript
+
+   { _id: 1, item: "ABC", price: 10.99 }
+
+The following :method:`db.collection.update()` operation updates the
+document, using the :operator:`$mul` operator to multiply the value in
+the ``price`` field by ``1.25``:
+
+.. code-block:: javascript
+
+   db.products.update(
+                       { _id: 1 },
+                       { $mul: { price: 1.25 } }
+                     )
+
+The operation results in the following document, where the new value of
+the ``price`` field ``13.7375`` reflects the original value ``10.99``
+multiplied by ``1.25``:
+
+.. code-block:: javascript
+
+   { _id: 1, item: "ABC", price: 13.7375 }
+         
+Apply ``$mul`` Operator to a Non-existing Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider a collection ``products`` with the following document:
+
+.. code-block:: javascript
+
+   { _id: 2,  item: "Unknown" }
+
+The following :method:`db.collection.update()` operation updates the
+document, applying the :operator:`$mul` operator to the field ``price``
+that does not exist in the document:
+
+.. code-block:: javascript
+
+    db.products.update(
+                        { _id: 2 },
+                        { $mul: { price: NumberLong(100) } }
+                      )
+
+The operation results in the following document with a ``price`` field
+set to value 0 of numeric type :ref:`shell-type-long`, the same type as
+the multiplier:
+
+.. code-block:: javascript
+
+   { "_id" : 2, "item" : "Unknown", "price" : NumberLong(0) }
+
+Multiply Mixed Numeric Types
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider a collection ``products`` with the following document:
+
+.. code-block:: javascript
+
+   { _id: 3,  item: "XYZ", price: NumberLong(10) }
+
+The following :method:`db.collection.update()` operation uses the
+:operator:`$mul` operator to multiply the value in the ``price`` field
+:ref:`NumberLong(10) <shell-type-long>` by :ref:`NumberInt(5)
+<shell-type-int>`:
+
+.. code-block:: javascript
+
+    db.products.update(
+                        { _id: 3 },
+                        { $mul: { price: NumberInt(5) } }
+                      )
+
+The operation results in the following document:
+
+.. code-block:: javascript
+
+   { "_id" : 3, "item" : "XYZ", "price" : NumberLong(50) }
+
+The value in the ``price`` field is of type :ref:`shell-type-long`. See
+:ref:`Multiplication Type Conversion Rules
+<faq-developers-multiplication-type-conversion>` for details.
