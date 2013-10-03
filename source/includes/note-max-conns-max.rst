@@ -1,2 +1,5 @@
-.. note:: You cannot set :setting:`maxConns` to a value higher
-   than `20000`.
+.. note:: 
+
+   .. versionadded:: 2.5.0
+
+      There is no longer an upward limit for :setting:`maxConns`.
