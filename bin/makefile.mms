@@ -44,6 +44,7 @@ generate-source-saas:
 	@rm -f build/saas/source/monitoring/tutorial/install-monitoring-server.txt
 	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYINCLUDE%%' build/saas/source/monitoring/tutorial/set-up-mms.txt
 	@sed $(SED_ARGS_FILE) 's%SAASONLY-settings%	  .. include:: /includes/settings-backup.rst%' build/saas/source/management/settings.txt
+	@sed $(SED_ARGS_FILE) 's%SAASONLYSEEALSO%seealso::%' build/saas/source/management/faq.txt
 	@sed $(SED_ARGS_FILE) 's%.. MMSLANDING-dfn-list%.. include:: /includes/toc/dfn-list-spec-mms-landing-saas.rst%' build/saas/source/index.txt
 	@sed $(SED_ARGS_FILE) 's%.. MMSLANDING-backup%.. include:: /includes/toc/mms-landing-backup.rst%' build/saas/source/index.txt
 	@sed $(SED_ARGS_FILE) 's%.. include:: /includes/table/mms-auth-roles-hosted.rst%%' build/saas/source/management/permissions.txt
