@@ -6,25 +6,140 @@ $bit
 
 .. operator:: $bit
 
-   The :operator:`$bit` operator performs a bitwise update of a field. Only
-   use this with integer fields, as in the following examples:
+   .. versionchanged:: 2.6
+      Added support for bitwise ``xor`` operation.
 
+   The :operator:`$bit` operator performs a bitwise update of a field.
+   The :operator:`$bit` operator supports bitwise ``and``, bitwise
+   ``or``, and bitwise ``xor`` (i.e. exclusive or) operations. To
+   specify a :operator:`$bit` operator expression, use the following
+   prototype:
+   
    .. code-block:: javascript
-
-      db.collection.update( { field: NumberInt(1) }, { $bit: { field: { and: NumberInt(5) } } } );
-
-      db.collection.update( { field: NumberInt(1) }, { $bit: { field: { or: NumberInt(5) } } } );
-
-   Here, the :operator:`$bit` operator updates the integer value of
-   the field named ``field``: in the first example with a bitwise
-   ``and: 5`` operation; and in the second example with a bitwise
-   ``or: 5`` operation. :operator:`$bit` only works with integers.
-
-   :operator:`$bit` only supports ``AND`` and ``OR`` bitwise
-   operations.
+   
+      { $bit: { field: { <and|or|xor>: <int> } } }
+   
+   Only use this operator with integer fields (either 32-bit integer or
+   64-bit integer).
 
    .. note:: 
-      
+
       All numbers in the :program:`mongo` shell are doubles, not
-      integers. Use the ``NumberInt()`` constructor to specify
-      integers. See :ref:`shell-type-int` for more information.
+      integers. Use the ``NumberInt()`` or the ``NumberLong()``
+      constructor to specify integers. See :ref:`shell-type-int` or
+      :ref:`shell-type-long` for more information.
+
+Examples
+--------
+
+Bitwise AND
+~~~~~~~~~~~
+
+Consider the following document inserted into the collection
+``switches``:
+
+.. code-block:: javascript
+
+   { _id: 1, expdata: NumberInt(13) }
+
+The following :method:`~db.collection.update()` operation updates the
+``expdata`` field to the result of a bitwise ``and`` operation between
+the current value ``NumberInt(13)`` (i.e. ``1101``) and
+``NumberInt(10)`` (i.e. ``1010``):
+
+.. code-block:: javascript
+
+   db.switches.update(
+                       { _id: 1 }, 
+                       { $bit: { expdata: { and: NumberInt(10) } } } 
+                     )
+
+The bitwise ``and`` operation results in the integer 8 (i.e. ``1000``):
+
+.. code-block:: none
+
+   1101
+   1010
+   ----
+   1000
+
+And the updated document has the following value for ``expdata``:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "expdata" : 8 }
+
+The :program:`mongo` shell displays ``NumberInt(8)`` as ``8``.
+
+Bitwise OR
+~~~~~~~~~~
+
+Consider the following document inserted into the collection
+``switches``:
+
+.. code-block:: javascript
+
+   { _id: 2, expdata: NumberLong(3) }
+
+The following :method:`~db.collection.update()` operation updates the
+``expdata`` field to the result of a bitwise ``or`` operation between
+the current value ``NumberLong(3)`` (i.e. ``0011``) and
+``NumberInt(5)`` (i.e. ``0101``):
+
+.. code-block:: javascript
+
+   db.switches.update(
+                       { _id: 2 }, 
+                       { $bit: { expdata: { or: NumberInt(5) } } } 
+                     )
+
+The bitwise ``or`` operation results in the integer 7 (i.e. ``0111``):
+
+.. code-block:: none
+
+   0011
+   0101
+   ----
+   0111
+
+And the updated document has the following value for ``expdata``:
+
+.. code-block:: javascript
+
+   { "_id" : 2, "expdata" : NumberLong(7) }
+
+Bitwise XOR
+~~~~~~~~~~~
+
+Consider the following document in the collection ``switches``:
+
+.. code-block:: javascript
+
+   { _id: 3, expdata: NumberLong(1) }
+
+The following :method:`~db.collection.update()` operation updates the
+``expdata`` field to the result of a bitwise ``xor`` operation between
+the current value ``NumberLong(1)`` (i.e. ``0001``) and
+``NumberInt(5)`` (i.e. ``0101``):
+
+.. code-block:: javascript
+
+   db.switches.update(
+                       { _id: 3 }, 
+                       { $bit: { expdata: { xor: NumberInt(5) } } } 
+                     )
+
+The bitwise ``or`` operation results in the integer 4:
+
+.. code-block:: none
+
+   0001
+   0101
+   ----
+   0100
+
+And the updated document has the following value for ``expdata``:
+
+.. code-block:: javascript
+
+   { "_id" : 3, "expdata" : NumberLong(4) }
