@@ -6,59 +6,173 @@ $all
 
 .. operator:: $all
 
-   *Syntax*: ``{ field: { $all: [ <value> , <value1> ... ] }``
 
-   :operator:`$all` selects the documents where the ``field`` holds an
-   array and contains all elements (e.g. ``<value>``, ``<value1>``, etc.)
-   in the array.
-
-   Consider the following example:
+   The :operator:`$all` operator selects the documents where the value
+   of a field is an array that contains all the specified elements. To
+   specify an :operator:`$all` expression, use the following prototype:
 
    .. code-block:: javascript
 
-      db.inventory.find( { tags: { $all: [ "appliances", "school", "book" ] } } )
+      { <field>: { $all: [ <value> , <value1> ... ] }
 
-   This query selects all documents in the ``inventory`` collection
-   where the ``tags`` field contains an array with the elements,
-   ``appliances``, ``school``, and ``book``.
+Examples
+--------
 
-   Therefore, the above query will match documents in the ``inventory``
-   collection that have a ``tags`` field that hold *either* of the
-   following arrays:
+The following examples use the ``inventory`` collection that contains
+the documents:
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      [ "school", "book", "bag", "headphone", "appliances" ]
-      [ "appliances", "school", "book" ]
+   {
+      _id: ObjectId("5234cc89687ea597eabee675"),
+      code: "xyz",
+      tags: [ "school", "book", "bag", "headphone", "appliance" ],
+      qty: [
+             { size: "S", num: 10, color: "blue" },
+             { size: "M", num: 45, color: "blue" }, 
+             { size: "L", num: 100, color: "green" }
+           ]
+   }
 
-   The :operator:`$all` operator exists to describe and specify arrays
-   in MongoDB queries. However, you may use the :operator:`$all`
-   operator to select against a non-array ``field``, as in the
-   following example:
+   {
+      _id: ObjectId("5234cc8a687ea597eabee676"),
+      code: "abc",
+      tags: [ "appliance", "school", "book" ],
+      qty: [
+             { size: "6", num: 100, color: "green" },
+             { size: "6", num: 50, color: "blue" },
+             { size: "8", num: 100, color: "brown" }
+           ]
+   }
 
-   .. code-block:: javascript
+   {
+      _id: ObjectId("5234ccb7687ea597eabee677"),
+      code: "efg",
+      tags: [ "school", "book" ],
+      qty: [
+             { size: "S", num: 10, color: "blue" },
+             { size: "M", num: 100, color: "blue" },
+             { size: "L", num: 100, color: "green" }
+           ]
+   }
 
-      db.inventory.find( { qty: { $all: [ 50 ] } } )
+   {
+      _id: ObjectId("52350353b2eff1353b349de9"),
+      code: "ijk", 
+      tags: [ "electronics", "school" ],
+      qty: [
+             { size: "M", num: 100, color: "green" }
+           ]
+   }
 
-   **However**, use the following form to express the same query:
+Use ``$all`` to Match Values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   .. code-block:: javascript
+The following operation uses the :operator:`$all` operator to query the
+``inventory`` collection for documents where the value of the ``tags``
+field is an array whose elements include ``appliance``, ``school``, and
+``book``:
 
-      db.inventory.find( { qty: 50 } )
+.. code-block:: javascript
 
-   Both queries will select all documents in the ``inventory``
-   collection where the value of the ``qty`` field equals ``50``.
+   db.inventory.find( { tags: { $all: [ "appliance", "school", "book" ] } } )
 
-   .. note::
+The above query returns the following documents:
 
-      In most cases, MongoDB does not treat arrays as sets. This
-      operator provides a notable exception to this approach.
+.. code-block:: javascript
 
-      In the current release queries that use the :operator:`$all`
-      operator must scan all the documents that match the first element in
-      the query array. As a result, even with an index to support the
-      query, the operation may be long running, particularly when the
-      first element in the array is not very selective.
+   {
+      _id: ObjectId("5234cc89687ea597eabee675"),
+      code: "xyz",
+      tags: [ "school", "book", "bag", "headphone", "appliance" ],
+      qty: [
+             { size: "S", num: 10, color: "blue" },
+             { size: "M", num: 45, color: "blue" }, 
+             { size: "L", num: 100, color: "green" }
+           ]
+   }
 
-   .. seealso::
-      :method:`~db.collection.find()`, :method:`~db.collection.update()`, and :operator:`$set`.
+   {
+      _id: ObjectId("5234cc8a687ea597eabee676"),
+      code: "abc",
+      tags: [ "appliance", "school", "book" ],
+      qty: [
+             { size: "6", num: 100, color: "green" },
+             { size: "6", num: 50, color: "blue" },
+             { size: "8", num: 100, color: "brown" }
+           ]
+   }
+
+Use ``$all`` with ``$elemMatch``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the field contains an array of documents, you can use the
+:operator:`$all` with the :operator:`$elemMatch` operator.
+
+The following operation queries the ``inventory`` collection for
+documents where the value of the ``qty`` field is an array whose
+elements match the :operator:`$elemMatch` criteria:
+
+.. code-block:: javascript
+
+   db.inventory.find( {
+                        qty: { $all: [
+                                       { "$elemMatch" : { size: "M", num: { $gt: 50} } },
+                                       { "$elemMatch" : { num : 100, color: "green" } } 
+                                     ] } 
+                      } )
+
+The query returns the following documents:
+
+.. code-block:: javascript
+
+   {
+      "_id" : ObjectId("5234ccb7687ea597eabee677"),
+      "code" : "efg",
+      "tags" : [ "school", "book"],
+      "qty" : [
+                { "size" : "S", "num" : 10, "color" : "blue" },
+                { "size" : "M", "num" : 100, "color" : "blue" },
+                { "size" : "L", "num" : 100, "color" : "green" }
+              ]
+   }
+
+   {
+      "_id" : ObjectId("52350353b2eff1353b349de9"),
+      "code" : "ijk",
+      "tags" : [ "electronics", "school" ], 
+      "qty" : [
+                { "size" : "M", "num" : 100, "color" : "green" } 
+              ] 
+   }
+
+The :operator:`$all` operator exists to support queries on arrays. But
+you may use the :operator:`$all` operator to select against a non-array
+``field``, as in the following example:
+
+.. code-block:: javascript
+
+   db.inventory.find( { qty: { $all: [ 50 ] } } )
+
+**However**, use the following form to express the same query:
+
+.. code-block:: javascript
+
+   db.inventory.find( { qty: 50 } )
+
+Both queries will select all documents in the ``inventory``
+collection where the value of the ``qty`` field equals ``50``.
+
+.. note::
+
+   - In most cases, MongoDB does not treat arrays as sets. This
+     operator provides a notable exception to this approach.
+
+   - In the current release, queries that use the :operator:`$all`
+     operator must scan all the documents that match the first element
+     in the query array. As a result, even with an index to support the
+     query, the operation may be long running, particularly when the
+     first element in the array is not very selective.
+
+.. seealso::
+   :method:`~db.collection.find()`, :method:`~db.collection.update()`, and :operator:`$set`.
