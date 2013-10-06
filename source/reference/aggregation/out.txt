@@ -1,0 +1,85 @@
+==================
+$out (aggregation)
+==================
+
+.. default-domain:: mongodb
+
+.. versionadded:: 2.5.2
+
+Definition
+----------
+
+.. pipeline:: $out
+
+   Takes the documents returned by the aggregation pipeline and writes
+   them to a specified collection. The :pipeline:`$out` operator lets
+   the aggregation framework return result sets of any size. The
+   :pipeline:`$out` operator must be *the last stage* in the pipeline.
+
+   The command has the following syntax, where <output-collection> is the
+   collection to write to. Place :pipeline:`$out` only at the end of the
+   pipeline:
+
+   .. code-block:: javascript
+
+      db.<collection>.aggregate( [
+           { <operation> },
+           { <operation> },
+           ...,
+           { $out : "<output-collection>" }
+      ] )
+
+   .. important:: You cannot specify a sharded collection as the target
+      of the :pipeline:`$out` operation. The input collection for a
+      pipeline can be sharded.
+
+Behaviors
+---------
+
+The :pipeline:`$out` operation creates a new collection in the current
+database if one does not already exist. The collection is not visible
+until the aggregation completes. If the aggregation fails, MongoDB does
+not create the collection.
+
+If the collection specified by the :pipeline:`$out` operation already
+exists, then upon completion of aggregation the :pipeline:`$out` stage
+atomically replaces the existing collection with the new results
+collection. The :pipeline:`$out` operation does not change any indexes
+that existed on the previous collection. If the aggregation fails, the
+:pipeline:`$out` operation makes no changes to the previous collection.
+
+The pipeline will fail to complete if the documents produced by the
+pipeline would violate any unique indexes, including the index on the
+``_id`` field of the original output collection.
+
+Example
+-------
+
+The following aggregation pipeline uses the :pipeline:`$project`
+operator to construct new documents from data in the ``library``
+collection. The :pipeline:`$out` operator at the end of the pipeline
+inserts the results into the ``titles`` collection.
+
+.. code-block:: javascript
+
+   db.library.aggregate( [
+        { $project : { book : 1 , author : 1 } },
+        { $match : { author : "Dante" } },
+        { $limit : 5 },
+        { $out : "titles"}
+   ] )
+
+The command returns a status document that indicates success. The
+pipeline has inserted the following five new documents into the
+``titles`` collection. Each document includes the ``book``, ``author``, and ``_id``
+fields, as specified in the :pipeline:`$project` operator. The
+:pipeline:`$project` operator always returns ``_id``, unless the field
+is explicitly excluded:
+
+.. code-block:: javascript
+
+   { "_id" : 8751, "book" : "The Banquet", "author" : "Dante" }
+   { "_id" : 8752, "book" : "Divine Comedy", "author" : "Dante" }
+   { "_id" : 8644, "book" : "De vulgari eloquentia", "author" : "Dante" }
+   { "_id" : 8645, "book" : "Eclogues", "author" : "Dante" }
+   { "_id" : 8623, "book" : "De Monarchia", "author" : "Dante" }
