@@ -671,6 +671,936 @@ collection with too many empty chunks.
       - one chunk **must** not hold any documents (i.e. an "empty
         chunk").
 
+User-Defined Roles
+~~~~~~~~~~~~~~~~~~
+
+In version 2.5.3, MongoDB provides global user management, storing all user and role
+data in the ``admin`` database and providing a new set of commands for
+managing users and roles. MongoDB also lets you create new roles,
+giving you greater flexibility in the assignment of privileges to users.
+
+New Schema for User and Role Data
+`````````````````````````````````
+
+MongoDB stores all user and role information for a system in one
+database, the ``admin`` database, and no longer stores information
+separately in each database. MongoDB defines roles in the
+:ref:`admin.system.roles <admin-system-roles-collection>` collection and
+defines users in the :ref:`admin.system.users
+<admin-system-users-collection>` collection.
+
+To manage users and roles, you make changes through a new set of user-
+and role-management commands and no longer do so through updates to an
+individual database's :doc:`system.users
+</reference/privilege-documents>` collection. The :doc:`system.users
+</reference/privilege-documents>` collections in non-``admin`` databases
+are deprecated.
+
+.. todo: Add this to the RNs when the command is ready:
+
+   For upgrades, MongoDB provides the ``upgradeUsers`` command to
+   migrate data from the deprecated collections.
+
+.. todo: When we write the upgrade document, use this info from Andy
+   as appropriate:
+
+   Upgrade all of the nodes to 2.6 (including the config servers), and
+   then run the upgradeUsers command. When that command returns ok: 1,
+   the upgrade is complete. If that command fails to return or returns
+   some other value, it is always safe to run again.
+
+   To upgrade a single node, run upgradeUsers on that node. For a
+   replicaset, run it on the primary. For a sharded cluster, run it on
+   *one* mongos, and then run it on the primary of each shard. In this
+   last case, the upgrades are independent. If one fails, you only have
+   to rerun that one, not all of them.
+
+.. _admin-system-roles-collection:
+
+System Roles Schema
+^^^^^^^^^^^^^^^^^^^
+
+MongoDB stores roles globally in the ``admin.system.roles`` collection
+and provides access through the :ref:`role-management commands
+<role-management-commands>`. Each role includes both defined privileges
+and inherited privileges. A role defines privileges by specifying
+resources and permitted actions. A role inherits privileges from other
+roles.
+
+Role documents use the following syntax:
+
+.. code-block:: javascript
+
+   { role: "<role name>",
+     db: "<database>",
+     privileges: [ { resource: { db: "<database>", collection: "<collection>" },
+                     actions: [ "<action>", "<action>", ... ] },
+                   ...
+                 ]
+     roles: [ { role: "<role name>", db: "<role db>" }
+              ...
+            ]
+   }
+
+The ``privileges`` and ``roles`` arrays are always present, even if one
+or both is empty. When an array is empty the role contains no privileges
+from that array.
+
+
+.. todo: from Spencer: clarify the differnce between a server and a cluster, how the
+   cluster is used, and what actions need to be granted to the cluster
+   resource vs which get granted to a database or collection. In our list
+   of grantable actions we'll need to make that really clear.
+
+
+Each document in the ``privileges`` array specifies a resource and the
+actions permitted on that resource. A resource can be a collection, a
+group of collections, a database, or the ``cluster`` resource. The
+resource is the whole database, excluding system collections, if the
+``resource.collection`` field is an empty string. The resource is all
+collections with the same name across databases if ``resource.db`` is an
+empty string. The resource is the cluster if the ``resource`` field is
+set to the ``{ cluster : true }`` document.
+
+.. note:: When you grant access to a full database, the system
+   collections are excluded, unless you name them explicitly. System
+   collections include but are not limited to the following:
+
+   - :data:`<database>.system.profile`
+   - :data:`<database>.system.namespaces`
+   - :data:`<database>.system.indexes`
+   - :data:`<database>.system.js`
+   - :data:`local.system.replset` 
+   - :ref:`admin.system.users <admin-system-users-collection>`
+   - :ref:`admin.system.roles <admin-system-roles-collection>`
+
+For a list of applicable actions, see :ref:`security-user-actions`.
+
+The ``roles`` array lists other roles from which this role inherits
+privileges.
+
+.. example:: ``appUser`` role
+
+   The ``appUser`` role specifies privileges in the ``privileges`` array
+   but inherits no additional privileges from roles. In the
+   ``privileges`` array, the privilege grants four actions to
+   the ``myApp`` database, while the next two privileges grant
+   *additional* actions to certain collections in the database.
+
+   While the first privilege gives database-wide permission for the
+   ``find`` action, the action does not apply to ``myApp``'s system
+   collections. To give access to two of the system collections in
+   ``myApp``, the last two privileges specify those collections
+   explicitly.
+
+   .. code-block:: javascript
+
+      { role: "appUser",
+        db: "myApp",
+        privileges: [
+             { resource: { db: "myApp" , collection: "" },
+               actions: [ "find", "createCollection", "dbStats", "collectionStats" ] },
+             { resource: { db: "myApp", collection: "logs" },
+               actions: [ "insert" ] },
+             { resource: { db: "myApp", collection: "data" },
+               actions: [ "insert", "update", "remove", "compact" ] },
+             { resource: { db: "myApp", collection: "system.indexes" },
+               actions: [ "find" ] },
+             { resource: { db: "myApp", collection: "system.namespaces" },
+               actions: [ "find" ] },
+        ],
+        roles: []
+      }
+
+.. example:: ``appAdmin`` role
+
+   The ``appAdmin`` role both defines and inherits privileges. One
+   privilege, to perform the ``shutdown`` action, applies to the
+   ``cluster`` resource:
+
+   .. code-block:: javascript
+
+      { role: "appAdmin",
+        db: "myApp",
+        privileges: [
+                 { resource: { db: "myApp", collection: "" },
+                   actions: [ "indexing", "dbStats", "collectionStats", "compact", "repairDatabase" ] },
+                 { resource: { cluster : true },
+                   actions: [ "shutdown" ] }
+        ],
+        roles: [ { role: "replAdmin", db: "admin" },
+                 { role: "appUser", db: "myApp" }
+        ] }
+
+.. _admin-system-users-collection:
+
+System Users Schema
+^^^^^^^^^^^^^^^^^^^
+
+MongoDB stores users globally in the ``admin.system.users`` collection
+and provides access through the :ref:`user management commands
+<user-management-commands>`. 
+
+Each user is associated with a database, through the ``db`` field in the
+user's document, but the user can have privileges in other databases as
+well, through roles assigned in the ``role`` array. Each user document
+additionally contains the user's authentication credentials and roles,
+and any custom information.
+
+MongoDB uses the following schema to define users:
+
+.. code-block:: javascript
+
+   { user: "<name>",
+     db: "<database>",
+     credentials: { <authentication credentials> },
+     roles: [ { role: "<role>", db: "<database>" },
+              "<role>",
+              ...
+            ],
+     customData: < custom information >
+    }
+
+The ``roles`` array assigns the user roles from the
+:ref:`admin.system.roles <admin-system-roles-collection>` collection. If
+the role exists in the user's database, the role is identified simply by
+its name. If the role exists in another database, the role is identified
+by a role document that specifies role's name and database. The document
+uses the following format:
+
+.. code-block:: javascript
+
+    { role: "<role>", db: "<database>" }
+
+.. example:: System User Schema
+
+   The following document defines a user, ``Kari``, in the ``home``
+   database. Kari has two roles on other databases and the ``read`` role
+   on her own database.
+
+   .. code-block:: javascript
+
+      { user: "Kari"
+        db: "home",
+        credentials: { "MONGODB-CR": "<hashed password>" },
+        roles: [ { role: "testWriter", db: "test" },
+                 { role: "roClusterAdmin", db: "admin" },
+                 "read"
+               ],
+        customData: { zipCode: 64157 }
+      }
+
+Role Creation
+`````````````
+
+MongoDB 2.5.3 lets you define custom :ref:`user roles <user-roles>` in
+addition to the MongoDB built-in roles, to give your organization more
+flexibility in assigning privileges. Within a role, define privileges by
+defining pairings of resources and actions, and also by assigning child
+roles from which the role inherits privileges.
+
+MongoDB scopes each role to the database in which it is created and
+uniquely defines each role by the pairing of its name and its database.
+When assigned a role, a user receives all the privileges of that role.
+
+Create new roles using the :dbcommand:`createRole` command and the role
+format described by the :ref:`system roles schema
+<admin-system-roles-collection>`.
+
+.. _role-management-commands:
+
+Role Management Commands
+````````````````````````
+
+MongoDB provides the following commands for creating and managing roles.
+
+.. dbcommand:: createRole
+
+   Creates a role and specifies its privileges. The role applies to the
+   database on which you run the command. The :dbcommand:`createRole`
+   command returns a duplication error if the role already exists in the
+   database.
+
+   To create a role, you must have the :authrole:`createRole` action on
+   the database. To add a given privilege to the role, you must have the
+   :authrole:`grantAnyRole` action on the database the privilege
+   targets. If the privilege targets multiple databases or the
+   ``cluster`` resource , you must have the :authrole:`grantAnyRole`
+   action on the ``admin`` database.
+
+   To grant a child role to the role, you must have the
+   :authrole:`grantAnyRole` action on the child role's database.
+
+   The :dbcommand:`createRole` command takes the following form:
+
+   .. code-block:: javascript
+
+      { createRole: "<new role>",
+        privileges: [
+          { resource: < resource document >, actions: < action array > },
+          { resource: < resource document >, actions: < action array > },
+          ...
+        ],
+        roles: [
+          { role: "<role>", db: "<database>" },
+          { role: "<role>", db: "<database>" },
+          ...
+        ],
+        writeConcern: { w: "majority" , wtimeout: 5000 }
+      }
+
+   The ``privileges`` array specifies resources and permitted
+   actions. The ``roles`` array specifies roles
+   from which this role inherits privileges. The two arrays use the formats
+   described in the :ref:`admin-system-roles-collection` section.
+
+   Both the ``privileges`` and ``roles`` arrays must be present. If you
+   choose not to specify privileges or roles, you must provide an empty
+   array for that field.
+
+   The following is an example :dbcommand:`createRole` command:
+
+   .. code-block:: javascript
+
+      { createRole: "myClusterwideAdmin",
+        privileges: [
+          { resource: { cluster: true }, actions: [ "addShard" ] },
+          { resource: { db: "config", collection: "" }, actions: [ "find", "update", "insert", "remove" ] },
+          { resource: { db: "users", collection: "usersCollection" }, actions: [ "update", "insert", "remove" ] },
+          { resource: { db: "", collection: "" }, actions: [ "find" ] }
+        ],
+        roles: [
+          { role: "profile", db: "admin" }
+        ],
+        writeConcern: { w: "majority" , wtimeout: 5000 }
+      }
+
+.. dbcommand:: updateRole
+
+   Updates the role on the database on which you run the command. The
+   :dbcommand:`updateRole` command sets the ``roles`` array,
+   ``privileges`` array, or both arrays to the values provided,
+   overriding the previous values. You must provide at least one of the
+   two arrays to make changes.
+
+   To run this command you must have the :authrole:`revokeAnyRole`
+   action on all databases, as well as the action permissions described
+   below.
+
+   .. code-block:: javascript
+
+      { updateRole: "myClusterwideAdmin",
+        privileges: [
+          { resource: { db: "", collection: "" },
+            actions: [ "find" , "update", "insert", "remove" ] ] }
+        ],
+        roles: [
+          { role: "sysAd", db: "admin" }
+        ],
+        writeConcern: { w: "majority" , wtimeout: 5000 }
+      }
+
+   The ``privileges`` array specifies resources and permitted actions.
+   The ``roles`` array specifies roles that supply inherited privileges.
+   The arrays use the formats described in the
+   :ref:`admin-system-roles-collection` section.
+
+   .. important:: Required action permissions
+
+      If you update the ``roles`` array, you must have
+      :authrole:`grantAnyRole` on the database for every role in the
+      updated array.
+
+      If you update the ``privileges`` array, you must have
+      :authrole:`grantAnyRole` on the resource of each privilege in the
+      updated array. If a privilege affects multiple databases or the
+      ``cluster`` resource, you just have :authrole:`grantAnyRole` on
+      the ``admin`` database.
+
+      To revoke a role you must have the :authrole:`revokeAnyRole`
+      action on all databases.
+
+      The following is an example :dbcommand:`updateRole` command. All
+      fields are optional, but you must provide at least one:
+
+.. dbcommand:: dropRole
+
+   Deletes the role from the database on which you run the command. To
+   run this command you must have the :authrole:`dropRole` action on the
+   database. The :dbcommand:`dropRole` command takes the following form:
+
+   .. code-block:: javascript
+
+      { dropRole: "<role>"}
+
+   For example:
+
+   .. code-block:: javascript
+
+      { dropRole: "myReadOnlyRole"}
+
+.. dbcommand:: dropAllRolesFromDatabase
+
+   Deletes all roles from the database on which you run the command.
+
+   .. todo Get more info. This is not currently in the spec.
+
+.. dbcommand:: grantPrivilegesToRole
+
+   Assigns privileges to a role. To grant a privilege, you must have the
+   :authrole:`grantAnyRole` action on the database the privilege
+   targets. If the privilege targets multiple databases or the
+   ``cluster`` resource, you must have the :authrole:`grantAnyRole`
+   action on the ``admin`` database.
+
+   The command takes the following form:
+
+   .. code-block:: javascript
+
+      { grantPrivilegesToRole: "<role>",
+        privileges: [
+          { resource: { <resource> }, actions: [ "<action>", ... ] },
+          ...
+        ]
+      }
+
+   Specify the privileges using the format for the ``resource``
+   documents described in the ref:`admin-system-roles-collection`
+   section.
+
+   The following is an example of the
+   :dbcommand:`grantPrivilegesToRole`:
+
+   .. code-block:: javascript
+
+      { grantPrivilegesToRole: "myRole",
+        privileges: [
+          { resource: { db: "A" }, actions: [ "find" ] },
+          { resource: { db: "", collection: "system.indexes" }, actions: [ "find" ] }
+        ]
+      }
+
+.. dbcommand:: revokePrivilegesFromRole
+
+   Removes the specified privileges from the role. The command applies
+   to the database on which you run the command. To revoke a privilege
+   you must have the :authrole:`revokeAnyRole` action on the database
+   the privilege targets. If the privilege targets multiple databases,
+   you must have the :authrole:`revokeAnyRole` action on the ``admin``
+   database.
+
+   Specify the privileges in the ``privileges`` array using the format
+   for ``resource`` documents described in the
+   ref:`admin-system-roles-collection` section:
+
+   .. code-block:: javascript
+
+      { revokePrivilegesFromRole: "<role>",
+        privileges: [
+          { resource: { <resource> }, actions: [ "<action>", ... ] },
+          ...
+        ]
+      }
+
+   To remove a privilege from a role you must match the exact resource
+   pattern, as explained in the following example.
+
+   .. example:: Resource patterns must match
+
+      If you have a role with the following privilege:
+
+      .. code-block:: javascript
+
+         { resource: { db: "products", collection: "" }, actions: [ "find" ] }
+
+      You cannot remove ``find`` from just one collection in the
+      ``products`` database. Trying to remove the following would result in
+      no change:
+
+      .. code-block:: javascript
+
+         { resource: { db: "products", collection: "gadgets" }, actions: [ "find" ] }
+
+      To remove ``find`` you must match the resource. When the resource
+      is the whole database, it is not necessary to specify the
+      ``collection`` field with the
+      :dbcommand:`revokePrivilegesFromRole` command:
+
+      .. code-block:: javascript
+
+         { resource: { db: "products" }, actions: [ "find" ] }
+
+   .. example:: ``revokePrivilegesFromRole`` command
+
+      The following example of :dbcommand:`revokePrivilegesFromRole`
+      removes ``find`` from the ``products`` database as well as from
+      the ``system.indexes`` collections in all databases:
+
+      .. code-block:: javascript
+
+         { revokePrivilegesFromRole: "associate",
+           privileges: [
+             { resource: { db: "products"}, actions: [ "find" ] },
+             { resource: { db: "", collection: "system.indexes" }, actions: [ "find" ] }
+           ]
+         }
+
+.. dbcommand:: grantRolesToRole
+
+   Specifies roles from which this role inherits privileges. The command
+   applies to the role from database on which you run the command. To
+   grant a given role, you must have the :authrole:`grantAnyRole` action
+   on the role's database.
+
+   Specify the child roles in the ``grantedRoles`` array, using the
+   format for ``role`` documents described in the
+   ref:`admin-system-roles-collection` section:
+
+   .. code-block:: javascript
+
+      { grantRolesToRole: "productsReaderWriter",
+        grantedRoles: [
+          { role: "productsReader", db: "products"}
+        ]
+      }
+
+.. dbcommand:: revokeRolesFromRole
+
+   Removes child roles from this role. To remove a given role, you must
+   have the :authrole:`revokeAnyRole` action on the role's database.
+
+   The command takes the form described here. Specify the roles to
+   remove using the format for ``role`` documents described in the
+   ref:`admin-system-roles-collection` section:
+
+   .. code-block:: javascript
+
+      { revokeRolesFromRole: "productsReaderWriter",
+        revokedRoles: [
+          { role: "productsReader", db: "products"}
+        ]
+      }
+
+   .. note:: If the role does not have any of the roles being revoked,
+      MongoDB does *not* give an error message.
+
+.. dbcommand:: rolesInfo
+
+   Lists the privileges and child roles that a role contains. The
+   :dbcommand:`rolesInfo` command applies to the current database. To
+   view role information you must have the :authrole:`viewRole` action
+   on the role's database or be authenticated as a user explicitly
+   granted the role.
+
+   To match a single role, use the following form, where ``<role>`` is a
+   role that exists on the database where the command is run:
+
+   .. code-block:: javascript
+
+      { rolesInfo: "<role>" }
+
+   To match a single role on a specific database, use the following
+   form, where ``<database>`` is the role's database.
+
+   .. code-block:: javascript
+
+      { rolesInfo: { role: "<role>", db: "<database>" } }
+
+   To view info for several roles, use an array, as in the following
+   example that specifies the roles and their databases:
+
+   .. code-block:: javascript
+
+      { rolesInfo: [ 
+           { role: "associate", db: "products" }, 
+           { role: "manager", db: "resources" }, 
+        ]
+      }
+
+.. _user-management-commands:
+
+User Management Commands
+````````````````````````
+
+MongoDB provides the following new commands for managing users and user
+roles. You no longer manage users through direct updates to the
+:doc:`system.users </reference/privilege-documents>` collection but
+instead manage users through the following commands.
+
+.. dbcommand:: createUser
+
+   Creates a new user in the database where the command is run. To
+   grant a role, you must have the :authrole:`grantAnyRole` action on
+   the role's database. The :dbcommand:`createUser` command returns a
+   duplicate-user error if the user exists.
+
+   The following is an example :dbcommand:`createUser` command:
+
+   .. code-block:: javascript
+
+      { createUser: "Carlos",
+        pwd: "cleartext password",
+        customData: { employeeId: 12345 },
+        roles: [
+          { role: "clusterAdmin", db: "admin" },
+          { role: "readAnyDatabase", db: "admin" },
+          "readWrite"
+        ],
+        writeConcern: { w: "majority" , wtimeout: 5000 }
+      }
+
+   The ``pwd`` field's password is sent to the server in cleartext. To
+   encrypt the password, use SSL. The ``pwd`` field is required,
+   *unless* you run :dbcommand:`createUser` on ``$external``. Users
+   created on "$external" are assumed to have credentials stored
+   externally to MongoDB, as with :doc:`MongoDB Enterprise installations
+   that use Kerberos
+   </tutorial/control-access-to-mongodb-with-kerberos-authentication>`.
+
+   The ``customData`` field is optional and contains any arbitrary
+   information.
+
+   The ``roles`` array uses the formats described in the
+   :ref:`admin-system-users-collection` section. The
+   :dbcommand:`createUser` document *must* have a ``roles`` array. If
+   you specify an empty ``roles`` array, the user starts with no roles.
+
+.. dbcommand:: updateUser
+
+   Updates the user's profile on the database on which you run the
+   command. An updates to the user's ``roles`` array override the
+   previous array's values.
+
+   To update a user, you must specify ``updateUser`` field and
+   at least one other field, other than ``writeConcern``.
+
+   The following is an example :dbcommand:`updateUser` command:
+
+   .. code-block:: javascript
+
+      { updateUser: "Carlos",
+        pwd: "cleartext password"
+        customData: { employeeId: 54321 },
+        roles: [
+          { role: "assetsReader", db: "assets" }
+        ],
+        writeConcern: { w: "majority" , wtimeout: 5000 }
+      }
+
+   The ``roles`` array uses the formats described in the
+   :ref:`admin-system-users-collection` section.
+
+   .. important::
+
+      To update the ``roles`` array, you must have the
+      :authrole:`revokeAnyRole` action on all databases. When you update
+      the ``roles`` array, you completely replace the previous array's
+      values. To add roles in an update, you must have the
+      :authrole:`grantAnyRole` action on the database of the role.
+
+      To change your password or custom data, you must have the
+      :authrole:`changeOwnPassword` action or
+      :authrole:`changeOwnCustomData` action on the ``cluster``
+      resource.
+
+      To change another user's password or custom data, you must have
+      the :authrole:`changeAnyPassword` action or
+      :authrole:`changeAnyCustomData` action on that user's database.
+
+.. dbcommand:: dropUser
+
+   Removes the user from the database on which you run the command. To
+   run this command you must have the :authrole:`dropUser` action on the
+   database the user is from.
+
+   The following is an example :dbcommand:`dropUser` command:
+
+   .. code-block:: javascript
+
+      { dropUser: "Carlos" }
+
+.. dbcommand:: dropAllUsersFromDatabase
+
+   Deletes all users from the database on which you run the command.
+
+   .. todo Get more info. This is not currently in the spec.
+
+.. dbcommand:: grantRolesToUser
+
+   Grants a role and its privileges to a user. To grant a given role,
+   you must have the :authrole:`grantAnyRole` action on the role's
+   database.
+
+   The :dbcommand:`grantRolesToUser` command takes the following form:
+
+   .. code-block:: javascript
+
+      { grantRolesToUser: "<user>",
+        roles: <roles array>,
+        writeConcern: <write concern document>
+      }
+
+   The ``roles`` array uses the formats described in the
+   :ref:`admin-system-users-collection` section.
+
+   .. example:: Grant roles to a user
+
+      The following :dbcommand:`grantRolesToUser` command runs on the
+      ``products`` database and updates the user ``Erin`` on that
+      database. The command's ``roles`` array grants ``Erin`` two
+      ``assetsReader`` roles, one from the ``assets`` database and the
+      other from the ``products`` database, on which the command is run:
+
+   .. code-block:: javascript
+
+      { grantRolesToUser: "Erin",
+        roles: [
+          { role: "assetsReader", db: "assets"},
+          "assetsReader"
+        ],
+        writeConcern: { w: "majority" , wtimeout: 5000 }
+      }
+
+.. dbcommand:: revokeRolesFromUser
+
+   Removes a role from a user. To remove a role, you must have the
+   :authrole:`revokeAnyRole` action on the role's database.
+
+   The following is an example :dbcommand:`revokeRolesFromUser` command:
+
+   .. code-block:: javascript
+
+      { revokeRolesFromUser: "Dan",
+        roles: [
+          { role: "Areader", db: "A"},
+          "Breader"
+        ],
+        writeConcern: { w: "majority" , wtimeout: 5000 }
+      }
+
+   The ``roles`` array uses the formats described in the
+   :ref:`admin-system-users-collection` section.
+
+.. dbcommand:: usersInfo
+
+   Returns information about the specified users. The command applies to
+   the database on which you run it. You can always view your own
+   information. To view another user's information, you must have the
+   :authrole:`viewUser` action on the user's database.
+
+   To match a single user on the database, use the following form:
+
+   .. code-block:: javascript
+
+      { usersInfo: "<username>", showCredentials: <Boolean>, showPrivileges: <Boolean> }
+
+   The optional ``showCredentials`` field, if set to ``true``, shows the
+   user's password hash. By default this field is set to ``false``.
+
+   The optional ``showPrivileges`` field, if set to ``true``, shows the
+   user's full set of privileges, including expanded information for all
+   child roles taken from the :ref:`admin.system.roles
+   <admin-system-roles-collection>` collection.
+
+   For example, to see ``Li``'s information and privileges, but not
+   credentials, run the following command on the database that contains
+   ``Li``'s user information:
+
+   .. code-block:: javascript
+
+      { usersInfo: "Li", showPrivileges: True }
+      
+       To view info for several users on a database, use an array, with
+      or without the optional fields. For example:
+
+   .. code-block:: javascript
+
+      { usersInfo: [ "Erin", "Li", "Kari" ], Privileges: True }
+
+   To view all users on a database, issue the following:
+
+   .. code-block:: javascript
+
+      { usersInfo: 1 }
+
+   You can use the ``showCredentials`` field when viewing all users but
+   not the ``showPrivileges`` field.
+
+.. _security-user-actions:
+
+User Actions
+````````````
+
+This section lists the actions you can specify when defining a privilege
+in a role.
+
+New User Actions
+^^^^^^^^^^^^^^^^
+
+MongoDB adds the following new user actions. The actions apply to the
+database in which they are assigned, unless otherwise noted:
+
+.. authrole:: createUser
+
+   The user can create new users in the given database.
+
+.. authrole:: createRole
+
+   The user can create new roles in the given database.
+
+.. authrole:: dropUser
+
+   The user can remove any user from the given database.
+
+.. authrole:: dropRole
+
+   The user can delete any role from the given database.
+
+.. authrole:: grantAnyRole
+
+   The user can grant any role in the database to any user from any
+   database in the system.
+
+.. authrole:: revokeAnyRole
+
+   The user can remove any role from any user from any database in the
+   system.
+
+.. authrole:: changeOwnPassword
+
+   Users with this action can change their own passwords. This action
+   should be granted on the ``cluster`` resource.
+
+.. authrole:: changeAnyPassword
+
+   The user can change the password of any user in the given database.
+
+.. authrole:: changeOwnCustomData
+
+   Users with this action can change their own custom information, as
+   stored in the ``customData`` field of the ``admin.system.users``
+   collection. This action should be granted on the ``cluster``
+   resource.
+
+.. authrole:: changeAnyCustomData
+
+   The user can change the custom information of any user in the given
+   database. Custom information is stored in the ``customData`` field of
+   the ``admin.system.users`` collection.
+
+.. authrole:: viewUser
+
+   The user can view the information of any user in the given database.
+
+.. authrole:: viewRole
+
+   The user can view information about any role in the given database.
+
+Existing Actions
+^^^^^^^^^^^^^^^^
+
+.. todo: update for the final 2.6 code, which is expected to have fewer
+   actions than those listed here
+
+.. todo: for each action, indicate the types of resources it acts on.
+
+In addition to the actions new in version 2.6, MongoDB provides the
+following user actions:
+
+.. hlist::
+   :columns: 3
+
+   * ``_migrateClone``
+   * ``_recvChunkAbort``
+   * ``_recvChunkCommit``
+   * ``_recvChunkStart``
+   * ``_recvChunkStatus``
+   * ``_transferMods``
+   * ``addShard``
+   * ``applyOps``
+   * ``captrunc``
+   * ``clean``
+   * ``clone``
+   * ``cloneCollectionLocalSource``
+   * ``cloneCollectionTarget``
+   * ``closeAllDatabases``
+   * ``collMod``
+   * ``collStats``
+   * ``compact``
+   * ``connPoolStats``
+   * ``connPoolSync``
+   * ``convertToCapped``
+   * ``copyDbGetNonce``
+   * ``copyDbTarget``
+   * ``cpuProfiler``
+   * ``createCollection``
+   * ``cursorInfo``
+   * ``dbHash``
+   * ``dbStats``
+   * ``delete``
+   * ``diagLogging``
+   * ``dropCollection``
+   * ``dropDatabase``
+   * ``dropIndexes``
+   * ``enableSharding``
+   * ``ensureIndex``
+   * ``find``
+   * ``flushRouterConfig``
+   * ``fsync``
+   * ``getCmdLineOpts``
+   * ``getLog``
+   * ``getParameter``
+   * ``getShardMap``
+   * ``getShardVersion``
+   * ``handshake``
+   * ``hostInfo``
+   * ``indexStats``
+   * ``inprog``
+   * ``insert``
+   * ``killCursors``
+   * ``killop``
+   * ``listDatabases``
+   * ``listShards``
+   * ``logRotate``
+   * ``moveChunk``
+   * ``movePrimary``
+   * ``netstat``
+   * ``profileEnable``
+   * ``reIndex``
+   * ``removeShard``
+   * ``repairDatabase``
+   * ``replSetElect``
+   * ``replSetFreeze``
+   * ``replSetFresh``
+   * ``replSetGetRBID``
+   * ``replSetGetStatus``
+   * ``replSetHeartbeat``
+   * ``replSetInitiate``
+   * ``replSetMaintenance``
+   * ``replSetReconfig``
+   * ``replSetStepDown``
+   * ``replSetSyncFrom``
+   * ``resync``
+   * ``serverStatus``
+   * ``setParameter``
+   * ``setShardVersion``
+   * ``shardCollection``
+   * ``shardingState``
+   * ``shutdown``
+   * ``split``
+   * ``splitChunk``
+   * ``splitVector``
+   * ``storageDetails``
+   * ``top``
+   * ``touch``
+   * ``unlock``
+   * ``unsetSharding``
+   * ``update``
+   * ``userAdmin``
+   * ``validate``
+   * ``writeBacksQueued``
+   * ``writebacklisten``
+
 SSL Improvements
 ~~~~~~~~~~~~~~~~
 
@@ -1024,16 +1954,16 @@ of the ``subject`` from the client certificate as a MongoDB user.
 
    In the above example, to add the user with the ``readWrite`` role in
    the ``test`` database, the role specification document specified
-   ``'test'`` in the ``source`` field. To add ``userAdminAnyDatabase``
+   ``'test'`` in the ``db`` field. To add ``userAdminAnyDatabase``
    role for the user, the above example specified ``'admin'`` in the
-   ``source`` field.
+   ``db`` field.
 
    .. note::
       Some roles are defined only in the ``admin`` database. These
       roles include, but are not limited to: ``clusterAdmin``,
       ``readAnyDatabase``, ``readWriteAnyDatabase``,
       ``dbAdminAnyDatabase``, and ``userAdminAnyDatabase``. To add the
-      user with these privileges, specify ``'admin'`` in the ``source``.
+      user with these privileges, specify ``'admin'`` in the ``db``.
 
 See :doc:`/tutorial/add-user-to-database` for details on adding a user
 with roles using :doc:`privilege documents
