@@ -93,3 +93,65 @@
    When specified, |binary-name| will use the FIPS mode of the
    installed OpenSSL library. Your system must have a FIPS compliant
    OpenSSL library to use :option:`--sslFIPSMode`.
+
+.. option:: --clusterAuthMode <option>
+
+  .. versionadded:: 2.6
+
+  .. include:: /includes/note-general-ssl-support.rst
+
+  Use the ``--clusterAuthMode`` option to :ref:`enable internal x.509
+  authentication for membership <x509-internal-authentication>` to the
+  cluster or the replica set. The :option:`--clusterAuthMode` option
+  can have one of the following values:
+
+  .. list-table::
+     :header-rows: 1
+     :widths: 20 40
+
+     * - Value
+
+       - Description
+
+     * - ``keyfile``
+
+       - Default value. Use keyfile for authentication.
+
+     * - ``sendKeyfile``
+
+       - For rolling upgrade purposes. Send the keyfile for
+         authentication but can accept either keyfile or x.509
+         certificate.
+
+     * - ``sendX509``
+
+       - For rolling upgrade purposes. Send the x.509 certificate for
+         authentication but can accept either keyfile or x.509
+         certificate.
+
+     * - ``x509``
+
+       - Recommended. Send the x.509 certificate for authentication and
+         accept **only** x.509 certificate.
+
+.. option:: --sslClusterFile <filename>
+
+  .. versionadded:: 2.6
+
+  .. include:: /includes/note-general-ssl-support.rst
+
+  Specifies the :file:`.pem` file that contains the x.509
+  certificate-key file for :ref:`membership authentication
+  <x509-internal-authentication>` for the cluster or replica set.
+
+.. option:: --sslClusterPassword <value>
+
+  .. versionadded:: 2.6
+
+  .. include:: /includes/note-general-ssl-support.rst
+
+  Specifies the password to de-crypt the x.509 certificate-key file
+  specified with :option:`--sslClusterFile`. Only use
+  :option:`--sslClusterPassword` if the certificate-key file is
+  encrypted. In all cases, |binary-name| will redact the password from
+  all logging and reporting output.
