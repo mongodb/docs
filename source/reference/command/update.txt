@@ -1,0 +1,154 @@
+======
+update
+======
+
+.. default-domain:: mongodb
+
+Definition
+----------
+
+.. dbcommand:: update
+
+   The :dbcommand:`update` command updates one or more documents and returns a
+   document containing the status of all updates.
+
+   The command has the following syntax:
+
+   .. code-block:: javascript
+
+      {
+         update: <collection>,
+         updates: [ { q : <query>, u : <update>, limit : <integer>, upsert: <boolean>, multi: <boolean>},
+                    { q : <query>, u : <update>, limit : <integer>, upsert: <boolean>, multi: <boolean>},
+                    { q : <query>, u : <update>, limit : <integer>, upsert: <boolean>, multi: <boolean>},
+                    ...
+                  ],
+         ordered: <boolean>,
+         writeConcern: { <write concern> }
+      }
+
+   The :dbcommand:`update` command takes the following fields:
+
+   .. include:: update-field.rst
+
+   Each element of the ``updates`` array contains the following sub-fields:
+
+   .. include:: update-field-updates.rst
+
+   The top-level writeConcern field specifies the write concern for all
+   inserts. See :doc:`/reference/write-concern` for an explanation of write concern
+   syntax.
+
+Output
+------
+
+On success, :dbcommand:`update` returns a document similar to:
+
+.. code-block:: javascript
+
+   { ok: 1, n: 1, upserted: 526acb2fe5a1ce044f13499c }
+
+On failure, :dbcommand:`update` returns a document similar to:
+
+.. code-block:: javascript
+
+   {
+      ok: 0,
+      n: 1,
+      code: 104,
+      errInfo: {
+                  writtenTo: [
+                                { _id: 0, host: "foo:27017", wtimeout: true },
+                                { _id: 1, host: "bar:27017", wtimeout: true }
+                             ]
+               },
+      errmsg: "Could not replicate operation within requested timeout"
+   }
+
+The returned document contains a subset of the following fields:
+
+.. data:: update.ok
+
+   The status of the command.
+
+.. data:: update.n
+
+   The number of documents updated.
+
+.. data:: update.upserted
+
+   If the :dbcommand:`update` results in inserting a single document,
+   :data:`update.upserted` is the value of the new document's ``_id``
+   field.
+
+   If the :dbcommand:`update` results in inserting more than one
+   document, :data:`update.upserted` is an array of ``_id`` fields
+   of all the new documents.
+
+.. data:: update.code
+
+   An integer value identifying the cause of failure.
+
+.. data:: update.errInfo
+
+   Structured data about the error, that is both human- and
+   machine-readable.
+
+.. data:: update.errmsg
+
+   A human-readable description of the cause of failure.
+
+Examples
+--------
+
+Single Update
+~~~~~~~~~~~~~
+
+.. example::
+
+   Given a ``people`` collection, update a person in the collection:
+
+   .. code-block:: javascript
+
+      db.runCommand(
+         {
+            update: "people",
+            updates: [ { q: { name: "Sam" }, u: { state: "active" }, limit: 1, upsert: true } ],
+            ordered: false,
+            writeConcern: { w: 1 }
+         }
+      )
+
+   The returned document:
+
+   .. code-block:: javascript
+
+      { "ok" : 1, "n" : 1, "upserted" : 0 }
+
+Bulk Update
+~~~~~~~~~~~
+
+.. example::
+
+   Now bulk-update three more people in the collection:
+
+   .. code-block:: javascript
+
+      db.runCommand(
+         {
+            update: "people",
+            updates: [ { q: { name: "Kay" }, u: { state: "active" }, limit: 1, upsert: true },
+                       { q: { name: "Bob" }, u: { state: "active" }, limit: 1, upsert: true },
+                       { q: { name: "Zack" }, u: { state: "active" }, limit: 1, upsert: true }
+                     ],
+            ordered: false,
+            writeConcern: { w: 1 }
+         }
+      ) 
+
+   The returned document:
+
+   .. code-block:: javascript
+
+      { "ok" : 1, "n" : 3, "upserted" : 0 }
+
