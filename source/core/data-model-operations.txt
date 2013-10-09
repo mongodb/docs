@@ -6,7 +6,7 @@ Operational Factors and Data Models
 
 Modeling application data for MongoDB depends on both the data itself,
 as well as the characteristics of MongoDB itself. For example,
-different data models may allow applications use more efficient
+different data models may allow applications to use more efficient
 queries, increase the throughput of insert and update operations, or
 distribute activity to a sharded cluster more effectively.
 
@@ -15,34 +15,33 @@ outside of the application but impact the performance of MongoDB based
 applications. When developing a data model, analyze all of your
 application's :doc:`read operations </core/read-operations>` and
 :doc:`write operations </core/write-operations>` in conjunction with
-the following considerations:
+the following considerations.
 
 .. _data-model-document-growth:
 
 Document Growth
 ---------------
 
-Some updates to documents can increase the size of documents
-size. These updates include, pushing elements to an array
-(i.e. :operator:`$push`) and adding new fields to a document. If the
-document size exceeds the allocated space for that document, MongoDB
-will relocate the document on disk. Relocating documents takes longer
-than other updates (i.e. *in place updates*,) and can lead to
-fragmented storage. Although MongoDB automatically :doc:`adds padding
-to document allocations </core/record-padding>` to minimize the
-likelihood of relocation, data models should avoid document growth
-when possible.
+Some updates to documents can increase the size of documents size.
+These updates include, pushing elements to an array (i.e.
+:operator:`$push`) and adding new fields to a document. If the document
+size exceeds the allocated space for that document, MongoDB will
+relocate the document on disk. Relocating documents takes longer than
+*in place updates* updates and can lead to fragmented storage. Although
+MongoDB automatically :doc:`adds padding to document allocations
+</core/record-padding>` to minimize the likelihood of relocation, data
+models should avoid document growth when possible.
 
-For instance, if your applications requires updates that will cause
+For instance, if your applications require updates that will cause
 document growth, you may want to refactor your data model to use
 references between data in distinct documents rather than a
 demoralized data model.
 
-MongoDB adaptive adjusts the amount of automatic padding to reduce
-occurrences of relocation; however, if you cannot use references and
-must embed related data, you may use a *pre-allocation* strategy to
-avoid document growth. Refer to :ecosystem:`Pre-Aggregated Reports Use
-Case </use-cases/pre-aggregated-reports>` for an example of the
+MongoDB adaptively adjusts the amount of automatic padding to reduce
+occurrences of relocation. You may also use a *pre-allocation*
+strategy to explicitly avoid document growth. Refer to
+:ecosystem:`Pre-Aggregated Reports Use Case
+</use-cases/pre-aggregated-reports>` for an example of the
 *pre-allocation* approach to handling document growth.
 
 .. _data-model-atomicity:
@@ -58,7 +57,7 @@ stores all fields with atomic dependency requirements in the same
 document. If the application can tolerate non-atomic updates for two
 pieces of data, you can store these data in separate documents.
 
-A data model that embeds related data in a single document,
+A data model that embeds related data in a single document
 facilitates these kinds of atomic operations. For data models that
 store references between related pieces of data, the application must
 issue separate read and write operations to retrieve and modify these
@@ -76,7 +75,7 @@ Sharding
 --------
 
 MongoDB uses :term:`sharding` to provide horizontal scaling. These
-clusters support deployments with large data sets and high throughput
+clusters support deployments with large data sets and high-throughput
 operations. Sharding allows users to :term:`partition` a
 :term:`collection` within a database to distribute the collection's
 documents across a number of :program:`mongod` instances or
@@ -86,8 +85,8 @@ To distribute data and application traffic in a sharded collection,
 MongoDB uses the :ref:`shard key <shard-key>`. Selecting the proper
 :ref:`shard key <shard-key>` has significant implications for
 performance, and can enable or prevent query isolation and increased
-write capacity. It is important to consider carefully the field, or
-fields, to use as the shard key.
+write capacity. It is important to consider carefully the field or
+fields to use as the shard key.
 
 See :doc:`/core/sharding-introduction` and
 :doc:`/core/sharding-shard-key` for more information.
@@ -95,11 +94,10 @@ See :doc:`/core/sharding-introduction` and
 Indexes
 -------
 
-Create indexes to support common queries. Generally, indexes and index
-use in MongoDB correspond to indexes and index use in relational
-database. Build indexes on fields that appear often in queries and for
-all operations that return sorted results. MongoDB automatically
-creates a unique index on the ``_id`` field.
+Use indexes to improve performance for common queries. Build indexes on
+fields that appear often in queries and for all operations that return
+sorted results. MongoDB automatically creates a unique index on the
+``_id`` field.
 
 As you create indexes, consider the following behaviors of indexes:
 
@@ -107,16 +105,19 @@ As you create indexes, consider the following behaviors of indexes:
 
 - Adding an index has some negative performance impact for write
   operations. For collections with high write-to-read ratio, indexes
-  are expensive since each insert must add keys to each index.
+  are expensive since each insert must also update any indexes.
 
-- Collections with high proportion of read operations to write
-  operations often benefit from additional indexes. Indexes do not
-  affect un-indexed read operations.
+- Collections with high read-to-write ratio often benefit from
+  additional indexes. Indexes do not affect un-indexed read operations.
+  
+- When active, each index consumes disk space and memory. This usage
+  can be significant and should be tracked for capacity planning,
+  especially for concerns over working set size.
 
-See :doc:`/applications/indexes` for more information on determining
-indexes. Additionally, the MongoDB :doc:`database profiler
-</tutorial/manage-the-database-profiler>` may help identify
-inefficient queries.
+See :doc:`/applications/indexes` for more information on indexes as
+well as :doc:`/tutorial/analyze-query-plan/`. Additionally, the MongoDB
+:doc:`database profiler </tutorial/manage-the-database-profiler>` may
+help identify inefficient queries.
 
 .. _data-model-large-number-of-collections:
 
