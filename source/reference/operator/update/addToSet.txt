@@ -7,27 +7,69 @@ $addToSet
 .. update:: $addToSet
 
    The :update:`$addToSet` operator adds a value to an array only *if* the
-   value is *not* in the array already. If the value *is* in the
-   array, :update:`$addToSet` returns without modifying the
-   array. Consider the following example:
+   value is *not* already in the array. If the value *is* in the
+   array, :update:`$addToSet` does not modify the
+   array.
 
    .. code-block:: javascript
 
-      db.collection.update( { <field>: <value> }, { $addToSet: { <field>: <addition> } } );
+      db.collection.update( <query>, { $addToSet: { <field>: <value> } } );
 
-   Here, :update:`$addToSet` appends ``<addition>`` to the array
-   stored in ``<field>`` that includes the element ``<value>``, *only
-   if* ``<addition>`` is not already a member of this array.
+   For example, if a collection ``inventory`` has the following document:
+
+   .. code-block:: javascript
+
+      { _id: 1, item: "filter", tags: [ "electronics", "camera" ] }
+
+   The following operation adds the element ``"accessories"`` to the ``tags``
+   array since ``"accessories"`` does not exist in the array:
+
+   .. code-block:: javascript
+
+      db.inventory.update(
+                           { _id: 1 },
+                           { $addToSet: { tags: "accessories"  } }
+                         )
+
+   
+   However, the following operation has no effect as ``"camera"`` is already
+   an element of the ``tags`` array:
+
+   .. code-block:: javascript
+
+      db.inventory.update(
+                           { _id: 1 },
+                           { $addToSet: { tags: "camera"  } }
+                         )
 
    .. note::
 
-      :update:`$addToSet` only ensures that there are no duplicate
-      items *added* to the set and does not affect existing duplicate
-      elements. :update:`$addToSet` does not guarantee a particular
-      ordering of elements in the modified set.
+      - :update:`$addToSet` only ensures that there are no duplicate
+        items *added* to the set and does not affect existing duplicate
+        elements. :update:`$addToSet` does not guarantee a particular
+        ordering of elements in the modified set.
 
-   .. include:: /reference/operator/update/each.txt
-      :start-after: start-each-example-for-add-to-set
-      :end-before: end-each-example-for-add-to-set
+      - If the field is absent in the document to update,
+        :update:`$addToSet` adds the array field with the value as
+        its element.
 
-   .. seealso:: :update:`$push`
+      - If the field is **not** an array, the operation will fail.
+
+      - If the value is an array, :update:`$addToSet` appends the whole
+        array as a *single* element. To add each element of the value
+        separately, use :update:`$addToSet` with the :update:`$each`
+        modifier. See :ref:`addToSet-modifiers` for details.
+
+.. _addToSet-modifiers:
+
+Modifiers
+---------
+
+You can use the :update:`$addToSet` operator with the
+:update:`$each` modifier. The :update:`$each` modifier allows to
+:update:`$addToSet` operator to add multiple values to the array
+field.
+
+.. include:: /includes/example-addToSet-each.rst
+
+.. seealso:: :update:`$push`

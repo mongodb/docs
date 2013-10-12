@@ -15,12 +15,12 @@ $push
                          )
 
    The following example appends ``89`` to the ``scores`` array for the
-   first document where the ``name`` field equals ``joe``:
+   first document where the ``_id`` field equals ``1``:
 
    .. code-block:: javascript
 
       db.students.update(
-                          { name: "joe" },
+                          { _id: 1 },
                           { $push: { scores: 89 } }
                         )
 
@@ -37,56 +37,63 @@ $push
         separately, use :update:`$push` with the :update:`$each`
         modifier.
 
-        The following example appends each element of ``[ 90, 92, 85 ]`` to
-        the ``scores`` array for the document where the ``name`` field
-        equals ``joe``:
-
-        .. code-block:: javascript
-
-           db.students.update(
-                               { name: "joe" },
-                               { $push: { scores: { $each: [ 90, 92, 85 ] } } }
-                             )
-
         .. versionchanged:: 2.4
            MongoDB adds support for the :update:`$each` modifier to
            the :update:`$push` operator. Before 2.4, use
            :update:`$pushAll` for similar functionality.
 
-   .. versionchanged:: 2.4
-      You can use the :update:`$push` operator with the following
-      modifiers:
+        .. include:: /includes/example-push-each.rst
 
-      - :update:`$each` appends multiple values to the array field,
+.. _push-modifiers:
 
-      - :update:`$slice`, which is only available with
-        :update:`$each`, limits the number of array elements, and
+Modifiers
+---------
 
-      - :update:`$sort`, which is only available when used with
-        *both* :update:`$each` and :update:`$slice`, orders
-        elements of the array. :update:`$sort` can only order array
-        elements that are documents.
+.. versionadded:: 2.4
+  
+You can use the :update:`$push` operator with the following modifiers:
 
-   The following example uses:
+- :update:`$each` appends multiple values to the array field,
 
-   - the :update:`$each` modifier to append documents to the
-     ``quizzes`` array,
+  .. versionchanged:: 2.5.3
 
-   - the :update:`$sort` modifier to sort all the elements of the
-     modified ``quizzes`` array by the ascending ``score`` field, and
+     When used in conjunction with the other modifiers, the
+     :update:`$each` modifier no longer needs to be first.
 
-   - the :update:`$slice` modifier to keep only the **last** five
-     sorted elements of the ``quizzes`` array.
+- :update:`$slice`, which is only available when used with
+  :update:`$each`, limits the number of array elements,
 
-   .. code-block:: javascript
+- :update:`$sort`, which is only available when used with
+  :update:`$each`, orders elements of the array, and
 
-      db.students.update( { name: "joe" },
-                          { $push: { quizzes: { $each: [ { id: 3, score: 8 },
-                                                         { id: 4, score: 7 },
-                                                         { id: 5, score: 6 } ],
-                                                $sort: { score: 1 },
-                                                $slice: -5
-                                              }
-                                   }
-                          }
-                        )
+  .. versionchanged:: 2.5.3
+
+     In previous versions, :update:`$sort` is only available
+     when used with both :update:`$each` and :update:`$slice`.
+
+- :update:`$position`, which is only available when used with
+  :update:`$each`, specifies the location in the array at which to
+  insert the new elements. Without the :update:`$position` modifier,
+  the :update:`$push` appends the elements to the end of the array.
+
+  .. versionadded:: 2.5.3
+
+The processing of the :update:`push` operation with modifiers occur
+in the following order, regardless of the order in which the modifiers
+appear:
+
+#. Update array to add elements in the correct position.
+
+#. Apply sort, if specified.
+
+#. Slice the array, if specified.
+
+#. Store the array.
+
+Examples
+--------
+
+Use ``$push`` Operator with Multiple Modifiers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/example-push-with-multiple-modifiers.rst
