@@ -2386,38 +2386,255 @@ MongoDB Enterprise Features
 Support for Auditing
 ~~~~~~~~~~~~~~~~~~~~
 
-.. versionadded:: 2.5.2
+.. versionadded:: 2.5.3
 
-MongoDB Enterprise adds features to audit server and client activity
-for :program:`mongod` and :program:`mongos` instances.
-
-.. important:: Auditing, like all new features in 2.5.2, is in ongoing
-   development. Specifically the interface, output format, audited
+.. important:: Auditing, like all new features in 2.5.3, is in ongoing
+   development. Specifically, the interface, output format, audited
    events and the structure of audited events will change
-   significantly in the in the 2.5 series before the release of 2.6.
+   significantly in the 2.5 series before the release of 2.6.
+   
+MongoDB Enterprise adds features to audit server and client activity
+for :program:`mongod` and :program:`mongos` instances. 
 
-To enable auditing, start :program:`mongod` or :program:`mongos` with
-the following argument:
+Audit Guarantee
+```````````````
+
+The audit feature writes every audit event [#filter]_ to an in-memory
+buffer of audit entries which is periodically written to disk. For any
+one connection, audit entries have a total order, such that if one
+event for a connection is written to disk, all prior events for that
+connection are written to disk.
+
+If an audit event entry corresponds to an operation that affects
+durable state, the entry is written to disk before the operation
+becomes durable. That is, if an operation becomes durable (written to
+journal), all audit messages on the connection that triggered the
+operation, up to and including the entry for the operation, will appear
+in the on-disk audit log.
+
+.. important:: Journaling must be enabled to maintain the audit
+   guarantee.
+
+.. warning:: Events may be lost if the server crashes before they are
+   committed to the audit log, even if the client received confirmation
+   of the event. For example, while auditing an aggregation operation,
+   the server might crash after returning the result but before the
+   audit log flushes.
+
+.. [#filter]
+   Audit configuration can include a :ref:`filter <audit-filter>` to
+   limit events to audit.
+
+Enable Auditing
+```````````````
+
+To support auditing, MongoDB introduces the ``--auditLog``, the
+``--auditPath``, and the ``--auditFilter`` options.
+
+Use the ``--auditLog`` option to enable auditing. The ``--auditLog``
+option can have one of the following values:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 50
+
+   * - Value
+
+     - Description
+
+   * - ``syslog``
+
+     - Output the audit log to syslog in text format. Not available on
+       Windows. Audit messages have a syslog severity level of ``info``
+       and a facility level of ``user``.
+
+   * - ``console``
+
+     - Output the audit log to ``stdout`` in text format.
+
+   * - ``textfile``
+
+     - Output the audit log, in text format, to the file specified in
+       ``--auditPath``.
+
+   * - ``bsonfile``
+
+     - Output the audit log, in BSON binary format, to the file
+       specified in ``--auditPath``.
+
+If you specify the ``--auditLog`` value of either ``textfile`` or
+``bsonfile``, you **must** specify the output file with the
+``--auditPath`` option. The ``--auditPath`` option can take
+either a full path name or a relative path name.
+
+For example, the following enables auditing events to a BSON file with
+the relative path name of ``data/db/auditBSON.log``.
 
 .. code-block:: sh
 
-   --setParameter auditLogPath=<option>
+   mongod --dbpath data/db --auditLog bsonfile --auditPath data/db/auditBSON.log
 
-The value of ``<option>`` is one of the following:
+.. note:: 
+   The audit files for the ``bsonfile`` output or the ``textfile``
+   output rotate at the same time as the server log file.
 
-- a path. This may be the same as the :setting:`logpath` for MongoDB's
-  process log. If you specify the same log file, then the path
-  specification must be *exactly* the same as the :setting:`logpath`
-  specification.
+.. _audit-operations:
 
-- the string ``:console`` to output audit log messages to standard
-  output.
+Audit Operations
+`````````````````
 
-- the string ``:syslog`` to output audit log messages to the system's
-  syslog facility.
+The audit feature logs the following operations:
 
-.. tip:: As of 2.5.2, auditing does not support filtering of audit
-   events.
+Schema (DDL) Operations
+^^^^^^^^^^^^^^^^^^^^^^^
+
+.. list-table:: 
+   :header-rows: 1
+
+   * - Operations
+     - 
+
+   * - 
+       | ``createCollection``
+       | ``createDatabase``
+       | ``createIndex``
+       | ``renameCollection``
+       
+     - 
+       | ``dropCollection``
+       | ``dropDatabase``
+       | ``dropIndex``
+        
+Replica Set Operations
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+
+   * - Operations
+     
+   * - ``replSetReconfig``
+
+Authentication and Authorization Operations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. list-table:: 
+   :header-rows: 1
+
+   * - Operations
+     - 
+     -
+   
+   * - 
+       | ``authenticate``
+       | ``authCheck``
+   
+     - 
+       | ``createUser``
+       | ``dropAllUsersFromDatabase``
+       | ``dropUser``
+       | ``updateUser``
+        
+     - 
+       | ``createRole``
+       | ``dropAllRolesFromDatabase``
+       | ``dropRole``
+       | ``grantRolesToUser``
+       | ``grantRolesToRole``
+       | ``grantPrivilegesToRole``
+       | ``revokePrivilegesFromRole``
+       | ``revokeRolesFromRole``
+       | ``revokeRolesFromUser``
+       | ``updateRole``
+
+.. note:: For ``authCheck`` operations, the auditing system logs only
+   authorization *failures*.
+
+General Operations
+^^^^^^^^^^^^^^^^^^
+
+.. list-table:: 
+   :header-rows: 1
+
+   * - Operations
+   
+   * - 
+       | ``applicationMessage``
+       | ``auditLogRotate`` 
+       | ``shutdown`` 
+
+For ``applicationMessage`` operations, see :ref:`logApplicationMessage`.
+
+.. _audit-filter:
+
+Filter Events
+`````````````
+
+By default, the audit feature logs all the actions listed above. The
+audit feature has an ``--auditFilter`` option to determine which
+events to log. The ``--auditFilter`` option takes a document of
+the form:
+
+.. code-block:: javascript
+
+   { atype: <expression> }
+
+The ``<expression>`` is a :ref:`query condition expression
+<query-selectors>` to match on :ref:`audit-operations`.
+
+.. tip::
+   In the :program:`mongo` shell, enclose the filter document in quotes to pass
+   the document as a string. 
+
+For example, to audit only the ``createCollection`` action, use the
+filter ``'{ atype: "createCollection" }'``:
+
+.. code-block:: javascript
+
+   mongod --dbpath data/db --auditLog bsonfile --auditPath data/db/audit1.bson --auditFilter '{ atype: "createCollection" }'
+
+To match on multiple operations, use the :operator:`$in` operator in
+the ``<expression>`` as in the following:
+
+.. code-block:: javascript
+
+   mongod --dbpath data/db --auditLog bsonfile --auditPath data/db/audit2.bson --auditFilter '{ atype: { $in: ["createCollection", "dropCollection" ] } }'
+
+For authentication operations, you can also specify the particular
+database with the ``param.db`` field:
+
+.. code-block:: javascript
+
+   { atype: <expression>, "param.db": <database> }
+
+For example, to audit only ``authenticate`` operations that occur
+against the ``test`` database, use the filter ``'{ atype:
+"authenticate", "param.db": "test" } }'``:
+
+.. code-block:: javascript
+
+   mongod --dbpath data/db --auth --auditLog bsonfile --auditPath data/db/audit3.bson --auditFilter '{ atype: "authenticate", "param.db": "test" } }'
+
+.. _logApplicationMessage:
+
+``logApplicationMessage`` Command
+`````````````````````````````````
+
+MongoDB provides a new :dbcommand:`logApplicationMessage` command to
+post a custom message to the audit log. The
+:dbcommand:`logApplicationMessage` has the following syntax:
+
+.. code-block:: javascript
+
+   { logApplicationMessage: <string> }
+
+If running with authorization, users must have :authrole:`clusterAdmin`
+role, or roles that inherit from :authrole:`clusterAdmin`, to run the
+command.
+   
+MongoDB associates these custom messages with the audit
+operation ``applicationMessage``, and the messages are subject to any
+filtering.
 
 MongoDB Enterprise for Windows
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
