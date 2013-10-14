@@ -147,17 +147,11 @@ result document. To return a cursor object, specify the ``cursor``
 operation and an initial batch size as options to the
 :dbcommand:`aggregate` command.
 
-.. TODO DOCS-2061 for the aggregateCursor --> aggregate; and flesh out
-
-In 2.5.2, the *temporary* :program:`mongo` shell helper
-``db.collection.aggregateCursor()`` returns a cursor.
-
 By returning a cursor, aggregation pipelines can return result sets of
 any size. In previous versions, the result of an aggregation operation
-could be no larger than 16 megabytes.
-Cursors returned from the aggregation command are equivalent to
-cursors returned from :method:`~db.collection.find()` queries in every
-way.
+could be no larger than 16 megabytes. Cursors returned from the
+aggregation command are equivalent to cursors returned from
+:method:`~db.collection.find()` queries in every way.
 
 The following command returns a document that can be used to instantiate
 an object. The command sets the ``batchSize`` to ``10`` documents:
@@ -178,18 +172,6 @@ The ``{batchSize: 10 }`` document specifies the size of the *initial*
 batch size only. Specify subsequent batch sizes to :ref:`OP_GET_MORE
 <wire-op-get-more>` operations as with other MongoDB cursors.
 
-The :method:`~db.collection.aggregate()` helper in the :program:`mongo`
-shell now returns a cursor by default:
-
-.. code-block:: javascript
-
-   db.records.aggregate(
-     [
-        { $project : { name: 1, email: 1, _id: 0 } },
-        { $sort : { name: 1 } }
-     ]
-   )
-
 A ``batchSize`` of ``0`` means an empty first batch and is useful if you
 want to quickly get back a cursor or failure message, without doing
 significant server-side work. To specify a ``batchSize`` of ``0``, use
@@ -206,6 +188,41 @@ an empty document:
         cursor: {}
       }
    )
+
+The :method:`db.collection.aggregate()` helper in the :program:`mongo`
+shell now returns a cursor by default:
+
+.. code-block:: javascript
+
+   var results = db.records.aggregate(
+                                       [
+                                         { $project : { name: 1, email: 1, _id: 0 } },
+                                         { $sort : { name: 1 } }
+                                       ]
+                                     )
+
+Like the cursor returned from :method:`db.collection.find()`, in the
+:program:`mongo` shell, if the cursor returned from the
+:method:`db.collection.aggregate()` is not assigned to a variable using
+the ``var`` keyword, then the cursor is automatically iterated up to 20
+times. See :doc:`/core/cursors` for cursor behavior in the
+:program:`mongo` shell and :doc:`/tutorial/iterate-a-cursor` for
+handling cursors in the :program:`mongo` shell.
+
+To specify a batch size, the :method:`db.collection.aggregate()` method
+can accept an optional document specifying options.
+
+.. code-block:: javascript
+
+   var results = db.records.aggregate(
+                                       [
+                                         { $project : { name: 1, email: 1, _id: 0 } },
+                                         { $sort : { name: 1 } }
+                                       ],
+                                       {
+                                          cursor: { batchSize: 10 }
+                                       }
+                                     )
 
 Improved Sorting
 ````````````````
@@ -245,6 +262,24 @@ You can run this pipeline operation, using the following command:
         allowDiskUsage: true
       }
    )
+
+To perform the same operation using the
+:method:`db.collection.aggregate()` helper in the :program:`mongo`
+shell, pass a document specifying the options as the second parameter
+to the method:
+
+.. code-block:: javascript
+                                     
+   var results = db.records.aggregate(
+                                       [
+                                          { $project : { name: 1, email: 1, _id: 0 } },
+                                          { $sort : { name : 1 } }
+                                       ],
+                                       {
+                                         cursor: { batchSize: 10 },
+                                         allowDiskUsage: true
+                                       }
+                                     )
 
 ``$redact`` Stage to Provide Filtering for Field-Level Access Control
 `````````````````````````````````````````````````````````````````````
