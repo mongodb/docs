@@ -1,0 +1,193 @@
+=================================
+Merge Chunks in a Sharded Cluster
+=================================
+
+.. default-domain:: mongodb
+
+.. contents::
+   :backlinks: none
+   :local:
+
+Overview
+--------
+
+The :dbcommand:`mergeChunks` command allows you to collapse empty chunks
+into neighboring chunks on the same shard. A :term:`chunk` is empty if
+it has no documents associated with its shard key range.
+
+.. important::
+
+   Empty :term:`chunks <chunk>` can make the :term:`balancer` assess
+   the cluster as properly balanced when it is not.
+
+Empty chunks can occur under various circumstances, including:
+
+- If a :doc:`pre-split </tutorial/create-chunks-in-sharded-cluster>`
+  creates more chunks than you need, inserted data may not fill up
+  the new chunks as expected.
+
+- If you delete many documents from a cluster, some chunks may no
+  longer contain data.
+
+This tutorial explains how to identify chunks available to merge,
+and how to merge those chunks with neighboring chunks.
+
+Procedure
+---------
+
+.. note::
+
+   Examples in this procedure uses a ``users`` :term:`collection` of the
+   ``test`` :term:`database`, that has been sharded on the ``username``
+   field.
+
+Identify Chunk Ranges
+~~~~~~~~~~~~~~~~~~~~~
+
+In the :program:`mongo` shell, identify the :term:`chunk <chunks>`
+ranges with the following method:
+
+.. code-block:: javascript
+
+   sh.status()
+
+On success, the method produces output similar to:
+
+.. code-block:: none
+
+   --- Sharding Status --- 
+   sharding version: {
+        "_id" : 1,
+        "version" : 4,
+        "minCompatibleVersion" : 4,
+        "currentVersion" : 5,
+        "clusterId" : ObjectId("5260032c901f6712dcd8f400")
+   }
+   shards:
+        {  "_id" : "shard0000",  "host" : "localhost:30000" }
+        {  "_id" : "shard0001",  "host" : "localhost:30001" }
+     databases:
+        {  "_id" : "admin",  "partitioned" : false,  "primary" : "config" }
+        {  "_id" : "test",  "partitioned" : true,  "primary" : "shard0001" }
+                test.users
+                        shard key: { "username" : 1 }
+                        chunks:
+                                shard0000       7
+                                shard0001       7
+                        { "username" : { "$minKey" : 1 } } -->> { "username" : "user16643" } on : shard0000 Timestamp(2, 0) 
+                        { "username" : "user16643" } -->> { "username" : "user2329" } on : shard0000 Timestamp(3, 0) 
+                        { "username" : "user2329" } -->> { "username" : "user29937" } on : shard0000 Timestamp(4, 0) 
+                        { "username" : "user29937" } -->> { "username" : "user36583" } on : shard0000 Timestamp(5, 0) 
+                        { "username" : "user36583" } -->> { "username" : "user43229" } on : shard0000 Timestamp(6, 0) 
+                        { "username" : "user43229" } -->> { "username" : "user49877" } on : shard0000 Timestamp(7, 0) 
+                        { "username" : "user49877" } -->> { "username" : "user56522" } on : shard0000 Timestamp(8, 0) 
+                        { "username" : "user56522" } -->> { "username" : "user63169" } on : shard0001 Timestamp(8, 1) 
+                        { "username" : "user63169" } -->> { "username" : "user69816" } on : shard0001 Timestamp(1, 8) 
+                        { "username" : "user69816" } -->> { "username" : "user76462" } on : shard0001 Timestamp(1, 9) 
+                        { "username" : "user76462" } -->> { "username" : "user83108" } on : shard0001 Timestamp(1, 10) 
+                        { "username" : "user83108" } -->> { "username" : "user89756" } on : shard0001 Timestamp(1, 11) 
+                        { "username" : "user89756" } -->> { "username" : "user96401" } on : shard0001 Timestamp(1, 12) 
+                        { "username" : "user96401" } -->> { "username" : { "$maxKey" : 1 } } on : shard0001 Timestamp(1, 13)
+
+The chunk ranges appear after the chunk counts for each sharded
+collection.
+
+Chunk counts:
+
+.. code-block:: javascript
+
+                        chunks:
+                                shard0000       7
+                                shard0001       7
+
+Chunk range:
+
+.. code-block:: javascript
+
+   { "username" : "user36583" } -->> { "username" : "user43229" } on : shard0000 Timestamp(6, 0)
+
+Verify a Chunk is Empty
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The :dbcommand:`mergeChunks` command requires at least one empty input
+chunk. In the :program:`mongo` shell, check the amount of data in a
+chunk using a command similar to:
+
+.. code-block:: javascript
+
+   db.runCommand({
+      "dataSize": "test.users",
+      "keyPattern": { username: 1 },
+      "min": { "username": "user36583" },
+      "max": { "username": "user43229" }
+   })
+
+If the input chunk to :dbcommand:`dataSize` is empty,
+:dbcommand:`dataSize` produces output similar to:
+
+.. code-block:: javascript
+
+   { "size" : 0, "numObjects" : 0, "millis" : 0, "ok" : 1 }
+
+Merge Chunks
+~~~~~~~~~~~~
+
+Merge two contiguous :term:`chunks <chunk>` on the same :term:`shard`,
+where at least one of the contains no data, using a command similar to:
+
+.. code-block:: javascript
+
+   db.runCommand( { mergeChunks: "test.users",
+                    bounds: [ { "username": "user68982" },
+                              { "username": "user95197" } ]
+                } )
+
+On success, :dbcommand:`mergeChunks` produces the following output:
+
+.. code-block:: javascript
+
+   { "ok" : 1 }
+
+On any failure condition, :dbcommand:`mergeChunks` returns a document
+with an ``ok`` value of ``0``.
+
+View Merged Chunks Ranges
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After merging all empty chunks, confirm the new chunk ranges:
+
+.. code-block:: javascript
+
+   sh.status()
+
+With output similar to:
+
+.. code-block:: none
+
+   --- Sharding Status --- 
+   sharding version: {
+        "_id" : 1,
+        "version" : 4,
+        "minCompatibleVersion" : 4,
+        "currentVersion" : 5,
+        "clusterId" : ObjectId("5260032c901f6712dcd8f400")
+   }
+   shards:
+        {  "_id" : "shard0000",  "host" : "localhost:30000" }
+        {  "_id" : "shard0001",  "host" : "localhost:30001" }
+     databases:
+        {  "_id" : "admin",  "partitioned" : false,  "primary" : "config" }
+        {  "_id" : "test",  "partitioned" : true,  "primary" : "shard0001" }
+                test.users
+                        shard key: { "username" : 1 }
+                        chunks:
+                                shard0000       2
+                                shard0001       2
+                        { "username" : { "$minKey" : 1 } } -->> { "username" : "user16643" } on : shard0000 Timestamp(2, 0) 
+                        { "username" : "user16643" } -->> { "username" : "user56522" } on : shard0000 Timestamp(3, 0) 
+                        { "username" : "user56522" } -->> { "username" : "user96401" } on : shard0001 Timestamp(8, 1) 
+                        { "username" : "user96401" } -->> { "username" : { "$maxKey" : 1 } } on : shard0001 Timestamp(1, 13)
+
+
+.. .. include:: /includes/steps/merge-chunks-in-sharded-cluster.rst
+

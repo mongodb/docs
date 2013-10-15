@@ -1,0 +1,126 @@
+===========
+mergeChunks
+===========
+
+.. default-domain:: mongodb
+
+Definition
+----------
+
+.. dbcommand:: mergeChunks
+
+   For a sharded collection, converts two contiguous :term:`chunks
+   <chunk>` on the same shard into one, using an input key range. One
+   or both chunks must be empty. Issue the :dbcommand:`mergeChunks`
+   command from a :program:`mongos` instance.
+
+   .. note::
+
+      Use the :dbcommand:`mergeChunks` only in special circumstances
+      such as cleaning up your :term:`sharded cluster` after removing
+      many documents.
+
+   :dbcommand:`mergeChunks` has the following form:
+
+   .. code-block:: javascript
+   
+      db.runCommand( { mergeChunks : <namespace> ,
+                       bounds : [ { <shardKeyField>: <minFieldValue> },
+                                  { <shardKeyField>: <maxFieldValue> } ] } )
+
+   Or, with a more complex shard key, you must include the full shard key for
+   the upper and lower bounds.
+
+   .. example::
+
+      If the shard key is ``{ x: 1, y: 1 }``, :dbcommand:`mergeChunks`
+      has the following form:
+
+      .. code-block:: javascript
+   
+         db.runCommand( { mergeChunks : <namespace> ,
+                          bounds : [ { x: <minValue>, y: <minValue> },
+                                     { x: <minValue>, y: <maxValue> } ] } )
+
+   The :dbcommand:`mergeChunks` command has the following fields:
+
+   .. include:: /reference/command/mergeChunks-field.rst
+
+   .. important::
+
+      The following must all be true, or :dbcommand:`mergeChunks`
+      returns an error:
+
+      - In the ``bounds`` field, ``<minkey>`` and ``<maxkey>`` must correspond to
+        the lower and upper bounds of the :term:`chunks <chunk>` to merge.
+
+      - The two chunks must reside on the same shard.
+
+      - The two chunks must be contiguous.
+
+      - One or both chunks must be empty.
+
+Return Messages
+---------------
+
+On success, :dbcommand:`mergeChunks` returns to following document:
+
+.. code-block:: none
+
+   { "ok" : 1 }
+
+Another Operation in Progress
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:dbcommand:`mergeChunks` returns the following error message if another
+metadata operation is in progress on the :data:`~config.chunks` collection:
+
+.. code-block:: none
+
+   errmsg: "The collection's metadata lock is already taken."
+
+If another process, such as a balancer process, changes meta data while
+:dbcommand:`mergeChunks` is running, you may see this error. You may
+retry the :dbcommand:`mergeChunks` operation without side effects.
+
+Chunks on Different Shards
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the input :term:`chunks <chunk>` are not on the same :term:`shard`,
+:dbcommand:`mergeChunks` returns an error similar to the following:
+
+.. code-block:: javascript
+
+   {
+      "ok" : 0,
+      "errmsg" : "could not merge chunks, collection test.users does not contain a chunk ending at { username: \"user63169\" }"
+   }
+
+Noncontiguous Chunks
+~~~~~~~~~~~~~~~~~~~~
+
+If the input :term:`chunks <chunk>` are not contiguous,
+:dbcommand:`mergeChunks` returns an error similar to the following:
+
+.. code-block:: javascript
+
+   {
+      "ok" : 0,
+      "errmsg" : "could not merge chunks, collection test.users has more than 2 chunks between [{ username: \"user29937\" }, { username: \"user49877\" })"
+   }
+
+Documents in Both Chunks
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+If neither input :term:`chunk` is empty, :dbcommand:`mergeChunks` 
+returns an error similar to the following:
+
+.. code-block:: javascript
+
+   {
+      "ok" : 0,
+      "errmsg" : "could not merge chunks, collection test.users has more than one non-empty chunk between [{ username: \"user36583\" }, { username: \"user49877\" })"
+   }
+
+.. admin-only
+
