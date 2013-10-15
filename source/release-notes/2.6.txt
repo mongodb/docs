@@ -264,15 +264,16 @@ You can run this pipeline operation, using the following command:
       .. code-block:: javascript
 
          { a: {
-             level: 1,
-             b: {
-                 level: 5,
-                 c: {
-                     level: 1,
-                     message: "Hello"
-                 }
-             },
-             d: "World."
+                level: 1,
+                b: {
+                    level: 5,
+                    c: {
+                        level: 1,
+                        message: "Hello"
+                    }
+                },
+                d: "World."
+             }
          }
 
       Consider the following aggregation operation:
@@ -282,7 +283,7 @@ You can run this pipeline operation, using the following command:
          db.test.aggregate(
             { $match: {} },
             { $redact: { $cond: [ { $lt: [ '$level', 3 ] },
-                                  "$$CONTINUE",
+                                  "$$DESCEND",
                                   "$$PRUNE" ]
                        }
             }
@@ -290,16 +291,13 @@ You can run this pipeline operation, using the following command:
 
       This operation evaluates every field at every level for all
       documents in the ``test`` collection, and uses the
-      :expression:`$cond` expression and the variables ``$$CONTINUE``
+      :expression:`$cond` expression and the variables ``$$DESCEND``
       and ``$$PRUNE`` to specify the redaction of document parts in the
       aggregation pipeline.
 
-      .. important:: ``$$CONTINUE`` will become ``$$DESCEND`` in
-         2.5.3.
-
       Specifically, if the field ``level`` is less than 3, (i.e. ``{
       $lt: [ '$level', 3' ] }``) :pipeline:`$redact` continues (i.e.
-      ``$$CONTINUE``) evaluating the fields and sub-documents at this
+      ``$$DESCEND``) evaluating the fields and sub-documents at this
       level of the input document. If the value of ``level`` is greater
       than ``3``, then :pipeline:`$redact` removes all data at this
       level of the document.
@@ -309,21 +307,19 @@ You can run this pipeline operation, using the following command:
       .. code-block:: javascript
 
          { a: {
-             level: 1,
-             d: "World."
-         }
+                level: 1,
+                d: "World."
+         }    }
 
       You may also specify ``$$KEEP`` as a variable to
       :expression:`$cond`, which returns the entire sub-document
-      without transversing, as ``$$CONTINUE``.
+      without transversing, as ``$$DESCEND``.
 
       .. START-COMMENT
 
          In 2.5.3, :expression:`$cond` will accept a document with
          named parameters in addition to the current ordered array of
          parameters.
-
-         In 2.5.3, ``$$CONTINUE`` will become ``$$DESCEND``.
 
       .. END-COMMENT
 
@@ -1307,9 +1303,10 @@ of the ``subject`` from the client certificate as a MongoDB user.
    role for the user, the above example specified ``'admin'`` in the
    ``source`` field.
 
-   .. note::
-      The following roles are defined only in the ``admin`` database:
-      ``clusterAdmin``, ``readAnyDatabase``, ``readWriteAnyDatabase``,
+   .. note:: 
+      Some roles are defined only in the ``admin`` database. These
+      roles include, but are not limited to: ``clusterAdmin``,
+      ``readAnyDatabase``, ``readWriteAnyDatabase``,
       ``dbAdminAnyDatabase``, and ``userAdminAnyDatabase``. To add the
       user with these privileges, specify ``'admin'`` in the ``source``.
 
