@@ -6,12 +6,6 @@ db.collection.aggregate()
 
 .. versionadded:: 2.2
 
-.. versionchanged:: 2.5.3
-   :method:`~db.collection.aggregate()` now returns a cursor. As a
-   result, you cannot use the :method:`~db.collection.aggregate()`
-   method from the 2.5.3 :program:`mongo` shell to perform aggregation
-   operations on earlier MongoDB deployments.
-
 Definition
 ----------
 
@@ -23,21 +17,26 @@ Definition
 
    .. include:: /reference/method/db.collection.aggregate-param.rst
 
-   :returns: A document with two fields:
+   :returns:
+      A :term:`cursor` to the documents produced by the final
+      stage of the aggregation pipeline operation.
 
-      - ``result`` which holds an array of documents returned by the
-        :term:`pipeline`
+      .. versionchanged:: 2.5.3
+         :method:`~db.collection.aggregate()` now returns a cursor,
+         previous versions returned all results in a single document.
 
-      - ``ok`` which holds the value ``1``, indicating success.
-
-   :throws exception:
-
-      .. include:: /includes/fact-agg-helper-exception.rst
+      If you use :pipeline:`$out`,
+      :method:`~db.collection.aggregate()` returns an empty
+      cursor. See :doc:`/reference/operator/aggregation/out`
+      for more information.
 
 .. important:: You cannot use the :method:`~db.collection.aggregate()`
    on a 2.5.3 (or later) version of the :program:`mongo` shell to
    perform aggregation pipeline operations on earlier MongoDB
    deployments.
+
+.. seealso:: For more information, see :doc:`/core/aggregation`,
+   :doc:`/reference/aggregation`, and :dbcommand:`aggregate`.
 
 Example
 -------
@@ -85,33 +84,10 @@ selects the ``author`` and ``tags`` fields using the
 operator produces one output document per tag. Finally, the
 :pipeline:`$group` pipeline operator groups authors by tags.
 
-The operation returns the following document:
+The operation returns a cursor with documents that resemble the
+following:
 
 .. code-block:: javascript
 
-   {
-      "result" : [
-                   {
-                     "_id" : { "tags" : "good" },
-                     "authors" : [ "bob", "mike", ... ]
-                   },
-                   {
-                     "_id" : { "tags" : "fun" },
-                     "authors" : [ "bob", "al" ]
-                   },
-
-                   ...
-
-                 ],
-      "ok" : 1
-   }
-
-The returned document contains two fields:
-
-- ``result`` field, which holds an array of documents returned by
-  the :ref:`pipeline <aggregation-pipeline>`, and
-
-- ``ok`` field, which holds the value ``1``, indicating success.
-
-For more information, see :doc:`/core/aggregation`,
-:doc:`/reference/aggregation`, and :dbcommand:`aggregate`.
+   { "_id" : { "tags" : "good" }, "authors" : [ "bob", "mike", ... ] }
+   { "_id" : { "tags" : "fun" }, "authors" : [ "bob", "al" ] }
