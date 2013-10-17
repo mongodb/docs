@@ -6,56 +6,110 @@ aggregate
 
 .. dbcommand:: aggregate
 
-   .. versionadded:: 2.1.0
+   .. versionadded:: 2.2
 
-   :dbcommand:`aggregate` implements the :term:`aggregation
-   framework`. Consider the following prototype form:
+   .. versionchanged:: 2.5.2
+      :dbcommand:`aggregate` added support for returning a cursor as
+      well as support for a new sort facility.
 
-   .. code-block:: javascript
-
-      { aggregate: "[collection]", pipeline: [pipeline] }
-
-   Where ``[collection]`` specifies the name of the collection that
-   contains the data that you wish to aggregate. The ``pipeline``
-   argument holds an array that contains the specification for the
-   aggregation operation. Consider the following example.
+   :dbcommand:`aggregate` implements an aggregation pipeline, that
+   allows users to process data from a MongoDB instance using a
+   sequence of stage-based manipulations. The command has following
+   prototype form:
 
    .. code-block:: javascript
 
-      db.runCommand(
-      { aggregate : "article", pipeline : [
-        { $project : {
-           author : 1,
-           tags : 1,
-        } },
-        { $unwind : "$tags" },
-        { $group : {
-           _id : "$tags",
-           authors : { $addToSet : "$author" }
-        } }
-       ] }
-      );
+      {
+        aggregate: "<collection>",
+        pipeline: [ <stage>, <...> ],
+        cursor: <document>,
+        allowDiskUsage: <boolean>
+      }
 
-   More typically this operation would use the
-   :method:`~db.collection.aggregate()` helper in the :program:`mongo`
-   shell, and would resemble the following:
+   The :dbcommand:`aggregate` command takes the following fields as
+   arguments:
 
-   .. code-block:: javascript
+   .. include:: /reference/command/aggregate-field.rst
 
-      db.article.aggregate(
-        { $project : {
-           author : 1,
-           tags : 1,
-        } },
-        { $unwind : "$tags" },
-        { $group : {
-           _id : "$tags",
-           authors : { $addToSet : "$author" }
-        } }
-      );
+For more information about the aggregation pipeline
+:doc:`/core/aggregation-pipeline` and
+:doc:`/reference/aggregation`.
 
-   .. include:: /includes/fact-agg-helper-exception.rst
+Example
+-------
 
-   For more information about the aggregation pipeline
-   :doc:`/core/aggregation-pipeline` and
-   :doc:`/reference/aggregation`.
+Aggregate Data with Multi-Stage Pipeline
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider the following example.
+
+.. code-block:: javascript
+
+   db.runCommand(
+   { aggregate : "article",
+     pipeline : [
+     { $project : {
+        author : 1,
+        tags : 1,
+     } },
+     { $unwind : "$tags" },
+     { $group : {
+        _id : "$tags",
+        authors : { $addToSet : "$author" }
+     } }
+    ] }
+   );
+
+More typically this operation would use the
+:method:`~db.collection.aggregate()` helper in the :program:`mongo`
+shell, and would resemble the following:
+
+.. code-block:: javascript
+
+   db.article.aggregate(
+     { $project : {
+        author : 1,
+        tags : 1,
+     } },
+     { $unwind : "$tags" },
+     { $group : {
+        _id : "$tags",
+        authors : { $addToSet : "$author" }
+     } }
+   );
+
+.. include:: /includes/fact-agg-helper-exception.rst
+
+Aggregate Data using External Sort
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 2.5.3
+
+In the :program:`mongo` shell, you can use the following operation to
+return a cursor to the results of an aggregation operation:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      { aggregate: "records",
+        pipeline: [
+           { $project : { name: 1, email: 1, _id: 0 } },
+           { $sort : { name : 1 } }
+        ],
+        cursor: { batchSize: 10 },
+        allowDiskUsage: true
+      }
+   )
+
+.. code-block:: javascript
+
+   db.records.aggregate([
+                          { $project : { name: 1, email: 1, _id: 0 } },
+                          { $sort : { name : 1 } }
+                        ],
+                        {
+                          allowDiskUsage: true
+                        })
+
+.. note:: In 2.5.3 and later,:method:`~db.collection.aggregate()`
+   always returns a cursor.
