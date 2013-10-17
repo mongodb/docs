@@ -323,9 +323,9 @@ to the method:
 
          db.test.aggregate(
             { $match: {} },
-            { $redact: { $cond: [ { $lt: [ '$level', 3 ] },
-                                  "$$DESCEND",
-                                  "$$PRUNE" ]
+            { $redact: { $cond: { if: { $lt: [ '$level', 3 ] },
+                                  then: "$$DESCEND",
+                                  else: "$$PRUNE" }
                        }
             }
          )
@@ -355,14 +355,6 @@ to the method:
       You may also specify ``$$KEEP`` as a variable to
       :expression:`$cond`, which returns the entire sub-document
       without transversing, as ``$$DESCEND``.
-
-      .. START-COMMENT
-
-         In 2.5.3, :expression:`$cond` will accept a document with
-         named parameters in addition to the current ordered array of
-         parameters.
-
-      .. END-COMMENT
 
       .. see:: :expression:`$cond`.
 
@@ -427,58 +419,11 @@ supports the following set expressions:
    use the name of the variable prefixed by **2** dollar signs
    (i.e. ``$$``) as in: ``$$<name>``.
 
-.. expression:: $let
-
-   :expression:`$let` binds variables for use in sub-expressions. For
-   example:
-
-   .. code-block:: javascript
-
-      { $project: { remaining: { $let: {
-                                         vars: { tally: 75, count: 50 },
-                                         in: { $subtract: [ "$$tally", "$$count" ] }
-                                        }
-                                }
-                  }
-      }
-
-   Would return a document with the following:
-
-   .. code-block:: javascript
-
-      { remaining: 25 }
-
-   :expression:`$let` is available the in :pipeline:`$project`,
-   :pipeline:`$group`, and :pipeline:`$redact` pipeline stages.
-
-.. expression:: $map
-
-   :expression:`$map` applies a sub-expression to each item in an
-   array and returns an array with the result of the sub-expression
-
-   :expression:`$map` is available the in :pipeline:`$project`,
-   :pipeline:`$group`, and :pipeline:`$redact` pipeline stages.
-
-   Given an input document that resembles the following:
-
-   .. code-block:: javascript
-
-      { skews: [ 1, 1, 2, 3, 5, 8 ] }
-
-   And the following :pipeline:`$project` statement:
-
-   .. code-block:: javascript
-
-      { $project: { adjustments: { $map: { input: "$skews",
-                                           as: "adj",
-                                           in: { $add: [ "$$adj", 12 ] } } } } }
-
-   The :expression:`$map` would transform the input document into the
-   following output document:
-
-   .. code-block:: javascript
-
-      { adjustments: [ 13, 13, 14, 15, 17, 20 ] }
+The :expression:`$let` and :expression:`$map` make it possible to
+declare and manipulate variables within an aggregation pipeline
+stages, specifically the :pipeline:`$project`, :pipeline:`$group`, and
+:pipeline:`$redact` stages. See: :doc:`/reference/aggregation/let` and
+:doc:`/reference/aggregation/map` for more information.
 
 ``$literal`` Expression for Aggregation Pipeline Stages
 ```````````````````````````````````````````````````````
