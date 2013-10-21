@@ -13,10 +13,8 @@
 
    .. include:: /includes/fact-authentication-source-tool.rst
 
-   See :data:`~<database>.system.users.userSource`,
-   :doc:`/reference/privilege-documents` and
-   :doc:`/reference/user-privileges` for more information about
-   delegated authentication in MongoDB.
+   See :doc:`/reference/user-privileges` for more information about
+   authentication in MongoDB.
 
 .. option:: --authenticationMechanism <name>
 
