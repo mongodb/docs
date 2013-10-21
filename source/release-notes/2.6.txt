@@ -155,7 +155,7 @@ with the role { role: "root", db: "admin" } using the
 
 Version 2.5.3 is for testing and development **only**.
 
-``$mod`` Query Operator Enforces Strict Syntax 
+``$mod`` Query Operator Enforces Strict Syntax
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The :query:`$mod` operator now only accepts an array with exactly two
@@ -202,12 +202,12 @@ example,
 .. code-block:: javascript
 
    db.collection.aggregate( { $match: ... }, { $group: ...} )
-   
+
 However, if you do not specify the ``<pipeline>`` in an array, you
 cannot specify options.
 
 .. seealso:: :ref:`agg-helper-incompatibility`
-      
+
 ``$out`` Stage to Write Data to a Collection
 ````````````````````````````````````````````
 
@@ -218,7 +218,7 @@ writes the result of the pipeline operation to an output collection and
 returns an empty result set. In version 2.5.3 of the :program:`mongo`
 shell, because the :method:`db.collection.aggregate()` method returns a
 cursor, specifying an :pipeline:`$out` stage returns an empty cursor.
-   
+
 See the :doc:`$out documentation </reference/operator/aggregation/out>`
 for more information.
 
@@ -249,7 +249,7 @@ retrieved), such as the following methods:
 
 .. hlist::
    :columns: 2
-   
+
    * :method:`cursor.hasNext()`
    * :method:`cursor.next()`
    * :method:`cursor.toArray()`
@@ -298,7 +298,7 @@ without doing significant server-side work, as in the following example:
                                           cursor: { batchSize: 0 }
                                        }
                                      )
-                                     
+
 The :dbcommand:`aggregate` command may also return a cursor rather than
 a result document. To return a cursor object, specify the ``cursor``
 option. You can also specify an optional initial batch size to the
@@ -336,7 +336,7 @@ To specify an *initial* batch size, specify the ``batchSize`` in the
         cursor: { batchSize: 0 }
       }
    )
-   
+
 The ``{batchSize: 0 }`` document specifies the size of the *initial*
 batch size only. Specify subsequent batch sizes to :ref:`OP_GET_MORE
 <wire-op-get-more>` operations as with other MongoDB cursors. A
@@ -356,7 +356,7 @@ index or that exceed the maximum memory use limit, see
 :limit:`Aggregation Sort Operation` for more information.
 
 For large sort operations these "external sort" operations can write
-data to the ``_tmp`` sub-directory in the :setting:`dbpath` directory. 
+data to the ``_tmp`` sub-directory in the :setting:`dbpath` directory.
 
 To enable external sort, specify the ``allowDiskUsage`` option as the
 :ref:`second parameter <aggregation-method-change>` to the
@@ -365,7 +365,7 @@ To enable external sort, specify the ``allowDiskUsage`` option as the
 .. include:: /includes/important-uses-new-aggregate-helper.rst
 
 .. code-block:: javascript
-                                     
+
    var results = db.records.aggregate(
                                        [
                                           { $project : { name: 1, email: 1, _id: 0 } },
@@ -375,11 +375,11 @@ To enable external sort, specify the ``allowDiskUsage`` option as the
                                          allowDiskUsage: true
                                        }
                                      )
- 
+
 For the :dbcommand:`aggregate` command, add the new ``allowDiskUsage``
 argument to the :dbcommand:`aggregate` command, as in the following
 prototype:
-                                     
+
 .. code-block:: javascript
 
    {
@@ -400,7 +400,7 @@ prototype:
 
    Provides a method to restrict the content of a returned document on
    a per-field level.
-   
+
    .. example::
 
       Given a collection with the following document in a ``test``
@@ -505,7 +505,7 @@ supports the following set expressions:
 
    :expression:`$anyElementsTrue` was ``$all`` in versions of 2.5
    before 2.5.3.
-   
+
 .. expression:: $anyElementTrue
 
    Takes a single expression that returns an array and returns ``true``
@@ -595,7 +595,7 @@ would otherwise interpret directly. See
 
 The new ``explain`` option for aggregation provides information about
 how the command processes the pipeline. The returned document contains
-information on each stage of the pipeline. 
+information on each stage of the pipeline.
 
 The intended readers of the ``explain`` output document are humans, and
 not machines, and the output format is subject to change between
@@ -610,22 +610,22 @@ parameter <aggregation-method-change>` to the
 .. code-block:: javascript
 
    db.collection.aggregate( [ <pipeline operations> ],
-                            {explain: true } 
+                            {explain: true }
                           )
-                                                    
+
 .. example::
 
-   In the :program:`mongo` shell, given the following aggregation 
-   
+   In the :program:`mongo` shell, given the following aggregation
+
    .. code-block:: javascript
-   
-      db.records.aggregate( 
+
+      db.records.aggregate(
                             [ { $sort: { name : -1 } },
-                              { $limit: 5 } 
+                              { $limit: 5 }
                             ],
                             { explain: true }
                           )
-                          
+
    The returned document provides information on how
    :dbcommand:`aggregate` processed the pipeline. For this example, the
    returned document may show, among other details, which index, if
@@ -646,59 +646,16 @@ command, as shown:
    db.runCommand( { aggregate: "<collection>",
                     explain: true,
                     pipeline: [ <pipeline operations> ] } )
-      
+
 
 ``$cond`` Accepts Objects as Arguments
 ``````````````````````````````````````
 
+.. versionadded:: 2.5.3
+
 The ternary :expression:`$cond` expression can now take either an object
-or an array. Previously :expression:`$cond` always took an array.
-
-When :expression:`$cond` takes an object, the object contains the
-fields ``if``, ``then``, and ``else`` and uses the following syntax:
-
-.. code-block:: javascript
-
-   { $cond: { if: <boolean-expression>, 
-              then: <true-case>, 
-              else: <false-case> } }
-
-The ``if`` field takes an expression that evaluates to a Boolean
-value.  If the expression evaluates to ``true``, then
-:expression:`$cond` evaluates and returns the value of the ``then``
-field. Otherwise, :expression:`$cond` evaluates and returns the value
-of the ``else`` field.
-
-The expressions in the ``if``, ``then``, and ``else`` fields may be
-valid MongoDB :doc:`aggregation expressions
-</reference/operator/aggregation>`. You cannot use
-JavaScript in the expressions.
-
-.. include:: /includes/important-uses-new-aggregate-helper.rst
-
-.. example::
-
-   The following aggregation pipeline operation returns a
-   ``weightedCount`` for each ``item_id``. The :group:`$sum` operator
-   uses the :expression:`$cond` expression to add ``2`` if the value
-   stored in the ``level`` field is ``E`` and ``1`` otherwise.
-
-   .. code-block:: javascript
-
-      db.survey.aggregate(
-         [
-            {
-               $group: {
-                  _id: "$item_id",
-                  weightedCount: { $sum: { $cond: { if: { $eq: [ "$level", "E" ] } ,
-                                                    then: 2,
-                                                    else: 1
-                                                  } } }
-               }
-            }
-         ]
-      )
-
+or an array. Previously :expression:`$cond` always took an array. See
+:doc:`/reference/operator/aggregation/cond` for more information.
 
 New ``$size`` Operator for the Aggregation Pipeline
 ```````````````````````````````````````````````````
@@ -1461,7 +1418,7 @@ addition to the MongoDB :doc:`built-in roles
 To create a role, define its privileges by pairing resources (e.g.
 database, collection) with actions (e.g. ``find``, ``insert``). To
 inherit privileges from other roles, specify the roles from which to
-inherit. 
+inherit.
 
 MongoDB scopes each role to the database in which it is created and
 uniquely identifies each role by the pairing of its name and its

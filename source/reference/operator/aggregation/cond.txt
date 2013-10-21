@@ -4,44 +4,116 @@ $cond (aggregation)
 
 .. default-domain:: mongodb
 
+Definition
+----------
+
 .. expression:: $cond
 
-   :expression:`$cond` is a ternary operator that takes an array
-   of three expressions, where the first expression evaluates to a
-   Boolean value. If the first expression evaluates to ``true``, then
-   :expression:`$cond` evaluates and returns the value of the second
-   expression. If the first expression evaluates to ``false``, then
-   :expression:`$cond` evaluates and returns the third expression.
+   :expression:`$cond` is a ternary operator that takes three
+   expressions and evaluates the first express to determine which of
+   the subsequent expressions to return. :expression:`$cond` accepts
+   input either as an array with three items, or as an object.
 
-   Use the :expression:`$cond` operator with the following syntax:
+   .. versionadded:: 2.5.3
+      :expression:`$cond` now accepts expressions in the form of documents.
 
-   .. code-block:: javascript
+Syntax
+------
 
-      { $cond: [ <boolean-expression>, <true-case>, <false-case> ] }
+Document
+~~~~~~~~
 
-   All three values in the array specified to :expression:`$cond`
-   must be valid MongoDB :doc:`aggregation expressions
-   </reference/operator/aggregation>` or document fields. Do
-   not use JavaScript in any aggregation statements, including
-   :expression:`$cond`.
+.. versionadded:: 2.5.3
+   :expression:`$cond` adds support for the document format.
 
-   .. example::
+When :expression:`$cond` takes a document, the document has three
+fields: ``if``, ``then``, and ``else``. Consider the following
+example:
 
-      The following aggregation on the ``survey`` collection groups
-      by the ``item_id`` field and returns a ``weightedCount``
-      for each ``item_id``. The :group:`$sum` operator uses the
-      :expression:`$cond` expression to add either ``2`` if the value
-      stored in the ``level`` field is ``E`` and ``1`` otherwise.
+.. code-block:: javascript
 
-      .. code-block:: javascript
+   { $cond: { if: <boolean-expression>,
+              then: <true-case>,
+              else: <false-case> } }
 
-         db.survey.aggregate(
-            [
-               {
-                  $group: {
-                     _id: "$item_id",
-                     weightedCount: { $sum: { $cond: [ { $eq: [ "$level", "E" ] } , 2, 1 ] } } 
-                  }
-               }
-            ]
-         )
+The ``if`` field takes an expression that evaluates to a Boolean
+value.  If the expression evaluates to ``true``, then
+:expression:`$cond` evaluates and returns the value of the ``then``
+field. Otherwise, :expression:`$cond` evaluates and returns the value
+of the ``else`` field.
+
+The expressions in the ``if``, ``then``, and ``else`` fields may be
+valid MongoDB :doc:`aggregation expressions
+</reference/operator/aggregation>`. You cannot use
+JavaScript in the expressions.
+
+Array
+~~~~~
+
+When you specify :expression:`$cond` as an array of three expressions,
+the first expression evaluates to a Boolean value. If the first
+expression evaluates to``true``, then :expression:`$cond` evaluates
+and returns the value of the second expression. If the first
+expression evaluates to ``false``, then :expression:`$cond` evaluates
+and returns the third expression.
+
+Use the :expression:`$cond` operator with the following syntax:
+
+.. code-block:: javascript
+
+   { $cond: [ <boolean-expression>, <true-case>, <false-case> ] }
+
+All three values in the array specified to :expression:`$cond`
+must be valid MongoDB :doc:`aggregation expressions
+</reference/operator/aggregation>` or document fields. Do not use
+JavaScript in any aggregation statements, including
+:expression:`$cond`.
+
+Examples
+--------
+
+Specify ``$cond`` Expression as a Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation pipeline operation returns a
+``weightedCount`` for each ``item_id``. The :group:`$sum` operator
+uses the :expression:`$cond` expression to add ``2`` if the value
+stored in the ``level`` field is ``E`` and ``1`` otherwise.
+
+.. code-block:: javascript
+
+   db.survey.aggregate(
+      [
+         {
+            $group: {
+               _id: "$item_id",
+               weightedCount: { $sum: { $cond: { if: { $eq: [ "$level", "E" ] } ,
+                                                 then: 2,
+                                                 else: 1
+                                               } } }
+            }
+         }
+      ]
+   )
+
+Specify a ``$cond`` Expression using an Array
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation on the ``survey`` collection groups
+by the ``item_id`` field and returns a ``weightedCount``
+for each ``item_id``. The :group:`$sum` operator uses the
+:expression:`$cond` expression to add either ``2`` if the value
+stored in the ``level`` field is ``E`` and ``1`` otherwise.
+
+.. code-block:: javascript
+
+   db.survey.aggregate(
+      [
+         {
+            $group: {
+               _id: "$item_id",
+               weightedCount: { $sum: { $cond: [ { $eq: [ "$level", "E" ] } , 2, 1 ] } }
+            }
+         }
+      ]
+   )
