@@ -1,0 +1,106 @@
+==========
+updateUser
+==========
+
+.. default-domain:: mongodb
+
+Definition
+----------
+
+.. dbcommand:: updateUser
+
+   Updates the user's profile on the database on which you run the
+   command. An update to a field **completely replaces** the previous
+   field's values, including updates to the user's ``roles`` array.
+
+   .. warning::
+
+      When you update the ``roles`` array, you completely replace the
+      previous array's values. To add roles without replacing the user's
+      existing roles, use the :dbcommand:`grantRolesToUser` command.
+
+   The :dbcommand:`updateUser` command uses the following syntax. To
+   update a user, you must specify `the `updateUser`` field and at least
+   one other field, other than ``writeConcern``:
+
+   .. code-block:: javascript
+
+      { updateUser: "<username>",
+        pwd: "<cleartext password>",
+        customData: { <any information> },
+        roles: [
+          { role: "<role>", db: "<database>" } | "<role>",
+          ...
+        ],
+        writeConcern: { <write concern> }
+      }
+
+   The command has the following fields:
+
+   .. include:: /reference/command/updateUser-field.rst
+
+Required Permissions
+--------------------
+
+   To update the ``roles`` array, you must have the
+   :authaction:`revokeAnyRole` action on all databases. To add roles in
+   an update, you must have the :authaction:`grantAnyRole` action on the
+   database of the role.
+
+   To change your own ``pwd`` or ``customData`` field, you must have the
+   :authaction:`changeOwnPassword` action or :authaction:`changeOwnCustomData`
+   action on the ``cluster`` resource.
+
+   To change another user's ``pwd`` or ``customData`` field, you must have the
+   :authaction:`changeAnyPassword` action or :authaction:`changeAnyCustomData`
+   action on that user's database.
+
+Example
+-------
+
+Given a user with the following user info:
+
+.. code-block:: javascript
+
+   {
+      "_id" : "products.Erin",
+      "user" : "Erin",
+      "db" : "products",
+      "customData" : { "empID" : "12345", "badge" : "9156" },
+      "roles" : [
+          { "role" : "readWrite",
+            "db" : "products"
+          },
+          { "role" : "read",
+            "db" : "inventory"
+          }
+      ]
+   }
+
+The following :dbcommand:`updateUser` command **completely** replaces the
+user's ``customData`` and ``roles`` data:
+
+.. code-block:: javascript
+
+   db.runCommand( { updateUser : "Erin",
+                    customData : { employeeId : "0x3039" },
+                    roles : [
+                      { role : "assetsReader",
+                        db : "assets"  
+                } ] } )
+
+The command results in the following user document:
+
+.. code-block:: javascript
+
+   {
+      "_id" : "products.Erin",
+      "user" : "Erin",
+      "db" : "products",
+      "customData" : { "employeeId" : "0x3039" },
+      "roles" : [
+          { "role" : "assetsReader",
+            "db" : "assets"
+          }
+      ]
+   }

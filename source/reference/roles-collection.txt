@@ -1,0 +1,415 @@
+===========================
+``system.roles`` Collection
+===========================
+
+.. versionadded:: 2.5.3
+
+.. default-domain:: mongodb
+
+The :data:`admin.system.roles` collection in the ``admin`` database
+stores the privileges that give users access to system resources. Each
+document in the collection contains the privileges granted by a specific
+role. Administrators create and assign roles through the
+:ref:`role-management commands <role-management-commands>`.
+
+MongoDB scopes each role to the database in which it is created and
+uniquely identifies each role by the pairing of its name and its
+database. When assigned a role, a user receives all the privileges of
+that role.
+
+A role defines its privileges by pairing resources (e.g.
+database and collection) with actions (e.g. ``find`` and ``insert``). To
+inherit privileges from other roles, specify the roles from which to
+inherit.
+
+.. _admin-system-roles-collection:
+
+``system.roles`` Schema
+-----------------------
+
+The documents in the ``system.roles`` collection have the following
+schema:
+
+.. code-block:: javascript
+
+   {
+     _id: <system-defined id>,
+     role: "<role name>",
+     db: "<database>",
+     privileges: [
+        { resource: { db: "<database>", collection: "<collection>" | cluster: <Boolean> },
+          actions: [ "<action>", ... ]
+        },
+        ...
+     ],
+     roles: [
+        { role: "<role name>", db: "<role db>" },
+        ...
+     ]
+   }
+
+A ``system.roles`` document has the following fields:
+
+.. data:: admin.system.roles.role
+
+   The :data:`~admin.system.roles.role` field is a string that
+   identifies the role.
+
+.. data:: admin.system.roles.db
+
+   The :data:`~admin.system.roles.db` field is a string that identifies
+   the database to which the role belongs.
+
+.. data:: admin.system.roles.privileges
+
+   The :data:`~admin.system.roles.privileges` array contains the
+   privileges defined for the role. The
+   :data:`~admin.system.roles.privileges` array is required but can be
+   left empty. Each document in the array specifies the resources the
+   role accesses and the actions permitted on those resources.
+
+   A :data:`~admin.system.roles.privileges` array document has the
+   following syntax:
+
+   .. code-block:: javascript
+
+      { resource: { db: "<database>", collection: "<collection>" | cluster: <Boolean> },
+        actions: [ "<action>", ... ]
+      }
+
+   A :data:`~admin.system.roles.privileges` array document has the
+   following fields:
+
+   .. data:: admin.system.roles.privileges[n].resource
+
+      A document that specifies the resources to which the privilege
+      applies. For the document's syntax and rules, see
+      :ref:`resource-document`.
+
+   .. data:: admin.system.roles.privileges[n].actions
+
+      The actions assigned to the resource. For a list of actions, see
+      :ref:`security-user-actions`.
+
+.. data:: admin.system.roles.roles
+
+   The :data:`~admin.system.roles.roles` array lists other roles from
+   which this role inherits privileges. The
+   :data:`~admin.system.roles.roles` array is required but can be left
+   empty.
+
+   The array can be both strings and documents. The array can contain
+   the string names of roles that exist in the same database as this
+   one. The array also can contain documents that identify roles from
+   other databases. A :data:`~admin.system.roles.roles` array document
+   has the following syntax:
+
+   .. code-block:: javascript
+
+      { role: "<role name>", db: "<role db>" }
+
+   A :data:`~admin.system.roles.roles` array document has the
+   following fields:
+
+   .. data:: admin.system.roles.roles[n].role
+
+      A role from another database.
+
+   .. data:: admin.system.roles.roles[n].db
+
+      The role's database.
+
+.. TODO FOR 2.6
+   From Spencer:
+   Clarify the difference between a server and a cluster, how the
+   cluster is used, and what actions need to be granted to the cluster
+   resource vs which get granted to a database or collection. In our
+   list of grantable actions we'll need to make that really clear. -BG
+
+.. _resource-document:
+
+Resource Document
+-----------------
+
+A :data:`~admin.system.roles.privileges.resource` document in the
+:data:`admin.system.roles` collection can specify a database and a
+collection, or specify the cluster.
+
+To specify databases and collections, use the following syntax:
+
+.. code-block:: javascript
+
+   { db: <database>, collection: <collection> }
+
+If both the ``db`` and ``collection`` fields are not empty strings
+(``""``), the resource is the collection, providing
+:ref:`collection-level access control
+<collection-level-access-control>`.
+
+If the ``collection`` field is an empty string (``""``), the resource is
+the whole database, excluding :doc:`system collections
+</reference/system-collections>`.
+
+If the ``db`` field is an empty string (``""``), the resource is all
+collections with that name across all databases.
+
+If both the ``db`` and ``collection`` fields are empty strings (``""``),
+the resource is all collections, excluding the system collections, in
+all the databases.
+
+To specify the cluster, use the following syntax:
+
+.. code-block:: javascript
+
+   { cluster : true }
+
+Use the ``cluster`` resource for actions that affect the state of the
+system rather than act on specific set of databases or collections.
+Examples of such actions are ``shutdown``, ``replSetReconfig``, and
+``enableSharding``. For example, the following document grants the
+action ``shutdown`` on the ``cluster``.
+
+.. code-block:: javascript
+
+   { resource: { cluster : true }, actions: [ "shutdown" ] }
+
+Example ``system.roles`` Documents
+----------------------------------
+
+The following are example :data:`admin.system.roles` documents.
+
+.. example:: ``appUser`` role
+
+   The following document in the ``system.roles`` collection shows that
+   the ``appUser`` role specifies five privileges in the ``privileges``
+   array. As indicated by the empty ``roles`` array, ``appUser``
+   inherits no additional privileges from other roles.
+
+   .. code-block:: javascript
+
+      {
+        _id: "admin.appUser",
+        role: "appUser",
+        db: "myApp",
+        privileges: [
+             { resource: { db: "myApp" , collection: "" },
+               actions: [ "find", "createCollection", "dbStats", "collStats" ] },
+             { resource: { db: "myApp", collection: "logs" },
+               actions: [ "insert" ] },
+             { resource: { db: "myApp", collection: "data" },
+               actions: [ "insert", "update", "remove", "compact" ] },
+             { resource: { db: "myApp", collection: "system.indexes" },
+               actions: [ "find" ] },
+             { resource: { db: "myApp", collection: "system.namespaces" },
+               actions: [ "find" ] },
+        ],
+        roles: []
+      }
+
+   The five :data:`~admin.system.roles.privileges`-array documents
+   listed for the ``appUser`` role show that the ``appUser`` role has
+   privileges with actions permitted on the ``myApp`` database:
+
+   - The first privilege permits its actions ( ``"find"``,
+     ``"createCollection"``, ``"dbStats"``, ``"collStats"``) on all the
+     collections in the ``myApp`` database *excluding* its system
+     collections.
+
+   - The next two privileges permits *additional* actions on specific
+     collections, ``logs`` and ``data``, in the ``myApp`` database.
+
+   - The last two privileges permits actions on two :doc:`system
+     collections </reference/system-collections>`. While the first
+     privilege gives database-wide permission for the ``find`` action,
+     the action does not apply to ``myApp``'s system collections. To
+     give access to a system collection, a privilege must explicitly
+     specify the collection.
+
+.. example:: ``appAdmin`` role
+
+   The following document shows that the ``appAdmin`` role specifies
+   privileges as as well as inherits privileges from other roles. The
+   privilege to perform the ``shutdown`` action applies to the
+   ``cluster`` resource:
+
+   .. code-block:: javascript
+
+      {
+        _id: "myApp.appAdmin",
+        role: "appAdmin",
+        db: "myApp",
+        privileges: [
+                 { resource: { db: "myApp", collection: "" },
+                   actions: [ "insert", "dbStats", "collStats", "compact", "repairDatabase" ] },
+                 { resource: { cluster : true },
+                   actions: [ "shutdown" ] }
+        ],
+        roles: [ { role: "replAdmin", db: "admin" },
+                 { role: "appUser", db: "myApp" }
+        ]
+      }
+
+.. _security-user-actions:
+
+User Actions
+------------
+
+This section lists the actions that can be specified in a
+:data:`~admin.system.roles.privileges` array in the
+:data:`admin.system.roles` collection.
+
+.. versionadded:: 2.5.3
+
+   The following actions are new in MongoDB 2.5.3. The actions apply to
+   the database in which they are assigned, unless otherwise noted:
+
+.. authaction:: createUser
+
+   The user can create new users in the given database.
+
+.. authaction:: createRole
+
+   The user can create new roles in the given database.
+
+.. authaction:: dropUser
+
+   The user can remove any user from the given database.
+
+.. authaction:: dropRole
+
+   The user can delete any role from the given database.
+
+.. authaction:: grantAnyRole
+
+   The user can grant any role in the database to any user from any
+   database in the system.
+
+.. authaction:: revokeAnyRole
+
+   The user can remove any role from any user from any database in the
+   system.
+
+.. authaction:: changeOwnPassword
+
+   Users with this action can change their own passwords. This action
+   should be granted on the ``cluster`` resource.
+
+.. authaction:: changeAnyPassword
+
+   The user can change the password of any user in the given database.
+
+.. authaction:: changeOwnCustomData
+
+   Users with this action can change their own custom information, as
+   stored in the ``customData`` field of the ``admin.system.users``
+   collection. This action should be granted on the ``cluster``
+   resource.
+
+.. authaction:: changeAnyCustomData
+
+   The user can change the custom information of any user in the given
+   database. Custom information is stored in the ``customData`` field of
+   the ``admin.system.users`` collection.
+
+.. authaction:: viewUser
+
+   The user can view the information of any user in the given database.
+
+.. authaction:: viewRole
+
+   The user can view information about any role in the given database.
+
+.. TODO FOR 2.6 - Update the actions the final 2.6 code, which is expected to have
+   fewer actions than those listed here. For each action, indicate the types of
+   resources it acts on. -BG
+
+In addition, MongoDB provides the following user actions:
+
+.. hlist::
+   :columns: 3
+
+   * _migrateClone
+   * _recvChunkAbort
+   * _recvChunkCommit
+   * _recvChunkStart
+   * _recvChunkStatus
+   * _transferMods
+   * addShard
+   * captrunc
+   * clean
+   * clone
+   * cloneCollectionLocalSource
+   * cloneCollectionTarget
+   * closeAllDatabases
+   * collMod
+   * collStats
+   * compact
+   * connPoolStats
+   * connPoolSync
+   * convertToCapped
+   * cpuProfiler
+   * createCollection
+   * cursorInfo
+   * dbHash
+   * dbStats
+   * delete
+   * diagLogging
+   * dropCollection
+   * dropDatabase
+   * enableSharding
+   * find
+   * flushRouterConfig
+   * fsync
+   * getCmdLineOpts
+   * getLog
+   * getParameter
+   * getShardMap
+   * getShardVersion
+   * handshake
+   * hostInfo
+   * indexStats
+   * inprog
+   * insert
+   * killCursors
+   * killop
+   * listDatabases
+   * listShards
+   * logRotate
+   * moveChunk
+   * movePrimary
+   * netstat
+   * profileEnable
+   * reIndex
+   * removeShard
+   * repairDatabase
+   * replSetElect
+   * replSetFreeze
+   * replSetFresh
+   * replSetGetRBID
+   * replSetGetStatus
+   * replSetHeartbeat
+   * replSetInitiate
+   * replSetMaintenance
+   * replSetReconfig
+   * replSetStepDown
+   * replSetSyncFrom
+   * resync
+   * serverStatus
+   * setParameter
+   * setShardVersion
+   * shardCollection
+   * shardingState
+   * shutdown
+   * split
+   * splitChunk
+   * splitVector
+   * storageDetails
+   * top
+   * touch
+   * unlock
+   * unsetSharding
+   * update
+   * userAdmin
+   * validate
+   * writeBacksQueued
+   * writebacklisten

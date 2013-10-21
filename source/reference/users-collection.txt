@@ -1,0 +1,119 @@
+===========================
+``system.users`` Collection
+===========================
+
+.. versionchanged:: 2.5.3
+
+.. default-domain:: mongodb
+
+The :data:`admin.system.users` collection in the ``admin`` database
+stores user authentication credentials and role assignments. MongoDB
+uses the :data:`admin.system.users` collection to provide access to
+users in the MongoDB system.
+
+.. _admin-system-users-collection:
+.. _delegated-credentials:
+
+``system.users`` Schema
+-----------------------
+
+MongoDB stores users globally in the ``system.users`` collection of the
+``admin`` database and provides access through the :ref:`user
+management commands <user-management-commands>`.
+
+The ``system.users`` collection stores user information in documents
+with the following schema:
+
+.. code-block:: javascript
+
+   {
+     _id: <system defined id>,
+     user: "<name>",
+     db: "<database>",
+     credentials: { <authentication credentials> },
+     roles: [ { role: "<role name>", db: "<database>" },
+              ...
+            ],
+     customData: < custom information >
+    }
+
+Each ``system.users`` document has the following fields:
+
+.. data:: admin.system.users.user
+
+   The :data:`~admin.system.users.user` field is a string that
+   identifies the user. A user exists in the context of a single logical
+   database but can have access to other databases through roles
+   specified in the :data:`~admin.system.users.roles` array.
+
+.. data:: admin.system.users.db
+
+   The :data:`~admin.system.users.db` field specifies the database
+   associated with the user. The user's privileges are not necessarily
+   limited to this database. The user can have privileges in additional
+   databases through the :data:`~admin.system.users.roles` array.
+
+.. data:: admin.system.users.credentials
+
+   The :data:`~admin.system.users.credentials` field contains the
+   user's authentication information. For users with externally stored
+   authentication credentials, such as users that use Kerberos or x.509
+   certificates for authentication, the ``systems.users`` document for
+   that user does not contain the ``credentials`` field.
+
+.. data:: admin.system.users.roles
+
+   The :data:`~admin.system.users.roles` array lists the roles
+   granted to the user. The array can contain both strings and documents. The
+   array can contain the names of roles that exist in the same
+   database as the user. The array also can contain documents that
+   identify roles from other databases.
+
+   A :data:`~admin.system.users.roles` array document has the following
+   syntax:
+
+   .. code-block:: javascript
+
+      { role: "<role name>", db: "<database>" }
+
+   A :data:`~admin.system.users.roles` array document has the
+   following fields:
+
+   .. data:: admin.system.users.roles[n].role
+
+      The name of a role from the :ref:`admin.system.roles
+      <admin-system-roles-collection>` collection. A role can be a
+      :ref:`system role <system-user-roles>` or custom role created with
+      the :dbcommand:`createRole` command.
+
+   .. data:: admin.system.users.roles[n].db
+
+      The database the role is defined on.
+
+.. data:: admin.system.users.customData
+
+   The :data:`~admin.system.users.customData` field contains optional
+   custom information about the user.
+
+Example ``system.users`` Document
+---------------------------------
+
+In the following document in the ``system.users`` collection, the user
+``Kari`` is associated with the ``home`` database. ``Kari`` has the
+``read`` role in the ``home`` database, the ``readWrite`` role in the
+``test`` database, and the ``appUser`` role in the ``myApp`` database.
+
+.. code-block:: javascript
+
+   {
+     _id: "home.Kari",
+     user: "Kari",
+     db: "home",
+     credentials: { "MONGODB-CR" :"<hashed password>" },
+     roles : [
+               { role: "read", db: "home" },
+               { role : "readWrite", db: "test" },
+               { role: "appUser", db: "myApp" }
+              ],
+     customData: { zipCode: 64157 }
+   }
