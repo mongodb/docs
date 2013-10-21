@@ -57,8 +57,11 @@ $group (aggregation)
    memory, which may cause problems when processing a larger number
    of groups.
 
-Example
--------
+Examples
+--------
+
+Calculate Count and Sum
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Consider the following example:
 
@@ -73,7 +76,37 @@ Consider the following example:
    );
 
 This aggregation pipeline groups by the ``author`` field and computes
-two fields, the first ``docsPerAuthor`` is a counter field that
-increments by one for each document with a given author field using
-the :group:`$sum` function. The ``viewsPerAuthor`` field is the sum of
-all of the ``pageViews`` fields in the documents for each group.
+two fields, ``docsPerAuthor`` and ``viewsPerAuthor``, per each group.
+The ``docsPerAuthor`` field is a counter field that uses the
+:group:`$sum` operator to add ``1`` for each document with a given
+author. The ``viewsPerAuthor`` field is the sum of the values in the
+``pageViews`` field for each group.
+
+Pivot Data
+~~~~~~~~~~
+
+A collection ``books`` contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 8751, "title" : "The Banquet", "author" : "Dante", "copies" : 2 }
+   { "_id" : 8752, "title" : "Divine Comedy", "author" : "Dante", "copies" : 1 }
+   { "_id" : 8645, "title" : "Eclogues", "author" : "Dante", "copies" : 2 }
+   { "_id" : 7000, "title" : "The Odyssey", "author" : "Homer", "copies" : 10 }
+   { "_id" : 7020, "title" : "Iliad", "author" : "Homer", "copies" : 10 }
+
+The following aggregation operation pivots the data in the ``books``
+collection to have titles grouped by authors.
+
+.. code-block:: javascript
+
+   db.books.aggregate( [
+                         { $group : { _id : "$author", books: { $push: "$title" } } }
+                     ] )
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : "Homer", "books" : [ "The Odyssey", "Iliad" ] }
+   { "_id" : "Dante", "books" : [ "The Banquet", "Divine Comedy", "Eclogues" ] }

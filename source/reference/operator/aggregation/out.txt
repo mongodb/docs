@@ -29,14 +29,14 @@ Definition
            ...,
            { $out : "<output-collection>" }
       ] )
-      
-   .. important:: 
+
+   .. important::
 
       - You cannot specify a sharded collection as the output collection.
         The input collection for a pipeline can be sharded.
-         
-      - .. include:: /includes/fact-aggregation-out-capped-collection.rst
-        .. |start| replace:: You
+
+      - The :pipeline:`$out` operator cannot write results to a
+        :doc:`capped collection </core/capped-collections>`.
 
 Behaviors
 ---------
@@ -60,31 +60,31 @@ pipeline would violate any unique indexes, including the index on the
 Example
 -------
 
-The following aggregation pipeline uses the :pipeline:`$project`
-operator to construct new documents from data in the ``library``
-collection. The :pipeline:`$out` operator at the end of the pipeline
-inserts the results into the ``titles`` collection.
+A collection ``books`` contains the following documents:
 
 .. code-block:: javascript
 
-   db.library.aggregate( [
-        { $project : { book : 1 , author : 1 } },
-        { $match : { author : "Dante" } },
-        { $limit : 5 },
-        { $out : "titles"}
-   ] )
+   { "_id" : 8751, "title" : "The Banquet", "author" : "Dante", "copies" : 2 }
+   { "_id" : 8752, "title" : "Divine Comedy", "author" : "Dante", "copies" : 1 }
+   { "_id" : 8645, "title" : "Eclogues", "author" : "Dante", "copies" : 2 }
+   { "_id" : 7000, "title" : "The Odyssey", "author" : "Homer", "copies" : 10 }
+   { "_id" : 7020, "title" : "Iliad", "author" : "Homer", "copies" : 10 }
 
-The command returns a status document that indicates success. The
-pipeline has inserted the following five new documents into the
-``titles`` collection. Each document includes the ``book``, ``author``, and ``_id``
-fields, as specified in the :pipeline:`$project` operator. The
-:pipeline:`$project` operator always returns ``_id``, unless the field
-is explicitly excluded:
+The following aggregation operation pivots the data in the ``books``
+collection to have titles grouped by authors and then writes
+the results to the ``authors`` collection .
 
 .. code-block:: javascript
 
-   { "_id" : 8751, "book" : "The Banquet", "author" : "Dante" }
-   { "_id" : 8752, "book" : "Divine Comedy", "author" : "Dante" }
-   { "_id" : 8644, "book" : "De vulgari eloquentia", "author" : "Dante" }
-   { "_id" : 8645, "book" : "Eclogues", "author" : "Dante" }
-   { "_id" : 8623, "book" : "De Monarchia", "author" : "Dante" }
+   db.books.aggregate( [
+                         { $group : { _id : "$author", books: { $push: "$title" } } },
+                         { $out : "authors" }
+                     ] )
+
+After the operation, the ``authors`` collection contains the following
+documents:
+
+.. code-block:: javascript
+
+   { "_id" : "Homer", "books" : [ "The Odyssey", "Iliad" ] }
+   { "_id" : "Dante", "books" : [ "The Banquet", "Divine Comedy", "Eclogues" ] }
