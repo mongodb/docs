@@ -91,19 +91,6 @@ Read Preference Modes
    Read operations using the :readmode:`secondaryPreferred` mode may
    return stale data.
 
-.. warning::
-
-   In some situations using :readmode:`secondaryPreferred` to
-   distribute read load to replica sets may carry significant
-   operational risk: if all secondaries are unavailable and your set
-   has enough :term:`arbiters <arbiter>` to prevent the primary from
-   stepping down, then the primary will receive all traffic from
-   clients.
-
-   For this reason, use :readmode:`secondary` to distribute read load
-   to replica sets, not :readmode:`secondaryPreferred`.
-
-
 .. readmode:: nearest
 
    The driver reads from the *nearest* member of the :term:`set <replica
@@ -139,10 +126,6 @@ Read Preference Modes
       latency. See :ref:`replica-set-read-preference-behavior-nearest`
       for more information.
 
-   .. For I/O-bound users who want to distribute reads across all
-      members evenly regardless of ping time, set
-      secondaryAcceptableLatencyMS very high.
-
 .. [#capacity-planning] If your set has more than one secondary, and
    you use the :readmode:`secondary` read preference mode, consider
    the following effect. If you have a :ref:`three member replica set
@@ -151,6 +134,57 @@ Read Preference Modes
    queries must target the remaining secondary. This will double the
    load on this secondary. Plan and provide capacity to support this
    as needed.
+
+Use Cases
+---------
+
+Depending on your needs, you can configure different applications to use
+different read preferences, or use different read preferences for different
+queries in the same application.
+
+**Maximize consistency:** You don't want stale reads under any circumstances. Use
+:readmode:`primary`, and be aware that you will not be able to query when you
+have no primary---for example, during an election, or if a majority of the
+replica set is offline.
+
+**Maximize availability:** You want to be able to read if possible. Use
+:readmode:`primaryPreferred`: when there's a primary you will get consistent
+reads, but if there is no primary you can still query secondaries.
+
+**Minimize latency:** Use :readmode:`nearest`. The driver or mongos will read
+from the fastest member and those no more than 15ms slower. Be aware that you
+risk inconsistency: if the nearest member to your app server is a secondary
+with some replication lag, you could read stale data. Also note that
+:readmode:`nearest` merely minimizes network lag, rather than reading from the
+member with the lowest IO or CPU load.
+
+**Query from geographically distributed members:** If your replica members are
+spread around the globe, you can tag them according to their location and
+configure your application to query the members nearby. For example, if members
+in your east and west data centers are
+:ref:`tagged <replica-set-configuration-tag-sets>` like ``{'dc': 'east'}`` and
+``{'dc': 'west'}``, your application servers in the east data center can read
+from nearby members:
+
+.. code-block:: javascript
+
+    db.collection.find().readPref({mode: 'nearest', tags: [{'dc': 'east'}]})
+
+Although :readmode:`nearest` already favors members with low network latency,
+including the tag makes the choice more predictable.
+
+**Maximize throughput:** If your throughput is bound by disk I/O, you can scale
+out reads using :readmode:`nearest` and setting secondaryAcceptableLatencyMS
+very high. This will spread the query load equally among all members.
+
+**Reduce load on the primary:** To shift read load from the primary, use mode
+:readmode:`secondary`. Although :readmode:`secondaryPreferred` is tempting for
+this use case, it carries some risk: if all secondaries are unavailable and
+your set has enough :term:`arbiters <arbiter>` to prevent the primary from
+stepping down, then the primary will receive all traffic from clients. If the
+primary is unable to handle this load, queries will compete with writes. For
+this reason, use :readmode:`secondary` to distribute read load to replica sets,
+not :readmode:`secondaryPreferred`.
 
 Read Preferences for Database Commands
 --------------------------------------
