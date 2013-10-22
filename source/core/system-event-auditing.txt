@@ -1,0 +1,57 @@
+.. _auditing: 
+
+=====================
+System Event Auditing
+=====================
+
+.. default-domain:: mongodb
+
+MongoDB Enterprise provides capabilities to audit server and client
+activity for :program:`mongod` and :program:`mongos` instances. The
+audit can write the log to the console, syslog, a BSON file or a text
+file.
+
+Audit Events and Filter
+-----------------------
+
+The audit system logs :ref:`audit-schema-operations`,
+:ref:`audit-replica-set-operations`, :ref:`audit-auth-operations`,
+:ref:`audit-general-operations`. By default, the audit system logs all
+these :doc:`operations </reference/audit-operations>`, but the audit
+configuration can include a :option:`filter <--auditFilter>` to limit
+the events to log. The filter uses :ref:`query condition expression
+<query-selectors>` to specify which :ref:`operations
+<audit-operations>` to log.
+
+To enable and configure auditing for MongoDB Enterprise, see
+:doc:`/tutorial/configure-auditing`. For examples on filtering, see
+:ref:`audit-filter`.
+
+Audit Guarantee
+---------------
+
+The audit feature writes every audit event [#filter]_ to an in-memory
+buffer of audit entries which is periodically written to disk. For any
+one connection, audit entries have a total order, such that if one
+event for a connection is written to disk, all prior events for that
+connection are written to disk.
+
+If an audit event entry corresponds to an operation that affects
+durable state, the entry is written to disk before the operation
+becomes durable. That is, if an operation becomes durable (written to
+journal), all audit messages on the connection that triggered the
+operation, up to and including the entry for the operation, will appear
+in the on-disk audit log.
+
+.. important:: Journaling must be enabled to maintain the audit
+   guarantee.
+
+.. warning:: Events may be lost if the server crashes before they are
+   committed to the audit log, even if the client received confirmation
+   of the event. For example, while auditing an aggregation operation,
+   the server might crash after returning the result but before the
+   audit log flushes.
+
+.. [#filter]
+   Audit configuration can include a :ref:`filter <audit-filter>` to
+   limit events to audit.
