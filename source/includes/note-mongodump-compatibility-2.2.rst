@@ -1,5 +1,5 @@
 .. note::
 
-   The format of data created by :program:`mongodump` tool from the
-   2.2 distribution or later is different and incompatible with
-   earlier versions of :program:`mongod`.
+   Data created by the :program:`mongodump` tool from the
+   2.2 distribution is incompatible with versions of
+   :program:`mongorestore` from the 2.0 distribution and earlier.
