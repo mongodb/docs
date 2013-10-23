@@ -1,0 +1,64 @@
+.. _auditing:
+
+=====================
+System Event Auditing
+=====================
+
+.. default-domain:: mongodb
+
+.. versionadded:: 2.5.3
+
+MongoDB Enterprise includes an auditing capability for
+:program:`mongod` and :program:`mongos` instances. The auditing
+facility allows administrators and users to track system activity for
+deployments with multiple users and applications. The audit can write
+the log to the console, syslog, a BSON file or a text file.
+
+Audit Events and Filter
+-----------------------
+
+The audit facility logs :ref:`audit-schema-operations`,
+:ref:`audit-replica-set-operations`, :ref:`audit-auth-operations`,
+:ref:`audit-general-operations`. By default, the audit facility logs all
+these :doc:`operations </reference/audit-operations>`; however, you
+may restrict the events captured using an :option:`filter
+<mongod --auditFilter>` configuration option to limit the logged
+events. The filter uses :ref:`query condition expression
+<query-selectors>` to limit the :ref:`operations <audit-operations>`
+logged.
+
+To enable and configure auditing for MongoDB Enterprise, see
+:doc:`/tutorial/configure-auditing`. For examples on filtering, see
+:ref:`audit-filter`.
+
+Audit Guarantee
+---------------
+
+The auditing system writes every audit event [#filter]_ to an
+in-memory buffer of audit events. MongoDB periodical writes this
+buffer to disk. For events collected from any single connection, the
+events have a total order: if MongoDB writes one event to disk, the
+system guarantees that it has written all prior events for that
+connection to disk.
+
+If an audit event entry corresponds to an operation that affects the
+durable state of the database, such as a modification to data, MongoDB
+will always write the audit event to disk *before* writing to the
+:term:`journal` for that entry.
+
+That is, before adding an operation to the journal, MongoDB writes all
+audit events on the connection that triggered the operation, up to and
+including the entry for the operation.
+
+.. important:: These auditing guarantees require that MongoDB runs
+   with the :setting:`journal` enabled.
+
+.. warning:: MongoDB may lose events **if** the server crashes before
+   it commits the events to the audit log. The client may receive
+   confirmation of the event before MongoDB commits to the audit
+   log. For example, while auditing an aggregation operation, the
+   server might crash after returning the result but before the audit
+   log flushes.
+
+.. [#filter] Audit configuration can include a :ref:`filter
+   <audit-filter>` to limit events to audit.
