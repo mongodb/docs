@@ -11,3 +11,5 @@
 - :parameter:`syncdelay`
 - :parameter:`textSearchEnabled`
 - :parameter:`traceExceptions`
+- :parameter:`saslauthdPath`
+- :parameter:`authenticationMechanisms`
