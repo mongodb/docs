@@ -1,0 +1,197 @@
+===============
+cleanupOrphaned
+===============
+
+.. default-domain:: mongodb
+
+Definition
+----------
+
+.. dbcommand:: cleanupOrphaned
+
+   .. versionadded:: 2.5.3
+
+   Incrementally deletes :term:`documents <document>` on a
+   :term:`shard`, whose shard keys do not fall within the range of
+   any :term:`chunk` owned by that shard.
+
+   .. note::
+
+      :term:`Orphaned documents` are documents that exist in chunks
+      on other shards. Delete orphaned phaned documents using
+      :dbcommand:`cleanupOrphaned` to reclaim disk space and reduce
+      confusion.
+
+   Orphaned data sometimes results from aborted migrations due to
+   network latency and power loss.
+
+   .. include:: /reference/command/cleanupOrphaned-field.rst
+
+   Run :dbcommand:`cleanupOrphaned` directly on the :program:`mongod`
+   instance on the primary replica set member of the shard. Do not
+   run from :program:`mongos`.
+
+   Use with the following form:
+
+   .. code-block:: javascript
+
+      {
+         "cleanupOrphaned": 1,
+         "collection": <database>.<collection>,
+         "startingAtKey": <minimumShardKeyValue>,
+         "secondaryThrottle": true
+      }
+
+Required Access
+---------------
+
+On systems running with :setting:`auth`, you must
+have :authrole:`clusterAdmin` privileges to run
+:dbcommand:`cleanupOrphaned`.
+
+Behavior
+--------
+
+You do not need to disable the balancer before running
+:dbcommand:`cleanupOrphaned`.
+
+Output
+------
+
+Each :dbcommand:`cleanupOrphaned` command returns a document containing
+a subset of the following fields:
+
+.. data:: cleanupOrphaned.ok
+
+   Equal to ``1`` on success.
+
+   A value of ``1`` indicates that :dbcommand:`cleanupOrphaned` scanned
+   the specified shard key range, deleted any orphaned documents
+   found in that range, and confirmed that all deletes replicated to a
+   majority of the members of that shard's replica set. If confirmation
+   does not arrive within 1 hour, :dbcommand:`cleanupOrphaned`
+   times out.
+
+   A value of ``0`` could indicate either of two cases:
+
+   - :dbcommand:`cleanupOrphaned` found orphaned documents on the
+     shard but could not delete them.
+
+   - :dbcommand:`cleanupOrphaned` found and deleted orphaned
+     documents, but could not confirm replication before the 1
+     hour timeout. In this case, replication does occur, but only
+     after :dbcommand:`cleanupOrphaned` returns.
+
+   .. important::
+
+      Do not use the value of :data:`cleanupOrphaned.ok` as an indicator
+      that :dbcommand:`cleanupOrphaned` found or deleted any documents.
+
+.. data:: cleanupOrphaned.startingAtKey
+
+   :dbcommand:`cleanupOrphaned` examines documents from a single
+   contiguous range of shard keys that do not correspond to any chunks
+   on a given shard, and deletes all documents found within that range.
+
+   :dbcommand:`cleanupOrphaned` selects the next range containing
+   the :data:`cleanupOrphaned.startingAtKey` that is not in the range
+   of any chunk on the shard. :data:`cleanupOrphaned.startingAtKey`
+   defaults to ``MinKey``.
+
+.. data:: cleanupOrphaned.stoppedAtKey
+
+   The upper bound of the cleaned range of shard keys. Corresponds to
+   the lower bound of the next chunk on the shard. It does not indicate
+   that :dbcommand:`cleanupOrphaned` found or deleted any documents.
+
+Interpreting Log Files
+~~~~~~~~~~~~~~~~~~~~~~
+
+Read the :program:`mongod` log file to interpret how many orphaned documents
+:dbcommand:`cleanupOrphaned` deleted. Relevant lines resemble the following:
+
+.. code-block:: none
+
+   m30000| 2013-10-31T15:17:28.972-0400 [conn1] Deleter starting delete for: foo.bar from { _id: -35.0 } -> { _id: -10.0 }, with opId: 128
+   m30000| 2013-10-31T15:17:28.972-0400 [conn1] rangeDeleter deleted 0 documents for foo.bar from { _id: -35.0 } -> { _id: -10.0 } { "stoppedAtKey" : { "_id" : -10 }, "ok" : 1 }
+
+.. _cleanuporphaned-examples:
+
+Examples
+--------
+
+Remove Orphaned Ranges from a Shard
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the output of the :dbcommand:`cleanupOrphaned` in a loop to
+remove orphaned documents from all sharded key index ranges on a shard:
+
+Run the following code in the :program:`mongo` shell:
+
+.. code-block:: javascript
+
+   use admin
+   var nextKey = {};
+   while (
+            nextKey = db.runCommand( { cleanupOrphaned : "test.user",
+                                       startingFromKey : nextKey } ).stoppedAtKey
+         ) { printjson(nextKey); }
+
+Specify a Different Initial Key
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the ``testdb`` database, with a sharded ``info`` collection,
+given a shard that has only a single chunk, where :method:`sh.status`
+reports the following range:
+
+.. code-block:: javascript
+
+   { x : 1 } => { x : 10 }
+
+The shard has two ranges not owned by the chunk:
+
+.. code-block:: javascript
+
+   { x : MinKey } => { x : 1 }
+
+   { x : 10 } => { x : MaxKey }
+
+Use one of the following commands to clean up the first range:
+
+.. code-block:: javascript
+
+   {
+      "cleanupOrphaned": 1,
+      "collection": testdb.info,
+      "startingAtKey": { x : 0 },
+      "secondaryThrottle": true
+   }
+
+.. code-block:: javascript
+
+   {
+      "cleanupOrphaned": 1,
+      "collection": testdb.info,
+      "secondaryThrottle": true
+   }
+
+To clean the second range, use one of the following commands:
+
+.. code-block:: javascript
+
+   {
+      "cleanupOrphaned": 1,
+      "collection": testdb.info,
+      "startingAtKey": { x : 2 },
+      "secondaryThrottle": true
+   }
+
+.. code-block:: javascript
+
+   {
+      "cleanupOrphaned": 1,
+      "collection": testdb.info,
+      "startingAtKey": { x : 10 },
+      "secondaryThrottle": true
+   }
+
