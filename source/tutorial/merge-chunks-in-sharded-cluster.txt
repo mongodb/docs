@@ -23,39 +23,39 @@ it has no documents associated with its shard key range.
 Empty chunks can occur under various circumstances, including:
 
 - If a :doc:`pre-split </tutorial/create-chunks-in-sharded-cluster>`
-  creates more chunks than you need, inserted data may not fill up
-  the new chunks as expected.
+  creates too many chunks, the distribution of data to chunks may be
+  uneven.
 
-- If you delete many documents from a cluster, some chunks may no
-  longer contain data.
+- If you delete many documents from a sharded collection, some chunks
+  may no longer contain data.
 
-This tutorial explains how to identify chunks available to merge,
-and how to merge those chunks with neighboring chunks.
+This tutorial explains how to identify chunks available to merge, and
+how to merge those chunks with neighboring chunks.
 
 Procedure
 ---------
 
 .. note::
 
-   Examples in this procedure uses a ``users`` :term:`collection` of the
-   ``test`` :term:`database`, that has been sharded on the ``username``
-   field.
+   Examples in this procedure use a ``users`` :term:`collection` in the
+   ``test`` :term:`database`, using the ``username`` filed as a
+   :term:`shard key`.
 
 Identify Chunk Ranges
 ~~~~~~~~~~~~~~~~~~~~~
 
 In the :program:`mongo` shell, identify the :term:`chunk <chunks>`
-ranges with the following method:
+ranges with the following operation:
 
 .. code-block:: javascript
 
    sh.status()
 
-On success, the method produces output similar to:
+The output of the :method:`sh.status()` will resemble the following:
 
 .. code-block:: none
 
-   --- Sharding Status --- 
+   --- Sharding Status ---
    sharding version: {
         "_id" : 1,
         "version" : 4,
@@ -74,44 +74,44 @@ On success, the method produces output similar to:
                         chunks:
                                 shard0000       7
                                 shard0001       7
-                        { "username" : { "$minKey" : 1 } } -->> { "username" : "user16643" } on : shard0000 Timestamp(2, 0) 
-                        { "username" : "user16643" } -->> { "username" : "user2329" } on : shard0000 Timestamp(3, 0) 
-                        { "username" : "user2329" } -->> { "username" : "user29937" } on : shard0000 Timestamp(4, 0) 
-                        { "username" : "user29937" } -->> { "username" : "user36583" } on : shard0000 Timestamp(5, 0) 
-                        { "username" : "user36583" } -->> { "username" : "user43229" } on : shard0000 Timestamp(6, 0) 
-                        { "username" : "user43229" } -->> { "username" : "user49877" } on : shard0000 Timestamp(7, 0) 
-                        { "username" : "user49877" } -->> { "username" : "user56522" } on : shard0000 Timestamp(8, 0) 
-                        { "username" : "user56522" } -->> { "username" : "user63169" } on : shard0001 Timestamp(8, 1) 
-                        { "username" : "user63169" } -->> { "username" : "user69816" } on : shard0001 Timestamp(1, 8) 
-                        { "username" : "user69816" } -->> { "username" : "user76462" } on : shard0001 Timestamp(1, 9) 
-                        { "username" : "user76462" } -->> { "username" : "user83108" } on : shard0001 Timestamp(1, 10) 
-                        { "username" : "user83108" } -->> { "username" : "user89756" } on : shard0001 Timestamp(1, 11) 
-                        { "username" : "user89756" } -->> { "username" : "user96401" } on : shard0001 Timestamp(1, 12) 
+                        { "username" : { "$minKey" : 1 } } -->> { "username" : "user16643" } on : shard0000 Timestamp(2, 0)
+                        { "username" : "user16643" } -->> { "username" : "user2329" } on : shard0000 Timestamp(3, 0)
+                        { "username" : "user2329" } -->> { "username" : "user29937" } on : shard0000 Timestamp(4, 0)
+                        { "username" : "user29937" } -->> { "username" : "user36583" } on : shard0000 Timestamp(5, 0)
+                        { "username" : "user36583" } -->> { "username" : "user43229" } on : shard0000 Timestamp(6, 0)
+                        { "username" : "user43229" } -->> { "username" : "user49877" } on : shard0000 Timestamp(7, 0)
+                        { "username" : "user49877" } -->> { "username" : "user56522" } on : shard0000 Timestamp(8, 0)
+                        { "username" : "user56522" } -->> { "username" : "user63169" } on : shard0001 Timestamp(8, 1)
+                        { "username" : "user63169" } -->> { "username" : "user69816" } on : shard0001 Timestamp(1, 8)
+                        { "username" : "user69816" } -->> { "username" : "user76462" } on : shard0001 Timestamp(1, 9)
+                        { "username" : "user76462" } -->> { "username" : "user83108" } on : shard0001 Timestamp(1, 10)
+                        { "username" : "user83108" } -->> { "username" : "user89756" } on : shard0001 Timestamp(1, 11)
+                        { "username" : "user89756" } -->> { "username" : "user96401" } on : shard0001 Timestamp(1, 12)
                         { "username" : "user96401" } -->> { "username" : { "$maxKey" : 1 } } on : shard0001 Timestamp(1, 13)
 
 The chunk ranges appear after the chunk counts for each sharded
-collection.
+collection, as in the following excerpts:
 
-Chunk counts:
+**Chunk counts:**
 
-.. code-block:: javascript
+   .. code-block:: none
 
-                        chunks:
-                                shard0000       7
-                                shard0001       7
+      chunks:
+              shard0000       7
+              shard0001       7
 
-Chunk range:
+**Chunk range:**
 
-.. code-block:: javascript
+   .. code-block:: none
 
-   { "username" : "user36583" } -->> { "username" : "user43229" } on : shard0000 Timestamp(6, 0)
+      { "username" : "user36583" } -->> { "username" : "user43229" } on : shard0000 Timestamp(6, 0)
 
 Verify a Chunk is Empty
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 The :dbcommand:`mergeChunks` command requires at least one empty input
 chunk. In the :program:`mongo` shell, check the amount of data in a
-chunk using a command similar to:
+chunk using an operation that resembles:
 
 .. code-block:: javascript
 
@@ -133,7 +133,8 @@ Merge Chunks
 ~~~~~~~~~~~~
 
 Merge two contiguous :term:`chunks <chunk>` on the same :term:`shard`,
-where at least one of the contains no data, using a command similar to:
+where at least one of the contains no data, with an operation that
+resembles the following:
 
 .. code-block:: javascript
 
@@ -149,22 +150,22 @@ On success, :dbcommand:`mergeChunks` produces the following output:
    { "ok" : 1 }
 
 On any failure condition, :dbcommand:`mergeChunks` returns a document
-with an ``ok`` value of ``0``.
+where the value of the ``ok`` field is ``0``.
 
 View Merged Chunks Ranges
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-After merging all empty chunks, confirm the new chunk ranges:
+After merging all empty chunks, confirm the new chunk, as follows:
 
 .. code-block:: javascript
 
    sh.status()
 
-With output similar to:
+The output of :method:`sh.status()` should resemble:
 
 .. code-block:: none
 
-   --- Sharding Status --- 
+   --- Sharding Status ---
    sharding version: {
         "_id" : 1,
         "version" : 4,
@@ -183,11 +184,10 @@ With output similar to:
                         chunks:
                                 shard0000       2
                                 shard0001       2
-                        { "username" : { "$minKey" : 1 } } -->> { "username" : "user16643" } on : shard0000 Timestamp(2, 0) 
-                        { "username" : "user16643" } -->> { "username" : "user56522" } on : shard0000 Timestamp(3, 0) 
-                        { "username" : "user56522" } -->> { "username" : "user96401" } on : shard0001 Timestamp(8, 1) 
+                        { "username" : { "$minKey" : 1 } } -->> { "username" : "user16643" } on : shard0000 Timestamp(2, 0)
+                        { "username" : "user16643" } -->> { "username" : "user56522" } on : shard0000 Timestamp(3, 0)
+                        { "username" : "user56522" } -->> { "username" : "user96401" } on : shard0001 Timestamp(8, 1)
                         { "username" : "user96401" } -->> { "username" : { "$maxKey" : 1 } } on : shard0001 Timestamp(1, 13)
 
 
 .. .. include:: /includes/steps/merge-chunks-in-sharded-cluster.rst
-

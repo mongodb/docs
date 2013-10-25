@@ -9,56 +9,55 @@ Definition
 
 .. dbcommand:: mergeChunks
 
-   For a sharded collection, converts two contiguous :term:`chunks
-   <chunk>` on the same shard into one, using an input key range. One
-   or both chunks must be empty. Issue the :dbcommand:`mergeChunks`
-   command from a :program:`mongos` instance.
-
-   .. note::
-
-      Use the :dbcommand:`mergeChunks` only in special circumstances
-      such as cleaning up your :term:`sharded cluster` after removing
-      many documents.
-
-   :dbcommand:`mergeChunks` has the following form:
-
-   .. code-block:: javascript
-   
-      db.runCommand( { mergeChunks : <namespace> ,
-                       bounds : [ { <shardKeyField>: <minFieldValue> },
-                                  { <shardKeyField>: <maxFieldValue> } ] } )
-
-   Or, with a more complex shard key, you must include the full shard key for
-   the upper and lower bounds.
-
-   .. example::
-
-      If the shard key is ``{ x: 1, y: 1 }``, :dbcommand:`mergeChunks`
-      has the following form:
-
-      .. code-block:: javascript
-   
-         db.runCommand( { mergeChunks : <namespace> ,
-                          bounds : [ { x: <minValue>, y: <minValue> },
-                                     { x: <minValue>, y: <maxValue> } ] } )
+   For a sharded collection, :dbcommand:`mergeChunks` combines two
+   contiguous :term:`chunk` ranges the same shard into a single
+   chunk. At least one of chunk must not have any documents. Issue the
+   :dbcommand:`mergeChunks` command from a :program:`mongos` instance.
 
    The :dbcommand:`mergeChunks` command has the following fields:
 
    .. include:: /reference/command/mergeChunks-field.rst
 
-   .. important::
+   :dbcommand:`mergeChunks` has the following form:
 
-      The following must all be true, or :dbcommand:`mergeChunks`
-      returns an error:
+   .. code-block:: javascript
 
-      - In the ``bounds`` field, ``<minkey>`` and ``<maxkey>`` must correspond to
-        the lower and upper bounds of the :term:`chunks <chunk>` to merge.
+      db.runCommand( { mergeChunks : <namespace> ,
+                       bounds : [ { <shardKeyField>: <minFieldValue> },
+                                  { <shardKeyField>: <maxFieldValue> } ] } )
 
-      - The two chunks must reside on the same shard.
+   For compound shard keys, you must include the full shard key in the
+   ``bounds`` specification:  If the shard key is ``{ x: 1, y: 1 }``,
+   :dbcommand:`mergeChunks` has the following form:
 
-      - The two chunks must be contiguous.
+   .. code-block:: javascript
 
-      - One or both chunks must be empty.
+      db.runCommand( { mergeChunks : <namespace> ,
+                       bounds : [ { x: <minValue>, y: <minValue> },
+                                  { x: <minValue>, y: <maxValue> } ] } )
+
+Behavior
+--------
+
+.. note::
+
+   Use the :dbcommand:`mergeChunks` only in special circumstances
+   such as cleaning up your :term:`sharded cluster` after removing
+   many documents.
+
+In order to successfully merge chunks, the following *must* be true
+
+- In the ``bounds`` field, ``<minkey>`` and ``<maxkey>`` must correspond to
+  the lower and upper bounds of the :term:`chunks <chunk>` to merge.
+
+- The two chunks must reside on the same shard.
+
+- The two chunks must be contiguous.
+
+- One or both chunks must be empty.
+
+:dbcommand:`mergeChunks` returns an error if these conditions are not
+satisfied.
 
 Return Messages
 ---------------
@@ -79,8 +78,8 @@ metadata operation is in progress on the :data:`~config.chunks` collection:
 
    errmsg: "The collection's metadata lock is already taken."
 
-If another process, such as a balancer process, changes meta data while
-:dbcommand:`mergeChunks` is running, you may see this error. You may
+If another process, such as balancer process, changes metadata while
+:dbcommand:`mergeChunks` is running, you may see this error. You can
 retry the :dbcommand:`mergeChunks` operation without side effects.
 
 Chunks on Different Shards
@@ -112,7 +111,7 @@ If the input :term:`chunks <chunk>` are not contiguous,
 Documents in Both Chunks
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-If neither input :term:`chunk` is empty, :dbcommand:`mergeChunks` 
+If neither input :term:`chunk` is empty, :dbcommand:`mergeChunks`
 returns an error similar to the following:
 
 .. code-block:: javascript
@@ -123,4 +122,3 @@ returns an error similar to the following:
    }
 
 .. admin-only
-
