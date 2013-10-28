@@ -146,10 +146,10 @@ html_sidebars = {
     '**': ['sidebar-nav-manual.html'],
 }
 html_sidebars['**'].append('formats.html')
-html_sidebars['**'].append('intrasite-about.html')
-html_sidebars['**'].append('intrasite-ecosystem.html')
+# html_sidebars['**'].append('intrasite-about.html')
+# html_sidebars['**'].append('intrasite-ecosystem.html')
 # html_sidebars['**'].append('translations.html')
-html_sidebars['**'].append('resources.html')
+# html_sidebars['**'].append('resources.html')
 
 # -- Options for LaTeX output --------------------------------------------------
 
