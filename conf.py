@@ -103,7 +103,6 @@ try:
         rst_epilog.append(".. |backup| replace:: MMS Backup On-Prem")
         rst_epilog.append(".. |monitoring| replace:: MMS Monitoring On-Prem")
         html_sidebars['**'].append('sidebar-nav-mms-hosted.html')
-        html_sidebars['**'].append('pdf-links-hosted.html')
         html_theme_template['edition'] = 'hosted'
 
         if release == "Upcoming":
@@ -125,7 +124,6 @@ try:
         rst_epilog.append(".. |backup| replace:: MMS Backup")
         rst_epilog.append(".. |monitoring| replace:: MMS Monitoring")
         html_sidebars['**'].append('sidebar-nav.html')
-        html_sidebars['**'].append('pdf-links-saas.html')
         html_theme_template['edition'] = 'saas'
 except NameError:
     if release == "Upcoming":
@@ -134,7 +132,7 @@ except NameError:
         rst_epilog.append(".. |release-string| replace:: -- {0} Release".format(release))
 
 rst_epilog = '\n'.join(rst_epilog)
-html_sidebars['**'].extend(['searchbox.html', 'mms-resources.html', 'intrasite-manual.html'])
+html_sidebars['**'].extend(['searchbox.html'])
 
 # -- Options for LaTeX output --------------------------------------------------
 
