@@ -17,6 +17,7 @@ from utils import ingest_yaml, ingest_yaml_list
 from docs_meta import get_conf, get_versions, get_manual_path
 
 conf = get_conf()
+conf.build.paths.projectroot = project_root
 pdfs = ingest_yaml_list(os.path.join(conf.build.paths.builddata, 'pdfs.yaml'))
 intersphinx_libs = ingest_yaml_list(os.path.join(conf.build.paths.builddata, 'intersphinx.yaml'))
 
