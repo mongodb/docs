@@ -129,9 +129,9 @@ html_sidebars = {
     '**': ['pagenav.html'],
 }
 
-html_sidebars['**'].append('intrasites.html')
+# html_sidebars['**'].append('intrasites.html')
 # html_sidebars['**'].append('translations.html')
-html_sidebars['**'].append('resources.html')
+# html_sidebars['**'].append('resources.html')
 
 # -- Options for LaTeX output --------------------------------------------------
 
