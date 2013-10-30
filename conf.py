@@ -110,7 +110,7 @@ languages = [
 
 html_theme = 'manual'
 html_theme_path = [ os.path.join(buildsystem, 'themes') ]
-html_title = "MongoDB Manual"
+html_title = conf.project.title
 htmlhelp_basename = 'MongoDBdoc'
 
 html_logo = ".static/logo-mongodb.png"
@@ -198,7 +198,7 @@ man_pages = [
 # -- Options for Epub output ---------------------------------------------------
 
 # Bibliographic Dublin Core info.
-epub_title = u'MongoDB Manual'
+epub_title = conf.project.title
 epub_author = u'MongoDB Documentation Project'
 epub_publisher = u'MongoDB, Inc.'
 epub_copyright = copyright
