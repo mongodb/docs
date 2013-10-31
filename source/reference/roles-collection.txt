@@ -12,10 +12,10 @@ document in the collection contains the privileges granted by a specific
 role. Administrators create and assign roles through the
 :ref:`role-management commands <role-management-commands>`.
 
-MongoDB scopes each role to the database in which it is created and
-uniquely identifies each role by the pairing of its name and its
-database. When assigned a role, a user receives all the privileges of
-that role.
+The cope of each role is the database that defines the role. MongoDB
+uniquely identifies each role using the name of the role and the name
+of the database. When assigned a role, a user receives all the
+privileges of that role.
 
 A role defines its privileges by pairing resources (e.g.
 database and collection) with actions (e.g. ``find`` and ``insert``). To
@@ -63,17 +63,24 @@ A ``system.roles`` document has the following fields:
 .. data:: admin.system.roles.privileges
 
    The :data:`~admin.system.roles.privileges` array contains the
-   privileges defined for the role. The
-   :data:`~admin.system.roles.privileges` array is required but can be
-   left empty. Each document in the array specifies the resources the
-   role accesses and the actions permitted on those resources.
+   privileges defined for the role. All roles must have a
+   :data:`~admin.system.roles.privileges` array but this array need
+   not have any privilege documents. Each document in the array
+   specifies the resources the role accesses and the actions permitted
+   on those resources.
 
-   A :data:`~admin.system.roles.privileges` array document has the
-   following syntax:
+   A :data:`~admin.system.roles.privileges` array document resembles
+   one of the following prototype documents.
 
    .. code-block:: javascript
 
-      { resource: { db: "<database>", collection: "<collection>" | cluster: <Boolean> },
+      { resource: { db: "<database>", collection: "<collection>" },
+        actions: [ "<action>", ... ]
+      }
+
+   .. code-block:: javascript
+
+      { resource: { db: "<database>", cluster: <Boolean> },
         actions: [ "<action>", ... ]
       }
 
@@ -94,9 +101,9 @@ A ``system.roles`` document has the following fields:
 .. data:: admin.system.roles.roles
 
    The :data:`~admin.system.roles.roles` array lists other roles from
-   which this role inherits privileges. The
-   :data:`~admin.system.roles.roles` array is required but can be left
-   empty.
+   which this role inherits privileges. All roles must have a 
+   :data:`~admin.system.roles.roles` array but this array need not
+   have any role documents.
 
    The array can be both strings and documents. The array can contain
    the string names of roles that exist in the same database as this
@@ -176,92 +183,93 @@ action ``shutdown`` on the ``cluster``.
 Example ``system.roles`` Documents
 ----------------------------------
 
-The following are example :data:`admin.system.roles` documents.
+Consider following example :data:`admin.system.roles` documents.
 
-.. example:: ``appUser`` role
+An  ``appUser`` Role
+~~~~~~~~~~~~~~~~~~~~
 
-   The following document in the ``system.roles`` collection shows that
-   the ``appUser`` role specifies five privileges in the ``privileges``
-   array. As indicated by the empty ``roles`` array, ``appUser``
-   inherits no additional privileges from other roles.
+The following document in the ``system.roles`` collection shows that
+the ``appUser`` role specifies five privileges in the ``privileges``
+array. As indicated by the empty ``roles`` array, ``appUser``
+inherits no additional privileges from other roles.
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      {
-        _id: "admin.appUser",
-        role: "appUser",
-        db: "myApp",
-        privileges: [
-             { resource: { db: "myApp" , collection: "" },
-               actions: [ "find", "createCollection", "dbStats", "collStats" ] },
-             { resource: { db: "myApp", collection: "logs" },
-               actions: [ "insert" ] },
-             { resource: { db: "myApp", collection: "data" },
-               actions: [ "insert", "update", "remove", "compact" ] },
-             { resource: { db: "myApp", collection: "system.indexes" },
-               actions: [ "find" ] },
-             { resource: { db: "myApp", collection: "system.namespaces" },
-               actions: [ "find" ] },
-        ],
-        roles: []
-      }
+   {
+     _id: "admin.appUser",
+     role: "appUser",
+     db: "myApp",
+     privileges: [
+          { resource: { db: "myApp" , collection: "" },
+            actions: [ "find", "createCollection", "dbStats", "collStats" ] },
+          { resource: { db: "myApp", collection: "logs" },
+            actions: [ "insert" ] },
+          { resource: { db: "myApp", collection: "data" },
+            actions: [ "insert", "update", "remove", "compact" ] },
+          { resource: { db: "myApp", collection: "system.indexes" },
+            actions: [ "find" ] },
+          { resource: { db: "myApp", collection: "system.namespaces" },
+            actions: [ "find" ] },
+     ],
+     roles: []
+   }
 
-   The five :data:`~admin.system.roles.privileges`-array documents
-   listed for the ``appUser`` role show that the ``appUser`` role has
-   privileges with actions permitted on the ``myApp`` database:
+The five :data:`~admin.system.roles.privileges` array documents
+listed for the ``appUser`` role show that the ``appUser`` role has
+privileges with actions permitted on the ``myApp`` database:
 
-   - The first privilege permits its actions ( ``"find"``,
-     ``"createCollection"``, ``"dbStats"``, ``"collStats"``) on all the
-     collections in the ``myApp`` database *excluding* its system
-     collections.
+- The first privilege permits its actions ( ``"find"``,
+  ``"createCollection"``, ``"dbStats"``, ``"collStats"``) on all the
+  collections in the ``myApp`` database *excluding* its system
+  collections.
 
-   - The next two privileges permits *additional* actions on specific
-     collections, ``logs`` and ``data``, in the ``myApp`` database.
+- The next two privileges permits *additional* actions on specific
+  collections, ``logs`` and ``data``, in the ``myApp`` database.
 
-   - The last two privileges permits actions on two :doc:`system
-     collections </reference/system-collections>`. While the first
-     privilege gives database-wide permission for the ``find`` action,
-     the action does not apply to ``myApp``'s system collections. To
-     give access to a system collection, a privilege must explicitly
-     specify the collection.
+- The last two privileges permits actions on two :doc:`system
+  collections </reference/system-collections>`. While the first
+  privilege gives database-wide permission for the ``find`` action,
+  the action does not apply to ``myApp``'s system collections. To
+  give access to a system collection, a privilege must explicitly
+  specify the collection.
 
-.. example:: ``appAdmin`` role
+An ``appAdmin`` Role
+~~~~~~~~~~~~~~~~~~~~
 
-   The following document shows that the ``appAdmin`` role specifies
-   privileges as as well as inherits privileges from other roles. The
-   privilege to perform the ``shutdown`` action applies to the
-   ``cluster`` resource:
+The following document shows that the ``appAdmin`` role specifies
+privileges as as well as inherits privileges from other roles. The
+privilege to perform the ``shutdown`` action applies to the
+``cluster`` resource:
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      {
-        _id: "myApp.appAdmin",
-        role: "appAdmin",
-        db: "myApp",
-        privileges: [
-                 { resource: { db: "myApp", collection: "" },
-                   actions: [ "insert", "dbStats", "collStats", "compact", "repairDatabase" ] },
-                 { resource: { cluster : true },
-                   actions: [ "shutdown" ] }
-        ],
-        roles: [ { role: "replAdmin", db: "admin" },
-                 { role: "appUser", db: "myApp" }
-        ]
-      }
+   {
+     _id: "myApp.appAdmin",
+     role: "appAdmin",
+     db: "myApp",
+     privileges: [
+              { resource: { db: "myApp", collection: "" },
+                actions: [ "insert", "dbStats", "collStats", "compact", "repairDatabase" ] },
+              { resource: { cluster : true },
+                actions: [ "shutdown" ] }
+     ],
+     roles: [ { role: "replAdmin", db: "admin" },
+              { role: "appUser", db: "myApp" }
+     ]
+   }
 
 .. _security-user-actions:
 
 User Actions
 ------------
 
-This section lists the actions that can be specified in a
+This section lists the actions available in the
 :data:`~admin.system.roles.privileges` array in the
 :data:`admin.system.roles` collection.
 
 .. versionadded:: 2.5.3
-
-   The following actions are new in MongoDB 2.5.3. The actions apply to
-   the database in which they are assigned, unless otherwise noted:
+   MongoDB adds the following actions. Actions apply to
+   the database where they are assigned, unless otherwise noted.
 
 .. authaction:: createUser
 
@@ -291,8 +299,8 @@ This section lists the actions that can be specified in a
 
 .. authaction:: changeOwnPassword
 
-   Users with this action can change their own passwords. This action
-   should be granted on the ``cluster`` resource.
+   Users with this action can change their own passwords.
+   Grant :authaction:`changeOwnPassword` on the ``cluster`` resource.
 
 .. authaction:: changeAnyPassword
 
@@ -301,15 +309,15 @@ This section lists the actions that can be specified in a
 .. authaction:: changeOwnCustomData
 
    Users with this action can change their own custom information, as
-   stored in the ``customData`` field of the ``admin.system.users``
-   collection. This action should be granted on the ``cluster``
+   stored in the ``customData`` field of documents in the :data:`admin.system.users`
+   collection. Grant :authaction:`changeOwnCustomData` on the ``cluster``
    resource.
 
 .. authaction:: changeAnyCustomData
 
    The user can change the custom information of any user in the given
-   database. Custom information is stored in the ``customData`` field of
-   the ``admin.system.users`` collection.
+   database. MongoDB stores custom information in the ``customData`` field of
+   the documents in :data:`admin.system.users` collection.
 
 .. authaction:: viewUser
 

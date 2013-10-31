@@ -9,14 +9,9 @@ Definition
 
 .. dbcommand:: revokePrivilegesFromRole
 
-   Removes the specified privileges from the role. The command applies
-   to the database on which you run the command. To revoke a privilege
-   you must have the :authaction:`revokeAnyRole` action on the database
-   the privilege targets. If the privilege targets multiple databases
-   or the ``cluster`` resource, you must have the
-   :authaction:`revokeAnyRole` action on the ``admin`` database.
-
-   The :dbcommand:`revokePrivilegesFromRole` command uses the following syntax:
+   Removes the specified privileges from the role on the current
+   database. The:dbcommand:`revokePrivilegesFromRole` command has the
+   following syntax: 
 
    .. code-block:: javascript
 
@@ -32,58 +27,74 @@ Definition
 
    .. include:: /reference/command/revokePrivilegesFromRole-field.rst
 
+   .. |local-cmd-name| replace:: :dbcommand:`revokePrivilegesFromRole`
+
+   .. include:: /includes/fact-roles-array-contents.rst
+
+Required Access
+---------------
+
+To revoke a privilege you must have the :authaction:`revokeAnyRole`
+action on the database the privilege targets. If the privilege targets
+multiple databases or the ``cluster`` resource, you must have the
+:authaction:`revokeAnyRole` action on the ``admin`` database.
+
 Examples
 --------
 
-The following are examples of the :dbcommand:`revokePrivilegesFromRole`
-command:
+Match Resource Patterns
+~~~~~~~~~~~~~~~~~~~~~~~
 
-.. example:: Resource patterns must match
+Consider a role ``myRole`` with the following privilege:
 
-   Consider a role ``myRole`` with the following privilege:
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   { resource: { db: "products", collection: "" }, 
+     actions: [ "find",  "update" ] }
 
-      { resource: { db: "products", collection: "" }, actions: [ "find",  "update" ] }
+You cannot revoke ``find`` from just one collection in the
+``products`` database. Trying to remove the following would result in
+no change:
 
-   You cannot revoke ``find`` from just one collection in the
-   ``products`` database. Trying to remove the following would result in
-   no change:
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   db.runCommand ( {
+                     revokePrivilegesFromRole: "myRole",
+                     privileges: [
+                                  { resource: { db: "products", collection: "gadgets" }, 
+                                    actions: [ "find" ] }
+                                 ],
+                     writeConcern: { w: "majority" , wtimeout: 5000 }
+                 } )
 
-      db.runCommand ( {
-                        revokePrivilegesFromRole: "myRole",
-                        privileges: [
-                                     { resource: { db: "products", collection: "gadgets" }, actions: [ "find" ] }
-                                    ],
-                        writeConcern: { w: "majority" , wtimeout: 5000 }
-                    } )
+To revoke ``find`` from the role ``myRole``, you must match the
+resource exactly:
 
-   To revoke ``find`` from the role ``myRole``, you must match the
-   resource exactly:
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   db.runCommand ( { revokePrivilegesFromRole: "myRole",
+                     privileges: [
+                                   { resource: { db: "products", collection: "" }, 
+                                     actions: [ "find" ] }
+                                 ],
+                     writeConcern: { w: "majority" , wtimeout: 5000 }
+                 } )
 
-      db.runCommand ( { revokePrivilegesFromRole: "myRole",
-                        privileges: [
-                                      { resource: { db: "products", collection: "" }, actions: [ "find" ] }
-                                    ],
-                        writeConcern: { w: "majority" , wtimeout: 5000 }
-                    } )
+``revokePrivilegesFromRole`` Command Form 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. example:: ``revokePrivilegesFromRole`` command
+The following example of :dbcommand:`revokePrivilegesFromRole`
+removes ``find`` from the ``products`` database as well as from
+the ``system.indexes`` collections in all databases:
 
-   The following example of :dbcommand:`revokePrivilegesFromRole`
-   removes ``find`` from the ``products`` database as well as from
-   the ``system.indexes`` collections in all databases:
+.. code-block:: javascript
 
-   .. code-block:: javascript
-
-      { revokePrivilegesFromRole: "associate",
-        privileges: [
-          { resource: { db: "products", collection: "" }, actions: [ "find" ] },
-          { resource: { db: "", collection: "system.indexes" }, actions: [ "find" ] }
-        ],
-        writeConcern: { w: "majority" , wtimeout: 5000 }
-      }
+   db.runCommand ( { revokePrivilegesFromRole: "associate",
+                     privileges: [
+                                   { resource: { db: "products", collection: "" }, 
+                                     actions: [ "find" ] },
+                                   { resource: { db: "", collection: "system.indexes" }, 
+                                     actions: [ "find" ] }
+                                 ],
+                     writeConcern: { w: "majority" , wtimeout: 5000 }
+                } )
