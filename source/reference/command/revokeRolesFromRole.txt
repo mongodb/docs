@@ -1,0 +1,93 @@
+===================
+revokeRolesFromRole
+===================
+
+.. default-domain:: mongodb
+
+Definition
+----------
+
+.. dbcommand:: revokeRolesFromRole
+
+   Removes child roles from this role. To run this command, you must be
+   on the role's database and your privileges must include the
+   :authaction:`revokeAnyRole` action on the database.
+
+   The :dbcommand:`revokeRolesFromRole` command uses the following
+   syntax:
+
+   .. code-block:: javascript
+
+      { revokeRolesFromRole: "<role>",
+        revokedRoles: [
+          { role: "<role>", db: "<database>" } | "<role>",
+          ...
+        ],
+        writeConcern: { w: "majority" , wtimeout: 5000 }
+      }
+
+   The command has the following fields:
+
+   .. include:: /reference/command/revokeRolesFromRole-field.rst
+
+Example
+-------
+
+Given a roll ``purchaseAgents`` with several child roles:
+
+.. code-block:: javascript
+
+   {
+      "_id" : "emea.purchaseAgents",
+      "role" : "purchaseAgents",
+      "db" : "emea",
+      "privileges" : [],
+      "roles" : [
+         {
+            "role" : "readWrite",
+            "db" : "emea"
+         },
+         {
+            "role" : "readAnyDatabase",
+            "db" : "admin"
+         },
+         {
+            "role" : "readWrite",
+            "db" : "asia-invoices"
+         }
+      ]
+   }
+
+The following :dbcommand:`revokeRolesFromRole` command removes the
+:authrole:`readWrite` role on the ``emea`` database, which is the
+database on which the command is run, and removes the
+:authrole:`readAnyDatabase` role:
+
+.. code-block:: javascript
+
+   db.runCommand( { revokeRolesFromRole: "purchaseAgents",
+     revokedRoles: [ 
+        "readWrite",
+        { "role" : "readAnyDatabase", "db" : "admin" }
+     ],
+     writeConcern: { w: "majority" , wtimeout: 5000 }
+   }
+
+The role ``purchaseAgents`` now has only one child role:
+
+.. code-block:: javascript
+
+.. code-block:: javascript
+
+   {
+      "_id" : "emea.purchaseAgents",
+      "role" : "purchaseAgents",
+      "db" : "emea",
+      "privileges" : [],
+      "roles" : [
+         {
+            "role" : "readWrite",
+            "db" : "asia-invoices"
+         }
+      ]
+   }

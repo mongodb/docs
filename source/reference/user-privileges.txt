@@ -1,48 +1,44 @@
-===============================
-User Privilege Roles in MongoDB
-===============================
+===============
+User Privileges
+===============
 
 .. default-domain:: mongodb
 
-.. versionadded:: 2.4
-   In version 2.4, MongoDB adds support for the following user roles:
+MongoDB uses role-based authorization to give users access to data and
+commands. Each role defines specific privileges on specific resources.
 
-.. _user-roles:
+A user assigned a role receives all the privileges of that role. Users
+can have multiple roles and can have different roles on different
+resources. Roles always grant privileges and never limit access. For
+example, if a user has :authrole:`read` *and*
+:authrole:`readWriteAnyDatabase` permissions on a database, the greater
+access prevails.
 
-Roles
------
+MongoDB provides both built-in system roles and the ability to create
+custom roles.
 
-.. versionchanged:: 2.4
+.. versionadded:: 2.5.3
 
-Roles in MongoDB provide users with a set of specific privileges, on
-specific logical databases. Users may have multiple roles and may have
-different roles on different logical database. Roles only grant
-privileges and never limit access: if a user has :authrole:`read`
-*and* :authrole:`readWriteAnyDatabase` permissions on
-the ``records`` database, that user will be able to
-write data to the ``records`` database.
+   MongoDB gives administrators access to roles through the
+   :ref:`role-management commands <role-management-commands>`.
+   Administrators can use the commands to create custom roles.
 
-.. note::
+A role defines its privileges by pairing resources (e.g. databases and
+collections) with actions (e.g. ``insert`` and ``find`` operations), and
+also by inheriting privileges from other roles. For a list of assignable
+actions, see :ref:`security-user-actions`.
 
-   By default, MongoDB 2.4 is backwards-compatible with the MongoDB 2.2
-   access control roles. You can explicitly disable this
-   backwards-compatibility by setting the
-   :parameter:`supportCompatibilityFormPrivilegeDocuments` option to
-   ``0`` during startup, as in the following command-line invocation of
-   MongoDB:
+MongoDB stores roles in the :doc:`system.roles collection
+</reference/roles-collection>` of the ``admin`` database.
 
-   .. code-block:: sh
+.. _system-user-roles:
 
-      mongod --setParameter supportCompatibilityFormPrivilegeDocuments=0
+System Roles
+------------
 
-   In general, you should set this option if your deployment does not
-   need to support legacy user documents. Typically legacy user
-   documents are only useful during the upgrade process and while you
-   migrate applications to the updated privilege document form.
-
-See :doc:`privilege documents </reference/privilege-documents>` and
-:ref:`delegated-credentials` for
-more information about permissions and authentication in MongoDB.
+MongoDB provides the roles described here. Administrators can optionally
+create custom roles using the :ref:`role-management commands
+<role-management-commands>`.
 
 Database User Roles
 ~~~~~~~~~~~~~~~~~~~
@@ -138,9 +134,7 @@ Database Administration Roles
 
 .. authrole:: userAdmin
 
-   Allows users to read and write data to the :data:`system.users
-   <<database>.system.users>` collection of any database. Users with
-   this role will be able to modify permissions for existing users
+   Users with this role can modify permissions for existing users
    and create new users. :authrole:`userAdmin` does not restrict the
    permissions that a user can grant, and a :authrole:`userAdmin`
    user can grant privileges to themselves or other users in excess of
@@ -157,7 +151,7 @@ Database Administration Roles
 .. _admin-roles:
 
 Administrative Roles
---------------------
+~~~~~~~~~~~~~~~~~~~~
 
 .. authrole:: clusterAdmin
 
@@ -231,18 +225,17 @@ Administrative Roles
 
 .. _auth-any-database-roles:
 
-Any Database Roles
-------------------
+All-Database Roles
+~~~~~~~~~~~~~~~~~~
 
-.. note::
+The following roles apply to all databases in a :program:`mongod`
+instance and are roughly equivalent to their single-database
+equivalents. You must specify the following "any" database roles on the
+``admin`` databases.
 
-   You must specify the following "any" database roles on the
-   ``admin`` databases. These roles apply to all databases in a
-   :program:`mongod` instance and are roughly equivalent to their
-   single-database equivalents.
+.. TODO FOR 2.6 Is the following still true ??? -BG
 
-   If you add any of these roles to a :doc:`user privilege document
-   </reference/privilege-documents>` outside of the ``admin``
+.. If you add any of these roles outside of the ``admin``
    database, the privilege will have no effect. However, only the
    specification of the roles must occur in the ``admin`` database,
    with :ref:`delegated authentication credentials
@@ -285,11 +278,11 @@ Any Database Roles
 
 .. _auth-role-combined:
 
-Combined Access
----------------
+Combined-Access Operations
+--------------------------
 
-Some operations are only available to users that have multiple
-roles. Consider the following:
+The following operations are available only to users that have multiple
+roles:
 
 :method:`sh.status()`
    Requires :authrole:`clusterAdmin` and :authrole:`read` access to
@@ -300,8 +293,8 @@ roles. Consider the following:
    :authrole:`userAdminAnyDatabase`, :authrole:`dbAdminAnyDatabase` and
    :authrole:`clusterAdmin` (on the ``admin`` database.)
 
-Some operations related to cluster administration are not available to
-users who *only* have the :authrole:`clusterAdmin` role:
+The following operations related to cluster administration are *not* available to
+users who have *only* the :authrole:`clusterAdmin` role:
 
 :method:`rs.conf()`
    Requires :authrole:`read` on the ``local`` database.
