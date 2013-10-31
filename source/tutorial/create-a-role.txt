@@ -1,0 +1,82 @@
+===================
+Create Custom Roles
+===================
+
+.. default-domain:: mongodb
+
+MongoDB provides the ability to create custom roles in addition to the
+MongoDB :doc:`built-in roles </reference/user-privileges>`.
+
+.. _custom-roles:
+
+Custom Roles
+------------
+
+You can create custom roles to govern access a user or application has to
+collections and databases. A role contains privileges that define a
+specific set of actions that can be performed against specific resources.
+
+MongoDB scopes each role to the database in which it is created and
+uniquely identifies each role by the pairing of its name and its database.
+When assigned a role, a user or client application receives all the
+privileges of that role.
+
+Required Authorization
+----------------------
+
+To create roles and privileges, you must have the appropriate
+authorization:
+
+- To create a role you must have the :authaction:`createRole` action on
+  the database.
+
+- To specify a privilege, you must have the :authaction:`grantAnyRole`
+  action on the database the privilege targets. If the privilege targets
+  multiple databases or the ``cluster`` resource, you must have the
+  :authaction:`grantAnyRole` action on the ``admin`` database.
+
+- To assign a member role, you must have the :authaction:`grantAnyRole`
+  action on the member role's database.
+
+Create a Role
+-------------
+
+To create a role, use the :dbcommand:`createRole` command and specify the
+privileges and the member roles that this role contains.
+
+A privilege pairs resources, such as databases and collections, with
+actions, such as ``find`` and ``insert``. MongoDB provides the actions
+described in :ref:`security-user-actions`. Specify each privilege in its
+own :ref:`resource document <resource-document>` in
+:data:`~admin.system.roles.privileges` array.
+
+A member role provides all its privileges to the new role. Specify each
+member role in its own document in the :data:`~admin.system.roles.roles`
+array. The documents in the :data:`~admin.system.roles.roles` array use the
+following syntax:
+
+.. code-block:: javascript
+
+   { role: "<role name>", db: "<role database>" }
+
+.. example::
+
+   The following command from the :program:`mongo` shell creates the
+   ``myClusterwideAdmin`` role with privileges defined in four
+   :ref:`resource documents <resource-document>` and privileges inherited
+   from the ``read`` role on the ``admin`` database.
+
+   .. code-block:: javascript
+
+      db.runCommand( { createRole: "myClusterwideAdmin",
+                       privileges: [
+                           { resource: { cluster: true }, actions: [ "addShard" ] },
+                           { resource: { db: "config", collection: "" }, actions: [ "find", "update", "insert", "remove" ] },
+                           { resource: { db: "users", collection: "usersCollection" }, actions: [ "update", "insert", "remove" ] },
+                           { resource: { db: "", collection: "" }, actions: [ "find" ] }
+                       ],
+                       roles: [
+                           { role: "read", db: "admin" }
+                       ],
+                       writeConcern: { w: "majority" , wtimeout: 5000 }
+                   } )
