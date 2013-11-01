@@ -1,0 +1,68 @@
+=============
+Create a Role
+=============
+
+.. default-domain:: mongodb
+
+.. todo:: Link 'role' below to the conceptual doc, when written
+
+Roles grant users access to MongoDB resources. Create roles to define
+access to resources according to your operational needs.
+
+MongoDB scopes each role to the database in which it is created and
+uniquely identifies each role by the pairing of its name and its database.
+
+Prerequisites
+-------------
+
+.. include:: /includes/access-create-role.rst
+
+Procedure
+---------
+
+Identify Resources and Actions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Decide which resources to grant access to and which :ref:`actions
+<security-user-actions>` to grant on each resource.
+
+When creating the role, enter these resource-action pairings in
+:ref:`resource documents <resource-document>` in the
+:data:`~admin.system.roles.privileges` array.
+
+Identify Privileges from Other Roles
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If this role is to include all the privileges of an existing role, then instead
+of re-creating those privileges, you can add the existing role to this role.
+The contained role provides all its privileges to the new role.
+
+When creating the new role, specify each contained role in its own
+document in the :data:`~admin.system.roles.roles` array.
+
+Create the Role
+~~~~~~~~~~~~~~~
+
+To create the role, use the :dbcommand:`createRole` command.
+
+.. example::
+
+   The following command from the :program:`mongo` shell creates the
+   ``myClusterwideAdmin`` role with privileges defined in four
+   :ref:`resource documents <resource-document>` and privileges inherited
+   from the ``read`` role on the ``admin`` database.
+
+   .. code-block:: javascript
+
+      db.runCommand( { createRole: "myClusterwideAdmin",
+                       privileges: [
+                           { resource: { cluster: true }, actions: [ "addShard" ] },
+                           { resource: { db: "config", collection: "" }, actions: [ "find", "update", "insert", "remove" ] },
+                           { resource: { db: "users", collection: "usersCollection" }, actions: [ "update", "insert", "remove" ] },
+                           { resource: { db: "", collection: "" }, actions: [ "find" ] }
+                       ],
+                       roles: [
+                           { role: "read", db: "admin" }
+                       ],
+                       writeConcern: { w: "majority" , wtimeout: 5000 }
+                   } )
