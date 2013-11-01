@@ -1,42 +1,17 @@
-==============================================================
-Install MongoDB on Red Hat Enterprise, CentOS, or Fedora Linux
-==============================================================
+========================================================
+Install MongoDB on Red Hat Enterprise, CentOS, or Fedora
+========================================================
 
 .. default-domain:: mongodb
 
-Synopsis
---------
-
-This tutorial outlines the basic installation process for deploying
-:term:`MongoDB` on Red Hat Enterprise Linux, CentOS Linux, Fedora
-Linux and related systems. This procedure uses ``.rpm`` packages as
-the basis of the installation.  MongoDB releases are available as
-``.rpm`` packages for easy installation and management for users of
-CentOS, Fedora and Red Hat Enterprise Linux systems. While some of
+This tutorial outlines the steps to install :term:`MongoDB` on
+Red Hat Enterprise Linux, CentOS Linux, Fedora Linux and related
+systems. The tutorial uses ``.rpm`` packages to install. While some of
 these distributions include their own MongoDB packages, the official
-packages are generally more up to date.
+MongoDB packages are generally more up to date.
 
-This tutorial includes: an overview of the available packages,
-instructions for configuring the package manager, the process install
-packages from the MongoDB downloads repository, and preliminary MongoDB
-configuration and operation.
-
-.. see:: Additional installation tutorials:
-
-   - :doc:`/tutorial/install-mongodb-on-debian-or-ubuntu-linux`
-   - :doc:`/tutorial/install-mongodb-on-debian`
-   - :doc:`/tutorial/install-mongodb-on-ubuntu`
-   - :doc:`/tutorial/install-mongodb-on-linux`
-   - :doc:`/tutorial/install-mongodb-on-os-x`
-   - :doc:`/tutorial/install-mongodb-on-windows`
-
-   .. Documentation for getting started with MongoDB:
-
-   .. - :doc:`/getting-started`
-   .. STUB - :doc:`/tutorial/insert-test-data-into-a-mongodb-database`
-
-Package Options
----------------
+Packages
+--------
 
 The MongoDB downloads repository contains two packages:
 
@@ -57,9 +32,8 @@ The MongoDB downloads repository contains two packages:
   optionally on other systems from which you may need to administer
   MongoDB systems.
 
-
-Installing MongoDB
-------------------
+Install MongoDB
+---------------
 
 Configure Package Management System (YUM)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -67,8 +41,10 @@ Configure Package Management System (YUM)
 Create a ``/etc/yum.repos.d/mongodb.repo`` file to hold the
 following configuration information for the MongoDB repository:
 
-If you are running a 64-bit system, which is recommended, use the
-following configuration:
+.. tip:: For production deployments, always run MongoDB on 64-bit
+   systems.
+
+If you are running a 64-bit system, use the following configuration:
 
 .. code-block:: cfg
 
@@ -89,8 +65,8 @@ production deployments, use the following configuration:
    gpgcheck=0
    enabled=1
 
-Installing Packages
-~~~~~~~~~~~~~~~~~~~
+Install Packages
+~~~~~~~~~~~~~~~~
 
 Issue the following command (as ``root`` or with ``sudo``) to install
 the latest stable version of MongoDB and the associated tools:
@@ -128,24 +104,7 @@ file:
 
    exclude=mongo-10gen,mongo-10gen-server
 
-Configure MongoDB
------------------
-
-These packages configure MongoDB using the ``/etc/mongod.conf`` file
-in conjunction with the :term:`control script`.  You can find the init
-script at ``/etc/rc.d/init.d/mongod``.
-
-This MongoDB instance will store its data files in the
-``/var/lib/mongo`` and its log files in ``/var/log/mongo``, and
-run using the ``mongod`` user account.
-
-.. note::
-
-   If you change the user that runs the MongoDB process, you will need
-   to modify the access control rights to the ``/var/lib/mongo`` and
-   ``/var/log/mongo`` directories.
-
-Control MongoDB
+Control Scripts
 ---------------
 
 .. warning::
@@ -157,11 +116,28 @@ Control MongoDB
    the mean time use your own control scripts *or* install using the
    procedure outlined in :doc:`/tutorial/install-mongodb-on-linux`.
 
+.. include:: /includes/fact-unix-control-scripts.rst
+
+Run MongoDB
+-----------
+
+.. important:: You must SELinux to allow MongoDB to start on Fedora systems.
+   Administrators have two options:
+
+   - enable access to the relevant ports (e.g. 27017) for SELinux. See
+     :ref:`security-port-numbers` for more information on MongoDB's
+     :doc:`default ports </reference/default-mongodb-port>`.
+
+   - disable SELinux entirely. This requires a system reboot and may have
+     larger implications for your deployment.
+
 Start MongoDB
 ~~~~~~~~~~~~~
 
+.. include:: /includes/fact-unix-data-and-log-dir.rst
+
 Start the :program:`mongod` process by issuing the following command
-(as root, or with ``sudo``):
+(as root or with ``sudo``):
 
 .. code-block:: sh
 
@@ -171,8 +147,8 @@ You can verify that the :program:`mongod` process has started
 successfully by checking the contents of the log file at
 ``/var/log/mongo/mongod.log``.
 
-You may optionally, ensure that MongoDB will start following a system
-reboot, by issuing the following command (with root privileges:)
+You may optionally ensure that MongoDB will start following a system
+reboot by issuing the following command (with root privileges:)
 
 .. code-block:: sh
 
@@ -182,7 +158,7 @@ Stop MongoDB
 ~~~~~~~~~~~~
 
 Stop the :program:`mongod` process by issuing the following command
-(as root, or with ``sudo``):
+(as root or with ``sudo``):
 
 .. code-block:: sh
 
@@ -192,7 +168,7 @@ Restart MongoDB
 ~~~~~~~~~~~~~~~
 
 You can restart the :program:`mongod` process by issuing the following
-command (as root, or with ``sudo``):
+command (as root or with ``sudo``):
 
 .. code-block:: sh
 
@@ -201,49 +177,3 @@ command (as root, or with ``sudo``):
 Follow the state of this process by watching the output in the
 ``/var/log/mongo/mongod.log`` file to watch for errors or important
 messages from the server.
-
-Control :program:`mongos`
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-As of the current release, there are no :term:`control scripts
-<control script>` for :program:`mongos`. :program:`mongos` is only
-used in sharding deployments and typically do not run on the same
-systems where :program:`mongod` runs. You can use the ``mongodb``
-script referenced above to derive your own :program:`mongos` control
-script.
-
-SELinux Considerations
-~~~~~~~~~~~~~~~~~~~~~~
-
-You must SELinux to allow MongoDB to start on Fedora
-systems. Administrators have two options:
-
-- enable access to the relevant ports (e.g. 27017) for SELinux. See
-  :ref:`security-port-numbers` for more information on MongoDB's
-  default ports.
-
-- disable SELinux entirely. This requires a system reboot and may have
-  larger implications for your deployment.
-
-Using MongoDB
--------------
-
-Among the tools included in the ``mongo-10gen`` package, is the
-:program:`mongo` shell. You can connect to your MongoDB instance by
-issuing the following command at the system prompt:
-
-.. code-block:: sh
-
-   mongo
-
-This will connect to the database running on the localhost interface
-by default. At the :program:`mongo` prompt, issue the following two
-commands to insert a record in the "test" :term:`collection` of the
-(default) "test" database and then retrieve that document.
-
-.. code-block:: javascript
-
-   db.test.save( { a: 1 } )
-   db.test.find()
-
-.. seealso:: ":program:`mongo`" and ":doc:`/reference/javascript`"
