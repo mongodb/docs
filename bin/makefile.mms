@@ -34,6 +34,7 @@ generate-source-hosted:
 	@rm -rf build/hosted/$(current-branch)/source/backup.txt build/hosted/$(current-branch)/source/backup/
 	@rm -rf build/hosted/$(current-branch)/source/includes/toc/dfn-list-mms-landing-saas.rst build/hosted/$(current-branch)/source/includes/toc/dfn-list-spec-mms-landing-saas.rst
 	@rm -rf build/hosted/$(current-branch)/source/includes/toc/mms-landing-saas.* build/hosted/$(current-branch)/source/includes/toc/spec-mms-landing-saas.yaml
+	@rm -rfbuild/hosted/$(current-branch)/source/management/activity.txt
 	@echo [sphinx-prep]: updated source in build/hosted/$(current-branch)/source
 	@-notify-send "Sphinx" "Build in progress past critical phase."
 	@echo [sphinx-prep]: INFO - Build in progress past critical phase.
