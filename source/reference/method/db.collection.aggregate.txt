@@ -6,88 +6,206 @@ db.collection.aggregate()
 
 .. versionadded:: 2.2
 
+.. important::
+
+   You cannot use the :method:`db.collection.aggregate()` method from
+   a 2.5.3 (or later) version of the :program:`mongo` shell while
+   connected to earlier versions of MongoDB.
+
+   To perform aggregation on older servers, use either an earlier
+   version of the :program:`mongo` shell or if using the 2.5.3
+   :program:`mongo` shell, run the :dbcommand:`aggregate` command
+   without specifying the ``cursor`` option, and not the
+   :method:`db.collection.aggregate()` method.
+
 Definition
 ----------
 
 .. method:: db.collection.aggregate(pipeline, options)
 
-   Calculates aggregate values for the data in a collection. Always
-   call the :method:`~db.collection.aggregate()` method on a collection
-   object.
+   Calculates aggregate values for the data in a collection.
 
    .. include:: /reference/method/db.collection.aggregate-param.rst
 
+   The ``options`` document can contain the following fields and values:
+
+   .. include:: /reference/method/db.collection.aggregate-options.rst
+
    :returns:
-      A :term:`cursor` to the documents produced by the final
-      stage of the aggregation pipeline operation.
+      A :term:`cursor` to the documents produced by the final stage of
+      the aggregation pipeline operation, or if you include the
+      ``explain`` option, a cursor to the document that provides
+      details on the processing of the aggregation operation.
 
-      .. versionchanged:: 2.5.3
-         :method:`~db.collection.aggregate()` now returns a cursor,
-         previous versions returned all results in a single document.
+      If the pipeline includes the :pipeline:`$out` operator,
+      :method:`~db.collection.aggregate()` returns an empty cursor. See
+      :pipeline:`$out` for more information.
 
-      If you use :pipeline:`$out`,
-      :method:`~db.collection.aggregate()` returns an empty
-      cursor. See :doc:`/reference/operator/aggregation/out`
-      for more information.
+      .. include:: /includes/fact-agg-helper-returns-cursor.rst
 
-.. important:: You cannot use the :method:`~db.collection.aggregate()`
-   on a 2.5.3 (or later) version of the :program:`mongo` shell to
-   perform aggregation pipeline operations on earlier MongoDB
-   deployments.
+.. include:: /includes/fact-agg-helper-exception.rst
 
 .. seealso:: For more information, see :doc:`/core/aggregation`,
    :doc:`/reference/aggregation`, and :dbcommand:`aggregate`.
 
-Example
--------
+Cursor Behavior
+---------------
 
-Consider a collection named ``articles`` that contains documents of the
-following format:
+In the :program:`mongo` shell, if the cursor returned from the
+:method:`db.collection.aggregate()` is not assigned to a variable using
+the ``var`` keyword, then the :program:`mongo` shell automatically
+iterates the cursor up to 20 times. See :doc:`/core/cursors` for cursor
+behavior in the :program:`mongo` shell and
+:doc:`/tutorial/iterate-a-cursor` for handling cursors in the
+:program:`mongo` shell.
 
-.. code-block:: javascript
+Cursors returned from aggregation only supports cursor methods that
+operate on evaluated cursors (i.e. cursors whose first batch has been
+retrieved), such as the following methods:
 
-   {
-     title : "this is my title" ,
-     author : "bob" ,
-     posted : new Date () ,
-     pageViews : 5 ,
-     tags : [ "fun" , "good" , "sport" ] ,
-     comments : [
-                  { author :"joe" , text : "this is cool" } ,
-                  { author :"sam" , text : "this is bad" }
-     ],
-     other : { foo : 5 }
-   }
+.. hlist::
+   :columns: 2
 
-The following aggregation pivots the data to group authors by
-individual tags:
+   * :method:`cursor.hasNext()`
+   * :method:`cursor.next()`
+   * :method:`cursor.toArray()`
+   * :method:`cursor.forEach()`
+   * :method:`cursor.map()`
+   * :method:`cursor.objsLeftInBatch()`
+   * :method:`cursor.itcount()`
+   * :method:`cursor.pretty()`
 
-.. code-block:: javascript
+Examples
+--------
 
-   db.articles.aggregate(
-     { $project : {
-                    author : 1,
-                    tags : 1,
-                  }
-     },
-     { $unwind : "$tags" },
-     { $group : {
-                  _id : { tags : "$tags" },
-                  authors : { $addToSet : "$author" }
-                }
-     }
-   )
+.. include:: /includes/important-uses-new-aggregate-helper.rst
 
-The aggregation pipeline begins with the collection ``articles`` and
-selects the ``author`` and ``tags`` fields using the
-:pipeline:`$project` pipeline operator. The :pipeline:`$unwind`
-operator produces one output document per tag. Finally, the
-:pipeline:`$group` pipeline operator groups authors by tags.
-
-The operation returns a cursor with documents that resemble the
-following:
+The following examples use the collection ``orders`` that contains the
+following documents:
 
 .. code-block:: javascript
 
-   { "_id" : { "tags" : "good" }, "authors" : [ "bob", "mike", ... ] }
-   { "_id" : { "tags" : "fun" }, "authors" : [ "bob", "al" ] }
+   { _id: 1, cust_id: "abc1", ord_date: ISODate("2012-11-02T17:04:11.102Z"), status: "A", amount: 50 }
+   { _id: 2, cust_id: "xyz1", ord_date: ISODate("2013-10-01T17:04:11.102Z"), status: "A", amount: 100 }
+   { _id: 3, cust_id: "xyz1", ord_date: ISODate("2013-10-12T17:04:11.102Z"), status: "D", amount: 25 }
+   { _id: 4, cust_id: "xyz1", ord_date: ISODate("2013-10-11T17:04:11.102Z"), status: "D", amount: 125 }
+   { _id: 5, cust_id: "abc1", ord_date: ISODate("2013-11-12T17:04:11.102Z"), status: "A", amount: 25 }
+
+Group by and Calculate a Sum
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation operation selects documents with status equal
+to ``"A"``, groups the matching documents by the ``cust_id`` field and
+calculates the ``total`` for each ``cust_id`` field from the sum of the
+``amount`` field, and sorts the results by the ``total`` field in
+descending order:
+
+.. code-block:: javascript
+
+   db.orders.aggregate([
+                        { $match: { status: "A" } }, 
+                        { $group: { _id: "$cust_id", total: { $sum: "$amount" } } },
+                        { $sort: { total: -1 } }
+                      ])
+
+The operation returns a cursor with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : "xyz1", "total" : 100 }
+   { "_id" : "abc1", "total" : 75 }
+
+.. include:: /includes/note-mongo-shell-automatically-iterates-cursor.rst
+
+.. _example-aggregate-method-explain-option:
+
+Return Information on Aggregation Pipeline Operation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation operation sets the option ``explain`` to
+``true`` to return information about the aggregation operation.
+
+.. code-block:: javascript
+
+   db.orders.aggregate(
+                        [
+                          { $match: { status: "A" } }, 
+                          { $group: { _id: "$cust_id", total: { $sum: "$amount" } } },
+                          { $sort: { total: -1 } }
+                        ],
+                        {
+                          explain: true
+                        }
+                      )
+
+The operation returns a cursor with the document that contains detailed
+information regarding the processing of the aggregation pipeline. For
+example, the document may show, among other details, which index, if
+any, the operation used. If the ``orders`` collection is a sharded
+collection, the document would also show the division of labor between
+the shards and the merge operation, and for targeted queries, the
+targeted shards.
+
+.. note:: The intended readers of the ``explain`` output document are humans, and
+   not machines, and the output format is subject to change between
+   releases.
+
+.. include:: /includes/note-mongo-shell-automatically-iterates-cursor.rst
+
+.. _example-aggregate-method-external-sort:
+
+Perform Large Sort Operation with External Sort
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation operation sets the option ``allowDiskUsage``
+to ``true`` to enable external sort such that the sort
+operation can write data to the ``_tmp`` sub-directory in the
+:setting:`dbpath` directory.
+
+.. code-block:: javascript
+
+   var results = db.orders.aggregate(
+                                       [
+                                          { $sort : { cust_id : 1 } }
+                                       ],
+                                       {
+                                         allowDiskUsage: true
+                                       }
+                                     )
+
+.. _example-aggregate-method-initial-batch-size:
+
+Specify an Initial Batch Size
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To specify an initial batch size for the cursor, use the following
+syntax for the ``cursor`` option:
+
+.. code-block:: javascript
+
+   cursor: { batchSize: <int> }
+
+For example, the following aggregation operation specifies the
+*initial* batch size of ``0`` for the cursor:
+
+.. code-block:: javascript
+
+   db.orders.aggregate(
+                        [
+                          { $match: { status: "A" } }, 
+                          { $group: { _id: "$cust_id", total: { $sum: "$amount" } } },
+                          { $sort: { total: -1 } },
+                          { $limit: 2 }
+                        ],
+                        {
+                          cursor: { batchSize: 0 }
+                        }
+                      )
+
+A ``batchSize`` of ``0`` means an empty
+first batch and is useful for quickly returning a cursor or failure
+message without doing significant server-side work. Specify subsequent
+batch sizes to :ref:`OP_GET_MORE <wire-op-get-more>` operations as with
+other MongoDB cursors.
+
+.. include:: /includes/note-mongo-shell-automatically-iterates-cursor.rst

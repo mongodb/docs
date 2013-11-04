@@ -188,24 +188,8 @@ Aggregation Pipeline Changes
 
 In the 2.5.3 version of the :program:`mongo` shell, the
 :method:`db.collection.aggregate()` helper can now accept as a second
-parameter a document of options:
-
-.. code-block:: javascript
-
-   db.collection.aggregate( [ <pipeline> ], { options } )
-
-The second parameter is *optional*.
-
-The updated :method:`db.collection.aggregate()` helper supports legacy
-syntax and accepts the pipeline stages as separate arguments. For
-example,
-
-.. code-block:: javascript
-
-   db.collection.aggregate( { $match: ... }, { $group: ...} )
-
-However, if you do not specify the ``<pipeline>`` in an array, you
-cannot specify options.
+parameter a document of options. See
+:method:`db.collection.aggregate()`.
 
 .. seealso:: :ref:`agg-helper-incompatibility`
 
@@ -233,117 +217,21 @@ Aggregation Operations Now Return Cursors
 .. DOCS-1835
 
 The :method:`db.collection.aggregate()` helper in the :program:`mongo`
-shell now returns a cursor. By returning a cursor,
-aggregation pipelines can return result sets of any size. In previous
-versions, the result of an aggregation operation could be no larger
-than 16 megabytes.
+shell now returns a cursor. By returning a cursor, aggregation
+pipelines can return result sets of any size. In previous versions, the
+result of an aggregation operation could be no larger than 16
+megabytes. See :method:`db.collection.aggregate()`.
 
-To perform aggregation on older servers, use either a previous version
-of the :program:`mongo` shell or if using the 2.5.3 :program:`mongo`
-shell, run the :dbcommand:`aggregate` command, not the
-:method:`db.collection.aggregate()` helper, without specifying the
-``cursor`` option.
+The :dbcommand:`aggregate` command can return a document that contains
+results with which to instantiate a cursor object.  See :dbcommand:`aggregate`.
 
-Cursors returned from aggregation only supports cursor methods that
-operate on evaluated cursors (i.e. cursors whose first batch has been
-retrieved), such as the following methods:
+``explain`` Option for the Aggregation Pipeline
+```````````````````````````````````````````````
 
-.. hlist::
-   :columns: 2
-
-   * :method:`cursor.hasNext()`
-   * :method:`cursor.next()`
-   * :method:`cursor.toArray()`
-   * :method:`cursor.forEach()`
-   * :method:`cursor.map()`
-   * :method:`cursor.objsLeftInBatch()`
-   * :method:`cursor.itcount()`
-   * :method:`cursor.pretty()`
-
-.. include:: /includes/important-uses-new-aggregate-helper.rst
-
-The following example returns a cursor from the aggregation operation:
-
-.. code-block:: javascript
-
-   var results = db.records.aggregate(
-                                       [
-                                         { $project : { name: 1, email: 1, _id: 0 } },
-                                         { $sort : { name: 1 } }
-                                       ]
-                                     )
-
-Like the cursor returned from :method:`db.collection.find()`, in the
-:program:`mongo` shell, if the cursor returned from the
-:method:`db.collection.aggregate()` is not assigned to a variable using
-the ``var`` keyword, then the cursor is automatically iterated up to 20
-times. See :doc:`/core/cursors` for cursor behavior in the
-:program:`mongo` shell and :doc:`/tutorial/iterate-a-cursor` for
-handling cursors in the :program:`mongo` shell.
-
-To specify an *initial* batch size for the cursor, set the option (e.g.
-``cursor: { batchSize: <num> }``) in the :ref:`second parameter
-<aggregation-method-change>` of the :method:`db.collection.aggregate()`
-method. A ``batchSize`` of ``0`` means an empty first batch and is
-useful if you want to quickly get back a cursor or a failure message
-without doing significant server-side work, as in the following example:
-
-.. code-block:: javascript
-
-   var results = db.records.aggregate(
-                                       [
-                                         { $project : { name: 1, email: 1, _id: 0 } },
-                                         { $sort : { name: 1 } }
-                                       ],
-                                       {
-                                          cursor: { batchSize: 0 }
-                                       }
-                                     )
-
-The :dbcommand:`aggregate` command may also return a cursor rather than
-a result document. To return a cursor object, specify the ``cursor``
-option. You can also specify an optional initial batch size to the
-command. Using the :dbcommand:`aggregate` command to return a cursor is
-a low-level operation, intended for authors of drivers. Most users
-should use the :method:`db.collection.aggregate()` helper provided in
-the :program:`mongo` shell or in their driver.
-
-The following command returns a document that can be used to
-instantiate an object.
-
-.. code-block:: javascript
-
-   db.runCommand(
-      { aggregate: "records",
-        pipeline: [
-           { $project: { name: 1, email: 1, _id: 0 } },
-           { $sort: { name: 1 } }
-        ],
-        cursor: { }
-      }
-   )
-
-To specify an *initial* batch size, specify the ``batchSize`` in the
-``cursor`` field, as in the following example:
-
-.. code-block:: javascript
-
-   db.runCommand(
-      { aggregate: "records",
-        pipeline: [
-           { $project: { name: 1, email: 1, _id: 0 } },
-           { $sort: { name: 1 } }
-        ],
-        cursor: { batchSize: 0 }
-      }
-   )
-
-The ``{batchSize: 0 }`` document specifies the size of the *initial*
-batch size only. Specify subsequent batch sizes to :ref:`OP_GET_MORE
-<wire-op-get-more>` operations as with other MongoDB cursors. A
-``batchSize`` of ``0`` means an empty first batch and is useful if you
-want to quickly get back a cursor or failure message, without doing
-significant server-side work.
+The new ``explain`` option for aggregation provides information about
+how :program:`mongod` processes the pipeline. See
+:method:`db.collection.aggregate()` and :dbcommand:`aggregate` for
+details.
 
 Improved Sorting
 ````````````````
@@ -351,44 +239,14 @@ Improved Sorting
 .. versionadded:: 2.5.2
 
 The :pipeline:`$sort` and :pipeline:`$group` stages now use a more
-efficient sorting system within the :program:`mongod` process. This
-improves performance for sorting operations that cannot rely on an
-index or that exceed the maximum memory use limit, see
-:limit:`Aggregation Sort Operation` for more information.
+efficient sorting system, improving performance for sorting operations
+that cannot rely on an index or that exceed the :limit:`maximum memory
+use limit <Aggregation Sort Operation>`.
 
-For large sort operations these "external sort" operations can write
-data to the ``_tmp`` sub-directory in the :setting:`dbpath` directory.
-
-To enable external sort, specify the ``allowDiskUsage`` option as the
-:ref:`second parameter <aggregation-method-change>` to the
-:method:`db.collection.aggregate()` helper.
-
-.. include:: /includes/important-uses-new-aggregate-helper.rst
-
-.. code-block:: javascript
-
-   var results = db.records.aggregate(
-                                       [
-                                          { $project : { name: 1, email: 1, _id: 0 } },
-                                          { $sort : { name : 1 } }
-                                       ],
-                                       {
-                                         allowDiskUsage: true
-                                       }
-                                     )
-
-For the :dbcommand:`aggregate` command, add the new ``allowDiskUsage``
-argument to the :dbcommand:`aggregate` command, as in the following
-prototype:
-
-.. code-block:: javascript
-
-   {
-     aggregate: "<collection>",
-     pipeline: [<pipeline>],
-     allowDiskUsage: <boolean>
-   }
-
+The new ``allowDiskUsage`` option enables large sort operations to
+write data to :file:`_tmp` subdirectory in the :setting:`dbpath`
+directory. See :method:`db.collection.aggregate()` and
+:dbcommand:`aggregate`.
 
 ``$redact`` Stage to Provide Filtering for Field-Level Access Control
 `````````````````````````````````````````````````````````````````````
@@ -537,64 +395,6 @@ The new :expression:`$literal` operator allows users to explicitly
 specify documents in aggregation operations that the pipeline stage
 would otherwise interpret directly. See
 :doc:`/reference/operator/aggregation/literal` for more information.
-
-``explain`` Option for the Aggregation Pipeline
-```````````````````````````````````````````````
-
-The new ``explain`` option for aggregation provides information about
-how the command processes the pipeline. The returned document contains
-information on each stage of the pipeline.
-
-The intended readers of the ``explain`` output document are humans, and
-not machines, and the output format is subject to change between
-releases.
-
-To use ``explain``, specify ``explain: true`` as the :ref:`second
-parameter <aggregation-method-change>` to the
-:method:`db.collection.aggregate()` helper:
-
-.. include:: /includes/important-uses-new-aggregate-helper.rst
-
-.. code-block:: javascript
-
-   db.collection.aggregate( [ <pipeline operations> ],
-                            {explain: true }
-                          )
-
-.. example::
-
-   In the :program:`mongo` shell, given the following aggregation
-
-   .. code-block:: javascript
-
-      db.records.aggregate(
-                            [ { $sort: { name : -1 } },
-                              { $limit: 5 }
-                            ],
-                            { explain: true }
-                          )
-
-   The returned document provides information on how
-   :dbcommand:`aggregate` processed the pipeline. For this example, the
-   returned document may show, among other details, which index, if
-   any, the operation used. If the operation did not use an index and
-   since the :pipeline:`$sort` immediately precedes the
-   :pipeline:`$limit`, the output would show the :pipeline:`$sort`
-   operation only maintaining the top 5 results as it progresses rather
-   than sorting all input documents. If the ``record`` collection is a
-   sharded collection, the output also shows the division of labor
-   between the shards and the merge,, and for targeted queries, shows
-   the targeted shards.
-
-For the :dbcommand:`aggregate` command, add the ``explain: true`` to the
-command, as shown:
-
-.. code-block:: javascript
-
-   db.runCommand( { aggregate: "<collection>",
-                    explain: true,
-                    pipeline: [ <pipeline operations> ] } )
-
 
 ``$cond`` Accepts Objects as Arguments
 ``````````````````````````````````````
