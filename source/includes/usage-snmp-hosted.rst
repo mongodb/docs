@@ -1,7 +1,7 @@
 SNMP Integration
 ````````````````
 
-The following is an example of using snmpwalk to query for SNMP health status::
+The following is an example of using ``snmpwalk`` to query for SNMP health status::
 
     $ snmpwalk -v 2c -c public mms.acmewidgets.com:11611 MMS-10GEN-MIB::mmsHeartbeatObject
     MMS-10GEN-MIB::mmsHeartbeatHostnameId.0 = STRING: "[hostname]-[instance#]"
