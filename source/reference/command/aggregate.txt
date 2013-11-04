@@ -103,6 +103,52 @@ In the :program:`mongo` shell, this operation can use the
 
 .. include:: /includes/fact-agg-helper-exception.rst
 
+Return Information on the Aggregation Operation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation operation sets the optional field ``explain``
+to ``true`` to return information about the aggregation operation.
+
+.. code-block:: javascript
+
+   db.runCommand( { aggregate: "orders",
+                    pipeline: [
+                                { $match: { status: "A" } },
+                                { $group: { _id: "$cust_id", total: { $sum: "$amount" } } },
+                                { $sort: { total: -1 } }
+                              ],
+                    explain: true 
+                 } )
+
+.. note:: The intended readers of the ``explain`` output document are humans, and
+   not machines, and the output format is subject to change between
+   releases.
+                  
+.. seealso:: :method:`db.collection.aggregate()` method
+
+Aggregate Data using External Sort
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example sets the optional field ``allowDiskUsage`` to
+``true`` in the :dbcommand:`aggregate` command such that the sort
+operation can write data to the ``_tmp`` sub-directory in the
+:setting:`dbpath` directory.
+
+.. code-block:: javascript
+
+   db.runCommand(
+      { aggregate: "stocks",
+        pipeline: [
+                    { $project : { cusip: 1, date: 1, price: 1, _id: 0 } },
+                    { $sort : { cusip : 1, date: 1 } }
+                  ],
+        allowDiskUsage: true
+      }
+   )
+
+.. seealso:: :method:`db.collection.aggregate()`
+
+
 Aggregate Command Returns a Cursor
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -150,50 +196,5 @@ batch size only. Specify subsequent batch sizes to :ref:`OP_GET_MORE
 ``batchSize`` of ``0`` means an empty first batch and is useful if you
 want to quickly get back a cursor or failure message, without doing
 significant server-side work.
-
-.. seealso:: :method:`db.collection.aggregate()`
-
-Return Information on the Aggregation Operation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The following aggregation operation sets the optional field ``explain``
-to ``true`` to return information about the aggregation operation.
-
-.. code-block:: javascript
-
-   db.runCommand( { aggregate: "orders",
-                    pipeline: [
-                                { $match: { status: "A" } },
-                                { $group: { _id: "$cust_id", total: { $sum: "$amount" } } },
-                                { $sort: { total: -1 } }
-                              ],
-                    explain: true 
-                 } )
-
-.. note:: The intended readers of the ``explain`` output document are humans, and
-   not machines, and the output format is subject to change between
-   releases.
-                  
-.. seealso:: :method:`db.collection.aggregate()` method
-
-Aggregate Data using External Sort
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The following example sets the optional field ``allowDiskUsage`` to
-``true`` in the :dbcommand:`aggregate` command such that the sort
-operation can write data to the ``_tmp`` sub-directory in the
-:setting:`dbpath` directory.
-
-.. code-block:: javascript
-
-   db.runCommand(
-      { aggregate: "stocks",
-        pipeline: [
-                    { $project : { cusip: 1, date: 1, price: 1, _id: 0 } },
-                    { $sort : { cusip : 1, date: 1 } }
-                  ],
-        allowDiskUsage: true
-      }
-   )
 
 .. seealso:: :method:`db.collection.aggregate()`
