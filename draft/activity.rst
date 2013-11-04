@@ -5,8 +5,7 @@ Activity -- MMS Alerts and Events
 Page
 ----
 
-As of {time} all new groups created in MMS have a new
-alerting and events interface. The new *Activity* tab includes
+The new *Activity* tab includes
 information and elements previously available in the *Events* and
 *Alerts* pages in the MMS interface.
 
