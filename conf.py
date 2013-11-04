@@ -41,7 +41,7 @@ master_doc = 'index'
 copyright = u'2011-2013, MongoDB, Inc.'
 
 version = conf.version.branch
-release = conf.version.release
+release = "Upcoming"
 pygments_style = 'sphinx'
 
 # -- Options for HTML output ---------------------------------------------------
