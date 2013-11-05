@@ -675,71 +675,9 @@ use of a weak cipher.
 Support for SSL and non-SSL Connections on the Same Port
 ````````````````````````````````````````````````````````
 
-.. merge this under the new ~~~ header created by DOCS-1921
-
-.. DOCS-1941
-
-.. draft, waiting for feature complete before sending to technical review
-
-MongoDB supports mixed SSL and non-SSL connections on the same port to
-allow upgrades to SSL without forcing downtime. MongoDB provides
-a new command-line option and server command that configure a server
-port to allow unencrypted internal connections while maintaining
-encrypted external connections.
-
-To use such mixed SSL modes on a port, you must restrict access at the
-network level. You cannot at this time restrict encryption based on
-MongoDB user or role. Outgoing connections from the MongoDB server
-cannot choose encryption based on connection target.
-
-You can only increase security level on a server. Changing a server's
-listening behavior does not require a restart of the server.
-
-The --sslMode Command-Line Option
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-MongoDB provides the following new server command-line option to handle
-mixed SSL mode:
-
-.. code-block:: sh
-
-   --sslMode <parameter>
-
-The value of ``<parameter>`` is one of the following:
-
-- ``noSSL``. The server does not use SSL.
-
-- ``sslOnly``. The server uses only SSL.
-
-- ``acceptSSL``. Outgoing connections do not use SSL. For incoming
-  connections, the server accepts both SSL and non-SSL.
-
-- ``sendAcceptSSL``. Outgoing connections use SSL. For incoming
-  connections, the server accepts both SSL and non-SSL.
-
-Upgrade a Cluster to Use SSL
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-To upgrade from a MongoDB cluster using no SSL encryption to one using
-*only* SSL encryption, do the following:
-
-1. Perform a rolling upgrade to MongoDB 2.6 on all nodes, and activate
-   mixed-mode SSL by using the ``--sslMode`` command-line option
-   set to ``acceptSSL``:
-
-  .. code-block:: javascript
-
-     --sslMode=acceptSSL
-
-2. Switch all clients to use SSL.
-
-3. Switch all outgoing server connections to use SSL by restarting each server
-   with the ``--sslMode`` option set to ``sendAcceptSSL``.
-
-   At this point, all connections should be using SSL.
-
-4. Switch all servers to accept only SSL connections by restarting each server
-   with the ``--sslMode`` option set to ``sslOnly`` parameter on each server.
+To permit upgrades of MongoDB clusters to use SSL encrypted connections, the
+MongoDB server supports listening for both SSL encrypted and unencrypted
+connections on the same TCP port. See :doc:`/tutorial/upgrade-cluster-to-ssl`.
 
 .. _rn26-x509-authentication:
 
@@ -748,25 +686,11 @@ x.509 Authentication
 
 MongoDB introduces :doc:`x.509 certificate authentication
 </tutorial/configure-x509>` for use with a secure :doc:`SSL connection
-</tutorial/configure-ssl>`.
+</tutorial/configure-ssl>` for client authentication as well as for
+internal authentication of sharded and/or replica set cluster members.
 
-.. important:: To use SSL, you must either use MongoDB Enterprise or
-   build MongoDB locally using ``scons`` with the ``--ssl`` option.
-
-The x.509 authentication allows clients to authenticate to servers with
-certificates instead of with username and password. The x.509
-authentication also allows sharded cluster members and replica set
-members to use x.509 certificates to verify their membership to the
-cluster or the replica set instead of using key files. The membership
-authentication is an internal process.
-
-The change for x.509 authentication introduces a new ``MONGODB-X509``
-protocol. For internal authentication for membership, the change also
-introduces the :option:`--clusterAuthMode`, :option:`--sslClusterFile` and the
-:option:`--sslClusterPassword` options.
-
-For details on x.509 certificate authentication, see
-:doc:`/tutorial/configure-x509`.
+See :ref:`x509-client-authentication` and
+:ref:`x509-internal-authentication`.
 
 Index Building Improvements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~

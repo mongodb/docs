@@ -4,6 +4,8 @@
 
 .. option:: --sslOnNormalPorts
 
+   .. deprecated:: 2.5.3
+
    .. versionadded:: 2.2
 
    .. include:: /includes/note-general-ssl-support.rst
@@ -13,6 +15,44 @@
    default MongoDB port, or the port specified by :option:`--port`. By
    default, :option:`--sslOnNormalPorts` is disabled.
 
+.. option:: --sslMode <mode>
+
+   .. versionadded:: 2.5.3
+
+   .. include:: /includes/note-general-ssl-support.rst
+
+   Use the ``--sslMode`` option to enable SSL or use mixed SSL modes on
+   a port. The :option:`--sslMode` option can have one of the following
+   values:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 40
+
+      * - Value
+
+        - Description
+
+      * - ``noSSL``
+
+        - The server does not use SSL.
+
+      * - ``acceptSSL``
+
+        - Connections between servers do not use SSL. For incoming
+          connections, the server accepts both SSL and non-SSL.
+
+      * - ``sendAcceptSSL``
+
+        - Connections between servers do use SSL. For incoming
+          connections, the server accepts both SSL and non-SSL.
+
+      * - ``sslOnly``
+
+        - The server uses only SSL encrypted connections.
+
+.. TODO the param names may change -- SERVER-11375
+   
 .. option:: --sslPEMKeyFile <filename>
 
    .. versionadded:: 2.2
