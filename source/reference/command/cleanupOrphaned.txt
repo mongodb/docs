@@ -11,16 +11,10 @@ Definition
 
    .. versionadded:: 2.5.3
 
-   Incrementally deletes :term:`documents <document>` on a
-   :term:`shard`, whose shard keys do not fall within the range of
-   any :term:`chunk` owned by that shard.
-
-   .. note::
-
-      :term:`Orphaned documents` are documents that exist in chunks
-      on other shards. Delete orphaned phaned documents using
-      :dbcommand:`cleanupOrphaned` to reclaim disk space and reduce
-      confusion.
+   Incrementally deletes :term:`orphaned data <orphaned document>`,
+   or those documents on a shard that have shard key values that do
+   not fall within the ranges the :term:`chunks <chunks>` owned by
+   that shard.
 
    Orphaned data sometimes results from aborted migrations due to
    network latency and power loss.
@@ -29,9 +23,9 @@ Definition
 
    Run :dbcommand:`cleanupOrphaned` directly on the :program:`mongod`
    instance on the primary replica set member of the shard. Do not
-   run from :program:`mongos`.
+   run :dbcommand:`cleanupOrphaned` from a :program:`mongos` instance.
 
-   Use with the following form:
+   :dbcommand:`cleanupOrphaned` has the following prototype form:
 
    .. code-block:: javascript
 
@@ -45,8 +39,8 @@ Definition
 Required Access
 ---------------
 
-On systems running with :setting:`auth`, you must
-have :authrole:`clusterAdmin` privileges to run
+On systems running with :setting:`auth`, you must have
+:authrole:`clusterAdmin` privileges to run
 :dbcommand:`cleanupOrphaned`.
 
 Behavior
@@ -55,8 +49,16 @@ Behavior
 You do not need to disable the balancer before running
 :dbcommand:`cleanupOrphaned`.
 
+Do not run :dbcommand:`cleanupOrphaned` from :program:`mongos` instances:
+instead, run :dbcommand:`cleanupOrphaned` while connected directly to
+the :program:`mongod` that is currently the primary replica set member
+of the shard.
+
 Output
 ------
+
+Return Document
+~~~~~~~~~~~~~~~
 
 Each :dbcommand:`cleanupOrphaned` command returns a document containing
 a subset of the following fields:
@@ -94,8 +96,8 @@ a subset of the following fields:
    on a given shard, and deletes all documents found within that range.
 
    :dbcommand:`cleanupOrphaned` selects the next range containing
-   the :data:`cleanupOrphaned.startingAtKey` that is not in the range
-   of any chunk on the shard. :data:`cleanupOrphaned.startingAtKey`
+   the :data:`~cleanupOrphaned.startingAtKey` that is not in the range
+   of any chunk on the shard. :data:`~cleanupOrphaned.startingAtKey`
    defaults to ``MinKey``.
 
 .. data:: cleanupOrphaned.stoppedAtKey
