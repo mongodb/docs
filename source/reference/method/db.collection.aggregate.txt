@@ -45,8 +45,9 @@ Definition
 
 .. include:: /includes/fact-agg-helper-exception.rst
 
-.. seealso:: For more information, see :doc:`/core/aggregation`,
-   :doc:`/reference/aggregation`, and :dbcommand:`aggregate`.
+.. seealso:: For more information, see
+   :doc:`/core/aggregation-pipeline`, :doc:`/reference/aggregation`,
+   :doc:`/core/aggregation-pipeline-limits`, and :dbcommand:`aggregate`.
 
 Cursor Behavior
 ---------------
@@ -157,21 +158,22 @@ targeted shards.
 Perform Large Sort Operation with External Sort
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following aggregation operation sets the option ``allowDiskUsage``
-to ``true`` to enable external sort such that the sort
-operation can write data to the ``_tmp`` sub-directory in the
-:setting:`dbpath` directory.
+Aggregation pipeline stages have :ref:`maximum memory use limit
+<agg-memory-restrictions>`. To handle large datasets, set
+``allowDiskUsage`` option to ``true`` to enable writing data to
+temporary files, as in the following example:
 
 .. code-block:: javascript
 
-   var results = db.orders.aggregate(
-                                       [
-                                          { $sort : { cust_id : 1 } }
-                                       ],
-                                       {
-                                         allowDiskUsage: true
-                                       }
-                                     )
+   var results = db.stocks.aggregate(
+                                      [
+                                        { $project : { cusip: 1, date: 1, price: 1, _id: 0 } },
+                                        { $sort : { cusip : 1, date: 1 } }
+                                      ],
+                                      {
+                                        allowDiskUsage: true
+                                      }
+                                    )
 
 .. _example-aggregate-method-initial-batch-size:
 
