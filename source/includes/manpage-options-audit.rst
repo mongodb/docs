@@ -19,6 +19,8 @@
           Windows. Audit messages have a syslog severity level of ``info``
           and a facility level of ``user``.
 
+          .. include:: /includes/fact-audit-syslog-message-limit.rst
+
       * - ``console``
 
         - Output the audit log to ``stdout`` in text format.
