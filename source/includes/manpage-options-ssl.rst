@@ -44,12 +44,12 @@
 
       * - ``sendAcceptSSL``
 
-        - Connections between servers do use SSL. For incoming
+        - Connections between servers use SSL. For incoming
           connections, the server accepts both SSL and non-SSL.
 
       * - ``sslOnly``
 
-        - The server uses only SSL encrypted connections.
+        - The server uses and accepts only SSL encrypted connections.
 
 .. TODO the param names may change -- SERVER-11375
    
