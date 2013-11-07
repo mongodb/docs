@@ -508,49 +508,12 @@ Support for Removing Orphan Data From Shards
 
 .. versionadded:: 2.5.2
 
-The new :dbcommand:`cleanupOrphaned` is available to remove orphaned
-data from a sharded cluster. Orphaned data are those documents in a
-collection that exist on shards that belong to another shard in the
-cluster. Orphaned data are the result of failed migrations or incomplete
-migration cleanup due to abnormal shutdown.
-
-.. dbcommand:: cleanupOrphaned
-
-   :dbcommand:`cleanupOrphaned` removes documents from *one* orphaned
-   chunk range on shard and runs directly on the shard's
-   :program:`mongod` instance, and requires the
-   :authrole:`clusterAdmin` for systems running with :setting:`auth`.
-   You do **not** need to disable the :term:`balancer` to run
-   :dbcommand:`cleanupOrphaned`.
-
-   In the common case, :dbcommand:`cleanupOrphaned` takes the
-   following form:
-
-   .. code-block:: javascript
-
-      { cleanupOrphaned: <namespace>, startingFromKey: { } }
-
-   The ``startingFromKey`` field specifies the lowest value of the
-   :term:`shard key` to begin searching for orphaned data. The empty
-   document (i.e. ``{ }``) is equivalent to the minimum value for the
-   shard key (i.e. ``$minValue``).
-
-   The :dbcommand:`cleanupOrphaned` command returns a document that
-   contains a field named ``stoppedAtKey`` that you can use to
-   construct a loop, as in the following example in the
-   :program:`mongo` shell:
-
-   .. code-block:: javascript
-
-      db = db.getSiblingDB("admin")
-
-      var nextKey = {};
-
-      while (
-         nextKey = db.runCommand( { cleanupOrphaned : "test.user", startingFromKey : nextKey } ).stoppedAtKey
-         ) { printjson(nextKey); }
-
-   This loop removes all orphaned data on the shard.
+The new :dbcommand:`cleanupOrphaned` command helps support sharded
+cluster maintenance, by providing a mechanism to removed orphaned data
+from a shard. Orphaned data are those documents in a collection that
+exist on shards that belong to another shard in the cluster. Orphaned
+data are the result of failed migrations or incomplete migration
+cleanup due to abnormal shutdown.
 
 Ability to Merge Co-located Contiguous Chunks
 `````````````````````````````````````````````
