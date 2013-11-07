@@ -144,7 +144,7 @@ html_theme_options = {
 }
 
 html_sidebars = {
-    '**': ['sidebar-nav-manual.html'],
+    '**': ['pagenav.html'],
 }
 html_sidebars['**'].append('formats.html')
 
