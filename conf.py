@@ -14,7 +14,7 @@ sys.path.append(os.path.join(project_root, buildsystem, 'sphinxext'))
 sys.path.append(os.path.join(project_root, buildsystem, 'bin'))
 
 from utils import ingest_yaml, ingest_yaml_list
-from docs_meta import get_conf, get_versions, get_manual_path
+from docs_meta import get_conf, get_versions, get_manual_path, edition_setup
 
 conf = get_conf()
 conf.build.paths.projectroot = project_root
@@ -44,6 +44,20 @@ version = conf.version.branch
 release = "Upcoming"
 pygments_style = 'sphinx'
 
+extlinks = {
+    'issue': ('https://jira.mongodb.org/browse/%s', '' ),
+    'wiki': ('http://www.mongodb.org/display/DOCS/%s', ''),
+    'api': ('http://api.mongodb.org/%s', ''),
+    'source': ('https://github.com/mongodb/mongo/blob/master/%s', ''),
+    'docsgithub' : ( 'http://github.com/mongodb/docs/blob/' + conf.git.branches.current + '/%s', ''),
+    'hardlink' : ( 'http://docs.mongodb.org/' + conf.git.branches.current + '/%s', ''),
+    'manual': ('http://docs.mongodb.org/manual%s', ''),
+    'ecosystem': ('http://docs.mongodb.org/ecosystem%s', ''),
+    'meta-driver': ('http://docs.mongodb.org/meta-driver/latest%s', ''),
+    'about': ('http://www.mongodb.org/about%s', '')
+}
+
+
 # -- Options for HTML output ---------------------------------------------------
 
 html_theme = 'mms'
@@ -57,26 +71,13 @@ html_use_modindex = False
 html_show_sourcelink = False
 htmlhelp_basename = 'MongoDB doc'
 
+print tags.has('hosted')
+
 html_theme_options = {
     'version': version,
     'branch': conf.git.branches.current,
-    'manual_path': get_manual_path(conf),
     'google_analytics': 'UA-7301842-7',
-    'version_selector': get_versions(conf),
     'stable': conf.version.stable,
-}
-
-extlinks = {
-    'issue': ('https://jira.mongodb.org/browse/%s', '' ),
-    'wiki': ('http://www.mongodb.org/display/DOCS/%s', ''),
-    'api': ('http://api.mongodb.org/%s', ''),
-    'source': ('https://github.com/mongodb/mongo/blob/master/%s', ''),
-    'docsgithub' : ( 'http://github.com/mongodb/docs/blob/' + conf.git.branches.current + '/%s', ''),
-    'hardlink' : ( 'http://docs.mongodb.org/' + conf.git.branches.current + '/%s', ''),
-    'manual': ('http://docs.mongodb.org/manual%s', ''),
-    'ecosystem': ('http://docs.mongodb.org/ecosystem%s', ''),
-    'meta-driver': ('http://docs.mongodb.org/meta-driver/latest%s', ''),
-    'about': ('http://www.mongodb.org/about%s', '')
 }
 
 hosted_latex_documents = []
@@ -92,48 +93,49 @@ for pdf in pdfs:
 rst_epilog = []
 html_sidebars = { '**': [] }
 
-try:
-    if tags.has('hosted'):
-        project = u'MongoDB Management Service (MMS) On-Prem'
-        html_title = 'MMS On-Prem Manual'
-        html_short_title = 'MMS On-Prem Manual'
-        latex_documents = hosted_latex_documents
-        rst_epilog.append(".. |s| replace:: Suite")
-        rst_epilog.append(".. |index-page-title| replace:: MongoDB Management Service On-Prem")
-        rst_epilog.append(".. |mms| replace:: MongoDB Management Service On-Prem")
-        rst_epilog.append(".. |backup| replace:: MMS Backup On-Prem")
-        rst_epilog.append(".. |monitoring| replace:: MMS Monitoring On-Prem")
-        html_sidebars['**'].append('sidebar-nav-mms-hosted.html')
-        html_theme_template['edition'] = 'hosted'
+if tags.has('hosted'):
+    conf = edition_setup('hosted', conf)
 
-        if release == "Upcoming":
-            rst_epilog.append(".. |release-string| replace:: \   ")
-        else:
-            rst_epilog.append(".. |release-string| replace:: -- {0} Release".format(release))
+    project = u'MongoDB Management Service (MMS) On-Prem'
+    html_title = 'MMS On-Prem Manual'
+    html_short_title = 'MMS On-Prem Manual'
+    latex_documents = hosted_latex_documents
+    rst_epilog.append(".. |s| replace:: Suite")
+    rst_epilog.append(".. |index-page-title| replace:: MongoDB Management Service On-Prem")
+    rst_epilog.append(".. |mms| replace:: MongoDB Management Service On-Prem")
+    rst_epilog.append(".. |backup| replace:: MMS Backup On-Prem")
+    rst_epilog.append(".. |monitoring| replace:: MMS Monitoring On-Prem")
+    html_sidebars['**'].append('sidebar-nav-mms-hosted.html')
+    html_theme_options['edition'] = 'hosted'
 
-        ## add `extlinks` for each published version.
-        for i in conf.git.branches.published:
-            extlinks[i] = ( conf.project.url + '/' + i + '%s', '')
-    else:
-        project = u'MongoDB Management Service (MMS)'
-        html_title = 'MMS Manual'
-        html_short_title = 'MMS Manual'
-        latex_documents = saas_latex_documents
-        rst_epilog.append(".. |s| replace:: Service")
-        rst_epilog.append(".. |index-page-title| replace:: MongoDB Management Service (MMS)")
-        rst_epilog.append(".. |mms| replace:: MongoDB Management Service")
-        rst_epilog.append(".. |backup| replace:: MMS Backup")
-        rst_epilog.append(".. |monitoring| replace:: MMS Monitoring")
-        html_sidebars['**'].append('sidebar-nav.html')
-        html_theme_template['edition'] = 'saas'
-except NameError:
     if release == "Upcoming":
         rst_epilog.append(".. |release-string| replace:: \   ")
     else:
         rst_epilog.append(".. |release-string| replace:: -- {0} Release".format(release))
 
+    ## add `extlinks` for each published version.
+    for i in conf.git.branches.published:
+        extlinks[i] = ( conf.project.url + '/' + i + '%s', '')
+else:
+    conf = edition_setup('saas', conf)
+
+    project = u'MongoDB Management Service (MMS)'
+    html_title = 'MMS Manual'
+    html_short_title = 'MMS Manual'
+    latex_documents = saas_latex_documents
+    rst_epilog.append(".. |s| replace:: Service")
+    rst_epilog.append(".. |index-page-title| replace:: MongoDB Management Service (MMS)")
+    rst_epilog.append(".. |mms| replace:: MongoDB Management Service")
+    rst_epilog.append(".. |backup| replace:: MMS Backup")
+    rst_epilog.append(".. |monitoring| replace:: MMS Monitoring")
+    html_sidebars['**'].append('sidebar-nav.html')
+    html_theme_options['edition'] = 'saas'
+
 rst_epilog = '\n'.join(rst_epilog)
 html_sidebars['**'].extend(['searchbox.html'])
+
+html_theme_options['manual_path'] = get_manual_path(conf)
+html_theme_options['version_selector'] = get_versions(conf)
 
 # -- Options for LaTeX output --------------------------------------------------
 
