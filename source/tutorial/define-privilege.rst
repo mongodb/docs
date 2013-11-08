@@ -1,3 +1,7 @@
+.. renamed as an rst file to prevent this from being published in case
+   this is a stub. If its not we should remove this as it seems
+   redundant.
+
 ==================
 Define a Privilege
 ==================
