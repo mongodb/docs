@@ -62,8 +62,7 @@
    Specifies the :file:`.pem` file that contains both the SSL
    certificate and key. |pem-path-name|
 
-   When using :option:`--sslOnNormalPorts`, you must specify
-   :option:`--sslPEMKeyFile`.
+   When SSL is enabled, you must specify :option:`--sslPEMKeyFile`.
 
 .. option:: --sslPEMKeyPassword <value>
 
@@ -76,6 +75,11 @@
    :option:`--sslPEMKeyPassword` if the certificate-key file is
    encrypted. In all cases, |binary-name| will redact the password from
    all logging and reporting output.
+
+   .. versionchanged:: 2.6
+      If the private key in the PEM file is encrypted and you do not
+      specify :option:`--sslPEMKeyPassword`, |binary-name| will prompt
+      for a passphrase. See :ref:`ssl-certificate-password`.
 
    .. versionchanged:: 2.4
       :option:`--sslPEMKeyPassword` is only needed when the private
@@ -195,3 +199,8 @@
   :option:`--sslClusterPassword` if the certificate-key file is
   encrypted. In all cases, |binary-name| will redact the password from
   all logging and reporting output.
+
+  .. versionchanged:: 2.6
+     If the x.509 key file is encrypted and you do not specify
+     :option:`--sslClusterPassword`, |binary-name| will prompt for
+     a passphrase. See :ref:`ssl-certificate-password`.

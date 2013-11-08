@@ -19,6 +19,10 @@ SSL support and that your client driver supports SSL. For instructions
 on upgrading a cluster currently not using SSL to using SSL, see
 :doc:`/tutorial/upgrade-cluster-to-ssl`.
 
+.. versionchanged:: 2.5.3 
+   MongoDB's SSL encryption only allows use of strong SSL ciphers with
+   a minimum of 128-bit key length for all connections.
+
 .. _`default distribution of MongoDB`: http://www.mongodb.org/downloads
 .. _`MongoDB Enterprise`: http://www.mongodb.com/products/mongodb-enterprise
 
@@ -84,8 +88,7 @@ encryption for all connections with the following command:
          server issue.
 
    - If the private key portion of the ``<pem>`` is encrypted, specify
-     the encryption password with the :setting:`sslPEMKeyPassword`
-     option.
+     the passphrase. See :ref:`ssl-certificate-password`.
 
    - You may also specify these options in the :doc:`configuration file
      </reference/configuration-options>`, as in the following example:
@@ -141,8 +144,8 @@ encryption as follows:
    - Specify the ``<pem>`` file and the ``<ca>`` file with either the
      full path name or the relative path name.
 
-   - If the ``<pem>`` is encrypted, specify the encryption password
-     with the :setting:`sslPEMKeyPassword` option.
+   - If the ``<pem>`` is encrypted, specify the passphrase. See
+     :ref:`ssl-certificate-password`.
 
    - You may also specify these options in the :doc:`configuration file
      </reference/configuration-options>`, as in the following example:
@@ -224,6 +227,37 @@ If your :program:`mongod` or :program:`mongos` is running on a system
 with an OpenSSL library configured with the FIPS 140-2 module, you can
 run :program:`mongod` or :program:`mongos` in FIPS mode, with the
 :setting:`sslFIPSMode` setting.
+
+.. _ssl-certificate-password:
+
+SSL Certificate Passphrase
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The PEM files for :setting:`sslPEMKeyFile` and
+:setting:`sslClusterFile` may be encrypted. With encrypted PEM files,
+you must specify the passphrase at startup with a command-line or a
+configuration file option or enter the passphrase when prompted.
+
+.. versionchanged:: 2.6
+
+   In previous versions, you can only specify the passphrase with a
+   command-line or a configuration file option.
+
+To specify the passphrase in clear text on the command line or in a
+configuration file, use the :setting:`sslPEMKeyPassword` and/or the
+:setting:`sslClusterPassword` option.
+
+To have MongoDB prompt for the passphrase at the start of
+:program:`mongod` or :program:`mongos` and avoid specifying the
+passphrase in clear text, omit the :setting:`sslPEMKeyPassword` and/or
+the :setting:`sslClusterPassword` option. MongoDB will prompt for each
+passphrase as necessary.
+
+.. important:: The passphrase prompt option is available if you run the 
+   MongoDB instance in the foreground with a connected terminal. If you
+   run :program:`mongod` or :program:`mongos` in a non-interactive
+   session (e.g. without a terminal or as a service on Windows),
+   you cannot use the passphrase prompt option.
 
 .. _ssl-clients:
 
@@ -451,3 +485,26 @@ prevent the .NET driver from validating the certificate, as follows:
 
     var connectionString = "mongodb://localhost/?ssl=true&sslverifycertificate=false";
     var server = MongoServer.Create(connectionString);
+
+.. _mongodb-tools-support-ssl:
+
+MongoDB Tools
+~~~~~~~~~~~~~
+
+.. versionadded:: 2.5.3
+   Various MongoDB utility programs supports SSL.
+
+Additional MongoDB programs with SSL support include:
+
+- :program:`mongodump`
+- :program:`mongoexport`
+- :program:`mongofiles`
+- :program:`mongoimport`
+- :program:`mongooplog`
+- :program:`mongorestore`
+- :program:`mongostat`
+- :program:`mongotop`
+
+.. tip:: To use SSL connections with these tools, use the same SSL
+   options as the :program:`mongo` shell. See
+   :ref:`mongo-shell-ssl-connect`.
