@@ -1,0 +1,100 @@
+=================================
+Monitor MongoDB Windows with SNMP
+=================================
+
+.. versionadded:: 2.5.3
+
+.. admonition:: Enterprise Feature
+
+   SNMP is only available in `MongoDB Enterprise
+   <http://www.mongodb.com/products/mongodb-enterprise>`_. MongoDB
+   only provides SNMP support for :program:`mongod` instances.
+   :program:`mongos` and the other MongoDB binaries do not support
+   SNMP.
+
+Install Configuration Files
+---------------------------
+
+MongoDB Enterprise contains the following configuration files to
+support SNMP:
+
+- ``MONGO-MIB.txt``:
+
+  The management information base (MIB) file that defines MongoDB's
+  SNMP output.
+
+- ``mongod.conf.subagent``:
+
+  The configuration file to run :program:`mongod` as the SNMP
+  subagent. This file sets SNMP run-time configuration options,
+  including the ``AgentX`` socket to connect to the SNMP master.
+
+- ``mongod.conf.master``:
+
+  The configuration file to run :program:`mongod` as the SNMP
+  master. This file sets SNMP run-time configuration options.
+
+Copy Configuration Files
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Ensure that the ``C:\snmp\etc\config`` directory exists. From the
+installation directory, copy the configuration files to the SNMP
+service configuration directory:
+
+.. code-block:: sh
+
+   copy MONGO-MIB.txt C:\snmp\etc\config\MONGO-MIB.txt
+   copy mongod.conf.subagent C:\snmp\etc\config\mongod.conf
+
+Edit the new ``mongod.conf`` using instructions in that file, to
+ensure the following:
+
+- The ``agentXAddress`` socket matches the ``agentXAddress`` in the
+  SNMP master config file (for example ``net-snmp``'s ``snmpd.conf``).
+
+- Use TCP rather than UNIX Domain Sockets.
+
+Start MongoDB
+-------------
+
+Start :program:`mongod` with the :option:`snmp-subagent` to send data
+to the SNMP master.
+
+.. code-block:: sh
+
+   mongod.exe --snmp-subagent
+
+.. tip::
+
+   You can run :program:`mongod.exe` with the :option:`--snmp-master`
+   option for test purposes. To do this, use the SNMP master
+   configuration file instead of the subagent configuration file. From
+   the directory containing the unpacked MongoDB installation files:
+
+      .. code-block:: sh
+
+         copy mongod.conf.master C:\snmp\etc\config\mongod.conf
+
+Test SNMP
+---------
+
+Connect an SNMP client to verify the ability to collect SNMP data
+from MongoDB. In the example below, ``<port>`` refers to the UDP
+port defined by the SNMP master, *not* the ``--port`` argument used
+by :program:`mongod`.
+
+.. example::
+
+   The ``net-snmp`` project provides the ``snmpwalk`` SNMP client.
+
+   Use ``snmpwalk`` to collect data from :program:`mongod`:
+
+   .. code-block:: sh
+
+      snmpwalk -m C:\snmp\etc\config\MONGO-MIB -v 2c -c mongodb 127.0.0.1:<port> 1.3.6.1.4.1.34601
+
+Further Reading
+---------------
+
+.. seealso:: :doc:`/core/snmp` and :doc:`/tutorial/troubleshoot-snmp`
+
