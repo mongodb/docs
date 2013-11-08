@@ -1,121 +1,198 @@
-.. http://www.mongodb.org/pages/viewpage.action?pageId=21269361
-.. http://www.mongodb.org/pages/viewpage.action?pageId=21266598
-
-.. _download-and-compile-cpp-driver:
-
 ===============================
 Download and Compile C++ Driver
 ===============================
 
 .. default-domain:: mongodb
 
-.. _download-cpp-driver:
+.. versionadded:: 2.5.3
+   The procedure for compiling the C++ driver has changed, beginning with
+   version 2.5.3.
 
-Download C++ Driver
--------------------
+The code for the C++ driver is part of the MongoDB source code. Compiling
+the driver involves cloning the MongoDB source code and then compiling the
+C++ driver.
 
-If you have the full MongoDB source code, the driver code is part of
-it. This is available on `GitHub <https://github.com/mongodb/mongo>`_ and also on
-the `MongoDB Downloads page <http://www.mongodb.org/downloads>`_.
-
-The full server source is quite large, so the tarballs above may be
-easier. Also if using the full server source tree, use ``scons
-mongoclient`` to build just the client library.
-
-.. _compile-and-link-cpp-driver:
-
-Compile and Link C++ Driver
----------------------------
-
-The C++ driver is included in the MongoDB server source repository, and
-can also be downloaded as a separate, "standalone" tarball (See
-:ref:`download-cpp-driver`). To compile the "standalone" C++ driver, run the
-``scons`` command in the top-level directory of the driver sources, e.g.:
-
-.. code-block:: sh
-
-   cd mongo-cxx-driver-nightly/
-   scons
-
-You may wish to compile and link :file:`client/simple_client_demo.cpp` to
-verify that everything compiles and links fine.
+The current C++ driver is still
+compatible with earlier versions of MongoDB. For example, if you run
+MongoDB 2.4, you can use the C++ driver compiled from MongoDB
+2.5.3+. If, however, you need instructions for compiling the driver from
+the pre-2.5.3 code, see
+:doc:`/tutorial/download-and-compile-cpp-driver-deprecated`.
 
 .. important::
 
-   The C++ driver requires Boost version 1.45 or greater.
+   The C++ driver requires Boost version 1.49 or greater. Earlier versions
+   of Boost may work, but the behavior of the driver with those versions
+   is untested.
 
-Compile on Linux
-~~~~~~~~~~~~~~~~
+Clone the MongoDB Source Code
+-----------------------------
 
-Using the prebuilt library
-``````````````````````````
+Clone the full MongoDB source code at
+`<https://github.com/mongodb/mongo.git>`_. The code for the C++ driver is
+part of the MongoDB source code.
 
-.. code-block:: sh
+Building the Driver
+-------------------
 
-   cd mongo/client
-   g++ simple_client_demo.cpp -lmongoclient -lboost_thread-mt -lboost_filesystem -lboost_program_options
+From the directory where you cloned the code, compile the C++ driver by
+running the ``scons`` command. Use the ``scons`` options described in this
+section.
 
-Using mongo_client_lib.cpp instead of a library
-```````````````````````````````````````````````
+To see the list of all SCons options, run:
 
-If you have a compatibility problem with the library, include
-:file:`mongo_client_lib.cpp` in your project instead. For example:
+.. code-block:: javascript
 
-.. code-block:: sh
+   scons --help
 
-   g++ -I .. simple_client_demo.cpp mongo_client_lib.cpp -lboost_thread-mt -lboost_filesystem
+.. note:: Many of the options listed when you run ``scons --help`` are
+   relevant only to building the server and tools, and can be ignored.
 
+SCons Options when Compiling the C++ Driver
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Compile on Windows
-~~~~~~~~~~~~~~~~~~
+Select options as appropriate for your environment.
 
-.. note::
+- ``--prefix=<path>``. The directory prefix for the installation
+  directory. Set ``<path>`` to the directory where you want the build
+  artifacts (headers and library files) installed. For example, you might
+  set ``<path>`` to ``/opt/local``, ``/usr/local``, or
+  ``$HOME/mongo-client-install``.
 
-   We tend to test MongoDB with Windows using Visual Studio 2010. 2008
-   works, although you may have to tweak settings in some cases.
+- ``--full``. Enables the "full" installation, directing SCons to install
+  the driver headers and libraries to the prefix directory.
 
-Include :file:`mongoclient.lib` in your application.
+- ``--ssl``. Enables SSL support. You will need a compatible version of
+  the SSL libraries available.
 
-To build :file:`mongoclient.lib`:
+- ``--use-sasl-client``. Enables SASL, which MongoDB uses for the Kerberos
+  authentication available on :doc:`MongoDB Enterprise
+  </tutorial/install-mongodb-enterprise>`. You will need a compatible
+  version of the SASL implementation libraries available.
 
-.. code-block:: sh
+- ``--sharedclient``. Builds a shared library version of the client
+  driver alongside the static library. If applicable for your application,
+  prefer using the shared client.
 
-   scons mongoclient
+- ``--use-system-boost``. This is strongly recommended. This builds
+  against the system version of Boost rather than the MongoDB vendor copy.
+  If your Boost libraries are not in a standard search path for your
+  toolchain, include the ``--extrapath`` option, described next.
 
-Alternatively, include :file:`client/mongo_client_lib.cpp` in your project.
+  .. note:: While the C++ driver should in general be built against the
+     system version of Boost, if you are building the MongoDB servers and
+     tools from source, it is strongly recommended that you use the
+     embedded version of Boost. This means that your build line for the
+     driver and server will differ with respect to the
+     ``--use-system-boost`` flag.
 
-For Windows, see also:
+- ``--extrapath=<path-to-boost>``. Specifies the path to your Boost
+  libraries if they are not in a standard search path for your toolchain.
 
-   - :file:`bson/bsondemo/bsondemo.vcxproj`
+- ``install-mongoclient``. This is the build target.
 
-   - :file:`client/examples/simple_client_demo.vcxproj`
+- ``--dbg=[on|off]``. Enables runtime debugging checks. Defaults to
+  ``off``. Specifying ``--dbg=on`` implies ``--opt=off`` unless explicitly
+  overridden with ``--opt=on``.
 
-   - :about:`Prebuilt Boost Libraries <boost-and-windows>`
+- ``--opt=[on|off]``. Enables compile-time optimization. Defaults to
+  ``on``. Can be freely mixed with the values for the ``--dbg`` flag.
 
-     - Prebuilt Boost Libraries only necessary for versions < 2.1.1
+- ``--cc``. The compiler to use for C. Use the following syntax:
 
-     - Boost 1.49 source is now included directly in version 2.1.1+
+  .. code-block:: javascript
 
-   - :about:`/tutorial/build-mongodb-with-visual-studio-2010`
+     --cc=<path-to-c-compiler>
 
-Other notes for Windows:
+- ``--cxx``. The compiler to use for C++. Use the following syntax:
 
-- Compile with ``/MT``
+  .. code-block:: javascript
 
-- You may wish to define ``_CRT_SECURE_NO_WARNINGS`` to avoid warnings
-  on use of ``strncpy`` and such by the MongoDB client code.
+     --cxx=<path-to-c++-compiler>
+
+- ``--dynamic-windows``. By default, on Windows, compilation uses ``/MT``.
+  Use this flag to compile with ``/MD``. Note that ``/MD`` is required to
+  build the shared client on Windows. Also note that your application
+  compiler flags must match.
+
+  If you build with ``--dbg=on``, ``/MTd`` or ``/MDd`` will be used in place of
+  ``/MT`` or ``/MD``, respectively.
+
+Windows Considerations
+~~~~~~~~~~~~~~~~~~~~~~
+
+- When building on Windows, use of the SCons ``--dynamic-windows`` option
+  can result in an error unless all libraries and sources for the
+  application use the same runtime library.
+  This option builds the driver to link against
+  the dynamic windows libraries instead of the static windows runtime
+  libraries. If the Boost library being linked against is expecting an
+  ``/MT`` build (static libraries), this can result in an error similar to
+  the following:
+
+  .. code-block:: none
+
+     error LNK2005: ___ already defined in msvcprt.lib(MSVCP100.dll) libboost_thread-vc100-mt-1_42.lib(thread.obj)
+
+- You may want to define ``_CRT_SECURE_NO_WARNINGS`` to avoid warnings on
+  use of ``strncpy`` and such by the MongoDB client code.
 
 - Include the ``WinSock`` library in your application:
-  :menuselection:`Linker --> Input --> Additional Dependencies` - add
+  :menuselection:`Linker --> Input --> Additional Dependencies`. Add
   :file:`ws2_32.lib`.
 
-Windows Troubleshooting
-```````````````````````
+Example C++ Driver Compilations
+-------------------------------
 
-.. code-block:: none
+The following are examples of building the C++ driver.
 
-   error LNK2005: ___ already defined in msvcprt.lib(MSVCP100.dll) libboost_thread-vc100-mt-1_42.lib(thread.obj)
+The following example installs the new driver to
+``$HOME/mongo-client-install``, enables the "full" installation, and
+builds against the system version of Boost:
 
-The boost library being linked against is expecting a ``/MT`` build. If
-this is a release build, try using ``/MT`` instead of ``/MD`` for compilation
-(under :menuselection:`Properties-->C++-->Code Generation`).
+.. code-block:: javascript
+
+   scons --prefix=$HOME/mongo-client-install --full --use-system-boost install-mongoclient
+
+To enable SSL, add the ``--ssl`` option:
+
+.. code-block:: javascript
+
+   scons --prefix=$HOME/mongo-client-install --full --use-system-boost --ssl install-mongoclient
+
+To enable SASL support for use with Kerberos authentication on
+:doc:`MongoDB Enterprise </tutorial/install-mongodb-enterprise>`, add the
+``--use-sasl-client`` option:
+
+.. code-block:: javascript
+
+   scons --prefix=$HOME/mongo-client-install --full --use-system-boost --use-sasl-client install-mongoclient
+
+To build a shared library version of the driver, along with the normal
+static library, use the ``--sharedclient`` option:
+
+.. code-block:: javascript
+
+   scons --prefix=$HOME/mongo-client-install --full --use-system-boost --sharedclient install-mongoclient
+
+To use a custom version of boost installed to ``/dev/boost``, use the
+``--extrapath=<path-to-boost>`` option:
+
+.. code-block:: javascript
+
+   scons --prefix=$HOME/mongo-client-install --full --use-system-boost --extrapath=/dev/boost install-mongoclient
+
+To build a version of the library with debugging enabled, use
+``--dbg=on``. This turns off optimization, which is ``on`` by default. To
+enable both debugging and optimization, pass ``--dbg=on --opt=on``:
+
+.. code-block:: javascript
+
+   scons --prefix=$HOME/mongo-client-install --full --use-system-boost --dbg=on --opt=on install-mongoclient
+
+To override the default compiler to a newer GCC installed in
+``/opt/local/gcc-4.8``, use the ``--cc`` and ``--cxx`` options:
+
+.. code-block:: javascript
+
+   scons --prefix=$HOME/mongo-client-install --full --use-system-boost --cc=/opt/local/gcc-4.8/bin/gcc --cxx=/opt/local/gcc-4.8/bin/g++ install-mongoclient
