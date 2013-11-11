@@ -60,7 +60,6 @@ extlinks = {
 
 # -- Options for HTML output ---------------------------------------------------
 
-html_theme = 'mms'
 html_theme_path = [ os.path.join(buildsystem, 'themes') ]
 html_logo = None
 html_static_path = ['source/_static']
@@ -70,8 +69,6 @@ html_split_index = False
 html_use_modindex = False
 html_show_sourcelink = False
 htmlhelp_basename = 'MongoDB doc'
-
-print tags.has('hosted')
 
 html_theme_options = {
     'version': version,
@@ -91,10 +88,12 @@ for pdf in pdfs:
 
 # -- Conditional Output --------------------------------------------------------
 rst_epilog = []
-html_sidebars = { '**': [] }
+html_sidebars = { '**': ['pagenav.html'] }
 
 if tags.has('hosted'):
     conf = edition_setup('hosted', conf)
+    html_theme = 'mms-hosted'
+    html_sidebars['**'].append('searchbox.html')
 
     project = u'MongoDB Management Service (MMS) On-Prem'
     html_title = 'MMS On-Prem Manual'
@@ -105,7 +104,6 @@ if tags.has('hosted'):
     rst_epilog.append(".. |mms| replace:: MongoDB Management Service On-Prem")
     rst_epilog.append(".. |backup| replace:: MMS Backup On-Prem")
     rst_epilog.append(".. |monitoring| replace:: MMS Monitoring On-Prem")
-    html_sidebars['**'].append('sidebar-nav-mms-hosted.html')
     html_theme_options['edition'] = 'hosted'
 
     if release == "Upcoming":
@@ -118,6 +116,7 @@ if tags.has('hosted'):
         extlinks[i] = ( conf.project.url + '/' + i + '%s', '')
 else:
     conf = edition_setup('saas', conf)
+    html_theme = 'mms-saas'
 
     project = u'MongoDB Management Service (MMS)'
     html_title = 'MMS Manual'
@@ -128,11 +127,10 @@ else:
     rst_epilog.append(".. |mms| replace:: MongoDB Management Service")
     rst_epilog.append(".. |backup| replace:: MMS Backup")
     rst_epilog.append(".. |monitoring| replace:: MMS Monitoring")
-    html_sidebars['**'].append('sidebar-nav.html')
+    rst_epilog.append(".. |release-string| replace:: \   ")
     html_theme_options['edition'] = 'saas'
 
 rst_epilog = '\n'.join(rst_epilog)
-html_sidebars['**'].extend(['searchbox.html'])
 
 html_theme_options['manual_path'] = get_manual_path(conf)
 html_theme_options['version_selector'] = get_versions(conf)
