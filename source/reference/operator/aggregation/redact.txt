@@ -1,0 +1,132 @@
+=====================
+$redact (aggregation)
+=====================
+
+.. default-domain:: mongodb
+
+Definition
+----------
+
+.. pipeline:: $redact
+
+   .. versionadded:: 2.5.2
+
+   Filters out restricted fields when returning a document via the
+   :doc:`aggregation pipeline </core/aggregation-pipeline>`. The
+   :pipeline:`$redact` stage in the pipeline returns only those fields in
+   a returned document that a user is authorized to see.
+
+   :pipeline:`$redact` restricts access based on access-control
+   information stored in the documents themselves. Documents and must
+   include fields that define access at different levels of the document.
+
+   :pipeline:`$redact` uses the following syntax:
+
+   .. code-block:: none
+
+      db.<collection>.aggregate(
+         { $redact: { $cond: { if: <boolean-expression>,
+                               then: < $$DESCEND | $$PRUNE | $$KEEP >,
+                               else: < $$DESCEND | $$PRUNE | $$KEEP > } }
+         }
+      )
+
+   :pipeline:`$redact` operator takes a document with the
+   :expression:`$cond` operator. The :expression:`$cond` operator
+   evaluates the user's access to the document's fields. The
+   :pipeline:`$redact` expression **must** specify the the
+   :expression:`$cond` operator.
+
+   When used with :pipeline:`$redact`, the :expression:`$cond` operator
+   uses one or more of the following variables to evaluate access. The
+   variables are passed as values of the :expression:`$cond` operator's
+   ``then`` and ``else`` fields.
+
+   .. list-table::
+      :header-rows: 1
+
+      * - Variable
+
+        - Description
+
+      * - $$DESCEND
+
+        - The pipeline returns the current field and continues evaluating
+          the fields and sub-documents at this level of the input document
+
+      * - $$PRUNE
+
+        - The pipeline returns the document without the fields at this level.
+
+      * - $$KEEP
+
+        - The pipeline returns the entire sub-document without traversing
+          the individual fields.
+
+   .. include:: /includes/important-uses-new-aggregate-helper.rst
+
+
+   To implement :pipeline:`$redact`, prepend a the :pipeline:`$redact`
+   pipeline stage to your user's queries.
+
+Example
+-------
+
+Given a ``test`` collection with the following document:
+
+.. code-block:: javascript
+
+   { a: {
+          level: 1,
+          b: {
+              level: 5,
+              c: {
+                  level: 1,
+                  message: "Hello"
+              }
+          },
+          d: "World."
+       }
+   }
+
+The following operation uses :pipeline:`$redact` to specify the
+redaction of document parts in the aggregation pipeline.
+
+.. code-block:: javascript
+
+   db.test.aggregate(
+      { $match: {} },
+      { $redact: { $cond: { if: { $lt: [ '$level', 3 ] },
+                            then: "$$DESCEND",
+                            else: "$$PRUNE" }
+                 }
+      }
+   )
+
+This operation evaluates every object-typed field at every level for all
+documents in the ``test`` collection, and uses the
+:expression:`$cond` expression and the variables ``$$DESCEND``
+and ``$$PRUNE`` to specify the redaction of document parts in the
+aggregation pipeline.
+
+Specifically, if the field ``level`` is less than 3, (i.e. ``{
+$lt: [ '$level', 3' ] }``) :pipeline:`$redact` continues (i.e.
+``$$DESCEND``) evaluating the fields and sub-documents at this
+level of the input document. If the value of ``level`` is greater
+than ``3``, then :pipeline:`$redact` removes all data at this
+level of the document.
+
+The result of this aggregation operation is as follows:
+
+.. code-block:: javascript
+
+   { a: {
+          level: 1,
+          d: "World."
+   }    }
+
+You may also specify ``$$KEEP`` as a variable to
+:expression:`$cond`, which returns the entire sub-document
+without traversing, as ``$$DESCEND``.
+
+.. see:: :expression:`$cond`.
