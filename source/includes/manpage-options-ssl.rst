@@ -33,26 +33,24 @@
 
         - Description
 
-      * - ``noSSL``
+      * - ``disabled``
 
         - The server does not use SSL.
 
-      * - ``acceptSSL``
+      * - ``allowSSL``
 
         - Connections between servers do not use SSL. For incoming
           connections, the server accepts both SSL and non-SSL.
 
-      * - ``sendAcceptSSL``
+      * - ``preferSSL``
 
         - Connections between servers use SSL. For incoming
           connections, the server accepts both SSL and non-SSL.
 
-      * - ``sslOnly``
+      * - ``requireSSL``
 
         - The server uses and accepts only SSL encrypted connections.
 
-.. TODO the param names may change -- SERVER-11375
-   
 .. option:: --sslPEMKeyFile <filename>
 
    .. versionadded:: 2.2
@@ -157,11 +155,11 @@
 
        - Description
 
-     * - ``keyfile``
+     * - ``keyFile``
 
        - Default value. Use keyfile for authentication.
 
-     * - ``sendKeyfile``
+     * - ``sendKeyFile``
 
        - For rolling upgrade purposes. Send the keyfile for
          authentication but can accept either keyfile or x.509
@@ -204,3 +202,14 @@
      If the x.509 key file is encrypted and you do not specify
      :option:`--sslClusterPassword`, |binary-name| will prompt for
      a passphrase. See :ref:`ssl-certificate-password`.
+
+.. option:: --sslAllowInvalidCertificates
+
+   .. versionadded:: 2.5.4
+
+   .. include:: /includes/note-general-ssl-support.rst
+
+   Bypasses the validation checks for SSL certificates on other servers
+   in the cluster and allows the use of invalid certificates. When
+   using the :setting:`sslAllowInvalidCertificates` setting, MongoDB
+   logs as a warning the use of the invalid certificate.

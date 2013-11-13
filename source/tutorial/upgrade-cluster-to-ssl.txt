@@ -15,8 +15,8 @@ MongoDB cluster using no SSL encryption to one using *only* SSL
 encryption, use the following rolling upgrade process:
 
 #. For each node of a cluster, start the node with the option
-   :option:`--sslMode` set to ``acceptSSL``. The :option:`--sslMode
-   acceptSSL <--sslMode>` setting allows the node to accept both SSL
+   :option:`--sslMode` set to ``allowSSL``. The :option:`--sslMode
+   allowSSL <--sslMode>` setting allows the node to accept both SSL
    and non-SSL incoming connections. Its connections to other servers
    do not use SSL. Include other :doc:`SSL options
    </tutorial/configure-ssl>` as well as any other options that are
@@ -24,53 +24,47 @@ encryption, use the following rolling upgrade process:
 
    .. code-block:: sh
 
-      mongod --replSet <name> --sslMode acceptSSL --sslPEMKeyFile <path to SSL Certificate and key PEM file> --sslCAFile <path to root CA PEM file>
+      mongod --replSet <name> --sslMode allowSSL --sslPEMKeyFile <path to SSL Certificate and key PEM file> --sslCAFile <path to root CA PEM file>
 
    Upgrade all nodes of the cluster to these settings.
 
+   .. note::
+      You may also specify these options in the :doc:`configuration file
+      </reference/configuration-options>`, as in the following example:
+
+      .. code-block:: ini
+
+         sslMode = <disabled|allowSSL|preferSSL|requireSSL>
+         sslPEMKeyFile = <path to SSL certificate and key PEM file>
+         sslCAFile = <path to root CA PEM file>
+
 #. Switch all clients to use SSL. See :ref:`ssl-clients`.
 
-#. For each node of a cluster, start the node with the option
-   :option:`--sslMode` set to ``sendAcceptSSL``. With the
-   :option:`--sslMode sendAcceptSSL <--sslMode>` setting, the node
-   accepts both SSL and non-SSL incoming connections, and its
-   connections to other servers use SSL. Include other :doc:`SSL
-   options </tutorial/configure-ssl>` as well as any other options that
-   are required for your specific configuration. For example:
+#. For each node of a cluster, use the :dbcommand:`setParameter`
+   command to update the :parameter:`sslMode` to ``preferSSL``.
+   [#update-mode-alternative]_ With ``preferSSL`` as its
+   :setting:`sslMode`, the node accepts both SSL and non-SSL incoming
+   connections, and its connections to other servers use SSL. For
+   example:
 
    .. code-block:: sh
 
-      mongod --replSet <name> --sslMode sendAcceptSSL --sslPEMKeyFile <path to SSL Certificate and key PEM file> --sslCAFile <path to root CA PEM file>
-
-   .. TODO When available, switch to use the command to avoid downtime.
-      db.getSiblingDB('admin').runCommand( { setParameter: 1, setSSLMode: "sendAcceptSSL" } )
+      db.getSiblingDB('admin').runCommand( { setParameter: 1, sslMode: "preferSSL" } )
 
    Upgrade all nodes of the cluster to these settings. 
 
    At this point, all connections should be using SSL.
 
-#. Finally, for each node of the cluster, restart the node with the
-   option :option:`--sslMode` set to ``sslOnly``. With the
-   :option:`--sslMode` set to ``sslOnly``, the node will reject any
-   non-SSL connections. Include other :doc:`SSL options
-   </tutorial/configure-ssl>` as well as any other options that are
-   required for your specific configuration. For example:
+#. Finally, for each node of the cluster, use the
+   :dbcommand:`setParameter` command to update the :parameter:`sslMode`
+   to ``requireSSL``. [#update-mode-alternative]_ With ``requireSSL``
+   as its :setting:`sslMode`, the node will reject any non-SSL
+   connections. For example:
 
    .. code-block:: sh
 
-      mongod --replSet <name> --sslMode sslOnly --sslPEMKeyFile <path to SSL Certificate and key PEM file> --sslCAFile <path to root CA PEM file>
+      db.getSiblingDB('admin').runCommand( { setParameter: 1, sslMode: "requireSSL" } )
 
-.. TODO When available, switch to use the command to avoid downtime.
-   db.getSiblingDB('admin').runCommand( { setParameter: 1, setSSLMode: "sslOnly" } )
-
-.. note::
-   You may also specify these options in the :doc:`configuration file
-   </reference/configuration-options>`, as in the following example:
-
-   .. code-block:: ini
-
-      sslMode = <noSSL|acceptSSL|sendAcceptSSL|sslOnly>
-      sslPEMKeyFile = <path to SSL certificate and key PEM file>
-      sslCAFile = <path to root CA PEM file>
-
-.. TODO for future release. The modes may have changed.
+.. [#update-mode-alternative] As an alternative to using the
+   :dbcommand:`setParameter` command, you can also
+   restart the nodes with the appropriate SSL options and values.

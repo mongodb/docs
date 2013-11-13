@@ -13,3 +13,5 @@
 - :parameter:`traceExceptions`
 - :parameter:`saslauthdPath`
 - :parameter:`authenticationMechanisms`
+- :parameter:`sslMode`
+- :parameter:`clusterAuthMode`
