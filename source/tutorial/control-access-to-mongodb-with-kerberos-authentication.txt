@@ -65,23 +65,9 @@ Create Users and Privilege Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For every user that you want to be able to authenticate using Kerberos,
-you must create corresponding privilege documents in the
+you must create a corresponding user document in the
 :data:`system.users <admin.system.users>` collection to provision
-access to users. Consider the following document:
-
-.. code-block:: javascript
-
-   {
-     user: "application/reporting@EXAMPLE.NET",
-     roles: ["read"],
-     userSource: "$external"
-   }
-
-This grants the Kerberos user principal
-``application/reporting@EXAMPLE.NET`` read only access to a
-database. The :data:`~admin.system.users.userSource`
-``$external`` reference allows :program:`mongod` to consult an
-external source (i.e. Kerberos) to authenticate this user.
+access for the user.
 
 In the :program:`mongo` shell you can pass the :method:`db.addUser()`
 a user privilege document to provision access to users, as in the
@@ -89,29 +75,20 @@ following operation:
 
 .. code-block:: javascript
 
-   db = db.getSiblingDB("records")
+   db = db.getSiblingDB("$external")
    db.addUser( {
                  "user": "application/reporting@EXAMPLE.NET",
-                 "roles": [ "read" ],
-                 "userSource": "$external"
+                 "roles": [ { "role":"read", db:"records"} ]
                } )
 
-These operations grants the Kerberos user
-``application/reporting@EXAMPLE.NET`` access to the ``records``
-database.
+This grants the Kerberos user principal
+``application/reporting@EXAMPLE.NET`` read-only access to the
+``records`` database. Creating a user on the ``$external`` database allows
+:program:`mongod` to consult an external source (i.e. Kerberos) to
+authenticate this user.
 
-To remove access to a user, use the :method:`~db.collection.remove()`
-method, as in the following example:
-
-.. code-block:: javascript
-
-   db.system.users.remove( { user: "application/reporting@EXAMPLE.NET" } )
-
-To modify a user document, use :doc:`update </core/write-operations>`
-operations on documents in the :data:`system.users
-<admin.system.users>` collection.
-
-.. seealso:: :doc:`/reference/privilege-documents`.
+To remove access to a user or to modify a user document, see
+:doc:`/administration/security-access-control`.
 
 Start ``mongod`` with Kerberos Support
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
