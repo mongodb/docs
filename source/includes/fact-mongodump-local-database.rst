@@ -1,2 +1,2 @@
-.. important:: :program:`mongodump` does *not* back up the
+.. important:: :program:`mongodump` does *not* dump the content of the
    ``local`` database.
