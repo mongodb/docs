@@ -7,6 +7,6 @@ targets. If the privilege targets multiple databases or the
 ``cluster`` resource , the user must have access that includes the :authaction:`grantAnyRole`
 action on the ``admin`` database.
 
-To add a role to the :data:`~admin.system.roles.roles` array, a
+To specify roles from which the new role inherits from, a
 user must have access that includes the
-:authaction:`grantAnyRole` action on the contained role's database.
+:authaction:`grantAnyRole` action on the inherited role's database.

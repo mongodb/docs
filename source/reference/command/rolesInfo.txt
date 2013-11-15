@@ -9,38 +9,100 @@ Definition
 
 .. dbcommand:: rolesInfo
 
-   Lists the privileges and contained roles that a role contains.
+   Returns information for the specified role(s).
+
+   The command has the following fields:
+
+   .. include:: /reference/command/rolesInfo-field.rst
+
+.. _rolesInfo-field-specification:
+
+``rolesInfo`` Field Specification
+---------------------------------
+
+Specify a Single Role
+~~~~~~~~~~~~~~~~~~~~~
+
+In the ``rolesInfo`` field, specify a document with the role's name and
+database:
+
+.. code-block:: javascript
+ 
+   rolesInfo: { role: <name>, db: <db> }
+
+Alternatively, for a role that exists on the same database that the
+command is run, you can specify the role by name only.
+
+.. code-block:: javascript
+
+   rolesInfo: "<name>"
+
+Specify Multiple Roles
+~~~~~~~~~~~~~~~~~~~~~~
+
+In the ``rolesInfo`` field, specify an array of documents:
+
+.. code-block:: javascript
+
+   rolesInfo: [ { role: <name>, db: <db> }, { role: <name>, db: <db> }, ... ]
 
 Required Access
 ---------------
 
-To view role information a user must have privileges that contain the
+To view role information, a user must have privileges that contain the
 :authaction:`viewRole` action on the database where the role exists. 
 
 Examples
 --------
 
-To view information for a role on the database where command
-runs, specify the name of the role:
+View Information for a Single Role
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following command returns the role inheritance information for the
+role ``associate`` defined in the ``products`` database:
 
 .. code-block:: javascript
 
-   { rolesInfo: "associate" }
+   db.runCommand( { rolesInfo: { role: "associate", db: "products" } } )
 
-To view information on a role on another database, specify a document with
-the role's name and database:
-
-.. code-block:: javascript
-
-   { rolesInfo: { role: "associate", db: "products" } }
-
-To view information for several roles, specify an array of documents that
-specify the roles and their databases:
+If the :dbcommand:`rolesInfo` command is run on the ``products``
+database, you can specify the role by its name only, as in:
 
 .. code-block:: javascript
 
-   { rolesInfo: [
-        { role: "associate", db: "products" },
-        { role: "manager", db: "resources" },
-     ]
-   }
+   db.getSiblingDB("products"). runCommand( { rolesInfo: "associate" } )
+
+The following command returns *both* the role inheritance and the
+privileges for the role ``associate`` defined in the ``products``
+database:
+
+.. code-block:: javascript
+
+   db.runCommand( { rolesInfo: { role: "associate", db: "products" },
+                    showPrivileges: true
+                } )
+
+View Information for Several Roles
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To view information for several roles, use an array of roles:
+
+.. code-block:: javascript
+
+   db.runCommand( { rolesInfo: [
+                                 { role: "associate", db: "products" },
+                                 { role: "manager", db: "resources" },
+                               ]
+                } )
+
+To return *both* the role inheritance and the privileges for the roles,
+include the showPrivileges field:
+
+.. code-block:: javascript
+
+   db.runCommand( { rolesInfo: [
+                                 { role: "associate", db: "products" },
+                                 { role: "manager", db: "resources" },
+                               ],
+                    showPrivileges: true
+                } )

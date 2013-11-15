@@ -14,26 +14,63 @@ Definition
 
    .. code-block:: javascript
 
-      { usersInfo: { user: < name >, db: < db > },
-        showCredentials: < Boolean >,
-        showPrivileges: < Boolean >
+      { usersInfo: { user: <name>, db: <db> },
+        showCredentials: <Boolean>,
+        showPrivileges: <Boolean>
       }
 
-   The ``showCredentials`` field is optional. Set the field to ``true``
-   to display the user's password hash. By default, this field is``false``.
+   The command has the following fields:
 
-   The ``showPrivileges`` field is optional. Set the field to ``true``
-   to show the user's full set of privileges, including expanded
-   information for all contained roles taken from the
-   :ref:`admin.system.roles <admin-system-roles-collection>`
-   collection. By default, this field is ``false``.
+   .. include:: /reference/command/usersInfo-field.rst
+
+.. _usersInfo-field-specification:
+
+``usersInfo`` Field Specification
+---------------------------------
+
+Specify a User
+~~~~~~~~~~~~~~
+
+In the ``usersInfo`` field, specify a document with the user's name and
+database:
+
+.. code-block:: javascript
+ 
+   usersInfo: { user: <name>, db: <db> }
+
+Alternatively, for a user that exists on the same database that the
+command is run, you can specify the user by its name only.
+
+.. code-block:: javascript
+
+   usersInfo: <name>
+
+Specify Multiple Users
+~~~~~~~~~~~~~~~~~~~~~~
+
+In the ``usersInfo`` field, specify an array of documents:
+
+.. code-block:: javascript
+
+   usersInfo: [ { user: <name>, db: <db> },  { user: <name>, db: <db> }, ... ]
+
+Specify All Users for a Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the ``userInfo`` field, specify ``1``:
+
+.. code-block:: javascript
+
+   usersInfo: 1
 
 Required Access
 ---------------
 
-To view a user's information, a user must have privileges that include
-the :authaction:`viewUser` action on the relevant database. Users can
-always view their own information.
+Users can always view their own information.
+
+To view another user's information, the user running the command must
+have privileges that include the :authaction:`viewUser` action on the
+other user's database.
 
 Examples
 --------
@@ -42,15 +79,17 @@ View Specific Users
 ~~~~~~~~~~~~~~~~~~~
 
 To see information and privileges, but not the credentials, for the
-user``"Kari"`` defined in ``"home"`` database,
+user ``"Kari"`` defined in ``"home"`` database,
 run the following command:
 
 .. code-block:: javascript
 
-   {
-     usersInfo:  { user: "Kari", db: "home" },
-     showPrivileges: true
-   }
+   db.runCommand(
+                  {
+                    usersInfo:  { user: "Kari", db: "home" },
+                    showPrivileges: true
+                  }
+   )
 
 To view a user that exists in the *current* database, you can specify
 the user by name only. For example, if you are in the ``home``
@@ -59,32 +98,34 @@ you can run the following command:
 
 .. code-block:: javascript
 
-   {
-     usersInfo:  "Kari",
-     showPrivileges: true
-   }
+   db.getSiblingDB("home").runCommand(
+                                       {
+                                         usersInfo:  "Kari",
+                                         showPrivileges: true
+                                       }
+   )
 
 View Multiple Users
 ~~~~~~~~~~~~~~~~~~~
 
-To view info for several users, use an array, with or
-without the optional fields. For example:
+To view info for several users, use an array, with or without the
+optional fields ``showPrivileges`` and ``showCredentials``. For example:
 
 .. code-block:: javascript
 
-   { usersInfo: [ { user: "Kari", db: "home" }, { user: "Li", db: "myApp" } ],
-     showPrivileges: true
-   }
+   db.runCommand( { usersInfo: [ { user: "Kari", db: "home" }, { user: "Li", db: "myApp" } ],
+                    showPrivileges: true
+                } )
 
 View All Users
 ~~~~~~~~~~~~~~
 
-To view all users on the *current* database, use a command document
-that resembles the following::
+To view all users on the database the command is run, use a command document
+that resembles the following:
 
 .. code-block:: javascript
 
-   { usersInfo: 1 }
+    db.runCommand( { usersInfo: 1 } )
 
 When viewing all users, you can specify the ``showCredentials``
 field but not the ``showPrivileges`` field.

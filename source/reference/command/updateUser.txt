@@ -20,7 +20,7 @@ Definition
       existing roles, use the :dbcommand:`grantRolesToUser` command.
 
    The :dbcommand:`updateUser` command uses the following syntax. To
-   update a user, you must specify `the `updateUser`` field and at least
+   update a user, you must specify the ``updateUser`` field and at least
    one other field, other than ``writeConcern``:
 
    .. code-block:: javascript
@@ -39,31 +39,49 @@ Definition
 
    .. include:: /reference/command/updateUser-field.rst
 
-   .. |local-cmd-name| replace:: :dbcommand:`updateUser`
-   .. include:: /includes/fact-roles-array-contents.rst
+Considerations
+--------------
+
+.. _updateUser-pwd-field-consideration:
+
+``pwd`` Field
+~~~~~~~~~~~~~
+
+:dbcommand:`updateUser` sends password to the MongoDB instance in
+cleartext. To encrypt the password in transit, use :doc:`SSL
+</tutorial/configure-ssl>`.
+
+``roles`` Field
+~~~~~~~~~~~~~~~
+
+.. |local-cmd-name| replace:: :dbcommand:`updateUser`
+.. include:: /includes/fact-roles-array-contents.rst
 
 Required Access
 ---------------
 
-To update the :data:`~admin.system.users.roles` array, a user must
-:authaction:`revokeAnyRole` access on all databases. To add roles in an
-update, a user must have :authaction:`grantAnyRole` access on the database
-where the role exists.
+To update the :data:`~admin.system.users.roles` array, a user must have
+access that includes the :authaction:`revokeAnyRole` action on all
+databases. To add roles in an update, a user must have access that
+includes the :authaction:`grantAnyRole` action on the database where
+the role exists.
 
 To modify their own ``pwd`` or :data:`~admin.system.users.customData`
-fields, users must have :authaction:`changeOwnPassword` access and
-:authaction:`changeOwnCustomData` access respectively on the ``cluster``
-resource.
+fields, users must have access that includes the
+:authaction:`changeOwnPassword` action and
+:authaction:`changeOwnCustomData` action respectively on the
+``cluster`` resource.
 
-To change another user's ``pwd`` or ``customData`` field, a user must have
-:authaction:`changeAnyPassword` access and
-:authaction:`changeAnyCustomData` access respectively on that user's
-database.
+To change another user's ``pwd`` or ``customData`` field, a user must
+have access that includes the :authaction:`changeAnyPassword` action
+and :authaction:`changeAnyCustomData` action respectively on that
+user's database.
 
 Example
 -------
 
-Given a user with the following user info:
+Given a user ``Erin`` in the ``products`` database with the following
+user info:
 
 .. code-block:: javascript
 
@@ -87,14 +105,16 @@ user's ``customData`` and ``roles`` data:
 
 .. code-block:: javascript
 
+   use products
    db.runCommand( { updateUser : "Erin",
                     customData : { employeeId : "0x3039" },
                     roles : [
-                      { role : "assetsReader",
-                        db : "assets"  
-                } ] } )
+                              { role : "read", db : "assets"  } 
+                            ]
+                } )
 
-The command results in the following user document:
+The user ``Erin`` in the ``products`` database now has the following
+user information:
 
 .. code-block:: javascript
 
@@ -104,7 +124,7 @@ The command results in the following user document:
       "db" : "products",
       "customData" : { "employeeId" : "0x3039" },
       "roles" : [
-          { "role" : "assetsReader",
+          { "role" : "read",
             "db" : "assets"
           }
       ]

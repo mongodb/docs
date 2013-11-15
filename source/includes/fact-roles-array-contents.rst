@@ -1,9 +1,15 @@
-.. the including document should define a |local-cmd-name| replacement.
+.. the including document should define a |local-cmd-name| replacement
 
-In the ``roles`` field you can specify both
-:ref:`system roles <system-user-roles>` and custom roles created
-with |local-cmd-name|. The ``roles`` array can take both
-documents and strings. Specify a role as a document if the role
-exists in another database. Specify the role as a string name if it
-exists in the current database. For more information on specifying
-roles, see the :data:`~admin.system.roles.roles` array.
+In the ``roles`` field, you can specify both
+:ref:`system-defined roles <system-user-roles>` and :ref:`user-defined
+role <user-defined-roles>`. In general, when used with
+|local-cmd-name|, specify the role with a document, as in:
+
+.. code-block:: javascript
+
+   { role: "<role>", db: "<database>" }
+
+However, to refer to a role that exists in the same database the
+command is run, you can specify the role either with a role document
+(e.g. ``{ role: "readWrite", db: "sameDB" }`` ) or with just the role
+name (e.g. ``"readWrite"``).

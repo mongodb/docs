@@ -13,7 +13,7 @@
 
    .. include:: /includes/fact-authentication-source-tool.rst
 
-   See :doc:`/reference/user-privileges` for more information on
+   See :doc:`/core/access-control` for more information on
    authentication in MongoDB.
 
 .. option:: --authenticationMechanism <name>
