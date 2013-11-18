@@ -1,0 +1,150 @@
+======================================================
+Deploy MongoDB on Windows with Kerberos Authentication
+======================================================
+
+.. default-domain:: mongodb
+
+.. versionadded:: 2.5.3
+
+.. contents::
+   :backlinks: none
+   :local:
+
+Overview
+--------
+
+MongoDB Enterprise supports authentication using a Kerberos service.
+Kerberos is an industry standard authentication protocol for large
+client/server system. With Kerberos MongoDB and application ecosystems
+can take advantage of existing authentication infrastructure and
+processes.
+
+.. see-also:: :doc:`/core/kerberos`
+
+If you encounter problems when trying to start :program:`mongod.exe`
+or :program:`mongos.exe`, see the :ref:`troubleshooting section
+<kerberos-troubleshooting>`.
+
+Procedures
+----------
+
+.. _kerberos-create-users:
+
+Grant User Privileges
+~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 2.5.4
+
+To give the Kerberos user principal
+``reporting@EXAMPLE.NET`` read-only access to the
+``records`` database, use the :method:`db.addUser()` method in the
+:program:`mongo.exe` shell, as follows:
+
+.. code-block:: javascript
+
+   use $external
+   db.addUser({
+      user: "reporting@EXAMPLE.NET",
+      roles: [
+         { role: "read", db: "records" }
+      ]
+   })
+
+The :data:`~admin.system.users.userSource` ``$external`` reference
+allows :program:`mongod.exe` to consult an external source (i.e. Kerberos)
+to authenticate this user.
+
+.. seealso:: :doc:`/reference/privilege-documents` and
+   :doc:`/reference/user-privileges`.
+
+Remove User Privileges
+~~~~~~~~~~~~~~~~~~~~~~
+
+Use the :dbcommand:`dropUser()` command to remove access from a user.
+
+To modify a user document, use :doc:`update </core/write-operations>`
+operations on documents in the :data:`system.users
+<admin.system.users>` collection.
+
+.. seealso:: :doc:`/reference/privilege-documents` and
+   :doc:`/reference/user-privileges`.
+
+Start ``mongod.exe`` with Kerberos Support
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Once the user obtains a service principal name, the user may start
+:program:`mongod.exe` with the ``authenticationMechanisms=GSSAPI``
+setting to initialize Kerberos support:
+
+.. code-block:: sh
+
+   mongod.exe --auth --setParameter authenticationMechanisms=GSSAPI --keyFile C:\<path>\mongod.keyfile
+
+Start ``mongos.exe`` with Kerberos Support
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Once the user obtains a service principal name, the user may start
+:program:`mongos.exe` with the ``authenticationMechanisms=GSSAPI``
+setting to initialize Kerberos support:
+
+.. code-block:: sh
+
+   mongos.exe --auth --setParameter authenticationMechanisms=GSSAPI --keyFile C:\<path>\mongod.keyfile
+
+Authenticate a ``mongo.exe`` shell from the command Line
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To authenticate the :program:`mongo.exe` program to the Kerberos principal
+name ``reporting@EXAMPLE.NET``, use the following command:
+
+.. code-block:: sh
+
+   mongo.exe --authenticationMechanism=GSSAPI
+         --authenticationDatabase='$external' \
+         --username reporting@EXAMPLE.NET
+
+.. note::
+
+   In the above example, if you are not joined to the EXAMPLE.NET
+   domain, use ksetup to map EXAMPLE.NET Kerberos Key Distribution
+   Center (KDC) before running the command. In this case, Kerberos
+   authentication also requires a password.
+
+Authenticate a running ``mongo.exe`` Shell
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+From a running :program:`mongo.exe` shell, and use the :method:`db.auth()`
+method to authenticate against the special ``$external`` database:
+
+.. code-block:: javascript
+
+   use $external
+   db.auth( { mechanism: "GSSAPI", user: "reporting@EXAMPLE.NET" } )
+
+.. note::
+
+   In the above example, if you are not joined to the EXAMPLE.NET
+   domain, use ksetup to map EXAMPLE.NET Kerberos Key Distribution
+   Center (KDC) before running the command. In this case, Kerberos
+   authentication also requires a password.
+
+Enable the Traditional MongoDB Authentication Mechanism
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For testing and development purposes you can enable both the Kerberos
+(i.e. ``GSSAPI``) authentication mechanism in combination with the
+traditional MongoDB challenge/response authentication mechanism
+(i.e. ``MONGODB-CR``), using the following :setting:`setParameter`
+run-time option:
+
+.. code-block:: sh
+
+   mongod.exe --setParameter authenticationMechanisms=GSSAPI,MONGODB-CR
+
+.. warning::
+
+   All :setting:`keyFile` *internal* authentication between members of
+   a :term:`replica set` or :term:`sharded cluster` still uses the
+   ``MONGODB-CR`` authentication mechanism, even if ``MONGODB-CR`` is
+   not enabled. All client authentication will still use Kerberos.
+

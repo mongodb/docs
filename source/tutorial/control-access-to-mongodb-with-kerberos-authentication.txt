@@ -6,226 +6,134 @@ Deploy MongoDB with Kerberos Authentication
 
 .. versionadded:: 2.4
 
+.. contents::
+   :backlinks: none
+   :local:
+
+Overview
+--------
+
 MongoDB Enterprise supports authentication using a Kerberos service.
 Kerberos is an industry standard authentication protocol for large
 client/server system. With Kerberos MongoDB and application ecosystems
 can take advantage of existing authentication infrastructure and
 processes.
 
-Setting up and configuring a Kerberos deployment is beyond the scope
-of this document. In order to use MongoDB with Kerberos, you must
-have a properly configured Kerberos deployment and the ability to
-generate a valid *keytab* file for each :program:`mongod` instance in
-your MongoDB deployment.
-
 .. note::
 
-   The following assumes that you have a valid Kerberos keytab file
-   for your realm accessible on your system. The examples below assume
-   that the keytab file is valid and is located at
-   ``/opt/mongodb/mongod.keytab`` and is *only* accessible to the user
-   that runs the :program:`mongod` process.
+   The examples below assume that ``/opt/mongodb/mongod.keytab``
+   is a valid keytab file that is only accessible to the user that
+   runs the :program:`mongod` process.
 
-Process Overview
-----------------
+.. see-also:: :doc:`/core/kerberos`
 
-To run MongoDB with Kerberos support, you must:
+If you encounter problems when trying to start :program:`mongod`
+or :program:`mongos`, see the :ref:`troubleshooting section
+<kerberos-troubleshooting>`.
 
-- Configure a Kerberos service principal for each :program:`mongod`
-  and :program:`mongos` instance in your MongoDB deployment.
-
-- Generate and distribute keytab files for each MongoDB component
-  (i.e. :program:`mongod` and :program:`mongos`)in your
-  deployment. Ensure that you *only* transmit keytab files over secure
-  channels.
-
-- Optional. Start the :program:`mongod` instance *without*
-  :setting:`auth` and create users inside of MongoDB that you can use
-  to bootstrap your deployment.
-
-- Start :program:`mongod` and :program:`mongos` with the
-  ``KRB5_KTNAME`` environment variable as well as a number of required
-  run time options.
-
-- If you did not create Kerberos user accounts, you can use the
-  :ref:`localhost exception <localhost-exception>`
-  to create users
-  at this point until you create the first user on the ``admin``
-  database.
-
-- Authenticate clients, including the :program:`mongo` shell using
-  Kerberos.
-
-Operations
+Procedures
 ----------
 
 .. _kerberos-create-users:
 
-Create Users and Privilege Documents
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Grant User Privileges
+~~~~~~~~~~~~~~~~~~~~~
 
-For every user that you want to be able to authenticate using Kerberos,
-you must create corresponding privilege documents in the
-:data:`system.users <admin.system.users>` collection to provision
-access to users. Consider the following document:
+To give the Kerberos user principal
+``application/reporting@EXAMPLE.NET`` read-only access to the
+``records`` database, use the :method:`db.addUser()` method in the
+:program:`mongo` shell, as follows:
 
 .. code-block:: javascript
 
-   {
-     user: "application/reporting@EXAMPLE.NET",
-     roles: ["read"],
-     userSource: "$external"
-   }
+   use $external
+   db.addUser({
+      user: "application/reporting@EXAMPLE.NET",
+      roles: [
+         { role: "read", db: "records" }
+      ]
+   })
 
-This grants the Kerberos user principal
-``application/reporting@EXAMPLE.NET`` read only access to a
-database. The :data:`~admin.system.users.userSource`
-``$external`` reference allows :program:`mongod` to consult an
+The ``$external`` reference allows :program:`mongod` to consult an
 external source (i.e. Kerberos) to authenticate this user.
 
-In the :program:`mongo` shell you can pass the :method:`db.addUser()`
-a user privilege document to provision access to users, as in the
-following operation:
+.. seealso:: :doc:`/reference/privilege-documents` and
+   :doc:`/reference/user-privileges`.
 
-.. code-block:: javascript
+Remove User Privileges
+~~~~~~~~~~~~~~~~~~~~~~
 
-   db = db.getSiblingDB("records")
-   db.addUser( {
-                 "user": "application/reporting@EXAMPLE.NET",
-                 "roles": [ "read" ],
-                 "userSource": "$external"
-               } )
-
-These operations grants the Kerberos user
-``application/reporting@EXAMPLE.NET`` access to the ``records``
-database.
-
-To remove access to a user, use the :method:`~db.collection.remove()`
-method, as in the following example:
-
-.. code-block:: javascript
-
-   db.system.users.remove( { user: "application/reporting@EXAMPLE.NET" } )
+Use the :dbcommand:`dropUser()` command to remove access from a user.
 
 To modify a user document, use :doc:`update </core/write-operations>`
 operations on documents in the :data:`system.users
 <admin.system.users>` collection.
 
-.. seealso:: :doc:`/reference/privilege-documents`.
+.. seealso:: :doc:`/reference/privilege-documents` and
+   :doc:`/reference/user-privileges`.
 
 Start ``mongod`` with Kerberos Support
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Once you have provisioned privileges to users in the
-:program:`mongod`, *and* obtained a valid keytab file, you must start
-:program:`mongod` using a command in the following form:
-
-.. code-block:: sh
-
-   env KRB5_KTNAME=<path to keytab file> <mongod invocation>
-
-For successful operation with :program:`mongod` use the following run
-time options in addition to your normal default configuration options:
-
-- :option:`--setParameter <mongod --setParameter>` with the
-  ``authenticationMechanisms=GSSAPI`` argument to enable support for
-  Kerberos.
-
-- :option:`--auth <mongod --auth>` to enable authentication.
-
-- :option:`--keyFile <mongod --keyFile>` to allow components of a
-  single MongoDB deployment to communicate with each other, if needed
-  to support replica set and sharded cluster
-  operations. :setting:`keyFile` implies :setting:`auth`.
-
-For example, consider the following invocation:
-
-.. code-block:: sh
-
-   env KRB5_KTNAME=/opt/mongodb/mongod.keytab \
-       /opt/mongodb/bin/mongod --dbpath /opt/mongodb/data \
-       --fork --logpath /opt/mongodb/log/mongod.log \
-       --auth --setParameter authenticationMechanisms=GSSAPI
-
-You can also specify these options using the configuration
-file. As in the following:
-
-.. code-block:: none
-
-   # /opt/mongodb/mongod.conf, Example configuration file.
-
-   fork = true
-   auth = true
-
-   dbpath = /opt/mongodb/data
-   logpath = /opt/mongodb/log/mongod.log
-   setParameter = authenticationMechanisms=GSSAPI
-
-To use this configuration file, start :program:`mongod` as in the
-following:
-
-.. code-block:: sh
-
-   env KRB5_KTNAME=/opt/mongodb/mongod.keytab \
-       /opt/mongodb/bin/mongod --config /opt/mongodb/mongod.conf
-
-To start a :program:`mongos` instance using Kerberos, you must create
-a Kerberos service principal and deploy a keytab file for this
-instance, and then start the :program:`mongos` with the following
-invocation:
+Once you have given appropriate privileges to users and set up a valid
+keytab file, start :program:`mongod` using a command in the
+following form:
 
 .. code-block:: sh
 
    env KRB5_KTNAME=/opt/mongodb/mongos.keytab \
-       /opt/mongodb/bin/mongos
+   /opt/mongodb/bin/mongos \
+   --auth \
+   --setParameter authenticationMechanisms=GSSAPI \
+   --keyFile /opt/mongodb/mongos.keyfile
+
+Start ``mongos`` with Kerberos Support
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Once you have given appropriate privileges to users and set up a valid 
+keytab file, start :program:`mongos` using a command in the
+following form:
+
+.. code-block:: sh
+
+   env KRB5_KTNAME=/opt/mongodb/mongos.keytab \
+       /opt/mongodb/bin/mongos \
        --configdb shard0.example.net,shard1.example.net,shard2.example.net \
        --setParameter authenticationMechanisms=GSSAPI \
        --keyFile /opt/mongodb/mongos.keyfile
 
-.. tip:: If you installed MongoDB Enterprise using one of the official
-   ``.deb`` or ``.rpm`` packages *and* are controlling the
-   :program:`mongod` instance using the included init/upstart scripts,
-   you can set the ``KR5_KTNAME`` variable in the default environment
-   settings file. For ``.rpm`` packages this file is located at
-   ``/etc/sysconfig/mongod``. For ``.deb`` packages, this file is
-   ``/etc/default/mongodb``. Set the value in a line that resembles
-   the following:
+Start mongod or mongos from Official Deb/RPM Files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   .. 2.5.3 -- both default files become mongodb
+If you installed MongoDB Enterprise using one of the official
+``.deb`` or ``.rpm`` packages and you control the :program:`mongod`
+instance using the init/upstart scripts included in those packages,
+you can set the ``KR5_KTNAME`` variable in the default environment
+settings file. For ``.rpm`` packages this file is located at
+``/etc/sysconfig/mongod``. For ``.deb`` packages, this file is
+``/etc/default/mongodb``. Set the value in a line that resembles
+the following:
 
-   .. code-block:: sh
+.. 2.5.3 -- both default files become mongodb
 
-      export KRB5_KTNAME="<setting>"
+.. code-block:: sh
 
-If you encounter problems when trying to start :program:`mongod` or
-:program:`mongos`, please see the :ref:`troubleshooting section
-<kerberos-troubleshooting>` for more information.
+   export KRB5_KTNAME="<setting>"
 
-.. important:: Before users can authenticate to MongoDB using Kerberos
-   you must :ref:`create users <kerberos-create-users>` and grant them
-   privileges within MongoDB. If you have not created users when you
-   start MongoDB with Kerberos you can use the :ref:`localhost
-   authentication exception <localhost-exception>` to add users. See
-   the :ref:`kerberos-create-users` section and the
-   :doc:`/reference/system-users-collection` document for more information.
+Start a Kerberos Session
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-Authenticate ``mongo`` Shell with Kerberos
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Initialize and authenticate a Kerberos session from the command line:
 
-To connect to a :program:`mongod` instance using the :program:`mongo`
-shell you must begin by using the ``kinit`` program to initialize and
-authenticate a Kerberos session. Then, start a :program:`mongo`
-instance, and use the :method:`db.auth()` method, to authenticate
-against the special ``$external`` database, as in the following
-operation:
+.. code-block:: sh
 
-.. code-block:: javascript
+   kinit
 
-   use $external
-   db.auth( { mechanism: "GSSAPI", user: "application/reporting@EXAMPLE.NET" } )
+Authenticate a ``mongo`` shell from the command Line
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Alternately, you can authenticate using command line options to
-:program:`mongo`, as in the following equivalent example:
+To authenticate the :program:`mongo` program to the Kerberos principal
+name ``application/reporting@EXAMPLE.NET``, use the following command:
 
 .. code-block:: sh
 
@@ -233,138 +141,16 @@ Alternately, you can authenticate using command line options to
          --authenticationDatabase='$external' \
          --username application/reporting@EXAMPLE.NET
 
-These operations authenticate the Kerberos principal name
-``application/reporting@EXAMPLE.NET`` to the connected
-:program:`mongod`, and will automatically acquire all available
-privileges as needed.
+Authenticate a running ``mongo`` Shell
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. _kerberos-and-drivers:
+From a running :program:`mongo` shell, and use the :method:`db.auth()`
+method to authenticate against the special ``$external`` database:
 
-Use MongoDB Drivers to Authenticate with Kerberos
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. code-block:: javascript
 
-At the time of release, the C++, Java, C#, and Python drivers all
-provide support for Kerberos authentication to MongoDB. Consider the
-following tutorials for more information:
-
-- :ecosystem:`Authenticate to MongoDB with the Java Driver </tutorial/authenticate-with-java-driver/>`
-- :ecosystem:`Authenticate to MongoDB with the C# Driver </tutorial/authenticate-with-csharp-driver/>`
-- :ecosystem:`Authenticate to MongoDB with the C++ Driver </tutorial/authenticate-with-cpp-driver/>`
-- `Python Authentication Examples <http://api.mongodb.org/python/current/examples/authentication.html>`_
-
-Kerberos and the HTTP Console
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-MongoDB does not support kerberizing the :ecosystem:`HTTP Console
-</tools/http-interface/#http-console>`.
-
-.. _kerberos-troubleshooting:
-
-Troubleshooting
----------------
-
-.. _kerberos-troubleshooting-checklist:
-
-Kerberos Configuration Checklist
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If you're having trouble getting :program:`mongod` to start with
-Kerberos, there are a number of Kerberos-specific issues that can
-prevent successful authentication. As you begin troubleshooting
-your Kerberos deployment, ensure that:
-
-- The :program:`mongod` is from MongoDB Enterprise.
-
-- You are not using the :ecosystem:`HTTP Console
-  </tools/http-interface/#http-console>`. MongoDB Enterprise
-  does not support Kerberos authentication over the HTTP Console
-  interface.
-
-- You have a valid keytab file specified in the
-  environment running the :program:`mongod`. For the :program:`mongod`
-  instance running on the ``db0.example.net`` host, the service
-  principal should be ``mongodb/db0.example.net``.
-
-- DNS allows the :program:`mongod` to resolve the components of the
-  Kerberos infrastructure. You should have both ``A`` and ``PTR``
-  records (i.e. forward and reverse DNS) for the system that runs
-  the :program:`mongod` instance.
-
-- The canonical system hostname of the system that runs the
-  :program:`mongod` instance is the resolvable fully qualified
-  domain for this host. Test system hostname resolution with the
-  ``hostname -f`` command at the system prompt.
-
-- Both the Kerberos *KDC* and the system running :program:`mongod`
-  instance must be able to resolve each other using DNS [#kerb5-conf]_
-
-- The time systems of the systems running the :program:`mongod`
-  instances and the Kerberos infrastructure are synchronized. Time
-  differences greater than 5 minutes will prevent successful
-  authentication.
-
-.. coming soon: error messages and their approximate meaning
-
-If you still encounter problems with Kerberos, you can start both
-:program:`mongod` and :program:`mongo` (or another client) with the
-environment variable ``KRB5_TRACE`` set to different files to produce
-more verbose logging of the Kerberos process to help further
-troubleshooting, as in the following example:
-
-.. code-block:: sh
-
-   env KRB5_KTNAME=/opt/mongodb/mongod.keytab \
-       KRB5_TRACE=/opt/mongodb/log/mongodb-kerberos.log \
-       /opt/mongodb/bin/mongod --dbpath /opt/mongodb/data \
-       --fork --logpath /opt/mongodb/log/mongod.log \
-       --auth --setParameter authenticationMechanisms=GSSAPI
-
-.. [#kerb5-conf] By default, Kerberos attempts to resolve hosts using
-   the content of the ``/etc/kerb5.conf`` before using DNS to resolve
-   hosts.
-
-Common Error Messages
-~~~~~~~~~~~~~~~~~~~~~
-
-In some situations, MongoDB will return error messages from the GSSAPI
-interface if there is a problem with the Kerberos service.
-
-``GSSAPI error in client while negotiating security context.``
-
-   This error occurs on the client and reflects insufficient
-   credentials or a malicious attempt to authenticate.
-
-   If you receive this error ensure that you're using the correct
-   credentials and the correct fully qualified domain name when
-   connecting to the host.
-
-``GSSAPI error acquiring credentials.``
-
-   This error only occurs when attempting to start the
-   :program:`mongod` or :program:`mongos` and reflects improper
-   configuration of system hostname or a missing or incorrectly
-   configured keytab file.  If you encounter this problem, consider
-   all the items in the :ref:`kerberos-troubleshooting-checklist`, in
-   particular:
-
-   - examine the keytab file, with the following command:
-
-     .. code-block:: sh
-
-        klist -k <keytab>
-
-     Replace ``<keytab>`` with the path to your keytab file.
-
-   - check the configured hostname for your system, with the
-     following command:
-
-     .. code-block:: sh
-
-        hostname -f
-
-     Ensure that this name matches the name in the keytab file, or use
-     the :parameter:`saslHostName` to pass MongoDB the correct
-     hostname.
+   use $external
+   db.auth( { mechanism: "GSSAPI", user: "application/reporting@EXAMPLE.NET" } )
 
 Enable the Traditional MongoDB Authentication Mechanism
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -381,7 +167,10 @@ run-time option:
 
 .. warning::
 
-   All :setting:`keyFile` *internal* authentication between members of
-   a :term:`replica set` or :term:`sharded cluster` still uses the
-   ``MONGODB-CR`` authentication mechanism, even if ``MONGODB-CR`` is
-   not enabled. All client authentication will still use Kerberos.
+   All :setting:`keyFile` *internal* authentication between members
+   of a :term:`replica set` or :term:`sharded cluster` still uses the
+   ``MONGODB-CR`` authentication mechanism, even if ``MONGODB-CR``
+   is not enabled.
+
+   All client authentication uses Kerberos.
+
