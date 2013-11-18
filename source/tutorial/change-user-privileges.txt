@@ -1,0 +1,153 @@
+======================
+Modify User Privileges
+======================
+
+.. default-domain:: mongodb
+
+Overview
+--------
+
+A user's privileges determine the user's access to :ref:`resources
+<resource-document>` and specify the available :ref:`actions
+<security-user-actions>` the user can perform. Users receive privileges
+through role assignments. A user can have multiple roles, and each role
+can have multiple privileges.
+
+Grant and revoke the user's roles using the :dbcommand:`grantRolesToUser`
+and :dbcommand:`revokeRolesFromUser` commands.
+
+For an overview of roles and privileges, see :ref:`authorization`.
+
+Prerequisites
+-------------
+
+.. include:: /includes/access-grant-role-to-user.rst
+
+.. include:: /includes/access-revoke-role-from-user.rst
+
+Procedure
+---------
+
+Identify the User's Roles
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Issue the :dbcommand:`usersInfo` command or :method:`db.getUser()` method to
+display user information. The :data:`~admin.system.users.roles` array
+specifies the user's roles.
+
+For example, to view roles for ``accountUser01`` on the ``accounts``
+database, issue the following:
+
+.. code-block:: javascript
+
+   use accounts
+   db.getUser("accountUser01")
+
+The :data:`~admin.system.users.roles` array displays all roles for
+``accountUser01``:
+
+.. code-block:: javascript
+
+   "roles" : [
+       {
+           "role" : "readWrite",
+           "db" : "accounts"
+       },
+       {
+           "role" : "siteRole01",
+           "db" : "records"
+        }
+   ]
+
+Identify the Privileges Granted by the Roles
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For a given role, issue the :dbcommand:`rolesInfo` command or
+:method:`db.getRole()` method, and include the ``showPrivileges`` parameter.
+The resulting role document displays the privileges granted directly and the
+roles from which this role inherits privileges.
+
+For example, to view the privileges granted by ``siteRole01``, issue the
+following:
+
+.. code-block:: javascript
+
+   use records
+   db.getRole("siteRole01", {showPrivileges: true})
+
+In the :data:`~admin.system.roles.roles` array, ``siteRole01`` inherits
+privileges from the ``corporate`` database's ``read`` role. In
+:data:`~admin.system.roles.privileges` array, ``siteRole01`` grants the
+privilege to perform ``find``, ``insert``, and ``update`` actions on the
+``records`` database:
+
+.. code-block:: javascript
+
+   "roles" : [
+       {
+           "role" : "read",
+           "db" : "corporate"
+       }
+   ],
+   "privileges" : [
+       {
+           "resource" : {
+               "db" : "records",
+               "collection" : ""
+           },
+           "actions" : [
+               "find",
+               "insert",
+               "update"
+           ]
+       }
+   ]
+
+To view the privileges granted by the :authrole:`read` role, issue
+:method:`db.getRole()` again with the appropriate parameters.
+
+Identify the Privileges to Grant or Revoke
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Determine which role contains the privileges *and only those privileges*.
+
+If such a role does not exist, then to grant the privileges will require
+:doc:`creating a new role </tutorial/define-roles>` with the specific set of
+privileges.
+
+To revoke a role in such a case requires :doc:`creating a new role
+</tutorial/define-roles>` that contains the privileges *to keep*. Revoking
+the privileges will require revoking the roles that contain the privileges
+to remove and then granting the role with the privileges to keep.
+
+Revoke a Role
+~~~~~~~~~~~~~
+
+Revoke a role using the :dbcommand:`revokeRolesFromUser` command. For
+example, to remove the :authrole:`readWrite` role on the ``records``
+database from the user ``reportsAppUser01``, run the following.
+
+.. code-block:: javascript
+
+   db.runCommand( { revokeRolesFromUser: "reportsAppUser01",
+                    roles: [ { role: "readWrite", db: "records" } ]
+                } )
+
+The :dbcommand:`revokeRolesToUser` command removes the ``readWrite`` role on
+the ``records`` database from ``reportsAppUser01``'s existing roles.
+
+Grant a Role
+~~~~~~~~~~~~
+
+Grant the role using the :dbcommand:`grantRolesToUser` command. For example,
+to grant the user ``reportsAppUser01`` the :authrole:`read` role on the ``accounts``
+database, run the following.
+
+.. code-block:: javascript
+
+   db.runCommand( { grantRolesToUser: "reportsAppUser01",
+                    roles: [ { role: "read", db: "accounts"} ]
+                } )
+
+The :dbcommand:`grantRolesToUser` command adds the ``read`` role on the
+``accounts`` database to ``reportsAppUser01``'s existing roles.
