@@ -1,0 +1,126 @@
+====================================
+Troubleshoot Kerberos Authentication
+====================================
+
+.. default-domain:: mongodb
+
+.. versionadded:: 2.4
+
+.. contents::
+   :backlinks: none
+   :local:
+
+.. _kerberos-troubleshooting-checklist:
+
+Kerberos Configuration Checklist
+--------------------------------
+
+If you're having trouble getting :program:`mongod` to start with
+Kerberos on Linux systems, there are a number of Kerberos-specific issues that can
+prevent successful authentication. As you begin troubleshooting
+your Kerberos deployment, ensure that:
+
+- The :program:`mongod` binary is from MongoDB Enterprise.
+
+- You are not using the :ecosystem:`HTTP Console
+  </tools/http-interface/#http-console>`. MongoDB Enterprise
+  does not support Kerberos authentication over the HTTP Console
+  interface.
+
+- If you're on a Linux system, you have a valid keytab file specified in the
+  environment running the :program:`mongod`. For the :program:`mongod`
+  instance running on the ``db0.example.net`` host, the service
+  principal should be ``mongodb/db0.example.net``.
+
+- DNS allows the :program:`mongod` to resolve the components of the
+  Kerberos infrastructure. You should have both ``A`` and ``PTR``
+  records (i.e. forward and reverse DNS) for the system that runs
+  the :program:`mongod` instance.
+
+- The canonical system hostname of the system that runs the
+  :program:`mongod` instance is the resolvable fully qualified
+  domain for this host. Test system hostname resolution with the
+  ``hostname -f`` command at the system prompt.
+
+- Both the Kerberos *KDC* and the system running :program:`mongod`
+  instance must be able to resolve each other using DNS [#kerb5-conf]_
+
+- The time systems of the systems running the :program:`mongod`
+  instances and the Kerberos infrastructure are synchronized. Time
+  differences greater than 5 minutes will prevent successful
+  authentication.
+
+Debug with More Verbose Logs in Linux
+-------------------------------------
+
+If you still encounter problems with Kerberos, you can start both
+:program:`mongod` and :program:`mongo` (or another client) with the
+environment variable ``KRB5_TRACE`` set to different files to produce
+more verbose logging of the Kerberos process to help further
+troubleshooting, as in the following example:
+
+.. code-block:: sh
+
+   env KRB5_KTNAME=/opt/mongodb/mongod.keytab \
+       KRB5_TRACE=/opt/mongodb/log/mongodb-kerberos.log \
+       /opt/mongodb/bin/mongod --dbpath /opt/mongodb/data \
+       --fork --logpath /opt/mongodb/log/mongod.log \
+       --auth --setParameter authenticationMechanisms=GSSAPI
+
+   env KRB5_KTNAME=/opt/mongodb/mongod.keytab \
+       KRB5_TRACE=/opt/mongodb/log/mongodb-kerberos.log \
+       /opt/mongodb/bin/mongo
+
+.. [#kerb5-conf] By default, Kerberos attempts to resolve hosts using
+   the content of the ``/etc/kerb5.conf`` before using DNS to resolve
+   hosts.
+
+Common Error Messages
+---------------------
+
+In some situations, MongoDB will return error messages from the GSSAPI
+interface if there is a problem with the Kerberos service.
+
+Error Negotiating Security Context
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``GSSAPI error in client while negotiating security context.``
+
+This error occurs on the client and reflects insufficient
+credentials or a malicious attempt to authenticate.
+
+If you receive this error, ensure that you are using the correct
+credentials and the correct fully qualified domain name when
+connecting to the host.
+
+Error Acquiring Credentials
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``GSSAPI error acquiring credentials.``
+
+This error only occurs when attempting to start the
+:program:`mongod` or :program:`mongos` and reflects improper
+configuration of system hostname or a missing or incorrectly
+configured keytab file.  If you encounter this problem, consider
+all the items in the :ref:`kerberos-troubleshooting-checklist`, in
+particular:
+
+- examine the keytab file, with the following command:
+
+  .. code-block:: sh
+
+     klist -k <keytab>
+
+  Replace ``<keytab>`` with the path to your keytab file.
+
+- check the configured hostname for your system, with the
+  following command:
+
+  .. code-block:: sh
+
+     hostname -f
+
+  Ensure that this name matches the name in the keytab file, or use the
+  :parameter:`--setParameter saslHostName=myhostname`
+  to pass :program:`mongod` the correct hostname.
+

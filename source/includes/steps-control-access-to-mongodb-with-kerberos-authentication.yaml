@@ -1,0 +1,130 @@
+stepnum: 1
+ref: start-mongod-without-kerberos-support
+title: Create a Kerberos User Principal
+action:
+   - pre: "Start :program:`mongod` without Kerberos support:"
+     language: sh
+     code: mongod
+   - pre: |
+        To give a new Kerberos user ``reporting@EXAMPLE.NET`` read-only access
+        to the ``records`` database, use the :method:`db.addUser()` method
+        in the :program:`mongo` shell, as follows:
+     language: javascript
+     code: |
+        use $external
+        db.runCommand({ createUser: "reporting@EXAMPLE.NET",
+           pwd: "<cleartext password>",
+           roles: [
+              { role: "read", db: "records" }
+           ],
+           writeConcern: { <write concern> }
+        })
+post: |
+   The :data:`~admin.system.users.userSource` ``$external`` reference
+   allows :program:`mongod` to consult an external source (i.e. Kerberos)
+   to authenticate this user.
+
+   .. seealso:: :dbcommand:`db.updateuser`,
+      :doc:`/reference/system-users-collection/`, and
+      :doc:`/reference/system-defined-roles`.
+---
+stepnum: 2
+ref: remove-user-privileges
+title: Remove User Privileges
+pre: |
+  To remove Kerberos privileges from a user, or to remove
+  the user entirely, use the MongoDB :doc:`user management
+  </reference/method/js-user-management>` methods.
+
+  .. seealso:: :doc:`/reference/privilege-documents` and
+     :doc:`/reference/user-privileges`.
+---
+stepnum: 3
+ref: start-mongod-with-kerberos-support
+title: Start ``mongod`` with Kerberos Support
+pre: |
+   Once you have given appropriate privileges to users and set up a valid
+   keytab file, start :program:`mongod` using a command in the
+   following form:
+action:
+  language: sh
+  code: |
+     env KRB5_KTNAME=/opt/mongodb/mongos.keytab \
+     /opt/mongodb/bin/mongod \
+     --setParameter authenticationMechanisms=GSSAPI \
+     --keyFile /opt/mongodb/mongos.keyfile
+post: |
+   Or :ref:`use x.509 member authentication
+   <x509-internal-authentication>` instead of authenticating with a keyfile.
+---
+stepnum: 4
+ref: start-mongos-with-kerberos-support
+title: Start ``mongos`` with Kerberos Support
+pre: |
+   Once you have given appropriate privileges to users and set up a valid
+   keytab file, start :program:`mongos` using a command in the
+   following form:
+action:
+  language: sh
+  code: |
+       env KRB5_KTNAME=/opt/mongodb/mongos.keytab \
+       /opt/mongodb/bin/mongos \
+       --configdb cf0.example.net,cf1.example.net,cf2.example.net \
+       --setParameter authenticationMechanisms=GSSAPI \
+       --keyFile /opt/mongodb/mongos.keyfile
+post: |
+  Or :ref:`use x.509 member authentication
+  <x509-internal-authentication>` instead of authenticating with a keyfile.
+---
+stepnum: 5
+ref: start-mongod-or-mongos-from-official-deb-rpm-files
+title: Start mongod or mongos from Official Deb/RPM Files
+pre: |
+   If you installed MongoDB Enterprise using one of the official
+   ``.deb`` or ``.rpm`` packages and you control the :program:`mongod`
+   instance using the init/upstart scripts included in those packages,
+   you can set the ``KR5_KTNAME`` variable in the default environment
+   settings file. For ``.rpm`` packages this file is located at
+   ``/etc/sysconfig/mongod``. For ``.deb`` packages, this file is
+   ``/etc/default/mongodb``. Set the value in a line that resembles
+   the following:
+action:
+  language: sh
+  code: |
+     export KRB5_KTNAME="<setting>"
+---
+stepnum: 6
+ref: start-a-kerberos-session
+title: Start a Kerberos Session
+pre: |
+   Initialize and authenticate a Kerberos session from the command line:
+action:
+  language: sh
+  code: |
+     kinit
+---
+stepnum: 7
+ref: invoke-an-authenticated-mongo-shell
+title: Invoke an Authenticated ``mongo`` Shell
+pre: |
+   To authenticate the :program:`mongo` program to the Kerberos principal
+   name ``application/reporting@EXAMPLE.NET``, use the following command:
+action:
+  language: sh
+  code: |
+     mongo --authenticationMechanism=GSSAPI
+     --authenticationDatabase='$external' \
+     --username application/reporting@EXAMPLE.NET
+---
+stepnum: 6
+ref: authenticate-a-user-within-mongo-shell
+title: Authenticate a User within a Running ``mongo`` Shell
+pre: |
+   From a running :program:`mongo` shell, use the :method:`db.auth()`
+   method to authenticate against the special ``$external`` database:
+action:
+  language: javascript
+  code: |
+     use $external
+     db.auth( { mechanism: "GSSAPI", user: "application/reporting@EXAMPLE.NET" })
+...
