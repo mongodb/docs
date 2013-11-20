@@ -134,158 +134,22 @@ previous version of the :program:`mongo` shell or if using the 2.5.3
 Authentication and Authorization Incompatibility
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To upgrade from version 2.4 :doc:`user privilege model
+MongoDB 2.5.4 introduces :ref:`enhancements for managing user
+credentials and privileges <release-notes-user-defined-roles>`,
+including a change to the user privilege model. To upgrade from the
+version 2.4 :doc:`user privilege model
 </reference/privilege-documents>` to the :ref:`2.5.4 model
 <release-notes-user-defined-roles>`, you must convert existing users to
 the new user privilege model.
 
-.. important:: Before upgrading the authorization model, you should
-   first upgrade MongoDB binaries to 2.5.4. For sharded clusters,
-   ensure that **all** cluster components are 2.5.4.
+.. important::
 
-.. admonition:: Recommended
+   .. include:: /includes/important-upgrade-auth-model-prerequisites.rst
 
-   Because downgrades are more difficult after you upgrade the user
-   authorization model, once you upgrade the MongoDB binaries to
-   version 2.5.4, allow your MongoDB deployment to run a day or two
-   **without** upgrading the user authorization model.
+For details on upgrading MongoDB to 2.5.4 as well as then upgrading the
+user privilege model, see :doc:`/release-notes/2.6-upgrade`.
 
-   This allows 2.6 some time to "burn in" and decreases the likelihood
-   of downgrades occurring after the user privilege model upgrade. The
-   user authentication and access control will continue to work as
-   it did in 2.4, **but** it will be impossible to create or modify
-   users or to use user-defined roles until you run the authorization
-   upgrade.
-
-.. TODO move into the 2.6 upgrade page once that's merged into branch
-
-Upgrade from MongoDB 2.4 User Authorization Model to MongoDB 2.6 Model
-``````````````````````````````````````````````````````````````````````
-
-.. tip:: 
-
-   To upgrade the authorization data for a replica set, it is only
-   necessary to run the upgrade process on the :term:`primary` as
-   the changes will automatically replicate to the secondaries.
-
-#. Connect and authenticate to the :program:`mongod` instance for a
-   single deployment or a :program:`mongos` for a sharded cluster as a
-   user with the role :authrole:`userAdminAnyDatabase`.
-
-   .. important:: For a sharded cluster, you **must** upgrade the
-      cluster's authorization data first by connecting to
-      :program:`mongos` and running the upgrade procedure, and then the
-      authorization data of :term:`primary` members of each shard.
-
-   .. warning:: For a sharded cluster, do **not** run the upgrade
-      process directly against the :doc:`config servers
-      </core/sharded-cluster-config-servers>`.
-
-#. Use the :dbcommand:`authSchemaUpgradeStep` command in the ``admin``
-   database to update the user data. The
-   :dbcommand:`authSchemaUpgradeStep` returns a document that contains
-   the boolean field ``done``. 
-   
-   Run the :dbcommand:`authSchemaUpgradeStep` repeatedly until the ``done`` field
-   is ``true``, as in the following:
-
-   .. tip:: In case of an error with
-      :dbcommand:`authSchemaUpgradeStep`, you may safely re-run the
-      :dbcommand:`authSchemaUpgradeStep` command.
-
-   .. code-block:: javascript
-
-      var res;
-      do {
-          res = db.getSiblingDB("admin").runCommand({authSchemaUpgradeStep: 1});
-      } while (res.ok && !res.done);
-
-      print(tojson(res));
-
-For a sharded cluster, repeat the upgrade process by connecting to the
-:term:`primary` replica set member for each shard.
-
-.. note::
-   The upgrade procedure copies the version 2.4 ``admin.system.users``
-   collection to ``admin.system.backup_users``.
-
-   The upgrade procedure leaves the version 2.4 ``<non-admin
-   database>.system.users`` collection(s) intact.
-
-Downgrade from MongoDB 2.6 User Authorization Model to MongoDB 2.4 Model
-````````````````````````````````````````````````````````````````````````
-
-.. TODO will also put the important blurb in the MongoDB 2.6 downgrade
-   process
-
-.. important:: Before downgrading MongoDB 2.6 to 2.4, you must
-   **first** downgrade the user authorization model to 2.4
-
-.. tip:: To downgrade the authorization data for a replica set, it is
-   only necessary to run the downgrade process on the the
-   :term:`primary` as the changes will automatically replicate to the
-   secondaries.
-
-The following downgrade procedure requires ``<database>.system.users``
-collections used in version 2.4. to be intact for non-``admin``
-databases:
-
-#. Connect and authenticate to the :program:`mongod` instance for a
-   single deployment or a :program:`mongos` for a sharded cluster as a
-   user with the role :authrole:`userAdminAnyDatabase`.
-
-   .. note::
-      For sharded clusters, although the procedure lists the
-      downgrade of the cluster's authorization data first, 
-      you may downgrade the authorization data of the cluster or
-      shards first.
-
-#. Copy the contents of ``admin.system.users`` to ``admin.system.new_users``.
-
-#. Update the version document for the ``authSchema``:
-
-   .. code-block:: javascript
-
-      db.getSiblingDB("admin").system.version.update(
-                                                      { _id: "authSchema" },
-                                                      { $set: { currentVersion: 2 } }
-                                                    )
-
-#. Remove all documents from ``admin.system.users``.
-
-#. Copy the contents of ``admin.system.backup_users``, created during
-   upgrade, to ``admin.system.users``.
-
-#. Update the version document for  the ``authSchema``:
-
-   .. code-block:: javascript
-
-      db.getSiblingDB("admin").system.version.update(
-                                                      { _id: "authSchema" },
-                                                      { $set: { currentVersion: 1 } }
-                                                    )
-
-For a sharded cluster, repeat the downgrade process by connecting to
-the :term:`primary` replica set member for each shard.
-
-.. .. important::
-   For authentication/authorization, the 2.5.3 release does not
-   offer an automatic upgrade process to go from version 2.4 model for
-   user credentials and privileges to the 2.5.3 model. However, version
-   2.5.4 **will** provide an automatic upgrade process.
-   MongoDB 2.5.3 does not offer an automatic upgrade process to go from
-   version 2.4 model :doc:`user privilege documents
-   </reference/privilege-documents>` to the :ref:`2.5.3. model
-   <user-defined-roles>`.
-   In order to *test* your existing database with the :ref:`MongoDB 2.5.3
-   authentication/authorization <user-defined-roles>`, you must remove all
-   the users from the ``system.users`` collection in the ``admin``
-   database and create new users with the new user privilege model. One
-   option is to delete all the users while running with
-   :option:`authorization <--auth>` disabled, and create the first user
-   with the role { role: "root", db: "admin" } using the
-   :method:`db.addUser` helper in the :program:`mongo` shell.
-   Version 2.5.3 is for testing and development **only**.
+Version 2.5.4 is for testing and development only.
 
 ``$mod`` Query Operator Enforces Strict Syntax
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -729,10 +593,9 @@ collection-level granularity. See
 User Defined Roles
 ~~~~~~~~~~~~~~~~~~
 
-.. important:: For authentication/authorization, the 2.5.3 release does not
-   offer an automatic upgrade process to go from version 2.4 model for
-   user credentials and privileges to the 2.5.3 model. See
-   :ref:`authentication-incompatibility`.
+.. important:: For authentication/authorization, to upgrade from
+   version 2.4 model for user credentials and privileges to the 2.5.3
+   model, see :ref:`authentication-incompatibility`.
 
 MongoDB provides the ability to create custom user roles in addition to
 the roles provided by MongoDB. In addition, MongoDB now provides global
@@ -751,7 +614,7 @@ SSL Improvements
 Optionally Prompt for SSL Certificate Passphrases at Server Startup
 ```````````````````````````````````````````````````````````````````
 
-In MongoDB 2.6, a :program:`mongod` or :program:`mongos` can now
+In MongoDB 2.5.4, a :program:`mongod` or :program:`mongos` can now
 interactively prompt the user at startup to enter the passphrase for
 an encrypted SSL private key. This provides an alternative to
 providing a cleartext passphrase on the command line or in a
@@ -1049,3 +912,23 @@ MongoDB Enterprise has greatly expanded its SNMP support. Enterprise
 clients who need fine-grained server statistics now have SNMP access to
 nearly the full range of metrics provided by
 :dbcommand:`db.serverStatus()`.
+
+Additional Information
+----------------------
+
+Upgrade Process
+~~~~~~~~~~~~~~~
+
+.. toctree::
+   :hidden:
+
+   /release-notes/2.6-upgrade
+
+See :doc:`/release-notes/2.6-upgrade` for full upgrade instructions.
+
+Other Resources
+~~~~~~~~~~~~~~~
+
+.. These are usually a list, but for now, only have one link.
+
+`MongoDB Downloads <http://mongodb.org/downloads>`_.
