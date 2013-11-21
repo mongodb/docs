@@ -1,0 +1,94 @@
+===============
+db.createUser()
+===============
+
+.. default-domain:: mongodb
+
+Definition
+----------
+
+.. method:: db.createUser ( user, writeConcern )
+
+   .. Defines a |local-cmd-name| replacement:
+   .. |local-cmd-name| replace:: :method:`db.createUser()`
+
+   Creates a new user on the database where you run the method. The method
+   returns a *duplicate user* error if the user already exists on the database.
+
+   The :method:`db.createUser()` method takes a ``user`` document and, optionally,
+   a ``writeConcern`` document as its arguments.
+
+   The ``user`` document defines the user and has the following form:
+
+   .. code-block:: javascript
+
+      { user: "<name>",
+        pwd: "<cleartext password>",
+        customData: { <any information> },
+        roles: [
+          { role: "<role>", db: "<database>" } | "<role>",
+          ...
+        ]
+      }
+
+   The ``user`` document has the following fields:
+
+   .. include:: /reference/method/db.createUser-param.rst
+
+   The ``writeConcern`` document is optional and determines the level of
+   :doc:`write concern </reference/write-concern>` for the
+   :method:`db.createUser()` operation. The ``writeConcern`` document takes
+   the same fields as the :dbcommand:`getLastError` command.
+
+   The :method:`db.createUser()` method wraps the :dbcommand:`createUser`
+   command.
+
+Considerations
+--------------
+
+``pwd`` Field
+~~~~~~~~~~~~~
+
+:method:`db.createUser()` sends password to the MongoDB instance in
+cleartext. To encrypt the password in transit, use :doc:`SSL
+</tutorial/configure-ssl>`.
+
+Users created on the ``$external`` database should have credentials
+stored externally to MongoDB, as, for example, with :doc:`MongoDB
+Enterprise installations that use Kerberos
+</tutorial/control-access-to-mongodb-with-kerberos-authentication>`.
+
+``roles`` Field
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-roles-array-contents.rst
+
+Required Access
+---------------
+
+.. include:: /includes/access-create-user.rst
+
+Example
+-------
+
+The following :method:`db.createUser()` operation creates the
+``accountAdmin01`` user on the ``products`` database.
+
+.. code-block:: javascript
+
+   use products
+   db.createUser( { "user" : "accountAdmin01",
+                    "pwd": "cleartext password",
+                    "customData" : { employeeId: 12345 },
+                    "roles" : [ { role: "clusterAdmin", db: "admin" },
+                                { role: "readAnyDatabase", db: "admin" },
+                                "readWrite"
+                                ] },
+                  { w: "majority" , wtimeout: 5000 } )
+
+The operation gives ``accountAdmin01`` the following roles:
+
+- the ``clusterAdmin`` and ``readAnyDatabase`` roles on the ``admin``
+  database
+
+- the ``readWrite`` role on the ``products`` database
