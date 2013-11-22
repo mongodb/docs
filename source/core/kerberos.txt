@@ -1,0 +1,182 @@
+=======================
+Kerberos Authentication
+=======================
+
+.. default-domain:: mongodb
+
+.. versionadded:: 2.4
+
+.. contents::
+   :backlinks: none
+   :local:
+
+Overview
+--------
+
+MongoDB Enterprise supports authenticating clients, including the
+:program:`mongo` shell, using Kerberos. Kerberos is an industry
+standard authentication protocol for large client/server systems.
+
+To enable kerberos authentication on
+:program:`mongod` and :program:`mongos`, see
+:doc:`/tutorial/control-access-to-mongodb-with-kerberos-authentication`.
+and
+:doc:`/tutorial/control-access-to-mongodb-windows-with-kerberos-authentication`
+
+To troubleshoot Kerberos on :program:`mongod` or :program:`mongos`,
+please see :doc:`/tutorial/troubleshoot-kerberos` for more information.
+
+Kerberos Components
+-------------------
+
+Users
+~~~~~
+
+You must :ref:`create users <kerberos-create-users>` and grant appropriate
+privileges in the :data:`system.users <admin.system.users>` collection before
+MongoDB will authenticate using Kerberos.
+
+To add users on a running :program:`mongod` instance, use the
+:ref:`localhost authentication exception <localhost-exception>`. See
+the :ref:`kerberos-create-users` section and the
+:doc:`/reference/user-privileges` document for more information.
+
+Keytab Files
+~~~~~~~~~~~~
+
+Under Linux, MongoDB's Kerberos support allows clients to authenticate
+using authentication keys stored in keytab files.
+
+Each :program:`mongod` and :program:`mongos` instance that uses
+kerberos authentication under Linux must have a keytab file containing
+valid authentication keys.
+
+.. warning::
+
+   Only transmit keytab files securely. Keytab file permissions should
+   restrict access to only the user that runs the :program:`mongod`
+   or :program:`mongos` process.
+
+Active Directory
+~~~~~~~~~~~~~~~~
+
+Under Windows, Active Directory uses Kerberos at the back-end. Kerberos
+authentication under Windows happens transparently at login.
+
+.. tip::
+
+   Active Directory can export a keytab file
+   for use in Linux, for example using `Ktpass
+   <http://technet.microsoft.com/en-us/library/cc753771.aspx>`_.
+
+Service Principal
+~~~~~~~~~~~~~~~~~
+
+Configure a Kerberos service principal for each :program:`mongod`
+and :program:`mongos` instance in your MongoDB deployment.
+
+The service principal should be ``mongodb/<hostname>``. Always ensure
+that the service principle matches the name in the keytab file, or
+use the :parameter:`saslHostName` to pass MongoDB the correct hostname.
+
+Initialize a Kerberos Session Under Linux
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Under Linux, Kerberos's ``kinit`` program initializes and authenticates
+a Kerberos session. All MongoDB clients, including :program:`mongod`,
+must use ``kinit``.
+
+Initialize a Kerberos Session Under Windows
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+mongod and mongos
+`````````````````
+
+Under Windows, to initialize a running :program:`mongod` or
+:program:`mongos` with the process owner's Kerberos credentials,
+you must assign the service principle name (SPN) to the user with the
+``setspn.exe`` program, using the following form:
+
+.. code-block:: sh
+
+   setspn.exe -A <serviceName>/<fqdn> <credentials>
+
+.. example::
+
+   Given a ``mongotest`` user on host ``test.mongo.com``, from a
+   computer joined to the ``MONGO.COM`` domain:
+
+   .. code-block:: sh
+
+      setspn.exe -A mongodb/test.mongo.com mongotest
+
+The Shell and Tools When Not Joined to Kerberos Domain
+``````````````````````````````````````````````````````
+
+Use `Ksetup <http://technet.microsoft.com/en-us/library/hh240190.aspx>`_
+to configure Windows to allow the host to resolve the Kerberos domain.
+
+The Shell and Tools When Joined to Kerberos Domain
+``````````````````````````````````````````````````
+
+When already joined to a Kerberos domain, :program:`mongo` and the
+MongoDB tools automatically authenticate using the credentials of
+the user running MongoDB.
+
+.. tip::
+
+   Even when joined to a Kerberos domain, you can use `Ksetup
+   <http://technet.microsoft.com/en-us/library/hh240190.aspx>`_
+   to authenticate to a different domain.
+
+Operational Considerations
+--------------------------
+
+The HTTP Console
+~~~~~~~~~~~~~~~~
+
+The MongoDB :ecosystem:`HTTP Console
+</tools/http-interface/#http-console>` interface does not support
+Kerberos authentication.
+
+DNS
+~~~
+
+To resolve the components of the Kerberos infrastructure, and to allow
+the Kerberos Key Distribution Center (KDC) to resolve the hosts in
+your MongoDB deployment, each system that runs a :program:`mongod`
+or :program:`mongos` instance must have both ``A`` and ``PTR`` DNS
+records (forward and reverse lookup).
+
+By default, Kerberos attempts to identify hosts using the
+``/etc/kerb5.conf`` file before using DNS to resolve hosts.
+
+System Time Synchronization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To successfully authenticate, the system time for each
+:program:`mongod` and :program:`mongos` instance *must* be within 5
+minutes of the system time of the Kerberos infrastructure.
+
+Kerberized MongoDB Environments
+-------------------------------
+
+Driver Support
+~~~~~~~~~~~~~~
+
+The following MongoDB drivers support Kerberos authentication:
+
+- :ecosystem:`Java </tutorial/authenticate-with-java-driver/>`
+- :ecosystem:`C# </tutorial/authenticate-with-csharp-driver/>`
+- :ecosystem:`C++ </tutorial/authenticate-with-cpp-driver/>`
+- `Python <http://api.mongodb.org/python/current/examples/authentication.html>`_
+
+Traditional MongoDB Authentication Mechanism
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Kerberos (i.e. ``GSSAPI``) authentication mechanism may be used
+alongside the traditional MongoDB challenge/response authentication
+mechanism (i.e. ``MONGODB-CR``) for testing and development. See
+:doc:`/tutorial/control-access-to-mongodb-with-kerberos-authentication`
+for more information.
+
