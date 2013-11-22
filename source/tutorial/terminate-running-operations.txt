@@ -4,6 +4,14 @@ Terminate Running Operations
 
 .. default-domain:: mongodb
 
+Overview
+--------
+
+MongoDB provides two facilitates to terminate running operations:
+:method:`~cursor.maxTimeMS()` and :method:`db.killOp()`. Use these
+operations as needed to control the behavior of operations in a
+MongoDB deployment.
+
 Available Procedures
 --------------------
 
@@ -19,36 +27,44 @@ MongoDB interrupts the operation at the next :term:`interrupt point`.
 Terminate a Query
 `````````````````
 
-From the :program:`mongo` shell, use the following method to set a time limit of
-30 milliseconds for this query:
+From the :program:`mongo` shell, use the following method to set a
+time limit of 30 milliseconds for this query:
 
 .. code-block:: javascript
 
-   db.location.find({"town": { "$regex": "(Pine Bush)", "$options": 'i' }}).maxTimeMS(30)
+   db.location.find( { "town": { "$regex": "(Pine Lumber)",
+                                 "$options": 'i' } } ).maxTimeMS(30)
 
 Terminate a Command
 ```````````````````
 
-Given a query that uses the :method:`~db.runCommand()` command to
-return each distinct ``collection`` field that has a ``city`` key:
+Consider a potentially long running operation using
+:dbcommand:`distinct` to return each distinct``collection`` field that
+has a ``city`` key:
 
 .. code-block:: javascript
 
-   db.runCommand( { distinct: "collection", key: "city" } )
+   db.runCommand( { distinct: "collection",
+                    key: "city" } )
 
-From the :program:`mongo` shell, add the ``maxTimeMS``
-field to set a time limit of 30 milliseconds for the query:
+You can add the ``maxTimeMS``  field to the command document to set a
+time limit of 30 milliseconds for the operation:
+
+.. code-block:: javascript
+
+   db.runCommand( { distinct: "collection",
+                    key: "city",
+                    maxTimeMS: 45 } )
+
+:method:`db.getLastError()` and :method:`db.getLastErrorObj()` will return
+errors for interrupted options:
 
 .. code-block:: javascript
 
-   db.runCommand( { distinct: "collection", key: "city", maxTimeMS: 45 } )
-
-Interrupted operations produce an error reportable by
-:method:`db.getLastError()`:
-
-.. code-block:: javascript
- 
-   { "n" : 0, "connectionId" : 1, "err" : "operation exceeded time limit", "ok" : 1 }
+   { "n" : 0,
+     "connectionId" : 1,
+     "err" : "operation exceeded time limit",
+     "ok" : 1 }
 
 ``killOp``
 ~~~~~~~~~~
@@ -61,5 +77,5 @@ the target operation by operation ID.
 
    db.killOp(<opId>)
 
-See :method:`db.currentOp()`.
-
+.. related:: To return a list of running operations see
+   :method:`db.currentOp()`.
