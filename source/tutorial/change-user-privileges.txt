@@ -7,9 +7,9 @@ Modify User Privileges
 Overview
 --------
 
-A user's privileges determine the user's access to :ref:`resources
-<resource-document>` and specify the available :ref:`actions
-<security-user-actions>` the user can perform. Users receive privileges
+A user's privileges determine the  :ref:`actions
+<security-user-actions>` available to that user in the context of a
+:ref:`resource <resource-document>`. Users receive privileges
 through role assignments. A user can have multiple roles, and each role
 can have multiple privileges.
 
@@ -28,8 +28,8 @@ Prerequisites
 Procedure
 ---------
 
-Identify the User's Roles
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Collect User's Information
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Issue the :dbcommand:`usersInfo` command or :method:`db.getUser()` method to
 display user information. The :data:`~admin.system.users.roles` array
@@ -67,8 +67,8 @@ For a given role, issue the :dbcommand:`rolesInfo` command or
 The resulting role document displays the privileges granted directly and the
 roles from which this role inherits privileges.
 
-For example, to view the privileges granted by ``siteRole01``, issue the
-following:
+For example, to view the privileges granted by ``siteRole01``, use the
+following operation:
 
 .. code-block:: javascript
 
@@ -103,7 +103,7 @@ privilege to perform ``find``, ``insert``, and ``update`` actions on the
        }
    ]
 
-To view the privileges granted by the :authrole:`read` role, issue
+To view the privileges granted by the :authrole:`read` role, use
 :method:`db.getRole()` again with the appropriate parameters.
 
 Identify the Privileges to Grant or Revoke
@@ -112,42 +112,49 @@ Identify the Privileges to Grant or Revoke
 Determine which role contains the privileges *and only those privileges*.
 
 If such a role does not exist, then to grant the privileges will require
-:doc:`creating a new role </tutorial/define-roles>` with the specific set of
-privileges.
+:doc:`creating a new role </tutorial/define-roles>` with the specific
+set of privileges.
 
-To revoke a role in such a case requires :doc:`creating a new role
-</tutorial/define-roles>` that contains the privileges *to keep*. Revoking
-the privileges will require revoking the roles that contain the privileges
-to remove and then granting the role with the privileges to keep.
+To revoke a subset of privileges provided by an existing role: revoke
+the original role, :doc:`create a new role </tutorial/define-roles>`
+that contains the privileges *to keep*, and then grant that role to
+the user.
+
+Modify User
+~~~~~~~~~~~
 
 Revoke a Role
-~~~~~~~~~~~~~
+`````````````
 
 Revoke a role using the :dbcommand:`revokeRolesFromUser` command. For
-example, to remove the :authrole:`readWrite` role on the ``records``
-database from the user ``reportsAppUser01``, run the following.
+example, to remove the :authrole:`readWrite` role on the ``accounts``
+database from the user ``accountUser01``, use an operation that
+resembles the following:
 
 .. code-block:: javascript
 
-   db.runCommand( { revokeRolesFromUser: "reportsAppUser01",
-                    roles: [ { role: "readWrite", db: "records" } ]
+   use accounts
+   db.runCommand( { revokeRolesFromUser: "accountUser01",
+                    roles: [ { role: "readWrite", db: "accounts" } ]
                 } )
 
-The :dbcommand:`revokeRolesToUser` command removes the ``readWrite`` role on
-the ``records`` database from ``reportsAppUser01``'s existing roles.
+The :dbcommand:`revokeRolesToUser` command removes the
+:authrole:`readWrite` role on the ``accounts`` database from
+``accountUser01``\ 's existing roles.
 
 Grant a Role
-~~~~~~~~~~~~
+````````````
 
 Grant the role using the :dbcommand:`grantRolesToUser` command. For example,
-to grant the user ``reportsAppUser01`` the :authrole:`read` role on the ``accounts``
-database, run the following.
+to grant the user ``accountUser01`` the :authrole:`read` role on
+the ``records`` database, use an operation that resembles the following:
 
 .. code-block:: javascript
 
-   db.runCommand( { grantRolesToUser: "reportsAppUser01",
-                    roles: [ { role: "read", db: "accounts"} ]
+   use accounts
+   db.runCommand( { grantRolesToUser: "accountUser01",
+                    roles: [ { role: "read", db: "records" } ]
                 } )
 
 The :dbcommand:`grantRolesToUser` command adds the ``read`` role on the
-``accounts`` database to ``reportsAppUser01``'s existing roles.
+``records`` database to ``accountUser01``\ 's existing roles.
