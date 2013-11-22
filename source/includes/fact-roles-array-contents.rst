@@ -10,6 +10,6 @@ role <user-defined-roles>`. In general, when used with
    { role: "<role>", db: "<database>" }
 
 However, to refer to a role that exists in the same database the
-command is run, you can specify the role either with a role document
-(e.g. ``{ role: "readWrite", db: "sameDB" }`` ) or with just the role
-name (e.g. ``"readWrite"``).
+command runs, you can specify the role either with a role document
+(e.g. ``{ role: "readWrite", db: "sameDB" }`` ) or with the name of
+the role (e.g. ``"readWrite"``).
