@@ -11,122 +11,255 @@ Definition
 
    .. versionadded:: 2.5.2
 
-   Filters out restricted fields when returning a document via the
-   :doc:`aggregation pipeline </core/aggregation-pipeline>`. The
-   :pipeline:`$redact` stage in the pipeline returns only those fields in
-   a returned document that a user is authorized to see.
+   Restricts the contents of the documents based on information stored
+   in the documents themselves. The :pipeline:`$redact` pipeline
+   operator takes a single :expression:`$cond` expression to determine
+   whether to return or omit data from its output.
 
-   :pipeline:`$redact` restricts access based on access-control
-   information stored in the documents themselves. Documents and must
-   include fields that define access at different levels of the document.
-
-   :pipeline:`$redact` uses the following syntax:
+   The :pipeline:`$redact` pipeline operator uses the following syntax
+   [#cond-syntax]_:
 
    .. code-block:: none
 
       db.<collection>.aggregate(
-         { $redact: { $cond: { if: <boolean-expression>,
-                               then: < $$DESCEND | $$PRUNE | $$KEEP >,
-                               else: < $$DESCEND | $$PRUNE | $$KEEP > } }
-         }
+         [
+           { $redact:
+              {
+                 $cond:
+                    {
+                       if: <boolean-expression>,
+                       then: <"$$DESCEND" | "$$PRUNE" | "$$KEEP">,
+                       else: <"$$DESCEND" | "$$PRUNE" | "$$KEEP">
+                    }
+              }
+           }
+         ]
       )
 
-   :pipeline:`$redact` operator takes a document with the
-   :expression:`$cond` operator. The :expression:`$cond` operator
-   evaluates the user's access to the document's fields. The
-   :pipeline:`$redact` expression **must** specify the the
-   :expression:`$cond` operator.
+   In the :expression:`$cond` expression, the ``<boolean-expression>``
+   uses a field or fields in the document to specify the conditions for
+   either returning or omitting content.
 
-   When used with :pipeline:`$redact`, the :expression:`$cond` operator
-   uses one or more of the following variables to evaluate access. The
-   variables are passed as values of the :expression:`$cond` operator's
-   ``then`` and ``else`` fields.
+   .. tip:: To handle documents that are missing field(s) used in
+      ``<boolean-expression>``, include :expression:`$ifNull` in the
+      expression.
+
+   The :expression:`$cond` expression in a :pipeline:`$redact` stage
+   must specify one of the following system variables in the ``then``
+   and ``else`` fields:
 
    .. list-table::
       :header-rows: 1
+      :widths: 15 50
 
-      * - Variable
+      * - System Variable
 
         - Description
 
-      * - $$DESCEND
+      * - ``"$$DESCEND"``
 
-        - The pipeline returns the current field and continues evaluating
-          the fields and sub-documents at this level of the input document
+        - The pipeline returns the *non-subdocument* fields at the
+          current document/subdocument level. For subdocuments or
+          subdocuments in arrays, apply the :expression:`$cond`
+          expression to the subdocuments to determine access for these
+          subdocuments.
 
-      * - $$PRUNE
+      * - ``"$$PRUNE"``
 
-        - The pipeline returns the document without the fields at this level.
+        - The pipeline excludes all fields at this current
+          document/subdocument level, **without** further inspection of
+          any of the excluded fields. This applies even if the excluded
+          field contains subdocuments that may have different access
+          levels.
 
-      * - $$KEEP
+      * - ``"$$KEEP"``
 
-        - The pipeline returns the entire sub-document without traversing
-          the individual fields.
+        - The pipeline returns all fields at this current
+          document/subdocument level, **without** further inspection of
+          the fields at this level. This applies even if the included
+          field contains subdocuments that may have different access
+          levels.
 
-   .. include:: /includes/important-uses-new-aggregate-helper.rst
+.. seealso:: :expression:`$cond`.
 
+.. [#cond-syntax] The :expression:`$cond` expression supports an
+   alternate syntax that accepts an array instead of a document form.
+   See :expression:`$cond` for details.
 
-   To implement :pipeline:`$redact`, prepend a the :pipeline:`$redact`
-   pipeline stage to your user's queries.
+Examples
+--------
 
-Example
--------
+.. include:: /includes/important-uses-new-aggregate-helper.rst
 
-Given a ``test`` collection with the following document:
+Evaluate Access at Every Document/Sub-document Level
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A ``forecasts`` collection contains documents of the following form
+where the ``tags`` field lists the different access values for that
+document/subdocument level; i.e. a value of ``[ "G", "STLW" ]``
+specifies either ``"G"`` or ``"STLW"`` can access the data:
 
 .. code-block:: javascript
 
-   { a: {
-          level: 1,
-          b: {
-              level: 5,
-              c: {
-                  level: 1,
-                  message: "Hello"
-              }
+   {
+      _id: 1,
+      title: "123 Department Report",
+      tags: [ "G", "STLW" ],
+      year: 2014,
+      subsections: [
+          {
+              subtitle: "Section 1: Overview",
+              tags: [ "SI", "G" ],
+              content:  "Section 1: This is the content of section 1."
           },
-          d: "World."
-       }
+          {
+              subtitle: "Section 2: Analysis",
+              tags: [ "STLW" ],
+              content: "Section 2: This is the content of section 2."
+          },
+          {
+              subtitle: "Section 3: Budgeting",
+              tags: [ "TK" ],
+              content: {
+                  text: "Section 3: This is the content of section3.",
+                  tags: [ "HCS" ]
+              }
+          }
+      ]
    }
 
-The following operation uses :pipeline:`$redact` to specify the
-redaction of document parts in the aggregation pipeline.
+A user has access to view information with either the tag ``"STLW"`` or
+``"G"``. To run a query on all documents with year ``2014`` for this
+user, include a :pipeline:`$redact` stage as in the following:
 
-.. code-block:: javascript
+.. code-block:: none
 
-   db.test.aggregate(
-      { $match: {} },
-      { $redact: { $cond: { if: { $lt: [ '$level', 3 ] },
-                            then: "$$DESCEND",
-                            else: "$$PRUNE" }
-                 }
-      }
+   var userAccess = [ "STLW", "G" ];
+   db.forecasts.aggregate(
+      [
+        { $match: { year: 2014 } },
+        { $redact:
+            {
+               $cond:
+                  {
+                    if: { $gt: [ { $size: { $setIntersection: [ "$tags", userAccess ] } }, 0 ] },
+                    then: "$$DESCEND",
+                    else: "$$PRUNE"
+                  }
+            }
+        }
+      ]
    )
 
-This operation evaluates every object-typed field at every level for all
-documents in the ``test`` collection, and uses the
-:expression:`$cond` expression and the variables ``$$DESCEND``
-and ``$$PRUNE`` to specify the redaction of document parts in the
-aggregation pipeline.
+The aggregation operation returns the following "redacted" document:
 
-Specifically, if the field ``level`` is less than 3, (i.e. ``{
-$lt: [ '$level', 3' ] }``) :pipeline:`$redact` continues (i.e.
-``$$DESCEND``) evaluating the fields and sub-documents at this
-level of the input document. If the value of ``level`` is greater
-than ``3``, then :pipeline:`$redact` removes all data at this
-level of the document.
+.. code-block:: none
 
-The result of this aggregation operation is as follows:
+   {
+      "_id" : 1,
+      "title" : "123 Department Report",
+      "tags" : [ "G", "STLW" ],
+      "year" : 2014,
+      "subsections" : [
+         {
+            "subtitle" : "Section 1: Overview",
+            "tags" : [ "SI", "G" ],
+            "content" : "Section 1: This is the content of section 1."
+         },
+         {
+            "subtitle" : "Section 2: Analysis",
+            "tags" : [ "STLW" ],
+            "content" : "Section 2: This is the content of section 2."
+         }
+      ]
+   }
+
+.. seealso:: :expression:`$size`, :expression:`$setIntersection`
+
+Exclude All Fields at a Given Level
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A collection ``accounts`` contains the following document:
 
 .. code-block:: javascript
 
-   { a: {
-          level: 1,
-          d: "World."
-   }    }
+   {
+     _id: 1,
+     level: 1,
+     acct_id: "xyz123",
+     cc: {
+           level: 5,
+           type: "yy",
+           num: 000000000000,
+           exp_date: ISODate("2015-11-01T00:00:00.000Z"),
+           billing_addr: {
+                           level: 5,
+                           addr1: "123 ABC Street",
+                           city: "Some City"
+                         },
+           shipping_addr: [
+                             { 
+                               level: 3,
+                               addr1: "987 XYZ Ave",
+                               city: "Some City"
+                             },
+                             { 
+                               level: 3,
+                               addr1: "PO Box 0123",
+                               city: "Some City"
+                             }
+                          ]
+         },
+     status: "A"
+   }
 
-You may also specify ``$$KEEP`` as a variable to
-:expression:`$cond`, which returns the entire sub-document
-without traversing, as ``$$DESCEND``.
+In this example document, the ``level`` field determines the access
+level required to view the data.
 
-.. see:: :expression:`$cond`.
+To run a query on all documents with status ``A`` and exclude *all*
+fields contained in a document/subdocument at level ``5``, include a
+:pipeline:`$redact` stage that specifies the system variable
+``"$$PRUNE"`` in the ``then`` field:
+
+.. code-block:: none
+
+   db.accounts.aggregate(
+      [
+        { $match: { status: "A" } },
+        { $redact:
+           {
+               $cond: {
+                        if: { $eq: [ "$level", 5 ] },
+                        then: "$$PRUNE",
+                        else: "$$DESCEND"
+                      }
+           }
+        }
+      ]
+   )
+
+The :pipeline:`$redact` stage evaluates the ``level`` field to
+determine access. If the ``level`` field equals ``5``, then exclude all
+fields at that level, even if the excluded field contains subdocuments
+that may have different ``level`` values, such as the ``shipping_addr``
+field.
+
+The aggregation operation returns the following "redacted" document:
+
+.. code-block:: none
+
+   {
+     "_id" : 1,
+     "level" : 1,
+     "acct_id" : "xyz123",
+     "status" : "A"
+   }
+
+The result set shows that the the :pipeline:`$redact` stage excluded
+the field ``cc`` as a whole, including the ``shipping_addr`` field
+which contained subdocuments that had ``level`` field values equal to
+``3`` and not ``5``.
+
+.. seealso::
+   :doc:`/tutorial/control-access-to-document-content-with-multiple-tag-sets` for
+   steps to set up multiple combinations of access for the same data.
