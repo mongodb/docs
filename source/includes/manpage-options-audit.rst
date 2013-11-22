@@ -15,7 +15,7 @@
 
       * - ``syslog``
 
-        - Output the audit log to syslog in text format. Not available on
+        - Output the audit log to syslog in JSON format. Not available on
           Windows. Audit messages have a syslog severity level of ``info``
           and a facility level of ``user``.
 
@@ -23,16 +23,16 @@
 
       * - ``console``
 
-        - Output the audit log to ``stdout`` in text format.
+        - Output the audit log to ``stdout`` in JSON format.
 
-      * - ``textfile``
+      * - ``jsonfile``
 
-        - Output the audit log, in text format, to the file specified in
+        - Output the audit log in JSON format to the file specified in
           :option:`--auditPath`.
 
       * - ``bsonfile``
 
-        - Output the audit log, in BSON binary format, to the file
+        - Output the audit log in BSON binary format to the file
           specified in :option:`--auditPath`.
 
 .. option:: --auditPath
@@ -40,7 +40,7 @@
    .. include:: /includes/note-audit-in-enterprise-only.rst
 
    Specify the output file for auditing if :option:`--auditLog` has
-   value of either ``textfile`` or ``bsonfile``. The
+   value of either ``jsonfile`` or ``bsonfile``. The
    :option:`--auditPath` option can take either a full path name or a
    relative path name.
 
