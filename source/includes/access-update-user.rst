@@ -4,7 +4,7 @@ databases. To add roles in an update, a user must have access that
 includes the :authaction:`grantRole` action on the database where
 the role exists.
 
-To modify their own ``pwd`` or :data:`~admin.system.users.customData`
+To modify *their own* ``pwd`` or :data:`~admin.system.users.customData`
 fields, users must have access that includes the
 :authaction:`changeOwnPassword` action and
 :authaction:`changeOwnCustomData` action respectively on the
