@@ -1,12 +1,12 @@
-To create a role on a database, a user must have access that includes
-the :authaction:`createRole` action on that database.
+A user must have the :authaction:`createRole` :ref:`action
+<security-user-actions>` on a database to create a role on that database.
 
-To grant a privilege to the role, a user must have access that includes the
-:authaction:`grantRole` action on the database the privilege
-targets. If the privilege targets multiple databases or the
-``cluster`` resource , the user must have access that includes the :authaction:`grantRole`
-action on the ``admin`` database.
+A user must have the :authaction:`grantRole` :ref:`action
+<security-user-actions>` on the database that a privilege targets in order
+to grant that privilege to a role. If the privilege targets multiple
+databases or the ``cluster`` resource , the user must have the
+:authaction:`grantRole` action on the ``admin`` database.
 
-To specify roles from which the new role inherits from, a
-user must have access that includes the
-:authaction:`grantRole` action on the inherited role's database.
+A user must have the :authaction:`grantRole` :ref:`action
+<security-user-actions>` on a role's database to grant the role to another
+role.

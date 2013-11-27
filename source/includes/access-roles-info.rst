@@ -1,2 +1,3 @@
-To view role information, a user must have privileges that contain the
-:authaction:`viewRole` action on the database where the role exists.
+A user must have the :authaction:`viewRole` :ref:`action
+<security-user-actions>` on a role's database to view the role's
+information.
