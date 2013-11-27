@@ -9,16 +9,22 @@ Definition
 
 .. dbcommand:: updateRole
 
-   Updates the role on the database on which you run the command. An
-   update to a field **completely replaces** the previous field's
-   values.
+   Updates a ref:`user-defined role <user-defined-roles>`. The
+   :dbcommand:`updateRole` command must run on the role's database.
+
+   An update to a field **completely replaces** the previous field's values.
+   To grant or remove roles or privileges without replacing all values, use
+   one or more of the following commands:
+
+   - :command:`grantRolesToRole`
+   - :command:`grantPrivilegesToRole`
+   - :command:`revokeRolesFromRole`
+   - :command:`revokePrivilegesFromRole`
 
    .. warning::
 
-      When you update the ``privileges`` or ``roles`` arrays, you
-      completely replace the previous array's values. To add roles
-      without replacing the existing roles, use the
-      :dbcommand:`grantRolesToRole` command.
+      An update to the ``privileges`` or ``roles`` array
+      completely replaces the previous array's values.
 
    The :dbcommand:`updateRole` command uses the following syntax. To
    update a role, you must provide the ``privileges`` array, ``roles``
@@ -26,16 +32,20 @@ Definition
 
    .. code-block:: javascript
 
-      { updateRole: "<role>",
-        privileges: [
-          { resource: { <resource> }, actions: [ "<action>", ... ] },
-          ...
-        ],
-        roles: [
-          { role: "<role>", db: "<database>" },
-          ...
-        ],
+      {
+        updateRole: "<role>",
+        privileges:
+            [
+              { resource: { <resource> }, actions: [ "<action>", ... ] },
+              ...
+            ],
+        roles:
+            [
+              { role: "<role>", db: "<database>" },
+              ...
+            ],
         writeConcern: <write concern document>
+      }
 
    The :dbcommand:`updateRole` command has the following fields:
 
@@ -47,20 +57,7 @@ Definition
 Required Access
 ---------------
 
-To run the :dbcommand:`updateRole` command, a user must have privileges
-that include the :authaction:`revokeRole` action on all databases,
-as well as:
-
-- To update the ``roles`` array, a user must have privileges that
-  include the :authaction:`grantRole` action on the database for
-  every role in the updated array.
-
-- To update the ``privileges`` array, a user must have
-  :authaction:`grantRole` on the database for each privilege in the
-  updated array. If the resource for the privilege is a collection in
-  all databases, or all collections and all database, or the
-  ``cluster`` resource, you must have :authaction:`grantRole` on
-  the ``admin`` database.
+.. include:: /includes/access-update-role.rst
 
 Example
 -------
@@ -72,13 +69,20 @@ the two is required:
 
 .. code-block:: javascript
 
-   { updateRole: "myClusterwideAdmin",
-     privileges: [
-       { resource: { db: "", collection: "" },
-         actions: [ "find" , "update", "insert", "remove" ] }
-     ],
-     roles: [
-       { role: "dbAdminAnyDatabase", db: "admin" }
-     ],
-     writeConcern: { w: "majority" , wtimeout: 5000 }
+   {
+     updateRole: "myClusterwideAdmin",
+     privileges:
+         [
+           {
+             resource: { db: "", collection: "" },
+             actions: [ "find" , "update", "insert", "remove" ]
+           }
+         ],
+     roles:
+         [
+           { role: "dbAdminAnyDatabase", db: "admin" }
+         ],
+     writeConcern: { w: "majority" }
    }
+
+To view a role's privileges, use the :dbcommand:`rolesInfo` command.
