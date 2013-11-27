@@ -1,4 +1,5 @@
-Users must have the :authaction:`viewUser` action on another users database
-to view that user's credentials.
+Users must have the :authaction:`viewUser` :ref:`action
+<security-user-actions>` on another user's database to view the other user's
+credentials.
 
 Users can view their own information.

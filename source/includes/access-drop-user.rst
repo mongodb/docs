@@ -1,2 +1,2 @@
-To use the |local-cmd-name|  a user must have access that includes
-the :authaction:`dropUser` action for that database.
+A user must have the :authaction:`dropUser` :ref:`action
+<security-user-actions>` on a database to drop a user from that database.

@@ -1,5 +1,7 @@
-To run |local-cmd-name|, a user must have access
-that includes the :authaction:`createUser` action on the database.
+A user must have :authaction:`createUser` :ref:`action
+<security-user-actions>` on a database to create a new user on that
+database.
 
-To grant a role to a new user, the user granting the role must have access
-that includes the :authaction:`grantRole` action on the role's database.
+A user must have the :authaction:`grantRole` :ref:`action
+<security-user-actions>` on a role's database to grant the role to another
+user.
