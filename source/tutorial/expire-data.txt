@@ -15,7 +15,7 @@ Expire Data from Collections by Setting TTL
 This document provides an introduction to MongoDB's "*time to live*"
 or ":term:`TTL`" collection feature. TTL collections make it possible
 to store data in MongoDB and have the :program:`mongod` automatically
-remove data after a specified number of seconds, or at a specific
+remove data after a specified number of seconds or at a specific
 clock time.
 
 Data expiration is useful for some classes of information, including
@@ -51,7 +51,7 @@ documents as soon as the index finishes building.
 
 .. include:: /includes/note-ttl-collection-background-timing.rst
 
-With the exception of the background thread, A TTL index supports
+With the exception of the background thread, a TTL index supports
 queries in the same way normal indexes do. You can use TTL indexes to
 expire documents in one of two ways, either:
 
@@ -65,72 +65,80 @@ expire documents in one of two ways, either:
 Expire after a Certain Number of Seconds
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Begin by creating a TTL index and specify an ``expireAfterSeconds``
-value of ``3600``. This sets the an expiration time of 1 hour after
-the time specified by the value of the indexed field. The following
-example, creates an index on the ``log.events`` collection's
-``status`` field:
+To expire data after a certain number of seconds, create a TTL index on
+a field that holds values of BSON date type or an array of BSON
+date-typed objects *and* specify a positive non-zero value in the
+``expireAfterSeconds`` field. A document will expire when the number of
+seconds in the ``expireAfterSeconds`` field has passed since the time
+specified in its indexed field. [#field-is-array-of-dates]_
+
+For example, the following operation creates an index on the
+``log.events`` collection's ``createdAt`` field and specifies the
+``expireAfterSeconds`` value of ``3600`` to set the expiration time to
+be one hour after the time specified by ``createdAt``.
 
 .. code-block:: javascript
 
-   db.log.events.ensureIndex( { "status": 1 }, { expireAfterSeconds: 3600 } )
+   db.log.events.ensureIndex( { "createdAt": 1 }, { expireAfterSeconds: 3600 } )
 
-To expire documents a certain number of seconds after creation, give
-the date field a value corresponding to the insertion time of the
-documents.For example, given the index on the ``log.events`` collection
-with the ``expireAfterSeconds`` value of ``0``, and a current date of
-``July 22, 2013: 13:00:00``, consider the document in the following
-:method:`~db.collection.insert()` operation:
+When adding documents to the ``log.events`` collection, set the
+``createdAt`` field to the current time:
 
 .. code-block:: javascript
 
    db.log.events.insert( {
-      "status": new Date('July 22, 2013: 13:00:00'),
+      "createdAt": new Date(),
       "logEvent": 2,
-      "logMessage": "Success!",
+      "logMessage": "Success!"
    } )
 
-The ``status`` field *must* hold values of BSON date type or an array
-of BSON date-typed objects.
-
 MongoDB will automatically delete documents from the ``log.events``
-collection when at least one of the values of a document's ``status``
-field is a time older than the number of seconds specified in
-``expireAfterSeconds``.
+collection when the document's ``createdAt`` value
+[#field-is-array-of-dates]_ is older than the number of seconds
+specified in ``expireAfterSeconds``.
+
+.. [#field-is-array-of-dates] If the field contains an array of BSON
+   date-typed objects, data expires if at least one of BSON date-typed
+   object is older than the number of seconds specified in
+   ``expireAfterSeconds``.
 
 Expire at a Certain Clock Time
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Begin by creating a TTL index and specify an ``expireAfterSeconds``
-value of ``0``. The following example, creates an index on the
-``log.events`` collection's ``status`` field:
+To expire documents at a certain clock time, begin by creating a TTL
+index on a field that holds values of BSON date type or an array of
+BSON date-typed objects *and* specify an ``expireAfterSeconds`` value
+of ``0``. For each document in the collection, set the indexed date
+field to a value corresponding to the time the document should expire.
+If the indexed date field contains a date in the past, MongoDB
+considers the document expired.
+
+For example, the following operation creates an index on the
+``app.events`` collection's ``expireAt`` field and specifies the
+``expireAfterSeconds`` value of ``0``:
 
 .. code-block:: javascript
 
-   db.log.events.ensureIndex( { "status": 1 }, { expireAfterSeconds: 0 } )
+   db.app.events.ensureIndex( { "expireAt": 1 }, { expireAfterSeconds: 0 } )
 
-To expire documents at a certain clock time, give the date field a
-value corresponding to the time a document should expire, For example,
-given the index on the ``log.events`` collection with the
-``expireAfterSeconds`` value of ``0``, and a current date of ``July
-22, 2013: 13:00:00``, consider the document in the following
-:method:`~db.collection.insert()` operation:
+For each document, set the value of ``expireAt`` to correspond to the
+time the document should expire. For instance, the following
+:method:`~db.collection.insert()` operation adds a document that should
+expire at ``July 22, 2013 14:00:00``.
 
 .. code-block:: javascript
 
-   db.log.events.insert( {
-      "status": new Date('July 22, 2013: 14:00:00'),
+   db.app.events.insert( {
+      "expireAt": new Date('July 22, 2013 14:00:00'),
       "logEvent": 2,
-      "logMessage": "Success!",
+      "logMessage": "Success!"
    } )
 
-The ``status`` field *must* hold values of BSON date type or an array
-of BSON date-typed objects.
-
-MongoDB will automatically delete documents from the ``log.events``
-collection when at least one of the values of a document's ``status``
-field is a time older than the number of seconds specified in
-``expireAfterSeconds``.
+MongoDB will automatically delete documents from the ``app.events``
+collection when the documents' ``expireAt`` value is older than the
+number of seconds specified in ``expireAfterSeconds``, i.e. ``0``
+seconds older in this case. As such, the data expires at the specified
+``expireAt`` value.
 
 Constraints
 -----------
