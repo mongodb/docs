@@ -43,6 +43,7 @@ generate-source-saas:
 	@mkdir -p build/saas/source/
 	@rsync --recursive --times --delete source/ build/saas/source
 	@rm -f build/saas/source/monitoring/tutorial/install-monitoring-server.txt
+	@rm -f build/saas/source/management/administration.txt
 	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYINCLUDE%%' build/saas/source/monitoring/tutorial/set-up-mms.txt
 	@sed $(SED_ARGS_FILE) 's%SAASONLY-settings%	  .. include:: /includes/settings-backup.rst%' build/saas/source/management/settings.txt
 	@sed $(SED_ARGS_FILE) 's%SAASONLYSEEALSO%seealso::%' build/saas/source/management/faq.txt
