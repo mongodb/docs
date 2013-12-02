@@ -23,6 +23,7 @@ generate-source-hosted:
 	@sed $(SED_ARGS_FILE) 's%	MMS Backup </backup>%%' build/hosted/$(current-branch)/source/index.txt
 	@sed $(SED_ARGS_FILE) 's%	MMS Backup <backup.txt>%%' build/hosted/$(current-branch)/source/index.txt
 	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYINCLUDE%\/monitoring/tutorial/install-monitoring-server%' build/hosted/$(current-branch)/source/monitoring/tutorial/set-up-mms.txt
+	@sed $(SED_ARGS_FILE) 's%THISBUILD%hosted%' build/hosted/$(current-branch)/source/management.txt
 	@sed $(SED_ARGS_FILE) 's%HOSTEDINCLUDE%:: %' build/hosted/$(current-branch)/source/monitoring/tutorial.txt
 	@sed $(SED_ARGS_FILE) 's%SAASONLY-settings%%' build/saas/source/management/settings.txt
 	@sed $(SED_ARGS_FILE) 's%.. MMSLANDING-dfn-list%.. include:: /includes/toc/dfn-list-spec-mms-landing-hosted.rst%' build/hosted/$(current-branch)/source/index.txt
@@ -46,6 +47,7 @@ generate-source-saas:
 	@rm -f build/saas/source/management/administration.txt
 	@rm -f build/saas/source/tutorial/connect-to-hosts-with-kerberos-authentication.txt
 	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYINCLUDE%%' build/saas/source/monitoring/tutorial/set-up-mms.txt
+	@sed $(SED_ARGS_FILE) 's%THISBUILD%saas%' build/saas/source/management.txt
 	@sed $(SED_ARGS_FILE) 's%SAASONLY-settings%	  .. include:: /includes/settings-backup.rst%' build/saas/source/management/settings.txt
 	@sed $(SED_ARGS_FILE) 's%SAASONLYSEEALSO%seealso::%' build/saas/source/management/faq.txt
 	@sed $(SED_ARGS_FILE) 's%.. MMSLANDING-dfn-list%.. include:: /includes/toc/dfn-list-spec-mms-landing-saas.rst%' build/saas/source/index.txt
