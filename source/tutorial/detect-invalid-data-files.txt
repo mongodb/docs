@@ -1,0 +1,80 @@
+==========================
+Detect Invalid Data Files
+==========================
+
+.. default-domain:: mongodb
+
+.. contents::
+   :backlinks: none
+   :local:
+
+Overview
+--------
+
+Confirm data file validity after any hardware failure, improper
+shutdown, or if you suspect that data files have become invalid. Use
+one of the procedures described in this tutorial before starting
+any recovery procedure. If any procedure detects invalid data files,
+follow the instructions in :doc:`/tutorial/recover-data`.
+
+Considerations
+--------------
+
+Data recovery on a single unjournaled :program:`mongod` instance
+is more difficult than data recovery on a journaled replica set,
+and may recover less data.
+
+To protect data, and to ensure the easiest possible recovery, use
+the best practices described in :doc:`maintain-valid-data-files`
+for all deployments.
+
+Procedure
+---------
+
+Running Without Journal
+~~~~~~~~~~~~~~~~~~~~~~~
+
+When a :program:`mongod` instance does not run with journaling enabled
+and shuts down uncleanly, you must assume the data files are in an
+invalid state.
+
+To confirm that a :program:`mongod` instance shut down uncleanly, look for the
+following indicators:
+
+- a ``mongod.lock`` non-zero-length file in the data directory.
+
+- the following line in the :program:`mongod` log output:
+
+  .. code-block:: none
+
+     Unclean shutdown detected.
+
+Running With a Journal
+~~~~~~~~~~~~~~~~~~~~~~
+
+When :program:`mongod` instance running with journaling enabled shuts down uncleanly,
+or if you suspect invalid data files, test the integrity of a single
+collection with the :method:`db.collection.validate()` method.
+
+.. example::
+
+   Test the integrity of the ``people`` collection using the following
+   command from the :program:`mongo` shell:
+
+   .. code-block:: javascript
+
+      db.test.validate(true)
+
+   A portion of the output shows that the ``test`` collection is valid:
+
+   .. code-block:: javascript
+
+      {
+      ...
+
+        "valid" : true,
+        "errors" : [ ],
+        "ok" : 1
+      }
+
+

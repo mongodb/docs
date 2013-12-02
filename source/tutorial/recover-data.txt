@@ -1,0 +1,130 @@
+==================
+Recover Data Files
+==================
+
+.. default-domain:: mongodb
+
+Overview
+--------
+
+MongoDB provides mechanisms to recover some data from invalid data
+files. The most common cause of invalid data files are unclean
+shutdowns without :doc:`/core/journaling`. You can inspect data file
+validity using :doc:`/tutorial/detect-invalid-data-files`.
+
+If you detect or suspect invalid data files, you can use this procedure
+to recover data files.
+
+The procedures in this tutorial apply only to :program:`mongod`
+instances that are not part of a replica set. To recover data files
+on a replica set, :doc:`/tutorial/resync-replica-set-member`.
+
+Considerations
+--------------
+
+.. warning::
+
+   This procedure removes the invalid parts of data files. *You can
+   lose data as part of the recovery process.*
+
+   Using this procedure on a capped collection truncates the collection
+   down to two documents. Do not use :program:`mongodump` to recover
+   capped collections.
+
+- Use a recovery path with enough space to hold the recovered data files.
+
+- Do not remove the ``mongod.lock`` file from the data directory.
+
+- Do not perform this procedure on files that are currently opened
+  by a running :program:`mongod` instance. The :program:`mongodump`
+  program refuses to run on files that are already open.
+
+Procedure
+---------
+
+This procedure assumes a database with files located
+in ``/data/db``. The directory for recovered files is
+``/data/recovery``. The name of the database to recover is
+``users``. When giving the following commands, replace these with
+the relevant directory and database names.
+
+#. Run :program:`mongodump` once for each database to recover. If the
+   database used the :option:`--directoryperdb` option, run the
+   following command from the Linux shell prompt:
+
+   .. code-block:: sh
+
+      mongodump --journal --dbpath /data/db --directoryperdb --repair -d users -o /data/recovery > /data/recovery/users.log
+
+   Otherwise give the command without :option:`--directoryperdb`:
+
+   .. code-block:: sh
+
+      mongodump --journal --dbpath /data/db --repair -d users -o /data/recovery > /data/recovery/users.log
+
+   .. warning::
+
+   Run :program:`mongodump` on each database to recover.
+
+#. Verify the recovered files exist in ``/data/recovery``. Examine
+   ``/data/recovery/users.log`` to determine how many
+   documents :program:`mongodump` recovered.
+
+#. Use :program:`mongorestore` on the newly recovered files to create a new
+   MongoDB node. In this example the new data directory is ``/data/db2``.
+
+   .. code-block:: sh
+
+      mongorestore --dbpath /data/db2 /data/recovery
+
+#. Test the recovered :program:`mongod` node using your own test
+   procedures. If :program:`mongodump` successfully recovered the
+   data files, then *do not proceed with any further recovery efforts*.
+
+#. If :program:`mongodump` failed to recover the data files, use
+   :program:`mongod` with the :option:`--repair <mongod --repair>`
+   and :option:`--repairpath <mongod --repairpath>` options to create
+   a new data directory with a repaired set of data files.
+
+   Specify a new directory to receive the repaired data files:
+
+   .. code-block:: sh
+
+      mongod --dbpath /data/db --repair --repairpath /data/recovery
+
+   When the ``--repair`` operation ends, the new repaired data files
+   are in the new directory.
+
+   .. warning::
+
+      :option:`--repair <mongod --repair>` removes the invalid parts of
+      data files. *You can lose data as part of the recovery process.*
+
+      Under some circumstances, :option:`--repair <mongod --repair>`
+      may remove the majority of data in the data file.
+
+      Without the :option:`--repairpath <mongod --repairpath>`
+      option, the new data files permanently overwrite the old.
+
+#. Test the data files by bringing up a standalone :program:`mongod`
+   instance, and have :option:`--dbpath <mongod --dbpath>` point
+   to the repaired data files in the new directory. If the repair has
+   removed data, the number of documents in the collection will be
+   lower than it had been previously.
+
+   From the :program:`mongo` shell, test the number of documents:
+
+   .. code-block:: sh
+
+      db.users.find().count()
+
+#. You may use the recovered files normally. Start :program:`mongod`
+   with :setting:`dbpath` pointing to the new directory:
+
+   .. code-block:: sh
+
+      mongod --dbpath <newpath>
+
+#. Once you confirm that the data files are correct, delete
+   or archive the data files in the new directory.
+
