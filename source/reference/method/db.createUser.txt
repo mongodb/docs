@@ -4,89 +4,76 @@ db.createUser()
 
 .. default-domain:: mongodb
 
+.. versionchanged:: 2.5.3
+
 Definition
 ----------
 
-.. method:: db.createUser ( user, writeConcern )
+.. method:: db.createUser( userDocument, writeConcern )
 
-   Creates a new user for the database where the method runs. :method:`db.createUser()`
-   returns a *duplicate user* error if the user already exists on the database.
+   Adds a new user on the database where the method runs. The
+   :method:`db.createUser()` method returns a *duplicate user* error if the
+   user already exists.
 
-   :method:`db.createUser()` takes and ``user`` document and
-   the optional ``writeConcern`` document as arguments.
-
-   The ``user`` document defines the user and has the following form:
+   The :method:`db.createUser()` method takes a ``userDocument`` and a
+   :doc:`writeConcern </reference/write-concern>` document as its arguments.
+   The ``userDocument`` has the following form:
 
    .. code-block:: javascript
 
-      { user: "<name>",
+      {
+        user: "<username>",
         pwd: "<cleartext password>",
         customData: { <any information> },
-        roles: [
-          { role: "<role>", db: "<database>" } | "<role>",
-          ...
-        ]
+        roles:
+          [
+            <role>,
+            ...
+          ]
       }
 
-   The ``user`` document has the following fields:
+   The ``userDocument`` has the following fields:
 
-   .. |local-cmd-name| replace:: :method:`db.createUser()`
    .. include:: /reference/method/db.createUser-param.rst
 
+   :method:`db.createUser()` sends password to the MongoDB instance as
+   cleartext. To encrypt the password in transit use :doc:`SSL
+   </tutorial/configure-ssl>`.
+
+   Users created on the ``$external`` database should have credentials
+   stored externally to MongoDB, as, for example, with :doc:`MongoDB
+   Enterprise installations that use Kerberos
+   </tutorial/control-access-to-mongodb-with-kerberos-authentication>`.
+
+   The ``writeConcern`` document specifies the level of :doc:`write concern
+   </reference/write-concern>` for the creation operation. The
+   ``writeConcern`` document takes the same fields as the
+   :dbcommand:`getLastError` command.
+
+   .. |local-cmd-name| replace:: :method:`db.createUser()`
    .. include:: /includes/fact-roles-array-contents.rst
-
-   The ``writeConcern`` document is optional and determines the level of
-   :doc:`write concern </reference/write-concern>` for the
-   :method:`db.createUser()` operation. The ``writeConcern`` document takes
-   the same fields as the :dbcommand:`getLastError` command.
-
-   The :method:`db.createUser()` method wraps the :dbcommand:`createUser`
-   command.
-
-Considerations
---------------
-
-Encryption
-~~~~~~~~~~
-
-:method:`db.createUser()` sends password to the MongoDB instance
-*without* encryption. To encrypt the password during transmission,
-use :doc:`SSL </tutorial/configure-ssl>`.
-
-External Credentials
-~~~~~~~~~~~~~~~~~~~~
-
-Users created on the ``$external`` database should have credentials
-stored externally to MongoDB, as, for example, with :doc:`MongoDB
-Enterprise installations that use Kerberos
-</tutorial/control-access-to-mongodb-with-kerberos-authentication>`.
-
-Required Access
----------------
-
-.. include:: /includes/access-create-user.rst
 
 Example
 -------
 
-The following :method:`db.createUser()` operation creates the
-``accountAdmin01`` user on the ``products`` database.
+The following :method:`db.createUser()` method adds the user
+``accountAdmin01`` to the database where the command runs. The command gives
+``accountAdmin01`` the ``clusterAdmin`` and ``readAnyDatabase`` roles on the
+``admin`` database and the ``readWrite`` role on the current database:
 
 .. code-block:: javascript
 
-   use products
-   db.createUser( { "user" : "accountAdmin01",
-                    "pwd": "cleartext password",
-                    "customData" : { employeeId: 12345 },
-                    "roles" : [ { role: "clusterAdmin", db: "admin" },
-                                { role: "readAnyDatabase", db: "admin" },
-                                "readWrite"
-                                ] },
-                  { w: "majority" , wtimeout: 5000 } )
-
-The operation gives ``accountAdmin01`` the following roles:
-
-- the ``clusterAdmin`` and ``readAnyDatabase`` roles on the ``admin``
-  database
-
-- the ``readWrite`` role on the ``products`` database
+   db.createUser(
+     {
+       user: "accountAdmin01",
+       pwd: "cleartext password",
+       customData: { employeeId: 12345 },
+       roles:
+         [
+           { role: "clusterAdmin", db: "admin" },
+           { role: "readAnyDatabase", db: "admin" },
+           "readWrite"
+         ],
+       writeConcern: { w: "majority" , wtimeout: 5000 }
+     }
+   )
