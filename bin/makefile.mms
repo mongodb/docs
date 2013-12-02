@@ -30,6 +30,7 @@ generate-source-hosted:
 	@sed $(SED_ARGS_FILE) 's%.. include:: /includes/table/mms-auth-roles-saas.rst%%' build/hosted/$(current-branch)/source/management/permissions.txt
 	@sed $(SED_ARGS_FILE) 's%.. MANAGEMENT-dfn-list%.. include:: /includes/toc/dfn-list-spec-management-landing-hosted.rst%' build/hosted/$(current-branch)/source/management.txt
 	@sed $(SED_ARGS_FILE) 's%.. MANAGEMENT-toc%.. include:: /includes/toc/management-landing-permissions-hosted.rst%' build/hosted/$(current-branch)/source/management.txt
+	@sed $(SED_ARGS_FILE) 's%THINGTHING%|monitoring|%' build/hosted/$(current-branch)/source/monitoring/tutorial/set-up-mms.txt
 	@rm -rf build/hosted/$(current-branch)/source/includes/fact-auth-backup-requirements.rst
 	@touch build/hosted/$(current-branch)/source/includes/fact-auth-backup-requirements.rst
 	@rm -rf build/hosted/$(current-branch)/source/backup.txt build/hosted/$(current-branch)/source/backup/
@@ -48,6 +49,7 @@ generate-source-saas:
 	@rm -f build/saas/source/tutorial/connect-to-hosts-with-kerberos-authentication.txt
 	@sed $(SED_ARGS_FILE) 's%HOSTEDONLYINCLUDE%%' build/saas/source/monitoring/tutorial/set-up-mms.txt
 	@sed $(SED_ARGS_FILE) 's%THISBUILD%saas%' build/saas/source/management.txt
+	@sed $(SED_ARGS_FILE) 's%THINGTHING%the |monitoring| Agent%' build/saas/source/monitoring/tutorial/set-up-mms.txt
 	@sed $(SED_ARGS_FILE) 's%SAASONLY-settings%	  .. include:: /includes/settings-backup.rst%' build/saas/source/management/settings.txt
 	@sed $(SED_ARGS_FILE) 's%SAASONLYSEEALSO%seealso::%' build/saas/source/management/faq.txt
 	@sed $(SED_ARGS_FILE) 's%.. MMSLANDING-dfn-list%.. include:: /includes/toc/dfn-list-spec-mms-landing-saas.rst%' build/saas/source/index.txt
