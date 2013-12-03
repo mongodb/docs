@@ -26,17 +26,17 @@
 - Ensure that network traffic can pass between all members in the
   network securely and efficiently. Consider the following:
 
-   - Establish a virtual private network. Ensure that your network
-     topology routes all traffic between members within a single
-     site over the local area network.
+  - Establish a virtual private network. Ensure that your network
+    topology routes all traffic between members within a single
+    site over the local area network.
 
-   - Configure authentication using :setting:`auth` and
-     :setting:`keyFile`, so that only servers and processes with
-     authentication can connect to the replica set.
+  - Configure authentication using :setting:`auth` and
+    :setting:`keyFile`, so that only servers and processes with
+    authentication can connect to the replica set.
 
-   - Configure networking and firewall rules so that only traffic
-     (incoming and outgoing packets) on the default MongoDB port (e.g.
-     ``27017``) from *within* your deployment is permitted.
+  - Configure networking and firewall rules so that only traffic
+    (incoming and outgoing packets) on the default MongoDB port (e.g.
+    ``27017``) from *within* your deployment is permitted.
 
   For more information on security and firewalls, see :ref:`replica-set-security`.
 
