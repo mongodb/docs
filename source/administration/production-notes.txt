@@ -62,14 +62,6 @@ page for more information.
 .. In future, Concurrency should perhaps go with a section detailing bulk
    inserts & write throughput.
 
-Write Concern
--------------
-
-.. include:: /includes/introduction-write-concern.rst
-
-See :doc:`/core/write-concern` for more information about choosing
-an appropriate write concern level for your deployment.
-
 Journaling
 ----------
 
@@ -83,8 +75,38 @@ remain in a consistent state following a crash, you should leave
 journaling enabled. See :doc:`Journaling </core/journaling/>` for more
 information.
 
-Connection Pool
----------------
+Networking
+----------
+
+Use Trusted Networking Environments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Always run MongoDB in a *trusted environment*, with network rules that
+prevent access from *all* unknown machines, systems, and networks. As
+with any sensitive system dependent on network access, your MongoDB
+deployment should only be accessible to specific systems that require
+access, such as application servers, monitoring services, and other MongoDB
+components.
+
+.. note::
+   By default, :setting:`auth` is not enabled and :program:`mongod`
+   assumes a trusted environment. You can enable :doc:`security/auth
+   </core/security/>` mode if you need it.
+
+See documents in the :doc:`/security` section for additional
+information, specifically:
+
+- :ref:`security-port-numbers`
+- :ref:`security-firewalls`
+- :doc:`/tutorial/configure-linux-iptables-firewall`
+- :doc:`/tutorial/configure-windows-netsh-firewall`
+
+For Windows users, consider the `Windows Server Technet Article on TCP
+Configuration <http://technet.microsoft.com/en-us/library/dd349797.aspx>`_
+when deploying MongoDB on Windows.
+
+Connection Pools
+~~~~~~~~~~~~~~~~
 
 To avoid overloading the connection resources of a single
 :program:`mongod` or :program:`mongos` instance, ensure that clients
@@ -97,43 +119,55 @@ command returns information regarding the number of open connections
 to the current database for :program:`mongos` instances and
 :program:`mongod` instances in sharded clusters.
 
-Hardware Requirements and Limitations
--------------------------------------
+Hardware Considerations
+-----------------------
 
 MongoDB is designed specifically with commodity hardware in mind and
 has few hardware requirements or limitations. MongoDB's core components
 run on little-endian hardware, primarily x86/x86_64 processors. Client
 libraries (i.e. drivers) can run on big or little endian systems.
 
+Hardware Requirements and Limitations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 The hardware for the most effective MongoDB deployments have the
 following properties:
 
-- As with all software, more RAM and a faster CPU clock speed are
-  important for performance.
+Allocate Sufficient RAM and CPU
+```````````````````````````````
 
-- In general, databases are not CPU bound. As such, increasing the
-  number of cores can help, but does not provide significant marginal
-  return.
+As with all software, more RAM and a faster CPU clock speed are
+important for performance.
 
-- MongoDB has good results and a good price-performance ratio with SATA
-  SSD (Solid State Disk).
+In general, databases are not CPU bound. As such, increasing the
+number of cores can help, but does not provide significant marginal
+return.
 
-- Use SSD if available and economical. Spinning disks can be performant, but
-  SSDs' capacity for random I/O operations works well with the update
-  model of :program:`mongod`.
+Use Solid State Disks (SSDs)
+````````````````````````````
 
-- Commodity (SATA) spinning drives are often a good option, as the
-  increase to random I/O for more expensive drives is not that
-  dramatic (only on the order of 2x). Using SSDs or increasing RAM may
-  be more effective in increasing I/O throughput.
+MongoDB has good results and a good price-performance ratio with SATA
+SSD (Solid State Disk).
+
+Use SSD if available and economical. Spinning disks can be performant, but
+SSDs' capacity for random I/O operations works well with the update
+model of :program:`mongod`.
+
+Commodity (SATA) spinning drives are often a good option, as the
+increase to random I/O for more expensive drives is not that
+dramatic (only on the order of 2x). Using SSDs or increasing RAM may
+be more effective in increasing I/O throughput.
+
+Avoid Remote File Systems
+`````````````````````````
 
 - Remote file storage can create performance problems in MongoDB. See
   :ref:`production-nfs` for more information about storage and MongoDB.
 
 .. _production-numa:
 
-MongoDB on NUMA Hardware
-------------------------
+MongoDB and NUMA Hardware
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. important:: The discussion of NUMA in this section only applies to
    Linux, and therefore does not affect deployments where :program:`mongod`
@@ -180,10 +214,10 @@ its goals, and illustrates how these goals are not compatible with
 production databases.
 
 Disk and Storage Systems
-------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Swap
-~~~~
+````
 
 Assign swap space for your systems. Allocating swap space can avoid issues
 with memory contention and can prevent the OOM Killer on Linux systems
@@ -193,7 +227,7 @@ The method :program:`mongod` uses to map memory files to memory ensures
 that the operating system will never store MongoDB data in swap space.
 
 RAID
-~~~~
+````
 
 Most MongoDB deployments should use disks backed by RAID-10.
 
@@ -208,7 +242,7 @@ Amazon's EBS volumes.
 .. _production-nfs:
 
 Remote Filesystems
-~~~~~~~~~~~~~~~~~~
+``````````````````
 
 The Network File System protocol (NFS) is not recommended for use with
 MongoDB as some versions perform poorly.
@@ -220,7 +254,7 @@ experience better performance if you place the journal on local or
 to your ``/etc/fstab`` file: ``bg``, ``nolock``, and ``noatime``.
 
 Separate Components onto Different Storage Devices
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``````````````````````````````````````````````````
 
 For improved performance, consider separating your database's data,
 journal, and logs onto different storage devices, based on your application's
@@ -230,16 +264,42 @@ access and write pattern.
    This will affect your ability to create snapshot-style backups of
    your data, since the files will be on different devices and volumes.
 
+Architecture
+------------
+
+Write Concern
+~~~~~~~~~~~~~
+
+.. include:: /includes/introduction-write-concern.rst
+
+See :doc:`/core/write-concern` for more information about choosing
+an appropriate write concern level for your deployment.
+
+Replica Sets
+~~~~~~~~~~~~
+
+See :doc:`/core/replica-set-architectures` for an overview of
+architectural considerations for replica set deployments.
+
+Sharded Clusters
+~~~~~~~~~~~~~~~~
+
+See :doc:`/core/sharded-cluster-architectures-production` for an
+overview of recommended sharded cluster architectures for production
+deployments.
+
+Platforms
+---------
 
 MongoDB on Linux
-----------------
+~~~~~~~~~~~~~~~~
 
 .. important:: The following discussion only applies to
    Linux, and therefore does not affect deployments where :program:`mongod`
    instances run other UNIX-like systems or on Windows.
 
 Kernel and File Systems
-~~~~~~~~~~~~~~~~~~~~~~~
+```````````````````````
 
 When running MongoDB in production on Linux, it is recommended that you use
 Linux kernel version 2.6.36 or later.
@@ -264,7 +324,7 @@ use the Ext4 and XFS file systems:
    folders do *not* support this operation.
 
 Recommended Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~
+`````````````````````````
 
 - Turn off ``atime`` for the storage volume containing the :term:`database
   files <dbpath>`.
@@ -292,43 +352,16 @@ Recommended Configuration
 - Use the Network Time Protocol (NTP) to synchronize time among
   your hosts. This is especially important in sharded clusters.
 
-Networking
-----------
-
-Always run MongoDB in a *trusted environment*, with network rules that
-prevent access from *all* unknown machines, systems, and networks. As
-with any sensitive system dependent on network access, your MongoDB
-deployment should only be accessible to specific systems that require
-access, such as application servers, monitoring services, and other MongoDB
-components.
-
-.. note::
-   By default, :setting:`auth` is not enabled and :program:`mongod`
-   assumes a trusted environment. You can enable :doc:`security/auth
-   </core/security/>` mode if you need it.
-
-See documents in the :doc:`/security` section for additional
-information, specifically:
-
-- :ref:`security-port-numbers`
-- :ref:`security-firewalls`
-- :doc:`/tutorial/configure-linux-iptables-firewall`
-- :doc:`/tutorial/configure-windows-netsh-firewall`
-
-   For Windows users, consider the `Windows Server Technet Article on TCP
-   Configuration <http://technet.microsoft.com/en-us/library/dd349797.aspx>`_
-   when deploying MongoDB on Windows.
-
 .. _production-virtualization:
 
 MongoDB on Virtual Environments
--------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The section describes considerations when running MongoDB in some of the
 more common virtual environments.
 
 EC2
-~~~
+```
 
 MongoDB is compatible with EC2 and requires no configuration changes
 specific to the environment.
@@ -341,7 +374,7 @@ MongoDB's performance and ease of use. For more information, see
 <http://www.mongodb.com/blog/post/provisioned-iops-aws-marketplace-significantly-boosts-mongodb-performance-ease-use>`_.
 
 VMWare
-~~~~~~
+``````
 
 MongoDB is compatible with VMWare. As some users have
 run into issues with VMWare's memory overcommit feature,
@@ -355,7 +388,7 @@ be consistent. If not using journaling, first stop :program:`mongod`,
 then clone the VM, and finally, restart :program:`mongod`.
 
 OpenVZ
-~~~~~~
+``````
 
 Some users have had issues when running MongoDB on some older version
 of OpenVZ due to its handling of virtual memory, as with VMWare.
