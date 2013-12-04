@@ -34,52 +34,84 @@ Definition
 Behavior
 --------
 
-To revoke a privilege, you must match the :doc:`resource document
-</reference/resource-document>` pattern exactly: the ``resource`` and
-``actions`` fields must exactly match an existing privilege. The
-:method:`db.revokePrivilegesFromRole()` method *cannot* remove part of a
-privilege, such as a subset of the ``ressource`` document or ``actions``
-array. The method only removes the whole privilege.
+To revoke a privilege, the :doc:`resource document
+</reference/resource-document>` pattern must match **exactly** the
+``resource`` field of that privilege. The ``actions`` field can be a
+subset or match exactly.
 
-For example, given the role ``accountRole`` with the following privilege:
+For example, given the role ``accountRole`` with the following
+privilege that specifies the ``products`` database as the resource:
 
 .. code-block:: javascript
 
-    {
-        "resource" : {
-            "db" : "products",
-            "collection" : ""
-        },
-        "actions" : [
-            "find",
-            "update",
-        ]
-    }
+   {
+     "resource" : {
+         "db" : "products",
+         "collection" : ""
+     },
+     "actions" : [
+         "find",
+         "update"
+     ]
+   }
 
-You *cannot* revoke ``find`` and ``update`` from just *one* collection
-instead of the whole ``products`` database, and you cannot revoke only the
-``find`` action and leave the ``update`` action. To revoke one resource or
-action, you must revoke the whole privilege:
+You *cannot* revoke ``find`` and/or ``update`` from just *one*
+collection in the ``products`` database. The following operations
+result in no change to the role:
 
 .. code-block:: javascript
 
    db.revokePrivilegesFromRole(
-       {
-         "myRole",
-         privileges:
-           [
-             {
-               resource : {
-                   db : "products",
-                   collection : ""
-               },
-               actions : [
-                   "find",
-                   "update",
-               ]
-             }
-           ]
-       }
+      "accountRole",
+      [
+        {
+          resource : {
+             db : "products",
+             collection : "gadgets"
+          },
+          actions : [
+             "find",
+             "update"
+          ]
+        }
+      ]
+   )
+
+   db.revokePrivilegesFromRole(
+      "accountRole",
+      [
+        {
+          resource : {
+             db : "products",
+             collection : "gadgets"
+          },
+          actions : [
+             "find"
+          ]
+        }
+      ]
+   )
+
+To revoke the ``"find"`` and/or the ``"update"`` action from the role
+``accountRole``, you must match the resource document exactly. For
+example, the following operation revokes just the ``"find"`` action
+from the existing privilege.
+
+.. code-block:: javascript
+
+   db.revokePrivilegesFromRole(
+      "accountRole",
+      [
+        {
+          resource : {
+             db : "products",
+             collection : ""
+          },
+          actions : [
+             "find"
+          ]
+        }
+      ]
    )
 
 Required Access
@@ -90,27 +122,25 @@ Required Access
 Example
 -------
 
-The following operation removes a privilege from the ``associates`` role.
-The operation removes the privilege that grants the ``createCollection``,
-``createIndex``, and ``find`` :ref:`actions <security-user-actions>` on both
-the ``products`` and ``categories`` databases:
+The following operation removes multiple privileges from the
+``associates`` role. The operation removes the privileges that grants
+the ``createCollection``, ``createIndex``, and ``find`` :ref:`actions
+<security-user-actions>` on the ``products`` and the ``categories``
+databases:
 
 .. code-block:: javascript
 
    db.revokePrivilegesFromRole(
-      {
-        "associate",
-        privileges:
-         [
-           {
-             resource: { db: "products", collection: "" },
-             actions: [ "createCollection", "createIndex", "find" ]
-           },
-           {
-             resource: { db: "categories", collection: "" },
-             actions: [ "createCollection", "createIndex", "find" ]
-           }
-         ],
-        writeConcern: { w: "majority" }
-      }
+      "associate",
+      [
+        {
+          resource: { db: "products", collection: "" },
+          actions: [ "createCollection", "createIndex", "find" ]
+        },
+        {
+          resource: { db: "categories", collection: "" },
+          actions: [ "createCollection", "createIndex", "find" ]
+        }
+      ],
+      { w: "majority" }
    )
