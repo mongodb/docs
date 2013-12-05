@@ -5,7 +5,7 @@ In the ``roles`` field, you can specify both
 role <user-defined-roles>`. 
 
 To specify a role that exists in the same database where
-|local-cmd-name| runs, you can specify the role either with the name of
+|local-cmd-name| runs, you can either specify the role with the name of
 the role:
 
 .. code-block:: javascript
