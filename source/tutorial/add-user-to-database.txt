@@ -4,72 +4,92 @@ Add a User to a Database
 
 .. default-domain:: mongodb
 
-To add a user to a database you must authenticate to that database as a
-user with the :authrole:`userAdmin` or :authrole:`userAdminAnyDatabase`
-role. If you have not first created a user with one of those roles, do
+.. versionchanged:: 2.5.3
+
+.. Overview
+.. --------
+
+.. todo This will be further updated per DOCS-2312
+
+Prerequisites
+-------------
+
+.. todo This wording below is mostly placeholder. Will revisit when work on DOCS-2312
+
+.. include:: /includes/access-create-user.rst
+
+A user with either the :authrole:`userAdmin` or :authrole:`userAdminAnyDatabase`
+role has both those :ref:`actions <security-user-actions>`.
+
+If you have not first created a user with one of those roles, do
 so as described in :doc:`/tutorial/add-user-administrator`.
 
 When adding a user to multiple databases, you must define the user
 *for each database*. See :ref:`password-hashing-security` for
 important security information.
 
-To add a user, pass the :method:`db.addUser()` method a well formed
-:data:`privilege document <admin.system.roles.privileges>`  that contains the
-user's credentials and privileges. The :method:`db.addUser()` method
-adds the document to the database's :data:`system.users
-<admin.system.users>` collection.
+To add a user and set the user's credentials and roles, use the
+:method:`db.createUser()` method.
 
-.. versionchanged:: 2.4
+Procedure
+---------
 
-   .. include:: /includes/fact-change-password.rst
-   
-   To change a user's password in version
-   2.4 or newer, see :doc:`Change a User's Password
-   </tutorial/change-user-password>`.
+.. todo These are just examples for now. Procedures coming ...
 
-.. TODO I took away a link because I didn't know exactly where
-   it should go. Also, wording on these 3 examples are not exactly right.
+Create User with Roles
+~~~~~~~~~~~~~~~~~~~~~~
 
-For the structure of a privilege document, see :data:`system.users
-<admin.system.users>`.
+Alternatively, the following operation creates ``accountUser`` in the ``products`` database
+and gives the user the ``readWrite`` and ``dbAdmin`` roles.
 
-.. example:: The following creates a user named ``Alice`` in the
-   ``products`` database and gives her ``readWrite`` and
-   ``dbAdmin`` privileges.
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   use products
+   db.createUser(
+      {
+        user: "accountUser",
+        pwd: "password",
+        roles: [ "readWrite", "dbAdmin" ]
+      }
+   )
 
-      use products
-      db.addUser( { user: "Alice",
-                    pwd: "Moon1234",
-                    roles: [ "readWrite", "dbAdmin" ]
-                  } )
+Create User Without Roles
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. example:: The following creates a user named ``Bob`` in the
-   ``admin`` database. The :data:`privilege document
-   <admin.system.users>` uses Bob's credentials from the
-   ``products`` database and assigns him ``userAdmin`` privileges.
+The following operation creates a user named ``reportsUser`` in the ``admin``
+database but does not yet assign roles:
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      use admin
-      db.addUser( { user: "Bob",
-                    userSource: "products",
-                    roles: [ "userAdmin" ]
-                  } )
+   use admin
+   db.createUser(
+      {
+        user: "reportsUser",
+        pwd: "password",
+        roles: [ ]
+      }
+   )
 
-.. example:: The following creates a user named ``Carlos`` in the
-   ``admin`` database and gives him ``readWrite`` access to the
-   ``config`` database, which lets him change certain settings for
-   sharded clusters, such as to disable the balancer.
 
-   .. code-block:: javascript
+Create Administrative User with Roles
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      db = db.getSiblingDB('admin')
-      db.addUser( { user: "Carlos",
-                    pwd: "Moon1234",
-                    roles: [ "clusterAdmin" ],
-                    otherDBRoles: { config: [ "readWrite" ]
-                  } } )
+The following operation creates a user named ``appAdmin`` in the
+``admin`` database and gives the user ``readWrite`` access to the
+``config`` database, which lets the user change certain settings for
+sharded clusters, such as to the balancer setting.
 
-   Only the ``admin`` database supports the ``otherDBRoles`` field.
+.. code-block:: javascript
+
+   use admin
+   db.createUser(
+      {
+        user: "appAdmin",
+        pwd: "password",
+        roles:
+          [
+            "clusterAdmin",
+            { db: "config", role: "readWrite" }
+          ]
+      }
+   )
