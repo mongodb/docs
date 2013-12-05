@@ -2,14 +2,21 @@
 
 In the ``roles`` field, you can specify both
 :ref:`system-defined roles <system-user-roles>` and :ref:`user-defined
-role <user-defined-roles>`. In general, when used with
-|local-cmd-name|, specify the role with a document, as in:
+role <user-defined-roles>`. 
+
+To specify a role that exists in the same database where
+|local-cmd-name| runs, you can specify the role either with the name of
+the role:
+
+.. code-block:: javascript
+
+   "readWrite"
+
+Or you can specify the role with a document, as in:
 
 .. code-block:: javascript
 
    { role: "<role>", db: "<database>" }
 
-However, to refer to a role that exists in the same database the
-command runs, you can specify the role either with a role document
-(e.g. ``{ role: "readWrite", db: "sameDB" }`` ) or with the name of
-the role (e.g. ``"readWrite"``).
+To specify a role that exists in a different database, specify the role
+with a document.

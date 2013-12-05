@@ -57,16 +57,24 @@ A ``system.roles`` document has the following fields:
 .. data:: admin.system.roles.privileges
 
    The :data:`~admin.system.roles.privileges` array contains the
-   privilege documents that define the privileges for the role. A
-   privilege document has the following syntax:
-   
+   privilege documents that define the privileges for the role. 
+
+   .. include:: /includes/privilege-resource-for-non-admin-roles.rst
+      :end-before: inherit-role
+
+   .. COMMENT not sure we need the above inclusion since this collection
+      shows the effects of the create/update and has no bearing on what
+      is allowed.
+
+   A privilege document has the following syntax:
+
    .. code-block:: javascript
-   
+
       {
         resource: { <resource> },
         actions: [ "<action>", ... ]
       }
-   
+
    Each privilege document has the following fields:
 
    .. data:: admin.system.roles.privileges[n].resource
@@ -84,8 +92,16 @@ A ``system.roles`` document has the following fields:
 .. data:: admin.system.roles.roles
 
    The :data:`~admin.system.roles.roles` array contains role documents
-   that specify the roles from which this role inherits privileges. A
-   role document has the following syntax:
+   that specify the roles from which this role inherits privileges. 
+
+   .. include:: /includes/privilege-resource-for-non-admin-roles.rst
+      :start-after: inherit-role
+
+   .. COMMENT not sure we need the above inclusion since this collection
+      shows the effects of the create/update and has no bearing on what
+      is allowed.
+
+   A role document has the following syntax:
 
    .. code-block:: javascript
 
@@ -106,19 +122,19 @@ A ``system.roles`` document has the following fields:
 Examples
 --------
 
-Consider following sample documents found in ``system.roles``
+Consider the following sample documents found in ``system.roles``
 collection of the ``admin`` database.
 
 A User-Defined Role Specifies Privileges
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Consider following sample document for the role ``appUser`` found in
-``system.roles`` collection of the ``admin`` database:
+The following is a sample document for a user-defined role ``appUser``
+defined for the ``myApp`` database:
 
 .. code-block:: javascript
 
    {
-     _id: "admin.appUser",
+     _id: "myApp.appUser",
      role: "appUser",
      db: "myApp",
      privileges: [
@@ -149,11 +165,12 @@ role specifies:
   :ref:`resource-specific-db-collection`.
 
 - The last two privileges permits actions on two :doc:`system
-  collections </reference/system-collections>`. While the first
-  privilege gives database-wide permission for the ``find`` action,
-  the action does not apply to ``myApp``'s system collections. To
-  give access to a system collection, a privilege must explicitly
-  specify the collection. See :doc:`/reference/resource-document`.
+  collections </reference/system-collections>` in the ``myApp``
+  database. While the first privilege gives database-wide permission
+  for the ``find`` action, the action does not apply to ``myApp``'s
+  system collections. To give access to a system collection, a
+  privilege must explicitly specify the collection. See
+  :doc:`/reference/resource-document`.
 
 As indicated by the empty ``roles`` array, ``appUser`` inherits no
 additional privileges from other roles.
@@ -161,10 +178,10 @@ additional privileges from other roles.
 User-Defined Role Inherits from Other Roles
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Consider following sample document for the role ``appAdmin`` found in
-``system.roles`` collection of the ``admin`` database. The document
-shows that the ``appAdmin`` role specifies privileges, as well as
-inherits privileges from other roles:
+The following is a sample document for a user-defined role ``appAdmin``
+defined for the ``myApp`` database: The document shows that the
+``appAdmin`` role specifies privileges as well as inherits privileges
+from other roles:
 
 .. code-block:: javascript
 
@@ -176,29 +193,18 @@ inherits privileges from other roles:
                    {
                      resource: { db: "myApp", collection: "" },
                      actions: [ "insert", "dbStats", "collStats", "compact", "repairDatabase" ] 
-                   },
-                   {
-                     resource: { cluster : true },
-                     actions: [ "shutdown" ]
                    }
                  ],
      roles: [
-              { role: "replAdmin", db: "admin" },
               { role: "appUser", db: "myApp" }
             ]
    }
 
-The ``privileges`` array lists the two privileges that the ``appAdmin``
-role specifies.
-
-- The first privilege permits its actions ( ``"insert"``,
-  ``"dbStats"``, ``"collStats"``, ``"compact"``, ``"repairDatabase"``)
-  on all the collections in the ``myApp`` database *excluding* its
-  system collections. See :ref:`resource-specific-db`.
-
-- The second privilege specifies the privilege to perform the
-  ``shutdown`` action applies to the ``cluster`` resource. See
-  :ref:`resource-cluster`.
+The ``privileges`` array lists the privileges that the ``appAdmin``
+role specifies. This role has a single privilege that permits its
+actions ( ``"insert"``, ``"dbStats"``, ``"collStats"``, ``"compact"``,
+``"repairDatabase"``) on all the collections in the ``myApp`` database
+*excluding* its system collections. See :ref:`resource-specific-db`.
 
 The ``roles`` array lists the roles, identified by the role names and
 databases, from which the role ``appAdmin`` inherits privileges.
