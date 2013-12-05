@@ -19,7 +19,7 @@ Create new roles to define access to resources according to the
 operational needs of a deployment.
 
 MongoDB limits the scope of each role to the database where the role
-was created. The combination of database name and name of role
+was created. The combination of the database name and the role name
 uniquely defines a role in MongoDB.
 
 Prerequisites
@@ -33,35 +33,46 @@ Procedure
 Identify Resources and Actions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Decide which resources to grant access to and which :ref:`actions
-<security-user-actions>` to grant on each resource.
+Decide which :ref:`resources <resource-document>` to grant access to
+and which :ref:`actions <security-user-actions>` to grant on each
+resource.
 
-When creating the role, enter these resource-action pairings in
-:ref:`resource documents <resource-document>` in the
-:data:`~admin.system.roles.privileges` array.
+.. include:: /includes/privilege-resource-for-non-admin-roles.rst
+   :end-before: inherit-role
+
+When creating the role, enter these resource-action pairings as
+documents in the ``privileges`` array. See :ref:`create-the-role`
+section.
 
 Identify Privileges from Existing Roles
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If this role must include *all* the privileges of an existing role,
-you can add the existing role to this role, rather than adding
-privileges individually. The member role provides all its privileges
-to the containing role.
+If this role must include *all* the privileges of an existing role, you
+can specify that the role inherit privileges from an existing role,
+rather than adding privileges individually. The role inherits all the
+privileges from the existing role.
 
-When creating the new role, specify each contained role in its own
-document in the :data:`~admin.system.roles.roles` array.
+.. include:: /includes/privilege-resource-for-non-admin-roles.rst
+   :start-after: inherit-role
+
+When creating the new role, specify the roles to inherit from in the
+``roles`` array. See :ref:`create-the-role` section.
+
+.. _create-the-role:
 
 Create the Role
 ~~~~~~~~~~~~~~~
 
 To create the role, use the :dbcommand:`createRole` command. Consider
-the following example that creates the ``myClusterwideAdmin`` role
-with privileges defined in four :ref:`resource documents
-<resource-document>` and privileges inherited from the ``read`` role
-on the ``admin`` database.
+the following example that creates the ``myClusterwideAdmin`` role in
+the ``admin`` database. In the example, the ``myClusterwideAdmin`` role
+directly specifies its own privileges in the ``privileges`` array as
+well as inherits privileges from the ``read`` role on the ``admin``
+database.
 
 .. code-block:: javascript
 
+   use admin
    db.runCommand( { createRole: "myClusterwideAdmin",
                     privileges: [
                         { resource: { cluster: true }, actions: [ "addShard" ] },
