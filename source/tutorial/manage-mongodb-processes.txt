@@ -106,13 +106,19 @@ configurations for common use cases, see
 Stop ``mongod``
 ---------------
 
-A clean shutdown means that all ongoing MongoDB operations are
-complete, and :program:`mongod` has flushed and closed all data files.
+In a clean shutdown a :program:`mongod` completes all pending
+operations, flushes all data to data files, and closes all data
+files. Other sundowns are *unclean* and can comprise the validity the
+data files. 
 
-An unclean shutdown can compromise the validity of the data files. Subsequent
-data operations could then cause corruption, or worsen existing corruption.
+.. COMMENT add the following to the last sentence when the pargarph
+   when maintain-valid-data-files is published.
 
-To ensure a clean shutdown, use one of the following shutdown procedures:
+   and may lead to corruption. See
+   :doc:`/tutorial/maintain-valid-data-files` for more information.
+
+To ensure a clean shutdown, always shutdown :program:`mongod`
+instances using one of the following methods:
 
 Use ``shutdownServer()``
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -120,36 +126,36 @@ Use ``shutdownServer()``
 Shut down the :program:`mongod` from the :program:`mongo` shell using
 the :method:`db.shutdownServer()` method as follows:
 
-.. code-block:: none
+.. code-block:: javascript
 
    use admin
    db.shutdownServer()
 
 Calling the same method from a control script accomplishes the same result.
 
-.. important::
-
-   You may only use :method:`db.shutdownServer()` when authenticated
-   to the ``admin`` database or via the localhost interface on systems
-   without authentication enabled.
+For systems with :setting:`auth` enabled, users may only issue
+:method:`db.shutdownServer()` when authenticated to the ``admin``
+database or via the localhost interface on systems without
+authentication enabled.
 
 Use ``--shutdown``
 ~~~~~~~~~~~~~~~~~~
 
 From the Linux command line, shut down the :program:`mongod` using the
-:option:`shutdown <mongod --shutdown>` option in the following command:
+:option:`--shutdown <mongod --shutdown>` option in the following command:
 
-.. code-block:: none
+.. code-block:: sh
 
    mongod --shutdown
 
 Use ``CTRL-C``
 ~~~~~~~~~~~~~~
 
-When running the :program:`mongod` instance in interactive mode, typing
-``ctrl-c`` performs a clean shutdown.
+When running the :program:`mongod` instance in interactive mode
+(i.e. without :option:`--fork <mongod --fork>`), issue ``Control-C``
+to perform a clean shutdown.
 
-Use ``Kill``
+Use ``kill``
 ~~~~~~~~~~~~
 
 From the Linux command line, shut down a specific :program:`mongod` instance
@@ -163,14 +169,17 @@ using the following command:
 
    Never use ``kill -9`` (i.e. ``SIGKILL``) to terminate a mongod instance.
 
-Shut down a Replica Set
-~~~~~~~~~~~~~~~~~~~~~~~
+Stop a Replica Set
+------------------
+
+Procedure
+~~~~~~~~~
 
 If the :program:`mongod` is the :term:`primary` in a :term:`replica
 set`, the shutdown process for these :program:`mongod` instances has
 the following steps:
 
-1. Check how up-to-date the :term:`secondaries <secondary>` are.
+#. Check how up-to-date the :term:`secondaries <secondary>` are.
 
 #. If no secondary is within 10 seconds of the primary,
    :program:`mongod` will return a message that it will not shut down.
@@ -182,6 +191,9 @@ the following steps:
 
 #. After 60 seconds or once the secondary has caught up, the primary
    will shut down.
+
+Force Replica Set Shutdown
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If there is no up-to-date secondary and you want the primary to shut
 down, issue the :dbcommand:`shutdown` command with the ``force``
@@ -211,4 +223,3 @@ Alternately you can use the ``timeoutSecs`` argument with the
 .. code-block:: javascript
 
    db.shutdownServer({timeoutSecs : 5})
-
