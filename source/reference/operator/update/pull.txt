@@ -6,66 +6,69 @@ $pull
 
 .. update:: $pull
 
-   The :update:`$pull` operator removes all instances of a value
-   from an existing array, as in the following prototype: 
+   The :update:`$pull` operator removes from an existing array all
+   instances of a value or values that match a specified query.
 
    .. code-block:: javascript
 
-      db.collection.update( { field: <query> }, { $pull: { field: <query> } } );
+      db.collection.update( <query>, 
+                            { $pull: { <arrayField>: <query2> } }
+                          )
 
-   :update:`$pull` removes items from the array in the field
-   named ``field``  that match the query in the :update:`$pull`
-   statement. 
+   To specify the query to remove values from the array, use
+   :doc:`query operators </reference/operator>`.
 
-   If a value (i.e. ``<value>``) exists multiple times in an array,
-   :update:`$pull` will remove all instances of the value.
+Examples
+--------
 
-   .. example:: 
-      
-      Given the following document in the ``cpuinfo`` collection: 
-      
-      .. code-block:: javascript
+Remove All Items That Equals a Specified Value
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-         { flags: ['vme', 'de', 'pse', 'tsc', 'msr', 'pae', 'mce' ] }
+Given the following documents in the ``cpuinfo`` collection: 
 
-      The following operation will remove the ``msr`` value from the
-      ``flags`` array: 
+.. code-block:: javascript
 
-      .. code-block:: javascript
+   { _id: 1, flags: [ "vme", "de", "msr", "tsc", "pse", "msr" ] }
+   { _id: 2, flags: [ "msr", "pse", "tsc" ] }
 
-         db.cpuinfo.update( { flags: 'msr' }, { $pull: { flags: 'msr' } } )
+The following operation removes the value ``"msr"`` from the ``flags``
+array in the documents where ``flags`` array contain the value ``"msr"``:
 
-   .. example:: 
-      
-      Given the following document in the ``profiles`` collection: 
-      
-      .. code-block:: javascript
+.. code-block:: javascript
 
-         { votes: [ 3, 5, 6, 7, 7, 8 ] }
+   db.cpuinfo.update(
+                      { flags: "msr" },
+                      { $pull: { flags: "msr" } },
+                      { multi: true }
+                    )
 
-      The following operation will remove all occurrences of ``7``
-      from the ``votes`` array.
+After the operation, the updated documents have all instances of
+``"msr"`` removed from the ``flags`` field:
 
-      .. code-block:: javascript
+.. code-block:: javascript
 
-         db.profiles.update( { votes: 3 }, { $pull: { votes: 7 } } )
+   { _id: 1, flags: [  "vme",  "de",  "tsc",  "pse" ] }
+   { _id: 2, flags: [  "pse",  "tsc" ] }
 
-      Therefore, the ``votes`` array would resemble the following: 
-      
-      .. code-block:: javascript
-      
-         { votes: [ 3, 5, 6, 8 ] }
+Remove All Items Greater Than a Specified Value
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      Conversely, the following operation will remove all items from
-      the array that are larger than ``6``: 
+Given the following document in the ``profiles`` collection: 
 
-      .. code-block:: javascript
+.. code-block:: javascript
 
-         db.profiles.update( { votes: 3 }, { $pull: { votes: { $gt: 6 } } } )
+   { _id: 1, votes: [ 3, 5, 6, 7, 7, 8 ] }
 
-      Therefore, the ``votes`` array would resemble the following: 
-      
-      .. code-block:: javascript
+The following operation will remove all items from the ``votes`` array
+that are greater than (:query:`$gt`) ``6``:
 
-         { votes: [ 3, 5, 6 ] }
+.. code-block:: javascript
 
+   db.profiles.update( { _id: 1 }, { $pull: { votes: { $gt: 6 } } } )
+
+After the operation, the updated document only has values less than or
+equal to 6 in the ``votes`` field :
+
+.. code-block:: javascript
+
+   { _id: 1, votes: [  3,  5,  6 ] }
