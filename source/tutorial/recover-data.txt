@@ -27,9 +27,9 @@ Considerations
    This procedure removes the invalid parts of data files. *You can
    lose data as part of the recovery process.*
 
-   Using this procedure on a capped collection truncates the collection
-   down to two documents. Do not use :program:`mongodump` to recover
-   capped collections.
+   Using this procedure on a capped collection truncates the
+   collection to two documents. Do not use :program:`mongodump` with
+   the :option:`--repair <mongodump>` to recover capped collections.
 
 - Use a recovery path with enough space to hold the recovered data files.
 
@@ -42,21 +42,20 @@ Considerations
 Procedure
 ---------
 
-This procedure assumes a database with files located
-in ``/data/db``. The directory for recovered files is
-``/data/recovery``. The name of the database to recover is
-``users``. When giving the following commands, replace these with
+This procedure assumes a ``/data/db`` directory that contains data
+files for a ``users`` database, and a ``/data/recovery`` directory
+for recovered files. Use the following sequence of operations with
 the relevant directory and database names.
 
 #. Run :program:`mongodump` once for each database to recover. If the
    database used the :option:`--directoryperdb` option, run the
-   following command from the Linux shell prompt:
+   following command from the system shell prompt:
 
    .. code-block:: sh
 
       mongodump --journal --dbpath /data/db --directoryperdb --repair -d users -o /data/recovery > /data/recovery/users.log
 
-   Otherwise give the command without :option:`--directoryperdb`:
+   Otherwise omit the :option:`--directoryperdb` option:
 
    .. code-block:: sh
 
@@ -77,9 +76,10 @@ the relevant directory and database names.
 
       mongorestore --dbpath /data/db2 /data/recovery
 
-#. Test the recovered :program:`mongod` node using your own test
-   procedures. If :program:`mongodump` successfully recovered the
-   data files, then *do not proceed with any further recovery efforts*.
+#. Validate the recovered data set using a staging environment or other
+   application-specific tests. If :program:`mongodump` successfully
+   recovered the data files, then *do not proceed with any further
+   recovery efforts*.
 
 #. If :program:`mongodump` failed to recover the data files, use
    :program:`mongod` with the :option:`--repair <mongod --repair>`
@@ -92,8 +92,8 @@ the relevant directory and database names.
 
       mongod --dbpath /data/db --repair --repairpath /data/recovery
 
-   When the ``--repair`` operation ends, the new repaired data files
-   are in the new directory.
+   When the ``--repair`` operation completes successfully, the new
+   repaired data files are in the new directory.
 
    .. warning::
 
@@ -106,17 +106,24 @@ the relevant directory and database names.
       Without the :option:`--repairpath <mongod --repairpath>`
       option, the new data files permanently overwrite the old.
 
+.. _test-data-file-recovery:
+
 #. Test the data files by bringing up a standalone :program:`mongod`
    instance, and have :option:`--dbpath <mongod --dbpath>` point
    to the repaired data files in the new directory. If the repair has
    removed data, the number of documents in the collection will be
    lower than it had been previously.
 
-   From the :program:`mongo` shell, test the number of documents:
+   From the :program:`mongo` shell, verify the number of documents
+   in each collection:
 
-   .. code-block:: sh
+   .. code-block:: javascript
 
-      db.users.find().count()
+      use users
+      db.collection.find().count()
+
+   Perform other tests as needed. When satisfied that the data files
+   are correct, delete or archive the ``/data/recovery`` directory.
 
 #. You may use the recovered files normally. Start :program:`mongod`
    with :setting:`dbpath` pointing to the new directory:
@@ -124,7 +131,4 @@ the relevant directory and database names.
    .. code-block:: sh
 
       mongod --dbpath <newpath>
-
-#. Once you confirm that the data files are correct, delete
-   or archive the data files in the new directory.
 
