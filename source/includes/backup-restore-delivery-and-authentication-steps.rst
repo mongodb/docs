@@ -103,6 +103,19 @@ Start :program:`mongod` Instance With Snapshot Data
    Replace ``/data/db`` with the path to data directory that holds the
    data files from the |backup| snapshot.
 
-For more information, consider the MongoDB :manual:`Restore Replica
+
+Run Replicate Database Script
+-----------------------------
+
+You cannot simply restore a single data set to three new :program:`mongod` instances and then create a replica set. In this situation, MongoDB will force the secondary databases to perform an initial sync. The database ``.tar.gz`` archive includes a script to automate the restoration and replication of one or more data sets.
+
+Locate then run the ``seedSecondary.sh`` file included in the ``.tar.gz`` archive created by the
+   backup service:
+
+   .. code-block:: sh
+
+      ./seedSecondary.sh
+
+For more information, the MongoDB :manual:`Restore Replica
 Set from Backup </tutorial/restore-replica-set-from-backup>` tutorial
-for instructions about restoring a replica set from backed up data.
+provides detailed instructions about restoring a replica set from backed up data.
