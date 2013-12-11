@@ -11,17 +11,29 @@ to a specified Lightweight Directory Access Protocol (LDAP) service.
 
 .. include:: /includes/admonition-mongodb-enterprise-windows-ldap.rst
 
-.. warning::
+MongoDB does **not** support LDAP authentication in mixed sharded
+cluster deployments that contain both version 2.4 and version 2.6
+shards. See :doc:`/release-notes/2.6-upgrade` for upgrade instructions.
 
-   Because the transmission of the user password to the MongoDB server
-   uses ``SASL PLAIN`` mechanism, you should, in general, use only on a
-   trusted channel (VPN, SSL, trusted wired network).
+.. _ldap-password-in-plaintext:
+
+Password in Plaintext
+---------------------
+
+Because the transmission of the username and password from the client
+to the MongoDB server, from the MongoDB server to ``saslauthd``, and
+from ``saslauthd`` to the LDAP server uses ``SASL PLAIN`` mechanism,
+i.e. in **plain text**, you should, in general, use only on a trusted
+channel (VPN, SSL, trusted wired network).
 
 Configure ``saslauthd`` 
 -----------------------
 
 LDAP support for user authentication requires proper configuration of
 the ``saslauthd`` daemon process as well as the MongoDB server.
+
+Specify Mechanism
+~~~~~~~~~~~~~~~~~
 
 On systems that configure ``saslauthd`` with a
 ``/etc/sysconfig/saslauthd`` file, such as Red Hat Enterprise Linux,
@@ -40,8 +52,34 @@ On systems that configure ``saslauthd`` with a
 
    MECHANISMS="ldap"
 
+Caching Behavior
+~~~~~~~~~~~~~~~~
+
+On certain Linux distributions, ``saslauthd`` starts with the caching
+of authentication credentials *enabled*. Until restarted or until the
+cache expires, ``saslauthd`` will not contact the LDAP server to
+re-authenticate users in its authentication cache. This allows
+``saslauthd`` to successfully authenticate users in its cache, even in
+the LDAP server is down or if the cached users' credentials are revoked.
+
+To set the expiration time (in seconds) for the authentication cache,
+see the `-t option
+<http://www.linuxcommand.org/man_pages/saslauthd8.html>`_ of
+``saslauthd``.
+
+Update ``saslauthd`` Configuration with LDAP Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If ``saslauthd.conf`` file does not exist, create a ``saslauthd.conf``
+file. Generally, the ``saslauthd.conf`` file resides in the ``/etc``
+folder; however, when specifying a different file path, see the see the
+`-O option <http://www.linuxcommand.org/man_pages/saslauthd8.html>`_ of
+``saslauthd``.
+
+Configure for Use with ActiveDirectory
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 To use with *ActiveDirectory*, start ``saslauthd`` with the following
-configuration options:
+configuration options set in the ``saslauthd.conf`` file:
 
 .. code-block:: none
 
@@ -49,6 +87,9 @@ configuration options:
    ldap_use_sasl: yes
    ldap_mech: DIGEST-MD5
    ldap_auth_method: fastbind
+
+Configure for Use with OpenLDAP
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To connect to an OpenLDAP server, update the ``saslauthd.conf`` file
 with the following configuration options:
@@ -59,10 +100,17 @@ with the following configuration options:
    ldap_search_base: <search base, e.g. ou=Users,dc=example,dc=com>
    ldap_filter: <filter, e.g. (uid=%u)>
 
-The ``ldap_servers`` specifies the uri of the LDAP server used for
-authentication. The ``ldap_search_base`` specifies distinguished name to
-which the search is relative. The search includes the base or objects
-below. The ``ldap_filter`` specifies the search filter.
+- The ``ldap_servers`` specifies the uri of the LDAP server used for
+  authentication.
+
+  In general, for OpenLDAP installed on the local machine, you can
+  specify the value ``ldap://localhost:389`` or if using LDAP over SSL,
+  you can specify the value ``ldaps://localhost:636``.
+
+- The ``ldap_search_base`` specifies distinguished name to which the
+  search is relative. The search includes the base or objects below.
+
+- The ``ldap_filter`` specifies the search filter.
 
 For example, a sample ``saslauthd.conf`` file may have the following
 content:
@@ -77,13 +125,13 @@ The values for these configuration options should correspond to the
 values specific for your test. For example, to filter on email, specify
 ``ldap_filter: (mail=%n)`` instead.
 
-.. tip:: For OpenLDAP installed on the local machine, you can specify for
-   ``ldap_servers`` the value ``ldap://localhost:389``.
-
 To use this sample OpenLDAP configuration, create users with a ``uid``
 attribute (login name) and place under the ``Users`` organizational
 unit (``ou``) under the domain components (``dc``) ``example`` and
 ``com``.
+
+For more information on ``saslauthd`` configuration, see
+`<http://www.openldap.org/doc/admin24/guide.html#Configuring saslauthd>`_.
 
 Test ``saslauthd`` Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -95,64 +143,102 @@ as in the following example:
 
    testsaslauthd -u testuser -p testpassword -f /var/run/saslauthd/mux
 
-For more information on ``saslauthd`` configuration, see
-`<http://www.openldap.org/doc/admin24/guide.html#Configuring saslauthd>`_.
-
 Configure MongoDB Server
 ------------------------
 
 To configure the MongoDB server to use the ``saslauthd`` instance for
-proxy authentication, enable :option:`--auth` and set the
-:parameter:`saslauthdPath` parameter to the path to the Unix-domain
-Socket of the ``saslauthd`` instance and the
-:parameter:`authenticationMechanisms` parameter to ``PLAIN``.
+proxy authentication, start the :program:`mongod` with the following
+options:
+
+- :option:`--auth` to enable authentication/authorization,
+
+- :parameter:`authenticationMechanisms` parameter set to ``PLAIN``, and
+
+- :parameter:`saslauthdPath` parameter set to the path to the
+  Unix-domain Socket of the ``saslauthd`` instance.
+
+  - If ``saslauthd`` has a socket path of ``/<some>/<path>/saslauthd``,
+    set :parameter:`saslauthdPath` to ``/<some>/<path>/saslauthd/mux``.
+
+  - To use the default Unix-domain socket path, set
+    :parameter:`saslauthdPath` to the empty string ``""``.
 
 Configure the MongoDB server using either the command line option
 :doc:`--setParameter </reference/parameters>` or the :doc:`configuration
-file </reference/configuration-options>`:
+file </reference/configuration-options>`.
 
-- If ``saslauthd`` has a socket path of ``/<some>/<path>/saslauthd``,
-  set the :parameter:`saslauthdPath` parameter to
-  ``/<some>/<path>/saslauthd/mux`` and the
-  :parameter:`authenticationMechanisms` parameter to ``PLAIN``, as in
-  the following command line example:
+Specify A Socket Path
+~~~~~~~~~~~~~~~~~~~~~
 
-  .. code-block:: sh
+For socket path of ``/<some>/<path>/saslauthd``, set the
+:parameter:`saslauthdPath` to ``/<some>/<path>/saslauthd/mux``, as in
+the following command line example:
 
-     mongod --auth --setParameter saslauthdPath=/<some>/<path>/saslauthd/mux --setParameter authenticationMechanisms=PLAIN
+.. code-block:: sh
 
-  Or if using a :doc:`configuration file
-  </reference/configuration-options>`, add the parameters:
+   mongod --auth --setParameter saslauthdPath=/<some>/<path>/saslauthd/mux --setParameter authenticationMechanisms=PLAIN
 
-  .. code-block:: sh
+Or if using a :doc:`configuration file
+</reference/configuration-options>`, specify the following parameters
+in the file:
 
-     auth=true
-     setParameter=saslauthdPath=/<some>/<path>/saslauthd/mux
-     setParameter=authenticationMechanisms=PLAIN
+.. code-block:: sh
 
-- To use the default Unix-domain socket path, set the
-  :parameter:`saslauthdPath` to the empty string ``""``
-  and the :parameter:`authenticationMechanisms` parameter to ``PLAIN``,
-  as in the following command line example:
+   auth=true
+   setParameter=saslauthdPath=/<some>/<path>/saslauthd/mux
+   setParameter=authenticationMechanisms=PLAIN
 
-  .. code-block:: sh
+Use the Default Unix-domain Socket Path
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-     mongod  --auth --setParameter saslauthdPath="" --setParameter authenticationMechanisms=PLAIN
+To use the default Unix-domain socket path, set the
+:parameter:`saslauthdPath` to the empty string ``""``, as in the
+following command line example:
 
-  Or if using a :doc:`configuration file
-  </reference/configuration-options>`, add the parameters:
+.. code-block:: sh
 
-  .. code-block:: sh
+   mongod --auth --setParameter saslauthdPath="" --setParameter authenticationMechanisms=PLAIN
 
-     setParameter=saslauthdPath=""
-     setParameter=authenticationMechanisms=PLAIN
-     auth=true
+Or if using a :doc:`configuration file
+</reference/configuration-options>`, specify the following parameters
+in the file:
+
+.. code-block:: sh
+
+   setParameter=saslauthdPath=""
+   setParameter=authenticationMechanisms=PLAIN
+   auth=true
+
+Authenticate
+------------
+
+.. _add-ldap-sasl-auth-user:
+
+Add User for Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To perform authentication for a user, you must first add the user to
+the ``$external`` database in MongoDB:
+
+.. code-block:: javascript
+
+   db.getSiblingDB("$external").createUser(
+      {
+        "user" : <username>,
+        "pwd": <cleartext password>
+      }
+   )
+
+:method:`db.createUser()` sends password to the MongoDB instance
+*without* encryption, unless using MongoDB with :doc:`SSL enabled
+</tutorial/configure-ssl>`. In general, use only on a trusted channel
+(VPN, SSL, trusted wired network).
 
 Authenticate in the ``mongo`` Shell
------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To perform the authentication in the :program:`mongo` shell, use the
-:method:`db.auth()` method in the ``$external`` database. 
+:method:`db.auth()` method in the ``$external`` database.
 
 Specify the value ``"PLAIN"`` in the ``mechanism`` field, the user and
 password in the ``user`` and ``pwd`` fields respectively, and the value
@@ -165,10 +251,14 @@ example:
    :emphasize-lines: 7
 
    db.getSiblingDB("$external").auth(
-                                      {
-                                        mechanism: "PLAIN",
-                                        user: "application/reporting@EXAMPLE.NET",
-                                        pwd: "some1nterestingPwd",
-                                        digestPassword: false
-                                      }
-                                     )
+      {
+        mechanism: "PLAIN",
+        user: <username>,
+        pwd:  <cleartext password>,
+        digestPassword: false
+      }
+   )
+
+The server forwards the password in plain text. In general, use only on
+a trusted channel (VPN, SSL, trusted wired network). See
+:ref:`ldap-password-in-plaintext`.
