@@ -6,10 +6,13 @@
 # This file is execfile()d with the current directory set to its containing dir.
 
 import sys
-import os.path
+import os
 import datetime
 
-project_root = os.path.join(os.path.abspath(os.path.dirname(__file__)))
+try:
+    project_root = os.path.join(os.path.abspath(os.path.dirname(__file__)))
+except NameError:
+    project_root = os.path.abspath(os.getcwd())
 
 sys.path.append(project_root)
 
@@ -37,6 +40,9 @@ extensions = [
     'mongodb',
     'directives',
 ]
+
+locale_dirs = [ conf.build.paths.locale ]
+gettext_compact = False
 
 templates_path = ['.templates']
 exclude_patterns = []
