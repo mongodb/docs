@@ -4,35 +4,112 @@ Authentication Requirements
 
 .. default-domain:: mongodb
 
-|mms| requires elevated privileges to collect complete data from
-MongoDB 2.4 instances with authentication
-enabled.
+If authentication is enabled, |mms| requires elevated privileges to collect
+complete data from MongoDB 2.4 instances. If authentication is not enabled on
+your MongoDB instance, this requirement does not apply.
 
-.. admonition:: Sharded Cluster Requirements
-
-   To properly configure the ``agent`` user on a sharded cluster, you
-   must create the user on the :program:`mongos` **and** on each
-   shard's replica set :manual:`primary </core/replica-set-primary>`.
-
-   This creates an ``admin`` database that stores credentials that is
-   specific to each shard. See :manual:`Sharded Cluster Security
-   </core/sharded-cluster-security>` for a detailed discussion of
-   authentication and authorization for sharded clusters.
-
-Authentication Requirements
----------------------------
-
-The following table lists the commands needed to grant the required
-permissions to the ``agent`` user.  For an explanation of what each
-privilege role means, see: `User Privilege Roles in MongoDB
-<http://docs.mongodb.org/manual/reference/user-privileges/>`_.
+All user accounts must be defined on the admin database.
 
 .. only:: saas
 
-   .. include:: /includes/table/mms-auth-roles-saas.rst
-
    .. include:: /includes/fact-auth-backup-requirements.rst
 
-.. only:: hosted
+MMS Monitoring
+~~~~~~~~~~~~~~
 
-   .. include:: /includes/table/mms-auth-roles-hosted.rst
+MMS uses a monitoring agent to provide periodic status for hosted and on prem
+MongoDB databases.
+
+Basic MMS monitoring requires authenticated users to have these roles:
+
+- :authrole:`clusterAdmin`
+- :authrole:`readAnyDatabase`
+
+To create a user account on the admin database for MMS monitoring, use an
+operation that resembles the following example:
+
+.. code-block:: javascript
+
+   use admin
+   db.addUser( { user: "agent",
+                 pwd: "Moon1234",
+                 roles: [ "clusterAdmin",
+                          "readAnyDatabase"
+                        ]
+               } )
+
+MMS Monitoring with Database Profiling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:ref:`Profiling <database-profiler>` captures in-progress read and write
+operations, cursor operations, and database command information about the
+database.
+
+MMS monitoring with database profiling requires authenticated users to have
+these roles:
+
+- :authrole:`clusterAdmin`
+- :authrole:`readAnyDatabase`
+- :authrole:`dbAdminAnyDatabase`
+
+To create a user account on the admin database for MMS monitoring with database
+profiling, use an operation that resembles the following example:
+
+.. code-block:: javascript
+
+   use admin
+   db.addUser( { user: "agent",
+                 pwd: "Moon1234",
+                 roles: [ "clusterAdmin",
+                          "readAnyDatabase",
+                          "dbAdminAnyDatabase"
+                        ]
+               } )
+
+MMS Monitoring *without* ``dbStats``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Monitoring without :dbcommand:`dbStats` will generate monitoring statistics
+without database storage, records, indexes, and other statistics.
+
+MMS monitoring *without* database profiling requires authenticated users to
+have the :authrole:`clusterAdmin` role.
+
+To create a user account on the admin database for MMS monitoring *without*
+``dbstats``, use an operation that resembles the following example:
+
+.. code-block:: javascript
+
+   use admin
+   db.addUser( { user: "agent",
+                 pwd: "Moon1234",
+                 roles: [ "clusterAdmin"
+                        ]
+               } )
+
+MMS Backup
+~~~~~~~~~~
+
+The entire contents of a hosted MongoDB instance can be written to a file in
+binary format. Standalone on prem database instances do not currently include
+the ability to back up data.
+
+MMS backup requires authenticated users to have these roles:
+
+- :authrole:`clusterAdmin`
+- :authrole:`readAnyDatabase`
+- :authrole:`userAdminAnyDatabase`
+
+To create a user account on the admin database for a hosted MongoDB deployment,
+use an operation that resembles the following example:
+
+.. code-block:: javascript
+
+   use admin
+   db.addUser( { user: "agent",
+                 pwd: "Moon1234",
+                 roles: [ "clusterAdmin",
+                          "readAnyDatabase",
+                          "userAdminAnyDatabase"
+                        ]
+                 } )
