@@ -53,11 +53,53 @@ using a Kerberos service is available. For Linux, see
 Authorization
 -------------
 
-MongoDB provisions authorization, or access to databases and
-operations, on a per-database level. MongoDB uses a role-based approach
-to authorization. A role grants privileges to users, where
-privileges specify the :doc:`actions </reference/privilege-actions>`
-permitted on various :ref:`resources <resource-document>`.
+MongoDB uses a role-based approach to authorization. A user's access to
+resources and operations depends on the user's roles.
+
+.. _roles:
+
+Roles
+~~~~~
+
+Roles contain the :ref:`privileges <privileges>` that allow users to perform
+:doc:`actions </reference/privilege-actions>` on database :ref:`resources
+<resource-document>`. A user assigned a role receives all the privileges of
+that role.
+
+A role can consist of both privileges and other roles. A role :ref:`inherits
+<inheritance>` the privileges of any contained roles.
+
+MongoDB provides both :doc:`system-defined roles
+</reference/system-defined-roles>` and the ability to create new
+:ref:`user-defined roles <user-defined-roles>`.
+
+.. _privileges:
+
+Privileges
+````````````
+
+A privilege is a set of permitted :doc:`actions
+</reference/privilege-actions>` on a defined :ref:`resource
+<resource-document>`.
+
+For example, a privilege might permit the ``update`` action on the ``products``
+database, allowing a user to change data in *existing* documents on that
+database. To instead create a *new* document on the ``products`` database
+the user would need a privilege that permits the ``insert`` action on the
+database.
+
+.. include:: /includes/fact-roles-privileges.rst
+
+.. _inheritance:
+
+Inheritance
+````````````
+
+A role can include one or more existing roles in its definition, in which case
+the role inherits the privileges of the included roles. The role inherits
+*all* the privileges of an included role.
+
+.. include:: /includes/fact-roles-inheritance.rst
 
 .. _user-defined-roles:
 
@@ -66,41 +108,23 @@ User-Defined Roles
 
 .. versionadded:: 2.6
 
-In addition to the MongoDB :doc:`system-defined roles
-</reference/system-defined-roles>`, MongoDB provides the ability to create
+MongoDB provides the ability to create
 and manage custom roles. To create a role is to define its privileges
 by pairing :ref:`resources <resource-document>` (e.g. database,
 collection) with :doc:`actions </reference/privilege-actions>` (e.g.
 ``insert``, ``find``), and/or by specifying other roles from which the
 role inherits privileges.
 
-.. include:: /includes/privilege-resource-for-non-admin-roles.rst
-
 To create and manage roles, MongoDB provides :ref:`role management
-commands <role-management-commands>`. MongoDB scopes each role to the
+commands <role-management-commands>`. MongoDB scopes each role in the
 database in which it is created and uniquely identifies each role by
 the pairing of its name and its database. MongoDB stores the
 user-defined roles information in the :doc:`system.roles collection
 </reference/system-roles-collection>` of the ``admin`` database.
 
-.. seealso:: :dbcommand:`createRole` and :ref:`role-management-commands`.
-
-.. _collection-level-access-control:
-
-Collection-Level Access Control
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionadded:: 2.6
-
-MongoDB provides the ability to specify user privileges at a
-collection-level granularity. To specify collection-level access
-control, create a custom role that pairs its actions to a particular
-collection in that database in the :ref:`resource document
-<resource-document>`.
-
-The MongoDB :doc:`system-defined roles </reference/system-defined-roles>`
-grant privileges at a database-level only, and thus cannot be used to
-control privileges at the collection-level.
+User-defined roles provide the ability to specify privileges at the
+collection level. To configure collection-level access, create
+privileges that pair actions to a particular collection.
 
 Role Assignment to Users
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -122,5 +146,4 @@ user. For details, see :doc:`/tutorial/add-user-administrator` and
 MongoDB stores each user's role assignments in the ``admin`` database's
 :doc:`system.users collection </reference/system-users-collection>`. To
 manage data in this collection, MongoDB provides :ref:`user management
-commands <user-management-commands>`, which require proper
-authorization to use in order to prevent privilege escalation attacks.
+commands <user-management-commands>`.
