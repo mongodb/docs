@@ -12,10 +12,11 @@ archive produced by |backup|:
 
 .. code-block:: sh
 
-   ./seedSecondary.sh <port> <oplog-size-in-gb>
+   ./seedSecondary.sh <port> <oplog-size>
 
-The MongoDB :ref:`Oplog Size <replica-set-oplog-sizing>` page describes replica
-set oplog size.
+Replace <port> with the port of the restored :program:mongod instance. Specify
+a size in gigabytes for the new oplog in the <oplog-size> argument. See
+:ref:replica-set-oplog-sizing for more information on oplog sizing.
 
 For more information about replica set restoration, the MongoDB
 :manual:`Restore Replica Set from Backup
