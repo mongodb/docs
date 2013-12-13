@@ -1,0 +1,91 @@
+title: Connect with the Privilege to Grant Roles
+stepnum: 1
+ref: connect-with-grant-role-privileges
+pre: |
+  Connect to the :program:`mongod` or :program:`mongos` as a user with the
+  :authaction:`grantRole` actions on the role's database. One option for doing
+  so is to connect using the :ref:`localhost exception <localhost-exception>`.
+action:
+  pre: |
+    The following example operation connects to the MongoDB instance as a user
+    named ``roleManager``:
+  language: javascript
+  code: |
+    mongo --port 27017 -u roleManager -p 12345678 --authenticationDatabase admin
+---
+title: Verify Your Privileges
+stepnum: 2
+ref: verify-grant-role-privileges
+pre: |
+  Verify that the user you are connected as has the :authaction:`grantRole`
+  actions on the ``admin`` database.
+action:
+  pre: |
+    The following example operation checks privileges for the user connected
+    as ``roleManager``:
+  language: javascript
+  code: |
+    db.runCommand(
+      {
+        usersInfo:"roleManager",
+        showPrivileges:true
+      }
+    )
+  post: |
+    The resulting ``users`` document displays the privileges granted to the user.
+---
+title: Identify the User's Roles and Privileges
+stepnum: 3
+ref: identify-privileges
+pre: |
+  To display the roles and privileges of the user to be modified, use the
+  :method:`db.getUser()` and :method:`db.getRole()` methods, as described in
+  :doc:`/tutorial/verify-user-privileges`.
+action:
+  pre: |
+    For example, to view roles for ``accountUser01`` on the current database, issue:
+  code: |
+    db.getUser("accountUser01")
+  language: javascript
+action:
+  pre: |
+    To display the privileges granted by ``siteRole01`` on the current database, issue:
+  code: |
+    db.getRole( "siteRole01", { showPrivileges: true } )
+  language: javascript
+---
+title: Identify the Privileges to Grant or Revoke
+stepnum: 4
+ref: select-roles-to-modify
+pre: |
+  Determine which role contains the privileges *and only those privileges*. If
+  such a role does not exist, then to grant the privileges will require
+  :doc:`creating a new role </tutorial/define-roles>` with the specific set of
+  privileges. To revoke a subset of privileges provided by an existing role:
+  revoke the original role, :doc:`create a new role </tutorial/define-roles>`
+  that contains the privileges *to keep*, and then grant that role to the
+  user.
+---
+title: Grant a Role to a User
+stepnum: 5
+ref: grant-role-to-user
+pre: |
+  Grant the user the role using the :method:`db.grantRolesToUser()` method.
+action:
+  pre: |
+    For example:
+  language: javascript
+  code: |
+    use admin
+    db.grantRolesToUser(
+      "accountAdmin01",
+      [
+        { 
+          role: "readWrite", db: "products"
+        },
+        {
+          role: "readAnyDatabase", db:"admin"
+        }
+      ]
+    )
+...
