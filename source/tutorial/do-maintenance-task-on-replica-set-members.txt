@@ -4,6 +4,10 @@ Perform Maintenance on Replica Set Members
 
 .. default-domain:: mongodb
 
+.. contents::
+   :backlinks: none
+   :local:
+
 Overview
 --------
 
@@ -29,12 +33,12 @@ operations. Start with a secondary member of the set, proceed through
 each secondary in turn, and end with the primary. This ensures that
 the set only has to elect a new primary once.
 
-#. Restart the :program:`mongod` instance as a standalone.
+- Restart the :program:`mongod` instance as a standalone.
 
-#. Perform the task on the standalone instance.
+- Perform the task on the standalone instance.
 
-#. Restart the :program:`mongod` instance as a member of the replica
-   set.
+- Restart the :program:`mongod` instance as a member of the replica
+  set.
 
 .. _stop-a-secondary:
 
@@ -69,49 +73,48 @@ perform maintenance:
 
    mongo --port 37017
 
-Restart ``mongod``
-~~~~~~~~~~~~~~~~~~
+Restart ``mongod`` as a Member of the Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 After performing all maintenance tasks, use the following procedure
-to restart the :program:`mongod` as a secondary member of the replica
-set on its usual port.
+to restart the :program:`mongod` as a member of the replica set on
+its usual port.
 
-#. Shut down the standalone server:
+#. From the :program:`mongo` shell, shut down the standalone server:
 
-.. code-block:: javascript
+   .. code-block:: javascript
 
-   db.shutdownServer()
+      db.shutdownServer()
 
-#. Restart the :program:`mongod` instance as a secondary member of
+#. Restart the :program:`mongod` instance as a member of
    the replica set using its normal command-line arguments or
    configuration file.
 
-#. The secondary takes time to :doc:`catch up to the primary
-   </core/replica-set-sync>`. Use the following command to verify
-   that the member has caught up from the :replstate:`RECOVERING`
-   to the :replstate:`SECONDARY` state.
+   The secondary takes time to :doc:`catch up to the primary
+   </core/replica-set-sync>`. From the :program:`mongo` shell, use the
+   following command to verify that the member has caught up from the
+   :replstate:`RECOVERING` state to the :replstate:`SECONDARY` state.
 
-.. code-block:: javascript
+   .. code-block:: javascript
 
-   rs.status()
+      rs.status()
 
 Perform Maintenance on the Primary Last
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-After completing maintenance tasks on all secondaries, you must
-request that the primary step down and allow one of the secondaries
-to be elected the new primary.
-
-In the :program:`mongo` shell, use :method:`rs.stepDown` to step down
-the primary. Specify a 300 second waiting period to prevent the member
-from being elected primary again:
+To perform maintenance on the primary after completing maintenance
+tasks on all secondaries, use :method:`rs.stepDown` in the
+:program:`mongo` shell to step down the primary and allow one of
+the secondaries to be elected the new primary. Specify a 300 second
+waiting period to prevent the member from being elected primary again
+for five minutes:
 
 .. code-block:: javascript
 
    rs.stepDown(300)
 
-Once the primary becomes a secondary, the replica set elects a new
-primary, as described in :doc:`/core/replica-set-elections`.
+Once the primary steps down, the replica set elects a new primary,
+as described in :doc:`/core/replica-set-elections`.
 
-Repeat the steps of the current procedure to perform maintenance on
-the new secondary, starting with :ref:`stop-a-secondary`.
+Repeat these steps, starting with :ref:`stop-a-secondary`, to perform
+maintenance on the new secondary.
