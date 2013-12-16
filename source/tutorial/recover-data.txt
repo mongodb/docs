@@ -7,17 +7,16 @@ Recover Data Files
 Overview
 --------
 
-MongoDB provides mechanisms to recover some data from invalid data
-files. The most common cause of invalid data files are unclean
-shutdowns without :doc:`/core/journaling`. You can inspect data file
-validity using :doc:`/tutorial/detect-invalid-data-files`.
+If you suspect that some of your data files might be invalid, it may
+be possible to recover some of the data.
 
-If you detect or suspect invalid data files, you can use this procedure
-to recover data files.
+In the best-case scenario, your deployment uses :term:`replica sets
+<replica set>`. In that case a complete recovery may be possible, using
+the procedures described in :doc:`/tutorial/resync-replica-set-member`.
 
-The procedures in this tutorial apply only to :program:`mongod`
-instances that are not part of a replica set. To recover data files
-on a replica set, :doc:`/tutorial/resync-replica-set-member`.
+If your deployment does not use replica sets, use the following
+procedures to remove the invalid portions of your data files, and to
+make the remaining portions usable.
 
 Considerations
 --------------
@@ -36,8 +35,15 @@ Considerations
 - Do not remove the ``mongod.lock`` file from the data directory.
 
 - Do not perform this procedure on files that are currently opened
-  by a running :program:`mongod` instance. The :program:`mongodump`
-  program refuses to run on files that are already open.
+  by a running :program:`mongod` instance. This procedure will not
+  work on files that are already open.
+
+The best way to avoid data loss and ensure the most
+robust deployments is to follow the recommendations in
+:doc:`maintain-valid-data-files`. See also :doc:`/core/backups`,
+:doc:`/administration/backup`, :doc:`/faq/replica-sets`,
+:doc:`/core/journaling`, and :doc:`/tutorial/manage-journaling`
+for information on how to set up and safeguard a robust deployment.
 
 Procedure
 ---------
@@ -76,36 +82,6 @@ the relevant directory and database names.
 
       mongorestore --dbpath /data/db2 /data/recovery
 
-#. Validate the recovered data set using a staging environment or other
-   application-specific tests. If :program:`mongodump` successfully
-   recovered the data files, then *do not proceed with any further
-   recovery efforts*.
-
-#. If :program:`mongodump` failed to recover the data files, use
-   :program:`mongod` with the :option:`--repair <mongod --repair>`
-   and :option:`--repairpath <mongod --repairpath>` options to create
-   a new data directory with a repaired set of data files.
-
-   Specify a new directory to receive the repaired data files:
-
-   .. code-block:: sh
-
-      mongod --dbpath /data/db --repair --repairpath /data/recovery
-
-   When the ``--repair`` operation completes successfully, the new
-   repaired data files are in the new directory.
-
-   .. warning::
-
-      :option:`--repair <mongod --repair>` removes the invalid parts of
-      data files. *You can lose data as part of the recovery process.*
-
-      Under some circumstances, :option:`--repair <mongod --repair>`
-      may remove the majority of data in the data file.
-
-      Without the :option:`--repairpath <mongod --repairpath>`
-      option, the new data files permanently overwrite the old.
-
 .. _test-data-file-recovery:
 
 #. Test the data files by bringing up a standalone :program:`mongod`
@@ -122,8 +98,39 @@ the relevant directory and database names.
       use users
       db.collection.find().count()
 
-   Perform other tests as needed. When satisfied that the data files
-   are correct, delete or archive the ``/data/recovery`` directory.
+   Perform other application-specific tests in a staging environment
+   as needed. If the data files are correct, delete or archive the
+   ``/data/recovery`` directory, and *do not proceed with any further
+   recovery efforts*
+
+#. If :program:`mongodump` failed to recover the data files, use
+   :program:`mongod` with the :option:`--repair <mongod --repair>`
+   and :option:`--repairpath <mongod --repairpath>` options to create
+   a new data directory with a repaired set of data files.
+
+   Specify a new directory to receive the repaired data files:
+
+   .. code-block:: sh
+
+      mongod --dbpath /data/db --repair --repairpath /data/recovery
+
+   When the :option:`--repair <mongod --repair>` operation completes
+   successfully, the newly-repaired data files are in the new
+   directory.
+
+   .. warning::
+
+      :option:`--repair <mongod --repair>` removes the invalid parts of
+      data files. *You can lose data as part of the recovery process.*
+
+      Under some circumstances, :option:`--repair <mongod --repair>`
+      may remove the majority of data in the data file.
+
+      Without the :option:`--repairpath <mongod --repairpath>`
+      option, the new data files permanently overwrite the old.
+
+#. Test the data files using the procedure :ref:`outlined above
+   <test-data-file-recovery>`.
 
 #. You may use the recovered files normally. Start :program:`mongod`
    with :setting:`dbpath` pointing to the new directory:
