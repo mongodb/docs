@@ -7,40 +7,80 @@ $sort (aggregation)
 .. pipeline:: $sort
 
    The :pipeline:`$sort` :term:`pipeline` operator sorts all input
-   documents and returns them to the pipeline in sorted
-   order. Consider the following prototype form:
+   documents and returns them to the pipeline in sorted order.
+
+   Consider the following prototype form:
 
    .. code-block:: javascript
 
       db.<collection-name>.aggregate(
-          { $sort : { <sort-key> } }
-      );
+         [
+           { $sort : { <sort-key> } }
+         ]
+      )
 
    This sorts the documents in the collection named
-   ``<collection-name>``, according to the key and specification in
-   the ``{ <sort-key> }`` document.
-
-   Specify the sort in a document with a field or fields that you want
-   to sort by and a value of ``1`` or ``-1`` to specify an ascending
-   or descending sort respectively, as in the following example:
+   ``<collection-name>``, according to the key and specification in the
+   ``{ <sort-key> }`` document. The sort key has the following syntax:
 
    .. code-block:: javascript
 
-      db.users.aggregate(
-          { $sort : { age : -1, posts: 1 } }
-      );
+      { field: value }
 
-   This operation sorts the documents in the ``users`` collection,
-   in descending order according by the ``age`` field and then in
-   ascending order according to the value in the ``posts`` field.
+   The ``{ <sort-key> }`` document can specify :ref:`ascending or
+   descending sort on existing fields <sort-pipeline-asc-desc>` or
+   :ref:`sort on computed metadata <sort-pipeline-metadata>`.
 
-   .. include:: /includes/fact-sort-order.rst
+Behaviors
+---------
 
-   .. important:: The :pipeline:`$sort` cannot begin sorting documents
-      until previous operators in the pipeline have returned all
-      output.
+.. _sort-pipeline-asc-desc:
 
-   .. todo:: mention the importance of order preserving objects
+Ascending/Descending Sort
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Specify in the ``{ <sort-key> }`` document the field or fields to sort
+by and a value of ``1`` or ``-1`` to specify an ascending or descending
+sort respectively, as in the following example:
+
+.. code-block:: javascript
+
+   db.users.aggregate(
+      [
+        { $sort : { age : -1, posts: 1 } }
+      ]
+   )
+
+This operation sorts the documents in the ``users`` collection,
+in descending order according by the ``age`` field and then in
+ascending order according to the value in the ``posts`` field.
+
+.. include:: /includes/fact-sort-order.rst
+
+.. _sort-pipeline-metadata:
+
+Metadata Sort
+~~~~~~~~~~~~~
+
+Specify in the ``{ <sort-key> }`` document, a new field name for the
+computed metadata and specify the :expression:`$meta` expression as its
+value, as in the following example:
+
+.. code-block:: javascript
+
+   db.users.aggregate(
+      [
+        { $match: { $text: { $search: "operating" } } },
+        { $sort: { score: { $meta: "textScore" }, posts: -1 } }
+      ]
+   )
+
+This operation uses the :query:`$text` operator to match the documents,
+and then sorts first by the ``"textScore"`` metadata and then by
+descending order of the ``posts`` field. The specified metadata
+determines the sort order. For example, the ``"textScore"`` metadata
+sorts in descending order. See :expression:`$meta` for more information
+on metadata.
 
 .. _sort-and-memory:
 
