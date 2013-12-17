@@ -16,114 +16,121 @@ Specify the Default Language for a ``text`` Index
 -------------------------------------------------
 
 The default language associated with the indexed data determines the
-rules to parse word roots (i.e. stemming) and discard stop words
-(i.e. frequently appearing words). The default language for the
-indexed data is ``english``.
+rules to parse word roots (i.e. stemming) and ignore stop words. The
+default language for the indexed data is ``english``.
 
 To specify a different language, use the ``default_language`` option
 when creating the ``text`` index. See :ref:`text-search-languages` for
 the languages available for ``default_language``.
 
-The following example creates a ``text`` index on the
-``content`` field and sets the ``default_language`` to
+The following example creates for the ``quotes`` collection a ``text``
+index on the ``content`` field and sets the ``default_language`` to
 ``spanish``:
 
 .. code-block:: javascript
 
-   db.collection.ensureIndex(
-                              { content : "text" },
-                              { default_language: "spanish" }
-                            )
+   db.quotes.ensureIndex(
+      { content : "text" },
+      { default_language: "spanish" }
+   )
 
 .. _select-from-multiple-languages-for-text-index:
 
 Create a ``text`` Index for a Collection in Multiple Languages
 --------------------------------------------------------------
 
+.. versionchanged:: 2.5.3
+
+   Added support for language overrides within sub-documents.
+
 Specify the Index Language within the Document
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If a collection contains documents that are in different languages,
-include a field in the documents, or sub-documents, named ``language``,
+If a collection contains documents or sub-documents that are in
+different languages, include a field named ``language`` in the
+documents or sub-documents and specify as its value the language for
+that document or sub-document. 
+
 MongoDB will use the specified language for that document or
-sub-document when building the text index.
+sub-document when building the ``text`` index:
 
-Languages specified in a document override the default language for
-the index for that document or sub-document. Languages specified in a
-sub-document override the language specified in an enclosing document
-or the default language for the index.
-
-.. versionchanged:: 2.5.3
-   Support for language overrides within sub-documents in addition to
-   the existing support for per-document language overrides.
+- The specified language in the document overrides the default language
+  for the ``text`` index.
+  
+- The specified language in a sub-document override the language
+  specified in an enclosing document or the default language for the
+  index.
 
 See :ref:`text-search-languages` for a list of supported languages.
 
-.. example::
+For example, a collection ``quotes`` contains multi-language documents
+that include the ``language`` field in the document and/or the
+sub-document as needed:
 
-   The documents of this multi-language collection contain the
-   ``language`` field:
+.. code-block:: javascript
 
-   .. code-block:: javascript
-
+   {
+      _id: 1,
+      language: "portuguese",
+      original: "A sorte protege os audazes.",
+      translation: 
+        [
+           {
+              language: "english",
+              quote: "Fortune favors the bold."
+           },
+           {
+              language: "spanish",
+              quote: "Suerte protege a los audaces."
+           }
+       ]
+   }
+   {
+      _id: 2,
+      language: "spanish",
+      original: "Nada hay más surreal que la realidad.",
+      translation:
+         [
+           {
+             language: "english",
+             quote: "There is nothing more surreal than reality."
+           },
+           {
+             language: "french",
+             quote: "Il n'ya rien de plus surréaliste que la réalité."
+           }
+         ]
+   }
+   {
+      _id: 3,
+      original: "is this a dagger which I see before me.",
+      translation: 
       {
-         _id: 1,
-         language: "portuguese"
-         original: "A sorte protege os audazes."
-         translation: [
-                          {
-                             language: "english",
-                             quote: "Fortune favors the bold."
-                          },
-                          {
-                             language: "spanish",
-                             quote: "Suerte protege a los audaces."
-                          }
-                      ]
-      }
-      {
-         _id: 2,
          language: "spanish",
-         original: "Nada hay más surreal que la realidad.",
-         translation: [
-                          {
-                             language: "english",
-                             quote: "There is nothing more surreal than reality."
-                          },
-                          {
-                             language: "french",
-                             quote: "Il n'ya rien de plus surréaliste que la réalité."
-                          }
-                      ]
+         quote: "Es este un puñal que veo delante de mí."
       }
-      {
-         _id: 3,
-         original: "is this a dagger which I see before me."
-         translation: {
-                         language: "spanish",
-                         quote: "Es este un puñal que veo delante de mí."
-                      }
-      }
+   }
 
-Given a ``text`` index on the ``quote`` field:
+If you create a ``text`` index on the ``quote`` field with the default
+language of English.
 
 .. code-block:: javascript
 
-   db.quotes.ensureIndex( { quote: "text" } )
+   db.quotes.ensureIndex( { original: "text", "translation.quote": "text" } )
 
-- For the documents and subdocuments that contain the ``language`` field, the ``text``
-  index uses that language to parse word stems and other linguistic
-  characteristics.
+Then, for the documents and subdocuments that contain the ``language``
+field, the ``text`` index uses that language to parse word stems and
+other linguistic characteristics.
 
-- For documents that do not contain the ``language`` field, the index
-  uses the default language, which is English.
+For sub-documents that do not contain the ``language`` field,
 
-For example, the Spanish word ``que`` is a *stop word*. So the
-following :dbcommand:`text` command would not match any document:
+- If the enclosing document contains the ``language`` field, then the
+  index uses the document's language for the sub-document.
 
-.. code-block:: javascript
+- Otherwise, the index uses the default language for the sub-documents.
 
-   db.quotes.runCommand( "text", { search: "que", language: "spanish" } )
+For documents that do not contain the ``language`` field, the index
+uses the default language, which is English.
 
 Use any Field to Specify the Language for a Document
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -139,7 +146,7 @@ name instead of ``language``:
    db.quotes.ensureIndex( { quote : "text" },
                           { language_override: "idioma" } )
 
-Any document of a multi-language collection may specify a language with
+The documents of the ``quotes`` collection may specify a language with
 the ``idioma`` field:
 
 .. code-block:: javascript

@@ -1,0 +1,82 @@
+===================
+$meta (aggregation)
+===================
+
+.. default-domain:: mongodb
+
+.. expression:: $meta
+
+   .. versionadded:: 2.6
+
+   The :expression:`$meta` operator returns the metadata associated
+   with a document in a pipeline operations, e.g. ``"textScore"``
+   when performing text search.
+
+   .. |meta-object| replace:: :expression:`$meta`
+
+   .. include:: /includes/fact-meta-syntax.rst
+
+Behaviors
+---------
+
+The :expression:`$meta` expression can be a part of the
+:pipeline:`$project` stage and the :pipeline:`$sort` stage.
+
+Projected Field Name
+~~~~~~~~~~~~~~~~~~~~
+
+If the specified ``<projectedFieldName>`` already exists in the
+matching documents, in the result set, the existing fields will return
+with the :expression:`$meta` values instead of with the stored values.
+
+Projection
+~~~~~~~~~~
+
+The :expression:`$meta` expression can be used in the
+:pipeline:`$project` stage, as in:
+
+.. code-block:: javascript
+
+   db.articles.aggregate(
+      [
+        { $match: { $text: { $search: "cake" } } },
+        { $project: { title: 1, score: { $meta: "textScore" } } }
+      ]
+   )
+
+The inclusion of the :expression:`$meta` aggregation expression in the
+:pipeline:`$project` pipeline specifies both the inclusion of the
+metadata *as well as* the exclusion of the fields, other than ``_id``,
+that are *not* explicitly included in the projection document. This
+differs from the behavior of the :projection:`$meta` projection
+operator in a :method:`db.collection.find()` operation which only
+signifies the inclusion of the metadata and does *not* signify an
+exclusion of other fields.
+
+Sort
+~~~~
+
+To use the metadata to sort, specify the :expression:`$meta` expression
+in :pipeline:`$sort` stage, as in:
+
+.. code-block:: javascript
+
+   db.articles.aggregate(
+      [
+        { $match: { $text: { $search: "cake tea" } } },
+        { $sort: { score: { $meta: "textScore" } } },
+        { $project: { title: 1, _id: 0 } }
+      ]
+   )
+
+The specified metadata determines the sort order. For example, the
+``"textScore"`` metadata sorts in descending order.
+
+Examples
+--------
+
+.. TODO when $meta returns other data, subsection Examples section
+   by keywords.
+
+For examples of ``"textScore"`` projections and sorts, see
+:doc:`/tutorial/text-search-in-aggregation`.

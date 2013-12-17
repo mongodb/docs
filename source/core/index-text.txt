@@ -9,19 +9,18 @@ Text Indexes
 .. versionadded:: 2.4
 
 MongoDB provides ``text`` indexes to support text search of string
-content in documents of a collection. ``text`` indexes are
-case-insensitive and can include any field whose value is a string or
-an array of string elements. You can only access the ``text`` index
-with the :dbcommand:`text` command.
+content in documents of a collection.
 
-.. important::
+``text`` indexes can include any field whose value is a string or an
+array of string elements. To perform queries that access the ``text``
+index, use the :query:`$text` query operator.
 
-   - Before you can create a text index or :ref:`run the text command
-     <text-search-text-command>`, you need to manually enable the text
-     search. See :doc:`/tutorial/enable-text-search` for information on
-     how to enable the text search feature.
+.. versionchanged:: 2.6
 
-   - .. include:: /includes/fact-text-index-limit-one.rst
+   MongoDB enables the text search feature by
+   default. In MongoDB 2.4, you need to manually enable the text search
+   feature to create ``text`` indexes and perform :ref:`text search
+   <index-text-text-search>`.
 
 .. _create-text-index:
 
@@ -38,19 +37,41 @@ following example:
 
    db.reviews.ensureIndex( { comments: "text" } )
 
+.. include:: /includes/fact-text-index-limit-one.rst
+
 For examples of creating ``text`` indexes on multiple fields, see
 :doc:`/tutorial/create-text-index-on-multiple-fields`.
 
-``text`` indexes drop language-specific stop words (e.g. in English,
-“the,” “an,” “a,” “and,” etc.) and uses simple language-specific suffix
-stemming. See :ref:`text-search-languages` for the supported languages
-and :doc:`/tutorial/specify-language-for-text-index` for details on
-specifying languages with ``text`` indexes.
+Supported Languages and Stop Words
+----------------------------------
 
-``text`` indexes can cover a text search. If an index covers a text
-search, MongoDB does not need to inspect data outside of the index to
-fulfill the search. For details, see
-:doc:`/tutorial/return-text-queries-using-only-text-index`.
+MongoDB supports text search for various languages. ``text`` indexes
+drop language-specific stop words (e.g. in English, “the,” “an,” “a,”
+“and,” etc.) and uses simple language-specific suffix stemming. For a
+list of the supported languages, see :ref:`text-search-languages`.
+
+If the index language is English, ``text`` indexes are case-insensitive
+for non-diacritics; i.e. case insensitive for ``[A-z]``.
+
+To specify a language for the ``text`` index, see
+:doc:`/tutorial/specify-language-for-text-index`
+
+Restrictions
+------------
+
+Text Search and Hints
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-hint-text-query-restriction.rst
+
+Compound Index
+~~~~~~~~~~~~~~
+
+A :doc:`compound index </core/index-compound>` can include a ``text``
+index key in combination with ascending/descending index keys. However,
+these compound indexes have the following restrictions:
+
+.. include:: /includes/fact-compound-index-with-text-restrictions.rst
 
 .. _text-index-storage-requirements:
 
@@ -84,15 +105,15 @@ performance costs:
   queries will run much more effectively when the entire collection
   fits in RAM.
 
-.. _text-search-text-command:
+.. _index-text-text-search:
 
 Text Search
 -----------
 
 Text search supports the search of string content in documents of a
-collection. MongoDB provides the :dbcommand:`text` command to perform
-the text search. The :dbcommand:`text` command accesses the ``text``
-index.
+collection. MongoDB provides the :query:`$text` operator to perform
+text search in queries and in :doc:`aggregation pipelines
+</tutorial/text-search-in-aggregation>`.
 
 The text search process:
 
@@ -103,13 +124,12 @@ The text search process:
   indexed fields. The score determines the relevance of a document to a
   given search query.
 
-By default, the :dbcommand:`text` command returns at most the top 100
-matching documents as determined by the scores. The command can search
-for words and phrases. The command matches on the complete stemmed
-words. For example, if a document field contains the word
-``blueberry``, a search on the term ``blue`` will not match the
-document. However, a search on either ``blueberry`` or ``blueberries``
-will match.
+The :query:`$text` operator can search for words and phrases. The query
+matches on the complete stemmed words. For example, if a document field
+contains the word ``blueberry``, a search on the term ``blue`` will not
+match the document. However, a search on either ``blueberry`` or
+``blueberries`` will match.
 
-For information and examples on various text search patterns, see
-:doc:`/tutorial/search-for-text`.
+For information and examples on various text search patterns, see the
+:query:`$text` query operator. For examples of text search in
+aggregation pipeline, see :doc:`/tutorial/text-search-in-aggregation`.
