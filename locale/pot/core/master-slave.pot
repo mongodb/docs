@@ -1,0 +1,542 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2011-2013, MongoDB, Inc.
+# This file is distributed under the same license as the mongodb-manual package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: mongodb-manual 2.5\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-12-16 16:05-0500\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../source/core/master-slave.txt:3
+# c7f8a6b9b6c24582a504a070d87768ce
+msgid "Master Slave Replication"
+msgstr ""
+
+#: ../source/core/master-slave.txt:7
+# c9391f02f6c740d58ac28eea6215440d
+msgid ":doc:`Replica sets </core/replication>` replace :term:`master`\\-:term:`slave` replication for most use cases. If possible, use replica sets rather than master-slave replication for all new production deployments. This documentation remains to support legacy deployments and for archival purposes only."
+msgstr ""
+
+#: ../source/core/master-slave.txt:13
+# c0a9fe1d09a04bcbb893a7ba1a1c58cc
+msgid "In addition to providing all the functionality of master-slave deployments, replica sets are also more robust for production use. Master-slave replication preceded replica sets and made it possible have a large number of non-master (i.e. slave) nodes, as well as to restrict replicated operations to only a single database; however, master-slave replication provides less redundancy and does not automate failover. See :ref:`replica-set-equivalent` for a replica set configuration that is equivalent to master-slave replication.  If you wish to convert an existing master-slave deployment to a replica set, see :ref:`convert-master-slave-to-replica-set`."
+msgstr ""
+
+#: ../source/core/master-slave.txt:25
+# 1fb8120eabe0436eaddcdb4ad73ed67a
+msgid "Fundamental Operations"
+msgstr ""
+
+#: ../source/core/master-slave.txt:28
+# 9bd1b9a163694598b69da14506052c3b
+msgid "Initial Deployment"
+msgstr ""
+
+#: ../source/core/master-slave.txt:30
+# a8819846495641deb6820e3d322255dd
+msgid "To configure a :term:`master`\\-:term:`slave` deployment, start two :program:`mongod` instances: one in :setting:`master` mode, and the other in :setting:`slave` mode."
+msgstr ""
+
+#: ../source/core/master-slave.txt:34
+# 28ba5156f14f48039213838ae784dc02
+msgid "To start a :program:`mongod` instance in :setting:`master` mode, invoke :program:`mongod` as follows:"
+msgstr ""
+
+#: ../source/core/master-slave.txt:41
+# ee0efe1abfb04471b6c0c40eb1610cf2
+msgid "With the :option:`--master <mongod --master>` option, the :program:`mongod` will create a :data:`local.oplog.$main` collection, which the \"operation log\" that queues operations that the slaves will apply to replicate operations from the master. The :option:`--dbpath <mongod --dbpath>` is optional."
+msgstr ""
+
+#: ../source/core/master-slave.txt:47
+# b3e71278d61942bd8204e0f4e15ee7c3
+msgid "To start a :program:`mongod` instance in :setting:`slave` mode, invoke :program:`mongod` as follows:"
+msgstr ""
+
+#: ../source/core/master-slave.txt:54
+# 0d111e21de33437fa65109eb17a76672
+msgid "Specify the hostname and port of the master instance to the :option:`--source <mongod --source>` argument. The :option:`--dbpath <mongod --dbpath>` is optional."
+msgstr ""
+
+#: ../source/core/master-slave.txt:58
+# 9ec17c8d03dc48cfa1b917604445bd70
+msgid "For :setting:`slave` instances, MongoDB stores data about the source server in the :data:`local.sources` collection."
+msgstr ""
+
+#: ../source/core/master-slave.txt:62
+# de19b449abb04731a62d12575942dcef
+msgid "Configuration Options for Master-Slave Deployments"
+msgstr ""
+
+#: ../source/core/master-slave.txt:64
+# 049b4922ccc740858ffd9daccaea477c
+msgid "As an alternative to specifying the :option:`--source <mongod --source>` run-time option, can add a document to :data:`local.sources` specifying the :setting:`master` instance, as in the following operation in the :program:`mongo` shell:"
+msgstr ""
+
+#: ../source/core/master-slave.txt:76
+# 8aa4e2f494c44e43a46226aa2d5d47e6
+msgid "In line 1, you switch context to the ``local`` database. In line 2, the :method:`~db.collection.find()` operation should return no documents, to ensure that there are no documents in the ``sources`` collection. Finally, line 3 uses :method:`db.collection.insert()` to insert the source document into the :data:`local.sources` collection. The model of the :data:`local.sources` document is as follows:"
+msgstr ""
+
+#: ../source/core/master-slave.txt:86
+# 9995ab25357a40f39a60a5f612db3971
+msgid "The host field specifies the :setting:`master`\\ :program:`mongod` instance, and holds a resolvable hostname, i.e. IP address, or a name from a ``host`` file, or preferably a fully qualified domain name."
+msgstr ""
+
+#: ../source/core/master-slave.txt:91
+# 97474a669687417cadce8a534f8a1b0d
+msgid "You can append ``<:port>`` to the host name if the :program:`mongod` is not running on the default ``27017`` port."
+msgstr ""
+
+#: ../source/core/master-slave.txt:96
+# f2ecd488bb6b40e9b9c2b88173ccbbf5
+msgid "Optional. Specify a name of a database. When specified, MongoDB will only replicate the indicated database."
+msgstr ""
+
+#: ../source/core/master-slave.txt:100
+# 78fe54ef3dc14809854316289d44803e
+msgid "Operational Considerations for Replication with Master Slave Deployments"
+msgstr ""
+
+#: ../source/core/master-slave.txt:102
+# 80cd861d5737425081c749f6e0ed0889
+msgid "Master instances store operations in an :term:`oplog` which is a :doc:`capped collection </core/capped-collections>`. As a result, if a slave falls too far behind the state of the master, it cannot \"catchup\" and must re-sync from scratch. Slave may become out of sync with a master if:"
+msgstr ""
+
+#: ../source/core/master-slave.txt:108
+# ee1f987a13d54e6eaebe2a80f2cca86c
+msgid "The slave falls far behind the data updates available from that master."
+msgstr ""
+
+#: ../source/core/master-slave.txt:111
+# 36a2c7d80b254f1297e274092449c139
+msgid "The slave stops (i.e. shuts down) and restarts later after the master has overwritten the relevant operations from the master."
+msgstr ""
+
+#: ../source/core/master-slave.txt:114
+# 59d38f79740d439f9d41beb66c45331e
+msgid "When slaves, are out of sync, replication stops. Administrators must intervene manually to restart replication. Use the :dbcommand:`resync` command. Alternatively, the :option:`--autoresync <mongod --autoresync>` allows a slave to restart replication automatically, after ten second pause, when the slave falls out of sync with the master. With :option:`--autoresync <mongod --autoresync>` specified, the slave will only attempt to re-sync once in a ten minute period."
+msgstr ""
+
+#: ../source/core/master-slave.txt:122
+# 5a87140cc4fd46b08499be821f3677ec
+msgid "To prevent these situations you should specify a larger oplog when you start the :setting:`master` instance, by adding the :option:`--oplogSize <mongod --oplogSize>` option when starting :program:`mongod`. If you do not specify :option:`--oplogSize <mongod --oplogSize>`, :program:`mongod` will allocate 5% of available disk space on start up to the oplog, with a minimum of 1GB for 64bit machines and 50MB for 32bit machines."
+msgstr ""
+
+#: ../source/core/master-slave.txt:131
+# 6f16bd760aed4466a8a72231bd9f6fa7
+msgid "Run time Master-Slave Configuration"
+msgstr ""
+
+#: ../source/core/master-slave.txt:133
+# a3f061085e7f47e2830aec9e6e3dd9d4
+msgid "MongoDB provides a number of run time configuration options for :program:`mongod` instances in :term:`master`\\-:term:`slave` deployments. You can specify these options in :doc:`configuration files </administration/configuration>` or on the command-line. See documentation of the following:"
+msgstr ""
+
+#: ../source/core/master-slave.txt:139
+# 4b058dc8a24a4b9a8e0766e3f947916f
+msgid "For *master* nodes:"
+msgstr ""
+
+#: ../source/core/master-slave.txt:141
+# 69d69f2e3ca3429c8ecb7c45c66da8bc
+msgid ":setting:`master`"
+msgstr ""
+
+#: ../source/core/master-slave.txt:143
+# d960e9159dc043e1adbd283812f73a2f
+msgid ":setting:`slave`"
+msgstr ""
+
+#: ../source/core/master-slave.txt:145
+# 9c7a44c1b9214b2f890509fa22738f73
+msgid "For *slave* nodes:"
+msgstr ""
+
+#: ../source/core/master-slave.txt:147
+# 97b2c6db4b6744b89ca6839ce63c0a52
+msgid ":setting:`source`"
+msgstr ""
+
+#: ../source/core/master-slave.txt:149
+# 871d0c528c3d4e339186d56874d32a5d
+msgid ":setting:`only`"
+msgstr ""
+
+#: ../source/core/master-slave.txt:151
+# ce2a79d414de4262940d323c9ad4e1fa
+msgid ":setting:`slaveDelay`"
+msgstr ""
+
+#: ../source/core/master-slave.txt:153
+# fac24d196d3e4d2abebb893429cf9566
+msgid "Also consider the :ref:`Master-Slave Replication Command Line Options <cli-mongod-master-slave>` for related options."
+msgstr ""
+
+#: ../source/core/master-slave.txt:157
+# e843320f79fd406cb992044a83c19350
+msgid "Diagnostics"
+msgstr ""
+
+#: ../source/core/master-slave.txt:159
+# 1cce0b52c8ce477bbbe08b33eb1ff620
+msgid "On a :term:`master` instance, issue the following operation in the :program:`mongo` shell to return replication status from the perspective of the master:"
+msgstr ""
+
+#: ../source/core/master-slave.txt:167
+# 1784e02ce3264339bec3d4fb21546750
+msgid "On a :term:`slave` instance, use the following operation in the :program:`mongo` shell to return the replication status from the perspective of the slave:"
+msgstr ""
+
+#: ../source/core/master-slave.txt:175
+# 21cedb6fc8c44cca950bc9c1440a4915
+msgid "Use the :dbcommand:`serverStatus` as in the following operation, to return status of the replication:"
+msgstr ""
+
+#: ../source/core/master-slave.txt:182
+# 650db3d4b2bf4ab89dff6152d2f7dbde
+msgid "See :ref:`server status repl fields <server-status-repl>` for documentation of the relevant section of output."
+msgstr ""
+
+#: ../source/core/master-slave.txt:186
+# 005d1fa6ef544517a61173caa8f12c97
+msgid "Security"
+msgstr ""
+
+#: ../source/core/master-slave.txt:188
+# 42943676f02f4d59bf1edab20adfc40c
+msgid "When running with :setting:`auth` enabled, in :term:`master`\\-:term:`slave` deployments configure a :setting:`keyFile` so that slave :program:`mongod` instances can authenticate and communicate with the master :program:`mongod` instance."
+msgstr ""
+
+#: ../source/core/master-slave.txt:194
+# ba77b1bf83394ce6a16574d79289df2d
+msgid "To enable authentication and configure the :setting:`keyFile` add the following option to your configuration file:"
+msgstr ""
+
+#: ../source/core/master-slave.txt:203
+# 6043f6b9372940d498d185ea7e71cbcd
+msgid "You may chose to set these run-time configuration options using the :option:`--keyFile <mongod --keyFile>` option on the command line."
+msgstr ""
+
+#: ../source/core/master-slave.txt:206
+# 26477f47933b4f0fa79f08e65e068c10
+msgid "Setting :setting:`keyFile` enables authentication and specifies a key file for the :program:`mongod` instances to use when authenticating to each other. The content of the key file is arbitrary but must be the same on all members of the deployment can connect to each other."
+msgstr ""
+
+#: ../source/core/master-slave.txt:211
+# 2d4d0336d9154d218a4049667f3258f1
+msgid "The key file must be less one kilobyte in size and may only contain characters in the base64 set. The key file must not have group or \"world\" permissions on UNIX systems. Use the following command to use the OpenSSL package to generate \"random\" content for use in a key file:"
+msgstr ""
+
+#: ../source/core/master-slave.txt:220
+# 967c18c7e84c4e06affad12e80603b98
+msgid ":doc:`/security` for more information about security in MongoDB"
+msgstr ""
+
+#: ../source/core/master-slave.txt:223
+# 87d482e928bb456d9c3f7f2d7a6223b1
+msgid "Ongoing Administration and Operation of Master-Slave Deployments"
+msgstr ""
+
+#: ../source/core/master-slave.txt:228
+# 806b24e5005c459bb1394355582242bf
+msgid "Deploy Master-Slave Equivalent using Replica Sets"
+msgstr ""
+
+#: ../source/core/master-slave.txt:230
+# 83d601af5c1743328157c19a7cf346a8
+msgid "If you want a replication configuration that resembles :term:`master`\\-:term:`slave` replication, using :term:`replica sets <replica set>` replica sets, consider the following replica configuration document. In this deployment hosts ``<master>`` and ``<slave>`` [#host-are-hostnames]_ provide replication that is roughly equivalent to a two-instance master-slave deployment:"
+msgstr ""
+
+#: ../source/core/master-slave.txt:247
+# ffa5accc52bb4398969381751a9e34ac
+msgid "See :doc:`/reference/replica-configuration` for more information about replica set configurations."
+msgstr ""
+
+#: ../source/core/master-slave.txt:250
+# 8e0f1aacc8e94c5498a611295ad36eee
+msgid "In replica set configurations, the :data:`~local.system.replset.members[n].host` field must hold a resolvable hostname."
+msgstr ""
+
+#: ../source/core/master-slave.txt:257
+# 46423645c8d34f689ec1d510b793d919
+msgid "Convert a Master-Slave Deployment to a Replica Set"
+msgstr ""
+
+#: ../source/core/master-slave.txt:259
+# a67aea623a4f4d24a640347c880cdb17
+msgid "To convert a master-slave deployment to a replica set, restart the current master as a one-member replica set. Then remove the data directors from previous secondaries and add them as new secondaries to the new replica set."
+msgstr ""
+
+#: ../source/core/master-slave.txt:264
+# 86c38b050cd445d98f7c4694d3fe2b6d
+msgid "To confirm that the current instance is master, run:"
+msgstr ""
+
+#: ../source/core/master-slave.txt:270
+# fe5b5a941b3448399b8ab809a983ac4d
+msgid "This should return a document that resembles the following:"
+msgstr ""
+
+#: ../source/core/master-slave.txt:282
+# 702fada3b0054d2aaaa81bc3a272747d
+msgid "Shut down the :program:`mongod` processes on the master and all slave(s), using the following command while connected to each instance:"
+msgstr ""
+
+#: ../source/core/master-slave.txt:290
+# 48ceb55e9d2d4a069f562aa8eba331a8
+msgid "Back up your ``/data/db`` directories, in case you need to revert to the master-slave deployment."
+msgstr ""
+
+#: ../source/core/master-slave.txt:293
+# 9455b9e02e744665b60dcb01306bfde4
+msgid "Start the former master with the :option:`--replSet <replSet>` option, as in the following:"
+msgstr ""
+
+#: ../source/core/master-slave.txt:300
+# 6da261e4a08f4f5a9cf4352ae56f430c
+msgid "Connect to the :program:`mongod` with the :program:`mongo` shell, and initiate the replica set with the following command:"
+msgstr ""
+
+#: ../source/core/master-slave.txt:307
+# 7df999993c0141b5b1e8ec487cfec10e
+msgid "When the command returns, you will have successfully deployed a one-member replica set. You can check the status of your replica set at any time by running the following command:"
+msgstr ""
+
+#: ../source/core/master-slave.txt:315
+# 5fd52a067db14cb2830c28cd4ae262c3
+msgid "You can now follow the :doc:`convert a standalone to a replica set </tutorial/convert-standalone-to-replica-set>` tutorial to deploy your replica set, picking up from the :ref:`Expand the Replica Set <expand-the-replica-set>` section."
+msgstr ""
+
+#: ../source/core/master-slave.txt:321
+# 38dab3706d664ad7acc06903bf71009a
+msgid "Failing over to a Slave (Promotion)"
+msgstr ""
+
+#: ../source/core/master-slave.txt:323
+# e050856ec4d5462299a0e366c55c789a
+msgid "To permanently failover from a unavailable or damaged :term:`master` (``A`` in the following example) to a :term:`slave` (``B``):"
+msgstr ""
+
+#: ../source/core/master-slave.txt:326
+# d7deb55f4d8e4771b9f062ecaa2c2e81
+msgid "Shut down ``A``."
+msgstr ""
+
+#: ../source/core/master-slave.txt:328
+# c4e641e96235491e8aa2a316d0c09d9d
+msgid "Stop :program:`mongod` on ``B``."
+msgstr ""
+
+#: ../source/core/master-slave.txt:330
+# 54898a2280234f50b25e47a58ca13e32
+msgid "Back up and move all data files that begin with ``local`` on ``B`` from the :setting:`dbpath`."
+msgstr ""
+
+#: ../source/core/master-slave.txt:335
+#: ../source/core/master-slave.txt:372
+# 3b8700bf0f4d40e5a774dc5f1e43dd89
+# 123b5a1b7b9b4d719c1f974c555cce7f
+msgid "Removing ``local.*`` is irrevocable and cannot be undone. Perform this step with extreme caution."
+msgstr ""
+
+#: ../source/core/master-slave.txt:338
+# be116856014b42318368a31754610f6a
+msgid "Restart :program:`mongod` on ``B`` with the :option:`--master <mongod --master>` option."
+msgstr ""
+
+#: ../source/core/master-slave.txt:341
+# 0ebca38436a143b8a8b55b43e43b33ed
+msgid "This is a one time operation, and is not reversible. ``A`` cannot become a slave of ``B`` until it completes a full resync."
+msgstr ""
+
+#: ../source/core/master-slave.txt:345
+# a08e198990cb434681aad32c3b02e48b
+msgid "Inverting Master and Slave"
+msgstr ""
+
+#: ../source/core/master-slave.txt:347
+# 21d5b63c4fe443c7b07f5a8bf5d2ea62
+msgid "If you have a :term:`master` (``A``) and a :term:`slave` (``B``) and you would like to reverse their roles, follow this procedure. The procedure assumes ``A`` is healthy, up-to-date and available."
+msgstr ""
+
+#: ../source/core/master-slave.txt:351
+# 9c1ffdd0ba16442584829502309b99c0
+msgid "If ``A`` is not healthy but the hardware is okay (power outage, server crash, etc.), skip steps 1 and 2 and in step 8 replace all of ``A``'s files with ``B``'s files in step 8."
+msgstr ""
+
+#: ../source/core/master-slave.txt:355
+# 28fa60fffe3c4d0690451e59590ca3e0
+msgid "If ``A`` is not healthy and the hardware is not okay, replace ``A`` with a new machine. Also follow the instructions in the previous paragraph."
+msgstr ""
+
+#: ../source/core/master-slave.txt:358
+# 1ee1f23bcc5940c682e3949fa9567d17
+msgid "To invert the master and slave in a deployment:"
+msgstr ""
+
+#: ../source/core/master-slave.txt:360
+# 4a135f2e614f4df6b78baa48e9d31d29
+msgid "Halt writes on ``A`` using the :term:`fsync` command."
+msgstr ""
+
+#: ../source/core/master-slave.txt:362
+# 1f662695f96f43d5b58b76fc230caadb
+msgid "Make sure ``B`` is up to date with the state of ``A``."
+msgstr ""
+
+#: ../source/core/master-slave.txt:364
+# 381d4a2a1b4d4ba09e30a4777553d9f8
+msgid "Shut down ``B``."
+msgstr ""
+
+#: ../source/core/master-slave.txt:366
+# a3badcb0268d45ba8a10562858aa9407
+msgid "Back up and move all data files that begin with ``local`` on ``B`` from the :setting:`dbpath` to remove the existing ``local.sources`` data."
+msgstr ""
+
+#: ../source/core/master-slave.txt:375
+#: ../source/core/master-slave.txt:390
+# 2c6cba20974846be899216fa1b6ad56b
+# b0edc7db208f43fb92b720c425650003
+msgid "Start ``B`` with the :option:`--master <mongod --master>` option."
+msgstr ""
+
+#: ../source/core/master-slave.txt:377
+# dd8e3e1ede104a84bc7452085e728b23
+msgid "Do a write on ``B``, which primes the :term:`oplog` to provide a new sync start point."
+msgstr ""
+
+#: ../source/core/master-slave.txt:380
+# b6a7b36d073f44a183824a5e75604b19
+msgid "Shut down ``B``. ``B`` will now have a new set of data files that start with ``local``."
+msgstr ""
+
+#: ../source/core/master-slave.txt:383
+# 86ca3ad196544aef8d2f0fcf659af64f
+msgid "Shut down ``A`` and replace all files in the :setting:`dbpath` of ``A`` that start with ``local`` with a copy of the files in the :setting:`dbpath` of ``B`` that begin with ``local``."
+msgstr ""
+
+#: ../source/core/master-slave.txt:387
+# 3600dac912364759a371d947a314f1b4
+msgid "Considering compressing the ``local`` files from ``B`` while you copy them, as they may be quite large."
+msgstr ""
+
+#: ../source/core/master-slave.txt:392
+# e5101ff101a24681b3fa0acce9b6193f
+msgid "Start ``A`` with all the usual slave options, but include :option:`fastsync <mongod --fastsync>`."
+msgstr ""
+
+#: ../source/core/master-slave.txt:396
+# 52fd038ea6b04fec8790f97d24f70a3f
+msgid "Creating a Slave from an Existing Master's Disk Image"
+msgstr ""
+
+#: ../source/core/master-slave.txt:398
+# 16816bf4a15b480aaa11e735900d1846
+msgid "If you can stop write operations to the :term:`master` for an indefinite period, you can copy the data files from the master to the new :term:`slave` and then start the slave with :option:`--fastsync <mongod --fastsync>`."
+msgstr ""
+
+#: ../source/core/master-slave.txt:405
+# 9fa9b5384dbb4026a4c8cfc7ffd07371
+msgid "Be careful with :option:`--fastsync <mongod --fastsync>`.  If the data on both instances is **not** identical, a discrepancy will exist forever."
+msgstr ""
+
+#: ../source/core/master-slave.txt:409
+# fadb4662b5af442ab1cdbbaa0bc59727
+msgid ":setting:`fastsync` is a way to start a slave by starting with an existing master disk image/backup. This option declares that the administrator guarantees the image is correct and completely up-to-date with that of the master. If you have a full and complete copy of data from a master you can use this option to avoid a full synchronization upon starting the slave."
+msgstr ""
+
+#: ../source/core/master-slave.txt:417
+# 30f331cc6d954436a8ce8cae76bbbef8
+msgid "Creating a Slave from an Existing Slave's Disk Image"
+msgstr ""
+
+#: ../source/core/master-slave.txt:419
+# 6edc4d5739cb444d88c67ecd56e2c469
+msgid "You can just copy the other :term:`slave's <slave>` data file snapshot without any special options. Only take data snapshots when a :program:`mongod` process is down or locked using :method:`db.fsyncLock()`."
+msgstr ""
+
+#: ../source/core/master-slave.txt:425
+# 29a52e3d8b8a42e2ac8ef4f498d4f09b
+msgid "Resyncing a Slave that is too Stale to Recover"
+msgstr ""
+
+#: ../source/core/master-slave.txt:427
+# b01230efa1cd49a491e51392ca48f11a
+msgid ":term:`Slaves <slave>` asynchronously apply write operations from the :term:`master` that the slaves poll from the master's :term:`oplog`. The oplog is finite in length, and if a slave is too far behind, a full resync will be necessary. To resync the slave, connect to a slave using the :program:`mongo` and issue the :dbcommand:`resync` command:"
+msgstr ""
+
+#: ../source/core/master-slave.txt:439
+# 3432ac75d0a040beb548e743ce270cd7
+msgid "This forces a full resync of all data (which will be very slow on a large database). You can achieve the same effect by stopping :program:`mongod` on the slave, deleting the entire content of the :setting:`dbpath` on the slave, and restarting the :program:`mongod`."
+msgstr ""
+
+#: ../source/core/master-slave.txt:445
+# f5e6d76682bd4c74b1eac239bd7ffbb6
+msgid "Slave Chaining"
+msgstr ""
+
+#: ../source/core/master-slave.txt:447
+# 6ccd951d5583420ea6689316a984e3bf
+msgid ":term:`Slaves <slave>` cannot be \"chained.\" They must all connect to the :term:`master` directly."
+msgstr ""
+
+#: ../source/core/master-slave.txt:450
+# 178c53d489984e06a24d2382582a206d
+msgid "If a slave attempts \"slave from\" another slave you will see the following line in the :program:`mongod` long of the shell:"
+msgstr ""
+
+#: ../source/core/master-slave.txt:458
+# c7745eb3846e48c09076d85bc9fa88da
+msgid "Correcting a Slave's Source"
+msgstr ""
+
+#: ../source/core/master-slave.txt:460
+# fb3a0c66833441e5b4112f2b419c05e7
+msgid "To change a :term:`slave's <slave>` source, manually modify the slave's :data:`local.sources` collection."
+msgstr ""
+
+#: ../source/core/master-slave.txt:0
+# 86d5fcd65ac64b1c94b096ba1bf23975
+msgid "Example"
+msgstr ""
+
+#: ../source/core/master-slave.txt:465
+# f23659ae61d7478ead94e6a662377e1d
+msgid "Consider the following: If you accidentally set an incorrect hostname for the slave's :setting:`source`, as in the following example:"
+msgstr ""
+
+#: ../source/core/master-slave.txt:472
+# 9610c0bf4a0a4441ae1f498b959a58d9
+msgid "You can correct this, by restarting the slave without the :option:`--slave <mongod --slave>` and :option:`--source <mongod --source>` arguments:"
+msgstr ""
+
+#: ../source/core/master-slave.txt:480
+# 1b3ec3b3c6c84c3c89f60b06080a722d
+msgid "Connect to this :program:`mongod` instance using the :program:`mongo` shell and update the :data:`local.sources` collection, with the following operation sequence:"
+msgstr ""
+
+#: ../source/core/master-slave.txt:491
+# e7fd65ffde7f4661a49a1168ed685f01
+msgid "Restart the slave with the correct command line arguments or with no :option:`--source <mongod --source>` option. After configuring :data:`local.sources` the first time, the :option:`--source <mongod --source>` will have no subsequent effect. Therefore, both of the following invocations are correct:"
+msgstr ""
+
+#: ../source/core/master-slave.txt:502
+# 8be679c3e7954de697188eedec84ac08
+msgid "or"
+msgstr ""
+
+#: ../source/core/master-slave.txt:508
+# 21bcd2418da5408d97a0b350baba729f
+msgid "The slave now polls data from the correct :term:`master`."
+msgstr ""
+
