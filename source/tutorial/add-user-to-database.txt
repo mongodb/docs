@@ -6,90 +6,61 @@ Add a User to a Database
 
 .. versionchanged:: 2.5.3
 
-.. Overview
-.. --------
+Overview
+--------
 
-.. todo This will be further updated per DOCS-2312
+Create a user for every individual who accesses the MongoDB deployment and for
+every *instance* of an application that accesses the deployment. Giving an
+application instance its own user allows you to shut down the user should
+security become compromised.
+
+Creating a user involves creating the user's credentials and assigning the
+user :ref:`roles <roles>`. Credentials verify the user's identity to a
+database, and roles
+determine the user's access to database resources and operations.
+
+For an overview of MongoDB's approach to credentials and roles, see
+:doc:`/core/access-control`.
+
+Considerations
+--------------
+
+When adding a user to multiple databases, use unique username-and-password
+combinations for each database. If a user has the same password for multiple
+databases, the password hash is the same and presents a security issue,
+as described in :ref:`password-hashing-security`.
+
+You need not provide credentials for users who use external authentication,
+such as through through :doc:`Kerberos
+</tutorial/control-access-to-mongodb-with-kerberos-authentication>`,
+:doc:`LDAP </tutorial/configure-ldap-sasl-authentication>`, or x.509
+certificates.
+
+When assigning roles, select roles that have the exact :ref:`privileges
+<privileges>` the user needs, in keeping with the policy of :term:`least
+privilege`. If such roles do not exist, :doc:`create the roles
+</tutorial/define-roles>`.
+
+You can create a user without assigning roles, choosing instead to assign the
+roles later. To do so, create the user with an empty
+:data:`~admin.system.users.roles` array.
+
+.. _add-user-prereq:
 
 Prerequisites
 -------------
 
-.. todo This wording below is mostly placeholder. Will revisit when work on DOCS-2312
+To create a user on a system that uses :ref:`authentication <authentication>`,
+you must authenticate as a user administrator. If you have not yet created a
+user administrator, do so as described in
+:doc:`/tutorial/add-user-administrator`.
 
 .. include:: /includes/access-create-user.rst
 
-A user with either the :authrole:`userAdmin` or :authrole:`userAdminAnyDatabase`
-role has both those :ref:`actions <security-user-actions>`.
+The :authrole:`userAdmin` and :authrole:`userAdminAnyDatabase` roles both
+provide those actions.
 
-If you have not first created a user with one of those roles, do
-so as described in :doc:`/tutorial/add-user-administrator`.
+Procedures
+----------
 
-When adding a user to multiple databases, you must define the user
-*for each database*. See :ref:`password-hashing-security` for
-important security information.
-
-To add a user and set the user's credentials and roles, use the
-:method:`db.createUser()` method.
-
-Procedure
----------
-
-.. todo These are just examples for now. Procedures coming ...
-
-Create User with Roles
-~~~~~~~~~~~~~~~~~~~~~~
-
-Alternatively, the following operation creates ``accountUser`` in the ``products`` database
-and gives the user the ``readWrite`` and ``dbAdmin`` roles.
-
-.. code-block:: javascript
-
-   use products
-   db.createUser(
-      {
-        user: "accountUser",
-        pwd: "password",
-        roles: [ "readWrite", "dbAdmin" ]
-      }
-   )
-
-Create User Without Roles
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The following operation creates a user named ``reportsUser`` in the ``admin``
-database but does not yet assign roles:
-
-.. code-block:: javascript
-
-   use admin
-   db.createUser(
-      {
-        user: "reportsUser",
-        pwd: "password",
-        roles: [ ]
-      }
-   )
-
-
-Create Administrative User with Roles
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The following operation creates a user named ``appAdmin`` in the
-``admin`` database and gives the user ``readWrite`` access to the
-``config`` database, which lets the user change certain settings for
-sharded clusters, such as to the balancer setting.
-
-.. code-block:: javascript
-
-   use admin
-   db.createUser(
-      {
-        user: "appAdmin",
-        pwd: "password",
-        roles:
-          [
-            "clusterAdmin",
-            { db: "config", role: "readWrite" }
-          ]
-      }
-   )
+.. include:: /includes/steps/add-user-to-database.rst
