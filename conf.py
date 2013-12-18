@@ -75,6 +75,7 @@ html_theme_options = {
     'branch': conf.git.branches.current,
     'google_analytics': 'UA-7301842-7',
     'stable': conf.version.stable,
+    'project': conf.project.name,
 }
 
 hosted_latex_documents = []
