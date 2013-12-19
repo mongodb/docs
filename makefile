@@ -22,19 +22,11 @@ help:
 
 ########## MMS Specific Content ##########
 
-ifeq ($(current-branch),master)
-publish all:hosted saas
-htaccess:build/public/saas/.htaccess build/public/hosted/.htaccess
-build/public/saas/.htaccess:build/public/saas
-else
-publish all:hosted
-htaccess:build/public/hosted/.htaccess
-endif
-
 hosted saas:setup
-	@$(MAKE) EDITION=$@ generate-source-$@ publish-$@ latex-$@ json-$@ build/public/$@/.htaccess
+	@$(MAKE) EDITION=$@ generate-source-$@ latex-$@ json-$@ html-$@ dirhtml-$@ singlehtml-$@ build/public/$@/.htaccess
 	@echo [build]: $@ edition complete
-build/public/saas/.htaccess:bin/htaccess-saas.yaml bin/htaccess.py build/public/saas
+
+build/public/saas/.htaccess:bin/htaccess-saas.yaml bin/htaccess.py build/public/saas 
 	@$(PYTHONBIN) $(tools)/bin/htaccess.py $@ --data $<
 build/public/hosted/.htaccess:bin/htaccess-hosted.yaml bin/htaccess.py build/public/hosted
 	@$(PYTHONBIN) $(tools)/bin/htaccess.py $@ --data $<

@@ -1,19 +1,15 @@
 ifeq ($(EDITION),hosted)
 build-type = hosted
-branch-output = build/$(build-type)/$(current-branch)
 public-output = build/public/$(build-type)/$(current-branch)
-publish-output = build/public/$(build-type)/current build/public/$(build-type)/upcoming
-publish-output += $(public-output) $(public-output)/single
+publish-output = $(public-output) $(public-output)/single
 publish-dependency += $(branch-output)
-publish-hosted:$(publish-output) $(publish-dependency)
+publish-hosted:$(publish-dependency)
 endif
 
 ifeq ($(EDITION),saas)
 build-type = saas
 public-output = build/public/$(build-type)
-branch-output = build/$(build-type)
 publish-output += $(public-output) $(public-output)/single
-publish-dependency += $(branch-output)
 publish-saas:$(publish-output) $(publish-dependency)
 endif
 
