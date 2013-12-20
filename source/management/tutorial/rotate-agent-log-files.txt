@@ -12,16 +12,11 @@ Overview
 --------
 
 During normal operation, the monitoring agent and backup agent report a live
-account of all activity and operations to either standard output or a log file.
-When a log file reaches a user-specified limit, the file must be replaced or
-rotated.
+account of all activity and operations to a log file. When a log file reaches a
+user-specified limit, the file must be replaced or rotated.
 
-The standard approach to log rotation only rotates logs in response to the
-:program:`logrotate` command.
-
-To rotate log files, the current log file is renamed by appending a UTC (GMT)
-timestamp to the filename. The logrotate process then opens a new log file,
-closes the old log file, and sends all new log entries to the new log file.
+In most cases, :program:`logrotate` software automatically copies, renames,
+compresses, and removes older archived log files.
 
 For systems where a program cannot be told to close its log file, the
 :program:`copytruncate` command is available to adapt the log rotation process.
@@ -29,44 +24,50 @@ For systems where a program cannot be told to close its log file, the
 Log Rotation With :program:`logrotate`
 --------------------------------------
 
+:program:`logrotate` is installed on most Linux systems in the :file:`/etc`
+folder. Check the ``logrotate.conf`` configuration file exists in this
+folder or install the :program:`logrotate` package.
+
 The behavior of the :program:`logrotate` command is set in the
-:file:`logrotate.conf` configuration file, usually located in the `/etc` folder.
+``logrotate.conf`` configuration file.
 
-The :program:`logrotate` command is called with the configuration file path and
-file name:
+The ``logrotate.conf`` configuration file is called with the
+:program:`logrotate` command:
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      logrotate /etc/logrotate.conf
+   logrotate /etc/logrotate.conf
 
 This command should be run as a cron job to ensure log files are rotated
 regularly and, in most cases, run by the root user. :program:`logrotate` often
-is called from a script in the `/etc/cron.daily` directory. If a logrotate
-script does not exist in this folder, create a script :file:`logrotate` with
-the following contents:
+is called from a script in the `/etc/cron.daily` directory.
 
-   .. code-block:: javascript
+The ``logrotate.conf`` file includes a set of commands in a structured format,
+for example:
 
-      #!/bin/sh
-      logrotate /etc/logrotate.conf
+.. code-block:: javascript
 
-The :file:`logrotate.conf` file includes a set of commands in a structured format:
-
-   .. code-block:: javascript
-
-      #sample configuration file
-      compress
+   #sample configuration file
+   compress
       
-      /var/log/messages {
-          rotate 5
-          weekly
-      }
+   <backup agent log file location> {
+       rotate 5
+       weekly
+   }
+
+   <monitoring agent log file location> {
+       rotate 5
+       weekly
+   }
 
 In this example, the configuration commands include:
 
 - **compress** sets a global option to compress files after each file is rotated.
 
-- **/var/log/messages** sets commands specific to the *messages* log file.
+- **<backup agent log file location>** or **<monitoring agent log file
+  location>** sets commands specific to the backup agent or monitoring agent
+  log file. The names and locations of backup and monitoring agent log files
+  are set when the agents are installed.
 
   - **rotate 5** sets how many times a log file is rotated before archived logs
     are removed. In this case, the most recent five archived log files are kept
@@ -78,24 +79,29 @@ In this example, the configuration commands include:
 Log Rotation With :program:`copytruncate`
 -------------------------------------------
 
-The :program:`copytruncate` command copies the contents of the current log file
-to a new archive file then deletes the contents of the current log file. New
-log activity is added to the now empty current log file. This command is used
-when a program cannot be told to close its log file.
+The :program:`copytruncate` command is used when a program cannot be told to
+close its log file. This command copies the contents of the current log file to
+a new archive file then deletes the contents of the current log file. New log
+activity is added to the now empty current log file.
 
-To rotate log files with :program:`copytruncate`, update the ``logrotate.conf``
-file as shown in this example:
+To rotate log files with :program:`copytruncate`, add the *copytruncate*
+setting to the appropriate block in the ``logrotate.conf`` file:
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      #sample configuration file
-      compress
+   #sample configuration file
+   compress
       
-      /var/log/messages {
-          rotate 5
-          copytruncate
-          weekly
-      }
+   <backup agent log file location> {
+       rotate 5
+       copytruncate
+       weekly
+   }
+
+   <monitoring agent log file location> {
+       rotate 5
+       weekly
+   }
 
 
 When :program:`copytruncate` is used, the :program:`create` command option
@@ -104,7 +110,13 @@ has no effect because the old log file stays in place.
 There is a very small time window between copy the log file and emptying it.
 Some logging data may be lost with this method.
 
-Need: agent log file names
+.. seealso:: 
+   
+   - `logrotate Man Page <http://linuxcommand.org/man_pages/logrotate8.html>`_.
 
-.. seealso:: `logrotate Man Page
-   <http://linuxcommand.org/man_pages/logrotate8.html>`_.
+   - `Install the MMS Monitoring Agent
+     <https://mms.mongodb.com/help/monitoring/tutorial/set-up-mms/>`_.
+     
+   - `Install and Start the MMS Backup Agent
+     <https://mms.mongodb.com/help/backup/tutorial/install-and-start-backup-agent/>`_.
+
