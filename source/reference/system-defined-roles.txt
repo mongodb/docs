@@ -1,3 +1,5 @@
+.. _built-in-roles:
+
 ==============
 Built-In Roles
 ==============
@@ -6,287 +8,475 @@ Built-In Roles
 
 .. default-domain:: mongodb
 
-MongoDB uses role-based authorization to give users access to data and
-commands. In addition to providing the ability to :ref:`create
-user-defined roles <user-defined-roles>`, MongoDB provides
-built-in roles.
+MongoDB grants access to data and commands through :ref:`role-based
+authorization <roles>` and provides built-in roles that provide the different
+levels of access commonly needed in a database system. You can additionally
+create :ref:`user-defined roles <user-defined-roles>`.
 
-.. TODO This page needs updates, both in content as well as style.
+A role grants privileges to perform sets of :ref:`actions
+<security-user-actions>` on defined :ref:`resources <resource-document>`. A
+given role applies to the database on which it is defined and can grant access
+down to a collection level of granularity.
 
-.. _built-in-roles:
+Each of MongoDB's built-in roles defines access at the database level for all
+*non*-system collections in the role's database and at the collection level
+for all :doc:`system collections </reference/system-collections>`.
 
-Roles
------
+MongoDB provides the built-in :ref:`database user <database-user-roles>` and
+:ref:`database administration <database-administration-roles>` roles on
+*every* database. MongoDB provides all other built-in roles only on the
+``admin`` database.
+
+This section describes the privileges for each built-in role. You can also
+view the privileges for a built-in role at any time by issuing the
+:dbcommand:`rolesInfo` command with the ``showPrivileges`` and
+``showBuiltinRoles`` fields both set to ``true``.
+
+.. _database-user-roles:
 
 Database User Roles
-~~~~~~~~~~~~~~~~~~~
+-------------------
+
+Every database includes the following client roles:
 
 .. authrole:: read
 
-   Provides users with the ability to read data from any collection
-   within a specific logical database. This includes
-   :method:`~db.collection.find()` and the following :term:`database
-   commands <database command>`:
+   Provides the ability to read data on all *non*-system collections and on
+   the following system collections: :data:`system.indexes
+   <<database>.system.indexes>`, :data:`system.js <<database>.system.js>`, and
+   :data:`system.namespaces <<database>.system.namespaces>` collections. The
+   role provides read access by granting the following :ref:`actions
+   <security-user-actions>`:
 
-   - :dbcommand:`aggregate`
-   - :dbcommand:`checkShardingIndex`
-   - :dbcommand:`cloneCollectionAsCapped`
-   - :dbcommand:`collStats`
-   - :dbcommand:`count`
-   - :dbcommand:`dataSize`
-   - :dbcommand:`dbHash`
-   - :dbcommand:`dbStats`
-   - :dbcommand:`distinct`
-   - :dbcommand:`filemd5`
-   - :dbcommand:`geoNear`
-   - :dbcommand:`geoSearch`
-   - :dbcommand:`geoWalk`
-   - :dbcommand:`group`
-   - :dbcommand:`mapReduce` (inline output only.)
-   - :dbcommand:`text` (beta feature.)
+   - :authaction:`collStats`
+   - :authaction:`dbHash`
+   - :authaction:`dbStats`
+   - :authaction:`find`
+   - :authaction:`killCursors`
 
 .. authrole:: readWrite
 
-   Provides users with the ability to read from or write to any
-   collection within a specific logical database. Users with
-   :authrole:`readWrite` have access to all of the operations
-   available to :authrole:`read` users, as well as the following basic
-   write operations: :method:`~db.collection.insert()`,
-   :method:`~db.collection.remove()`, and
-   :method:`~db.collection.update()`.
+   Provides all the privileges of the :authrole:`read` role plus ability to
+   modify data on all *non*-system collections and the :data:`system.js
+   <<database>.system.js>` collection. The role provides the following
+   :ref:`actions <security-user-actions>` on those collections:
 
-   Additionally, users with the :authrole:`readWrite` have access to
-   the following :term:`database commands <database command>`:
+   - :authaction:`collStats`
+   - :authaction:`convertToCapped`
+   - :authaction:`createCollection`
+   - :authaction:`createIndex`
+   - :authaction:`dbHash`
+   - :authaction:`dbStats`
+   - :authaction:`dropCollection`
+   - :authaction:`dropIndex`
+   - :authaction:`emptycapped`
+   - :authaction:`find`
+   - :authaction:`insert`
+   - :authaction:`killCursors`
+   - :authaction:`remove`
+   - :authaction:`renameCollectionSameDB`
+   - :authaction:`update`
 
-   - :dbcommand:`cloneCollection` (as the target database.)
-   - :dbcommand:`convertToCapped`
-   - :dbcommand:`create` (and to create collections implicitly.)
-   - :method:`~db.collection.drop()`
-   - :dbcommand:`dropIndexes`
-   - :dbcommand:`emptycapped`
-   - :method:`~db.collection.ensureIndex()`
-   - :dbcommand:`findAndModify`
-   - :dbcommand:`mapReduce` (output to a collection.)
-   - :dbcommand:`renameCollection` (within the same database.)
-
-.. _database-admin-roles:
+.. _database-administration-roles:
 
 Database Administration Roles
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------
+
+Every database includes the following database administration roles:
 
 .. authrole:: dbAdmin
 
-   Provides the ability to perform the following set of administrative
-   operations within the scope of this logical database.
+   .. todo: Provides administrators what overall function?
 
-   - :dbcommand:`clean`
-   - :dbcommand:`collMod`
-   - :dbcommand:`collStats`
-   - :dbcommand:`compact`
-   - :dbcommand:`convertToCapped`
-   - :dbcommand:`create`
-   - :method:`db.createCollection()`
-   - :dbcommand:`dbStats`
-   - :method:`~db.collection.drop()`
-   - :dbcommand:`dropIndexes`
-   - :method:`~db.collection.ensureIndex()`
-   - :dbcommand:`indexStats`
-   - :dbcommand:`profile`
-   - :dbcommand:`reIndex`
-   - :dbcommand:`renameCollection` (within a single database.)
-   - :dbcommand:`validate`
+   Provides the following :ref:`actions <security-user-actions>` on the
+   database's :data:`system.indexes <<database>.system.indexes>`,
+   :data:`system.namespaces <<database>.system.namespaces>`, and
+   :data:`system.profile <<database>.system.profile>` collections:
 
-   Furthermore, only :authrole:`dbAdmin` has the ability to read the
-   :data:`system.profile <<database>.system.profile>` collection.
+   - :authaction:`collStats`
+   - :authaction:`dbHash`
+   - :authaction:`dbStats`
+   - :authaction:`find`
+   - :authaction:`killCursors`
 
-   .. - :dbcommand:`storageDetails` (experimental command.)
+   Provides the following *additional* action on :data:`system.profile
+   <<database>.system.profile>`:
 
-      (not documented.)
+   - :authaction:`dropCollection`
 
-   .. TODO integrate into the documentation..
+   Provides the following actions on all *non*-system collections. This role
+   *does not* include full read access on non-system collections:
 
-      to perform renameCollection across databases.  To do so, you
-      need :authrole:`readWrite` on the target, and either
-      (:authrole:`readWrite` or (:authrole:`read` and
-      :authrole:`dbAdmin`)) on the source.
+   - :authaction:`clean`
+   - :authaction:`collMod`
+   - :authaction:`collStats`
+   - :authaction:`compact`
+   - :authaction:`convertToCapped`
+   - :authaction:`createCollection`
+   - :authaction:`createIndex`
+   - :authaction:`dbStats`
+   - :authaction:`dropCollection`
+   - :authaction:`dropDatabase`
+   - :authaction:`dropIndex`
+   - :authaction:`enableProfiler`
+   - :authaction:`indexStats`
+   - :authaction:`reIndex`
+   - :authaction:`renameCollectionSameDB`
+   - :authaction:`repairDatabase`
+   - :authaction:`storageDetails`
+   - :authaction:`validate`
+
+.. authrole:: dbOwner
+
+   Combines the privileges granted by the :authrole:`readWrite`,
+   :authrole:`dbAdmin` and :authrole:`userAdmin` roles.
+
+   .. todo: for what purpose?
 
 .. authrole:: userAdmin
 
-   Provides the ability to modify permissions for existing users
-   and create new users on the current database. :authrole:`userAdmin`
-   does not restrict the permissions that a user can grant, and a
-   :authrole:`userAdmin` user can grant privileges to themselves or
-   other users in excess of the :authrole:`userAdmin` users' current privileges.
+   Provides the ability to create and modify roles and users on the current
+   database.
 
-   .. important:: :authrole:`userAdmin` is effectively the *superuser*
-      role for a specific database. Users with :authrole:`userAdmin`
-      can grant themselves all privileges. However,
-      :authrole:`userAdmin` does not explicitly authorize a user for
-      any privileges beyond user administration.
+   The :authrole:`userAdmin` role does not restrict the permissions that a
+   user can grant, and as a result a :authrole:`userAdmin` user can grant
+   privileges to themselves or other users in excess of the
+   :authrole:`userAdmin` users' current privileges. A :authrole:`userAdmin`
+   can grant themselves *all privileges*, even though the role does not
+   explicitly authorize privileges beyond user administration.
 
-   .. include:: /includes/note-user-admin-on-admin-database.rst
+   The :authrole:`userAdmin` role provides the following :ref:`actions
+   <security-user-actions>`:
 
+   - :authaction:`changeCustomData`
+   - :authaction:`changePassword`
+   - :authaction:`createRole`
+   - :authaction:`createUser`
+   - :authaction:`dropRole`
+   - :authaction:`dropUser`
+   - :authaction:`grantRole`
+   - :authaction:`revokeRole`
+   - :authaction:`viewRole`
+   - :authaction:`viewUser`
+
+.. _cluster-admin-roles:
 .. _admin-roles:
 
-Administrative Roles
-~~~~~~~~~~~~~~~~~~~~
+Cluster Administration Roles
+----------------------------
+
+The ``admin`` database includes the following roles for administering the
+whole system rather than just a single database. These roles include but are
+not limited to :term:`replica set` and :term:`sharded cluster` administrative
+functions.
 
 .. authrole:: clusterAdmin
 
-   Grants access to several administration
-   operations that affect or present information about the whole system,
-   rather than just a single database. These privileges include but
-   are not limited to :term:`replica set` and :term:`sharded cluster`
-   administrative functions.
+   Provides the greatest cluster-management access. This role combines the
+   privileges granted by the :authrole:`clusterManager`,
+   :authrole:`clusterMonitor`, and :authrole:`hostManager` roles.
 
-   :authrole:`clusterAdmin` is only applicable on the ``admin``
-   database, and does not confer any access to the ``local`` or
-   ``config`` databases.
+   Additionally, the role provides the ability to drop any database by
+   providing the following :ref:`action <security-user-actions>`:
 
-   Specifically, users with the :authrole:`clusterAdmin` role have
-   access to the following operations:
+   - :authaction:`dropDatabase`
 
-   - :dbcommand:`addShard`
-   - :dbcommand:`closeAllDatabases`
-   - :dbcommand:`connPoolStats`
-   - :dbcommand:`connPoolSync`
-   - :dbcommand:`_cpuProfilerStart`
-   - :dbcommand:`_cpuProfilerStop`
-   - :dbcommand:`cursorInfo`
-   - :dbcommand:`diagLogging`
-   - :dbcommand:`dropDatabase`
-   - :dbcommand:`enableSharding`
-   - :dbcommand:`flushRouterConfig`
-   - :dbcommand:`fsync`
-   - :method:`db.fsyncUnlock()`
-   - :dbcommand:`getCmdLineOpts`
-   - :dbcommand:`getLog`
-   - :dbcommand:`getParameter`
-   - :dbcommand:`getShardMap`
-   - :dbcommand:`getShardVersion`
-   - :dbcommand:`hostInfo`
-   - :method:`db.currentOp()`
-   - :method:`db.killOp()`
-   - :dbcommand:`listDatabases`
-   - :dbcommand:`listShards`
-   - :dbcommand:`logRotate`
-   - :dbcommand:`moveChunk`
-   - :dbcommand:`movePrimary`
-   - :dbcommand:`netstat`
-   - :dbcommand:`removeShard`
-   - :dbcommand:`repairDatabase`
-   - :dbcommand:`replSetFreeze`
-   - :dbcommand:`replSetGetStatus`
-   - :dbcommand:`replSetInitiate`
-   - :dbcommand:`replSetMaintenance`
-   - :dbcommand:`replSetReconfig`
-   - :dbcommand:`replSetStepDown`
-   - :dbcommand:`replSetSyncFrom`
-   - :dbcommand:`resync`
-   - :dbcommand:`serverStatus`
-   - :dbcommand:`setParameter`
-   - :dbcommand:`setShardVersion`
-   - :dbcommand:`shardCollection`
-   - :dbcommand:`shardingState`
-   - :dbcommand:`shutdown`
-   - :dbcommand:`splitChunk`
-   - :dbcommand:`splitVector`
-   - :dbcommand:`split`
-   - :dbcommand:`top`
-   - :dbcommand:`touch`
-   - :dbcommand:`unsetSharding`
+.. authrole:: clusterManager
 
-   For some cluster administration operations, MongoDB requires read
-   and write access to the ``local`` or ``config`` databases. You must specify
-   this access separately from :authrole:`clusterAdmin`. See the
-   :ref:`auth-role-combined` section for more information.
+   Provides management and monitoring :ref:`actions <security-user-actions>`
+   on the cluster. A user with this role can access the ``config`` and
+   ``local`` databases, which are used in sharding and replication,
+   respectively.
+
+   Provides the following actions on the cluster as a whole:
+
+   - :authaction:`addShard`
+   - :authaction:`applicationMessage`
+   - :authaction:`cleanupOrphaned`
+   - :authaction:`flushRouterConfig`
+   - :authaction:`listShards`
+   - :authaction:`removeShard`
+   - :authaction:`replSetConfigure`
+   - :authaction:`replSetGetStatus`
+   - :authaction:`replSetStateChange`
+   - :authaction:`resync`
+
+   Provides the following actions on *all* databases in the cluster:
+
+   - :authaction:`enableSharding`
+   - :authaction:`moveChunk`
+   - :authaction:`splitChunk`
+   - :authaction:`splitVector`
+
+   On the ``config`` database, provides the following actions on the
+   :data:`~config.settings` collection:
+
+   - :authaction:`insert`
+   - :authaction:`remove`
+   - :authaction:`update`
+
+   On the ``config`` database, provides the following actions on all
+   configuration collections and on the :data:`system.indexes
+   <<database>.system.indexes>`, :data:`system.js <<database>.system.js>`, and
+   :data:`system.namespaces <<database>.system.namespaces>` collections:
+
+   - :authaction:`collStats`
+   - :authaction:`dbHash`
+   - :authaction:`dbStats`
+   - :authaction:`find`
+   - :authaction:`killCursors`
+
+   On the ``local`` database, provides the following actions on the
+   :data:`~local.system.replset` collection:
+
+   - :authaction:`collStats`
+   - :authaction:`dbHash`
+   - :authaction:`dbStats`
+   - :authaction:`find`
+   - :authaction:`killCursors`
+
+.. authrole:: clusterMonitor
+
+   Provides read-only access to monitoring tools, such as the `MongoDB
+   Management Service (MMS) <http://mms.mongodb.com/help/>`_ monitoring agent.
+
+   Provides the following :ref:`actions <security-user-actions>` on the
+   cluster as a whole:
+
+   - :authaction:`connPoolStats`
+   - :authaction:`cursorInfo`
+   - :authaction:`getCmdLineOpts`
+   - :authaction:`getLog`
+   - :authaction:`getParameter`
+   - :authaction:`getShardMap`
+   - :authaction:`hostInfo`
+   - :authaction:`inprog`
+   - :authaction:`listDatabases`
+   - :authaction:`listShards`
+   - :authaction:`netstat`
+   - :authaction:`replSetGetStatus`
+   - :authaction:`serverStatus`
+   - :authaction:`shardingState`
+   - :authaction:`top`
+   - :authaction:`writeBacksQueued`
+
+   Provides the following actions on *all* databases in the cluster:
+
+   - :authaction:`collStats`
+   - :authaction:`dbStats`
+   - :authaction:`getShardVersion`
+
+   Provides read access on all :data:`system.profile
+   <<database>.system.profile>` collections in the cluster:
+
+   - :authaction:`find`
+
+   On the ``config`` database, provides the following actions on all
+   configuration collections and on the :data:`system.indexes
+   <<database>.system.indexes>`, :data:`system.js <<database>.system.js>`, and
+   :data:`system.namespaces <<database>.system.namespaces>` collections:
+
+   - :authaction:`collStats`
+   - :authaction:`dbHash`
+   - :authaction:`dbStats`
+   - :authaction:`find`
+   - :authaction:`killCursors`
+
+.. authrole:: hostManager
+
+   Provides the ability to monitor and manager servers.
+
+   Provides the following :ref:`actions <security-user-actions>` on the
+   cluster as a whole:
+
+   - :authaction:`applicationMessage`
+   - :authaction:`closeAllDatabases`
+   - :authaction:`connPoolSync`
+   - :authaction:`cpuProfiler`
+   - :authaction:`diagLogging`
+   - :authaction:`flushRouterConfig`
+   - :authaction:`fsync`
+   - :authaction:`invalidateUserCache`
+   - :authaction:`killop`
+   - :authaction:`logRotate`
+   - :authaction:`resync`
+   - :authaction:`setParameter`
+   - :authaction:`shutdown`
+   - :authaction:`touch`
+   - :authaction:`unlock`
+
+   Provides the following actions on *all* databases in the cluster:
+
+   - :authaction:`killCursors`
+   - :authaction:`repairDatabase`
+
+.. _backup-and-restore-roles:
+
+Backup and Restoration Roles
+----------------------------
+
+The ``admin`` database includes the following roles for backing up and
+restoring data:
+
+.. authrole:: backup
+
+   Provides minimal privileges needed for backing up data.
+   This role provides sufficient privileges to use the
+   `MongoDB Management Service (MMS) <http://mms.mongodb.com/help/>`_
+   backup agent.
+
+   .. todo: should we document the mms.backup collection in the
+            system-collections document?
+
+   Provides the following :ref:`actions <security-user-actions>` on the
+   ``mms.backup`` collection in the ``admin`` database:
+
+   - :authaction:`insert`
+   - :authaction:`update`
+
+   Provides the following action on the cluster as a whole:
+
+   - :authaction:`listDatabases`
+
+   Provides the :authaction:`find` action on the following:
+
+   - all *non*-system collections in the cluster
+
+   - all the following system collections in the cluster:
+     :data:`system.indexes <<database>.system.indexes>`,
+     :data:`system.namespaces <<database>.system.namespaces>`, and
+     :data:`system.js <<database>.system.js>`
+
+   - the :data:`admin.system.users` and :data:`admin.system.roles` collections
+
+   - legacy ``system.users`` collections from versions of MongoDB prior to 2.6
+
+   .. todo: Also provides the :authaction:`find` action on:
+             - system.new_users
+             - system.backup_users
+             - system.version
+            Do we want to document these?
+
+.. authrole:: restore
+
+   Provides minimal privileges needed for restoring data from backups.
+   This role provides sufficient privileges to use the
+   `MongoDB Management Service (MMS) <http://mms.mongodb.com/help/>`_
+   backup agent.
+
+   Provides the following :ref:`actions <security-user-actions>` on all
+   *non*-system collections and :data:`system.js <<database>.system.js>`
+   collections in the cluster; on the :data:`admin.system.users` and
+   :data:`admin.system.roles` collections in the ``admin`` database; and on
+   legacy ``system.users`` collections from versions of MongoDB prior to 2.6:
+
+   - :authaction:`collMod`
+   - :authaction:`createCollection`
+   - :authaction:`createIndex`
+   - :authaction:`dropCollection`
+   - :authaction:`insert`
+
+   .. todo: Also provides the above actions on system.new_users,
+            system.backup_users, system.version
+
+   Provides the following *additional* actions on :data:`admin.system.users`
+   and legacy ``system.users`` collections:
+
+   - :authaction:`find`
+   - :authaction:`remove`
+   - :authaction:`update`
+
+   Provides the following action on all the :data:`system.namespaces
+   <<database>.system.namespaces>` collections in the cluster:
+
+   - :authaction:`find`
 
 .. _auth-any-database-roles:
 
 All-Database Roles
-~~~~~~~~~~~~~~~~~~
+------------------
 
-The following roles apply to all databases in a :program:`mongod`
-instance and are roughly equivalent to their single-database
-equivalents. You must specify the following "any" database roles on the
-``admin`` databases.
-
-.. TODO FOR 2.6 Is the following still true ??? -BG
-
-.. If you add any of these roles outside of the ``admin``
-   database, the privilege will have no effect. However, only the
-   specification of the roles must occur in the ``admin`` database,
-   with :ref:`delegated authentication credentials
-   <delegated-credentials>`, users can gain these privileges by
-   authenticating to another database.
+The ``admin`` database provides the following roles that apply to all
+databases in a :program:`mongod` instance and are roughly equivalent to their
+single-database equivalents:
 
 .. authrole:: readAnyDatabase
 
-   Provides users with the same read-only
-   permissions as :authrole:`read`, except it applies to *all* logical
-   databases in the MongoDB environment.
+   Provides the same read-only permissions as :authrole:`read`, except it
+   applies to *all* databases in the cluster.
+
+   Provides the following :ref:`action <security-user-actions>` on the cluster
+   as a whole:
+
+   - :authaction:`listDatabases`
 
 .. authrole:: readWriteAnyDatabase
 
-   Provides users with the same read and
-   write permissions as :authrole:`readWrite`, except it applies to *all*
-   logical databases in the MongoDB environment.
+   Provides the same read and write permissions as :authrole:`readWrite`,
+   except it applies to *all* databases in the cluster.
+
+   Provides the following :ref:`action <security-user-actions>` on the cluster
+   as a whole:
+
+   - :authaction:`listDatabases`
 
 .. authrole:: userAdminAnyDatabase
 
-   Provides users with the same
-   access to user administration operations as :authrole:`userAdmin`,
-   except it applies to *all* logical databases in the MongoDB
-   environment.
+   Provides the same access to user administration operations as
+   :authrole:`userAdmin`, except it applies to *all* databases in the cluster.
 
-   .. important:: Because users with :authrole:`userAdminAnyDatabase`
-      and :authrole:`userAdmin` have the ability to create and modify
-      permissions in addition to their own level of access, this role
-      is *effectively* the MongoDB system superuser. However,
-      :authrole:`userAdminAnyDatabase` and :authrole:`userAdmin` do
-      not explicitly authorize a user for any privileges beyond user
-      administration.
+   The :authrole:`userAdminAnyDatabase` role does not restrict the permissions
+   that a user can grant, and as a result a user with the role can grant
+   privileges to themselves or other users in excess of the user's current
+   privileges. This role is *effectively* a MongoDB system superuser, even
+   though the role does not explicitly authorize a user for any privileges
+   beyond user administration.
+
+   Provides the following :ref:`actions <security-user-actions>` on the
+   cluster as a whole:
+
+   - :authaction:`authSchemaUpgrade`
+   - :authaction:`invalidateUserCache`
+   - :authaction:`listDatabases`
+
+   Provides the following actions on the :data:`admin.system.users` and
+   :data:`admin.system.roles` collections on the ``admin`` database, and on
+   legacy ``system.users`` collections from versions of MongoDB prior to 2.6:
+
+   - :authaction:`collStats`
+   - :authaction:`dbHash`
+   - :authaction:`dbStats`
+   - :authaction:`find`
+   - :authaction:`killCursors`
+   - :authaction:`planCacheRead`
+
+   .. todo: Also provides the above actions on system.new_users, system.backup_users,
+            and system.version. Do we want to document these?
 
 .. authrole:: dbAdminAnyDatabase
 
-   Provides users with the same access
-   to database administration operations as :authrole:`dbAdmin`,
-   except it applies to *all* logical databases in the MongoDB
-   environment.
+   Provides the same access to database administration operations as
+   :authrole:`dbAdmin`, except it applies to *all* databases in the cluster.
+
+   Provides the following :ref:`action <security-user-actions>` on the cluster
+   as a whole:
+
+   - :authaction:`listDatabases`
+
+.. _superuser:
+
+Superuser Role
+--------------
+
+The following role provides full privileges on all resources in the cluster:
 
 .. authrole:: root
 
-   Gives a user access to all the operations and all the resources of *of
-   all other roles combined*. A user with this role is a superuser.
+   Provides access to all the operations and all the resources of *of all
+   other roles combined*. A user with this role is a superuser.
 
-.. Does this need to change with the new user-defined roles?
+.. todo: does this still apply?
 
-.. _auth-role-combined:
-
-Combined-Access Operations
---------------------------
-
-The following operations are available only to users that have multiple
-roles:
-
-:method:`sh.status()`
-   Requires :authrole:`clusterAdmin` and :authrole:`read` access to
-   the :data:`config` database.
-
-:dbcommand:`applyOps`, :dbcommand:`eval` [#eval-shell-helper]_
-   Requires :authrole:`readWriteAnyDatabase`,
-   :authrole:`userAdminAnyDatabase`, :authrole:`dbAdminAnyDatabase` and
-   :authrole:`clusterAdmin` (on the ``admin`` database.)
-
-The following operations related to cluster administration are *not* available to
-users who have *only* the :authrole:`clusterAdmin` role:
-
-:method:`rs.conf()`
-   Requires :authrole:`read` on the ``local`` database.
-
-:method:`sh.addShard()`
-   Requires :authrole:`readWrite` on the ``config`` database.
-
-.. [#eval-shell-helper] The :program:`mongo` shell provides
-   :method:`db.eval()` as a helper for the :dbcommand:`eval` command.
-   As a wrapper, :method:`db.eval()` requires the same privileges.
+.. :dbcommand:`applyOps`, :dbcommand:`eval`, and :method:`db.eval()` require
+   :authrole:`readWriteAnyDatabase`, :authrole:`userAdminAnyDatabase`,
+   :authrole:`dbAdminAnyDatabase` and :authrole:`clusterAdmin`.
