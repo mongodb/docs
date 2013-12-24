@@ -15,35 +15,29 @@ During normal operation, the monitoring agent and backup agent report a live
 account of all activity and operations to a log file. When a log file reaches a
 user-specified limit, the file must be replaced or rotated.
 
-In most cases, :program:`logrotate` software automatically copies, renames,
-compresses, and removes older archived log files.
+On Linux based systems, :program:`logrotate` software automatically copies,
+renames, compresses, and removes older archived log files.
 
-For systems where a program cannot be told to close its log file, the
+For programs that cannot be told to close its log file, the
 :program:`copytruncate` command is available to adapt the log rotation process.
+This command also allows rotating log files without restarting the backup and
+monitoring agents.
 
 Log Rotation With :program:`logrotate`
 --------------------------------------
 
 :program:`logrotate` is installed on most Linux systems in the :file:`/etc`
-folder. Check the ``logrotate.conf`` configuration file exists in this
-folder or install the :program:`logrotate` package.
+folder. Check the ``logrotate.conf`` configuration file exists in this folder
+or install the :program:`logrotate` package.
+
+The logrotate configuration file can be placed anywhere as long as the
+logrotate crontab entry points to the right path.
 
 The behavior of the :program:`logrotate` command is set in the
 ``logrotate.conf`` configuration file.
 
-The ``logrotate.conf`` configuration file is called with the
-:program:`logrotate` command:
-
-.. code-block:: javascript
-
-   logrotate /etc/logrotate.conf
-
-This command should be run as a cron job to ensure log files are rotated
-regularly and, in most cases, run by the root user. :program:`logrotate` often
-is called from a script in the `/etc/cron.daily` directory.
-
-The ``logrotate.conf`` file includes a set of commands in a structured format,
-for example:
+The ``logrotate.conf`` file includes a set of directives in a structured
+format, for example:
 
 .. code-block:: javascript
 
@@ -51,61 +45,60 @@ for example:
    compress
       
    <backup agent log file location> {
-       rotate 5
-       weekly
+       size 10M
+       copytruncate
    }
 
    <monitoring agent log file location> {
-       rotate 5
-       weekly
+       size 10M
+       copytruncate
    }
 
-In this example, the configuration commands include:
+In this example, the configuration directives include:
 
-- **compress** sets a global option to compress files after each file is rotated.
+- **compress** sets a global option to compress log files after each file is
+  rotated. This directive can be placed within each entry if compression is
+  needed for one agent log file but not another.
 
 - **<backup agent log file location>** or **<monitoring agent log file
   location>** sets commands specific to the backup agent or monitoring agent
   log file. The names and locations of backup and monitoring agent log files
-  are set when the agents are installed.
+  are set when the agents are installed. The default log file path location is
+  ``/log/mms-agent/*log``
 
-  - **rotate 5** sets how many times a log file is rotated before archived logs
-    are removed. In this case, the most recent five archived log files are kept
-    and the sixth oldest archived log file will always be deleted as part of
-    the log rotation process.
+  - **size 10M** the log file will be rotated once it exceeds 10 megabytes in
+    size.
   
-  - **weekly** sets log rotation to happen on a weekly basis.
+  - **copytruncate** the log file will be rotated without shutting down the
+    agent software. See the next section for more details about the
+    ``copytruncate`` directive.
   
+These entries and directives in the ``logrotate.conf`` configuration file will
+rotate the log file once it exceeds 10MB in size, compress the old file using
+gzip (default), and the copytruncate option ensures that the MMS agent does not
+have to be restarted for ``logrotate`` to be effective.
+
+If logs must be rotated ``daily`` or ``weekly`` or ``monthly``, then these
+directives should be added above and the ``size`` directive removed. Size does
+not work in conjunction with frequency.
+
 Log Rotation With :program:`copytruncate`
--------------------------------------------
+-----------------------------------------
 
-The :program:`copytruncate` command is used when a program cannot be told to
-close its log file. This command copies the contents of the current log file to
-a new archive file then deletes the contents of the current log file. New log
-activity is added to the now empty current log file.
+The :program:`copytruncate` directive is used when a program cannot be told to
+close its log file. The directive also can be used to rotate logs file without
+restarting the backup and monitoring agents.
+
+This directive copies the contents of the current log file to a new archive
+file then deletes the contents of the current log file. New log activity is
+added to the now empty current log file.
 
 To rotate log files with :program:`copytruncate`, add the *copytruncate*
-setting to the appropriate block in the ``logrotate.conf`` file:
+directive to the appropriate block in the ``logrotate.conf`` file, as shown
+above.
 
-.. code-block:: javascript
-
-   #sample configuration file
-   compress
-      
-   <backup agent log file location> {
-       rotate 5
-       copytruncate
-       weekly
-   }
-
-   <monitoring agent log file location> {
-       rotate 5
-       weekly
-   }
-
-
-When :program:`copytruncate` is used, the :program:`create` command option
-has no effect because the old log file stays in place.
+When :program:`copytruncate` is used, the :program:`create` command option has
+no effect because the old log file stays in place.
 
 There is a very small time window between copy the log file and emptying it.
 Some logging data may be lost with this method.
