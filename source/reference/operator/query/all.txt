@@ -6,14 +6,93 @@ $all
 
 .. query:: $all
 
-
-   The :query:`$all` operator selects the documents where the value
-   of a field is an array that contains all the specified elements. To
+   The :query:`$all` operator selects the documents where the value of
+   a field is an array that contains all the specified elements. To
    specify an :query:`$all` expression, use the following prototype:
 
    .. code-block:: javascript
 
-      { <field>: { $all: [ <value> , <value1> ... ] }
+      { <field>: { $all: [ <value1> , <value2> ... ] }
+
+.. _all-operator-behavior:
+
+Behavior
+--------
+
+Equivalent to ``$and`` Operation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionchanged:: 2.6
+
+The :query:`$all` is equivalent to an :query:`$and` operation of the
+specified values; i.e. the following statement:
+
+.. code-block:: javascript
+
+   { tags: { $all: [ "ssl" , "security" ] } }
+
+is equivalent to:
+
+.. code-block:: javascript
+
+   { $and: [ { tags: "ssl" }, { tags: "security" } ] }
+
+Nested Array
+~~~~~~~~~~~~
+
+.. versionchanged:: 2.6
+
+When passed an array of a nested array (e.g. ``[ [ "A" ] ]`` ),
+:query:`$all` can now match documents where the field contains the
+nested array as an element (e.g. ``field: [ [ "A" ], ... ]``), *or* the
+field equals the nested array (e.g. ``field: [ "A" ]``).
+
+For example, consider the following query [#illustrative]_:
+
+.. code-block:: javascript
+
+   db.articles.find( { tags: { $all: [ [ "ssl", "security" ] ] } } )
+
+The query is equivalent to:
+
+.. code-block:: javascript
+
+   db.articles.find( { $and: [ { tags: [ "ssl", "security" ] } ] } )
+
+which is equivalent to:
+
+.. code-block:: javascript
+
+   db.articles.find( { tags: [ "ssl", "security" ] } )
+
+As such, the :query:`$all` expression can match documents where the
+``tags`` field is an array that contains the nested array ``[ "ssl",
+"security" ]`` or is an array that equals the nested array:
+
+.. code-block:: javascript
+
+   tags: [ [ "ssl", "security" ], ... ]
+   tags: [ "ssl", "security" ]
+
+This behavior for :query:`$all` allows for more matches than previous
+versions of MongoDB. Earlier version could only match documents where
+the field contains the nested array.
+
+.. [#illustrative]
+   The :query:`$all` expression with a *single* element is for
+   illustrative purposes since the :query:`$all` expression is
+   unnecessary if matching only a single element. Instead, when
+   matching a single element, a "contains" expression (i.e.
+   ``arrayField: element`` ) is more suitable.
+
+Performance
+~~~~~~~~~~~
+
+Queries that use the :query:`$all` operator must scan all the documents
+that match the first element in the :query:`$all` expression. As a
+result, even with an index to support the query, the operation may be
+long running, particularly when the first element in the :query:`$all`
+expression is not very selective.
 
 Examples
 --------
@@ -165,14 +244,10 @@ collection where the value of the ``qty`` field equals ``50``.
 
 .. note::
 
-   - In most cases, MongoDB does not treat arrays as sets. This
-     operator provides a notable exception to this approach.
+   .. Comment -- do we need this note?
 
-   - In the current release, queries that use the :query:`$all`
-     operator must scan all the documents that match the first element
-     in the query array. As a result, even with an index to support the
-     query, the operation may be long running, particularly when the
-     first element in the array is not very selective.
+   In most cases, MongoDB does not treat arrays as sets. This operator
+   provides a notable exception to this approach.
 
 .. seealso::
    :method:`~db.collection.find()`, :method:`~db.collection.update()`, and :update:`$set`.
