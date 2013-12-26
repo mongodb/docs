@@ -11,13 +11,12 @@ Definition
 
    .. versionadded:: 2.5.3
 
-   Incrementally deletes :term:`orphaned data <orphaned document>`,
-   or those documents on a shard that have shard key values that do
-   not fall within the ranges the :term:`chunks <chunk>` owned by
-   that shard. Delete operations use a :term:`write concern` of ``w: majority``.
-
-   Orphaned data sometimes results from aborted migrations due to
-   network latency and power loss.
+   :dbcommand:`cleanupOrphaned` is an admin command that incrementally
+   deletes :term:`orphaned data <orphaned document>`, or those
+   documents on a shard that have shard key values that do not fall
+   within the ranges of the :term:`chunks <chunk>` owned by that
+   shard. Delete operations use a :term:`write concern` of ``w:
+   majority``.
 
    Run :dbcommand:`cleanupOrphaned` directly on the :program:`mongod`
    instance on the primary replica set member of the shard. Do not
@@ -28,8 +27,7 @@ Definition
    .. code-block:: javascript
 
       {
-         "cleanupOrphaned": 1,
-         "collection": <database>.<collection>,
+         cleanupOrphaned: "<namespace = db.collection name>",
          "startingAtKey": <minimumShardKeyValue>,
          "secondaryThrottle": true
       }
@@ -137,16 +135,15 @@ Run the following code in the :program:`mongo` shell:
    use admin
    var nextKey = {};
    while (
-            nextKey = db.runCommand( { cleanupOrphaned : "test.user",
+            nextKey = db.runCommand( { cleanupOrphaned : "user",
                                        startingFromKey : nextKey } ).stoppedAtKey
          ) { printjson(nextKey); }
 
 Specify a Different Initial Key
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In the ``testdb`` database, with a sharded ``info`` collection,
-given a shard that has only a single chunk, where :method:`sh.status`
-reports the following range:
+With a sharded ``info`` collection, given a shard that has only a
+single chunk, where :method:`sh.status` reports the following range:
 
 .. code-block:: javascript
 
@@ -165,8 +162,7 @@ Use one of the following commands to clean up the first range:
 .. code-block:: javascript
 
    {
-      "cleanupOrphaned": 1,
-      "collection": testdb.info,
+      "cleanupOrphaned": info,
       "startingAtKey": { x : 0 },
       "secondaryThrottle": true
    }
@@ -174,8 +170,7 @@ Use one of the following commands to clean up the first range:
 .. code-block:: javascript
 
    {
-      "cleanupOrphaned": 1,
-      "collection": testdb.info,
+      "cleanupOrphaned": info,
       "secondaryThrottle": true
    }
 
@@ -184,8 +179,7 @@ To clean the second range, use one of the following commands:
 .. code-block:: javascript
 
    {
-      "cleanupOrphaned": 1,
-      "collection": testdb.info,
+      "cleanupOrphaned": info,
       "startingAtKey": { x : 2 },
       "secondaryThrottle": true
    }
@@ -193,8 +187,10 @@ To clean the second range, use one of the following commands:
 .. code-block:: javascript
 
    {
-      "cleanupOrphaned": 1,
-      "collection": testdb.info,
+      "cleanupOrphaned": info,
       "startingAtKey": { x : 10 },
       "secondaryThrottle": true
    }
+
+.. admin-only
+
